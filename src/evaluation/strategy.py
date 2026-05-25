@@ -308,7 +308,7 @@ This module supplies the calendar primitives used by the strategy-eval scaffold:
   the per-bar log-return sum (`sumret`) since the repo data has no absolute
   price column.
 
-Conventions follow `src/loading.py`: bars are 30-min, continuous 24/5 from
+Conventions follow `src/data/loading.py`: bars are 30-min, continuous 24/5 from
 Sunday 18:30 ET through Friday 20:00 ET, weekends dropped, all timestamps
 tz-naive ET. Timestamps refer to the *end* of the bar (`endbartime`).
 """
@@ -355,13 +355,13 @@ def _compute_trade_date(
     - `Fri 17:00 -> next Mon` (post-Fri-close tail belongs to next Monday)
 
     The returned `pd.DatetimeIndex` is tz-naive (matching the input convention
-    in `src/loading.py`) and contains midnight-ET dates. The output length
+    in `src/data/loading.py`) and contains midnight-ET dates. The output length
     equals the input length; one label per input timestamp.
 
     Parameters
     ----------
     timestamps : pd.DatetimeIndex or pd.Series
-        Bar end-timestamps (`endbartime` per `src/loading.py`), tz-naive ET.
+        Bar end-timestamps (`endbartime` per `src/data/loading.py`), tz-naive ET.
     boundary : str
         One of `'16:00'`, `'17:00'`, `'18:30'`. Anything else raises
         `ValueError` listing the legal values.
@@ -414,7 +414,7 @@ def _session_bars(
     """Return the ordered bar end-timestamps of session `trade_date`.
 
     Bars are 30-min apart on the 24/5 grid (continuous Sun 18:30 ET .. Fri
-    20:00 ET, weekends dropped) used by `src/loading.py`. The returned index
+    20:00 ET, weekends dropped) used by `src/data/loading.py`. The returned index
     is the list of bar realization-timestamps `b_0, b_1, ..., b_{N_D - 1}` for
     the session, in time order.
 
@@ -454,7 +454,7 @@ def _session_bars(
     win_end: pd.Timestamp = td + pd.Timedelta(days=1)
     candidates: pd.DatetimeIndex = pd.date_range(start=win_start, end=win_end, freq=FREQ)
 
-    # Apply the same 24/5 market-hours filter as `src/loading.py` so we never
+    # Apply the same 24/5 market-hours filter as `src/data/loading.py` so we never
     # return weekend or post-Friday-close bars.
     weekday: np.ndarray = np.asarray(candidates.weekday)
     tod: np.ndarray = np.asarray(candidates.time)
@@ -792,7 +792,7 @@ def filter_intraday_estimate(
 variance-swap diagnostic, plus standard strategy metrics.
 
 This module assumes the helper functions `_bs_gamma` and `_session_bars` are
-defined elsewhere in the same emitted `src/strategy_eval.py` module (see the
+defined elsewhere in the same emitted `src/evaluation/strategy.py` module (see the
 sibling staging files). Strategy code consumes the daily summary produced by
 `filter_intraday_estimate` and the original chunk DataFrame; it depends on
 implied vol only through the thin `IVProvider` protocol.
@@ -801,7 +801,7 @@ implied vol only through the thin `IVProvider` protocol.
 # Imports (typing.Literal, numpy as np, pandas as pd) hoisted to 01_module_header.
 
 # Annualization constants. 252 trading days * 48 thirty-minute bars per
-# 24-hour day. The continuous 24/5 grid in `src/loading.py` motivates the
+# 24-hour day. The continuous 24/5 grid in `src/data/loading.py` motivates the
 # 48-bar-per-day convention even though equity sessions are shorter.
 _TRADING_DAYS_PER_YEAR: int = 252
 _BARS_PER_DAY: int = 48
@@ -1079,7 +1079,7 @@ def compute_variance_swap_pnl_diagnostic(
 def compute_strategy_metrics(pnl: pd.Series) -> dict[str, float]:
     """Standard strategy metrics for a daily P&L series.
 
-    Mirrors the shape of ``src/evaluation.py:calculate_metrics``: a flat
+    Mirrors the shape of ``src/evaluation/metrics.py:calculate_metrics``: a flat
     dict of named scalar metrics suitable for JSON serialization. All
     metrics are scale-invariant ratios (Sharpe, hit rate, t-stat) or sums
     in the same units as the input ``pnl``.

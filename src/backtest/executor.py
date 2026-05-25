@@ -15,7 +15,7 @@ dispatcher) and ``.hpc/tasks.py`` FLAGS dict — the per-executor flag
 list lives there, not in this module. ``run_executor`` and the
 backtest plumbing remain here. The flags expected on ``args`` match
 those declared in ``.hpc/tasks.py`` FLAGS for the calling executor's
-module key (e.g. ``FLAGS["src/tune_tree.py`` (cmd_evaluate) passes via subprocess:
+module key (e.g. ``FLAGS["src/backtest/tune_tree.py`` (cmd_evaluate) passes via subprocess:
 ``--params-file --output-file --start --end --data-path --train-window``
 ``--horizon --exog-cols`` plus the Ridge-only ``--segment`` and
 ``--lag-scope`` and the optional ``--refit-frequency`` / ``--seed``.
