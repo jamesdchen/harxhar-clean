@@ -1,4 +1,4 @@
-model: ml_random_forest
+model: random_forest
 
 horizon: 1
 train_window: 500

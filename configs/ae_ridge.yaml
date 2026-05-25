@@ -1,4 +1,4 @@
-model: dl_ae_ridge
+model: ae_ridge
 
 horizon: 1
 train_window: 500

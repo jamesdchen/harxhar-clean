@@ -4,10 +4,10 @@ Usage:
     python run.py --config configs/ridge.yaml
     python run.py --config configs/xgboost.yaml --override train_window=750 seed=7
 
-The YAML must have a top-level ``model:`` field naming a module under ``src/``
-(e.g. ``ml_ridge``, ``dl_patchts``). All other top-level keys are passed as
-keyword arguments to that module's entry function: ``run(...)`` for the
-``ml_*`` modules; ``compute(args)`` for the ``dl_*`` modules.
+The YAML must have a top-level ``model:`` field naming a module under
+``src/models/`` (e.g. ``ridge``, ``patchts``). All other top-level keys are
+passed as keyword arguments to that module's entry function: ``run(...)``
+for the ML models; ``compute(args)`` for the DL models.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     model = config.pop("model")
     params = _apply_overrides(config, args.override)
 
-    module = importlib.import_module(f"src.{model}")
+    module = importlib.import_module(f"src.models.{model}")
 
     if hasattr(module, "run"):
         result = module.run(**params)
@@ -73,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
     if hasattr(module, "compute"):
         module.compute(SimpleNamespace(**params))
         return 0
-    raise SystemExit(f"src.{model} exposes neither run(**params) nor compute(args)")
+    raise SystemExit(f"src.models.{model} exposes neither run(**params) nor compute(args)")
 
 
 if __name__ == "__main__":

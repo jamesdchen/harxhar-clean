@@ -1,4 +1,4 @@
-model: ml_lightgbm
+model: lightgbm
 
 horizon: 1
 train_window: 500

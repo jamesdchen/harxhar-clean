@@ -1,4 +1,4 @@
-model: dl_patchts
+model: patchts
 
 horizon: 1
 train_window: 500

@@ -1,4 +1,4 @@
-model: ml_pcr
+model: pcr
 
 horizon: 1
 train_window: 500

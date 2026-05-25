@@ -1,4 +1,4 @@
-model: ml_xgboost
+model: xgboost
 
 horizon: 1
 train_window: 500
