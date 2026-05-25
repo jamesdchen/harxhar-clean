@@ -27,7 +27,7 @@ partial and ``_compute_trial_qlike`` folds them with the additive monoid
 A campaign-aware tasks.py example for tuning ml_xgboost over 100 trials
 in batches of 10:
 
-    from src.tune_tree import suggest_batch, _load_or_create_study
+    from src.backtest.tune_tree import suggest_batch, _load_or_create_study
     from hpc_mapreduce.reduce.history import prior
     import os
     _PRIOR = prior(".", os.environ["HPC_CAMPAIGN_ID"])
@@ -55,9 +55,9 @@ from pathlib import Path
 _MODELS = ["rf", "xgb", "lgbm"]
 
 _EXECUTOR_SCRIPTS = {
-    "rf": "src/ml_random_forest.py",
-    "xgb": "src/ml_xgboost.py",
-    "lgbm": "src/ml_lightgbm.py",
+    "rf": "src/models/random_forest.py",
+    "xgb": "src/models/xgboost.py",
+    "lgbm": "src/models/lightgbm.py",
 }
 
 

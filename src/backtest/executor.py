@@ -3,8 +3,8 @@
 """Shared executor scaffold for ML walk-forward volatility backtests.
 
 Lifts the ~90% duplicated `main()` body of the per-method executors
-(`src/ml_xgboost.py`, `src/ml_lightgbm.py`, `src/ml_random_forest.py`,
-`src/ml_ridge.py`) into one module. Per-method scripts supply only a
+(`src/models/xgboost.py`, `src/models/lightgbm.py`, `src/models/random_forest.py`,
+`src/models/ridge.py`) into one module. Per-method scripts supply only a
 `fit_predict(X_chunk, y_chunk, train_win_periods, hyperparams)`
 callable plus a default-hyperparam dict; everything else — CLI parsing,
 loading, transforms, horizon shift, chunk slicing, smearing, reduce

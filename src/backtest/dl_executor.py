@@ -2,7 +2,7 @@
 
 """Shared DL-executor boilerplate.
 
-Pulled out of `src/dl_ae_ridge.py` and `src/dl_patchts.py`; both
+Pulled out of `src/models/ae_ridge.py` and `src/models/patchts.py`; both
 were duplicating the same RNG seeding, the same CLI flag set, and
 the same smearing/save block. This module owns those three things;
 the model+training+backtest logic stays in the per-method files.
