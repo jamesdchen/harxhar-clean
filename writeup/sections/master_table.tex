@@ -1,0 +1,15 @@
+\begin{table}[t]
+\centering
+\caption{Headline: best feature set per method (by QLIKE).}
+\label{tab:master_compact}
+\begin{tabular}{llllllllllll}
+\toprule
+method & feature\_set & config & n & qlike & w\_qlike & mse & oos\_r2 & mz\_alpha & mz\_beta & mz\_t\_beta\_eq\_1 & mz\_r2 \\
+\midrule
+naive & har & baseline & 218,934 & 0.1955 & 0.1769 & 0.1018 & — & +4.02e-07 & 0.7731 & -162.27 & 0.5828 \\
+ridge & moments & baseline\_exog\_sweep\_2026\_05\_05 & 218,934 & 0.1305 & 0.1132 & 0.0598 & +0.3324 & +5.3e-08 & 0.9394 & -48.49 & 0.7206 \\
+xgb & moments & baseline\_exog\_sweep\_2026\_05\_05 & 218,934 & 0.1279 & 0.1112 & 0.0599 & +0.3456 & +1.76e-07 & 0.8822 & -101.96 & 0.7268 \\
+lgbm & moments & baseline\_exog\_sweep\_2026\_05\_05 & 218,934 & 0.1278 & 0.1107 & 0.0597 & +0.3463 & +1.74e-07 & 0.8858 & -98.75 & 0.7284 \\
+\bottomrule
+\end{tabular}
+\end{table}
