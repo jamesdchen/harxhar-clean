@@ -1,0 +1,14 @@
+model: dl_ae_ridge
+
+horizon: 1
+train_window: 500
+data_path: all30min
+output_file: results/ae_ridge/run.csv
+seed: 42
+gpu_count: 1
+epochs: null
+batch_size: null
+learning_rate: null
+n_components: null
+chunk_id: 0
+total_chunks: 1

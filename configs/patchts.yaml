@@ -1,0 +1,13 @@
+model: dl_patchts
+
+horizon: 1
+train_window: 500
+data_path: all30min
+output_file: results/patchts/run.csv
+seed: 42
+gpu_count: 1
+epochs: null
+batch_size: null
+learning_rate: null
+chunk_id: 0
+total_chunks: 1

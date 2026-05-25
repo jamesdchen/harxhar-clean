@@ -1,0 +1,10 @@
+model: ml_random_forest
+
+horizon: 1
+train_window: 500
+refit_frequency: 5
+exog_cols: ""
+seed: 42
+data_path: all30min
+output_file: results/random_forest/run.json
+params_file: ""

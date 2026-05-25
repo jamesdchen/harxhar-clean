@@ -1,0 +1,10 @@
+model: ml_lightgbm
+
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: ""
+seed: 42
+data_path: all30min
+output_file: results/lightgbm/run.json
+params_file: ""
