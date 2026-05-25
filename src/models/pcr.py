@@ -272,11 +272,11 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import Ridge
 from tqdm import tqdm
 
-from src.evaluation import calculate_metrics
-from src.executor import load_and_transform
-from src.loading import parse_exog_cols
-from src.scaling import RollingRobustScaler
-from src.transforms import PERIODS_PER_DAY, generate_raw_lag_features, resolve_pca_lags
+from src.evaluation.metrics import calculate_metrics
+from src.backtest.executor import load_and_transform
+from src.data.loading import parse_exog_cols
+from src.features.scaling import RollingRobustScaler
+from src.features.transforms import PERIODS_PER_DAY, generate_raw_lag_features, resolve_pca_lags
 
 PCR_REFIT_FREQUENCY: int = 240
 

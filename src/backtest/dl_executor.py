@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from src.evaluation import apply_duan_smearing, calculate_metrics
+from src.evaluation.metrics import apply_duan_smearing, calculate_metrics
 
 logger = logging.getLogger(__name__)
 

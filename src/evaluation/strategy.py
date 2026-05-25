@@ -55,7 +55,7 @@ from typing import Literal, Protocol, runtime_checkable
 import numpy as np
 import pandas as pd
 
-from .loading import FREQ, FRIDAY_CLOSE, START_DATE, SUBGROUPS, SUNDAY_OPEN, load_raw_data
+from src.data.loading import FREQ, FRIDAY_CLOSE, START_DATE, SUBGROUPS, SUNDAY_OPEN, load_raw_data
 
 H_BARS_PER_DAY: int = 48
 """Number of 30-min bars in a 24-hour day. The model emits this many horizons

@@ -269,9 +269,9 @@ def _run_context(ns: dict[str, Any]) -> Iterator[None]:
 import numpy as np
 import pandas as pd
 
-from src.evaluation import apply_duan_smearing, calculate_metrics
-from src.executor import load_and_transform
-from src.transforms import (
+from src.evaluation.metrics import apply_duan_smearing, calculate_metrics
+from src.backtest.executor import load_and_transform
+from src.features.transforms import (
     PERIODS_PER_DAY,
     apply_horizon_shift,
     generate_har_features,

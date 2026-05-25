@@ -270,10 +270,10 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 
-from src.evaluation import calculate_metrics
-from src.executor import run_executor
-from src.loading import parse_exog_cols
-from src.scaling import run_backtest
+from src.evaluation.metrics import calculate_metrics
+from src.backtest.executor import run_executor
+from src.data.loading import parse_exog_cols
+from src.features.scaling import run_backtest
 
 DEFAULT_RF_PARAMS: dict = dict(
     n_estimators=500,
@@ -291,7 +291,7 @@ def fit_predict_rf(
 ) -> np.ndarray:
     """Walk-forward backtest with RandomForestRegressor. Returns OOS predictions.
 
-    Wraps :func:`src.scaling.run_backtest` (no feature scaling;
+    Wraps :func:`src.features.scaling.run_backtest` (no feature scaling;
     refit cadence from ``hyperparams['_refit_frequency']``). Internal control
     keys (``_*``) are stripped before forwarding to the model constructor.
     """

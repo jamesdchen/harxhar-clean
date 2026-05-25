@@ -270,10 +270,10 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
 
-from src.evaluation import calculate_metrics
-from src.executor import run_executor
-from src.loading import parse_exog_cols
-from src.scaling import run_backtest
+from src.evaluation.metrics import calculate_metrics
+from src.backtest.executor import run_executor
+from src.data.loading import parse_exog_cols
+from src.features.scaling import run_backtest
 
 DEFAULT_RIDGE_PARAMS: dict = dict(alpha=1.0)
 
@@ -286,7 +286,7 @@ def fit_predict_ridge(
 ) -> np.ndarray:
     """Walk-forward backtest with Ridge. Returns OOS predictions.
 
-    Wraps :func:`src.scaling.run_backtest` with ``use_scaling=False``: the
+    Wraps :func:`src.features.scaling.run_backtest` with ``use_scaling=False``: the
     feature matrix is rolling-robust-scaled *whole-series* upstream (the
     shared scaffold calls ``rolling_robust_scale`` when ``prescale=True``),
     so the scaler's look-back is absorbed into data prep and the chunked
