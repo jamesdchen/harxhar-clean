@@ -58,17 +58,17 @@ def _load_config(path: Path) -> dict:
 
 
 def _spectral_knn_pipeline(config: dict) -> dict:
-    """Ridge baseline + spectral embedding of residuals + kNN regression.
+    """Ridge residualizer + spectral embedding of residuals + kNN regression.
 
-    Each piece comes from its own module — the composition is explicit here::
+    Each piece is its own module — the composition is explicit here::
 
-        baseline   = sklearn.linear_model.Ridge
-        feature    = src.features.spectral_embedding.build_embedding
-        regressor  = sklearn.neighbors.KNeighborsRegressor (Gaussian weights)
+        residualizer  = Residualizer(Ridge)                    (src.features.residualizer)
+        feature       = build_embedding                        (src.features.spectral_embedding)
+        regressor     = KNeighborsRegressor (Gaussian weights) (src.models.knn helper)
 
-    :class:`src.backtest.multi_stage.MultiStageBacktest` owns the walk-forward
-    loop and refit bookkeeping; this function only does data prep + Duan
-    smearing + result-saving around it.
+    :class:`src.backtest.multi_stage.MultiStageBacktest` runs the walk-forward
+    loop + refit bookkeeping; this function only does data prep + Duan smearing
+    + result-saving around it.
     """
     import numpy as np
     import pandas as pd
@@ -78,6 +78,7 @@ def _spectral_knn_pipeline(config: dict) -> dict:
     from src.backtest.executor import _build_har_and_calendar, load_and_transform
     from src.backtest.multi_stage import MultiStageBacktest
     from src.evaluation.metrics import calculate_metrics
+    from src.features.residualizer import Residualizer
     from src.features.scaling import rolling_robust_scale
     from src.features.spectral_embedding import build_embedding
     from src.features.transforms import PERIODS_PER_DAY
@@ -103,10 +104,10 @@ def _spectral_knn_pipeline(config: dict) -> dict:
     train_win = int(config["train_window"]) * PERIODS_PER_DAY
     X_scaled = rolling_robust_scale(X, train_win)
 
-    # ── 2. Composition: Ridge -> spectral_embedding -> kNN ──────────────────
+    # ── 2. Composition: Ridge residualizer -> spectral_embedding -> kNN ─────
     seed = int(config["seed"])
     backtest = MultiStageBacktest(
-        baseline_factory=lambda: Ridge(alpha=float(config["ridge_alpha"])),
+        residualizer=Residualizer(lambda: Ridge(alpha=float(config["ridge_alpha"]))),
         feature_fit=lambda views: build_embedding(
             views,
             d=int(config["embedding_dim"]),
