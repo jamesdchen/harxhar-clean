@@ -144,7 +144,7 @@ def run(
     n_components: int = 5,
     exog_cols: str = "",
     seed: int = 42,
-    data_path: str = "all30min",
+    data_path: str = "data",
     output_file: str = "results/pcr/run.json",
 ) -> dict:
     """PCA + Ridge (PCR) walk-forward volatility backtest.

@@ -5,5 +5,5 @@ train_window: 500
 n_components: 5
 exog_cols: ""
 seed: 42
-data_path: all30min
+data_path: data
 output_file: results/pcr/run.json

@@ -14,7 +14,7 @@ from src.features.transforms import (
 def run(
     horizon: int = 1,
     train_window: int = 500,
-    data_path: str = "all30min",
+    data_path: str = "data",
     output_file: str = "results/baseline/run.json",
 ) -> dict:
     """Naive HAR-MA(125) baseline volatility forecast.

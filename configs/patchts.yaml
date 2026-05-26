@@ -2,7 +2,7 @@ model: patchts
 
 horizon: 1
 train_window: 500
-data_path: all30min
+data_path: data
 output_file: results/patchts/run.csv
 seed: 42
 gpu_count: 1

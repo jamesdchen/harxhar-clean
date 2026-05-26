@@ -54,7 +54,7 @@ def run(
     lag_scope: str = "global",
     alpha: float = 1.0,
     seed: int = 42,
-    data_path: str = "all30min",
+    data_path: str = "data",
     output_file: str = "results/ridge/run.json",
     params_file: str = "",
 ) -> dict:

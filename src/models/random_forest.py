@@ -50,7 +50,7 @@ def run(
     refit_frequency: int | None = None,
     exog_cols: str = "",
     seed: int = 42,
-    data_path: str = "all30min",
+    data_path: str = "data",
     output_file: str = "results/rf/run.json",
     params_file: str = "",
 ) -> dict:

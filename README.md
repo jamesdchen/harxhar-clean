@@ -30,9 +30,8 @@ src/
 
 notebooks/              Scratchpad mirroring src/ (data / features / models / …)
 configs/                One YAML per model run
-all30min/               Input parquets (30-min bar data)
-data/                   Output staging
-results/                Tracked summary CSVs
+data/                   Input parquets (30-min bar data)
+results/                Tracked summary CSVs (outputs land here)
 writeup/                LaTeX paper + figures
 run.py                  Entry point: python run.py --config configs/<model>.yaml
 ```
