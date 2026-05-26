@@ -8,7 +8,7 @@ from sklearn.linear_model import Ridge
 from src.evaluation.metrics import calculate_metrics
 from src.backtest.executor import run_executor
 from src.data.loading import parse_exog_cols
-from src.features.scaling import run_backtest
+from src.backtest.walk_forward import run_backtest
 
 DEFAULT_RIDGE_PARAMS: dict = dict(alpha=1.0)
 

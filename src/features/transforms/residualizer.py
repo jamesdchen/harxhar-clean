@@ -35,7 +35,7 @@ class Residualizer:
     ::
 
         from sklearn.linear_model import Ridge
-        from src.features.residualizer import Residualizer
+        from src.features.transforms.residualizer import Residualizer
 
         res = Residualizer(lambda: Ridge(alpha=1.0)).fit(X_train, y_train)
         residuals_train = res.residuals(X_train, y_train)

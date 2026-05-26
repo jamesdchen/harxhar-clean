@@ -32,7 +32,7 @@ from typing import Any, Protocol
 import numpy as np
 from tqdm import tqdm
 
-from src.features.residualizer import Residualizer
+from src.features.transforms.residualizer import Residualizer
 
 
 class _Basis(Protocol):

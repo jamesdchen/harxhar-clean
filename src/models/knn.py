@@ -9,7 +9,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from src.backtest.executor import run_executor
 from src.data.loading import parse_exog_cols
 from src.evaluation.metrics import calculate_metrics
-from src.features.scaling import run_backtest
+from src.backtest.walk_forward import run_backtest
 
 DEFAULT_KNN_PARAMS: dict = dict(n_neighbors=25, weighting="gaussian")
 
@@ -28,7 +28,7 @@ def gaussian_weights(distances: np.ndarray) -> np.ndarray:
 def _resolve_weights(weighting: str) -> str | Callable[[np.ndarray], np.ndarray]:
     """Map the config's ``weighting`` string to a sklearn ``weights`` argument."""
     if weighting == "gaussian":
-        return _gaussian_weights
+        return gaussian_weights
     if weighting in ("uniform", "distance"):
         return weighting
     raise ValueError(f"unknown kNN weighting: {weighting!r}")

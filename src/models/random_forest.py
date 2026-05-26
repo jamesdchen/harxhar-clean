@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 from src.evaluation.metrics import calculate_metrics
 from src.backtest.executor import run_executor
 from src.data.loading import parse_exog_cols
-from src.features.scaling import run_backtest
+from src.backtest.walk_forward import run_backtest
 
 DEFAULT_RF_PARAMS: dict = dict(
     n_estimators=500,

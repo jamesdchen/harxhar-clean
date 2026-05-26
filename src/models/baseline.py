@@ -5,12 +5,8 @@ import pandas as pd
 
 from src.evaluation.metrics import apply_duan_smearing, calculate_metrics
 from src.backtest.executor import load_and_transform
-from src.features.transforms import (
-    PERIODS_PER_DAY,
-    apply_horizon_shift,
-    generate_har_features,
-    resolve_har_lags,
-)
+from src.features.extractors.har import generate_har_features, resolve_har_lags
+from src.features.transforms.target import PERIODS_PER_DAY, apply_horizon_shift
 
 
 def run(

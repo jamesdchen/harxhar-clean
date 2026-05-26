@@ -78,10 +78,10 @@ def _spectral_knn_pipeline(config: dict) -> dict:
     from src.backtest.executor import _build_har_and_calendar, load_and_transform
     from src.backtest.multi_stage import MultiStageBacktest
     from src.evaluation.metrics import calculate_metrics
-    from src.features.residualizer import Residualizer
-    from src.features.scaling import rolling_robust_scale
-    from src.features.spectral_embedding import build_embedding
-    from src.features.transforms import PERIODS_PER_DAY
+    from src.features.transforms.residualizer import Residualizer
+    from src.features.transforms.scaling import rolling_robust_scale
+    from src.features.extractors.spectral_embedding import build_embedding
+    from src.features.transforms.target import PERIODS_PER_DAY
     from src.models.knn import gaussian_weights
 
     # ── 1. Data prep ────────────────────────────────────────────────────────

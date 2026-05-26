@@ -31,18 +31,15 @@ import pandas as pd
 
 from src.evaluation.metrics import apply_duan_smearing, save_chunk_reduce
 from src.data.loading import apply_overnight_fills, load_raw_data
-from src.features.scaling import rolling_robust_scale
-from src.features.transforms import (
-    PERIODS_PER_DAY,
+from src.features.transforms.scaling import rolling_robust_scale
+from src.backtest.segmentation import (
     SEGMENT_DEFINITIONS,
-    add_calendar_features,
-    apply_horizon_shift,
     compute_segment_train_window,
-    generate_har_features,
-    resolve_har_lags,
-    robust_transform,
     slice_to_segment,
 )
+from src.features.extractors.calendar import add_calendar_features
+from src.features.extractors.har import generate_har_features, resolve_har_lags
+from src.features.transforms.target import PERIODS_PER_DAY, apply_horizon_shift, robust_transform
 
 FitPredict = Callable[[np.ndarray, np.ndarray, int, dict], np.ndarray]
 
