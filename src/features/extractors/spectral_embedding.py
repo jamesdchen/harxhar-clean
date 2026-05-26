@@ -19,12 +19,14 @@ from sklearn.neighbors import NearestNeighbors
 class SpectralBasis:
     """Frozen training-side spectral embedding state.
 
-    ``sklearn.manifold.SpectralEmbedding`` doesn't implement ``transform()``,
-    so we cache a ``NearestNeighbors`` index over the training views to do
-    weighted-kNN Nyström extension for new test points.
+    Holds the training-side embedding ``phi_train`` plus a fitted
+    ``NearestNeighbors`` index over the training views (the NN index
+    already retains the views internally in ``_fit_X``).
+    ``sklearn.manifold.SpectralEmbedding`` doesn't implement
+    ``transform()``, so the NN index drives weighted-kNN Nyström
+    extension for new test points.
     """
 
-    views_train: np.ndarray
     phi_train: np.ndarray
     k_graph: int
     nn_index: NearestNeighbors
@@ -69,7 +71,6 @@ def build_embedding(views: np.ndarray, d: int, k_graph: int, seed: int = 42) -> 
     phi_train = spectral.fit_transform(views)
     nn_index = NearestNeighbors(n_neighbors=k_graph).fit(views)
     return SpectralBasis(
-        views_train=views,
         phi_train=phi_train,
         k_graph=k_graph,
         nn_index=nn_index,
