@@ -35,16 +35,20 @@ class Residualizer:
 
     Example
     -------
-    ::
+    Single fit (test residuals from one model trained on the first window)::
 
         from sklearn.linear_model import Ridge
         from src.features.transforms.residualizer import Residualizer
 
         res = Residualizer(lambda: Ridge(alpha=1.0)).fit(X_train, y_train)
         residuals_train = res.residuals(X_train, y_train)
-        # At test time t:
-        baseline_hat = res.predict(X[t:t + 1])
         v_test = res.residuals(X[t - W : t], y[t - W : t])
+
+    Walk-forward (residual series over the whole OOS region, refitting the
+    baseline every step or on a cadence)::
+
+        res = Residualizer(lambda: Ridge(alpha=1.0))
+        residuals_oos = res.walk_forward_residuals(X, y, train_win)
     """
 
     def __init__(self, baseline_factory: Callable[[], Any]) -> None:
@@ -67,6 +71,63 @@ class Residualizer:
         """Return ``y - baseline.predict(X)``. Requires a prior :meth:`fit`."""
         return y - self.predict(X)
 
+    def walk_forward_residuals(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        train_win: int,
+        refit_frequency: int = 1,
+        progress: bool = False,
+    ) -> np.ndarray:
+        """Walk-forward residuals over ``X[train_win:]``.
+
+        At each test step ``t`` in ``[train_win, len(X))``, refit the baseline
+        on the trailing ``train_win`` rows ``[t - train_win, t)`` and emit
+        ``y[t] - baseline.predict(X[t])``. The baseline refits every
+        ``refit_frequency`` steps (1 = every step). Same causal structure as
+        :class:`src.backtest.multi_stage.MultiStageBacktest`.
+
+        Parameters
+        ----------
+        X, y
+            Feature matrix and target. Must be aligned.
+        train_win
+            Rolling training-window size in samples.
+        refit_frequency
+            Cadence (in steps) at which the baseline is refit. 1 = every step
+            (true walk-forward); larger values amortize fit cost at the price
+            of slightly stale baselines between refits.
+        progress
+            If True, show a tqdm progress bar.
+
+        Returns
+        -------
+        np.ndarray
+            Shape ``(len(X) - train_win,)``. Entry ``k`` is the residual for
+            sample ``t = train_win + k``.
+        """
+        n = len(X)
+        if train_win >= n:
+            raise ValueError(f"train_win ({train_win}) >= series length ({n})")
+        if len(X) != len(y):
+            raise ValueError(f"len(X)={len(X)} != len(y)={len(y)}")
+
+        n_test = n - train_win
+        out = np.empty(n_test, dtype=np.float64)
+
+        iterator: Any = range(n_test)
+        if progress:
+            from tqdm import tqdm
+
+            iterator = tqdm(iterator, desc="walk_forward_residuals")
+
+        for i in iterator:
+            t = train_win + i
+            if i % refit_frequency == 0:
+                self.fit(X[t - train_win : t], y[t - train_win : t])
+            out[i] = y[t] - self.predict(X[t : t + 1])[0]
+        return out
+
 
 class IdentityResidualizer:
     """No-op residualizer: ``predict(X) == 0``, ``residuals(X, y) == y``.
@@ -87,3 +148,15 @@ class IdentityResidualizer:
 
     def residuals(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return y
+
+    def walk_forward_residuals(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        train_win: int,
+        refit_frequency: int = 1,
+        progress: bool = False,
+    ) -> np.ndarray:
+        """Walk-forward (degenerate): residuals = y[train_win:]."""
+        del refit_frequency, progress  # unused; the residual stream is just y
+        return y[train_win:].astype(np.float64).copy()
