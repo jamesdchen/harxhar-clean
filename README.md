@@ -23,30 +23,49 @@ src/
 ├── backtest/           Wire data → features → model → eval
 │   ├── executor.py       run_executor() — ML scaffold
 │   ├── dl_executor.py    DL scaffold
+│   ├── multi_stage.py    MultiStageBacktest (baseline + residual feature + regressor)
 │   └── tune_tree.py      Optuna loop
 └── evaluation/         Scoring + strategy
     ├── metrics.py        Duan smearing, QLIKE / MSE / MAE
     └── strategy.py       PnL evaluation
 
 notebooks/              Scratchpad mirroring src/ (data / features / models / …)
-configs/                One YAML per model run
+configs/                One YAML per experiment
 data/                   Input parquets (30-min bar data)
 results/                Tracked summary CSVs (outputs land here)
 writeup/                LaTeX paper + figures
-run.py                  Entry point: python run.py --config configs/<model>.yaml
+run.py                  Entry point: python run.py --config configs/<name>.yaml
 ```
+
+Newer additions:
+
+- `src/features/spectral_embedding.py` — graph-Laplacian eigenmaps of temporal residual windows.
+- `src/models/knn.py` — generic kNN regressor (Gaussian / uniform / distance weighting).
+- `src/backtest/multi_stage.py` — generic harness for baseline + feature-on-residuals + regressor pipelines.
+- `notebooks/features/spectral_embedding.ipynb` — exploration of the embedding on real harxhar residuals (2005-2024).
 
 ## Usage
 
 ```bash
 pip install -r requirements.txt
+
+# Single-model configs
 python run.py --config configs/ridge.yaml
 python run.py --config configs/xgboost.yaml --override train_window=750 seed=7
+python run.py --config configs/knn.yaml
+
+# Composed-pipeline configs
+python run.py --config configs/spectral_knn.yaml
 ```
 
-`run.py` reads the YAML's `model:` field (e.g. `ridge`), imports
-`src.models.<model>`, and calls its entry function (`run(**params)` for ML,
-`compute(args)` for DL) with the remaining YAML keys as parameters.
+A YAML can have either:
+
+* `model: <name>` — dispatch to `src/models/<name>.py`'s `run(**params)` (ML)
+  or `compute(args)` (DL). All other top-level keys are forwarded as kwargs.
+* `pipeline: <name>` — dispatch to one of the composed pipelines registered in
+  `run.py` (currently `spectral_knn`). Used when an experiment wires multiple
+  `src/` modules together rather than calling a single model.
+
 `--override key=value ...` patches the config from the command line; values
 are parsed as YAML scalars.
 
@@ -55,12 +74,11 @@ are parsed as YAML scalars.
 This snapshot is the state *before* `hpc-agent` consumes it. After consumption,
 `hpc-agent` will add:
 
-- `.hpc/axes.yaml` — classified data axis (currently bounded-halo with
-  `train_window * 48` look-back for all six `ml_*` executors)
+- `.hpc/axes.yaml` — classified data axis (bounded-halo with `train_window * 48`
+  look-back for the `ml_*` executors)
 - `.hpc/tasks.py`, `.hpc/cli.py` — generated chunk plan + dispatcher
 - A vendored `hpc_agent` wheel (optional, for cluster pin)
 
-The `src/models/<x>.py` executors already carry the inlined `hpc_agent.template`
-runtime (`@register_run`, `current_slice()`, etc.) so they run standalone today
-(whole-series; `current_slice()` defaults to the canonical 0/-1/0 slice) and
-chunk-aware tomorrow under `hpc-agent`'s dispatcher.
+`src/models/<x>.py` runs as plain Python today (whole-series, no chunking). When
+`hpc-agent` re-injects its runtime, the same modules become chunk-aware via
+`@register_run` + `current_slice()` without changing the model code.
