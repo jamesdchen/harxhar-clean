@@ -14,7 +14,7 @@ from src.features.scaling import run_backtest
 DEFAULT_KNN_PARAMS: dict = dict(n_neighbors=25, weighting="gaussian")
 
 
-def _gaussian_weights(distances: np.ndarray) -> np.ndarray:
+def gaussian_weights(distances: np.ndarray) -> np.ndarray:
     """sklearn-compatible `weights` callable.
 
     ``distances`` arrives as shape ``(n_queries, k)``. We use a self-tuning

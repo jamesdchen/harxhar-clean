@@ -1,0 +1,22 @@
+pipeline: spectral_knn
+
+# Backtest geometry
+horizon: 1
+train_window: 500          # days (train_win_periods = train_window * 48)
+data_path: data
+output_file: results/spectral_knn/run.json
+
+# Ridge baseline (subtracts the linear HAR-predictable part)
+ridge_alpha: 1.0
+
+# Spectral embedding of residual views
+view_window: 960           # W — bars (48/day × 20 days)
+embedding_dim: 8           # d — Laplacian eigenvectors kept
+graph_k: 10                # k-NN graph for the Laplacian
+refit_frequency: 240       # embedding refit cadence (steps)
+
+# kNN regression in the embedding space
+neighbor_k: 25             # kNN for the regression itself
+
+# Reproducibility
+seed: 42
