@@ -1,0 +1,12 @@
+model: knn
+
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: ""
+n_neighbors: 25
+weighting: gaussian       # gaussian | uniform | distance
+seed: 42
+data_path: data
+output_file: results/knn/run.json
+params_file: ""
