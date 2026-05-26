@@ -7,10 +7,14 @@ tree, etc.); the residuals are the part of ``y`` the baseline didn't explain
 and are typically the input to a downstream model.
 
 The factory pattern (``baseline_factory: () -> baseline``) matches the
-convention used by :func:`src.features.scaling.run_backtest` and
+convention used by :func:`src.backtest.walk_forward.run_backtest` and
 :class:`src.backtest.multi_stage.MultiStageBacktest` — each call to
 :meth:`Residualizer.fit` instantiates a fresh baseline so walk-forward
 refits are clean and the previous fit's state doesn't leak in.
+
+:class:`IdentityResidualizer` is the no-op degenerate case used by simple
+models (Ridge, XGBoost, kNN, etc.) that route through MultiStageBacktest
+without subtracting a baseline.
 """
 
 from __future__ import annotations
@@ -63,3 +67,24 @@ class Residualizer:
     def residuals(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         """Return ``y - baseline.predict(X)``. Requires a prior :meth:`fit`."""
         return y - self.predict(X)
+
+
+class IdentityResidualizer:
+    """No-op residualizer: ``predict(X) == 0``, ``residuals(X, y) == y``.
+
+    The degenerate case used by :class:`~src.backtest.multi_stage.MultiStageBacktest`
+    when a model has no baseline to subtract — i.e., the regressor is meant to
+    model ``y`` directly from ``X``. With this residualizer, every "simple"
+    walk-forward backtest (Ridge, XGBoost, kNN, …) routes through the same
+    harness as the spectral_knn composition, just with the residualizer + feature
+    stages turned off.
+    """
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "IdentityResidualizer":
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return np.zeros(X.shape[0], dtype=np.float64)
+
+    def residuals(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        return y

@@ -1,27 +1,35 @@
-"""Walk-forward backtest for residualizer + residual-window feature + regressor.
+"""Walk-forward backtest with three optional stages.
 
-The pipeline this harness runs is:
+``MultiStageBacktest`` is the default backtest in this repo. It runs the
+walk-forward loop and lets callers plug in up to three stages:
 
-* ``residualizer.fit(X_train, y_train)``   — refit every step (closed-form
-  baselines are cheap).
-* ``feature_fit(views)``                  — refit every ``refit_frequency``
-  steps on sliding-window views of training residuals.
-* ``regressor.fit(basis.phi_train, view_targets)`` — refit alongside the
-  feature basis.
+1. **residualizer** — fits a baseline on ``(X_train, y_train)`` every step
+   and subtracts its predictions from ``y``. Use
+   :class:`~src.features.transforms.residualizer.Residualizer` for an
+   actual baseline (Ridge, OLS, …), or
+   :class:`~src.features.transforms.residualizer.IdentityResidualizer` for
+   the no-op degenerate case (model ``y`` directly).
+2. **feature** — optional. When provided, called every ``refit_frequency``
+   steps with sliding views of residuals; returns a "basis" with
+   ``.embed(v) → np.ndarray`` and ``.phi_train``. The regressor then trains
+   on ``(basis.phi_train, view_targets)`` and predicts from
+   ``basis.embed(v_test)``. When ``None``, the regressor trains on
+   ``(X_train, residuals_train)`` directly.
+3. **regressor** — required. Sklearn-style ``.fit(X, y) / .predict(X)``.
 
-At each step the final prediction is::
+Three useful configurations:
 
-    base_hat            = residualizer.predict(X[t])
-    v_test              = residualizer.residuals(X[t-W:t], y[t-W:t])
-    phi_test            = basis.embed(v_test)
-    residual_correction = regressor.predict(phi_test)
-    y_hat               = base_hat + residual_correction
+* **Plain model** — Identity + None + Ridge / XGBoost / kNN. Equivalent
+  to the legacy single-stage walk-forward; the regressor models ``y``
+  from ``X``.
+* **Stacking** — Residualizer(Ridge) + None + kNN. kNN learns the residual
+  pattern of Ridge.
+* **Residual-window feature** (spectral_knn) — Residualizer(Ridge) +
+  build_embedding + kNN. The residual trajectory's spectral coordinates
+  feed the kNN.
 
-Residualization is owned by :class:`src.features.residualizer.Residualizer`
-(see that module). This harness is explicit about the pattern: a baseline
-residualizes ``y``, a feature transforms residual windows, and a downstream
-regressor predicts the leftover. Strict causality holds — at step ``t`` only
-``X[:t]`` and ``y[:t]`` are ever read.
+Strict causality holds in every configuration: at step ``t`` only
+``X[:t]`` and ``y[:t]`` are read.
 """
 
 from __future__ import annotations
@@ -32,16 +40,19 @@ from typing import Any, Protocol
 import numpy as np
 from tqdm import tqdm
 
-from src.features.transforms.residualizer import Residualizer
+
+class _Residualizer(Protocol):
+    """Structural interface satisfied by Residualizer and IdentityResidualizer."""
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "_Residualizer": ...
+    def predict(self, X: np.ndarray) -> np.ndarray: ...
+    def residuals(self, X: np.ndarray, y: np.ndarray) -> np.ndarray: ...
 
 
 class _Basis(Protocol):
     """Structural interface for the feature-fit return value.
 
-    ``phi_train`` is the training-side coordinates passed to the regressor's
-    ``.fit``. ``embed(v)`` produces the coordinates for a single test view.
-
-    :class:`src.features.spectral_embedding.SpectralBasis` satisfies this.
+    :class:`src.features.extractors.spectral_embedding.SpectralBasis` satisfies this.
     """
 
     phi_train: np.ndarray
@@ -50,40 +61,46 @@ class _Basis(Protocol):
 
 
 class MultiStageBacktest:
-    """Walk-forward harness for the residualizer + feature + regressor pattern.
+    """Walk-forward harness for the residualizer + optional-feature + regressor pattern.
 
     Parameters
     ----------
     residualizer
-        A :class:`~src.features.residualizer.Residualizer` instance. Refit
-        every step. Owns the baseline regressor and exposes
-        ``residuals(X, y) = y - baseline.predict(X)``.
-    feature_fit
-        Called every ``refit_frequency`` steps with the residuals' sliding
-        windows; returns a "basis" object with ``.embed(v) -> np.ndarray``
-        and ``.phi_train`` (training-side coordinates).
+        A residualizer instance (see protocol above). Use
+        :class:`IdentityResidualizer` for the no-baseline-subtraction case.
+        Refit every step (baselines are expected to be cheap, e.g. closed-form
+        Ridge; Identity is a no-op).
     regressor_factory
-        Zero-arg factory returning a sklearn-style regressor used to predict
-        residual corrections from embedded views.
-    view_window
-        Window length ``W`` for sliding views of residuals.
+        Zero-arg factory returning a fresh sklearn-style regressor.
     refit_frequency
-        How often (in steps) to rebuild the feature basis + regressor.
+        Cadence (in steps) at which the regressor (and feature basis, if any)
+        is rebuilt on the latest training window.
+    feature_fit
+        Optional. If provided, called with the sliding views of training
+        residuals to produce a basis (with ``.embed`` and ``.phi_train``).
+        If ``None``, the regressor trains directly on
+        ``(X_train, residuals_train)`` and predicts from ``X_test``.
+    view_window
+        Sliding window length ``W`` for residual views; only consulted when
+        ``feature_fit`` is provided.
     """
 
     def __init__(
         self,
-        residualizer: Residualizer,
-        feature_fit: Callable[[np.ndarray], _Basis],
+        residualizer: _Residualizer,
         regressor_factory: Callable[[], Any],
-        view_window: int,
         refit_frequency: int,
+        feature_fit: Callable[[np.ndarray], _Basis] | None = None,
+        view_window: int = 0,
     ) -> None:
         self.residualizer = residualizer
-        self.feature_fit = feature_fit
         self.regressor_factory = regressor_factory
-        self.view_window = int(view_window)
         self.refit_frequency = int(refit_frequency)
+        self.feature_fit = feature_fit
+        self.view_window = int(view_window)
+
+        if feature_fit is not None and view_window <= 0:
+            raise ValueError("feature_fit requires view_window > 0")
 
     def run(
         self,
@@ -115,32 +132,43 @@ class MultiStageBacktest:
             X_train = X[t - train_win : t]
             y_train = y[t - train_win : t]
 
-            # 1. Refit residualizer every step (assumed cheap).
+            # 1. Refit residualizer every step (cheap — closed-form or identity).
             self.residualizer.fit(X_train, y_train)
 
-            # 2. Refit feature basis + regressor on cadence.
+            # 2. Refit regressor (and feature basis) on cadence.
             if i % self.refit_frequency == 0:
                 residuals_train = self.residualizer.residuals(X_train, y_train)
-                if len(residuals_train) >= W + 1:
+                regressor = self.regressor_factory()
+
+                if self.feature_fit is None:
+                    regressor.fit(X_train, residuals_train)
+                    basis = None
+                elif len(residuals_train) >= W + 1:
                     view_idx = np.arange(W, len(residuals_train))
                     views = np.stack([residuals_train[j - W : j] for j in view_idx])
                     view_targets = residuals_train[view_idx]
                     basis = self.feature_fit(views)
-                    regressor = self.regressor_factory()
                     regressor.fit(basis.phi_train, view_targets)
                 else:
+                    # Training window too short to form views — skip the regressor;
+                    # predictions fall back to baseline alone this refit.
                     basis = None
                     regressor = None
 
             # 3. Predict.
             base_hat = float(self.residualizer.predict(X[t : t + 1])[0])
-            if basis is None or regressor is None:
+            if regressor is None:
                 predictions[i] = base_hat
                 continue
 
-            v_test = self.residualizer.residuals(X[t - W : t], y[t - W : t])
-            phi_test = basis.embed(v_test)
-            residual_correction = float(regressor.predict(phi_test[None, :])[0])
+            if self.feature_fit is None:
+                residual_correction = float(regressor.predict(X[t : t + 1])[0])
+            else:
+                assert basis is not None  # paired with regressor; both set together
+                v_test = self.residualizer.residuals(X[t - W : t], y[t - W : t])
+                phi_test = basis.embed(v_test)
+                residual_correction = float(regressor.predict(phi_test[None, :])[0])
+
             predictions[i] = base_hat + residual_correction
 
         return predictions
