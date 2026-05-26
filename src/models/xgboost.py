@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 from xgboost import XGBRegressor
 
-from src.evaluation.metrics import calculate_metrics
 from src.backtest.executor import run_executor
+from src.backtest.multi_stage import MultiStageBacktest
 from src.data.loading import parse_exog_cols
-from src.backtest.walk_forward import run_backtest
+from src.evaluation.metrics import calculate_metrics
+from src.features.transforms.residualizer import IdentityResidualizer
 
 DEFAULT_XGB_PARAMS: dict = dict(
     n_estimators=500,
@@ -25,26 +26,22 @@ def fit_predict_xgb(
     train_win_periods: int,
     hyperparams: dict,
 ) -> np.ndarray:
-    """Walk-forward backtest with XGBRegressor. Returns OOS predictions.
+    """Walk-forward XGBoost regression via :class:`MultiStageBacktest`.
 
-    Wraps :func:`src.features.scaling.run_backtest` (no feature scaling;
-    refit cadence from ``hyperparams['_refit_frequency']``). Internal control
-    keys (``_*``) are stripped before forwarding to the model constructor.
+    Plain single-stage model: ``IdentityResidualizer`` + no feature transform
+    + ``XGBRegressor``. Refit cadence from ``hyperparams['_refit_frequency']``.
+    Internal control keys (``_*``) are stripped before forwarding to the
+    model constructor.
     """
     refit_frequency = int(hyperparams.get("_refit_frequency", 1))
     model_kwargs = {k: v for k, v in hyperparams.items() if not k.startswith("_")}
 
-    def model_fn():
-        return XGBRegressor(**model_kwargs)
-
-    return run_backtest(
-        model_fn,
-        X_chunk,
-        y_chunk,
-        train_win=train_win_periods,
+    backtest = MultiStageBacktest(
+        residualizer=IdentityResidualizer(),
+        regressor_factory=lambda: XGBRegressor(**model_kwargs),
         refit_frequency=refit_frequency,
-        use_scaling=False,
     )
+    return backtest.run(X_chunk, y_chunk, train_win_periods, desc="xgboost")
 
 
 def run(

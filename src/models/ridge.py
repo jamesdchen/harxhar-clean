@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import Ridge
 
-from src.evaluation.metrics import calculate_metrics
 from src.backtest.executor import run_executor
+from src.backtest.multi_stage import MultiStageBacktest
 from src.data.loading import parse_exog_cols
-from src.backtest.walk_forward import run_backtest
+from src.evaluation.metrics import calculate_metrics
+from src.features.transforms.residualizer import IdentityResidualizer
 
 DEFAULT_RIDGE_PARAMS: dict = dict(alpha=1.0)
 
@@ -19,33 +20,23 @@ def fit_predict_ridge(
     train_win_periods: int,
     hyperparams: dict,
 ) -> np.ndarray:
-    """Walk-forward backtest with Ridge. Returns OOS predictions.
+    """Walk-forward Ridge regression via :class:`MultiStageBacktest`.
 
-    Wraps :func:`src.features.scaling.run_backtest` with ``use_scaling=False``: the
-    feature matrix is rolling-robust-scaled *whole-series* upstream (the
-    shared scaffold calls ``rolling_robust_scale`` when ``prescale=True``),
-    so the scaler's look-back is absorbed into data prep and the chunked
-    walk-forward stays fungible with a single ``train_win`` halo. Refit
-    cadence comes from ``hyperparams['_refit_frequency']``.
-
-    Ridge's default solver is closed-form, so ``random_state`` is irrelevant
-    for reproducibility. Internal control keys (``_*``) are stripped before
-    forwarding to ``Ridge(**...)``.
+    Plain single-stage model: ``IdentityResidualizer`` + no feature transform
+    + ``Ridge`` regressor. The feature matrix is rolling-robust-scaled
+    whole-series upstream (``prescale=True`` in :func:`run_executor`).
+    Refit cadence comes from ``hyperparams['_refit_frequency']``.
+    Internal control keys (``_*``) are stripped before forwarding to ``Ridge``.
     """
     refit_frequency = int(hyperparams.get("_refit_frequency", 1))
     model_kwargs = {k: v for k, v in hyperparams.items() if not k.startswith("_")}
 
-    def model_fn():
-        return Ridge(**model_kwargs)
-
-    return run_backtest(
-        model_fn,
-        X_chunk,
-        y_chunk,
-        train_win=train_win_periods,
+    backtest = MultiStageBacktest(
+        residualizer=IdentityResidualizer(),
+        regressor_factory=lambda: Ridge(**model_kwargs),
         refit_frequency=refit_frequency,
-        use_scaling=False,
     )
+    return backtest.run(X_chunk, y_chunk, train_win_periods, desc="ridge")
 
 
 def run(

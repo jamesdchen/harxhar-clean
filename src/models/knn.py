@@ -7,9 +7,10 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 
 from src.backtest.executor import run_executor
+from src.backtest.multi_stage import MultiStageBacktest
 from src.data.loading import parse_exog_cols
 from src.evaluation.metrics import calculate_metrics
-from src.backtest.walk_forward import run_backtest
+from src.features.transforms.residualizer import IdentityResidualizer
 
 DEFAULT_KNN_PARAMS: dict = dict(n_neighbors=25, weighting="gaussian")
 
@@ -40,33 +41,27 @@ def fit_predict_knn(
     train_win_periods: int,
     hyperparams: dict,
 ) -> np.ndarray:
-    """Walk-forward kNN regression. Returns OOS predictions.
+    """Walk-forward kNN regression via :class:`MultiStageBacktest`.
 
-    Wraps :func:`src.features.scaling.run_backtest` with ``use_scaling=False``:
-    the feature matrix is rolling-robust-scaled whole-series upstream so the
-    distances are sensible. Refit cadence comes from
+    Plain single-stage model: ``IdentityResidualizer`` + no feature transform
+    + ``KNeighborsRegressor``. The feature matrix is rolling-robust-scaled
+    whole-series upstream (``prescale=True`` in :func:`run_executor`) so
+    distances are sensible. Refit cadence from
     ``hyperparams['_refit_frequency']``; kNN's "refit" is just rebuilding the
-    KDTree, so refitting every step is cheap.
-
-    Internal control keys (``_*``) are stripped before forwarding to
-    :class:`~sklearn.neighbors.KNeighborsRegressor`.
+    KDTree, so refitting every step is cheap. Internal control keys (``_*``)
+    are stripped before forwarding to :class:`KNeighborsRegressor`.
     """
     refit_frequency = int(hyperparams.get("_refit_frequency", 1))
     model_kwargs = {k: v for k, v in hyperparams.items() if not k.startswith("_")}
     weighting = model_kwargs.pop("weighting", "gaussian")
     weights_arg = _resolve_weights(weighting)
 
-    def model_fn():
-        return KNeighborsRegressor(weights=weights_arg, **model_kwargs)
-
-    return run_backtest(
-        model_fn,
-        X_chunk,
-        y_chunk,
-        train_win=train_win_periods,
+    backtest = MultiStageBacktest(
+        residualizer=IdentityResidualizer(),
+        regressor_factory=lambda: KNeighborsRegressor(weights=weights_arg, **model_kwargs),
         refit_frequency=refit_frequency,
-        use_scaling=False,
     )
+    return backtest.run(X_chunk, y_chunk, train_win_periods, desc="knn")
 
 
 def run(
