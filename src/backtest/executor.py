@@ -91,12 +91,14 @@ def _backtest_and_save(
         alongside.
     prescale : bool, default False
         If True, rolling-robust-scale the whole feature matrix
-        (``rolling_robust_scale``) *before* the chunk slice — the linear
-        methods (Ridge) need feature standardization, and doing it
-        whole-series keeps the scaler's look-back out of the backtest so a
-        ``halo == train_win`` chunk is fungible. The matching ``fit_predict``
-        must then call ``run_backtest`` with ``use_scaling=False``. Tree
-        methods leave this False (they neither scale nor prescale).
+        (``rolling_robust_scale``) *before* the chunk slice — the linear /
+        distance-based methods (Ridge, kNN, spectral_knn) need feature
+        standardization, and doing it whole-series keeps the scaler's
+        look-back out of the backtest so a ``halo == train_win`` chunk is
+        fungible. Tree methods leave this False (they neither scale nor
+        prescale). The matching ``fit_predict`` receives an already-scaled
+        ``X_chunk`` and passes it through to its
+        :class:`~src.backtest.multi_stage.MultiStageBacktest`.
     """
     max_lag = resolve_har_lags()[-1]
     df = df.iloc[max_lag:].reset_index(drop=True)

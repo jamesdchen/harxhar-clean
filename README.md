@@ -53,18 +53,15 @@ pip install -r requirements.txt
 python run.py --config configs/ridge.yaml
 python run.py --config configs/xgboost.yaml --override train_window=750 seed=7
 python run.py --config configs/knn.yaml
-
-# Composed-pipeline configs
 python run.py --config configs/spectral_knn.yaml
 ```
 
-A YAML can have either:
-
-* `model: <name>` — dispatch to `src/models/<name>.py`'s `run(**params)` (ML)
-  or `compute(args)` (DL). All other top-level keys are forwarded as kwargs.
-* `pipeline: <name>` — dispatch to one of the composed pipelines registered in
-  `run.py` (currently `spectral_knn`). Used when an experiment wires multiple
-  `src/` modules together rather than calling a single model.
+Every YAML has a top-level `model: <name>` field naming a module under
+`src/models/`. `run.py` imports that module and calls its `run(**params)` (ML
+/ composed models) or `compute(args)` (DL). Simple models (`ridge`, `xgboost`,
+`lightgbm`, `random_forest`, `knn`) and composed models (`spectral_knn`) use
+the same dispatch — they all configure the same `MultiStageBacktest` harness;
+only their residualizer / feature / regressor stages differ.
 
 `--override key=value ...` patches the config from the command line; values
 are parsed as YAML scalars.
