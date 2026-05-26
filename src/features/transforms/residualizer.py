@@ -7,10 +7,9 @@ tree, etc.); the residuals are the part of ``y`` the baseline didn't explain
 and are typically the input to a downstream model.
 
 The factory pattern (``baseline_factory: () -> baseline``) matches the
-convention used by :func:`src.backtest.walk_forward.run_backtest` and
-:class:`src.backtest.multi_stage.MultiStageBacktest` — each call to
-:meth:`Residualizer.fit` instantiates a fresh baseline so walk-forward
-refits are clean and the previous fit's state doesn't leak in.
+convention used by :class:`src.backtest.multi_stage.MultiStageBacktest` —
+each call to :meth:`Residualizer.fit` instantiates a fresh baseline so
+walk-forward refits are clean and the previous fit's state doesn't leak in.
 
 :class:`IdentityResidualizer` is the no-op degenerate case used by simple
 models (Ridge, XGBoost, kNN, etc.) that route through MultiStageBacktest

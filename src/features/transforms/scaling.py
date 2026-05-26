@@ -7,12 +7,9 @@ scaling. Two entry points:
   initialized + updated step by step.
 * :func:`rolling_robust_scale` — convenience wrapper that scales a whole
   feature matrix at once (replays the scaler across the series). Used by
-  the executor's ``prescale=True`` path.
-
-The walk-forward backtest primitive that used to live alongside this code
-(``run_backtest`` + ``RollingBuffer``) has been moved to
-``src/backtest/walk_forward.py`` — it's a backtest primitive, not a
-feature transform.
+  the executor's ``prescale=True`` path; the resulting whole-series
+  scaled matrix is what :class:`~src.backtest.multi_stage.MultiStageBacktest`
+  consumes.
 """
 
 from __future__ import annotations
@@ -127,15 +124,15 @@ class RollingRobustScaler:
 def rolling_robust_scale(X: np.ndarray, train_win: int) -> np.ndarray:
     """Per-row rolling robust scaling, computed whole-series.
 
-    Returns ``X`` rescaled exactly as ``run_backtest(..., use_scaling=True)``
-    scales it internally: rows ``[0, train_win)`` by the initial window's
-    median / IQR, and each row ``t >= train_win`` by the trailing
-    ``[t - train_win : t)`` window. Replays :class:`RollingRobustScaler`
-    over the whole series.
+    Rows ``[0, train_win)`` are rescaled by the initial window's median /
+    IQR; each row ``t >= train_win`` by the trailing ``[t - train_win : t)``
+    window. Replays :class:`RollingRobustScaler` over the whole series.
 
-    Pre-scaling here moves the scaler's look-back into a whole-series
-    transform (alongside HAR / winsor / diurnal), so a chunked walk-forward
-    over the pre-scaled matrix is fungible with just a ``train_win`` halo.
+    Doing this whole-series — rather than refitting the scaler step-by-step
+    inside the backtest loop — keeps the scaler's look-back out of the
+    per-chunk backtest. A chunked walk-forward over the pre-scaled matrix is
+    then fungible with just a ``train_win`` halo (rather than ``2 * train_win``
+    if the scaler refit happened inside the loop).
     """
     X = np.asarray(X, dtype=np.float64)
     n_samples = len(X)
