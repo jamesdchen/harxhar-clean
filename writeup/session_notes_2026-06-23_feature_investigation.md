@@ -399,6 +399,7 @@ O(p³) solve becomes the new bottleneck — Sherman-Morrison would help.)
 
 | subgroup | QLIKE | ΔvsHAR | job |
 |---|---|---|---|
+| **all_buckets (41 exog)** | **0.12807** | **−0.00653** | 9585181 |
 | moments | 0.13108 | −0.00352 | 9574902_2 |
 | liquidity | 0.13167 | −0.00293 | 9574902_3 |
 | implied_vol | 0.13265 | −0.00195 | 9583387_3 |
@@ -413,9 +414,13 @@ O(p³) solve becomes the new bottleneck — Sherman-Morrison would help.)
 each is a genuine win. New durable lesson: **a "feature that hurts" is often a feature
 the pipeline mis-scales, not a feature without signal.** HAR control reproduced
 0.13460 exactly (guards are no-ops on non-impute runs); moments/sentiment controls
-held to 7e-6 (zero collateral). All-buckets (41 exog combined) run: job 9585181
-(now feasible only because of the incremental solver — it timed out at 1h under
-sklearn full-refit).
+held to 7e-6 (zero collateral). **All-buckets (41 exog combined): QLIKE 0.12807
+(−0.00653 vs HAR), 22 min** (job 9585181) — beats *every* single subgroup,
+moments included, by a further −0.00301. Stacking all buckets wins: the diverse
+signals are complementary and α=1 Ridge soaks up the ~526-feature redundancy
+without overfit collapse. Feasible ONLY via the incremental solver (sklearn
+full-refit timed out at 1h; at p≈526 the cost is the O(p³) per-bar solve, not the
+108× small-p win — but it ran).
 
 ## Files changed (all ruff + mypy clean)
 `scaling.py` · `executor.py` · `target.py` · `residualizer.py` · `multi_stage.py` ·
