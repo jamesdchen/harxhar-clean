@@ -1,0 +1,10 @@
+{
+  "notebooks/scripts/audit_check.ipynb": {
+    "hash": "a6bb842fe6b1f711dae9e716f6a8e0bd8cab07cda1c00f49f470bea11ad8ba69",
+    "output": "src/audit_check.py"
+  },
+  "notebooks/scripts/build_master_table.ipynb": {
+    "hash": "04e085f40a11c1fab60d2f656eceb130863d15da5d4098b19bbadffe48cd028c",
+    "output": "src/build_master_table.py"
+  }
+}

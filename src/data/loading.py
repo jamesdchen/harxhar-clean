@@ -22,6 +22,14 @@ OVERNIGHT_WINDOWS: dict[str, tuple[str, str]] = {
     "voldemand": ("17:00", "10:00"),
 }
 
+# Columns where 1.0 is genuinely the neutral overnight value (ratio/multiplier
+# features). EMPTY today: every column the OVERNIGHT_WINDOWS substring match
+# catches is harmed by a 1.0 fill — moments (sum*) get corrupted, and voldemand
+# (range ±millions) blew Ridge QLIKE up to 0.614 in the CARC subgroup sweep,
+# while ffill-only is better-or-equal across the board. Add a genuine ratio
+# column here to re-enable the fill just for it.
+RATIO_FILL_COLS: frozenset[str] = frozenset()
+
 
 def parse_exog_cols(exog_str: str | None) -> list[str]:
     """Parse a pipe-separated exog column string into a list."""
@@ -31,16 +39,26 @@ def parse_exog_cols(exog_str: str | None) -> list[str]:
 
 
 def apply_overnight_fills(df: pd.DataFrame, exog_cols: list[str]) -> None:
-    """Fill NaN with 1.0 during overnight windows for specific exog columns."""
+    """Fill NaN with 1.0 in overnight windows — only for ratio-type columns.
+
+    1.0 is a neutral overnight value only for ratio/multiplier features. The
+    eligible set is ``RATIO_FILL_COLS`` (empty today): every column the
+    OVERNIGHT_WINDOWS substring match catches is *harmed* by a 1.0 fill —
+    moments (``sum*``) get corrupted and ``voldemand`` (±millions) blew Ridge
+    QLIKE up to 0.614. So this is a no-op until a genuine ratio column is added
+    to ``RATIO_FILL_COLS``; the executor's ffill handles the overnight gaps.
+    """
     tod = df["t"].dt.time
     for col in exog_cols:
-        if col not in df.columns:
+        if col not in df.columns or col not in RATIO_FILL_COLS:
             continue
         name_lower = col.lower()
         overnight_key = next((kw for kw in OVERNIGHT_WINDOWS if kw in name_lower), None)
         if overnight_key is None:
             continue
-        t_start = pd.Timestamp(f"1900-01-01 {OVERNIGHT_WINDOWS[overnight_key][0]}").time()
+        t_start = pd.Timestamp(
+            f"1900-01-01 {OVERNIGHT_WINDOWS[overnight_key][0]}"
+        ).time()
         t_end = pd.Timestamp(f"1900-01-01 {OVERNIGHT_WINDOWS[overnight_key][1]}").time()
         # Wrap-around midnight: time >= start OR time < end
         mask = (tod >= t_start) | (tod < t_end)
@@ -110,8 +128,16 @@ SUBGROUPS: dict[str, list[str]] = {
     "baseline": [],
     "moments": [f for f in ALL_FEATURES if _is_moment(f)],
     "liquidity": [f for f in ALL_FEATURES if _is_liquidity(f)],
-    "market_ew": [f for f in ALL_FEATURES if "ewstock" in f and not any(x in f for x in ("turnover", "spread"))],
-    "market_vw": [f for f in ALL_FEATURES if "vwstock" in f and not any(x in f for x in ("turnover", "spread"))],
+    "market_ew": [
+        f
+        for f in ALL_FEATURES
+        if "ewstock" in f and not any(x in f for x in ("turnover", "spread"))
+    ],
+    "market_vw": [
+        f
+        for f in ALL_FEATURES
+        if "vwstock" in f and not any(x in f for x in ("turnover", "spread"))
+    ],
     "sentiment": [f for f in ALL_FEATURES if "stocktwits" in f],
     "implied_vol": [f for f in ALL_FEATURES if "vix" in f],
     "vol_demand": [f for f in ALL_FEATURES if "voldemand" in f],
@@ -154,7 +180,9 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
     if os.path.isfile(data_path):
         frames = [pd.read_parquet(data_path)]
     else:
-        parquet_files = sorted(f for f in os.listdir(data_path) if f.endswith(".parquet"))
+        parquet_files = sorted(
+            f for f in os.listdir(data_path) if f.endswith(".parquet")
+        )
         if not parquet_files:
             raise FileNotFoundError(f"No .parquet files found in {data_path}")
         frames = [pd.read_parquet(os.path.join(data_path, f)) for f in parquet_files]

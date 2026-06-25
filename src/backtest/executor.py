@@ -24,6 +24,7 @@ module key (e.g. ``FLAGS["src/backtest/tune_tree.py`` (cmd_evaluate) passes via 
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Callable
 
 import numpy as np
@@ -39,9 +40,93 @@ from src.backtest.segmentation import (
 )
 from src.features.extractors.calendar import add_calendar_features
 from src.features.extractors.har import generate_har_features, resolve_har_lags
-from src.features.transforms.target import PERIODS_PER_DAY, apply_horizon_shift, robust_transform
+from src.features.transforms.target import (
+    PERIODS_PER_DAY,
+    apply_horizon_shift,
+    robust_transform,
+)
 
 FitPredict = Callable[[np.ndarray, np.ndarray, int, dict], np.ndarray]
+
+# A feature with at least this fraction of *exact* zeros is treated as
+# zero-inflated (a point mass at 0 + a continuous part) and gets the hurdle
+# encoding: an occurrence indicator plus a magnitude scaled over its non-zero
+# (active) values. Continuous features (returns, vols) never reach this.
+ZERO_INFLATED_FRAC: float = 0.2
+
+
+def _expanding_real_iqr(
+    x: np.ndarray, mask: np.ndarray, grid_step: int = 480
+) -> np.ndarray:
+    """Causal expanding IQR of ``x`` over its *available* (``mask``) values.
+
+    A slowly-varying reference scale, so it is computed on a coarse grid and
+    forward-filled rather than re-evaluated every row. Excluding the imputed
+    (unavailable) rows is the crux: the median-fill injects a flat constant
+    that otherwise dominates — and collapses — the window IQR. Causal: row
+    ``t`` only ever sees real values strictly before ``t``.
+    """
+    n = len(x)
+    ref = np.zeros(n, dtype=np.float64)
+    real_idx = np.flatnonzero(mask)
+    last = 0.0
+    for t in range(0, n, grid_step):
+        past = real_idx[real_idx < t]
+        if past.size >= 8:
+            q25, q75 = np.percentile(x[past], (25.0, 75.0))
+            iq = float(q75 - q25)
+            if iq >= 1e-12:
+                last = iq
+        ref[t : t + grid_step] = last
+    return ref
+
+
+def _build_scale_guards(
+    X: np.ndarray, df: pd.DataFrame, feature_names: list[str]
+) -> tuple[np.ndarray | None, np.ndarray | None]:
+    """Scale guards for the impute-and-indicate feature pathology.
+
+    Returns ``(ref_iqr, fixed_cols)`` for :func:`rolling_robust_scale`, or
+    ``(None, None)`` when no guarding is needed (no availability columns →
+    not an ``impute_indicate`` run → scaling is bit-for-bit unchanged).
+
+    * ``*_avail_ma_*`` / ``*_active_ma_*`` (availability + occurrence-indicator
+      rolling means) → *fixed*: passed through raw; scale is known ([0, 1]).
+    * ``adj_<col>_ma_*`` whose ``<col>_avail`` column exists (the exog was
+      imputed) → IQR floored at the causal expanding IQR over the *real*
+      (available) values; for a *zero-inflated* magnitude the scale is taken
+      over active (non-zero) values too, so neither a regime-degenerate window
+      nor a zero point-mass can collapse the scale and blow up the forecast.
+    * everything else (HAR, calendar) → untouched.
+    """
+    n, n_features = X.shape
+    ref_iqr = np.zeros((n, n_features), dtype=np.float64)
+    fixed = np.zeros(n_features, dtype=bool)
+    touched = False
+    for j, name in enumerate(feature_names):
+        if "_avail_ma_" in name or "_active_ma_" in name:
+            fixed[j] = True
+            touched = True
+            continue
+        m = re.match(r"adj_(.+)_ma_\d+$", name)
+        if m is None:
+            continue
+        avail_col = f"{m.group(1)}_avail"
+        if avail_col in df.columns:
+            mask = df[avail_col].to_numpy().astype(bool)[:n]
+            xj = X[:, j]
+            # Zero-inflated magnitude (e.g. voldemand): also estimate the scale
+            # over ACTIVE (non-zero) values — the zero point-mass carries no
+            # dispersion and collapses the IQR otherwise. The indicator half of
+            # the hurdle encoding is the ``<col>_active`` columns added in
+            # ``load_and_transform``.
+            if float(np.mean(xj == 0.0)) >= ZERO_INFLATED_FRAC:
+                mask = mask & (xj != 0.0)
+            ref_iqr[:, j] = _expanding_real_iqr(xj, mask)
+            touched = True
+    if not touched:
+        return None, None
+    return ref_iqr, fixed
 
 
 def _backtest_and_save(
@@ -114,7 +199,10 @@ def _backtest_and_save(
     # whole-series, keeps its look-back out of the per-chunk backtest (see
     # rolling_robust_scale). The slice below then cuts the pre-scaled array.
     if prescale:
-        X = rolling_robust_scale(X, train_win_periods)
+        ref_iqr, fixed_cols = _build_scale_guards(X, df, feature_names)
+        X = rolling_robust_scale(
+            X, train_win_periods, ref_iqr=ref_iqr, fixed_cols=fixed_cols
+        )
 
     load_start = max(0, start - halo)
     actual_end = len(X) if end < 0 else end
@@ -124,7 +212,9 @@ def _backtest_and_save(
     baselines_chunk = baselines[load_start:actual_end]
 
     if train_win_periods >= len(X_chunk):
-        raise ValueError(f"train_window ({train_win_periods} periods) >= chunk size ({len(X_chunk)})")
+        raise ValueError(
+            f"train_window ({train_win_periods} periods) >= chunk size ({len(X_chunk)})"
+        )
 
     preds = fit_predict(X_chunk, y_chunk, train_win_periods, hyperparams)
 
@@ -168,6 +258,8 @@ def load_and_transform(
     target_use_diurnal: bool,
     target_winsor_window: int | None,
     dropna_with_exog: bool,
+    overnight_fill: bool = True,
+    impute_indicate: bool = False,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
 
@@ -190,14 +282,21 @@ def load_and_transform(
         dataset (before any valid value). If True, drop those rows.
         Ridge: True (sklearn Ridge requires no NaN). Tree methods: False
         (trees handle NaN natively).
+    overnight_fill : bool
+        If True (default, legacy behaviour), fill matching exog columns with
+        1.0 in their overnight window before ffill. This substring-matches
+        moment columns (``sumret3_*`` etc.) and fills them with 1.0, which is
+        a latent bug for non-ratio columns — set False for clean ffill-only.
     """
     df = load_raw_data(data_path, allow_missing=True)
     if exog_cols:
-        apply_overnight_fills(df, exog_cols)
+        if overnight_fill:
+            apply_overnight_fills(df, exog_cols)
         df[exog_cols] = df[exog_cols].ffill()
-        if dropna_with_exog:
+        if dropna_with_exog and not impute_indicate:
             df = df.dropna(subset=["RV"] + exog_cols).reset_index(drop=True)
         else:
+            # impute_indicate keeps exog-missing rows (filled + flagged below).
             df = df.dropna(subset=["RV"]).reset_index(drop=True)
 
     transform_kwargs: dict = {"is_target": True}
@@ -215,6 +314,38 @@ def load_and_transform(
         adj_series, _ = robust_transform(df, col, use_transform=True, use_diurnal=True)
         df[adj_col] = adj_series
         adj_exog_cols.append(adj_col)
+
+    if impute_indicate and exog_cols:
+        # Impute-and-indicate: instead of dropping rows where an exog is
+        # structurally absent (which shrinks the sample and breaks cross-arm
+        # QLIKE comparability), fill its adjusted feature with 0 (neutral) and
+        # add a ``<col>_avail`` availability indicator. Every row is then
+        # scored and the model can down-weight the feature where it's absent.
+        for col in exog_cols:
+            # Neutral fill must be in-distribution in the *transformed* space:
+            # the feature's own median. 0 is wrong (e.g. adj_vix = log(vix), so
+            # fillna(0) imputes vix = exp(0) = 1, a wild value that blew the
+            # Ridge forecast up to QLIKE ~2.4). Median ≈ neutral, prescales to 0.
+            adj = df[f"adj_{col}"]
+            df[f"adj_{col}"] = adj.fillna(adj.median())
+            avail = f"{col}_avail"
+            df[avail] = df[col].notna().astype("float64")
+            adj_exog_cols.append(avail)
+
+    # Hurdle (two-part) encoding for zero-inflated exog. A sparse signed flow
+    # like voldemand is a mixture — a point mass at 0 ("no demand") plus a
+    # continuous demand distribution — so a single robust scale is degenerate
+    # (the zero mass collapses the IQR). Add an occurrence indicator so the
+    # model separates the extensive margin (is there demand at all) from the
+    # intensive margin (how big); the magnitude's scale is taken over the
+    # active (non-zero) values in ``_build_scale_guards``.
+    for col in exog_cols:
+        vals = df[col].to_numpy(dtype=np.float64)
+        finite = vals[~np.isnan(vals)]
+        if finite.size and float(np.mean(finite == 0.0)) >= ZERO_INFLATED_FRAC:
+            active = f"{col}_active"
+            df[active] = (np.nan_to_num(vals) != 0.0).astype("float64")
+            adj_exog_cols.append(active)
 
     return df, adj_exog_cols
 
@@ -249,9 +380,17 @@ def _iter_TOD_segment(
             print(f"No data for segment '{seg_name}'. Skipping.")
             continue
         if lag_scope == "intra":
-            seg_df, feature_names = _build_har_and_calendar(seg_df, exog_cols, add_calendar)
+            seg_df, feature_names = _build_har_and_calendar(
+                seg_df, exog_cols, add_calendar
+            )
         train_win_periods = compute_segment_train_window(seg_df["t"], train_window)
-        yield seg_name, seg_df, feature_names, train_win_periods, f"{base}_{seg_name}{ext}"
+        yield (
+            seg_name,
+            seg_df,
+            feature_names,
+            train_win_periods,
+            f"{base}_{seg_name}{ext}",
+        )
 
 
 def run_executor(
@@ -273,6 +412,8 @@ def run_executor(
     target_use_diurnal: bool,
     target_winsor_window: int | None,
     dropna_with_exog: bool,
+    overnight_fill: bool = True,
+    impute_indicate: bool = False,
     prescale: bool = False,
     seed: int = 42,
 ) -> None:
@@ -305,6 +446,8 @@ def run_executor(
         target_use_diurnal=target_use_diurnal,
         target_winsor_window=target_winsor_window,
         dropna_with_exog=dropna_with_exog,
+        overnight_fill=overnight_fill,
+        impute_indicate=impute_indicate,
     )
 
     for seg_name, job_df, feature_names, train_win, out_file in _iter_TOD_segment(
@@ -317,7 +460,9 @@ def run_executor(
         add_calendar=add_calendar,
     ):
         if seg_name is not None:
-            print(f"{'=' * 20} {method_name.upper()} SEGMENT: {seg_name.upper()} {'=' * 20}")
+            print(
+                f"{'=' * 20} {method_name.upper()} SEGMENT: {seg_name.upper()} {'=' * 20}"
+            )
             print(f"Window: {train_win} periods ({train_window} days)")
         _backtest_and_save(
             job_df,

@@ -1,0 +1,14 @@
+model: ridge
+
+# Subgroup sweep arm (clean, post apply_overnight_fills fix). Real QLIKE vs HAR.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret|sumabsret|sumret3|sumret4|sumpret2|sumbipow|sumautocov|sumvolume|numobs|sumret2_ewstock|sumret3_ewstock|sumret4_ewstock|sumabsret_ewstock|sumbipow_ewstock|sumpret2_ewstock|turnover_ewstock|buyturnover_ewstock|sellturnover_ewstock|effspread_ewstock|spread_ewstock|sumret2_vwstock|sumret3_vwstock|sumret4_vwstock|sumabsret_vwstock|sumbipow_vwstock|sumpret2_vwstock|turnover_vwstock|buyturnover_vwstock|sellturnover_vwstock|effspread_vwstock|spread_vwstock|stocktwits_attention|stocktwits_sentiment|stocktwits_sentcount|vix|vvix|vix3m|voldemand_spx_open_and_close|voldemand_spx_open_only|voldemand_all_open_and_close|voldemand_all_open_only"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/sweep_all_features/run.json
+params_file: ""

@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -53,7 +54,12 @@ def _load_config(path: Path) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", required=True, type=Path, help="experiment YAML")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="experiment YAML (falls back to $HPC_KW_CONFIG when omitted)",
+    )
     parser.add_argument(
         "--override",
         nargs="*",
@@ -63,7 +69,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    config = _load_config(args.config)
+    # Config may come from --config or, under hpc-agent dispatch, the
+    # $HPC_KW_CONFIG env var that dispatch.py sets per task (the executor
+    # string itself can drop the --config flag; the env var is reliable).
+    config_path = args.config
+    if config_path is None:
+        env_cfg = os.environ.get("HPC_KW_CONFIG")
+        if env_cfg:
+            config_path = Path(env_cfg)
+    if config_path is None:
+        raise SystemExit("run.py: --config is required (or set $HPC_KW_CONFIG)")
+
+    config = _load_config(config_path)
     model = config.pop("model")
     params = _apply_overrides(config, args.override)
 
@@ -76,7 +93,9 @@ def main(argv: list[str] | None = None) -> int:
     if hasattr(module, "compute"):
         module.compute(SimpleNamespace(**params))
         return 0
-    raise SystemExit(f"src.models.{model} exposes neither run(**params) nor compute(args)")
+    raise SystemExit(
+        f"src.models.{model} exposes neither run(**params) nor compute(args)"
+    )
 
 
 if __name__ == "__main__":

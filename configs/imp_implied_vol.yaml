@@ -1,0 +1,16 @@
+model: ridge
+
+# Impute-and-indicate re-run (full sample, comparable) + no 1.0 fill.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "vix|vvix|vix3m"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/imp_implied_vol/run.json
+params_file: ""
+overnight_fill: false
+impute_indicate: true

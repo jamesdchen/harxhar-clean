@@ -1,0 +1,4 @@
+arm,config,overnight_fill,qlike,w_qlike,mse,mae,n_samples,delta_qlike_vs_har,note
+har_baseline,configs/ridge_har_baseline.yaml,n/a,0.13460,0.11770,0.06203,0.18649,218934,0.0,HAR-only baseline (CARC job 9574648_1)
+market_ew_prod,configs/ridge_market_ew_prod.yaml,true,0.13416,0.11704,0.06196,0.18612,218930,-0.00044,market_ew with apply_overnight_fills 1.0 artifact (job 9574648_2)
+market_ew_clean,configs/ridge_market_ew_clean.yaml,false,0.13332,0.11656,0.06169,0.18586,218905,-0.00128,market_ew clean / no 1.0 fill (job 9574648_3)

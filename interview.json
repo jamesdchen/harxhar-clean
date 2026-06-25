@@ -1,0 +1,59 @@
+{
+  "_materialized": {
+    "at": "2026-06-24T19:26:25.069918+00:00",
+    "cmd_sha": "c6c887dcd5a35e0d517cfb3e65f8497066a2035695e27e9067162ecc595fc825",
+    "entry_point": {
+      "executor_cmd": "python3 -c \"import argparse,importlib.util,os,sys;_p=os.path.join(os.environ.get('REPO_DIR','.'), '.hpc/wrappers/ridge_imp.py');_s=importlib.util.spec_from_file_location('_hpc_wrapper',_p);_m=importlib.util.module_from_spec(_s);_s.loader.exec_module(_m);_n=argparse.Namespace(**{k[len('HPC_KW_'):].lower():v for k,v in os.environ.items() if k.startswith('HPC_KW_')});_m.compute(_n)\"",
+      "frozen_shas": {
+        "imp_implied_vol_sha": "201af89c82f7010a",
+        "imp_sentiment_sha": "de8016ab735fa8d8",
+        "imp_vol_demand_sha": "c0e1462901274b01"
+      },
+      "kind": "shell_command",
+      "run_name": "ridge_imp",
+      "wrapper_path": ".hpc/wrappers/ridge_imp.py"
+    },
+    "total_tasks": 3
+  },
+  "entry_point": {
+    "argv": [
+      "python",
+      "run.py",
+      "--config",
+      "{config}"
+    ],
+    "fixed_params": {},
+    "frozen_configs": [
+      "configs/imp_sentiment.yaml",
+      "configs/imp_implied_vol.yaml",
+      "configs/imp_vol_demand.yaml"
+    ],
+    "kind": "shell_command",
+    "run_name": "ridge_imp",
+    "signature": {
+      "config": "str"
+    }
+  },
+  "goal": "Ridge impute-indicate re-run: sentiment, implied_vol, vol_demand with the apply_overnight_fills (1.0-fill off) + impute-and-indicate fixes \u2014 full-sample comparable QLIKE vs HAR 0.13460",
+  "produced_by": {
+    "kind": "human",
+    "operator": "jamesdchen"
+  },
+  "task_count": 3,
+  "task_generator": {
+    "kind": "enumerated",
+    "params": {
+      "items": [
+        {
+          "config": "configs/imp_sentiment.yaml"
+        },
+        {
+          "config": "configs/imp_implied_vol.yaml"
+        },
+        {
+          "config": "configs/imp_vol_demand.yaml"
+        }
+      ]
+    }
+  }
+}

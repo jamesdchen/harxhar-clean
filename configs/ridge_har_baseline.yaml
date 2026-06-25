@@ -1,0 +1,15 @@
+model: ridge
+
+# Arm 1 of the market_ew QLIKE ablation: HAR-only baseline (no exog).
+# Should reproduce the published baseline QLIKE ~0.13804.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: ""
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/ridge_har_baseline/run.json
+params_file: ""

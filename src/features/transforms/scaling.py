@@ -19,7 +19,9 @@ from numba import njit
 
 
 @njit(cache=True)
-def _update_sorted_matrix(sorted_mat: np.ndarray, x_old: np.ndarray, x_new: np.ndarray) -> None:
+def _update_sorted_matrix(
+    sorted_mat: np.ndarray, x_old: np.ndarray, x_new: np.ndarray
+) -> None:
     """Replace *x_old* with *x_new* in each feature's sorted window."""
     n_features, w = sorted_mat.shape
     for i in range(n_features):
@@ -52,9 +54,18 @@ def _get_robust_stats(
     i50_floor, rem_50 = int(idx_50), idx_50 - int(idx_50)
     i75_floor, rem_75 = int(idx_75), idx_75 - int(idx_75)
     for i in range(n_features):
-        q25 = sorted_mat[i, i25_floor] * (1.0 - rem_25) + sorted_mat[i, min(i25_floor + 1, w - 1)] * rem_25
-        med = sorted_mat[i, i50_floor] * (1.0 - rem_50) + sorted_mat[i, min(i50_floor + 1, w - 1)] * rem_50
-        q75 = sorted_mat[i, i75_floor] * (1.0 - rem_75) + sorted_mat[i, min(i75_floor + 1, w - 1)] * rem_75
+        q25 = (
+            sorted_mat[i, i25_floor] * (1.0 - rem_25)
+            + sorted_mat[i, min(i25_floor + 1, w - 1)] * rem_25
+        )
+        med = (
+            sorted_mat[i, i50_floor] * (1.0 - rem_50)
+            + sorted_mat[i, min(i50_floor + 1, w - 1)] * rem_50
+        )
+        q75 = (
+            sorted_mat[i, i75_floor] * (1.0 - rem_75)
+            + sorted_mat[i, min(i75_floor + 1, w - 1)] * rem_75
+        )
         median[i] = med
         iq = q75 - q25
         iqr[i] = iq if iq >= 1e-12 else 1.0
@@ -121,7 +132,12 @@ class RollingRobustScaler:
         return (self.buffer - median) / iqr
 
 
-def rolling_robust_scale(X: np.ndarray, train_win: int) -> np.ndarray:
+def rolling_robust_scale(
+    X: np.ndarray,
+    train_win: int,
+    ref_iqr: np.ndarray | None = None,
+    fixed_cols: np.ndarray | None = None,
+) -> np.ndarray:
     """Per-row rolling robust scaling, computed whole-series.
 
     Rows ``[0, train_win)`` are rescaled by the initial window's median /
@@ -133,6 +149,26 @@ def rolling_robust_scale(X: np.ndarray, train_win: int) -> np.ndarray:
     per-chunk backtest. A chunked walk-forward over the pre-scaled matrix is
     then fungible with just a ``train_win`` halo (rather than ``2 * train_win``
     if the scaler refit happened inside the loop).
+
+    Parameters
+    ----------
+    ref_iqr : np.ndarray, optional
+        ``(n_samples, n_features)`` per-row lower bound on the scaling IQR:
+        ``iqr_eff = max(local_iqr, ref_iqr[t])``. The trailing-window IQR is a
+        *local* scale; for a lagged/averaged feature whose window can go
+        regime-degenerate (an imputed exog whose history is a flat fill), that
+        local IQR collapses toward zero and divides the incoming — different
+        regime — point by ~0, detonating the forecast. Flooring at a causal,
+        real-values reference scale (see ``executor._build_scale_guards``)
+        normalizes the point against the distribution it actually belongs to.
+        Zero columns impose no floor; ``None`` restores legacy behaviour, so
+        non-imputed runs are bit-for-bit unchanged.
+    fixed_cols : np.ndarray, optional
+        ``(n_features,)`` bool mask of columns to pass through *unscaled*
+        (their scale is known a priori — e.g. the availability indicators
+        ``*_avail_ma_*`` ∈ [0, 1]; estimating a data-driven IQR for a
+        deterministic structural ramp is a category error). ``None`` scales
+        every column.
     """
     X = np.asarray(X, dtype=np.float64)
     n_samples = len(X)
@@ -142,9 +178,16 @@ def rolling_robust_scale(X: np.ndarray, train_win: int) -> np.ndarray:
     scaler.initialize(X[:train_win])
     out = np.empty_like(X)
     med, iqr = scaler.get_scaler()
-    out[:train_win] = (X[:train_win] - med) / iqr
+    if ref_iqr is None:
+        out[:train_win] = (X[:train_win] - med) / iqr
+    else:
+        out[:train_win] = (X[:train_win] - med) / np.maximum(iqr, ref_iqr[:train_win])
     for t in range(train_win, n_samples):
         med, iqr = scaler.get_scaler()
+        if ref_iqr is not None:
+            iqr = np.maximum(iqr, ref_iqr[t])
         out[t] = (X[t] - med) / iqr
         scaler.update(X[t])
+    if fixed_cols is not None:
+        out[:, fixed_cols] = X[:, fixed_cols]
     return out

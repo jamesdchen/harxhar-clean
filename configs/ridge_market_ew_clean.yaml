@@ -1,0 +1,18 @@
+model: ridge
+
+# Arm 3: market_ew exog, CLEAN (overnight_fill off -> ffill only, no 1.0 fill).
+# OLS-in-sqrt-space showed this is +0.0088 OOS (15/17 yrs) vs production's
+# -0.0019 — i.e. the genuine cross-section signal, with the artifact removed.
+# This arm tells us whether that survives in real walk-forward Ridge / QLIKE.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret2_ewstock|sumret3_ewstock|sumret4_ewstock|sumabsret_ewstock|sumbipow_ewstock|sumpret2_ewstock"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/ridge_market_ew_clean/run.json
+params_file: ""
+overnight_fill: false

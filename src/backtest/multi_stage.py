@@ -122,6 +122,18 @@ class MultiStageBacktest:
         if X.shape[0] != y.shape[0]:
             raise ValueError(f"X.shape[0]={X.shape[0]} != y.shape[0]={y.shape[0]}")
 
+        # Incremental fast path: a linear regressor exposing the rank-1 rolling
+        # protocol (init_window + roll), a passthrough residualizer (residuals
+        # == y, base == 0) and no feature stage. Gated tightly so every other
+        # configuration — kNN/trees, stacking, spectral — falls through to the
+        # fresh-refit loop below unchanged.
+        if self.feature_fit is None and getattr(
+            self.residualizer, "is_passthrough", False
+        ):
+            probe = self.regressor_factory()
+            if hasattr(probe, "roll") and hasattr(probe, "init_window"):
+                return self._run_incremental(X, y, train_win, probe, desc=desc)
+
         W = self.view_window
         predictions = np.empty(n_test, dtype=np.float64)
         basis: _Basis | None = None
@@ -171,4 +183,49 @@ class MultiStageBacktest:
 
             predictions[i] = base_hat + residual_correction
 
+        return predictions
+
+    def _run_incremental(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        train_win: int,
+        regressor: Any,
+        *,
+        desc: str,
+    ) -> np.ndarray:
+        """Rank-1 sliding-window fast path (see :class:`RollingLeastSquares`).
+
+        Predictions are identical (to numerical precision) to refitting the
+        regressor on each trailing window, at ``O(p²)``/bar instead of
+        ``O(W·p²)``/bar. Only reached when ``run`` has confirmed a passthrough
+        residualizer (so residuals ``== y`` and the base prediction is ``0``),
+        no feature stage, and a regressor exposing ``init_window`` + ``roll``.
+
+        The window slides exactly as the fresh-refit loop's
+        ``X[t - train_win : t]``: from step ``i-1`` to ``i`` row ``t-1`` enters
+        and row ``t-1-train_win`` leaves. ``refit_frequency`` controls how often
+        the coefficients are re-solved (stats still roll every step, so a solve
+        always reflects the current window — matching the fresh-refit path for
+        any cadence). ``reinit_every`` (read off the regressor) periodically
+        rebuilds the stats exactly to bound float drift.
+        """
+        n_test = X.shape[0] - train_win
+        predictions = np.empty(n_test, dtype=np.float64)
+        reinit_every = int(getattr(regressor, "reinit_every", 0))
+
+        regressor.init_window(X[0:train_win], y[0:train_win])
+        regressor.solve()
+        predictions[0] = regressor.predict_one(X[train_win])
+        for i in tqdm(range(1, n_test), desc=desc):
+            t = train_win + i
+            if reinit_every and i % reinit_every == 0:
+                regressor.init_window(X[t - train_win : t], y[t - train_win : t])
+            else:
+                regressor.roll(
+                    X[t - 1], y[t - 1], X[t - 1 - train_win], y[t - 1 - train_win]
+                )
+            if i % self.refit_frequency == 0:
+                regressor.solve()
+            predictions[i] = regressor.predict_one(X[t])
         return predictions

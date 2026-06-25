@@ -1,0 +1,14 @@
+model: ridge
+
+# Subgroup sweep arm (clean, post apply_overnight_fills fix). Real QLIKE vs HAR.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret|sumabsret|sumret3|sumret4|sumpret2|sumbipow|sumautocov"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/sweep_moments/run.json
+params_file: ""

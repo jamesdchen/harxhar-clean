@@ -140,6 +140,12 @@ class IdentityResidualizer:
     stages turned off.
     """
 
+    # Duck-typed marker read by MultiStageBacktest: a passthrough residualizer
+    # (residuals == y, predict == 0) means the regressor models a *static*
+    # target, so a linear regressor can be driven by rank-1 sliding-window
+    # updates instead of refit-from-scratch (see RollingLeastSquares).
+    is_passthrough = True
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> "IdentityResidualizer":
         return self
 

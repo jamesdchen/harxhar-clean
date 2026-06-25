@@ -1,0 +1,13 @@
+arm,qlike,n_samples,vs_har_baseline,comparable,caveat,job
+har_baseline,0.13460,218934,0.0,yes,,9574902_1
+moments,0.13108,218934,-0.00352,yes,#1 comparable — main-asset leverage+magnitude+higher moments,9574902_2
+liquidity,0.13167,218930,-0.00293,yes,#2 comparable — turnover/spread/volume,9574902_3
+market_ew,0.13332,218905,-0.00128,yes,cross-section ewstock; matches 3-arm clean run,9574902_4
+market_vw,0.13303,218905,-0.00156,yes,cross-section vwstock,9574902_5
+sentiment,0.13715,150025,+0.00255,no,missingness dropped sample to 150k,9574902_6
+implied_vol,0.13977,126914,+0.00517,no,missingness dropped sample to 127k,9574902_7
+vol_demand,0.61432,218934,+0.47972,no,CATASTROPHIC: residual 1.0-fill on voldemand (fix excluded only sum* moments),9574902_8
+all_features,,,,no,TIMEOUT at 1h (41-col exog transforms too slow) + compromised by voldemand 1.0-fill & missing cols,9574902_9
+imp_sentiment,0.13374,218934,-0.00086,yes,VALIDATED walk-forward (job 9583387); IQR-floor scale guard (real-values expanding IQR + fixed-scale avail indicators); NO forecast clip; beats HAR -0.00086 (recovers more signal than clip-recompute's predicted tie),9583387_2
+imp_implied_vol,0.13265,218934,-0.00195,yes,VALIDATED walk-forward (job 9583387); IQR-floor scale guard; NO forecast clip; BEATS HAR -0.00195 = #3 in sweep ahead of market_vw/ew; better than clip-recompute -0.00115,9583387_3
+imp_vol_demand,0.13367,218934,-0.00093,yes,VALIDATED (job 9585155) hurdle encoding = occurrence indicator + magnitude scaled over ACTIVE (non-zero) values; non-blown 32.6->3.63->0.13367; BEATS HAR -0.00093 so proper encoding reveals genuine signal (the trails-HAR verdict was a scaling artifact like sentiment/implied_vol); moments 0.13109 + sentiment 0.13374 controls collateral-free,9585155_1

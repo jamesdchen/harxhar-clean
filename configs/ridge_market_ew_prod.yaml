@@ -1,0 +1,18 @@
+model: ridge
+
+# Arm 2: market_ew exog, PRODUCTION behaviour (overnight_fill on).
+# apply_overnight_fills substring-matches the moment columns and fills them
+# with 1.0 overnight — this is the latent artifact. Compare QLIKE vs arm 3
+# to measure how much of the market_ew gain is real vs the 1.0-fill artifact.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret2_ewstock|sumret3_ewstock|sumret4_ewstock|sumabsret_ewstock|sumbipow_ewstock|sumpret2_ewstock"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/ridge_market_ew_prod/run.json
+params_file: ""
+overnight_fill: true

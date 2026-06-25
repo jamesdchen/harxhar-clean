@@ -21,6 +21,10 @@ import pandas as pd
 PERIODS_PER_DAY: int = 48
 DIURNAL_WINDOW: int = 20
 DIURNAL_MIN_PERIODS: int = 5
+# Floor for the signed-feature per-slot rolling-std divisor, as a fraction of
+# the feature's typical (median) per-slot std. Stops a transiently-degenerate
+# std from blowing the diurnal-adjusted value up (see ``diurnal_adjust``).
+DIURNAL_STD_FLOOR_FRAC: float = 0.1
 WINSOR_LOWER_Q: float = 0.05
 WINSOR_UPPER_Q: float = 0.95
 SKIP_VARS: set[str] = {
@@ -71,14 +75,29 @@ def diurnal_adjust(
         baseline = df.groupby("slot")["val"].transform(
             lambda g: g.rolling(window, min_periods=min_periods).std().shift(1)
         )
+        # The per-slot rolling std is a *divisor*: a transiently near-zero std
+        # (flat / ffilled segments) must not amplify the incoming value. The old
+        # ``replace(0, 1.0)`` only caught an *exactly* zero std and assumed an
+        # O(1) series, so a tiny-but-nonzero std on a large-scale signed feature
+        # (voldemand ~ ±1e6) blew the adjusted value up to ~±1e13. Floor the std
+        # at a fraction of its own typical (median) level instead — the diurnal
+        # analogue of the rolling-scaler IQR floor. Only bites a degenerate std;
+        # healthy signed features (e.g. sumret) never go below the floor.
+        typical = baseline.replace(0, np.nan).abs().median()
+        floor = (
+            DIURNAL_STD_FLOOR_FRAC * typical
+            if (pd.notna(typical) and typical > 0)
+            else 1.0
+        )
+        baseline = baseline.clip(lower=floor).fillna(floor)
     else:
         baseline = df.groupby("slot")["val"].transform(
             lambda g: g.rolling(window, min_periods=min_periods).mean().shift(1)
         )
+        # Treat 0 the same as NaN (flat ffilled segments produce zero rolling
+        # mean); baseline=1.0 passes through the raw value safely.
+        baseline = baseline.replace(0, 1.0).fillna(1.0)
 
-    # Treat 0 the same as NaN (flat ffilled segments produce zero rolling std/mean);
-    # baseline=1.0 passes through the raw value safely.
-    baseline = baseline.replace(0, 1.0).fillna(1.0)
     adjusted = series / baseline
     return adjusted, baseline
 
@@ -154,8 +173,12 @@ def rolling_winsorize(
     use_nan = allow_missing and not is_target
     min_per = 1 if use_nan else window
 
-    lower = series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
-    upper = series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
+    lower = (
+        series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
+    )
+    upper = (
+        series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
+    )
     return series.clip(lower=lower, upper=upper)
 
 
@@ -189,10 +212,14 @@ def robust_transform(
         series, baseline = diurnal_adjust(series, df[time_col], has_negatives)
 
     if use_transform:
-        series = apply_semantic_transform(series, col_name, has_negatives, allow_missing=allow_missing)
+        series = apply_semantic_transform(
+            series, col_name, has_negatives, allow_missing=allow_missing
+        )
 
     ww = winsor_window if winsor_window is not None else 240
-    series = rolling_winsorize(series, window=ww, allow_missing=allow_missing, is_target=is_target)
+    series = rolling_winsorize(
+        series, window=ww, allow_missing=allow_missing, is_target=is_target
+    )
 
     return series, baseline
 

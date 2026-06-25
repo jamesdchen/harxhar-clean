@@ -1,0 +1,14 @@
+model: ridge
+
+# Subgroup sweep arm (clean, post apply_overnight_fills fix). Real QLIKE vs HAR.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumvolume|numobs|turnover_ewstock|buyturnover_ewstock|sellturnover_ewstock|effspread_ewstock|spread_ewstock|turnover_vwstock|buyturnover_vwstock|sellturnover_vwstock|effspread_vwstock|spread_vwstock"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/sweep_liquidity/run.json
+params_file: ""
