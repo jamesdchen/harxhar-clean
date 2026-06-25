@@ -8,6 +8,35 @@ so they don't get re-believed.
 
 ---
 
+## TL;DR — where it all landed (updated 2026-06-25)
+
+The Part-1 framing just above ("HAR is hard to beat, the one win was an artifact")
+was the *early* read. The full investigation went much further; final state:
+
+1. **Every exog subgroup beats HAR** in real walk-forward QLIKE, and stacking all 41
+   exog (`all_buckets`) wins outright: **0.12807, −0.00653 vs HAR 0.13460**. The
+   sentiment / implied_vol / vol_demand arms that first looked like non-comparable
+   losers were **scaling artifacts**, not signal-less. (Part 3.)
+2. **Three stacked "divide-by-a-degenerate-scale" bugs, one cure** — estimate the
+   scale from the observations that carry dispersion: IQR floor 1e-12 →
+   expanding-real-IQR; diurnal-std `replace(0,1.0)` → typical-std floor;
+   zero-inflation → hurdle encoding. (Part 3 — this **corrects** Part 1's wrong
+   "IQR floors to 1.0" claim.)
+3. **Incremental `RollingLeastSquares`** — rank-1 sliding-window Ridge, exact to
+   1.8e-11, **108× faster**; made the all_buckets run and the window sweep feasible.
+4. **Optimal Ridge `train_window` ≈ 250 days, universal across all buckets** — ~1%
+   QLIKE better than the 500-day default (MSE wants longer). (Part 4.)
+5. **Resolved from Parts 1–2:** the `apply_overnight_fills` 1.0-fill bug (fixed), the
+   structural-missingness problem (→ impute-and-indicate, shipped), the stale Ridge
+   docstrings. **In flight:** tree-tuning campaign on CARC at the 250-day window +
+   n_est≤300 (Part 5); the production `train_window` 500→250 swap (a re-baseline).
+
+Files changed, all ruff + mypy clean: `scaling.py` · `executor.py` · `target.py` ·
+`residualizer.py` · `multi_stage.py` · `ridge.py` · `rolling_least_squares.py` (new) ·
+`results/cluster_subgroup_sweep.csv`. Committed locally (`f9647d6`); repo has no remote.
+
+---
+
 ## How to read the target/feature space (so the numbers below make sense)
 
 - **Target** = `winsorize( sqrt( RV / rolling-per-slot-diurnal-MEAN ) )`, predicted
@@ -468,3 +497,43 @@ grid, common-OOS ≈194,934 bars, lower=better):
 - **Production change** to capture it: `ridge.run` `train_window` default 500 → ~250.
   ⚠️ This shifts every published baseline (HAR 0.13460 etc. were at 500), so it's a
   re-baseline, not a free swap — rerun the sweep at 250 before adopting.
+
+(all 8 buckets above peak at 250; the 9th, `all_buckets`, ablation is the slow
+confirmatory holdout — p≈529 on the old Hoffman2 env.)
+
+---
+
+# Part 5 — Tree tuning + the 250-day production decision (2026-06-25)
+
+**Tree tuning (CARC, in flight).** lgbm + xgb, each tuned (Optuna-prior, 15 trials)
+on the 3 imputed buckets + all_buckets. Refit-every-bar, with each trial's
+walk-forward split across **100 chunk-tasks** (the `tune_tree` chunked design — fold
+the per-chunk `(qlike_count, qlike_sum)` partials into the trial QLIKE). Speed lessons:
+
+- The hard wall is **`MaxJobsPerUser = 100`** (QOS) — only 100 chunks run at once, so
+  wall-clock ≈ total-compute / 100. You can't add parallelism.
+- **GPU does not help here.** The fits are 24k-row windows refit ~2,190× per chunk —
+  far below the data size where GPU GBDT beats CPU `hist`, and the per-fit transfer
+  overhead dominates (plus lightgbm's pip wheel is CPU-only). GPU GBDT is for one big
+  fit, not thousands of tiny sliding-window refits.
+- The levers that *do* work are both compute-reduction: **n_estimators ≤ 300** (the
+  search allowed up to 2000; fit time is ~linear in tree count, paid 2,190×/chunk →
+  ~7×, and the high-tree trials dominated the wall time) and the **250-day window**
+  (12k-row fit vs 24k → ~2×). Combined **~14× → ~5 days down to ~½ day**. The campaign
+  was relaunched capped + at the 250-day window, so trees use the same optimal window
+  the Ridge ablation found. Per-bucket tree-best QLIKE + the tree-vs-Ridge comparison
+  are TBD (monitoring).
+- **Comparability caveat:** the chunked path computes a **per-chunk** Duan smear (vs
+  Ridge's whole-series smear), so absolute tree-vs-Ridge QLIKE carries a
+  smear-granularity difference; trees are internally comparable to each other. Trees
+  also run NaN-native (no impute) and at 250-day / n_est≤300.
+
+**Ops note (reusable).** `scancel` must run *on* the cluster — a local `scancel` has
+no SLURM context and silently no-ops; route it through `ssh <cluster> scancel <ids>`.
+Editing a *running* array's config (window, n_est) is unsafe: a trial's done vs
+pending chunks would use different models, so config changes need cancel+restart.
+
+**Production decision (250-day window).** The ~1% QLIKE gain is real and universal,
+but adopting `train_window=250` **re-baselines every published number** (all measured
+at 500). So it's a deliberate re-baseline — rerun the sweep at 250 — not a silent
+default flip.
