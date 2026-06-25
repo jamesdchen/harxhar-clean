@@ -425,3 +425,46 @@ full-refit timed out at 1h; at p≈526 the cost is the O(p³) per-bar solve, not
 ## Files changed (all ruff + mypy clean)
 `scaling.py` · `executor.py` · `target.py` · `residualizer.py` · `multi_stage.py` ·
 `ridge.py` · `rolling_least_squares.py` (new) · `results/cluster_subgroup_sweep.csv`.
+
+---
+
+# Part 4 — Training-window ablation (Ridge), all buckets (2026-06-24, Hoffman2)
+
+The incremental solver made a `train_window` sweep cheap, so we ran it across every
+feature bucket. **Method:** vary `train_window` (which ties BOTH the Ridge rolling fit
+window AND the robust-scaler window — the pipeline couples them); evaluate every
+window on a **common OOS region** (start at the largest window's warm-up) so the
+comparison is apples-to-apples, not a different test period; refit-every-bar via the
+incremental solver. Run on Hoffman2 base anaconda (numpy 1.23 / pandas 1.5) — so the
+*absolute* QLIKE differs from CARC, but the ablation is **relative** (same env across
+windows), so the argmin is valid.
+
+**Result — the optimum is ~250 days, universal across all 8 buckets** (60–1000-day
+grid, common-OOS ≈194,934 bars, lower=better):
+
+| bucket | best window | QLIKE@250 | Δ vs 500-day default |
+|---|---|---|---|
+| HAR | 250 (≈225 on a finer grid, flat 200–250) | — | −0.0014 |
+| moments | 250 | 0.13449 | −0.00104 |
+| sentiment | 250 | 0.13025 | −0.00092 |
+| market_ew | 250 | 0.13042 | −0.00065 |
+| market_vw | 250 | 0.13023 | −0.00050 |
+| implied_vol | 250 | 0.12961 | −0.00044 |
+| liquidity | 250 | 0.12895 | −0.00039 |
+| vol_demand | 250 | 0.13080 | −0.00029 |
+
+(all_buckets re-running after a long-filename crash; expected to match.)
+
+**Takeaways:**
+- **Every bucket's argmin is 250 days** — the optimal window is a property of the
+  vol process's adaptivity, not the feature set. The current **500-day default is
+  suboptimal everywhere** (gain −0.0003 to −0.0014 QLIKE, biggest for HAR/sentiment).
+- The minimum is **broad and shallow** (250→1000 is nearly flat for most buckets);
+  the finer HAR grid pins it to ~225 in a 200–250 plateau.
+- **QLIKE/MSE divergence is universal**: MSE keeps improving out to ≥1000 days while
+  QLIKE peaks at ~250. QLIKE (raw-space, penalizes under-forecasting spikes) rewards a
+  more *adaptive* short window; MSE (sqrt-space) rewards a stable long one. Optimizing
+  QLIKE → ~250.
+- **Production change** to capture it: `ridge.run` `train_window` default 500 → ~250.
+  ⚠️ This shifts every published baseline (HAR 0.13460 etc. were at 500), so it's a
+  re-baseline, not a free swap — rerun the sweep at 250 before adopting.
