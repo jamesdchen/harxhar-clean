@@ -15,6 +15,7 @@ campaign silently collapses; validate-campaign's missing_stochastic_marker guard
 Campaign knobs come from HPC_KW_* (set via the campaign manifest's frozen kwargs):
   MODEL (lgbm|xgb)  BUCKET  K  MAX_TRIALS  N_EST_CAP  TRAIN_WIN_DAYS
 """
+
 from __future__ import annotations
 
 import json
@@ -55,10 +56,21 @@ CID = os.environ.get("HPC_CAMPAIGN_ID", "covid_tune")
 OBJECTIVE = os.environ.get("HPC_KW_OBJECTIVE", "slice")  # "slice" | "residualized"
 ALPHA = float(os.environ.get("HPC_KW_ALPHA", "1.0"))
 TREE_REFIT = int(os.environ.get("HPC_KW_TREE_REFIT", "480"))
-PIPE = os.environ.get("HPC_KW_PIPE", "slim")  # MATRIX pipe (the cache cell): slim | std | pca<K>
-BASE = os.environ.get("HPC_KW_BASE", "ridge")  # residualizer linear base: "ridge" | "enet" (full stack)
-ARM = os.environ.get("HPC_KW_ARM", "residualized")  # tree column arm: residualized | resid_subset | resid_pruned
-CHUNKS = int(os.environ.get("HPC_KW_CHUNKS", "90"))  # time-chunks per trial (cadence-block partition)
+PIPE = os.environ.get(
+    "HPC_KW_PIPE", "slim"
+)  # MATRIX pipe (the cache cell): slim | std | pca<K>
+BASE = os.environ.get(
+    "HPC_KW_BASE", "ridge"
+)  # residualizer linear base: "ridge" | "enet" (full stack)
+ARM = os.environ.get(
+    "HPC_KW_ARM", "residualized"
+)  # tree column arm: residualized | resid_subset | resid_pruned
+CHUNKS = int(
+    os.environ.get("HPC_KW_CHUNKS", "90")
+)  # time-chunks per trial (cadence-block partition)
+SEED_BASE = (
+    1000  # base for the per-ask sampler seed (see _build_tasks_resid re-seed note)
+)
 
 _train_win = TRAIN_WIN_DAYS * PERIODS_PER_DAY
 _trials_dir = Path(f".hpc/campaigns/{CID}/trials")
@@ -88,9 +100,13 @@ def _tell_from_results(study) -> int:
 
     from src.backtest.tune_tree import _compute_qlike
 
-    running = {t.number for t in study.get_trials(deepcopy=False) if not t.state.is_finished()}
+    running = {
+        t.number for t in study.get_trials(deepcopy=False) if not t.state.is_finished()
+    }
     told = 0
-    for csv in glob.glob(f"results/**/{MODEL}_{BUCKET}/trial_*/results.csv", recursive=True):
+    for csv in glob.glob(
+        f"results/**/{MODEL}_{BUCKET}/trial_*/results.csv", recursive=True
+    ):
         m = re.search(r"trial_(\d+)[/\\]results\.csv$", csv.replace("\\", "/") + "")
         if not m:
             continue
@@ -115,9 +131,13 @@ def _build_tasks() -> list[dict]:
         storage_path=f".hpc/campaigns/{CID}/optuna.db",
         study_name=f"camp_{MODEL}_{BUCKET}",
     )
-    _tell_from_results(study)  # tell finished trials BEFORE asking — closes the TPE loop
+    _tell_from_results(
+        study
+    )  # tell finished trials BEFORE asking — closes the TPE loop
     done = sum(1 for t in study.get_trials(deepcopy=False) if t.state.is_finished())
-    inflight = sum(1 for t in study.get_trials(deepcopy=False) if not t.state.is_finished())
+    inflight = sum(
+        1 for t in study.get_trials(deepcopy=False) if not t.state.is_finished()
+    )
     if done >= MAX_TRIALS:
         return []
 
@@ -125,9 +145,14 @@ def _build_tasks() -> list[dict]:
     tasks: list[dict] = []
     space = _capped_space()
     for _ in range(min(K, MAX_TRIALS - done - inflight)):
-        trial = study.ask(fixed_distributions=space)  # RUNNING -> constant_liar decorrelates the batch
+        trial = study.ask(
+            fixed_distributions=space
+        )  # RUNNING -> constant_liar decorrelates the batch
         params = dict(trial.params)
-        params["n_estimators"] = min(int(params["n_estimators"]), N_EST_CAP)
+        if (
+            "n_estimators" in params
+        ):  # EBM space omits n_estimators (its rounds cap is in-space)
+            params["n_estimators"] = min(int(params["n_estimators"]), N_EST_CAP)
         pj = _trials_dir / f"trial_{trial.number}.json"
         pj.write_text(json.dumps(params, indent=2))
         cfg = _trials_dir / f"trial_{trial.number}.yaml"
@@ -168,30 +193,46 @@ def _tell_from_chunks(study, n_oos: int) -> int:
 
     import pandas as pd
 
-    from src.backtest.tune_tree import _compute_qlike
-
-    running = {t.number for t in study.get_trials(deepcopy=False) if not t.state.is_finished()}
+    running = {
+        t.number for t in study.get_trials(deepcopy=False) if not t.state.is_finished()
+    }
     told = 0
     for d in glob.glob(f"results/**/{MODEL}_{BUCKET}/trial_*/", recursive=True):
         m = re.search(r"trial_(\d+)[/\\]$", d.replace("\\", "/"))
         if not m or int(m.group(1)) not in running:
             continue
         n = int(m.group(1))
-        chunks = glob.glob(f"{d}/chunk_*.csv")
+        chunks = glob.glob(
+            f"{d}/blk_*/chunk_*.csv"
+        )  # chunks now live in per-task blk_* subdirs
         if not chunks:
             continue
         try:
-            df = pd.concat([pd.read_csv(c) for c in chunks]).drop_duplicates("k").sort_values("k")
+            df = (
+                pd.concat([pd.read_csv(c) for c in chunks])
+                .drop_duplicates("k")
+                .sort_values("k")
+            )
         except Exception:
             continue
-        if len(df) != n_oos or int(df["k"].iloc[0]) != 0 or int(df["k"].iloc[-1]) != n_oos - 1:
+        if (
+            len(df) != n_oos
+            or int(df["k"].iloc[0]) != 0
+            or int(df["k"].iloc[-1]) != n_oos - 1
+        ):
             continue  # not all chunks landed yet
         import numpy as _np
 
         from src.evaluation.metrics import apply_duan_smearing
-        pr, tr = apply_duan_smearing(df["pred_adj"].to_numpy(), df["y_true"].to_numpy(), df["base"].to_numpy())
-        mm = (tr > 0) & (pr > 0); rr = tr[mm] / pr[mm]
-        study.tell(n, float(_np.mean(rr - _np.log(rr) - 1)))  # GLOBAL smear on the concat (not per-chunk)
+
+        pr, tr = apply_duan_smearing(
+            df["pred_adj"].to_numpy(), df["y_true"].to_numpy(), df["base"].to_numpy()
+        )
+        mm = (tr > 0) & (pr > 0)
+        rr = tr[mm] / pr[mm]
+        study.tell(
+            n, float(_np.mean(rr - _np.log(rr) - 1))
+        )  # GLOBAL smear on the concat (not per-chunk)
         running.discard(n)
         told += 1
     return told
@@ -212,30 +253,68 @@ def _build_tasks_resid() -> list[dict]:
 
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     cid = ra.cell_id(MODEL, BUCKET, TRAIN_WIN_DAYS, ALPHA, TREE_REFIT, PIPE, BASE)
-    cell = _json.load(open(f"{ra.CACHE_ROOT}/{cid}/cell.json"))  # cache must be prepped first
+    cell = _json.load(
+        open(f"{ra.CACHE_ROOT}/{cid}/cell.json")
+    )  # cache must be prepped first
     n_oos = int(cell["n"] - cell["train_win"])
     ranges = _chunk_ranges(int(cell["n_refits"]), CHUNKS)
     sampler = TPESampler(constant_liar=False, n_ei_candidates=96, seed=0)
     study = optuna.create_study(
-        study_name=f"resid_{MODEL}_{BUCKET}", storage=f"sqlite:///.hpc/campaigns/{CID}/optuna.db",
-        sampler=sampler, direction="minimize", load_if_exists=True,
+        study_name=f"resid_{MODEL}_{BUCKET}",
+        storage=f"sqlite:///.hpc/campaigns/{CID}/optuna.db",
+        sampler=sampler,
+        direction="minimize",
+        load_if_exists=True,
     )
-    _tell_from_chunks(study, n_oos)  # tell completed trials BEFORE asking — closes the TPE loop
+    _tell_from_chunks(
+        study, n_oos
+    )  # tell completed trials BEFORE asking — closes the TPE loop
     done = sum(1 for t in study.get_trials(deepcopy=False) if t.state.is_finished())
-    inflight = sum(1 for t in study.get_trials(deepcopy=False) if not t.state.is_finished())
     if done >= MAX_TRIALS:
         return []
     _trials_dir.mkdir(parents=True, exist_ok=True)
     tasks: list[dict] = []
     space = _capped_space()
-    for _ in range(min(K, MAX_TRIALS - done - inflight)):
-        trial = study.ask(fixed_distributions=space)
+    # Reuse already-in-flight trials before asking new ones. The driver asks a trial,
+    # writes its configs, and deploys the optuna.db; EVERY later import — and the
+    # cluster dispatcher re-imports this module once per array task — must rebuild the
+    # SAME trial's chunks, NOT ask a fresh trial (which would make each of the CHUNKS
+    # array tasks run a DIFFERENT trial and produce incoherent results). So take the
+    # in-flight trials first (deterministic), and only ask() to top the batch up to K.
+    chosen = [t for t in study.get_trials(deepcopy=False) if not t.state.is_finished()][
+        :K
+    ]
+    # Bug-2 fix: the sampler is re-created in a FRESH PROCESS on every enumeration
+    # (each driver iteration / cluster re-import). With a fixed seed and K=1, the
+    # startup-phase RNG reset identically every time, so every trial drew the SAME
+    # point (trials 0/1/2 were byte-identical and the campaign never explored).
+    # Re-seed by study progress before EACH ask so consecutive trials draw distinct
+    # points. Cluster re-imports reuse the already-RUNNING trial (chosen=in-flight,
+    # no ask), so chunk-rebuild determinism is preserved — only the driver's top-up
+    # ask() is affected. len(chosen) makes it correct for K>1 too (no seed collision).
+    for _ in range(max(0, min(K - len(chosen), MAX_TRIALS - done - len(chosen)))):
+        study.sampler = TPESampler(
+            constant_liar=False, n_ei_candidates=96, seed=SEED_BASE + done + len(chosen)
+        )
+        chosen.append(study.ask(fixed_distributions=space))
+    for trial in chosen:
         params = dict(trial.params)
-        params["n_estimators"] = min(int(params["n_estimators"]), N_EST_CAP)
+        if (
+            "n_estimators" in params
+        ):  # EBM space omits n_estimators (its rounds cap is in-space)
+            params["n_estimators"] = min(int(params["n_estimators"]), N_EST_CAP)
         pj = _trials_dir / f"trial_{trial.number}.json"
         pj.write_text(json.dumps(params, indent=2))
         for blk0, blk1 in ranges:  # fan the trial's backtest across time-chunks
             cfg = _trials_dir / f"trial_{trial.number}_chunk_{blk0}_{blk1}.yaml"
+            # Per-chunk result subdir so each cluster array task lands in a UNIQUE
+            # dir — the framework's result_dir_template requires a per-task
+            # placeholder (else it refuses the submit as clobbering). The blk key
+            # encodes trial+chunk so it is unique across the whole array; the
+            # output_file's {run_id} is substituted at run time (resid_tree reads
+            # HPC_RUN_ID) so the written path matches the framework's result_dir.
+            # _tell_from_chunks globs the chunk CSVs back out of these blk_* subdirs.
+            blk_key = f"{trial.number}_{blk0}_{blk1}"
             cfg.write_text(
                 "\n".join(
                     [
@@ -245,16 +324,28 @@ def _build_tasks_resid() -> list[dict]:
                         f"blk0: {blk0}",
                         f"blk1: {blk1}",
                         f"params_file: {pj.as_posix()}",
-                        f"output_file: results/{{run_id}}/{MODEL}_{BUCKET}/trial_{trial.number}/run.json",
+                        f"output_file: results/{{run_id}}/{MODEL}_{BUCKET}/trial_{trial.number}/blk_{blk_key}/run.json",
                         "",
                     ]
                 )
             )
-            tasks.append({"config": cfg.as_posix(), "_optuna_trial_number": f"{trial.number}_{blk0}"})
+            tasks.append({"config": cfg.as_posix(), "_optuna_trial_number": blk_key})
     return tasks
 
 
-_TASKS = _build_tasks_resid() if OBJECTIVE == "residualized" else _build_tasks()
+try:
+    _TASKS = _build_tasks_resid() if OBJECTIVE == "residualized" else _build_tasks()
+except Exception:
+    # A bare import of this strategy file with NO campaign context — e.g. the
+    # cluster status reporter importing tasks.py to report an UNRELATED run —
+    # must not crash: the campaign build reads a cache cell / asks an Optuna
+    # study that a foreign run's env does not provide. Re-raise only when we ARE
+    # the campaign driver (HPC_CAMPAIGN_ID set) — then a build failure is real
+    # and must surface loud. Otherwise degrade to an empty task list so the
+    # generic status reporter can still resolve task paths for the other run.
+    if os.environ.get("HPC_CAMPAIGN_ID"):
+        raise
+    _TASKS = []
 
 
 def total() -> int:
@@ -262,4 +353,4 @@ def total() -> int:
 
 
 def resolve(i: int) -> dict:
-    return _TASKS[i]
+    return _TASKS[i] if 0 <= i < len(_TASKS) else {}
