@@ -71,6 +71,15 @@ CHUNKS = int(
 SEED_BASE = (
     1000  # base for the per-ask sampler seed (see _build_tasks_resid re-seed note)
 )
+# Per-campaign seed offset: independent cluster studies (carc/hoffman2) otherwise run
+# the IDENTICAL deterministic sequence (same SEED_BASE + same progress) and produce
+# identical QLIKEs — the second cluster is then redundant. Give each campaign a disjoint
+# seed block so the clusters explore COMPLEMENTARY points. carc stays at offset 0 so its
+# in-flight trajectory is unchanged; offsets are >> MAX_TRIALS so blocks never overlap.
+_SEED_OFFSETS = {"carc": 0, "hoffman2": 5000}
+SEED_OFFSET = next(
+    (off for suffix, off in _SEED_OFFSETS.items() if CID.endswith(suffix)), 0
+)
 
 _train_win = TRAIN_WIN_DAYS * PERIODS_PER_DAY
 _trials_dir = Path(f".hpc/campaigns/{CID}/trials")
@@ -294,7 +303,9 @@ def _build_tasks_resid() -> list[dict]:
     # ask() is affected. len(chosen) makes it correct for K>1 too (no seed collision).
     for _ in range(max(0, min(K - len(chosen), MAX_TRIALS - done - len(chosen)))):
         study.sampler = TPESampler(
-            constant_liar=False, n_ei_candidates=96, seed=SEED_BASE + done + len(chosen)
+            constant_liar=False,
+            n_ei_candidates=96,
+            seed=SEED_BASE + SEED_OFFSET + done + len(chosen),
         )
         chosen.append(study.ask(fixed_distributions=space))
     for trial in chosen:
