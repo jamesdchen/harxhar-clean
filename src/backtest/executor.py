@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/05_executor.ipynb. Do not edit by hand.
-
 """Shared executor scaffold for ML walk-forward volatility backtests.
 
 Lifts the ~90% duplicated `main()` body of the per-method executors
@@ -82,7 +80,7 @@ def _expanding_real_iqr(
 
 
 def _build_scale_guards(
-    X: np.ndarray, df: pd.DataFrame, feature_names: list[str]
+    X: np.ndarray, df: pd.DataFrame, feature_names: list[str], zero_inflated_active: bool = True
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """Scale guards for the impute-and-indicate feature pathology.
 
@@ -120,7 +118,7 @@ def _build_scale_guards(
             # dispersion and collapses the IQR otherwise. The indicator half of
             # the hurdle encoding is the ``<col>_active`` columns added in
             # ``load_and_transform``.
-            if float(np.mean(xj == 0.0)) >= ZERO_INFLATED_FRAC:
+            if zero_inflated_active and float(np.mean(xj == 0.0)) >= ZERO_INFLATED_FRAC:
                 mask = mask & (xj != 0.0)
             ref_iqr[:, j] = _expanding_real_iqr(xj, mask)
             touched = True
@@ -141,6 +139,7 @@ def _backtest_and_save(
     halo: int,
     output_file: str,
     prescale: bool = False,
+    diurnal_mode: str = "divide",
 ) -> None:
     """Run a prepared DataFrame through the walk-forward backtest and save.
 
@@ -199,7 +198,9 @@ def _backtest_and_save(
     # whole-series, keeps its look-back out of the per-chunk backtest (see
     # rolling_robust_scale). The slice below then cuts the pre-scaled array.
     if prescale:
-        ref_iqr, fixed_cols = _build_scale_guards(X, df, feature_names)
+        ref_iqr, fixed_cols = _build_scale_guards(
+            X, df, feature_names, zero_inflated_active=(diurnal_mode != "rank")
+        )
         X = rolling_robust_scale(
             X, train_win_periods, ref_iqr=ref_iqr, fixed_cols=fixed_cols
         )
@@ -260,8 +261,15 @@ def load_and_transform(
     dropna_with_exog: bool,
     overnight_fill: bool = True,
     impute_indicate: bool = False,
+    diurnal_mode: str = "divide",
+    use_semantic: bool = True,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
+
+    ``diurnal_mode`` (``"divide"`` | ``"rank"``) selects how the per-slot diurnal
+    adjustment is done for the EXOG features: the default divide, or the
+    division-free per-slot rank-Gauss (:func:`diurnal_rank`). The target's diurnal
+    is always divide (its raw reconstruction needs the multiplicative baseline).
 
     Parameters
     ----------
@@ -311,7 +319,7 @@ def load_and_transform(
     adj_exog_cols: list[str] = []
     for col in exog_cols:
         adj_col = f"adj_{col}"
-        adj_series, _ = robust_transform(df, col, use_transform=True, use_diurnal=True)
+        adj_series, _ = robust_transform(df, col, use_transform=use_semantic, use_diurnal=True, diurnal_mode=diurnal_mode)
         df[adj_col] = adj_series
         adj_exog_cols.append(adj_col)
 
@@ -414,6 +422,7 @@ def run_executor(
     dropna_with_exog: bool,
     overnight_fill: bool = True,
     impute_indicate: bool = False,
+    diurnal_mode: str = "divide",
     prescale: bool = False,
     seed: int = 42,
 ) -> None:
@@ -448,6 +457,7 @@ def run_executor(
         dropna_with_exog=dropna_with_exog,
         overnight_fill=overnight_fill,
         impute_indicate=impute_indicate,
+        diurnal_mode=diurnal_mode,
     )
 
     for seg_name, job_df, feature_names, train_win, out_file in _iter_TOD_segment(
@@ -476,4 +486,5 @@ def run_executor(
             halo,
             out_file,
             prescale,
+            diurnal_mode,
         )
