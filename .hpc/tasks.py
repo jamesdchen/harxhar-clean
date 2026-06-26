@@ -55,8 +55,9 @@ CID = os.environ.get("HPC_CAMPAIGN_ID", "covid_tune")
 OBJECTIVE = os.environ.get("HPC_KW_OBJECTIVE", "slice")  # "slice" | "residualized"
 ALPHA = float(os.environ.get("HPC_KW_ALPHA", "1.0"))
 TREE_REFIT = int(os.environ.get("HPC_KW_TREE_REFIT", "480"))
-PIPE = os.environ.get("HPC_KW_PIPE", "slim")
+PIPE = os.environ.get("HPC_KW_PIPE", "slim")  # MATRIX pipe (the cache cell): slim | std | pca<K>
 BASE = os.environ.get("HPC_KW_BASE", "ridge")  # residualizer linear base: "ridge" | "enet" (full stack)
+ARM = os.environ.get("HPC_KW_ARM", "residualized")  # tree column arm: residualized | resid_subset | resid_pruned
 CHUNKS = int(os.environ.get("HPC_KW_CHUNKS", "90"))  # time-chunks per trial (cadence-block partition)
 
 _train_win = TRAIN_WIN_DAYS * PERIODS_PER_DAY
@@ -240,7 +241,7 @@ def _build_tasks_resid() -> list[dict]:
                     [
                         "model: resid_tree",
                         f"cid: {cid}",
-                        "arm: residualized",
+                        f"arm: {ARM}",
                         f"blk0: {blk0}",
                         f"blk1: {blk1}",
                         f"params_file: {pj.as_posix()}",

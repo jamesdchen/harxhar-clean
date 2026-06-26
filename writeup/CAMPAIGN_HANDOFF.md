@@ -124,12 +124,13 @@ hpc-agent campaign init --campaign-id ebm_all_buckets_<cluster> \
   --metric qlike --direction minimize --strategy-name covid_resid_tune \
   --max-iters 25 --max-core-hours <budget> \
   --strategy-params-json '{"OBJECTIVE":"residualized","MODEL":"ebm","BUCKET":"all_buckets",
-     "TRAIN_WIN_DAYS":1000,"BASE":"enet","ALPHA":1,"TREE_REFIT":480,"PIPE":"subset",
+     "TRAIN_WIN_DAYS":1000,"BASE":"enet","ALPHA":1,"TREE_REFIT":480,"PIPE":"slim","ARM":"resid_subset",
      "CHUNKS":90,"K":1,"MAX_TRIALS":200}'
 ```
-(`K=1` = pure-sequential regular TPE; each asked trial fans into `CHUNKS` chunk-tasks. `BASE=enet`/`PIPE=subset` per
-§8; `ALPHA=1` is an ignored placeholder under `BASE=enet` (enet base is fixed α≈0.001, l1≈0.2). The cache cell the
-campaign reads is `ebm_all_buckets_tw1000_enet_rf480_slim`.)
+(`K=1` = pure-sequential regular TPE; each asked trial fans into `CHUNKS` chunk-tasks. **`PIPE=slim`** is the MATRIX
+(→ cache cell `ebm_all_buckets_tw1000_enet_rf480_slim`); **`ARM=resid_subset`** is the tree column selection (the
+rolling ~112 enet survivors, §8). `BASE=enet`; `ALPHA=1` is an ignored placeholder under `BASE=enet` (enet base is
+fixed α≈0.001, l1≈0.2).)
 
 ### Step 3 — drive the loop (per cluster, repeat until converged/over-budget)
 Preferred — one tick via the skill: `Skill(hpc-campaign){experiment_dir:".", campaign_id:"ebm_all_buckets_<cluster>"}`
@@ -174,16 +175,28 @@ lgbm residual tree, fixed bagging config, Ridge-α100 base, full-OOS fixed regio
 
 ---
 
-## 9. Remaining build — status
+## 9. Launch-ready status — START HERE for a cold drive
 
-1. **`base=enet` cache prep** — **[built]** `do_prep(..., base_kind="enet")` via `_cadence_enet` (warm-started CD);
-   `cell_id` base tag (`enet`); cache is base-agnostic (`preds_chunk` uses whatever coefs the cache holds).
-   Cache `ebm_all_buckets_tw1000_enet_rf480_slim` **building now** (`9628814`) + its `enet_masks`.
-2. **EBM caps** — **[built]** `widened_space("ebm")` → `max_rounds∈[100,800]`, `outer_bags∈[2,4]`.
-3. **EBM installed both clusters** — **[built]** interpret 0.7.8 on CARC + Hoffman2.
-4. **`PIPE=subset`** — **[resolved]** (§8).
-5. **Remaining (gated on the enet cache):** copy the enet cache → Hoffman2 xgb/ebm cell (DTN); `campaign init` both
-   clusters (params in §6, with `MODEL=ebm BASE=enet PIPE=subset ALPHA=1`); seed; first `hpc-campaign` tick.
+**Everything is deployed + init'd. The cold session's job is to DRIVE.** Ready:
+- **[built]** enet-base EBM cache `ebm_all_buckets_tw1000_enet_rf480_slim` on **CARC** (enet base_alone QLIKE
+  **0.12516** = the EBM's bar; 112 survivors, 218 prunable, masks+prunable saved) and on **Hoffman2** (same cache;
+  `Xs.npy` symlinked to the shared slim matrix, small files copied).
+- **[built]** EBM (interpret 0.7.8) + latest code (incl. `tasks.py` with `BASE`/`ARM` knobs) on **both** clusters.
+- **[built]** Both campaigns **init'd**: `.hpc/campaigns/ebm_all_buckets_{carc,hoffman2}/manifest.json`
+  (strategy `covid_resid_tune`; params `MODEL=ebm BASE=enet ARM=resid_subset PIPE=slim ALPHA=1 TREE_REFIT=480
+  CHUNKS=90 K=1 MAX_TRIALS=200 TRAIN_WIN_DAYS=1000`; gates `max-iters=25 max-core-hours=400`).
+- **[verified]** scorer exact (selfcheck 5e-13), chunk fan-out exact (chunkcheck 0.000), lgbm A/B (subset 0.12346 <
+  pruned 0.12381 < base 0.12565).
+
+**The one UNPROVEN step (do this FIRST in the cold session):** a campaign **tick** has never run, so the
+EBM-through-`tasks.py`→`run.py`→`resid_tree`→chunk→`_tell_from_chunks` path + the tick's cache-read locus are
+untested end-to-end. The standalone **EBM chunk verify** (`ebm_verify.sbatch`, job `9629325`) was in flight at handoff
+— **check its collect first**: `python resid_amortized.py chunk_collect ebm_all_buckets_tw1000_enet_rf480_slim
+resid_subset` (vs the 0.12516 base). If that's sane, drive CARC via §6 Step 3 (`hpc-campaign` tick) — the first tick
+is the real integration test; watch for cache-not-found (locus) or arm/cfg errors, then Hoffman2.
+
+**Cold drive = §6 Step 0 (preflight) → Step 3 (`hpc-campaign` tick loop), per cluster.** `campaign init` (Step 2) is
+already done — skip it. No `scancel`; no raw-ssh polling.
 
 ---
 
