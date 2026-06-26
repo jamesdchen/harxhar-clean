@@ -188,12 +188,13 @@ lgbm residual tree, fixed bagging config, Ridge-α100 base, full-OOS fixed regio
 - **[verified]** scorer exact (selfcheck 5e-13), chunk fan-out exact (chunkcheck 0.000), lgbm A/B (subset 0.12346 <
   pruned 0.12381 < base 0.12565).
 
-**The one UNPROVEN step (do this FIRST in the cold session):** a campaign **tick** has never run, so the
-EBM-through-`tasks.py`→`run.py`→`resid_tree`→chunk→`_tell_from_chunks` path + the tick's cache-read locus are
-untested end-to-end. The standalone **EBM chunk verify** (`ebm_verify.sbatch`, job `9629325`) was in flight at handoff
-— **check its collect first**: `python resid_amortized.py chunk_collect ebm_all_buckets_tw1000_enet_rf480_slim
-resid_subset` (vs the 0.12516 base). If that's sane, drive CARC via §6 Step 3 (`hpc-campaign` tick) — the first tick
-is the real integration test; watch for cache-not-found (locus) or arm/cfg errors, then Hoffman2.
+**EBM chunk path is VERIFIED:** `ebm_verify` collect = **0.12429** (untuned EBM, capped cfg) — **beats the enet base
+0.12516** by 0.00087 (lgbm-subset was 0.12346). So the full-stack compute (EBM + enet base + resid_subset + chunk +
+global-smear collect) runs end-to-end and adds value. **The ONE remaining untested layer is the campaign TICK
+orchestration** (`tasks.py` ask → emit configs → `run.py` → `resid_tree` → chunk → `_tell_from_chunks`, + the tick's
+cache-read locus). The hpc-agent campaign *mechanism* is proven (the slice campaigns ran), so the first EBM tick is an
+orchestration shakeout — watch for cache-not-found (locus) or arm/cfg errors. Drive: §6 Step 3 (`hpc-campaign` tick),
+CARC first, then Hoffman2.
 
 **Cold drive = §6 Step 0 (preflight) → Step 3 (`hpc-campaign` tick loop), per cluster.** `campaign init` (Step 2) is
 already done — skip it. No `scancel`; no raw-ssh polling.
