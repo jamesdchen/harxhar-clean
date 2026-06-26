@@ -206,6 +206,17 @@ def _qlike(preds, y, base, train_win):
 def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     train_win = twd * PERIODS_PER_DAY
     Xs, y, base = _load_matrix(bucket, train_win, pipe)
+    # Drop dead (zero-variance) columns before fitting/caching. ~31% of the all_buckets
+    # slim matrix is constant always-on availability indicators (_avail/_active flags for
+    # series that are never missing -> pinned at 1). They are inert to enet (collinear with
+    # the intercept -> zero/absorbed) and to trees (no split on a constant), so dropping
+    # them leaves QLIKE unchanged but shrinks the cached matrix, makes the effective
+    # feature count honest, and removes the divide-by-zero landmine for the robust-scale
+    # pipe. Done post-assembly so the _split_cols/fixed_cols column-index machinery is
+    # untouched. (No effect on an already-cached cell; takes effect on the next prep.)
+    keep = Xs.std(axis=0) > 1e-9
+    n_dropped = int((~keep).sum())
+    Xs = np.ascontiguousarray(Xs[:, keep])
     t0 = time.time()
     if base_kind == "enet":
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
@@ -218,7 +229,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     np.save(f"{d}/ridge_oos.npy", ridge_oos)
     np.savez(f"{d}/cadence.npz", starts=starts, coefs=coefs, intercepts=intercepts)
     json.dump({"model": model, "bucket": bucket, "twd": twd, "alpha": alpha, "refit": refit, "pipe": pipe,
-               "base_kind": base_kind, "train_win": train_win, "n": int(len(Xs)), "n_refits": int(len(starts))},
+               "base_kind": base_kind, "train_win": train_win, "n": int(len(Xs)), "n_refits": int(len(starts)),
+               "p": int(Xs.shape[1]), "n_dropped_const": n_dropped},
               open(f"{d}/cell.json", "w"), indent=2)
     print("PREP %s n=%d n_refits=%d base=%s base_alone_qlike=%.5f %.0fs" % (
         cid, len(Xs), len(starts), base_kind, _qlike(ridge_oos, y, base, train_win), time.time() - t0), flush=True)
