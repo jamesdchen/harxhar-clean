@@ -247,6 +247,16 @@ def _build_har_and_calendar(df, exog_cols, add_calendar):
     df, har_names = generate_har_features(df, target_col="adj_RV", exog_cols=exog_cols)
     if add_calendar:
         feature_names = har_names + add_calendar_features(df)
+        # HAR x open/close session-edge interactions (the distilled intraday vol-persistence
+        # sign-flip: high recent RV -> LOWER future RV at the 09:30 open and 16:00 close/AH).
+        # Materialized upstream so every model + the cached matrix inherit them; causal (the
+        # is_open/is_close gates are pure functions of the timestamp). Mirrors the no-rebuild
+        # resid_amortized._regime_interactions, identical naming (har_ma_{w}_x_{open,close}).
+        for h in [c for c in har_names if c.startswith("har_ma_")]:  # the 6 target-HAR cols
+            for gate, suffix in (("is_open", "open"), ("is_close", "close")):
+                name = f"{h}_x_{suffix}"  # matches resid_amortized: har_ma_{w}_x_{open,close}
+                df[name] = df[h] * df[gate]
+                feature_names.append(name)
     else:
         feature_names = har_names
     return df, feature_names

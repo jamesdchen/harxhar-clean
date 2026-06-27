@@ -55,6 +55,37 @@ def _split_cols(feats):
     return har, exog, ind
 
 
+# Clock-anchored session-transition gates for the OPEN/CLOSE x HAR regime interaction (base_kind=
+# "enetreg"). The auction / session-transition microstructure localizes the HAR vol-persistence
+# sign-flip at the 09:30 ET OPEN (hour==9) and the 16:00 CLOSE + after-hours, hours 16-19 (capped
+# below 20 -- the -0.21 reversal lobe peaks at 17:00, dead overnight bars excluded) -- per tests123.py.
+# These are ACTUAL clock hours, NOT hour-quantile buckets (bucket-0-of-6 is overnight, not the open).
+# Crossing them with the 6 HAR columns lets the linear enet base ABSORB the regime the residualized
+# EBM otherwise has to rediscover, so the downstream EBM digs into the structure that remains.
+_HAR_COLS = ("har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125")
+
+
+def _regime_interactions(Xs, feats):
+    """HAR x {open, close} clock-anchored interaction columns. Returns (INT[N,k], names[k]).
+    open = (hour==9), the 09:30 ET opening bar; close = (16<=hour<=19), the 16:00 close auction +
+    after-hours (capped below 20 to exclude dead overnight bars; AH trading ends ~20:00 ET).
+    Constant products (std<=1e-9, e.g. a gate empty in this cache) drop out."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    gates = (("open", (hour == 9).astype(np.float64)), ("close", ((hour >= 16) & (hour <= 19)).astype(np.float64)))
+    cols, names = [], []
+    for hn in _HAR_COLS:
+        if hn not in feats:
+            continue
+        h = Xs[:, feats.index(hn)].astype(np.float64)
+        for gname, g in gates:
+            col = h * g
+            if col.std() > 1e-9:
+                cols.append(col)
+                names.append(f"{hn}_x_{gname}")
+    INT = np.ascontiguousarray(np.column_stack(cols)) if cols else np.empty((len(Xs), 0), dtype=np.float64)
+    return INT, names
+
+
 def _load_matrix(bucket, train_win, pipe="slim"):
     """pipe="slim": raw per-slot-rank matrix, NO robust-scale (ablation C_norob_all winner:
     drop semantic + drop robust-scale -> per-slot-rank -> indicators -> Ridge).
@@ -206,6 +237,14 @@ def _qlike(preds, y, base, train_win):
 def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     train_win = twd * PERIODS_PER_DAY
     Xs, y, base = _load_matrix(bucket, train_win, pipe)
+    feats_aug = None
+    if base_kind == "enetreg":
+        # Fold the distilled OPEN/CLOSE x HAR regime interaction into the linear base. Appended
+        # BEFORE the constant-drop so it flows through enet/masks/tree exactly like a native column.
+        feats0 = json.load(open(f"results/covid_imp_rank/{bucket}/meta.json"))["feats"]
+        INT, int_names = _regime_interactions(Xs, feats0)
+        Xs = np.ascontiguousarray(np.hstack([Xs, INT]))
+        feats_aug = list(feats0) + int_names
     # Drop dead (zero-variance) columns before fitting/caching. ~31% of the all_buckets
     # slim matrix is constant always-on availability indicators (_avail/_active flags for
     # series that are never missing -> pinned at 1). They are inert to enet (collinear with
@@ -217,8 +256,10 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     keep = Xs.std(axis=0) > 1e-9
     n_dropped = int((~keep).sum())
     Xs = np.ascontiguousarray(Xs[:, keep])
+    if feats_aug is not None:
+        feats_aug = [f for f, k in zip(feats_aug, keep) if k]
     t0 = time.time()
-    if base_kind == "enet":
+    if base_kind in ("enet", "enetreg"):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
         starts, coefs, intercepts = _cadence_ridge(Xs, y, train_win, alpha, refit)
@@ -228,9 +269,12 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     np.save(f"{d}/Xs.npy", Xs); np.save(f"{d}/y.npy", y); np.save(f"{d}/base.npy", base)
     np.save(f"{d}/ridge_oos.npy", ridge_oos)
     np.savez(f"{d}/cadence.npz", starts=starts, coefs=coefs, intercepts=intercepts)
+    n_int = 0 if feats_aug is None else sum(1 for f in feats_aug if "_x_open" in f or "_x_close" in f)
+    if feats_aug is not None:  # augmented column names (enetreg) so ebm_interpret can label the interactions
+        json.dump(feats_aug, open(f"{d}/feats.json", "w"))
     json.dump({"model": model, "bucket": bucket, "twd": twd, "alpha": alpha, "refit": refit, "pipe": pipe,
                "base_kind": base_kind, "train_win": train_win, "n": int(len(Xs)), "n_refits": int(len(starts)),
-               "p": int(Xs.shape[1]), "n_dropped_const": n_dropped},
+               "p": int(Xs.shape[1]), "n_dropped_const": n_dropped, "n_regime_int": n_int},
               open(f"{d}/cell.json", "w"), indent=2)
     print("PREP %s n=%d n_refits=%d base=%s base_alone_qlike=%.5f %.0fs" % (
         cid, len(Xs), len(starts), base_kind, _qlike(ridge_oos, y, base, train_win), time.time() - t0), flush=True)
