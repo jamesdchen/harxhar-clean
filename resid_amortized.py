@@ -248,6 +248,18 @@ def load_cache(cid):
         out["masks"] = np.load(f"{d}/masks.npy")
     if os.path.exists(f"{d}/prunable.npy"):  # safe-prune (224-signalless) mask (for arm=resid_pruned)
         out["prunable"] = np.load(f"{d}/prunable.npy")
+    # Live availability-indicator mask (arm=resid_subset_ind): _avail/_active columns that VARY.
+    # enet-survivor selection (resid_subset) filters these out (~5% survival) because their
+    # signal is interaction-only (zero linear main effect), so the residual tree never sees the
+    # event channel. This mask lets resid_subset_ind union them back in to TEST that channel.
+    out["live_ind"] = None
+    try:
+        feats = json.load(open(f"results/covid_imp_rank/{out['cell']['bucket']}/meta.json"))["feats"]
+        if len(feats) == out["Xs"].shape[1]:
+            isind = np.array([("_avail" in f or "_active" in f) for f in feats])
+            out["live_ind"] = isind & (out["Xs"].std(axis=0) > 1e-9)
+    except Exception:
+        pass
     return out
 
 
@@ -296,6 +308,9 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
     out = np.zeros(k1 - k0) if raw else np.array(c["ridge_oos"][k0:k1], copy=True)
     if arm == "resid_subset":      # tree sees only the block's rolling enet survivors (~120)
         def colsel(i): return c["masks"][i]
+    elif arm == "resid_subset_ind":  # survivors UNION live availability indicators (event channel)
+        li = c["live_ind"]
+        def colsel(i): return c["masks"][i] if li is None else (c["masks"][i] | li)
     elif arm == "resid_pruned":    # tree sees all-but-the-signalless (the 224-indicator prune)
         keep = ~c["prunable"]
         def colsel(i): return keep
