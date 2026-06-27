@@ -53,7 +53,7 @@ def _exclusive(path: Path, poll: float = 2.0, timeout: float = 1200.0):
     local ``.hpc/runs/`` deploy state — concurrent deploys dropped a run's
     sidecar and wedged a whole cluster. One global lock makes deploys sequential.
     """
-    fh = open(path, "a+")
+    fh = open(path, "a+")  # noqa: SIM115 (held for lifetime — released in finally)
     waited = 0.0
     try:
         while not _try_lock(fh):
@@ -94,6 +94,11 @@ KW = {
     "HPC_KW_MAX_TRIALS": "200",
     "HPC_KW_N_EST_CAP": "300",
 }
+# Derived from KW so study_state() / fail_trial() always query the right Optuna study.
+# tasks.py builds study_name=f"resid_{MODEL}_{BUCKET}" from the same env vars; deriving
+# here prevents a silent mismatch (wrong study → fail_trial / study_state broken) when
+# MODEL or BUCKET changes.
+STUDY_NAME = f"resid_{KW['HPC_KW_MODEL']}_{KW['HPC_KW_BUCKET']}"
 
 CLUSTERS: dict[str, dict[str, Any]] = {
     "carc": {
@@ -155,9 +160,7 @@ def main() -> int:
         print(line, flush=True)
 
     def run(args: list[str], timeout: int = 900) -> dict:
-        p = subprocess.run(
-            args, env=env, cwd=REPO, capture_output=True, text=True, timeout=timeout
-        )
+        p = subprocess.run(args, env=env, cwd=REPO, capture_output=True, text=True, timeout=timeout)
         out = (p.stdout or "").strip()
         try:
             return json.loads(out.splitlines()[-1]) if out else {}
@@ -168,17 +171,16 @@ def main() -> int:
         code = (
             "import optuna,json;"
             "from optuna.trial import TrialState as TS;"
-            f"s=optuna.load_study(study_name='resid_ebm_all_buckets', storage='{study_storage}');"
+            f"s=optuna.load_study(study_name='{STUDY_NAME}', storage='{study_storage}');"
             "ts=s.get_trials(deepcopy=False);"
             "r=[t.number for t in ts if not t.state.is_finished()];"
             "comp=[(t.number,t.value) for t in ts if t.state==TS.COMPLETE];"
             "fin=[t.number for t in ts if t.state.is_finished()];"
             "print(json.dumps({'running':r,'finished':len(fin),'complete':len(comp),'trials':comp}))"
         )
-        p = subprocess.run(
-            [UVPY, "-c", code], env=env, cwd=REPO, capture_output=True, text=True
-        )
-        return json.loads(p.stdout.strip().splitlines()[-1])
+        p = subprocess.run([UVPY, "-c", code], env=env, cwd=REPO, capture_output=True, text=True)
+        out: dict = json.loads(p.stdout.strip().splitlines()[-1])
+        return out
 
     def fail_trial(n: int) -> None:
         """Mark a stuck/failed Optuna trial FAILED so the next ask() advances past it.
@@ -186,13 +188,11 @@ def main() -> int:
         (all tasks failed / dropped deploy) — otherwise the loop resubmits forever."""
         code = (
             "import optuna;from optuna.trial import TrialState as TS;"
-            f"s=optuna.load_study(study_name='resid_ebm_all_buckets', storage='{study_storage}');"
+            f"s=optuna.load_study(study_name='{STUDY_NAME}', storage='{study_storage}');"
             f"t=next((t for t in s.get_trials(deepcopy=False) if t.number=={n}), None);"
             f"s.tell({n}, state=TS.FAIL) if (t is not None and not t.state.is_finished()) else None"
         )
-        subprocess.run(
-            [UVPY, "-c", code], env=env, cwd=REPO, capture_output=True, text=True
-        )
+        subprocess.run([UVPY, "-c", code], env=env, cwd=REPO, capture_output=True, text=True)
 
     def job_terminal(job_id: str) -> bool:
         bs = run([UVPY, "-m", "hpc_agent", "batch-status", "--experiment-dir", "."])
@@ -311,7 +311,8 @@ def main() -> int:
             )
             st = study_state()
             log(
-                f"study: complete={st['complete']} finished={st['finished']} running={st['running']} last={st['trials'][-3:]}"
+                f"study: complete={st['complete']} finished={st['finished']}"
+                f" running={st['running']} last={st['trials'][-3:]}"
             )
             # Failed-trial handling: the trial we just waited on went terminal, we
             # pulled, and compute-run-id tried to fold it. If it is STILL running it
@@ -319,16 +320,15 @@ def main() -> int:
             # Mark it FAILED and advance — never resubmit the same deduped run forever.
             if waited_trial is not None and waited_trial in st["running"]:
                 log(
-                    f"trial {waited_trial} job terminal but did not fold (no foldable chunks); marking FAILED, advancing."
+                    f"trial {waited_trial} job terminal but did not fold"
+                    " (no foldable chunks); marking FAILED, advancing."
                 )
                 fail_trial(waited_trial)
                 state = {}
                 state_path.write_text(json.dumps(state))
                 continue
             if st["complete"] >= MAX_ITERS:
-                log(
-                    f"DONE: complete {st['complete']} >= MAX_ITERS {MAX_ITERS}. Stopping."
-                )
+                log(f"DONE: complete {st['complete']} >= MAX_ITERS {MAX_ITERS}. Stopping.")
                 break
             if not st["running"]:
                 log("no running trial after ask; stopping.")

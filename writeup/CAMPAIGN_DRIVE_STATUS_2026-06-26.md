@@ -65,7 +65,7 @@ deployed, job 9641163 = 82/82 tasks COMPLETED, folded to QLIKE 0.12477.
 mypy: not run to completion locally (slow on the `src.*` import graph); ruff + py_compile + the live run cover it.
 
 ## State on disk
-- `.hpc/tasks.py`, `drive_campaign.py` — Bugs A/B/C fixed (UNCOMMITTED — propose committing these two only).
+- `.hpc/tasks.py`, `drive_campaign.py` — Bugs A/B/C committed in `d0ff1f5`; Bug D (hardcoded study name in `study_state`/`fail_trial`) committed subsequently.
 - Study reconciliation: trial 2 is FAILED in both `optuna.db`; trials 0,1 are a (redundant) duplicate
   point — kept as 2 valid observations. Trials 3+ are distinct.
 - `.hpc/campaigns/<cid>/driver.lock`, `.hpc/submit_global.lock` — new lock files.
