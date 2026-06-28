@@ -6,7 +6,7 @@ floor**; the residual edge is an intraday **auction/session-transition regime**,
 microstructure feature (`cumrv`) is **~27× more valuable per feature** than the 359 raw exogenous columns.
 
 All QLIKE are full-OOS Duan-smeared on the slim `all_buckets` cell, `resid_subset` arm. Best deployed
-stack = **0.12046** (enetreg2 base + rolling-relative innovations + XGB-d8 global + untuned EBM regime@h16–19).
+stack = **0.12035** (enetreg2 base + within-day vol-path SHAPE + rolling-relative regime + XGB-d8 + EBM regime@h16–19).
 
 ---
 
@@ -18,10 +18,31 @@ stack = **0.12046** (enetreg2 base + rolling-relative innovations + XGB-d8 globa
 | `enetreg2` base (HAR×{open,close} + cumrv×close, fixed-α single-pass) | 0.12314 |
 | + XGB-d8 global (Hero A) | 0.12129 |
 | + untuned EBM regime@h16–19 (Hero B) | 0.12050 |
-| **+ rolling-relative vol innovations (best)** | **0.12046** |
+| + rolling-relative vol innovations | 0.12046 |
+| **+ path-shape ⊥ regime stack (`shaperel`, best)** | **0.12035** |
 
-The net gain from the entire later thread is **−0.00004** (the one new-to-tree feature). The durable outputs
-are the *understanding* below and the *data-to-buy case*, not the 4th-decimal QLIKE.
+The net gain from the later threads is **−0.00015** (the path-shape facet), on top of the −0.00264 base→Hero-B.
+The durable outputs are the *understanding* (below) and the *data-to-buy case*, not the 4th-decimal QLIKE.
+
+## 1b. The new-to-tree edge — and why one-off engineering is near its ceiling
+
+Trees are invariant to monotone transforms of the current feature row, so the only features that beat a
+fitted tree are **functionals of the sequence/history** the row doesn't contain. Mapped:
+- **Rolling-relative vol regime** (today's vol vs its recent same-slot history) — a low-dim regime factor,
+  reached identically via HAR or exog (they *overlap*, don't stack) ≈ −0.00007. Saturated.
+- **Within-day path SHAPE** (when the day's vol happened, front/back-loaded; the time-channel low-order
+  path-signature terms) — **orthogonal** to the regime factor; the two *stack* to the 0.12035 best.
+- **Directional path** (cumret, overnight gap) — NULL: the close effect is a vol-regime/timing phenomenon,
+  not a price-reversal one.
+
+**kNN / relevance regression (Cartea et al., ssrn-4652980)**: naive K-mean over-adds variance and hurts; the
+*proper* large-K local-linear ridge works (−0.00018 on the close leftover, shuffle-placebo-clean) — but is
+**dominated by the EBM regime stage** (−0.00079), which is itself a stronger flexible close-leftover model.
+So relevance regression is validated as a method but not deployable here. The **model class that would subsume
+all of these** (path + relevance) is sequence-attention (PatchTST / Transformer: self-attention = learned kNN;
+sequence input = path) or a signature-linear block — but both are data-hungry at ~195k rows; the hand-engineered
+path features are the data-efficient, *legible* proxy, and they measure the residual sequence-signal as small
+(5th-decimal after the tree). That smallness is itself the strongest case that the next lever is **data, not model**.
 
 ## 2. The mechanism — a session-edge vol regime
 

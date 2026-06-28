@@ -71,7 +71,26 @@ CARC (`/scratch1/jc_905/harxhar-clean`, env `harxhar`).
   (+0.00009)** — the tree already captures implied-vol's level via thresholds (monotone-invariant to space), so
   the linear magnitude gain is redundant (slight worsening = enet-survivor-mask perturbation). Same pattern as
   har5rank-static-⅔ / canon coefs (linear gains subsumed by the tree). ⇒ per-bucket space is a LINEAR/legibility
-  finding, NOT a deployed-tree lever; rel Hero B 0.12046 stays best. FLOOR confirmed for the deployed stack.
+  finding, NOT a deployed-tree lever; rel Hero B 0.12046 stays best.
+- **NEW BEST 0.12035 — the PATH-SHAPE facet (cumrv-sibling program).** Engineering more cumrv-style intraday-path
+  features (FWL said cumrv = 27× the per-feature value of raw exog): cumret (directional signed path) NULL,
+  gapopen (overnight directional gap) NULL — the close effect is a VOL-regime/TIMING phenomenon, not directional.
+  But the within-day vol-path SHAPE — `cumrvshape` = afternoon vol share (cumrv_now−cumrv_midday)/cumrv_now ×close,
+  i.e. WHEN the day's vol happened, front/back-loaded — is **orthogonal to the saturated cross-day regime factor**:
+  d8 = 0.12109 (−0.00020 vs Hero A, best d8). The two orthogonal facets STACK: `shaperel` (afternoon-share +
+  rolling-relative) d8 = 0.12095 → **+ EBM regime = 0.12035 = NEW BEST** (−0.00015 vs Hero B; h16-19 in-window
+  0.15737). (Richer shape block d8 0.12099 but Hero B 0.12055 — didn't carry as well; the single share + regime is
+  the sweet spot.) Path-shape = the hand-computable time-channel low-order path-signature terms. #3 cumrv×liquidity
+  tree-covered (interp), #5 VWAP no data.
+- **kNN/relevance regression: works PROPERLY but DOMINATED by the EBM regime.** Naive kNN (K=25 local MEAN, add raw)
+  HURT (+0.00058, over-variance). PROPER (Cartea et al. ssrn-4652980: large-K + local LINEAR ridge, recency-history
+  similarity) flips it on the close leftover — local-ALL 0.12111 (−0.00018), local-HAR −0.00009, V-only −0.00007,
+  intercept ~null, SHUFFLE placebo +0.00026 (gains real). CORRECTION: the "only locally-fit regime-varying V"
+  hypothesis was WRONG — full-local > V-only; stable features don't hurt with large-K+ridge. BUT the EBM regime
+  already reaches −0.00079 ≫ the analog's −0.00018 → kNN is a weaker cousin, NOT deployable. coef-stability:
+  har_ma_1/5, sumbipow, stocktwits regime-varying (coefs sign-flip with vol); cumrv/long-HAR stable. Subsuming
+  model class = sequence-attention (PatchTST) / signature-linear, but data-hungry at ~195k rows → hand-features are
+  the legible proxy. Use kernel-WEIGHTING not hard-k (embargo+causality starve early OOS at large k).
 - **Broke the 0.12414 plateau.** Folding the open/close regime + intraday vol-path into the LINEAR
   base, then digging nonlinearly, lands at **0.12146** — −0.00268 under the old plateau.
 - **Biggest single win is a LINEAR feature**: `cumrv_today × close` (intraday vol accumulated, gated

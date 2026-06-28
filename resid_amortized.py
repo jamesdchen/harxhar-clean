@@ -599,6 +599,136 @@ def _har_rel_innov(Xs, feats, train_win, mode="rankgauss", fine=False):
     return INT, names
 
 
+# EBM-top microstructure exog + implied vol, for the LONG-window rolling-relative EXOG innovations
+# (har5rank-x-close analog for exog). RAW levels read from the covid_imp cache (diurnal-adj magnitude,
+# pre-rank); the slim cache's diurnal_rank is only a SHORT (~20-obs) rolling rank, so a long-window rank
+# is a different history horizon (regime vs short surprise) -> new-to-tree.
+_EXOG_REL_COLS = (
+    "adj_sumvolume_ma_1",
+    "adj_numobs_ma_5",
+    "adj_voldemand_all_open_only_ma_125",
+    "adj_effspread_vwstock_ma_5",
+    "adj_sumautocov_ma_1",
+    "adj_vix_ma_25",
+)
+
+
+def _exog_rel_innov(Xs, feats, train_win, bucket):
+    """LONG-window rolling per-slot rank-Gauss of key RAW exog (covid_imp levels), gated to close -- the
+    har5rank-x-close analog for EXOG. Tests whether a regime-relative (long-horizon) view of the EBM's top
+    microstructure features + implied vol carries signal the tree can't reconstruct (the cache only has a
+    short ~20-obs exog rank). Window = train_win//PERIODS_PER_DAY; causal; rank-Gauss (the tree-tied encoding
+    from the har sweep). Gate to close (16-19) AFTER the rank, off-hours exact zeros."""
+    from src.features.transforms.rank_gauss import rolling_rank_gauss
+
+    raw = np.load(f"results/covid_imp/{bucket}/X_imp.npy", mmap_mode="r")
+    hour = Xs[:, feats.index("hour")]
+    slot = np.rint(hour).astype(np.int64)
+    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    cols, names = [], []
+    for cn in _EXOG_REL_COLS:
+        if cn not in feats:
+            continue
+        v = np.asarray(raw[:, feats.index(cn)], dtype=np.float64)
+        z = np.zeros(len(v), dtype=np.float64)
+        for s in np.unique(slot):
+            idx = np.where(slot == s)[0]
+            z[idx] = rolling_rank_gauss(v[idx][:, None], win)[:, 0]
+        cols.append(z * close)
+        names.append("xrel_%s" % cn)
+    INT = (
+        np.ascontiguousarray(np.column_stack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
+def _cumret_close(Xs, feats, train_win):
+    """Cumulative intraday SIGNED-return PATH gated to close -- the DIRECTIONAL sibling of cumrv (cumrv is the
+    |magnitude| path). cumret.npy = cumsum of per-bar sumret within the calendar day, causal (build_intraday_
+    cumret.py); robust-scaled then gated to close. Tests close mean-reversion of the day's directional move
+    (leverage / intraday-reversal) -- a within-day open-anchored path HAR's day-agnostic windows cannot see."""
+    cum = np.asarray(np.load("results/intraday_feats/cumret.npy"), dtype=np.float64)
+    assert len(cum) == len(Xs), "cumret len %d != Xs len %d" % (len(cum), len(Xs))
+    scaled = _floored_robust_scale(cum, train_win)
+    hour = Xs[:, feats.index("hour")]
+    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    return (scaled * close)[:, None], ["cumret_x_close"]
+
+
+def _cumrv_shape_close(Xs, feats):
+    """Within-day vol-path SHAPE (#2): afternoon vol SHARE = (cumrv_now - cumrv_midday)/(cumrv_now+eps),
+    gated close. cumrv = cumsum(har_ma_1) within the hour-wrap day; cumrv_midday = its value at the last
+    hour==12 bar of the day, broadcast. At the close this is the fraction of the day's vol realized in the
+    afternoon -- front- vs back-loaded. A within-day path SHAPE that needs the midday snapshot (not in the
+    feature row), so the tree cannot reconstruct it. Causal (har_ma_1 is shift(1); midday is past bars)."""
+    import pandas as pd
+
+    hour = Xs[:, feats.index("hour")]
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
+    har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
+    cum = pd.Series(har1).groupby(day_id).cumsum().to_numpy()
+    df = pd.DataFrame({"d": day_id, "h": np.rint(hour).astype(int), "c": cum})
+    mid = df[df.h == 12].groupby("d")["c"].last()
+    midbroad = df["d"].map(mid).fillna(0.0).to_numpy()
+    share = (cum - midbroad) / (cum + 1e-9)
+    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    return (share * close)[:, None], ["cumrv_aftshare_x_close"]
+
+
+def _gap_open(Xs, feats, train_win):
+    """Overnight directional GAP (#4): cumulative SIGNED return over the cross-midnight night run (20->9),
+    gated to the OPEN (hour==9) -- the directional sibling of the (null) overnight-VOL cumrv_x_open.
+    overnight_gap.npy = cumsum of per-bar sumret over each night run, causal (build_overnight_gap.py);
+    robust-scaled, gated open. Tests open continuation/reversal of the overnight move -- an overnight path
+    the tree cannot reconstruct (the cache has no overnight-anchored signed accumulation)."""
+    cum = np.asarray(
+        np.load("results/intraday_feats/overnight_gap.npy"), dtype=np.float64
+    )
+    assert len(cum) == len(Xs), "overnight_gap len %d != Xs len %d" % (
+        len(cum),
+        len(Xs),
+    )
+    scaled = _floored_robust_scale(cum, train_win)
+    hour = Xs[:, feats.index("hour")]
+    open_ = (hour == 9).astype(np.float64)
+    return (scaled * open_)[:, None], ["gap_x_open"]
+
+
+def _path_shape_block(Xs, feats):
+    """RICHER within-day vol-path SHAPE block -- digging the cumrvshape facet (the best new feature, d8
+    -0.00020). (1) vol TIME-CENTROID = cumsum(hour*har_ma_1)/cumsum(har_ma_1) within the day = the
+    center-of-mass of WHEN the day's vol happened (front- vs back-loaded); (2) accumulation PROFILE = cumrv
+    at the last hour-{11,13,15} bar of the day (broadcast) / cumrv_now = fraction of the day's vol realised
+    by each anchor. All gated to close, causal (har_ma_1 is shift(1); anchors are earlier-in-day bars). These
+    are the hand-computable time-channel low-order path-signature terms (the orthogonal facet to the saturated
+    cross-day regime factor)."""
+    import pandas as pd
+
+    hour = Xs[:, feats.index("hour")]
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
+    h = np.rint(hour).astype(int)
+    har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
+    df = pd.DataFrame({"d": day_id, "h": h, "v": har1})
+    cum = df.groupby("d")["v"].cumsum().to_numpy()
+    cumh = (df["v"] * df["h"]).groupby(df["d"]).cumsum().to_numpy()
+    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    cols = [cumh / (cum + 1e-9)]
+    names = ["vol_centroid"]
+    cser = pd.Series(cum)
+    for ha in (11, 13, 15):
+        anc = (
+            cser[h == ha].groupby(df["d"][h == ha]).last()
+        )  # cumrv at the last hour==ha bar of each day
+        br = df["d"].map(anc).fillna(0.0).to_numpy()
+        cols.append(br / (cum + 1e-9))
+        names.append("share_h%d" % ha)
+    block = np.column_stack([c * close for c in cols])
+    return np.ascontiguousarray(block), names
+
+
 def _cumrv_rankcum_close(Xs, feats):
     """Order-matched diagnostic: cumsum-of-per-slot-RANK over TRUE calendar days (the proxy's
     rank-THEN-sum 'breadth' construction, but on cumrv_real's calendar-day segmentation), gated
@@ -1026,6 +1156,13 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_relratio",
         "enetreg2_relfine",
         "enetreg2_ivmag",
+        "enetreg2_exogrel",
+        "enetreg2_exogorder",
+        "enetreg2_cumret",
+        "enetreg2_cumrvshape",
+        "enetreg2_gapopen",
+        "enetreg2_shape",
+        "enetreg2_shaperel",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1077,6 +1214,38 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             ]
             Xs = np.ascontiguousarray(Xs)
             Xs[:, ividx] = Xmag[:, ividx]
+        if base_kind == "enetreg2_exogorder":
+            # CLEAN MA/rank ORDER swap for the EBM-top exog. Cache = MA_k(rank_w20(exog)); this REPLACES those
+            # cols with rank_w20(MA_k(exog)) -- the SAME diurnal_rank (window=DIURNAL_WINDOW) at 48-slot, just
+            # AFTER the MA instead of before. Holds window + slot + ungated constant -> isolates the rank/MA
+            # non-commutativity alone (vs exogrel, which also changed window 20->1000 and gated to close).
+            import pandas as pd
+
+            from src.features.transforms.target import (
+                DIURNAL_MIN_PERIODS,
+                DIURNAL_WINDOW,
+                diurnal_rank,
+            )
+
+            ma_mag = np.load(
+                f"results/covid_imp/{bucket}/X_imp.npy", mmap_mode="r"
+            )  # MA_k(magnitude), unranked
+            tod = pd.Series(
+                _rel_slot(Xs, feats0, fine=True)
+            )  # 48-slot, matches the cache's resolution
+            Xs = np.ascontiguousarray(Xs)
+            for cn in _EXOG_REL_COLS:
+                if cn not in feats0:
+                    continue
+                j = feats0.index(cn)
+                ranked, _ = diurnal_rank(
+                    pd.Series(np.asarray(ma_mag[:, j], dtype=np.float64)),
+                    tod,
+                    window=DIURNAL_WINDOW,
+                    min_periods=DIURNAL_MIN_PERIODS,
+                    gaussianize=True,
+                )
+                Xs[:, j] = np.nan_to_num(ranked.to_numpy(dtype=np.float64), nan=0.0)
         add_cols, add_names = [], []
         if base_kind in (
             "enetreg",
@@ -1103,6 +1272,13 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_relratio",
             "enetreg2_relfine",
             "enetreg2_ivmag",
+            "enetreg2_exogrel",
+            "enetreg2_exogorder",
+            "enetreg2_cumret",
+            "enetreg2_cumrvshape",
+            "enetreg2_gapopen",
+            "enetreg2_shape",
+            "enetreg2_shaperel",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1129,6 +1305,13 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_relratio",
             "enetreg2_relfine",
             "enetreg2_ivmag",
+            "enetreg2_exogrel",
+            "enetreg2_exogorder",
+            "enetreg2_cumret",
+            "enetreg2_cumrvshape",
+            "enetreg2_gapopen",
+            "enetreg2_shape",
+            "enetreg2_shaperel",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1235,6 +1418,47 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             add_cols.append(rz)
             add_names += rz_names
         if (
+            base_kind == "enetreg2_exogrel"
+        ):  # + LONG-window rolling-relative rank of key exog x close
+            xr, xr_names = _exog_rel_innov(Xs, feats0, train_win, bucket)
+            add_cols.append(xr)
+            add_names += xr_names
+        if (
+            base_kind == "enetreg2_cumret"
+        ):  # + cumulative intraday SIGNED-return path x close (cumrv sibling)
+            cr, cr_names = _cumret_close(Xs, feats0, train_win)
+            add_cols.append(cr)
+            add_names += cr_names
+        if (
+            base_kind == "enetreg2_cumrvshape"
+        ):  # #2 within-day vol-path SHAPE (afternoon share) x close
+            cs, cs_names = _cumrv_shape_close(Xs, feats0)
+            add_cols.append(cs)
+            add_names += cs_names
+        if (
+            base_kind == "enetreg2_gapopen"
+        ):  # #4 overnight directional GAP (cumulative signed return) x open
+            go, go_names = _gap_open(Xs, feats0, train_win)
+            add_cols.append(go)
+            add_names += go_names
+        if (
+            base_kind == "enetreg2_shape"
+        ):  # RICHER path-shape block (vol time-centroid + accumulation profile)
+            ps, ps_names = _path_shape_block(Xs, feats0)
+            add_cols.append(ps)
+            add_names += ps_names
+        if (
+            base_kind == "enetreg2_shaperel"
+        ):  # afternoon-share (shape) + rolling-relative regime: ORTHOG STACK
+            cs, cs_names = _cumrv_shape_close(Xs, feats0)
+            add_cols.append(cs)
+            add_names += cs_names
+            rz, rz_names = _har_rel_innov(
+                Xs, feats0, train_win, mode="rankgauss", fine=False
+            )
+            add_cols.append(rz)
+            add_names += rz_names
+        if (
             base_kind == "enetreg2_open"
         ):  # + OVERNIGHT cumrv gated to the OPEN (hour==9), the open-side analog
             co, co_names = _cumrv_open(Xs, feats0)
@@ -1294,6 +1518,13 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_relratio",
         "enetreg2_relfine",
         "enetreg2_ivmag",
+        "enetreg2_exogrel",
+        "enetreg2_exogorder",
+        "enetreg2_cumret",
+        "enetreg2_cumrvshape",
+        "enetreg2_gapopen",
+        "enetreg2_shape",
+        "enetreg2_shaperel",
     ):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
