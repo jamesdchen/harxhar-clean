@@ -757,9 +757,15 @@ def _path_sig_block(Xs, feats, train_win):
         di.groupby(di).cumcount().to_numpy().astype(np.float64) + 1.0
     )  # within-day elapsed bars (1..)
     cumV = pd.Series(dV).groupby(day_id).cumsum().to_numpy()
-    m1 = pd.Series(n * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
-    m2 = pd.Series(n * n * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
-    m3 = pd.Series(n**3 * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
+    # cumV==0 (a day's first bars, no vol accumulated yet) -> the time-moment is undefined -> 0
+    # (no signal), not a +eps quotient. cumV is a vol-mass denominator; zero mass = no observation.
+    nz = cumV > 0
+    s1 = pd.Series(n * dV).groupby(day_id).cumsum().to_numpy()
+    s2 = pd.Series(n * n * dV).groupby(day_id).cumsum().to_numpy()
+    s3 = pd.Series(n**3 * dV).groupby(day_id).cumsum().to_numpy()
+    m1 = np.divide(s1, cumV, out=np.zeros_like(cumV), where=nz)
+    m2 = np.divide(s2, cumV, out=np.zeros_like(cumV), where=nz)
+    m3 = np.divide(s3, cumV, out=np.zeros_like(cumV), where=nz)
     var = np.maximum(m2 - m1 * m1, 0.0)
     disp = np.sqrt(var)
     # Standardized 3rd time-moment (skew = early- vs late-vol-burst asymmetry). The dispersion is
@@ -788,8 +794,10 @@ def _path_sig_block(Xs, feats, train_win):
             pd.Series(Rprev * dV - Vprev * dR).groupby(day_id).cumsum().to_numpy()
         )  # discrete Levy area
         cumabsR = pd.Series(np.abs(dR)).groupby(day_id).cumsum().to_numpy()
-        retcen = pd.Series(n * dR).groupby(day_id).cumsum().to_numpy() / (
-            cumabsR + 1e-12
+        retnum = pd.Series(n * dR).groupby(day_id).cumsum().to_numpy()
+        # cumabsR==0 (no return movement yet) -> return-timing undefined -> 0, not a +eps quotient
+        retcen = np.divide(
+            retnum, cumabsR, out=np.zeros_like(cumabsR), where=cumabsR > 0
         )
         cols += [area, retcen]
         names += ["sig_area_rv", "sig_retcen"]
