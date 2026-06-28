@@ -39,12 +39,28 @@ from src.models.ridge import fit_predict_ridge
 CACHE_ROOT = "results/resid_prep"
 PCA_REFIT = 2000  # cadence for the rolling-PCA basis (stable -> coarse is fine + cheap)
 
+# Close/after-hours regime window [CLOSE_LO, CLOSE_HI] in clock hours. Default 16-19 = the -0.21
+# HAR-persistence reversal lobe (peak 17:00) from the mechanism analysis. Overridable via env so the
+# gate window can be SENSITIVITY-SWEPT (is the edge robust to 16-19 vs 16-20 / 15-19 / 17-19?) -- the
+# one piece of un-tested structural judgment in the pipeline. ALL close gates route through _close_mask
+# so a swept window shifts the feature gates AND the regime-EBM train/predict gate together.
+CLOSE_LO = int(os.environ.get("CLOSE_LO", "16"))
+CLOSE_HI = int(os.environ.get("CLOSE_HI", "19"))
+
+
+def _close_mask(hour):
+    """Boolean close/AH gate: CLOSE_LO <= hour <= CLOSE_HI (default 16-19, env-overridable)."""
+    return (hour >= CLOSE_LO) & (hour <= CLOSE_HI)
+
 
 def cell_id(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     tag = (
         f"a{alpha:g}" if base_kind == "ridge" else base_kind
     )  # ridge: "a100" (back-compat); enet: "enet"
-    return f"{model}_{bucket}_tw{twd}_{tag}_rf{refit}_{pipe}"
+    # Non-default close window -> distinct cell (the gate-window sweep), so swept windows do not
+    # collide with / clobber the deployed 16-19 cells (default -> empty suffix, names unchanged).
+    cw = "" if (CLOSE_LO, CLOSE_HI) == (16, 19) else f"_cw{CLOSE_LO}-{CLOSE_HI}"
+    return f"{model}_{bucket}_tw{twd}_{tag}_rf{refit}_{pipe}{cw}"
 
 
 def _split_cols(feats):
@@ -85,7 +101,7 @@ def _regime_interactions(Xs, feats, which=("open", "close")):
     hour = Xs[:, feats.index("hour")].astype(np.float64)
     all_gates = (
         ("open", (hour == 9).astype(np.float64)),
-        ("close", ((hour >= 16) & (hour <= 19)).astype(np.float64)),
+        ("close", (_close_mask(hour)).astype(np.float64)),
     )
     gates = tuple((gn, g) for gn, g in all_gates if gn in which)
     cols, names = [], []
@@ -95,7 +111,7 @@ def _regime_interactions(Xs, feats, which=("open", "close")):
         h = Xs[:, feats.index(hn)].astype(np.float64)
         for gname, g in gates:
             col = h * g
-            if col.std() > 1e-9:
+            if col.min() < col.max():
                 cols.append(col)
                 names.append(f"{hn}_x_{gname}")
     INT = (
@@ -117,7 +133,7 @@ def _cumrv_close(Xs, feats):
     day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
     har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
     cumrv = pd.Series(har1).groupby(day_id).cumsum().to_numpy()
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (cumrv * close)[:, None], ["cumrv_x_close"]
 
 
@@ -188,13 +204,13 @@ def _band_regime_interactions(bands, band_names, Xs, feats):
     hour = Xs[:, feats.index("hour")].astype(np.float64)
     gates = (
         ("open", (hour == 9).astype(np.float64)),
-        ("close", ((hour >= 16) & (hour <= 19)).astype(np.float64)),
+        ("close", (_close_mask(hour)).astype(np.float64)),
     )
     cols, names = [], []
     for j, bn in enumerate(band_names):
         for gname, g in gates:
             col = bands[:, j] * g
-            if col.std() > 1e-9:
+            if col.min() < col.max():
                 cols.append(col)
                 names.append(f"{bn}_x_{gname}")
     INT = (
@@ -214,12 +230,12 @@ def _har5_spline_close(Xs, feats, train_win):
     har_ma_5 slope is already spanned by the bands. Off-hours are exact zeros (gate AFTER the relu)."""
     h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
     hour = Xs[:, feats.index("hour")].astype(np.float64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     taus = np.percentile(h5[:train_win], [40, 75])
     cols, names = [], []
     for q, tau in zip((40, 75), taus):
         col = np.maximum(h5 - float(tau), 0.0) * close
-        if col.std() > 1e-9:
+        if col.min() < col.max():
             cols.append(col)
             names.append("har5_relu_q%d_x_close" % q)
     INT = (
@@ -243,12 +259,12 @@ def _har5_spline_dense_close(Xs, feats, train_win):
     the rolling/relative standardization carries the unique signal."""
     h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
     hour = Xs[:, feats.index("hour")].astype(np.float64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     taus = np.percentile(h5[:train_win], list(_HAR5_SPLINE_QS))
     cols, names = [], []
     for q, tau in zip(_HAR5_SPLINE_QS, taus):
         col = np.maximum(h5 - float(tau), 0.0) * close
-        if col.std() > 1e-9:
+        if col.min() < col.max():
             cols.append(col)
             names.append("har5_relu_q%d_x_close" % q)
     INT = (
@@ -280,14 +296,14 @@ def _distill_interactions(Xs, feats):
     products (std<=1e-9, e.g. a column dead off the close hours) drop out. Returns (INT[N,k], names[k])
     with names like ``adj_sumvolume_ma_1_x_close``."""
     hour = Xs[:, feats.index("hour")].astype(np.float64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     cols, names = [], []
     for cn in _DISTILL_COLS:
         if cn not in feats:
             print("DISTILL skip missing col %s" % cn, flush=True)
             continue
         col = Xs[:, feats.index(cn)].astype(np.float64) * close
-        if col.std() > 1e-9:
+        if col.min() < col.max():
             cols.append(col)
             names.append("%s_x_close" % cn)
     INT = (
@@ -306,7 +322,7 @@ def _har_sq_close(Xs, feats):
     in the enet) gives the enet a quadratic basis for the close-damping. Gate to close (16<=hour<=19)
     AFTER the square so off-hours are exact zeros. Name ``har_ma_5_sq_x_close``."""
     hour = Xs[:, feats.index("hour")].astype(np.float64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
     return ((h5 * np.abs(h5)) * close)[:, None], ["har_ma_5_sq_x_close"]
 
@@ -323,8 +339,9 @@ def _cumrv_ratio_close(Xs, feats):
     har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
     cumrv = pd.Series(har1).groupby(day_id).cumsum().to_numpy()
     har25 = Xs[:, feats.index("har_ma_25")].astype(np.float64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
-    return ((cumrv / (har25 + 1e-6)) * close)[:, None], ["cumrv_ratio_x_close"]
+    close = (_close_mask(hour)).astype(np.float64)
+    ratio = np.divide(cumrv, har25, out=np.zeros_like(cumrv), where=har25 > 0)
+    return (ratio * close)[:, None], ["cumrv_ratio_x_close"]
 
 
 def _floored_robust_scale(cols, train_win):
@@ -366,7 +383,7 @@ def _cumrv_real_close(Xs, feats, train_win):
     )
     scaled = _floored_robust_scale(cumrv, train_win)
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (scaled * close)[:, None], ["cumrv_real_x_close"]
 
 
@@ -388,7 +405,7 @@ def _cumrv_realsqrt_close(Xs, feats, train_win):
     )
     scaled = _floored_robust_scale(cumrv, train_win)
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (scaled * close)[:, None], ["cumrv_realsqrt_x_close"]
 
 
@@ -463,7 +480,7 @@ def _cumrv_realorth_close(Xs, feats, train_win, refit):
     )  # (N, k<=6) HAR x close
     resid = _causal_orth_resid(scaled, HARclose, train_win, refit)
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (resid * close)[:, None], ["cumrv_realorth_x_close"]
 
 
@@ -503,7 +520,7 @@ def _cumrv_real_rank_close(Xs, feats, train_win):
             0
         ]  # cache rows are chronological -> this slot's series in time order
         ranked[idx] = rolling_rank_gauss(cumrv[idx][:, None], win_slot)[:, 0]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (ranked * close)[:, None], ["cumrv_realrank_x_close"]
 
 
@@ -532,7 +549,7 @@ def _har5rank_close(Xs, feats, train_win):
             0
         ]  # chronological -> this slot's series in time order
         ranked[idx] = rolling_rank_gauss(h5[idx][:, None], win_slot)[:, 0]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (ranked * close)[:, None], ["har5rank_x_close"]
 
 
@@ -585,10 +602,15 @@ def _har_rel_innov(Xs, feats, train_win, mode="rankgauss", fine=False):
                     q = ser.rolling(win, min_periods=5).quantile
                     iqr = (q(0.75) - q(0.25)).shift(1)
                     zz = (ser - med) / iqr.replace(0.0, np.nan)
-                    z[idx] = np.clip(np.nan_to_num(zz.to_numpy(), nan=0.0), -5.0, 5.0)
+                    z[idx] = np.nan_to_num(
+                        zz.to_numpy(), nan=0.0
+                    )  # NO clip (was +-5): the clip
+                    # confounded the rejection of robustz vs rank-gauss -- test it unclipped
                 else:  # ratio
                     rr = ser / med.replace(0.0, np.nan)
-                    z[idx] = np.clip(np.nan_to_num(rr.to_numpy(), nan=1.0), 0.0, 10.0)
+                    z[idx] = np.nan_to_num(
+                        rr.to_numpy(), nan=1.0
+                    )  # NO clip (was [0,10])
         cols.append(z)
         names.append("%s_%s" % (tag, hn))
     INT = (
@@ -624,7 +646,7 @@ def _exog_rel_innov(Xs, feats, train_win, bucket):
     raw = np.load(f"results/covid_imp/{bucket}/X_imp.npy", mmap_mode="r")
     hour = Xs[:, feats.index("hour")]
     slot = np.rint(hour).astype(np.int64)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     win = max(2, train_win // PERIODS_PER_DAY)
     cols, names = [], []
     for cn in _EXOG_REL_COLS:
@@ -654,7 +676,7 @@ def _cumret_close(Xs, feats, train_win):
     assert len(cum) == len(Xs), "cumret len %d != Xs len %d" % (len(cum), len(Xs))
     scaled = _floored_robust_scale(cum, train_win)
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (scaled * close)[:, None], ["cumret_x_close"]
 
 
@@ -673,8 +695,10 @@ def _cumrv_shape_close(Xs, feats):
     df = pd.DataFrame({"d": day_id, "h": np.rint(hour).astype(int), "c": cum})
     mid = df[df.h == 12].groupby("d")["c"].last()
     midbroad = df["d"].map(mid).fillna(0.0).to_numpy()
-    share = (cum - midbroad) / (cum + 1e-9)
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    share = np.divide(
+        cum - midbroad, cum, out=np.zeros_like(cum), where=cum > 0
+    )  # cum==0 (no vol yet, day-start) -> 0; no +eps. No-op at the close gate (cum>0 there)
+    close = (_close_mask(hour)).astype(np.float64)
     return (share * close)[:, None], ["cumrv_aftshare_x_close"]
 
 
@@ -714,8 +738,11 @@ def _path_shape_block(Xs, feats):
     df = pd.DataFrame({"d": day_id, "h": h, "v": har1})
     cum = df.groupby("d")["v"].cumsum().to_numpy()
     cumh = (df["v"] * df["h"]).groupby(df["d"]).cumsum().to_numpy()
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
-    cols = [cumh / (cum + 1e-9)]
+    close = (_close_mask(hour)).astype(np.float64)
+    nz = (
+        cum > 0
+    )  # cum==0 (no vol yet) -> centroid/share undefined -> 0; no +eps (no-op at the gate)
+    cols = [np.divide(cumh, cum, out=np.zeros_like(cum), where=nz)]
     names = ["vol_centroid"]
     cser = pd.Series(cum)
     for ha in (11, 13, 15):
@@ -723,10 +750,34 @@ def _path_shape_block(Xs, feats):
             cser[h == ha].groupby(df["d"][h == ha]).last()
         )  # cumrv at the last hour==ha bar of each day
         br = df["d"].map(anc).fillna(0.0).to_numpy()
-        cols.append(br / (cum + 1e-9))
+        cols.append(np.divide(br, cum, out=np.zeros_like(cum), where=nz))
         names.append("share_h%d" % ha)
     block = np.column_stack([c * close for c in cols])
     return np.ascontiguousarray(block), names
+
+
+def _bowley_arrival_skew(dV, day_id, n, cumV):
+    """Bowley (quartile) skewness of the within-day vol-ARRIVAL-TIME distribution: positions = bar
+    index n (1..L), weights = dV (per-bar sqrt-vol). For each bar t the a-quantile POSITION is the bar
+    where the cumulative vol-mass first reaches a*cumV_t; since a*cumV_t <= cumV_t and cumV is
+    increasing, np.searchsorted(cumV_day, a*cumV_t) returns an index <= t -> CAUSAL (only bars <= t).
+    Bowley = (Q1 + Q3 - 2*Q2)/(Q3 - Q1) is bounded [-1, 1] BY CONSTRUCTION -- no floor, no clip (it
+    replaces the 3rd-standardized-moment skew that needed the 1-bar^2 resolution floor). Q3==Q1 (a
+    degenerate single-mass day) -> 0. Vectorized per contiguous day-slice (O(N) total)."""
+    bounds = np.flatnonzero(np.diff(day_id)) + 1
+    q = {0.25: [], 0.5: [], 0.75: []}
+    for C, P in zip(np.split(cumV, bounds), np.split(n, bounds)):
+        for a in (0.25, 0.5, 0.75):
+            j = np.searchsorted(C, a * C, side="left")
+            np.clip(
+                j, 0, len(C) - 1, out=j
+            )  # defensive index bound (a*C<=C so j<=t already)
+            q[a].append(P[j])
+    q1, q2, q3 = (np.concatenate(q[a]) for a in (0.25, 0.5, 0.75))
+    denom = q3 - q1
+    return np.divide(
+        q3 + q1 - 2.0 * q2, denom, out=np.zeros_like(denom), where=denom > 0
+    )
 
 
 def _path_sig_block(Xs, feats, train_win):
@@ -762,18 +813,16 @@ def _path_sig_block(Xs, feats, train_win):
     nz = cumV > 0
     s1 = pd.Series(n * dV).groupby(day_id).cumsum().to_numpy()
     s2 = pd.Series(n * n * dV).groupby(day_id).cumsum().to_numpy()
-    s3 = pd.Series(n**3 * dV).groupby(day_id).cumsum().to_numpy()
-    m1 = np.divide(s1, cumV, out=np.zeros_like(cumV), where=nz)
+    m1 = np.divide(
+        s1, cumV, out=np.zeros_like(cumV), where=nz
+    )  # centroid (1st time-moment)
     m2 = np.divide(s2, cumV, out=np.zeros_like(cumV), where=nz)
-    m3 = np.divide(s3, cumV, out=np.zeros_like(cumV), where=nz)
-    var = np.maximum(m2 - m1 * m1, 0.0)
-    disp = np.sqrt(var)
-    # Standardized 3rd time-moment (skew = early- vs late-vol-burst asymmetry). The dispersion is
-    # floored at 1 BAR^2 before cubing the denominator: the vol-arrival time axis is measured in
-    # bars, so 1 bar^2 IS the discretization resolution -- a day with ~all vol in a single bar has a
-    # well-defined dispersion of one bar, not zero. This is a resolution floor, not a tuned constant;
-    # the robust-scale below (tail-robust IQR) then puts the column on the enet's ~unit scale.
-    skew = (m3 - 3.0 * m1 * var - m1**3) / np.maximum(var, 1.0) ** 1.5
+    disp = np.sqrt(
+        np.maximum(m2 - m1 * m1, 0.0)
+    )  # dispersion (2nd central moment, FP-clamped)
+    # Skew = early- vs late-vol-burst asymmetry, via BOWLEY (quartile) skewness: bounded [-1,1] by
+    # construction, so no resolution floor and no clip (replaces the 3rd-standardized-moment form).
+    skew = _bowley_arrival_skew(dV, day_id, n, cumV)
     cols = [m1, disp, skew]
     names = ["sig_volcen", "sig_voldisp", "sig_volskew"]
     try:
@@ -806,7 +855,7 @@ def _path_sig_block(Xs, feats, train_win):
     block = _floored_robust_scale(
         np.column_stack(cols), train_win
     )  # scale UNGATED, then gate
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return np.ascontiguousarray(block * close[:, None]), names
 
 
@@ -836,7 +885,7 @@ def _friday_week_block(Xs, feats, train_win):
     )  # day-index drop (Fri->Mon, or any holiday gap) = new week
     week_id = np.cumsum(new_week)
     hour = Xs[:, feats.index("hour")]
-    close = (hour >= 16) & (hour <= 19)
+    close = _close_mask(hour)
     friday = Xs[:, feats.index("DOW_4")] > 0.5
     gate = (friday & close).astype(np.float64)
     har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
@@ -902,7 +951,7 @@ def _cumrv_rankcum_close(Xs, feats):
     )
     assert len(cum) == len(Xs), "rankcum len %d != Xs len %d" % (len(cum), len(Xs))
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (cum * close)[:, None], ["cumrv_rankcum_x_close"]
 
 
@@ -922,7 +971,7 @@ def _cumrv_v2rankcum_close(Xs, feats):
     )
     assert len(cum) == len(Xs), "v2rankcum len %d != Xs len %d" % (len(cum), len(Xs))
     hour = Xs[:, feats.index("hour")]
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (cum * close)[:, None], ["cumrv_v2rankcum_x_close"]
 
 
@@ -943,7 +992,7 @@ def _cumrv_lag_close(Xs, feats, lag=PERIODS_PER_DAY):
     lagged = np.concatenate(
         [np.zeros(int(lag), dtype=np.float64), cumrv[: len(cumrv) - int(lag)]]
     )
-    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    close = (_close_mask(hour)).astype(np.float64)
     return (lagged * close)[:, None], ["cumrv_lag_x_close"]
 
 
@@ -1683,7 +1732,9 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
     # feature count honest, and removes the divide-by-zero landmine for the robust-scale
     # pipe. Done post-assembly so the _split_cols/fixed_cols column-index machinery is
     # untouched. (No effect on an already-cached cell; takes effect on the next prep.)
-    keep = Xs.std(axis=0) > 1e-9
+    keep = Xs.min(axis=0) < Xs.max(
+        axis=0
+    )  # informative iff not constant (scale-free; no 1e-9 floor)
     n_dropped = int((~keep).sum())
     Xs = np.ascontiguousarray(Xs[:, keep])
     if feats_aug is not None:
@@ -1868,7 +1919,9 @@ def load_cache(cid):
             out["feats"] = feats
             xs = out["Xs"]
             isind = np.array([("_avail" in f or "_active" in f) for f in feats])
-            varies = xs.std(axis=0) > 1e-9
+            varies = xs.min(axis=0) < xs.max(
+                axis=0
+            )  # non-constant (scale-free; no 1e-9 floor)
             out["live_ind"] = isind & varies
             # coverage-artifact indicators: availability flags that are ~all-zero in the first decile
             # then turn on later = a data-AVAILABILITY step (e.g. voldemand started being recorded
@@ -1983,7 +2036,7 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
                 not rcfg
             ):  # regime stage disabled -> single-pass resid_subset (sanity invariant)
                 continue
-            m_tr = (hr[t_r - tw : t_r] >= 16) & (hr[t_r - tw : t_r] <= 19)
+            m_tr = _close_mask(hr[t_r - tw : t_r])
             if (
                 int(m_tr.sum()) < 50
             ):  # too few close/AH train rows -> skip regime this block (predict 0)
@@ -1991,7 +2044,7 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             r2 = r1 - g.predict(Xtr[:, cols]).ravel()
             e = _tree_factory("ebm", rcfg)()
             e.fit(Xtr[m_tr][:, cols], r2[m_tr])
-            m_blk = (hr[t_r:t_end] >= 16) & (hr[t_r:t_end] <= 19)
+            m_blk = _close_mask(hr[t_r:t_end])
             pe = e.predict(Xblk).ravel()
             pe[~m_blk] = 0.0
             out[t_r - tw - k0 : t_end - tw - k0] += pe
@@ -2189,11 +2242,18 @@ def do_chunk_collect(cid, arm, label=""):
         hi = feats.index("hour")
         rows = int(cell["train_win"]) + df["k"].to_numpy()
         hour = np.asarray(np.load(f"{dcache}/Xs.npy", mmap_mode="r")[rows, hi])
-        g = (hour >= 16) & (hour <= 19) & (tr > 0) & (pr > 0)
+        g = _close_mask(hour) & (tr > 0) & (pr > 0)
         rg = tr[g] / pr[g]
         print(
-            "COLLECT %s %-16s qlike_h16-19=%.5f n=%d"
-            % (cid, sub, float(np.mean(rg - np.log(rg) - 1)), int(g.sum())),
+            "COLLECT %s %-16s qlike_h%d-%d=%.5f n=%d"
+            % (
+                cid,
+                sub,
+                CLOSE_LO,
+                CLOSE_HI,
+                float(np.mean(rg - np.log(rg) - 1)),
+                int(g.sum()),
+            ),
             flush=True,
         )
 
