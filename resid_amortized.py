@@ -729,6 +729,81 @@ def _path_shape_block(Xs, feats):
     return np.ascontiguousarray(block), names
 
 
+def _path_sig_block(Xs, feats, train_win):
+    """HIGHER-ORDER within-day path-SIGNATURE block (levels 2-3), gated close -- the systematic
+    generalization of the hand-picked path-shape features (vol_centroid / afternoon-share are the
+    LEVEL-1 time-moment of this hierarchy). Truncated signature of the causal within-day path with
+    channels (tau = elapsed-bar time, V = cumsum(har_ma_1) the vol path, R = cumret the signed-return
+    path); each coordinate accumulates over bars <= t (causal), robust-scaled to ~N(0,1) (the cumret/
+    cumrv_real convention), then gated to close (16-19):
+      sig_volcen   tau-V lvl2  Sum(n*dV)/Sum(dV)                = WHEN the day's vol happened (centroid)
+      sig_voldisp  tau-V lvl2  std of the vol-arrival-time dist = vol in one burst vs spread all day
+      sig_volskew  tau-V lvl3  skew of that dist                = early-burst vs late-burst asymmetry
+      sig_area_rv  R-V   lvl2  Levy area Sum(R_<*dV - V_<*dR)   = intraday leverage (vol leads/lags price)
+      sig_retcen   tau-R lvl2  Sum(n*dR)/(Sum|dR|+eps)          = WHEN the directional move happened
+    The tau-V moments strictly generalize the deployed cumrv_aftshare / vol_centroid (their level-1);
+    the R-V Levy area + tau-R centroid are the un-tested cross-channel terms (directional path enters
+    ONLY through its lead-lag with vol / its timing -- cumret level-1 was null). Causal: har_ma_1 and
+    cumret are themselves shift(1) within-day cumulatives, moments use only bars <= t. The R-channel
+    terms need results/intraday_feats/cumret.npy; absent -> skipped+logged (the tau-V vol-timing block
+    still builds from the in-cache har_ma_1 alone, so the cell preps with or without the return feed)."""
+    import pandas as pd
+
+    hour = Xs[:, feats.index("hour")]
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
+    dV = Xs[:, feats.index("har_ma_1")].astype(np.float64)  # per-bar sqrt-vol increment
+    di = pd.Series(day_id)
+    n = (
+        di.groupby(di).cumcount().to_numpy().astype(np.float64) + 1.0
+    )  # within-day elapsed bars (1..)
+    cumV = pd.Series(dV).groupby(day_id).cumsum().to_numpy()
+    m1 = pd.Series(n * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
+    m2 = pd.Series(n * n * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
+    m3 = pd.Series(n**3 * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
+    var = np.maximum(m2 - m1 * m1, 0.0)
+    disp = np.sqrt(var)
+    # Standardized 3rd time-moment (skew). Floor the dispersion at 1 BAR before cubing the
+    # denominator (a day with ~all vol in one bar has var->0, which would otherwise explode the
+    # ratio to ~1e5 and wreck the enet) and CLIP to +-8 -- the bounded-surprise convention used by
+    # the robustz/ratio innovations. 1 bar^2 is a meaningful floor: the vol-arrival distribution
+    # spans the ~38-bar session, so sub-bar dispersion is a degenerate single-spike day.
+    skew = np.clip(
+        (m3 - 3.0 * m1 * var - m1**3) / np.maximum(var, 1.0) ** 1.5, -8.0, 8.0
+    )
+    cols = [m1, disp, skew]
+    names = ["sig_volcen", "sig_voldisp", "sig_volskew"]
+    try:
+        cumret = np.asarray(
+            np.load("results/intraday_feats/cumret.npy"), dtype=np.float64
+        )
+        assert len(cumret) == len(Xs), "cumret len %d != Xs len %d" % (
+            len(cumret),
+            len(Xs),
+        )
+        rser = pd.Series(cumret).groupby(day_id)
+        Rprev = (
+            rser.shift(1).fillna(0.0).to_numpy()
+        )  # R at the prior bar (0 at day start)
+        dR = cumret - Rprev  # per-bar signed return
+        Vprev = pd.Series(cumV).groupby(day_id).shift(1).fillna(0.0).to_numpy()
+        area = (
+            pd.Series(Rprev * dV - Vprev * dR).groupby(day_id).cumsum().to_numpy()
+        )  # discrete Levy area
+        cumabsR = pd.Series(np.abs(dR)).groupby(day_id).cumsum().to_numpy()
+        retcen = pd.Series(n * dR).groupby(day_id).cumsum().to_numpy() / (
+            cumabsR + 1e-12
+        )
+        cols += [area, retcen]
+        names += ["sig_area_rv", "sig_retcen"]
+    except FileNotFoundError:
+        print("SIG skip R-channel (cumret.npy missing)", flush=True)
+    block = _floored_robust_scale(
+        np.column_stack(cols), train_win
+    )  # scale UNGATED, then gate
+    close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
+    return np.ascontiguousarray(block * close[:, None]), names
+
+
 def _cumrv_rankcum_close(Xs, feats):
     """Order-matched diagnostic: cumsum-of-per-slot-RANK over TRUE calendar days (the proxy's
     rank-THEN-sum 'breadth' construction, but on cumrv_real's calendar-day segmentation), gated
@@ -1163,6 +1238,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_gapopen",
         "enetreg2_shape",
         "enetreg2_shaperel",
+        "enetreg2_sig",
+        "enetreg2_sigrel",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1279,6 +1356,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_gapopen",
             "enetreg2_shape",
             "enetreg2_shaperel",
+            "enetreg2_sig",
+            "enetreg2_sigrel",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1312,6 +1391,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_gapopen",
             "enetreg2_shape",
             "enetreg2_shaperel",
+            "enetreg2_sig",
+            "enetreg2_sigrel",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1459,6 +1540,24 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             add_cols.append(rz)
             add_names += rz_names
         if (
+            base_kind
+            in (
+                "enetreg2_sig",
+                "enetreg2_sigrel",
+            )
+        ):  # HIGHER-ORDER within-day path-signature block (lvl 2-3 vol-timing + R-V leverage area)
+            sg, sg_names = _path_sig_block(Xs, feats0, train_win)
+            add_cols.append(sg)
+            add_names += sg_names
+        if (
+            base_kind == "enetreg2_sigrel"
+        ):  # + rolling-relative regime (does the signature STACK on the proven rel factor past 0.12035?)
+            rz, rz_names = _har_rel_innov(
+                Xs, feats0, train_win, mode="rankgauss", fine=False
+            )
+            add_cols.append(rz)
+            add_names += rz_names
+        if (
             base_kind == "enetreg2_open"
         ):  # + OVERNIGHT cumrv gated to the OPEN (hour==9), the open-side analog
             co, co_names = _cumrv_open(Xs, feats0)
@@ -1525,6 +1624,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_gapopen",
         "enetreg2_shape",
         "enetreg2_shaperel",
+        "enetreg2_sig",
+        "enetreg2_sigrel",
     ):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
