@@ -868,10 +868,13 @@ def _friday_week_block(Xs, feats, train_win):
         )  # week Mon-Thu demand SUM
         precnt = (
             d.groupby("w")["nf"].transform("sum").to_numpy()
-        )  # Mon-Thu bar count (>=1 except a
-        friw_predem = presum / np.sqrt(
-            np.maximum(precnt, 1.0)
-        )  # rare Friday-only week, where sum=0)
+        )  # Mon-Thu bar COUNT (the causal expanding standardizer, not a fixed floor)
+        # precnt==0 is a (real-data-impossible) Friday-only holiday week = NO pre-Friday data, so the
+        # setup is genuinely undefined -> emit 0 (no signal), NOT a floored quotient (count==0 is
+        # missing-data, not a collapsed scale; a scale would get a causal floor, a count does not).
+        friw_predem = np.divide(
+            presum, np.sqrt(precnt), out=np.zeros_like(presum), where=precnt > 0
+        )
         cols += [friw_demand, friw_predem]
         names += ["friw_demand", "friw_predem"]
     else:
