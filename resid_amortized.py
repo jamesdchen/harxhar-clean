@@ -582,6 +582,11 @@ def _har_rel_innov(Xs, feats, train_win, mode="rankgauss", fine=False):
 
     slot = _rel_slot(Xs, feats, fine)
     win = max(2, train_win // PERIODS_PER_DAY)
+    # robustz/ratio min-obs = rolling_rank_gauss's OWN warmup policy (max(20, win//20)), NOT 5:
+    # a rolling IQR/median over ~6 obs COLLAPSES (divide-by-degenerate -> z~57 on smooth har_ma_125,
+    # the documented scaling bug). Matching rank-gauss's warmup makes the robustz-vs-rankgauss
+    # comparison fair AND removes the collapse; warmup rows (< mp obs) emit 0 (no innovation yet).
+    mp = max(20, win // 20)
     tag = {"rankgauss": "zr", "robustz": "rz", "ratio": "rr"}[mode] + (
         "f" if fine else ""
     )
@@ -597,9 +602,9 @@ def _har_rel_innov(Xs, feats, train_win, mode="rankgauss", fine=False):
                 z[idx] = rolling_rank_gauss(v[idx][:, None], win)[:, 0]
             else:
                 ser = pd.Series(v[idx])
-                med = ser.rolling(win, min_periods=5).median().shift(1)
+                med = ser.rolling(win, min_periods=mp).median().shift(1)
                 if mode == "robustz":
-                    q = ser.rolling(win, min_periods=5).quantile
+                    q = ser.rolling(win, min_periods=mp).quantile
                     iqr = (q(0.75) - q(0.25)).shift(1)
                     zz = (ser - med) / iqr.replace(0.0, np.nan)
                     z[idx] = np.nan_to_num(
