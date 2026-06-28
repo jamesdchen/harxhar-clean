@@ -762,14 +762,12 @@ def _path_sig_block(Xs, feats, train_win):
     m3 = pd.Series(n**3 * dV).groupby(day_id).cumsum().to_numpy() / (cumV + 1e-12)
     var = np.maximum(m2 - m1 * m1, 0.0)
     disp = np.sqrt(var)
-    # Standardized 3rd time-moment (skew). Floor the dispersion at 1 BAR before cubing the
-    # denominator (a day with ~all vol in one bar has var->0, which would otherwise explode the
-    # ratio to ~1e5 and wreck the enet) and CLIP to +-8 -- the bounded-surprise convention used by
-    # the robustz/ratio innovations. 1 bar^2 is a meaningful floor: the vol-arrival distribution
-    # spans the ~38-bar session, so sub-bar dispersion is a degenerate single-spike day.
-    skew = np.clip(
-        (m3 - 3.0 * m1 * var - m1**3) / np.maximum(var, 1.0) ** 1.5, -8.0, 8.0
-    )
+    # Standardized 3rd time-moment (skew = early- vs late-vol-burst asymmetry). The dispersion is
+    # floored at 1 BAR^2 before cubing the denominator: the vol-arrival time axis is measured in
+    # bars, so 1 bar^2 IS the discretization resolution -- a day with ~all vol in a single bar has a
+    # well-defined dispersion of one bar, not zero. This is a resolution floor, not a tuned constant;
+    # the robust-scale below (tail-robust IQR) then puts the column on the enet's ~unit scale.
+    skew = (m3 - 3.0 * m1 * var - m1**3) / np.maximum(var, 1.0) ** 1.5
     cols = [m1, disp, skew]
     names = ["sig_volcen", "sig_voldisp", "sig_volskew"]
     try:
@@ -802,6 +800,83 @@ def _path_sig_block(Xs, feats, train_win):
     )  # scale UNGATED, then gate
     close = ((hour >= 16) & (hour <= 19)).astype(np.float64)
     return np.ascontiguousarray(block * close[:, None]), names
+
+
+def _friday_week_block(Xs, feats, train_win):
+    """FRIDAY-CLOSE features a tree CANNOT represent: WITHIN-WEEK cumulative paths that RESET each
+    week (Mon->Fri) and are read at the Friday (DOW_4) close (h16-19). The regime-EBM shape probe
+    flagged `voldemand_*_active x DOW_4` as its top close interaction -- an AVAILABILITY flag x
+    Friday = the coverage-artifact signature. This replaces that flag with the weekly accumulation
+    of the voldemand VALUE (+ a weekly realized-vol path + the pre-Friday demand setup), so a
+    NON-null result is a REAL weekly dealer-demand -> Friday-close mechanism (dealer gamma / OPEX
+    unwind into the Friday close), and a null says the Friday term was just the availability artifact.
+    A tree sees only the current row's LEVEL -- it cannot reconstruct a week-resetting cumulative
+    (no cache MA resets weekly; har_ma_625 ~13d is a rolling window, not a Mon-anchored sum).
+    Week id is derived from the cache DOW one-hots (a DROP in day-index = a new week; robust to
+    holiday-shortened weeks, no date-file dtype dependence). Causal: har_ma_1 / voldemand are
+    shift(1); the week path and the pre-Friday setup are past bars. Robust-scaled, gated Friday&close."""
+    import pandas as pd
+
+    dow_num = (
+        1 * Xs[:, feats.index("DOW_1")]
+        + 2 * Xs[:, feats.index("DOW_2")]
+        + 3 * Xs[:, feats.index("DOW_3")]
+        + 4 * Xs[:, feats.index("DOW_4")]
+    ).astype(np.int64)  # 0..4 (Mon..Fri); exactly one DOW one-hot is set per row
+    new_week = np.concatenate(
+        [[0], (dow_num[1:] < dow_num[:-1]).astype(int)]
+    )  # day-index drop (Fri->Mon, or any holiday gap) = new week
+    week_id = np.cumsum(new_week)
+    hour = Xs[:, feats.index("hour")]
+    close = (hour >= 16) & (hour <= 19)
+    friday = Xs[:, feats.index("DOW_4")] > 0.5
+    gate = (friday & close).astype(np.float64)
+    har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)
+    cumrv_w = (
+        pd.Series(har1).groupby(week_id).cumsum().to_numpy()
+    )  # week realized-vol path
+    # cumrv is a POSITIVE accumulation -> causal robust-scale (the cumrv_real / cumret convention).
+    cols = [_floored_robust_scale(cumrv_w[:, None], train_win)[:, 0]]
+    names = ["friw_cumrv"]
+    vdname = next(
+        (
+            c
+            for c in (
+                "adj_voldemand_all_open_only_ma_1",
+                "adj_voldemand_spx_open_only_ma_1",
+            )
+            if c in feats
+        ),
+        None,
+    )
+    if vdname is not None:
+        # voldemand is SIGNED rank-Gauss, so a within-week cumSUM is a random walk (drifts to +-90).
+        # Standardize the partial sum by 1/sqrt(count) -> the demand "t-stat": how many sigma the
+        # week's accumulated dealer demand sits from zero. This is ~unit by the CLT (no rescale, no
+        # clip) AND still week-RESET, so a tree cannot reconstruct it from a fixed-window MA.
+        #   friw_demand = standardized Mon->now demand (the week demand REGIME at the Friday close)
+        #   friw_predem = standardized Mon-Thu demand (the demand SETUP into Friday; excludes Friday)
+        vd = Xs[:, feats.index(vdname)].astype(np.float64)
+        n_week = pd.Series(np.ones(len(week_id))).groupby(week_id).cumsum().to_numpy()
+        friw_demand = pd.Series(vd).groupby(week_id).cumsum().to_numpy() / np.sqrt(
+            n_week
+        )
+        nf = (~friday).astype(np.float64)
+        d = pd.DataFrame({"w": week_id, "nf": nf, "vd": vd * nf})
+        presum = (
+            d.groupby("w")["vd"].transform("sum").to_numpy()
+        )  # week Mon-Thu demand SUM
+        precnt = (
+            d.groupby("w")["nf"].transform("sum").to_numpy()
+        )  # Mon-Thu bar count (>=1 except a
+        friw_predem = presum / np.sqrt(
+            np.maximum(precnt, 1.0)
+        )  # rare Friday-only week, where sum=0)
+        cols += [friw_demand, friw_predem]
+        names += ["friw_demand", "friw_predem"]
+    else:
+        print("FRI skip voldemand (col missing)", flush=True)
+    return np.ascontiguousarray(np.column_stack(cols) * gate[:, None]), names
 
 
 def _cumrv_rankcum_close(Xs, feats):
@@ -1240,6 +1315,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_shaperel",
         "enetreg2_sig",
         "enetreg2_sigrel",
+        "enetreg2_fri",
+        "enetreg2_frirel",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1358,6 +1435,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_shaperel",
             "enetreg2_sig",
             "enetreg2_sigrel",
+            "enetreg2_fri",
+            "enetreg2_frirel",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1393,6 +1472,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_shaperel",
             "enetreg2_sig",
             "enetreg2_sigrel",
+            "enetreg2_fri",
+            "enetreg2_frirel",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1558,6 +1639,24 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             add_cols.append(rz)
             add_names += rz_names
         if (
+            base_kind
+            in (
+                "enetreg2_fri",
+                "enetreg2_frirel",
+            )
+        ):  # WITHIN-WEEK Friday-close path block (value-based replacement for the DOW_4 x voldemand_active artifact)
+            fb, fb_names = _friday_week_block(Xs, feats0, train_win)
+            add_cols.append(fb)
+            add_names += fb_names
+        if (
+            base_kind == "enetreg2_frirel"
+        ):  # + rolling-relative regime (does the Friday-week signal STACK on the proven rel factor?)
+            rz, rz_names = _har_rel_innov(
+                Xs, feats0, train_win, mode="rankgauss", fine=False
+            )
+            add_cols.append(rz)
+            add_names += rz_names
+        if (
             base_kind == "enetreg2_open"
         ):  # + OVERNIGHT cumrv gated to the OPEN (hour==9), the open-side analog
             co, co_names = _cumrv_open(Xs, feats0)
@@ -1626,6 +1725,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_shaperel",
         "enetreg2_sig",
         "enetreg2_sigrel",
+        "enetreg2_fri",
+        "enetreg2_frirel",
     ):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
