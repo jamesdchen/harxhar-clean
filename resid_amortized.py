@@ -1978,6 +1978,11 @@ def load_cache(cid):
     out["live_ind"] = None
     out["cov_mask"] = None
     out["feats"] = None  # aligned column names (for arm=resid_regime's hour-gate index)
+    out["force_mask"] = (
+        None  # FORCE_COLS env: named columns unioned into the tree/EBM masks
+    )
+    # REGARDLESS of L1 survival -- tests a purely-nonlinear feature that the enet zeros (0 linear main
+    # effect -> 0/407 mask survival -> tree/EBM never see it -> byte-identical to base = a fake null).
     try:
         # feats.json (augmented, aligned with the cached Xs) is written for enetreg cells; the
         # raw covid_imp_rank meta.json only aligns for non-augmented cells.
@@ -1991,6 +1996,16 @@ def load_cache(cid):
         )
         if len(feats) == out["Xs"].shape[1]:
             out["feats"] = feats
+            # split on comma/colon/space -- a comma value can't pass sbatch --export (it splits it),
+            # so callers use colon-separated FORCE_COLS=ofi_net:ofi_absnet through --export.
+            _fc = (
+                os.environ.get("FORCE_COLS", "")
+                .replace(",", " ")
+                .replace(":", " ")
+                .split()
+            )
+            if _fc:
+                out["force_mask"] = np.array([f in set(_fc) for f in feats])
             xs = out["Xs"]
             isind = np.array([("_avail" in f or "_active" in f) for f in feats])
             varies = xs.min(axis=0) < xs.max(
@@ -2092,13 +2107,16 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             )
         out = np.array(c["ridge_oos"][k0:k1], copy=True)
         masks = c["masks"]
+        fm = c.get(
+            "force_mask"
+        )  # FORCE_COLS: union into survivors so the tree/EBM see them
         hr = c["Xs"][:, c["feats"].index("hour")]
         gcfg = json.loads(os.environ.get("GLOBAL_CFG", "{}"))
         rcfg = json.loads(os.environ.get("REGIME_CFG", "{}"))
         mk_g = _tree_factory("xgb", gcfg)
         for i in range(blk0, blk1):
             t_r = int(starts[i])
-            cols = masks[i]
+            cols = masks[i] if fm is None else (masks[i] | fm)
             Xtr = c["Xs"][t_r - tw : t_r]
             t_end = int(starts[i + 1]) if i + 1 < len(starts) else n
             r1 = c["y"][t_r - tw : t_r] - (Xtr @ c["coefs"][i] + c["intercepts"][i])
@@ -2128,9 +2146,10 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
     if (
         arm == "resid_subset"
     ):  # tree sees only the block's rolling enet survivors (~120)
+        fm = c.get("force_mask")  # FORCE_COLS: union forced cols into the survivor set
 
         def colsel(i):
-            return c["masks"][i]
+            return c["masks"][i] if fm is None else (c["masks"][i] | fm)
     elif (
         arm == "resid_subset_ind"
     ):  # survivors UNION live availability indicators (event channel)
