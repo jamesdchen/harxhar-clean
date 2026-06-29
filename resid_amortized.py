@@ -2181,6 +2181,9 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
         hr = c["Xs"][:, c["feats"].index("hour")]
         gcfg = json.loads(os.environ.get("GLOBAL_CFG", "{}"))
         rcfg = json.loads(os.environ.get("REGIME_CFG", "{}"))
+        # regime-stage learner: default EBM (interpretable); REGIME_MODEL=xgb -> tuned XGB for PURE
+        # POWER (drops the EBM additive/pairwise constraint = the QLIKE ceiling, no interpretability).
+        rmodel = os.environ.get("REGIME_MODEL", "ebm")
         mk_g = _tree_factory("xgb", gcfg)
         for i in range(blk0, blk1):
             t_r = int(starts[i])
@@ -2202,7 +2205,7 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             ):  # too few close/AH train rows -> skip regime this block (predict 0)
                 continue
             r2 = r1 - g.predict(Xtr[:, cols]).ravel()
-            e = _tree_factory("ebm", rcfg)()
+            e = _tree_factory(rmodel, rcfg)()
             e.fit(Xtr[m_tr][:, cols], r2[m_tr])
             m_blk = _close_mask(hr[t_r:t_end])
             pe = e.predict(Xblk).ravel()
