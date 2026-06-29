@@ -15,6 +15,7 @@ Embedding standardisation is metric-only (scales the distance, not the target); 
 
 import glob
 import json
+import os
 
 import numpy as np
 import pandas as pd
@@ -22,8 +23,8 @@ import pandas as pd
 from resid_amortized import CACHE_ROOT, PERIODS_PER_DAY
 from src.evaluation.metrics import apply_duan_smearing
 
-CELL = "xgb_all_buckets_tw1000_enetreg2_rf480_slim"
-LBL = "resid_subset_heroA_d8"
+CELL = os.environ.get("KNN_CELL", "xgb_all_buckets_tw1000_enetreg2_rf480_slim")
+LBL = os.environ.get("KNN_LBL", "resid_subset_heroA_d8")
 TRAIN_WIN = 1000 * PERIODS_PER_DAY
 EMBARGO = 3125  # HAR max lag (bars) -> neighbours >= ~65 trading days in the past
 EMB_COLS = ["har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "cumrv_x_close"]

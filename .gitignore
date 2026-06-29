@@ -23,3 +23,24 @@ Thumbs.db
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# local reproduction scratch (regenerable prediction CSVs, ~235MB)
+results/repro/
+
+# large/regenerable data + run outputs (caches, chunk dirs, plots) — keep results/moe_ladder/ (small tables)
+results/resid_prep/
+results/covid_imp_rank/
+results/ebm_resid-*/
+results/resid_ab/
+results/date_reconstruct/
+results/intraday_feats/
+results/*.png
+logs/
+*.tgz
+
+# local config / cluster run-state (not code)
+.claude/
+.hpc/campaigns/*/*.lock
+.hpc/campaigns/*/drive*.log
+.hpc/campaigns/*/drive_state.json
+.hpc/campaigns/*/driver_stdout.log

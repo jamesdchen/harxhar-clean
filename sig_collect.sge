@@ -1,0 +1,12 @@
+#!/bin/bash
+#$ -N sig_col
+#$ -cwd
+#$ -l h_data=16G,h_rt=0:30:00
+#$ -pe shared 2
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Hoffman2/SGE port of sig_collect.sbatch. CID/ARM/LBL via -v.
+cd /u/scratch/j/jamesdc1/harxhar-clean
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY resid_amortized.py chunk_collect "$CID" "$ARM" "$LBL" 2>&1 | grep -E 'COLLECT|INCOMPLETE|Error'
+echo SIG_COL_DONE "$CID" "$ARM" "$LBL"

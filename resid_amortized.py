@@ -707,6 +707,246 @@ def _cumrv_shape_close(Xs, feats):
     return (share * close)[:, None], ["cumrv_aftshare_x_close"]
 
 
+# ── REGIME-HIERARCHICAL PERSISTENCE features (the persist_* family) ───────────────────────────────
+# The residual edge is an intraday vol-PERSISTENCE regime: HAR over-extrapolates at the session edges,
+# and the only signal that ever beat the d8 tree was a HISTORY-dependent rolling-relative vol innovation
+# (today's vol vs its recent same-slot distribution -- a functional the feature row does not contain).
+# The log-signature path-ORDER basis was NULL (the close edge has no chronological-order content). So
+# these features make PERSISTENCE explicitly REGIME-CONDITIONAL and HIERARCHICAL while staying STATE/level-
+# based (not order-based): each is causal, bounded-by-construction (rank-Gauss ~N(0,1) / np.divide where>0,
+# NO ad-hoc clips/floors/eps), and new-to-tree via a rolling history factor.
+
+
+def _rank_gauss_by_group(v, group, win):
+    """Causal rolling rank-Gauss of v WITHIN each group level (group = a per-row slot/phase/DOW id). Bounded
+    ~N(0,1); reuses rolling_rank_gauss per group (its own shift(1) + warmup -> warmup rows emit 0). The shared
+    primitive behind every persist_* feature: 'v relative to its own recent history within this regime tier'."""
+    from src.features.transforms.rank_gauss import rolling_rank_gauss
+
+    z = np.zeros(len(v), dtype=np.float64)
+    for s in np.unique(group):
+        idx = np.where(group == s)[0]
+        z[idx] = rolling_rank_gauss(v[idx][:, None], win)[:, 0]
+    return z
+
+
+def _persist_clockstate(Xs, feats, train_win):
+    """F1 -- NESTED clock x state persistence. Generalizes the base HAR x {open,close} to HAR_k gated to a
+    finer clock hierarchy {open(h9), mid(10-15), close(16-19)} AND modulated by the LOCAL vol-STATE z_k (the
+    rank-Gauss rolling same-slot innovation of har_k = the new-to-tree history factor). The persistence
+    coefficient is thus free to vary across the nested (timescale -> clock-phase -> vol-state) regime. Emits
+    ONLY the parts NOT already in the enetreg2 base (which has har_k x {open,close} for all 6 windows): the
+    mid-phase clock bucket, and the state-MODULATED persistence har_k x phase x z_k. Causal; z_k ~N(0,1)."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    slot = _rel_slot(Xs, feats, fine=False)
+    phases = (
+        ("open", (hour == 9).astype(np.float64)),
+        ("mid", ((hour >= 10) & (hour <= 15)).astype(np.float64)),
+        ("close", _close_mask(hour).astype(np.float64)),
+    )
+    cols, names = [], []
+    for hn in ("har_ma_1", "har_ma_5", "har_ma_25"):
+        if hn not in feats:
+            continue
+        h = Xs[:, feats.index(hn)].astype(np.float64)
+        z = _rank_gauss_by_group(h, slot, win)  # local vol-state at this timescale
+        # mid-phase clock bucket (new vs the base's open/close); state-modulated persistence per phase
+        mid_col = h * phases[1][1]
+        if mid_col.min() < mid_col.max():
+            cols.append(mid_col)
+            names.append(f"{hn}_x_mid")
+        for pn, g in phases:
+            sc = h * g * z
+            if sc.min() < sc.max():
+                cols.append(sc)
+                names.append(f"{hn}_x_{pn}_x_state")
+    INT = (
+        np.ascontiguousarray(np.column_stack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
+def _persist_cascade(Xs, feats, train_win):
+    """F2 -- cross-TIMESCALE persistence cascade. Rank-Gauss rolling same-slot innovation of short/long HAR
+    RATIOS (har_ma_1/har_ma_25, har_ma_5/har_ma_125), gated close: 'is the FAST scale diverging from the SLOW
+    regime, vs its own history?'. A functional ACROSS the HAR timescale hierarchy; the rolling-rank of the
+    ratio is history-dependent (new-to-tree). Causal; bounded ~N(0,1); ratio = np.divide where denom>0 (no eps)."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    slot = _rel_slot(Xs, feats, fine=False)
+    close = _close_mask(hour).astype(np.float64)
+    cols, names = [], []
+    for a, b in (("har_ma_1", "har_ma_25"), ("har_ma_5", "har_ma_125")):
+        if a not in feats or b not in feats:
+            continue
+        va = Xs[:, feats.index(a)].astype(np.float64)
+        vb = Xs[:, feats.index(b)].astype(np.float64)
+        r = np.divide(va, vb, out=np.zeros_like(va), where=vb > 0)
+        col = _rank_gauss_by_group(r, slot, win) * close
+        if col.min() < col.max():
+            cols.append(col)
+            names.append(f"casc_{a}_{b}_x_close")
+    INT = (
+        np.ascontiguousarray(np.column_stack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
+def _persist_dwell(Xs, feats, train_win):
+    """F3 -- regime DWELL / run-length. Vol-state sign s = sign(z_5), z_5 = rank-Gauss rolling same-slot
+    innovation of har_ma_5 (>0 = high local-vol regime). runlen = consecutive same-sign bars up to t-1 (causal
+    shift; the LITERAL 'how long has the vol regime persisted' -- a state-DWELL path functional the log-sig
+    ORDER basis did not cover). Bounded by a rank-Gauss of runlen over its own same-slot history (no magic
+    scale/threshold). Gated close. The boldest/novel bet: it partially tensions with the path-order-death
+    result, so a clean null here further seals 'state-only, no path'; a hit = dwell is the live path channel."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    slot = _rel_slot(Xs, feats, fine=False)
+    close = _close_mask(hour).astype(np.float64)
+    if "har_ma_5" not in feats:
+        return np.empty((len(Xs), 0), dtype=np.float64), []
+    h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
+    s = np.sign(_rank_gauss_by_group(h5, slot, win))
+    runlen = np.zeros(len(s), dtype=np.float64)
+    c, prev = 0, 0.0
+    for t in range(len(s)):
+        c = c + 1 if (s[t] == prev and s[t] != 0.0) else 1
+        runlen[t] = c
+        prev = s[t]
+    runlen = np.concatenate([[0.0], runlen[:-1]])  # shift(1): run length as of t-1 (causal)
+    col = _rank_gauss_by_group(runlen, slot, win) * close
+    if col.min() < col.max():
+        return col[:, None], ["dwell_har5_x_close"]
+    return np.empty((len(Xs), 0), dtype=np.float64), []
+
+
+def _persist_nested(Xs, feats, train_win):
+    """F5 -- nested calendar-seasonality decomposition. The deployed `rel` measures har_ma_5 vs its recent
+    same-HOUR history (one tier). Here the SAME vol's rank-Gauss rolling innovation is computed against a
+    HIERARCHY of progressively coarser reference regimes: 48-slot -> hour -> session-phase -> day-of-week.
+    Each tier standardizes the same vol against a different history horizon (an ANOVA-style nesting); the
+    tier differences are the variance attributable to each regime level. Causal; bounded ~N(0,1); new-to-tree
+    (history-dependent at each horizon). Ungated, matching the deployed rel (persistence-vs-history is
+    regime-agnostic). DOW reconstructed from the one-hot dummies (weakest tier -- the Friday block was null)."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    if "har_ma_5" not in feats:
+        return np.empty((len(Xs), 0), dtype=np.float64), []
+    h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
+    hr = np.rint(hour).astype(np.int64)
+    phase = np.where(hr == 9, 0, np.where(hr <= 15, 1, np.where(hr <= 19, 2, 3)))
+    levels = [
+        ("slot48", _rel_slot(Xs, feats, fine=True)),
+        ("hour", hr),
+        ("phase", phase),
+    ]
+    dow_cols = [f for f in feats if f.startswith("DOW_")]
+    if dow_cols:
+        D = np.column_stack([Xs[:, feats.index(c)] for c in dow_cols])
+        dow = np.where(D.sum(axis=1) > 0, D.argmax(axis=1) + 1, 0)  # baseline=0, DOW_k=k (grouping id only)
+        levels.append(("dow", dow))
+    cols, names = [], []
+    for ln, g in levels:
+        z = _rank_gauss_by_group(h5, g, win)
+        if z.min() < z.max():
+            cols.append(z)
+            names.append(f"nest_har5_{ln}")
+    INT = (
+        np.ascontiguousarray(np.column_stack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
+def _day_tier_level(v, day_id, tier, win, mp):
+    """Causal rolling mean of v at a regime TIER on a coherent win-DAY horizon: collapse to one value per
+    (tier, day) = that day's tier-mean, roll over `win` DAYS WITHIN the tier (shift(1) = causal, excludes
+    today), broadcast back to bars. tier=constant -> the GLOBAL daily level. The shared primitive for F4 so
+    every tier shares the SAME ~win-day lookback (no cross-tier horizon mismatch); warmup (<mp days) -> 0."""
+    import pandas as pd
+
+    daily = (
+        pd.DataFrame({"t": tier, "d": day_id, "v": v}).groupby(["t", "d"], sort=True)["v"].mean().reset_index()
+    )
+    daily["lvl"] = daily.groupby("t")["v"].transform(
+        lambda s: s.rolling(win, min_periods=mp).mean().shift(1)
+    )
+    lut = {(t, d): lv for t, d, lv in zip(daily["t"], daily["d"], daily["lvl"])}
+    out = np.array([lut.get((t, d), np.nan) for t, d in zip(tier, day_id)], dtype=np.float64)
+    return np.nan_to_num(out, nan=0.0)
+
+
+def _persist_pool(Xs, feats, train_win):
+    """F4 -- HIERARCHICAL partial-pooling deviations (the multilevel-model idea as INTERPRETABLE features).
+    Decompose har_ma_5's recent level into nested regime-tier departures from the grand level, each on a
+    coherent win-DAY horizon, gated close: pool_dev_phase = (close-PHASE level - GLOBAL level), pool_dev_slot
+    = (close hour-SLOT level - phase level), pool_dev_resid = (current har_5 - slot level). These ARE the
+    random-effect (partial-pooling) estimates a hierarchical model shrinks toward the parent; each is signed,
+    in vol units, so an enet coef / EBM shape reads off directly ('the close loads + on the phase anomaly,
+    - on the slot anomaly'). Causal (shift(1) day; har_5 itself shift(1)); new-to-tree (rolling tier levels
+    are not in the feature row). The interpretable raw-units sibling of F5's rank-Gauss tier innovations."""
+    hour = Xs[:, feats.index("hour")].astype(np.float64)
+    win = max(2, train_win // PERIODS_PER_DAY)
+    mp = max(20, win // 20)
+    if "har_ma_5" not in feats:
+        return np.empty((len(Xs), 0), dtype=np.float64), []
+    h5 = Xs[:, feats.index("har_ma_5")].astype(np.float64)
+    hr = np.rint(hour).astype(np.int64)
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hr) < 0).astype(int)]))
+    phase = np.where(hr == 9, 0, np.where(hr <= 15, 1, np.where(hr <= 19, 2, 3)))
+    L_global = _day_tier_level(h5, day_id, np.zeros_like(day_id), win, mp)
+    L_phase = _day_tier_level(h5, day_id, phase, win, mp)
+    L_slot = _day_tier_level(h5, day_id, hr, win, mp)
+    close = _close_mask(hour).astype(np.float64)
+    candidates = [
+        ((L_phase - L_global) * close, "pool_dev_phase_x_close"),
+        ((L_slot - L_phase) * close, "pool_dev_slot_x_close"),
+        ((h5 - L_slot) * close, "pool_dev_resid_x_close"),
+    ]
+    cols, names = [], []
+    for c, nm in candidates:
+        if c.min() < c.max():
+            cols.append(c)
+            names.append(nm)
+    INT = (
+        np.ascontiguousarray(np.column_stack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
+_PERSIST_BUILDERS = {
+    "cs": _persist_clockstate,
+    "casc": _persist_cascade,
+    "dwell": _persist_dwell,
+    "nest": _persist_nested,
+    "pool": _persist_pool,
+}
+
+
+def _build_persist(Xs, feats, train_win, families):
+    """Concatenate the named persist families (cs/casc/dwell/nest/pool) into one [N,k] block + names."""
+    cols, names = [], []
+    for fam in families:
+        c, nm = _PERSIST_BUILDERS[fam](Xs, feats, train_win)
+        if c.shape[1]:
+            cols.append(c)
+            names += nm
+    INT = (
+        np.ascontiguousarray(np.hstack(cols))
+        if cols
+        else np.empty((len(Xs), 0), dtype=np.float64)
+    )
+    return INT, names
+
+
 def _gap_open(Xs, feats, train_win):
     """Overnight directional GAP (#4): cumulative SIGNED return over the cross-midnight night run (20->9),
     gated to the OPEN (hour==9) -- the directional sibling of the (null) overnight-VOL cumrv_x_open.
@@ -1363,6 +1603,12 @@ def _tree_factory(model, cfg):
         kw.setdefault("n_jobs", 4)
         kw.setdefault("random_state", 42)
         return lambda: ExplainableBoostingRegressor(**kw)
+    if (
+        model == "moe"
+    ):  # interpretable regime mixture-of-experts (learned soft-tree gate + NAM experts)
+        from src.models.regime_moe import RegimeMoE
+
+        return lambda: RegimeMoE(**dict(cfg))
     from xgboost import XGBRegressor
 
     kw = dict(cfg)
@@ -1480,6 +1726,11 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_ofi",
         "enetreg2_ofirel",
         "enetreg2_logsig",
+        "enetreg2_persist_cs",
+        "enetreg2_persist_casc",
+        "enetreg2_persist_dwell",
+        "enetreg2_persist_nest",
+        "enetreg2_persist_pool",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1604,6 +1855,11 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_ofi",
             "enetreg2_ofirel",
             "enetreg2_logsig",
+            "enetreg2_persist_cs",
+            "enetreg2_persist_casc",
+            "enetreg2_persist_dwell",
+            "enetreg2_persist_nest",
+            "enetreg2_persist_pool",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1645,6 +1901,11 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_ofi",
             "enetreg2_ofirel",
             "enetreg2_logsig",
+            "enetreg2_persist_cs",
+            "enetreg2_persist_casc",
+            "enetreg2_persist_dwell",
+            "enetreg2_persist_nest",
+            "enetreg2_persist_pool",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1860,6 +2121,26 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             co, co_names = _cumrv_open(Xs, feats0)
             add_cols.append(co)
             add_names += co_names
+        if base_kind == "enetreg2_persist_cs":  # F1 nested clock x state persistence
+            pc, pc_names = _persist_clockstate(Xs, feats0, train_win)
+            add_cols.append(pc)
+            add_names += pc_names
+        if base_kind == "enetreg2_persist_casc":  # F2 cross-timescale persistence cascade
+            pc, pc_names = _persist_cascade(Xs, feats0, train_win)
+            add_cols.append(pc)
+            add_names += pc_names
+        if base_kind == "enetreg2_persist_dwell":  # F3 regime dwell / run-length
+            pc, pc_names = _persist_dwell(Xs, feats0, train_win)
+            add_cols.append(pc)
+            add_names += pc_names
+        if base_kind == "enetreg2_persist_nest":  # F5 nested calendar decomposition
+            pc, pc_names = _persist_nested(Xs, feats0, train_win)
+            add_cols.append(pc)
+            add_names += pc_names
+        if base_kind == "enetreg2_persist_pool":  # F4 hierarchical partial-pooling deviations
+            pc, pc_names = _persist_pool(Xs, feats0, train_win)
+            add_cols.append(pc)
+            add_names += pc_names
         Xs = np.ascontiguousarray(np.hstack([Xs] + add_cols))
         feats_aug = list(feats0) + add_names
     # Drop dead (zero-variance) columns before fitting/caching. ~31% of the all_buckets
@@ -2017,6 +2298,33 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
                 print("  COEF %-30s %+.5f" % (nm, c), flush=True)
 
 
+def do_regime_extra(cid, families_str):
+    """Build the regime-persistence features for an EXISTING cell and save them as a SEPARATE
+    regime_extra_<families>.npy (NOT folded into the base matrix). They BYPASS the global enet base + the
+    global d8 tree and are injected ONLY into the resid_regime EBM (env REGIME_EXTRA=<families>) -- the
+    proper home for regime-specific features the global fixed-alpha enet mis-penalizes. families_str =
+    comma-joined family tags from {cs, casc, dwell, nest, pool}. Row-aligned 1:1 with the cell's cached Xs."""
+    d = f"{CACHE_ROOT}/{cid}"
+    cell = json.load(open(f"{d}/cell.json"))
+    bucket, train_win = cell["bucket"], int(cell["train_win"])
+    pipe = cell.get("pipe", "slim")
+    Xs, _y, _base = _load_matrix(bucket, train_win, pipe)
+    feats0 = json.load(open(f"results/covid_imp_rank/{bucket}/meta.json"))["feats"]
+    families = (
+        list(_PERSIST_BUILDERS) if families_str == "all" else [f for f in families_str.split(",") if f]
+    )
+    bad = [f for f in families if f not in _PERSIST_BUILDERS]
+    if bad:
+        raise ValueError(f"unknown persist families {bad}; valid = {sorted(_PERSIST_BUILDERS)}")
+    re, names = _build_persist(Xs, feats0, train_win, families)
+    np.save(f"{d}/regime_extra_{families_str}.npy", re)
+    json.dump(names, open(f"{d}/regime_extra_{families_str}_feats.json", "w"))
+    print(
+        f"REGIME_EXTRA {cid} fams={families_str} cols={re.shape[1]} names={names}",
+        flush=True,
+    )
+
+
 def load_cache(cid):
     """Load the per-cell amortized cache ONCE (worker reuses across trials)."""
     d = f"{CACHE_ROOT}/{cid}"
@@ -2049,6 +2357,16 @@ def load_cache(cid):
     out["force_mask"] = (
         None  # FORCE_COLS env: named columns unioned into the tree/EBM masks
     )
+    # REGIME_EXTRA=<tag>: load the SEPARATE regime-persistence array regime_extra_<tag>.npy (built by
+    # `regime_extra`), injected into the resid_regime EBM only -- bypasses the global base + global tree.
+    out["regime_extra"] = None
+    _re = os.environ.get("REGIME_EXTRA", "")
+    if _re:
+        _rep = f"{d}/regime_extra_{_re}.npy"
+        if os.path.exists(_rep):
+            out["regime_extra"] = np.ascontiguousarray(np.load(_rep), dtype=np.float64)
+        else:
+            raise FileNotFoundError(f"REGIME_EXTRA={_re} but {_rep} missing (run `regime_extra {cid} {_re}`)")
     # REGARDLESS of L1 survival -- tests a purely-nonlinear feature that the enet zeros (0 linear main
     # effect -> 0/407 mask survival -> tree/EBM never see it -> byte-identical to base = a fake null).
     try:
@@ -2179,6 +2497,11 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             "force_mask"
         )  # FORCE_COLS: union into survivors so the tree/EBM see them
         hr = c["Xs"][:, c["feats"].index("hour")]
+        re = c.get(
+            "regime_extra"
+        )  # REGIME_EXTRA: regime-persistence features injected into the EBM ONLY -- they BYPASS the
+        # global enet base (unchanged ridge_oos/coefs) and the global d8 tree (g fits survivors only),
+        # entering at the regime stage where there is no global alpha to mis-penalize them. None -> off.
         gcfg = json.loads(os.environ.get("GLOBAL_CFG", "{}"))
         rcfg = json.loads(os.environ.get("REGIME_CFG", "{}"))
         # regime-stage learner: default EBM (interpretable); REGIME_MODEL=xgb -> tuned XGB for PURE
@@ -2206,9 +2529,14 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
                 continue
             r2 = r1 - g.predict(Xtr[:, cols]).ravel()
             e = _tree_factory(rmodel, rcfg)()
-            e.fit(Xtr[m_tr][:, cols], r2[m_tr])
+            if re is None:
+                Xtr_e, Xblk_e = Xtr[:, cols], Xblk
+            else:  # EBM sees the survivors PLUS the regime-persistence extras (global g unaffected above)
+                Xtr_e = np.hstack([Xtr[:, cols], re[t_r - tw : t_r]])
+                Xblk_e = np.hstack([Xblk, re[t_r:t_end]])
+            e.fit(Xtr_e[m_tr], r2[m_tr])
             m_blk = _close_mask(hr[t_r:t_end])
-            pe = e.predict(Xblk).ravel()
+            pe = e.predict(Xblk_e).ravel()
             pe[~m_blk] = 0.0
             out[t_r - tw - k0 : t_end - tw - k0] += pe
         return k0, k1, out
@@ -2859,6 +3187,8 @@ if __name__ == "__main__":
         do_olamcheck(int(sys.argv[2]) if len(sys.argv) > 2 else 0)
     elif mode == "enet_masks":
         do_enet_masks(sys.argv[2])
+    elif mode == "regime_extra":  # build regime_extra_<families>.npy for the EBM-only injection
+        do_regime_extra(sys.argv[2], sys.argv[3])
     elif mode == "chunk_task":
         do_chunk_task(
             sys.argv[2],

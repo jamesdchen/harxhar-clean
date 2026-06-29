@@ -12,6 +12,7 @@ V > all/har, the refinement holds. Large K + ridge (vs the K=25 mean). Strict em
 
 import glob
 import json
+import os
 
 import numpy as np
 import pandas as pd
@@ -19,8 +20,8 @@ import pandas as pd
 from resid_amortized import CACHE_ROOT, PERIODS_PER_DAY
 from src.evaluation.metrics import apply_duan_smearing
 
-CELL = "xgb_all_buckets_tw1000_enetreg2_rf480_slim"
-LBL = "resid_subset_heroA_d8"
+CELL = os.environ.get("KNN_CELL", "xgb_all_buckets_tw1000_enetreg2_rf480_slim")
+LBL = os.environ.get("KNN_LBL", "resid_subset_heroA_d8")
 TRAIN_WIN = 1000 * PERIODS_PER_DAY
 EMBARGO = 3125
 K = 1500

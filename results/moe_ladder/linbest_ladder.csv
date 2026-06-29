@@ -1,0 +1,20 @@
+stage,label,qlike,note
+base,enetreg2_linbest,0.12266,linear floor (writeup; not a resid_ab collect)
+heroA_noregime,fa_d8c5,0.12081,d8@cs0.5 best — no regime stage
+heroA_noregime,fa_d8c3,0.12090,
+heroA_noregime,fa_d10c3,0.12092,
+heroA_noregime,fa_d8c1,0.12101,
+heroA_noregime,fa_d12c3,0.12110,
+xgb_regime,fb_r3n4,0.12072,best curated XGB regime
+xgb_regime,fb_r3,0.12075,
+xgb_regime,fb_r2,0.12077,
+xgb_regime,fb_r4,0.12079,
+xgb_regime,fb_r6,0.12101,
+xgb_regime,optuna_best,0.12094,120-trial async_tune (job 9725347)
+ebm_regime,lbHeroB,0.12033,EBM regime — THE CEILING
+ebm_regime,ctrl_ebm,0.12033,EBM regime — this-session anchor (reproduces lbHeroB)
+moe_regime,moe_d0_BROKEN,0.15200,unbounded SiLU NAM — training failure (Duan-smear blowup)
+moe_regime,moe_d1_BROKEN,0.13020,unbounded gate — same failure
+moe_regime,moe2_d0_clamp_MIXED,0.12778,output-clamp+bagging; CONTAMINATED by deploy (indicative only)
+moe_regime,sat_d0,NaN,input-saturation+bagging (clean) — PENDING
+moe_regime,sat_d0_inputsat,0.12757,clean input-saturation (n_bags4 wd0.01 no-colsample additive NAM)
