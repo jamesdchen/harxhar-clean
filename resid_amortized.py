@@ -985,6 +985,59 @@ def _ofi_block(Xs, feats, bucket, train_win):
     return np.ascontiguousarray(block * close[:, None]), ["ofi_net", "ofi_absnet"]
 
 
+def _logsig_block(Xs, feats, train_win):
+    """SYSTEMATIC truncated LOG-SIGNATURE of the causal within-day path (channels tau=elapsed bar,
+    R=cumret, V=cumrv=cumsum(sqrt-vol)) to LEVEL 3 -- the universal nonparametric basis of path
+    functionals, whose ANTISYMMETRIC coords (Levy areas at lvl2, brackets at lvl3) are the strict
+    CHRONOLOGICAL-ORDER content a tree cannot reconstruct. The DEFINITIVE path-lever-death test: if
+    the full antisymmetric basis (+ the QV realized-(co)variance terms) is null OOS even when FORCED
+    into the tree/EBM, the close edge has NO order content = a pure state/level regime, fully captured,
+    and we stop. 14 logsig coords (iisignature 3ch lvl3 = 3 increments + 3 Levy areas + 8 lvl-3
+    brackets) + 3 QV terms (qv_rr=realized var of returns, qv_vv=vol-of-vol, qv_rv=intraday-leverage
+    covariation -- the lead-lag-QV essence without the channel-doubling blowup). Computed at ALL
+    within-day bars (t>=2) so the robust-scale per coord has no gated zero-inflation, THEN gated close.
+    Needs results/intraday_feats/cumret.npy. MUST be dug with FORCE_COLS=<all coord names> -- the
+    antisymmetric coords have ~no linear main effect, so L1 would zero them = a fake null (the OFI
+    lesson). [[no-magic-numbers-feature-rigor]]."""
+    import iisignature
+    import pandas as pd
+
+    s = iisignature.prepare(3, 3)
+    D = int(iisignature.logsiglength(3, 3))
+    hour = Xs[:, feats.index("hour")]
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
+    di = pd.Series(day_id)
+    n = di.groupby(di).cumcount().to_numpy().astype(np.float64) + 1.0
+    har1 = Xs[:, feats.index("har_ma_1")].astype(np.float64)  # per-bar sqrt-vol = dV
+    V = pd.Series(har1).groupby(day_id).cumsum().to_numpy()
+    cumret = np.asarray(np.load("results/intraday_feats/cumret.npy"), dtype=np.float64)
+    R = cumret  # already within-day cumulative signed return
+    tau = n / PERIODS_PER_DAY  # elapsed time channel (~[0,1] within the day)
+    dR = R - pd.Series(R).groupby(day_id).shift(1).fillna(0.0).to_numpy()
+    out = np.zeros((len(Xs), D), dtype=np.float64)
+    qv = np.zeros((len(Xs), 3), dtype=np.float64)
+    bounds = np.flatnonzero(np.diff(day_id)) + 1
+    for ta, RR, VV, dr, dv, ix in zip(
+        np.split(tau, bounds),
+        np.split(R, bounds),
+        np.split(V, bounds),
+        np.split(dR, bounds),
+        np.split(har1, bounds),
+        np.split(np.arange(len(Xs)), bounds),
+    ):
+        path = np.ascontiguousarray(np.column_stack([ta, RR, VV]))
+        crr, cvv, crv = np.cumsum(dr * dr), np.cumsum(dv * dv), np.cumsum(dr * dv)
+        for t in range(
+            2, len(path)
+        ):  # need >=3 points for a non-degenerate lvl-3 logsig
+            out[ix[t]] = iisignature.logsig(path[: t + 1], s)
+            qv[ix[t]] = (crr[t], cvv[t], crv[t])
+    block = _floored_robust_scale(np.column_stack([out, qv]), train_win)
+    close = _close_mask(hour).astype(np.float64)
+    names = ["logsig_%d" % i for i in range(D)] + ["qv_rr", "qv_vv", "qv_rv"]
+    return np.ascontiguousarray(block * close[:, None]), names
+
+
 def _cumrv_rankcum_close(Xs, feats):
     """Order-matched diagnostic: cumsum-of-per-slot-RANK over TRUE calendar days (the proxy's
     rank-THEN-sum 'breadth' construction, but on cumrv_real's calendar-day segmentation), gated
@@ -1426,6 +1479,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_frirel",
         "enetreg2_ofi",
         "enetreg2_ofirel",
+        "enetreg2_logsig",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1549,6 +1603,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_frirel",
             "enetreg2_ofi",
             "enetreg2_ofirel",
+            "enetreg2_logsig",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1589,6 +1644,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_frirel",
             "enetreg2_ofi",
             "enetreg2_ofirel",
+            "enetreg2_logsig",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1785,6 +1841,12 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             add_cols.append(ob)
             add_names += ob_names
         if (
+            base_kind == "enetreg2_logsig"
+        ):  # SYSTEMATIC log-signature (lvl-3) path basis -- the path-lever-death test (dig w/ FORCE_COLS)
+            lg, lg_names = _logsig_block(Xs, feats0, train_win)
+            add_cols.append(lg)
+            add_names += lg_names
+        if (
             base_kind == "enetreg2_ofirel"
         ):  # + rolling-relative regime (does OFI STACK on the proven rel factor?)
             rz, rz_names = _har_rel_innov(
@@ -1868,6 +1930,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_frirel",
         "enetreg2_ofi",
         "enetreg2_ofirel",
+        "enetreg2_logsig",
     ):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
