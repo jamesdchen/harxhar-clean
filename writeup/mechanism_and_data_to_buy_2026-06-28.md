@@ -196,9 +196,19 @@ is correctly excluded — it *hurts* the base, it's a downstream-only lever.)
 (log-sig null). So DL capacity should NOT go to sequence / self-attention-over-the-path architectures — the
 universal path basis is provably empty here. The value, if any, is in **richer state/level nonlinearities**
 (high-order interactions the EBM's additive+pairwise form can't reach) or **new data** (the auction-imbalance
-feed). A final pure-QLIKE dig pins the current-pipeline ceiling first: retuned Hero A (global XGB sweep on
-`linbest`) + Hero B **pure power** (tuned XGB regime stage, dropping the EBM interpretability constraint, via
-`REGIME_MODEL=xgb`). [result pending — in flight at writing.]
+feed). **Final pure-QLIKE dig (the pre-DL ceiling).**
+
+| run | QLIKE |
+|---|---|
+| retuned Hero A: `linbest` + d8@cs**0.5** global (resid_subset) | **0.12081** (vs old Hero A 0.12129) |
+| Hero B "pure power": + tuned XGB regime (depth3,n400) | 0.12072 |
+| `linbest` + d8 + **EBM** regime (best base × best regime learner) | *[pending]* |
+
+**Key (counter-intuitive) finding: the "pure power" XGB regime LOSES to the EBM.** It adds only −0.00018
+(0.12090 → 0.12072) vs the EBM regime's −0.00060 on a comparable base — it overfits the few-thousand-row
+h16-19 close subset (depth6 is worst). So the EBM regime stage was **never an interpretability compromise**;
+its additive+pairwise + bagging structure is the *correct regularizer* for the small regime sample, and it
+is genuinely the stronger learner there. Pure tree capacity does not buy the ceiling.
 
 ## 9. Exhausted levers (do not re-try on this data)
 
