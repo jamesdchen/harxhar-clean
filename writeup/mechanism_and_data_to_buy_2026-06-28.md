@@ -118,12 +118,97 @@ cumrv ratio, physical `cumrv_real`, OPEX/calendar, blind 200-trial Optuna (lost 
 EBM-feature linear distill, `har²×close` convexity, overnight-cumrv-at-open, banded-HAR canon (+ scaled),
 implied-vol magnitude through the tree. Model capacity and monotone feature re-encoding are done.
 
-## 6. Open (small, no new data)
+## 6. Post-floor rigor pass + the definitive path-lever-death test (2026-06-28, later)
 
-The one remaining *new-to-tree* direction without new data: **rolling-relative exog innovations** at a longer
-window / different normalization (rolling-z, ratio, vol-of-vol) than the cache's short (~20-obs) `diurnal_rank`
-— the exog analog of the har rolling-innovation. Expected small. (Encoding-axis sweep on har —
-rank-Gauss vs robust-z vs ratio vs 48-slot — was in flight at writing.)
+After 0.12035 the work turned to (a) hardening the features against magic-number artifacts and (b) the
+*systematic* test of whether the path lever has any life left.
 
-**Recommendation:** stop optimizing this OOS QLIKE (multiple-testing budget spent) and pursue the
-auction/GEX/OFI data acquisition; the modeling stack (0.12046) is at its floor.
+**Rigor pass — no ad-hoc constants.** Removed: `±8` safety clips (one was *biting* — flattening the
+extreme-demand weeks, i.e. the signal); `std>1e-9` constant-column drops → scale-free `min<max`; `+1e-9`
+div-0 epsilons → `np.divide(where=denom>0)`. `sig_volskew`'s 3rd-standardized-moment (needed a 1-bar² floor)
+→ **Bowley quartile skew** ∈[−1,1] by construction (no floor). The `robustz`/`ratio` rolling-innovation
+rejection was *confounded*: a `min_periods=5` rolling-IQR **collapse** manufactured a |z|≈57 on `har_ma_125`
+(6-obs window = divide-by-degenerate); fixed by matching the rank-Gauss warmup (`max(20,win//20)`), after
+which robustz still loses to rank-Gauss on *genuine* heavy tails (rejection stands, now honest).
+**Lesson: verify a number's source before concluding; an L1-zeroed feature ≠ no signal — check scale and
+force it past L1 (`FORCE_COLS`) before calling it null.**
+
+**Gate-window sweep — the 16-19 close window is empirically near-optimal**, not an un-tested guess:
+
+| window | full-OOS QLIKE (enetreg2 + d8 + EBM) | what changes |
+|---|---|---|
+| **16-19** | **0.12050** | baseline |
+| 15-19 | 0.12051 | +hour 15 (neutral) |
+| 17-19 | 0.12064 | −hour 16 (close auction) |
+| 16-20 | 0.12068 | +dead AH hour 20 |
+| 16-18 | 0.12092 | −hour 19 (AH) — worst |
+
+Both edges carry real signal — hour 19/AH most (3× the cost of dropping hour 16), hour 20 dead.
+
+**The log-signature path-lever-death test (the decisive experiment).** A tree/EBM is order-blind: it sees the
+current row, not the chronological *path*. Every `cum*` feature is one hand-picked path functional. The
+systematic generalization is the **log-signature** (rough-path theory) — the *universal* basis whose
+**antisymmetric** coordinates (Lévy areas at level 2, brackets at level 3) ARE the strict chronological-order
+content. We ran the full truncated log-sig (channels τ / cumret / cumrv, level 3 = 14 coords + 3 QV terms),
+**forced past the L1 gate** into the tree/EBM (`FORCE_COLS` — else the antisymmetric coords, which have no
+linear main effect, get L1-zeroed = a fake null):
+
+| rung | logsig (FORCE) | reference |
+|---|---|---|
+| +d8 | 0.12117 | (non-robust wiggle) |
+| **+EBM** | **0.12059** | base+EBM 0.12050 / rel+EBM 0.12046 — **worse** |
+
+**Null/harmful.** The complete universal antisymmetric path basis carries no robust OOS signal. ⇒ **the close
+edge has NO strict chronological-order content — it is a pure state/level regime, fully captured.** The path
+lever is **closed** (confirms the saturation of the hand-picked path-shape features and the null `sig_area_rv`
+Lévy area). Hand-picked signature-timing (`sig`/Bowley) and the within-week Friday block both came back null
+under the same scrutiny.
+
+## 7. OFI proxy is dead — sharpening the data-to-buy case
+
+The turnover-derived OFI (within-day net buy/sell imbalance, bounded [−1,1] by construction) is **null**:
+base-alone 0.12313, and +EBM slightly *harmful* even when forced past L1 (the scale-invariant tree test).
+The original "null" was a *fake* null — two artifacts (the resid_subset L1-survivor gating + a scale handicap:
+raw OFI std 0.03 = smallest feature in the matrix, vs cumrv 13.3; L1 penalizes |β| scale-blind) — both fixed
+and generalized into the reusable `FORCE_COLS` tool. But the underlying feature is genuinely dead: **cheap
+turnover imbalance does not proxy the close-auction CROSS imbalance.** This sharpens §4: the data to buy is the
+**actual auction-imbalance feed (NYSE Order Imbalances / Nasdaq NOII indicative imbalance, published pre-16:00)**;
+a turnover-constructed OFI is not a substitute.
+
+## 8. The best linear base + the DL handoff
+
+For the pivot to deep-learning feature engineering, the linear base was locked at its best. The four
+orthogonal, downstream-subsumed linear improvers (help the enet base; the tree/EBM absorb them) **stack**:
+
+| component | base-alone | Δ vs enetreg2 |
+|---|---|---|
+| `enetreg2` | 0.12314 | — |
+| + `har5rank` (rank-space close HAR-damping) | 0.12293 | −0.00021 |
+| + `ivmag` (VIX magnitude, not rank) | 0.12301 | −0.00013 |
+| + `sig` (vol-arrival path moments, Bowley) | 0.12302 | −0.00012 |
+| + `exogrel` (long-window rolling-rel exog) | 0.12305 | −0.00009 |
+| **`enetreg2_linbest` (all 4)** | **0.12266** | **−0.00048** (~87% of the orthogonal sum) |
+
+**`linbest` = 0.12266 is the locked linear foundation; DL builds the residual `y − linbest`.** (The `rel`-family
+is correctly excluded — it *hurts* the base, it's a downstream-only lever.)
+
+**DL direction, constrained by the evidence:** the close edge is a **state/level regime with no order content**
+(log-sig null). So DL capacity should NOT go to sequence / self-attention-over-the-path architectures — the
+universal path basis is provably empty here. The value, if any, is in **richer state/level nonlinearities**
+(high-order interactions the EBM's additive+pairwise form can't reach) or **new data** (the auction-imbalance
+feed). A final pure-QLIKE dig pins the current-pipeline ceiling first: retuned Hero A (global XGB sweep on
+`linbest`) + Hero B **pure power** (tuned XGB regime stage, dropping the EBM interpretability constraint, via
+`REGIME_MODEL=xgb`). [result pending — in flight at writing.]
+
+## 9. Exhausted levers (do not re-try on this data)
+
+All tested and rejected: online-λ, alternating backfit, cumrv ratio, physical `cumrv_real`, OPEX/calendar,
+blind 200-trial Optuna (lost to the curated sweep), the EBM-feature linear distill, `har²×close` convexity,
+overnight-cumrv-at-open, banded-HAR canon (+scaled), implied-vol magnitude through the tree, **the higher-order
+path-signature block (saturated), the within-week Friday block (null), the turnover-OFI proxy (null), and the
+full level-3 log-signature antisymmetric basis (null — the path lever is closed).** Model capacity, monotone
+feature re-encoding, and the path/order channel are done.
+
+**Recommendation:** the modeling stack is at its floor (best 0.12035; linear floor `linbest` 0.12266). Stop
+optimizing this OOS QLIKE — the levers are now **(1)** new data (auction-imbalance / GEX feed) and **(2)** DL on
+the `linbest` residual targeting *state-space* nonlinearities, NOT path-order architectures.
