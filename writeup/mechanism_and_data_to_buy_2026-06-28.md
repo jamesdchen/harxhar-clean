@@ -202,13 +202,17 @@ feed). **Final pure-QLIKE dig (the pre-DL ceiling).**
 |---|---|
 | retuned Hero A: `linbest` + d8@cs**0.5** global (resid_subset) | **0.12081** (vs old Hero A 0.12129) |
 | Hero B "pure power": + tuned XGB regime (depth3,n400) | 0.12072 |
-| `linbest` + d8 + **EBM** regime (best base × best regime learner) | *[pending]* |
+| **`linbest` + d8@cs0.5 + EBM regime (the ceiling)** | **0.12033** |
+| (deployed shaperel + EBM, for reference) | 0.12035 |
 
-**Key (counter-intuitive) finding: the "pure power" XGB regime LOSES to the EBM.** It adds only −0.00018
-(0.12090 → 0.12072) vs the EBM regime's −0.00060 on a comparable base — it overfits the few-thousand-row
-h16-19 close subset (depth6 is worst). So the EBM regime stage was **never an interpretability compromise**;
-its additive+pairwise + bagging structure is the *correct regularizer* for the small regime sample, and it
-is genuinely the stronger learner there. Pure tree capacity does not buy the ceiling.
+**Two findings, both decisive for the DL handoff:**
+1. **"Pure power" XGB regime LOSES to the EBM** (0.12072 vs 0.12033): it adds only −0.00018 vs the EBM's
+   −0.00060 on a comparable base, overfitting the few-thousand-row h16-19 close subset (depth6 worst). The EBM
+   regime stage was **never an interpretability compromise** — its additive+pairwise+bagging structure is the
+   *correct regularizer* for the small regime sample, genuinely the stronger learner there.
+2. **The ceiling is 0.12033 — the floor is real.** `linbest`'s −0.00048 *linear* advantage **collapses to
+   −0.00002** at the +EBM stage: the tree/EBM subsume the linear improvements almost entirely. So `linbest` is a
+   **clean, legible base for the DL residual, not a QLIKE lever**; the deployed 0.12035 was already at the floor.
 
 ## 9. Exhausted levers (do not re-try on this data)
 
