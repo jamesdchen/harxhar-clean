@@ -1407,6 +1407,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_relratio",
         "enetreg2_relfine",
         "enetreg2_ivmag",
+        "enetreg2_linbest",
         "enetreg2_exogrel",
         "enetreg2_exogorder",
         "enetreg2_cumret",
@@ -1448,7 +1449,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         #   enetreg2_distill_harsq-> enetreg2_distill + a NONLINEAR signed har_ma_5^2 x close
         #                       (_har_sq_close): does a quadratic close-damping term add beyond linear HAR x close?
         feats0 = json.load(open(f"results/covid_imp_rank/{bucket}/meta.json"))["feats"]
-        if base_kind == "enetreg2_ivmag":
+        if base_kind in ("enetreg2_ivmag", "enetreg2_linbest"):
             # PER-BUCKET space test: swap the 18 implied-vol LEVEL columns (adj_{vix,vvix,vix3m}_ma_*) from
             # the slim rank-Gauss space to robust-scale MAGNITUDE (raw source = the covid_imp std-pipe cache,
             # identical 529-feat layout), holding the diurnal-adjust + MA structure constant. Isolates rank-vs-
@@ -1529,6 +1530,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_relratio",
             "enetreg2_relfine",
             "enetreg2_ivmag",
+            "enetreg2_linbest",
             "enetreg2_exogrel",
             "enetreg2_exogorder",
             "enetreg2_cumret",
@@ -1568,6 +1570,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_relratio",
             "enetreg2_relfine",
             "enetreg2_ivmag",
+            "enetreg2_linbest",
             "enetreg2_exogrel",
             "enetreg2_exogorder",
             "enetreg2_cumret",
@@ -1655,6 +1658,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         if base_kind in (
             "enetreg2_har5rank",
             "enetreg2_har5rank_spl",
+            "enetreg2_linbest",
         ):  # + RANK-SPACE har_ma_5 x close
             hr, hr_names = _har5rank_close(Xs, feats0, train_win)
             add_cols.append(hr)
@@ -1686,8 +1690,9 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             )
             add_cols.append(rz)
             add_names += rz_names
-        if (
-            base_kind == "enetreg2_exogrel"
+        if base_kind in (
+            "enetreg2_exogrel",
+            "enetreg2_linbest",
         ):  # + LONG-window rolling-relative rank of key exog x close
             xr, xr_names = _exog_rel_innov(Xs, feats0, train_win, bucket)
             add_cols.append(xr)
@@ -1732,6 +1737,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             in (
                 "enetreg2_sig",
                 "enetreg2_sigrel",
+                "enetreg2_linbest",
             )
         ):  # HIGHER-ORDER within-day path-signature block (lvl 2-3 vol-timing + R-V leverage area)
             sg, sg_names = _path_sig_block(Xs, feats0, train_win)
@@ -1843,6 +1849,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_relratio",
         "enetreg2_relfine",
         "enetreg2_ivmag",
+        "enetreg2_linbest",
         "enetreg2_exogrel",
         "enetreg2_exogorder",
         "enetreg2_cumret",
