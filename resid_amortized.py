@@ -944,7 +944,7 @@ def _friday_week_block(Xs, feats, train_win):
     return np.ascontiguousarray(np.column_stack(cols) * gate[:, None]), names
 
 
-def _ofi_block(Xs, feats, bucket):
+def _ofi_block(Xs, feats, bucket, train_win):
     """ORDER-FLOW IMBALANCE -- a NEW microstructure DATA channel (not another vol-path encoding), the
     closest buildable proxy to the auction-imbalance mechanism behind the close reversal. Loads the
     PHYSICAL value-weighted buy/sell turnover from covid_imp (verified NON-NEGATIVE: frac_neg=0), so
@@ -975,8 +975,13 @@ def _ofi_block(Xs, feats, bucket):
     ofi = np.divide(
         cumd, cums, out=np.zeros_like(cums), where=cums > 0
     )  # net day OFI in [-1,1]
+    # Robust-scale the UNGATED OFI to ~unit so the L1 penalty sees it on a par with the other enet
+    # features: raw OFI std ~0.03 = the SMALLEST in the matrix (median 0.42, cumrv_x_close 13.3), and
+    # L1 penalizes |beta| scale-blind -> a tiny-scale feature is zeroed even WITH signal (it was, 0/407
+    # blocks). Scale ungated (defined all rows -> no zero-inflation) THEN gate. The tree/EBM are
+    # scale-invariant so this is neutral downstream; it only un-handicaps the linear base.
+    block = _floored_robust_scale(np.column_stack([ofi, np.abs(ofi)]), train_win)
     close = _close_mask(hour).astype(np.float64)
-    block = np.column_stack([ofi, np.abs(ofi)])
     return np.ascontiguousarray(block * close[:, None]), ["ofi_net", "ofi_absnet"]
 
 
@@ -1776,7 +1781,7 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
                 "enetreg2_ofirel",
             )
         ):  # NEW DATA CHANNEL: within-day order-flow imbalance (auction-microstructure mechanism)
-            ob, ob_names = _ofi_block(Xs, feats0, bucket)
+            ob, ob_names = _ofi_block(Xs, feats0, bucket, train_win)
             add_cols.append(ob)
             add_names += ob_names
         if (
