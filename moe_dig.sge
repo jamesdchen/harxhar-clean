@@ -14,7 +14,7 @@ export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
 export GLOBAL_CFG='{"n_estimators":200,"learning_rate":0.03,"subsample":0.7,"colsample_bytree":0.5,"min_child_weight":50.0,"reg_lambda":2.0,"n_jobs":4,"max_depth":8}'
 DIAG=${RDIAG:-false}
-export REGIME_CFG="{\"depth\":${RDEPTH},\"expert\":\"${EXPERT:-fm}\",\"rank\":${RANK:-8},\"fm_linear\":${FMLIN:-true},\"wd_v\":${WDV:-null},\"basis\":\"${BASIS:-none}\",\"n_knots\":${NKNOTS:-3},\"gate_kind\":\"${GATEKIND:-tree}\",\"num_regimes\":${NREG:-4},\"epochs\":150,\"hidden_dim\":16,\"dropout\":0.15,\"n_bags\":8,\"colsample\":0.5,\"lr\":0.001,\"weight_decay\":${WD:-0.1},\"aux_weight\":0.5,\"val_frac\":0.2,\"patience\":12,\"use_diagnostic_mlp\":${DIAG}}"
+export REGIME_CFG="{\"depth\":${RDEPTH},\"expert\":\"${EXPERT:-fm}\",\"rank\":${RANK:-8},\"fm_linear\":${FMLIN:-true},\"wd_v\":${WDV:-null},\"basis\":\"${BASIS:-none}\",\"n_knots\":${NKNOTS:-3},\"gate_kind\":\"${GATEKIND:-tree}\",\"num_regimes\":${NREG:-4},\"epochs\":150,\"hidden_dim\":16,\"dropout\":0.15,\"n_bags\":8,\"colsample\":0.5,\"lr\":0.001,\"weight_decay\":${WD:-0.1},\"aux_weight\":${AUXW:-0.5},\"val_frac\":0.2,\"patience\":12,\"use_diagnostic_mlp\":${DIAG}}"
 export REGIME_MODEL=moe
 export REGIME_FULL=${RFULL:-0}
 IDX=$((SGE_TASK_ID - 1))

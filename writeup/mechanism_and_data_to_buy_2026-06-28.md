@@ -118,7 +118,7 @@ cumrv ratio, physical `cumrv_real`, OPEX/calendar, blind 200-trial Optuna (lost 
 EBM-feature linear distill, `har²×close` convexity, overnight-cumrv-at-open, banded-HAR canon (+ scaled),
 implied-vol magnitude through the tree. Model capacity and monotone feature re-encoding are done.
 
-## 6. Post-floor rigor pass + the definitive path-lever-death test (2026-06-28, later)
+## 6. Post-floor rigor pass + the log-signature path-lever test (2026-06-28, later)
 
 After 0.12035 the work turned to (a) hardening the features against magic-number artifacts and (b) the
 *systematic* test of whether the path lever has any life left.
@@ -145,7 +145,7 @@ force it past L1 (`FORCE_COLS`) before calling it null.**
 
 Both edges carry real signal — hour 19/AH most (3× the cost of dropping hour 16), hour 20 dead.
 
-**The log-signature path-lever-death test (the decisive experiment).** A tree/EBM is order-blind: it sees the
+**The log-signature path-lever test (the most systematic order-content test we ran).** A tree/EBM is order-blind: it sees the
 current row, not the chronological *path*. Every `cum*` feature is one hand-picked path functional. The
 systematic generalization is the **log-signature** (rough-path theory) — the *universal* basis whose
 **antisymmetric** coordinates (Lévy areas at level 2, brackets at level 3) ARE the strict chronological-order
@@ -158,11 +158,18 @@ linear main effect, get L1-zeroed = a fake null):
 | +d8 | 0.12117 | (non-robust wiggle) |
 | **+EBM** | **0.12059** | base+EBM 0.12050 / rel+EBM 0.12046 — **worse** |
 
-**Null/harmful.** The complete universal antisymmetric path basis carries no robust OOS signal. ⇒ **the close
-edge has NO strict chronological-order content — it is a pure state/level regime, fully captured.** The path
-lever is **closed** (confirms the saturation of the hand-picked path-shape features and the null `sig_area_rv`
-Lévy area). Hand-picked signature-timing (`sig`/Bowley) and the within-week Friday block both came back null
-under the same scrutiny.
+**Null/harmful.** The truncated antisymmetric basis on these channels carries no robust OOS signal. ⇒ **the
+level-3 log-sig null rules out *low-order* chronological-order content in the three channels we built (τ / cumret
+/ cumrv)** — a strong null *for that subspace* (those antisymmetric coords ARE the order content), but **NOT a
+proof of none.** It does not touch: (1) the **full multivariate higher-order joint path** (the signature saw 3
+hand-picked channels, not the ~120-feature joint history — exactly what a learned sequence model would exploit),
+(2) **level-4+**, (3) **other path parameterizations**, (4) **low-power-null risk** at 195k rows / 93% noise. So
+order content is **unlikely** — corroborated by: the only feature that ever beat the tree was a *state*
+functional, the directional path was null, and the mechanism is clock-anchored — but **untested in that one
+corner**, settleable only by a sequence-vs-state head-to-head on the `linbest` residual fed the full multivariate
+history (scaffold: `seq_vs_state.py`). This still confirms the saturation of the hand-picked path-shape features
+and the null `sig_area_rv` Lévy area. Hand-picked signature-timing (`sig`/Bowley) and the within-week Friday
+block both came back null under the same scrutiny.
 
 ## 7. OFI proxy is dead — sharpening the data-to-buy case
 
@@ -192,9 +199,12 @@ orthogonal, downstream-subsumed linear improvers (help the enet base; the tree/E
 **`linbest` = 0.12266 is the locked linear foundation; DL builds the residual `y − linbest`.** (The `rel`-family
 is correctly excluded — it *hurts* the base, it's a downstream-only lever.)
 
-**DL direction, constrained by the evidence:** the close edge is a **state/level regime with no order content**
-(log-sig null). So DL capacity should NOT go to sequence / self-attention-over-the-path architectures — the
-universal path basis is provably empty here. The value, if any, is in **richer state/level nonlinearities**
+**DL direction, constrained by the evidence:** the close edge is **most likely a state/level regime** — the
+level-3 log-sig null rules out *low-order* order content in the three hand-built channels, but the **full
+multivariate higher-order path is untested** (that null saw 3 channels, not the ~120-feature joint history). So
+DL capacity is *unlikely* to pay in sequence / self-attention-over-the-path architectures — but this is the one
+corner not yet closed, so settle it with a sequence-vs-state head-to-head on the `linbest` residual fed the full
+history (`seq_vs_state.py`) before committing. The more likely value is in **richer state/level nonlinearities**
 (high-order interactions the EBM's additive+pairwise form can't reach) or **new data** (the auction-imbalance
 feed). **Final pure-QLIKE dig (the pre-DL ceiling).**
 
@@ -220,9 +230,46 @@ All tested and rejected: online-λ, alternating backfit, cumrv ratio, physical `
 blind 200-trial Optuna (lost to the curated sweep), the EBM-feature linear distill, `har²×close` convexity,
 overnight-cumrv-at-open, banded-HAR canon (+scaled), implied-vol magnitude through the tree, **the higher-order
 path-signature block (saturated), the within-week Friday block (null), the turnover-OFI proxy (null), and the
-full level-3 log-signature antisymmetric basis (null — the path lever is closed).** Model capacity, monotone
-feature re-encoding, and the path/order channel are done.
+full level-3 log-signature antisymmetric basis (null for *low-order* order content in the three τ/cumret/cumrv
+channels — strong for that subspace, but NOT the full multivariate higher-order joint path).** Model capacity and
+monotone feature re-encoding are done; the path/order channel is **unlikely but untested in the
+full-multivariate-higher-order corner** (clean closer: a sequence-vs-state head-to-head on the `linbest` residual
+fed the full history, `seq_vs_state.py`).
 
 **Recommendation:** the modeling stack is at its floor (best 0.12035; linear floor `linbest` 0.12266). Stop
 optimizing this OOS QLIKE — the levers are now **(1)** new data (auction-imbalance / GEX feed) and **(2)** DL on
-the `linbest` residual targeting *state-space* nonlinearities, NOT path-order architectures.
+the `linbest` residual, most promisingly *state-space* nonlinearities; the one untested alternative is a
+sequence-vs-state head-to-head (`seq_vs_state.py`) on the full multivariate history, which would *settle* the
+path-order question rather than assume it closed.
+
+## 10. Regime-hierarchical persistence — closed properly (2026-06-29)
+
+Two follow-ups closed the "can regime-conditional persistence beat the floor?" question, both confirming §9.
+
+**(a) The XGB regime stage loses to the EBM — under a *proper* search, not just curated configs.** A 120-trial
+async-Optuna tune (TPE + constant_liar, warm-started from the curated 0.12072) of the regime XGB on the `linbest`
+base, global frozen at d8@cs0.5: **best 0.12094 — worse than the cs0.5 global with *no* regime stage (0.12081)**,
+and far from the EBM regime (0.12033). No XGB config beats either the EBM or doing-nothing → the regime XGB only
+overfits the few-thousand-row h16–19 sample. **The EBM's additive+pairwise+bagging is the *correct regularizer*
+for the small regime sample, not an interpretability compromise** — confirmed by optimization, not assertion.
+
+**(b) Five regime-hierarchical persistence feature families — null, for the right reason.** Built F1 nested
+clock×state, F2 cross-timescale cascade, F3 regime dwell/run-length, F4 hierarchical partial-pooling deviations
+(interpretable), F5 nested calendar tiers — all causal, bounded, history-dependent. **Key methodology: they must
+*bypass the global models*.** Folded into the global fixed-α enet they each *hurt* the base by +0.0023 (the
+penalty is not basis-invariant — a global α can't price sparse, close-gated, regime-specific columns). Injected
+instead into the **regime EBM only** (a clean `regime_extra` conduit; global base + d8 held fixed, control
+reproduces 0.12050 exactly), every family is **null**: best −0.00002 full-OOS / ~−0.0001 on h16–19 (noise);
+F4 slightly *negative*; F1 dead exactly as expected (its `har×close` is already global).
+
+**Why null — the in-sample mirage, quantified.** An in-sample EBM probe on the h16–19 leftover (R²≈0.07, i.e.
+~93% noise) *does* rank the features highly: the **cross-timescale cascade `casc(har_5/har_125)×close` is #2 of
+291**, with a clean monotone-down shape (a transient fast-vol spike above the slow regime → fade harder at the
+close — a *real* mechanism). But it is **87% spanned (OLS R²) by the linear close terms already in the base**
+(`cumrv×close`, `har_k×close`); only ~13% is new, and that is exactly what fails to generalize OOS. So it cannot
+be "extracted as a linear feature" — it re-expresses the close-damping the base already carries. The regime is
+**not mislocated** (the EBM eagerly uses the features); the close state is simply **low-dimensional, already
+saturated, and noise-dominated**. Every new encoding (share → rel → signature → persistence) is one more
+in-sample lens on the same state, and dies OOS. **The lever is information (the auction cross), not features or
+regime coordinates** — the cleanest in-sample axis (the fast/slow vol cascade) is the natural *state to interact
+the auction data against* once acquired.

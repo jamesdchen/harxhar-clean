@@ -74,10 +74,12 @@ class SoftTreeGate(nn.Module):
             leaf_probs = nxt
         p_leaves = torch.stack([p for p, _ in leaf_probs], dim=1)  # [B, num_leaves]
 
-        # Load-balancing aux loss: penalize uneven leaf utilization (anti-collapse).
-        mean_routing = p_leaves.mean(dim=0)
-        var_routing = p_leaves.var(dim=0)
-        load_balance = (var_routing / (mean_routing**2 + 1e-8)).mean()
+        # Anti-collapse load balance: pull MEAN expert utilization toward uniform (so no leaf is ignored)
+        # WITHOUT penalizing per-sample routing variation. The old var/mean^2 form minimized the across-
+        # batch variance of each leaf -> drove routing sample-INVARIANT, killing the instance-conditional
+        # routing the gate exists for (the gate went inert; every router collapsed to the no-gate result).
+        mean_routing = p_leaves.mean(dim=0)  # [K] prob vector over leaves (rows sum to 1)
+        load_balance = p_leaves.size(1) * (mean_routing * mean_routing).sum()  # min=1 at uniform mean
         return p_leaves, load_balance
 
 
@@ -100,9 +102,10 @@ class AttentionGate(nn.Module):
         q = self.query(x)  # [B, key_dim]
         logits = (q @ self.prototypes.t()) / self.scale  # [B, K] similarity to each prototype
         routing = torch.softmax(logits, dim=1)  # [B, K] soft regime assignment
+        # anti-collapse: balance MEAN utilization (uniform) WITHOUT penalizing per-sample variation
+        # (the old var/mean^2 form pinned routing sample-invariant -> inert gate; see SoftTreeGate).
         mean_routing = routing.mean(dim=0)
-        var_routing = routing.var(dim=0)
-        load_balance = (var_routing / (mean_routing**2 + 1e-8)).mean()
+        load_balance = routing.size(1) * (mean_routing * mean_routing).sum()
         return routing, load_balance
 
 
@@ -212,6 +215,7 @@ class InterpretableRegimeMoE(nn.Module):
         fm_linear: bool = True,
         gate_kind: str = "tree",
         num_regimes: int = 4,
+        gate_input_dim: int | None = None,
     ):
         super().__init__()
         self.is_baseline = depth == 0
@@ -229,17 +233,20 @@ class InterpretableRegimeMoE(nn.Module):
 
         self.experts = nn.ModuleList([_mk_expert() for _ in range(self.num_experts)])
         if not self.is_baseline:
+            gdim = input_dim if gate_input_dim is None else gate_input_dim  # #2: gate context may differ
             self.gate = (
-                AttentionGate(input_dim, num_regimes)
+                AttentionGate(gdim, num_regimes)
                 if gate_kind == "attention"
-                else SoftTreeGate(input_dim, depth)
+                else SoftTreeGate(gdim, depth)
             )
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: torch.Tensor, x_gate: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         expert_outputs = torch.cat([e(x) for e in self.experts], dim=1)  # [B, K]
         if self.is_baseline:
             return expert_outputs, x.new_zeros(())
-        routing, aux = self.gate(x)
+        routing, aux = self.gate(x if x_gate is None else x_gate)  # #2: gate may route on SEPARATE context
         y_resid = torch.sum(routing * expert_outputs, dim=-1, keepdim=True)
         return y_resid, aux
 
@@ -269,6 +276,7 @@ class RegimeMoE:
         n_knots: int = 3,
         gate_kind: str = "tree",
         num_regimes: int = 4,
+        gate_context: str = "expert",
         epochs: int = 150,
         lr: float = 1e-3,
         weight_decay: float = 1e-1,
@@ -294,6 +302,7 @@ class RegimeMoE:
         self.n_knots = n_knots
         self.gate_kind = gate_kind
         self.num_regimes = num_regimes
+        self.gate_context = gate_context
         self.epochs = epochs
         self.lr = lr
         self.weight_decay = weight_decay
@@ -336,8 +345,8 @@ class RegimeMoE:
             cols.append(np.maximum(Xz - self._knots[:, k], 0.0))
         return np.concatenate(cols, axis=1).astype(np.float32)
 
-    def _train_one(self, Xtr, ytr, Xva, yva, p, bag_seed, use_val):
-        """Train one bag to its best-val weights; returns the model."""
+    def _train_one(self, Xtr, ytr, Xva, yva, p, bag_seed, use_val, Xtr_g=None, Xva_g=None):
+        """Train one bag to its best-val weights. Xtr_g/Xva_g = separate gate-routing context (#2)."""
         torch.manual_seed(bag_seed)
         model = InterpretableRegimeMoE(
             input_dim=p,
@@ -350,6 +359,7 @@ class RegimeMoE:
             fm_linear=self.fm_linear,
             gate_kind=self.gate_kind,
             num_regimes=self.num_regimes,
+            gate_input_dim=(None if Xtr_g is None else Xtr_g.shape[1]),
         ).to(self.device)
         # separate (stronger) L2 on the FM factors V than the rest: the pairwise factors are where FM
         # overfitting lives, so uniform decay under-regularizes the interactions. wd_v=None -> uniform.
@@ -368,12 +378,12 @@ class RegimeMoE:
         for _ in range(self.epochs):
             model.train()
             opt.zero_grad(set_to_none=True)
-            pred, aux = model(Xtr)
+            pred, aux = model(Xtr, Xtr_g)
             (mse(pred, ytr) + self.aux_weight * aux).backward()
             opt.step()
             model.eval()
             with torch.no_grad():
-                vloss = mse(model(Xva)[0], yva).item()
+                vloss = mse(model(Xva, Xva_g)[0], yva).item()
             if vloss < best_val:
                 best_val, wait = vloss, 0
                 best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
@@ -399,6 +409,7 @@ class RegimeMoE:
         self._xz_lo = Xz.min(axis=0, keepdims=True)
         self._xz_hi = Xz.max(axis=0, keepdims=True)
         Xz = np.clip(Xz, self._xz_lo, self._xz_hi).astype(np.float32)
+        Xz_raw = Xz  # raw standardized+saturated features = the gate context when decoupled (#2)
         if self.basis == "hinge":  # quantile-knot hinge basis -> nonlinear shapes + 2D interactions
             qs = np.linspace(0.0, 1.0, self.n_knots + 2)[1:-1]  # interior quantiles e.g. [.25,.5,.75]
             self._knots = np.quantile(Xz, qs, axis=0).T  # [p, n_knots], data-adaptive knots
@@ -416,6 +427,10 @@ class RegimeMoE:
         yt = torch.as_tensor(yz, device=dev).unsqueeze(1)
         Xva = Xt[n_tr:n] if use_val else Xt
         yva = yt[n_tr:n] if use_val else yt
+        # #2 context decoupling: route the gate on the FULL raw features (not basis-expanded, not feature-
+        # subsampled) while experts use their (basis-expanded, subsampled) inputs. gate_context!=raw -> coupled.
+        Xt_g = torch.as_tensor(Xz_raw, device=dev) if self.gate_context == "raw" else None
+        Xva_g = (Xt_g[n_tr:n] if use_val else Xt_g) if Xt_g is not None else None
 
         rng = np.random.default_rng(self.seed)
         n_sub = max(1, int(round(self.colsample * p)))
@@ -426,8 +441,9 @@ class RegimeMoE:
             ridx = torch.as_tensor(rng.integers(0, n_tr, size=n_tr), device=dev)
             fcols = np.sort(rng.choice(p, size=n_sub, replace=False))
             fidx = torch.as_tensor(fcols, device=dev)
+            gtr = Xt_g[ridx] if Xt_g is not None else None  # gate sees the FULL context (not subsampled)
             model = self._train_one(
-                Xt[ridx][:, fidx], yt[ridx], Xva[:, fidx], yva, n_sub, self.seed + b, use_val
+                Xt[ridx][:, fidx], yt[ridx], Xva[:, fidx], yva, n_sub, self.seed + b, use_val, gtr, Xva_g
             )
             self.models_.append((model, fidx))
         return self
@@ -436,12 +452,14 @@ class RegimeMoE:
         X = np.ascontiguousarray(X, dtype=np.float32)
         # per-feature saturation: hold OOS-extreme features at the train boundary -> shape fns saturate
         Xz = np.clip(self._xz(X), self._xz_lo, self._xz_hi).astype(np.float32)
+        Xz_raw = Xz
         Xz = self._basis_expand(Xz)  # apply the fitted basis (no-op if basis="none")
         Xt = torch.as_tensor(Xz, device=self.device)
+        Xt_g = torch.as_tensor(Xz_raw, device=self.device) if self.gate_context == "raw" else None
         with torch.no_grad():
             preds = []
             for m, fidx in self.models_:  # each bag uses its own feature subset
                 m.eval()
-                preds.append(m(Xt[:, fidx])[0])
+                preds.append(m(Xt[:, fidx], Xt_g)[0])  # gate routes on the full decoupled context (#2)
             pred = torch.stack(preds, 0).mean(0).squeeze(1)
         return (pred.cpu().numpy() * self._y_std + self._y_mean).astype(np.float64)
