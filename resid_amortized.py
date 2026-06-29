@@ -944,6 +944,42 @@ def _friday_week_block(Xs, feats, train_win):
     return np.ascontiguousarray(np.column_stack(cols) * gate[:, None]), names
 
 
+def _ofi_block(Xs, feats, bucket):
+    """ORDER-FLOW IMBALANCE -- a NEW microstructure DATA channel (not another vol-path encoding), the
+    closest buildable proxy to the auction-imbalance mechanism behind the close reversal. Loads the
+    PHYSICAL value-weighted buy/sell turnover from covid_imp (verified NON-NEGATIVE: frac_neg=0), so
+    per-bar OFI = (buy-sell)/(buy+sell) is bounded [-1,1] BY CONSTRUCTION. Accumulated within the
+    trading day (reset daily, causal) -> at the close = the day's NET order-flow imbalance feeding the
+    close auction:
+      ofi_net    = cumsum(buy-sell)/cumsum(buy+sell)  signed net imbalance (directional) in [-1,1]
+      ofi_absnet = |ofi_net|                          imbalance MAGNITUDE in [0,1] -- the vol-relevant
+                   facet (a lopsided day -> larger close-auction price impact -> the reversal/vol the
+                   close regime feeds on; the close edge is a vol-regime, not a directional one)
+    Bounded -> appended RAW (no clip, no robust-scale, no eps: np.divide(where=cumsum>0)). A tree can't
+    reconstruct a within-day cumulative; |.| is added for the LINEAR base (the tree subsumes it).
+    Source = results/covid_imp (the _exog_rel_innov physical cache; same 529-feat layout as the slim
+    cache, so feats.index aligns). Gated close."""
+    import pandas as pd
+
+    raw = np.load(f"results/covid_imp/{bucket}/X_imp.npy", mmap_mode="r")
+    hour = Xs[:, feats.index("hour")]
+    day_id = np.cumsum(np.concatenate([[0], (np.diff(hour) < 0).astype(int)]))
+    buy = np.asarray(
+        raw[:, feats.index("adj_buyturnover_vwstock_ma_1")], dtype=np.float64
+    )
+    sell = np.asarray(
+        raw[:, feats.index("adj_sellturnover_vwstock_ma_1")], dtype=np.float64
+    )
+    cumd = pd.Series(buy - sell).groupby(day_id).cumsum().to_numpy()
+    cums = pd.Series(buy + sell).groupby(day_id).cumsum().to_numpy()
+    ofi = np.divide(
+        cumd, cums, out=np.zeros_like(cums), where=cums > 0
+    )  # net day OFI in [-1,1]
+    close = _close_mask(hour).astype(np.float64)
+    block = np.column_stack([ofi, np.abs(ofi)])
+    return np.ascontiguousarray(block * close[:, None]), ["ofi_net", "ofi_absnet"]
+
+
 def _cumrv_rankcum_close(Xs, feats):
     """Order-matched diagnostic: cumsum-of-per-slot-RANK over TRUE calendar days (the proxy's
     rank-THEN-sum 'breadth' construction, but on cumrv_real's calendar-day segmentation), gated
@@ -1382,6 +1418,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_sigrel",
         "enetreg2_fri",
         "enetreg2_frirel",
+        "enetreg2_ofi",
+        "enetreg2_ofirel",
     ):
         # Fold the distilled OPEN/CLOSE x HAR regime interaction and/or the intraday vol-path
         # cumrv x close into the linear base. Appended BEFORE the constant-drop so they flow
@@ -1502,6 +1540,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_sigrel",
             "enetreg2_fri",
             "enetreg2_frirel",
+            "enetreg2_ofi",
+            "enetreg2_ofirel",
         ):
             INT, int_names = _regime_interactions(Xs, feats0)
             add_cols.append(INT)
@@ -1539,6 +1579,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             "enetreg2_sigrel",
             "enetreg2_fri",
             "enetreg2_frirel",
+            "enetreg2_ofi",
+            "enetreg2_ofirel",
         ):
             cv, cv_names = _cumrv_close(
                 Xs, feats0
@@ -1722,6 +1764,24 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
             add_cols.append(rz)
             add_names += rz_names
         if (
+            base_kind
+            in (
+                "enetreg2_ofi",
+                "enetreg2_ofirel",
+            )
+        ):  # NEW DATA CHANNEL: within-day order-flow imbalance (auction-microstructure mechanism)
+            ob, ob_names = _ofi_block(Xs, feats0, bucket)
+            add_cols.append(ob)
+            add_names += ob_names
+        if (
+            base_kind == "enetreg2_ofirel"
+        ):  # + rolling-relative regime (does OFI STACK on the proven rel factor?)
+            rz, rz_names = _har_rel_innov(
+                Xs, feats0, train_win, mode="rankgauss", fine=False
+            )
+            add_cols.append(rz)
+            add_names += rz_names
+        if (
             base_kind == "enetreg2_open"
         ):  # + OVERNIGHT cumrv gated to the OPEN (hour==9), the open-side analog
             co, co_names = _cumrv_open(Xs, feats0)
@@ -1794,6 +1854,8 @@ def do_prep(model, bucket, twd, alpha, refit, pipe="slim", base_kind="ridge"):
         "enetreg2_sigrel",
         "enetreg2_fri",
         "enetreg2_frirel",
+        "enetreg2_ofi",
+        "enetreg2_ofirel",
     ):
         starts, coefs, intercepts = _cadence_enet(Xs, y, train_win, refit)
     else:
