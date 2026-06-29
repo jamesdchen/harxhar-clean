@@ -2507,6 +2507,9 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
         # regime-stage learner: default EBM (interpretable); REGIME_MODEL=xgb -> tuned XGB for PURE
         # POWER (drops the EBM additive/pairwise constraint = the QLIKE ceiling, no interpretability).
         rmodel = os.environ.get("REGIME_MODEL", "ebm")
+        regime_full = os.environ.get("REGIME_FULL", "0") not in ("", "0")  # FREE the gate (#1): fit/predict
+        # on ALL hours so the learned MoE gate discovers the regime, vs the hand h16-19 pre-gate (default).
+        hr_idx = c["feats"].index("hour")
         mk_g = _tree_factory("xgb", gcfg)
         for i in range(blk0, blk1):
             t_r = int(starts[i])
@@ -2524,20 +2527,27 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
                 continue
             m_tr = _close_mask(hr[t_r - tw : t_r])
             if (
-                int(m_tr.sum()) < 50
+                not regime_full and int(m_tr.sum()) < 50
             ):  # too few close/AH train rows -> skip regime this block (predict 0)
                 continue
             r2 = r1 - g.predict(Xtr[:, cols]).ravel()
+            cols_e = cols
+            if regime_full:  # add `hour` so the freed gate can route on the clock itself
+                cols_e = cols.copy()
+                cols_e[hr_idx] = True
+            Xtr_e = Xtr[:, cols_e]
+            Xblk_e = c["Xs"][t_r:t_end][:, cols_e]
+            if re is not None:  # regime model also sees the persistence extras (global g unaffected above)
+                Xtr_e = np.hstack([Xtr_e, re[t_r - tw : t_r]])
+                Xblk_e = np.hstack([Xblk_e, re[t_r:t_end]])
             e = _tree_factory(rmodel, rcfg)()
-            if re is None:
-                Xtr_e, Xblk_e = Xtr[:, cols], Xblk
-            else:  # EBM sees the survivors PLUS the regime-persistence extras (global g unaffected above)
-                Xtr_e = np.hstack([Xtr[:, cols], re[t_r - tw : t_r]])
-                Xblk_e = np.hstack([Xblk, re[t_r:t_end]])
-            e.fit(Xtr_e[m_tr], r2[m_tr])
-            m_blk = _close_mask(hr[t_r:t_end])
-            pe = e.predict(Xblk_e).ravel()
-            pe[~m_blk] = 0.0
+            if regime_full:  # fit/predict on ALL hours; the learned gate discovers WHERE the regime is
+                e.fit(Xtr_e, r2)
+                pe = e.predict(Xblk_e).ravel()
+            else:  # hand pre-gate: fit on h16-19 train rows, predict gated to h16-19
+                e.fit(Xtr_e[m_tr], r2[m_tr])
+                pe = e.predict(Xblk_e).ravel()
+                pe[~_close_mask(hr[t_r:t_end])] = 0.0
             out[t_r - tw - k0 : t_end - tw - k0] += pe
         return k0, k1, out
     raw = arm == "raw_tree"

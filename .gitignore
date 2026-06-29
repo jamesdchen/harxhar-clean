@@ -44,3 +44,6 @@ logs/
 .hpc/campaigns/*/drive*.log
 .hpc/campaigns/*/drive_state.json
 .hpc/campaigns/*/driver_stdout.log
+
+# synced per-run OOS predictions (regenerable; large) — notebooks recompute from these when present
+results/moe_ladder/preds/

@@ -1,0 +1,13 @@
+family,label,qlike_full,qlike_h16_19,note
+ebm,ctrl_ebm,0.12033,0.15736,EBM regime — the bar (anchor reproduces lbHeroB)
+ebm,lbHeroB,0.12033,,EBM regime (independent collect)
+xgb,fb_r3n4,0.12072,,best curated XGB regime (depth 3)
+heroA,fa_d8c5,0.12081,0.16070,no-regime global d8@cs0.5
+moe_nam,sat_d0,0.12757,0.19761,additive NAM input-saturation (lacks interactions; overfits)
+moe_fm,fm_d0_wd10,0.12108,0.16154,plain FM bilinear pairwise no gate
+moe_fm,fm_d1_wd10,0.12098,0.16096,plain FM + depth-1 gate
+moe_fm,fm_d2_wd10,0.12091,0.16059,plain FM + depth-2 gate
+moe_bfm,bfm_d0_pure,0.12080,0.15995,hinge basis-FM pure-pairwise no gate (= no-regime; beats base on h16-19)
+moe_bfm,bfm_d0_k5,0.12081,0.16001,hinge basis-FM 5 knots
+moe_bfm,bfm_d0_lin,0.12094,0.16074,hinge basis-FM + linear (linear HURTS)
+moe_bfm,bfm_d1_pure,0.12079,0.15994,gated basis-FM (soft-tree gate adds ~nothing to strong expert)

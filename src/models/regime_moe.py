@@ -81,6 +81,31 @@ class SoftTreeGate(nn.Module):
         return p_leaves, load_balance
 
 
+# ── 1b. Attention router (soft learned-metric routing over regime prototypes) ──
+class AttentionGate(nn.Module):
+    """Soft, learned-METRIC routing: attention over K learnable regime PROTOTYPES (a learned soft-kNN
+    over the state). The routing weight for regime k is softmax over <q(x), prototype_k> — a non-axis-
+    aligned, similarity-based soft assignment a tree's hyperplane split cannot express. This is the one
+    routing form orthogonal to BOTH the EBM (no routing) and the global tree (hard axis-aligned splits).
+    Prototypes are post-fit readable (each regime's center in query space)."""
+
+    def __init__(self, input_dim: int, num_regimes: int = 4, key_dim: int = 16, temperature: float = 1.0):
+        super().__init__()
+        self.num_regimes = num_regimes
+        self.query = nn.Linear(input_dim, key_dim)
+        self.prototypes = nn.Parameter(torch.randn(num_regimes, key_dim) * 0.1)
+        self.scale = (key_dim**0.5) * temperature
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        q = self.query(x)  # [B, key_dim]
+        logits = (q @ self.prototypes.t()) / self.scale  # [B, K] similarity to each prototype
+        routing = torch.softmax(logits, dim=1)  # [B, K] soft regime assignment
+        mean_routing = routing.mean(dim=0)
+        var_routing = routing.var(dim=0)
+        load_balance = (var_routing / (mean_routing**2 + 1e-8)).mean()
+        return routing, load_balance
+
+
 # ── 2. Interpretable NAM expert (EBM-equivalent additive shapes, <=2-way) ────
 class NAMExpert(nn.Module):
     """Neural additive model. Grouped 1D convolutions learn one isolated shape
@@ -185,10 +210,17 @@ class InterpretableRegimeMoE(nn.Module):
         expert: str = "fm",
         rank: int = 8,
         fm_linear: bool = True,
+        gate_kind: str = "tree",
+        num_regimes: int = 4,
     ):
         super().__init__()
         self.is_baseline = depth == 0
-        self.num_experts = 2**depth if depth > 0 else 1
+        if self.is_baseline:
+            self.num_experts = 1
+        elif gate_kind == "attention":  # K prototype regimes (not a 2^depth tree)
+            self.num_experts = num_regimes
+        else:
+            self.num_experts = 2**depth
 
         def _mk_expert():
             if expert == "fm":  # native low-rank pairwise (the EBM-matching interaction order)
@@ -197,7 +229,11 @@ class InterpretableRegimeMoE(nn.Module):
 
         self.experts = nn.ModuleList([_mk_expert() for _ in range(self.num_experts)])
         if not self.is_baseline:
-            self.gate = SoftTreeGate(input_dim, depth)
+            self.gate = (
+                AttentionGate(input_dim, num_regimes)
+                if gate_kind == "attention"
+                else SoftTreeGate(input_dim, depth)
+            )
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         expert_outputs = torch.cat([e(x) for e in self.experts], dim=1)  # [B, K]
@@ -231,6 +267,8 @@ class RegimeMoE:
         wd_v: float | None = None,
         basis: str = "none",
         n_knots: int = 3,
+        gate_kind: str = "tree",
+        num_regimes: int = 4,
         epochs: int = 150,
         lr: float = 1e-3,
         weight_decay: float = 1e-1,
@@ -254,6 +292,8 @@ class RegimeMoE:
         self.wd_v = wd_v
         self.basis = basis
         self.n_knots = n_knots
+        self.gate_kind = gate_kind
+        self.num_regimes = num_regimes
         self.epochs = epochs
         self.lr = lr
         self.weight_decay = weight_decay
@@ -308,6 +348,8 @@ class RegimeMoE:
             expert=self.expert,
             rank=self.rank,
             fm_linear=self.fm_linear,
+            gate_kind=self.gate_kind,
+            num_regimes=self.num_regimes,
         ).to(self.device)
         # separate (stronger) L2 on the FM factors V than the rest: the pairwise factors are where FM
         # overfitting lives, so uniform decay under-regularizes the interactions. wd_v=None -> uniform.
