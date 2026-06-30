@@ -108,6 +108,11 @@ caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps,
   the LEVEL persisting (rolling-mean HAR); the *spikiness* (extreme-relative-to-window, drawdown, clustering
   frequency) is orthogonal to the level but doesn't predict the next level. **The forecastable content of vol
   is its level, not its extremes.**
+- **Spike INTERACTIONS also null.** Explicit multiplicative spike×level (regime-dependent persistence) and
+  spike×time (close/auction modulation), gated over [HAR+spike+hour]: both reject (hurt, +0.0016/+0.0021). So
+  the spike is signal-less as a MAIN EFFECT (~12 forms) AND as an INTERACTION. Key statement: **vol persistence
+  is regime-INDEPENDENT of spikiness** — the "persistence differs after a spike" hypothesis is FALSE here; the
+  level→next-level mapping doesn't bend with the spike. (Only spike×exog untried; pattern conclusive.)
 - **Methodological note (placebo fixed):** the placebo null is now a CIRCULAR SHIFT (preserves the candidate's
   autocorrelation), not an i.i.d. shuffle (which white-noised slow features = a mismatched null). Verified not
   to change any prior verdict; correct-by-construction for autocorrelated candidates. (commit 25b1019)
