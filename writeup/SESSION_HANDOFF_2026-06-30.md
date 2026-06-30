@@ -24,6 +24,21 @@ diversity correction*, not a heavy component; ĝ-gating ~neutral at the optimum.
 grid (ω≤0.4) wrongly read "no hero" — the optimum is at HIGH ω; sweep the full ω range. Real but edge-of-
 significance; substantial gains still need information.
 
+## CTR/SFV exploration (2026-06-30) — all four architecture threads DEPLOYMENT-NULL
+Tested the transferable ad-CTR / short-form-video levers; every one is null at deployment vs the strong EBM,
+each for a distinct, instructive reason:
+
+| thread | local | deployment |
+|---|---|---|
+| ĝ-gating | wins (−0.0005) | null — doesn't transfer (the **linbest base, NOT d8-strength**: isolation shows ĝ helps equally at d8 n_est 80 & 200 on realrank → it's the more-distilled base / thinner `r1`) |
+| DIN/BST target-attention | huge (−0.00598, 9× the GRU) | null — **d8 eats ~94%**, only −0.00037 survives over Hero-B (prize-sizing on the d8-leftover) |
+| grad-learned soft gate | — | null — **self-disables** (`gw→0`; un-starving is OOS-regularization, invisible to in-sample gradient; needs bilevel/val tuning, not naive joint gradient) |
+| SFV multi-objective aux | wins (−0.0005, monotone) | null — `amulti≈auniform≈0.12024` (**EBM subsumes** the `|r2|`/`y` magnitude/vol-level structure) |
+
+AutoFIS + online-streaming: designs noted, NOT run (low priority — every lever is deployment-null; recency already failed; FM already regularizes interactions).
+CODE: `MultiTaskFM.fit` takes a `[n,K]` aux stack (1+K heads); `preds_chunk_ggrid` has a `"multi"` variant; `carc_ggrid_multi.sbatch`.
+VERDICT: the price-only floor is ~0.12022–0.12033; the lever is **INFORMATION** (data-to-buy), now confirmed from four independent angles.
+
 ## LIVE ON THE CLUSTERS (harvest after clear)
 - **CARC (AUTHORITATIVE) — DONE.** `ggrid` (ω∈{.2,.3,.4}, MTFM-heavy) all LOSE (0.121+). `ggrid2`
   (ω∈{.5,.7,.9,1.0}) is the real curve: **w100=0.12033 (EBM-alone sanity ✓); w90=0.12024-0.12025, w70=0.12026

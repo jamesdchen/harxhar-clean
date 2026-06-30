@@ -612,16 +612,19 @@ class MultiTaskFM:
         bite) to UN-STARVE THE ANTICIPATION — spend the aux only where d8 took a big bite (most starved)."""
         X = np.ascontiguousarray(X, dtype=np.float32)
         y = np.asarray(y, dtype=np.float32).ravel()
-        y_aux = np.asarray(y_aux, dtype=np.float32).ravel()
+        ya = np.asarray(y_aux, dtype=np.float32)
+        if ya.ndim == 1:  # single aux -> [n,1]; SFV multi-objective stack -> [n, K]
+            ya = ya[:, None]
+        K = ya.shape[1]
         self._mu = X.mean(0, keepdims=True)
         s = X.std(0, keepdims=True)
         self._sd = np.where(s > 0, s, 1.0)
         Xz = ((X - self._mu) / self._sd).astype(np.float32)
         self._ym, ys = float(y.mean()), float(y.std())
         self._ys = ys if ys > 0 else 1.0
-        am, asd = float(y_aux.mean()), float(y_aux.std())
-        asd = asd if asd > 0 else 1.0
-        Y = np.stack([(y - self._ym) / self._ys, (y_aux - am) / asd], 1).astype(np.float32)
+        a_m = ya.mean(0, keepdims=True)
+        a_s = np.where(ya.std(0, keepdims=True) > 0, ya.std(0, keepdims=True), 1.0)
+        Y = np.concatenate([((y - self._ym) / self._ys)[:, None], (ya - a_m) / a_s], 1).astype(np.float32)
         dev, n, d = self.device, len(Xz), Xz.shape[1]
         aw = (np.full(n, self.aux_weight, dtype=np.float32) if aux_w is None
               else np.asarray(aux_w, dtype=np.float32).ravel())
@@ -632,13 +635,15 @@ class MultiTaskFM:
         for b in range(self.n_bags):
             torch.manual_seed(self.seed + b)
             idx = torch.as_tensor(rng.integers(0, n, n), device=dev)
-            m = _MultiHeadFMNet(d, 2, self.rank).to(dev)
+            m = _MultiHeadFMNet(d, 1 + K, self.rank).to(dev)
             opt = torch.optim.AdamW(m.parameters(), lr=self.lr, weight_decay=self.weight_decay)
             xb, yb, awb = Xt[idx], Yt[idx], awt[idx]
             for _ in range(self.epochs):
                 opt.zero_grad(set_to_none=True)
                 pr = m(xb)
-                loss = ((pr[:, 0] - yb[:, 0]) ** 2).mean() + (awb * (pr[:, 1] - yb[:, 1]) ** 2).mean()
+                loss = ((pr[:, 0] - yb[:, 0]) ** 2).mean()
+                for kk in range(1, 1 + K):  # SFV multi-objective: per-row-weighted aux heads
+                    loss = loss + (awb * (pr[:, kk] - yb[:, kk]) ** 2).mean()
                 loss.backward()
                 opt.step()
             self.models_.append(m)

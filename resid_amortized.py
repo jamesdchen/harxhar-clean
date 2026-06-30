@@ -2833,10 +2833,14 @@ def preds_chunk_ggrid(cache, blk0, blk1):
         pe_mt = {}
         for a in aux_grid:  # one MTFM per aux variant (cheap vs the EBM), cached across omega
             aw = None
-            if a == "ghat":
-                b = np.abs(ghat[m_tr])
-                aw = np.where(b > np.median(b), aux_hi, 0.0).astype(np.float32)
-            pe_mt[a] = MultiTaskFM(**mt_kw).fit(Xtr_e[m_tr], r2[m_tr], r1[m_tr], aux_w=aw).predict(Xblk_e).ravel()
+            if a == "multi":  # SFV multi-objective aux stack: r1 (un-starve) + |r2| (magnitude) + y (raw vol)
+                yaux = np.stack([r1[m_tr], np.abs(r2[m_tr]), c["y"][t_r - tw : t_r][m_tr]], 1).astype(np.float32)
+            else:
+                yaux = r1[m_tr]
+                if a == "ghat":
+                    b = np.abs(ghat[m_tr])
+                    aw = np.where(b > np.median(b), aux_hi, 0.0).astype(np.float32)
+            pe_mt[a] = MultiTaskFM(**mt_kw).fit(Xtr_e[m_tr], r2[m_tr], yaux, aux_w=aw).predict(Xblk_e).ravel()
         for a in aux_grid:  # cheap re-average for every omega
             for w in w_grid:
                 pe = w * pe_ebm + (1 - w) * pe_mt[a]
