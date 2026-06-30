@@ -53,3 +53,17 @@ Fine grid around 0.8 (byte-identical `ggrid` re-average): `w80=w82=0.12022`, nei
 
 Scripts: `scratchpad/{retr,retr2,info,overnight}.py`. All gated through `feature_cv`. Honest bottom line: the
 model + the data-in-hand are at the floor; the deliverable is the **gate** + the **data-to-buy spec**.
+
+## Follow-up: longer HAR, term-structure differences, scale-attention — all reject
+
+- **HAR construction VERIFIED:** `har_ma_W = rolling_mean(RV, window=W)` to machine precision (corr 1.0000,
+  maxabsdiff ~1e-16 for W=5..3125; EWMA-span only 0.78–0.98). (First test mistakenly used `ewm` — confounded.)
+- **Longer HAR, principled (rolling MA, matched):** `rollMA[15625]` rejects (+0.00230, z=−2.5); `[15625,78125]`
+  rejects harder (+0.00951, z=−6.4); vs r2 (+0.00162, z=−4.2). `corr(rollMA15625, har_3125)=0.330` — genuinely
+  distinct yet informationless. **Vol memory saturates ~3125; extending the ladder reaches noise, not signal.**
+- **HAR term-structure differences** (`har_5−har_1`, ...): reject (−0.00058, fails placebo) — the diffs are
+  *linear combos of the levels* a flexible model already forms → redundant. The levels are a basis, not a feature.
+- **Attention over the scale dimension (values=diffs):** reject (placebo-level). **Longer-state retrieval:** reject.
+
+The HAR basis (1→3125) plus the term structure it spans is **complete** for vol memory on this data. The gate
+caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps, failed placebo). Confirms the floor.
