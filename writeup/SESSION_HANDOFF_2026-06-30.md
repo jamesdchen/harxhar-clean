@@ -48,9 +48,19 @@ that gates features/hyperparameters against it. `src/evaluation/feature_cv.py` (
 - `tune_hparam` — **per-step CV-ω** on purged inner-val. Validated: CV-ω 0.14192 < in-sample 0.14193 < fixed-0.8 0.14195; adapts per step (0.71–0.97). Fixes the in-sample collapse (ω→1.0/EBM-only).
 - `context_omega` — **context-attention ω(x)** = attention over cross-fit regime anchors, each a shrunk OOS CV-fit ω_k. **Rescues the attention gate that self-disabled under gradient.** Validated: 0.14191 < scalar; ω varies by context (std 0.02–0.06).
 All gains tiny (weak-signal floor) but REAL through the same purged gate that killed the architecture levers.
-NEXT: an `edge_10` notebook (professor-facing, verify-first); cluster-deploy the per-step/context ω into
-`preds_chunk`; run the **data-to-buy** through the gate (only gate-passing features ship). Validations in
-scratch: `demo_feature_cv`, `pos_control`, `omega_cv`, `omega_context`.
+
+**WHICH HPs to CV per-step (validated):** per-step CV PAYS for **cheap, low-variance, regime-dependent** HPs —
+ω AND the MTFM config (aux_weight/gate/rank/wd: 0.14178 < CV-ω 0.14179 < fixed 0.14182). It **HURTS** for
+**expensive, high-variance, stable-optimum** HPs — base-α CV 0.19801 > 0.19645 fixed (α picks swing 0.3↔30). So
+CV the cheap MTFM-side knobs; keep base-α / d8-depth / EBM-cfg FIXED. (The gate rejecting base-α = the
+methodology eating its own cooking.)
+
+**PIPELINE (committed 1e3daf6):** `preds_chunk_adaptive` / `do_chunk_task_adaptive` (CLI `chunk_task_adaptive`):
+per-block ω on purged inner-val, `AW_MODE`=fixed|scalar|context, `AW_CV_CFG=1` adds the MTFM-config CV. DEPLOYED
+on linbest (`carc_adaptive.sbatch`, jobs adaptfixed/scalar/context 9772488-492 + adaptscalarcfg 9772847,
+harvester to come; adaptfixed@0.8 ~reproduces ggrid w80 0.12022 = sanity). `edge_10_oos_robust_cv.ipynb` built.
+NEXT: harvest the adaptive runs; run the **data-to-buy** through the gate (the only input not floor-bounded).
+Validations in scratch: `demo_feature_cv`, `pos_control`, `omega_cv`, `omega_context`, `cv_mtfm`, `cv_base`.
 
 ## LIVE ON THE CLUSTERS (harvest after clear)
 - **CARC (AUTHORITATIVE) — DONE.** `ggrid` (ω∈{.2,.3,.4}, MTFM-heavy) all LOSE (0.121+). `ggrid2`
