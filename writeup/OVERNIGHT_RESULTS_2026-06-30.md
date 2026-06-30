@@ -84,8 +84,14 @@ caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps,
   returns → magnitude/clustering emphasis). **Median worst** (discards the tail = the clustering signal).
 - **Best = a LINEAR COMBINATION** of aggregators (0.13360 vs rolling 0.13496) — complementary (level/recency/
   clustering/robust); XGB overfits the 24-feature combo.
-- **But not a production lever**: gate (over r1) rejects ewma/median/rms adding over rolling — the enet base
-  already captures it. A better *standalone* HAR / legibility win, not a QLIKE edge over the hero.
+- **But not a production lever** (verified faithfully): a crude `Ridge(378 raw)` proxy *suggested* RMS helps
+  (−0.0062) — but that was the proxy LACKING enet's sqrt-vol transform (RMS = sqrt(mean vol) just supplied the
+  missing magnitude emphasis). Gating **RMS against the REAL base residual** `r1 = y−ridge_oos` (over rolling-HAR
+  / HAR+cumrv / full-378, all close, circ-shift placebo) **rejects** (+0.0008..+0.0037, all hurt). The real base
+  (sqrt-vol + dense rolling HAR) already captures it. A standalone/legibility win, not a QLIKE edge.
+- **Reg note (the unpenalized-HAR question):** HAR is dense (unpenalized) deliberately — penalty is not
+  basis-invariant, and L2 shrinks low-variance directions hardest = exactly the timescale-DIFFERENCES (term
+  structure) one wants to read. So no L1 AND no L2 on HAR; regularization belongs on the high-dim exog block.
 - **Methodological note (placebo fixed):** the placebo null is now a CIRCULAR SHIFT (preserves the candidate's
   autocorrelation), not an i.i.d. shuffle (which white-noised slow features = a mismatched null). Verified not
   to change any prior verdict; correct-by-construction for autocorrelated candidates. (commit 25b1019)
