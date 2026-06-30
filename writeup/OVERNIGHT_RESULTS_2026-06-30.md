@@ -67,3 +67,25 @@ model + the data-in-hand are at the floor; the deliverable is the **gate** + the
 
 The HAR basis (1→3125) plus the term structure it spans is **complete** for vol memory on this data. The gate
 caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps, failed placebo). Confirms the floor.
+
+## MA-type comparison — which aggregator best represents HAR (predict vol, OOS QLIKE)
+
+| type | Ridge (HAR-linear) | XGB (flexible) |
+|---|---|---|
+| rolling | 0.13496 | 0.14074 |
+| ewma | **0.13452** | 0.14217 |
+| median | 0.13631 | 0.14340 |
+| rms | 0.13476 | **0.13955** |
+| ALL combined | **0.13360** | 0.14196 |
+
+- **HAR is LINEAR**: Ridge (0.134) beats XGB (0.140) for every aggregator — multi-horizon averages combine
+  additively; flexibility overfits. (Corsi's original insight, confirmed.)
+- **Best single ≠ rolling**: EWMA wins linearly (recency), **RMS** most robust across models (vol = squared
+  returns → magnitude/clustering emphasis). **Median worst** (discards the tail = the clustering signal).
+- **Best = a LINEAR COMBINATION** of aggregators (0.13360 vs rolling 0.13496) — complementary (level/recency/
+  clustering/robust); XGB overfits the 24-feature combo.
+- **But not a production lever**: gate (over r1) rejects ewma/median/rms adding over rolling — the enet base
+  already captures it. A better *standalone* HAR / legibility win, not a QLIKE edge over the hero.
+- **Methodological note (placebo fixed):** the placebo null is now a CIRCULAR SHIFT (preserves the candidate's
+  autocorrelation), not an i.i.d. shuffle (which white-noised slow features = a mismatched null). Verified not
+  to change any prior verdict; correct-by-construction for autocorrelated candidates. (commit 25b1019)
