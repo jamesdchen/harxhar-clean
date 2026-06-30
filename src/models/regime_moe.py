@@ -576,3 +576,77 @@ class RegimeMoE:
             f"util_max={np.mean(umx):.4f} util_min={np.mean(umn):.4f} decisive_frac={np.mean(dec):.4f}",
             flush=True,
         )
+
+
+# ── 5. Multi-task FM (un-starving via auxiliary supervision) ──────────────────
+class _MultiHeadFMNet(nn.Module):
+    """Shared FM interaction core (factors V) + one linear+bias per head (the FM trick per head shares V)."""
+
+    def __init__(self, d: int, heads: int, rank: int):
+        super().__init__()
+        self.V = nn.Parameter(torch.randn(d, rank) * 0.01)
+        self.lin = nn.Linear(d, heads)
+        self.b = nn.Parameter(torch.zeros(heads))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        s = x @ self.V
+        ss = (x * x) @ (self.V * self.V)
+        return self.lin(x) + self.b + 0.5 * (s * s - ss).sum(1, keepdim=True)
+
+
+class MultiTaskFM:
+    """Bagged multi-task factorization machine for the regime slot. Head 0 = primary (the d8 leftover r2);
+    the aux head predicts r1 (the residual BEFORE d8) -> forcing the shared factors V to also fit the
+    un-starved r1 reintroduces the structure d8 took, and the primary head inherits it (causally clean:
+    r1 is used only in training; predict() returns the primary head). Ensembled with the EBM via
+    ``REGIME_MODEL=ebm_mtfm`` for diversity. ``fit(X, y, y_aux)`` (sklearn-ish but the aux target is explicit)."""
+
+    def __init__(self, rank=4, n_bags=8, epochs=250, lr=1e-2, weight_decay=0.1, aux_weight=0.3,
+                 seed=42, device=None, **_ignore):
+        self.rank, self.n_bags, self.epochs = rank, n_bags, epochs
+        self.lr, self.weight_decay, self.aux_weight, self.seed = lr, weight_decay, aux_weight, seed
+        self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+
+    def fit(self, X: np.ndarray, y: np.ndarray, y_aux: np.ndarray, aux_w=None) -> "MultiTaskFM":
+        """aux_w: None -> uniform scalar self.aux_weight; OR a per-row array (e.g. gated by |ghat|, d8's
+        bite) to UN-STARVE THE ANTICIPATION — spend the aux only where d8 took a big bite (most starved)."""
+        X = np.ascontiguousarray(X, dtype=np.float32)
+        y = np.asarray(y, dtype=np.float32).ravel()
+        y_aux = np.asarray(y_aux, dtype=np.float32).ravel()
+        self._mu = X.mean(0, keepdims=True)
+        s = X.std(0, keepdims=True)
+        self._sd = np.where(s > 0, s, 1.0)
+        Xz = ((X - self._mu) / self._sd).astype(np.float32)
+        self._ym, ys = float(y.mean()), float(y.std())
+        self._ys = ys if ys > 0 else 1.0
+        am, asd = float(y_aux.mean()), float(y_aux.std())
+        asd = asd if asd > 0 else 1.0
+        Y = np.stack([(y - self._ym) / self._ys, (y_aux - am) / asd], 1).astype(np.float32)
+        dev, n, d = self.device, len(Xz), Xz.shape[1]
+        aw = (np.full(n, self.aux_weight, dtype=np.float32) if aux_w is None
+              else np.asarray(aux_w, dtype=np.float32).ravel())
+        Xt, Yt = torch.as_tensor(Xz, device=dev), torch.as_tensor(Y, device=dev)
+        awt = torch.as_tensor(aw, device=dev)
+        rng = np.random.default_rng(self.seed)
+        self.models_ = []
+        for b in range(self.n_bags):
+            torch.manual_seed(self.seed + b)
+            idx = torch.as_tensor(rng.integers(0, n, n), device=dev)
+            m = _MultiHeadFMNet(d, 2, self.rank).to(dev)
+            opt = torch.optim.AdamW(m.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+            xb, yb, awb = Xt[idx], Yt[idx], awt[idx]
+            for _ in range(self.epochs):
+                opt.zero_grad(set_to_none=True)
+                pr = m(xb)
+                loss = ((pr[:, 0] - yb[:, 0]) ** 2).mean() + (awb * (pr[:, 1] - yb[:, 1]) ** 2).mean()
+                loss.backward()
+                opt.step()
+            self.models_.append(m)
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        X = np.ascontiguousarray(X, dtype=np.float32)
+        Xt = torch.as_tensor(((X - self._mu) / self._sd).astype(np.float32), device=self.device)
+        with torch.no_grad():
+            p = torch.stack([m(Xt)[:, 0] for m in self.models_], 0).mean(0)
+        return (p.cpu().numpy() * self._ys + self._ym).astype(np.float64)

@@ -1,0 +1,20 @@
+#!/bin/bash
+#$ -N moe_ggrid
+#$ -cwd
+#$ -t 1-90
+#$ -l h_data=12G,h_rt=6:00:00
+#$ -pe shared 4
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# EBM (+) MTFM ensemble GRID: ONE array task fits d8/EBM/MTFM once per block and emits the FULL aux x omega
+# grid (EBM-invariant parts cached -> no refit per config). Grid hardcoded (SGE -v splits on commas). CID/BASE via -v.
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+export GLOBAL_CFG='{"n_estimators":200,"learning_rate":0.03,"subsample":0.7,"colsample_bytree":0.5,"min_child_weight":50.0,"reg_lambda":2.0,"n_jobs":4,"max_depth":8}'
+export EBM_CFG="${EBM_CFG:-{}}"
+export MT_AUX_GRID="uniform,ghat"
+export MT_W_GRID="0.2,0.3,0.4"
+export MT_AUXHI=${MT_AUXHI:-0.6} MT_AUXW=${MT_AUXW:-0.3} MT_NBAGS=${MT_NBAGS:-8} MT_RANK=${MT_RANK:-4} MT_EPOCHS=${MT_EPOCHS:-250} MT_WD=${MT_WD:-0.1}
+IDX=$((SGE_TASK_ID - 1))
+$PY resid_amortized.py chunk_task_ggrid "$CID" "$IDX" 90 "${BASE:-ggrid}" 2>&1 | grep -E 'CHUNK|Error|Traceback'

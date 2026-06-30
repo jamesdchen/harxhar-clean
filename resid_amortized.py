@@ -2578,14 +2578,51 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             if re is not None:  # regime model also sees the persistence extras (global g unaffected above)
                 Xtr_e = np.hstack([Xtr_e, re[t_r - tw : t_r]])
                 Xblk_e = np.hstack([Xblk_e, re[t_r:t_end]])
-            e = _tree_factory(rmodel, rcfg)()
-            if regime_full:  # fit/predict on ALL hours; the learned gate discovers WHERE the regime is
-                e.fit(Xtr_e, r2)
-                pe = e.predict(Xblk_e).ravel()
-            else:  # hand pre-gate: fit on h16-19 train rows, predict gated to h16-19
-                e.fit(Xtr_e[m_tr], r2[m_tr])
-                pe = e.predict(Xblk_e).ravel()
-                pe[~_close_mask(hr[t_r:t_end])] = 0.0
+            if rmodel == "ebm_mtfm":
+                # EBM (+) multi-task-FM ENSEMBLE: the binned-bagged EBM on r2 plus an un-starved multi-task
+                # FM (aux head predicts r1, the pre-d8 residual). They are DIVERSE (pre-check corr ~0.34) so
+                # the weighted average can beat the EBM alone. ENS_W = weight on the EBM; MT_* = the FM knobs.
+                from src.models.regime_moe import MultiTaskFM
+
+                ens_w = float(os.environ.get("ENS_W", "0.4"))
+                # un-starve the ANTICIPATION: MT_GATE=ghat -> per-row aux weight gated by |ghat|=|r1-r2|
+                # (d8's bite, the taken structure made explicit) — spend the aux where d8 took a big bite.
+                gate_kind = os.environ.get("MT_GATE", "uniform")
+                aux_hi = float(os.environ.get("MT_AUXHI", "0.6"))
+                ghat = r1 - r2  # = g.predict(Xtr[:, cols]); causal, available at train
+
+                def _auxw(sel):
+                    if gate_kind != "ghat":
+                        return None
+                    b = np.abs(ghat[sel])
+                    return np.where(b > np.median(b), aux_hi, 0.0).astype(np.float32)
+
+                ebm = _tree_factory("ebm", json.loads(os.environ.get("EBM_CFG", "{}")))()
+                mt = MultiTaskFM(
+                    rank=int(os.environ.get("MT_RANK", "4")),
+                    n_bags=int(os.environ.get("MT_NBAGS", "8")),
+                    epochs=int(os.environ.get("MT_EPOCHS", "250")),
+                    aux_weight=float(os.environ.get("MT_AUXW", "0.3")),
+                    weight_decay=float(os.environ.get("MT_WD", "0.1")),
+                )
+                if regime_full:
+                    ebm.fit(Xtr_e, r2)
+                    mt.fit(Xtr_e, r2, r1, aux_w=_auxw(slice(None)))
+                    pe = (ens_w * ebm.predict(Xblk_e) + (1 - ens_w) * mt.predict(Xblk_e)).ravel()
+                else:
+                    ebm.fit(Xtr_e[m_tr], r2[m_tr])
+                    mt.fit(Xtr_e[m_tr], r2[m_tr], r1[m_tr], aux_w=_auxw(m_tr))
+                    pe = (ens_w * ebm.predict(Xblk_e) + (1 - ens_w) * mt.predict(Xblk_e)).ravel()
+                    pe[~_close_mask(hr[t_r:t_end])] = 0.0
+            else:
+                e = _tree_factory(rmodel, rcfg)()
+                if regime_full:  # fit/predict on ALL hours; the learned gate discovers WHERE the regime is
+                    e.fit(Xtr_e, r2)
+                    pe = e.predict(Xblk_e).ravel()
+                else:  # hand pre-gate: fit on h16-19 train rows, predict gated to h16-19
+                    e.fit(Xtr_e[m_tr], r2[m_tr])
+                    pe = e.predict(Xblk_e).ravel()
+                    pe[~_close_mask(hr[t_r:t_end])] = 0.0
             out[t_r - tw - k0 : t_end - tw - k0] += pe
         return k0, k1, out
     raw = arm == "raw_tree"
@@ -2735,6 +2772,109 @@ def do_chunk_task(cid, arm, idx, nchunks, label=""):
         "CHUNK %s %s idx=%d blk[%d:%d] -> %s" % (cid, sub, idx, blk0, blk1, out),
         flush=True,
     )
+
+
+def preds_chunk_ggrid(cache, blk0, blk1):
+    """EBM (+) MTFM ensemble GRID with the EBM-INVARIANT parts CACHED. omega (ensemble weight) and the aux
+    variant do NOT change the EBM, so per cadence block we fit base / d8 / EBM and the MTFM aux-variants
+    ONCE, then emit the full (aux x omega) grid by cheap re-averaging -- instead of refitting the (expensive)
+    EBM once per config. resid_regime, h16-19 pre-gate. Returns (k0, k1, {grid_key: preds})."""
+    from src.models.regime_moe import MultiTaskFM
+
+    c = cache
+    tw = c["cell"]["train_win"]
+    n = len(c["Xs"])
+    starts = c["starts"]
+    k0 = int(starts[blk0]) - tw
+    k1 = (int(starts[blk1]) if blk1 < len(starts) else n) - tw
+    if "masks" not in c or c.get("feats") is None:
+        raise KeyError("ggrid needs enet survivor masks + aligned feats")
+    masks = c["masks"]
+    fm = c.get("force_mask")
+    hr = c["Xs"][:, c["feats"].index("hour")]
+    gcfg = json.loads(os.environ.get("GLOBAL_CFG", "{}"))
+    ebm_cfg = json.loads(os.environ.get("EBM_CFG", "{}"))
+    mk_g = _tree_factory("xgb", gcfg)
+    aux_grid = os.environ.get("MT_AUX_GRID", "uniform,ghat").split(",")
+    w_grid = [float(x) for x in os.environ.get("MT_W_GRID", "0.2,0.3,0.4").split(",")]
+    aux_hi = float(os.environ.get("MT_AUXHI", "0.6"))
+    mt_kw = dict(
+        rank=int(os.environ.get("MT_RANK", "4")),
+        n_bags=int(os.environ.get("MT_NBAGS", "8")),
+        epochs=int(os.environ.get("MT_EPOCHS", "250")),
+        aux_weight=float(os.environ.get("MT_AUXW", "0.3")),
+        weight_decay=float(os.environ.get("MT_WD", "0.1")),
+    )
+    keys = [f"a{a}_w{int(round(w * 100)):02d}" for a in aux_grid for w in w_grid]
+    base = np.array(c["ridge_oos"][k0:k1], copy=True)
+    grid = {kk: np.array(base, copy=True) for kk in keys}
+    for i in range(blk0, blk1):
+        t_r = int(starts[i])
+        cols = masks[i] if fm is None else (masks[i] | fm)
+        Xtr = c["Xs"][t_r - tw : t_r]
+        t_end = int(starts[i + 1]) if i + 1 < len(starts) else n
+        r1 = c["y"][t_r - tw : t_r] - (Xtr @ c["coefs"][i] + c["intercepts"][i])
+        g = mk_g()
+        g.fit(Xtr[:, cols], r1)  # d8 fit ONCE
+        gblk = g.predict(c["Xs"][t_r:t_end][:, cols]).ravel()
+        for kk in keys:
+            grid[kk][t_r - tw - k0 : t_end - tw - k0] += gblk
+        m_tr = _close_mask(hr[t_r - tw : t_r])
+        if int(m_tr.sum()) < 50:
+            continue
+        r2 = r1 - g.predict(Xtr[:, cols]).ravel()
+        Xtr_e = Xtr[:, cols]
+        Xblk_e = c["Xs"][t_r:t_end][:, cols]
+        ghat = r1 - r2  # d8's bite (for the |ghat|-gate)
+        closeb = _close_mask(hr[t_r:t_end])
+        ebm = _tree_factory("ebm", ebm_cfg)()  # FIT ONCE — the expensive, omega/aux-invariant part
+        ebm.fit(Xtr_e[m_tr], r2[m_tr])
+        pe_ebm = ebm.predict(Xblk_e).ravel()
+        pe_mt = {}
+        for a in aux_grid:  # one MTFM per aux variant (cheap vs the EBM), cached across omega
+            aw = None
+            if a == "ghat":
+                b = np.abs(ghat[m_tr])
+                aw = np.where(b > np.median(b), aux_hi, 0.0).astype(np.float32)
+            pe_mt[a] = MultiTaskFM(**mt_kw).fit(Xtr_e[m_tr], r2[m_tr], r1[m_tr], aux_w=aw).predict(Xblk_e).ravel()
+        for a in aux_grid:  # cheap re-average for every omega
+            for w in w_grid:
+                pe = w * pe_ebm + (1 - w) * pe_mt[a]
+                pe[~closeb] = 0.0
+                grid[f"a{a}_w{int(round(w * 100)):02d}"][t_r - tw - k0 : t_end - tw - k0] += pe
+    return k0, k1, grid
+
+
+def do_chunk_task_ggrid(cid, idx, nchunks, base_label):
+    """Grid array task: ONE task emits ALL (aux x omega) outputs with the EBM fit ONCE per block. Writes
+    one CSV per grid point into resid_regime_{base_label}_{key}; collect each with chunk_collect."""
+    import math
+
+    import pandas as pd
+
+    c = load_cache(cid)
+    tw = c["cell"]["train_win"]
+    nb = int(json.load(open(f"{CACHE_ROOT}/{cid}/cell.json"))["n_refits"])
+    sz = max(1, math.ceil(nb / nchunks))
+    ranges = [(b, min(b + sz, nb)) for b in range(0, nb, sz)]
+    if idx >= len(ranges):
+        print("CHUNK idx=%d >= %d (skip)" % (idx, len(ranges)), flush=True)
+        return
+    blk0, blk1 = ranges[idx]
+    k0, k1, grid = preds_chunk_ggrid(c, blk0, blk1)
+    for kk, preds in grid.items():
+        sub = f"resid_regime_{base_label}_{kk}"
+        out_csv = f"results/resid_ab/{cid}/{sub}/chunk_{blk0}_{blk1}.csv"
+        os.makedirs(os.path.dirname(out_csv), exist_ok=True)
+        pd.DataFrame(
+            {
+                "k": np.arange(k0, k1),
+                "pred_adj": preds,
+                "y_true": c["y"][tw + k0 : tw + k1],
+                "base": c["base"][tw + k0 : tw + k1],
+            }
+        ).to_csv(out_csv, index=False)
+        print("CHUNK %s %s idx=%d blk[%d:%d]" % (cid, sub, idx, blk0, blk1), flush=True)
 
 
 def do_chunk_collect(cid, arm, label=""):
@@ -3245,6 +3385,8 @@ if __name__ == "__main__":
             int(sys.argv[5]),
             sys.argv[6] if len(sys.argv) > 6 else "",
         )
+    elif mode == "chunk_task_ggrid":  # EBM (+) MTFM ensemble grid, EBM fit once/block, all omega x aux
+        do_chunk_task_ggrid(sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
     elif mode == "chunk_collect":
         do_chunk_collect(
             sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else ""
