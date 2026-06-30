@@ -2881,6 +2881,162 @@ def do_chunk_task_ggrid(cid, idx, nchunks, base_label):
         print("CHUNK %s %s idx=%d blk[%d:%d]" % (cid, sub, idx, blk0, blk1), flush=True)
 
 
+def preds_chunk_adaptive(cache, blk0, blk1):
+    """Per-cadence-block ADAPTIVE omega: at each block, inner-split the close train rows, fit EBM/MTFM on the
+    inner-fit, SELECT omega on the PURGED inner-val (AW_MODE=scalar via tune_hparam, or =context via the
+    context-attention context_omega), then refit EBM/MTFM on the full train and blend the OOS block at the
+    selected omega. omega is thus tuned per step on OOS val -- not fixed, not in-sample (which collapses).
+    AW_MODE = fixed | scalar | context. resid_regime, h16-19. Returns (k0, k1, preds)."""
+    from sklearn.cluster import KMeans
+
+    from src.evaluation.feature_cv import context_omega, inner_split, tune_hparam
+    from src.evaluation.metrics import apply_duan_smearing as _smear
+    from src.models.regime_moe import MultiTaskFM
+
+    c = cache
+    tw = c["cell"]["train_win"]
+    n = len(c["Xs"])
+    starts = c["starts"]
+    k0 = int(starts[blk0]) - tw
+    k1 = (int(starts[blk1]) if blk1 < len(starts) else n) - tw
+    masks = c["masks"]
+    fm = c.get("force_mask")
+    hr = c["Xs"][:, c["feats"].index("hour")]
+    mk_g = _tree_factory("xgb", json.loads(os.environ.get("GLOBAL_CFG", "{}")))
+    mk_ebm = _tree_factory("ebm", json.loads(os.environ.get("EBM_CFG", "{}")))
+    mode = os.environ.get("AW_MODE", "scalar")
+    fixedw = float(os.environ.get("AW_FIXEDW", "0.8"))
+    kanch = int(os.environ.get("AW_K", "4"))
+    oms = np.round(np.linspace(0.5, 1.0, 11), 2)
+    mt_kw = dict(
+        rank=int(os.environ.get("MT_RANK", "4")),
+        n_bags=int(os.environ.get("MT_NBAGS", "8")),
+        epochs=int(os.environ.get("MT_EPOCHS", "250")),
+        aux_weight=float(os.environ.get("MT_AUXW", "0.3")),
+        weight_decay=float(os.environ.get("MT_WD", "0.1")),
+    )
+    aux_hi = float(os.environ.get("MT_AUXHI", "0.6"))
+    # AW_CV_CFG=1 also CV-selects the MTFM config (aux_weight/gate/rank/wd) per step on the inner-val; the
+    # cheap MTFM-side HPs help (validated); base-alpha / d8-depth / EBM-cfg do NOT (high-variance selection).
+    cfg_grid: list = (
+        [
+            dict(aux_weight=0.3, gate="u", rank=4, weight_decay=0.1),
+            dict(aux_weight=0.1, gate="u", rank=4, weight_decay=0.1),
+            dict(aux_weight=0.6, gate="u", rank=4, weight_decay=0.1),
+            dict(aux_weight=0.3, gate="g", rank=4, weight_decay=0.1),
+            dict(aux_weight=0.3, gate="u", rank=8, weight_decay=0.3),
+            dict(aux_weight=0.3, gate="u", rank=2, weight_decay=0.5),
+        ]
+        if os.environ.get("AW_CV_CFG", "0") == "1"
+        else [None]
+    )
+
+    def _fit_mt(cfg, X, t2, t1, ght):
+        kw = dict(mt_kw)
+        aw = None
+        if cfg is not None:
+            kw.update(rank=cfg["rank"], aux_weight=cfg["aux_weight"], weight_decay=cfg["weight_decay"])
+            if cfg["gate"] == "g" and ght is not None:
+                aw = np.where(ght > np.median(ght), aux_hi, 0.0).astype(np.float32)
+        return MultiTaskFM(**kw).fit(X, t2, t1, aux_w=aw)
+
+    out = np.array(c["ridge_oos"][k0:k1], copy=True)
+    for i in range(blk0, blk1):
+        t_r = int(starts[i])
+        cols = masks[i] if fm is None else (masks[i] | fm)
+        Xtr = c["Xs"][t_r - tw : t_r]
+        t_end = int(starts[i + 1]) if i + 1 < len(starts) else n
+        r1 = c["y"][t_r - tw : t_r] - (Xtr @ c["coefs"][i] + c["intercepts"][i])
+        g = mk_g()
+        g.fit(Xtr[:, cols], r1)
+        gblk = g.predict(c["Xs"][t_r:t_end][:, cols]).ravel()
+        out[t_r - tw - k0 : t_end - tw - k0] += gblk  # base + d8 (the non-regime part)
+        m_tr = _close_mask(hr[t_r - tw : t_r])
+        if int(m_tr.sum()) < 200:
+            continue
+        r2 = r1 - g.predict(Xtr[:, cols]).ravel()
+        Xtr_e, Xblk_e = Xtr[:, cols], c["Xs"][t_r:t_end][:, cols]
+        closeb = _close_mask(hr[t_r:t_end])
+        ebm_f = mk_ebm()
+        ebm_f.fit(Xtr_e[m_tr], r2[m_tr])  # full-train EBM -> the OOS block prediction
+        pe_blk = ebm_f.predict(Xblk_e).ravel()
+        ghf = np.abs(g.predict(Xtr_e[m_tr]).ravel())
+        if mode == "fixed":
+            mt_f = _fit_mt(None, Xtr_e[m_tr], r2[m_tr], r1[m_tr], None)
+            pm_blk = mt_f.predict(Xblk_e).ravel()
+            w_blk: object = fixedw
+        else:
+            cidx = np.where(m_tr)[0]
+            fi, vi = inner_split(len(cidx), val_frac=0.25, embargo=0.01)
+            ifit, ival = cidx[fi], cidx[vi]
+            ebm_if = mk_ebm()
+            ebm_if.fit(Xtr_e[ifit], r2[ifit])  # inner-fit -> per-step CV on the purged inner-val
+            pe_v = ebm_if.predict(Xtr_e[ival]).ravel()
+            ytr, btr = c["y"][t_r - tw : t_r], c["base"][t_r - tw : t_r]
+            y_v, base_v = ytr[ival], btr[ival]
+            off_v = y_v - r2[ival]  # base + d8 on inner-val (= y - r2)
+            ghi = np.abs(g.predict(Xtr_e[ifit]).ravel())
+            best = None  # CV the MTFM config (cfg_grid) -- each scored at its own best omega on inner-val
+            for cfg in cfg_grid:
+                pmv = _fit_mt(cfg, Xtr_e[ifit], r2[ifit], r1[ifit], ghi).predict(Xtr_e[ival]).ravel()
+                wc, sc = tune_hparam(
+                    lambda w, pe=pe_v, pm=pmv: w * pe + (1.0 - w) * pm,
+                    list(oms), r2[ival], off_v, y_v, base_v, _smear,
+                    n_boot=100, shrink_to=fixedw, shrink_lambda=0.15,
+                )
+                s = min(sc.values())
+                if best is None or s < best[0]:
+                    best = (s, cfg, float(wc), pmv)
+            _, cfg_star, wg, pm_v = best
+            mt_f = _fit_mt(cfg_star, Xtr_e[m_tr], r2[m_tr], r1[m_tr], ghf)  # refit the winning config on full train
+            pm_blk = mt_f.predict(Xblk_e).ravel()
+            if mode == "scalar":
+                w_blk = float(wg)
+            else:  # context-attention omega(x): anchors on (|ghat|, hour), CV-fit per anchor, shrunk
+                cf = np.column_stack([ghi, hr[t_r - tw : t_r][ifit]])
+                cv = np.column_stack([np.abs(g.predict(Xtr_e[ival]).ravel()), hr[t_r - tw : t_r][ival]])
+                cb = np.column_stack([np.abs(gblk), hr[t_r:t_end]])
+                mu, sd = cf.mean(0), cf.std(0) + 1e-9
+                czf, czv, czb = (cf - mu) / sd, (cv - mu) / sd, (cb - mu) / sd
+                anch = KMeans(n_clusters=kanch, n_init=4, random_state=0).fit(czf).cluster_centers_
+                tau = float(np.median([((czv - a) ** 2).sum(1).mean() for a in anch])) + 1e-9
+                w_blk, _ = context_omega(czv, pe_v, pm_v, off_v, y_v, base_v, _smear, czb, anch, oms, tau, float(wg))
+        pe = np.asarray(w_blk * pe_blk + (1.0 - np.asarray(w_blk)) * pm_blk).ravel()
+        pe[~closeb] = 0.0
+        out[t_r - tw - k0 : t_end - tw - k0] += pe
+    return k0, k1, out
+
+
+def do_chunk_task_adaptive(cid, idx, nchunks, base_label):
+    """Array task for the adaptive-omega regime: one CSV into resid_regime_{base_label}; collect with chunk_collect."""
+    import math
+
+    import pandas as pd
+
+    c = load_cache(cid)
+    tw = c["cell"]["train_win"]
+    nb = int(json.load(open(f"{CACHE_ROOT}/{cid}/cell.json"))["n_refits"])
+    sz = max(1, math.ceil(nb / nchunks))
+    ranges = [(b, min(b + sz, nb)) for b in range(0, nb, sz)]
+    if idx >= len(ranges):
+        print("CHUNK idx=%d >= %d (skip)" % (idx, len(ranges)), flush=True)
+        return
+    blk0, blk1 = ranges[idx]
+    k0, k1, preds = preds_chunk_adaptive(c, blk0, blk1)
+    sub = f"resid_regime_{base_label}"
+    out_csv = f"results/resid_ab/{cid}/{sub}/chunk_{blk0}_{blk1}.csv"
+    os.makedirs(os.path.dirname(out_csv), exist_ok=True)
+    pd.DataFrame(
+        {
+            "k": np.arange(k0, k1),
+            "pred_adj": preds,
+            "y_true": c["y"][tw + k0 : tw + k1],
+            "base": c["base"][tw + k0 : tw + k1],
+        }
+    ).to_csv(out_csv, index=False)
+    print("CHUNK %s %s idx=%d blk[%d:%d]" % (cid, sub, idx, blk0, blk1), flush=True)
+
+
 def do_chunk_collect(cid, arm, label=""):
     """Concat a chunked eval's ADJ-space CSVs, apply GLOBAL Duan smearing, report full-OOS QLIKE.
     label selects the {arm}_{label} output dir written by do_chunk_task (e.g. xgb d2 vs d6)."""
@@ -3391,6 +3547,8 @@ if __name__ == "__main__":
         )
     elif mode == "chunk_task_ggrid":  # EBM (+) MTFM ensemble grid, EBM fit once/block, all omega x aux
         do_chunk_task_ggrid(sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
+    elif mode == "chunk_task_adaptive":  # per-block omega tuned on purged inner-val (AW_MODE fixed|scalar|context)
+        do_chunk_task_adaptive(sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
     elif mode == "chunk_collect":
         do_chunk_collect(
             sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else ""
