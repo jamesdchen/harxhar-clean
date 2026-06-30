@@ -98,6 +98,16 @@ caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps,
   (−0.0001) and sub-threshold; q90/range/std *hurt*. The base's sqrt-vol + dense rolling-HAR captures the
   vol-shape; **the aggregator space is exhausted**. (If enriching for legibility, geometric + max are the only
   two distinct axes worth adding — log-normality + clustering-as-spikes — but not a QLIKE lever.)
+- **Spike/max axis fully swept (~12 forms): distinct-but-SIGNAL-LESS.** raw max, q90/q95/q99, max/mean ratio,
+  max−mean excess, soft-max(logsumexp), current/max (drawdown-from-peak), max-jump, range, std(vol-of-vol),
+  recent-spike-rate (temporal). **All reject.** Shape of the rejections: the spike axis IS genuinely distinct
+  from rolling-HAR (orthogonal, R²~0.1; raw max & q99 BEAT the circ-shift placebo at z~2.0-2.1) — a true hole
+  in HAR's moment-only representation — but **the hole is empty**: no form clears `ci<0` (they hurt or are
+  neutral; the model overfits the distinct-but-irrelevant structure). Geometric, by contrast, is *captured*
+  (70-90% spanned by rolling-HAR, corr 0.83-0.94 with the matched mean). DEEP REASON: vol forecasting lives in
+  the LEVEL persisting (rolling-mean HAR); the *spikiness* (extreme-relative-to-window, drawdown, clustering
+  frequency) is orthogonal to the level but doesn't predict the next level. **The forecastable content of vol
+  is its level, not its extremes.**
 - **Methodological note (placebo fixed):** the placebo null is now a CIRCULAR SHIFT (preserves the candidate's
   autocorrelation), not an i.i.d. shuffle (which white-noised slow features = a mismatched null). Verified not
   to change any prior verdict; correct-by-construction for autocorrelated candidates. (commit 25b1019)
