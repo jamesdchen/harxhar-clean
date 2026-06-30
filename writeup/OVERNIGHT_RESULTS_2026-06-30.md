@@ -92,6 +92,12 @@ caught two more near-misses (HAR-diffs, scale-attn looked like −0.00058 helps,
 - **Reg note (the unpenalized-HAR question):** HAR is dense (unpenalized) deliberately — penalty is not
   basis-invariant, and L2 shrinks low-variance directions hardest = exactly the timescale-DIFFERENCES (term
   structure) one wants to read. So no L1 AND no L2 on HAR; regularization belongs on the high-dim exog block.
+- **Extended aggregator sweep (10 total)** — beyond rolling/ewma/median/rms, also gated geometric, max, q90,
+  range, std(vol-of-vol), beta-weighted over rolling-HAR → real base r1 (circ-shift placebo): **all reject.**
+  Closest are the theory-motivated **geometric** (log-scale, z=1.7) and **max** (spike, z=1.8) — but negligible
+  (−0.0001) and sub-threshold; q90/range/std *hurt*. The base's sqrt-vol + dense rolling-HAR captures the
+  vol-shape; **the aggregator space is exhausted**. (If enriching for legibility, geometric + max are the only
+  two distinct axes worth adding — log-normality + clustering-as-spikes — but not a QLIKE lever.)
 - **Methodological note (placebo fixed):** the placebo null is now a CIRCULAR SHIFT (preserves the candidate's
   autocorrelation), not an i.i.d. shuffle (which white-noised slow features = a mismatched null). Verified not
   to change any prior verdict; correct-by-construction for autocorrelated candidates. (commit 25b1019)
