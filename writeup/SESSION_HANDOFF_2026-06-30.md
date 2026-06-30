@@ -57,9 +57,12 @@ methodology eating its own cooking.)
 
 **PIPELINE (committed 1e3daf6):** `preds_chunk_adaptive` / `do_chunk_task_adaptive` (CLI `chunk_task_adaptive`):
 per-block ω on purged inner-val, `AW_MODE`=fixed|scalar|context, `AW_CV_CFG=1` adds the MTFM-config CV. DEPLOYED
-on linbest (`carc_adaptive.sbatch`, jobs adaptfixed/scalar/context 9772488-492 + adaptscalarcfg 9772847,
-harvester to come; adaptfixed@0.8 ~reproduces ggrid w80 0.12022 = sanity). `edge_10_oos_robust_cv.ipynb` built.
-NEXT: harvest the adaptive runs; run the **data-to-buy** through the gate (the only input not floor-bounded).
+on linbest. **RESULT: per-step CV-ω is NULL vs the TUNED fixed ω** — adaptfixed@0.8 0.12022 (= ggrid w80
+exactly, sanity ✓); adaptscalarcfg 0.12023 / adaptscalar 0.12024 / adaptcontext 0.12026 (tied-to-slightly-worse,
+~0.00004 noise). The local CV-ω win didn't transfer: on linbest the ω optimum is STABLE + already TUNED, so
+per-step selection only adds noise (same lesson as base-α). Per-step CV's value = sweep-free auto-tuning for NEW
+settings, NOT beating a tuned fixed. FAST+GOOD path = tune ω once via cheap ggrid-on-a-slice, deploy fixed.
+`edge_10_oos_robust_cv.ipynb` built. NEXT: run the **data-to-buy** through the gate (the only input not floor-bounded).
 Validations in scratch: `demo_feature_cv`, `pos_control`, `omega_cv`, `omega_context`, `cv_mtfm`, `cv_base`.
 
 ## LIVE ON THE CLUSTERS (harvest after clear)
