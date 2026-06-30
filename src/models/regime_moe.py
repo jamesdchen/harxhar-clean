@@ -32,6 +32,7 @@ Validation ladder (the reference's own three runs, mapped to the deployed floor)
 from __future__ import annotations
 
 import logging
+import os
 
 import numpy as np
 import torch
@@ -51,18 +52,21 @@ class SoftTreeGate(nn.Module):
     depth so the partition can scale "only if it earns it".
     """
 
-    def __init__(self, input_dim: int, depth: int = 1):
+    def __init__(self, input_dim: int, depth: int = 1, temperature: float = 1.0):
         super().__init__()
         if depth < 1:
             raise ValueError("SoftTreeGate needs depth >= 1 (depth 0 = no gate)")
         self.depth = depth
         self.num_leaves = 2**depth
         self.num_nodes = 2**depth - 1
+        # temperature > 1 sharpens each split toward a HARD decision (tests whether a confidently-routing
+        # gate helps; the default-soft gate sits ~uniform because soft routing doesn't lower the loss).
+        self.temperature = temperature
         # one hyperplane per internal node; node ordering is heap order (root=0)
         self.decision_nodes = nn.Linear(input_dim, self.num_nodes)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        decisions = torch.sigmoid(self.decision_nodes(x))  # [B, num_nodes] = P(left)
+        decisions = torch.sigmoid(self.temperature * self.decision_nodes(x))  # [B, num_nodes] = P(left)
         # Walk the tree level by level: each frontier entry carries (path prob, node idx).
         leaf_probs = [(torch.ones_like(decisions[:, 0]), 0)]
         for _ in range(self.depth):
@@ -198,6 +202,38 @@ class FMExpert(nn.Module):
         return out
 
 
+# ── 2c. FiLM expert: continuous context modulation of the FM interactions ────
+class FiLMExpert(nn.Module):
+    """FiLM (feature-wise linear modulation) of a factorization-machine's latent interactions: instead of
+    DISCRETE routing among experts (a hard partition the gate must learn on noise), a small context network
+    emits a per-latent-factor gain ``gamma_f(c)`` that SMOOTHLY scales each rank-f pairwise interaction.
+    ``gamma ~ 1`` (init) -> plain FM (graceful degradation when context is uninformative); ``gamma`` varying
+    with ``c`` -> context-modulated interactions = the partial-pooling / weight-sharing analog of the soft
+    gate (shares statistical strength across contexts, the right bias for dense-weak signals). Post-fit
+    ``gamma_f(c)`` is readable: how interaction f bends with the context state."""
+
+    def __init__(self, input_dim, context_dim, rank=8, fm_linear=False, hidden=16, dropout=0.15):
+        super().__init__()
+        self.V = nn.Parameter(torch.randn(input_dim, rank) * 0.01)
+        self.lin = nn.Linear(input_dim, 1) if fm_linear else None
+        self.bias = nn.Parameter(torch.zeros(1))
+        self.film = nn.Sequential(
+            nn.Linear(context_dim, hidden), nn.SiLU(), nn.Dropout(dropout), nn.Linear(hidden, rank)
+        )
+        nn.init.zeros_(self.film[-1].weight)  # start at gamma=1 (modulation off) -> plain FM
+        nn.init.zeros_(self.film[-1].bias)
+
+    def forward(self, x: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+        s = x @ self.V  # [B, rank] latent factor scores
+        ss = (x * x) @ (self.V * self.V)  # [B, rank] self-interaction correction
+        per_factor = 0.5 * (s * s - ss)  # [B, rank] exact FM per-factor pairwise interaction
+        gamma = 1.0 + self.film(c)  # [B, rank] context gain (init ~1)
+        out = self.bias + (gamma * per_factor).sum(dim=1, keepdim=True)
+        if self.lin is not None:
+            out = out + self.lin(x)
+        return out
+
+
 # ── 3. The orchestrator ──────────────────────────────────────────────────────
 class InterpretableRegimeMoE(nn.Module):
     """Learned soft regimes -> interpretable NAM experts -> optional per-regime
@@ -216,8 +252,16 @@ class InterpretableRegimeMoE(nn.Module):
         gate_kind: str = "tree",
         num_regimes: int = 4,
         gate_input_dim: int | None = None,
+        gate_temp: float = 1.0,
     ):
         super().__init__()
+        self.gate_kind = gate_kind
+        self.film = gate_kind == "film"
+        if self.film:  # continuous context modulation instead of discrete routing (one shared expert)
+            self.is_baseline = False
+            cdim = input_dim if gate_input_dim is None else gate_input_dim
+            self.film_expert = FiLMExpert(input_dim, cdim, rank, fm_linear, hidden_dim, dropout)
+            return
         self.is_baseline = depth == 0
         if self.is_baseline:
             self.num_experts = 1
@@ -235,14 +279,16 @@ class InterpretableRegimeMoE(nn.Module):
         if not self.is_baseline:
             gdim = input_dim if gate_input_dim is None else gate_input_dim  # #2: gate context may differ
             self.gate = (
-                AttentionGate(gdim, num_regimes)
+                AttentionGate(gdim, num_regimes, temperature=1.0 / gate_temp)  # >1 sharpens
                 if gate_kind == "attention"
-                else SoftTreeGate(gdim, depth)
+                else SoftTreeGate(gdim, depth, temperature=gate_temp)
             )
 
     def forward(
         self, x: torch.Tensor, x_gate: torch.Tensor | None = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        if self.film:  # continuous modulation by context (no routing, no load-balance aux)
+            return self.film_expert(x, x if x_gate is None else x_gate), x.new_zeros(())
         expert_outputs = torch.cat([e(x) for e in self.experts], dim=1)  # [B, K]
         if self.is_baseline:
             return expert_outputs, x.new_zeros(())
@@ -277,9 +323,12 @@ class RegimeMoE:
         gate_kind: str = "tree",
         num_regimes: int = 4,
         gate_context: str = "expert",
+        gate_temp: float = 1.0,
         epochs: int = 150,
         lr: float = 1e-3,
+        gate_lr: float | None = None,
         weight_decay: float = 1e-1,
+        gate_weight_decay: float | None = None,
         aux_weight: float = 0.5,
         use_diagnostic_mlp: bool = False,
         val_frac: float = 0.2,
@@ -303,9 +352,17 @@ class RegimeMoE:
         self.gate_kind = gate_kind
         self.num_regimes = num_regimes
         self.gate_context = gate_context
+        self.gate_temp = gate_temp
         self.epochs = epochs
         self.lr = lr
+        # the gate's routing direction (W) must TRAIN to point at a useful axis; full-batch + early stop
+        # gives it few steps. gate_lr > lr lets W find its direction faster within the val-improving window.
+        self.gate_lr = gate_lr
         self.weight_decay = weight_decay
+        # decouple the gate's routing hyperplanes from the experts' heavy decay: the wd that stops the
+        # FM experts overfitting the noisy h16-19 sample ALSO shrinks the gate's W -> sigmoid/softmax -> uniform
+        # routing (a second gate-suppressor beside the load-balance term). None -> share weight_decay (legacy).
+        self.gate_weight_decay = gate_weight_decay
         self.aux_weight = aux_weight
         self.use_diagnostic_mlp = use_diagnostic_mlp
         self.val_frac = val_frac
@@ -360,16 +417,30 @@ class RegimeMoE:
             gate_kind=self.gate_kind,
             num_regimes=self.num_regimes,
             gate_input_dim=(None if Xtr_g is None else Xtr_g.shape[1]),
+            gate_temp=self.gate_temp,
         ).to(self.device)
         # separate (stronger) L2 on the FM factors V than the rest: the pairwise factors are where FM
         # overfitting lives, so uniform decay under-regularizes the interactions. wd_v=None -> uniform.
         wd_v = self.weight_decay if self.wd_v is None else self.wd_v
+        gate_wd = self.weight_decay if self.gate_weight_decay is None else self.gate_weight_decay
+        # the "gate" group = the routing/modulation params (SoftTreeGate/AttentionGate OR the FiLM head),
+        # so gate_lr/gate_weight_decay tune the context mechanism independently of the experts.
+        def _is_gate(nm):
+            return nm.startswith("gate.") or ".film." in nm
+
         v_params = [prm for nm, prm in model.named_parameters() if nm.endswith(".V")]
-        other = [prm for nm, prm in model.named_parameters() if not nm.endswith(".V")]
+        gate_params = [prm for nm, prm in model.named_parameters() if _is_gate(nm)]
+        other = [
+            prm
+            for nm, prm in model.named_parameters()
+            if not nm.endswith(".V") and not _is_gate(nm)
+        ]
+        gate_lr = self.lr if self.gate_lr is None else self.gate_lr
         opt = torch.optim.AdamW(
             [
                 {"params": other, "weight_decay": self.weight_decay},
                 {"params": v_params, "weight_decay": wd_v},
+                {"params": gate_params, "weight_decay": gate_wd, "lr": gate_lr},
             ],
             lr=self.lr,
         )
@@ -462,4 +533,46 @@ class RegimeMoE:
                 m.eval()
                 preds.append(m(Xt[:, fidx], Xt_g)[0])  # gate routes on the full decoupled context (#2)
             pred = torch.stack(preds, 0).mean(0).squeeze(1)
+            if os.environ.get("MOE_DIAG") and self.depth > 0:
+                self._print_routing_diag(Xt, Xt_g)
         return (pred.cpu().numpy() * self._y_std + self._y_mean).astype(np.float64)
+
+    def _print_routing_diag(self, Xt: torch.Tensor, Xt_g: torch.Tensor | None) -> None:
+        """Gate-LIVENESS probe (the H1 test): is the gate actually routing, or pinned ~uniform?
+        Per bag, recompute routing on the predict set and report, averaged over bags:
+          Hnorm = mean per-sample entropy / log K  (1.0 = uniform = INERT; <<1 = confident routing)
+          wstd  = mean across experts of each expert's BETWEEN-sample routing std (0 = sample-invariant)
+          util_max/min = mean utilization spread (load balance); decisive = frac of rows with max-w > 0.5
+        Aggregate QLIKE cannot distinguish a suppressed gate from an unhelpful one; this can."""
+        if getattr(self.models_[0][0], "film", False):  # FiLM: report modulation magnitude + context-variation
+            amp, cstd = [], []
+            with torch.no_grad():
+                for m, fidx in self.models_:
+                    c = Xt[:, fidx] if Xt_g is None else Xt_g
+                    gamma = 1.0 + m.film_expert.film(c)  # [B, rank]
+                    amp.append(float((gamma - 1.0).abs().mean()))  # distance from plain FM (gamma=1)
+                    cstd.append(float(gamma.std(dim=0).mean()))  # how much modulation VARIES with context
+            print(
+                f"MOE_DIAG FiLM mod_amp={np.mean(amp):.4f} mod_ctxstd={np.mean(cstd):.4f} "
+                f"(amp=0 & ctxstd=0 => modulation OFF = plain FM)",
+                flush=True,
+            )
+            return
+        Hn, ws, umx, umn, dec, K = [], [], [], [], [], None
+        with torch.no_grad():
+            for m, fidx in self.models_:
+                gx = Xt[:, fidx] if Xt_g is None else Xt_g
+                r, _ = m.gate(gx)  # [B, K]
+                K = r.size(1)
+                p = r.clamp_min(1e-12)
+                Hn.append(float((-(p * p.log()).sum(1).mean()) / np.log(K)))
+                ws.append(float(r.std(dim=0).mean()))
+                u = r.mean(0)
+                umx.append(float(u.max()))
+                umn.append(float(u.min()))
+                dec.append(float((r.max(1).values > 0.5).float().mean()))
+        print(
+            f"MOE_DIAG K={K} Hnorm={np.mean(Hn):.4f} wstd={np.mean(ws):.4f} "
+            f"util_max={np.mean(umx):.4f} util_min={np.mean(umn):.4f} decisive_frac={np.mean(dec):.4f}",
+            flush=True,
+        )

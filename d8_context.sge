@@ -1,0 +1,14 @@
+#!/bin/bash
+#$ -N d8ctx
+#$ -cwd
+#$ -l h_data=32G,h_rt=1:30:00
+#$ -pe shared 4
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Dissect the d8 grey box: functional-ANOVA (additive/pairwise/higher) via EBM distillation + top terms.
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+export GLOBAL_CFG='{"n_estimators":200,"learning_rate":0.03,"subsample":0.7,"colsample_bytree":0.5,"min_child_weight":50.0,"reg_lambda":2.0,"n_jobs":4,"max_depth":8}'
+export D8_SUB=${D8_SUB:-12000} D8_INTER=${D8_INTER:-16} D8_BLOCK=${D8_BLOCK:-0.75}
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY d8_context.py "${CID:-xgb_all_buckets_tw1000_enetreg2_linbest_rf480_slim}"

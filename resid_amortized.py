@@ -2509,6 +2509,13 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
         rmodel = os.environ.get("REGIME_MODEL", "ebm")
         regime_full = os.environ.get("REGIME_FULL", "0") not in ("", "0")  # FREE the gate (#1): fit/predict
         # on ALL hours so the learned MoE gate discovers the regime, vs the hand h16-19 pre-gate (default).
+        # REGIME_INVERT (#3, structural-starvation test): swap the cascade order to REGIME-then-global, so
+        # the soft-routing MoE gets FIRST crack at the un-starved r1 = y - base and d8 only soaks up its
+        # leftover. Default (off) = global-then-regime (d8 eats the X-routable structure -> gate starved).
+        invert = os.environ.get("REGIME_INVERT", "0") not in ("", "0")
+        # REGIME_NOGLOBAL: drop the d8 global stage entirely -> base + regime ONLY (the purest un-starved
+        # cascade: additive base + gate-as-sole-regime, no hard router competing). Only honored with invert.
+        skip_global = os.environ.get("REGIME_NOGLOBAL", "0") not in ("", "0")
         hr_idx = c["feats"].index("hour")
         mk_g = _tree_factory("xgb", gcfg)
         for i in range(blk0, blk1):
@@ -2517,6 +2524,37 @@ def preds_chunk(cache, arm, cfg, blk0, blk1):
             Xtr = c["Xs"][t_r - tw : t_r]
             t_end = int(starts[i + 1]) if i + 1 < len(starts) else n
             r1 = c["y"][t_r - tw : t_r] - (Xtr @ c["coefs"][i] + c["intercepts"][i])
+            if invert:  # REGIME FIRST on the un-starved r1 (gate's first crack), then d8 mops up the leftover
+                Xblk = c["Xs"][t_r:t_end][:, cols]
+                m_tr = _close_mask(hr[t_r - tw : t_r])
+                pe_tr = np.zeros_like(r1)
+                if rcfg and (regime_full or int(m_tr.sum()) >= 50):
+                    cols_e = cols
+                    if regime_full:
+                        cols_e = cols.copy()
+                        cols_e[hr_idx] = True
+                    Xtr_e = Xtr[:, cols_e]
+                    Xblk_e = c["Xs"][t_r:t_end][:, cols_e]
+                    if re is not None:
+                        Xtr_e = np.hstack([Xtr_e, re[t_r - tw : t_r]])
+                        Xblk_e = np.hstack([Xblk_e, re[t_r:t_end]])
+                    e = _tree_factory(rmodel, rcfg)()
+                    if regime_full:
+                        e.fit(Xtr_e, r1)
+                        out[t_r - tw - k0 : t_end - tw - k0] += e.predict(Xblk_e).ravel()
+                        pe_tr = e.predict(Xtr_e).ravel()
+                    else:
+                        e.fit(Xtr_e[m_tr], r1[m_tr])
+                        pe = e.predict(Xblk_e).ravel()
+                        pe[~_close_mask(hr[t_r:t_end])] = 0.0
+                        out[t_r - tw - k0 : t_end - tw - k0] += pe
+                        pe_tr = e.predict(Xtr_e).ravel()
+                        pe_tr[~m_tr] = 0.0
+                if not skip_global:  # d8 soaks up the regime leftover (off -> base + regime only)
+                    g = mk_g()
+                    g.fit(Xtr[:, cols], r1 - pe_tr)
+                    out[t_r - tw - k0 : t_end - tw - k0] += g.predict(Xblk).ravel()
+                continue
             g = mk_g()
             g.fit(Xtr[:, cols], r1)
             Xblk = c["Xs"][t_r:t_end][:, cols]
