@@ -90,9 +90,11 @@ def score_feature(
     """Incremental OOS value of `candidate` (one or more columns) ADDED to `Xbase`, for predicting `target`.
 
     Delta = QLIKE(with candidate) - QLIKE(without); negative => the candidate helps. Each (fold, bootstrap)
-    resamples the train rows (bagging) so the result is a DISTRIBUTION of deltas. The placebo permutes the
-    candidate (destroying its alignment with the target) and re-scores — a feature that only fits noise will
-    match its placebo. Returns per-(fold,boot) deltas + placebo deltas + the per-fold means (for replication).
+    resamples the train rows (bagging) so the result is a DISTRIBUTION of deltas. The placebo CIRCULAR-SHIFTS
+    the candidate (preserving its autocorrelation, destroying its alignment with the target) and re-scores — a
+    feature that only fits noise will match its placebo. A circular shift (not a flat i.i.d. permutation) is the
+    correct null for autocorrelated time-series features: an i.i.d. shuffle would turn a slow feature into white
+    noise, a MISMATCHED null. Returns per-(fold,boot) deltas + placebo deltas + the per-fold means (replication).
     """
     cand = candidate.reshape(len(candidate), -1).astype(np.float32)
     Xf = np.column_stack([Xbase, cand]).astype(np.float32)
@@ -110,8 +112,9 @@ def score_feature(
             d = q1 - q0
             deltas.append(d)
             fold_d.append(d)
-            if placebo:
-                Xp = np.column_stack([Xbase, rng.permutation(cand)]).astype(np.float32)
+            if placebo:  # CIRCULAR-SHIFT null: preserves the candidate's autocorrelation (a flat i.i.d. shuffle
+                sh = int(rng.integers(len(cand) // 4, 3 * len(cand) // 4))  # would white-noise a slow feature ->
+                Xp = np.column_stack([Xbase, np.roll(cand, sh, axis=0)]).astype(np.float32)  # mismatched null)
                 qp = _qlike(mk_model(s).fit(Xp[tri], target[tri]).predict(Xp[te]), ot, yt, bt, smear)
                 plac.append(qp - q0)
         fold_means.append(float(np.mean(fold_d)))
