@@ -39,6 +39,19 @@ AutoFIS + online-streaming: designs noted, NOT run (low priority — every lever
 CODE: `MultiTaskFM.fit` takes a `[n,K]` aux stack (1+K heads); `preds_chunk_ggrid` has a `"multi"` variant; `carc_ggrid_multi.sbatch`.
 VERDICT: the price-only floor is ~0.12022–0.12033; the lever is **INFORMATION** (data-to-buy), now confirmed from four independent angles.
 
+## OOS-robust feature/HP harness (2026-06-30) — the methodology pivot
+The local-mirage failure mode motivated the pivot: stop adding architecture, build the **evaluation discipline**
+that gates features/hyperparameters against it. `src/evaluation/feature_cv.py` (committed d8dd553):
+- `purged_walk_forward` / `inner_split` — embargoed walk-forward CV + per-step inner-val.
+- `score_feature` / `significance_gate` — **bagged** incremental-value delta + permutation **placebo** + pass/fail (`CI<0 ∧ replicates ∧ beats placebo`). Validated: passes real signal (har125→vol, z=11), rejects noise, correctly rejects base-absorbed features (the floor finding).
+- `oof_context` / `context_columns` — cross-fit (leak-free) context.
+- `tune_hparam` — **per-step CV-ω** on purged inner-val. Validated: CV-ω 0.14192 < in-sample 0.14193 < fixed-0.8 0.14195; adapts per step (0.71–0.97). Fixes the in-sample collapse (ω→1.0/EBM-only).
+- `context_omega` — **context-attention ω(x)** = attention over cross-fit regime anchors, each a shrunk OOS CV-fit ω_k. **Rescues the attention gate that self-disabled under gradient.** Validated: 0.14191 < scalar; ω varies by context (std 0.02–0.06).
+All gains tiny (weak-signal floor) but REAL through the same purged gate that killed the architecture levers.
+NEXT: an `edge_10` notebook (professor-facing, verify-first); cluster-deploy the per-step/context ω into
+`preds_chunk`; run the **data-to-buy** through the gate (only gate-passing features ship). Validations in
+scratch: `demo_feature_cv`, `pos_control`, `omega_cv`, `omega_context`.
+
 ## LIVE ON THE CLUSTERS (harvest after clear)
 - **CARC (AUTHORITATIVE) — DONE.** `ggrid` (ω∈{.2,.3,.4}, MTFM-heavy) all LOSE (0.121+). `ggrid2`
   (ω∈{.5,.7,.9,1.0}) is the real curve: **w100=0.12033 (EBM-alone sanity ✓); w90=0.12024-0.12025, w70=0.12026
