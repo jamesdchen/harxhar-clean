@@ -10,7 +10,10 @@ escape -- MC error is dimension-independent:
     would destroy the loss-runs that drive drawdowns);
   * a HOMOGENEOUS state (drawdown / cushion in DD-units, log-wealth, time-to-go) -- the E/M scale
     reduction, so the policy generalizes across account sizes;
-  * a risk-constrained-Kelly (Busseti-Ryu-Boyd) constant-fraction ANCHOR: max growth s.t. P(DD>D) <= beta;
+  * :func:`rck_leverage` -- Risk-Constrained Kelly (Busseti-Ryu-Boyd 2016): the proper, CONVEX,
+    DISTRIBUTION-FREE base leverage (optimizes over the empirical returns, so it eats the heavy tails /
+    jumps our data has) with a provable drawdown-probability bound; beats fractional Kelly. This is the
+    ``merton`` leg of the StructuredPolicy. (``risk_constrained_kelly`` below is the older MC cross-check.)
   * the LITERATURE-optimal :class:`StructuredPolicy` -- the actual solver. Maximizing goal-reaching
     probability before drawdown under a leverage cap has a KNOWN closed form (Yuan & Li 2021; Browne 1999;
     Pestien-Sudderth): Merton fraction far from the barrier, BANG-BANG at the leverage cap (bold) near it.
@@ -178,6 +181,35 @@ def simulate_geo(
 
 def pass_rate(outcome: np.ndarray) -> float:
     return float((outcome == PASS).mean())
+
+
+def rck_leverage(returns, alpha: float, beta: float, w_max: float = 6.0, n: int = 1200):
+    """Risk-Constrained Kelly leverage for one risky strategy (Busseti-Ryu-Boyd 2016, arXiv 1603.06183):
+    the largest-growth constant leverage whose drawdown-probability bound holds, from the 1-D CONVEX
+    problem
+
+        max_w  E[log(1 + w R)]   s.t.   E[(1 + w R)^{-lambda}] <= 1 ,   lambda = log(beta)/log(alpha)
+
+    solved on the EMPIRICAL returns R (no distributional assumption -> heavy tails / jumps handled
+    natively). The constraint provably gives P(min-wealth < alpha) < beta and the bet beats fractional
+    Kelly. ``alpha`` in (0,1) = the undesired min-wealth fraction (e.g. 1 - maxDD/initial); ``beta`` = the
+    allowed breach probability. Returns (w_star, lambda). This is the proper, distribution-free base
+    leverage -- the ``merton`` leg of :class:`StructuredPolicy` -- replacing a crude sweep/MC anchor."""
+    R = np.asarray(returns, dtype=float)
+    lam = np.log(beta) / np.log(
+        alpha
+    )  # risk aversion > 0; larger alpha (tighter DD) -> larger lambda
+    best_w, best_g = 0.0, -np.inf
+    for w in np.linspace(0.0, w_max, n):
+        m = 1.0 + w * R
+        if np.any(
+            m <= 0.0
+        ):  # ruin possible beyond here; the feasible leverage set is a lower interval
+            break
+        g = float(np.mean(np.log(m)))
+        if float(np.mean(m ** (-lam))) <= 1.0 and g > best_g:
+            best_g, best_w = g, w
+    return best_w, lam
 
 
 @dataclass
