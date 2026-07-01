@@ -12,7 +12,7 @@ from __future__ import annotations
 import glob
 import json
 
-CELLDIR = "results/winablate_r1"
+CELLDIR = "results/winablate_full"
 OUT = "results/winablate_assembled.json"
 
 

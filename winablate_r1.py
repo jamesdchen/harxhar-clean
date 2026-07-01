@@ -22,7 +22,7 @@ from reclasso_har import enet_coef, enet_online
 
 B = "results/covid_imp_rank/all_buckets"
 HAR = {"har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125"}
-OUTDIR = "results/winablate_r1"
+OUTDIR = "results/winablate_full"  # battery + per-bar loss (DM/MCS-ready); QLIKE-only run was winablate_r1
 WINDOWS = [48_000, 72_000, 96_000, 120_000, 144_000, 168_000]
 EVAL_START = max(WINDOWS)
 BUCKETS = [

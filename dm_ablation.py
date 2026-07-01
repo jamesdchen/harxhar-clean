@@ -17,7 +17,7 @@ import numpy as np
 from src.evaluation.diebold_mariano import dm_test
 from src.evaluation.model_confidence_set import model_confidence_set
 
-D = "results/winablate_r1"
+D = "results/winablate_full"
 WINDOWS = [48_000, 72_000, 96_000, 120_000, 144_000, 168_000]
 BUCKETS = [
     "har_only",
