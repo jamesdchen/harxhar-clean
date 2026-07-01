@@ -90,11 +90,45 @@ Support of the oracle lasso (a=1.5e-4) across walk-forward blocks: kills 304/523
 reason (dead availability indicators it cannot zero); L1's marginal edge is unstable, regime-dependent
 flicker. Consistent with the project floor from every angle — the lever is information, not the estimator.
 
+## 6. Per-bucket diagnostic table (`per_bucket_table.py`)
+Best **OUT-OF-SAMPLE-tuned** QLIKE per (bucket, penalty) — each cell is the min over that penalty's full
+α(/l1) grid (oracle ceiling; test-set-tuned, DIAGNOSTIC ONLY). HAR held OLS; fixed tw=48000 for cross-row
+comparability. **HAR-only reference = 0.12998.**
+
+| bucket (n_exog) | lasso | ridge | enet | best vs HAR |
+|---|---|---|---|---|
+| no-bucket (HAR only, 0) | 0.12998 | 0.12998 | 0.12998 | — |
+| moments (84) | 0.12808 | 0.12819 | **0.12807** | −0.00191 |
+| implied_vol (36) | 0.12914 | **0.12887** | 0.12897 | −0.00111 |
+| liquidity (144) | 0.12885 | 0.12892 | **0.12884** | −0.00114 |
+| market_vw (72) | **0.12915** | 0.12920 | 0.12915 | −0.00083 |
+| market_ew (72) | **0.12919** | 0.12927 | 0.12920 | −0.00079 |
+| sentiment (36) | **0.12933** | 0.12941 | 0.12933 | −0.00065 |
+| vol_demand (72) | 0.12974 | 0.12993 | **0.12975** | −0.00024 |
+| **all_buckets (523)** | 0.12553 | 0.12587 | **0.12527** | **−0.00472** |
+
+- **Information ranking (rows):** moments (−0.00191) ≫ liquidity / implied_vol (~−0.0011) > market_vw/ew
+  (~−0.0008) > sentiment (−0.00065) > vol_demand (−0.00024). Every bucket beats HAR; **all_buckets −0.00472
+  is complementary but sublinear** (< the sum of singles → the buckets overlap).
+- **Penalty (columns) is a non-lever:** within every row lasso/ridge/enet agree to ≤0.0003. Best configs all
+  want minimal shrinkage (lasso α at the 3e-4 grid floor; enet α 3e-4–1e-3, l1 0.2–0.5).
+- **The one structured exception — penalty choice tracks the bucket's junk fraction.** Ridge is worst where
+  there are dead/collinear columns it can only shrink, not zero (all_buckets: ridge +0.0006 vs enet, the
+  largest gap); but **ridge WINS on implied_vol** (0.12887, dense all-informative VIX levels, ~no junk →
+  dense L2 shrinkage is ideal and L1 zeroing discards correlated signal). Direct corroboration of §1/§5:
+  L1's advantage = zeroing junk; where there is none, L2 wins.
+- **Consistency:** the all_buckets row reconciles with the §2 Optuna oracle (ridge 0.12587≈0.12578,
+  lasso 0.12553≈0.12524, enet 0.12527≈0.12529; small deltas = grid coarseness).
+- **Window footnote:** HAR-only is 0.12998 at tw=48000 (1000d, all_buckets-optimal); at shorter windows it
+  is **0.13299 (250d) / 0.13403 (125d)** — the classic ~0.134 HAR baseline. The absolute level is a train-
+  window effect; the *ranking/deltas* are the deliverable and are window-robust.
+
 ## Reproduce
 Code: `_cadence_enet_har_unpen` gained `penalty`∈{enet,lasso,ridge} + `max_iter`/`tol` params (backward-
 compatible; default reproduces the deployed base). Drivers + outputs:
 `enet_penalty_sweep.py` → `results/enet_penalty_sweep.{json,log}`;
 `enet_penalty_optuna.py` → `results/enet_penalty_optuna.{json,log,db}`;
 `coef_ma_test.py` → `results/coef_ma_test.{json,log}`;
-`lasso_support.py` → `results/lasso_support.log`.
+`lasso_support.py` → `results/lasso_support.log`;
+`per_bucket_table.py` → `results/per_bucket_table.{json,log}` (the §6 table).
 Run with `/c/Users/james/miniconda3/envs/285J/python.exe`.
