@@ -56,8 +56,12 @@ def _homotopy_walk(
     s: list[float] = [float(np.sign(c[a[0]]))]
     just_dropped = -1
     for _ in range(max_iter):
-        a_arr = np.asarray(a)
-        s_arr = np.asarray(s, dtype=float)
+        a_arr = np.asarray(
+            a, dtype=int
+        )  # dtype=int so an EMPTY active set stays integer-indexable
+        s_arr = np.asarray(
+            s, dtype=float
+        )  # (else np.asarray([]) -> float64 -> np.ix_ IndexError)
         g_aa = g[np.ix_(a_arr, a_arr)]
         w0 = _solve(g_aa, c[a_arr])
         w1 = _solve(g_aa, s_arr)
