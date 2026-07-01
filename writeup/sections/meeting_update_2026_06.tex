@@ -1,0 +1,134 @@
+\section{Meeting Update (June 2026): Progress Against the Research Plan}
+\label{sec:meeting_update_2026_06}
+
+This update maps the work completed since the April meeting onto the research
+plan discussed on 6/10 and 6/15, and---as requested---states the project's
+\emph{main and novel contributions} and where they sit in the literature. Items
+are bucketed \textbf{Completed (NOW)} and \textbf{In flight / Next}; a longer
+research backlog (Later) is maintained separately. All QLIKE figures are
+full-out-of-sample, raw-variance-scale, Duan-smeared.
+
+\subsection{Main and novel contributions}
+\label{sec:contributions_june}
+
+\begin{enumerate}
+\item \textbf{A clock-anchored intraday regime inside multi-scale HAR}
+(refines Corsi, 2009). At 30-minute resolution we find HAR volatility-persistence
+\emph{sign-flips at the session edges}: $\mathrm{corr}(\mathrm{har\_ma\_5},
+\text{residual})$ is $+0.05\!\ldots\!+0.13$ mid-session but $-0.085$ at the open
+and $-0.21$ at the close/after-hours (h17), sharp rather than gradual, and
+\emph{clock-anchored} (a state/vol-regime partition fails OOS, $-0.0027$ vs the
+clock partition's $+0.0095$). The mechanism is auction / session-transition
+microstructure (MOC/MOO liquidity + dealer hedging), with dealer-gamma a
+secondary ($\sim$20\%) modulator. A single legible linear term,
+$\mathrm{HAR}\times\text{late-day}$, recovers $58\%$ of the boosted tree's edge,
+making the mechanism closed-form.
+
+\item \textbf{An additive-plus-pairwise saturation law for dense--weak signals}
+(operationalises Xiu et al.\ on weak/dense factors). A functional-ANOVA of the
+depth-8 tree decomposes as $\approx 55\%$ additive (HAR-dominated), $9\%$
+pairwise, and $36\%$ higher-order-and-diffuse; HAR alone is $96\%$ of the
+explainable variance. We confirm the signal is \emph{dense}, not low-rank:
+elastic-net keeps $\sim$120 effective dimensions of 529, and PCA/PLS truncation
+\emph{fails} (K5 keeps $72\%$ variance but loses all signal). This yields a
+\textbf{tree-subsumption law}: a boosted tree is invariant to monotone
+re-encodings of the current row, so only history/sequence functionals can beat
+it---and when the only survivor is 5th-decimal, the lever is \emph{information},
+not features.
+
+\item \textbf{Endogenous regime discovery + a differentiable per-regime
+mixture-of-experts} (vs.\ Graph-HAR / structured-nonparametric HAR, and
+MoE-for-order-execution). Rather than imposing a graph a priori, we \emph{discover}
+the regime via a reusable loop (EBM-interpret $\to$ OOS interaction test $\to$
+sharp localisation $\to$ distillation $\to$ falsification gauntlet). A
+differentiable MoE (soft-tree / learned-metric-attention gate over additive-NAM,
+low-rank-FM, and FiLM experts) confirms the hand-found hour partition is optimal
+for the close window. A precise \emph{negative} result---the ``starvation'' law---%
+explains why routing on the tree residual cannot help: $r_2 = r_1 - d_8(X)$ is
+orthogonal to $d_8$'s depth-8 partition of the \emph{same} features, so the gate
+is both starved and subordinate (MoE-as-sole-regime $0.12494$ vs $d_8$ $0.12255$).
+
+\item \textbf{An OOS-robust, placebo-controlled evaluation harness}
+(\texttt{src/evaluation/feature\_cv.py}). Purged, embargoed walk-forward CV +
+bagging + a \emph{circular-shift} permutation null (which preserves a feature's
+autocorrelation while destroying target alignment---the correct null for slow
+time series, where an i.i.d.\ shuffle would whiten the feature) + a three-part
+significance gate (CI excludes 0 $\wedge$ replicates across folds $\wedge$ beats
+the placebo). This turns Xiu's ``dense-but-weak'' regime into a rigorous go/no-go
+and \emph{caught roughly six near-false-positives}---features that replicated with
+a negative point estimate (entity embeddings, analog retrieval, HAR-difference and
+spike aggregators) but failed the placebo. It is distinct from Diebold--Mariano /
+Model-Confidence-Set (feature-level, autocorrelation-aware); it also supports
+per-step, context-aware hyperparameter tuning by the same null.
+
+\item \textbf{A price-space exhaustion result and a mechanism-ranked
+data-to-buy.} Vol memory saturates at HAR scale $\approx 3125$ ($\sim$13 trading
+days); longer rolling averages reach noise. The MA-aggregator space is exhausted
+(geometric is 70--90\% \emph{spanned} by rolling-HAR; EWMA/RMS/median are either
+already-in-the-base or null), and the entire spike/extreme axis ($\sim$12 forms:
+max, quantiles, drawdown, vol-of-vol, clustering) is \emph{orthogonal to
+rolling-HAR yet signal-less}, as a main effect \emph{and} as interactions
+(spike$\times$level, spike$\times$time both null)---so \textbf{vol is forecastable
+through its level, not its extremes}, and \emph{persistence is regime-independent
+of spikiness}. The remaining lever is finer-granularity microstructure, ranked by
+mechanism in \S\ref{sec:next_june}.
+\end{enumerate}
+
+\subsection{Completed (NOW): the plan, item by item}
+\label{sec:now_june}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Research-plan items completed, with the governing result.}
+\label{tab:plan_now}
+\begin{tabular}{p{4.3cm} p{1.3cm} p{7.2cm}}
+\toprule
+Plan item & Status & Result / location \\
+\midrule
+HAR baseline & done & Multi-scale linear basis (lags $1,5,25,125,625,3125$); QLIKE $0.13460$; hard to beat; slow/daily $=$ long lags, intraday $=$ short lags. \\
+HAR + external data (marginal contribution, per source) & done & \texttt{market\_ew} $+0.0088$ OOS (15/17 expanding years); sentiment / implied-vol / vol-demand each beat HAR; \texttt{all\_buckets} $0.12807$ vs HAR $0.13460$. \\
+Weak / dense-signal hypothesis (Xiu) & done & Dense confirmed: $\sim$120 eff.\ dims / 529; PCA truncation fails; spectrum decay, not dimensionality, is the bottleneck. \\
+Significance testing & done (custom) & Purged walk-forward + circular-shift placebo + replication gate (\S\ref{sec:contributions_june}.4). Diebold--Mariano / MCS at the \emph{model} level is a next step. \\
+Missingness & done & 270 availability indicators (164 always-on, 106 live), a hurdle (occurrence $+$ value) encoding trees exploit, ffill default; \emph{time-since-missing} tested and rejected ($\sim$0). \\
+HAR $+$ buckets & done & 9 feature buckets; \texttt{all\_buckets} cache ($529\!\to\!305$); window sweep (high-dim wants $\sim$1000d); EBM-on-residual best $0.12414$. \\
+Model zoo & done & Ridge, RF, XGB, LightGBM, PatchTST, AE-Ridge, PCR, kNN, spectral-kNN implemented and OOS-scored (LSTM/Mamba deferred). \\
+Spectral embeddings $+$ kNN & done & Local-linear ridge on spectral embedding helps marginally ($-0.00088$ on h16--19) but is dominated by the EBM ceiling ($0.12033$); a validated method, not a lever here. \\
+Per-regime MoE & done & Full ladder (NAM $0.15200 \to$ FM $0.12108$); starved + subordinate; best EBM$\oplus$MTFM ensemble $0.12024$ ($-0.00008$, light diversity correction). \\
+Attention (temporal-kNN as Nadaraya--Watson) & done & Temporal-kNN, DIN/BST target-attention, and context-aware $\omega$ all tested; deployment-null on price-only data (d8 eats $\sim$94\% of the DIN prize); positioned as the substrate for new information. \\
+Interpretation / explainability & done & Intraday auction mechanism; d8 dissection (55/9/36); coefficient-trajectory audit shows a 0DTE/OPEX gamma-dilution signature (fast $\mathrm{HAR}\times$close decays, slow strengthens). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The composed hero (linbest base $+$ global depth-8 tree $+$ EBM regime,
+h16--19) reaches a full-OOS floor of $\mathbf{0.12022}$; the EBM alone is
+$0.12033$. Every learned architecture tested (PatchTST, DIN/BST attention,
+soft-tree / FiLM / learned-metric routing, multi-task un-starving) is
+\emph{deployment-null} against the EBM, each for a distinct, characterised
+reason---the boundary map of what price-only modelling can do.
+
+\subsection{Next (in flight / validated-marginal)}
+\label{sec:next_june}
+
+\begin{itemize}
+\item \textbf{Acquire and gate the data-to-buy} (the only lever not at the floor),
+ranked by mechanism: (1) \emph{auction imbalance} (NOII / MOC--MOO), the direct
+cause of the session-edge sign-flip; (2) \emph{order-flow imbalance / signed
+depth} (an aggregate turnover-OFI proxy is null; a per-name signed version is
+new); (3) \emph{dealer gamma exposure} (GEX), the $\sim$20\% modulator;
+(4) richer per-name, higher-frequency \emph{sentiment/attention}. Each enters
+through the harness (sample $\to$ feature $\to$ gate) and must clear the
+circular-shift placebo before full acquisition. A mechanism-targeted feature is
+$\sim$27$\times$ more valuable per feature than a raw exogenous column
+(\texttt{cumrv} $-0.00122$ vs 359 exog $-0.00449$), which is why finer
+microstructure---not more aggregate regressors---is the ask.
+\item \textbf{Materialise the missing external sources}: NASDAQ Open--Close and
+macro/corporate-event (OPEX, index-rebalance) calendars; build the signed
+per-name OFI from the buy/sell turnover already loaded.
+\item \textbf{Model-level significance}: add Diebold--Mariano and a Model
+Confidence Set over the model families, complementing the feature-level gate.
+\item \textbf{Clustering / per-cluster models}: infrastructure and ablation CSVs
+exist; document the global-vs-per-cluster trade-off (the natural extension of the
+temporal-kNN$\to$attention framing).
+\end{itemize}
