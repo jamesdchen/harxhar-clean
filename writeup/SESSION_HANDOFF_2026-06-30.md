@@ -3,6 +3,38 @@
 Cold-resume. Branch `edge-features-legibility`. Repo local-only (no remote). Supersedes
 `SESSION_HANDOFF_2026-06-29.md` (whose "routing SUSPENDED" is now RESOLVED).
 
+## FINAL STATE (2026-06-30, session end) — read this first
+**The project is at the price-only modeling floor (~0.12022 full-OOS); vol is forecastable through its LEVEL,
+not its extremes; the lever is INFORMATION (data-to-buy).** Everything below is committed (repo local-only, no push).
+
+- **Feature-space exhausted (this session, all through the gate):** longer HAR saturates ~scale 3125 (rolling MA
+  15625/78125 reject, hurt); MA aggregators (10 types — geometric is *captured*/spanned by rolling-HAR, EWMA/RMS/
+  median subsumed by the sqrt-vol+dense-HAR base); the whole **spike/extreme axis (~12 forms)** is orthogonal to
+  rolling-HAR yet **signal-less as main effect AND interaction** (spike×level, spike×time null → *persistence is
+  regime-independent of spikiness*). Full record: `writeup/OVERNIGHT_RESULTS_2026-06-30.md`.
+- **Harness HARDENED:** `src/evaluation/feature_cv.py` placebo null is now a **CIRCULAR SHIFT** (preserves the
+  candidate's autocorrelation; an i.i.d. shuffle white-noised slow features = mismatched null). Verified it flips
+  NO prior verdict (commit 25b1019). This is the deliverable methodology; it caught ~6 near-false-positives.
+- **Notebooks — all source-complete + narrative-woven:** every notebook (edge_01–11 + bucket_sweep /
+  window_ablation / ridge_pipeline_throughline) shows the source of every script behind each result as
+  collapsible `<details>` blocks, woven story→code→result; **cluster-run values (CARC linbest) show their
+  pipeline source + a "value from cluster-only cache" note**. `edge_11` is NEW (the feature-space map). The 5
+  cluster-side discovery scripts (`ebm_interpret/regime_study/har_flip/tests123/distill_regime.py`) were
+  **PULLED from CARC into the repo root** and woven into `edge_01` by their 6-step discovery-loop role.
+- **Deliverables written:** `writeup/DATA_TO_BUY_SPEC.md` (data ranked by mechanism, auction imbalance #1,
+  gate-first acquisition workflow); `writeup/sections/meeting_update_2026_06.tex` (the **June ADVISOR update** —
+  gap-analysis vs the 6/10 & 6/15 research plan + 5 novel contributions with literature positioning; \input in
+  main.tex, compiles clean, p17); `writeup/LATER_backlog_2026-06-30.md` (deferred: LSTM/Mamba, full-path
+  attention, estimator design, blocked data, fin-econ interpretation).
+- **NEXT (the only unbounded lever):** acquire + **gate** the data-to-buy (auction imbalance / GEX / OFI /
+  richer per-name sentiment); materialize the missing external sources (NASDAQ Open-Close, macro/OPEX events,
+  per-name signed OFI from the buy/sell turnover already loaded); add model-level **Diebold-Mariano / Model
+  Confidence Set** (the one significance piece not yet built — the gate is the feature-level version); document
+  the clustering global-vs-per-cluster trade-off (infra + CSVs exist, undocumented). Everything ships only if it
+  clears the circular-shift gate.
+- **Clusters clean** (CARC 0 jobs). Key tail commits: feature-exhaustion + placebo fix + notebook vendoring +
+  pulled scripts + data-to-buy + June meeting update (see `git log`).
+
 ## TL;DR — the arc resolved, and one forward lever found
 The differentiable regime stage (gate/FiLM) does NOT beat the EBM 0.12033 — **not because of a bug** (5
 independent confident-routing tests all tie; per-bar preds differ, experts differentiate), but because the
