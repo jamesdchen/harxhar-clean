@@ -15,6 +15,7 @@ import os
 import numpy as np
 
 from src.evaluation.diebold_mariano import dm_test
+from src.evaluation.model_confidence_set import model_confidence_set
 
 D = "results/winablate_r1"
 WINDOWS = [48_000, 72_000, 96_000, 120_000, 144_000, 168_000]
@@ -84,6 +85,44 @@ def main():
         rlr = dm_test(ab["lasso"], ab["ridge"])
         rer = dm_test(ab["enet"], ab["ridge"])
         print(f"  {w // 48:4d}d: lasso-vs-ridge {fmt(rlr)} | enet-vs-ridge {fmt(rer)}")
+
+    print(
+        "\n=== (4) MCS: which TRAIN WINDOWS are in the confidence set (all_buckets, enet) ==="
+    )
+    wl = {
+        f"{w // 48}d": lb[cid(w, "all_buckets")]["enet"]
+        for w in WINDOWS
+        if lb[cid(w, "all_buckets")]
+    }
+    if len(wl) >= 2:
+        r = model_confidence_set(wl, alpha=0.10)
+        print(
+            f"  MCS_90% windows: {r['mcs']}  (eliminated worst-first: {r['eliminated']}, block={r['block']})"
+        )
+        print(
+            "  MCS p-values:", {k: round(v, 3) for k, v in sorted(r["pvals"].items())}
+        )
+
+    print(
+        "\n=== (5) MCS: which BUCKETS are in the confidence set (best config/bucket, per window) ==="
+    )
+    for w in WINDOWS:
+        bl = {}
+        for b in BUCKETS:
+            d = lb[cid(w, b)]
+            if not d:
+                continue
+            key = (
+                "har_only"
+                if b == "har_only"
+                else min(
+                    ("lasso", "ridge", "enet"), key=lambda k: float(np.nanmean(d[k]))
+                )
+            )
+            bl[b] = d[key]
+        if len(bl) >= 2:
+            r = model_confidence_set(bl, alpha=0.10)
+            print(f"  {w // 48:4d}d: MCS_90% = {r['mcs']}")
 
 
 if __name__ == "__main__":
