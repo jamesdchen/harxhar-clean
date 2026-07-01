@@ -212,6 +212,134 @@ def rck_leverage(returns, alpha: float, beta: float, w_max: float = 6.0, n: int 
     return best_w, lam
 
 
+def _phi(z):
+    return np.exp(-0.5 * z * z) / np.sqrt(2.0 * np.pi)
+
+
+def _phinv(p):
+    """Acklam-style inverse normal CDF (vectorized, no scipy)."""
+    p = np.clip(np.asarray(p, float), 1e-12, 1 - 1e-12)
+    # Beasley-Springer-Moro rational approximation
+    a = [
+        -3.969683028665376e01,
+        2.209460984245205e02,
+        -2.759285104469687e02,
+        1.383577518672690e02,
+        -3.066479806614716e01,
+        2.506628277459239e00,
+    ]
+    b = [
+        -5.447609879822406e01,
+        1.615858368580409e02,
+        -1.556989798598866e02,
+        6.680131188771972e01,
+        -1.328068155288572e01,
+    ]
+    c = [
+        -7.784894002430293e-03,
+        -3.223964580411365e-01,
+        -2.400758277161838e00,
+        -2.549732539343734e00,
+        4.374664141464968e00,
+        2.938163982698783e00,
+    ]
+    d = [
+        7.784695709041462e-03,
+        3.224671290700398e-01,
+        2.445134137142996e00,
+        3.754408661907416e00,
+    ]
+    out = np.empty_like(p)
+    lo, hi = p < 0.02425, p > 1 - 0.02425
+    mid = ~(lo | hi)
+    if mid.any():
+        q = p[mid] - 0.5
+        r = q * q
+        out[mid] = (
+            (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5])
+            * q
+            / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1.0)
+        )
+    for mask, sgn in ((lo, 1.0), (hi, -1.0)):
+        if mask.any():
+            q = np.sqrt(-2.0 * np.log(np.where(sgn > 0, p[mask], 1 - p[mask])))
+            out[mask] = (
+                sgn
+                * (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5])
+                / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1.0)
+            )
+    return out
+
+
+@dataclass
+class DerivedPolicy:
+    """The fully-DERIVED deployable policy -- every parameter comes from the return model or a stated
+    business input; nothing is grid-tuned:
+
+      cushion < thr_t[t]:  w = cap      [Yuan-Li bang-bang at the borrowing constraint]
+      else:                w = merton   [RCK on the empirical returns]
+
+    ``merton`` = :func:`rck_leverage` (risk budget beta = business input); ``cap`` = the borrowing
+    constraint 1+k (business input, clamped by the ruin bound); ``thr_t`` = the TIME-DEPENDENT HJB free
+    boundary from :func:`eval_sim.hjb_pde.solve_pde` -- the deadline enters HERE (the bold region widens
+    as time runs out), not via Browne's barrier-free digital-delta, which was tried and springs the
+    lookback trap (see :func:`derive_policy`)."""
+
+    merton: float
+    cap: float
+    thr_t: np.ndarray  # (T,) time-dependent free boundary from the PDE (cushion units)
+    T: int
+    cfg: EvalConfig
+
+    def __call__(self, t, W, M):
+        D = self.cfg.max_drawdown
+        cushion = (W - (M - D)) / D
+        thr = self.thr_t[min(t, self.T - 1)]
+        return np.where(cushion < thr, self.cap, self.merton)
+
+
+def derive_policy(
+    returns,
+    cfg: EvalConfig,
+    *,
+    cap: float,
+    rck_beta: float = 0.35,
+    T: int = 250,
+    q: int = 60,
+) -> DerivedPolicy:
+    """The right pipeline: estimate -> derive -> (validate elsewhere). No parameter search.
+
+    1. merton  = RCK on the empirical ``returns`` (distribution-free; beta is a risk preference);
+    2. cap     = the stated borrowing constraint, clamped by the ruin bound 1/|worst loss|;
+    3. thr(t)  = the TIME-DEPENDENT free boundary of the exact finite-horizon HJB (solve_pde on the
+                 (m,s)-matched model): at each t, the largest cushion at which the optimal control is at
+                 the cap (M=initial slice). This is how the DEADLINE correctly enters the joint problem --
+                 through the free boundary widening as time runs out -- NOT via Browne's barrier-free
+                 digital-delta (tried; its deadline-pressing ratchets the HWM and springs the lookback
+                 trap: -0.04 P(pass), DM p~1e-167)."""
+    from eval_sim.hjb_pde import (
+        solve_pde,
+    )  # local: keep adp importable without the PDE module
+
+    R = np.asarray(returns, float)
+    ruin = 1.0 / abs(float(R.min())) if R.min() < 0 else np.inf
+    cap = float(min(cap, 0.99 * ruin))
+    alpha = 1.0 - cfg.max_drawdown / cfg.initial
+    merton, _ = rck_leverage(R, alpha, rck_beta, w_max=cap)
+    m_d, s_d = (
+        float(R.mean() * cfg.initial),
+        float(R.std() * cfg.initial),
+    )  # dollar-scale one-step model
+    sol = solve_pde(cfg, m_d, s_d, w_max=cap, q=q, T=T)
+    D = cfg.max_drawdown
+    cushion_grid = (sol.E - (cfg.initial - D)) / D
+    thr_t = np.empty(T)
+    for t in range(T):
+        at_cap = sol.policy[t][:, 0] >= 0.95 * cap
+        thr_t[t] = float(cushion_grid[at_cap].max()) if at_cap.any() else 0.0
+    return DerivedPolicy(merton=float(merton), cap=cap, thr_t=thr_t, T=T, cfg=cfg)
+
+
 @dataclass
 class StructuredPolicy:
     """The LITERATURE-optimal two-region feedback for maximizing goal-reaching probability before drawdown
