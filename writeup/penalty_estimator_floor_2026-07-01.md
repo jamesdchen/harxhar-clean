@@ -123,6 +123,53 @@ comparability. **HAR-only reference = 0.12998.**
   is **0.13299 (250d) / 0.13403 (125d)** — the classic ~0.134 HAR baseline. The absolute level is a train-
   window effect; the *ranking/deltas* are the deliverable and are window-robust.
 
+## 7. Every-bar (refit=1) window × penalty × bucket battery + DM/MCS significance
+
+Definitive **every-bar** ablation (Garrigues online homotopy `reclasso_har.enet_online`, refit=1; Hoffman2
+array `13859217`, **54/54 cells — complete**). Fixed **covid-inclusive** eval `[168000:]` (absolutes ~0.147
+— NOT level-comparable to §6's [48000:] ~0.126; the *ranking + significance* are the deliverable). Per-bar
+QLIKE feeds Diebold–Mariano (NW-HAC) and the Model Confidence Set (Hansen–Lunde–Nason, block bootstrap).
+Drivers: `assemble_winablate.py`, `dm_ablation.py`.
+
+### A. all_buckets: train window × penalty (best OOS-tuned QLIKE, HAR OLS)
+| train window | HAR-only | lasso | ridge | enet | best |
+|---|---|---|---|---|---|
+| 1000d | 0.14863 | 0.14312 | **0.14265** | 0.14289 | 0.14265 |
+| 1500d | 0.14861 | 0.14324 | **0.14249** | 0.14304 | 0.14249 |
+| 2000d | 0.14861 | 0.14338 | **0.14243** | 0.14317 | 0.14243 |
+| 2500d | 0.14866 | 0.14345 | **0.14253** | 0.14327 | 0.14253 |
+| 3000d | 0.14869 | 0.14343 | **0.14248** | 0.14329 | 0.14248 |
+| 3500d | 0.14878 | 0.14332 | **0.14245** | 0.14321 | 0.14245 |
+
+Ridge alpha *decreases* with window (30 → 10 → 1 by 2000d then flat): more data ⇒ less shrinkage — mild,
+sensible. Ridge is the per-window winner on the dense all_buckets; its best-QLIKE bottoms at ~2000d (0.14243).
+
+### Significance (DM p<0.05 ⇒ real; MCS = the 90% set of statistically-indistinguishable-best)
+1. **Exog ≫ HAR (decisive), every window.** all_buckets(enet) vs HAR-only: DM = −12.8 → −16.2 across
+   1000→3500d, p ~ 10⁻³⁸…10⁻⁵⁸, mean −0.0054. The exog edge is not noise.
+2. **Train-window size is a near-non-lever whose sign flips with the penalty.** The whole window spread is
+   ~0.0002 (best-column 0.14243–0.14265). On the deployed **enet** losses the SHORTEST window wins outright:
+   MCS_90% = **{1000d}**, eliminating *all five* larger windows (p: 1500d 0.049, 3500d 0.049, 2000d 0.003,
+   2500d/3000d 0.001); DM has every larger window significantly *worse* than 1000d (p 0.03→0.0005, by
+   +0.0001–0.0004). But on **ridge** (the best penalty) the best-QLIKE *bottoms at ~2000d* (0.14243 < 1000d
+   0.14265) — the direction reverses. So "more data" is a ~0.0002 wobble whose sign depends on the estimator,
+   not a lever. (Refines the QLIKE preview's "~1500–2000d optimum": on ridge yes ~2000d, on enet the shortest
+   window — either way noise-scale.)
+3. **Ridge is the best penalty on the dense all_buckets — every window, decisively.** lasso-vs-ridge DM
+   +2.9→+6.1, enet-vs-ridge +1.8→+6.0 (ridge better; p<10⁻⁶ at 2000–3500d). The **mirror of §1/§5**: L1's
+   edge is zeroing junk; curated all_buckets has little → dense L2 wins. Penalty choice tracks junk fraction.
+4. **Bucket MCS = {all_buckets} at every window** (singleton 90% set for all six) — the full bucket set
+   dominates any single bucket uniformly. (§6's moments-leads is specific to the [48000:] eval.)
+
+### C. bucket edge vs HAR (best penalty, QLIKE improvement, covid-incl eval)
+all_buckets −0.006 ≫ implied_vol/liquidity/moments (−0.0018…−0.0020) > sentiment (−0.0015) >
+market_vw/ew (−0.0011/−0.0010) > vol_demand (−0.0004). VIX/liquidity/moments lead through covid.
+
+**Net — a 6th angle to the verdict:** at every-bar refresh the levers are unchanged. Exog beats HAR
+decisively (all windows); the *penalty* is a bucket-dependent detail (ridge on dense, L1 on junky, p<10⁻⁶);
+and **train-window size is a noise-scale wobble** (~0.0002, sign penalty-dependent — enet keeps only 1000d,
+ridge bottoms at ~2000d). The lever is **information**, not the estimator or the window.
+
 ## Reproduce
 Code: `_cadence_enet_har_unpen` gained `penalty`∈{enet,lasso,ridge} + `max_iter`/`tol` params (backward-
 compatible; default reproduces the deployed base). Drivers + outputs:
@@ -130,5 +177,7 @@ compatible; default reproduces the deployed base). Drivers + outputs:
 `enet_penalty_optuna.py` → `results/enet_penalty_optuna.{json,log,db}`;
 `coef_ma_test.py` → `results/coef_ma_test.{json,log}`;
 `lasso_support.py` → `results/lasso_support.log`;
-`per_bucket_table.py` → `results/per_bucket_table.{json,log}` (the §6 table).
+`per_bucket_table.py` → `results/per_bucket_table.{json,log}` (the §6 table);
+`winablate_r1.py` (every-bar cells) → `results/winablate_full/cell_*.{json,_lossbar.npz}` →
+`assemble_winablate.py` (§7 battery) + `dm_ablation.py` (§7 DM/MCS).
 Run with `/c/Users/james/miniconda3/envs/285J/python.exe`.
