@@ -1474,15 +1474,34 @@ def _cadence_enet(Xs, y, train_win, refit, alpha=0.001, l1=0.2):
     return np.asarray(starts, dtype=np.int64), coefs, intercepts
 
 
-def _cadence_enet_har_unpen(Xs, y, train_win, refit, har_mask, alpha=0.001, l1=0.2):
+def _cadence_enet_har_unpen(
+    Xs,
+    y,
+    train_win,
+    refit,
+    har_mask,
+    alpha=0.001,
+    l1=0.2,
+    penalty="enet",
+    max_iter=5000,
+    tol=1e-4,
+):
     """Cadence-refit enet with the HAR block (har_mask) UNPENALIZED (OLS), the rest L1+L2 -- the
     structured-penalty realization. Unpenalized (not just L2-only) because an OLS block is invariant to ANY
     linear reparam, so the HAR basis becomes a free legibility choice; L2-only is invariant only under
     ORTHONORMAL maps and so would NOT neutralize the non-orthonormal differenced bands. EXACT via FWL:
     profile the HAR block out by OLS (M_H = I - H H^+ is an idempotent projection), fit a standard sklearn
-    enet on the HAR-residualized penalized features (E_res, y_res), recover HAR coefs by OLS. With an empty
-    mask this reduces EXACTLY to _cadence_enet. Same (starts, coefs, intercepts) contract."""
-    from sklearn.linear_model import ElasticNet
+    estimator on the HAR-residualized penalized features (E_res, y_res), recover HAR coefs by OLS. With an
+    empty mask this reduces EXACTLY to _cadence_enet. Same (starts, coefs, intercepts) contract.
+
+    ``penalty`` selects the EXOG-block penalty (HAR is always OLS regardless):
+      * ``"enet"``  -> ElasticNet(alpha, l1_ratio=l1)   -- the deployed default.
+      * ``"lasso"`` -> ElasticNet(alpha, l1_ratio=1.0)  -- pure L1 (sparse selection).
+      * ``"ridge"`` -> Ridge(alpha)                     -- pure L2 (dense shrinkage). NB Ridge's alpha is
+        on a DIFFERENT scale than ElasticNet's (no 1/2n data-fit normalization), so ridge alphas are NOT
+        comparable to enet/lasso alphas -- compare on QLIKE, tune ridge on its own alpha grid.
+    The dense-not-low-rank finding predicts ridge/low-l1 >= enet > lasso (sparsity over-shrinks a dense signal)."""
+    from sklearn.linear_model import ElasticNet, Ridge
 
     n, p = Xs.shape
     starts = list(range(train_win, n, refit))
@@ -1490,14 +1509,17 @@ def _cadence_enet_har_unpen(Xs, y, train_win, refit, har_mask, alpha=0.001, l1=0
     em = ~hm
     coefs = np.zeros((len(starts), p), dtype=np.float64)
     intercepts = np.empty(len(starts), dtype=np.float64)
-    en = ElasticNet(
-        alpha=alpha,
-        l1_ratio=l1,
-        fit_intercept=False,
-        warm_start=True,
-        max_iter=5000,
-        tol=1e-4,
-    )
+    if penalty == "ridge":
+        en = Ridge(alpha=alpha, fit_intercept=False)
+    else:
+        en = ElasticNet(
+            alpha=alpha,
+            l1_ratio=(1.0 if penalty == "lasso" else l1),
+            fit_intercept=False,
+            warm_start=True,
+            max_iter=max_iter,
+            tol=tol,
+        )
     for i, t_r in enumerate(starts):
         X = Xs[t_r - train_win : t_r]
         yt = y[t_r - train_win : t_r]
