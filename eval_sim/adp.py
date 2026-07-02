@@ -183,6 +183,60 @@ def pass_rate(outcome: np.ndarray) -> float:
     return float((outcome == PASS).mean())
 
 
+def simulate_topstep(
+    returns: np.ndarray,
+    cfg: EvalConfig,
+    policy: float | Callable[..., np.ndarray],
+    *,
+    daily_loss_limit: float = 1_000.0,
+    consistency_frac: float = 0.5,
+    T: int | None = None,
+):
+    """Geometric first-passage under the REAL Topstep Trading Combine mechanics (verified against the
+    Topstep help center, 2026-07), at daily resolution (one step = one trading day, matching the daily
+    PnL log):
+
+      * floor ratchets on the END-OF-DAY balance high-water mark (not the intraday high), and LOCKS at
+        the starting balance once reached:  floor = min(M_eod - D, initial);
+      * Daily Loss Limit is a DAY-STOP, not a fail: the day's PnL is capped at -DLL (forced flat), the
+        account survives;
+      * consistency rule: the best single profit day must be <= consistency_frac of the profit target,
+        else the EFFECTIVE target rises to best_day / consistency_frac before a pass counts.
+
+    Daily-resolution caveat (favorable bias, flag in any writeup): intraday MLL touches that recover by
+    the close are invisible here; with the close-window strategy the exposure window is short, so the
+    bias is small but real. Returns (outcome[int8], W, best_day)."""
+    returns = np.ascontiguousarray(returns, dtype=np.float64)
+    P, Tr = returns.shape
+    T = Tr if T is None else min(T, Tr)
+    D, U0 = cfg.max_drawdown, cfg.upper
+    W: np.ndarray = np.full(P, cfg.initial)
+    M_eod = np.full(P, cfg.initial)
+    best_day = np.zeros(P)
+    alive = np.ones(P, bool)
+    outcome = np.zeros(P, np.int8)
+    floor = np.minimum(M_eod - D, cfg.initial)
+    for t in range(T):
+        w = policy(t, W, M_eod) if callable(policy) else np.full(P, float(policy))
+        day_pnl = np.maximum(
+            w * W * returns[:, t], -daily_loss_limit
+        )  # DLL day-stop cap
+        W = np.where(alive, W + day_pnl, W)
+        np.maximum(best_day, np.where(alive, day_pnl, 0.0), out=best_day)
+        # breach checked against the floor set at the PRIOR day's close
+        fail = alive & (W <= floor)
+        eff_target = np.maximum(U0, cfg.initial + best_day / consistency_frac)
+        passed = alive & (W >= eff_target) & ~fail
+        outcome[fail] = FAIL
+        outcome[passed] = PASS
+        alive &= ~(fail | passed)
+        # EOD ratchet + breakeven lock
+        np.maximum(M_eod, W, out=M_eod)
+        floor = np.minimum(M_eod - D, cfg.initial)
+    outcome[alive] = TIMEOUT
+    return outcome, W, best_day
+
+
 def rck_leverage(returns, alpha: float, beta: float, w_max: float = 6.0, n: int = 1200):
     """Risk-Constrained Kelly leverage for one risky strategy (Busseti-Ryu-Boyd 2016, arXiv 1603.06183):
     the largest-growth constant leverage whose drawdown-probability bound holds, from the 1-D CONVEX
