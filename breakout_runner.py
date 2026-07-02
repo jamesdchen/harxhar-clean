@@ -81,13 +81,14 @@ def gate_runner(entries, ohlc, phase, n_placebo=300, seed=0) -> dict:
     o, h, low, c = ohlc
     from jj_backtest import purged_walk_forward  # reuse the fold splitter
 
-    def day_R(directions=None):
+    def day_R(dirs=None, stops=None):
         byday, r = {}, []
         for k, (d, ph, i, j_end, brk, stop) in enumerate(entries):
             if ph != phase:
                 continue
-            dd = brk if directions is None else directions[k]
-            R = simulate_runner(h, low, c, i, j_end, dd, stop)
+            dd = brk if dirs is None else dirs[k]
+            st = stop if stops is None else stops[k]
+            R = simulate_runner(h, low, c, i, j_end, dd, st)
             byday[d] = byday.get(d, 0.0) + R
             r.append(R)
         return pd.Series(byday).sort_index(), np.array(r)
@@ -107,10 +108,16 @@ def gate_runner(entries, ohlc, phase, n_placebo=300, seed=0) -> dict:
     idxp = [k for k, e in enumerate(entries) if e[1] == phase]
     plac = np.empty(n_placebo)
     for b in range(n_placebo):
-        dirs = [0.0] * len(entries)
+        dirs, stops = [0.0] * len(entries), [0.0] * len(entries)
         for k in idxp:
-            dirs[k] = float(rng.choice([-1.0, 1.0]))
-        plac[b] = day_R(dirs)[0].mean()
+            _d, _ph, i, _j, _brk, mid = entries[k]
+            risk = abs(c[i] - mid)
+            dd = float(rng.choice([-1.0, 1.0]))
+            dirs[k], stops[k] = (
+                dd,
+                c[i] - dd * risk,
+            )  # FIX: stop follows the flipped direction
+        plac[b] = day_R(dirs, stops)[0].mean()
     p = float((plac >= mean).mean())
     return {
         "phase": phase,
