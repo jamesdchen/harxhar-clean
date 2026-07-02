@@ -28,6 +28,8 @@ Thumbs.db
 results/repro/
 
 # large/regenerable data + run outputs (caches, chunk dirs, plots) — keep results/moe_ladder/ (small tables)
+# OptionMetrics chain/spot extracts (175MB) — regenerate via prep_om_chain.py from the WRDS gz
+data/optionm_*.parquet
 results/resid_prep/
 results/covid_imp_rank/
 results/ebm_resid-*/
