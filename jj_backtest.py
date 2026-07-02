@@ -1,18 +1,20 @@
-"""Faithful, frequency-agnostic backtester for JJ Simon's fair-value strategy -- built to be a DROP-IN for
-the 1-min NQ history when it arrives (validate now on free OHLC; then `--data <1min_nq.parquet>` for the
-real gate). Objectifies his discretionary rules (an improvement, and gate-able):
+"""Faithful, frequency-agnostic backtester + GATE for JJ Simon's fair-value strategy -- a DROP-IN for the
+1-min NQ history when it arrives (validate now on free OHLC; then `python jj_backtest.py --data <1min.parquet>`).
+Objectifies his discretionary rules (an improvement, and gate-able):
 
-  * fair-value anchor = the session-window open (morning 09:30, afternoon 14:00); overridable.
+  * fair-value anchor = the session-window open (morning 09:30, afternoon 14:00).
   * two windows: 09:30-11:00 and 14:00-15:00 NY (his sessions).
   * two-phase: first CONT_MIN minutes = CONTINUATION (trade WITH a displacement candle), rest = REVERSION
     (trade TOWARD the anchor on a displacement candle beyond MIN_DEV) -- his continuation-then-reversion.
   * displacement candle = body/range >= BODY_MIN (objectifies the <20%-counter-wick rule).
   * exit = ATR stop (STOP_ATR*ATR) + 1.5R target, first-touch within the window, else window close; same-bar
-    ambiguity resolved stop-first (conservative). One position at a time per window.
+    ambiguity resolved stop-first (conservative).
 
-Reports per phase: n trades, win rate, avg R, expectancy, total R, and a bootstrap t on the R-multiples.
-Small free samples (QQQ 5m/60d) are a PROTOTYPE (n too small to gate) -- the point is the harness + the
-qualitative read; the 1-min history is what gets gated. Usage: python jj_backtest.py --data <ohlc.parquet>
+THE GATE (per phase): trades are aggregated to per-DAY R (kills the overlapping-trades t-inflation -> the
+unit of evidence is the day), then (1) bootstrap CI on the per-day mean, (2) purged walk-forward replication
+across days, (3) a DIRECTION-SHUFFLE placebo -- re-run the SAME entries/exits with random long/short, so the
+edge must come from the direction RULE, not the entry/exit mechanics. PASS = mean-2se>0 & folds replicate &
+beats placebo (p<0.05). This is the honest significance; on a tiny free sample it will (correctly) not pass.
 """
 
 from __future__ import annotations
@@ -22,6 +24,8 @@ from datetime import time
 
 import numpy as np
 import pandas as pd
+
+from src.evaluation.feature_cv import purged_walk_forward
 
 CONT_MIN = 15  # his continuation window (minutes) before the reversion phase
 BODY_MIN = 0.5  # displacement candle: body/range >= this (small counter-wick)
@@ -54,12 +58,12 @@ def atr(df: pd.DataFrame, n: int = 14) -> np.ndarray:
     return tr.rolling(n, min_periods=1).mean().to_numpy()
 
 
-def simulate_trade(o, h, low, c, i, j_end, direction, stop_d, tgt_d):
-    """Walk bars i+1..j_end; exit at first stop/target touch (stop-first on same bar), else last close.
-    Returns R-multiple."""
+def simulate_trade(o, h, low, c, i, j_end, direction, stop_d) -> float:
+    """Walk bars i+1..j_end; exit at first stop/1.5R-target touch (stop-first on same bar), else window
+    close. Returns the R-multiple."""
     entry = c[i]
     stop = entry - direction * stop_d
-    tgt = entry + direction * tgt_d
+    tgt = entry + direction * 1.5 * stop_d
     for j in range(i + 1, j_end + 1):
         if direction > 0:
             if low[j] <= stop:
@@ -71,10 +75,12 @@ def simulate_trade(o, h, low, c, i, j_end, direction, stop_d, tgt_d):
                 return -1.0
             if low[j] <= tgt:
                 return 1.5
-    return direction * (c[j_end] - entry) / stop_d  # window-close exit, in R units
+    return direction * (c[j_end] - entry) / stop_d
 
 
-def backtest(df: pd.DataFrame) -> dict:
+def collect_entries(df: pd.DataFrame):
+    """Precompute every entry signal once: (day, phase, i, j_end, signal_dir, stop_d). The placebo re-runs
+    these SAME entries with shuffled directions, so only the direction RULE is under test."""
     df = df.copy()
     df["a"] = atr(df)
     bar_min = int(
@@ -84,85 +90,106 @@ def backtest(df: pd.DataFrame) -> dict:
     o, h, low, c, a = (df[x].to_numpy() for x in ("open", "high", "low", "close", "a"))
     tod = np.array([t.time() for t in df.index])
     dday = df.index.date
-    body = np.abs(c - o)
-    rng = np.maximum(h - low, 1e-12)
-    disp = (body / rng) >= BODY_MIN  # displacement candle
-
-    trades = {"continuation": [], "reversion": []}
-    n = len(df)
+    disp = (np.abs(c - o) / np.maximum(h - low, 1e-12)) >= BODY_MIN
+    entries = []
     for w0, w1 in WINDOWS:
         inwin = (tod >= w0) & (tod < w1)
-        # per day, the window's bars
         for day in np.unique(dday):
             idxs = np.where(inwin & (dday == day))[0]
             if len(idxs) < 3:
                 continue
-            anchor = o[idxs[0]]  # the window-open = fair value
-            j_end = idxs[-1]
-            k = 0
-            held_until = -1
+            anchor, j_end, k = o[idxs[0]], idxs[-1], 0
             for i in idxs:
                 k += 1
-                if i <= held_until or a[i] <= 0 or not disp[i]:
+                if a[i] <= 0 or not disp[i]:
                     continue
                 dev = np.log(c[i] / anchor)
-                if (
-                    k <= cont_bars
-                ):  # continuation phase: trade WITH the displacement candle
-                    direction = float(np.sign(c[i] - o[i]))
-                    phase = "continuation"
-                else:  # reversion phase: fade the deviation back toward the anchor
+                if k <= cont_bars:
+                    d, ph = float(np.sign(c[i] - o[i])), "continuation"
+                else:
                     if abs(dev) < MIN_DEV:
                         continue
-                    direction = -float(np.sign(dev))
-                    phase = "reversion"
-                if direction == 0:
-                    continue
-                stop_d = STOP_ATR * a[i]
-                R = simulate_trade(
-                    o, h, low, c, i, j_end, direction, stop_d, 1.5 * stop_d
-                )
-                trades[phase].append(R)
-                # mark hold until exit (approx: until a target/stop would have resolved -> next bar for simplicity)
-                held_until = i  # one signal/bar; re-entry allowed next bar (conservative on overlap)
-    out = {"bar_min": bar_min, "cont_bars": cont_bars, "n_bars": n}
-    for ph, rs in trades.items():
-        r = np.array(rs)
-        if len(r) > 5:
-            t = (
-                float(r.mean() / (r.std() / np.sqrt(len(r))))
-                if r.std() > 0
-                else float("nan")
-            )
-            out[ph] = {
-                "n": len(r),
-                "win_rate": float((r > 0).mean()),
-                "avg_R": float(r.mean()),
-                "total_R": float(r.sum()),
-                "boot_t": t,
-            }
-        else:
-            out[ph] = {"n": len(r)}
-    return out
+                    d, ph = -float(np.sign(dev)), "reversion"
+                if d != 0:
+                    entries.append(
+                        (day, ph, int(i), int(j_end), d, float(STOP_ATR * a[i]))
+                    )
+    return (
+        entries,
+        (o, h, low, c),
+        {"bar_min": bar_min, "cont_bars": cont_bars, "n_bars": len(df)},
+    )
+
+
+def per_day_R(entries, ohlc, phase, directions=None) -> pd.Series:
+    """Aggregate trade R to per-day totals for a phase; `directions` (list over ALL entries) overrides the
+    signal direction for the placebo."""
+    o, h, low, c = ohlc
+    byday: dict = {}
+    r_list = []
+    for idx, (day, ph, i, j_end, d, stop_d) in enumerate(entries):
+        if ph != phase:
+            continue
+        dd = d if directions is None else directions[idx]
+        R = simulate_trade(o, h, low, c, i, j_end, dd, stop_d)
+        byday[day] = byday.get(day, 0.0) + R
+        r_list.append(R)
+    return pd.Series(byday).sort_index(), np.array(r_list)
+
+
+def gate(entries, ohlc, phase, n_placebo=300, seed=0) -> dict:
+    dayR, r = per_day_R(entries, ohlc, phase)
+    if len(dayR) < 20:
+        return {"phase": phase, "n_days": int(len(dayR)), "insufficient": True}
+    v = dayR.to_numpy()
+    n = len(v)
+    rng = np.random.default_rng(seed)
+    boot = np.array([v[rng.integers(0, n, n)].mean() for _ in range(2000)])
+    mean, se = float(v.mean()), float(boot.std())
+    folds = purged_walk_forward(n, n_folds=5, embargo=0.01)
+    fold_pos = float(np.mean([v[te].mean() > 0 for _, te in folds])) if folds else 0.0
+    ph_idx = [k for k, e in enumerate(entries) if e[1] == phase]
+    plac = np.empty(n_placebo)
+    for b in range(n_placebo):
+        dirs = [0.0] * len(entries)
+        for k in ph_idx:
+            dirs[k] = float(rng.choice([-1.0, 1.0]))
+        plac[b] = per_day_R(entries, ohlc, phase, dirs)[0].mean()
+    p_plac = float((plac >= mean).mean())
+    passed = (mean - 2 * se > 0) and (fold_pos >= 0.7) and (p_plac < 0.05)
+    return {
+        "phase": phase,
+        "n_trades": int(len(r)),
+        "n_days": n,
+        "win_rate": float((r > 0).mean()),
+        "avg_R": float(r.mean()),
+        "mean_dayR": mean,
+        "se_dayR": se,
+        "t_dayR": float(mean / se) if se > 0 else float("nan"),
+        "fold_pos_frac": fold_pos,
+        "placebo_p": p_plac,
+        "gate_pass": bool(passed),
+    }
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True, help="OHLC parquet (yfinance or 1-min NQ)")
     a = ap.parse_args()
-    res = backtest(load_ohlc(a.data))
+    entries, ohlc, meta = collect_entries(load_ohlc(a.data))
     print(
-        f"bar={res['bar_min']}min cont_bars={res['cont_bars']} n_bars={res['n_bars']}"
+        f"bar={meta['bar_min']}min cont_bars={meta['cont_bars']} n_bars={meta['n_bars']} entries={len(entries)}"
     )
     for ph in ("continuation", "reversion"):
-        r = res[ph]
-        if "avg_R" in r:
-            print(
-                f"[{ph:12s}] n={r['n']:4d} win={r['win_rate']:.2f} avgR={r['avg_R']:+.3f} "
-                f"totalR={r['total_R']:+.1f} boot_t={r['boot_t']:+.2f}"
-            )
-        else:
-            print(f"[{ph:12s}] n={r['n']} (too few)")
+        g = gate(entries, ohlc, ph)
+        if g.get("insufficient"):
+            print(f"[{ph:12s}] n_days={g['n_days']} (too few to gate)")
+            continue
+        print(
+            f"[{ph:12s}] GATE={'PASS' if g['gate_pass'] else 'fail'} | n={g['n_trades']} days={g['n_days']} "
+            f"win={g['win_rate']:.2f} avgR={g['avg_R']:+.3f} | mean_dayR={g['mean_dayR']:+.3f} "
+            f"t={g['t_dayR']:+.2f} foldpos={g['fold_pos_frac']:.2f} placebo_p={g['placebo_p']:.3f}"
+        )
 
 
 if __name__ == "__main__":
