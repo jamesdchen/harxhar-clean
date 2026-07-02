@@ -24,6 +24,7 @@ surface beats a BS gamma off noisy quotes); BS recompute from `impl_volatility` 
 from __future__ import annotations
 
 import argparse
+import glob
 import os
 
 import numpy as np
@@ -31,6 +32,51 @@ import pandas as pd
 
 MULT = 100.0  # SPX contract multiplier
 MAX_DTE = 90  # standing-gamma horizon; strikes beyond add ~no gamma and bloat the pull
+
+
+def _read_any(path: str) -> pd.DataFrame:
+    """Read a .csv/.csv.gz/.parquet file, or concat every file matching a glob / in a directory (the WRDS
+    web-query builder is chunked by year, so a folder or `data/optionm_spx/*.csv` is the natural input)."""
+    if os.path.isdir(path):
+        files = sorted(glob.glob(os.path.join(path, "*")))
+    elif any(ch in path for ch in "*?["):
+        files = sorted(glob.glob(path))
+    else:
+        files = [path]
+    if not files:
+        raise SystemExit(f"no files matched {path!r}")
+    frames = [
+        pd.read_parquet(f) if f.endswith(".parquet") else pd.read_csv(f) for f in files
+    ]
+    return pd.concat(frames, ignore_index=True)
+
+
+def load_options(path: str) -> pd.DataFrame:
+    """Normalize a WRDS OptionMetrics `Option Prices` extract to gex.py's schema: lowercases columns,
+    derives `strike` from `strike_price`/1000 (IvyDB stores strikes x1000), verifies the 6 hard-required
+    columns. `gamma` is OPTIONAL -- absent, gex.py computes BS gamma from `impl_volatility`."""
+    o = _read_any(path)
+    o.columns = [c.lower() for c in o.columns]
+    if "strike" not in o.columns and "strike_price" in o.columns:
+        o["strike"] = o["strike_price"].astype(float) / 1000.0
+    req = ["date", "exdate", "cp_flag", "strike", "impl_volatility", "open_interest"]
+    miss = [c for c in req if c not in o.columns]
+    if miss:
+        raise SystemExit(f"extract missing {miss}; got columns {list(o.columns)}")
+    o["cp_flag"] = o["cp_flag"].astype(str).str.upper().str[0]  # 'C'/'P'
+    return o
+
+
+def load_spot(path: str) -> pd.Series:
+    """WRDS OptionMetrics `Security Prices` (secprd) extract -> date->close Series (index level for SPX)."""
+    s = _read_any(path)
+    s.columns = [c.lower() for c in s.columns]
+    ccol = next(
+        (c for c in ("close", "close_price", "px_close") if c in s.columns), None
+    )
+    if ccol is None or "date" not in s.columns:
+        raise SystemExit(f"spot extract needs date+close; got {list(s.columns)}")
+    return pd.Series(s[ccol].astype(float).values, index=pd.to_datetime(s["date"]))
 
 
 def _phi(z: np.ndarray) -> np.ndarray:
@@ -247,9 +293,8 @@ def main() -> None:
     if a.smoke:
         _smoke()
         return
-    opt = pd.read_parquet(a.options)
-    sp = pd.read_parquet(a.spot)
-    spot = pd.Series(sp["close"].values, index=pd.to_datetime(sp["date"]))
+    opt = load_options(a.options)
+    spot = load_spot(a.spot)
     out = build_gex_daily(opt, spot, call_sign=a.call_sign)
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     out.to_parquet(a.out)
