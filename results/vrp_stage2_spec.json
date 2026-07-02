@@ -1,0 +1,13 @@
+{
+ "survivors": [
+  "sumabsret",
+  "sumvolume",
+  "vd_voldemand_spx_open_only",
+  "vd_voldemand_all_open_only",
+  "vd_vvix",
+  "sumbipow",
+  "sn_stocktwits_sentcount",
+  "sn_stocktwits_attention"
+ ],
+ "out": "results/vrp_stage2"
+}
