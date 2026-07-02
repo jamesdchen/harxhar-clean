@@ -5,7 +5,12 @@ E[PnL] of a predictable-position futures strategy loads only on E[r|F], never on
 
 Pre-registered, two cells only (core = HAR-only control, all8 = full survivor superset), no tuning,
 no selection. Evaluation excludes bars whose sumret was fabricated by the ffill(0) (uses the
-pre-fill availability indicator). Writes results/signed_channel/{core,all8}.json + daily .npz."""
+pre-fill availability indicator). Session (9-15) metrics include sign/linear strategy Sharpes with
+1-tick cost. PANEL EXTENSION: the same predictions are also scored per bar-hour WINDOW (open 9,
+mid 10-14, close 15, after-hours 16-19, overnight 20-8, all 24h) so the null's coverage is the whole
+clock, not just the session -- after-hours/overnight are the windows an overnight-permitting futures
+account could trade. 6 windows x 2 cells of correlations: read t-stats against a Bonferroni-ish
+threshold ~2.9, not 2.0. Writes results/signed_channel/{core,all8}.json + daily .npz."""
 
 from __future__ import annotations
 
@@ -33,6 +38,19 @@ def daily_sharpe(pnl_day: np.ndarray) -> dict[str, float]:
     }
 
 
+def corr_block(f: np.ndarray, r: np.ndarray) -> dict[str, float]:
+    """OOS corr + HAC(5) t for E[f*r] > 0 (the tradable moment)."""
+    corr = float(np.corrcoef(f, r)[0, 1])
+    z = f * r - (f * r).mean()
+    gam = [float((z[k:] * z[: len(z) - k]).mean()) for k in range(6)]
+    lrv = gam[0] + 2 * sum((1 - k / 6) * gam[k] for k in range(1, 6))
+    return {
+        "n": len(f),
+        "oos_corr": corr,
+        "t_cov_hac5": float((f * r).mean() / np.sqrt(lrv / len(z))),
+    }
+
+
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
     df, raw, bundles, har_cols, HD, rv, iv_bar, hour, date = build()
@@ -40,7 +58,15 @@ def main() -> None:
     fabricated = (
         df["sumret_ind"].to_numpy(float) > 0
     )  # pre-fill missing -> target is a filled 0
-    sess = (hour >= 9) & (hour <= 15)
+    windows = {
+        "session9_15": (hour >= 9) & (hour <= 15),
+        "open9": hour == 9,
+        "mid10_14": (hour >= 10) & (hour <= 14),
+        "close15": hour == 15,
+        "afterhours16_19": (hour >= 16) & (hour <= 19),
+        "overnight20_8": (hour >= 20) | (hour <= 8),
+        "all24": np.ones_like(hour, dtype=bool),
+    }
 
     for name, cols in (
         ("core", har_cols),
@@ -55,18 +81,17 @@ def main() -> None:
         )
         pred = np.full(len(df), np.nan)
         pred[len(df) - len(p) :] = p
+        base = np.isfinite(pred) & np.isfinite(y) & ~fabricated
 
-        mm = np.isfinite(pred) & np.isfinite(y) & sess & ~fabricated
+        res: dict = {"cell": name, "windows": {}}
+        for wname, wmask in windows.items():
+            mm = base & wmask
+            if mm.sum() >= 1000:
+                res["windows"][wname] = corr_block(pred[mm], y[mm])
+
+        mm = base & windows["session9_15"]
         r, f = y[mm], pred[mm]
-        n = int(mm.sum())
-        corr = float(np.corrcoef(f, r)[0, 1])
-        # HAC(5) t-stat for E[f*r] > 0 (per-bar covariance = the tradable moment)
-        z = f * r - (f * r).mean()
-        gam = [float((z[k:] * z[: len(z) - k]).mean()) for k in range(6)]
-        lrv = gam[0] + 2 * sum((1 - k / 6) * gam[k] for k in range(1, 6))
-        t_cov = float((f * r).mean() / np.sqrt(lrv / len(z)))
-
-        res: dict = {"cell": name, "n_bars": n, "oos_corr": corr, "t_cov_hac5": t_cov}
+        res.update(n_bars=int(mm.sum()), **corr_block(f, r))
         for tag, pos in (("sign", np.sign(f)), ("linear", f / np.std(f))):
             pnl = pos * r
             cost = np.abs(np.diff(pos, prepend=0.0)) * TICK_COST
@@ -92,12 +117,11 @@ def main() -> None:
                 )
         with open(f"{OUT}/{name}.json", "w") as fh:
             json.dump(res, fh, indent=1)
-        print(
-            f"[{name}] n={n} corr={corr:+.5f} t_cov={t_cov:+.2f} "
-            f"sign gross sh={res['sign']['gross']['sh_full']:+.4f} "
-            f"net(1tick) sh={res['sign']['net_1tick']['sh_full']:+.4f}",
-            flush=True,
+        wl = "  ".join(
+            f"{k}:{v['oos_corr']:+.4f}(t{v['t_cov_hac5']:+.1f})"
+            for k, v in res["windows"].items()
         )
+        print(f"[{name}] {wl}", flush=True)
 
 
 if __name__ == "__main__":
