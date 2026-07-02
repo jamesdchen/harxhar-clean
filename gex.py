@@ -34,9 +34,11 @@ MULT = 100.0  # SPX contract multiplier
 MAX_DTE = 90  # standing-gamma horizon; strikes beyond add ~no gamma and bloat the pull
 
 
-def _read_any(path: str) -> pd.DataFrame:
+def _read_any(path: str, usecols=None) -> pd.DataFrame:
     """Read a .csv/.csv.gz/.parquet file, or concat every file matching a glob / in a directory (the WRDS
-    web-query builder is chunked by year, so a folder or `data/optionm_spx/*.csv` is the natural input)."""
+    web-query builder is chunked by year, so a folder or `data/optionm_spx/*.csv` is the natural input).
+    `usecols` (a name->bool predicate) is passed to read_csv to skip unneeded columns -- essential on a
+    multi-GB full-history export where a repeated string column like `issuer` would blow up memory."""
     if os.path.isdir(path):
         files = sorted(glob.glob(os.path.join(path, "*")))
     elif any(ch in path for ch in "*?["):
@@ -46,16 +48,31 @@ def _read_any(path: str) -> pd.DataFrame:
     if not files:
         raise SystemExit(f"no files matched {path!r}")
     frames = [
-        pd.read_parquet(f) if f.endswith(".parquet") else pd.read_csv(f) for f in files
+        pd.read_parquet(f)
+        if f.endswith(".parquet")
+        else pd.read_csv(f, usecols=usecols)
+        for f in files
     ]
     return pd.concat(frames, ignore_index=True)
+
+
+_OPT_KEEP = {
+    "date",
+    "exdate",
+    "cp_flag",
+    "strike_price",
+    "strike",
+    "impl_volatility",
+    "open_interest",
+    "gamma",
+}
 
 
 def load_options(path: str) -> pd.DataFrame:
     """Normalize a WRDS OptionMetrics `Option Prices` extract to gex.py's schema: lowercases columns,
     derives `strike` from `strike_price`/1000 (IvyDB stores strikes x1000), verifies the 6 hard-required
     columns. `gamma` is OPTIONAL -- absent, gex.py computes BS gamma from `impl_volatility`."""
-    o = _read_any(path)
+    o = _read_any(path, usecols=lambda c: c.strip().lower() in _OPT_KEEP)
     o.columns = [c.lower() for c in o.columns]
     if "strike" not in o.columns and "strike_price" in o.columns:
         o["strike"] = o["strike_price"].astype(float) / 1000.0
@@ -69,7 +86,12 @@ def load_options(path: str) -> pd.DataFrame:
 
 def load_spot(path: str) -> pd.Series:
     """WRDS OptionMetrics `Security Prices` (secprd) extract -> date->close Series (index level for SPX)."""
-    s = _read_any(path)
+    s = _read_any(
+        path,
+        usecols=lambda c: (
+            c.strip().lower() in {"date", "close", "close_price", "px_close"}
+        ),
+    )
     s.columns = [c.lower() for c in s.columns]
     ccol = next(
         (c for c in ("close", "close_price", "px_close") if c in s.columns), None
@@ -143,8 +165,9 @@ def gex_for_day(day: pd.DataFrame, S: float, call_sign: float = 1.0) -> dict:
     K = day["strike"].to_numpy(float)
     sig = day["impl_volatility"].to_numpy(float)
     tau = day["tau"].to_numpy(float)
-    oi = day["open_interest"].to_numpy(float)
+    oi = np.nan_to_num(day["open_interest"].to_numpy(float), nan=0.0)
     g_iv = day["gamma"].to_numpy(float) if "gamma" in day else bs_gamma(S, K, sig, tau)
+    g_iv = np.nan_to_num(g_iv, nan=0.0)  # IvyDB gamma is NaN for ~6% deep/illiquid opts (~0 gamma)
     s = np.where(cp == "C", call_sign, -call_sign)
 
     dollar = s * g_iv * oi * MULT * S * S * 0.01
