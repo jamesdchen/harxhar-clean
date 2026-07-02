@@ -1,0 +1,29 @@
+{
+ "n_days": 4986,
+ "entry_k": 1,
+ "gate_pass": false,
+ "gate": {
+  "mean": 7.531628606155315e-07,
+  "se": 2.0156256059272513e-07,
+  "repl_frac": 0.275,
+  "fold_repl_frac": 0.0,
+  "ci_excludes_0": false,
+  "beats_placebo": false,
+  "z_vs_placebo": -3.18118688779307,
+  "n_draws": 40
+ },
+ "all_days": {
+  "sharpe_net": -0.0009003509806587186,
+  "t_net": -0.06357523570879119,
+  "mean_net_bp": -0.07524566670032928,
+  "corr_dev_restret": -0.013175124454624985,
+  "trades": 4968
+ },
+ "longgamma_only": {
+  "sharpe_net": 2.943994918762506e-05,
+  "t_net": 0.0020788023216110154,
+  "mean_net_bp": 0.0012386854665025842,
+  "corr_dev_restret": -0.013175124454624985,
+  "trades": 2822
+ }
+}
