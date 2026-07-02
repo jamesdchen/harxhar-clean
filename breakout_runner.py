@@ -25,17 +25,18 @@ W, COMP, MIN_BREAK = 6, 0.8, 0.1
 RTH0, RTH1 = time(9, 30), time(16, 0)
 
 
-def simulate_runner(h, low, c, i, j_end, direction, stop) -> float:
+def simulate_runner(h, low, c, i, j_end, direction, stop, cost=0.0) -> float:
+    """R-multiple. `cost` = round-trip cost as a FRACTION of price (spread+commission+slippage); a tight
+    structural stop makes cost_R = cost*entry/risk sizable, so it is charged on EVERY trade."""
     entry = c[i]
     risk = abs(entry - stop)
     if risk <= 0:
         return 0.0
+    cost_R = cost * entry / risk
     for j in range(i + 1, j_end + 1):
         if (direction > 0 and low[j] <= stop) or (direction < 0 and h[j] >= stop):
-            return -1.0  # structural stop hit
-    return float(
-        direction * (c[j_end] - entry) / risk
-    )  # runner: held to the session close
+            return -1.0 - cost_R  # structural stop hit
+    return float(direction * (c[j_end] - entry) / risk - cost_R)  # run to session close
 
 
 def collect(df: pd.DataFrame):
@@ -76,7 +77,7 @@ def collect(df: pd.DataFrame):
     return entries, (o, h, low, c)
 
 
-def gate_runner(entries, ohlc, phase, n_placebo=300, seed=0) -> dict:
+def gate_runner(entries, ohlc, phase, n_placebo=300, seed=0, cost=0.0) -> dict:
     """Gate using the runner P&L (structural stop + run-to-close), aggregated per day."""
     o, h, low, c = ohlc
     from jj_backtest import purged_walk_forward  # reuse the fold splitter
@@ -88,7 +89,7 @@ def gate_runner(entries, ohlc, phase, n_placebo=300, seed=0) -> dict:
                 continue
             dd = brk if dirs is None else dirs[k]
             st = stop if stops is None else stops[k]
-            R = simulate_runner(h, low, c, i, j_end, dd, st)
+            R = simulate_runner(h, low, c, i, j_end, dd, st, cost)
             byday[d] = byday.get(d, 0.0) + R
             r.append(R)
         return pd.Series(byday).sort_index(), np.array(r)
@@ -143,6 +144,12 @@ def main() -> None:
         action="store_true",
         help="split by lagged GEX regime (needs GEX overlap)",
     )
+    ap.add_argument(
+        "--cost",
+        type=float,
+        default=0.0,
+        help="round-trip cost as a fraction of price (e.g. 0.0001 = 1bp)",
+    )
     a = ap.parse_args()
     df = load_ohlc(a.data)
     entries, ohlc = collect(df)
@@ -163,7 +170,7 @@ def main() -> None:
         entries = entries + tagged
         phases = ["breakout", "bo_shortG", "bo_longG"]
     for ph in phases:
-        g = gate_runner(entries, ohlc, ph)
+        g = gate_runner(entries, ohlc, ph, cost=a.cost)
         if g.get("insufficient"):
             print(f"[{ph:10s}] n_days={g['n_days']} (too few)")
             continue
