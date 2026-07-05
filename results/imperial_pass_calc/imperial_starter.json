@@ -1,0 +1,1370 @@
+[
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "raw",
+  "p_pass": 0.95725,
+  "median_days": 50.0,
+  "cost_per_funded": 98.1979629145991,
+  "phases": [
+   {
+    "pass_rate": 0.95725,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 50.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "consist",
+  "p_pass": 0.9568,
+  "median_days": 50.0,
+  "cost_per_funded": 98.24414715719064,
+  "phases": [
+   {
+    "pass_rate": 0.9568,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 50.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "raw",
+  "p_pass": 0.954,
+  "median_days": 26.0,
+  "cost_per_funded": 98.53249475890986,
+  "phases": [
+   {
+    "pass_rate": 0.954,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 26.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "consist",
+  "p_pass": 0.9494,
+  "median_days": 27.0,
+  "cost_per_funded": 99.00990099009901,
+  "phases": [
+   {
+    "pass_rate": 0.9494,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 27.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "raw",
+  "p_pass": 0.93875,
+  "median_days": 18.0,
+  "cost_per_funded": 100.13315579227697,
+  "phases": [
+   {
+    "pass_rate": 0.93875,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 18.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "consist",
+  "p_pass": 0.92805,
+  "median_days": 19.0,
+  "cost_per_funded": 101.2876461397554,
+  "phases": [
+   {
+    "pass_rate": 0.92805,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 19.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "raw",
+  "p_pass": 0.9366,
+  "median_days": 13.0,
+  "cost_per_funded": 100.36301516122144,
+  "phases": [
+   {
+    "pass_rate": 0.9366,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 13.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "consist",
+  "p_pass": 0.9162,
+  "median_days": 16.0,
+  "cost_per_funded": 102.59768609473913,
+  "phases": [
+   {
+    "pass_rate": 0.9162,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 16.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "raw",
+  "p_pass": 0.9233,
+  "median_days": 9.0,
+  "cost_per_funded": 101.80872955702372,
+  "phases": [
+   {
+    "pass_rate": 0.9233,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 9.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "consist",
+  "p_pass": 0.8834,
+  "median_days": 13.0,
+  "cost_per_funded": 106.40706361784017,
+  "phases": [
+   {
+    "pass_rate": 0.8834,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 13.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "raw",
+  "p_pass": 0.9022,
+  "median_days": 7.0,
+  "cost_per_funded": 104.18975836843272,
+  "phases": [
+   {
+    "pass_rate": 0.9022,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 7.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "consist",
+  "p_pass": 0.84065,
+  "median_days": 11.0,
+  "cost_per_funded": 111.8182358888955,
+  "phases": [
+   {
+    "pass_rate": 0.84065,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 11.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "raw",
+  "p_pass": 0.87085,
+  "median_days": 5.0,
+  "cost_per_funded": 107.94051788482517,
+  "phases": [
+   {
+    "pass_rate": 0.87085,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 5.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "consist",
+  "p_pass": 0.7821,
+  "median_days": 9.0,
+  "cost_per_funded": 120.18923411328474,
+  "phases": [
+   {
+    "pass_rate": 0.7821,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 9.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "raw",
+  "p_pass": 0.85235,
+  "median_days": 4.0,
+  "cost_per_funded": 110.28333431102246,
+  "phases": [
+   {
+    "pass_rate": 0.85235,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 4.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "consist",
+  "p_pass": 0.74185,
+  "median_days": 8.0,
+  "cost_per_funded": 126.7102513985307,
+  "phases": [
+   {
+    "pass_rate": 0.74185,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 8.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "raw",
+  "p_pass": 0.8094,
+  "median_days": 3.0,
+  "cost_per_funded": 116.13540894489745,
+  "phases": [
+   {
+    "pass_rate": 0.8094,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 3.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "price": 94,
+  "reset": 94,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "consist",
+  "p_pass": 0.65905,
+  "median_days": 7.0,
+  "cost_per_funded": 142.62954252332904,
+  "phases": [
+   {
+    "pass_rate": 0.65905,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 7.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "raw",
+  "p_pass": 0.97905,
+  "median_days": 116.0,
+  "cost_per_funded": 130.7389816659006,
+  "phases": [
+   {
+    "pass_rate": 0.97905,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 116.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "consist",
+  "p_pass": 0.9786,
+  "median_days": 117.0,
+  "cost_per_funded": 130.7991007561823,
+  "phases": [
+   {
+    "pass_rate": 0.9786,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 117.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "raw",
+  "p_pass": 0.94835,
+  "median_days": 59.0,
+  "cost_per_funded": 134.97126588284917,
+  "phases": [
+   {
+    "pass_rate": 0.94835,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 59.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "consist",
+  "p_pass": 0.94775,
+  "median_days": 60.0,
+  "cost_per_funded": 135.05671326826695,
+  "phases": [
+   {
+    "pass_rate": 0.94775,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 60.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "raw",
+  "p_pass": 0.94495,
+  "median_days": 40.0,
+  "cost_per_funded": 135.4569024816128,
+  "phases": [
+   {
+    "pass_rate": 0.94495,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 40.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "consist",
+  "p_pass": 0.94255,
+  "median_days": 41.0,
+  "cost_per_funded": 135.80181422736194,
+  "phases": [
+   {
+    "pass_rate": 0.94255,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 41.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "raw",
+  "p_pass": 0.9451,
+  "median_days": 31.0,
+  "cost_per_funded": 135.43540366098824,
+  "phases": [
+   {
+    "pass_rate": 0.9451,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 31.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "consist",
+  "p_pass": 0.94115,
+  "median_days": 31.0,
+  "cost_per_funded": 136.00382510758115,
+  "phases": [
+   {
+    "pass_rate": 0.94115,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 31.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "raw",
+  "p_pass": 0.92845,
+  "median_days": 21.0,
+  "cost_per_funded": 137.8641822392159,
+  "phases": [
+   {
+    "pass_rate": 0.92845,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 21.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "consist",
+  "p_pass": 0.9196,
+  "median_days": 22.0,
+  "cost_per_funded": 139.19095258808179,
+  "phases": [
+   {
+    "pass_rate": 0.9196,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 22.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "raw",
+  "p_pass": 0.92545,
+  "median_days": 16.0,
+  "cost_per_funded": 138.31109190123723,
+  "phases": [
+   {
+    "pass_rate": 0.92545,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 16.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "consist",
+  "p_pass": 0.90835,
+  "median_days": 18.0,
+  "cost_per_funded": 140.91484559916333,
+  "phases": [
+   {
+    "pass_rate": 0.90835,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 18.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "raw",
+  "p_pass": 0.9118,
+  "median_days": 11.0,
+  "cost_per_funded": 140.38166264531694,
+  "phases": [
+   {
+    "pass_rate": 0.9118,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 11.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "consist",
+  "p_pass": 0.87565,
+  "median_days": 14.0,
+  "cost_per_funded": 146.17712556386684,
+  "phases": [
+   {
+    "pass_rate": 0.87565,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 14.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "raw",
+  "p_pass": 0.88885,
+  "median_days": 8.0,
+  "cost_per_funded": 144.00630027563705,
+  "phases": [
+   {
+    "pass_rate": 0.88885,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 8.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "consist",
+  "p_pass": 0.83385,
+  "median_days": 12.0,
+  "cost_per_funded": 153.5048270072555,
+  "phases": [
+   {
+    "pass_rate": 0.83385,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 12.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "raw",
+  "p_pass": 0.85685,
+  "median_days": 6.0,
+  "cost_per_funded": 149.38437299410631,
+  "phases": [
+   {
+    "pass_rate": 0.85685,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 6.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "price": 128,
+  "reset": 128,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "consist",
+  "p_pass": 0.7733,
+  "median_days": 10.0,
+  "cost_per_funded": 165.52437605069184,
+  "phases": [
+   {
+    "pass_rate": 0.7733,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 10.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "raw",
+  "p_pass": 0.9657,
+  "median_days": 227.0,
+  "cost_per_funded": 203.99710054882468,
+  "phases": [
+   {
+    "pass_rate": 0.9657,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 227.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "consist",
+  "p_pass": 0.96535,
+  "median_days": 227.0,
+  "cost_per_funded": 204.0710623090071,
+  "phases": [
+   {
+    "pass_rate": 0.96535,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 227.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "raw",
+  "p_pass": 0.94845,
+  "median_days": 116.0,
+  "cost_per_funded": 207.70731192999102,
+  "phases": [
+   {
+    "pass_rate": 0.94845,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 116.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "consist",
+  "p_pass": 0.9478,
+  "median_days": 117.0,
+  "cost_per_funded": 207.84975733277062,
+  "phases": [
+   {
+    "pass_rate": 0.9478,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 117.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "raw",
+  "p_pass": 0.93085,
+  "median_days": 78.0,
+  "cost_per_funded": 211.63452758231725,
+  "phases": [
+   {
+    "pass_rate": 0.93085,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 78.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "consist",
+  "p_pass": 0.9299,
+  "median_days": 78.0,
+  "cost_per_funded": 211.85073663834822,
+  "phases": [
+   {
+    "pass_rate": 0.9299,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 78.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "raw",
+  "p_pass": 0.9329,
+  "median_days": 59.0,
+  "cost_per_funded": 211.16947154035805,
+  "phases": [
+   {
+    "pass_rate": 0.9329,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 59.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "consist",
+  "p_pass": 0.9315,
+  "median_days": 60.0,
+  "cost_per_funded": 211.48684916800858,
+  "phases": [
+   {
+    "pass_rate": 0.9315,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 60.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "raw",
+  "p_pass": 0.9261,
+  "median_days": 40.0,
+  "cost_per_funded": 212.720008638376,
+  "phases": [
+   {
+    "pass_rate": 0.9261,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 40.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "consist",
+  "p_pass": 0.92355,
+  "median_days": 40.0,
+  "cost_per_funded": 213.30734665150777,
+  "phases": [
+   {
+    "pass_rate": 0.92355,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 40.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "raw",
+  "p_pass": 0.90465,
+  "median_days": 30.0,
+  "cost_per_funded": 217.76377604598466,
+  "phases": [
+   {
+    "pass_rate": 0.90465,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 30.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "consist",
+  "p_pass": 0.90115,
+  "median_days": 31.0,
+  "cost_per_funded": 218.60955445819232,
+  "phases": [
+   {
+    "pass_rate": 0.90115,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 31.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "raw",
+  "p_pass": 0.9028,
+  "median_days": 21.0,
+  "cost_per_funded": 218.2100132919805,
+  "phases": [
+   {
+    "pass_rate": 0.9028,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 21.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "consist",
+  "p_pass": 0.89115,
+  "median_days": 22.0,
+  "cost_per_funded": 221.06267182853617,
+  "phases": [
+   {
+    "pass_rate": 0.89115,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 22.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "raw",
+  "p_pass": 0.89615,
+  "median_days": 16.0,
+  "cost_per_funded": 219.82926965351783,
+  "phases": [
+   {
+    "pass_rate": 0.89615,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 16.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "consist",
+  "p_pass": 0.8723,
+  "median_days": 18.0,
+  "cost_per_funded": 225.83973403645535,
+  "phases": [
+   {
+    "pass_rate": 0.8723,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 18.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "raw",
+  "p_pass": 0.8633,
+  "median_days": 11.0,
+  "cost_per_funded": 228.19413876983668,
+  "phases": [
+   {
+    "pass_rate": 0.8633,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 11.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "price": 197,
+  "reset": 197,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "consist",
+  "p_pass": 0.8161,
+  "median_days": 14.0,
+  "cost_per_funded": 241.39198627619163,
+  "phases": [
+   {
+    "pass_rate": 0.8161,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 14.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "raw",
+  "p_pass": 1.0,
+  "median_days": 931.5,
+  "cost_per_funded": 434.0,
+  "phases": [
+   {
+    "pass_rate": 1.0,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 931.5
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.25,
+  "daily_std": 100.0,
+  "variant": "consist",
+  "p_pass": 1.0,
+  "median_days": 931.5,
+  "cost_per_funded": 434.0,
+  "phases": [
+   {
+    "pass_rate": 1.0,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 931.5
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "raw",
+  "p_pass": 0.9998,
+  "median_days": 469.0,
+  "cost_per_funded": 434.0868173634727,
+  "phases": [
+   {
+    "pass_rate": 0.9998,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 469.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.5,
+  "daily_std": 200.0,
+  "variant": "consist",
+  "p_pass": 0.9998,
+  "median_days": 469.0,
+  "cost_per_funded": 434.0868173634727,
+  "phases": [
+   {
+    "pass_rate": 0.9998,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 469.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "raw",
+  "p_pass": 0.9992,
+  "median_days": 315.0,
+  "cost_per_funded": 434.3474779823859,
+  "phases": [
+   {
+    "pass_rate": 0.9992,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 315.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 0.75,
+  "daily_std": 300.0,
+  "variant": "consist",
+  "p_pass": 0.9992,
+  "median_days": 315.0,
+  "cost_per_funded": 434.3474779823859,
+  "phases": [
+   {
+    "pass_rate": 0.9992,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 315.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "raw",
+  "p_pass": 0.95725,
+  "median_days": 236.0,
+  "cost_per_funded": 453.382084095064,
+  "phases": [
+   {
+    "pass_rate": 0.95725,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 236.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 1.0,
+  "daily_std": 400.0,
+  "variant": "consist",
+  "p_pass": 0.95675,
+  "median_days": 236.0,
+  "cost_per_funded": 453.6190227332114,
+  "phases": [
+   {
+    "pass_rate": 0.95675,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 236.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "raw",
+  "p_pass": 0.92685,
+  "median_days": 160.0,
+  "cost_per_funded": 468.2526838215461,
+  "phases": [
+   {
+    "pass_rate": 0.92685,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 160.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 1.5,
+  "daily_std": 600.0,
+  "variant": "consist",
+  "p_pass": 0.92645,
+  "median_days": 160.0,
+  "cost_per_funded": 468.4548545523234,
+  "phases": [
+   {
+    "pass_rate": 0.92645,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 160.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "raw",
+  "p_pass": 0.90815,
+  "median_days": 120.0,
+  "cost_per_funded": 477.8946209326653,
+  "phases": [
+   {
+    "pass_rate": 0.90815,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 120.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 2.0,
+  "daily_std": 800.0,
+  "variant": "consist",
+  "p_pass": 0.9073,
+  "median_days": 121.0,
+  "cost_per_funded": 478.34233439876556,
+  "phases": [
+   {
+    "pass_rate": 0.9073,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 121.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "raw",
+  "p_pass": 0.90615,
+  "median_days": 81.0,
+  "cost_per_funded": 478.94940131324836,
+  "phases": [
+   {
+    "pass_rate": 0.90615,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 81.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 3.0,
+  "daily_std": 1200.0,
+  "variant": "consist",
+  "p_pass": 0.90495,
+  "median_days": 81.0,
+  "cost_per_funded": 479.5845074313498,
+  "phases": [
+   {
+    "pass_rate": 0.90495,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 81.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "raw",
+  "p_pass": 0.90945,
+  "median_days": 61.0,
+  "cost_per_funded": 477.2115014569245,
+  "phases": [
+   {
+    "pass_rate": 0.90945,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 61.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 4.0,
+  "daily_std": 1600.0,
+  "variant": "consist",
+  "p_pass": 0.90815,
+  "median_days": 62.0,
+  "cost_per_funded": 477.8946209326653,
+  "phases": [
+   {
+    "pass_rate": 0.90815,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 62.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "raw",
+  "p_pass": 0.9014,
+  "median_days": 42.0,
+  "cost_per_funded": 481.47326381184826,
+  "phases": [
+   {
+    "pass_rate": 0.9014,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 42.0
+   }
+  ]
+ },
+ {
+  "family": "starter",
+  "size": 250000,
+  "price": 434,
+  "reset": 434,
+  "mult": 6.0,
+  "daily_std": 2400.0,
+  "variant": "consist",
+  "p_pass": 0.89945,
+  "median_days": 42.0,
+  "cost_per_funded": 482.51709377953193,
+  "phases": [
+   {
+    "pass_rate": 0.89945,
+    "timeout_rate": 0.0,
+    "median_steps_pass": 42.0
+   }
+  ]
+ }
+]

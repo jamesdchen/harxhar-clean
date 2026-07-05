@@ -1,0 +1,290 @@
+[
+ {
+  "family": "starter",
+  "size": 25000,
+  "mult": 0.5,
+  "p_first_payout": 0.971,
+  "timeout": 0.0,
+  "median_days": 26.0
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "mult": 1.0,
+  "p_first_payout": 0.96955,
+  "timeout": 0.0,
+  "median_days": 14.0
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "mult": 2.0,
+  "p_first_payout": 0.9564,
+  "timeout": 0.0,
+  "median_days": 7.0
+ },
+ {
+  "family": "starter",
+  "size": 25000,
+  "mult": 3.0,
+  "p_first_payout": 0.9336,
+  "timeout": 0.0,
+  "median_days": 5.0
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "mult": 0.5,
+  "p_first_payout": 0.98945,
+  "timeout": 0.0,
+  "median_days": 59.0
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "mult": 1.0,
+  "p_first_payout": 0.9674,
+  "timeout": 0.0,
+  "median_days": 31.0
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "mult": 2.0,
+  "p_first_payout": 0.96505,
+  "timeout": 0.0,
+  "median_days": 16.0
+ },
+ {
+  "family": "starter",
+  "size": 50000,
+  "mult": 3.0,
+  "p_first_payout": 0.95745,
+  "timeout": 0.0,
+  "median_days": 11.0
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "mult": 0.5,
+  "p_first_payout": 0.98275,
+  "timeout": 0.0,
+  "median_days": 116.0
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "mult": 1.0,
+  "p_first_payout": 0.97985,
+  "timeout": 0.0,
+  "median_days": 59.0
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "mult": 2.0,
+  "p_first_payout": 0.96375,
+  "timeout": 0.0,
+  "median_days": 31.0
+ },
+ {
+  "family": "starter",
+  "size": 100000,
+  "mult": 3.0,
+  "p_first_payout": 0.9579,
+  "timeout": 0.0,
+  "median_days": 21.0
+ },
+ {
+  "family": "elite",
+  "size": 25000,
+  "mult": 0.5,
+  "p_first_payout": 0.98565,
+  "timeout": 0.0,
+  "median_days": 50.0
+ },
+ {
+  "family": "elite",
+  "size": 25000,
+  "mult": 1.0,
+  "p_first_payout": 0.96875,
+  "timeout": 0.0,
+  "median_days": 26.0
+ },
+ {
+  "family": "elite",
+  "size": 25000,
+  "mult": 2.0,
+  "p_first_payout": 0.9641,
+  "timeout": 0.0,
+  "median_days": 13.0
+ },
+ {
+  "family": "elite",
+  "size": 25000,
+  "mult": 3.0,
+  "p_first_payout": 0.95705,
+  "timeout": 0.0,
+  "median_days": 9.0
+ },
+ {
+  "family": "elite",
+  "size": 50000,
+  "mult": 0.5,
+  "p_first_payout": 0.98595,
+  "timeout": 0.0,
+  "median_days": 106.0
+ },
+ {
+  "family": "elite",
+  "size": 50000,
+  "mult": 1.0,
+  "p_first_payout": 0.985,
+  "timeout": 0.0,
+  "median_days": 55.0
+ },
+ {
+  "family": "elite",
+  "size": 50000,
+  "mult": 2.0,
+  "p_first_payout": 0.9667,
+  "timeout": 0.0,
+  "median_days": 28.0
+ },
+ {
+  "family": "elite",
+  "size": 50000,
+  "mult": 3.0,
+  "p_first_payout": 0.96665,
+  "timeout": 0.0,
+  "median_days": 19.0
+ },
+ {
+  "family": "elite",
+  "size": 100000,
+  "mult": 0.5,
+  "p_first_payout": 0.99955,
+  "timeout": 0.0,
+  "median_days": 210.0
+ },
+ {
+  "family": "elite",
+  "size": 100000,
+  "mult": 1.0,
+  "p_first_payout": 0.98595,
+  "timeout": 0.0,
+  "median_days": 106.0
+ },
+ {
+  "family": "elite",
+  "size": 100000,
+  "mult": 2.0,
+  "p_first_payout": 0.98505,
+  "timeout": 0.0,
+  "median_days": 55.0
+ },
+ {
+  "family": "elite",
+  "size": 100000,
+  "mult": 3.0,
+  "p_first_payout": 0.97125,
+  "timeout": 0.0,
+  "median_days": 37.0
+ },
+ {
+  "family": "foundation",
+  "size": 25000,
+  "mult": 0.5,
+  "p_first_payout": 0.9799,
+  "timeout": 0.0,
+  "median_days": 19.0
+ },
+ {
+  "family": "foundation",
+  "size": 25000,
+  "mult": 1.0,
+  "p_first_payout": 0.9783,
+  "timeout": 0.0,
+  "median_days": 10.0
+ },
+ {
+  "family": "foundation",
+  "size": 25000,
+  "mult": 2.0,
+  "p_first_payout": 0.966,
+  "timeout": 0.0,
+  "median_days": 5.0
+ },
+ {
+  "family": "foundation",
+  "size": 25000,
+  "mult": 3.0,
+  "p_first_payout": 0.9457,
+  "timeout": 0.0,
+  "median_days": 4.0
+ },
+ {
+  "family": "foundation",
+  "size": 50000,
+  "mult": 0.5,
+  "p_first_payout": 0.9937,
+  "timeout": 0.0,
+  "median_days": 36.0
+ },
+ {
+  "family": "foundation",
+  "size": 50000,
+  "mult": 1.0,
+  "p_first_payout": 0.9799,
+  "timeout": 0.0,
+  "median_days": 19.0
+ },
+ {
+  "family": "foundation",
+  "size": 50000,
+  "mult": 2.0,
+  "p_first_payout": 0.9783,
+  "timeout": 0.0,
+  "median_days": 10.0
+ },
+ {
+  "family": "foundation",
+  "size": 50000,
+  "mult": 3.0,
+  "p_first_payout": 0.97125,
+  "timeout": 0.0,
+  "median_days": 7.0
+ },
+ {
+  "family": "foundation",
+  "size": 100000,
+  "mult": 0.5,
+  "p_first_payout": 0.9915,
+  "timeout": 0.0,
+  "median_days": 69.0
+ },
+ {
+  "family": "foundation",
+  "size": 100000,
+  "mult": 1.0,
+  "p_first_payout": 0.9937,
+  "timeout": 0.0,
+  "median_days": 36.0
+ },
+ {
+  "family": "foundation",
+  "size": 100000,
+  "mult": 2.0,
+  "p_first_payout": 0.9799,
+  "timeout": 0.0,
+  "median_days": 19.0
+ },
+ {
+  "family": "foundation",
+  "size": 100000,
+  "mult": 3.0,
+  "p_first_payout": 0.9824,
+  "timeout": 0.0,
+  "median_days": 13.0
+ }
+]

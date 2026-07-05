@@ -52,3 +52,4 @@ results/moe_ladder/preds/
 
 # every-bar window-ablation per-bar losses (large; regenerable by re-harvesting from the cluster / winablate_r1.py)
 results/winablate_full/*_lossbar.npz
+data/om_friction/*.parquet
