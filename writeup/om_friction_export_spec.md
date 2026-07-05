@@ -51,6 +51,25 @@ Use the **honest** signal variant (causal fitted HAR+VIX/VVIX baseline, bd22177 
 Plus: residual delta hedged in underlying at entry and exit, 1 bp each way; $0.65/contract
 commission (prop sims typically pass through ~retail rates — confirm with venue later).
 
+## Addendum 2026-07-04: VIX-options export (the last unclosed residual)
+
+Tests the ONE untested channel: expressing the signed overnight ΔVIX prediction (NW-t +6.59,
+gross 0.376 pts/traded-day) via listed VIX index options — the only VIX-derivative an
+ETNA-class equities/options venue could carry. Expectation: negative (futures-beta dilution
+~0.5 + vol-of-vol premium + ~0.05/leg spreads), but it closes by measurement not arithmetic.
+
+1. **secid lookup:** OptionMetrics Security File (`securd`), ticker `VIX`, index_flag=1
+   (likely 102456 — verify in the form).
+2. **Option prices (`opprcd`):** that secid, 2006-02-24 (VIX options listing) → latest,
+   same fields as before, **DTE ≤ 40** (monthlies pre-2015; weeklies after).
+3. **Security prices (`secprd`):** same secid (VIX index level).
+4. Land as `data/om_friction/vix_opprcd.csv.gz`, `vix_secprd.csv.gz`.
+
+Driver: `vix_option_friction.py` — DIRECTIONAL (not straddle): signal>0 → long ATM puts,
+signal<0 → long ATM calls, sized w/|delta|, enter close t exit close t+1 at real mids ± tier
+spreads. Note VIX options price the FORWARD (VX future) — the forward's overnight move is
+~0.4–0.5 of spot ΔVIX; the test measures that dilution implicitly since quotes are real.
+
 ## Readouts
 
 1. **Gross option-space Sharpe** (mid fills) — tests RV−HAR ⇒ RV−implied transfer
