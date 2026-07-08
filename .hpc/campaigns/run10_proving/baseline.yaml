@@ -1,0 +1,18 @@
+model: ridge
+
+# Run-#10 proving campaign, arm 1/2: the deployed baseline UNMODIFIED
+# (configs/ridge_market_ew_prod.yaml, last touched 9b8131b) — only
+# output_file is redirected so the campaign never clobbers the deployed
+# artifact. Mirrors the audited specs/run10_known_answer.py baseline cell.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret2_ewstock|sumret3_ewstock|sumret4_ewstock|sumabsret_ewstock|sumbipow_ewstock|sumpret2_ewstock"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: data
+output_file: results/run10_proving/baseline/run.json
+params_file: ""
+overnight_fill: true

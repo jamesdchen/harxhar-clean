@@ -344,8 +344,25 @@ def _build_tasks_resid() -> list[dict]:
     return tasks
 
 
+def _build_tasks_run10() -> list[dict]:
+    """Run-#10 proving campaign (Path A fixed grid): the audited known-answer
+    pair — the deployed ridge_market_ew_prod arm and the HAR-only candidate
+    (config-varied only; mirrors specs/run10_known_answer.py). Two tasks, no
+    optimizer, no stochastic marker (a fixed grid never repeats a cmd). ``arm``
+    keys the per-task result dir (result_dir_template's placeholder); the
+    free-form scope-lock tags ride the submit spec's ``scopes`` field."""
+    d = Path(f".hpc/campaigns/{CID}")
+    return [
+        {"config": (d / "baseline.yaml").as_posix(), "arm": "baseline"},
+        {"config": (d / "candidate.yaml").as_posix(), "arm": "candidate"},
+    ]
+
+
 try:
-    _TASKS = _build_tasks_resid() if OBJECTIVE == "residualized" else _build_tasks()
+    if CID == "run10_proving":
+        _TASKS = _build_tasks_run10()
+    else:
+        _TASKS = _build_tasks_resid() if OBJECTIVE == "residualized" else _build_tasks()
 except Exception:
     # A bare import of this strategy file with NO campaign context — e.g. the
     # cluster status reporter importing tasks.py to report an UNRELATED run —
