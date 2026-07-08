@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/01_loading.ipynb. Do not edit by hand.
-
 """Standalone data loading module for volatility forecasting.
 
 Loads raw parquet data, builds a 30-min grid, filters market hours,
@@ -186,6 +184,17 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
         if not parquet_files:
             raise FileNotFoundError(f"No .parquet files found in {data_path}")
         frames = [pd.read_parquet(os.path.join(data_path, f)) for f in parquet_files]
+        # Directory mode merges on endbartime; parquets without that key are
+        # not bar-panel families (e.g. the OptionMetrics chain/spot exports,
+        # which are date/option keyed and loaded by their own consumers) —
+        # skip them loudly instead of dying in the reduce-merge below.
+        keyed = [(f, fr) for f, fr in zip(parquet_files, frames) if "endbartime" in fr.columns]
+        skipped = [f for f, fr in zip(parquet_files, frames) if "endbartime" not in fr.columns]
+        if skipped and len(frames) > 1:
+            print(f"load_raw_data: skipping non-bar-keyed parquet(s): {', '.join(skipped)}")
+            frames = [fr for _, fr in keyed]
+            if not frames:
+                raise FileNotFoundError(f"No endbartime-keyed .parquet files in {data_path}")
 
     # ── 2. Merge on endbartime (outer join) ────────────────────────────
     if len(frames) == 1:
