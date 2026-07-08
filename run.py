@@ -84,6 +84,17 @@ def main(argv: list[str] | None = None) -> int:
     model = config.pop("model")
     params = _apply_overrides(config, args.override)
 
+    # Under the hpc-agent dispatcher, per-task outputs must land in the
+    # write-isolation dir it exports as $HPC_RESULT_DIR (renamed into the
+    # run's result_dir only on success — an executor that writes anywhere
+    # else is treated as having produced no output). Outside the dispatcher
+    # the config's output_file applies unchanged.
+    result_dir = os.environ.get("HPC_RESULT_DIR")
+    if result_dir and "output_file" in params:
+        params["output_file"] = os.path.join(
+            result_dir, os.path.basename(str(params["output_file"]))
+        )
+
     module = importlib.import_module(f"src.models.{model}")
 
     if hasattr(module, "run"):
