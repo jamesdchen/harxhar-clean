@@ -1,2 +1,8 @@
 # Normalize line endings: LF in repo, native on checkout
 * text=auto
+
+# Sha-sealed by packs/quant/manifest.json (swept docs referenced in place):
+# byte-verbatim, no line-ending translation, or checkout breaks the seal.
+writeup/idea_to_trade_pipeline_v2_*.md -text
+writeup/idea_to_trade_system_design_*.md -text
+writeup/pipeline_v2_unsigned_slots_*.md -text
