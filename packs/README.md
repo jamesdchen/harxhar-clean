@@ -171,3 +171,17 @@ See the provenance headers in both template files.
 5. **Opt-in** — both packs ARE wired into this repo's `interview.json` (`packs`
    block lists quant + rv; `receipt_bindings: [{slot: "quant-audit", pack:
    "quant"}]`), so the submit gate requires a current `quant-audit` receipt.
+
+## Distribution model — SUPERSEDED note (2026-07-10 user ruling)
+
+The sibling layout above is now transitional. The ruled three-tier model
+(recorded in hpc-agent `docs/design/domain-packs.md` drift log, 2026-07-10):
+the `quant` DOMAIN pack ships upstream in the hpc-agent repo; each lab's
+distro carries its own lab bindings (this repo's `rv` = the working
+precedent, a lab fork of the skeleton); each experiment's `.hpc/` gets the
+lab pack MATERIALIZED at setup, pinning the skeleton's sections per
+experiment. Program templates are DERIVATIVES of the domain skeletons —
+`rv_audit.py` gains a `derived_from` record naming the skeleton version+sha
+it instantiates (the quant-audit receipt is already the conformance
+attestation). Migration rides the post-run-#12 batch; nothing here moves
+mid-run.
