@@ -1,25 +1,27 @@
-"""Build (regenerate) the quant DOMAIN pack manifest.
+"""Build (regenerate) the rv PROGRAM pack manifest — the "sweep docs at pack build" step.
 
-v0.2.0 (the two-layer split): the quant pack is now the DOMAIN layer and seals
-ONLY domain files — the research-content-free skeleton and the structural check.
-It sweeps NO lab writeup docs and pins NO reader vocabulary; those are lab/program
-content and moved DOWN to the rv program pack (packs/rv/, built by
-build_rv_pack.py, which keeps the "sweep docs at pack build" flow). ``sweep.json``
-here therefore carries an empty ``sweep`` list — this build step just recomputes
-the raw-bytes SHA-256 of the pack's own declaration files and writes
-``manifest.json``. The generic sweep machinery below is retained (it degenerates
-cleanly on an empty glob list) so the domain layer can seal a doc later without a
-code change.
+The rv pack is the realized-volatility TARGET-PROGRAM layer (below the quant
+domain layer). It is the seat that KEEPS the lab content the two-layer split moved
+down out of the domain pack: the concrete audit template
+(``templates/rv_audit.py``), the pinned data-loader vocabulary
+(``vocab/readers.json``), and the swept lab writeup docs.
+
+The user's standing rule (memory 2026-07-07): the program pack SWEEPS the lab's
+writeup docs at build time. domain-packs.md defines no dedicated sweep mechanism,
+so the pack-side realization is the manifest integrity set: this build step
+gathers (a) the pack's own declaration/template/vocab files and (b) the swept
+writeup docs (``sweep.json`` globs, referenced IN PLACE via ``../../writeup/...``
+relpaths), recomputes every file's raw-bytes SHA-256, and writes ``manifest.json``.
 
 Binding the resulting manifest (``hpc-agent pack-bind``) SEALS which lab docs the
-domain standards were drafted from: edit a swept writeup doc and the on-disk sha
+program standards were drafted from: edit a swept writeup doc and the on-disk sha
 no longer matches, so the next bind/gate reads drift and revokes every clearance
 signed under the old standards (domain-packs.md, "Re-bind = drift"). Re-running
 this build re-sweeps and moves the shas — the honest "edit standards -> rebuild
 -> re-bind" flow, at pack-build granularity.
 
-Run from anywhere:  python packs/quant/build_quant_pack.py [--check]
-  (no args)  rewrite packs/quant/manifest.json from the on-disk shas
+Run from anywhere:  python packs/rv/build_rv_pack.py [--check]
+  (no args)  rewrite packs/rv/manifest.json from the on-disk shas
   --check    fail (exit 1) if the manifest is stale, writing nothing (CI use)
 
 sweep.json is the build RECIPE, not sealed content; it is deliberately absent
@@ -83,9 +85,9 @@ def main(argv: list[str]) -> int:
     if "--check" in argv:
         current = MANIFEST.read_text(encoding="utf-8") if MANIFEST.exists() else ""
         if current != text:
-            print("quant pack manifest is STALE — run: python packs/quant/build_quant_pack.py")
+            print("rv pack manifest is STALE — run: python packs/rv/build_rv_pack.py")
             return 1
-        print("quant pack manifest is current.")
+        print("rv pack manifest is current.")
         return 0
     MANIFEST.write_text(text, encoding="utf-8")
     swept = [f["path"] for f in manifest["files"] if f["path"].startswith("../")]

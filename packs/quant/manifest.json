@@ -1,37 +1,20 @@
 {
   "files": [
     {
-      "path": "../../writeup/idea_to_trade_pipeline_v2_2026-07-07.md",
-      "sha256": "188d7e9d4261b516d55d2a96480478c4210336319aa49991d7062ad4705c05a5"
-    },
-    {
-      "path": "../../writeup/idea_to_trade_system_design_2026-07-02.md",
-      "sha256": "f3b01908e200d9a967f621267faff12ac119fdc2cbca74634208ae2e47a515b5"
-    },
-    {
-      "path": "../../writeup/pipeline_v2_unsigned_slots_PROPOSALS_2026-07-07.md",
-      "sha256": "30c1ca036fc677d5623c078d1652d6b0a9abd0577069bb7494e1265d7b2ddbf3"
-    },
-    {
       "path": "check/check_quant.py",
-      "sha256": "4d1077688725f8e2b5ff9c74af5b6dcee5469a9250fef30d0c271780ec6098a9"
+      "sha256": "e1c675383e5f2c629413d32d815c64f40bdbae4520a651033ea343ffdf03a209"
     },
     {
-      "path": "templates/quant_audit.py",
-      "sha256": "4c61a7a4e4733cd9f7cbff9d8ebb3608b678bdbbf0c6b7884dd4c3e151527873"
-    },
-    {
-      "path": "vocab/readers.json",
-      "sha256": "c79f7c6cbd51674f6f31106ef39249ece072e5abcefdacf385e5da7029053459"
+      "path": "templates/quant_skeleton.py",
+      "sha256": "dfac68f1137855a714e28bb027dced692f220d89bcff00b1230da461b8bb76e4"
     }
   ],
   "fills_slots": [
-    "rv-audit"
+    "quant-audit"
   ],
   "name": "quant",
   "seams": {
-    "audit_template": "templates/quant_audit.py",
-    "reader_calls": "vocab/readers.json"
+    "audit_template": "templates/quant_skeleton.py"
   },
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

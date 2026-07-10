@@ -59,9 +59,14 @@
       "receipt_bindings": [
         {
           "pack": "quant",
-          "slot": "rv-audit"
+          "slot": "quant-audit"
         }
       ]
+    },
+    {
+      "manifest": "packs/rv/manifest.json",
+      "pack": "rv",
+      "receipt_bindings": []
     }
   ],
   "produced_by": {

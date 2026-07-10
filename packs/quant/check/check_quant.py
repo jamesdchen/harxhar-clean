@@ -6,26 +6,41 @@ sha-bound CODE receipt via ``hpc-agent pack-record-receipt``. The pack's own CI
 (or the experiment env) runs this; core only ever weighs the resulting receipt,
 which reads stale the instant any checked byte drifts.
 
-The check here is STRUCTURAL, not a research judgment: the S4 audit template must
-carry every expected ``hpc-audit-section`` slug as an order-preserving presence.
-The slug list is the SIGNED run10 5-slug inventory (data-selection ->
+The check here is STRUCTURAL, not a research judgment: the ACTIVE audit template
+must carry every expected ``hpc-audit-section`` slug as an order-preserving
+presence. The slug list is the 5-slug domain inventory (data-selection ->
 target-construction -> feature-construction -> baseline -> metrics). No research
 content is asserted; the verdict is a mechanical boolean the receipt records.
+
+PARAMETERIZED (v0.2.0, the two-layer split): the template being checked is an
+INPUT, not hard-wired. The domain check verifies whichever ACTIVE program
+template a repo runs; the DEFAULT is the rv program pack's template
+(``packs/rv/templates/rv_audit.py``). The receipt is recorded under the QUANT
+pack's bind and fills the ``quant-audit`` DOMAIN slot — the slot names the
+domain clearance; the concrete program identity rides the checked template's sha
+echo on the receipt.
+
+Usage:
+    python packs/quant/check/check_quant.py [--experiment-dir DIR] [--template REL]
+      --experiment-dir  experiment repo root (default: cwd)
+      --template        experiment-relative path to the ACTIVE audit template
+                        (default: packs/rv/templates/rv_audit.py)
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 _PACK = "quant"
-_SLOT = "rv-audit"
-_TEMPLATE_REL = "packs/quant/templates/quant_audit.py"
+_SLOT = "quant-audit"
+_DEFAULT_TEMPLATE_REL = "packs/rv/templates/rv_audit.py"
 
-# The signed run10 5-slug inventory (order-preserving). Post-signature swap to the
-# 12-slug specs/audit_template_rv.py inventory happens together with the seat swap.
+# The 5-slug domain inventory (order-preserving). Post-signature swap to the
+# 12-slug inventory happens together with the seat swap (see packs/README.md).
 _EXPECTED_SECTIONS = (
     "data-selection",
     "target-construction",
@@ -48,15 +63,31 @@ def check_sections(template: Path) -> bool:
     return True
 
 
-def main() -> int:
-    experiment_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
-    passed = check_sections(experiment_dir / _TEMPLATE_REL)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Quant domain structural check.")
+    parser.add_argument("--experiment-dir", default=".", help="experiment repo root")
+    parser.add_argument(
+        "--template",
+        default=_DEFAULT_TEMPLATE_REL,
+        help="experiment-relative path to the active audit template",
+    )
+    # Back-compat: accept a bare positional experiment dir (the v0.1.0 call form).
+    parser.add_argument("experiment_dir_pos", nargs="?", default=None, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+
+    experiment_dir = Path(args.experiment_dir_pos or args.experiment_dir)
+    template_rel = args.template
+    passed = check_sections(experiment_dir / template_rel)
     spec = {
         "pack": _PACK,
         "slot": _SLOT,
-        "checked": [_TEMPLATE_REL],
+        "checked": [template_rel],
         "passed": passed,
-        "evidence": {"checker": "check_sections", "sections_in_order": passed},
+        "evidence": {
+            "checker": "check_sections",
+            "template": template_rel,
+            "sections_in_order": passed,
+        },
     }
     spec_path = experiment_dir / ".hpc" / "quant_receipt_spec.json"
     spec_path.parent.mkdir(parents=True, exist_ok=True)
@@ -74,4 +105,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

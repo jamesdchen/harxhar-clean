@@ -1,19 +1,13 @@
 {
   "name": "quant",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "seams": {
-    "audit_template": "templates/quant_audit.py",
-    "reader_calls": "vocab/readers.json"
+    "audit_template": "templates/quant_skeleton.py"
   },
-  "fills_slots": ["rv-audit"],
+  "fills_slots": ["quant-audit"],
   "pack_files": [
-    "vocab/readers.json",
-    "templates/quant_audit.py",
+    "templates/quant_skeleton.py",
     "check/check_quant.py"
   ],
-  "sweep": [
-    "../../writeup/idea_to_trade_pipeline_v2_*.md",
-    "../../writeup/idea_to_trade_system_design_*.md",
-    "../../writeup/pipeline_v2_unsigned_slots_*.md"
-  ]
+  "sweep": []
 }

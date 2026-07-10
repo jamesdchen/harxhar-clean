@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "../../writeup/idea_to_trade_pipeline_v2_2026-07-07.md",
+      "sha256": "188d7e9d4261b516d55d2a96480478c4210336319aa49991d7062ad4705c05a5"
+    },
+    {
+      "path": "../../writeup/idea_to_trade_system_design_2026-07-02.md",
+      "sha256": "f3b01908e200d9a967f621267faff12ac119fdc2cbca74634208ae2e47a515b5"
+    },
+    {
+      "path": "../../writeup/pipeline_v2_unsigned_slots_PROPOSALS_2026-07-07.md",
+      "sha256": "30c1ca036fc677d5623c078d1652d6b0a9abd0577069bb7494e1265d7b2ddbf3"
+    },
+    {
+      "path": "templates/rv_audit.py",
+      "sha256": "00b91521015f2d34a1cc55ce931a4d730428b0904b8c3506fd059b232879b909"
+    },
+    {
+      "path": "vocab/readers.json",
+      "sha256": "c79f7c6cbd51674f6f31106ef39249ece072e5abcefdacf385e5da7029053459"
+    }
+  ],
+  "fills_slots": [],
+  "name": "rv",
+  "seams": {
+    "audit_template": "templates/rv_audit.py",
+    "reader_calls": "vocab/readers.json"
+  },
+  "version": "0.2.0"
+}

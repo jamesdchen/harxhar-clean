@@ -1,20 +1,28 @@
 # ============================================================================
-# QUANT PACK — S4 audit_template seat.
+# RV PACK — the realized-volatility TARGET-PROGRAM layer's S4 audit_template seat.
 #
-# This is the domain pack's section-template seat (idea_to_trade_pipeline_v2,
-# stage P2: "the LLM drafts from the domain pack's section template"). Core
-# hashes this file and tracks section drift; it never runs it.
+# LAYER (four-layer hierarchy, user-ruled): this file is PROGRAM/lab content —
+# the concrete realized-volatility program's section template — NOT the reusable
+# quant DOMAIN layer. The domain layer is packs/quant/ (a research-content-free
+# skeleton, templates/quant_skeleton.py). This seat is the audit-FACING template:
+# audits reference packs/rv/templates/rv_audit.py, so the {pack: rv, version, sha}
+# echo lands on the sidecar. The DOMAIN clearance rides the quant pack's
+# `quant-audit` slot; the rv pack `fills_slots: []`. See packs/README.md.
+#
+# This is idea_to_trade_pipeline_v2 stage P2's "section template the LLM drafts
+# from." Core hashes this file and tracks section drift; it never runs it.
 #
 # PROVENANCE / SIGNATURE GATE:
 #   * Content below is sourced VERBATIM from the SIGNED, committed
 #     specs/audit_template_run10.py (the 5-slug proving-run cut adopted at
-#     harxhar-clean commit e9ff215). It is the working, signed precedent.
+#     harxhar-clean commit e9ff215). It is the working, signed precedent, moved
+#     here verbatim from the v0.1.0 packs/quant/templates/quant_audit.py seat.
 #   * The FULL 12-slug RV program template lives at specs/audit_template_rv.py
 #     and is UNSIGNED — awaiting the user's commit-as-signature. When the user
 #     commits it, this seat SWAPS to the 12-slug template (see packs/README.md,
-#     "signature gate"), the pack is rebuilt (build_quant_pack.py), and binding
+#     "signature gate"), the rv pack is rebuilt (build_rv_pack.py), and binding
 #     re-seals the new sha. Until then this seat carries the signed 5-slug cut.
-#   * TODO(post-signature): repoint templates/quant_audit.py at the 12-slug
+#   * TODO(post-signature): repoint packs/rv/templates/rv_audit.py at the 12-slug
 #     specs/audit_template_rv.py content once specs/audit_template_rv.py is
 #     committed. Do NOT do this before the user signs.
 # ============================================================================
