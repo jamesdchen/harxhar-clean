@@ -10,11 +10,11 @@
     },
     {
       "path": "../../writeup/pipeline_v2_unsigned_slots_PROPOSALS_2026-07-07.md",
-      "sha256": "30c1ca036fc677d5623c078d1652d6b0a9abd0577069bb7494e1265d7b2ddbf3"
+      "sha256": "397f2b8f0c5890e8437f0c1fded5ee7bd7e20a7fa7b071234e7e5b319228f441"
     },
     {
       "path": "templates/rv_audit.py",
-      "sha256": "00b91521015f2d34a1cc55ce931a4d730428b0904b8c3506fd059b232879b909"
+      "sha256": "8a0ccccc213cc732cf07c9e7c187e533a1c2ec2d6c6f685d20bf3df12daffa1e"
     },
     {
       "path": "vocab/readers.json",

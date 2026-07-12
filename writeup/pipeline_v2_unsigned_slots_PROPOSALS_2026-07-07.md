@@ -296,7 +296,7 @@ registration time, per R3's full-address rule):
   (kernel T4). Until then the gauntlet's evidence rides the dossier the
   registration already seals. When packs land, add
   `{"slot": "gauntlet-pass", "kind": "pack-receipt"}` with the pack named in
-  the caller's `receipt_bindings: [{slot: "gauntlet-pass", pack: "harxhar-quant"}]`
+  the caller's `receipt_bindings: [{slot: "gauntlet-pass", pack: "quant"}]`
   — a template edit, which is a disclosed `template: stale` finding on old
   registrations, never a retroactive revocation (R5).
 

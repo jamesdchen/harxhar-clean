@@ -25,6 +25,18 @@
 #   * TODO(post-signature): repoint packs/rv/templates/rv_audit.py at the 12-slug
 #     specs/audit_template_rv.py content once specs/audit_template_rv.py is
 #     committed. Do NOT do this before the user signs.
+#
+# DERIVED_FROM (domain-packs.md drift log, 2026-07-10 refinement): this
+# program-pack template is a DERIVATIVE of the quant DOMAIN skeleton it
+# instantiates; the record below names that skeleton by pack, seam, version, and
+# sealed sha. The quant-audit receipt is the conformance attestation (its
+# structural check runs against this template); edit either the skeleton or this
+# seat and the sha stops matching, revoking the clearance.
+#   derived_from:
+#     pack:    quant
+#     seam:    audit_template
+#     version: 0.2.0
+#     sha:     dfac68f1137855a714e28bb027dced692f220d89bcff00b1230da461b8bb76e4
 # ============================================================================
 """Run-#10 audit template — the CUT-DOWN proving-run instance.
 
