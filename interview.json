@@ -1,7 +1,7 @@
 {
   "_materialized": {
-    "at": "2026-07-11T04:27:39.364635+00:00",
-    "cmd_sha": "de44812892d32dbaf077a57d10b54757e7fa4aa46f3368043c523b143aa05d80",
+    "at": "2026-07-15T21:14:19.124537+00:00",
+    "cmd_sha": "82ba92e87d7a30a847f16e59b8447ea4dfce52bb6d0100668944404a17e8f5af",
     "entry_point": {
       "data_axis": {
         "halo": {
@@ -9,13 +9,14 @@
         },
         "kind": "bounded_halo"
       },
-      "executor_cmd": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/causal_tune_linear.py --no-default-output",
+      "executor_cmd": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/causal_tune_linear_fixmask.py --no-default-output",
       "frozen_shas": {},
       "kind": "shell_command",
-      "run_name": "causal_tune_linear",
-      "wrapper_path": ".hpc/wrappers/causal_tune_linear.py"
+      "run_name": "causal_tune_linear_fixmask",
+      "wrapper_path": ".hpc/wrappers/causal_tune_linear_fixmask.py"
     },
-    "total_tasks": 2700
+    "tasks_py_origin": "interview_materialized",
+    "total_tasks": 300
   },
   "audited_source": {
     "audit_id": "causal_tune_linear",
@@ -48,11 +49,11 @@
       "kind": "bounded_halo"
     },
     "fixed_params": {
-      "experiment": "causal_tune_linear"
+      "experiment": "causal_tune_linear_fixmask"
     },
     "frozen_configs": [],
     "kind": "shell_command",
-    "run_name": "causal_tune_linear",
+    "run_name": "causal_tune_linear_fixmask",
     "signature": {
       "chunk_end": "int",
       "chunk_start": "int",
@@ -62,7 +63,7 @@
       "halo": "int"
     }
   },
-  "goal": "we're testing if causally optimizing hyperparameters improves metrics \u2014 2700 tasks: for each of the 9 buckets of data (with no buckets and all buckets included), one of ridge/reclasso/reclasticnet run with causal hyperparameter tuning (at tune_per periodic sliding window of the backtest on a val_tail holdout set, the hyperparameters are tuned from a grid search on a log scale before the OOS test is forecast), backtest chunks split across a task-array (chunks are the homogeneous axis; the training window + val_tail holdout of each backtest window is a halo). Deliverable: per-bucket per-estimator metrics with the causal-tuned HP path vs the fixed-HP incumbent \u2014 the full spread as seen in the beat4 writeup table, including the DM tests at the end.",
+  "goal": "we're testing if causally optimizing hyperparameters improves metrics \u2014 2700 tasks: for each of the 9 buckets of data (with no buckets and all buckets included), one of ridge/reclasso/reclasticnet run with causal hyperparameter tuning (at tune_per periodic sliding window of the backtest on a val_tail holdout set, the hyperparameters are tuned from a grid search on a log scale before the OOS test is forecast), backtest chunks split across a task-array (chunks are the homogeneous axis; the training window + val_tail holdout of each backtest window is a halo). Deliverable: per-bucket per-estimator metrics with the causal-tuned HP path vs the fixed-HP incumbent \u2014 the full spread as seen in the beat4 writeup table, including the DM tests at the end. RESUBMIT SCOPE (2026-07-15): reclasso \u00d7 {sentiment, vol_demand, all_features} only \u2014 the arms exposed to the lam2=0 pure-lasso singularity (blown QLIKE >1) \u2014 rerun under the re-audited identifiability-mask source.",
   "packs": [
     {
       "manifest": "packs/quant/manifest.json",
@@ -84,25 +85,17 @@
     "kind": "human",
     "operator": "jamesdchen"
   },
-  "task_count": 2700,
+  "task_count": 300,
   "task_generator": {
     "kind": "chunked_series",
     "params": {
       "chunks": 100,
       "extra_axes": {
         "estimator": [
-          "ridge",
-          "reclasso",
-          "reclasticnet"
+          "reclasso"
         ],
         "exog_bucket": [
-          "baseline",
-          "moments",
-          "liquidity",
-          "market_ew",
-          "market_vw",
           "sentiment",
-          "implied_vol",
           "vol_demand",
           "all_features"
         ]

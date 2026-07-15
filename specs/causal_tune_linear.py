@@ -115,6 +115,22 @@ print(f"target adj_RV: non-null={int(adj_rv.notna().sum())} (diurnal->sqrt->wins
 # FWL batch seed (enet_coef) — and the argmin alpha holds until the next
 # tuning, whose COLD RESEED is also the exact re-anchor bounding float
 # drift. The intercept rides as a locked, unpenalized augmented column.
+# IDENTIFIABILITY MASK (the lam2=0 pure-lasso singularity fix): at every
+# tune boundary — where the cold reseed already re-anchors — non-locked
+# columns that are CONSTANT within the current training window, or exact
+# byte-duplicates of an earlier kept column, are masked: zeroed in the fit
+# design and in the rank-1 update rows until the next tune re-evaluates the
+# mask from the raw ring. Availability-indicator columns of a late-start
+# source collapse to ONE IDENTICAL step function in windows straddling the
+# source's go-live bar; with lam2=0 (the reclasso arm) that identical block
+# makes the active-set subproblem singular and the warm homotopy can ride
+# the non-unique branch to overflow (the 8 blown rolling_linear_tune chunks,
+# QLIKE 48-178, all at exog data-start boundaries; float-path dependent —
+# CARC blew up, local did not, same data bit-exact). Masking is
+# THRESHOLD-FREE and SCALE-FREE ("has dispersion in window and is not a
+# copy"); masked columns keep coefficient 0 so predictions are unaffected
+# except through conditioning (validated locally: all 8 chunks back to
+# healthy 0.09-0.14 QLIKE, delta +0.000025 on a healthy control chunk).
 # EMBARGO=25 covers the har_ma_25 window; longer HAR lags (125+) cannot be
 # embargoed inside a 500-bar window — stated honestly, they are slow-moving
 # levels. PARALLEL: cluster map-reduce — tasks map over bucket x estimator x
@@ -213,11 +229,22 @@ class RollingTunedLinear:
     ever read) and the warm state is COLD-RESEEDED on the full window — the
     exact re-anchor that also bounds float drift. The intercept rides as a
     locked, unpenalized augmented column.
+
+    IDENTIFIABILITY MASK: each tune recomputes, from the RAW ring, the set
+    of non-locked columns that are constant within the current window or
+    exact byte-duplicates of an earlier kept column, and those columns are
+    zeroed in the fit design and in the rank-1 update rows until the next
+    tune re-evaluates the mask. A masked column's coefficient is 0 by
+    construction (zero column => zero gradient => never enters the active
+    set), so prediction is unaffected except through conditioning; the
+    duplicate-step block that makes the lam2=0 active-set subproblem
+    singular can no longer form.
     """
 
     reinit_every = 0  # drift handled by the cold reseed at every tuning
     grid: list = []   # the active arm's (kind, alpha, l1) log-scale grid
     trace: list = []  # class-level record of selections (evidence)
+    mask_trace: list = []  # class-level record of masked-column counts (evidence)
 
     def init_window(self, X_win, y_win):
         X = np.asarray(X_win, dtype=np.float64)
@@ -227,6 +254,7 @@ class RollingTunedLinear:
         self._n_solve = 0
         self._locked = np.zeros(self._X.shape[1], dtype=bool)
         self._locked[-1] = True  # intercept: unpenalized, never exits the active set
+        self._maskout = np.zeros(self._X.shape[1], dtype=bool)
         self._tune()
         return self
 
@@ -237,9 +265,34 @@ class RollingTunedLinear:
             np.concatenate([self._y[k:], self._y[:k]]),
         )
 
+    def _recompute_mask(self, Xraw):
+        """Mask non-locked columns that are constant in the window or exact
+        duplicates of an earlier kept column — threshold-free, scale-free."""
+        ncol = Xraw.shape[1]
+        maskout = np.zeros(ncol, dtype=bool)
+        seen: dict = {}
+        for j in range(ncol):
+            if self._locked[j]:
+                continue
+            col = Xraw[:, j]
+            if col.max() == col.min():
+                maskout[j] = True
+                continue
+            key = col.tobytes()
+            if key in seen:
+                maskout[j] = True
+            else:
+                seen[key] = j
+        self._maskout = maskout
+
+    def _masked_window(self):
+        Xa, yr = self._window()  # fresh arrays (vstack/concatenate) — safe to zero
+        Xa[:, self._maskout] = 0.0
+        return Xa, yr
+
     def _seed(self):
         """Cold seed (also the exact re-anchor) of the warm state on the current window."""
-        Xa, yr = self._window()
+        Xa, yr = self._masked_window()
         tw = len(yr)
         kind, a, l1 = self.kind_, self.alpha_, self.l1_
         if kind == "ridge":
@@ -265,9 +318,14 @@ class RollingTunedLinear:
     def roll(self, x_in, y_in, x_out, y_out):
         ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
         ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
-        self._X[self._ptr] = ua
+        self._X[self._ptr] = ua  # ring stores RAW rows; the mask re-derives from raw
         self._y[self._ptr] = float(y_in)
         self._ptr = (self._ptr + 1) % len(self._y)
+        if self._maskout.any():  # masked columns stay zero in the update rows
+            ua = ua.copy()
+            ur = ur.copy()
+            ua[self._maskout] = 0.0
+            ur[self._maskout] = 0.0
         if self.kind_ == "ridge":  # Sherman-Morrison: add entering, drop leaving
             Ku = self._K @ ua
             self._K -= np.outer(Ku, Ku) / (1.0 + ua @ Ku)
@@ -286,7 +344,10 @@ class RollingTunedLinear:
             )
 
     def _tune(self):
-        Xa, yr = self._window()
+        Xraw, _ = self._window()
+        self._recompute_mask(Xraw)
+        RollingTunedLinear.mask_trace.append(int(self._maskout.sum()))
+        Xa, yr = self._masked_window()
         n = len(yr)
         fit_lo, fit_hi, val_lo, val_hi = forward_window_split(n, n, VAL_TAIL, EMBARGO)
         Xf, yf = Xa[fit_lo:fit_hi], yr[fit_lo:fit_hi]
@@ -323,6 +384,7 @@ def fit_predict_lin_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
     wrapper as the regressor; the engine detects the rank-1 rolling protocol
     the wrapper exposes and takes its incremental fast path."""
     RollingTunedLinear.trace = []
+    RollingTunedLinear.mask_trace = []
     backtest = MultiStageBacktest(
         residualizer=IdentityResidualizer(),
         regressor_factory=RollingTunedLinear,
@@ -372,10 +434,12 @@ for estimator in ESTIMATORS:
             results=pd.read_csv(out_csv), trace=list(RollingTunedLinear.trace)
         )
         alphas = [a for _, a, _ in arm_results[(estimator, bucket)]["trace"]]
+        masked = RollingTunedLinear.mask_trace
         print(f"{estimator}/{bucket}: "
               f"{len(arm_results[(estimator, bucket)]['results'])} OOS rows; "
               f"{len(alphas)} tunings, alpha path "
-              f"min={min(alphas):.2e} max={max(alphas):.2e}")
+              f"min={min(alphas):.2e} max={max(alphas):.2e}; "
+              f"masked cols per tune min={min(masked)} max={max(masked)}")
 
 # %%
 # hpc-audit-section: baseline
