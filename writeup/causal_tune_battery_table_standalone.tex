@@ -1,0 +1,13 @@
+% Standalone wrapper to build causal_tune_battery_table.pdf from the table fragment.
+% Build: pdflatex causal_tune_battery_table_standalone.tex
+%        (then rename/keep output as causal_tune_battery_table.pdf)
+% Page geometry (12x15in) is chosen to fit the wide 9-column battery on one page.
+\documentclass{article}
+\usepackage[paperwidth=12in,paperheight=15in,margin=0.5in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\pagestyle{empty}
+\begin{document}
+\input{causal_tune_battery_table.tex}
+\end{document}
