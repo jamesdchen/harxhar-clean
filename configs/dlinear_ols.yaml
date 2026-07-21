@@ -1,0 +1,15 @@
+model: dlinear_ols
+
+horizon: 1
+data_path: data
+output_file: results/dlinear_ols/run.csv
+start: 0
+end: -1
+
+# windowed-ridge (== DLinear with tied ridge penalty)
+context_len: 240      # L: lags in the learned filter
+train_window: 24000   # W: rolling training window (bars)
+alpha: 1.0            # ridge penalty (0 -> plain OLS)
+refit: 480            # solve cadence (bars)
+fit_intercept: true
+n_jobs: null          # null/1 -> serial (cluster default); >1 -> local-laptop in-process parallel

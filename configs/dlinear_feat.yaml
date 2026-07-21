@@ -1,0 +1,17 @@
+model: dlinear_feat
+
+bucket: all_buckets
+cache_root: results/covid_imp_rank   # cluster path; override to the _aggregated harvest locally
+horizon: 1
+output_file: results/dlinear_feat/run.csv
+start: 0
+end: -1
+
+# augmented windowed-ridge: [feature row] + [rv_{t-1..t-L}] filter
+context_len: 240      # L: RV-lag filter length (0 -> plain feature ridge)
+train_window: 24000   # W: rolling training window (bars)
+alpha: 1.0            # ridge penalty
+refit: 480            # solve cadence (bars)
+fit_intercept: true
+lag_col: har_ma_1     # cache column used as the causal RV path
+n_jobs: null          # null/1 -> serial (cluster default); >1 -> local in-process parallel

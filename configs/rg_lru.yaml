@@ -1,0 +1,19 @@
+model: rg_lru
+
+bucket: all_buckets
+cache_root: results/covid_imp_rank   # cluster path; override to the _aggregated harvest locally
+horizon: 1
+output_file: results/rg_lru/run.csv
+seed: 42
+gpu_count: 0          # 0 -> CPU; >0 uses CUDA if available
+end: -1
+
+d_model: 64
+n_layers: 2
+train_window: 24000   # bars used for the single fit
+seq_len: 192          # truncated-BPTT window
+burn_in: 48           # leading steps excluded from the loss (state warmup)
+epochs: 8
+batch_size: 32
+lr: 0.003
+weight_decay: 0.0001
