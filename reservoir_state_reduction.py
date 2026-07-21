@@ -132,7 +132,7 @@ def main():
     for name, p, q, d, dt in rows:
         print(f"{name:<16}{p:>7}{q:>12.5f}{d:>+12.5f}   ({dt:.0f}s)", flush=True)
     print(
-        "\nΔ<0 => beats the features-only linear base; compare structured/pca/select/trained at state=K.",
+        "\ndelta<0 => beats the features-only linear base; compare structured/pca/select/trained at state=K.",
         flush=True,
     )
 
