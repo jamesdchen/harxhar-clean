@@ -27,7 +27,7 @@ import torch
 
 sys.path.insert(0, ".")
 from src.evaluation.metrics import apply_duan_smearing  # noqa: E402
-from src.models.dlinear_feat import _roll_predict  # noqa: E402
+from src.backtest.rolling_ridge import roll_predict as _roll_predict  # noqa: E402
 from src.models.rg_lru_reservoir import Reservoir, train_reservoir  # noqa: E402
 
 CACHE_ROOT = sys.argv[1] if len(sys.argv) > 1 else "results/covid_imp_rank"

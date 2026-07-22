@@ -17,7 +17,7 @@ Pipeline:
   2. Design D_t = [ standardized feature_row_t  ⊕  reservoir states H_t ]  (raw block included so the
      readout is >= the linear feature-ridge: it can zero the reservoir columns).
   3. Readout: rank-1 rolling ridge over D (``RollingLeastSquares`` via the shared ``_roll_predict``
-     core) — walk-forward, EXACT, O(p²)/bar, splittable across cores/jobs exactly like ``dlinear_feat``.
+     core, ``src.backtest.rolling_ridge.parallel_ridge``) — walk-forward, EXACT, O(p²)/bar, splittable.
 
 Fit target = ``adj_RV`` (LS + Duan, same convention as the Ridge base). No SGD, O(1)-streaming states,
 rank-1-exact readout — the best fit for CPU + the walk-forward + the RollingLeastSquares infra.
@@ -28,14 +28,12 @@ from __future__ import annotations
 import json
 import logging
 import os
-import tempfile
 import time
-from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 import torch
 
-from src.models.dlinear_feat import _roll_predict
+from src.backtest.rolling_ridge import parallel_ridge
 from src.models.rg_lru import RGLRU
 
 logging.basicConfig(
@@ -163,81 +161,6 @@ def train_reservoir(X, y, d_in, d_model, n_layers, device, seed, train_cfg=None)
     return res
 
 
-# ── Readout: rank-1 rolling ridge over the (in-memory or mmap'd) design ───────────────────────
-
-
-def _predict_block_design(
-    design_path: str,
-    y_path: str,
-    W: int,
-    a: int,
-    b: int,
-    alpha: float,
-    refit: int,
-    fit_intercept: bool,
-):
-    """Chunk worker: mmap ONLY the ``[a-W, b)`` slice of the scratch design + targets (no big pickling)."""
-    off = a - W
-    D = np.ascontiguousarray(np.load(design_path, mmap_mode="r")[off:b])
-    y = np.asarray(np.load(y_path, mmap_mode="r")[off:b], dtype=np.float64)
-    return _roll_predict(
-        D, y, off, W, a, b, alpha, refit, fit_intercept, 0
-    )  # t_min=0: reservoir valid ∀t
-
-
-def _readout(
-    D: np.ndarray,
-    y: np.ndarray,
-    W: int,
-    alpha: float,
-    refit: int,
-    fit_intercept: bool,
-    oos_lo: int,
-    oos_hi: int,
-    n_jobs: int,
-    scratch_dir: str,
-) -> np.ndarray:
-    if n_jobs <= 1:
-        _, preds = _roll_predict(
-            D, y, 0, W, oos_lo, oos_hi, alpha, refit, fit_intercept, 0
-        )
-        return preds
-    # Parallel: persist design + targets to scratch memmaps; workers mmap their own slice.
-    dpath = os.path.join(scratch_dir, "_reservoir_design.npy")
-    ypath = os.path.join(scratch_dir, "_reservoir_y.npy")
-    np.save(dpath, D)
-    np.save(ypath, np.asarray(y, dtype=np.float64))
-    raw = np.linspace(oos_lo, oos_hi, n_jobs + 1)
-    edges = [oos_lo]
-    for e in raw[1:-1]:
-        s = int(np.ceil(e / refit) * refit)
-        if edges[-1] < s < oos_hi:
-            edges.append(s)
-    edges.append(oos_hi)
-    blocks = [(edges[j], edges[j + 1]) for j in range(len(edges) - 1)]
-    logger.info(f"readout chunk-parallel: {len(blocks)} blocks over {n_jobs} procs")
-    preds = np.empty(oos_hi - oos_lo, dtype=np.float64)
-    with ProcessPoolExecutor(max_workers=n_jobs) as ex:
-        futs = [
-            ex.submit(
-                _predict_block_design,
-                dpath,
-                ypath,
-                W,
-                a,
-                b,
-                alpha,
-                refit,
-                fit_intercept,
-            )
-            for a, b in blocks
-        ]
-        for f in futs:
-            a, blk = f.result()
-            preds[a - oos_lo : a - oos_lo + len(blk)] = blk
-    return preds
-
-
 def compute(args) -> None:
     from src.evaluation.metrics import (
         build_results_dataframe,
@@ -310,10 +233,9 @@ def compute(args) -> None:
         f"readout rank-1 ridge p={D.shape[1]} W={W} alpha={alpha} refit={refit} OOS=[{W},{oos_hi}) n_jobs={n_jobs}"
     )
     t1 = time.time()
-    with tempfile.TemporaryDirectory() as scratch:
-        preds = _readout(
-            D, y, W, alpha, refit, fit_intercept, W, oos_hi, n_jobs, scratch
-        )
+    preds = parallel_ridge(
+        D, y, W, alpha, refit, fit_intercept, W, oos_hi, n_jobs, t_min=0
+    )
     logger.info(f"readout in {time.time() - t1:.1f}s ({len(preds)} preds)")
 
     y_oos, base_oos = y[W:oos_hi], base[W:oos_hi]

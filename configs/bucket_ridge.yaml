@@ -1,0 +1,14 @@
+model: bucket_ridge
+
+bucket: all_buckets
+cache_root: results/covid_imp_rank   # cluster path; override to the _aggregated harvest locally
+horizon: 1
+output_file: results/bucket_ridge/run.csv
+end: -1
+
+train_window: 24000   # W
+alpha: 1.0
+refit: 480
+fit_intercept: true
+standardize: true
+n_jobs: null          # null/1 -> serial; >1 -> chunk-parallel (scratch-memmap workers)

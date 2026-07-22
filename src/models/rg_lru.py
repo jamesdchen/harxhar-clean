@@ -7,7 +7,7 @@ is nonlinear even though the state recurrence is affine. LEARNING the gate param
 so this module trains them by SGD. Input-adaptivity does NOT by itself require SGD, though: FREEZING
 the gates (reservoir / echo-state) turns the hidden states into fixed nonlinear temporal features and
 leaves only a LINEAR readout — a closed-form ridge, rank-1 updatable via ``RollingLeastSquares`` with
-no SGD (the same exact/streaming track as ``dlinear_ols``). This file is the learned-gate variant.
+no SGD (the same exact/streaming track as ``bucket_ridge``). This file is the learned-gate variant.
 
 Core recurrence (De et al. 2024, "Griffin"): a DIAGONAL, real-gated linear recurrence — a strict
 generalization of HAR, where each channel has its own INPUT-DEPENDENT decay (learnable multi-
@@ -32,7 +32,7 @@ Mapping the three cited efficiency tricks to THIS use case (CPU-only, walk-forwa
     gated-linear attention, GLA/DeltaNet). RG-LRU chose the DIAGONAL (vector) state, so there is no
     accumulating matrix to invert; and the Sherman-Morrison INVERSE part is a least-squares FITTING
     trick (recursive least squares / delta rule), which needs a closed-form solve. It therefore lives
-    in `dlinear_ols` / `RollingLeastSquares` (the ungated linear track, or a FROZEN-gate reservoir),
+    in `bucket_ridge` / `RollingLeastSquares` (the ungated linear track, or a FROZEN-gate reservoir),
     not in this SGD-fit learned-gate variant. Diagonal is the right complexity for a scalar target.
 
 Fit target = `adj_RV` by (masked) MSE — the same LS retransform convention as the Ridge base — then
