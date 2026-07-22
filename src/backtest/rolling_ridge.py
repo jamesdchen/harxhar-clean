@@ -6,8 +6,13 @@ vs a per-bar fresh Ridge, up to the solve cadence), plus embarrassingly-parallel
 mmap workers (no multi-GB pickling). Used by ``src.models.bucket_ridge`` (ridge on a feature bucket)
 and the ``rg_lru_reservoir`` readout.
 
-Only L2 (ridge) admits this closed-form rank-1 update; L1 (lasso/enet) has no closed-form sliding
-update and uses the reclasso online homotopy instead.
+The rank-1 SLIDING bookkeeping is penalty-agnostic: L1 (lasso/enet) maintains the same Gram and
+correlation under rank-1 add/remove (``reclasso_har.GramState``) and updates its solution warm-started
+per rank-1 data change via the Garrigues-El Ghaoui online homotopy (``reclasso_har.enet_online``) —
+the L1 analog of the Sherman-Morrison solve update, so this module's chunk-parallel + no-warmup-storm
+machinery transfers to it. What L1 lacks is ridge's FIXED closed-form β-update: its per-bar step
+re-walks the piecewise path (data-dependent active-set pivots, variable cost) and drifts under rank-1
+updates, so it needs a periodic exact refresh rather than ridge's single O(p²) inverse update.
 """
 
 from __future__ import annotations

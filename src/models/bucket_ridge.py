@@ -8,8 +8,11 @@ model IS the linear baseline, now with the chunk-parallel speedup.
 
 Reads ``results/covid_imp_rank/{bucket}/{X_imp,y,base}.npy``; fits ``adj_RV`` by ridge (LS + Duan,
 the Ridge-base convention), writes the chunk CSV + ``*_reduce.json`` monoid partial so it also fans
-across cluster job-array time-chunks (same idiom as the trees). L1 (lasso/enet) can't use this rank-1
-path — that's the reclasso homotopy.
+across cluster job-array time-chunks (same idiom as the trees). L1 (lasso/enet) reuses the SAME rank-1
+Gram sliding (``reclasso_har.GramState``) with a warm-started per-bar homotopy update
+(``enet_online``) — the L1 analog of the Sherman-Morrison step — rather than ridge's closed-form
+O(p²) inverse update (its per-bar cost is a variable-length path re-walk, drift-prone → periodic
+refresh), which is why it lives in the reclasso track, not here.
 """
 
 from __future__ import annotations
