@@ -64,7 +64,7 @@ where $q_{\alpha}^{(t)}$ denotes the $\alpha$-quantile of the 240-observation tr
 \subsection{Feature Engineering}
 \label{sec:features}
 
-We consider two alternative strategies for constructing lagged features from the preprocessed series: a hand-crafted HAR lag structure and a data-driven PCA compression. Both strategies transform each variable's history into a fixed-dimensional feature vector suitable for regression.
+We consider two alternative strategies for constructing lagged features from the preprocessed series: a hand-crafted HAR lag structure and a data-driven PCA compression. Both strategies transform each variable's history into a fixed-dimensional feature vector suitable for regression. A third, nonlinear construction --- a Laplacian eigenmap of delay-embedded \emph{residual} trajectories --- is deferred to Section~\ref{sec:spectral_knn}, since it is defined relative to a fitted baseline rather than on the preprocessed series directly.
 
 \subsubsection{HAR Features}
 \label{sec:har_features}
@@ -119,7 +119,7 @@ To assess the marginal contribution of different information sources, we organiz
 \subsection{Models}
 \label{sec:models}
 
-We consider five models spanning parametric linear, ensemble tree-based, and naive approaches. All models are trained on the preprocessed (diurnally adjusted, transformed, winsorized) scale. Key differences in refit frequency reflect computational cost: ridge regression admits a closed-form solution and is refit at every time step, while tree ensembles are more expensive and are refit every 5 steps.
+We consider five models spanning parametric linear, ensemble tree-based, and naive approaches. All models are trained on the preprocessed (diurnally adjusted, transformed, winsorized) scale. Key differences in refit frequency reflect computational cost: ridge regression admits a closed-form solution and is refit at every time step, while tree ensembles are more expensive and are refit every 5 steps. Section~\ref{sec:composed} additionally describes a family of \emph{composed} models --- a baseline whose residuals are modeled by a second regressor, optionally through a learned feature map --- of which the five models here are the degenerate single-stage case.
 
 \subsubsection{Naive Baseline}
 \label{sec:naive}
@@ -211,6 +211,209 @@ Each trial is a full walk-forward backtest over the out-of-sample window, partit
 
 \noindent\textit{Categorical time features.} All three tree-based models (XGBoost, LightGBM, random forest) additionally receive day-of-week and hour-of-day as categorical feature columns appended to the HAR or PCA features. Ridge regression does not receive these features, as the diurnal adjustment (Stage 1) already removes time-of-day effects from the input series.
 
+\subsection{Composed Models: Residualization, Manifold Features, and Local Regression}
+\label{sec:composed}
+
+The five models of Section~\ref{sec:models} are \emph{single-stage}: a regressor maps the feature vector $\mathbf{x}_t$ to a forecast of $y_t \equiv \widetilde{RV}_{t}$ directly. We additionally consider \emph{composed} models built from a common three-stage template, which nests the single-stage case as a degenerate configuration. Writing the forecast as
+
+\begin{equation}
+    \hat{y}_t \;=\; \underbrace{g_t(\mathbf{x}_t)}_{\text{baseline}} \;+\; \underbrace{h_t\!\left(\Phi_t(\mathbf{v}_t)\right)}_{\text{residual correction}},
+    \label{eq:multistage}
+\end{equation}
+
+the three stages are:
+
+\begin{enumerate}
+    \item \textbf{Residualizer} $g_t$ --- a baseline regressor fit on the current training window, whose prediction is subtracted from the target. The quantity passed downstream is the residual series $e_s = y_s - g_t(\mathbf{x}_s)$. Setting $g_t \equiv 0$ (so that $e_s = y_s$) recovers the single-stage case.
+    \item \textbf{Feature map} $\Phi_t$ --- an optional unsupervised transform, re-estimated on a slower cadence, mapping a representation $\mathbf{v}_t$ of recent residuals into a learned coordinate system. When omitted, the downstream regressor consumes $\mathbf{x}_t$ directly.
+    \item \textbf{Regressor} $h_t$ --- a supervised model fit to predict the residual from the (possibly transformed) features.
+\end{enumerate}
+
+Three configurations are of interest, summarized in Table~\ref{tab:composed_configs}. All share the identical data-preparation path of Sections~\ref{sec:preprocessing}--\ref{sec:features} and the identical walk-forward protocol of Section~\ref{sec:backtest}; they differ only in which stages are active. Strict causality is preserved in every configuration: at step $t$ only $\{\mathbf{x}_s, y_s\}_{s<t}$ and the contemporaneous feature vector $\mathbf{x}_t$ are read.
+
+\begin{table}[H]
+\centering
+\caption{Stage configurations of the composed-model template, Equation~\eqref{eq:multistage}. ``---'' denotes an inactive (identity or omitted) stage.}
+\label{tab:composed_configs}
+\begin{tabular}{llll}
+\toprule
+Configuration & Residualizer $g_t$ & Feature map $\Phi_t$ & Regressor $h_t$ \\
+\midrule
+Single-stage      & ---            & ---                & Ridge / XGBoost / kNN / \ldots \\
+Stacking          & Ridge          & ---                & kNN \\
+Spectral kNN      & Ridge          & Laplacian eigenmap & kNN \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{kNN Regression with a Self-Tuning Bandwidth}
+\label{sec:knn}
+
+The regressor stage in both composed configurations is $k$-nearest-neighbour regression with a Gaussian kernel. Given a query point $\mathbf{q}$, a reference set $\{(\boldsymbol{\phi}_i, z_i)\}$, and the index set $\mathcal{N}_k(\mathbf{q})$ of its $k$ nearest reference points under the Euclidean metric, the prediction is the kernel-weighted average
+
+\begin{equation}
+    h(\mathbf{q}) \;=\; \frac{\sum_{i \in \mathcal{N}_k(\mathbf{q})} w_i \, z_i}{\sum_{i \in \mathcal{N}_k(\mathbf{q})} w_i},
+    \qquad
+    w_i \;=\; \exp\!\left(-\frac{\|\mathbf{q} - \boldsymbol{\phi}_i\|_2^2}{2\,\sigma_{\mathbf{q}}^2}\right).
+    \label{eq:knn_gaussian}
+\end{equation}
+
+The bandwidth is \emph{self-tuning}: rather than fixing a global $\sigma$, we set it per query to the median distance to that query's own neighbours,
+
+\begin{equation}
+    \sigma_{\mathbf{q}} \;=\; \mathrm{median}_{\,i \in \mathcal{N}_k(\mathbf{q})} \, \|\mathbf{q} - \boldsymbol{\phi}_i\|_2,
+    \label{eq:knn_bandwidth}
+\end{equation}
+
+in the spirit of the local-scaling rule of \citet{ZelnikManor2004}. This makes the weighting profile invariant to the local density of the reference set: the median-distance neighbour always receives weight $e^{-1/2} \approx 0.607$ relative to a coincident point, whether the query lands in a densely populated calm-market region or in a sparse crisis region. A fixed bandwidth would instead collapse to near-uniform weighting in dense regions and to nearest-neighbour weighting in sparse ones. Because Equation~\eqref{eq:knn_gaussian} normalizes by $\sum_i w_i$, any common scale factor on the weights cancels, so only the \emph{shape} induced by $\sigma_{\mathbf{q}}$ matters.
+
+We set $k = 25$ throughout. As a standalone (single-stage) model, kNN regresses $y_t$ on the rolling-robust-scaled HAR feature matrix; because the reference set is refit merely by rebuilding a spatial index, it is refit at every step.
+
+\subsubsection{Spectral kNN}
+\label{sec:spectral_knn}
+
+The spectral-kNN model is motivated by the hypothesis that what a linear HAR specification fails to explain is not white noise but a low-dimensional, recurring \emph{regime} structure --- that residual trajectories through a volatility crisis resemble one another more than they resemble residual trajectories through a calm period, in a way no fixed lag basis captures. The model therefore (i) strips out the linearly predictable component with a ridge baseline, (ii) represents recent history as a delay-embedded trajectory of residuals, (iii) learns an unsupervised low-dimensional coordinate system on those trajectories via a graph Laplacian, and (iv) forecasts the next residual by local averaging among trajectories that are neighbours \emph{in that learned coordinate system}. Steps (ii)--(iii) are the manifold-learning analogue of the PCA feature construction of Section~\ref{sec:pca_features}, with a nonlinear, locality-preserving map replacing the linear projection.
+
+\paragraph{Stage 1: Ridge residualization.}
+At each test step $t$, a ridge regression with $\alpha = 1.0$ (Section~\ref{sec:ridge}) is refit on the trailing training window $\mathcal{T}_t = \{t - T_{\mathrm{train}}, \ldots, t-1\}$, yielding coefficients $\hat{\boldsymbol{\beta}}^{(t)}$. The residual at any index $s$ is
+
+\begin{equation}
+    e^{(t)}_s \;=\; y_s - \mathbf{x}_s^{\top}\hat{\boldsymbol{\beta}}^{(t)}.
+    \label{eq:residual}
+\end{equation}
+
+Refitting every step is affordable because ridge admits a closed-form solution. The baseline forecast entering Equation~\eqref{eq:multistage} is $g_t(\mathbf{x}_t) = \mathbf{x}_t^{\top}\hat{\boldsymbol{\beta}}^{(t)}$.
+
+\paragraph{Stage 2: Delay-embedded residual views.}
+The remaining stages are re-estimated only every $F = 240$ steps (five trading days) to amortize their cost. At a refit step $t_r$, we form the training residual series $\{e^{(t_r)}_s\}_{s \in \mathcal{T}_{t_r}}$ and slide a window of length $W = 960$ bars (twenty trading days) across it. Re-indexing the window locally as $u = 1, \ldots, T_{\mathrm{train}}$, each position $j \in \{W+1, \ldots, T_{\mathrm{train}}\}$ yields a \emph{view} and a scalar target,
+
+\begin{equation}
+    \mathbf{v}_j \;=\; \bigl(e_{j-W},\, e_{j-W+1},\, \ldots,\, e_{j-1}\bigr) \in \mathbb{R}^{W},
+    \qquad
+    z_j \;=\; e_j,
+    \label{eq:views}
+\end{equation}
+
+stacked into a view matrix $V \in \mathbb{R}^{N \times W}$ with $N = T_{\mathrm{train}} - W$ rows. This is a delay-coordinate (Takens-style) reconstruction of the residual process \citep{Takens1981}: a point of $V$ is an entire twenty-day residual \emph{trajectory}, not a single observation, and the pairing $(\mathbf{v}_j, z_j)$ is by construction a one-step-ahead prediction problem. With the production setting $T_{\mathrm{train}} = 500 \times 48 = 24{,}000$ bars, this gives $N = 23{,}040$ trajectories in $\mathbb{R}^{960}$.
+
+\paragraph{Stage 3: Laplacian eigenmap.}
+We embed the view matrix with a Laplacian eigenmap \citep{Belkin2003,vonLuxburg2007}. First, a symmetric $k$-nearest-neighbour \emph{connectivity} graph is built over the $N$ views with $k_{\mathrm{graph}} = 10$: writing $C_{ij} = 1$ if $\mathbf{v}_j$ is among the $k_{\mathrm{graph}}$ nearest neighbours of $\mathbf{v}_i$ (and $C_{ii}=1$), the affinity is the symmetrization
+
+\begin{equation}
+    A \;=\; \tfrac{1}{2}\left(C + C^{\top}\right),
+    \label{eq:affinity}
+\end{equation}
+
+so mutual neighbours carry weight $1$ and one-directional neighbours weight $\tfrac{1}{2}$. Note that the affinity is \emph{binary} (up to the symmetrization) rather than a Gaussian kernel of the distances: the graph encodes only \emph{who is near whom}, discarding the magnitude of the distance. This is deliberate --- in $\mathbb{R}^{960}$ raw Euclidean distances concentrate and carry little information, whereas the rank ordering that defines the neighbour sets remains meaningful.
+
+Given the degree matrix $D = \mathrm{diag}(A\mathbf{1})$, the symmetric normalized Laplacian is
+
+\begin{equation}
+    L_{\mathrm{sym}} \;=\; I - D^{-1/2} A D^{-1/2},
+    \label{eq:laplacian}
+\end{equation}
+
+and the embedding coordinates are the eigenvectors associated with its smallest eigenvalues, rescaled by $D^{-1/2}$ to recover the eigenvectors of the random-walk Laplacian $L_{\mathrm{rw}} = I - D^{-1}A$:
+
+\begin{equation}
+    L_{\mathrm{sym}}\,\mathbf{u}_m \;=\; \lambda_m\,\mathbf{u}_m,
+    \qquad 0 = \lambda_0 \leq \lambda_1 \leq \cdots,
+    \qquad
+    \boldsymbol{\psi}_m \;=\; D^{-1/2}\mathbf{u}_m .
+    \label{eq:eigenproblem}
+\end{equation}
+
+Retaining $d = 8$ coordinates gives the training embedding $\Psi \in \mathbb{R}^{N \times d}$, whose $j$-th row $\boldsymbol{\phi}_j = (\psi_1(j), \ldots, \psi_d(j))$ is the spectral representation of trajectory $\mathbf{v}_j$. The eigenproblem is solved with the ARPACK implicitly-restarted Lanczos solver in shift-invert mode \citep{Lehoucq1996}, which is well suited to extracting a few extreme eigenpairs of a large sparse matrix.
+
+The variational characterization makes the objective explicit: the eigenvectors minimize $\sum_{i,j} A_{ij}\,(\psi(i) - \psi(j))^2$ subject to normalization and orthogonality constraints, so the embedding places trajectories that are graph neighbours close together while spreading apart trajectories connected only through long paths. It is a \emph{locality-preserving} map, and --- unlike PCA --- makes no claim to preserve global geometry. It is also entirely \emph{unsupervised}: targets $z_j$ never enter Stage 3, so the coordinate system is a description of the residual dynamics, not a fit to them.
+
+\paragraph{Stage 4: Nystr\"om out-of-sample extension.}
+Equation~\eqref{eq:eigenproblem} defines coordinates only for the $N$ training views; it provides no formula for a new trajectory. We extend the map out of sample with the weighted-kNN Nystr\"om approximation \citep{Bengio2004,Williams2001}. For a test view $\mathbf{v}_\ast$, let $\mathcal{N}_{k_{\mathrm{graph}}}(\mathbf{v}_\ast)$ be its $k_{\mathrm{graph}}$ nearest training views with distances $\delta_i = \|\mathbf{v}_\ast - \mathbf{v}_i\|_2$. Then
+
+\begin{equation}
+    \Phi(\mathbf{v}_\ast) \;=\; \frac{\sum_{i \in \mathcal{N}_{k_{\mathrm{graph}}}} \tilde{w}_i \, \boldsymbol{\phi}_i}{\sum_{i \in \mathcal{N}_{k_{\mathrm{graph}}}} \tilde{w}_i},
+    \qquad
+    \tilde{w}_i = \exp\!\left(-\frac{\delta_i^2}{2\tilde{\sigma}_\ast^2}\right),
+    \qquad
+    \tilde{\sigma}_\ast = \mathrm{median}_{\,i}\,\delta_i,
+    \label{eq:nystrom}
+\end{equation}
+
+i.e.\ the new point inherits a convex combination of its neighbours' spectral coordinates, under the same self-tuning Gaussian kernel used by the regressor (Equations~\eqref{eq:knn_gaussian}--\eqref{eq:knn_bandwidth}). If all weights underflow to zero, the extension degrades gracefully to the unweighted neighbour mean. This step is what makes the embedding usable in a forecasting loop at all: the training-side eigendecomposition is computed once per refit, and each of the $F$ subsequent test points is embedded at the cost of a single $k$-nearest-neighbour query.
+
+\paragraph{Stage 5: Regression in embedding space and recombination.}
+A kNN regressor with $k = 25$ and the self-tuning Gaussian weights of Section~\ref{sec:knn} is fit on the pairs $\{(\boldsymbol{\phi}_j, z_j)\}_{j=1}^{N}$ --- that is, in the $d = 8$ dimensional spectral space, not in the $960$-dimensional view space. At test step $t$ the view $\mathbf{v}_t = (e^{(t)}_{t-W}, \ldots, e^{(t)}_{t-1})$ is formed from residuals against the \emph{current} step's ridge fit, embedded via Equation~\eqref{eq:nystrom}, and passed to the regressor; its output is the residual correction added to the ridge baseline in Equation~\eqref{eq:multistage}. Algorithm~\ref{alg:spectral_knn} states the complete procedure.
+
+\begin{algorithm}[H]
+\caption{Spectral kNN --- one walk-forward pass}
+\label{alg:spectral_knn}
+\begin{algorithmic}[1]
+\Require features $X$, target $y$, train window $T_{\mathrm{train}}$, ridge penalty $\alpha$, view length $W$, embedding dimension $d$, graph degree $k_{\mathrm{graph}}$, regression degree $k$, refit cadence $F$
+\For{$t = T_{\mathrm{train}}, \ldots, n-1$}
+    \State $i \gets t - T_{\mathrm{train}}$ \Comment{test-step counter}
+    \State $\hat{\boldsymbol{\beta}} \gets \textsc{RidgeFit}\bigl(X[t-T_{\mathrm{train}}\!:\!t],\; y[t-T_{\mathrm{train}}\!:\!t];\; \alpha\bigr)$ \Comment{Stage 1, every step}
+    \If{$i \bmod F = 0$} \Comment{Stages 2--3, every $F$ steps}
+        \State $e_s \gets y_s - \mathbf{x}_s^{\top}\hat{\boldsymbol{\beta}}$ for $s \in [t-T_{\mathrm{train}}, t)$
+        \If{$T_{\mathrm{train}} < W + 1$} \Comment{window too short to form a view}
+            \State $\Psi, \textsc{knn} \gets \varnothing$ \Comment{fall back to the baseline alone}
+        \Else
+            \State $V \gets \bigl[\,\mathbf{v}_j = (e_{j-W}, \ldots, e_{j-1})\,\bigr]_{j=W+1}^{T_{\mathrm{train}}}$, \; $z_j \gets e_j$
+            \State $A \gets \tfrac{1}{2}(C + C^{\top})$ from the $k_{\mathrm{graph}}$-NN connectivity graph of $V$
+            \State $\Psi \gets$ bottom-$d$ eigenvectors of $L_{\mathrm{sym}} = I - D^{-1/2}AD^{-1/2}$, rescaled by $D^{-1/2}$
+            \State cache a $k_{\mathrm{graph}}$-NN index over $V$ for Nystr\"om extension
+            \State $\textsc{knn} \gets \textsc{KNNFit}(\Psi, z;\; k,\; \text{Gaussian self-tuning weights})$
+        \EndIf
+    \EndIf
+    \State $\hat{y}^{\mathrm{base}} \gets \mathbf{x}_t^{\top}\hat{\boldsymbol{\beta}}$
+    \If{$\textsc{knn} = \varnothing$}
+        \State $\hat{y}_t \gets \hat{y}^{\mathrm{base}}$ \Comment{degenerate case: ridge forecast, uncorrected}
+    \Else
+        \State $\mathbf{v}_\ast \gets \bigl(y_s - \mathbf{x}_s^{\top}\hat{\boldsymbol{\beta}}\bigr)_{s=t-W}^{t-1}$ \Comment{test view, current-step baseline}
+        \State $\boldsymbol{\phi}_\ast \gets \textsc{Nystr\"om}(\mathbf{v}_\ast)$ \Comment{Equation~\eqref{eq:nystrom}}
+        \State $\hat{y}_t \gets \hat{y}^{\mathrm{base}} + \textsc{knn}.\textsc{Predict}(\boldsymbol{\phi}_\ast)$
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Hyperparameters.}
+Table~\ref{tab:spectral_knn_params} lists the production configuration. Unlike the tree models, spectral kNN is not tuned by Optuna; the values are set from the timescale interpretation of each parameter rather than by search.
+
+\begin{table}[H]
+\centering
+\caption{Spectral kNN hyperparameters. Bar counts convert at 48 bars per 24-hour trading day (Section~\ref{sec:rv_definition}).}
+\label{tab:spectral_knn_params}
+\begin{tabular}{llll}
+\toprule
+Symbol & Parameter & Value & Interpretation \\
+\midrule
+$\alpha$            & \texttt{ridge\_alpha}      & $1.0$   & Baseline $\ell_2$ penalty; matches Section~\ref{sec:ridge} \\
+$T_{\mathrm{train}}$& \texttt{train\_window}     & $500$ d $= 24{,}000$ bars & Rolling training window \\
+$W$                 & \texttt{view\_window}      & $960$ bars ($20$ d) & Length of a residual trajectory \\
+$d$                 & \texttt{embedding\_dim}    & $8$     & Retained Laplacian coordinates \\
+$k_{\mathrm{graph}}$& \texttt{graph\_k}          & $10$    & Affinity-graph degree; also the Nystr\"om degree \\
+$k$                 & \texttt{neighbor\_k}       & $25$    & Neighbours for the embedding-space regression \\
+$F$                 & \texttt{refit\_frequency}  & $240$ steps ($5$ d) & Embedding + regressor refit cadence \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Computational cost.}
+The dominant term is Stage 3. Each refit builds a $k_{\mathrm{graph}}$-NN graph over $N = 23{,}040$ points in $\mathbb{R}^{960}$ and extracts eight eigenpairs of the resulting sparse $N \times N$ Laplacian; the graph construction is $O(N^2 W)$ in the worst case and the Lanczos iteration is $O(d \cdot \mathrm{nnz}(A))$ per pass, with $\mathrm{nnz}(A) = O(N k_{\mathrm{graph}})$. The refit cadence $F = 240$ amortizes this over five trading days of forecasts, and the per-step marginal cost is only a ridge solve plus two $k$-NN queries. This is why $F$ is two orders of magnitude larger here than for the tree models, which refit every five steps.
+
+\paragraph{Design notes and caveats.}
+Several properties of the construction are worth making explicit.
+
+\begin{itemize}
+    \item \textit{Baseline vintage is not synchronized across stages.} The training views at refit step $t_r$ are residuals against $\hat{\boldsymbol{\beta}}^{(t_r)}$, whereas the test view at step $t > t_r$ is built from residuals against the fresher $\hat{\boldsymbol{\beta}}^{(t)}$. Between refits the two residual definitions therefore drift apart by $\mathbf{x}_s^{\top}(\hat{\boldsymbol{\beta}}^{(t)} - \hat{\boldsymbol{\beta}}^{(t_r)})$. The alternative --- freezing the baseline at $t_r$ for the test view --- would keep the residual definition internally consistent but would leave the \emph{baseline forecast} itself stale for up to $F$ steps. The present choice prioritizes baseline freshness; the sensitivity of forecasts to this choice has not been measured, and doing so is left for future work.
+    \item \textit{The trivial eigenvector.} The eigenvector associated with $\lambda_0 = 0$ is constant on each connected component of the graph and carries no information about within-component geometry. Implementations differ in whether it is discarded; if it is retained, one of the $d$ coordinates is uninformative and the effective embedding dimension is $d-1$. The concrete count should be verified against the pinned \texttt{scikit-learn} version before the coordinates are interpreted individually.
+    \item \textit{Graph connectivity.} With $k_{\mathrm{graph}} = 10$ over $23{,}040$ points there is no guarantee that the affinity graph is connected. A disconnected graph has one zero eigenvalue per component, so the leading coordinates become component-indicator functions rather than smooth geometric coordinates --- a coarse regime partition rather than a manifold parameterization. Whether this occurs in practice is an empirical question about the data, and the number of near-zero eigenvalues per refit is the natural diagnostic.
+    \item \textit{Overlapping views induce strong dependence.} Consecutive views share $W-1$ of their $W$ coordinates, so neighbouring rows of $V$ are nearly identical by construction and the graph is guaranteed to link each view to its temporal neighbours. Some of the recovered structure is therefore an artifact of the sliding window rather than evidence of recurring regimes; a meaningful embedding is one in which \emph{temporally distant} views are also linked.
+    \item \textit{Distance concentration.} Euclidean distances in $\mathbb{R}^{960}$ are poorly discriminating in the absolute sense. The design mitigates but does not eliminate this: the affinity graph uses only neighbour \emph{ranks}, and the final regression runs in $\mathbb{R}^{8}$ where distances are again well behaved. Only the neighbour queries --- graph construction and Nystr\"om extension --- operate in the high-dimensional space.
+    \item \textit{Feature scaling.} As with plain kNN, the feature matrix is rolling-robust-scaled whole-series before the backtest (\texttt{prescale}), so the ridge residuals --- and hence the views --- are on a comparable per-dimension scale and the Euclidean metric is not dominated by an arbitrarily-scaled column.
+    \item \textit{Graceful degradation.} If the training window is too short to form even one view ($T_{\mathrm{train}} < W + 1$), the feature and regressor stages are skipped and the model emits the ridge baseline alone. Spectral kNN thus never performs worse than its baseline by construction failure --- only by a genuinely harmful residual correction.
+\end{itemize}
+
 \subsection{Walk-Forward Backtesting}
 \label{sec:backtest}
 
@@ -220,7 +423,7 @@ All models are evaluated using a strictly out-of-sample walk-forward procedure. 
     \item \textbf{Initialize}: Fit the model on observations $\{t - T_{\mathrm{train}}, \ldots, t-1\}$.
     \item \textbf{Predict}: Generate forecast $\hat{y}_{t}$ using features $\mathbf{x}_t$.
     \item \textbf{Observe}: Record the realized target $y_t$.
-    \item \textbf{Update}: Add $(\mathbf{x}_t, y_t)$ to the rolling buffer, drop the oldest observation, and refit the model at the model-specific refit frequency (every step for ridge, every 5 steps for tree models).
+    \item \textbf{Update}: Add $(\mathbf{x}_t, y_t)$ to the rolling buffer, drop the oldest observation, and refit the model at the model-specific refit frequency (every step for ridge and kNN, every 5 steps for tree models, every 240 steps for the spectral embedding and its downstream regressor --- see Table~\ref{tab:spectral_knn_params}; the ridge baseline within spectral kNN still refits every step).
     \item \textbf{Advance}: Increment $t$ and return to step 2.
 \end{enumerate}
 
