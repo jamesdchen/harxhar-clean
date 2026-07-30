@@ -155,6 +155,46 @@ The reference the earlier grids never included (const = 0.2853):
   regime interactions (cf. the open/close session-edge work), or asymmetric
   loss — not in neighborhood geometry.
 
+## Alt-data blocks (diag_altdata.py): what exog adds beyond own-history
+
+Nested-ridge increments over the multiscale base, train-only standardization,
+causal features. Two windows; test tail of the first is Feb–Jun 2020 (COVID).
+
+**COVID window** (base 0.1010, top-decile 0.5093, spike bias −0.442):
+
+| block | ΔMSE | Δtop-decile | top bias |
+|---|---|---|---|
+| +vix_level | **−2.3%** | **−7.5%** | **−0.401** |
+| +vix_struct (slope/vvix/VRP) | −1.8% | −0.9% | −0.442 |
+| +jump / +flow / +sent / +breadth | ≈0 | ≈0 | — |
+| +voldemand | **+1.0%** | **+3.3%** | −0.461 |
+| +ALL | −0.6% | −4.5% | −0.428 |
+
+**Calm window** (base 0.0796): vix_level −1.1%, vix_struct −1.0%, ALL −1.5%;
+all top-decile deltas ≤ ±1%; everything else ≈ 0.
+
+Findings:
+
+1. **The implied-vol complex is the only alt block with real incremental
+   signal**, worth ~1–2% MSE in both regimes — and in the crisis window the
+   raw VIX *level* cuts top-decile (spike) error by 7.5% and shrinks the
+   spike underprediction bias from −0.442 to −0.401. First thing in these
+   diagnostics to move the spike bucket at all. Mechanism: implied vol is
+   forward-looking and updates instantly on news; every own-history
+   coordinate lags by construction.
+2. **Structure beat level overall but not on spikes** — the VRP's slow
+   22-day realized leg goes haywire exactly during a fast crash. A
+   fast-realized-leg VRP or an inverted-term-structure *gate* (threshold
+   encoding) is the indicated follow-up, not more linear columns.
+3. **voldemand is actively harmful in a linear encoding** (+1.0% / +3.3%),
+   independently confirming the EBM campaign's conclusion that its signal is
+   interaction-only. The right test is gated/interaction encodings
+   (voldemand × clock-regime), not inclusion as levels.
+4. Jump fraction, flow imbalance, sentiment, EW/VW breadth: nulls in this
+   protocol. ALL-blocks underperforms vix_level alone in the crisis window —
+   noise blocks dilute; per-block L1 selection (the enet-survivor machinery)
+   is the right integration path, consistent with campaign experience.
+
 ## Conclusions
 
 1. **The residualizer is the first-order mistake.** Views of ridge residuals
