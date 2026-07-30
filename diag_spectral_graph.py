@@ -89,8 +89,14 @@ SELF_TUNE_M = 7                    # Zelnik-Manor: sigma_i = dist to 7th neighbo
 # ---------------------------------------------------------------------------
 
 
-def prepare_series(data_path: str) -> tuple[np.ndarray, np.ndarray, pd.Series]:
-    """Return (X_prescaled, y, dates) exactly as the spectral_knn executor sees them."""
+def prepare_series(
+    data_path: str, return_df: bool = False
+) -> tuple[np.ndarray, np.ndarray, pd.Series] | tuple[np.ndarray, np.ndarray, pd.Series, pd.DataFrame]:
+    """Return (X_prescaled, y, dates) exactly as the spectral_knn executor sees them.
+
+    With ``return_df=True`` also returns the aligned post-burn-in DataFrame
+    (raw merged columns included) for building alt-data representations.
+    """
     df, _ = load_and_transform(
         data_path,
         [],
@@ -108,6 +114,8 @@ def prepare_series(data_path: str) -> tuple[np.ndarray, np.ndarray, pd.Series]:
 
     ref_iqr, fixed_cols = _build_scale_guards(X, df, feature_names)
     X = rolling_robust_scale(X, TRAIN_WIN, ref_iqr=ref_iqr, fixed_cols=fixed_cols)
+    if return_df:
+        return X, y, dates, df
     return X, y, dates
 
 
