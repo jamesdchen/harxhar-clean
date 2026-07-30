@@ -61,7 +61,7 @@ def _safe_log(s: pd.Series) -> pd.Series:
 def build_blocks(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Alt-data feature blocks, each a DataFrame aligned to df rows."""
     needed = [
-        "vix", "vix3m", "vvix", "RV", "sumbipow", "sumret2",
+        "vix", "vix3m", "vvix", "RV", "sumbipow",  # sumret2 is renamed RV at load
         "buyturnover_ewstock", "sellturnover_ewstock", "turnover_ewstock",
         "stocktwits_sentiment", "stocktwits_attention",
         "voldemand_spx_open_and_close", "sumret2_ewstock", "sumret2_vwstock",
@@ -84,7 +84,7 @@ def build_blocks(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     }
 
     # -- Jump fraction of SPY variance (bipower vs total) -----------------
-    jr = (1.0 - r["sumbipow"] / r["sumret2"].replace(0, np.nan)).clip(-1, 1)
+    jr = (1.0 - r["sumbipow"] / r["RV"].replace(0, np.nan)).clip(-1, 1)
     out["jump"] = {f"jumpfrac_ma{w}": _roll(jr, w) for w in SLOW_WINDOWS}
 
     # -- Cross-sectional flow (EW stocks): signed turnover imbalance ------
