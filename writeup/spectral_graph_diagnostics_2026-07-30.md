@@ -93,6 +93,31 @@ Delay-window sweep and HAR-feature representations, identical target set
   har→residual "stacking geometry" cell (does X-neighborhood structure
   predict what ridge misses?) is negative too (0.0882 vs const 0.0861).
 
+## Scale-combination cells (same targets; can multiscale + small-W merge?)
+
+| representation | dim | d8 captured | swap: base / embed_d8 / embed_d16 |
+|---|---|---|---|
+| multiscale (ref)   |  5 | 48–50% | **0.1189** / 0.1257–0.1293 / 0.1244–0.1258 |
+| dyadic (11 levels) | 11 | 49–50% | 0.1222 / 0.1226–0.1235 / **0.1212–0.1213** |
+| msdetail (level+trends) | 11 | 13.7–14.4% | 0.1671 / 0.1937–0.1944 / 0.1943–0.2002 |
+| ms_plus_w48 (concat)    | 53 | 52.5% | 0.1230 / 0.1201–0.1246 / 0.1268–0.1281 |
+
+* **The small-W signal is subsumed.** Neither a denser level ladder (dyadic),
+  nor explicit recent-path coordinates (ms_plus_w48), nor scale-local trend
+  coordinates (msdetail) improve on the 5-level multiscale. W=48's strong
+  showing was just "levels at scales ≤ 48 without long-scale noise" — already
+  inside the ladder. There is no additional shape/trajectory signal worth its
+  coordinate noise.
+* **msdetail is a useful negative**: informationally it equals dyadic up to a
+  linear transform, but standardizing the trend coordinates re-weights the
+  metric away from the level direction and costs 37% MSE. The metric's
+  implicit weighting — not the information content — is what kNN sees.
+* On these well-conditioned low-dim graphs the embedding finally goes
+  ~neutral (dyadic d16 and ms_plus_w48 d8 marginally beat their own base
+  metric), but never beats the multiscale base — consistent with "a good
+  representation leaves the eigenmaps nothing to add."
+* Residual-target versions of all three: still at/below the constant.
+
 ## Conclusions
 
 1. **The residualizer is the first-order mistake.** Views of ridge residuals
