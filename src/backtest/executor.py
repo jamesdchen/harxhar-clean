@@ -217,6 +217,14 @@ def _backtest_and_save(
             f"train_window ({train_win_periods} periods) >= chunk size ({len(X_chunk)})"
         )
 
+    # The column names of X_chunk, forwarded under the established ``_*``
+    # control-key convention (``_refit_frequency``, ``_incremental``): a
+    # fit_predict that selects columns by MEANING (e.g. spectral_knn's
+    # view_exog state block, which excludes target-derived ``har_ma_*``)
+    # needs names, and re-deriving them caller-side would fork the source of
+    # truth. Every other fit_predict strips ``_*`` keys and is unaffected.
+    hyperparams = dict(hyperparams, _feature_names=list(feature_names))
+
     preds = fit_predict(X_chunk, y_chunk, train_win_periods, hyperparams)
 
     oos_start = train_win_periods
@@ -243,8 +251,10 @@ def _backtest_and_save(
     print(f"Saved {len(results)} rows -> {output_file}")
 
 
-def _build_har_and_calendar(df, exog_cols, add_calendar):
-    df, har_names = generate_har_features(df, target_col="adj_RV", exog_cols=exog_cols)
+def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None):
+    df, har_names = generate_har_features(
+        df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
+    )
     if add_calendar:
         feature_names = har_names + add_calendar_features(df)
         # HAR x open/close session-edge interactions (the distilled intraday vol-persistence
@@ -377,12 +387,13 @@ def _iter_TOD_segment(
     output_file,
     exog_cols,
     add_calendar,
+    har_lags=None,
 ):
     """Yield (seg_name, job_df, feature_names, train_win_periods, job_output_file)
     for each time-of-day segment we need to backtest. ``seg_name`` is None when
     no segmentation is requested."""
     if segment is None:
-        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar)
+        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar, har_lags)
         yield None, df, feature_names, train_window * PERIODS_PER_DAY, output_file
         return
 
@@ -390,7 +401,7 @@ def _iter_TOD_segment(
     base, ext = os.path.splitext(output_file)
 
     if lag_scope == "global":
-        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar)
+        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar, har_lags)
 
     for seg_name in segments:
         seg_df = slice_to_segment(df, seg_name)
@@ -399,7 +410,7 @@ def _iter_TOD_segment(
             continue
         if lag_scope == "intra":
             seg_df, feature_names = _build_har_and_calendar(
-                seg_df, exog_cols, add_calendar
+                seg_df, exog_cols, add_calendar, har_lags
             )
         train_win_periods = compute_segment_train_window(seg_df["t"], train_window)
         yield (
@@ -435,6 +446,7 @@ def run_executor(
     diurnal_mode: str = "divide",
     prescale: bool = False,
     seed: int = 42,
+    har_lags: list[int] | None = None,
 ) -> None:
     """Top-level scaffold. Loads data, builds features, dispatches backtest.
 
@@ -459,6 +471,15 @@ def run_executor(
     """
     del seed  # reserved; per-method scripts can wire seed into model_fn directly
 
+    if har_lags is not None:
+        burn_in = resolve_har_lags()[-1]
+        if not har_lags or min(har_lags) < 1 or max(har_lags) > burn_in:
+            raise ValueError(
+                f"har_lags must be non-empty with rungs in [1, {burn_in}]: the "
+                f"HAR burn-in drop is fixed at {burn_in} rows (arm-invariant "
+                f"index space); a rung beyond it would be under-warmed."
+            )
+
     df, adj_exog_cols = load_and_transform(
         data_path,
         exog_cols,
@@ -478,6 +499,7 @@ def run_executor(
         output_file=output_file,
         exog_cols=adj_exog_cols,
         add_calendar=add_calendar,
+        har_lags=har_lags,
     ):
         if seg_name is not None:
             print(
