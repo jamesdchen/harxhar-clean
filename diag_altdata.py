@@ -60,7 +60,13 @@ def _safe_log(s: pd.Series) -> pd.Series:
 
 def build_blocks(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Alt-data feature blocks, each a DataFrame aligned to df rows."""
-    r = {c: df[c].astype(float).ffill() for c in df.columns if c != "t"}
+    needed = [
+        "vix", "vix3m", "vvix", "RV", "sumbipow", "sumret2",
+        "buyturnover_ewstock", "sellturnover_ewstock", "turnover_ewstock",
+        "stocktwits_sentiment", "stocktwits_attention",
+        "voldemand_spx_open_and_close", "sumret2_ewstock", "sumret2_vwstock",
+    ]
+    r = {c: df[c].astype(float).ffill() for c in needed}
     out: dict[str, dict[str, pd.Series]] = {}
 
     # -- VIX level (pipeline-style encoding of the same series) -----------
