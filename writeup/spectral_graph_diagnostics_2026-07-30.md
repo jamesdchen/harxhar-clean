@@ -60,6 +60,39 @@ neighbor search needs — no representation or weighting rescues it.
 * Binary vs heat-kernel weighting: differences are noise-level throughout.
   Edge-magnitude loss is not the binding constraint; the representation is.
 
+## Extended grid (same window/targets): W sweep + HAR-feature cells
+
+Delay-window sweep and HAR-feature representations, identical target set
+(all raw-target cells comparable to the table above; const = 0.2853):
+
+| representation | dim | d8 captured | swap: base / embed_d8 / embed_d16 |
+|---|---|---|---|
+| raw960 (W=960)  | 960 |  4.0% | 0.1915 / 0.2395–0.2418 / 0.2212 |
+| rawW240 (W=240) | 240 | 36.2% | **0.1677** / 0.1871–0.1878 / 0.1859–0.1877 |
+| rawW48 (W=48)   |  48 | 46.2% | **0.1438** / 0.1539–0.1549 / 0.1575–0.1590 |
+| recw (hl=240)   | 960 |  5.5% | 0.1716 / 0.2034–0.2105 / 0.2071 |
+| multiscale      |   5 | 48–50% | **0.1189** / 0.1257–0.1293 / 0.1244–0.1258 |
+| har (X rows)    |  27 |  2.6–3.2% | **0.1286** / 0.1631–0.1693 / 0.1514–0.1596 |
+
+* **Smaller W monotonically improves the plain delay metric**
+  (0.1915 → 0.1677 → 0.1438): the equal-weight 960-bar window mostly
+  accumulates distance noise. A hard 1-day cutoff even beats the soft
+  half-life-5-day weighting — but the best delay window still loses to
+  multiscale by 17%, confirming that multi-horizon means (not the raw recent
+  path) are the right coordinates.
+* **kNN on the HAR features (0.1286) ≈ the multiscale result (0.1189)** —
+  i.e. the winning diagnostic model is essentially the repo's existing plain
+  kNN. The residual gap plausibly comes from calendar/interaction dims
+  diluting the distance or the coarser HAR lag ladder (1/5/25/125/625/3125
+  vs 1/8/48/240/960); a feature-subset ablation would settle it.
+* **Spectrally embedding the HAR features is clearly negative**: 0.1286 →
+  0.1631 (d=8) / 0.1514 (d=16). Compressing an already-low-dimensional,
+  well-scaled space through a k=10 graph only loses information.
+* **Residual targets stay dead in every new cell.** Best case
+  (resid/rawW240) beats the constant by 0.2% — noise-level; the
+  har→residual "stacking geometry" cell (does X-neighborhood structure
+  predict what ridge misses?) is negative too (0.0882 vs const 0.0861).
+
 ## Conclusions
 
 1. **The residualizer is the first-order mistake.** Views of ridge residuals
