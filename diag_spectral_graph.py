@@ -78,6 +78,8 @@ NEIGHBOR_K = 25                    # pipeline default
 D_EMBED = (8, 16)                  # pipeline default d=8, plus one richer cell
 N_EIG = 64                         # eigenvectors for the energy profile
 MULTISCALE_WINDOWS = (1, 8, 48, 240, 960)
+DYADIC_WINDOWS = (1, 2, 4, 8, 16, 32, 64, 128, 256, 480, 960)
+DETAIL_SCALES = DYADIC_WINDOWS[:-1]  # trends need 2*s <= W
 RECW_HALFLIFE = 240                # bars (5 days)
 SELF_TUNE_M = 7                    # Zelnik-Manor: sigma_i = dist to 7th neighbour
 
@@ -147,12 +149,35 @@ def represent(views: np.ndarray, kind: str) -> np.ndarray:
         wts = np.exp(-np.log(2.0) * age / RECW_HALFLIFE)
         return views * np.sqrt(wts)[None, :]
     if kind == "multiscale":
-        cols = [views[:, -w:].mean(axis=1) for w in MULTISCALE_WINDOWS]
-        Z = np.stack(cols, axis=1)
-        sd = Z.std(axis=0)
-        sd[sd < 1e-12] = 1.0
-        return (Z / sd[None, :]).astype(np.float32)
+        return _standardize(
+            np.stack([views[:, -w:].mean(axis=1) for w in MULTISCALE_WINDOWS], axis=1)
+        )
+    if kind == "dyadic":
+        # log-uniform ladder of trailing means: one coordinate per octave
+        return _standardize(
+            np.stack([views[:, -w:].mean(axis=1) for w in DYADIC_WINDOWS], axis=1)
+        )
+    if kind == "msdetail":
+        # Haar-like edge pyramid: coarse level + scale-local trends
+        # d_s = mean(last s) - mean(prior s): "is vol rising at scale s"
+        cols = [views.mean(axis=1)]
+        for s in DETAIL_SCALES:
+            cols.append(
+                views[:, -s:].mean(axis=1) - views[:, -2 * s : -s].mean(axis=1)
+            )
+        return _standardize(np.stack(cols, axis=1))
+    if kind == "ms_plus_w48":
+        # multiscale block + recent 48-bar path block at equal total weight
+        ms = represent(views, "multiscale")
+        w48 = _standardize(views[:, -48:]) * np.sqrt(ms.shape[1] / 48.0)
+        return np.concatenate([ms, w48], axis=1).astype(np.float32)
     raise ValueError(kind)
+
+
+def _standardize(Z: np.ndarray) -> np.ndarray:
+    sd = Z.std(axis=0)
+    sd[sd < 1e-12] = 1.0
+    return (Z / sd[None, :]).astype(np.float32)
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +375,9 @@ def main() -> None:
                 "multiscale": represent(views960, "multiscale"),
                 "rawW240": delay_views(series, idx, 240),
                 "rawW48": delay_views(series, idx, 48),
+                "dyadic": represent(views960, "dyadic"),
+                "msdetail": represent(views960, "msdetail"),
+                "ms_plus_w48": represent(views960, "ms_plus_w48"),
                 # HAR + calendar feature rows (already prescaled upstream) at
                 # the same target positions — the graph the plain-kNN model
                 # implicitly uses; its spectral cells test "embed the HAR
