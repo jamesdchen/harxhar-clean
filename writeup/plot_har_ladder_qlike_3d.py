@@ -62,6 +62,7 @@ ax.set_title(
     "(no base coord): 0.13439–0.13447, above the plane",
     fontsize=10,
 )
+ax.invert_xaxis()  # base 8 near, base 2 far — the downhill-to-b2 slope faces the viewer
 ax.view_init(elev=22, azim=-58)
 fig.tight_layout()
 fig.savefig(OUT, bbox_inches="tight")
