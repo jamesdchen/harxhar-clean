@@ -16,9 +16,18 @@ NEW = pathlib.Path("_aggregated/har_base_sweep-53c27e42_metrics_table.csv")
 master = pd.read_csv(MASTER)
 new = pd.read_csv(NEW)
 
+def arm_estimator(arm: str, cap: int) -> str:
+    """Self-describing display name: the bare 'ols_har' hid base/cap."""
+    if arm == "explicit":
+        return f"ols_har explicit cap{cap}"
+    return f"ols_har b{arm} cap{cap}"
+
+
 rows = pd.DataFrame(
     {
-        "estimator": "ols_har",
+        "estimator": [
+            arm_estimator(a, c) for a, c in zip(new["ladder_arm"].astype(str), new["rungs_cap"])
+        ],
         "bucket": "baseline",
         **{c: new[c] for c in [
             "qlike", "mse", "rmse", "mae", "hmse", "hmae", "oos_r2",
