@@ -54,7 +54,6 @@ import scipy.sparse as sp
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse.linalg import eigsh
 from sklearn.linear_model import Ridge
-from sklearn.manifold import spectral_embedding as sk_spectral_embedding
 from sklearn.neighbors import KNeighborsRegressor, NearestNeighbors
 
 from src.backtest.executor import (
@@ -156,7 +155,8 @@ def represent(views: np.ndarray, kind: str) -> np.ndarray:
 
 
 def knn_distances(Z: np.ndarray, k: int) -> tuple[np.ndarray, np.ndarray]:
-    nn = NearestNeighbors(n_neighbors=k + 1).fit(Z)
+    # brute force: tree indexes degrade badly in high dimension
+    nn = NearestNeighbors(n_neighbors=k + 1, algorithm="brute").fit(Z)
     dists, idx = nn.kneighbors(Z)
     return dists[:, 1:], idx[:, 1:]  # drop self
 
@@ -193,6 +193,17 @@ def normalized_laplacian_basis(A: sp.csr_matrix, n_eig: int):
     lam = 1.0 - vals[order]
     U = vecs[:, order]
     return lam, U
+
+
+def laplacian_eigenmap(A: sp.csr_matrix, d: int) -> np.ndarray:
+    """Laplacian-eigenmaps coordinates (sklearn-equivalent: generalized
+    eigenvectors D^-1/2 u of the normalized Laplacian, first mode dropped) —
+    computed with plain eigsh, which is far faster than sklearn's
+    shift-invert path on graphs this size."""
+    deg = np.asarray(A.sum(axis=1)).ravel()
+    deg[deg <= 0] = 1e-12
+    _, U = normalized_laplacian_basis(A, d + 1)
+    return (U[:, 1 : d + 1] / np.sqrt(deg)[:, None]).astype(np.float64)
 
 
 # ---------------------------------------------------------------------------
@@ -244,7 +255,9 @@ def run_energy_experiment(A, U, f, n_perm: int, rng) -> dict:
 
 
 def knn_forecast(Z_tr, t_tr, Z_te, k: int) -> np.ndarray:
-    model = KNeighborsRegressor(n_neighbors=k, weights=gaussian_weights)
+    model = KNeighborsRegressor(
+        n_neighbors=k, weights=gaussian_weights, algorithm="brute"
+    )
     model.fit(Z_tr, t_tr)
     return model.predict(Z_te)
 
@@ -269,11 +282,9 @@ def neighbor_swap(Z: np.ndarray, targets: np.ndarray, weighting: str, seed: int)
     n_comp, _ = connected_components(A, directed=False)
     out["n_components"] = int(n_comp)
 
-    nn_index = NearestNeighbors(n_neighbors=K_GRAPH).fit(Z_tr)
+    nn_index = NearestNeighbors(n_neighbors=K_GRAPH, algorithm="brute").fit(Z_tr)
     for d in D_EMBED:
-        phi_train = sk_spectral_embedding(
-            A, n_components=d, random_state=seed, drop_first=True
-        )
+        phi_train = laplacian_eigenmap(A, d)
         basis = SpectralBasis(phi_train=phi_train, k_graph=K_GRAPH, nn_index=nn_index)
         phi_test = basis.embed_batch(Z_te)
         pred_emb = knn_forecast(phi_train, t_tr, phi_test, NEIGHBOR_K)

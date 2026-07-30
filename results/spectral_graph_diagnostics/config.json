@@ -1,0 +1,24 @@
+{
+  "data_path": "data",
+  "out": "results/spectral_graph_diagnostics",
+  "stride": 2,
+  "n_perm": 10,
+  "anchors": "0.5",
+  "seed": 42,
+  "train_win": 24000,
+  "W": 960,
+  "k_graph": 10,
+  "neighbor_k": 25,
+  "d_embed": [
+    8,
+    16
+  ],
+  "recw_halflife": 240,
+  "multiscale_windows": [
+    1,
+    8,
+    48,
+    240,
+    960
+  ]
+}
