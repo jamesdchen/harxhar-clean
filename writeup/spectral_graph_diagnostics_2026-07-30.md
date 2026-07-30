@@ -118,6 +118,43 @@ Delay-window sweep and HAR-feature representations, identical target set
   representation leaves the eigenmaps nothing to add."
 * Residual-target versions of all three: still at/below the constant.
 
+## kNN vs linear (diag_knn_vs_linear.py, same window/targets/split)
+
+The reference the earlier grids never included (const = 0.2853):
+
+| model | MSE | | model | MSE |
+|---|---|---|---|---|
+| **ridge_multiscale** | **0.0849** | | knn_multiscale_k25 | 0.1189 |
+| ridge_har | 0.0915 | | knn_multiscale_k5 / k100 | 0.1183 / 0.1341 |
+| loclin_multiscale_k25 | 0.1124 | | knn_prognostic_k25 | 0.1197 |
+| loclin_har_k100 | 0.1158 | | knn_har_betaweighted_k25 | 0.1254 |
+
+* **Plain ridge on the 5 multiscale coordinates beats every neighborhood
+  method by ~25–30%** (and beats ridge on the full 27-dim HAR+calendar rows).
+  The kNN family was never ahead of the linear baseline on this protocol —
+  its apparent strength (R² 0.58 vs const) is a strict subset of ridge's
+  (R² 0.70 on the same coordinates).
+* **No exploitable nonlinearity found.** Prognostic-score kNN (free-form link
+  on ridge's own index) loses to ridge; |beta|-weighted metrics don't help;
+  this matches the dead har→residual cell. The relationship from multi-
+  horizon levels to next-bar vol is, to the resolution of this window,
+  linear — local averaging only adds variance.
+* **Local-linear closes a third of the gap** (0.1124 vs 0.1189 at k=25) by
+  fixing part of the locally-constant extrapolation bias, but a per-query
+  ridge on 25 neighbors is just a noisier version of the global ridge.
+* **The analogues are real, but analogy is the wrong estimator.** Selected
+  neighbors are temporally spread (median |Δt| ≈ 11,190 bars ≈ 233 days —
+  not persistence in disguise), yet matching-and-averaging is dominated by
+  global regression when the signal is linear.
+* **Shared failure mode, and the only structure left on the table:** both
+  models compress toward the middle — overpredicting the bottom deciles
+  (+0.15–0.19 bias) and badly underpredicting the top decile (bias −0.54
+  kNN / −0.43 ridge; decile-9 MSE 0.74 / 0.48). kNN's inability to
+  extrapolate makes it strictly worse exactly at spikes. Whatever improves
+  this model class next lives in the top decile — jump/threshold features,
+  regime interactions (cf. the open/close session-edge work), or asymmetric
+  loss — not in neighborhood geometry.
+
 ## Conclusions
 
 1. **The residualizer is the first-order mistake.** Views of ridge residuals
@@ -128,12 +165,15 @@ Delay-window sweep and HAR-feature representations, identical target set
    decisive (it is where all signal enters), but the Laplacian filtering adds
    nothing even on the best graph — diffusion geometry is at best a lossy
    re-encoding of neighborhoods the base metric already gets right.
-3. **Actionable model:** identity residualizer + multiscale (HAR-style
-   1/8/48/240/960-bar means, per-coordinate standardized) representation +
-   gaussian-weighted 25-NN. On this window's view targets it reaches
-   OOS R² ≈ 0.58 vs the constant predictor. Next experiment: proper
-   walk-forward of that model against the ridge baseline — that comparison
-   decides candidate vs curiosity.
+3. **[Superseded by the kNN-vs-linear section]** The multiscale-kNN model
+   that won the representation search (OOS R² ≈ 0.58 vs const) is itself
+   dominated by plain ridge on the same 5 coordinates (R² ≈ 0.70), with no
+   detectable nonlinearity left for any neighborhood method to harvest.
+   Verdict on the whole direction: close spectral-kNN; the surviving lead is
+   ridge on multiscale coordinates (ridge_multiscale 0.0849 < ridge_har
+   0.0915 on this protocol — worth a walk-forward check as a feature-set
+   simplification), and the open problem is the shared top-decile spike
+   underprediction, which no model in this family addresses.
 
 Artifacts: `results/spectral_graph_diagnostics/` (summary.csv,
 energy_profiles.csv/.png, neighbor_swap.csv, config.json). Reproduce:
