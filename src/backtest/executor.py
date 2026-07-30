@@ -329,7 +329,12 @@ def load_and_transform(
     adj_exog_cols: list[str] = []
     for col in exog_cols:
         adj_col = f"adj_{col}"
-        adj_series, _ = robust_transform(df, col, use_transform=use_semantic, use_diurnal=True, diurnal_mode=diurnal_mode)
+        if diurnal_mode != "divide":
+            raise NotImplementedError(
+                f"diurnal_mode={diurnal_mode!r} needs diurnal_rank, which lives in the "
+                "cluster-side prep scripts — this repo's robust_transform only divides"
+            )
+        adj_series, _ = robust_transform(df, col, use_transform=use_semantic, use_diurnal=True)
         df[adj_col] = adj_series
         adj_exog_cols.append(adj_col)
 
