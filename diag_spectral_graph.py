@@ -25,9 +25,12 @@ The grid crosses:
 
 * view/target type: ``resid`` (ridge residuals, as the pipeline builds) and
   ``raw`` (identity residualizer — views of adj_RV itself);
-* representation:  ``raw960`` (plain delay vector), ``recw`` (recency-
-  weighted delay vector, exp half-life in bars), ``multiscale`` (HAR-style
-  means over the last 1/8/48/240/960 bars, per-coordinate standardized);
+* representation:  ``raw960`` (plain delay vector), ``rawW240`` / ``rawW48``
+  (shorter delay windows, same targets), ``recw`` (recency-weighted delay
+  vector, exp half-life in bars), ``multiscale`` (HAR-style means over the
+  last 1/8/48/240/960 bars, per-coordinate standardized), ``har`` (the
+  prescaled HAR+calendar feature rows themselves — the plain-kNN model's
+  space, so its spectral cells test "embed the HAR features" directly);
 * edge weighting:  ``binary`` (current pipeline) vs ``heat`` (self-tuning
   Zelnik-Manor kernel, sigma_i = distance to 7th neighbour).
 
@@ -113,13 +116,16 @@ def window_residuals(X_win: np.ndarray, y_win: np.ndarray, alpha: float = 1.0) -
     return y_win - ridge.predict(X_win)
 
 
-def make_views(series: np.ndarray, stride: int) -> tuple[np.ndarray, np.ndarray]:
+def view_index(n: int, stride: int) -> np.ndarray:
+    """Shared target positions (anchored at W so every cell — any window
+    length, or HAR features — predicts the identical target set)."""
+    return np.arange(W, n, stride)
+
+
+def delay_views(series: np.ndarray, idx: np.ndarray, w: int) -> np.ndarray:
     """Sliding delay views exactly as MultiStageBacktest builds them:
-    view_j = series[j-W:j], target_j = series[j]; optionally strided."""
-    idx = np.arange(W, len(series), stride)
-    views = np.stack([series[j - W : j] for j in idx]).astype(np.float32)
-    targets = series[idx].astype(np.float64)
-    return views, targets
+    view_j = series[j-w:j] for the shared target positions ``idx``."""
+    return np.stack([series[j - w : j] for j in idx]).astype(np.float32)
 
 
 # ---------------------------------------------------------------------------
@@ -335,9 +341,22 @@ def main() -> None:
         }
 
         for vtype, series in series_by_type.items():
-            views, targets = make_views(series, args.stride)
-            for repr_kind in ("raw960", "recw", "multiscale"):
-                Z = represent(views, repr_kind)
+            idx = view_index(len(series), args.stride)
+            targets = series[idx].astype(np.float64)
+            views960 = delay_views(series, idx, W)
+            cell_matrices = {
+                "raw960": views960,
+                "recw": represent(views960, "recw"),
+                "multiscale": represent(views960, "multiscale"),
+                "rawW240": delay_views(series, idx, 240),
+                "rawW48": delay_views(series, idx, 48),
+                # HAR + calendar feature rows (already prescaled upstream) at
+                # the same target positions — the graph the plain-kNN model
+                # implicitly uses; its spectral cells test "embed the HAR
+                # features" directly.
+                "har": X_win[idx].astype(np.float32),
+            }
+            for repr_kind, Z in cell_matrices.items():
                 tic = time.time()
                 dists, idx = knn_distances(Z, K_GRAPH)
                 print(f"  kNN [{vtype}/{repr_kind}] {Z.shape} "
