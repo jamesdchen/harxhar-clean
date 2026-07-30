@@ -195,6 +195,51 @@ Findings:
    noise blocks dilute; per-block L1 selection (the enet-survivor machinery)
    is the right integration path, consistent with campaign experience.
 
+## all_features bucket embedding (diag_embedding_allfeat.py)
+
+Laplacian eigenmap of the full 297-col exog matrix (41 raw series ×
+HAR lags + target HAR + calendar, sweep_all_features construction), same
+window/graph as the other embedding panels. d8 captured 4.9% (null 0.08%),
+d16 11.2%, d64 39%. The geometry
+(`writeup/figures/diag_embedding_allfeatures.png`) is thin closed loops with
+sessions fully mixed: because most exog are daily-stepped (ffilled), bars
+cluster by day and days chain temporally — **the embedding parametrizes
+calendar time, not market state**. Its modest target smoothness is
+autocorrelation-in-time (persistence rediscovered), not analogue structure;
+signal accrues only slowly with d (harmonics of the time curve).
+
+## Regime-discoverer variant (diag_regimes.py): gates close here too
+
+Spectral clustering of an 11-dim slow exog state (train-window graph →
+eigenvector k-means → multinomial-logit distillation → soft-membership
+gates on the multiscale base), against the honest nulls. Nested-ridge MSE
+(overall / top-decile):
+
+| model | COVID window | calm window |
+|---|---|---|
+| M0 multiscale, no gates | **0.1010** / 0.509 | 0.0796 / 0.346 |
+| + clock gates | 0.1030 / 0.526 | **0.0770** / 0.339 |
+| + VIX-inversion hand gate | 0.1096 / 0.576 | 0.0773 / 0.350 |
+| + GMM regime gates | 0.1051 / 0.526 | 0.0768 / 0.340 |
+| + spectral regime gates | 0.1307 / 0.668 | 0.0781 / 0.351 |
+
+Mechanics were healthy (median regime run ~16–19 bars, distill acc 0.96–0.98)
+— the failure is in the economics:
+
+1. **In the calm window** the validated clock gates reproduce (−3.3%) and
+   GMM regimes merely match them; spectral regimes trail both. The graph
+   layer adds nothing over k-means-style clustering, and discovered regimes
+   add nothing over the free clock regime.
+2. **In the COVID window every gate hurts, spectral worst** (+29% MSE, +31%
+   top-decile). Gated models multiply features by state memberships; in an
+   unprecedented state the memberships extrapolate (the spectral partition
+   included a 233-sample micro-cluster whose gate exploded OOS) and the
+   gated coefficients misfire exactly at the spikes. Regime gating is most
+   dangerous precisely where the residual value is.
+3. This replicates, with discovered regimes, the campaign's finding that
+   vol-state-anchored regime interactions fail while clock-anchored ones
+   hold: the clock never suffers distribution shift.
+
 ## Conclusions
 
 1. **The residualizer is the first-order mistake.** Views of ridge residuals
