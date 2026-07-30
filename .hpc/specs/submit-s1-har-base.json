@@ -1,0 +1,78 @@
+{
+  "walk": {
+    "cluster": "carc",
+    "configured_clusters": ["carc", "hoffman2"],
+    "goal": "sweep over different bases of the HAR ladder and one with {1,8,48,240,960}; ladder construction is rungs to a cap, with a sweep of the cap too; citable numbers: QLIKE per ladder-arm x cap vs the incumbent under the usual estimator, full battery with DM vs incumbent; OLS-HAR base-5 anchor as a familiar baseline. No scope tags.",
+    "tasks_py_present": true,
+    "entry_point_resolved": true,
+    "data_axis_resolved": true,
+    "homogeneous_axes_resolved": true,
+    "profile": "har_base_sweep",
+    "executor_run_name": "har_base_sweep",
+    "walltime_sec": 10800,
+    "experiment_dir": ".",
+    "gpu_type": ""
+  },
+  "resolve": {
+    "run_name": "har_base_sweep",
+    "submit": {
+      "profile": "har_base_sweep",
+      "cluster": "carc",
+      "ssh_target": "jc_905@discovery2.usc.edu",
+      "remote_path": "/scratch1/jc_905/harxhar-clean",
+      "run_id": "placeholder-00000000",
+      "cmd_sha": "53c27e426054a2aa510215f4770b3324e839b14c24b0ed2ae7bc12e1c9106d0f",
+      "total_tasks": 2100,
+      "backend": "slurm",
+      "conda_env": "harxhar",
+      "conda_source": "/apps/conda/miniforge3/25.3.0/etc/profile.d/conda.sh",
+      "modules": "conda",
+      "job_name": "har_base",
+      "script": ".hpc/templates/cpu_array.slurm",
+      "walltime_sec": 10800,
+      "mem_mb": 8000,
+      "cpus": 4,
+      "extra_env": {
+        "PYTHONPATH": "/scratch1/jc_905/harxhar-clean"
+      },
+      "rsync_excludes": [
+        "*.pyc",
+        "_harvest",
+        ".claude",
+        ".git",
+        ".hpc/_hpc_combiner.py",
+        ".hpc/_hpc_dispatch.py",
+        ".hpc/templates",
+        ".mypy_cache",
+        ".venv",
+        "__pycache__",
+        "_combiner",
+        "clusters.yaml",
+        "hpc_agent",
+        "logs",
+        "node_modules",
+        "results",
+        "venv",
+        "_aggregated",
+        "data/om_friction"
+      ],
+      "is_gpu": false
+    },
+    "sidecar": {
+      "run_id": "placeholder-00000000",
+      "cmd_sha": "53c27e426054a2aa510215f4770b3324e839b14c24b0ed2ae7bc12e1c9106d0f",
+      "executor": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/har_base_sweep.py --no-default-output",
+      "result_dir_template": "results/har_base_sweep/{ladder_arm}_{rungs_cap}/chunk_{chunk_start}",
+      "task_count": 2100,
+      "cluster": "carc",
+      "remote_path": "/scratch1/jc_905/harxhar-clean",
+      "profile": "har_base_sweep",
+      "summary_artifact": "har_base_sweep/metrics_table.csv",
+      "resources": {
+        "walltime_sec": 10800,
+        "mem_mb": 8000,
+        "cpus": 4
+      }
+    }
+  }
+}

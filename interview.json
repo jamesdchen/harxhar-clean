@@ -1,7 +1,7 @@
 {
   "_materialized": {
-    "at": "2026-07-15T21:14:19.124537+00:00",
-    "cmd_sha": "82ba92e87d7a30a847f16e59b8447ea4dfce52bb6d0100668944404a17e8f5af",
+    "at": "2026-07-30T09:12:00.689256+00:00",
+    "cmd_sha": "53c27e426054a2aa510215f4770b3324e839b14c24b0ed2ae7bc12e1c9106d0f",
     "entry_point": {
       "data_axis": {
         "halo": {
@@ -9,22 +9,22 @@
         },
         "kind": "bounded_halo"
       },
-      "executor_cmd": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/causal_tune_linear_fixmask.py --no-default-output",
+      "executor_cmd": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/har_base_sweep.py --no-default-output",
       "frozen_shas": {},
       "kind": "shell_command",
-      "run_name": "causal_tune_linear_fixmask",
-      "wrapper_path": ".hpc/wrappers/causal_tune_linear_fixmask.py"
+      "run_name": "har_base_sweep",
+      "wrapper_path": ".hpc/wrappers/har_base_sweep.py"
     },
     "tasks_py_origin": "interview_materialized",
-    "total_tasks": 300
+    "total_tasks": 2100
   },
   "audited_source": {
-    "audit_id": "causal_tune_linear",
+    "audit_id": "har_base_sweep",
     "input_roots": [
       "data"
     ],
     "output_roots": [],
-    "source": "specs/causal_tune_linear.py",
+    "source": "specs/har_base_sweep.py",
     "source_roots": [
       "src"
     ],
@@ -33,14 +33,13 @@
   "entry_point": {
     "argv": [
       "env",
-      "EXPERIMENT={experiment}",
-      "EXOG_BUCKET={exog_bucket}",
-      "ESTIMATOR={estimator}",
+      "LADDER_ARM={ladder_arm}",
+      "RUNGS_CAP={rungs_cap}",
       "START={chunk_start}",
       "END={chunk_end}",
       "HALO={halo}",
       "python3",
-      "specs/causal_tune_linear.py"
+      "specs/har_base_sweep.py"
     ],
     "data_axis_hint": {
       "halo": {
@@ -48,33 +47,20 @@
       },
       "kind": "bounded_halo"
     },
-    "fixed_params": {
-      "experiment": "causal_tune_linear_fixmask"
-    },
+    "fixed_params": {},
     "frozen_configs": [],
     "kind": "shell_command",
-    "run_name": "causal_tune_linear_fixmask",
+    "run_name": "har_base_sweep",
     "signature": {
       "chunk_end": "int",
       "chunk_start": "int",
-      "estimator": "str",
-      "exog_bucket": "str",
-      "experiment": "str",
-      "halo": "int"
+      "halo": "int",
+      "ladder_arm": "str",
+      "rungs_cap": "int"
     }
   },
-  "goal": "we're testing if causally optimizing hyperparameters improves metrics \u2014 2700 tasks: for each of the 9 buckets of data (with no buckets and all buckets included), one of ridge/reclasso/reclasticnet run with causal hyperparameter tuning (at tune_per periodic sliding window of the backtest on a val_tail holdout set, the hyperparameters are tuned from a grid search on a log scale before the OOS test is forecast), backtest chunks split across a task-array (chunks are the homogeneous axis; the training window + val_tail holdout of each backtest window is a halo). Deliverable: per-bucket per-estimator metrics with the causal-tuned HP path vs the fixed-HP incumbent \u2014 the full spread as seen in the beat4 writeup table, including the DM tests at the end. RESUBMIT SCOPE (2026-07-15): reclasso \u00d7 {sentiment, vol_demand, all_features} only \u2014 the arms exposed to the lam2=0 pure-lasso singularity (blown QLIKE >1) \u2014 rerun under the re-audited identifiability-mask source.",
+  "goal": "sweep over different bases of the HAR ladder and one with {1,8,48,240,960}; ladder construction is rungs to a cap, with a sweep of the cap too; citable numbers: QLIKE per ladder-arm x cap vs the incumbent under the usual estimator, full battery with DM vs incumbent; OLS-HAR base-5 anchor as a familiar baseline. No scope tags.",
   "packs": [
-    {
-      "manifest": "packs/quant/manifest.json",
-      "pack": "quant",
-      "receipt_bindings": [
-        {
-          "pack": "quant",
-          "slot": "quant-audit"
-        }
-      ]
-    },
     {
       "manifest": "packs/rv/manifest.json",
       "pack": "rv",
@@ -82,22 +68,28 @@
     }
   ],
   "produced_by": {
-    "kind": "human",
-    "operator": "jamesdchen"
+    "kind": "agent",
+    "session_sha": "9322a42afd3201a6e84d0f43d8072c6c1e0a639d797e7ea92bd60d5337789cc7"
   },
-  "task_count": 300,
+  "task_count": 2100,
   "task_generator": {
     "kind": "chunked_series",
     "params": {
       "chunks": 100,
       "extra_axes": {
-        "estimator": [
-          "reclasso"
+        "ladder_arm": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "explicit"
         ],
-        "exog_bucket": [
-          "sentiment",
-          "vol_demand",
-          "all_features"
+        "rungs_cap": [
+          240,
+          960,
+          3125
         ]
       },
       "halo": 24000,
