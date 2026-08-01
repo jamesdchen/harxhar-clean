@@ -63,8 +63,11 @@ def _homotopy_walk(
             s, dtype=float
         )  # (else np.asarray([]) -> float64 -> np.ix_ IndexError)
         g_aa = g[np.ix_(a_arr, a_arr)]
-        w0 = _solve(g_aa, c[a_arr])
-        w1 = _solve(g_aa, s_arr)
+        # w0, w1 share g_aa; stack the RHS so LAPACK factors the active Gram ONCE (half the
+        # factorization cost). Agrees with two separate _solve calls to ~1e-16 -- a different FP
+        # summation order, well below the _EPS breakpoint tolerance, so the path is unchanged.
+        w01 = _solve(g_aa, np.column_stack((c[a_arr], s_arr)))
+        w0, w1 = w01[:, 0], w01[:, 1]
         inactive = np.asarray([j for j in range(m) if j not in a], dtype=int)
         best_mu = mu_target
         best: tuple | None = None
@@ -182,8 +185,14 @@ def enet_online(
         Aa = np.asarray(A, dtype=int)
         sA = np.asarray(s, dtype=float)
         M = Gr[np.ix_(Aa, Aa)]
-        tA = _solve(M, c[Aa] - mu_vec[Aa] * sA)  # active theta at this segment base
-        p = _solve(M, u[Aa])
+        # tA and p share the active Gram M; one stacked solve factors M ONCE (half the O(|A|^3)
+        # cost, the hot path for the dense active set). Agrees with two separate _solve calls to
+        # ~1e-16 (FP summation order), well below the tol breakpoint threshold, so path unchanged.
+        tp = _solve(M, np.column_stack((c[Aa] - mu_vec[Aa] * sA, u[Aa])))
+        tA, p = (
+            tp[:, 0],
+            tp[:, 1],
+        )  # active theta at this segment base; rank-1 direction
         a = float(u[Aa] @ p)
         e0 = float(u[Aa] @ tA)
         dir_ = w - e0

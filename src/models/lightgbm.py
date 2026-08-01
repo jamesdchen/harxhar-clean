@@ -54,6 +54,9 @@ def run(
     data_path: str = "data",
     output_file: str = "results/lgbm/run.json",
     params_file: str = "",
+    start: int = 0,
+    end: int = -1,
+    halo: int = 0,
 ) -> dict:
     """LightGBM walk-forward volatility backtest.
 
@@ -77,9 +80,9 @@ def run(
         output_file=results_csv,
         horizon=horizon,
         train_window=train_window,
-        start=0,
-        end=-1,
-        halo=0,
+        start=start,
+        end=end,
+        halo=halo,
         exog_cols=parse_exog_cols(exog_cols or None),
         segment=None,
         lag_scope="global",

@@ -102,6 +102,38 @@ def diurnal_adjust(
     return adjusted, baseline
 
 
+def diurnal_rank(
+    series: pd.Series,
+    time_of_day_series: pd.Series,
+    window: int = DIURNAL_WINDOW,
+    min_periods: int = DIURNAL_MIN_PERIODS,
+    gaussianize: bool = True,
+) -> tuple[pd.Series, pd.Series]:
+    """Rank-based diurnal adjustment — the division-free alternative to ``diurnal_adjust``.
+
+    Within each time-of-day slot, map each value to its plotting-position percentile
+    among the trailing ``window`` in-slot observations (causal: a slot's series is
+    chronologically ordered and the rolling window ends at the current bar), then —
+    if ``gaussianize`` — through the inverse-normal CDF. This pins the *whole* per-slot
+    marginal (location, scale AND shape), and being **division-free** it cannot blow
+    up: zero-heavy / intermittent signed slots that collapse a per-slot std (and
+    explode the divide form) instead map to tied mid-ranks. A rank has no
+    multiplicative baseline, so ``baseline`` is 1.0 — this form is for FEATURES, not
+    the target (whose raw reconstruction needs the divide baseline).
+
+    Returns ``(adjusted, baseline=1.0)``.
+    """
+    from scipy.special import ndtri  # inverse standard-normal CDF (probit)
+
+    g = pd.DataFrame({"val": series, "slot": time_of_day_series}).groupby("slot")["val"]
+    rank = g.transform(lambda s: s.rolling(window, min_periods=min_periods).rank())
+    count = g.transform(lambda s: s.rolling(window, min_periods=min_periods).count())
+    u = ((rank - 0.5) / count).clip(1e-6, 1.0 - 1e-6).to_numpy()
+    adj = ndtri(u) if gaussianize else (2.0 * u - 1.0)
+    adj = np.where(np.isfinite(adj), adj, 0.0)  # warm-up rows (count < min_periods) → neutral
+    return pd.Series(adj, index=series.index), pd.Series(1.0, index=series.index)
+
+
 # ---------------------------------------------------------------------------
 # Semantic (column-name-based) transforms
 # ---------------------------------------------------------------------------
@@ -196,8 +228,16 @@ def robust_transform(
     allow_missing: bool = False,
     winsor_window: int | None = None,
     is_target: bool = False,
+    diurnal_mode: str = "divide",
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
+
+    ``diurnal_mode``: ``"divide"`` (default) uses :func:`diurnal_adjust`;
+    ``"rank"`` uses :func:`diurnal_rank` for FEATURES (division-free per-slot
+    rank-Gauss) and the rank output is returned directly — the semantic transform
+    and winsorize are skipped (rank-Gauss already normalizes, and sqrt/log of a
+    signed rank value would break). The target (``is_target=True``) always uses
+    divide regardless, since its raw reconstruction needs the multiplicative baseline.
 
     Returns ``(adjusted_series, baseline)``.
     """
@@ -209,6 +249,8 @@ def robust_transform(
 
     baseline = pd.Series(1.0, index=df.index)
     if use_diurnal and col_name not in DIURNAL_EXCLUDED and time_col in df.columns:
+        if diurnal_mode == "rank" and not is_target:
+            return diurnal_rank(series, df[time_col])  # final feature; skip semantic + winsor
         series, baseline = diurnal_adjust(series, df[time_col], has_negatives)
 
     if use_transform:

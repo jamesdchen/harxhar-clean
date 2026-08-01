@@ -72,6 +72,7 @@ def run(
     params_file: str = "",
     overnight_fill: bool = True,
     impute_indicate: bool = False,
+    diurnal_mode: str = "divide",
     incremental: bool = True,
 ) -> dict:
     """Ridge regression walk-forward volatility backtest.
@@ -120,6 +121,7 @@ def run(
         dropna_with_exog=True,
         overnight_fill=overnight_fill,
         impute_indicate=impute_indicate,
+        diurnal_mode=diurnal_mode,
         prescale=True,
         seed=seed,
     )
