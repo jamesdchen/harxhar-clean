@@ -6,7 +6,8 @@ per-bin target kernel (12-vec) + exog operator (41x12); amplitudes
 a_k(bin) = u_k' Km_bin v_k on the UNCONDITIONAL pooled SVD frame.
 Tests: intraday regime == clock-periodic amplitude motion on fixed shapes.
 """
-import numpy as np, re
+import numpy as np
+import re
 import pandas as pd
 from src.data.loading import load_raw_data
 
