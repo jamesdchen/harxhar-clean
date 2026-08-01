@@ -129,6 +129,44 @@ Pooled per-bar DMs vs matched controls; design the panel to speak the
 paper's convention (sec. 5 blocker). All local knobs chunk-selected — the
 freeze is the discipline.
 
+## 6b. CODA — THE PLATEAU (final hours of the session)
+
+- **CLOCK ORGAN**: Fourier-modulated shape amplitudes (C x 4 daily-phase
+  harmonics), column-scaled. Fourier >> gates both tiles (continuous
+  cycle). Penalty curve: s=1 t1 -0.00248 p=.039 / t2 +0.0025; s=0.3
+  -0.00247 p=.0069 / +0.0019; s=0.1 -0.00149 p=.0075 / +0.0007 —
+  monotone trade improvement, t2 never crosses. Loop is FULL-SAMPLE real
+  (session operators); harvest is regime-priced.
+- **THREE-WAY TIE AT THE TOP (tile 1)**: champion 0.162099 (s_stack1000)
+  == legchamp+clock 0.162104 (p=.998) == prune32+clock+corr 0.162237
+  (p=.95). Two of three fully nameable. Compositions all SUB-ADDITIVE
+  (clock eats the correction's harvest: corr increment -0.0016 -> -0.0004
+  on clocked anchor). avg(pcc, champion) = 0.16039 = best-ever number
+  (diversification, unvalidated). t2: pcc +0.0015 (clock tax as
+  predicted); prune32+corr remains the cross-tile-robust form.
+  **LOCAL SCREEN DECLARED SATURATED** — every remaining difference is
+  sub-chunk-resolution; compositions converge on the same residual.
+- **DIVIDE-VS-RANK RACED**: DIURNAL_MODE env added to run_geometry_local
+  (rank cache prep_cache_all_features_b2_rank.npz built; b2rank_mmap
+  exported). Rank +0.00995 WORSE t1 (p=.001), tie t2 — threshold-mixture
+  law at the adjustment layer; divide certified.
+- lcc t2 log caveat: its two cross-model DM lines compared tile-1 preds
+  cross-period (length-guard insufficient) — invalid; t2-internal valid.
+- Drivers added: legchamp_clock.py, prune_clock_corr.py (in drivers/
+  msweep_2026-08-01/ or scratchpad; pcc script = tile_corr + clock block).
+- **PAPER RESTRUCTURED (user directive)**: Hawkes-first 5-section arc —
+  see writeup/paper_restructure_2026-08-01.md. Key implication: the
+  BUCKET TABLE must be re-run on the b2/kernel convention (fold into the
+  cluster campaign). Multi-horizon = PAPER 2 (banked in the blueprint).
+
+## 6c. FROZEN LIST v5 (supersedes v4)
+
+prune32 control / prune32+corr+stack (robust champion) / legchamp+clock /
+prune32+clock+corr (pcc) / old champion (s_stack1000) / avg combinations /
+clock organ pure at s in {0.1, 0.3} / rawc-as-regime-probe / RFF variant
+/ + PER-BUCKET ARMS on the b2 kernel backbone (the S2 table). Pooled
+per-bar DMs vs matched controls; design panel to the paper's convention.
+
 ## 7. NEXT
 
 1. Commit (this doc + drivers + preds) and /sync. 2. Cluster run (VPN,
