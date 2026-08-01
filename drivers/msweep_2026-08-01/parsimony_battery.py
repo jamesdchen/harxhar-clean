@@ -1,3 +1,4 @@
+# ruff: noqa: E402, E741, E731  (archival experiment drivers, verified by execution)
 """Parsimony-champion lever battery on hybrid_dp (0.165145 @ 257p, chunk).
 
 Arms (each a one-knob variant of the hybrid_dp run; DM vs the saved
