@@ -1,0 +1,16 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+factor-VAR spectral radius: 0.9994
+seg 1/10
+seg 2/10
+seg 3/10
+seg 4/10
+seg 5/10
+seg 6/10
+seg 7/10
+seg 8/10
+seg 9/10
+seg 10/10
+direct-factor (32f)      qlike=0.228832 mz=0.639
+ITERATED factor-VAR      qlike=0.237614 mz=0.658
+iterated vs direct-factor: diff=+0.00878 p=0.0911
+(references: full-X direct 0.0902 | incumbent 0.1962 | state-126 pair ~0.229)

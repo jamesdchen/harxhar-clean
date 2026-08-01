@@ -1,0 +1,10 @@
+seg@0: 61 zeros
+seg@1200: 61 zeros
+seg@2160: 57 zeros
+
+common zeros across 3 segments: 54
+cores zeroed (9): ['core_stocktwits_attention', 'core_stocktwits_sentiment', 'core_stocktwits_sentcount', 'core_vvix', 'core_vix3m', 'core_voldemand_spx_open_and_close', 'core_voldemand_spx_open_only', 'core_voldemand_all_open_and_close', 'core_voldemand_all_open_only']
+cal zeroed (0): []
+shape cells zeroed (45): by shape rank {'1': 9, '2': 9, '3': 9, '4': 9, '5': 9}
+channels losing >=3 shape cells: {'stocktwits_attention': 5, 'stocktwits_sentiment': 5, 'stocktwits_sentcount': 5, 'vvix': 5, 'vix3m': 5, 'voldemand_spx_open_and_close': 5, 'voldemand_spx_open_only': 5, 'voldemand_all_open_and_close': 5, 'voldemand_all_open_only': 5}
+full shape-cell list: ['C_stocktwits_attention_s1', 'C_stocktwits_attention_s2', 'C_stocktwits_attention_s3', 'C_stocktwits_attention_s4', 'C_stocktwits_attention_s5', 'C_stocktwits_sentiment_s1', 'C_stocktwits_sentiment_s2', 'C_stocktwits_sentiment_s3', 'C_stocktwits_sentiment_s4', 'C_stocktwits_sentiment_s5', 'C_stocktwits_sentcount_s1', 'C_stocktwits_sentcount_s2', 'C_stocktwits_sentcount_s3', 'C_stocktwits_sentcount_s4', 'C_stocktwits_sentcount_s5', 'C_vvix_s1', 'C_vvix_s2', 'C_vvix_s3', 'C_vvix_s4', 'C_vvix_s5', 'C_vix3m_s1', 'C_vix3m_s2', 'C_vix3m_s3', 'C_vix3m_s4', 'C_vix3m_s5', 'C_voldemand_spx_open_and_close_s1', 'C_voldemand_spx_open_and_close_s2', 'C_voldemand_spx_open_and_close_s3', 'C_voldemand_spx_open_and_close_s4', 'C_voldemand_spx_open_and_close_s5', 'C_voldemand_spx_open_only_s1', 'C_voldemand_spx_open_only_s2', 'C_voldemand_spx_open_only_s3', 'C_voldemand_spx_open_only_s4', 'C_voldemand_spx_open_only_s5', 'C_voldemand_all_open_and_close_s1', 'C_voldemand_all_open_and_close_s2', 'C_voldemand_all_open_and_close_s3', 'C_voldemand_all_open_and_close_s4', 'C_voldemand_all_open_and_close_s5', 'C_voldemand_all_open_only_s1', 'C_voldemand_all_open_only_s2', 'C_voldemand_all_open_only_s3', 'C_voldemand_all_open_only_s4', 'C_voldemand_all_open_only_s5']

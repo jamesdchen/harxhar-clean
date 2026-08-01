@@ -1,0 +1,3 @@
+[pb] t2_prune32 qlike=0.123606 mz=1.027 p=203 | tile [26189,28378) (192s)
+[pb] t2_rawc    qlike=0.124662 mz=1.029 p=227 | tile [26189,28378) (196s)
+[pb] DONE

@@ -1,0 +1,13 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+H= 8 incumbent-class          qlike=0.210861 mz=0.866 (1s)
+H= 8 full stack               qlike=0.158351 mz=0.828 (106s)
+H= 8 full + announcements     qlike=0.155076 mz=0.836 (102s)
+H=8: full vs incumbent diff=-0.05251 p=0.0022 | +ann vs full diff=-0.00327 p=0.2997
+H=16 incumbent-class          qlike=0.196570 mz=0.865 (1s)
+H=16 full stack               qlike=0.131199 mz=0.831 (93s)
+H=16 full + announcements     qlike=0.128682 mz=0.834 (69s)
+H=16: full vs incumbent diff=-0.06537 p=0.0071 | +ann vs full diff=-0.00252 p=0.5063
+H=48 incumbent-class          qlike=0.196226 mz=0.799 (0s)
+H=48 full stack               qlike=0.090225 mz=0.814 (65s)
+H=48 full + announcements     qlike=0.090391 mz=0.804 (63s)
+H=48: full vs incumbent diff=-0.10600 p=0.0394 | +ann vs full diff=+0.00017 p=0.9687

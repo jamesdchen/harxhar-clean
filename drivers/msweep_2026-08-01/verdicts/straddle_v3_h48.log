@@ -1,0 +1,14 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+[v3h48] decision days: 4485
+[v3h48] inc done (3s)
+[v3h48] inc_vix done (4s)
+[v3h48] inc_ann done (5s)
+[v3h48] inc_vix_ann done (6s)
+[v3h48] matched days (quoted, ncp=2): 2153/4485
+[v3h48] half-spread (vol pts): median=0.15 p25=0.10 p75=0.22
+[v3h48] implied-only R2=0.8413
+[v3h48] inc          qlike=-8.4315 dR2=+0.0150 t_incr=+12.57 | gross_t=+8.42 | traded=89% net_mean=+0.0504 net_t=+4.79
+[v3h48] inc_vix      qlike=-8.4409 dR2=+0.0155 t_incr=+13.14 | gross_t=+10.63 | traded=89% net_mean=+0.0644 net_t=+6.22
+[v3h48] inc_ann      qlike=-8.4336 dR2=+0.0139 t_incr=+12.08 | gross_t=+8.61 | traded=90% net_mean=+0.0482 net_t=+4.66
+[v3h48] inc_vix_ann  qlike=-8.4417 dR2=+0.0142 t_incr=+12.81 | gross_t=+10.75 | traded=90% net_mean=+0.0669 net_t=+6.47
+[v3h48] DONE

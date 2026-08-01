@@ -1,0 +1,14 @@
+[hcd] seg 1/10 (23s)
+[hcd] seg 2/10 (45s)
+[hcd] seg 3/10 (68s)
+[hcd] seg 4/10 (91s)
+[hcd] seg 5/10 (114s)
+[hcd] seg 6/10 (138s)
+[hcd] seg 7/10 (161s)
+[hcd] seg 8/10 (184s)
+[hcd] seg 9/10 (207s)
+[hcd] seg 10/10 (227s)
+[hcd] DICT-QUERY CORR qlike=0.165576 mz=0.912 | vs own anchor diff=+0.00043 p=0.5715
+[hcd] raw-query preds files: ['results/geo_preds\\hc_hybrid_corr_stack.npz', 'results/geo_preds\\hc_hybrid_dp.npz']
+[hcd] vs raw-query correction: diff=+0.00043 p=0.5715
+[hcd] DONE

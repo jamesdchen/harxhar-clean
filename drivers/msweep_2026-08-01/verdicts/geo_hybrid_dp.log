@@ -1,0 +1,24 @@
+  seg 1/10 (2s)
+  seg 2/10 (4s)
+  seg 3/10 (6s)
+  seg 4/10 (7s)
+  seg 5/10 (9s)
+  seg 6/10 (11s)
+  seg 7/10 (12s)
+  seg 8/10 (14s)
+  seg 9/10 (16s)
+  seg 10/10 (17s)
+hn216_dp                       qlike=0.166553 mz=0.934 p=216
+  seg 1/10 (6s)
+  seg 2/10 (13s)
+  seg 3/10 (19s)
+  seg 4/10 (26s)
+  seg 5/10 (34s)
+  seg 6/10 (41s)
+  seg 7/10 (49s)
+  seg 8/10 (58s)
+  seg 9/10 (66s)
+  seg 10/10 (73s)
+hybrid257_dp                   qlike=0.165145 mz=0.910 p=257
+hybrid vs 216p: diff=-0.00141 p=0.0725
+hybrid vs full anchor (0.164252): diff=+0.00089 p=0.7071

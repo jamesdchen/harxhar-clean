@@ -1,0 +1,4 @@
+[pb] prod_pairs qlike=0.165205 mz=0.931 p=317 | vs hybrid_dp diff=+0.00006 p=0.9665 (60s)
+[pb] prod_sq    qlike=0.164159 mz=0.921 p=384 | vs hybrid_dp diff=-0.00099 p=0.6028 (62s)
+[pb] prod_cross qlike=0.165582 mz=0.864 p=384 | vs hybrid_dp diff=+0.00044 p=0.7954 (68s)
+[pb] DONE

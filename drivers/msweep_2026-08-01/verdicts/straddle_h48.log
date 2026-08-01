@@ -1,0 +1,36 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+[h48] decision days: 4485  2007-02-20 -> 2024-04-29
+  [h48] full 500/4485 (85s)
+  [h48] full 1000/4485 (196s)
+  [h48] full 1500/4485 (335s)
+  [h48] full 2000/4485 (451s)
+  [h48] full 2500/4485 (543s)
+  [h48] full 3000/4485 (635s)
+  [h48] full 3500/4485 (723s)
+  [h48] full 4000/4485 (810s)
+[h48] full done (901s)
+  [h48] incumbent 500/4485 (0s)
+  [h48] incumbent 1000/4485 (1s)
+  [h48] incumbent 1500/4485 (1s)
+  [h48] incumbent 2000/4485 (2s)
+  [h48] incumbent 2500/4485 (2s)
+  [h48] incumbent 3000/4485 (2s)
+  [h48] incumbent 3500/4485 (2s)
+  [h48] incumbent 4000/4485 (3s)
+[h48] incumbent done (3s)
+[h48] matched days: 2316/4485  nonpos preds dropped: 41  (both C&P at ATM: 0.99)
+
+[h48] === known-answer ===
+median implied/realized ratio: 1.366 (VRP: expect ~1.1-1.6)
+corr(logR,logIV)=0.898  corr(logR,logF)=0.677  corr(logR,logInc)=0.895
+
+[h48] === incremental-to-implied (log space, NW lag 1) ===
+implied-only R2: 0.8068
++full forecast : R2 0.8145 (d=+0.0077)  beta=+0.092 t=+7.19
++incumbent     : R2 0.8503 (d=+0.0435)  t=+16.92
+
+[h48] === sign strategy (variance-swap proxy, trailing-demeaned) ===
+strategy[full]: n=2256 mean=+0.0857 t(NW)=+6.54 annSharpe(non-overlap)=+2.25 hit=0.577
+strategy[incumbent]: n=2256 mean=+0.1907 t(NW)=+15.02 annSharpe(non-overlap)=+5.22 hit=0.695
+
+[h48] DONE

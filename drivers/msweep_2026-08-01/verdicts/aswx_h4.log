@@ -1,0 +1,14 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+  [aswx_h4] inc 9600/48000 (0s)
+  [aswx_h4] inc 19200/48000 (0s)
+  [aswx_h4] inc 28800/48000 (1s)
+  [aswx_h4] inc 38400/48000 (1s)
+  [aswx_h4] inc 48000/48000 (1s)
+[aswx_h4] inc        qlike=0.152224 mz=0.939 (1s)
+[aswx_h4] full_ladder done (1012s)
+[aswx_h4] full a=1       qlike=0.178019 mz=0.818 vs inc diff=+0.02580 p=0.0000
+[aswx_h4] full a=100     qlike=0.154064 mz=0.916 vs inc diff=+0.00184 p=0.2946
+[aswx_h4] full a=1000    qlike=0.149805 mz=0.944 vs inc diff=-0.00242 p=0.0713
+[aswx_h4] full a=10000   qlike=0.149001 mz=0.953 vs inc diff=-0.00322 p=0.0036
+[aswx_h4] full a=100000  qlike=0.154909 mz=0.981 vs inc diff=+0.00268 p=0.0435
+[aswx_h4] DONE

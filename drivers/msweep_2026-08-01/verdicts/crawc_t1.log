@@ -1,0 +1,12 @@
+[crawc_t1] seg 1/10 top: ['adj_sumautocov_ma_32', 'adj_sumvolume_ma_1', 'adj_sumautocov_ma_8', 'adj_sumautocov_ma_4'] (40s)
+[crawc_t1] seg 2/10 top: ['adj_sumautocov_ma_32', 'adj_sumret4_ma_32', 'adj_sumvolume_ma_1', 'adj_sumautocov_ma_8'] (69s)
+[crawc_t1] seg 3/10 top: ['adj_sumautocov_ma_32', 'adj_sumvolume_ma_1', 'adj_sumret4_ma_32', 'adj_sumret_ma_4'] (97s)
+[crawc_t1] seg 4/10 top: ['adj_sumautocov_ma_32', 'adj_sumret_ma_4', 'adj_sumret4_ma_64', 'adj_sumret4_ma_32'] (120s)
+[crawc_t1] seg 5/10 top: ['adj_sumautocov_ma_32', 'adj_sumautocov_ma_16', 'adj_sumret_ma_4', 'adj_sumret4_ma_64'] (146s)
+[crawc_t1] seg 6/10 top: ['adj_sumautocov_ma_32', 'adj_sumret_ma_4', 'adj_sumvolume_ma_4', 'adj_sumautocov_ma_16'] (181s)
+[crawc_t1] seg 7/10 top: ['adj_sumautocov_ma_32', 'adj_sumret_ma_4', 'adj_sumvolume_ma_4', 'adj_sumautocov_ma_1'] (205s)
+[crawc_t1] seg 8/10 top: ['adj_sumautocov_ma_1', 'adj_sumret_ma_4', 'adj_sumvolume_ma_4', 'adj_sumautocov_ma_32'] (240s)
+[crawc_t1] seg 9/10 top: ['adj_sumautocov_ma_1', 'adj_sumvolume_ma_4', 'adj_spread_vwstock_ma_8', 'adj_sumret_ma_4'] (276s)
+[crawc_t1] seg 10/10 top: ['adj_sumautocov_ma_1', 'adj_sumvolume_ma_4', 'adj_numobs_ma_16', 'adj_spread_vwstock_ma_8'] (308s)
+[crawc_t1] qlike=0.162951 mz=0.946 vs control diff=-0.00219 p=0.0561
+[crawc_t1] DONE
