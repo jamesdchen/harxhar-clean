@@ -24,8 +24,10 @@ was the *early* read. The full investigation went much further; final state:
    "IQR floors to 1.0" claim.)
 3. **Incremental `RollingLeastSquares`** — rank-1 sliding-window Ridge, exact to
    1.8e-11, **108× faster**; made the all_buckets run and the window sweep feasible.
-4. **Optimal Ridge `train_window` ≈ 250 days, universal across all buckets** — ~1%
-   QLIKE better than the 500-day default (MSE wants longer). (Part 4.)
+4. **Optimal Ridge `train_window` ≈ 250 days for every *single* bucket** — ~1% QLIKE
+   better than the 500-day default (MSE wants longer). But the optimum **scales with
+   model dimensionality**: the high-dim `all_buckets` stack (p≈529) is the exception,
+   wanting **≈1000 days** (bracketed — bottoms at 1000, then rises). (Parts 4 & 6.)
 5. **Resolved from Parts 1–2:** the `apply_overnight_fills` 1.0-fill bug (fixed), the
    structural-missingness problem (→ impute-and-indicate, shipped), the stale Ridge
    docstrings. **In flight:** tree-tuning campaign on CARC at the 250-day window +
@@ -468,7 +470,7 @@ incremental solver. Run on Hoffman2 base anaconda (numpy 1.23 / pandas 1.5) — 
 *absolute* QLIKE differs from CARC, but the ablation is **relative** (same env across
 windows), so the argmin is valid.
 
-**Result — the optimum is ~250 days, universal across all 8 buckets** (60–1000-day
+**Result — the optimum is ~250 days, universal across all 8 *single* buckets** (60–1000-day
 grid, common-OOS ≈194,934 bars, lower=better):
 
 | bucket | best window | QLIKE@250 | Δ vs 500-day default |
@@ -482,24 +484,29 @@ grid, common-OOS ≈194,934 bars, lower=better):
 | liquidity | 250 | 0.12895 | −0.00039 |
 | vol_demand | 250 | 0.13080 | −0.00029 |
 
-(all_buckets re-running after a long-filename crash; expected to match.)
+(The 9th bucket, `all_buckets`, does **not** join this table — its high-dimensional
+optimum is ≈1000 days, not 250. Completed and bracketed in Part 6.)
 
 **Takeaways:**
-- **Every bucket's argmin is 250 days** — the optimal window is a property of the
-  vol process's adaptivity, not the feature set. The current **500-day default is
-  suboptimal everywhere** (gain −0.0003 to −0.0014 QLIKE, biggest for HAR/sentiment).
+- **Every *single* bucket's argmin is 250 days** — for the low-dimensional models the
+  optimal window is a property of the vol process's adaptivity, not the feature set
+  (the high-dim `all_buckets` stack is the exception — Part 6). The current **500-day
+  default is suboptimal** for the single buckets (gain −0.0003 to −0.0014 QLIKE,
+  biggest for HAR/sentiment).
 - The minimum is **broad and shallow** (250→1000 is nearly flat for most buckets);
   the finer HAR grid pins it to ~225 in a 200–250 plateau.
-- **QLIKE/MSE divergence is universal**: MSE keeps improving out to ≥1000 days while
+- **QLIKE/MSE divergence (single buckets)**: MSE keeps improving out to ≥1000 days while
   QLIKE peaks at ~250. QLIKE (raw-space, penalizes under-forecasting spikes) rewards a
   more *adaptive* short window; MSE (sqrt-space) rewards a stable long one. Optimizing
-  QLIKE → ~250.
+  QLIKE → ~250. (For `all_buckets` both metrics fall together to ~1000 — no divergence;
+  Part 6.)
 - **Production change** to capture it: `ridge.run` `train_window` default 500 → ~250.
   ⚠️ This shifts every published baseline (HAR 0.13460 etc. were at 500), so it's a
   re-baseline, not a free swap — rerun the sweep at 250 before adopting.
 
-(all 8 buckets above peak at 250; the 9th, `all_buckets`, ablation is the slow
-confirmatory holdout — p≈529 on the old Hoffman2 env.)
+(all 8 single buckets above peak at 250; the 9th, `all_buckets`, p≈529, is **not** a
+confirmatory holdout but a genuine exception — its optimum is ≈1000 days, completed and
+bracketed in Part 6.)
 
 ---
 
@@ -533,7 +540,62 @@ no SLURM context and silently no-ops; route it through `ssh <cluster> scancel <i
 Editing a *running* array's config (window, n_est) is unsafe: a trial's done vs
 pending chunks would use different models, so config changes need cancel+restart.
 
-**Production decision (250-day window).** The ~1% QLIKE gain is real and universal,
-but adopting `train_window=250` **re-baselines every published number** (all measured
-at 500). So it's a deliberate re-baseline — rerun the sweep at 250 — not a silent
-default flip.
+**Production decision (250-day window).** The ~1% QLIKE gain is real and universal *for
+the single-bucket / HAR models* (the high-dim `all_buckets` stack instead wants ≈1000d —
+Part 6), but adopting `train_window=250` **re-baselines every published number** (all
+measured at 500). So it's a deliberate re-baseline — rerun the sweep at 250 — not a
+silent default flip.
+
+---
+
+# Part 6 — `all_buckets` is the window-ablation exception: optimum ≈1000 days (2026-06-25)
+
+Part 4 left `all_buckets` (p≈529) "re-running"; it's now complete, and it **breaks the
+250-day rule** — the headline correction to Parts 4–5.
+
+**Main-OOS curve (Hoffman2, n=194,934, jobs 13761786/87/88).** Unlike every single
+bucket, `all_buckets` QLIKE falls *monotonically* to the 1000-day grid edge — no 250
+minimum, and MSE falls with it (no QLIKE/MSE divergence):
+
+| window (d) | 60 | 125 | 250 | 500 | 1000 |
+|---|---|---|---|---|---|
+| QLIKE | 0.13692 | 0.13040 | 0.12733 | 0.12585 | **0.12512** |
+| MSE | 0.06215 | 0.05997 | 0.05883 | 0.05811 | **0.05777** |
+
+(`FIXED_OOS_DAYS=1000` so it shares the 60/125 points' OOS; same p=529 / impute-indicate
+config as the validated 0.12807 full-sample sweep.)
+
+**Bracketing the minimum (longer OOS, n=98,934, jobs 13761817/18).** 1000 is the largest
+window the main OOS admits, so a second sweep on a longer OOS (start=144,000 — a later/
+harder test period; absolute level shifts up, shape transfers) pushes windows to 2500d.
+It pins the minimum at **≈1000 days**:
+
+| window (d) | 500 | 1000 | 1500 | 2000 | 2500 |
+|---|---|---|---|---|---|
+| QLIKE | 0.13752 | **0.13678** | 0.13725 | 0.13756 | 0.13763 |
+
+A clean V — bottoms at 1000, rises after. (3000d hit the 3 h SGE walltime; the rising
+tail already settles the argmin.)
+
+**The finding: the optimal window scales with model dimensionality, but saturates.**
+~529 coefficients need ~4× more training data than HAR's 13 (250 → ~1000 days), but it's
+bounded — past ~4 years the training data goes stale and QLIKE climbs again. So Parts
+4–5's "250 is universal" is the *parsimonious-model* optimum: 250 for HAR / single-bucket
+production, ≈1000 for the `all_buckets` stack.
+
+**Method note (reusable).** The window-ablation script ties the common-OOS start to
+`max(window)`, which caps the testable window at the OOS-start days. To test longer
+windows, decouple them: a `FIXED_OOS_DAYS` env sets the OOS start independently (each
+single-window job then fits walltime and shares one OOS) — see `run_win_abl_fixedoos.py`.
+Run single-window jobs to **private** output files; concurrent jobs sharing one
+predictions CSV clobber each other's write/read-back.
+
+**Artifacts (this session).**
+- `results/cluster_train_window_ablation.csv` — full per-bucket window grid (incl.
+  `all_buckets` + the `all_buckets_extOOS` bracket), with a self-checking generator.
+- `notebooks/results/ridge_buckets_and_window_ablation.ipynb` — presentation: bucket
+  ranking, the impute-indicate rescue, the universal-250 figure + the all_buckets
+  exception + the ≈1000d bracket.
+- `notebooks/results/ridge_pipeline_reproduce.ipynb` — **runs the real pipeline** to
+  regenerate the numbers (not CSV loads). Verified: local `285J` reproduces CARC (HAR
+  0.13460) and Hoffman2 (the window grid) to ≤6e-6. Full run ~60–90 min.

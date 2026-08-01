@@ -55,3 +55,36 @@ Both queues should be empty (all arrays completed; Hoffman2 13877481 task 16 was
 array 1-16 off-by-one, harmless). Verify once: `ssh hoffman2 "bash -lc 'qstat -u jamesdc1'"` and
 `ssh usc-discovery "squeue -u jc_905"`. hpc-pi env now has pyarrow (was the instant-crash cause).
 Workers/results all committed: `vrp_{screen,stage2,stage2b,design,winladder,pnl}_worker.py` + `results/vrp_*`.
+
+---
+
+## ADDENDUM (2026-07-02 PM session — meeting prep, beat-4 tables)
+
+**Deliverable: `writeup/beat4_meeting_2026-07-02.{tex,pdf}`** (+ `beat4_metric_skill.png`,
+generator `writeup/beat4_tex_generator.py` — its paths point at a dead scratchpad; the numbers are
+baked into the tex and re-derivable from committed JSONs).
+- **Table 1** = §7 bucket battery + completed **MZ column** (exact rank-1 recompute of each winning
+  config; values in `results/winablate_full/beat4_mz_by_bucket.jsonl`). Eval dated **Jan 2018 – May
+  2025** (74,934 bars; month precision via NYSE-calendar reconstruction from the tasks.py anchor row
+  189713=2020-02-25; exact-day mapping blocked by special closures — DOW cols validate the anchor only).
+- **Table 2 = NEW: bundle-combo factorial with FORECAST metrics** (the 2^8 stage-2 design re-scored on
+  QLIKE/MAE/OOS-R²/MZ + DM). `vrp_stage2_fm_worker.py` (TW env; persists per-bar loss + preds npz
+  CLUSTER-SIDE) + `vrp_fm_assemble.py` (cluster-side DM vs tid-0 + exact main effects); submit
+  `vrp_fm.sbatch` (CARC tw48k, jobs 9885324-26) / `vrp_fm.sub` (Hoffman2 tw144k, 13886330-32; SGE
+  needs `bash -lc` + explicit conda activate — plain ssh gets python2/no qsub). 512/512 in ~25 min;
+  pulled summaries = `results/vrp_stage2_fm_tw{48k,144k}/summary.json`; per-cell JSON+npz stay
+  cluster-side.
+- **Findings**: absret main effect −0.199/−0.257 (tw48k/tw144k) ≈ 2× volume, ~10× rest; best combo
+  {absret,volume,vdem_all,bipow} QLIKE 0.34598 (DM −40.9) BEATS all-8 (0.35156) → sparse-beats-dense
+  replicates in QLIKE units on the raw panel; absret×volume interaction +0.094/+0.064 = the
+  substitution, replicated across windows AND response units. CAVEAT (in captions): raw research
+  panel (no diurnal adjustment) → levels not comparable to Table 1 (HAR QLIKE 0.786 vs 0.149); the
+  Table-1 cache removes the seasonal channel that inflates Table-2 bundle gains. VRP panel n=246,059
+  bars (build() ffills vd_vix BEFORE dropna — naive replication gives 85,625); tw48k eval
+  2008-10-09→2024-04-30, tw144k 2016-04-25→2024-04-30.
+- **`winablate_r1.py` patched**: battery() now computes MZ inline + persists winning-config
+  predictions in the npz (the original run saved only per-bar QLIKE loss → MZ was unrecoverable
+  offline; the 54 §7 cells on disk predate the patch — a re-run would backfill).
+- **Dead end, kept**: `winbundle_r1.py` + partial `results/winbundle/` (per-bundle-over-HAR worker,
+  killed mid-run — superseded by the factorial; deletion proposed, declined for now).
+- **UNCOMMITTED**: everything above + modified `winablate_r1.py`.
