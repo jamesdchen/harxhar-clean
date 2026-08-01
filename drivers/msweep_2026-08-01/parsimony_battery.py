@@ -1,4 +1,3 @@
-# ruff: noqa: E402, E741, E731  (archival experiment drivers, verified by execution)
 """Parsimony-champion lever battery on hybrid_dp (0.165145 @ 257p, chunk).
 
 Arms (each a one-knob variant of the hybrid_dp run; DM vs the saved
@@ -25,7 +24,7 @@ from src.features.transforms.residualizer import RollingRidgeResidualizer
 
 import os
 
-D = "results/b2_mmap"
+D = os.environ.get("PB_MMAP", "results/b2_mmap")
 START = int(os.environ.get("PB_START", "24000"))
 END = int(os.environ.get("PB_END", "26189"))
 TRAIN_WIN = 24000

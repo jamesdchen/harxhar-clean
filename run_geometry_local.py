@@ -105,6 +105,16 @@ def prepare_full(bucket: str, har_base: int | None = None):
     suffix = "" if base == 5.0 else f"_b{base:g}"
     if kernel != "mean":
         suffix += f"_{kernel}"
+    # DIURNAL_MODE: exog per-slot adjustment family — "divide" (production;
+    # slot-level for positives, slot-std for signed) or "rank" (per-slot
+    # rank-Gauss, the nonparametric marginal endpoint). Target stays divide
+    # always (its baseline is the QLIKE reconstruction scale). Distinct
+    # cache key; the incumbent (baseline bucket) never drifts.
+    diurnal = os.environ.get("DIURNAL_MODE", "divide")
+    if bucket == "baseline":
+        diurnal = "divide"
+    if diurnal != "divide":
+        suffix += f"_{diurnal}"
     # PREP_ROWS: build features on only the first N raw rows. Every transform
     # in the prep path is causal (the chunk-fungibility guarantee: row t
     # depends only on rows <= t), so the trimmed values are IDENTICAL to the
@@ -126,7 +136,7 @@ def prepare_full(bucket: str, har_base: int | None = None):
         dropna_with_exog=False,
         overnight_fill=True,
         impute_indicate=True,
-        diurnal_mode="divide",
+        diurnal_mode=diurnal,
     )
     lags_env = os.environ.get("HAR_LAGS", "")
     if lags_env and bucket != "baseline":

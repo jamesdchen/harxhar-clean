@@ -1,0 +1,15 @@
+[lcc_t2] seg 1/10 (21s)
+[lcc_t2] seg 2/10 (43s)
+[lcc_t2] seg 3/10 (79s)
+[lcc_t2] seg 4/10 (107s)
+[lcc_t2] seg 5/10 (133s)
+[lcc_t2] seg 6/10 (161s)
+[lcc_t2] seg 7/10 (186s)
+[lcc_t2] seg 8/10 (211s)
+[lcc_t2] seg 9/10 (235s)
+[lcc_t2] seg 10/10 (250s)
+[lcc_t2] anchor(+clock)  qlike=0.126263 mz=1.029
+[lcc_t2] FINAL(+corr)    qlike=0.125130 mz=1.033 | corr increment diff=-0.00113 p=0.0630
+[lcc_t2] vs original legchamp: diff=-0.03807 p=0.0000
+[lcc_t2] vs CHAMPION: diff=-0.03697 p=0.0001
+[lcc_t2] DONE
