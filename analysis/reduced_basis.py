@@ -48,7 +48,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from basis_horserace import (  # noqa: E402
-    BURN, TRAIN_FRAC, U, best_over_lambda, featurize, fit_eval,
+    BURN, TRAIN_FRAC, U, best_over_lambda, featurize, fit_eval, valid_qlike,
     w_boxcar, w_bspline, w_midas,
 )
 
@@ -135,42 +135,58 @@ def main():
         Phi[:, k] = featurize(ysafe, Bs[k:k + 1])[idx, 0]
     print(f"  Phi {Phi.shape} float32  ({time.time()-t0:.0f}s)", flush=True)
 
-    Ptr = Phi[:cut].astype(np.float64)
-    ytr = yv[:cut]
-    mu = Ptr.mean(0)
-    Pc = Ptr - mu
-    yc = ytr - ytr.mean()
-    G = Pc.T @ Pc
-    c = Pc.T @ yc
-    yy = float(yc @ yc)
-    del Ptr, Pc
+    vcut = int(cut * 0.75)
+    FITr, VALr = np.arange(vcut), np.arange(vcut, cut)
 
-    # ---- 2a. greedy reduced basis: train-only selection
+    # ---- 2a. greedy reduced basis: selected on the validation tail
+    #
+    # The greedy criterion is the same loss the bases are reported under,
+    # measured on held-out rows. An earlier version used training SSE, which
+    # picks a systematically different (too short-memory) kernel: see the
+    # theta trajectories in analysis/selection_criterion.py.
     print("\n" + "=" * 74)
     print("2. REDUCED BASES DRAWN FROM THE MANIFOLD")
     print("=" * 74)
+    Pfit = Phi[FITr].astype(np.float64)
+    Pval = Phi[VALr].astype(np.float64)
+    yfit, yval = yv[FITr], yv[VALr]
+    blval, rvval = blv[VALr], rvv[VALr]
+    Afit1 = np.ones((len(FITr), 1))
+    Aval1 = np.ones((len(VALr), 1))
+
+    def greedy_score(cols):
+        A = np.hstack([Afit1, Pfit[:, cols]])
+        cf, *_ = np.linalg.lstsq(A, yfit, rcond=None)
+        r_ = yfit - A @ cf
+        sig2 = float(r_ @ r_) / len(r_)
+        p = ((np.hstack([Aval1, Pval[:, cols]]) @ cf) ** 2 + sig2) * blval
+        m = (rvval > 0) & (p > 0) & np.isfinite(p)
+        q = rvval[m] / p[m]
+        return float(np.mean(q - np.log(q) - 1.0))
+
     sel: list[int] = []
     greedy_traj = []
     for m in range(max(MDIMS)):
-        bestj, bestsse = None, np.inf
-        for j in range(G.shape[0]):
+        bestj, bestq = None, np.inf
+        for j in range(Phi.shape[1]):
             if j in sel:
                 continue
-            cols = sel + [j]
             try:
-                w = gram_solve(G, c, cols)
+                q = greedy_score(sel + [j])
             except np.linalg.LinAlgError:
                 continue
-            sse = yy - 2 * w @ c[cols] + w @ G[np.ix_(cols, cols)] @ w
-            if sse < bestsse:
-                bestj, bestsse = j, sse
+            if np.isfinite(q) and q < bestq:
+                bestj, bestq = j, q
+        if bestj is None:
+            break
         sel.append(bestj)
         greedy_traj.append({"m": m + 1, "theta": thetas[bestj],
-                            "train_sse": float(bestsse)})
-    print("  greedy snapshot picks (train SSE):")
+                            "valid_qlike": float(bestq)})
+    del Pfit, Pval
+    print("  greedy snapshot picks (validation QLIKE):")
     for g in greedy_traj:
         print(f"    m={g['m']}  theta=({g['theta'][0]:.3f}, "
-              f"{g['theta'][1]:.3f})   SSE={g['train_sse']:.2f}")
+              f"{g['theta'][1]:.3f})   valid QLIKE={g['valid_qlike']:.5f}")
     out["greedy_picks"] = greedy_traj
 
     # ---- 2b. POD basis functions, featurised directly
@@ -201,12 +217,12 @@ def main():
     print("\n" + "=" * 74)
     print("3. THE NONLINEAR CEILING (shape parameters fitted, not spanned)")
     print("=" * 74)
-    # The shape parameters are selected on TRAINING rows. Selecting them
-    # against the reported out-of-sample QLIKE -- what an earlier version did
-    # -- gives the nonlinear arm a continuous two-parameter search on the test
-    # objective that no other arm gets, worth +0.00235 on its own
-    # (analysis/greedy_vs_midas_diag.py). Under that rule this comparison was
-    # not measuring nonlinearity, it was measuring selection.
+    # Shape parameters are selected by QLIKE on a validation tail held out of
+    # the TRAINING portion -- the same loss the result is reported under, on
+    # rows the search has not seen. Selecting against the reported
+    # out-of-sample QLIKE is an oracle; selecting on training SSE is a
+    # different objective on a different scale and costs more than the oracle
+    # bias it was meant to remove. See analysis/selection_criterion.py.
     from scipy.optimize import minimize
 
     def _mix_feats(v):
@@ -216,11 +232,9 @@ def main():
 
     def mix_obj(v):
         _, F = _mix_feats(v)
-        A = np.hstack([np.ones((cut, 1)), F[:cut]])
-        cf, *_ = np.linalg.lstsq(A, yv[:cut], rcond=None)
-        r_ = yv[:cut] - A @ cf
-        s = float(r_ @ r_)
-        return s if np.isfinite(s) else 1e18
+        q = valid_qlike(F, yv, blv, rvv, FITr, VALr)
+        del F
+        return q if np.isfinite(q) else 1e6
 
     def score(v):
         th, F = _mix_feats(v)

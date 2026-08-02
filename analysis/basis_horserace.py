@@ -192,6 +192,28 @@ def fit_eval(F, y, bl, rv, cut, lam, P=None):
     return float(np.mean(r - np.log(r) - 1.0)), beta, (mu, sd)
 
 
+def valid_qlike(F, y, bl, rv, fit_rows, val_rows):
+    """Fit OLS on fit_rows, score QLIKE on val_rows.
+
+    The correct criterion for selecting a shape parameter: the SAME loss the
+    result is reported under, on rows the selection has not touched. Training
+    SSE is not a substitute -- it is squared error on the winsorised,
+    diurnal-divided square-root target, a different objective on a different
+    scale, and selecting under it costs +0.00157 here with no selection bias
+    involved at all (analysis/selection_criterion.py).
+    """
+    A = np.hstack([np.ones((len(fit_rows), 1)), F[fit_rows]])
+    cf, *_ = np.linalg.lstsq(A, y[fit_rows], rcond=None)
+    r = y[fit_rows] - A @ cf
+    sig2 = float(r @ r) / len(fit_rows)
+    Av = np.hstack([np.ones((len(val_rows), 1)), F[val_rows]])
+    p = ((Av @ cf) ** 2 + sig2) * bl[val_rows]
+    t = rv[val_rows]
+    m = (t > 0) & (p > 0) & np.isfinite(t) & np.isfinite(p)
+    q = t[m] / p[m]
+    return float(np.mean(q - np.log(q) - 1.0))
+
+
 def best_over_lambda(F, y, bl, rv, cut, P=None):
     best = (np.inf, None)
     for lam in LAMBDAS:
@@ -245,42 +267,47 @@ def main():
 
     # ---- MIDAS: profile over the two Beta shape parameters ----
     #
-    # The shape parameters MUST be selected on training rows. An earlier
-    # version profiled them against the out-of-sample QLIKE that is then
-    # reported, which made this row an oracle and is why it appeared to beat
-    # every linear space; see analysis/greedy_vs_midas_diag.py, which measures
-    # the optimism at +0.00235. Both rows are reported now, the honest one
-    # first, so the size of the selection effect stays visible.
+    # The shape parameters are selected by QLIKE on a validation tail carved
+    # out of the TRAINING portion: the same loss the row is reported under, on
+    # rows the search has not seen. Two earlier versions got this wrong in
+    # opposite directions -- first profiling theta against the reported
+    # out-of-sample QLIKE (an oracle, optimism +0.00017 here), then
+    # over-correcting to training SSE, which is a different objective on a
+    # different scale and costs +0.00157 with no selection bias at all. See
+    # analysis/selection_criterion.py for the decomposition.
     from scipy.optimize import minimize
+
+    vcut = int(cutpos * 0.75)
+    FITr, VALr = np.arange(vcut), np.arange(vcut, cutpos)
 
     def _midas_feats(v):
         th = np.exp(v)
         B, _ = w_midas(th[0], th[1])
         return th, featurize(ysafe, B)[idx]
 
-    def midas_obj_train(v):
+    def midas_obj_valid(v):
         _, F = _midas_feats(v)
-        A = np.hstack([np.ones((cutpos, 1)), F[:cutpos]])
-        cf, *_ = np.linalg.lstsq(A, y[idx][:cutpos], rcond=None)
-        r_ = y[idx][:cutpos] - A @ cf
-        s = float(r_ @ r_)
-        return s if np.isfinite(s) else 1e18
+        q = valid_qlike(F, y[idx], bl[idx], rv[idx], FITr, VALr)
+        del F
+        return q if np.isfinite(q) else 1e6
 
     def midas_obj_oracle(v):
         _, F = _midas_feats(v)
         q, _ = best_over_lambda(F, y[idx], bl[idx], rv[idx], cutpos)
+        del F
         return q if np.isfinite(q) else 1e6
 
-    rt = minimize(midas_obj_train, np.log([1.0, 3.0]), method="Nelder-Mead",
-                  options={"maxiter": 80, "xatol": 1e-3, "fatol": 1e-3})
+    rt = minimize(midas_obj_valid, np.log([1.0, 3.0]), method="Nelder-Mead",
+                  options={"maxiter": 90, "xatol": 1e-3, "fatol": 1e-6})
     tht, Ft = _midas_feats(rt.x)
     qt, lamt = best_over_lambda(Ft, y[idx], bl[idx], rv[idx], cutpos)
     del Ft
     res["midas_beta"] = {"K": 1, "theta1": float(tht[0]), "theta2": float(tht[1]),
                          "oos_qlike": float(qt), "lambda": lamt,
-                         "theta_selected_on": "training SSE"}
+                         "theta_selected_on": "validation QLIKE (held-out "
+                                              "tail of the training portion)"}
     print(f"{'midas_beta':16s}{1:>4}{lamt:>10g}{qt:>12.5f}   "
-          f"theta=({tht[0]:.3f}, {tht[1]:.3f})  [theta by TRAINING SSE]")
+          f"theta=({tht[0]:.3f}, {tht[1]:.3f})  [theta by VALIDATION QLIKE]")
 
     ro = minimize(midas_obj_oracle, np.log([1.0, 3.0]), method="Nelder-Mead",
                   options={"maxiter": 80, "xatol": 1e-3, "fatol": 1e-7})

@@ -218,11 +218,11 @@
   },
   "midas_beta": {
     "K": 1,
-    "theta1": 2.0532172485879162e-06,
-    "theta2": 46.64946522244679,
-    "oos_qlike": 0.2655597254493398,
+    "theta1": 1.4623486731335405e-07,
+    "theta2": 116.95557242209071,
+    "oos_qlike": 0.26337474562808716,
     "lambda": 0.0,
-    "theta_selected_on": "training SSE"
+    "theta_selected_on": "validation QLIKE (held-out tail of the training portion)"
   },
   "midas_beta_oracle": {
     "K": 1,
@@ -230,7 +230,7 @@
     "theta2": 159.94690647391906,
     "oos_qlike": 0.2632073840393208,
     "theta_selected_on": "OOS QLIKE (oracle)",
-    "optimism": 0.0023523414100189988
+    "optimism": 0.000167361588766346
   },
   "_span_check": {
     "boxcar_ols": 0.2649221772088414,
