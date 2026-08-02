@@ -18,6 +18,19 @@ magnitude larger.
 
 If the paper's central finding is "shrink, never select", the direction of
 shrinkage is the untested lever. This measures it.
+
+ORACLE WARNING -- READ BEFORE QUOTING ANY NUMBER FROM THIS FILE. Every lambda*
+below is chosen by minimising the SAME out-of-sample QLIKE that is then
+reported, over a 16-point grid, for each of 15 (K, penalty) cells. These are
+oracle figures, not out-of-sample ones. That is defensible for the question the
+script was written to ask -- ridge versus roughness at matched oracle tuning,
+where both arms get the same unfair advantage -- and it is NOT defensible for
+any claim about levels or about which K is best. In particular the "best spline
+arm beats the b2 ladder" line at the end is withdrawn: its margin is 0.00013,
+selected as the minimum over 5 values of K and 16 of lambda on the evaluation
+panel itself, which is far inside the selection noise of that search. See
+analysis/greedy_vs_midas_diag.py for the same failure mode measured on a
+two-parameter continuous search, where it was worth +0.00235.
 """
 
 from __future__ import annotations
@@ -207,11 +220,17 @@ def main():
     bs = min(shortres, key=lambda k: min(shortres[k]["ridge"]["qlike"],
                                          shortres[k]["rough"]["qlike"]))
     bq = min(shortres[bs]["ridge"]["qlike"], shortres[bs]["rough"]["qlike"])
-    print(f"  best spline arm: K={bs} at {bq:.5f}  "
-          f"({'BEATS' if bq < best[0] else 'does not beat'} the b2 ladder"
-          f", delta {bq - best[0]:+.5f})")
+    print(f"  best spline arm: K={bs} at {bq:.5f}  (delta vs b2 ladder "
+          f"{bq - best[0]:+.5f})")
+    print("  NOT A RESULT: both sides are oracle-tuned and K was selected on "
+          "the\n  evaluation panel too, so a margin this size is inside the "
+          "selection noise.")
     out["verdict"] = {"best_spline_K": bs, "best_spline_qlike": bq,
-                      "boxcar_qlike": best[0], "delta": bq - best[0]}
+                      "boxcar_qlike": best[0], "delta": bq - best[0],
+                      "oracle_tuned": True,
+                      "withdrawn": "lambda and K both selected on the "
+                                   "evaluation panel; margin is within "
+                                   "selection noise"}
 
     with open(os.path.join(OUT_DIR, "penalty_regime.json"), "w") as fh:
         json.dump(out, fh, indent=2)

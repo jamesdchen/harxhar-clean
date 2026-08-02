@@ -151,6 +151,9 @@
     "best_spline_K": "24",
     "best_spline_qlike": 0.2911563334098764,
     "boxcar_qlike": 0.2912873917046707,
-    "delta": -0.0001310582947943173
-  }
+    "delta": -0.0001310582947943173,
+    "oracle_tuned": true,
+    "withdrawn": "lambda and K both selected on the evaluation panel; margin is within selection noise"
+  },
+  "_oracle_warning": "Every lambda* in this file minimises the same out-of-sample QLIKE it is reported against, over a 16-point grid per cell. Levels are oracle figures. Ridge-vs-roughness is matched (both arms equally advantaged); level and best-K claims are not supported."
 }

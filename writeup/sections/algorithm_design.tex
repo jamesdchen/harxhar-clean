@@ -145,7 +145,13 @@ retrieval coordinate.
 HAR-12 OLS anchor, the pool, the evaluation rows and the neighbourhood size;
 only the coordinate in which neighbours are found differs. $\Delta$ and $t$ are
 matched-row Diebold--Mariano against the ambient arm, Holm-corrected across the
-24-cell grid. Positive $\Delta$ means the arm is worse.}
+24-cell grid. Positive $\Delta$ means the arm is worse. Every estimator here---
+anchor, operator, principal-component frame, eigenmap and all scaling
+constants---is fitted on training rows only. The displayed $k = 100$ is the
+ambient arm's own out-of-sample optimum, so it is a selected column; we quote
+it because it is the incumbent coordinate's best case, and the ordering of the
+six arms is identical at $k \in \{25, 4000, 8000\}$, so no conclusion here
+depends on that choice.}
 \label{tab:knn_metric_race}
 \begin{tabular}{llrrrl}
 \toprule
