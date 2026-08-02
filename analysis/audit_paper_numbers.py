@@ -18,6 +18,7 @@ hk = json.load(open(os.path.join(STATS, "hawkes_kernel.json")))
 ke = json.load(open(os.path.join(STATS, "kernel_experiments.json")))
 vb = json.load(open(os.path.join(STATS, "b2_kernel_verification.json")))
 np_ = json.load(open(os.path.join(STATS, "nested_probes.json")))
+mem = json.load(open(os.path.join(STATS, "mem_branching.json")))
 C = {c["label"]: c for c in tile["contrasts"]}
 
 fails = []
@@ -225,6 +226,24 @@ check("+exog negative mass = 16.4%", 0.164, B["neg_mass"], tol=1e-3)
 check("full n_hat = -0.363", -0.3626, E["n_hat_raw"], tol=1e-3)
 check("full negative mass = 14.4%", 0.144, E["neg_mass"], tol=1e-3)
 check("full negative lags = 9", 9, E["neg_lags"], tol=0.5)
+
+print("\n=== MEM / branching ratio (Section: multiplicative error model) ===")
+hm, m11, vr = mem["har_mem"], mem["mem11"], mem["variance_ratio"]
+check("panel = 242,462 bars", 242462, mem["n_bars"], tol=0.5)
+check("HAR-MEM n = 0.9917", 0.9917, hm["n"], tol=5e-4)
+check("HAR-MEM SE = 0.0043", 0.0043, hm["n_se"], tol=5e-4)
+check("HAR-MEM CI low = 0.9834", 0.9834, hm["ci_low"], tol=1e-3)
+check("HAR-MEM CI high = 1.0001", 1.0001, hm["ci_high"], tol=1e-3)
+check("HAR-MEM OOS QLIKE = 0.24184", 0.24184, hm["oos_qlike"], tol=1e-4)
+check("HAR-MEM all alpha > 0", 1, 1 if min(hm["alpha"]) > 0 else 0, tol=0.5)
+check("MEM(1,1) n = 0.9753", 0.9753, m11["n"], tol=5e-4)
+check("MEM(1,1) SE = 0.0042", 0.0042, m11["n_se"], tol=5e-4)
+check("MEM(1,1) alpha+beta = 0.9894", 0.98945, m11["alpha_plus_beta"], tol=1e-4)
+check("MEM(1,1) OOS QLIKE = 0.25707", 0.25707, m11["oos_qlike"], tol=1e-4)
+check("multiplier at point est = 121", 121.0, 1/(1-hm["n"]), tol=1.0)
+check("multiplier at CI low = 60", 60.0, 1/(1-hm["ci_low"]), tol=1.0)
+check("variance-ratio H = 0.897", 0.8974, vr["H"], tol=1e-3)
+check("variance-ratio H SE = 0.007", 0.0073, vr["H_se"], tol=1e-3)
 
 print("\n" + "=" * 74)
 if fails:

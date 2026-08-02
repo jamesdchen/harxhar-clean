@@ -423,6 +423,106 @@ Table~\ref{tab:nested_probes} isolates the exogenous block as the cause. We
 report the sequence because it is a general hazard: a self-kernel estimated
 jointly with volatility proxies is not a self-kernel.
 
+\subsection{The Properly Specified Object: A Multiplicative Error Model}
+\label{sec:mem}
+
+Everything above estimates the kernel by unconstrained regression on a
+transformed target. That is the wrong tool for a non-negative observable, and
+it is why non-negativity had to be \emph{tested} rather than guaranteed. The
+right object for aggregated non-negative data is the multiplicative error model
+\citep{EngleGallo2006}, equivalently INGARCH, which is the self-exciting
+intensity equation written for a continuous non-negative variable rather than a
+counting measure:
+\begin{equation}
+  RV_t = \lambda_t \varepsilon_t, \quad \varepsilon_t \ge 0,\ \mathbb{E}[\varepsilon_t] = 1,
+  \qquad
+  \lambda_t = \omega + \sum_k \alpha_k \overline{RV}^{(r_k)}_{t-1}, \quad \alpha_k > 0 .
+  \label{eq:mem}
+\end{equation}
+Three properties make this the correct estimand. Non-negativity is imposed
+rather than tested, so the negative-lobe question cannot arise. The branching
+ratio is a parameter, $n = \sum_k \alpha_k$, with a standard error rather than
+a sum of unconstrained coefficients. And it is fitted on the raw variance
+scale, so no square-root transform, smearing correction or winsorisation
+intervenes. Convenient for this paper, the exponential quasi-likelihood whose
+log-density is $-(\log\lambda_t + RV_t/\lambda_t)$ makes QMLE estimation exactly
+QLIKE minimisation---the model is fitted under the paper's own loss.
+
+Seasonality is a \emph{fixed} per-slot factor estimated on the training split,
+not the rolling divisor used elsewhere in this project. A fixed seasonal cannot
+absorb persistence, which removes the confound of
+Section~\ref{sec:limitations}.
+
+\begin{table}[H]
+\centering
+\caption{Branching ratio under three specifications, all on the same
+$242{,}462$ bars with a $60/40$ split. The MEM arms impose $\alpha_k > 0$ and
+are fitted by QMLE on the raw variance scale; standard errors are from the
+observed information with the delta method for $n$. The ladder regression is
+the unconstrained sqrt-scale ridge fit of
+Section~\ref{sec:kernel_repro}, shown for comparison.}
+\label{tab:mem}
+\begin{tabular}{lrrrl}
+\toprule
+Specification & $n$ & SE & OOS QLIKE & Constraint \\
+\midrule
+HAR-MEM (base-2 ladder)  & \textbf{0.9917} & 0.0043 & \textbf{0.24184} & $\alpha_k > 0$ imposed \\
+MEM(1,1)                 & 0.9753 & 0.0042 & 0.25707 & $\alpha, \beta > 0$ imposed \\
+Ladder regression (sqrt, ridge) & 0.9133 & --- & --- & unconstrained \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The market sits at criticality.} The constrained estimate is
+$n = 0.9917$ with a 95\% interval of $[0.9834, 1.0001]$---\emph{statistically
+indistinguishable from unity}. The MEM(1,1) agrees at $0.9753 \pm 0.0042$
+(implied persistence $\alpha + \beta = 0.9894$). Both sit above the
+unconstrained ladder's $0.9133$, which is what one expects when the constraint
+binds: forcing $\alpha_k > 0$ removes the negative lobes that were cancelling
+positive mass. These values land on the $n \approx 0.99$ that
+\citet{HardimanBercotBouchaud2013} report for futures and read as critical
+reflexivity.
+
+We decline to quote a cascade multiplier. At $n = 0.9917$ the point estimate
+$1/(1-n)$ is $121$, but at the interval's lower end it is $60$ and at its upper
+end it diverges. Near criticality the multiplier is not identified by data of
+this length, and reporting it would convey precision that does not exist.
+
+\paragraph{The ladder beats the single decay.} HAR-MEM reaches out-of-sample
+QLIKE $0.24184$ against MEM(1,1)'s $0.25707$. A single exponential recursion
+cannot reproduce the response that twelve non-negative ladder weights can,
+which is the same conclusion the exponential-versus-power-law comparison of
+Section~\ref{sec:powerlaw} reached by a different route.
+
+\paragraph{A model-free cross-check.} Variance-ratio scaling---
+$\mathrm{Var}(\sum_{i=1}^{T} RV_i) \propto T^{2H}$, estimated by regressing
+$\log$ variance on $\log T$ over $T = 1 \ldots 1024$ bars---requires no model
+at all. It gives $H = 0.897$ with a standard error of $0.007$, far above the
+$H = 0.5$ of a short-memory process. Strong long memory is what a near-critical
+kernel produces, so the model-free statistic and the constrained MEM agree.
+
+We flag one conflation this invites. The $H$ estimated here is the
+\emph{long-memory} exponent of the level series' partial sums. It is not the
+Hurst parameter of the rough-volatility literature, which measures the
+H\"older regularity of log-volatility \emph{paths} and is typically reported
+near $0.1$. The two are different parameters and can coexist---rough at short
+scales, long-memory at long scales---which is precisely the decoupling
+\citet{BennedsenLundePakkanen2022} formalise. Our $H = 0.897$ therefore neither
+confirms nor contradicts $H \approx 0.1$; they are answers to different
+questions.
+
+\paragraph{What this settles.} The branching ratio is no longer an analogue. It
+is a parameter of a correctly specified, non-negativity-constrained model of a
+non-negative observable, estimated on the raw scale under the paper's own loss,
+with a standard error. Its value says roughly 99\% of intraday variance
+dynamics is endogenous. The residual caveats are honest but narrow: $\lambda_t$
+is a conditional mean for aggregated variance rather than a point-process
+intensity, so this is a self-excitation parameter for the variance process
+itself and not a literal offspring count; and near-critical estimates are known
+to be biased upward when the background rate is time-varying
+\citep{FilimonovSornette2012}, which our fixed seasonal mitigates but does not
+eliminate.
+
 \subsection{Relation to Rough Volatility}
 \label{sec:rough}
 
