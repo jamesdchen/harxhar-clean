@@ -127,11 +127,16 @@ The same table identifies what does the work.
     identity residualiser with the OLS anchor is worth between $0.00768$ and
     $0.01321$ across matched cells---five to nine times the size of any
     model-class effect in this paper.
-  \item \textbf{Large-neighbourhood averaging is load-bearing}: moving from
-    $k = 25$ to $k = 100$ is worth $\approx 0.0018$ in the anchored,
-    unembedded cells. Heavy local averaging, not sharp local structure, is what
-    the regime rewards---which is the nonparametric restatement of
-    dense-but-weak.
+  \item \textbf{Large-neighbourhood averaging is load-bearing, up to a point}:
+    moving from $k = 25$ to $k = 100$ is worth $\approx 0.0018$ in the anchored,
+    unembedded cells. Per-bar inference on the campaign tile confirms the effect
+    and locates its limit: a neighbourhood of $8{,}000$ beats one of $200$ by
+    $0.0204$ ($t = -6.59$), but $16{,}000$ is $0.0029$ \emph{worse} than
+    $8{,}000$ ($t = 3.74$), both Holm-significant
+    (Section~\ref{sec:tile_inference}). The optimum is a large but finite
+    neighbourhood, so the correct statement is not that more averaging is
+    always better. Heavy local averaging rather than sharp local structure is
+    what the regime rewards---the nonparametric restatement of dense-but-weak.
   \item \textbf{The embedding is not}, as above.
 \end{itemize}
 
@@ -151,8 +156,12 @@ drafts of this paper carried none of them.
 \paragraph{It is the minimum of 32 cells.} The kNN family contributes 32 arms
 to the battery, of which 8 beat the incumbent. Quoting the minimum with an
 unadjusted DM statistic, on the same panel used to select it, is a
-winner's-curse figure. The honest presentations are either a pre-registered
-cell or a confirmation on held-out data.
+winner's-curse figure. Family-wise correction across the battery does not
+dissolve it---its $p$ survives Holm across all 97 arms
+(Section~\ref{sec:multiplicity_results})---but a $p$-value adjustment does not
+address selection: the issue is that the cell was chosen for being the minimum,
+not that its individual test is too liberal. The honest presentations remain
+either a pre-registered cell or a confirmation on held-out data.
 \pending{holdout confirmation of the winning kNN cell, or a pre-registration
 statement identifying it as chosen ex ante}
 
@@ -163,13 +172,22 @@ bucket ranking within the kNN family carries no weight, and the choice of
 \texttt{market\_vw} cannot be read as an information finding.
 
 \paragraph{It does not trail every parametric arm.} At $0.13096$ the winning
-kNN cell beats \textbf{25 of the 45} causally tuned parametric arms, including
-the baseline LightGBM ($0.13118$), baseline XGBoost ($0.13163$), and all three
-baseline linear arms ($0.13445$, $0.13471$, $0.13475$). What is true is that it
-trails the best arms on the informative buckets---\texttt{all\_features},
-\texttt{moments} and \texttt{liquidity}---which is the weaker and more precise
-statement. An earlier draft asserted the stronger claim; it is false against
-our own battery.
+kNN cell numerically beats \textbf{25 of the 45} causally tuned parametric
+arms, including the baseline LightGBM ($0.13118$), baseline XGBoost
+($0.13163$), and all three baseline linear arms ($0.13445$, $0.13471$,
+$0.13475$). An earlier draft asserted that it trails every parametric arm; that
+is false against our own battery.
+
+Applying the pairwise bound of Section~\ref{sec:pairwise} sharpens the picture
+in both directions. The kNN cell is decisively \emph{worse} than the best arms
+on the informative buckets---$|t| \ge 6.96$ against \texttt{lgbm/all\_features}
+and $|t| \ge 6.22$ against \texttt{ridge/all\_features}---and decisively
+\emph{better} than baseline ridge ($|t| \ge 14.49$). Against baseline LightGBM,
+where the raw gap is only $0.00022$, the comparison is \textbf{inconclusive}
+($|t| \ge 0.30$). So the defensible claim is narrower than either draft: the
+anchored analog search beats the linear arms on the backbone feature set and
+loses to the tree and linear arms on the informative buckets, with the
+tree-on-backbone comparison unresolved.
 
 \subsection{Summary}
 \label{sec:algo_summary}

@@ -1,0 +1,118 @@
+"""Emit LaTeX tables from the inference JSONs into writeup/stats/."""
+
+from __future__ import annotations
+
+import json
+import os
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATS = os.path.join(ROOT, "writeup", "stats")
+
+
+def fmt_p(p: float) -> str:
+    if p >= 0.001:
+        return f"{p:.3f}"
+    m, e = f"{p:.1e}".split("e")
+    return f"${m}\\times 10^{{{int(e)}}}$"
+
+
+def main():
+    bat = json.load(open(os.path.join(STATS, "battery_inference.json")))
+    tile = json.load(open(os.path.join(STATS, "tile_inference.json")))
+
+    # ---- Table 1: pairwise bounds, tree vs linear ----
+    rows = bat["pairwise_bounds_tree_vs_linear"]
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        r"\caption{Pairwise model-class inference on the frozen battery, from the",
+        r"reported HAC standard errors alone. For arms sharing an incumbent the",
+        r"pairwise differential is exactly $L_A-L_B$, whose standard error is bounded",
+        r"above by $se_A+se_B$ regardless of the correlation between the two arms'",
+        r"differentials; the resulting $|t|$ is therefore a \emph{lower bound} and the",
+        r"$p$ an \emph{upper bound}. A tighter bound assuming the two arms'",
+        r"improvements co-move ($\rho\ge 0$) is reported in the text; it does not",
+        r"change any verdict. Holm adjustment is applied across the nine matched",
+        r"comparisons. Negative $t$ favours the tree.}",
+        r"\label{tab:pairwise_bounds}",
+        r"\begin{tabular}{lrrrrl}", r"\toprule",
+        r"Feature set & $\Delta$QLIKE & $|t|\ge$ (free) & $p\le$ (free) "
+        r"& $p_{\text{Holm}}\le$ & Verdict \\", r"\midrule",
+    ]
+    for r in rows:
+        lines.append(
+            f"\\texttt{{{r['bucket'].replace('_', chr(92) + '_')}}} & "
+            f"{r['mean_diff']:+.5f} & {abs(r['t_lower_bound_free']):.2f} & "
+            f"{fmt_p(r['p_upper_bound_free'])} & {fmt_p(r['p_holm_upper_bound'])} & "
+            f"{'tree better' if r['reject_holm'] else 'unresolved'} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    open(os.path.join(STATS, "tab_pairwise_bounds.tex"), "w").write("\n".join(lines) + "\n")
+
+    # ---- Table 2: tile DM contrasts ----
+    cs = sorted(tile["contrasts"], key=lambda c: c["p"])
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        r"\caption{Per-bar Diebold--Mariano tests on the campaign tile "
+        f"($n = {tile['panel']['n']:,}$ bars, {tile['panel']['n_arms']} arms, identical "
+        r"targets). HAC (Newey--West) standard errors with the",
+        r"Harvey--Leybourne--Newbold small-sample correction; Holm adjustment across",
+        r"the whole contrast family. Negative $t$ favours arm A. \textbf{Panel note:}",
+        r"this is a campaign tile, not the 218{,}934-bar frozen battery; no level here",
+        r"is comparable to a battery level, and what the tile tests is whether each",
+        r"claim survives per-bar inference at all.}",
+        r"\label{tab:tile_dm}",
+        r"\footnotesize", r"\begin{tabular}{lrrrl}", r"\toprule",
+        r"Contrast (A vs B) & $\Delta$QLIKE & $t$ & $p_{\text{Holm}}$ & Verdict \\",
+        r"\midrule",
+    ]
+    for c in cs:
+        v = ("A better" if c["t"] < 0 else "B better") if c["reject_holm"] else "unresolved"
+        lab = c["label"].replace("&", r"\&").replace("_", r"\_")
+        lines.append(f"{lab} & {c['delta']:+.5f} & {c['t']:.2f} & "
+                     f"{fmt_p(c['p_holm'])} & {v} \\\\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    open(os.path.join(STATS, "tab_tile_dm.tex"), "w").write("\n".join(lines) + "\n")
+
+    # ---- Table 3: MCS by family ----
+    fams = [("penalty", "Penalty: shrinkage vs selection"),
+            ("trees_vs_linear", "Model class on the kernel dictionary"),
+            ("local_k", "Analog neighbourhood size"),
+            ("cap_ladder", "Kernel truncation depth"),
+            ("dim_reduction", "Dimension reduction"),
+            ("top20", "The twenty best arms")]
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        r"\caption{Hansen--Lunde--Nason model confidence sets on the campaign tile "
+        f"($\\alpha = {tile['settings']['alpha_mcs']}$, "
+        f"$B = {tile['settings']['B']:,}$ stationary-bootstrap replications, "
+        r"$T_{\max}$ statistic). ``Kept'' counts arms that cannot be excluded from",
+        r"the set of best models. Survivor counts for the top-twenty family are",
+        r"unchanged when the bootstrap block length is varied from half to four times",
+        r"its automatic value.}",
+        r"\label{tab:mcs}",
+        r"\begin{tabular}{llrrl}", r"\toprule",
+        r"Family & Question & Arms & Kept & Eliminated \\", r"\midrule",
+    ]
+    for key, desc in fams:
+        m = tile["mcs"].get(key)
+        if not m:
+            continue
+        elim = ", ".join(f"\\texttt{{{e[0].replace('_', chr(92) + '_')}}}"
+                         for e in m["eliminated"]) or "---"
+        n_arms = len(m["surviving"]) + len(m["eliminated"])
+        lines.append(f"\\texttt{{{key.replace('_', chr(92) + '_')}}} & {desc} & "
+                     f"{n_arms} & {len(m['surviving'])} & {elim} \\\\")
+    allm = tile["mcs"]["all_arms"]
+    lines.append(f"\\texttt{{all}} & Every tile arm & "
+                 f"{len(allm['surviving']) + len(allm['eliminated'])} & "
+                 f"{len(allm['surviving'])} & (see text) \\\\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    open(os.path.join(STATS, "tab_mcs.tex"), "w").write("\n".join(lines) + "\n")
+
+    print("wrote:")
+    for f in ("tab_pairwise_bounds.tex", "tab_tile_dm.tex", "tab_mcs.tex"):
+        print("   ", os.path.join(STATS, f))
+
+
+if __name__ == "__main__":
+    main()

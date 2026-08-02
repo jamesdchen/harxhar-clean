@@ -39,20 +39,31 @@ OLS, base-2 ladder & \multicolumn{2}{r}{0.13332} & & & \\
 \end{table}
 
 The tree holds a modest edge on every one of the nine feature sets, ranging
-from $0.00184$ to $0.00358$. The systematic sign across all nine is the
-strongest part of the evidence; the magnitude is small.
+from $0.00184$ to $0.00358$, and Section~\ref{sec:pairwise} shows every one of
+those nine differences to be statistically resolved under an assumption-free
+bound. The consistency of the sign remains the most persuasive part of the
+evidence---an exact sign test over the nine sets gives $p = 0.0039$---but the
+individual comparisons no longer rest on it alone. The magnitude is small.
 
-\paragraph{The pairwise significance is not established.} Every DM statistic in
-this paper is computed against the shared incumbent, a third model. From
-$t = -15.4$ for LightGBM and $t = -19.9$ for ridge on \texttt{all\_features},
-one cannot infer that the $0.00184$ between them is distinguishable from zero:
-the two loss series are strongly positively correlated, and the difference of
-two significant improvements is not itself tested. This is the single largest
-gap between claim and evidence in the paper, and it is closed by one run.
-\pending{pairwise DM between matched tree and linear arms, and a model
-confidence set over all 45 causally tuned arms; until these exist, the
-model-class ordering is a consistent sign pattern across nine feature sets and
-not a tested difference}
+\paragraph{The pairwise difference is tested, and it holds.} Every DM statistic
+in the battery is computed against the shared incumbent, a third model, so
+$t = -15.4$ for LightGBM and $t = -19.9$ for ridge on \texttt{all\_features} do
+not by themselves establish that the $0.00184$ between them differs from zero.
+Section~\ref{sec:pairwise} supplies the missing test. Because the incumbent
+cancels from the pairwise differential, the pairwise standard error is bounded
+above by $se_{\mathrm{tree}} + se_{\mathrm{linear}}$ without any assumption
+about the dependence between arms, and the resulting bound resolves
+\emph{all nine} matched comparisons in the tree's favour after Holm adjustment
+(Table~\ref{tab:pairwise_bounds}). The headline pair is the weakest of the
+nine, at $|t| \ge 2.19$, $p \le 0.029$; the other eight range from
+$|t| \ge 3.73$ to $|t| \ge 5.91$.
+
+Three caveats travel with that result. The reported statistics are bounds, so
+the true evidence is stronger by an unmeasured amount. The headline pair is
+only just resolved, which means the paper's most-quoted number is its least
+secure. And a model confidence set over the 45 arms still requires their
+per-bar losses, which are not retained.
+\pending{battery MCS once per-bar loss series are persisted}
 
 \subsection{The Pure Nonlinearity Premium, Corrected}
 \label{sec:premium}
@@ -140,10 +151,11 @@ noise in the volatility proxy \citep{Patton2011}. That choice is consequential
 here in a way that a single reported metric would hide.
 
 Across the 45 causally tuned arms, the rank correlation between QLIKE and
-raw-variance OOS-$R^2$ is $+0.152$. Since lower QLIKE and higher $R^2$ both
-denote better forecasts, agreement would produce a \emph{negative} correlation.
-The observed value is near zero with the wrong sign: the two metrics are
-essentially unrelated across this battery.
+raw-variance OOS-$R^2$ is $+0.152$ ($p = 0.32$). Since lower QLIKE and higher
+$R^2$ both denote better forecasts, agreement would produce a \emph{negative}
+correlation. The observed value is near zero, with the wrong sign, and is not
+distinguishable from no relationship at all: the two metrics do not rank this
+battery in a related way.
 
 Concretely, \textbf{14 of the 42 arms that improve on the incumbent under QLIKE
 are worse than the incumbent under MSE.} These include the second-best arm
@@ -169,7 +181,8 @@ slopes run from $0.840$ to $0.941$, all below unity, indicating forecasts that
 are systematically too flat relative to realised variance.
 
 The pattern within that is the informative part. Across the 45 causally tuned
-arms, the rank correlation between QLIKE and MZ-$\beta$ is $\mathbf{+0.741}$:
+arms, the rank correlation between QLIKE and MZ-$\beta$ is $\mathbf{+0.741}$
+($p = 5.8 \times 10^{-9}$):
 \emph{the arms that score best on QLIKE are the most attenuated}. The best arm,
 \texttt{lgbm / all\_features}, has $\beta = 0.892$ against the incumbent's
 $0.929$; the second-best, \texttt{xgb / all\_features}, has the worst
@@ -197,10 +210,16 @@ The recoverable nonlinear structure has a ceiling, and the ceiling is low.
   \item Deep sequence models and mixture-of-experts routing fail to improve on
     the saturated form.
   \item On the kernel dictionary of Section~\ref{sec:descriptive}, trees fail
-    in both available seats: as a direct forecaster (an extrapolation clamp
-    costing $+0.08$) and as a residual reader ($+0.0096$ against $-0.0016$ for
-    a smooth local-linear reader on the same residual). The nonlinearity is
-    real but smooth and diffuse, not tree-shaped.
+    as a \emph{direct} forecaster, and fail decisively: per-bar DM on the
+    campaign tile puts the extrapolation clamp at $+0.077$ for LightGBM
+    ($t = 6.46$) and $+0.102$ for XGBoost ($t = 6.96$), the largest single
+    effect in this paper (Section~\ref{sec:tile_inference}). As a
+    \emph{residual reader} the tree is worse than a smooth linear reader by
+    $\approx 0.003$, but that difference is \emph{not} statistically resolved
+    ($t = 1.06$ and $1.11$). We therefore claim the failure for the direct seat
+    only. The nonlinearity that remains is smooth and diffuse rather than
+    tree-shaped, which is consistent with---though not identified by---a
+    second-order feedback.
 \end{itemize}
 
 Under a generic machine-learning framing this reads as an unexplained ceiling.

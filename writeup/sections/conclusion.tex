@@ -65,23 +65,36 @@ not a default.
 \paragraph{On the evaluation itself.} Two findings concern the measuring
 apparatus rather than the models, and we think they travel beyond this panel.
 QLIKE and raw-variance MSE rank our 45-arm battery almost independently (rank
-correlation $+0.15$, where agreement would give a negative value), and 14 of
-the 42 arms that improve on the incumbent under QLIKE are worse than it under
-MSE. Separately, QLIKE systematically rewards attenuation: the rank correlation
-between QLIKE and the Mincer--Zarnowitz slope is $+0.74$, so the best-scoring
-arms are the most miscalibrated, with the second-best arm in the battery
-carrying its worst calibration. Neither observation invalidates a strictly
-consistent scoring rule, but both change what a QLIKE ranking should be taken
-to mean.
+correlation $+0.15$, $p = 0.32$, where agreement would give a negative value),
+and 14 of the 42 arms that improve on the incumbent under QLIKE are worse than
+it under MSE. Separately, QLIKE systematically rewards attenuation: the rank
+correlation between QLIKE and the Mincer--Zarnowitz slope is $+0.74$
+($p = 5.8 \times 10^{-9}$), so the best-scoring arms are the most
+miscalibrated, with the second-best arm in the battery carrying its worst
+calibration. Neither observation invalidates a strictly consistent scoring
+rule, but both change what a QLIKE ranking should be taken to mean.
+
+\paragraph{On the cost of testing what we claimed.} Section~\ref{sec:inference}
+subjects the paper's inherited claims to per-bar inference for the first time.
+Four survive Holm-adjusted testing, two are refined, and three do not
+survive---trees as residual readers, Fourier clock modulation over session
+gates, and rank versus divide were all directionally correct point estimates
+that had been promoted to results. A fourth, a singleton model confidence set
+over feature sets, turned out never to have been computed at all. We report the
+casualty list because it may be the most transferable finding here: on a
+2{,}189-bar tile a model confidence set retains 123 of 161 arms, so a tile
+leaderboard is not a ranking, and a difference read off one is real only if it
+replicates at scale.
 
 \paragraph{Open items.} We flag the incomplete edges of the evidence
 explicitly, and Section~\ref{sec:limitations} treats them at length.
 (i)~The bucket battery has not been re-run on the base-2 backbone; until it is,
 every increment carries $0.00082$ of benchmark debt and the smallest effects
-are not claimed. (ii)~The model-class gap is measured against the shared
-incumbent only; pairwise Diebold--Mariano tests and a model confidence set over
-the 45 arms are pending, and the ordering is a sign pattern rather than a
-tested difference until they exist. (iii)~Our kernel estimate does not yet earn
+are not claimed. (ii)~The model-class gap is now tested pairwise, by a bound that assumes
+nothing about the dependence between arms and resolves all nine matched
+comparisons after Holm adjustment; the headline pair is the weakest at
+$|t| \ge 2.19$, and a model confidence set over the 45 arms remains unavailable
+because their per-bar losses were not retained. (iii)~Our kernel estimate does not yet earn
 structural language: the exponent lacks a standard error, the fitted kernel
 violates the non-negativity that a linear self-exciting model requires, and
 both anomalies are plausibly artifacts of a rolling diurnal divisor that acts

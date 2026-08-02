@@ -164,19 +164,27 @@ $97.5$. The memo figure appears to be an error and should not be propagated.
 \subsection{The Model Confidence Set Over Feature Sets}
 \label{sec:mcs}
 
-The 90\% model confidence set \citep{HansenLundeNason2011} over the nine
-feature sets is the singleton containing the joint bucket.
-\pending{MCS elimination order and $p$-values; the claim is currently reported
-without the table that supports it}
+Earlier drafts asserted that the 90\% model confidence set
+\citep{HansenLundeNason2011} over the nine feature sets is the singleton
+containing the joint bucket. \textbf{We withdraw that claim.} A model
+confidence set requires the arms' per-bar loss series, which were not retained
+for the battery, so the assertion was never supported by a computed set;
+Section~\ref{sec:mcs_results} reports the confidence sets we \emph{can}
+compute, on the campaign tile, where they behave quite differently.
+\pending{battery MCS over the nine feature sets once per-bar losses are
+persisted}
 
-We attach an interpretive caution that the eventual table will not remove.
-With $n = 218{,}934$ bar-level loss differentials, an MCS has enormous power,
-and collapsing to a singleton is close to the default outcome for any
-comparison in which one arm is even slightly and systematically ahead. The
-singleton result should be read as ``the joint bucket is not statistically
-tied with any singleton bucket'' and not as ``the joint bucket is the only
-useful feature set''---a distinction that Table~\ref{tab:buckets}'s overlap
-ratio already makes on economic grounds.
+Two interpretive cautions will survive the eventual computation. First, with
+$n = 218{,}934$ bar-level loss differentials an MCS has enormous power, and
+collapsing to a singleton is close to the default outcome whenever one arm is
+even slightly and systematically ahead; such a result would mean ``the joint
+bucket is not statistically tied with any singleton bucket'', not ``the joint
+bucket is the only useful feature set''---a distinction
+Table~\ref{tab:buckets}'s overlap ratio already makes on economic grounds.
+Second, the tile results run the other way: at $n = 2{,}189$ the MCS retains
+123 of 161 arms and all 20 of the best. Sample size, not model quality, drives
+how discriminating a confidence set looks, and neither extreme should be
+reported without the other.
 
 \subsection{Multiplicity}
 \label{sec:multiplicity}
@@ -186,13 +194,17 @@ comparator, and the full battery from which the table is drawn contains 98
 arms, all compared to the same incumbent, with the best reported as the
 headline. No multiplicity adjustment is applied anywhere in this paper.
 
-For the large effects this is immaterial---a $t$ of $-19$ survives any
-correction one might apply to 98 comparisons. For the bottom of
-Table~\ref{tab:buckets} it is not immaterial: \texttt{vol\_demand} at
-$t = -4.1$, on an effect of $0.00078$ that carries $0.00082$ of benchmark
-debt, is exactly the kind of finding that a family-wise correction plus a
-corrected backbone would jointly dissolve. We do not claim it survives.
-\pending{family-wise or FDR adjustment across the 98-arm battery}
+Section~\ref{sec:multiplicity_results} now measures the cost. Across all 97
+testable arms, 93 are significant at an unadjusted $p < 0.05$; Holm--Bonferroni
+leaves 91 and Benjamini--Hochberg leaves 93. Every bucket effect in
+Table~\ref{tab:buckets} survives Holm, including \texttt{vol\_demand} at
+$t = -4.1$, whose raw $p = 4.3 \times 10^{-5}$ becomes $4.2 \times 10^{-3}$
+after correction. Multiple testing is therefore not what threatens the bottom
+of this table---the benchmark debt of Section~\ref{sec:benchmark_debt} is, and
+that threat is unaffected by any $p$-value adjustment. Of the two arms in the
+whole battery that do lose significance under Holm, one is the marginal
+\texttt{reclasso/sentiment} arm and the other a base-5 ladder cap variant;
+neither carries a claim in this paper.
 
 \subsection{Where the Attribution Points}
 \label{sec:attribution_points}

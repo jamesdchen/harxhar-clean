@@ -133,8 +133,10 @@ $b=8$      & \texttt{b8\_c3125}       & 0.13476 & $+7.31$ \\
 \end{tabular}
 \end{table}
 
-The ordering is monotone in the base across all six bases, with
-DM $t = -10.6$ for $b{=}2$ against the incumbent $b{=}5$. The signature is
+The ordering is monotone in the base across all six bases---the rank
+correlation between base and QLIKE is exactly $+1.000$, with no
+inversions---and DM $t = -10.6$ for $b{=}2$ against the incumbent $b{=}5$. The
+signature is
 precisely that of a quadrature error: \emph{how finely the kernel is sampled
 matters, where the sum is truncated barely does}. This is difficult to explain
 if the rungs were recovering genuinely distinct daily, weekly and monthly
@@ -146,14 +148,23 @@ that the conventional explicit HAR structure is not merely suboptimal but
 kernel fitted in place of the power law is $+0.011$ QLIKE worse---roughly an
 order of magnitude larger than any effect elsewhere in this paper.
 
-\paragraph{Prediction 3: truncation is real but shallow.} Direct power-law
-convolution features degrade sharply when the convolution window is extended
-too far ($U = 2048$ is catastrophic; $U = 256$ is the operating point), while
-the boxcar ladder's cap is a near-non-lever. We attribute the difference to
-normalisation---the direct features normalise weights to sum to one, so
-extending $U$ redistributes mass away from recent lags, whereas the boxcar cap
-adds a rung without disturbing the others---but this reconciliation is
-currently an argument rather than a measurement.
+\paragraph{Prediction 3: truncation is real, and it is an interior optimum.}
+Direct power-law convolution features degrade sharply when the convolution
+window is extended too far, while the boxcar ladder's cap is a near-non-lever.
+Per-bar Diebold--Mariano tests on the campaign tile
+(Section~\ref{sec:tile_inference}) resolve the direct-feature side of this in
+both directions: a truncation at $U = 256$ beats $U = 32$ by $0.0074$
+($t = -4.16$), beats $U = 128$ by $0.0026$ ($t = -3.50$), and beats no
+truncation at all by $0.0077$ ($t = -3.83$), every comparison surviving Holm
+adjustment across the contrast family. Truncating the kernel is therefore not a
+computational convenience---removing it costs real accuracy---and the optimum
+is interior rather than at either extreme.
+
+We attribute the contrast with the boxcar ladder's indifference to its cap to
+normalisation: the direct features normalise weights to sum to one, so
+extending $U$ redistributes mass away from recent lags, whereas adding a boxcar
+rung leaves the other rungs undisturbed. That reconciliation remains an
+argument rather than a measurement.
 
 \subsection{The Hawkes Reading}
 \label{sec:hawkes}

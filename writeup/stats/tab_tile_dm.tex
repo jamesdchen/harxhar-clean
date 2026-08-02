@@ -1,0 +1,36 @@
+\begin{table}[H]
+\centering
+\caption{Per-bar Diebold--Mariano tests on the campaign tile ($n = 2,189$ bars, 161 arms, identical targets). HAC (Newey--West) standard errors with the
+Harvey--Leybourne--Newbold small-sample correction; Holm adjustment across
+the whole contrast family. Negative $t$ favours arm A. \textbf{Panel note:}
+this is a campaign tile, not the 218{,}934-bar frozen battery; no level here
+is comparable to a battery level, and what the tile tests is whether each
+claim survives per-bar inference at all.}
+\label{tab:tile_dm}
+\footnotesize
+\begin{tabular}{lrrrl}
+\toprule
+Contrast (A vs B) & $\Delta$QLIKE & $t$ & $p_{\text{Holm}}$ & Verdict \\
+\midrule
+trees direct: xgb vs incumbent & +0.10163 & 6.96 & $8.7\times 10^{-11}$ & B better \\
+local k=8000 vs k=200 & -0.02041 & -6.59 & $9.8\times 10^{-10}$ & A better \\
+trees direct: lgbm vs incumbent & +0.07684 & 6.46 & $2.3\times 10^{-9}$ & B better \\
+cap256 vs cap32 & -0.00735 & -4.16 & $5.2\times 10^{-4}$ & A better \\
+cap256 vs uncapped & -0.00774 & -3.83 & 0.002 & A better \\
+local k=16000 vs k=8000 & +0.00294 & 3.74 & 0.003 & B better \\
+cap256 vs cap128 & -0.00264 & -3.50 & 0.006 & A better \\
+enet mid vs ridge & +0.00523 & 3.15 & 0.020 & B better \\
+rank vs divide & +0.00718 & 2.73 & 0.070 & unresolved \\
+enet heavy vs ridge & +0.00573 & 2.20 & 0.277 & unresolved \\
+Fourier clock vs session gates & -0.00367 & -1.64 & 0.908 & unresolved \\
+PCovR-50 vs PCovR-25 & -0.00213 & -1.56 & 0.954 & unresolved \\
+trees residual: xgb vs ridge cadence & +0.00321 & 1.11 & 1.000 & unresolved \\
+trees residual: lgbm vs ridge cadence & +0.00308 & 1.06 & 1.000 & unresolved \\
+PLS reg vs PCovR & +0.00054 & 0.68 & 1.000 & unresolved \\
+enet light vs ridge & -0.00012 & -0.65 & 1.000 & unresolved \\
+tie: rawc stack vs champion & +0.00063 & 0.30 & 1.000 & unresolved \\
+tie: prune32+corr vs champion & +0.00014 & 0.06 & 1.000 & unresolved \\
+tie: legchamp+clock vs champion & +0.00001 & 0.00 & 1.000 & unresolved \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -46,15 +46,31 @@ steeper-than-theory exponent---since a high-pass filter produces both. The
 experiment that resolves the limitation and the experiment that tests the
 structural reading are the same experiment.
 
-\paragraph{Pairwise significance is untested.} The model-class conclusion rests
-on a difference between two arms that has never been tested directly
-(Section~\ref{sec:class_table}). We report a consistent sign across nine
-feature sets, which is evidence, but it is not the test.
+\paragraph{Pairwise significance (resolved, with a caveat).} The model-class
+difference is now tested directly, by a bound that requires no assumption about
+the dependence between arms and that resolves all nine matched comparisons
+after Holm adjustment (Section~\ref{sec:pairwise}). The residual caveat is that
+the headline pair is the weakest of the nine at $|t| \ge 2.19$, and that a
+model confidence set over the 45 battery arms is still unavailable because
+their per-bar losses were not retained.
 
-\paragraph{Multiplicity.} 98 arms are compared against one shared benchmark
-with no family-wise or false-discovery adjustment, and the minimum is quoted in
-two places (the model-class headline and the kNN headline). The large effects
-are robust to any plausible correction; the small ones are not claimed.
+\paragraph{Multiplicity (resolved).} All 97 testable arms are now adjusted:
+Holm leaves 91 of the 93 raw-significant arms and Benjamini--Hochberg leaves 93
+(Section~\ref{sec:multiplicity_results}). No claim in this paper depends on
+either of the two arms that lose significance. Adjustment does not, however,
+address the selection of the spectral-$k$NN headline as the minimum of 32
+cells: that is a different problem and it remains open.
+
+\paragraph{Claims withdrawn after testing.} Three findings inherited from
+campaign notes did not survive per-bar inference and are no longer asserted:
+that trees fail as residual readers ($t = 1.06$ and $1.11$, unresolved), that
+Fourier clock modulation beats session gates ($p = 0.10$ unadjusted), and that
+the rank marginal adjustment is worse than dividing ($p = 0.071$ after Holm,
+against $p = 0.001$ in the original note). A fourth, the singleton model
+confidence set over feature sets, was asserted without ever having been
+computed and is withdrawn outright (Section~\ref{sec:mcs}). We record these
+because the pattern matters: each was a directionally correct point estimate
+that had been promoted to a result.
 
 \subsection{Gaps and Inconsistencies}
 
@@ -120,10 +136,32 @@ none of which were pre-registered.
 \subsection{Reproducibility}
 \label{sec:repro}
 
-All results in this version derive from a single frozen battery of 98 arms on
+Model results in this version derive from a single frozen battery of 98 arms on
 one panel of $n = 218{,}934$ bars, with per-arm metrics archived alongside the
 manuscript. Superseded experiments---in particular the hyperparameter search of
 Section~\ref{sec:tuning_leak} and the variable-$N$ subgroup tables---are
 retained in the repository history but contribute no number to this paper.
-\pending{software versions, random seeds, and a code and data availability
-statement}
+
+All inference in Section~\ref{sec:inference} is reproducible from the archived
+artefacts. The estimators live in \texttt{analysis/inference.py} (QLIKE,
+Newey--West long-run variance, Diebold--Mariano with the
+Harvey--Leybourne--Newbold correction, the Politis--Romano stationary
+bootstrap, the Hansen--Lunde--Nason MCS, Holm and Benjamini--Hochberg); they
+are validated in \texttt{analysis/test\_inference.py} against
+\texttt{scipy} for the $t$ distribution and \texttt{statsmodels} for the HAC
+standard error and both multiplicity procedures, plus an empirical size check
+of the DM test at the nominal level. The two drivers are
+\texttt{analysis/run\_tile\_inference.py} and
+\texttt{analysis/run\_battery\_bounds.py}; \texttt{analysis/make\_tables.py}
+regenerates every inference table in this paper directly from their JSON
+output, so no statistic in Section~\ref{sec:inference} is transcribed by hand.
+Bootstrap replications are fixed at $B = 5{,}000$ under seed $20260802$, and
+the block length is chosen automatically with reported sensitivity from half to
+four times its value. Environment: Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1,
+statsmodels 0.14.6.
+
+The frozen battery itself is not reproducible from this repository: it was
+produced on two HPC clusters and only its per-arm summary metrics were
+retained, which is precisely why Section~\ref{sec:pairwise} must bound the
+pairwise test rather than compute it. Persisting per-bar loss series should be
+treated as a requirement of any future battery run, not an optimisation.
