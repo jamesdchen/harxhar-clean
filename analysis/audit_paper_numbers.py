@@ -15,6 +15,7 @@ STATS = os.path.join(ROOT, "writeup", "stats")
 bat = json.load(open(os.path.join(STATS, "battery_inference.json")))
 tile = json.load(open(os.path.join(STATS, "tile_inference.json")))
 hk = json.load(open(os.path.join(STATS, "hawkes_kernel.json")))
+ke = json.load(open(os.path.join(STATS, "kernel_experiments.json")))
 C = {c["label"]: c for c in tile["contrasts"]}
 
 fails = []
@@ -167,6 +168,44 @@ check("cross-kernel neg fraction max = 50.4%", 0.504, max(nf), tol=1e-3)
 sv1 = [v["variance_share"][0] for v in exo.values()]
 check("operator sv1 share min = 28%", 0.284, min(sv1), tol=5e-3)
 check("operator sv1 share max = 58%", 0.576, max(sv1), tol=5e-3)
+
+print("\n=== kernel experiments (Section: Reproducibility of the Kernel Estimate) ===")
+val = ke["_validation"]
+check("rebuild correlation = +0.65", 0.645, val["correlation"], tol=5e-3)
+check("rebuilt n_hat = +1.000", 1.0003, val["rebuilt_n_hat"], tol=1e-3)
+check("archived n_hat = -0.038", -0.038, val["archived_n_hat"], tol=1e-6)
+check("validation NOT reproduced", 0, 1 if val["reproduced"] else 0, tol=0.5)
+cells = {k: v for k, v in ke.items() if not k.startswith("_")}
+check("7 experiment cells", 7, len(cells), tol=0.5)
+check("all cells n = 242,934", 242934,
+      min(v["n_rows"] for v in cells.values()), tol=0.5)
+nh = [v["branching_analogue"] for v in cells.values()]
+check("n_hat min = +0.906", 0.9055, min(nh), tol=1e-3)
+check("n_hat max = +1.079", 1.0795, max(nh), tol=1e-3)
+nm = [v["negative_mass_share"] for v in cells.values()]
+check("negative mass max < 0.4%", 0.004, max(nm), tol=1e-3)
+bt = [v["powerlaw"]["beta"] for v in cells.values() if v["powerlaw"]]
+check("rebuilt beta min = 1.43", 1.427, min(bt), tol=5e-3)
+check("rebuilt beta max = 1.58", 1.581, max(bt), tol=5e-3)
+check("drop exog: n_hat = +0.927", 0.9265,
+      cells["divide/marginal/5-95"]["branching_analogue"], tol=1e-3)
+check("drop divisor: n_hat = +1.079", 1.0795,
+      cells["dummies/partial/5-95"]["branching_analogue"], tol=1e-3)
+check("winsor 5/95 QLIKE = 0.2648", 0.26478,
+      cells["divide/marginal/5-95"]["oos_qlike"], tol=1e-4)
+check("winsor 1/99 QLIKE = 0.2449", 0.24493,
+      cells["divide/marginal/1-99"]["oos_qlike"], tol=1e-4)
+check("winsor none QLIKE = 0.2411", 0.24113,
+      cells["divide/marginal/none"]["oos_qlike"], tol=1e-4)
+check("winsorization cost = 0.024", 0.024,
+      cells["divide/marginal/5-95"]["oos_qlike"] - cells["divide/marginal/none"]["oos_qlike"],
+      tol=5e-4)
+dv = ke["_divisor_alone"]
+check("divisor alone QLIKE = 0.558", 0.55793, dv["qlike"], tol=1e-4)
+check("unconditional mean QLIKE = 1.320", 1.31959, dv["qlike_unconditional_mean"], tol=1e-3)
+best = min(v["oos_qlike"] for v in cells.values())
+frac = (dv["qlike_unconditional_mean"] - dv["qlike"]) / (dv["qlike_unconditional_mean"] - best)
+check("divisor closes 71% of the gap", 0.71, frac, tol=5e-3)
 
 print("\n" + "=" * 74)
 if fails:

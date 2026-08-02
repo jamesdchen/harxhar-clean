@@ -25,12 +25,16 @@ estimated across 41 exogenous channels where the log-log slope is invariant to
 channel scaling, is $1.033$ with a channel-clustered standard error of $0.036$,
 agreeing with the Hawkes-in-finance literature and rejecting both the $1.36$
 earlier drafts had carried as a plotting constant and the $\approx 1.6$ that a
-rough-volatility correspondence implies. The sign structure fails: 8 of 12
-kernel lags are negative, close to half of all exogenous cross-kernel cells
-are, and the integrated kernel is $-0.038$---outside the $[0,1)$ range a linear
-self-exciting process admits, with a sign that flips across sessions. We
-therefore quote no branching ratio, and carry the kernel forward as an
-instrument rather than as a structural model.
+rough-volatility correspondence implies. The sign structure fails, on the archived
+estimate: 8 of 12 kernel lags negative, close to half of all exogenous
+cross-kernel cells negative, and an integrated kernel of $-0.038$, outside the
+$[0,1)$ range a linear self-exciting process admits. Running the experiments
+designed to explain that pathology exonerated both suspects and found something
+worse---the archived kernel cannot be rebuilt from the committed raw data and
+transform code, and a rebuild that matches the panel exactly shows none of the
+pathology. We therefore quote no branching ratio, carry the kernel forward as
+an instrument rather than a structural model, and treat its reproducibility as
+the open problem.
 
 \emph{Where does the information live?} Everywhere and nowhere in particular.
 Every exogenous bucket improves on the backbone with overwhelming individual
@@ -108,13 +112,17 @@ are not claimed. (ii)~The model-class gap is now tested pairwise, by a bound tha
 nothing about the dependence between arms and resolves all nine matched
 comparisons after Holm adjustment; the headline pair is the weakest at
 $|t| \ge 2.19$, and a model confidence set over the 45 arms remains unavailable
-because their per-bar losses were not retained. (iii)~Our kernel estimate earns structural language for its shape but not for
-its sign: the exponent is now estimated and agrees with theory, while the
-negative mass and the inadmissible integrated kernel remain. Two design choices
-are the leading suspects and are not separated by current evidence---a rolling
-diurnal divisor that acts as a high-pass filter, and a probe that estimates the
-self-kernel jointly with 41 exogenous channels, making it partial rather than
-marginal. Removing both is the experiment that settles it. (iv)~A
+because their per-bar losses were not retained. (iii)~The kernel estimate is not reproducible from source, which supersedes the
+structural questions we had queued behind it. Both suspected causes of its sign
+pathology---the rolling diurnal divisor and the partial-versus-marginal
+distinction---were tested and exonerated; the rebuild is well behaved on every
+diagnostic the archive fails. Persisting the feature cache and recording the
+probe's conditioning set is the prerequisite for any structural work. Two
+limitations were, however, settled along the way: the 5/95 target winsorization
+costs roughly $0.024$ QLIKE and should be expected to disappear from the
+pipeline, and the rolling diurnal divisor used alone reaches QLIKE $0.558$
+against $1.320$ for an unconditional mean, so it closes about 71\% of the
+distance to a fitted model before any model is fitted. (iv)~A
 fractional-kernel arm sits in the same power-law family as our backbone and is
 absent from the battery; it is the most defensible missing benchmark.
 (v)~The winning spectral-$k$NN arm is the minimum of 32 cells selected on the

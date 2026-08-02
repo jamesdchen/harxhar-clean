@@ -116,8 +116,17 @@ This rejects the $1.36$ of earlier drafts ($t = -9.1$,
 $p = 2.6 \times 10^{-11}$), is consistent with the $\approx 1$ reported
 throughout the Hawkes-in-finance literature ($t = +0.9$, $p = 0.36$), and
 rejects the $\approx 1.6$ that the rough-volatility correspondence would imply
-($t = -15.8$, $p = 8.4 \times 10^{-19}$). Section~\ref{sec:rough} revises the
-paper's position accordingly.
+($t = -15.8$, $p = 8.4 \times 10^{-19}$).
+
+We report one disagreement rather than suppress it. Rebuilding the
+\emph{self}-kernel from raw data (Section~\ref{sec:kernel_repro}) gives
+$\hat\beta$ between $1.43$ and $1.58$ across seven specifications, with
+standard errors of $0.06$ to $0.23$---materially steeper than the cross-kernel
+estimate above. The two are different objects (own-lag versus cross-channel
+response) measured on different panels (an archived operator versus a
+rebuild), so the gap is uninformative rather than contradictory. It does mean
+the paper cannot assert a single exponent, and Section~\ref{sec:rough} is
+written accordingly.
 
 If the kernel is genuinely power-law---that is, scale-free---then the
 quadrature reading of Section~\ref{sec:har_quadrature} makes three predictions
@@ -315,62 +324,81 @@ preprocessing.
 
 \input{stats/tab_hawkes_kernel}
 
-\paragraph{(i) The fitted kernel takes negative values, and not marginally.} A
-linear Hawkes kernel must be non-negative; Equation~\eqref{eq:hawkes_intensity}
-does not otherwise define a point process. Our fitted $\varphi$ violates this
-badly. Pooled, \textbf{8 of 12 lags are negative}, carrying 10.3\% of total
-absolute kernel mass. By session the violation is far worse: at the open,
-87.8\% of the kernel's mass is negative, and after hours 86.3\%. The exogenous
-cross-kernels are no better---between 44.7\% and 50.4\% of all
-(channel, lag) cells are negative across the six sessions, which is
-indistinguishable from a coin flip.
+\paragraph{(i) The archived kernel takes negative values.} A linear Hawkes
+kernel must be non-negative; Equation~\eqref{eq:hawkes_intensity} does not
+otherwise define a point process. On the archived coefficient vector,
+$\varphi$ violates this badly: 8 of 12 lags are negative, carrying 10.3\% of
+total absolute kernel mass, rising to 87.8\% at the open and 86.3\% after
+hours. The archived exogenous cross-kernels are no better---between 44.7\% and
+50.4\% of all (channel, lag) cells are negative, indistinguishable from a coin
+flip. The archived integrated kernel is $\hat n = -0.038$, outside the
+$[0,1)$ range a linear Hawkes process admits rather than merely sub-critical,
+and its sign is not stable across sessions.
 
-This is not a small blemish on an otherwise Hawkes-shaped object. Three
-readings are available: a filter artifact (below), genuine inhibition requiring
-the nonlinear Hawkes class \citep{BremaudMassoulie1996}, or the concession that
-$\varphi$ is a regression weight function and not an intensity kernel at all.
-On this evidence only the third is defensible, and it is the one we adopt.
+\paragraph{(ii) None of it survives a rebuild from source.}
+Section~\ref{sec:kernel_repro} reports the attempt. Rebuilding the same nominal
+specification from the committed raw data with the committed transform code
+reproduces the panel size exactly but not the kernel, and the rebuilt kernel is
+well behaved on every diagnostic that the archived one fails. We therefore do
+not attribute the sign structure to the market, to the diurnal filter, or to
+the partial-versus-marginal distinction. We attribute it to the archived
+artefact, whose construction is not recoverable from this repository, and we
+withdraw the structural reading that rested on it.
 
-\paragraph{(ii) The negative mass is what breaks the branching ratio.} The two
-diagnostics are the same fact seen twice: an integrated kernel of $-0.038$ is
-what a kernel with 10\% negative mass and a small positive part produces. The
-sessions make the connection explicit---the two bins with the most negative
-mass, after hours (86.3\%) and close (56.9\%), carry the two most negative
-$\hat n$ values ($-0.260$ and $-0.130$).
+\subsection{Reproducibility of the Kernel Estimate}
+\label{sec:kernel_repro}
 
-\paragraph{(iii) The exponent is \emph{not} the anomaly we expected.} Earlier
-drafts recorded the exponent as steeper than the literature's $\approx 1$ and
-treated that as a second anomaly requiring explanation. Estimated rather than
-assumed, $\hat\beta = 1.033$ with a 95\% interval of $[0.963, 1.104]$
-(Equation~\eqref{eq:beta_estimate}) sits squarely on the literature's value.
-There is no exponent anomaly to explain. What remains anomalous is the sign
-structure, not the decay rate.
+The diagnostics above are computed on a coefficient vector recovered from an
+archived driver log. The panel that produced it, an intermediate memory-mapped
+feature cache, was not retained. We therefore rebuilt the estimate from the
+committed raw data using the committed transform code, on the same nominal
+specification---base-2 ladder to 2048, unit-ridge probe, 41 exogenous channels,
+3{,}125-bar burn-in---and ran the two experiments that were supposed to
+separate the suspected causes of the sign structure.
 
-\paragraph{(iv) The sign structure is plausibly an artifact of Stage 1, and of
-the probe design.} Our diurnal adjustment divides by a \emph{rolling}
-20-observation same-slot mean (Equation~\eqref{eq:diurnal_mean}), a high-pass
-filter rather than a fixed seasonal profile, and high-pass filtering induces
-negative side lobes in an estimated kernel. Independently, the probe that
-produced these coefficients regresses the target on its own ladder \emph{and}
-41 exogenous channels jointly, so the self-kernel is a \emph{partial} effect
-net of channels that are themselves functions of past volatility. A Hawkes
-branching ratio is a marginal quantity; a partial one net of collinear
-volatility proxies has no reason to be positive. Either mechanism alone would
-generate the sign structure we observe.
+\paragraph{The rebuild does not reproduce the archived kernel.} It matches the
+panel size exactly at $242{,}934$ rows, and disagrees on everything else. The
+coefficient vectors correlate at only $+0.65$; the archived integrated kernel
+is $-0.038$ while the rebuilt one is $+1.000$. Neither the raw-ladder scale nor
+the per-standard-deviation scale reconciles them. The likely cause is visible
+in the archived driver: it partitions its feature cache into a ladder block and
+an ``other'' block, and reads the self-kernel out of the latter, which holds the
+HAR ladder \emph{alongside} calendar terms and engineered features. A
+self-kernel conditioned on those is a different estimand, and we cannot
+reconstruct that conditioning set.
 
-\paragraph{The decisive experiment, now better specified.} Two changes must be
-made together and their effects separated: re-estimate the kernel with Stage 1
-removed, entering time-of-day as slot dummies rather than dividing by a rolling
-slot mean; and re-estimate it \emph{marginally}, without the exogenous block,
-so that the object is a self-excitation kernel rather than a partial effect. If
-the negative mass collapses under either change, the sign structure is
-manufactured and a structural reading becomes available; if it survives both,
-the linear Hawkes correspondence should be abandoned in favour of the weaker
-regression-kernel language. The exponent no longer needs this experiment---it
-is estimated, and it agrees with theory.
-\pending{marginal and unfiltered kernel re-estimation; until it is run we
-describe the backbone as \emph{power-law-like}, quote no branching ratio, and
-make no structural claim}
+\input{stats/tab_kernel_experiments}
+
+\paragraph{On the rebuilt panel, the kernel is well behaved.}
+Table~\ref{tab:kernel_experiments} reports the $2 \times 2$ that was meant to
+separate the diurnal filter from the partial-versus-marginal distinction, plus
+a winsorization arm. Across all seven cells the integrated kernel lies between
+$+0.906$ and $+1.079$---sub-critical to marginally critical, which is the
+regime the reflexivity literature reports---and negative lags carry between
+0.0\% and 0.4\% of absolute mass. Neither suspected cause moves these
+diagnostics much: dropping the exogenous block changes $\hat n$ from $+1.000$
+to $+0.927$, and replacing the rolling divisor with 48 slot dummies changes it
+from $+1.000$ to $+1.079$.
+
+The experiment therefore returns a negative answer to the question it was
+designed to ask, and a more useful answer to a question we had not asked. The
+sign pathology is not a consequence of the diurnal filter, and not a
+consequence of conditioning on the exogenous block. It is a property of an
+artefact we cannot rebuild.
+
+\paragraph{Consequences.} Three, and we would rather state them than work
+around them. First, no structural claim about the kernel---branching ratio,
+criticality, reflexivity, inhibition---is supported by this paper, and we make
+none. Second, the exponent is not settled either: the archived exogenous
+cross-kernels give $1.033 \pm 0.036$ while the rebuilt self-kernel gives
+$1.43$--$1.58$ with standard errors of $0.06$--$0.23$, and these are different
+objects on different panels, so the disagreement is uninformative rather than
+contradictory. Third, the quadrature results of
+Section~\ref{sec:powerlaw}---which are the load-bearing part of this
+section---are untouched, because they come from the frozen forecast battery and
+not from any kernel estimate.
+\pending{persist the feature cache and re-run the kernel probe with its
+conditioning set recorded; until then the kernel is a figure, not a measurement}
 
 \subsection{Relation to Rough Volatility}
 \label{sec:rough}
@@ -386,13 +414,15 @@ $1.6$.
 
 Earlier drafts, working from the unestimated $1.36$, reported our exponent as
 sitting closer to that rough-volatility value than to the Hawkes-kernel
-literature's $\approx 1$. The estimate reverses this. At
-$\hat\beta = 1.033$ with a 95\% interval of $[0.963, 1.104]$, the
-rough-volatility implied value of $1.6$ is rejected at
-$t = -15.8$, while $1.0$ is not rejected at all. Under the
-$H = \alpha - \tfrac{1}{2}$ mapping our estimate implies
-$H \approx 0.03$, rougher than the $H \approx 0.1$ usually reported and close
-to the boundary of the regime in which the limit theorem is stated.
+literature's $\approx 1$. Estimation does not support that reading, but neither
+does it cleanly support the opposite one. The cross-kernel estimate,
+$\hat\beta = 1.033$ with a 95\% interval of $[0.963, 1.104]$, rejects $1.6$ and
+is consistent with $1.0$; the rebuilt self-kernel estimate, $1.43$--$1.58$,
+points the other way. Under the $H = \alpha - \tfrac{1}{2}$ mapping the two
+imply $H \approx 0.03$ and $H \approx 0.5$ respectively---the first rougher
+than the $H \approx 0.1$ usually reported, the second not rough at all. We
+conclude that our data do not currently locate the volatility process on this
+axis, and we decline to place it.
 \pending{the exponent conditions of \citet{JaissonRosenbaum2016} on $\alpha$
 must be checked before this mapping is asserted rather than noted; our
 $\hat\alpha \approx 0.03$ sits near the edge of the admissible range}
@@ -442,14 +472,14 @@ structure that survives is anchored to exactly these transitions.
 \label{sec:backbone_summary}
 
 The backbone is a truncated power-law self-kernel with a clock organ, of which
-the base-5 HAR ladder is a coarse quadrature. The kernel's \emph{shape} is
-measured and behaves: the decay exponent is $1.033 \pm 0.036$, the power law
-beats an exponential on both fit and forecast, and the exogenous operator is
-rank 4--6. The kernel's \emph{sign structure} does not: 8 of 12 lags are
-negative, the integrated kernel is $-0.038$, and both violate what a linear
-self-exciting model requires. We therefore carry the power-law backbone forward
-as an instrument and carry the Hawkes correspondence forward only as a source
-of hypotheses. Three consequences follow:
+the base-5 HAR ladder is a coarse quadrature. The quadrature evidence is
+solid: it comes from the frozen forecast battery, it is monotone across six
+bases, and it does not depend on any kernel estimate. The kernel estimates
+themselves are not: the archived vector fails every linear-Hawkes diagnostic, a
+rebuild from raw data fails none of them, and the two cannot be reconciled
+(Section~\ref{sec:kernel_repro}). We therefore carry the power-law backbone
+forward as an instrument, carry the Hawkes correspondence forward only as a
+source of hypotheses, and make no structural claim. Three consequences follow:
 
 \begin{enumerate}
   \item \textbf{The incumbent is quadrature-limited.} The base-5 ladder used
@@ -469,5 +499,6 @@ of hypotheses. Three consequences follow:
     response operator are what the quadratic and multivariate extensions of
     this backbone respectively predict, and the rank is measured at 4--6 of 41
     channels. Both remain consistency arguments: we fit no self-exciting model,
-    and the sign structure above is a standing obstacle to doing so.
+    and until the kernel estimate is reproducible there is no stable object to
+    fit one to.
 \end{enumerate}

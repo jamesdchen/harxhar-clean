@@ -143,9 +143,52 @@ def main():
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     open(os.path.join(STATS, "tab_hawkes_kernel.tex"), "w").write("\n".join(lines) + "\n")
 
+    # ---- Table 5: the kernel experiments ----
+    ke = json.load(open(os.path.join(STATS, "kernel_experiments.json")))
+    order = ["divide/partial/5-95", "divide/marginal/5-95", "dummies/partial/5-95",
+             "dummies/marginal/5-95", "divide/marginal/1-99", "divide/marginal/none",
+             "dummies/marginal/none"]
+    desc = {
+        "divide/partial/5-95": "committed specification",
+        "divide/marginal/5-95": "drop the exogenous block",
+        "dummies/partial/5-95": "drop the rolling divisor",
+        "dummies/marginal/5-95": "drop both",
+        "divide/marginal/1-99": "winsorize at 1/99",
+        "divide/marginal/none": "no winsorization",
+        "dummies/marginal/none": "no divisor, no winsorization",
+    }
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        r"\caption{Kernel diagnostics under a rebuild from the raw parquet data,",
+        r"varying the two design choices suspected of producing the archived kernel's",
+        r"sign structure, plus a winsorization arm. Every cell has $n = 242{,}934$",
+        r"rows. $\hat n = \sum_k w_k$ is the branching-ratio analogue; ``neg.\ mass''",
+        r"is the share of absolute kernel mass carried by negative lags. QLIKE is a",
+        r"single 60/40 split on the raw variance scale and is \emph{not} comparable to",
+        r"the walk-forward levels reported elsewhere in this paper --- it is included",
+        r"only so that degenerate cells are visible. \textbf{The first row does not",
+        r"reproduce the archived kernel} (correlation $+0.65$, $\hat n$ $+1.00$ against",
+        r"an archived $-0.038$), so no cell here explains the archived estimate; see",
+        r"Section~\ref{sec:kernel_repro}.}",
+        r"\label{tab:kernel_experiments}",
+        r"\begin{tabular}{llrrrrr}", r"\toprule",
+        r"Specification & Change & $\hat n$ & Neg.\ lags & Neg.\ mass & "
+        r"$\hat\beta$ & QLIKE \\", r"\midrule",
+    ]
+    for k in order:
+        r = ke[k]
+        b = r.get("powerlaw") or {}
+        lines.append(
+            f"\\texttt{{{k.replace('_', chr(92) + '_')}}} & {desc[k]} & "
+            f"${r['branching_analogue']:+.3f}$ & {r['n_negative_lags']}/12 & "
+            f"{r['negative_mass_share'] * 100:.1f}\\% & "
+            f"{b.get('beta', float('nan')):.2f} & {r['oos_qlike']:.4f} \\\\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    open(os.path.join(STATS, "tab_kernel_experiments.tex"), "w").write("\n".join(lines) + "\n")
+
     print("wrote:")
     for f in ("tab_pairwise_bounds.tex", "tab_tile_dm.tex", "tab_mcs.tex",
-              "tab_hawkes_kernel.tex"):
+              "tab_hawkes_kernel.tex", "tab_kernel_experiments.tex"):
         print("   ", os.path.join(STATS, f))
 
 

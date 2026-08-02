@@ -17,34 +17,52 @@ rows of Table~\ref{tab:buckets} have increments of the same order as the debt
 and should not be treated as established until the battery is re-run on the
 base-2 backbone.
 
-\paragraph{Target winsorization.} Stage 3 clips each series to rolling 5th and
-95th percentile bounds. By construction this modifies 10\% of observations, and
-on a heavy-tailed variance target the clipped mass is disproportionately the
-volatility spikes that a forecast exists to anticipate. Models are trained on a
-clipped target and evaluated against an unclipped one, and the transform is
-lossy and therefore not inverted at evaluation
-(Section~\ref{sec:winsorization}). The direction of the resulting bias is not
-obvious and we have not measured it.
-\pending{ablation at 5/95 versus 1/99 versus no winsorization, on the shared
-panel; a referee is entitled to ask whether the dense-but-weak finding survives
-when the tails are not truncated, since the strongest signal may live there}
+\paragraph{Target winsorization (measured: it is costing accuracy).} Stage 3
+clips each series to rolling 5th and 95th percentile bounds, modifying 10\% of
+observations by construction, and on a heavy-tailed variance target the clipped
+mass is disproportionately the volatility spikes a forecast exists to
+anticipate. We have now run the ablation
+(Table~\ref{tab:kernel_experiments}). On a rebuilt panel with a single 60/40
+split, relaxing the clip to 1/99 improves raw-scale QLIKE from $0.2648$ to
+$0.2449$, and removing it entirely improves it further to $0.2411$. The kernel
+diagnostics barely move.
 
-\paragraph{The diurnal divisor is itself a forecast.} Stage 1 divides by a
-\emph{rolling} 20-observation same-slot mean rather than a fixed seasonal
-profile (Section~\ref{sec:diurnal}). That is a slowly adapting level estimate,
-and it is multiplied back in at evaluation time. Every model in the paper
-therefore inherits a common and non-trivial predictive component, which
-inflates all QLIKE-versus-naive comparisons and compresses differences
-\emph{between} models---meaning the small effects we report may be small partly
-because the divisor has already done the easy work.
-\pending{the standalone out-of-sample skill of the diurnal divisor, reported as
-its own arm, so that every other number can be read net of it}
+The direction is unambiguous and the magnitude is large relative to everything
+else in this paper: winsorizing the target costs roughly $0.024$ QLIKE, an
+order of magnitude more than the model-class effect the paper spends a section
+establishing. Two caveats keep this from being a headline. The split is a
+single 60/40 cut with a full-sample ridge probe, not the walk-forward harness,
+so the levels are not comparable to the battery's; and the ablation runs on the
+rebuilt panel of Section~\ref{sec:kernel_repro}, not the frozen one.
+\pending{re-run the winsorization ablation inside the walk-forward harness on
+the frozen panel; on present evidence the 5/95 clip should be expected to
+disappear from the pipeline}
 
-This same divisor is the leading suspect for the two anomalies in the kernel
-estimate of Section~\ref{sec:kernel_caveats}---negative lobes and a
-steeper-than-theory exponent---since a high-pass filter produces both. The
-experiment that resolves the limitation and the experiment that tests the
-structural reading are the same experiment.
+\paragraph{The diurnal divisor is itself a forecast (measured).} Stage 1
+divides by a \emph{rolling} 20-observation same-slot mean rather than a fixed
+seasonal profile (Section~\ref{sec:diurnal}). That is a slowly adapting level
+estimate, and it is multiplied back in at evaluation time, so every model in
+the paper inherits a common predictive component.
+
+We have now measured how large that component is. Used \emph{alone} as a
+forecast---no model, no features, just the rolling same-slot baseline---it
+reaches raw-scale QLIKE $0.558$ on a held-out 40\% of the panel, against
+$1.320$ for an unconditional mean and $0.241$ for the best full model in the
+same setup. On that scale the divisor closes roughly 71\% of the distance
+between an unconditional forecast and a fitted one. Replacing it with 48 slot
+dummies inside the full model costs $0.03$ to $0.06$ QLIKE
+(Table~\ref{tab:kernel_experiments}), so it is not merely a normalisation
+convenience: it is doing forecasting work that the reported model differences
+are then measured on top of.
+
+The implication for reading this paper is that our effect sizes are increments
+over an already-strong shared component, and comparisons against a naive
+benchmark that lacks it will overstate every model's skill.
+
+This divisor was also the leading suspect for the archived kernel's sign
+structure. Section~\ref{sec:kernel_repro} exonerates it: removing it moves the
+integrated kernel from $+1.000$ to $+1.079$ on the rebuilt panel and leaves the
+negative mass near zero either way.
 
 \paragraph{Pairwise significance (resolved, with a caveat).} The model-class
 difference is now tested directly, by a bound that requires no assumption about
@@ -97,6 +115,17 @@ information with regime. All numbers in this version come from the frozen
 battery, on which every arm shares $n = 218{,}934$ identical rows; we note the
 issue because it explains why earlier internal numbers disagree with these.
 
+\paragraph{The kernel estimate is not reproducible.} The single most serious
+finding of this revision. The archived coefficient vector on which every
+kernel diagnostic rests cannot be rebuilt from the committed raw data and
+transform code: the rebuild matches the panel size exactly at $242{,}934$ rows
+and disagrees on the kernel, correlating at $+0.65$ with an integrated kernel
+of $+1.000$ against the archive's $-0.038$
+(Section~\ref{sec:kernel_repro}). The intermediate feature cache was not
+retained, and the archived probe's conditioning set cannot be reconstructed
+from what is committed. Until that is fixed the kernel is a figure, not a
+measurement, and we make no structural claim from it.
+
 \paragraph{Structural claims are not identified, and one of them is refuted.}
 We do not fit a Hawkes process. Section~\ref{sec:hawkes} establishes a
 correspondence between our regression and a Hawkes intensity and reports
@@ -109,19 +138,19 @@ error of $0.036$ and agrees with the Hawkes-in-finance literature; the power
 law beats an exponential on fit and on forecast; the exogenous operator is
 rank 4--6 of 41 channels.
 
-The \emph{sign structure} fails it. Eight of twelve lags of the fitted kernel
-are negative, carrying 10.3\% of absolute mass pooled and up to 87.8\% within a
-session; close to half of all exogenous cross-kernel cells are negative; and
-the integrated kernel is $-0.038$, outside the $[0,1)$ range a linear Hawkes
-process admits, with a sign that flips across sessions. We therefore quote no
-branching ratio and no reflexivity estimate, and use ``power-law-like'' rather
-than structural language throughout.
+The \emph{sign structure} fails it, on the archived vector: eight of twelve
+lags negative, 10.3\% of absolute mass pooled and up to 87.8\% within a
+session, close to half of all exogenous cross-kernel cells negative, and an
+integrated kernel of $-0.038$ whose sign flips across sessions.
 
-Two design choices are the leading suspects and are not separated by the
-current evidence: the rolling diurnal divisor is a high-pass filter, which
-induces negative side lobes, and the probe estimates the self-kernel jointly
-with 41 exogenous channels, making it a partial rather than a marginal effect.
-Both must be removed before any structural claim is attempted.
+We tested the two design choices we had named as suspects---the rolling
+diurnal divisor and the partial-versus-marginal distinction---and neither is
+responsible: on a rebuilt panel the integrated kernel stays between $+0.906$
+and $+1.079$ under every combination, with negative mass below 0.4\%
+throughout. The pathology belongs to the archived artefact rather than to the
+modelling choices, which is why the reproducibility failure above supersedes
+this paragraph. We quote no branching ratio and no reflexivity estimate, and
+use ``power-law-like'' rather than structural language throughout.
 
 \paragraph{A rival benchmark is missing.} A fractional-kernel forecaster sits
 in the same power-law family as our backbone (Section~\ref{sec:rough}) and is
