@@ -7,7 +7,7 @@ import time
 import json
 import numpy as np
 
-from reclasso_har import GramState, enet_coef, enet_online  # noqa: F401
+from src.models.reclasso_har import GramState, enet_coef, enet_online  # noqa: F401
 
 B = "results/covid_imp_rank/all_buckets"
 HAR = {"har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125"}

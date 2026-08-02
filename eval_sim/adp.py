@@ -36,7 +36,7 @@ from typing import Callable
 import numpy as np
 
 from eval_sim.config import EvalConfig
-from reclasso_har import GramState
+from src.models.reclasso_har import GramState
 
 PASS, FAIL, TIMEOUT = 1, 2, 3
 _NS = 11  # width of the homogeneous state basis (see _features)
