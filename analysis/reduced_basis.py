@@ -104,7 +104,10 @@ def main():
           f"{U}-lag grid")
 
     # ---- 1. width gap: how well ANY linear space of dim m covers M
-    Bn = Bs / np.maximum(np.linalg.norm(Bs, axis=1, keepdims=True), 1e-300)
+    # column 0 of a basis row is the u = 0 slot, which every kernel leaves at
+    # zero; the manifold lives on columns 1..U, so the POD is taken there.
+    Bk = Bs[:, 1:]
+    Bn = Bk / np.maximum(np.linalg.norm(Bk, axis=1, keepdims=True), 1e-300)
     sv = np.linalg.svd(Bn, compute_uv=False)
     en = np.cumsum(sv ** 2) / np.sum(sv ** 2)
     print("\n" + "=" * 74)
