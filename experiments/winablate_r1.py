@@ -18,7 +18,7 @@ import time
 
 import numpy as np
 
-from reclasso_har import enet_coef, enet_online
+from src.models.reclasso_har import enet_coef, enet_online
 
 B = "results/covid_imp_rank/all_buckets"
 HAR = {"har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125"}
@@ -193,7 +193,9 @@ def main():
     }
 
     def battery(preds):
-        """Full metric battery (raw-variance, Duan-smeared) + per-bar QLIKE loss (for DM)."""
+        """Full metric battery (raw-variance, Duan-smeared) + per-bar QLIKE loss (for DM)
+        + the raw Duan-smeared predictions (so MZ / any future metric is a free offline recompute).
+        Returns (metrics, per_bar_qlike_loss, pred_raw)."""
         f = np.asarray(preds)
         smear = np.mean((yv - f) ** 2)
         pr, tr = (f**2 + smear) * bv, (yv**2) * bv
@@ -203,6 +205,11 @@ def main():
         lossbar = np.full(len(tr), np.nan)
         lossbar[msk] = r - np.log(r) - 1.0
         ssb = float(np.sum((tr - tr.mean()) ** 2))
+        # Mincer-Zarnowitz (raw scale): OLS y = a + b*yhat; inlined to keep the task self-contained.
+        Xd = np.column_stack([np.ones(msk.sum()), pr[msk]])
+        bh = np.linalg.lstsq(Xd, tr[msk], rcond=None)[0]
+        resid = tr[msk] - Xd @ bh
+        sst = float(np.sum((tr[msk] - tr[msk].mean()) ** 2))
         mm = {
             "qlike": float(np.nanmean(lossbar)),
             "mse": float(np.mean(err**2)),
@@ -211,23 +218,28 @@ def main():
             "hmse": float(np.mean((r - 1.0) ** 2)),
             "hmae": float(np.mean(np.abs(r - 1.0))),
             "oos_r2": (1.0 - float(np.sum(err**2)) / ssb) if ssb > 0 else float("nan"),
+            "mz_beta": float(bh[1]),
+            "mz_r2": (1.0 - float(np.sum(resid**2)) / sst) if sst > 0 else float("nan"),
             "n": int(len(tr)),
         }
-        return mm, lossbar
+        return mm, lossbar, pr
 
-    best, per_bar = {}, {}
+    best, per_bar, per_pred = {}, {}, {}
     if bk == "har_only":  # no exog -> HAR-only OLS; lasso/ridge/enet identical
-        mm, lb = battery(run_ridge(Xaug, y, w, exog_aug, 0.0, n, EVAL_START, eval_hi))
+        mm, lb, pd = battery(
+            run_ridge(Xaug, y, w, exog_aug, 0.0, n, EVAL_START, eval_hi)
+        )
         rec["har_only"] = mm["qlike"]
         rec["har_only_metrics"] = mm
         per_bar["har_only"] = lb
+        per_pred["har_only_pred"] = pd
         print(f"  HAR_only={mm['qlike']:.5f} oos_r2={mm['oos_r2']:.4f}", flush=True)
     else:
 
         def consider(pen, preds, cfg):
-            mm, lb = battery(preds)
+            mm, lb, pd = battery(preds)
             if pen not in best or mm["qlike"] < best[pen][0]["qlike"]:
-                best[pen] = (mm, cfg, lb)
+                best[pen] = (mm, cfg, lb, pd)
 
         for a in LASSO_A:
             consider(
@@ -252,9 +264,10 @@ def main():
                     ),
                     [a, l1],
                 )
-        for pen, (mm, cfg, lb) in best.items():
+        for pen, (mm, cfg, lb, pd) in best.items():
             rec[pen], rec[f"{pen}_cfg"], rec[f"{pen}_metrics"] = mm["qlike"], cfg, mm
             per_bar[pen] = lb
+            per_pred[f"{pen}_pred"] = pd
         print(
             f"  lasso={rec['lasso']:.5f} ridge={rec['ridge']:.5f} enet={rec['enet']:.5f} "
             f"(enet oos_r2={rec['enet_metrics']['oos_r2']:.4f})",
@@ -262,8 +275,8 @@ def main():
         )
 
     np.savez(
-        f"{OUTDIR}/cell_{tid:02d}_lossbar.npz", **per_bar
-    )  # per-bar QLIKE loss -> DM offline
+        f"{OUTDIR}/cell_{tid:02d}_lossbar.npz", **per_bar, **per_pred
+    )  # per-bar QLIKE loss (<pen>) -> DM offline; raw preds (<pen>_pred) -> any metric offline
 
     rec["secs"] = round(time.time() - t0, 1)
     json.dump(rec, open(out_path, "w"), indent=2)

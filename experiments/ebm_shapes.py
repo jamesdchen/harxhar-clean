@@ -149,6 +149,29 @@ def main() -> None:
     col_names = [feats[int(j)] for j in cols]
     X = pd.DataFrame(np.asarray(Xs[rows_h][:, cols]), columns=col_names)
 
+    # OPTIONAL (the "naive regime location" adjudication): inject the regime-persistence extras
+    # (env REGIME_EXTRA=<tag>, loaded by load_cache) into the in-sample probe, exactly as the
+    # resid_regime EBM would see them. Tells us whether the EBM USES them in-sample (importance/rank)
+    # and how much in-sample R2 they buy -- distinguishing "truly uninformative" from "in-sample mirage".
+    import os as _os
+
+    persist_names: list[str] = []
+    re = cache.get("regime_extra")
+    if re is not None:
+        tag = _os.environ["REGIME_EXTRA"]
+        persist_names = json.load(
+            open(f"results/resid_prep/{CELL}/regime_extra_{tag}_feats.json")
+        )
+        Xp = pd.DataFrame(np.asarray(re[rows_h]), columns=persist_names)
+        X = pd.concat([X.reset_index(drop=True), Xp.reset_index(drop=True)], axis=1)
+        col_names = list(
+            X.columns
+        )  # extend the term->name map to include the persist columns
+        print(
+            f"PROBE injected {len(persist_names)} persist features (REGIME_EXTRA={tag})",
+            flush=True,
+        )
+
     print(
         f"PROBE rows_h16-19={X.shape[0]} cols(union survivors)={X.shape[1]} fitting EBM...",
         flush=True,
@@ -258,6 +281,35 @@ def main() -> None:
         print(
             f"  {r['left_feature']:<22} x {r['right_feature']:<22} {r['importance']:.5f}  "
             f"range={r['describe'].get('score_range', float('nan')):.4g}",
+            flush=True,
+        )
+
+    # PERSIST-FEATURE ADJUDICATION: does the in-sample EBM actually USE the injected persist features?
+    if persist_names:
+        imp_by_name: dict[
+            str, float
+        ] = {}  # max importance of any term TOUCHING the feature
+        for ti, tf in enumerate(term_feats):
+            for j in tf:
+                nm = col_names[int(j)]
+                imp_by_name[nm] = max(imp_by_name.get(nm, 0.0), float(importances[ti]))
+        main_imp = sorted((float(importances[i]) for i in main_terms), reverse=True)
+        print(
+            "\nPERSIST FEATURE USE (in-sample EBM importance | rank among main effects):",
+            flush=True,
+        )
+        for nm in persist_names:
+            mi = imp_by_name.get(nm, 0.0)
+            rank = sum(1 for v in main_imp if v > mi) + 1
+            print(
+                f"  {nm:<30} importance={mi:.5f}  main-rank={rank}/{len(main_terms)}",
+                flush=True,
+            )
+        top_imp = main_imp[0] if main_imp else 0.0
+        share = sum(imp_by_name.get(nm, 0.0) for nm in persist_names)
+        print(
+            f"PERSIST SUMMARY: max-persist-importance={max((imp_by_name.get(nm, 0.0) for nm in persist_names), default=0.0):.5f} "
+            f"vs top-feature {top_imp:.5f}; persist importance-sum={share:.5f}",
             flush=True,
         )
 
