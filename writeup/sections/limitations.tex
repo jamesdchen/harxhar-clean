@@ -97,16 +97,31 @@ information with regime. All numbers in this version come from the frozen
 battery, on which every arm shares $n = 218{,}934$ identical rows; we note the
 issue because it explains why earlier internal numbers disagree with these.
 
-\paragraph{Structural claims are not identified.} We do not fit a Hawkes
-process. Section~\ref{sec:hawkes} establishes a correspondence between our
-regression and a Hawkes intensity, and reports quantities ($\hat\beta$, and the
-branching-ratio identity of Equation~\eqref{eq:branching_identity}) that would
-be structural under that correspondence. The correspondence is not yet
-established: $\hat\beta$ is a descriptive log-log slope without a standard
-error, the fitted kernel violates the non-negativity that the linear Hawkes
-class requires, and the decisive preprocessing experiment has not been run. We
-use ``power-law-like'' rather than structural language throughout for this
-reason.
+\paragraph{Structural claims are not identified, and one of them is refuted.}
+We do not fit a Hawkes process. Section~\ref{sec:hawkes} establishes a
+correspondence between our regression and a Hawkes intensity and reports
+quantities that would be structural under it. Testing them splits the
+correspondence in two.
+
+The \emph{shape} survives testing. The decay exponent, previously a hardcoded
+plotting constant, is estimated at $1.033$ with a channel-clustered standard
+error of $0.036$ and agrees with the Hawkes-in-finance literature; the power
+law beats an exponential on fit and on forecast; the exogenous operator is
+rank 4--6 of 41 channels.
+
+The \emph{sign structure} fails it. Eight of twelve lags of the fitted kernel
+are negative, carrying 10.3\% of absolute mass pooled and up to 87.8\% within a
+session; close to half of all exogenous cross-kernel cells are negative; and
+the integrated kernel is $-0.038$, outside the $[0,1)$ range a linear Hawkes
+process admits, with a sign that flips across sessions. We therefore quote no
+branching ratio and no reflexivity estimate, and use ``power-law-like'' rather
+than structural language throughout.
+
+Two design choices are the leading suspects and are not separated by the
+current evidence: the rolling diurnal divisor is a high-pass filter, which
+induces negative side lobes, and the probe estimates the self-kernel jointly
+with 41 exogenous channels, making it a partial rather than a marginal effect.
+Both must be removed before any structural claim is attempted.
 
 \paragraph{A rival benchmark is missing.} A fractional-kernel forecaster sits
 in the same power-law family as our backbone (Section~\ref{sec:rough}) and is

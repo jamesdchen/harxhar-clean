@@ -109,8 +109,43 @@ def main():
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     open(os.path.join(STATS, "tab_mcs.tex"), "w").write("\n".join(lines) + "\n")
 
+    # ---- Table 4: Hawkes kernel diagnostics ----
+    hk = json.load(open(os.path.join(STATS, "hawkes_kernel.json")))
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        r"\caption{Kernel diagnostics by session. $\hat n = \sum_k w_k$ is the",
+        r"discretised kernel integral of Equation~\eqref{eq:branching_identity}, the",
+        r"branching-ratio analogue; a linear Hawkes process requires $\hat n \in [0,1)$.",
+        r"``Neg.\ lags'' counts lags at which the effective kernel is negative, which a",
+        r"linear Hawkes kernel cannot be, and ``neg.\ mass'' is their share of total",
+        r"absolute kernel mass. $\hat\beta$ is the log-log slope over the positive part,",
+        r"with the textbook OLS standard error; because the kernel values are nested",
+        r"partial sums of one coefficient vector, that error understates the true",
+        r"uncertainty. $\cos$ is the similarity of the session kernel to the pooled one.}",
+        r"\label{tab:hawkes_kernel}",
+        r"\begin{tabular}{lrrrrrrr}", r"\toprule",
+        r"Session & Bars & $\hat n$ & Neg.\ lags & Neg.\ mass & $\hat\beta$ & SE & $\cos$ \\",
+        r"\midrule",
+    ]
+    p0 = hk["pooled"]
+    pw = p0.get("powerlaw") or {}
+    lines.append(f"pooled & 242{{,}}934 & ${p0['branching_analogue']:+.4f}$ & "
+                 f"{p0['n_negative_lags']}/12 & {p0['negative_mass_share'] * 100:.1f}\\% & "
+                 f"{pw.get('beta', float('nan')):.2f} & {pw.get('se', float('nan')):.2f} & --- \\\\")
+    lines.append(r"\midrule")
+    for k, v in hk["sessions"].items():
+        b = v.get("powerlaw") or {}
+        lines.append(
+            f"{k} & {v['n_bars']:,} & ${v['branching_analogue']:+.4f}$ & "
+            f"{v['n_negative_lags']}/12 & {v['negative_mass_share'] * 100:.1f}\\% & "
+            f"{b.get('beta', float('nan')):.2f} & {b.get('se', float('nan')):.2f} & "
+            f"${v['cos_to_pooled']:+.2f}$ \\\\".replace(",", "{,}", 1))
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    open(os.path.join(STATS, "tab_hawkes_kernel.tex"), "w").write("\n".join(lines) + "\n")
+
     print("wrote:")
-    for f in ("tab_pairwise_bounds.tex", "tab_tile_dm.tex", "tab_mcs.tex"):
+    for f in ("tab_pairwise_bounds.tex", "tab_tile_dm.tex", "tab_mcs.tex",
+              "tab_hawkes_kernel.tex"):
         print("   ", os.path.join(STATS, f))
 
 

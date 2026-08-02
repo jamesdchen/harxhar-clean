@@ -14,6 +14,7 @@ STATS = os.path.join(ROOT, "writeup", "stats")
 
 bat = json.load(open(os.path.join(STATS, "battery_inference.json")))
 tile = json.load(open(os.path.join(STATS, "tile_inference.json")))
+hk = json.load(open(os.path.join(STATS, "hawkes_kernel.json")))
 C = {c["label"]: c for c in tile["contrasts"]}
 
 fails = []
@@ -116,6 +117,56 @@ check("trees_vs_linear keeps 4", 4, len(mcs["trees_vs_linear"]["surviving"]), to
 sens = tile["mcs_block_sensitivity"]
 check("block sensitivity: all variants keep 20", 4,
       sum(1 for v in sens.values() if v["n_surviving"] == 20), tol=0.5)
+
+print("\n=== Hawkes kernel statistics (Section: descriptive analysis) ===")
+ce = hk["channel_exponents_clustered"]
+check("beta_hat = 1.033", 1.033, ce["mean"], tol=5e-4)
+check("clustered SE = 0.036", 0.036, ce["se"], tol=5e-4)
+check("CI low = 0.963", 0.963, ce["ci_low"], tol=1e-3)
+check("CI high = 1.104", 1.104, ce["ci_high"], tol=1e-3)
+check("41 channel clusters", 41, ce["n_channels"], tol=0.5)
+check("244 channel-session fits", 244, hk["channel_exponents"]["n_fits"], tol=0.5)
+check("vs 1.36: t = -9.1", -9.1, ce["tests"]["paper's 1.36"]["t"], tol=0.05)
+check("vs 1.36: p = 2.6e-11", 2.6e-11, ce["tests"]["paper's 1.36"]["p"], tol=0.05, rel=True)
+check("vs 1.0: t = +0.9", 0.93, ce["tests"]["Hawkes literature 1.0"]["t"], tol=0.05)
+check("vs 1.0: p = 0.36", 0.359, ce["tests"]["Hawkes literature 1.0"]["p"], tol=5e-3)
+check("vs 1.6: t = -15.8", -15.81, ce["tests"]["rough-vol implied 1.6"]["t"], tol=0.05)
+check("vs 1.6: p = 8.4e-19", 8.43e-19, ce["tests"]["rough-vol implied 1.6"]["p"], tol=0.05, rel=True)
+
+p0 = hk["pooled"]
+check("branching analogue = -0.038", -0.038, p0["branching_analogue"], tol=1e-6)
+check("identity error < 1e-12", 0.0, abs(p0["identity_lhs"] - p0["identity_rhs"]), tol=1e-12)
+check("pooled negative lags = 8", 8, p0["n_negative_lags"], tol=0.5)
+check("pooled negative mass = 10.3%", 0.103, p0["negative_mass_share"], tol=5e-4)
+check("self-kernel beta = 1.51", 1.505, p0["powerlaw"]["beta"], tol=5e-3)
+check("self-kernel SE = 0.54", 0.537, p0["powerlaw"]["se"], tol=5e-3)
+check("self-kernel fitted on 4 lags", 4, p0["powerlaw"]["n_points"], tol=0.5)
+check("power-law R2 = 0.80", 0.797, p0["powerlaw"]["r2"], tol=5e-3)
+check("exponential R2 = 0.44", 0.441, p0["exponential"]["r2"], tol=5e-3)
+
+ss = hk["sessions"]
+check("open negative mass = 87.8%", 0.878, ss["open"]["negative_mass_share"], tol=1e-3)
+check("after negative mass = 86.3%", 0.863, ss["after"]["negative_mass_share"], tol=1e-3)
+check("close negative mass = 56.9%", 0.569, ss["close"]["negative_mass_share"], tol=1e-3)
+check("after n_hat = -0.260", -0.26, ss["after"]["branching_analogue"], tol=1e-6)
+check("close n_hat = -0.130", -0.13, ss["close"]["branching_analogue"], tol=1e-6)
+check("overnight n_hat = +0.020", 0.02, ss["overnight"]["branching_analogue"], tol=1e-6)
+check("overnight cos = +0.83", 0.826, ss["overnight"]["cos_to_pooled"], tol=5e-3)
+check("open cos = -0.55", -0.547, ss["open"]["cos_to_pooled"], tol=5e-3)
+check("session rank-1 share = 43.8%", 0.438, hk["session_svd"]["variance_share"][0], tol=1e-3)
+top3 = sum(hk["session_svd"]["variance_share"][:3])
+check("session top-3 share = 84%", 0.844, top3, tol=5e-3)
+
+exo = hk["exogenous_operator"]
+r90 = [v["rank90"] for v in exo.values()]
+check("operator rank90 min = 4", 4, min(r90), tol=0.5)
+check("operator rank90 max = 6", 6, max(r90), tol=0.5)
+nf = [v["negative_lag_fraction"] for v in exo.values()]
+check("cross-kernel neg fraction min = 44.7%", 0.447, min(nf), tol=1e-3)
+check("cross-kernel neg fraction max = 50.4%", 0.504, max(nf), tol=1e-3)
+sv1 = [v["variance_share"][0] for v in exo.values()]
+check("operator sv1 share min = 28%", 0.284, min(sv1), tol=5e-3)
+check("operator sv1 share max = 58%", 0.576, max(sv1), tol=5e-3)
 
 print("\n" + "=" * 74)
 if fails:

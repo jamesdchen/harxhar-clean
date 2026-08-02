@@ -14,9 +14,23 @@ recasting is not decorative: it predicts that refining the grid pays, and the
 grid refines monotonically across six geometric bases, with base-2 beating the
 base-5 incumbent by $0.00082$ at DM $t = -10.6$ and the conventional
 daily/weekly/monthly structure faring worse than either. It also predicts that
-a power law should beat an exponential, which it does by $0.011$. Because the
-shared benchmark uses the coarser grid, we carry an explicit $0.00082$ of
-benchmark debt through every downstream increment rather than absorbing it.
+a power law should beat an exponential, which it does by $0.011$ in forecast
+loss and decisively in kernel shape. Because the shared benchmark uses the
+coarser grid, we carry an explicit $0.00082$ of benchmark debt through every
+downstream increment rather than absorbing it.
+
+The self-exciting reading that the power-law shape invites is tested rather
+than asserted, and it splits in two. The shape survives: the decay exponent,
+estimated across 41 exogenous channels where the log-log slope is invariant to
+channel scaling, is $1.033$ with a channel-clustered standard error of $0.036$,
+agreeing with the Hawkes-in-finance literature and rejecting both the $1.36$
+earlier drafts had carried as a plotting constant and the $\approx 1.6$ that a
+rough-volatility correspondence implies. The sign structure fails: 8 of 12
+kernel lags are negative, close to half of all exogenous cross-kernel cells
+are, and the integrated kernel is $-0.038$---outside the $[0,1)$ range a linear
+self-exciting process admits, with a sign that flips across sessions. We
+therefore quote no branching ratio, and carry the kernel forward as an
+instrument rather than as a structural model.
 
 \emph{Where does the information live?} Everywhere and nowhere in particular.
 Every exogenous bucket improves on the backbone with overwhelming individual
@@ -94,12 +108,13 @@ are not claimed. (ii)~The model-class gap is now tested pairwise, by a bound tha
 nothing about the dependence between arms and resolves all nine matched
 comparisons after Holm adjustment; the headline pair is the weakest at
 $|t| \ge 2.19$, and a model confidence set over the 45 arms remains unavailable
-because their per-bar losses were not retained. (iii)~Our kernel estimate does not yet earn
-structural language: the exponent lacks a standard error, the fitted kernel
-violates the non-negativity that a linear self-exciting model requires, and
-both anomalies are plausibly artifacts of a rolling diurnal divisor that acts
-as a high-pass filter---one experiment, re-estimating with slot dummies in
-place of the divisor, resolves the question in either direction. (iv)~A
+because their per-bar losses were not retained. (iii)~Our kernel estimate earns structural language for its shape but not for
+its sign: the exponent is now estimated and agrees with theory, while the
+negative mass and the inadmissible integrated kernel remain. Two design choices
+are the leading suspects and are not separated by current evidence---a rolling
+diurnal divisor that acts as a high-pass filter, and a probe that estimates the
+self-kernel jointly with 41 exogenous channels, making it partial rather than
+marginal. Removing both is the experiment that settles it. (iv)~A
 fractional-kernel arm sits in the same power-law family as our backbone and is
 absent from the battery; it is the most defensible missing benchmark.
 (v)~The winning spectral-$k$NN arm is the minimum of 32 cells selected on the
