@@ -18,22 +18,34 @@ goes with a lower slope -- and it ranks the battery almost independently of raw
 variance MSE (+0.152, p = 0.32, where agreement would give a NEGATIVE
 correlation).
 
-A LOSS-GEOMETRY EXPLANATION OF THAT CORRELATION WAS PROPOSED AND IS REFUTED.
+A LOSS-GEOMETRY EXPLANATION OF THAT CORRELATION WAS PROPOSED. It is neither
+confirmed nor refuted, and the reason is itself the interesting part.
+
 The proposal: with r = true/pred, QLIKE is r - log r - 1, so under-forecasting
 costs r without bound while over-forecasting costs only -log r; shrinking
-toward the mean should therefore pay. Tested directly in
-analysis/kernel_ceiling.py by rescaling a fitted forecast, p_c = m + c (p - m),
-with nothing else moving: QLIKE is minimised at c = 1.00 and MSE at c = 0.95.
-MSE wants the extra attenuation; QLIKE does not.
+should therefore pay. Tested in analysis/kernel_ceiling.py by attenuating a
+fitted forecast with nothing else moving, level pinned on training rows, under
+two operators:
 
-The algebra says the same thing once done properly. Under a scalar rescaling
-QLIKE's optimum is c* = E[true/pred] -- calibration in the RATIO -- which a
-Duan-smeared fit already satisfies, so c* = 1. MSE's optimum is
-c* = Cov(true, p)/Var(p), the MZ slope itself, which is 0.968 here, so MSE
-shrinks. Attenuation is rewarded by MSE, not by QLIKE.
+    linear   p_c = m + c (p - m)      QLIKE c* = 1.00, MSE c* = 0.95
+    log      p_c = g (p/g)^c          QLIKE c* = 0.95, MSE c* = 1.00
 
-So the battery's +0.741 is an empirical fact that stands on its own p-value,
-and its cause is NOT the loss's asymmetry. It remains unexplained.
+They disagree, so "does QLIKE prefer attenuation" has no operator-free answer.
+What the disagreement says: EACH LOSS PREFERS SHRINKAGE IN ITS OWN GEOMETRY.
+Linear shrinkage lifts the smallest forecasts by a large RELATIVE amount (min
+prediction 2.7e-8 -> 1.8e-7 at c = 0.95), which QLIKE reads as gross
+over-prediction of quiet bars because it sees only the ratio; log shrinkage
+compresses the ratio spread directly and QLIKE likes it. MSE, defined on
+levels, has the mirror preference.
+
+The consequence for the battery finding is a caveat worth carrying: the MZ
+slope is Cov(true, p)/Var(p), a LEVEL-space calibration statistic, and it is
+being correlated with a RATIO-space loss. So "QLIKE rewards attenuated
+forecasts" may be partly a mismatch of geometry rather than a property of
+QLIKE. The ratio-space analogue -- E[true/pred] = 1, or the slope of log(true)
+on log(pred) -- is the diagnostic that would settle it, and it has not been
+computed on the battery. The +0.741 stands as an empirical fact on its own
+p-value; the mechanism behind it does not.
 
 That matters for the result we just corrected. Selecting the MIDAS shape by
 validation QLIKE picks a LONG-memory kernel (theta2 = 117) where training SSE
