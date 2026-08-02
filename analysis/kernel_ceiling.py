@@ -207,37 +207,77 @@ def main():
     print("A2. DIRECT ATTENUATION SWEEP (shrink the forecast, change nothing "
           "else)")
     print("-" * 78)
+    # The answer turned out to depend on the operator, so BOTH are run, and
+    # both are LEVEL-PINNED: after attenuating, each forecast is rescaled by a
+    # constant fixed on TRAINING rows so its in-sample mean matches the
+    # unattenuated forecast's. Without that pin the log-space family shifts the
+    # mean as c moves (E[exp] != exp(E[])), and since QLIKE's optimum under a
+    # pure rescaling is c* = E[true/pred], the level drift swamps the
+    # dispersion effect being measured. A conclusion is only claimed if the two
+    # operators agree.
     b_, mu_, sd_, s2 = fit(Fx, yv, TRN, 0.0)
     p_tr = predict(Fx, blv, TRN, b_, mu_, sd_, s2)
     p_te = predict(Fx, blv, TST, b_, mu_, sd_, s2)
-    lg = float(np.mean(np.log(p_tr)))            # in-sample geometric centre
-    lp = np.log(p_te) - lg
-    print(f"  {'c':>7}{'test QLIKE':>13}{'test MSE':>13}{'test MZ beta':>14}"
-          f"{'min pred':>12}")
-    arows = []
-    for c in np.round(np.arange(0.40, 1.61, 0.05), 2):
-        pc = np.exp(lg + c * lp)                 # positive for every c
-        rec = {"c": float(c), "qlike": float(np.mean(qlike_bar(rv_t, pc))),
-               "mse": float(np.mean((rv_t - pc) ** 2)), "mz": mz(rv_t, pc),
-               "min_pred": float(pc.min())}
-        arows.append(rec)
-        print(f"  {c:>7.2f}{rec['qlike']:>13.5f}{rec['mse']:>13.4e}"
-              f"{rec['mz']:>14.3f}{rec['min_pred']:>12.2e}")
-    cq = arows[int(np.argmin([r["qlike"] for r in arows]))]
-    cm = arows[int(np.argmin([r["mse"] for r in arows]))]
-    print(f"\n  QLIKE is minimised at c = {cq['c']:.2f}  (MZ {cq['mz']:.3f})")
-    print(f"  MSE   is minimised at c = {cm['c']:.2f}  (MZ {cm['mz']:.3f})")
-    conf = cq["c"] < cm["c"]
-    print("  -> " + ("CONFIRMED: QLIKE wants the forecast shrunk further than "
-                     "MSE does.\n     Its preference for attenuation is a "
-                     "property of the loss itself."
-                     if conf else
-                     "NOT CONFIRMED: QLIKE does not want extra attenuation "
-                     "here.\n     The battery's +0.741 is not explained by "
-                     "loss geometry alone."))
+    m_tr = float(p_tr.mean())
+    lg = float(np.mean(np.log(p_tr)))
+
+    def attenuate(c, kind):
+        """Attenuated TEST forecast, level pinned using TRAINING rows only."""
+        if kind == "linear":
+            q_tr = m_tr + c * (p_tr - m_tr)
+            q_te = m_tr + c * (p_te - m_tr)
+        else:
+            q_tr = np.exp(lg + c * (np.log(p_tr) - lg))
+            q_te = np.exp(lg + c * (np.log(p_te) - lg))
+        if q_tr.min() <= 0:
+            return None
+        return q_te * (m_tr / float(q_tr.mean()))
+
+    res_a = {}
+    for kind in ("linear", "log"):
+        print(f"\n  operator: {kind}, level-pinned on training rows")
+        print(f"  {'c':>7}{'test QLIKE':>13}{'test MSE':>13}"
+              f"{'test MZ beta':>14}{'min pred':>12}")
+        arows = []
+        for c in np.round(np.arange(0.40, 1.61, 0.05), 2):
+            pc = attenuate(float(c), kind)
+            if pc is None or pc.min() <= 0:
+                print(f"  {c:>7.2f}{'  (forecast goes non-positive; skipped)':>52}")
+                continue
+            rec = {"c": float(c),
+                   "qlike": float(np.mean(qlike_bar(rv_t, pc))),
+                   "mse": float(np.mean((rv_t - pc) ** 2)),
+                   "mz": mz(rv_t, pc), "min_pred": float(pc.min())}
+            arows.append(rec)
+            print(f"  {c:>7.2f}{rec['qlike']:>13.5f}{rec['mse']:>13.4e}"
+                  f"{rec['mz']:>14.3f}{rec['min_pred']:>12.2e}")
+        cq = arows[int(np.argmin([r["qlike"] for r in arows]))]
+        cm = arows[int(np.argmin([r["mse"] for r in arows]))]
+        print(f"    QLIKE minimised at c = {cq['c']:.2f}, "
+              f"MSE minimised at c = {cm['c']:.2f}")
+        res_a[kind] = {"path": arows, "c_star_qlike": cq["c"],
+                       "c_star_mse": cm["c"],
+                       "qlike_wants_more_attenuation": bool(cq["c"] < cm["c"])}
+
+    a_lin = res_a["linear"]["qlike_wants_more_attenuation"]
+    a_log = res_a["log"]["qlike_wants_more_attenuation"]
+    print(f"\n  linear operator: QLIKE wants more attenuation = {a_lin}")
+    print(f"  log    operator: QLIKE wants more attenuation = {a_log}")
+    if a_lin == a_log:
+        print("  -> " + ("CONFIRMED under both operators: QLIKE prefers the "
+                         "more attenuated\n     forecast, so the preference "
+                         "is a property of the loss."
+                         if a_lin else
+                         "REFUTED under both operators: QLIKE does not prefer "
+                         "attenuation,\n     so the battery's +0.741 needs "
+                         "another explanation."))
+    else:
+        print("  -> INCONCLUSIVE: the two attenuation operators disagree, so "
+              "the answer\n     is an artifact of how 'attenuation' is "
+              "parameterised, not a fact\n     about the loss. No claim made.")
     out["attenuation_sweep"] = {
-        "path": arows, "c_star_qlike": cq["c"], "c_star_mse": cm["c"],
-        "qlike_wants_more_attenuation": bool(conf)}
+        "operators": res_a, "agree": bool(a_lin == a_log),
+        "qlike_prefers_attenuation": (bool(a_lin) if a_lin == a_log else None)}
     del Fx
 
     # ================================================== PART B
