@@ -147,29 +147,30 @@
   },
   "nonlinear": {
     "m1": {
-      "qlike": 0.2633954403581059,
+      "qlike": 0.2655597254493398,
       "theta": [
         [
-          0.044577055248432196,
-          211.18970746731634
+          2.0532172485879162e-06,
+          46.64946522244679
         ]
       ],
       "free_params": 3
     },
     "m2": {
-      "qlike": 0.2631862381347202,
+      "qlike": 0.2648418015019797,
       "theta": [
         [
-          7.055315105545406e-56,
-          159.57917477906906
+          0.0,
+          403.76473488109843
         ],
         [
-          1.3108563347293798,
-          2.0523170827141822e-148
+          0.49821830917357685,
+          51.22655653295977
         ]
       ],
       "free_params": 6
-    }
+    },
+    "theta_selected_on": "training SSE"
   },
   "boxcar_b2": {
     "K": 12,
@@ -178,10 +179,12 @@
     "ols_qlike": 0.2649221772088414
   },
   "verdict": {
-    "nonlinear_ceiling": 0.2631862381347202,
+    "nonlinear_1component": 0.2648418015019797,
     "best_linear_from_manifold": 0.2645999357114295,
     "incumbent": 0.2649221772088414,
-    "linear_dim_reaching_ceiling": null,
-    "manifold_not_subspace": true
+    "linear_dim_reaching_nonlinear": 2,
+    "full_spread": 0.00032224149741194585,
+    "trial_space_is_a_nonlever": true,
+    "width_claim_not_testable_here": true
   }
 }

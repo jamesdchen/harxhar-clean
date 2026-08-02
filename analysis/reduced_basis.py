@@ -201,32 +201,50 @@ def main():
     print("\n" + "=" * 74)
     print("3. THE NONLINEAR CEILING (shape parameters fitted, not spanned)")
     print("=" * 74)
+    # The shape parameters are selected on TRAINING rows. Selecting them
+    # against the reported out-of-sample QLIKE -- what an earlier version did
+    # -- gives the nonlinear arm a continuous two-parameter search on the test
+    # objective that no other arm gets, worth +0.00235 on its own
+    # (analysis/greedy_vs_midas_diag.py). Under that rule this comparison was
+    # not measuring nonlinearity, it was measuring selection.
     from scipy.optimize import minimize
 
-    def mix_obj(v):
+    def _mix_feats(v):
         th = np.exp(v).reshape(-1, 2)
         B = np.vstack([w_midas(a, b)[0][0] for a, b in th])
-        F = featurize(ysafe, B)[idx]
-        q, _ = best_over_lambda(F, yv, blv, rvv, cut)
-        return q if np.isfinite(q) else 1e6
+        return th, featurize(ysafe, B)[idx]
+
+    def mix_obj(v):
+        _, F = _mix_feats(v)
+        A = np.hstack([np.ones((cut, 1)), F[:cut]])
+        cf, *_ = np.linalg.lstsq(A, yv[:cut], rcond=None)
+        r_ = yv[:cut] - A @ cf
+        s = float(r_ @ r_)
+        return s if np.isfinite(s) else 1e18
+
+    def score(v):
+        th, F = _mix_feats(v)
+        q, lam = best_over_lambda(F, yv, blv, rvv, cut)
+        del F
+        return th, float(q), lam
 
     r1 = minimize(mix_obj, np.log([1.0, 3.0]), method="Nelder-Mead",
-                  options={"maxiter": 60, "xatol": 1e-3, "fatol": 1e-7})
-    th1 = np.exp(r1.x).reshape(-1, 2)
-    print(f"  1 component  ({2} shape params + 1 coef)   QLIKE {r1.fun:.5f}"
+                  options={"maxiter": 80, "xatol": 1e-3, "fatol": 1e-3})
+    th1, q1, _ = score(r1.x)
+    print(f"  1 component  ({2} shape params + 1 coef)   QLIKE {q1:.5f}"
           f"   theta=({th1[0,0]:.3f}, {th1[0,1]:.3f})")
     x0 = np.log(np.array([th1[0, 0], th1[0, 1], 1.0, 40.0]))
     r2 = minimize(mix_obj, x0, method="Nelder-Mead",
-                  options={"maxiter": 200, "xatol": 1e-3, "fatol": 1e-7})
-    th2 = np.exp(r2.x).reshape(-1, 2)
-    print(f"  2 components ({4} shape params + 2 coefs)  QLIKE {r2.fun:.5f}"
+                  options={"maxiter": 250, "xatol": 1e-3, "fatol": 1e-3})
+    th2, q2, _ = score(r2.x)
+    print(f"  2 components ({4} shape params + 2 coefs)  QLIKE {q2:.5f}"
           f"   theta=({th2[0,0]:.3f}, {th2[0,1]:.3f}), "
           f"({th2[1,0]:.3f}, {th2[1,1]:.3f})")
+    print("  (shape parameters selected on TRAINING SSE, like every other arm)")
     out["nonlinear"] = {
-        "m1": {"qlike": float(r1.fun), "theta": th1.tolist(),
-               "free_params": 3},
-        "m2": {"qlike": float(r2.fun), "theta": th2.tolist(),
-               "free_params": 6}}
+        "m1": {"qlike": q1, "theta": th1.tolist(), "free_params": 3},
+        "m2": {"qlike": q2, "theta": th2.tolist(), "free_params": 6},
+        "theta_selected_on": "training SSE"}
 
     # ---- reference incumbent
     Bx, _ = w_boxcar()
@@ -238,7 +256,7 @@ def main():
     out["boxcar_b2"] = {"K": 12, "qlike": qx, "lambda": lx, "ols_qlike": qx0}
 
     # ---- verdict
-    ceiling = float(min(r1.fun, r2.fun))
+    ceiling = float(min(q1, q2))
     reach = None
     for m in MDIMS:
         if min(rows[str(m)]["pod"], rows[str(m)]["greedy"]) <= ceiling:
@@ -248,25 +266,37 @@ def main():
     print("\n" + "=" * 74)
     print("VERDICT")
     print("=" * 74)
-    print(f"  nonlinear ceiling                {ceiling:.5f} "
-          f"({min(3, 6)} free parameters at 1 component)")
+    print(f"  nonlinear fit, 1 component       {ceiling:.5f} (3 free params)")
     print(f"  best manifold-drawn linear space {best_lin:.5f} "
           f"(up to m = {max(MDIMS)})")
     print(f"  incumbent 12-rung ladder         {qx:.5f}")
-    if reach is None:
-        print(f"  -> NO linear space drawn from the manifold reaches the "
-              f"nonlinear fit\n     at m <= {max(MDIMS)}: small nonlinear "
-              f"width, large Kolmogorov width.\n     The trial space is a "
-              f"MANIFOLD, and 'pick a better basis' is the wrong move.")
-    else:
-        print(f"  -> a manifold-drawn linear space of dimension {reach} "
-              f"reaches the nonlinear fit;\n     the gap was basis choice, "
-              f"not nonlinearity.")
-    out["verdict"] = {"nonlinear_ceiling": ceiling,
+    spread = max([qx, ceiling, best_lin]) - min([qx, ceiling, best_lin])
+    print(f"\n  full spread across every trial space tested: {spread:.5f}")
+    print("\n  Note on what this can and cannot show. A 1-component MIDAS fit"
+          "\n  IS a one-dimensional linear span drawn from this manifold, so"
+          "\n  'a linear space from the manifold cannot reach the nonlinear"
+          "\n  fit' is not a statement about approximation widths -- the span"
+          "\n  at the same theta reaches it by construction, and any gap is"
+          "\n  the selection rule. Kolmogorov width versus nonlinear width is"
+          "\n  a claim about covering a FAMILY of solutions with one fixed"
+          "\n  space; this panel has one target and one split, hence one"
+          "\n  solution, so the distinction has nothing to bite on here."
+          "\n  Testing it needs a real parameter axis -- session bins,"
+          "\n  regimes, rolling windows, assets -- and a space held fixed"
+          "\n  across it.")
+    if spread < 0.005:
+        print(f"\n  -> what the run DOES establish: every trial space tested,"
+              f"\n     linear or nonlinear, generic or manifold-drawn, lands"
+              f"\n     within {spread:.5f} QLIKE. The trial space is a"
+              f"\n     NON-LEVER, consistent with the span-preserving"
+              f"\n     reparameterisation result.")
+    out["verdict"] = {"nonlinear_1component": ceiling,
                       "best_linear_from_manifold": float(best_lin),
                       "incumbent": qx,
-                      "linear_dim_reaching_ceiling": reach,
-                      "manifold_not_subspace": bool(reach is None)}
+                      "linear_dim_reaching_nonlinear": reach,
+                      "full_spread": float(spread),
+                      "trial_space_is_a_nonlever": bool(spread < 0.005),
+                      "width_claim_not_testable_here": True}
 
     with open(os.path.join(OUT_DIR, "reduced_basis.json"), "w") as fh:
         json.dump(out, fh, indent=2)

@@ -244,20 +244,55 @@ def main():
         del F
 
     # ---- MIDAS: profile over the two Beta shape parameters ----
+    #
+    # The shape parameters MUST be selected on training rows. An earlier
+    # version profiled them against the out-of-sample QLIKE that is then
+    # reported, which made this row an oracle and is why it appeared to beat
+    # every linear space; see analysis/greedy_vs_midas_diag.py, which measures
+    # the optimism at +0.00235. Both rows are reported now, the honest one
+    # first, so the size of the selection effect stays visible.
     from scipy.optimize import minimize
-    def midas_obj(th):
-        th = np.exp(th)
+
+    def _midas_feats(v):
+        th = np.exp(v)
         B, _ = w_midas(th[0], th[1])
-        F = featurize(ysafe, B)[idx]
+        return th, featurize(ysafe, B)[idx]
+
+    def midas_obj_train(v):
+        _, F = _midas_feats(v)
+        A = np.hstack([np.ones((cutpos, 1)), F[:cutpos]])
+        cf, *_ = np.linalg.lstsq(A, y[idx][:cutpos], rcond=None)
+        r_ = y[idx][:cutpos] - A @ cf
+        s = float(r_ @ r_)
+        return s if np.isfinite(s) else 1e18
+
+    def midas_obj_oracle(v):
+        _, F = _midas_feats(v)
         q, _ = best_over_lambda(F, y[idx], bl[idx], rv[idx], cutpos)
         return q if np.isfinite(q) else 1e6
-    r = minimize(midas_obj, np.log([1.0, 3.0]), method="Nelder-Mead",
-                 options={"maxiter": 60, "xatol": 1e-3, "fatol": 1e-7})
-    th = np.exp(r.x)
-    res["midas_beta"] = {"K": 1, "theta1": float(th[0]), "theta2": float(th[1]),
-                         "oos_qlike": float(r.fun)}
-    print(f"{'midas_beta':16s}{1:>4}{'--':>10}{r.fun:>12.5f}   "
-          f"theta=({th[0]:.3f}, {th[1]:.3f})")
+
+    rt = minimize(midas_obj_train, np.log([1.0, 3.0]), method="Nelder-Mead",
+                  options={"maxiter": 80, "xatol": 1e-3, "fatol": 1e-3})
+    tht, Ft = _midas_feats(rt.x)
+    qt, lamt = best_over_lambda(Ft, y[idx], bl[idx], rv[idx], cutpos)
+    del Ft
+    res["midas_beta"] = {"K": 1, "theta1": float(tht[0]), "theta2": float(tht[1]),
+                         "oos_qlike": float(qt), "lambda": lamt,
+                         "theta_selected_on": "training SSE"}
+    print(f"{'midas_beta':16s}{1:>4}{lamt:>10g}{qt:>12.5f}   "
+          f"theta=({tht[0]:.3f}, {tht[1]:.3f})  [theta by TRAINING SSE]")
+
+    ro = minimize(midas_obj_oracle, np.log([1.0, 3.0]), method="Nelder-Mead",
+                  options={"maxiter": 80, "xatol": 1e-3, "fatol": 1e-7})
+    tho = np.exp(ro.x)
+    res["midas_beta_oracle"] = {"K": 1, "theta1": float(tho[0]),
+                                "theta2": float(tho[1]),
+                                "oos_qlike": float(ro.fun),
+                                "theta_selected_on": "OOS QLIKE (oracle)",
+                                "optimism": float(qt - ro.fun)}
+    print(f"{'midas_beta*':16s}{1:>4}{'--':>10}{ro.fun:>12.5f}   "
+          f"theta=({tho[0]:.3f}, {tho[1]:.3f})  [ORACLE: theta by OOS QLIKE, "
+          f"optimism {qt - ro.fun:+.5f}]")
 
     # ---- span check: bands must reproduce boxcar exactly at lambda = 0 ----
     Fb = featurize(ysafe, w_boxcar()[0])[idx]
