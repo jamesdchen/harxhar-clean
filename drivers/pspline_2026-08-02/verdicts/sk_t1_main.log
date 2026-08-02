@@ -1,0 +1,31 @@
+
+=== tile 1 [24000,26189) ===
+  b2         qlike=0.177506 mz=0.984
+  (b2 edf=21.99)
+  b5         qlike=0.177960 mz=0.990  vs b2: diff=+0.000454 dm=+0.81 p=0.4154
+    (edf=16.00)
+  b2prep     qlike=0.179359 mz=0.989  vs b2: diff=+0.001853 dm=+3.67 p=0.0002
+    (edf=21.99)
+  arith12    qlike=0.196293 mz=0.971  vs b2: diff=+0.018786 dm=+5.06 p=0.0000
+    (edf=21.98)
+  bsq2       qlike=0.176306 mz=0.983  vs b2: diff=-0.001200 dm=-1.81 p=0.0707
+    (edf=31.98)
+  mix5       qlike=0.177050 mz=0.975  vs b2: diff=-0.000456 dm=-0.82 p=0.4098
+    (edf=14.38)
+  (spline matched lambda=1.22e+03, edf=21.99)
+  spl        qlike=0.176255 mz=0.983  vs b2: diff=-0.001251 dm=-2.70 p=0.0070
+  spl0.01    qlike=0.175806 mz=0.983  vs b2: diff=-0.001700 dm=-3.34 p=0.0008
+    (edf=25.92)
+  spl1       qlike=0.175797 mz=0.984  vs b2: diff=-0.001709 dm=-3.43 p=0.0006
+    (edf=25.07)
+  spl100     qlike=0.175904 mz=0.984  vs b2: diff=-0.001602 dm=-3.31 p=0.0009
+    (edf=23.71)
+  spl1000    qlike=0.176214 mz=0.983  vs b2: diff=-0.001292 dm=-2.77 p=0.0056
+    (edf=22.14)
+  spl10000   qlike=0.177276 mz=0.976  vs b2: diff=-0.000230 dm=-0.45 p=0.6514
+    (edf=20.12)
+  spl100000  qlike=0.182069 mz=0.953  vs b2: diff=+0.004562 dm=+3.77 p=0.0002
+    (edf=17.80)
+  spl1e+06   qlike=0.192944 mz=0.915  vs b2: diff=+0.015438 dm=+6.22 p=0.0000
+    (edf=15.67)
+  tile 1 done in 4s

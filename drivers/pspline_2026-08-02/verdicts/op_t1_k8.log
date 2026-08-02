@@ -1,0 +1,18 @@
+b2 panel: (28875, 1077), 41 channels x 12 rungs; sqrt2 panel: ((28875, 2056), 23)
+
+=== STATIC window [0,24000) (tile-1 start) ===
+two-step sv=[0.676 0.475 0.376 0.25  0.19  0.161 0.104 0.086]  top-8 energy=0.989  sse=1436.1089
+rrr0  lam_rel=0.0  sse=1422.0054 (iters=8, init-robust max-angle=39.5d) | angles vs 2step (deg)=[ 0.   0.   0.   0.  10.3 19.7 25.2 50.1] | rough(V)=47.507 vs 2step 53.111
+rrrS  lam_rel=1.0  sse=1447.0101 (iters=8, init-robust max-angle=20.9d) | angles vs 2step (deg)=[ 0.   0.   0.   0.  57.2 75.6 83.8 89.9] | rough(V)=16.791 vs 2step 53.111
+rrrF  lam_rel=1.0  sse=1449.4895 (iters=8, init-robust max-angle=0.3d) | angles vs 2step (deg)=[ 0.   0.   0.   0.  41.4 68.6 79.  89.6] | rough(V)=16.507 vs 2step 53.111
+sqrt2 panel (rank ceiling 23): sv=[0.965 0.832 0.697 0.589 0.487 0.439 0.356 0.331 0.253 0.238]  cum-energy first 8: [0.28  0.487 0.633 0.737 0.809 0.866 0.904 0.937]
+  static tile 1 in 11s
+
+=== WALK-FORWARD tile 1 [24000,26189) arms=['ctrl', 'sq2'] ===
+  seg t=24000 done (12s)
+  seg t=24720 done (78s)
+  seg t=25440 done (112s)
+  seg t=26160 done (147s)
+  ctrl  qlike=0.164639 mz=0.965
+  sq2   qlike=0.172967 mz=0.947  vs ctrl: diff=+0.008328 dm=+3.34 p=0.0008
+  tile 1 walk-forward in 147s

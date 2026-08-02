@@ -55,3 +55,7 @@ results/winablate_full/*_lossbar.npz
 
 # Pack journal state (bind records/receipts are machine-local journal, never committed)
 .hpc/packs/
+
+# local experiment scratch (2026-08-02 smooth-beta campaign)
+logs_local/
+results/prep_cache_*_r32000.npz
