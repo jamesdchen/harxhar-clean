@@ -19,6 +19,8 @@ ke = json.load(open(os.path.join(STATS, "kernel_experiments.json")))
 vb = json.load(open(os.path.join(STATS, "b2_kernel_verification.json")))
 np_ = json.load(open(os.path.join(STATS, "nested_probes.json")))
 mem = json.load(open(os.path.join(STATS, "mem_branching.json")))
+smk = json.load(open(os.path.join(STATS, "supervised_metric_knn.json")))
+fg = json.load(open(os.path.join(STATS, "frequency_and_gram.json")))
 C = {c["label"]: c for c in tile["contrasts"]}
 
 fails = []
@@ -244,6 +246,52 @@ check("multiplier at point est = 121", 121.0, 1/(1-hm["n"]), tol=1.0)
 check("multiplier at CI low = 60", 60.0, 1/(1-hm["ci_low"]), tol=1.0)
 check("variance-ratio H = 0.897", 0.8974, vr["H"], tol=1e-3)
 check("variance-ratio H SE = 0.007", 0.0073, vr["H_se"], tol=1e-3)
+
+print("\n=== retrieval-metric race (Section: the cause is supervision) ===")
+R = smk["results"]["W24"]
+DM = R["dm_vs_ambient"]
+check("pool = 48,579 views", 48579, R["n_pool"], tol=0.5)
+check("evaluation rows = 24,288", 24288, R["n_test"], tol=0.5)
+check("ambient QLIKE = 0.17323", 0.17323, R["ambient"]["qlike"]["100"], tol=1e-5)
+check("path-only QLIKE = 0.16347", 0.16347, R["ambient_path"]["qlike"]["100"],
+      tol=1e-5)
+check("path-only delta = -0.00976", -0.00976, DM["ambient_path@100"]["mean_diff"],
+      tol=1e-5)
+check("path-only t = -11.3", -11.3, DM["ambient_path@100"]["t"], tol=0.05)
+check("operator d=6 QLIKE = 0.17339", 0.17339, R["op_d6"]["qlike"]["100"],
+      tol=1e-5)
+check("operator d=6 delta = +0.00015", 0.00015, DM["op_d6@100"]["mean_diff"],
+      tol=1e-5)
+check("operator d=6 t = +0.3", 0.3, DM["op_d6@100"]["t"], tol=0.05)
+check("operator d=6 Holm p = 1.0", 1.0, R["holm"]["op_d6@100"]["adjusted_p"],
+      tol=1e-9)
+check("operator scores d=5 QLIKE = 0.17554", 0.17554,
+      R["op_scores_d5"]["qlike"]["100"], tol=1e-5)
+check("operator scores delta = +0.00230", 0.00230,
+      DM["op_scores_d5@100"]["mean_diff"], tol=1e-5)
+check("operator scores t = +5.0", 5.0, DM["op_scores_d5@100"]["t"], tol=0.05)
+check("PCA d=6 QLIKE = 0.18002", 0.18002, R["pca_d6"]["qlike"]["100"], tol=1e-5)
+check("PCA d=6 delta = +0.00678", 0.00678, DM["pca_d6@100"]["mean_diff"],
+      tol=1e-5)
+check("PCA d=6 t = +17.5", 17.5, DM["pca_d6@100"]["t"], tol=0.05)
+check("eigenmap d=6 QLIKE = 0.18154", 0.18154, R["lap_d6"]["qlike"]["100"],
+      tol=1e-5)
+check("eigenmap d=6 delta = +0.00831", 0.00831, DM["lap_d6@100"]["mean_diff"],
+      tol=1e-5)
+check("eigenmap d=6 t = +18.2", 18.2, DM["lap_d6@100"]["t"], tol=0.05)
+check("anchor-only QLIKE = 0.18322", 0.18322, R["anchor_qlike"], tol=1e-5)
+check("ambient view d = 516", 516, R["ambient"]["d"], tol=0.5)
+check("path view d = 24", 24, R["ambient_path"]["d"], tol=0.5)
+check("exogenous ladder coordinates = 492", 492,
+      R["ambient"]["d"] - R["ambient_path"]["d"], tol=0.5)
+G = {tuple(bk["block"]): bk for bk in fg["gram_vs_signal"]["blocks"]}
+check("PC1 variance share = 96.2%", 0.962, fg["gram_vs_signal"]["pc1_var_share"],
+      tol=5e-4)
+check("PC1 explained-y share = 0.02%", 0.0002,
+      fg["gram_vs_signal"]["pc1_r2_share"], tol=5e-5)
+check("PC6-20 variance share = 0.18%", 0.0018, G[(6, 20)]["var_share"], tol=5e-5)
+check("PC6-20 explained-y share = 79.9%", 0.799, G[(6, 20)]["r2_share"],
+      tol=1e-3)
 
 print("\n" + "=" * 74)
 if fails:

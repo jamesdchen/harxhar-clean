@@ -113,10 +113,88 @@ $W = 24$ & identity, $k = 25$      & 0.14475 & 0.16872 & $+0.02397$ \\
 The manifold-embedding step---the novel component of the design---hurts on all
 eight matched configurations, by between $0.00145$ and $0.02397$, and the
 damage is an order of magnitude larger without the OLS anchor than with it.
-The measured cause is that the out-of-sample Nystr\"om extension error is of
-the same order as the embedding scale itself: new points cannot be placed on
-the learned manifold accurately enough for retrieval in the embedded space to
-beat retrieval in the ambient space.
+
+\subsubsection{The cause is supervision, not extension}
+\label{sec:knn_metric_race}
+
+Earlier drafts attributed the failure to out-of-sample Nystr\"om extension
+error: new points cannot be placed on the learned manifold accurately enough
+for retrieval in the embedded space to beat retrieval in the ambient space.
+That explanation is intuitive, it was never tested, and it is wrong.
+
+The eigenmap is defective on two axes at once, and they are separable. It is
+\emph{nonlinear and defined on the observation set}, so a test bar has to be
+extended in---the extension story. It is also \emph{built from $X$ alone}, in a
+panel where the leading variance directions carry almost none of the
+predictable variation in $y$: the first principal component holds $96.2\%$ of
+the design's variance and $0.02\%$ of the explained target, while principal
+components $6$ through $20$ hold $0.18\%$ of the variance and $79.9\%$ of the
+explained target. Adding a linear
+principal-component arm at the same dimension separates the two, because a PCA
+projection is an exact linear map that applies to a test point verbatim and has
+no extension step of any kind.
+
+Table~\ref{tab:knn_metric_race} holds the anchor, the candidate pool
+($48{,}579$ training views), the evaluation rows ($24{,}288$, fixed by a rule
+that inspects no arm) and the neighbourhood grid constant, and varies only the
+retrieval coordinate.
+
+\begin{table}[H]
+\centering
+\caption{Retrieval-metric race, $W = 24$, $k = 100$. All arms share the
+HAR-12 OLS anchor, the pool, the evaluation rows and the neighbourhood size;
+only the coordinate in which neighbours are found differs. $\Delta$ and $t$ are
+matched-row Diebold--Mariano against the ambient arm, Holm-corrected across the
+24-cell grid. Positive $\Delta$ means the arm is worse.}
+\label{tab:knn_metric_race}
+\begin{tabular}{llrrrl}
+\toprule
+Coordinate & Type & $d$ & QLIKE & $\Delta$ & $t$ \\
+\midrule
+residual path only & ambient, no exog & 24 & 0.16347 & $-0.00976$ & $-11.3$ \\
+path $+$ state & ambient & 516 & 0.17323 & --- & --- \\
+operator triplets & supervised & 6 & 0.17339 & $+0.00015$ & $+0.3$ \\
+operator scores & supervised & 5 & 0.17554 & $+0.00230$ & $+5.0$ \\
+principal components & unsupervised, linear & 6 & 0.18002 & $+0.00678$ & $+17.5$ \\
+Laplacian eigenmap & unsupervised, nonlinear & 6 & 0.18154 & $+0.00831$ & $+18.2$ \\
+\midrule
+no retrieval (anchor) & --- & --- & 0.18322 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three readings follow, and $W = 12$ reproduces the ordering.
+
+\paragraph{Extension error is not the mechanism.} PCA at $d = 6$ cannot have
+extension error, and it still loses $+0.00678$---four fifths of the eigenmap's
+$+0.00831$. Whatever the eigenmap's nonlinearity costs, it is a minority of the
+damage.
+
+\paragraph{Supervision is the mechanism.} The supervised coordinate at the
+\emph{same} dimension $d = 6$---the trailing-path score together with
+$\sigma_k\, u_k' Z v_k$ for the top five singular triplets of the train-only
+fitted exogenous operator---is statistically indistinguishable from the full
+$516$-dimensional ambient view ($+0.00015$, $t = +0.3$, Holm-adjusted
+$p = 1.0$), while the unsupervised compressions of that dimension lose
+decisively. The compression budget was never too small; it was spent in the
+wrong directions. The operator's singular vectors have the incidental virtue of
+living on the design axes---channels and lags---so they are fixed a priori,
+finite, and require no out-of-sample extension at all.
+
+\paragraph{The exogenous block is a net cost to a distance.} Matching on the
+residual path alone, discarding all $492$ exogenous ladder coordinates, beats
+the composed view by $0.00976$ ($t = -11.3$). The same block that a fitted
+linear map profits from degrades a metric, because a distance weights every
+coordinate by its scale rather than by its relevance. This is the
+dense-but-weak fact in its sharpest form: with many weakly informative
+channels, \emph{fitting} and \emph{measuring similarity} are not the same
+operation, and only the first tolerates breadth.
+
+The revised claim, then, is narrower than the paper previously made and
+better supported: unsupervised geometry fails in this regime, at any
+dimension tested and whether linear or nonlinear. Supervised geometry does
+not fail---it merely fails to \emph{improve} on the ambient view, which is
+the honest ceiling on the idea.
 
 \subsubsection{What is load-bearing is not novel}
 
