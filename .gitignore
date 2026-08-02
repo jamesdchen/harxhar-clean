@@ -55,3 +55,7 @@ results/winablate_full/*_lossbar.npz
 
 # Pack journal state (bind records/receipts are machine-local journal, never committed)
 .hpc/packs/
+
+# Rebuilt feature caches (regenerable, ~2GB)
+results/b2_mmap/
+results/prep_cache_*.npz
