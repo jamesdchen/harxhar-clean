@@ -254,7 +254,8 @@ def main():
     print(f"  2 components ({4} shape params + 2 coefs)  QLIKE {q2:.5f}"
           f"   theta=({th2[0,0]:.3f}, {th2[0,1]:.3f}), "
           f"({th2[1,0]:.3f}, {th2[1,1]:.3f})")
-    print("  (shape parameters selected on TRAINING SSE, like every other arm)")
+    print("  (shape parameters selected by QLIKE on the held-out validation "
+          "tail)")
     out["nonlinear"] = {
         "m1": {"qlike": q1, "theta": th1.tolist(), "free_params": 3},
         "m2": {"qlike": q2, "theta": th2.tolist(), "free_params": 6},
