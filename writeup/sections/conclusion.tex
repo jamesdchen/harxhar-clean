@@ -1,12 +1,98 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper asked three questions of a single fixed panel of 218{,}934 thirty-minute S\&P~500 realized-variance bars, against a single fixed benchmark---per-bar OLS on HAR and calendar features, QLIKE $0.13415$.
+This paper asked four questions of a single fixed panel of 218{,}934
+thirty-minute S\&P~500 realized-variance bars, against a single fixed
+benchmark---per-bar OLS on a HAR ladder and calendar features, QLIKE
+$0.13415$.
 
-\emph{Where does the information live?} Everywhere and nowhere in particular. Every exogenous bucket improves on HAR with overwhelming statistical significance, yet the buckets overlap so heavily that the sum of individual gains is roughly twice the joint gain, and the model confidence set over feature sets collapses to the singleton joint bucket. Within the least-squares class, 96\% of explainable variance belongs to the six HAR features; the 359-column exogenous block adds a unique contribution smaller than that of a handful of mechanism-targeted engineered features on a per-feature basis. The individual-feature landscape repeats the pattern one level down: one dominant cheap feature, one partially redundant companion, a long tail of tiny effects, and a genuine null.
+\emph{What should the instrument be?} A truncated power-law kernel with a
+clock organ. The fitted HAR coefficients imply a per-lag effective kernel that
+is approximately power-law on log-log axes, which recasts the lag ladder as a
+quadrature grid rather than a set of economically distinct horizons. The
+recasting is not decorative: it predicts that refining the grid pays, and the
+grid refines monotonically across six geometric bases, with base-2 beating the
+base-5 incumbent by $0.00082$ at DM $t = -10.6$ and the conventional
+daily/weekly/monthly structure faring worse than either. It also predicts that
+a power law should beat an exponential, which it does by $0.011$. Because the
+shared benchmark uses the coarser grid, we carry an explicit $0.00082$ of
+benchmark debt through every downstream increment rather than absorbing it.
 
-\emph{Does extraction require nonlinearity?} Yes, but boundedly. Tree ensembles beat the best penalized linear model by $0.00184$ QLIKE on the full feature set, and carry a pure-nonlinearity premium of $0.00297$ on HAR features alone. The premium is real, systematic across all nine feature sets, and not a tuning artifact---indeed, tuning is a non-lever from every angle we measured: causally tuned hyperparameters trail fixed defaults, and even a test-set oracle over penalties moves the incumbent by at most $0.00015$. What the trees exploit saturates at additive-plus-pairwise structure anchored to the session clock; deeper capacity, deep sequence models, and mixture-of-experts routing all fail to improve on it. The resulting ordering---information $>$ model class $>$ hyperparameters---is the paper's central practical law.
+\emph{Where does the information live?} Everywhere and nowhere in particular.
+Every exogenous bucket improves on the backbone with overwhelming individual
+significance, yet the buckets overlap so heavily that the sum of within-class
+gains is $2.08$ times the joint gain. Within the least-squares class, 96\% of
+explainable variance belongs to the backbone; the 359-column exogenous block
+adds a unique contribution that a single mechanism-targeted engineered feature
+exceeds by roughly two orders of magnitude per column---a ratio we report with
+its arithmetic and its caveats rather than as an effect size. The individual
+feature landscape repeats the pattern one level down: one dominant cheap
+feature, one partially redundant companion, a long tail of tiny effects, and a
+genuine null.
 
-\emph{What algorithm should do the extracting?} With features frozen, exactness and anchoring matter more than expressiveness. Rank-1 rolling least squares makes the every-bar OLS benchmark computable at scale; the online elastic-net homotopy extends the same exactness to $\ell_1$ estimation; the causal tuning protocol converts ``tuning does not help'' from anecdote into a defensible causal claim. The spectral $k$-nearest-neighbors proposal is instructive precisely because its ablations are decisive: the OLS anchor is load-bearing, large-neighborhood averaging is load-bearing, and the manifold embedding---the novel part---hurts on every matched cell, with a measured out-of-sample extension error that explains why. What survives is an anchored analog search that beats the incumbent (QLIKE $0.13096$, DM $-17.6$) but trails every causally tuned parametric arm. In the dense-but-weak regime, nonparametric flexibility is a cost to be justified, not a default.
+\emph{Does extraction require nonlinearity?} Yes, but boundedly, and the bound
+is the interesting part. Tree ensembles beat the best penalized linear model on
+all nine feature sets, by between $0.00184$ and $0.00358$; the consistent sign
+is the evidence, and the pairwise difference remains untested. The pure
+nonlinearity premium on backbone features is $0.00215$ measured against a
+correctly specified linear ladder, some 28\% below the figure obtained against
+the incumbent. Tuning is a non-lever from every angle: causally tuned linear
+arms are worse than the untuned incumbent, and a test-set oracle over penalties
+moves it by at most $0.00015$. What the trees exploit saturates at
+additive-plus-pairwise structure anchored to the session clock, and deeper
+capacity, deep sequence models, and mixture-of-experts routing all fail to
+improve on it---a ceiling that a quadratic self-exciting feedback predicts. The
+resulting ordering---information $>$ model class $>$ hyperparameters, by
+roughly a factor of three at each step---is the paper's central practical law.
 
-\paragraph{Open items.} We flag the incomplete edges of the evidence explicitly. (i) The bucket-attribution battery of Section~\ref{sec:marginal} uses a negligible-penalty surrogate for OLS with exogenous features; the exact $\alpha=0$ battery is a pending robustness run on existing machinery. (ii) The linear-versus-nonlinear gap of Section~\ref{sec:linvsnonlin} is measured against the shared incumbent only; pairwise Diebold--Mariano tests and a model confidence set over the 45 arms are pending. (iii) The winning spectral-$k$NN exogenous arm survives on one bucket while sibling buckets failed as singular; the failure needs diagnosis before the bucket ranking can be trusted, and the correction-weight axis is unexplored. (iv) The attribution results point outward: the highest-value next investment is not a larger model but mechanism-targeted data---auction-imbalance, order-flow, and dealer-positioning series aligned to the session-transition regime where the nonlinear signal concentrates.
+\emph{What algorithm should do the extracting?} With features frozen,
+exactness and anchoring matter more than expressiveness. Rank-1 rolling least
+squares makes the every-bar OLS benchmark computable at scale; the online
+elastic-net homotopy extends the same exactness to $\ell_1$ estimation; and the
+causal tuning protocol converts ``tuning does not help'' from an anecdote about
+one search into a claim with a defensible causal structure. The spectral
+$k$-nearest-neighbors proposal is instructive precisely because its ablations
+are decisive against it: the OLS anchor is load-bearing (worth up to $0.0132$),
+large-neighborhood averaging is load-bearing (worth $\approx 0.0018$), and the
+manifold embedding---the novel part---hurts on all eight matched
+configurations, with a measured out-of-sample extension error that explains
+why. What survives is an unembedded, anchored analog search that beats the
+incumbent at QLIKE $0.13096$; it also beats 25 of the 45 causally tuned
+parametric arms, while trailing the best arms on the informative buckets. In
+the dense-but-weak regime, nonparametric flexibility is a cost to be justified,
+not a default.
+
+\paragraph{On the evaluation itself.} Two findings concern the measuring
+apparatus rather than the models, and we think they travel beyond this panel.
+QLIKE and raw-variance MSE rank our 45-arm battery almost independently (rank
+correlation $+0.15$, where agreement would give a negative value), and 14 of
+the 42 arms that improve on the incumbent under QLIKE are worse than it under
+MSE. Separately, QLIKE systematically rewards attenuation: the rank correlation
+between QLIKE and the Mincer--Zarnowitz slope is $+0.74$, so the best-scoring
+arms are the most miscalibrated, with the second-best arm in the battery
+carrying its worst calibration. Neither observation invalidates a strictly
+consistent scoring rule, but both change what a QLIKE ranking should be taken
+to mean.
+
+\paragraph{Open items.} We flag the incomplete edges of the evidence
+explicitly, and Section~\ref{sec:limitations} treats them at length.
+(i)~The bucket battery has not been re-run on the base-2 backbone; until it is,
+every increment carries $0.00082$ of benchmark debt and the smallest effects
+are not claimed. (ii)~The model-class gap is measured against the shared
+incumbent only; pairwise Diebold--Mariano tests and a model confidence set over
+the 45 arms are pending, and the ordering is a sign pattern rather than a
+tested difference until they exist. (iii)~Our kernel estimate does not yet earn
+structural language: the exponent lacks a standard error, the fitted kernel
+violates the non-negativity that a linear self-exciting model requires, and
+both anomalies are plausibly artifacts of a rolling diurnal divisor that acts
+as a high-pass filter---one experiment, re-estimating with slot dummies in
+place of the divisor, resolves the question in either direction. (iv)~A
+fractional-kernel arm sits in the same power-law family as our backbone and is
+absent from the battery; it is the most defensible missing benchmark.
+(v)~The winning spectral-$k$NN arm is the minimum of 32 cells selected on the
+evaluation panel, and survives on one bucket while sibling buckets failed as
+singular; the failure needs diagnosis before the bucket ranking can be trusted.
+(vi)~The attribution results point outward: the highest-value next investment
+is not a larger model but mechanism-targeted data---auction imbalance, order
+flow, and dealer positioning aligned to the session-transition regime where the
+nonlinear signal concentrates.

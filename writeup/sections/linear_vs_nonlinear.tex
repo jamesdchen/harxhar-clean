@@ -1,0 +1,232 @@
+\section{Model Class: Does Extraction Require Nonlinearity?}
+\label{sec:linvsnonlin}
+
+This section holds the information set fixed and varies the estimator. All
+arms are causally tuned by the protocol of Section~\ref{sec:causal_tuning}, so
+no arm's hyperparameters ever see the losses they are scored on, and all sit on
+the shared panel.
+
+\subsection{The Comparison}
+\label{sec:class_table}
+
+\begin{table}[H]
+\centering
+\caption{Model class at fixed information. Best tree (LightGBM) against best
+linear (ridge) on each bucket, causally tuned, shared panel
+($n = 218{,}934$). $\Delta_{\text{class}}$ is tree minus linear on the same
+feature set. OOS-$R^2$ is raw-variance MSE relative to the shared incumbent;
+MZ-$\beta$ is the Mincer--Zarnowitz slope, with $1.0$ denoting an unbiased
+forecast.}
+\label{tab:class}
+\begin{tabular}{lrrrrr}
+\toprule
+Feature set & LightGBM & ridge & $\Delta_{\text{class}}$ & LGBM OOS-$R^2$ & LGBM MZ-$\beta$ \\
+\midrule
+all\_features & \textbf{0.12604} & 0.12788 & $-0.00184$ & $+0.059$ & 0.892 \\
+moments       & 0.12816 & 0.13085 & $-0.00269$ & $+0.021$ & 0.882 \\
+liquidity     & 0.12840 & 0.13120 & $-0.00280$ & $+0.058$ & 0.892 \\
+market\_vw    & 0.12963 & 0.13291 & $-0.00328$ & $-0.010$ & 0.862 \\
+vol\_demand   & 0.12979 & 0.13337 & $-0.00358$ & $-0.035$ & 0.861 \\
+implied\_vol  & 0.13001 & 0.13252 & $-0.00251$ & $-0.034$ & 0.840 \\
+sentiment     & 0.13038 & 0.13347 & $-0.00309$ & $-0.063$ & 0.867 \\
+market\_ew    & 0.13039 & 0.13319 & $-0.00280$ & $+0.003$ & 0.867 \\
+baseline      & 0.13118 & 0.13445 & $-0.00327$ & $-0.040$ & 0.870 \\
+\midrule
+incumbent (OLS) & \multicolumn{2}{r}{0.13415} & & --- & 0.929 \\
+OLS, base-2 ladder & \multicolumn{2}{r}{0.13332} & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The tree holds a modest edge on every one of the nine feature sets, ranging
+from $0.00184$ to $0.00358$. The systematic sign across all nine is the
+strongest part of the evidence; the magnitude is small.
+
+\paragraph{The pairwise significance is not established.} Every DM statistic in
+this paper is computed against the shared incumbent, a third model. From
+$t = -15.4$ for LightGBM and $t = -19.9$ for ridge on \texttt{all\_features},
+one cannot infer that the $0.00184$ between them is distinguishable from zero:
+the two loss series are strongly positively correlated, and the difference of
+two significant improvements is not itself tested. This is the single largest
+gap between claim and evidence in the paper, and it is closed by one run.
+\pending{pairwise DM between matched tree and linear arms, and a model
+confidence set over all 45 causally tuned arms; until these exist, the
+model-class ordering is a consistent sign pattern across nine feature sets and
+not a tested difference}
+
+\subsection{The Pure Nonlinearity Premium, Corrected}
+\label{sec:premium}
+
+On the \texttt{baseline} feature set---HAR and calendar only, no exogenous
+information---the causally tuned LightGBM reaches $0.13118$ against the
+incumbent's $0.13415$, a gap of $0.00297$. This is the quantity earlier drafts
+reported as the pure nonlinearity premium, on the grounds that the two arms
+share an information set exactly.
+
+Two corrections apply.
+
+\paragraph{Backbone misspecification.} The incumbent is quadrature-limited
+(Section~\ref{sec:benchmark_debt}). Measured against the base-2 OLS ladder at
+$0.13332$, the premium is
+\begin{equation}
+  0.13332 - 0.13118 \;=\; 0.00215,
+\end{equation}
+so approximately 28\% of the headline figure is HAR lag-grid quadrature error
+rather than nonlinearity. A tree on a log-spaced boxcar basis can interpolate
+between rungs; part of what it was being credited for is doing the linear
+model's quadrature for it.
+
+\paragraph{Protocol asymmetry.} The comparison sets a \emph{causally tuned}
+LightGBM against an \emph{untuned} OLS. The matched linear arm on the same
+features---causally tuned ridge, $0.13445$---is worse than the untuned
+incumbent. The premium is therefore measured against whichever linear
+specification happens to look best, which is not a clean isolate. We report it
+as a range: against the base-2 OLS ladder, $0.00215$; against the causally
+tuned ridge on the same features, $0.00327$. The lower figure is the
+conservative one and is the number we carry forward.
+
+\subsection{Tuning Is a Non-Lever}
+\label{sec:tuning_nonlever}
+
+Three independent measurements agree that hyperparameters are not where the
+skill is.
+
+\begin{enumerate}
+  \item \textbf{Causal tuning trails fixed defaults on the linear arms.} On the
+    \texttt{baseline} feature set, causally tuned ridge ($0.13445$), elastic
+    net ($0.13471$) and lasso ($0.13475$) are all \emph{worse} than the fixed
+    incumbent at $0.13415$, at DM $t = +5.0$, $+7.5$ and $+7.0$ respectively.
+    Selecting a penalty causally, on a leakage-clean validation tail, costs
+    more in selection noise than it recovers in fit.
+  \item \textbf{An oracle over penalties has almost nothing to give.} A
+    test-set oracle---selecting the penalty that minimises realised
+    out-of-sample loss, an unattainable upper bound---improves the incumbent by
+    at most $0.00015$, an order of magnitude below the information effects.
+  \item \textbf{Selection loses to shrinkage at every layer tested.} Heavy
+    $\ell_1$ hurts; PCA and PLS truncation hurt; light shrinkage that prunes
+    nothing important is the best linear response. This is the estimator-side
+    restatement of dense-but-weak.
+\end{enumerate}
+
+\subsection{A Cautionary Result: Tuning on the Evaluation Panel}
+\label{sec:tuning_leak}
+
+An earlier version of this study selected hyperparameters by minimising QLIKE
+on the full walk-forward backtest---the same panel and the same loss used for
+evaluation. We report the outcome because it is a useful calibration on the
+literature rather than a result about volatility.
+
+Under that protocol the tuned tree ensembles reached QLIKE values around
+$0.11$, roughly $0.02$ better than any arm in the causally tuned battery, and
+the linear-versus-tree ordering \emph{reversed} relative to the default
+configuration. Trial counts differed sharply by model (125 for XGBoost, 30 for
+LightGBM, 16 for random forest), so the arms were ranked partly by how many
+draws each had taken from the evaluation panel. The apparent effect,
+$\approx 0.03$ QLIKE, is an order of magnitude larger than every genuine
+model-class effect in Table~\ref{tab:class}.
+
+The introduction claims that published disagreements about whether nonlinear
+models help on this task are partly mechanical. This is the mechanism,
+measured on our own panel: a tuning protocol that touches the evaluation set
+can manufacture a model-class reversal several times larger than the effect
+under study. We regard the earlier numbers as uninterpretable and they appear
+nowhere else in this paper.
+
+\subsection{The Metrics Disagree}
+\label{sec:metric_disagreement}
+
+QLIKE is our primary ranker, on the standard grounds that it is robust to
+noise in the volatility proxy \citep{Patton2011}. That choice is consequential
+here in a way that a single reported metric would hide.
+
+Across the 45 causally tuned arms, the rank correlation between QLIKE and
+raw-variance OOS-$R^2$ is $+0.152$. Since lower QLIKE and higher $R^2$ both
+denote better forecasts, agreement would produce a \emph{negative} correlation.
+The observed value is near zero with the wrong sign: the two metrics are
+essentially unrelated across this battery.
+
+Concretely, \textbf{14 of the 42 arms that improve on the incumbent under QLIKE
+are worse than the incumbent under MSE.} These include the second-best arm
+overall (\texttt{xgb / all\_features}, QLIKE $0.12641$, OOS-$R^2 = -0.062$) and
+the best linear arm (\texttt{ridge / all\_features}, QLIKE $0.12788$,
+OOS-$R^2 = -0.058$). Only the single best arm, \texttt{lgbm / all\_features},
+improves on both.
+
+Raw-variance MSE on this panel is dominated by a small number of extreme bars,
+most of them in March 2020, which is the standard argument for preferring
+QLIKE. We accept that argument but note that it is a \emph{post hoc} defence of
+the metric under which our own ordering looks best, and that it should be
+settled with evidence rather than assertion.
+\pending{MSE recomputed with the COVID window excluded, reported alongside the
+full-sample MSE, so that the reader can see whether the QLIKE/MSE divergence is
+a tail-domination artifact or a genuine disagreement about central performance}
+
+\subsection{QLIKE Rewards Attenuation}
+\label{sec:calibration}
+
+Every arm in the battery is miscalibrated in the same direction: Mincer--Zarnowitz
+slopes run from $0.840$ to $0.941$, all below unity, indicating forecasts that
+are systematically too flat relative to realised variance.
+
+The pattern within that is the informative part. Across the 45 causally tuned
+arms, the rank correlation between QLIKE and MZ-$\beta$ is $\mathbf{+0.741}$:
+\emph{the arms that score best on QLIKE are the most attenuated}. The best arm,
+\texttt{lgbm / all\_features}, has $\beta = 0.892$ against the incumbent's
+$0.929$; the second-best, \texttt{xgb / all\_features}, has the worst
+calibration in the entire battery at $\beta = 0.840$.
+
+This does not invalidate the ranking---QLIKE is a strictly consistent scoring
+rule and the ordering it induces is the one it is designed to induce---but it
+does change what the ranking means. QLIKE penalises under-prediction far more
+heavily than over-prediction, so a forecaster that shades toward the
+conditional mean of the loss rather than the conditional mean of the target is
+rewarded. A practitioner who cares about calibrated variance forecasts, rather
+than about QLIKE, would rank these arms differently, and the incumbent would
+move up. We report this as a finding about the loss function rather than about
+the models.
+
+\subsection{The Nonlinearity Saturates}
+\label{sec:saturation}
+
+The recoverable nonlinear structure has a ceiling, and the ceiling is low.
+
+\begin{itemize}
+  \item Restricting the tree to additive-plus-pairwise structure anchored to
+    the session clock recovers essentially all of the tree's advantage;
+    deeper interaction capacity does not pay.
+  \item Deep sequence models and mixture-of-experts routing fail to improve on
+    the saturated form.
+  \item On the kernel dictionary of Section~\ref{sec:descriptive}, trees fail
+    in both available seats: as a direct forecaster (an extrapolation clamp
+    costing $+0.08$) and as a residual reader ($+0.0096$ against $-0.0016$ for
+    a smooth local-linear reader on the same residual). The nonlinearity is
+    real but smooth and diffuse, not tree-shaped.
+\end{itemize}
+
+Under a generic machine-learning framing this reads as an unexplained ceiling.
+Under the backbone of Section~\ref{sec:hawkes} it reads as a prediction. The
+quadratic Hawkes model of \citet{BlancDonierBouchaud2017} makes the feedback a
+quadratic form in the past rather than a linear functional---generating
+clustering, fat tails and the Zumbach effect endogenously---and what it implies
+about extractable structure is exactly additive plus pairwise and no more. The
+saturation we measure is the saturation that model predicts.
+
+We are careful about the strength of this claim. We have not fitted a quadratic
+Hawkes model, and the agreement is qualitative: a measured ceiling at pairwise
+order matching a model class whose feedback is of second order. It is
+consistency, not identification. \pending{fitting the quadratic feedback form
+directly and testing it against the saturated tree would convert this from
+consistency to evidence}
+
+\subsection{Summary}
+\label{sec:class_summary}
+
+Within the dense-but-weak regime, nonlinearity buys a small, consistent,
+bounded amount---between $0.00184$ and $0.00358$ depending on feature set, with
+a pure premium of $0.00215$ against a correctly specified linear backbone---and
+hyperparameters buy nothing. Set against the joint information effect of
+$0.00627$, the ordering
+\emph{information} $>$ \emph{model class} $>$ \emph{hyperparameters} holds on
+this panel by roughly a factor of three at each step. That ordering is the
+paper's central practical claim, subject to the pairwise significance test that
+Section~\ref{sec:class_table} flags as outstanding.

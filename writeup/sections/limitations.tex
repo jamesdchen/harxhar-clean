@@ -1,0 +1,129 @@
+\section{Limitations and Threats to Validity}
+\label{sec:limitations}
+
+The paper's third methodological commitment is that negative and incomplete
+results are reported at the same altitude as positive ones. This section
+discharges that commitment for the items that a reader should weigh against
+every number above. We separate threats that could change a conclusion from
+gaps that merely widen a confidence interval.
+
+\subsection{Threats That Could Change a Conclusion}
+
+\paragraph{Benchmark debt.} All increments are measured against a base-5 OLS
+incumbent that a base-2 OLS beats by $0.00082$ at DM $t = -10.6$
+(Section~\ref{sec:benchmark_debt}). Orderings within tables are unaffected;
+levels and the significance of the smallest effects are not. The bottom four
+rows of Table~\ref{tab:buckets} have increments of the same order as the debt
+and should not be treated as established until the battery is re-run on the
+base-2 backbone.
+
+\paragraph{Target winsorization.} Stage 3 clips each series to rolling 5th and
+95th percentile bounds. By construction this modifies 10\% of observations, and
+on a heavy-tailed variance target the clipped mass is disproportionately the
+volatility spikes that a forecast exists to anticipate. Models are trained on a
+clipped target and evaluated against an unclipped one, and the transform is
+lossy and therefore not inverted at evaluation
+(Section~\ref{sec:winsorization}). The direction of the resulting bias is not
+obvious and we have not measured it.
+\pending{ablation at 5/95 versus 1/99 versus no winsorization, on the shared
+panel; a referee is entitled to ask whether the dense-but-weak finding survives
+when the tails are not truncated, since the strongest signal may live there}
+
+\paragraph{The diurnal divisor is itself a forecast.} Stage 1 divides by a
+\emph{rolling} 20-observation same-slot mean rather than a fixed seasonal
+profile (Section~\ref{sec:diurnal}). That is a slowly adapting level estimate,
+and it is multiplied back in at evaluation time. Every model in the paper
+therefore inherits a common and non-trivial predictive component, which
+inflates all QLIKE-versus-naive comparisons and compresses differences
+\emph{between} models---meaning the small effects we report may be small partly
+because the divisor has already done the easy work.
+\pending{the standalone out-of-sample skill of the diurnal divisor, reported as
+its own arm, so that every other number can be read net of it}
+
+This same divisor is the leading suspect for the two anomalies in the kernel
+estimate of Section~\ref{sec:kernel_caveats}---negative lobes and a
+steeper-than-theory exponent---since a high-pass filter produces both. The
+experiment that resolves the limitation and the experiment that tests the
+structural reading are the same experiment.
+
+\paragraph{Pairwise significance is untested.} The model-class conclusion rests
+on a difference between two arms that has never been tested directly
+(Section~\ref{sec:class_table}). We report a consistent sign across nine
+feature sets, which is evidence, but it is not the test.
+
+\paragraph{Multiplicity.} 98 arms are compared against one shared benchmark
+with no family-wise or false-discovery adjustment, and the minimum is quoted in
+two places (the model-class headline and the kNN headline). The large effects
+are robust to any plausible correction; the small ones are not claimed.
+
+\subsection{Gaps and Inconsistencies}
+
+\paragraph{Feature accounting does not reconcile.} The paper describes 41
+exogenous channels, a 359-column exogenous block, and a 529-column design
+matrix. Under the stated expansion rule of $|\mathcal{L}| = 6$ rolling means
+per channel, $41 \times 6 = 246 \ne 359$, and $529 - 359 = 170$ is not
+accounted for by six backbone columns plus calendar.
+\pending{an explicit channels~$\to$~lag-expansion~$\to$~design-columns table,
+per bucket; the three counts in circulation cannot all be right}
+
+\paragraph{Two training-window conventions.} The preprocessing and backtest
+description specifies a 500-observation rolling window; the causally tuned
+battery uses 24{,}000 bars. Only the latter produced the numbers reported here.
+The former should be removed or explicitly scoped to the superseded
+experiments.
+
+\paragraph{Panel heterogeneity in superseded tables.} Earlier subgroup analyses
+compared rows with materially different $N$ (as low as 138{,}279 against
+222{,}058) and differenced them anyway. Buckets whose coverage begins late---
+social sentiment and options order flow---span a different calendar era from
+the baseline they were differenced against, so those increments confounded
+information with regime. All numbers in this version come from the frozen
+battery, on which every arm shares $n = 218{,}934$ identical rows; we note the
+issue because it explains why earlier internal numbers disagree with these.
+
+\paragraph{Structural claims are not identified.} We do not fit a Hawkes
+process. Section~\ref{sec:hawkes} establishes a correspondence between our
+regression and a Hawkes intensity, and reports quantities ($\hat\beta$, and the
+branching-ratio identity of Equation~\eqref{eq:branching_identity}) that would
+be structural under that correspondence. The correspondence is not yet
+established: $\hat\beta$ is a descriptive log-log slope without a standard
+error, the fitted kernel violates the non-negativity that the linear Hawkes
+class requires, and the decisive preprocessing experiment has not been run. We
+use ``power-law-like'' rather than structural language throughout for this
+reason.
+
+\paragraph{A rival benchmark is missing.} A fractional-kernel forecaster sits
+in the same power-law family as our backbone (Section~\ref{sec:rough}) and is
+absent from the battery. Given the paper's one-benchmark discipline this is the
+single most defensible addition to the ladder sweep, and it is inexpensive.
+
+\subsection{Economic Significance}
+\label{sec:economic}
+
+Every effect in this paper lives between QLIKE $0.126$ and $0.134$. The joint
+exogenous information effect is $0.00627$, or 4.7\% relative to the incumbent;
+the model-class effect is $0.00184$, or 1.4\%; the hyperparameter oracle
+ceiling is $0.00015$, or 0.1\%. We have not translated any of these into a
+quantity that a user of the forecast would act on, and we think the ordering
+\emph{information} $>$ \emph{model class} $>$ \emph{hyperparameters} is the
+paper's transportable content precisely because the absolute magnitudes are
+small and panel-specific.
+
+Two considerations argue against over-reading the levels. First, the
+calibration result of Section~\ref{sec:calibration} shows that QLIKE rewards
+attenuation on this panel, so an arm's QLIKE advantage is not straightforwardly
+an advantage in forecasting realized variance. Second, all reported levels are
+out-of-sample in the walk-forward sense but in-sample with respect to the
+choice of preprocessing pipeline, feature dictionary and evaluation window,
+none of which were pre-registered.
+
+\subsection{Reproducibility}
+\label{sec:repro}
+
+All results in this version derive from a single frozen battery of 98 arms on
+one panel of $n = 218{,}934$ bars, with per-arm metrics archived alongside the
+manuscript. Superseded experiments---in particular the hyperparameter search of
+Section~\ref{sec:tuning_leak} and the variable-$N$ subgroup tables---are
+retained in the repository history but contribute no number to this paper.
+\pending{software versions, random seeds, and a code and data availability
+statement}

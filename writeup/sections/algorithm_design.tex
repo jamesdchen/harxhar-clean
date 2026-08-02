@@ -1,0 +1,184 @@
+\section{Algorithm Design}
+\label{sec:algorithms}
+
+With the feature set frozen, the estimation \emph{algorithm} becomes the design
+space. This section presents the measurement instrument the rest of the paper
+depends on---a causal hyperparameter-selection protocol---together with the
+exact every-bar estimators that make it computable, and one proposed
+nonparametric estimator whose ablations are decisive against its novel
+component.
+
+\subsection{Causal Hyperparameter Selection}
+\label{sec:causal_tuning}
+
+Section~\ref{sec:tuning_leak} showed what happens when hyperparameters are
+selected on the evaluation panel. The protocol below is the replacement, and
+every arm in Sections~\ref{sec:marginal} and~\ref{sec:linvsnonlin} is estimated
+under it.
+
+Every $250$ solves, each arm re-selects its own hyperparameters from a
+leakage-clean forward split of its \emph{current} training window
+($500$ trading days, $24{,}000$ bars):
+
+\begin{enumerate}
+  \item a fit block, taking all but the last $150$ bars of the window;
+  \item a $25$-bar embargo, chosen to cover the longest moving average
+    entering the features, so that no validation row shares a rolling window
+    with a fit row;
+  \item a $125$-bar validation tail, on which configurations are scored by
+    mean squared error.
+\end{enumerate}
+
+The winning configuration is then used for the next $250$ forecasts and
+discarded. No forecast's hyperparameters are ever selected using information
+from that forecast's own future, and no forecast's hyperparameters are selected
+on QLIKE, so the evaluation loss is never the selection loss.
+
+Linear arms (ridge, recursive lasso, recursive elastic net) search log-scaled
+penalty grids and slide warm between tunings via the exact updates of
+Section~\ref{sec:exact_estimators}, cold-reseeding at each re-selection. Tree
+arms search max-depth $\{3,5,8\} \times$ colsample $\{0.25, 0.5\}$ with the
+learning rate pinned at the production value, fit grid cells at 300 trees and
+refit the winner every bar at 500. Model refit is every bar for all arms, so
+the refit-cadence asymmetry that confounded earlier comparisons is absent.
+
+We regard this protocol, rather than any individual arm, as the section's
+primary contribution: it converts ``tuning does not help here'' from an
+anecdote about one search into a claim with a defensible causal structure.
+
+\subsection{Exact Every-Bar Estimators}
+\label{sec:exact_estimators}
+
+Per-bar refitting over $218{,}934$ bars, crossed with 45 arms and a periodic
+hyperparameter search, is only feasible if the updates are exact and
+incremental.
+
+\paragraph{Rank-1 rolling least squares.} Adding and dropping one observation
+from a rolling-window least-squares fit are rank-1 modifications of the
+Gram matrix, handled by the Sherman--Morrison identity. This makes the
+every-bar OLS incumbent exact and computable at panel scale, and it is what
+allows the benchmark to be a genuinely per-bar refit rather than a cadence
+approximation.
+
+\paragraph{Online elastic-net homotopy.} The $\ell_1$ analogue of the same
+idea. As the window slides, the elastic-net solution path is updated by
+homotopy continuation \citep{Garrigues2008}: the active set and the signs of
+the active coefficients change at a finite number of breakpoints, between
+which the solution is piecewise linear in the perturbation. This delivers the
+exact recursive lasso and elastic-net arms rather than warm-started
+approximations, so that the ``selection loses to shrinkage'' finding of
+Section~\ref{sec:tuning_nonlever} is not confounded with optimisation error.
+
+\paragraph{Block ridge.} Where the design partitions naturally---backbone
+versus exogenous block---separate penalties per block are solved jointly,
+which is what allows the backbone to be lightly penalised while the wide
+exogenous block is shrunk hard.
+
+\subsection{Spectral \texorpdfstring{$k$}{k}-Nearest Neighbours}
+\label{sec:spectral_knn}
+
+The proposed estimator asks whether the dense-but-weak regime rewards analog
+retrieval: embed trailing residual trajectories with Laplacian eigenmaps
+\citep{BelkinNiyogi2003}, retrieve past episodes that are near in the embedded
+geometry, and forecast by locally averaging their outcomes. The design has four
+axes: the residualiser (OLS-anchored or identity), the trajectory window $W$,
+the embedding dimension $d$ (with $d = 0$ denoting passthrough, i.e.\ no
+embedding), and the neighbourhood size $k$.
+
+\subsubsection{The embedding hurts on every matched cell}
+
+\begin{table}[H]
+\centering
+\caption{Embedding ablation. Each row is a matched pair differing only in
+whether the Laplacian-eigenmap step is applied ($d = 6$) or bypassed
+($d = 0$). Shared panel, $n = 218{,}934$. Positive $\Delta$ means the embedding
+is worse. It is worse in all eight matched cells.}
+\label{tab:knn_ablation}
+\begin{tabular}{llrrr}
+\toprule
+Window & Config & $d = 0$ & $d = 6$ & $\Delta$ \\
+\midrule
+$W = 12$ & OLS-anchored, $k = 100$ & 0.13219 & 0.13364 & $+0.00145$ \\
+$W = 24$ & OLS-anchored, $k = 100$ & 0.13218 & 0.13399 & $+0.00182$ \\
+$W = 12$ & OLS-anchored, $k = 25$  & 0.13405 & 0.13676 & $+0.00270$ \\
+$W = 24$ & OLS-anchored, $k = 25$  & 0.13397 & 0.13701 & $+0.00304$ \\
+$W = 12$ & identity, $k = 25$      & 0.14173 & 0.15993 & $+0.01820$ \\
+$W = 12$ & identity, $k = 100$     & 0.14236 & 0.16213 & $+0.01977$ \\
+$W = 24$ & identity, $k = 100$     & 0.14539 & 0.16874 & $+0.02336$ \\
+$W = 24$ & identity, $k = 25$      & 0.14475 & 0.16872 & $+0.02397$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The manifold-embedding step---the novel component of the design---hurts on all
+eight matched configurations, by between $0.00145$ and $0.02397$, and the
+damage is an order of magnitude larger without the OLS anchor than with it.
+The measured cause is that the out-of-sample Nystr\"om extension error is of
+the same order as the embedding scale itself: new points cannot be placed on
+the learned manifold accurately enough for retrieval in the embedded space to
+beat retrieval in the ambient space.
+
+\subsubsection{What is load-bearing is not novel}
+
+The same table identifies what does the work.
+
+\begin{itemize}
+  \item \textbf{The OLS anchor is load-bearing}: at $d = 0$, replacing the
+    identity residualiser with the OLS anchor is worth between $0.00768$ and
+    $0.01321$ across matched cells---five to nine times the size of any
+    model-class effect in this paper.
+  \item \textbf{Large-neighbourhood averaging is load-bearing}: moving from
+    $k = 25$ to $k = 100$ is worth $\approx 0.0018$ in the anchored,
+    unembedded cells. Heavy local averaging, not sharp local structure, is what
+    the regime rewards---which is the nonparametric restatement of
+    dense-but-weak.
+  \item \textbf{The embedding is not}, as above.
+\end{itemize}
+
+The surviving estimator is therefore an OLS-anchored, unembedded, heavily
+averaged analog search. It is a reasonable method and it is not novel. We
+report this as the section's finding rather than burying it: in the
+dense-but-weak regime nonparametric flexibility is a cost to be justified, not
+a default.
+
+\subsubsection{The headline cell is a selected minimum}
+\label{sec:knn_selection}
+
+The best kNN arm reaches QLIKE $0.13096$ against the incumbent's $0.13415$, at
+DM $t = -17.6$. Three qualifications belong with that number, and earlier
+drafts of this paper carried none of them.
+
+\paragraph{It is the minimum of 32 cells.} The kNN family contributes 32 arms
+to the battery, of which 8 beat the incumbent. Quoting the minimum with an
+unadjusted DM statistic, on the same panel used to select it, is a
+winner's-curse figure. The honest presentations are either a pre-registered
+cell or a confirmation on held-out data.
+\pending{holdout confirmation of the winning kNN cell, or a pre-registration
+statement identifying it as chosen ex ante}
+
+\paragraph{Its bucket is the one that survived.} The winning cell sits on the
+\texttt{market\_vw} bucket with an exogenous mask; sibling buckets failed as
+singular under the same configuration. Until that failure is diagnosed, the
+bucket ranking within the kNN family carries no weight, and the choice of
+\texttt{market\_vw} cannot be read as an information finding.
+
+\paragraph{It does not trail every parametric arm.} At $0.13096$ the winning
+kNN cell beats \textbf{25 of the 45} causally tuned parametric arms, including
+the baseline LightGBM ($0.13118$), baseline XGBoost ($0.13163$), and all three
+baseline linear arms ($0.13445$, $0.13471$, $0.13475$). What is true is that it
+trails the best arms on the informative buckets---\texttt{all\_features},
+\texttt{moments} and \texttt{liquidity}---which is the weaker and more precise
+statement. An earlier draft asserted the stronger claim; it is false against
+our own battery.
+
+\subsection{Summary}
+\label{sec:algo_summary}
+
+With features frozen, exactness and anchoring matter more than expressiveness.
+The causal-tuning protocol makes the paper's central negative result about
+hyperparameters defensible; the rank-1 and homotopy updates make an every-bar
+benchmark computable at panel scale; and the analog-retrieval experiment
+resolves into a clean decomposition in which the anchor and the averaging pay
+and the manifold does not. The novel component of the proposed estimator is
+the component that fails, and we report it at the same altitude as the parts
+that work.
