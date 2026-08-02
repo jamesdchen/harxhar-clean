@@ -16,6 +16,8 @@ bat = json.load(open(os.path.join(STATS, "battery_inference.json")))
 tile = json.load(open(os.path.join(STATS, "tile_inference.json")))
 hk = json.load(open(os.path.join(STATS, "hawkes_kernel.json")))
 ke = json.load(open(os.path.join(STATS, "kernel_experiments.json")))
+vb = json.load(open(os.path.join(STATS, "b2_kernel_verification.json")))
+np_ = json.load(open(os.path.join(STATS, "nested_probes.json")))
 C = {c["label"]: c for c in tile["contrasts"]}
 
 fails = []
@@ -206,6 +208,23 @@ check("unconditional mean QLIKE = 1.320", 1.31959, dv["qlike_unconditional_mean"
 best = min(v["oos_qlike"] for v in cells.values())
 frac = (dv["qlike_unconditional_mean"] - dv["qlike"]) / (dv["qlike_unconditional_mean"] - best)
 check("divisor closes 71% of the gap", 0.71, frac, tol=5e-3)
+
+print("\n=== b2_mmap rebuild + nested probes ===")
+v = vb["validation"]
+check("archived reproduces: corr = 1.0000", 1.0, v["correlation"], tol=1e-4)
+check("max |diff| = 0.0005", 0.0005, v["max_abs_diff"], tol=1e-4)
+check("VERDICT reproduced", 1, 1 if v["reproduced"] else 0, tol=0.5)
+A = np_["A. har only"]; B = np_["B. har + exog ladder"]; E = np_["E. FULL (archived)"]
+check("marginal n_hat = +0.913", 0.9133, A["n_hat_raw"], tol=1e-3)
+check("marginal negative mass = 0.0%", 0.0, A["neg_mass"], tol=1e-3)
+check("marginal beta = 1.506", 1.506, A["powerlaw"]["beta"], tol=5e-3)
+check("marginal beta SE = 0.035", 0.035, A["powerlaw"]["se"], tol=5e-3)
+check("marginal fitted on 10 lags", 10, A["powerlaw"]["n_points"], tol=0.5)
+check("+exog n_hat = -0.139", -0.1394, B["n_hat_raw"], tol=1e-3)
+check("+exog negative mass = 16.4%", 0.164, B["neg_mass"], tol=1e-3)
+check("full n_hat = -0.363", -0.3626, E["n_hat_raw"], tol=1e-3)
+check("full negative mass = 14.4%", 0.144, E["neg_mass"], tol=1e-3)
+check("full negative lags = 9", 9, E["neg_lags"], tol=0.5)
 
 print("\n" + "=" * 74)
 if fails:

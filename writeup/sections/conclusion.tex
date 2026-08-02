@@ -25,16 +25,17 @@ estimated across 41 exogenous channels where the log-log slope is invariant to
 channel scaling, is $1.033$ with a channel-clustered standard error of $0.036$,
 agreeing with the Hawkes-in-finance literature and rejecting both the $1.36$
 earlier drafts had carried as a plotting constant and the $\approx 1.6$ that a
-rough-volatility correspondence implies. The sign structure fails, on the archived
-estimate: 8 of 12 kernel lags negative, close to half of all exogenous
-cross-kernel cells negative, and an integrated kernel of $-0.038$, outside the
-$[0,1)$ range a linear self-exciting process admits. Running the experiments
-designed to explain that pathology exonerated both suspects and found something
-worse---the archived kernel cannot be rebuilt from the committed raw data and
-transform code, and a rebuild that matches the panel exactly shows none of the
-pathology. We therefore quote no branching ratio, carry the kernel forward as
-an instrument rather than a structural model, and treat its reproducibility as
-the open problem.
+rough-volatility correspondence implies. The sign structure appeared to fail, and
+explaining why produced the section's most transferable result. The estimate
+this project had been reading conditions the self-kernel on 41 exogenous
+channels, several of which are direct volatility measures; those absorb the
+target's persistence and leave an integrated kernel of $-0.363$ with 14\%
+negative mass. The marginal self-kernel on identical rows has integrated mass
+$0.913$, no negative mass, and monotone power-law decay at
+$\hat\beta = 1.506 \pm 0.035$ over ten lags---sub-critical, close to unity, and
+squarely where the reflexivity literature places financial activity. A
+self-kernel estimated alongside volatility proxies is not a self-kernel, and
+the fit gives no signal that anything is wrong.
 
 \emph{Where does the information live?} Everywhere and nowhere in particular.
 Every exogenous bucket improves on the backbone with overwhelming individual
@@ -112,13 +113,12 @@ are not claimed. (ii)~The model-class gap is now tested pairwise, by a bound tha
 nothing about the dependence between arms and resolves all nine matched
 comparisons after Holm adjustment; the headline pair is the weakest at
 $|t| \ge 2.19$, and a model confidence set over the 45 arms remains unavailable
-because their per-bar losses were not retained. (iii)~The kernel estimate is not reproducible from source, which supersedes the
-structural questions we had queued behind it. Both suspected causes of its sign
-pathology---the rolling diurnal divisor and the partial-versus-marginal
-distinction---were tested and exonerated; the rebuild is well behaved on every
-diagnostic the archive fails. Persisting the feature cache and recording the
-probe's conditioning set is the prerequisite for any structural work. Two
-limitations were, however, settled along the way: the 5/95 target winsorization
+because their per-bar losses were not retained. (iii)~The kernel estimate is reproducible and, once marginal rather than
+partial, admissible: $\hat n = 0.913$ with no negative mass. We report it as an
+endogeneity analogue rather than an identified branching ratio, because it is
+ridge-penalised on transformed data and because a 30-minute aggregated variance
+is not the event stream a point-process model describes. Two further
+limitations were settled along the way: the 5/95 target winsorization
 costs roughly $0.024$ QLIKE and should be expected to disappear from the
 pipeline, and the rolling diurnal divisor used alone reaches QLIKE $0.558$
 against $1.320$ for an unconditional mean, so it closes about 71\% of the

@@ -59,10 +59,10 @@ The implication for reading this paper is that our effect sizes are increments
 over an already-strong shared component, and comparisons against a naive
 benchmark that lacks it will overstate every model's skill.
 
-This divisor was also the leading suspect for the archived kernel's sign
-structure. Section~\ref{sec:kernel_repro} exonerates it: removing it moves the
-integrated kernel from $+1.000$ to $+1.079$ on the rebuilt panel and leaves the
-negative mass near zero either way.
+This divisor was also a suspect for the archived kernel's sign structure.
+Section~\ref{sec:kernel_repro} exonerates it: the cause is the exogenous
+conditioning set, and the marginal kernel is well behaved with the divisor
+still in place.
 
 \paragraph{Pairwise significance (resolved, with a caveat).} The model-class
 difference is now tested directly, by a bound that requires no assumption about
@@ -115,16 +115,17 @@ information with regime. All numbers in this version come from the frozen
 battery, on which every arm shares $n = 218{,}934$ identical rows; we note the
 issue because it explains why earlier internal numbers disagree with these.
 
-\paragraph{The kernel estimate is not reproducible.} The single most serious
-finding of this revision. The archived coefficient vector on which every
-kernel diagnostic rests cannot be rebuilt from the committed raw data and
-transform code: the rebuild matches the panel size exactly at $242{,}934$ rows
-and disagrees on the kernel, correlating at $+0.65$ with an integrated kernel
-of $+1.000$ against the archive's $-0.038$
-(Section~\ref{sec:kernel_repro}). The intermediate feature cache was not
-retained, and the archived probe's conditioning set cannot be reconstructed
-from what is committed. Until that is fixed the kernel is a figure, not a
-measurement, and we make no structural claim from it.
+\paragraph{The kernel was measuring the wrong thing.} The archived
+coefficient vector on which every kernel diagnostic rested is reproducible---the
+rebuilt cache returns it at correlation $+1.0000$---but it is a self-kernel
+estimated \emph{jointly with} 41 exogenous channels, several of which are
+direct volatility measures. Conditioning on near-substitutes for lagged $RV$
+absorbs the target's persistence and leaves a contrast, which is what produced
+the negative lobes and the inadmissible integral. The marginal self-kernel on
+the same rows has integrated mass $+0.913$ and no negative mass
+(Section~\ref{sec:kernel_repro}). We regard this as the most transferable
+methodological point in the paper: a self-kernel estimated alongside volatility
+proxies is not a self-kernel, and the failure is silent.
 
 \paragraph{Structural claims are not identified, and one of them is refuted.}
 We do not fit a Hawkes process. Section~\ref{sec:hawkes} establishes a
@@ -143,14 +144,14 @@ lags negative, 10.3\% of absolute mass pooled and up to 87.8\% within a
 session, close to half of all exogenous cross-kernel cells negative, and an
 integrated kernel of $-0.038$ whose sign flips across sessions.
 
-We tested the two design choices we had named as suspects---the rolling
-diurnal divisor and the partial-versus-marginal distinction---and neither is
-responsible: on a rebuilt panel the integrated kernel stays between $+0.906$
-and $+1.079$ under every combination, with negative mass below 0.4\%
-throughout. The pathology belongs to the archived artefact rather than to the
-modelling choices, which is why the reproducibility failure above supersedes
-this paragraph. We quote no branching ratio and no reflexivity estimate, and
-use ``power-law-like'' rather than structural language throughout.
+Nested probes on the rebuilt cache isolate the cause as the exogenous
+conditioning set (Table~\ref{tab:nested_probes}): the marginal kernel is
+$+0.913$ with no negative mass, adding the 41 exogenous ladders takes it to
+$-0.139$, and the full archived set to $-0.363$. The sign structure is a
+property of conditioning on volatility proxies, not of the target. We report
+$\hat n = 0.913$ as an analogue rather than an identified branching ratio,
+because the estimate is ridge-penalised on transformed data and because a
+30-minute aggregated variance is not an event stream.
 
 \paragraph{A rival benchmark is missing.} A fractional-kernel forecaster sits
 in the same power-law family as our backbone (Section~\ref{sec:rough}) and is
