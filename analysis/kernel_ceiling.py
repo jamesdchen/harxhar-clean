@@ -179,7 +179,65 @@ def main():
         "lambda_by_valid_qlike": rows[iq]["lambda"],
         "lambda_by_valid_mse": rows[im]["lambda"],
         "qlike_picks_heavier_shrinkage": bool(heavier),
-        "attenuation_preference_confirmed": bool(rho > 0 and heavier)}
+        "attenuation_preference_confirmed": bool(rho > 0 and heavier),
+        "test_is_inert": True,
+        "why": "ridge is a non-lever on a 12-parameter ladder against 109k "
+               "rows: lambda* = 0 under both metrics and the MZ slope is "
+               "0.968 across the whole useful range, moving only once the "
+               "fit is destroyed. The penalty sweep does not traverse an "
+               "attenuation axis, so this leaves the mechanism untested "
+               "rather than refuted. A2 tests it directly."}
+
+    # ---- A2: attenuate the forecast DIRECTLY, with nothing else moving
+    #
+    # The cleanest possible test of the loss geometry, and it needs no model.
+    # Take the ladder's forecast and attenuate it toward its own in-sample
+    # centre by an exponent c: p_c = g (p/g)^c, with g the in-sample GEOMETRIC
+    # mean. c = 1 is the fitted forecast, c < 1 compresses its dispersion, c > 1
+    # expands it. If QLIKE's optimum sits at c < 1 while MSE's sits at c = 1,
+    # QLIKE's preference for attenuation is demonstrated with no confound.
+    # This is a diagnostic of the LOSS, not a forecasting arm.
+    #
+    # Log-space rather than the obvious p_c = m + c (p - m): the linear form
+    # drives predictions NEGATIVE for c > 1, and flooring them at a positive
+    # epsilon sends QLIKE to ~1e300, which silently corrupts the entire c > 1
+    # half of the sweep and can manufacture an argmin at c = 1. Variance is
+    # positive and the multiplicative form respects that.
+    print("\n" + "-" * 78)
+    print("A2. DIRECT ATTENUATION SWEEP (shrink the forecast, change nothing "
+          "else)")
+    print("-" * 78)
+    b_, mu_, sd_, s2 = fit(Fx, yv, TRN, 0.0)
+    p_tr = predict(Fx, blv, TRN, b_, mu_, sd_, s2)
+    p_te = predict(Fx, blv, TST, b_, mu_, sd_, s2)
+    lg = float(np.mean(np.log(p_tr)))            # in-sample geometric centre
+    lp = np.log(p_te) - lg
+    print(f"  {'c':>7}{'test QLIKE':>13}{'test MSE':>13}{'test MZ beta':>14}"
+          f"{'min pred':>12}")
+    arows = []
+    for c in np.round(np.arange(0.40, 1.61, 0.05), 2):
+        pc = np.exp(lg + c * lp)                 # positive for every c
+        rec = {"c": float(c), "qlike": float(np.mean(qlike_bar(rv_t, pc))),
+               "mse": float(np.mean((rv_t - pc) ** 2)), "mz": mz(rv_t, pc),
+               "min_pred": float(pc.min())}
+        arows.append(rec)
+        print(f"  {c:>7.2f}{rec['qlike']:>13.5f}{rec['mse']:>13.4e}"
+              f"{rec['mz']:>14.3f}{rec['min_pred']:>12.2e}")
+    cq = arows[int(np.argmin([r["qlike"] for r in arows]))]
+    cm = arows[int(np.argmin([r["mse"] for r in arows]))]
+    print(f"\n  QLIKE is minimised at c = {cq['c']:.2f}  (MZ {cq['mz']:.3f})")
+    print(f"  MSE   is minimised at c = {cm['c']:.2f}  (MZ {cm['mz']:.3f})")
+    conf = cq["c"] < cm["c"]
+    print("  -> " + ("CONFIRMED: QLIKE wants the forecast shrunk further than "
+                     "MSE does.\n     Its preference for attenuation is a "
+                     "property of the loss itself."
+                     if conf else
+                     "NOT CONFIRMED: QLIKE does not want extra attenuation "
+                     "here.\n     The battery's +0.741 is not explained by "
+                     "loss geometry alone."))
+    out["attenuation_sweep"] = {
+        "path": arows, "c_star_qlike": cq["c"], "c_star_mse": cm["c"],
+        "qlike_wants_more_attenuation": bool(conf)}
     del Fx
 
     # ================================================== PART B

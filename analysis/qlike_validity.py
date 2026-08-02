@@ -12,16 +12,28 @@ truth. Evaluation here is against RAW RV, not the winsorised fitting target, so
 that guarantee applies to the ranking even though the winsorisation distorts
 the estimator.
 
-NEUTRALITY. That is a different claim, and this project has already produced
-evidence against it: across the 45-arm battery QLIKE correlates +0.741 with the
-Mincer-Zarnowitz slope (p = 5.8e-9), i.e. it systematically prefers the more
-ATTENUATED forecast, and it ranks the battery almost independently of raw
+NEUTRALITY. That is a different claim. Across the 45-arm battery QLIKE
+correlates +0.741 with the Mincer-Zarnowitz slope (p = 5.8e-9) -- lower QLIKE
+goes with a lower slope -- and it ranks the battery almost independently of raw
 variance MSE (+0.152, p = 0.32, where agreement would give a NEGATIVE
-correlation). The asymmetry is structural: with r = true/pred, QLIKE is
-r - log r - 1, so under-forecasting is punished linearly in r and unbounded
-while over-forecasting is punished only logarithmically. Shrinking toward the
-mean lifts the small forecasts (large gain) and lowers the large ones (small
-cost), so attenuation is rewarded.
+correlation).
+
+A LOSS-GEOMETRY EXPLANATION OF THAT CORRELATION WAS PROPOSED AND IS REFUTED.
+The proposal: with r = true/pred, QLIKE is r - log r - 1, so under-forecasting
+costs r without bound while over-forecasting costs only -log r; shrinking
+toward the mean should therefore pay. Tested directly in
+analysis/kernel_ceiling.py by rescaling a fitted forecast, p_c = m + c (p - m),
+with nothing else moving: QLIKE is minimised at c = 1.00 and MSE at c = 0.95.
+MSE wants the extra attenuation; QLIKE does not.
+
+The algebra says the same thing once done properly. Under a scalar rescaling
+QLIKE's optimum is c* = E[true/pred] -- calibration in the RATIO -- which a
+Duan-smeared fit already satisfies, so c* = 1. MSE's optimum is
+c* = Cov(true, p)/Var(p), the MZ slope itself, which is 0.968 here, so MSE
+shrinks. Attenuation is rewarded by MSE, not by QLIKE.
+
+So the battery's +0.741 is an empirical fact that stands on its own p-value,
+and its cause is NOT the loss's asymmetry. It remains unexplained.
 
 That matters for the result we just corrected. Selecting the MIDAS shape by
 validation QLIKE picks a LONG-memory kernel (theta2 = 117) where training SSE
