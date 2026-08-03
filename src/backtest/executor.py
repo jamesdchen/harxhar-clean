@@ -21,6 +21,7 @@ module key (e.g. ``FLAGS["src/backtest/tune_tree.py`` (cmd_evaluate) passes via 
 
 from __future__ import annotations
 
+import concurrent.futures as cf
 import os
 import re
 from collections.abc import Callable
@@ -166,6 +167,7 @@ def apply_masked_scaling(
     # which is what a first version of this did (voldemand landed at 64.0
     # rolling IQRs instead of the 10.5 a single-column test predicted, and
     # numobs and vix went backwards).
+    jobs = []
     for j, name in enumerate(feature_names):
         m = re.match(r"adj_(.+)_ma_(\d+)$", name)
         if m is None:
@@ -173,14 +175,40 @@ def apply_masked_scaling(
         obs_col = f"{m.group(1)}__obs"
         if obs_col not in df.columns:
             continue
-        mask = df[obs_col].to_numpy().astype(bool)[:n]
         # A rung-r moving average is observed when the bars feeding it were;
         # require the window's centre bar rather than all r of them, which is
         # the same convention the availability rolling means already use.
-        out[:, j] = masked_rolling_scale_col(X_raw[:, j], mask, train_win)
-        touched += 1
+        jobs.append((j, df[obs_col].to_numpy().astype(bool)[:n]))
+
+    # Columns are independent, and each is a few hundred rolling-quantile
+    # evaluations -- the dominant cost of a rebuild. Farm them out over
+    # processes, which is exact: the workers run the same function on the same
+    # inputs and only the scheduling changes. Threads would not do: numpy's
+    # partition holds the GIL for the window sizes here.
+    n_proc = max(1, min(os.cpu_count() or 1, 8))
+    if len(jobs) > 8 and n_proc > 1:
+        # Submitted in batches rather than all at once: each task carries a
+        # column copy, so queueing all ~500 upfront would hold about a
+        # gigabyte of pickled arrays alongside a rebuild that is already the
+        # heaviest process on the box.
+        batch = n_proc * 4
+        with cf.ProcessPoolExecutor(max_workers=n_proc) as pool:
+            for s in range(0, len(jobs), batch):
+                chunk = jobs[s:s + batch]
+                futs = {pool.submit(masked_rolling_scale_col, X_raw[:, j], mk,
+                                    train_win): j for j, mk in chunk}
+                for fut in cf.as_completed(futs):
+                    out[:, futs[fut]] = fut.result()
+                    touched += 1
+        note = f" across {n_proc} workers"
+    else:
+        for j, mk in jobs:
+            out[:, j] = masked_rolling_scale_col(X_raw[:, j], mk, train_win)
+            touched += 1
+        note = ""
     if touched:
-        print(f"[scale] masked rescaling applied to {touched} exogenous columns")
+        print(f"[scale] masked rescaling applied to {touched} exogenous "
+              f"columns{note}")
     return out
 
 
