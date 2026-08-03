@@ -100,6 +100,52 @@ evidence.
 | the honest indicator is the whole of the bug fix | withdrawn: it changes no feature value |
 | the median substitution is actively harmful | withdrawn: harmful alone, correct as half of a pair |
 
+## 4a. Gate log
+
+Changes made to the pipeline *after* seeing a gate fail. Recorded because a
+threshold moved after a failure is indistinguishable from a threshold tuned to
+pass unless the reasoning is written down at the time.
+
+**2026-08-03, gate 2 FAIL on `b2_mmap_indonly`: class B = 11.**
+
+Class A went 31 -> 0, so the availability half of the composed fix is
+confirmed. Class B (scale collapse) did not clear.
+
+First hypothesis, that class B was another bad proxy, was tested and
+*rejected*: on the composed cache the B-flagged channels are exactly the
+high-magnitude ones (worst flagged 336.5 against worst unflagged 42.6,
+Spearman -0.365). The gate failure is real. (Class B does miss effspread's 932.6
+on `b2_mmap_fix`, but that cache's regression comes from the double-scaling
+wiring bug, a different mechanism.)
+
+Localised: the composed fix cures voldemand (2260.4 -> 6.7) and *introduces*
+blow-ups in six channels that were previously fine -- stocktwits_sentcount
+9.0 -> 336.5, vix3m 8.1 -> 307.6, stocktwits_attention 10.4 -> 52.3,
+vvix 5.0 -> 32.6, numobs 80.9 -> 120.2, vix 3.5 -> 10.0. Each channel's worst
+value sits 13 to 116 days after its feed's *first* print, so this is a
+feed-initiation transient -- the same defect family as the voldemand
+termination bug, at the other end of the feed's life. `vix` is the exception
+and is not a defect: its worst is 2020-03-19, a real market move.
+
+Cause: `masked_rolling_scale_col` accepted a median/IQR estimate from as few as
+8 observed values, so a feed's opening fortnight set the scale for everything
+after it. Separately, a coarse integer count (numobs, 30 distinct values in 19
+years) yields a near-zero IQR in a quiet window that the next ordinary move
+then divides by.
+
+Change: `MASKED_MIN_OBS = 512` (from 8) and a causal running-maximum IQR floor
+at `MASKED_IQR_FLOOR_FRAC = 0.01`; rows without a trustworthy scale emit the
+neutral 0.0, the same treatment a dead feed already gets. Both constants are
+set from the mechanism -- 512 is ~4% quantile error and about two months of a
+session-limited feed -- not by searching for a value that passes the gate. No
+threshold in `prep_invariants.py` was touched.
+
+An emulation on EWMA-smoothed raw series showed the change helping two channels
+(numobs 1.6e11 -> 189, stocktwits_attention 123 -> 10.6) and harming none, but
+that emulation omits the diurnal adjustment and the real `adj_` construction,
+so it is not evidence. The measurement that counts is a rebuild plus a real
+invariants run.
+
 ## 5. Order of execution
 
 No step may start before the previous one passes.

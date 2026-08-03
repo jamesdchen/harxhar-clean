@@ -289,8 +289,31 @@ def _rolling_scale_cols(
                     s[k] = s[k - 1]
             s[inw] = v_new
 
+# Observed values a window must hold before its median/IQR is trusted. An IQR
+# is a two-quantile statistic, so its relative error runs about 1/sqrt(n): the
+# old threshold of 8 admitted estimates with ~35% error, and for a feed's first
+# fortnight that meant a quiet opening stretch set the scale for everything
+# after it (vix3m reached 308 rolling IQRs 13 days after its first print).
+# 512 is ~4% relative error, and about two months for a session-limited feed --
+# so it binds at feed start and nowhere else: a live channel at even 15%
+# coverage clears it 7x over inside a 24,000-bar window.
+MASKED_MIN_OBS: int = 512
+
+# How far the scale may fall below the largest scale the channel has shown so
+# far. Without it a genuinely quiet window -- a coarse integer count sitting
+# still over a holiday -- yields a near-zero IQR that the next ordinary move
+# then divides by (numobs: 140 rolling IQRs). Monotone and causal by
+# construction, so it cannot import future information.
+MASKED_IQR_FLOOR_FRAC: float = 0.01
+
+
 def masked_rolling_scale_col(
-    x: np.ndarray, mask: np.ndarray, train_win: int, step: int = 480
+    x: np.ndarray,
+    mask: np.ndarray,
+    train_win: int,
+    step: int = 480,
+    min_obs: int = MASKED_MIN_OBS,
+    iqr_floor_frac: float = MASKED_IQR_FLOOR_FRAC,
 ) -> np.ndarray:
     """Rolling robust scaling whose location and scale use OBSERVED rows only.
 
@@ -327,27 +350,43 @@ def masked_rolling_scale_col(
     n = len(x)
     med = np.empty(n, dtype=np.float64)
     iqr = np.empty(n, dtype=np.float64)
+    # Rows the channel has not yet earned a trustworthy scale for. Emitting the
+    # neutral 0.0 there is the same treatment a dead feed gets at the other end
+    # of its life: a channel with no usable scale contributes nothing rather
+    # than contributing noise divided by a guess.
+    warm = np.zeros(n, dtype=bool)
+    run_max_i = 0.0
     # seed from the first window's observed values
     seed = x[:train_win][mask[:train_win] & np.isfinite(x[:train_win])]
-    if seed.size >= 8:
+    if seed.size >= min_obs:
         q25, q50, q75 = np.percentile(seed, (25.0, 50.0, 75.0))
         last_m, last_i = float(q50), float(q75 - q25)
     else:
         last_m, last_i = 0.0, 1.0
+        warm[:train_win] = True
     if last_i < 1e-12:
         last_i = 1.0
+    run_max_i = max(run_max_i, last_i)
     med[:train_win] = last_m
     iqr[:train_win] = last_i
     for t in range(train_win, n, step):
         lo = max(0, t - train_win)
         w = x[lo:t]
         mk = mask[lo:t] & np.isfinite(w)
-        if mk.sum() >= 8:
+        if mk.sum() >= min_obs:
             q25, q50, q75 = np.percentile(w[mk], (25.0, 50.0, 75.0))
             last_m = float(q50)
             iq = float(q75 - q25)
             if iq >= 1e-12:
-                last_i = iq
+                # Floor against the largest scale seen so far, so a quiet
+                # window cannot hand the next ordinary move a near-zero
+                # denominator.
+                run_max_i = max(run_max_i, iq)
+                last_i = max(iq, iqr_floor_frac * run_max_i)
+        else:
+            warm[t:t + step] = True
         med[t:t + step] = last_m
         iqr[t:t + step] = last_i
-    return (x - med) / iqr
+    out = (x - med) / iqr
+    out[warm] = 0.0
+    return out
