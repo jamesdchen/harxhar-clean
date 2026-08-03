@@ -42,7 +42,7 @@ CACHE = os.environ.get("CR_CACHE", "b2_mmap_warm")
 W, CAD = 24000, 1000
 LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
 NBLOCK = 8
-KS = [1, 2, 3, 5, 10, 20, 41]
+KS = [1, 2, 3, 4, 6, 8, 10, 12, 41]
 NSHAPE = 3
 
 
@@ -82,27 +82,41 @@ def main():
     C, nh = len(labels), len(har)
     SH = gram_schmidt([rungs ** -1.0, rungs ** -0.5, rungs ** -2.0])[:NSHAPE]
     Fl = np.asarray(X[:, lad], np.float64).reshape(n, C, 12)
+    # Channel directions are taken from the residual covariance over the FULL
+    # 12-rung ladder, not over the 3 retained shapes. With 3 shapes that
+    # covariance is 41 x 3 and supplies at most 3 channel directions, so every
+    # requested k above 3 silently collapsed to 3 -- four identical rows that
+    # would have been read as saturation at k = 3. The full ladder gives a
+    # 41 x 12 covariance and up to 12 genuine directions.
+    Ffull = Fl.reshape(n, C * 12)
     # A[:, c*NSHAPE + j]  -- channel-major so the reshape to (C, NSHAPE) is free
     A = np.concatenate([(Fl @ SH[j])[:, :, None] for j in range(NSHAPE)],
                        axis=2).reshape(n, C * NSHAPE)
     del Fl
-    F = np.hstack([np.asarray(X[:, har], np.float64), A])
-    del X, A
+    Fh = np.asarray(X[:, har], np.float64)
+    F = np.hstack([Fh, A])
+    Gfull = np.hstack([Fh, Ffull])          # for the channel-direction estimate
+    del X, A, Ffull, Fh
     P = F.shape[1]
     print(f"cache {CACHE}: {n:,} rows, {C} channels x {NSHAPE} shapes, "
           f"{nh} backbone, {P} cols ({time.time()-t0:.0f}s)", flush=True)
 
-    def transforms(G, c):
-        Gh = G[:1 + nh, :1 + nh]
-        bh = np.linalg.solve(Gh + 1e-8 * np.eye(1 + nh), c[:1 + nh])
-        Ares = c[1 + nh:] - G[:1 + nh, 1 + nh:].T @ bh      # A'res
-        M = (Ares / W).reshape(C, NSHAPE)
-        U, _, _ = np.linalg.svd(M, full_matrices=False)      # channel directions
+    def transforms(G, c, Gf, cf_):
+        Gh = Gf[:1 + nh, :1 + nh]
+        bh = np.linalg.solve(Gh + 1e-8 * np.eye(1 + nh), cf_[:1 + nh])
+        Zres = cf_[1 + nh:] - Gf[:1 + nh, 1 + nh:].T @ bh    # Z'res, full ladder
+        M = (Zres / W).reshape(C, 12)
+        U, _, _ = np.linalg.svd(M, full_matrices=False)      # up to 12 directions
         out = {}
         I_h = np.eye(nh)
         for k in KS:
-            kk = min(k, U.shape[1]) if k < C else C
-            Uk = U[:, :kk] if kk < C else np.eye(C)
+            if k >= C:
+                Uk = np.eye(C)
+            else:
+                kk = min(k, U.shape[1])
+                if kk < k:      # never silently substitute a smaller rank
+                    continue
+                Uk = U[:, :kk]
             # channel projection acting blockwise on the NSHAPE lag components
             B = np.zeros((C * NSHAPE, Uk.shape[1] * NSHAPE))
             for j in range(NSHAPE):
@@ -114,8 +128,8 @@ def main():
 
     def go(lo, hi, lam_by=None):
         val = lam_by is None
-        rg = RollingGram(F, y, W)
-        arms = [f"k={k}" for k in KS]
+        rg = RollingGram(F, y, W); rgf = RollingGram(Gfull, y, W)
+        arms = [f"k={k}" for k in KS if k >= C or k <= 12]
         acc = {a: ({L: 0.0 for L in LAMS}, {L: 0 for L in LAMS}) for a in arms}
         preds = {a: np.full(hi - lo, np.nan) for a in arms}
         s0 = lo - ((lo - W) % CAD)
@@ -123,9 +137,12 @@ def main():
             e = min(s + CAD, hi)
             if e <= lo: continue
             G, c = rg.advance(s)
-            TT = transforms(G, c)
+            Gf, cf_ = rgf.advance(s)
+            TT = transforms(G, c, Gf, cf_)
             a, z = max(s, lo), e
             for arm in arms:
+                if arm not in TT:
+                    continue
                 T = TT[arm]
                 M, v = block(G, c, T)
                 npen = T.shape[1] - nh
@@ -165,6 +182,8 @@ def main():
            "lambda": {k: float(v) for k, v in lam.items()}, "dm": {}}
     for k in KS:
         a = f"k={k}"
+        if a not in Q:
+            continue
         cols = nh + min(k, C) * NSHAPE
         if a == ref:
             print(f"  {k:>10}{cols:>7}{Q[a]:>11.5f}{'--':>12}{'--':>8}"); continue
