@@ -288,3 +288,66 @@ def _rolling_scale_cols(
                 for k in range(io, inw, -1):
                     s[k] = s[k - 1]
             s[inw] = v_new
+
+def masked_rolling_scale_col(
+    x: np.ndarray, mask: np.ndarray, train_win: int, step: int = 480
+) -> np.ndarray:
+    """Rolling robust scaling whose location and scale use OBSERVED rows only.
+
+    The transform is applied to every row; only the ESTIMATE of the median and
+    IQR is restricted to rows where the underlying series was actually
+    observed. That is the fix this pathology has needed all along, and three
+    earlier attempts missed it because they all tried to make the VALUES
+    well-behaved so that a scaler computed over contaminated rows would return
+    a sane number:
+
+      * forward fill        leaves stale values that are far from the current
+                            regime, so a sparse channel's deviations explode
+                            (voldemand: 189.5 rolling IQRs)
+      * neutral median      replaces stale-but-varying values with a constant,
+                            so a moderately covered channel goes partly
+                            degenerate and its OBSERVED rows then look enormous
+                            against the collapsed IQR (effspread: 17.6 -> 932.6)
+      * an IQR floor        a weak instrument that did not bind at all: the
+                            indicator-only build left voldemand bit-identical
+                            at 189.5
+
+    Masking the estimate fixes both cases by construction and needs no coverage
+    threshold, no staleness bound, no floor, and no decision about what to
+    impute -- the imputed rows simply stop participating in the statistic they
+    were corrupting. ``_build_scale_guards`` was groping toward this with a
+    floor when what it wanted was a mask.
+
+    Causal: row ``t`` uses only observed values strictly before ``t``. The scale
+    is slowly varying, so it is evaluated on a coarse grid and held between
+    grid points, the same convention as :func:`_expanding_real_iqr`.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    mask = np.asarray(mask, dtype=bool)
+    n = len(x)
+    med = np.empty(n, dtype=np.float64)
+    iqr = np.empty(n, dtype=np.float64)
+    # seed from the first window's observed values
+    seed = x[:train_win][mask[:train_win] & np.isfinite(x[:train_win])]
+    if seed.size >= 8:
+        q25, q50, q75 = np.percentile(seed, (25.0, 50.0, 75.0))
+        last_m, last_i = float(q50), float(q75 - q25)
+    else:
+        last_m, last_i = 0.0, 1.0
+    if last_i < 1e-12:
+        last_i = 1.0
+    med[:train_win] = last_m
+    iqr[:train_win] = last_i
+    for t in range(train_win, n, step):
+        lo = max(0, t - train_win)
+        w = x[lo:t]
+        mk = mask[lo:t] & np.isfinite(w)
+        if mk.sum() >= 8:
+            q25, q50, q75 = np.percentile(w[mk], (25.0, 50.0, 75.0))
+            last_m = float(q50)
+            iq = float(q75 - q25)
+            if iq >= 1e-12:
+                last_i = iq
+        med[t:t + step] = last_m
+        iqr[t:t + step] = last_i
+    return (x - med) / iqr

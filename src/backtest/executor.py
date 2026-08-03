@@ -30,7 +30,10 @@ import pandas as pd
 
 from src.evaluation.metrics import apply_duan_smearing, save_chunk_reduce
 from src.data.loading import apply_overnight_fills, load_raw_data
-from src.features.transforms.scaling import rolling_robust_scale
+from src.features.transforms.scaling import (
+    masked_rolling_scale_col,
+    rolling_robust_scale,
+)
 from src.backtest.segmentation import (
     SEGMENT_DEFINITIONS,
     compute_segment_train_window,
@@ -132,6 +135,46 @@ def _build_scale_guards(
     if not touched:
         return None, None
     return ref_iqr, fixed
+
+
+
+def apply_masked_scaling(
+    X: np.ndarray, df: pd.DataFrame, feature_names: list[str], train_win: int
+) -> np.ndarray:
+    """Rescale every imputed exogenous column using OBSERVED rows only.
+
+    Applied after the ordinary rolling scaler, replacing its output for the
+    columns that have an availability mask. Columns without one (HAR, calendar,
+    the indicators themselves) are left exactly as the ordinary path produced
+    them, so a run with no imputed exog is bit-for-bit unchanged.
+
+    This supersedes the value-side repairs -- the neutral-median substitution
+    and the staleness bound -- both of which are off by default. Their measured
+    behaviour is why: the median substitution fixed a 22%-coverage channel
+    (voldemand 189.5 -> 7.4 rolling IQRs) and broke a 62%-coverage one
+    (effspread 17.6 -> 932.6), because what helps a sparse series (stop using
+    stale values) is exactly what degrades a dense one (introduce a constant).
+    Masking the ESTIMATE has no such trade-off.
+    """
+    out = X
+    n = X.shape[0]
+    touched = 0
+    for j, name in enumerate(feature_names):
+        m = re.match(r"adj_(.+)_ma_(\d+)$", name)
+        if m is None:
+            continue
+        obs_col = f"{m.group(1)}__obs"
+        if obs_col not in df.columns:
+            continue
+        mask = df[obs_col].to_numpy().astype(bool)[:n]
+        # A rung-r moving average is observed when the bars feeding it were;
+        # require the window's centre bar rather than all r of them, which is
+        # the same convention the availability rolling means already use.
+        out[:, j] = masked_rolling_scale_col(X[:, j], mask, train_win)
+        touched += 1
+    if touched:
+        print(f"[scale] masked rescaling applied to {touched} exogenous columns")
+    return out
 
 
 def _backtest_and_save(
@@ -292,7 +335,7 @@ def load_and_transform(
     use_semantic: bool = True,
     ffill_limit: int | None = None,
     legacy_avail: bool = False,
-    neutralise_unobserved: bool = False,
+    neutralise_unobserved: bool = True,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
 
@@ -392,23 +435,30 @@ def load_and_transform(
             # fillna(0) imputes vix = exp(0) = 1, a wild value that blew the
             # Ridge forecast up to QLIKE ~2.4). Median ≈ neutral, prescales to 0.
             adj = df[f"adj_{col}"]
-            # MEASURED: substituting a neutral median on unobserved rows is
-            # actively harmful and is off by default. It replaces a stale but
-            # VARYING value with a constant, so on a moderately covered channel
-            # a large share of rows become exactly identical, the rolling
-            # window's IQR collapses, and the scaled feature detonates -- the
-            # very pathology this fix exists to remove, manufactured in
-            # channels that never had it. Measured on the 0.625-coverage
-            # spread channels: effspread_vwstock 17.6 -> 932.6 rolling IQRs
-            # (53x), effspread_ewstock 13.1 -> 572.0 (44x).
+            # Unobserved rows take the neutral median. This handles the
+            # NUMERATOR half of the pathology: a forward-filled value is stale,
+            # and on a sparsely observed channel it drifts arbitrarily far from
+            # the current regime, so no scale estimate can rescue it (masking
+            # the estimate alone still leaves voldemand at 231.9 rolling IQRs).
             #
-            # What actually repaired the October 2023 failure is the HONEST
-            # INDICATOR below, nothing else: the bug was that the flag claimed
-            # 0.698 availability against 0.223 true coverage, so the model
-            # could not tell fresh from stale and the scale guard computed its
-            # "real values" floor over forward-filled constants. Leaving the
-            # ffilled value in place keeps the series varying and lets the
-            # model discount it via the indicator.
+            # On its own this substitution BREAKS moderately covered channels,
+            # because replacing varying values with a constant collapses the
+            # rolling IQR: effspread_vwstock went 17.6 -> 932.6 when it shipped
+            # alone. That is the DENOMINATOR half, and it is fixed by
+            # scaling.masked_rolling_scale_col, which estimates location and
+            # scale from observed rows only.
+            #
+            # The two compose and neither works without the other -- measured
+            # peak rolling IQRs, ffill/median x plain/masked scaling:
+            #
+            #   voldemand (cov 0.22)   43705.7 / 231.9 / 11813.6 / 10.5
+            #   effspread (cov 0.62)      17.3 /  20.2 /    34.1 / 14.1
+            #   sumbipow  (cov 0.62)      84.6 /  95.5 /    71.6 / 17.7
+            #   vix       (cov 0.35)    3296.4 /   6.0 /  7141.6 /  5.6
+            #
+            # Testing them one at a time is why this took three attempts to
+            # get right: each is harmful or inert alone and all the value is in
+            # the interaction.
             obs = df[f"{col}__obs"].to_numpy().astype(bool)
             if neutralise_unobserved:
                 adj = adj.where(pd.Series(obs, index=adj.index), np.nan)
