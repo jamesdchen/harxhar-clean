@@ -1,0 +1,51 @@
+{
+  "arms": {
+    "backbone (12)": {
+      "cols": 12,
+      "lambda": 0.0,
+      "test_qlike": 0.1524213992312852,
+      "test_mse": 4.219903178380023e-11
+    },
+    "dumb: backbone + 41 amplitudes": {
+      "cols": 53,
+      "lambda": 100.0,
+      "test_qlike": 0.14830267466384522,
+      "test_mse": 4.796170519533807e-11
+    },
+    "ridge on 492 raw": {
+      "cols": 504,
+      "lambda": 10000.0,
+      "test_qlike": 0.17905530797393496,
+      "test_mse": 4.764079801198531e-11
+    },
+    "shaped penalty on 492": {
+      "cols": 504,
+      "lambda": 100000000.0,
+      "test_qlike": 0.14877819449287705,
+      "test_mse": 4.786958313739008e-11
+    }
+  },
+  "dm_vs_dumb": {
+    "backbone (12)": {
+      "diff": -0.004118724567439956,
+      "t": -6.48281259502986,
+      "p": 9.051918587722708e-11,
+      "verdict": "dumb WINS"
+    },
+    "ridge on 492 raw": {
+      "diff": -0.030752633310089702,
+      "t": -4.118791968733752,
+      "p": 3.812235378081784e-05,
+      "verdict": "dumb WINS"
+    },
+    "shaped penalty on 492": {
+      "diff": -0.0004755198290318193,
+      "t": -3.4056831824866385,
+      "p": 0.0006602922907564839,
+      "verdict": "dumb WINS"
+    }
+  },
+  "dumb_qlike": 0.14830267466384522,
+  "shaped_qlike": 0.14877819449287705,
+  "dumb_matches_shaped": true
+}
