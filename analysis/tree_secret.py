@@ -48,7 +48,11 @@ CAD = int(os.environ.get("TS_CAD", "4000"))
 LAM = 1e4
 NBLOCK = 8
 NQ = 256          # quantile grid for the rank map
-PARAMS = dict(n_estimators=300, learning_rate=0.05, num_leaves=31,
+# tree-on-ranks is a CONTROL asserting an invariance, not an estimate.
+# Re-confirming it on all 55 windows doubles the dominant cost to learn the
+# same thing repeatedly, so it runs as a spot check.
+CTRL_EVERY = 7
+PARAMS = dict(n_estimators=300, learning_rate=0.05, num_leaves=31, max_bin=127,
               min_child_samples=200, subsample=0.8, subsample_freq=1,
               colsample_bytree=0.6, reg_lambda=1.0, verbose=-1, n_jobs=4)
 
@@ -69,18 +73,21 @@ def rank_gauss(train, test, nq=NQ):
     """
     from scipy.special import ndtri
     qs = np.linspace(0.0, 1.0, nq)
-    out_tr = np.empty_like(train); out_te = np.empty_like(test)
+    # All columns at once: the per-column Python loop this replaces spent its
+    # time in interpreter overhead rather than in the sort.
+    K = np.quantile(train, qs, axis=0)
+    np.maximum.accumulate(K, axis=0, out=K)
     lo, hi = 0.5 / len(train), 1.0 - 0.5 / len(train)
+    dead = (K[-1] - K[0]) < 1e-12
+    out_tr = np.empty_like(train); out_te = np.empty_like(test)
     for j in range(train.shape[1]):
-        knots = np.quantile(train[:, j], qs)
-        knots = np.maximum.accumulate(knots)
-        if knots[-1] - knots[0] < 1e-12:
+        if dead[j]:
             out_tr[:, j] = 0.0; out_te[:, j] = 0.0
             continue
-        u_tr = np.clip(np.interp(train[:, j], knots, qs), lo, hi)
-        u_te = np.clip(np.interp(test[:, j], knots, qs), lo, hi)
-        out_tr[:, j] = ndtri(u_tr); out_te[:, j] = ndtri(u_te)
-    return out_tr, out_te
+        kj = K[:, j]
+        out_tr[:, j] = np.clip(np.interp(train[:, j], kj, qs), lo, hi)
+        out_te[:, j] = np.clip(np.interp(test[:, j], kj, qs), lo, hi)
+    return ndtri(out_tr), ndtri(out_te)
 
 
 def main():
@@ -110,6 +117,7 @@ def main():
     P = np.zeros((1 + pp, 1 + pp)); P[1 + nh:, 1 + nh:] = np.eye(pp - nh)
     ARMS = ["ridge", "ridge rank", "tree", "tree rank"]
     pr = {a: np.full(n - W, np.nan) for a in ARMS}
+    ctrl_rows = []
 
     def fit_ridge(Xtr, ytr, Xte, s, e):
         A = np.hstack([np.ones((W, 1)), Xtr])
@@ -130,27 +138,37 @@ def main():
         pr["ridge"][s - W:e - W] = fit_ridge(Xtr, ytr, Xte, s, e)
         pr["ridge rank"][s - W:e - W] = fit_ridge(Rtr, ytr, Rte, s, e)
         pr["tree"][s - W:e - W] = fit_tree(Xtr, ytr, Xte, s, e)
-        pr["tree rank"][s - W:e - W] = fit_tree(Rtr, ytr, Rte, s, e)
+        if i % CTRL_EVERY == 0:
+            pr["tree rank"][s - W:e - W] = fit_tree(Rtr, ytr, Rte, s, e)
+            ctrl_rows.append((s - W, e - W))
         if i % 5 == 0:
             print(f"    refit {i+1}/{len(steps)} ({time.time()-t0:.0f}s)", flush=True)
 
     rv_w = rvv[W:]; good = rv_w > 0
-    for a in ARMS: good &= np.isfinite(pr[a]) & (pr[a] > 0)
+    for a in ("ridge", "ridge rank", "tree"):
+        good &= np.isfinite(pr[a]) & (pr[a] > 0)
     idx = np.flatnonzero(good)
-    L = {a: qlike_bar(rv_w[idx], pr[a][idx]) for a in ARMS}
-    Q = {a: float(L[a].mean()) for a in ARMS}
+    FULL = ["ridge", "ridge rank", "tree"]
+    L = {a: qlike_bar(rv_w[idx], pr[a][idx]) for a in FULL}
+    Q = {a: float(L[a].mean()) for a in FULL}
+    cmask = np.zeros(n - W, bool)
+    for a_, z_ in ctrl_rows: cmask[a_:z_] = True
+    cidx = np.flatnonzero(good & cmask & np.isfinite(pr["tree rank"])
+                          & (pr["tree rank"] > 0))
     print(f"\n  scored {len(idx):,} bars, cadence {CAD}\n")
     print(f"  {'arm':>14}{'QLIKE':>11}{'vs ridge':>12}{'t':>8}")
     out = {"cache": CACHE, "cadence": CAD, "n": int(len(idx)), "qlike": Q, "dm": {}}
-    for a in ARMS:
+    for a in FULL:
         if a == "ridge":
             print(f"  {a:>14}{Q[a]:>11.5f}{'--':>12}{'--':>8}"); continue
         r = dm_test(L[a], L["ridge"], h=1)
         out["dm"][a] = {"diff": float(r["mean_diff"]), "t": float(r["t"]), "p": float(r["p"])}
         print(f"  {a:>14}{Q[a]:>11.5f}{r['mean_diff']:>+12.5f}{r['t']:>8.2f}")
 
-    ctrl = Q["tree rank"] - Q["tree"]
-    print(f"\n  [control] tree on ranks minus tree on values: {ctrl:+.5f}")
+    ctrl = float(qlike_bar(rv_w[cidx], pr["tree rank"][cidx]).mean()
+                 - qlike_bar(rv_w[cidx], pr["tree"][cidx]).mean())
+    print(f"\n  [control] tree on ranks minus tree on values, on "
+          f"{len(cidx):,} spot-check bars: {ctrl:+.5f}")
     print("  splits are already rank-based, so this must be ~0; a large value "
           "means\n  the rank map is doing something other than reordering and "
           "nothing below reads")
