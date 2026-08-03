@@ -45,7 +45,8 @@ REFRESH = 5000
 NBLOCK = 8
 RUNGS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 RANK = 3
-CADENCES = [0, 24000, 6000, 1000]      # 0 = frozen, the published arm
+CADENCES = [0, 6000]                   # 0 = frozen, the published arm
+KINDS = ["sup", "pls", "ridge"]
 
 
 def qlike_bar(rv, p):
@@ -65,14 +66,34 @@ def gram_schmidt(vs):
     return out
 
 
-def sup_basis(Htr, ytr, r):
-    """Krylov/PLS subspace K_r(C, C^-1 xy) from one training window."""
+def sup_basis(Htr, ytr, r, kind="sup"):
+    """Supervised lag subspaces, three estimators of the same idea.
+
+      sup    K_r(C, C^-1 xy) -- the published arm. Inverts the ladder
+             covariance, which is what a first diagnosis blamed for the
+             instability. cond(C) is only 370-410 on this panel, so the
+             inversion is NOT the problem and that diagnosis was wrong.
+      pls    K_r(C, xy) -- standard partial least squares. Never inverts C at
+             all, so if conditioning were the issue this would be stable.
+      ridge  K_r(C, (C + lam I)^-1 xy) with lam a tenth of the mean eigenvalue.
+             Shrinks the inversion without removing it.
+
+    All three are Krylov spaces differing only in the seed vector, so any
+    difference in stability is attributable to the seed rather than to the
+    construction.
+    """
     ok = np.isfinite(Htr).all(1) & np.isfinite(ytr)
     Htr, ytr = Htr[ok], ytr[ok]
     C = np.cov(Htr, rowvar=False) + 1e-12 * np.eye(Htr.shape[1])
     xy = (Htr - Htr.mean(0)).T @ (ytr - ytr.mean()) / len(ytr)
-    d0 = np.linalg.solve(C, xy)
-    fam = [d0, C @ d0]
+    if kind == "pls":
+        seed = xy
+    elif kind == "ridge":
+        lam = float(np.trace(C)) / C.shape[0] * 0.1
+        seed = np.linalg.solve(C + lam * np.eye(C.shape[0]), xy)
+    else:
+        seed = np.linalg.solve(C, xy)
+    fam = [seed, C @ seed]
     for _ in range(r):
         fam.append(C @ fam[-1])
     return np.column_stack(gram_schmidt(fam)[:r])
@@ -152,13 +173,14 @@ def main():
     preds["base-2 (r=12)"] = pr; meta["base-2 (r=12)"] = {"drift": dr, "nbasis": 0}
     print(f"    {'base-2 (r=12)':>22} drift {dr:.1e} ({time.time()-t0:.0f}s)", flush=True)
 
-    for CAD in CADENCES:
-        nm = "sup r=3 frozen" if CAD == 0 else f"sup r=3 refit/{CAD}"
+    for kind in KINDS:
+      for CAD in CADENCES:
+        nm = f"{kind} r=3 frozen" if CAD == 0 else f"{kind} r=3 refit/{CAD}"
         bounds = [W, n] if CAD == 0 else list(range(W, n, CAD)) + [n]
         out = np.full(n - W, np.nan); dr = 0.0; Gs = []
         for i in range(len(bounds) - 1):
             lo, hi = bounds[i], bounds[i + 1]
-            Gm = sup_basis(H[lo - W:lo], y[lo - W:lo], RANK)
+            Gm = sup_basis(H[lo - W:lo], y[lo - W:lo], RANK, kind)
             Gs.append(Gm)
             F = np.column_stack([H @ Gm, cal])
             ok = np.isfinite(F).all(1)
@@ -166,18 +188,22 @@ def main():
             seg[~ok[lo:hi]] = np.nan
             out[lo - W:hi - W] = seg
             dr = max(dr, d)
-        # principal angles between consecutive bases
-        ang = []
+        # ALL principal angles, not just the largest. arccos of the smallest
+        # singular value gives the LARGEST angle, so reporting only that says
+        # one direction of three swung and nothing about the other two -- which
+        # is how "nearly orthogonal" was overstated the first time.
+        ANG = []
         for i in range(1, len(Gs)):
             sv = np.linalg.svd(Gs[i - 1].T @ Gs[i], compute_uv=False)
-            ang.append(float(np.degrees(np.arccos(np.clip(sv.min(), -1, 1)))))
+            ANG.append(np.degrees(np.arccos(np.clip(sv, -1, 1))))
+        A = np.array(ANG) if ANG else np.zeros((1, RANK))
         preds[nm] = out
         meta[nm] = {"drift": dr, "nbasis": len(Gs),
-                    "max_angle_deg": max(ang) if ang else 0.0,
-                    "mean_angle_deg": float(np.mean(ang)) if ang else 0.0}
+                    "angles_max_per_dim": [float(v) for v in A.max(0)],
+                    "angles_mean_per_dim": [float(v) for v in A.mean(0)]}
         print(f"    {nm:>22} bases={len(Gs):<4d} drift {dr:.1e} "
-              f"max principal angle {meta[nm]['max_angle_deg']:6.2f} deg "
-              f"({time.time()-t0:.0f}s)", flush=True)
+              f"principal angles (max, per direction) "
+              f"{np.round(A.max(0), 1)} deg ({time.time()-t0:.0f}s)", flush=True)
 
     tr = truth[W:]
     good = (tr > 0) & np.isfinite(tr)
@@ -188,13 +214,13 @@ def main():
     REF = "base-2 (r=12)"
     print(f"\n  scored {len(idx):,} bars\n")
     print(f"  {'arm':>22}{'bases':>7}{'QLIKE':>11}{'vs base-2':>12}{'t':>8}"
-          f"{'max angle':>11}")
+          f"   angles max/dim (deg)")
     out = {"cache": CACHE, "n": int(len(idx)), "qlike": Q, "meta": meta, "dm": {}}
     nb = len(idx) // NBLOCK
     for nm in preds:
         m = meta[nm]
         if nm == REF:
-            print(f"  {nm:>22}{'--':>7}{Q[nm]:>11.5f}{'--':>12}{'--':>8}{'--':>11}")
+            print(f"  {nm:>22}{'--':>7}{Q[nm]:>11.5f}{'--':>12}{'--':>8}")
             continue
         r = dm_test(L[nm], L[REF], h=1)
         d = L[nm] - L[REF]
@@ -204,15 +230,16 @@ def main():
                          "p": float(r["p"]), "eras_better": int(sum(v < 0 for v in em)),
                          "era_means": em}
         print(f"  {nm:>22}{m['nbasis']:>7}{Q[nm]:>11.5f}{r['mean_diff']:>+12.5f}"
-              f"{r['t']:>8.2f}{m['max_angle_deg']:>11.2f}")
+              f"{r['t']:>8.2f}   {np.round(m['angles_max_per_dim'], 1)}")
     print(f"\n  eras better than base-2 (of {NBLOCK}):")
     for nm in preds:
         if nm == REF: continue
         print(f"    {nm:>22}: {out['dm'][nm]['eras_better']}/{NBLOCK}")
     best = min((v, k) for k, v in Q.items())[1]
     print(f"\n  best: {best}")
-    print(f"  a large principal angle between consecutive bases means the")
-    print(f"  subspace SWINGS rather than drifts, which the loss alone hides.")
+    print(f"  cond(C) is only 370-410 here, so if the published arm is unstable")
+    print(f"  and PLS is not, the seed vector is the cause and not the")
+    print(f"  conditioning -- which is what the first diagnosis blamed.")
     with open(os.path.join(OUT_DIR, "ladder_refit.json"), "w") as fh:
         json.dump(out, fh, indent=1)
     print(f"\nwrote ladder_refit.json ({time.time()-t0:.0f}s)")
