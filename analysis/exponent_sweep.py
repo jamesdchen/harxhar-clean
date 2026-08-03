@@ -14,12 +14,20 @@ exponent closes it decides whether the compact model is worth anything.
 
 Four arms, all on the full walk-forward over the corrected cache:
 
-  fixed beta        a_c = sum_k u_k^-beta Z_{c,k}, swept finely over beta,
-                    which gives the actual curve rather than three points and
-                    shows whether the optimum is sharp or flat
-  fitted beta       beta chosen inside each training window by profiling the
-                    in-window fit, so the exponent is estimated causally
-                    rather than assumed
+  beta = 1          pre-specified, selected by nothing. The honest default.
+  beta by window    chosen inside each training window: the window is split
+    validation      into a fit part and a trailing validation part, beta is
+                    scored there under QLIKE -- the same loss that is reported
+                    -- and the model is then refit on the whole window. Causal,
+                    and using the reported loss rather than a proxy.
+  beta by window    the same search scored by in-window SSE instead. Kept only
+    SSE             to price the criterion mismatch, which was measured at
+                    +0.00157 earlier in this project and is larger than the
+                    0.0014 gap this experiment exists to resolve.
+  beta* ORACLE      the argmin of the sweep over the evaluation panel itself.
+                    NOT ACHIEVABLE and reported only as an upper bound; quoting
+                    it as a result would repeat the selection error this
+                    project already measured at +0.0033 on the MIDAS shape.
   fitted shape      a shared 12-vector g estimated on each training window by
                     least squares -- 12 parameters instead of one, and the
                     honest "let the data choose the shape" arm. Whether this
@@ -52,7 +60,8 @@ from inference import dm_test  # noqa: E402
 D = os.path.join(ROOT, "results", "b2_mmap_fix")
 OUT_DIR = os.path.join(ROOT, "writeup", "stats")
 W, CAD = 24000, 1000
-LAM_AMP, LAM_RAW = 1e2, 1e4
+LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
+VAL_FRAC = 0.25          # trailing share of each training window held out
 BETAS = np.round(np.arange(-0.5, 3.01, 0.1), 2)
 NBLOCK = 8
 
@@ -93,7 +102,7 @@ def main():
     print(f"corrected cache {X.shape}: {C} channels x {R} rungs, "
           f"{len(BETAS)} exponents")
 
-    def amp_walk(gvec, lam=LAM_AMP):
+    def amp_walk(gvec, lam):
         """Rolling walk with backbone + 41 amplitudes under a fixed weight."""
         Fa = Fl @ gvec
         Fd = np.hstack([Fh, Fa])
@@ -115,6 +124,31 @@ def main():
     rv_w = rvv[W:]
     base_ok = rv_w > 0
 
+    # Penalties are re-selected on THIS cache. The previous script inherited
+    # 1e2 and 1e4 from validation runs on the pre-fix cache; carrying a
+    # hyperparameter across a dataset change is stale selection even though it
+    # is not snooping. The selection region precedes the evaluation region.
+    v0g, v1g = int(n * 0.55), int(n * 0.65)
+
+    def pick_lam(walker):
+        best = (np.inf, 0.0)
+        for lam in LAMS:
+            p_ = walker(lam)
+            sl = slice(v0g - W, v1g - W)
+            m = (rv_w[sl] > 0) & np.isfinite(p_[sl]) & (p_[sl] > 0)
+            if m.sum() == 0:
+                continue
+            q = float(np.mean(qlike_bar(rv_w[sl][m], p_[sl][m])))
+            if np.isfinite(q) and q < best[0]:
+                best = (q, lam)
+        return best[1]
+
+    g1 = rungs ** (-1.0)
+    g1 = g1 / np.linalg.norm(g1)
+    LAM_AMP = pick_lam(lambda L: amp_walk(g1, L))
+    print(f"  amplitude penalty selected on the pre-test region: "
+          f"lambda = {LAM_AMP:g}")
+
     # ---------------------------------------------------- 1. the sweep
     print("\n" + "=" * 74)
     print("1. FIXED EXPONENT, SWEPT")
@@ -123,7 +157,7 @@ def main():
     for beta in BETAS:
         g = rungs ** (-beta)
         g = g / np.linalg.norm(g)
-        p_ = amp_walk(g)
+        p_ = amp_walk(g, LAM_AMP)
         m = base_ok & np.isfinite(p_) & (p_ > 0)
         q = float(np.mean(qlike_bar(rv_w[m], p_[m])))
         curve.append({"beta": float(beta), "qlike": q})
@@ -132,7 +166,10 @@ def main():
     best = min(curve, key=lambda r: r["qlike"])
     qs = np.array([r["qlike"] for r in curve])
     within = [r["beta"] for r in curve if r["qlike"] <= best["qlike"] + 0.0005]
-    print(f"\n  optimum beta = {best['beta']:.2f} at {best['qlike']:.5f}")
+    print(f"\n  ORACLE optimum beta = {best['beta']:.2f} at {best['qlike']:.5f}")
+    print("  (this curve is scored ON the evaluation panel: it is a "
+          "descriptive\n   shape, and its argmin is an upper bound, not an "
+          "achievable result)")
     print(f"  within 0.0005 of it: beta in [{min(within):.2f}, "
           f"{max(within):.2f}]  ({len(within)}/{len(curve)} grid points)")
     print(f"  spread across the whole sweep: {qs.max() - qs.min():.5f}")
@@ -142,34 +179,61 @@ def main():
     print("2. FITTED EXPONENT, AND A FITTED 12-VECTOR SHAPE")
     print("=" * 74)
 
-    def fitted_walk(mode):
+    WV = int(W * VAL_FRAC)
+    WF = W - WV
+
+    def _score_win(Fd_fit, yfit, Fd_val, yval, bval, rvval, lam, npen):
+        pp = Fd_fit.shape[1]
+        P = np.zeros((pp, pp))
+        P[pp - npen:, pp - npen:] = np.eye(npen)
+        cf = np.linalg.solve(Fd_fit.T @ Fd_fit + lam * P + 1e-8 * np.eye(pp),
+                             Fd_fit.T @ yfit)
+        rr = yfit - Fd_fit @ cf
+        pv = ((Fd_val @ cf) ** 2 + float(rr @ rr) / len(yfit)) * bval
+        m = (rvval > 0) & np.isfinite(pv) & (pv > 0)
+        if m.sum() == 0:
+            return np.inf
+        return float(np.mean(qlike_bar(rvval[m], pv[m])))
+
+    def fitted_walk(mode, lam):
+        """beta (or a 12-vector) chosen INSIDE each training window.
+
+        The window is split into a fit part and a trailing validation part;
+        candidates are scored on the validation part under QLIKE, the same loss
+        that is reported; the winner is refit on the whole window. Nothing
+        outside the training window is touched, so this is causal.
+        """
         out = np.full(n - W, np.nan)
         picks = []
         for s in range(W, n, CAD):
             e = min(s + CAD, n)
-            yt = y[s - W:s]
-            if mode == "beta":
-                bestg, bestsse = None, np.inf
+            f0, v0 = s - W, s - WV
+            yfit, yval = y[f0:v0], y[v0:s]
+            bval, rvval = b[v0:s], rvv[v0:s]
+            if mode in ("beta_val", "beta_sse"):
+                bestg, bestscore, bestb = None, np.inf, None
                 for beta in BETAS:
                     g = rungs ** (-beta)
                     g = g / np.linalg.norm(g)
-                    A = np.hstack([np.ones((W, 1)), Fh[s - W:s],
-                                   Fl[s - W:s] @ g])
-                    cf, *_ = np.linalg.lstsq(A, yt, rcond=None)
-                    rr = yt - A @ cf
-                    sse = float(rr @ rr)
-                    if sse < bestsse:
-                        bestg, bestsse = g, sse
-                    del A
+                    Af = np.hstack([np.ones((WF, 1)), Fh[f0:v0], Fl[f0:v0] @ g])
+                    if mode == "beta_sse":
+                        cf, *_ = np.linalg.lstsq(Af, yfit, rcond=None)
+                        rr = yfit - Af @ cf
+                        sc = float(rr @ rr)
+                    else:
+                        Av = np.hstack([np.ones((WV, 1)), Fh[v0:s],
+                                        Fl[v0:s] @ g])
+                        sc = _score_win(Af, yfit, Av, yval, bval, rvval,
+                                        lam, C)
+                        del Av
+                    del Af
+                    if sc < bestscore:
+                        bestg, bestscore, bestb = g, sc, float(beta)
                 g = bestg
-                picks.append(float(BETAS[
-                    int(np.argmin([np.abs(rungs ** (-bb)
-                                          / np.linalg.norm(rungs ** (-bb))
-                                          - g).sum() for bb in BETAS]))]))
+                picks.append(bestb)
             else:
-                # shared 12-vector: regress y on the pooled channel ladders
-                Z = Fl[s - W:s].reshape(W * C, R)
-                rep = np.repeat(yt[:, None], C, axis=1).reshape(-1)
+                Z = Fl[f0:v0].reshape(WF * C, R)
+                rep = np.repeat(yfit[:, None], C, axis=1).reshape(-1)
                 gg, *_ = np.linalg.lstsq(Z, rep, rcond=None)
                 nrm = np.linalg.norm(gg)
                 g = gg / nrm if nrm > 0 else np.ones(R) / np.sqrt(R)
@@ -177,20 +241,21 @@ def main():
             pp = Fd_tr.shape[1]
             P = np.zeros((pp, pp))
             P[1 + nh:, 1 + nh:] = np.eye(C)
-            cf = np.linalg.solve(Fd_tr.T @ Fd_tr + LAM_AMP * P
-                                 + 1e-8 * np.eye(pp), Fd_tr.T @ yt)
-            rr = yt - Fd_tr @ cf
+            cf = np.linalg.solve(Fd_tr.T @ Fd_tr + lam * P
+                                 + 1e-8 * np.eye(pp), Fd_tr.T @ y[s - W:s])
+            rr = y[s - W:s] - Fd_tr @ cf
             Ae = np.hstack([np.ones((e - s, 1)), Fh[s:e], Fl[s:e] @ g])
             out[s - W:e - W] = ((Ae @ cf) ** 2 + float(rr @ rr) / W) * b[s:e]
             del Fd_tr, Ae
         return out, picks
 
     res = {}
-    p_fb, picks = fitted_walk("beta")
-    p_fs, _ = fitted_walk("shape")
+    p_fb, picks = fitted_walk("beta_val", LAM_AMP)
+    p_sse, picks_sse = fitted_walk("beta_sse", LAM_AMP)
+    p_fs, _ = fitted_walk("shape", LAM_AMP)
 
     # ---------------------------------------------------- references
-    def raw_walk():
+    def raw_walk(lam=None):
         Fd = np.hstack([Fh, Fl.reshape(n, C * R)])
         pp = Fd.shape[1]
         P = np.zeros((1 + pp, 1 + pp))
@@ -201,7 +266,7 @@ def main():
         for s in range(W, n, CAD):
             e = min(s + CAD, n)
             A = np.hstack([np.ones((W, 1)), Fd[s - W:s]])
-            cf = np.linalg.solve(A.T @ A + LAM_RAW * P + 1e-8 * np.eye(1 + pp),
+            cf = np.linalg.solve(A.T @ A + lam * P + 1e-8 * np.eye(1 + pp),
                                  A.T @ y[s - W:s])
             rr = y[s - W:s] - A @ cf
             Ae = np.hstack([np.ones((e - s, 1)), Fd[s:e]])
@@ -221,10 +286,14 @@ def main():
             out[s - W:e - W] = ((Ae @ cf) ** 2 + float(rr @ rr) / W) * b[s:e]
         return out
 
-    arms = {"fixed beta*": preds_by_beta[best["beta"]],
-            "fixed beta=1": preds_by_beta[1.0],
-            "fitted beta": p_fb, "fitted 12-vector": p_fs,
-            "ridge on 492 raw": raw_walk(), "backbone": bb_walk()}
+    LAM_RAW = pick_lam(lambda L: raw_walk(L))
+    print(f"  raw-block penalty selected the same way: lambda = {LAM_RAW:g}")
+    arms = {"beta=1 (pre-specified)": preds_by_beta[1.0],
+            "beta by window validation": p_fb,
+            "beta by window SSE": p_sse,
+            "fitted 12-vector": p_fs,
+            "ridge on 492 raw": raw_walk(LAM_RAW), "backbone": bb_walk(),
+            "beta* ORACLE (not achievable)": preds_by_beta[best["beta"]]}
     ok = base_ok.copy()
     for p_ in arms.values():
         ok &= np.isfinite(p_) & (p_ > 0)
@@ -238,9 +307,14 @@ def main():
         res[k] = q
         print(f"  {k:>20}{q:>11.5f}")
     if picks:
-        print(f"\n  fitted beta picked: median {np.median(picks):.2f}, "
-              f"range [{min(picks):.2f}, {max(picks):.2f}] across "
-              f"{len(picks)} refits")
+        print(f"\n  beta by window validation picked: median "
+              f"{np.median(picks):.2f}, range [{min(picks):.2f}, "
+              f"{max(picks):.2f}] across {len(picks)} refits")
+        print(f"  beta by window SSE picked:        median "
+              f"{np.median(picks_sse):.2f}, range [{min(picks_sse):.2f}, "
+              f"{max(picks_sse):.2f}]")
+        crit = res["beta by window SSE"] - res["beta by window validation"]
+        print(f"  criterion cost of using SSE instead of QLIKE: {crit:+.5f}")
 
     print(f"\n  DM against ridge on 492 raw:")
     dms = {}
@@ -286,10 +360,17 @@ def main():
                                                         max(within)],
            "sweep_spread": float(qs.max() - qs.min()), "arms": res,
            "dm_vs_raw": dms, "eras": eras,
-           "fitted_beta_picks": {"median": float(np.median(picks)) if picks
-                                 else None,
-                                 "min": float(min(picks)) if picks else None,
-                                 "max": float(max(picks)) if picks else None},
+           "beta_picks_validation": {"median": float(np.median(picks)),
+                                     "min": float(min(picks)),
+                                     "max": float(max(picks))},
+           "beta_picks_sse": {"median": float(np.median(picks_sse)),
+                              "min": float(min(picks_sse)),
+                              "max": float(max(picks_sse))},
+           "criterion_cost_sse_minus_val":
+               float(res["beta by window SSE"]
+                     - res["beta by window validation"]),
+           "lambda_amp": float(LAM_AMP), "lambda_raw": float(LAM_RAW),
+           "oracle_is_upper_bound_only": True,
            "exponent_stable": bool(stable)}
     with open(os.path.join(OUT_DIR, "exponent_sweep.json"), "w") as fh:
         json.dump(out, fh, indent=2)
