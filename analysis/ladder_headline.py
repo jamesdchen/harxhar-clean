@@ -32,11 +32,24 @@ Only geo-3 against base-2 is a clean count comparison. classic-3 differs in
 both count and placement and is included because it is the ladder the
 literature actually uses.
 
-TARGET. Diurnally adjusted, sqrt-transformed, winsorized at 1/99 -- the
-interior optimum measured under a fixed truth, where the project's default
-5/95 costs 0.00304 and removing the clip entirely helps not at all. Every arm
-is scored against ONE truth, the unclipped series, so the comparison is of
-fits and not of questions.
+TARGET, AND TWO TRUTHS. There are two incompatible families of QLIKE in this
+project and mixing them is worth more than any effect either measures. The
+battery, and every ridge arm in this session, scores against the CLIPPED truth
+y_5/95^2 * b and lands near 0.13. The winsorization ablations, and a first
+version of this script, scored against the UNCLIPPED truth y_none^2 * b and
+land near 0.24, because the unclipped series still contains the spikes a
+variance forecast finds hardest. That difference nearly doubles QLIKE and has
+nothing to do with any model.
+
+Both are reported here. The clipped truth is the one comparable to the
+battery's 0.13415 for OLS HAR base-5 plus calendar; the unclipped truth is the
+cleaner estimand, since scoring against a target the model was also trained to
+predict rewards clipping the question rather than answering it. The ORDERING
+across ladders is the object of interest and should not depend on which is
+used -- if it does, that is the finding.
+
+The training target is winsorized at 1/99 throughout, the interior optimum
+measured under a fixed truth where the project default of 5/95 costs 0.00304.
 """
 
 from __future__ import annotations
@@ -156,10 +169,13 @@ def main():
     off = len(raw) - n
     y99, b99 = build_target(raw, 0.01, 0.99)
     y_no, _ = build_target(raw, None, None)
+    y595, _ = build_target(raw, 0.05, 0.95)
     y = y99[off:off + n]; b = b99[off:off + n]
-    truth = y_no[off:off + n] ** 2 * b
-    print(f"cache {CACHE}: {n:,} rows; target winsorized 1/99, scored against "
-          f"the UNCLIPPED truth", flush=True)
+    TRUTHS = {"clipped 5/95 (battery footing)": y595[off:off + n] ** 2 * b,
+              "unclipped (clean estimand)": y_no[off:off + n] ** 2 * b}
+    print(f"cache {CACHE}: {n:,} rows; training target winsorized 1/99", flush=True)
+    for k, v in TRUTHS.items():
+        print(f"    truth {k:>32}: mean {np.nanmean(v):.4e}", flush=True)
 
     # the full base-2 ladder, built once; every arm is a projection of it
     s = pd.Series(y ** 2)
@@ -182,42 +198,57 @@ def main():
         print(f"    {nm:>16} lag dims={r:<3d} cols={F.shape[1]} "
               f"inverse drift {drift:.2e} ({time.time()-t0:.0f}s)", flush=True)
 
-    tr = truth[W:]
-    good = (tr > 0) & np.isfinite(tr)
-    for k in preds: good &= np.isfinite(preds[k]) & (preds[k] > 0)
-    idx = np.flatnonzero(good)
-    L = {k: qlike_bar(tr[idx], preds[k][idx]) for k in preds}
-    Q = {k: float(L[k].mean()) for k in L}
-    print(f"\n  scored {len(idx):,} bars, per-bar refit ({n - W:,} refits each)\n")
+    out = {"cache": CACHE, "arms": res, "by_truth": {}}
+    for tname, truth in TRUTHS.items():
+        tr = truth[W:]
+        good = (tr > 0) & np.isfinite(tr)
+        for k in preds: good &= np.isfinite(preds[k]) & (preds[k] > 0)
+        idx = np.flatnonzero(good)
+        L = {k: qlike_bar(tr[idx], preds[k][idx]) for k in preds}
+        Q = {k: float(L[k].mean()) for k in L}
+        report(tname, L, Q, res, preds, idx, n, out)
+    ordr = [out["by_truth"][t]["order"] for t in TRUTHS]
+    print(f"\n  ordering identical across the two truths: "
+          f"{ordr[0] == ordr[1]}")
+    print(f"  battery reference: OLS HAR base-5 + calendar = 0.13415 "
+          f"(clipped footing, frozen panel)")
+    out["ordering_truth_invariant"] = bool(ordr[0] == ordr[1])
+    with open(os.path.join(OUT_DIR, "ladder_headline.json"), "w") as fh:
+        json.dump(out, fh, indent=1)
+    print(f"\nwrote ladder_headline.json ({time.time()-t0:.0f}s)")
+
+
+def report(tname, L, Q, res, preds, idx, n, out):
+    print(f"\n{'=' * 74}\n  TRUTH: {tname}   ({len(idx):,} bars, "
+          f"{n - 24000:,} per-bar refits)\n{'=' * 74}")
     REF = "base-2 (r=12)"
+    rec = {"qlike": Q, "dm": {}}
     print(f"  {'arm':>16}{'lag dims':>10}{'cols':>6}{'QLIKE':>11}"
           f"{'vs base-2':>12}{'t':>8}")
-    out = {"cache": CACHE, "n": int(len(idx)), "qlike": Q, "arms": res, "dm": {}}
     for nm in preds:
         if nm == REF:
             print(f"  {nm:>16}{res[nm]['rank']:>10}{res[nm]['cols']:>6}"
                   f"{Q[nm]:>11.5f}{'--':>12}{'--':>8}")
             continue
         rr = dm_test(L[nm], L[REF], h=1)
-        out["dm"][nm] = {"diff": float(rr["mean_diff"]), "t": float(rr["t"]),
+        rec["dm"][nm] = {"diff": float(rr["mean_diff"]), "t": float(rr["t"]),
                          "p": float(rr["p"])}
         print(f"  {nm:>16}{res[nm]['rank']:>10}{res[nm]['cols']:>6}"
               f"{Q[nm]:>11.5f}{rr['mean_diff']:>+12.5f}{rr['t']:>8.2f}")
     nb = len(idx) // NBLOCK
-    print(f"\n  by era (positive = worse than base-2):")
+    print(f"  by era (positive = worse than base-2):")
     for nm in preds:
         if nm == REF: continue
         d = L[nm] - L[REF]
         em = [float(d[i*nb:(i+1)*nb if i < NBLOCK-1 else len(idx)].mean())
               for i in range(NBLOCK)]
-        out[f"era_{nm}"] = em
-        print(f"    {nm:>10}: {['%+.5f' % v for v in em]}  "
-              f"base-2 better in {sum(1 for v in em if v > 0)}/{NBLOCK}")
-    best = min((v, k) for k, v in Q.items())[1]
-    print(f"\n  best: {best}")
-    print(f"  every arm carries the SAME twelve lags; only the number of shape")
-    print(f"  coefficients differs, so this measures the ladder's intrinsic")
-    print(f"  dimension rather than its span.")
+        rec[f"era_{nm}"] = em
+        print(f"    {nm:>16}: base-2 better in "
+              f"{sum(1 for v in em if v > 0)}/{NBLOCK} eras")
+    rec["order"] = sorted(Q, key=lambda k: Q[k])
+    rec["n"] = int(len(idx))
+    print(f"  best: {rec['order'][0]}")
+    out["by_truth"][tname] = rec
     with open(os.path.join(OUT_DIR, "ladder_headline.json"), "w") as fh:
         json.dump(out, fh, indent=1)
     print(f"\nwrote ladder_headline.json ({time.time()-t0:.0f}s)")
