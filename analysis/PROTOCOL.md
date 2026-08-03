@@ -91,11 +91,57 @@ of it was written into the paper.
 | **H4** the amplitude exponent is a non-lever | **CONFIRMED**. Fixed-beta cells span 0.00016 on composed, 0.00030 on none, both under 0.0005 |
 | **falsification condition** raw492 beats the stripped-down design on the composed cache by >0.0005 with \|t\|>3 | **MET**: -0.00126, t -5.91, p 3.4e-09. The stripped-down design is withdrawn |
 
-H2's rejection is the one to keep in view. The pooled main effect understates
-the prep fix because four of the six designs barely touch the affected columns;
-for raw492 alone the cache is worth 0.00471, larger than any design contrast.
-But the hypothesis was stated in terms of main effects and it fails in those
-terms, so the claim reported in the paper is the conditional one.
+### H2 was badly posed, and the verdict stands anyway
+
+H2 is rejected and stays rejected; the paper reports it as a failure. What
+follows is a post-mortem on the hypothesis, not a re-scoring of it. Nothing
+below changes what is claimed.
+
+Five of the six designs are immune to the cache factor by construction:
+
+| design | none | composed | delta |
+|---|---|---|---|
+| backbone | 0.13571 | 0.13571 | +0.00000 |
+| amp b=0.5 | 0.13294 | 0.13301 | -0.00007 |
+| amp b=1.0 | 0.13264 | 0.13285 | -0.00022 |
+| amp b=2.0 | 0.13265 | 0.13286 | -0.00021 |
+| amp b fitted | 0.13248 | 0.13272 | -0.00024 |
+| **raw492** | 0.13617 | 0.13146 | **+0.00472** |
+
+The backbone uses no exogenous columns and cannot respond; the amplitude
+designs average 12 rungs and so dilute the corrupted channel about twelvefold.
+The cache "main effect" is therefore five zeros and one 0.00472 divided by six.
+
+Three flaws, all identifiable before the answer was known:
+
+1. **Averaged over units that cannot receive the treatment.** A main effect
+   averages over the other factor's levels, which is only meaningful if those
+   levels form a sensible population. Here they do not.
+2. **Not like-for-like.** The cache effect is a difference of two means; the
+   design effect is a *range over six levels*. Ranges grow with level count.
+3. **A pooled mean for a concentrated failure.** 27 bars carry 47% of the
+   damage. Worse, section 2 of this document already requires that "any effect
+   below 0.005 is reported by era, not pooled" -- H2 was stated pooled on
+   effects below 0.005, so it violated our own convention.
+
+Under better-posed estimands:
+
+| framing | cache | design | holds |
+|---|---|---|---|
+| as pre-registered | 0.00066 | 0.00311 | no |
+| like-for-like, immune backbone dropped | 0.00066 | 0.00121 | no |
+| exposure-conditional (raw492) | 0.00472 | 0.00425 | yes, 1.1x |
+| interaction | 0.00486 | 0.00311 | yes, 1.6x |
+| era 8, where the defect binds | 0.03653 | 0.00311 | yes, 11.8x |
+
+Fixing flaw 2 alone does **not** rescue H2 -- design still exceeds cache. So
+the pooled claim genuinely fails and only the conditional one is supported,
+which is what the paper says.
+
+**Restatement for any future panel**, to be fixed before running: among designs
+that actually use the affected columns, the data-version effect on an
+era-level or worst-decile loss exceeds the largest design contrast, with the
+same statistic computed on both sides.
 
 Two further results, both on the clean cache:
 
