@@ -36,6 +36,8 @@ CACHE = os.environ.get("DF_CACHE", "b2_mmap_warm")
 W, CAD = 24000, 1000
 LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
 NBLOCK = 8
+# Directions below this share of the leading singular value carry no data.
+RANK_TOL = 1e-8
 ARMS = [("ridge-504", "ridge", None), ("pc-5", "pc", 5), ("pc-20", "pc", 20),
         ("pc-50", "pc", 50), ("spectral-0.5", "spectral", 0.5),
         ("spectral-1.0", "spectral", 1.0), ("op-d5", "op", 5)]
@@ -78,18 +80,35 @@ def main():
         o = np.argsort(ev)[::-1]
         ev, V = np.clip(ev[o], 0.0, None), V[:, o]
         sv = np.sqrt(ev)
+        # Drop null directions rather than penalising them into oblivion.
+        # A direction with s_j = 0 carries no data and its coefficient is
+        # exactly zero; (0/s_1)^-2a is inf, and an inf clipped to some large
+        # constant puts an entry of 1e12 beside entries of order W = 24,000,
+        # so a guard against a nan manufactures a solve whose condition number
+        # sits at the limit of double precision. Truncating is exact, better
+        # conditioned, and solves a smaller problem.
+        #
+        # The null space is structural, not numerical noise: the first window
+        # is rank 384 of 492, short by exactly 108 = 9 x 12 -- the nine
+        # channels whose feeds have not begun by 2007, which the warm-up guard
+        # pins to a neutral zero. By the body of the panel the block is full
+        # rank with a smallest ratio of 2-3e-4, so nothing is dropped there,
+        # and the tolerance is not a sensitive knob: 1e-6 and 1e-12 give rank
+        # 384 and 390 on that first window.
+        keep = (sv / max(sv[0], 1e-300)) > RANK_TOL
+        sv, V = sv[keep], V[:, keep]
         out = {}
         I_h = np.eye(nh)
         for nm, kind, prm in ARMS:
             if kind == "ridge":
                 T = np.eye(P); pen = None
             elif kind == "pc":
-                Vk = V[:, :prm]
-                T = np.zeros((P, nh + prm)); T[:nh, :nh] = I_h
+                Vk = V[:, :min(prm, V.shape[1])]
+                T = np.zeros((P, nh + Vk.shape[1])); T[:nh, :nh] = I_h
                 T[nh:, nh:] = Vk
                 pen = None
             elif kind == "spectral":
-                T = np.zeros((P, nh + P - nh)); T[:nh, :nh] = I_h
+                T = np.zeros((P, nh + V.shape[1])); T[:nh, :nh] = I_h
                 T[nh:, nh:] = V
                 # The centred exogenous cross-product is rank-deficient, so
                 # sv holds exact zeros and the ratio must be floored BEFORE
@@ -98,8 +117,7 @@ def main():
                 # than a loud one. A floored ratio gives those directions the
                 # maximum penalty, which is the intended behaviour: a null
                 # direction should be shrunk away, not fitted.
-                ratio = np.clip(sv / max(sv[0], 1e-300), 1e-12, None)
-                pen = np.clip(ratio ** (-2.0 * prm), 0.0, 1e12)
+                pen = (sv / sv[0]) ** (-2.0 * prm)
             else:                                    # supervised operator
                 Gh = G[:1 + nh, :1 + nh]
                 bh = np.linalg.solve(Gh + 1e-8 * np.eye(1 + nh), c[:1 + nh])
@@ -183,7 +201,7 @@ def main():
         print(f"  era means vs ridge-504: {['%+.5f' % v for v in em]}")
         print(f"  better in {sum(1 for v in em if v < 0)}/{NBLOCK} eras")
         out["best_era_means"] = em
-    with open(os.path.join(OUT_DIR, "dual_features_fast.json"), "w") as fh:
+    with open(os.path.join(OUT_DIR, os.environ.get("DF_OUT", "dual_features_fast.json")), "w") as fh:
         json.dump(out, fh, indent=1)
     print(f"\nwrote dual_features_fast.json ({time.time()-t0:.0f}s)")
 
