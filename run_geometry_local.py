@@ -175,13 +175,15 @@ def prepare_full(bucket: str, har_base: int | None = None):
     baselines = df["baseline"].values.astype(np.float64)
     X, y, dates, baselines = apply_horizon_shift(X, y, dates, baselines, HORIZON)
     ref_iqr, fixed_cols = _build_scale_guards(X, df, names)
+    X_raw = X
     X = rolling_robust_scale(X, TRAIN_WIN, ref_iqr=ref_iqr, fixed_cols=fixed_cols)
     # Re-scale the imputed exogenous columns using observed rows only. See
     # executor.apply_masked_scaling: masking the ESTIMATE is what the three
     # earlier value-side repairs were all failing to do.
     if os.environ.get("MASKED_SCALE", "1") != "0":
         from src.backtest.executor import apply_masked_scaling
-        X = apply_masked_scaling(X, df, names, TRAIN_WIN)
+        X = apply_masked_scaling(X, X_raw, df, names, TRAIN_WIN)
+    del X_raw
     os.makedirs(CACHE_DIR, exist_ok=True)
     np.savez(cache, X=X, y=y, baselines=baselines,
              names=np.array(names, dtype=object))

@@ -139,7 +139,8 @@ def _build_scale_guards(
 
 
 def apply_masked_scaling(
-    X: np.ndarray, df: pd.DataFrame, feature_names: list[str], train_win: int
+    X: np.ndarray, X_raw: np.ndarray, df: pd.DataFrame,
+    feature_names: list[str], train_win: int
 ) -> np.ndarray:
     """Rescale every imputed exogenous column using OBSERVED rows only.
 
@@ -159,6 +160,12 @@ def apply_masked_scaling(
     out = X
     n = X.shape[0]
     touched = 0
+    # X_raw is the UNSCALED matrix. Masked scaling REPLACES the ordinary
+    # scaler for these columns; composing the two would estimate the masked
+    # median and IQR on a series the unmasked scaler had already distorted,
+    # which is what a first version of this did (voldemand landed at 64.0
+    # rolling IQRs instead of the 10.5 a single-column test predicted, and
+    # numobs and vix went backwards).
     for j, name in enumerate(feature_names):
         m = re.match(r"adj_(.+)_ma_(\d+)$", name)
         if m is None:
@@ -170,7 +177,7 @@ def apply_masked_scaling(
         # A rung-r moving average is observed when the bars feeding it were;
         # require the window's centre bar rather than all r of them, which is
         # the same convention the availability rolling means already use.
-        out[:, j] = masked_rolling_scale_col(X[:, j], mask, train_win)
+        out[:, j] = masked_rolling_scale_col(X_raw[:, j], mask, train_win)
         touched += 1
     if touched:
         print(f"[scale] masked rescaling applied to {touched} exogenous columns")
