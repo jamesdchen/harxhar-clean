@@ -35,7 +35,11 @@ results/resid_prep/
 # analysis/rebuild_fixed_cache.py (see drivers/msweep_2026-08-01/README.md)
 results/b2_mmap/
 results/b2_mmap_fix/
+results/b2_mmap_scaleronly/
+results/b2_mmap_indonly/
 results_fix/
+results_scaleronly/
+results_indonly/
 results/covid_imp_rank/
 results/ebm_resid-*/
 results/resid_ab/
