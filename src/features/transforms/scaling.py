@@ -17,6 +17,32 @@ from __future__ import annotations
 import numpy as np
 from numba import njit, prange
 
+# Relative floor on the rolling IQR, as a fraction of that column's own typical
+# IQR so far (a causal running geometric mean of the positive IQRs observed up
+# to and including the current window). The reference is a running MAXIMUM,
+# not a mean: a mean or geometric mean is dragged down by the very degenerate
+# windows the floor exists to catch, which collapses the floor alongside the
+# IQR and -- measured on a synthetic degenerate column -- lifts the result just
+# above the 1e-12 fallback that had been catching it, making the output worse
+# (|max| 293 -> 117,114). A running maximum cannot be dragged down. Its failure
+# mode is the safe one: an unusually volatile early window sets a high floor
+# and over-attenuates later rows, where under-flooring detonates them.
+#
+# The historical guard was ``iqr = iq if iq >= 1e-12 else 1.0``: an ABSOLUTE
+# threshold, which catches an exactly-degenerate window and misses the case
+# that actually bites. An IQR of 1e-11 on a column whose values are of order
+# 1e-6 sails past it and divides the incoming point by ~nothing. That is the
+# same defect ``target.DIURNAL_STD_FLOOR_FRAC`` was introduced to fix on the
+# diurnal std, where the note reads: "The old replace(0, 1.0) only caught an
+# *exactly* zero std and assumed an O(1) series, so a tiny-but-nonzero std on a
+# large-scale signed feature blew the adjusted value up to ~1e13."
+#
+# The measured consequence here: 29 of 41 exogenous channels reach past 20
+# rolling IQRs somewhere in the panel and the worst reached 2,260, which is not
+# a market move but a division by a collapsed scale. Set to 0.0 to restore the
+# legacy absolute-only guard bit-for-bit.
+IQR_FLOOR_FRAC: float = 0.01
+
 
 @njit(cache=True)
 def _update_sorted_matrix(
@@ -137,6 +163,7 @@ def rolling_robust_scale(
     train_win: int,
     ref_iqr: np.ndarray | None = None,
     fixed_cols: np.ndarray | None = None,
+    iqr_floor_frac: float = IQR_FLOOR_FRAC,
 ) -> np.ndarray:
     """Per-row rolling robust scaling, computed whole-series.
 
@@ -179,7 +206,7 @@ def rolling_robust_scale(
     ref = (
         np.asarray(ref_iqr, dtype=np.float64) if use_ref else np.zeros((1, X.shape[1]))
     )
-    _rolling_scale_cols(X, train_win, ref, use_ref, out)
+    _rolling_scale_cols(X, train_win, ref, use_ref, out, iqr_floor_frac)
     if fixed_cols is not None:
         out[:, fixed_cols] = X[:, fixed_cols]
     return out
@@ -187,7 +214,8 @@ def rolling_robust_scale(
 
 @njit(cache=True, parallel=True)
 def _rolling_scale_cols(
-    X: np.ndarray, W: int, ref_iqr: np.ndarray, use_ref: bool, out: np.ndarray
+    X: np.ndarray, W: int, ref_iqr: np.ndarray, use_ref: bool, out: np.ndarray,
+    floor_frac: float = 0.0
 ) -> None:
     """Whole-series replay of the sorted-window scaler, one column per thread.
 
@@ -212,7 +240,15 @@ def _rolling_scale_cols(
         med = s[i50] * (1.0 - r50) + s[min(i50 + 1, W - 1)] * r50
         q75 = s[i75] * (1.0 - r75) + s[min(i75 + 1, W - 1)] * r75
         iq = q75 - q25
-        iqr = iq if iq >= 1e-12 else 1.0
+        # causal running MAXIMUM of the IQRs seen so far, for the relative floor
+        iq_max = iq if iq > 0.0 else 0.0
+        iqr = iq
+        if floor_frac > 0.0 and iq_max > 0.0:
+            fl = floor_frac * iq_max
+            if iqr < fl:
+                iqr = fl
+        if iqr < 1e-12:
+            iqr = 1.0
         for t in range(W):  # rows [0, W): the initial window's stats
             eff = iqr
             if use_ref and ref_iqr[t, j] > eff:
@@ -223,7 +259,15 @@ def _rolling_scale_cols(
             med = s[i50] * (1.0 - r50) + s[min(i50 + 1, W - 1)] * r50
             q75 = s[i75] * (1.0 - r75) + s[min(i75 + 1, W - 1)] * r75
             iq = q75 - q25
-            iqr = iq if iq >= 1e-12 else 1.0
+            if iq > iq_max:
+                iq_max = iq
+            iqr = iq
+            if floor_frac > 0.0 and iq_max > 0.0:
+                fl = floor_frac * iq_max
+                if iqr < fl:
+                    iqr = fl
+            if iqr < 1e-12:
+                iqr = 1.0
             eff = iqr
             if use_ref and ref_iqr[t, j] > eff:
                 eff = ref_iqr[t, j]
