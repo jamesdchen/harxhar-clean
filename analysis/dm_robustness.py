@@ -52,6 +52,10 @@ from inference import (auto_lag, dm_test, newey_west_lrv,  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, "writeup", "stats")
 CACHES = [("none", "b2_mmap"), ("composed", "b2_mmap_warm")]
+# MODE=cache  : raw492 on two caches (the original question)
+# MODE=design : r=3 power basis vs raw492, both on the clean cache
+MODE = os.environ.get("DMR_MODE", "cache")
+DESIGN_CACHE = os.environ.get("DMR_CACHE", "b2_mmap_warm")
 W, CAD = 24000, 1000
 LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
 NBLOCK = 8
@@ -77,6 +81,95 @@ def layout(names):
     har = np.array([j for j, nm in enumerate(names)
                     if re.match(r"^har_ma_\d+$", nm)], int)
     return labels, lad, har
+
+
+def gram_schmidt(vs):
+    out = []
+    for v in vs:
+        v = np.asarray(v, float).copy()
+        for u in out:
+            v -= (v @ u) * u
+        nv = np.linalg.norm(v)
+        if nv > 1e-8:
+            out.append(v / nv)
+    return out
+
+
+def design_losses(path, which):
+    """which='raw492' or 'r3' -- both on the SAME cache, so no October effect."""
+    D = os.path.join(ROOT, "results", path)
+    X = np.load(os.path.join(D, "X.npy"), mmap_mode="r")
+    y = np.load(os.path.join(D, "y.npy"))
+    b = np.load(os.path.join(D, "b.npy"))
+    names = [str(s) for s in np.load(os.path.join(D, "names.npy"),
+                                     allow_pickle=True)]
+    chan = {}
+    for j, nm in enumerate(names):
+        m = re.match(r"^adj_(.+)_ma_(\d+)$", nm)
+        if m:
+            chan.setdefault(m.group(1), []).append((int(m.group(2)), j))
+    for c in chan:
+        chan[c].sort()
+    labels = [c for c in chan if len(chan[c]) == 12]
+    rungs = np.array([r for r, _ in chan[labels[0]]], float)
+    lad = np.array([j for c in labels for _, j in chan[c]], int)
+    har = np.array([j for j, nm in enumerate(names)
+                    if re.match(r"^har_ma_\d+$", nm)], int)
+    n = len(y)
+    rvv = y ** 2 * b
+    Fh = np.asarray(X[:, har], np.float64)
+    Fl = np.asarray(X[:, lad], np.float64).reshape(n, len(labels), 12)
+    del X
+    if which == "raw492":
+        Fd = np.hstack([Fh, Fl.reshape(n, len(labels) * 12)])
+    else:
+        SH = gram_schmidt([rungs ** -1.0, rungs ** -0.5, rungs ** -2.0])
+        A = np.concatenate([Fl @ SH[j] for j in range(3)], axis=1)
+        Fd = np.hstack([Fh, A])
+    npen = Fd.shape[1] - len(har)
+    return _fit(Fd, npen, y, b, rvv, n), rvv[W:], Fd.shape[1]
+
+
+def _fit(Fd, npen, y, b, rvv, n):
+    pp = Fd.shape[1]
+    P = np.zeros((1 + pp, 1 + pp))
+    P[1 + pp - npen:, 1 + pp - npen:] = np.eye(npen)
+    v0, v1 = int(n * 0.55), int(n * 0.65)
+    num = {L: 0.0 for L in LAMS}
+    den = {L: 0 for L in LAMS}
+    s0 = v0 - ((v0 - W) % CAD)
+    for s in range(s0, v1, CAD):
+        e = min(s + CAD, v1)
+        if e <= v0:
+            continue
+        A = np.hstack([np.ones((W, 1)), Fd[s - W:s]])
+        G, c = A.T @ A, A.T @ y[s - W:s]
+        a, z = max(s, v0), e
+        Ae = np.hstack([np.ones((z - a, 1)), Fd[a:z]])
+        for L in LAMS:
+            cf = np.linalg.solve(G + L * P + 1e-8 * np.eye(1 + pp), c)
+            rr = y[s - W:s] - A @ cf
+            pv = ((Ae @ cf) ** 2 + float(rr @ rr) / W) * b[a:z]
+            rt = rvv[a:z]
+            m = (rt > 0) & np.isfinite(pv) & (pv > 0)
+            if m.sum():
+                q = rt[m] / pv[m]
+                num[L] += float(np.sum(q - np.log(q) - 1.0))
+                den[L] += int(m.sum())
+        del A, G, Ae
+    lam = min((num[L] / den[L], L) for L in LAMS if den[L])[1]
+    out = np.full(n - W, np.nan)
+    for s in range(W, n, CAD):
+        e = min(s + CAD, n)
+        A = np.hstack([np.ones((W, 1)), Fd[s - W:s]])
+        cf = np.linalg.solve(A.T @ A + lam * P + 1e-8 * np.eye(1 + pp),
+                             A.T @ y[s - W:s])
+        rr = y[s - W:s] - A @ cf
+        Ae = np.hstack([np.ones((e - s, 1)), Fd[s:e]])
+        out[s - W:e - W] = ((Ae @ cf) ** 2 + float(rr @ rr) / W) * b[s:e]
+        del A, Ae
+    print(f"      lambda*={lam:g}", flush=True)
+    return out
 
 
 def raw492_losses(path):
@@ -140,11 +233,21 @@ def main():
     t0 = time.time()
     print("Is the raw492 cache effect a reliable inference?\n")
     pr, rv_ref, lams = {}, None, {}
-    for tag, path in CACHES:
-        pr[tag], rvw, lams[tag] = raw492_losses(path)
-        rv_ref = rvw if rv_ref is None else rv_ref
-        print(f"  {tag:>9}: lambda*={lams[tag]:g}  ({time.time()-t0:.0f}s)",
-              flush=True)
+    if MODE == "design":
+        print(f"MODE=design: r=3 power basis vs raw492, both on {DESIGN_CACHE}")
+        for tag, which in (("none", "raw492"), ("composed", "r3")):
+            print(f"  building {which} ...", flush=True)
+            pr[tag], rvw, ncol = design_losses(DESIGN_CACHE, which)
+            rv_ref = rvw if rv_ref is None else rv_ref
+            lams[tag] = ncol
+            print(f"  {which:>9}: {ncol} cols  ({time.time()-t0:.0f}s)",
+                  flush=True)
+    else:
+        for tag, path in CACHES:
+            pr[tag], rvw, lams[tag] = raw492_losses(path)
+            rv_ref = rvw if rv_ref is None else rv_ref
+            print(f"  {tag:>9}: lambda*={lams[tag]:g}  ({time.time()-t0:.0f}s)",
+                  flush=True)
 
     good = rv_ref > 0
     for t in pr:
@@ -234,7 +337,7 @@ def main():
         print(f"  drop era {i + 1}: diff {r['mean_diff']:+.6f}  t {r['t']:+6.2f}")
     out["leave_one_era_out"] = loo
 
-    with open(os.path.join(OUT_DIR, "dm_robustness.json"), "w") as fh:
+    with open(os.path.join(OUT_DIR, f"dm_robustness_{MODE}.json"), "w") as fh:
         json.dump(out, fh, indent=1)
     print(f"\nwrote dm_robustness.json  ({time.time()-t0:.0f}s)")
 
