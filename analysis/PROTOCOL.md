@@ -297,9 +297,43 @@ winsorization contrasts, and the tree and kernel arms were all measured against
 is against the paper's actual incumbent and none may be quoted beside the
 paper's numbers without restating its base.
 
-**Convention added:** any arm compared to a published number must be fitted on
-the published incumbent's feature set, or the difference in base stated
-explicitly in the same sentence.
+**And it is worse than the calendar block alone.** The cache holds 1,077
+columns; every design in this session used 504:
+
+| block | count | used |
+|---|---|---|
+| `adj_*_ma_*` exogenous ladder | 492 | yes |
+| **`*_avail_ma_*` availability indicators** | **492** | **no** |
+| `*_active_ma_*` occurrence indicators | 48 | no |
+| `har_ma_*` | 12 | yes |
+| other, including 9 calendar | 33 | no |
+
+Against the battery table: the paper's `ridge / all_features` is **0.12788**,
+its LightGBM 0.12604, its dense elastic net 0.12530, its deployed `enetreg2`
+0.12314. This session's `ridge-504` is **0.13146** -- 0.00358 worse than the
+paper's plain ridge, which is larger than every effect measured here. The best
+arm found, `+ exog x cal4` at 2,589 columns and 0.12987, is still worse than
+the paper's ordinary ridge.
+
+The omission is pointed. This session's central finding is that availability
+bookkeeping was dishonest and that repairing it matters; the impute-and-
+indicate encoding exists so the model can tell a real value from a filled one.
+Every experiment here then dropped all 492 availability indicators.
+
+**What this invalidates.** Not only the wins. The NULLS are equally affected --
+"shock breadth adds nothing", "smooth nonlinearity adds nothing", "the channel
+axis is not low rank" were each measured on a design missing the block that
+encodes missingness, which is where breadth and regime information would sit.
+No null here is evidence about the full design.
+
+**Conventions added:**
+
+1. Any arm compared to a published number is fitted on the published
+   incumbent's feature set, or the difference in base is stated in the same
+   sentence.
+2. Before any arm is fitted, its column count is reconciled against the
+   cache's total and the difference accounted for explicitly. `504 of 1,077`
+   should have stopped this on the first run.
 
 ## 5. Order of execution
 
