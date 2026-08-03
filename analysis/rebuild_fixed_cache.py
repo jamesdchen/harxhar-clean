@@ -20,8 +20,11 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-OUT = os.path.join(ROOT, "results", "b2_mmap_fix")
-CACHE = os.path.join(ROOT, "results_fix")
+# Target directories are overridable so each prep ablation lands in its own
+# cache and the builds can be differenced. Defaults to the indicator-only fix,
+# which is what the executor's current defaults produce.
+OUT = os.path.join(ROOT, "results", os.environ.get("OUT_TAG", "b2_mmap_indonly"))
+CACHE = os.path.join(ROOT, os.environ.get("CACHE_TAG", "results_indonly"))
 
 
 def main() -> None:
