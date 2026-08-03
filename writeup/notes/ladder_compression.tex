@@ -190,18 +190,55 @@ arm & bases & QLIKE & vs base-2 & max principal angle \\
 \textbf{Every refit cadence loses.} Eras better than base-2: 5 of 8 frozen,
 against 1, 2 and 1 of 8 for the refit arms.
 
-The principal angles explain it. At $89.0^{\circ}$ the estimated
-three-dimensional subspace is nearly \emph{orthogonal} to what it was one
-window earlier---it does not drift, it swings. This is the same instability
-that sank an in-window operator SVD elsewhere in the project, where the
-estimated leading direction had consecutive cosine similarity averaging
-$0.893$ but bottoming out at $0.002$. A stale basis from 2005--07 happens to
-work; any honest attempt to keep it current removes the gain.
+\subsection{The instability is the estimator, and fixing it removes the win}
 
-The compression claim is therefore \textbf{withdrawn}. What transfers is the
-diagnostic: a projection whose loss looks good should be checked for subspace
-stability before it is believed, because the mean loss cannot distinguish a
-stable feature of the data from a lucky freeze.
+The subspace is built as a Krylov space $K_r(C, \text{seed})$. Three seeds were
+compared, holding the construction fixed so any difference is attributable to
+the seed alone:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrl}
+\toprule
+seed & arm & QLIKE & vs base-2 & principal angles per direction \\
+\midrule
+$C^{-1}xy$ & frozen & $0.13358$ & $-0.00080$ & --- \\
+$C^{-1}xy$ & refit/6000 & $0.13461$ & $+0.00023$ & $[2.2, 63.8, 84.4]^{\circ}$ \\
+$xy$ (PLS) & frozen & $0.13460$ & $+0.00023$ & --- \\
+$xy$ (PLS) & refit/6000 & $0.13470$ & $+0.00032$ & $[1.0, 37.4, 59.1]^{\circ}$ \\
+$(C{+}\lambda I)^{-1}xy$ & frozen & $0.13378$ & $-0.00060$ & --- \\
+$(C{+}\lambda I)^{-1}xy$ & refit/6000 & $0.13457$ & $+0.00020$ & $[1.9, 49.0, 77.6]^{\circ}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Standard PLS does not reproduce the win even frozen} ($+0.00023$
+against $-0.00080$). The ridge-shrunk seed sits between the two at $-0.00060$,
+so the effect scales with how much the collinear ladder covariance is
+inverted. It is a property of the estimator, not a three-dimensional structure
+in the data.
+
+The per-direction angles say where the instability lives. The first Krylov
+direction is stable to $1$--$2^{\circ}$; the second and third swing by $37$ to
+$84^{\circ}$. And the frozen curve runs $-0.00017$, $-0.00024$, then
+$\mathbf{-0.00080}$ at $r=3$: the entire win rides on precisely the two
+directions that do not survive refitting.
+
+\paragraph{Two corrections to an earlier draft of this note.} It attributed
+the instability to an ill-conditioned inversion; $\operatorname{cond}(C)$ is
+$370$--$410$ on this panel, collinear but not singular, so that was wrong. And
+it reported a single angle of $89.0^{\circ}$ as showing the subspace ``nearly
+orthogonal'' to itself. That figure is $\arccos$ of the \emph{smallest}
+singular value, hence the \emph{largest} principal angle: it described one
+direction of three and was silent about the other two.
+
+The compression claim is \textbf{withdrawn}. What transfers is the diagnostic:
+check a projection for subspace stability, per direction, and re-seed it a
+second well-conditioned way before believing its loss. A mean loss cannot
+distinguish a stable feature of the data from a lucky freeze, and a single
+summary angle cannot distinguish a subspace that drifts from one whose
+leading direction is fine and whose tail is noise.
 
 \subsection{A second problem: implementation sensitivity}
 
@@ -226,9 +263,12 @@ second compresses.
   \item \textbf{The freeze was the result}, not a simplification of it. Every
         causal refit cadence loses to the full ladder. This was the largest
         assumption in the design and it did not hold.
-  \item \textbf{The estimated subspace is unstable}, with principal angles up
-        to $89.0^{\circ}$ between consecutive bases. A good mean loss over a
-        swinging estimator is not evidence of structure.
+  \item \textbf{The win depends on the seed}, not on the rank. A
+        well-conditioned PLS seed does not reproduce it, and a partially
+        shrunk one reproduces it partially.
+  \item \textbf{The unstable directions are the ones carrying the win}:
+        direction one is stable to $1$--$2^{\circ}$, directions two and three
+        swing by $37$--$84^{\circ}$, and the gain appears only at $r=3$.
   \item \textbf{The frozen number moves by $0.00021$ across implementations}
         that differ only in NaN handling---a quarter of the claimed effect.
   \item \textbf{The $t$-statistics rest on the rule-of-thumb HAC bandwidth},
