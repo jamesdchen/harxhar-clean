@@ -31,6 +31,11 @@ results/repro/
 # OptionMetrics chain/spot extracts (175MB) — regenerate via prep_om_chain.py from the WRDS gz
 data/optionm_*.parquet
 results/resid_prep/
+# the shared mmap exports and prep caches: 2.0GB each, regenerable via
+# analysis/rebuild_fixed_cache.py (see drivers/msweep_2026-08-01/README.md)
+results/b2_mmap/
+results/b2_mmap_fix/
+results_fix/
 results/covid_imp_rank/
 results/ebm_resid-*/
 results/resid_ab/
