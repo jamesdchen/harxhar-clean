@@ -46,7 +46,15 @@ CACHE = os.environ.get("FG_CACHE", "b2_mmap_warm")
 W, CAD = 24000, 1000
 CAD_SLOW = 4000
 LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
-ALPHAS = [1e-6, 1e-5, 1e-4, 1e-3]
+# sklearn's ElasticNet minimises 1/(2n)||y-Xb||^2 + alpha(...), while the ridge
+# here minimises ||y-Xb||^2 + lambda||b||^2, so the equivalent alpha is
+# lambda/n.  The selected ridge lambda on this cache is 1e4 over a 24,000-bar
+# window, i.e. alpha ~ 0.42.  A first version hardcoded alpha=1e-4 -- four
+# thousand times too small -- and additionally never used the grid it declared,
+# so every arm was unregularised, coordinate descent did not converge, and the
+# result measured alpha scaling rather than sparsity.  The grid is now centred
+# on the equivalent scale AND actually selected on the validation region.
+ALPHAS = [0.042, 0.13, 0.42, 1.3, 4.2]
 L1R = [0.1, 0.5, 1.0]          # 1.0 is pure lasso
 NBLOCK = 8
 
@@ -165,6 +173,31 @@ def main():
     sp = {f"enet l1r={r}": np.full(n - W, np.nan) for r in L1R}
     sp["ridge (same cadence)"] = np.full(n - W, np.nan)
     nnz = {r: [] for r in L1R}
+    n_unconverged = {r: 0 for r in L1R}
+    # alpha selected per l1_ratio on the validation region, never on evaluation
+    ALPHA_SEL = {}
+    for r in L1R:
+        best = (np.inf, ALPHAS[len(ALPHAS) // 2])
+        for al in ALPHAS:
+            tot, cnt = 0.0, 0
+            for s in range(v0 - ((v0 - W) % CAD_SLOW), v1, CAD_SLOW):
+                e = min(s + CAD_SLOW, v1)
+                if e <= v0: continue
+                mm = ElasticNet(alpha=al, l1_ratio=r, max_iter=20000, tol=1e-5,
+                                selection="random", random_state=0
+                                ).fit(F0[s - W:s], y[s - W:s])
+                rt = y[s - W:s] - mm.predict(F0[s - W:s])
+                a_, z_ = max(s, v0), e
+                pv = (mm.predict(F0[a_:z_]) ** 2 + float(rt @ rt) / W) * b[a_:z_]
+                q_ = rvv[a_:z_]
+                mk = (q_ > 0) & np.isfinite(pv) & (pv > 0)
+                if mk.sum():
+                    qq = q_[mk] / pv[mk]
+                    tot += float(np.sum(qq - np.log(qq) - 1.0)); cnt += int(mk.sum())
+            if cnt and tot / cnt < best[0]:
+                best = (tot / cnt, al)
+        ALPHA_SEL[r] = best[1]
+        print(f"    l1_ratio {r}: alpha*={best[1]} (validation)", flush=True)
     for i, s in enumerate(steps):
         e = min(s + CAD_SLOW, n)
         Xtr, ytr = F0[s - W:s], y[s - W:s]
@@ -176,8 +209,11 @@ def main():
         sp["ridge (same cadence)"][s - W:e - W] = ((Ae @ cf) ** 2
                                                    + float(rr @ rr) / W) * b[s:e]
         for r in L1R:
-            m = ElasticNet(alpha=1e-4, l1_ratio=r, max_iter=3000, tol=1e-4,
-                           selection="random", random_state=0).fit(Xtr, ytr)
+            m = ElasticNet(alpha=ALPHA_SEL[r], l1_ratio=r, max_iter=20000,
+                           tol=1e-5, selection="random",
+                           random_state=0).fit(Xtr, ytr)
+            if m.n_iter_ >= 20000:
+                n_unconverged[r] += 1
             rt = ytr - m.predict(Xtr)
             sp[f"enet l1r={r}"][s - W:e - W] = (m.predict(F0[s:e]) ** 2
                                                 + float(rt @ rt) / W) * b[s:e]
@@ -186,11 +222,14 @@ def main():
             print(f"    sparse refit {i+1}/{len(steps)} ({time.time()-t0:.0f}s)",
                   flush=True)
     for r in L1R:
-        print(f"    l1_ratio {r}: median non-zero coefficients "
-              f"{int(np.median(nnz[r]))} of {P0}")
+        print(f"    l1_ratio {r}: alpha*={ALPHA_SEL[r]}  median non-zero "
+              f"{int(np.median(nnz[r]))} of {P0}  unconverged "
+              f"{n_unconverged[r]}/{len(steps)}")
     RES["part4_sparse"] = score(sp, "ridge (same cadence)",
                                 "PART 4  sparsity against L2")
     RES["part4_nnz"] = {str(r): int(np.median(nnz[r])) for r in L1R}
+    RES["part4_alpha"] = {str(r): float(ALPHA_SEL[r]) for r in L1R}
+    RES["part4_unconverged"] = {str(r): int(n_unconverged[r]) for r in L1R}
 
     with open(os.path.join(OUT_DIR, "four_gaps.json"), "w") as fh:
         json.dump(RES, fh, indent=1)
