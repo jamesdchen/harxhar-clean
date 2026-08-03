@@ -54,14 +54,34 @@ CACHE = os.environ.get("LH_CACHE", "b2_mmap_warm")
 W = 24000
 REFRESH = 5000
 NBLOCK = 8
-LADDERS = {"classic-3": [48, 240, 1056],
-           "geo-3": [1, 45, 2048],
-           "base-2": [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]}
+RUNGS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+RANKS = [1, 2, 3, 4, 6, 12]        # 12 = the untouched ladder
 
 
 def qlike_bar(rv, p):
     r = rv / p
     return r - np.log(r) - 1.0
+
+
+def gram_schmidt(vs):
+    out = []
+    for v in vs:
+        v = np.asarray(v, float).copy()
+        for u in out:
+            v -= (v @ u) * u
+        nv = np.linalg.norm(v)
+        if nv > 1e-8:
+            out.append(v / nv)
+    return out
+
+
+def shapes(rungs, r):
+    """r orthonormal lag directions, fixed a priori and never estimated."""
+    rr = np.asarray(rungs, float)
+    fam = [rr ** -1.0, rr ** -0.5, rr ** -2.0, rr ** 0.0, rr ** -3.0, rr ** -1.5]
+    lg = np.log2(rr); lg = (lg - lg.mean()) / lg.std()
+    fam += [lg ** d for d in range(len(rr))]
+    return np.column_stack(gram_schmidt(fam)[:r])
 
 
 def build_target(df, lo, hi):
@@ -141,23 +161,25 @@ def main():
     print(f"cache {CACHE}: {n:,} rows; target winsorized 1/99, scored against "
           f"the UNCLIPPED truth", flush=True)
 
-    # bar-level adjusted RV, from which every ladder is built identically
+    # the full base-2 ladder, built once; every arm is a projection of it
     s = pd.Series(y ** 2)
-    lag = {}
-    for L in sorted({v for vv in LADDERS.values() for v in vv}):
-        lag[L] = np.sqrt(np.maximum(
+    H = np.column_stack([
+        np.sqrt(np.maximum(
             s.rolling(L, min_periods=L).mean().shift(1).to_numpy(), 0.0))
+        for L in RUNGS])
 
     res, preds = {}, {}
-    for nm, rungs in LADDERS.items():
-        F = np.column_stack([lag[L] for L in rungs] + [cal])
+    for r in RANKS:
+        nm = "base-2 (r=12)" if r == 12 else f"compressed r={r}"
+        G = shapes(RUNGS, r)
+        F = np.column_stack([H @ G, cal])
         ok = np.isfinite(F).all(1)
         F = np.where(np.isfinite(F), F, 0.0)
         pr, drift = per_bar_ols(F, y, b, W)
         pr[~ok[W:]] = np.nan
         preds[nm] = pr
-        res[nm] = {"rungs": rungs, "cols": F.shape[1], "drift": drift}
-        print(f"    {nm:>10} rungs={rungs} cols={F.shape[1]} "
+        res[nm] = {"rank": r, "cols": F.shape[1], "drift": drift}
+        print(f"    {nm:>16} lag dims={r:<3d} cols={F.shape[1]} "
               f"inverse drift {drift:.2e} ({time.time()-t0:.0f}s)", flush=True)
 
     tr = truth[W:]
@@ -167,31 +189,35 @@ def main():
     L = {k: qlike_bar(tr[idx], preds[k][idx]) for k in preds}
     Q = {k: float(L[k].mean()) for k in L}
     print(f"\n  scored {len(idx):,} bars, per-bar refit ({n - W:,} refits each)\n")
-    print(f"  {'ladder':>10}{'rungs':>7}{'cols':>6}{'QLIKE':>11}"
+    REF = "base-2 (r=12)"
+    print(f"  {'arm':>16}{'lag dims':>10}{'cols':>6}{'QLIKE':>11}"
           f"{'vs base-2':>12}{'t':>8}")
     out = {"cache": CACHE, "n": int(len(idx)), "qlike": Q, "arms": res, "dm": {}}
-    for nm in LADDERS:
-        if nm == "base-2":
-            print(f"  {nm:>10}{len(LADDERS[nm]):>7}{res[nm]['cols']:>6}"
+    for nm in preds:
+        if nm == REF:
+            print(f"  {nm:>16}{res[nm]['rank']:>10}{res[nm]['cols']:>6}"
                   f"{Q[nm]:>11.5f}{'--':>12}{'--':>8}")
             continue
-        r = dm_test(L[nm], L["base-2"], h=1)
-        out["dm"][nm] = {"diff": float(r["mean_diff"]), "t": float(r["t"]),
-                         "p": float(r["p"])}
-        print(f"  {nm:>10}{len(LADDERS[nm]):>7}{res[nm]['cols']:>6}"
-              f"{Q[nm]:>11.5f}{r['mean_diff']:>+12.5f}{r['t']:>8.2f}")
+        rr = dm_test(L[nm], L[REF], h=1)
+        out["dm"][nm] = {"diff": float(rr["mean_diff"]), "t": float(rr["t"]),
+                         "p": float(rr["p"])}
+        print(f"  {nm:>16}{res[nm]['rank']:>10}{res[nm]['cols']:>6}"
+              f"{Q[nm]:>11.5f}{rr['mean_diff']:>+12.5f}{rr['t']:>8.2f}")
     nb = len(idx) // NBLOCK
     print(f"\n  by era (positive = worse than base-2):")
-    for nm in LADDERS:
-        if nm == "base-2": continue
-        d = L[nm] - L["base-2"]
+    for nm in preds:
+        if nm == REF: continue
+        d = L[nm] - L[REF]
         em = [float(d[i*nb:(i+1)*nb if i < NBLOCK-1 else len(idx)].mean())
               for i in range(NBLOCK)]
         out[f"era_{nm}"] = em
         print(f"    {nm:>10}: {['%+.5f' % v for v in em]}  "
               f"base-2 better in {sum(1 for v in em if v > 0)}/{NBLOCK}")
-    print(f"\n  geo-3 vs base-2 isolates RUNG COUNT (same span);")
-    print(f"  classic-3 differs in count AND placement.")
+    best = min((v, k) for k, v in Q.items())[1]
+    print(f"\n  best: {best}")
+    print(f"  every arm carries the SAME twelve lags; only the number of shape")
+    print(f"  coefficients differs, so this measures the ladder's intrinsic")
+    print(f"  dimension rather than its span.")
     with open(os.path.join(OUT_DIR, "ladder_headline.json"), "w") as fh:
         json.dump(out, fh, indent=1)
     print(f"\nwrote ladder_headline.json ({time.time()-t0:.0f}s)")
