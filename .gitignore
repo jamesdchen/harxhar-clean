@@ -37,9 +37,11 @@ results/b2_mmap/
 results/b2_mmap_fix/
 results/b2_mmap_scaleronly/
 results/b2_mmap_indonly/
+results/b2_mmap_warm/
 results_fix/
 results_scaleronly/
 results_indonly/
+results_warm/
 results/covid_imp_rank/
 results/ebm_resid-*/
 results/resid_ab/
