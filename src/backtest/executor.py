@@ -290,8 +290,9 @@ def load_and_transform(
     impute_indicate: bool = False,
     diurnal_mode: str = "divide",
     use_semantic: bool = True,
-    ffill_limit: int | None = FFILL_LIMIT,
+    ffill_limit: int | None = None,
     legacy_avail: bool = False,
+    neutralise_unobserved: bool = False,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
 
@@ -391,11 +392,26 @@ def load_and_transform(
             # fillna(0) imputes vix = exp(0) = 1, a wild value that blew the
             # Ridge forecast up to QLIKE ~2.4). Median ≈ neutral, prescales to 0.
             adj = df[f"adj_{col}"]
-            # Unobserved rows take the neutral median even when ffill supplied
-            # a stale value, so the feature never presents a months-old
-            # observation as current. Observed rows are untouched.
+            # MEASURED: substituting a neutral median on unobserved rows is
+            # actively harmful and is off by default. It replaces a stale but
+            # VARYING value with a constant, so on a moderately covered channel
+            # a large share of rows become exactly identical, the rolling
+            # window's IQR collapses, and the scaled feature detonates -- the
+            # very pathology this fix exists to remove, manufactured in
+            # channels that never had it. Measured on the 0.625-coverage
+            # spread channels: effspread_vwstock 17.6 -> 932.6 rolling IQRs
+            # (53x), effspread_ewstock 13.1 -> 572.0 (44x).
+            #
+            # What actually repaired the October 2023 failure is the HONEST
+            # INDICATOR below, nothing else: the bug was that the flag claimed
+            # 0.698 availability against 0.223 true coverage, so the model
+            # could not tell fresh from stale and the scale guard computed its
+            # "real values" floor over forward-filled constants. Leaving the
+            # ffilled value in place keeps the series varying and lets the
+            # model discount it via the indicator.
             obs = df[f"{col}__obs"].to_numpy().astype(bool)
-            adj = adj.where(pd.Series(obs, index=adj.index), np.nan)
+            if neutralise_unobserved:
+                adj = adj.where(pd.Series(obs, index=adj.index), np.nan)
             df[f"adj_{col}"] = adj.fillna(adj.median())
             avail = f"{col}_avail"
             df[avail] = obs.astype("float64")
