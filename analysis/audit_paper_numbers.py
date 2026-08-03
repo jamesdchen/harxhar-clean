@@ -293,6 +293,77 @@ check("PC6-20 variance share = 0.18%", 0.0018, G[(6, 20)]["var_share"], tol=5e-5
 check("PC6-20 explained-y share = 79.9%", 0.799, G[(6, 20)]["r2_share"],
       tol=1e-3)
 
+print("\n=== stripped-down model (Section: The Stripped-Down Model) ===")
+dfp = json.load(open(os.path.join(STATS, "dumb_full_panel.json")))
+edf = json.load(open(os.path.join(STATS, "effective_df.json")))
+ew = json.load(open(os.path.join(STATS, "exog_when.json")))
+eb = json.load(open(os.path.join(STATS, "exog_breakdown.json")))
+oc = json.load(open(os.path.join(STATS, "october_2023.json")))
+pa = json.load(open(os.path.join(STATS, "prep_audit.json")))
+pd_ = json.load(open(os.path.join(STATS, "primal_dual.json")))
+W = dfp["whole_panel"]
+check("panel walked = 218,909 bars", 218909, dfp["n_scored"], tol=0.5)
+check("stripped QLIKE = 0.13280", 0.13280, W["dumb"]["qlike"], tol=1e-5)
+check("stripped columns = 53", 53, W["dumb"]["cols"], tol=0.5)
+check("backbone QLIKE = 0.13571", 0.13571, W["backbone"]["qlike"], tol=1e-5)
+check("shaped-penalty QLIKE = 0.13415", 0.13415, W["shaped492"]["qlike"],
+      tol=1e-5)
+check("raw-492 ridge QLIKE = 0.13617", 0.13617, W["ridge492"]["qlike"],
+      tol=1e-5)
+check("raw ridge worse than backbone", 1,
+      1 if W["ridge492"]["qlike"] > W["backbone"]["qlike"] else 0, tol=0.5)
+check("stripped vs shaped t = -5.63", -5.63, dfp["dm_vs_dumb"]["shaped492"]["t"],
+      tol=0.01)
+check("stripped vs backbone t = -9.59", -9.59,
+      dfp["dm_vs_dumb"]["backbone"]["t"], tol=0.01)
+check("stripped beats backbone in 7/8 eras", 7, dfp["dumb_wins_eras"], tol=0.5)
+
+print("\n=== effective degrees of freedom ===")
+B = {b["block"]: b for b in edf["by_block"]}
+check("ridge df blocks 1-7 = 95.4", 95.4, edf["ridge_df_blocks_1_7"], tol=0.05)
+check("ridge df block 8 = 104.7", 104.7, edf["ridge_df_block_8"], tol=0.05)
+check("shape df block 1 = 47.2", 47.2, B[1]["shape"], tol=0.05)
+check("shape df block 8 = 60.0", 60.0, B[8]["shape"], tol=0.05)
+check("backbone df = 13.0", 13.0, B[4]["backbone"], tol=0.05)
+check("ridge df in PC21+ = 72.08", 72.08, edf["spend"]["ridge"]["pc21plus"],
+      tol=0.01)
+check("ridge df in PC6-20 = 14.12", 14.12, edf["spend"]["ridge"]["pc6_20"],
+      tol=0.01)
+check("primal-dual identity < 1e-8", 1, 1 if pd_["identity_check"]["relative"]
+      < 1e-8 else 0, tol=0.5)
+
+print("\n=== era stability and the imputation defect ===")
+E = {b["block"]: b for b in ew["blocks"]}
+check("era 8 ridge delta = +0.03321", 0.03321, E[8]["ridge_minus_bb"], tol=1e-5)
+check("era 8 shape delta = +0.00666", 0.00666, E[8]["shape_minus_bb"], tol=1e-5)
+check("era 8 stripped delta = +0.00347", 0.00347,
+      [b for b in dfp["eras"] if b["block"] == 8][0]["dumb"], tol=1e-5)
+check("ridge beats backbone in 7/8 eras", 7, ew["ridge_wins_blocks"], tol=0.5)
+check("whole-panel ridge-vs-backbone = +0.00046", 0.00046,
+      ew["whole_panel"]["ridge + exog"] - ew["whole_panel"]["backbone only"],
+      tol=1e-5)
+check("failing era bars = 27,376", 27376, eb["concentration"]["n_era"], tol=0.5)
+check("worst 0.1% carry 47.2%", 0.472, eb["concentration"]["levels"]["0.001"]["share"],
+      tol=1e-3)
+check("worst 1% carry 90.5%", 0.905, eb["concentration"]["levels"]["0.01"]["share"],
+      tol=1e-3)
+check("worst 0.1% = 27 bars", 27, eb["concentration"]["levels"]["0.001"]["k"],
+      tol=0.5)
+check("median per-bar diff = +0.00069", 0.00069, eb["concentration"]["median"],
+      tol=1e-5)
+check("voldemand carries 97.2%", 0.972, oc["attribution"][0]["share"], tol=1e-3)
+check("voldemand failing contribution = -4.145", -4.145,
+      oc["attribution"][0]["failing"], tol=1e-3)
+check("backbone part on failing bars = +0.928", 0.928, oc["backbone_part"],
+      tol=1e-3)
+check("0 channels moved 3x", 0, oc["n_channels_moved"], tol=0.5)
+check("29/41 channels exceed 20 IQR", 29, pa["n_over_20_iqr"], tol=0.5)
+check("23/41 show the pathology", 23, pa["n_pathology"], tol=0.5)
+check("worst channel = 2260 IQR", 2260.4, pa["channels"][0]["scaled_absmax"],
+      tol=0.1)
+check("voldemand coverage = 0.223", 0.223, pa["channels"][0]["raw_coverage"],
+      tol=1e-3)
+
 print("\n" + "=" * 74)
 if fails:
     print(f"AUDIT FAILED ({len(fails)}):")

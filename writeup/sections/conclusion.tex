@@ -2,9 +2,10 @@
 \label{sec:conclusion}
 
 This paper asked four questions of a single fixed panel of 218{,}934
-thirty-minute S\&P~500 realized-variance bars, against a single fixed
-benchmark---per-bar OLS on a HAR ladder and calendar features, QLIKE
-$0.13415$.
+thirty-minute S\&P~500 realized-variance bars. It answers a fifth it did not
+ask, and that answer subsumes much of the rest: almost all of the modelling
+apparatus we built can be deleted without loss, and the effects that remain are
+smaller than the protocol and data-quality effects surrounding them.
 
 \emph{What should the instrument be?} A truncated power-law kernel with a
 clock organ. The fitted HAR coefficients imply a per-lag effective kernel that
@@ -88,6 +89,47 @@ incumbent at QLIKE $0.13096$; it also beats 25 of the 45 causally tuned
 parametric arms, while trailing the best arms on the informative buckets. In
 the dense-but-weak regime, nonparametric flexibility is a cost to be justified,
 not a default.
+
+\emph{How much of the apparatus is load-bearing?} Almost none of it. The
+$41 \times 12$ exogenous operator, its singular value decomposition, the
+session-conditional frames, the CP and Tucker factorisations, the
+rank-constrained priors and the bespoke projection penalty are together
+reproduced---and beaten---by contracting each channel's rung ladder against a
+fixed $u^{-1}$ weight and running plain ridge on the resulting 41 numbers.
+Fifty-three columns reach QLIKE $0.13280$ against $0.13415$ for the 504-column
+design with the matrix penalty ($t = -5.63$), $0.13571$ for the backbone alone
+($t = -9.59$), and $0.13617$ for plain ridge on the 492 raw columns---worse
+than the backbone it exists to improve. The effective-degrees-of-freedom
+accounting shows the first two are the same estimator computed two ways: the
+penalty spends $\approx 54$ degrees of freedom, which is $1 + 12 + 41$, the
+dimension of its own null space. The stripped-down design is also an order of
+magnitude more robust in the one era where the exogenous block fails
+($+0.00347$ against $+0.03321$). The generalisation we are willing to defend is
+that in this regime every \emph{estimated} structure is a cost requiring
+evidence: eigenmaps, principal components, the operator's own leading direction
+re-estimated or frozen, and rank-one factors with fitted loadings all lost to
+fixed alternatives, without exception.
+
+\emph{What dominates all of it?} Protocol and data quality, by an order of
+magnitude. A fixed training window rather than a rolling one is worth $0.11$
+QLIKE. An imputation defect in our own pipeline---an availability indicator
+computed after a forward fill, which silently disabled three guards this
+codebase already contained for that exact pathology---put scaled features at
+$2{,}260$ rolling interquartile ranges, cost $0.033$ in a single year, and
+affects 23 of 41 channels. Selecting a shape parameter against the reported
+loss rather than a validation tail is worth $0.0033$. Against these, the
+model-class effects this literature argues about are $0.002$ to $0.004$. We
+report our own defect at the same altitude as our results because the ordering
+is the transferable finding: a team that gets the protocol and the data right
+and fits a small fixed basis will beat a team that gets them wrong and fits
+anything at all.
+
+\emph{And is any of it stable?} Not as reported. The exogenous block beats the
+backbone in seven consecutive eras and fails once, so a twenty-year aggregate
+supports opposite conclusions depending on where the window ends, and 27 bars
+out of $27{,}376$ carry $47\%$ of the failure. We regard single full-sample
+aggregates over multi-decade panels as insufficient reporting, in this paper
+and in the literature it follows.
 
 \paragraph{On the evaluation itself.} Two findings concern the measuring
 apparatus rather than the models, and we think they travel beyond this panel.

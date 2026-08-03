@@ -1,0 +1,84 @@
+\section{Stability Across Eras}
+\label{sec:era_stability}
+
+Every attribution result in this paper is a full-sample aggregate over twenty
+years. That is the convention in this literature and it hides something
+important on this panel.
+
+\subsection{The exogenous block helps in seven eras of eight}
+
+\begin{table}[H]
+\centering
+\caption{Exogenous designs against the backbone, by era, under the rolling
+protocol. Negative means the design beats the backbone. The stripped-down
+design of Section~\ref{sec:stripped} is included because its behaviour in the
+failing era is the point.}
+\label{tab:eras}
+\begin{tabular}{llrrr}
+\toprule
+Block & Period & backbone & ridge on 492 & stripped-down \\
+\midrule
+1 & 2007-02--2009-04 & 0.15054 & $-0.00400$ & $-0.00271$ \\
+2 & 2009-04--2011-06 & 0.10915 & $-0.00222$ & $+0.00526$ \\
+3 & 2011-06--2013-08 & 0.11269 & $-0.00231$ & $-0.00105$ \\
+4 & 2013-08--2015-09 & 0.13143 & $-0.00265$ & $-0.00258$ \\
+5 & 2015-09--2017-11 & 0.12048 & $-0.00469$ & $-0.00323$ \\
+6 & 2017-11--2020-01 & 0.15594 & $-0.00591$ & $-0.00510$ \\
+7 & 2020-01--2022-03 & 0.17033 & $-0.00771$ & $-0.00977$ \\
+8 & 2022-03--2024-04 & 0.13511 & $\mathbf{+0.03321}$ & $+0.00347$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The exogenous block beats the backbone in seven consecutive eras---including
+through 2008 and 2020---by $0.0022$ to $0.0077$, and then fails once by
+$+0.03321$, an order of magnitude larger than any era's gain. That single block
+erases seven eras of advantage: over the whole panel the raw exogenous design
+sits at $0.13617$ against the backbone's $0.13571$, a difference of $+0.00046$
+that is indistinguishable from zero.
+
+A twenty-year aggregate therefore reports ``exogenous information helps'' or
+``exogenous information does not help'' depending on where the window ends,
+and both statements are true of their own windows. We regard the aggregate
+alone as insufficient reporting, in this paper and in the literature it
+follows.
+
+\subsection{The failure is 27 bars, and it is our own}
+
+Concentration within the failing era, over its $27{,}376$ bars:
+
+\begin{table}[H]
+\centering
+\caption{Share of the era's total loss differential carried by its worst bars.}
+\label{tab:concentration}
+\begin{tabular}{lrr}
+\toprule
+Worst & Bars & Share of damage \\
+\midrule
+$0.1\%$ &    27 & $47.2\%$ \\
+$1.0\%$ &   273 & $90.5\%$ \\
+$5.0\%$ & 1{,}368 & $122.4\%$ \\
+$10.0\%$ & 2{,}737 & $138.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Shares above $100\%$ mean the remaining bars have a \emph{negative}
+differential: on the typical bar of the failing era the exogenous block still
+helps, and the median per-bar differential is $+0.00069$ against a mean of
+$+0.03318$. Twenty-seven bars out of twenty-seven thousand carry half of it.
+
+All ten worst bars fall on 13--15 October 2023, and one channel,
+\texttt{voldemand\_all\_open\_only}, carries $97.2\%$ of the negative swing.
+Zero of forty-one channels exceeded three times their prior-month range, so
+this is not a market event. It is the imputation defect of
+Section~\ref{sec:fill_defect}: a series absent from the raw data, forward-
+filled, scaled by a collapsed interquartile range into coordinates in the
+hundreds, and fitted a coefficient.
+
+Two things follow. The reported \texttt{vol\_demand} bucket effect
+(Section~\ref{sec:multiplicity_results}) rests partly on that artifact and is
+suspended pending re-estimation on observed bars. And the practical reading of
+the exogenous block is not that it stopped working---by 2024 the stripped-down
+design is helping again---but that carrying it exposes a forecaster to rare
+collapses that require detection rather than tolerance.
