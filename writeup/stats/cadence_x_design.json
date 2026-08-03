@@ -1,0 +1,65 @@
+{
+ "cache": "b2_mmap_warm",
+ "n": 218909,
+ "cadences": [
+  1000,
+  250,
+  100
+ ],
+ "cols": {
+  "backbone": 12,
+  "ridge-504": 504,
+  "full-1077": 1077,
+  "full + exog x clk": 2553
+ },
+ "qlike": {
+  "1000|backbone": 0.1357090027149692,
+  "1000|ridge-504": 0.13145770957873668,
+  "1000|full-1077": 0.13100612556542937,
+  "1000|full + exog x clk": 0.12948026035087648,
+  "250|backbone": 0.1353620577209057,
+  "250|ridge-504": 0.130324525088561,
+  "250|full-1077": 0.12919556207791957,
+  "250|full + exog x clk": 0.12812077574156244,
+  "100|backbone": 0.13521123726850096,
+  "100|ridge-504": 0.12930652727358502,
+  "100|full-1077": 0.12797001537005284,
+  "100|full + exog x clk": 0.12704110754099265
+ },
+ "lambda": {
+  "1000|backbone": 0.0,
+  "1000|ridge-504": 10000.0,
+  "1000|full-1077": 10000.0,
+  "1000|full + exog x clk": 10000.0,
+  "250|backbone": 0.0,
+  "250|ridge-504": 10000.0,
+  "250|full-1077": 1000.0,
+  "250|full + exog x clk": 10000.0,
+  "100|backbone": 0.0,
+  "100|ridge-504": 1000.0,
+  "100|full-1077": 1000.0,
+  "100|full + exog x clk": 1000.0
+ },
+ "ordering": {
+  "1000": [
+   "full + exog x clk",
+   "full-1077",
+   "ridge-504",
+   "backbone"
+  ],
+  "250": [
+   "full + exog x clk",
+   "full-1077",
+   "ridge-504",
+   "backbone"
+  ],
+  "100": [
+   "full + exog x clk",
+   "full-1077",
+   "ridge-504",
+   "backbone"
+  ]
+ },
+ "ordering_stable": true,
+ "cadence_effect_spread": 0.0025383447489082944
+}

@@ -358,6 +358,39 @@ The cache also ships 24 precomputed regime columns -- `har_ma_<r>_x_open` and
 interaction ladder spent 1,044 seconds rebuilding those as 108 fresh crosses
 while they sat in the file already being loaded.
 
+### Resolved: the residual was cadence
+
+The cadence-by-design factorial closes it.
+
+| design | cad 1000 | cad 250 | cad 100 | delta |
+|---|---|---|---|---|
+| backbone | 0.13571 | 0.13536 | 0.13521 | +0.00050 |
+| ridge-504 | 0.13146 | 0.13032 | 0.12931 | +0.00215 |
+| **full-1077** | 0.13101 | 0.12920 | **0.12797** | +0.00304 |
+| full + exog x clk | 0.12948 | 0.12812 | **0.12704** | +0.00244 |
+
+The paper's `ridge/all_features` is **0.12788**; full-1077 at cadence 100 is
+**0.12797**, a gap of 0.00009, and the battery refits per bar which is tighter
+still. The +0.00313 residual was protocol, not design.
+
+Two readings, and only the first was obvious:
+
+1. **Orderings are stable** across all three cadences, so this session's
+   within-panel design comparisons are valid.
+2. **The cadence effect is design-dependent** -- 0.00050 for the 12-column
+   backbone against 0.00304 for full-1077, a spread of 0.00254. Wider designs
+   gain far more from tighter refitting, as predicted: fresher data needs less
+   shrinkage. Cadence is an interaction that happens not to reorder.
+
+The consequence is the rule below. Comparing a wide design at 1,000-bar cadence
+against a narrow one at per-bar is confounded by an effect as large as the
+design difference being claimed, which is exactly the error made against the
+battery for three turns.
+
+Substantively: `full + exog x clk` at cadence 100 reaches 0.12704, beating the
+battery's ridge by 0.00084, so the clock interactions add beyond the published
+design at comparable protocol.
+
 **Conventions added:**
 
 1. Any arm compared to a published number is fitted on the published
@@ -366,6 +399,10 @@ while they sat in the file already being loaded.
 2. Before any arm is fitted, its column count is reconciled against the
    cache's total and the difference accounted for explicitly. `504 of 1,077`
    should have stopped this on the first run.
+3. Refit cadence is stated with every number and never differs across a
+   comparison. Its effect ranges from 0.00050 to 0.00304 depending on design
+   width, which is the size of the design effects being measured, so a
+   cross-cadence comparison is not identified.
 
 ## 5. Order of execution
 
