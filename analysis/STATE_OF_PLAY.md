@@ -61,7 +61,7 @@ the pipeline.
 |---|---|
 | exogenous data helps | **yes**: raw492 0.13146 vs backbone 0.13571, and it wins in all 8 eras. On the pre-fix cache it lost |
 | the stripped-down design | **falsified** by the pre-registered condition: -0.00126, t -5.91, p 3.4e-09 |
-| lag rank | rank 3 = 0.13149 in 135 cols vs raw492 0.13146 in 504. Nearly all the advantage is lag shape |
+| lag rank | **saturates at r=4**; both bases agree and are flat over r∈[4,12] (range 0.00045). The r=3 dip is **basis-specific** — power 0.13117 vs log-poly 0.13246 — so it is about *which shapes*, not *how many dimensions* |
 | tree premium reachable by an RBF kernel | **no**, replicates: gain 0.00098 vs premium 0.00184-0.00358 |
 | supervised retrieval metric | **reverses**: null (+0.00015, Holm p 1.0) -> beats 516-dim ambient by -0.00540, t -8.9 |
 | unsupervised retrieval metrics | still lose: PCA +0.00552, Laplacian +0.00450 |
@@ -114,7 +114,9 @@ Full panel, 218,909 scored bars.
 | amplitude rank-1 | 53 | 0.13280 | pre | superseded |
 | amplitude rank-1 | 53 | **0.13285** | **warm** | LIVE |
 | amplitude rank-2 | 94 | **0.13199** | **warm** | LIVE |
-| **amplitude rank-3** | 135 | **0.13149** | **warm** | LIVE — within 0.00003 of raw492 at a quarter the width |
+| **power basis r=3** | 135 | **0.13117** | **warm** | LIVE — beats raw492 by 0.00029 (t −3.00), validation-selected r. But **basis-dependent**: log-polynomials at r=3 give 0.13246 |
+| power basis r=8 | 340 | 0.13145 | **warm** | LIVE — indistinguishable from raw492's 0.13146 |
+| rank sweep r=4..12, both bases | — | flat, range 0.00045 | **warm** | LIVE — rank beyond 4 buys nothing |
 | shaped 492 | 504 | 0.13415 / 0.13487 | pre / fix | PENDING |
 
 Rolling operator variants on the 41×12 block (different evaluation, not
