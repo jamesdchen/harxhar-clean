@@ -52,6 +52,13 @@ FitPredict = Callable[[np.ndarray, np.ndarray, int, dict], np.ndarray]
 # (active) values. Continuous features (returns, vols) never reach this.
 ZERO_INFLATED_FRAC: float = 0.2
 
+# How many bars a forward fill may carry an exogenous value before the row is
+# treated as unobserved again. 26 bars is two trading sessions at this panel's
+# 30-minute frequency: long enough to bridge a missed print or a holiday edge,
+# short enough that a stopped feed cannot masquerade as live data for months.
+# ``None`` restores the unlimited fill.
+FFILL_LIMIT: int | None = 26
+
 
 def _expanding_real_iqr(
     x: np.ndarray, mask: np.ndarray, grid_step: int = 480
@@ -283,6 +290,8 @@ def load_and_transform(
     impute_indicate: bool = False,
     diurnal_mode: str = "divide",
     use_semantic: bool = True,
+    ffill_limit: int | None = FFILL_LIMIT,
+    legacy_avail: bool = False,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
 
@@ -320,7 +329,34 @@ def load_and_transform(
     if exog_cols:
         if overnight_fill:
             apply_overnight_fills(df, exog_cols)
-        df[exog_cols] = df[exog_cols].ffill()
+        # Availability is recorded BEFORE the forward fill. Recording it after
+        # (the historical behaviour, kept under ``legacy_avail``) makes the
+        # indicator mean "this series has started" rather than "this bar is
+        # observed", because ffill carries the last value across every gap and
+        # ``notna()`` is then True on stale rows too. Measured consequence on
+        # the voldemand family: raw coverage ~33.6%, indicator mean 0.698 --
+        # the indicator was 0 only for the leading years before the feed
+        # begins. That defeats all three guards at once. The impute-and-
+        # indicate median fill never fires (ffill left no NaN), the model
+        # cannot tell fresh from stale, and ``_build_scale_guards`` computes
+        # its "real values" IQR floor over the ffilled constants, so the floor
+        # is itself degenerate and the rolling IQR collapses. The scaled
+        # columns then reach 200+ IQRs, and on 13-15 October 2023 that
+        # cancelled the backbone and drove the forecast two orders of
+        # magnitude low (analysis/october_2023.py).
+        obs_cols = {}
+        for col in exog_cols:
+            obs_cols[col] = df[col].notna().to_numpy(copy=True)
+        # A finite staleness limit is the other half. Carrying a value forward
+        # indefinitely is defensible for a short gap and indefensible for a
+        # feed that stops: voldemand is 0% observed through 2024, so an
+        # unlimited ffill presents a 2023 value as current for a whole year.
+        # Past the limit the value returns to NaN and the impute-and-indicate
+        # branch below replaces it with the neutral median.
+        df[exog_cols] = df[exog_cols].ffill(limit=ffill_limit)
+        for col in exog_cols:
+            df[f"{col}__obs"] = obs_cols[col] if not legacy_avail \
+                else df[col].notna().to_numpy()
         if dropna_with_exog and not impute_indicate:
             df = df.dropna(subset=["RV"] + exog_cols).reset_index(drop=True)
         else:
@@ -355,9 +391,14 @@ def load_and_transform(
             # fillna(0) imputes vix = exp(0) = 1, a wild value that blew the
             # Ridge forecast up to QLIKE ~2.4). Median ≈ neutral, prescales to 0.
             adj = df[f"adj_{col}"]
+            # Unobserved rows take the neutral median even when ffill supplied
+            # a stale value, so the feature never presents a months-old
+            # observation as current. Observed rows are untouched.
+            obs = df[f"{col}__obs"].to_numpy().astype(bool)
+            adj = adj.where(pd.Series(obs, index=adj.index), np.nan)
             df[f"adj_{col}"] = adj.fillna(adj.median())
             avail = f"{col}_avail"
-            df[avail] = df[col].notna().astype("float64")
+            df[avail] = obs.astype("float64")
             adj_exog_cols.append(avail)
 
     # Hurdle (two-part) encoding for zero-inflated exog. A sparse signed flow
