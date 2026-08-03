@@ -267,6 +267,40 @@ that emulation omits the diurnal adjustment and the real `adj_` construction,
 so it is not evidence. The measurement that counts is a rebuild plus a real
 invariants run.
 
+## 4b. Baseline error: this session's designs dropped the calendar block
+
+Recorded because it inflated a headline by a factor of three and conditions
+every contrast measured in this session.
+
+The paper's shared incumbent is **OLS HAR base-5 + calendar**, QLIKE 0.13415.
+Calendar features were always in it. Every design fitted in this session is
+`har(12) + lad(492) = 504` and excludes the nine calendar columns
+(`DOW_0..DOW_4`, `hour`, `is_overnight`, `is_open`, `is_close`).
+
+The interaction ladder therefore decomposes as:
+
+| step | QLIKE | what it is |
+|---|---|---|
+| ridge-504, no calendar | 0.13146 | this session's baseline, weaker than the paper's |
+| + cal | 0.13129 | repairs the omission -- not a finding |
+| + har x cal | 0.13048 | the paper's regime block, already credited at -0.00225 |
+| + exog x cal4 | 0.12987 | the genuinely new part |
+
+So the novel increment is **0.00061**, not the 0.00159 first quoted against the
+handicapped baseline. The 8-of-8 era stability stands; the magnitude claim was
+a threefold overstatement of the same kind as several entries in section 4 --
+measured against a base of our own construction rather than the paper's.
+
+Consequence for everything else here: the exogenous block's 0.00425, the
+winsorization contrasts, and the tree and kernel arms were all measured against
+`har + lad` with no clock. Those contrasts are internally consistent, but none
+is against the paper's actual incumbent and none may be quoted beside the
+paper's numbers without restating its base.
+
+**Convention added:** any arm compared to a published number must be fitted on
+the published incumbent's feature set, or the difference in base stated
+explicitly in the same sentence.
+
 ## 5. Order of execution
 
 No step may start before the previous one passes.
