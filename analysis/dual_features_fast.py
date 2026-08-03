@@ -29,7 +29,7 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from inference import dm_test              # noqa: E402
-from fastwalk import RollingGram, block, solve_path   # noqa: E402
+from fastwalk import RollingGram, block, predict, rss, solve_path   # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, "writeup", "stats")
 CACHE = os.environ.get("DF_CACHE", "b2_mmap_warm")
@@ -152,11 +152,9 @@ def main():
                 npen = T.shape[1] - nh
                 lams = LAMS if val else [lams_by_arm[nm]]
                 sols = solve_path(M, v, npen, lams, pen_diag=pen)
-                De = np.hstack([np.ones((z - a, 1)), Fe @ T])
-                Dt = np.hstack([np.ones((W, 1)), F[s - W:s] @ T])
                 for L, cf in sols.items():
-                    rr = y[s - W:s] - Dt @ cf
-                    pv = ((De @ cf) ** 2 + float(rr @ rr) / W) * b[a:z]
+                    pv = ((predict(Fe, T, cf)) ** 2
+                          + rss(M, v, cf, rg.yy) / W) * b[a:z]
                     if val:
                         rt = rvv[a:z]; m = (rt > 0) & np.isfinite(pv) & (pv > 0)
                         if m.sum():

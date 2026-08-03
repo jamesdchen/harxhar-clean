@@ -54,7 +54,8 @@ class RollingGram:
 
     def _exact(self, s):
         A = np.hstack([np.ones((self.W, 1)), self.F[s - self.W:s]])
-        return A.T @ A, A.T @ self.y[s - self.W:s]
+        yy = float(self.y[s - self.W:s] @ self.y[s - self.W:s])
+        return A.T @ A, A.T @ self.y[s - self.W:s], yy
 
     def _roll(self, s):
         lo_o, hi_o = self.s - self.W, self.s
@@ -65,23 +66,25 @@ class RollingGram:
         Ao = np.hstack([np.ones((lo_n - lo_o, 1)), self.F[out]])
         Ai = np.hstack([np.ones((hi_n - hi_o, 1)), self.F[inn]])
         return (self.G - Ao.T @ Ao + Ai.T @ Ai,
-                self.c - Ao.T @ self.y[out] + Ai.T @ self.y[inn])
+                self.c - Ao.T @ self.y[out] + Ai.T @ self.y[inn],
+                self.yy - float(self.y[out] @ self.y[out])
+                + float(self.y[inn] @ self.y[inn]))
 
     def advance(self, s):
         if self.s is None:
-            self.G, self.c = self._exact(s)
+            self.G, self.c, self.yy = self._exact(s)
         elif s != self.s:
-            self.G, self.c = self._roll(s)
+            self.G, self.c, self.yy = self._roll(s)
             # Checkpoint: recompute exactly and compare THE SAME window, so
             # the number reported is accumulated floating-point error and not
             # the genuine window-to-window change. Comparing across windows is
             # a bug an earlier version of this had, and it reported a drift of
             # 8e-3 when the true figure is at the 1e-13 level.
             if self.n_adv % self.refresh == 0:
-                Ge, ce = self._exact(s)
+                Ge, ce, ye = self._exact(s)
                 d = np.max(np.abs(self.G - Ge)) / max(1.0, np.max(np.abs(Ge)))
                 self.max_drift = max(self.max_drift, float(d))
-                self.G, self.c = Ge, ce
+                self.G, self.c, self.yy = Ge, ce, ye
         self.s = s
         self.n_adv += 1
         return self.G, self.c
@@ -121,3 +124,25 @@ def solve_path(M, v, npen, lams, pen_diag=None):
     d[pp - npen:] = 1.0 if pen_diag is None else pen_diag
     I = 1e-8 * np.eye(pp)
     return {lam: np.linalg.solve(M + lam * np.diag(d) + I, v) for lam in lams}
+
+
+def rss(M, v, cf, yy):
+    """Training residual sum of squares, without forming the design matrix.
+
+    ``rr'rr = y'y - 2 cf'v + cf' M cf``. The obvious route -- materialise
+    ``[1, F @ T]`` over the training window and subtract -- costs W p k flops
+    (about 6.2e9 at W = 24,000, p = 504, k = 510) to produce a single scalar,
+    which is twelve times the entire rolling Gram update and is paid once per
+    arm per window. This costs O(k^2).
+    """
+    return float(yy - 2.0 * (cf @ v) + cf @ (M @ cf))
+
+
+def predict(Fe, T, cf):
+    """Predictions of ``[1, F @ T] @ cf`` as ``cf[0] + F @ (T @ cf[1:])``.
+
+    Associativity: projecting the block then contracting costs (z-a) p k, while
+    contracting then projecting costs p k + (z-a) p -- about 500x less at these
+    shapes, and identical arithmetic.
+    """
+    return cf[0] + Fe @ (T @ cf[1:])
