@@ -157,12 +157,13 @@ depends on that choice.}
 \toprule
 Coordinate & Type & $d$ & QLIKE & $\Delta$ & $t$ \\
 \midrule
-residual path only & ambient, no exog & 24 & 0.16347 & $-0.00976$ & $-11.3$ \\
-path $+$ state & ambient & 516 & 0.17323 & --- & --- \\
-operator triplets & supervised & 6 & 0.17339 & $+0.00015$ & $+0.3$ \\
-operator scores & supervised & 5 & 0.17554 & $+0.00230$ & $+5.0$ \\
-principal components & unsupervised, linear & 6 & 0.18002 & $+0.00678$ & $+17.5$ \\
-Laplacian eigenmap & unsupervised, nonlinear & 6 & 0.18154 & $+0.00831$ & $+18.2$ \\
+residual path only & ambient, no exog & 24 & 0.16347 & $-0.01476$ & $-15.5$ \\
+path $+$ state & ambient & 516 & 0.17823 & --- & --- \\
+operator triplets & supervised & 6 & 0.17283 & $-0.00540$ & $-8.9$ \\
+operator triplets & supervised & 12 & 0.17549 & $-0.00274$ & $-5.1$ \\
+operator scores & supervised & 5 & 0.18399 & $+0.00575$ & $+11.9$ \\
+principal components & unsupervised, linear & 6 & 0.18375 & $+0.00552$ & $+12.8$ \\
+Laplacian eigenmap & unsupervised, nonlinear & 6 & 0.18274 & $+0.00450$ & $+9.8$ \\
 \midrule
 no retrieval (anchor) & --- & --- & 0.18322 & & \\
 \bottomrule
@@ -172,24 +173,33 @@ no retrieval (anchor) & --- & --- & 0.18322 & & \\
 Three readings follow, and $W = 12$ reproduces the ordering.
 
 \paragraph{Extension error is not the mechanism.} PCA at $d = 6$ cannot have
-extension error, and it still loses $+0.00678$---four fifths of the eigenmap's
-$+0.00831$. Whatever the eigenmap's nonlinearity costs, it is a minority of the
-damage.
+extension error, and it still loses $+0.00552$---more than the eigenmap's
+$+0.00450$. Whatever the eigenmap's nonlinearity costs, it is not the source of
+the damage; the unsupervised objective is.
 
 \paragraph{Supervision is the mechanism.} The supervised coordinate at the
 \emph{same} dimension $d = 6$---the trailing-path score together with
 $\sigma_k\, u_k' Z v_k$ for the top five singular triplets of the train-only
-fitted exogenous operator---is statistically indistinguishable from the full
-$516$-dimensional ambient view ($+0.00015$, $t = +0.3$, Holm-adjusted
-$p = 1.0$), while the unsupervised compressions of that dimension lose
-decisively. The compression budget was never too small; it was spent in the
-wrong directions. The operator's singular vectors have the incidental virtue of
+fitted exogenous operator---\emph{beats} the full $516$-dimensional ambient
+view by $0.00540$ ($t = -8.9$), while the unsupervised compressions of that
+same dimension lose decisively. An $86$-fold reduction in dimension improves
+the metric. The compression budget was never too small; it was spent in the
+wrong directions.
+
+This result reverses on the data version, and the reversal is instructive. On
+the uncorrupted panel of Section~\ref{sec:stale_data} the same arm was a null
+($+0.00015$, $t = +0.3$, Holm-adjusted $p = 1.0$), and we previously reported
+it as such. A distance weights every coordinate by its scale, so a channel
+standardised by a collapsed denominator dominates the metric outright; the
+supervised projection was spending its six dimensions on an artefact. Repairing
+the fill does not merely change the level here---it converts a null into the
+second-best arm in the table. The operator's singular vectors have the incidental virtue of
 living on the design axes---channels and lags---so they are fixed a priori,
 finite, and require no out-of-sample extension at all.
 
 \paragraph{The exogenous block is a net cost to a distance.} Matching on the
 residual path alone, discarding all $492$ exogenous ladder coordinates, beats
-the composed view by $0.00976$ ($t = -11.3$). The same block that a fitted
+the composed view by $0.01476$ ($t = -15.5$). The same block that a fitted
 linear map profits from degrades a metric, because a distance weights every
 coordinate by its scale rather than by its relevance. This is the
 dense-but-weak fact in its sharpest form: with many weakly informative

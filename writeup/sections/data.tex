@@ -51,60 +51,11 @@ lag on the base-5 ladder---the frozen evaluation panel comprises exactly
 $218{,}934$ observations, and every arm reported in this paper is scored on
 those identical rows.
 
-\subsection{A Defect in That Fill, and What It Cost}
-\label{sec:fill_defect}
+\subsection{A Defect in That Fill}
 
 The sentence above---``forward-filled with neutral values''---understates what
 the pipeline did, and the understatement was expensive enough to report as a
-finding rather than a correction.
-
-The availability indicator that accompanies each imputed exogenous feature was
-computed \emph{after} the forward fill. That makes it record ``this series has
-started'' rather than ``this bar is observed'', because the fill carries the
-last value across every gap. Measured on the volatility-demand family: raw
-coverage $0.223$, indicator mean $0.698$. The indicator was zero only for the
-leading years before the feed begins.
-
-That single ordering defeated three guards this codebase already contained for
-exactly this pathology. The impute-and-indicate median fill never fired,
-because the forward fill had left no missing value to fill. The model could not
-distinguish a fresh print from a stale one, the indicator being $\approx 1$
-either way. And the scale guard---which floors each feature's rolling
-interquartile range at an expanding IQR over its \emph{real} values---computed
-that floor over the forward-filled constants, so the floor was itself
-degenerate and the rolling IQR still collapsed.
-
-The consequence is visible directly in the cached design, whose columns are
-expressed in rolling-IQR units and are therefore their own anomaly detector.
-The volatility-demand columns reach $2260$, $1547$, $252$ and $206$ IQRs; raw
-coverage is $0.223$ and falls to zero through 2024 while the cache continues to
-manufacture finite values in the hundreds. Twenty-nine of forty-one channels
-exceed $20$ IQRs somewhere and twenty-three pair that with sparse coverage or a
-long flat run.
-
-Sparse coverage alone is not the trigger. \texttt{vix}, \texttt{vvix} and
-\texttt{vix3m} have the lowest coverage in the panel ($0.159$ to $0.352$) and
-the lowest magnitudes ($3.5$ to $8.1$): they are smooth level series whose
-filled history retains genuine dispersion. The pathology requires sparse
-coverage \emph{and} a collapsing scale---a zero point mass or a flat run---
-which is why a signed order-flow series with $15\%$ zeros detonates and an
-index level does not.
-
-What it cost is quantified in Section~\ref{sec:era_stability}: on 13--15
-October 2023 the volatility-demand contribution swung to $-4.145$ against a
-backbone of $+0.928$, driving the forecast one to two orders of magnitude below
-the realised value, and $27$ bars carry $47\%$ of the only catastrophic
-exogenous failure in twenty years. The fix---record availability before the
-fill, bound staleness at $26$ bars, apply the neutral median to unobserved
-rows---is in the pipeline; the affected results are marked where they appear.
-\pending{re-run of the full battery on the corrected cache, and a restatement
-of the \texttt{vol\_demand} bucket effect on bars where the series is actually
-observed}
-
-Two properties of the resulting index are worth stating because they bear on
-the kernel estimates of Section~\ref{sec:descriptive}. First, observations are
-indexed sequentially across the filtered grid, so the long lags span overnight
-and weekend boundaries and mix session with non-session bars; the ladder is a
-lag structure in bars, not in continuous time. Second, the filter removes
-weekend blocks rather than rescaling around them, so the effective sampling of
-the kernel is not uniform in calendar time at the longest rungs.
+finding rather than a correction. Section~\ref{sec:stale_data} is that report.
+It is placed immediately after this section because no result in the rest of
+the paper is interpretable without it: the panel described above is not the
+panel most of our earlier drafts were fitted on.

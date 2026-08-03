@@ -4,18 +4,30 @@ What is measured, what it rests on, and what the paper can be built with.
 Companion to `PROTOCOL.md`, which holds the conventions, the pre-registered
 design, the retraction ledger and the gate log. This document is the inventory.
 
+> **UPDATE.** The re-race is done. Axes B, D and E have been re-run on the
+> clean cache `b2_mmap_warm` and the pre-registered factorial has been read
+> against H1-H4 (`PROTOCOL.md` section 3a). Headlines: exogenous data **works**
+> (raw492 0.13146 vs backbone 0.13571, winning in all 8 eras); the
+> stripped-down design is **falsified** by its own pre-registered condition
+> (-0.00126, t -5.91); the tree-premium negative **replicates**; the
+> supervised retrieval metric **reverses** from null to a win. H2 is
+> **rejected**. Sections 1-2 below are kept as written at the time and the
+> per-axis verdicts are updated in place.
+
 ## 0. The one thing to read first
 
-**Every modelling number in this project currently sits on a cache that has
-since been superseded.** The design comparisons were run on `b2_mmap` (pre-fix)
+**Every modelling number in this project ~~currently sits~~ *sat* on a cache
+that has since been superseded.** The design comparisons were run on `b2_mmap` (pre-fix)
 or `b2_mmap_fix` (which carries a double-scaling wiring bug). The clean cache,
-`b2_mmap_warm`, was built after them and nothing has been re-raced on it.
+`b2_mmap_warm`, was built after them, and the re-race on it is now complete
+(see the update above).
 
-That is not a footnote. The cache level has already **reversed the sign** of the
-headline exogenous result once: raw-492 loses to the backbone by +0.00046 on
-`b2_mmap` and beats it by −0.00394 on `b2_mmap_fix`, against a backbone that is
-byte-identical across both. Any design conclusion quoted today is provisional
-until the race is re-run.
+That was not a footnote. The cache level **reversed the sign** of the headline
+exogenous result: raw-492 loses to the backbone by +0.00046 on `b2_mmap` and
+beats it by −0.00425 on `b2_mmap_warm`, against a backbone that is
+byte-identical across both. Every design conclusion in this project had to be
+re-derived on the clean cache before it could be quoted, and one of them
+(the stripped-down design) did not survive.
 
 ### The four caches
 
@@ -43,11 +55,17 @@ until the race is re-run.
 These do not depend on which model wins. They are properties of the data and
 the pipeline.
 
-### PENDING — measured, but on a superseded cache
+### RESOLVED — the re-race, on `b2_mmap_warm`
 
-Everything in §2 below marked `PENDING`. The contrasts may well survive; the
-levels will move; at least one direction has already flipped. Re-racing on
-`b2_mmap_warm` is the next step and it is cheap relative to the rebuild.
+| result | outcome |
+|---|---|
+| exogenous data helps | **yes**: raw492 0.13146 vs backbone 0.13571, and it wins in all 8 eras. On the pre-fix cache it lost |
+| the stripped-down design | **falsified** by the pre-registered condition: -0.00126, t -5.91, p 3.4e-09 |
+| lag rank | rank 3 = 0.13149 in 135 cols vs raw492 0.13146 in 504. Nearly all the advantage is lag shape |
+| tree premium reachable by an RBF kernel | **no**, replicates: gain 0.00098 vs premium 0.00184-0.00358 |
+| supervised retrieval metric | **reverses**: null (+0.00015, Holm p 1.0) -> beats 516-dim ambient by -0.00540, t -8.9 |
+| unsupervised retrieval metrics | still lose: PCA +0.00552, Laplacian +0.00450 |
+| H2 (prep beats any design choice) | **rejected**: cache main effect 0.00067 vs design 0.00311 |
 
 ### DEAD — retracted
 
@@ -92,11 +110,11 @@ Full panel, 218,909 scored bars.
 |---|---|---|---|---|
 | backbone (HAR only) | 12 | 0.13571 | pre & fix | reference — identical across caches |
 | raw 492 (ridge) | 504 | 0.13617 | **pre** | loses to backbone |
-| raw 492 (ridge) | 504 | **0.13175** | **fix** | wins — *the sign flip* |
-| amplitude rank-1 | 53 | 0.13280 | pre | PENDING |
-| amplitude rank-1 | 53 | 0.13322 | fix | PENDING |
-| amplitude rank-2 | 94 | 0.13253 | fix | PENDING |
-| **amplitude rank-3** | 135 | **0.13211** | fix | PENDING — within 0.00036 of raw492 at a quarter the width |
+| raw 492 (ridge) | 504 | **0.13146** | **warm** | **LIVE — wins by 0.00425, all 8 eras** |
+| amplitude rank-1 | 53 | 0.13280 | pre | superseded |
+| amplitude rank-1 | 53 | **0.13285** | **warm** | LIVE |
+| amplitude rank-2 | 94 | **0.13199** | **warm** | LIVE |
+| **amplitude rank-3** | 135 | **0.13149** | **warm** | LIVE — within 0.00003 of raw492 at a quarter the width |
 | shaped 492 | 504 | 0.13415 / 0.13487 | pre / fix | PENDING |
 
 Rolling operator variants on the 41×12 block (different evaluation, not
@@ -146,9 +164,9 @@ appeal to column count.
 
 | idea | cols | QLIKE | footing | verdict |
 |---|---|---|---|---|
-| amp + RFF 128 | 181 | 0.13286 | fix | PENDING |
-| amp + RFF 512 | 565 | 0.13236 | fix | PENDING |
-| gain from nonlinearity | — | 0.00086 | fix | vs a tree premium of 0.00184–0.00358 |
+| amp + RFF 128 | 181 | **0.13240** | **warm** | LIVE |
+| amp + RFF 512 | 565 | **0.13187** | **warm** | LIVE |
+| gain from nonlinearity | — | **0.00098** | **warm** | vs a tree premium of 0.00184–0.00358 — replicates |
 
 *Reading:* a clean **negative**. An RBF kernel with 512 random features on the
 41 amplitude coordinates cannot reach even the *linear* raw-492 model, let alone
@@ -159,20 +177,25 @@ wrong space" — not this space. Worth publishing as a closed direction.
 
 | metric | QLIKE | vs ambient | verdict |
 |---|---|---|---|
-| **path-only** | **0.16347** | −0.00976, t −11.3 | PENDING — the only winner |
+| **path-only** | **0.16347** | −0.01476, t −15.5 | LIVE (warm) — the best arm |
 | path + amplitudes | 0.16667 | | PENDING |
-| ambient | 0.17323 | reference | |
+| ambient | 0.17823 | reference | |
 | amplitudes β=0.5 / 1.0 / 1.5 | 0.17266 / 0.17299 / 0.17300 | | PENDING |
-| operator SVD d6 | 0.17339 | +0.0002, Holm p 1.0 | no effect |
+| **operator SVD d6 (supervised)** | **0.17283** | **−0.00540, t −8.9** | LIVE (warm) — REVERSED from null |
 | SVD coordinates | 0.17593 | | |
-| PCA d6 | 0.18002 | +0.0068, t +17.5 | worse |
-| Laplacian eigenmaps d6 | 0.18154 | +0.0083, t +18.2 | worse |
+| PCA d6 | 0.18375 | +0.00552, t +12.8 | worse |
+| Laplacian eigenmaps d6 | 0.18274 | +0.00450, t +9.8 | worse |
 | anchor | 0.18322 | | worse |
 
-*Reading:* every learned/spectral embedding **loses** to doing nothing, and the
-plain lag path wins. This is a strong, simple, negative result about supervised
-metric learning on this problem — and it is on the `pre` cache, so it needs
-re-running before it can be leaned on.
+*Reading (revised after the re-race):* the earlier blanket negative was wrong,
+and instructively so. **Unsupervised** reduction still loses — PCA +0.00552,
+Laplacian +0.00450 at d=6. But the **supervised** projection onto the operator's
+singular triplets now *beats* the 516-dimensional ambient view by 0.00540
+(t −8.9) in six dimensions, having been an exact null on the corrupted panel. A
+distance weights every coordinate by its scale, so a channel standardised by a
+collapsed denominator dominated the metric outright; the supervised projection
+was spending its budget on an artefact. The plain lag path is still the single
+best arm at 0.16347.
 
 ### Axis F — Selection methodology
 
@@ -237,11 +260,14 @@ orders of magnitude on the worst window and roughly ten times pooled.
 
 ### What must NOT go in
 
-- Any Axis B design winner, until re-raced on `b2_mmap_warm`. This has already
-  been wrong twice and cost two full paper rewrites.
-- The amplitude design as a centrepiece. It has been promoted twice and lost
-  both times; it survives as a *diagnostic* about lag-direction instability, not
-  as a recommended estimator.
+- ~~Any Axis B design winner, until re-raced.~~ Resolved: raw492 wins on the
+  clean cache, in all 8 eras, and rank-3 matches it at a quarter the width.
+- The amplitude design as a centrepiece. Promoted twice, lost both times, and
+  now formally falsified by its own pre-registered condition. It survives as a
+  *diagnostic* about lag-direction instability, not as a recommended estimator.
+- The unconditional "data representation dominates" claim. H2 was rejected:
+  pooled main effects are 0.00067 (cache) vs 0.00311 (design). Only the
+  conditional form is supported.
 - Any table mixing the 0.26xxx (Axis A, backbone-only) and 0.13xxx (Axis B, full
   panel) families. Different estimands.
 
@@ -249,10 +275,10 @@ orders of magnitude on the worst window and roughly ten times pooled.
 
 ## 4. Immediate next steps, in order
 
-1. Re-race Axis B and Axis D on `b2_mmap_warm` (`dual_kernels.py`, then the
-   pre-registered `factorial_design.py`). Read H1–H4 and the falsification
-   condition off the clean cache in the direction stated in advance.
-2. Re-run Axis E's retrieval race on the clean cache.
+1. ~~Re-race Axis B and Axis D on `b2_mmap_warm`.~~ **Done** — see the update
+   at the top and `PROTOCOL.md` section 3a.
+2. ~~Re-run Axis E's retrieval race on the clean cache.~~ **Done** — it
+   reversed.
 3. Re-estimate the `vol_demand` bucket effect (−0.00108, t −4.1) on observed
    bars only — it is currently suspended, being the very channel the defect was
    in.

@@ -78,6 +78,36 @@ confirmed:**
 the composed-fix cache by more than 0.0005 with `|t| > 3`. On the pre-fix cache
 that comparison went the other way, which is why it is stated in advance here.
 
+## 3a. Results, read against the hypotheses as stated
+
+Run on `b2_mmap_warm`, 218,909 bars common to every cell. Recorded before any
+of it was written into the paper.
+
+| | outcome |
+|---|---|
+| **H1** the composed fix removes the October 2023 failure | **CONFIRMED**. Era-8 raw492 vs backbone 0.13159 vs 0.13511 = -0.00352, from +0.03321 |
+| **H2** the prep fix is worth more than any design choice | **REJECTED**. Cache main effect 0.00067, design main effect 0.00311. Holds on the affected window and in era 8, not pooled |
+| **H3** the winner depends on the cache | **CONFIRMED**. none -> amp b fitted (0.13248); composed -> raw492 (0.13146) |
+| **H4** the amplitude exponent is a non-lever | **CONFIRMED**. Fixed-beta cells span 0.00016 on composed, 0.00030 on none, both under 0.0005 |
+| **falsification condition** raw492 beats the stripped-down design on the composed cache by >0.0005 with \|t\|>3 | **MET**: -0.00126, t -5.91, p 3.4e-09. The stripped-down design is withdrawn |
+
+H2's rejection is the one to keep in view. The pooled main effect understates
+the prep fix because four of the six designs barely touch the affected columns;
+for raw492 alone the cache is worth 0.00471, larger than any design contrast.
+But the hypothesis was stated in terms of main effects and it fails in those
+terms, so the claim reported in the paper is the conditional one.
+
+Two further results, both on the clean cache:
+
+- lag-axis rank 3 reaches 0.13149 in 135 columns against raw492's 0.13146 in
+  504 -- almost all of the full design's advantage is lag shape, not
+  channel-specific detail.
+- the supervised d=6 retrieval metric moved from an exact null (+0.00015,
+  Holm p 1.0) to beating the 516-dimensional ambient view by -0.00540
+  (t -8.9). A distance weights every coordinate by its scale, so the collapsed
+  denominator dominated the metric outright. The earlier "every estimated
+  geometry loses" claim now holds only for the unsupervised ones.
+
 ## 4. Retraction ledger
 
 Claims made and withdrawn in this session. None may reappear without new

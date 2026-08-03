@@ -82,7 +82,7 @@ loses nearly as much, while a supervised coordinate of that dimension ties the
 full ambient view. What fails in this regime is unsupervised geometry, at any
 dimension and whether linear or nonlinear---and, relatedly, breadth in a
 distance, since dropping the exogenous block entirely improves retrieval by
-$0.00976$ ($t = -11.3$). A fitted map with learned weights profits from many
+$0.01476$ ($t = -15.5$). A fitted map with learned weights profits from many
 weak channels; a metric that weights every coordinate equally is buried by
 them. What survives is an unembedded, anchored analog search that beats the
 incumbent at QLIKE $0.13096$; it also beats 25 of the 45 causally tuned
@@ -110,19 +110,28 @@ evidence: eigenmaps, principal components, the operator's own leading direction
 re-estimated or frozen, and rank-one factors with fitted loadings all lost to
 fixed alternatives, without exception.
 
-\emph{What dominates all of it?} Protocol and data quality, by an order of
-magnitude. A fixed training window rather than a rolling one is worth $0.11$
-QLIKE. An imputation defect in our own pipeline---an availability indicator
-computed after a forward fill, which silently disabled three guards this
-codebase already contained for that exact pathology---put scaled features at
-$2{,}260$ rolling interquartile ranges, cost $0.033$ in a single year, and
-affects 23 of 41 channels. Selecting a shape parameter against the reported
+\emph{What dominates all of it?} Protocol and data quality---where they bind,
+by orders of magnitude; on average, by less than we first claimed. A fixed
+training window rather than a rolling one is worth $0.11$ QLIKE. The imputation
+defect of Section~\ref{sec:stale_data}---an availability indicator computed
+after a forward fill, which silently disabled three guards this codebase
+already contained for that exact pathology---put scaled features at $2{,}260$
+rolling interquartile ranges and cost a factor of fifty on its window,
+$6.37170$ against $0.12391$. Selecting a shape parameter against the reported
 loss rather than a validation tail is worth $0.0033$. Against these, the
-model-class effects this literature argues about are $0.002$ to $0.004$. We
-report our own defect at the same altitude as our results because the ordering
-is the transferable finding: a team that gets the protocol and the data right
-and fits a small fixed basis will beat a team that gets them wrong and fits
-anything at all.
+model-class effects this literature argues about are $0.002$ to $0.004$.
+
+We pre-registered the stronger form of this claim and it failed. Pooled over
+six designs, the data-version main effect is $0.00067$ against a design main
+effect of $0.00311$: averaged across twenty years and across designs that
+mostly do not touch the affected columns, data representation does \emph{not}
+dominate. What dominates is the conditional statement---where a fill defect
+binds, it is worth more than every modelling choice combined, and nothing in
+the fit tells you whether it binds. That is the transferable finding, and it is
+narrower and more useful than the one we set out to make: a team that checks
+its availability bookkeeping against its raw feeds will not lose fifty-fold to
+a dead channel, and no amount of care about model class substitutes for that
+check.
 
 \emph{And is any of it stable?} Not as reported. The exogenous block beats the
 backbone in seven consecutive eras and fails once, so a twenty-year aggregate

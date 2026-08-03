@@ -252,33 +252,33 @@ R = smk["results"]["W24"]
 DM = R["dm_vs_ambient"]
 check("pool = 48,579 views", 48579, R["n_pool"], tol=0.5)
 check("evaluation rows = 24,288", 24288, R["n_test"], tol=0.5)
-check("ambient QLIKE = 0.17323", 0.17323, R["ambient"]["qlike"]["100"], tol=1e-5)
+check("ambient QLIKE = 0.17823", 0.17823, R["ambient"]["qlike"]["100"], tol=1e-5)
 check("path-only QLIKE = 0.16347", 0.16347, R["ambient_path"]["qlike"]["100"],
       tol=1e-5)
-check("path-only delta = -0.00976", -0.00976, DM["ambient_path@100"]["mean_diff"],
+check("path-only delta = -0.01476", -0.01476, DM["ambient_path@100"]["mean_diff"],
       tol=1e-5)
-check("path-only t = -11.3", -11.3, DM["ambient_path@100"]["t"], tol=0.05)
-check("operator d=6 QLIKE = 0.17339", 0.17339, R["op_d6"]["qlike"]["100"],
+check("path-only t = -15.5", -15.5, DM["ambient_path@100"]["t"], tol=0.05)
+check("operator d=6 QLIKE = 0.17283", 0.17283, R["op_d6"]["qlike"]["100"],
       tol=1e-5)
-check("operator d=6 delta = +0.00015", 0.00015, DM["op_d6@100"]["mean_diff"],
+check("operator d=6 delta = -0.00540", -0.00540, DM["op_d6@100"]["mean_diff"],
       tol=1e-5)
-check("operator d=6 t = +0.3", 0.3, DM["op_d6@100"]["t"], tol=0.05)
-check("operator d=6 Holm p = 1.0", 1.0, R["holm"]["op_d6@100"]["adjusted_p"],
-      tol=1e-9)
-check("operator scores d=5 QLIKE = 0.17554", 0.17554,
+check("operator d=6 t = -8.9", -8.9, DM["op_d6@100"]["t"], tol=0.05)
+check("operator d=12 QLIKE = 0.17549", 0.17549, R["op_d12"]["qlike"]["100"],
+      tol=1e-5)
+check("operator scores d=5 QLIKE = 0.18399", 0.18399,
       R["op_scores_d5"]["qlike"]["100"], tol=1e-5)
-check("operator scores delta = +0.00230", 0.00230,
+check("operator scores delta = +0.00575", 0.00575,
       DM["op_scores_d5@100"]["mean_diff"], tol=1e-5)
-check("operator scores t = +5.0", 5.0, DM["op_scores_d5@100"]["t"], tol=0.05)
-check("PCA d=6 QLIKE = 0.18002", 0.18002, R["pca_d6"]["qlike"]["100"], tol=1e-5)
-check("PCA d=6 delta = +0.00678", 0.00678, DM["pca_d6@100"]["mean_diff"],
+check("operator scores t = +11.9", 11.9, DM["op_scores_d5@100"]["t"], tol=0.05)
+check("PCA d=6 QLIKE = 0.18375", 0.18375, R["pca_d6"]["qlike"]["100"], tol=1e-5)
+check("PCA d=6 delta = +0.00552", 0.00552, DM["pca_d6@100"]["mean_diff"],
       tol=1e-5)
-check("PCA d=6 t = +17.5", 17.5, DM["pca_d6@100"]["t"], tol=0.05)
-check("eigenmap d=6 QLIKE = 0.18154", 0.18154, R["lap_d6"]["qlike"]["100"],
+check("PCA d=6 t = +12.8", 12.8, DM["pca_d6@100"]["t"], tol=0.05)
+check("eigenmap d=6 QLIKE = 0.18274", 0.18274, R["lap_d6"]["qlike"]["100"],
       tol=1e-5)
-check("eigenmap d=6 delta = +0.00831", 0.00831, DM["lap_d6@100"]["mean_diff"],
+check("eigenmap d=6 delta = +0.00450", 0.00450, DM["lap_d6@100"]["mean_diff"],
       tol=1e-5)
-check("eigenmap d=6 t = +18.2", 18.2, DM["lap_d6@100"]["t"], tol=0.05)
+check("eigenmap d=6 t = +9.8", 9.8, DM["lap_d6@100"]["t"], tol=0.05)
 check("anchor-only QLIKE = 0.18322", 0.18322, R["anchor_qlike"], tol=1e-5)
 check("ambient view d = 516", 516, R["ambient"]["d"], tol=0.5)
 check("path view d = 24", 24, R["ambient_path"]["d"], tol=0.5)
