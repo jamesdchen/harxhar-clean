@@ -27,6 +27,14 @@ linear one:
   * hyperparameters are fixed a priori and modest, never tuned on evaluation
     rows. An untuned tree is a LOWER bound on the premium, which is the safe
     direction for a number this load-bearing
+
+THE CONTROL THIS NEEDS. Running once on the corrected panel confounds three
+changes at once -- the data fix, the absence of tuning, and a coarser cadence
+than the paper used -- and a result that reverses could be any of them. Run
+the IDENTICAL configuration on the corrupted panel (TP_CACHE=b2_mmap) and the
+comparison becomes within-configuration: if this tree wins there and loses
+here, the data fix is doing the work; if it loses on both, the configuration
+is, and nothing has been learned about the premium.
 """
 
 from __future__ import annotations
