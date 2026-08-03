@@ -143,6 +143,41 @@ that actually use the affected columns, the data-version effect on an
 era-level or worst-decile loss exceeds the largest design contrast, with the
 same statistic computed on both sides.
 
+**That restatement was then run here, post-hoc, and it does not cleanly hold**
+(`analysis/exposure_conditional.py`, `writeup/stats/exposure_conditional.json`).
+Exposure is defined structurally as `r/12`, the lag dimensions a design keeps,
+so it is fixed before any loss is computed -- defining "exposed" as "responds
+to the cache" would have been circular.
+
+| estimand | cache effect (exposed) | design range (exposed) | holds | rho(exposure, effect) |
+|---|---|---|---|---|
+| T1 pooled | +0.00325 | 0.00009 | yes | +0.771 |
+| T2 era-8 | +0.02329 | 0.00015 | yes | +0.829 |
+| T3 worst decile by RV | **-0.00004** | 0.00015 | **no** | +0.371 |
+
+T3 was the framing predicted to be strongest and it is the one that fails: the
+October 2023 bars cluster in *time*, not in *volatility*, so "damage
+concentrated in the tail" and "damage concentrated in high-volatility bars" are
+different claims and only the first is true.
+
+Two reservations against the test itself, recorded so it is not cited as
+stronger than it is:
+
+- the a priori cut admits only two designs, so the design range in the
+  denominator is small almost by construction -- the mirror image of the flaw
+  this restatement was meant to fix;
+- `amp rank-3` on the corrupted cache is an outlier (0.14402 pooled, 0.23536 on
+  era 8, against roughly 0.132-0.136 elsewhere) and inflates the rank
+  correlation more than the smooth trend does.
+
+Pooled DM on the one unambiguously exposed design: raw492 composed vs none
+-0.00472, t -2.95, p 0.0032 -- significant, but below the |t| > 3 bar this
+protocol uses elsewhere.
+
+**Nothing here enters the paper as a confirmation.** The paper's claim remains
+the conditional one: the defect dominates where it binds, and pooled averages
+hide it.
+
 Two further results, both on the clean cache:
 
 - lag-axis rank 3 reaches 0.13149 in 135 columns against raw492's 0.13146 in
