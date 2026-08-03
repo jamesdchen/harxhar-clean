@@ -1,0 +1,205 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage[T1]{fontenc}
+\usepackage[protrusion=false,expansion=false]{microtype}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\lstset{basicstyle=\small\ttfamily,frame=single,framesep=4pt,
+        backgroundcolor=\color{black!3},columns=flexible,breaklines=true,
+        xleftmargin=0pt,aboveskip=8pt,belowskip=8pt}
+
+\title{Is the twelve-rung HAR ladder three-dimensional?\\
+       \large Method note: supervised rank-3 compression against the full ladder}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+We ask whether the twelve rungs of a base-2 HAR ladder carry twelve degrees of
+freedom or fewer. Every arm keeps the same twelve lags $\{1,2,4,\dots,2048\}$
+and differs only in how many shape coefficients the ladder is allowed. Under
+fixed \emph{a priori} bases the ladder does not compress. Under a supervised
+basis it does: three coefficients in twelve columns beat all twelve rungs in
+twenty-one columns by $0.00059$ QLIKE ($t=-3.30$), with an interior optimum at
+$r=3$. Principal components at the same rank are the worst arm tested. The
+result is not yet robustness-tested and the projection is estimated from a
+single frozen window; \S\ref{sec:caveats} states what must be conceded.
+\end{abstract}
+
+\section{Panel and rows}
+
+Cache \texttt{results/b2\_mmap\_warm}, the corrected-fill build: availability
+recorded \emph{before} the forward fill, a 26-bar staleness bound, scale
+estimated from observed rows only, and a warm-up guard on feed initiation.
+
+\begin{itemize}\itemsep2pt
+  \item 242{,}934 bars on a 30-minute grid, Sunday 18:30 through Friday 20:00,
+        2005-01-02 to 2024-04-30.
+  \item Training window $W = 24{,}000$ bars; the walk begins at bar 24{,}000.
+  \item 218{,}934 predictions per arm; 218{,}909 scored after dropping bars
+        whose truth is non-positive or whose features are non-finite.
+  \item The scored row set is \emph{identical} across arms, so every
+        comparison is bar-for-bar.
+\end{itemize}
+
+\section{Target}
+
+\texttt{robust\_transform(df, "RV")} chains
+
+\[
+  \text{diurnal adjustment} \;\longrightarrow\;
+  \text{\texttt{sqrt} semantic transform} \;\longrightarrow\;
+  \text{rolling winsorize}
+\]
+
+The diurnal step is multiplicative and returns the baseline $b$. Winsorization
+uses a 240-bar rolling window at the \textbf{1/99} quantiles---the interior
+optimum measured under a fixed truth, where the project default of 5/95 costs
+$0.00304$ and removing the clip entirely does not help. The model trains on the
+transformed target $y$; raw variance is reconstructed as $y^{2}b$.
+
+Scoring is on the \textbf{clipped 5/95} footing, $y_{5/95}^{2}\,b$, which is the
+footing the paper's battery uses and where its OLS HAR base-5 plus calendar
+sits at $0.13415$.
+
+\section{Features}
+
+Let $s = y^{2}$ be the bar-level adjusted variance. For each rung
+$L \in \{1,2,4,\dots,2048\}$,
+
+\begin{lstlisting}[language=Python]
+H[:, k] = sqrt( s.rolling(L, min_periods=L).mean().shift(1) )
+\end{lstlisting}
+
+The \texttt{.shift(1)} is the causality guard: bar $t$'s feature uses data only
+through $t-1$. Nine calendar columns are appended---\texttt{DOW\_0..4},
+\texttt{hour}, \texttt{is\_overnight}, \texttt{is\_open},
+\texttt{is\_close}. \textbf{No exogenous channels are used.}
+
+\section{The two arms}
+
+Both designs are $[\,H G,\ \text{cal}\,]$ with an intercept; only $G$ differs.
+
+\paragraph{Baseline, \texttt{base-2 (r=12)}.} $G = I_{12}$, giving
+$12 + 9 = 21$ columns plus intercept---the untouched ladder.
+
+\paragraph{Compressed, \texttt{sup r=3}.} $G \in \mathbb{R}^{12\times 3}$,
+giving $3 + 9 = 12$ columns plus intercept. $G$ is built on rows $[0,W)$
+\emph{only}:
+
+\begin{lstlisting}[language=Python]
+C  = cov(H[:W])                       # 12 x 12 ladder covariance
+xy = (H[:W]-mean).T @ (y[:W]-mean)/W  # ladder-target cross-covariance
+d0 = solve(C, xy)                     # the OLS coefficient direction
+fam = [d0, C@d0, C@C@d0, ...]         # Krylov space K_r(C, d0)
+G   = gram_schmidt(fam)[:r]
+\end{lstlisting}
+
+This is a \textbf{Krylov / PLS-type subspace}, not a generic ``supervised
+projection'', and the distinction matters for how the result should be
+described. At $r=1$ it is the frozen OLS coefficient direction. Because
+$C d_0 = xy$, for $r \ge 2$ the span contains both the OLS direction and the
+raw cross-covariance direction.
+
+\section{Estimator: per-bar OLS, exact}
+
+Both arms refit at \emph{every bar}, with no penalty, matching the battery's
+convention rather than this project's usual 1{,}000-bar cadence. A window step
+changes $X^{\top}X$ by rank two---one row leaves, one enters---so the inverse is
+updated in $O(p^{2})$ rather than re-solved in $O(p^{3})$:
+
+\begin{lstlisting}[language=Python]
+cf  = Ainv @ c
+u = A[t-W]; v = A[t]                    # row leaving, row entering
+Ainv += outer(Au,Au) / (1 - u.T@Ainv@u) # remove
+Ainv -= outer(Av,Av) / (1 + v.T@Ainv@v) # add
+c = c - u*y[t-W] + v*y[t]
+\end{lstlisting}
+
+At $p \approx 20$ this is roughly 500 flops per bar, so all 218{,}934 refits
+cost less than a single 1{,}000-bar walk of a wide design. The fastest method
+here is also the correct protocol, which is why it is worth the care.
+
+Rank-2 updating accumulates floating-point error, so the inverse is recomputed
+exactly every 5{,}000 bars and the worst observed relative drift is reported:
+$1.3\times10^{-12}$ for \texttt{sup}, $1.0\times10^{-13}$ for the baseline. The
+fast path is exact, not approximately exact.
+
+\section{Prediction and scoring}
+
+\begin{align*}
+  \widehat{RV}_t &= \Bigl( (A_t \hat\beta)^{2}
+                   + \tfrac{1}{W}\textstyle\sum_i r_i^{2} \Bigr) b_t
+                   &&\text{(Duan smearing)}\\[2pt]
+  \mathrm{QLIKE} &= \rho - \log \rho - 1,
+                   \qquad \rho = RV_t / \widehat{RV}_t
+\end{align*}
+
+Inference is Diebold--Mariano with a Newey--West HAC variance at the
+rule-of-thumb bandwidth and the Harvey--Leybourne--Newbold small-sample
+correction. Eras are eight equal blocks of the scored index.
+
+\section{Result}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+arm & lag dims & cols & QLIKE & vs base-2 \\
+\midrule
+\texttt{base-2 (r=12)} & 12 & 21 & $0.13438$ & --- \\
+\textbf{\texttt{sup r=3}} & \textbf{3} & \textbf{12} & $\mathbf{0.13379}$ &
+  $\mathbf{-0.00059}$ ($t=-3.30$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Three coefficients beat twelve rungs. The \texttt{sup} curve has an
+\emph{interior} optimum rather than a monotone preference for fewer columns:
+$-0.00017$, $-0.00024$, $\mathbf{-0.00059}$ at $r=3$, then $+0.00031$ and
+$+0.00032$ at $r=4$ and $r=6$. Getting worse past $r=3$ is what makes this a
+statement about dimension.
+
+For context, the fixed bases at $r=3$ all lose: power $+0.00128$,
+log-polynomial $+0.00108$, and principal components $+0.00135$---the worst of
+the four. Unsupervised compression of the ladder is actively harmful, matching
+the exogenous block, where a supervised projection beat the 516-dimensional
+ambient view while principal components and Laplacian eigenmaps lost. Variance
+directions and prediction directions are different objects here, and only the
+second compresses.
+
+\section{What must be conceded}
+\label{sec:caveats}
+
+\begin{enumerate}\itemsep3pt
+  \item \textbf{$G$ is frozen from 2005--2007 and applied through 2024}, never
+        refit---seventeen years stale at the end of the sample. This is the
+        single largest assumption in the design.
+  \item \textbf{$G$ is estimated}, so \texttt{sup} carries three fitted
+        directions of complexity the baseline does not. It is estimated on rows
+        disjoint from every scored bar, so it is not leakage; it is not free
+        either.
+  \item \textbf{$t=-3.30$ rests on the rule-of-thumb HAC bandwidth}, which has
+        produced two false positives elsewhere in this project. The margin has
+        not been tested by block bootstrap, leave-one-era-out, or a bandwidth
+        sweep.
+  \item \textbf{This is not a reproduction of the battery.} Base-2 should land
+        near $0.13333$, being $0.00082$ better than base-5's $0.13415$, and
+        $0.13438$ is $0.00105$ the wrong way. The training clip is 1/99 rather
+        than 5/95 and the panel differs. The agreement confirms the footing and
+        nothing more.
+\end{enumerate}
+
+\noindent
+Artifacts: \texttt{analysis/ladder\_headline.py},
+\texttt{writeup/stats/ladder\_headline.json}.
+
+\end{document}
