@@ -208,6 +208,14 @@ def main():
         Q = {k: float(L[k].mean()) for k in L}
         report(tname, L, Q, res, preds, idx, n, out)
     ordr = [out["by_truth"][t]["order"] for t in TRUTHS]
+    print(f"\n  ordering identical across the two truths: {ordr[0] == ordr[1]}")
+    print(f"  battery reference: OLS HAR base-5 + calendar = 0.13415 "
+          f"(clipped footing, frozen panel)")
+    out["ordering_truth_invariant"] = bool(ordr[0] == ordr[1])
+    with open(os.path.join(OUT_DIR, "ladder_headline.json"), "w") as fh:
+        json.dump(out, fh, indent=1)
+    print(f"\nwrote ladder_headline.json ({time.time()-t0:.0f}s)")
+    ordr = [out["by_truth"][t]["order"] for t in TRUTHS]
     print(f"\n  ordering identical across the two truths: "
           f"{ordr[0] == ordr[1]}")
     print(f"  battery reference: OLS HAR base-5 + calendar = 0.13415 "
@@ -249,9 +257,6 @@ def report(tname, L, Q, res, preds, idx, n, out):
     rec["n"] = int(len(idx))
     print(f"  best: {rec['order'][0]}")
     out["by_truth"][tname] = rec
-    with open(os.path.join(OUT_DIR, "ladder_headline.json"), "w") as fh:
-        json.dump(out, fh, indent=1)
-    print(f"\nwrote ladder_headline.json ({time.time()-t0:.0f}s)")
 
 
 if __name__ == "__main__":
