@@ -94,15 +94,26 @@ not a default.
 $41 \times 12$ exogenous operator, its singular value decomposition, the
 session-conditional frames, the CP and Tucker factorisations, the
 rank-constrained priors and the bespoke projection penalty are together
-reproduced---and beaten---by contracting each channel's rung ladder against a
-fixed $u^{-1}$ weight and running plain ridge on the resulting 41 numbers.
-Fifty-three columns reach QLIKE $0.13280$ against $0.13415$ for the 504-column
-design with the matrix penalty ($t = -5.63$), $0.13571$ for the backbone alone
-($t = -9.59$), and $0.13617$ for plain ridge on the 492 raw columns---worse
-than the backbone it exists to improve. The effective-degrees-of-freedom
-accounting shows the first two are the same estimator computed two ways: the
-penalty spends $\approx 54$ degrees of freedom, which is $1 + 12 + 41$, the
-dimension of its own null space. The stripped-down design is also an order of
+reproduced by contracting each channel's rung ladder against a small number of
+fixed shapes and running plain ridge on the result. On the uncorrected panel
+that compression appeared to \emph{beat} the full design---$53$ columns at
+$0.13280$ against $0.13617$ for plain ridge on all $504$ features, itself worse
+than the $12$-column backbone at $0.13571$---and we built a draft around it. On
+the corrected panel the full design reaches $0.13146$ and wins, our
+pre-registered falsification condition for the compressed one is met at
+$-0.00126$ ($t = -5.91$), and the compression is withdrawn
+(Section~\ref{sec:ledger}).
+
+What replaces it is a tie. Sweeping rank on the lag axis under two independent
+orthonormal bases, the curve is flat from $r = 4$ upward, and the best
+compressed arm---$135$ columns---reaches $0.13117$ against $0.13146$ for all
+$504$. That $0.00029$ does not survive a widened HAC bandwidth, a block
+bootstrap, an era-level test or a leave-one-era-out sweep, so we report the two
+as equivalent. A nearly fourfold difference in design width buys nothing
+measurable, which is this paper's thesis applied to its own modelling section.
+The effective-degrees-of-freedom accounting says why: the elaborate penalty
+spends $\approx 54$ degrees of freedom, which is $1 + 12 + 41$, the dimension of
+its own null space. The compressed design is an order of
 magnitude more robust in the one era where the exogenous block fails
 ($+0.00347$ against $+0.03321$). The generalisation we are willing to defend is
 that in this regime every \emph{estimated} structure is a cost requiring

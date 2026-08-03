@@ -45,6 +45,7 @@ Anything violating these is not reportable.
 | selection | on a region strictly preceding the evaluation region, or on a tail held out inside each training window; never on evaluation rows |
 | oracle arms | permitted, always labelled `ORACLE`, never quoted as achievable |
 | design size | 41 channels x 12 rungs = 492 exogenous columns; + 12 HAR = **504 features**; + intercept = 505 parameters. Use "504 features" in tables |
+| arm names | `raw492` and `ridge492` are **the same arm** -- 504 features, identity penalty on the 492 exogenous columns -- and agree to 12 significant figures wherever both appear (0.1361736957106712 vs 0.13617369571068358). One design, two labels, in the same class as the 504/505 confusion above. `shaped492` is genuinely different: same 504 features, shared-shape matrix penalty instead of the identity. Prefer **`ridge-504`** and **`shaped-504`**; never name an arm after a number that is not its width |
 | labelling | every quoted number carries its cache version |
 | stability | any effect below 0.005 is reported by era, not pooled |
 
