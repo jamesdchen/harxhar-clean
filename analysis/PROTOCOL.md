@@ -326,6 +326,38 @@ axis is not low rank" were each measured on a design missing the block that
 encodes missingness, which is where breadth and regime information would sit.
 No null here is evidence about the full design.
 
+### The gate ran, and the attribution was wrong -- including my correction
+
+| arm | cols | QLIKE | vs ridge-504 |
+|---|---|---|---|
+| ridge-504 | 504 | 0.13146 | -- |
+| + calendar & regime | 537 | 0.13121 | -0.00025 |
+| + active | 585 | 0.13113 | -0.00033 |
+| + avail (full-1077) | 1077 | 0.13101 | -0.00045 |
+
+Adding back all 573 missing columns is worth **0.00045**, better in 8 of 8
+eras. The residual against the paper's 0.12788 is **+0.00313**, so 87% of the
+gap is not the columns.
+
+**And the comparison itself was invalid.** The claim "this session's baseline
+is 0.00358 worse than the paper's plain ridge" set a base-2 ladder on the
+repaired-fill cache (218,909 bars) against a base-5 ladder on the frozen
+battery panel (218,934 bars). Those were never comparable. This document
+diagnosed incompatible footings as retraction cause four and then committed
+one in the course of correcting a different error.
+
+Two findings survive. The omission was real but an order of magnitude smaller
+than implied. And the 492 availability indicators are nearly inert AS
+FEATURES: 0.13113 to 0.13101, worth 0.00012. Repairing what the indicator says
+about the data was worth a factor of fifty on the October window; feeding the
+indicator to the model as a predictor is worth almost nothing. Those are
+different operations and only the first mattered.
+
+The cache also ships 24 precomputed regime columns -- `har_ma_<r>_x_open` and
+`_x_close` for all twelve rungs -- which are the paper's regime block. The
+interaction ladder spent 1,044 seconds rebuilding those as 108 fresh crosses
+while they sat in the file already being loaded.
+
 **Conventions added:**
 
 1. Any arm compared to a published number is fitted on the published
