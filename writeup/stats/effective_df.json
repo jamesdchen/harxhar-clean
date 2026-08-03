@@ -1,0 +1,84 @@
+{
+  "n_windows": 55,
+  "by_block": [
+    {
+      "block": 1,
+      "backbone": 12.999999999952815,
+      "ridge": 93.00065157833738,
+      "shape": 47.174102613698615,
+      "ridge_sd": 3.5657883938854997,
+      "shape_sd": 0.1630681701247718
+    },
+    {
+      "block": 2,
+      "backbone": 12.999999999919764,
+      "ridge": 90.37724281230373,
+      "shape": 49.883966187465326,
+      "ridge_sd": 4.401409489028434,
+      "shape_sd": 2.237853045625232
+    },
+    {
+      "block": 3,
+      "backbone": 12.999999999931086,
+      "ridge": 94.91154980159965,
+      "shape": 55.11724611884284,
+      "ridge_sd": 2.6846016363482703,
+      "shape_sd": 0.2861676676222957
+    },
+    {
+      "block": 4,
+      "backbone": 12.99999999992587,
+      "ridge": 98.91940771443048,
+      "shape": 55.59451567569812,
+      "ridge_sd": 1.5676025863824012,
+      "shape_sd": 0.1437547243075266
+    },
+    {
+      "block": 5,
+      "backbone": 12.99999999992615,
+      "ridge": 97.86349669551082,
+      "shape": 55.69752329945506,
+      "ridge_sd": 1.6582653379465648,
+      "shape_sd": 0.0943949397380772
+    },
+    {
+      "block": 6,
+      "backbone": 12.99999999994407,
+      "ridge": 94.15637976755842,
+      "shape": 55.523418263035616,
+      "ridge_sd": 1.5239277164615135,
+      "shape_sd": 0.09870736677942266
+    },
+    {
+      "block": 7,
+      "backbone": 12.999999999923068,
+      "ridge": 98.61450549868445,
+      "shape": 56.286745794169214,
+      "ridge_sd": 4.057933231697459,
+      "shape_sd": 1.0711972213740066
+    },
+    {
+      "block": 8,
+      "backbone": 12.999999999869837,
+      "ridge": 104.74770622851906,
+      "shape": 60.03134113238286,
+      "ridge_sd": 3.460159848248485,
+      "shape_sd": 2.4863557455234915
+    }
+  ],
+  "spend": {
+    "ridge": {
+      "pc1_5": 4.9439834308645105,
+      "pc6_20": 14.117920815142034,
+      "pc21plus": 72.08483472363926
+    },
+    "shape": {
+      "pc1_5": 0.2958784380176652,
+      "pc6_20": 0.12833707224282073,
+      "pc21plus": 0.06646395293077745
+    }
+  },
+  "ridge_df_blocks_1_7": 95.40617626691787,
+  "ridge_df_block_8": 104.74770622851906,
+  "verdict": "df is FLAT while the loss explodes, so the collapse is NOT an over-fitting   failure -- it is a distribution shift, and no regularisation accounting   anticipates it. Directed shrinkage contains the damage without having   predicted it."
+}
