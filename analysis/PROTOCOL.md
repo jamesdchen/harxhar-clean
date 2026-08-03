@@ -41,6 +41,7 @@ Anything violating these is not reportable.
 | panel | `results/b2_mmap*`, 242,934 rows; walk begins at bar 24,000 |
 | protocol | rolling 24,000-bar training window, refit every 1,000 bars |
 | loss | QLIKE on raw RV after Duan smearing; MSE reported alongside for any effect under 0.005 |
+| significance | DM with Newey-West HAC and the HLN correction; there is no blanket `\|t\|` threshold. Any effect whose differential is concentrated (top 1% of bars carrying most of the mass) or confined to one era must additionally survive a block bootstrap and a leave-one-era-out sweep, because a normal-theory statistic on such a series is not trustworthy at any `\|t\|` |
 | selection | on a region strictly preceding the evaluation region, or on a tail held out inside each training window; never on evaluation rows |
 | oracle arms | permitted, always labelled `ORACLE`, never quoted as achievable |
 | design size | 41 channels x 12 rungs = 492 exogenous columns; + 12 HAR = **504 features**; + intercept = 505 parameters. Use "504 features" in tables |
@@ -171,8 +172,16 @@ stronger than it is:
   correlation more than the smooth trend does.
 
 Pooled DM on the one unambiguously exposed design: raw492 composed vs none
--0.00472, t -2.95, p 0.0032 -- significant, but below the |t| > 3 bar this
-protocol uses elsewhere.
+-0.00472, t -2.95, p 0.0032. An earlier version of this note called that
+"below the |t| > 3 bar this protocol uses elsewhere", which was wrong and is
+retracted: `|t| > 3` appears once in this document, as the pre-registered
+falsification threshold for one specific comparison, and was never a general
+convention. Inventing a house rule and then failing a result against it is the
+same class of error as the unvalidated proxy metrics in section 1.
+
+The reliability question underneath it is real and is answered separately in
+`analysis/dm_robustness.py`, which tests the differential four ways rather than
+against a threshold.
 
 **Nothing here enters the paper as a confirmation.** The paper's claim remains
 the conditional one: the defect dominates where it binds, and pooled averages
