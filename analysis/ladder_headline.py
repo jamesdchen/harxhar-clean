@@ -68,7 +68,8 @@ W = 24000
 REFRESH = 5000
 NBLOCK = 8
 RUNGS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-RANKS = [1, 2, 3, 4, 6, 12]        # 12 = the untouched ladder
+RANKS = [1, 2, 3, 4, 6]
+BASES = ["power", "logpoly", "pca", "sup"]
 
 
 def qlike_bar(rv, p):
@@ -88,12 +89,56 @@ def gram_schmidt(vs):
     return out
 
 
-def shapes(rungs, r):
-    """r orthonormal lag directions, fixed a priori and never estimated."""
+def shapes(rungs, r, basis, H=None, y=None, W=None):
+    """r orthonormal lag directions under one of four bases.
+
+    A FIXED basis losing at rank r shows those r directions are insufficient,
+    not that r dimensions are -- so the question "is the ladder
+    three-dimensional" needs the best available three-dimensional subspace, not
+    an arbitrary one. Two fixed bases and two estimated ones bracket it.
+
+      power    rungs^-beta for a spread of beta, Gram-Schmidt'd. The paper's
+               power-law reading of the effective kernel.
+      logpoly  polynomials in log2(rung). Degree 1 is a pure power law, so
+               this generalises the power reading rather than competing.
+      pca      top-r principal directions of the ladder, estimated on the
+               FIRST training window only and frozen. Causal, and the best
+               r-dimensional subspace in a variance sense.
+      sup      top-r directions of the ladder-target cross-covariance on that
+               same window. Causal, and aimed at prediction rather than
+               variance -- the distinction that decided the exogenous
+               retrieval result.
+
+    pca and sup are frozen rather than re-estimated per window because this
+    project has measured re-estimation losing to imposition repeatedly, and a
+    frozen estimate is the charitable version: it gets the data's own answer
+    without paying for instability.
+    """
     rr = np.asarray(rungs, float)
-    fam = [rr ** -1.0, rr ** -0.5, rr ** -2.0, rr ** 0.0, rr ** -3.0, rr ** -1.5]
-    lg = np.log2(rr); lg = (lg - lg.mean()) / lg.std()
-    fam += [lg ** d for d in range(len(rr))]
+    if basis == "power":
+        fam = [rr ** -1.0, rr ** -0.5, rr ** -2.0, rr ** 0.0, rr ** -3.0, rr ** -1.5]
+        lg = np.log2(rr); lg = (lg - lg.mean()) / lg.std()
+        fam += [lg ** d for d in range(len(rr))]
+        return np.column_stack(gram_schmidt(fam)[:r])
+    if basis == "logpoly":
+        lg = np.log2(rr); lg = (lg - lg.mean()) / lg.std()
+        return np.column_stack(gram_schmidt([lg ** d for d in range(len(rr))])[:r])
+    Htr = H[:W]
+    ok = np.isfinite(Htr).all(1)
+    Htr = Htr[ok]
+    if basis == "pca":
+        C = np.cov(Htr, rowvar=False)
+        ev, V = np.linalg.eigh(C)
+        return V[:, np.argsort(ev)[::-1][:r]]
+    ytr = y[:W][ok]
+    # supervised: directions of greatest covariance with the target, from the
+    # cross-covariance of the ladder with y, whitened by the ladder covariance
+    C = np.cov(Htr, rowvar=False) + 1e-12 * np.eye(Htr.shape[1])
+    xy = (Htr - Htr.mean(0)).T @ (ytr - ytr.mean()) / len(ytr)
+    d0 = np.linalg.solve(C, xy)
+    fam = [d0] + [C @ d0]
+    for _ in range(r):
+        fam.append(C @ fam[-1])
     return np.column_stack(gram_schmidt(fam)[:r])
 
 
@@ -185,18 +230,20 @@ def main():
         for L in RUNGS])
 
     res, preds = {}, {}
-    for r in RANKS:
-        nm = "base-2 (r=12)" if r == 12 else f"compressed r={r}"
-        G = shapes(RUNGS, r)
+    jobs = [("base-2 (r=12)", 12, None)] + [
+        (f"{bs} r={r}", r, bs) for bs in BASES for r in RANKS]
+    for nm, r, bs in jobs:
+        G = np.eye(len(RUNGS)) if bs is None else shapes(RUNGS, r, bs, H, y, W)
         F = np.column_stack([H @ G, cal])
         ok = np.isfinite(F).all(1)
         F = np.where(np.isfinite(F), F, 0.0)
         pr, drift = per_bar_ols(F, y, b, W)
         pr[~ok[W:]] = np.nan
         preds[nm] = pr
-        res[nm] = {"rank": r, "cols": F.shape[1], "drift": drift}
-        print(f"    {nm:>16} lag dims={r:<3d} cols={F.shape[1]} "
-              f"inverse drift {drift:.2e} ({time.time()-t0:.0f}s)", flush=True)
+        res[nm] = {"rank": r, "basis": bs or "none", "cols": F.shape[1],
+                   "drift": drift}
+        print(f"    {nm:>16} dims={r:<3d} cols={F.shape[1]} "
+              f"drift {drift:.1e} ({time.time()-t0:.0f}s)", flush=True)
 
     out = {"cache": CACHE, "arms": res, "by_truth": {}}
     for tname, truth in TRUTHS.items():
@@ -244,15 +291,14 @@ def report(tname, L, Q, res, preds, idx, n, out):
         print(f"  {nm:>16}{res[nm]['rank']:>10}{res[nm]['cols']:>6}"
               f"{Q[nm]:>11.5f}{rr['mean_diff']:>+12.5f}{rr['t']:>8.2f}")
     nb = len(idx) // NBLOCK
-    print(f"  by era (positive = worse than base-2):")
+    print(f"  best r=3 across bases: " + ", ".join(
+        f"{bs}={Q.get(f'{bs} r=3', float('nan')):.5f}" for bs in BASES))
     for nm in preds:
         if nm == REF: continue
         d = L[nm] - L[REF]
         em = [float(d[i*nb:(i+1)*nb if i < NBLOCK-1 else len(idx)].mean())
               for i in range(NBLOCK)]
         rec[f"era_{nm}"] = em
-        print(f"    {nm:>16}: base-2 better in "
-              f"{sum(1 for v in em if v > 0)}/{NBLOCK} eras")
     rec["order"] = sorted(Q, key=lambda k: Q[k])
     rec["n"] = int(len(idx))
     print(f"  best: {rec['order'][0]}")
