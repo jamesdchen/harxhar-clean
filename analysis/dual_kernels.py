@@ -64,7 +64,7 @@ def qlike_bar(rv, p):
 
 
 def pick_cache():
-    for c in ("b2_mmap_indonly", "b2_mmap_fix", "b2_mmap"):
+    for c in ("b2_mmap_warm", "b2_mmap_indonly", "b2_mmap_fix", "b2_mmap"):
         if os.path.exists(os.path.join(ROOT, "results", c, "X.npy")):
             return c
     raise SystemExit("no cache built")

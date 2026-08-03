@@ -49,8 +49,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from inference import dm_test  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, "writeup", "stats")
-CACHES = [("none", "b2_mmap"), ("indicator", "b2_mmap_indonly"),
-          ("both", "b2_mmap_fix")]
+CACHES = [("none", "b2_mmap"), ("composed", "b2_mmap_warm")]
 W, CAD = 24000, 1000
 LAMS = [0.0] + [10.0 ** e for e in range(-2, 7)]
 BETAS_FIT = [0.5, 1.0, 1.5, 2.0, 3.0]      # flat response: 5 levels, not 36

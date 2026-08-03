@@ -62,7 +62,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from inference import dm_test, holm  # noqa: E402
 
-D = os.path.join(ROOT, "results", "b2_mmap")
+D = os.path.join(ROOT, "results",
+                 os.environ.get("KNN_CACHE", "b2_mmap_warm"))
 OUT_DIR = os.path.join(ROOT, "writeup", "stats")
 
 TRAIN_FRAC = 0.60
