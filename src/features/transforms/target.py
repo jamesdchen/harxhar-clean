@@ -196,11 +196,29 @@ def robust_transform(
     allow_missing: bool = False,
     winsor_window: int | None = None,
     is_target: bool = False,
+    diurnal_mode: str = "divide",
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
     Returns ``(adjusted_series, baseline)``.
+
+    ``diurnal_mode`` selects how the per-slot diurnal adjustment is done.
+    ``"divide"`` (default) is :func:`diurnal_adjust` — the only implemented mode, and
+    bit-for-bit the historical behaviour. ``"rank"`` would be a division-free per-slot
+    rank-Gauss; :func:`src.features.transforms.rank_gauss.rolling_rank_gauss` provides the
+    *marginal* (pooled-over-slots) version, but the per-slot conditional analogue was never
+    written, so it raises. Callers (``executor.load_and_transform``, ``models/stacked.py``,
+    ``resid_amortized.py``) forward the parameter and previously hit a ``TypeError`` on
+    every exog run because this signature did not accept it.
     """
+    if diurnal_mode not in ("divide", "rank"):
+        raise ValueError(f"diurnal_mode must be 'divide' or 'rank', got {diurnal_mode!r}")
+    if diurnal_mode == "rank":
+        raise NotImplementedError(
+            "diurnal_mode='rank' needs a per-slot rank-Gauss diurnal (a `diurnal_rank` "
+            "companion to `diurnal_adjust`); only the marginal `rolling_rank_gauss` "
+            "exists. Pass diurnal_mode='divide'."
+        )
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
 
