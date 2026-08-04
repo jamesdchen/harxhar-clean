@@ -7,7 +7,7 @@ reasons. The claims were individually plausible, several were statistically
 significant at conventional levels, and one survived long enough to have the
 paper rewritten around it---so the interesting content is not that they were
 wrong but \emph{how} they passed. And a reader is entitled to know the
-denominator: fourteen withdrawn claims is the evidence that what remains was
+denominator: fifteen withdrawn claims is the evidence that what remains was
 tested rather than merely found.
 
 \subsection{The Ledger}
@@ -36,14 +36,15 @@ the exponent's usable range is $[-1, -0.5]$ & flat over $[0.2, 3.0]$ \\
 23 of 41 channels show the volatility-demand pathology & the detector conflated collapsed scale with fat tails \\
 the honest indicator is the whole of the fix & it changes no feature value \\
 the median substitution is actively harmful & harmful alone, correct as half of a pair \\
+three supervised lag directions beat all twelve rungs & the identical procedure on the eight estimation windows nobody chose puts all eight behind the ladder; the published window sits $13.5$ sd outside that distribution \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Four Causes, Not Fourteen}
+\subsection{Five Causes, Not Fifteen}
 
-Every entry in Table~\ref{tab:ledger} traces to one of four failures. None is a
-modelling error, which is why we now guard against these four specifically
+Every entry in Table~\ref{tab:ledger} traces to one of five failures. None is a
+modelling error, which is why we now guard against these five specifically
 rather than against wrong answers in general.
 
 \paragraph{One factor at a time.} The stripped-down design beat the elaborate
@@ -74,12 +75,30 @@ and oracle arms are reported but labelled.
 uncorrected panel was tabled against $0.13177$ on the corrected one without
 labels. Every number in this paper now carries its data version.
 
+\paragraph{An arbitrary nuisance choice fixed at one value and never varied.}
+The lag-compression result estimated its projection on the first $24{,}000$
+rows of the panel. Nothing recommended those rows over any other $24{,}000$;
+they were simply first. Every diagnostic we ran on that arm was internal to
+it---refit cadences, seed variants, principal angles, a memory-halflife
+sweep---and each was informative about \emph{how} the projection behaved
+without ever asking whether a different window would have produced the same
+verdict. It would not: repeating the identical procedure on the eight windows
+nobody chose puts all eight behind the full ladder in a tight distribution
+(mean $+0.00022$, sd $0.00016$), with the published window $13.5$ standard
+deviations outside it. The window was a nuisance parameter, and a nuisance
+parameter examined at one value is not examined. We now sweep such choices
+across their plausible range and read the reported number against that
+distribution, in the spirit of specification-curve and multiverse analysis;
+where a sweep is infeasible, the arbitrariness is stated rather than left
+implicit.
+
 \subsection{What This Implies About the Rest of the Literature}
 
-We make one observation and no accusation. Three of the four causes above are
+We make one observation and no accusation. Four of the five causes above are
 invisible in a finished paper. A reader cannot tell from a results table
 whether a shape parameter was selected on validation data or on the reported
 test set; whether a reported ablation varied one factor while a second moved
-underneath it; or whether the panel a model was fitted on contained a channel
-that had stopped publishing. Our own answers to those three questions were
-wrong, and we had the code.
+underneath it; whether the panel a model was fitted on contained a channel that
+had stopped publishing; or whether an arbitrary window, seed, or split was the
+only one ever tried. Our own answers to those four questions were wrong, and we
+had the code.

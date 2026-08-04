@@ -12,8 +12,9 @@
         backgroundcolor=\color{black!3},columns=flexible,breaklines=true,
         xleftmargin=0pt,aboveskip=8pt,belowskip=8pt}
 
-\title{Is the twelve-rung HAR ladder three-dimensional?\\
-       \large Method note: supervised rank-3 compression against the full ladder}
+\title{How many dimensions does a twelve-rung HAR ladder carry?\\
+       \large Method note: one column matches twelve, and the rank-3 win was
+       one window}
 \author{}
 \date{\today}
 
@@ -22,15 +23,31 @@
 
 \begin{abstract}
 \noindent
-We ask whether the twelve rungs of a base-2 HAR ladder carry twelve degrees of
-freedom or fewer. Every arm keeps the same twelve lags $\{1,2,4,\dots,2048\}$
-and differs only in how many shape coefficients the ladder is allowed. Under
-fixed \emph{a priori} bases the ladder does not compress. Under a supervised
-basis it does: three coefficients in twelve columns beat all twelve rungs in
-twenty-one columns by $0.00059$ QLIKE ($t=-3.30$), with an interior optimum at
-$r=3$. Principal components at the same rank are the worst arm tested. The
-result is not yet robustness-tested and the projection is estimated from a
-single frozen window; \S\ref{sec:caveats} states what must be conceded.
+A base-2 HAR ladder holds twelve moving averages of one series at horizons
+$\{1,2,\dots,2048\}$. We ask how many of those twelve are doing work. The
+answer is one. A single fixed column---no estimation, no fitted direction---
+matches all twelve rungs, by three independent routes that agree: a
+nine-window placebo averages $+0.00001$, the pooled estimated direction gives
+$-0.00054$ ($t=-1.33$), and the best \emph{a priori} shape gives $+0.00034$
+($t=+1.65$). The mechanism is that the ladder's effective rank is $2.81$ of
+$12$ with $72.8\%$ of its variance in the top direction, so eleven of the
+twelve columns are near-duplicates. Which single column works is governed by
+one parameter. Because rung $j$ is a block mean of the last $2^j$ squared
+returns, a weight $w_j \propto L_j^{-\alpha}$ over rungs induces a kernel
+$\kappa(i) \propto i^{-(\alpha+1)}$ over \emph{raw} lags, so $\alpha$ is the
+long-memory parameter $d$; kernels decaying slower than $i^{-1.35}$ fail in
+$0$--$2$ eras of $8$, and everything from $d \approx 0.4$ upward ties. That
+optimum agrees with the standard estimate for realised variance, which is
+independent corroboration rather than a fitted result. An earlier version of
+this note reported that \emph{three} supervised coefficients beat twelve rungs
+by $0.00080$. That claim is withdrawn on evidence far stronger than the
+original doubt: repeating the identical procedure on the eight estimation
+windows nobody chose puts all eight behind the full ladder in a tight
+distribution (mean $+0.00022$, sd $0.00016$), with the published window
+$13.5$ standard deviations outside it. It is not a chance draw, not curvature,
+and not a discoverable feature---every imposed shape fails, including one
+hand-copied from the winning window's own loadings. \S\ref{sec:corrections}
+lists five statements this note previously made that were wrong.
 \end{abstract}
 
 \section{Panel and rows}
@@ -40,248 +57,398 @@ recorded \emph{before} the forward fill, a 26-bar staleness bound, scale
 estimated from observed rows only, and a warm-up guard on feed initiation.
 
 \begin{itemize}\itemsep2pt
-  \item 242{,}934 bars on a 30-minute grid, Sunday 18:30 through Friday 20:00,
-        2005-01-02 to 2024-04-30.
+  \item 242{,}934 bars on a 30-minute grid, 2005-01-02 to 2024-04-30.
   \item Training window $W = 24{,}000$ bars; the walk begins at bar 24{,}000.
-  \item 218{,}934 predictions per arm; 218{,}909 scored after dropping bars
-        whose truth is non-positive or whose features are non-finite.
-  \item The scored row set is \emph{identical} across arms, so every
-        comparison is bar-for-bar.
+  \item 218{,}909 bars scored after dropping non-positive truth and
+        non-finite features. The scored row set is \emph{identical} across
+        arms, so every comparison is bar-for-bar.
+  \item Prediction is per-bar OLS by rank-2 inverse updates, Duan-smeared:
+        $\widehat{RV}_t = \big((A_t\hat\beta)^2 + \hat\sigma^2\big)b_t$.
+  \item $\mathrm{QLIKE} = \rho - \log\rho - 1$, $\rho = RV_t/\widehat{RV}_t$.
+        Inference is Diebold--Mariano with Newey--West HAC and the
+        Harvey--Leybourne--Newbold correction. Eras are eight equal blocks.
 \end{itemize}
 
-\section{Target}
+Every arm below keeps the same twelve lags and the same nine calendar columns.
+Arms differ \emph{only} in the projection applied to the twelve rungs.
 
-\texttt{robust\_transform(df, "RV")} chains
+\section{What a weight over rungs means on the raw lags}
+\label{sec:kernel}
 
+This is the conceptual core and it is elementary, but it was not stated in the
+earlier note and it reframes every result that follows.
+
+Rung $j$ is the block mean $M_j = L_j^{-1}\sum_{i=1}^{L_j} y^2_{t-i}$ with
+$L_j = 2^j$. A weighted sum of rungs is therefore a quadrature rule on the lag
+axis with piecewise-constant weights, and in the variance domain the map is
+exact:
 \[
-  \text{diurnal adjustment} \;\longrightarrow\;
-  \text{\texttt{sqrt} semantic transform} \;\longrightarrow\;
-  \text{rolling winsorize}
+  \sum_j w_j M_j \;=\; \sum_i \kappa(i)\, y^2_{t-i},
+  \qquad
+  \kappa(i) \;=\; \sum_{j\,:\,2^j \ge i} \frac{w_j}{2^j}.
 \]
+Each raw lag $i$ is collected by every rung long enough to contain it,
+discounted by that rung's own $1/L_j$. Setting $w_j \propto L_j^{-\alpha}$
+makes the inner sum geometric with ratio $2^{-(\alpha+1)}$ from
+$j_0 = \lceil \log_2 i\rceil$, giving
+\[
+  \kappa(i) \;=\; \frac{2^{-j_0(\alpha+1)}}{1-2^{-(\alpha+1)}}
+             \;\propto\; i^{-(\alpha+1)} .
+\]
+\textbf{A power law of exponent $\alpha$ over rungs is a power law of exponent
+$\alpha+1$ over raw lags}; the extra power is the $1/L_j$ normalisation of the
+block means. Since an ARFIMA$(0,d,0)$ has $\mathrm{AR}(\infty)$ weights
+decaying as $i^{-(d+1)}$, the rung exponent \emph{is} the long-memory
+parameter.
 
-The diurnal step is multiplicative and returns the baseline $b$. Winsorization
-uses a 240-bar rolling window at the \textbf{1/99} quantiles---the interior
-optimum measured under a fixed truth, where the project default of 5/95 costs
-$0.00304$ and removing the clip entirely does not help. The model trains on the
-transformed target $y$; raw variance is reconstructed as $y^{2}b$.
-
-Scoring is on the \textbf{clipped 5/95} footing, $y_{5/95}^{2}\,b$, which is the
-footing the paper's battery uses and where its OLS HAR base-5 plus calendar
-sits at $0.13415$.
-
-\section{Features}
-
-Let $s = y^{2}$ be the bar-level adjusted variance. For each rung
-$L \in \{1,2,4,\dots,2048\}$,
-
-\begin{lstlisting}[language=Python]
-H[:, k] = sqrt( s.rolling(L, min_periods=L).mean().shift(1) )
-\end{lstlisting}
-
-The \texttt{.shift(1)} is the causality guard: bar $t$'s feature uses data only
-through $t-1$. Nine calendar columns are appended---\texttt{DOW\_0..4},
-\texttt{hour}, \texttt{is\_overnight}, \texttt{is\_open},
-\texttt{is\_close}. \textbf{No exogenous channels are used.}
-
-\section{The two arms}
-
-Both designs are $[\,H G,\ \text{cal}\,]$ with an intercept; only $G$ differs.
-
-\paragraph{Baseline, \texttt{base-2 (r=12)}.} $G = I_{12}$, giving
-$12 + 9 = 21$ columns plus intercept---the untouched ladder.
-
-\paragraph{Compressed, \texttt{sup r=3}.} $G \in \mathbb{R}^{12\times 3}$,
-giving $3 + 9 = 12$ columns plus intercept. $G$ is built on rows $[0,W)$
-\emph{only}:
-
-\begin{lstlisting}[language=Python]
-C  = cov(H[:W])                       # 12 x 12 ladder covariance
-xy = (H[:W]-mean).T @ (y[:W]-mean)/W  # ladder-target cross-covariance
-d0 = solve(C, xy)                     # the OLS coefficient direction
-fam = [d0, C@d0, C@C@d0, ...]         # Krylov space K_r(C, d0)
-G   = gram_schmidt(fam)[:r]
-\end{lstlisting}
-
-This is a \textbf{Krylov / PLS-type subspace}, not a generic ``supervised
-projection'', and the distinction matters for how the result should be
-described. At $r=1$ it is the frozen OLS coefficient direction. Because
-$C d_0 = xy$, for $r \ge 2$ the span contains both the OLS direction and the
-raw cross-covariance direction.
-
-\section{Estimator: per-bar OLS, exact}
-
-Both arms refit at \emph{every bar}, with no penalty, matching the battery's
-convention rather than this project's usual 1{,}000-bar cadence. A window step
-changes $X^{\top}X$ by rank two---one row leaves, one enters---so the inverse is
-updated in $O(p^{2})$ rather than re-solved in $O(p^{3})$:
-
-\begin{lstlisting}[language=Python]
-cf  = Ainv @ c
-u = A[t-W]; v = A[t]                    # row leaving, row entering
-Ainv += outer(Au,Au) / (1 - u.T@Ainv@u) # remove
-Ainv -= outer(Av,Av) / (1 + v.T@Ainv@v) # add
-c = c - u*y[t-W] + v*y[t]
-\end{lstlisting}
-
-At $p \approx 20$ this is roughly 500 flops per bar, so all 218{,}934 refits
-cost less than a single 1{,}000-bar walk of a wide design. The fastest method
-here is also the correct protocol, which is why it is worth the care.
-
-Rank-2 updating accumulates floating-point error, so the inverse is recomputed
-exactly every 5{,}000 bars and the worst observed relative drift is reported:
-$1.3\times10^{-12}$ for \texttt{sup}, $1.0\times10^{-13}$ for the baseline. The
-fast path is exact, not approximately exact.
-
-\section{Prediction and scoring}
-
-\begin{align*}
-  \widehat{RV}_t &= \Bigl( (A_t \hat\beta)^{2}
-                   + \tfrac{1}{W}\textstyle\sum_i r_i^{2} \Bigr) b_t
-                   &&\text{(Duan smearing)}\\[2pt]
-  \mathrm{QLIKE} &= \rho - \log \rho - 1,
-                   \qquad \rho = RV_t / \widehat{RV}_t
-\end{align*}
-
-Inference is Diebold--Mariano with a Newey--West HAC variance at the
-rule-of-thumb bandwidth and the Harvey--Leybourne--Newbold small-sample
-correction. Eras are eight equal blocks of the scored index.
-
-\section{Result, and its retraction}
+The identity is asymptotic. With twelve rungs truncated at 2048 the measured
+exponent runs above $\alpha+1$, because truncation removes long-lag weight and
+steepens the effective decay---most where small $\alpha$ puts the most mass:
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lrrrr}
+\begin{tabular}{rrrr}
 \toprule
-arm & lag dims & cols & QLIKE & vs base-2 \\
+$\alpha$ & predicted $\alpha+1$ & measured & half-weight rung \\
 \midrule
-\texttt{base-2 (r=12)} & 12 & 21 & $0.13438$ & --- \\
-\textbf{\texttt{sup r=3}} & \textbf{3} & \textbf{12} & $\mathbf{0.13379}$ &
-  $\mathbf{-0.00059}$ ($t=-3.30$) \\
+$0.00$ & $1.00$ & $1.189$ & 32 \\
+$0.25$ & $1.25$ & $1.389$ & 8 \\
+$0.50$ & $1.50$ & $1.597$ & 2 \\
+$1.00$ & $2.00$ & $2.032$ & 1 \\
+$2.00$ & $3.00$ & $2.946$ & 1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-Three coefficients appear to beat twelve rungs, with an \emph{interior} optimum
-rather than a monotone preference for fewer columns: $-0.00017$, $-0.00024$,
-$\mathbf{-0.00059}$ at $r=3$, then $+0.00031$ and $+0.00032$.
+So the \emph{measured} exponent is the quantity to read, not the nominal
+$\alpha$. The difference matters: it moves the implied $d$ at the optimum from
+$0.25$ to $\approx 0.4$.
 
-\subsection{Refitting the basis destroys it}
+\section{Result: one column matches twelve rungs}
+\label{sec:rank1}
 
-The projection above is estimated once on rows $[0,W)$ and applied through
-2024. Rebuilding it causally from the trailing window at three cadences gives:
+\subsection{Three independent routes}
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lrrrr}
+\begin{tabular}{llrr}
 \toprule
-arm & bases & QLIKE & vs base-2 & max principal angle \\
+route & how the single column is obtained & vs \texttt{r=12} & $t$ \\
 \midrule
-\texttt{base-2 (r=12)} & --- & $0.13438$ & --- & --- \\
-\texttt{sup r=3 frozen} & 1 & $0.13358$ & $-0.00080$ & $0.00^{\circ}$ \\
-\texttt{sup r=3 refit/24000} & 10 & $0.13465$ & $+0.00027$ & $89.02^{\circ}$ \\
-\texttt{sup r=3 refit/6000} & 37 & $0.13461$ & $+0.00023$ & $84.42^{\circ}$ \\
-\texttt{sup r=3 refit/1000} & 219 & $0.13464$ & $+0.00026$ & $66.09^{\circ}$ \\
+placebo mean & average over nine estimation windows & $+0.00001$ & --- \\
+pooled & dominant direction of eight windows & $-0.00054$ & $-1.33$ \\
+\emph{a priori} & fixed shape, no estimation at all & $+0.00034$ & $+1.65$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-\textbf{Every refit cadence loses.} Eras better than base-2: 5 of 8 frozen,
-against 1, 2 and 1 of 8 for the refit arms.
+All three are indistinguishable from the twelve-rung ladder. The eight-window
+placebo mean has SE $0.00052$, so it is $0.02$ SE from zero.
 
-\subsection{The instability is the estimator, and fixing it removes the win}
+\subsection{Why: the ladder is not twelve-dimensional}
 
-The subspace is built as a Krylov space $K_r(C, \text{seed})$. Three seeds were
-compared, holding the construction fixed so any difference is attributable to
-the seed alone:
+The rungs are nested moving averages of a single series, so they are close to
+duplicates. Averaged over the nine estimation windows, the ladder covariance
+spectrum is
+\[
+  0.728,\ 0.128,\ 0.057,\ 0.030,\ 0.018,\ 0.011,\ 0.008,\ 0.006,\ 0.005,\
+  0.004,\ 0.003,\ 0.002
+\]
+in variance shares---an entropy effective rank of $\mathbf{2.81}$ of $12$, with
+$72.8\%$ in the top direction. Discarding eleven columns discards little.
+
+Some of the tie is also a genuine variance saving:
+$\operatorname{tr}((A'A)^{-1})$ is $9.33\times 10^{-2}$ at rank 12 against
+$6.54\times 10^{-4}$ at rank 1, a factor of $143$ from collinearity. Mean
+in-sample prediction variance still scales only as $p/n$ ($22$ against $11$ over
+$24{,}000$ rows), so the bias--variance trade here is real but bounded, not the
+main effect.
+
+\subsection{Which column, and the one parameter that decides}
+
+The pooled direction is a smooth near-linear taper in $\log_2$ rung, not a
+power law:
 
 \begin{table}[h]
 \centering
-\begin{tabular}{llrrl}
+\small
+\begin{tabular}{lrrrrrrrrrrrr}
 \toprule
-seed & arm & QLIKE & vs base-2 & principal angles per direction \\
+rung & 1 & 2 & 4 & 8 & 16 & 32 & 64 & 128 & 256 & 512 & 1024 & 2048 \\
 \midrule
-$C^{-1}xy$ & frozen & $0.13358$ & $-0.00080$ & --- \\
-$C^{-1}xy$ & refit/6000 & $0.13461$ & $+0.00023$ & $[2.2, 63.8, 84.4]^{\circ}$ \\
-$xy$ (PLS) & frozen & $0.13460$ & $+0.00023$ & --- \\
-$xy$ (PLS) & refit/6000 & $0.13470$ & $+0.00032$ & $[1.0, 37.4, 59.1]^{\circ}$ \\
-$(C{+}\lambda I)^{-1}xy$ & frozen & $0.13378$ & $-0.00060$ & --- \\
-$(C{+}\lambda I)^{-1}xy$ & refit/6000 & $0.13457$ & $+0.00020$ & $[1.9, 49.0, 77.6]^{\circ}$ \\
+pooled & $.437$ & $.425$ & $.396$ & $.366$ & $.329$ & $.289$ & $.255$ &
+  $.212$ & $.162$ & $.096$ & $.030$ & $.005$ \\
+$k{=}0$ & $.474$ & $.421$ & $.361$ & $.344$ & $.091$ & $.204$ & $.282$ &
+  $.037$ & $.304$ & $-.054$ & $-.272$ & $.221$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-\textbf{Standard PLS does not reproduce the win even frozen} ($+0.00023$
-against $-0.00080$). The ridge-shrunk seed sits between the two at $-0.00060$,
-so the effect scales with how much the collinear ladder covariance is
-inverted. It is a property of the estimator, not a three-dimensional structure
-in the data.
+Half the pooled weight lies below rung 8. It is $11.3^{\circ}$ from
+$r^{-0.25}$ and $44.0^{\circ}$ from $r^{-1}$. The published window's direction,
+on the second row, is jagged with sign flips---the amplified-tail artifact of
+\S\ref{sec:whyk0}, visible directly in the loadings.
 
-The per-direction angles say where the instability lives. The first Krylov
-direction is stable to $1$--$2^{\circ}$; the second and third swing by $37$ to
-$84^{\circ}$. And the frozen curve runs $-0.00017$, $-0.00024$, then
-$\mathbf{-0.00080}$ at $r=3$: the entire win rides on precisely the two
-directions that do not survive refitting.
+Sweeping fixed shapes, each scored on all 218{,}909 bars with no estimation
+whatsoever:
 
-\paragraph{Two corrections to an earlier draft of this note.} It attributed
-the instability to an ill-conditioned inversion; $\operatorname{cond}(C)$ is
-$370$--$410$ on this panel, collinear but not singular, so that was wrong. And
-it reported a single angle of $89.0^{\circ}$ as showing the subspace ``nearly
-orthogonal'' to itself. That figure is $\arccos$ of the \emph{smallest}
-singular value, hence the \emph{largest} principal angle: it described one
-direction of three and was silent about the other two.
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+shape & half & $\kappa$ exp & QLIKE & vs \texttt{r=12} & eras \\
+\midrule
+\texttt{lintaper\^{}1.5}        & 8  & $1.913$ & $0.13406$ & $-0.00032$ & 6/8 \\
+\texttt{lintaper}$\times r^{-0.1}$ & 4  & $1.750$ & $0.13409$ & $-0.00029$ & 5/8 \\
+\texttt{lintaper\^{}2}          & 4  & $2.165$ & $0.13428$ & $-0.00010$ & 4/8 \\
+\texttt{power a=0.30}           & 4  & $1.430$ & $0.13437$ & $-0.00001$ & 5/8 \\
+\texttt{power a=0.25}           & 8  & $1.389$ & $0.13470$ & $+0.00032$ & 4/8 \\
+\texttt{power a=0.40}           & 4  & $1.513$ & $0.13474$ & $+0.00037$ & 4/8 \\
+\texttt{lintaper}               & 8  & $1.666$ & $0.13496$ & $+0.00058$ & 3/8 \\
+\texttt{power a=0.20}           & 8  & $1.348$ & $0.13551$ & $+0.00113$ & 2/8 \\
+\texttt{power a=0.15}           & 16 & $1.308$ & $0.13692$ & $+0.00254$ & 0/8 \\
+\texttt{power a=0.10}           & 16 & $1.268$ & $0.13904$ & $+0.00466$ & 0/8 \\
+\midrule
+\texttt{base-2 (r=12)}          & 12 & ---     & $0.13438$ & ---        & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The compression claim is \textbf{withdrawn}. What transfers is the diagnostic:
-check a projection for subspace stability, per direction, and re-seed it a
-second well-conditioned way before believing its loss. A mean loss cannot
-distinguish a stable feature of the data from a lucky freeze, and a single
-summary angle cannot distinguish a subspace that drifts from one whose
-leading direction is fine and whose tail is noise.
+\noindent
+\textbf{The best arm is an argmin over eleven shapes and is not reported as a
+win.} Bonferroni takes its $p$ from $0.032$ to $0.35$; the runner-up goes to
+$0.63$. \S\ref{sec:prereg} settles it on a split instead.
 
-\subsection{A second problem: implementation sensitivity}
+What \emph{is} robust is the family ordering, because it is not selected:
+kernels with measured exponent $\le 1.35$ ($d \le 0.35$) lose by $+0.00113$ to
+$+0.00466$ in $0$--$2$ of 8 eras; everything from $1.39$ upward ties. Too
+little memory is decisively wrong. Reading measured exponents, the best power
+arms sit at $\kappa \approx 1.39$--$1.43$, i.e.\ $d \approx 0.39$--$0.43$,
+agreeing with the standard long-memory estimate for realised variance.
 
-The frozen arm scores $0.13379$ under one implementation and $0.13358$ under
-another. The two differ only in how non-finite feature values are handled---
-zeroing individual entries against zeroing whole rows---and the gap, $0.00021$,
-is a quarter of the effect being claimed. Any result of this size on this panel
-needs its NaN policy pinned before the number means anything.
+Note where $\alpha=0$ sits. Equal weights give $\kappa \propto i^{-1}$, the
+knife-edge HAR implicitly targets---Corsi's argument is that a few block
+averages \emph{mimic} hyperbolic decay---and it is the worst arm tested
+($+0.01148$). This data wants decay strictly faster than hyperbolic.
 
-For context, the fixed bases at $r=3$ all lose: power $+0.00128$,
-log-polynomial $+0.00108$, and principal components $+0.00135$---the worst of
-the four. Unsupervised compression of the ladder is actively harmful, matching
-the exogenous block, where a supervised projection beat the 516-dimensional
-ambient view while principal components and Laplacian eigenmaps lost. Variance
-directions and prediction directions are different objects here, and only the
-second compresses.
+\section{Retraction: the rank-3 win was one window}
+\label{sec:retraction}
 
-\section{What must be conceded}
-\label{sec:caveats}
+The earlier note reported three supervised coefficients beating twelve rungs by
+$0.00080$ ($t=-3.30$), with the projection estimated once on rows $[0,W)$ and
+applied through 2024. Four tests, run in this order, close it.
+
+\subsection{Refit cadence does not rescue it, and there is no drift to track}
+
+Rebuilding the basis causally from the trailing window loses at every cadence
+($+0.00023$ to $+0.00027$). Sweeping an exponential halflife on the moments the
+basis is built from traces the whole bias--variance curve between a fully local
+refit and an expanding window that never forgets:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+arm & QLIKE & vs \texttt{r=12} & $t$ \\
+\midrule
+\texttt{sup frozen(first W)} & $0.13358$ & $-0.00080$ & $-5.48$ \\
+\texttt{base-2 (r=12)}       & $0.13438$ & ---        & --- \\
+\texttt{sup h=6000}          & $0.13453$ & $+0.00015$ & $+2.70$ \\
+\texttt{sup h=24000}         & $0.13454$ & $+0.00016$ & $+2.72$ \\
+\texttt{sup h=96000}         & $0.13455$ & $+0.00017$ & $+2.54$ \\
+\texttt{sup h=$\infty$}      & $0.13456$ & $+0.00018$ & $+2.60$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The curve is \textbf{flat}: $0.00003$ of spread across a $32\times$ range of
+memory, no interior optimum, so there is no drift timescale to find. That
+splits the published number exactly---rank-3 \emph{as a dimension} costs
+$+0.00016$, and the specific window is worth $-0.00096$ relative to any
+principled rank-3 estimate. None of the effect is ``three directions''.
+
+The $h=\infty$ arm is the control the original design lacked. Its information
+set strictly \emph{contains} the freeze's at every boundary past the first, and
+with no drift more data cannot give a worse estimate. It forecasts $0.00098$
+worse.
+
+\subsection{The nine-window placebo}
+
+The direct test is to repeat the published procedure on windows nobody chose:
+freeze on rows $[kW,(k{+}1)W)$ for every $k$ the sample supports and score all
+arms causally on the same late region, with identical trailing estimation, so
+only the projection differs.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{clrrr}
+\toprule
+$k$ & window & QLIKE & vs \texttt{r=12} & $t$ \\
+\midrule
+\textbf{0} & $[0,24k)$ \textbf{published} & $\mathbf{0.13291}$ &
+  $\mathbf{-0.00194}$ & $\mathbf{-9.72}$ \\
+1 & $[24k,48k)$   & $0.13537$ & $+0.00052$ & $+4.11$ \\
+2 & $[48k,72k)$   & $0.13495$ & $+0.00010$ & $+1.21$ \\
+3 & $[72k,96k)$   & $0.13502$ & $+0.00017$ & $+1.93$ \\
+4 & $[96k,120k)$  & $0.13519$ & $+0.00034$ & $+3.01$ \\
+5 & $[120k,144k)$ & $0.13492$ & $+0.00007$ & $+1.01$ \\
+6 & $[144k,168k)$ & $0.13520$ & $+0.00035$ & $+2.36$ \\
+7 & $[168k,192k)$ & $0.13490$ & $+0.00006$ & $+0.72$ \\
+8 & $[192k,216k)$ & $0.13496$ & $+0.00011$ & $+1.55$ \\
+\midrule
+--- & \texttt{base-2 (r=12)} & $0.13485$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The eight placebos cluster in $[0.13490,0.13537]$: mean $+0.00022$, sd
+$0.00016$, \textbf{none} beating the ladder. The published window sits
+$0.002$ outside the pack---$13.5$ placebo standard deviations. Best-of-nine by
+chance does not look like that, so the win is \emph{not} a lucky draw. It is
+also not reproducible by any principled estimator, which is the operative
+point.
+
+\subsection{It is not curvature either}
+\label{sec:curvature}
+
+A competing reading is that the twelve rungs lie near a curved
+three-dimensional surface, which would make the refit instability a rotating
+tangent rather than noise. Adding polynomial terms in the three scores tests
+this directly, and they hurt monotonically in degree:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+arm & cols & QLIKE & vs \texttt{r=12} \\
+\midrule
+linear $r{=}3$   & 3  & $0.13345$ & $-0.00091$ \\
+\texttt{base-2 (r=12)} & 12 & $0.13436$ & --- \\
+quadratic $r{=}3$ & 9  & $0.13413$ & $-0.00024$ \\
+cubic $r{=}3$     & 19 & $0.13478$ & $+0.00041$ \\
+quadratic on raw rungs & 90 & $0.13662$ & $+0.00226$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+There is no manifold. The structure that exists is flat, and
+\S\ref{sec:rank1} says it is one-dimensional.
+
+A permutation test on subspace rotation agrees. Conditioning on \emph{zero}
+training overlap---consecutive windows share 75\% of their rows, so lags 1--3
+are mechanical---and testing the lag profile against a window-order permutation
+null, the published estimator shows no significant drift ($p=0.84$, $0.082$,
+$0.067$ per direction; $p=0.46$, $0.18$, $0.16$ in the fully disjoint design).
+
+\subsection{Nothing imposed recovers it}
+\label{sec:whyk0}
+
+Why is window $k{=}0$ different? It is the flattest long-horizon stretch in the
+sample: smallest minimum eigenvalue of any window ($7.78\times10^{-4}$ against
+$1.15$--$4.23\times10^{-3}$) and flattest long rungs
+($\mathrm{sd}(2048)/\mathrm{sd}(1) = 0.124$ against $0.17$--$0.36$). So
+$C^{-1}$ amplifies the low-variance tail hardest there, and only that window
+manufactures a long-memory contrast. Note $\operatorname{cond}(C)$ is
+\emph{not} the discriminator ($412$ against $331$--$408$).
+
+If that contrast were a real feature, imposing one would find it. It does not:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+arm & vs \texttt{r=12} & $t$ \\
+\midrule
+$k{=}0$ (published), 3 cols     & $-0.00080$ & $-5.48$ \\
+$k{=}0$ direction 1 only, 1 col & $-0.00047$ & $-3.15$ \\
+placebo consensus, 3 cols       & $+0.00041$ & $+4.53$ \\
+imposed $r^{-1}+\lg^2$          & $+0.00086$ & $+12.30$ \\
+$k_0 d_1 + $ consensus $d_2,d_3$ & $+0.00087$ & $+5.99$ \\
+imposed log-polynomial          & $+0.00096$ & $+12.21$ \\
+consensus $d_1 + k_0 d_2,d_3$   & $+0.00108$ & $+4.37$ \\
+reverse-engineered from $k{=}0$'s own loadings & $+0.00108$ & $+9.52$ \\
+imposed power                   & $+0.00119$ & $+12.35$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Every \emph{a priori} shape loses, including one hand-copied from the winning
+window's loadings. Both direction-swaps fail, so the win is not separable into
+a direction-1 part and a directions-2,3 part---it exists only in that exact
+estimated triple. (The swaps are re-orthonormalised, so they establish
+non-separability, not its cause.)
+
+One arm survives and it is the subject of \S\ref{sec:rank1}: $k{=}0$'s first
+direction alone, one column, $-0.00047$ in 6 of 8 eras. At \emph{rank 1} the
+placebo distribution straddles zero (mean $+0.00001$, sd $0.00147$, 5 of 8
+beating the ladder) and $k{=}0$ is only $1.1$ sd from its mean---best of nine
+but an ordinary draw. \textbf{The rank-1 edge of that window is chance; the
+rank-3 triple is not.} The two ranks give opposite verdicts, and that is the
+resolution.
+
+\section{Corrections to the earlier note}
+\label{sec:corrections}
 
 \begin{enumerate}\itemsep3pt
-  \item \textbf{The freeze was the result}, not a simplification of it. Every
-        causal refit cadence loses to the full ladder. This was the largest
-        assumption in the design and it did not hold.
-  \item \textbf{The win depends on the seed}, not on the rank. A
-        well-conditioned PLS seed does not reproduce it, and a partially
-        shrunk one reproduces it partially.
-  \item \textbf{The unstable directions are the ones carrying the win}:
-        direction one is stable to $1$--$2^{\circ}$, directions two and three
-        swing by $37$--$84^{\circ}$, and the gain appears only at $r=3$.
-  \item \textbf{The frozen number moves by $0.00021$ across implementations}
-        that differ only in NaN handling---a quarter of the claimed effect.
-  \item \textbf{The $t$-statistics rest on the rule-of-thumb HAC bandwidth},
-        which has produced two false positives elsewhere in this project.
-  \item \textbf{This is not a reproduction of the battery.} Base-2 should land
-        near $0.13333$, being $0.00082$ better than base-5's $0.13415$, and
-        $0.13438$ is $0.00105$ the wrong way. The training clip is 1/99 rather
-        than 5/95 and the panel differs. The agreement confirms the footing and
-        nothing more.
+  \item \textbf{``The compression claim is withdrawn''} was too broad. The
+        \emph{rank-3 superiority} claim is withdrawn. The compression claim is
+        not: one column matches twelve rungs, by three routes
+        (\S\ref{sec:rank1}).
+  \item \textbf{``Direction 1 is stable to $1$--$2^{\circ}$''} was wrong as
+        stated. That figure is the smallest principal angle between
+        three-dimensional \emph{subspaces}. The direction-1 \emph{vectors}
+        differ across windows by $30.1^{\circ}$ on average ($13.9$ to
+        $42.8$). The subspaces share a direction; the first Krylov vectors do
+        not.
+  \item \textbf{Coefficient variance is not negligible at rank 12.}
+        $\operatorname{tr}((A'A)^{-1})$ is $143\times$ larger there than at
+        rank 1. The trade is bounded, not absent.
+  \item \textbf{The $r^{-1}$ imposed decay endorsed elsewhere in this project
+        is the second-worst rank-1 arm} ($+0.00989$). The shape that ties the
+        ladder decays far more slowly.
+  \item \textbf{``It is a property of the estimator, not a
+        three-dimensional structure in the data''} was right in conclusion and
+        wrong in evidence. The seed ladder alone cannot distinguish an
+        estimator artifact from an unreproducible feature; the placebo can, and
+        it shows the published window is an outlier rather than a draw.
 \end{enumerate}
 
 \noindent
-Artifacts: \texttt{analysis/ladder\_headline.py},
-\texttt{writeup/stats/ladder\_headline.json}.
+Two conceded caveats from the earlier note still stand: the frozen arm moves
+by $0.00021$ across implementations differing only in NaN handling, and this is
+not a reproduction of the battery (different training clip and panel).
+
+\section{The pre-registered test}
+\label{sec:prereg}
+
+\emph{Pending: one shape selected on rows $[24{,}000, 130{,}000)$ and tested on
+rows $[130{,}000, n)$, with HAC bandwidth ladder, stationary bootstrap,
+per-era means and leave-one-era-out. One arm, one test, no multiplicity.
+Artifact:} \texttt{analysis/preregistered\_taper.py}.
+
+\section*{Artifacts}
+
+\begin{tabular}{ll}
+\toprule
+\texttt{analysis/ladder\_headline.py} & the original rank sweep \\
+\texttt{analysis/ladder\_refit.py} & refit cadences, seed ladder \\
+\texttt{analysis/basis\_tracking.py} & halflife sweep, $h=\infty$ control \\
+\texttt{analysis/manifold\_drift\_test.py} & window-order permutation null \\
+\texttt{analysis/ladder\_curvature.py} & polynomial terms in the scores \\
+\texttt{analysis/freeze\_placebo.py} & the nine-window placebo \\
+\texttt{analysis/imposed\_longmem.py} & imposed shapes and direction swaps \\
+\texttt{analysis/rank1\_placebo.py} & the placebo re-run at rank 1 \\
+\texttt{analysis/rank1\_anatomy.py} & loadings, spectrum, variance decomposition \\
+\texttt{analysis/imposed\_taper.py} & taper sweep and the rung-to-lag check \\
+\texttt{analysis/preregistered\_taper.py} & the split test \\
+\bottomrule
+\end{tabular}
 
 \end{document}
