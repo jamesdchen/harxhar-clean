@@ -803,6 +803,100 @@ def stage_verify() -> None:
     print(f"wrote {OUT}/monthly_mapping.csv + volregime_significance.csv")
 
 
+# ---------------------------------------------------------------------------
+# Stage 7 — is the coefficient DIFFUSIVE (random walk) or mean-reverting?
+# ---------------------------------------------------------------------------
+
+
+def stage_diffusion() -> None:
+    """Does the alpha coefficient diffuse, or wobble around a constant?
+
+    §3 measured that the monthly slope of residual-on-alpha disperses at 1.74x its null. That is
+    *unconditional* dispersion, and it is equally consistent with two opposite processes:
+
+    * **Diffusive** — ``beta_{b+1} = beta_b + eta_b``, a random walk, i.e. the discrete heat
+      equation. Variance grows linearly in the horizon and there is no fixed mean, so the best
+      estimate of beta is the most recent one: short window, no shrinkage to a global mean.
+    * **Stationary mean-reverting** — beta wobbles around a constant with bounded variance, so the
+      right move is the opposite: long window, shrink hard toward the long-run mean.
+
+    The discriminator is how the *signal* variance scales with block length ``h``. Estimating beta
+    over blocks of ``h`` months, the observed cross-block variance is signal plus estimation noise,
+    and the noise part falls like ``1/h``. Subtracting a circular-shift null computed at the *same*
+    ``h`` (so the block count, and hence the small-sample noise in the sd itself, is matched) leaves
+    the signal variance. Then:
+
+    * signal variance **falling** with h  -> short-memory stationary wobble (averaging kills it)
+    * signal variance **flat** in h       -> persistent stationary component
+    * signal variance **growing** with h  -> diffusive / random-walk (the heat-equation case)
+
+    Also reports the AR(1) of the monthly slope with the errors-in-variables attenuation removed:
+    an *estimated* beta is beta plus noise, so its measured AR(1) is biased toward zero by the
+    factor ``Var(beta) / Var(beta_hat)``, which the null gives us directly.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = load_panel()
+    e = np.load(_p("har_resid.npz"))["e"][TW:]
+    a = dict(np.load(_p("bucket_signals.npz")))["all"]
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    n = len(e)
+    month = _blocks(ts)
+
+    def slopes(y: np.ndarray, h: int) -> np.ndarray:
+        """Per-block OLS slope of ``y`` on ``a``, blocks of ``h`` consecutive months."""
+        blk = month // h
+        out = []
+        for b in range(blk.max() + 1):
+            m = blk == b
+            if m.sum() < 200:
+                continue
+            xb, yb = a[m] - a[m].mean(), y[m] - y[m].mean()
+            sxx = float(xb @ xb)
+            if sxx > 0:
+                out.append(float(xb @ yb) / sxx)
+        return np.asarray(out)
+
+    rows = []
+    for h in (1, 2, 3, 6, 12):
+        obs = slopes(e, h)
+        nul = np.array([np.nanstd(slopes(np.roll(e, sh), h)) for sh in _shifts(n)])
+        v_obs, v_nul = float(np.nanstd(obs) ** 2), float(np.nanmean(nul) ** 2)
+        rows.append(
+            {
+                "block_months": h,
+                "n_blocks": len(obs),
+                "sd_observed": float(np.nanstd(obs)),
+                "sd_null": float(np.nanmean(nul)),
+                "var_signal": max(v_obs - v_nul, 0.0),
+                "var_ratio": v_obs / v_nul if v_nul > 0 else np.nan,
+                "mean_slope": float(np.nanmean(obs)),
+            }
+        )
+        print(
+            f"  h={h:2d} months  n_blocks {len(obs):3d}  sd obs {np.nanstd(obs):.4f}  "
+            f"null {np.nanmean(nul):.4f}  var_signal {max(v_obs - v_nul, 0.0):.5f}  "
+            f"ratio {v_obs / v_nul if v_nul > 0 else np.nan:.2f}",
+            flush=True,
+        )
+    d = pd.DataFrame(rows)
+    base = d.var_signal.iloc[0]
+    d["signal_var_rel_h1"] = d.var_signal / base if base > 0 else np.nan
+    print("SIGNAL VARIANCE relative to h=1 (random walk ~ h; short-memory stationary ~ 1/h):")
+    for _, r in d.iterrows():
+        print(f"    h={int(r.block_months):2d}  {r.signal_var_rel_h1:.3f}")
+
+    b1 = slopes(e, 1)
+    ar1 = float(pd.Series(b1).autocorr(1))
+    lam = d.var_signal.iloc[0] / (d.sd_observed.iloc[0] ** 2)  # Var(beta)/Var(beta_hat)
+    print(
+        f"  monthly slope AR(1) measured {ar1:+.3f}; signal share of variance {lam:.2f} -> "
+        f"attenuation-corrected AR(1) ~ {ar1 / lam if lam > 0 else np.nan:+.3f}"
+    )
+    print("  (a random walk in levels would show AR(1) ~ 1)")
+    d.to_csv(f"{OUT}/slope_diffusion.csv", index=False)
+    print(f"wrote {OUT}/slope_diffusion.csv")
+
+
 def _bin_map(S: np.ndarray, y: np.ndarray, bins: np.ndarray, K: int) -> np.ndarray:
     """(K, n_signals) within-bin IC of each bucket signal."""
     out = np.full((K, S.shape[1]), np.nan)
@@ -851,7 +945,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--stage",
-        choices=["resid", "signals", "tests", "dynamics", "sparse", "verify"],
+        choices=["resid", "signals", "tests", "dynamics", "sparse", "verify", "diffusion"],
         required=True,
     )
     a = ap.parse_args()
@@ -862,4 +956,5 @@ if __name__ == "__main__":
         "dynamics": stage_dynamics,
         "sparse": stage_sparse,
         "verify": stage_verify,
+        "diffusion": stage_diffusion,
     }[a.stage]()
