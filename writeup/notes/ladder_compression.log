@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.8.3)  4 AUG 2026 05:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.8.3)  4 AUG 2026 05:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -366,7 +366,7 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count302
 \l__pdf_internal_box=\box56
 )
-No file ladder_compression.aux.
+(./ladder_compression.aux)
 \openout1 = `ladder_compression.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 21.
@@ -387,6 +387,7 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 21.
 LaTeX Font Info:    ... okay on input line 21.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 21.
 LaTeX Font Info:    ... okay on input line 21.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -454,12 +455,14 @@ File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman
 \everyMPtoPDFconversion=\toks28
 )
 Package hyperref Info: Link coloring ON on input line 21.
+ (./ladder_compression.out) (./ladder_compression.out)
 \@outlinefile=\write3
 \openout3 = `ladder_compression.out'.
 
 LaTeX Font Info:    Trying to load font information for U+msa on input line 23.
 
- (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msa.cfg
@@ -474,48 +477,26 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-
-LaTeX Warning: Reference `sec:corrections' on page 1 undefined on input line 49
-.
-
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 5
 5.
+
 (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 ) [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2]
-
-LaTeX Warning: Reference `sec:whyk0' on page 3 undefined on input line 193.
-
-
-LaTeX Warning: Reference `sec:prereg' on page 3 undefined on input line 223.
-
-[3]
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+[4] [5]
 
-LaTeX Warning: Reference `sec:rank1' on page 4 undefined on input line 341.
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-[4]
-
-LaTeX Warning: Reference `sec:rank1' on page 5 undefined on input line 388.
-
-
-LaTeX Warning: Reference `sec:rank1' on page 5 undefined on input line 403.
-
-[5] [6] (./ladder_compression.aux)
+[6] [7] (./ladder_compression.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
 
 Package rerunfilecheck Warning: File `ladder_compression.out' has changed.
@@ -523,17 +504,17 @@ Package rerunfilecheck Warning: File `ladder_compression.out' has changed.
 (rerunfilecheck)                or use package `bookmark'.
 
 Package rerunfilecheck Info: Checksums for `ladder_compression.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  829E19EAACD3F81D38826E86B3A4C57F;3085.
+(rerunfilecheck)             Before: 829E19EAACD3F81D38826E86B3A4C57F;3085
+(rerunfilecheck)             After:  42D5C39073FFDC26EE578A8DFBBB1A97;3768.
  ) 
 Here is how much of TeX's memory you used:
- 13704 strings out of 476182
- 208801 string characters out of 5795596
+ 13738 strings out of 476182
+ 209355 string characters out of 5795596
  1941975 words of memory out of 5000000
- 35533 multiletter control sequences out of 15000+600000
- 576789 words of font info for 87 fonts, out of 8000000 for 9000
+ 35555 multiletter control sequences out of 15000+600000
+ 578319 words of font info for 89 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,10n,79p,1015b,586s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,10n,79p,1015b,590s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </root/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1200.600pk> </
 root/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1095.600pk> </root/
 .texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk> </root/.texl
@@ -558,10 +539,10 @@ nts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type
 /amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
 cmsy8.pfb>
-Output written on ladder_compression.pdf (6 pages, 263851 bytes).
+Output written on ladder_compression.pdf (7 pages, 269000 bytes).
 PDF statistics:
- 555 PDF objects out of 1000 (max. 8388607)
- 135 compressed objects within 2 object streams
- 26 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 607 PDF objects out of 1000 (max. 8388607)
+ 192 compressed objects within 2 object streams
+ 30 named destinations out of 1000 (max. 500000)
+ 105 words of extra memory for PDF output out of 10000 (max. 10000000)
 
