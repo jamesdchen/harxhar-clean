@@ -19,6 +19,8 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
+# root scripts moved to experiments/ on 2026-08-04
+sys.path.insert(0, os.path.join(ROOT, "experiments"))
 
 # Target directories are overridable so each prep ablation lands in its own
 # cache and the builds can be differenced. Defaults to the indicator-only fix,

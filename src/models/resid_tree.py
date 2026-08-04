@@ -16,6 +16,8 @@ import sys
 def run(cid: str, params_file: str, output_file: str, arm: str = "residualized",
         blk0=None, blk1=None, **_ignored) -> str:
     sys.path.insert(0, os.getcwd())
+    # root scripts moved to experiments/ on 2026-08-04
+    sys.path.insert(0, os.path.join(os.getcwd(), "experiments"))
     import resid_amortized as ra
 
     cfg = json.load(open(params_file))
