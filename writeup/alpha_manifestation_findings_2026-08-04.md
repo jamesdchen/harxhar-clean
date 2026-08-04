@@ -555,9 +555,59 @@ follow-up; it was out of scope here and is not assumed to matter.
    old behavior and `"rank"` raises `NotImplementedError` (the per-slot rank-Gauss diurnal
    was never written; `rolling_rank_gauss` exists but no `diurnal_rank`).
 
+## 10. Selection audit — which claims are exposed to multiple testing
+
+Added after the fact, and it changes how two results above should be read.
+
+By the end of this study **~100+ specifications had been scored against the same 218,934-bar OOS
+residual**: a 4-point ridge ladder, 8 bucket signals, 13 granularity points x 3 axes, 13
+gain-channel arms, a 6-point sparse ladder, 13 interaction arms, 4 scalings x 3 arms x 2, 4
+product penalties, 5 voldemand variants. No unused data remains in this panel. And 219k
+autocorrelated bars are only ~4,500 independent days, so the real noise floor on a ΔR² is well
+above the naive one.
+
+That does **not** contaminate everything equally. What matters is whether a claim is a *measured
+quantity* or the *max of a search*:
+
+| claim | form | exposure |
+|---|---|---|
+| `c` = 0.95–1.05 (concentration, §5) | measured, no selection | **safe** |
+| split-half stability +0.68 / +0.64 vs nulls +0.04 / +0.02 (§4) | descriptive + explicit null | **safe** |
+| 0 of 207 months negative; slope dispersion 1.74x null (§3) | descriptive + null | **safe** |
+| dense monotone in k, ΔR² +0.018, DM-t −7.2 (§2) | a whole ordered curve, not a max | **safe** |
+| 2% daily / 24–31% monthly selection churn (§2, §7) | measured | **safe** |
+| vol-regime blend pays, ΔR² +0.0024, DM-t +5.0 (§5) | max over ~13 ladder points x 2 | **§11.1: survives**, SPA p 0.0000, RW adj. p 0.0000–0.0015 |
+| interaction gain +35%, DM-t +2.71 (§7.1) | max over 4 product penalties | **§11.1: survives narrowly**, SPA p 0.024, RW adj. p 0.024 |
+| voldemand composite gain +8.5%, DM-t +1.55 (§8.4) | max over 5 variants | already labelled n.s.; **treat as zero** |
+
+The two bolded rows were reported as clean and should not have been. The right instrument for
+them is a bootstrap over the **maximum** statistic across arms — Hansen's SPA or a step-down
+Romano–Wolf, blocked for autocorrelation — not a per-arm DM-t. **Both have now been run (§11.1) and
+both survive** — the conditioning claim comfortably, the interaction claim narrowly (p = 0.024) —
+with the adjusted p-values being lower bounds, since each family is a subset of what was searched.
+The structural conclusions in §§2–5 do not depend on either.
+
+**Why §8's voldemand fix is not in this table.** It was justified by a **violated invariant with
+a direct measurement** — divisor pinned on 74% of rows, 487-sigma tails, 51x era asymmetry, a
+bucket sitting at negative R² — not by winning a bake-off. Its composite DM-t (+1.55) was
+reported as insignificant at the time. That is the distinction worth generalising: **fix a
+feature because an invariant is violated, not because an arm won.** An invariant check costs no
+inferential budget, which is exactly why the diagnostic proposed below is the right next build
+and another transform bake-off is not.
+
+**Protocol for any future specification comparison here:** pre-register the candidate set and the
+decision rule; hold out an era (search on ≤ 2020, one scored decision on 2021–2024 — this panel
+no longer has clean holdout for that, a real cost of how this study ran); correct for the search
+with Romano–Wolf or SPA; and gate on the invariant checks first, since a candidate that fails
+scale-equivariance is out regardless of score. See `analysis/universal_transform.py` for the
+transform-specific version of this argument, including why there is no single best *universal*
+semantic transform (the 41 features do not share a distribution family, and the existing
+sqrt/log/cbrt rules are Bartlett variance-stabilizing transforms that follow from each family's
+mechanism — rule 5's defect was being a fall-through default, not being name-based).
+
 ## 11. Multiplicity correction, and the invariant diagnostic
 
-### 11.1 Both flagged claims survive correction (§10's flags can be lifted, with caveats)
+### 11.1 Both flagged claims survive correction
 
 `analysis/multiplicity.py`. Each arm family recomputed keeping per-arm loss differentials, then
 Hansen SPA (H0: *no* arm beats the benchmark) and Romano–Wolf step-down adjusted p-values, both on
