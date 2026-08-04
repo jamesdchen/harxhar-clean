@@ -555,54 +555,84 @@ follow-up; it was out of scope here and is not assumed to matter.
    old behavior and `"rank"` raises `NotImplementedError` (the per-slot rank-Gauss diurnal
    was never written; `rolling_rank_gauss` exists but no `diurnal_rank`).
 
-## 10. Selection audit — which claims are exposed to multiple testing
+## 11. Multiplicity correction, and the invariant diagnostic
 
-Added after the fact, and it changes how two results above should be read.
+### 11.1 Both flagged claims survive correction (§10's flags can be lifted, with caveats)
 
-By the end of this study **~100+ specifications had been scored against the same 218,934-bar OOS
-residual**: a 4-point ridge ladder, 8 bucket signals, 13 granularity points x 3 axes, 13
-gain-channel arms, a 6-point sparse ladder, 13 interaction arms, 4 scalings x 3 arms x 2, 4
-product penalties, 5 voldemand variants. No unused data remains in this panel. And 219k
-autocorrelated bars are only ~4,500 independent days, so the real noise floor on a ΔR² is well
-above the naive one.
+`analysis/multiplicity.py`. Each arm family recomputed keeping per-arm loss differentials, then
+Hansen SPA (H0: *no* arm beats the benchmark) and Romano–Wolf step-down adjusted p-values, both on
+a circular block bootstrap with one-month blocks drawn jointly across arms (2,000 reps).
 
-That does **not** contaminate everything equally. What matters is whether a claim is a *measured
-quantity* or the *max of a search*:
+**Claim 1 — vol-state conditioning, family = the 26 granularity-ladder arms.** SPA
+**p = 0.0000**.
 
-| claim | form | exposure |
-|---|---|---|
-| `c` = 0.95–1.05 (concentration, §5) | measured, no selection | **safe** |
-| split-half stability +0.68 / +0.64 vs nulls +0.04 / +0.02 (§4) | descriptive + explicit null | **safe** |
-| 0 of 207 months negative; slope dispersion 1.74x null (§3) | descriptive + null | **safe** |
-| dense monotone in k, ΔR² +0.018, DM-t −7.2 (§2) | a whole ordered curve, not a max | **safe** |
-| 2% daily / 24–31% monthly selection churn (§2, §7) | measured | **safe** |
-| **vol-regime blend pays, ΔR² +0.0024, DM-t +5.0 (§5)** | **max over ~13 ladder points x 2** | **needs multiplicity correction** |
-| **interaction gain +35%, DM-t +2.71 (§7.1)** | **max over 4 product penalties** | **needs multiplicity correction** |
-| voldemand composite gain +8.5%, DM-t +1.55 (§8.4) | max over 5 variants | already labelled n.s.; **treat as zero** |
+| arm | ΔR² | DM-t | RW adj. p |
+|---|---|---|---|
+| **vol K=2 blend** | +0.00208 | 5.01 | **0.0000** |
+| **vol K=3 blend** | +0.00242 | 4.56 | **0.0005** |
+| **vol K=5 blend** | +0.00239 | 4.14 | **0.0015** |
+| vol K=10 blend | +0.00132 | 1.89 | 0.166 |
+| vol K=2 separate | +0.00127 | 1.65 | 0.240 |
+| time-of-day K=2 blend | +0.00028 | 0.74 | 0.623 |
 
-The two bolded rows were reported as clean and should not have been. The right instrument for
-them is a bootstrap over the **maximum** statistic across arms — Hansen's SPA or a step-down
-Romano–Wolf, blocked for autocorrelation — not a per-arm DM-t. Neither has been run; until it is,
-read both as *directionally supported, magnitude unestablished*. The structural conclusions in
-§§2–5 do not depend on either.
+Survives comfortably. Note the corrected results reproduce the uncorrected story exactly: the
+blends pay, the unshrunk fits do not, and no clock arm comes close.
 
-**Why §8's voldemand fix is not in this table.** It was justified by a **violated invariant with
-a direct measurement** — divisor pinned on 74% of rows, 487-sigma tails, 51x era asymmetry, a
-bucket sitting at negative R² — not by winning a bake-off. Its composite DM-t (+1.55) was
-reported as insignificant at the time. That is the distinction worth generalising: **fix a
-feature because an invariant is violated, not because an arm won.** An invariant check costs no
-inferential budget, which is exactly why the diagnostic proposed below is the right next build
-and another transform bake-off is not.
+**Claim 2 — the interaction gain, family = the 8 group-penalty arms.** SPA **p = 0.0240**.
 
-**Protocol for any future specification comparison here:** pre-register the candidate set and the
-decision rule; hold out an era (search on ≤ 2020, one scored decision on 2021–2024 — this panel
-no longer has clean holdout for that, a real cost of how this study ran); correct for the search
-with Romano–Wolf or SPA; and gate on the invariant checks first, since a candidate that fails
-scale-equivariance is out regardless of score. See `analysis/universal_transform.py` for the
-transform-specific version of this argument, including why there is no single best *universal*
-semantic transform (the 41 features do not share a distribution family, and the existing
-sqrt/log/cbrt rules are Bartlett variance-stabilizing transforms that follow from each family's
-mechanism — rule 5's defect was being a fall-through default, not being name-based).
+| arm | ΔR² | DM-t | RW adj. p |
+|---|---|---|---|
+| **static, penalty 3e5** | +0.00443 | 2.77 | **0.0240** |
+| **static, penalty 3e4** | +0.00673 | 2.71 | **0.0240** |
+| dynamic, penalty 3e5 | +0.00243 | 2.14 | 0.028 |
+| dynamic, penalty 3e4 | +0.00080 | 0.34 | 0.743 |
+| static / dynamic, penalty 3e3 and 3e2 | negative | — | ≥0.97 |
+
+Survives, with much less room — p = 0.024 against 0.05. The two significant arms are both
+**static**, which is the §7 conclusion arriving independently through a corrected test.
+
+**Two limits that remain.** The families here are subsets of what was actually searched (§5's 13
+gain-channel arms and §7's 12 clipped-ladder arms are not re-run), and adding arms can only widen
+the null of the maximum — so **every adjusted p above is a lower bound**. And no correction
+recovers a held-out sample: these price in the search *within* a family, not the ~100
+specifications the study scored overall. The §10 protocol is still the only clean route.
+
+### 11.2 The invariant diagnostic, back-tested against its own incidents
+
+`src/diagnostics.py` — five per-column checks (pinned-divisor fraction, tail profile, era
+asymmetry, modal share, scale-guard bind rate) plus one run-level check (forecast scale over
+target sd). They never look at forecast accuracy, so they cost no inferential budget.
+
+`analysis/diagnostics_backtest.py` reconstructs seven incidents and asks whether the report flags
+each. **6 of 7.** The exercise earned its keep by finding four defects in my own work:
+
+| what the back-test found | fix |
+|---|---|
+| pinned-divisor fired on post-fix `voldemand`, whose divide is no longer in the pipeline | report 0 when `robust_transform` routes past the divide; add `divide_in_use` |
+| modal share fired on a zero mass that the hurdle encoding already models | exempt hurdle-encoded columns |
+| era asymmetry fired on a healthy column (1.9 → 3.2 across eras = "1.7x") | gate on absolute level (`max\|z\| >= 10`); a ratio of small maxima is meaningless |
+| **`build_vd_block("status_quo")` had silently stopped reproducing the pre-fix state** — the asinh gate is now the production default, so I1 and I2 had collapsed onto one arm | pass `signed_stabilizer=False` explicitly |
+
+That last one is the sharpest argument for the whole exercise: a committed script had quietly
+stopped reproducing its own recorded numbers, and only a back-test that asserted a *known* outcome
+could notice.
+
+The one remaining miss is post-fix `voldemand` returning **warn** rather than clean — it is still
+the panel's most drift-exposed family (max |z| 15.8, era asymmetry > 2.5), so a conservative flag
+is defensible and the threshold was left alone rather than tuned until the test passed. I4
+(imputing in log space) correctly does *not* fire: reconstructing it shows the Part-3 scale guards
+already prevent the blow-up, and I5 — the same setup with guards off — does fire. Out of scope by
+construction: the `diurnal_mode` `TypeError` (a code-path defect needing a smoke test), the
+`dm_test` noise floor (a statistic bug, fixed at source), and the ±4 clip mis-diagnosis (no
+invariant would have caught it; it took an adversarial variant).
+
+**And it immediately found something new.** On the production panel the report FAILs **12+ columns
+besides voldemand**, with max |z| of 68–82: `adj_sumpret2_vwstock_ma_5` (82.1),
+`adj_numobs_ma_25` (78.8, and a **p99.9 of 46.4** against the panel's 7.6),
+`adj_sumbipow_ewstock_ma_1` (77.3), `adj_stocktwits_sentiment_ma_1` (70.3, whose max *is* its
+p99.99 — a single spike). These are sqrt-transformed positives and a bounded index, i.e. mechanisms
+different from voldemand's. **The voldemand family was not special; it was just the worst.** Full
+report in `results/alpha_manifestation/feature_health_production.csv`.
 
 ## Reproducibility
 
@@ -622,6 +652,9 @@ python analysis/nl_sparsity.py --stage grouppen              # §7.1 no clip, se
 python analysis/voldemand_fix.py --stage diagnose            # §8 per-stage tails, all variants
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
+python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
+python analysis/multiplicity.py --stage interactions         # §11.1 SPA + Romano-Wolf, claim 2
+python analysis/diagnostics_backtest.py                      # §11.2 five checks vs 7 incidents
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -630,4 +663,6 @@ activation_stability.csv, granularity_ladder.csv, gain_channel.csv, sparse_vs_de
 volregime_significance.csv, nl_sparsity_ladder.csv, nl_top_pairs.csv, nl_local_sparsity.csv,
 nl_pair_ic.csv, nl_vs_full_linear.csv, nl_scaling_robustness.csv,
 nl_group_penalty.csv, voldemand_stage_tails.csv, voldemand_variants.csv,
-voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv}`.
+voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv,
+multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backtest.csv,
+feature_health_production.csv}`.

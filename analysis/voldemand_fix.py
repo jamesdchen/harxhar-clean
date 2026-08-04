@@ -110,7 +110,13 @@ def _active_scale(x: pd.Series, halflife_days: int = 250) -> pd.Series:
 def build_adj(df: pd.DataFrame, col: str, variant: str) -> pd.Series:
     """The adjusted (pre-MA) feature for one voldemand column under one variant."""
     if variant == "status_quo":
-        adj, _ = robust_transform(df, col, use_transform=True, use_diurnal=True)
+        # ``signed_stabilizer=False`` is load-bearing: the asinh gate this module motivated is now
+        # the production DEFAULT in ``robust_transform``, so without disabling it "status_quo"
+        # would silently return the *fixed* series and the pre-fix baseline would vanish — which
+        # is exactly what the diagnostics back-test caught (I1 and I2 collapsed onto one arm).
+        adj, _ = robust_transform(
+            df, col, use_transform=True, use_diurnal=True, signed_stabilizer=False
+        )
         return adj
     if variant == "rank_gauss":
         z = rolling_rank_gauss(
