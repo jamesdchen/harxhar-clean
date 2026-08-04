@@ -25,6 +25,14 @@ DIURNAL_MIN_PERIODS: int = 5
 # the feature's typical (median) per-slot std. Stops a transiently-degenerate
 # std from blowing the diurnal-adjusted value up (see ``diurnal_adjust``).
 DIURNAL_STD_FLOOR_FRAC: float = 0.1
+# If the per-slot rolling-std divisor is pinned at ``DIURNAL_STD_FLOOR_FRAC``'s floor for more
+# than this fraction of rows, ``diurnal_adjust`` is not adjusting anything — it has degenerated
+# into division by a single global constant, which cannot track a feature whose scale drifts.
+# Such a column gets :func:`asinh_stabilize` instead (see ``robust_transform``).
+DIURNAL_PINNED_MAX: float = 0.5
+# Halflife (days) of the causal |x|-EWMA that sets asinh's scale. 250d matches the Part-4
+# optimal train window; the result is insensitive to it (60d and 250d score within 0.0001).
+ASINH_SCALE_HALFLIFE_DAYS: int = 250
 WINSOR_LOWER_Q: float = 0.05
 WINSOR_UPPER_Q: float = 0.95
 SKIP_VARS: set[str] = {
@@ -102,9 +110,63 @@ def diurnal_adjust(
     return adjusted, baseline
 
 
+def asinh_stabilize(
+    series: pd.Series, halflife_days: int = ASINH_SCALE_HALFLIFE_DAYS
+) -> pd.Series:
+    """Variance-stabilise a signed, scale-drifting feature: ``asinh(x / s_t)``.
+
+    The stabilizer :func:`apply_semantic_transform` rule 5 never had. ``asinh`` is the signed
+    analogue of ``log``: linear near zero (so a zero point mass is untouched — ``asinh(0) = 0``,
+    no clipping, no sign loss) and logarithmic in the tails, so a feature whose scale grows by
+    an order of magnitude mid-sample stops producing hundred-sigma values.
+
+    ``s_t`` is an EWMA of ``|x|`` over **active** (observed, non-zero) rows, shifted one bar and
+    floored at 1% of its own expanding median. Three properties matter:
+
+    * **Causal** — ``.shift(1)`` means row ``t`` divides by a scale built strictly before ``t``.
+    * **Adaptive** — it tracks a secular scale expansion, which a fixed constant cannot.
+    * **Non-degenerate** — active-only (the zero mass carries no dispersion, the same reasoning
+      as ``executor._build_scale_guards``) plus the expanding floor, so it can never become the
+      near-zero divisor that this whole class of bug comes from.
+
+    Written for ``voldemand`` (scale up ~11x across 2011-2023 with the 0DTE build-out, which
+    put |z| ~ 2000 into the feature matrix), but stated generally: where a signed feature is
+    well-behaved, ``|x| / s_t`` is O(1) and ``asinh`` is near-identity, so applying it costs
+    nothing.
+    """
+    x = pd.to_numeric(series, errors="coerce")
+    active = x.abs().where((x != 0) & x.notna())
+    s = active.ewm(
+        halflife=halflife_days * PERIODS_PER_DAY, min_periods=50, ignore_na=True
+    ).mean()
+    s = s.shift(1).ffill()
+    s = np.maximum(s, 0.01 * s.expanding(min_periods=50).median()).replace(0.0, np.nan)
+    med = s.median()
+    s = s.fillna(med if pd.notna(med) and med > 0 else 1.0)
+    return pd.Series(np.arcsinh(x / s), index=series.index)
+
+
 # ---------------------------------------------------------------------------
 # Semantic (column-name-based) transforms
 # ---------------------------------------------------------------------------
+
+
+def has_name_stabilizer(col_name: str) -> bool:
+    """True if rules 1-4 of :func:`apply_semantic_transform` give this column a stabilizer.
+
+    Rule 5 (identity for signed features) is the only branch with *no* variance stabilizer, and
+    is therefore the only one ``robust_transform``'s degenerate-divisor gate may override. A
+    column that already gets sqrt / cbrt / fourth-root is left alone: ``sumret3``'s divisor is
+    also pinned (93% of rows), but ``cbrt`` bounds it perfectly well, and swapping a working
+    stabilizer on the strongest bucket would be a change with no evidence behind it.
+    """
+    name = col_name.lower()
+    return (
+        any(tok in name for tok in ("ret2", "rv", "turnover", "bipow", "effspread"))
+        or "autocov" in name
+        or "ret3" in name
+        or "ret4" in name
+    )
 
 
 def apply_semantic_transform(
@@ -197,10 +259,15 @@ def robust_transform(
     winsor_window: int | None = None,
     is_target: bool = False,
     diurnal_mode: str = "divide",
+    signed_stabilizer: bool = True,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
     Returns ``(adjusted_series, baseline)``.
+
+    ``signed_stabilizer`` (default on) routes a signed feature whose per-slot std divisor is
+    degenerate to :func:`asinh_stabilize` instead of the divide -- see the inline comment for
+    the gate and the evidence. Set False to restore the pre-fix chain exactly.
 
     ``diurnal_mode`` selects how the per-slot diurnal adjustment is done.
     ``"divide"`` (default) is :func:`diurnal_adjust` — the only implemented mode, and
@@ -226,13 +293,36 @@ def robust_transform(
     has_negatives = bool((series.dropna() < 0).any())
 
     baseline = pd.Series(1.0, index=df.index)
+    stabilized = False
     if use_diurnal and col_name not in DIURNAL_EXCLUDED and time_col in df.columns:
-        series, baseline = diurnal_adjust(series, df[time_col], has_negatives)
+        adjusted, baseline = diurnal_adjust(series, df[time_col], has_negatives)
+        # A signed feature divides by its per-slot rolling std. For a sparse / ffilled /
+        # zero-inflated column that std is degenerate most of the time, so the floor pins the
+        # divisor to one global constant -- the "adjustment" stops adjusting and, worse, stops
+        # tracking the feature's scale. Measured on the divisor itself rather than assumed:
+        # voldemand pins on ~74% of rows (and reaches |z| ~ 2000 downstream as its scale grows
+        # ~11x), while every other signed feature except sumret3 -- which rule 3 already
+        # stabilises with cbrt -- pins on <30%, and sumret on 0.1%. Above the threshold, swap
+        # the degenerate divide for the asinh stabiliser; below it, behaviour is unchanged.
+        if (
+            signed_stabilizer
+            and has_negatives
+            and not has_name_stabilizer(col_name)  # only rule 5 (identity) is overridable
+            and float(np.isclose(baseline, baseline.min(), rtol=1e-9).mean())
+            >= DIURNAL_PINNED_MAX
+        ):
+            series = asinh_stabilize(series)
+            baseline = pd.Series(1.0, index=df.index)
+            stabilized = True
+        else:
+            series = adjusted
 
-    if use_transform:
+    if use_transform and not stabilized:
         series = apply_semantic_transform(
             series, col_name, has_negatives, allow_missing=allow_missing
         )
+    elif stabilized and not allow_missing:
+        series = series.fillna(0.0)  # matches rule 5's NaN policy for signed features
 
     ww = winsor_window if winsor_window is not None else 240
     series = rolling_winsorize(

@@ -1,0 +1,42 @@
+feature,bucket,signed,rule,zero_frac,iqr_drift_late_over_early
+sumret,moments,True,5 IDENTITY (no stabilizer),0.04030953743561671,1.617699390475062
+sumabsret,moments,False,5 IDENTITY (no stabilizer),0.001401710252390787,1.1741019534301222
+sumret3,moments,True,3 cbrt,0.022597393980110642,2.3732749375480706
+sumret4,moments,False,4 x^0.25*sign,0.001401710252390787,3.7213742807054087
+sumpret2,moments,False,1 sqrt,0.00362039364005076,1.7806472101523523
+sumbipow,moments,False,1 sqrt,0.009841001269003957,1.8789707824380935
+sumautocov,moments,True,2 sign*sqrt|x|,0.009861736627767133,1.0948622176578602
+sumvolume,liquidity,False,6 log,0.0,1.5011765133790262
+numobs,liquidity,False,6 log,0.0,
+sumret2_ewstock,market_ew,False,1 sqrt,0.0343613483732151,0.7706464739669764
+sumret3_ewstock,market_ew,True,3 cbrt,0.004513795874631663,0.23252498037601885
+sumret4_ewstock,market_ew,False,4 x^0.25*sign,0.0343613483732151,0.6428809957739541
+sumabsret_ewstock,market_ew,False,5 IDENTITY (no stabilizer),0.0343613483732151,0.9246768907847975
+sumbipow_ewstock,market_ew,False,1 sqrt,0.06869009584664537,0.9285660330367329
+sumpret2_ewstock,market_ew,False,1 sqrt,0.03339636173958401,0.468655438561035
+turnover_ewstock,liquidity,False,1 sqrt,0.0,0.8018459645999548
+buyturnover_ewstock,liquidity,False,1 sqrt,0.007139597052878659,0.6526183569235384
+sellturnover_ewstock,liquidity,False,1 sqrt,0.00787637738801591,0.7018029406847719
+effspread_ewstock,liquidity,False,1 sqrt,0.00013040359913933625,0.64630730994666
+spread_ewstock,liquidity,False,6 log,0.0,0.2303966005898261
+sumret2_vwstock,market_vw,False,1 sqrt,0.0343613483732151,0.9929892694064204
+sumret3_vwstock,market_vw,True,3 cbrt,0.004513795874631663,0.3101894652784024
+sumret4_vwstock,market_vw,False,4 x^0.25*sign,0.0343613483732151,0.8835589746044887
+sumabsret_vwstock,market_vw,False,5 IDENTITY (no stabilizer),0.0343613483732151,0.9988267742121
+sumbipow_vwstock,market_vw,False,1 sqrt,0.06869009584664537,1.1951582047105749
+sumpret2_vwstock,market_vw,False,1 sqrt,0.03339636173958401,0.6687301119003878
+turnover_vwstock,liquidity,False,1 sqrt,0.0,1.898163855856485
+buyturnover_vwstock,liquidity,False,1 sqrt,0.007139597052878659,1.568523219270677
+sellturnover_vwstock,liquidity,False,1 sqrt,0.00787637738801591,1.6354684346987418
+effspread_vwstock,liquidity,False,1 sqrt,0.00013040359913933625,0.3827920004958106
+spread_vwstock,liquidity,True,5 IDENTITY (no stabilizer),0.0,0.18667582381357656
+stocktwits_attention,sentiment,False,6 log,0.0,29.564549180327873
+stocktwits_sentiment,sentiment,True,5 IDENTITY (no stabilizer),0.012441689210424151,0.25357423996750555
+stocktwits_sentcount,sentiment,False,6 log,0.0,253.6785714285714
+vix,implied_vol,False,6 log,0.0,0.41727896649172386
+vvix,implied_vol,False,6 log,0.0,1.166053802980453
+vix3m,implied_vol,False,6 log,0.0,0.47826086956521735
+voldemand_spx_open_and_close,vol_demand,True,5 IDENTITY (no stabilizer),0.14853316562465319,1.77086106217772
+voldemand_spx_open_only,vol_demand,True,5 IDENTITY (no stabilizer),0.1598535015352743,5.401443345950623
+voldemand_all_open_and_close,vol_demand,True,5 IDENTITY (no stabilizer),0.14509267137730752,1.4771377963417391
+voldemand_all_open_only,vol_demand,True,5 IDENTITY (no stabilizer),0.1576338278273094,3.881523840522425

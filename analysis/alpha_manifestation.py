@@ -594,12 +594,25 @@ def stage_dynamics() -> None:
 # ---------------------------------------------------------------------------
 
 
-def dm_test(e: np.ndarray, p1: np.ndarray, p2: np.ndarray, lags: int = 480) -> float:
+def dm_test(
+    e: np.ndarray, p1: np.ndarray, p2: np.ndarray, lags: int = 480, tol: float = 1e-10
+) -> float:
     """Diebold-Mariano HAC t on the squared-error difference (``p1`` vs ``p2``).
 
     Positive t = ``p1`` has lower squared error. 480 Bartlett lags = 10 trading days,
     long enough for the overlapping-window dependence the walk-forward induces.
+
+    ``tol`` guards a real trap: DM is a *ratio* of a mean difference to its standard error, so
+    two numerically-identical forecasts give 0/0 and the statistic explodes on pure float noise.
+    Measured here: the same walk-forward re-run in a different process differs by 9.4e-16 (3.8e-15
+    of a residual sd) through non-deterministic BLAS reductions, and DM reports **t = +5.00** on
+    that. So when the two forecast series agree to within ``tol`` of the target's scale they are
+    the same model and 0.0 is returned. A DM-t should never be read without the accompanying
+    delta-R2 — a large t on a negligible delta-R2 means nothing.
     """
+    scale = float(np.std(e)) or 1.0
+    if float(np.sqrt(np.mean((p1 - p2) ** 2))) / scale < tol:
+        return 0.0
     d = (e - p2) ** 2 - (e - p1) ** 2
     dc = d - d.mean()
     s = float(dc @ dc)

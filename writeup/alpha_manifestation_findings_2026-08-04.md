@@ -390,7 +390,140 @@ is clean, but the absolute daily-refit gain is untested. (ii) Products are drawn
 windows, so the space is a subset. (iii) Selection is by marginal |IC| on products; an L1 fit
 over the full 8,911 may find a better set.
 
-## 8. What follows
+## 8. The `voldemand` fix (and a correction to the rule-drift claim)
+
+§7.1 left `voldemand` as an open item: its extremes were distorting every arm of the
+interaction study, and a global clip was the wrong instrument. Investigated and fixed
+(`analysis/voldemand_fix.py`, fix in `src/features/transforms/target.py`).
+
+### 8.1 The defect is three pipeline steps failing in sequence, not a data problem
+
+`voldemand_spx_open_only` grows ~11x in scale across the sample (IQR 51k in 2011 -> 572k in
+2023; median 0 -> 472k; p01 −181k -> **−8.15M**) — the 0DTE build-out. Tracing one column
+stage by stage, max |value| by era:
+
+| stage | 2011–16 | 2021–23 |
+|---|---|---|
+| raw (ffilled) | 1.05e7 | 1.34e7 |
+| after `diurnal_adjust` (per-slot std divide) | 66.7 | **487.3** |
+| after `apply_semantic_transform` (rule 5 = identity) | 66.7 | 487.3 |
+| after `rolling_winsorize` | **6.2** | **487.3** |
+
+1. **`diurnal_adjust`'s divisor is pinned at its floor on 73.8% of rows** (its 0.1%, 1% and
+   *median* quantiles are all identically 14911.6). For an ffilled, 61%-zero series the per-slot
+   rolling std is degenerate most of the time, so `DIURNAL_STD_FLOOR_FRAC` turns the
+   "adjustment" into division by one global constant — which cannot track a drifting scale.
+2. **Rule 5 returns identity**, so there is no variance stabilizer at all (flagged in the Part-3
+   notes as "the deeper mis-design; asinh would fit").
+3. **`rolling_winsorize` cannot bound it**: a trailing 5–95% band over 240 bars tracks a
+   *trending* series, clipping only 6.9% of rows.
+
+`_build_scale_guards` is **not** at fault — verified directly: its zero-inflation branch fires
+at all six MA windows for these columns (exact-zero fraction 0.31–0.73 vs the 0.20 threshold).
+It floors the *divisor*; it cannot bound a *numerator* that genuinely moved.
+
+### 8.2 Correction: "rule 5 is the only group with elevated scale drift" was wrong
+
+That claim came from comparing group *medians* of raw IQR drift (rule 5: 1.33 vs rule 6: 1.17)
+across groups of n = 1–16, with no test. Tested properly, rule-5 pre-transform drift vs all
+other rules is **Mann-Whitney p = 0.766** — no difference whatsoever.
+
+The defensible claim is structural, and shows up *after* the transform: rule 5 is the only rule
+that **passes drift through instead of compressing it**. Median attenuation (post-drift /
+pre-drift) by rule: log **0.51**, 4th-root 0.83, sqrt 0.90, **identity 0.92**, cbrt n/a (its raw
+drift is 0.11). Post-transform drift, rule 5 vs others: **p = 0.044** — marginal, and the honest
+strength of the claim.
+
+Also worth recording: **IQR drift was the wrong diagnostic for `voldemand` in the first place.**
+Its post-transform IQR drift is unremarkable; its problem is the *tail*, which the IQR by
+construction cannot see. The fix rests on the two direct measurements instead — the pinned-
+divisor fraction (0.738) and max |z| (487) — not on the drift table.
+
+### 8.3 The fix, and the gate that keeps it surgical
+
+:func:`~src.features.transforms.target.asinh_stabilize` — `asinh(x / s_t)`, with `s_t` an EWMA
+of |x| over **active** (observed, non-zero) rows, halflife 250 days, shifted one bar, floored at
+1% of its own expanding median. `asinh` is the signed analogue of `log`: linear near zero (so
+`asinh(0) = 0` leaves the zero mass alone, no clipping, no sign loss) and logarithmic in the
+tails. `s_t` is causal, adaptive (tracks the 11x growth), and cannot go degenerate.
+
+Applied through a **measured gate** in `robust_transform`, not a hardcoded column list: if a
+signed feature's per-slot std divisor is pinned at its floor on ≥ `DIURNAL_PINNED_MAX` (0.5) of
+rows *and* rules 1–4 give it no stabilizer of their own, the degenerate divide is replaced by
+the stabilizer. Pinned fractions: `sumret3` 0.93, **voldemand ×4 ≈ 0.74**, sentiment 0.28,
+`sumret3_vwstock` 0.27, `sumret3_ewstock` 0.20, `spread_vwstock` 0.09, `sumautocov` 0.02,
+**`sumret` 0.001**. So the gate cleanly selects voldemand and leaves the strongest single
+feature (`sumret`, |IC| 0.108) untouched; `has_name_stabilizer` keeps `sumret3` on its working
+`cbrt` rather than swapping a transform on the best bucket with no evidence.
+
+Blast radius, measured: **4 of 41 raw columns change; 37 are bit-for-bit identical.**
+
+### 8.4 Evidence
+
+Variant selection (each rebuilds only the voldemand block and splices it into the cached panel —
+exact, because `rolling_robust_scale` and `_build_scale_guards` are per-column; the `status_quo`
+splice reproduces the cached panel as an assertion):
+
+| variant | panel max \|z\| | vol_demand R² | all-exog R² | unclipped base R² |
+|---|---|---|---|---|
+| status_quo | 2010.9 | **−0.00026** | +0.03471 | **−0.270** |
+| asinh then diurnal | 109.6 | +0.00222 | +0.03721 | +0.0184 |
+| **asinh only (shipped)** | **15.8** | **+0.00263** | +0.03766 | +0.0190 |
+| asinh, 60d halflife | 16.3 | +0.00251 | +0.03770 | +0.0189 |
+| rank-Gauss | 278.5 | +0.00209 | +0.03726 | +0.0150 |
+
+Two negative results worth keeping: **asinh *then* diurnal does not work** (max 109.6) — keeping
+the degenerate divide keeps the problem, which is itself confirmation of the diagnosis. And
+**rank-Gauss is not immune** (278.5) despite bounding the adjusted series to ±3.9: a 61%-zero
+series maps to a huge point mass whose rolling MA has near-zero dispersion in some windows, so
+the degenerate divisor reappears at the *scaler*. Division-free at one stage does not mean
+division-free downstream. The 250d/60d halflife tie (+0.00263 vs +0.00251) says the knob is not
+tuned.
+
+Full control — panel rebuilt with the production fix, all 8 buckets re-scored at the identical
+spec (the HAR residual is exog-free, so the target is unchanged and the 4 columns are the only
+difference):
+
+| | corr | R² | DM-t |
+|---|---|---|---|
+| **panel max \|z\|** | | **2010.9 → 82.1** | |
+| non-voldemand cells differing | | **0 (bitwise)** | |
+| moments / liquidity / implied_vol / market_vw / market_ew / sentiment | unchanged | unchanged | 0.00 |
+| **vol_demand** | +0.0390 → **+0.0523** | **−0.00026 → +0.00264** | +1.63 |
+| **all exog** | +0.1897 → **+0.1955** | +0.03471 → **+0.03766** | +1.55 |
+
+**What is unambiguous:** max |z| falls 24x; the panel stops poisoning any fit that does not
+refit every bar (unclipped base R² **−0.270 → +0.0190**, i.e. the §7.1 pathology is gone with
+the columns *in*); and `vol_demand` — the one bucket that failed to beat HAR in this residual
+space — turns **negative R² positive**. **What is not:** the composite gain is +8.5% relative
+but DM-t **+1.55**, directional and *not* significant. Do not quote it as a win.
+
+### 8.5 A methodological catch that applies to every DM-t in this document
+
+The control's first run reported DM-t **+5.00** for `moments` — a bucket whose columns are
+*bitwise identical* between the two panels. Cause, measured: `walk_forward` is bit-deterministic
+within a process (difference exactly 0) but differs by **9.4e-16** across processes through
+non-deterministic BLAS reductions — 3.8e-15 of a residual sd — and DM, being a ratio of a mean
+difference to its standard error, is 0/0 in that limit and explodes. `dm_test` now returns 0.0
+when the two forecast series agree to 1e-10 of the target's scale.
+
+The rule this implies, applied retroactively: **a DM-t must never be read without its ΔR².**
+Every DM-t quoted in §§2–7 accompanies a ΔR² of 0.005–0.03 — 12+ orders of magnitude above this
+noise floor — so those conclusions stand unchanged. But the statistic alone is not a sufficient
+summary, and this document pairs them everywhere for that reason.
+
+### 8.6 Still open
+
+`stocktwits_sentiment` (post-transform drift **1.85**, attenuation 9.1x, max |adj| 70) and
+`spread_vwstock` (1.37, 11.3x, max |adj| **389**) are the worst *post-transform* drifters, both
+rule-5, and the pinned-divisor gate does **not** catch them (0.28 and 0.09) — their divisors are
+healthy; their tails are not. After the fix the panel's largest |z| columns are no longer
+voldemand at all but `adj_sumpret2_vwstock_ma_5` (82.1), `adj_numobs_ma_25` (78.8) and
+`adj_sumbipow_ewstock_ma_1` (77.3) — sqrt-transformed positives, a different mechanism again.
+A second pass wanting a tail diagnostic rather than a divisor diagnostic is the natural
+follow-up; it was out of scope here and is not assumed to matter.
+
+## 9. What follows
 
 1. **Ship the ~100 frozen interaction products** (§7), with a **separate, heavy penalty on the
    product block** — that hyper-parameter is not optional, it is the difference between +35%
@@ -412,7 +545,11 @@ over the full 8,911 may find a better set.
    scoring run restricted to the slots an application actually trades.
 5. **§10 is unblocked** — the row → date map exists locally, so Test 3 (month/quarter-end
    rebalancing) and the OPEX calendar features from intraday-regime §12 can be built now.
-6. **Fixed in passing:** `executor.load_and_transform` passed `diurnal_mode=` to
+6. **`voldemand` is fixed** (§8) — `asinh_stabilize` behind a measured degenerate-divisor gate.
+   Panel max |z| 2011 → 82, `vol_demand` R² negative → positive, 37 of 41 columns bit-identical.
+   The **§7 interaction study should be re-run on the fixed panel**: it was conducted with
+   voldemand dropped precisely because of this, and the ±4 clip may no longer be needed at all.
+7. **Fixed in passing:** `executor.load_and_transform` passed `diurnal_mode=` to
    `robust_transform`, which did not accept it — **every exog run raised `TypeError`**
    (verified). `robust_transform` now takes the parameter; `"divide"` is bit-for-bit the
    old behavior and `"rank"` raises `NotImplementedError` (the per-slot rank-Gauss diurnal
@@ -433,6 +570,9 @@ python analysis/nl_sparsity.py --stage local                 # within-month inte
 python analysis/nl_sparsity.py --stage vsfull                # products vs the FULL linear model
 python analysis/nl_sparsity.py --stage robust                # §7.1 four scalings (why the clip mattered)
 python analysis/nl_sparsity.py --stage grouppen              # §7.1 no clip, separate product penalty
+python analysis/voldemand_fix.py --stage diagnose            # §8 per-stage tails, all variants
+python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
+python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -440,4 +580,5 @@ monthly_bucket_ic.csv, monthly_mapping.csv, activation_{timeofday,dayofweek,vol}
 activation_stability.csv, granularity_ladder.csv, gain_channel.csv, sparse_vs_dense.csv,
 volregime_significance.csv, nl_sparsity_ladder.csv, nl_top_pairs.csv, nl_local_sparsity.csv,
 nl_pair_ic.csv, nl_vs_full_linear.csv, nl_scaling_robustness.csv,
-nl_group_penalty.csv}`.
+nl_group_penalty.csv, voldemand_stage_tails.csv, voldemand_variants.csv,
+voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv}`.
