@@ -8,11 +8,16 @@ variables and we never look finely enough to see the activations?**
 All numbers are strictly-causal walk-forward on the local `data/` panel (rolling 250-day
 window, refit as it walks, the production `RollingLeastSquares`). Code:
 `analysis/alpha_panel.py` (feature space) + `analysis/alpha_manifestation.py` (stages
-`resid` / `signals` / `tests` / `dynamics` / `sparse` / `verify`). Outputs:
-`results/alpha_manifestation/`.
+`resid` / `signals` / `tests` / `dynamics` / `sparse` / `verify`) + `analysis/nl_sparsity.py`
+(§7, the interaction channel). Outputs: `results/alpha_manifestation/`.
 
 ## TL;DR
 
+- **The linear channel is dense; the INTERACTION channel is sparse — and neither rotates.**
+  §7 is the headline for anyone deciding what to build: ~100 pairwise products out of 8,911
+  candidates, **frozen once in 2006 and never reselected**, add **+43% on top of the full
+  516-column linear exog model (ΔR² +0.0081, DM-t +6.9)**. Reselecting monthly is
+  *significantly worse* than freezing. Sparse in identity, static in time.
 - **Dense is the truth, not an artifact.** In a like-for-like horse race (daily reselect,
   daily refit, one shared rolling-Gram machinery, only `k` differs) OOS accuracy is
   **monotone in the number of features**: top-5 R² +0.0164 → all-246 **+0.0346**, and every
@@ -239,22 +244,107 @@ else in this project being a plateau-scale gain.
 - Everything is measured on the linear-marginal channel at α=3000 / 250-day / daily refit.
   The tree's remaining ~38% nonlinear edge (intraday-regime §8) is out of scope here.
 
-## 7. What follows
+## 7. The interaction channel: sparse in identity, static in time
 
-1. **Ship the vol-regime blend, not a slicer.** `HAR-residual composite × {low, high} vol`
+§2 refuted sparse-rotating alpha in the **linear marginal** channel only. The intraday-regime
+study put ~38% of the tuned EBM's edge in genuinely nonlinear structure, so the same question
+is re-asked over pairwise products (`analysis/nl_sparsity.py`). Candidate space: products
+(including squares) of 133 base columns — 6 HAR + 41 exog × windows {1, 25, 625} + the clock
+gates — giving **8,911 candidates**. All pairwise ICs at every refit come from three window
+matmuls (`G = ZᵀZ`, `A = Zᵀdiag(e)Z`, `Q = (Z∘Z)ᵀ(Z∘Z)`), so only the selected `k` columns are
+ever materialized. Monthly reselect + refit; 218 months.
+
+> **A methods note that is load-bearing, not cosmetic.** The first run reproduced the repo's
+> own Part-3 "divide by a transiently-degenerate scale" bug. Re-standardizing by a
+> *training-window* sd sent test values to **1131σ**; products squared it. Unclipped, the
+> linear base arm scored **R² −0.635** (vs +0.021 clipped) and the pair ICs driving selection
+> were pure outlier artifacts — the whole first result set was garbage. Every arm now clips
+> the standardized design to **±4**, train and test alike, base columns and products alike.
+> The conclusion is insensitive to the clip (R² +0.021 / +0.020 / +0.019 / +0.018 at
+> ±4 / 6 / 8 / 10). **Third time this disease has appeared in this project; the lesson keeps
+> being cheap to relearn and expensive to miss.**
+
+**Result 1 — interactions genuinely add.** Base 133 linear cols: R² +0.0215. Best interaction
+arm: **+0.0305** (+42%). Against the *full* 516-column linear exog set (246 value + 270
+availability, same monthly refit and clip), 100 frozen products still add
+**ΔR² +0.0081 → +43%, DM-t +6.91**. So this is not information the linear model already had.
+
+**Result 2 — it IS sparse, pooled.** The ladder peaks at **k = 25–100 of 8,911** and degrades
+by k=400. Contrast the linear channel, which improved monotonically all the way to 246/246.
+
+**Result 3 — but it is NOT locally sparse. Static selection beats dynamic at every k.**
+The decisive arm pair differs *only* in selection — coefficients are refit identically:
+
+| k | dynamic R² | static R² | dyn−vs−stat DM-t | dynamic set churn / month |
+|---|---|---|---|---|
+| 10 | +0.0241 | +0.0257 | −1.65 | 0.308 |
+| 25 | +0.0261 | +0.0266 | −0.42 | 0.291 |
+| 50 | +0.0252 | +0.0277 | −1.93 | 0.274 |
+| **100** | +0.0249 | **+0.0305** | **−3.21** | 0.260 |
+| 200 | +0.0237 | +0.0276 | −2.10 | 0.256 |
+| 400 | +0.0159 | +0.0234 | −3.16 | 0.242 |
+
+Negative DM-t = dynamic is worse. Choosing 100 products once from the 2005–2006 window and
+never touching them for 18 years **beats** reselecting every month, significantly. The
+dynamic arm's 24–31% monthly churn is noise that costs real accuracy to chase.
+
+Corroborated by the within-month diagnostic (top-1000 products by pooled |IC|): within-month
+participation ratio **626.6** vs circular-shift null **622.3** — *at the noise floor*, i.e. no
+detectable local concentration beyond chance. Month-to-month Spearman of the time-varying IC
+part is **+0.089** (null −0.004): a real but small time-varying component, as in the linear
+channel. (The pooled PR of 920 is not comparable here — preselecting the top 1000 by pooled
+|IC| inflates it by construction. The within-month-vs-null comparison is the clean one.)
+
+**Result 4 — what gets selected is interpretable, and it corrects an earlier note.** The most
+persistently chosen products (of 218 months, top-100 arm):
+
+| months | product | reading |
+|---|---|---|
+| 146 | `adj_sumret_ma_1²` | squared *net* bar return vs summed squared sub-returns — a variance-ratio / jump term, kin to `sumautocov` |
+| 144 | `adj_sumret_ma_1 × adj_sumvolume_ma_1` | **signed return × volume — order-flow imbalance in all but name** |
+| 134 | `har_ma_1 × adj_sumret_ma_1` | leverage effect *conditional on the vol level* |
+| 132 | `adj_sumret_ma_1 × adj_sumabsret_ma_1` | signed × magnitude — a semivariance-flavoured asymmetry term |
+| 121 | `adj_sumret_ma_1 × adj_sumret4_ma_1` | signed return × tail activity |
+| 111 | `adj_sumret3_ma_1 × adj_sumvolume_ma_1` | skew × volume |
+
+Nine of the top ten involve `sumret` — **signed return is the hub**, and its value is almost
+entirely interactive rather than marginal. This **partially corrects** the 2026-06-23 note
+("`r⁻ ≈ (sumret − sumabsret)/2`, so Ridge can already form it, nothing to build"): that is
+true of the *linear combination*, but every term above is a **product**, which Ridge
+structurally cannot form. That gap is the 43%.
+
+Also note `sumret × sumvolume` arriving unprompted as the top-ranked genuine interaction —
+that is the OFI probe listed as an open item in intraday-regime §9.3, and the selector found
+it without being told to look.
+
+**Caveats.** (i) All §8 numbers are at monthly refit with the ±4 clip, so the base is +0.0188
+rather than the §1 daily-refit +0.0347; both arms share the machinery, so the *relative* +43%
+is clean, but the absolute daily-refit gain is untested. (ii) Products are drawn from 3 of 6
+windows, so the space is a subset. (iii) Selection is by marginal |IC| on products; an L1 fit
+over the full 8,911 may find a better set.
+
+## 8. What follows
+
+1. **Ship the ~100 frozen interaction products** (§7). Biggest single result here: +43% on the
+   exog channel, DM-t +6.9, and *cheaper* than what exists — a fixed feature list, no
+   reselection machinery, no retuning. Start from the signed-return hub
+   (`sumret × {volume, sumabsret, HAR level, sumret}`); build the explicit OFI
+   `(buy−sell)/(buy+sell)` term alongside it, since the selector reached for its proxy
+   unprompted. Reselect on a multi-year cadence at most — monthly is measurably harmful.
+2. **Ship the vol-regime blend, not a slicer.** `HAR-residual composite × {low, high} vol`
    shrunk 50/50 toward pooled: 2 bins, DM-t +5.0. Coarse and regularized is the whole
    lesson — a K=5 unshrunk version is worse than doing nothing.
-2. **Stop looking for hidden intraday exog activations.** The clock map is stable and
+3. **Stop looking for hidden intraday exog activations.** The clock map is stable and
    already visible; conditioning on it loses at every resolution and every df cost. The
    clock channel's payoff lives in HAR persistence (already shipped as
    `har_ma_w × {open,close}`), not in exog.
-3. **Re-price the time-selective applications.** If a downstream use is concentrated at
+4. **Re-price the time-selective applications.** If a downstream use is concentrated at
    15:30–16:00 (close-auction vol, MOC execution), the pooled IC understates it by ~55%;
    at 09:00 / 17:30 the forecast carries essentially no exog information. Worth a separate
    scoring run restricted to the slots an application actually trades.
-4. **§10 is unblocked** — the row → date map exists locally, so Test 3 (month/quarter-end
+5. **§10 is unblocked** — the row → date map exists locally, so Test 3 (month/quarter-end
    rebalancing) and the OPEX calendar features from intraday-regime §12 can be built now.
-5. **Fixed in passing:** `executor.load_and_transform` passed `diurnal_mode=` to
+6. **Fixed in passing:** `executor.load_and_transform` passed `diurnal_mode=` to
    `robust_transform`, which did not accept it — **every exog run raised `TypeError`**
    (verified). `robust_transform` now takes the parameter; `"divide"` is bit-for-bit the
    old behavior and `"rank"` raises `NotImplementedError` (the per-slot rank-Gauss diurnal
@@ -270,9 +360,13 @@ python analysis/alpha_manifestation.py --stage tests         # density / episode
 python analysis/alpha_manifestation.py --stage dynamics      # per-bin gain + dynamic gain
 python analysis/alpha_manifestation.py --stage sparse        # sparse-vs-dense horse race
 python analysis/alpha_manifestation.py --stage verify        # mapping-vs-scale + DM significance
+python analysis/nl_sparsity.py --stage ladder                # interactions: add? sparse? rotating?
+python analysis/nl_sparsity.py --stage local                 # within-month interaction PR vs null
+python analysis/nl_sparsity.py --stage vsfull                # products vs the FULL linear model
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
 monthly_bucket_ic.csv, monthly_mapping.csv, activation_{timeofday,dayofweek,vol}.csv,
 activation_stability.csv, granularity_ladder.csv, gain_channel.csv, sparse_vs_dense.csv,
-volregime_significance.csv}`.
+volregime_significance.csv, nl_sparsity_ladder.csv, nl_top_pairs.csv, nl_local_sparsity.csv,
+nl_pair_ic.csv, nl_vs_full_linear.csv}`.
