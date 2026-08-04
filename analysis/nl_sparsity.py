@@ -356,8 +356,203 @@ def stage_vsfull() -> None:
     print(f"wrote {OUT}/nl_vs_full_linear.csv")
 
 
+def _expanding_ref_iqr(X: np.ndarray, grid: int = 10000) -> np.ndarray:
+    """Causal expanding-IQR reference scale per column, on a coarse grid, forward-filled.
+
+    The production cure for the degenerate-divisor class (``executor._expanding_real_iqr``):
+    a slowly-varying scale estimated from *all* history before row t, used to FLOOR the local
+    window scale so a transiently-degenerate window cannot divide an incoming point by ~0.
+    Coarse grid because the reference is meant to be slow.
+    """
+    n, p = X.shape
+    ref = np.zeros((n, p))
+    last = np.ones(p)
+    for t in range(0, n, grid):
+        if t >= grid:
+            q25, q75 = np.percentile(X[:t], (25.0, 75.0), axis=0)
+            iq = q75 - q25
+            last = np.where(iq >= 1e-12, iq, last)
+        ref[t : t + grid] = last
+    return ref
+
+
+def _scale(
+    tr: np.ndarray, te: np.ndarray, mode: str, ref_tr: np.ndarray | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """Four ways to put the design on a common scale — the §7 robustness axis.
+
+    ``sd_clip4``  window mean/sd, clipped to +-4 (the original §7 choice)
+    ``sd_noclip`` window mean/sd, unclipped — the degenerate-divisor failure, kept for the record
+    ``robust``    window median / max(window IQR, causal expanding IQR) — the production cure,
+                  NO clip, so tails are preserved in full
+    ``center``    window mean subtracted, no division at all (the panel is already scaled)
+    """
+    if mode == "center":
+        mu = tr.mean(0)
+        return tr - mu, te - mu
+    if mode == "robust":
+        med = np.median(tr, axis=0)
+        q25, q75 = np.percentile(tr, (25.0, 75.0), axis=0)
+        iqr = q75 - q25
+        if ref_tr is not None:
+            iqr = np.maximum(iqr, ref_tr)
+        sc = np.where(iqr > 1e-9, iqr / 1.349, 1.0)  # /1.349 -> ~sd units, so alpha transfers
+        return (tr - med) / sc, (te - med) / sc
+    mu, sd = tr.mean(0), tr.std(0)
+    sd = np.where(sd > 1e-9, sd, 1.0)
+    ztr, zte = (tr - mu) / sd, (te - mu) / sd
+    if mode == "sd_clip4":
+        return np.clip(ztr, -CLIP, CLIP), np.clip(zte, -CLIP, CLIP)
+    return ztr, zte
+
+
+def stage_robust() -> None:
+    """Does the §7 conclusion depend on the clip? Re-run base / dyn100 / stat100 four ways.
+
+    The clip was a patch on a self-inflicted wound (re-standardizing an already-scaled panel by
+    a raw window sd). If ``static beats dynamic`` and the interaction gain survive under the
+    production cure — a *floored* robust scale with no clipping at all, tails intact — then the
+    clip is incidental to the finding rather than load-bearing for it.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = load_panel()
+    e = np.load(_p("har_resid.npz"))["e"]
+    bcols, _ = base_columns(p)
+    X = np.ascontiguousarray(p.X[TW:, bcols], dtype=np.float64)
+    n = len(e)
+    ii, jj = _upper(X.shape[1])
+    ref = _expanding_ref_iqr(X)
+    rows = []
+    for mode in ("sd_clip4", "sd_noclip", "robust", "center"):
+        base = np.full(n - TW, np.nan)
+        dyn = np.full(n - TW, np.nan)
+        stat = np.full(n - TW, np.nan)
+        sel_static: np.ndarray | None = None
+        churn_hist: list[np.ndarray] = []
+        for t0 in range(TW, n, REFIT):
+            tr = slice(t0 - TW, t0)
+            t1 = min(t0 + REFIT, n)
+            out = slice(t0 - TW, t1 - TW)
+            Ztr, Zte = _scale(X[tr], X[t0:t1], mode, ref[t0 - 1])
+            ytr = e[tr]
+            base[out] = _fit_predict(Ztr, ytr, Zte)
+            sel = np.argsort(-np.abs(np.nan_to_num(_pair_ic(Ztr, ytr)[ii, jj])))[:100]
+            churn_hist.append(np.sort(sel))
+            if sel_static is None:
+                sel_static = sel.copy()
+            for tag, arr, sl in (("dyn", dyn, sel), ("stat", stat, sel_static)):
+                Ptr, Pte = _scale(
+                    _products(Ztr, ii[sl], jj[sl]), _products(Zte, ii[sl], jj[sl]), mode
+                )
+                arr[out] = _fit_predict(
+                    np.hstack([Ztr, Ptr]), ytr, np.hstack([Zte, Pte])
+                )
+        y = e[TW:]
+        rb, rd, rs = r2_oos(y, base), r2_oos(y, dyn), r2_oos(y, stat)
+        ch = float(
+            np.mean([1.0 - len(np.intersect1d(a, b)) / 100 for a, b in zip(churn_hist[:-1], churn_hist[1:])])
+        )
+        print(
+            f"  {mode:10s} base R2 {rb:+.5f} | dyn100 {rd:+.5f} | stat100 {rs:+.5f} "
+            f"| stat-vs-base dR2 {rs - rb:+.5f} DM-t {dm_test(y, stat, base):+5.2f} "
+            f"| dyn-vs-stat DM-t {dm_test(y, dyn, stat):+5.2f} | churn {ch:.3f}",
+            flush=True,
+        )
+        rows.append({"scaling": mode, "r2_base": rb, "r2_dyn100": rd, "r2_stat100": rs,
+                     "dr2_stat_vs_base": rs - rb, "dm_t_stat_vs_base": dm_test(y, stat, base),
+                     "dm_t_dyn_vs_stat": dm_test(y, dyn, stat), "churn": ch})
+    pd.DataFrame(rows).to_csv(f"{OUT}/nl_scaling_robustness.csv", index=False)
+    print(f"wrote {OUT}/nl_scaling_robustness.csv")
+
+
+def stage_grouppen() -> None:
+    """Settle §7 without any clipping: a SEPARATE ridge penalty for the product block.
+
+    The §7 scaling-robustness run (``--stage robust``) showed the interaction result is large
+    and significant only under the +-4 clip: unclipped-but-healthy (``center``) it is +0.0047
+    and insignificant, and under a floored-robust scale the products actively hurt. The
+    sensitivity has a specific cause — one global ``alpha`` penalizing two blocks whose column
+    scales differ by orders of magnitude. Products of centered features have variance ~ the
+    product of the parent variances, so a penalty tuned for the base block barely restrains
+    them (over-fit) or crushes them (no gain), depending on the scaling. A single number cannot
+    do both jobs.
+
+    So: no clip anywhere; ``voldemand`` dropped (its 2023 0DTE level break is a genuine regime
+    shift that puts |z| in the hundreds — a data problem to fix at the feature level, not with
+    a global clip); products scaled by a **floored** window sd (the repo's own cure for a
+    degenerate divisor); and the product block penalized separately over a grid. If the gain
+    survives here it is real; if it only ever appears at one hand-picked clip, it is not.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = load_panel()
+    e = np.load(_p("har_resid.npz"))["e"]
+    bc, bn = base_columns(p)
+    keep = np.array([i for i, nm in enumerate(bn) if "voldemand" not in nm])
+    X = np.ascontiguousarray(p.X[TW:, bc[keep]], dtype=np.float64)
+    n = len(e)
+    ii, jj = _upper(X.shape[1])
+    print(f"base {X.shape[1]} cols (voldemand dropped), max |X| {np.abs(X).max():.1f}, no clip",
+          flush=True)
+
+    def floored_scale(Ptr: np.ndarray, Pte: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        sd = Ptr.std(0)
+        sd = np.maximum(sd, 0.1 * np.median(sd[sd > 0]) if (sd > 0).any() else 1.0)
+        return Ptr / sd, Pte / sd
+
+    def fit(Xtr, ytr, Xte, a_base, n_base, a_prod):
+        pen = np.concatenate([np.full(n_base, a_base), np.full(Xtr.shape[1] - n_base, a_prod)])
+        g = Xtr.T @ Xtr + np.diag(pen)
+        b = np.linalg.solve(g, Xtr.T @ (ytr - ytr.mean()))
+        return Xte @ b + ytr.mean()
+
+    grid = (3e2, 3e3, 3e4, 3e5)
+    base = np.full(n - TW, np.nan)
+    dyn = {a: np.full(n - TW, np.nan) for a in grid}
+    stat = {a: np.full(n - TW, np.nan) for a in grid}
+    ss: np.ndarray | None = None
+    for t0 in range(TW, n, REFIT):
+        tr = slice(t0 - TW, t0)
+        t1 = min(t0 + REFIT, n)
+        out = slice(t0 - TW, t1 - TW)
+        mu = X[tr].mean(0)
+        Ztr, Zte = X[tr] - mu, X[t0:t1] - mu  # panel is already production-scaled
+        ytr = e[tr]
+        nb = Ztr.shape[1]
+        base[out] = fit(Ztr, ytr, Zte, RIDGE_ALPHA, nb, RIDGE_ALPHA)
+        sel = np.argsort(-np.abs(np.nan_to_num(_pair_ic(Ztr, ytr)[ii, jj])))[:100]
+        if ss is None:
+            ss = sel.copy()
+        for tag, sl in (("dyn", sel), ("stat", ss)):
+            Ptr, Pte = floored_scale(
+                _products(Ztr, ii[sl], jj[sl]), _products(Zte, ii[sl], jj[sl])
+            )
+            Atr, Ate = np.hstack([Ztr, Ptr]), np.hstack([Zte, Pte])
+            for a in grid:
+                (dyn if tag == "dyn" else stat)[a][out] = fit(Atr, ytr, Ate, RIDGE_ALPHA, nb, a)
+
+    y = e[TW:]
+    rb = r2_oos(y, base)
+    print(f"  base (no products): R2 {rb:+.5f}", flush=True)
+    rows = [{"alpha_prod": np.nan, "arm": "base", "r2": rb, "dr2": 0.0, "dm_t_vs_base": 0.0}]
+    for a in grid:
+        rd, rs = r2_oos(y, dyn[a]), r2_oos(y, stat[a])
+        print(
+            f"  alpha_prod {a:7.0f}: dyn100 {rd:+.5f} (DM-t vs base {dm_test(y, dyn[a], base):+5.2f}) | "
+            f"stat100 {rs:+.5f} (DM-t vs base {dm_test(y, stat[a], base):+5.2f}) | "
+            f"dyn-vs-stat DM-t {dm_test(y, dyn[a], stat[a]):+5.2f}",
+            flush=True,
+        )
+        rows.append({"alpha_prod": a, "arm": "dyn100", "r2": rd, "dr2": rd - rb,
+                     "dm_t_vs_base": dm_test(y, dyn[a], base)})
+        rows.append({"alpha_prod": a, "arm": "stat100", "r2": rs, "dr2": rs - rb,
+                     "dm_t_vs_base": dm_test(y, stat[a], base),
+                     "dm_t_dyn_vs_stat": dm_test(y, dyn[a], stat[a])})
+    pd.DataFrame(rows).to_csv(f"{OUT}/nl_group_penalty.csv", index=False)
+    print(f"wrote {OUT}/nl_group_penalty.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["ladder", "local", "vsfull"], required=True)
+    ap.add_argument("--stage", choices=["ladder", "local", "vsfull", "robust", "grouppen"], required=True)
     a = ap.parse_args()
-    {"ladder": stage_ladder, "local": stage_local, "vsfull": stage_vsfull}[a.stage]()
+    {"ladder": stage_ladder, "local": stage_local, "vsfull": stage_vsfull, "robust": stage_robust, "grouppen": stage_grouppen}[a.stage]()

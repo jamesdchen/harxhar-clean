@@ -14,10 +14,15 @@ window, refit as it walks, the production `RollingLeastSquares`). Code:
 ## TL;DR
 
 - **The linear channel is dense; the INTERACTION channel is sparse — and neither rotates.**
-  §7 is the headline for anyone deciding what to build: ~100 pairwise products out of 8,911
-  candidates, **frozen once in 2006 and never reselected**, add **+43% on top of the full
-  516-column linear exog model (ΔR² +0.0081, DM-t +6.9)**. Reselecting monthly is
-  *significantly worse* than freezing. Sparse in identity, static in time.
+  ~100 pairwise products out of 8,911 candidates, **frozen once in 2006 and never reselected**,
+  add **ΔR² +0.0067 → +35%, DM-t +2.71** over the linear base — with no clipping, `voldemand`
+  dropped, and a separate (heavy) penalty on the product block. Reselecting monthly never
+  beats freezing on any healthy specification. Sparse in identity, static in time.
+  ⚠️ **Read §7.1 before quoting a number.** A first version of this result claimed +43% at
+  DM-t +6.9; that figure came from a ±4 design clip and is inflated. The interaction gain is
+  real but **strongly dependent on how the product block is regularized** (it is *negative*
+  under some scalings), and the static-beats-dynamic margin reaches conventional significance
+  only under the clip.
 - **Dense is the truth, not an artifact.** In a like-for-like horse race (daily reselect,
   daily refit, one shared rolling-Gram machinery, only `k` differs) OOS accuracy is
   **monotone in the number of features**: top-5 R² +0.0164 → all-246 **+0.0346**, and every
@@ -254,20 +259,35 @@ gates — giving **8,911 candidates**. All pairwise ICs at every refit come from
 matmuls (`G = ZᵀZ`, `A = Zᵀdiag(e)Z`, `Q = (Z∘Z)ᵀ(Z∘Z)`), so only the selected `k` columns are
 ever materialized. Monthly reselect + refit; 218 months.
 
-> **A methods note that is load-bearing, not cosmetic.** The first run reproduced the repo's
-> own Part-3 "divide by a transiently-degenerate scale" bug. Re-standardizing by a
-> *training-window* sd sent test values to **1131σ**; products squared it. Unclipped, the
-> linear base arm scored **R² −0.635** (vs +0.021 clipped) and the pair ICs driving selection
-> were pure outlier artifacts — the whole first result set was garbage. Every arm now clips
-> the standardized design to **±4**, train and test alike, base columns and products alike.
-> The conclusion is insensitive to the clip (R² +0.021 / +0.020 / +0.019 / +0.018 at
-> ±4 / 6 / 8 / 10). **Third time this disease has appeared in this project; the lesson keeps
-> being cheap to relearn and expensive to miss.**
+> **A methods note, and a retraction of its first version.** The first run of this section
+> scored the linear base arm at **R² −0.635**, and its pair ICs were outlier-driven, so the
+> whole first result set was void. I diagnosed that as my own doing — re-standardizing an
+> already-scaled panel by a training-window sd, i.e. the repo's Part-3 degenerate-divisor
+> disease — and fixed it by clipping the standardized design to ±4. **That diagnosis was
+> wrong**, and `--stage robust` is what caught it: a ``center``-only variant that performs *no
+> division whatsoever* still collapses to R² −0.293, so the divisor was never the cause.
+>
+> The actual cause is in the panel: **`voldemand`, and only `voldemand`.** All twelve columns
+> with |z| > 200 are `voldemand` MAs, and 3,065 of the 3,674 affected rows fall in **2023** —
+> the 0DTE volume explosion is a genuine level break, and rolling-window standardization of a
+> series that shifts by orders of magnitude correctly reports hundreds of sigmas. Panel-wide
+> p99.9 of |z| is **7.6**; drop the 12 `voldemand` columns and max |z| falls from 2011 to 79.
+> `_build_scale_guards` is *not* at fault — verified directly: its zero-inflation branch fires
+> at all six windows for these columns (exact-zero fraction 0.31–0.73 vs the 0.20 threshold),
+> so the active-value scale is being used as designed. The guard floors the *divisor*; it
+> cannot bound a *numerator* that genuinely moved.
+>
+> And the clip was doing a second job I had not accounted for: standing in for **block-wise
+> regularization**. Products of centered features have variance ~ the product of the parents',
+> so one global ridge `alpha` cannot restrain the product block and fit the base block at the
+> same time; the clip compressed the scale difference instead. §7.1 replaces it with two
+> penalties, which is the legitimate version.
 
-**Result 1 — interactions genuinely add.** Base 133 linear cols: R² +0.0215. Best interaction
-arm: **+0.0305** (+42%). Against the *full* 516-column linear exog set (246 value + 270
-availability, same monthly refit and clip), 100 frozen products still add
-**ΔR² +0.0081 → +43%, DM-t +6.91**. So this is not information the linear model already had.
+**Result 1 — interactions add, but the size depends on regularization (see §7.1).** Under the
+±4 clip: base 133 cols R² +0.0215 → best interaction arm **+0.0305**, and against the *full*
+516-column linear exog set, 100 frozen products add ΔR² +0.0081 → **+43%, DM-t +6.91**. Those
+are the clipped numbers and they are **inflated**; §7.1 puts the robust figure at **+35%,
+DM-t +2.71**. Either way it is not information the linear model already had.
 
 **Result 2 — it IS sparse, pooled.** The ladder peaks at **k = 25–100 of 8,911** and degrades
 by k=400. Contrast the linear channel, which improved monotonically all the way to 246/246.
@@ -317,7 +337,54 @@ Also note `sumret × sumvolume` arriving unprompted as the top-ranked genuine in
 that is the OFI probe listed as an open item in intraday-regime §9.3, and the selector found
 it without being told to look.
 
-**Caveats.** (i) All §8 numbers are at monthly refit with the ±4 clip, so the base is +0.0188
+### 7.1 Robustness: does any of this survive without the clip?
+
+Two runs, `--stage robust` and `--stage grouppen`. First, the same three arms under four
+scalings (all 133 base columns):
+
+| scaling | base R² | stat100 − base | dyn vs stat DM-t |
+|---|---|---|---|
+| sd + clip ±4 | +0.0215 | +0.0090 (DM-t **+8.15**) | **−3.21** |
+| sd, no clip | −0.635 | −0.302 (−1.02) | +1.28 |
+| robust floored-IQR, no clip | −0.514 | −0.021 (−0.46) | −0.50 |
+| center only, no division | −0.293 | +0.014 (+1.38) | −1.15 |
+
+Only the clipped arm yields a working estimator, so the other three can neither confirm nor
+refute anything. Dropping the 12 `voldemand` columns (max |z| 2011 → 79) makes two of them
+healthy — and the picture changes:
+
+| scaling, no `voldemand` | base R² | stat100 − base | dyn vs stat DM-t |
+|---|---|---|---|
+| center only, no division | **+0.0194** | +0.0047 (DM-t **+1.28**, n.s.) | −1.30 |
+| robust floored-IQR, no clip | +0.0167 | **−0.049 (harmful)** | +0.69 |
+| sd, no clip | −0.184 | — | — |
+| sd + clip ±4 | +0.0214 | +0.0093 (+8.32) | −3.51 |
+
+So the **+43% headline was an artifact of the clip**, and interactions can even hurt depending
+on how the product block is scaled. The cause is a single global penalty across two blocks with
+incommensurate scales, so the fix is two penalties. No clip, `voldemand` dropped, products on a
+*floored* window sd, product block penalized separately:
+
+| product penalty | dyn100 | stat100 | stat DM-t vs base | dyn vs stat |
+|---|---|---|---|---|
+| base only | — | +0.0194 | — | — |
+| 300 | −0.0135 | −0.0429 | −1.12 | +0.54 |
+| 3,000 | +0.0104 | +0.0138 | −0.72 | −0.41 |
+| **30,000** | +0.0202 | **+0.0261** | **+2.71** | −1.74 |
+| 300,000 | +0.0218 | +0.0238 | +2.77 | −0.93 |
+
+**Conclusions that survive.** (i) The interaction channel is real: **ΔR² +0.0067 → +35%,
+DM-t +2.71**, with no clipping — but only under *heavy* shrinkage of the product block, which
+must be a separate hyper-parameter. (ii) Static selection is never beaten: dyn-vs-stat is
+negative at every healthy specification (−3.51, −1.74, −1.30, −0.93, −0.41) and positive only
+where the fit is over-fitting anyway (+0.54). Significant under the clip, directional
+elsewhere — so "the active set does not rotate" is **supported and never contradicted, but not
+established at conventional significance without the clip.** (iii) Pooled sparsity (peak at
+k = 25–100 of 8,911) is unaffected by any of this. (iv) `voldemand` needs a **feature-level**
+fix for its 2023 level break — a global clip is the wrong instrument, and its extremes were
+distorting every arm of this section.
+
+**Caveats.** (i) All §7 numbers are at monthly refit with the ±4 clip, so the base is +0.0188
 rather than the §1 daily-refit +0.0347; both arms share the machinery, so the *relative* +43%
 is clean, but the absolute daily-refit gain is untested. (ii) Products are drawn from 3 of 6
 windows, so the space is a subset. (iii) Selection is by marginal |IC| on products; an L1 fit
@@ -325,8 +392,9 @@ over the full 8,911 may find a better set.
 
 ## 8. What follows
 
-1. **Ship the ~100 frozen interaction products** (§7). Biggest single result here: +43% on the
-   exog channel, DM-t +6.9, and *cheaper* than what exists — a fixed feature list, no
+1. **Ship the ~100 frozen interaction products** (§7), with a **separate, heavy penalty on the
+   product block** — that hyper-parameter is not optional, it is the difference between +35%
+   and actively harmful. Robust size +35% (DM-t +2.71), and *cheaper* than what exists — a fixed feature list, no
    reselection machinery, no retuning. Start from the signed-return hub
    (`sumret × {volume, sumabsret, HAR level, sumret}`); build the explicit OFI
    `(buy−sell)/(buy+sell)` term alongside it, since the selector reached for its proxy
@@ -363,10 +431,13 @@ python analysis/alpha_manifestation.py --stage verify        # mapping-vs-scale 
 python analysis/nl_sparsity.py --stage ladder                # interactions: add? sparse? rotating?
 python analysis/nl_sparsity.py --stage local                 # within-month interaction PR vs null
 python analysis/nl_sparsity.py --stage vsfull                # products vs the FULL linear model
+python analysis/nl_sparsity.py --stage robust                # §7.1 four scalings (why the clip mattered)
+python analysis/nl_sparsity.py --stage grouppen              # §7.1 no clip, separate product penalty
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
 monthly_bucket_ic.csv, monthly_mapping.csv, activation_{timeofday,dayofweek,vol}.csv,
 activation_stability.csv, granularity_ladder.csv, gain_channel.csv, sparse_vs_dense.csv,
 volregime_significance.csv, nl_sparsity_ladder.csv, nl_top_pairs.csv, nl_local_sparsity.csv,
-nl_pair_ic.csv, nl_vs_full_linear.csv}`.
+nl_pair_ic.csv, nl_vs_full_linear.csv, nl_scaling_robustness.csv,
+nl_group_penalty.csv}`.
