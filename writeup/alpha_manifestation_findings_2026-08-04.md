@@ -848,6 +848,64 @@ never reached. A materially better intensity estimator, a longer sample, or a cr
 (many assets, so intensity is estimated across as well as through time) would each change the power
 calculation. Absent one of those, this question is not answerable with this data.
 
+### 13.1 A better intensity estimator — and the reframing it forced
+
+§13 blamed its own failure on the intensity estimator, so that got fixed first. The fix worked, the
+gate still failed, and the *reason* it failed turns out to be the most useful thing in this section.
+
+**The incumbent estimator was worse than a constant.** Candidates and criteria were fixed in advance
+(EWMA at 4 halflives vs an AR(1)-state heteroskedastic Kalman filter at 3; criteria = predictive
+validity for next month's realised slope, and IC with it):
+
+| estimator | predictive R² vs a constant | IC with realised slope |
+|---|---|---|
+| ewma_5d | **−0.436** | +0.367 |
+| **ewma_21d** (what §13 used) | **−0.136** | +0.330 |
+| ewma_63d / ewma_126d | −0.211 / −0.223 | +0.104 / −0.048 |
+| kalman_hl0.5m | **+0.092** | +0.373 |
+| kalman_hl1m | +0.069 | +0.385 |
+| kalman_hl2m | +0.044 | **+0.388** |
+
+Every EWMA has *negative* predictive R² — right direction (positive IC) but wrong magnitude, because
+**an EWMA is exactly the Kalman filter for a random-walk state** and `--stage diffusion` had already
+measured the slope to be mean-reverting (AR(1) ~0.52, signal variance *falling* with horizon). A
+random-walk filter never shrinks toward the mean, so it over-reacts. Every AR(1)-state variant is
+positive. That one misspecification explains both §13's failure **and** §3's dynamic-gain failure
+(−0.002): both were driven by an intensity estimate worse than using its own average. (Rule ambiguity
+recorded: my stated rule was "max signal share subject to beating the constant" and the code took max
+IC among valid arms, which picks `kalman_hl2m`; `kalman_hl0.5m` has the best predictive R². The three
+are within noise of each other.)
+
+**With the better estimator the gate still fails, and the control fails *worse*:**
+
+| target | excess over null (lin / prod) | control rank | split-half stability vs null | gate |
+|---|---|---|---|---|
+| levels | 1.21x / 1.10x | **57/133** (was 36) | +0.074 vs **+0.084** | STOP |
+| changes | 1.52x / 1.36x | 66/133 | +0.085 vs +0.029 | STOP |
+
+The pre-registration said: *if the control still fails, the problem was never the estimator*. It
+still fails, so it wasn't.
+
+**Why the control fails — and this is the finding.** The control assumed vol state should predict
+*scalar* intensity, because vol-state conditioning is confirmed (RW adjusted p 0.0005). But look at
+which vol-regime arm actually won: the **7-weight blend**, not the **1-df-per-bin gain**, which lost
+at every K (§5's gain-channel row, −0.0006 at K=2). Vol state does **not** modulate the alpha's
+overall magnitude. It re-allocates weight **across buckets** at roughly fixed total magnitude.
+
+So the scalar-intensity framing is the wrong object, and that single correction explains the whole
+pattern of results at once: ``c ~ 1.0`` (dispersion without amplification, §5); per-bin *gain* models
+failing while per-bin *weight* models pay (§5); blends beating separate fits (§11.1); activation maps
+being stable yet zero-sum (§4); and the dynamic gain failing (§3). None of those are separate facts —
+they are all the same fact. **The dense-weak alpha's time variation is a rotation of composition, not
+a modulation of magnitude.**
+
+**Which reframes what to mine.** Not a scalar intensity against 8,911 candidates on 167 observations —
+that is the underpowered question. The right object is the **composition vector**: the 7 bucket weights
+as a function on the bucket graph, which is 7-dimensional rather than 8,911, is already known to be
+split-half stable (+0.64 on the vol axis, §4), and is already known to pay when conditioned coarsely
+and shrunk (§11.1). That is a well-posed question with ~24x fewer parameters than the one that just
+failed, and it is where I would go next.
+
 ## Reproducibility
 
 ```bash
@@ -875,6 +933,8 @@ python analysis/heat_graph.py --stage fit                     # §12 pre-registe
 python analysis/heat_graph.py --stage fit2                    # §12.1 corrected: real graph + feature diffusion
 python analysis/intensity_graph.py --stage gate               # §13 bar-level (voided by its control)
 python analysis/intensity_graph.py --stage gate2              # §13 monthly resolution + changes target
+python analysis/intensity_graph.py --stage estimator          # §13.1 EWMA vs AR(1) Kalman intensity
+python analysis/intensity_graph.py --stage gate3              # §13.1 the gate on the better estimator
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -887,4 +947,5 @@ voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv,
 multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backtest.csv,
 feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
 heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
-intensity_gate2_levels.csv, intensity_gate2_changes.csv}`.
+intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
+intensity_gate3.csv}`.
