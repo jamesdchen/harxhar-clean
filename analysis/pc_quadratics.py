@@ -158,5 +158,81 @@ def main() -> None:
     print(f"wrote {OUT}/pc_quadratics.csv")
 
 
+def signal_map() -> None:
+    """WHERE in the factor-quadratic grid the signal sits: the direct map, with its own nulls.
+
+    IC of the HAR residual with each of the 210 factor-pair products (top-20 frozen first-window
+    PCs), full span; split-half stability of the whole map (the §17.2 lesson: report the map only
+    with its replication); circular-shift null for levels; diagonal-vs-off-diagonal energy split
+    (squares = curved response to a factor's level; off-diagonal = genuine cross-interaction);
+    per-factor energy against the null. Descriptive — no forecast scored, no holdout spent.
+    """
+    p = load_panel()
+    e_full = np.load(_p("har_resid.npz"))["e"]
+    bc, bn = base_columns(p)
+    X = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    y = e_full[TW:]
+    mu0, sd0 = X[:TW].mean(0), X[:TW].std(0)
+    live = sd0 > 1e-8
+    sd0 = np.where(live, sd0, 1.0)
+    lam_l, V_l = np.linalg.eigh(np.corrcoef(((X[:TW] - mu0) / sd0)[:, live], rowvar=False))
+    order = np.argsort(lam_l)[::-1]
+    V = np.zeros((X.shape[1], len(lam_l)))
+    V[live] = V_l[:, order]
+    QPOOL = 20
+    W = V[:, :QPOOL] / sd0[:, None]
+    G = (X[TW:] - X[TW:].mean(0)) @ W
+    qi, qj = np.triu_indices(QPOOL)
+    Q = G[:, qi] * G[:, qj]
+    Q = (Q - Q.mean(0)) / (Q.std(0) + 1e-12)
+    yc = (y - y.mean()) / y.std()
+    n = len(y)
+
+    def ic_vec(t: np.ndarray) -> np.ndarray:
+        tc = (t - t.mean()) / t.std()
+        return (Q * tc[:, None]).mean(0)
+
+    ic = ic_vec(y)
+    h = n // 2
+    ic1 = (Q[:h] * yc[:h, None]).mean(0)
+    ic2 = (Q[h:] * yc[h:, None]).mean(0)
+    stab = float(np.corrcoef(ic1, ic2)[0, 1])
+    nulls, nstab = [], []
+    for k in range(24):
+        sh = (k + 1) * (n // 25)
+        yn = np.roll(yc, sh)
+        icn = (Q * yn[:, None]).mean(0)
+        nulls.append(np.abs(icn).mean())
+        n1 = (Q[:h] * yn[:h, None]).mean(0)
+        n2 = (Q[h:] * yn[h:, None]).mean(0)
+        nstab.append(float(np.corrcoef(n1, n2)[0, 1]))
+    print(f"map: mean|IC| {np.abs(ic).mean():.4f}  null {np.mean(nulls):.4f} "
+          f"(sd {np.std(nulls):.4f})   split-half map corr {stab:+.3f}  "
+          f"null {np.mean(nstab):+.3f} (sd {np.std(nstab):.3f})")
+    diag = qi == qj
+    e_d, e_o = float((ic[diag] ** 2).sum()), float((ic[~diag] ** 2).sum())
+    print(f"energy: diagonal (squares) {e_d:.5f} over {diag.sum()} cells "
+          f"({e_d / diag.sum():.6f}/cell)  |  off-diagonal {e_o:.5f} over {(~diag).sum()} "
+          f"({e_o / (~diag).sum():.6f}/cell)")
+    row = np.zeros(QPOOL)
+    for a in range(QPOOL):
+        m = (qi == a) | (qj == a)
+        row[a] = (ic[m] ** 2).sum()
+    print("per-factor energy (sum IC^2 over its 20 pairs):")
+    print("  " + " ".join(f"{v * 1e3:.2f}" for v in row))
+    top = np.argsort(-np.abs(ic))[:12]
+    print("\ntop cells:  (a,b)   IC      h1      h2")
+    for t in top:
+        print(f"  ({qi[t]:2d},{qj[t]:2d})  {ic[t]:+.4f}  {ic1[t]:+.4f}  {ic2[t]:+.4f}")
+    for a in sorted(set(list(qi[top[:6]]) + list(qj[top[:6]]))):
+        lead = np.argsort(-np.abs(V[:, a]))[:4]
+        print(f"  PC{a}: " + ", ".join(f"{bn[j]}({V[j, a]:+.2f})" for j in lead))
+
+
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--map", action="store_true")
+    a = ap.parse_args()
+    signal_map() if a.map else main()
