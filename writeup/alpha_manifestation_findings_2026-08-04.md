@@ -2074,6 +2074,57 @@ cross-sectional coordinates widen **level 2** (more signal per bar), which is pr
 higher floors of the tower estimable. A genuinely multi-asset panel remains the full version of
 this move; these 36 columns are the largest fraction of it available for free.
 
+### 19.5 Item 4's pilot: the gate fails, and the program closes
+
+`analysis/noise_metric.py --stage kernel`. The 250-day flat window was the product block's last
+untested inheritance (the same class as the refit cadence, whose correction produced §18.1), so the
+pilot isolated kernel shape with everything else fixed: the 100 frozen products fit on the dense
+stage's residual with a flat 250d rolling Gram vs an exponentially-forgotten Gram at halflife 21d —
+pinned by §18.4's measured dial memory, not tuned — penalty normalized per effective observation.
+
+| arm | resid R² | QLIKE | vs flat (sqrt DM) |
+|---|---|---|---|
+| two-stage, flat 250d | +0.04164 | 0.12595 | — |
+| two-stage, **EWMA 21d** (primary) | +0.04287 | 0.12589 | **+0.79 — GATE FAILS** |
+| two-stage, EWMA 63d (secondary observation) | +0.04426 | 0.12566 | +3.75 |
+| deliverable (one-stage 616, for context) | **+0.04743** | **0.12562** | +2.60 |
+
+Three readings, in order of epistemic weight:
+
+1. **The pre-registered claim fails.** At the halflife the dial-memory measurement pinned, matched
+   forgetting does not beat the flat window (+0.79). By this study's rules item 4 closes here.
+2. **The unregistered observation**: 63d beats flat at +3.75 — kernel shape probably does matter,
+   at a longer memory than the dial suggested. Recorded as what it is: an arm that won *after* the
+   registered one lost, i.e. exactly the pattern §10 exists to stop anyone from claiming. Using it
+   would need a fresh registered test on data this panel does not have left.
+3. **Neither matters for the model**, because even the best kernel arm (+0.04426) loses to the
+   shipped one-stage deliverable (+0.04743): the two-stage architecture costs more (−0.0032, DM
+   +2.60 in the deliverable's favor) than the best kernel buys (+0.0026). A joint per-block
+   forgetting implementation remains conceivable, but its plausible ceiling from these numbers is
+   ~+0.001–0.002 over the deliverable — below the floor of what this exhausted span can still
+   certify.
+
+**The noise-metric program is now fully executed**: reconstruction (marginal pass, §19.3),
+estimation loss (fail, §19.3), parameter space (fail-with-a-wrinkle, here), plus the two earlier
+levels already in the deliverable. The two-ridge daily-refit model survives every principled attack
+the framework generates, which is the strongest form of the §18 conclusion available: it is not
+just good, it is the fixed point of its own design principle.
+
+### 19.6 Design note: soft barriers for the boundary (a user proposal, adopted for next time)
+
+The pipeline's guards (divisor floors, the §16.4 slot band, scale floors) are hard clips. The
+principled continuous form, proposed in review: penalize ``r + 1/r = 2·cosh(log r)`` on the ratio
+of an estimated divisor to its reference — the kernel of the **Generalized Inverse Gaussian**
+prior, the natural conjugate boundary-repelling family on the positive cone. Nearly flat in the
+healthy band, exponential wall at the boundary; the hard band is its degenerate limit. The clean
+division of labor: **barriers for bounding parameters away from the boundary** (they leave healthy
+estimates untouched), **the metric for shrinking noisy estimates toward a reference** (§17.1's
+ladder — proportional by design); and never either one on raw data against a noisy proxy, where
+``E[1/RV]`` is 3×-inflated at ``numobs = 3`` and infinite at 2. Not re-plumbed now — the invariants
+say the hard guards are a no-op away from the soft version — but recorded for the next transform
+touch, and mandatory if anything is ever fit end-to-end by gradient (clips kill gradients; cosh
+barriers do not).
+
 ## Reproducibility
 
 ```bash
@@ -2121,6 +2172,7 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage memory  # is it fo
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage concave # zero-free-param response test (§19.2)
 ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage build   # §20: relational cross-section features
 ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage score   # §20: gate test
+ALPHA_PANEL_CACHE=$C python analysis/noise_metric.py --stage kernel   # §19.5: item-4 pilot (gate fails)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
