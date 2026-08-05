@@ -25,6 +25,32 @@ DIURNAL_MIN_PERIODS: int = 5
 # the feature's typical (median) per-slot std. Stops a transiently-degenerate
 # std from blowing the diurnal-adjusted value up (see ``diurnal_adjust``).
 DIURNAL_STD_FLOOR_FRAC: float = 0.1
+# Two-sided band, as a fraction, for the per-slot baseline around that slot's own causal expanding
+# median baseline: the baseline is clipped to ``[frac, 1/frac] x slot_reference``.
+#
+# Why a *per-slot* band is the fix and the existing global floor is not. Every one of the twelve
+# columns the invariants flag at max|z| 68-82 traces to the same row-level event: a 30-min slot whose
+# rolling baseline momentarily collapses relative to that slot's own typical level. Measured, at the
+# argmax of each:
+#
+#     sumpret2_vwstock  03:00  baseline 5.7e-08 vs slot median 1.1e-06  (19x low) -> |z| 82
+#     sumbipow_ewstock  03:00  baseline 1.9e-08 vs slot median 4.4e-07  (22x low) -> |z| 77
+#     stocktwits_sent.  05:30  baseline 0.0142  vs slot median 0.143    (10x low) -> |z| 70
+#
+# The existing ``DIURNAL_STD_FLOOR_FRAC`` floor is pooled over slots, so it cannot see this: the
+# overnight slots' legitimate baselines are orders of magnitude below the RTH slots', and a global
+# floor either never binds (unsigned branch, which has no floor at all beyond exactly-zero) or binds
+# at a level 10x below what the slot itself needs (``stocktwits_sentiment``, where the pooled floor
+# did bind and still permitted a 10x amplification).
+#
+# It is two-sided because a transiently *large* baseline shrinks the value toward zero and destroys
+# signal just as surely as a small one inflates it, and because a symmetric band cannot bias the
+# adjustment in either direction. It is not a patch so much as shrinkage: the baseline is a
+# ``DIURNAL_WINDOW``-observation rolling statistic of a heavily right-skewed quantity, so its
+# sampling error is large, and constraining it toward a longer-run per-slot level is better
+# estimation rather than less adjustment.
+DIURNAL_SLOT_BAND_FRAC: float = 0.25
+DIURNAL_SLOT_REF_MIN: int = 20  # in-slot observations before the reference median is usable
 # If the per-slot rolling-std divisor is pinned at ``DIURNAL_STD_FLOOR_FRAC``'s floor for more
 # than this fraction of rows, ``diurnal_adjust`` is not adjusting anything — it has degenerated
 # into division by a single global constant, which cannot track a feature whose scale drifts.
@@ -49,12 +75,56 @@ SKIP_VARS: set[str] = {
     "DOW_3",
     "DOW_4",
 }
+# Columns excluded from diurnal adjustment because they are already scale-free *levels* — an
+# implied-vol index quote, or a bounded sentiment ratio — for which dividing by a per-slot
+# dispersion estimate can only add noise.
 DIURNAL_EXCLUDED: set[str] = SKIP_VARS | {"vix", "sentiment"}
+# ``vix`` and ``sentiment`` in that set are *stems*, not column names, and the exact-membership test
+# they were used with made two of the three entries dead: the panel's columns are ``vix``, ``vvix``,
+# ``vix3m``, ``stocktwits_sentiment`` — so ``vvix`` and ``vix3m`` were being diurnally adjusted
+# against the constant's stated intent, and no column named ``sentiment`` has ever existed, which
+# left ``stocktwits_sentiment`` (a ratio bounded in [-1, 1]) dividing by a per-slot rolling std that
+# collapses 10x on overnight slots and reaching |z| 70. Matched as stems below.
+DIURNAL_EXCLUDED_STEMS: tuple[str, ...] = ("vix", "sentiment")
+
+
+def is_diurnal_excluded(col_name: str) -> bool:
+    """True if ``col_name`` should skip the diurnal adjustment (see ``DIURNAL_EXCLUDED``)."""
+    if col_name in DIURNAL_EXCLUDED:
+        return True
+    name = col_name.lower()
+    return any(stem in name for stem in DIURNAL_EXCLUDED_STEMS)
 
 
 # ---------------------------------------------------------------------------
 # Diurnal adjustment
 # ---------------------------------------------------------------------------
+
+
+def _band_to_slot_level(
+    baseline: pd.Series, slots: pd.Series, frac: float
+) -> pd.Series:
+    """Shrink a per-slot rolling baseline into ``[frac, 1/frac]`` of that slot's own level.
+
+    The reference level is the **causal expanding median** of the slot's baseline series. Causal
+    because every value entering that median is itself a rolling statistic over observations
+    strictly before its own row (``diurnal_adjust`` shifts by 1), so the median at row ``t`` is a
+    function of data before ``t`` only — no ``.shift`` is needed on top, and not shifting keeps the
+    band usable ``DIURNAL_SLOT_REF_MIN`` in-slot observations earlier.
+
+    Where a slot has less than ``DIURNAL_SLOT_REF_MIN`` observations of history the reference is NaN
+    and the clip is a no-op (pandas leaves values unchanged against NaN bounds), so behaviour in a
+    column's warm-up is unchanged and the caller's global floor remains the backstop there.
+
+    ``frac <= 0`` disables the band entirely, which is how the pre-fix chain is reproduced exactly.
+    """
+    if frac <= 0:
+        return baseline
+    ref = baseline.abs().groupby(slots).transform(
+        lambda g: g.expanding(min_periods=DIURNAL_SLOT_REF_MIN).median()
+    )
+    ref = ref.where(ref > 0)
+    return baseline.clip(lower=frac * ref, upper=ref / frac)
 
 
 def diurnal_adjust(
@@ -63,6 +133,7 @@ def diurnal_adjust(
     has_negatives: bool,
     window: int = DIURNAL_WINDOW,
     min_periods: int = DIURNAL_MIN_PERIODS,
+    slot_band: float = DIURNAL_SLOT_BAND_FRAC,
 ) -> tuple[pd.Series, pd.Series]:
     """Remove intraday seasonality via rolling per-slot baseline.
 
@@ -72,6 +143,11 @@ def diurnal_adjust(
     ``window`` most recent in-slot observations strictly before *t*. The
     adjusted value ``series[t] / baseline[t]`` therefore uses no information
     from time *t* itself or later.
+
+    ``slot_band`` is the two-sided per-slot band of :func:`_band_to_slot_level`, applied to *both*
+    branches — it is the fix for the twelve columns the feature-health invariants flagged at
+    max|z| 68-82, all of which are a within-slot baseline collapse (see
+    ``DIURNAL_SLOT_BAND_FRAC``). Pass ``0`` to reproduce the pre-fix chain bit-for-bit.
 
     Returns
     -------
@@ -97,13 +173,16 @@ def diurnal_adjust(
             if (pd.notna(typical) and typical > 0)
             else 1.0
         )
+        baseline = _band_to_slot_level(baseline, df["slot"], slot_band)
         baseline = baseline.clip(lower=floor).fillna(floor)
     else:
         baseline = df.groupby("slot")["val"].transform(
             lambda g: g.rolling(window, min_periods=min_periods).mean().shift(1)
         )
+        baseline = _band_to_slot_level(baseline, df["slot"], slot_band)
         # Treat 0 the same as NaN (flat ffilled segments produce zero rolling
-        # mean); baseline=1.0 passes through the raw value safely.
+        # mean); baseline=1.0 passes through the raw value safely. Only reachable
+        # now where the per-slot band had too little history to have an opinion.
         baseline = baseline.replace(0, 1.0).fillna(1.0)
 
     adjusted = series / baseline
@@ -260,10 +339,19 @@ def robust_transform(
     is_target: bool = False,
     diurnal_mode: str = "divide",
     signed_stabilizer: bool = True,
+    slot_band: float | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
     Returns ``(adjusted_series, baseline)``.
+
+    ``slot_band`` is forwarded to :func:`diurnal_adjust`. It defaults to
+    ``DIURNAL_SLOT_BAND_FRAC`` for **exog** and to ``0`` (off) for the **target**: the target's
+    ``baseline`` is the multiplicative factor every raw-space reconstruction and every historical
+    QLIKE number is defined against, so changing it silently would make the repo's results
+    incomparable. That is a scoping decision, not a claim that the target's baseline is immune —
+    ``RV`` takes the same unsigned mean branch, and giving it the band is a candidate change that
+    needs its own re-baselining. Pass an explicit value to override either way.
 
     ``signed_stabilizer`` (default on) routes a signed feature whose per-slot std divisor is
     degenerate to :func:`asinh_stabilize` instead of the divide -- see the inline comment for
@@ -288,14 +376,18 @@ def robust_transform(
         )
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
+    if slot_band is None:
+        slot_band = 0.0 if is_target else DIURNAL_SLOT_BAND_FRAC
 
     series = df[col_name].copy()
     has_negatives = bool((series.dropna() < 0).any())
 
     baseline = pd.Series(1.0, index=df.index)
     stabilized = False
-    if use_diurnal and col_name not in DIURNAL_EXCLUDED and time_col in df.columns:
-        adjusted, baseline = diurnal_adjust(series, df[time_col], has_negatives)
+    if use_diurnal and not is_diurnal_excluded(col_name) and time_col in df.columns:
+        adjusted, baseline = diurnal_adjust(
+            series, df[time_col], has_negatives, slot_band=slot_band
+        )
         # A signed feature divides by its per-slot rolling std. For a sparse / ffilled /
         # zero-inflated column that std is degenerate most of the time, so the floor pins the
         # divisor to one global constant -- the "adjustment" stops adjusting and, worse, stops

@@ -32,9 +32,11 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.backtest.executor import ZERO_INFLATED_FRAC, _build_scale_guards  # noqa: E402
+from src.backtest.executor import _build_scale_guards, mode_inflated  # noqa: E402
+from src.diagnostics import check_and_report  # noqa: E402
 from src.data.loading import ALL_FEATURES, SUBGROUPS, load_raw_data  # noqa: E402
 from src.features.extractors.calendar import add_calendar_features  # noqa: E402
+from src.features.extractors.expiry import add_expiry_features  # noqa: E402
 from src.features.extractors.har import generate_har_features, resolve_har_lags  # noqa: E402
 from src.features.transforms.scaling import rolling_robust_scale  # noqa: E402
 from src.features.transforms.target import PERIODS_PER_DAY, robust_transform  # noqa: E402
@@ -153,17 +155,17 @@ def build_panel(
         adj_exog.append(f"{col}_avail")
         raw_of[f"{col}_avail"] = col
 
-    # hurdle encoding for zero-inflated exog
+    # hurdle encoding for mode-inflated exog (see ``executor.ZERO_INFLATED_FRAC``)
     for col in exog_cols:
         v = df[col].to_numpy(dtype=np.float64)
-        fin = v[~np.isnan(v)]
-        if fin.size and float(np.mean(fin == 0.0)) >= ZERO_INFLATED_FRAC:
-            df[f"{col}_active"] = (np.nan_to_num(v) != 0.0).astype("float64")
+        inflated, mode = mode_inflated(v)
+        if inflated:
+            df[f"{col}_active"] = (np.nan_to_num(v, nan=mode) != mode).astype("float64")
             adj_exog.append(f"{col}_active")
             raw_of[f"{col}_active"] = col
 
     df, har_names = generate_har_features(df, target_col="adj_RV", exog_cols=adj_exog)
-    names = har_names + add_calendar_features(df)
+    names = har_names + add_calendar_features(df) + add_expiry_features(df)
     for h in [c for c in har_names if c.startswith("har_ma_")]:
         for gate, suffix in (("is_open", "open"), ("is_close", "close")):
             df[f"{h}_x_{suffix}"] = df[h] * df[gate]
@@ -174,6 +176,20 @@ def build_panel(
     ref_iqr, fixed = _build_scale_guards(X, df, names)
     X = rolling_robust_scale(
         X, train_window * PERIODS_PER_DAY, ref_iqr=ref_iqr, fixed_cols=fixed
+    )
+
+    # Same invariants the production build runs (see ``src.diagnostics``). This module exists
+    # partly because it is a second implementation of the same prep — so it gets the same checks,
+    # and a divergence between the two panels shows up here rather than in a forecast.
+    check_and_report(
+        X,
+        names,
+        df=df,
+        raw_cols=exog_cols,
+        ref_iqr=ref_iqr,
+        train_win=train_window * PERIODS_PER_DAY,
+        output_path=os.path.join(CACHE_DIR, f"feature_health_tw{train_window}.csv"),
+        label="alpha_panel",
     )
 
     meta = [_classify(n, raw_of) for n in names]

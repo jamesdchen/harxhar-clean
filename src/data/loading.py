@@ -113,7 +113,43 @@ ALL_FEATURES: list[str] = [
     "voldemand_spx_open_only",
     "voldemand_all_open_and_close",
     "voldemand_all_open_only",
+    # Derived, not read from parquet — see ``add_derived_features``.
+    "ofi_ewstock",
+    "ofi_vwstock",
 ]
+
+# Signed order-flow imbalance, built in ``add_derived_features``: the panel carries buy and sell
+# turnover as separate *levels*, so a linear model can only reach the imbalance as a difference of
+# two coefficients on two columns that are ~0.99 correlated with each other and with total volume.
+# The normalized ratio is the quantity the microstructure literature actually relates to volatility
+# (Kyle's lambda, the VPIN family), it is scale-free and bounded in [-1, 1], and it is orthogonal
+# by construction to the total-volume level the model already has.
+OFI_PAIRS: dict[str, tuple[str, str]] = {
+    "ofi_ewstock": ("buyturnover_ewstock", "sellturnover_ewstock"),
+    "ofi_vwstock": ("buyturnover_vwstock", "sellturnover_vwstock"),
+}
+
+
+def add_derived_features(df: pd.DataFrame) -> list[str]:
+    """Add the derived exog columns (currently the order-flow imbalance ratios).
+
+    ``(buy - sell) / (buy + sell)``, NaN where the denominator is zero or either leg is missing —
+    an imbalance is undefined with no flow, and imputing 0 there would assert "balanced" on a bar
+    that had no trades. Downstream impute-and-indicate handles the NaN with its usual
+    median-fill-plus-availability-flag, which is the correct encoding for "undefined here".
+
+    Returns the names added (only those whose input legs were present).
+    """
+    added: list[str] = []
+    for name, (buy, sell) in OFI_PAIRS.items():
+        if buy not in df.columns or sell not in df.columns:
+            continue
+        b = df[buy].astype("float64")
+        s = df[sell].astype("float64")
+        tot = b + s
+        df[name] = ((b - s) / tot).where(tot > 0)
+        added.append(name)
+    return added
 
 
 def _is_moment(f: str) -> bool:
@@ -121,7 +157,10 @@ def _is_moment(f: str) -> bool:
 
 
 def _is_liquidity(f: str) -> bool:
-    return any(x in f for x in ("volume", "turnover", "spread", "numobs"))
+    # ``ofi`` joins the liquidity bucket: it is a flow-composition measure built from turnover, not
+    # a return moment, so it must not fall through to ``market_ew`` / ``market_vw`` on the bare
+    # ``ewstock`` / ``vwstock`` suffix.
+    return any(x in f for x in ("volume", "turnover", "spread", "numobs", "ofi"))
 
 
 SUBGROUPS: dict[str, list[str]] = {
@@ -131,12 +170,12 @@ SUBGROUPS: dict[str, list[str]] = {
     "market_ew": [
         f
         for f in ALL_FEATURES
-        if "ewstock" in f and not any(x in f for x in ("turnover", "spread"))
+        if "ewstock" in f and not any(x in f for x in ("turnover", "spread", "ofi"))
     ],
     "market_vw": [
         f
         for f in ALL_FEATURES
-        if "vwstock" in f and not any(x in f for x in ("turnover", "spread"))
+        if "vwstock" in f and not any(x in f for x in ("turnover", "spread", "ofi"))
     ],
     "sentiment": [f for f in ALL_FEATURES if "stocktwits" in f],
     "implied_vol": [f for f in ALL_FEATURES if "vix" in f],
@@ -226,6 +265,13 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
 
     closed_mask = mask_friday_after_close | mask_saturday | mask_sunday_before_open
     df = df[~closed_mask].reset_index(drop=True)
+
+    # ── 6b. Derived exog (order-flow imbalance) ───────────────────────
+    # Built here, on the *unfilled* buy/sell legs, deliberately: ``apply_overnight_fills`` later
+    # writes 1.0 into matching columns in the overnight window, and buy = sell = 1.0 would make the
+    # imbalance exactly 0 — fabricating "perfectly balanced flow" on bars with no trading. Leaving
+    # it NaN overnight lets the normal ffill / impute-and-indicate path handle it honestly.
+    add_derived_features(df)
 
     # ── 7. Forward-fill RV, drop rows where RV is still NaN ──────────
     df["RV"] = df["RV"].ffill()

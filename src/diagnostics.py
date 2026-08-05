@@ -39,6 +39,8 @@ cries wolf gets muted, and then it is worse than nothing.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -139,12 +141,21 @@ def divisor_health(
     a divisor that no longer runs is a false alarm — the back-test caught exactly that, flagging
     post-fix ``voldemand`` as still broken. ``divide_in_use`` records which branch applies.
     """
-    from src.features.transforms.target import has_name_stabilizer
+    from src.features.transforms.target import has_name_stabilizer, is_diurnal_excluded
 
     rows = []
     for col in cols:
         s = df[col]
         signed = bool((s.dropna() < 0).any())
+        # A column ``robust_transform`` routes past the diurnal entirely has no divisor to measure.
+        # Same false-alarm class the ``asinh`` branch produced: reporting the pin rate of a divisor
+        # that never runs. ``vix`` / ``vvix`` / ``vix3m`` / ``stocktwits_sentiment`` are here.
+        if is_diurnal_excluded(col):
+            rows.append(
+                {"feature": col, "signed": signed, "divide_in_use": False,
+                 "pinned_divisor_frac": 0.0}
+            )
+            continue
         _, base = diurnal_adjust(s, df[time_col], signed)
         pinned = float(
             np.isclose(base, base.min() if signed else 1.0, rtol=1e-9 if signed else 1e-12).mean()
@@ -229,3 +240,83 @@ def feature_health_report(
             {"FAIL": 0, "warn": 1, "ok": 2}
         ) if s.name == "status" else s
     )
+
+
+# ---------------------------------------------------------------------------
+# Build-time hook
+# ---------------------------------------------------------------------------
+
+STRICT_ENV = "FEATURE_HEALTH_STRICT"
+
+
+def _hurdle_flags(names: list[str], df: pd.DataFrame | None) -> list[bool]:
+    """Which columns descend from a raw exog that got the hurdle (``_active``) encoding.
+
+    Needed by :func:`_status`: a modal share is by design for these, not a defect.
+    """
+    if df is None:
+        return [False] * len(names)
+    stems = [c[: -len("_active")] for c in df.columns if c.endswith("_active")]
+    return [any(s in n for s in stems) for n in names]
+
+
+def check_and_report(
+    X: np.ndarray,
+    names: list[str],
+    *,
+    df: pd.DataFrame | None = None,
+    raw_cols: list[str] | None = None,
+    ref_iqr: np.ndarray | None = None,
+    train_win: int = 250 * PERIODS_PER_DAY,
+    output_path: str | None = None,
+    label: str = "panel",
+    strict: bool | None = None,
+    top: int = 10,
+) -> pd.DataFrame:
+    """Run every invariant on a finished feature matrix, print a summary, optionally hard-fail.
+
+    This is the entry point the *build* calls, so the checks run on every panel that is ever
+    constructed rather than when somebody remembers to look. Ten defects of this class have been
+    found by symptom days later; none of them would have survived this being on.
+
+    ``strict`` decides what a FAIL does. It defaults to the ``FEATURE_HEALTH_STRICT`` environment
+    variable, and that default is **off**, deliberately: the panel as it stands today has 26
+    columns at FAIL (``adj_sumpret2_vwstock_ma_5`` at |z| 82, ``adj_numobs_ma_25`` at 79, the
+    ``stocktwits_sentiment`` family at 70), so a hard raise would stop every run in the repo. Off,
+    the report is written and the count is printed on every build, which is the part that was
+    missing. Turn it on per-run (``FEATURE_HEALTH_STRICT=1``) to make a regression fatal once the
+    standing failures are cleared.
+    """
+    if strict is None:
+        strict = os.environ.get(STRICT_ENV, "").lower() in ("1", "true", "yes")
+    rep = feature_health_report(
+        X, names, df=df, raw_cols=raw_cols, ref_iqr=ref_iqr, train_win=train_win
+    )
+    rep["hurdle_encoded"] = _hurdle_flags(list(rep["feature"]), df)
+    rep["status"] = [_status(r) for _, r in rep.iterrows()]
+    counts = rep["status"].value_counts().to_dict()
+    n_fail = int(counts.get("FAIL", 0))
+    print(
+        f"[feature-health/{label}] {len(rep)} cols: "
+        f"{counts.get('ok', 0)} ok / {counts.get('warn', 0)} warn / {n_fail} FAIL",
+        flush=True,
+    )
+    worst = rep[rep["status"] != "ok"].head(top)
+    for _, r in worst.iterrows():
+        print(
+            f"[feature-health/{label}]   {r['status']:>4s} {r['feature']:<40s} "
+            f"max|z| {r['max_abs_z']:7.1f}  era {r['era_asymmetry']:6.2f}  "
+            f"modal {r['modal_share']:.3f}",
+            flush=True,
+        )
+    if output_path:
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)) or ".", exist_ok=True)
+        rep.to_csv(output_path, index=False)
+        print(f"[feature-health/{label}] wrote {output_path}", flush=True)
+    if strict and n_fail:
+        raise ValueError(
+            f"feature-health: {n_fail} column(s) FAIL an invariant "
+            f"({', '.join(rep[rep['status'] == 'FAIL']['feature'].head(5))}...). "
+            f"Unset {STRICT_ENV} to downgrade to a warning."
+        )
+    return rep
