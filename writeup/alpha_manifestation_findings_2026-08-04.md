@@ -751,6 +751,48 @@ feature covariance rather than interaction strength — which is the adjacency t
 actually assumes. Cheap, and it is the version of "heat on the graph" whose assumption matches its
 object.
 
+### 12.1 The corrected test — the first one was a weak test, not evidence about nature
+
+Four of stage ``fit``'s choices were bad, and reporting them as a finding about the graph was wrong:
+the graph was estimated from **one** 2006 window (whose hub disagreed with §7's); the line graph was
+made near-complete by construction (unweighted share-a-parent over 100 products from 50 nodes); the
+λ grid *declined monotonically from its smallest value*, so it never bracketed the optimum; and the
+literal heat equation — diffusing the **features**, ``Z <- Z (I + tL)^-1`` — was never tested at all,
+only the coefficient penalty. `--stage fit2` fixes all four, adds the similarity graph, and adds a
+weak baseline (plain ridge, no products) beside the strong one.
+
+**The graph estimate was indeed the problem.** Averaged over 176 search-period windows the hubs are
+``adj_sumret_ma_25`` (degree 27), ``har_ma_1`` (20), ``adj_sumabsret_ma_1`` (19) — §7's `sumret` hub,
+reproduced. The single-window graph was simply high-variance. Worth noting alongside it: the chosen
+edges sit in the top-100 in only **29%** of windows, so even "persistent" edges are only moderately
+so. Spectra: interaction-node PR **14.0** of 133 (still concentrated), similarity PR **82.6** of 133,
+weighted line graph PR **83.7** of 100 (the weighting did not decontaminate its density).
+
+| arm | validation ΔR² | search ΔR² | holdout ΔR² |
+|---|---|---|---|
+| **heatcov_t0.3** (chosen on validation alone) | +0.00072 | +0.00028 | **+0.00039, DM-t +0.45** |
+| nodeCov_r0.3 | +0.00054 | +0.00028 | +0.00035 |
+| heatcov_t0.1 / nodeCov_r0.1 | +0.00041 / +0.00023 | +0.00023 / +0.00013 | +0.00028 / +0.00016 |
+| every ``Int`` (interaction-adjacency) arm | negative | negative | negative |
+| heatint_t3.0 (worst) | −0.01470 | −0.01163 | −0.01186 |
+| plain ridge, no products | −0.02036 | −0.01051 | −0.00376 |
+
+**Two things the corrected test establishes.** First, the conceptual diagnosis was right and is now
+measured: **similarity adjacency helps, interaction adjacency hurts** — every ``Cov`` arm is positive
+and every ``Int`` arm negative, with the sign consistent across three independent splits (validation,
+full search, holdout). "Adjacent coefficients should be close" is a claim about *correlated*
+features; it is false for *interacting* ones. Second, the magnitude is still nil: the licensed number
+is holdout ΔR² **+0.00039, DM-t +0.45**.
+
+So the honest state is not "the graph is useless" but "the graph's *similarity* structure points the
+right way and delivers about four ten-thousandths of R², which this sample cannot distinguish from
+zero." A better estimate of the graph moved the result from +0.00022 to +0.00039 — the right
+direction, the same conclusion.
+
+**Holdout accounting**: this is the **second** evaluation of the 2021-2024 block (the winner was
+chosen on an internal 2017-2020 validation split so the holdout was touched once more, not
+repeatedly). Two looks is not one look; discount accordingly.
+
 ## Reproducibility
 
 ```bash
@@ -775,6 +817,7 @@ python analysis/diagnostics_backtest.py                      # §11.2 five check
 python analysis/alpha_manifestation.py --stage diffusion      # is the coefficient a random walk?
 python analysis/heat_graph.py --stage spectrum                # §12 interaction-graph structure
 python analysis/heat_graph.py --stage fit                     # §12 pre-registered Laplacian + holdout
+python analysis/heat_graph.py --stage fit2                    # §12.1 corrected: real graph + feature diffusion
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -786,4 +829,4 @@ nl_group_penalty.csv, voldemand_stage_tails.csv, voldemand_variants.csv,
 voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv,
 multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backtest.csv,
 feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
-heat_graph_fit.csv}`.
+heat_graph_fit.csv, heat_graph_fit2.csv}`.

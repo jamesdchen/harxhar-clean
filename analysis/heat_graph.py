@@ -242,8 +242,237 @@ def stage_fit() -> None:  # noqa: C901
     print(f"wrote {OUT}/heat_graph_fit.csv")
 
 
+# ---------------------------------------------------------------------------
+# Stage 3 — the corrected test: a properly estimated graph, and heat flow on the
+#           FEATURES rather than only on the coefficients
+# ---------------------------------------------------------------------------
+
+PERSIST_K = 100  # top-K per window, for the persistence-weighted graph
+RATIOS2 = (0.001, 0.003, 0.01, 0.03, 0.1, 0.3)  # re-centred: stage `fit` declined from its smallest
+DIFFUSION_T = (0.1, 0.3, 1.0, 3.0)
+
+
+def _persistence_graph(X: np.ndarray, e: np.ndarray, ii, jj, end: int):
+    """Interaction graph averaged over every refit window in the SEARCH period.
+
+    Stage ``fit`` froze the graph on a single 2006 window, and its hub disagreed with the
+    persistence-weighted hub §7 reported — i.e. a one-window graph is a high-variance estimate, and
+    heat flow on a mis-estimated graph tests nothing. This averages |IC| across ~167 windows, which
+    is the low-variance estimator, and takes the top edges by *mean* strength. Uses only rows before
+    ``end`` (the search/holdout split), so the holdout stays untouched.
+    """
+    acc = np.zeros(len(ii))
+    hits = np.zeros(len(ii))
+    n_win = 0
+    for t0 in range(TW, end, REFIT):
+        tr = slice(t0 - TW, t0)
+        Ztr = X[tr] - X[tr].mean(0)
+        ic = np.abs(np.nan_to_num(_pair_ic(Ztr, e[tr])[ii, jj]))
+        acc += ic
+        hits[np.argsort(-ic)[:PERSIST_K]] += 1.0
+        n_win += 1
+    acc /= max(n_win, 1)
+    hits /= max(n_win, 1)
+    sel = np.argsort(-acc)[:K_EDGES]
+    return sel, acc[sel], hits[sel], ii[sel], jj[sel], n_win
+
+
+def _laplacian_from_W(W: np.ndarray) -> np.ndarray:
+    L = np.diag(W.sum(1)) - W
+    tr = np.trace(L)
+    return L * (len(L) / tr) if tr > 0 else L
+
+
+def _cov_graph(X: np.ndarray, end: int, keep: float = 0.15) -> np.ndarray:
+    """SIMILARITY adjacency: |corr| between features, sparsified to its strongest ``keep`` share.
+
+    This is the adjacency the Laplacian coefficient prior actually assumes — "adjacent coefficients
+    should be close" is justified for *correlated* features, not for *interacting* ones. Stage
+    ``fit``'s conceptual mismatch, corrected. Search-period rows only.
+    """
+    Z = X[:end]
+    C = np.abs(np.corrcoef(Z, rowvar=False))
+    np.fill_diagonal(C, 0.0)
+    C = np.nan_to_num(C)
+    thr = np.quantile(C[np.triu_indices_from(C, 1)], 1.0 - keep)
+    return np.where(C >= thr, C, 0.0)
+
+
+def _weighted_line_laplacian(w: np.ndarray, pi: np.ndarray, pj: np.ndarray) -> np.ndarray:
+    """Line graph with adjacency *weighted* by shared-parent strength, not 0/1.
+
+    Stage ``fit`` used unweighted share-a-parent adjacency over 100 products drawn from 50 nodes,
+    which is near-complete by construction (98 non-zero eigenvalues of 100) and therefore collapses
+    to shrink-toward-a-common-mean. Weighting by the geometric mean of the two products' edge
+    strengths, and only for shared parents, gives a graph with actual contrast.
+    """
+    k = len(pi)
+    A = np.zeros((k, k))
+    for a in range(k):
+        for b in range(a + 1, k):
+            shared = len({pi[a], pj[a]} & {pi[b], pj[b]})
+            if shared:
+                A[a, b] = A[b, a] = shared * np.sqrt(w[a] * w[b])
+    return _laplacian_from_W(A)
+
+
+def stage_fit2() -> None:  # noqa: C901
+    """The corrected test. Four fixes over stage ``fit``, then one holdout score.
+
+    1. **Graph properly estimated** — |IC| averaged over every search-period window instead of one
+       frozen 2006 draw (:func:`_persistence_graph`).
+    2. **Similarity graph added** — ``|corr|`` adjacency, which is the prior's actual assumption
+       (:func:`_cov_graph`), alongside the interaction graph.
+    3. **Grid re-centred** — stage ``fit``'s node arm declined monotonically from its *smallest*
+       ratio (0.1), so that grid never bracketed the optimum. Now 0.001 to 0.3.
+    4. **Heat flow on the FEATURES, not only the coefficients** — ``Z <- Z (I + tL)^-1``, a graph
+       convolution / resolvent form of ``exp(-tL)``. This is the literal heat equation on the graph
+       applied to the signal, which stage ``fit`` never tested. Implemented via ``S' G S`` so it
+       costs no extra Gram.
+
+    Also adds a *weak* baseline (plain ridge, no products) next to the strong one (the §11.1
+    diagonal winner), so a graph-aware estimator can be seen to recover part of the interaction gain
+    even if it cannot beat the best available shrinkage.
+
+    **Holdout accounting, stated plainly: this is the second evaluation of the 2021-2024 block.**
+    The winner is chosen on the search period via an internal 2007-2016 / 2017-2020 validation split
+    so the holdout is touched exactly once more, and a reader should discount accordingly — two
+    looks is not one look.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = _panel()
+    e = np.load(os.path.join(CACHE_DIR, "har_resid.npz"))["e"]
+    ts = pd.Series(pd.to_datetime(p.t[TW:]))
+    bc, bn = base_columns(p)
+    X = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    n, pb = len(e), X.shape[1]
+    ii, jj = _upper(pb)
+    end_search = int((ts < SPLIT).sum())
+
+    sel, w, hits, pi, pj, n_win = _persistence_graph(X, e, ii, jj, end_search)
+    deg = pd.Series(np.concatenate([pi, pj])).value_counts()
+    print(f"  persistence graph over {n_win} search windows; top nodes by degree:")
+    for node, d in deg.head(5).items():
+        print(f"    {bn[node]:38s} degree {d}")
+    print(f"  mean top-{PERSIST_K} membership of the chosen edges: {hits.mean():.2f}\n")
+
+    Wint = np.zeros((pb, pb))
+    for k in range(len(w)):
+        if pi[k] != pj[k]:
+            Wint[pi[k], pj[k]] += w[k]
+            Wint[pj[k], pi[k]] += w[k]
+    L_int = _laplacian_from_W(Wint)
+    L_cov = _laplacian_from_W(_cov_graph(X, end_search))
+    L_edge = _weighted_line_laplacian(w, pi, pj)
+    for nm, L in (("interaction(node)", L_int), ("similarity(cov)", L_cov), ("line(weighted)", L_edge)):
+        ev = np.linalg.eigvalsh(L)
+        ev = ev[ev > 1e-9]
+        print(f"  {nm:20s} non-zero eig {len(ev):3d}  PR {ev.sum() ** 2 / (ev ** 2).sum():6.1f} of {len(L)}")
+
+    arms: dict[str, np.ndarray] = {}
+
+    def put(name, out, val):
+        arms.setdefault(name, np.full(n - TW, np.nan))[out] = val
+
+    diag_full = np.concatenate([np.full(pb, RIDGE_ALPHA), np.full(K_EDGES, PROD_PENALTY)])
+    S_cache = {
+        (g, t): np.linalg.inv(np.eye(pb) + t * (L_int if g == "int" else L_cov))
+        for g in ("int", "cov")
+        for t in DIFFUSION_T
+    }
+
+    def floored(Ptr, Pte):
+        sd = Ptr.std(0)
+        sd = np.maximum(sd, 0.1 * np.median(sd[sd > 0]) if (sd > 0).any() else 1.0)
+        return Ptr / sd, Pte / sd
+
+    for t0 in range(TW, n, REFIT):
+        tr = slice(t0 - TW, t0)
+        t1 = min(t0 + REFIT, n)
+        out = slice(t0 - TW, t1 - TW)
+        mu = X[tr].mean(0)
+        Ztr, Zte = X[tr] - mu, X[t0:t1] - mu
+        ytr = e[tr]
+        yc = ytr - ytr.mean()
+        Ptr, Pte = floored(_products(Ztr, pi, pj), _products(Zte, pi, pj))
+        Atr, Ate = np.hstack([Ztr, Ptr]), np.hstack([Zte, Pte])
+        G = Atr.T @ Atr
+        rhs = Atr.T @ yc
+
+        def solve(extra, Gm=G, r=rhs, Xte=Ate, dg=diag_full):
+            b = np.linalg.solve(Gm + np.diag(dg) + (0.0 if extra is None else extra), r)
+            return Xte @ b + ytr.mean()
+
+        put("diagonal(strong base)", out, solve(None))
+        # weak baseline: plain ridge on the base features only, no products
+        Gz = G[:pb, :pb]
+        bz = np.linalg.solve(Gz + RIDGE_ALPHA * np.eye(pb), rhs[:pb])
+        put("plain_ridge_no_products", out, Zte @ bz + ytr.mean())
+
+        for r in RATIOS2:
+            for nm, L in (("nodeInt", L_int), ("nodeCov", L_cov)):
+                blk = np.zeros_like(G)
+                blk[:pb, :pb] = r * RIDGE_ALPHA * L
+                put(f"{nm}_r{r}", out, solve(blk))
+            blk = np.zeros_like(G)
+            blk[pb:, pb:] = r * PROD_PENALTY * L_edge
+            put(f"edgeW_r{r}", out, solve(blk))
+
+        # heat flow on the FEATURES: Z <- Z S, so Gram -> S' Gzz S and cross -> S' Gzp
+        for g in ("int", "cov"):
+            for t in DIFFUSION_T:
+                S = S_cache[(g, t)]
+                Gd = G.copy()
+                Gd[:pb, :pb] = S.T @ G[:pb, :pb] @ S
+                Gd[:pb, pb:] = S.T @ G[:pb, pb:]
+                Gd[pb:, :pb] = Gd[:pb, pb:].T
+                rd = rhs.copy()
+                rd[:pb] = S.T @ rhs[:pb]
+                Xte = np.hstack([Zte @ S, Pte])
+                put(f"heat{g}_t{t}", out, solve(None, Gd, rd, Xte))
+
+    y = e[TW:]
+    tsx = ts.iloc[TW:].reset_index(drop=True)
+    val_start = int((tsx < "2017-01-01").sum())
+    search = (tsx < SPLIT).to_numpy()
+    hold = ~search
+    inner_tr = np.zeros(len(y), bool)
+    inner_tr[:val_start] = True
+    inner_va = search & ~inner_tr
+
+    base = arms["diagonal(strong base)"]
+    rows = []
+    for a, v in arms.items():
+        rows.append(
+            {
+                "arm": a,
+                "val_r2": r2_oos(y[inner_va], v[inner_va]),
+                "search_r2": r2_oos(y[search], v[search]),
+                "holdout_r2": r2_oos(y[hold], v[hold]),
+            }
+        )
+    d = pd.DataFrame(rows)
+    b = d[d.arm == "diagonal(strong base)"].iloc[0]
+    for c in ("val", "search", "holdout"):
+        d[f"{c}_gain"] = d[f"{c}_r2"] - b[f"{c}_r2"]
+    print("\n  full grid (the choice is made on val_r2 = 2017-2020 only):")
+    print(d.sort_values("val_r2", ascending=False).round(5).to_string(index=False))
+
+    cand = d[~d.arm.isin(["diagonal(strong base)", "plain_ridge_no_products"])]
+    win = cand.loc[cand.val_r2.idxmax(), "arm"]
+    t_h = dm_test(y[hold], arms[win][hold], base[hold])
+    print(f"\n  chosen on the internal validation block only: {win}")
+    print(f"    validation: ΔR² {d.loc[d.arm == win, 'val_gain'].iloc[0]:+.5f}")
+    print(f"    HOLDOUT   : ΔR² {d.loc[d.arm == win, 'holdout_gain'].iloc[0]:+.5f}  DM-t {t_h:+.2f}")
+    print("    (second evaluation of the 2021-2024 block -- discount accordingly)")
+    d.insert(0, "winner_by_validation", win)
+    d["holdout_dm_t_winner"] = t_h
+    d.to_csv(f"{OUT}/heat_graph_fit2.csv", index=False)
+    print(f"wrote {OUT}/heat_graph_fit2.csv")
+
+
 if __name__ == "__main__":
     ap_ = argparse.ArgumentParser()
-    ap_.add_argument("--stage", choices=["spectrum", "fit"], required=True)
+    ap_.add_argument("--stage", choices=["spectrum", "fit", "fit2"], required=True)
     a = ap_.parse_args()
-    {"spectrum": stage_spectrum, "fit": stage_fit}[a.stage]()
+    {"spectrum": stage_spectrum, "fit": stage_fit, "fit2": stage_fit2}[a.stage]()
