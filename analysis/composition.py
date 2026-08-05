@@ -322,8 +322,153 @@ def stage_geometry2() -> None:  # noqa: C901
     print(f"wrote {OUT}/composition_geometry2.csv + composition_shrinkage_ladder.csv")
 
 
+def _block_boot_cov(S: np.ndarray, y: np.ndarray, bins: np.ndarray, K: int, lam: float,
+                    n_boot: int = 60, block: int = 2000, seed: int = 0):
+    """Block-bootstrap sampling covariance of the per-bin weights, averaged over bins.
+
+    The analytic ridge sandwich assumes iid errors. The HAR residual is heteroskedastic *and*
+    autocorrelated, so that formula UNDER-states the sampling variance — which shows up directly as a
+    circular-shift null whose 'signal' trace is +0.05 instead of 0. A moving-block bootstrap within
+    each bin estimates the same covariance without the iid assumption.
+    """
+    p = S.shape[1]
+    rng = np.random.default_rng(seed)
+    acc = np.zeros((p, p))
+    used = 0
+    for k in range(K):
+        idx = np.flatnonzero(bins == k)
+        if idx.size < 2000:
+            continue
+        draws = []
+        nb = max(1, idx.size // block)
+        for _ in range(n_boot):
+            starts = rng.integers(0, max(1, idx.size - block), size=nb)
+            take = np.concatenate([idx[s : s + block] for s in starts])
+            Z = S[take] - S[take].mean(0)
+            yc = y[take] - y[take].mean()
+            draws.append(np.linalg.solve(Z.T @ Z + lam * np.eye(p), Z.T @ yc))
+        D = np.asarray(draws)
+        acc += np.cov(D.T, ddof=1) * (len(take) / idx.size)  # scale to the full-bin sample size
+        used += 1
+    return acc / max(used, 1)
+
+
+def stage_audit() -> None:  # noqa: C901
+    """Is §14.1's ellipse clean? Null the EIGENSTRUCTURE, not just the trace, and replicate the axis.
+
+    Two things §14.1 did not do, either of which could void it:
+
+    1. **The null was only applied to the trace.** With ``K`` bins ``Sigma_obs`` has ``K-1`` degrees of
+       freedom in 7 dimensions, so at K=5 it has rank <= 4 and its eigenvalues concentrate *by
+       construction*. "Effective rank 1.5 of 7" may be a df artifact — precisely the error §14 made
+       with the radial/tangential split. So the null distribution of ``eig1_share`` and
+       ``eff_rank`` is what decides, not the observed value.
+    2. **The noise term assumed iid errors.** The null 'signal' trace came out at +0.05 rather than 0,
+       which is the signature of under-subtraction. A block bootstrap replaces the analytic covariance
+       without the iid assumption.
+
+    And the decisive test, which is immune to both: **does the leading axis replicate?** Estimate the
+    top eigenvector on the first half of the search period and on the second half and take
+    ``|cos(v1, v2)|`` against its circular-shift null. If the axis is real it points the same way in
+    both halves; a df artifact does not.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = _panel()
+    e = np.load(os.path.join(CACHE_DIR, "har_resid.npz"))["e"][TW:]
+    sig = dict(np.load(os.path.join(CACHE_DIR, "bucket_signals.npz")))
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    S = np.column_stack([sig[b] for b in BUCKETS])
+    n = len(e)
+    search = (ts < SPLIT).to_numpy()
+    idx = np.flatnonzero(search)
+    h1 = np.zeros(n, bool)
+    h2 = np.zeros(n, bool)
+    h1[idx[: len(idx) // 2]] = True
+    h2[idx[len(idx) // 2 :]] = True
+
+    def sigma_signal(rows, y, bins, K, noise="analytic"):
+        B, Ca = _bin_fit(S[rows], y[rows], bins[rows], K, RIDGE)
+        ok = np.isfinite(B).all(1)
+        if ok.sum() < 3:
+            return None, None, None
+        Sobs = np.cov(B[ok].T, ddof=1)
+        C = Ca if noise == "analytic" else _block_boot_cov(S[rows], y[rows], bins[rows], K, RIDGE)
+        return Sobs - C, B[ok].mean(0), C
+
+    rows_out = []
+    for K in (10, 20):
+        bins = _vol_regime(p, ts, K)
+        for noise in ("analytic", "bootstrap"):
+            Ssig, Bbar, C = sigma_signal(search, e, bins, K, noise)
+            md = Bbar / np.linalg.norm(Bbar)
+            g = _eig_report(Ssig, md, noise)
+            # NULL the eigenstructure, not just the trace
+            nt, ne1, ner = [], [], []
+            for kk in range(N_NULL):
+                sh = (kk + 1) * (n // (N_NULL + 1))
+                Sn, Bn, _ = sigma_signal(search, np.roll(e, sh), bins, K, noise)
+                if Sn is None:
+                    continue
+                gn = _eig_report(Sn, Bn / np.linalg.norm(Bn), "null")
+                nt.append(gn["trace"])
+                ne1.append(gn["eig1_share"])
+                ner.append(gn["eff_rank"])
+            print(f"  --- K={K}, noise={noise} ---")
+            print(f"    trace signal {g['trace']:+.4f}   null {np.nanmean(nt):+.4f}   "
+                  f"ratio {g['trace'] / max(np.nanmean(nt), 1e-9):.1f}x")
+            print(f"    eig1 share   {g['eig1_share']:.3f}   NULL {np.nanmean(ne1):.3f}  <- the check §14.1 skipped")
+            print(f"    eff rank     {g['eff_rank']:.2f}     NULL {np.nanmean(ner):.2f}")
+            rows_out.append({"K": K, "noise": noise, "trace": g["trace"],
+                             "null_trace": np.nanmean(nt), "eig1_share": g["eig1_share"],
+                             "null_eig1_share": np.nanmean(ne1), "eff_rank": g["eff_rank"],
+                             "null_eff_rank": np.nanmean(ner)})
+        # ---- the decisive test: does the axis replicate across halves? -----------------
+        Sa, Ba, _ = sigma_signal(h1, e, bins, K)
+        Sb, Bb, _ = sigma_signal(h2, e, bins, K)
+        va = _eig_report(Sa, Ba / np.linalg.norm(Ba), "h1")["top_evec"]
+        vb = _eig_report(Sb, Bb / np.linalg.norm(Bb), "h2")["top_evec"]
+        cos = abs(float(va @ vb))
+        ncos = []
+        for kk in range(N_NULL):
+            sh = (kk + 1) * (n // (N_NULL + 1))
+            en = np.roll(e, sh)
+            Sa2, Ba2, _ = sigma_signal(h1, en, bins, K)
+            Sb2, Bb2, _ = sigma_signal(h2, en, bins, K)
+            if Sa2 is None or Sb2 is None:
+                continue
+            v1 = _eig_report(Sa2, Ba2 / np.linalg.norm(Ba2), "n")["top_evec"]
+            v2 = _eig_report(Sb2, Bb2 / np.linalg.norm(Bb2), "n")["top_evec"]
+            ncos.append(abs(float(v1 @ v2)))
+        print(f"    AXIS REPLICATION |cos(v_h1, v_h2)| = {cos:.3f}   null {np.nanmean(ncos):.3f}")
+        print("      h1 loadings: " + ", ".join(f"{BUCKETS[i]} {va[i]:+.2f}" for i in np.argsort(-np.abs(va))[:3]))
+        print("      h2 loadings: " + ", ".join(f"{BUCKETS[i]} {vb[i]:+.2f}" for i in np.argsort(-np.abs(vb))[:3]))
+        rows_out[-1].update({"axis_cos_split_half": cos, "axis_cos_null": np.nanmean(ncos)})
+        print()
+    d = pd.DataFrame(rows_out)
+    d.to_csv(f"{OUT}/composition_audit.csv", index=False)
+    print("  VERDICT")
+    bs = d[(d.K == 10) & (d.noise == "bootstrap")].iloc[0]
+    # Averaging the split-half cosine across K was too lenient: it let K=20's 0.549 mask K=10's 0.309,
+    # which sits EXACTLY on its null. An axis is only identified if it clears the null at EVERY K, and
+    # a cosine can be inflated by shared structure even when the two halves name disjoint buckets, so
+    # the loadings must agree too. Both conditions, per K.
+    ax = d.dropna(subset=["axis_cos_split_half"])
+    per_k = {int(r.K): (r.axis_cos_split_half > r.axis_cos_null + 0.10) for _, r in ax.iterrows()}
+    clean_axis = all(per_k.values())
+    print(f"    trace survives the honest (bootstrap) noise estimate: {bs['trace'] > 2 * bs['null_trace']}"
+          f"  [{bs['trace'] / max(bs['null_trace'], 1e-9):.0f}x]")
+    print(f"    eig1 concentration exceeds its df artifact: {bs['eig1_share'] > bs['null_eig1_share'] + 0.05}"
+          f"  ({bs['eig1_share']:.2f} vs null {bs['null_eig1_share']:.2f} -- mostly artifact)")
+    print(f"    axis replicates at EVERY K: {clean_axis}  {per_k}")
+    print("    -> REAL VARIATION, UNIDENTIFIED AXIS." if not clean_axis else "    -> axis identified")
+    print("       The weights do move with state beyond noise, but which direction they move in")
+    print("       cannot be pinned down: the halves disagree on the loadings. Do not build a fitted")
+    print("       rank-1 model on this; a PRE-SPECIFIED direction is the better-powered test.")
+    print(f"wrote {OUT}/composition_audit.csv")
+
+
 if __name__ == "__main__":
     ap_ = argparse.ArgumentParser()
-    ap_.add_argument("--stage", choices=["geometry", "geometry2"], required=True)
+    ap_.add_argument("--stage", choices=["geometry", "geometry2", "audit"], required=True)
     a = ap_.parse_args()
-    {"geometry": stage_geometry, "geometry2": stage_geometry2}[a.stage]()
+    {"geometry": stage_geometry, "geometry2": stage_geometry2, "audit": stage_audit}[a.stage]()

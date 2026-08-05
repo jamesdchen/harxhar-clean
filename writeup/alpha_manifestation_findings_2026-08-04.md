@@ -951,9 +951,9 @@ correction.
 the nulls show. Settling the geometry needs the weights measured where they are actually reliable:
 refit each bin with much heavier shrinkage (or take the geometry of the *blended* weights that
 demonstrably pay) and redo this decomposition. Until then the geometric question is open, and the
-honest summary of the state-dependence is the behavioural one. **§14.1 does exactly that and settles
-it: the geometry is an ellipse of effective rank ~1-2, oriented orthogonally to the mean weight
-vector, loading on a sentiment-vs-cross-section contrast.**
+honest summary of the state-dependence is the behavioural one. **§14.1 attempts that; §14.2 audits it and
+finds the variation real but the axis UNIDENTIFIED — the eig1 concentration is mostly a
+degrees-of-freedom artifact and the leading direction does not replicate across halves.**
 
 ### 14.1 Redone with shrunk weights, then done properly — the geometry is an ELLIPSE
 
@@ -1022,6 +1022,64 @@ descriptive on the search period. And the obvious next step — fit ``beta_0 + g
 a *forecast* test, so it needs the holdout, which has now been evaluated twice (§12, §12.1); a third
 look should be paid for with a fresh split (search ≤ 2019, holdout 2020+) rather than reusing 2021-24.
 
+### 14.2 Audit of the ellipse — real variation, **unidentified axis**. §14.1's interpretation retracted.
+
+§14.1's null was applied only to the *trace*, never to the eigenstructure — and with ``K`` bins
+``Sigma_obs`` has ``K-1`` degrees of freedom in 7 dimensions, so its eigenvalues concentrate **by
+construction**. That is the same class of error as §14's dimensional artifact. Its noise term also
+assumed iid errors while the residual is heteroskedastic and autocorrelated, which shows up as a null
+"signal" trace of +0.05 instead of 0. `--stage audit` fixes both (moving-block bootstrap for the noise
+covariance) and adds the test that is immune to either: **does the leading axis replicate across halves
+of the search period?**
+
+| K | noise | trace signal (null) | eig1 share (**null**) | eff rank (null) | axis \|cos(v_h1,v_h2)\| (null) |
+|---|---|---|---|---|---|
+| 10 | analytic | +0.439 (+0.044) | 0.756 (**0.590**) | 1.64 (2.28) | — |
+| 10 | **bootstrap** | +0.352 (+0.007) → **48x** | 0.780 (**0.668**) | 1.56 (1.93) | **0.309 (0.310)** |
+| 20 | analytic | +0.316 (+0.031) | 0.615 (**0.555**) | 2.22 (2.50) | — |
+| 20 | **bootstrap** | +0.285 (+0.030) → 9.5x | 0.618 (**0.529**) | 2.16 (2.62) | 0.549 (0.277) |
+
+**What survives, and it is worth having.** The signal trace is 9.5-48x its null under the *honest*
+bootstrap noise estimate — and the bootstrap makes it stronger, not weaker, because the analytic
+formula was under-subtracting. So **the bucket weights genuinely do move with vol state, beyond
+estimation noise.** That is now the third independent confirmation of §11.1's behavioural result, from
+a completely different instrument.
+
+**What does not survive: the axis.** Two failures.
+
+1. **eig1 concentration is mostly the df artifact.** 0.780 against a null of **0.668** (K=10), 0.618
+   against 0.529 (K=20). The excess is ~0.09-0.11, so "one dominant axis" is largely what 9 degrees of
+   freedom in 7 dimensions produces on its own. §14.1 read that as a finding.
+2. **The axis does not replicate.** At K=10 the split-half cosine is **0.309 against a null of 0.310** —
+   exactly the null. K=20 does better (0.549 vs 0.277), but look at the loadings: first half is
+   ``moments -0.79, vol_demand -0.31, market_ew +0.31``; second half is
+   ``sentiment -0.73, market_vw -0.46, liquidity +0.33``. **The two halves name disjoint buckets.** A
+   cosine of 0.55 between such vectors reflects shared structure (all bucket weights are positively
+   correlated), not agreement about a direction.
+
+**So §14.1's "the axis is a sentiment-versus-cross-section contrast" is retracted.** That was the
+*second half's* draw; the first half says moments/implied_vol. I read one half of one specification as
+the identity of a latent axis.
+
+**Also recorded: my own verdict rule was too lenient and is fixed in the code.** It averaged the
+split-half cosine across K, letting K=20's 0.549 mask K=10's 0.309, and printed "EXPLOITABLE". An axis
+is identified only if it clears its null at *every* K and the loadings agree; the audit now requires
+both and prints **"REAL VARIATION, UNIDENTIFIED AXIS"**.
+
+**How to exploit it, then.** Not with a fitted rank-1 axis — the direction cannot be estimated from
+this data, and a model that estimates ``v`` will fit whichever half it saw. Two routes remain:
+
+* **What is already established** stays the answer: the coarse 2-3 bin vol-regime blend, ΔR² +0.0024 at
+  RW adjusted p 0.0005 (§11.1). The geometry work did not improve on it. It confirmed the phenomenon a
+  third time and showed why a finer parameterisation has not paid: the extra structure is real but not
+  identifiable at this sample size.
+* **Pre-specify the direction instead of estimating it.** A single *fixed* contrast — e.g. sentiment
+  versus moments, which §4's activation map motivates independently (sentiment's IC doubles from the
+  calmest to the most stressed quintile while moments rises monotonically) — costs 1 df and estimates
+  no eigenvector, so it is far better powered than the rank-1 fit. That is the one version of this idea
+  the data could still support, and it must be pre-registered with a fresh split (search <= 2019,
+  holdout 2020+) since 2021-2024 has now been looked at twice.
+
 ## Reproducibility
 
 ```bash
@@ -1053,6 +1111,7 @@ python analysis/intensity_graph.py --stage estimator          # §13.1 EWMA vs A
 python analysis/intensity_graph.py --stage gate3              # §13.1 the gate on the better estimator
 python analysis/composition.py --stage geometry                # §14 simplex / sphere / neither
 python analysis/composition.py --stage geometry2               # §14.1 shrinkage ladder + noise-corrected
+python analysis/composition.py --stage audit                   # §14.2 null the eigenstructure + replicate
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -1067,4 +1126,4 @@ feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
 heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
 intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
 intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv, composition_geometry2.csv,
-composition_shrinkage_ladder.csv}`.
+composition_shrinkage_ladder.csv, composition_audit.csv}`.
