@@ -2188,6 +2188,20 @@ runs on, and on the data-defect firewall — not on forecast skill. Notably the 
 refits only daily and still ties the two-stage whose backbone refits per bar, consistent with
 §21.1's finding that freshness matters most for the exog block.
 
+
+**Independent replication + the theorem (merged from the concurrent session).** The same joint-vs-
+sequential question was run simultaneously in a sibling session on the original §18 fixed panel
+(516 exog, `minimal_model.py --stage joint`, 643 columns, HAR block per-bar-refit reference):
+deliverable +0.60634 / QLIKE 0.12651 vs joint +0.60649 / 0.12670 — sqrt DM **+0.16**, QLIKE −1.06.
+Same verdict, two implementations, two panel builds. And the §19.5 asymmetry — why sequential cost
+0.0058 *inside* stage B but nothing at the top level — has a theorem: **Frisch–Waugh–Lovell**.
+Residual-on-second-block reproduces the joint fit when the first stage is OLS, and stage A's α = 1
+shrinks by ~0.01%, i.e. it *is* effectively OLS, so the top-level split is FWL-protected. The
+§19.5 pilot's first stage was shrunk at α = 3000, which breaks FWL and leaves mis-allocated shared
+variance behind. One sentence: **sequential fitting is free after an unshrunk stage and expensive
+after a shrunk one.** The deliverable sits, by inheritance rather than design, on the right side
+of that line.
+
 ### 21.3 Saturation: REJECTED by its own gate — the tails are net-informative
 
 The §19 "one verb the two-ridge lacks," tested as insurance: a causal tanh bound on the product
@@ -2224,7 +2238,6 @@ refresh constantly** — with saturation now measured as actively harmful where 
 fresh. The study's meta-pattern held one more time: both directional priors registered in this
 section's docstring (diminishing cadence returns; joint slightly worse) were wrong in the details,
 and the gates did the deciding.
-
 ## Reproducibility
 
 ```bash
@@ -2273,6 +2286,7 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage concave # zero-fre
 ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage build   # §20: relational cross-section features
 ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage score   # §20: gate test
 ALPHA_PANEL_CACHE=$C python analysis/noise_metric.py --stage kernel   # §19.5: item-4 pilot (gate fails)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage joint    # §21: joint vs sequential (tie; FWL)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1

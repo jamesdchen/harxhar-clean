@@ -812,10 +812,105 @@ def stage_concave() -> None:
     print(f"wrote {OUT}/concave_response_test.csv")
 
 
+# ---------------------------------------------------------------------------
+# joint — the fully-joint blockwise ridge (the deliverable's own sequencing test)
+# ---------------------------------------------------------------------------
+
+
+def stage_joint() -> None:
+    """One blockwise ridge over all three blocks, vs the sequential deliverable.
+
+    The deliverable is itself two-stage at the top level — HAR fit alone, exog on its residual —
+    which is the same sequential-fitting pattern the §19.5 pilot measured costing 0.0058 inside
+    stage B. This runs the fully-joint model: 27 HAR/calendar/regime columns at alpha = 1, 516 exog
+    at 3,000, 100 frozen products at 30,000, one rank-1 rolling solver via column scaling
+    (har x sqrt(3000/1), products x sqrt(3000/30000)), daily refit, predicting y directly.
+
+    Confound controlled: stage A refits per bar, the joint fit daily, so the HAR block's
+    daily-refit cost is measured alone alongside. Pre-registered: joint vs deliverable, sqrt DM > 2
+    to claim; prediction positive but small — the HAR/exog correlation is weaker than the
+    dense/product correlation that produced the pilot's 0.0058.
+    """
+    _require_fixed_cache()
+    os.makedirs(OUT, exist_ok=True)
+    from analysis.wf import walk_forward
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    p = load_panel()
+    z = np.load(_p("har_resid.npz"))
+    pred_har = z["pred"]
+    sig = dict(np.load(_p(CACHE)))
+    frozen = sig["frozen"]
+
+    har_cols = np.concatenate([p.cols("har"), p.cols("calendar"), p.cols("regime")])
+    lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
+    bc, _ = base_columns(p)
+    XH = np.ascontiguousarray(p.X[:, har_cols], dtype=np.float64)
+    XL = np.ascontiguousarray(p.X[:, lin_cols], dtype=np.float64)
+    XB = np.ascontiguousarray(p.X[:, bc], dtype=np.float64)
+    ii, jj = _upper(XB.shape[1])
+    P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
+    B = 250 * PERIODS_PER_DAY
+    sd = pd.DataFrame(P).rolling(B, min_periods=1000).std().shift(1)
+    med = np.nanmedian(sd.to_numpy(), axis=1, keepdims=True)
+    sdv = np.maximum(sd.to_numpy(), 0.1 * np.where(np.isfinite(med), med, 1.0))
+    P = P / pd.DataFrame(sdv).bfill().to_numpy()
+
+    ALPHA = 3000.0
+    X = np.hstack([
+        XH * np.sqrt(ALPHA / 1.0),          # har block: effective alpha 1
+        XL,                                  # linear exog: alpha 3000
+        P * np.sqrt(ALPHA / 3e4),            # products: effective alpha 3e4
+    ])
+    print(f"joint blockwise ridge: {X.shape[1]} cols "
+          f"({len(har_cols)} har@1 + {XL.shape[1]}@3e3 + {P.shape[1]}@3e4), daily refit", flush=True)
+    yhat_joint = walk_forward(X, p.y, TW, alpha=ALPHA, refit_every=PERIODS_PER_DAY)
+
+    # confound control: the HAR block alone at daily refit (stage A uses per-bar)
+    pred_har_daily = walk_forward(
+        np.ascontiguousarray(XH), p.y, TW, alpha=1.0, refit_every=PERIODS_PER_DAY
+    )
+
+    # score on the common OOS block (rows 2TW: of the panel), same as every §18 arm
+    y_adj = p.y[2 * TW :]
+    baseline = p.baseline[2 * TW :]
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+    late = (ts >= HOLDOUT).to_numpy()
+    yc = y_adj - y_adj.mean()
+    arms = {
+        "deliverable (sequential)": pred_har[TW:] + sig["s_aug_daily"],
+        "joint blockwise": yhat_joint[TW:],
+    }
+    print(f"\n  HAR alone: per-bar refit R2 "
+          f"{r2_oos(yc, pred_har[TW:] - y_adj.mean()):+.5f}   daily refit "
+          f"{r2_oos(yc, pred_har_daily[TW:] - y_adj.mean()):+.5f}   "
+          f"(the joint arm carries the daily-refit HAR handicap)")
+    qs = {}
+    for name, f in arms.items():
+        qs[name] = _qlike_series(f, y_adj, baseline)
+        print(f"  {name:26s} R2(vs mean) {r2_oos(yc, f - y_adj.mean()):+.5f}   "
+              f"QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
+    a, b = arms["joint blockwise"], arms["deliverable (sequential)"]
+    t_sq = dm_test(y_adj, a, b)
+    t_sq_l = dm_test(y_adj[late], a[late], b[late])
+    d = qs["deliverable (sequential)"] - qs["joint blockwise"]
+    print(f"\n  joint vs deliverable: sqrt DM {t_sq:+.2f} (2020+ {t_sq_l:+.2f})   "
+          f"QLIKE DM {_hac_mean_t(d):+.2f} (2020+ {_hac_mean_t(d[late]):+.2f})")
+    print(f"  PRE-REGISTERED GATE (sqrt DM > 2): {'PASS' if t_sq > 2 else 'fail'}")
+    pd.DataFrame([{
+        "r2_joint": r2_oos(yc, a - y_adj.mean()), "r2_deliverable": r2_oos(yc, b - y_adj.mean()),
+        "qlike_joint": float(np.nanmean(qs["joint blockwise"])),
+        "qlike_deliverable": float(np.nanmean(qs["deliverable (sequential)"])),
+        "dm_t_sqrt": t_sq, "dm_t_sqrt_2020plus": t_sq_l,
+        "dm_t_qlike": _hac_mean_t(d), "dm_t_qlike_2020plus": _hac_mean_t(d[late]),
+    }]).to_csv(f"{OUT}/joint_vs_sequential.csv", index=False)
+    print(f"wrote {OUT}/joint_vs_sequential.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory", "concave"],
+        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory", "concave", "joint"],
         required=True
     )
     a = ap.parse_args()
@@ -827,4 +922,5 @@ if __name__ == "__main__":
         "driver": stage_driver,
         "memory": stage_memory,
         "concave": stage_concave,
+        "joint": stage_joint,
     }[a.stage]()
