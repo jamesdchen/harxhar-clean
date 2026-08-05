@@ -164,8 +164,166 @@ def stage_geometry() -> None:
     print(f"wrote {OUT}/composition_geometry.csv + composition_weights_K*.csv")
 
 
+def _bin_fit(S: np.ndarray, y: np.ndarray, bins: np.ndarray, K: int, lam: float):
+    """Per-bin ridge weights AND their analytic sampling covariance.
+
+    For ridge, ``A = (Z'Z + lam I)^-1`` and ``Cov(beta_hat) = sigma^2 A (Z'Z) A`` (the sandwich).
+    Having this in closed form is what makes the geometry question answerable: the observed
+    across-bin scatter is ``Sigma_signal + E[Cov(beta_hat)]``, so the noise term can be *subtracted*
+    rather than merely shrunk.
+    """
+    p = S.shape[1]
+    B = np.full((K, p), np.nan)
+    C = np.zeros((p, p))
+    used = 0
+    for k in range(K):
+        m = bins == k
+        if m.sum() < 500:
+            continue
+        Z = S[m] - S[m].mean(0)
+        yc = y[m] - y[m].mean()
+        G = Z.T @ Z
+        A = np.linalg.inv(G + lam * np.eye(p))
+        b = A @ Z.T @ yc
+        B[k] = b
+        s2 = float(((yc - Z @ b) ** 2).sum() / max(m.sum() - p, 1))
+        C += s2 * A @ G @ A
+        used += 1
+    return B, C / max(used, 1)
+
+
+def _eig_report(Sig: np.ndarray, mean_dir: np.ndarray, tag: str) -> dict:
+    """Eigen-geometry of a (possibly noise-corrected) across-bin covariance."""
+    ev, V = np.linalg.eigh(Sig)
+    order = np.argsort(-ev)
+    ev, V = ev[order], V[:, order]
+    pos = ev[ev > 0]
+    tot = float(pos.sum())
+    radial = float(mean_dir @ Sig @ mean_dir)  # variance along the mean direction
+    return {
+        "tag": tag,
+        "trace": float(np.trace(Sig)),
+        "n_positive_eig": int((ev > 0).sum()),
+        "n_negative_eig": int((ev < -1e-12).sum()),
+        "eig1_share": float(pos[0] / tot) if tot > 0 and pos.size else np.nan,
+        "eig2_share": float(pos[1] / tot) if tot > 0 and pos.size > 1 else np.nan,
+        "eff_rank": float(pos.sum() ** 2 / (pos**2).sum()) if pos.size else np.nan,
+        "radial_share": radial / float(np.trace(Sig)) if np.trace(Sig) > 0 else np.nan,
+        "top_evec": V[:, 0],
+    }
+
+
+def stage_geometry2() -> None:  # noqa: C901
+    """Redo §14's decomposition on shrunk weights, then do it properly by subtracting the noise.
+
+    Two things, in order.
+
+    **1. Shrinkage does not answer the question.** §14's radial/tangential shares are computed on
+    *deviations from the mean* weight vector. Shrinking each bin toward the pooled vector (the 50/50
+    blend that §11.1 showed actually pays) multiplies every deviation by the same factor, so the
+    shares are **exactly invariant** to it, and a heavier ridge only rescales them slightly. Shown
+    explicitly across a penalty ladder rather than asserted.
+
+    **2. The right fix is to subtract the estimation-error covariance, which is known.** The observed
+    across-bin scatter is ``Sigma_obs = Sigma_signal + E[Cov(beta_hat)]``, and the second term is
+    available in closed form from the ridge sandwich (:func:`_bin_fit`). So form
+    ``Sigma_signal = Sigma_obs - mean(Cov(beta_hat))`` and read its eigen-geometry:
+
+    * **not positive semi-definite / trace <= 0** -> the across-bin variation is *entirely* estimation
+      noise. No geometry, nothing to exploit.
+    * **one dominant eigenvalue** -> a single axis of state-dependent variation: an *ellipse*, and the
+      leading eigenvector says which bucket combination moves. This is the exploitable case, and it is
+      cheap: one extra parameter, not K x 7.
+    * **near-isotropic (effective rank ~ 7)** -> real variation with no low-dimensional structure, so
+      nothing beyond per-bin fitting, which §11.1 already showed is too noisy to pay unshrunk.
+
+    Validation: under a circular-shift null the corrected covariance must collapse (trace ~ 0 or
+    indefinite). If it does not, the noise correction is wrong and the rest is void. More bins are used
+    than §14 (K up to 20) because ``Sigma_obs`` needs degrees of freedom, and the noise term is now
+    subtracted rather than feared.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = _panel()
+    e = np.load(os.path.join(CACHE_DIR, "har_resid.npz"))["e"][TW:]
+    sig = dict(np.load(os.path.join(CACHE_DIR, "bucket_signals.npz")))
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    S = np.column_stack([sig[b] for b in BUCKETS])
+    n = len(e)
+    search = (ts < SPLIT).to_numpy()
+    Ss, es = S[search], e[search]
+
+    print("  1. SHRINKAGE LADDER — shares are invariant to shrinking toward the pooled vector\n")
+    rows = []
+    for lam in (1.0, 1e2, 1e4, 1e6):
+        bins = _vol_regime(p, ts, 5)[search]
+        B, _ = _bin_fit(Ss, es, bins, 5, lam)
+        g = _geometry(B)
+        # the 50/50 blend that §11.1 showed pays
+        Bb = 0.5 * B + 0.5 * np.nanmean(B, axis=0)
+        gb = _geometry(Bb)
+        print(f"    ridge {lam:8.0e}: raw tangential {g['tangential_share']:.3f} | "
+              f"50/50-blended tangential {gb['tangential_share']:.3f} | "
+              f"||beta||_2 CV raw {g['l2_cv']:.3f} blended {gb['l2_cv']:.3f}")
+        rows.append({"lam": lam, "tangential_raw": g["tangential_share"],
+                     "tangential_blend": gb["tangential_share"], "l2_cv_raw": g["l2_cv"],
+                     "l2_cv_blend": gb["l2_cv"]})
+    pd.DataFrame(rows).to_csv(f"{OUT}/composition_shrinkage_ladder.csv", index=False)
+
+    print("\n  2. NOISE-CORRECTED COVARIANCE — Sigma_signal = Sigma_obs - E[Cov(beta_hat)]\n")
+    out = []
+    for K in (5, 10, 20):
+        bins_full = _vol_regime(p, ts, K)
+        bins = bins_full[search]
+        B, Cerr = _bin_fit(Ss, es, bins, K, RIDGE)
+        ok = np.isfinite(B).all(1)
+        Bk = B[ok]
+        Bbar = Bk.mean(0)
+        Sobs = np.cov(Bk.T, ddof=1)
+        Ssig = Sobs - Cerr
+        md = Bbar / np.linalg.norm(Bbar)
+        go, gs = _eig_report(Sobs, md, "observed"), _eig_report(Ssig, md, "signal")
+        # null validation
+        tr_null = []
+        for kk in range(N_NULL):
+            sh = (kk + 1) * (n // (N_NULL + 1))
+            en = np.roll(e, sh)[search]
+            Bn, Cn = _bin_fit(Ss, en, bins, K, RIDGE)
+            on = np.isfinite(Bn).all(1)
+            tr_null.append(float(np.trace(np.cov(Bn[on].T, ddof=1) - Cn)))
+        print(f"    --- K={K} bins ({int(ok.sum())} usable) ---")
+        print(f"      trace: observed {go['trace']:.5f}  noise {np.trace(Cerr):.5f}  "
+              f"SIGNAL {gs['trace']:.5f}  (null signal trace {np.mean(tr_null):+.5f})")
+        print(f"      signal eigenvalues: {gs['n_positive_eig']} positive / "
+              f"{gs['n_negative_eig']} negative; eig1 share {gs['eig1_share']:.2f}, "
+              f"eig2 {gs['eig2_share']:.2f}, effective rank {gs['eff_rank']:.2f} of 7")
+        print(f"      radial share of signal {gs['radial_share']:.2f} (isotropic baseline {1/7:.2f})")
+        if gs["trace"] > 0 and np.isfinite(gs["eig1_share"]):
+            v = gs["top_evec"]
+            top = np.argsort(-np.abs(v))
+            print("      leading signal direction: " + ", ".join(
+                f"{BUCKETS[i]} {v[i]:+.2f}" for i in top[:4]))
+        rec = {k: val for k, val in gs.items() if k != "top_evec"}
+        rec.update({"K": K, "trace_observed": go["trace"], "trace_noise": float(np.trace(Cerr)),
+                    "null_signal_trace": float(np.mean(tr_null))})
+        out.append(rec)
+        print()
+    d = pd.DataFrame(out)
+    d.to_csv(f"{OUT}/composition_geometry2.csv", index=False)
+    print("  VERDICT")
+    best = d.loc[d.K == 10].iloc[0]
+    if best["trace"] <= 0 or best["trace"] < 2 * abs(best["null_signal_trace"]):
+        print("    signal covariance does not survive the noise subtraction -> NO exploitable geometry")
+    elif best["eig1_share"] > 0.6:
+        print(f"    one dominant axis (eig1 {best['eig1_share']:.2f}) -> an ELLIPSE: state moves the")
+        print("    weights along essentially one direction, worth 1 extra parameter")
+    else:
+        print(f"    effective rank {best['eff_rank']:.1f} of 7 -> real but near-isotropic variation;")
+        print("    no low-dimensional structure to exploit beyond per-bin fitting")
+    print(f"wrote {OUT}/composition_geometry2.csv + composition_shrinkage_ladder.csv")
+
+
 if __name__ == "__main__":
     ap_ = argparse.ArgumentParser()
-    ap_.add_argument("--stage", choices=["geometry"], required=True)
+    ap_.add_argument("--stage", choices=["geometry", "geometry2"], required=True)
     a = ap_.parse_args()
-    {"geometry": stage_geometry}[a.stage]()
+    {"geometry": stage_geometry, "geometry2": stage_geometry2}[a.stage]()

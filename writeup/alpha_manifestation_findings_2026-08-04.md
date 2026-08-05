@@ -951,7 +951,76 @@ correction.
 the nulls show. Settling the geometry needs the weights measured where they are actually reliable:
 refit each bin with much heavier shrinkage (or take the geometry of the *blended* weights that
 demonstrably pay) and redo this decomposition. Until then the geometric question is open, and the
-honest summary of the state-dependence is the behavioural one.
+honest summary of the state-dependence is the behavioural one. **§14.1 does exactly that and settles
+it: the geometry is an ellipse of effective rank ~1-2, oriented orthogonally to the mean weight
+vector, loading on a sentiment-vs-cross-section contrast.**
+
+### 14.1 Redone with shrunk weights, then done properly — the geometry is an ELLIPSE
+
+Two parts: shrinkage does not answer the question (and is *unstable*, which is worse than I said), and
+subtracting the estimation-error covariance analytically does answer it.
+
+**Shrinkage cannot settle it, and the shares are penalty-dependent.** §14's radial/tangential shares
+are computed on deviations from the mean weight vector, so blending each bin 50/50 toward the pooled
+vector — the thing §11.1 showed actually pays — scales every deviation by the same factor and leaves
+the shares nearly untouched (0.900 → 0.850 at ridge 1; I said "exactly invariant" earlier, which is
+slightly too strong since the mean *direction* is recomputed). Far worse, a heavier ridge **reverses
+the story**:
+
+| ridge penalty | tangential share (raw) | tangential (50/50 blend) | \|\|β\|\|₂ CV |
+|---|---|---|---|
+| 1 | 0.900 | 0.850 | 0.324 |
+| 1e2 | 0.253 | 0.237 | 0.356 |
+| 1e4 | **0.095** | 0.086 | 0.607 |
+| 1e6 | 0.093 | 0.084 | 0.612 |
+
+Under heavy shrinkage the variation becomes almost entirely *radial*, because ridge shrinks toward
+**zero** and each bin shrinks by a different amount depending on its own signal strength. So the
+radial/tangential split of *fitted* weights is not a stable descriptor of anything — it swings from
+0.90 to 0.09 on a knob. That kills the §14 approach outright rather than merely weakening it.
+
+**The right instrument: subtract the noise, which is known in closed form.** The observed across-bin
+scatter is ``Sigma_obs = Sigma_signal + E[Cov(beta_hat)]``, and for ridge
+``Cov(beta_hat) = sigma^2 A (Z'Z) A`` with ``A = (Z'Z + lam I)^-1``. So form
+``Sigma_signal = Sigma_obs - mean(Cov(beta_hat))`` and read its eigen-geometry. Validation: under a
+circular-shift null the corrected trace must collapse.
+
+| K bins | trace observed | trace noise | **trace signal** | null signal trace | eig1 share | eig2 | effective rank | radial share (isotropic 0.14) |
+|---|---|---|---|---|---|---|---|---|
+| 5 | 0.4635 | 0.0384 | **0.4251** | +0.0502 | 0.80 | 0.17 | **1.50** of 7 | 0.18 |
+| 10 | 0.4961 | 0.0573 | **0.4388** | +0.0438 | 0.76 | 0.18 | **1.64** of 7 | 0.14 |
+| 20 | 0.3896 | 0.0736 | **0.3161** | +0.0314 | 0.61 | 0.25 | **2.22** of 7 | 0.17 |
+
+**Verdict: an ellipse, effective rank ~1.5–2.2 of 7.** Three things follow.
+
+1. **The variation is real.** Signal trace is **8–10x** its circular-shift null at every K, so it
+   survives the noise subtraction comfortably. That is what §14 could not establish and what the
+   analytic correction delivers.
+2. **It is one axis, not free rotation and not an isotropic blob.** The leading eigenvalue carries
+   61–80% of the signal variance, effective rank 1.5–2.2. So the state does not move the weight vector
+   in 7 directions — it moves it along essentially **one**.
+3. **That axis is orthogonal to the mean direction.** Radial share 0.14–0.18 against an isotropic
+   baseline of 1/7 = 0.14, i.e. *no excess* magnitude variation. This partially rehabilitates §13.1:
+   the movement genuinely is direction-changing rather than rescaling — but as a **single specific
+   axis**, not the free rotation §13.1's wording implied.
+
+**What the axis is.** The leading eigenvector loads dominantly on **`sentiment`** (−0.74 to −0.84
+across K), then `market_vw` (−0.33/−0.36), `vol_demand`, and `market_ew` with the opposite sign
+(+0.23/+0.26). Eigenvector signs are arbitrary, so read it as a **sentiment-versus-cross-section
+contrast** that moves monotonically with vol state — which is the same object §4 saw as sentiment's
+IC doubling from the calmest to the most stressed quintile.
+
+**Why this matters practically.** A rank-1 axis is worth **one parameter**: ``beta(s) = beta_0 + g(s) v``
+with ``v`` the leading eigenvector and ``g`` a scalar gate. That is 1 extra df versus 7K for per-bin
+fitting — the parameter economy that §11.1's noise problem demanded, arrived at from the geometry
+rather than guessed.
+
+**Caveats.** ``Sigma_obs`` has only K−1 degrees of freedom, so the subtraction leaves the matrix
+indefinite (3 negative eigenvalues at K=5 and 10) and **only the leading one or two eigenvalues are
+trustworthy** — the effective-rank figure should be read as "1 to 2", not as 1.64. Everything here is
+descriptive on the search period. And the obvious next step — fit ``beta_0 + g(s) v`` and score it — is
+a *forecast* test, so it needs the holdout, which has now been evaluated twice (§12, §12.1); a third
+look should be paid for with a fresh split (search ≤ 2019, holdout 2020+) rather than reusing 2021-24.
 
 ## Reproducibility
 
@@ -983,6 +1052,7 @@ python analysis/intensity_graph.py --stage gate2              # §13 monthly res
 python analysis/intensity_graph.py --stage estimator          # §13.1 EWMA vs AR(1) Kalman intensity
 python analysis/intensity_graph.py --stage gate3              # §13.1 the gate on the better estimator
 python analysis/composition.py --stage geometry                # §14 simplex / sphere / neither
+python analysis/composition.py --stage geometry2               # §14.1 shrinkage ladder + noise-corrected
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -996,4 +1066,5 @@ multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backte
 feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
 heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
 intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
-intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv}`.
+intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv, composition_geometry2.csv,
+composition_shrinkage_ladder.csv}`.
