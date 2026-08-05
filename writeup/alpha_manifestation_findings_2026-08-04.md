@@ -793,6 +793,61 @@ direction, the same conclusion.
 chosen on an internal 2017-2020 validation split so the holdout was touched once more, not
 repeatedly). Two looks is not one look; discount accordingly.
 
+## 13. Mining the intensity modulation with graph structure — stopped at its own gate
+
+The second-order question, and the systematic version of the only thing that worked: **what predicts
+*when* the dense alpha is strong?** Vol-state conditioning (§5, §11.1) is itself an intensity
+modulator found by the crudest possible search, so the class is non-empty and unexplored — nobody had
+looked at features, let alone products of features, as modulators. `analysis/intensity_graph.py`.
+
+**Three graph roles, which §12's failure showed must not be conflated.** *Where to look* =
+interaction adjacency (the hypothesis space). *How to share strength* = **similarity** adjacency,
+per §12.1's measurement. *What to analyse* = the time-varying alpha field **as a graph signal**: the
+alpha is not a graph but a function ``w_ij(t)`` on one, and with 8,911 edges against ~168 effective
+monthly observations only a low-order **graph-Fourier projection** could have power.
+
+**Pre-registered before the first run** (in the module docstring, so it cannot be revised into a
+result): ~15-20% chance anything survives; magnitude if so, +0.001 to +0.003 R². Gate = split-half
+stability of the modulator-IC map must exceed its circular-shift null. **Positive control** =
+``har_ma_25``, the confirmed modulator (RW adjusted p 0.0005), must rank in the top quartile, because
+a measurement that cannot find the known-good modulator cannot be trusted to find new ones.
+
+**The control did its job and voided the first attempt.** At bar resolution the modulator ICs showed
+a *7x excess over null* and every one of the top eight modulators was an ``_ma_625`` slow feature —
+while ``har_ma_25`` ranked **98 of 133**. Diagnosis: the intensity series has a one-day
+autocorrelation of **0.988**, so correlating it with other near-non-stationary series at bar
+resolution measures *which features are also slow*, a textbook spurious regression. The 7x was an
+artifact. (A secondary bug made the split-half nulls NaN, so that verdict was vacuous too.)
+
+**Corrected to the honest resolution** — monthly blocks, 166 search observations, noise floor
+1/sqrt(166) = 0.078; plus intensity *changes* as a second target, which a shared trend cannot inflate:
+
+| target | excess over null (linear / products) | control rank | split-half stability (vs null) | gate |
+|---|---|---|---|---|
+| intensity **levels** | 1.14x / 1.04x | 36/133 (fail, threshold 33) | linear **−0.095** vs +0.177; products +0.013 vs −0.002 | **STOP** |
+| intensity **changes** | 1.36x / 1.40x | 132/133 (fail) | linear +0.136 vs +0.010; products +0.065 vs +0.021 | **STOP** |
+
+**So we stop, as pre-registered.** Three honest readings of that table. The 7x collapses to 1.04-1.40x
+once resolution is honest. Split-half stability for levels is *below* its own null — the modulator map
+does not replicate. And the control's marginal failure on levels (rank 36 of 133 = 27th percentile
+against a 25th-percentile threshold) says the measurement is much improved over bar-level but still
+imperfect; the threshold was **not** moved post hoc to rescue it. The changes-target control failure
+(rank 132) is expected and is a flaw in the control rather than the measurement — vol *level* should
+not predict intensity *changes* — which means the changes row has no valid control at all and its
+modest +0.136 stability cannot be leaned on.
+
+**One suggestive detail, recorded but not claimed.** The strongest modulators under both targets are
+the **liquidity family at slow windows** — ``spread_vwstock/ewstock_ma_625``, ``sumvolume_ma_625``,
+``numobs_ma_625``. That coheres with §4 (liquidity leads the calmest vol quintile), and the modulator
+graph's hubs are the same family (``sumvolume_ma_625`` and ``numobs_ma_625``, degree 25 each). But it
+does not replicate split-half, so it is a hypothesis for a future dataset, not a finding.
+
+**What would license revisiting.** The binding constraint is the intensity estimator's signal share
+(~67% at monthly aggregation, §3) against ~166 observations — not the graph machinery, which was
+never reached. A materially better intensity estimator, a longer sample, or a cross-sectional panel
+(many assets, so intensity is estimated across as well as through time) would each change the power
+calculation. Absent one of those, this question is not answerable with this data.
+
 ## Reproducibility
 
 ```bash
@@ -818,6 +873,8 @@ python analysis/alpha_manifestation.py --stage diffusion      # is the coefficie
 python analysis/heat_graph.py --stage spectrum                # §12 interaction-graph structure
 python analysis/heat_graph.py --stage fit                     # §12 pre-registered Laplacian + holdout
 python analysis/heat_graph.py --stage fit2                    # §12.1 corrected: real graph + feature diffusion
+python analysis/intensity_graph.py --stage gate               # §13 bar-level (voided by its control)
+python analysis/intensity_graph.py --stage gate2              # §13 monthly resolution + changes target
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -829,4 +886,5 @@ nl_group_penalty.csv, voldemand_stage_tails.csv, voldemand_variants.csv,
 voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv,
 multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backtest.csv,
 feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
-heat_graph_fit.csv, heat_graph_fit2.csv}`.
+heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
+intensity_gate2_levels.csv, intensity_gate2_changes.csv}`.
