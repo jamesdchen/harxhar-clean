@@ -132,19 +132,24 @@ def stage_walk(design: str, refit: int) -> None:
     key = f"{design}_r{refit}"
     print(f"walk {key}: {X.shape[1]} cols, refit_every={refit}, n={len(X)}", flush=True)
     s = walk_forward(X, y_t, TW, alpha=ALPHA_LIN, refit_every=refit)
-    sig = dict(np.load(_p(SIG))) if os.path.exists(_p(SIG)) else {}
-    sig[key] = s
-    np.savez_compressed(_p(SIG), **sig)
+    # one file per arm: walks run as parallel processes and must not clobber a shared npz
+    np.savez_compressed(_p(f"refit_cadence_{key}.npz"), s=s)
     pred_har = np.load(_p("har_resid.npz"))["pred"][TW:]
     resid_sig = s - pred_har if design == "joint" else s
-    print(f"  {key}: resid R2 {r2_oos(e_full[TW:], resid_sig):+.5f}   -> {_p(SIG)}", flush=True)
+    print(f"  {key}: resid R2 {r2_oos(e_full[TW:], resid_sig):+.5f}   "
+          f"-> refit_cadence_{key}.npz", flush=True)
 
 
 def _load_arms() -> tuple[dict[str, np.ndarray], np.ndarray, np.ndarray]:
     """All cadence signals (cached refit-48 arms included), HAR pred, sqrt residual."""
+    import glob
+
     z = np.load(_p("har_resid.npz"))
     mm = dict(np.load(_p(CACHE)))
-    sig = dict(np.load(_p(SIG))) if os.path.exists(_p(SIG)) else {}
+    sig = {
+        os.path.basename(f)[len("refit_cadence_"):-len(".npz")]: np.load(f)["s"]
+        for f in glob.glob(_p("refit_cadence_*.npz"))
+    }
     sig["aug_r48"] = mm["s_aug_daily"]  # §18.1's arm, same solver + design
     sig["dense_r48"] = dict(np.load(_p("bucket_signals.npz")))["all"]
     return sig, z["pred"][TW:], z["e"][TW:]
