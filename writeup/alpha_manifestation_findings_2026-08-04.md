@@ -2238,6 +2238,38 @@ refresh constantly** — with saturation now measured as actively harmful where 
 fresh. The study's meta-pattern held one more time: both directional priors registered in this
 section's docstring (diminishing cadence returns; joint slightly worse) were wrong in the details,
 and the gates did the deciding.
+## 22. The composed final model: one stage, everything, per bar — best numbers of the study
+
+User-directed composition (`minimal_model.py --stage final`): ONE blockwise ridge, 679 columns in a
+single rank-1 solver — 27-column backbone at effective α = 1, 516 exog at 3e3, the 36 §20
+cross-section ratios at 3e3, the 100 frozen products at 3e4, all by column scaling — predicting y
+directly, 250-day window, run at daily and per-bar cadence on the §18 fixed panel.
+
+| arm | R² vs mean | QLIKE | vs deliverable (sqrt / QLIKE DM) |
+|---|---|---|---|
+| deliverable (2-stage, daily, no xsec) | +0.60634 | 0.12651 | — |
+| one-stage daily (+ xsec) | +0.60696 | 0.12654 | small / flat |
+| **one-stage per bar** | **+0.61176** | **0.12526** | **+7.37 / +5.64** |
+
+**QLIKE 0.12526 vs HAR's 0.13275 (−5.6%) — the best model of the study on both scoreboards**, and
+each margin decomposes exactly as the earlier sections predicted: the one-stage-vs-two-stage and
+xsec increments are small (§21's tie, §20's dated edge — one-stage daily ≈ deliverable), and
+essentially the entire improvement is **refit cadence**, replicating §21.1's sibling-panel finding
+on this panel (per-bar vs daily: sqrt +5.48, QLIKE +5.17). The 2020+ caveat carries over too: the
+sqrt gain holds late (+4.48) while the QLIKE cadence gain fades late (+1.38, matching the sibling's
++1.02 at every-bar), so hourly remains the robust cadence and per-bar the in-sample-best.
+
+`prediction_health` on the residual-space signal: 5.0× for both one-stage arms — clean, and better
+than the two-stage deliverable's 4.7× equivalent. (The stage's own printed "health FAIL" on all
+three arms including the §18-passing deliverable was the §18.4 harness false alarm re-committed —
+demeaned *level* forecasts fed to a check calibrated for residual signals; the correct object
+passes. Recorded because making the same mistake twice, with the correction already documented, is
+worth a line of shame.)
+
+The final spec, one line: **y ~ ridge₍₂₅₀d, refit-per-bar₎ [backbone@1 | exog+xsec@3e3 |
+products@3e4]** — collect everything, refresh constantly, grade the shrinkage by block. Nothing
+else survived.
+
 ## Reproducibility
 
 ```bash
@@ -2287,6 +2319,9 @@ ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage build   # §20: re
 ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage score   # §20: gate test
 ALPHA_PANEL_CACHE=$C python analysis/noise_metric.py --stage kernel   # §19.5: item-4 pilot (gate fails)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage joint    # §21: joint vs sequential (tie; FWL)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage final    # §22: one stage, everything, per bar
+python analysis/pc_quadratics.py           # frame test: PC-quadratics, soft thresholds
+python analysis/pc_quadratics.py --map     # where the signal lives in the factor grid
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
