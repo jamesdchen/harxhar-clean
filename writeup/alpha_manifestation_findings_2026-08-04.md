@@ -1080,6 +1080,63 @@ this data, and a model that estimates ``v`` will fit whichever half it saw. Two 
   the data could still support, and it must be pre-registered with a fresh split (search <= 2019,
   holdout 2020+) since 2021-2024 has now been looked at twice.
 
+### 14.3 The axis estimated at BAR resolution — and a correction to §14.2's diagnosis
+
+§14.2's summary blamed the failure on "167 monthly observations". **That was wrong, and the error is
+worth stating precisely** because it conflated two different objects:
+
+* The **intensity** target (§13) really does have ~167 effective observations. It is a ~1-month EWMA
+  with one-day autocorrelation 0.988, so its honest noise floor is 1/sqrt(167) = **0.077**, not
+  1/sqrt(218,934) = 0.002 — a **36x** difference, and exactly why the bar-level 7x "excess" evaporated
+  once resolution was honest. Slicing a smooth series finer manufactures no information.
+* The **composition/axis** question has nothing to do with monthly anything. Each bin's weights were fit
+  on ~17,657 bars (K=10 over 176,574 search rows). The binding constraint was **K**, because the
+  across-bin covariance gets only ``K-1`` degrees of freedom in 7 dimensions. Binning was inherited
+  from §5's granularity ladder and never re-examined.
+
+So drop the bins entirely. Write the weights as a smooth function of a continuous causal state ``z``
+and take the first-order term — ``e ~ sum_k beta_k s_k + sum_k gamma_k (s_k z)`` — where ``gamma`` **is**
+the axis, estimated from all 176,574 bars with 7 parameters rather than read off an eigendecomposition
+of 10 noisy bin estimates. HAC (Newey-West, 10 trading days) throughout.
+
+| bucket | β | **γ** | HAC-t(γ) |
+|---|---|---|---|
+| moments | +0.749 | +0.043 | +0.82 |
+| liquidity | +0.217 | −0.104 | −1.58 |
+| implied_vol | +0.015 | −0.072 | −0.71 |
+| market_vw | +0.193 | +0.233 | +1.56 |
+| market_ew | −0.018 | −0.174 | −1.26 |
+| vol_demand | +0.014 | +0.153 | +0.88 |
+| **sentiment** | +0.162 | **+0.514** | **+2.97** |
+
+**Joint HAC Wald test γ = 0: χ²(7) = 28.1, p = 2.1e-04.** ‖γ‖/‖β‖ = 0.762.
+
+**Three conclusions, and they finally separate cleanly.**
+
+1. **The state-dependence is real, now confirmed at full power.** A joint Wald test on all 176,574 bars
+   rejects γ = 0 at p = 2e-4. That is the fourth independent confirmation (after §11.1's blend gain,
+   §14.1's trace, §14.2's bootstrap-corrected trace) and the first at bar resolution with a proper test.
+2. **The full 7-dimensional axis still does not replicate.** Split-half cos(γ_h1, γ_h2) = **+0.126**
+   against a null of −0.193 with sd 0.404 — inside one standard deviation. Seven correlated coefficients
+   each with |t| ~ 1 define a direction that is mostly noise, and no amount of bar-level precision fixes
+   that: the problem is 7 parameters, not the sample size.
+3. **But one component is consistent, and it is the one to pre-specify.** ``sentiment`` carries
+   γ = +0.514 with HAC-t **+2.97** — the only individually significant loading — and it is positive in
+   *both* halves (+0.143, +0.589). That is precisely the "pre-specify the direction instead of estimating
+   it" route §14.2 recommended, with the data now nominating the specific contrast and attaching a
+   t-statistic to it.
+
+**Caveat on that nomination.** γ_sentiment is the largest of 7 tested loadings, so 7-way selection
+applies: one |t| > 2 among 7 arises by chance roughly 30% of the time. t = 2.97 is stronger than that,
+the joint Wald is independently significant, and the sign replicates across halves — but the honest
+status is "well-motivated candidate", not "established effect". It was nominated on the search period
+and must be scored on a **fresh** split (search <= 2019, holdout 2020+), since 2021-2024 has now been
+looked at twice.
+
+**Which makes the exploitation route concrete at last**: a single ``sentiment x vol-state`` interaction
+term, 1 degree of freedom, added to the pooled combiner. Not a fitted 7-D axis, not per-bin weights, not
+a rank-1 eigen-model — one pre-specified interaction whose sign and rough magnitude are already known.
+
 ## Reproducibility
 
 ```bash
@@ -1112,6 +1169,7 @@ python analysis/intensity_graph.py --stage gate3              # §13.1 the gate 
 python analysis/composition.py --stage geometry                # §14 simplex / sphere / neither
 python analysis/composition.py --stage geometry2               # §14.1 shrinkage ladder + noise-corrected
 python analysis/composition.py --stage audit                   # §14.2 null the eigenstructure + replicate
+python analysis/composition.py --stage axis_direct             # §14.3 bar-resolution axis, no bins
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -1126,4 +1184,5 @@ feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
 heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
 intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
 intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv, composition_geometry2.csv,
-composition_shrinkage_ladder.csv, composition_audit.csv}`.
+composition_shrinkage_ladder.csv, composition_audit.csv, axis_direct.csv,
+axis_direct_summary.csv}`.

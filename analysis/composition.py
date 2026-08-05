@@ -467,8 +467,112 @@ def stage_audit() -> None:  # noqa: C901
     print(f"wrote {OUT}/composition_audit.csv")
 
 
+def stage_axis_direct() -> None:  # noqa: C901
+    """Estimate the axis directly at BAR resolution — no bins, no eigendecomposition.
+
+    §14.2 could not identify the axis, and §14.1's summary blamed "167 monthly observations". That
+    diagnosis was wrong and worth correcting precisely, because two different objects were conflated:
+
+    * The **intensity** target (§13) genuinely has ~167 effective observations: it is a ~1-month EWMA
+      with one-day autocorrelation 0.988, and slicing a smooth series into finer bars manufactures no
+      information — demonstrated there, where the bar-level 7x excess vanished at honest resolution.
+    * The **composition/axis** question has nothing to do with monthly anything. Each bin's weights were
+      fit on ~17,657 bars (K=10 over 176,574 search bars). The binding constraint was **K**, because the
+      across-bin covariance gets only ``K-1`` degrees of freedom in 7 dimensions. Binning was inherited
+      from §5's granularity ladder and never re-examined.
+
+    So drop the bins. Write the weight vector as a smooth function of a continuous causal state ``z``
+    and take its first-order term:
+
+        e  ~  sum_k beta_k s_k  +  sum_k gamma_k (s_k * z)
+
+    Then ``gamma`` **is** the axis — the direction in which state moves the weights — estimated from all
+    176,574 bars with 7 parameters instead of read off an eigendecomposition of 10 noisy bin estimates.
+    Same decisive test as §14.2 (does it replicate across halves?), now with bar-level precision, plus a
+    HAC joint Wald test that ``gamma = 0``.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    p = _panel()
+    e = np.load(os.path.join(CACHE_DIR, "har_resid.npz"))["e"][TW:]
+    sig = dict(np.load(os.path.join(CACHE_DIR, "bucket_signals.npz")))
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    S = np.column_stack([sig[b] for b in BUCKETS])
+    n, q = len(e), S.shape[1]
+
+    # continuous causal state: the panel's har_ma_25 is already rolling-robust-scaled and lagged
+    z = p.X[TW + TW :, p.names.index("har_ma_25")].astype(np.float64)
+    z = np.clip((z - np.median(z)) / (np.percentile(z, 75) - np.percentile(z, 25) + 1e-12), -4, 4)
+
+    search = (ts < SPLIT).to_numpy()
+    idx = np.flatnonzero(search)
+    h1 = np.zeros(n, bool)
+    h2 = np.zeros(n, bool)
+    h1[idx[: len(idx) // 2]] = True
+    h2[idx[len(idx) // 2 :]] = True
+
+    def fit(rows, y, zz):
+        D = np.hstack([S[rows], S[rows] * zz[rows][:, None]])
+        D = D - D.mean(0)
+        yc = y[rows] - y[rows].mean()
+        G = D.T @ D
+        b = np.linalg.solve(G + RIDGE * np.eye(2 * q), D.T @ yc)
+        u = yc - D @ b
+        # HAC (Newey-West, 10 trading days) sandwich for the coefficient covariance
+        lags = 480
+        Om = (D * u[:, None]).T @ (D * u[:, None])
+        for L in range(1, lags + 1):
+            w = 1.0 - L / (lags + 1.0)
+            A = (D[L:] * u[L:, None]).T @ (D[:-L] * u[:-L, None])
+            Om += w * (A + A.T)
+        Gi = np.linalg.inv(G + RIDGE * np.eye(2 * q))
+        V = Gi @ Om @ Gi
+        return b, V
+
+    b, V = fit(search, e, z)
+    beta, gamma = b[:q], b[q:]
+    Vg = V[q:, q:]
+    tg = gamma / np.sqrt(np.maximum(np.diag(Vg), 1e-24))
+    wald = float(gamma @ np.linalg.solve(Vg, gamma))
+    print(f"  bar-resolution fit on {int(search.sum())} search rows, 14 parameters\n")
+    print("  bucket        beta      gamma   HAC-t(gamma)")
+    for k, nm in enumerate(BUCKETS):
+        print(f"    {nm:12s} {beta[k]:+.4f}  {gamma[k]:+.4f}   {tg[k]:+6.2f}")
+    from scipy.stats import chi2
+
+    print(f"\n  joint HAC Wald test gamma = 0: chi2({q}) = {wald:.1f}, "
+          f"p = {chi2.sf(wald, q):.2e}")
+    print(f"  ||gamma|| / ||beta|| = {np.linalg.norm(gamma) / np.linalg.norm(beta):.3f}")
+
+    # decisive: does the axis replicate across halves, at bar precision?
+    b1, _ = fit(h1, e, z)
+    b2, _ = fit(h2, e, z)
+    g1, g2 = b1[q:], b2[q:]
+    cos = float(g1 @ g2 / (np.linalg.norm(g1) * np.linalg.norm(g2)))
+    ncos = []
+    for k in range(N_NULL):
+        sh = (k + 1) * (n // (N_NULL + 1))
+        en = np.roll(e, sh)
+        c1, _ = fit(h1, en, z)
+        c2, _ = fit(h2, en, z)
+        d1, d2 = c1[q:], c2[q:]
+        ncos.append(float(d1 @ d2 / (np.linalg.norm(d1) * np.linalg.norm(d2))))
+    print(f"\n  AXIS REPLICATION cos(gamma_h1, gamma_h2) = {cos:+.3f}   "
+          f"null {np.mean(ncos):+.3f} (sd {np.std(ncos):.3f})")
+    print("    h1: " + ", ".join(f"{BUCKETS[i]} {g1[i]:+.3f}" for i in np.argsort(-np.abs(g1))[:3]))
+    print("    h2: " + ", ".join(f"{BUCKETS[i]} {g2[i]:+.3f}" for i in np.argsort(-np.abs(g2))[:3]))
+    clean = cos > np.mean(ncos) + 3 * np.std(ncos)
+    print(f"\n  -> axis {'IDENTIFIED at bar resolution' if clean else 'still not identified'}")
+    pd.DataFrame({"bucket": BUCKETS, "beta": beta, "gamma": gamma, "hac_t_gamma": tg,
+                  "gamma_h1": g1, "gamma_h2": g2}).to_csv(f"{OUT}/axis_direct.csv", index=False)
+    pd.DataFrame([{"wald_chi2": wald, "wald_p": float(chi2.sf(wald, q)), "cos_split_half": cos,
+                   "cos_null_mean": float(np.mean(ncos)), "cos_null_sd": float(np.std(ncos)),
+                   "identified": bool(clean), "n_rows": int(search.sum())}]).to_csv(
+        f"{OUT}/axis_direct_summary.csv", index=False)
+    print(f"wrote {OUT}/axis_direct.csv + axis_direct_summary.csv")
+
+
 if __name__ == "__main__":
     ap_ = argparse.ArgumentParser()
-    ap_.add_argument("--stage", choices=["geometry", "geometry2", "audit"], required=True)
+    ap_.add_argument("--stage", choices=["geometry", "geometry2", "audit", "axis_direct"], required=True)
     a = ap_.parse_args()
-    {"geometry": stage_geometry, "geometry2": stage_geometry2, "audit": stage_audit}[a.stage]()
+    {"geometry": stage_geometry, "geometry2": stage_geometry2, "audit": stage_audit, "axis_direct": stage_axis_direct}[a.stage]()
