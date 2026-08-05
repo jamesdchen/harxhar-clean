@@ -2035,6 +2035,45 @@ already checks out against a number in this document.
    geodesic means, log-Euclidean vs affine-invariant) stop being conventions — the third
    independent argument that the next unit of progress is data, not method.
 
+## 20. The cross-section was baked in — and its relational features pass the gate, with a dated edge
+
+A user observation reframed §19's closing recommendation: the target is the MARKET's realized
+variance and the exog set already carries the cross-section's *marginal* aggregates
+(`sumret2_{ew,vw}stock`, bipower, semivariance families). What no linear span of those columns can
+reach is the **relational** objects between market and stocks — ratios. The flagship is realized
+average correlation, `RV / sumret2_vwstock`, which in §19.4's SPD language is the **top-eigenvalue
+share of the return covariance matrix** — the first genuinely cross-sectional coordinate,
+constructible from columns already in hand. Six ratio families × six HAR windows = 36 columns
+(`analysis/cross_section.py`): realized correlation, ew/vw size tilt, market and average-stock jump
+shares (bipower vs ret2), market and stock upside-semivariance shares. Mechanisms literature-named
+before scoring; pre-registered gate: block increment over the daily-refit dense ridge, sqrt DM > 2.
+
+| arm | ΔR² | DM sqrt | ΔQLIKE | DM QLIKE | 2020+ DM (sqrt/QL) |
+|---|---|---|---|---|---|
+| dense + xsec vs dense | +0.00175 | **+3.95** | −0.00021 | **+2.64** | **+0.24 / +0.26** |
+| deliverable + xsec vs deliverable | +0.00168 | +3.94 | −0.00017 | +2.40 | +0.17 / +0.05 |
+
+**Gate: PASS** — and the increment is nearly identical on top of the dense ridge and on top of the
+full deliverable (+0.00175 vs +0.00168), i.e. orthogonal to the product channel: the Pythagorean
+pattern a third time. Two honesty items, stated as loudly as the pass:
+
+1. **The edge is dated.** On 2020+ alone the block is flat (DM ≈ +0.2). The pre-registered gate was
+   the full-span statistic and it passes decisively, but the gain is concentrated pre-2020 — the
+   same era-profile question §16.2's sentiment term was made to answer and this block, on present
+   evidence, does not. Anyone adding these 36 columns should expect the historical average, not the
+   recent one, and the honest forward-looking claim is "small or zero".
+2. **One semantics caveat**: the market-level upside-share ratio sits in [0.35, 0.67] (consistent
+   with the positive-semivariance reading of `pret2`); the stock-level one hits its clip at 2.0, so
+   that reading is unverified for the `ewstock` aggregate. The feature is a well-defined bounded
+   ratio either way.
+
+Structurally this satisfies the study's own §15.3 closing advice ("new information, not new
+method") from *inside* the panel, the same way OFI did: the information was present but not in the
+model's span. And it connects to §19.4's tower argument the right way round — relational
+cross-sectional coordinates widen **level 2** (more signal per bar), which is precisely what makes
+higher floors of the tower estimable. A genuinely multi-asset panel remains the full version of
+this move; these 36 columns are the largest fraction of it available for free.
+
 ## Reproducibility
 
 ```bash
@@ -2080,6 +2119,8 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 d
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage driver  # what moves the dial (§18.3)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage memory  # is it forecastable (§18.4)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage concave # zero-free-param response test (§19.2)
+ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage build   # §20: relational cross-section features
+ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage score   # §20: gate test
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
