@@ -72,7 +72,7 @@ def main() -> None:
     print(f"first-window spectrum: top-{max(QS)} shares "
           + " ".join(f"{v:.3f}" for v in lam[: max(QS)] / lam.sum()), flush=True)
 
-    def walk(product_fn, n_prod):
+    def walk(product_fn, n_prod, post_w=None):
         base = np.full(n - TW, np.nan)
         aug = np.full(n - TW, np.nan)
         for t0 in range(TW, n, REFIT):
@@ -84,6 +84,9 @@ def main() -> None:
             ytr = e_full[tr]
             base[out] = _blockwise_ridge(Ztr, ytr, Zte, pb, 3000.0, 3000.0)
             Ptr, Pte = _floored_scale(product_fn(Ztr), product_fn(Zte))
+            if post_w is not None:  # graded penalty: applied AFTER the sd normalization
+                Ptr = Ptr * post_w
+                Pte = Pte * post_w
             aug[out] = _blockwise_ridge(
                 np.hstack([Ztr, Ptr]), ytr, np.hstack([Zte, Pte]), pb, 3000.0, ALPHA_PROD
             )
@@ -115,6 +118,40 @@ def main() -> None:
               f"fraction of IC gain {100 * (r - rb) / (ri - rb):.0f}%", flush=True)
         rows.append({"arm": f"pc{q}", "n_cols": int(len(qi)), "dr2": r - rb,
                      "dm_vs_base": dm_test(y, aug, base), "dm_vs_ic": dm_test(y, aug, aug_ic)})
+    # --- soft thresholding: all pairs of a generous top-20 pool, penalty graded by the spectrum.
+    # Column weight (lambda_a lambda_b)^(gamma/2) => effective per-column penalty
+    # alpha_prod / (lambda_a lambda_b)^gamma: gamma = 0 is a flat prior over the pool (pure
+    # breadth), gamma = 1 is the kernel-natural decay, gamma = 1/2 the compromise. Weights are
+    # normalized to median 1 so the effective overall penalty stays comparable across arms.
+    # Pre-registered readings: if the hard cutoff's exclusion was the q=10 trap's cause, the flat
+    # pool recovers PC-15's level or better; if eigenvalue decay helps beyond that, gamma > 0
+    # beats gamma = 0; if the mid-spectrum misalignment dominates, gamma = 1 UNDER-performs
+    # gamma = 0 (it discounts the signal-bearing 11-15 below the noisy 7-10).
+    # NOTE the first implementation applied the weight to the RAW product column, which
+    # _floored_scale's per-window sd normalization cancels exactly — all three gammas came back
+    # bit-identical (each at 92% of IC), which is itself the diagnosis. The weight must multiply
+    # the column AFTER the sd normalization, where it sets the effective per-column penalty
+    # alpha / w^2. ``walk`` therefore takes an optional post-scale weight.
+    QPOOL = 20
+    qi, qj = np.triu_indices(QPOOL)
+    lw = lam[:QPOOL]
+    for gamma in (0.0, 0.5, 1.0):
+        w = (lw[qi] * lw[qj]) ** (gamma / 2.0)
+        w = w / np.median(w)
+        Wp = V[:, :QPOOL] / sd0[:, None]
+
+        def soft_products(Z, Wp=Wp, qi=qi, qj=qj):
+            G = Z @ Wp
+            return G[:, qi] * G[:, qj]
+
+        _, aug = walk(soft_products, len(qi), post_w=w)
+        r = r2_oos(y, aug)
+        print(f"soft gamma={gamma:.1f} (pool 20, {len(qi)} cols): dR2 {r - rb:+.5f}  "
+              f"DM vs base {dm_test(y, aug, base):+.2f}  vs IC-100 {dm_test(y, aug, aug_ic):+.2f}  "
+              f"fraction {100 * (r - rb) / (ri - rb):.0f}%", flush=True)
+        rows.append({"arm": f"soft_g{gamma}", "n_cols": int(len(qi)), "dr2": r - rb,
+                     "dm_vs_base": dm_test(y, aug, base), "dm_vs_ic": dm_test(y, aug, aug_ic)})
+
     import pandas as pd
 
     pd.DataFrame(rows).to_csv(f"{OUT}/pc_quadratics.csv", index=False)
