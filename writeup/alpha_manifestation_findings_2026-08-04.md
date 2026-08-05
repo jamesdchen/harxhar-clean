@@ -1137,6 +1137,91 @@ looked at twice.
 term, 1 degree of freedom, added to the pooled combiner. Not a fitted 7-D axis, not per-bin weights, not
 a rank-1 eigen-model — one pre-specified interaction whose sign and rough magnitude are already known.
 
+## 15. Synthesis: what "dense but weak" turned out to mean, what the graph work contributed, what to do next
+
+### 15.1 Did the graph-Laplacian work find the state-dependence? No.
+
+Worth tracing honestly, because the answer is a clean no and the detour was expensive:
+
+| step | what produced it | graph involved? |
+|---|---|---|
+| vol-state conditioning pays, clock does not (§5) | granularity ladder | no |
+| the *magnitude* channel is flat — 1-df gain loses at every K (§5) | gain-channel arms | no |
+| confirmed at SPA p 0.0000 / RW 0.0005 (§11.1) | bootstrap over the maximum | no |
+| the composition reframing (§13.1) | **re-reading §5's own two arms against each other** | no |
+| "ellipse" (§14.1) → retracted (§14.2) | 7x7 covariance eigendecomposition | no (linear algebra, not a Laplacian) |
+| **sentiment x vol-state, γ = +0.514, HAC-t +2.97 (§14.3)** | **a 14-parameter interaction regression with HAC errors** | **no** |
+
+The Laplacian sections (§12, §12.1) contributed **nothing** to the finding. Their outputs were a clean
+negative (graph smoothing does not beat plain shrinkage: holdout ΔR² +0.00022, then +0.00039 with a
+properly estimated graph), one reusable lesson (**similarity adjacency helps, interaction adjacency
+hurts** — the prior's assumption is about correlation, not interaction), and a demonstration that the
+pre-registered-holdout protocol catches inflation (a search gain of +0.00047 halved out of sample).
+
+Worse: **the finding was already visible in §4** without any of it. §4's activation map showed
+`sentiment`'s IC more than doubling from the calmest vol quintile (0.040) to the most stressed (0.092) —
+which is exactly γ_sentiment > 0. Three sections of graph machinery arrived at a result that a plain
+interaction regression on §4's own observation would have produced immediately. Recorded so the next
+person does not repeat it.
+
+### 15.2 How this is a dense-but-weak story — the three channels are the same fact
+
+The findings look scattered until they are lined up by *where* the diffuseness lives:
+
+| channel | what "weak and diffuse" means there | the measurement |
+|---|---|---|
+| **features** | many tiny contributions, no usable concentration | mean \|IC\| 0.017 over 246; dense beats top-5 at DM-t **−7.24**; ~100+ features needed to saturate |
+| **time** | always on, never off, no local amplification | 0 of 207 months negative; concentration factor `c` = **0.95–1.05** on every axis; finer slicing loses monotonically to −0.031 |
+| **state** | real re-weighting, but only 1 of 7 loadings resolvable | joint Wald p = 2e-4, yet split-half axis cos +0.126 vs null −0.193; only `sentiment` has \|t\| > 2 |
+
+So "dense but weak" is not just about the cross-section of features — **it is the signature of the whole
+problem in all three directions at once.** Each channel is genuinely non-zero and each is worth
+~0.002–0.007 R² on the residual; none is concentrated enough to behave like a "signal" in the usual
+sense.
+
+That single characterisation predicts every result in this document, including the failures. **Everything
+that assumed concentration failed**: sparse selection (−7.24), fine time-slicing (−0.031), dynamic gains
+(−0.002), rank-1 axis fitting (unidentified), graph smoothing (+0.0004), a transformer (QLIKE 0.46 vs
+0.14). **Everything that pooled and shrank worked**: all 246 features, coarse 2–3 state bins, 50/50
+blends, heavy product penalties, a frozen-once selection. The correct posture is aggregation and
+shrinkage everywhere, and the returns to structure-finding on this panel are approximately zero.
+
+### 15.3 What to do next, in order
+
+**Finish what is already confirmed** — small, well-defined, uses existing machinery:
+
+1. **Test additivity of the two confirmed gains.** The vol-regime blend (+0.0024, RW p 0.0005) and the
+   ~100 frozen interaction products (+0.0067, RW p 0.024) have never been run together. If additive that
+   is +0.009 ≈ 26% of the entire exog channel — **the largest unclaimed number in this study**.
+2. **Score `sentiment × vol-state` on a fresh split** (search ≤ 2019, holdout 2020+; 2021–24 has been
+   used twice). 1 df, sign and magnitude pre-specified from §14.3, nothing left to tune.
+
+**Ship the infrastructure that already exists**:
+
+3. Wire `src/diagnostics.py` into the panel build so the five invariants run on every build.
+4. Fix the **12+ columns** the diagnostic flagged at max \|z\| 68–82 (§11.2) — the voldemand fix
+   generalised. `adj_numobs_ma_25` has a p99.9 of 46 against the panel's 7.6.
+5. Re-run §7's interaction study on the §8-fixed panel; it was done with `voldemand` dropped and a ±4
+   clip that may now be unnecessary.
+
+**The one genuinely unexplored lever — new data, not new method**:
+
+6. **Build the OPEX / rebalance / quad-witch calendar features.** §0 unblocked the row→date map, and the
+   intraday-regime doc has wanted these since June. Deterministic, free, and *new information* rather
+   than another re-analysis of the same 543 columns.
+7. **Construct the explicit OFI term** `(buy−sell)/(buy+sell)`. §7's selector reached for its proxy
+   (`sumret × sumvolume`, 144 of 218 months) unprompted, which is about as strong a prior as this data
+   gives.
+
+**Do not do** — the clearest output of the session: no more sparse selection, no finer time-slicing, no
+dynamic gains, no graph regularisation, no rank-1 axis fitting, no sequence models.
+
+**And the structural conclusion.** Every remaining lever *on this panel* is worth ~0.002–0.007 R². If the
+goal is a materially better forecast rather than another 5%, the binding constraint is **data, not
+method**: a cross-sectional panel (many assets, so state-dependence is estimated across assets as well as
+through time — which is the one thing that fixes the identification failures in §13 and §14), or the
+auction-imbalance / GEX / 0DTE feeds the intraday-regime study named. Everything else is polishing.
+
 ## Reproducibility
 
 ```bash
