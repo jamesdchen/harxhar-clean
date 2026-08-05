@@ -451,8 +451,179 @@ def stage_gain() -> None:
     print(f"wrote {OUT}/minimal_model_gain_decomposition.csv")
 
 
+# ---------------------------------------------------------------------------
+# driver — what moves the dial? (descriptive attribution, §13-hardened)
+# ---------------------------------------------------------------------------
+
+# Pre-registered candidate drivers, each with a mechanism, fixed before running. The dial's
+# ~17-trading-day half-life and vol-orthogonality (corr +0.05) rule nothing here out a priori.
+#
+#   vol_level        har_ma_25 — the reference; §18.2 says ~0 but it belongs in the table
+#   resid_vol        trailing 21d sd of the HAR residual — "more unexplained vol, more to gear into"
+#   vix_level        adj_vix_ma_1 — implied-vol regime
+#   vvix             adj_vvix_ma_1 — vol-of-vol: option hedging flow intensity
+#   term_structure   adj_vix3m_ma_1 − adj_vix_ma_1 (both standardized) — contango/backwardation
+#   vrp              adj_vix_ma_1 − har_ma_25 (both standardized) — variance risk premium proxy
+#   mkt_ret_13d      adj_sumret_ma_625 — rally/drawdown state (vol asymmetry)
+#   sentiment        adj_stocktwits_sentiment_ma_25 — the §16.2 state variable
+#   liq_stress       adj_effspread_ewstock_ma_25 — microstructure stress (products are fast pairs)
+#   opex_proximity   −|trading days to monthly expiry| — the ~monthly half-life smells like the
+#                    expiry cycle; proximity, sign-free
+#
+# Method, hardened by §13's failure: daily-sampled series; levels tested with Newey-West (63-day
+# lags) AND non-overlapping 21-day changes (near-iid, immune to the smooth-vs-smooth trap); a
+# circular-shift null per candidate; a synthetic positive control at corr 0.3 with MATCHED
+# autocorrelation (if the machinery cannot detect that, the nulls are meaningless and the stage
+# says so); Bonferroni over the 10 candidates. Descriptive only — no forecast is scored, so no
+# holdout is spent; any exploitable claim needs its own frozen-driver test afterwards.
+
+DRIVER_NW_LAGS = 63
+DRIVER_CHANGE_DAYS = 21
+
+
+def _dial(sig: dict, e: np.ndarray, s_all: np.ndarray) -> np.ndarray:
+    """The §18.2 dial, bit-identical construction."""
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    inc_m = sig["s_aug"] - sig["s_lin"]
+    r = e - s_all
+    W = 21 * PERIODS_PER_DAY
+    num = pd.Series(r * inc_m).rolling(W, min_periods=W // 2).sum().shift(1).to_numpy()
+    den = pd.Series(inc_m * inc_m).rolling(W, min_periods=W // 2).sum().shift(1).to_numpy()
+    return np.clip(np.nan_to_num(num / np.maximum(den, 1e-12), nan=1.0), -5.0, 5.0)
+
+
+def _nw_t(x: np.ndarray, y: np.ndarray, lags: int) -> tuple[float, float]:
+    m = np.isfinite(x) & np.isfinite(y)
+    x, y = x[m], y[m]
+    xc = (x - x.mean()) / (x.std() + 1e-12)
+    yc = (y - y.mean()) / (y.std() + 1e-12)
+    b = float(xc @ yc) / float(xc @ xc)
+    u = yc - b * xc
+    gsc = xc * u
+    ssum = float(gsc @ gsc)
+    for L in range(1, lags + 1):
+        ssum += 2.0 * (1.0 - L / (lags + 1.0)) * float(gsc[L:] @ gsc[:-L])
+    se = np.sqrt(max(ssum, 1e-300)) / float(xc @ xc)
+    return b, b / se if se > 0 else 0.0
+
+
+def stage_driver() -> None:  # noqa: C901
+    _require_fixed_cache()
+    from scipy import stats as sps
+
+    from src.features.extractors.expiry import add_expiry_features
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    p = load_panel()
+    sig = dict(np.load(_p(CACHE)))
+    e = np.load(_p("har_resid.npz"))["e"][TW:]
+    s_all = dict(np.load(_p("bucket_signals.npz")))["all"]
+    g = _dial(sig, e, s_all)
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+
+    def col(name: str) -> np.ndarray:
+        return p.X[2 * TW :, p.names.index(name)].astype(np.float64)
+
+    def std(x: np.ndarray) -> np.ndarray:
+        return (x - np.nanmean(x)) / (np.nanstd(x) + 1e-12)
+
+    resid_vol = (
+        pd.Series(e).rolling(21 * PERIODS_PER_DAY, min_periods=200).std().shift(1).to_numpy()
+    )
+    cal = pd.DataFrame({"t": ts})
+    cal["is_close"] = 0
+    add_expiry_features(cal)
+    cands: dict[str, np.ndarray] = {
+        "vol_level": col("har_ma_25"),
+        "resid_vol": resid_vol,
+        "vix_level": col("adj_vix_ma_1"),
+        "vvix": col("adj_vvix_ma_1"),
+        "term_structure": std(col("adj_vix3m_ma_1")) - std(col("adj_vix_ma_1")),
+        "vrp": std(col("adj_vix_ma_1")) - std(col("har_ma_25")),
+        "mkt_ret_13d": col("adj_sumret_ma_625"),
+        "sentiment": col("adj_stocktwits_sentiment_ma_25"),
+        "liq_stress": col("adj_effspread_ewstock_ma_25"),
+        "opex_proximity": -np.abs(cal["days_to_opex"].to_numpy(dtype=np.float64)),
+    }
+
+    # daily sampling: last bar of each day
+    day_last = np.flatnonzero(ts.dt.date.ne(ts.dt.date.shift(-1)).to_numpy())
+    gd = g[day_last]
+    nd = len(gd)
+    step = DRIVER_CHANGE_DAYS
+    print(f"dial sampled daily: {nd} days, AR(1) "
+          f"{np.corrcoef(gd[1:], gd[:-1])[0, 1]:+.3f}", flush=True)
+    yearly = pd.Series(gd, index=pd.DatetimeIndex(ts.iloc[day_last])).resample("YE").mean()
+    print("  yearly means: "
+          + "  ".join(f"{i.year}:{v:+.2f}" for i, v in yearly.items()), flush=True)
+
+    # power calibration: synthetic driver at corr 0.3 with MATCHED AR(1)
+    rho = float(np.corrcoef(gd[1:], gd[:-1])[0, 1])
+    rng = np.random.default_rng(7)
+    ar = np.zeros(nd)
+    for i in range(1, nd):
+        ar[i] = rho * ar[i - 1] + rng.standard_normal() * np.sqrt(1 - rho**2)
+    gsd = std(gd)
+    synth = 0.3 * gsd + np.sqrt(1 - 0.09) * std(ar)
+    _, t_syn_lv = _nw_t(synth, gsd, DRIVER_NW_LAGS)
+    ch = gsd[step::step] - gsd[:-step:step][: len(gsd[step::step])]
+    chs = synth[step::step] - synth[:-step:step][: len(synth[step::step])]
+    r_syn, p_syn = sps.pearsonr(chs[: len(ch)], ch)
+    print(f"\n  POWER CONTROL (true corr 0.30, matched AR): levels NW-t {t_syn_lv:+.2f}, "
+          f"changes r {r_syn:+.3f} (p {p_syn:.3f})"
+          f"{'' if abs(t_syn_lv) > 2 or p_syn < 0.05 else '   [UNDERPOWERED - nulls meaningless]'}",
+          flush=True)
+
+    K = len(cands)
+    n_shift = 24
+    rows = []
+    print(f"\n  {'candidate':16s} {'levels b':>9s} {'NW-t':>6s} {'null|t|':>8s} "
+          f"{'chg r':>7s} {'chg p':>7s} {'p_bonf':>7s}")
+    for name, x in cands.items():
+        xd = x[day_last]
+        b, t = _nw_t(xd, gd, DRIVER_NW_LAGS)
+        nt = []
+        for k in range(n_shift):
+            sh = (k + 1) * (nd // (n_shift + 1))
+            _, t0 = _nw_t(xd, np.roll(gd, sh), DRIVER_NW_LAGS)
+            nt.append(abs(t0))
+        xs = std(xd)
+        xch = xs[step::step] - xs[:-step:step][: len(xs[step::step])]
+        m = np.isfinite(xch[: len(ch)]) & np.isfinite(ch)
+        r_ch, p_ch = sps.pearsonr(xch[: len(ch)][m], ch[m]) if m.sum() > 10 else (np.nan, np.nan)
+        p_bonf = min(1.0, p_ch * K) if np.isfinite(p_ch) else np.nan
+        print(f"  {name:16s} {b:+9.3f} {t:+6.2f} {np.mean(nt):8.2f} "
+              f"{r_ch:+7.3f} {p_ch:7.3f} {p_bonf:7.3f}", flush=True)
+        rows.append({"candidate": name, "beta_levels": b, "nw_t_levels": t,
+                     "null_mean_abs_t": float(np.mean(nt)), "null_sd_abs_t": float(np.std(nt)),
+                     "r_changes": r_ch, "p_changes": p_ch, "p_bonferroni": p_bonf})
+
+    # joint: how much of the dial do all 10 explain together, vs the shift null?
+    Xm = np.column_stack([std(x[day_last]) for x in cands.values()])
+    ok = np.all(np.isfinite(Xm), axis=1) & np.isfinite(gsd)
+    def _joint_r2(yv: np.ndarray) -> float:
+        b, *_ = np.linalg.lstsq(Xm[ok], yv[ok] - yv[ok].mean(), rcond=None)
+        return 1.0 - float(np.sum((yv[ok] - yv[ok].mean() - Xm[ok] @ b) ** 2)
+                           / np.sum((yv[ok] - yv[ok].mean()) ** 2))
+    jr = _joint_r2(gsd)
+    jn = [_joint_r2(np.roll(gsd, (k + 1) * (nd // (n_shift + 1)))) for k in range(n_shift)]
+    print(f"\n  JOINT R2 of all {K}: {jr:.3f}   shift-null {np.mean(jn):.3f} "
+          f"(sd {np.std(jn):.3f})   excess z {(jr - np.mean(jn)) / (np.std(jn) + 1e-12):+.1f}")
+    pd.DataFrame(rows).to_csv(f"{OUT}/dial_drivers.csv", index=False)
+    print(f"wrote {OUT}/dial_drivers.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["build", "daily", "verify", "gain"], required=True)
+    ap.add_argument(
+        "--stage", choices=["build", "daily", "verify", "gain", "driver"], required=True
+    )
     a = ap.parse_args()
-    {"build": stage_build, "daily": stage_daily, "verify": stage_verify, "gain": stage_gain}[a.stage]()
+    {
+        "build": stage_build,
+        "daily": stage_daily,
+        "verify": stage_verify,
+        "gain": stage_gain,
+        "driver": stage_driver,
+    }[a.stage]()

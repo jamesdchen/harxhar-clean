@@ -1748,6 +1748,50 @@ The geometry ledger, final form: static shape objects — spectrum, leading eige
 QLIKE-confirmed), two small additive state axes (§17.1), and now one persistent scalar dial on the
 form's motion, orthogonal to vol, worth about half the freshness gain at 1 df.
 
+### 18.3 What drives the dial — mostly nothing nameable, with one coherent weak signature
+
+`--stage driver`, hardened by §13's failure: ten pre-registered candidates with named mechanisms;
+daily sampling; levels tested with 63-day Newey-West **and** non-overlapping 21-day changes (immune
+to the smooth-vs-smooth spurious-regression trap); a circular-shift null per candidate; Bonferroni
+over the ten; and a **power calibration** — a synthetic driver at true correlation 0.30 with matched
+AR(1), which the machinery detects overwhelmingly (levels NW-t +7.1, changes r +0.36, p < 0.001). So
+a moderate driver, had one existed, would have been unmissable.
+
+| candidate | levels NW-t | z vs shift null | changes r (p) |
+|---|---|---|---|
+| **vrp** (implied − realized) | **−3.27** | **+4.3** | +0.03 (0.63) |
+| **term_structure** (vix3m − vix) | **+3.24** | **+3.2** | +0.06 (0.32) |
+| **vix_level** | **−2.75** | **+3.1** | +0.00 (0.95) |
+| vvix | +2.05 | +2.2 | +0.10 (0.11) |
+| mkt_ret_13d | +2.41 | +2.1 | +0.10 (0.12) |
+| vol_level, resid_vol, liq_stress | \|t\| < 1.6 | < 1.4 | — |
+| sentiment, opex_proximity | ~0 | — | — |
+
+Joint R² of all ten: **0.046** against a shift-null of 0.016 (z +3.2).
+
+Three conclusions, in decreasing confidence:
+
+1. **The dial is ~95% its own latent process.** Every obvious state variable together explains under
+   5% of its variance. The two hunches with the strongest priors both died cleanly: the expiry
+   cycle (my read of the ~17-day half-life) at t −0.03, and sentiment at +0.20. Vol level is
+   confirmed orthogonal (+0.05 raw).
+2. **The nameable 5% is one coherent regime signature, not five separate facts:** the dial gears
+   **up** in calm, contango, low-VRP, rallying markets and **down** into stress. The five
+   levels-significant candidates are all facets of that one state, and the yearly path agrees —
+   dial lows in 2008 (+0.70), 2018 (+0.95), 2020 (+1.01); highs in 2009 (+1.87), 2017 (+1.67),
+   2024 (+1.97). Note the sign: the interaction form is *most* trustworthy in quiet regimes, which
+   is the opposite of "interactions capture crisis nonlinearity".
+3. **The signature is levels-only** — every changes test is null (best p_bonf = 1.0) against a
+   power control that detects 0.30 easily. So calm-regime co-trending is established;
+   month-to-month causation is not. It cannot presently be used as a *faster* dial estimator, and
+   given the power control, the honest read is that no moderate-strength monthly driver exists
+   among these ten.
+
+The dial also never averages negative in any year (min +0.70) — the interaction channel, like the
+linear one (§3's 0/207 months), is always-on with varying intensity. Dense-weak's signature
+extends to the one low-dimensional object the study found: real, persistent, and driven by nothing
+you can name — which is what a diffuse aggregate of many small causes looks like.
+
 ## Reproducibility
 
 ```bash
@@ -1790,6 +1834,7 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage build   # stage-B 
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage daily   # products at DAILY refit (§18.1)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + controls + verdicts
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 dial vs freshness (§18.2)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage driver  # what moves the dial (§18.3)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
