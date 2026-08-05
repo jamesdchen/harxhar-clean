@@ -684,6 +684,73 @@ p99.99 — a single spike). These are sqrt-transformed positives and a bounded i
 different from voldemand's. **The voldemand family was not special; it was just the worst.** Full
 report in `results/alpha_manifestation/feature_health_production.csv`.
 
+## 12. A heat equation on the interaction graph — tested, and it does not work
+
+§7 established that the interaction alpha lives on a graph (nodes = features, edges = pairwise
+products, weights = |IC| with the residual: a positive function over the interaction graph). Given a
+graph, the natural prior is the heat equation on it — ``exp(-tL)`` smoothing, whose quadratic form
+``lambda_2 * b' L b`` penalises *differences* between coefficients of adjacent terms rather than
+their magnitudes. That is the textbook instrument for dense-but-weak effects with a known adjacency
+(network-constrained regularisation), so it deserved a test. `analysis/heat_graph.py`.
+
+**This was the first fresh hypothesis of the study, so it got the §10 protocol it deserved**: grid
+pre-registered (``lambda_2/lambda_1`` in {0.1, 1, 10, 100} x two graph variants, nothing else),
+graph frozen on the 2006 window, the choice made on rows **through 2020 only**, and the winner
+scored **once** on a 2021-2024 holdout (176,574 / 42,360 rows). Benchmark = the §11.1 winner, the
+same feature set with a plain diagonal product penalty, so the question is strictly *does graph
+smoothing beat plain shrinkage of the same terms*.
+
+**The graph's spectrum made an ex-ante prediction, before anything was scored:**
+
+| graph | non-zero eigenvalues | participation ratio | prediction |
+|---|---|---|---|
+| feature (node Laplacian) | 48 | **19.7 of 133** — concentrated | smoothing degenerates toward a hub average; should not help |
+| line (products adjacent when they share a parent) | 98 | **80.2 of 100** — rich | real multi-scale structure; the variant with a chance |
+
+**The prediction was directionally right, and the answer is still no:**
+
+| arm | search ΔR² | holdout ΔR² |
+|---|---|---|
+| node, ratio 0.1 → 100 | −0.00046 → **−0.01111** | −0.00098 → −0.01253 |
+| edge, ratio 0.1 | +0.00014 | +0.00017 |
+| **edge, ratio 1.0** (chosen on search) | +0.00047 (DM-t +0.62) | **+0.00022 (DM-t +0.15)** |
+| edge, ratio 10 → 100 | −0.00134 → −0.00716 | −0.00203 → −0.00451 |
+
+The node variant is monotonically harmful exactly as its concentrated spectrum implied. The edge
+variant is the only one that ever helps and its help is nil.
+
+**Why it fails — three reasons, and the first is conceptual.**
+
+1. **Interaction is not similarity.** The Laplacian prior says "adjacent coefficients should be
+   *close*". In genomics that is justified because pathway-adjacent genes have co-directed effects.
+   Here adjacency means "these two features *interact*", which implies nothing about their
+   coefficients being equal. The method's assumption and the graph's meaning do not match.
+2. **It is redundant with shrinkage we already have.** §11.1 showed the product block needs a *heavy*
+   diagonal penalty (3e4-3e5). Once every product coefficient is shrunk that hard they are all small
+   and mutually close, so a differences-penalty has nothing left to do.
+3. **The line graph is too dense to be informative.** 98 non-zero eigenvalues over 100 nodes with
+   ``lambda_max`` only 2.25: most products share a parent with most others, so "smooth over the line
+   graph" collapses to "shrink all product coefficients toward a common mean" — ridge again.
+
+**The protocol paid for itself on its first use.** The search-period gain (+0.00047) halved out of
+sample (+0.00022). Reported without the holdout, this would have been a ~2x overstated "small
+positive"; with it, it is correctly a zero. That is the selection-bias haircut §10 exists to expose,
+observed directly.
+
+**Also worth recording: a discrepancy with §7.** The graph frozen on the 2006 window is centred on
+``is_overnight`` (degree 21), then ``har_ma_1`` (13) and ``adj_numobs_ma_1`` (12), with mild
+concentration (top node = 10.5% of edge ends). §7's hub was ``sumret`` (9 of the top 10 products).
+The two are different estimators — §7 weighted by *persistence across 218 monthly reselections* on a
+clipped, voldemand-free design; this is a single frozen draw on the fixed panel. §7's frozen-selection
+result was about *fitting*, not about the graph being well estimated from one window, and this
+suggests a single-window graph is a poor estimate. A persistence-weighted graph is the obvious
+variant if anyone revisits this.
+
+**What remains untested and is the natural next attempt**: the *similarity* graph — adjacency from
+feature covariance rather than interaction strength — which is the adjacency the Laplacian prior
+actually assumes. Cheap, and it is the version of "heat on the graph" whose assumption matches its
+object.
+
 ## Reproducibility
 
 ```bash
@@ -705,6 +772,9 @@ python analysis/voldemand_fix.py --stage control             # §8.4 full rebuil
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
 python analysis/multiplicity.py --stage interactions         # §11.1 SPA + Romano-Wolf, claim 2
 python analysis/diagnostics_backtest.py                      # §11.2 five checks vs 7 incidents
+python analysis/alpha_manifestation.py --stage diffusion      # is the coefficient a random walk?
+python analysis/heat_graph.py --stage spectrum                # §12 interaction-graph structure
+python analysis/heat_graph.py --stage fit                     # §12 pre-registered Laplacian + holdout
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -715,4 +785,5 @@ nl_pair_ic.csv, nl_vs_full_linear.csv, nl_scaling_robustness.csv,
 nl_group_penalty.csv, voldemand_stage_tails.csv, voldemand_variants.csv,
 voldemand_fix_control.csv, semantic_rule_map.csv, semantic_rule_drift.csv,
 multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backtest.csv,
-feature_health_production.csv}`.
+feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
+heat_graph_fit.csv}`.
