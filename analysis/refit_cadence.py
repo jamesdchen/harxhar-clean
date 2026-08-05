@@ -17,7 +17,20 @@ Two open cells from the study, run on the §8-fixed panel with the study's own m
    516-column design is run at refit-1 alongside, so any gain attributes to the linear or the
    product channel. No prediction is made for the split.
 
-2. **Saturation (the "tail insurance" cell).** §19 identified the response saturation a tree's
+2. **The joint group-ridge arm.** The deliverable is ONE backfitting pass on the blockwise
+   (group-ridge) objective: Stage A gets undiluted first claim on the variance it shares with
+   the exog block, because Stage B only ever sees A's residual. The converged alternative is a
+   single solve on [backbone | exog | products] with the SAME per-block penalties (1 / 3000 /
+   3e4), imposed exactly by column scaling (a column scaled by c has effective penalty alpha/c^2).
+   Same solver, same panel, same cadence as the two-stage reference — the only thing that changes
+   is how shared variance is split between the blocks.
+
+   Pre-registered expectation: joint is a wash or slightly WORSE — several exog columns are
+   themselves volatility measures, and the study's marginal-vs-partial kernel result says letting
+   them compete with the backbone for persistence redistributes mass away from it. Directional
+   only; no gate — whichever way it lands, the number is the answer to "does one ridge work".
+
+3. **Saturation (the "tail insurance" cell).** §19 identified the response saturation a tree's
    bounded leaves provide as the one playbook verb the two-ridge model lacks, and §18.1's
    Volmageddon bar (product block forecasting +2.2..+3.4 sigma into a +1.8 -> -2.8 reversal) as
    the cost of not having it. §19.2's concave *gearing* failed its gate as an average-gain
@@ -43,6 +56,7 @@ Usage (cache must be the .../fixed dir):
     ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage walk --design aug   --refit 24
     ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage walk --design aug   --refit 1008
     ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage walk --design dense --refit 1
+    ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage walk --design joint --refit 48
     ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage score
     ALPHA_PANEL_CACHE=$C python analysis/refit_cadence.py --stage saturate
 """
@@ -78,14 +92,20 @@ SAT_K = (2.0, 3.0, 4.0)  # tanh bound in trailing sigmas; 3 is primary, fixed a 
 VOLMAGEDDON = "2018-02-06"
 
 
-def _designs() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """(X_aug 616 cols, X_dense 516 cols, e_full) — bit-identical to minimal_model.stage_daily."""
+BACKBONE_COL_SCALE = float(np.sqrt(ALPHA_LIN / 1.0))  # solver alpha 3000 -> effective alpha 1
+
+
+def _designs() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """(X_aug, X_dense, X_backbone, e_full), rows TW: — product block bit-identical to
+    minimal_model.stage_daily."""
     p = load_panel()
     e_full = np.load(_p("har_resid.npz"))["e"]
     frozen = np.load(_p(CACHE))["frozen"]
     lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
+    har_cols = np.concatenate([p.cols("har"), p.cols("calendar"), p.cols("regime")])
     bc, _ = base_columns(p)
     XL = np.ascontiguousarray(p.X[TW:, lin_cols], dtype=np.float64)
+    XH = np.ascontiguousarray(p.X[TW:, har_cols], dtype=np.float64)
     XB = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
     ii, jj = _upper(XB.shape[1])
     P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
@@ -94,20 +114,30 @@ def _designs() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     sd = np.maximum(sd, 0.1 * np.where(np.isfinite(med), med, 1.0))
     sd = pd.DataFrame(sd).bfill().to_numpy()
     P = P / sd * PROD_COL_SCALE
-    return np.hstack([XL, P]), XL, e_full
+    return np.hstack([XL, P]), XL, XH, e_full
 
 
 def stage_walk(design: str, refit: int) -> None:
     _require_fixed_cache()
-    X_aug, X_dense, e_full = _designs()
-    X = X_aug if design == "aug" else X_dense
+    X_aug, X_dense, XH, e_full = _designs()
+    if design == "joint":
+        # the group-ridge fixed point: one solve, per-block penalties via column scaling,
+        # target = adj_RV itself (there is no residual stage to hand anything to)
+        p = load_panel()
+        X = np.hstack([XH * BACKBONE_COL_SCALE, X_aug])
+        y_t = p.y[TW:]
+    else:
+        X = X_aug if design == "aug" else X_dense
+        y_t = e_full
     key = f"{design}_r{refit}"
     print(f"walk {key}: {X.shape[1]} cols, refit_every={refit}, n={len(X)}", flush=True)
-    s = walk_forward(X, e_full, TW, alpha=ALPHA_LIN, refit_every=refit)
+    s = walk_forward(X, y_t, TW, alpha=ALPHA_LIN, refit_every=refit)
     sig = dict(np.load(_p(SIG))) if os.path.exists(_p(SIG)) else {}
     sig[key] = s
     np.savez_compressed(_p(SIG), **sig)
-    print(f"  {key}: resid R2 {r2_oos(e_full[TW:], s):+.5f}   -> {_p(SIG)}", flush=True)
+    pred_har = np.load(_p("har_resid.npz"))["pred"][TW:]
+    resid_sig = s - pred_har if design == "joint" else s
+    print(f"  {key}: resid R2 {r2_oos(e_full[TW:], resid_sig):+.5f}   -> {_p(SIG)}", flush=True)
 
 
 def _load_arms() -> tuple[dict[str, np.ndarray], np.ndarray, np.ndarray]:
@@ -129,24 +159,27 @@ def stage_score() -> None:
     baseline = p.baseline[2 * TW :]
     late = (pd.Series(pd.to_datetime(p.t[2 * TW :])) >= HOLDOUT).to_numpy()
 
-    q = {k: _qlike_series(pred_har + s, y_adj, baseline) for k, s in sig.items()}
+    # joint arms predict the level y directly; two-stage arms are residual signals on pred_har
+    pred = {k: (s if k.startswith("joint") else pred_har + s) for k, s in sig.items()}
+    q = {k: _qlike_series(f, y_adj, baseline) for k, f in pred.items()}
     ref = "aug_r48"
     rows = []
     print(f"{'arm':12s} {'refit':>6s} {'resid R2':>9s} {'QLIKE':>8s} "
           f"{'dQL vs r48':>11s} {'DM-t':>6s} | 2020+ DM-t")
-    for design in ("aug", "dense"):
+    for design in ("aug", "dense", "joint"):
         for r in CADENCES:
             k = f"{design}_r{r}"
             if k not in sig:
                 continue
-            base = q[ref] if design == "aug" else q["dense_r48"]
+            base = q["dense_r48"] if design == "dense" else q[ref]
             dq = float(np.nanmean(q[k]) - np.nanmean(base))
             t = _hac_mean_t(base - q[k]) if k not in (ref, "dense_r48") else 0.0
             t_l = _hac_mean_t((base - q[k])[late]) if k not in (ref, "dense_r48") else 0.0
-            print(f"{k:12s} {r:6d} {r2_oos(e, sig[k]):+9.5f} {float(np.nanmean(q[k])):8.5f} "
+            rr = r2_oos(e, pred[k] - pred_har)
+            print(f"{k:12s} {r:6d} {rr:+9.5f} {float(np.nanmean(q[k])):8.5f} "
                   f"{dq:+11.5f} {t:6.2f} | {t_l:6.2f}", flush=True)
             rows.append({"arm": k, "design": design, "refit_every": r,
-                         "resid_r2": r2_oos(e, sig[k]), "qlike": float(np.nanmean(q[k])),
+                         "resid_r2": rr, "qlike": float(np.nanmean(q[k])),
                          "dqlike_vs_r48": dq, "dm_t_vs_r48": t, "dm_t_vs_r48_2020plus": t_l})
     if "aug_r1" in sig and "dense_r1" in sig:
         # attribution: how much of any refit-1 gain is the product block vs the linear block
@@ -224,7 +257,7 @@ def stage_saturate() -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["walk", "score", "saturate"], required=True)
-    ap.add_argument("--design", choices=["aug", "dense"], default="aug")
+    ap.add_argument("--design", choices=["aug", "dense", "joint"], default="aug")
     ap.add_argument("--refit", type=int, default=1)
     a = ap.parse_args()
     if a.stage == "walk":
