@@ -30,12 +30,40 @@ src/
     └── strategy.py       PnL evaluation
 
 notebooks/              Scratchpad mirroring src/ (data / features / models / …)
+analysis/               Standalone analysis scripts (self-bootstrapping sys.path)
+experiments/            One-off campaign + worker scripts, formerly at the root
+jobs/                   Cluster submission
+├── slurm/                *.sbatch, *.slurm
+├── sge/                  *.sge
+└── submit/               submit_*.sh drivers
 configs/                One YAML per experiment
 data/                   Input parquets (30-min bar data)
 results/                Tracked summary CSVs (outputs land here)
 writeup/                LaTeX paper + figures
 run.py                  Entry point: python run.py --config configs/<name>.yaml
 ```
+
+### Layout change, 2026-08-04
+
+67 one-off scripts and 68 cluster job scripts used to sit at the repository
+root, which had grown to 144 files. They now live under `experiments/` and
+`jobs/`. `run.py` stays at the root, because it is the documented entry point.
+
+Being at the root meant the interpreter put the root on `sys.path`
+automatically, so `import src.…` worked and so did importing a sibling script
+by bare name. Neither survives the move, so:
+
+- `experiments/_bootstrap.py` restores both. The 57 moved scripts that need it
+  import it first, which makes them work from any working directory.
+- Job scripts under `jobs/` also export
+  `PYTHONPATH="$PWD:$PWD/experiments"` after their `cd`, so the guarantee does
+  not rest on the shim alone.
+- Notebooks add `str(REPO)+'/experiments'` alongside their existing `REPO`
+  path insert.
+
+To submit a cluster job the path now carries the directory —
+`sbatch jobs/slurm/<name>.sbatch`, `qsub jobs/sge/<name>.sge`,
+`bash jobs/submit/<name>.sh`. Nothing else about the workflow changes.
 
 Newer additions:
 

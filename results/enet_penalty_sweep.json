@@ -1,0 +1,192 @@
+{
+  "slice": {
+    "lo": 70000,
+    "hi": 150000,
+    "tw": 12000,
+    "results": [
+      {
+        "penalty": "enet",
+        "alpha": 0.003,
+        "l1": 0.5,
+        "qlike": 0.11818301165707414
+      },
+      {
+        "penalty": "lasso",
+        "alpha": 0.001,
+        "l1": 1.0,
+        "qlike": 0.11821766461100264
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.01,
+        "l1": 0.2,
+        "qlike": 0.11822146315486279
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.001,
+        "l1": 0.9,
+        "qlike": 0.11826623863304819
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.003,
+        "l1": 0.9,
+        "qlike": 0.1183083681186621
+      },
+      {
+        "penalty": "lasso",
+        "alpha": 0.003,
+        "l1": 1.0,
+        "qlike": 0.11835022950156719
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.003,
+        "l1": 0.2,
+        "qlike": 0.11853258640535914
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.01,
+        "l1": 0.5,
+        "qlike": 0.11864974829633124
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.001,
+        "l1": 0.5,
+        "qlike": 0.11872931675506714
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.03,
+        "l1": 0.2,
+        "qlike": 0.11882969967354907
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.01,
+        "l1": 0.9,
+        "qlike": 0.11937783209708756
+      },
+      {
+        "penalty": "lasso",
+        "alpha": 0.01,
+        "l1": 1.0,
+        "qlike": 0.1195610469815736
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.001,
+        "l1": 0.2,
+        "qlike": 0.11997460426501792
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.03,
+        "l1": 0.5,
+        "qlike": 0.12031601741250741
+      },
+      {
+        "penalty": "lasso",
+        "alpha": 0.03,
+        "l1": 1.0,
+        "qlike": 0.12107322243759497
+      },
+      {
+        "penalty": "enet",
+        "alpha": 0.03,
+        "l1": 0.9,
+        "qlike": 0.12107614877652297
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 100.0,
+        "l1": null,
+        "qlike": 0.12126850642756974
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 30.0,
+        "l1": null,
+        "qlike": 0.12472398201293744
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 10.0,
+        "l1": null,
+        "qlike": 0.13054526595516594
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 3.0,
+        "l1": null,
+        "qlike": 0.14245961030653315
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 1.0,
+        "l1": null,
+        "qlike": 0.16466189885923443
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 0.3,
+        "l1": null,
+        "qlike": 0.2106154567673702
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 0.1,
+        "l1": null,
+        "qlike": 0.26095701749732364
+      },
+      {
+        "penalty": "ridge",
+        "alpha": 0.03,
+        "l1": null,
+        "qlike": 0.31005546229051884
+      }
+    ]
+  },
+  "full": {
+    "tw": 48000,
+    "results": {
+      "overall_best": {
+        "penalty": "enet",
+        "alpha": 0.003,
+        "l1": 0.5,
+        "qlike": 0.11818301165707414,
+        "full_qlike": 0.12644309678244478
+      },
+      "best_ridge": {
+        "penalty": "ridge",
+        "alpha": 100.0,
+        "l1": null,
+        "qlike": 0.12126850642756974,
+        "full_qlike": 0.1259021245041154
+      },
+      "best_lasso": {
+        "penalty": "lasso",
+        "alpha": 0.001,
+        "l1": 1.0,
+        "qlike": 0.11821766461100264,
+        "full_qlike": 0.12628881754379964
+      },
+      "incumbent": {
+        "penalty": "enet",
+        "alpha": 0.001,
+        "l1": 0.2,
+        "qlike": 0.11997460426501792,
+        "full_qlike": 0.12545804016255457
+      },
+      "low_alpha_probe": {
+        "penalty": "enet",
+        "alpha": 0.0003,
+        "l1": 0.5,
+        "full_qlike": 0.12531566482835363
+      }
+    }
+  }
+}

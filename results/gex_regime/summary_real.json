@@ -1,0 +1,61 @@
+{
+ "n_days": 4981,
+ "n_folds": 5,
+ "validity_regime_vs_absret_corr": -0.3004272255501938,
+ "arms": {
+  "A_momentum_x_regime": {
+   "target": "close_ret",
+   "gate_pass": false,
+   "mean": 4.8421672619789694e-08,
+   "se": 5.187821097954615e-08,
+   "repl_frac": 0.475,
+   "fold_repl_frac": 0.6,
+   "ci_excludes_0": false,
+   "beats_placebo": false,
+   "z_vs_placebo": 0.27904481369988904,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": 0.00963653347056745,
+    "cov_t_hac5": 0.20921845516888266,
+    "net_sign_mean_bp": -0.15059200068384665,
+    "n": 4102
+   }
+  },
+  "B_gap_x_regime": {
+   "target": "post_open_ret",
+   "gate_pass": false,
+   "mean": 6.751424767648398e-07,
+   "se": 2.024595880127249e-07,
+   "repl_frac": 0.15,
+   "fold_repl_frac": 0.0,
+   "ci_excludes_0": false,
+   "beats_placebo": false,
+   "z_vs_placebo": -2.336985223724406,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": 0.009715829186339758,
+    "cov_t_hac5": 0.23477990828581452,
+    "net_sign_mean_bp": -0.2724617854480759,
+    "n": 4102
+   }
+  },
+  "C_pin_reversion": {
+   "target": "post_open_ret",
+   "gate_pass": false,
+   "mean": -2.143991832705992e-08,
+   "se": 6.092606159622466e-08,
+   "repl_frac": 0.4,
+   "fold_repl_frac": 0.4,
+   "ci_excludes_0": false,
+   "beats_placebo": true,
+   "z_vs_placebo": 2.378733898039727,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": 0.03942127010226375,
+    "cov_t_hac5": 1.0112383852270237,
+    "net_sign_mean_bp": 1.6231559934663793,
+    "n": 4102
+   }
+  }
+ }
+}

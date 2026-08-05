@@ -1,0 +1,23 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+  [hon_h16] inc 9600/48000 (0s)
+  [hon_h16] inc 19200/48000 (0s)
+  [hon_h16] inc 28800/48000 (0s)
+  [hon_h16] inc 38400/48000 (0s)
+  [hon_h16] inc 48000/48000 (1s)
+[hon_h16] inc        qlike=0.112560 mz=0.984 (1s)
+  [hon_h16] full 9600/48000 (45s)
+  [hon_h16] full 19200/48000 (84s)
+  [hon_h16] full 28800/48000 (120s)
+  [hon_h16] full 38400/48000 (159s)
+  [hon_h16] full 48000/48000 (210s)
+[hon_h16] full       qlike=0.174853 mz=0.770 (210s)
+  [hon_h16] shape 9600/48000 (68s)
+  [hon_h16] shape 19200/48000 (126s)
+  [hon_h16] shape 28800/48000 (181s)
+  [hon_h16] shape 38400/48000 (239s)
+  [hon_h16] shape 48000/48000 (289s)
+[hon_h16] shape      qlike=0.174185 mz=0.712 (290s)
+[hon_h16] full vs inc   diff=+0.06229 p=0.0000
+[hon_h16] shape vs full diff=-0.00067 p=0.7403
+[hon_h16] shape vs inc  diff=+0.06162 p=0.0000
+[hon_h16] DONE

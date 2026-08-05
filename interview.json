@@ -1,59 +1,100 @@
 {
   "_materialized": {
-    "at": "2026-06-24T19:26:25.069918+00:00",
-    "cmd_sha": "c6c887dcd5a35e0d517cfb3e65f8497066a2035695e27e9067162ecc595fc825",
+    "at": "2026-07-30T09:12:00.689256+00:00",
+    "cmd_sha": "53c27e426054a2aa510215f4770b3324e839b14c24b0ed2ae7bc12e1c9106d0f",
     "entry_point": {
-      "executor_cmd": "python3 -c \"import argparse,importlib.util,os,sys;_p=os.path.join(os.environ.get('REPO_DIR','.'), '.hpc/wrappers/ridge_imp.py');_s=importlib.util.spec_from_file_location('_hpc_wrapper',_p);_m=importlib.util.module_from_spec(_s);_s.loader.exec_module(_m);_n=argparse.Namespace(**{k[len('HPC_KW_'):].lower():v for k,v in os.environ.items() if k.startswith('HPC_KW_')});_m.compute(_n)\"",
-      "frozen_shas": {
-        "imp_implied_vol_sha": "201af89c82f7010a",
-        "imp_sentiment_sha": "de8016ab735fa8d8",
-        "imp_vol_demand_sha": "c0e1462901274b01"
+      "data_axis": {
+        "halo": {
+          "expr": "halo"
+        },
+        "kind": "bounded_halo"
       },
+      "executor_cmd": "python3 -m hpc_agent.executor_cli run-registered .hpc/wrappers/har_base_sweep.py --no-default-output",
+      "frozen_shas": {},
       "kind": "shell_command",
-      "run_name": "ridge_imp",
-      "wrapper_path": ".hpc/wrappers/ridge_imp.py"
+      "run_name": "har_base_sweep",
+      "wrapper_path": ".hpc/wrappers/har_base_sweep.py"
     },
-    "total_tasks": 3
+    "tasks_py_origin": "interview_materialized",
+    "total_tasks": 2100
+  },
+  "audited_source": {
+    "audit_id": "har_base_sweep",
+    "input_roots": [
+      "data"
+    ],
+    "output_roots": [],
+    "source": "specs/har_base_sweep.py",
+    "source_roots": [
+      "src"
+    ],
+    "template": "packs/rv/templates/rv_audit.py"
   },
   "entry_point": {
     "argv": [
-      "python",
-      "run.py",
-      "--config",
-      "{config}"
+      "env",
+      "LADDER_ARM={ladder_arm}",
+      "RUNGS_CAP={rungs_cap}",
+      "START={chunk_start}",
+      "END={chunk_end}",
+      "HALO={halo}",
+      "python3",
+      "specs/har_base_sweep.py"
     ],
+    "data_axis_hint": {
+      "halo": {
+        "expr": "halo"
+      },
+      "kind": "bounded_halo"
+    },
     "fixed_params": {},
-    "frozen_configs": [
-      "configs/imp_sentiment.yaml",
-      "configs/imp_implied_vol.yaml",
-      "configs/imp_vol_demand.yaml"
-    ],
+    "frozen_configs": [],
     "kind": "shell_command",
-    "run_name": "ridge_imp",
+    "run_name": "har_base_sweep",
     "signature": {
-      "config": "str"
+      "chunk_end": "int",
+      "chunk_start": "int",
+      "halo": "int",
+      "ladder_arm": "str",
+      "rungs_cap": "int"
     }
   },
-  "goal": "Ridge impute-indicate re-run: sentiment, implied_vol, vol_demand with the apply_overnight_fills (1.0-fill off) + impute-and-indicate fixes \u2014 full-sample comparable QLIKE vs HAR 0.13460",
+  "goal": "sweep over different bases of the HAR ladder and one with {1,8,48,240,960}; ladder construction is rungs to a cap, with a sweep of the cap too; citable numbers: QLIKE per ladder-arm x cap vs the incumbent under the usual estimator, full battery with DM vs incumbent; OLS-HAR base-5 anchor as a familiar baseline. No scope tags.",
+  "packs": [
+    {
+      "manifest": "packs/rv/manifest.json",
+      "pack": "rv",
+      "receipt_bindings": []
+    }
+  ],
   "produced_by": {
-    "kind": "human",
-    "operator": "jamesdchen"
+    "kind": "agent",
+    "session_sha": "9322a42afd3201a6e84d0f43d8072c6c1e0a639d797e7ea92bd60d5337789cc7"
   },
-  "task_count": 3,
+  "task_count": 2100,
   "task_generator": {
-    "kind": "enumerated",
+    "kind": "chunked_series",
     "params": {
-      "items": [
-        {
-          "config": "configs/imp_sentiment.yaml"
-        },
-        {
-          "config": "configs/imp_implied_vol.yaml"
-        },
-        {
-          "config": "configs/imp_vol_demand.yaml"
-        }
-      ]
+      "chunks": 100,
+      "extra_axes": {
+        "ladder_arm": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "explicit"
+        ],
+        "rungs_cap": [
+          240,
+          960,
+          3125
+        ]
+      },
+      "halo": 24000,
+      "series_length": 242934,
+      "start": 0
     }
   }
 }

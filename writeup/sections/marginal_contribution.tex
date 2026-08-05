@@ -1,0 +1,219 @@
+\section{Where the Information Lives}
+\label{sec:marginal}
+
+With the backbone fixed, we measure what exogenous information adds to it. The
+measurement is made inside a single model class so that attribution is never
+confounded with model capacity: Section~\ref{sec:linvsnonlin} varies the class
+with the information set held fixed, and this section does the reverse.
+
+\subsection{Benchmark Debt}
+\label{sec:benchmark_debt}
+
+Section~\ref{sec:powerlaw} established that the shared incumbent---OLS on the
+base-5 HAR ladder plus calendar, QLIKE $0.13415$---is beaten by the same
+estimator on a base-2 ladder, QLIKE $0.13332$, at DM $t = -10.6$. That gap of
+$0.00082$ involves no additional information, no change of model class, and no
+tuning. It is pure quadrature error in the benchmark.
+
+We state the consequence before reporting any increment, because it applies to
+all of them. Every $\Delta$QLIKE in this section and in
+Section~\ref{sec:linvsnonlin} is measured against the base-5 incumbent, and
+therefore \emph{includes} that $0.00082$ of backbone misspecification as though
+it were exogenous or nonlinear content. For the smaller effects this is not a
+correction but a reclassification: the market-equal-weighted bucket's apparent
+$0.00096$ gain is, against a correctly specified linear backbone, on the order
+of the quadrature error itself.
+
+The correct remedy is to re-run the bucket battery on the base-2 backbone so
+that the panel, the benchmark and the ladder convention are unified.
+\pending{bucket battery on the b2 backbone; this is a correctness prerequisite,
+not a robustness extension, and until it lands every increment in
+Tables~\ref{tab:buckets} and~\ref{tab:class} should be read as an upper bound
+carrying $0.00082$ of benchmark debt}
+
+Two mitigating observations. First, the debt is a constant additive offset
+shared by every arm, so \emph{orderings} within a table are unaffected; it is
+levels and the significance of the smallest effects that move. Second, the
+largest effects in the paper---the joint exogenous gain of $0.00627$ and the
+model-class results of Section~\ref{sec:linvsnonlin}---survive the correction
+comfortably, while the bottom half of Table~\ref{tab:buckets} does not survive
+it cleanly.
+
+\subsection{Every Bucket Helps, and They Heavily Overlap}
+\label{sec:buckets}
+
+Table~\ref{tab:buckets} reports the causally tuned ridge arm on each of the
+eight exogenous buckets, on the shared panel, against the shared incumbent.
+Ridge is the attribution instrument: it is the dense-shrinkage estimator that
+Section~\ref{sec:linvsnonlin} shows to be the appropriate linear response to
+this regime, and holding it fixed while varying the information set isolates
+information from capacity.
+
+\begin{table}[H]
+\centering
+\caption{Bucket attribution. Causally tuned ridge on each exogenous bucket,
+shared panel ($n = 218{,}934$), identical rows for every cell. $\Delta$ is
+measured against the shared incumbent (OLS HAR base-5 $+$ calendar,
+$0.13415$) and carries the benchmark debt of Section~\ref{sec:benchmark_debt}.
+$\Delta_{\text{own}}$ is measured against the same estimator's own no-exogenous
+baseline ($0.13445$), which is the correct within-class increment. Negative DM
+$t$ favours the bucket arm.}
+\label{tab:buckets}
+\begin{tabular}{lrrrr}
+\toprule
+Bucket & QLIKE & $\Delta$ vs.\ incumbent & $\Delta_{\text{own}}$ & DM $t$ \\
+\midrule
+all\_features (joint) & \textbf{0.12788} & $-0.00627$ & $-0.00657$ & $-19.9$ \\
+\midrule
+moments          & 0.13085 & $-0.00331$ & $-0.00360$ & $-19.2$ \\
+liquidity        & 0.13120 & $-0.00295$ & $-0.00325$ & $-13.4$ \\
+implied\_vol     & 0.13252 & $-0.00163$ & $-0.00193$ & $-11.3$ \\
+market\_vw       & 0.13291 & $-0.00125$ & $-0.00154$ & $-9.1$ \\
+market\_ew       & 0.13319 & $-0.00096$ & $-0.00126$ & $-7.2$ \\
+vol\_demand      & 0.13337 & $-0.00078$ & $-0.00108$ & $-4.1$ \\
+sentiment        & 0.13347 & $-0.00068$ & $-0.00098$ & $-5.7$ \\
+\midrule
+(no exogenous)   & 0.13445 & $+0.00030$ & --- & $+5.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two facts organise the table.
+
+\paragraph{Every bucket improves on the backbone, decisively.} All seven
+singleton buckets carry DM $t$ between $-4.1$ and $-19.2$. Taken individually
+these are overwhelming; Section~\ref{sec:multiplicity} explains why that is
+less impressive than it looks.
+
+\paragraph{The buckets overlap almost completely.} Summing the seven
+within-class increments gives $0.01364$, against a joint increment of
+$0.00657$: a ratio of $2.08$. \emph{The sum of the parts is roughly twice the
+whole.} The same computation on the causally tuned LightGBM arm gives $2.24$,
+so the redundancy is a property of the information rather than of the linear
+estimator.
+
+We note a trap here that the earlier drafts of this analysis fell into. If the
+overlap ratio is computed against the \emph{shared incumbent} rather than each
+estimator's own baseline, every bucket's increment silently includes that
+estimator's model-class premium, and the ratio inflates---to $3.98$ for
+LightGBM, against its true $2.24$. Overlap ratios must be computed within
+class.
+
+The practical reading is that the eight buckets are eight noisy views of a
+small number of underlying states, not eight independent information sources.
+This is the same fact as the dense-but-weak finding of
+Section~\ref{sec:dense_weak}, observed one level up, and it is what the
+low-rank operator structure of Section~\ref{sec:hawkes} would predict.
+
+\subsection{Block Attribution}
+\label{sec:fwl}
+
+A Frisch--Waugh--Lovell block decomposition assigns each block its Type-III
+unique contribution---its gain net of everything else in the design.
+
+\begin{table}[H]
+\centering
+\caption{FWL block attribution of the linear base. Each entry is the block's
+unique contribution net of all other blocks. \textbf{Panel note:} this
+decomposition was computed on the earlier base-5 exogenous cache (full fit
+QLIKE $0.12314$) and is \emph{not} on the frozen battery panel; it is reported
+here for its structure, not for level comparability with
+Table~\ref{tab:buckets}.}
+\label{tab:fwl}
+\begin{tabular}{lrr}
+\toprule
+Block & Columns & Unique contribution \\
+\midrule
+HAR backbone                  & 6   & $-0.02208$ \\
+Exogenous                     & 359 & $-0.00449$ \\
+Regime (HAR $\times$ \{open, close\}) & --- & $-0.00225$ \\
+\texttt{cumrv} (engineered)   & 1   & $-0.00122$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The backbone accounts for 96\% of explainable variance ($R^2 = 0.594$ of
+$0.617$ for the full fit). Everything built on top of it is small. The
+per-feature comparison is the one the attribution literature would find
+striking: the single engineered path feature \texttt{cumrv} contributes
+$-0.00122$ on its own, while the 359-column raw exogenous block contributes
+$-0.00449$ in total, or $1.25 \times 10^{-5}$ per column---a factor of
+\begin{equation}
+  \frac{0.00122 / 1}{0.00449 / 359} \;\approx\; 97.5
+  \label{eq:per_feature}
+\end{equation}
+in favour of one mechanism-targeted measurement over piling on raw series.
+
+We show the arithmetic because per-feature normalisation is easy to abuse. Two
+caveats belong with the number. First, dividing a block's \emph{unique}
+(post-FWL) contribution by its column count penalises internal redundancy
+twice: the exogenous block is heavily collinear, so its Type-III contribution
+is small precisely because its members substitute for one another, and then
+that small number is divided by the large count that caused the substitution.
+Second, \texttt{cumrv} was engineered \emph{after} inspecting this panel,
+whereas the raw exogenous series were not; the comparison is between a
+searched-for feature and an unsearched block. The honest claim is directional:
+mechanism-targeted measurement is far more efficient per column than
+indiscriminate accumulation of price-derived series. The factor of 97.5 should
+not be quoted as an effect size.
+
+\paragraph{Discrepancy note.} An earlier internal memo records this ratio as
+``$\sim$27$\times$''. Recomputing from the block contributions above gives
+$97.5$. The memo figure appears to be an error and should not be propagated.
+
+\subsection{The Model Confidence Set Over Feature Sets}
+\label{sec:mcs}
+
+Earlier drafts asserted that the 90\% model confidence set
+\citep{HansenLundeNason2011} over the nine feature sets is the singleton
+containing the joint bucket. \textbf{We withdraw that claim.} A model
+confidence set requires the arms' per-bar loss series, which were not retained
+for the battery, so the assertion was never supported by a computed set;
+Section~\ref{sec:mcs_results} reports the confidence sets we \emph{can}
+compute, on the campaign tile, where they behave quite differently.
+\pending{battery MCS over the nine feature sets once per-bar losses are
+persisted}
+
+Two interpretive cautions will survive the eventual computation. First, with
+$n = 218{,}934$ bar-level loss differentials an MCS has enormous power, and
+collapsing to a singleton is close to the default outcome whenever one arm is
+even slightly and systematically ahead; such a result would mean ``the joint
+bucket is not statistically tied with any singleton bucket'', not ``the joint
+bucket is the only useful feature set''---a distinction
+Table~\ref{tab:buckets}'s overlap ratio already makes on economic grounds.
+Second, the tile results run the other way: at $n = 2{,}189$ the MCS retains
+123 of 161 arms and all 20 of the best. Sample size, not model quality, drives
+how discriminating a confidence set looks, and neither extreme should be
+reported without the other.
+
+\subsection{Multiplicity}
+\label{sec:multiplicity}
+
+Every DM statistic in Table~\ref{tab:buckets} is computed against one shared
+comparator, and the full battery from which the table is drawn contains 98
+arms, all compared to the same incumbent, with the best reported as the
+headline. No multiplicity adjustment is applied anywhere in this paper.
+
+Section~\ref{sec:multiplicity_results} now measures the cost. Across all 97
+testable arms, 93 are significant at an unadjusted $p < 0.05$; Holm--Bonferroni
+leaves 91 and Benjamini--Hochberg leaves 93. Every bucket effect in
+Table~\ref{tab:buckets} survives Holm, including \texttt{vol\_demand} at
+$t = -4.1$, whose raw $p = 4.3 \times 10^{-5}$ becomes $4.2 \times 10^{-3}$
+after correction. Multiple testing is therefore not what threatens the bottom
+of this table---the benchmark debt of Section~\ref{sec:benchmark_debt} is, and
+that threat is unaffected by any $p$-value adjustment. Of the two arms in the
+whole battery that do lose significance under Holm, one is the marginal
+\texttt{reclasso/sentiment} arm and the other a base-5 ladder cap variant;
+neither carries a claim in this paper.
+
+\subsection{Where the Attribution Points}
+\label{sec:attribution_points}
+
+The attribution results point outward rather than inward. The backbone carries
+almost all of the explainable variance; the exogenous block adds a real but
+small increment that is heavily redundant internally; and a single feature
+built to measure a specific intraday mechanism outperforms the raw block on a
+per-column basis by a wide margin. The implied next investment is not a larger
+model but mechanism-targeted data---auction imbalance, order flow, and dealer
+positioning aligned to the session transitions where
+Sections~\ref{sec:clock} and~\ref{sec:saturation} both locate the structure.

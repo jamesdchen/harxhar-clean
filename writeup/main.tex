@@ -11,8 +11,20 @@
 \usepackage{float}
 \usepackage{subcaption}
 \usepackage{multirow}
+\usepackage{xcolor}
 
-\title{Attention-Based Realized Volatility Forecasting}
+% Compile-safe figure slot: renders the image if it exists, else a labelled "pending" box.
+\providecommand{\treefigorpending}[2]{%
+  \IfFileExists{#2}{\includegraphics[width=#1]{#2}}%
+                   {\fbox{\parbox[c][1.5cm][c]{#1}{\centering\itshape pending: \detokenize{#2}}}}%
+}
+
+% Visible marker for any quantity not yet verified against the frozen battery.
+% Every occurrence must be resolved or removed before submission; grep for \pending.
+\newcommand{\pending}[1]{\textcolor{red}{\textbf{[pending: #1]}}}
+
+\title{Forecasting Intraday Realized Variance with a Dense but Weak Signal:\\
+Kernel Backbone, Attribution, Model Class, and Algorithm Design}
 \author{}
 \date{\today}
 
@@ -26,13 +38,17 @@
 
 \input{sections/introduction}
 \input{sections/related_work}
-\input{sections/methodology}
 \input{sections/data}
-% Master table now lives in writeup/master_table_doc.tex (build separately with pdflatex master_table_doc).
-\input{sections/results}
-\input{sections/meeting_update}
-\input{sections/tree_story}
-\input{sections/discussion}
+\input{sections/stale_data}
+\input{sections/methodology}
+\input{sections/descriptive_analysis}
+\input{sections/marginal_contribution}
+\input{sections/linear_vs_nonlinear}
+\input{sections/algorithm_design}
+\input{sections/era_stability}
+\input{sections/inference}
+\input{sections/ledger}
+\input{sections/limitations}
 \input{sections/conclusion}
 
 \bibliographystyle{plainnat}

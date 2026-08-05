@@ -1,0 +1,23 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+[pt_h16] inc done (1s)
+[pt_h16] inc          qlike=0.112560 mz=0.984
+[pt_h16] inc_vix done (0s)
+[pt_h16] inc_vix       qlike=0.113623 mz=0.905 vs inc diff=+0.00106 p=0.0021
+[pt_h16] inc_shape done (1s)
+[pt_h16] inc_shape     qlike=0.107636 mz=0.943 vs inc diff=-0.00492 p=0.0000
+[pt_h16] inc_vix_shape done (1s)
+[pt_h16] inc_vix_shape qlike=0.108601 mz=0.878 vs inc diff=-0.00396 p=0.0005
+[pt_h16] full2block done (951s)
+[pt_h16] full u1e4       qlike=0.109118 mz=0.988 vs inc diff=-0.00344 p=0.0148
+[pt_h16] full h0_e10000  qlike=0.108810 mz=0.992 vs inc diff=-0.00375 p=0.0032
+[pt_h16] full h0_e100000 qlike=0.108658 mz=0.997 vs inc diff=-0.00390 p=0.0000
+[pt_h16] full h100_e10000 qlike=0.107709 mz=0.987 vs inc diff=-0.00485 p=0.0001
+[pt_h16] full h100_e100000 qlike=0.107569 mz=0.994 vs inc diff=-0.00499 p=0.0000
+[pt_h16] best 2-block: h100_e100000
+[pt_h16] fullbest_shape done (194s)
+[pt_h16] full_best+shape      qlike=0.102967 mz=0.972 vs inc diff=-0.00959 p=0.0000
+[pt_h16] fullbest_vix_shape done (144s)
+[pt_h16] full_best+vix+shape  qlike=0.103861 mz=0.889 vs inc diff=-0.00870 p=0.0000
+[pt_h16] W12000 done (122s)
+[pt_h16] full W=12000 qlike=0.109326 mz=0.939 vs inc diff=-0.00323 p=0.0576
+[pt_h16] DONE

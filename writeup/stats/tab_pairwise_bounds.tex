@@ -1,0 +1,28 @@
+\begin{table}[H]
+\centering
+\caption{Pairwise model-class inference on the frozen battery, from the
+reported HAC standard errors alone. For arms sharing an incumbent the
+pairwise differential is exactly $L_A-L_B$, whose standard error is bounded
+above by $se_A+se_B$ regardless of the correlation between the two arms'
+differentials; the resulting $|t|$ is therefore a \emph{lower bound} and the
+$p$ an \emph{upper bound}. A tighter bound assuming the two arms'
+improvements co-move ($\rho\ge 0$) is reported in the text; it does not
+change any verdict. Holm adjustment is applied across the nine matched
+comparisons. Negative $t$ favours the tree.}
+\label{tab:pairwise_bounds}
+\begin{tabular}{lrrrrl}
+\toprule
+Feature set & $\Delta$QLIKE & $|t|\ge$ (free) & $p\le$ (free) & $p_{\text{Holm}}\le$ & Verdict \\
+\midrule
+\texttt{all\_features} & -0.00184 & 2.19 & 0.029 & 0.029 & tree better \\
+\texttt{moments} & -0.00269 & 3.82 & $1.4\times 10^{-4}$ & $4.1\times 10^{-4}$ & tree better \\
+\texttt{liquidity} & -0.00281 & 4.59 & $4.5\times 10^{-6}$ & $2.3\times 10^{-5}$ & tree better \\
+\texttt{market\_vw} & -0.00327 & 5.91 & $3.4\times 10^{-9}$ & $3.1\times 10^{-8}$ & tree better \\
+\texttt{vol\_demand} & -0.00358 & 5.71 & $1.1\times 10^{-8}$ & $9.1\times 10^{-8}$ & tree better \\
+\texttt{implied\_vol} & -0.00252 & 3.73 & $1.9\times 10^{-4}$ & $4.1\times 10^{-4}$ & tree better \\
+\texttt{sentiment} & -0.00310 & 5.27 & $1.4\times 10^{-7}$ & $8.3\times 10^{-7}$ & tree better \\
+\texttt{market\_ew} & -0.00281 & 4.17 & $3.0\times 10^{-5}$ & $1.2\times 10^{-4}$ & tree better \\
+\texttt{baseline} & -0.00327 & 5.54 & $3.0\times 10^{-8}$ & $2.1\times 10^{-7}$ & tree better \\
+\bottomrule
+\end{tabular}
+\end{table}

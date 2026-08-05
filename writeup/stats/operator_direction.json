@@ -1,0 +1,81 @@
+{
+  "n_scored": 85002,
+  "arms": {
+    "v estimated in-window": {
+      "lambda": 1000000000.0,
+      "test_qlike": 0.17112324972653228,
+      "test_mse": 5.6661743081450594e-11
+    },
+    "v frozen from early SVD": {
+      "lambda": 100000.0,
+      "test_qlike": 0.20902183083296977,
+      "test_mse": 4.5644412313857903e-10
+    },
+    "v = rung^-0.5": {
+      "lambda": 100000000.0,
+      "test_qlike": 0.14980466009330626,
+      "test_mse": 4.65283596916804e-11
+    },
+    "v = rung^-1.0": {
+      "lambda": 100000000.0,
+      "test_qlike": 0.14877819429738123,
+      "test_mse": 4.7869583069749566e-11
+    },
+    "v = rung^-1.5": {
+      "lambda": 10000000.0,
+      "test_qlike": 0.17496359192499536,
+      "test_mse": 4.8611628694635424e-11
+    },
+    "rank2 frozen SVD": {
+      "lambda": 1000000.0,
+      "test_qlike": 0.19942743473879695,
+      "test_mse": 5.747258111448072e-11
+    },
+    "rank2 imposed": {
+      "lambda": 100000000.0,
+      "test_qlike": 0.1504167593568601,
+      "test_mse": 4.539933027157547e-11
+    }
+  },
+  "dm_vs_in_window": {
+    "v frozen from early SVD": {
+      "diff": 0.03789858110643749,
+      "t": 7.325545693739737,
+      "p": 2.400265801316744e-13
+    },
+    "v = rung^-0.5": {
+      "diff": -0.021318589633226047,
+      "t": -10.662788196060829,
+      "p": 1.5796063838663495e-26
+    },
+    "v = rung^-1.0": {
+      "diff": -0.0223450554291511,
+      "t": -11.004427484771579,
+      "p": 3.8010840405898344e-28
+    },
+    "v = rung^-1.5": {
+      "diff": 0.0038403421984630538,
+      "t": 0.6615078137425329,
+      "p": 0.5082884983951556
+    },
+    "rank2 frozen SVD": {
+      "diff": 0.028304185012264647,
+      "t": 4.904679380020578,
+      "p": 9.375250415244217e-07
+    },
+    "rank2 imposed": {
+      "diff": -0.020706490369672204,
+      "t": -10.958533657483613,
+      "p": 6.313316663969785e-28
+    }
+  },
+  "v1_consecutive_cos_mean": 0.8932861949874052,
+  "v1_consecutive_cos_min": 0.001990044351506809,
+  "frozen_sv_share": [
+    0.3328368145068919,
+    0.22506344324469277,
+    0.20078497928828606,
+    0.08410669115995564
+  ],
+  "verdict": "FREEZING IS NOT ENOUGH: the early-block direction performs like the   re-estimated one, so the leading direction is genuinely non-stationary and   an imposed shape is doing something the data's own direction cannot."
+}

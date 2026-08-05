@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/05b_dl_executor.ipynb. Do not edit by hand.
-
 """Shared DL-executor boilerplate.
 
 Pulled out of `src/models/ae_ridge.py` and `src/models/patchts.py`; both

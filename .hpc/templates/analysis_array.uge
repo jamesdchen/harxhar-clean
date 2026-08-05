@@ -1,0 +1,20 @@
+#!/bin/bash
+# Hoffman2 (UCLA) runs Univa Grid Engine, not SLURM -- qsub with -t for arrays
+# and SGE_TASK_ID, one-based, where SLURM is zero-based.  taskrunner --manifest
+# prints both bounds so the wrong one cannot be used silently.
+#$ -cwd
+#$ -o logs/$JOB_NAME.$TASK_ID.out
+#$ -j y
+#$ -l h_rt=4:00:00,h_data=12G
+#$ -pe shared 4
+set -euo pipefail
+. /u/local/Modules/default/init/modules.sh
+module load anaconda3
+conda activate "${CONDA_ENV:-harxhar}"
+cd "${REMOTE_PATH:-$SGE_O_WORKDIR}"
+export PYTHONPATH="$PWD"
+export OMP_NUM_THREADS="${NSLOTS:-4}"
+# SGE_TASK_ID is 1-based; taskrunner is 0-based.
+python analysis/taskrunner.py --run "${RUN:-cadence_x_design}" \
+                              --phase "${PHASE:-walk}" \
+                              --task-id "$((SGE_TASK_ID - 1))"

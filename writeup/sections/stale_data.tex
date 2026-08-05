@@ -1,0 +1,195 @@
+\section{Stale Data as the Dominant Effect}
+\label{sec:stale_data}
+
+This section reports the largest effect in the paper. It is not a modelling
+effect. A single exogenous feed stopped publishing partway through the sample,
+the pipeline did not notice, and the resulting artefact was worth more than
+every model-class, basis, penalty and shrinkage decision reported elsewhere in
+this study combined---by three orders of magnitude on the affected window and
+by roughly a factor of ten pooled over twenty years.
+
+We report it as a finding rather than as a correction because the failure is
+invisible to ordinary practice. No test fails. No value is missing. Nothing is
+infinite or negative. The pipeline produces a dense, finite, plausibly-scaled
+design matrix throughout, and the defect is detectable only by comparing the
+pipeline's own bookkeeping against the raw inputs it came from---a comparison
+that, so far as we can determine, is not standard.
+
+\subsection{What Happened}
+
+The panel is a 30-minute grid spanning 2005-01-02 to 2024-04-30, covering
+Sunday 18:30 through Friday 20:00---approximately 24 hours a day, five days a
+week. The 41 exogenous channels are not all published on that grid. Most are
+US cash- or extended-session equity quantities, and each prints only inside its
+own session. Table~\ref{tab:calendars} gives the measured print rates against
+the session width each channel's own publication times imply.
+
+\begin{table}[t]
+\centering
+\caption{Raw print rate against implied session width, by channel group. A
+channel that publishes only inside its own session is correctly unavailable for
+most of a near-24-hour grid; the two columns agree throughout, so the panel's
+sparsity is a calendar, not a defect.}
+\label{tab:calendars}
+\begin{tabular}{lrrl}
+\toprule
+group & $n$ & print rate & session \\
+\midrule
+index bar quantities & 9 & 0.980 & 24h \\
+equity (\texttt{*\_ewstock}, \texttt{*\_vwstock}) & 22 & 0.623 & 04:30--20:00 (0.667) \\
+social media & 3 & 0.66--0.75 & 24h, later start \\
+\texttt{vix}, \texttt{vix3m}, \texttt{vvix} & 3 & 0.16--0.35 & 10:00--16:30 (0.292) \\
+volatility demand & 4 & 0.220 & 10:00--19:00 (0.354) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Averaged across the 41 channels, $0.638$ of panel rows carry a genuine print.
+The remaining $0.362$ must be filled, and the pipeline filled them by carrying
+the last observed value forward without limit.
+
+The volatility-demand family stops publishing on 2023-08-31. The panel
+continues for a further $8{,}453$ bars, $3.44\%$ of the sample. Across all four
+of its channels the print rate through October 2023 is exactly $0.000$. The
+unlimited fill carried a value from the final August print across the following
+eight months, and---because the availability indicator was computed
+\emph{after} the fill rather than before it---labelled every one of those bars
+as observed. Measured on the family: raw coverage $0.2197$, indicator mean
+$0.6983$.
+
+Three further feeds terminate the same way. \texttt{vix}, \texttt{vix3m} and
+\texttt{vvix} each stop on 2024-02-12, leaving $2{,}745$ to $2{,}747$ dead bars
+apiece inside the evaluation region. We did not identify these until we
+constructed the calendar check described below, and no result in the earlier
+literature on this panel accounts for them.
+
+\subsection{Why One Ordering Error Defeated Three Guards}
+
+Computing the indicator after the fill is a single line's worth of ordering,
+and it disabled every protection the pipeline already carried.
+
+The impute-and-indicate median substitution never fired, because the forward
+fill had left no missing value to substitute for. The model could not
+distinguish a fresh print from an eight-month-old one, the indicator reading
+$\approx 1$ in both cases. And the scale guard---which floors each feature's
+rolling interquartile range at an expanding IQR taken over its \emph{real}
+values---computed that floor over the forward-filled constants, so the floor
+was itself degenerate.
+
+That last failure is the one that converts a stale feature into a destructive
+one. Features are expressed in rolling-IQR units. A frozen series has no
+dispersion, so its rolling IQR collapses toward zero, and the division that
+standardises the feature is then a division by nearly nothing. The
+volatility-demand columns reach $2{,}260$ rolling IQRs. The series had not
+moved; the denominator had vanished.
+
+\subsection{What It Cost}
+
+On the October 2023 window the ridge fit on the full 504-feature design
+attains QLIKE $6.37170$. On the same window with the defect repaired it attains
+$0.12391$, against a backbone of $0.12823$ that is unaffected either way. The
+forecast was one to two orders of magnitude below the realised value, and $27$
+bars out of $27{,}376$ carry $47\%$ of the only catastrophic exogenous failure
+in the twenty-year sample.
+
+Pooled over the whole panel the exogenous block's era-8 deficit against the
+backbone moves from $+0.03321$ to $-0.00332$. Every genuine modelling effect
+reported in this paper lies between $0.0005$ and $0.004$.
+
+The consequence for our own earlier conclusions is severe enough to state
+plainly. Model comparisons run on the uncorrected panel were scored partly on
+how far each design happened to \emph{dilute} the corrupted channel. A design
+that contracts each channel's twelve rungs to a single amplitude attenuates it
+by a factor of twelve, and duly appeared to win; the raw parameterisation
+carried it faithfully, and duly appeared to lose. On the corrected panel the
+ordering reverses. We had drafted a version of this paper around the former
+result. Section~\ref{sec:ledger} records it and thirteen other withdrawn
+claims.
+
+\subsection{The Check That Catches It}
+
+The defect is recoverable from one comparison, which we now run as a gate on
+every built cache:
+
+\begin{quote}
+For each channel, the mean of the availability indicator the pipeline
+constructed must equal the fraction of rows on which the raw feed actually
+printed.
+\end{quote}
+
+On the uncorrected panel this fails for $31$ of $41$ channels; on the
+volatility-demand family it reads $0.698$ against $0.223$. The check requires
+no model, no held-out data and no threshold tuning---the two quantities are
+estimates of the same number, and any gap is the bug or one like it. We
+recommend it as standard for any mixed-frequency panel in which exogenous
+series are filled.
+
+We report four further artefact-level invariants alongside it---scale collapse
+measured over live rows, staleness as the longest run of exact repetition,
+imputation share, and finiteness with a magnitude summary. Table~\ref{tab:invariants}
+gives the violation counts across build stages.
+
+\begin{table}[t]
+\centering
+\caption{Artefact invariant violations by build stage, 41 channels. Class A is
+the availability check above; class B is scale collapse over live rows; class D
+records channels more than half imputed, which is a property of the data rather
+than a defect and is reported rather than repaired.}
+\label{tab:invariants}
+\begin{tabular}{lrrr}
+\toprule
+& uncorrected & availability fix & \textbf{composed fix} \\
+\midrule
+A availability honesty & 31 & 0 & \textbf{0} \\
+B scale collapse & 0 & 10 & \textbf{1} \\
+D imputation share & 7 & 7 & 7 \\
+\midrule
+worst channel, rolling IQRs & 2260.4 & 336.5 & \textbf{96.2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Fix Is an Interaction}
+
+The repair has two halves, and neither works alone. This is the part we would
+have missed had we not been forced to measure each separately.
+
+Recording availability before the fill---the honest indicator---changes no
+feature \emph{value}. It corrects the bookkeeping and leaves the corrupted
+column exactly as it was. Estimating each feature's location and scale from
+observed rows only, without also repairing the values, leaves the
+volatility-demand family unchanged at $2{,}260$ rolling IQRs. Substituting a
+neutral median on unobserved rows \emph{without} masked estimation is actively
+harmful: it replaces varying stale values with a constant, which collapses the
+rolling IQR of a densely-observed channel and takes \texttt{effspread\_vwstock}
+from $17.6$ to $932.6$.
+
+Composed, they take the worst channel from $2{,}260.4$ to $6.7$. Three separate
+attempts at this repair failed before we tested the two-by-two, each because it
+shipped one half.
+
+A third component proved necessary once the first two were in place. With
+availability recorded honestly, a channel's scale is estimated from observed
+rows only---and in a feed's opening weeks there are few of those. The estimator
+accepted a median and IQR from as few as eight observations, so a quiet opening
+fortnight set the scale for everything that followed. Each newly-affected
+channel's worst value sits 13 to 116 days after its feed's \emph{first} print:
+a feed-initiation transient, the same defect family as the termination bug at
+the opposite end of a feed's life. Requiring $512$ observations before a scale
+is trusted, and flooring the IQR at $1\%$ of the largest scale the channel has
+shown, takes the worst channel from $336.5$ to $96.2$ and class-B violations
+from $10$ to $1$.
+
+\subsection{What This Implies for Practice}
+
+The general statement is that a fill policy is a modelling choice, and in this
+setting it is the dominant one. At any given bar, $36\%$ of the exogenous
+design is not a measurement but an echo of an earlier one; on the sparsest
+channels the figure is $78\%$. A model handed those columns without an honest
+indicator is fitting the fill policy, not the market, and it cannot tell the
+difference because nothing in the design distinguishes them.
+
+We therefore report the ordering of effects we actually measured, which inverts
+the usual emphasis: the representation of missing and stale data dominates,
+protocol choices come next, and the model class---the subject of most of the
+literature this paper engages with, and of most of our own effort---comes last.

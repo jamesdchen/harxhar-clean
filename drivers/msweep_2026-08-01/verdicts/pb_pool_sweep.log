@@ -1,0 +1,7 @@
+[pb] e1         qlike=0.168514 mz=0.923 p=257 | vs hybrid_dp diff=+0.00337 p=0.0399 (134s)
+[pb] e3         qlike=0.168278 mz=0.898 p=257 | vs hybrid_dp diff=+0.00313 p=0.0075 (148s)
+[pb] e5         qlike=0.166668 mz=0.903 p=257 | vs hybrid_dp diff=+0.00152 p=0.0210 (149s)
+[pb] e20        qlike=0.165331 mz=0.912 p=257 | vs hybrid_dp diff=+0.00019 p=0.5436 (126s)
+[pb] c120e20    qlike=0.165066 mz=0.931 p=257 | vs hybrid_dp diff=-0.00008 p=0.7681 (298s)
+[pb] c480e5     qlike=0.164946 mz=0.915 p=257 | vs hybrid_dp diff=-0.00020 p=0.2015 (87s)
+[pb] DONE

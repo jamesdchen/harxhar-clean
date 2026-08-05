@@ -85,6 +85,17 @@ class RollingLeastSquares:
         self._sx += x_in - x_out
         self._sy += float(y_in) - float(y_out)
 
+    def grow(self, x_in: np.ndarray, y_in: float) -> None:
+        """Add one row WITHOUT dropping — the window grows by one. ``O(p²)``. Use while the
+        training window is still filling to full size (a rank-1 add), instead of an ``O(W·p²)``
+        ``init_window`` rebuild every bar; ``roll`` handles steady state once the window is full."""
+        x_in = np.asarray(x_in, dtype=np.float64)
+        self._Sxx += np.outer(x_in, x_in)
+        self._Sxy += x_in * y_in
+        self._sx += x_in
+        self._sy += float(y_in)
+        self.n += 1
+
     def solve(self) -> None:
         """Refresh coefficients from the current sufficient statistics. ``O(p³)``."""
         n = self.n

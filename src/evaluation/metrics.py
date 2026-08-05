@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/03_evaluation.ipynb. Do not edit by hand.
-
 """Evaluation metrics and Duan smearing for volatility forecasts.
 
 Standalone module — no imports from core/ or projects/.
@@ -11,7 +9,9 @@ import numpy as np
 import pandas as pd
 
 
-def winsorize_array(arr: np.ndarray, lower_q: float = 0.05, upper_q: float = 0.95) -> np.ndarray:
+def winsorize_array(
+    arr: np.ndarray, lower_q: float = 0.05, upper_q: float = 0.95
+) -> np.ndarray:
     """Clip values to [lower_q, upper_q] percentile bounds."""
     lo = np.percentile(arr, lower_q * 100)
     hi = np.percentile(arr, upper_q * 100)
@@ -122,7 +122,9 @@ def save_chunk_reduce(df: pd.DataFrame, output_file: str) -> str:
 
     true_raw = np.asarray(df["true_raw"].values, dtype=np.float64)
     pred_raw = np.asarray(df["pred_raw"].values, dtype=np.float64)
-    err_adj = np.asarray(df["true_adj"].values, dtype=np.float64) - np.asarray(df["pred_adj"].values, dtype=np.float64)
+    err_adj = np.asarray(df["true_adj"].values, dtype=np.float64) - np.asarray(
+        df["pred_adj"].values, dtype=np.float64
+    )
 
     mask = (true_raw > 0) & (pred_raw > 0)
     if mask.any():
@@ -238,6 +240,61 @@ def mz_regression(y: np.ndarray, yhat: np.ndarray) -> dict:
     }
 
 
+def forecast_metrics(pred_raw, true_raw, benchmark=None) -> dict:
+    """Battery of OOS forecast-evaluation metrics on the RAW-VARIANCE scale.
+
+    Parameters
+    ----------
+    pred_raw, true_raw : raw-variance forecasts / realizations (Duan-smeared, as the ablations report).
+    benchmark : OOS-R2 reference forecast. Default = the OOS mean of ``true_raw`` (Campbell-Thompson);
+        pass an array (e.g. HAR forecasts) for a model-relative OOS-R2.
+
+    Returns
+    -------
+    dict: qlike (Patton-robust, primary), mse/rmse/mae (raw-variance error moments), hmse/hmae
+    (heteroskedasticity-adjusted, Patton: true/pred - 1), oos_r2 (1 - SS_res/SS_bench), mz_beta/mz_r2
+    (Mincer-Zarnowitz calibration slope + fit R2), n. NB raw-variance mse/mae are scale-sensitive
+    (covid dominates); qlike / hmse / oos_r2 are the level-robust ones.
+    """
+    p = np.asarray(pred_raw, dtype=np.float64)
+    t = np.asarray(true_raw, dtype=np.float64)
+    fin = np.isfinite(p) & np.isfinite(t)
+    p, t = p[fin], t[fin]
+    err = t - p
+    mse = float(np.mean(err**2))
+    mae = float(np.mean(np.abs(err)))
+    bench = (
+        np.full_like(t, t.mean())
+        if benchmark is None
+        else np.asarray(benchmark, dtype=np.float64)[fin]
+    )
+    ss_res = float(np.sum(err**2))
+    ss_bench = float(np.sum((t - bench) ** 2))
+    oos_r2 = 1.0 - ss_res / ss_bench if ss_bench > 0 else float("nan")
+    m = (p > 0) & (t > 0)
+    if m.any():
+        r = t[m] / p[m]
+        qlike = float(np.mean(r - np.log(r) - 1.0))
+        hmse = float(np.mean((r - 1.0) ** 2))
+        hmae = float(np.mean(np.abs(r - 1.0)))
+        mz = mz_regression(t[m], p[m])
+        mz_beta, mz_r2 = mz["beta"], mz["r2"]
+    else:
+        qlike = hmse = hmae = mz_beta = mz_r2 = float("nan")
+    return {
+        "qlike": qlike,
+        "mse": mse,
+        "rmse": float(np.sqrt(mse)),
+        "mae": mae,
+        "hmse": hmse,
+        "hmae": hmae,
+        "oos_r2": oos_r2,
+        "mz_beta": mz_beta,
+        "mz_r2": mz_r2,
+        "n": int(t.size),
+    }
+
+
 def qlike_by_slot(df: pd.DataFrame) -> pd.DataFrame:
     """QLIKE stratified by 30-minute intraday slot (0..47).
 
@@ -307,14 +364,22 @@ def plot_mz_scatter(
     # Mainstream regression-axis convention: regressor (ŷ) on horizontal,
     # regressand (y) on vertical. Direct read-off: the fitted line is
     # vertical = α + β·horizontal.
-    ax.scatter(yhat, y, s=point_size, alpha=point_alpha, rasterized=True, color="steelblue")
+    ax.scatter(
+        yhat, y, s=point_size, alpha=point_alpha, rasterized=True, color="steelblue"
+    )
 
     lo = float(min(y.min(), yhat.min()))
     hi = float(max(y.max(), yhat.max()))
     grid = np.array([lo, hi])
 
     mz_line = mz["alpha"] + mz["beta"] * grid
-    ax.plot(grid, mz_line, color="red", lw=1.5, label=f"MZ fit: y = {mz['alpha']:.3g} + {mz['beta']:.3f}·ŷ")
+    ax.plot(
+        grid,
+        mz_line,
+        color="red",
+        lw=1.5,
+        label=f"MZ fit: y = {mz['alpha']:.3g} + {mz['beta']:.3f}·ŷ",
+    )
     ax.plot(grid, grid, color="gray", lw=1.0, ls="--", label="45° (perfect forecast)")
 
     ax.set_xlabel("forecast ŷ (raw RV)")
@@ -343,7 +408,9 @@ def plot_y_yhat_timeseries(
     y = np.asarray(y, dtype=np.float64)
     yhat = np.asarray(yhat, dtype=np.float64)
     ax_raw.plot(dates, y, color="black", lw=0.6, label="realized (y)")
-    ax_raw.plot(dates, yhat, color="tab:orange", lw=0.6, alpha=0.85, label="forecast (ŷ)")
+    ax_raw.plot(
+        dates, yhat, color="tab:orange", lw=0.6, alpha=0.85, label="forecast (ŷ)"
+    )
     ax_raw.set_ylabel("RV (raw)")
     if title is not None:
         ax_raw.set_title(title)
@@ -351,7 +418,9 @@ def plot_y_yhat_timeseries(
     ax_raw.grid(True, alpha=0.3)
     if ax_log is not None:
         ax_log.semilogy(dates, y, color="black", lw=0.6, label="realized (y)")
-        ax_log.semilogy(dates, yhat, color="tab:orange", lw=0.6, alpha=0.85, label="forecast (ŷ)")
+        ax_log.semilogy(
+            dates, yhat, color="tab:orange", lw=0.6, alpha=0.85, label="forecast (ŷ)"
+        )
         ax_log.set_ylabel("RV (log)")
         ax_log.set_xlabel("date")
         ax_log.grid(True, which="both", alpha=0.3)
@@ -406,7 +475,13 @@ def plot_qlike_by_slot(
     """Bar chart of per-slot QLIKE; optional horizontal line for the global QLIKE."""
     ax.bar(slot_df["slot"], slot_df["qlike"], width=0.8, color="steelblue")
     if global_qlike is not None:
-        ax.axhline(global_qlike, color="red", lw=1, ls="--", label=f"global QLIKE = {global_qlike:.4f}")
+        ax.axhline(
+            global_qlike,
+            color="red",
+            lw=1,
+            ls="--",
+            label=f"global QLIKE = {global_qlike:.4f}",
+        )
         ax.legend(loc="upper right")
     ax.set_xlabel("30-min intraday slot (0 = 00:00, 47 = 23:30)")
     ax.set_ylabel("QLIKE")
@@ -423,7 +498,9 @@ def plot_qlike_by_slot(
 # Convention matches the other plot helpers above: ax-based, caller savefig.
 
 
-def plot_tree_depth_histogram(trees_df: pd.DataFrame, ax, title: str | None = None) -> None:
+def plot_tree_depth_histogram(
+    trees_df: pd.DataFrame, ax, title: str | None = None
+) -> None:
     """Histogram of node depths across all refits.
 
     Expects xgb/lgbm `trees_to_dataframe()` columns; uses ``Depth`` (xgb) or
@@ -467,7 +544,11 @@ def plot_shap_summary_bar(
 
     Expects columns ``[feature, mean_abs_shap]``.
     """
-    sub = global_importance_df.sort_values("mean_abs_shap", ascending=False).head(top_n).iloc[::-1]
+    sub = (
+        global_importance_df.sort_values("mean_abs_shap", ascending=False)
+        .head(top_n)
+        .iloc[::-1]
+    )
     ax.barh(sub["feature"], sub["mean_abs_shap"], color="steelblue")
     ax.set_xlabel("mean |SHAP| (pooled OOS)")
     if title is not None:
@@ -485,7 +566,9 @@ def plot_shap_yearly_heatmap(
 
     Expects columns ``[feature, year, mean_abs_shap]``.
     """
-    pivot = yearly_importance_df.pivot(index="feature", columns="year", values="mean_abs_shap")
+    pivot = yearly_importance_df.pivot(
+        index="feature", columns="year", values="mean_abs_shap"
+    )
     pivot = pivot.loc[pivot.mean(axis=1).sort_values(ascending=False).head(top_n).index]
     pivot = pivot.iloc[::-1]
     im = ax.imshow(pivot.values, aspect="auto", cmap="viridis")
@@ -512,8 +595,12 @@ def plot_shap_rank_stability(
     """
     pooled = perfold_importance_df.groupby("feature")["mean_abs_shap"].mean()
     top_features = pooled.sort_values(ascending=False).head(top_n).index.tolist()
-    df = perfold_importance_df[perfold_importance_df["feature"].isin(top_features)].copy()
-    df["rank"] = df.groupby("refit_id")["mean_abs_shap"].rank(ascending=False, method="min")
+    df = perfold_importance_df[
+        perfold_importance_df["feature"].isin(top_features)
+    ].copy()
+    df["rank"] = df.groupby("refit_id")["mean_abs_shap"].rank(
+        ascending=False, method="min"
+    )
     for feat in top_features:
         sub = df[df["feature"] == feat].sort_values("refit_id")
         ax.plot(sub["refit_id"], sub["rank"], lw=0.8, alpha=0.85, label=feat)
@@ -536,7 +623,11 @@ def plot_shap_group_bar(
     Expects columns ``[group, mean_abs_shap]``.
     """
     sub = group_importance_df.sort_values("mean_abs_shap", ascending=False)
-    ax.bar(sub["group"], sub["mean_abs_shap"], color=["steelblue", "tab:orange", "gray", "tab:green"])
+    ax.bar(
+        sub["group"],
+        sub["mean_abs_shap"],
+        color=["steelblue", "tab:orange", "gray", "tab:green"],
+    )
     ax.set_ylabel("Σ mean |SHAP| within group")
     if title is not None:
         ax.set_title(title)
@@ -562,11 +653,12 @@ def plot_shap_interaction_heatmap(
         .index.tolist()
     )
     sub = top_interactions_df[
-        top_interactions_df["feat_i"].isin(feats_by_strength) & top_interactions_df["feat_j"].isin(feats_by_strength)
+        top_interactions_df["feat_i"].isin(feats_by_strength)
+        & top_interactions_df["feat_j"].isin(feats_by_strength)
     ]
-    mat = sub.pivot(index="feat_i", columns="feat_j", values="mean_abs_interaction").reindex(
-        index=feats_by_strength, columns=feats_by_strength
-    )
+    mat = sub.pivot(
+        index="feat_i", columns="feat_j", values="mean_abs_interaction"
+    ).reindex(index=feats_by_strength, columns=feats_by_strength)
     im = ax.imshow(mat.values, aspect="auto", cmap="magma")
     ax.set_xticks(range(len(feats_by_strength)))
     ax.set_yticks(range(len(feats_by_strength)))

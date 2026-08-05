@@ -1,0 +1,15 @@
+{
+ "n_days": 4629,
+ "gate_pass": true,
+ "mean": -0.03076873768165982,
+ "se": 0.0021557639232253232,
+ "repl_frac": 0.975,
+ "fold_repl_frac": 1.0,
+ "ci_excludes_0": true,
+ "beats_placebo": true,
+ "z_vs_placebo": 9.877605322149433,
+ "n_draws": 40,
+ "oos_r2_base_HARVIX": 0.4973344108566563,
+ "oos_r2_with_GEX": 0.5195512516773821,
+ "delta_r2": 0.022216840820725836
+}

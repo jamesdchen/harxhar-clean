@@ -1,0 +1,20 @@
+model: ridge
+
+# Run-#10 proving campaign, arm 2/2: the HAR-only candidate — the deployed
+# config with the ONE knob under test flipped (exog_cols cleared), so the
+# arm-vs-arm delta isolates the market_ew moment family. Carries the same
+# two non-semantic redirects as the baseline arm (output_file; data_path to
+# the outside-the-deploy-tree cluster data). Mirrors the audited
+# specs/run10_known_answer.py feature-construction cell.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: ""
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: /u/scratch/j/jamesdc1/harxhar-data
+output_file: results/run10_proving/candidate/run.json
+params_file: ""
+overnight_fill: true

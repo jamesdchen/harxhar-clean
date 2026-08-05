@@ -1,0 +1,5 @@
+pool: expanding (the ruled)  qlike=0.167430
+pool: EWMA eff~40 refits     qlike=0.166167
+pool: EWMA eff~10 refits     qlike=0.165935
+eff40 vs expanding: diff=-0.00126 p=0.2733
+eff10 vs expanding: diff=-0.00150 p=0.0984

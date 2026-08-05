@@ -15,7 +15,33 @@ scaling. Two entry points:
 from __future__ import annotations
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
+
+# Relative floor on the rolling IQR, as a fraction of that column's own typical
+# IQR so far (a causal running geometric mean of the positive IQRs observed up
+# to and including the current window). The reference is a running MAXIMUM,
+# not a mean: a mean or geometric mean is dragged down by the very degenerate
+# windows the floor exists to catch, which collapses the floor alongside the
+# IQR and -- measured on a synthetic degenerate column -- lifts the result just
+# above the 1e-12 fallback that had been catching it, making the output worse
+# (|max| 293 -> 117,114). A running maximum cannot be dragged down. Its failure
+# mode is the safe one: an unusually volatile early window sets a high floor
+# and over-attenuates later rows, where under-flooring detonates them.
+#
+# The historical guard was ``iqr = iq if iq >= 1e-12 else 1.0``: an ABSOLUTE
+# threshold, which catches an exactly-degenerate window and misses the case
+# that actually bites. An IQR of 1e-11 on a column whose values are of order
+# 1e-6 sails past it and divides the incoming point by ~nothing. That is the
+# same defect ``target.DIURNAL_STD_FLOOR_FRAC`` was introduced to fix on the
+# diurnal std, where the note reads: "The old replace(0, 1.0) only caught an
+# *exactly* zero std and assumed an O(1) series, so a tiny-but-nonzero std on a
+# large-scale signed feature blew the adjusted value up to ~1e13."
+#
+# The measured consequence here: 29 of 41 exogenous channels reach past 20
+# rolling IQRs somewhere in the panel and the worst reached 2,260, which is not
+# a market move but a division by a collapsed scale. Set to 0.0 to restore the
+# legacy absolute-only guard bit-for-bit.
+IQR_FLOOR_FRAC: float = 0.01
 
 
 @njit(cache=True)
@@ -137,6 +163,7 @@ def rolling_robust_scale(
     train_win: int,
     ref_iqr: np.ndarray | None = None,
     fixed_cols: np.ndarray | None = None,
+    iqr_floor_frac: float = IQR_FLOOR_FRAC,
 ) -> np.ndarray:
     """Per-row rolling robust scaling, computed whole-series.
 
@@ -174,20 +201,192 @@ def rolling_robust_scale(
     n_samples = len(X)
     if train_win > n_samples:
         raise ValueError(f"train_win ({train_win}) exceeds series length ({n_samples})")
-    scaler = RollingRobustScaler(train_win, X.shape[1])
-    scaler.initialize(X[:train_win])
     out = np.empty_like(X)
-    med, iqr = scaler.get_scaler()
-    if ref_iqr is None:
-        out[:train_win] = (X[:train_win] - med) / iqr
-    else:
-        out[:train_win] = (X[:train_win] - med) / np.maximum(iqr, ref_iqr[:train_win])
-    for t in range(train_win, n_samples):
-        med, iqr = scaler.get_scaler()
-        if ref_iqr is not None:
-            iqr = np.maximum(iqr, ref_iqr[t])
-        out[t] = (X[t] - med) / iqr
-        scaler.update(X[t])
+    use_ref = ref_iqr is not None
+    ref = (
+        np.asarray(ref_iqr, dtype=np.float64) if use_ref else np.zeros((1, X.shape[1]))
+    )
+    _rolling_scale_cols(X, train_win, ref, use_ref, out, iqr_floor_frac)
     if fixed_cols is not None:
         out[:, fixed_cols] = X[:, fixed_cols]
+    return out
+
+
+@njit(cache=True, parallel=True)
+def _rolling_scale_cols(
+    X: np.ndarray, W: int, ref_iqr: np.ndarray, use_ref: bool, out: np.ndarray,
+    floor_frac: float = 0.0
+) -> None:
+    """Whole-series replay of the sorted-window scaler, one column per thread.
+
+    Bit-identical to replaying :class:`RollingRobustScaler` row by row (same
+    quantile interpolation, same ``1e-12 -> 1.0`` IQR guard, same ``ref_iqr``
+    floor) but fused into a single kernel: columns are independent, so the
+    replay parallelizes over features (``prange``) and the per-row Python
+    dispatch of the old loop disappears (~13x on a 500-feature matrix).
+    """
+    n, p = X.shape
+    idx_25 = (W - 1) * 0.25
+    idx_50 = (W - 1) * 0.50
+    idx_75 = (W - 1) * 0.75
+    i25, r25 = int(idx_25), idx_25 - int(idx_25)
+    i50, r50 = int(idx_50), idx_50 - int(idx_50)
+    i75, r75 = int(idx_75), idx_75 - int(idx_75)
+    for j in prange(p):
+        s = np.sort(X[:W, j].copy())  # sorted window
+        b = X[:W, j].copy()  # ring buffer of raw values
+        pos = 0
+        q25 = s[i25] * (1.0 - r25) + s[min(i25 + 1, W - 1)] * r25
+        med = s[i50] * (1.0 - r50) + s[min(i50 + 1, W - 1)] * r50
+        q75 = s[i75] * (1.0 - r75) + s[min(i75 + 1, W - 1)] * r75
+        iq = q75 - q25
+        # causal running MAXIMUM of the IQRs seen so far, for the relative floor
+        iq_max = iq if iq > 0.0 else 0.0
+        iqr = iq
+        if floor_frac > 0.0 and iq_max > 0.0:
+            fl = floor_frac * iq_max
+            if iqr < fl:
+                iqr = fl
+        if iqr < 1e-12:
+            iqr = 1.0
+        for t in range(W):  # rows [0, W): the initial window's stats
+            eff = iqr
+            if use_ref and ref_iqr[t, j] > eff:
+                eff = ref_iqr[t, j]
+            out[t, j] = (X[t, j] - med) / eff
+        for t in range(W, n):
+            q25 = s[i25] * (1.0 - r25) + s[min(i25 + 1, W - 1)] * r25
+            med = s[i50] * (1.0 - r50) + s[min(i50 + 1, W - 1)] * r50
+            q75 = s[i75] * (1.0 - r75) + s[min(i75 + 1, W - 1)] * r75
+            iq = q75 - q25
+            if iq > iq_max:
+                iq_max = iq
+            iqr = iq
+            if floor_frac > 0.0 and iq_max > 0.0:
+                fl = floor_frac * iq_max
+                if iqr < fl:
+                    iqr = fl
+            if iqr < 1e-12:
+                iqr = 1.0
+            eff = iqr
+            if use_ref and ref_iqr[t, j] > eff:
+                eff = ref_iqr[t, j]
+            out[t, j] = (X[t, j] - med) / eff
+            v_old = b[pos]
+            v_new = X[t, j]
+            b[pos] = v_new
+            pos = pos + 1
+            if pos == W:
+                pos = 0
+            io = np.searchsorted(s, v_old)
+            inw = np.searchsorted(s, v_new)
+            if io < inw:
+                inw -= 1
+                for k in range(io, inw):
+                    s[k] = s[k + 1]
+            elif io > inw:
+                for k in range(io, inw, -1):
+                    s[k] = s[k - 1]
+            s[inw] = v_new
+
+# Observed values a window must hold before its median/IQR is trusted. An IQR
+# is a two-quantile statistic, so its relative error runs about 1/sqrt(n): the
+# old threshold of 8 admitted estimates with ~35% error, and for a feed's first
+# fortnight that meant a quiet opening stretch set the scale for everything
+# after it (vix3m reached 308 rolling IQRs 13 days after its first print).
+# 512 is ~4% relative error, and about two months for a session-limited feed --
+# so it binds at feed start and nowhere else: a live channel at even 15%
+# coverage clears it 7x over inside a 24,000-bar window.
+MASKED_MIN_OBS: int = 512
+
+# How far the scale may fall below the largest scale the channel has shown so
+# far. Without it a genuinely quiet window -- a coarse integer count sitting
+# still over a holiday -- yields a near-zero IQR that the next ordinary move
+# then divides by (numobs: 140 rolling IQRs). Monotone and causal by
+# construction, so it cannot import future information.
+MASKED_IQR_FLOOR_FRAC: float = 0.01
+
+
+def masked_rolling_scale_col(
+    x: np.ndarray,
+    mask: np.ndarray,
+    train_win: int,
+    step: int = 480,
+    min_obs: int = MASKED_MIN_OBS,
+    iqr_floor_frac: float = MASKED_IQR_FLOOR_FRAC,
+) -> np.ndarray:
+    """Rolling robust scaling whose location and scale use OBSERVED rows only.
+
+    The transform is applied to every row; only the ESTIMATE of the median and
+    IQR is restricted to rows where the underlying series was actually
+    observed. That is the fix this pathology has needed all along, and three
+    earlier attempts missed it because they all tried to make the VALUES
+    well-behaved so that a scaler computed over contaminated rows would return
+    a sane number:
+
+      * forward fill        leaves stale values that are far from the current
+                            regime, so a sparse channel's deviations explode
+                            (voldemand: 189.5 rolling IQRs)
+      * neutral median      replaces stale-but-varying values with a constant,
+                            so a moderately covered channel goes partly
+                            degenerate and its OBSERVED rows then look enormous
+                            against the collapsed IQR (effspread: 17.6 -> 932.6)
+      * an IQR floor        a weak instrument that did not bind at all: the
+                            indicator-only build left voldemand bit-identical
+                            at 189.5
+
+    Masking the estimate fixes both cases by construction and needs no coverage
+    threshold, no staleness bound, no floor, and no decision about what to
+    impute -- the imputed rows simply stop participating in the statistic they
+    were corrupting. ``_build_scale_guards`` was groping toward this with a
+    floor when what it wanted was a mask.
+
+    Causal: row ``t`` uses only observed values strictly before ``t``. The scale
+    is slowly varying, so it is evaluated on a coarse grid and held between
+    grid points, the same convention as :func:`_expanding_real_iqr`.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    mask = np.asarray(mask, dtype=bool)
+    n = len(x)
+    med = np.empty(n, dtype=np.float64)
+    iqr = np.empty(n, dtype=np.float64)
+    # Rows the channel has not yet earned a trustworthy scale for. Emitting the
+    # neutral 0.0 there is the same treatment a dead feed gets at the other end
+    # of its life: a channel with no usable scale contributes nothing rather
+    # than contributing noise divided by a guess.
+    warm = np.zeros(n, dtype=bool)
+    run_max_i = 0.0
+    # seed from the first window's observed values
+    seed = x[:train_win][mask[:train_win] & np.isfinite(x[:train_win])]
+    if seed.size >= min_obs:
+        q25, q50, q75 = np.percentile(seed, (25.0, 50.0, 75.0))
+        last_m, last_i = float(q50), float(q75 - q25)
+    else:
+        last_m, last_i = 0.0, 1.0
+        warm[:train_win] = True
+    if last_i < 1e-12:
+        last_i = 1.0
+    run_max_i = max(run_max_i, last_i)
+    med[:train_win] = last_m
+    iqr[:train_win] = last_i
+    for t in range(train_win, n, step):
+        lo = max(0, t - train_win)
+        w = x[lo:t]
+        mk = mask[lo:t] & np.isfinite(w)
+        if mk.sum() >= min_obs:
+            q25, q50, q75 = np.percentile(w[mk], (25.0, 50.0, 75.0))
+            last_m = float(q50)
+            iq = float(q75 - q25)
+            if iq >= 1e-12:
+                # Floor against the largest scale seen so far, so a quiet
+                # window cannot hand the next ordinary move a near-zero
+                # denominator.
+                run_max_i = max(run_max_i, iq)
+                last_i = max(iq, iqr_floor_frac * run_max_i)
+        else:
+            warm[t:t + step] = True
+        med[t:t + step] = last_m
+        iqr[t:t + step] = last_i
+    out = (x - med) / iqr
+    out[warm] = 0.0
     return out

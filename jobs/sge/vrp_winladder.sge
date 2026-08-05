@@ -1,0 +1,12 @@
+#!/bin/bash
+#$ -N vrpwin
+#$ -cwd
+#$ -j y
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -l h_data=10G,h_rt=8:00:00
+#$ -pe shared 2
+#$ -t 1-21
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export OMP_NUM_THREADS=2 TQDM_DISABLE=1
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python -u experiments/vrp_winladder_worker.py

@@ -1,0 +1,41 @@
+{
+  "criterion": {
+    "spearman_sse_vs_qlike": 0.9829087033646142,
+    "train_sse_pick": {
+      "theta": [
+        0.02,
+        43.08869380063769
+      ],
+      "oos_qlike": 0.2665704345221399
+    },
+    "oracle_qlike_pick": {
+      "theta": [
+        0.02,
+        164.05192333541274
+      ],
+      "oos_qlike": 0.263295631076236
+    },
+    "criterion_cost": 0.0032748034459039177
+  },
+  "nonlinear": {
+    "theta_by_train": [
+      2.0532172485879162e-06,
+      46.64946522244679
+    ],
+    "qlike_theta_by_train": 0.2655597254493398,
+    "lambda_theta_by_train": 0.0,
+    "ols_qlike_theta_by_train": 0.2655597254493398,
+    "theta_by_oos": [
+      2.2787631529040232e-08,
+      159.94690647391906
+    ],
+    "qlike_theta_by_oos": 0.2632073840393208,
+    "optimism": 0.0023523414100189988
+  },
+  "restated": {
+    "boxcar_b2": 0.2649221772088414,
+    "midas_honest": 0.2655597254493398,
+    "midas_oracle": 0.2632073840393208,
+    "honest_midas_beats_ladder": false
+  }
+}

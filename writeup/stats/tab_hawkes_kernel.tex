@@ -1,0 +1,27 @@
+\begin{table}[H]
+\centering
+\caption{Kernel diagnostics by session. $\hat n = \sum_k w_k$ is the
+discretised kernel integral of Equation~\eqref{eq:branching_identity}, the
+branching-ratio analogue; a linear Hawkes process requires $\hat n \in [0,1)$.
+``Neg.\ lags'' counts lags at which the effective kernel is negative, which a
+linear Hawkes kernel cannot be, and ``neg.\ mass'' is their share of total
+absolute kernel mass. $\hat\beta$ is the log-log slope over the positive part,
+with the textbook OLS standard error; because the kernel values are nested
+partial sums of one coefficient vector, that error understates the true
+uncertainty. $\cos$ is the similarity of the session kernel to the pooled one.}
+\label{tab:hawkes_kernel}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Session & Bars & $\hat n$ & Neg.\ lags & Neg.\ mass & $\hat\beta$ & SE & $\cos$ \\
+\midrule
+pooled & 242{,}934 & $-0.0380$ & 8/12 & 10.3\% & 1.51 & 0.54 & --- \\
+\midrule
+overnight & 80{,}650 & $+0.0200$ & 6/12 & 6.6\% & 1.25 & 0.12 & $+0.83$ \\
+early & 54{,}758 & $-0.0200$ & 5/12 & 11.8\% & 1.04 & 0.08 & $+0.05$ \\
+open & 14{,}934 & $+0.0000$ & 7/12 & 87.8\% & 1.15 & 0.14 & $-0.55$ \\
+midday & 34{,}846 & $-0.0500$ & 7/12 & 61.8\% & 1.18 & 0.24 & $+0.32$ \\
+close & 14{,}934 & $-0.1300$ & 8/12 & 56.9\% & 0.47 & 0.21 & $-0.20$ \\
+after & 42{,}812 & $-0.2600$ & 8/12 & 86.3\% & 1.11 & 0.60 & $+0.31$ \\
+\bottomrule
+\end{tabular}
+\end{table}

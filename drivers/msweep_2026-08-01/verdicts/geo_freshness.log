@@ -1,0 +1,8 @@
+flat window (per-bar): qlike=0.167430
+EW eff-memory=24000: qlike=0.167437
+EW eff-memory=12000: qlike=0.167568
+EW eff-memory= 6000: qlike=0.167655
+shape_base.py", line 467, in stack
+    return _nx.concatenate(expanded_arrays, axis=axis, out=out,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 912. MiB for an array with shape (41, 242934, 12) and data type float64

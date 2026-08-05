@@ -1,0 +1,169 @@
+{
+  "n_bad": 100,
+  "refit_start": 235000,
+  "backbone_part": 0.9277089134356901,
+  "exog_part": -0.7083100645294783,
+  "exog_part_prior": 0.19685293602368983,
+  "attribution": [
+    {
+      "channel": "voldemand_all_open_only",
+      "prior": -2.067962358371518,
+      "failing": -4.144580609592194,
+      "swing": -2.076618251220676,
+      "share": 0.9724738991368541
+    },
+    {
+      "channel": "vix3m",
+      "prior": 0.025638521951711606,
+      "failing": 0.009263454139531647,
+      "swing": -0.01637506781217996,
+      "share": 0.0076683935694875135
+    },
+    {
+      "channel": "voldemand_all_open_and_close",
+      "prior": -0.07611485177562928,
+      "failing": -0.08863627146641118,
+      "swing": -0.012521419690781896,
+      "share": 0.005863742082718343
+    },
+    {
+      "channel": "sumret3",
+      "prior": 0.004586892502150874,
+      "failing": 0.00024131956133187146,
+      "swing": -0.004345572940819002,
+      "share": 0.002035018357012784
+    },
+    {
+      "channel": "sumabsret",
+      "prior": 0.005397536502854531,
+      "failing": 0.0017845806573751472,
+      "swing": -0.0036129558454793837,
+      "share": 0.0016919360389890245
+    },
+    {
+      "channel": "sumvolume",
+      "prior": 0.002066484835606829,
+      "failing": -0.0007084538587591434,
+      "swing": -0.002774938694365972,
+      "share": 0.001299495201098972
+    },
+    {
+      "channel": "effspread_vwstock",
+      "prior": 0.006317268553878765,
+      "failing": 0.0038328263430940962,
+      "swing": -0.0024844422107846687,
+      "share": 0.0011634565970330604
+    },
+    {
+      "channel": "stocktwits_sentcount",
+      "prior": 0.000611629816961525,
+      "failing": -0.001723326527000025,
+      "swing": -0.0023349563439615502,
+      "share": 0.001093452828314434
+    },
+    {
+      "channel": "sumbipow",
+      "prior": 0.0032655341267632224,
+      "failing": 0.0011668253271643397,
+      "swing": -0.0020987087995988827,
+      "share": 0.0009828188345638628
+    },
+    {
+      "channel": "sumautocov",
+      "prior": 0.0004770696216791819,
+      "failing": -0.0014616069492054528,
+      "swing": -0.0019386765708846348,
+      "share": 0.0009078762372165532
+    }
+  ],
+  "input_scale": [
+    {
+      "channel": "voldemand_all_open_only",
+      "prior_absmax": 1200.302357497818,
+      "failing_absmax": 1302.3715098930693,
+      "ratio": 1.085036200885273
+    },
+    {
+      "channel": "vix3m",
+      "prior_absmax": 1.5878187636727423,
+      "failing_absmax": 1.0356182011174033,
+      "ratio": 0.6522269573902387
+    },
+    {
+      "channel": "voldemand_all_open_and_close",
+      "prior_absmax": 81.29453256974111,
+      "failing_absmax": 86.97281732044074,
+      "ratio": 1.0698482981721844
+    },
+    {
+      "channel": "sumret3",
+      "prior_absmax": 3.593915741579293,
+      "failing_absmax": 2.1670253703894558,
+      "ratio": 0.6029705552966549
+    },
+    {
+      "channel": "sumabsret",
+      "prior_absmax": 2.599708540908463,
+      "failing_absmax": 1.649272813026779,
+      "ratio": 0.6344068141001852
+    },
+    {
+      "channel": "sumvolume",
+      "prior_absmax": 1.787003371443567,
+      "failing_absmax": 1.0059400483460768,
+      "ratio": 0.5629200618314805
+    }
+  ],
+  "raw": [
+    {
+      "channel": "voldemand_all_open_only",
+      "finite_prior": 0.0,
+      "finite_failing": 0.0,
+      "median_prior": NaN,
+      "median_failing": NaN,
+      "distinct_failing": 0
+    },
+    {
+      "channel": "vix3m",
+      "finite_prior": 0.29615384615384616,
+      "finite_failing": 0.28,
+      "median_prior": 18.83,
+      "median_failing": 18.55,
+      "distinct_failing": 28
+    },
+    {
+      "channel": "voldemand_all_open_and_close",
+      "finite_prior": 0.0,
+      "finite_failing": 0.0,
+      "median_prior": NaN,
+      "median_failing": NaN,
+      "distinct_failing": 0
+    },
+    {
+      "channel": "sumret3",
+      "finite_prior": 1.0,
+      "finite_failing": 1.0,
+      "median_prior": -1.9842838999395156e-12,
+      "median_failing": 1.6472358033033524e-12,
+      "distinct_failing": 100
+    },
+    {
+      "channel": "sumabsret",
+      "finite_prior": 1.0,
+      "finite_failing": 1.0,
+      "median_prior": 0.003947000056379,
+      "median_failing": 0.0032932263782292004,
+      "distinct_failing": 100
+    },
+    {
+      "channel": "sumvolume",
+      "finite_prior": 1.0,
+      "finite_failing": 1.0,
+      "median_prior": 10344.813,
+      "median_failing": 7120.7390000000005,
+      "distinct_failing": 100
+    }
+  ],
+  "n_channels_moved": 0,
+  "broad": false
+}

@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/07_tune_tree.ipynb. Do not edit by hand.
-
 """Optuna helpers for tree-model hyperparameter tuning.
 
 Library module — used by .hpc/tasks.py and .hpc/campaigns/ inside a

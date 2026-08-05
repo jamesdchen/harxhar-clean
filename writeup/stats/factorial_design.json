@@ -1,0 +1,99 @@
+{
+  "cells": {
+    "none|backbone": 0.1357090027149691,
+    "none|amp b=0.5": 0.1329431884360129,
+    "none|amp b=1.0": 0.13263535007176772,
+    "none|amp b=2.0": 0.1326549737820665,
+    "none|raw492": 0.1361736957106712,
+    "none|amp b fitted": 0.13248292753307983,
+    "composed|backbone": 0.1357090027149691,
+    "composed|amp b=0.5": 0.13300962502736058,
+    "composed|amp b=1.0": 0.13285111930035698,
+    "composed|amp b=2.0": 0.13286317924604635,
+    "composed|raw492": 0.13145770957873598,
+    "composed|amp b fitted": 0.13271985113927517
+  },
+  "designs": [
+    "backbone",
+    "amp b=0.5",
+    "amp b=1.0",
+    "amp b=2.0",
+    "raw492",
+    "amp b fitted"
+  ],
+  "caches": [
+    "none",
+    "composed"
+  ],
+  "lambdas": {
+    "backbone": 0.0,
+    "amp b=0.5": 1000.0,
+    "amp b=1.0": 1000.0,
+    "amp b=2.0": 100.0,
+    "raw492": 10000.0,
+    "amp b fitted": 1000.0
+  },
+  "best_per_cache": {
+    "none": "amp b fitted",
+    "composed": "raw492"
+  },
+  "interaction": true,
+  "n_scored": 218909,
+  "eras": {
+    "cache": "composed",
+    "designs": [
+      "raw492",
+      "amp b fitted"
+    ],
+    "rows": [
+      {
+        "block": 1,
+        "raw492": 0.14656937703519457,
+        "amp b fitted": 0.14710636484934672
+      },
+      {
+        "block": 2,
+        "raw492": 0.10678415327932204,
+        "amp b fitted": 0.10701355115535428
+      },
+      {
+        "block": 3,
+        "raw492": 0.11056134492471975,
+        "amp b fitted": 0.11032059393087307
+      },
+      {
+        "block": 4,
+        "raw492": 0.1280220694560537,
+        "amp b fitted": 0.1300850045256122
+      },
+      {
+        "block": 5,
+        "raw492": 0.11663387996579413,
+        "amp b fitted": 0.11713149058849406
+      },
+      {
+        "block": 6,
+        "raw492": 0.1507245401522979,
+        "amp b fitted": 0.15146246643593259
+      },
+      {
+        "block": 7,
+        "raw492": 0.16077682452741512,
+        "amp b fitted": 0.1647299612864125
+      },
+      {
+        "block": 8,
+        "raw492": 0.13159126771240776,
+        "amp b fitted": 0.13391127460810612
+      }
+    ]
+  },
+  "headline_dm": {
+    "a": "raw492",
+    "b": "amp b fitted",
+    "cache": "composed",
+    "diff": -0.001262141560539217,
+    "t": -5.908780317511563,
+    "p": 3.4515721753617072e-09
+  }
+}

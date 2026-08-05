@@ -1,0 +1,50 @@
+rotation shape: (709, 16)
+residual-view share of total loading: 0.065
+top 30 raw-state features by aggregate |loading|:
+  adj_sumautocov_ma_128                         6.0283
+  adj_sumvolume_ma_8                            5.7050
+  is_overnight                                  5.2941
+  adj_numobs_ma_16                              5.0739
+  adj_spread_vwstock_ma_8                       4.6114
+  adj_sumautocov_ma_4                           4.3148
+  adj_sumvolume_ma_4                            4.2796
+  adj_sumautocov_ma_1                           3.6742
+  adj_sumpret2_ewstock_ma_64                    3.6064
+  adj_sumautocov_ma_2                           3.4755
+  adj_sumret4_ma_64                             3.2327
+  adj_sumret4_ma_1                              3.1407
+  adj_sumret3_ewstock_ma_32                     3.1392
+  adj_sumautocov_ma_64                          3.0797
+  adj_sumret_ma_2                               3.0744
+  adj_sumpret2_vwstock_ma_128                   2.9059
+  is_close                                      2.7894
+  adj_sumret4_ma_32                             2.7512
+  adj_sumabsret_ma_4                            2.7374
+  adj_sumbipow_vwstock_ma_32                    2.7213
+  adj_spread_ewstock_ma_16                      2.6026
+  adj_sumautocov_ma_16                          2.4208
+  adj_sumret_ma_64                              2.3974
+  hour                                          2.3951
+  adj_sumabsret_ma_2                            2.3406
+  adj_spread_vwstock_ma_2                       2.3078
+  adj_spread_vwstock_ma_64                      2.2914
+  adj_sumbipow_ma_64                            2.2717
+  adj_sumautocov_ma_8                           2.2582
+  adj_sumret_ma_32                              2.1861
+
+family totals (top 15):
+  adj_sumautocov                           27.0014
+  adj_sumvolume                            17.8766
+  adj_sumret4                              16.3012
+  adj_sumret                               15.2922
+  adj_spread_vwstock                       14.0049
+  adj_numobs                               13.5521
+  adj_sumret3_ewstock                      12.3288
+  adj_sumpret2_ewstock                     12.2177
+  adj_sumabsret                            11.9942
+  adj_spread_ewstock                       11.9622
+  adj_sumpret2                             11.8659
+  adj_sumret3                              10.9545
+  adj_sumret3_vwstock                      10.5413
+  adj_sumpret2_vwstock                     10.4269
+  adj_effspread_vwstock                    9.8759

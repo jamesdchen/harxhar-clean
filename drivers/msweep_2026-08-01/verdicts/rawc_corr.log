@@ -1,0 +1,14 @@
+[hc] seg 1/10 (86s)
+[hc] seg 2/10 (142s)
+[hc] seg 3/10 (187s)
+[hc] seg 4/10 (222s)
+[hc] seg 5/10 (257s)
+[hc] seg 6/10 (304s)
+[hc] seg 7/10 (351s)
+[hc] seg 8/10 (389s)
+[hc] seg 9/10 (430s)
+[hc] seg 10/10 (470s)
+[hc] rawc replica (anchor)        qlike=0.162724 mz=0.951
+[hc] RAWC+CORR+STACK              qlike=0.162961 mz=0.945
+[hc] corr+stack vs hybrid_dp anchor: diff=+0.00024 p=0.8207
+[hc] DONE

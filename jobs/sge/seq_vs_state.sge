@@ -1,0 +1,13 @@
+#!/bin/bash
+#$ -N seqstate
+#$ -cwd
+#$ -l h_data=24G,h_rt=2:00:00
+#$ -pe shared 4
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Sequence-vs-state order-content closer (GRU over full multivariate history + order-shuffle placebo).
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY experiments/seq_vs_state.py xgb_all_buckets_tw1000_enetreg2_linbest_rf480_slim 2>&1 | grep -E "close|qlike|ORDER|DONE|Error|Traceback"

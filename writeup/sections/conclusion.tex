@@ -1,6 +1,204 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We re-examined the comparative performance of linear and tree-based models for one-step-ahead realized-volatility forecasting on the HAR feature set. Using default hyperparameters drawn from prior literature, the tree ensembles (XGBoost, LightGBM, random forest) appear markedly inferior to ridge regression, echoing a pattern widely reported in the volatility-forecasting literature. We showed that this ranking is an artifact of default-hyperparameter choice. A Bayesian search over standard hyperparameter spaces using Optuna's TPE sampler, parallelized across two HPC clusters, produces tree configurations that are competitive with or better than ridge: tuned LightGBM attains the lowest QLIKE in the comparison, tuned XGBoost closes most of the gap, and tuned random forest ties ridge to within 0.004 QLIKE units. The practical implication is that claims about linear-versus-tree performance on HAR features are fragile in the absence of a tuning protocol, and that the feature-interaction capacity of tree ensembles contributes meaningful forecasting signal that depth-3, 100-estimator defaults cannot express.
+This paper asked four questions of a single fixed panel of 218{,}934
+thirty-minute S\&P~500 realized-variance bars. It answers a fifth it did not
+ask, and that answer subsumes much of the rest: almost all of the modelling
+apparatus we built can be deleted without loss, and the effects that remain are
+smaller than the protocol and data-quality effects surrounding them.
 
-Open questions for future work include (i) whether tuned trees continue to improve on ridge when informative exogenous subgroups are added to the feature set, (ii) whether the apparent LightGBM advantage over XGBoost survives larger tuning budgets or is an artifact of the 30-trial LightGBM study at the time of writing, and (iii) how tuned tree ensembles compare to neural architectures such as the attention-based sequence models that motivated this comparison.
+\emph{What should the instrument be?} A truncated power-law kernel with a
+clock organ. The fitted HAR coefficients imply a per-lag effective kernel that
+is approximately power-law on log-log axes, which recasts the lag ladder as a
+quadrature grid rather than a set of economically distinct horizons. The
+recasting is not decorative: it predicts that refining the grid pays, and the
+grid refines monotonically across six geometric bases, with base-2 beating the
+base-5 incumbent by $0.00082$ at DM $t = -10.6$ and the conventional
+daily/weekly/monthly structure faring worse than either. It also predicts that
+a power law should beat an exponential, which it does by $0.011$ in forecast
+loss and decisively in kernel shape. Because the shared benchmark uses the
+coarser grid, we carry an explicit $0.00082$ of benchmark debt through every
+downstream increment rather than absorbing it.
+
+The self-exciting reading that the power-law shape invites is tested rather
+than asserted, and it splits in two. The shape survives: the decay exponent,
+estimated across 41 exogenous channels where the log-log slope is invariant to
+channel scaling, is $1.033$ with a channel-clustered standard error of $0.036$,
+agreeing with the Hawkes-in-finance literature and rejecting both the $1.36$
+earlier drafts had carried as a plotting constant and the $\approx 1.6$ that a
+rough-volatility correspondence implies. The sign structure appeared to fail, and
+explaining why produced the section's most transferable result. The estimate
+this project had been reading conditions the self-kernel on 41 exogenous
+channels, several of which are direct volatility measures; those absorb the
+target's persistence and leave an integrated kernel of $-0.363$ with 14\%
+negative mass. The marginal self-kernel on identical rows has integrated mass
+$0.913$, no negative mass, and monotone power-law decay at
+$\hat\beta = 1.506 \pm 0.035$ over ten lags---sub-critical, close to unity, and
+squarely where the reflexivity literature places financial activity. A
+self-kernel estimated alongside volatility proxies is not a self-kernel, and
+the fit gives no signal that anything is wrong.
+
+\emph{Where does the information live?} Everywhere and nowhere in particular.
+Every exogenous bucket improves on the backbone with overwhelming individual
+significance, yet the buckets overlap so heavily that the sum of within-class
+gains is $2.08$ times the joint gain. Within the least-squares class, 96\% of
+explainable variance belongs to the backbone; the 359-column exogenous block
+adds a unique contribution that a single mechanism-targeted engineered feature
+exceeds by roughly two orders of magnitude per column---a ratio we report with
+its arithmetic and its caveats rather than as an effect size. The individual
+feature landscape repeats the pattern one level down: one dominant cheap
+feature, one partially redundant companion, a long tail of tiny effects, and a
+genuine null.
+
+\emph{Does extraction require nonlinearity?} Yes, but boundedly, and the bound
+is the interesting part. Tree ensembles beat the best penalized linear model on
+all nine feature sets, by between $0.00184$ and $0.00358$; the consistent sign
+is the evidence, and the pairwise difference remains untested. The pure
+nonlinearity premium on backbone features is $0.00215$ measured against a
+correctly specified linear ladder, some 28\% below the figure obtained against
+the incumbent. Tuning is a non-lever from every angle: causally tuned linear
+arms are worse than the untuned incumbent, and a test-set oracle over penalties
+moves it by at most $0.00015$. What the trees exploit saturates at
+additive-plus-pairwise structure anchored to the session clock, and deeper
+capacity, deep sequence models, and mixture-of-experts routing all fail to
+improve on it---a ceiling that a quadratic self-exciting feedback predicts. The
+resulting ordering---information $>$ model class $>$ hyperparameters, by
+roughly a factor of three at each step---is the paper's central practical law.
+
+\emph{What algorithm should do the extracting?} With features frozen,
+exactness and anchoring matter more than expressiveness. Rank-1 rolling least
+squares makes the every-bar OLS benchmark computable at scale; the online
+elastic-net homotopy extends the same exactness to $\ell_1$ estimation; and the
+causal tuning protocol converts ``tuning does not help'' from an anecdote about
+one search into a claim with a defensible causal structure. The spectral
+$k$-nearest-neighbors proposal is instructive precisely because its ablations
+are decisive against it: the OLS anchor is load-bearing (worth up to $0.0132$),
+large-neighborhood averaging is load-bearing (worth $\approx 0.0018$), and the
+manifold embedding---the novel part---hurts on all eight matched
+configurations. A matched retrieval-metric experiment then locates the cause,
+and it is not the out-of-sample extension error we had blamed: a
+principal-component projection at the same dimension has no extension step and
+loses nearly as much, while a supervised coordinate of that dimension ties the
+full ambient view. What fails in this regime is unsupervised geometry, at any
+dimension and whether linear or nonlinear---and, relatedly, breadth in a
+distance, since dropping the exogenous block entirely improves retrieval by
+$0.01476$ ($t = -15.5$). A fitted map with learned weights profits from many
+weak channels; a metric that weights every coordinate equally is buried by
+them. What survives is an unembedded, anchored analog search that beats the
+incumbent at QLIKE $0.13096$; it also beats 25 of the 45 causally tuned
+parametric arms, while trailing the best arms on the informative buckets. In
+the dense-but-weak regime, nonparametric flexibility is a cost to be justified,
+not a default.
+
+\emph{How much of the apparatus is load-bearing?} Almost none of it. The
+$41 \times 12$ exogenous operator, its singular value decomposition, the
+session-conditional frames, the CP and Tucker factorisations, the
+rank-constrained priors and the bespoke projection penalty are together
+reproduced by contracting each channel's rung ladder against a small number of
+fixed shapes and running plain ridge on the result. On the uncorrected panel
+that compression appeared to \emph{beat} the full design---$53$ columns at
+$0.13280$ against $0.13617$ for plain ridge on all $504$ features, itself worse
+than the $12$-column backbone at $0.13571$---and we built a draft around it. On
+the corrected panel the full design reaches $0.13146$ and wins, our
+pre-registered falsification condition for the compressed one is met at
+$-0.00126$ ($t = -5.91$), and the compression is withdrawn
+(Section~\ref{sec:ledger}).
+
+What replaces it is a tie. Sweeping rank on the lag axis under two independent
+orthonormal bases, the curve is flat from $r = 4$ upward, and the best
+compressed arm---$135$ columns---reaches $0.13117$ against $0.13146$ for all
+$504$. That $0.00029$ does not survive a widened HAC bandwidth, a block
+bootstrap, an era-level test or a leave-one-era-out sweep, so we report the two
+as equivalent. A nearly fourfold difference in design width buys nothing
+measurable, which is this paper's thesis applied to its own modelling section.
+The effective-degrees-of-freedom accounting says why: the elaborate penalty
+spends $\approx 54$ degrees of freedom, which is $1 + 12 + 41$, the dimension of
+its own null space. The compressed design is an order of
+magnitude more robust in the one era where the exogenous block fails
+($+0.00347$ against $+0.03321$). The generalisation we are willing to defend is
+that in this regime every \emph{estimated} structure is a cost requiring
+evidence: eigenmaps, principal components, the operator's own leading direction
+re-estimated or frozen, and rank-one factors with fitted loadings all lost to
+fixed alternatives, without exception.
+
+\emph{What dominates all of it?} Protocol and data quality---where they bind,
+by orders of magnitude; on average, by less than we first claimed. A fixed
+training window rather than a rolling one is worth $0.11$ QLIKE. The imputation
+defect of Section~\ref{sec:stale_data}---an availability indicator computed
+after a forward fill, which silently disabled three guards this codebase
+already contained for that exact pathology---put scaled features at $2{,}260$
+rolling interquartile ranges and cost a factor of fifty on its window,
+$6.37170$ against $0.12391$. Selecting a shape parameter against the reported
+loss rather than a validation tail is worth $0.0033$. Against these, the
+model-class effects this literature argues about are $0.002$ to $0.004$.
+
+We pre-registered the stronger form of this claim and it failed. Pooled over
+six designs, the data-version main effect is $0.00067$ against a design main
+effect of $0.00311$: averaged across twenty years and across designs that
+mostly do not touch the affected columns, data representation does \emph{not}
+dominate. What dominates is the conditional statement---where a fill defect
+binds, it is worth more than every modelling choice combined, and nothing in
+the fit tells you whether it binds. That is the transferable finding, and it is
+narrower and more useful than the one we set out to make: a team that checks
+its availability bookkeeping against its raw feeds will not lose fifty-fold to
+a dead channel, and no amount of care about model class substitutes for that
+check.
+
+\emph{And is any of it stable?} Not as reported. The exogenous block beats the
+backbone in seven consecutive eras and fails once, so a twenty-year aggregate
+supports opposite conclusions depending on where the window ends, and 27 bars
+out of $27{,}376$ carry $47\%$ of the failure. We regard single full-sample
+aggregates over multi-decade panels as insufficient reporting, in this paper
+and in the literature it follows.
+
+\paragraph{On the evaluation itself.} Two findings concern the measuring
+apparatus rather than the models, and we think they travel beyond this panel.
+QLIKE and raw-variance MSE rank our 45-arm battery almost independently (rank
+correlation $+0.15$, $p = 0.32$, where agreement would give a negative value),
+and 14 of the 42 arms that improve on the incumbent under QLIKE are worse than
+it under MSE. Separately, QLIKE systematically rewards attenuation: the rank
+correlation between QLIKE and the Mincer--Zarnowitz slope is $+0.74$
+($p = 5.8 \times 10^{-9}$), so the best-scoring arms are the most
+miscalibrated, with the second-best arm in the battery carrying its worst
+calibration. Neither observation invalidates a strictly consistent scoring
+rule, but both change what a QLIKE ranking should be taken to mean.
+
+\paragraph{On the cost of testing what we claimed.} Section~\ref{sec:inference}
+subjects the paper's inherited claims to per-bar inference for the first time.
+Four survive Holm-adjusted testing, two are refined, and three do not
+survive---trees as residual readers, Fourier clock modulation over session
+gates, and rank versus divide were all directionally correct point estimates
+that had been promoted to results. A fourth, a singleton model confidence set
+over feature sets, turned out never to have been computed at all. We report the
+casualty list because it may be the most transferable finding here: on a
+2{,}189-bar tile a model confidence set retains 123 of 161 arms, so a tile
+leaderboard is not a ranking, and a difference read off one is real only if it
+replicates at scale.
+
+\paragraph{Open items.} We flag the incomplete edges of the evidence
+explicitly, and Section~\ref{sec:limitations} treats them at length.
+(i)~The bucket battery has not been re-run on the base-2 backbone; until it is,
+every increment carries $0.00082$ of benchmark debt and the smallest effects
+are not claimed. (ii)~The model-class gap is now tested pairwise, by a bound that assumes
+nothing about the dependence between arms and resolves all nine matched
+comparisons after Holm adjustment; the headline pair is the weakest at
+$|t| \ge 2.19$, and a model confidence set over the 45 arms remains unavailable
+because their per-bar losses were not retained. (iii)~The kernel estimate is reproducible and, once marginal rather than
+partial, admissible: $\hat n = 0.913$ with no negative mass. We report it as an
+endogeneity analogue rather than an identified branching ratio, because it is
+ridge-penalised on transformed data and because a 30-minute aggregated variance
+is not the event stream a point-process model describes. Two further
+limitations were settled along the way: the 5/95 target winsorization
+costs roughly $0.024$ QLIKE and should be expected to disappear from the
+pipeline, and the rolling diurnal divisor used alone reaches QLIKE $0.558$
+against $1.320$ for an unconditional mean, so it closes about 71\% of the
+distance to a fitted model before any model is fitted. (iv)~A
+fractional-kernel arm sits in the same power-law family as our backbone and is
+absent from the battery; it is the most defensible missing benchmark.
+(v)~The winning spectral-$k$NN arm is the minimum of 32 cells selected on the
+evaluation panel, and survives on one bucket while sibling buckets failed as
+singular; the failure needs diagnosis before the bucket ranking can be trusted.
+(vi)~The attribution results point outward: the highest-value next investment
+is not a larger model but mechanism-targeted data---auction imbalance, order
+flow, and dealer positioning aligned to the session-transition regime where the
+nonlinear signal concentrates.

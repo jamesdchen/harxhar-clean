@@ -1,0 +1,8 @@
+[pbe] ridge_cad    qlike=0.171652 mz=0.892 (141s)
+[pbe] enet_3e-05   qlike=0.171534 mz=0.889 nonzero=196/256 (2010s)
+[pbe]   enet_3e-05 vs ridge_cad: diff=-0.00012 p=0.5146
+[pbe] enet_0.0003  qlike=0.176879 mz=0.882 nonzero=158/256 (488s)
+[pbe]   enet_0.0003 vs ridge_cad: diff=+0.00523 p=0.0017
+[pbe] enet_0.003   qlike=0.177382 mz=0.986 nonzero=66/256 (183s)
+[pbe]   enet_0.003 vs ridge_cad: diff=+0.00573 p=0.0276
+[pbe] DONE

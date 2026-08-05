@@ -1,0 +1,21 @@
+\begin{table}[H]
+\centering
+\caption{Hansen--Lunde--Nason model confidence sets on the campaign tile ($\alpha = 0.1$, $B = 5,000$ stationary-bootstrap replications, $T_{\max}$ statistic). ``Kept'' counts arms that cannot be excluded from
+the set of best models. Survivor counts for the top-twenty family are
+unchanged when the bootstrap block length is varied from half to four times
+its automatic value.}
+\label{tab:mcs}
+\begin{tabular}{llrrl}
+\toprule
+Family & Question & Arms & Kept & Eliminated \\
+\midrule
+\texttt{penalty} & Penalty: shrinkage vs selection & 4 & 2 & \texttt{pbe\_enet\_0.0003}, \texttt{pbe\_enet\_0.003} \\
+\texttt{trees\_vs\_linear} & Model class on the kernel dictionary & 6 & 4 & \texttt{pbt\_xgb\_cad}, \texttt{pbt\_lgbm\_cad} \\
+\texttt{local\_k} & Analog neighbourhood size & 6 & 3 & \texttt{i\_loc\_k200}, \texttt{incumbent}, \texttt{i\_loc\_k16000} \\
+\texttt{cap\_ladder} & Kernel truncation depth & 6 & 6 & --- \\
+\texttt{dim\_reduction} & Dimension reduction & 8 & 8 & --- \\
+\texttt{top20} & The twenty best arms & 20 & 20 & --- \\
+\texttt{all} & Every tile arm & 161 & 123 & (see text) \\
+\bottomrule
+\end{tabular}
+\end{table}

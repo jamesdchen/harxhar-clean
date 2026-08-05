@@ -1,0 +1,59 @@
+{
+  "goal": "we're testing if causally optimizing hyperparameters improves metrics — 2700 tasks: for each of the 9 buckets of data (with no buckets and all buckets included), one of ridge/reclasso/reclasticnet run with causal hyperparameter tuning (at tune_per periodic sliding window of the backtest on a val_tail holdout set, the hyperparameters are tuned from a grid search on a log scale before the OOS test is forecast), backtest chunks split across a task-array (chunks are the homogeneous axis; the training window + val_tail holdout of each backtest window is a halo). Deliverable: per-bucket per-estimator metrics with the causal-tuned HP path vs the fixed-HP incumbent — the full spread as seen in the beat4 writeup table, including the DM tests at the end. RESUBMIT SCOPE (2026-07-15): reclasso × {sentiment, vol_demand, all_features} only — the arms exposed to the lam2=0 pure-lasso singularity (blown QLIKE >1) — rerun under the re-audited identifiability-mask source.",
+  "task_count": 300,
+  "produced_by": {"kind": "human", "operator": "jamesdchen"},
+  "task_generator": {
+    "kind": "chunked_series",
+    "params": {
+      "series_length": 242934,
+      "start": 0,
+      "chunks": 100,
+      "halo": 24000,
+      "extra_axes": {
+        "estimator": ["reclasso"],
+        "exog_bucket": ["sentiment", "vol_demand", "all_features"]
+      }
+    }
+  },
+  "entry_point": {
+    "kind": "shell_command",
+    "run_name": "causal_tune_linear_fixmask",
+    "argv": ["env", "EXPERIMENT={experiment}", "EXOG_BUCKET={exog_bucket}", "ESTIMATOR={estimator}", "START={chunk_start}", "END={chunk_end}", "HALO={halo}", "python3", "specs/causal_tune_linear.py"],
+    "signature": {
+      "experiment": "str",
+      "exog_bucket": "str",
+      "estimator": "str",
+      "chunk_start": "int",
+      "chunk_end": "int",
+      "halo": "int"
+    },
+    "fixed_params": {"experiment": "causal_tune_linear_fixmask"},
+    "frozen_configs": [],
+    "data_axis_hint": {"kind": "bounded_halo", "halo": {"expr": "halo"}}
+  },
+  "audited_source": {
+    "audit_id": "causal_tune_linear",
+    "source": "specs/causal_tune_linear.py",
+    "template": "packs/rv/templates/rv_audit.py",
+    "input_roots": ["data"],
+    "source_roots": ["src"],
+    "output_roots": []
+  },
+  "packs": [
+    {
+      "pack": "quant",
+      "manifest": "packs/quant/manifest.json",
+      "receipt_bindings": [
+        {
+          "slot": "quant-audit",
+          "pack": "quant"
+        }
+      ]
+    },
+    {
+      "pack": "rv",
+      "manifest": "packs/rv/manifest.json",
+      "receipt_bindings": []
+    }
+  ]
+}

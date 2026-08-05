@@ -1,0 +1,119 @@
+{
+ "note": "post-hoc; H2 as pre-registered remains rejected",
+ "n_scored": 218909,
+ "exposure": {
+  "backbone": 0.0,
+  "amp rank-1": 0.08333333333333333,
+  "amp rank-2": 0.16666666666666666,
+  "amp rank-3": 0.25,
+  "amp rank-6": 0.5,
+  "raw492": 1.0
+ },
+ "exposed_cut": 0.5,
+ "estimands": {
+  "T1 pooled": {
+   "n_rows": 218909,
+   "cells": {
+    "none|backbone": 0.1357090027149691,
+    "none|amp rank-1": 0.13263535007176772,
+    "none|amp rank-2": 0.13249352592714397,
+    "none|amp rank-3": 0.14402327559591527,
+    "none|amp rank-6": 0.13331994849928908,
+    "none|raw492": 0.1361736957106712,
+    "composed|backbone": 0.1357090027149691,
+    "composed|amp rank-1": 0.13285111930035698,
+    "composed|amp rank-2": 0.13197298200114796,
+    "composed|amp rank-3": 0.13117269461226522,
+    "composed|amp rank-6": 0.13154458612672384,
+    "composed|raw492": 0.13145770957873598
+   },
+   "cache_effect_per_design": {
+    "backbone": 0.0,
+    "amp rank-1": -0.00021576922858926317,
+    "amp rank-2": 0.0005205439259960143,
+    "amp rank-3": 0.01285058098365005,
+    "amp rank-6": 0.0017753623725652312,
+    "raw492": 0.004715986131935218
+   },
+   "exposed": [
+    "amp rank-6",
+    "raw492"
+   ],
+   "cache_effect_exposed": 0.0032456742522502247,
+   "design_range_exposed": 8.687654798786304e-05,
+   "holds": true,
+   "spearman_exposure_vs_effect": 0.7714285714285715
+  },
+  "T2 era-8": {
+   "n_rows": 27368,
+   "cells": {
+    "none|backbone": 0.13510234049313308,
+    "none|amp rank-1": 0.13841316453654948,
+    "none|amp rank-2": 0.14205781782156243,
+    "none|amp rank-3": 0.23536005264683107,
+    "none|amp rank-6": 0.14159112271397797,
+    "none|raw492": 0.16830767948469105,
+    "composed|backbone": 0.13510234049313308,
+    "composed|amp rank-1": 0.13398255816392915,
+    "composed|amp rank-2": 0.13274528543968245,
+    "composed|amp rank-3": 0.13222512082366297,
+    "composed|amp rank-6": 0.1317387557123901,
+    "composed|raw492": 0.13158396699154754
+   },
+   "cache_effect_per_design": {
+    "backbone": 0.0,
+    "amp rank-1": 0.004430606372620327,
+    "amp rank-2": 0.009312532381879984,
+    "amp rank-3": 0.1031349318231681,
+    "amp rank-6": 0.00985236700158787,
+    "raw492": 0.03672371249314352
+   },
+   "exposed": [
+    "amp rank-6",
+    "raw492"
+   ],
+   "cache_effect_exposed": 0.023288039747365694,
+   "design_range_exposed": 0.00015478872084256912,
+   "holds": true,
+   "spearman_exposure_vs_effect": 0.8285714285714287
+  },
+  "T3 worst decile by RV": {
+   "n_rows": 21890,
+   "cells": {
+    "none|backbone": 0.16170613386042637,
+    "none|amp rank-1": 0.15231847271794,
+    "none|amp rank-2": 0.1522645345539302,
+    "none|amp rank-3": 0.17690276155355933,
+    "none|amp rank-6": 0.15388090120577844,
+    "none|raw492": 0.15812416669525284,
+    "composed|backbone": 0.16170613386042637,
+    "composed|amp rank-1": 0.15691714245978955,
+    "composed|amp rank-2": 0.15788110403953762,
+    "composed|amp rank-3": 0.15739502119226992,
+    "composed|amp rank-6": 0.15596781021370115,
+    "composed|raw492": 0.15612033742294154
+   },
+   "cache_effect_per_design": {
+    "backbone": 0.0,
+    "amp rank-1": -0.004598669741849554,
+    "amp rank-2": -0.005616569485607431,
+    "amp rank-3": 0.01950774036128941,
+    "amp rank-6": -0.002086909007922716,
+    "raw492": 0.002003829272311297
+   },
+   "exposed": [
+    "amp rank-6",
+    "raw492"
+   ],
+   "cache_effect_exposed": -4.1539867805709396e-05,
+   "design_range_exposed": 0.00015252720924038843,
+   "holds": false,
+   "spearman_exposure_vs_effect": 0.3714285714285715
+  }
+ },
+ "dm_raw492_composed_vs_none": {
+  "diff": -0.004715986131935288,
+  "t": -2.9524794052355254,
+  "p": 0.0031526655183628034
+ }
+}

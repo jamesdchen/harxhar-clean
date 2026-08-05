@@ -1,0 +1,117 @@
+{
+ "n_bars": 63982,
+ "crossover_k": 0,
+ "phase": {
+  "0": {
+   "n": 4986,
+   "corr_dev_fwd": -0.019961238733779117
+  },
+  "1": {
+   "n": 4982,
+   "corr_dev_fwd": -0.12129125031201655
+  },
+  "2": {
+   "n": 4982,
+   "corr_dev_fwd": -0.017882034682312607
+  },
+  "3": {
+   "n": 4982,
+   "corr_dev_fwd": 0.017142795479429
+  },
+  "4": {
+   "n": 4982,
+   "corr_dev_fwd": 0.019902011953783605
+  },
+  "5": {
+   "n": 4926,
+   "corr_dev_fwd": 0.018070523863129292
+  },
+  "6": {
+   "n": 4926,
+   "corr_dev_fwd": -0.03991305480527384
+  },
+  "7": {
+   "n": 4926,
+   "corr_dev_fwd": -0.019727298526388205
+  },
+  "8": {
+   "n": 4865,
+   "corr_dev_fwd": -0.043980359547131545
+  },
+  "9": {
+   "n": 4861,
+   "corr_dev_fwd": 0.02153602808797317
+  },
+  "10": {
+   "n": 4857,
+   "corr_dev_fwd": -0.004940469621393834
+  },
+  "11": {
+   "n": 4855,
+   "corr_dev_fwd": 0.08057352861340242
+  },
+  "12": {
+   "n": 4852,
+   "corr_dev_fwd": 0.02487829708011975
+  }
+ },
+ "arms": {
+  "revert_to_open": {
+   "gate_pass": false,
+   "mean": 1.797263437562017e-09,
+   "se": 7.176069024969707e-10,
+   "repl_frac": 0.375,
+   "fold_repl_frac": 0.0,
+   "ci_excludes_0": false,
+   "beats_placebo": false,
+   "z_vs_placebo": -1.7351329163445888,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": 0.00430789791638359,
+    "cov_t_hac5": 0.43888042065071386,
+    "net_sign_mean_bp": -0.21450108469216825,
+    "n": 52680
+   }
+  },
+  "revert_x_longgamma": {
+   "gate_pass": false,
+   "mean": 2.0881020499713287e-10,
+   "se": 5.817504271996676e-11,
+   "repl_frac": 0.275,
+   "fold_repl_frac": 0.0,
+   "ci_excludes_0": false,
+   "beats_placebo": true,
+   "z_vs_placebo": 2.794237985180102,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": 0.004206963444546642,
+    "cov_t_hac5": 0.5687790264128169,
+    "net_sign_mean_bp": -0.21629211356311254,
+    "n": 52680
+   }
+  },
+  "revert_x_displacement": {
+   "gate_pass": false,
+   "mean": 1.704485932467933e-08,
+   "se": 6.1420137200377e-09,
+   "repl_frac": 0.4,
+   "fold_repl_frac": 0.4,
+   "ci_excludes_0": false,
+   "beats_placebo": false,
+   "z_vs_placebo": -2.6383987646296676,
+   "n_draws": 40,
+   "readout": {
+    "oos_corr": -0.0065842094811438346,
+    "cov_t_hac5": -0.5504078625999099,
+    "net_sign_mean_bp": -0.26179072615624127,
+    "n": 52680
+   }
+  }
+ },
+ "base": {
+  "oos_corr": 0.005017486656552644,
+  "cov_t_hac5": 0.611576962024079,
+  "net_sign_mean_bp": -0.19988347598123776,
+  "n": 52680
+ }
+}

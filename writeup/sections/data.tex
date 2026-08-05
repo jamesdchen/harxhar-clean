@@ -1,12 +1,19 @@
 \section{Data}
 \label{sec:data}
 
-Our dataset comprises 30-minute intraday observations beginning in January 2005. The primary forecasting target is realized volatility, measured as the sum of squared returns within each 30-minute bar ($RV_t = \texttt{sumret2}$).
+Our dataset comprises 30-minute intraday observations of the S\&P~500
+beginning in January 2005. The forecasting target is realized
+\emph{variance}, measured as the sum of squared 5-minute log-returns within
+each 30-minute bar ($RV_t = \texttt{sumret2}$; see
+Equation~\eqref{eq:rv}). We use ``realized variance'' throughout for the
+target itself and reserve ``volatility'' for its square root, on which the
+models are estimated (Section~\ref{sec:semantic_transforms}).
 
 \subsection{Exogenous Variables}
 \label{sec:exog_vars}
 
-In addition to the target series, we incorporate variables spanning several information categories:
+In addition to the target series, we incorporate variables spanning several
+information categories:
 
 \begin{itemize}
     \item \textbf{Higher-order return moments}: bipower variation, realized semi-variance, autocovariance, absolute returns, cubic returns, and quartic returns.
@@ -17,8 +24,38 @@ In addition to the target series, we incorporate variables spanning several info
     \item \textbf{Volatility demand}: Options order flow indicators (SPX open/close, all options open/close, open only).
 \end{itemize}
 
+\subsection{Feature Accounting}
+\label{sec:feature_accounting}
+
+Because several claims in this paper are per-column
+(Section~\ref{sec:fwl}) and because the design width is itself part of the
+dense-but-weak argument, the mapping from raw series to design columns must be
+explicit rather than implied. Three counts circulate in this project---41
+exogenous channels, a 359-column exogenous block, and a 529-column design
+matrix---and they cannot all be reconciled by the stated expansion rule of
+$|\mathcal{L}| = 6$ rolling means per channel, since $41 \times 6 = 246$.
+\pending{a per-bucket table giving channels, the lag set applied to each,
+derived columns, and the reconciliation to 529; no per-column claim in this
+paper should be read as final until this table exists, and the ratio in
+Equation~\eqref{eq:per_feature} depends on it directly}
+
 \subsection{Data Cleaning}
 \label{sec:cleaning}
 
-% TODO: Expand with additional context
-The raw data is gridded to a regular 30-minute frequency and filtered to exclude non-trading periods: Friday evenings after 20:00, all of Saturday, and Sunday mornings before 18:30. Overnight gaps in stock factors and volatility demand measures are forward-filled with neutral values. After cleaning and lag feature generation (which requires a burn-in period of 3{,}125 bars for the longest HAR lag), the final sample comprises approximately 218{,}000 observations.
+The raw data is gridded to a regular 30-minute frequency and filtered to
+exclude non-trading periods: Friday evenings after 20:00, all of Saturday, and
+Sunday mornings before 18:30. Overnight gaps in stock factors and volatility
+demand measures are forward-filled with neutral values. After cleaning and lag
+feature generation---which requires a burn-in of 3{,}125 bars for the longest
+lag on the base-5 ladder---the frozen evaluation panel comprises exactly
+$218{,}934$ observations, and every arm reported in this paper is scored on
+those identical rows.
+
+\subsection{A Defect in That Fill}
+
+The sentence above---``forward-filled with neutral values''---understates what
+the pipeline did, and the understatement was expensive enough to report as a
+finding rather than a correction. Section~\ref{sec:stale_data} is that report.
+It is placed immediately after this section because no result in the rest of
+the paper is interpretable without it: the panel described above is not the
+panel most of our earlier drafts were fitted on.

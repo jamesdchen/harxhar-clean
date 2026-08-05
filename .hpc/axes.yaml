@@ -1,0 +1,10 @@
+axes:
+- name: ladder_arm
+  size: 7
+- name: rungs_cap
+  size: 3
+- name: chunk_start
+  size: 100
+axes_schema_version: 2
+homogeneous_axes:
+- chunk_start

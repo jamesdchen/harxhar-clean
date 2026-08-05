@@ -1,0 +1,153 @@
+\section{The Stripped-Down Model}
+\label{sec:stripped}
+
+The preceding sections establish, separately, that the lag basis is a
+non-lever, that estimated geometry loses to fixed geometry everywhere it was
+tried, and that the exogenous operator's fitted structure is concentrated in a
+handful of directions. Taken together those results have a constructive
+consequence that none of them states on its own: almost all of the apparatus
+can be deleted.
+
+\subsection{Fifty-three columns}
+\label{sec:dumb_design}
+
+The design is:
+
+\begin{itemize}
+  \item the twelve base-2 HAR rungs on $RV$ (Section~\ref{sec:descriptive});
+  \item one number per exogenous channel---its twelve-rung ladder contracted
+    against a fixed decaying weight,
+    \[
+      a_c(t) \;=\; \sum_{k} u_k^{-1}\, Z_{c,k}(t),
+      \qquad u_k \in \{1, 2, 4, \dots, 2048\},
+    \]
+    which replaces $41 \times 12 = 492$ columns with $41$;
+  \item ridge, one penalty, chosen on a validation region that precedes the
+    evaluation region under the same rolling protocol;
+  \item a rolling $24{,}000$-bar training window refit every $1{,}000$ bars.
+\end{itemize}
+
+Nothing else. No embedding, no nearest neighbours, no principal components, no
+singular value decomposition, no tensor factorisation, no manifold, no
+model-class search.
+
+The weight $u_k^{-1}$ is not fitted. It is the shape the operator's own
+directional analysis converged on (Section~\ref{sec:knn_metric_race}), and
+Section~\ref{sec:dumb_results} shows the result is insensitive to the exponent
+within the range tested but not outside it.
+
+\subsection{It beats the elaborate version}
+\label{sec:dumb_results}
+
+Table~\ref{tab:dumb} runs four designs over the full walk-forward: identical
+panel, identical rows, identical rolling protocol, penalties chosen the same
+way.
+
+\begin{table}[H]
+\centering
+\caption{Full walk-forward, $218{,}909$ bars, rolling $24{,}000$-bar window at
+cadence $1{,}000$. The last column is matched-row Diebold--Mariano against the
+stripped-down design; negative favours it.}
+\label{tab:dumb}
+\begin{tabular}{lrrrl}
+\toprule
+Design & Columns & QLIKE & MSE & DM vs.\ stripped \\
+\midrule
+backbone only            &  12 & 0.13571 & $4.166 \times 10^{-11}$ & $-0.00291$ ($t = -9.59$) \\
+\textbf{stripped-down}   &  53 & \textbf{0.13280} & $4.389 \times 10^{-11}$ & --- \\
+ridge on 492 raw columns & 504 & 0.13617 & $4.364 \times 10^{-11}$ & $-0.00338$ ($t = -2.18$) \\
+shape-projection penalty & 504 & 0.13415 & $4.541 \times 10^{-11}$ & $-0.00135$ ($t = -5.63$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three readings.
+
+\paragraph{The elaborate estimator is a feature in disguise.} The
+shape-projection penalty on $504$ columns and the stripped-down design on $53$
+are not close substitutes---they are the same estimator computed two ways. The
+effective-degrees-of-freedom accounting says so directly: the penalty spends
+$\approx 54$ degrees of freedom on its $505$-column design, which is
+$1 + 12 + 41$, the dimension of its own null space
+(Section~\ref{sec:effective_df}). Precomputing the $41$ amplitudes and applying
+plain ridge does not approximate that, it \emph{implements} it, and does so
+slightly better ($-0.00135$, $t = -5.63$) because it does not also have to
+estimate $492$ coefficients it will then shrink away. On a separate evaluation
+window the two agreed to one part in $10^{5}$ ($0.11783$ against $0.11784$).
+
+\paragraph{The raw parameterisation is actively harmful.} Plain ridge on the
+$492$ raw ladder columns is the \emph{worst} design in the table, $0.00046$
+behind the twelve-column backbone it is supposed to improve. Carrying the block
+in its natural form does not merely waste degrees of freedom; it loses to not
+carrying it at all.
+
+\paragraph{The gain is small and the robustness is not.} The stripped-down
+design improves on the backbone by $0.00291$ ($t = -9.59$), which is the same
+order as every other information effect in this paper. What is not the same
+order is its behaviour in the one era where the exogenous block fails. In
+2022-03 to 2024-04, ridge on raw columns loses to the backbone by $+0.03321$;
+the stripped-down design loses by $+0.00347$, a tenfold containment, and the
+bespoke penalty by $+0.00666$. An amplitude averages a channel's whole rung
+ladder, so a single detonating rung is diluted rather than carried at full
+weight---which is why the summary is more robust than the thing it summarises.
+
+\subsection{Why the two are the same estimator}
+\label{sec:effective_df}
+
+A quadratic penalty and a kernel are the same object: minimising
+$\lVert y - X\beta \rVert^2 + \beta' P \beta$ is kernel ridge with
+$k(x, x') = x' P^{-1} x'$, an identity we verify numerically to $3.1 \times
+10^{-15}$ relative. The kernel view supplies the honest measure of how much
+freedom a fit uses,
+\[
+  \mathrm{df}(\lambda) \;=\; \operatorname{tr}\!\big( (G + \lambda P)^{-1} G \big),
+\]
+which is not the column count but how the penalty meets the data spectrum.
+
+\begin{table}[H]
+\centering
+\caption{Effective degrees of freedom, rolling $24{,}000$-bar windows. Both
+penalised designs carry the same $505$ columns.}
+\label{tab:df}
+\begin{tabular}{lrrr}
+\toprule
+Era & backbone & ridge & shape-projection \\
+\midrule
+2007--2009 & 13.0 & 93.0 & 47.2 \\
+2013--2015 & 13.0 & 98.9 & 55.6 \\
+2020--2022 & 13.0 & 98.6 & 56.3 \\
+2022--2024 & 13.0 & 104.7 & 60.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The shape-projection penalty spends $\approx 54$ degrees of freedom---
+$1 + 12 + 41$, precisely the dimension of its null space, one amplitude per
+channel. That is the arithmetic behind Section~\ref{sec:dumb_results}: the
+penalty was never using its $492$ columns, so precomputing what it does use
+loses nothing.
+
+Splitting that freedom by Gram eigenvalue block makes the dense-but-weak
+finding quantitative rather than rhetorical. The design's first principal
+component carries $96.2\%$ of the variance and $0.02\%$ of the explained
+target, with the predictable variation in components $6$--$20$
+($0.18\%$ of variance, $79.9\%$ of explained target). Ridge spends $72.08$ of
+its $\approx 95$ degrees of freedom in components $21$ and beyond and only
+$14.12$ in the band that predicts; the shape-projection penalty spends
+$0.30$, $0.13$ and $0.07$ across the three blocks. Ridge preserves exactly the
+directions carrying no signal, because it shrinks direction $i$ by
+$d_i / (d_i + \lambda)$ and those are the directions with the largest $d_i$.
+
+\subsection{What this costs to adopt}
+
+The stripped-down design has one hyperparameter, no estimated geometry, and a
+feature construction expressible in one line. Against that, this paper's
+earlier apparatus required a $41 \times 12$ operator, its singular value
+decomposition, session-conditional frames, CP and Tucker factorisations,
+rank-constrained priors and a bespoke projection penalty, and reached a worse
+number.
+
+We report this as the section's finding rather than as an appendix. The
+methodological claim of Section~\ref{sec:tuning_nonlever}---that in the
+dense-but-weak regime complexity is a cost to be justified---applies to our own
+construction, and applied to it, most of it does not survive.

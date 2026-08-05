@@ -1,2 +1,82 @@
 \section{Related Work}
 \label{sec:related_work}
+
+\paragraph{Realized volatility and the HAR class.}
+Realized variance as a nonparametric estimator of integrated variance from
+high-frequency returns is due to \citet{AndersenBollerslevDieboldLabys2003},
+and the heterogeneous autoregressive model of \citet{Corsi2009} remains the
+reference specification: a regression of future realized variance on
+daily, weekly and monthly trailing averages, motivated as a cascade of
+market participants operating at different horizons and as a parsimonious
+approximation to long memory. Extensions add jump components
+\citep{AndersenBollerslevDiebold2007, BarndorffNielsenShephard2004},
+correct for measurement error in the realized proxy
+\citep{BollerslevPattonQuaedvlieg2016}, or couple returns and realized
+measures in a single likelihood \citep{HansenHuangShek2012}.
+
+Our reading of HAR in Section~\ref{sec:har_quadrature} differs from the
+cascade interpretation in a way that is empirically consequential. We treat
+the lag ladder not as a set of economically distinct horizons but as a
+quadrature grid for a single continuous decay kernel, which predicts that
+refining the grid should pay monotonically. Table~\ref{tab:ladder} confirms
+this on our panel, and the conventional daily/weekly/monthly structure is
+\emph{worse} than a denser geometric ladder. To our knowledge the lag grid has
+not previously been treated as a tunable quadrature in this literature.
+
+\paragraph{Hawkes processes and endogenous volatility.}
+Self-exciting point processes \citep{Hawkes1971, HawkesOakes1974} model
+activity as a superposition of exogenous arrivals and endogenously triggered
+offspring, with the branching ratio $n = \int \varphi$ measuring the
+endogenous share. Applications to financial data are surveyed by
+\citet{BacryMastromatteoMuzy2015}. The empirical kernel is consistently found
+to be power-law, and estimates of $n$ close to unity have been read as
+evidence that markets operate near criticality
+\citep{HardimanBercotBouchaud2013}; \citet{FilimonovSornette2012} argue that
+such estimates are inflated when the background intensity is time-varying and
+unmodelled, which is directly relevant to intraday data with strong
+periodicity \citep{AndersenBollerslev1997}.
+
+Two extensions bear on our results. Nonlinear Hawkes processes admit
+inhibition \citep{BremaudMassoulie1996}, which is the only class in which a
+kernel with negative lobes---such as the one we estimate---is well defined.
+Quadratic Hawkes \citep{BlancDonierBouchaud2017} makes the feedback a
+quadratic form in the past, generating clustering, fat tails and the Zumbach
+effect \citep{Zumbach2009} endogenously; it predicts extractable structure
+saturating at pairwise order, which is what Section~\ref{sec:saturation}
+measures. For the multivariate case, estimation of low-rank and sparse kernel
+matrices is treated by \citet{BacryGaiffasMuzy2015} and
+\citet{AchabBacryGaiffas2017}.
+
+\paragraph{Rough volatility.}
+\citet{JaissonRosenbaum2016} show that nearly unstable Hawkes processes with
+heavy-tailed kernels converge under rescaling to rough fractional processes,
+supplying a microstructural foundation for the rough-volatility models of
+\citet{GatheralJaissonRosenbaum2018} and \citet{ElEuchRosenbaum2019}; see also
+\citet{BennedsenLundePakkanen2022} on separating short- and long-horizon
+behaviour. This literature is the closest competitor to our backbone, since it
+too predicts a power-law prediction kernel, and Section~\ref{sec:rough} notes
+that our battery does not yet contain a fractional-kernel arm. We regard that
+as the most consequential missing benchmark in the paper.
+
+\paragraph{Machine learning for volatility forecasting.}
+\citet{gu2020empirical} establish the modern protocol for large-scale model
+comparison in asset pricing, and \citet{christensen2023machine} apply it to
+realized volatility, reporting gains for nonlinear methods. Results in this
+area disagree about whether nonlinearity helps, and by how much. Our
+Section~\ref{sec:tuning_leak} contributes a measured account of one mechanism
+behind that disagreement: a hyperparameter search scored on the evaluation
+panel produced, on our own data, an apparent model-class reversal roughly an
+order of magnitude larger than any effect we can defend under a causal
+protocol. We therefore read cross-study disagreement as partly a protocol
+artifact rather than as substantive disagreement about volatility.
+
+Our finding that dense shrinkage dominates sparse selection is consistent with
+the weak-and-dense-signal view of return predictability, and our attribution
+machinery follows the Frisch--Waugh--Lovell tradition
+\citep{FrischWaugh1933, Lovell1963}. For inference we use Diebold--Mariano
+tests \citep{DieboldMariano1995} with the small-sample correction of
+\citet{HarveyLeybourneNewbold1997}, the model confidence set of
+\citet{HansenLundeNason2011}, and QLIKE as the primary loss on the robustness
+grounds of \citet{Patton2011}. Section~\ref{sec:calibration} reports a
+property of that loss on our panel---that it systematically rewards attenuated
+forecasts---which we have not seen quantified elsewhere in this setting.

@@ -1,0 +1,40 @@
+{
+ "refit": 480,
+ "min_train": 2400,
+ "base_cols": [
+  "har_ma_1",
+  "har_ma_5",
+  "har_ma_25",
+  "har_ma_125",
+  "har_ma_625",
+  "har_ma_3125",
+  "adj_vix_ma_1",
+  "adj_vix_ma_5",
+  "adj_vix_ma_25",
+  "adj_vix_ma_125",
+  "adj_vix_ma_625",
+  "adj_vix_ma_3125",
+  "adj_vvix_ma_1",
+  "adj_vvix_ma_5",
+  "adj_vvix_ma_25",
+  "adj_vvix_ma_125",
+  "adj_vvix_ma_625",
+  "adj_vvix_ma_3125"
+ ],
+ "arms": {
+  "baseline_HARVIXVVIX": {
+   "n_days": 5915,
+   "sharpe_daily": 0.23604925728772408,
+   "n_days_gex_covered": 5915,
+   "sharpe_daily_gex_covered": 0.23604925728772408
+  },
+  "plus_gex": {
+   "n_days": 5915,
+   "sharpe_daily": 0.23638988449252935,
+   "n_days_gex_covered": 5915,
+   "sharpe_daily_gex_covered": 0.23638988449252935
+  }
+ },
+ "delta_sharpe_gex_covered": 0.0003406272048052661,
+ "replication_check_vs_0.271": 0.23604925728772408
+}

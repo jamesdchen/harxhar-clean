@@ -23,3 +23,50 @@ Thumbs.db
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# local reproduction scratch (regenerable prediction CSVs, ~235MB)
+results/repro/
+
+# large/regenerable data + run outputs (caches, chunk dirs, plots) — keep results/moe_ladder/ (small tables)
+# OptionMetrics chain/spot extracts (175MB) — regenerate via prep_om_chain.py from the WRDS gz
+data/optionm_*.parquet
+results/resid_prep/
+# the shared mmap exports and prep caches: 2.0GB each, regenerable via
+# analysis/rebuild_fixed_cache.py (see drivers/msweep_2026-08-01/README.md)
+results/b2_mmap/
+results/b2_mmap_fix/
+results/b2_mmap_scaleronly/
+results/b2_mmap_indonly/
+results/b2_mmap_warm/
+results_fix/
+results_scaleronly/
+results_indonly/
+results_warm/
+results/covid_imp_rank/
+results/ebm_resid-*/
+results/resid_ab/
+results/date_reconstruct/
+results/intraday_feats/
+results/*.png
+logs/
+*.tgz
+
+# local config / cluster run-state (not code)
+.claude/
+.hpc/campaigns/*/*.lock
+.hpc/campaigns/*/drive*.log
+.hpc/campaigns/*/drive_state.json
+.hpc/campaigns/*/driver_stdout.log
+
+# synced per-run OOS predictions (regenerable; large) — notebooks recompute from these when present
+results/moe_ladder/preds/
+
+# every-bar window-ablation per-bar losses (large; regenerable by re-harvesting from the cluster / winablate_r1.py)
+results/winablate_full/*_lossbar.npz
+
+# Pack journal state (bind records/receipts are machine-local journal, never committed)
+.hpc/packs/
+
+# Rebuilt feature caches (regenerable, ~2GB)
+results/b2_mmap/
+results/prep_cache_*.npz

@@ -1,0 +1,212 @@
+\section{Limitations and Threats to Validity}
+\label{sec:limitations}
+
+The paper's third methodological commitment is that negative and incomplete
+results are reported at the same altitude as positive ones. This section
+discharges that commitment for the items that a reader should weigh against
+every number above. We separate threats that could change a conclusion from
+gaps that merely widen a confidence interval.
+
+\subsection{Threats That Could Change a Conclusion}
+
+\paragraph{Benchmark debt.} All increments are measured against a base-5 OLS
+incumbent that a base-2 OLS beats by $0.00082$ at DM $t = -10.6$
+(Section~\ref{sec:benchmark_debt}). Orderings within tables are unaffected;
+levels and the significance of the smallest effects are not. The bottom four
+rows of Table~\ref{tab:buckets} have increments of the same order as the debt
+and should not be treated as established until the battery is re-run on the
+base-2 backbone.
+
+\paragraph{Target winsorization (measured: it is costing accuracy).} Stage 3
+clips each series to rolling 5th and 95th percentile bounds, modifying 10\% of
+observations by construction, and on a heavy-tailed variance target the clipped
+mass is disproportionately the volatility spikes a forecast exists to
+anticipate. We have now run the ablation
+(Table~\ref{tab:kernel_experiments}). On a rebuilt panel with a single 60/40
+split, relaxing the clip to 1/99 improves raw-scale QLIKE from $0.2648$ to
+$0.2449$, and removing it entirely improves it further to $0.2411$. The kernel
+diagnostics barely move.
+
+The direction is unambiguous and the magnitude is large relative to everything
+else in this paper: winsorizing the target costs roughly $0.024$ QLIKE, an
+order of magnitude more than the model-class effect the paper spends a section
+establishing. Two caveats keep this from being a headline. The split is a
+single 60/40 cut with a full-sample ridge probe, not the walk-forward harness,
+so the levels are not comparable to the battery's; and the ablation runs on the
+rebuilt panel of Section~\ref{sec:kernel_repro}, not the frozen one.
+\pending{re-run the winsorization ablation inside the walk-forward harness on
+the frozen panel; on present evidence the 5/95 clip should be expected to
+disappear from the pipeline}
+
+\paragraph{The diurnal divisor is itself a forecast (measured).} Stage 1
+divides by a \emph{rolling} 20-observation same-slot mean rather than a fixed
+seasonal profile (Section~\ref{sec:diurnal}). That is a slowly adapting level
+estimate, and it is multiplied back in at evaluation time, so every model in
+the paper inherits a common predictive component.
+
+We have now measured how large that component is. Used \emph{alone} as a
+forecast---no model, no features, just the rolling same-slot baseline---it
+reaches raw-scale QLIKE $0.558$ on a held-out 40\% of the panel, against
+$1.320$ for an unconditional mean and $0.241$ for the best full model in the
+same setup. On that scale the divisor closes roughly 71\% of the distance
+between an unconditional forecast and a fitted one. Replacing it with 48 slot
+dummies inside the full model costs $0.03$ to $0.06$ QLIKE
+(Table~\ref{tab:kernel_experiments}), so it is not merely a normalisation
+convenience: it is doing forecasting work that the reported model differences
+are then measured on top of.
+
+The implication for reading this paper is that our effect sizes are increments
+over an already-strong shared component, and comparisons against a naive
+benchmark that lacks it will overstate every model's skill.
+
+This divisor was also a suspect for the archived kernel's sign structure.
+Section~\ref{sec:kernel_repro} exonerates it: the cause is the exogenous
+conditioning set, and the marginal kernel is well behaved with the divisor
+still in place.
+
+\paragraph{Pairwise significance (resolved, with a caveat).} The model-class
+difference is now tested directly, by a bound that requires no assumption about
+the dependence between arms and that resolves all nine matched comparisons
+after Holm adjustment (Section~\ref{sec:pairwise}). The residual caveat is that
+the headline pair is the weakest of the nine at $|t| \ge 2.19$, and that a
+model confidence set over the 45 battery arms is still unavailable because
+their per-bar losses were not retained.
+
+\paragraph{Multiplicity (resolved).} All 97 testable arms are now adjusted:
+Holm leaves 91 of the 93 raw-significant arms and Benjamini--Hochberg leaves 93
+(Section~\ref{sec:multiplicity_results}). No claim in this paper depends on
+either of the two arms that lose significance. Adjustment does not, however,
+address the selection of the spectral-$k$NN headline as the minimum of 32
+cells: that is a different problem and it remains open.
+
+\paragraph{Claims withdrawn after testing.} Three findings inherited from
+campaign notes did not survive per-bar inference and are no longer asserted:
+that trees fail as residual readers ($t = 1.06$ and $1.11$, unresolved), that
+Fourier clock modulation beats session gates ($p = 0.10$ unadjusted), and that
+the rank marginal adjustment is worse than dividing ($p = 0.071$ after Holm,
+against $p = 0.001$ in the original note). A fourth, the singleton model
+confidence set over feature sets, was asserted without ever having been
+computed and is withdrawn outright (Section~\ref{sec:mcs}). We record these
+because the pattern matters: each was a directionally correct point estimate
+that had been promoted to a result.
+
+\subsection{Gaps and Inconsistencies}
+
+\paragraph{Feature accounting does not reconcile.} The paper describes 41
+exogenous channels, a 359-column exogenous block, and a 529-column design
+matrix. Under the stated expansion rule of $|\mathcal{L}| = 6$ rolling means
+per channel, $41 \times 6 = 246 \ne 359$, and $529 - 359 = 170$ is not
+accounted for by six backbone columns plus calendar.
+\pending{an explicit channels~$\to$~lag-expansion~$\to$~design-columns table,
+per bucket; the three counts in circulation cannot all be right}
+
+\paragraph{Two training-window conventions.} The preprocessing and backtest
+description specifies a 500-observation rolling window; the causally tuned
+battery uses 24{,}000 bars. Only the latter produced the numbers reported here.
+The former should be removed or explicitly scoped to the superseded
+experiments.
+
+\paragraph{Panel heterogeneity in superseded tables.} Earlier subgroup analyses
+compared rows with materially different $N$ (as low as 138{,}279 against
+222{,}058) and differenced them anyway. Buckets whose coverage begins late---
+social sentiment and options order flow---span a different calendar era from
+the baseline they were differenced against, so those increments confounded
+information with regime. All numbers in this version come from the frozen
+battery, on which every arm shares $n = 218{,}934$ identical rows; we note the
+issue because it explains why earlier internal numbers disagree with these.
+
+\paragraph{The kernel was measuring the wrong thing.} The archived
+coefficient vector on which every kernel diagnostic rested is reproducible---the
+rebuilt cache returns it at correlation $+1.0000$---but it is a self-kernel
+estimated \emph{jointly with} 41 exogenous channels, several of which are
+direct volatility measures. Conditioning on near-substitutes for lagged $RV$
+absorbs the target's persistence and leaves a contrast, which is what produced
+the negative lobes and the inadmissible integral. The marginal self-kernel on
+the same rows has integrated mass $+0.913$ and no negative mass
+(Section~\ref{sec:kernel_repro}). We regard this as the most transferable
+methodological point in the paper: a self-kernel estimated alongside volatility
+proxies is not a self-kernel, and the failure is silent.
+
+\paragraph{Structural claims are not identified, and one of them is refuted.}
+We do not fit a Hawkes process. Section~\ref{sec:hawkes} establishes a
+correspondence between our regression and a Hawkes intensity and reports
+quantities that would be structural under it. Testing them splits the
+correspondence in two.
+
+The \emph{shape} survives testing. The decay exponent, previously a hardcoded
+plotting constant, is estimated at $1.033$ with a channel-clustered standard
+error of $0.036$ and agrees with the Hawkes-in-finance literature; the power
+law beats an exponential on fit and on forecast; the exogenous operator is
+rank 4--6 of 41 channels.
+
+The \emph{sign structure} fails it, on the archived vector: eight of twelve
+lags negative, 10.3\% of absolute mass pooled and up to 87.8\% within a
+session, close to half of all exogenous cross-kernel cells negative, and an
+integrated kernel of $-0.038$ whose sign flips across sessions.
+
+Nested probes on the rebuilt cache isolate the cause as the exogenous
+conditioning set (Table~\ref{tab:nested_probes}): the marginal kernel is
+$+0.913$ with no negative mass, adding the 41 exogenous ladders takes it to
+$-0.139$, and the full archived set to $-0.363$. The sign structure is a
+property of conditioning on volatility proxies, not of the target. We report
+$\hat n = 0.913$ as an analogue rather than an identified branching ratio,
+because the estimate is ridge-penalised on transformed data and because a
+30-minute aggregated variance is not an event stream.
+
+\paragraph{A rival benchmark is missing.} A fractional-kernel forecaster sits
+in the same power-law family as our backbone (Section~\ref{sec:rough}) and is
+absent from the battery. Given the paper's one-benchmark discipline this is the
+single most defensible addition to the ladder sweep, and it is inexpensive.
+
+\subsection{Economic Significance}
+\label{sec:economic}
+
+Every effect in this paper lives between QLIKE $0.126$ and $0.134$. The joint
+exogenous information effect is $0.00627$, or 4.7\% relative to the incumbent;
+the model-class effect is $0.00184$, or 1.4\%; the hyperparameter oracle
+ceiling is $0.00015$, or 0.1\%. We have not translated any of these into a
+quantity that a user of the forecast would act on, and we think the ordering
+\emph{information} $>$ \emph{model class} $>$ \emph{hyperparameters} is the
+paper's transportable content precisely because the absolute magnitudes are
+small and panel-specific.
+
+Two considerations argue against over-reading the levels. First, the
+calibration result of Section~\ref{sec:calibration} shows that QLIKE rewards
+attenuation on this panel, so an arm's QLIKE advantage is not straightforwardly
+an advantage in forecasting realized variance. Second, all reported levels are
+out-of-sample in the walk-forward sense but in-sample with respect to the
+choice of preprocessing pipeline, feature dictionary and evaluation window,
+none of which were pre-registered.
+
+\subsection{Reproducibility}
+\label{sec:repro}
+
+Model results in this version derive from a single frozen battery of 98 arms on
+one panel of $n = 218{,}934$ bars, with per-arm metrics archived alongside the
+manuscript. Superseded experiments---in particular the hyperparameter search of
+Section~\ref{sec:tuning_leak} and the variable-$N$ subgroup tables---are
+retained in the repository history but contribute no number to this paper.
+
+All inference in Section~\ref{sec:inference} is reproducible from the archived
+artefacts. The estimators live in \texttt{analysis/inference.py} (QLIKE,
+Newey--West long-run variance, Diebold--Mariano with the
+Harvey--Leybourne--Newbold correction, the Politis--Romano stationary
+bootstrap, the Hansen--Lunde--Nason MCS, Holm and Benjamini--Hochberg); they
+are validated in \texttt{analysis/test\_inference.py} against
+\texttt{scipy} for the $t$ distribution and \texttt{statsmodels} for the HAC
+standard error and both multiplicity procedures, plus an empirical size check
+of the DM test at the nominal level. The two drivers are
+\texttt{analysis/run\_tile\_inference.py} and
+\texttt{analysis/run\_battery\_bounds.py}; \texttt{analysis/make\_tables.py}
+regenerates every inference table in this paper directly from their JSON
+output, so no statistic in Section~\ref{sec:inference} is transcribed by hand.
+Bootstrap replications are fixed at $B = 5{,}000$ under seed $20260802$, and
+the block length is chosen automatically with reported sensitivity from half to
+four times its value. Environment: Python 3.11.15, NumPy 2.4.6, SciPy 1.17.1,
+statsmodels 0.14.6.
+
+The frozen battery itself is not reproducible from this repository: it was
+produced on two HPC clusters and only its per-arm summary metrics were
+retained, which is precisely why Section~\ref{sec:pairwise} must bound the
+pairwise test rather than compute it. Persisting per-bar loss series should be
+treated as a requirement of any future battery run, not an optimisation.

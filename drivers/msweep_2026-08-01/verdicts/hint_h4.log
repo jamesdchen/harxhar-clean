@@ -1,0 +1,14 @@
+load_raw_data: skipping non-bar-keyed parquet(s): optionm_spx_chain.parquet, optionm_spx_spot.parquet
+[hint_h4] cores built (242934, 87) (9s)
+[hint_h4] eval bars: 48000
+  [hint_h4] day 200/1000 (61s)
+  [hint_h4] day 400/1000 (118s)
+  [hint_h4] day 600/1000 (175s)
+  [hint_h4] day 800/1000 (234s)
+  [hint_h4] day 1000/1000 (296s)
+[hint_h4] hybrid walkforward done (296s)
+[hint_h4] incumbent    qlike=0.152224 mz=0.939
+[hint_h4] hybrid a=100     qlike=0.149290 mz=0.929 vs inc diff=-0.00293 p=0.0471
+[hint_h4] hybrid a=1000    qlike=0.150848 mz=0.945 vs inc diff=-0.00138 p=0.3390
+[hint_h4] hybrid a=10000   qlike=0.159985 mz=0.975 vs inc diff=+0.00776 p=0.0000
+[hint_h4] DONE

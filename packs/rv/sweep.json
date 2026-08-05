@@ -1,0 +1,18 @@
+{
+  "name": "rv",
+  "version": "0.2.0",
+  "seams": {
+    "audit_template": "templates/rv_audit.py",
+    "reader_calls": "vocab/readers.json"
+  },
+  "fills_slots": [],
+  "pack_files": [
+    "vocab/readers.json",
+    "templates/rv_audit.py"
+  ],
+  "sweep": [
+    "../../writeup/idea_to_trade_pipeline_v2_*.md",
+    "../../writeup/idea_to_trade_system_design_*.md",
+    "../../writeup/pipeline_v2_unsigned_slots_*.md"
+  ]
+}

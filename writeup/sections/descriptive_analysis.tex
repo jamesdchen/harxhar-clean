@@ -1,0 +1,627 @@
+\section{Descriptive Analysis: The Case for a Kernel Backbone}
+\label{sec:descriptive}
+
+Before asking what exogenous information adds, we fix the instrument that will
+measure it. This section argues that the target's own autoregressive structure
+determines that instrument, and determines it as a \emph{truncated power-law
+convolution kernel modulated by a session clock}---of which the standard HAR
+regression is a coarse quadrature. The argument matters for the rest of the
+paper because every attribution in Sections~\ref{sec:marginal}
+and~\ref{sec:linvsnonlin} is measured as an increment over this backbone, and
+an incorrectly specified backbone donates its own approximation error to
+whatever is being credited.
+
+\subsection{The Panel and the Dense-but-Weak Fact}
+\label{sec:dense_weak}
+
+The design matrix has 529 columns. Its covariance concentrates in a handful of
+directions, but the forecasting signal does not live in those directions. Three
+measurements establish this. They predate the frozen battery and were made on
+the earlier all-buckets cache; we report them because the regime they describe
+is what the rest of the paper is about, and we mark the levels that are not
+panel-comparable:
+
+\begin{itemize}
+  \item \textbf{Low-rank compression destroys skill.} Principal-component
+    truncation of the exogenous block retains most of the variance
+    ($K=5$ recovers 72\%, $K=20$ recovers 90\%) but loses to dense shrinkage at
+    every penalty setting; the best PCA-20 configuration reaches QLIKE
+    $0.12890$ against $0.12530$ for the dense elastic net on the same cache.
+    The signal is not in the leading eigendirections. \emph{Panel note:} these
+    two levels come from the earlier all-buckets cache, not the frozen battery,
+    and are comparable to each other but not to Table~\ref{tab:class}.
+    \pending{PCA/PLS truncation arms on the frozen panel}
+  \item \textbf{$\ell_1$ selection recovers a small unstable core plus a wide
+    shallow tail.} Elastic net at its optimum retains roughly 98--120 of 529
+    columns; pushing sparsity harder costs performance monotonically.
+  \item \textbf{No individual column is strong.} The per-feature effects are
+    uniformly small, and the strongest single engineered feature contributes
+    less than the aggregate of the tail it sits in.
+\end{itemize}
+
+We use \emph{dense but weak} throughout as shorthand for this configuration:
+sparse in no useful coordinate basis, not low-rank in data space, and with no
+individually decisive column. Section~\ref{sec:linvsnonlin} shows what this
+implies for model class; the immediate consequence is that the backbone cannot
+be discovered by selection and must be specified.
+
+\subsection{HAR Is a Quadrature Rule}
+\label{sec:har_quadrature}
+
+Write the general one-step linear forecast as a convolution of the target's own
+past against a decay kernel $\varphi$:
+\begin{equation}
+  \hat{y}_t \;=\; \mu \;+\; \sum_{u \ge 1} \varphi(u)\, y_{t-u}.
+  \label{eq:convolution}
+\end{equation}
+HAR does not estimate $\varphi$ freely. It regresses on trailing rolling means
+(boxcars) over a ladder of rungs $r_k$:
+\begin{equation}
+  \hat{y}_t \;=\; \mu \;+\; \sum_{k} w_k \cdot \frac{1}{r_k}\sum_{u=1}^{r_k} y_{t-u}.
+  \label{eq:har_boxcar}
+\end{equation}
+Collecting the total coefficient that Equation~\eqref{eq:har_boxcar} places on
+an individual lag $u$ gives the \emph{effective kernel} implied by a fitted HAR:
+\begin{equation}
+  \boxed{\;\varphi(u) \;=\; \sum_{k \,:\, r_k \ge u} \frac{w_k}{r_k}\;}
+  \label{eq:eff_kernel}
+\end{equation}
+which is a decreasing step function with breakpoints at the rungs. Under this
+reading the $|\mathcal{L}|$ fitted HAR coefficients are not $|\mathcal{L}|$
+distinct facts about volatility at $|\mathcal{L}|$ distinct horizons: they are
+quadrature weights on a piecewise-constant approximation to a single underlying
+curve, with the rungs as knots. Figure~\ref{fig:target_kernel} plots the fitted
+boxcar coefficients and the implied $\varphi$.
+
+\begin{figure}[H]
+\centering
+\treefigorpending{\textwidth}{../figs_op/fig3_target_kernel.png}
+\caption{Left: self-kernel boxcar coefficients, averaged over walk-forward
+refits. Right: the implied effective kernel of Equation~\eqref{eq:eff_kernel}
+on log-log axes, against a fitted power law. The straight-line behaviour on
+log-log axes is the object this section is about. Only the positive part of
+$\varphi$ is plotted; Section~\ref{sec:kernel_caveats} discusses the negative
+lobes, which are not an incidental detail.}
+\label{fig:target_kernel}
+\end{figure}
+
+\subsection{The Kernel Is Power-Law and Truncated}
+\label{sec:powerlaw}
+
+The implied kernel is approximately linear on log-log axes, and a
+single-parameter power law $\varphi(u) \propto u^{-\hat\beta}$ approximately
+reproduces the entire fitted ladder---the strongest available evidence that the
+ladder approximates one curve rather than measuring several components.
+
+Earlier drafts quoted $\hat\beta \approx 1.36$. That figure was a plotting
+constant, never an estimate. Estimating it changes the number and, with it, one
+of the paper's conclusions. The self-kernel is a poor place to estimate from:
+only four of its twelve lags are positive (Section~\ref{sec:kernel_caveats}),
+and fitting the log-log slope on those four gives
+$\hat\beta = 1.51$ with a standard error of $0.54$---a 95\% interval of
+$[0.45, 2.56]$ that contains every value any competing theory proposes.
+
+The exogenous cross-kernels are a far better instrument, for a specific
+reason: a log-log slope is invariant to the arbitrary scaling of each channel,
+so the 41 channels estimated in each of six session bins give 244 comparable
+estimates of the same shape parameter, with a median of six positive lags each.
+Clustering by channel---the six session fits for one channel come from one
+series and are not independent---gives
+\begin{equation}
+  \hat\beta = 1.033, \qquad \mathrm{SE} = 0.036, \qquad
+  \text{95\% CI } [0.963,\, 1.104].
+  \label{eq:beta_estimate}
+\end{equation}
+This rejects the $1.36$ of earlier drafts ($t = -9.1$,
+$p = 2.6 \times 10^{-11}$), is consistent with the $\approx 1$ reported
+throughout the Hawkes-in-finance literature ($t = +0.9$, $p = 0.36$), and
+rejects the $\approx 1.6$ that the rough-volatility correspondence would imply
+($t = -15.8$, $p = 8.4 \times 10^{-19}$).
+
+We report one disagreement rather than suppress it. The \emph{marginal}
+self-kernel, correctly conditioned and on the raw basis
+(Section~\ref{sec:kernel_repro}), gives $\hat\beta = 1.506$ with a standard
+error of $0.035$ over ten positive lags---materially steeper than the
+cross-kernel estimate above, and rejecting both $1.0$ and (at $2.7$ standard
+errors) the $1.6$ a rough-volatility correspondence implies. The two estimates
+are different objects: own-lag response versus cross-channel response. Both are
+well identified, so the gap is a fact about the data rather than an artefact,
+and it means the paper reports two exponents rather than one.
+
+If the kernel is genuinely power-law---that is, scale-free---then the
+quadrature reading of Section~\ref{sec:har_quadrature} makes three predictions
+that are not made by the conventional reading of HAR as a
+daily/weekly/monthly cascade. All three are testable on the shared panel, and
+all three are confirmed.
+
+\paragraph{Prediction 1: a scale-free kernel wants a scale-free grid, and
+refining the grid pays.} Uniform knots in $\log$-lag are the natural quadrature
+for a power law, and halving the geometric base doubles the knot density per
+decade. Error should therefore fall monotonically as the base falls.
+Table~\ref{tab:ladder} reports the measured ladder.
+
+\begin{table}[H]
+\centering
+\caption{HAR ladder base sweep: OLS on a geometric lag ladder with base $b$,
+all arms on the shared panel ($n = 218{,}934$), all differences measured
+against the same incumbent. ``explicit'' is the conventional
+daily/weekly/monthly HAR lag structure of \citet{Corsi2009} transposed to the
+30-minute grid. Within each base we report the best cap; the cap is a
+near-non-lever (within-base spread $\approx 0.0001$) while the base is not
+(across-base spread $\approx 0.0014$). Negative DM $t$ favours the ladder arm.}
+\label{tab:ladder}
+\begin{tabular}{llrr}
+\toprule
+Ladder base & Arm & QLIKE & DM $t$ vs.\ incumbent \\
+\midrule
+$b=2$      & \texttt{b2\_c3125}       & \textbf{0.13332} & $-10.58$ \\
+$b=3$      & \texttt{b3\_c3125}       & 0.13349 & $-10.19$ \\
+$b=4$      & \texttt{b4\_c3125}       & 0.13361 & $-8.47$ \\
+$b=5$      & \texttt{b5\_c3125} (incumbent) & 0.13415 & --- \\
+$b=6$      & \texttt{b6\_c3125}       & 0.13433 & $+3.12$ \\
+explicit   & \texttt{explicit\_c3125} & 0.13439 & $+3.10$ \\
+$b=8$      & \texttt{b8\_c3125}       & 0.13476 & $+7.31$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering is monotone in the base across all six bases---the rank
+correlation between base and QLIKE is exactly $+1.000$, with no
+inversions---and DM $t = -10.6$ for $b{=}2$ against the incumbent $b{=}5$. The
+signature is
+precisely that of a quadrature error: \emph{how finely the kernel is sampled
+matters, where the sum is truncated barely does}. This is difficult to explain
+if the rungs were recovering genuinely distinct daily, weekly and monthly
+components, and easy to explain if they are knots on one smooth curve. We note
+that the conventional explicit HAR structure is not merely suboptimal but
+\emph{worse than the incumbent}, at DM $t = +3.1$.
+
+\paragraph{Prediction 2: power law, not exponential.} A single exponential
+kernel fitted in place of the power law is $+0.011$ QLIKE worse---roughly an
+order of magnitude larger than any effect elsewhere in this paper. The kernel
+shape agrees: fitting $\log\varphi$ against $\log u$ (power law) and against
+$u$ (exponential) on the same points gives $R^2 = 0.80$ and $0.44$
+respectively, with the power law preferred by AIC. This is the one prediction
+of the three that the fitted shape supports without qualification.
+
+\paragraph{Prediction 3: truncation is real, and it is an interior optimum.}
+Direct power-law convolution features degrade sharply when the convolution
+window is extended too far, while the boxcar ladder's cap is a near-non-lever.
+Per-bar Diebold--Mariano tests on the campaign tile
+(Section~\ref{sec:tile_inference}) resolve the direct-feature side of this in
+both directions: a truncation at $U = 256$ beats $U = 32$ by $0.0074$
+($t = -4.16$), beats $U = 128$ by $0.0026$ ($t = -3.50$), and beats no
+truncation at all by $0.0077$ ($t = -3.83$), every comparison surviving Holm
+adjustment across the contrast family. Truncating the kernel is therefore not a
+computational convenience---removing it costs real accuracy---and the optimum
+is interior rather than at either extreme.
+
+We attribute the contrast with the boxcar ladder's indifference to its cap to
+normalisation: the direct features normalise weights to sum to one, so
+extending $U$ redistributes mass away from recent lags, whereas adding a boxcar
+rung leaves the other rungs undisturbed. That reconciliation remains an
+argument rather than a measurement.
+
+\subsection{The Hawkes Reading}
+\label{sec:hawkes}
+
+Equation~\eqref{eq:convolution} with a power-law $\varphi$ is, in discrete
+time, the conditional-intensity equation of a self-exciting point process
+\citep{Hawkes1971}. This subsection makes the correspondence explicit, states
+what it buys, and---at equal length---states where it does not yet hold.
+
+\subsubsection{From point process to variance regression}
+
+Let $N$ be a linear Hawkes process with conditional intensity
+\begin{equation}
+  \lambda(t) \;=\; \mu \;+\; \int_{-\infty}^{t}\varphi(t-s)\,dN(s),
+  \qquad \varphi \ge 0,
+  \label{eq:hawkes_intensity}
+\end{equation}
+and let the price be a pure-jump process driven by $N$. Realized variance over
+a bar is then, up to the squared jump size, the event count over that bar, so
+that $RV_t \propto N(t-\Delta, t)$ and
+\begin{equation}
+  \mathbb{E}\!\left[RV_t \mid \mathcal{F}_{t-1}\right]
+  \;\propto\; \int_{\text{bar}} \mathbb{E}[\lambda(s)]\,ds
+  \;=\; \tilde{\mu} + \sum_{u \ge 1} \bar{\varphi}(u)\, RV_{t-u},
+  \label{eq:hawkes_to_rv}
+\end{equation}
+where $\bar\varphi$ is $\varphi$ aggregated to the bar grid. Equation
+\eqref{eq:hawkes_to_rv} is Equation~\eqref{eq:convolution}. The correspondence
+is therefore not an analogy: for a linear Hawkes process the conditional
+intensity is exactly linear in the observed past, so a regression of counts on
+past counts identifies $\varphi$ itself rather than a proxy for it. What we
+estimate is a bar-aggregated Hawkes kernel, subject to the caveats of
+Section~\ref{sec:kernel_caveats}.
+
+\subsubsection{The branching ratio is already estimated}
+
+The central quantity of Hawkes theory is the branching ratio
+$n = \int_0^\infty \varphi(u)\,du$: the expected number of direct offspring per
+event, equivalently the fraction of activity that is endogenously generated.
+Stationarity requires $n < 1$, and $n \to 1$ is the ``critical reflexivity''
+regime that has been the subject of an extended empirical debate
+\citep{HardimanBercotBouchaud2013, FilimonovSornette2012}.
+
+For the boxcar parameterisation of Equation~\eqref{eq:har_boxcar} there is an
+exact identity. Substituting Equation~\eqref{eq:eff_kernel},
+\begin{equation}
+  \sum_{u=1}^{r_{\max}} \varphi(u)
+  \;=\; \sum_{u}\sum_{k\,:\,r_k \ge u} \frac{w_k}{r_k}
+  \;=\; \sum_k \frac{w_k}{r_k}\,\bigl|\{u : 1 \le u \le r_k\}\bigr|
+  \;=\; \sum_k w_k .
+  \label{eq:branching_identity}
+\end{equation}
+\emph{The sum of the fitted HAR coefficients is the discretised kernel
+integral.} We verify the identity numerically to machine precision
+($-0.038000$ against $-0.038000$, error $2.5 \times 10^{-15}$), so every fitted
+ladder yields a branching-ratio analogue at no additional computational cost.
+
+Computing it is not kind to the structural reading.
+Table~\ref{tab:hawkes_kernel} reports $\hat n$ pooled and by session. The
+pooled value is $\hat n = -0.038$: \textbf{negative}, and therefore outside the
+admissible range $[0, 1)$ entirely rather than merely sub-critical. Across
+sessions it ranges from $+0.020$ overnight to $-0.260$ in the after-hours
+session, so its \emph{sign} is not even stable. Whatever this quantity is
+measuring, it is not a branching ratio, and we do not report a reflexivity
+estimate. Section~\ref{sec:kernel_caveats} argues that the estimation design,
+not the market, is the reason.
+
+We flag one consistency point in our favour. The reflexivity debate turns on
+whether high estimates of $n$ are artifacts of an unmodelled time-varying
+background intensity $\mu(t)$: \citet{FilimonovSornette2012} argue that
+ignoring intraday seasonality biases $\hat n$ upward toward one. Our Stage-1
+diurnal adjustment (Section~\ref{sec:diurnal}) is exactly the $\mu(t)$
+correction that this critique demands, adopted originally for an unrelated
+reason. Section~\ref{sec:kernel_caveats} argues that it may be too aggressive
+in the other direction.
+
+\subsubsection{Two existing negative results become predictions}
+
+The Hawkes reading retro-predicts two of the paper's otherwise awkward
+findings.
+
+\paragraph{Bounded nonlinearity.} The quadratic Hawkes model of
+\citet{BlancDonierBouchaud2017} makes the feedback a quadratic form in the
+past rather than a linear functional, generating volatility clustering and fat
+tails endogenously and capturing the Zumbach effect that linear ARCH-type
+feedback misses. What it predicts about extractable structure is specific:
+real nonlinearity, \emph{additive plus pairwise, and no more}. That is
+precisely the saturation reported in Section~\ref{sec:saturation}---the
+recoverable nonlinearity is additive-plus-pairwise anchored to the session
+clock, and deeper capacity does not pay. A result that reads as a puzzling
+ceiling under a generic machine-learning framing reads as a confirmation under
+this one.
+
+\paragraph{A low-rank operator.} A multivariate Hawkes process has a matrix
+kernel $\Phi_{ij}(u)$, and a low-rank factorisation
+$\Phi_{ij}(u) \approx \sum_k a_k\, u^{(k)}_i v^{(k)}_j g_k(u)$ is the natural
+structural restriction on it. The operator result---41 exogenous channels
+sharing a small number of lag profiles, with quasi-static geometry and fast
+amplitude motion---is such a factorisation, and it is measurable directly. Across the six session bins, the
+$41 \times 12$ exogenous operator needs only \textbf{4 to 6} singular
+components to carry 90\% of its energy, with the leading component taking
+28--58\%. The rank-5 structure the paper reports is therefore a property of the
+operator and not of any particular estimation window. Nonparametric estimation
+of multivariate Hawkes kernels and their low-rank structure is an established
+problem \citep{BacryGaiffasMuzy2015, AchabBacryGaiffas2017}, which gives this
+part of the analysis a comparison class it currently lacks.
+
+We attach the same caveat as above, and it is a serious one for this reading:
+close to half of the cross-kernel cells are negative, so the operator is a
+contrast---each channel compared against a reference past---rather than a
+matrix of excitation kernels. The low-rank finding is robust; its
+interpretation as a multivariate Hawkes kernel matrix is not.
+
+\subsection{Where the Reading Does Not Yet Hold}
+\label{sec:kernel_caveats}
+
+Three discrepancies stand between the correspondence above and a defensible
+structural claim. We state them here rather than in a limitations section
+because two of them plausibly share a single cause, and that cause is our own
+preprocessing.
+
+\input{stats/tab_hawkes_kernel}
+
+\paragraph{(i) The archived kernel takes negative values.} A linear Hawkes
+kernel must be non-negative; Equation~\eqref{eq:hawkes_intensity} does not
+otherwise define a point process. On the archived coefficient vector,
+$\varphi$ violates this badly: 8 of 12 lags are negative, carrying 10.3\% of
+total absolute kernel mass, rising to 87.8\% at the open and 86.3\% after
+hours. The archived exogenous cross-kernels are no better---between 44.7\% and
+50.4\% of all (channel, lag) cells are negative, indistinguishable from a coin
+flip. The archived integrated kernel is $\hat n = -0.038$, outside the
+$[0,1)$ range a linear Hawkes process admits rather than merely sub-critical,
+and its sign is not stable across sessions.
+
+\paragraph{(ii) None of it belongs to the kernel.}
+Section~\ref{sec:kernel_repro} rebuilds the feature cache, reproduces the
+archived vector exactly, and then isolates the cause: the archived estimate
+conditions the self-kernel on 41 exogenous channels, several of which are
+direct volatility measures. The \emph{marginal} self-kernel on the same rows
+carries zero negative mass and an integrated kernel of $+0.913$. Every
+diagnostic in this subsection is therefore a property of a partial effect
+between correlated volatility proxies, not of the target's own kernel.
+
+\subsection{The Kernel, Rebuilt and Correctly Conditioned}
+\label{sec:kernel_repro}
+
+The diagnostics above are computed on a coefficient vector recovered from an
+archived driver log. We rebuilt the feature cache that produced it---
+\texttt{run\_geometry\_local.prepare\_full('all\_features', har\_base=2)}, the
+build documented in the campaign README---and reran the archived probe against
+it. Three things follow, and they overturn the reading in
+Section~\ref{sec:kernel_caveats}.
+
+\paragraph{The estimate reproduces exactly.} The rebuilt cache returns the
+archived coefficient vector to three decimal places (correlation $+1.0000$,
+maximum absolute difference $0.0005$, $\hat n$ $-0.0375$ against $-0.0380$).
+The pipeline is reproducible; nothing about the archived number is an accident
+of a lost artefact.
+
+\paragraph{The archived vector is not on the kernel's basis.}
+\texttt{prepare\_full}'s final step is a rolling robust scaler: column $j$ at
+row $t$ becomes $(x - \mathrm{median}_{[t-W,t)}) / \mathrm{IQR}_{[t-W,t)}$. A
+coefficient on that is a per-IQR coefficient, whereas the identity
+$\sum_u \varphi(u) = \sum_k w_k$ is stated for coefficients on the raw boxcar
+means. Converting back---dividing each coefficient by its column's mean scaling
+IQR---is a prerequisite for reading the vector as a kernel at all. It is not,
+however, the explanation for the sign structure: on the raw basis the archived
+integrated kernel is $-0.363$, further from admissible rather than closer.
+
+\input{stats/tab_nested_probes}
+
+\paragraph{Conditioning on volatility proxies is the explanation.}
+Table~\ref{tab:nested_probes} fits nested probes on the rebuilt cache, all on
+identical rows, all converted to the raw basis. The marginal self-kernel---own
+lags only, the object a Hawkes branching ratio actually denotes---is
+\emph{well behaved on every diagnostic}:
+\begin{equation}
+  \hat n = 0.913, \qquad
+  \text{negative mass } 0.0\%, \qquad
+  \hat\beta = 1.506 \; (\mathrm{SE}\ 0.035, \text{ 10 positive lags}),
+  \label{eq:marginal_kernel}
+\end{equation}
+with $\varphi$ monotonically decreasing across a decade and a half of lags
+($0.405, 0.137, 0.052, 0.022, 0.007, \ldots$). Adding the 41 exogenous ladders
+alone flips it to $\hat n = -0.139$ with 16.4\% negative mass; the full archived
+conditioning set takes it to $-0.363$.
+
+The mechanism is not subtle once stated. The exogenous block contains bipower
+variation, absolute returns, realized semivariance and quarticity---these are
+\emph{volatility measures}, near-substitutes for lagged $RV$ rather than
+independent information. Conditioning on them absorbs the target's own
+persistence, and what remains on the HAR coefficients is a contrast between
+correlated volatility proxies, not a self-excitation kernel. The negative lobes
+and the inadmissible integral are properties of that contrast.
+
+\paragraph{What this rehabilitates, and what it does not.} The marginal kernel
+supports the self-exciting reading rather than embarrassing it: an integrated
+kernel of $0.913$ is sub-critical and close to unity, which is where the
+reflexivity literature places financial activity
+\citep{HardimanBercotBouchaud2013, FilimonovSornette2012}, and it is achieved
+with no negative mass and a clean power-law decay. Read as an endogeneity
+share, it says roughly 91\% of intraday variance dynamics is self-generated.
+
+Two caveats keep this short of a structural claim. First, $\hat n$ is estimated
+on diurnally adjusted, square-root transformed, winsorized data with a ridge
+penalty, all of which bias it; the number is an analogue, not an identified
+branching ratio. Second, the objection of Section~\ref{sec:hawkes} stands
+regardless: we observe 30-minute aggregated variance, not events, so no
+quantity here is a point-process branching ratio in the literal sense.
+\pending{estimate the marginal kernel without the ridge penalty and without
+winsorization, and bootstrap $\hat n$, before quoting an endogeneity share}
+
+\paragraph{Correction of record.} Earlier drafts of this section reported the
+archived vector's $\hat n = -0.038$ as an inadmissible branching ratio and drew
+structural conclusions from it. That number is a partial effect on a scaled
+basis; both the estimand and the basis were wrong. Neither the diurnal filter
+nor the winsorization nor the availability indicators is implicated---the
+$2\times2$ that tested the first two exonerated them, and
+Table~\ref{tab:nested_probes} isolates the exogenous block as the cause. We
+report the sequence because it is a general hazard: a self-kernel estimated
+jointly with volatility proxies is not a self-kernel.
+
+\subsection{The Properly Specified Object: A Multiplicative Error Model}
+\label{sec:mem}
+
+Everything above estimates the kernel by unconstrained regression on a
+transformed target. That is the wrong tool for a non-negative observable, and
+it is why non-negativity had to be \emph{tested} rather than guaranteed. The
+right object for aggregated non-negative data is the multiplicative error model
+\citep{EngleGallo2006}, equivalently INGARCH, which is the self-exciting
+intensity equation written for a continuous non-negative variable rather than a
+counting measure:
+\begin{equation}
+  RV_t = \lambda_t \varepsilon_t, \quad \varepsilon_t \ge 0,\ \mathbb{E}[\varepsilon_t] = 1,
+  \qquad
+  \lambda_t = \omega + \sum_k \alpha_k \overline{RV}^{(r_k)}_{t-1}, \quad \alpha_k > 0 .
+  \label{eq:mem}
+\end{equation}
+Three properties make this the correct estimand. Non-negativity is imposed
+rather than tested, so the negative-lobe question cannot arise. The branching
+ratio is a parameter, $n = \sum_k \alpha_k$, with a standard error rather than
+a sum of unconstrained coefficients. And it is fitted on the raw variance
+scale, so no square-root transform, smearing correction or winsorisation
+intervenes. Convenient for this paper, the exponential quasi-likelihood whose
+log-density is $-(\log\lambda_t + RV_t/\lambda_t)$ makes QMLE estimation exactly
+QLIKE minimisation---the model is fitted under the paper's own loss.
+
+Seasonality is a \emph{fixed} per-slot factor estimated on the training split,
+not the rolling divisor used elsewhere in this project. A fixed seasonal cannot
+absorb persistence, which removes the confound of
+Section~\ref{sec:limitations}.
+
+\begin{table}[H]
+\centering
+\caption{Branching ratio under three specifications, all on the same
+$242{,}462$ bars with a $60/40$ split. The MEM arms impose $\alpha_k > 0$ and
+are fitted by QMLE on the raw variance scale; standard errors are from the
+observed information with the delta method for $n$. The ladder regression is
+the unconstrained sqrt-scale ridge fit of
+Section~\ref{sec:kernel_repro}, shown for comparison.}
+\label{tab:mem}
+\begin{tabular}{lrrrl}
+\toprule
+Specification & $n$ & SE & OOS QLIKE & Constraint \\
+\midrule
+HAR-MEM (base-2 ladder)  & \textbf{0.9917} & 0.0043 & \textbf{0.24184} & $\alpha_k > 0$ imposed \\
+MEM(1,1)                 & 0.9753 & 0.0042 & 0.25707 & $\alpha, \beta > 0$ imposed \\
+Ladder regression (sqrt, ridge) & 0.9133 & --- & --- & unconstrained \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The market sits at criticality.} The constrained estimate is
+$n = 0.9917$ with a 95\% interval of $[0.9834, 1.0001]$---\emph{statistically
+indistinguishable from unity}. The MEM(1,1) agrees at $0.9753 \pm 0.0042$
+(implied persistence $\alpha + \beta = 0.9894$). Both sit above the
+unconstrained ladder's $0.9133$, which is what one expects when the constraint
+binds: forcing $\alpha_k > 0$ removes the negative lobes that were cancelling
+positive mass. These values land on the $n \approx 0.99$ that
+\citet{HardimanBercotBouchaud2013} report for futures and read as critical
+reflexivity.
+
+We decline to quote a cascade multiplier. At $n = 0.9917$ the point estimate
+$1/(1-n)$ is $121$, but at the interval's lower end it is $60$ and at its upper
+end it diverges. Near criticality the multiplier is not identified by data of
+this length, and reporting it would convey precision that does not exist.
+
+\paragraph{The ladder beats the single decay.} HAR-MEM reaches out-of-sample
+QLIKE $0.24184$ against MEM(1,1)'s $0.25707$. A single exponential recursion
+cannot reproduce the response that twelve non-negative ladder weights can,
+which is the same conclusion the exponential-versus-power-law comparison of
+Section~\ref{sec:powerlaw} reached by a different route.
+
+\paragraph{A model-free cross-check.} Variance-ratio scaling---
+$\mathrm{Var}(\sum_{i=1}^{T} RV_i) \propto T^{2H}$, estimated by regressing
+$\log$ variance on $\log T$ over $T = 1 \ldots 1024$ bars---requires no model
+at all. It gives $H = 0.897$ with a standard error of $0.007$, far above the
+$H = 0.5$ of a short-memory process. Strong long memory is what a near-critical
+kernel produces, so the model-free statistic and the constrained MEM agree.
+
+We flag one conflation this invites. The $H$ estimated here is the
+\emph{long-memory} exponent of the level series' partial sums. It is not the
+Hurst parameter of the rough-volatility literature, which measures the
+H\"older regularity of log-volatility \emph{paths} and is typically reported
+near $0.1$. The two are different parameters and can coexist---rough at short
+scales, long-memory at long scales---which is precisely the decoupling
+\citet{BennedsenLundePakkanen2022} formalise. Our $H = 0.897$ therefore neither
+confirms nor contradicts $H \approx 0.1$; they are answers to different
+questions.
+
+\paragraph{What this settles.} The branching ratio is no longer an analogue. It
+is a parameter of a correctly specified, non-negativity-constrained model of a
+non-negative observable, estimated on the raw scale under the paper's own loss,
+with a standard error. Its value says roughly 99\% of intraday variance
+dynamics is endogenous. The residual caveats are honest but narrow: $\lambda_t$
+is a conditional mean for aggregated variance rather than a point-process
+intensity, so this is a self-excitation parameter for the variance process
+itself and not a literal offspring count; and near-critical estimates are known
+to be biased upward when the background rate is time-varying
+\citep{FilimonovSornette2012}, which our fixed seasonal mitigates but does not
+eliminate.
+
+\subsection{Relation to Rough Volatility}
+\label{sec:rough}
+
+Nearly unstable Hawkes processes with heavy-tailed kernels converge, under
+rescaling, to rough fractional processes \citep{JaissonRosenbaum2016}, which is
+the microstructural route to the rough-volatility models of
+\citet{GatheralJaissonRosenbaum2018} and to rough Heston
+\citep{ElEuchRosenbaum2019}. In that limit a kernel tail exponent $1+\alpha$
+corresponds to a Hurst parameter $H = \alpha - \tfrac{1}{2}$, so the
+$H \approx 0.1$ typically reported for volatility corresponds to a tail near
+$1.6$.
+
+Earlier drafts, working from the unestimated $1.36$, reported our exponent as
+sitting closer to that rough-volatility value than to the Hawkes-kernel
+literature's $\approx 1$. Estimation does not support that reading, but neither
+does it cleanly support the opposite one. The cross-kernel estimate,
+$\hat\beta = 1.033$ with a 95\% interval of $[0.963, 1.104]$, rejects $1.6$ and
+is consistent with $1.0$; the rebuilt self-kernel estimate, $1.43$--$1.58$,
+points the other way. Under the $H = \alpha - \tfrac{1}{2}$ mapping the two
+imply $H \approx 0.03$ and $H \approx 0.5$ respectively---the first rougher
+than the $H \approx 0.1$ usually reported, the second not rough at all. We
+conclude that our data do not currently locate the volatility process on this
+axis, and we decline to place it.
+\pending{the exponent conditions of \citet{JaissonRosenbaum2016} on $\alpha$
+must be checked before this mapping is asserted rather than noted; our
+$\hat\alpha \approx 0.03$ sits near the edge of the admissible range}
+
+The practical consequence for the benchmark set is unchanged and if anything
+strengthened: a fractional-kernel forecaster is a rival in the same power-law
+family as our backbone, our measured exponent puts us in the same corner of
+that family as the Hawkes literature, and the battery still does not contain
+one. \pending{fractional/RFSV arm on the shared panel}
+
+This has a direct consequence for the paper's benchmark set that we regard as
+a genuine gap: a fractional-kernel forecaster is a \emph{rival in the same
+power-law family} as our backbone, and the battery does not contain one. It is
+cheap to add, since the direct power-law convolution machinery of
+Section~\ref{sec:algorithms} already constructs arbitrary $u^{-\beta}$ features.
+\pending{fractional/RFSV arm on the shared panel}
+
+\subsection{The Clock Organ}
+\label{sec:clock}
+
+A Hawkes process of the form \eqref{eq:hawkes_intensity} is time-homogeneous.
+Intraday realized variance emphatically is not, and the calendar block is the
+single largest organ we measure ($-0.0023$ QLIKE, on the organ-ablation cache
+rather than the frozen battery). The backbone is therefore
+kernel $\times$ clock rather than kernel alone.
+
+The clock does more than scale the kernel. Session-conditional estimation shows
+the target kernel \emph{rotating} through the day---cosine similarity to the
+pooled kernel of $+0.83$ overnight against $-0.55$ at the open
+(Table~\ref{tab:hawkes_kernel})---so the geometry deforms at session
+transitions rather than merely breathing in amplitude.
+
+We can now say how much. Stacking the six session kernels as a $6 \times 12$
+matrix, the leading singular value carries only \textbf{43.8\%} of the
+variance, and three components are needed for 84\%. Pure amplitude motion on a
+fixed shape would put essentially all of it in the first component. The session
+variation of the \emph{self}-kernel is therefore a genuine rotation, not a
+breathing amplitude---a distinction that matters because the exogenous
+operator, by contrast, does behave as the amplitude story predicts
+(Section~\ref{sec:hawkes}). The two objects move differently through the day,
+and only the exogenous one has quasi-static geometry.
+
+This is the hook that Section~\ref{sec:saturation} pays off: the nonlinear
+structure that survives is anchored to exactly these transitions.
+
+\subsection{Summary: The Instrument}
+\label{sec:backbone_summary}
+
+The backbone is a truncated power-law self-kernel with a clock organ, of which
+the base-5 HAR ladder is a coarse quadrature. The quadrature evidence is
+solid: it comes from the frozen forecast battery, it is monotone across six
+bases, and it does not depend on any kernel estimate. The kernel estimate is
+solid once correctly conditioned: the marginal self-kernel has integrated mass
+$0.913$, no negative mass, and a power-law decay at
+$\hat\beta = 1.506 \pm 0.035$ (Section~\ref{sec:kernel_repro}). What is not
+solid is any diagnostic computed on the self-kernel \emph{net of} volatility
+proxies, which is what earlier drafts reported. Three consequences follow:
+
+\begin{enumerate}
+  \item \textbf{The incumbent is quadrature-limited.} The base-5 ladder used
+    as this paper's shared benchmark is beaten by base-2 OLS by $0.00082$
+    QLIKE at DM $t = -10.6$, with no change in information set, model class, or
+    tuning. Section~\ref{sec:benchmark_debt} accounts for what this does to
+    every increment reported downstream.
+  \item \textbf{The natural basis is a mixture of decay exponents.} Direct
+    power-law convolution features $K_\beta(t) = \sum_u u^{-\beta} y_{t-u}$,
+    normalised, span the same structure as the boxcar ladder but are
+    parameterised by decay exponent rather than window length---the natural
+    coordinate if the kernel reading is correct, and freshness-robust in a way
+    boxcars are not (a 3{,}125-wide rolling mean weights a 65-day-old bar
+    exactly as heavily as yesterday's).
+  \item \textbf{Two later negative results are predictions, not surprises.}
+    Bounded additive-plus-pairwise nonlinearity and a low-rank exogenous
+    response operator are what the quadratic and multivariate extensions of
+    this backbone respectively predict, and the rank is measured at 4--6 of 41
+    channels. Both remain consistency arguments: we fit no self-exciting model,
+    and a 30-minute aggregated variance is not the event stream such a model
+    describes.
+\end{enumerate}

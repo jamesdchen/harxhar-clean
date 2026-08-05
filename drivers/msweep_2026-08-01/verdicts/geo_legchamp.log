@@ -1,0 +1,13 @@
+seg 1/10
+seg 2/10
+seg 3/10
+seg 4/10
+seg 5/10
+seg 6/10
+seg 7/10
+seg 8/10
+seg 9/10
+seg 10/10
+anchor alone (mixture HN)    qlike=0.167430 mz=0.940
+LEGIBILITY CHAMPION          qlike=0.163202 mz=0.897
+correction+stack vs HN anchor: diff=-0.00423 p=0.0023

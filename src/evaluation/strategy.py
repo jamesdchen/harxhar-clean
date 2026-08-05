@@ -1,5 +1,3 @@
-# Auto-generated from notebooks/06_strategy_eval.ipynb. Do not edit by hand.
-
 """
 > **NO REAL IV DATA IS WIRED IN.** Every concrete number this module can
 > produce today is computed against a synthetic implied-volatility provider.

@@ -1,0 +1,34 @@
+{
+  "objective": "FULL-OOS (oracle ceiling; DIAGNOSTIC ONLY; test-set-overfit by design; not reportable)",
+  "base": "raw slim (no regime/cumrv add-ons); comparable to enet_penalty_sweep grid, below deployed enetreg2 0.12314",
+  "incumbent_full_ref": 0.1253985165881812,
+  "tw": 48000,
+  "refit": 20000,
+  "results": {
+    "ridge": {
+      "best_qlike": 0.1257798347611635,
+      "best_params": {
+        "alpha": 265.7171519312514
+      },
+      "vs_incumbent": 0.00038,
+      "n_trials": 12
+    },
+    "lasso": {
+      "best_qlike": 0.12524362434555217,
+      "best_params": {
+        "alpha": 0.00014936568554617635
+      },
+      "vs_incumbent": -0.00015,
+      "n_trials": 12
+    },
+    "enet": {
+      "best_qlike": 0.12528827720078228,
+      "best_params": {
+        "alpha": 0.00033625958591986297,
+        "l1": 0.3278095760016487
+      },
+      "vs_incumbent": -0.00011,
+      "n_trials": 25
+    }
+  }
+}

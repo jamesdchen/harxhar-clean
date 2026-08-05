@@ -1,0 +1,14 @@
+[hc] seg 1/10 (39s)
+[hc] seg 2/10 (81s)
+[hc] seg 3/10 (124s)
+[hc] seg 4/10 (171s)
+[hc] seg 5/10 (206s)
+[hc] seg 6/10 (241s)
+[hc] seg 7/10 (282s)
+[hc] seg 8/10 (316s)
+[hc] seg 9/10 (349s)
+[hc] seg 10/10 (376s)
+[hc] hybrid_dp replica (anchor)   qlike=0.165145 mz=0.910
+[hc] HYBRID+CORR+STACK            qlike=0.163717 mz=0.898
+[hc] corr+stack vs hybrid_dp anchor: diff=-0.00143 p=0.0967
+[hc] DONE

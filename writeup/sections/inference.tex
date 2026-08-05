@@ -1,0 +1,222 @@
+\section{Inference}
+\label{sec:inference}
+
+Earlier drafts of this paper reported every improvement against one shared
+comparator, applied no multiplicity control, and left the central model-class
+difference untested. This section repairs all three. It also reports what the
+repairs cost: two arms lose significance, one claimed effect does not survive
+family-wise correction, and one that the paper leaned on turns out never to
+have been resolved at all.
+
+\subsection{Multiplicity Across the Battery}
+\label{sec:multiplicity_results}
+
+Ninety-seven arms are compared against the shared incumbent, and the paper
+quotes the minimum in two places. Table-wide correction is therefore
+mandatory, not optional.
+
+Of the 97 tests, 93 are significant at an unadjusted $p < 0.05$. Applying
+Holm--Bonferroni across the full family leaves \textbf{91}; Benjamini--Hochberg
+at the same level leaves 93. The two arms that lose significance under Holm are
+\texttt{reclasso/sentiment} ($p = 0.036 \to 0.215$) and the base-5 ladder arm
+\texttt{ols\_har b5 cap960} ($p = 0.037 \to 0.215$).
+
+The conclusion is favourable to the paper and worth stating plainly: the
+information and model-class effects are not artifacts of multiple testing. A
+$t$ of $-19$ against a family of 97 survives any correction one might apply,
+and even the weakest bucket effect we claim---\texttt{vol\_demand} at
+$t = -4.1$---clears Holm comfortably. What does not survive is the marginal
+sentiment arm, which we no longer claim.
+
+\subsection{The Pairwise Model-Class Test}
+\label{sec:pairwise}
+
+The paper's model-class conclusion compares two arms that were each tested
+only against a third. That is not the test the claim requires, and the
+per-bar loss series needed for a direct Diebold--Mariano test between them are
+not retained. A bound is available without them.
+
+For two arms $A$ and $B$ scored against a common incumbent, the incumbent
+cancels from the pairwise differential:
+\begin{equation}
+  d_A - d_B \;=\; (L_A - L_{\text{inc}}) - (L_B - L_{\text{inc}}) \;=\; L_A - L_B ,
+  \label{eq:pairwise_cancel}
+\end{equation}
+so the quantity we want is exactly the difference of two reported means. Its
+variance is
+\begin{equation}
+  \operatorname{Var}\!\left(\overline{L_A - L_B}\right)
+  \;=\; se_A^2 + se_B^2 - 2\rho\, se_A se_B ,
+  \label{eq:pairwise_var}
+\end{equation}
+with $se_A$, $se_B$ recoverable from each arm's reported mean differential and
+HAC $t$ statistic. Taking the worst case $\rho = -1$ gives
+$se \le se_A + se_B$, hence a \emph{lower bound} on $|t|$ and an \emph{upper
+bound} on $p$ that assume nothing whatever about the dependence between the two
+arms. If the bound clears the critical value the difference is established; if
+it does not, the comparison is inconclusive rather than negative.
+
+\input{stats/tab_pairwise_bounds}
+
+\textbf{The model-class ordering is established.} All nine matched comparisons
+resolve in the tree's favour after Holm adjustment, under a bound that makes no
+assumption about the dependence between arms. The headline pair---best tree
+$0.12604$ against best linear $0.12788$---is the weakest of the nine, at
+$|t| \ge 2.19$ and $p \le 0.029$. Under the tighter bound that holds when the
+two arms' improvements co-move ($\rho \ge 0$), the same pair gives
+$|t| \ge 3.00$, $p \le 0.0027$; we quote the assumption-free figure.
+
+Two qualifications. First, these are bounds: the true statistics are larger in
+magnitude, so the evidence is stronger than the table shows, but by an
+unmeasured amount. Second, the headline pair is only just resolved. A referee
+would be right to note that the paper's most-quoted number, $0.00184$, is the
+least secure of the nine, and that the case for the model-class ordering rests
+more on its consistency across feature sets than on any single comparison.
+
+\paragraph{A distribution-free check.} The tree beats the linear arm on all
+nine feature sets. Under a null of no model-class effect, the exact binomial
+sign test gives $p = 0.0039$. The nine feature sets are nested and share a
+panel, so this is anti-conservative and we report it as a consistency check
+rather than as an independent test.
+
+\subsection{Per-Bar Inference on the Campaign Tile}
+\label{sec:tile_inference}
+
+Several claims in this paper are inherited from campaign experiments whose
+per-bar predictions \emph{are} retained, on a common tile of $n = 2{,}189$ bars
+with identical targets across 161 arms. That tile permits genuine
+Diebold--Mariano tests and genuine model confidence sets rather than bounds.
+
+\paragraph{Panel discipline.} The tile is not the frozen battery. Its levels are
+not comparable to any level elsewhere in this paper, and its sample is two
+orders of magnitude smaller, so it has far less power. What it can settle is
+whether each \emph{claim} survives per-bar inference at all. We report it
+separately for that reason and never mix its numbers with battery numbers.
+
+\input{stats/tab_tile_dm}
+
+Four claims are confirmed at Holm-adjusted significance across the
+nineteen-contrast family.
+
+\begin{itemize}
+  \item \textbf{Trees fail as direct forecasters on the kernel dictionary}, and
+    fail badly: XGBoost $+0.102$ ($t = 6.96$) and LightGBM $+0.077$
+    ($t = 6.46$) against the incumbent. The extrapolation clamp reported in
+    Section~\ref{sec:saturation} is real and is the largest single effect in
+    the paper.
+  \item \textbf{Heavy local averaging pays}, decisively: $k = 8000$ beats
+    $k = 200$ by $0.0204$ ($t = -6.59$).
+  \item \textbf{Kernel truncation is a genuine interior optimum.} Cap-256 beats
+    cap-32 ($-0.0074$), beats no truncation at all ($-0.0077$), and beats
+    cap-128 ($-0.0026$), all Holm-significant. Truncating the kernel is not a
+    computational convenience; removing it costs real accuracy.
+  \item \textbf{Selection that bites hurts.} Elastic net at $\alpha = 3\times
+    10^{-4}$ is $+0.0052$ worse than ridge ($t = 3.15$), while light $\ell_1$
+    is indistinguishable from ridge. This is the sharpest available form of
+    ``shrink, never select''.
+\end{itemize}
+
+Two results refine claims made elsewhere in the paper.
+
+\begin{itemize}
+  \item \textbf{Averaging has an interior optimum too.} Moving from $k = 8000$
+    to $k = 16000$ is $+0.0029$ \emph{worse} ($t = 3.74$, Holm-significant). The
+    correct statement is not ``more averaging is better'' but that the optimum
+    sits at a large but finite neighbourhood; Section~\ref{sec:spectral_knn}
+    is amended accordingly.
+  \item \textbf{The parsimony ties are ties.} The three compressed
+    representations are statistically indistinguishable from the wide champion:
+    $p = 0.998$, $0.951$ and $0.763$ respectively. A tie is not evidence of
+    equality, but with these $p$-values the burden plainly lies with anyone
+    claiming the wide model does something the compressed ones do not.
+\end{itemize}
+
+\subsubsection{Three claims that do not survive}
+\label{sec:not_surviving}
+
+We report these at the same altitude as the confirmations.
+
+\begin{enumerate}
+  \item \textbf{Trees as residual readers are not shown to fail.} LightGBM
+    $+0.0031$ ($t = 1.06$, $p = 0.29$) and XGBoost $+0.0032$ ($t = 1.11$,
+    $p = 0.27$) against the smooth linear reader. The sign is as claimed and
+    the point estimates match earlier reports, but neither is distinguishable
+    from zero. The claim that ``trees fail in both seats'' holds for the direct
+    seat only.
+  \item \textbf{Fourier clock modulation does not beat session gates.}
+    $-0.0037$ with $t = -1.64$, $p = 0.10$ unadjusted and $0.91$ after Holm.
+    An internal note recorded gates as losing on both tiles; on this tile that
+    is a point estimate, not a result.
+  \item \textbf{Rank versus divide is not resolved.} $+0.0072$ with
+    $t = 2.73$, $p = 0.0064$ unadjusted but $0.071$ after Holm across the
+    contrast family. An earlier note recorded $p = 0.001$ for this comparison;
+    under HAC standard errors with a small-sample correction and family-wise
+    adjustment it falls short at the 5\% level.
+\end{enumerate}
+
+\subsection{Model Confidence Sets}
+\label{sec:mcs_results}
+
+\input{stats/tab_mcs}
+
+The MCS is a joint test and correspondingly less powerful than the targeted
+contrasts above, which shows in the results.
+
+\paragraph{The discriminating comparisons discriminate.} On the penalty family
+the MCS retains ridge and light elastic net and eliminates both heavier
+elastic nets ($p = 0.009$, $0.023$). On the model-class family it retains
+ridge, both residual-reading trees and the incumbent, and eliminates both
+direct-forecasting trees ($p < 0.001$). On the neighbourhood family it retains
+$k \in \{1000, 4000, 8000\}$ and eliminates $k = 200$, $k = 16000$ and the
+incumbent.
+
+\paragraph{The top of the tile is a wide tie.} All twenty of the best arms
+survive, and the result is unchanged when the bootstrap block length is varied
+from half to four times its automatic value. Over the full set of 161 arms the
+MCS retains 123. With $n = 2{,}189$ this is a statement about power, not about
+the models: the tile cannot discriminate among the great majority of arms
+tried on it, and any ranking within that set---including the ordering of the
+top three---is not supported by the data.
+
+\paragraph{Consequence for the campaign.} The practice of reading a tile
+leaderboard as a ranking is not defensible at this sample size. Differences at
+the top of the tile are real only if they replicate at scale, which is the
+argument for the frozen-battery discipline adopted for the rest of this paper.
+
+\subsection{Auxiliary Tests}
+\label{sec:aux_tests}
+
+\paragraph{Ladder monotonicity.} The quadrature prediction of
+Section~\ref{sec:powerlaw} is that QLIKE increases monotonically with the
+ladder base. Across the six bases the rank correlation is exactly $+1.000$
+($p < 10^{-4}$): the ordering is perfect, with no inversions.
+
+\paragraph{Metric disagreement.} The rank correlation between QLIKE and
+raw-variance OOS-$R^2$ across the 45 causally tuned arms is $+0.152$ with
+$p = 0.32$. Agreement between the two metrics would produce a \emph{negative}
+correlation; what we observe is indistinguishable from no relationship at all.
+The two metrics do not rank this battery in a related way.
+
+\paragraph{Calibration.} The rank correlation between QLIKE and the
+Mincer--Zarnowitz slope is $+0.741$ with $p = 5.8 \times 10^{-9}$. Arms that
+score better on QLIKE are more attenuated, and the association is
+overwhelmingly significant. Section~\ref{sec:calibration} discusses what this
+implies for reading a QLIKE ranking.
+
+\subsection{What Remains Unresolved}
+\label{sec:inference_remaining}
+
+\begin{itemize}
+  \item A full model confidence set over the 45 causally tuned battery arms
+    still requires their per-bar losses, which are not retained. The pairwise
+    bounds of Section~\ref{sec:pairwise} settle the model-class question but do
+    not produce a confidence set over the battery.
+    \pending{re-run the battery with per-bar loss series persisted, then a
+    battery MCS supersedes both the bounds and the tile MCS}
+  \item The spectral-$k$NN headline remains a minimum over 32 cells selected on
+    the evaluation panel. Bounds against the parametric arms
+    (Section~\ref{sec:knn_selection}) do not address that selection.
+  \item Everything in this section is conditional on the reported HAC standard
+    errors being computed as documented. The bounds inherit whatever bandwidth
+    convention produced the battery's $t$ statistics.
+\end{itemize}

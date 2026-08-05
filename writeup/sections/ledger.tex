@@ -1,0 +1,104 @@
+\section{Withdrawn Claims}
+\label{sec:ledger}
+
+This paper went through three drafts whose central claim we subsequently
+withdrew. We publish the record rather than the final draft alone, for two
+reasons. The claims were individually plausible, several were statistically
+significant at conventional levels, and one survived long enough to have the
+paper rewritten around it---so the interesting content is not that they were
+wrong but \emph{how} they passed. And a reader is entitled to know the
+denominator: fifteen withdrawn claims is the evidence that what remains was
+tested rather than merely found.
+
+\subsection{The Ledger}
+
+\begin{table}[t]
+\centering
+\caption{Claims made and withdrawn during this study. None is reinstated
+anywhere in this paper.}
+\label{tab:ledger}
+\small
+\begin{tabular}{p{0.47\textwidth}p{0.45\textwidth}}
+\toprule
+claim & why it was withdrawn \\
+\midrule
+the effective kernel is negative, $n = -0.038$ & wrong estimand and wrong basis \\
+the kernel estimate is not reproducible & rebuilt cache reproduces at $r = +1.0000$ \\
+the trial space is a manifold, not a subspace & a width argument prices uniform approximation over a family; a regression fits one point \\
+one nonlinear degree of freedom beats twelve linear & oracle selection artefact, $+0.0033$ \\
+a manifold-drawn linear space cannot reach the nonlinear fit & arithmetically guaranteed reachable \\
+QLIKE rewards attenuated forecasts & two attenuation operators disagree; inconclusive \\
+the kernel ceiling is $0.26337$ & an estimator ceiling, beaten at $0.26181$ \\
+directed shrinkage makes 41 weak channels usable & tail-risk control, then a data artefact \\
+the stripped-down model beats the elaborate one & reversed on the corrected panel \\
+the raw parameterisation is actively harmful & it faithfully carried a corrupted feature \\
+the exponent's usable range is $[-1, -0.5]$ & flat over $[0.2, 3.0]$ \\
+23 of 41 channels show the volatility-demand pathology & the detector conflated collapsed scale with fat tails \\
+the honest indicator is the whole of the fix & it changes no feature value \\
+the median substitution is actively harmful & harmful alone, correct as half of a pair \\
+three supervised lag directions beat all twelve rungs & the identical procedure on the eight estimation windows nobody chose puts all eight behind the ladder; the published window sits $13.5$ sd outside that distribution \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Five Causes, Not Fifteen}
+
+Every entry in Table~\ref{tab:ledger} traces to one of five failures. None is a
+modelling error, which is why we now guard against these five specifically
+rather than against wrong answers in general.
+
+\paragraph{One factor at a time.} The stripped-down design beat the elaborate
+one on the uncorrected panel and lost on the corrected one: a design $\times$
+data-version interaction, discovered by accident after two rewrites. The same
+error then repeated \emph{inside} the data fix, where median substitution alone
+looked harmful, masked estimation alone looked inert, the IQR floor alone
+looked inert, and all of the value was in the interaction. Three attempts
+failed for one reason. We now run a factorial with the data version as an
+explicit factor.
+
+\paragraph{Proxy metrics never validated.} Scaled magnitude in rolling-IQR
+units stood in for forecast harm, and was wrong in both directions: it called
+\texttt{sumbipow\_ewstock} at $84.6$ IQRs a pathology when the composed fix
+takes it to $17.7$, and it called an \texttt{effspread} regression at $932$ a
+defect whose QLIKE cost was never measured. No claim denominated in IQRs is a
+claim about forecasting. The same error recurred a third time in the scale-
+collapse detector, which fired on a region the repaired pipeline neutralises by
+design.
+
+\paragraph{Selection contaminating the estimate.} The MIDAS shape parameter was
+chosen against the reported out-of-sample loss, worth $+0.0033$; an exponent
+sweep reported its argmin as achievable; penalties were inherited across a
+dataset change. Selection now runs on a region strictly preceding evaluation,
+and oracle arms are reported but labelled.
+
+\paragraph{Numbers quoted across incompatible footings.} QLIKE $0.13280$ on the
+uncorrected panel was tabled against $0.13177$ on the corrected one without
+labels. Every number in this paper now carries its data version.
+
+\paragraph{An arbitrary nuisance choice fixed at one value and never varied.}
+The lag-compression result estimated its projection on the first $24{,}000$
+rows of the panel. Nothing recommended those rows over any other $24{,}000$;
+they were simply first. Every diagnostic we ran on that arm was internal to
+it---refit cadences, seed variants, principal angles, a memory-halflife
+sweep---and each was informative about \emph{how} the projection behaved
+without ever asking whether a different window would have produced the same
+verdict. It would not: repeating the identical procedure on the eight windows
+nobody chose puts all eight behind the full ladder in a tight distribution
+(mean $+0.00022$, sd $0.00016$), with the published window $13.5$ standard
+deviations outside it. The window was a nuisance parameter, and a nuisance
+parameter examined at one value is not examined. We now sweep such choices
+across their plausible range and read the reported number against that
+distribution, in the spirit of specification-curve and multiverse analysis;
+where a sweep is infeasible, the arbitrariness is stated rather than left
+implicit.
+
+\subsection{What This Implies About the Rest of the Literature}
+
+We make one observation and no accusation. Four of the five causes above are
+invisible in a finished paper. A reader cannot tell from a results table
+whether a shape parameter was selected on validation data or on the reported
+test set; whether a reported ablation varied one factor while a second moved
+underneath it; whether the panel a model was fitted on contained a channel that
+had stopped publishing; or whether an arbitrary window, seed, or split was the
+only one ever tried. Our own answers to those four questions were wrong, and we
+had the code.

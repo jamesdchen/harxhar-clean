@@ -15,12 +15,15 @@ import numpy as np
 import pandas as pd
 
 
-def resolve_har_lags(max_lag: int = 3125) -> list[int]:
-    """Powers-of-5 lag sequence: [1, 5, 25, 125, 625, 3125]."""
+def resolve_har_lags(max_lag: int = 3125, base: int = 5) -> list[int]:
+    """Geometric lag sequence 1, base, base^2, ... <= max_lag.
+
+    Defaults reproduce the production ladder [1, 5, 25, 125, 625, 3125].
+    """
     seq, v = [], 1
     while v <= max_lag:
         seq.append(v)
-        v *= 5
+        v *= base
     return seq
 
 
@@ -28,13 +31,15 @@ def generate_har_features(
     df: pd.DataFrame,
     target_col: str = "adj_RV",
     exog_cols: list[str] | None = None,
+    lags: list[int] | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Add rolling-mean HAR features (shifted by 1) for each powers-of-5 lag.
+    """Add rolling-mean HAR features (shifted by 1) for each ladder lag.
 
     Features are generated for *target_col* and each column in *exog_cols*.
     Target features are named ``har_ma_{lag}``; exog features ``{col}_ma_{lag}``.
+    ``lags=None`` (the default) uses the production ``resolve_har_lags()`` ladder.
     """
-    lags = resolve_har_lags()
+    lags = resolve_har_lags() if lags is None else list(lags)
     features: dict[str, pd.Series] = {}
     feature_names: list[str] = []
     for col in [target_col] + (exog_cols or []):

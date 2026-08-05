@@ -1,0 +1,21 @@
+\begin{table}[H]
+\centering
+\caption{Nested probes on the rebuilt \texttt{b2\_mmap} cache, all on the same
+$242{,}934$ rows. Coefficients are converted from the cached rolling-robust-scaled
+basis to the raw boxcar basis (dividing by each column's mean scaling IQR) so that
+$\hat n = \sum_k w_k$ is the discretised kernel integral. Adding the exogenous
+ladder---which contains bipower variation, absolute returns and semivariance,
+all near-substitutes for lagged $RV$---is what flips the self-kernel's sign.}
+\label{tab:nested_probes}
+\begin{tabular}{llrrrrr}
+\toprule
+Probe & Conditioning set & Cols & $\hat n$ & Neg.\ lags & Neg.\ mass & $\hat\beta$ \\
+\midrule
+A & marginal self-kernel & 12 & $+0.913$ & 2/12 & 0.0\% & 1.51 \\
+B & + 41 exogenous ladders & 504 & $-0.139$ & 6/12 & 16.4\% & 1.01 \\
+D & + availability indicators & 996 & $-0.153$ & 6/12 & 17.6\% & 0.96 \\
+C & + calendar and activity flags & 585 & $-0.264$ & 7/12 & 13.6\% & 1.34 \\
+E & the archived probe & 1077 & $-0.363$ & 9/12 & 14.4\% & 1.35 \\
+\bottomrule
+\end{tabular}
+\end{table}

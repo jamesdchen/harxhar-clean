@@ -1,0 +1,417 @@
+{
+  "n_channels": 41,
+  "stride": 7,
+  "channels": [
+    {
+      "channel": "voldemand_spx_open_only",
+      "raw_coverage": 0.22253780862291817,
+      "longest_flat": 7,
+      "zero_frac": 0.1598535015352743,
+      "scaled_absmax": 2260.373800056449,
+      "tail_frac_gt10": 0.026233011573740576,
+      "has_avail": true
+    },
+    {
+      "channel": "voldemand_all_open_only",
+      "raw_coverage": 0.22253780862291817,
+      "longest_flat": 7,
+      "zero_frac": 0.1576338278273094,
+      "scaled_absmax": 1547.0581673201034,
+      "tail_frac_gt10": 0.025956874609806464,
+      "has_avail": true
+    },
+    {
+      "channel": "voldemand_spx_open_and_close",
+      "raw_coverage": 0.22253780862291817,
+      "longest_flat": 7,
+      "zero_frac": 0.14853316562465319,
+      "scaled_absmax": 252.38562641467243,
+      "tail_frac_gt10": 0.032262402151467126,
+      "has_avail": true
+    },
+    {
+      "channel": "voldemand_all_open_and_close",
+      "raw_coverage": 0.22253780862291817,
+      "longest_flat": 7,
+      "zero_frac": 0.14509267137730752,
+      "scaled_absmax": 205.9813009682679,
+      "tail_frac_gt10": 0.032536137924410506,
+      "has_avail": true
+    },
+    {
+      "channel": "sumbipow_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 10,
+      "zero_frac": 0.06807885795559301,
+      "scaled_absmax": 87.76275165033802,
+      "tail_frac_gt10": 0.0003673822215819046,
+      "has_avail": true
+    },
+    {
+      "channel": "sumpret2_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 6,
+      "zero_frac": 0.03337108541628256,
+      "scaled_absmax": 85.99894017183475,
+      "tail_frac_gt10": 0.00023531671709167747,
+      "has_avail": true
+    },
+    {
+      "channel": "numobs",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 242,
+      "zero_frac": 0.0,
+      "scaled_absmax": 80.89941951829546,
+      "tail_frac_gt10": 0.006051001296643135,
+      "has_avail": true
+    },
+    {
+      "channel": "sumbipow_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 10,
+      "zero_frac": 0.06807885795559301,
+      "scaled_absmax": 78.4555553546342,
+      "tail_frac_gt10": 0.00010325121260145032,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret4_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 77.35839603955154,
+      "tail_frac_gt10": 0.00030735244681361957,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret2_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 75.11291935511032,
+      "tail_frac_gt10": 0.0001680833693511982,
+      "has_avail": true
+    },
+    {
+      "channel": "stocktwits_sentiment",
+      "raw_coverage": 0.6679880132052327,
+      "longest_flat": 24,
+      "zero_frac": 0.012441689210424151,
+      "scaled_absmax": 70.34159003316651,
+      "tail_frac_gt10": 0.0010469192719588917,
+      "has_avail": true
+    },
+    {
+      "channel": "sumpret2_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 6,
+      "zero_frac": 0.03337108541628256,
+      "scaled_absmax": 61.86147028506914,
+      "tail_frac_gt10": 0.00030495125582288813,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret2_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 61.35487885020566,
+      "tail_frac_gt10": 0.00030255006483215674,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret4_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 59.46310110916062,
+      "tail_frac_gt10": 0.0002737357729433799,
+      "has_avail": true
+    },
+    {
+      "channel": "sumabsret_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 56.47963810008617,
+      "tail_frac_gt10": 0.0002689333909619171,
+      "has_avail": true
+    },
+    {
+      "channel": "sellturnover_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 4,
+      "zero_frac": 0.007842336766139015,
+      "scaled_absmax": 47.07834363961163,
+      "tail_frac_gt10": 0.00012966431349949574,
+      "has_avail": true
+    },
+    {
+      "channel": "spread_vwstock",
+      "raw_coverage": 0.6247705138021026,
+      "longest_flat": 0,
+      "zero_frac": 0.0,
+      "scaled_absmax": 42.06871564496227,
+      "tail_frac_gt10": 0.00015367622340680979,
+      "has_avail": true
+    },
+    {
+      "channel": "sumabsret_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 8,
+      "zero_frac": 0.033706903363447206,
+      "scaled_absmax": 40.41402280384814,
+      "tail_frac_gt10": 0.00020890361619363204,
+      "has_avail": true
+    },
+    {
+      "channel": "turnover_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 1,
+      "zero_frac": 0.0,
+      "scaled_absmax": 35.48765275225694,
+      "tail_frac_gt10": 0.00012246074052730155,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret3_ewstock",
+      "raw_coverage": 0.6087208871545358,
+      "longest_flat": 3,
+      "zero_frac": 0.00453749349130032,
+      "scaled_absmax": 29.19377767392713,
+      "tail_frac_gt10": 0.00012005954953657014,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret3_vwstock",
+      "raw_coverage": 0.6087208871545358,
+      "longest_flat": 3,
+      "zero_frac": 0.00453749349130032,
+      "scaled_absmax": 24.49302976842214,
+      "tail_frac_gt10": 0.00015367622340680979,
+      "has_avail": true
+    },
+    {
+      "channel": "turnover_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 1,
+      "zero_frac": 0.0,
+      "scaled_absmax": 24.492589237408357,
+      "tail_frac_gt10": 0.00011525716755510733,
+      "has_avail": true
+    },
+    {
+      "channel": "sumabsret",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.0012977467923815124,
+      "scaled_absmax": 23.47058309465054,
+      "tail_frac_gt10": 0.00026172981798972293,
+      "has_avail": true
+    },
+    {
+      "channel": "sellturnover_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 4,
+      "zero_frac": 0.007842336766139015,
+      "scaled_absmax": 23.108696005160642,
+      "tail_frac_gt10": 9.60476396292561e-05,
+      "has_avail": true
+    },
+    {
+      "channel": "sumbipow",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.008882635811931711,
+      "scaled_absmax": 22.621964902629898,
+      "tail_frac_gt10": 0.00020170004322143785,
+      "has_avail": true
+    },
+    {
+      "channel": "buyturnover_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 4,
+      "zero_frac": 0.007098269549872258,
+      "scaled_absmax": 22.03213220101146,
+      "tail_frac_gt10": 0.00010085002161071892,
+      "has_avail": true
+    },
+    {
+      "channel": "sumpret2",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.00328846517292791,
+      "scaled_absmax": 21.80508648404834,
+      "tail_frac_gt10": 0.00020410123421216923,
+      "has_avail": true
+    },
+    {
+      "channel": "sumvolume",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 1,
+      "zero_frac": 0.0,
+      "scaled_absmax": 21.184856306218794,
+      "tail_frac_gt10": 0.0018345099169187918,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret4",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.0012977467923815124,
+      "scaled_absmax": 20.222128949574028,
+      "tail_frac_gt10": 0.00010805359458291313,
+      "has_avail": true
+    },
+    {
+      "channel": "buyturnover_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 4,
+      "zero_frac": 0.007098269549872258,
+      "scaled_absmax": 19.462819487699534,
+      "tail_frac_gt10": 7.92393026941363e-05,
+      "has_avail": true
+    },
+    {
+      "channel": "effspread_vwstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 1,
+      "zero_frac": 0.0001251086469829062,
+      "scaled_absmax": 17.556636360888895,
+      "tail_frac_gt10": 8.16404936848677e-05,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.03894500325486655,
+      "scaled_absmax": 17.31741838721521,
+      "tail_frac_gt10": 0.00011525716755510733,
+      "has_avail": true
+    },
+    {
+      "channel": "effspread_ewstock",
+      "raw_coverage": 0.625140984794224,
+      "longest_flat": 1,
+      "zero_frac": 0.0001251086469829062,
+      "scaled_absmax": 13.052883658051476,
+      "tail_frac_gt10": 5.7628583777553666e-05,
+      "has_avail": true
+    },
+    {
+      "channel": "sumret3",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.021213330253459606,
+      "scaled_absmax": 11.926870348514617,
+      "tail_frac_gt10": 4.322143783316525e-05,
+      "has_avail": true
+    },
+    {
+      "channel": "stocktwits_attention",
+      "raw_coverage": 0.7597042818214,
+      "longest_flat": 6,
+      "zero_frac": 0.0,
+      "scaled_absmax": 10.410769211479371,
+      "tail_frac_gt10": 4.802381981462806e-06,
+      "has_avail": true
+    },
+    {
+      "channel": "stocktwits_sentcount",
+      "raw_coverage": 0.6679880132052327,
+      "longest_flat": 12,
+      "zero_frac": 0.0,
+      "scaled_absmax": 9.015504591836777,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    },
+    {
+      "channel": "sumautocov",
+      "raw_coverage": 0.9801221731005129,
+      "longest_flat": 17,
+      "zero_frac": 0.00890363495096701,
+      "scaled_absmax": 8.165975761172291,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    },
+    {
+      "channel": "vix3m",
+      "raw_coverage": 0.2064346694987116,
+      "longest_flat": 14,
+      "zero_frac": 0.0,
+      "scaled_absmax": 8.080271938778692,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    },
+    {
+      "channel": "spread_ewstock",
+      "raw_coverage": 0.6247705138021026,
+      "longest_flat": 0,
+      "zero_frac": 0.0,
+      "scaled_absmax": 5.995426265093274,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    },
+    {
+      "channel": "vvix",
+      "raw_coverage": 0.1585121884956408,
+      "longest_flat": 12,
+      "zero_frac": 0.0,
+      "scaled_absmax": 5.0040540265894204,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    },
+    {
+      "channel": "vix",
+      "raw_coverage": 0.352461985559864,
+      "longest_flat": 11,
+      "zero_frac": 0.0,
+      "scaled_absmax": 3.5024566820083205,
+      "tail_frac_gt10": 0.0,
+      "has_avail": true
+    }
+  ],
+  "n_over_20_iqr": 29,
+  "n_pathology": 23,
+  "pathology": [
+    "voldemand_spx_open_only",
+    "voldemand_all_open_only",
+    "voldemand_spx_open_and_close",
+    "voldemand_all_open_and_close",
+    "sumbipow_ewstock",
+    "sumpret2_vwstock",
+    "sumbipow_vwstock",
+    "sumret4_vwstock",
+    "sumret2_vwstock",
+    "stocktwits_sentiment",
+    "sumpret2_ewstock",
+    "sumret2_ewstock",
+    "sumret4_ewstock",
+    "sumabsret_ewstock",
+    "sellturnover_vwstock",
+    "spread_vwstock",
+    "sumabsret_vwstock",
+    "turnover_vwstock",
+    "sumret3_ewstock",
+    "sumret3_vwstock",
+    "turnover_ewstock",
+    "sellturnover_ewstock",
+    "buyturnover_ewstock"
+  ],
+  "low_coverage": [
+    "voldemand_spx_open_only",
+    "voldemand_all_open_only",
+    "voldemand_spx_open_and_close",
+    "voldemand_all_open_and_close",
+    "vix3m",
+    "vvix",
+    "vix"
+  ],
+  "code_findings": {
+    "scaling.rolling_robust_scale": "absolute 1e-12 IQR guard; target.py fixed the analogous bug with a relative floor. LIVE.",
+    "target.robust_transform_nonnegative": "baseline.replace(0, 1.0) is an exact-zero check on a divisor. LIVE.",
+    "target.robust_transform_signed": "floors the std at a fraction of its median. FIXED.",
+    "loading.apply_overnight_fills": "fills NaN with 1.0 by substring match, but RATIO_FILL_COLS is empty. DEAD."
+  }
+}

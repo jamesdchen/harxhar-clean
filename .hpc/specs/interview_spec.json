@@ -1,0 +1,53 @@
+{
+  "goal": "sweep over different bases of the HAR ladder and one with {1,8,48,240,960}; ladder construction is rungs to a cap, with a sweep of the cap too; citable numbers: QLIKE per ladder-arm x cap vs the incumbent under the usual estimator, full battery with DM vs incumbent; OLS-HAR base-5 anchor as a familiar baseline. No scope tags.",
+  "task_count": 2100,
+  "produced_by": {"kind": "agent", "session_sha": "9322a42afd3201a6e84d0f43d8072c6c1e0a639d797e7ea92bd60d5337789cc7"},
+  "task_generator": {
+    "kind": "chunked_series",
+    "params": {
+      "chunks": 100,
+      "extra_axes": {
+        "ladder_arm": ["2", "3", "4", "5", "6", "8", "explicit"],
+        "rungs_cap": [240, 960, 3125]
+      },
+      "halo": 24000,
+      "series_length": 242934,
+      "start": 0
+    }
+  },
+  "entry_point": {
+    "kind": "shell_command",
+    "run_name": "har_base_sweep",
+    "argv": [
+      "env",
+      "LADDER_ARM={ladder_arm}",
+      "RUNGS_CAP={rungs_cap}",
+      "START={chunk_start}",
+      "END={chunk_end}",
+      "HALO={halo}",
+      "python3",
+      "specs/har_base_sweep.py"
+    ],
+    "signature": {
+      "ladder_arm": "str",
+      "rungs_cap": "int",
+      "chunk_start": "int",
+      "chunk_end": "int",
+      "halo": "int"
+    },
+    "fixed_params": {},
+    "frozen_configs": [],
+    "data_axis_hint": {"kind": "bounded_halo", "halo": {"expr": "halo"}}
+  },
+  "audited_source": {
+    "audit_id": "har_base_sweep",
+    "source": "specs/har_base_sweep.py",
+    "template": "packs/rv/templates/rv_audit.py",
+    "input_roots": ["data"],
+    "source_roots": ["src"],
+    "output_roots": []
+  },
+  "packs": [
+    {"pack": "rv", "manifest": "packs/rv/manifest.json", "receipt_bindings": []}
+  ]
+}

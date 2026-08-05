@@ -1,0 +1,21 @@
+model: ridge
+
+# Run-#10 proving campaign, arm 1/2: the deployed baseline
+# (configs/ridge_market_ew_prod.yaml, last touched 9b8131b) with exactly two
+# non-semantic redirects: output_file (never clobber the deployed artifact)
+# and data_path (the cluster data lives OUTSIDE the deploy tree at
+# /u/scratch/j/jamesdc1/harxhar-data so the deploy pre-clean can never
+# delete it — same parquet payload, different location). Mirrors the
+# audited specs/run10_known_answer.py baseline cell.
+horizon: 1
+train_window: 500
+refit_frequency: 1
+exog_cols: "sumret2_ewstock|sumret3_ewstock|sumret4_ewstock|sumabsret_ewstock|sumbipow_ewstock|sumpret2_ewstock"
+segment: ""
+lag_scope: global
+alpha: 1.0
+seed: 42
+data_path: /u/scratch/j/jamesdc1/harxhar-data
+output_file: results/run10_proving/baseline/run.json
+params_file: ""
+overnight_fill: true

@@ -1,0 +1,28 @@
+\begin{table}[H]
+\centering
+\caption{Kernel diagnostics under a rebuild from the raw parquet data,
+varying the two design choices suspected of producing the archived kernel's
+sign structure, plus a winsorization arm. Every cell has $n = 242{,}934$
+rows. $\hat n = \sum_k w_k$ is the branching-ratio analogue; ``neg.\ mass''
+is the share of absolute kernel mass carried by negative lags. QLIKE is a
+single 60/40 split on the raw variance scale and is \emph{not} comparable to
+the walk-forward levels reported elsewhere in this paper --- it is included
+only so that degenerate cells are visible. \textbf{The first row does not
+reproduce the archived kernel} (correlation $+0.65$, $\hat n$ $+1.00$ against
+an archived $-0.038$), so no cell here explains the archived estimate; see
+Section~\ref{sec:kernel_repro}.}
+\label{tab:kernel_experiments}
+\begin{tabular}{llrrrrr}
+\toprule
+Specification & Change & $\hat n$ & Neg.\ lags & Neg.\ mass & $\hat\beta$ & QLIKE \\
+\midrule
+\texttt{divide/partial/5-95} & committed specification & $+1.000$ & 2/12 & 0.0\% & 1.58 & 0.2627 \\
+\texttt{divide/marginal/5-95} & drop the exogenous block & $+0.926$ & 3/12 & 0.0\% & 1.52 & 0.2648 \\
+\texttt{dummies/partial/5-95} & drop the rolling divisor & $+1.079$ & 1/12 & 0.4\% & 1.58 & 0.3254 \\
+\texttt{dummies/marginal/5-95} & drop both & $+0.991$ & 3/12 & 0.3\% & 1.45 & 0.2938 \\
+\texttt{divide/marginal/1-99} & winsorize at 1/99 & $+0.914$ & 3/12 & 0.0\% & 1.50 & 0.2449 \\
+\texttt{divide/marginal/none} & no winsorization & $+0.906$ & 3/12 & 0.0\% & 1.48 & 0.2411 \\
+\texttt{dummies/marginal/none} & no divisor, no winsorization & $+0.989$ & 3/12 & 0.2\% & 1.43 & 0.3221 \\
+\bottomrule
+\end{tabular}
+\end{table}
