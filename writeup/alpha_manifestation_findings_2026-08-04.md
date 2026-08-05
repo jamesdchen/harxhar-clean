@@ -1994,6 +1994,47 @@ exhausted. The un-run items of the program — the parameter-space metric (per-c
 gains, the principled attack on the 48% idiosyncratic freshness) and target-precision weighting by
 `numobs` — are recorded in `analysis/noise_metric.py`'s docstring lineage and §19.4.
 
+### 19.4 Further readings of the information geometry — each one predicts a measured result
+
+Frames, not new measurements; recorded because each makes at least one falsifiable statement that
+already checks out against a number in this document.
+
+1. **QLIKE is the Itakura–Saito divergence**, the Bregman divergence of φ = −log on the variance
+   cone. Bregman ⇒ the optimal forecast is the conditional **mean of raw variance** — which is
+   *why Duan smearing exists*: the model lives in the sqrt chart, the loss wants the m-chart mean,
+   and the smear term is exactly the Jensen correction between them. The exponential-family
+   structure gives three canonical charts — variance (m-flat, where means/mixtures live),
+   precision 1/σ² (e-flat, where Bayesian information adds), log-variance (metric-flat, where
+   errors are comparable). The repo's sqrt target is Box–Cox λ = ½, an intermediate chart; the
+   dial's measured exponent −0.36 is another empirically-chosen intermediate representation. The
+   data keeps electing charts partway along the α-family rather than at its named endpoints.
+2. **Dual flatness ⇒ a Pythagorean theorem in model space**: divergence improvements from nested
+   model extensions add exactly when the extensions are Fisher-orthogonal. The study measured this
+   twice without naming it: §16.1's two gains additive to −4%, §17.1's two state axes additive to
+   ~1%. "Stacking improvements works" is not luck — it is orthogonality, and the attribution
+   tables were Pythagorean decompositions.
+3. **Elicitability sorts the survivor list.** Every object that survived a powered test is an
+   elicitable functional — conditional means, regression slopes, variances, the dial (a slope) —
+   i.e. things with strictly consistent scoring rules. Every object that died is non-elicitable —
+   eigenvectors, rotation axes, cluster memberships, argmax structure. The study's graveyard is
+   the theorem's prediction.
+4. **Identification failures are Cramér–Rao saturation.** The Fisher metric *is* the CR bound
+   field; the "power arithmetic" (c/√K, null sd 0.404 on a 7-dim axis, the dial's 73% noise
+   share) was CR accounting done empirically. The metric tells you in advance which objects the
+   data's information volume can estimate; §§13–14's failures were computable before running.
+5. **Item 4 of §19.3's program is "update in the e-chart"**: Kalman filtering in information form
+   adds precisions — Bayesian updates are additive in natural parameters. Per-coefficient gains =
+   doing parameter updates in the coordinates where information is additive.
+6. **The tower of metrics has geometrically decaying information — which is why the stack
+   terminates.** Vol is the noise metric of returns (R² 0.58); the exog structure is a correction
+   to that metric (+0.05); the dial is the metric of that correction (forecastable ceiling ~4%,
+   reliability 0.27); the next level is measurably nothing. Each derivative of the process loses
+   an order of magnitude of predictability, so a two-ridge model is not a compromise — it is
+   where the information runs out. Cross-sectionally the tower restarts with content: the variance
+   cone becomes the SPD cone, genuinely negatively curved, where chart choices (arithmetic vs
+   geodesic means, log-Euclidean vs affine-invariant) stop being conventions — the third
+   independent argument that the next unit of progress is data, not method.
+
 ## Reproducibility
 
 ```bash
