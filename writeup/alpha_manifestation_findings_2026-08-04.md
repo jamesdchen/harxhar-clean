@@ -1898,6 +1898,51 @@ which are exactly what a gradient-boosted tree does natively: **collect everythi
 constantly, saturate the response.** The two-ridge model is that playbook in closed form, minus the
 saturation — which is the one pre-registered test this study leaves on the table.
 
+### 19.1 The geometry, formalized: it is a metric — the information metric, and only partially applied
+
+Asked directly whether the surviving structure is "a metric in the Riemannian sense", the answer
+decomposes into one identity, one measured exponent, and one negative result.
+
+**The identity.** QLIKE is exactly twice the KL divergence between mean-zero Gaussians differing in
+variance, ``QLIKE(σ̂², σ²) = σ²/σ̂² − log(σ²/σ̂²) − 1``, whose second-order expansion is
+``½(log σ² − log σ̂²)²`` — the squared geodesic distance in the **Fisher–Rao metric on the variance
+manifold** (``ds = dσ/σ``). The production loss *is* an information-geometric squared distance;
+log-vol is its geodesic normal coordinate; and the repo's transform stack — sqrt/log semantic
+transforms, diurnal division, ratio-based smearing — is a change of charts that flattens this
+metric. Every §8/§16.4 data defect was a **chart singularity**: a coordinate change (per-slot
+divisor, reference IQR) degenerating to zero. This is established structure, not conjecture, and it
+is already fully exploited — it is *why* the transform stack looks the way it does.
+
+**The measured exponent.** If §18.4's dial were a *pure* metric rescaling — measure the form's
+output in units of its own local noise — the elasticity of the dial to the form's variance would be
+−1. Measured across the 199 positive-dial blocks: **d log g / d log var(inc) = −0.357 ± 0.046**.
+One third of the way from raw units (0) to full SNR units (−1). Equivalently, the optimal
+block-level response amplitude scales as (form amplitude)^0.28 — concave, between logarithm and cube
+root — and gearing by the dial halves the cross-block amplitude dispersion (CV 1.27 → 0.68) without
+equalizing it, as a pure metric would. The deviation from −1 is itself information: the form's
+loudness is not pure noise — louder does mean more signal, just at less than half the raw rate.
+This also pins down §18.4's "pre-registered concave response" test to a **zero-free-parameter**
+form: gearing ∝ trailing-var^(−0.36), fixed here descriptively before any forecast is scored.
+
+**The negative result, restated in metric language.** Feature space itself carries no exploitable
+metric beyond diagonal whitening (the rolling robust scale — a time-varying, position-independent,
+diagonal metric). Every attempt to give it richer geometry was an attempt to install an off-diagonal
+or curved metric — a graph Laplacian *is* a metric choice on the feature graph, its heat kernel the
+corresponding diffusion; the covariance-similarity and interaction-strength graphs were candidate
+metrics; the spectral analysis of B asked for the metric's principal directions — and every one died
+under a powered test (§§12, 13, 17.2–17.3).
+
+So the final formal statement: **the signal has no geometry; the noise does, and the only structure
+that ever paid — at every level of the stack — is the noise's metric pulled back onto everything
+else.** Target: Fisher–Rao on the variance cone (QLIKE, the transforms). Clock: per-slot division.
+Features: diagonal whitening. Form output: the dial, a partial (−0.36 of the full −1) inverse-noise
+rescaling. The one genuinely *position-dependent* — curved — statement with empirical support is the
+concavity itself: the effective metric on the form's output contracts in its tails. The geometry of
+trust is curved; the geometry of the signal is flat. (If the panel ever goes cross-sectional, the
+variance manifold becomes the SPD cone, whose affine-invariant metric is genuinely negatively curved
+— the information geometry stops being scalar and this framing becomes load-bearing rather than
+descriptive.)
+
 ## Reproducibility
 
 ```bash
