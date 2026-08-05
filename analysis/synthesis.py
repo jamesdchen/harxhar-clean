@@ -568,11 +568,95 @@ def stage_additivity2() -> None:
     print(f"\nwrote {OUT}/additivity_combination.csv")
 
 
+def stage_additivity3() -> None:
+    """§15.3 item 1, the control the previous stage demands.
+
+    ``additivity2`` returned dR2 **+0.0088** (DM-t +8.1 vs the pooled combiner, +7.6 vs the better
+    single arm) — the +0.009 §15.3 nominated as the largest unclaimed number in the study. But it
+    reached it by a route the framing did not anticipate: ``f_B`` alone *loses* to the pooled
+    combiner (dR2 -0.0039), so the ratio ``dR2(AB)/(dR2(A)+dR2(B))`` is negative and meaningless,
+    and the gain is coming from **combining two structurally different estimators** — a two-stage
+    bucket combiner and a one-stage direct model — not from the two confirmed gains stacking.
+
+    Averaging two diverse forecasts of the same target reduces variance whether or not either
+    carries any of the specific structure this study identified. So the number has to be decomposed
+    before it can be attributed, and the decomposition is a 2x2: the second view can be the plain
+    133-column linear direct model or the product-augmented one, and the first view can be the
+    pooled combiner or its vol-regime blend.
+
+        0.5 (M0  + lin)   plain diversification, neither confirmed gain present
+        0.5 (M0  + f_B)   + the frozen interaction products
+        0.5 (f_A + lin)   + the vol-regime blend
+        0.5 (f_A + f_B)   both  (= additivity2's f_AB)
+
+    Whatever the first cell already delivers is *not* credit that belongs to §6 or §7.
+    """
+    _require_fixed_cache()
+    os.makedirs(OUT, exist_ok=True)
+    p = load_panel()
+    e_full = np.load(_p("har_resid.npz"))["e"]
+    e = e_full[TW:]
+    sig = dict(np.load(_p("bucket_signals.npz")))
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    S = np.column_stack([sig[b] for b in BUCKETS])
+    cw = COMBINE_WINDOW_DAYS * PERIODS_PER_DAY
+
+    bc, _ = base_columns(p)
+    Xd = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    lin, aug, _ = _interaction_walk(Xd, e_full, (ALPHA_PROD,), dynamic=False)
+    fB = aug[ALPHA_PROD]
+    m0 = _combiner(S, e, cw)
+    K = 3  # pre-specified: the midpoint of the K grid §6 reported, fixed before running this stage
+    bins = _vol_regime(p, ts, K)
+    cond = _bin_walk_forward(S, e, bins, K, COMBINE_WINDOW_DAYS)
+    ok = np.isfinite(m0) & np.isfinite(cond) & np.isfinite(fB) & np.isfinite(lin)
+    fA = 0.5 * (m0 + cond)
+    y = e[ok]
+    r0 = r2_oos(y, m0[ok])
+    print(f"K={K}  n={int(ok.sum())}   M0 pooled combiner R2 {r0:+.5f}\n")
+    print("  first view   second view   R2        dR2 vs M0   DM-t vs M0   DM-t vs plain")
+    plain = 0.5 * (m0 + lin)
+    rows = []
+    for fname, first in (("M0", m0), ("f_A", fA)):
+        for sname, second in (("lin", lin), ("f_B", fB)):
+            comb = 0.5 * (first + second)
+            r = r2_oos(y, comb[ok])
+            t0 = dm_test(y, comb[ok], m0[ok])
+            tp = dm_test(y, comb[ok], plain[ok])
+            print(f"  {fname:11s}  {sname:11s}  {r:+.5f}  {r - r0:+.5f}    {t0:+6.2f}      {tp:+6.2f}")
+            rows.append({"K": K, "n": int(ok.sum()), "first": fname, "second": sname, "r2": r,
+                         "dr2_vs_M0": r - r0, "dm_t_vs_M0": t0, "dm_t_vs_plain_combination": tp})
+    d = pd.DataFrame(rows)
+    plain_d = float(d[(d["first"] == "M0") & (d["second"] == "lin")]["dr2_vs_M0"].iloc[0])
+    both_d = float(d[(d["first"] == "f_A") & (d["second"] == "f_B")]["dr2_vs_M0"].iloc[0])
+    prod_d = float(d[(d["first"] == "M0") & (d["second"] == "f_B")]["dr2_vs_M0"].iloc[0])
+    vol_d = float(d[(d["first"] == "f_A") & (d["second"] == "lin")]["dr2_vs_M0"].iloc[0])
+    print(f"\n  ATTRIBUTION of the {both_d:+.5f} total")
+    print(f"    plain diversification (M0 + lin)          {plain_d:+.5f}  "
+          f"{100 * plain_d / both_d:5.1f}%")
+    print(f"    marginal from the frozen products         {prod_d - plain_d:+.5f}  "
+          f"{100 * (prod_d - plain_d) / both_d:5.1f}%")
+    print(f"    marginal from the vol-regime blend        {vol_d - plain_d:+.5f}  "
+          f"{100 * (vol_d - plain_d) / both_d:5.1f}%")
+    print(f"    interaction / remainder                   "
+          f"{both_d - prod_d - vol_d + plain_d:+.5f}  "
+          f"{100 * (both_d - prod_d - vol_d + plain_d) / both_d:5.1f}%")
+    d.to_csv(f"{OUT}/additivity_attribution.csv", index=False)
+    print(f"\nwrote {OUT}/additivity_attribution.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--stage",
-        choices=["prep", "interactions", "additivity", "additivity2", "sentiment"],
+        choices=[
+            "prep",
+            "interactions",
+            "additivity",
+            "additivity2",
+            "additivity3",
+            "sentiment",
+        ],
         required=True,
     )
     a = ap.parse_args()
@@ -581,5 +665,6 @@ if __name__ == "__main__":
         "interactions": stage_interactions,
         "additivity": stage_additivity,
         "additivity2": stage_additivity2,
+        "additivity3": stage_additivity3,
         "sentiment": stage_sentiment,
     }[a.stage]()
