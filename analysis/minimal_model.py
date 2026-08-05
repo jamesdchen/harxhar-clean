@@ -614,10 +614,102 @@ def stage_driver() -> None:  # noqa: C901
     print(f"wrote {OUT}/dial_drivers.csv")
 
 
+# ---------------------------------------------------------------------------
+# memory — how forecastable is the dial, at honest resolution?
+# ---------------------------------------------------------------------------
+
+
+def stage_memory() -> None:
+    """The dial's persistence, reliability-corrected — i.e. its actual forecastability.
+
+    The daily AR(1) of +0.97 says nothing by itself: the dial is a trailing-21d estimate, so
+    consecutive daily values share 20/21 of their data and the smoothing manufactures persistence.
+    The honest objects are **non-overlapping** 21-day block estimates ``g_b`` (each from its own
+    bars only), their autocorrelation at 1..6 blocks, and a **split-half reliability** correction:
+    each block's two disjoint 10.5-day halves give independent estimates of the same dial value, so
+    ``corr(half1, half2)`` across blocks measures how much of a block estimate is signal vs
+    estimation noise (Spearman-Brown up to the full block), and dividing the observed
+    autocorrelations by that reliability recovers the TRUE dial's persistence — the same
+    errors-in-variables move as §6's slope-diffusion attenuation correction.
+
+    What each quantity answers:
+
+    * ``rho_obs(1)²``  — the variance share of next month's *estimate* a naive AR forecast gets
+      (what the §18.2 trailing dial already exploits).
+    * ``reliability`` — how much of a monthly estimate is even signal; ``1 − rel`` is estimation
+      noise no forecaster can predict.
+    * ``rho_true(1) = rho_obs(1)/rel`` — the true dial's month-over-month persistence; its square
+      is the ceiling for ANY one-month-ahead forecast of the true dial from its own history.
+    * The gap between what the trailing window achieves and that ceiling is the headroom a proper
+      filter (Kalman-style, longer memory) could still buy on this panel.
+
+    Descriptive only — no forecast is scored, no holdout is spent. Pre-registered expectations:
+    reliability well below 1 (monthly ICs in this study are noisy), true persistence materially
+    above the observed one after correction, and block-level changes negatively autocorrelated
+    (the AR-plus-measurement-noise signature).
+    """
+    _require_fixed_cache()
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    sig = dict(np.load(_p(CACHE)))
+    e = np.load(_p("har_resid.npz"))["e"][TW:]
+    s_all = dict(np.load(_p("bucket_signals.npz")))["all"]
+    inc = sig["s_aug"] - sig["s_lin"]
+    r = e - s_all
+    n = len(e)
+    B = 21 * PERIODS_PER_DAY
+    nb = n // B
+
+    def est(a: np.ndarray, b: np.ndarray) -> float:
+        d = float(b @ b)
+        return float(a @ b) / d if d > 0 else np.nan
+
+    g_b = np.array([est(r[i * B : (i + 1) * B], inc[i * B : (i + 1) * B]) for i in range(nb)])
+    h = B // 2
+    g_1 = np.array([est(r[i * B : i * B + h], inc[i * B : i * B + h]) for i in range(nb)])
+    g_2 = np.array([est(r[i * B + h : (i + 1) * B], inc[i * B + h : (i + 1) * B]) for i in range(nb)])
+    ok = np.isfinite(g_b) & np.isfinite(g_1) & np.isfinite(g_2)
+    g_b, g_1, g_2 = g_b[ok], g_1[ok], g_2[ok]
+    nb = len(g_b)
+    se = 1.0 / np.sqrt(nb)
+    print(f"{nb} non-overlapping 21d blocks   g_b: mean {g_b.mean():+.3f}  sd {g_b.std():.3f}  "
+          f"(se of a corr at this sample ~ {se:.3f})", flush=True)
+
+    r_half = float(np.corrcoef(g_1, g_2)[0, 1])
+    rel = 2 * r_half / (1 + r_half) if r_half > 0 else np.nan  # Spearman-Brown to full block
+    print(f"\n  split-half corr {r_half:+.3f}  ->  full-block reliability {rel:.3f}  "
+          f"(estimation-noise share of a monthly estimate: {1 - rel:.0%})")
+
+    print("\n  lag(blocks)   rho_obs   rho_true(=obs/rel)")
+    rows = []
+    for k in range(1, 7):
+        ro = float(np.corrcoef(g_b[:-k], g_b[k:])[0, 1])
+        rt = min(ro / rel, 1.0) if rel and np.isfinite(rel) else np.nan
+        print(f"      {k}         {ro:+.3f}      {rt:+.3f}")
+        rows.append({"lag_blocks": k, "rho_obs": ro, "rho_true": rt})
+    ro1 = rows[0]["rho_obs"]
+    rt1 = rows[0]["rho_true"]
+    dch = np.diff(g_b)
+    ch_ac = float(np.corrcoef(dch[:-1], dch[1:])[0, 1])
+    print(f"\n  block-change autocorr: {ch_ac:+.3f}  "
+          f"(AR+measurement-noise predicts negative; pure random walk ~0)")
+    print("\n  FORECASTABILITY LEDGER (one block ahead)")
+    print(f"    naive AR on the noisy estimate captures : {100 * ro1 ** 2:.0f}% of estimate variance")
+    print(f"    true dial persistence rho_true(1)       : {rt1:+.2f}")
+    print(f"    ceiling for ANY history-based forecast  : {100 * rt1 ** 2:.0f}% of TRUE dial variance")
+    print(f"    unforecastable estimation noise         : {100 * (1 - rel):.0f}% of every estimate")
+    pd.DataFrame(rows).to_csv(f"{OUT}/dial_memory.csv", index=False)
+    pd.DataFrame([{"n_blocks": nb, "split_half_corr": r_half, "reliability": rel,
+                   "rho_obs_1": ro1, "rho_true_1": rt1, "change_autocorr": ch_ac,
+                   "g_mean": float(g_b.mean()), "g_sd": float(g_b.std())}]
+                 ).to_csv(f"{OUT}/dial_memory_summary.csv", index=False)
+    print(f"wrote {OUT}/dial_memory.csv + dial_memory_summary.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--stage", choices=["build", "daily", "verify", "gain", "driver"], required=True
+        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory"], required=True
     )
     a = ap.parse_args()
     {
@@ -626,4 +718,5 @@ if __name__ == "__main__":
         "verify": stage_verify,
         "gain": stage_gain,
         "driver": stage_driver,
+        "memory": stage_memory,
     }[a.stage]()

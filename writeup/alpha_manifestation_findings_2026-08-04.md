@@ -1725,9 +1725,11 @@ unstructured, from the study's unbroken record of concentration claims dying.
 **Gap closure: 52% from one scalar — and its constant part is harmful.** The verdict is MIXED, the
 first outcome in this study that is not a clean death for structure:
 
-* The dial is a real process: mean 1.27, sd 0.92, **daily AR(1) +0.961** — slow and persistent — and
-  its correlation with the vol state is **+0.05**: this is *not* the vol axis wearing a costume. It
-  is a second, previously unmeasured state variable.
+* The dial is a real process: mean 1.27, sd 0.92, daily AR(1) +0.961, and its correlation with the
+  vol state is **+0.05**: this is *not* the vol axis wearing a costume. ⚠️ **§18.4 corrects the
+  "slow and persistent" reading of that AR(1)**: a trailing 21-day window of pure white noise has
+  daily AR(1) = 20/21 ≈ 0.952 mechanically, so 0.961 is barely above the overlap floor. At honest
+  (non-overlapping) resolution the dial's month-over-month persistence is ~0.
 * Its **level is destructive** (C0 loses to A at −1.55): gearing the frozen form up by its average
   1.27 statically over-amplifies exactly when it shouldn't. All of the dial's value is in its
   motion. This kills the mundane explanation ("the first-window ridge just under-fits the products")
@@ -1792,6 +1794,60 @@ linear one (§3's 0/207 months), is always-on with varying intensity. Dense-weak
 extends to the one low-dimensional object the study found: real, persistent, and driven by nothing
 you can name — which is what a diffuse aggregate of many small causes looks like.
 
+### 18.4 Is the dial forecastable? No beyond days — and half of it was never a forecast at all
+
+`--stage memory`, at honest resolution: 217 **non-overlapping** 21-day block estimates, with a
+split-half reliability correction (each block's two disjoint halves estimate the same dial value, so
+their correlation across blocks measures signal share — the §6 attenuation move).
+
+| quantity | value |
+|---|---|
+| split-half corr → full-block reliability | +0.157 → **0.272** |
+| estimation-noise share of a monthly estimate | **≥ 73%** (lower bound: fast true motion is conflated into "noise") |
+| observed ρ(1 month) | **+0.057 ± 0.068** — zero |
+| reliability-corrected ρ_true(1 month) | +0.21 (wide) |
+| ceiling for any history-based 1-month forecast | ~**4%** of true dial variance |
+| block-change autocorrelation | **−0.472** (differenced-noise signature is −0.5) |
+
+First, a correction to §18.2's characterization: the daily AR(1) of +0.961 that read as "slow and
+persistent" is an **overlap artifact** — a trailing 21-day window of white noise is mechanically
+AR(1) ≈ 0.952. At non-overlapping resolution the dial has essentially no month-over-month memory,
+consistent with §18.3's null changes tests. So the dial is **not forecastable at monthly horizon or
+beyond**: no persistence, no drivers, ceiling ~4%.
+
+How can §18.2's trailing dial then be worth anything? Because most of its value never required
+forecasting, and the constant-gear paradox is the tell. If the dial were noise around its mean, the
+causal-mean gear (1.27) would have helped; it *hurt* (−1.55). Resolution, measured:
+
+    corr(g_b, log var(inc)_b) = −0.375        corr(g_b, log var(e)_b) = −0.030
+    pooled (variance-weighted) slope = +0.49   equal-weighted mean g_b = +1.32
+
+**The dial is strongly anti-correlated with the form's own output variance** — and not with the
+residual's, so this is a property of the signal, not target heteroskedasticity. When the frozen form
+fires loudly, its per-unit reliability collapses (pooled slope 0.49); when it whispers, each unit is
+worth ~1.3×. A constant 1.27 over-gears exactly the loud, squared-error-dominant periods — hence the
+paradox — while the trailing estimate tracks the anti-correlation. This also re-reads §18.3: stress
+is when vol-built products fire loudest, so the "calm-regime signature" in the VIX complex is
+plausibly this one observable wearing regime clothing, and it re-reads the Volmageddon bar (§18.1)
+as the concavity's worst case: the form's largest shout, trusted linearly.
+
+So the dial decomposes into three parts with different epistemic status:
+
+1. **An observable concavity** (~the anti-correlation above): the optimal response to the form's
+   output is sublinear in its magnitude. Needs *no forecasting* — `var(inc)` is computable from
+   features in real time. This is the one genuinely exploitable remainder on this panel: a
+   pre-registered concave response (e.g. gearing ∝ a + b·log trailing-var) tested on a fresh
+   protocol. Not run here — the response family is a free parameter and the OOS span is exhausted
+   enough (§10) that it deserves its own registered test.
+2. **A fast latent wiggle**, trackable at ~days by the adjacent trailing window (the rest of
+   §18.2's 52%), decaying within a month.
+3. **Nothing at monthly horizon+** — unforecastable and driverless.
+
+Which closes the geometry arc the way this study keeps closing things: the one low-dimensional
+object that survived turns out, on inspection, to be mostly *signal heteroskedasticity plus noise* —
+the concavity of trust in a shouting model, not a hidden state of the market. Dense-but-weak, all
+the way down.
+
 ## Reproducibility
 
 ```bash
@@ -1835,6 +1891,7 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage daily   # products
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + controls + verdicts
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 dial vs freshness (§18.2)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage driver  # what moves the dial (§18.3)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage memory  # is it forecastable (§18.4)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
