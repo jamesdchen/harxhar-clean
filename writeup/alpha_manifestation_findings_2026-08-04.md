@@ -2120,10 +2120,20 @@ healthy band, exponential wall at the boundary; the hard band is its degenerate 
 division of labor: **barriers for bounding parameters away from the boundary** (they leave healthy
 estimates untouched), **the metric for shrinking noisy estimates toward a reference** (§17.1's
 ladder — proportional by design); and never either one on raw data against a noisy proxy, where
-``E[1/RV]`` is 3×-inflated at ``numobs = 3`` and infinite at 2. Not re-plumbed now — the invariants
-say the hard guards are a no-op away from the soft version — but recorded for the next transform
-touch, and mandatory if anything is ever fit end-to-end by gradient (clips kill gradients; cosh
-barriers do not).
+``E[1/RV]`` is 3×-inflated at ``numobs = 3`` and infinite at 2. **Re-plumbed on review push-back, behind a flag** (`SOFT_GUARDS = False` default —
+bit-identical off): every guard in `robust_transform`'s chain now has a smooth counterpart — a
+saturating band in the log coordinate, a p-norm smooth max for the floors, a saturating winsoriser
+— threaded through `soft_guards=`. The implementation's own equivalence audit earned its keep
+immediately: the first cut used `tanh`, and the audit rejected it **by the barrier's stated
+requirement** (leave healthy data untouched) — `tanh(0.5) = 0.462` distorts the mid-band by 7.6%
+and dragged hard-vs-soft correlations on the guarded columns to 0.95. Replaced with the k-order
+saturator `u(1+|u|^k)^{-1/k}` (identity to `O(u^{k+1})`, k = 6): correlations 0.990–0.9999, bulk
+deviation p99 ≤ 0.46 sd, differences confined to the rows where the guards bind. The premise
+deserves its own record: end-to-end gradient fitting **on this panel** is not justified — its
+gains would sit below the ~0.002 floor this exhausted span can certify, and the tree record says
+the flexible-model premium here was defect-robustness, not signal — so the flag ships OFF. It
+exists so that the cross-sectional build, where capacity and information budget both grow, starts
+differentiable instead of retrofitting it.
 
 ## Reproducibility
 
