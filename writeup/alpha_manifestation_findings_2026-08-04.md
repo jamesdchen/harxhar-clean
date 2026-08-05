@@ -1705,6 +1705,49 @@ one: this arm was prompted by a reviewer question and scored on the shared OOS s
 (+3.56 full span, +6.04 on 2020+) is well clear of the thresholds that survived Romano-Wolf earlier,
 but a formal pass over the §18 family is the remaining hygiene step.
 
+### 18.2 The form's motion decomposed — the first low-dimensional object that survived
+
+§18.1 established that the frozen form's *coefficients* move (daily vs monthly refit is worth +0.004
+of residual R²). The last geometry question is whether that motion is itself low-dimensional:
+``B_t ≈ g_t · B̄`` (one scalar dial on a frozen shape — rank-1 motion) or 100 idiosyncratic drifts
+(dense-weak extended to the dynamics). `--stage gain` decomposes it with a causal 21-day rolling
+scalar ``g_t`` fitted to the monthly-coefficient increment, 1 df, window fixed at the refit cadence,
+not tuned. Pre-registered read: ≥ 2/3 gap closure = rank-1; ≤ 1/3 = unstructured; prediction was
+unstructured, from the study's unbroken record of concentration claims dying.
+
+| arm | resid R² | vs previous |
+|---|---|---|
+| A — monthly coefficients, no dial | +0.0372 | — |
+| C0 — + constant gear (causal mean, 1.27) | +0.0314 | DM-t **−1.55** |
+| C — + moving 21d dial (1 df) | +0.0431 | DM-t +1.70 vs C0 |
+| B — full daily refit (616 coefficients) | +0.0485 | DM-t +1.48 vs C |
+
+**Gap closure: 52% from one scalar — and its constant part is harmful.** The verdict is MIXED, the
+first outcome in this study that is not a clean death for structure:
+
+* The dial is a real process: mean 1.27, sd 0.92, **daily AR(1) +0.961** — slow and persistent — and
+  its correlation with the vol state is **+0.05**: this is *not* the vol axis wearing a costume. It
+  is a second, previously unmeasured state variable.
+* Its **level is destructive** (C0 loses to A at −1.55): gearing the frozen form up by its average
+  1.27 statically over-amplifies exactly when it shouldn't. All of the dial's value is in its
+  motion. This kills the mundane explanation ("the first-window ridge just under-fits the products")
+  and is what makes the object genuinely dynamic.
+* The other 48% of the freshness gain needs the full coefficient vector — dense-weak still holds for
+  that half.
+
+Honesty about strength: the *total* (B vs its linear stage) is the QLIKE-confirmed fact (+3.56); the
+decomposition's internal splits sit at DM-t 1.5–1.8 individually and are directional, not decisive,
+on a heavily reused OOS span. And the deliverable does not change — full daily refit *contains* the
+dial implicitly and is simpler than dial machinery. What §18.2 buys is understanding: what daily
+refit is paying for is, in roughly equal parts, one slow scalar intensity on the interaction channel
+(the object §13 hunted on the wrong channel with an estimator that failed its own control) and
+genuine high-dimensional coefficient freshness.
+
+The geometry ledger, final form: static shape objects — spectrum, leading eigenvector, blocks,
+7-dim rotation axis — all dead under powered tests. Surviving: the curvature itself (``x'Bx``,
+QLIKE-confirmed), two small additive state axes (§17.1), and now one persistent scalar dial on the
+form's motion, orthogonal to vol, worth about half the freshness gain at 1 df.
+
 ## Reproducibility
 
 ```bash
@@ -1746,6 +1789,7 @@ ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage block_exploit  # is the
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage build   # stage-B walk-forwards (~12 min)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage daily   # products at DAILY refit (§18.1)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + controls + verdicts
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 dial vs freshness (§18.2)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1

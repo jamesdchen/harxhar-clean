@@ -358,8 +358,101 @@ def stage_daily() -> None:
     print(f"updated {_p(CACHE)}")
 
 
+# ---------------------------------------------------------------------------
+# gain — is the daily-refit product gain a SCALAR DIAL on a frozen form, or 100
+#        idiosyncratic drifts? (the one new geometric object §18.1 opened)
+# ---------------------------------------------------------------------------
+
+
+def stage_gain() -> None:
+    """Decompose the daily-refit product gain into rank-1 motion vs unstructured freshness.
+
+    §18.1 showed the frozen form's *coefficients* move fast enough that daily refit beats monthly by
+    +0.004 of residual R². Two hypotheses with different geometric content:
+
+    * **Rank-1 motion.** ``B_t ≈ g_t · B̄`` — the form is frozen and one scalar intensity dial moves.
+      Then a causal daily-estimated scalar on the *monthly*-coefficient increment should recover most
+      of the daily-refit gain. That would be a real one-dimensional geometry (and would partly
+      rehabilitate §13's intensity framing, with the dial living on the interaction channel).
+    * **Unstructured freshness.** The 100 coefficients drift idiosyncratically; no scalar captures
+      it, and the gain is only reachable by refitting everything — dense-weak extended to the form's
+      dynamics.
+
+    Arms, all sharing the daily-refit linear stage ``s_all`` so only the product block differs:
+
+        A  s_all + inc_m          monthly-coefficient increment, no dial
+        C  s_all + g_t · inc_m    same increment, causal 21-day rolling scalar dial (1 df)
+        B  s_aug_daily            the full daily-refit 616-column model
+
+    The statistic is the **fraction of the A→B gap C closes**. Pre-registered read: ≥ 2/3 = the
+    motion is essentially rank-1; ≤ 1/3 = unstructured; between = mixed. Pre-registered prediction,
+    from the study's unbroken record of concentration claims dying: **below 1/3**. The dial window
+    (21 trading days) is fixed at the monthly refit cadence, not tuned; ``g`` is clipped to ±5 as a
+    sanity bound only.
+    """
+    _require_fixed_cache()
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    p = load_panel()
+    sig = dict(np.load(_p(CACHE)))
+    e = np.load(_p("har_resid.npz"))["e"][TW:]
+    s_all = dict(np.load(_p("bucket_signals.npz")))["all"]
+    inc_m = sig["s_aug"] - sig["s_lin"]
+    B = sig["s_aug_daily"]
+
+    r = e - s_all  # what the product block must explain, given the daily linear stage
+    W = 21 * PERIODS_PER_DAY
+    num = pd.Series(r * inc_m).rolling(W, min_periods=W // 2).sum().shift(1).to_numpy()
+    den = pd.Series(inc_m * inc_m).rolling(W, min_periods=W // 2).sum().shift(1).to_numpy()
+    g = np.clip(np.nan_to_num(num / np.maximum(den, 1e-12), nan=1.0), -5.0, 5.0)
+    day = PERIODS_PER_DAY
+    g_d = g[::day]
+    ar1 = float(np.corrcoef(g_d[1:], g_d[:-1])[0, 1])
+    print(f"dial g: mean {g.mean():+.3f}  sd {g.std():.3f}  AR(1, daily) {ar1:+.3f}  "
+          f"clip binds on {float((np.abs(g) >= 5).mean()):.4%} of bars")
+    z = p.X[2 * TW :, p.names.index("har_ma_25")].astype(np.float64)
+    print(f"corr(g, vol state har_ma_25): {np.corrcoef(g, z)[0, 1]:+.3f}")
+
+    # a CONSTANT gear (causal expanding mean of g) separates the dial's level from its motion:
+    # mean(g) = 1.27 says the first-window ridge under-gears the product block, which is a static
+    # shrinkage artifact, not dynamics. Whatever the constant gear recovers is not "a dial process".
+    g_const = (pd.Series(g).expanding(min_periods=W).mean().shift(1)
+               .fillna(1.0).to_numpy())
+    arms = {"A_monthly": s_all + inc_m, "C0_const_gear": s_all + g_const * inc_m,
+            "C_dial": s_all + g * inc_m, "B_daily_refit": B}
+    rA = r2_oos(e, arms["A_monthly"])
+    rC0 = r2_oos(e, arms["C0_const_gear"])
+    rC = r2_oos(e, arms["C_dial"])
+    rB = r2_oos(e, arms["B_daily_refit"])
+    print(f"\n  A  monthly coeffs, no dial   : resid R2 {rA:+.5f}")
+    print(f"  C0 + constant gear (level)   : resid R2 {rC0:+.5f}   "
+          f"DM-t vs A {dm_test(e, arms['C0_const_gear'], arms['A_monthly']):+.2f}")
+    print(f"  C  + moving dial (21d)       : resid R2 {rC:+.5f}   "
+          f"DM-t vs C0 {dm_test(e, arms['C_dial'], arms['C0_const_gear']):+.2f}")
+    print(f"  B  daily refit (all 616)     : resid R2 {rB:+.5f}   "
+          f"DM-t vs C {dm_test(e, arms['B_daily_refit'], arms['C_dial']):+.2f}")
+    closure = (rC - rA) / (rB - rA) if rB != rA else np.nan
+    closure0 = (rC0 - rA) / (rB - rA) if rB != rA else np.nan
+    print(f"\n  gap closure: constant gear {100 * closure0:.0f}%  |  "
+          f"moving dial {100 * (closure - closure0):.0f}% more  |  "
+          f"full coefficient freshness {100 * (1 - closure):.0f}%")
+    print(f"\n  GAP CLOSURE by the 1-df dial: {100 * closure:.0f}%  "
+          f"(pre-registered: >=67% rank-1 geometry, <=33% unstructured)")
+    verdict = ("RANK-1: the form's motion is a scalar dial" if closure >= 2 / 3
+               else "UNSTRUCTURED: dense-weak extends to the form's dynamics" if closure <= 1 / 3
+               else "MIXED")
+    print(f"  VERDICT: {verdict}")
+    pd.DataFrame([{"r2_A_monthly": rA, "r2_C0_const": rC0, "r2_C_dial": rC, "r2_B_daily": rB,
+                   "gap_closure_const": closure0,
+                   "gap_closure": closure, "g_mean": float(g.mean()), "g_sd": float(g.std()),
+                   "g_ar1_daily": ar1,
+                   "corr_g_volstate": float(np.corrcoef(g, z)[0, 1])}]
+                 ).to_csv(f"{OUT}/minimal_model_gain_decomposition.csv", index=False)
+    print(f"wrote {OUT}/minimal_model_gain_decomposition.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["build", "daily", "verify"], required=True)
+    ap.add_argument("--stage", choices=["build", "daily", "verify", "gain"], required=True)
     a = ap.parse_args()
-    {"build": stage_build, "daily": stage_daily, "verify": stage_verify}[a.stage]()
+    {"build": stage_build, "daily": stage_daily, "verify": stage_verify, "gain": stage_gain}[a.stage]()
