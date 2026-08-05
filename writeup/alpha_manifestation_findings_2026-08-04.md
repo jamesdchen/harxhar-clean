@@ -1974,6 +1974,26 @@ that is idiosyncratic coefficient motion (irreducible without new information), 
 unforecastable beyond days, and the cross-sectional data this document has now recommended three
 times.
 
+### 19.3 Cashing the principle at two more levels — one marginal pass, one fail
+
+`analysis/noise_metric.py`, pre-registered gates at QLIKE DM > 2:
+
+* **Conditional smearing** (the noise metric on the *reconstruction*): causal per-slot expanding
+  error variance instead of one global constant. HAR arm +0.00014 QLIKE, DM +1.75 full-span /
+  **+2.01 on 2020+**; deliverable +1.43 / **+2.24**. Direction right everywhere, magnitude tiny;
+  passes the gate only on the 2020+ block. A real but very small calibration improvement —
+  worth shipping since it is free and cannot lose, not worth celebrating.
+* **QLIKE-aligned WLS** (the noise metric on the *estimation loss*): stage B refit with per-bar
+  weights 1/HAR-level². The predicted signature appeared on the full span — sqrt-space R² worsens
+  (−1.92) while QLIKE improves (+1.21) — but 2020+ flips negative (−1.13). **Gate fails.** The
+  sqrt chart evidently absorbs most of the loss-metric misalignment already.
+
+Consistent with §19.2: the two-ridge deliverable already sits close to the metric-optimal point of
+this stack; the remaining direct applications of the principle at the observation level are
+exhausted. The un-run items of the program — the parameter-space metric (per-coefficient Kalman
+gains, the principled attack on the 48% idiosyncratic freshness) and target-precision weighting by
+`numobs` — are recorded in `analysis/noise_metric.py`'s docstring lineage and §19.4.
+
 ## Reproducibility
 
 ```bash
