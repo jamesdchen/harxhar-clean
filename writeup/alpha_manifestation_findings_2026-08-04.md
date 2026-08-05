@@ -2035,6 +2035,96 @@ already checks out against a number in this document.
    geodesic means, log-Euclidean vs affine-invariant) stop being conventions — the third
    independent argument that the next unit of progress is data, not method.
 
+## 20. The two §19 leftovers, run — and the joint-fit question answered (2026-08-05)
+
+Three pre-registered cells, run post-merge on a fresh rebuild of the fixed panel
+(`analysis/refit_cadence.py`; outputs `results/alpha_manifestation/refit_cadence.csv`,
+`saturation_insurance.csv`). Rebuild note: the local `data/` feeds now carry 546 exog columns
+against the study's 516, so absolute levels shift slightly (the daily deliverable scores 0.12700
+here vs 0.12651 in §18.1); the HAR baseline reproduces to four decimals (R² 0.5772) and the daily
+product increment reproduces exactly (DM-t +3.42), and every §20 comparison is bar-for-bar within
+this one panel.
+
+### 20.1 Refit cadence below daily: the curve keeps paying, and the prediction was wrong again
+
+The §18.1 deliverable (646 columns here), same rank-1 rolling solver at five cadences:
+
+| refit_every | cadence | resid R² | QLIKE | vs daily | DM-t | 2020+ DM-t |
+|---|---|---|---|---|---|---|
+| 1008 | monthly | +0.0092 | 0.13075 | +0.00376 | −5.39 | −2.59 |
+| 48 | daily | +0.0428 | 0.12700 | — | — | — |
+| 24 | half-day | +0.0452 | 0.12660 | −0.00040 | **+4.94** | +3.80 |
+| 8 | hourly | +0.0480 | 0.12635 | −0.00065 | **+5.61** | +2.31 |
+| 1 | every bar | +0.0512 | 0.12619 | −0.00081 | **+4.90** | +1.02 |
+
+**The pre-registered gate (refit-1 vs refit-48, QLIKE DM-t > 2) passes at +4.90**, against a
+pre-registered expectation of diminishing returns — the study's "refit frequency is the biggest
+lever" finding extends below the daily cadence it was measured at. The curve is monotone in both
+metrics all the way to every-bar. Two qualifications, stated with the result: the marginal step
+from hourly to every-bar is thin (−0.00016) and its 2020+ significance fades (+1.02, vs +2.31 at
+hourly and +3.80 at half-day), so **hourly refit is the robust point of the curve**; and the gain
+attributes almost entirely to the **linear channel** (−0.00072 of the −0.00081; the product
+increment's cadence effect is −0.00009 at DM-t +0.61). The products need daily refit (§18.1) and
+nothing faster; the dense linear block wants its coefficients as fresh as you can afford. Compute
+is not a constraint: every-bar refit of 646 columns is one 646-column solve per 30-minute bar.
+
+### 20.2 The joint group-ridge: cramming it into one solve is a wash
+
+One solve on [backbone | exog | products] with the deliverable's exact per-block penalties
+(1 / 3000 / 3e4, imposed by column scaling), daily refit — the fixed point the two-stage model's
+single backfitting pass approximates:
+
+| arm | resid R² | QLIKE | vs two-stage | DM-t |
+|---|---|---|---|---|
+| two-stage (aug_r48) | +0.0428 | 0.12700 | — | — |
+| joint group-ridge (680 cols) | +0.0438 | 0.12711 | +0.00011 | −0.51 |
+
+The two are statistically indistinguishable — the joint fit is a hair better in sqrt space and a
+hair worse on QLIKE, both within noise. So sequential residualization costs nothing measurable in
+accuracy, and the answer to "does one ridge work?" is: yes, provided the per-block penalties are
+kept; the two-stage form earns its place on compute (the backbone can refit every bar at 34
+columns instead of dragging 680 through per-bar solves), on the attribution discipline this study
+runs on, and on the data-defect firewall — not on forecast skill. Notably the joint arm's backbone
+refits only daily and still ties the two-stage whose backbone refits per bar, consistent with
+§20.1's finding that freshness matters most for the exog block.
+
+### 20.3 Saturation: REJECTED by its own gate — the tails are net-informative
+
+The §19 "one verb the two-ridge lacks," tested as insurance: a causal tanh bound on the product
+increment at k·(trailing 21d sd), k = 3 primary. Pre-registered rule: ship if the average QLIKE
+cost is nil AND the worst-bar amplitude falls; reject if the average cost is significant.
+
+| arm | QLIKE | dQL | DM-t | max\|inc\|/sd(e) | Volmageddon day dQL |
+|---|---|---|---|---|---|
+| unsaturated (aug_r1) | 0.12619 | — | — | 5.56 | — |
+| tanh k=2 | 0.12641 | +0.00022 | −4.54 | 1.04 | −0.0294 |
+| **tanh k=3** | 0.12633 | +0.00015 | **−4.00** | 1.44 | −0.0183 |
+| tanh k=4 | 0.12629 | +0.00010 | −3.66 | 1.88 | −0.0118 |
+
+**REJECT.** The amplitude condition passes emphatically (5.56σ → 1.44σ) and the named bar behaves
+exactly as designed — the 2018-02-06 morning improves by −0.018 QLIKE under the clamp — but the
+average premium is real: +0.00015 at DM-t −4.00, significant at every k and monotone in how hard
+the bound bites. The product block's other shouts are, on net, informative; shaving them costs
+more across nineteen years than the Volmageddon class of bar returns. This is §19.1's elasticity
+made operational: the measured concavity of trust is −0.36 — sublinear, but far from the hard
+bound a tanh (or a tree leaf) imposes. The right response to a loud form is partial discounting,
+which every-bar refit already implements implicitly (§19.2); a hard cap overshoots. The tree
+correspondence sharpens accordingly: bounded leaves are not free tail insurance on this channel —
+at fast refit cadence they would cost measurable average skill, which further reduces what remains
+of the trees' unexplained edge.
+
+### 20.4 What §20 changes
+
+The deliverable improves once more, by the same lever as §18.1: **HAR (34 cols, per bar) + one
+ridge on 646 columns at hourly-or-faster refit** — QLIKE 0.12635–0.12619 vs 0.12700 at daily, the
+increment linear-channel-driven and gate-passing. The two-stage-vs-joint question is settled as a
+tie on accuracy. Saturation is off the table, rejected by a powered test rather than left as an
+open verb; the playbook compresses to two verbs plus a penalty structure: **collect everything,
+refresh constantly** — with saturation now measured as actively harmful where the coefficients are
+fresh. The study's meta-pattern held one more time: both directional priors registered in this
+section's docstring (diminishing cadence returns; joint slightly worse) were wrong in the details,
+and the gates did the deciding.
+
 ## Reproducibility
 
 ```bash
