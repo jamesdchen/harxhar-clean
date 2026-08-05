@@ -906,6 +906,53 @@ split-half stable (+0.64 on the vol axis, §4), and is already known to pay when
 and shrunk (§11.1). That is a well-posed question with ~24x fewer parameters than the one that just
 failed, and it is where I would go next.
 
+## 14. Is it a partition of unity? Testing the geometry — and a null result that walks back §13.1's wording
+
+§13.1 characterised the state-dependence as "a rotation of composition, not a modulation of
+magnitude", which suggests ``beta(s) = rho * u(s)`` with ``rho`` fixed and the unit direction rotating
+— and, if the weights were also non-negative and summed to a constant, a literal **partition of
+unity** (hence a mixture-of-experts softmax gate over buckets). That is a testable geometric claim, so
+`analysis/composition.py` tests it: fit the 7 bucket weights within each causal vol-regime bin on the
+**search period only**, then split the across-bin variation into a *radial* part (magnitude moving) and
+a *tangential* part (direction rotating), against circular-shift nulls. Descriptive only — no forecast
+is scored, so no inferential budget and no third look at the holdout.
+
+| K | \|\|β\|\|₂ CV (null) | L1 CV | plain-sum CV | negative-weight share | tangential share (null) | max rotation |
+|---|---|---|---|---|---|---|
+| 2 | 0.204 (0.133) | 0.227 | 0.363 | 0.29 | 0.80 (**0.94**) | 22.0° |
+| 3 | 0.255 (0.200) | 0.347 | 0.403 | 0.24 | 0.85 (**0.88**) | 33.4° |
+| 5 | 0.324 (0.253) | 0.404 | 0.440 | 0.29 | 0.90 (**0.88**) | 48.4° |
+
+**Three findings, two of them negative.**
+
+1. **Not a partition of unity.** 24-29% of the fitted weights are **negative**, so the weight vector
+   does not live on the simplex and no non-negative gate can represent it. The mixture-of-experts
+   reading is out as a literal description.
+2. **The radial/tangential decomposition is uninformative, and I should not have leaned on it.** The
+   tangential share is 0.90 against a null of **0.88**. In 7 dimensions only 1 of 7 directions is
+   radial, so a purely random perturbation is ~6/7 = 0.857 tangential *by construction* — the 9:1
+   "rotation beats rescaling" ratio is a dimensional artifact, not evidence. The null exposes it.
+3. **Magnitude is not conserved either.** ``||beta||_2`` has the smallest CV of the three candidate
+   invariants (0.324 vs 0.404 for L1 and 0.440 for the plain sum), so if anything is conserved it is
+   the L2 norm rather than a sum — but its CV *exceeds* its own null (0.324 vs 0.253), i.e. magnitude
+   varies **more** than estimation noise alone would produce.
+
+**So §13.1's wording was too strong and is walked back here.** What survives is the *behavioural*
+evidence, which is forecast-based and multiplicity-corrected: a single state-dependent scalar gain on
+the composite loses at every granularity (§5, −0.0006 at K=2), while state-dependent **re-weighting**
+pays (§11.1, RW adjusted p 0.0005). That licenses "the parameterisation that works is per-bucket
+weights, not an overall gain" — a statement about *which model form pays*. It does **not** license
+"rotation at fixed magnitude" as a geometric description, and §13.1 should be read with that
+correction.
+
+**Why the two disagree, and what would settle it.** The per-bin weight vectors are *noisily estimated*
+— which is the same fact that made unshrunk per-bin fits insignificant while only 50/50 blends paid
+(§11.1). The geometry of estimated coefficients is therefore dominated by estimation error, exactly as
+the nulls show. Settling the geometry needs the weights measured where they are actually reliable:
+refit each bin with much heavier shrinkage (or take the geometry of the *blended* weights that
+demonstrably pay) and redo this decomposition. Until then the geometric question is open, and the
+honest summary of the state-dependence is the behavioural one.
+
 ## Reproducibility
 
 ```bash
@@ -935,6 +982,7 @@ python analysis/intensity_graph.py --stage gate               # §13 bar-level (
 python analysis/intensity_graph.py --stage gate2              # §13 monthly resolution + changes target
 python analysis/intensity_graph.py --stage estimator          # §13.1 EWMA vs AR(1) Kalman intensity
 python analysis/intensity_graph.py --stage gate3              # §13.1 the gate on the better estimator
+python analysis/composition.py --stage geometry                # §14 simplex / sphere / neither
 ```
 
 Outputs: `results/alpha_manifestation/{report.txt, pooled_feature_ic.csv, monthly_alpha.csv,
@@ -948,4 +996,4 @@ multiplicity_conditioning.csv, multiplicity_interactions.csv, diagnostics_backte
 feature_health_production.csv, slope_diffusion.csv, heat_graph_degrees.csv,
 heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulators_linear.csv,
 intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
-intensity_gate3.csv}`.
+intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv}`.
