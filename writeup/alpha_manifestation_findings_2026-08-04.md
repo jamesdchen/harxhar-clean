@@ -2035,7 +2035,107 @@ already checks out against a number in this document.
    geodesic means, log-Euclidean vs affine-invariant) stop being conventions — the third
    independent argument that the next unit of progress is data, not method.
 
-## 20. The two §19 leftovers, run — and the joint-fit question answered (2026-08-05)
+## 20. The cross-section was baked in — and its relational features pass the gate, with a dated edge
+
+A user observation reframed §19's closing recommendation: the target is the MARKET's realized
+variance and the exog set already carries the cross-section's *marginal* aggregates
+(`sumret2_{ew,vw}stock`, bipower, semivariance families). What no linear span of those columns can
+reach is the **relational** objects between market and stocks — ratios. The flagship is realized
+average correlation, `RV / sumret2_vwstock`, which in §19.4's SPD language is the **top-eigenvalue
+share of the return covariance matrix** — the first genuinely cross-sectional coordinate,
+constructible from columns already in hand. Six ratio families × six HAR windows = 36 columns
+(`analysis/cross_section.py`): realized correlation, ew/vw size tilt, market and average-stock jump
+shares (bipower vs ret2), market and stock upside-semivariance shares. Mechanisms literature-named
+before scoring; pre-registered gate: block increment over the daily-refit dense ridge, sqrt DM > 2.
+
+| arm | ΔR² | DM sqrt | ΔQLIKE | DM QLIKE | 2020+ DM (sqrt/QL) |
+|---|---|---|---|---|---|
+| dense + xsec vs dense | +0.00175 | **+3.95** | −0.00021 | **+2.64** | **+0.24 / +0.26** |
+| deliverable + xsec vs deliverable | +0.00168 | +3.94 | −0.00017 | +2.40 | +0.17 / +0.05 |
+
+**Gate: PASS** — and the increment is nearly identical on top of the dense ridge and on top of the
+full deliverable (+0.00175 vs +0.00168), i.e. orthogonal to the product channel: the Pythagorean
+pattern a third time. Two honesty items, stated as loudly as the pass:
+
+1. **The edge is dated.** On 2020+ alone the block is flat (DM ≈ +0.2). The pre-registered gate was
+   the full-span statistic and it passes decisively, but the gain is concentrated pre-2020 — the
+   same era-profile question §16.2's sentiment term was made to answer and this block, on present
+   evidence, does not. Anyone adding these 36 columns should expect the historical average, not the
+   recent one, and the honest forward-looking claim is "small or zero".
+2. **One semantics caveat**: the market-level upside-share ratio sits in [0.35, 0.67] (consistent
+   with the positive-semivariance reading of `pret2`); the stock-level one hits its clip at 2.0, so
+   that reading is unverified for the `ewstock` aggregate. The feature is a well-defined bounded
+   ratio either way.
+
+Structurally this satisfies the study's own §15.3 closing advice ("new information, not new
+method") from *inside* the panel, the same way OFI did: the information was present but not in the
+model's span. And it connects to §19.4's tower argument the right way round — relational
+cross-sectional coordinates widen **level 2** (more signal per bar), which is precisely what makes
+higher floors of the tower estimable. A genuinely multi-asset panel remains the full version of
+this move; these 36 columns are the largest fraction of it available for free.
+
+### 19.5 Item 4's pilot: the gate fails, and the program closes
+
+`analysis/noise_metric.py --stage kernel`. The 250-day flat window was the product block's last
+untested inheritance (the same class as the refit cadence, whose correction produced §18.1), so the
+pilot isolated kernel shape with everything else fixed: the 100 frozen products fit on the dense
+stage's residual with a flat 250d rolling Gram vs an exponentially-forgotten Gram at halflife 21d —
+pinned by §18.4's measured dial memory, not tuned — penalty normalized per effective observation.
+
+| arm | resid R² | QLIKE | vs flat (sqrt DM) |
+|---|---|---|---|
+| two-stage, flat 250d | +0.04164 | 0.12595 | — |
+| two-stage, **EWMA 21d** (primary) | +0.04287 | 0.12589 | **+0.79 — GATE FAILS** |
+| two-stage, EWMA 63d (secondary observation) | +0.04426 | 0.12566 | +3.75 |
+| deliverable (one-stage 616, for context) | **+0.04743** | **0.12562** | +2.60 |
+
+Three readings, in order of epistemic weight:
+
+1. **The pre-registered claim fails.** At the halflife the dial-memory measurement pinned, matched
+   forgetting does not beat the flat window (+0.79). By this study's rules item 4 closes here.
+2. **The unregistered observation**: 63d beats flat at +3.75 — kernel shape probably does matter,
+   at a longer memory than the dial suggested. Recorded as what it is: an arm that won *after* the
+   registered one lost, i.e. exactly the pattern §10 exists to stop anyone from claiming. Using it
+   would need a fresh registered test on data this panel does not have left.
+3. **Neither matters for the model**, because even the best kernel arm (+0.04426) loses to the
+   shipped one-stage deliverable (+0.04743): the two-stage architecture costs more (−0.0032, DM
+   +2.60 in the deliverable's favor) than the best kernel buys (+0.0026). A joint per-block
+   forgetting implementation remains conceivable, but its plausible ceiling from these numbers is
+   ~+0.001–0.002 over the deliverable — below the floor of what this exhausted span can still
+   certify.
+
+**The noise-metric program is now fully executed**: reconstruction (marginal pass, §19.3),
+estimation loss (fail, §19.3), parameter space (fail-with-a-wrinkle, here), plus the two earlier
+levels already in the deliverable. The two-ridge daily-refit model survives every principled attack
+the framework generates, which is the strongest form of the §18 conclusion available: it is not
+just good, it is the fixed point of its own design principle.
+
+### 19.6 Design note: soft barriers for the boundary (a user proposal, adopted for next time)
+
+The pipeline's guards (divisor floors, the §16.4 slot band, scale floors) are hard clips. The
+principled continuous form, proposed in review: penalize ``r + 1/r = 2·cosh(log r)`` on the ratio
+of an estimated divisor to its reference — the kernel of the **Generalized Inverse Gaussian**
+prior, the natural conjugate boundary-repelling family on the positive cone. Nearly flat in the
+healthy band, exponential wall at the boundary; the hard band is its degenerate limit. The clean
+division of labor: **barriers for bounding parameters away from the boundary** (they leave healthy
+estimates untouched), **the metric for shrinking noisy estimates toward a reference** (§17.1's
+ladder — proportional by design); and never either one on raw data against a noisy proxy, where
+``E[1/RV]`` is 3×-inflated at ``numobs = 3`` and infinite at 2. **Re-plumbed on review push-back, behind a flag** (`SOFT_GUARDS = False` default —
+bit-identical off): every guard in `robust_transform`'s chain now has a smooth counterpart — a
+saturating band in the log coordinate, a p-norm smooth max for the floors, a saturating winsoriser
+— threaded through `soft_guards=`. The implementation's own equivalence audit earned its keep
+immediately: the first cut used `tanh`, and the audit rejected it **by the barrier's stated
+requirement** (leave healthy data untouched) — `tanh(0.5) = 0.462` distorts the mid-band by 7.6%
+and dragged hard-vs-soft correlations on the guarded columns to 0.95. Replaced with the k-order
+saturator `u(1+|u|^k)^{-1/k}` (identity to `O(u^{k+1})`, k = 6): correlations 0.990–0.9999, bulk
+deviation p99 ≤ 0.46 sd, differences confined to the rows where the guards bind. The premise
+deserves its own record: end-to-end gradient fitting **on this panel** is not justified — its
+gains would sit below the ~0.002 floor this exhausted span can certify, and the tree record says
+the flexible-model premium here was defect-robustness, not signal — so the flag ships OFF. It
+exists so that the cross-sectional build, where capacity and information budget both grow, starts
+differentiable instead of retrofitting it.
+
+## 21. The two §19 leftovers, run — and the joint-fit question answered (2026-08-05)
 
 Three pre-registered cells, run post-merge on a fresh rebuild of the fixed panel
 (`analysis/refit_cadence.py`; outputs `results/alpha_manifestation/refit_cadence.csv`,
@@ -2045,7 +2145,7 @@ here vs 0.12651 in §18.1); the HAR baseline reproduces to four decimals (R² 0.
 product increment reproduces exactly (DM-t +3.42), and every §20 comparison is bar-for-bar within
 this one panel.
 
-### 20.1 Refit cadence below daily: the curve keeps paying, and the prediction was wrong again
+### 21.1 Refit cadence below daily: the curve keeps paying, and the prediction was wrong again
 
 The §18.1 deliverable (646 columns here), same rank-1 rolling solver at five cadences:
 
@@ -2068,7 +2168,7 @@ increment's cadence effect is −0.00009 at DM-t +0.61). The products need daily
 nothing faster; the dense linear block wants its coefficients as fresh as you can afford. Compute
 is not a constraint: every-bar refit of 646 columns is one 646-column solve per 30-minute bar.
 
-### 20.2 The joint group-ridge: cramming it into one solve is a wash
+### 21.2 The joint group-ridge: cramming it into one solve is a wash
 
 One solve on [backbone | exog | products] with the deliverable's exact per-block penalties
 (1 / 3000 / 3e4, imposed by column scaling), daily refit — the fixed point the two-stage model's
@@ -2086,9 +2186,9 @@ kept; the two-stage form earns its place on compute (the backbone can refit ever
 columns instead of dragging 680 through per-bar solves), on the attribution discipline this study
 runs on, and on the data-defect firewall — not on forecast skill. Notably the joint arm's backbone
 refits only daily and still ties the two-stage whose backbone refits per bar, consistent with
-§20.1's finding that freshness matters most for the exog block.
+§21.1's finding that freshness matters most for the exog block.
 
-### 20.3 Saturation: REJECTED by its own gate — the tails are net-informative
+### 21.3 Saturation: REJECTED by its own gate — the tails are net-informative
 
 The §19 "one verb the two-ridge lacks," tested as insurance: a causal tanh bound on the product
 increment at k·(trailing 21d sd), k = 3 primary. Pre-registered rule: ship if the average QLIKE
@@ -2113,7 +2213,7 @@ correspondence sharpens accordingly: bounded leaves are not free tail insurance 
 at fast refit cadence they would cost measurable average skill, which further reduces what remains
 of the trees' unexplained edge.
 
-### 20.4 What §20 changes
+### 21.4 What §21 changes
 
 The deliverable improves once more, by the same lever as §18.1: **HAR (34 cols, per bar) + one
 ridge on 646 columns at hourly-or-faster refit** — QLIKE 0.12635–0.12619 vs 0.12700 at daily, the
@@ -2170,6 +2270,9 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 d
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage driver  # what moves the dial (§18.3)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage memory  # is it forecastable (§18.4)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage concave # zero-free-param response test (§19.2)
+ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage build   # §20: relational cross-section features
+ALPHA_PANEL_CACHE=$C python analysis/cross_section.py --stage score   # §20: gate test
+ALPHA_PANEL_CACHE=$C python analysis/noise_metric.py --stage kernel   # §19.5: item-4 pilot (gate fails)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1

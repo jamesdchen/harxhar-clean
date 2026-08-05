@@ -55,7 +55,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from analysis.alpha_manifestation import TW, dm_test  # noqa: E402
 from analysis.alpha_panel import load_panel  # noqa: E402
-from analysis.minimal_model import CACHE, _hac_mean_t  # noqa: E402
+from analysis.minimal_model import CACHE, _hac_mean_t, _qlike_series  # noqa: E402
 from analysis.nl_sparsity import _upper, base_columns  # noqa: E402
 from analysis.synthesis import HOLDOUT, _p, _require_fixed_cache  # noqa: E402
 from analysis.wf import r2_oos  # noqa: E402
@@ -201,8 +201,123 @@ def stage_wls() -> None:
     print(f"wrote {OUT}/noise_metric_wls.csv")
 
 
+# ---------------------------------------------------------------------------
+# kernel — item 4's pilot: does a MATCHED kernel beat the flat 250d window?
+# ---------------------------------------------------------------------------
+
+# Halflife pinned by §18.4's measured dial memory (trackable at ~days-to-weeks, gone at a month),
+# NOT tuned: 21 trading days. 63d reported as a secondary observation, labeled as such.
+KERNEL_HALFLIFE_DAYS = 21
+KERNEL_HALFLIFE_SECONDARY = 63
+
+
+def stage_kernel() -> None:
+    """Two-stage pilot for per-coefficient precision updating (the §19.3 program's item 4).
+
+    The 250-day flat window was inherited by the product block from the linear stage's tuning and
+    never tested — the same class of untested inheritance as the monthly refit cadence, whose
+    correction produced §18.1. This pilot isolates KERNEL SHAPE with everything else identical:
+
+        stage 1 (fixed)   the dense daily 250d ridge, ``s_all`` (the deliverable's linear stage)
+        stage 2, arm A    the 100 frozen products fit on the stage-1 residual with a FLAT 250d
+                          rolling window, daily refit
+        stage 2, arm B    identical, but the Gram is EXPONENTIALLY forgotten with halflife 21d
+                          (pinned by §18.4), ridge penalty scaled by the effective-sample ratio so
+                          shrinkage per observation is identical
+
+    PRIMARY gate: B vs A, sqrt DM > 2 (QLIKE reported). Both are also compared to the one-stage
+    deliverable so the two-stage architecture cost is visible rather than confounded. If B clears
+    its gate, the full diagonal-Kalman (per-coefficient halflives) is justified; if not, item 4
+    ends at the price of a pilot. Prediction, written first: +0.001..0.003, a coin flip against
+    the gate — §19.2 says daily refit already harvests the trackable motion, the §18.1 precedent
+    says untested inheritances keep paying.
+    """
+    _require_fixed_cache()
+    os.makedirs(OUT, exist_ok=True)
+    p, e, pred_har, sig, s_all, y_adj, baseline, ts = _load_common()
+    frozen = sig["frozen"]
+    bc, _ = base_columns(p)
+    XB = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    ii, jj = _upper(XB.shape[1])
+    P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
+    B = 250 * PERIODS_PER_DAY
+    sd = pd.DataFrame(P).rolling(B, min_periods=1000).std().shift(1)
+    med = np.nanmedian(sd.to_numpy(), axis=1, keepdims=True)
+    sdv = np.maximum(sd.to_numpy(), 0.1 * np.where(np.isfinite(med), med, 1.0))
+    P = P / pd.DataFrame(sdv).bfill().to_numpy()
+    P = np.hstack([P, np.ones((len(P), 1))])  # explicit intercept column
+
+    # stage-1 residual on panel rows 2TW: (where s_all lives)
+    r = e - s_all
+    Pr = P[TW:]
+    n, q = Pr.shape
+    alpha_flat = 3e4
+
+    def flat_arm() -> np.ndarray:
+        from analysis.wf import walk_forward as wf
+
+        return wf(Pr, r, TW, alpha=alpha_flat, refit_every=PERIODS_PER_DAY)
+
+    def ewma_arm(hl_days: int) -> np.ndarray:
+        lam = 0.5 ** (1.0 / (hl_days * PERIODS_PER_DAY))
+        wsum = 1.0 / (1.0 - lam)
+        a_eff = alpha_flat * (wsum / TW)  # penalty per effective observation held constant
+        G = np.zeros((q, q))
+        c = np.zeros(q)
+        b = np.zeros(q)
+        out = np.full(n - TW, np.nan)
+        for t in range(n):
+            if t >= TW:
+                if t % PERIODS_PER_DAY == 0:
+                    b = np.linalg.solve(G + a_eff * np.eye(q), c)
+                out[t - TW] = float(Pr[t] @ b)  # predict BEFORE seeing (x_t, r_t)
+            G *= lam
+            c *= lam
+            G += np.outer(Pr[t], Pr[t])
+            c += Pr[t] * r[t]
+        return out
+
+    s_flat = flat_arm()
+    s_e21 = ewma_arm(KERNEL_HALFLIFE_DAYS)
+    s_e63 = ewma_arm(KERNEL_HALFLIFE_SECONDARY)
+
+    # common scored rows: both stage-2 arms' warm-ups excluded
+    m = np.zeros(len(e), dtype=bool)
+    m[2 * TW :] = True
+    late = (ts >= HOLDOUT).to_numpy() & m
+    s_del = sig["s_aug_daily"]  # one-stage deliverable, for architecture context
+    arms = {
+        "A_flat250": s_all[TW:] + np.nan_to_num(s_flat),
+        "B_ewma21": s_all[TW:] + np.nan_to_num(s_e21[: len(s_flat)]),
+        "C_ewma63": s_all[TW:] + np.nan_to_num(s_e63[: len(s_flat)]),
+        "deliverable": s_del[TW:],
+    }
+    y = e[TW:]
+    ml = late[TW:]
+    rows = []
+    qs = {}
+    for name, f in arms.items():
+        qs[name] = _qlike_series(pred_har[TW:] + (f - s_all[TW:]) + s_all[TW:],
+                                 y_adj[TW:], baseline[TW:])
+        rows.append({"arm": name, "r2": r2_oos(y, f)})
+        print(f"  {name:12s} resid R2 {r2_oos(y, f):+.5f}   QLIKE {np.nanmean(qs[name]):.5f}",
+              flush=True)
+    tBA = dm_test(y, arms["B_ewma21"], arms["A_flat250"])
+    tBA_l = dm_test(y[ml], arms["B_ewma21"][ml], arms["A_flat250"][ml])
+    tql = _hac_mean_t(qs["A_flat250"] - qs["B_ewma21"])
+    print(f"\n  PRIMARY  B_ewma21 vs A_flat250: dR2 "
+          f"{r2_oos(y, arms['B_ewma21']) - r2_oos(y, arms['A_flat250']):+.5f}  "
+          f"sqrt DM {tBA:+.2f} (2020+ {tBA_l:+.2f})  QLIKE DM {tql:+.2f}")
+    print(f"  GATE (sqrt DM > 2): {'PASS -> build the full diagonal Kalman' if tBA > 2 else 'fail -> item 4 closes'}")
+    tCA = dm_test(y, arms["C_ewma63"], arms["A_flat250"])
+    print(f"  secondary C_ewma63 vs A: DM {tCA:+.2f}   "
+          f"deliverable vs A (architecture cost): DM {dm_test(y, arms['deliverable'], arms['A_flat250']):+.2f}")
+    pd.DataFrame(rows).to_csv(f"{OUT}/noise_metric_kernel.csv", index=False)
+    print(f"wrote {OUT}/noise_metric_kernel.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["smear", "wls"], required=True)
+    ap.add_argument("--stage", choices=["smear", "wls", "kernel"], required=True)
     a = ap.parse_args()
-    {"smear": stage_smear, "wls": stage_wls}[a.stage]()
+    {"smear": stage_smear, "wls": stage_wls, "kernel": stage_kernel}[a.stage]()

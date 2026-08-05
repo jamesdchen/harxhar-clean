@@ -55,6 +55,28 @@ DIURNAL_SLOT_REF_MIN: int = 20  # in-slot observations before the reference medi
 # per slot, so 250 is ~one year — long enough to be a far better-estimated statistic than the
 # DIURNAL_WINDOW = 20 estimate it disciplines, short enough to track a volatility regime.
 DIURNAL_SLOT_REF_WINDOW: int = 250
+# Soft (differentiable) guards. The hard guards below — the per-slot band's clip, the std floor's
+# max, the winsoriser's clip — are the degenerate limits of smooth boundary-repelling maps (§19.6 of
+# the alpha-manifestation writeup: the r + 1/r / GIG-prior view of bounding away from the cone
+# boundary). The soft forms matter only if anything is ever fit end-to-end by gradient (a clip's
+# gradient is zero outside the band and kinked at it), so they ship OFF: flag on to get, everywhere
+# a guard acts, a tanh-in-log band, a p-norm smooth max, and a tanh winsoriser — each the C-infinity
+# version of its hard counterpart, near-identity in the healthy region, asymptotic to the same
+# bounds. Flag off is bit-identical to the historical chain.
+SOFT_GUARDS: bool = False
+SOFT_MAX_K: float = 8.0  # sharpness of the smooth max (p-norm order); higher = closer to hard
+# Order of the smooth saturator g(u) = u(1+|u|^k)^(-1/k) used by the soft band and soft winsoriser.
+# g is identity to O(u^(k+1)) near 0 and asymptotes to +-1, so the interior of the healthy band is
+# untouched to numerical precision while the boundary is approached smoothly. The first cut used
+# tanh, and the equivalence audit rejected it BY THE BARRIER'S OWN REQUIREMENT (leave healthy data
+# alone): tanh(0.5) = 0.462 distorts the mid-band by 7.6%, dragging hard-vs-soft correlations on the
+# guarded columns down to 0.95. At k = 6 the mid-band error is ~1.5% and the tails are unchanged.
+SOFT_SAT_K: float = 6.0
+
+
+def _soft_sat(u: np.ndarray, k: float = SOFT_SAT_K) -> np.ndarray:
+    """Smooth saturation to [-1, 1]: identity to O(u^(k+1)), the C-inf version of clip(u, -1, 1)."""
+    return u * (1.0 + np.abs(u) ** k) ** (-1.0 / k)
 # If the per-slot rolling-std divisor is pinned at ``DIURNAL_STD_FLOOR_FRAC``'s floor for more
 # than this fraction of rows, ``diurnal_adjust`` is not adjusting anything — it has degenerated
 # into division by a single global constant, which cannot track a feature whose scale drifts.
@@ -120,8 +142,26 @@ def is_diurnal_excluded(col_name: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _soft_floor(x: pd.Series, floor: float, k: float = SOFT_MAX_K) -> pd.Series:
+    """Smooth max(x, floor) via the p-norm: (x^k + floor^k)^(1/k). Near-identity for x >> floor."""
+    xa = x.to_numpy(dtype=np.float64)
+    out = np.where(
+        xa > 0,
+        np.exp(np.logaddexp(k * np.log(np.clip(xa, 1e-300, None)), k * np.log(floor)) / k),
+        floor,
+    )
+    return pd.Series(out, index=x.index)
+
+
+def _soft_band(ratio: np.ndarray, frac: float) -> np.ndarray:
+    """Smooth clip of a positive ratio into [frac, 1/frac]: saturation in the log (metric) coordinate."""
+    w = -np.log(frac)
+    u = np.log(np.clip(ratio, 1e-300, None))
+    return np.exp(w * _soft_sat(u / w))
+
+
 def _band_to_slot_level(
-    baseline: pd.Series, slots: pd.Series, frac: float
+    baseline: pd.Series, slots: pd.Series, frac: float, soft: bool = False
 ) -> pd.Series:
     """Shrink a per-slot rolling baseline into ``[frac, 1/frac]`` of that slot's own longer-run level.
 
@@ -154,7 +194,12 @@ def _band_to_slot_level(
         ).median()
     )
     ref = ref.where(ref > 0)
-    return baseline.clip(lower=frac * ref, upper=ref / frac)
+    if not soft:
+        return baseline.clip(lower=frac * ref, upper=ref / frac)
+    ok = ref.notna() & (baseline > 0)
+    out = baseline.copy()
+    out[ok] = ref[ok] * _soft_band((baseline[ok] / ref[ok]).to_numpy(), frac)
+    return out
 
 
 def diurnal_adjust(
@@ -164,6 +209,7 @@ def diurnal_adjust(
     window: int = DIURNAL_WINDOW,
     min_periods: int = DIURNAL_MIN_PERIODS,
     slot_band: float = DIURNAL_SLOT_BAND_FRAC,
+    soft: bool | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Remove intraday seasonality via rolling per-slot baseline.
 
@@ -203,13 +249,21 @@ def diurnal_adjust(
             if (pd.notna(typical) and typical > 0)
             else 1.0
         )
-        baseline = _band_to_slot_level(baseline, df["slot"], slot_band)
-        baseline = baseline.clip(lower=floor).fillna(floor)
+        if soft is None:
+            soft = SOFT_GUARDS
+        baseline = _band_to_slot_level(baseline, df["slot"], slot_band, soft=soft)
+        baseline = (
+            _soft_floor(baseline, floor).fillna(floor)
+            if soft
+            else baseline.clip(lower=floor).fillna(floor)
+        )
     else:
         baseline = df.groupby("slot")["val"].transform(
             lambda g: g.rolling(window, min_periods=min_periods).mean().shift(1)
         )
-        baseline = _band_to_slot_level(baseline, df["slot"], slot_band)
+        baseline = _band_to_slot_level(
+            baseline, df["slot"], slot_band, soft=SOFT_GUARDS if soft is None else soft
+        )
         # Treat 0 the same as NaN (flat ffilled segments produce zero rolling
         # mean); baseline=1.0 passes through the raw value safely. Only reachable
         # now where the per-slot band had too little history to have an opinion.
@@ -361,6 +415,7 @@ def rolling_winsorize(
     allow_missing: bool = False,
     is_target: bool = False,
     slots: pd.Series | None = None,
+    soft: bool | None = None,
 ) -> pd.Series:
     """Clip values to rolling 5th / 95th quantile bounds (shifted by 1).
 
@@ -407,6 +462,13 @@ def rolling_winsorize(
         upper = (
             series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
         )
+    if soft if soft is not None else SOFT_GUARDS:
+        c = (upper + lower) / 2.0
+        h = (upper - lower) / 2.0
+        ok = lower.notna() & upper.notna() & (h > 0)
+        out = series.clip(lower=lower, upper=upper)  # hard where bounds degenerate
+        out[ok] = c[ok] + h[ok] * _soft_sat(((series - c) / h)[ok].to_numpy())
+        return out
     return series.clip(lower=lower, upper=upper)
 
 
@@ -428,6 +490,7 @@ def robust_transform(
     signed_stabilizer: bool = True,
     slot_band: float | None = None,
     winsor_by_slot: bool | None = None,
+    soft_guards: bool | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
@@ -474,7 +537,7 @@ def robust_transform(
         if diurnal_mode == "rank" and not is_target:
             return diurnal_rank(series, df[time_col])  # final feature; skip semantic + winsor
         adjusted, baseline = diurnal_adjust(
-            series, df[time_col], has_negatives, slot_band=slot_band
+            series, df[time_col], has_negatives, slot_band=slot_band, soft=soft_guards
         )
         # A signed feature divides by its per-slot rolling std. For a sparse / ffilled /
         # zero-inflated column that std is degenerate most of the time, so the floor pins the
@@ -511,6 +574,7 @@ def robust_transform(
         allow_missing=allow_missing,
         is_target=is_target,
         slots=df[time_col] if (winsor_by_slot and time_col in df.columns) else None,
+        soft=soft_guards,
     )
 
     return series, baseline
