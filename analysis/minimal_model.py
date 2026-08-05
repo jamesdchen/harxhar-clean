@@ -706,10 +706,117 @@ def stage_memory() -> None:
     print(f"wrote {OUT}/dial_memory.csv + dial_memory_summary.csv")
 
 
+# ---------------------------------------------------------------------------
+# concave — the zero-free-parameter response test (§19.1's leftover, run properly)
+# ---------------------------------------------------------------------------
+
+
+def stage_concave() -> None:
+    """Gear the product increment by (trailing variance)^beta — beta frozen on <=2019, scored 2020+.
+
+    §18.4 established the mechanism (the form's per-unit reliability falls with its own loudness)
+    and §19.1 measured the exponent descriptively (full-span elasticity −0.357 ± 0.046). This is the
+    forecast test, constructed so nothing is tuned on the scored block:
+
+    * the exponent is RE-estimated on blocks entirely before ``HOLDOUT`` and frozen;
+    * the gearing is ``w_t = (v_t / ref_t)^beta`` with ``v_t`` the trailing-21d mean of the
+      increment's square (causal, shifted one bar) and ``ref_t`` its causal expanding median — a
+      normalization with no fitted constant;
+    * PRIMARY (pre-registered): geared vs ungeared monthly increment on 2020+, one-sided DM 1.645
+      (the sign is fixed by §18.4's mechanism). Expectation: positive, DM ≈ +1.5..2.5 — the gearing
+      should capture roughly the observable share of the dial's §18.2 value.
+    * SECONDARY: the same gearing applied to the daily-refit increment, vs plain daily refit —
+      does the concavity add anything the daily solver does not already track? Expectation: small,
+      likely below threshold (daily refit follows the dial at ~days lag), and transferability of the
+      monthly-measured exponent to the daily increment is an assumption, noted not hidden.
+
+    Both scored on sqrt-space residual R² and on QLIKE through the repo reconstruction.
+    """
+    _require_fixed_cache()
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    p = load_panel()
+    sig = dict(np.load(_p(CACHE)))
+    z = np.load(_p("har_resid.npz"))
+    e = z["e"][TW:]
+    pred_har = z["pred"][TW:]
+    s_all = dict(np.load(_p("bucket_signals.npz")))["all"]
+    inc_m = sig["s_aug"] - sig["s_lin"]
+    inc_d = sig["s_aug_daily"] - s_all
+    y_adj = p.y[2 * TW :]
+    baseline = p.baseline[2 * TW :]
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+    late = (ts >= HOLDOUT).to_numpy()
+    n = len(e)
+    B = 21 * PERIODS_PER_DAY
+
+    # exponent, frozen on <=2019 blocks only
+    r = e - s_all
+    nb = n // B
+    blk_start_late = np.array([bool(late[i * B]) for i in range(nb)])
+    g_b, v_b = [], []
+    for i in range(nb):
+        sl = slice(i * B, (i + 1) * B)
+        d = float(inc_m[sl] @ inc_m[sl])
+        if d <= 0:
+            continue
+        if blk_start_late[i]:
+            continue
+        g_b.append(float(r[sl] @ inc_m[sl]) / d)
+        v_b.append(d / B)
+    g_b, v_b = np.array(g_b), np.array(v_b)
+    pos = g_b > 0
+    lg, lv = np.log(g_b[pos]), np.log(v_b[pos])
+    beta = float(np.cov(lg, lv)[0, 1] / np.var(lv))
+    se = float(np.sqrt((np.var(lg) / np.var(lv) - beta**2) / (pos.sum() - 2)))
+    print(f"exponent frozen on <=2019: beta = {beta:+.3f} +/- {se:.3f} "
+          f"({int(pos.sum())} blocks; full-span reference -0.357)", flush=True)
+
+    def gear(inc: np.ndarray) -> np.ndarray:
+        v = pd.Series(inc**2).rolling(B, min_periods=B // 2).mean().shift(1).to_numpy()
+        ref = pd.Series(v).expanding(min_periods=B).median().to_numpy()
+        ratio = np.clip(np.where((v > 0) & (ref > 0), v / ref, 1.0), 1e-2, 1e2)
+        return ratio**beta
+
+    w_m, w_d = gear(inc_m), gear(inc_d)
+    print(f"gearing w (monthly inc): mean {np.nanmean(w_m):.3f}  sd {np.nanstd(w_m):.3f}  "
+          f"[{np.nanpercentile(w_m, 1):.2f}, {np.nanpercentile(w_m, 99):.2f}]")
+
+    arms = {
+        "A_ungeared": s_all + inc_m,
+        "G_geared": s_all + w_m * inc_m,
+        "D_daily": s_all + inc_d,
+        "DG_daily_geared": s_all + w_d * inc_d,
+    }
+    rows = []
+    for span, m in (("2020+", late), ("full", np.ones(n, bool))):
+        q = {a: _qlike_series(pred_har[m] + (f - s_all)[m] + s_all[m], y_adj[m], baseline[m])
+             for a, f in arms.items()}
+        for pair, tag in ((("G_geared", "A_ungeared"), "PRIMARY"),
+                          (("DG_daily_geared", "D_daily"), "secondary")):
+            a1, a0 = pair
+            r1 = r2_oos(e[m], arms[a1][m])
+            r0 = r2_oos(e[m], arms[a0][m])
+            t_sq = dm_test(e[m], arms[a1][m], arms[a0][m])
+            t_ql = _hac_mean_t(q[a0] - q[a1])
+            dq = float(np.nanmean(q[a1]) - np.nanmean(q[a0]))
+            print(f"  [{span:5s}] {tag:9s} {a1} vs {a0}: dR2 {r1 - r0:+.5f} (DM {t_sq:+.2f})  "
+                  f"dQLIKE {dq:+.5f} (DM {t_ql:+.2f})", flush=True)
+            rows.append({"span": span, "test": tag, "arm": a1, "ref": a0,
+                         "dr2": r1 - r0, "dm_t_sqrt": t_sq, "dqlike": dq, "dm_t_qlike": t_ql,
+                         "beta_frozen": beta, "n": int(m.sum())})
+    prim = next(r_ for r_ in rows if r_["span"] == "2020+" and r_["test"] == "PRIMARY")
+    print(f"\n  PRE-REGISTERED GATE (one-sided 1.645, sqrt-space, 2020+): "
+          f"DM {prim['dm_t_sqrt']:+.2f} -> {'PASS' if prim['dm_t_sqrt'] > 1.645 else 'fail'}")
+    pd.DataFrame(rows).to_csv(f"{OUT}/concave_response_test.csv", index=False)
+    print(f"wrote {OUT}/concave_response_test.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory"], required=True
+        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory", "concave"],
+        required=True
     )
     a = ap.parse_args()
     {
@@ -719,4 +826,5 @@ if __name__ == "__main__":
         "gain": stage_gain,
         "driver": stage_driver,
         "memory": stage_memory,
+        "concave": stage_concave,
     }[a.stage]()

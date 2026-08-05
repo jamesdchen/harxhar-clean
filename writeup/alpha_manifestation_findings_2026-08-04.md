@@ -1943,6 +1943,37 @@ variance manifold becomes the SPD cone, whose affine-invariant metric is genuine
 — the information geometry stops being scalar and this framing becomes load-bearing rather than
 descriptive.)
 
+### 19.2 The zero-free-parameter concave response test — gate FAILED; the deliverable already contains it
+
+`--stage concave`. The exponent re-estimated on ≤2019 blocks only comes out **−0.351 ± 0.049**
+against the full-span −0.357 — the descriptive relationship replicates almost exactly across the
+split, so the concavity is real as a *description*. The forecast test, everything frozen before
+scoring (gearing `w_t = (v_t/ref_t)^β`, `v_t` trailing-21d increment variance, `ref_t` causal
+expanding median, no fitted constant anywhere):
+
+| test | span | ΔR² (sqrt) | DM | ΔQLIKE | DM |
+|---|---|---|---|---|---|
+| **PRIMARY** geared vs ungeared monthly increment | **2020+** | +0.00208 | **+1.31** | −0.00065 | +1.32 |
+| secondary: geared vs plain **daily-refit** increment | 2020+ | −0.00002 | −0.05 | −0.00012 | +1.05 |
+| (primary, full span — descriptive) | full | +0.00779 | +1.77 | −0.00064 | +2.81 |
+
+**The pre-registered gate (one-sided 1.645, sqrt, 2020+) fails at +1.31.** By this study's own
+rules that is the end of the claim: no addition to the model. The reading is not "the concavity is
+fake" — the exponent replicates, every span and metric is positive for the monthly arm, and the
+full-span QLIKE sits at +2.81 — it is that **the concavity is not additive to the deliverable**.
+The secondary arm says why: on top of daily refit the gearing is exactly zero (−0.05). Daily
+coefficient refit already harvests the observable concavity at ~days lag, which is precisely what
+§18.2's decomposition implied (the trailing dial and the daily solver capture the same observable
+component). If a production system were ever stuck at monthly refit for compute reasons, the
+gearing is a cheap +2.8-QLIKE-t substitute; with daily refit it is redundant.
+
+So the panel's ledger closes with nothing left on the table: the two-ridge daily-refit model
+contains the linear channel, the product channel, the trackable part of the dial, and the
+observable concavity. What remains unharvested is, by measurement: the 48% of the freshness gain
+that is idiosyncratic coefficient motion (irreducible without new information), a dial that is
+unforecastable beyond days, and the cross-sectional data this document has now recommended three
+times.
+
 ## Reproducibility
 
 ```bash
@@ -1987,6 +2018,7 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + 
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage gain    # rank-1 dial vs freshness (§18.2)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage driver  # what moves the dial (§18.3)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage memory  # is it forecastable (§18.4)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage concave # zero-free-param response test (§19.2)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
