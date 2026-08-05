@@ -1663,15 +1663,47 @@ Findings, in order of importance:
    and it does not. `prediction_health` was first fed the level forecast against a mean-one target;
    it is calibrated for mean-zero residual signals and is applied to those.
 
-**The deliverable.** On the production metric the minimal model is even smaller than §15's summary
-guessed: **HAR + one daily-refit dense ridge on all 516 exog columns. Two ridges, no selection, no
-products, nothing else.** QLIKE 0.12744 vs HAR's 0.13275. The frozen products remain a real
-sqrt-space effect (three independent confirmations) that cannot currently be shown to move the
-production scoreboard; carrying 100 extra frozen columns for an unproven −0.15% is a judgement call,
-and the honest default is to leave them out until a QLIKE-denominated case exists. The same
-conclusion applies with more force to everything smaller (the vol-regime blend at +0.0024 and the
-state axes at +0.0014 in sqrt space were never QLIKE-tested and are ~3× smaller than the product
-effect that just failed to transfer).
+**Interim deliverable (superseded by §18.1):** HAR + the daily-refit dense ridge, with the products
+failing to transfer to QLIKE at monthly refit.
+
+### 18.1 The products refit daily — the verdict reverses, and the cadence was the whole story
+
+Point 2 above scored the product block at the **monthly** coefficient-refit cadence it inherited from
+§7's selection studies — where monthly was the *selection* cadence under test, and "static beats
+dynamic" was a claim about selection, never about coefficients. The untested cell was the frozen
+products with **daily**-refit coefficients, as ordinary columns in the same rank-1 rolling solver as
+the dense stage (block penalty imposed exactly by scaling the product columns by
+`sqrt(α_lin/α_prod)`; per-window floored scale replaced by its causal whole-series analogue, a
+trailing-250d floored sd). Pre-registered expectation: a *smaller* relative gain than the linear
+block got from daily refit, since the product coefficients are shrunk 10× harder. Wrong again, in
+the good direction:
+
+| arm | resid R² | QLIKE | vs HAR | DM-t vs HAR | products' DM-t vs its linear stage |
+|---|---|---|---|---|---|
+| dense, daily refit | +0.0377 | 0.12744 | −3.99% | +11.36 | — |
+| **+ products, daily refit** | **+0.0485** | **0.12651** | **−4.69%** | **+13.45** | **+3.56** |
+| (+ products, monthly refit) | +0.0274 | 0.12976 | −2.25% | +5.70 | +0.52 |
+
+Daily coefficient refit **grows** the product increment (+0.0108 vs +0.0070 in sqrt space, DM-t
++3.42) **and carries it through the reconstruction** (ΔQLIKE −0.00093, DM-t +3.56; 2020+ whole-model
+DM-t +6.04). It also passes `prediction_health` at 4.7× — the causal rolling scale tames the
+Volmageddon bar that the per-window scale let through at 9.4–12.6×. Two coherent mechanisms, both
+consistent with earlier measurements rather than new stories: the selected products are
+predominantly **fast** pairs (§17.2's `1×1` / `1×25` concentration), and fast features are exactly
+where month-stale coefficients cost the most; and QLIKE's weight sits on high-vol bars, where fresh
+coefficients matter most.
+
+So §18's point 2 is corrected: **the products' QLIKE failure was an artifact of the inherited refit
+cadence, not of the reconstruction.** The study's own "refit frequency is the biggest lever" finding
+applied to its own product protocol.
+
+**The deliverable.** Still two ridges: **HAR (27 cols, refit per bar) + one daily-refit ridge on 616
+columns** — all 516 exog at α = 3000 plus the 100 frozen-since-2006 products at α = 3e4 via column
+scaling. QLIKE **0.12651** vs HAR's 0.13275 (−4.7%, DM-t +13.5; 2020+ −5.0%, DM-t +6.0), residual
+R² +0.0485 — the best model of the study on both scoreboards. The multiplicity caveat is the usual
+one: this arm was prompted by a reviewer question and scored on the shared OOS span; its margin
+(+3.56 full span, +6.04 on 2020+) is well clear of the thresholds that survived Romano-Wolf earlier,
+but a formal pass over the §18 family is the remaining hygiene step.
 
 ## Reproducibility
 
@@ -1712,6 +1744,7 @@ ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage block_exploit  # is the
 
 # §18 — the minimal model, end to end, scored on QLIKE.
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage build   # stage-B walk-forwards (~12 min)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage daily   # products at DAILY refit (§18.1)
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + controls + verdicts
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control

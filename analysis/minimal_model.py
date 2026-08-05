@@ -205,6 +205,10 @@ def stage_verify() -> None:
         "minimal_daily": pred_har + s_all + (s_aug - s_lin),
         "noise": pred_har + s_noise,
     }
+    # the daily-refit 616-column model (--stage daily), if it has been built: the products as
+    # ordinary columns in the SAME daily-refit solver, not a monthly increment summed on top
+    if "s_aug_daily" in dict(np.load(_p(CACHE))):
+        arms["aug_daily"] = pred_har + np.load(_p(CACHE))["s_aug_daily"]
 
     # machinery control: the truth scored against itself must be QLIKE 0 exactly
     q_truth = _qlike_series(y_adj, y_adj, baseline)
@@ -223,8 +227,9 @@ def stage_verify() -> None:
         ql_l = float(np.nanmean(q[a][late]))
         t_har = _hac_mean_t(q["har"] - q[a]) if a != "har" else 0.0
         t_har_l = _hac_mean_t((q["har"] - q[a])[late]) if a != "har" else 0.0
+        ref = "dense_daily" if a == "aug_daily" else prev
         t_prev = (
-            _hac_mean_t(q[prev] - q[a]) if prev and a not in ("har", "noise") else np.nan
+            _hac_mean_t(q[ref] - q[a]) if ref and a not in ("har", "noise") else np.nan
         )
         d_pct = 100.0 * (ql / float(np.nanmean(q["har"])) - 1.0)
         print(f"{a:9s} {rr:+9.5f} {ql:8.5f} {d_pct:+8.2f} {t_har:16.2f} "
@@ -235,6 +240,7 @@ def stage_verify() -> None:
                      "n": int(np.isfinite(q[a]).sum()), "n_2020plus": int(late.sum())})
         if a in ("har", "dense", "dense_daily"):
             prev = a  # each products arm is tested against its own linear stage
+        # aug_daily's linear stage is dense_daily, which precedes it in the dict
 
     # also score sqrt-space MSE DM for the record (the study's usual test), minimal vs dense
     t_sqrt = dm_test(e, arms["minimal"] - pred_har, arms["dense"] - pred_har)
@@ -266,7 +272,12 @@ def stage_verify() -> None:
     # after the XIV collapse — where the product block forecasts +2.2..+3.4 sigma into a residual
     # that spikes +1.8 and then reverses to -2.8. A real fragility of the product channel on the
     # single most extreme event in the OOS span, not a data defect.
-    print(f"\n       products on QLIKE (the open question): dQLIKE "
+    if "aug_daily" in d:
+        print(f"\n       products at DAILY refit on QLIKE: dQLIKE "
+              f"{d['aug_daily']['qlike'] - d['dense_daily']['qlike']:+.5f}, "
+              f"DM-t vs dense_daily {d['aug_daily']['dm_t_qlike_vs_prev']:+.2f}  "
+              f"-> {'CONFIRMED on the production metric' if d['aug_daily']['dm_t_qlike_vs_prev'] > 2 else 'not confirmed'}")
+    print(f"\n       products at monthly refit on QLIKE: dQLIKE "
           f"{d['minimal']['qlike'] - d['dense']['qlike']:+.5f}, "
           f"DM-t vs dense {d['minimal']['dm_t_qlike_vs_prev']:+.2f}  "
           f"-> {'confirmed' if d['minimal']['dm_t_qlike_vs_prev'] > 2 else 'NOT confirmed on the production metric'}")
@@ -278,8 +289,77 @@ def stage_verify() -> None:
     print(f"wrote {OUT}/minimal_model_verification.csv")
 
 
+# ---------------------------------------------------------------------------
+# daily — the product block at DAILY coefficient refit (the cell nobody ran)
+# ---------------------------------------------------------------------------
+
+# Ridge with a column scaled by c is exactly ridge with penalty alpha/c^2 on the original-scale
+# coefficient, so scaling the product columns by sqrt(ALPHA_LIN / ALPHA_PROD) makes the single-alpha
+# rank-1 rolling solver impose the blockwise penalty exactly.
+PROD_COL_SCALE = float(np.sqrt(ALPHA_LIN / ALPHA_PROD))
+
+
+def stage_daily() -> None:
+    """The 616-column model with coefficients refit DAILY, products included.
+
+    §7's "static beats dynamic" froze the *selection*; coefficients were always refit, but only at
+    the monthly cadence inherited from those studies, and §18 showed refit cadence is the largest
+    single lever for the linear block (+0.0204 -> +0.0377). This runs the untested cell. The frozen
+    100 products become ordinary fixed columns: built whole-series from the causally-scaled panel,
+    scaled by a causal rolling floored sd (the whole-series analogue of the monthly loop's
+    per-window floored scale; its warm-up backfill touches only training rows inside the first
+    window), block-penalized via PROD_COL_SCALE, and handed to the same rank-1 rolling solver the
+    dense daily stage uses.
+
+    Pre-registered expectation: a smaller relative gain than the linear block got from daily refit
+    (the product coefficients are shrunk 10x harder, so they are small and slow), and the
+    increment's QLIKE significance remains doubtful.
+    """
+    _require_fixed_cache()
+    from analysis.wf import walk_forward
+
+    p = load_panel()
+    e_full = np.load(_p("har_resid.npz"))["e"]
+    sig = dict(np.load(_p(CACHE)))
+    frozen = sig["frozen"]
+    lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
+    bc, _ = base_columns(p)
+    XL = np.ascontiguousarray(p.X[TW:, lin_cols], dtype=np.float64)
+    XB = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    ii, jj = _upper(XB.shape[1])
+    P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
+
+    # causal floored scale: trailing-TW sd per product column, shifted one bar, floored at 10% of
+    # the cross-column median so a transiently degenerate window cannot detonate a column
+    sd = pd.DataFrame(P).rolling(TW, min_periods=1000).std().shift(1).to_numpy()
+    med = np.nanmedian(sd, axis=1, keepdims=True)
+    sd = np.maximum(sd, 0.1 * np.where(np.isfinite(med), med, 1.0))
+    sd = pd.DataFrame(sd).bfill().to_numpy()  # warm-up rows only; all inside the first train window
+    P = P / sd * PROD_COL_SCALE
+
+    X = np.hstack([XL, P])
+    print(f"daily-refit augmented model: {X.shape[1]} cols "
+          f"({XL.shape[1]} linear + {P.shape[1]} frozen products), "
+          f"max|P_scaled| {np.abs(P).max():.1f}", flush=True)
+    from analysis.alpha_manifestation import REFIT_EVERY
+
+    s = walk_forward(X, e_full, TW, alpha=ALPHA_LIN, refit_every=REFIT_EVERY)
+    sig["s_aug_daily"] = s
+    np.savez_compressed(_p(CACHE), **sig)
+
+    y = e_full[TW:]
+    s_all = dict(np.load(_p("bucket_signals.npz")))["all"]
+    print(f"\n  dense daily (516)        R2 {r2_oos(y, s_all):+.5f}")
+    print(f"  augmented daily (616)    R2 {r2_oos(y, s):+.5f}   "
+          f"products dR2 {r2_oos(y, s) - r2_oos(y, s_all):+.5f}  "
+          f"DM-t {dm_test(y, s, s_all):+.2f}")
+    print(f"  (monthly-refit reference: products dR2 "
+          f"{r2_oos(y, sig['s_aug']) - r2_oos(y, sig['s_lin']):+.5f})")
+    print(f"updated {_p(CACHE)}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["build", "verify"], required=True)
+    ap.add_argument("--stage", choices=["build", "daily", "verify"], required=True)
     a = ap.parse_args()
-    {"build": stage_build, "verify": stage_verify}[a.stage]()
+    {"build": stage_build, "daily": stage_daily, "verify": stage_verify}[a.stage]()
