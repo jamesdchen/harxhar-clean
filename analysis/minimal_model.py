@@ -907,10 +907,105 @@ def stage_joint() -> None:
     print(f"wrote {OUT}/joint_vs_sequential.csv")
 
 
+# ---------------------------------------------------------------------------
+# final — ONE stage, everything, refit per bar (user-directed composition)
+# ---------------------------------------------------------------------------
+
+
+def stage_final() -> None:
+    """The user-directed final composition: one blockwise ridge, xsec included, per-bar refit.
+
+    679 columns in a single rank-1 rolling solver: the 27-column backbone at effective alpha 1,
+    the 516 exog at 3,000, the 36 §20 cross-section ratios at 3,000, the 100 frozen products at
+    30,000 — all imposed by column scaling — predicting y directly, 250-day window. Run at two
+    cadences (daily, every bar) so the cadence effect is attributable on THIS panel rather than
+    borrowed from the sibling session's rebuild. Scored on the §18 common OOS block against the
+    two-stage deliverable, sqrt and QLIKE, with prediction_health.
+
+    Composition notes, from the measured record: the joint-vs-sequential difference is a tie
+    (§21, FWL-protected); the xsec increment was +3.9/+2.6 at daily refit with a dated edge
+    (§20); per-bar refit's increment over daily was linear-channel-driven on the sibling panel
+    (§21.1). The composed model inherits all three claims; what is new here is only their
+    conjunction.
+    """
+    _require_fixed_cache()
+    os.makedirs(OUT, exist_ok=True)
+    from analysis.wf import walk_forward
+    from src.features.transforms.target import PERIODS_PER_DAY
+
+    p = load_panel()
+    sig = dict(np.load(_p(CACHE)))
+    frozen = sig["frozen"]
+    har_cols = np.concatenate([p.cols("har"), p.cols("calendar"), p.cols("regime")])
+    lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
+    bc, _ = base_columns(p)
+    XH = np.ascontiguousarray(p.X[:, har_cols], dtype=np.float64)
+    XL = np.ascontiguousarray(p.X[:, lin_cols], dtype=np.float64)
+    XB = np.ascontiguousarray(p.X[:, bc], dtype=np.float64)
+    XS = np.load(_p("xsec_features.npz"))["F"].astype(np.float64)
+    ii, jj = _upper(XB.shape[1])
+    P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
+    B = 250 * PERIODS_PER_DAY
+    sd = pd.DataFrame(P).rolling(B, min_periods=1000).std().shift(1)
+    med = np.nanmedian(sd.to_numpy(), axis=1, keepdims=True)
+    sdv = np.maximum(sd.to_numpy(), 0.1 * np.where(np.isfinite(med), med, 1.0))
+    P = P / pd.DataFrame(sdv).bfill().to_numpy()
+
+    ALPHA = 3000.0
+    X = np.hstack([
+        XH * np.sqrt(ALPHA / 1.0),
+        XL,
+        XS,
+        P * np.sqrt(ALPHA / 3e4),
+    ])
+    print(f"one-stage model: {X.shape[1]} cols "
+          f"({len(har_cols)} backbone@1 + {XL.shape[1]}@3e3 + {XS.shape[1]} xsec@3e3 + "
+          f"{P.shape[1]} products@3e4)", flush=True)
+
+    yhat_daily = walk_forward(X, p.y, TW, alpha=ALPHA, refit_every=PERIODS_PER_DAY)
+    print("daily-refit twin done; starting per-bar refit (~1h)", flush=True)
+    yhat_bar = walk_forward(X, p.y, TW, alpha=ALPHA, refit_every=1)
+
+    y_adj = p.y[2 * TW :]
+    baseline = p.baseline[2 * TW :]
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+    late = (ts >= HOLDOUT).to_numpy()
+    yc = y_adj - y_adj.mean()
+    z = np.load(_p("har_resid.npz"))
+    arms = {
+        "deliverable (2-stage, daily, no xsec)": z["pred"][TW:] + sig["s_aug_daily"],
+        "one-stage daily": yhat_daily[TW:],
+        "one-stage PER BAR": yhat_bar[TW:],
+    }
+    from src.diagnostics import prediction_health
+
+    qs, rows = {}, []
+    for name, f in arms.items():
+        qs[name] = _qlike_series(f, y_adj, baseline)
+        h = prediction_health(yc, f - y_adj.mean())
+        print(f"  {name:38s} R2 {r2_oos(yc, f - y_adj.mean()):+.5f}  "
+              f"QLIKE {np.nanmean(qs[name]):.5f}  health {h['status']}", flush=True)
+        rows.append({"arm": name, "r2": r2_oos(yc, f - y_adj.mean()),
+                     "qlike": float(np.nanmean(qs[name])), "health": h["status"]})
+    a = arms["one-stage PER BAR"]
+    for ref in ("one-stage daily", "deliverable (2-stage, daily, no xsec)"):
+        b = arms[ref]
+        d = qs[ref] - qs["one-stage PER BAR"]
+        print(f"\n  per-bar vs {ref}:")
+        print(f"    sqrt DM {dm_test(y_adj, a, b):+.2f} (2020+ "
+              f"{dm_test(y_adj[late], a[late], b[late]):+.2f})   "
+              f"QLIKE DM {_hac_mean_t(d):+.2f} (2020+ {_hac_mean_t(d[late]):+.2f})")
+    np.savez_compressed(_p("final_onestage.npz"), yhat_bar=yhat_bar, yhat_daily=yhat_daily)
+    pd.DataFrame(rows).to_csv(f"{OUT}/final_onestage.csv", index=False)
+    print(f"wrote {OUT}/final_onestage.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--stage", choices=["build", "daily", "verify", "gain", "driver", "memory", "concave", "joint"],
+        "--stage", choices=[
+            "build", "daily", "verify", "gain", "driver", "memory", "concave", "joint", "final",
+        ],
         required=True
     )
     a = ap.parse_args()
@@ -923,4 +1018,5 @@ if __name__ == "__main__":
         "memory": stage_memory,
         "concave": stage_concave,
         "joint": stage_joint,
+        "final": stage_final,
     }[a.stage]()
