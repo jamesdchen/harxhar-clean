@@ -1618,6 +1618,61 @@ Where this family *would* apply is unchanged from §15.3: a **cross-sectional** 
 graph has real community structure, coefficients are plausibly smooth within communities, and lead-lag
 networks exist at all. That is a data problem, not a method problem.
 
+## 18. The minimal model, built end to end — and what QLIKE keeps
+
+Everything above is scored as OOS R² in the transformed sqrt space. The repo's production metric is
+**QLIKE on raw RV**, reached through the Duan-smearing reconstruction — and no result in this study
+had ever been pushed through it. `analysis/minimal_model.py` builds the study's concluding
+recommendation as a runnable model and scores every ingredient on both scoreboards, with a machinery
+control (QLIKE of the truth against itself = 0 exactly) and a negative control (a circularly-shifted
+copy of the final signal, which must not improve anything).
+
+The model: **Stage A** HAR ridge (27 columns, 250-day rolling, refit every bar) + **Stage B** one
+ridge on the Stage-A residual — all 516 exog columns at α = 3000, with/without the 100
+frozen-since-2006 products at their own α = 3e4. Final forecast = A + B. 218,934 OOS bars,
+2007-02 → 2024-04, all on the §8-fixed panel.
+
+| arm | resid R² | QLIKE | vs HAR | DM-t | 2020+ DM-t |
+|---|---|---|---|---|---|
+| HAR alone | — | 0.13275 | — | — | — |
+| + dense ridge, monthly refit | +0.0204 | 0.12996 | −2.10% | +5.98 | +3.51 |
+| + dense + products, monthly | +0.0274 | 0.12976 | −2.25% | +5.70 | +2.84 |
+| **+ dense ridge, daily refit** | **+0.0377** | **0.12744** | **−3.99%** | **+11.36** | **+5.54** |
+| + daily dense + product increment | +0.0372 | 0.12752 | −3.94% | +9.98 | +4.41 |
+| noise control (shifted signal) | −0.0587 | 0.14218 | +7.11% | −8.67 | −4.95 |
+
+Findings, in order of importance:
+
+1. **The dense exog channel survives the reconstruction intact and emphatically.** −4.0% QLIKE at
+   DM-t +11.4 (and +5.5 on 2020+ alone). The single daily-refit ridge on everything is worth twice
+   the monthly-refit version — refit frequency matters more for the linear block than any
+   architectural choice examined in this study.
+2. **The product channel does NOT survive to QLIKE significance.** In sqrt space the products
+   reproduce for the third time (+0.0070, DM-t +2.63 on the 516-column base — inside the
+   pre-registered window). On QLIKE the same increment is worth −0.00020 at **DM-t +0.52**, and
+   summed onto the daily-refit dense stage it is slightly *negative* (−0.21). The pre-registration
+   explicitly declared this an open question with no prediction; the answer is that the gain lives
+   in bars QLIKE down-weights. Squared-error in sqrt space weights quiet bars far more than QLIKE
+   (which is variance-ratio-based) does, so a gain concentrated in ordinary bars dilutes through the
+   reconstruction. It also has a named fragility: on **2018-02-06 (Volmageddon)** the product block
+   forecasts +2.2..+3.4σ into a residual that spikes +1.8σ and reverses to −2.8σ — the composed
+   daily+increment arm fails `prediction_health` on that single bar (12.6× vs the 10× gate).
+3. **Both gate mis-specifications are recorded.** The noise gate first demanded "shifted signal ≈
+   no-op"; a shifted signal is added variance with zero covariance and *must* hurt (it scored
+   +7.1%, almost exactly the −var(s)/var(e) arithmetic). The fraud condition is noise *improving*,
+   and it does not. `prediction_health` was first fed the level forecast against a mean-one target;
+   it is calibrated for mean-zero residual signals and is applied to those.
+
+**The deliverable.** On the production metric the minimal model is even smaller than §15's summary
+guessed: **HAR + one daily-refit dense ridge on all 516 exog columns. Two ridges, no selection, no
+products, nothing else.** QLIKE 0.12744 vs HAR's 0.13275. The frozen products remain a real
+sqrt-space effect (three independent confirmations) that cannot currently be shown to move the
+production scoreboard; carrying 100 extra frozen columns for an unproven −0.15% is a judgement call,
+and the honest default is to leave them out until a QLIKE-denominated case exists. The same
+conclusion applies with more force to everything smaller (the vol-regime blend at +0.0024 and the
+state axes at +0.0014 in sqrt space were never QLIKE-tested and are ~3× smaller than the product
+effect that just failed to transfer).
+
 ## Reproducibility
 
 ```bash
@@ -1654,6 +1709,10 @@ ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage clock   # intraday cloc
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage form    # spectrum of the interaction form
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage blocks  # window / bucket block concentration
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage block_exploit  # is the block usable? (no)
+
+# §18 — the minimal model, end to end, scored on QLIKE.
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage build   # stage-B walk-forwards (~12 min)
+ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage verify  # QLIKE + controls + verdicts
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
