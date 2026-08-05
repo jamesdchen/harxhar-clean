@@ -1848,6 +1848,56 @@ object that survived turns out, on inspection, to be mostly *signal heteroskedas
 the concavity of trust in a shouting model, not a hidden state of the market. Dense-but-weak, all
 the way down.
 
+## 19. Closing synthesis: the nonlinear channel vs the trees, and the story's final shape
+
+**Is there an actual improvement on linear dense-but-weak? Yes — one, production-metric-confirmed.**
+The frozen products at daily refit are the only thing in this study that beats the dense linear
+ridge on QLIKE: 0.12744 → 0.12651 (increment DM-t +3.56; sqrt-space +0.0108 at +3.42; whole model
+vs HAR +13.5, and +6.0 on 2020+ alone). Everything else that beat dense linear did so only in sqrt
+space (vol blend, state axes) or failed a powered test. Relative size: the nonlinear channel is
+~29% on top of the linear one (0.0108/0.0377), or ~22% of the total exog channel.
+
+**Is it what the trees found? Structurally, almost certainly — and now with a mechanism per piece.**
+The intraday-regime campaign's decomposition of the tuned EBM's edge (enet 0.12516 → +HAR×late-day
+0.12457 → +6 regimes 0.12453 → EBM 0.12414) split it as ~58–62% the clock-regime sign-flip and
+**~38% "genuinely nonlinear/higher-order, pending EBM-vs-XGB to say if pairwise"**. The
+correspondence, term by term:
+
+* the 58–62% clock-regime part is **already in our Stage A** (the `har_ma_w × open/close` columns
+  were materialized upstream after that campaign);
+* the ~38% remainder matches the **pairwise product channel** — an EBM is a GA2M, main effects plus
+  pairwise interaction functions, and pairwise products are the parametric skeleton of exactly that;
+* the products' need for **daily refit** matches the trees' walk-forward refits;
+* and §18.4's **concavity** (per-unit trust collapsing when the form shouts) is precisely what a
+  tree's bounded, piecewise-constant leaves provide *for free* — a leaf cannot extrapolate, so a
+  tree is structurally immune to the Volmageddon +3.4σ shout that our linear products produced.
+
+So the working identification: **the tree's unexplained 38% ≈ pairwise products + saturation**, and
+we now hold both pieces in closed form. Two honesty notes: the QLIKE *levels* are not comparable
+across the studies (tw1000 slim cell and a different diurnal protocol vs our tw250 fixed panel), so
+this is a structural identification, not a numerical equality; and the decisive check — trees vs
+`aug_daily` on the same fixed panel and span — is a single head-to-head that has never been run
+(that campaign's own EBM-vs-XGB pairwise test was also left pending).
+
+**What it means for dense-but-weak: the story bifurcates into two channels with mirror-image
+geometry.**
+
+| | linear channel | interaction channel |
+|---|---|---|
+| in features | **dense** (all 246; PR 117; top-5 loses at −7.2) | **sparse** (100 pairs, frozen since 2006) |
+| in time | **stable** (0/207 negative months; selection churn 2%) | **fast** (daily refit +0.004; dial memory < 1 month) |
+| per-unit strength | weak | weak (dial ≥73% noise, 95% driverless) |
+| how it is earned | aggregate across features, shrink hard | aggregate across time: refit fast, saturate response |
+
+"Dense but weak" was the correct answer to the campaign's original question — for the marginal,
+linear structure. The nonlinear channel is its transpose: sparse-but-fast. What unifies them is the
+*weak* part: in both channels the exploitable object is a diffuse aggregate of many small effects —
+across features in one, across time in the other — with no nameable driver, no stable geometry, and
+no concentration that survives a powered test. The playbook that earns both is the same three verbs,
+which are exactly what a gradient-boosted tree does natively: **collect everything, refresh
+constantly, saturate the response.** The two-ridge model is that playbook in closed form, minus the
+saturation — which is the one pre-registered test this study leaves on the table.
+
 ## Reproducibility
 
 ```bash
