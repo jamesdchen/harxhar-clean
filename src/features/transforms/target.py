@@ -49,8 +49,12 @@ DIURNAL_STD_FLOOR_FRAC: float = 0.1
 # ``DIURNAL_WINDOW``-observation rolling statistic of a heavily right-skewed quantity, so its
 # sampling error is large, and constraining it toward a longer-run per-slot level is better
 # estimation rather than less adjustment.
-DIURNAL_SLOT_BAND_FRAC: float = 0.25
+DIURNAL_SLOT_BAND_FRAC: float = 0.5
 DIURNAL_SLOT_REF_MIN: int = 20  # in-slot observations before the reference median is usable
+# Trailing in-slot observations the reference median is taken over: one observation per trading day
+# per slot, so 250 is ~one year — long enough to be a far better-estimated statistic than the
+# DIURNAL_WINDOW = 20 estimate it disciplines, short enough to track a volatility regime.
+DIURNAL_SLOT_REF_WINDOW: int = 250
 # If the per-slot rolling-std divisor is pinned at ``DIURNAL_STD_FLOOR_FRAC``'s floor for more
 # than this fraction of rows, ``diurnal_adjust`` is not adjusting anything — it has degenerated
 # into division by a single global constant, which cannot track a feature whose scale drifts.
@@ -61,6 +65,21 @@ DIURNAL_PINNED_MAX: float = 0.5
 ASINH_SCALE_HALFLIFE_DAYS: int = 250
 WINSOR_LOWER_Q: float = 0.05
 WINSOR_UPPER_Q: float = 0.95
+# Per-slot winsorisation is implemented (``rolling_winsorize(slots=...)``) and **off by default,
+# because it was measured and it fails its own invariant.** On the thirteen flagged columns it is
+# spectacular on the bulk — extreme *rows* fall from 4,383 to 287 and columns past |z| 20 from 37 to
+# 17 — and it makes three ``_ma_1`` columns far worse: ``adj_sumpret2_vwstock_ma_1`` goes 78 -> 219,
+# ``adj_sumabsret_ewstock_ma_1`` 59 -> 164, ``adj_sumpret2_ewstock_ma_1`` 52 -> 139. The mechanism is
+# self-inflicted: clipping 10% of *every slot* into the body tightens the distribution enough that
+# ``rolling_robust_scale``'s IQR collapses, and a value sitting at its own (causal, therefore
+# sometimes generous) trailing bound is then a very large number of very small IQRs from the median.
+# Trading a 15x reduction in extreme rows for a new 219-sigma column is not a trade worth making.
+#
+# The obvious variant — a per-slot 1/99 bound, which caps the tail without crushing the body's
+# dispersion — is the named next step and is deliberately NOT run here: the quantile pair is the one
+# free parameter, and cycling it until an arm clears is the pattern §10 of the writeup exists to
+# prevent, invariant or not.
+WINSOR_BY_SLOT_DEFAULT: bool = False
 SKIP_VARS: set[str] = {
     "hour",
     "DOW",
@@ -104,13 +123,22 @@ def is_diurnal_excluded(col_name: str) -> bool:
 def _band_to_slot_level(
     baseline: pd.Series, slots: pd.Series, frac: float
 ) -> pd.Series:
-    """Shrink a per-slot rolling baseline into ``[frac, 1/frac]`` of that slot's own level.
+    """Shrink a per-slot rolling baseline into ``[frac, 1/frac]`` of that slot's own longer-run level.
 
-    The reference level is the **causal expanding median** of the slot's baseline series. Causal
-    because every value entering that median is itself a rolling statistic over observations
-    strictly before its own row (``diurnal_adjust`` shifts by 1), so the median at row ``t`` is a
-    function of data before ``t`` only — no ``.shift`` is needed on top, and not shifting keeps the
-    band usable ``DIURNAL_SLOT_REF_MIN`` in-slot observations earlier.
+    The reference is a **rolling** per-slot median over ``DIURNAL_SLOT_REF_WINDOW`` in-slot
+    observations, not an expanding one. That distinction is the whole design. An expanding median is
+    dominated by the start of the sample, so in a high-volatility regime the slot's legitimate
+    baseline sits several times above its own history and the band would clip the *regime* — which is
+    not what this is for. A trailing-year median tracks the regime while still resting on ~12x as
+    many observations as the ``DIURNAL_WINDOW`` estimate it disciplines, so the operation is plain
+    shrinkage of a noisy statistic toward a better-estimated one of the same quantity, with no
+    regime cost. Regime *level* is in any case handled downstream by ``rolling_robust_scale``'s
+    250-day median/IQR, which is far better equipped for it than a 20-observation per-slot mean.
+
+    Causal without an extra shift: every value entering the median is itself a rolling statistic over
+    observations strictly before its own row (``diurnal_adjust`` shifts by 1), so the median at row
+    ``t`` is a function of data before ``t`` only — and not shifting keeps the band usable
+    ``DIURNAL_SLOT_REF_MIN`` in-slot observations earlier.
 
     Where a slot has less than ``DIURNAL_SLOT_REF_MIN`` observations of history the reference is NaN
     and the clip is a no-op (pandas leaves values unchanged against NaN bounds), so behaviour in a
@@ -121,7 +149,9 @@ def _band_to_slot_level(
     if frac <= 0:
         return baseline
     ref = baseline.abs().groupby(slots).transform(
-        lambda g: g.expanding(min_periods=DIURNAL_SLOT_REF_MIN).median()
+        lambda g: g.rolling(
+            DIURNAL_SLOT_REF_WINDOW, min_periods=DIURNAL_SLOT_REF_MIN
+        ).median()
     )
     ref = ref.where(ref > 0)
     return baseline.clip(lower=frac * ref, upper=ref / frac)
@@ -298,6 +328,7 @@ def rolling_winsorize(
     window: int = 240,
     allow_missing: bool = False,
     is_target: bool = False,
+    slots: pd.Series | None = None,
 ) -> pd.Series:
     """Clip values to rolling 5th / 95th quantile bounds (shifted by 1).
 
@@ -310,16 +341,40 @@ def rolling_winsorize(
         If True and not is_target, use nanquantile-style (min_periods=1).
     is_target : bool
         Targets never use nanquantile even when allow_missing is True.
+    slots : pd.Series, optional
+        Time-of-day labels. When given, the quantiles are computed **within each slot** over the
+        last ``window`` *in-slot* observations rather than over the last ``window`` bars of all
+        slots pooled.
+
+        Why that matters, measured. A pooled window is ~62% overnight bars, and the overnight
+        distribution of a diurnally-adjusted cross-sectional stock aggregate is far more dispersed
+        than the RTH one — so the pooled 95th percentile is set *by* the overnight tail and can
+        never bind on it. At the argmax of ``adj_sumpret2_vwstock`` (2024-01-17 03:00) the pooled
+        upper bound equals the value itself, 46.03: twelve or more of the trailing 240 bars were
+        already past it, so the winsoriser had nothing to clip against. The in-slot p99 of that
+        column at 03:00 is 5.6e-05 against a raw print of 1.2e-04 — the per-slot bound binds hard
+        where the pooled one is blind. Same insight as ``DIURNAL_SLOT_BAND_FRAC``: a per-slot
+        pathology needs a per-slot statistic.
+
+        This does not clip *more* rows — it is the same 5/95 rule — it clips the right ones.
     """
     use_nan = allow_missing and not is_target
     min_per = 1 if use_nan else window
 
-    lower = (
-        series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
-    )
-    upper = (
-        series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
-    )
+    if slots is not None:
+        def _q(g: pd.Series, q: float) -> pd.Series:
+            return g.rolling(window, min_periods=min_per).quantile(q).shift(1)
+
+        grouped = series.groupby(slots)
+        lower = grouped.transform(_q, WINSOR_LOWER_Q)
+        upper = grouped.transform(_q, WINSOR_UPPER_Q)
+    else:
+        lower = (
+            series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
+        )
+        upper = (
+            series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
+        )
     return series.clip(lower=lower, upper=upper)
 
 
@@ -340,10 +395,15 @@ def robust_transform(
     diurnal_mode: str = "divide",
     signed_stabilizer: bool = True,
     slot_band: float | None = None,
+    winsor_by_slot: bool | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
     Returns ``(adjusted_series, baseline)``.
+
+    ``winsor_by_slot`` makes :func:`rolling_winsorize` take its 5/95 bounds within each time-of-day
+    slot. It defaults to ``WINSOR_BY_SLOT_DEFAULT``, which is **off** — see that constant for the
+    measurement that rejected it.
 
     ``slot_band`` is forwarded to :func:`diurnal_adjust`. It defaults to
     ``DIURNAL_SLOT_BAND_FRAC`` for **exog** and to ``0`` (off) for the **target**: the target's
@@ -378,6 +438,8 @@ def robust_transform(
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
     if slot_band is None:
         slot_band = 0.0 if is_target else DIURNAL_SLOT_BAND_FRAC
+    if winsor_by_slot is None:
+        winsor_by_slot = WINSOR_BY_SLOT_DEFAULT
 
     series = df[col_name].copy()
     has_negatives = bool((series.dropna() < 0).any())
@@ -418,7 +480,11 @@ def robust_transform(
 
     ww = winsor_window if winsor_window is not None else 240
     series = rolling_winsorize(
-        series, window=ww, allow_missing=allow_missing, is_target=is_target
+        series,
+        window=ww,
+        allow_missing=allow_missing,
+        is_target=is_target,
+        slots=df[time_col] if (winsor_by_slot and time_col in df.columns) else None,
     )
 
     return series, baseline

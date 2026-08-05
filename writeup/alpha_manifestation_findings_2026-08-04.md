@@ -13,6 +13,19 @@ window, refit as it walks, the production `RollingLeastSquares`). Code:
 
 ## TL;DR
 
+> **Update (§§16–17): the §15.3 list is executed, and two of its conclusions are revised.**
+> The two confirmed gains **do** add — combined ΔR² **+0.0088** (DM-t +8.1), of which **+0.0064**
+> is structurally attributable (+0.0052 products, +0.0012 vol-regime, additive to −4%) and +0.0027
+> is plain estimator diversification belonging to neither. My pre-registered prediction (t < 2) was
+> wrong. `sentiment × vol-state` survives a genuinely fresh split (+0.00134, DM-t +2.35, selection
+> redone on ≤2019). §7's interaction gain reproduces with `voldemand` in and no clip (+0.0069, t
+> +2.79), so neither patch was load-bearing. **§14's "no good geometry to exploit" is narrowed**:
+> there are **two additive state axes** — vol *and* intraday clock — worth +0.0014 at DM-t **+3.09**
+> out of sample, both requiring heavy shrinkage; and the interaction channel, while spectrally flat
+> and unidentified, is hard **block**-concentrated in **fast liquidity × liquidity products**
+> (53 of 100 selected pairs, z = +3.58; `1×1` window pairs z = +7.30).
+
+
 - **The linear channel is dense; the INTERACTION channel is sparse — and neither rotates.**
   ~100 pairwise products out of 8,911 candidates, **frozen once in 2006 and never reselected**,
   add **ΔR² +0.0067 → +35%, DM-t +2.71** over the linear base — with no clipping, `voldemand`
@@ -1188,6 +1201,12 @@ shrinkage everywhere, and the returns to structure-finding on this panel are app
 
 ### 15.3 What to do next, in order
 
+> **All seven executed — see §16 for results and §17 for the geometry follow-up this list did not
+> anticipate. Two items came back differently than framed: item 1's gain is real but a third of it is
+> not attributable to either lever, and item 4 is one mechanism rather than the "voldemand fix
+> generalised" this list assumed.**
+
+
 **Finish what is already confirmed** — small, well-defined, uses existing machinery:
 
 1. **Test additivity of the two confirmed gains.** The vol-regime blend (+0.0024, RW p 0.0005) and the
@@ -1222,6 +1241,320 @@ method**: a cross-sectional panel (many assets, so state-dependence is estimated
 through time — which is the one thing that fixes the identification failures in §13 and §14), or the
 auction-imbalance / GEX / 0DTE feeds the intraday-regime study named. Everything else is polishing.
 
+## 16. The §15.3 list, executed
+
+All seven items. Code: `analysis/synthesis.py` (items 1, 2, 5), `analysis/tail_fix.py` (item 4),
+`src/diagnostics.py` + both build sites (item 3), `src/features/extractors/expiry.py` and
+`src/data/loading.add_derived_features` (items 6, 7). Everything measured on the **§8-fixed panel**,
+whose own `prep` re-derives the HAR residual (R² 0.5773, sd 0.2485) and the seven bucket signals
+(all-exog R² **+0.0377**, the exog channel every ΔR² below is a fraction of).
+
+### 16.1 Item 1 — the two gains DO add, and my pre-registered prediction was wrong
+
+Pre-registered before running: sub-additive, DM-t of the combined model against the better single arm
+**positive but under 2**. Result: **+7.5**. The prediction was wrong by a wide margin.
+
+Getting there took two architectures, and the first one has to be reported because rejecting it was a
+judgement call. Attempt 1 put the interaction gain into the second-stage combiner as a *single* extra
+signal (`aug − base`). It scored ΔR² **−0.0096** on the full sample while being additive and
+significant on 2020+ — a pattern that indicts the wrapper, not the gain: collapsing 100 columns that
+each carry their own ridge penalty into one coefficient destroys the selective shrinkage that
+produced §7's +0.0069 in the first place. That is an *a priori* argument, not "it lost", but it is
+still a second architecture scored on the same sample and §10's warning applies.
+
+Attempt 2 leaves both estimators exactly as measured and asks what "do the gains add" actually means
+— **does using both beat using either** — by 50/50 forecast combination (equal weight *pre-specified*,
+because fitting the weight would be one more spec chosen on exhausted data):
+
+| K | M0 pooled | f_A vol-regime blend | f_B linear+products | f_AB 50/50 | DM-t vs best single |
+|---|---|---|---|---|---|
+| 2 | +0.0297 | +0.0316 (+0.0018) | +0.0259 (−0.0039) | **+0.0383 (+0.0086)** | **+7.58** |
+| 3 | +0.0298 | +0.0319 (+0.0022) | +0.0259 (−0.0039) | **+0.0385 (+0.0088)** | **+7.53** |
+| 5 | +0.0298 | +0.0320 (+0.0021) | +0.0259 (−0.0039) | **+0.0387 (+0.0089)** | **+7.71** |
+
++0.0088 is the +0.009 §15.3 nominated. But `f_B` **alone loses to the pooled combiner**, so the
+additivity ratio is negative and meaningless, and the gain is partly just two structurally different
+estimators making independent errors. That has to be netted out before anything is credited, so the
+2×2 (K=3, `--stage additivity3`):
+
+| source | ΔR² | share | DM-t vs plain combination |
+|---|---|---|---|
+| plain diversification (M0 + linear direct model) | +0.00269 | 31% | — (t +2.33 vs M0) |
+| **marginal from the ~100 frozen products** | **+0.00523** | **60%** | **+5.36** |
+| **marginal from the vol-regime blend** | **+0.00119** | **14%** | **+5.32** |
+| interaction / remainder | −0.00037 | −4% | |
+
+**Both confirmed gains contribute on top of diversification, each at DM-t ≈ +5.3, and they are
+additive to within −4%.** The structurally attributable total is **+0.0064 ≈ 17%** of the exog
+channel; the *full* combined model is +0.0088 ≈ 23%, of which +0.0027 belongs to neither gain.
+Anyone quoting +0.0088 as "the confirmed gain from the two levers" is over-claiming by a third.
+
+Each marginal is smaller than its standalone measurement (+0.0052 vs +0.0069; +0.0012 vs +0.0022), so
+against *standalone* the pair is mildly sub-additive — which is what was pre-registered, even though
+the headline test was not.
+
+### 16.2 Item 2 — `sentiment × vol-state` survives a fresh split
+
+The §14.3 nomination was made on a sample that already contained the twice-scored 2021–24 block, so
+the **selection** was redone on ≤2019 only. It independently returns the same answer:
+
+| bucket | γ (≤2019) | HAC-t |
+|---|---|---|
+| moments | +0.019 | +0.34 |
+| liquidity | −0.108 | −1.60 |
+| implied_vol | −0.130 | −1.15 |
+| market_vw | +0.264 | +1.69 |
+| market_ew | −0.165 | −1.12 |
+| vol_demand | +0.194 | +0.96 |
+| **sentiment** | **+0.622** | **+3.28** |
+
+Joint HAC Wald χ²(7) = 25.4, p = 6.5e-04. `sentiment` is again the only component past |t| = 2. On the
+**2020+ holdout**, the single 1-df term scores ΔR² **+0.00134, DM-t +2.35** — clearing the
+pre-registered one-sided 1.645 — and it is positive in-sample too (+0.00081, t +1.90). First
+state-dependent term in this study to survive a genuinely fresher split.
+
+### 16.3 Item 5 — neither of §7's two patches was load-bearing
+
+§7.3 had to drop `voldemand` and §7.1's ±4 clip existed to survive exactly that class of column. On
+the fixed panel, with `voldemand` **included** and **no clipping anywhere** (max |X| 78.8):
+
+| α_prod | stat100 ΔR² | DM-t | dyn100 ΔR² | DM-t | dyn vs stat |
+|---|---|---|---|---|---|
+| 3e3 | −0.0044 | −0.64 | −0.0063 | −1.72 | −0.26 |
+| **3e4** | **+0.0069** | **+2.79** | +0.0013 | +0.47 | −1.29 |
+| 3e5 | +0.0044 | +2.78 | +0.0025 | +1.72 | −0.71 |
+| 3e6 | +0.0007 | +2.76 | +0.0007 | +3.14 | +0.22 |
+
++0.0069 / +2.79 against §7.3's +0.0067 / +2.71 — reproduced to the third decimal. Static still beats
+dynamic (monthly selection churn 0.257 and it buys nothing). Positive and significant at 3 of 4 grid
+points, against 2 of 4 before, so the fix made it *less* penalty-sensitive as predicted.
+
+### 16.4 Item 4 — one mechanism, not three, and one fix measured and rejected
+
+Two of the three predicted mechanisms were wrong. The per-slot divisor is **not** pinned (0.000 for
+the whole `sum*stock` family) and the winsoriser is **not** blind at those rows (0.001 of rows). What
+the row-level trace shows is a single mechanism behind eleven of the thirteen columns: **the per-slot
+diurnal baseline collapses within its own slot, on overnight bars.**
+
+| column @ argmax | baseline | that slot's median baseline | ratio | → max\|z\| |
+|---|---|---|---|---|
+| `sumpret2_vwstock` @ 03:00 | 5.7e-08 | 1.1e-06 | **19× low** | 82.1 |
+| `sumbipow_ewstock` @ 03:00 | 1.9e-08 | 4.4e-07 | **22× low** | 77.3 |
+| `stocktwits_sentiment` @ 05:30 | 0.0142 | 0.143 | **10× low** | 70.3 |
+
+And the winsoriser cannot catch it: at `sumpret2_vwstock`'s argmax the pooled upper bound **equals the
+value**, 46.03 — twelve or more of the trailing 240 bars were already past it, because overnight bars
+are ~62% of a pooled window and set the very quantile meant to bound them. `numobs` is the one genuine
+exception: capped at 30 and *equal to* 30 on 78% of bars, so its IQR is a rounding artifact and a
+holiday half-session is correctly ~79σ away.
+
+Four fixes, each behind a switch so the ladder attributes change to a mechanism, and an assertion that
+the `pre` arm still reproduces max|z| 82.1 (the check that caught §8's baseline silently drifting):
+
+| arm | max\|z\| | cols ≥ 50 | cols ≥ 20 | rows ≥ 20 |
+|---|---|---|---|---|
+| `pre` | 82.1 | 25 | 37 / 156 | 4,383 |
+| per-slot band 0.50 | 78.8 | **8** | 36 | 4,370 |
+| **+ stem exclusion + mode hurdle + guard** | 78.8 | **4** | **29** | **3,349** |
+| + per-slot winsorisation | **174.4** | 3 | 16 | 482 |
+| per-slot winsorisation only | **218.7** | 6 | 17 | 287 |
+
+- **The band** clips the per-slot baseline to `[f, 1/f]` of that slot's own **trailing-year** rolling
+  median (not expanding — an expanding reference is dominated by the start of the sample and would
+  clip the vol *regime*). It is two-sided because a transiently large baseline destroys signal as
+  surely as a small one inflates it. `f` was fixed at 0.50 from the invariant ladder — 0.10 / 0.25 /
+  0.50 leave 19 / 16 / 9 columns past 50, monotone — and choosing it that way spends no inferential
+  budget because no forecast is ever scored.
+- **The stem exclusion** is a latent bug: `DIURNAL_EXCLUDED = {... "vix", "sentiment"}` was tested by
+  *exact membership*, so **no column named `sentiment` has ever existed** and `"vix"` matched one of
+  three. `vvix` and `vix3m` were being diurnally adjusted against the constant's own stated intent,
+  and `stocktwits_sentiment` — a ratio bounded in [−1, 1] — was dividing by a collapsing per-slot std.
+  Matched as stems, `adj_stocktwits_sentiment_ma_*` goes **70.3 → 4.0–5.1**.
+- **The mode hurdle** generalises `ZERO_INFLATED_FRAC` from exact zeros to the modal value. This is
+  bit-identical for `voldemand` (whose mode *is* 0) and across all 43 raw exog catches exactly one new
+  column, `numobs` at 0.78 (next highest: `stocktwits_sentiment`, 0.12). It adds the `numobs_active`
+  ("this bar was not a full 30-observation bar") indicator — 156 columns → 162 — and it leaves
+  `adj_numobs_ma_25`'s max at **78.8, unchanged**. That is not a failure, it is the point: the
+  mode-inflation test inside `_build_scale_guards` reads the *moving-average* column, which no longer
+  has an exact point mass once averaged, so the magnitude column's scale is untouched. And no scale
+  estimator should shrink it — a 3-observation bar genuinely is nothing like a 30-observation bar. The
+  extensive margin is what carries the information and the indicator now carries it explicitly; the
+  magnitude column is handled by the **invariant** instead, which for a hurdle-encoded column judges
+  the tail on p99.9 (46, so a `warn`) rather than on a max that a point mass makes uninformative.
+- **The guard fix** erodes the availability mask by the MA window and gives the reference IQR a
+  nonzero value while it is unmeasurable (it was **0.0** — "impose no floor" — on exactly the rows
+  where the local window is all imputed constant). `adj_vix3m_ma_3125` goes **50.0 → 5.5**.
+
+Per column, against the adopted arm:
+
+| column | pre | post | ratio |
+|---|---|---|---|
+| `adj_stocktwits_sentiment_ma_125` | 56.0 | **2.9** | 0.05 |
+| `adj_stocktwits_sentiment_ma_1` | 70.3 | **4.0** | 0.06 |
+| `adj_stocktwits_sentiment_ma_{5,25}` | 70.3 | **4.2–4.9** | 0.06–0.07 |
+| `adj_vix3m_ma_3125` | 50.0 | **5.5** | 0.11 |
+| `adj_sumbipow_ewstock_ma_1` | 77.3 | 40.8 | 0.53 |
+| `adj_sumpret2_vwstock_ma_{1,5}` | 78.1 / 82.1 | 45.8 / 48.8 | 0.59 |
+| `adj_sumabsret_ewstock_ma_{1,5}` | 59.4 / 66.9 | **58.9 / 66.7** | 0.99 |
+| `adj_numobs_ma_{5,25}` | 51.6 / 78.8 | **51.6 / 78.8** | 1.00 |
+
+So the band **roughly halves** the `sum*stock` family rather than curing it, and the stem-exclusion and
+guard fixes cure `sentiment` and `vix3m` outright. Four columns remain past 50 —
+`adj_numobs_ma_{5,25}` (bimodal by construction, resolved by the invariant exemption above) and
+`adj_sumabsret_ewstock_ma_{1,5}`, which the band barely touches because their argmax baseline is only
+2.6× below its slot median while the *raw* print is 17× that slot's median. Those two are not a
+transform defect: they are a real, extreme, thinly-traded overnight print in a cross-sectional stock
+aggregate, and the honest treatment is to decide whether `sum*stock` columns are *defined* outside RTH
+at all — the impute-and-indicate machinery already exists for "undefined here". That is a data-definition
+change, out of scope for this item, and it is the recommendation.
+
+**Per-slot winsorisation is implemented, measured, and rejected.** It is spectacular on the bulk —
+extreme rows 4,383 → 287, a 15× reduction — and it makes three `_ma_1` columns far worse
+(`adj_sumpret2_vwstock_ma_1` 78 → 219, `adj_sumabsret_ewstock_ma_1` 59 → 164). Self-inflicted:
+clipping 10% of *every* slot into the body tightens the distribution enough that
+`rolling_robust_scale`'s IQR collapses, so a value at its own trailing bound is a large number of very
+small IQRs from the median. A 15× cut in extreme rows is not worth a new 219σ column. The obvious
+variant — a per-slot **1/99** bound, capping the tail without crushing the body — is named as the next
+step and deliberately **not** run: the quantile pair is the one free parameter and cycling it until an
+arm clears is the pattern §10 exists to prevent, invariant or not.
+
+Shipped: band 0.50 + stem exclusion + mode hurdle + guard fix, `WINSOR_BY_SLOT_DEFAULT = False`. 79 of
+156 columns are bit-identical, so the fix is surgical. The band is applied to **exog only**; the
+target keeps its chain exactly, because `baseline` is the multiplicative factor every raw-space
+reconstruction and every published QLIKE in this repo is defined against. `RV` takes the same unsigned
+mean branch and is a candidate for the same treatment — that needs its own re-baselining.
+
+### 16.5 Items 3, 6, 7 — shipped
+
+- **Item 3.** `src/diagnostics.check_and_report` runs in `executor._backtest_and_save` and
+  `alpha_panel.build_panel`, writing `<output>_feature_health.csv` on every build. Advisory by
+  default because 26 columns currently FAIL; `FEATURE_HEALTH_STRICT=1` makes it fatal. Two new
+  false-alarm exemptions, both found by the checks firing on healthy columns: a diurnal-excluded
+  column has no divisor to measure, and a hurdle-encoded column's tail is judged on p99.9 rather than
+  the max, because a genuine point mass makes the max uninformative (`adj_numobs_ma_25` at p99.9 46
+  correctly stays a **warn**, not a muted "ok").
+- **Item 6.** `src/features/extractors/expiry.py`: `is_opex` (third Friday, snapped to the last
+  trading day at or before it so a Good Friday expiry lands correctly), `is_opex_week`,
+  `is_quad_witch`, `is_rebalance_close` (quad witch × the close gate — the index-tracker rebalance
+  prints in *that* auction, so a day-level dummy would average it with 47 ordinary bars),
+  `is_month_end`, `is_quarter_end` (a period's last observed day only counts if a later period is also
+  observed, else the last row of the sample is mislabelled both), `days_to_opex` (signed **trading**-day
+  ramp, ±10). Verified against 2024: Jan 19 / Feb 16 / Mar 15 / Apr 19, quad witch Mar 15.
+- **Item 7.** `loading.add_derived_features`: `ofi_{ew,vw}stock = (buy−sell)/(buy+sell)`, NaN where
+  the denominator is zero, built on the **unfilled** legs — `apply_overnight_fills` writes 1.0, and
+  buy = sell = 1.0 would make the imbalance exactly 0, fabricating "perfectly balanced flow" on bars
+  with no trading. Routed to the `liquidity` bucket explicitly, since the bare `ewstock` suffix would
+  otherwise have put a flow-composition measure in `market_ew` with the return moments.
+
+## 17. Revisiting the geometry — §14's conclusion was too broad
+
+§14 ended on "no good geometry to exploit". That was over-stated, and its own numbers say why: the
+joint HAC Wald test that the state-dependence direction is non-zero returned **χ²(7) = 28.1,
+p = 2e-4** with `‖γ‖/‖β‖ = 0.762`, and then the *identification* test — a split-half cosine — returned
++0.126 against a null of −0.193 **with null sd 0.404**. A test whose null scatters over half the unit
+interval cannot separate "no axis" from "an axis measured with 3× too little precision". §14 read the
+first; §16.2 then proved the second for one coordinate. Code: `analysis/geometry.py`.
+
+**A direction can be too noisy to report and still be good enough to use.** So the powered test:
+freeze γ on ≤2019, score the forecast on 2020+, over a pre-specified shrinkage ladder.
+
+### 17.1 There are TWO state axes, they are additive, and both need heavy shrinkage
+
+ΔR² and DM-t on the 2020+ holdout, everything frozen on ≤2019, against the pooled combiner:
+
+| shrink | vol only (7 df) | clock only (28 df) | **both (35 df)** |
+|---|---|---|---|
+| 0.15 | +0.00047 (t **+2.29**) | +0.00029 (t **+2.82**) | +0.00075 (t **+3.09**) |
+| 0.30 | +0.00081 (t +2.02) | +0.00044 (t +2.15) | +0.00121 (t +2.58) |
+| 0.50 | +0.00105 (t +1.63) | +0.00042 (t +1.24) | **+0.00140** (t +1.85) |
+| 0.75 | +0.00101 (t +1.09) | +0.00005 (t +0.09) | +0.00094 (t +0.86) |
+| 1.00 | +0.00060 (t +0.50) | −0.00072 (t −1.04) | −0.00030 (t −0.21) |
+
+Three findings.
+
+1. **The raw estimate is worthless and a shrunk one is not.** Every state shows an inverted U with its
+   peak between 0.3 and 0.5 and the unshrunk axis at or below zero. That is the exact signature of a
+   real direction estimated with too little precision — which is what §14 saw and misread as absence.
+   The shape holds for all three states, which 18 arms of noise would not produce; the *pre-registered*
+   expectation was that the optimum would sit well below 1, and it does.
+2. **The intraday clock is a second, independent axis.** Never tried before: time-of-day had only ever
+   entered as a bin split, which pays §5's `1/√K` tax, whereas two Fourier harmonics cost 2 df per
+   harmonic per signal and are fit on every bar. It is *smaller* than the vol axis in ΔR² but *more
+   reliably signed* (t +2.82 vs +2.29) — matching §4, where the bucket × time-of-day activation map was
+   the more split-half-stable of the two (+0.68 vs +0.64). My pre-registered guess that it would be
+   *larger* was wrong on magnitude and right on reliability.
+3. **The two axes are almost exactly additive.** At shrink 0.15, 0.00047 + 0.00029 = 0.00076 against
+   +0.00075 observed. `both` beats `vol` at every shrinkage. **DM-t +3.09 is the strongest
+   state-dependence result in this study**, on a fresh holdout with the direction frozen.
+
+One honest deduction: the 1-df `sentiment` term scores +0.00134 / t +2.35 when its coefficient is
+**refit walk-forward** (§16.2) but only +0.00083 / t +0.89 when **frozen** on ≤2019. Freezing costs
+about 40% of it. So the axis is real, and its *length* drifts. And under the freeze protocol 7 df
+(+0.00105) barely beats 1 df (+0.00083; DM-t of the difference **+0.52**) — so the usable content is
+about one direction's worth, which is consistent with §14's failure to resolve seven.
+
+Caveat: 3 states × 6 shrinkages = 18 arms on the 2020+ block. The *shape* is the finding; the specific
+numbers need a Romano-Wolf pass before being quoted as confirmed.
+
+### 17.2 The interaction form has no spectral geometry — and real block geometry
+
+§7's 100 frozen products are not a bag of features. They are a sparse symmetric bilinear form `B` with
+`x'Bx` in the forecast, and nobody had ever looked at its spectrum. Fitted on the first window (what
+§7's static arm actually freezes), against a null that re-fits the *same 100 positions* to a
+circularly-shifted residual:
+
+| | observed | null |
+|---|---|---|
+| participation ratio of \|λ\| | **20.3** of 133 | **19.4 (sd 6.1)** |
+| top \|λ\| share | 0.092 | 0.107 (sd 0.038) |
+| signature | 47 positive / 52 negative | |
+| leading eigenvector split-half \|cos\| | **0.000** | 0.080 (sd 0.110) |
+
+**Flat, indefinite, unidentified.** The effective dimensionality is exactly what fitting those 100
+positions to noise gives, the top eigenvalue share is *below* null, and the leading eigenvector is
+orthogonal across halves. So "project onto the top few eigenvectors instead of carrying 100 products"
+is dead, and dense-weak now holds in a second channel. The near-balanced signature also kills the
+"interactions only ever add volatility" reading: the channel encodes cancellation.
+
+Its leading eigenvector had a loud pattern anyway — **all twelve largest loadings were `_ma_625`** —
+and a spectrum is the wrong instrument for that, because it asks about directions in an unordered
+133-dim space while the space carries two natural block labels: the HAR window, and the exog bucket.
+Asked combinatorially, with the same circular-shift-selector null:
+
+| HAR window block | selected | by chance | selector null | z |
+|---|---|---|---|---|
+| 625 × 625 | 37 | 10.1 | 49.6 (sd 23.2) | **−0.54** |
+| 1 × 25 | 34 | 19.8 | 6.2 (sd 8.5) | **+3.27** |
+| 1 × 1 | 26 | 10.1 | 2.2 (sd 3.3) | **+7.30** |
+
+| exog bucket block | selected | by chance | selector null | z |
+|---|---|---|---|---|
+| **liquidity × liquidity** | **53** | 7.5 | 12.8 (sd 11.2) | **+3.58** |
+| liquidity × market_ew | 12 | 7.3 | 8.8 (sd 7.5) | +0.42 |
+| liquidity × market_vw | 9 | 7.3 | 7.9 (sd 5.7) | +0.19 |
+| everything else | ≤ 6 | | | \|z\| ≤ 1.5 |
+
+**The `_ma_625` pattern is a selector artifact and the null caught it.** Slow columns are smooth, so
+their pair-ICs are inflated against *anything* — including pure noise, where the selector takes 49.6 of
+them on average versus the 37 it takes for real. My eyeball read of the eigenvector was reading that
+artifact. What survives the null is the opposite: the signal-bearing pairs are **fast**, `1×1` at
+z = +7.3 and `1×25` at z = +3.3.
+
+And the bucket answer is sharp: **53 of 100 selected pairs are `liquidity × liquidity`**, 7× chance and
+z = +3.58, with every other block inside 1.5σ. So the interaction channel is not a diffuse quadratic
+form — it is **products of contemporaneous liquidity measures at short horizons**: volume, turnover,
+buy/sell turnover, spread, effective spread, `numobs`. That is a mechanism rather than a coincidence
+(price impact is multiplicative in volume and spread — the Kyle-λ / VPIN family), it is the one place
+in this study where a channel is genuinely concentrated, and it retroactively justifies §15.3 item 7:
+the OFI term lives in exactly that block.
+
+**So the corrected verdict on geometry.** There is no *spectral* geometry and there is no identifiable
+7-dimensional rotation axis — §14 was right about both. But there is (i) a real, shrinkage-dependent
+state-dependence with **two additive axes**, vol and intraday clock, worth +0.0014 at DM-t +3.09 out
+of sample, and (ii) a hard **block** concentration of the interaction channel in fast liquidity ×
+liquidity products. §14's "no good geometry to exploit" should be read as "no geometry in the two
+parameterisations §14 happened to try", and is hereby narrowed to that.
+
 ## Reproducibility
 
 ```bash
@@ -1238,6 +1571,25 @@ python analysis/nl_sparsity.py --stage vsfull                # products vs the F
 python analysis/nl_sparsity.py --stage robust                # §7.1 four scalings (why the clip mattered)
 python analysis/nl_sparsity.py --stage grouppen              # §7.1 no clip, separate product penalty
 python analysis/voldemand_fix.py --stage diagnose            # §8 per-stage tails, all variants
+
+# §16 — the §15.3 list. Run against the FIXED panel cache.
+C=/path/to/scratchpad/fixed
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage prep          # residual + bucket signals, fixed panel
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage interactions  # item 5: no clip, voldemand in
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage additivity    # item 1, attempt 1 (rejected wrapper)
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage additivity2   # item 1: forecast combination
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage additivity3   # item 1: the 2x2 attribution
+ALPHA_PANEL_CACHE=$C python analysis/synthesis.py --stage sentiment     # item 2: fresh split, 1 df
+python analysis/tail_fix.py --stage diagnose                 # item 4: raw/transform shape per column
+python analysis/tail_fix.py --stage trace                    # item 4: one bar through the whole chain
+python analysis/tail_fix.py --stage modes                    # item 4: modal share of every raw exog
+python analysis/tail_fix.py --stage fix                      # item 4: the invariant ladder
+
+# §17 — the geometry §14 stopped short of.
+ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage axis    # frozen gamma, shrinkage ladder, 2020+
+ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage clock   # intraday clock as a second axis
+ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage form    # spectrum of the interaction form
+ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage blocks  # window / bucket block concentration
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1

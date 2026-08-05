@@ -66,8 +66,17 @@ PRED_SCALE_FAIL = 10.0  # |pred| / sd(y); the -0.635 arm produced 7.3 against sd
 def _status(row: dict) -> str:
     """Worst-of over the individual checks."""
     drifting = row["max_abs_z"] >= ERA_ASYM_MIN_LEVEL  # gate: see ERA_ASYM_MIN_LEVEL
+    # For a hurdle-encoded column the tail is judged on p99.9 rather than on the max. A genuine point
+    # mass makes the max uninformative: ``numobs`` is capped at 30 and is 30 on 78% of bars, so its
+    # IQR is a rounding artifact and an ordinary holiday half-session is correctly ~79 sigma away —
+    # no scale estimator makes that number small without misdescribing the distribution. The
+    # extensive margin is what carries the information and the ``_active`` indicator now carries it
+    # explicitly; ``p99.9`` still catches a broken *transform* (``adj_numobs_ma_25`` sits at 46, so
+    # it stays a warn, which is the correct verdict rather than a muted one). Same principle as the
+    # modal-share exemption below: a point mass is only a defect if nothing is modelling it.
+    tail = row["p99.9"] if row.get("hurdle_encoded", False) else row["max_abs_z"]
     if (
-        row["max_abs_z"] >= MAX_ABS_Z_FAIL
+        tail >= MAX_ABS_Z_FAIL
         or (drifting and row["era_asymmetry"] >= ERA_ASYM_FAIL)
         or row.get("pinned_divisor_frac", 0.0) >= PINNED_FAIL
     ):
@@ -78,7 +87,7 @@ def _status(row: dict) -> str:
     # on this before the exemption was added.
     modal_is_defect = row["modal_share"] >= MODAL_SHARE_WARN and not row.get("hurdle_encoded", False)
     if (
-        row["max_abs_z"] >= MAX_ABS_Z_WARN
+        tail >= MAX_ABS_Z_WARN
         or (drifting and row["era_asymmetry"] >= ERA_ASYM_WARN)
         or row.get("pinned_divisor_frac", 0.0) >= PINNED_WARN
         or modal_is_defect

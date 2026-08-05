@@ -1,0 +1,6 @@
+arm,slot_band,stem_exclusion,mode_hurdle,guard_fix,slot_winsor,max_abs_z,worst_col,n_cols_over_50,n_cols_over_20,n_cols,p99.9_panelwide,n_rows_over_20
+pre,0.0,False,False,False,False,82.10588231925334,adj_sumpret2_vwstock_ma_5,25,37,156,5.247641006454838,4383
+band0.50,0.5,False,False,False,False,78.80554972898636,adj_numobs_ma_25,8,36,156,8.405765697270922,4370
+band+excl+mode+guard,0.5,True,True,True,False,78.83520017251448,adj_numobs_ma_25,4,29,162,8.122089324608513,3349
+all+slotwinsor,0.5,True,True,True,True,174.40840620893167,adj_sumpret2_vwstock_ma_1,3,16,162,4.976248256857611,482
+slotwinsor_only,0.0,False,False,False,True,218.66340548981518,adj_sumpret2_vwstock_ma_1,6,17,156,3.3806050521798414,287

@@ -300,22 +300,33 @@ def stage_modes() -> None:
 # Each arm is (label, slot_band, stem_exclusion, mode_hurdle, guard_fix). ``pre`` must reproduce the
 # recorded pre-fix state or the whole ladder is meaningless — that assertion is not decoration, it is
 # the check that caught ``voldemand_fix.build_vd_block("status_quo")`` silently drifting in §8.
-ARMS: list[tuple[str, float, bool, bool, bool]] = [
-    ("pre", 0.0, False, False, False),
-    ("band0.50", 0.50, False, False, False),
-    ("band0.25", 0.25, False, False, False),
-    ("band0.10", 0.10, False, False, False),
-    ("band+excl", 0.25, True, False, False),
-    ("band+excl+mode", 0.25, True, True, False),
-    ("all", 0.25, True, True, True),
+# The band arms were measured against an *expanding* per-slot reference (the first version of
+# ``_band_to_slot_level``); 0.10 / 0.25 / 0.50 gave 19 / 16 / 9 columns still past |z| 50 out of 25,
+# monotone in tightness, which is what fixed the fraction at 0.50. The reference was then changed to
+# a trailing-year rolling median for the reason in that function's docstring, so the arms below are
+# re-measured on the rolling reference and the ``slotwinsor`` arm — the fix the first ladder implied
+# but did not contain — is the new one.
+ARMS: list[tuple[str, float, bool, bool, bool, bool]] = [
+    ("pre", 0.0, False, False, False, False),
+    ("band0.50", 0.50, False, False, False, False),
+    ("band+excl+mode+guard", 0.50, True, True, True, False),
+    ("all+slotwinsor", 0.50, True, True, True, True),
+    ("slotwinsor_only", 0.0, False, False, False, True),
 ]
 # The pre-fix max |z| of the worst column, from ``feature_health_production.csv``. Reproduced to
 # within float32 storage error or the ladder is rejected.
 PRE_FIX_WORST = ("adj_sumpret2_vwstock_ma_5", 82.1)
+# The configuration the repo ships, by label. See ``target.WINSOR_BY_SLOT_DEFAULT`` for why the two
+# slot-winsorisation arms are measured but not adopted.
+ADOPTED_ARM = "band+excl+mode+guard"
 
 
 def _build_flagged(
-    slot_band: float, stem_excl: bool, mode_hurdle: bool, guard_fix: bool
+    slot_band: float,
+    stem_excl: bool,
+    mode_hurdle: bool,
+    guard_fix: bool,
+    slot_winsor: bool = False,
 ) -> tuple[np.ndarray, list[str], pd.DataFrame]:
     """Build the scaled panel restricted to the flagged families under one fix configuration.
 
@@ -333,7 +344,12 @@ def _build_flagged(
         adj_cols: list[str] = []
         for col in FLAGGED_RAW:
             adj, _ = tgt.robust_transform(
-                df, col, use_transform=True, use_diurnal=True, slot_band=slot_band
+                df,
+                col,
+                use_transform=True,
+                use_diurnal=True,
+                slot_band=slot_band,
+                winsor_by_slot=slot_winsor,
             )
             df[f"adj_{col}"] = adj
             adj_cols.append(f"adj_{col}")
@@ -397,8 +413,8 @@ def stage_fix() -> None:
     """
     os.makedirs(OUT, exist_ok=True)
     rows = []
-    for label, band, excl, mode_h, guard in ARMS:
-        Z, names, _ = _build_flagged(band, excl, mode_h, guard)
+    for label, band, excl, mode_h, guard, swin in ARMS:
+        Z, names, _ = _build_flagged(band, excl, mode_h, guard, swin)
         a = np.abs(Z)
         worst = int(np.nanargmax(a.max(0)))
         per_col = a.max(0)
@@ -409,6 +425,7 @@ def stage_fix() -> None:
                 "stem_exclusion": excl,
                 "mode_hurdle": mode_h,
                 "guard_fix": guard,
+                "slot_winsor": swin,
                 "max_abs_z": float(per_col[worst]),
                 "worst_col": names[worst],
                 "n_cols_over_50": int((per_col >= 50).sum()),
@@ -437,9 +454,13 @@ def stage_fix() -> None:
     d = pd.DataFrame(rows)
     d.to_csv(f"{OUT}/tailfix_ladder.csv", index=False)
 
-    # Per-column before/after under the full fix, so the effect is attributable per family.
+    # Per-column before/after under the ADOPTED configuration — named explicitly, not "the last arm".
+    # ``all+slotwinsor`` / ``slotwinsor_only`` are measured above and rejected (see
+    # ``target.WINSOR_BY_SLOT_DEFAULT``), so comparing against them would report a configuration the
+    # repo does not ship.
+    chosen = next(a for a in ARMS if a[0] == ADOPTED_ARM)
     Zp, names, _ = _build_flagged(*ARMS[0][1:])
-    Za, names_a, _ = _build_flagged(*ARMS[-1][1:])
+    Za, names_a, _ = _build_flagged(*chosen[1:])
     common = [n for n in names if n in names_a]
     cmp = pd.DataFrame(
         {
@@ -450,7 +471,7 @@ def stage_fix() -> None:
     )
     cmp["ratio"] = cmp["max_abs_z_post"] / cmp["max_abs_z_pre"]
     cmp = cmp.sort_values("max_abs_z_pre", ascending=False)
-    print("\nPER-COLUMN, pre vs all-fixes (top 25 by pre)")
+    print(f"\nPER-COLUMN, pre vs {ADOPTED_ARM} (top 25 by pre)")
     print(cmp.head(25).to_string(index=False), flush=True)
     print(f"\n  columns UNCHANGED (ratio within 1e-6 of 1): "
           f"{int((cmp['ratio'].sub(1).abs() < 1e-6).sum())} / {len(cmp)}")
