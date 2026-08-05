@@ -29,6 +29,15 @@ So the three things never tried:
     ``1/sqrt(K)`` power tax §5 measured. As a smooth basis it costs 2 df per harmonic per signal and
     is estimated on every bar. Two harmonics of the intraday clock, same frozen-on-<=2019 protocol.
 
+**Outcome, added after running, so the docstring does not read as a promise the results did not keep:**
+``axis`` and ``clock`` succeeded — two additive state axes, dR2 +0.0014 at DM-t +3.09 out of sample,
+both needing shrinkage to 15-50% of the raw estimate. ``form`` was negative (flat spectrum, unidentified
+leading eigenvector). ``blocks`` found a large selection concentration, and ``block_exploit`` then
+showed it is **not usable**: excluding the liquidity x liquidity block keeps 113% of the interaction
+gain while restricting to it turns +0.0069 into -0.0050. See §17.3 of the writeup — the selection-
+frequency null this module builds answers "does the selector go here more than on noise", which is a
+different question from "do these products forecast", and only the second licenses a claim about alpha.
+
 ``form``
     The one the study walked past. §7's 100 frozen products are not a bag of features — they are a
     sparse **symmetric bilinear form** ``B``, and the forecast contains ``x' B x``. Nobody has ever
@@ -450,13 +459,131 @@ def stage_blocks() -> None:
     print(f"\nwrote {OUT}/geometry_blocks_window.csv + geometry_blocks_bucket.csv")
 
 
+# ---------------------------------------------------------------------------
+# Exploiting the block, with the control that decides whether it is real
+# ---------------------------------------------------------------------------
+
+# Pre-registered candidate-space restrictions. Each arm selects ``N_PROD`` products by the same
+# statistic, freezes them on the first window, and is scored against the same base — only the
+# *candidate space* differs, so a difference is attributable to the restriction and nothing else.
+#
+# ``complement`` is the arm that matters. If excluding the liquidity x liquidity block leaves the gain
+# intact, then §17.2's z = +3.58 is decorative: the selector merely visits that block on its way to a
+# gain available anywhere. If the complement collapses, the block is where the alpha lives.
+#
+# Expectation, written before running: ``liq_x_liq`` roughly matches ``all`` (the unrestricted selector
+# already goes there, so restriction can only buy variance reduction, not new information), possibly
+# edging ahead; ``fast`` also roughly matches; ``complement`` is materially weaker. A ``complement``
+# that matches ``all`` refutes the block finding as an exploitable fact.
+BLOCK_ARMS = ("all", "liq_x_liq", "fast", "liq_x_liq_fast", "complement")
+
+
+def _pair_mask(p, bc: np.ndarray, ii: np.ndarray, jj: np.ndarray, arm: str) -> np.ndarray:
+    """Boolean mask over candidate pairs for one restriction arm."""
+    win = np.array([p.window[j] for j in bc], dtype=np.int64)
+    is_liq = np.array([p.bucket[j] == "liquidity" for j in bc])
+    liq = is_liq[ii] & is_liq[jj]
+    fast = np.isin(win[ii], (1, 25)) & np.isin(win[jj], (1, 25))
+    return {
+        "all": np.ones(len(ii), dtype=bool),
+        "liq_x_liq": liq,
+        "fast": fast,
+        "liq_x_liq_fast": liq & fast,
+        "complement": ~liq,
+    }[arm]
+
+
+def stage_block_exploit() -> None:
+    """Does restricting the product space to the concentrated block help — and does excluding it hurt?
+
+    §17.2 established *where* the selected interaction products live. That is a description; this asks
+    whether it is a usable restriction. The mechanism a restriction can work through is narrow and
+    worth naming in advance: it cannot add information (the unrestricted selector was already free to
+    pick those pairs and did), so any gain is **variance reduction in the selection step** — 300
+    candidates instead of 8,911 means far less opportunity for the top-100 statistic to be chasing
+    noise.
+
+    Scored two ways: over the whole OOS span (comparable to §16.3's +0.0069) and over the 2020+ block
+    alone. The 2020+ figure is the one with a clean provenance — the block was identified from the
+    *first training window*'s selection, in 2005-06 — but note that this session has now scored a
+    number of arms on 2020+, so it wants a Romano-Wolf pass before being quoted as confirmed.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    from analysis.synthesis import _blockwise_ridge
+
+    p = load_panel()
+    e_full = np.load(_p("har_resid.npz"))["e"]
+    e = e_full[TW:]
+    ts = pd.Series(pd.to_datetime(p.t[TW + TW :]))
+    bc, _ = base_columns(p)
+    X = np.ascontiguousarray(p.X[TW:, bc], dtype=np.float64)
+    n, pb = len(e_full), X.shape[1]
+    ii, jj = _upper(pb)
+    refit = 21 * PERIODS_PER_DAY
+
+    masks = {a: _pair_mask(p, bc, ii, jj, a) for a in BLOCK_ARMS}
+    for a, m in masks.items():
+        print(f"  {a:16s} {int(m.sum()):5d} candidate pairs", flush=True)
+
+    base = np.full(n - TW, np.nan)
+    arms = {a: np.full(n - TW, np.nan) for a in BLOCK_ARMS}
+    frozen: dict[str, np.ndarray] = {}
+    for t0 in range(TW, n, refit):
+        tr = slice(t0 - TW, t0)
+        t1 = min(t0 + refit, n)
+        out = slice(t0 - TW, t1 - TW)
+        mu = X[tr].mean(0)
+        Ztr, Zte = X[tr] - mu, X[t0:t1] - mu
+        ytr = e_full[tr]
+        base[out] = _blockwise_ridge(Ztr, ytr, Zte, pb, 3000.0, 3000.0)
+        ic = np.abs(np.nan_to_num(_pair_ic(Ztr, ytr)[ii, jj]))
+        for a in BLOCK_ARMS:
+            if a not in frozen:  # freeze on the first window, as §7's static arm does
+                cand = np.flatnonzero(masks[a])
+                frozen[a] = cand[np.argsort(-ic[cand])[:N_PROD]]
+            s = frozen[a]
+            Ptr, Pte = _floored_scale(
+                _products(Ztr, ii[s], jj[s]), _products(Zte, ii[s], jj[s])
+            )
+            arms[a][out] = _blockwise_ridge(
+                np.hstack([Ztr, Ptr]), ytr, np.hstack([Zte, Pte]), pb, 3000.0, ALPHA_PROD
+            )
+
+    y = e[: len(base)]
+    late = (ts[: len(base)] >= HOLDOUT).to_numpy()
+    rb, rbl = r2_oos(y, base), r2_oos(y[late], base[late])
+    print(f"\nbase R2 {rb:+.5f}   (2020+ {rbl:+.5f})\n")
+    print("  arm               full dR2    DM-t   |   2020+ dR2   DM-t   | vs 'all' DM-t")
+    rows = []
+    for a in BLOCK_ARMS:
+        f = arms[a]
+        r, t = r2_oos(y, f) - rb, dm_test(y, f, base)
+        rl, tl = r2_oos(y[late], f[late]) - rbl, dm_test(y[late], f[late], base[late])
+        va = dm_test(y, f, arms["all"]) if a != "all" else 0.0
+        print(f"  {a:16s} {r:+.5f}  {t:+6.2f}   |  {rl:+.5f}  {tl:+6.2f}   |  {va:+6.2f}")
+        rows.append({"arm": a, "n_candidates": int(masks[a].sum()), "dr2_full": r, "dm_t_full": t,
+                     "dr2_2020plus": rl, "dm_t_2020plus": tl, "dm_t_vs_all": va})
+    d = pd.DataFrame(rows)
+    d.to_csv(f"{OUT}/geometry_block_exploit.csv", index=False)
+    comp = float(d[d.arm == "complement"]["dr2_full"].iloc[0])
+    alld = float(d[d.arm == "all"]["dr2_full"].iloc[0])
+    print(f"\n  CONTROL: complement keeps {100 * comp / alld:.0f}% of the unrestricted gain "
+          f"({'block is where the alpha lives' if comp < 0.5 * alld else 'block finding is DECORATIVE'})")
+    print(f"wrote {OUT}/geometry_block_exploit.csv")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["axis", "clock", "form", "blocks"], required=True)
+    ap.add_argument(
+        "--stage",
+        choices=["axis", "clock", "form", "blocks", "block_exploit"],
+        required=True,
+    )
     a = ap.parse_args()
     {
         "axis": stage_axis,
         "clock": stage_clock,
         "form": stage_form,
         "blocks": stage_blocks,
+        "block_exploit": stage_block_exploit,
     }[a.stage]()

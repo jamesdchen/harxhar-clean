@@ -22,8 +22,12 @@ window, refit as it walks, the production `RollingLeastSquares`). Code:
 > +2.79), so neither patch was load-bearing. **§14's "no good geometry to exploit" is narrowed**:
 > there are **two additive state axes** — vol *and* intraday clock — worth +0.0014 at DM-t **+3.09**
 > out of sample, both requiring heavy shrinkage; and the interaction channel, while spectrally flat
-> and unidentified, is hard **block**-concentrated in **fast liquidity × liquidity products**
-> (53 of 100 selected pairs, z = +3.58; `1×1` window pairs z = +7.30).
+> and unidentified, has **no exploitable block geometry either**: the liquidity × liquidity
+> concentration (53 of 100 pairs, z = +3.58) is where the *selector goes*, not where the alpha is —
+> excluding the block keeps **113%** of the gain and restricting to it turns +0.0069 into **−0.0050**
+> (§17.3, retracting §17.2's reading). Third time in this study that apparent concentration dissolved
+> under a powered test, and §17.4 now gives the *mechanism* for why graph spectral methods keep
+> failing rather than just recording it.
 
 
 - **The linear channel is dense; the INTERACTION channel is sparse — and neither rotates.**
@@ -1540,20 +1544,79 @@ them on average versus the 37 it takes for real. My eyeball read of the eigenvec
 artifact. What survives the null is the opposite: the signal-bearing pairs are **fast**, `1×1` at
 z = +7.3 and `1×25` at z = +3.3.
 
-And the bucket answer is sharp: **53 of 100 selected pairs are `liquidity × liquidity`**, 7× chance and
-z = +3.58, with every other block inside 1.5σ. So the interaction channel is not a diffuse quadratic
-form — it is **products of contemporaneous liquidity measures at short horizons**: volume, turnover,
-buy/sell turnover, spread, effective spread, `numobs`. That is a mechanism rather than a coincidence
-(price impact is multiplicative in volume and spread — the Kyle-λ / VPIN family), it is the one place
-in this study where a channel is genuinely concentrated, and it retroactively justifies §15.3 item 7:
-the OFI term lives in exactly that block.
+And the bucket answer looks sharp: **53 of 100 selected pairs are `liquidity × liquidity`**, 7× chance
+and z = +3.58, with every other block inside 1.5σ.
 
-**So the corrected verdict on geometry.** There is no *spectral* geometry and there is no identifiable
-7-dimensional rotation axis — §14 was right about both. But there is (i) a real, shrinkage-dependent
-state-dependence with **two additive axes**, vol and intraday clock, worth +0.0014 at DM-t +3.09 out
-of sample, and (ii) a hard **block** concentration of the interaction channel in fast liquidity ×
-liquidity products. §14's "no good geometry to exploit" should be read as "no geometry in the two
-parameterisations §14 happened to try", and is hereby narrowed to that.
+### 17.3 The block concentration is real and NOT exploitable — §17.2's reading retracted
+
+The obvious use of §17.2 is to restrict the candidate space to the concentrated block. Tested with the
+control that decides it, `--stage block_exploit`: five arms differing **only** in which pairs the
+selector may choose from, everything else (frozen-on-first-window selection, floored product scale,
+α_prod, no clip) identical.
+
+| candidate space | pairs | full ΔR² | DM-t | 2020+ ΔR² | DM-t | vs `all` |
+|---|---|---|---|---|---|---|
+| `all` | 8,911 | +0.00690 | +2.79 | +0.00415 | +1.77 | — |
+| `fast` (windows 1, 25) | 3,570 | +0.00633 | +2.24 | +0.00536 | +3.86 | −0.56 |
+| **`complement`** (liq × liq **excluded**) | 8,245 | **+0.00782** | **+3.26** | +0.00449 | +2.45 | +1.89 |
+| `liq_x_liq` | 666 | **−0.00498** | −1.67 | −0.00406 | −0.88 | **−3.87** |
+| `liq_x_liq_fast` | 300 | **−0.00684** | −1.56 | −0.01079 | −0.93 | **−3.35** |
+
+**Excluding the block keeps 113% of the gain; restricting to it destroys the gain.** So §17.2's
+concluding sentences — "the interaction channel *is* products of contemporaneous liquidity measures",
+"a mechanism rather than a coincidence", "the one place in this study where a channel is genuinely
+concentrated" — are **wrong and withdrawn.** The liquidity block is where the *selector goes*, not
+where the *alpha is*.
+
+The methodological error is worth naming exactly, because it is subtle and I built the null that was
+supposed to prevent it. The circular-shift-selector null answers **"does the selector visit this block
+more than it would on destroyed signal?"** — and z = +3.58 genuinely answers yes, so the block is not a
+selector artifact in the way `_ma_625` was. But that is a question about *selection frequency*, and I
+wrote a conclusion about *forecasting content*. Those come apart precisely when a block's in-sample
+pair-ICs are inflated by the parent features being mutually correlated — which is exactly what
+liquidity features are. The selector is drawn there by real in-sample covariance that does not
+generalise. **A selection-frequency test and a forecast test are different tests, and only the second
+one licenses "this is where the alpha lives."**
+
+This is the third time in this study that apparent concentration dissolved under a properly powered
+test (§13.1's intensity, §14.1's ellipse, now §17.2's block), and the pattern is itself the finding:
+*every* structure that looked concentrated turned out not to be, in every channel examined.
+
+**So the corrected verdict on geometry.** There is no *spectral* geometry, no identifiable
+7-dimensional rotation axis, and no exploitable *block* geometry. What survives is exactly one thing:
+a real, heavily shrinkage-dependent state-dependence with **two additive axes** — vol and intraday
+clock — worth **+0.0014 at DM-t +3.09** on a fresh holdout. §14's "no good geometry to exploit" was
+over-stated only in that one respect, and is otherwise confirmed and now confirmed in a second channel.
+
+### 17.4 Why graph spectral methods are the wrong family here — with a mechanism, not just a record
+
+§12 (heat kernel) and §13 (graph-structured intensity) both failed. §15.1 recorded that the graph work
+contributed nothing. §17.2–17.3 now supply the *reason*, which is more useful than the record:
+
+1. **There is no compression to buy.** A graph-Fourier or wavelet basis pays off when the signal is
+   concentrated in few coefficients of that basis. The fitted interaction form's effective rank is
+   **20.3 against a null of 19.4** — as spread out as fitting the same 100 positions to noise. Every
+   orthonormal basis needs the same number of coefficients.
+2. **There is nothing stable to align with.** A fixed basis helps only if it aligns with the signal's
+   own directions. The leading eigenvector is **orthogonal across halves** (|cos| 0.000). No direction
+   is estimable, so no basis can be validated as the right one.
+3. **The structure that *is* measurable is a sharp partition, and low-pass filtering destroys sharp
+   partitions.** A block indicator is maximally high-frequency on the feature graph; `exp(−tL)` damps
+   exactly that. §12 did not fail from a mistuned `t` — it applied a smoothing operator to a
+   discontinuity. (Running it backwards, `exp(+tL)`, is worse: condition number `exp(t·λ_max)`
+   amplifies high-frequency **noise** preferentially, and §17.1 shows this problem needs *shrinkage*,
+   the opposite of amplification. The stable analogue of "sharpen" is a diffusion model's **learned
+   score**, where a prior supplies the missing high-frequency content — and the block indicator was
+   the only candidate prior, which §17.3 just refuted.)
+4. **And even the partition does not forecast** (§17.3), so a signed-graph clustering method — SPONGE
+   and relatives, which are the correct tool for our **indefinite, 47+/52− signature** and a genuine
+   criticism of §12's magnitude-only adjacency — would be well-suited machinery pointed at an object
+   measured not to carry alpha. Its appeal was that it returns a *partition* (stable) rather than a
+   *direction* (not), and §17.3 removes that appeal.
+
+Where this family *would* apply is unchanged from §15.3: a **cross-sectional** panel, where an asset
+graph has real community structure, coefficients are plausibly smooth within communities, and lead-lag
+networks exist at all. That is a data problem, not a method problem.
 
 ## Reproducibility
 
@@ -1590,6 +1653,7 @@ ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage axis    # frozen gamma,
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage clock   # intraday clock as a second axis
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage form    # spectrum of the interaction form
 ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage blocks  # window / bucket block concentration
+ALPHA_PANEL_CACHE=$C python analysis/geometry.py --stage block_exploit  # is the block usable? (no)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
