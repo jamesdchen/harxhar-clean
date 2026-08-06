@@ -3275,6 +3275,28 @@ The transmission block's horizon profile now reads +9.90 at h = 1, +2.58 at H = 
 content is fast, like everything else here. Post-sweep provisional grade; the per-bar SM-engine
 confirmation (registered above as the entry condition) launched.
 
+## 37. Exploiting the transmission edge — pre-registered (the Cucuringu playbook, translated)
+
+His pattern with a lead-lag edge: breadth (cross-sectional portfolios), clustering to denoise,
+then features-into-forecasters. The single-market translations, three arms
+(`analysis/trans_exploit.py`, h = 1-bar target, blocked engine, twin = the 699 design
+recomputed same-engine, gates DM ≥ +2.0 vs the 699 twin — each arm must beat the model that
+already CONTAINS lag-1 transmission):
+
+* **37a — the flow lag-ladder:** add D_k-weighted columns for k ∈ {2, 4, 8} bars (20 each,
+  trailing-504d D_k, quarterly refresh, same scaling) — the arrows' MA ladder. Expectation:
+  small positive, gate uncertain — the dynamic flow replicates at these lags but its content
+  may be subsumed by lag-1 plus the MAs.
+* **37b — cadence for the flow estimator:** lag-1 D refreshed MONTHLY instead of quarterly
+  (the freshness law applied to the arrow estimator itself). Expectation: small positive —
+  the flow is the study's most stable object (+0.99), so faster refresh may add little.
+* **37c — transmission into the second moment:** D-weighted lagged scores appended to the
+  §34.3 dense smear regression (target log e²), gated against the means-only smear alongside
+  §34.3's own verdict. Expectation: uncertain — vol-of-vol may read the arrows differently
+  than vol does.
+* The genuine Cucuringu move — lead-lag portfolios over a cross-section — remains AM-12,
+  now with a proven single-market prototype.
+
 ## Reproducibility
 
 ```bash
