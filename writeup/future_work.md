@@ -214,3 +214,15 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
   flow-conditioned entry (enter when transmission predicts VIX-complex catch-up) beats
   clock-fixed midday entry, net of half-spreads.
 - **Blocker:** Tier-2 intraday option quotes.
+
+## AM-15 — the closing Romano–Wolf sweep (post-§36 family)
+Everything from §38 onward is single-gate: width ladder + refinement + per-bar entry (§38),
+union span verdict (§34.10), term structure at width (§39a), new-direction quadratics (§39b),
+union rolling (§34.10d), EOD smear (§34.14). One family sweep over this claim set before
+write-up; loss-diff series cached under the session ARMCACHE; machinery = am10_sweep.py.
+
+## AM-16 — recalibrate the operational instruments at the measured width
+Rot detector (map_monitor calib), factor lead-lag network, and the era table all run on the
+20-frame. §38 measured the frame at ~40: re-derive thresholds and the flow network at 40
+once the production stack settles (alarm semantics may sharpen — the new arrows are exactly
+the directions the 20-frame monitor cannot see).

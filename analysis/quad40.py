@@ -86,8 +86,9 @@ def main() -> None:
         q[m] = _qlike_series(f[m], p.y[m], p.baseline[m])
         return q
 
-    q_twin = q_of(X719)
-    q_arm = q_of(np.hstack([X719, Q * np.sqrt(0.1)]))
+    from analysis.armcache import memo
+    q_twin = memo("q40_twin719", lambda: q_of(X719))
+    q_arm = memo("q40_arm", lambda: q_of(np.hstack([X719, Q * np.sqrt(0.1)])))
     print(f"719 twin QLIKE {np.nanmean(q_twin):.5f}   +quad40 QLIKE {np.nanmean(q_arm):.5f}",
           flush=True)
     d = q_twin - q_arm

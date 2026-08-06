@@ -3738,6 +3738,36 @@ flatness has one untested lawful explanation. Four arms, two lanes:
   while the first-moment edge GROWS by era — if amplitude persistence itself fell in the
   0DTE era, one mechanism explains every one of those deaths at once.
 
+## 40. The completeness audit — pre-registered (user: "anything else we missed?")
+
+Four gaps found by auditing what the new results rest on; three cheap arms queued, one
+discipline item registered:
+
+* **§38.4 — do the new arrows replicate?** (`analysis/arrow_check.py`) The q = 40 production
+  move rests on arrows in gauge-degenerate directions, and the study replicates every
+  load-bearing object split-half — except this one. Split-half correlation of D's entries
+  (old 190 vs new-involving 590 arrows) + quarterly sign stability. Expectation: new block
+  ≥ +0.5; < +0.3 demands per-era attribution before the width claim enters the paper.
+* **§34.10e — name the span** (`ATTR=1 analysis/smear_union.py`): which union columns does
+  the GCV ridge actually load? Top-20 by mean |coef| with sign consistency + the named-10
+  share of total coefficient mass. The §34.10 span verdict is a black box until this exists.
+* **§34.14 — the EOD deliverable has NO conditional smear** (`analysis/eod_smear.py`): the
+  FWER-graded smear exists only at h = 1 bar; the straddle-pricing horizon still composes
+  with a constant. Production recipe ported to the EOD residuals (§34.12b instrument).
+  Gates ≥ +2.0 vs trailing-constant, pooled AND on the 10:00 open slice (the deliverable
+  gate). Recorded lean: PASS pooled, slice uncertain.
+* **§40.1 — the closing multiplicity sweep (registered, runs when the queue drains).**
+  Everything §38-onward is single-gate or post-hoc-within-family: the width ladder + peak
+  refinement + per-bar entry, the union span verdict, §39a/b, §34.10d, §34.14. One more
+  Romano–Wolf family sweep over this post-§36 claim set (same machinery as `am10_sweep.py`,
+  loss-diff series already cached under $ARMCACHE) is OWED before any of it is written up as
+  proven — the study's own discipline applied to its newest layer. Logged as AM-15.
+
+Also logged, not run here: AM-16 (operational instruments — rot detector calibration, map
+monitor, era table — still run at width 20; recalibrate at 40 when the stack settles), and
+the standing data-blocked items (AM-01 panel refresh remains the biggest single lever in the
+whole program; AM-02 chains unblock real VRP numbers).
+
 ## Reproducibility
 
 ```bash

@@ -49,15 +49,20 @@ def main() -> None:
         yh, Bh = _y_horizon(p, hb)
         a_solver = A * 16 if hb == 16 else A
         X679 = np.hstack([XH * np.sqrt(a_solver), XL, XS, P * np.sqrt(0.1)])
-        qs = {}
-        for name, X in (("twin", X679), ("+F20", np.hstack([X679, F20])),
-                        ("+F40", np.hstack([X679, F40]))):
+        from analysis.armcache import memo
+
+        def _arm(X, yh=yh, Bh=Bh, a_solver=a_solver):
             fq = walk_forward_embargo_blocked(X, yh, day_codes, 250, 1, a_solver)
             m = np.isfinite(fq) & np.isfinite(yh)
             q = np.full(n, np.nan)
             q[m] = _qlike_series(fq[m], yh[m], Bh[m])
-            qs[name] = q
-            print(f"H={hb:2d} {name:5s} QLIKE {np.nanmean(q):.5f}", flush=True)
+            return q
+
+        qs = {}
+        for name, X in (("twin", X679), ("+F20", np.hstack([X679, F20])),
+                        ("+F40", np.hstack([X679, F40]))):
+            qs[name] = memo(f"h40_{hb}_{name}", lambda X=X: _arm(X))
+            print(f"H={hb:2d} {name:5s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
         for a, b, label, gate in (("twin", "+F20", "F20 vs twin", 2.0),
                                   ("twin", "+F40", "F40 vs twin", 2.0),
                                   ("+F20", "+F40", "F40 vs F20 (width gate)", 2.0)):

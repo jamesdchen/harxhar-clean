@@ -85,6 +85,33 @@ def main() -> None:
 
     rolling_stage = bool(os.environ.get("ROLLING"))
 
+    # §34.10e (ATTR=1): name the span — which union columns does the GCV ridge actually use?
+    if os.environ.get("ATTR"):
+        Xraw = union1.to_numpy(dtype=float)
+        cols = list(union1.columns)
+        coefs = []
+        for start in range(3 * 252 + 63, nd, 252):
+            tr = np.flatnonzero(np.isfinite(y) & (np.arange(nd) < start))
+            if len(tr) < 400:
+                continue
+            mu = np.nanmean(Xraw[tr], 0)
+            sd = np.nanstd(Xraw[tr], 0) + 1e-12
+            Ztr = np.clip(np.nan_to_num((Xraw[tr] - mu) / sd), -8, 8)
+            mdl = RidgeCV(alphas=ALPHAS).fit(Ztr, y[tr])
+            coefs.append(mdl.coef_)
+            print(f"  refit @{start}: alpha {mdl.alpha_:.0f}", flush=True)
+        Cf = np.array(coefs)
+        mean_abs = np.abs(Cf).mean(0)
+        sign_con = np.abs(np.sign(Cf).mean(0))
+        order = np.argsort(-mean_abs)[:20]
+        print("\n  top-20 union columns by mean |coef| (sign consistency):", flush=True)
+        for i in order:
+            print(f"    {cols[i]:32s} {mean_abs[i]:.4f}  sign {sign_con[i]:.2f}", flush=True)
+        named_share = np.abs(Cf[:, :10]).sum(1) / np.abs(Cf).sum(1)
+        print(f"\n  named-10 share of total |coef|: {named_share.mean():.3f} "
+              f"(last refit {named_share[-1]:.3f})", flush=True)
+        return
+
     # §34.10c1: quarticity/HARQ block (dict-battery A block, causal shifts)
     def dmean(col):
         return pd.Series(p.X[:, p.names.index(col)].astype(np.float64)).groupby(day.values).mean()
@@ -154,6 +181,8 @@ def main() -> None:
         q[okk] = r - np.log(r) - 1.0
         return q
 
+    from analysis.armcache import memo
+
     if rolling_stage:
         qs = {}
         for name, df, ridge, win, cad in (
@@ -161,8 +190,10 @@ def main() -> None:
                 ("named-roll", named, False, 756, 21),
                 ("union-exp", union1, True, None, 63),
                 ("union-roll", union1, True, 756, 21)):
-            qs[name] = q_of_daily(expanding_ahat(df.to_numpy(dtype=float), ridge=ridge,
-                                                 window=win, cadence=cad))
+            qs[name] = memo(f"su_roll_{name}",
+                            lambda df=df, ridge=ridge, win=win, cad=cad:
+                            q_of_daily(expanding_ahat(df.to_numpy(dtype=float), ridge=ridge,
+                                                      window=win, cadence=cad)))
             print(f"  {name:12s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
         for a, b, label in (("named-exp", "named-roll", "named: rolling vs expanding"),
                             ("union-exp", "union-roll", "union: rolling vs expanding"),
@@ -177,7 +208,9 @@ def main() -> None:
     qs = {}
     for name, (df, ridge) in (("named", (named, False)), ("union1", (union1, True)),
                               ("union+quart", (union_q, True)), ("union+trans", (union_t, True))):
-        qs[name] = q_of_daily(expanding_ahat(df.to_numpy(dtype=float), ridge=ridge))
+        qs[name] = memo(f"su_{name}",
+                        lambda df=df, ridge=ridge:
+                        q_of_daily(expanding_ahat(df.to_numpy(dtype=float), ridge=ridge)))
         print(f"  {name:12s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
 
     def dm(a, b, label, gate=None):

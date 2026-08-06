@@ -101,9 +101,10 @@ def main() -> None:
         "c q106 1008d": (np.hstack([X679, F106l]), F106l),
         "c q40 1008d": (np.hstack([X679, F40l]), F40l),
     }
+    from analysis.armcache import memo
     qs, acts = {}, {}
     for name, (X, F) in arms.items():
-        qs[name] = q_of(X)
+        qs[name] = memo(f"rank_{name}", lambda X=X: q_of(X))
         acts[name] = np.abs(F).sum(1) != 0.0
         print(f"  {name:28s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
 

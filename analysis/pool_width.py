@@ -73,7 +73,8 @@ def main() -> None:
         q[m] = _qlike_series(f[m], p.y[m], p.baseline[m])
         return q
 
-    q_twin = q_of(X679)
+    from analysis.armcache import memo
+    q_twin = memo("pw_twin679", lambda: q_of(X679))
     print(f"twin 679 (h=1, blocked): QLIKE {np.nanmean(q_twin):.5f}", flush=True)
 
     act = None
@@ -82,7 +83,7 @@ def main() -> None:
         F = _trans_block(_frame_q(p, w), n, lag=1, refresh_days=63)
         if act is None:
             act = np.abs(F).sum(1) != 0.0
-        qs[w] = q_of(np.hstack([X679, F]))
+        qs[w] = memo(f"pw_q{w}", lambda F=F: q_of(np.hstack([X679, F])))
         d = q_twin - qs[w]
         d[~act] = np.nan
         md = np.isfinite(d)
