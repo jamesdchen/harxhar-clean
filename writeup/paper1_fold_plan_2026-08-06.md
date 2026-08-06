@@ -65,3 +65,32 @@ the fixed panel, and never joins the tables.
 
 `writeup/CLAIMS_LEDGER_2026-08-06.md` (graded), `alpha_manifestation_findings_2026-08-04.md`
 (sections), `analysis/README.md` (module map). Every quoted DM/QLIKE traces to a § and a module.
+
+## Addendum (same day, post-§37–40): what the width/span campaign changes in the arc
+
+Gating-list corrections: AM-10 sweep DONE (§36, 5/6 survive, phase dies); smear ablation DONE
+(§34.8 family sweep: leverage + probe survive); kNN rerun DONE (leak-fixed, FAIL — the §33
+boundary statement stands). Outstanding gates are now: the AM-15 closing Romano–Wolf sweep
+over the post-§36 family, and AM-13 (cluster-side battery/tree rematch).
+
+New content and where it folds:
+
+- **S4 (operator story) gains the width campaign as its quantitative capstone:** the
+  transmission plateau (§38/38.1/38.1b: flat 30–80, cliffs both sides), the per-bar entry
+  (+4.59, §38.2), arrow replication (+0.838 new block, §38.4), the horizon-locality of width
+  (§39a: h = 1-only), and the §38.3 mechanics (payload = the new directions' own motion; the
+  tail is genuinely empty; no shrinkage or trail tuning helps). One paragraph-sized law:
+  "the lead-lag field is finite-rank ≈ 2× the static frame, fast, stable, and robust to
+  truncation anywhere on the plateau."
+- **S5′ (amplitude vs gain) gains its resolution:** §34.13's "predictability persists,
+  complexity died" + §34.10b/d (union edge era-bounded; window/cadence laws do NOT govern
+  the second moment) + the §34.10 span verdict with its era boundary. The channel law's
+  final wording: the mean is dense and lawful under recency; the variance is means-sufficient
+  on the modern regime, and its historical extra span was calendar + slow aggregates
+  (§34.10e).
+- **S6 (horizons/product) gains the per-horizon production table** (h=1: 719 per-bar +
+  smear, composed 0.12303; H=4/8/16: 679+F20 with α-law at 16; EOD: 679, constant smear by
+  measurement — §34.14 casualty #16) and the term structure with the H=16 α-law revival.
+- **Casualty ledger: 16** (re-draw #14, cross-time products #15, EOD smear #16).
+
+PANEL note unchanged: all of this stays in the replication/S6 sections; b2 tables untouched.

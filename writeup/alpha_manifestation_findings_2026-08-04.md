@@ -3740,6 +3740,23 @@ the q = 106 failure — q106 at a 1008d trail vs 504d (in-run pair; rescue gate 
 q40@1008d as the everyone-benefits control (recorded lean: partial rescue — genuine tail
 emptiness AND q² estimation noise both live).
 
+**Results — all three probes decisive:**
+
+* **(a) STAY 3e3** — both rungs LOSE (3e2: −1.65; 3e4: −3.51). The α-law does not want more
+  shrinkage here: the transmission block is correctly priced at the exog penalty — it behaves
+  like exogenous content, not like products.
+* **(b) The payload is the NEW TARGETS** — the recorded lean (wide sources) wrong again.
+  F20+T_new: **+3.52** vs the twin (exceeding the full F40's +2.29); wide-sources-into-old-
+  targets only +1.02. Head-to-head from the cached arms: b2 vs full F40 **+1.57** — real but
+  under the gate, so the production composition stays F40 (and a swap would be post-hoc).
+  Mechanism: widening pays because directions 21–40's OWN next-bar motion is forecastable —
+  not because they inform the old carriers. With §38.4 (the new arrows replicate at +0.838),
+  the picture is coherent: 20 more stable, forecastable coordinates.
+* **(c) NO rescue — the tail is genuinely empty.** q106 at a 1008d trail gets WORSE (−1.57),
+  and so does q40 (−1.11): doubling the D sample costs more in staleness than it buys in
+  variance, at every width. The q = 106 failure is content, not estimation noise; the plateau's
+  right cliff is real, and trail = 504d is retro-validated as the production choice.
+
 ## 39. The width discovery's downstream — pre-registered (user: "there must be more we can dig")
 
 The measured width invalidates two conventions downstream of QPOOL, and the union's 2020+
@@ -3855,6 +3872,25 @@ whole program; AM-02 chains unblock real VRP numbers).
   constant is already sufficient. Consistent with §39a: every clever object in this study is
   FAST; at the deliverable horizon the plain machinery wins. The EOD/VRP stack composes with
   the trailing-constant smear, now by measurement rather than omission.
+
+### 40.2 Second audit round (user: "is there anything we missed?") — two arms + one doc
+
+* **§39a addendum — the H = 4 width rung was never run** (`HBS=4 analysis/trans_h40.py`):
+  §39a tested {8, 13, 16}; H = 4 carries F20 at +5.00 but its width gate is open, and H = 4
+  (two hours) is the nearest horizon to the h = 1 content that DID widen. Gate: F40 vs F20
+  ≥ +2.0. Recorded lean: FAIL like its neighbors — but it is the one rung where "the new
+  arrows decay within the hour" makes a testable prediction, so a pass would date the decay
+  more precisely.
+* **§34.15 — the calendar smear** (`analysis/cal_smear.py`): §34.10e revealed the union's
+  span is mostly CALENDAR content (DOW, half-day flag), and §34.10b showed the union died in
+  2022+ — but nobody separated the calendar fragment from the slow aggregates. Calendar
+  seasonality is stationary by construction (expiries, releases, half-days persist); arm =
+  named + 4 DOW + short-day flag, gate ≥ +2.0 vs named with era rows. Recorded lean: small
+  full-span pass, 2020+ genuinely uncertain — this is the one union fragment with a
+  mechanism that cannot rot.
+* **Fold-plan refresh** (doc): `paper1_fold_plan_2026-08-06.md` predates §37–40 — its gating
+  list cites items long landed and none of the width/plateau/complexity-died results.
+  Addendum appended; no .tex edits (standing instruction).
 
 ## Reproducibility
 

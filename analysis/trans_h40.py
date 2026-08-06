@@ -45,7 +45,8 @@ def main() -> None:
     F40 = _trans_block(_frame_q(p, 40), n)
     act = np.abs(F40).sum(1) != 0.0
 
-    for hb in (8, 13, 16):
+    hbs = tuple(int(h) for h in os.environ.get("HBS", "8,13,16").split(","))
+    for hb in hbs:
         yh, Bh = _y_horizon(p, hb)
         a_solver = A * 16 if hb == 16 else A
         X679 = np.hstack([XH * np.sqrt(a_solver), XL, XS, P * np.sqrt(0.1)])
