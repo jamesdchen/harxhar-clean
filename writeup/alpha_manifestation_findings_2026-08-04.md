@@ -3353,6 +3353,14 @@ already CONTAINS lag-1 transmission):
   arguing freshness is worthless here — but the cadence law has beaten that intuition twice.
   Same gate (≥ +2.0 vs the 699 twin). Expectation: FAIL/small — recorded so that a pass means
   something.
+
+  **Result: FAIL, +1.48** (2020+ +1.30; QLIKE 0.12801 → 0.12800). With 37b's monthly arm
+  (+0.75) this closes the flow-cadence question: **the arrows do not need freshness** —
+  quarterly D re-estimation stands. The cadence law finally met the object it doesn't govern,
+  and it is precisely the study's most stable object; the intuition "stability ⇒ freshness is
+  worthless" held here after failing twice on coefficients. §37 is fully adjudicated: every
+  exploitation arm failed — lag-1 quarterly D at the exog penalty is the complete and final
+  form of the transmission feature on this panel.
 * The genuine Cucuringu move — lead-lag portfolios over a cross-section — remains AM-12,
   now with a proven single-market prototype.
 
