@@ -2884,6 +2884,12 @@ engine-exact. Readout, no gate (attribution, not a claim). Expectation: the incr
 **linear-channel-driven** (per §21.1 at h = 1); the product share small/zero — i.e., the honest
 cadence statement stays "linear per-bar, products at-least-daily."
 
+**Result:** total +31.2e-4 (DM +3.48). LINEAR+ share +25.4…+28.4e-4 (DM +3.40/+2.73) — ~85%,
+as expected. PRODUCT share +2.8…+5.8e-4, Shapley-bracketed DM **+1.16 (others stale) to +3.08
+(others fresh)**: small but not zero, significant in the others-fresh ordering. Honest cadence
+statement upgraded one notch: "linear per-bar proven; products per-bar earns a small increment
+once the rest is fresh — and rides per-bar for free either way."
+
 ## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
 
 §26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
@@ -3007,6 +3013,11 @@ Expectation: the raw-lag control **also passes** (the diagnosis-flavored outcome
 lag-1 information, not flow), given the intraday flow is 96.5% curl yet C6-style flow
 *predictions* have always failed.
 
+**Result: raw lags FAIL (+0.43; 2020+ +0.01) — the flow content is REAL**, against the
+deflationary expectation. Plain lagged scores add nothing; D-weighted lagged scores add +2.58.
+The antisymmetric transmission structure — not generic lag-1 information — is what the design
+was missing. Second genuine Cucuringu-positive (with §34's A3), Tier-2 pending AM-10.
+
 ## 31. The amplitude audit — user challenge ("are you sure?"), measured, claim corrected
 
 The running shorthand "the amplitude is unforecastable" was **wrong as stated** and is hereby
@@ -3081,6 +3092,18 @@ harmless t2). (iv) Regime-conditioning of the GAIN is dead ten ways (§18–§28
 is real but lives secularly (rot events), cyclically (the 35-day phase), and in AMPLITUDE
 (forecastable, §31).
 
+**P1 result (first run + leak repair).** The H = 8 residual-path arm initially printed an
+impossible +28.48 (QLIKE 0.073 → 0.028) — caught before celebration as a VIEW-side overlap
+leak: at horizon H the residual r(t−1) spans [t−1, t+H−2] and is unrealized at prediction time.
+The §29 lesson applies to retrieval views too; the path is now lagged so every entry's window
+closes pre-decision (leaked run void, rerun in flight). The VALID h = 1 verdicts stand and are
+decisive: on the per-bar 679 deliverable every correction HURTS — residual path −4.09, state
+frame −5.98, and **his-spec eigenmap worst at −10.77** (third independent confirmation that the
+eigenmap step is the harmful component); the H = 8 state (−1.35) and eigenmap (−4.06) fails are
+also valid. The msweep-era "kNN correction never hurts" does not survive contact with a
+stronger base model: what a weak champion left on the table, the per-bar ridge has already
+taken.
+
 * **P1 — kNN residual correction on the deliverable** (`analysis/knn_arm.py`): the surviving
   form of his idea, upgraded per the diagnosis — retrieval in three
   pre-registered view sets run head-to-head on the identical protocol: (i) trailing-24-bar
@@ -3148,6 +3171,28 @@ cross-half R² uplift > 0 in both halves and above a 200-draw shift-null p95, pe
 Expectation: PASS at next-8-bars (turbulence clusters fast and the state should see it);
 remaining-session uncertain — if the clock dominates, the deseasonalized labels may add nothing
 at longer intraday range.
+
+**Result: FAIL at both targets** (next-8-bars −0.0019/+0.0015 sign-inconsistent; remaining
+session negative both halves) — against expectation. Once the clock and trailing amplitude are
+in the baseline, intraday state clusters carry nothing. **A3's regime win is daily-scale only**
+— a clean boundary: regimes inform tomorrow's turbulence, not this afternoon's.
+
+### 34.2 The conditional smear — user challenge ("can't the amplitude forecast improve QLIKE?"), measured
+
+Registered arms: same deliverable forecast f everywhere, only the second moment changes —
+(i) global constant smear, (ii) trailing-250d constant (the fair causal baseline), (iii)
+conditional: daily â from an expanding regression on trailing log-amplitude means + CAUSAL
+regime labels (anchor-fit clustering, first 3 OOS years), broadcast to bars by a trailing
+slot-share profile. Gate: (iii) vs (ii) DM ≥ +2.0. Recorded expectation: positive, below gate
+(the smear is O(2%) of pred_raw; the §16-era unconditional variant died at rw p = 0.181).
+
+**Result: PASS — +3.58 (2020+ +2.82), QLIKE 0.12587 → 0.12347 on common rows.** The user was
+right and the "sizing only" framing of A3 was wrong: the second moment enters QLIKE directly
+through the Duan reconstruction, and conditioning it pays more than any feature arm in the
+study since cadence. Two disciplines attached before promotion: (a) **ablation owed** — how
+much of +3.58 is the conditional trailing means (GARCH-flavored) vs the regime labels
+specifically; (b) enters AM-10 with the rest of the family. Composition note: the conditional
+arm scores fewer bars (expanding-model warmup); the DM is computed on common rows.
 
 ## Reproducibility
 

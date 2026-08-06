@@ -79,10 +79,15 @@ def main() -> None:
         valid_r = np.isfinite(r)
         rz = np.where(valid_r, r, 0.0)
 
-        # view (a): trailing residual path (strictly past: bars t-W..t-1)
+        # view (a): trailing residual path of CLOSED windows only. At horizon hb, r(s) spans
+        # [s, s+hb-1] and is closed by t iff s <= t-hb, so the freshest usable entry is r(t-hb):
+        # Vp[t, k] = r(t - hb - k). At hb=1 this is the plain t-1 path; at hb=8 it removes the
+        # 7 unrealized entries that leaked the current target's future into the view (§29's
+        # overlap-leak lesson, view-side; the leaked run scored an impossible +28 DM).
         Vp = np.zeros((n_all, PATH_W))
         for k in range(PATH_W):
-            Vp[PATH_W:, k] = rz[PATH_W - 1 - k : n_all - 1 - k]
+            sh = hb + k
+            Vp[sh:, k] = rz[: n_all - sh]
         sd = Vp[valid_r].std() + 1e-12
         Vp /= sd
         # view (b): frozen-frame state
