@@ -3198,6 +3198,19 @@ ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phase      # §28 K/F:
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasex     # §28 E1/E2: exploitation gates
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasecheck # §28.1 falsification battery
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasewalk  # §28.2 walk arm (PASS +2.09, ~30min)
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage intraflow   # §30 bar-lag flow + kill-tests
+ALPHA_PANEL_CACHE=$C python analysis/straddle_horizon.py --stage ladder --hb {4,8,13,16}  # §29/29.2
+ALPHA_PANEL_CACHE=$C python analysis/straddle_horizon.py --stage eod        # §29.1 remaining-session
+ALPHA_PANEL_CACHE=$C python analysis/straddle_horizon.py --stage overnight  # Tier-1 decomposition
+ALPHA_PANEL_CACHE=$C python analysis/straddle_horizon.py --stage redraw     # §32 (FAILS backwards)
+ALPHA_PANEL_CACHE=$C python analysis/fast_rerun.py                          # §29/30 fast-engine verdicts
+RAWLAG=1 ALPHA_PANEL_CACHE=$C python analysis/fast_rerun.py                 # §30.3 raw-lag control
+ALPHA_PANEL_CACHE=$C python analysis/cadence_decomp.py                      # §29.5 channel attribution
+ALPHA_PANEL_CACHE=$C python analysis/alpha_law.py                           # §29.3 per-horizon alpha
+ALPHA_PANEL_CACHE=$C python analysis/organ_arm.py                           # §29.4 announcement organ
+ALPHA_PANEL_CACHE=$C python analysis/knn_arm.py                             # §33 P1 kNN head-to-head
+ALPHA_PANEL_CACHE=$C python analysis/regime_atlas.py --stage {a1,a23}       # §34 regime atlas
+ALPHA_PANEL_CACHE=$C python analysis/vrp_eod.py --stage {gates,vrp}         # AM-02 (needs chain data)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
