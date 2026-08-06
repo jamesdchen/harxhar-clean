@@ -16,8 +16,8 @@ and sets a subset of coefficients to exactly zero, and ridge
 coefficients toward zero without setting any to zero. The result of the
 comparison is a property of how the predictive coefficients are distributed
 across the columns of the design. In this section that property is measured
-directly: ridge attains lower out-of-sample QLIKE than the lasso on every
-bucket tested (Section~\ref{sec:dense_weak_headtohead}); the lasso zeroes
+directly: ridge attains lower out-of-sample QLIKE than the lasso on the
+full design (Section~\ref{sec:dense_weak_headtohead}); the lasso zeroes
 $304$ of $523$ exogenous columns on the full basis, of which $235$ are dead
 or constant availability indicators
 (Section~\ref{sec:dense_weak_diagnosis}); and five principal components
@@ -33,16 +33,15 @@ HAR-of-all-features block, with no selection step.
 \label{sec:dense_weak_headtohead}
 
 \paragraph{Design.}
-The two penalized linear estimators are run against nine exogenous feature
-buckets on one shared out-of-sample panel of $n = 218{,}934$ thirty-minute
-bars, with identical rows in every cell; nothing varies across the grid
-except the estimator and the bucket.
+The two penalized linear estimators are run on the full feature design ---
+every exogenous column at once --- on one shared out-of-sample panel of
+$n = 218{,}934$ thirty-minute bars, with identical rows in both cells;
+nothing varies between the two arms except the penalty.
 
 \paragraph{Estimators.}
-For a given bucket, the design matrix $X$ has one row per bar in the current
-training window and one column per feature: the HAR ladder of the target,
-the calendar features, and the columns of that bucket. On the
-\texttt{all\_features} bucket the exogenous block has $523$ columns. Let $y$
+The design matrix $X$ has one row per bar in the current training window
+and one column per feature: the HAR ladder of the target, the calendar
+features, and the full exogenous block of $523$ columns. Let $y$
 be the vector of targets over the same window, and let $x_s$ denote row $s$
 of $X$. The two estimators solve, at each refit,
 \begin{align*}
@@ -93,77 +92,25 @@ its Newey--West HAC standard error, with the small-sample correction of
 $218{,}934$-bar panel; the restructure plan flags that the paper's final
 tables may need this re-run on the paper's one-panel convention}
 
-% Source: drafts_2026-07-30/linear_vs_nonlinear.tex, Table
-% tab:battery_bucket_estimator (linear columns), itself sourced from
+% Source: drafts_2026-07-30/linear_vs_nonlinear.tex (linear columns of the
+% battery), itself sourced from
 % writeup/metrics_table_causal_tune_plus_spectral.csv (family == 'causal-tuned')
 % cross-checked against writeup/causal_tune_battery_table.tex.
-\begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{5pt}
-\caption{Lasso versus ridge: out-of-sample QLIKE by exogenous bucket and
-penalty, with the Diebold--Mariano $t$-statistic against the shared OLS--HAR
-incumbent in parentheses. \textbf{Panel: causal-tuning battery,}
-$n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent
-QLIKE \unifAzeroQLIKE{}. Negative $t$ favors the arm;
-$|t| > 1.96$ is significant at
-the 5\% level. Best QLIKE in each row is bold. \texttt{baseline} is the
-no-exogenous bucket: HAR plus calendar features only, so that row isolates the
-effect of shrinkage with the information set held at the incumbent's.}
-\label{tab:lasso_vs_ridge}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Bucket & Ridge & Lasso \\
-\midrule
-\texttt{all\_features} & \textbf{0.12788} ($-19.9$) & 0.12907 ($-13.2$) \\
-\texttt{moments}       & \textbf{0.13085} ($-19.2$) & 0.13179 ($-8.9$)  \\
-\texttt{liquidity}     & \textbf{0.13120} ($-13.4$) & 0.13206 ($-11.2$) \\
-\texttt{implied\_vol}  & \textbf{0.13252} ($-11.3$) & 0.13274 ($-9.8$)  \\
-\texttt{market\_vw}    & \textbf{0.13291} ($-9.1$)  & 0.13321 ($-6.4$)  \\
-\texttt{market\_ew}    & \textbf{0.13319} ($-7.2$)  & 0.13353 ($-4.6$)  \\
-\texttt{vol\_demand}   & \textbf{0.13337} ($-4.1$)  & 0.13359 ($-3.3$)  \\
-\texttt{sentiment}     & \textbf{0.13347} ($-5.7$)  & 0.13390 ($-2.1$)  \\
-\midrule
-\texttt{baseline} (no exog) & \textbf{0.13445} ($+5.0$) & 0.13475 ($+7.0$) \\
-Incumbent: OLS on \texttt{baseline} & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Ridge beats the lasso on every bucket.}
-In Table~\ref{tab:lasso_vs_ridge}, ridge has lower QLIKE than the lasso in
-all nine rows. The margin runs from $0.00022$ (\texttt{implied\_vol},
-\texttt{vol\_demand}) to $0.00119$ on the full design
-(\texttt{all\_features}: ridge $0.12788$ versus lasso $0.12907$). There is
-no bucket on which restricting the fit to a subset of columns produces lower
-QLIKE than keeping every column and shrinking.
-
-The Diebold--Mariano statistics against the incumbent order the same way. On
-\texttt{all\_features}, ridge reaches $t = -19.9$ while the lasso reaches
-$-13.2$. On \texttt{moments} the statistics are $-19.2$ and $-8.9$. On
-\texttt{sentiment} the lasso arm is at $-2.1$. The DM statistic is the mean
-loss differential divided by its HAC standard error, so a larger $|t|$ at a
-given mean loss level corresponds to a smaller HAC standard error of the
-per-bar loss differential: ridge's per-bar edge over the incumbent has lower
-serial-correlation-adjusted variance than the lasso's. One caveat applies to
-this paragraph: every DM statistic in the table is computed against the
-shared incumbent, a third model, so the ridge-minus-lasso differences
-themselves carry no significance statement yet.
-\pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling bound) per
-bucket, so the head-to-head margin is tested rather than pointed at}
-
-\paragraph{The no-exogenous control.}
-The \texttt{baseline} row is the experiment's control. When the only
-regressors are the HAR lags and calendar features --- a low-dimensional,
-well-conditioned design --- both penalized arms have \emph{higher} QLIKE
-than plain OLS: ridge $0.13445$ ($t = +5.0$), lasso $0.13475$ ($+7.0$), both
-significant. On this design, the penalty adds bias without a compensating
-variance reduction. Penalized estimation lowers QLIKE only when the design
-matrix contains a large number of weak columns, which is what the exogenous
-buckets supply. The two facts together --- the HAR-plus-calendar block is
-hurt by any penalty, and the wide exogenous block requires one --- are the
-basis for the two-block estimator of
-Section~\ref{sec:dense_weak_twoblock}.
+\paragraph{Result.}
+The comparison is run on the full design: the HAR ladder, the calendar
+features, and all $523$ exogenous columns. Ridge scores QLIKE $0.12788$,
+with a Diebold--Mariano statistic of $-19.9$ against the incumbent. The
+lasso scores $0.12907$ at $-13.2$. Ridge's margin over the lasso is
+$0.00119$. Keeping every column and shrinking produces a lower loss than
+restricting the fit to the subset of columns the $\ell_1$ penalty selects.
+The DM statistic is the mean loss differential divided by its HAC standard
+error, so ridge's larger $|t|$ also states that its per-bar edge over the
+incumbent has lower serial-correlation-adjusted variance than the lasso's.
+One caveat: both DM statistics are computed against the incumbent, a third
+model, so the ridge-minus-lasso difference itself carries no significance
+statement yet. \pending{pairwise ridge-vs-lasso DM (or the
+incumbent-cancelling bound) on the full design, so the head-to-head margin
+is tested rather than pointed at}
 
 \subsection{The Diagnosis: Dense, Not Sparse}
 \label{sec:dense_weak_diagnosis}
@@ -175,10 +122,8 @@ indicators. Most of the lasso's selection therefore removes columns that
 carry no signal. Removing such columns does not lower QLIKE relative to
 ridge, because $\ell_2$ shrinkage makes the same columns small without
 making them zero. Where the $\ell_1$ penalty zeroes live columns, QLIKE
-rises: on \texttt{implied\_vol}, a bucket of VIX-level columns containing no
-dead columns, ridge's QLIKE is lower than the lasso's
-(Table~\ref{tab:lasso_vs_ridge}). Across buckets, the size of ridge's margin
-over the lasso tracks the fraction of live columns the lasso zeroes.
+rises: the margin by which ridge beats the lasso is carried by the live
+columns the lasso zeroes, not by the dead ones.
 
 A principal-component check measures whether the spread of coefficients
 across columns is a low-dimensional structure in a rotated basis.
@@ -202,12 +147,14 @@ but weak.
 % Endpoint: BlockRidge with block 1 = HAR(target), alpha=1; block 2 =
 % HAR(all_features), alpha=100.
 
-Table~\ref{tab:lasso_vs_ridge} contains two facts that a single ridge
-penalty cannot satisfy at once. The \texttt{baseline} control row shows that
-penalizing the HAR-plus-calendar block raises QLIKE relative to OLS: the six
-HAR columns are few, well-conditioned, and individually strong. The
-\texttt{all\_features} row shows that the wide exogenous block requires
-heavy shrinkage. A scalar penalty applies the same $\alpha$ to both blocks:
+The head-to-head leaves two facts that a single ridge penalty cannot
+satisfy at once. First, penalizing the HAR-plus-calendar design alone
+raises QLIKE relative to plain OLS (the battery's no-exogenous control arm:
+ridge $t = +5.0$ against the incumbent): the HAR columns are few,
+well-conditioned, and individually strong, so any shrinkage on them is pure
+bias. Second, the wide exogenous design requires heavy shrinkage --- that is
+the head-to-head's result. A scalar penalty applies the same $\alpha$ to both
+blocks:
 a value large enough for the hundreds of weak exogenous columns over-shrinks
 the HAR columns, and a value small enough for the HAR columns under-shrinks
 the exogenous columns. The resolution is a penalty that differs by block.
