@@ -146,6 +146,75 @@ def stage_a23() -> None:
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["a1", "a23"], required=True)
+    ap.add_argument("--stage", choices=["a1", "a23", "a4"], required=True)
     a = ap.parse_args()
-    {"a1": stage_a1, "a23": stage_a23}[a.stage]()
+    {"a1": stage_a1, "a23": stage_a23, "a4": stage_a4}[a.stage]()
+
+
+def stage_a4() -> None:
+    """§34.1: intraday regimes — bar-level deseasonalized state clusters vs near-term
+    turbulence, baseline already carrying the clock (48 slot dummies) + trailing amplitude."""
+    rng = np.random.default_rng(7)
+    from sklearn.manifold import SpectralEmbedding
+    from sklearn.cluster import KMeans
+    from sklearn.neighbors import NearestNeighbors
+
+    G, e, ts = _frame_and_scores()
+    n = len(G)
+    slot = (ts.dt.hour * 2 + ts.dt.minute // 30).to_numpy()
+    Gd = G.copy()
+    for s in np.unique(slot):
+        m = slot == s
+        Gd[m] = (G[m] - G[m].mean(0)) / (G[m].std(0) + 1e-12)
+    anchors_idx = np.arange(0, n, 20)
+    emb = SpectralEmbedding(n_components=6, affinity="nearest_neighbors", n_neighbors=15,
+                            random_state=0).fit_transform(Gd[anchors_idx])
+    km = KMeans(5, n_init=10, random_state=0).fit(emb)
+    nn = NearestNeighbors(n_neighbors=5).fit(Gd[anchors_idx])
+    _, ind = nn.kneighbors(Gd)
+    lab_anchor = km.labels_[ind]
+    lab = np.array([np.bincount(r, minlength=5).argmax() for r in lab_anchor])
+    lab1 = np.roll(lab, 1)  # yesterday-bar's regime, causal
+    lab1[0] = lab1[1]
+
+    e2 = e**2
+    c = np.concatenate([[0.0], np.cumsum(e2)])
+    tgt8 = np.full(n, np.nan)
+    tgt8[: n - 8] = (c[8:] - c[:-8])[: n - 8] / 8.0
+    close_rows = np.flatnonzero((ts.dt.hour == 16) & (ts.dt.minute == 0).to_numpy())
+    pos = np.searchsorted(close_rows, np.arange(n), side="left")
+    has = pos < len(close_rows)
+    cr = np.where(has, close_rows[np.minimum(pos, len(close_rows) - 1)], 0)
+    tgt_sess = np.full(n, np.nan)
+    ok = has & (cr > np.arange(n))
+    tgt_sess[ok] = (c[cr[ok] + 1] - c[np.arange(n)[ok]]) / (cr[ok] - np.arange(n)[ok] + 1)
+
+    l1 = np.log(np.roll(e2, 1) + 1e-12)
+    l8 = np.log(pd.Series(e2).rolling(8).mean().shift(1).to_numpy() + 1e-12)
+    l48 = np.log(pd.Series(e2).rolling(48).mean().shift(1).to_numpy() + 1e-12)
+    SLOT = np.eye(48)[slot][:, :-1]
+    OH = np.eye(5)[lab1][:, :-1]
+    for tname, tgt in (("next-8-bars", tgt8), ("remaining session", tgt_sess)):
+        y = np.log(tgt + 1e-12)
+        m = np.isfinite(y) & np.isfinite(l8) & np.isfinite(l48)
+        idx = np.flatnonzero(m)
+        h = len(idx) // 2
+        X0 = np.column_stack([l1, l8, l48, SLOT])
+        ups, nulls = [], []
+        for tr, te in ((idx[:h], idx[h:]), (idx[h:], idx[:h])):
+            def r2(Xf):
+                b = np.linalg.lstsq(np.c_[np.ones(len(tr)), Xf[tr]], y[tr], rcond=None)[0]
+                pr = np.c_[np.ones(len(te)), Xf[te]] @ b
+                return 1 - ((y[te] - pr) ** 2).sum() / ((y[te] - y[te].mean()) ** 2).sum()
+            base = r2(X0)
+            full = r2(np.column_stack([X0, OH]))
+            ups.append(full - base)
+            nv = []
+            for _ in range(50):
+                OHs = np.roll(OH, int(rng.integers(63 * 48, n - 63 * 48)), axis=0)
+                nv.append(r2(np.column_stack([X0, OHs])) - base)
+            nulls.append(float(np.quantile(nv, 0.95)))
+        okg = all(u > 0 for u in ups) and all(u > q for u, q in zip(ups, nulls))
+        print(f"  {tname:18s}: uplift {ups[0]:+.5f}/{ups[1]:+.5f} "
+              f"(null p95 {nulls[0]:+.5f}/{nulls[1]:+.5f})  {'PASS' if okg else 'FAIL'}",
+              flush=True)

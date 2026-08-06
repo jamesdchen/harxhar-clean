@@ -3134,6 +3134,21 @@ and by showing what his pipeline's labels decompose into. Four parts
   breaks (detectable; pay via the §32 re-draw); gain-conditioning (dead, ten arms). His
   local-similarity component survives separately as P1 (§33, queued).
 
+### 34.1 Intraday regimes — pre-registered (user question)
+
+A3's win was daily labels → next-day amplitude. The product's sizing decision is intraday, so
+the test that matters is: do BAR-level state regimes predict remaining/near-term turbulence
+beyond the clock and trailing amplitude? Hazard pre-empted: at bar level the trivial regime IS
+time-of-day, so (i) the state is per-slot deseasonalized before clustering (the §30 control)
+and (ii) the baseline regression already contains 48 slot dummies plus trailing bar-amplitude
+means (1/8/48-bar). Construction: spectral clustering (k = 5) fit on ~11k anchor bars
+(every 20th), remaining bars assigned by nearest anchors (the P1 extension convention); labels
+lagged one bar. Targets: mean e² over the next 8 bars, and over the remaining session. Gate:
+cross-half R² uplift > 0 in both halves and above a 200-draw shift-null p95, per target.
+Expectation: PASS at next-8-bars (turbulence clusters fast and the state should see it);
+remaining-session uncertain — if the clock dominates, the deseasonalized labels may add nothing
+at longer intraday range.
+
 ## Reproducibility
 
 ```bash
