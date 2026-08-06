@@ -11,24 +11,68 @@ window, refit as it walks, the production `RollingLeastSquares`). Code:
 `resid` / `signals` / `tests` / `dynamics` / `sparse` / `verify`) + `analysis/nl_sparsity.py`
 (§7, the interaction channel). Outputs: `results/alpha_manifestation/`.
 
-## TL;DR
+## TL;DR — the final story (§§0–23, two sessions)
 
-> **Update (§§16–17): the §15.3 list is executed, and two of its conclusions are revised.**
-> The two confirmed gains **do** add — combined ΔR² **+0.0088** (DM-t +8.1), of which **+0.0064**
-> is structurally attributable (+0.0052 products, +0.0012 vol-regime, additive to −4%) and +0.0027
-> is plain estimator diversification belonging to neither. My pre-registered prediction (t < 2) was
-> wrong. `sentiment × vol-state` survives a genuinely fresh split (+0.00134, DM-t +2.35, selection
-> redone on ≤2019). §7's interaction gain reproduces with `voldemand` in and no clip (+0.0069, t
-> +2.79), so neither patch was load-bearing. **§14's "no good geometry to exploit" is narrowed**:
-> there are **two additive state axes** — vol *and* intraday clock — worth +0.0014 at DM-t **+3.09**
-> out of sample, both requiring heavy shrinkage; and the interaction channel, while spectrally flat
-> and unidentified, has **no exploitable block geometry either**: the liquidity × liquidity
-> concentration (53 of 100 pairs, z = +3.58) is where the *selector goes*, not where the alpha is —
-> excluding the block keeps **113%** of the gain and restricting to it turns +0.0069 into **−0.0050**
-> (§17.3, retracting §17.2's reading). Third time in this study that apparent concentration dissolved
-> under a powered test, and §17.4 now gives the *mechanism* for why graph spectral methods keep
-> failing rather than just recording it.
+**The question:** every subgroup beats HAR, nothing is individually large — is "dense and weak"
+the truth, or what a pooled test reports when concentrated alpha hides at a resolution we never
+tested? **The answer: it is the truth, at every level it was possible to test** — across features,
+across time, across states, across interaction pairs, across latent factors, and finally across
+the very property that explains which factors matter. Each level was given its powered test; each
+apparent concentration dissolved under it.
 
+**The final model** (§22): one blockwise ridge in one solver, refit every bar —
+`y ~ ridge₍₂₅₀d₎ [ HAR backbone @ α=1 | 516 exog + 36 cross-section ratios @ 3e3 | 100 frozen
+products @ 3e4 ]` — **QLIKE 0.12526 vs HAR's 0.13275 (−5.6%), R² 0.612**, the best numbers of the
+study on both scoreboards, health-clean at 5.0×. Two verbs and a penalty structure: **collect
+everything, refresh constantly, shrink hard by block.** Hourly refit is the robust production
+cadence; per-bar the in-sample best. One stage or two is a measured tie (Frisch–Waugh protects the
+split because the backbone is unshrunk).
+
+**Where the gains came from** (all DM-verified on QLIKE unless noted): the dense linear channel
++0.0377, with **refit cadence the single largest lever found** (monthly → daily → per-bar, monotone,
+the products' QLIKE significance itself appearing only at daily refit — §18.1); the frozen products
++0.0108 at fast refit (+3.56); the cross-section ratios +0.0017 (+3.9, edge dated pre-2020) — built
+from columns already in the panel once §20 noticed the linear span cannot form a ratio; per-slot
+smearing, free. Confirmed in sqrt space but too small to move QLIKE: the vol-regime blend, two
+additive state axes (vol + intraday clock, +0.0014 at +3.09), `sentiment × vol-state` on a fresh
+split (+2.35).
+
+**The geometry, resolved** (§§17, 23): every *static* object died under a powered test — rotation
+axes, the form's spectrum and eigenvectors (split-half cos 0.000), block concentrations (§17.3:
+excluding the "concentrated" block keeps 113%), and the state manifold's curvature (strong in-half
+relations that reverse across halves). What survived is dynamic and coordinate-free: a **stable
+18-dim linear frame**, a **replicating IC map** over its factor pairs (split-half **+0.62** vs null
+0.00 ± 0.11 — the one stable geometric object found, stable precisely because the frame is
+estimated from X, not from the signal), fast-moving coupling amplitudes with a mostly-latent dial
+(73% noise monthly, forecastable ceiling ~4%, largely an observable concavity: trust the form less
+when it shouts, elasticity −0.36). The signal sits on **mid-spectrum, decadally-autonomous
+coordinates** — misaligned with variance, violating effect-heredity and kernel weighting (γ = 1
+collapses to 12%) — and the autonomy is measurable only in hindsight (§23.1: the causal selector
+*inverts*, −34% vs +39%). Formally: the second Wiener–Volterra kernel of the vol response on a
+fixed factor frame — indefinite, off-diagonal, flat-spectrum; a trajectory whose *frame* is the
+map and whose *shape* is the weather.
+
+**The principle underneath** (§19): the signal has no geometry; the noise does. QLIKE is the
+Fisher–Rao divergence on the variance cone, the transform stack is chart-flattening, every guard is
+a boundary condition on that chart, and every win in the study — whitening, the dial, the
+concavity, fast refit — is the noise's metric pulled back onto one more level. The information
+tower decays geometrically (R² 0.58 → 0.05 → ~0.04 → nothing) *because* the signal is weak, which
+is why the stack terminates at one ridge and why the panel is now exhausted for claims below
+~0.002.
+
+**The meta-law, now with nine casualties:** every scheme cleverer than *uniform over a generous
+span, shrunk hard, refit fast* lost its gate — sparse selection, dynamic reselection, finer time
+slicing, graph/spectral regularization, leverage weighting, saturation, QLIKE-aligned WLS, matched
+kernels, and finally autonomy selection, the scheme derived from the study's own prettiest
+finding. The average was the intelligence.
+
+**Next unit of progress:** data, not method — a cross-sectional panel, independently demanded four
+times (identification of state axes, SPD geometry with real curvature, contemporaneous autonomy
+estimation, IPCA-class machinery). Everything else on this panel is polishing.
+
+---
+
+### Original findings (§§1–14), kept for the record
 
 - **The linear channel is dense; the INTERACTION channel is sparse — and neither rotates.**
   ~100 pairwise products out of 8,911 candidates, **frozen once in 2006 and never reselected**,
