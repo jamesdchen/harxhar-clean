@@ -3203,6 +3203,20 @@ what A3 measured — labels predict next-day amplitude — but the monetizable c
 without them. Composition note: the conditional
 arm scores fewer bars (expanding-model warmup); the DM is computed on common rows.
 
+### 34.3 The smear, upgraded — dense-weak applied to the second moment, pre-registered
+
+User challenge: why the simple trailing-means smear? Answer on record: adjudication-minimality —
+and the "simple" instrument is HAR-on-the-second-moment, the study's own winning architecture
+one level down. With the channel proven (+3.61), the sophistication ladder's one on-brand rung:
+**a dense weak ridge on the variance itself** — all 679 columns predicting next-bar log e²
+(blocked engine, causal, Duan-corrected back to levels), feeding the smear. None of the fourteen
+casualties bear on this target (they attacked the mean and the gain; the second moment is
+virgin). Gate: QLIKE DM ≥ +2.0 vs the MEANS-ONLY conditional smear (the new baseline, not the
+constant). Expectation: genuinely uncertain — recorded lean: small positive, under the gate
+(the trailing means already capture the persistence that dominates vol-of-vol; the dense
+columns' marginal on the second moment is the open question). EWMA/GARCH variants are skipped
+as re-parameterizations of the means (§13.1: EWMA = the random-walk Kalman filter).
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
