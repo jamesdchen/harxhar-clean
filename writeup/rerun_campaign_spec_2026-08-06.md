@@ -13,7 +13,7 @@ panel, horizon, and smear machinery. This retires the three-convention split
 | Prep | fixmask / availability-honest fills | post-leak repair; indicator-before-fill discipline |
 | Target | winsorize(sqrt(RV / rolling diurnal)), h=1 | the paper's deliverable horizon |
 | Train window | 24,000 bars, per-bar refit (RollingLeastSquares / BlockRidge) | matches incumbent convention |
-| Smear | Duan as implemented in src/evaluation/metrics.py (§3 contract) | what the code does; §3 freezes it before any comparison |
+| Smear | NONE cluster-side — arms emit raw per-bar (y, ŷ, B_t); QLIKE scored locally under the §3 contract | RESOLVED 2026-08-06: the smear must come FROM the smearing section's development; scoring is a local deterministic pass, so a §3 upgrade (incl. LSTM) re-scores without recompute |
 | Inference | per-bar DM; paper quotes at-scale pooled numbers only | tile-level results are discovery narrative, not table rows |
 | Persistence | EVERY arm saves per-bar losses + raw preds (npz), cluster-side | standing rule; makes §3 sensitivity + future LSTM smear a re-score, not a recompute |
 
@@ -28,15 +28,17 @@ panel, horizon, and smear machinery. This retires the three-convention split
   Deliverable: does any pairwise ranking flip?
 
 ### §4 — bucket attribution (10 arms)
-- A1..A8: OLS (literal α=0) per exogenous bucket added to the HAR backbone.
-  NOTE: never run before — July battery was the causally-tuned-ridge
-  surrogate on base-5.
-- A9: joint all-buckets OLS.
-- A10: no-exog negative control.
+- A1..A8: OLS (literal α=0) per bucket entry added to the HAR backbone, using
+  the repo's canonical bucket enumeration AS-IS — the joint/all_features
+  bucket is already one of its entries, so there is NO separate joint arm
+  (dedupe 2026-08-06). NOTE: never run before — July battery was the
+  causally-tuned-ridge surrogate on base-5.
+- A10: no-exog negative control — collapses into A0 if pipeline-identical
+  (alias noted in the executor registry rather than run twice).
 
 ### §5 — dense-but-weak (7 arms)
-- B1/B2/B3: ridge / elastic-net / lasso on the wide all_features basis
-  (the head-to-head, center stage).
+- B1/B2: ridge / lasso on the wide all_features basis (the head-to-head,
+  center stage; enet CUT 2026-08-06 — user directive).
 - B4: 2-block ridge — α=1 HAR(target) + α=100 HAR(all_features). ENDPOINT.
 - B5–B7 (optional supporting): light-alpha tie check, oracle-penalty ceiling,
   selection-that-bites probe — confirm which of these the section actually
@@ -46,7 +48,8 @@ panel, horizon, and smear machinery. This retires the three-convention split
 - C1: XGBoost, C2: LightGBM on all_features (tree edge, defaults per the
   tuning-is-not-the-lever result).
 - C3: trees on HAR-only (pure nonlinearity premium).
-- C4: product block alone (diagnostic).
+- C4a/C4b: product block alone (diagnostic), under BOTH conventions
+  (user 1000@24k / doc 3e4@250d — confirmed 2026-08-06).
 - C5: 3-block ridge — α=1 target-HAR + α=100 linear exog + α=1000 product.
   ENDPOINT. NOTE: product-block verdict is known to be regularization-
   sensitive; α=1000 is the frozen choice, sensitivity relegated to appendix.
@@ -57,7 +60,7 @@ panel, horizon, and smear machinery. This retires the three-convention split
 - D2: Cucuringu lead–lag features on the factor panel (antisymmetric part of
   lag-1 cross-correlation; battery per analysis/cucuringu.py, but only the
   arms §7 quotes).
-- D3: transmission block alone (diagnostic).
+- D3a/D3b: transmission block alone (diagnostic), under BOTH conventions.
 - D4: 4-BLOCK RIDGE — target-HAR + linear exog + product + transmission.
   THE FINALE. Never scored as a single run under any convention.
 
@@ -66,14 +69,30 @@ panel, horizon, and smear machinery. This retires the three-convention split
 data build → natural fit for one hpc-agent campaign (frozen-list style,
 per-arm specs, sidecar reducer for the pooled tables).
 
-## Open decisions (blocking greenlight)
-1. Confirm the frozen spec row-by-row (esp. base-2 and Duan-as-contract).
-2. §5/§6 supporting arms: which appear as table rows vs prose citations?
-3. Descriptive-analysis content for §2 — may add cheap diagnostic arms.
-4. Cluster + budget: CARC vs Hoffman2, QOS caps.
-5. Block alphas: the stated (1, 100, 1000) vs the documented composed-model
-   precursor (1, 3e3, 3e4 on the interaction-study convention). The product
-   block's sign is known to be regularization-sensitive — confirm whether
-   (1, 100, 1000) is the intended frozen spec or whether the campaign should
-   carry a small alpha grid on the product/transmission blocks and freeze by
-   a pre-registered rule.
+## Decisions (resolved 2026-08-06)
+1. Frozen spec: b2 base-2 / fixmask / h=1 / 24k window; smear scored locally
+   from §3 (see table). CONFIRMED with the smear amendment.
+2. §5 supporting arms (light-alpha tie, oracle ceiling, selection-that-bites):
+   SKIPPED — prose citations of existing findings only.
+3. Block alphas: RUN BOTH — the stated (1,100,1000)@24k AND the documented
+   (1,3e3,3e4)@250d, as parallel 2/3/4-block ladders (~6 extra arms). The
+   convention question is settled empirically, no leakage.
+4. Tree arms C1–C3: NOT in this campaign (user directive). Tree column may be
+   servable from the existing covid_lgbm/xgb campaigns if convention-compatible.
+
+5. Transmission-block alpha (_user convention): 1000 — author decision
+   2026-08-06.
+6. §5 head-to-head penalties: FIXED constants (repo's documented defaults),
+   no tuning — author decision 2026-08-06.
+7. Diagnostics under BOTH conventions (4 arms) — author decision 2026-08-06.
+8. Ops: NO waves — all jobs submitted at once per cluster, scheduler QOS
+   queues the overflow; detached overnight run, harvest in the morning.
+9. Cluster split: Hoffman2 = OLS family; CARC = penalized + blocks +
+   diagnostics + a0 float-parity canary. Nested comparison families never
+   split across clusters.
+
+## Still open
+- Descriptive-analysis content for §2 — may add cheap diagnostic arms later
+  (not part of this campaign).
+- a10_noexog alias check: computational verification required before the arm
+  count is final (19 vs 20 + doubled diagnostics → 21 or 22 total).

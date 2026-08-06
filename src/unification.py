@@ -1,0 +1,953 @@
+"""unification — paper2 rerun-campaign executor: every table number from ONE frozen spec.
+
+Contract (writeup/rerun_campaign_spec_2026-08-06.md): b2 (base-2) HAR-ladder panel
+(~242,934 rows), fixmask/availability-honest prep, h=1 (the shift lives in feature
+construction), rolling training window with PER-BAR refit, walk-forward over rows
+[chunk_start, chunk_end). Arms apply NO Duan smearing and NO raw-space conversion —
+each task emits raw per-bar arrays and QLIKE is scored locally later under the
+paper's §3 smearing contract.
+
+Framework contract: expose ``compute(args) -> None``. Flags are declared in
+``.hpc/tasks.py`` FLAGS by the submit flow and arrive parsed on ``args``:
+
+    arm          str   registry key (below); missing/empty prints the registry, exit 0
+    chunk_start  int   first emitted OOS row (global b2-panel row index)
+    chunk_end    int   one-past-last emitted row (-1 = end of panel)
+    halo         int   history bars available before chunk_start (default 24000);
+                       must be 0 (unchecked) or >= the arm's training window
+    window       int   training window bars (default 24000 = 500 days x 48 bars/day)
+    output_file  str   .npz written here
+
+Per-task npz schema (all float64 unless stated; one aligned index, rows
+[chunk_start, chunk_end)) — satisfies the persistence contract:
+
+    row_id      int64          global b2-panel row index (panel row i = loader row
+                               i + 3125: the fixed HAR burn-in drop; h=1 shift is a
+                               no-op so no further offset)
+    t           datetime64[ns] bar end timestamp (exact bar-for-bar joins + HAC order)
+    y_fit       f64            target on the FIT scale: winsorized sqrt(RV/B_t)
+                               (the panel's adj_RV) — what the model was trained on
+    yhat        f64            forecast on the same fit scale (sqrt-space)
+    rv_raw      f64            actual raw RV for the bar (unwinsorized; raw-space
+                               truth is exact, never reconstructed from y_fit)
+    baseline    f64            B_t, the rolling diurnal baseline reversing Stage-1
+    valid_mask  bool           True where yhat is a real forecast (always all-True
+                               for the arms here; persisted so arms declare coverage)
+
+Downstream computability check: (a) per-bar QLIKE under ANY smear convention from
+(rv_raw, yhat, baseline) + window residuals derivable from (y_fit, yhat); (b) per-bar
+loss differentials + HAC DM from the above with ``t`` ordering; (c) OOS R^2 by joining
+any two arms' (row_id, y_fit, yhat); (d) MZ calibration from (y_fit, yhat) or
+(rv_raw, reconstructed raw preds). Nothing requires recompute.
+
+Metrics sidecar (hpc_agent metrics_io, only when $RESULT_DIR is set): sqrt_mse,
+sqrt_sse, sum_y, sum_y2, n (pooled-R^2 sufficient statistics), ols_fallback_bars.
+
+Reproducibility: the executor is fully deterministic — no RNG anywhere (linear
+algebra only), so HPC_TASK_ID seeding is not needed. Thread counts are pinned
+before numpy import for serial-run parity with the cluster preamble.
+
+Reused repo machinery (never re-derived):
+  * panel build  — experiments/run_geometry_local.prepare_full("all_features",
+    har_base=2): the executor's own prep path (load_and_transform, HAR+calendar,
+    3125-row burn-in drop, horizon shift, scale guards, rolling robust scale +
+    masked scaling), cached npz. Data path is the repo-wide literal "data"
+    (the convention of specs/har_base_sweep.py / specs/causal_tune_linear.py);
+    cache dir overridable via $UNIFY_CACHE_DIR (default "results").
+  * per-bar solver — src/models/rolling_least_squares.RollingLeastSquares via
+    analysis/wf.walk_forward (rank-1 sliding-window ridge; exact OLS at alpha=0).
+  * per-block penalties — the column-scaling identity (ridge on col*c == penalty
+    alpha/c^2 on the original coefficient): analysis/minimal_model.py:297-299 and
+    955-960; drivers/msweep_2026-08-01/block_ridge.py holds the per-feature-penalty
+    gram variant of the same math.
+  * penalized §5 arms — FIXED penalties (no causal tuning, user directive
+    2026-08-06). Ridge rides the plain rank-1 path at the untuned production
+    default; the lasso reuses the RollingTunedLinear machinery of
+    specs/causal_tune_linear.py:201-379 (copied below verbatim-with-adaptation:
+    that spec is a notebook-style module whose import EXECUTES the full backtest,
+    so it cannot be imported; grid made an instance parameter) with a
+    SINGLE-POINT grid, so the periodic "tune" is only the cold-reseed drift
+    re-anchor + identifiability-mask refresh. Deps (enet_coef, enet_online,
+    forward_window_split) import cleanly from src/models/reclasso_har.
+  * product block — analysis/nl_sparsity.py:79-113 (base_columns rule, _pair_ic,
+    _upper, _products; small pure-numpy helpers copied here because importing
+    analysis.nl_sparsity drags the alpha-study cache guards) + the causal floored
+    rolling-sd scale of analysis/minimal_model.py:334-338. Selection: |IC| against
+    the first-block OOS HAR residual (analysis/synthesis.py stage_prep protocol),
+    frozen forever — no monthly reselect.
+  * transmission block — frozen-frame factor scores per
+    analysis/map_monitor._frame_and_scores (eigenvectors of the first-window
+    correlation of the product-base columns, frame FROZEN) + the Cucuringu
+    lead-lag features Ghat = G(t-1) @ D per analysis/trans_exploit._trans_block
+    (D = antisymmetric part of the lag-1 cross-correlation, trailing 504 days,
+    refreshed quarterly).
+
+Arm-list dedupe vs the spec sheet: the repo's canonical bucket enumeration
+(src/data/loading.SUBGROUPS) already contains ``all_features`` as a bucket row, so
+the spec's A9 joint arm IS ``a_bucket_all_features`` (8 bucket arms total = A1..A8
+with joint included); A10 no-exog is pipeline-identical to A0 (same design, same
+estimator, same rows) and is registered as an alias of ``a0_ols_har``, not a
+duplicate arm.
+"""
+
+# ruff: noqa: E501
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Callable
+
+# Pin BLAS threads before numpy import: serial-run parity with the cluster
+# preamble (which exports the same), and chunk results independent of node core
+# counts.
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_v, "1")
+
+import numpy as np
+import pandas as pd
+
+if TYPE_CHECKING:
+    import argparse
+
+# ── repo-root bootstrap (executor may be invoked from any cwd) ────────────────
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+for _p in (_ROOT, os.path.join(_ROOT, "experiments")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from src.data.loading import SUBGROUPS  # noqa: E402
+from src.features.extractors.har import resolve_har_lags  # noqa: E402
+from src.features.transforms.target import PERIODS_PER_DAY  # noqa: E402
+from src.models.reclasso_har import enet_coef, enet_online, forward_window_split  # noqa: E402
+from src.models.rolling_least_squares import RollingLeastSquares  # noqa: E402
+
+# ── frozen-spec constants ─────────────────────────────────────────────────────
+HAR_BASE = 2                                  # the crowned base-2 ladder (har_base_sweep, DM -10.6)
+BURNIN_ROWS = resolve_har_lags()[-1]          # 3125 — fixed arm-invariant burn-in drop
+DEFAULT_WINDOW_BARS = 500 * PERIODS_PER_DAY   # 24000 — the incumbent 500-day window
+DOC_WINDOW_BARS = 250 * PERIODS_PER_DAY       # 12000 — the documented convention's 250-day
+#   window (writeup/alpha_manifestation_findings_2026-08-04.md §22: "250-day window").
+#   NOTE the panel PRESCALE window stays the frozen prep's 24000 bars for doc arms too:
+#   prep is frozen campaign-wide; the doc convention's 250 days applies to the FIT window.
+
+# OLS arms run at literal alpha=0 (RollingLeastSquares rank-1 is EXACT OLS at zero
+# penalty — the audited incumbent estimator). Wide bucket designs can contain
+# exactly-duplicate availability-indicator columns (singular gram); such solves
+# fall back, per solve, to this tiny named ridge and the count is reported.
+OLS_FALLBACK_ALPHA = 1e-8
+
+# Block-ridge alpha ladders. USER = the stated convention @ 24k window; DOC = the
+# documented §22 convention @ 250d window (backbone 1 / exog 3e3 / products 3e4,
+# transmission at the exog 3e3 per §37's 699 design riding the solver alpha).
+USER_ALPHAS = {"backbone": 1.0, "exog": 100.0, "product": 1000.0, "trans": 1000.0}
+# (transmission alpha 1000 under the user convention: fixed by author decision
+# 2026-08-06 — same as the product block.)
+DOC_ALPHAS = {"backbone": 1.0, "exog": 3e3, "product": 3e4, "trans": 3e3}
+
+# §5 head-to-head penalties are FIXED, untuned (user directive 2026-08-06: the
+# battery lore is that the untouched default beat the causal tuner).
+FIXED_RIDGE_ALPHA = 1.0   # src/models/ridge.py:16 DEFAULT_RIDGE_PARAMS — the
+#   production untuned default, the exact comparator the rolling tuner trailed
+#   (specs/rolling_linear_tune.py "UNTUNED default (DEFAULT_RIDGE_PARAMS alpha=1.0)").
+FIXED_LASSO_ALPHA = 1e-3  # sklearn Lasso(alpha=...) units at l1_ratio=1.0.
+# DECIDE: the repo documents NO fixed pure-lasso penalty. 1e-3 is
+# configs/bucket_enet.yaml:10 ("incumbent enet penalty"), the repo's only
+# documented fixed L1-family constant — documented there at l1_ratio=0.2, reused
+# here at l1_ratio=1.0. sklearn's own Lasso default (alpha=1.0) zeroes every
+# coefficient on this standardized basis (an intercept-only arm) and was
+# rejected as the pin. Confirm before greenlight.
+
+# Product block (analysis/nl_sparsity.py + analysis/synthesis.py conventions).
+N_PROD = 100                                  # synthesis.N_PROD — 100 frozen products
+SELECTION_RIDGE_ALPHA = 1.0                   # backbone ridge for the selection residual
+#   (analysis/synthesis.py stage_prep: alpha=1.0, per-bar refit)
+PRODUCT_EXOG_WINDOWS = (1, 32, 512)
+# DECIDE: nl_sparsity.EXOG_WINDOWS is (1, 25, 625) — fast/intraday/slow rungs of the
+# BASE-5 ladder. The b2 panel's exog rungs are powers of 2; (1, 32, 512) is the
+# nearest b2 tri. Confirm the mapping before greenlight.
+
+# Transmission block (analysis/map_monitor.py + analysis/trans_exploit.py conventions).
+TRANS_QPOOL = 20                              # map_monitor.QPOOL — 20 frozen-frame factors
+TRANS_TRAIL_DAYS = 504                        # trans_exploit._trans_block trail_days
+TRANS_REFRESH_DAYS = 63                       # quarterly D refresh
+TRANS_LAG_BARS = 1                            # lag-1 (bars) cross-correlation
+# DECIDE: the block here is [G (20 factor scores) | Ghat (20 lead-lag)] = 40 cols, per
+# the campaign brief ("20 frozen-frame factors + Cucuringu lead-lag Ghat = D.G(t-1)");
+# the study's 699 design (trans_exploit.py:64-66) appended Ghat ONLY. Confirm.
+# NOTE one causal deviation from map_monitor._frame_and_scores, disclosed not silent:
+# factor scores are standardized with FROZEN frame-window stats here, where the study
+# standardized G full-sample (descriptive code, mild leakage inadmissible in a scored arm).
+
+# Lasso machinery cadence — constants of specs/causal_tune_linear.py:157-171. With
+# the single-point FIXED grid below there is NO penalty selection: the periodic
+# "tune" reduces to the cold-reseed float-drift re-anchor + the identifiability-
+# mask refresh (the lam2=0 singularity fix), both still required.
+TUNE_PER = 250                                # reseed/mask cadence (solves)
+VAL_TAIL = 125                                # forward split geometry (unused for selection
+EMBARGO = 25                                  #  with a 1-point grid; kept for the split call)
+ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
+    # single-point grids = fixed penalties (user directive 2026-08-06; the causal
+    # log-scale grids of the July battery are deliberately NOT used here, and the
+    # elastic-net arm was dropped: §5 is ridge vs lasso only)
+    "lasso_fixed": [("lasso", FIXED_LASSO_ALPHA, 1.0)],
+}
+
+_DEGENERATE_SD = 1e-8                         # "no dispersion in window" guard (frame/live cols)
+_SD_EPS = 1e-12                               # standardization epsilon (study convention)
+
+CACHE_DIR_ENV = "UNIFY_CACHE_DIR"             # prep-cache dir override (default "results")
+
+
+# ── panel ─────────────────────────────────────────────────────────────────────
+
+
+@dataclass
+class _Panel:
+    X: np.ndarray            # (n, p) prescaled features
+    y: np.ndarray            # (n,) adj_RV — winsorized sqrt(RV / B_t), the FIT target
+    baseline: np.ndarray     # (n,) B_t diurnal baseline
+    rv_raw: np.ndarray       # (n,) raw RV (unwinsorized truth)
+    t: np.ndarray            # (n,) datetime64[ns]
+    names: list[str]
+
+
+_PANEL: _Panel | None = None
+
+
+def _load_panel() -> _Panel:
+    """The frozen b2 panel via the repo's own builder, plus timestamps / raw RV.
+
+    ``prepare_full`` caches the (X, y, baselines, names) build; timestamps and raw
+    RV are re-read from the pinned loader with the same row discipline the msweep
+    line verified by execution (drivers/msweep_2026-08-01/product_tune.py:36-41):
+    panel row i = load_raw_data(...).dropna(RV) row i + BURNIN_ROWS (h=1 makes
+    apply_horizon_shift a no-op).
+    """
+    global _PANEL
+    if _PANEL is not None:
+        return _PANEL
+    import run_geometry_local as R  # experiments/ module (path bootstrapped above)
+
+    R.CACHE_DIR = os.environ.get(CACHE_DIR_ENV, "results")
+    os.makedirs(R.CACHE_DIR, exist_ok=True)
+    X, y, baselines, names = R.prepare_full("all_features", har_base=HAR_BASE)
+    X = np.ascontiguousarray(X, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+    baselines = np.asarray(baselines, dtype=np.float64)
+    n = len(y)
+
+    from src.data.loading import load_raw_data
+
+    raw = (
+        load_raw_data("data", allow_missing=True)
+        .dropna(subset=["RV"])
+        .reset_index(drop=True)
+    )
+    rv_raw = raw["RV"].to_numpy(dtype=np.float64)[BURNIN_ROWS:][:n]
+    t = pd.to_datetime(raw["t"]).to_numpy()[BURNIN_ROWS:][:n]
+    if len(rv_raw) != n or len(t) != n:
+        raise RuntimeError(
+            f"panel/loader row misalignment: panel n={n}, loader rows after burn-in "
+            f"{len(rv_raw)} — the b2 prep and the raw loader disagree; refusing to emit"
+        )
+    _PANEL = _Panel(X=X, y=y, baseline=baselines, rv_raw=rv_raw, t=t, names=list(names))
+    return _PANEL
+
+
+# ── column taxonomy (name-driven; single source: executor naming conventions) ─
+
+
+def _classify(name: str) -> tuple[str, str, int]:
+    """(kind, stem, window) — kinds: har | regime | value | indicator | calendar."""
+    m = re.match(r"^har_ma_(\d+)_x_(open|close)$", name)
+    if m:
+        return "regime", "", int(m.group(1))
+    m = re.match(r"^har_ma_(\d+)$", name)
+    if m:
+        return "har", "", int(m.group(1))
+    m = re.match(r"^(.+)_(avail|active)_ma_(\d+)$", name)
+    if m:
+        return "indicator", m.group(1), int(m.group(3))
+    m = re.match(r"^adj_(.+)_ma_(\d+)$", name)
+    if m:
+        return "value", m.group(1), int(m.group(2))
+    return "calendar", "", 0
+
+
+def _cols(names: list[str], kinds: set[str], stems: set[str] | None = None,
+          windows: set[int] | None = None) -> np.ndarray:
+    idx = []
+    for j, nm in enumerate(names):
+        kind, stem, w = _classify(nm)
+        if kind not in kinds:
+            continue
+        if stems is not None and kind in ("value", "indicator") and stem not in stems:
+            continue
+        if windows is not None and w not in windows:
+            continue
+        idx.append(j)
+    return np.asarray(idx, dtype=np.int64)
+
+
+def _backbone_cols(names: list[str]) -> np.ndarray:
+    """HAR(target) ladder + session-edge interactions + calendar/expiry — the
+    audited OLS-HAR incumbent design (har + regime + calendar kinds)."""
+    return _cols(names, {"har", "regime", "calendar"})
+
+
+def _exog_all_cols(names: list[str]) -> np.ndarray:
+    """The wide exog basis: every value + indicator MA column."""
+    return _cols(names, {"value", "indicator"})
+
+
+def _bucket_cols(names: list[str], bucket: str) -> np.ndarray:
+    """One canonical bucket's value + indicator columns (stems from SUBGROUPS)."""
+    return _cols(names, {"value", "indicator"}, stems=set(SUBGROUPS[bucket]))
+
+
+def _product_base_cols(names: list[str]) -> np.ndarray:
+    """The product-candidate base — analysis/nl_sparsity.base_columns translated to
+    the b2 panel: HAR(target) rungs + exog VALUE cols at the fast/intraday/slow
+    windows + the four session calendar columns."""
+    base = list(_cols(names, {"har"}))
+    base += list(_cols(names, {"value"}, windows=set(PRODUCT_EXOG_WINDOWS)))
+    for nm in ("is_open", "is_close", "is_overnight", "hour"):
+        base.append(names.index(nm))
+    return np.asarray(base, dtype=np.int64)
+
+
+# ── product block (frozen selection, no reselect) ─────────────────────────────
+# _pair_ic / _upper / _products copied from analysis/nl_sparsity.py:92-113 (pure
+# numpy; importing that module drags the alpha-study cache-dir guard chain).
+
+
+def _pair_ic(Z: np.ndarray, e: np.ndarray) -> np.ndarray:
+    n = len(Z)
+    G = Z.T @ Z
+    A = Z.T @ (Z * e[:, None])
+    Z2 = Z * Z
+    Q = Z2.T @ Z2
+    mean_p = G / n
+    var_p = np.maximum(Q / n - mean_p**2, _SD_EPS)
+    cov = A / n - mean_p * e.mean()
+    sd_e = e.std()
+    return cov / (np.sqrt(var_p) * (sd_e if sd_e > 0 else 1.0))
+
+
+def _upper(pb: int) -> tuple[np.ndarray, np.ndarray]:
+    return np.triu_indices(pb)
+
+
+def _selection_residual(p: _Panel, window: int) -> np.ndarray:
+    """OOS backbone-ridge residual on rows [window, 2*window) — the synthesis
+    stage_prep selection target (alpha=1 backbone, per-bar refit), computed only
+    over the first two windows so every task freezes the identical selection."""
+    from analysis.wf import walk_forward
+
+    bb = _backbone_cols(p.names)
+    Xb = np.ascontiguousarray(p.X[: 2 * window, bb])
+    pred = walk_forward(Xb, p.y[: 2 * window], window,
+                        alpha=SELECTION_RIDGE_ALPHA, refit_every=1)
+    return p.y[window : 2 * window] - pred
+
+
+def _causal_floored_scale(P: np.ndarray, window: int) -> np.ndarray:
+    """Causal rolling-sd scale, floored at 10% of the cross-column median —
+    analysis/minimal_model.py:334-338 verbatim, window = the arm's fit window."""
+    sd = pd.DataFrame(P).rolling(window, min_periods=1000).std().shift(1).to_numpy()
+    # cross-column median per row; warm-up rows are all-NaN — computed only where
+    # any column is finite (avoids numpy's all-NaN-slice warning), NaN elsewhere
+    med = np.full((len(sd), 1), np.nan)
+    ok = np.isfinite(sd).any(axis=1)
+    if ok.any():
+        med[ok, 0] = np.nanmedian(sd[ok], axis=1)
+    sd = np.maximum(sd, 0.1 * np.where(np.isfinite(med), med, 1.0))
+    sd = pd.DataFrame(sd).bfill().to_numpy()  # warm-up rows only; inside first window
+    out = P / sd
+    # A column with literally zero window dispersion (e.g. a product of session
+    # dummies inactive over the whole trailing window) yields 0/0 here; it carries
+    # no signal, so it is zeroed — the identifiability-mask philosophy, not a clip.
+    out[~np.isfinite(out)] = 0.0
+    return out
+
+
+def _frozen_products(p: _Panel, window: int) -> np.ndarray:
+    """(n, N_PROD) frozen product columns: pairs of the product base ranked by
+    |IC| against the first-block OOS residual, selected ONCE, causally scaled."""
+    bc = _product_base_cols(p.names)
+    Z = np.ascontiguousarray(p.X[:, bc])
+    e = _selection_residual(p, window)
+    ii, jj = _upper(len(bc))
+    Zw = Z[window : 2 * window]
+    ic = np.abs(np.nan_to_num(_pair_ic(Zw - Zw.mean(0), e)[ii, jj]))
+    frozen = np.argsort(-ic)[:N_PROD]
+    P = Z[:, ii[frozen]] * Z[:, jj[frozen]]
+    return _causal_floored_scale(P, window)
+
+
+# ── transmission block (frozen frame + Cucuringu lead-lag) ────────────────────
+
+
+def _transmission_block(p: _Panel, window: int) -> np.ndarray:
+    """(n, 2*TRANS_QPOOL) = [factor scores G | lead-lag Ghat].
+
+    Frame: eigenvectors of the correlation of the product-base columns over rows
+    [window, 2*window), FROZEN (analysis/map_monitor._frame_and_scores). Scores
+    standardized by frozen frame-window stats (causal deviation disclosed above).
+    Ghat: analysis/trans_exploit._trans_block — D = antisym(lag-1 cross-corr) of
+    the trailing 504 days of G, refreshed quarterly, Ghat_t = G_{t-1} @ D; zero
+    until the first D exists (the study zero-fills identically and masks activity
+    downstream via the persisted row indices). Ghat causally floored-sd scaled.
+    """
+    bc = _product_base_cols(p.names)
+    Z = np.ascontiguousarray(p.X[:, bc])
+    f0, f1 = window, 2 * window
+    mu0, sd0 = Z[f0:f1].mean(0), Z[f0:f1].std(0)
+    live = sd0 > _DEGENERATE_SD
+    sd0 = np.where(live, sd0, 1.0)
+    lam, V_l = np.linalg.eigh(
+        np.corrcoef(((Z[f0:f1] - mu0) / sd0)[:, live], rowvar=False)
+    )
+    order = np.argsort(lam)[::-1]
+    V = np.zeros((Z.shape[1], len(lam)))
+    V[live] = V_l[:, order]
+    W = V[:, :TRANS_QPOOL] / sd0[:, None]
+    G = (Z - mu0) @ W
+    g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
+    G = (G - g_mu) / g_sd
+
+    n = len(G)
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    refresh = TRANS_REFRESH_DAYS * PERIODS_PER_DAY
+    lag = TRANS_LAG_BARS
+    Ghat = np.zeros_like(G)
+    for start in range(f1 + trail, n, refresh):
+        a, b = G[start - trail : start - lag], G[start - trail + lag : start]
+        az = (a - a.mean(0)) / (a.std(0) + _SD_EPS)
+        bz = (b - b.mean(0)) / (b.std(0) + _SD_EPS)
+        C = (az.T @ bz) / len(az)
+        D = (C - C.T) / 2.0
+        end = min(start + refresh, n)
+        Ghat[start:end] = G[start - lag : end - lag] @ D
+    Ghat = _causal_floored_scale(Ghat, window)
+    Ghat[~np.isfinite(Ghat)] = 0.0
+    return np.hstack([G, Ghat])
+
+
+# ── walk-forward drivers (per-bar refit; chunk seam) ──────────────────────────
+
+
+def _slice(lo: int, hi: int, window: int, n: int) -> tuple[int, int]:
+    if lo - window < 0:
+        raise ValueError(
+            f"chunk_start={lo} leaves no {window}-bar training window (panel starts at 0)"
+        )
+    if hi > n:
+        raise ValueError(f"chunk_end={hi} beyond panel end {n}")
+    return lo, hi
+
+
+def _walk_ridge(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int,
+                alpha: float) -> np.ndarray:
+    """Per-bar-refit rolling ridge for rows [lo, hi) — analysis/wf.walk_forward on
+    the [lo-window, hi) slice (RollingLeastSquares rank-1, unpenalized intercept)."""
+    from analysis.wf import walk_forward
+
+    return walk_forward(F[lo - window : hi], y[lo - window : hi], window,
+                        alpha=alpha, refit_every=1)
+
+
+def _walk_ols(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int
+              ) -> tuple[np.ndarray, int]:
+    """Exact OLS (alpha=0) per-bar walk-forward with a named tiny-ridge fallback
+    for exactly-singular grams (duplicate indicator columns). Same loop shape as
+    analysis/wf.walk_forward."""
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    solver.init_window(Xs[:window], ys[:window])
+    out = np.empty(hi - lo, dtype=np.float64)
+    n_fallback = 0
+
+    def _solve() -> None:
+        nonlocal n_fallback
+        try:
+            solver.solve()
+            if np.all(np.isfinite(solver._coef)):
+                return
+        except np.linalg.LinAlgError:
+            pass
+        solver.alpha = OLS_FALLBACK_ALPHA
+        solver.solve()
+        solver.alpha = 0.0
+        n_fallback += 1
+
+    _solve()
+    for i in range(hi - lo):
+        t = window + i
+        if i:
+            _solve()
+        out[i] = solver.predict_one(Xs[t])
+        solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out, n_fallback
+
+
+# ── causally-tuned penalized arms ─────────────────────────────────────────────
+# _batch_theta + RollingTunedLinear copied from specs/causal_tune_linear.py:201-379
+# (verified rolling_linear_tune / winablate_r1 machinery; the spec module executes
+# its backtest on import and cannot be imported). Adaptation: grid is an instance
+# parameter; class-level traces dropped (the sidecar reports scalars only).
+
+
+def _batch_theta(Xa, yr, locked, a, l1):
+    """Cold seed: FWL on the locked (intercept) block + enet_coef on the rest."""
+    exog = ~locked
+    Hh, Ee = Xa[:, locked], Xa[:, exog]
+    Hp = np.linalg.pinv(Hh)
+    bHy, bHE = Hp @ yr, Hp @ Ee
+    Eres, yres = Ee - Hh @ bHE, yr - Hh @ bHy
+    bE = enet_coef(Eres.T @ Eres, Eres.T @ yres, len(yr), a, l1)
+    th = np.zeros(Xa.shape[1])
+    th[locked] = bHy - bHE @ bE
+    th[exog] = bE
+    return th
+
+
+class RollingTunedLinear:
+    """Rolling linear model, ONE estimator kind: periodic causal alpha re-selection
+    with WARM rank-1 per-bar updates between tunings. See the spec source cited
+    above for the full derivation notes (identifiability mask included)."""
+
+    def __init__(self, grid: list[tuple[str, float, float]]) -> None:
+        self.grid = list(grid)
+
+    def init_window(self, X_win, y_win):
+        X = np.asarray(X_win, dtype=np.float64)
+        self._X = np.hstack([X, np.ones((X.shape[0], 1))])  # augmented intercept
+        self._y = np.asarray(y_win, dtype=np.float64).copy()
+        self._ptr = 0
+        self._n_solve = 0
+        self._locked = np.zeros(self._X.shape[1], dtype=bool)
+        self._locked[-1] = True  # intercept: unpenalized, never exits the active set
+        self._maskout = np.zeros(self._X.shape[1], dtype=bool)
+        self._tune()
+        return self
+
+    def _window(self):
+        k = self._ptr
+        return (
+            np.vstack([self._X[k:], self._X[:k]]),
+            np.concatenate([self._y[k:], self._y[:k]]),
+        )
+
+    def _recompute_mask(self, Xraw):
+        """Mask non-locked columns constant in the window or exact duplicates of an
+        earlier kept column — threshold-free, scale-free (the lam2=0 singularity fix)."""
+        ncol = Xraw.shape[1]
+        maskout = np.zeros(ncol, dtype=bool)
+        seen: dict = {}
+        for j in range(ncol):
+            if self._locked[j]:
+                continue
+            col = Xraw[:, j]
+            if col.max() == col.min():
+                maskout[j] = True
+                continue
+            key = col.tobytes()
+            if key in seen:
+                maskout[j] = True
+            else:
+                seen[key] = j
+        self._maskout = maskout
+
+    def _masked_window(self):
+        Xa, yr = self._window()  # fresh arrays — safe to zero
+        Xa[:, self._maskout] = 0.0
+        return Xa, yr
+
+    def _seed(self):
+        """Cold seed (also the exact re-anchor) of the warm state on the current window."""
+        Xa, yr = self._masked_window()
+        tw = len(yr)
+        kind, a, l1 = self.kind_, self.alpha_, self.l1_
+        if kind == "ridge":
+            D = np.where(self._locked, 0.0, a)  # sklearn Ridge units, free intercept
+            G = Xa.T @ Xa
+            G[np.diag_indices_from(G)] += D
+            self._K = np.linalg.inv(G)
+            self._c = Xa.T @ yr
+            self._th = self._K @ self._c
+        else:
+            mu, lam2 = tw * a * l1, tw * a * (1.0 - l1)  # sklearn ElasticNet units
+            self._mu_vec = np.where(self._locked, 0.0, mu)
+            Gr = Xa.T @ Xa
+            ei = np.where(~self._locked)[0]
+            Gr[ei, ei] += lam2
+            self._Gr = Gr
+            self._c = Xa.T @ yr
+            th = _batch_theta(Xa, yr, self._locked, a, l1)
+            self._A = list(np.where((np.abs(th) > 1e-9) | self._locked)[0])
+            self._s = [0.0 if self._locked[j] else float(np.sign(th[j])) for j in self._A]
+            self._th = th
+
+    def roll(self, x_in, y_in, x_out, y_out):
+        ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
+        ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
+        self._X[self._ptr] = ua  # ring stores RAW rows; the mask re-derives from raw
+        self._y[self._ptr] = float(y_in)
+        self._ptr = (self._ptr + 1) % len(self._y)
+        if self._maskout.any():  # masked columns stay zero in the update rows
+            ua = ua.copy()
+            ur = ur.copy()
+            ua[self._maskout] = 0.0
+            ur[self._maskout] = 0.0
+        if self.kind_ == "ridge":  # Sherman-Morrison: add entering, drop leaving
+            Ku = self._K @ ua
+            self._K -= np.outer(Ku, Ku) / (1.0 + ua @ Ku)
+            self._c += ua * float(y_in)
+            Kv = self._K @ ur
+            self._K += np.outer(Kv, Kv) / (1.0 - ur @ Kv)
+            self._c -= ur * float(y_out)
+        else:  # warm Garrigues homotopy: one rank-1 data change per call
+            self._th, self._A, self._s = enet_online(
+                self._Gr, self._c, self._mu_vec, ua, float(y_in), +1.0,
+                self._th, self._A, self._s, self._locked,
+            )
+            self._th, self._A, self._s = enet_online(
+                self._Gr, self._c, self._mu_vec, ur, float(y_out), -1.0,
+                self._th, self._A, self._s, self._locked,
+            )
+
+    def _tune(self):
+        Xraw, _ = self._window()
+        self._recompute_mask(Xraw)
+        Xa, yr = self._masked_window()
+        n = len(yr)
+        fit_lo, fit_hi, val_lo, val_hi = forward_window_split(n, n, VAL_TAIL, EMBARGO)
+        Xf, yf = Xa[fit_lo:fit_hi], yr[fit_lo:fit_hi]
+        Xv, yv = Xa[val_lo:val_hi], yr[val_lo:val_hi]
+        best = None
+        for kind, a, l1 in self.grid:
+            if kind == "ridge":
+                D = np.where(self._locked, 0.0, a)
+                G = Xf.T @ Xf
+                G[np.diag_indices_from(G)] += D
+                th = np.linalg.solve(G, Xf.T @ yf)
+            else:
+                th = _batch_theta(Xf, yf, self._locked, a, l1)
+            mse = float(np.mean((Xv @ th - yv) ** 2))
+            if best is None or mse < best[0]:
+                best = (mse, kind, a, l1)
+        _, self.kind_, self.alpha_, self.l1_ = best
+        self._seed()
+
+    def solve(self):
+        if self._n_solve > 0 and self._n_solve % TUNE_PER == 0:
+            self._tune()
+        elif self.kind_ == "ridge":
+            self._th = self._K @ self._c
+        self._n_solve += 1
+
+    def predict_one(self, x):
+        return float(np.append(np.asarray(x, dtype=np.float64), 1.0) @ self._th)
+
+
+def _walk_tuned(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int,
+                grid: list[tuple[str, float, float]]) -> np.ndarray:
+    """Per-bar walk-forward driving the RollingTunedLinear incremental protocol
+    (init_window / solve / predict_one / roll), chunk seam as in _walk_ridge."""
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    solver = RollingTunedLinear(grid).init_window(Xs[:window], ys[:window])
+    out = np.empty(hi - lo, dtype=np.float64)
+    for i in range(hi - lo):
+        t = window + i
+        solver.solve()
+        out[i] = solver.predict_one(Xs[t])
+        solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out
+
+
+# ── arm registry ──────────────────────────────────────────────────────────────
+
+
+@dataclass
+class ArmSpec:
+    """One campaign arm: design builder + estimator config under the frozen spec."""
+
+    describe: str
+    kind: str                                   # "ols" | "blocks" | "tuned"
+    blocks: list[tuple[str, str]] = field(default_factory=list)
+    #   (block name, alpha key) for kind="blocks"; block names:
+    #   backbone | exog_all | bucket:<name> | product | trans
+    alphas: dict[str, float] = field(default_factory=dict)
+    grid: str = ""                              # ESTIMATOR_GRIDS key for kind="tuned"
+    window_bars: int | None = None              # None = args.window; doc arms pin 12000
+    oos_mult: int = 1                           # first legal OOS row = oos_mult * window
+    aliases: tuple[str, ...] = ()
+
+    @property
+    def window(self) -> int:
+        """Training-window bars for this arm (runner interface): the pinned
+        doc-convention window, else the campaign default 24000."""
+        return int(self.window_bars or DEFAULT_WINDOW_BARS)
+
+
+def _bucket_arm(bucket: str) -> ArmSpec:
+    return ArmSpec(
+        describe=f"OLS: HAR backbone + '{bucket}' bucket (literal alpha=0)",
+        kind="ols", blocks=[("backbone", ""), (f"bucket:{bucket}", "")],
+    )
+
+
+def _blk(arms: list[tuple[str, str]], alphas: dict[str, float], window: int | None,
+         label: str) -> ArmSpec:
+    needs_frozen = any(b in ("product", "trans") for b, _ in arms)
+    return ArmSpec(
+        describe=label, kind="blocks", blocks=arms, alphas=alphas,
+        window_bars=window, oos_mult=2 if needs_frozen else 1,
+    )
+
+
+# Canonical bucket enumeration = SUBGROUPS minus the empty `baseline` entry (that IS
+# a0). `all_features` is a bucket row (the spec sheet's A9 joint arm) — 8 bucket arms.
+_BUCKETS = [b for b in SUBGROUPS if b != "baseline"]
+
+ARMS: dict[str, ArmSpec] = {
+    "a0_ols_har": ArmSpec(
+        describe="OLS on the base-2 HAR ladder of the target (backbone: HAR + "
+                 "session-edge interactions + calendar). THE reference arm. "
+                 "Alias: a10_noexog — collapse VERIFIED computationally "
+                 "2026-08-06, not assumed: on the real 242,934-row panel the "
+                 "empty-bucket joint design == the plain backbone design "
+                 "bit-identically (np.array_equal True) and 300-bar walk-forward "
+                 "predictions match with max|diff| = 0.0; row sets identical by "
+                 "construction (one shared panel, no per-arm row filtering).",
+        kind="ols", blocks=[("backbone", "")], aliases=("a10_noexog",),
+    ),
+    **{f"a_bucket_{b}": _bucket_arm(b) for b in _BUCKETS},
+    "b1_ridge": ArmSpec(
+        describe="FIXED-penalty ridge on the wide all_features basis, alpha=1.0 "
+                 "(DEFAULT_RIDGE_PARAMS — untuned production default; no tuning "
+                 "by user directive 2026-08-06)",
+        kind="blocks", blocks=[("wide", "wide")], alphas={"wide": FIXED_RIDGE_ALPHA},
+    ),
+    "b2_lasso": ArmSpec(
+        describe="FIXED-penalty lasso on the wide basis, alpha=1e-3 l1_ratio=1.0 "
+                 "(# DECIDE pin — see FIXED_LASSO_ALPHA; warm Garrigues homotopy, "
+                 "per-bar refit; enet arm dropped: §5 is ridge vs lasso)",
+        kind="tuned", grid="lasso_fixed",
+    ),
+    "blk2_user": _blk([("backbone", "backbone"), ("exog_all", "exog")], USER_ALPHAS,
+                      None, "2-block ridge: backbone@1 + exog@100, args.window"),
+    "blk3_user": _blk([("backbone", "backbone"), ("exog_all", "exog"),
+                       ("product", "product")], USER_ALPHAS, None,
+                      "3-block ridge: + frozen products@1000"),
+    "blk4_user": _blk([("backbone", "backbone"), ("exog_all", "exog"),
+                       ("product", "product"), ("trans", "trans")], USER_ALPHAS, None,
+                      "4-block ridge: + transmission@1000 (alpha fixed by author "
+                      "decision 2026-08-06)"),
+    "blk2_doc": _blk([("backbone", "backbone"), ("exog_all", "exog")], DOC_ALPHAS,
+                     DOC_WINDOW_BARS, "2-block ridge, documented convention: "
+                     "backbone@1 + exog@3e3, 250-day window"),
+    "blk3_doc": _blk([("backbone", "backbone"), ("exog_all", "exog"),
+                      ("product", "product")], DOC_ALPHAS, DOC_WINDOW_BARS,
+                     "3-block ridge, documented: + products@3e4, 250-day window"),
+    "blk4_doc": _blk([("backbone", "backbone"), ("exog_all", "exog"),
+                      ("product", "product"), ("trans", "trans")], DOC_ALPHAS,
+                     DOC_WINDOW_BARS,
+                     "4-block ridge, documented: + transmission@3e3, 250-day window"),
+    # Isolation diagnostics run under BOTH block conventions (user directive
+    # 2026-08-06): _user = stated alphas @ 24k window, _doc = documented §22
+    # alphas @ 250-day window. Convention explicit in the arm name.
+    "c4_product_alone_user": _blk([("backbone", "backbone"), ("product", "product")],
+                                  USER_ALPHAS, None,
+                                  "diagnostic: backbone@1 + frozen products@1000, "
+                                  "args.window"),
+    "c4_product_alone_doc": _blk([("backbone", "backbone"), ("product", "product")],
+                                 DOC_ALPHAS, DOC_WINDOW_BARS,
+                                 "diagnostic: backbone@1 + frozen products@3e4, "
+                                 "250-day window"),
+    "d3_transmission_alone_user": _blk([("backbone", "backbone"), ("trans", "trans")],
+                                       USER_ALPHAS, None,
+                                       "diagnostic: backbone@1 + transmission@1000, "
+                                       "args.window (alpha per the 2026-08-06 ruling)"),
+    "d3_transmission_alone_doc": _blk([("backbone", "backbone"), ("trans", "trans")],
+                                      DOC_ALPHAS, DOC_WINDOW_BARS,
+                                      "diagnostic: backbone@1 + transmission@3e3, "
+                                      "250-day window"),
+}
+_ALIASES = {alias: name for name, spec in ARMS.items() for alias in spec.aliases}
+
+
+def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
+    if block == "wide":
+        return p.X  # the full all_features basis (backbone + every exog MA)
+    if block == "backbone":
+        return p.X[:, _backbone_cols(p.names)]
+    if block == "exog_all":
+        return p.X[:, _exog_all_cols(p.names)]
+    if block.startswith("bucket:"):
+        return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
+    if block == "product":
+        return _frozen_products(p, window)
+    if block == "trans":
+        return _transmission_block(p, window)
+    raise KeyError(f"unknown block '{block}'")
+
+
+def _build_design(p: _Panel, spec: ArmSpec, window: int) -> tuple[np.ndarray, float]:
+    """(design, solver_alpha). Per-block penalties imposed by column scaling:
+    scaling block j by sqrt(a_ref / a_j) under global ridge a_ref is EXACTLY the
+    per-block penalty (minimal_model.py:297-299); intercept stays unpenalized."""
+    if spec.kind == "tuned":
+        return p.X, 0.0
+    if spec.kind == "ols":
+        parts = [_build_block(p, b, window) for b, _ in spec.blocks]
+        return (parts[0] if len(parts) == 1 else np.hstack(parts)), 0.0
+    a_ref = spec.alphas[spec.blocks[0][1]] if len(spec.blocks) == 1 else (
+        spec.alphas.get("exog", spec.alphas[spec.blocks[0][1]])
+    )
+    parts = []
+    for b, akey in spec.blocks:
+        blk = np.ascontiguousarray(_build_block(p, b, window), dtype=np.float64)
+        a_j = spec.alphas[akey]
+        if a_j != a_ref:
+            blk = blk * np.sqrt(a_ref / a_j)
+        parts.append(blk)
+    return np.hstack(parts), a_ref
+
+
+def panel_length() -> int:
+    """Total b2-panel row count after prep — the runner's chunk-grid sizing call.
+
+    Cheap when either the in-process panel or the ``prepare_full`` cache exists
+    (reads ONE member of the npz); falls back to a full panel build otherwise.
+    """
+    if _PANEL is not None:
+        return len(_PANEL.y)
+    cache = os.path.join(os.environ.get(CACHE_DIR_ENV, "results"),
+                         "prep_cache_all_features_b2.npz")  # prepare_full's key for
+    #   bucket=all_features, har_base=2, kernel=mean, diurnal=divide, no PREP_ROWS
+    if os.path.exists(cache):
+        with np.load(cache, allow_pickle=True) as z:
+            return int(z["y"].shape[0])
+    return len(_load_panel().y)
+
+
+def _registry_text() -> str:
+    lines = ["unification arm registry (all arms REAL — no stubs):"]
+    for name, spec in ARMS.items():
+        lines.append(f"  {name:24s} [{spec.kind:6s}] w={spec.window:5d}  {spec.describe}")
+    for alias, target in _ALIASES.items():
+        lines.append(f"  {alias:24s} -> alias of {target}")
+    lines.append(
+        "required flags: --arm --chunk-start --chunk-end [--window 24000] "
+        "[--halo 24000] --output-file"
+    )
+    return "\n".join(lines)
+
+
+# ── compute ───────────────────────────────────────────────────────────────────
+
+
+def compute(args: argparse.Namespace) -> None:
+    """Run one arm x chunk task and write the raw per-bar npz (schema: module
+    docstring). No smearing, no raw-space conversion — scoring is a local pass."""
+    arm = getattr(args, "arm", "") or ""
+    if not arm:
+        # No-arm invocation (e.g. smoke-test-executor defaults): print the
+        # registry and exit cleanly — the import + dispatch path is the test.
+        print(_registry_text())
+        return
+    arm = _ALIASES.get(arm, arm)
+    if arm not in ARMS:
+        raise SystemExit(
+            f"unknown arm '{arm}'.\n{_registry_text()}"
+        )
+    spec = ARMS[arm]
+
+    missing = [f for f in ("chunk_start", "chunk_end", "output_file")
+               if getattr(args, f, None) is None]
+    if missing:
+        raise SystemExit(
+            f"arm '{arm}' needs flags: {', '.join('--' + m.replace('_', '-') for m in missing)}\n"
+            + _registry_text()
+        )
+    window = int(spec.window_bars or getattr(args, "window", 0) or DEFAULT_WINDOW_BARS)
+    halo = int(getattr(args, "halo", 0) or 0)
+    if halo and halo < window:
+        raise SystemExit(
+            f"halo={halo} < training window {window}: a mid-series chunk cannot warm up"
+        )
+
+    p = _load_panel()
+    n = len(p.y)
+    lo = int(args.chunk_start)
+    hi = n if int(args.chunk_end) < 0 else min(int(args.chunk_end), n)
+    first_oos = spec.oos_mult * window
+    if lo < first_oos:
+        raise SystemExit(
+            f"arm '{arm}': chunk_start={lo} < first legal OOS row {first_oos} "
+            f"({'selection/frame block excluded' if spec.oos_mult == 2 else 'training window'})"
+        )
+    if hi <= lo:
+        raise SystemExit(f"empty chunk [{lo}, {hi})")
+    _slice(lo, hi, window, n)
+
+    F, a_ref = _build_design(p, spec, window)
+    n_fallback = 0
+    if spec.kind == "ols":
+        yhat, n_fallback = _walk_ols(F, p.y, window, lo, hi)
+    elif spec.kind == "blocks":
+        yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
+    else:
+        yhat = _walk_tuned(F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid])
+
+    y_fit = p.y[lo:hi]
+    resid = y_fit - yhat
+    result: dict[str, Any] = {
+        "sqrt_mse": float(np.mean(resid**2)),
+        "sqrt_sse": float(np.sum(resid**2)),
+        "sum_y": float(np.sum(y_fit)),
+        "sum_y2": float(np.sum(y_fit**2)),
+        "n": int(hi - lo),
+        "ols_fallback_bars": int(n_fallback),
+    }
+
+    os.makedirs(os.path.dirname(args.output_file) or ".", exist_ok=True)
+    np.savez_compressed(
+        args.output_file,
+        row_id=np.arange(lo, hi, dtype=np.int64),
+        t=p.t[lo:hi],
+        y_fit=np.asarray(y_fit, dtype=np.float64),
+        yhat=np.asarray(yhat, dtype=np.float64),
+        rv_raw=np.asarray(p.rv_raw[lo:hi], dtype=np.float64),
+        baseline=np.asarray(p.baseline[lo:hi], dtype=np.float64),
+        valid_mask=np.ones(hi - lo, dtype=bool),
+        # pooled-R^2 sufficient statistics as scalar arrays — the npz is the
+        # single source of truth (the metrics sidecar below is optional)
+        sqrt_sse=np.float64(result["sqrt_sse"]),
+        sqrt_mse=np.float64(result["sqrt_mse"]),
+        sum_y=np.float64(result["sum_y"]),
+        sum_y2=np.float64(result["sum_y2"]),
+        n=np.int64(result["n"]),
+        ols_fallback_bars=np.int64(n_fallback),
+        meta=json.dumps({
+            "arm": arm, "kind": spec.kind, "window_bars": window,
+            "chunk_start": lo, "chunk_end": hi, "first_oos": first_oos,
+            "har_base": HAR_BASE, "alphas": spec.alphas, "grid": spec.grid,
+            "n_design_cols": int(F.shape[1]), "smear": "none (scored locally, §3 contract)",
+        }),
+    )
+    print(f"[{arm}] rows [{lo}, {hi}) window={window} cols={F.shape[1]} "
+          f"sqrt_mse={result['sqrt_mse']:.6f} fallback={n_fallback} -> {args.output_file}")
+
+    if os.environ.get("RESULT_DIR"):
+        from hpc_agent.execution.mapreduce.metrics_io import write_metrics
+
+        write_metrics(result)

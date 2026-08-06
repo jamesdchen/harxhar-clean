@@ -180,42 +180,6 @@ Selection that removes nothing important is free; selection that removes
 anything else is harmful; and on a wide design there is no penalty level at
 which the second does not accompany the first.
 
-\subsection{No Escape Through the Penalty Dial}
-\label{sec:dense_weak_penalty}
-
-Two further experiments close the remaining loophole: that some better-chosen
-penalty, rather than a better penalty \emph{family}, could rescue selection.
-Both say the entire penalty channel is nearly empty.
-
-First, causal re-tuning of the penalty is worse than not touching it. On a
-companion rolling-tune panel (full 2005--2025 emit space, stitched from 100
-walk-forward chunks; levels not comparable to
-Table~\ref{tab:lasso_vs_ridge}), a leakage-free selector re-choosing every 250
-bars among six ridge, five lasso, and five elastic-net penalties \emph{trails}
-scikit-learn's untouched ridge default by $+0.0006$ to $+0.0012$ QLIKE on all
-seven landed buckets --- uniformly, one-signed. Acting every 250 bars on a
-125-bar validation statistic injects more variance than the penalty choice
-can recover. The selector's own behavior confirms the landscape is flat:
-across all tunings it never concentrates on a family, choosing ridge
-41--50\% of the time, lasso 29--35\%, and elastic net 20--25\% in every
-bucket --- the distribution of a chooser facing three near-equivalent options
-through validation noise, not a differentiated objective.
-
-Second, even an oracle allowed to cheat has almost nothing to find. Running a
-TPE search with the realized out-of-sample QLIKE as the objective directly ---
-test-set overfitting by construction, so a diagnostic bound rather than a
-forecast --- against an incumbent elastic net at $0.12540$ on its own
-evaluation panel (levels again not comparable across panels): the best lasso
-reaches $0.12524$, an improvement of $0.00015$ with the penalty at the search
-grid's floor; the best elastic net $0.12529$; and the best ridge $0.12578$,
-\emph{worse} than the incumbent even with cheating permitted. The ceiling on
-the entire penalty channel is $0.00015$ QLIKE, an order of magnitude below the
-bucket-level information effects of Section~\ref{sec:buckets}, and every
-oracle winner sits at minimal shrinkage. The penalty is a threshold to be
-cleared --- enough shrinkage to control a wide design, essentially none on a
-narrow one --- not a dimension along which to optimize. That reading is what
-licenses the fixed, untuned penalties of the estimator that follows.
-
 \subsection{The Two-Block Ridge}
 \label{sec:dense_weak_twoblock}
 % Endpoint: BlockRidge with block 1 = HAR(target), alpha=1; block 2 =
@@ -257,8 +221,8 @@ Section~\ref{sec:data_prep} is effectively \emph{nested} inside the model:
 zeroing block 2 recovers, up to the nominal $\alpha = 1$, the OLS--HAR
 benchmark itself. The two-block ridge is thus the smallest estimator that
 takes both lessons of Table~\ref{tab:lasso_vs_ridge} seriously at once ---
-and it contains no selection step, no tuned dial, and nothing the penalty
-experiments of Section~\ref{sec:dense_weak_penalty} identify as a non-lever.
+and it contains no selection step and no tuned dial: the penalties are fixed
+constants, not optimized quantities.
 
 \pending{two-block ridge QLIKE on the shared panel, with DM against the
 OLS--HAR incumbent and against single-penalty ridge on
