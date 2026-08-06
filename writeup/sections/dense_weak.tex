@@ -81,8 +81,8 @@ rank-one update path.
 \paragraph{Comparison protocol.}
 Both arms are compared against the shared incumbent of
 Section~\ref{sec:data_prep}: per-bar OLS on HAR plus calendar features with
-no exogenous inputs, at the benchmark QLIKE of \pending{campaign
-\texttt{a0}}. For each arm, let $\ell^{\mathrm{arm}}_t$ and
+no exogenous inputs, at the benchmark QLIKE of \unifAzeroQLIKE{}. For each
+arm, let $\ell^{\mathrm{arm}}_t$ and
 $\ell^{\mathrm{inc}}_t$ be the per-bar QLIKE losses \citep{Patton2011} of
 the arm and the incumbent at bar $t$, and let
 $d_t = \ell^{\mathrm{arm}}_t - \ell^{\mathrm{inc}}_t$. The Diebold--Mariano
@@ -105,7 +105,7 @@ tables may need this re-run on the paper's one-panel convention}
 penalty, with the Diebold--Mariano $t$-statistic against the shared OLS--HAR
 incumbent in parentheses. \textbf{Panel: causal-tuning battery,}
 $n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent
-QLIKE \pending{campaign \texttt{a0} benchmark}. Negative $t$ favors the arm;
+QLIKE \unifAzeroQLIKE{}. Negative $t$ favors the arm;
 $|t| > 1.96$ is significant at
 the 5\% level. Best QLIKE in each row is bold. \texttt{baseline} is the
 no-exogenous bucket: HAR plus calendar features only, so that row isolates the
@@ -125,7 +125,7 @@ Bucket & Ridge & Lasso \\
 \texttt{sentiment}     & \textbf{0.13347} ($-5.7$)  & 0.13390 ($-2.1$)  \\
 \midrule
 \texttt{baseline} (no exog) & \textbf{0.13445} ($+5.0$) & 0.13475 ($+7.0$) \\
-Incumbent: OLS on \texttt{baseline} & \multicolumn{2}{c}{\pending{a0}} \\
+Incumbent: OLS on \texttt{baseline} & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -254,10 +254,13 @@ from the OLS--HAR incumbent of Section~\ref{sec:data_prep} only by that
 nominal penalty. The estimator contains no selection step and no tuned
 dial: the penalties are fixed constants, not optimized quantities.
 
-\pending{two-block ridge QLIKE from the unification campaign
-(\texttt{blk2} arms), with DM against the OLS--HAR incumbent and against
-single-penalty ridge on \texttt{all\_features} --- the first scored run of
-this exact specification}
+The two-block ridge scores QLIKE \unifBlkTwoUserQLIKE{}, with
+Diebold--Mariano \unifBlkTwoUserDM{} against the OLS--HAR incumbent. Under
+the documented convention (penalties $1$/$3\times 10^{3}$, 250-day window)
+the same structure scores \unifBlkTwoDocQLIKE{} at \unifBlkTwoDocDM{}.
+These are the first scored runs of this exact specification.
+\pending{DM of the two-block ridge against single-penalty ridge on
+\texttt{all\_features} --- computed from the same per-bar losses at harvest}
 
 The next two sections extend this estimator one block at a time.
 Section~\ref{sec:nonlinear_product} identifies the nonlinearity the trees

@@ -6,8 +6,8 @@
 % Base text: drafts_2026-07-30/marginal_contribution.tex.
 
 The reference point for this section is the per-bar least-squares fit of the
-HAR ladder plus calendar dummies, QLIKE \pending{campaign
-\texttt{a0} benchmark}. This section measures two quantities: the change in
+HAR ladder plus calendar dummies, QLIKE \unifAzeroQLIKE{}. This section
+measures two quantities: the change in
 QLIKE when each exogenous feature bucket is added to that backbone, and the
 overlap between the buckets' individual contributions. The buckets are defined
 in \pending{cross-ref to the panel/descriptive section defining the buckets}.
@@ -80,7 +80,7 @@ exogenous buckets, on the shared panel, against the shared incumbent.
 \caption{Bucket attribution: causally tuned ridge on each exogenous bucket.
 \textbf{Panel:} causal-tuning battery, diurnally adjusted, $n = 218{,}934$
 thirty-minute bars, identical rows in every cell; incumbent QLIKE
-\pending{campaign \texttt{a0} benchmark} (per-bar OLS on HAR $+$ calendar).
+\unifAzeroQLIKE{} (per-bar OLS on HAR $+$ calendar).
 \textbf{Estimator:} rolling least squares,
 window $24{,}000$ bars ($500$ trading days), refit every bar by exact rank-one
 updates, ridge penalty re-selected causally. $\Delta$ is against the shared

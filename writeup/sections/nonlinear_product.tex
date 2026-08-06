@@ -274,15 +274,12 @@ different scale from their parents; the one-order-of-magnitude gap between
 $\alpha_2$ and $\alpha_3$ is the ratio the study's own ladder selected on
 its panel. No penalty was chosen by grid search on the evaluation loss.
 
-\pending{the three-block result table on the paper's panel: QLIKE for the
-three-block ridge alongside the two-block ridge of Section 5 and the
-incumbent, with per-bar DM statistics for the product-block increment ---
-the documented analogues (the interaction study's composed models: HAR
-backbone per-bar $+$ daily-refit $516$-column exog $+$ $100$ frozen products
-at a $10\times$ block-penalty ratio, QLIKE $0.12651$ vs.\ its HAR reference
-$0.13275$, DM $t = +13.5$, product increment $t = +3.56$) were computed
-under the interaction-study convention ($250$-day window, $27$-column
-backbone) and are not quotable as this paper's numbers}
+The three-block ridge scores QLIKE \unifBlkThreeUserQLIKE{}, with
+Diebold--Mariano \unifBlkThreeUserDM{} against the OLS--HAR incumbent;
+under the documented convention it scores \unifBlkThreeDocQLIKE{} at
+\unifBlkThreeDocDM{}. \pending{per-bar DM statistic for the product-block
+increment (three-block vs.\ two-block on the same rows) --- computed from
+the persisted per-bar losses at harvest}
 \decide{whether the three-block table, once run, reports the tree arms
 alongside it --- the natural closing comparison is the three-block ridge
 against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
