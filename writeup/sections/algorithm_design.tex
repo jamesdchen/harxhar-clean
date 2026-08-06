@@ -255,9 +255,19 @@ dissolve it---its $p$ survives Holm across all 97 arms
 (Section~\ref{sec:multiplicity_results})---but a $p$-value adjustment does not
 address selection: the issue is that the cell was chosen for being the minimum,
 not that its individual test is too liberal. The honest presentations remain
-either a pre-registered cell or a confirmation on held-out data.
-\pending{holdout confirmation of the winning kNN cell, or a pre-registration
-statement identifying it as chosen ex ante}
+either a pre-registered cell or a confirmation on held-out data. The
+replication campaign of Section~\ref{sec:replication} now supplies the
+out-of-panel test, and it bounds the result rather than extending it: on the
+replication basis, with a pre-registered three-view design (trailing residual
+paths, forecast-error trajectories, and a Laplacian-eigenmap embedding at the
+same dimension), $k$NN corrections \emph{fail to improve} a strong linear base
+(the pooled arm at $t = +0.98$ against a $+2.0$ gate after an
+overlap-leak repair that had inflated it to $+28$), and the eigenmap view is
+the worst of the three. The supervised-projection finding above should
+therefore be read as panel-specific until confirmed; the transferable statement
+is the one both panels agree on --- estimated geometries do not beat fixed ones
+without supervision, and retrieval corrections do not survive on top of a
+well-shrunk dense base.
 
 \paragraph{Its bucket is the one that survived.} The winning cell sits on the
 \texttt{market\_vw} bucket with an exogenous mask; sibling buckets failed as
