@@ -2698,6 +2698,27 @@ direction, so no conjugation ambiguity), phase lagged one day, zero during the t
   final residual is real but small, and the causal plane will be noisier than the full-sample
   plane that produced it.
 
+**Result: PASS — at the line.** QLIKE DM **+2.09** on the active span (198,420 bars; gate
+≥ +2.0), full span +2.09, 2020+ **+1.38**, sqrt-loss DM +1.74. QLIKE 0.12654 → 0.12652. The
+phase of the cycle is **the first structure-derived conditioning object in this study to clear a
+pre-registered walk-forward gate end-to-end** — against the recorded expectation, which said
+below-gate.
+
+And now the honesty about what was won. The margin is one hundredth of a t-unit over the gate;
+the 2020+ subset does not clear it alone; the other loss function does not clear it; and the
+QLIKE level moves by 0.2 in the era table's 1e-4 units — against a total edge of ~80. As a
+single pre-registered arm with a recorded below-gate expectation, the nominal +2.09 is a clean
+pass with no shopping to discount. But held to the §24 standard — where smear died at rw p
+0.181 — a claim this size would need to survive a fresh multiplicity accounting alongside the
+§27/§28 family (C6, E1, E2, K/F, this), and this panel has no fresh data left to run one.
+Verdict, recorded both ways: **keep the two phase columns** (they are causal, two columns, and
+cost nothing — uniform-generous-shrunk says carry them like everything else weak and dense), and
+**do not update the meta-law's obituary** until the sliver replicates on data that did not
+exist when the cycle was found. The cycle's secure value remains what §26–28 measured: the
+mechanism behind the carriers' autonomy, the phase-forecastability of the state a month out, and
+the operational instruments (rot detector, flow monitor) — with, now, a footnote-sized and
+provisionally real alpha attached.
+
 ## Reproducibility
 
 ```bash
@@ -2758,6 +2779,10 @@ ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage sponge     # §27 C3: 
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage cpd        # §27 C4: network change points
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage rmt        # §27 C5: MP edge, gauge degeneracy
 ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage flow       # §27 C6: scored arm (fails, 10th)
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phase      # §28 K/F: cycle kinematics + forecast
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasex     # §28 E1/E2: exploitation gates
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasecheck # §28.1 falsification battery
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage phasewalk  # §28.2 walk arm (PASS +2.09, ~30min)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
