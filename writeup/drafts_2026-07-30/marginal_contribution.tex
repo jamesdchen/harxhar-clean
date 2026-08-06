@@ -1,0 +1,470 @@
+\section{Marginal Contribution of Feature Buckets and Individual Features}\label{sec:marginal}
+
+Section~\ref{sec:descriptive} established the panel, the target, and the evaluation
+protocol; it also fixed the reference point against which everything in this paper is
+measured, the per-bar least-squares fit of the HAR ladder plus calendar dummies. This
+section asks the first substantive question: \emph{where does forecast skill actually come
+from?} We answer it at two levels of resolution --- the exogenous feature buckets defined
+in Section~\ref{sec:descriptive}, and, one level down, the individual variables inside them
+--- and we answer it deliberately within a single model class, ordinary least squares.
+
+The restriction to least squares is the point of the exercise, not a limitation of it.
+Attribution statements that are computed under a flexible learner confound two distinct
+questions: whether a feature carries information, and whether a particular estimator
+happens to be able to exploit it. By holding the estimator fixed at the simplest possible
+linear map we obtain marginal contributions that are properties of the \emph{data}. What a
+richer hypothesis class does with the same features is the subject of
+Section~\ref{sec:linvsnonlin}, and the comparison between the two sections is only
+interpretable because this one refuses to move the estimator.
+
+\paragraph{What ``least squares'' means here, precisely.} Honesty requires that we state
+the estimator used in each experiment rather than assert a uniform ``OLS'' that was never
+run in that exact form. Three closely related configurations appear below.
+
+\begin{enumerate}
+\item \textbf{The battery's linear arms} (Section~\ref{sec:marginal} 3.1). The primary
+attribution table is the linear slice of the same causal-tuning battery that
+Section~\ref{sec:linvsnonlin} analyses in full: rolling least squares over a window of
+$24{,}000$ bars ($500$ trading days), refit at every bar by exact rank-one
+downdate/update of the normal equations (reproducing the batch solution to
+$1.8 \times 10^{-11}$), with a ridge \citep{HoerlKennard1970}, lasso
+\citep{Tibshirani1996} or elastic-net \citep{ZouHastie2005} penalty whose strength is
+re-selected causally from a forward validation split. The penalties selected are small,
+and the ridge column is the working least-squares surrogate throughout. The battery's own
+\texttt{baseline} row bounds the distance from exact OLS directly: penalizing the HAR
+ladder with no exogenous features present moves QLIKE by only $+0.0003$ against the
+$\alpha = 0$ incumbent --- and \emph{in the wrong direction}, which is itself evidence
+that shrinkage is doing nothing for these tables beyond numerical stabilisation.
+\item \textbf{HAR-unpenalized, exog-penalized every-bar fits}
+(Sections~\ref{sec:marginal} 3.2 and~\ref{sec:marginal} 3.5). The six HAR columns enter
+\emph{without} any penalty, which by the Frisch--Waugh--Lovell theorem
+\citep{FrischWaugh1933,Lovell1963} makes the HAR block an exact OLS fit on the residualised
+problem; only the exogenous block carries a penalty. The baseline row of every such design
+is therefore literally OLS.
+\item \textbf{Ridge at $\alpha = 1$ on the raw research panel}
+(Section~\ref{sec:marginal} 3.4), used for the exhaustive $2^8$ factorial, where $256$
+cells $\times$ two training windows had to be run every-bar.
+\end{enumerate}
+
+\noindent A literal $\alpha = 0$ battery with exogenous features has \emph{not} been run,
+and we do not claim one. The incumbent code path accepts $\alpha = 0$ directly, so this is
+a pending robustness run rather than an open question of feasibility; we flag it again in
+the limitations at the end of the section. Nothing below depends on the distinction at the
+displayed precision, but the reader is entitled to know which fit produced which number.
+
+\paragraph{A standing warning about levels.} Three mutually incompatible QLIKE level
+regimes appear in this paper, because the underlying panels differ in construction and in
+evaluation window. The diurnally adjusted panel used for the headline results sits at
+$\approx 0.126$--$0.134$; the COVID-inclusive every-bar battery sits at
+$\approx 0.142$--$0.149$; the raw research panel used for the factorial, which applies no
+diurnal adjustment and retains overnight bars, sits at $\approx 0.35$--$0.79$. \emph{Levels
+are never comparable across these three regimes.} Every table below carries its panel and
+its evaluation window in the caption, and every claim we draw is a within-table ranking, a
+within-table difference, or a test statistic.
+
+\subsection{Bucket-Level Marginal Contribution}
+
+The primary attribution experiment adds each exogenous bucket, one at a time, to the HAR
+ladder, and scores the resulting forecast on the full battery panel of
+Section~\ref{sec:descriptive}. Table~\ref{tab:marginal_buckets_wf} is the linear slice of
+the battery: the same rows, the same panel, and the same incumbent as every other
+bucket-by-model table in this paper --- only the model columns differ. Here they are the
+three members of the least-squares class; Section~\ref{sec:linvsnonlin} will widen the
+same table to tree ensembles, and Section~\ref{sec:algorithms} to nonparametric
+estimators, without moving anything else.
+
+% Provenance: writeup/metrics_table_causal_tune_plus_spectral.csv (family=causal-tuned,
+% estimators ridge/reclasticnet/reclasso), identical source as Section 4's battery table;
+% incumbent from writeup/incumbent_metrics.json.
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Marginal contribution of each exogenous bucket: the linear slice of the battery.
+\textbf{Panel: causal-tuning battery,} diurnally adjusted, $n = 218{,}934$ thirty-minute
+bars, identical rows in every cell; incumbent QLIKE $= 0.13415$ (per-bar OLS on HAR $+$
+calendar). \textbf{Estimators:} rolling least squares, window $24{,}000$ bars ($500$
+trading days), refit every bar by exact rank-one updates, penalty re-selected causally.
+Cells report QLIKE with the Diebold--Mariano $t$-statistic against the incumbent in
+parentheses; negative $t$ favors the arm. Best cell per row in bold. The
+\texttt{all\_features} row stacks all $41$ exogenous series
+($\approx 526$ columns after the moving-average ladder and availability indicators).}
+\label{tab:marginal_buckets_wf}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Bucket & Ridge & Elastic net & Lasso \\
+\midrule
+\texttt{all\_features} & \textbf{0.12788} ($-19.9$) & 0.12827 ($-19.3$) & 0.12907 ($-13.2$) \\
+\texttt{moments}       & \textbf{0.13085} ($-19.2$) & 0.13114 ($-17.7$) & 0.13179 ($-8.9$) \\
+\texttt{liquidity}     & \textbf{0.13120} ($-13.4$) & 0.13184 ($-11.5$) & 0.13206 ($-11.2$) \\
+\texttt{implied\_vol}  & \textbf{0.13252} ($-11.3$) & 0.13262 ($-10.6$) & 0.13274 ($-9.8$) \\
+\texttt{market\_vw}    & \textbf{0.13291} ($-9.1$)  & 0.13316 ($-7.3$)  & 0.13321 ($-6.4$) \\
+\texttt{market\_ew}    & \textbf{0.13319} ($-7.2$)  & 0.13344 ($-5.4$)  & 0.13353 ($-4.6$) \\
+\texttt{vol\_demand}   & \textbf{0.13337} ($-4.1$)  & 0.13361 ($-3.4$)  & 0.13359 ($-3.3$) \\
+\texttt{sentiment}     & \textbf{0.13347} ($-5.7$)  & 0.13377 ($-3.5$)  & 0.13390 ($-2.1$) \\
+\midrule
+\texttt{baseline} (no exog) & \textbf{0.13445} ($+5.0$) & 0.13471 ($+7.5$) & 0.13475 ($+7.0$) \\
+Incumbent: OLS on \texttt{baseline} & \multicolumn{3}{c}{0.13415} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Every comparison in Table~\ref{tab:marginal_buckets_wf} is bar-for-bar against the same
+incumbent on the same rows, so each cell carries its own significance statement. Three
+facts follow, and they organise the rest of the paper.
+
+\paragraph{Every bucket improves on HAR, significantly.} Reading down the ridge column,
+there is no exogenous bucket whose addition degrades the forecast, and no bucket whose
+improvement is attributable to sampling noise: the weakest arm in the table,
+\texttt{vol\_demand}, still rejects equal predictive accuracy at $t = -4.1$. The spread
+between the best single bucket (\texttt{moments}, $-0.00331$ against the incumbent) and
+the weakest (\texttt{sentiment}, $-0.00068$) is a factor of five, but the sign is
+uniform. This uniformity is itself a finding, and a hard-won one: in an earlier revision
+of the pipeline, three of these buckets --- \texttt{sentiment}, \texttt{implied\_vol} and
+\texttt{vol\_demand} --- appeared to \emph{lose} to HAR, and were provisionally written up
+as such. Each of those apparent losses turned out to be a scaling defect in the feature
+construction rather than an absence of signal, and each bucket became a genuine
+improvement once the defect was repaired. The general lesson, which we state because it
+bears on how any such table should be read, is that a feature that appears to hurt is
+very often a feature the pipeline mis-scales. An earlier, independent walk-forward
+battery at a fixed $\alpha = 1$ penalty --- a different configuration on the same panel
+--- produces the same ranking with \texttt{moments} first among single buckets and the
+joint set dominant, so the attribution is not an artefact of the causal penalty
+selection.
+% Replication source: writeup/session_notes_2026-06-23_feature_investigation.md,
+% "Final validated ranking (real walk-forward QLIKE, full 218,934, vs HAR 0.13460)".
+
+\paragraph{The buckets overlap heavily: contribution is strongly sublinear.} Summing the
+seven individual bucket improvements in the ridge column gives
+\[
+\textstyle\sum_b \Delta_b
+= -(0.00331 + 0.00295 + 0.00163 + 0.00125 + 0.00096 + 0.00078 + 0.00068)
+= -0.01155 ,
+\]
+whereas the joint \texttt{all\_features} cell delivers only $-0.00627$ --- barely more
+than half of the additive prediction ($-0.01155 / -0.00627 = 1.84$). The buckets are
+therefore not seven independent channels of information about future variance; they are
+seven partially redundant views of a much smaller amount of information. Note that the
+joint cell nonetheless beats the best single bucket by a further $-0.00297$, so the
+redundancy is partial rather than total: stacking still pays, but it pays at roughly half
+the rate a naive addition of marginal gains would suggest. (An independent, test-set-tuned
+oracle table computed at a different training window and on a different evaluation slice
+--- diagnostic only, and not level-comparable to Table~\ref{tab:marginal_buckets_wf} ---
+reproduces the same qualitative sublinearity, with a joint improvement smaller than the sum
+of its singles.) Sublinearity of this magnitude is the single most important structural
+fact about the feature set, and it recurs at the individual-feature level in
+Section~\ref{sec:marginal} 3.4 below.
+
+\paragraph{A provenance caution.} The \texttt{market\_ew} bucket is worth one sentence of
+warning about how easily an attribution table can be corrupted upstream of the estimator.
+In the fixed-$\alpha$ replication battery just cited, the same bucket evaluated on the
+same panel with the same estimator but with an overnight fill routine that imputed a
+constant $1.0$ into the cross-sectional return moments scores $\Delta = -0.00044$ against
+its HAR reference rather than the clean $-0.00128$: the imputation artefact silently
+destroyed roughly two thirds of the bucket's genuine contribution. Marginal-contribution
+tables are only as trustworthy as the missing-data handling beneath them, and the reader
+should treat the imputation policy as part of the estimator specification rather than as
+a pre-processing detail.
+
+\subsection{Robustness Across Evaluation Windows, and the Model Confidence Set}
+
+The Diebold--Mariano statistics of Table~\ref{tab:marginal_buckets_wf}
+\citep{DieboldMariano1995} are computed as the $t$-ratio of the mean per-bar loss
+differential to its Newey--West HAC standard error with the Harvey--Leybourne--Newbold
+small-sample correction \citep{HarveyLeybourneNewbold1997}. Two questions remain that the
+battery alone cannot answer: whether the bucket attributions survive a different
+evaluation window and protocol, and whether any \emph{single} bucket is statistically
+defensible against the joint set. Both are answered by an independent every-bar
+robustness design, which we summarise in prose because its QLIKE levels live on a
+different panel and are not comparable to the battery: a rolling
+$1{,}000$-trading-day window, HAR block unpenalized (exact OLS via Frisch--Waugh--Lovell)
+with only the exogenous block penalized, scored on a fixed COVID-inclusive window from
+January 2018 to May 2025, $n = 74{,}934$ bars over $1{,}843$ trading days with identical
+rows in every cell.
+% Provenance: writeup/beat4_table_with_trees.tex (linear rows) and
+% writeup/penalty_estimator_floor_2026-07-01.md section 7 (DM / MCS).
+
+The robustness design reproduces the battery's qualitative structure in full. Every
+bucket again rejects equal predictive accuracy against HAR-only at any conventional
+level --- the weakest, \texttt{vol\_demand}, at $t = -6.2$
+($p = 5.0 \times 10^{-10}$), the joint set at $t = -13.0$ --- and the joint set again
+dominates every single bucket. With $74{,}934$ paired loss observations this is
+unsurprising and should not be over-read: the tests establish that the improvements are
+not sampling noise, not that they are economically large. The bucket \emph{ranking}
+rotates with the window --- \texttt{implied\_vol} leads there, \texttt{moments} in
+Table~\ref{tab:marginal_buckets_wf} --- which is exactly what one expects when the
+evaluation window changes to one dominated by a volatility crisis: implied-volatility
+levels and liquidity carry the most information through COVID. The rotation is a further
+argument against promoting any single bucket.
+
+The model confidence set delivers the sharper statement. At the $90\%$ level, and at
+\emph{every} training window tested from $1{,}000$ to $3{,}500$ trading days, the
+bucket-level MCS is the singleton $\{\texttt{all\_buckets}\}$: every individual bucket is
+eliminated. The joint set against HAR-only yields Diebold--Mariano statistics ranging from
+$-12.8$ to $-16.2$ across those windows, with a mean loss differential of $-0.0054$.
+
+The conclusion is worth stating without hedging. Individual buckets are each significantly
+better than HAR, and they are each significantly \emph{worse} than the union of all
+buckets, uniformly and at every window we examined. There is no defensible ``top bucket''
+in a statistical sense --- only a defensible joint feature set. Any narrative that promotes
+one bucket as the source of skill is reading a point estimate that the significance
+machinery does not support. This is the natural companion to the sublinearity finding of
+the previous subsection: the buckets overlap so heavily that no proper subset survives, yet
+each contributes enough unique information that dropping it is detectable.
+
+\subsection{A Block-Level Type-III Decomposition}
+
+The bucket batteries treat the exogenous features as one undifferentiated addition to HAR.
+A finer question is how the deployed feature matrix partitions into functionally distinct
+\emph{blocks}, and what each block is worth net of all the others.
+
+The natural instrument is the Frisch--Waugh--Lovell theorem
+\citep{FrischWaugh1933,Lovell1963}. In a least-squares fit, the coefficient on a block of
+regressors is identical to the coefficient obtained by first residualising both that block
+and the dependent variable on all remaining regressors, and then regressing one residual on
+the other. The block's contribution is therefore exactly its contribution \emph{orthogonal
+to everything else in the model} --- a Type-III, leave-one-block-out decomposition rather
+than a sequential Type-I one that would depend on the order in which blocks are entered.
+Operationally we implement this by nested causal walk-forward refits: each block's unique
+contribution is the degradation in out-of-sample QLIKE when that block alone is removed
+from the full specification, with all remaining blocks refit optimally. Because the blocks
+are strongly collinear, refitting matters; decomposing a single fitted coefficient vector
+would attribute shared variance arbitrarily.
+
+% Provenance: writeup/mechanism_and_data_to_buy_2026-06-28.md, section 3
+% "FWL block attribution of the linear base (fwl_attribution.py; full fit reproduces 0.12314)".
+\begin{table}[H]
+\centering
+\caption{Frisch--Waugh--Lovell block decomposition of the deployed linear base.
+\textbf{Panel:} diurnally adjusted full out-of-sample panel; the full fit reproduces QLIKE
+$0.12314$. Each entry is the block's unique (Type-III) contribution, i.e.\ the
+out-of-sample QLIKE degradation from removing that block with all others refit. Computed
+under the production fixed-$\alpha$ elastic net on the exogenous block, so the
+orthogonalisation is approximate rather than exact --- see the caveat in the text.}
+\label{tab:marginal_fwl}
+\begin{tabular}{llr}
+\toprule
+block & content & unique $\Delta$QLIKE \\
+\midrule
+HAR    & the six-lag realised-variance ladder                     & $-0.02208$ \\
+EXOG   & 359 raw exogenous columns                                & $-0.00449$ \\
+REGIME & HAR $\times$ \{open, close\} session-edge interactions   & $-0.00225$ \\
+CUMRV  & \texttt{cumrv\_x\_close}, one engineered path feature    & $-0.00122$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The HAR ladder dominates: it accounts for $96\%$ of the explainable variance of the full
+model, in the sense that HAR alone reaches $R^2 = 0.594$ against the full specification's
+$0.617$. This is the quantitative form of the observation, familiar since
+\citet{Corsi2009}, that multi-scale volatility persistence is most of what there is to
+know about future realised variance at these horizons. Everything built on top of it ---
+the entire exogenous data programme, the session-edge interactions, the engineered path
+feature --- shares a residual roughly one twentieth the size of the HAR contribution.
+
+The more interesting comparison is per feature. The CUMRV block is a \emph{single} column,
+worth $-0.00122$ on its own; the EXOG block is $359$ columns worth $-0.00449$ jointly, or
+about $1.3 \times 10^{-5}$ per column. One mechanism-targeted engineered feature is thus
+worth nearly two orders of magnitude more, per feature, than the average raw exogenous
+series. We regard this as the single sharpest piece of evidence in the paper about where
+effort should go: a feature that directly measures the mechanism (here, the accumulation of
+volatility along the intraday path, gated to the close and after-hours session) dominates
+the strategy of adding more loosely related series and letting the penalty sort them out.
+The corollary, developed in Section~\ref{sec:linvsnonlin}, is that the binding constraint
+is information rather than estimator capacity.
+
+\paragraph{Caveat.} These numbers were computed under the production fixed-$\alpha$ elastic
+net on the exogenous block, not under exact least squares. Frisch--Waugh--Lovell is exact
+in OLS; under a penalty the residualisation is only approximate, because the penalty is not
+invariant to the reparameterisation that the theorem performs, and shared variance can be
+reallocated between blocks by the shrinkage rather than by the data. The direction and
+rough magnitude of the decomposition are robust --- the HAR block's dominance is not a
+$0.001$-scale effect --- but the exact figures should be re-derived under $\alpha = 0$, and
+we flag that rerun alongside the pending unpenalized bucket battery in the limitations
+below.
+
+\subsection{Individual Features: An Exact $2^8$ Factorial}
+
+Bucket-level attribution cannot say which \emph{variables} matter. To answer that we ran a
+complete $2^8$ factorial over the eight variable bundles that survived a first-stage
+screen, where a bundle is one variable's six-lag moving-average ladder together with its
+availability indicator. All $256$ cells were evaluated, so the main effects and
+interactions reported below are exact averages over the design rather than estimates from a
+fitted response surface.
+
+This experiment lives on the \emph{raw research panel}: no diurnal adjustment, no rank
+transform, overnight bars included. Its QLIKE levels are consequently in the
+$0.35$--$0.79$ range and \textbf{cannot be compared to any other table in this paper}. The
+bundle gains here include intraday seasonality that the adjusted panel removes by
+construction. Rankings, main effects, and Diebold--Mariano statistics are the deliverable.
+Two training windows were run, a primary $tw = 48{,}000$ bars ($1{,}000$ trading days;
+evaluation 9 October 2008 -- 30 April 2024, $n = 198{,}059$) and a replicate
+$tw = 144{,}000$ ($3{,}000$ days; evaluation 25 April 2016 -- 30 April 2024,
+$n = 102{,}059$); the two windows have different evaluation spans and their levels are not
+comparable to each other either, so the replicate serves as a stability check on signs and
+ranks.
+
+% Provenance: writeup/beat4_meeting_2026-07-02.tex, Table 2 (single-bundle cells,
+% exact factorial main effects and two-way interactions in the caption).
+\begin{table}[H]
+\centering
+\caption{Individual-feature factorial. \textbf{Panel:} raw research build (no diurnal
+adjustment or rank transform, overnight bars retained); ridge $\alpha = 1$ on the
+square-root target with the RV-HAR ladder and intraday hour dummies always included;
+refit every bar. \textbf{Levels are not comparable to any other table in this paper, nor
+between the two windows.} ME is the exact factorial main effect on QLIKE, mean(bundle on)
+$-$ mean(bundle off) over all $256$ cells. Single-cell QLIKE is the bundle added alone to
+the baseline; DM is the Diebold--Mariano $t$-statistic against the baseline row of the same
+window.}
+\label{tab:marginal_factorial}
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{3}{c}{$tw = 48{,}000$ (2008--2024)} & \multicolumn{3}{c}{$tw = 144{,}000$ (2016--2024)} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+bundle & ME & QLIKE & DM & ME & QLIKE & DM \\
+\midrule
+\texttt{absret}    & $-0.199$ & 0.38950 & $-37.3$ & $-0.257$ & 0.38686 & $-58.8$ \\
+\texttt{volume}    & $-0.108$ & 0.50567 & $-31.3$ & $-0.063$ & 0.57475 & $-44.9$ \\
+\texttt{vvix}      & $-0.023$ & 0.68515 & $-12.2$ & $-0.014$ & 0.66325 & $-23.9$ \\
+\texttt{sentcount} & $-0.011$ & 0.71939 & $-11.9$ & $+0.003$ & 0.69639 & $-7.1$ \\
+\texttt{vdem\_all} & $-0.010$ & 0.72088 & $-14.7$ & $+0.000$ & 0.68742 & $-8.4$ \\
+\texttt{attention} & $-0.010$ & 0.72629 & $-10.0$ & $+0.002$ & 0.68812 & $-8.4$ \\
+\texttt{vdem\_spx} & $-0.009$ & 0.73552 & $-12.6$ & $+0.001$ & 0.67324 & $-13.0$ \\
+\texttt{bipow}     & $-0.000$ & 0.78314 & $-6.2$  & $-0.000$ & 0.72567 & $-2.1$ \\
+\midrule
+baseline (HAR ladder $+$ hour dummies) & --- & 0.78614 & --- & --- & 0.72675 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{One dominant feature, one partially redundant second, and a long thin tail.}
+Absolute returns carry a main effect of $-0.199$ and $-0.257$ in the two windows, roughly
+twice the next largest and an order of magnitude larger than everything below the top two.
+Volume follows at $-0.108$ and $-0.063$. Below those two the main effects collapse to the
+third decimal, and in the replicate window four of them ($\texttt{sentcount}$,
+$\texttt{vdem\_all}$, $\texttt{attention}$, $\texttt{vdem\_spx}$) change sign to weakly
+positive, which is to say they are indistinguishable from zero once the training window is
+tripled. Bipower variation is a genuine null in both windows, $-0.000$ and $-0.000$: it is
+the one bundle in the design that the factorial cannot distinguish from adding nothing at
+all, and we report it as such rather than folding it into the tail. That an established
+jump-robust volatility estimator adds no exact main effect here is informative --- against
+a six-lag HAR ladder already fit on the same realised-variance series, bipower variation
+appears to be spanned.
+
+\paragraph{The two leading features are partly redundant with one another.} The largest
+two-way interactions are $\texttt{absret} \times \texttt{volume}$ at $+0.094$ and $+0.064$,
+and $\texttt{absret} \times \texttt{vvix}$ at $+0.020$ and $+0.010$. Under this sign
+convention a positive interaction means the joint gain is \emph{less} than additive.
+The $\texttt{absret} \times \texttt{volume}$ interaction recovers roughly $87\%$ of
+volume's own main effect in the primary window --- adding volume once absolute returns are
+present buys a small fraction of what it buys on its own. This is the individual-feature
+image of the bucket-level sublinearity of Section~\ref{sec:marginal} 3.1, one level down and
+measured exactly rather than by summation.
+
+\paragraph{Sparse beats dense.} Because the design is complete we can identify the best
+subset directly rather than by search. The four-bundle set
+$\{\texttt{absret}, \texttt{volume}, \texttt{vdem\_all}, \texttt{bipow}\}$ attains QLIKE
+$0.34598$ with $\mathrm{DM} = -40.9$ against the baseline, beating the all-eight
+specification at $0.35156$ with $\mathrm{DM} = -39.4$; the ordering replicates in the
+second window ($0.36599$ versus $0.37023$). A six-bundle set chosen on a different
+criterion lands at $0.35237$, between the two. Adding the four weakest bundles to the
+four-bundle winner therefore \emph{costs} accuracy: their marginal information is smaller
+than the estimation variance they introduce, even under a penalised fit at $\alpha = 1$.
+
+Taken together, the picture at the individual-feature level is the same one the bucket
+tables paint: one cheap, dominant feature; a second that is largely redundant with it; and
+a long tail of effects small enough that including them is a variance decision rather than
+a bias decision. The information in this feature set is dense, weak, and heavily
+overlapping --- the framing we carry into Section~\ref{sec:linvsnonlin}.
+
+\subsection{What Least Squares Keeps: The Support Structure}
+
+A final diagnostic asks which columns a sparse least-squares fit actually retains. We fit
+the exogenous block with an $\ell_1$ penalty \citep{Tibshirani1996} at its oracle strength,
+HAR held unpenalized, across ten sequential walk-forward blocks of the $523$-column
+exogenous matrix, and record the support in each block.
+
+% Provenance: results/lasso_support.log (driver lasso_support.py), summarised in
+% writeup/penalty_estimator_floor_2026-07-01.md section 5.
+\begin{table}[H]
+\centering
+\caption{Support of the oracle $\ell_1$ fit on the exogenous block, across ten sequential
+walk-forward blocks. \textbf{Panel:} $523$ penalized exogenous columns, training window
+$48{,}000$ bars. ``Ever kept'' counts columns with a non-zero coefficient in at least one
+block; ``always kept'' counts columns non-zero in all ten; ``killed'' counts columns zero
+in every block.}
+\label{tab:marginal_support}
+\begin{tabular}{lrrrr}
+\toprule
+family & columns & ever kept & always kept & killed \\
+\midrule
+availability indicators & 246 & 11 & 0 & 235 \\
+\texttt{liquidity}      & 72  & 58 & 10 & 14 \\
+\texttt{vol\_demand}    & 48  & 26 & 0 & 22 \\
+\texttt{moments}        & 42  & 32 & 8 & 10 \\
+\texttt{market\_ew}     & 36  & 26 & 1 & 10 \\
+\texttt{market\_vw}     & 36  & 27 & 1 & 9 \\
+\texttt{sentiment}      & 18  & 16 & 0 & 2 \\
+\texttt{implied\_vol}   & 18  & 16 & 2 & 2 \\
+calendar                & 6   & 6  & 6 & 0 \\
+other                   & 1   & 1  & 1 & 0 \\
+\midrule
+total                   & 523 & 219 & 29 & 304 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Of the $523$ exogenous columns, $304$ are zeroed in every block. Of those $304$ kills, $235$
+--- some $77\%$ --- are availability indicators: only $11$ of the $246$ missing-data flags
+ever carry signal. This has a direct estimator-selection consequence that we note here
+because it recurs in Section~\ref{sec:algorithms}: a pure $\ell_2$ penalty
+\citep{HoerlKennard1970} cannot set these columns to zero, only shrink them, so they inject
+variance into a dense fit; $\ell_1$ removes them cleanly. Where a bucket contains little
+such junk --- \texttt{implied\_vol}, whose $18$ columns are dense and almost all
+informative --- the ordering reverses and $\ell_2$ is preferable. Penalty choice tracks the
+junk fraction of the design matrix, not any deep property of the signal.
+
+The temporal structure of the support is the more striking result. Of the $219$ columns ever
+kept, only $29$ are kept in every block; the remaining $190$ --- $87\%$ of the ever-selected
+set --- enter and leave as the window rolls forward. The stable core is small and
+recognisable: the six calendar and clock features are retained in every single block, joined
+by ten liquidity, eight moments and two implied-volatility columns. Everything else
+flickers.
+
+Two readings of this are consistent with the rest of the section. Under the first, the
+flicker is estimation noise, in which case the marginal value of any individual exogenous
+column is essentially unmeasurable at this sample size and the joint bucket is the only
+meaningful unit of attribution --- exactly what the model confidence set concluded in
+Section~\ref{sec:marginal} 3.2. Under the second, the flicker is genuine regime dependence,
+in which case a single fixed linear map is the wrong object and the appropriate model is one
+that varies its effective support over time. Either way, the operative description of this
+feature set is a small unstable core plus a wide, shallow tail, which is the dense-but-weak
+regime that Section~\ref{sec:linvsnonlin} takes as its starting point.
+
+\subsection{Limitations}
+
+Four qualifications apply to everything above, and we state them plainly.
+
+\begin{enumerate}
+\item \textbf{The exact $\alpha = 0$ battery is pending.} No literal unpenalized
+least-squares run with exogenous features has been executed. Section~\ref{sec:marginal} 3.1
+uses a negligible ridge penalty at a $24{,}000$-row window; Sections~\ref{sec:marginal} 3.2
+and~\ref{sec:marginal} 3.5 hold the HAR block exactly unpenalized but penalise the
+exogenous block. The incumbent code path accepts $\alpha = 0$ directly, so this is a
+scheduled robustness run, not an unresolved question.
+\item \textbf{The Frisch--Waugh--Lovell decomposition is penalty-approximate.}
+Table~\ref{tab:marginal_fwl} was computed under the production fixed-$\alpha$ elastic net.
+FWL is exact only in OLS; under shrinkage the orthogonalisation reallocates shared variance
+in a way that is not purely data-determined. The decomposition should be re-derived at
+$\alpha = 0$ alongside the battery above.
+\item \textbf{No per-coefficient standard errors are reported anywhere.} All inference in
+this section is on \emph{forecast losses} --- Diebold--Mariano tests and model confidence
+sets on per-bar QLIKE --- not on coefficients. We make no claims about the significance of
+any individual estimated coefficient, and none should be inferred from the support table.
+\item \textbf{The factorial lives on a different panel in different units.}
+Table~\ref{tab:marginal_factorial} is built on the raw research panel with no diurnal
+adjustment and overnight bars retained. Its levels are not comparable to
+Table~\ref{tab:marginal_buckets_wf} or
+Table~\ref{tab:marginal_fwl}, and its main effects are in that panel's units. Only rankings,
+signs, interaction structure and test statistics transfer.
+\end{enumerate}

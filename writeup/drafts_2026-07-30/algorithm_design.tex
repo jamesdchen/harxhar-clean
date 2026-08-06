@@ -1,0 +1,648 @@
+\section{Algorithm Design under a Fixed Feature Set}
+\label{sec:algorithms}
+
+Sections~\ref{sec:marginal} and~\ref{sec:linvsnonlin} varied the information set
+and the model class. This section holds both fixed. The feature construction is
+frozen at the pipeline of Section~\ref{sec:descriptive}, as are the
+$n = 218{,}934$ out-of-sample panel, the evaluation protocol (QLIKE on raw
+variance after Duan smearing --- a loss robust to noise in the variance proxy in
+the sense of \citealp{Patton2011,HansenLundeNason2011}; Diebold--Mariano with HAC
+standard errors and the Harvey--Leybourne--Newbold correction,
+\citealp{DieboldMariano1995,HarveyLeybourneNewbold1997}), and the incumbent:
+per-bar ordinary least squares on HAR plus calendar, QLIKE $0.13415$. What
+remains free is the \emph{algorithm}.
+
+\subsection{The design space}
+\label{sec:alg_principle}
+
+With the design matrix frozen, four levers remain, and this section presents one
+algorithm per lever. \textbf{(i) Exactness and cadence:} a walk-forward backtest
+slides its window one bar at a time, so the estimator can be refit from scratch
+(exact, expensive), refit on a cadence (cheap, stale), or \emph{updated} exactly as
+the window slides. \textbf{(ii) Causal hyperparameter choice:} a hyperparameter
+selected on the whole sample is a fitted value, not a forecast; choosing it only
+from data strictly preceding each forecast turns ``tuning does not help'' into a
+claim about the data rather than about the analyst's discipline.
+\textbf{(iii) Composition:} in a base-plus-correction stack the base does not
+depend on the correction's configuration, and that redundancy can be removed
+exactly. \textbf{(iv) Geometry:} all of the above are parametric least squares; the
+alternative is to ask which past episodes \emph{resemble} the present one, in a
+metric learned from the data. Each subsection gives an idea, the device that makes
+it feasible under per-bar refitting, and a measured verdict.
+
+\subsection{Exact every-bar linear updates}
+\label{sec:alg_exact}
+
+\subsubsection{Rank-one rolling least squares}
+
+Let the training window at bar $t$ be the $W$ rows $[t-W, t)$ with design $X_t$
+and target $y_t$. Ridge regression with an unpenalized intercept
+\citep{HoerlKennard1970} solves the centred normal equations
+\begin{equation}
+\bigl( X_t^{c\top} X_t^{c} + \alpha I_p \bigr)\,\beta_t = X_t^{c\top} y_t^{c},
+\qquad X_t^{c} = X_t - \bar{x}_t \mathbf{1}^{\top},
+\label{eq:ridge_normal}
+\end{equation}
+which costs $O(Wp^2 + p^3)$ per refit. But the window changes by one row in and
+one row out, so its sufficient statistics change by rank one. Maintaining
+$S^{xx}_t = X_t^\top X_t$, $S^{xy}_t = X_t^\top y_t$, $s^{x}_t = X_t^\top
+\mathbf{1}$ and $s^{y}_t = y_t^\top \mathbf{1}$, the slide that admits
+$(x_{\mathrm{in}}, y_{\mathrm{in}})$ and evicts $(x_{\mathrm{out}},
+y_{\mathrm{out}})$ is
+\begin{equation}
+\begin{aligned}
+S^{xx}_{t+1} &= S^{xx}_t + x_{\mathrm{in}} x_{\mathrm{in}}^\top - x_{\mathrm{out}} x_{\mathrm{out}}^\top,
+&\quad
+S^{xy}_{t+1} &= S^{xy}_t + x_{\mathrm{in}} y_{\mathrm{in}} - x_{\mathrm{out}} y_{\mathrm{out}}, \\
+s^{x}_{t+1} &= s^{x}_t + x_{\mathrm{in}} - x_{\mathrm{out}},
+&\quad
+s^{y}_{t+1} &= s^{y}_t + y_{\mathrm{in}} - y_{\mathrm{out}},
+\end{aligned}
+\label{eq:rank1_update}
+\end{equation}
+two rank-one updates at $O(p^2)$ in place of an $O(Wp^2)$ rebuild. Centring is
+itself incremental --- the centred Gram and cross-product are $S^{xx} - s^{x}
+s^{x\top}/W$ and $S^{xy} - s^{x} s^{y}/W$ --- so the solve reproduces
+\texttt{sklearn}'s \texttt{fit\_intercept=True} convention exactly. The $O(p^3)$
+solve is taken on a cadence; the updates are taken every bar regardless, so the
+state is never stale even when the coefficients are refreshed coarsely. Two
+properties matter downstream. At $\alpha = 0$, equation~\eqref{eq:ridge_normal} is
+exact ordinary least squares, so this solver \emph{is} how the paper's incumbent is
+computed. And the speed-up is measured: against a per-window \texttt{sklearn}
+\texttt{Ridge} refit the rolling solver agrees to $1.8 \times 10^{-11}$ and runs
+$108\times$ faster, $4.589$ ms/bar reduced to $0.042$ ms/bar --- which is what
+makes the per-bar-refit convention used throughout this paper affordable.
+
+For the penalized variant the slide can be pushed onto the inverse itself. With
+$K_t = (X_t^\top X_t + \alpha D)^{-1}$ for a diagonal penalty $D$ that is zero on
+the intercept, Sherman--Morrison gives a closed-form two-step update --- admit the
+entering row $u$, then evict the leaving row $v$:
+\begin{equation}
+K \;\leftarrow\; K - \frac{(Ku)(Ku)^\top}{1 + u^\top K u},
+\qquad\text{then}\qquad
+K \;\leftarrow\; K + \frac{(Kv)(Kv)^\top}{1 - v^\top K v},
+\label{eq:sherman_morrison}
+\end{equation}
+with $c \leftarrow c + u y_{\mathrm{in}} - v y_{\mathrm{out}}$ and $\beta = Kc$
+available at $O(p^2)$ with no factorization at all.
+
+\subsubsection{The \texorpdfstring{$L_1$}{L1} analogue: recursive elastic net by online homotopy}
+\label{sec:alg_homotopy}
+
+Equation~\eqref{eq:sherman_morrison} exists because the ridge solution is a smooth
+function of the data. The lasso \citep{Tibshirani1996} and elastic net
+\citep{ZouHastie2005} are not: their solutions are piecewise linear with kinks
+where the active set changes. An exact every-bar update nevertheless survives, in
+piecewise form. The starting point is that an elastic net is a lasso on a ridged
+Gram matrix:
+\begin{equation}
+\min_{b} \; \tfrac12 \|y - Xb\|_2^2 + \mu \|b\|_1 + \tfrac12 \lambda_2 \|b\|_2^2
+\;\;\equiv\;\;
+\min_{b} \; \tfrac12 b^\top G b - c^\top b + \mu \|b\|_1,
+\quad
+\begin{aligned}
+G &= X^\top X + \lambda_2 I, \\ c &= X^\top y.
+\end{aligned}
+\label{eq:enet_gram}
+\end{equation}
+This is more than notational tidiness: the $L_2$ term keeps $G$ strictly positive
+definite, so the active-set subproblems stay well posed even under near
+collinearity --- the failure mode that sinks explicit-inverse formulations of the
+same recursion. The implementation matches \texttt{sklearn}'s
+\texttt{ElasticNet(alpha, l1\_ratio, fit\_intercept=False)} over $N$ rows through
+$\mu = N \alpha \rho$ and $\lambda_2 = N \alpha (1-\rho)$, $\rho =
+\texttt{l1\_ratio}$. The solution is characterized by KKT conditions on the
+residual correlation $r = c - Gb$: $r_j = \mu_j s_j$ on active coordinates with
+sign $s_j$, and $|r_j| \le \mu_j$ elsewhere. Both the classical $\mu$-path
+\citep{Efron2004} and the \emph{data} path are piecewise linear. The
+online-observation homotopy of \citet{Garrigues2008} exploits the second: a scalar
+$t$ interpolates a rank-one change in the data,
+\begin{equation}
+G(t) = G + t\,\sigma\, u u^\top,
+\qquad
+c(t) = c + t\,\sigma\, u\, w,
+\qquad t \in [0,1],
+\label{eq:online_homotopy}
+\end{equation}
+with $\sigma = +1$ for an entering observation $(u,w)$ and $\sigma = -1$ for a
+leaving one. Along $t$ the active coefficients move linearly until a breakpoint ---
+an active coordinate reaching zero, or an inactive correlation reaching $\pm\mu_j$
+--- at which the active set pivots and a new segment begins. The breakpoints are
+roots of scalar rational functions of $t$ and are finite in number, so the walk
+from $t=0$ to $t=1$ \emph{terminates exactly}: no convergence tolerance, no
+approximate fallback. One window slide is therefore exactly two calls
+to~\eqref{eq:online_homotopy}.
+
+Three implementation choices make this usable. \emph{Per-coordinate penalties:}
+$\mu$ is a vector, zero on the intercept and on the dense HAR block, and those
+coordinates are additionally \emph{locked} into the active set and never tested for
+exit --- an elastic net on the exogenous columns wrapped around an unpenalized
+least-squares fit of HAR, expressed in the optimizer rather than approximated by a
+small $\alpha$. \emph{Warm starting:} the active set and signs carry from bar to
+bar, so a typical slide costs a few pivots, not a path walk from $\mu_{\max}$.
+\emph{Periodic cold reseed:} $G$ and $c$ are themselves maintained by rank-one
+add/remove, so an exact rebuild from the current window block periodically
+re-anchors the state and bounds float drift.
+
+The positioning is the conceptual content here. For ridge, a rank-one data change
+produces a rank-one change in the inverse and~\eqref{eq:sherman_morrison} delivers
+the new solution in one algebraic step. For the lasso no such fixed formula exists,
+because the identity of the active set is itself data-dependent. The online
+homotopy \emph{is} the $L_1$ analogue of Sherman--Morrison: same role, same
+rank-one trigger, but a variable-cost piecewise walk in place of a fixed-cost
+identity --- which is also why $L_1$ needs the periodic exact refresh ridge does
+not. The verdict (Section~\ref{sec:linvsnonlin}): on the widest bucket the causally
+tuned recursive elastic net scores $0.12827$ against ridge's $0.12788$, a gap of
+$0.0004$ beside the $0.006$ by which either beats the incumbent. The penalty family
+is not a lever; the algorithm makes that comparison exact rather than
+cadence-confounded.
+
+\subsubsection{Numerical honesty: the identifiability mask}
+\label{sec:alg_mask}
+
+Exact every-bar updating has an uncomfortable corollary. At $\alpha = 0$ nothing
+regularizes the design, and the frozen feature set contains blocks that are
+singular by construction on particular windows: a source going live part-way
+through the sample has availability indicators that are identically zero before its
+go-live bar and identically one after, so a window entirely on one side sees them
+as constant and a window straddling it sees several of them collapse onto
+\emph{the same} step function.
+
+The fix is a per-window identifiability mask, recomputed from the raw training
+window at every refit, in three passes ordered cheapest first. Pass~1 drops
+columns with no dispersion ($\max = \min$); pass~2 drops exact byte-duplicates of
+an earlier survivor; both are threshold-free and scale-free. Pass~3 handles what
+pairwise comparison cannot see --- a block that is rank-deficient without any two
+columns being equal. On the survivors, centred and rescaled to unit column norm
+with singular values $\sigma_1 \ge \cdots \ge \sigma_m$, it takes the rank cut
+\begin{equation}
+\mathrm{rank} = \#\Bigl\{\, i \;:\; \sigma_i > \max(n,m)\, \varepsilon_{\mathrm{mach}}\, \sigma_1 \,\Bigr\},
+\label{eq:rank_cut}
+\end{equation}
+exactly the tolerance \texttt{numpy.linalg.matrix\_rank} uses --- machine precision
+relative to the design's own largest singular value, on a centred unit-norm
+design, so neither the cut nor the pivot ordering is an artefact of feature units.
+The retained set is the column-pivoted QR pivot order truncated at that rank:
+greedy most-independent-first, so the dropped columns are the redundant ones.
+Masked columns are \emph{dropped}, never zeroed: a zeroed column leaves $X^\top X$
+singular and \texttt{Ridge(alpha=0)} then returns coefficients of order $10^{13}$
+on it, harmless only for as long as the column is exactly zero. The failure this
+fixes was measured, not anticipated: on the \texttt{implied\_vol} bucket at one
+local window the constant/duplicate passes kept $45$ columns whose rank was $41$,
+and the unpenalized fit predicted $2.2\times10^{12}$ where neighbouring bars
+predicted $1.3$. Two of $100$ walk-forward chunks blew up this way, and because the
+fitted residual series feeds downstream stages each poisoned every remaining bar of
+its chunk: roughly $2\%$ of bars carried the pooled QLIKE from $0.13$ to $1.12$.
+
+\subsection{Causal hyperparameter re-selection}
+\label{sec:alg_tune}
+
+The second lever is hyperparameter choice, and the protocol is periodic and
+strictly causal. Every $250$ solves the current training window of length $W$ is
+split \emph{forward} into a fit block, an embargo, and a validation tail:
+\begin{equation}
+\underbrace{[\,t-W,\; t-V-E\,)}_{\text{fit}}
+\quad
+\underbrace{[\,t-V-E,\; t-V\,)}_{\text{embargo } E = 25}
+\quad
+\underbrace{[\,t-V,\; t\,)}_{\text{validation } V = 125}.
+\label{eq:forward_split}
+\end{equation}
+Every candidate on a log-scale penalty grid is fitted on the fit block and scored
+by one-step-ahead mean squared error on the validation tail; the argmin holds until
+the next re-selection. Only rows strictly inside the training window are ever read,
+so the region $[\,t,\infty)$ is untouched. Forward validation rather than
+cross-validation is deliberate: $K$-fold assumes a within-window exchangeability
+that volatility regimes violate, and it is not the deployment structure. The
+embargo covers the $25$-bar HAR moving average, which would otherwise bleed
+fit-block information into validation through the feature construction itself;
+longer HAR lags cannot be embargoed inside a $500$-bar window, which we state
+rather than paper over. Between re-selections the solution slides exactly:
+ridge through~\eqref{eq:sherman_morrison}, the $L_1$ arms through two calls
+to~\eqref{eq:online_homotopy}. Each re-selection is also a cold reseed on the full
+window, doubling as the exact re-anchor that bounds float drift, and recomputes the
+identifiability mask of Section~\ref{sec:alg_mask} from the raw ring buffer.
+
+The verdict is negative and is reported in full in
+Section~\ref{sec:linvsnonlin}: causally tuned arms \emph{trail} their fixed-default
+counterparts. That is the point of building the protocol. Without it, ``we tried
+tuning and it did not help'' is an anecdote about one analyst's grid; with it, the
+statement is that on this panel, under a protocol in which every forecast's
+hyperparameters were selected from its own past, adaptive penalty selection is not
+a source of skill.
+
+\subsection{Amortized composition}
+\label{sec:alg_amortized}
+
+The residual-stack models of Section~\ref{sec:linvsnonlin} are two-stage: a linear
+base $\hat{g}_t$ on the training window, and a gradient-boosted tree ensemble
+\citep{Chen2016,Ke2017} on the base's residuals $y - \hat{g}$. Tuning the tree
+stage means sweeping tree configurations, and done naively each trial re-runs the
+whole composition --- including a per-bar \texttt{sklearn} \texttt{Ridge} base,
+$231{,}000$ fits per trial, roughly $825$ seconds per evaluation even on the
+smallest cell. That puts a battery out of reach. The base, however, is
+\emph{config-independent within a cell}: it depends on the bucket, the training
+window and the base penalty, none of which the tree sweep varies. So it is computed
+once with the rank-one solver and cached --- both the every-bar out-of-sample base
+predictions and the base coefficients at each tree-refit point $t_r$, the latter
+being what forms the in-sample residual $y_{\mathrm{train}} -
+X_{\mathrm{train}}\beta_{t_r}$ that the tree at that refit trains on. Each trial
+then fits only trees, and the composed forecast is
+\begin{equation}
+\hat{y}_t \;=\; \hat{g}_t \;+\; \mathcal{T}_{t_r}(x_t),
+\qquad t_r = \text{the refit block containing } t,
+\label{eq:amortized}
+\end{equation}
+which reproduces the naive composed backtest bit for bit. That claim is not left
+to argument: the implementation carries a \texttt{selfcheck} mode whose only job
+is to run both paths and assert equality. Amortization here is an exactness
+property, not an approximation, and it is what made the tree side of the
+Section~\ref{sec:linvsnonlin} battery feasible.
+
+\subsection{Spectral \texorpdfstring{$k$}{k}-NN: nonparametric regression via manifold learning}
+\label{sec:alg_spectral}
+
+The three algorithms above accelerate, discipline, or compose a parametric fit. The
+fourth changes the geometry. Its research question is one volatility forecasters
+ask and rarely test: \emph{do realized-variance dynamics recur?} If the market
+passes through a limited repertoire of states, then for any bar there exist
+\emph{analog episodes} in the past --- stretches whose recent trajectory and
+contemporaneous conditions resemble the present --- and what happened next in those
+episodes is informative about what happens next now. A global parametric model
+cannot express that; a nearest-neighbour regression can, provided the notion of
+resemblance is right, and manifold learning is the natural candidate for supplying
+it.
+
+\subsubsection{View construction and the global normalization}
+
+The unit of comparison is a \emph{view}: a vector for bar $j$ concatenating a
+\textbf{path} block --- the trailing $W$-bar trajectory of the base model's
+residual $e$ --- with a \textbf{state} block --- the non-target-derived feature
+columns $x_j$ of the bar the view predicts:
+\begin{equation}
+v_j \;=\; \Bigl[\;
+\underbrace{\tfrac{e_{j-W:j}}{\mathrm{IQR}_w \cdot \sqrt{W+d}}}_{\text{path, } W \text{ dims}}
+\;,\;
+\underbrace{\tfrac{x_j}{\sqrt{W+d}}}_{\text{state, } d \text{ dims}}
+\;\Bigr] \;\in\; \mathbb{R}^{W+d}.
+\label{eq:view}
+\end{equation}
+Four properties are decisions, not defaults. \emph{The path is uncentred:} a common
+level cancels in a difference of views, so centring would erase exactly what
+distinguishes a calm episode from a violent one; leaving it in means genuine level
+gaps register, which is the regime-analog property the estimator is supposed to
+have. \emph{The path scale is one causal scalar per refit:} $\mathrm{IQR}_w$ is the
+interquartile range of the training window's own target values, read only off rows
+already handed to the model, which puts the unscaled path on the same dimensionless
+footing as the state block, itself rolling-robust-scaled to unit IQR upstream; a
+degenerate window ($\mathrm{IQR}_w \le 0$) \emph{zeroes} the path block rather than
+dividing by a floor, so there is no epsilon in~\eqref{eq:view}. \emph{The state
+block excludes target-derived columns:} the HAR moving averages and their calendar
+interactions are dropped, because the path already carries the target's history at
+full resolution; re-admitting them would re-encode that information and silently
+re-weight it in the distance --- severely for narrow buckets, negligibly for wide
+ones --- confounding the bucket axis with ``how much does the state duplicate the
+path''. The stated cost is that the view's reach into the past is exactly $W$ bars.
+\emph{Selection is by column name}, off the harness's own feature names, and the
+constructor raises rather than silently re-including the target block.
+
+The single scalar $\sqrt{W+d}$ divides \emph{both} blocks, so equal weight falls on
+each \emph{coordinate} and the state block's share of squared distance is
+$d/(W+d)$: $0.9\%$ for the empty-exog \texttt{baseline} bucket ($d = 9$ calendar
+dimensions), $35\%$ for \texttt{all\_features} ($d = 525$). The share scales with
+how much information the bucket carries, with no tuning constant. The obvious
+alternative --- normalize each block by its own dimension --- was implemented
+first, measured, and rejected. It equalizes the two \emph{blocks}, handing a
+nine-dimensional one-hot calendar state the same total distance weight as a
+$960$-dimensional volatility path; and a one-hot encoding is categorical, so
+day-of-week identity outweighed the volatility path and \emph{cut the $k$-NN
+graph}. Measured at the first refit of the first task (\texttt{baseline},
+$23{,}040$ views, graph $k = 10$), per-block normalization produced three connected
+components of sizes $14{,}016 / 4{,}512 / 4{,}512$, the two smaller of which were
+$100\%$ single-day-of-week (purity $1.000$). This is fatal rather than cosmetic: on
+a disconnected graph the Laplacian's bottom eigenvectors \emph{are} the component
+indicators, so the ``embedding'' encodes the day of the week and nothing about
+temporal geometry --- and \texttt{sklearn} warned exactly that at every refit. One
+global $\sqrt{W+d}$ collapses this to a single component at day-of-week purity
+$0.197 \approx 1/5$, i.e.\ chance. Raising the graph $k$ also reconnects the graph
+but leaves the distorted metric intact, so it was rejected as treating the symptom;
+a smooth cyclical clock encoding is the principled way to retain the session-edge
+channel and is left to its own arm.
+
+\subsubsection{Embedding, extension, regression, and the OLS anchor}
+
+Given the $n \times (W+d)$ matrix of training views, a binary $k$-nearest-neighbour
+graph is built and the embedding is the bottom $d_\phi$ nontrivial eigenvectors of
+the normalized graph Laplacian --- Laplacian eigenmaps \citep{BelkinNiyogi2003}.
+Spectral embeddings have no native \texttt{transform}: they are defined only on
+the points they were fitted on. Placing a new bar in the learned coordinate system
+requires an out-of-sample extension \citep{Bengio2004}, here a Gaussian-weighted
+$k$-NN Nystr\"om interpolation. For a test view $v$ with graph neighbours $\{i\}$
+at distances $\delta_i$,
+\begin{equation}
+\phi(v) = \frac{\sum_i w_i \, \phi_i}{\sum_i w_i},
+\qquad
+w_i = \exp\!\Bigl(-\frac{\delta_i^2}{2\sigma^2}\Bigr),
+\qquad
+\sigma = \operatorname{median}_i \delta_i,
+\label{eq:nystrom}
+\end{equation}
+the bandwidth set per query by the median neighbour distance, so it adapts to local
+density rather than being a hyperparameter. The regression stage is a $k$-NN
+regressor in embedding space under the same self-tuning kernel; the forecast
+composes as
+\begin{equation}
+\hat{y}_t \;=\; \underbrace{\hat{g}_t(x_t)}_{\text{OLS base}}
+\;+\; \omega \cdot \underbrace{\hat{c}_t\bigl(\phi(v_t)\bigr)}_{\text{$k$-NN correction on the base's residuals}},
+\qquad \omega \in (0,1],
+\label{eq:spectral_pred}
+\end{equation}
+with $\omega = 1$ throughout. Setting $d_\phi = 0$ bypasses the spectral projection
+and runs the $k$-NN directly on the composed view of~\eqref{eq:view}; we call this
+the \emph{passthrough} arm, and it is the ablation that isolates what manifold
+learning contributes.
+
+The anchor $\hat{g}_t$ was not in the original design. The estimator was first run
+\emph{unanchored} --- an identity residualizer, so the path block is the target
+itself and the $k$-NN forecasts $y$ from scratch --- and came back badly
+miscalibrated: on the canary chunk the Mincer--Zarnowitz slope was $0.474$, with
+QLIKE $0.391$ against the incumbent's $0.179$ on that chunk and
+$R^2_{\mathrm{oos}} = -2.23$. A slope near one-half with a large negative $R^2$ is
+the signature of over-shrinkage toward the sample mean: local averaging estimates a
+conditional mean that has been flattened, because the neighbourhoods are not tight
+enough to resolve the level. The remedy is to stop asking the analog search to
+reproduce HAR's level from scratch. The residualizer is set to exact OLS --- the
+production ridge path at $\alpha = 0$, routed through the identifiability mask
+of~\eqref{eq:rank_cut} --- which is precisely the estimator defining the paper's
+incumbent, so the model reads as \emph{incumbent plus local correction}. Everything
+else is held fixed, leaving the identity arm a clean control.
+
+\subsubsection{Computational notes}
+
+The eigenproblem is the bottleneck, and became one only after the graph was fixed.
+On the real first-refit matrix ($23{,}040$ views $\times\ 969$ dimensions, graph
+$k = 10$), an LOBPCG eigensolver with an algebraic-multigrid preconditioner took
+$19.8$ s locally against ARPACK's $>22$ minutes on a faster cluster node --- better
+than $60\times$, with finite and sanely scaled output. Why ARPACK had been fast
+\emph{before} is itself the point: while the graph was disconnected, the eigenvalue
+$0$ had multiplicity three and the component indicators \emph{were} the
+eigenvectors, so the problem was trivial; connecting the graph made it genuinely
+hard, and the solver had to change with it. A different eigensolver returns the
+same invariant subspace but not bit-identical eigenvectors, so downstream neighbour
+sets can shift slightly. Cadences differ by cost: the residualizer refits every bar
+--- closed-form, cheap, and the anchor --- while the spectral basis and the $k$-NN
+regressor rebuild every $240$ bars, with intervening bars placed
+by~\eqref{eq:nystrom}. Thread pools are sized from the scheduler's stated
+entitlement rather than the node's core count, the direct fix for the BLAS
+allocation failures over-subscription caused.
+
+\subsubsection{Results}
+
+% Source: writeup/metrics_table_causal_tune_plus_spectral.csv (family = spectral-kNN),
+% all 32 arms, verbatim. Incumbent QLIKE 0.13415 and n = 218,934 from that file's
+% incumbent_qlike / n columns. Run health and rejections: writeup/experiment_ledger.csv.
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Spectral $k$-NN arms on the $n = 218{,}934$ panel, all against the same
+incumbent (per-bar OLS on HAR $+$ calendar, QLIKE $0.13415$). $W$ = view window in
+bars, $d_\phi$ = embedding dimension ($0 =$ passthrough), $k$ = regression
+neighbours. Negative DM favours the spectral arm. The nine production-default arms
+are identically configured and differ only in bucket; the best and worst are shown
+and the remaining seven lie between them, spanning DM $+45.99$ to $+52.38$.}
+\label{tab:spectral_arms}
+\begin{tabular}{lrrrllrrr}
+\toprule
+Bucket & $W$ & $d_\phi$ & $k$ & Anchor & Mask & QLIKE & DM & $p$ \\
+\midrule
+\multicolumn{9}{l}{\textit{Panel A --- beats the incumbent}} \\
+market\_vw   & 12 & 0 & 100 & OLS & const$+$dup & 0.13096 & $-17.57$ & $4.4\!\times\!10^{-69}$ \\
+market\_vw   & 12 & 0 & 100 & OLS & ---         & 0.13145 & $-14.60$ & $2.9\!\times\!10^{-48}$ \\
+baseline     & 24 & 0 & 100 & OLS & ---         & 0.13218 & $-12.91$ & $4.2\!\times\!10^{-38}$ \\
+baseline     & 12 & 0 & 100 & OLS & ---         & 0.13219 & $-14.37$ & $7.7\!\times\!10^{-47}$ \\
+baseline     & 12 & 6 & 100 & OLS & ---         & 0.13364 & $-4.61$  & $4.0\!\times\!10^{-6}$ \\
+\midrule
+\multicolumn{9}{l}{\textit{Panel B --- statistically indistinguishable}} \\
+baseline     & 24 & 0 & 25  & OLS & ---         & 0.13397 & $-0.88$ & $0.378$ \\
+baseline     & 24 & 6 & 100 & OLS & ---         & 0.13399 & $-1.61$ & $0.108$ \\
+baseline     & 12 & 0 & 25  & OLS & ---         & 0.13405 & $-0.52$ & $0.603$ \\
+\midrule
+\multicolumn{9}{l}{\textit{Panel C --- loses}} \\
+baseline     & 12 & 6 & 25  & OLS      & ---    & 0.13676 & $13.16$ & $1.5\!\times\!10^{-39}$ \\
+baseline     & 24 & 6 & 25  & OLS      & ---    & 0.13701 & $15.66$ & $2.7\!\times\!10^{-55}$ \\
+baseline     & 12 & 0 & 25  & identity & ---    & 0.14173 & $19.12$ & $1.6\!\times\!10^{-81}$ \\
+baseline     & 12 & 0 & 100 & identity & ---    & 0.14236 & $18.28$ & $1.2\!\times\!10^{-74}$ \\
+baseline     & 24 & 0 & 25  & identity & ---    & 0.14475 & $21.17$ & $1.6\!\times\!10^{-99}$ \\
+baseline     & 24 & 0 & 100 & identity & ---    & 0.14539 & $20.79$ & $5.4\!\times\!10^{-96}$ \\
+implied\_vol & 12 & 0 & 25  & identity & ---    & 0.14938 & $28.35$ & $9.1\!\times\!10^{-177}$ \\
+sentiment    & 12 & 0 & 25  & identity & ---    & 0.15214 & $31.40$ & $2.2\!\times\!10^{-216}$ \\
+market\_vw   & 12 & 0 & 25  & identity & ---    & 0.15773 & $37.93$ & $9.4\!\times\!10^{-315}$ \\
+baseline     & 12 & 6 & 25  & identity & ---    & 0.15993 & $45.71$ & $<\!10^{-300}$ \\
+baseline     & 12 & 6 & 100 & identity & ---    & 0.16213 & $41.22$ & $<\!10^{-300}$ \\
+vol\_demand  & 12 & 0 & 25  & identity & ---    & 0.16490 & $28.38$ & $3.8\!\times\!10^{-177}$ \\
+baseline     & 24 & 6 & 25  & identity & ---    & 0.16872 & $47.08$ & $<\!10^{-300}$ \\
+baseline     & 24 & 6 & 100 & identity & ---    & 0.16874 & $40.91$ & $<\!10^{-300}$ \\
+all\_features& 12 & 0 & 25  & identity & ---    & 0.17409 & $37.79$ & $1.9\!\times\!10^{-312}$ \\
+\addlinespace
+\multicolumn{9}{l}{\textit{Original production default --- all nine buckets, range over buckets}} \\
+best (moments)    & 960 & 8 & 25 & identity & --- & 0.24627 & $51.16$ & $<\!10^{-300}$ \\
+worst (all\_feat.) & 960 & 8 & 25 & identity & --- & 0.26353 & $43.35$ & $<\!10^{-300}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:spectral_arms} reports every scored arm. The best is OLS-anchored,
+masked, short-window ($W = 12$), \emph{passthrough} ($d_\phi = 0$), heavily
+averaged ($k = 100$), on the \texttt{market\_vw} bucket: QLIKE $0.13096$ against
+$0.13415$, DM $-17.57$, $p = 4.4\times10^{-69}$; its unmasked sibling reaches
+$0.13145$ at DM $-14.60$, and the corresponding empty-exog arms land at
+$0.13218$--$0.13219$. A middle group --- the $k = 25$ OLS-anchored arms --- is
+indistinguishable from the incumbent ($p$ between $0.108$ and $0.603$). The losing
+group is large and ordered: every unanchored arm loses by DM $+13$ to $+38$, and
+the original production default loses catastrophically on all nine buckets, QLIKE
+$0.246$ to $0.264$ at DM $+43$ to $+52$ --- the configuration one would have
+shipped from the module's defaults is roughly twice as bad as the incumbent. The
+$16$ \texttt{baseline}-bucket arms form a complete $2^4$ factorial in $W$,
+$d_\phi$, $k$ and anchor, which separates the levers cleanly
+(Table~\ref{tab:spectral_effects}).
+
+% Source: writeup/metrics_table_causal_tune_plus_spectral.csv, the 16 arm_tag="fac_*"
+% rows (bucket = baseline), a complete 2^4 factorial. Main effects are differences of
+% 8-cell means; conditional effects are means of the 4 matched pairs.
+\begin{table}[H]
+\centering
+\small
+\caption{Main and conditional effects on QLIKE from the complete $2^4$ factorial on
+the \texttt{baseline} bucket ($16$ arms, $n = 218{,}934$ each). Positive is
+\emph{worse}.}
+\label{tab:spectral_effects}
+\begin{tabular}{llrl}
+\toprule
+Lever & Contrast & Main effect & Conditional on anchor \\
+\midrule
+Anchor      & identity $-$ OLS          & $+0.02000$ & --- \\
+Embedding   & $d_\phi{=}6 - d_\phi{=}0$ & $+0.01179$ & OLS $+0.00225$; identity $+0.02132$ \\
+View window & $W{=}24 - W{=}12$         & $+0.00274$ & OLS $+0.00012$; identity $+0.00536$ \\
+Neighbours  & $k{=}100 - k{=}25$        & $-0.00079$ & OLS $-0.00245$; identity $+0.00087$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Finding 1: the OLS anchor is load-bearing.}
+Replacing exact OLS by the identity costs $+0.02000$ QLIKE averaged over the
+factorial --- the largest effect in the grid, nearly twice the embedding effect and
+seven times the window effect. At the otherwise-best matched cell ($W = 12$,
+$d_\phi = 0$, $k = 100$) the two arms are $0.14236$ against $0.13219$, a gap of
+$0.01017$; across the eight matched pairs the gap ranges from $0.00768$ to
+$0.03475$, widest where the other settings are worst. Read with the calibration
+diagnostics above, this says the analog search cannot recover the conditional level
+of realized variance on its own. Given the level for free it has something to
+contribute; asked to produce the level, it does not.
+
+\paragraph{Finding 2: the spectral embedding hurts everywhere.}
+Passthrough beats the $d_\phi = 6$ embedding in \emph{every} matched cell:
+$+0.00145$, $+0.00181$, $+0.00271$ and $+0.00304$ on the four OLS-anchored pairs,
+$+0.0182$ to $+0.0240$ on the four unanchored ones. This is the section's most
+uncomfortable result --- manifold learning is the part of the design that was
+supposed to be novel --- so the mechanism deserves an explanation rather than a
+shrug. Two independent measurements supply one. First, the out-of-sample extension
+is imprecise relative to the structure it must resolve: holding out $462$ days,
+fitting the embedding on the rest, extending the held-out days
+via~\eqref{eq:nystrom} and comparing to a full-sample embedding under a Procrustes
+alignment (spectral coordinates being defined only up to rotation and sign), the
+median per-point placement error is $74.4\%$ of the embedding's own scale ---
+$0.0037$ against a coordinate scale of $0.0049$. A test point cannot be placed on
+the manifold at the precision the manifold's geometry demands. Second, the manifold
+holds little geometric information to begin with. In the prototype study the
+leading coordinate $\phi_1$ tracks \texttt{har\_ma\_1} while calendar years
+intermingle --- the structure is a one-dimensional volatility continuum, not a set
+of discrete regimes, and named crises smear along the high-amplitude tail rather
+than forming separated clusters. Over $4{,}127$ walk-forward test days the spectral
+$k$-NN scored $R^2 = 0.408$ against $0.419$ for a direct $k$-NN in the raw feature
+space, the two prediction series correlating $0.96$, and both were beaten by simple
+persistence ($R^2 = 0.496$). If $\phi_1$ is essentially the volatility level, a
+bar's $\phi$-neighbours are its raw-space neighbours and the spectral step is a
+lossy re-parameterization of a neighbourhood the $k$-NN already had. Consistently,
+a diagnostic on the first production refit found neighbours in the raw composed
+space had targets $15.0\%$ closer than random against only $10.3\%$ after
+projection onto eight Laplacian eigenvectors --- the projection discards about a
+third of the analog signal, even though the projected space's distance ratios look
+dramatically better, which is a low-dimensionality artefact rather than predictive
+value.
+
+\paragraph{Finding 3: large-$k$ local averaging is what survives.}
+Among OLS-anchored arms, moving from $k = 25$ to $k = 100$ improves QLIKE in all
+four matched pairs, by $0.00179$ to $0.00312$ (mean $0.00245$), and the
+distinction is decisive: every $k = 100$ anchored arm sits in Panel~A of
+Table~\ref{tab:spectral_arms}, every $k = 25$ anchored passthrough arm in Panel~B.
+Small-$k$ analog retrieval --- the version of the idea that ``finds the few most
+similar past episodes'' --- injects variance the weak per-neighbour signal cannot
+pay for. Note the interaction: on unanchored arms the ordering reverses slightly
+(mean $+0.00087$), which is why the \emph{main} effect of $k$ is small and why
+reading main effects alone would have hidden the result. Averaging over a hundred
+neighbours is not analog retrieval in any strong sense; it is local smoothing.
+
+\paragraph{What actually survives measurement.}
+The honest summary is that the manifold-learning component --- the part that
+motivated the whole construction --- is the part that does not pay. The embedding
+hurts in every matched cell, its out-of-sample extension is imprecise by
+three-quarters of the embedding's own scale, and the manifold it learns is a
+one-dimensional volatility continuum the raw distance already encodes. What remains
+is an OLS-anchored short-window analog search with heavy local averaging: a
+nonparametric correction to a parametric forecast, in the raw composed view space,
+with $k$ large enough that the correction is a smoother rather than a retriever.
+That object is genuinely good --- it beats the OLS incumbent decisively, $0.13096$
+against $0.13415$ at DM $-17.57$, on $218{,}934$ bars against a shared
+per-bar-refit comparator --- and, just as clearly, not competitive with the model
+classes of Section~\ref{sec:linvsnonlin}, where the best causally tuned tree
+reaches $0.12604$ and the best causally tuned linear arm $0.12788$. Its correct
+placement is as a \emph{different} kind of improvement over the incumbent, not a
+better one, and as evidence that the recurrence hypothesis in the form tested here
+is worth less than reading the exogenous panel with a conventional estimator.
+
+\paragraph{Robustness caveats.}
+Three limitations are material. \emph{First, the winning bucket is the only
+surviving one.} Of the exogenous buckets run at the winning settings,
+\texttt{market\_vw} is the only one whose arm completed cleanly; its siblings were
+rejected as singular --- \texttt{implied\_vol}, \texttt{sentiment} and
+\texttt{vol\_demand} each blew two of one hundred walk-forward chunks and
+\texttt{all\_features} blew seven, with pooled QLIKE of $1.06$--$3.11$ and
+Mincer--Zarnowitz slopes between $10^{-24}$ and $10^{-29}$, the unmistakable
+signature of the mechanism of Section~\ref{sec:alg_mask}. That \texttt{market\_vw}
+wins may therefore reflect which bucket happened to survive rather than which
+carries the most analog signal, so the exogenous axis is one clean observation, not
+a ranking. \emph{Second, the mask in the results table is the partial one.} The
+arms marked \texttt{const}$+$\texttt{dup} used passes~1 and~2 only; the
+rank-revealing pass~3 of~\eqref{eq:rank_cut} was written \emph{in response} to the
+failures those arms exposed, and no fully re-run pooled arm under the complete
+three-pass mask is reported here. Correspondingly no \texttt{all\_features}
+OLS-anchored spectral number is valid: every attempt blew chunks, and the only one
+producing a non-degenerate pooled figure --- a masked $d_\phi = 32$ variant ---
+pooled just $35$ of $100$ chunks with seven blown, so it is recorded in the run
+ledger and excluded from the table. \emph{Third, the composition weight is
+unexplored.} Every arm runs at $\omega = 1$ in~\eqref{eq:spectral_pred}. Given that
+the estimator's dominant failure mode is over-confidence of the nonparametric
+stage, shrinking $\omega$ is the most plausible remaining improvement, and it has
+not been measured; the one attempt at $\omega = 0.25$ produced no usable output.
+
+\subsection{Synthesis}
+\label{sec:alg_synthesis}
+
+% Sources by row: src/models/rolling_least_squares.py, src/backtest/rolling_ridge.py
+% (timing from writeup/session_notes_2026-06-23_feature_investigation.md);
+% src/models/reclasso_har.py; specs/causal_tune_linear.py; resid_amortized.py;
+% src/models/spectral_knn.py + src/features/extractors/spectral_embedding.py with
+% writeup/metrics_table_causal_tune_plus_spectral.csv.
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{The four algorithm designs: idea, device, verdict. Every verdict is on the
+$n = 218{,}934$ panel except the timings, which are per-bar wall-clock
+measurements.}
+\label{tab:alg_synthesis}
+\begin{tabular}{p{2.2cm} p{3.3cm} p{3.4cm} p{4.6cm}}
+\toprule
+Algorithm & Mathematical idea & Computational device & Verdict \\
+\midrule
+Rank-one rolling LS
+& Sliding-window sufficient statistics change by rank one; $\alpha = 0$ is exact OLS
+& Two rank-one updates per slide, $O(p^2)$ not $O(Wp^2)$; Sherman--Morrison on the ridged inverse for the tuned variant
+& Exact to $1.8\times10^{-11}$ vs.\ \texttt{sklearn}, $108\times$ faster ($4.589 \to 0.042$ ms/bar). This \emph{is} the incumbent, and what makes per-bar refitting affordable throughout. \\
+\addlinespace
+Online enet homotopy
+& Elastic net as lasso on a ridged Gram; exact piecewise-linear $L_1$ path in the rank-one data parameter $t \in [0,1]$
+& Exactly two homotopy calls per bar; finite breakpoints give exact termination with no fallback; warm active set, periodic cold reseed
+& The $L_1$ analogue of Sherman--Morrison. Matches ridge to $0.0004$ QLIKE: the penalty family is a non-lever, and the algorithm makes that comparison exact rather than cadence-confounded. \\
+\addlinespace
+Causal rolling tuning
+& Every forecast's hyperparameters chosen only from its own past: fit / embargo / forward-validation split inside the window
+& Grid scored on the forward split every $250$ solves; exact rank-one sliding between tunings; cold reseed doubles as drift re-anchor
+& Causally tuned arms \emph{trail} fixed defaults. Tuning is a non-lever --- and the protocol converts that from anecdote to causal claim. \\
+\addlinespace
+Amortized residual trees
+& The linear base is config-independent within a cell, so it need not be recomputed per trial
+& Precompute every-bar base predictions and per-refit base coefficients once; trials fit trees only on $y - \hat{g}$; \texttt{selfcheck} asserts bit-equality
+& Bit-exact by construction and by assertion; removes $231{,}000$ ridge refits and $\approx 825$ s per evaluation. Enabled the tree side of the Section~\ref{sec:linvsnonlin} battery. \\
+\addlinespace
+Spectral $k$-NN
+& Analog retrieval: nonparametric regression in a metric learned by Laplacian eigenmaps over path$+$state views
+& One global $\sqrt{W+d}$ normalization (a measured fix for a graph cut along day-of-week); AMG-preconditioned LOBPCG, $19.8$ s vs.\ $>22$ min; Nystr\"om extension between $240$-bar refits
+& Beats the incumbent decisively ($0.13096$ vs.\ $0.13415$, DM $-17.57$) --- but only once reduced to an OLS-anchored, passthrough, large-$k$ local average. The embedding is rejected by measurement in every matched cell, and the arm still trails every causally tuned arm of Section~\ref{sec:linvsnonlin}. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Read as a whole, the section says where the remaining leverage does \emph{not} lie.
+Exactness costs nothing once the right update is derived, but it is a statement
+about computation, not skill: the rank-one solver and the online homotopy make the
+incumbent and its penalized variants cheap and honest without changing what they
+know. Causal tuning is worth having for the same reason and with the same limit.
+Amortization buys a battery, not a forecast. And the one genuinely different
+geometry tested here --- learn a manifold, retrieve analogs on it --- beats the
+incumbent only in the degenerate limit where the manifold has been removed and
+retrieval has become smoothing. Under a frozen feature set, algorithm design bought
+exactness, feasibility, and the defensibility of the negative results; it did not
+buy the level of the forecast. Consistently with Sections~\ref{sec:marginal}
+and~\ref{sec:linvsnonlin}, the lever is information.

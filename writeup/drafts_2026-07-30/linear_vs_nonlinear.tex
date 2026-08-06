@@ -1,0 +1,553 @@
+\section{A Dense but Weak Signal: Linear versus Nonlinear Models}
+\label{sec:linvsnonlin}
+
+Section~\ref{sec:marginal} established, one source at a time, that the exogenous
+panel carries information beyond the HAR lag structure of \citet{Corsi2009}, and
+that no single source carries much of it. That result is a statement about
+\emph{features} under a fixed linear estimator. It leaves open the question this
+section answers: how much of the achievable forecast improvement is a property of
+the \emph{information set}, and how much is a property of the \emph{model class}
+that reads it?
+
+The organizing claim is that the exogenous signal here is \textbf{dense but
+weak}. Many features each carry a small amount of predictive content, that
+content is largely overlapping rather than complementary, and no small subset
+concentrates it. This is the regime \citet{gu2020empirical} and
+\citet{christensen2023machine} describe for asset-pricing and volatility panels
+respectively, and it has four consequences documented in turn below. First, both
+model classes extract real, statistically decisive skill --- neither fails.
+Second, tree ensembles hold a modest but \emph{systematic} edge: they win on
+every feature bucket we score, by a margin roughly a quarter the size of the
+information effect itself. Third, that edge is not a hyperparameter-tuning story.
+Fourth, the extra nonlinear capacity \emph{saturates almost immediately}:
+additive terms plus shallow pairwise interactions recover essentially everything
+a deep boosted ensemble finds.
+
+\paragraph{A note on comparability of levels.}
+QLIKE levels are not comparable across evaluation panels, and this section
+necessarily touches four. Every table below is labeled with its panel and no
+comparison is ever made across labels. They are: (i) the \textbf{causal-tuning
+battery panel} --- the $n = 218{,}934$ out-of-sample panel of
+Section~\ref{sec:descriptive}, per-bar refit, levels $\approx 0.126$--$0.135$;
+(ii) the \textbf{rolling-tune panel} --- the same feature construction stitched
+from 100 walk-forward chunks over the full 2005--2025 emit space, levels
+$\approx 0.130$--$0.135$; (iii) the \textbf{deployed residual-stack panel} ---
+the $n = 194{,}934$ panel on which the multi-stage residual models were
+developed, levels $\approx 0.120$--$0.128$; and (iv) the older
+\textbf{adjusted-scale model comparison} and the \textbf{deep-learning global
+panel}, each with its own baseline and levels $\approx 0.11$--$0.48$. Within
+each panel the ranking and the differences are the deliverable; the absolute
+level is a property of the evaluation window and the warm-up convention.
+
+\subsection{The battery: five estimators, nine buckets, one panel, one incumbent}
+\label{sec:linvsnonlin_battery}
+
+\paragraph{Design.}
+The central experiment of this section is a fully crossed battery of five
+estimators against nine exogenous feature buckets --- 45 arms, all complete.
+Every arm is scored on the \emph{identical} out-of-sample panel of
+$n = 218{,}934$ thirty-minute bars, with identical rows in every cell, and every
+arm consumes the identical fixed feature construction; nothing varies across the
+grid except the estimator and the bucket. The panel is computed as 100
+walk-forward chunks over a rolling 500-trading-day ($24{,}000$-bar) training
+window with a $24{,}000$-bar warm-up halo, pooled by concatenation, and the model
+is refit \emph{every bar} throughout.
+
+Critically, every arm re-selects its own hyperparameters periodically and
+causally. Every 250 solves, the current training window is split forward into a
+fit block, a 25-bar embargo (covering the 25-bar HAR moving average), and a
+125-bar validation tail; the configuration minimizing validation MSE on that tail
+is adopted. No forecast's hyperparameters ever see its own future, so the
+comparison contains no look-ahead in the tuning channel --- the most common
+source of inflated model-class effects in this literature. The machinery
+implementing the sliding warm updates (exact rank-one linear algebra for the
+ridge path, an exact every-bar online homotopy for the $\ell_1$ path) is
+described in Section~\ref{sec:algorithms}.
+
+The five estimators span the natural capacity ladder. Three are linear with
+different shrinkage geometry: \textbf{rolling ridge} \citep{HoerlKennard1970},
+\textbf{recursive elastic net} \citep{ZouHastie2005}, and \textbf{recursive
+lasso} \citep{Tibshirani1996}, the last solved as an exact every-bar online
+homotopy rather than a periodically re-run batch solver. Two are nonlinear
+gradient-boosted tree ensembles: \textbf{LightGBM} \citep{Ke2017} and
+\textbf{XGBoost} \citep{Chen2016}. Linear arms search log-scale penalty grids;
+tree arms search max-depth $\{3,5,8\} \times$ colsample $\{0.25, 0.5\}$ with the
+learning rate pinned at the production $0.1$, grid cells scored at 300 trees and
+the winner refit every bar at the production 500 trees.
+
+All 45 arms are compared against one shared comparator: the canonical incumbent
+of Section~\ref{sec:descriptive}, per-bar OLS on HAR plus calendar features with
+no exogenous inputs, at QLIKE $0.13415$ on this panel. Diebold--Mariano
+statistics \citep{DieboldMariano1995} are computed on per-bar QLIKE loss
+\citep{Patton2011} against that incumbent, with Newey--West HAC standard errors
+and the small-sample correction of \citet{HarveyLeybourneNewbold1997}; a negative
+$t$ favors the arm.
+
+% Source: writeup/metrics_table_causal_tune_plus_spectral.csv (family == 'causal-tuned', 45 rows);
+% cross-checked against writeup/causal_tune_battery_table.tex. QLIKE and |t| truncated to the
+% precision of that table so the two agree cell-for-cell.
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Causal-tuning battery: out-of-sample QLIKE by exogenous bucket and
+estimator, with the Diebold--Mariano $t$-statistic against the shared OLS--HAR
+incumbent in parentheses. \textbf{Panel: causal-tuning battery,}
+$n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent QLIKE
+$= 0.13415$. Negative $t$ favors the arm; $|t| > 1.96$ is significant at the
+5\% level. Best QLIKE in each row is bold. \texttt{baseline} is the no-exogenous
+bucket: HAR plus calendar features only, so that row isolates the model class
+with the information set held at the incumbent's.}
+\label{tab:battery_bucket_estimator}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+& \multicolumn{3}{c}{Penalized linear} & \multicolumn{2}{c}{Tree ensemble} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-6}
+Bucket & Ridge & Elastic net & Lasso & LightGBM & XGBoost \\
+\midrule
+\texttt{all\_features} & 0.12788 ($-19.9$) & 0.12827 ($-19.3$) & 0.12907 ($-13.2$) & \textbf{0.12604} ($-15.4$) & 0.12641 ($-16.5$) \\
+\texttt{moments}       & 0.13085 ($-19.2$) & 0.13114 ($-17.7$) & 0.13179 ($-8.9$)  & \textbf{0.12816} ($-11.3$) & 0.12863 ($-9.0$) \\
+\texttt{liquidity}     & 0.13120 ($-13.4$) & 0.13184 ($-11.5$) & 0.13206 ($-11.2$) & \textbf{0.12840} ($-14.7$) & 0.12886 ($-14.0$) \\
+\texttt{market\_vw}    & 0.13291 ($-9.1$)  & 0.13316 ($-7.3$)  & 0.13321 ($-6.4$)  & \textbf{0.12963} ($-10.8$) & 0.13012 ($-8.1$) \\
+\texttt{implied\_vol}  & 0.13252 ($-11.3$) & 0.13262 ($-10.6$) & 0.13274 ($-9.8$)  & \textbf{0.13001} ($-7.8$)  & 0.13077 ($-5.7$) \\
+\texttt{market\_ew}    & 0.13319 ($-7.2$)  & 0.13344 ($-5.4$)  & 0.13353 ($-4.6$)  & \textbf{0.13039} ($-7.0$)  & 0.13043 ($-7.3$) \\
+\texttt{sentiment}     & 0.13347 ($-5.7$)  & 0.13377 ($-3.5$)  & 0.13390 ($-2.1$)  & \textbf{0.13038} ($-8.1$)  & 0.13050 ($-8.4$) \\
+\texttt{vol\_demand}   & 0.13337 ($-4.1$)  & 0.13361 ($-3.4$)  & 0.13359 ($-3.3$)  & \textbf{0.12979} ($-10.0$) & 0.13026 ($-8.6$) \\
+\midrule
+\texttt{baseline} (no exog) & 0.13445 ($+5.0$) & 0.13471 ($+7.5$) & 0.13475 ($+7.0$) & \textbf{0.13118} ($-5.6$) & 0.13163 ($-5.5$) \\
+Incumbent: OLS on \texttt{baseline} & \multicolumn{5}{c}{0.13415} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{(a) The ordering is uniform, and the model-class effect is modest.}
+Table~\ref{tab:battery_bucket_estimator} orders identically in every one of the
+nine rows: tree ensembles beat penalized linear models, which beat the OLS--HAR
+incumbent. LightGBM is the best arm in all nine buckets; ridge is the best linear
+arm in all nine. There is no bucket on which the ranking reverses, and no bucket
+on which the trees fail to find something the linear models cannot. This
+uniformity is itself evidence for the dense-weak reading: if the nonlinear
+advantage came from a few sharply interacting features it would be concentrated
+in the buckets that contain them, and it is not.
+
+The magnitude, however, is small. On the richest bucket, \texttt{all\_features},
+the best nonlinear arm improves on the best linear arm by $0.12788 - 0.12604 =
+0.00184$ QLIKE, while the total improvement of that best arm over the incumbent
+is $0.13415 - 0.12604 = 0.00811$. The model class therefore accounts for
+approximately $23\%$ of the recoverable gain, and the information set for the
+remaining $77\%$. This ratio is the quantitative content of ``the lever is
+information, not model,'' and it recurs at the same order of magnitude in every
+subsequent experiment in this section.
+
+\paragraph{(b) The linear gain is smaller but more consistent, exactly as a dense
+weak signal predicts.}
+The Diebold--Mariano statistics carry information the QLIKE levels do not, and on
+\texttt{all\_features} they invert the ranking. Ridge, the \emph{worse} model by
+QLIKE, achieves $t = -19.9$; LightGBM, the \emph{better} model, achieves only
+$t = -15.4$; the elastic net shows the same pattern ($t = -19.3$ at QLIKE
+$0.12827$). Because DM normalizes the mean loss differential by its HAC standard
+error, a larger $|t|$ at a smaller mean improvement implies a \emph{smaller
+bar-to-bar dispersion} of that improvement: the linear model wins by a little on
+almost every bar, whereas the tree wins by more on average but with substantially
+more variability, losing on a larger fraction of bars.
+
+This is the signature of a dense weak signal read by two different mechanisms. A
+penalized linear model aggregates a small, near-constant contribution from many
+features, so its edge over HAR is a nearly deterministic offset with a
+low-variance loss differential. A boosted tree instead localizes, finding regions
+of the state space where a nonlinear correction is worth making and leaving the
+rest to its additive base; localized corrections are larger where they apply and
+absent where they do not, raising the mean improvement and its variance together.
+Neither behavior is pathological and the two are complementary, but the inversion
+is a useful warning that a QLIKE ranking and a significance ranking need not
+agree.
+
+\paragraph{(c) The only losses to plain OLS isolate the pure-nonlinearity
+premium.}
+Of the 45 arms, exactly three are worse than the shared incumbent, and they are
+the three penalized linear arms on the no-exogenous \texttt{baseline} bucket:
+ridge $0.13445$ ($t = +5.0$), elastic net $0.13471$ ($t = +7.5$), lasso
+$0.13475$ ($t = +7.0$), all decisively significant. This is a useful negative
+control on the whole shrinkage apparatus. When the only regressors present are
+the six HAR lags and a handful of calendar dummies --- a low-dimensional,
+well-conditioned, entirely informative design --- shrinking them strictly hurts.
+Shrinkage is a variance-reduction device, and here there is no estimation
+variance worth reducing, so the bias it induces is pure cost. Penalized linear
+models earn their keep only once the design matrix contains a large number of
+weak or dead columns, which is precisely what the exogenous buckets supply.
+
+The trees on that same \texttt{baseline} bucket do the opposite. LightGBM
+improves the incumbent from $0.13415$ to $0.13118$, a gain of $0.00297$ with
+$t = -5.6$; XGBoost reaches $0.13163$ ($t = -5.5$). Because the information set
+in that row is \emph{identical} to the incumbent's --- same HAR lags, same
+calendar features, no exogenous inputs whatsoever --- this $0.00297$ is a clean
+measurement of the \textbf{pure-nonlinearity premium}: the value of relaxing the
+linear functional form on HAR and calendar features alone. Set beside the
+\texttt{all\_features} row it yields the section's cleanest decomposition: of the
+$0.00811$ total gain of the best arm over the incumbent, roughly $0.00297$ is
+available from nonlinearity in the HAR-plus-calendar block by itself, and the
+remainder comes from the exogenous information. The two premia are of the same
+order and largely additive, with the information side the larger.
+
+\paragraph{(d) Limitation.}
+The DM statistics in Table~\ref{tab:battery_bucket_estimator} are computed
+against the shared OLS--HAR incumbent \emph{only}. They establish that each arm
+differs significantly from the incumbent; they do \emph{not} establish that any
+arm differs significantly from any other arm. Pairwise model-versus-model DM
+tests and a Model Confidence Set \citep{HansenLundeNason2011} over all 45 arms
+are computed but not yet complete at the time of writing. Consequently the
+$0.00184$ linear-to-nonlinear gap, and the uniform LightGBM-over-ridge ordering
+that supports it, carry \emph{no significance statement}. They are a consistent
+point-estimate pattern across nine independent buckets, which is suggestive, and
+nothing stronger. We flag this explicitly because the effect sizes at issue
+($10^{-3}$ QLIKE) are of the same order as several effects elsewhere in this
+paper that \emph{did} fail formal significance testing.
+
+\subsection{The edge is not a tuning story}
+\label{sec:linvsnonlin_tuning}
+
+A natural alternative explanation for Table~\ref{tab:battery_bucket_estimator} is
+effort: tree ensembles have more hyperparameters, so a tuned tree is simply a
+harder-tried model than a tuned linear one, and the gap measures search budget
+rather than function class. Three experiments address this, and they point in a
+more interesting direction than either a clean confirmation or a clean refutation.
+
+\paragraph{(a) Causal hyperparameter tuning of the linear penalty is worse than
+doing nothing.}
+The sharpest test is to ask whether \emph{any} leakage-free re-selection of the
+linear penalty improves on an untouched library default. The experiment holds
+features, executor path, and refit cadence fixed and varies only the penalty
+channel. The tuned arm runs a single causal selector over a pooled grid --- six
+ridge penalties on an exact rank-one path, five lasso penalties, and five
+elastic-net penalties on a warm online homotopy --- re-selecting every 250 bars
+from a forward fit/embargo/validation split of the trailing window, with
+coefficients refit every bar. The comparator is scikit-learn's own Ridge default
+$\alpha = 1.0$, per-bar refit, with no selection at all.
+
+% Source: writeup/rolling_tune_meeting_2026-07-09.md, "Linear results" table.
+\begin{table}[H]
+\centering
+\small
+\caption{Causal rolling hyperparameter selection versus an untouched library
+default, by exogenous bucket. \textbf{Panel: rolling-tune,} full 2005--2025 emit
+space stitched from 100 walk-forward chunks. Positive $\Delta$ means the causally
+tuned arm is \emph{worse}. The \texttt{sentiment} and \texttt{vol\_demand} rows
+land 97 and 95 of 100 chunks respectively and are reported net of a localized
+solver pathology at the exogenous data-start boundary (see text); all other rows
+are complete.}
+\label{tab:causal_tune_vs_default}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Bucket & Chunks & Causally tuned & Library default & $\Delta$ (tuned $-$ default) \\
+\midrule
+\texttt{moments}      & 100/100 & 0.131459 & 0.130264 & $+0.001194$ \\
+\texttt{liquidity}    & 100/100 & 0.131566 & 0.130822 & $+0.000744$ \\
+\texttt{implied\_vol} & 100/100 & 0.132856 & 0.132091 & $+0.000765$ \\
+\texttt{market\_vw}   & 100/100 & 0.133015 & 0.132388 & $+0.000627$ \\
+\texttt{market\_ew}   & 100/100 & 0.133233 & 0.132677 & $+0.000556$ \\
+\texttt{sentiment}    & 97/100  & 0.134395 & 0.133581 & $+0.000814$ \\
+\texttt{vol\_demand}  & 95/100  & 0.134480 & 0.133754 & $+0.000726$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The result is uniform and one-signed: the leakage-free tuner \emph{trails} the
+untouched default by $+0.0006$ to $+0.0012$ QLIKE on all seven landed buckets.
+Causal selection does not merely fail to help; it pays a small, consistent
+variance tax. Every selection is made from a 125-bar validation tail, which at
+this signal-to-noise ratio is a noisy statistic, and acting on that noise every
+250 bars injects more variance than the penalty choice can recover. The
+selector's own behavior confirms the landscape is flat: across all tunings it
+never collapses onto a single penalty family, choosing ridge 41--50\% of the
+time, lasso 29--35\%, and elastic net 20--25\%, in every bucket. A selector
+facing a genuinely differentiated objective concentrates; one facing three
+near-equivalent options distributes according to validation noise. (For
+completeness: 8 of 700 chunks diverged, all at the exogenous data-start boundary
+around 2010--2012 where columns constant for years switch on mid-window. Under
+forward-fill plus availability indicators the Gram matrix passes through
+near-singularity, and the pure-lasso grid arm --- $\ell_2$ weight exactly zero,
+the one solver in the grid with no well-posedness guarantee --- is the only arm
+affected; the default arm was never affected.)
+
+\paragraph{(b) Even an oracle allowed to cheat cannot buy more.}
+The rolling-tune result establishes that \emph{causal} selection is worthless. A
+stronger question is whether \emph{any} penalty configuration, chosen with full
+knowledge of the test set, would have been materially better. We answer it by
+running Optuna's TPE sampler \citep{Akiba2019} with the full out-of-sample QLIKE
+as the objective directly. This is test-set overfitting by construction and the
+resulting numbers are \emph{not} out-of-sample performance; they are a diagnostic
+upper bound on what the penalty channel could ever deliver.
+
+Against the incumbent elastic net on the same base ($0.12540$ on that panel), the
+oracle finds: lasso best $0.12524$, an improvement of $-0.00015$, with the
+penalty at the search-grid floor; elastic net best $0.12529$ ($-0.00011$); and
+ridge best $0.12578$, which is $+0.00038$ \emph{worse} than the incumbent ---
+ridge loses even as an oracle. The ceiling on the entire penalty channel, with
+cheating permitted, is therefore $-0.00015$ QLIKE, roughly an order of magnitude
+below the $0.00184$ model-class gap and comfortably inside walk-forward noise. A
+proper cross-validated procedure would capture some fraction of that ceiling,
+which is to say nothing at all. Every oracle winner also sits at minimal
+shrinkage, so the ceiling is attained by approaching the unpenalized solution.
+
+That ridge loses even as an oracle on the dense feature set has a concrete
+mechanism, and it is why the elastic net rather than ridge anchors the production
+linear path. The lasso support analysis shows $304$ of $523$ exogenous columns
+zeroed, of which $235$ --- $77\%$ --- are dead or constant availability
+indicators. $\ell_2$ shrinkage can make those columns small but cannot make them
+zero, so they continue to inject estimation variance; $\ell_1$ removes them
+outright. Where a bucket contains no such junk the relationship inverts: on
+\texttt{implied\_vol}, a dense block of all-informative VIX levels, ridge is the
+best penalty, because zeroing correlated informative columns discards signal.
+Penalty choice tracks the junk fraction of the design and nothing else --- which
+is another way of saying it is not a lever.
+
+\paragraph{(c) The flip side: defaults \emph{do} mislead, but only for trees.}
+The preceding two results should not be read as a general claim that
+hyperparameters do not matter. They matter enormously in one place: the gap
+between a tree ensemble's library defaults and a properly configured one. An
+earlier model comparison on this project, run on the \textbf{adjusted-scale
+model-comparison panel} --- a different panel with a different baseline and
+levels around $0.11$--$0.35$, \emph{not} comparable to any other table in this
+section --- makes the point starkly. On HAR-only features, ridge scores QLIKE
+$0.1380$. Default-hyperparameter LightGBM scores $0.2401$ and default-hyperparameter
+XGBoost $0.2407$: the trees lose to ridge by approximately $0.10$ QLIKE units, an
+enormous margin that would comfortably support the conclusion that linear HAR is
+uniquely suited to realized-volatility forecasting. After Bayesian tuning, that
+conclusion evaporates. Tuned LightGBM reaches $0.1099$ --- beating ridge outright
+by $0.028$ --- and tuned XGBoost $0.1264$, placing every tuned tree within
+$0.005$ QLIKE of ridge or ahead of it.
+
+The failure of the defaults is legible in the hyperparameter deltas: one hundred
+depth-three trees are severely capacity-constrained on $\approx 218{,}000$
+observations with a dense multi-scale lag basis, and the search fixes capacity
+and regularization simultaneously (depth $3 \to 6$ and $100 \to 300$ estimators
+for XGBoost; $31 \to 59$ leaves and $100 \to 1000$ estimators for LightGBM;
+learning rate roughly halved for both; row and column subsampling and explicit
+penalties switched on). The methodological implication generalizes beyond this
+dataset and connects to the framing in \citet{gu2020empirical} and
+\citet{christensen2023machine}: the widely repeated observation that tree
+ensembles lag linear models on realized-volatility tasks is, at least in part, a
+\textbf{default-hyperparameter artifact}. The effort gap between a closed-form
+linear estimator, which has essentially nothing to configure, and an
+out-of-the-box boosted ensemble is large enough to masquerade as a model-class
+effect; any comparison of the two without a stated tuning protocol should be
+treated as uninformative.
+
+The two halves of this subsection are consistent rather than contradictory.
+Configuring a tree \emph{into} the right capacity regime is worth
+$\approx 0.10$ QLIKE on that panel; once it is there, further causal re-tuning is
+worth nothing. (The tree half of the rolling-tune experiment returned
+$0.176807$ tuned versus $0.177566$ default on its single landed canary chunk ---
+opposite in sign to the linear result, but one chunk is noise and we report it as
+such rather than as a finding.) Hyperparameters are a threshold to be cleared,
+not a dimension to be optimized along.
+
+\subsection{Where the nonlinearity lives, and where it saturates}
+\label{sec:linvsnonlin_saturation}
+
+Granting that the trees hold a real edge, what is it made of? Three independent
+decompositions agree that it is shallow.
+
+\paragraph{(a) Functional ANOVA: mostly additive, with a diffuse remainder.}
+Decomposing the fitted depth-eight boosted tree into orders of interaction gives
+approximately $55\%$ additive, $9\%$ pairwise, and $36\%$
+higher-order-and-diffuse. Within the additive part, HAR dominates: the HAR block
+alone accounts for $96\%$ of the explainable variance of the full fit. The $36\%$
+higher-order share is not concentrated in a few strong interactions --- it is
+spread thinly across many, and when individual pairs are tested against a placebo
+null only the VIX-term interactions survive. This is a model nominally capable of
+eighth-order interactions that in practice spends most of its capacity on main
+effects.
+
+The same conclusion arrives from the feature side. The signal is \emph{dense},
+not low-rank: the elastic-net solution retains approximately $120$ effective
+dimensions out of $529$ features, and principal-component truncation fails
+outright --- five components retain $72\%$ of the feature variance while losing
+essentially all of the predictive signal. $\ell_1$ selection in the raw basis
+works where variance-directed rotation does not, so the signal is \emph{sparse in
+the raw basis but not low-rank in covariance}. That distinction is precisely why
+ridge-style dense shrinkage underperforms on the full panel, and why no
+dimension-reduction preprocessing step rescues it.
+
+\paragraph{(b) The expressivity ladder: pairwise interactions are the whole
+story.}
+The most direct test of saturation is to hold the base model fixed and vary only
+the expressivity of a correction stage fitted to its residual. The following
+ladder does exactly that on the \textbf{deployed residual-stack panel}
+($n = 194{,}934$; levels $\approx 0.120$--$0.128$; not comparable to
+Tables~\ref{tab:battery_bucket_estimator} or~\ref{tab:causal_tune_vs_default}).
+The reference points are the base with no correction stage at all, $0.12081$, and
+the deployed bagged additive-plus-pairwise stage, $0.12033$.
+
+% Source: writeup/regime_moe_results_2026-06-29.md, "The expressivity ladder" table
+% (sat_d0 / fm_d0_wd10 / bfm_d0_pure rows) and the ctrl_ebm anchor; XGB regime figure
+% from writeup/mechanism_and_data_to_buy_2026-06-28.md (120-trial async-Optuna tune).
+\begin{table}[H]
+\centering
+\small
+\caption{Expressivity ladder for the residual correction stage.
+\textbf{Panel: deployed residual-stack,} $n = 194{,}934$, full out-of-sample.
+Each row replaces only the correction stage; the base model is identical
+throughout. ``No correction stage'' is the base alone.}
+\label{tab:expressivity_ladder}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Correction stage & Function class & QLIKE \\
+\midrule
+Additive neural GAM              & main effects only                    & 0.12757 \\
+Bilinear factorization machine   & $+$ linear pairwise interactions      & 0.12108 \\
+Hinge-basis FM, pure pairwise    & $+$ nonlinear shapes and interactions & 0.12080 \\
+\midrule
+\emph{No correction stage}       & ---                                   & \emph{0.12081} \\
+Optuna-tuned XGBoost stage       & unrestricted depth                    & 0.12094 \\
+\midrule
+Bagged additive $+$ pairwise (GA2M) & main effects $+$ pairwise, bagged  & \textbf{0.12033} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two readings follow. First, \textbf{each expressivity upgrade closes the gap
+monotonically, and the closing is essentially complete at pairwise}. A purely
+additive stage is catastrophically inadequate at $0.12757$ --- worse than fitting
+no correction at all. Adding bilinear interactions recovers almost the entire
+deficit in one step, to $0.12108$; allowing those interactions nonlinear shapes
+adds a further $0.00028$, reaching $0.12080$ and exactly matching the
+no-correction baseline. The deployed stage, a bagged GA2M in the sense of
+\citet{Lou2013} --- additive shape functions plus explicitly enumerated pairwise
+terms --- is best of all at $0.12033$. Its remaining advantage over the
+hinge-basis FM is attributable to bagging, not expressivity: the stage is fitted
+on a few thousand rows of an approximately $93\%$-noise residual, where variance
+control rather than capacity binds. That an un-bagged flexible fit \emph{hurts}
+on this sample while a bagged additive-plus-pairwise fit helps is the clearest
+available statement that we are at a variance floor, not a bias floor.
+
+Second, and decisively, \textbf{unrestricted capacity is worse than restricted
+capacity}. A 120-trial asynchronous Optuna search over the XGBoost correction
+stage, warm-started from the best hand-curated configuration, lands at $0.12094$
+--- worse than the interpretable GA2M at $0.12033$, and worse than fitting
+\emph{no} correction stage at all at $0.12081$. Properly searched, unrestricted
+depth on this residual is a net negative. The GA2M is therefore not an
+interpretability compromise purchased at a cost in accuracy; here it is
+simultaneously the more interpretable and the more accurate choice.
+
+\paragraph{(c) The weak-signal floor, and one line that captures most of it.}
+Two measurements bound how much structure remains. First, an \emph{in-sample}
+GA2M probe of the leftover residual --- in-sample, hence an upper bound on what
+any model could extract --- achieves $R^2 \approx 0.07$. Roughly $93\%$ of what
+remains is irreducible noise, and any model-class comparison conducted in that
+regime is a comparison of small differences in how gracefully each class handles
+variance.
+
+Second, and more constructively, the nonlinearity that does matter is
+substantially recoverable in closed form. On an earlier build of the same
+residual-stack panel family, a plain elastic-net base scores $0.12516$ and a
+residualized boosted-tree correction takes it to $0.12414$. Adding a \emph{single
+hand-written linear interaction} --- HAR lags multiplied by a late-day session
+dummy, six features of which $\ell_1$ retains about four --- reaches $0.12457$,
+recovering $58\%$ of the tree's entire edge. Expanding to a full set of
+HAR-by-six-regime interactions (36 features) reaches $0.12453$, or $62\%$: the
+marginal regimes beyond late-day add $4\%$ between them.
+
+This distillation identifies what the tree is doing. It is not discovering a rich
+high-order manifold; it is discovering that HAR's volatility-persistence
+coefficient changes sign near the session close, and encoding that change through
+splits. The mechanism is \emph{clock-anchored} rather than state-anchored, which
+Section~\ref{sec:descriptive} documents directly in the raw data as a sharp
+sign-flip in the correlation between short-horizon realized volatility and the
+next-bar residual at the open and at the close/after-hours transition. Once the
+regime is named and written as a product term, most of the nonlinear advantage
+transfers to the linear model; the residual $\approx 38\%$ is what the tree still
+earns, and Table~\ref{tab:expressivity_ladder} says it is pairwise.
+
+\paragraph{(d) The stage ladder.}
+Assembling the pieces in the order they were added gives the deployed stack, and
+a compact summary of the whole model-side program.
+
+% Source: writeup/mechanism_and_data_to_buy_2026-06-28.md, section 1 "Bottom line" table;
+% final two rows from writeup/regime_moe_results_2026-06-29.md (EBM anchor 0.12033) and
+% writeup/sections/meeting_update_2026_06.tex (composed floor 0.12022).
+\begin{table}[H]
+\centering
+\small
+\caption{Cumulative stage ladder of the deployed residual stack.
+\textbf{Panel: deployed residual-stack,} full out-of-sample, raw-variance scale
+after Duan smearing. Each row adds one stage to the row above.}
+\label{tab:stage_ladder}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Stage & QLIKE & $\Delta$ \\
+\midrule
+Plain elastic net                                & 0.12516 & --- \\
+$+$ engineered regime and path features          & 0.12314 & $-0.00202$ \\
+$+$ global depth-8 XGBoost on the residual       & 0.12129 & $-0.00185$ \\
+$+$ GA2M correction stage on the session-edge window & 0.12050 & $-0.00079$ \\
+Best composed stack                              & 0.12033 & $-0.00017$ \\
+\midrule
+Floor with ensemble-weight tuning                & 0.12022 & $-0.00011$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The shape of the ladder repeats the section's thesis at the level of the whole
+pipeline. The two largest steps --- engineered features and the first nonlinear
+stage --- are of comparable size, $-0.00202$ and $-0.00185$; everything after them
+is fifth-decimal. The final $-0.00011$, obtained by tuning the weight of an
+ensemble mixture, sits below any threshold we are prepared to treat as real on a
+panel of this length, and we report it as the floor rather than as a gain.
+
+\paragraph{(e) Deep sequence models fail outright at this scale.}
+For completeness we report the one model class that does not merely saturate but
+fails. PatchTST \citep{Nie2023}, a patch-based transformer for multivariate time
+series, was trained as a global model on its own evaluation panel
+(\textbf{panel: deep-learning global}; baseline QLIKE $0.25145$ at
+$n = 212{,}364$, levels not comparable to any other table here). Its best
+configuration reaches QLIKE $0.46125$ at $n = 221{,}579$ --- roughly twice the
+loss of its own panel baseline --- with an out-of-sample $R^2$ of $-0.77$ against
+that baseline; a second configuration using overlapping patches is worse still at
+$0.47856$. This is not evidence that transformers cannot forecast realized
+variance. It is evidence that at $\approx 200{,}000$ observations of a signal
+this weak, a model class whose sample-efficiency argument depends on abundant
+data has no path to competitiveness, and that the honest reading of a $-0.77$
+out-of-sample $R^2$ is failure rather than a tuning deficit to be excused. The
+result is consistent with everything else in this section: capacity is not the
+binding constraint, and adding more of it is actively harmful.
+
+\subsection{Synthesis}
+\label{sec:linvsnonlin_synthesis}
+
+The dense-weak regime has a practical law, and this section has measured all
+three of its terms on a single panel:
+\[
+\text{information} \;\gg\; \text{model class} \;\gg\; \text{hyperparameters}.
+\]
+The \textbf{information set} is worth $0.006$--$0.008$ QLIKE: handing the
+incumbent the exogenous panel moves it from $0.13415$ to $0.12788$ under a linear
+model and to $0.12604$ under a tree. The \textbf{model class} is worth
+$0.002$--$0.003$: the pure-nonlinearity premium measured on the no-exogenous
+bucket is $0.00297$, and the best-linear-to-best-nonlinear gap on the full
+feature set is $0.00184$. \textbf{Hyperparameters}, once a model is in the right
+capacity regime, are worth approximately zero: causal re-tuning of the linear
+penalty \emph{costs} $+0.0006$ to $+0.0012$ uniformly, and an oracle permitted to
+overfit the test set caps out at $-0.00015$. The one exception --- clearing a
+tree out of its library defaults, worth $\approx 0.10$ QLIKE on the older panel
+--- is a threshold, not a gradient, and once cleared it never has to be revisited.
+
+Both model classes work and both should be reported. Linear models with
+$\ell_1$-capable shrinkage win on consistency --- the larger Diebold--Mariano
+statistics at the smaller mean improvement --- and remain the right base layer
+for a signal spread thinly across hundreds of columns of which several hundred
+are dead. Tree ensembles win on level, uniformly and on every bucket, by
+localizing a correction the linear model cannot express. But that correction is
+shallow: additive terms plus pairwise interactions recover essentially all of it;
+unrestricted depth, properly searched, does worse than no correction stage at
+all; and a single hand-written product of HAR with a late-day dummy recovers
+$58\%$ of the tree's entire advantage in closed form. What the nonlinearity is
+\emph{about} is not a rich functional geometry but a clock-anchored regime at the
+session boundaries --- which is why it distills so cleanly, and why, having
+distilled it, further capacity finds nothing.
+
+The forward implication for Section~\ref{sec:algorithms} is that the interesting
+algorithmic questions here are not questions of capacity, but of how to fit a
+weak, drifting, high-dimensional signal \emph{exactly and cheaply enough} to
+refit at every bar over a $218{,}934$-bar panel --- rank-one linear algebra,
+online homotopy paths, and leakage-clean causal selection.

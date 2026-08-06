@@ -1,0 +1,25 @@
+\section{The Second-Moment Correction: Duan Smearing}
+\label{sec:smearing}
+
+% Arc: developed HERE, immediately after the data section introduces it,
+% because every downstream fit comparison (buckets, 2-block, 3-block, 4-block)
+% inherits whatever smear machinery this section lands on. Raw-space QLIKE
+% depends on the sqrt-space -> raw-space back-transform; the second-moment
+% correction IS part of the evaluation contract, so it must be frozen before
+% the first model comparison.
+%
+% Planned upgrade, same slot: if/when an LSTM is fit to the correction
+% (a learned second-moment model replacing the empirical smear), it wedges in
+% right here — between data prep and the bucket attribution — so the contract
+% upgrade happens before any comparison that would inherit it.
+% Source material: reference/sections/methodology.tex (Duan smearing),
+% src/evaluation/metrics.py.
+
+\subsection{Why the Back-Transform Needs a Second Moment}
+\pending{sqrt-space fit, raw-space loss — the retransformation bias}
+
+\subsection{The Empirical Smear}
+\pending{Duan estimator as implemented in src/evaluation/metrics.py; rolling vs global choice}
+
+\subsection{What Downstream Inherits}
+\pending{sensitivity of QLIKE rankings to the smear choice — establishes the correction as part of the evaluation contract}
