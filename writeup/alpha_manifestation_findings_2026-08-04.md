@@ -3297,6 +3297,34 @@ transmission 20 @ 3e3), per-bar refit, 250-day window, means+leverage conditiona
 Duan reconstruction; identity frozen everywhere; map/flow alarms. Phase pair out (sweep),
 organ carried at H = 8 only (Tier-3).
 
+### 34.7 The LSTM smear head — pre-registered build (user instruction)
+
+The §34.6 gates justified it; construction pinned before running (`analysis/lstm_smear.py`):
+
+* **Inputs (sparse, per the channel's demonstrated preference):** log e²(t−1), the three trailing
+  means (daily, broadcast), signed daily return and |return| (lagged), slot sin/cos, release-today
+  flag — 9 features, sequence length 96 bars. The long memory is HANDED to the net as features
+  (m5/m21) so it spends capacity only on nonlinear shape, not on rediscovering persistence.
+* **Architecture, fixed, no tuning:** LSTM 1 layer × 48 units, linear head → ŝ = log conditional
+  e²; dropout 0.1; Adam 1e-3; 8 epochs; batch 256; training rows strided ×4.
+* **Loss = the deliverable's loss:** QLIKE through the smear, q = r − log r − 1 with
+  r = true_raw/((f² + exp(ŝ))·baseline), f frozen — the head trains on exactly what production
+  scores, the one structural edge no linear arm had.
+* **Protocol:** expanding walk-forward, biennial refits, evaluation 2016+ (scoped for this
+  container), 3 seeds reported individually, targets closed by construction at h = 1.
+* **Gates:** QLIKE DM ≥ +2.0 vs the means+leverage smear AND vs the means+leverage+probe smear
+  (whichever survives the smear-family sweep is the production bar). Expectation: **lean FAIL**
+  — §34.6's five named columns plausibly captured the headroom; the LSTM must find shape beyond
+  them. This is the study's first justified deep arm; it is still a challenger like any other.
+* **Transformer (user question), answered by the record:** registered as a CONDITIONAL follow-up
+  only — same inputs/loss/protocol with a small encoder (2 heads, 1 block) — to run only if the
+  LSTM passes. Reasoning: attention's edge is content-based retrieval over long ranges, and the
+  measurements say that structure is absent here (event-decay memory failed §34.5; flow pathway
+  failed 37c; persistence is handed over as features); what remains is local nonlinear shape,
+  which recurrence captures with fewer parameters — and this channel has punished parameters
+  twice (§34.3 dense −1.85; targeted-sparse inversion). Architecture ladder discipline: the
+  cheaper learner first.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
