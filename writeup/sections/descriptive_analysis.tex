@@ -259,7 +259,7 @@ integral.} We verify the identity numerically to machine precision
 ladder yields a branching-ratio analogue at no additional computational cost.
 
 Computing it is not kind to the structural reading.
-Table~\ref{tab:hawkes_kernel} reports $\hat n$ pooled and by session. The
+\pending{restore the pooled/by-session $\hat n$ table (tab:hawkes\_kernel)} The
 pooled value is $\hat n = -0.038$: \textbf{negative}, and therefore outside the
 admissible range $[0, 1)$ entirely rather than merely sub-critical. Across
 sessions it ranges from $+0.020$ overnight to $-0.260$ in the after-hours
@@ -373,7 +373,7 @@ integrated kernel is $-0.363$, further from admissible rather than closer.
 \input{stats/tab_nested_probes}
 
 \paragraph{Conditioning on volatility proxies is the explanation.}
-Table~\ref{tab:nested_probes} fits nested probes on the rebuilt cache, all on
+\pending{restore the nested-probe table (tab:nested\_probes)} We fit nested probes on the rebuilt cache, all on
 identical rows, all converted to the raw basis. The marginal self-kernel---own
 lags only, the object a Hawkes branching ratio actually denotes---is
 \emph{well behaved on every diagnostic}:
@@ -419,7 +419,7 @@ structural conclusions from it. That number is a partial effect on a scaled
 basis; both the estimand and the basis were wrong. Neither the diurnal filter
 nor the winsorization nor the availability indicators is implicated---the
 $2\times2$ that tested the first two exonerated them, and
-Table~\ref{tab:nested_probes} isolates the exogenous block as the cause. We
+the nested-probe sequence (\pending{tab:nested\_probes}) isolates the exogenous block as the cause. We
 report the sequence because it is a general hazard: a self-kernel estimated
 jointly with volatility proxies is not a self-kernel.
 
@@ -575,7 +575,7 @@ kernel $\times$ clock rather than kernel alone.
 The clock does more than scale the kernel. Session-conditional estimation shows
 the target kernel \emph{rotating} through the day---cosine similarity to the
 pooled kernel of $+0.83$ overnight against $-0.55$ at the open
-(Table~\ref{tab:hawkes_kernel})---so the geometry deforms at session
+(\pending{tab:hawkes\_kernel})---so the geometry deforms at session
 transitions rather than merely breathing in amplitude.
 
 We can now say how much. Stacking the six session kernels as a $6 \times 12$
