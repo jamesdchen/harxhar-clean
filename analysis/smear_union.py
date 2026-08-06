@@ -9,6 +9,16 @@ is the reproducible record of that run, plus two pre-registered extensions:
 §34.10b — ERA DECOMPOSITION of union-vs-named (the +3.12 is historical; where does it live?).
     No gate; attribution. Loss-diff series saved for the family accounting.
 
+§34.10d (ROLLING=1) — WINDOW/CADENCE for the union: the union's +3.12 is historical and its
+    fits are EXPANDING-window at 63d cadence — but the mean channel's window law (§25: longer
+    LOSES) and cadence law both say recency wins. Arms: union and named each refit on a
+    trailing 756d window at 21d cadence, vs their expanding/63d versions (same instrument).
+    Gates: rolling vs expanding DM >= +2.0 per dictionary; the registered target is the 2020+
+    number (a revival there could change the production smear; full-span alone cannot).
+    Recorded lean: rolling helps the union more than the names (543 nonstationary columns
+    should age faster than 10 stationary functionals), but whether it clears the gate is
+    genuinely uncertain.
+
 §34.10c — UNION EXPANSION: does the span law convert previously-unconvertible dictionary
     blocks once they sit inside the union under GCV shrinkage?
     (c1) + quarticity/HARQ block (4 cols, §34.12's A block — uplift was real, conversion
@@ -73,6 +83,8 @@ def main() -> None:
     Pd = pd.DataFrame(p.X[day_last], columns=p.names).shift(1)
     union1 = pd.concat([named.reset_index(drop=True), Pd.reset_index(drop=True)], axis=1)
 
+    rolling_stage = bool(os.environ.get("ROLLING"))
+
     # §34.10c1: quarticity/HARQ block (dict-battery A block, causal shifts)
     def dmean(col):
         return pd.Series(p.X[:, p.names.index(col)].astype(np.float64)).groupby(day.values).mean()
@@ -97,13 +109,14 @@ def main() -> None:
 
     mfin = np.isfinite(y)
 
-    def expanding_ahat(Xraw, ridge=True):
+    def expanding_ahat(Xraw, ridge=True, window=None, cadence=63):
         out = np.full(nd, np.nan)
-        for start in range(3 * 252 + 63, nd, 63):
-            tr = np.flatnonzero(mfin & (np.arange(nd) < start))
+        for start in range(3 * 252 + 63, nd, cadence):
+            lo = 0 if window is None else max(0, start - window)
+            tr = np.flatnonzero(mfin & (np.arange(nd) >= lo) & (np.arange(nd) < start))
             if len(tr) < 400:
                 continue
-            seg = np.arange(start, min(start + 63, nd))
+            seg = np.arange(start, min(start + cadence, nd))
             mu = np.nanmean(Xraw[tr], 0)
             sd = np.nanstd(Xraw[tr], 0) + 1e-12
             Ztr = np.clip(np.nan_to_num((Xraw[tr] - mu) / sd), -8, 8)
@@ -140,6 +153,26 @@ def main() -> None:
         r = tr_raw[okk] / pr[okk]
         q[okk] = r - np.log(r) - 1.0
         return q
+
+    if rolling_stage:
+        qs = {}
+        for name, df, ridge, win, cad in (
+                ("named-exp", named, False, None, 63),
+                ("named-roll", named, False, 756, 21),
+                ("union-exp", union1, True, None, 63),
+                ("union-roll", union1, True, 756, 21)):
+            qs[name] = q_of_daily(expanding_ahat(df.to_numpy(dtype=float), ridge=ridge,
+                                                 window=win, cadence=cad))
+            print(f"  {name:12s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
+        for a, b, label in (("named-exp", "named-roll", "named: rolling vs expanding"),
+                            ("union-exp", "union-roll", "union: rolling vs expanding"),
+                            ("named-exp", "union-roll", "union-roll vs named-exp (production q)")):
+            d = qs[a] - qs[b]
+            md = np.isfinite(d)
+            g = _hac_mean_t(d[md], 480)
+            print(f"  {label:40s} DM {g:+.2f} (2020+ {_hac_mean_t(d[md & late], 480):+.2f})  "
+                  f"{'PASS' if g >= 2.0 else 'FAIL'}", flush=True)
+        return
 
     qs = {}
     for name, (df, ridge) in (("named", (named, False)), ("union1", (union1, True)),

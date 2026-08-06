@@ -3710,6 +3710,34 @@ the q = 106 failure — q106 at a 1008d trail vs 504d (in-run pair; rescue gate 
 q40@1008d as the everyone-benefits control (recorded lean: partial rescue — genuine tail
 emptiness AND q² estimation noise both live).
 
+## 39. The width discovery's downstream — pre-registered (user: "there must be more we can dig")
+
+The measured width invalidates two conventions downstream of QPOOL, and the union's 2020+
+flatness has one untested lawful explanation. Four arms, two lanes:
+
+* **39a — term structure at the measured width** (`analysis/trans_h40.py`): §37.1's rungs ran
+  at q = 20. Arms twin/+F20/+F40 at H ∈ {8, 13, 16}, same-run. Width gate F40-vs-F20 ≥ +2.0
+  per horizon; at H = 13 ALSO F40-vs-twin ≥ +2.0 — the REVIVAL gate: a pass puts transmission
+  into the EOD/VRP stack for the first time. Recorded leans: 8 and 16 widen; the H = 13
+  revival genuinely uncertain (the §37.1 failure tracked the open-concentration of the EOD
+  edge, which width does not obviously fix).
+* **39b — quadratic content of the new directions** (`analysis/quad40.py`): directions 21–40
+  carry arrows (§38); do they carry curvature? 610 degree-2 candidates involving ≥ 1 new
+  direction, frozen first-window |IC| top-100 @ 3e4, vs the 719 twin. Recorded lean: FAIL
+  (quadratic cleverness is 0-for-6) — run because the width result is exactly the kind of
+  fact that has been overturning those leans.
+* **§34.10d — window/cadence for the union smear** (`ROLLING=1 analysis/smear_union.py`):
+  the union fits expanding/63d; the mean channel's laws (§25 window, §18 cadence) both say
+  recency wins. Union and named each at trailing-756d/21d vs expanding/63d. Gate ≥ +2.0 per
+  dictionary; registered target is the 2020+ number (a revival there could change the
+  production smear). Recorded lean: rolling helps the union more than the names (543
+  nonstationary columns age faster than 10 stationary functionals); gate uncertain.
+* **§34.13 — amplitude-persistence era table** (descriptive, no gate): per-year AR(1) of
+  daily log-amplitude and OOS R² of the 3-means regression. Motivation: second-moment edges
+  keep grading HISTORICAL (union +0.50 on 2020+, quarticity 2020+ negative, labels dead)
+  while the first-moment edge GROWS by era — if amplitude persistence itself fell in the
+  0DTE era, one mechanism explains every one of those deaths at once.
+
 ## Reproducibility
 
 ```bash
