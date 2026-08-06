@@ -3427,6 +3427,13 @@ CAUSAL Duan factor (expanding mean of exp(training residuals)) applied to baseli
 alike; all three blocks re-tested. If verdicts change, the entire §34.2–34.9 smear chain gets
 one corrected re-pass under the same instrument before anything is called final.
 
+**Result: the artifact was real and small — verdicts unchanged.** Quarticity's conversion moves
++1.08 → +1.26 (the bias existed, worth ~0.2 t-units, in the predicted direction) but stays under
+the gate with 2020+ still negative; B +0.26; C −0.73. "QLIKE refuses to pay for quarticity"
+survives its instrument check, now with the objection quantified rather than assumed. The
+§34.2–34.9 chain re-pass is NOT triggered (no verdict flipped), and the closing law stands: the
+smear's convertible content saturates at the ten named columns.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
