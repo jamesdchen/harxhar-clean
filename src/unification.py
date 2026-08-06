@@ -599,43 +599,52 @@ def _eliminate_exact_collinear(
     return np.ascontiguousarray(F[:, keep]), kept_names, dropped
 
 
-def _partial_support_mask(
+def _support_masks(
     p: _Panel, col_names: list[str], window: int, lo: int, hi: int
-) -> np.ndarray:
-    """(hi-lo, p_design) bool: True where a VALUE column lacks FULL observed
-    support in the bar's training window (go-live blowup fix, ruling 2026-08-06).
+) -> tuple[np.ndarray, np.ndarray]:
+    """Go-live/go-dead participation masks (corrected ruling 2026-08-06 — the
+    earlier every-bar full-support rule wrongly masked session-bound feeds
+    that structurally print on a fraction of bars; designs collapsed).
 
-    RULE (deterministic, the window is the unit, no tuned thresholds): a value
-    column participates in a window's design iff its stem's availability
-    indicator is 1 on EVERY bar of that window. Partial support -> masked for
-    that window; the column re-enters automatically once a full window of
-    observed history accumulates, and exits symmetrically after a feed dies
-    (post-death rows are unobserved under the honest-indicator build, so
-    support decays out of the window naturally). Availability-INDICATOR
-    columns are untouched here — they carry the transition information when
-    they vary; constant ones fall to the zero-dispersion mask.
+    RULE (deterministic, threshold-free; window = [s, s+W)): a VALUE column
+    participates iff BOTH
+      (a) the stem printed at least once BEFORE the window starts
+          (cnt[s] >= 1 — the window sees only the live regime), and
+      (b) the stem printed at least once WITHIN the window
+          (cnt[s+W] - cnt[s] >= 1 — the feed is not dead).
+    Session-bound in-window ffill is legitimate under the fill discipline; only
+    genuine pre-go-live and post-death regimes are masked. An availability-
+    INDICATOR column applies (a) only: before go-live it is the pure toxic
+    step; after go-live it varies at session cadence and carries the
+    transition information ((b) is irrelevant — a dead feed's indicator decays
+    to constant and falls to the zero-dispersion mask).
 
-    O(rows x stems) once via cumulative counts; per-window flags by lookup.
+    Returns (pre_go_live, feed_dead) bool matrices of shape (hi-lo, p_design);
+    O(rows x stems) once via cumulative counts, per-window flags by lookup.
     """
     m = hi - lo
-    out = np.zeros((m, len(col_names)), dtype=bool)
-    starts = np.arange(m) + (
-        lo - window
-    )  # global window starts, window = [s, s+window)
-    full_by_stem: dict[str, np.ndarray] = {}
+    pre = np.zeros((m, len(col_names)), dtype=bool)
+    dead = np.zeros((m, len(col_names)), dtype=bool)
+    starts = np.arange(m) + (lo - window)  # global window starts s
+    by_stem: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     for j, nm in enumerate(col_names):
         kind, stem, _w = _classify(nm)
-        if kind != "value" or stem not in p.stem_index:
+        if kind not in ("value", "indicator") or stem not in p.stem_index:
             continue
-        full = full_by_stem.get(stem)
-        if full is None:
+        flags = by_stem.get(stem)
+        if flags is None:
             cnt = np.concatenate(
                 [[0], np.cumsum(p.avail[:, p.stem_index[stem]].astype(np.int64))]
             )
-            full = (cnt[starts + window] - cnt[starts]) == window
-            full_by_stem[stem] = full
-        out[:, j] = ~full
-    return out
+            live_before = cnt[starts] >= 1
+            printed_in = (cnt[starts + window] - cnt[starts]) >= 1
+            flags = (live_before, printed_in)
+            by_stem[stem] = flags
+        live_before, printed_in = flags
+        pre[:, j] = ~live_before
+        if kind == "value":
+            dead[:, j] = live_before & ~printed_in
+    return pre, dead
 
 
 def _walk_ols(
@@ -645,7 +654,7 @@ def _walk_ols(
     lo: int,
     hi: int,
     col_names: list[str],
-    support_mask: np.ndarray | None = None,
+    support_masks: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> tuple[np.ndarray, dict[str, dict[str, Any]]]:
     """Exact OLS (alpha=0) per-bar walk-forward with WINDOW-LEVEL identifiability
     masking (ruling 2026-08-06; the repo's own lam2=0 identifiability-mask
@@ -654,9 +663,9 @@ def _walk_ols(
     Per training window, columns with ZERO dispersion in that window (an
     availability step that has not yet gone live, or has exited the window) are
     masked: coefficient 0, excluded from the solve, re-entering the moment the
-    feed varies inside the window. ``support_mask`` layers the FULL-SUPPORT
-    rule for value columns on top (see :func:`_partial_support_mask` — the
-    go-live blowup fix). Threshold-free and exact — a column is
+    feed varies inside the window. ``support_masks`` layers the go-live /
+    feed-dead participation rule on top (see :func:`_support_masks` — the
+    go-live blowup fix, corrected form). Threshold-free and exact — a column is
     masked iff its last value-change index precedes the window start, computed
     from the RAW slice, never from drift-prone rolled statistics. Exact OLS on
     the surviving columns (the unpenalized intercept absorbs in-window
@@ -708,16 +717,19 @@ def _walk_ols(
         return int(bad.sum())
 
     any_zero = np.zeros(p, dtype=bool)
-    any_support = np.zeros(p, dtype=bool)
+    any_pre = np.zeros(p, dtype=bool)
+    any_dead = np.zeros(p, dtype=bool)
     for i in range(hi - lo):
         t = window + i
-        # zero dispersion within window rows [i, t), plus the full-support rule
-        # for value columns, plus the sticky repair mask
+        # zero dispersion within window rows [i, t), plus the go-live/feed-dead
+        # participation rule, plus the sticky repair mask
         zero = lastchg[t - 1] <= i
         mask = zero | forced
-        if support_mask is not None:
-            mask |= support_mask[i]
-            any_support |= support_mask[i]
+        if support_masks is not None:
+            pre_i, dead_i = support_masks[0][i], support_masks[1][i]
+            mask |= pre_i | dead_i
+            any_pre |= pre_i
+            any_dead |= dead_i
         any_zero |= zero
         free = ~mask
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
@@ -756,8 +768,10 @@ def _walk_ols(
         reasons = []
         if any_zero[j]:
             reasons.append("zero_dispersion")
-        if any_support[j]:
-            reasons.append("partial_support")
+        if any_pre[j]:
+            reasons.append("pre_go_live")
+        if any_dead[j]:
+            reasons.append("feed_dead")
         if forced[j]:
             reasons.append("sticky_collinear")
         masked[col_names[j]] = {
@@ -1303,9 +1317,9 @@ def compute(args: argparse.Namespace) -> None:
         F, kept_names, collinear_cols = _eliminate_exact_collinear(
             F, kept_names, window, lo
         )
-        support = _partial_support_mask(p, kept_names, window, lo, hi)
+        support = _support_masks(p, kept_names, window, lo, hi)
         yhat, masked_cols = _walk_ols(
-            F, p.y, window, lo, hi, kept_names, support_mask=support
+            F, p.y, window, lo, hi, kept_names, support_masks=support
         )
     elif spec.kind == "blocks":
         F, a_ref = _build_design(p, spec, window)
