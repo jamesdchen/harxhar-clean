@@ -3006,6 +3006,42 @@ policy demands has been recommended twice and never executed. Now it runs, pre-r
   positive sign (the fade was support-rot if the detector means anything), gate genuinely
   uncertain — recovery ceiling is roughly the faded ~4 ×1e-4 era units.
 
+## 33. The professor's program, translated — spectral-kNN regimes and LSTM, pre-registered
+
+Two external hypotheses to adjudicate on the current deliverable, with the project's prior
+measured record attached so the runs sharpen rather than repeat it.
+
+**Prior record (to report alongside).** (i) The paper's spectral-kNN arm: Laplacian-eigenmap
+retrieval trails ambient retrieval in all eight matched cells; diagnosed causes — Nyström
+extension error, and unsupervised geometry spending its budget on the wrong directions (PC1 =
+96.2% of X-variance, 0.02% of explained y). (ii) `supervised_metric_knn`: retrieval as such
+helps vs its anchor at small k in AMBIENT coordinates (trailing residual path, k ≈ 100); the
+eigenmap step is what hurts. (iii) msweep h=1: the kNN residual correction + stack was the
+champion's component — "the only residual harvester that never hurts" (−0.0016, t1 p = .089;
+harmless t2). (iv) Regime-conditioning of the GAIN is dead ten ways (§18–§28); regime structure
+is real but lives secularly (rot events), cyclically (the 35-day phase), and in AMPLITUDE
+(forecastable, §31).
+
+* **P1 — kNN residual correction on the deliverable** (`analysis/knn_arm.py`): the surviving
+  form of his idea, upgraded per the diagnosis — retrieval in AMBIENT/state coordinates (two
+  pre-registered view sets: trailing-24-bar residual path; the 20 frozen-frame factor scores —
+  our measured manifold chart), NO eigenmap, strictly causal pool (trailing 5y, stride 3,
+  embargoed), k = 100, Gaussian weights at frozen median bandwidth. Correction = weighted mean
+  of neighbors' residuals, added to the deliverable's forecast; h = 1-bar and H = 8. Gate:
+  QLIKE DM ≥ +2.0 per view set per horizon. Expectation: small positive or harmless at h = 1
+  (the msweep precedent); unknown at H = 8.
+* **P2 — regimes where they can win: amplitude.** Spectral clustering of the state embedding
+  (k = 2…5) into regime labels; test labels as predictors of next-day and next-21d log-amplitude
+  against the §31 trailing-mean baseline (cross-half R² uplift). Expectation: plausible PASS —
+  amplitude is the one forecastable object conditioning has never been aimed at.
+* **P3 — LSTM, two seats** (pre-registered architecture, no tuning: 2 layers × 64 units,
+  sequence 96 bars, dropout 0.2, Adam 1e-3, 3 seeds, walk-forward yearly refit with embargo;
+  torch CPU): (a) pure seat on the backbone + top features → y at h = 1 and H = 8; gates: beat
+  HAR (expect PASS), beat the 679 deliverable (expect FAIL — trees died twice; per-bar linear is
+  the bar); (b) residual seat on the deliverable's residual (expect FAIL — the tree-residual
+  precedent lost by +0.0096). Scoped span (2016+) on this container; full span on larger
+  hardware.
+
 ## Reproducibility
 
 ```bash
