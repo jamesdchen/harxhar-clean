@@ -2840,6 +2840,19 @@ H ∈ {8, 16}, blocked engine, twins recomputed same-engine. Gate: QLIKE DM ≥ 
 unretuned twin at either horizon. Expectation: positive at H = 16 (where the law bites
 hardest), uncertain at H = 8.
 
+### 29.4 The announcement organ, ported — pre-registered (AM-06 executed; user landed the file)
+
+`data/releases.parquet` landed (7 release types, 1993–2024, bar-keyed — CPI, employment, PPI,
+GDP, trade, retail, FOMC). Construction imported VERBATIM from the msweep settled lever
+(`straddle_v3.py`): per type, {log1p(bars since last), log1p(bars until next), count in the next
+H bars, log1p(bars-until capped at H+1)} — 28 columns, all ex-ante (scheduled releases are known
+in advance; the window-aware pair is the lever, plain since/until was worthless there). Design
+choice imported, not tuned: the organ **rides the light block** (their measured configuration) —
+backbone penalty, not exog. Arm: 679 + 28 at H = 8, blocked engine, twin recomputed same-engine.
+Gate: QLIKE DM ≥ +2.0. Expectation: **PASS** — this is a twice-settled lever worth
+−0.005…−0.0067 on their basis; magnitude on ours uncertain (our calendar block may partially
+proxy it; macro-release timing is otherwise absent from the 543 columns).
+
 ## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
 
 §26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
