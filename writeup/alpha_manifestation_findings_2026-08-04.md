@@ -3316,6 +3316,9 @@ The §34.6 gates justified it; construction pinned before running (`analysis/lst
   (whichever survives the smear-family sweep is the production bar). Expectation: **lean FAIL**
   — §34.6's five named columns plausibly captured the headroom; the LSTM must find shape beyond
   them. This is the study's first justified deep arm; it is still a challenger like any other.
+  **Execution deferred to the user's cluster (2026-08-06)** — code shipped
+  (`analysis/lstm_smear.py`; requires the panel cache dir as ALPHA_PANEL_CACHE with
+  `final_onestage.npz` present, torch CPU/GPU; bar = the means+leverage+probe smear per §34.8).
 * **Transformer (user question), answered by the record:** registered as a CONDITIONAL follow-up
   only — same inputs/loss/protocol with a small encoder (2 heads, 1 block) — to run only if the
   LSTM passes. Reasoning: attention's edge is content-based retrieval over long ranges, and the
