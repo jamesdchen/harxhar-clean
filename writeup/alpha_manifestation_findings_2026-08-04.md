@@ -3845,6 +3845,33 @@ discipline item registered:
   loss-diff series already cached under $ARMCACHE) is OWED before any of it is written up as
   proven — the study's own discipline applied to its newest layer. Logged as AM-15.
 
+  **RESULT (`analysis/am15_sweep.py`, `results/.../am15_sweep.csv`) — ALL SEVEN SURVIVE:**
+
+  | claim | ΔQLIKE ×1e-4 | t | rw-adj p |
+  |---|---|---|---|
+  | trans_h1_perbar | +3.32 | +8.45 | **0.000** |
+  | trans_h16_f20 | +1.24 | +5.85 | **0.000** |
+  | trans_h4_f20 | +2.30 | +5.00 | **0.000** |
+  | width_perbar | +1.73 | +4.60 | **0.000** |
+  | union_span | +4.54 | +3.12 | **0.006** |
+  | calendar_smear | +0.79 | +2.65 | **0.007** |
+  | quad40 | +1.50 | +2.08 | **0.025** |
+
+  The first family sweep in the study with NO casualties — the post-§36 layer was built
+  under tighter pre-registration than any before it, and the sweep confirms the discipline
+  paid. Consequences: the transmission program (h=1 width, per-bar entry, H=4/16 rungs) is
+  family-FWER-controlled end to end; the union span verdict is proven (as a historical fact
+  with its §34.10b boundary); **the calendar smear is production-graded — the smear grows to
+  15 columns** (means+leverage+probe + 4 DOW + short-day), final composition running; quad40
+  is proven as ATTRIBUTION and stays out of the stack by the era discipline (2020+ −0.01).
+
+  **§40.3 — THE CLOSING COMPOSED NUMBER.** 719 per-bar + the 15-column smear
+  (means+leverage+probe + 4 DOW + short-day): **QLIKE 0.12299** (§34.11 no-Duan convention;
+  10-col control recomputed in-run 0.12304; Duan instrument: 0.12305 vs 0.12313). Calendar
+  increment on the final model: +1.99 no-Duan / +2.74 Duan — instrument-sensitive at the
+  margin, FWER-graded at the §34.15 arm. Session arc of the headline:
+  0.12579 → 0.12526 → 0.12331 → 0.12303 → **0.12299** (≈ −7.3% vs HAR).
+
 Also logged, not run here: AM-16 (operational instruments — rot detector calibration, map
 monitor, era table — still run at width 20; recalibrate at 40 when the stack settles), and
 the standing data-blocked items (AM-01 panel refresh remains the biggest single lever in the

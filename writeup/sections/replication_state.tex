@@ -1,0 +1,142 @@
+\section{An Independent Replication on the State Side}
+\label{sec:replication}
+
+Everything to this point was estimated on one panel and one basis, by design
+(Section~\ref{sec:ledger} is the cost accounting of that commitment). This
+section reports a replication campaign run on a second construction --- a
+frozen state-space basis and its dynamics --- with different machinery at every
+step. Numbers here are quoted only in this section and are never merged into
+the preceding tables; the panel note of the one-panel commitment stands. Every
+claim below was pre-registered with a recorded expectation before its run, and
+every surviving claim passed a closing Romano--Wolf step-down over its own
+family (2{,}000 draws, 1{,}008-bar joint blocks); the campaign retired sixteen
+further pre-registered arms at their gates. Where an expectation is reported as
+wrong, the direction of the error is part of the record.
+
+\subsection{The frozen frame and its stable objects}
+\label{sec:frozen-frame}
+
+Project the $\sim$133 base features onto the eigenvectors of their
+first-window (2005--06) correlation and freeze that frame permanently. Three
+geometric objects built on this frame replicate out of sample: a factor-pair
+interaction map (split-half correlation $+0.62$ against a null of
+$0.00 \pm 0.11$), a daily rotor (92\% curl fraction, 35-day period, phase
+forecastable roughly one month ahead), and an intraday circulation (split-half
+$+0.992$, kill-tested against moving-average arithmetic). A
+dependence-adjusted Marchenko--Pastur bound keeps only 5 of 106 directions,
+yet wider blocks carry real signal: mid-spectrum directions are
+\emph{gauge-degenerate} --- unpinnable as labelled axes while their span is
+stable. This resolves a puzzle from the primary basis (why representative
+choice never matters) and predicts the central robustness result below.
+
+\subsection{The lead--lag field}
+\label{sec:transmission}
+
+Let $G(t)$ be the frame scores and $D$ the antisymmetric part of their
+lag-one-bar cross-correlation (trailing 504 days, quarterly re-estimation).
+The columns of $\hat G_j(t) = \sum_i D_{ij} G_i(t-1)$ --- one-bar lead--lag
+``arrows'' --- are genuine feature content: a raw-lag control (the same
+columns without $D$-weighting) fails where the $D$-weighted block passes.
+
+\paragraph{Width.} The frame width was an inherited convention (twenty
+factors). Varying it end to end gives the campaign's cleanest structural
+result: forecast improvement is \emph{flat on a plateau} of widths
+$\sim$30--80 and falls off a cliff on both sides (at width 106 --- every live
+direction --- the block fails its gate outright). The arrows live in a
+finite-rank sub-span roughly twice the conventional frame; production runs
+width 40 as a representative of the plateau, not as a tuned optimum.
+Mechanically, the widening gain is carried by the \emph{new directions' own
+next-bar motion}, not by new information about the old carriers; doubling the
+$D$ estimation window rescues nothing (the tail is empty, not noisy); and the
+new arrows replicate split-half at $+0.838$ (old block $+0.907$) --- stable
+field, unpinnable labels, as Section~\ref{sec:frozen-frame} predicts.
+
+\paragraph{Horizon.} The block's value is fast and strictly
+horizon-dependent, and the width increment is faster still:
+
+\begin{table}[H]
+\centering
+\caption{The transmission block by horizon (Diebold--Mariano $t$ against the
+same-engine twin; all surviving entries FWER-controlled in the closing
+step-down). The width-40 increment over width-20 exists at the one-bar
+horizon only.}
+\label{tab:transmission-horizon}
+\small
+\begin{tabular}{lcccc}
+\toprule
+horizon (bars) & 1 & 4 & 8--16 & end-of-day \\
+\midrule
+width-20 block vs.\ twin & $+9.9$ & $+5.0$ & $+2.6$ / $+5.9$ & $+1.4$ (fail) \\
+width-40 vs.\ width-20 & $+2.3$ (per-bar $+4.6$) & $+0.1$ & $+0.4$ / $+1.6$ & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The one apparent anomaly is itself lawful: at sixteen bars the block passes
+only under a per-horizon shrinkage scaling ($\alpha \propto H$), sixteen times
+the penalty of its one-bar seat --- dense-weak content pays at long horizons
+only when the solver is forced to be humble, the same law the primary basis
+found for its own feature classes.
+
+\subsection{The second moment: predictability persists, complexity died}
+\label{sec:second-moment}
+
+The forecast-error second moment (the smear term in the QLIKE
+reconstruction) is forecastable: daily log-amplitude carries an
+out-of-sample $R^2$ near $0.5$ from its own trailing means. Two campaigns of
+dictionary expansion establish what that forecastability is worth. First,
+ridge over a union dictionary (ten named amplitude functionals plus the full
+daily panel snapshot, generalized-cross-validated shrinkage, causal
+per-refit standardization and Duan factors) \emph{beats} the named columns
+($t = +3.12$, FWER $p = 0.006$) --- the channel was span-deficient, not
+sparse, and the deficiency is nameable: calendar structure (day-of-week,
+half-day sessions) and slow quarticity, bipower, and liquidity aggregates,
+with the named ten carrying under 8\% of the fitted coefficient mass. Second,
+that surplus is \emph{era-bounded}: decomposed by period, the union's edge
+decays monotonically after 2015 and is dead after 2022, while the amplitude's
+own-means $R^2$ is undiminished (2020 posts the sample's best year). The
+second moment did not become unpredictable in the zero-days-to-expiry era; it
+became \emph{simple} --- means-sufficient --- and every dictionary expansion
+beyond the means (panel span, quarticity, regime labels, event decay, a
+sequence model's seat) died on the modern regime. The single exception obeys
+the obvious mechanism: the calendar fragment, stationary by construction,
+survives on 2022--26 ($t = +2.31$ there; FWER $p = 0.007$ in the closing
+step-down) and enters the production smear. The conditional smear also fails
+to transfer to the end-of-day horizon (session integration averages the
+vol-of-vol away) --- the trading-horizon deliverable keeps a trailing
+constant, now by measurement rather than by omission.
+
+\subsection{Horizons and the deliverable}
+\label{sec:horizons}
+
+The dense edge is fast in horizon (composite-over-backbone $t$: $+5.4$ at two
+hours, $+2.8$ at four, $+1.2$ at eight), and at the end-of-day horizon it
+concentrates at the open: pooled training across horizons \emph{hides} the
+open-decision edge ($-0.2$), while dedicated-horizon training recovers it
+($+3.2$ on the 10:00 decision slice). The per-horizon production stack that
+falls out of the campaign: at one bar, the full 719-column model (679 primary
+columns plus the width-40 transmission block) refit per bar; at intermediate
+horizons, the width-20 block with $\alpha \propto H$ scaling; at end-of-day,
+neither --- the plain 679 with a constant smear. Composed with its conditional
+smear, the one-bar deliverable's QLIKE improved from $0.12579$ to $0.12303$
+over the campaign ($\approx -7.2\%$ against the HAR baseline), with the final
+step --- the measured width and the calendar smear --- contributed entirely by
+arms that a family-wise error correction survived.
+
+\subsection{What this replication is evidence for}
+\label{sec:replication-summary}
+
+The campaign closes with a seven-for-seven family sweep --- the study's first
+with no casualties --- against sixteen pre-registered arms retired at their
+gates along the way. Three of the primary basis's laws re-derive on the state
+side with different machinery: density with generous uniform shrinkage beats
+selection (the width plateau; the $\alpha \propto H$ revival); the edge is
+fast and freshness-loving in the first moment (per-bar transmission entry,
+horizon-locality of width) while the second moment obeys neither law (rolling
+windows and faster refits fail there); and clever structure survives exactly
+where a stable geometric object backs it (arrows replicate; the phase claim,
+the flow-state features, and the lagged-quadratic terms do not). The state
+side also contributes one law the primary basis could not see: regime change
+manifested not as decay of predictability but as \emph{collapse of
+complexity} --- a channel whose extra dictionary content dies while its
+first-order structure strengthens.

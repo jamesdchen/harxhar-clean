@@ -161,9 +161,13 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
   quadratics PASS +2.39 but 2020+ −0.01 — held out of production (era discipline), graded at
   AM-15. **§34.15 calendar smear PASS +2.65 with 2022–26 +1.40 (t +2.31) — the one modern-
   regime-alive second-moment addition; PRODUCTION CANDIDATE pending AM-15.**
-- NEXT GATE: the AM-15 closing Romano–Wolf sweep over the post-§36 family (width ladder +
-  per-bar entry, union span verdict, §39a/b, §34.10d, §34.14, §34.15 calendar). Nothing new
-  from §38 onward is *proven* until it runs.
+- **AM-15 CLOSING SWEEP RAN — ALL SEVEN SURVIVE** (§40.1, `am15_sweep.csv`): trans_h1_perbar
+  0.000, trans_h16/h4_f20 0.000, width_perbar 0.000, union_span 0.006, calendar_smear 0.007,
+  quad40 0.025. First no-casualty family sweep of the study. Calendar → PRODUCTION (smear
+  now 15 columns); quad40 → attribution only (era discipline). **CLOSING COMPOSED FINAL:
+  0.12299** (719 per-bar + 15-col smear; ≈ −7.3% vs HAR; arc 0.12579 → 0.12299).
+- Campaign CLOSED on-panel. Remaining: cluster items (LSTM head, AM-13), data-blocked
+  (AM-01/02/08/11), ops (AM-16). Paper fold: `sections/replication_state.tex` drafted.
 - Cluster (user's side): LSTM smear head (§34.7, `analysis/lstm_smear.py`); AM-13 battery rerun
   on the fixed panel + tree parity rematch on the 699 set.
 - Data-blocked: AM-01 panel refresh 2024-03 → present (the biggest item); AM-02 chain parquets;
