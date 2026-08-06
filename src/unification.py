@@ -199,10 +199,18 @@ TUNE_PER = 250  # reseed/mask cadence (solves)
 VAL_TAIL = 125  # forward split geometry (unused for selection
 EMBARGO = 25  #  with a 1-point grid; kept for the split call)
 ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
-    # single-point grids = fixed penalties (user directive 2026-08-06; the causal
-    # log-scale grids of the July battery are deliberately NOT used here, and the
-    # elastic-net arm was dropped: §5 is ridge vs lasso only)
+    # single-point grid = fixed penalty (directive 2026-08-06; elastic net dropped:
+    # §5 is ridge vs lasso)
     "lasso_fixed": [("lasso", FIXED_LASSO_ALPHA, 1.0)],
+    # causally-tuned CONTROL arms (directive 2026-08-06, second round): the July
+    # battery's exact grids — specs/causal_tune_linear.py:167-171 ESTIMATOR_GRIDS.
+    # With >1 grid point the TUNE_PER=250 reselection is a real causal re-tune:
+    # forward_window_split(fit block, EMBARGO=25, VAL_TAIL=125) on the CURRENT
+    # training window, argmin validation MSE adopted until the next boundary.
+    # ridge alphas: logspace(-2, 3, 6) = 0.01, 0.1, 1, 10, 100, 1000
+    "ridge_tuned": [("ridge", float(a), 0.0) for a in np.logspace(-2, 3, 6)],
+    # lasso alphas: logspace(-6, -2, 5) = 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 (l1=1.0)
+    "lasso_tuned": [("lasso", float(a), 1.0) for a in np.logspace(-6, -2, 5)],
 }
 
 _DEGENERATE_SD = 1e-8  # "no dispersion in window" guard (frame/live cols)
@@ -511,6 +519,60 @@ def _dedup_ols_design(
     return np.ascontiguousarray(F[:, keep]), kept_names, dropped
 
 
+def _eliminate_exact_collinear(
+    F: np.ndarray, col_names: list[str], window: int, lo: int
+) -> tuple[np.ndarray, list[str], list[str]]:
+    """Deterministic exact-collinearity elimination for OLS designs (ruling
+    2026-08-06, cluster loud-fails): drop columns that are EXACT linear
+    combinations of retained earlier columns — accounting identities like
+    total turnover = buy-initiated + sell-initiated, replicated by the MA
+    ladder at every rung. Stays inside the no-shrinkage discipline: columns are
+    removed, never penalized.
+
+    Method: one unpivoted Householder QR of the CENTERED chunk-first-window
+    design (rows [lo-window, lo)). Unpivoted QR processes columns in canonical
+    order, so |R_jj| is the residual norm of column j after projection on the
+    RETAINED span of columns 0..j-1 (an already-dependent predecessor adds no
+    span, to working precision) — first-in-canonical-order wins by
+    construction. Centering makes dependence-up-to-a-constant collapse onto the
+    unpenalized intercept.
+
+    "Exact" criterion (machine-precision-derived, NOT a tuned epsilon): the
+    numpy.linalg.matrix_rank / LAPACK rank convention (Golub & Van Loan)
+    applied column-wise —
+
+        drop j  iff  |R_jj| <= max(n_rows, n_cols) * eps_float64 * ||col_j||
+
+    with ||col_j|| the centered column norm. At n=24000 this is ~5e-12
+    relative: generous against float64 accumulation in a true identity
+    (~sqrt(n)*eps), far below any economically distinct near-collinearity.
+    Householder QR is backward-stable, so the diagnostic survives
+    ill-conditioning that a gram-based check would not.
+
+    CADENCE (stated per the ruling): the rank repair runs ONCE on the chunk's
+    first training window; an exact identity holds at every row, so it holds in
+    every subsequent window. Re-verification is the per-bar solve itself —
+    _walk_ols retains the loud singularity/finiteness guard, so a dependency
+    arising only mid-chunk still fails loudly rather than silently.
+
+    Columns with ZERO dispersion in the first window are exempt (they belong to
+    the per-bar identifiability mask and may go live mid-chunk). Returns
+    (F_reduced, kept_names, collinear_dropped_names).
+    """
+    Xw = np.asarray(F[lo - window : lo], dtype=np.float64)
+    Xc = Xw - Xw.mean(0)
+    norms = np.linalg.norm(Xc, axis=0)
+    R = np.linalg.qr(Xc, mode="r")
+    diag = np.abs(np.diag(R))
+    eps = np.finfo(np.float64).eps
+    tol = max(Xc.shape) * eps
+    collinear = (norms > 0) & (diag <= tol * norms)
+    keep = np.flatnonzero(~collinear)
+    dropped = [col_names[j] for j in np.flatnonzero(collinear)]
+    kept_names = [col_names[j] for j in keep]
+    return np.ascontiguousarray(F[:, keep]), kept_names, dropped
+
+
 def _walk_ols(
     F: np.ndarray,
     y: np.ndarray,
@@ -550,11 +612,37 @@ def _walk_ols(
     solver.init_window(Xs[:window], ys[:window])
     out = np.empty(hi - lo, dtype=np.float64)
     mask_rows = np.zeros((hi - lo, p), dtype=bool)
+    # Sticky window-collinearity mask, populated LAZILY: only when a solve fails
+    # is the CURRENT window rank-diagnosed (one QR), and any column found exactly
+    # dependent there stays masked for the rest of the chunk. Lazy because the
+    # chunk-first-window QR in _eliminate_exact_collinear already proved the
+    # design full-rank at entry; a later failure means the degeneracy formed
+    # mid-chunk (or on this machine's float path — the repo's documented CARC
+    # precedent), so it must be diagnosed at the failing window itself.
+    forced = np.zeros(p, dtype=bool)
     n = float(window)
+
+    def _window_rank_repair(i: int, t: int, free: np.ndarray) -> int:
+        """Rank-diagnose the CURRENT window (raw rows, not rolled stats) and
+        extend the sticky mask with exactly-dependent columns. Criterion: the
+        normal-equations rank tolerance — solving via the gram SQUARES the
+        design's conditioning (Golub & Van Loan), so a column is numerically
+        dependent for the gram path iff its QR residual ratio is below
+        sqrt(max(n_rows, n_cols) * eps_float64) (~7e-6 at n=24000). Machine-
+        epsilon-derived, not tuned. Returns the number of newly masked cols."""
+        Xw = Xs[i:t][:, free]
+        Xc = Xw - Xw.mean(0)
+        norms = np.linalg.norm(Xc, axis=0)
+        diag = np.abs(np.diag(np.linalg.qr(Xc, mode="r")))
+        ne_tol = np.sqrt(max(Xc.shape) * np.finfo(np.float64).eps)
+        bad = (norms > 0) & (diag <= ne_tol * norms)
+        forced[np.flatnonzero(free)[bad]] = True
+        return int(bad.sum())
+
     for i in range(hi - lo):
         t = window + i
-        mask = lastchg[t - 1] <= i  # zero dispersion within window rows [i, t)
-        mask_rows[i] = mask
+        # zero dispersion within window rows [i, t), plus the sticky repair mask
+        mask = (lastchg[t - 1] <= i) | forced
         free = ~mask
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
@@ -563,17 +651,25 @@ def _walk_ols(
             try:
                 coef[free] = np.linalg.solve(gram[np.ix_(free, free)], rhs[free])
             except np.linalg.LinAlgError as err:
-                raise RuntimeError(
-                    f"singular OLS gram at global row {lo + i} despite panel-level "
-                    "dedup AND window-level identifiability masking — an exact "
-                    "within-window collinearity beyond zero-dispersion. No "
-                    "shrinkage fallback by design; investigate the design."
-                ) from err
+                if _window_rank_repair(i, t, free) == 0:
+                    raise RuntimeError(
+                        f"singular OLS gram at global row {lo + i} with NO exact "
+                        "window-level collinearity found by the rank diagnosis — "
+                        "a pure float-path artifact or a panel-build divergence; "
+                        "no shrinkage fallback by design. Compare the panel "
+                        "builds before rerunning."
+                    ) from err
+                mask = (lastchg[t - 1] <= i) | forced
+                free = ~mask
+                coef = np.zeros(p)
+                if free.any():
+                    coef[free] = np.linalg.solve(gram[np.ix_(free, free)], rhs[free])
             if not np.all(np.isfinite(coef)):
                 raise RuntimeError(
                     f"non-finite OLS coefficients at global row {lo + i} — "
                     "numerically degenerate window; no shrinkage fallback by design."
                 )
+        mask_rows[i] = mask
         intercept = solver._sy / n - float(solver._sx @ coef) / n
         out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
@@ -585,6 +681,7 @@ def _walk_ols(
             "bars": int(len(bars)),
             "first": int(lo + bars[0]),
             "last": int(lo + bars[-1]),
+            "sticky_collinear": bool(forced[j]),
         }
     return out, masked
 
@@ -873,6 +970,20 @@ ARMS: dict[str, ArmSpec] = {
         kind="tuned",
         grid="lasso_fixed",
     ),
+    "b1_ridge_tuned": ArmSpec(
+        describe="causally-TUNED ridge control on the wide basis: battery grid "
+        "logspace(-2,3,6), re-selected every 250 solves on the "
+        "fit/embargo-25/val-tail-125 forward split of the current window",
+        kind="tuned",
+        grid="ridge_tuned",
+    ),
+    "b2_lasso_tuned": ArmSpec(
+        describe="causally-TUNED lasso control on the wide basis: battery grid "
+        "logspace(-6,-2,5) l1=1.0, 250-solve reselection cadence, warm "
+        "Garrigues homotopy between reselections, identifiability mask",
+        kind="tuned",
+        grid="lasso_tuned",
+    ),
     "blk2_user": _blk(
         [("backbone", "backbone"), ("exog_all", "exog")],
         USER_ALPHAS,
@@ -1089,9 +1200,13 @@ def compute(args: argparse.Namespace) -> None:
     _slice(lo, hi, window, n)
 
     dropped_cols: list[str] = []
+    collinear_cols: list[str] = []
     masked_cols: dict[str, dict[str, int]] = {}
     if spec.kind == "ols":
         F, kept_names, dropped_cols = _ols_design(p, spec)
+        F, kept_names, collinear_cols = _eliminate_exact_collinear(
+            F, kept_names, window, lo
+        )
         yhat, masked_cols = _walk_ols(F, p.y, window, lo, hi, kept_names)
     elif spec.kind == "blocks":
         F, a_ref = _build_design(p, spec, window)
@@ -1109,6 +1224,7 @@ def compute(args: argparse.Namespace) -> None:
         "sum_y2": float(np.sum(y_fit**2)),
         "n": int(hi - lo),
         "ols_dropped_cols": len(dropped_cols),
+        "ols_collinear_cols": len(collinear_cols),
         "ols_masked_cols": len(masked_cols),
     }
 
@@ -1130,6 +1246,7 @@ def compute(args: argparse.Namespace) -> None:
         sum_y2=np.float64(result["sum_y2"]),
         n=np.int64(result["n"]),
         ols_dropped_cols=np.int64(len(dropped_cols)),
+        ols_collinear_cols=np.int64(len(collinear_cols)),
         ols_masked_cols=np.int64(len(masked_cols)),
         meta=json.dumps(
             {
@@ -1146,6 +1263,9 @@ def compute(args: argparse.Namespace) -> None:
                 # deterministic exact-duplicate/constant drops (OLS arms; see
                 # _dedup_ols_design) — recorded so the design is auditable per task
                 "ols_dropped_cols": dropped_cols,
+                # exact-collinearity drops on the chunk's first training window
+                # (accounting identities; see _eliminate_exact_collinear)
+                "ols_collinear_cols": collinear_cols,
                 # window-level identifiability mask report (OLS arms; ruling
                 # 2026-08-06): name -> {bars, first, last} in GLOBAL row indices
                 "ols_masked_cols": masked_cols,
@@ -1156,7 +1276,7 @@ def compute(args: argparse.Namespace) -> None:
     print(
         f"[{arm}] rows [{lo}, {hi}) window={window} cols={F.shape[1]} "
         f"sqrt_mse={result['sqrt_mse']:.6f} dropped={len(dropped_cols)} "
-        f"masked={len(masked_cols)} -> {args.output_file}"
+        f"collinear={len(collinear_cols)} masked={len(masked_cols)} -> {args.output_file}"
     )
 
     if os.environ.get("RESULT_DIR"):
