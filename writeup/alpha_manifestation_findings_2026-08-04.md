@@ -2764,6 +2764,33 @@ notes kept for the record: the organ port onto this panel (their settled lever, 
 543 columns) is the highest-value known feature addition at these horizons; the H ≥ 48
 friction frame stays cached and reusable.
 
+### 29.1 The proper object: remaining variance to the close — pre-registered
+
+User direction (2026-08-06): the proper horizon is **end of day — "something like 13"** — so the
+VRP can be properly calculated. Confirmed on the grid: the panel is 24h/48 bars and the RTH
+session 09:30→16:00 is exactly **13 half-hour bars** (rows labeled 10:00 … 16:00). A fixed
+sliding H never matches an option's life; the 0DTE straddle object is **integrated variance from
+decision to the close**, and implied at the open prices exactly that window. So the target
+becomes per-row remaining-session variance:
+y(t) = √(Σ RV[t … close(t)] / Σ baseline[t … close(t)]), close(t) = the first 16:00-labeled row
+at or after t (rows after the close roll to the next session; horizon spans 13 → 1 across RTH).
+The horizon is a *function of the clock*, and the calendar block already carries time-of-day —
+one model learns the whole remaining-variance curve. Embargo 64 bars (covers the longest
+overnight-to-close label); days without a 16:00 bar (early closes) drop.
+
+* **Arms** (`--stage eod`): backbone (α = 1) and the one-stage 679 (§22 penalties), daily refit,
+  embargoed walks. Scored three ways: all finite rows; pooled RTH decisions (h = 13…2); and the
+  **open-decision slice** (h = 13, one per day, non-overlapping — the cleanest series in the
+  study and the direct 0DTE-at-open object).
+* **Gate:** 679 vs backbone QLIKE DM ≥ +2.0 on the open-decision slice. Expectation: pass —
+  h = 1 and the H-ladder edges should transfer; the open slice is where it must show to matter.
+* **The VRP data item, recorded:** computing VRP proper needs same/next-day-expiry ATM implied
+  at the decision bar. The cached OptionMetrics series (`straddle_v3_*.npz`) is 4–9 dte quoted
+  at 16:00 — the wrong window for this object. The export path exists
+  (`writeup/om_friction_export_spec.md`, prop branch addendum); a 0–1 dte, at-open export is the
+  single data item that turns this section's forecast into a measured VRP and a friction-priced
+  intraday straddle P&L. Until then, QLIKE on the open slice is the in-scope proxy.
+
 ## Reproducibility
 
 ```bash

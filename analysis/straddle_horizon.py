@@ -190,12 +190,86 @@ def stage_cadence() -> None:
     np.savez_compressed(_p("straddle_cadence_h8.npz"), perbar=pb)
 
 
+def stage_eod() -> None:
+    """§29.1: remaining variance to the close — the 0DTE object, decided anywhere in the day."""
+    _require_fixed_cache()
+    os.makedirs(OUT, exist_ok=True)
+    p = load_panel()
+    ts = pd.Series(pd.to_datetime(p.t))
+    n = len(ts)
+    rv = p.y**2 * p.baseline
+    crv = np.concatenate([[0.0], np.cumsum(rv)])
+    cb = np.concatenate([[0.0], np.cumsum(p.baseline)])
+    close_rows = np.flatnonzero((ts.dt.hour == 16) & (ts.dt.minute == 0).to_numpy())
+    pos = np.searchsorted(close_rows, np.arange(n), side="left")
+    has = pos < len(close_rows)
+    c = np.where(has, close_rows[np.minimum(pos, len(close_rows) - 1)], 0)
+    hb = np.where(has, c - np.arange(n) + 1, 0)
+    v = crv[c + 1] - crv[np.arange(n)]
+    b = cb[c + 1] - cb[np.arange(n)]
+    ok = has & (b > 0)
+    yh = np.full(n, np.nan)
+    Bh = np.full(n, np.nan)
+    yh[ok] = np.sqrt(v[ok] / b[ok])
+    Bh[ok] = b[ok]
+    EMB = 64  # covers the longest overnight-to-next-close label window
+    print(f"EOD target: every row labels to its NEXT 16:00 close ({ok.sum()} defined; horizon "
+          f"1..{hb[ok].max()} bars); embargo {EMB}", flush=True)
+    # the last <EMB rows have no close: fill for the solver only; scoring masks on finite yh
+    y_train = pd.Series(yh).ffill().to_numpy()
+
+    X679, XH, _ = _build_design()
+    preds = {}
+    preds["backbone"] = walk_forward_embargo(XH, y_train, TW, EMB, 1.0, PERIODS_PER_DAY)
+    print("  backbone done", flush=True)
+    preds["one-stage 679"] = walk_forward_embargo(X679, y_train, TW, EMB, 3000.0,
+                                                  PERIODS_PER_DAY)
+    print("  679 done", flush=True)
+
+    yh_o, Bh_o = yh[2 * TW :], Bh[2 * TW :]
+    hb_o = hb[2 * TW :]
+    hour = ts.dt.hour.to_numpy()[2 * TW :]
+    late = (ts[2 * TW :] >= HOLDOUT).to_numpy()
+    rth = (hour >= 10) & (hour <= 16)
+    slices = {
+        "all rows": np.isfinite(yh_o),
+        "RTH pooled (h 2-13)": np.isfinite(yh_o) & rth & (hb_o <= 13) & (hb_o >= 2),
+        "OPEN decision (h=13)": np.isfinite(yh_o) & (hb_o == 13) & (hour == 10),
+    }
+    qs = {}
+    for name, pr in preds.items():
+        f = pr[TW:]
+        m0 = np.isfinite(f) & np.isfinite(yh_o)
+        q = np.full(len(yh_o), np.nan)
+        q[m0] = _qlike_series(f[m0], yh_o[m0], Bh_o[m0])
+        qs[name] = q
+        print(f"\n  {name}:")
+        for sl, m in slices.items():
+            mm = m & m0
+            print(f"    {sl:22s} QLIKE {np.nanmean(q[mm]):.5f}  "
+                  f"(2020+ {np.nanmean(q[mm & late]):.5f})  [{mm.sum()} rows]", flush=True)
+    d = qs["backbone"] - qs["one-stage 679"]
+    print("\n  679 vs backbone, QLIKE DM:")
+    for sl, m in slices.items():
+        lags = 480 if sl != "OPEN decision (h=13)" else 63  # open slice: 1/day, no overlap
+        print(f"    {sl:22s} {_hac_mean_t(d[m], lags):+.2f} "
+              f"(2020+ {_hac_mean_t(d[m & late], lags):+.2f})")
+    g = _hac_mean_t(d[slices["OPEN decision (h=13)"]], 63)
+    print(f"\n  gate (open slice >= +2.0): {'PASS' if g >= 2.0 else 'FAIL'}")
+    np.savez_compressed(_p("straddle_eod.npz"),
+                        **{k.replace(" ", "_"): v for k, v in preds.items()},
+                        y_eod=yh, B_eod=Bh, h_bars=hb)
+    print("cached -> straddle_eod.npz")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["ladder", "cadence"], required=True)
+    ap.add_argument("--stage", choices=["ladder", "cadence", "eod"], required=True)
     ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 16])
     a = ap.parse_args()
     if a.stage == "ladder":
         stage_ladder(a.hb)
-    else:
+    elif a.stage == "cadence":
         stage_cadence()
+    else:
+        stage_eod()
