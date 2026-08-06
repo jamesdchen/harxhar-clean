@@ -27,6 +27,7 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
 | [AM-11](#am-11--finer-resolution-intraday-flow) | `analysis/cucuringu.py` | Intraday flow at 1–5 min bars (sub-bar dynamics behind the −0.28 jitter) | Finer-resolution bar data |
 | [AM-12](#am-12--cross-sectional-panel-cucuringu-as-estimator) | new module | Cross-sectional panel: lead-lag portfolios, cross-impact OFI, SPONGE sectors | Cross-section of names |
 | [AM-13](#am-13--battery-rerun-on-the-fixed-panel) | battery campaign | Causal-tune battery rerun on the FIXED panel (+ tree parity rematch on the 699 set) | Cluster time |
+| [AM-14](#am-14--transmission-as-execution-timing) | trading layer | Transmission arrows as straddle ENTRY timing (flow leads implied repricing) | Tier-2 intraday option quotes |
 
 ---
 
@@ -200,3 +201,16 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
   gate DM ≥ +2.0 vs the 699 per-bar ridge. Prior (from §19/msweep saturation-at-pairwise):
   trees lose; a pass would be a major result.
 - **Blocker:** cluster time (pairs naturally with the §34.7 LSTM run).
+
+
+### AM-14 — Transmission as execution timing
+
+- **Module:** trading layer (post-VRP).
+- **Symptom / why it matters:** the intraday flow says order-flow factors lead the VIX complex
+  by ~1 bar (§30, +0.99 stable). For the midday hold-to-close straddle, that is an ENTRY-timing
+  edge: buy before the implied repricing the arrows predict, not after. Not a QLIKE object —
+  an implied-vs-forecast timing spread, invisible to everything measured on this panel.
+- **Concrete change required:** with Tier-2 intraday quotes (AM-02's purchase), test whether
+  flow-conditioned entry (enter when transmission predicts VIX-complex catch-up) beats
+  clock-fixed midday entry, net of half-spreads.
+- **Blocker:** Tier-2 intraday option quotes.
