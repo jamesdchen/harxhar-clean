@@ -90,22 +90,26 @@ def main() -> None:
         q[m] = _qlike_series(walk[m], p.y[m], p.baseline[m])
         return q
 
+    # lazy builders: exactly ONE ~1.4GB design matrix alive at a time (nine upfront OOM'd)
     arms = {
-        "699 twin (F20)": (np.hstack([X679, F20]), F20),
-        "F40 @3e3": (np.hstack([X679, F40]), F40),
-        "F40 @3e2": (np.hstack([X679, F40 * np.sqrt(10.0)]), F40),
-        "F40 @3e4": (np.hstack([X679, F40 * np.sqrt(0.1)]), F40),
-        "b1 T_old (wide sources)": (np.hstack([X679, T_old]), T_old),
-        "b2 F20+T_new (new targets)": (np.hstack([X679, F20, T_new]), T_new),
-        "c q106 504d": (np.hstack([X679, F106s]), F106s),
-        "c q106 1008d": (np.hstack([X679, F106l]), F106l),
-        "c q40 1008d": (np.hstack([X679, F40l]), F40l),
+        "699 twin (F20)": (lambda: [F20], F20),
+        "F40 @3e3": (lambda: [F40], F40),
+        "F40 @3e2": (lambda: [F40 * np.sqrt(10.0)], F40),
+        "F40 @3e4": (lambda: [F40 * np.sqrt(0.1)], F40),
+        "b1 T_old (wide sources)": (lambda: [T_old], T_old),
+        "b2 F20+T_new (new targets)": (lambda: [F20, T_new], T_new),
+        "c q106 504d": (lambda: [F106s], F106s),
+        "c q106 1008d": (lambda: [F106l], F106l),
+        "c q40 1008d": (lambda: [F40l], F40l),
     }
     from analysis.armcache import memo
+    import gc
     qs, acts = {}, {}
-    for name, (X, F) in arms.items():
-        qs[name] = memo(f"rank_{name}", lambda X=X: q_of(X))
+    for name, (blocks, F) in arms.items():
+        qs[name] = memo(f"rank_{name}",
+                        lambda blocks=blocks: q_of(np.hstack([X679] + blocks())))
         acts[name] = np.abs(F).sum(1) != 0.0
+        gc.collect()
         print(f"  {name:28s} QLIKE {np.nanmean(qs[name]):.5f}", flush=True)
 
     def dm(a, b, label):
