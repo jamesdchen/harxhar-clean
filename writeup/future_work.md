@@ -26,6 +26,7 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
 | [AM-10](#am-10--multiplicity-sweep-over-the-s27-32-family) | `analysis/multiplicity.py` | Romano–Wolf sweep over the §27–§32 claim family | All §27–32 verdicts in |
 | [AM-11](#am-11--finer-resolution-intraday-flow) | `analysis/cucuringu.py` | Intraday flow at 1–5 min bars (sub-bar dynamics behind the −0.28 jitter) | Finer-resolution bar data |
 | [AM-12](#am-12--cross-sectional-panel-cucuringu-as-estimator) | new module | Cross-sectional panel: lead-lag portfolios, cross-impact OFI, SPONGE sectors | Cross-section of names |
+| [AM-13](#am-13--battery-rerun-on-the-fixed-panel) | battery campaign | Causal-tune battery rerun on the FIXED panel (+ tree parity rematch on the 699 set) | Cluster time |
 
 ---
 
@@ -184,3 +185,18 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
 - **Symptom / why it matters:** On one series his methods are diagnostics; on thousands of names they are estimators with literature-verified economics: lead-lag portfolios (laggards traded on leaders), cross-impact of OFI (Cont–Cucuringu–Zhang — the OFI features already exist), SPONGE sector clustering for relative-vol trades, per-sector flow networks whose differences are tradable.
 - **Concrete change required:** Cross-sectional bar panel of names; port the frame/map/flow machinery per sector; pre-register the lead-lag portfolio as the first scored arm.
 - **Blocker:** Cross-section of names (bar-level).
+
+
+### AM-13 — Battery rerun on the fixed panel
+
+- **Module:** the causal-tune battery campaign (`writeup/causal_tune_battery_table.tex`).
+- **Symptom / why it matters:** the battery (buckets × estimators, causal-tuned, per-bar tree
+  refits) ran on the PRE-§16 panel; every alpha-manifestation number is on the fixed panel
+  (HAR anchors 0.1330 vs 0.13275). No table may juxtapose them until the battery is re-run on
+  the fixed panel — the third instance of the paper's panel-unification blocker.
+- **Concrete change required:** re-run the battery on the fixed panel (cluster). Fold in the
+  TREE PARITY REMATCH as its headline row: per-bar LightGBM/XGB on the full 699-column final
+  feature set (products + transmission as inputs), hyperparameters causal-tuned as before,
+  gate DM ≥ +2.0 vs the 699 per-bar ridge. Prior (from §19/msweep saturation-at-pairwise):
+  trees lose; a pass would be a major result.
+- **Blocker:** cluster time (pairs naturally with the §34.7 LSTM run).

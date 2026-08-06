@@ -36,6 +36,14 @@ five-question state + F1–F4 (per `paper_restructure_2026-08-01.md`).
 - **F-facts extended:** F5 amplitude-forecastable-gain-not; F6 frozen-beats-refreshed (frame,
   products); F7 the dense edge is fast in horizon.
 
+## Battery comparability (correction 2026-08-06)
+
+The causal-tune battery ran per-bar (cadence matched — a stronger control than first credited)
+but on the PRE-§16 panel; the final model's numbers are on the fixed panel. **No merged ladder
+until AM-13 (battery rerun on the fixed panel + tree parity rematch on the 699 feature set)**.
+Until then the paper presents the battery as attribution on its own panel, the final model on
+the fixed panel, and never joins the tables.
+
 ## Gating items before the paper pass
 
 1. AM-10 Romano–Wolf sweep over the new family (phase sliver, cadence-H8, open-slice, α-law
