@@ -57,6 +57,9 @@ def main() -> None:
         q = np.full(n, np.nan)
         q[m] = _qlike_series(f[m], p.y[m], p.baseline[m])
         qs[name] = q
+        if "699" in name:
+            np.savez_compressed(os.path.join(os.environ["ALPHA_PANEL_CACHE"],
+                                             "final_699_perbar.npz"), yhat=f)
         print(f"  {name:18s} PER-BAR QLIKE {np.nanmean(q):.5f} "
               f"(2020+ {np.nanmean(q[late]):.5f})", flush=True)
     d = qs["679"] - qs["699 +transmission"]

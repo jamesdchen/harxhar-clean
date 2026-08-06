@@ -3268,6 +3268,35 @@ replicable statistical content is the A3-inverse pattern and equally suspect (QL
 rewards over-smearing a few post-release days). Both gates were registered as required; the
 production smear stays MEANS + LEVERAGE. Event-decay in the amplitude channel: closed.
 
+### 34.6 The LSTM headroom probe — pre-registered (user instruction; the gating measurement)
+
+Five targeted nonlinear-in-history terms beyond MEANS+LEVERAGE, each a shape an LSTM would have
+to learn: {min(r,0) threshold downside; r² curvature; r·l1 state-dependent leverage;
+roll5(min(r,0)) and roll21(min(r,0)) slow asymmetric memory} — all lagged/causal, standardized.
+Gates as §34.4 vs the means+leverage baseline: (i) cross-half uplift both halves > shift-null
+p95; (ii) smear conversion DM ≥ +2.0. Decision rule (registered): (i)'s uplift estimates the
+LSTM's addressable headroom — PASS ⇒ the LSTM smear head gets registered with the §"what else
+do we need" protocol (QLIKE-through-smear loss, sparse inputs, bar-level, 3 seeds); FAIL ⇒ the
+second moment closes at means+leverage and the LSTM is dead without execution. Expectation:
+lean FAIL — the linear leverage term likely carries the bulk of the asymmetry.
+
+**§34.6 result: BOTH GATES PASS — the headroom is real and the LSTM head is hereby
+registered.** Uplift +0.011/+0.017 (null ~0.0007); smear conversion **+2.41 with 2020+ +2.02**
+— era-consistent, unlike §34.5. Two consequences, per the registered decision rule: (a) the
+five probe terms themselves upgrade the smear (means+leverage+probe, QLIKE 0.12369, provisional
+— the targeted-sparse pattern continues: 10 named columns now beat everything); (b) the **LSTM
+smear head is a justified experiment** — protocol as registered (QLIKE-through-smear loss,
+sparse inputs, bar-level, 1–2×32–64 units, 3 seeds, yearly embargoed refits), bar = the
+means+leverage+probe smear, execution deferred to larger hardware. The smear family is now
+seven arms deep and owes its multiplicity sweep before ANY version ships.
+
+**§35c entry condition: CONFIRMED — DM +8.54 per-bar (2020+ +5.67), QLIKE 0.12579 → 0.12546.**
+The transmission block enters the production stack. THE FINAL h = 1 MODEL ON THIS PANEL:
+**699 columns** (backbone 27 @ 1 | exog 516 @ 3e3 | xsec 36 @ 3e3 | frozen products 100 @ 3e4 |
+transmission 20 @ 3e3), per-bar refit, 250-day window, means+leverage conditional smear in the
+Duan reconstruction; identity frozen everywhere; map/flow alarms. Phase pair out (sweep),
+organ carried at H = 8 only (Tier-3).
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
