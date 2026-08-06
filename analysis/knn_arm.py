@@ -89,7 +89,27 @@ def main() -> None:
         Vs = np.zeros((n_all, G.shape[1]))
         Vs[2 * TW :] = G
 
-        for vname, V in (("residual path", Vp), ("state (frame)", Vs)):
+        # view (c): the professor's exact spec — Laplacian eigenmap (d=6) of the state,
+        # fit on the first two years of the OOS span, extended forward by kNN interpolation
+        # of embedding coordinates (the Nystrom-style extension whose error the prior study
+        # diagnosed). Head-to-head against the corrected views, same protocol.
+        from sklearn.manifold import SpectralEmbedding
+        from sklearn.neighbors import NearestNeighbors
+        FIT_N = 2 * 252 * 48
+        sub = np.arange(0, FIT_N, 4)  # every 4th bar of the first 2y, ~6k anchors
+        anchors = G[sub]
+        emb = SpectralEmbedding(n_components=6, affinity="nearest_neighbors",
+                                n_neighbors=15, random_state=0).fit_transform(anchors)
+        nn = NearestNeighbors(n_neighbors=10).fit(anchors)
+        dist, ind = nn.kneighbors(G)
+        wgt = 1.0 / (dist + 1e-9)
+        wgt /= wgt.sum(1, keepdims=True)
+        Ge = np.einsum("nk,nkd->nd", wgt, emb[ind])
+        Ve = np.zeros((n_all, 6))
+        Ve[2 * TW :] = (Ge - Ge.mean(0)) / (Ge.std(0) + 1e-12)
+
+        for vname, V in (("residual path", Vp), ("state (frame)", Vs),
+                         ("eigenmap d=6 (his spec)", Ve)):
             chat = _knn_correct(V, rz, valid_r, emb=hb + PATH_W)
             m = np.isfinite(chat) & np.isfinite(f) & np.isfinite(yt)
             q0 = np.full(n_all, np.nan)
