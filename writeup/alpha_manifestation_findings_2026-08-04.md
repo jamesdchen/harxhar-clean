@@ -3303,6 +3303,14 @@ already CONTAINS lag-1 transmission):
   §34.3 dense smear regression (target log e²), gated against the means-only smear alongside
   §34.3's own verdict. Expectation: uncertain — vol-of-vol may read the arrows differently
   than vol does.
+* **37b′ — PER-BAR-refreshed D (user challenge: "why aren't we refreshing every bar?").**
+  Answer on record: the quarterly cadence was inherited from the §28.2 machinery, not measured
+  — the same unexamined convention that hid the study's biggest win until the same user question
+  exposed it in §18. D is a sliding sum of lag-1 outer products, updatable per bar in O(20²), so
+  cost is no excuse. Registered tension: the flow is the study's most stable object (+0.99),
+  arguing freshness is worthless here — but the cadence law has beaten that intuition twice.
+  Same gate (≥ +2.0 vs the 699 twin). Expectation: FAIL/small — recorded so that a pass means
+  something.
 * The genuine Cucuringu move — lead-lag portfolios over a cross-section — remains AM-12,
   now with a proven single-market prototype.
 
