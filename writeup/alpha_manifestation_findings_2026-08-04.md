@@ -3226,6 +3226,33 @@ if 679 linear columns subtract value, a sequence model has only nonlinearity-in-
 to mine on a channel that persistence already saturates. The sequence-model case on this panel
 is now confined to §33 P3 (the professor's adjudication) — no performance motivation remains.
 
+### 34.4 The leverage-asymmetry probe — pre-registered (user instruction; the LSTM-smear's last reprieve)
+
+§37's verdicts (below) denied the flow pathway; the one untested source of second-moment
+headroom is asymmetry: the leverage effect (negative returns inflating vol-of-vol beyond what
+symmetric persistence captures). EGARCH-style two-column probe: {lagged daily signed return,
+lagged |return|} (standardized) added to the means regression on next-day log-amplitude.
+Readouts: (i) cross-half R² uplift, gate > 0 both halves and > 200-draw shift-null p95;
+(ii) conversion: the leverage smear vs the means-only smear, gate DM ≥ +2.0. Expectation:
+the asymmetry exists (literature) but is small and largely inside the means — lean FAIL on
+(ii); a pass on (i) alone means "real but unmonetizable," the A3 pattern. If both fail, the
+second moment is closed: saturated by its own persistence, and the LSTM-smear is dead without
+execution.
+
+**Result: BOTH PASS.** (i) Uplift **+0.034/+0.041** (null ~0.001) — 2–4× the regime labels'
+uplift; the leverage asymmetry is real and it is the largest statistical structure found in the
+amplitude channel beyond persistence. (ii) Conversion: **DM +4.03** full-span (QLIKE 0.12388 →
+0.12377), with the honest caveat 2020+ only +0.92 — the late era is weak. **The production
+smear becomes means + leverage** (provisional, post-sweep). And the §34.3/§34.4 pair delivers
+an inversion worth a paragraph in the paper: the second moment is the FIRST channel in this
+study where dense-generous LOSES to targeted-sparse — 679 columns at α = 3e3 diluted the
+leverage signal below noise (−1.85) while the same signal extracted as two columns pays (+4.03).
+Vol-of-vol is a sparse channel; vol is a dense one. For the sequence-model question: the
+mechanism (nonlinear/asymmetric headroom) is alive, but the channel's demonstrated preference
+for parsimony argues against maximal-capacity learners; the cheap next rungs are targeted
+(event-decay terms), not learned. Multiplicity note: the smear family (means, dense, labels,
+transmission, leverage) is accruing arms and owes its own accounting before production.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
