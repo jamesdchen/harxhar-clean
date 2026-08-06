@@ -24,7 +24,17 @@
 | `fast_rerun.py` | §§29–30 verdicts, §30.3 | consolidated fast-engine reruns; `RAWLAG=1` control |
 | `vrp_eod.py` | AM-02 | Tier-1 VRP consumer (blocked on chain parquets) |
 | `knn_arm.py` | §33 P1 | professor's kNN, 3-view head-to-head |
-| `regime_atlas.py` | §34 | regime decomposition (A1 coefficient trajectory, A2/A3 labels) |
+| `regime_atlas.py` | §34 | regime decomposition (A1 coefficient trajectory, A2/A3 labels, A4 intraday) |
+| `cond_smear.py` | §34.2 | conditional smear gate + labels-vs-means ablation |
+| `smear_scoring.py` | §34 shared | `linear_smears()` — the production smear baselines, one implementation |
+| `smear_dense.py` | §34.3 | dense-679 smear regression (control; dead) |
+| `lstm_smear.py` | §34.7 | LSTM smear head (registered; runs on the cluster, not here) |
+| `smear_sweep.py` | §34.8 | smear-family Romano–Wolf sweep |
+| `product_mine.py` | §35 | α-scaled count ladder, cross-time products, transmission at h=1 |
+| `am10_sweep.py` | §36 | main-family Romano–Wolf sweep (gappy-support, joint blocks) |
+| `trans_exploit.py` | §37, §37.1 | `_trans_block` (THE transmission block); exploitation arms; `HORIZONS=1` term structure |
+| `trans_perbar.py`, `trans_perbar_d.py` | §35c entry, §37b′ | per-bar SM confirmation (`final_699_perbar.npz`); per-bar-refreshed D |
+| `pool_width.py` | §38 | pool-width arm: q ∈ {5,10,40} vs QPOOL=20 |
 | `wf.py` | engines | `walk_forward` (rank-1), `walk_forward_embargo_blocked` (day-blocked, ~8×), `walk_forward_embargo_dualcadence` (Sherman–Morrison, exact, both cadences + vintage hybrids) |
 
 Engine discipline: any comparison uses the SAME engine for both arms. Honest labels at horizon

@@ -3530,6 +3530,78 @@ already CONTAINS lag-1 transmission):
 * The genuine Cucuringu move — lead-lag portfolios over a cross-section — remains AM-12,
   now with a proven single-market prototype.
 
+### 37.1 Horizon completion — the transmission term structure (2026-08-06)
+
+The remaining horizons, same protocol as everywhere (blocked engine, twin recomputed
+same-engine, `HORIZONS=1 python analysis/trans_exploit.py`; §22 penalties at H = 4/13, the
+§29.3 α-law penalty at H = 16 — each horizon's production solver):
+
+| horizon | twin QLIKE | +transmission | DM | 2020+ | verdict | source |
+|---|---|---|---|---|---|---|
+| h = 1 | 0.12839 | 0.12801 | **+9.90** | +5.38 | PASS | §35c |
+| H = 4 | 0.08278 | 0.08258 | **+5.00** | +3.67 | PASS | §37.1 |
+| H = 8 | 0.07332 | 0.07321 | **+2.58** | +1.58 | PASS | §30.2 |
+| H = 13 | 0.07068 | 0.07062 | +1.38 | +0.83 | FAIL | §37.1 |
+| H = 16 | 0.06717 | 0.06707 | **+5.85** | +3.92 | PASS | §37.1 |
+
+Two readings. (i) The main shape is the study's signature: monotone decay h = 1 → H = 13, the
+flow content is FAST, and it dies exactly at the EOD horizon where the pooled edge was always
+weakest (§29.2: pooled H = 13 only +0.40; the edge lives at the open). (ii) The H = 16 revival
+is not a violation of (i) — it is the α-law interacting with dense-weak content: at H = 16 the
+transmission columns sit at 16× the shrinkage of every other row in the table, and under that
+humility the weak arrows become reliably additive again (+5.85, second only to h = 1). Same
+lesson as §29.3 itself: at long horizons the content doesn't disappear, the solver has to be
+forced to stop over-trusting it. Production: transmission enters at h = 1 (per-bar, +8.54
+confirmed), H = 4/8, and H = 16-with-α-law; the H = 13/EOD deliverable keeps the 679 design.
+
+## 38. "How do we know it's just 20?" — the pool-width arm (pre-registered, user challenge)
+
+Answer on record first: **we don't.** QPOOL = 20 (`analysis/map_monitor.py`) is an inherited
+§23-era convention, never varied — the THIRD unexamined convention a user question has exposed
+(products refit cadence §18, D refresh cadence §37b′). The bracketing evidence that exists:
+the first-window spectrum's participation ratio is ~18 (a ≈ 20-dim effective span); the raw iid
+Marchenko–Pastur edge keeps 22 factors; the dependence-adjusted edge keeps only 5; and §27 C5's
+gauge degeneracy says mid-spectrum directions are neighborhoods, not axes. So 20 sits between
+"the provable core is 5" and "the raw edge is 22" — plausible, but a convention, not a
+measurement.
+
+The arm (`analysis/pool_width.py`): q ∈ {5, 10, 40} vs the production 20. Top-q eigenvectors
+of the SAME first-window correlation (frames nest — 5 and 10 are sub-frames of 20, 40 extends
+it), identical transmission pipeline (lag-1 antisymmetric D_q, trailing-504d, quarterly), q
+columns appended to the 679 design at the exog penalty, blocked engine, h = 1. Gates: (i)
+per-width increment vs the 679 twin ≥ +2.0; (ii) production moves off 20 only if some q beats
+q = 20 head-to-head at |DM| ≥ 2.0. Expectations recorded before the run: a PLATEAU — q = 5
+materially weaker (the §23 carriers PC9/PC14/PC16/PC19 live above index 5), q = 10 slightly
+weaker, q = 40 flat-to-worse (arrows into gauge directions are noise). A flat 10→40 plateau is
+itself the informative outcome: the transmission content lives in a low-dimensional sub-span
+and "20" is a generous cover, not a tuned knob.
+
+**Results (2026-08-06) — the expectation was WRONG, in the study's signature direction:**
+
+| width | QLIKE | vs 679 twin | 2020+ | vs q = 20 head-to-head |
+|---|---|---|---|---|
+| q = 5 | 0.12832 | +2.25 PASS | +3.26 | −6.57 (worse) |
+| q = 10 | 0.12826 | +4.35 PASS | +3.15 | −6.98 (worse) |
+| q = 20 | 0.12801 | +9.90 PASS | +5.38 | — |
+| q = 40 | 0.12788 | **+7.27 PASS** | +5.14 | **+2.29 (BETTER; 2020+ +1.89)** |
+
+No plateau — the width curve is MONOTONE INCREASING through 40. Every width passes vs the twin
+(even q = 5: the adjusted-MP core alone carries real arrows), but each doubling adds more:
+the "gauge directions are noise arrows" prior is refuted, and the answer to "how do we know
+it's just 20?" is: **we didn't, and it isn't.** 20 was a floor we happened to be standing on —
+the third inherited convention this session to fall to the same user-question pattern, and the
+first whose correction points WIDER, exactly as the dense law demands. The channel-law picture
+tightens: transmission is a first-moment channel, and the first moment is dense — the arrows
+obey the same uniform-generous law as everything else in the mean.
+
+Deployment discipline: q = 40 does NOT enter production yet. Its head-to-head pass is
+provisional (post-hoc among three comparisons; 2020+ +1.89 under the bar), and the §35c entry
+condition applies unchanged — per-bar SM-engine confirmation before the stack changes.
+Registered follow-up (§38.1, running): extend the ladder to q ∈ {80, 106 = all live columns},
+same protocol. Expectation now genuinely open: monotone-to-the-end says transmission is dense
+in the FULL basis (fold the whole lagged frame in, α-scaled); a peak at 40–80 says the arrows
+have finite rank ~2× the frame we froze.
+
 ## Reproducibility
 
 ```bash
@@ -3606,6 +3678,12 @@ ALPHA_PANEL_CACHE=$C python analysis/alpha_law.py                           # §
 ALPHA_PANEL_CACHE=$C python analysis/organ_arm.py                           # §29.4 announcement organ
 ALPHA_PANEL_CACHE=$C python analysis/knn_arm.py                             # §33 P1 kNN head-to-head
 ALPHA_PANEL_CACHE=$C python analysis/regime_atlas.py --stage {a1,a23}       # §34 regime atlas
+ALPHA_PANEL_CACHE=$C python analysis/product_mine.py                        # §35 product-lever arms
+ALPHA_PANEL_CACHE=$C python analysis/am10_sweep.py                          # §36 family sweep
+ALPHA_PANEL_CACHE=$C python analysis/trans_exploit.py                       # §37 exploitation arms
+HORIZONS=1 ALPHA_PANEL_CACHE=$C python analysis/trans_exploit.py            # §37.1 term structure
+ALPHA_PANEL_CACHE=$C python analysis/pool_width.py                          # §38 pool-width arm
+WIDTHS=20,40,80,106 ALPHA_PANEL_CACHE=$C python analysis/pool_width.py      # §38.1 extension
 ALPHA_PANEL_CACHE=$C python analysis/vrp_eod.py --stage {gates,vrp}         # AM-02 (needs chain data)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control

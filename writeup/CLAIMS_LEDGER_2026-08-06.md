@@ -98,6 +98,9 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
   amplitude innovations** — §31.
 - Horizon curve: composite-over-backbone +5.42 (2h) / +2.77 (4h) / +1.23 (8h); the dense edge is
   fast; at 13 bars it concentrates at the open under dedicated training — §29, §29.2.
+- Transmission term structure (DM vs twin, blocked engine): +9.90 (h=1) / +5.00 (H=4) / +2.58
+  (H=8) / +1.38 FAIL (H=13) / **+5.85 (H=16 under the α-law's 16× shrinkage)** — fast decay
+  dying at the EOD horizon, then revived by solver humility at H=16 — §35c, §30.2, §37.1.
 - Breaks: 2013 (taper), 2017 (pre-Volmageddon), 2024 (0DTE) via map CPD; COVID did NOT break the
   map — §26, §27 C4.
 
@@ -120,7 +123,11 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 
 ## Pending / open
 
-- In flight: §29.5 cadence channel decomposition; §33 P1 kNN 3-view head-to-head; §34 regime
-  atlas; §30.3 raw-lag control. Then AM-10 multiplicity sweep.
+- §38 pool-width LANDED: width curve monotone through q = 40 (+7.27 vs twin; +2.29 vs q = 20
+  head-to-head) — "just 20" was a floor, not an optimum; q = 40 provisional pending per-bar
+  confirmation + family accounting. In flight: §38.1 extension (q ∈ {80, 106}); §34.10
+  ridge-union span discriminator (rerun under causal-standardization instrument).
+- Cluster (user's side): LSTM smear head (§34.7, `analysis/lstm_smear.py`); AM-13 battery rerun
+  on the fixed panel + tree parity rematch on the 699 set.
 - Data-blocked: AM-01 panel refresh 2024-03 → present (the biggest item); AM-02 chain parquets;
-  AM-08 second market; AM-11 minute bars. Full backlog: `future_work.md` AM-01…AM-12.
+  AM-08 second market; AM-11 minute bars. Full backlog: `future_work.md` AM-01…AM-14.
