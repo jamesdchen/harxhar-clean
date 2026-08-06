@@ -97,6 +97,10 @@ _REGISTRY: list[tuple[str, str]] = [
     ("a_bucket_all_features", "AllFeatures"),
     ("b1_ridge", "BOneRidge"),
     ("b2_lasso", "BTwoLasso"),
+    # Causally-tuned penalty controls for the head-to-head (battery protocol:
+    # periodic causal forward-split re-selection; window 24000, full design).
+    ("b1_ridge_tuned", "BOneRidgeTuned"),
+    ("b2_lasso_tuned", "BTwoLassoTuned"),
     ("blk2_user", "BlkTwoUser"),
     ("blk3_user", "BlkThreeUser"),
     ("blk4_user", "BlkFourUser"),
@@ -434,21 +438,32 @@ def _lasso_ridge_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
             q = rf"\textbf{{{q}}}"
         return f"{q} (${r.dm_t:+.1f}$)" if r.dm_t is not None else q
 
-    ridge = _pick_primary(by_arm.get("b1_ridge", []))
-    lasso = _pick_primary(by_arm.get("b2_lasso", []))
-    rq = ridge.qlike if ridge is not None and not ridge.incomplete else None
-    lq = lasso.qlike if lasso is not None and not lasso.incomplete else None
-    both = rq is not None and lq is not None
+    def pair_row(label: str, ridge_arm: str, lasso_arm: str) -> str:
+        ridge = _pick_primary(by_arm.get(ridge_arm, []))
+        lasso = _pick_primary(by_arm.get(lasso_arm, []))
+        rq = ridge.qlike if ridge is not None and not ridge.incomplete else None
+        lq = lasso.qlike if lasso is not None and not lasso.incomplete else None
+        both = rq is not None and lq is not None
+        return (
+            label
+            + " & "
+            + cell(ridge, both and rq <= lq)
+            + " & "
+            + cell(lasso, both and lq < rq)
+            + r" \\"
+        )
+
     a0_cell = f"{a0q:.5f}" if a0q is not None else _PENDING_CELL
     return [
         r"\toprule",
         r"Bucket & Ridge & Lasso \\",
         r"\midrule",
-        r"\texttt{all\_features} & "
-        + cell(ridge, both and rq <= lq)
-        + " & "
-        + cell(lasso, both and lq < rq)
-        + r" \\",
+        pair_row(r"\texttt{all\_features} (fixed penalty)", "b1_ridge", "b2_lasso"),
+        pair_row(
+            r"\texttt{all\_features} (causally tuned)",
+            "b1_ridge_tuned",
+            "b2_lasso_tuned",
+        ),
         r"\midrule",
         r"Incumbent: OLS on \texttt{baseline} & "
         rf"\multicolumn{{2}}{{c}}{{{a0_cell}}} \\",
@@ -538,8 +553,10 @@ def main(argv: list[str] | None = None) -> int:
             if r.n_rows:
                 _compare_vs_a0(r, a0)
 
-    # (Cross-cluster canary removed 2026-08-06: the campaign runs on one
-    # cluster, so there is no second environment to compare against.)
+    # (Cross-cluster canary removed by author directive 2026-08-06: Hoffman2
+    # was abandoned and the campaign is single-cluster (CARC only), so there
+    # is no second environment to float-parity against. Intentional — do not
+    # restore without a second cluster in the campaign.)
 
     # 6a. CSV.
     results.sort(

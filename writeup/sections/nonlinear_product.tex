@@ -38,9 +38,7 @@ its own hyperparameters on the same periodic causal schedule: each
 reselection uses only data available before the reselection date, so no
 forecast's configuration uses information from that forecast's future. The
 shared comparator is the per-bar OLS--HAR incumbent
-(Section~\ref{sec:dp_benchmark}). Because the tree arms and the linear arms
-are tuned by one protocol, differences between them measure function class,
-not search effort.
+(Section~\ref{sec:dp_benchmark}).
 
 \paragraph{Results.} LightGBM has the lowest QLIKE on all nine feature
 sets. Ridge, the best linear arm, is second on all nine. The ranking
@@ -68,9 +66,7 @@ $0.00215$. Measured against the causally tuned ridge on the same features
 ($0.13445$), the premium is $0.00327$. We carry the smaller figure,
 $0.00215$, forward. On this same row the
 three linear arms are the only arms in the battery with higher QLIKE than
-the incumbent: with no exogenous columns present, penalization only biases
-the HAR coefficients. On the HAR-plus-calendar block, therefore, penalties
-do not improve the forecast and the tree does.
+the incumbent.
 
 \paragraph{Dispersion of the improvement.} The Diebold--Mariano statistics
 \citep{DieboldMariano1995,HarveyLeybourneNewbold1997} against the incumbent
@@ -78,11 +74,9 @@ on \texttt{all\_features} order the two arms opposite to their QLIKE
 levels: ridge reaches $t = -19.9$ and LightGBM reaches $t = -15.4$. The DM
 statistic is the mean per-bar loss improvement divided by the standard
 error of that improvement, so a larger $|t|$ at a smaller mean improvement
-implies a smaller bar-to-bar dispersion of the improvement. The linear
-model improves on the incumbent by a small amount on most bars. The tree
-improves by more on average, with larger bar-to-bar variability. This
-pattern is consistent with a correction concentrated in a subset of bars
-rather than spread across all bars.
+implies a smaller bar-to-bar dispersion of the improvement: ridge's
+per-bar improvement has the smaller dispersion, the tree's the larger
+mean.
 
 % ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
 % The passage from here through "...takes the hint literally." is held
@@ -97,8 +91,8 @@ $55/9/36$ with HAR $96\%$; the expressivity ladder $0.12757 \to 0.12108
 \to 0.12080 \to 0.12033$ vs XGBoost $0.12094$; the product distillation
 $58\%/62\%$. Held from final until reviewed.}
 
-\paragraph{Where the nonlinearity lives.} Three decompositions, computed in
-an earlier phase of this project, characterize the structure the tree fits.
+\paragraph{Where the nonlinearity lives.} Three decompositions of the tree
+fits were computed in an earlier phase of this project.
 
 \emph{Interaction order.} A functional-ANOVA decomposition of a fitted
 depth-eight boosted tree attributes approximately $55\%$ of its explainable
@@ -124,11 +118,10 @@ boosted-tree correction improves it to $0.12414$. Adding to the base a
 single hand-written interaction --- the HAR lags multiplied by a late-day
 session dummy, six columns --- scores $0.12457$, which recovers $58\%$ of
 the tree correction's improvement. The full set of HAR-by-six-regime
-interactions scores $0.12453$, or $62\%$. The recovered term corresponds to
-the clock-anchored change of sign in HAR's persistence coefficient near the
-session close, documented descriptively in Section~\ref{sec:data_prep}. A
-tree encodes that term through splits; a linear model given the product
-column carries the same term directly.
+interactions scores $0.12453$, or $62\%$. The session dummy in the
+recovered term marks the late-day bars at which the change of sign in
+HAR's persistence coefficient is documented in
+Section~\ref{sec:data_prep}.
 
 The tree experiments therefore yield a specification statement:
 \textbf{the panel's recoverable nonlinearity is a sparse set of pairwise
@@ -153,36 +146,56 @@ decisions they settle.
 this construction (candidate space, selection window, column scaling) once
 the block is re-run under the paper's panel convention}
 
-\paragraph{Candidate set.} The base set is $133$ columns: the HAR ladder,
-the $41$ exogenous channels at three of their rolling windows, and the
-clock gates. The candidate set is every pairwise product of two base
-columns, including squares: $8{,}911$ candidate products.
+\paragraph{Construction.} The block is built in four steps. The constants
+below are those frozen in the campaign executor,
+\texttt{src/unification.py}, the code that runs the campaign's product
+arms; where the interaction study's description and the executor differ,
+the executor's construction is the one stated here, because it is what
+ran.
+\begin{enumerate}
+    \item \emph{Candidate set.} The base set is the target's HAR ladder,
+    the $41$ exogenous value channels at trailing windows of $1$, $32$,
+    and $512$ bars, and the four session-clock columns (the open, close,
+    and overnight indicators and the hour of day) --- $133$ columns on
+    the interaction-study panel. The candidate set is every pairwise
+    product of two base columns, including squares: $8{,}911$ candidate
+    products.
+    \item \emph{Selection target.} A backbone-only ridge --- the
+    HAR-plus-calendar block at penalty $\alpha = 1$, refit every bar ---
+    is walked forward over the first $2W$ rows of the panel, where $W$ is
+    the arm's rolling fit window: $24{,}000$ bars ($500$ days) under the
+    stated convention of Section~\ref{sec:three_block}, $12{,}000$ bars
+    ($250$ days) under the documented convention. The selection target is
+    that ridge's out-of-sample residual on rows $[W, 2W)$.
+    \item \emph{Scoring and selection.} Each base column is centered over
+    rows $[W, 2W)$. Each candidate is scored by the absolute correlation,
+    over those rows, between the product of its two centered parents and
+    the selection target. The $k = 100$ candidates with the largest
+    scores are kept. Selection runs once; the set is never reselected;
+    and every arm carrying the block is evaluated only from row $2W$
+    onward, so no scored bar overlaps the selection window.
+    \item \emph{Column scaling.} Each kept product is formed bar by bar
+    as the product of its two parent columns as they stand in the panel
+    (uncentered, carrying the causal prescaling of
+    Section~\ref{sec:data_prep}). The product column is then divided by
+    its own trailing rolling standard deviation over a $W$-bar window,
+    lagged one bar and requiring at least $1{,}000$ observations, with
+    the scale floored from below at $0.1$ times the per-bar cross-column
+    median of the product columns' rolling standard deviations --- the
+    floor bounds the inflation a low-dispersion trailing window can
+    produce, the failure mode the scaling discipline of
+    Section~\ref{sec:data_prep} guards against. Rows before the first
+    valid scale, all inside the first window and before any scored bar,
+    reuse the first valid value. A product with zero dispersion over its
+    entire trailing window is set to zero on those bars. Every product
+    value at bar $t$ is a function of data available at bar $t$.
+\end{enumerate}
 
-\paragraph{Parent standardization and product formation.} A product column
-is not the raw product of two panel columns. The construction has two
-steps, in order, both causal. Step one: each parent column is standardized
-on a trailing window, using a scale estimate floored from below; the floor
-prevents a low-dispersion window from inflating the standardized parent,
-the failure mode the scaling discipline of Section~\ref{sec:data_prep}
-guards against. Step two: the product is formed bar by bar from the two
-standardized parents. Every product value at bar $t$ is therefore a
-function of data available at bar $t$. \pending{the exact constants of the
-construction as frozen in the campaign executor: trailing-window lengths
-for the parent scaling, the floor rule, and the selection-window definition
---- to be transcribed from \texttt{src/unification.py} so the paper states
-precisely what ran}
-
-\paragraph{Selection rule.} Each candidate is scored by the absolute
-correlation between its product column and the backbone's out-of-sample
-forecast residual, computed on a fixed selection window, 2005--2006. The
-$k$ candidates with the largest scores are kept. Because the score is a
-correlation with the backbone's residual, a product is selected for what it
-adds beyond the fitted backbone, not for level information the HAR block
-already carries. The set-size ladder is unimodal: accuracy peaks at
-$k = 25$--$100$ of $8{,}911$ and degrades by $k = 400$. The linear channel
-of Section~\ref{sec:dense_weak} improved monotonically in the number of
-columns; the interaction channel does not. The linear channel is dense; the
-interaction channel is sparse. The block uses $k = 100$.
+\paragraph{Set size.} The interaction study's set-size ladder is
+unimodal: accuracy peaks at $k = 25$--$100$ of $8{,}911$ and degrades by
+$k = 400$. The linear channel of Section~\ref{sec:dense_weak} improved
+monotonically in the number of columns; the interaction channel peaks and
+degrades. The block uses $k = 100$.
 
 \paragraph{Reselection cadence.} Two arms were compared with identical
 machinery and identical coefficient refits, differing only in when
@@ -192,14 +205,12 @@ arm reselects the product set every month. The dynamic arm loses: at
 $k = 100$ it trails the static arm at DM $t = -3.21$ under the study's
 original scaling, and the sign is negative at every healthy specification
 tested. The dynamic set replaces $24$--$31\%$ of its members per month. The
-product block is therefore sparse in identity and static in time: the
-product set was selected once, eighteen years before the end of the
-sample, and is never reselected.
+product set is selected once, eighteen years before the end of the sample,
+and is never reselected.
 
 \paragraph{Block penalty.} Products of centered features have variance on
 the order of the product of their parents' variances, so the product block
-and the base block have columns on incommensurate scales, and a single
-global ridge penalty cannot restrain the former while fitting the latter.
+and the base block have columns on incommensurate scales.
 Under a single shared penalty the product block's measured contribution is
 unstable and can be negative; an early $+43\%$ headline for the block was
 an artifact of a design clip that was standing in for the missing
@@ -215,12 +226,9 @@ re-estimated. At a monthly coefficient refit, the block's QLIKE increment
 is indistinguishable from zero (DM $t = +0.52$). At a daily refit, the
 identical frozen block's residual-space increment is $+0.0108$, and the
 raw-scale reconstruction gives $\Delta\text{QLIKE} = -0.00093$, DM
-$t = +3.56$. This dependence is consistent with the block's composition:
-the selected products are predominantly fast pairs built from one-bar
-quantities, where stale coefficients lose accuracy fastest, and QLIKE
-places its weight on high-volatility bars, where coefficient freshness
-matters most. The identity of the products is frozen; their coefficients
-are refit frequently.
+$t = +3.56$. The selected products are predominantly fast pairs built from
+one-bar quantities. The identity of the products is frozen; their
+coefficients are refit frequently.
 
 Assembled, the product block is one hundred columns with four measured
 properties --- sparse, frozen, heavily shrunk, frequently refit --- and it
@@ -265,14 +273,20 @@ essentially unpenalized. $\alpha_2 = 100$: the exogenous signal is dense
 and weak, and heavy uniform shrinkage was the measured optimum.
 $\alpha_3 = 1000$: the interaction study measured that the product block's
 contribution is positive and stable only when it is shrunk an order of
-magnitude harder than the linear block, because products live on a
-different scale from their parents; the one-order-of-magnitude gap between
-$\alpha_2$ and $\alpha_3$ is the ratio the study's own ladder selected on
-its panel. No penalty was chosen by grid search on the evaluation loss.
+magnitude harder than the linear block; the one-order-of-magnitude gap
+between $\alpha_2$ and $\alpha_3$ is the ratio the study's own ladder
+selected on its panel. No penalty was chosen by grid search on the
+evaluation loss.
 
-The three-block ridge scores QLIKE \unifBlkThreeUserQLIKE{}, with
-Diebold--Mariano \unifBlkThreeUserDM{} against the OLS--HAR incumbent;
-under the documented convention it scores \unifBlkThreeDocQLIKE{} at
+The campaign executor runs the three-block arm under two conventions. The
+stated convention is Equation~\eqref{eq:three_block} at a $24{,}000$-bar
+($500$-day) rolling fit window: penalties
+$(\alpha_1, \alpha_2, \alpha_3) = (1, 100, 1000)$. The documented
+convention pins $(1, 3\times10^{3}, 3\times10^{4})$ at a $12{,}000$-bar
+($250$-day) window. Under the stated convention the three-block ridge
+scores QLIKE \unifBlkThreeUserQLIKE{}, with Diebold--Mariano
+\unifBlkThreeUserDM{} against the OLS--HAR incumbent; under the
+documented convention it scores \unifBlkThreeDocQLIKE{} at
 \unifBlkThreeDocDM{}. \pending{per-bar DM statistic for the product-block
 increment (three-block vs.\ two-block on the same rows) --- computed from
 the persisted per-bar losses at harvest}
@@ -282,10 +296,8 @@ against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
 i.e.\ whether naming the tree's structure recovers the tree's level within
 the linear class}
 
-The three-block ridge does not capture all of the tree's fit: the
-functional-ANOVA remainder and the expressivity ladder both leave a
-diffuse residue that no small set of named columns captures. Its claim is
-narrower: the recoverable nonlinearity is pairwise, sparse, frozen, and
-clock-anchored, and once it is written down as a block, the estimator that
-carries it is a linear one --- one solver, three penalties, refit every
-bar. The next section adds the fourth block.
+The product block does not carry all of the tree's fit: the
+functional-ANOVA remainder and the expressivity ladder's residual gap sit
+above pairwise order, and the block contains pairwise products only. What
+the block does carry runs in a linear estimator --- one solver, three
+penalties, refit every bar. The next section adds the fourth block.
