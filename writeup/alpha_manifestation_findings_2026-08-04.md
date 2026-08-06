@@ -3325,6 +3325,17 @@ The §34.6 gates justified it; construction pinned before running (`analysis/lst
   twice (§34.3 dense −1.85; targeted-sparse inversion). Architecture ladder discipline: the
   cheaper learner first.
 
+### 34.8 The smear family's Romano–Wolf — the second moment's final grades
+
+Six post-AM-10 claims, each vs its registered baseline, joint step-down (2,000 draws;
+`results/.../smear_family_sweep.csv`): **leverage rw-adj p = 0.002 — survives**; **probe-5
+rw-adj p = 0.042 — survives**; labels 0.072 and events 0.268 — die (consistent with their
+individual verdicts); dense (0.956) and transmission-smear (0.965) — the negative controls come
+out deeply insignificant, validating the sweep. **The production smear is means + leverage +
+probe (10 named columns, QLIKE 0.12369 on the smear scoring), FWER-graded.** The §34.7 LSTM's
+bar is this smear. The second moment's story is complete: a sparse channel, saturated by ten
+hand-named causal columns, every addition adjudicated.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)

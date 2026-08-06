@@ -33,6 +33,20 @@ bar. QLIKE 0.12526 vs HAR 0.13275 (−5.6%), R² 0.612. Edge GROWS by era: 65 �
 
 **Died in the sweep:** the §28.2 phase pair (rw-adj p 0.105) — dropped from the stack.
 
+## Second moment (smear family, §34.8 sweep — FWER-graded)
+
+| Claim | dm_t | rw-adj p | Status |
+|---|---|---|---|
+| Leverage asymmetry (vs means) | +4.03 | 0.002 | **production** |
+| Probe-5 nonlinear terms (vs means+lev) | +2.41 | 0.042 | **production** |
+| Regime labels | +1.93 | 0.072 | dead |
+| Event decay | +1.04 | 0.268 | dead |
+| Dense-679 | −1.87 | 0.956 | dead (control) |
+| Transmission-smear | −1.99 | 0.965 | dead (control) |
+
+Production smear: **means + leverage + probe (10 columns)**. Plus §35c/§36-era additions to the
+first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699 cols per-bar.
+
 ## Tier 2 — single-gate passes, post-sweep (provisional until a follow-up accounting)
 
 | Claim | Number | Caveat | § |
