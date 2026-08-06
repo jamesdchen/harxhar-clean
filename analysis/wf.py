@@ -97,3 +97,61 @@ def r2_oos(y: np.ndarray, pred: np.ndarray) -> float:
     y = np.asarray(y, dtype=np.float64)
     pred = np.asarray(pred, dtype=np.float64)
     return 1.0 - float(((y - pred) ** 2).sum()) / float((y**2).sum())
+
+
+def walk_forward_embargo_blocked(
+    X: np.ndarray,
+    y: np.ndarray,
+    day_codes: np.ndarray,
+    train_days: int = 250,
+    embargo_days: int = 1,
+    alpha: float = 1.0,
+) -> np.ndarray:
+    """Day-blocked embargoed rolling ridge — the msweep block_ridge lesson as a shared helper.
+
+    Same object as ``walk_forward_embargo`` at daily refit, day-quantized: predictions for every
+    bar of day d use one ridge solved on the whole-day window [d - embargo_days - train_days,
+    d - embargo_days). One BLAS gram update per day instead of per-bar rank-1 rolls (each day's
+    gram is computed twice — on entry and on exit — keeping memory at O(p^2)). Embargo is in
+    DAYS, rounded UP from the label horizon: stricter than the bar-level embargo, never looser.
+    Intercept unpenalized. Returns full-length predictions (NaN in warmup). Engines differ at the
+    third decimal on window boundaries — use the SAME engine for both arms of any comparison.
+    """
+    X = np.ascontiguousarray(X, dtype=np.float64)
+    y = np.nan_to_num(np.ascontiguousarray(y, dtype=np.float64))
+    n, p = X.shape
+    Xa = np.hstack([X, np.ones((n, 1))])
+    starts = np.flatnonzero(np.r_[True, day_codes[1:] != day_codes[:-1]])
+    bounds = np.r_[starts, n]
+    ndays = len(starts)
+
+    def gram(di: int):
+        s, t = bounds[di], bounds[di + 1]
+        Zi = Xa[s:t]
+        return Zi.T @ Zi, Zi.T @ y[s:t]
+
+    G = np.zeros((p + 1, p + 1))
+    bv = np.zeros(p + 1)
+    reg = np.diag(np.r_[np.full(p, alpha), 0.0])
+    out = np.full(n, np.nan)
+    added = 0
+    lo = 0
+    for d in range(train_days + embargo_days, ndays):
+        hi = d - embargo_days
+        while added < hi:
+            g, b = gram(added)
+            G += g
+            bv += b
+            added += 1
+        while added - lo > train_days:
+            g, b = gram(lo)
+            G -= g
+            bv -= b
+            lo += 1
+        try:
+            beta = np.linalg.solve(G + reg, bv)
+        except np.linalg.LinAlgError:
+            continue
+        s, t = bounds[d], bounds[d + 1]
+        out[s:t] = Xa[s:t] @ beta
+    return out
