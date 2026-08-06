@@ -3253,6 +3253,21 @@ for parsimony argues against maximal-capacity learners; the cheap next rungs are
 (event-decay terms), not learned. Multiplicity note: the smear family (means, dense, labels,
 transmission, leverage) is accruing arms and owes its own accounting before production.
 
+### 34.5 Event-decay terms in the smear — pre-registered (user instruction)
+
+The targeted-sparse ladder continues: per release type (7), log1p(days since last release) — a
+free-form decay whose shape the regression fits — plus one release-yesterday indicator, added
+to the MEANS+LEVERAGE amplitude model (the new §34.4 baseline). Gates as §34.4: (i) cross-half
+uplift > 0 both halves and > shift-null p95; (ii) smear conversion DM ≥ +2.0 vs the
+means+leverage smear. Expectation: event-decay in vol-of-vol is documented (FOMC/CPI); lean
+small PASS on (i), uncertain on (ii). Smear-family multiplicity debt noted again.
+
+**Result: MIXED FAIL — no promotion.** (i) FAILS: uplift −0.005/+0.003, sign-inconsistent
+across halves. (ii) passes nominally (+2.46; 2020+ +1.00) — but a conversion gain without
+replicable statistical content is the A3-inverse pattern and equally suspect (QLIKE's asymmetry
+rewards over-smearing a few post-release days). Both gates were registered as required; the
+production smear stays MEANS + LEVERAGE. Event-decay in the amplitude channel: closed.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
