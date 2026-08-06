@@ -37,7 +37,7 @@ Section~\ref{sec:dense_weak}. Every arm, tree and linear alike, reselects
 its own hyperparameters on the same periodic causal schedule: each
 reselection uses only data available before the reselection date, so no
 forecast's configuration uses information from that forecast's future. The
-shared comparator is the per-bar OLS--HAR incumbent at QLIKE $0.13415$
+shared comparator is the per-bar OLS--HAR incumbent
 (Section~\ref{sec:dp_benchmark}). Because the tree arms and the linear arms
 are tuned by one protocol, differences between them measure function class,
 not search effort.
@@ -61,16 +61,12 @@ effect of Section~\ref{sec:buckets}.
 \paragraph{The function-class premium at fixed information.} The battery's
 no-exogenous \texttt{baseline} row uses the incumbent's information set
 exactly: HAR lags and calendar features, nothing else. On that row the
-causally tuned LightGBM scores $0.13118$ against the incumbent's $0.13415$
-($t = -5.6$); XGBoost scores $0.13163$ ($t = -5.5$). The raw premium from
-relaxing the linear functional form is therefore $0.00297$. Two
-adjustments apply. Measured against the base-2 OLS ladder at $0.13332$
-rather than the incumbent, the premium is $0.00215$: roughly $28\%$ of the
-raw figure is HAR lag-grid quadrature error, which a tree on a log-spaced
-boxcar basis removes by interpolation and which is not nonlinearity.
-Measured against the causally tuned ridge on the same features ($0.13445$)
-rather than the untuned OLS incumbent, the premium is $0.00327$. We carry
-the smallest of the three figures, $0.00215$, forward. On this same row the
+causally tuned LightGBM scores $0.13118$ ($t = -5.6$) and XGBoost scores
+$0.13163$ ($t = -5.5$). Measured against the base-2 OLS ladder at
+$0.13332$, the premium from relaxing the linear functional form is
+$0.00215$. Measured against the causally tuned ridge on the same features
+($0.13445$), the premium is $0.00327$. We carry the smaller figure,
+$0.00215$, forward. On this same row the
 three linear arms are the only arms in the battery with higher QLIKE than
 the incumbent: with no exogenous columns present, penalization only biases
 the HAR coefficients. On the HAR-plus-calendar block, therefore, penalties

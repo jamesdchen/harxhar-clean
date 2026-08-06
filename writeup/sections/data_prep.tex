@@ -42,8 +42,10 @@ day as its base unit; here both the target and the lag ladder are defined
 at 30-minute resolution.
 
 \paragraph{The evaluation panel.}
-Feature construction consumes a burn-in of $3{,}125$ bars, the length of
-the longest HAR lag. This reduces the usable panel to $242{,}934$ bars.
+Feature construction consumes a fixed burn-in of $3{,}125$ bars at the
+start of the sample, a constant of the panel construction that exceeds the
+longest feature lookback. This reduces the usable panel to $242{,}934$
+bars.
 The walk-forward protocol consumes a further $24{,}000$ bars as the
 initial training window. The evaluation panel therefore contains
 $n = 218{,}934$ bars. Every arm reported in this paper is scored on those
