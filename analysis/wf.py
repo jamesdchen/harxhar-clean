@@ -155,3 +155,52 @@ def walk_forward_embargo_blocked(
         s, t = bounds[d], bounds[d + 1]
         out[s:t] = Xa[s:t] @ beta
     return out
+
+
+def walk_forward_embargo_dualcadence(
+    X: np.ndarray,
+    y: np.ndarray,
+    train_win: int,
+    embargo: int,
+    alpha: float,
+    periods_per_day: int = 48,
+    rebuild_every: int = 1008,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Per-bar AND daily-refit predictions in ONE pass — the §29 cadence question without
+    paying per-bar solves. Maintains P = (G + reg)^-1 by Sherman-Morrison rank-1 updates as the
+    bar-quantized window [t-embargo-W, t-embargo) slides; per-bar beta = P @ c every bar, the
+    daily arm snapshots beta at each day boundary. Exact inverse rebuild every ``rebuild_every``
+    rolls bounds FP drift. Both arms share identical window mechanics, so the cadence contrast
+    is engine-clean. Returns (perbar, daily), each aligned like ``walk_forward``.
+    """
+    X = np.ascontiguousarray(X, dtype=np.float64)
+    y = np.nan_to_num(np.ascontiguousarray(y, dtype=np.float64))
+    n, p = X.shape
+    Xa = np.hstack([X, np.ones((n, 1))])
+    reg = np.r_[np.full(p, alpha), 0.0]
+    G = Xa[:train_win].T @ Xa[:train_win] + np.diag(reg)
+    c = Xa[:train_win].T @ y[:train_win]
+    P = np.linalg.inv(G)
+    perbar = np.full(n - train_win, np.nan)
+    daily = np.full(n - train_win, np.nan)
+    beta_day = P @ c
+    for step, t in enumerate(range(train_win + embargo, n)):
+        j = t - embargo
+        xin, xout = Xa[j], Xa[j - train_win]
+        # add row j
+        Pu = P @ xin
+        P -= np.outer(Pu, Pu) / (1.0 + xin @ Pu)
+        c += xin * y[j]
+        # remove row j - train_win
+        Pu = P @ xout
+        P += np.outer(Pu, Pu) / (1.0 - xout @ Pu)
+        c -= xout * y[j - train_win]
+        if step and step % rebuild_every == 0:
+            Zw = Xa[j - train_win + 1 : j + 1]
+            P = np.linalg.inv(Zw.T @ Zw + np.diag(reg))
+        beta = P @ c
+        if step % periods_per_day == 0:
+            beta_day = beta
+        perbar[t - train_win] = Xa[t] @ beta
+        daily[t - train_win] = Xa[t] @ beta_day
+    return perbar, daily
