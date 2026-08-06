@@ -2302,6 +2302,35 @@ per-bar refit is local linearization along the trajectory, and the dial is the l
 path. The manifold's *shape* is part of the weather, not part of the map — which is the study's
 one-line history of every static geometric object it buried.
 
+### 23.1 Can the autonomous coordinates be exploited directly? No — the causal test inverts
+
+The obvious exploit: measure autonomy causally (inside the first training window — fit the
+factor-relations on its first half, evaluate on its second) and select the quadratics of the most
+autonomous coordinates. Pre-registered with a falsification control: most-autonomous-7 ≥ 60% of the
+IC gain, least-autonomous-7 ≤ 25%. Result, inverted on both:
+
+| arm (28 cols each) | ΔR² | DM | % of IC-100 |
+|---|---|---|---|
+| most-autonomous 7 | −0.00236 | −0.60 | **−34%** |
+| least-autonomous 7 | +0.00272 | **+3.38** | **+39%** |
+
+The diagnosis is the study's oldest one — **timescale**. §23's signal-predicting autonomy is
+*decadal* instability (relations that hold for years and shift across half-samples), measurable
+only with a decade of hindsight. Autonomy measured on 6-month halves inside one window selects
+coordinates whose factor-relations flip in *months* — i.e. noise-dominated coordinates, and their
+quadratics hurt. The enslaved-7, being near-functions of the top factors, proxy top-factor
+quadratics and land near the PC-6 arm (41%). So the free coordinates are: stable at the fitting
+horizon, autonomous at the secular horizon — and no first-window statistic sees the second
+property.
+
+Verdict: autonomy is ex-post understanding, not an ex-ante selector. The channel stays banked by
+the flat pool, and the meta-law of this study absorbs one more datapoint: IC selection ≈ flat
+(n.s.), random < flat, eigenvalue-weighting ≪ flat, autonomy-selection < flat — every attempt to
+be cleverer than *uniform over a generous span, shrunk hard* has now lost, including the one
+derived from the study's own prettiest finding. (The cross-section is, once again, where this
+would change: N assets give a contemporaneous estimate of coordinate autonomy without needing
+decades of hindsight.)
+
 ## Reproducibility
 
 ```bash
