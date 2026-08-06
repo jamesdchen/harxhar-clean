@@ -3042,6 +3042,35 @@ is real but lives secularly (rot events), cyclically (the 35-day phase), and in 
   precedent lost by +0.0096). Scoped span (2016+) on this container; full span on larger
   hardware.
 
+## 34. The regime atlas — replacing the eigenmap-kNN regime extraction, pre-registered
+
+The professor's experiment ("spectral kNN on embeddings → temporal regimes of the exog signal")
+is REPLACED by directly constructing its intended deliverable — the regimes, named and priced —
+and by showing what his pipeline's labels decompose into. Four parts
+(`analysis/regime_atlas.py`):
+
+* **A1 — the exog signal's regimes, by definition:** the regime of a time-varying channel IS the
+  position of its coefficient vector. Sample β(t) of the one-stage design monthly (blocked
+  engine, coefficient snapshots), build the month-to-month correlation-similarity matrix of the
+  exog block's β, run the validated C4 scan (adjacent-window similarity minima = breaks).
+  Deliverables: segment boundaries vs known events, segment durations, and split-half stability
+  of the segmentation. Gate (descriptive): breaks coincide with independently known events.
+* **A2 — what HIS labels are made of:** spectral clustering of the daily state embedding
+  (k = 2…8, exactly his construction, on our validated frame); regress the labels on
+  {log amplitude, cos φ, sin φ (the 35-day cycle), secular era} and report the explained share.
+  Pre-registered expectation: the labels are substantially **amplitude × phase × era** — i.e.,
+  the regimes his pipeline would extract are coordinates this study has already measured, tested,
+  and priced.
+* **A3 — the winnable claim (P2 executed):** cluster labels as predictors of next-day and
+  next-21d log-amplitude vs the §31 trailing-mean baseline. Gate: cross-half R² uplift > 0 in
+  BOTH halves and above a 200-draw shift-null p95. Expectation: plausible PASS — amplitude is
+  forecastable and regime-conditioning has never been aimed at it.
+* **A4 — the payoff table, assembled from the record:** per regime source, forecastability and
+  tradability as already measured — amplitude (forecastable R² 0.485; pays as sizing);
+  cycle phase (forecastable ~1 month; pays a +2.09 sliver at 1 bar, nothing at H = 8); secular
+  breaks (detectable; pay via the §32 re-draw); gain-conditioning (dead, ten arms). His
+  local-similarity component survives separately as P1 (§33, queued).
+
 ## Reproducibility
 
 ```bash
