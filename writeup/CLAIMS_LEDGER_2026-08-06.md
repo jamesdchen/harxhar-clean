@@ -9,10 +9,11 @@ report).
 
 ## The deliverable
 
-**FINAL (2026-08-06, §34.11; §38.2 widens it):** 719 columns — §22's 679 + the transmission
-block at its MEASURED width q = 40 (§38 ladder; per-bar entry +4.59 vs the 699) — + the
-conditional smear (means + leverage + probe, §34.8 FWER-graded). Composed-719 number in
-flight; the graded §34.11 record below is the 699 stack:
+**FINAL (2026-08-06, §38.2b):** 719 columns — §22's 679 + the transmission block at its
+MEASURED width q = 40 (§38 ladder; per-bar entry +4.59 vs the 699) — + the conditional smear
+(means + leverage + probe, §34.8 FWER-graded): **QLIKE 0.12303** (2020+ 0.13600; smear
+increment +4.28; ≈ −7.2% vs HAR). Session arc: 0.12579 → 0.12526 → 0.12331 → 0.12303.
+Prior graded record (§34.11, the 699 stack): 0.12331, reproduced in-run.
 **QLIKE 0.12331** (679-const baseline 0.12579 on the same span; smear increment on the final
 model DM +3.95). ≈ −7% vs HAR, from −5.6% at session start. First moment dense-and-fast;
 second moment carried by ten named columns — though §34.10 renames the law: the variance

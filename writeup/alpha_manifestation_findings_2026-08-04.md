@@ -3671,8 +3671,21 @@ head-to-head on `final_699_perbar.npz`): q = 20 QLIKE 0.12546 → q = 40 QLIKE *
 DM **+4.59 (2020+ +2.32)** — stronger per-bar than at daily refit (+2.29), the study's usual
 pattern (dense-weak content gains from freshness), and the 2020+ risk resolved above water.
 The production model is now **719 columns**: 679 + the 40-column transmission block
-(`pool40_perbar.npz`). Composed final number recomputation launched (§38.2b): 719 per-bar +
-conditional smear rebuilt on its own residuals, against the §34.11 composed 0.12331.
+(`pool40_perbar.npz`).
+
+**§38.2b — THE COMPOSED FINAL NUMBER, updated** (same instrument as §34.11, smear rebuilt
+causally on the 719 model's own residuals, prior final recomputed in-run as control):
+
+| model | QLIKE | 2020+ |
+|---|---|---|
+| 699 per-bar + conditional smear (§34.11 final) | 0.12331 | 0.13647 |
+| 719 per-bar + constant smear | 0.12529 | 0.13795 |
+| **719 per-bar + conditional smear (COMPOSED FINAL)** | **0.12303** | **0.13600** |
+
+Smear increment on the 719 model: DM +4.28. The §34.11 number reproduced exactly (0.12331) —
+the composition instrument is stable. Session arc of the headline number: 0.12579 → 0.12526 →
+0.12331 → **0.12303** (≈ −7.2% vs HAR), with the last two steps both coming from user
+questions ("are you sure?" challenges) rather than from new data.
 
 ### 38.1b Peak refinement — pre-registered (user: "what about q=60?")
 
