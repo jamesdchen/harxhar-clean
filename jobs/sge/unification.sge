@@ -12,5 +12,8 @@ cd /u/scratch/j/jamesdc1/harxhar-clean
 export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
 export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+# Idempotent resume: a chunk that already produced its npz is done.
+OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" $((SGE_TASK_ID - 1)))
+[ -f "$OUT" ] && { echo "SKIP existing $OUT"; exit 0; }
 $PY experiments/run_unification.py --arm "$ARM" --chunk-index "$((SGE_TASK_ID - 1))" \
     --output-dir results/unification
