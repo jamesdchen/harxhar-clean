@@ -9,86 +9,84 @@
 % reference/sections/linear_vs_nonlinear.tex (tree premium, saturation at
 % additive-plus-pairwise anchored to the session clock).
 
-Section~\ref{sec:dense_weak} closed the linear question: the exogenous signal
-is dense but weak, uniform shrinkage is the correct linear response, and the
-two-block ridge is where that response ends. This section asks what a richer
-hypothesis class finds that the linear one cannot. The answer comes in three
-movements. First, gradient-boosted trees hold a real, uniform, but modest edge
-over the best linear arm --- the one model class in the study that beats the
-shrunk linear reader. Second, when that edge is decomposed it turns out to be
-shallow and nameable: almost all of it is additive-plus-pairwise structure,
-and the pairwise part is a small set of \emph{products} of features the panel
-already contains, anchored to the session clock. Third --- and this is the
-constructive payoff --- once the structure is named it does not need a tree.
-The products can be written down as explicit columns, handed to the same
-rolling ridge machinery as everything else, and shrunk as a block of their
-own. The section ends with the resulting three-block ridge, the second rung of
-the block ladder this paper builds (two blocks in
-Section~\ref{sec:dense_weak}, four in Section~\ref{sec:transmission}).
+Section~\ref{sec:dense_weak} established the linear results: the exogenous
+signal is dense and weak, uniform heavy shrinkage is the measured linear
+response, and the two-block ridge is that response. This section measures
+what nonlinear models add. It has three parts. First, gradient-boosted trees
+beat the best linear arm on every feature set, by a small margin
+(Section~\ref{sec:tree_edge}). Second, decompositions of the tree fits
+attribute the bulk of that margin to additive-plus-pairwise structure, and
+the pairwise part to products of columns the panel already contains, gated
+on the session clock. Third, those products are written down as explicit
+columns, appended to the linear design, and shrunk as a block of their own
+(Section~\ref{sec:product_block}). The section ends with the resulting
+three-block ridge, the second rung of the block ladder this paper builds
+(two blocks in Section~\ref{sec:dense_weak}, four in
+Section~\ref{sec:transmission}).
 
 \subsection{The Tree Edge}
 \label{sec:tree_edge}
 
-\paragraph{The comparison.} The evidence comes from the causal-tuning battery
-of Section~\ref{sec:buckets}: five estimators fully crossed with the feature
-buckets on the shared panel ($n = 218{,}934$ thirty-minute bars, identical
-rows in every cell), every arm re-selecting its own hyperparameters
-periodically and causally, so that no forecast's configuration ever sees its
-own future. The two nonlinear arms are the gradient-boosted tree ensembles
-LightGBM \citep{Ke2017} and XGBoost \citep{Chen2016}; the linear arms are the
-penalized regressions of Section~\ref{sec:dense_weak}; the shared comparator
-is the per-bar OLS--HAR incumbent at QLIKE $0.13415$
-(Section~\ref{sec:dp_benchmark}). Because the tree arms are causally tuned by
-the same protocol as the linear arms, the comparison measures function class,
+\paragraph{Protocol.} The evidence is the causal-tuning battery of
+Section~\ref{sec:buckets}: five estimators fully crossed with the nine
+feature buckets on the shared panel ($n = 218{,}934$ thirty-minute bars,
+identical rows in every cell). The two nonlinear arms are the
+gradient-boosted tree ensembles LightGBM \citep{Ke2017} and XGBoost
+\citep{Chen2016}. The linear arms are the penalized regressions of
+Section~\ref{sec:dense_weak}. Every arm, tree and linear alike, reselects
+its own hyperparameters on the same periodic causal schedule: each
+reselection uses only data available before the reselection date, so no
+forecast's configuration uses information from that forecast's future. The
+shared comparator is the per-bar OLS--HAR incumbent at QLIKE $0.13415$
+(Section~\ref{sec:dp_benchmark}). Because the tree arms and the linear arms
+are tuned by one protocol, differences between them measure function class,
 not search effort.
 
-The ordering is uniform. LightGBM is the best arm on every one of the nine
-feature sets; the best linear arm (ridge) is second on every one; there is no
-bucket on which the ranking reverses. On the richest set,
-\texttt{all\_features}, LightGBM reaches $0.12604$ against ridge's $0.12788$
---- a model-class gap of $0.00184$ --- and the tree-minus-linear difference
-across the nine sets ranges from $0.00184$ to $0.00358$. An exact sign test
-over the nine sets gives $p = 0.0039$, and a bound-based pairwise test
-(the incumbent cancels from the tree-minus-linear loss differential, so the
-pairwise standard error is bounded by the sum of the two arms' standard errors
-without any assumption on their dependence) resolves all nine matched
-comparisons in the tree's favour after Holm adjustment: the headline
-\texttt{all\_features} pair is the weakest at $|t| \ge 2.19$, $p \le 0.029$,
-the other eight ranging from $|t| \ge 3.73$ to $|t| \ge 5.91$. The edge is
-small --- roughly a quarter of the information effect of
-Section~\ref{sec:buckets} --- but it is real, and it is systematic.
+\paragraph{Results.} LightGBM has the lowest QLIKE on all nine feature
+sets. Ridge, the best linear arm, is second on all nine. The ranking
+reverses on no bucket. On the richest set, \texttt{all\_features}, LightGBM
+scores $0.12604$ and ridge scores $0.12788$, a model-class gap of
+$0.00184$; across the nine sets the tree-minus-linear gap ranges from
+$0.00184$ to $0.00358$. An exact sign test over the nine sets gives
+$p = 0.0039$. A bound-based pairwise test resolves all nine matched
+comparisons in the tree's favour after Holm adjustment; the test uses the
+fact that the incumbent cancels from the tree-minus-linear loss
+differential, so the pairwise standard error is bounded by the sum of the
+two arms' standard errors with no assumption on their dependence. The
+\texttt{all\_features} pair is the weakest at $|t| \ge 2.19$,
+$p \le 0.029$; the other eight range from $|t| \ge 3.73$ to
+$|t| \ge 5.91$. The model-class gap is roughly a quarter of the information
+effect of Section~\ref{sec:buckets}.
 
-\paragraph{The pure-nonlinearity premium.} The battery's no-exogenous
-\texttt{baseline} row isolates function class exactly, because the information
-set in that row is identical to the incumbent's: HAR lags and calendar
-features, nothing else. There the causally tuned LightGBM reaches $0.13118$
-against the incumbent's $0.13415$ ($t = -5.6$; XGBoost $0.13163$, $t = -5.5$)
---- a premium of $0.00297$ available from relaxing the linear functional form
-alone. Two corrections temper that headline. Measured against the base-2 OLS
-ladder at $0.13332$ rather than the quadrature-limited base-5 incumbent, the
-premium shrinks to $0.00215$: roughly $28\%$ of the naive figure is HAR
-lag-grid quadrature error that a tree on a log-spaced boxcar basis
-interpolates away, not nonlinearity. And the comparison sets a causally tuned
-tree against an untuned OLS; against the causally tuned ridge on the same
-features ($0.13445$) the premium is $0.00327$. We carry the conservative
-$0.00215$ forward. Meanwhile the three linear arms on that same row are the
-only three arms in the battery that \emph{lose} to the incumbent --- shrinkage
-with nothing to shrink is pure bias --- so on the HAR-plus-calendar block the
-function-class question and the penalty question separate cleanly: penalties
-do nothing, and the tree finds something real.
+\paragraph{The function-class premium at fixed information.} The battery's
+no-exogenous \texttt{baseline} row uses the incumbent's information set
+exactly: HAR lags and calendar features, nothing else. On that row the
+causally tuned LightGBM scores $0.13118$ against the incumbent's $0.13415$
+($t = -5.6$); XGBoost scores $0.13163$ ($t = -5.5$). The raw premium from
+relaxing the linear functional form is therefore $0.00297$. Two
+adjustments apply. Measured against the base-2 OLS ladder at $0.13332$
+rather than the incumbent, the premium is $0.00215$: roughly $28\%$ of the
+raw figure is HAR lag-grid quadrature error, which a tree on a log-spaced
+boxcar basis removes by interpolation and which is not nonlinearity.
+Measured against the causally tuned ridge on the same features ($0.13445$)
+rather than the untuned OLS incumbent, the premium is $0.00327$. We carry
+the smallest of the three figures, $0.00215$, forward. On this same row the
+three linear arms are the only arms in the battery with higher QLIKE than
+the incumbent: with no exogenous columns present, penalization only biases
+the HAR coefficients. On the HAR-plus-calendar block, therefore, penalties
+do not improve the forecast and the tree does.
 
-\paragraph{The signature of how the tree wins.} The Diebold--Mariano
-statistics \citep{DieboldMariano1995,HarveyLeybourneNewbold1997} carry
-information the QLIKE levels do not, and on \texttt{all\_features} they invert
-the ranking: ridge, the worse model by level, achieves $t = -19.9$ against the
-incumbent, while LightGBM, the better model, achieves $t = -15.4$. A larger
-$|t|$ at a smaller mean improvement implies a smaller bar-to-bar dispersion of
-that improvement: the linear model wins by a little on almost every bar,
-while the tree wins by more on average but with substantially more
-variability. That is what a localized correction looks like --- the tree
-leaves most of the state space to its additive base and intervenes in
-particular regions --- and it is the first hint that the tree's edge is a
-\emph{specific, findable structure} rather than a diffuse capacity advantage.
+\paragraph{Dispersion of the improvement.} The Diebold--Mariano statistics
+\citep{DieboldMariano1995,HarveyLeybourneNewbold1997} against the incumbent
+on \texttt{all\_features} order the two arms opposite to their QLIKE
+levels: ridge reaches $t = -19.9$ and LightGBM reaches $t = -15.4$. The DM
+statistic is the mean per-bar loss improvement divided by the standard
+error of that improvement, so a larger $|t|$ at a smaller mean improvement
+implies a smaller bar-to-bar dispersion of the improvement. The linear
+model improves on the incumbent by a small amount on most bars. The tree
+improves by more on average, with larger bar-to-bar variability. This
+pattern is consistent with a correction concentrated in a subset of bars
+rather than spread across all bars.
 
 % ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
 % The passage from here through "...takes the hint literally." is held
@@ -103,142 +101,135 @@ $55/9/36$ with HAR $96\%$; the expressivity ladder $0.12757 \to 0.12108
 \to 0.12080 \to 0.12033$ vs XGBoost $0.12094$; the product distillation
 $58\%/62\%$. Held from final until reviewed.}
 
-\paragraph{Where the nonlinearity lives.} Three independent decompositions,
-carried over from the earlier phase of this project, agree on what that
-structure is.
+\paragraph{Where the nonlinearity lives.} Three decompositions, computed in
+an earlier phase of this project, characterize the structure the tree fits.
 
-\emph{It is shallow.} A functional-ANOVA decomposition of a fitted depth-eight
-boosted tree attributes approximately $55\%$ of its explainable variance to
-additive terms, $9\%$ to pairwise interactions, and $36\%$ to a diffuse
-higher-order remainder concentrated in no identifiable interaction; within the
-additive part the HAR block alone accounts for $96\%$. A model nominally
-capable of eighth-order interactions spends its capacity on main effects plus
-a thin pairwise layer.
+\emph{Interaction order.} A functional-ANOVA decomposition of a fitted
+depth-eight boosted tree attributes approximately $55\%$ of its explainable
+variance to additive terms, $9\%$ to pairwise interactions, and $36\%$ to a
+higher-order remainder concentrated in no identifiable interaction. Within
+the additive part, the HAR block accounts for $96\%$.
 
-\emph{It saturates at pairwise.} On the deployed residual-stack panel of the
-earlier build ($n = 194{,}934$; levels not comparable to the battery), an
-expressivity ladder that holds the base model fixed and varies only the
-correction stage closes the gap monotonically and completes the closing at
-pairwise order: a purely additive stage is inadequate at $0.12757$, adding
-bilinear pairwise interactions recovers nearly everything at $0.12108$,
-nonlinear pairwise shapes reach $0.12080$, and the deployed bagged
-additive-plus-pairwise stage (a GA2M in the sense of \citealt{Lou2013}) is
-best at $0.12033$ --- while an Optuna-searched unrestricted-depth XGBoost
-stage lands at $0.12094$, \emph{worse than fitting no correction at all}
-($0.12081$). Unrestricted capacity, properly searched, is a net negative;
-restricted pairwise capacity is the whole story.
+\emph{Saturation at pairwise order.} On the deployed residual-stack panel
+of the earlier build ($n = 194{,}934$; levels not comparable to the
+battery), an expressivity ladder holds the base model fixed and varies only
+the correction stage. A purely additive correction scores $0.12757$.
+Adding bilinear pairwise interactions scores $0.12108$. Nonlinear pairwise
+shapes score $0.12080$. The deployed bagged additive-plus-pairwise stage (a
+GA2M in the sense of \citealt{Lou2013}) scores $0.12033$. An
+Optuna-searched unrestricted-depth XGBoost correction stage scores
+$0.12094$, which is worse than fitting no correction at all ($0.12081$).
+The ladder improves monotonically up to pairwise order; the unrestricted
+stage does not improve on the pairwise stages.
 
-\emph{It distills into products.} Most decisively, the nonlinearity is
-substantially recoverable in closed form, and the closed form is a
-\emph{product of existing columns}. On an earlier build of the same panel
-family, a plain elastic-net base scores $0.12516$ and a residualized
-boosted-tree correction takes it to $0.12414$; adding a single hand-written
-interaction --- the HAR lags multiplied by a late-day session dummy, six
-columns --- reaches $0.12457$, recovering $58\%$ of the tree's entire edge,
-and the full set of HAR-by-six-regime interactions reaches $0.12453$, or
-$62\%$. What the tree discovers is not a rich functional manifold; it is that
-HAR's persistence coefficient changes sign near the session close (the
-clock-anchored sign-flip documented descriptively in
-Section~\ref{sec:data_prep}), and it encodes that fact through splits because
-splits are the only vocabulary it has. A linear model given the product term
-says the same thing directly.
+\emph{Distillation into products.} On an earlier build of the same panel
+family, a penalized linear base scores $0.12516$ and a residualized
+boosted-tree correction improves it to $0.12414$. Adding to the base a
+single hand-written interaction --- the HAR lags multiplied by a late-day
+session dummy, six columns --- scores $0.12457$, which recovers $58\%$ of
+the tree correction's improvement. The full set of HAR-by-six-regime
+interactions scores $0.12453$, or $62\%$. The recovered term corresponds to
+the clock-anchored change of sign in HAR's persistence coefficient near the
+session close, documented descriptively in Section~\ref{sec:data_prep}. A
+tree encodes that term through splits; a linear model given the product
+column carries the same term directly.
 
-The conclusion of the tree experiments is therefore not ``use trees.'' It is
-a specification hint: \textbf{the panel's recoverable nonlinearity is a
-sparse set of pairwise products of columns the design already contains}. The
-rest of this section takes the hint literally.
+The tree experiments therefore yield a specification statement:
+\textbf{the panel's recoverable nonlinearity is a sparse set of pairwise
+products of columns the design already contains}. The rest of this section
+constructs that set of products as an explicit feature block.
 
 \subsection{The Product Block}
 \label{sec:product_block}
 
-If the tree's edge is pairwise products, the natural move is to enumerate
-candidate products, select the few that matter, and append them to the linear
-design as ordinary columns --- turning the tree's implicit interactions into
-an explicit feature block that the same rolling ridge machinery can read. The
-interaction study that developed this block answered four questions:
-which products, chosen how often, shrunk how hard, refit how fast. Its
-numbers were computed on the interaction-study panel --- $218{,}934$
-out-of-sample bars, 2007--2024, a $250$-day rolling window, HAR reference
-QLIKE $0.13275$ --- which shares its rows with the battery panel but not its
-window or backbone convention, so levels below are not comparable to the
-battery tables and are quoted only for the design decisions they settle.
+The construction enumerates candidate products, selects a subset, and
+appends the subset to the linear design as ordinary columns, read by the
+same rolling ridge machinery as every other block. The interaction study
+that developed the block settled four design choices: which products,
+reselected how often, shrunk how hard, and refit how often. Its numbers
+were computed on the interaction-study panel --- $218{,}934$ out-of-sample
+bars, 2007--2024, a $250$-day rolling window, HAR reference QLIKE
+$0.13275$ --- which shares its rows with the battery panel but not its
+window or backbone convention. The levels below are therefore not
+comparable to the battery tables and are quoted only for the design
+decisions they settle.
 \pending{confirmation that the paper's production product block is exactly
 this construction (candidate space, selection window, column scaling) once
 the block is re-run under the paper's panel convention}
 
-\paragraph{The candidate space, and selection.} Candidates are the pairwise
-products (including squares) of $133$ base columns --- the HAR ladder, the
-$41$ exogenous channels at three of their rolling windows, and the clock
-gates --- giving $8{,}911$ candidate products. Selection is by marginal
-correlation with the forecast residual, and the selected-set-size ladder is
-cleanly unimodal: accuracy peaks at $k = 25$--$100$ of $8{,}911$ and degrades
-by $k = 400$. This is the mirror image of the linear channel of
-Section~\ref{sec:dense_weak}, where accuracy improved monotonically in the
-number of columns: \emph{the linear channel is dense; the interaction channel
-is sparse}. Roughly a hundred products carry what the trees were finding.
+\paragraph{Candidate set.} The base set is $133$ columns: the HAR ladder,
+the $41$ exogenous channels at three of their rolling windows, and the
+clock gates. The candidate set is every pairwise product of two base
+columns, including squares: $8{,}911$ candidate products.
 
-\paragraph{Frozen, not tracked.} The sharpest design fact is temporal. An arm
-that reselects the product set every month --- identical machinery, identical
-coefficient refits, only the selection differing --- \emph{loses} to an arm
-that selects the $100$ products once, from the 2005--2006 window, and never
-touches them again: at $k = 100$ the dynamic arm trails the static one at
-DM $t = -3.21$ under the study's original scaling, and the sign is negative
-at every healthy specification tested. The dynamic set churns $24$--$31\%$ of
-its members per month, and that churn is noise that costs real accuracy to
-chase. The product block is therefore \emph{sparse in identity and static in
-time}: which interactions matter was decided once, eighteen years before the
-end of the sample, and reselection never pays.
+\paragraph{Parent standardization and product formation.} A product column
+is not the raw product of two panel columns. The construction has two
+steps, in order, both causal. Step one: each parent column is standardized
+on a trailing window, using a scale estimate floored from below; the floor
+prevents a low-dispersion window from inflating the standardized parent,
+the failure mode the scaling discipline of Section~\ref{sec:data_prep}
+guards against. Step two: the product is formed bar by bar from the two
+standardized parents. Every product value at bar $t$ is therefore a
+function of data available at bar $t$. \pending{the exact constants of the
+construction as frozen in the campaign executor: trailing-window lengths
+for the parent scaling, the floor rule, and the selection-window definition
+--- to be transcribed from \texttt{src/unification.py} so the paper states
+precisely what ran}
 
-\paragraph{How each product is computed.} A product column is not the raw
-product of two panel columns; both construction steps are causal and both
-matter. Each parent column is first standardized on a trailing window using
-a \emph{floored} scale estimate --- the floor prevents a low-dispersion
-window from inflating the standardized parent, the same failure mode the
-scaling discipline of Section~\ref{sec:data_prep} guards against --- and the
-product is then formed bar by bar from the two standardized parents, so
-every product value at bar $t$ is a function of data available at $t$. The
-selection statistic ranks candidates by the absolute correlation between
-the product column and the backbone's out-of-sample residual on the frozen
-selection window, so a product enters only for what it adds \emph{beyond}
-the fitted backbone, not for restating level information the HAR block
-already carries. \pending{the exact constants of the construction as frozen
-in the campaign executor: trailing-window lengths for the parent scaling,
-the floor rule, and the selection-window definition --- to be transcribed
-from \texttt{src/unification.py} so the paper states precisely what ran}
+\paragraph{Selection rule.} Each candidate is scored by the absolute
+correlation between its product column and the backbone's out-of-sample
+forecast residual, computed on a fixed selection window, 2005--2006. The
+$k$ candidates with the largest scores are kept. Because the score is a
+correlation with the backbone's residual, a product is selected for what it
+adds beyond the fitted backbone, not for level information the HAR block
+already carries. The set-size ladder is unimodal: accuracy peaks at
+$k = 25$--$100$ of $8{,}911$ and degrades by $k = 400$. The linear channel
+of Section~\ref{sec:dense_weak} improved monotonically in the number of
+columns; the interaction channel does not. The linear channel is dense; the
+interaction channel is sparse. The block uses $k = 100$.
 
-\paragraph{The block needs its own penalty.} Products of centered features
-have variance on the order of the product of their parents' variances, so a
-product block and a base block live on incommensurate scales, and one global
-ridge penalty cannot restrain the former while fitting the latter. The
-interaction study learned this the hard way: under a single shared penalty
-the product block's contribution is unstable and can be outright negative,
-and an early $+43\%$ headline for the block turned out to be an artifact of a
-design clip that was silently standing in for the missing block-wise
-regularization. Under an explicit separate penalty the picture is clean and
-monotone: with the product block shrunk an order of magnitude harder than the
-linear block, the hundred frozen products add $\Delta R^2 = +0.0067$ over the
-full $516$-column linear base --- a $+35\%$ relative improvement in
-residual-space accuracy, DM $t = +2.71$ --- while lighter product penalties
-destroy the gain entirely. The block-penalty ratio is not a tuning nicety; it
-is the difference between the interaction channel helping and hurting.
+\paragraph{Reselection cadence.} Two arms were compared with identical
+machinery and identical coefficient refits, differing only in when
+selection runs. The static arm selects the $100$ products once, on the
+2005--2006 window, and keeps them for the rest of the sample. The dynamic
+arm reselects the product set every month. The dynamic arm loses: at
+$k = 100$ it trails the static arm at DM $t = -3.21$ under the study's
+original scaling, and the sign is negative at every healthy specification
+tested. The dynamic set replaces $24$--$31\%$ of its members per month. The
+product block is therefore sparse in identity and static in time: the
+product set was selected once, eighteen years before the end of the
+sample, and is never reselected.
 
-\paragraph{The block needs fresh coefficients.} The products' value also
-depends on refit cadence more strongly than the linear block's does. At the
-monthly coefficient refit the block inherited from the selection study, its
-QLIKE increment is indistinguishable from zero (DM $t = +0.52$); refit daily,
-in the same solver, the identical frozen block grows its residual-space
-increment to $+0.0108$ and carries it through the raw-scale reconstruction at
-$\Delta\text{QLIKE} = -0.00093$, DM $t = +3.56$. The mechanism is consistent
-with what the products are: predominantly fast pairs built from one-bar
-quantities, exactly where stale coefficients cost the most, scored under a
-loss whose weight sits on high-volatility bars, exactly where fresh
-coefficients matter most. Frozen identity, fast coefficients: which products
-matter is a constant of the panel; how much each matters right now is not.
+\paragraph{Block penalty.} Products of centered features have variance on
+the order of the product of their parents' variances, so the product block
+and the base block have columns on incommensurate scales, and a single
+global ridge penalty cannot restrain the former while fitting the latter.
+Under a single shared penalty the product block's measured contribution is
+unstable and can be negative; an early $+43\%$ headline for the block was
+an artifact of a design clip that was standing in for the missing
+block-wise regularization. Under a separate penalty, with the product block
+shrunk an order of magnitude harder than the linear block, the hundred
+frozen products add $\Delta R^2 = +0.0067$ over the full $516$-column
+linear base --- a $+35\%$ relative improvement in residual-space accuracy,
+DM $t = +2.71$. Lighter product penalties eliminate the gain.
 
-Assembled, the product block is a hundred columns with four documented
+\paragraph{Coefficient refit cadence.} The comparison holds the frozen
+block and the solver fixed and varies only how often the coefficients are
+re-estimated. At a monthly coefficient refit, the block's QLIKE increment
+is indistinguishable from zero (DM $t = +0.52$). At a daily refit, the
+identical frozen block's residual-space increment is $+0.0108$, and the
+raw-scale reconstruction gives $\Delta\text{QLIKE} = -0.00093$, DM
+$t = +3.56$. This dependence is consistent with the block's composition:
+the selected products are predominantly fast pairs built from one-bar
+quantities, where stale coefficients lose accuracy fastest, and QLIKE
+places its weight on high-volatility bars, where coefficient freshness
+matters most. The identity of the products is frozen; their coefficients
+are refit frequently.
+
+Assembled, the product block is one hundred columns with four measured
 properties --- sparse, frozen, heavily shrunk, frequently refit --- and it
-converts the tree subsection's specification hint into a concrete object the
-paper's estimator can carry.
+converts the specification statement of Section~\ref{sec:tree_edge} into a
+feature block the paper's estimator can carry.
 
 \subsection{The Three-Block Ridge}
 \label{sec:three_block}
@@ -246,7 +237,7 @@ paper's estimator can carry.
 
 The model this section ends on is the two-block ridge of
 Section~\ref{sec:dense_weak} with the product block appended as a third
-block, each block carrying its own penalty inside one rolling solver:
+block. Each block carries its own ridge penalty inside one rolling solver:
 \begin{equation}
     \hat{y}_t \;=\;
     \underbrace{X^{\mathrm{HAR}}_t \beta_1}_{\alpha_1 = 1}
@@ -256,28 +247,32 @@ block, each block carrying its own penalty inside one rolling solver:
     \underbrace{X^{\mathrm{prod}}_t \beta_3}_{\alpha_3 = 1000},
     \label{eq:three_block}
 \end{equation}
-where the first block is the target's own HAR ladder, essentially
-unpenalized; the second is the linear exogenous block of
-Section~\ref{sec:dense_weak} under its heavy uniform shrinkage; and the third
-is the frozen product block, shrunk an order of magnitude harder still. The
-block structure is imposed by column scaling --- each block's columns scaled
-by $\sqrt{\alpha_1/\alpha_b}$ --- so the three-block estimator runs in the
-same exact rank-one rolling least-squares path as every other linear model in
-this paper, refit at every bar, and nests the two-block model exactly
-($\beta_3 = 0$).
+where block one is the target's own HAR ladder at $\alpha_1 = 1$; block two
+is the linear exogenous block of Section~\ref{sec:dense_weak} at
+$\alpha_2 = 100$; and block three is the frozen product block at
+$\alpha_3 = 1000$. The estimator is implemented by column scaling. Each
+column in block $b$ is multiplied by $\sqrt{\alpha_1/\alpha_b}$, and a
+single ridge with penalty $\alpha_1$ is solved on the scaled design; a
+coefficient $\tilde{\beta}$ on a scaled column corresponds to
+$\beta = \sqrt{\alpha_1/\alpha_b}\,\tilde{\beta}$ on the raw column, and
+the shared penalty $\alpha_1 \|\tilde{\beta}\|^2$ on the scaled
+coefficients equals the per-block penalties $\alpha_b \|\beta\|^2$ on the
+raw coefficients. After scaling, the three-block estimator runs in the same
+exact rank-one rolling least-squares path as every other linear model in
+this paper, refit at every bar. Setting $\beta_3 = 0$ recovers the
+two-block model exactly.
 
-The penalty ladder is the section's argument written as three numbers. The
-backbone is left alone because Section~\ref{sec:dense_weak} showed that
-shrinking a low-dimensional, fully informative block is pure cost. The
-exogenous block is shrunk hard because the signal is dense and weak. The
-product block is shrunk another decade harder because that is what the
-interaction study measured: products live on a different scale from their
-parents, and only under heavy block-specific shrinkage is their contribution
-positive and stable --- the same one-order-of-magnitude gap between the
-linear-block and product-block penalties that the study's own ladder selected
-on its panel. Each block's penalty encodes what this paper learned about that
-block's information, and no penalty was chosen by grid search on the
-evaluation loss.
+Each penalty restates a measured result. $\alpha_1 = 1$:
+Section~\ref{sec:dense_weak} measured that shrinking the low-dimensional,
+fully informative HAR block raises loss, so the backbone is left
+essentially unpenalized. $\alpha_2 = 100$: the exogenous signal is dense
+and weak, and heavy uniform shrinkage was the measured optimum.
+$\alpha_3 = 1000$: the interaction study measured that the product block's
+contribution is positive and stable only when it is shrunk an order of
+magnitude harder than the linear block, because products live on a
+different scale from their parents; the one-order-of-magnitude gap between
+$\alpha_2$ and $\alpha_3$ is the ratio the study's own ladder selected on
+its panel. No penalty was chosen by grid search on the evaluation loss.
 
 \pending{the three-block result table on the paper's panel: QLIKE for the
 three-block ridge alongside the two-block ridge of Section 5 and the
@@ -294,11 +289,10 @@ against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
 i.e.\ whether naming the tree's structure recovers the tree's level within
 the linear class}
 
-What the three-block ridge claims is deliberately modest. It does not claim
-to exhaust the trees' nonlinearity --- the functional-ANOVA remainder and the
-expressivity ladder both leave a diffuse residue that no small set of named
-columns will capture. It claims the constructive converse of this section's
-diagnosis: the \emph{recoverable} nonlinearity is pairwise, sparse, frozen,
-and clock-anchored, and once it is written down as a block, the estimator
-that carries it is still a linear one --- one solver, three penalties, refit
-every bar. The next section adds the fourth block.
+The three-block ridge does not capture all of the tree's fit: the
+functional-ANOVA remainder and the expressivity ladder both leave a
+diffuse residue that no small set of named columns captures. Its claim is
+narrower: the recoverable nonlinearity is pairwise, sparse, frozen, and
+clock-anchored, and once it is written down as a block, the estimator that
+carries it is a linear one --- one solver, three penalties, refit every
+bar. The next section adds the fourth block.

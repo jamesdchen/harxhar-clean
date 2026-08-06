@@ -7,138 +7,160 @@
 % Source material: alpha_manifestation_findings_2026-08-04.md,
 % reference/sections/replication_state.tex (transmission width, span law).
 
-The three blocks assembled so far are all \emph{contemporaneous}: the target's
-own history, the exogenous panel, and the frozen pairwise products read the
-current state of the market. This section adds the one channel that is not ---
-directed lead--lag structure among the panel's latent factors, the
-``transmission'' of activity from one part of the market to another at a
-one-bar delay. The construction has three steps, and each falls out of the
-data rather than out of a modelling choice: a factor frame that is nothing but
-the panel's own first-window eigenstructure; a lead--lag field on that frame,
-built and validated with the toolkit of Cucuringu and
-coauthors~\pending{cite: Hermitian lead--lag clustering / SPONGE / dynamic-network
-CPD references}; and finally the arrows entering the ridge as a fourth block.
+The three blocks assembled so far are contemporaneous: the target's own
+history, the exogenous panel, and the frozen pairwise products are all
+functions of data observable at the current bar. This section adds a directed
+lead--lag block: the transmission of activity from one part of the market to
+another at a one-bar delay. The construction has three steps. First, a factor
+frame is estimated from the eigenstructure of the panel's first training
+window. Second, a lead--lag field is estimated on that frame, using the
+toolkit of Cucuringu and coauthors~\pending{cite: Hermitian lead--lag
+clustering / SPONGE / dynamic-network CPD references}. Third, the resulting
+columns enter the ridge as a fourth block.
 
 \subsection{Twenty Natural Factors}
 
-The factor construction involves no rotation, no supervision, and no tuning.
-Take the panel's base features (of order 133 columns; 106 of them live,
-non-degenerate directions), form their correlation matrix on the \emph{first
-training window} (2005--06), and project the panel onto its leading
-eigenvectors. The frame is then \textbf{frozen permanently}: factor scores
-$G_i(t)$ for the rest of the sample are projections onto directions estimated
-once, from feature data alone, before any forecasting begins. Because the
-frame is estimated from $X$ and never from the target, the geometric objects
-built on it can be validated split-half against the signal without
-contamination --- which is precisely why they turn out to be the study's most
-replicable objects.
+The factor construction uses no rotation, no supervision, and no tuning. The
+panel's base features comprise 133 columns, of which 106 are live,
+non-degenerate directions. We form the correlation matrix of these columns
+over the first training window (2005--06) and take its eigendecomposition.
+The factor frame is the set of leading eigenvectors of this matrix. The frame
+is then \textbf{frozen permanently}: the factor score $G_i(t)$ is the
+projection of the bar-$t$ feature vector onto eigenvector $i$, and the
+eigenvectors are estimated once, from feature data alone, before any
+forecasting begins. Because the frame is estimated from $X$ and never from
+the target, objects built on it can be validated by split-half replication
+--- estimating the same object independently on the two halves of the sample
+and correlating the two estimates --- without contamination from the signal.
+The lead--lag field built on this frame has the highest split-half
+replication of any object in the study (Section~\ref{sec:trans-leadlag}).
 
-In what sense is the count natural rather than chosen? Three independent
+The count of 20 was carried as a convention and was not optimized. Three
 statistics of the same first-window spectrum bracket it. The participation
-ratio of the spectrum is $\approx 18$ --- an effectively $\approx 20$-dimensional
-span. The raw Marchenko--Pastur edge (iid null at the nominal sample size)
-keeps 22 of the 106 live eigenvalues above noise. And the frame itself is the
-one linear object in the study that is stable across halves of an 18-year
-sample --- the factors' \emph{nonlinear} self-geometry (curvature, spectra of
-interaction forms, cluster partitions) fails every split-half test, while the
-linear frame holds. Twenty is the round cover of an 18--22 bracket that the
-data produces on its own; it was carried as a convention, not optimized, and
-Section~\ref{sec:trans-leadlag} reports the arm that later stress-tested it.
+ratio of the eigenvalue spectrum --- the squared sum of eigenvalues divided
+by the sum of squared eigenvalues, an effective dimension count --- is
+$\approx 18$; the span is effectively $\approx 20$-dimensional. The raw
+Marchenko--Pastur edge --- the largest eigenvalue expected from a correlation
+matrix of independent noise at the nominal sample size --- leaves 22 of the
+106 live eigenvalues above the noise level. And the linear frame is stable
+across halves of the 18-year sample, while every nonlinear geometric object
+built from the factors (curvature, spectra of interaction forms, cluster
+partitions) fails split-half replication. Twenty is the round cover of the
+18--22 bracket. Section~\ref{sec:trans-leadlag} reports the experiment that
+later varied the count directly.
 
-One refinement of the Marchenko--Pastur picture matters for everything that
-follows. Bar data is heavily dependent: the factor scores' median integrated
-autocorrelation time is 175 bars ($\approx 3.6$ days), which deflates the
-effective sample to $T_{\mathrm{eff}} \approx 68$ per dimension and raises the
-dependence-adjusted noise edge to $5.04$ --- above which only \textbf{5}
-eigenvalues survive as individually identified directions. Read correctly,
-this is not ``the mid-spectrum is noise'' (objects built on it replicate
-split-half at $+0.6$ to $+0.99$, which noise cannot do); it is that
-mid-spectrum eigenvectors are \emph{gauge-degenerate}: the data pins the
-subspace they span but not the basis inside it. The factors are a stable
-\emph{span} with unpinnable labels. This one fact predicts the section's
-central robustness result --- that any generous cover of the span works
-equally well, and no clever selection inside it can beat carrying it whole.
+One refinement of the Marchenko--Pastur count matters for everything that
+follows. Bar data is serially dependent. The median integrated
+autocorrelation time of the factor scores --- the factor by which serial
+correlation reduces the effective number of independent observations --- is
+175 bars ($\approx 3.6$ days). This deflates the effective sample to
+$T_{\mathrm{eff}} \approx 68$ per dimension and raises the
+dependence-adjusted noise edge to $5.04$. Only \textbf{5} eigenvalues exceed
+that edge, so only 5 eigenvectors are individually identified. This does not
+mean the mid-spectrum is noise: objects built on the mid-spectrum replicate
+split-half at $+0.6$ to $+0.99$, and noise replicates at zero. The correct
+statement is that the data pins the subspace the mid-spectrum eigenvectors
+span but not the basis inside it: the individual eigenvectors are not
+identified, while their span is stable under split-half replication. This
+fact predicts the section's central robustness result: any cover of the span
+performs equally well, and no selection of directions inside the span beats
+carrying the span whole.
 
 \subsection{Cucuringu Lead--Lag Features}
 \label{sec:trans-leadlag}
 
-\paragraph{The lead--lag field is real, and it is a rotation.}
-Let $A$ be the antisymmetric part of the factor scores' lag-one-\emph{bar}
-cross-correlation --- the raw material of Hermitian lead--lag
-clustering~\pending{cite} --- computed with per-slot deseasonalization and
-an explicit clock control, since the diurnal timetable could manufacture
-artificial lead--lag. This field is the most replicable object in the
-study: split-half $+0.992$ for the dynamic flow (the clock share is
-$-0.003$; a closed-form control for trailing-MA arithmetic explains 6\% of
-its variance, and the residual still replicates at $+0.992$). The field is
-overwhelmingly cyclic (\textbf{96.5\% curl} in its Hodge decomposition): not
-a lead--lag \emph{hierarchy} but a \emph{circulation}. It operates
-identically in and out of regular hours (RTH-vs-overnight similarity
-$+0.967$), and its hub structure is economically legible: turnover and tail
-activity lead the implied-vol complex, and implied vol leads the
-realized-vol factors --- order flow repricing implied variance, implied
-variance leading realized, at a half-hour lag.
+\paragraph{The lead--lag field.}
+Let $C$ be the lag-one-bar cross-correlation matrix of the factor scores,
+$C_{ij} = \mathrm{corr}\bigl(G_i(t-1),\, G_j(t)\bigr)$. Its antisymmetric
+part is $A = (C - C^{\top})/2$: $A_{ij} > 0$ states that factor $i$ leads
+factor $j$ at one bar more than $j$ leads $i$. This matrix is the raw
+material of Hermitian lead--lag clustering~\pending{cite}. Two controls
+remove diurnal artifacts, since the deterministic intraday timetable could
+manufacture artificial lead--lag. First, each factor score is deseasonalized
+per slot: it is standardized within its time-of-day slot, so that no score
+carries a diurnal mean or variance profile. Second, an explicit clock control
+is computed: the field implied by the deterministic time-of-day component
+alone is estimated separately, and its share of the dynamic flow is $-0.003$.
+The field is the most replicable object in the study: the dynamic flow
+replicates split-half at $+0.992$. A third control addresses construction
+arithmetic: features built from trailing moving averages induce a mechanical
+lag-one cross-correlation, a closed-form expression for that induced
+component explains 6\% of the field's variance, and the residual after
+removing it still replicates at $+0.992$.
+
+Three properties describe the field. First, its Hodge decomposition --- the
+decomposition of an antisymmetric flow into a gradient part, which is
+consistent with a single ranking of the nodes, and a cyclic part (curl),
+which circulates around loops --- is \textbf{96.5\% curl}: the field is a
+circulation, not a ranking. Second, the field estimated on regular trading
+hours and the field estimated overnight agree at similarity $+0.967$.
+Third, its hub structure is: the turnover and tail-activity factors lead
+the implied-volatility factors, and the implied-volatility factors lead the
+realized-volatility factors, at the one-bar (half-hour) lag.
 
 \paragraph{From field to feature.}
-The feature construction is the field applied as a linear operator. With
-$D$ the antisymmetric part of the lag-one-bar cross-correlation, estimated
-causally on a trailing 504-day window with quarterly re-estimation, the
-transmission columns are
+The feature construction applies the field as a linear operator. Let $D$ be
+the antisymmetric part of the lag-one-bar cross-correlation of the factor
+scores, estimated causally on a trailing 504-day window and re-estimated
+quarterly. The transmission columns are
 \[
 \hat G_j(t) \;=\; \sum_i D_{ij}\, G_i(t - 1\ \mathrm{bar}),
 \]
-one column per factor: each direction's next-bar motion as predicted by the
-flow through it. The antisymmetry is load-bearing, not decoration --- the
-symmetric part of the lag-1 cross-correlation is persistence content the
-moving-average ladder already spans. That claim was given its decisive
-control: 20 columns of \emph{plain} lagged scores $G(t-1)$ (the same lagged
-information with no flow structure) fail the entry gate outright, while the
-$D$-weighted columns pass. The flow content, not generic lag-1 information,
-is what the design was missing. \pending{one-bar entry-gate statistics for
-the plain-lag control vs the $D$-weighted columns, from the unification
-campaign}
+one column per factor: column $j$ is the next-bar motion of factor $j$ as
+predicted by the flow through it. The antisymmetric part is used, and not the
+full lag-one cross-correlation, because the symmetric part is persistence
+content that the moving-average ladder already spans. This choice was tested
+directly: 20 columns of \emph{plain} lagged scores $G(t-1)$ --- the same
+lagged information with no flow structure --- fail the entry gate outright,
+while the $D$-weighted columns pass. The flow content, not generic lag-one
+information, is what the design was missing. \pending{one-bar entry-gate
+statistics for the plain-lag control vs the $D$-weighted columns, from the
+unification campaign}
 
-The block's value is fast. Against same-engine twins that already contain
-everything else, the block enters at Diebold--Mariano $+9.90$ at one bar ---
-the strongest feature statistic in the campaign. One further symmetry:
-the arrows themselves do not want freshness. Re-estimating $D$ monthly
-($+0.75$) or even per bar ($+1.48$) fails the gate --- the refit-cadence law
-that governs coefficients everywhere else in this paper finally met the
-object it does not govern, and it is precisely the study's most stable
-object. Lag-one $D$, re-estimated quarterly, is the complete form of the
-feature.
+The block is evaluated against same-engine twins: models with the same ridge
+engine and the other three blocks, differing only by the candidate block.
+Against those twins the block enters at Diebold--Mariano $+9.90$ at one bar
+--- the strongest feature statistic in the campaign. The estimation cadence
+of $D$ was also varied. Re-estimating $D$ monthly ($+0.75$) or per bar
+($+1.48$) fails the gate; only the quarterly cadence passes. Elsewhere in
+this paper more frequent refitting helps or is neutral; for $D$ it hurts.
+Lag-one $D$, re-estimated quarterly, is the complete form of the feature.
 
 \paragraph{The width plateau.}
-``How do we know it is just 20?'' --- the honest answer on record was
-\emph{we don't}: the width was inherited. Varying it end to end, with the
-frames nested (each width $q$ takes the top-$q$ eigenvectors of the same
-first-window correlation), produced the campaign's cleanest structural
-result. The one-bar increment is not flat in $q$: it improves through
-$q = 40$ (head-to-head over $q=20$: $+2.29$ at daily refit, $+4.59$ per-bar),
-holds a shoulder through $q = 80$, and fails its gate outright at $q = 106$
---- every live direction ($+1.62$ against the twin, the width ladder's first
-failure). Refinement rungs at $q \in \{30, 50, 60, 70\}$ show the interior is
-flat to within noise. The forecast improvement sits on a \textbf{plateau over
-widths $\sim$30--80 with cliffs on both sides}: the arrows live in a
-finite-rank sub-span roughly \emph{twice} the conventional frame, dense
-within it and empty beyond it. Production runs width 40 as a representative
-of the plateau, not as a tuned optimum --- exactly the robust-region shape
-the gauge-degeneracy story predicts, since covering the span is what matters
-and its truncation point is not identified. The mechanics were probed
-directly: the widening gain is carried by the new directions' \emph{own}
-next-bar forecastability (not by new information about the old factors);
-doubling the $D$ estimation window rescues nothing at $q=106$ (the tail is
-empty, not noisy); and the new arrows replicate split-half at $+0.838$ (old
-block $+0.907$) --- a stable field over unpinnable labels. Production runs
-width 40, and the choice is a one-bar result for a one-bar paper.
+The width of 20 was inherited, not established by test, so it was varied end
+to end. The procedure is as follows. The frames are nested: for each width
+$q$, the frame is the top-$q$ eigenvectors of the same first-window
+correlation matrix, and the full pipeline (scores, $D$, transmission columns,
+ridge) is re-run at that width. Each width is compared head-to-head against
+$q = 20$ under the same protocol. The one-bar increment is not flat in $q$.
+It improves through $q = 40$ (head-to-head over $q = 20$: $+2.29$ at daily
+refit, $+4.59$ per-bar), holds through $q = 80$, and fails its gate outright
+at $q = 106$ --- every live direction ($+1.62$ against the twin, the width
+ladder's first failure). Refinement rungs at $q \in \{30, 50, 60, 70\}$ show
+the interior is flat to within noise. The forecast improvement therefore sits
+on a \textbf{plateau over widths $\sim$30--80}, with worse performance on
+both sides: the lead--lag structure occupies a finite-rank sub-span roughly
+twice the conventional frame, is dense within that sub-span, and is absent
+beyond it. Three probes locate the mechanism. The widening gain is carried by
+the new directions' \emph{own} next-bar forecastability, not by new
+information about the first 20 factors. Doubling the $D$ estimation window
+rescues nothing at $q = 106$: the tail directions carry no lead--lag content,
+rather than content estimated too noisily. And the field restricted to the
+new directions replicates split-half at $+0.838$ (old block $+0.907$): the
+field on the widened span is stable even though the individual eigenvectors
+inside the span are not identified. Production runs width 40 as a
+representative of the plateau, not as a tuned optimum. This is the outcome
+the span result above predicts: covering the span is what matters, and the
+span's truncation point is not identified. All width comparisons here are
+one-bar results, and the width-40 choice rests on them alone.
 
 \subsection{The Four-Block Ridge}
 % Endpoint: the final composed model — all four blocks.
 
 The transmission block completes the model. The final specification is one
 blockwise ridge in a single solver --- \textbf{719 columns} --- refit every
-bar on a 250-day rolling window with a one-day embargo, with the penalty
-graded by block:
+bar on a 250-day rolling window with a one-day embargo, with a separate
+penalty per block:
 \[
 y \;\sim\; \mathrm{ridge}_{250\mathrm{d}}
 \bigl[\;
@@ -156,32 +178,33 @@ effective $\alpha = 1$ / $3\times10^{3}$ / $3\times10^{4}$ by column scaling,
 while the arc notes for Sections~\ref{sec:dense_weak}
 and~\ref{sec:nonlinear_product} quote the $1/100/1000$ normalization ---
 harmonize one convention across the three endpoint specs}
-The transmission block's own shrinkage was laddered and stays at the
-exogenous penalty --- it behaves like exogenous content, not like products.
-The backbone is unshrunk, the linear panel is shrunk hard, the quadratic
-block an order of magnitude harder, and the arrows ride at the linear
-penalty: collect everything, refresh constantly, grade the humility by
-block.
+The per-block penalties are implemented by column scaling: multiplying a
+block's columns by a constant $c$ and solving a single ridge at a common
+penalty $\alpha$ is identical to penalizing that block at $\alpha / c^{2}$,
+so one solver call fits all four blocks. The transmission block's own
+penalty was laddered, and the selected value equals the exogenous block's
+penalty, not the frozen-product block's. The backbone carries the smallest
+effective penalty, the linear exogenous block a much larger one, the
+frozen-product block one an order of magnitude larger still, and the
+transmission block the exogenous value.
 
-The increment is small and certain, in the manner of every gain in this
-paper. On the campaign panel, adding the width-40 transmission block to the
-699-column per-bar model moves QLIKE from $0.12546$ to $0.12529$
-(Diebold--Mariano $+4.59$; $+2.32$ on 2020+), against that panel's HAR
-baseline of $0.13275$. Composed with the second-moment correction of
-Section~\ref{sec:smearing} in its final form, the campaign's headline number
-closed at QLIKE $0.12299$ ($\approx -7.3\%$ against HAR), having opened the
-campaign at $0.12579$. \decide{which number is this section's endpoint headline:
+The increment from the fourth block is small and statistically strong, as
+every gain in this paper is. On the campaign panel, adding the width-40
+transmission block to the 699-column per-bar model moves QLIKE from
+$0.12546$ to $0.12529$ (Diebold--Mariano $+4.59$; $+2.32$ on 2020+), against
+that panel's HAR baseline of $0.13275$. Composed with the second-moment
+correction of Section~\ref{sec:smearing} in its final form, the campaign's
+headline number closed at QLIKE $0.12299$ ($\approx -7.3\%$ against HAR),
+having opened the campaign at $0.12579$. \decide{which number is this section's endpoint headline:
 the four-block ridge alone ($0.12529$ per-bar) or the ridge composed with
 the Section~\ref{sec:smearing} smear ($0.12299$) --- and whether the paper's
 final table re-freezes these on its own battery}
 \pending{final four-block QLIKE regenerated under this paper's frozen battery
 and panel convention, if the campaign numbers above are not adopted as-is}
 
-The postscript writes itself: the fourth block is the
-first in the model with an arrow of time in it, and on this panel it is
-predictive at exactly the model's own cadence --- one bar --- fast, like
-everything else that worked. On a cross-section of assets, where the
-lead--lag field is estimated across names rather than across one market's
-factors, the same construction becomes the estimation target rather than the
-garnish; that is the natural continuation of this section and lies beyond
-this paper.
+The transmission block is the only block in the model that uses information
+at a delay: the other three read the current bar, and this one predicts
+next-bar factor motion from the previous bar. On a cross-section of assets,
+the same construction --- a lead--lag field estimated across names rather
+than across one market's factors --- becomes the estimation target rather
+than an added feature block. That extension lies beyond this paper.
