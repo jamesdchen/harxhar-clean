@@ -2861,6 +2861,16 @@ the product's own timescale. Follow-on when compute frees: the pre-registered H 
 flow's hub structure is a microstructure-regime alarm one bar-lag deep, the fast sibling of the
 §26 rot detector.
 
+**Follow-ups measured.** Hodge at bar lags: the intraday flow is **96.5% curl / 3.5% gradient**
+(halves 0.034/0.037; 92–97% across k = 1…8) — *more* cyclic than the daily flow, and the
+turnover→VIX→realized "chain" reading above is hereby corrected the same way §26's source/sink
+reading was: it is the 3.5% gradient shadow (PC10 the largest net sink, turnover the source);
+the dominant structure is rotation with the VIX complex on the main axis. But unlike the daily
+cycle, **the intraday rotation has no clock**: phase drift −0.0013 rad/bar with drift-to-noise
+**0.004** and sign-disagreeing halves — a directed *diffusion*, not an orbit. The arrows are the
+study's most stable object; the position on the loop is unforecastable. Daily: slow coherent
+rotor (35d, drift/noise 0.19). Intraday: strongly directed, non-periodic circulation.
+
 ## Reproducibility
 
 ```bash
