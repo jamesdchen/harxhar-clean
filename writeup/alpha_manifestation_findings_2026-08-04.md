@@ -3418,6 +3418,15 @@ ten (quarticity most notably), but conversion stopped at means+leverage+probe �
 QLIKE-relevant content saturates around ten named columns, and everything further is
 real-but-unmonetizable. Production smear final: **means + leverage + probe**.
 
+**§34.12b — instrument challenge (user: "are you sure?"), pre-registered before re-running.**
+The regression smears convert log-amplitude predictions by exp() WITHOUT a Duan factor (the
+walk smears had one) — and the bias is arm-dependent: better log-fits have smaller E[exp(ε)],
+hence systematically LOWER level forecasts, which QLIKE punishes asymmetrically. Exactly the
+arm with the biggest uplift (quarticity) is punished most by this artifact. Amendment: per-arm
+CAUSAL Duan factor (expanding mean of exp(training residuals)) applied to baseline and arm
+alike; all three blocks re-tested. If verdicts change, the entire §34.2–34.9 smear chain gets
+one corrected re-pass under the same instrument before anything is called final.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
