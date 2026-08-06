@@ -538,28 +538,8 @@ def main(argv: list[str] | None = None) -> int:
             if r.n_rows:
                 _compare_vs_a0(r, a0)
 
-    # 5. CANARY: a0 across roots (cross-cluster float parity).
-    a0s = [r for r in results if r.arm == A0 and r.n_rows]
-    for i in range(len(a0s)):
-        for j in range(i + 1, len(a0s)):
-            a, b = a0s[i], a0s[j]
-            common, ia, ib = np.intersect1d(
-                a.row_id, b.row_id, assume_unique=True, return_indices=True
-            )
-            if len(common) == 0:
-                print(f"CANARY {a.root} vs {b.root}: no common rows")
-                continue
-            d = np.abs(a.yhat[ia] - b.yhat[ib])
-            qd = (
-                (a.qlike - b.qlike)
-                if (a.qlike is not None and b.qlike is not None)
-                else float("nan")
-            )
-            print(
-                f"CANARY {A0} {a.root} vs {b.root}: n={len(common)} "
-                f"max|yhat diff|={np.nanmax(d):.3e} mean|diff|={np.nanmean(d):.3e} "
-                f"QLIKE diff={qd:+.3e}"
-            )
+    # (Cross-cluster canary removed 2026-08-06: the campaign runs on one
+    # cluster, so there is no second environment to compare against.)
 
     # 6a. CSV.
     results.sort(

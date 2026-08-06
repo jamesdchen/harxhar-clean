@@ -8,8 +8,17 @@ cd /scratch1/jc_905/harxhar-clean
 # as its own queued job and every array depends on it.
 WID=$(sbatch --parsable jobs/slurm/unif_warmup.sbatch)
 echo "warmup job: $WID"
+# The ENTIRE campaign — single cluster (Hoffman2 abandoned 2026-08-06).
 ARMS_CARC=(
-  a0_ols_har            # float-parity canary (also runs on Hoffman2)
+  a0_ols_har
+  a_bucket_moments
+  a_bucket_liquidity
+  a_bucket_market_ew
+  a_bucket_market_vw
+  a_bucket_sentiment
+  a_bucket_implied_vol
+  a_bucket_vol_demand
+  a_bucket_all_features
   b1_ridge
   b2_lasso
   blk2_user blk3_user blk4_user
