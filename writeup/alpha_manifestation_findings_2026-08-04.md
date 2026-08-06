@@ -3360,6 +3360,20 @@ function, not the feature set, is identified. **The channel-dependent law, final
 is dense (ridge, selection loses 15 ways); the variance is sparse (ten names or L1,
 equivalent).**
 
+### 34.10 Span vs sparsity — pre-registered (user: "selection doesn't make sense if the span doesn't capture the signal")
+
+The challenge stands: §34.3's dense arm failed on a dictionary whose SPAN lacks the amplitude
+signal (the winners are target-derived functionals absent from the panel); §34.9's lasso won
+only after the span was silently expanded. So "sparse channel" conflates two hypotheses.
+Discriminating arm, never run: **ridge on the union dictionary** (10 named + panel daily
+snapshot — the same span as §34.9's lasso), α by causal CV per training window. If ridge-union
+TIES lasso-union and the names ⇒ the law is renamed: the variance channel is not sparse, its
+original dictionary was **span-deficient**, and estimator choice is second-order once the span
+is right — unifying both channels under one principle ("expand the span with named causal
+functionals; shrink generously; selection never adds"). If ridge-union LOSES ⇒ genuine sparsity
+survives as a channel property. Expectation: genuinely uncertain — recorded lean: ridge-union
+ties (the mean channel's whole history is span-expansion wins, not estimator wins).
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
