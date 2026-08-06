@@ -3892,6 +3892,25 @@ whole program; AM-02 chains unblock real VRP numbers).
   list cites items long landed and none of the width/plateau/complexity-died results.
   Addendum appended; no .tex edits (standing instruction).
 
+**Results — the queue is drained (all twelve arms). The last three:**
+
+* **§39b quad40: PASS +2.39 — but 2020+ is −0.01.** The lean (FAIL) was wrong on the gate:
+  the new directions DO carry curvature (719 twin 0.12788 → 0.12773). But the edge is
+  entirely pre-2020 — the same era profile as the union's panel span (§34.10b), now visible
+  in the quadratic channel too. HELD OUT of production by the era discipline (a dead-on-
+  modern-regime edge does not enter the stack); graded at the AM-15 sweep as attribution.
+* **§39a addendum, H = 4: width gate FAIL (+0.10).** F40 adds exactly nothing over F20 two
+  hours out. The horizon-locality result is now complete and strict: the new arrows' extra
+  content lives at h = 1 ONLY — gone within two hours, not merely within the session.
+* **§34.15 calendar smear: PASS +2.65 (2020+ +0.58) — and the era rows are the point:
+  2022–26 +1.40 (t +2.31).** The calendar fragment is ALIVE on the modern regime — the only
+  second-moment addition since the probe with that property, exactly as the stationary-
+  mechanism argument predicted (2020–21 dips to −0.67: the COVID sessions scrambled weekday
+  structure; the 0DTE era restored it). PRODUCTION CANDIDATE: named + DOW + short-day (15
+  columns), pending the AM-15 family sweep — the same path leverage and probe took through
+  §34.8. If it survives, the production smear grows to fifteen columns and the §34.13 law
+  gets its one refinement: the modern second moment is means-sufficient PLUS calendar.
+
 ## Reproducibility
 
 ```bash

@@ -155,9 +155,15 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 - **§38.2 CONFIRMED: q = 40 per-bar beats q = 20 per-bar +4.59 (2020+ +2.32) — the production
   model is now 719 columns** (0.12546 → 0.12529 at constant smear). Composed final number
   recomputation in flight.
-- In flight: §38.3 rank-mechanics battery (α-ladder / source-target split / trail
-  discriminator); §34.10b/c era decomposition + union expansion (quarticity, transmission
-  aggregates).
+- **QUEUE DRAINED (2026-08-06): all §38–40 arms landed.** §38.3: α stays 3e3; payload = the
+  new directions' own motion (+3.52); the q=106 tail genuinely empty (no 1008d rescue).
+  §39a complete incl. H=4: width is h=1-ONLY (gates fail at 4/8/13/16). §39b: new-direction
+  quadratics PASS +2.39 but 2020+ −0.01 — held out of production (era discipline), graded at
+  AM-15. **§34.15 calendar smear PASS +2.65 with 2022–26 +1.40 (t +2.31) — the one modern-
+  regime-alive second-moment addition; PRODUCTION CANDIDATE pending AM-15.**
+- NEXT GATE: the AM-15 closing Romano–Wolf sweep over the post-§36 family (width ladder +
+  per-bar entry, union span verdict, §39a/b, §34.10d, §34.14, §34.15 calendar). Nothing new
+  from §38 onward is *proven* until it runs.
 - Cluster (user's side): LSTM smear head (§34.7, `analysis/lstm_smear.py`); AM-13 battery rerun
   on the fixed panel + tree parity rematch on the 699 set.
 - Data-blocked: AM-01 panel refresh 2024-03 → present (the biggest item); AM-02 chain parquets;
