@@ -2867,9 +2867,22 @@ turnover→VIX→realized "chain" reading above is hereby corrected the same way
 reading was: it is the 3.5% gradient shadow (PC10 the largest net sink, turnover the source);
 the dominant structure is rotation with the VIX complex on the main axis. But unlike the daily
 cycle, **the intraday rotation has no clock**: phase drift −0.0013 rad/bar with drift-to-noise
-**0.004** and sign-disagreeing halves — a directed *diffusion*, not an orbit. The arrows are the
-study's most stable object; the position on the loop is unforecastable. Daily: slow coherent
+**0.004** and sign-disagreeing halves — a directed *diffusion*, not an orbit. Daily: slow coherent
 rotor (35d, drift/noise 0.19). Intraday: strongly directed, non-periodic circulation.
+
+**Correction (user challenge, measured):** "position unforecastable" was too strong — only the
+*universal clock rate* is dead. Measured: (1) the speed is **state-dependent** — Δφ regressed on
+{loop position, radius, time-of-day, lagged increment} gives cross-half R² **0.068** (in-half
+0.097/0.071): a relaxation-style oscillator, not a metronome; (2) the **position** is highly
+forecastable by persistence-plus-jitter: coherence 0.89 a full session ahead, 0.78 two days out,
+vs ~0.52 for pure diffusion at the measured per-bar noise — the increment autocorrelation is
+**−0.28**, phase jitters around a slow center; (3) the full 20-factor transmission map adds
++0.006 R² to next-position beyond own-persistence. Two caveats keep the discipline: the −0.28
+jitter at 30-min bars is the signature of unresolved sub-bar dynamics (1–5 min data is the ask,
+alongside the options data); and forecastable position ≠ alpha — position is near-linear in the
+factor scores the ridge already carries, so only the conditional-speed nonlinearity and the
++0.006 transmission term are new content, and the H = 8 feature arm stays pre-registered with
+expectation FAIL.
 
 ## Reproducibility
 
