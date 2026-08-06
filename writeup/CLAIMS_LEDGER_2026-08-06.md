@@ -9,10 +9,12 @@ report).
 
 ## The deliverable
 
-One blockwise ridge, 679 columns, one stage (§22): backbone (27 @ α=1) | exog (516 @ 3e3) |
-xsec (36 @ 3e3) | frozen products (100 @ 3e4); 250-day window (§25: longer LOSES), refit per
-bar. QLIKE 0.12526 vs HAR 0.13275 (−5.6%), R² 0.612. Edge GROWS by era: 65 → 79 → 82 ×1e-4
-(§24).
+**FINAL (2026-08-06, §34.11):** 699 columns (§22's 679 + the 20-column transmission block,
+confirmed per-bar +8.54) + the conditional smear (means + leverage + probe, §34.8 FWER-graded):
+**QLIKE 0.12331** (679-const baseline 0.12579 on the same span; smear increment on the final
+model DM +3.95). ≈ −7% vs HAR, from −5.6% at session start. First moment dense-and-fast;
+second moment sparse-and-named. Original §22 record: 679 @ per-bar, QLIKE 0.12526 (§22 span),
+R² 0.612; 250-day window (§25: longer LOSES); edge GROWS by era: 65 → 79 → 82 ×1e-4 (§24).
 
 ## Tier 1 — proven (Romano–Wolf survivors, §24)
 

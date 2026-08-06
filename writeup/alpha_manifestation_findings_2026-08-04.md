@@ -3374,6 +3374,21 @@ functionals; shrink generously; selection never adds"). If ridge-union LOSES ⇒
 survives as a channel property. Expectation: genuinely uncertain — recorded lean: ridge-union
 ties (the mean channel's whole history is span-expansion wins, not estimator wins).
 
+### 34.11 THE COMPOSED FINAL NUMBER
+
+On one consistent evaluation span (all scored rows, same engine, smear rebuilt causally on the
+final model's own residuals):
+
+| model | QLIKE | 2020+ |
+|---|---|---|
+| 679 per-bar, constant smear (session start) | 0.12579 | 0.13870 |
+| 699 per-bar (+ transmission), constant smear | 0.12546 | 0.13823 |
+| **699 per-bar + conditional smear — THE FINAL MODEL** | **0.12331** | **0.13647** |
+
+The smear increment holds on the final model's own residuals (DM +3.95). Session total: −2.0%
+relative QLIKE on the deliverable, ≈ −7% vs HAR (vs −5.6% at session start), every component
+FWER-graded, with the first moment dense-and-fast and the second moment sparse-and-named.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
