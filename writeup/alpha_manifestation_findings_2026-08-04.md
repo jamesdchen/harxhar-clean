@@ -3203,6 +3203,31 @@ what A3 measured — labels predict next-day amplitude — but the monetizable c
 without them. Composition note: the conditional
 arm scores fewer bars (expanding-model warmup); the DM is computed on common rows.
 
+## 35. Is there more in the product lever? — pre-registered (user question)
+
+The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
+— but it never scaled shrinkage with capacity, and §29.3 just validated exactly that law. Two
+arms (`analysis/product_mine.py`, h = 1-bar target, blocked engine, twin recomputed
+same-engine, gates DM ≥ +2.0 vs the 679 twin):
+
+* **35a — α-scaled count ladder:** k = 200 @ α_prod 6e4 and k = 400 @ 1.2e5 (α ∝ k), same
+  frozen first-window |IC| selection. Expectation: **FAIL** — the decline looked like signal
+  exhaustion, not under-shrinkage; but it is the uniform-generous philosophy's own last
+  unturned stone in this direction.
+* **35b — cross-time products (the new object):** 100 bilinear terms G-basis_i(t−1 bar) ×
+  base_j(t), selected once by first-window |IC| from the lagged-pair space, floored-sd scaled,
+  @ 3e4. Motivation: transmission proved lag-1 linear cross-content real and unspanned (+2.58,
+  control-passed); products proved contemporaneous quadratic content real (Tier-1); the lagged
+  quadratic is their untouched intersection (the time-lagged second Volterra term).
+  Expectation: genuinely uncertain — the mechanism is live; the meta-law's record says lean
+  FAIL.
+* **35c — transmission at h = 1 (user catch: never tested).** The §30.2 arms ran only at H = 8,
+  but the arrows are ONE-BAR-lag arrows — the next-bar target sits exactly at their frequency.
+  Same 20 D-weighted columns, 1-bar target, blocked engine both arms. Expectation: **PASS** —
+  if the flow content is real anywhere, it is here; a fail would bound §30.2's pass as an
+  integration artifact. Caveat registered: production h = 1 is per-bar refit; a pass at
+  daily-refit owes a per-bar (SM-engine) confirmation before entering the stack.
+
 ## Reproducibility
 
 ```bash
