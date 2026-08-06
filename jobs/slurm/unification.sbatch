@@ -13,5 +13,8 @@ cd /scratch1/jc_905/harxhar-clean
 export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
 export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 PY=/home1/jc_905/.conda/envs/harxhar/bin/python
+# Idempotent resume: a chunk that already produced its npz is done.
+OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" "$SLURM_ARRAY_TASK_ID")
+[ -f "$OUT" ] && { echo "SKIP existing $OUT"; exit 0; }
 $PY experiments/run_unification.py --arm "$ARM" --chunk-index "$SLURM_ARRAY_TASK_ID" \
     --output-dir results/unification
