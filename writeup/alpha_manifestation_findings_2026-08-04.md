@@ -3407,6 +3407,17 @@ p95 both halves; (ii) smear conversion DM ≥ +2.0.
   map-rot statistic as a causal step series, daily feature-outlier rate — the alarms fed to the
   smear. Expectation: lean FAIL; a pass would connect the operational stack to the score.
 
+**Results: ZERO promotions — the smear is monetization-saturated at ten columns.**
+A (quarticity/HARQ): uplift PASSES strongly (+0.021/+0.035 — larger than leverage's!) but
+conversion FAILS (+1.08; 2020+ −0.85) — the A3 pattern again: quarticity genuinely predicts
+amplitude, and QLIKE does not pay for it beyond what the means already deliver. B (model
+disagreement): small real uplift (+0.001/+0.003, above null), conversion FAIL (+0.45).
+C (staleness): both gates FAIL — the alarms do not feed the smear. The closing pattern of the
+second-moment campaign: statistical amplitude signal continues to exist beyond the production
+ten (quarticity most notably), but conversion stopped at means+leverage+probe — the channel's
+QLIKE-relevant content saturates around ten named columns, and everything further is
+real-but-unmonetizable. Production smear final: **means + leverage + probe**.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
