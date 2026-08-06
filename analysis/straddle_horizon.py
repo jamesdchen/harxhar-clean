@@ -80,11 +80,11 @@ def walk_forward_embargo(X: np.ndarray, y: np.ndarray, train_win: int, embargo: 
     return out
 
 
-def _build_design() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _build_design(frozen_override=None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """The §22 one-stage 679-column design (scaled), the raw backbone, and the phase pair."""
     p = load_panel()
     sig = dict(np.load(_p(CACHE)))
-    frozen = sig["frozen"]
+    frozen = sig["frozen"] if frozen_override is None else frozen_override
     har_cols = np.concatenate([p.cols("har"), p.cols("calendar"), p.cols("regime")])
     lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
     bc, _ = base_columns(p)
@@ -344,9 +344,54 @@ def stage_flowarm() -> None:
     np.savez_compressed(_p("straddle_flowarm_h8.npz"), pred=pred)
 
 
+def stage_redraw() -> None:
+    """§32: re-draw the frozen product block on current data (the rot detector's demanded
+    action). Same selector as the original block (|IC| via _pair_ic), trailing 3y ending
+    2022-10-31; evaluated 2022-11+ walk-forward, old vs new block, fast engine both arms."""
+    from analysis.nl_sparsity import _pair_ic
+    from analysis.wf import walk_forward_embargo_blocked
+    _require_fixed_cache()
+    p = load_panel()
+    ts = pd.Series(pd.to_datetime(p.t))
+    e_full = np.load(_p("har_resid.npz"))["e"]  # rows TW:
+    bc, _ = base_columns(p)
+    XB = np.ascontiguousarray(p.X[:, bc], dtype=np.float64)
+    ii, jj = _upper(XB.shape[1])
+    sel = ((ts >= "2019-11-01") & (ts < "2022-11-01")).to_numpy()[TW:]
+    Zw = XB[TW:][sel]
+    Zw = (Zw - Zw.mean(0)) / (Zw.std(0) + 1e-12)
+    ic = _pair_ic(Zw, e_full[sel])[ii, jj]
+    new_frozen = np.argsort(-np.abs(ic))[:100]
+    old_frozen = dict(np.load(_p(CACHE)))["frozen"]
+    overlap = len(set(new_frozen.tolist()) & set(old_frozen.tolist()))
+    print(f"re-draw: selected 100 products on 2019-11..2022-10; overlap with 2005-vintage "
+          f"block: {overlap}/100", flush=True)
+
+    day_codes = pd.factorize(ts.dt.normalize())[0]
+    era = (ts >= "2022-11-01").to_numpy()
+    yh8, Bh8 = _y_horizon(p, 8)
+    for tname, yt, Bt, lags in (("1-bar", p.y, p.baseline, 480), ("H=8", yh8, Bh8, 496)):
+        qs = {}
+        for bname, fz in (("old block", None), ("NEW block", new_frozen)):
+            X679, _, _ = _build_design(fz)
+            pred = walk_forward_embargo_blocked(X679, yt, day_codes, 250, 1, 3000.0)
+            m = np.isfinite(pred) & np.isfinite(yt)
+            q = np.full(len(yt), np.nan)
+            q[m] = _qlike_series(pred[m], yt[m], Bt[m])
+            qs[bname] = q
+            print(f"  {tname} {bname}: QLIKE all {np.nanmean(q):.5f}   "
+                  f"2022-11+ {np.nanmean(q[era]):.5f}", flush=True)
+        d = qs["old block"] - qs["NEW block"]
+        g = _hac_mean_t(d[era], lags)
+        print(f"  {tname}: NEW vs old QLIKE DM, 2022-11+ era: {g:+.2f}   "
+              f"(full span, reference only: {_hac_mean_t(d, lags):+.2f})")
+        print(f"  gate (>= +2.0): {'PASS' if g >= 2.0 else 'FAIL'}", flush=True)
+    np.savez_compressed(_p("redraw_block.npz"), new_frozen=new_frozen, ic=ic[new_frozen])
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight", "flowarm"],
+    ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight", "flowarm", "redraw"],
                     required=True)
     ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 13, 16])
     a = ap.parse_args()
@@ -358,5 +403,7 @@ if __name__ == "__main__":
         stage_eod()
     elif a.stage == "overnight":
         stage_overnight()
-    else:
+    elif a.stage == "flowarm":
         stage_flowarm()
+    else:
+        stage_redraw()

@@ -2937,6 +2937,27 @@ fit on one half, R² scored on the other):
 Corrected shorthand for all future sections: **amplitude forecastable, gain not; the edge loads
 on amplitude innovations.**
 
+## 32. The re-draw — the rot detector's demanded action, executed. Pre-registered
+
+The §26 policy ("identity re-estimated on structural break, never on a calendar") triggered at
+first light: the map's correlation to its reference sits at the historical minimum (−0.08,
+2024-03), and the products' era contribution faded 11 → 7 as the support rotted. The action the
+policy demands has been recommended twice and never executed. Now it runs, pre-registered:
+
+* **Selection (walk-forward clean):** the SAME machinery as the original frozen block —
+  `_pair_ic` |IC| ranking of all upper-triangle products of the base columns against the HAR
+  residual — on a trailing three-year window ending **2022-10-31**, top 100. No new criterion,
+  no tuning: the identical selector, pointed at current data.
+* **Evaluation era:** **2022-11-01 onward** (the 0DTE era; the selection never sees it). Honesty
+  note: this span has been seen by prior evaluations of *other* questions — mild reuse, recorded;
+  the selection→evaluation split itself is clean.
+* **Arms:** the 679 design with old vs new frozen block, both on the day-blocked fast engine
+  (same engine both sides), daily refit, at two targets: the 1-bar production target and the
+  H = 8 product target.
+* **Gate:** QLIKE DM (new vs old) ≥ +2.0 on the 2022-11+ era at either target. Expectation:
+  positive sign (the fade was support-rot if the detector means anything), gate genuinely
+  uncertain — recovery ceiling is roughly the faded ~4 ×1e-4 era units.
+
 ## Reproducibility
 
 ```bash
