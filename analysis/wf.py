@@ -165,7 +165,8 @@ def walk_forward_embargo_dualcadence(
     alpha: float,
     periods_per_day: int = 48,
     rebuild_every: int = 1008,
-) -> tuple[np.ndarray, np.ndarray]:
+    fresh_mask: np.ndarray | None = None,
+):
     """Per-bar AND daily-refit predictions in ONE pass — the §29 cadence question without
     paying per-bar solves. Maintains P = (G + reg)^-1 by Sherman-Morrison rank-1 updates as the
     bar-quantized window [t-embargo-W, t-embargo) slides; per-bar beta = P @ c every bar, the
@@ -183,6 +184,12 @@ def walk_forward_embargo_dualcadence(
     P = np.linalg.inv(G)
     perbar = np.full(n - train_win, np.nan)
     daily = np.full(n - train_win, np.nan)
+    hyb_fresh = hyb_rest = None
+    fm = None
+    if fresh_mask is not None:
+        fm = np.r_[np.asarray(fresh_mask, bool), False]  # intercept rides the daily group
+        hyb_fresh = np.full(n - train_win, np.nan)  # fresh block per-bar, rest daily
+        hyb_rest = np.full(n - train_win, np.nan)   # rest per-bar, fresh block daily
     beta_day = P @ c
     for step, t in enumerate(range(train_win + embargo, n)):
         j = t - embargo
@@ -203,4 +210,10 @@ def walk_forward_embargo_dualcadence(
             beta_day = beta
         perbar[t - train_win] = Xa[t] @ beta
         daily[t - train_win] = Xa[t] @ beta_day
+        if fm is not None:
+            xb = Xa[t]
+            hyb_fresh[t - train_win] = xb[fm] @ beta[fm] + xb[~fm] @ beta_day[~fm]
+            hyb_rest[t - train_win] = xb[~fm] @ beta[~fm] + xb[fm] @ beta_day[fm]
+    if fm is not None:
+        return perbar, daily, hyb_fresh, hyb_rest
     return perbar, daily

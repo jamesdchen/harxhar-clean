@@ -2853,6 +2853,15 @@ Gate: QLIKE DM ≥ +2.0. Expectation: **PASS** — this is a twice-settled lever
 −0.005…−0.0067 on their basis; magnitude on ours uncertain (our calendar block may partially
 proxy it; macro-release timing is otherwise absent from the 543 columns).
 
+### 29.5 Decomposing the H = 8 cadence increment by channel — pre-registered (user instruction)
+
+§21.1's caveat, made testable: within one dual-cadence pass both coefficient vintages exist at
+every bar, so hybrid predictions price the product columns per-bar while the rest stays daily,
+and the complement — the product channel's freshness share in both Shapley orderings,
+engine-exact. Readout, no gate (attribution, not a claim). Expectation: the increment is
+**linear-channel-driven** (per §21.1 at h = 1); the product share small/zero — i.e., the honest
+cadence statement stays "linear per-bar, products at-least-daily."
+
 ## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
 
 §26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
