@@ -230,6 +230,12 @@ class _Panel:
     rv_raw: np.ndarray  # (n,) raw RV (unwinsorized truth)
     t: np.ndarray  # (n,) datetime64[ns]
     names: list[str]
+    # per-stem OBSERVED availability, causally shifted one bar (row r reflects
+    # source data at r-1, matching the shift(1) in the feature build): the
+    # notna-before-ffill indicator of the honest-indicator prep, straight from
+    # the loader. Feeds the full-support mask of the OLS arms.
+    avail: np.ndarray  # (n, n_stems) bool
+    stem_index: dict[str, int]
 
 
 _PANEL: _Panel | None = None
@@ -271,7 +277,27 @@ def _load_panel() -> _Panel:
             f"panel/loader row misalignment: panel n={n}, loader rows after burn-in "
             f"{len(rv_raw)} — the b2 prep and the raw loader disagree; refusing to emit"
         )
-    _PANEL = _Panel(X=X, y=y, baseline=baselines, rv_raw=rv_raw, t=t, names=list(names))
+
+    # Observed-availability bitmap per exog stem: notna BEFORE any fill (the
+    # honest-indicator source, executor.load_and_transform's obs-before-ffill),
+    # shifted one bar for causal parity with the feature build's shift(1).
+    from src.data.loading import ALL_FEATURES
+
+    stems = [c for c in ALL_FEATURES if c in raw.columns]
+    avail = np.zeros((n, len(stems)), dtype=bool)
+    for k, c in enumerate(stems):
+        av = raw[c].notna().shift(1, fill_value=False).to_numpy()
+        avail[:, k] = av[BURNIN_ROWS:][:n]
+    _PANEL = _Panel(
+        X=X,
+        y=y,
+        baseline=baselines,
+        rv_raw=rv_raw,
+        t=t,
+        names=list(names),
+        avail=avail,
+        stem_index={c: k for k, c in enumerate(stems)},
+    )
     return _PANEL
 
 
@@ -573,6 +599,45 @@ def _eliminate_exact_collinear(
     return np.ascontiguousarray(F[:, keep]), kept_names, dropped
 
 
+def _partial_support_mask(
+    p: _Panel, col_names: list[str], window: int, lo: int, hi: int
+) -> np.ndarray:
+    """(hi-lo, p_design) bool: True where a VALUE column lacks FULL observed
+    support in the bar's training window (go-live blowup fix, ruling 2026-08-06).
+
+    RULE (deterministic, the window is the unit, no tuned thresholds): a value
+    column participates in a window's design iff its stem's availability
+    indicator is 1 on EVERY bar of that window. Partial support -> masked for
+    that window; the column re-enters automatically once a full window of
+    observed history accumulates, and exits symmetrically after a feed dies
+    (post-death rows are unobserved under the honest-indicator build, so
+    support decays out of the window naturally). Availability-INDICATOR
+    columns are untouched here — they carry the transition information when
+    they vary; constant ones fall to the zero-dispersion mask.
+
+    O(rows x stems) once via cumulative counts; per-window flags by lookup.
+    """
+    m = hi - lo
+    out = np.zeros((m, len(col_names)), dtype=bool)
+    starts = np.arange(m) + (
+        lo - window
+    )  # global window starts, window = [s, s+window)
+    full_by_stem: dict[str, np.ndarray] = {}
+    for j, nm in enumerate(col_names):
+        kind, stem, _w = _classify(nm)
+        if kind != "value" or stem not in p.stem_index:
+            continue
+        full = full_by_stem.get(stem)
+        if full is None:
+            cnt = np.concatenate(
+                [[0], np.cumsum(p.avail[:, p.stem_index[stem]].astype(np.int64))]
+            )
+            full = (cnt[starts + window] - cnt[starts]) == window
+            full_by_stem[stem] = full
+        out[:, j] = ~full
+    return out
+
+
 def _walk_ols(
     F: np.ndarray,
     y: np.ndarray,
@@ -580,7 +645,8 @@ def _walk_ols(
     lo: int,
     hi: int,
     col_names: list[str],
-) -> tuple[np.ndarray, dict[str, dict[str, int]]]:
+    support_mask: np.ndarray | None = None,
+) -> tuple[np.ndarray, dict[str, dict[str, Any]]]:
     """Exact OLS (alpha=0) per-bar walk-forward with WINDOW-LEVEL identifiability
     masking (ruling 2026-08-06; the repo's own lam2=0 identifiability-mask
     precedent, specs/causal_tune_linear.py, applied to the OLS path).
@@ -588,7 +654,9 @@ def _walk_ols(
     Per training window, columns with ZERO dispersion in that window (an
     availability step that has not yet gone live, or has exited the window) are
     masked: coefficient 0, excluded from the solve, re-entering the moment the
-    feed varies inside the window. Threshold-free and exact — a column is
+    feed varies inside the window. ``support_mask`` layers the FULL-SUPPORT
+    rule for value columns on top (see :func:`_partial_support_mask` — the
+    go-live blowup fix). Threshold-free and exact — a column is
     masked iff its last value-change index precedes the window start, computed
     from the RAW slice, never from drift-prone rolled statistics. Exact OLS on
     the surviving columns (the unpenalized intercept absorbs in-window
@@ -639,10 +707,18 @@ def _walk_ols(
         forced[np.flatnonzero(free)[bad]] = True
         return int(bad.sum())
 
+    any_zero = np.zeros(p, dtype=bool)
+    any_support = np.zeros(p, dtype=bool)
     for i in range(hi - lo):
         t = window + i
-        # zero dispersion within window rows [i, t), plus the sticky repair mask
-        mask = (lastchg[t - 1] <= i) | forced
+        # zero dispersion within window rows [i, t), plus the full-support rule
+        # for value columns, plus the sticky repair mask
+        zero = lastchg[t - 1] <= i
+        mask = zero | forced
+        if support_mask is not None:
+            mask |= support_mask[i]
+            any_support |= support_mask[i]
+        any_zero |= zero
         free = ~mask
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
@@ -674,14 +750,21 @@ def _walk_ols(
         out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
 
-    masked: dict[str, dict[str, int]] = {}
+    masked: dict[str, dict[str, Any]] = {}
     for j in np.flatnonzero(mask_rows.any(axis=0)):
         bars = np.flatnonzero(mask_rows[:, j])
+        reasons = []
+        if any_zero[j]:
+            reasons.append("zero_dispersion")
+        if any_support[j]:
+            reasons.append("partial_support")
+        if forced[j]:
+            reasons.append("sticky_collinear")
         masked[col_names[j]] = {
             "bars": int(len(bars)),
             "first": int(lo + bars[0]),
             "last": int(lo + bars[-1]),
-            "sticky_collinear": bool(forced[j]),
+            "reasons": reasons,
         }
     return out, masked
 
@@ -963,6 +1046,19 @@ ARMS: dict[str, ArmSpec] = {
         blocks=[("wide", "wide")],
         alphas={"wide": FIXED_RIDGE_ALPHA},
     ),
+    # Fixed-ridge JIGGLE (user directive 2026-08-06): penalty-level sensitivity
+    # of the head-to-head, log-symmetric around b1_ridge's alpha=1.0. Same wide
+    # design, window, and persistence contract — only alpha moves.
+    **{
+        f"b1_ridge_a{tag}": ArmSpec(
+            describe=f"fixed-ridge jiggle: wide all_features basis, alpha={a:g} "
+            "(penalty-level sensitivity around b1_ridge alpha=1.0)",
+            kind="blocks",
+            blocks=[("wide", "wide")],
+            alphas={"wide": a},
+        )
+        for tag, a in (("0p1", 0.1), ("0p3", 0.3), ("3", 3.0), ("10", 10.0))
+    },
     "b2_lasso": ArmSpec(
         describe="FIXED-penalty lasso on the wide basis, alpha=1e-4 l1_ratio=1.0 "
         "(pinned 2026-08-06; warm Garrigues homotopy, per-bar refit; "
@@ -1201,13 +1297,16 @@ def compute(args: argparse.Namespace) -> None:
 
     dropped_cols: list[str] = []
     collinear_cols: list[str] = []
-    masked_cols: dict[str, dict[str, int]] = {}
+    masked_cols: dict[str, dict[str, Any]] = {}
     if spec.kind == "ols":
         F, kept_names, dropped_cols = _ols_design(p, spec)
         F, kept_names, collinear_cols = _eliminate_exact_collinear(
             F, kept_names, window, lo
         )
-        yhat, masked_cols = _walk_ols(F, p.y, window, lo, hi, kept_names)
+        support = _partial_support_mask(p, kept_names, window, lo, hi)
+        yhat, masked_cols = _walk_ols(
+            F, p.y, window, lo, hi, kept_names, support_mask=support
+        )
     elif spec.kind == "blocks":
         F, a_ref = _build_design(p, spec, window)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
