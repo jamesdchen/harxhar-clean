@@ -9,8 +9,10 @@ report).
 
 ## The deliverable
 
-**FINAL (2026-08-06, §34.11):** 699 columns (§22's 679 + the 20-column transmission block,
-confirmed per-bar +8.54) + the conditional smear (means + leverage + probe, §34.8 FWER-graded):
+**FINAL (2026-08-06, §34.11; §38.2 widens it):** 719 columns — §22's 679 + the transmission
+block at its MEASURED width q = 40 (§38 ladder; per-bar entry +4.59 vs the 699) — + the
+conditional smear (means + leverage + probe, §34.8 FWER-graded). Composed-719 number in
+flight; the graded §34.11 record below is the 699 stack:
 **QLIKE 0.12331** (679-const baseline 0.12579 on the same span; smear increment on the final
 model DM +3.95). ≈ −7% vs HAR, from −5.6% at session start. First moment dense-and-fast;
 second moment carried by ten named columns — though §34.10 renames the law: the variance
@@ -129,8 +131,12 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
   +2.29; q = 80 shoulder; q = 106 twin-gate FAIL) — "just 20" was a floor, not an optimum.
   §34.10 ridge-union LANDED: union beats the ten names +3.12 (2020+ +0.50) — variance channel
   span-deficient, not sparse; channel laws unified; production smear unchanged.
-- In flight: §38.2 per-bar entry test for q = 40 (gate ≥ +2.0 vs the 699 per-bar; stack
-  changes only on a pass).
+- **§38.2 CONFIRMED: q = 40 per-bar beats q = 20 per-bar +4.59 (2020+ +2.32) — the production
+  model is now 719 columns** (0.12546 → 0.12529 at constant smear). Composed final number
+  recomputation in flight.
+- In flight: §38.3 rank-mechanics battery (α-ladder / source-target split / trail
+  discriminator); §34.10b/c era decomposition + union expansion (quarticity, transmission
+  aggregates).
 - Cluster (user's side): LSTM smear head (§34.7, `analysis/lstm_smear.py`); AM-13 battery rerun
   on the fixed panel + tree parity rematch on the 699 set.
 - Data-blocked: AM-01 panel refresh 2024-03 → present (the biggest item); AM-02 chain parquets;

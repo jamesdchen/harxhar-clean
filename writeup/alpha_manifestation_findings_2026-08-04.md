@@ -3666,6 +3666,14 @@ this study have held within ~±20% of blocked verdicts), with the 2020+ number (
 daily) the honest risk. Stack changes only on a pass; a fail leaves 20 in production and
 q = 40 as attribution.
 
+**Result: CONFIRMED — production moves to 40.** Per-bar (SM dual engine, same-engine
+head-to-head on `final_699_perbar.npz`): q = 20 QLIKE 0.12546 → q = 40 QLIKE **0.12529**,
+DM **+4.59 (2020+ +2.32)** — stronger per-bar than at daily refit (+2.29), the study's usual
+pattern (dense-weak content gains from freshness), and the 2020+ risk resolved above water.
+The production model is now **719 columns**: 679 + the 40-column transmission block
+(`pool40_perbar.npz`). Composed final number recomputation launched (§38.2b): 719 per-bar +
+conditional smear rebuilt on its own residuals, against the §34.11 composed 0.12331.
+
 ### 38.3 Mechanics of the ~40-dim span — pre-registered battery (`analysis/trans_rank.py`)
 
 Three probes, one same-run battery (blocked engine, h = 1): **(a)** α-ladder on the F40 block
