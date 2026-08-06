@@ -114,6 +114,7 @@ def main() -> None:
     print(f"  named {np.nanmean(q_named):.5f}   named+calendar {np.nanmean(q_cal):.5f}",
           flush=True)
     d = q_named - q_cal
+    np.savez_compressed(_p("cal_smear_lossdiff.npz"), d=d)
     md = np.isfinite(d)
     g = _hac_mean_t(d[md], 480)
     print(f"  §34.15 calendar vs named: DM {g:+.2f} (2020+ {_hac_mean_t(d[md & late], 480):+.2f})"

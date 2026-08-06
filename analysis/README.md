@@ -2,8 +2,8 @@
 
 104 modules across several campaigns. This index covers the **alpha-manifestation study**
 (2026-08-04 →, `writeup/alpha_manifestation_findings_2026-08-04.md`, graded claims in
-`writeup/CLAIMS_LEDGER_2026-08-06.md`); older campaigns are indexed by their own handoffs
-(`writeup/SESSION_HANDOFF_*.md`).
+`writeup/CLAIMS_LEDGER_2026-08-06.md`, master index `writeup/INDEX_2026-08-06.md`); older
+campaigns are indexed by their own handoffs (`writeup/archive/SESSION_HANDOFF_*.md`).
 
 ## The study's chain of custody (section order)
 

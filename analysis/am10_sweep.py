@@ -183,7 +183,9 @@ def build() -> tuple[np.ndarray, list[str]]:
     return D, names
 
 
-def sweep(D: np.ndarray, names: list[str]) -> None:
+def sweep(D: np.ndarray, names: list[str],
+          csv_path: str = "results/alpha_manifestation/am10_sweep.csv",
+          title: str = "AM-10 Romano-Wolf step-down over the §27-§34 family") -> None:
     n, J = D.shape
     fin = np.isfinite(D)
     mu = np.array([D[fin[:, j], j].mean() for j in range(J)])
@@ -220,11 +222,10 @@ def sweep(D: np.ndarray, names: list[str]) -> None:
         remaining = remaining[1:]
     tab = pd.DataFrame({"claim": names, "mean_dQLIKE_1e4": mu * 1e4, "dm_t": t,
                         "rw_adj_p": adj}).sort_values("dm_t", ascending=False)
-    print("\nAM-10 Romano-Wolf step-down over the §27-§34 family "
-          f"({N_BOOT} draws, {BLOCK}-bar blocks, joint time axis):")
+    print(f"\n{title} ({N_BOOT} draws, {BLOCK}-bar blocks, joint time axis):")
     print(tab.to_string(index=False, float_format=lambda v: f"{v:+.3f}"))
-    tab.to_csv("results/alpha_manifestation/am10_sweep.csv", index=False)
-    print("wrote results/alpha_manifestation/am10_sweep.csv")
+    tab.to_csv(csv_path, index=False)
+    print(f"wrote {csv_path}")
 
 
 if __name__ == "__main__":
