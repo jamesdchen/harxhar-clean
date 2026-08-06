@@ -29,6 +29,7 @@ from collections.abc import Callable
 import numpy as np
 import pandas as pd
 
+from src.diagnostics import check_and_report
 from src.evaluation.metrics import apply_duan_smearing, save_chunk_reduce
 from src.data.loading import apply_overnight_fills, load_raw_data
 from src.features.transforms.scaling import (
@@ -41,6 +42,7 @@ from src.backtest.segmentation import (
     slice_to_segment,
 )
 from src.features.extractors.calendar import add_calendar_features
+from src.features.extractors.expiry import add_expiry_features
 from src.features.extractors.har import generate_har_features, resolve_har_lags
 from src.features.transforms.target import (
     PERIODS_PER_DAY,
@@ -50,10 +52,19 @@ from src.features.transforms.target import (
 
 FitPredict = Callable[[np.ndarray, np.ndarray, int, dict], np.ndarray]
 
-# A feature with at least this fraction of *exact* zeros is treated as
-# zero-inflated (a point mass at 0 + a continuous part) and gets the hurdle
-# encoding: an occurrence indicator plus a magnitude scaled over its non-zero
-# (active) values. Continuous features (returns, vols) never reach this.
+# A feature with at least this fraction of its mass at a single *exact* value is treated as
+# mode-inflated (a point mass + a continuous part) and gets the hurdle encoding: an occurrence
+# indicator plus a magnitude scaled over its off-mode (active) values. Continuous features
+# (returns, vols) never reach this.
+#
+# The test used to be on exact *zeros* specifically, which is the right test for the flow features
+# it was written for (``voldemand``, ~60% zeros) but misses the same shape at a different location:
+# ``numobs`` is capped at 30 observations per bar and *is* 30 on 78% of bars, so its raw IQR is
+# exactly 0 and its adjusted IQR is 0.029 — which turns an ordinary holiday half-bar into
+# ``adj_numobs_ma_25`` at |z| 79, with 986 rows past |z| 20. Keying on the modal value instead of on
+# zero subsumes the old behaviour exactly (``voldemand``'s mode *is* 0) and, across the 43 raw exog,
+# catches exactly one new column: ``numobs`` at 0.78. The next-highest modal share is
+# ``stocktwits_sentiment`` at 0.12, comfortably below the threshold.
 ZERO_INFLATED_FRAC: float = 0.2
 
 # How many bars a forward fill may carry an exogenous value before the row is
@@ -64,8 +75,26 @@ ZERO_INFLATED_FRAC: float = 0.2
 FFILL_LIMIT: int | None = 26
 
 
+def modal_value(vals: np.ndarray) -> float:
+    """The single most common exact value of ``vals`` (NaNs dropped), or NaN if empty."""
+    finite = vals[~np.isnan(vals)]
+    if not finite.size:
+        return float("nan")
+    uniq, counts = np.unique(finite, return_counts=True)
+    return float(uniq[int(np.argmax(counts))])
+
+
+def mode_inflated(vals: np.ndarray) -> tuple[bool, float]:
+    """``(is_mode_inflated, mode)`` under :data:`ZERO_INFLATED_FRAC`."""
+    finite = vals[~np.isnan(vals)]
+    if not finite.size:
+        return False, float("nan")
+    mode = modal_value(vals)
+    return bool(float(np.mean(finite == mode)) >= ZERO_INFLATED_FRAC), mode
+
+
 def _expanding_real_iqr(
-    x: np.ndarray, mask: np.ndarray, grid_step: int = 480
+    x: np.ndarray, mask: np.ndarray, grid_step: int = 480, warmup_floor: float = 1.0
 ) -> np.ndarray:
     """Causal expanding IQR of ``x`` over its *available* (``mask``) values.
 
@@ -74,11 +103,20 @@ def _expanding_real_iqr(
     (unavailable) rows is the crux: the median-fill injects a flat constant
     that otherwise dominates — and collapses — the window IQR. Causal: row
     ``t`` only ever sees real values strictly before ``t``.
+
+    ``warmup_floor`` is what the reference is worth *before* there is enough real history to
+    estimate it (fewer than 8 real values on the grid). It used to be 0, i.e. "impose no floor" —
+    and 0 is the worst possible answer, because those are exactly the rows where the trailing window
+    is all imputed constant and the local IQR is therefore ~0 too. ``adj_stocktwits_sentiment_ma_*``
+    reaches |z| 70 on 2010-06-02, one day into its coverage, with ``ref_iqr`` recorded as exactly
+    0.0. An unmeasurable scale must not become an unbounded divisor: 1.0 leaves an adjusted feature
+    (a log or a ratio, O(1) by construction) at its natural scale until its own dispersion is
+    estimable, and the availability indicator already tells the model the feature is not live.
     """
     n = len(x)
-    ref = np.zeros(n, dtype=np.float64)
+    ref = np.full(n, float(warmup_floor), dtype=np.float64)
     real_idx = np.flatnonzero(mask)
-    last = 0.0
+    last = float(warmup_floor)
     for t in range(0, n, grid_step):
         past = real_idx[real_idx < t]
         if past.size >= 8:
@@ -91,7 +129,12 @@ def _expanding_real_iqr(
 
 
 def _build_scale_guards(
-    X: np.ndarray, df: pd.DataFrame, feature_names: list[str], zero_inflated_active: bool = True
+    X: np.ndarray,
+    df: pd.DataFrame,
+    feature_names: list[str],
+    zero_inflated_active: bool = True,
+    erode_ma_window: bool = True,
+    warmup_floor: float = 1.0,
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """Scale guards for the impute-and-indicate feature pathology.
 
@@ -103,9 +146,11 @@ def _build_scale_guards(
       rolling means) → *fixed*: passed through raw; scale is known ([0, 1]).
     * ``adj_<col>_ma_*`` whose ``<col>_avail`` column exists (the exog was
       imputed) → IQR floored at the causal expanding IQR over the *real*
-      (available) values; for a *zero-inflated* magnitude the scale is taken
-      over active (non-zero) values too, so neither a regime-degenerate window
-      nor a zero point-mass can collapse the scale and blow up the forecast.
+      (available) values, with the availability mask **eroded by the MA window**
+      so a half-imputed long average does not set the scale; for a
+      *mode-inflated* magnitude the scale is taken over off-mode (active)
+      values too, so neither a regime-degenerate window nor a point mass can
+      collapse the scale and blow up the forecast.
     * everything else (HAR, calendar) → untouched.
     """
     n, n_features = X.shape
@@ -117,21 +162,40 @@ def _build_scale_guards(
             fixed[j] = True
             touched = True
             continue
-        m = re.match(r"adj_(.+)_ma_\d+$", name)
+        m = re.match(r"adj_(.+)_ma_(\d+)$", name)
         if m is None:
             continue
         avail_col = f"{m.group(1)}_avail"
         if avail_col in df.columns:
             mask = df[avail_col].to_numpy().astype(bool)[:n]
+            # Erode the availability mask by the MA window. ``adj_<col>_ma_3125`` is a ~65-day
+            # average, so for 3125 bars after the raw column first appears the MA is still mostly
+            # the imputed median — a seam, not data. Taking the reference IQR over rows the raw
+            # column merely *exists* on therefore measures the scale of a half-imputed average.
+            # This is the whole of the ``adj_vix3m_ma_3125`` (|z| 50, 2009-11-06, three months into
+            # vix3m coverage) and ``adj_vvix_ma_3125`` (|z| 30, 2012-06-19, three months into vvix
+            # coverage) failures: only the long windows fail, and only near the seam.
+            w = int(m.group(2))
+            if erode_ma_window and w > 1:
+                full = (
+                    pd.Series(mask.astype(np.float64))
+                    .rolling(w, min_periods=w)
+                    .min()
+                    .to_numpy()
+                )
+                eroded = np.nan_to_num(full) > 0.5
+                if eroded.sum() >= 8:  # keep the raw mask if erosion leaves nothing to fit
+                    mask = eroded
             xj = X[:, j]
             # Zero-inflated magnitude (e.g. voldemand): also estimate the scale
             # over ACTIVE (non-zero) values — the zero point-mass carries no
             # dispersion and collapses the IQR otherwise. The indicator half of
             # the hurdle encoding is the ``<col>_active`` columns added in
             # ``load_and_transform``.
-            if zero_inflated_active and float(np.mean(xj == 0.0)) >= ZERO_INFLATED_FRAC:
-                mask = mask & (xj != 0.0)
-            ref_iqr[:, j] = _expanding_real_iqr(xj, mask)
+            inflated, mode = mode_inflated(xj)
+            if zero_inflated_active and inflated:
+                mask = mask & (xj != mode)
+            ref_iqr[:, j] = _expanding_real_iqr(xj, mask, warmup_floor=warmup_floor)
             touched = True
     if not touched:
         return None, None
@@ -282,6 +346,7 @@ def _backtest_and_save(
     # Rolling robust scaling is a bounded-window transform; doing it here,
     # whole-series, keeps its look-back out of the per-chunk backtest (see
     # rolling_robust_scale). The slice below then cuts the pre-scaled array.
+    ref_iqr = None
     if prescale:
         ref_iqr, fixed_cols = _build_scale_guards(
             X, df, feature_names, zero_inflated_active=(diurnal_mode != "rank")
@@ -289,6 +354,22 @@ def _backtest_and_save(
         X = rolling_robust_scale(
             X, train_win_periods, ref_iqr=ref_iqr, fixed_cols=fixed_cols
         )
+
+    # Feature-health invariants, on every build. Ten defects of the same class (a transform whose
+    # divisor degenerates, a fill constant that manufactures a predictor out of missingness) have
+    # been found in this pipeline by *symptom* — a blown QLIKE, days later — and every one of them
+    # is a seconds-long check on the finished matrix. Advisory by default; FEATURE_HEALTH_STRICT=1
+    # makes a FAIL fatal. See src/diagnostics.py and analysis/diagnostics_backtest.py.
+    check_and_report(
+        X,
+        feature_names,
+        df=df,
+        raw_cols=[c for c in df.columns if f"adj_{c}" in df.columns],
+        ref_iqr=ref_iqr,
+        train_win=train_win_periods,
+        output_path=f"{os.path.splitext(output_file)[0]}_feature_health.csv",
+        label=os.path.basename(os.path.splitext(output_file)[0]),
+    )
 
     load_start = max(0, start - halo)
     actual_end = len(X) if end < 0 else end
@@ -341,7 +422,10 @@ def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None):
         df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
     )
     if add_calendar:
+        # add_expiry_features after add_calendar_features: it reads ``is_close`` to build the
+        # quad-witch closing-auction gate, which is where the index-rebalance flow actually prints.
         feature_names = har_names + add_calendar_features(df)
+        feature_names += add_expiry_features(df)
         # HAR x open/close session-edge interactions (the distilled intraday vol-persistence
         # sign-flip: high recent RV -> LOWER future RV at the 09:30 open and 16:00 close/AH).
         # Materialized upstream so every model + the cached matrix inherit them; causal (the
@@ -502,19 +586,23 @@ def load_and_transform(
             df[avail] = obs.astype("float64")
             adj_exog_cols.append(avail)
 
-    # Hurdle (two-part) encoding for zero-inflated exog. A sparse signed flow
+    # Hurdle (two-part) encoding for mode-inflated exog. A sparse signed flow
     # like voldemand is a mixture — a point mass at 0 ("no demand") plus a
     # continuous demand distribution — so a single robust scale is degenerate
-    # (the zero mass collapses the IQR). Add an occurrence indicator so the
+    # (the point mass collapses the IQR). Add an occurrence indicator so the
     # model separates the extensive margin (is there demand at all) from the
     # intensive margin (how big); the magnitude's scale is taken over the
-    # active (non-zero) values in ``_build_scale_guards``.
+    # off-mode (active) values in ``_build_scale_guards``. The point mass need
+    # not sit at zero — see ``ZERO_INFLATED_FRAC`` for ``numobs``.
     for col in exog_cols:
         vals = df[col].to_numpy(dtype=np.float64)
-        finite = vals[~np.isnan(vals)]
-        if finite.size and float(np.mean(finite == 0.0)) >= ZERO_INFLATED_FRAC:
+        inflated, mode = mode_inflated(vals)
+        if inflated:
             active = f"{col}_active"
-            df[active] = (np.nan_to_num(vals) != 0.0).astype("float64")
+            # "off the point mass": for a zero-inflated flow that is "there was demand", for
+            # ``numobs`` it is "this bar was not a full 30-observation bar" — i.e. a holiday or
+            # half-session, which is exactly the information the 80-sigma tail was encoding.
+            df[active] = (np.nan_to_num(vals, nan=mode) != mode).astype("float64")
             adj_exog_cols.append(active)
 
     return df, adj_exog_cols

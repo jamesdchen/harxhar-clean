@@ -1,0 +1,63 @@
+==============================================================================
+A. DENSITY / WEAKNESS  (pooled, the thing to be explained)
+==============================================================================
+  246 exog value features vs HAR residual: mean|IC| 0.0166  median 0.0114  max 0.1120
+  participation ratio of the pooled |IC| vector: 116.8 of 246
+  |IC| > 0.02: 72 features   > 0.05: 13
+  signal moments      OOS corr +0.1549  R2 +0.02357  NW-t  +24.63
+  signal liquidity    OOS corr +0.0847  R2 +0.00583  NW-t  +18.60
+  signal implied_vol  OOS corr +0.0771  R2 +0.00584  NW-t  +12.77
+  signal market_vw    OOS corr +0.0829  R2 +0.00618  NW-t  +15.50
+  signal market_ew    OOS corr +0.0748  R2 +0.00484  NW-t  +15.21
+  signal vol_demand   OOS corr +0.0390  R2 -0.00026  NW-t   +4.40
+  signal sentiment    OOS corr +0.0581  R2 +0.00330  NW-t  +13.56
+  signal all          OOS corr +0.1897  R2 +0.03471  NW-t  +25.79
+
+==============================================================================
+B1. TIME-SENSITIVITY  (is the alpha episodic? monthly blocks)
+==============================================================================
+  207 monthly blocks, 2007-02-19 .. 2024-04-30
+  share of total alpha from the top decile of months : 0.313
+  share from the top quartile                        : 0.518
+  months contributing NEGATIVELY                     : 0 / 207
+  Gini of |monthly contribution|                     : 0.388
+  monthly alpha-IC: mean +0.1751  sd 0.0667  AR(1) +0.375
+  circular-shift null (24 reps): neg-months 105, Gini 0.501, IC sd 0.0371, AR(1) +0.014
+  => excess monthly IC dispersion vs null: 1.80x
+
+==============================================================================
+B2. ROTATION  (do different exog carry it at different times?)
+==============================================================================
+  participation ratio of |IC| WITHIN a month : 147.1 of 246
+                                  pooled     : 116.8
+                                  null       : 158.1
+  month-to-month Spearman of the TIME-VARYING IC part : +0.2051  (null +0.0203)
+  bucket-level: month-to-month Spearman of time-varying part +0.2207
+  best-bucket-of-the-month persistence: 0.660 (chance 0.143)
+  best-bucket shares: moments 0.79, liquidity 0.06, implied_vol 0.03, market_vw 0.03, market_ew 0.02, vol_demand 0.02, sentiment 0.03
+
+==============================================================================
+B3. CONDITIONAL ACTIVATION MAPS  (split-half stability is the real test)
+==============================================================================
+  time-of-day (48 slots)   K=48  |IC| spread 0.0541  split-half stability +0.679  (null +0.043)
+  day-of-week (5)          K= 7  |IC| spread 0.0343  split-half stability +0.744  (null +0.063)
+  vol regime (5, causal)   K= 5  |IC| spread 0.0364  split-half stability +0.641  (null +0.021)
+
+==============================================================================
+C. GRANULARITY LADDER  (does finer conditioning WIN out-of-sample?)
+==============================================================================
+  combiner: e ~ 7 bucket signals, rolling 60-day, fit separately within K bins
+  K=1 pooled: corr +0.1725  R2 +0.02938  n 216054
+  time-of-day  K= 2  corr +0.1684 (pooled +0.1725)  R2 +0.02830 (pooled +0.02938)  dR2 -0.00108  blend dR2 +0.00027  c=1.00  c/sqrt(K)=0.71
+  time-of-day  K= 4  corr +0.1590 (pooled +0.1725)  R2 +0.02529 (pooled +0.02938)  dR2 -0.00408  blend dR2 -0.00005  c=1.02  c/sqrt(K)=0.51
+  time-of-day  K= 6  corr +0.1517 (pooled +0.1725)  R2 +0.02299 (pooled +0.02937)  dR2 -0.00638  blend dR2 -0.00022  c=1.02  c/sqrt(K)=0.42
+  time-of-day  K= 8  corr +0.1430 (pooled +0.1725)  R2 +0.02043 (pooled +0.02937)  dR2 -0.00894  blend dR2 -0.00052  c=1.02  c/sqrt(K)=0.36
+  time-of-day  K=12  corr +0.1309 (pooled +0.1725)  R2 +0.01700 (pooled +0.02938)  dR2 -0.01237  blend dR2 -0.00090  c=1.03  c/sqrt(K)=0.30
+  time-of-day  K=16  corr +0.1209 (pooled +0.1725)  R2 +0.01411 (pooled +0.02937)  dR2 -0.01527  blend dR2 -0.00120  c=1.04  c/sqrt(K)=0.26
+  time-of-day  K=24  corr +0.1076 (pooled +0.1725)  R2 +0.00972 (pooled +0.02937)  dR2 -0.01965  blend dR2 -0.00156  c=1.05  c/sqrt(K)=0.21
+  time-of-day  K=48  corr +0.0845 (pooled +0.1725)  R2 -0.00147 (pooled +0.02937)  dR2 -0.03084  blend dR2 -0.00331  c=1.05  c/sqrt(K)=0.15
+  day-of-week  K= 5  corr +0.1566 (pooled +0.1725)  R2 +0.02448 (pooled +0.02938)  dR2 -0.00490  blend dR2 -0.00058  c=0.97  c/sqrt(K)=0.44
+  vol regime   K= 2  corr +0.1752 (pooled +0.1725)  R2 +0.03058 (pooled +0.02936)  dR2 +0.00122  blend dR2 +0.00205  c=0.99  c/sqrt(K)=0.70
+  vol regime   K= 3  corr +0.1737 (pooled +0.1725)  R2 +0.03011 (pooled +0.02939)  dR2 +0.00072  blend dR2 +0.00240  c=0.97  c/sqrt(K)=0.56
+  vol regime   K= 5  corr +0.1690 (pooled +0.1727)  R2 +0.02850 (pooled +0.02946)  dR2 -0.00095  blend dR2 +0.00238  c=0.95  c/sqrt(K)=0.43
+  vol regime   K=10  corr +0.1547 (pooled +0.1727)  R2 +0.02363 (pooled +0.02946)  dR2 -0.00582  blend dR2 +0.00130  c=0.95  c/sqrt(K)=0.30

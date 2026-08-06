@@ -1,0 +1,2 @@
+target,n_blocks,noise_floor,lin_mean,lin_null,pair_mean,pair_null,control_rank,control_pass,stab_lin,stab_lin_null,stab_pair,stab_pair_null,gate_passed
+levels,166,0.07761505257063328,0.06983017457553238,0.0613604855662881,0.0671034111332357,0.06448389158006378,36,False,-0.0947624103030205,0.1766446963386995,0.013090865786571943,-0.0019839012881697903,False

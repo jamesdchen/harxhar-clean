@@ -1,0 +1,16 @@
+pair,months_selected,of_months
+adj_sumret_ma_1 x adj_sumret_ma_1,146,218
+adj_sumret_ma_1 x adj_sumvolume_ma_1,144,218
+har_ma_1 x adj_sumret_ma_1,134,218
+adj_sumret_ma_1 x adj_sumabsret_ma_1,132,218
+adj_sumret_ma_1 x adj_sumret4_ma_1,121,218
+adj_sumret_ma_1 x adj_sumbipow_ma_1,119,218
+adj_sumret3_ma_1 x adj_sumvolume_ma_1,111,218
+har_ma_5 x adj_sumret_ma_25,105,218
+adj_sumret_ma_25 x adj_sumabsret_ma_1,105,218
+har_ma_1 x adj_sumret_ma_25,105,218
+har_ma_5 x adj_sumret_ma_1,105,218
+adj_sumret_ma_25 x adj_sumbipow_ma_1,103,218
+adj_sumret_ma_1 x adj_sumret3_ma_1,95,218
+adj_sumret_ma_25 x adj_sumret4_ma_25,94,218
+har_ma_25 x adj_sumret_ma_1,94,218

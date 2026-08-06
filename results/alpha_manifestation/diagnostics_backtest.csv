@@ -1,0 +1,8 @@
+incident,description,worst_status,checks_fired,expected_flag,caught,max_abs_z
+I1,voldemand status_quo,FAIL,"tail, era_asym, modal",True,True,2010.9185071782567
+I2,voldemand asinh_only,warn,"era_asym, modal",False,False,15.773138193749475
+I3,apply_overnight_fills 1.0 on a moment column,warn,modal,True,True,4.221880348516589
+I4,impute adj_vix3m with 0 in log space (guards ON),ok,-,False,True,15.095910244379887
+I5,imputed column scaled with guards OFF,FAIL,tail,True,True,39426.93911428136
+I6,production panel: remaining open tails,FAIL,"tail, era_asym, modal",True,True,82.10588073730469
+I7,forecast scale dwarfs target sd,FAIL,pred_scale,True,True,29.373758850959586

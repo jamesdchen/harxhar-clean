@@ -22,7 +22,7 @@ clips each series to rolling 5th and 95th percentile bounds, modifying 10\% of
 observations by construction, and on a heavy-tailed variance target the clipped
 mass is disproportionately the volatility spikes a forecast exists to
 anticipate. We have now run the ablation
-(Table~\ref{tab:kernel_experiments}). On a rebuilt panel with a single 60/40
+(\pending{tab:kernel\_experiments --- ablation table not in this draft}). On a rebuilt panel with a single 60/40
 split, relaxing the clip to 1/99 improves raw-scale QLIKE from $0.2648$ to
 $0.2449$, and removing it entirely improves it further to $0.2411$. The kernel
 diagnostics barely move.
@@ -51,7 +51,7 @@ $1.320$ for an unconditional mean and $0.241$ for the best full model in the
 same setup. On that scale the divisor closes roughly 71\% of the distance
 between an unconditional forecast and a fitted one. Replacing it with 48 slot
 dummies inside the full model costs $0.03$ to $0.06$ QLIKE
-(Table~\ref{tab:kernel_experiments}), so it is not merely a normalisation
+(\pending{tab:kernel\_experiments}), so it is not merely a normalisation
 convenience: it is doing forecasting work that the reported model differences
 are then measured on top of.
 
@@ -145,7 +145,7 @@ session, close to half of all exogenous cross-kernel cells negative, and an
 integrated kernel of $-0.038$ whose sign flips across sessions.
 
 Nested probes on the rebuilt cache isolate the cause as the exogenous
-conditioning set (Table~\ref{tab:nested_probes}): the marginal kernel is
+conditioning set (\pending{tab:nested\_probes}): the marginal kernel is
 $+0.913$ with no negative mass, adding the 41 exogenous ladders takes it to
 $-0.139$, and the full archived set to $-0.363$. The sign structure is a
 property of conditioning on volatility proxies, not of the target. We report
