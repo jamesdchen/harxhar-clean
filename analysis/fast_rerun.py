@@ -135,5 +135,35 @@ def main() -> None:
           f"   gate >= +2.0: {'PASS — falsify' if g >= 2.0 else 'FAIL'}", flush=True)
 
 
+def rawlag_control() -> None:
+    """§30.3: raw-lag control for the §30.2 transmission pass — 20 columns of plain G(t-1)."""
+    p = load_panel()
+    ts = pd.Series(pd.to_datetime(p.t))
+    day_codes = pd.factorize(ts.dt.normalize())[0]
+    late = (ts >= HOLDOUT).to_numpy()
+    X679, _, _ = _build_design()
+    n_all = len(ts)
+    yh8, Bh8 = _y_horizon(p, 8)
+    G20, _, _ = _frame_and_scores()
+    F20 = np.zeros((n_all, G20.shape[1]))
+    F20[2 * TW + 1 :] = G20[:-1]
+    F20 = _roll_scale(F20)
+    F20[~np.isfinite(F20)] = 0.0
+    f_twin = walk_forward_embargo_blocked(X679, yh8, day_codes, 250, 1, 3000.0)
+    f_raw = walk_forward_embargo_blocked(np.hstack([X679, F20]), yh8, day_codes, 250, 1, 3000.0)
+    q_twin, q_raw = _q(f_twin, yh8, Bh8), _q(f_raw, yh8, Bh8)
+    d = q_twin - q_raw
+    act = (np.abs(F20).sum(1) != 0.0) & np.isfinite(d)
+    g = _hac_mean_t(d[act], 496)
+    print(f"§30.3 raw-lag control at H=8: twin {np.nanmean(q_twin):.5f} -> "
+          f"+rawlag {np.nanmean(q_raw):.5f}   DM {g:+.2f} "
+          f"(2020+ {_hac_mean_t(d[act & late], 496):+.2f})   "
+          f"{'raw lags PASS too -> transmission framing is decoration' if g >= 2.0 else 'raw lags FAIL -> the flow content is real'}",
+          flush=True)
+
+
 if __name__ == "__main__":
-    main()
+    if os.environ.get("RAWLAG"):
+        rawlag_control()
+    else:
+        main()

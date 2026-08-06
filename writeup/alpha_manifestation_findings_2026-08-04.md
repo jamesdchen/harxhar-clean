@@ -2828,6 +2828,18 @@ training, no mixed-horizon objects) read out two ways:
 Expectation (recorded): pooled ≈ +1.5…2.0; the 10:00 slice weaker than pooled but positive —
 i.e., both factors contribute, training pollution the larger.
 
+**§29 verdicts (fast engines, one sequential chain).** (1) **Cadence at H = 8: PASS, +3.48**
+(2020+ +2.43; daily 0.07242 → per-bar 0.06930, SM dual pass, identical windows) — against the
+recorded "under half of h = 1" prior, per-bar freshness at the product horizon is nearly the
+full h = 1 effect; channel attribution (§29.5) queued. (2) **§29.2: the user's hypothesis is
+vindicated.** The dedicated fixed-H = 13 walk scores **+3.24 on the 10:00 open-decision slice**
+(where the mixed-horizon EOD walk scored −0.18): the open-decision failure was the EOD design's
+mixed-horizon training, not the morning information set and not horizon length. Pooled-all-bars
+at H = 13 is only +0.40 — the composite's 13-bar edge CONCENTRATES at the open, inverting the
+pre-registered expectation and strengthening the session-conditional case (AM-09). Consequence
+for the product: the open-of-day 0DTE decision DOES carry model edge when the horizon is trained
+dedicated — §29.1's "backbone + implied at the open" conclusion is hereby amended.
+
 ### 29.3 Per-horizon shrinkage from the msweep α-law — pre-registered (AM-07 executed)
 
 The msweep law says α scales with horizon and capacity; §29's ladder used the h = 1 penalties
@@ -2839,6 +2851,10 @@ block's relative scale unchanged (√0.1). One number per horizon, no grid, no b
 H ∈ {8, 16}, blocked engine, twins recomputed same-engine. Gate: QLIKE DM ≥ +2.0 vs the
 unretuned twin at either horizon. Expectation: positive at H = 16 (where the law bites
 hardest), uncertain at H = 8.
+
+**Result: H = 16 PASS (+2.26; 0.07034 → 0.06717), H = 8 FAIL at +1.95** (0.07332 → 0.07182 —
+right direction, just under the gate). The imported law is real on this panel and bites where
+predicted; the H = 16 composite floor rises materially. 2020+ subsets weaker (+1.04/+0.55).
 
 ### 29.4 The announcement organ, ported — pre-registered (AM-06 executed; user landed the file)
 
@@ -2852,6 +2868,12 @@ backbone penalty, not exog. Arm: 679 + 28 at H = 8, blocked engine, twin recompu
 Gate: QLIKE DM ≥ +2.0. Expectation: **PASS** — this is a twice-settled lever worth
 −0.005…−0.0067 on their basis; magnitude on ours uncertain (our calendar block may partially
 proxy it; macro-release timing is otherwise absent from the 543 columns).
+
+**Result: FAIL, +0.99** (0.07332 → 0.07298; 2020+ +1.13) — against the recorded expectation.
+Direction positive, magnitude a third of their basis's. The plausible mechanism: their incumbent
+was bare (HAR + calendar); ours already carries 516 exog columns plus expiry/calendar blocks
+that partially proxy release timing, so the organ's marginal content shrinks on a rich base.
+Kept as a Tier-3 carried block (28 cheap causal columns, positive sign); no claim.
 
 ### 29.5 Decomposing the H = 8 cadence increment by channel — pre-registered (user instruction)
 
@@ -2947,6 +2969,8 @@ embargo 8, vs the cached 679 twin (`straddle_ladder_h8.npz`). Gate: QLIKE DM ≥
 active span, HAC lags 2H + 480. **Expectation: FAIL** — the meta-law, twelfth attempt; the
 conditional-speed R² (0.068) is about the phase's own dynamics, not the vol target's.
 
+**Result: FAIL, −0.72** (0.07332 → 0.07334) — as pre-registered. Thirteenth casualty.
+
 ### 30.2 The lagged-transmission arm, run on user instruction — pre-registered
 
 §30.1's exclusion of flow-aligned linear columns ("ridge-spanned") was too strong: the design
@@ -2960,6 +2984,28 @@ the design's rolling-250d-sd convention. Arm: 699 columns at H = 8, exog penalty
 day-quantized embargo, **fast engine both arms** (twin recomputed on the same engine). Gate:
 QLIKE DM ≥ +2.0 on the active span. **Expectation: FAIL** — thirteenth challenger; +0.006 of
 position R² is far from a vol edge.
+
+**Result: PASS, +2.58** (0.07332 → 0.07321) — **against the recorded expectation**, the second
+gate-pass of a structure-derived feature in the study (after §28.2). Not yet a claim: 2020+ is
++1.58, and the pass owes a falsification battery (§30.3) before any celebration — most
+importantly the RAW-LAG control: if 20 columns of plain G(t−1) (persistence content, no flow)
+pass the same gate, the antisymmetric "transmission" framing is decoration on generic unspanned
+lag-1 information.
+
+### 30.3 The transmission pass owes its battery — pre-registered before running
+
+The §30.2 pass (+2.58) is adjudicated by one control and two checks, registered now:
+* **Raw-lag control (decisive):** 20 columns of plain G(t−1 bar) — the same lagged information
+  with NO flow structure (persistence + everything) — same scaling, same protocol, same gate.
+  If raw lags pass too, the antisymmetric framing is decoration and the finding is
+  "specific lag-1 bar information is unspanned by the MA ladder" (still useful, differently
+  named). If raw lags fail while D-weighted lags passed, the flow content is real.
+* **Era robustness:** the 2020+ subset (+1.58) already trails the gate; report per-era.
+* **Family multiplicity:** the pass enters the AM-10 sweep with the §28.2 sliver and the
+  §29.3 H = 16 alpha-law pass.
+Expectation: the raw-lag control **also passes** (the diagnosis-flavored outcome: unspanned
+lag-1 information, not flow), given the intraday flow is 96.5% curl yet C6-style flow
+*predictions* have always failed.
 
 ## 31. The amplitude audit — user challenge ("are you sure?"), measured, claim corrected
 
@@ -3005,6 +3051,19 @@ policy demands has been recommended twice and never executed. Now it runs, pre-r
 * **Gate:** QLIKE DM (new vs old) ≥ +2.0 on the 2022-11+ era at either target. Expectation:
   positive sign (the fade was support-rot if the detector means anything), gate genuinely
   uncertain — recovery ceiling is roughly the faded ~4 ×1e-4 era units.
+
+**Result: FAIL — and BACKWARDS.** The re-drawn block is significantly WORSE on the 0DTE era:
+1-bar DM **−2.79** (0.12785 → 0.12890), H = 8 DM **−2.41** (0.08097 → 0.08269), with only 9/100
+products shared. The 2005-vintage selection (made on 250 days of 2005–06 data!) beats a
+selection made on three years of 2019–22 data, ON the era where the map decorrelated. The
+**fourteenth meta-law casualty is the re-draw itself**: the rot detector correctly detects that
+the coupling support rotated, but the remedy "re-select on recent data" chases rotated noise —
+consistent with the C5 gauge-degeneracy picture (you cannot pin the basis of the diffuse product
+subspace from any 3-year window; the old block is as good a spanning set as any, and switching
+costs you whatever its coefficients had learned). **Policy amended:** the detector remains an
+alarm (de-risk, investigate, expect regime work), but its prescribed action is now "do NOT
+re-select; carry the frozen block and let the per-bar refit re-weight it." Frozen beats
+refreshed, again.
 
 ## 33. The professor's program, translated — spectral-kNN regimes and LSTM, pre-registered
 
