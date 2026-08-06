@@ -21,7 +21,19 @@ bar. QLIKE 0.12526 vs HAR 0.13275 (−5.6%), R² 0.612. Edge GROWS by era: 65 �
 | Refit cadence (monthly → per-bar), linear-channel-driven | rw p ≈ 0.000; §21.1 attribution | §18.1, §21.1, §24 |
 | Products at at-least-daily refit | rw p = 0.001 (+3.56 DM) | §18.1, §24 |
 
-## Tier 2 — single-gate passes, pending the AM-10 family sweep
+## Tier 1½ — survived the AM-10 family sweep (§36; FWER-controlled within the new family)
+
+| Claim | Number | rw-adj p | § |
+|---|---|---|---|
+| Open-decision edge under dedicated-horizon training | +49.3e-4, t +3.32 | 0.005 | §29.2, §36 |
+| Per-horizon α-law at H = 16 | +31.7e-4, t +2.27 | 0.034 | §29.3, §36 |
+| Per-bar cadence at H = 8 | +31.2e-4, t +3.49 | 0.005 | §29 verdicts, §36 |
+| Conditional smear (means-only) | +11.7e-4, t +3.86 | 0.005 | §34.2, §36 |
+| Transmission columns at H = 8 | +1.2e-4, t +2.58 | 0.026 | §30.2–30.3, §36 |
+
+**Died in the sweep:** the §28.2 phase pair (rw-adj p 0.105) — dropped from the stack.
+
+## Tier 2 — single-gate passes, post-sweep (provisional until a follow-up accounting)
 
 | Claim | Number | Caveat | § |
 |---|---|---|---|

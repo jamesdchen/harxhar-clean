@@ -3242,6 +3242,30 @@ same-engine, gates DM ≥ +2.0 vs the 679 twin):
   integration artifact. Caveat registered: production h = 1 is per-bar refit; a pass at
   daily-refit owes a per-bar (SM-engine) confirmation before entering the stack.
 
+## 36. AM-10: the family sweep — five of six survive; the phase sliver dies
+
+Romano–Wolf step-down over the §27–§34 claim family (2,000 draws, 1,008-bar joint blocks,
+gappy-support studentization; `analysis/am10_sweep.py`, `results/.../am10_sweep.csv`):
+
+| claim | ΔQLIKE ×1e-4 | t | rw-adj p |
+|---|---|---|---|
+| open_slice_h13 | +49.3 | +3.32 | **0.005** |
+| alpha_law_h16 | +31.7 | +2.27 | **0.034** |
+| cadence_h8 | +31.2 | +3.49 | **0.005** |
+| smear_means | +11.7 | +3.86 | **0.005** |
+| transmission_h8 | +1.2 | +2.58 | **0.026** |
+| phase_h1 | +0.16 | +1.29 | 0.105 |
+
+**Promoted to family-FWER-controlled**: dedicated-horizon training for the open decision, the
+per-horizon α-law, per-bar cadence at the product horizon, the conditional smear, and — by the
+skin of its teeth but legitimately — the transmission block. **The §28.2 phase sliver dies**
+(0.105), exactly as the smear-variant and xsec died in §24: the near-gate single-arm pass that
+the family correction exists to discipline. The phase pair drops from the stack (its columns
+were free but its claim is gone); §28.2's record stands as written — pass at its own gate,
+death at the family bar. A3's amplitude-label uplift was excluded (different loss; its
+monetization already died in the §34.2 ablation). §35/§34.3 arms land after this sweep and are
+graded provisional until a follow-up accounting.
+
 ## Reproducibility
 
 ```bash
