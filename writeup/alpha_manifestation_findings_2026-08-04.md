@@ -2270,6 +2270,38 @@ The final spec, one line: **y ~ ridge₍₂₅₀d, refit-per-bar₎ [backbone@1
 products@3e4]** — collect everything, refresh constantly, grade the shrinkage by block. Nothing
 else survived.
 
+## 23. The manifold question: the state's linear frame is stable, its nonlinear shape is not — and the signal lives on the free coordinates
+
+Prompted by the reading "there is a trajectory on a manifold here". The testable version: if the
+state lives on a *curved* manifold rather than a linear 18-dim subspace, mid-spectrum PCs should be
+partially quadratic functions of the top PCs (curvature coordinates). Measured — fit each PC 7–20
+on the 21 quadratics of PCs 1–6 in the first half, evaluate in the second:
+
+* curvature R² out-of-half: mostly **negative**, and violently so exactly where it matters —
+  PC9 −3.15, PC17 −2.72, PC16 −1.86, PC11 −1.60 (max positive: +0.13). At n ≈ 109k per half and 21
+  ridge-regularized coefficients, −3 is not overfitting noise (that would be −0.0002); it requires
+  a STRONG in-half quadratic relation that then strongly reverses. The nonlinear relations among
+  factors exist and are **unstable across halves**: the manifold's linear frame holds for 18 years,
+  its curvature does not hold for nine.
+* **corr(curvature stability, signal energy) = −0.53 (rank −0.59)**: the signal-carrying PCs
+  (9, 11, 16) are precisely the ones whose relation to the dominant factors is least stable.
+
+Reconciled with the §"map" result (the IC map on these same coordinates is split-half stable at
++0.62): the mid PCs' coupling **to vol** is stable while their nonlinear relation **to the top
+factors** is not. So they are not curvature shadows of the big factors — they are **dynamically
+autonomous coordinates**, and autonomy is exactly where the information is: a coordinate enslaved
+to the top factors is redundant with the linear model; a free coordinate carries news. This also
+finally *derives* the eigenvalue misalignment (variance ranks by common-factor loading; information
+ranks by independence) and the γ = 1 failure.
+
+So the trajectory-on-a-manifold picture, in its measured form: a fixed linear frame (stable),
+carrying a state whose nonlinear self-geometry deforms (unstable), read by a response form whose
+support is static and whose amplitudes move fast. The model was already the right instrument for
+that object without knowing it: the HAR lags are a Takens delay-embedding of the vol coordinate,
+per-bar refit is local linearization along the trajectory, and the dial is the loudness of the
+path. The manifold's *shape* is part of the weather, not part of the map — which is the study's
+one-line history of every static geometric object it buried.
+
 ## Reproducibility
 
 ```bash
