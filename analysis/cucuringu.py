@@ -653,13 +653,70 @@ def stage_phasewalk() -> None:
     print(f"\n  gate: {'PASS' if g >= 2.0 else 'FAIL'}")
 
 
+def stage_intraflow() -> None:
+    """§30: the bar-lag lead-lag flow with the diurnal clock subtracted."""
+    rng = np.random.default_rng(3)
+    G, e, ts = _frame_and_scores()
+    slot = (ts.dt.hour * 2 + ts.dt.minute // 30).to_numpy()
+    Gd = G.copy()
+    for s in np.unique(slot):
+        m = slot == s
+        Gd[m] = (G[m] - G[m].mean(0)) / (G[m].std(0) + 1e-12)
+    n = len(Gd)
+    iu = np.triu_indices(QPOOL, k=1)
+
+    def flow(g: np.ndarray, k: int) -> np.ndarray:
+        a, b = g[:-k], g[k:]
+        a = (a - a.mean(0)) / (a.std(0) + 1e-12)
+        b = (b - b.mean(0)) / (b.std(0) + 1e-12)
+        C = (a.T @ b) / len(a)
+        return (C - C.T) / 2.0
+
+    h = n // 2
+    daily_plane = None
+    for k in (1, 2, 4, 8):
+        A = flow(Gd, k)
+        A1, A2 = flow(Gd[:h], k), flow(Gd[h:], k)
+        raw_rep = float(np.corrcoef(A1[iu], A2[iu])[0, 1])
+        Ac = np.mean([flow(Gd, k + 48 * int(m)) for m in rng.integers(20, 61, 12)], axis=0)
+        clock_share = float(np.corrcoef(A[iu], Ac[iu])[0, 1])
+        D1, D2 = A1 - Ac, A2 - Ac
+        dyn_rep = float(np.corrcoef(D1[iu], D2[iu])[0, 1])
+        print(f"k={k} bars: raw split-half {raw_rep:+.3f}   corr with clock {clock_share:+.3f}"
+              f"   DYNAMIC split-half {dyn_rep:+.3f} {'PASS' if dyn_rep >= 0.5 else 'fail'}")
+        if k == 1:
+            D = A - Ac
+            lam = np.linalg.eigvalsh(1j * D)
+            print(f"  dynamic flow top-plane energy: "
+                  f"{np.max(np.abs(lam))**2 / (lam**2).sum() * 2:.3f}")
+            u, w = _rot_plane(D)
+            v_intra = u + 1j * w
+            day_last = np.flatnonzero(ts.dt.date.ne(ts.dt.date.shift(-1)).to_numpy())
+            ud, wd = _rot_plane(_antisym(G[day_last]))
+            v_day = ud + 1j * wd
+            print(f"  overlap with DAILY circulation plane: "
+                  f"{abs(np.vdot(v_day, v_intra)) / (np.linalg.norm(v_day) * np.linalg.norm(v_intra)):.3f}")
+            hr = ts.dt.hour.to_numpy()
+            rth = (hr >= 10) & (hr <= 16)
+            Ar, Ao = flow(Gd[rth], 1), flow(Gd[~rth], 1)
+            print(f"  RTH vs overnight lag-1 flow similarity: "
+                  f"{np.corrcoef((Ar - Ac)[iu], (Ao - Ac)[iu])[0, 1]:+.3f}")
+            top = np.argsort(-np.abs(D[iu]))[:5]
+            print("  strongest dynamic edges (i leads j):")
+            for t in top:
+                i, j = iu[0][t], iu[1][t]
+                print(f"    PC{i:2d} -> PC{j:2d}: {D[i, j]:+.4f}  h1 {D1[i, j]:+.4f}  "
+                      f"h2 {D2[i, j]:+.4f}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["hermitian", "sync", "sponge", "cpd", "rmt", "flow",
-                                        "phase", "phasex", "phasecheck", "phasewalk"],
+                                        "phase", "phasex", "phasecheck", "phasewalk",
+                                        "intraflow"],
                     required=True)
     a = ap.parse_args()
     {"hermitian": stage_hermitian, "sync": stage_sync, "sponge": stage_sponge,
      "cpd": stage_cpd, "rmt": stage_rmt, "flow": stage_flow,
      "phase": stage_phase, "phasex": stage_phasex, "phasecheck": stage_phasecheck,
-     "phasewalk": stage_phasewalk}[a.stage]()
+     "phasewalk": stage_phasewalk, "intraflow": stage_intraflow}[a.stage]()

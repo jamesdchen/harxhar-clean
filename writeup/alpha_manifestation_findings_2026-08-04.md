@@ -2812,6 +2812,55 @@ intraday at short remaining-horizons — entry/rebalance timing, not the opening
   design (`analysis/vrp_eod.py`). Until data lands, QLIKE on the open slice is the in-scope
   proxy.
 
+## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
+
+§26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
+forecastable a month out, one footnote-sized alpha). But the product is now intraday (H ≤ 8
+bars), and the one Cucuringu object never constructed is the lead-lag network at the product's
+own timescale: **the bar-lag flow** among the 20 frozen-frame factors. New hazard at this
+frequency, pre-registered before running (`analysis/cucuringu.py --stage intraflow`): the
+diurnal clock creates *artificial* lead-lag (factor i systematically active at 10:00, factor j
+at 10:30 = a directed edge that is a timetable, not dynamics). Construction:
+
+* Per-slot deseasonalized bar scores (48 time-of-day slots, full-sample moments — same frozen
+  convention as the frame). Flow A_k = antisymmetric part of the lag-k cross-correlation,
+  k ∈ {1, 2, 4, 8} bars.
+* **Clock control:** A_clock = the same statistic at lag k + 48·m for random m ∈ [20, 60] days
+  (slot alignment identical, dynamics decayed — pure timetable). The dynamic flow is
+  A_dyn = A_k − A_clock; report corr(A_k, A_clock) so the clock share is on the record.
+* Gates (descriptive): split-half replication of A_dyn ≥ +0.5 at k = 1. Also report: top
+  eigenplane energy of A_dyn, its overlap with the DAILY flow's plane (same circulation seen
+  finer, or a different object?), and RTH-vs-overnight flow similarity (does the market's
+  intraday causal order change when the session closes?).
+* Expectations: raw A_1 replicates strongly but with a large clock share; the dynamic remainder
+  replicates weaker; the intraday plane is DISTINCT from the daily plane (the 35-day circulation
+  should not be visible at 30-minute lags; intraday dynamics are mean-reversion/microstructure).
+  If A_dyn replicates, ONE feature arm at H = 8 may be pre-registered later (expectation, per
+  the meta-law: FAIL) — deferred; the descriptive object comes first.
+
+**Results — the most replicable object in the study, and it survived its own kill-test.**
+Split-half at k = 1: raw **+0.923**, clock share **−0.003** (the diurnal timetable contributes
+*nothing* after per-slot deseasonalization — expectation wrong in the good direction), dynamic
+**+0.992**; decaying only to +0.917 at k = 8. Top-plane energy 0.837 (more planar than the daily
+flow's 0.611); overlap with the daily circulation plane **0.394** — a different object, as
+expected. RTH-vs-overnight similarity **+0.967**: the same causal order operates around the
+clock. That invariance triggered the mechanical suspicion — factor scores are built from MA
+columns, and MA(1) leads MA(25) by arithmetic — so a closed-form control computed the flow pure
+trailing-MA arithmetic would produce on white noise through the frozen loadings:
+**corr(measured, construction) = +0.237 — 6% of variance — and the construction-projected
+residual still replicates at +0.992.** (Control caveat: simple-trailing-MA assumption; transforms
+and EWMA-ish columns are approximated.) The structure is a **hub**: the five strongest edges all
+run through PC10 = the VIX complex (adj_vix at all windows + sumret4 tails). Direction-resolved:
+PC4 (turnover) and PC3 (tails) **lead PC10**, and PC10 **leads PC2/PC5** (realized- and slow-vol
+factors). The 30-minute causal chain of the market, replicated at +0.99: **order flow and tail
+activity reprice implied vol; implied vol leads the realized-vol complex.** This is the intraday
+analog of §26's daily story (there: turnover → carriers; here: turnover → VIX → realized), at
+the product's own timescale. Follow-on when compute frees: the pre-registered H = 8 feature arm
+(expectation: FAIL — the 679 design already carries these columns linearly; the flow says which
+*directions* matter, and the ridge is spanned), and the PC10-hub as a monitor: a break in the
+flow's hub structure is a microstructure-regime alarm one bar-lag deep, the fast sibling of the
+§26 rot detector.
+
 ## Reproducibility
 
 ```bash
