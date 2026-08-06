@@ -1,0 +1,12 @@
+#!/bin/bash
+#$ -N unif_warmup
+#$ -cwd
+#$ -l h_data=8G,h_rt=0:30:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Builds the panel cache once, on a compute node (login-node ulimit cannot
+# hold the panel). All unification arrays hold on this job via -hold_jid.
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY -c "from src.unification import panel_length; print('panel rows:', panel_length())"

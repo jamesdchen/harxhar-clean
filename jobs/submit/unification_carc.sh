@@ -4,11 +4,10 @@
 # Arm list = penalized + block ladders + diagnostics + a0 float-parity canary.
 set -e
 cd /scratch1/jc_905/harxhar-clean
-export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
-PY=/home1/jc_905/.conda/envs/harxhar/bin/python
-# Warm the panel cache ONCE before the arrays fire (100 tasks racing to
-# build it simultaneously is a thundering herd + cache-write race).
-$PY -c "from src.unification import panel_length; print('panel rows:', panel_length())"
+# Login-node thread ulimit kills the panel build, so the cache warm-up runs
+# as its own queued job and every array depends on it.
+WID=$(sbatch --parsable jobs/slurm/unif_warmup.sbatch)
+echo "warmup job: $WID"
 ARMS_CARC=(
   a0_ols_har            # float-parity canary (also runs on Hoffman2)
   b1_ridge
@@ -19,6 +18,7 @@ ARMS_CARC=(
   d3_transmission_alone_user d3_transmission_alone_doc
 )
 for arm in "${ARMS_CARC[@]}"; do
-  sbatch --export=ALL,ARM="$arm" --job-name="unif_$arm" jobs/slurm/unification.sbatch
+  sbatch --dependency=afterok:"$WID" --export=ALL,ARM="$arm" \
+    --job-name="unif_$arm" jobs/slurm/unification.sbatch
 done
 squeue -u "$USER" -h | wc -l

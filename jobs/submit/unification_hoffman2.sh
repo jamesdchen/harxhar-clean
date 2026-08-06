@@ -6,10 +6,9 @@
 # names from the executor's ARMS registry before submission.
 set -e
 cd /u/scratch/j/jamesdc1/harxhar-clean
-export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
-PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
-# Warm the panel cache ONCE before the arrays fire.
-$PY -c "from src.unification import panel_length; print('panel rows:', panel_length())"
+# Login-node ulimit cannot hold the panel build, so the cache warm-up runs
+# as its own queued job and every array holds on it via -hold_jid.
+qsub jobs/sge/unif_warmup.sge
 ARMS_H2=(
   a0_ols_har
   a_bucket_moments
@@ -24,6 +23,6 @@ ARMS_H2=(
   # (designs + 300-bar predictions bit-identical, max|diff|=0.0)
 )
 for arm in "${ARMS_H2[@]}"; do
-  qsub -N "unif_$arm" -v ARM="$arm" jobs/sge/unification.sge
+  qsub -hold_jid unif_warmup -N "unif_$arm" -v ARM="$arm" jobs/sge/unification.sge
 done
 qstat -u "$USER" | tail -n +3 | wc -l
