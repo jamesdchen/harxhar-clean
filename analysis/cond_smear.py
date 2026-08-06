@@ -69,34 +69,43 @@ def main() -> None:
     a_by_day = pd.Series(e2).groupby(day.values).mean()
     a_d = a_by_day.reindex(dgd.values).to_numpy()
     la = np.log(a_d + 1e-12)
-    X = np.column_stack([
+    Xm = np.column_stack([
         pd.Series(la).shift(1).to_numpy(),
         pd.Series(la).shift(1).rolling(5).mean().to_numpy(),
         pd.Series(la).shift(1).rolling(21).mean().to_numpy(),
-        np.eye(5)[np.roll(lab, 1)][:, :-1],
     ])
-    ahat = np.full(nd, np.nan)
-    for start in range(n_anchor + 63, nd, 63):
-        m = np.isfinite(X).all(1) & np.isfinite(la)
-        tr = np.flatnonzero(m & (np.arange(nd) < start))
-        if len(tr) < 200:
-            continue
-        b = np.linalg.lstsq(np.c_[np.ones(len(tr)), X[tr]], la[tr], rcond=None)[0]
-        seg = np.arange(start, min(start + 63, nd))
-        ok = np.isfinite(X[seg]).all(1)
-        ahat[seg[ok]] = np.exp(np.c_[np.ones(ok.sum()), X[seg][ok]] @ b)
+    X = np.column_stack([Xm, np.eye(5)[np.roll(lab, 1)][:, :-1]])
+
+    def expanding_ahat(Xf: np.ndarray) -> np.ndarray:
+        out = np.full(nd, np.nan)
+        for start in range(n_anchor + 63, nd, 63):
+            m = np.isfinite(Xf).all(1) & np.isfinite(la)
+            tr = np.flatnonzero(m & (np.arange(nd) < start))
+            if len(tr) < 200:
+                continue
+            b = np.linalg.lstsq(np.c_[np.ones(len(tr)), Xf[tr]], la[tr], rcond=None)[0]
+            seg = np.arange(start, min(start + 63, nd))
+            ok = np.isfinite(Xf[seg]).all(1)
+            out[seg[ok]] = np.exp(np.c_[np.ones(ok.sum()), Xf[seg][ok]] @ b)
+        return out
+
+    ahat = expanding_ahat(X)
+    ahat_means = expanding_ahat(Xm)  # §34.2 ablation: no regime labels
 
     # broadcast to bars: daily ahat x trailing slot-share (expanding per-slot mean of e2/day-mean)
     dmap = pd.Series(dgd.values).reset_index(drop=True)
     day_to_ahat = dict(zip(dmap.values, ahat))
     ahat_bar_day = day.map(day_to_ahat).to_numpy(dtype=float)
+    ahat_bar_means = day.map(dict(zip(dmap.values, ahat_means))).to_numpy(dtype=float)
     rel = pd.Series(e2) / pd.Series(e2).groupby(day_codes).transform("mean")
     slot_share = np.ones(n)
     for s in np.unique(slot):
         m = slot == s
         cs = pd.Series(np.where(m, rel, np.nan)).expanding(min_periods=100).mean().shift(48)
         slot_share[m] = cs.to_numpy()[m]
-    smear_cond = ahat_bar_day * np.where(np.isfinite(slot_share), slot_share, 1.0)
+    ss = np.where(np.isfinite(slot_share), slot_share, 1.0)
+    smear_cond = ahat_bar_day * ss
+    smear_means = ahat_bar_means * ss
 
     smear_trail = pd.Series(e2).rolling(250 * 48, min_periods=5000).mean().shift(1).to_numpy()
     m0 = np.isfinite(f) & np.isfinite(y) & (B > 0)
@@ -104,7 +113,7 @@ def main() -> None:
 
     qs = {}
     for name, sm in (("global", np.full(n, smear_glob)), ("trailing-250d", smear_trail),
-                     ("conditional", smear_cond)):
+                     ("cond-means-only", smear_means), ("conditional", smear_cond)):
         mm = m0 & np.isfinite(sm) & (sm > 0)
         pred_raw = (f**2 + sm) * B
         true_raw = y**2 * B
@@ -115,7 +124,8 @@ def main() -> None:
         qs[name] = q
         print(f"  smear={name:14s} QLIKE {np.nanmean(q):.5f} (2020+ {np.nanmean(q[late]):.5f})"
               f"  [{ok.sum()} bars]", flush=True)
-    for a, b_ in (("global", "trailing-250d"), ("trailing-250d", "conditional")):
+    for a, b_ in (("global", "trailing-250d"), ("trailing-250d", "cond-means-only"),
+                  ("cond-means-only", "conditional"), ("trailing-250d", "conditional")):
         d = qs[a] - qs[b_]
         md = np.isfinite(d)
         print(f"  {b_} vs {a}: DM {_hac_mean_t(d[md], 480):+.2f} "

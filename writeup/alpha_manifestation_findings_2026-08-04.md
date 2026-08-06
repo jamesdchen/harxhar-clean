@@ -3096,7 +3096,8 @@ is real but lives secularly (rot events), cyclically (the 35-day phase), and in 
 impossible +28.48 (QLIKE 0.073 → 0.028) — caught before celebration as a VIEW-side overlap
 leak: at horizon H the residual r(t−1) spans [t−1, t+H−2] and is unrealized at prediction time.
 The §29 lesson applies to retrieval views too; the path is now lagged so every entry's window
-closes pre-decision (leaked run void, rerun in flight). The VALID h = 1 verdicts stand and are
+closes pre-decision (leaked run void; the leak-fixed rerun scores **+0.98 — FAIL**: the honest
+residual-path correction at H = 8 is a non-event). The VALID h = 1 verdicts stand and are
 decisive: on the per-bar 679 deliverable every correction HURTS — residual path −4.09, state
 frame −5.98, and **his-spec eigenmap worst at −10.77** (third independent confirmation that the
 eigenmap step is the harmful component); the H = 8 state (−1.35) and eigenmap (−4.06) fails are
@@ -3191,7 +3192,15 @@ right and the "sizing only" framing of A3 was wrong: the second moment enters QL
 through the Duan reconstruction, and conditioning it pays more than any feature arm in the
 study since cadence. Two disciplines attached before promotion: (a) **ablation owed** — how
 much of +3.58 is the conditional trailing means (GARCH-flavored) vs the regime labels
-specifically; (b) enters AM-10 with the rest of the family. Composition note: the conditional
+specifically; (b) enters AM-10 with the rest of the family.
+
+**Ablation result: it is ALL the trailing means.** Means-only conditional smear: **+3.61** vs
+trailing-constant; adding the regime labels on top: **−0.75** — nothing. The finding is renamed
+accordingly: *a GARCH-flavored conditional second moment in the Duan reconstruction improves
+QLIKE materially* (0.12587 → 0.12347); the regime labels' A3 statistical uplift does not
+convert to QLIKE beyond plain amplitude persistence. The professor's gated win stays exactly
+what A3 measured — labels predict next-day amplitude — but the monetizable channel is achieved
+without them. Composition note: the conditional
 arm scores fewer bars (expanding-model warmup); the DM is computed on common rows.
 
 ## Reproducibility
