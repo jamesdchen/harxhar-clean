@@ -3389,6 +3389,24 @@ The smear increment holds on the final model's own residuals (DM +3.95). Session
 relative QLIKE on the deliverable, ≈ −7% vs HAR (vs −5.6% at session start), every component
 FWER-graded, with the first moment dense-and-fast and the second moment sparse-and-named.
 
+### 34.12 The dictionary-expansion battery — pre-registered (user: "do it all")
+
+Three candidate blocks from the §"systematic taxonomy", each two-gated vs the PRODUCTION
+baseline (means+leverage+probe): (i) cross-half uplift on next-day log-amplitude > shift-null
+p95 both halves; (ii) smear conversion DM ≥ +2.0.
+
+* **A — quarticity/HARQ (4 cols):** log daily quarticity (sumret4), log daily bipower, the
+  RV−bipower jump proxy, and the HARQ interaction √IQ·l1. Prior SHARPENED by §34.9: the raw
+  materials were in the lasso union and didn't beat the names — only the constructed
+  interaction is new span. Expectation: FAIL.
+* **B — model disagreement (3 cols):** daily |per-bar − daily-refit| forecast spread (cadence
+  disagreement), |product-channel increment|, |699 − 679| (transmission disagreement) — the
+  ensemble-variance principle on our own model family; genuinely new span, free from caches.
+  Expectation: uncertain, best odds of the three.
+* **C — staleness/misspecification (3 cols):** state distance from the trailing centroid, the
+  map-rot statistic as a causal step series, daily feature-outlier rate — the alarms fed to the
+  smear. Expectation: lean FAIL; a pass would connect the operational stack to the score.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
