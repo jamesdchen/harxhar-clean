@@ -143,14 +143,6 @@ def stage_a23() -> None:
                       f"{'PASS' if ok else 'FAIL'}")
 
 
-if __name__ == "__main__":
-    import argparse
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["a1", "a23", "a4"], required=True)
-    a = ap.parse_args()
-    {"a1": stage_a1, "a23": stage_a23, "a4": stage_a4}[a.stage]()
-
-
 def stage_a4() -> None:
     """§34.1: intraday regimes — bar-level deseasonalized state clusters vs near-term
     turbulence, baseline already carrying the clock (48 slot dummies) + trailing amplitude."""
@@ -218,3 +210,11 @@ def stage_a4() -> None:
         print(f"  {tname:18s}: uplift {ups[0]:+.5f}/{ups[1]:+.5f} "
               f"(null p95 {nulls[0]:+.5f}/{nulls[1]:+.5f})  {'PASS' if okg else 'FAIL'}",
               flush=True)
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--stage", choices=["a1", "a23", "a4"], required=True)
+    a = ap.parse_args()
+    {"a1": stage_a1, "a23": stage_a23, "a4": stage_a4}[a.stage]()
