@@ -3698,6 +3698,24 @@ only after its own per-bar entry test). Expectation recorded: a SHALLOW TOP — 
 sharp interior peak at 50–60 would instead say the rank is tighter than the doubling ladder
 could see.
 
+**Result: the shallow top, as registered — STAY 40.**
+
+| width | QLIKE | vs twin | vs q = 40 head-to-head |
+|---|---|---|---|
+| q = 30 | 0.12792 | +9.08 | −0.97 |
+| q = 40 | 0.12788 | +7.27 | — |
+| q = 50 | 0.12790 | +7.31 | −0.29 |
+| q = 60 | 0.12791 | +6.35 | −0.39 |
+| q = 70 | 0.12791 | +5.25 | −0.31 |
+
+The 30–70 interior is FLAT: total QLIKE spread 0.4 × 1e-4, every head-to-head within ±1.0 of
+q = 40. Combined with §38.1 (20: 0.12801; 80: 0.12791; 106: 0.12811), the width curve is a
+plateau over ~30–80 with cliffs on both sides — the transmission span is a ROBUST REGION, not
+a tuned point, exactly the shape the gauge-degeneracy story predicts (the arrows live in a
+sub-span whose exact truncation doesn't matter as long as you cover it). q = 40 stands in
+production as a representative of the plateau, not an optimum; "how do we know it's just 20"
+now has its complete answer: it wasn't 20, it's any width in 30–80, and we run 40.
+
 ### 38.3 Mechanics of the ~40-dim span — pre-registered battery (`analysis/trans_rank.py`)
 
 Three probes, one same-run battery (blocked engine, h = 1): **(a)** α-ladder on the F40 block

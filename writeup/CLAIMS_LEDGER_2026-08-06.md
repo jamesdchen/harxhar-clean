@@ -128,8 +128,10 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 
 ## Pending / open
 
-- §38/38.1 pool-width LANDED: transmission rank is finite, peak q ≈ 40 (beats 20 head-to-head
-  +2.29; q = 80 shoulder; q = 106 twin-gate FAIL) — "just 20" was a floor, not an optimum.
+- §38/38.1/38.1b pool-width COMPLETE: the width curve is a PLATEAU over ~30–80 (interior
+  spread 0.4e-4, all head-to-heads vs 40 within ±1.0) with cliffs both sides (20: −13e-4;
+  106: twin-gate FAIL) — a robust region, not a tuned point; production runs 40 as its
+  representative.
   §34.10 ridge-union LANDED: union beats the ten names +3.12 (2020+ +0.50) — variance channel
   span-deficient, not sparse; channel laws unified; production smear unchanged.
 - **§38.2 CONFIRMED: q = 40 per-bar beats q = 20 per-bar +4.59 (2020+ +2.32) — the production
