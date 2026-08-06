@@ -2784,12 +2784,16 @@ overnight-to-close label); days without a 16:00 bar (early closes) drop.
   study and the direct 0DTE-at-open object).
 * **Gate:** 679 vs backbone QLIKE DM ≥ +2.0 on the open-decision slice. Expectation: pass —
   h = 1 and the H-ladder edges should transfer; the open slice is where it must show to matter.
-* **The VRP data item, recorded:** computing VRP proper needs same/next-day-expiry ATM implied
-  at the decision bar. The cached OptionMetrics series (`straddle_v3_*.npz`) is 4–9 dte quoted
-  at 16:00 — the wrong window for this object. The export path exists
-  (`writeup/om_friction_export_spec.md`, prop branch addendum); a 0–1 dte, at-open export is the
-  single data item that turns this section's forecast into a measured VRP and a friction-priced
-  intraday straddle P&L. Until then, QLIKE on the open slice is the in-scope proxy.
+* **The VRP data item, recorded — and now spec'd:** computing VRP proper needs same/next-day-
+  expiry ATM implied at the decision bar. The cached OptionMetrics series (`straddle_v3_*.npz`)
+  is 4–9 dte quoted at 16:00 — the wrong window for this object. The full export spec is
+  **`writeup/om_0dte_atopen_export_spec.md`**: three tiers (OM EOD dte=1 with the
+  overnight/session decomposition — computable now, and the prior `chain_109820_dte0_10.parquet`
+  landing already contains the 0–1 dte rows; CBOE DataShop 09:35 intraday snapshot as the gated
+  purchase; VIX1D as the free QC anchor), coverage epochs (full daily expiries only 2022-11+,
+  exactly the era where §26's rot detector fired), five known-answer gates, and the consumer
+  design (`analysis/vrp_eod.py`). Until data lands, QLIKE on the open slice is the in-scope
+  proxy.
 
 ## Reproducibility
 
