@@ -3339,6 +3339,27 @@ probe (10 named columns, QLIKE 0.12369 on the smear scoring), FWER-graded.** The
 bar is this smear. The second moment's story is complete: a sparse channel, saturated by ten
 hand-named causal columns, every addition adjudicated.
 
+### 34.9 Lasso on the union dictionary — pre-registered (user challenge: "doesn't sparse mean lasso?")
+
+The sparse-channel finding implies L1 should work HERE even though it died repeatedly on the
+mean — with the catch that §34.3's dictionary lacked the winners (target-derived means,
+constructed interactions). The proper test: lasso on the UNION dictionary — the 10 named
+columns + the 543-column panel's daily snapshot — predicting next-day log-amplitude; expanding
+walk, penalty chosen by causal CV inside each training window (the battery's own
+hyperparameter convention). Readouts: (i) the SUPPORT — does selection recover the named terms?
+(ii) smear conversion vs the 10-named production smear, gate |DM| story either way. Expectation:
+support recovers the leverage/means terms plus a few extras; performance ≈ the 10-named smear or
+slightly below (selection noise) — a pass either way for the channel-dependent law: dense →
+ridge, sparse → lasso-or-names.
+
+**Result: a TIE (DM −0.06; 0.12370 vs 0.12369), the conjecture confirmed.** Lasso recovers the
+channel automatically — most-selected terms include l1/absr/r²/neg21 — with the honest nuance
+that the SUPPORT is unstable across refits (59 distinct columns, none persistent: the panel's
+redundancy makes proxies interchangeable — gauge again, this time in selection space). The
+function, not the feature set, is identified. **The channel-dependent law, final form: the mean
+is dense (ridge, selection loses 15 ways); the variance is sparse (ten names or L1,
+equivalent).**
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
