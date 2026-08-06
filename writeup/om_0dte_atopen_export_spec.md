@@ -102,10 +102,14 @@ in decimal vol, straddle-level (v3's exact formula).
 
 - **Product:** CBOE DataShop historical intraday option quotes (or LiveVol equivalent), SPX +
   SPXW roots (add SPY if Tier-1 friction says SPY executes better).
-- **Slice:** one quote snapshot per day per option, **09:35 ET** (5 min after open — post-auction,
-  quotes firm), strikes within ±3% of spot, expiry = same trading day (plus next-day as control).
-  A single daily snapshot keeps the purchase small; do not buy full-day NBBO until the edge
-  survives the snapshot version.
+- **Slice:** quote snapshots per day per option at **09:35, 12:00, and 14:00 ET**, strikes
+  within ±3% of spot, expiry = same trading day (plus next-day as control). *(Amended 2026-08-06
+  after the §29.1 verdicts: the composite's edge lives at ≤8-bar remaining horizons — the open
+  decision failed its gate while H = 8 passed at +2.77 — so the midday snapshot prices the trade
+  the model can actually win: midday-entry hold-to-close, one spread crossing. The 09:35
+  snapshot stays for the backbone+implied open trade and as the failed-gate control.)* Three
+  snapshots keep the purchase small; do not buy full-day NBBO until the edge survives the
+  snapshot version.
 - **Fields:** timestamp, root, exdate, strike, cp_flag, bid, ask, bid/ask size, underlying.
 - **Range:** 2016-01 → latest (before SPXW M/W/F there is nothing to buy); 2022-11+ is the part
   that matters — if budget forces a choice, buy 2022-11+ only.
