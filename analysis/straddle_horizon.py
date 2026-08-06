@@ -262,14 +262,56 @@ def stage_eod() -> None:
     print("cached -> straddle_eod.npz")
 
 
+def stage_overnight() -> None:
+    """Tier-1 support (spec: om_0dte_atopen_export_spec.md): integrated RV from each row to the
+    NEXT session open (the 10:00-labeled row, exclusive) — at the 16:30-labeled row this is
+    exactly the overnight window [16:00 -> 09:30 next], the piece the close-to-close implied
+    carries that the §29.1 session object does not."""
+    _require_fixed_cache()
+    p = load_panel()
+    ts = pd.Series(pd.to_datetime(p.t))
+    n = len(ts)
+    rv = p.y**2 * p.baseline
+    crv = np.concatenate([[0.0], np.cumsum(rv)])
+    cb = np.concatenate([[0.0], np.cumsum(p.baseline)])
+    open_rows = np.flatnonzero((ts.dt.hour == 10) & (ts.dt.minute == 0).to_numpy())
+    pos = np.searchsorted(open_rows, np.arange(n), side="right")
+    has = pos < len(open_rows)
+    o = np.where(has, open_rows[np.minimum(pos, len(open_rows) - 1)], 0)
+    v = crv[o] - crv[np.arange(n)]
+    b = cb[o] - cb[np.arange(n)]
+    ok = has & (b > 0)
+    yh = np.full(n, np.nan)
+    Bh = np.full(n, np.nan)
+    yh[ok] = np.sqrt(v[ok] / b[ok])
+    Bh[ok] = b[ok]
+    EMB = 64
+    print(f"overnight target: {ok.sum()} rows label to next session open; embargo {EMB}",
+          flush=True)
+    y_train = pd.Series(yh).ffill().to_numpy()
+    X679, XH, _ = _build_design()
+    preds = {}
+    preds["backbone"] = walk_forward_embargo(XH, y_train, TW, EMB, 1.0, PERIODS_PER_DAY)
+    print("  backbone done", flush=True)
+    preds["one-stage 679"] = walk_forward_embargo(X679, y_train, TW, EMB, 3000.0,
+                                                  PERIODS_PER_DAY)
+    print("  679 done", flush=True)
+    np.savez_compressed(_p("straddle_overnight.npz"),
+                        **{k.replace(" ", "_"): v for k, v in preds.items()},
+                        y_on=yh, B_on=Bh)
+    print("cached -> straddle_overnight.npz")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["ladder", "cadence", "eod"], required=True)
+    ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight"], required=True)
     ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 16])
     a = ap.parse_args()
     if a.stage == "ladder":
         stage_ladder(a.hb)
     elif a.stage == "cadence":
         stage_cadence()
-    else:
+    elif a.stage == "eod":
         stage_eod()
+    else:
+        stage_overnight()
