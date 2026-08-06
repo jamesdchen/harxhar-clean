@@ -2784,6 +2784,23 @@ overnight-to-close label); days without a 16:00 bar (early closes) drop.
   study and the direct 0DTE-at-open object).
 * **Gate:** 679 vs backbone QLIKE DM ≥ +2.0 on the open-decision slice. Expectation: pass —
   h = 1 and the H-ladder edges should transfer; the open slice is where it must show to matter.
+**§29.1 result: the gate FAILED — and the failure is the finding.** On the open-decision slice
+(h = 13, 4,486 non-overlapping days) the 679-column composite does NOT beat the 27-column
+backbone: QLIKE DM **−0.18** (backbone 0.08296 vs composite 0.08345); on all rows the composite
+is *worse* (−0.96); the only positive slice is RTH pooled at +1.95 (h = 2…13, dominated by short
+remaining-horizons). Meanwhile the fixed-H ladder's first rung came back the other way:
+at **H = 8 bars the composite beats the backbone at +2.77 (2020+ +4.00)**, and the phase control
+returned +0.17 — no-add, exactly as pre-registered (the §28.2 sliver is specific, not a
+spurious always-on feature). Read together: **the dense edge is fast** — it prices the next few
+hours, and by the time the target integrates a full session from the open, the persistence
+backbone has absorbed what is predictable. Candidate confounds to separate before hardening
+that reading (H = 4/16 and cadence pending): the EOD walk trains one model across mixed-horizon
+objects (h = 1…52) where the ladder trains per-H, and §22's penalties were never re-set for
+integrated targets (the msweep α-law wants heavier shrinkage as H grows — the all-rows −0.96
+smells like under-shrinkage noise). Consequence for the product as scoped: at the open, the
+0DTE straddle decision leans on the backbone + implied; the composite's value concentrates
+intraday at short remaining-horizons — entry/rebalance timing, not the opening print.
+
 * **The VRP data item, recorded — and now spec'd:** computing VRP proper needs same/next-day-
   expiry ATM implied at the decision bar. The cached OptionMetrics series (`straddle_v3_*.npz`)
   is 4–9 dte quoted at 16:00 — the wrong window for this object. The full export spec is
