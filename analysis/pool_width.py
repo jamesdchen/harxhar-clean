@@ -91,16 +91,17 @@ def main() -> None:
               f"(2020+ {_hac_mean_t(d[md & late], 480):+.2f})  "
               f"{'PASS' if g >= 2.0 else 'FAIL'}", flush=True)
 
-    print("\nhead-to-head vs q=20 (move off 20 only at |DM| >= 2.0):", flush=True)
+    ref = int(os.environ.get("REF", "20"))
+    print(f"\nhead-to-head vs q={ref} (move off {ref} only at |DM| >= 2.0):", flush=True)
     for w in WIDTHS:
-        if w == 20:
+        if w == ref:
             continue
-        d = qs[20] - qs[w]
+        d = qs[ref] - qs[w]
         d[~act] = np.nan
         md = np.isfinite(d)
         g = _hac_mean_t(d[md], 480)
-        print(f"  q={w:2d} vs q=20: DM {g:+.2f} (2020+ {_hac_mean_t(d[md & late], 480):+.2f})  "
-              f"{'MOVE' if abs(g) >= 2.0 and g > 0 else 'STAY 20'}", flush=True)
+        print(f"  q={w:3d} vs q={ref}: DM {g:+.2f} (2020+ {_hac_mean_t(d[md & late], 480):+.2f})  "
+              f"{'MOVE' if abs(g) >= 2.0 and g > 0 else f'STAY {ref}'}", flush=True)
 
 
 def perbar() -> None:

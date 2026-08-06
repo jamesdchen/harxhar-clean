@@ -3674,6 +3674,17 @@ The production model is now **719 columns**: 679 + the 40-column transmission bl
 (`pool40_perbar.npz`). Composed final number recomputation launched (§38.2b): 719 per-bar +
 conditional smear rebuilt on its own residuals, against the §34.11 composed 0.12331.
 
+### 38.1b Peak refinement — pre-registered (user: "what about q=60?")
+
+The ladder jumped 40 → 80, so "peak ≈ 40" is only bracketed to a factor of two. Refinement
+rungs q ∈ {30, 50, 60, 70} vs the new production reference q = 40 (`WIDTHS=30,40,50,60,70
+REF=40`, same protocol). Gate: production moves off 40 only at |DM| ≥ 2.0 vs 40 (and then
+only after its own per-bar entry test). Expectation recorded: a SHALLOW TOP — no rung beats
+40 at gate; the informative outcome is the plateau's shape (§38.1's 40-vs-80 gap was only
+1.17 DM units of QLIKE difference, so the peak region should be flat to within noise). A
+sharp interior peak at 50–60 would instead say the rank is tighter than the doubling ladder
+could see.
+
 ### 38.3 Mechanics of the ~40-dim span — pre-registered battery (`analysis/trans_rank.py`)
 
 Three probes, one same-run battery (blocked engine, h = 1): **(a)** α-ladder on the F40 block
