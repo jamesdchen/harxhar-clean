@@ -302,9 +302,45 @@ def stage_overnight() -> None:
     print("cached -> straddle_overnight.npz")
 
 
+def stage_flowarm() -> None:
+    """§30.1: the intraday-rotation state {cos phi, sin phi, log r}, causal, one-bar lag, as
+    three columns on the 679 design at H=8. Gate: QLIKE DM >= +2.0 vs the cached 679 twin."""
+    from analysis.cucuringu import _causal_intraday_phase
+    _require_fixed_cache()
+    p = load_panel()
+    hb = 8
+    yh, Bh = _y_horizon(p, hb)
+    X679, _, _ = _build_design()
+    phi, rad = _causal_intraday_phase()  # aligned to panel rows [2*TW, n)
+    n_all = p.X.shape[0]
+    F = np.zeros((n_all, 3))
+    good = np.isfinite(phi)
+    F[2 * TW + 1 :, 0] = np.where(good, np.cos(phi), 0.0)[:-1]
+    F[2 * TW + 1 :, 1] = np.where(good, np.sin(phi), 0.0)[:-1]
+    F[2 * TW + 1 :, 2] = np.where(good, np.log(rad + 1e-9), 0.0)[:-1]
+    print(f"flow-state columns active on {good.sum()} bars (of {len(phi)})", flush=True)
+    pred = walk_forward_embargo(np.hstack([X679, F]), yh, TW, hb, 3000.0, PERIODS_PER_DAY)
+    ref = np.load(_p(f"straddle_ladder_h{hb}.npz"))["one-stage_679"]
+    yh_o, Bh_o = yh[2 * TW :], Bh[2 * TW :]
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+    late = (ts >= HOLDOUT).to_numpy()
+    act = F[2 * TW :, 0] != 0.0
+    lags = 2 * hb + 480
+    qs = {}
+    _score("679 twin", ref[TW:], yh_o, Bh_o, qs, late)
+    _score("679 + flow state", pred[TW:], yh_o, Bh_o, qs, late)
+    d = qs["679 twin"] - qs["679 + flow state"]
+    g = _hac_mean_t(d[act], lags)
+    print(f"\n  QLIKE DM (+flow state vs twin), active span: {g:+.2f}   "
+          f"full {_hac_mean_t(d, lags):+.2f}   2020+ {_hac_mean_t(d[late], lags):+.2f}")
+    print(f"  gate (>= +2.0): {'PASS — falsification battery owed' if g >= 2.0 else 'FAIL'}")
+    np.savez_compressed(_p("straddle_flowarm_h8.npz"), pred=pred)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight"], required=True)
+    ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight", "flowarm"],
+                    required=True)
     ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 16])
     a = ap.parse_args()
     if a.stage == "ladder":
@@ -313,5 +349,7 @@ if __name__ == "__main__":
         stage_cadence()
     elif a.stage == "eod":
         stage_eod()
-    else:
+    elif a.stage == "overnight":
         stage_overnight()
+    else:
+        stage_flowarm()

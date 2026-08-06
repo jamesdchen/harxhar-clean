@@ -2884,6 +2884,19 @@ factor scores the ridge already carries, so only the conditional-speed nonlinear
 +0.006 transmission term are new content, and the H = 8 feature arm stays pre-registered with
 expectation FAIL.
 
+### 30.1 The H = 8 feature arm, run on user instruction — pre-registered construction
+
+User direction: run it anyway. Construction pinned before execution: THREE columns — {cos φ,
+sin φ, log r} of the **causal intraday plane** (bar-lag flow on a trailing 504-day window of
+bars, refreshed quarterly, top eigenplane gauge-chained — the §28.2 recipe at bar resolution;
+no clock subtraction, measured share −0.003), evaluated at **one bar's lag**, zero in warmup.
+Radius is included so the phase pair cannot proxy amplitude (§28.1(b)'s confound, pre-empted).
+Not registered: flow-aligned linear score combinations — they are inside the ridge's span and
+their failure would be arithmetic. Arm: 682 columns at H = 8 bars, exog penalty, daily refit,
+embargo 8, vs the cached 679 twin (`straddle_ladder_h8.npz`). Gate: QLIKE DM ≥ +2.0 on the
+active span, HAC lags 2H + 480. **Expectation: FAIL** — the meta-law, twelfth attempt; the
+conditional-speed R² (0.068) is about the phase's own dynamics, not the vol target's.
+
 ## Reproducibility
 
 ```bash

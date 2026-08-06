@@ -653,6 +653,37 @@ def stage_phasewalk() -> None:
     print(f"\n  gate: {'PASS' if g >= 2.0 else 'FAIL'}")
 
 
+def _causal_intraday_phase() -> tuple[np.ndarray, np.ndarray]:
+    """§30.1: per-bar phase and radius of the intraday rotation plane, built causally —
+    bar-lag flow on a trailing 504-day window, refreshed quarterly, gauge-chained (the §28.2
+    recipe at bar resolution; no clock subtraction — measured share -0.003). NaN in warmup."""
+    G, e, ts = _frame_and_scores()
+    n = len(G)
+    TRAIL, REFRESH = 504 * PERIODS_PER_DAY, 63 * PERIODS_PER_DAY
+
+    def bar_flow(g: np.ndarray) -> np.ndarray:
+        a, b = g[:-1], g[1:]
+        a = (a - a.mean(0)) / (a.std(0) + 1e-12)
+        b = (b - b.mean(0)) / (b.std(0) + 1e-12)
+        C = (a.T @ b) / len(a)
+        return (C - C.T) / 2.0
+
+    phi = np.full(n, np.nan)
+    rad = np.full(n, np.nan)
+    v_prev = None
+    for start in range(TRAIL, n, REFRESH):
+        lam, V = np.linalg.eigh(1j * bar_flow(G[start - TRAIL : start]))
+        v = V[:, np.argmax(lam)]
+        if v_prev is not None:
+            v = v * np.exp(-1j * np.angle(np.vdot(v_prev, v)))
+        v_prev = v
+        end = min(start + REFRESH, n)
+        z = G[start:end] @ np.real(v) + 1j * (G[start:end] @ np.imag(v))
+        phi[start:end] = np.angle(z)
+        rad[start:end] = np.abs(z)
+    return phi, rad
+
+
 def stage_intraflow() -> None:
     """§30: the bar-lag lead-lag flow with the diurnal clock subtracted."""
     rng = np.random.default_rng(3)
