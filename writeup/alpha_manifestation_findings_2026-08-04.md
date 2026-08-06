@@ -3398,6 +3398,17 @@ accounting; and the uplift is HISTORICAL (2020+ only +0.50 — flat on the 0DTE 
 production smear does NOT change: means+leverage+probe stays, with ridge-union recorded as the
 span verdict, not a deployment.
 
+**§34.10b/c — pre-registered follow-ups (`analysis/smear_union.py`, the §34.10 record moved
+into the repo).** (b) Era decomposition of union-vs-named — where does the historical +3.12
+live, and when did it die? Attribution, no gate; loss-diff series saved for the family
+accounting. (c) Union expansion — does the span law CONVERT previously-unconvertible blocks
+once they sit inside the union under GCV shrinkage? c1: + the §34.12 quarticity/HARQ block
+(uplift was real, standalone conversion failed; recorded lean genuinely uncertain — the span
+law predicts the failure was dictionary construction, §34.12b says the content is redundant
+with the means). c2: + daily aggregates of the 40 transmission arrows (the
+corrected-instrument retry of §37c's dead transmission-smear; recorded lean FAIL). Gates:
+DM ≥ +2.0 vs union1.
+
 ### 34.11 THE COMPOSED FINAL NUMBER
 
 On one consistent evaluation span (all scored rows, same engine, smear rebuilt causally on the
@@ -3654,6 +3665,18 @@ lean PASS at reduced magnitude (daily-refit head-to-head was +2.29; per-bar conf
 this study have held within ~±20% of blocked verdicts), with the 2020+ number (+1.89 at
 daily) the honest risk. Stack changes only on a pass; a fail leaves 20 in production and
 q = 40 as attribution.
+
+### 38.3 Mechanics of the ~40-dim span — pre-registered battery (`analysis/trans_rank.py`)
+
+Three probes, one same-run battery (blocked engine, h = 1): **(a)** α-ladder on the F40 block
+{3e2, 3e3, 3e4} — does the wider block want its own shrinkage? (gate ≥ +2.0 to move off 3e3;
+recorded lean: 3e4 flat-or-small-gain, 3e2 worse). **(b)** source/target decomposition — the
+q = 40 block factors as [arrows from 40 sources into the OLD 20 targets | arrows into the 20
+NEW targets]; each half vs the 699 twin (attribution, no gate; recorded lean:
+wide-sources-into-old-targets carries most of it). **(c)** estimation-noise discriminator for
+the q = 106 failure — q106 at a 1008d trail vs 504d (in-run pair; rescue gate ≥ +2.0), with
+q40@1008d as the everyone-benefits control (recorded lean: partial rescue — genuine tail
+emptiness AND q² estimation noise both live).
 
 ## Reproducibility
 
