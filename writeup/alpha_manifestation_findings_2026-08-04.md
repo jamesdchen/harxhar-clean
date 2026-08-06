@@ -2913,6 +2913,20 @@ embargo 8, vs the cached 679 twin (`straddle_ladder_h8.npz`). Gate: QLIKE DM ≥
 active span, HAC lags 2H + 480. **Expectation: FAIL** — the meta-law, twelfth attempt; the
 conditional-speed R² (0.068) is about the phase's own dynamics, not the vol target's.
 
+### 30.2 The lagged-transmission arm, run on user instruction — pre-registered
+
+§30.1's exclusion of flow-aligned linear columns ("ridge-spanned") was too strong: the design
+carries contemporaneous MAs, so *specific lag-1 cross-factor combinations* are only partially
+spanned, and the transmission map measurably adds +0.006 next-position R² beyond persistence.
+Construction pinned before running: **20 columns Ĝ_j(t) = Σ_i D[i,j]·G_i(t−1 bar)** — the
+**antisymmetric part only** (the flow content; the symmetric part is persistence the MAs carry) —
+with D re-estimated causally on a trailing 504-day window, quarterly refresh, no clock
+subtraction (measured share −0.003), all 20 factors kept (no selection), columns normalized by
+the design's rolling-250d-sd convention. Arm: 699 columns at H = 8, exog penalty, daily refit,
+day-quantized embargo, **fast engine both arms** (twin recomputed on the same engine). Gate:
+QLIKE DM ≥ +2.0 on the active span. **Expectation: FAIL** — thirteenth challenger; +0.006 of
+position R² is far from a vol edge.
+
 ## 31. The amplitude audit — user challenge ("are you sure?"), measured, claim corrected
 
 The running shorthand "the amplitude is unforecastable" was **wrong as stated** and is hereby
