@@ -3786,6 +3786,23 @@ flatness has one untested lawful explanation. Four arms, two lanes:
   while the first-moment edge GROWS by era — if amplitude persistence itself fell in the
   0DTE era, one mechanism explains every one of those deaths at once.
 
+**Results (§34.10d + §34.13), both leans wrong, and the two results explain each other:**
+
+§34.10d: rolling/faster refits FAIL for both dictionaries (union −1.21; named +0.45 with
+2020+ −2.63 actively hurting). The mean channel's window and cadence laws DO NOT govern the
+second moment — a genuine channel asymmetry (the variance's usable features are stationary
+functionals; recency only cuts sample). The union's 0DTE-era death is a CONTENT fact, not a
+staleness artifact, and the production smear stands unchanged.
+
+§34.13: amplitude persistence did NOT fall — 2020 posts the sample's best OOS R² (0.552),
+2022–24 sit at 0.37–0.49, AR(1) stable at 0.54–0.72 throughout. The load-bearing explanation
+candidate is REFUTED, and the right reading is sharper: the second moment didn't become
+unpredictable in the 0DTE era, it became SIMPLE — its own trailing means capture everything,
+and the marginal content of every additional column (panel span, quarticity, labels, regime
+structure) is what died. Amplitude predictability persists; amplitude COMPLEXITY died. That
+single sentence covers the union's era decay, the quarticity failures, the label death, and
+the A4 intraday fail.
+
 ## 40. The completeness audit — pre-registered (user: "anything else we missed?")
 
 Four gaps found by auditing what the new results rest on; three cheap arms queued, one
@@ -3815,6 +3832,29 @@ Also logged, not run here: AM-16 (operational instruments — rot detector calib
 monitor, era table — still run at width 20; recalibrate at 40 when the stack settles), and
 the standing data-blocked items (AM-01 panel refresh remains the biggest single lever in the
 whole program; AM-02 chains unblock real VRP numbers).
+
+**Results (2026-08-06):**
+
+* **§38.4 — the new arrows REPLICATE.** Split-half correlation +0.838 for the 590
+  new-involving arrows (old block +0.907); quarterly sign agreement 0.856 vs 0.903;
+  magnitudes only slightly fainter (|D| 0.0066 vs 0.0078). Clears the ≥ +0.5 expectation
+  with room — the q = 40 block rides real, stable arrows, and the width claim is
+  paper-ready on the replication axis. The gauge-degeneracy nuance survives intact: the
+  DIRECTIONS are unpinnable as labels, but the arrow field over them is a stable object.
+* **§34.10e — the span is named, and it isn't what the names guessed.** The union's
+  coefficient mass sits on: calendar structure (day-of-week dummies and the snapshot-hour
+  column — the latter flags HALF-DAYS), slow quarticity/bipower aggregates
+  (adj_sumret4_ma_125, adj_sumbipow_ma_25/125), autocovariance, slow VIX, and
+  liquidity/participation columns (numobs, spreads, sell-turnover). The named-10 carry only
+  7.8% of total |coef|. So the historical span-deficiency was concretely: calendar/half-day
+  seasonality of amplitude + slow realized-moment and liquidity aggregates — content the ten
+  names never had, and (per §34.10b) content whose edge died after 2015–2021.
+* **§34.14 — the EOD smear FAILS: casualty #16.** Pooled −0.33, 10:00 slice −1.04 (2020+
+  −2.48 actively harmful). The conditional smear does NOT transfer to the trading horizon —
+  integration over the remaining session smooths the vol-of-vol away, and the trailing
+  constant is already sufficient. Consistent with §39a: every clever object in this study is
+  FAST; at the deliverable horizon the plain machinery wins. The EOD/VRP stack composes with
+  the trailing-constant smear, now by measurement rather than omission.
 
 ## Reproducibility
 

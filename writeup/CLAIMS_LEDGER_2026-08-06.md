@@ -89,6 +89,9 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 13. Intraday flow-state features {cos φ, sin φ, log r} at H = 8 (DM −0.72) — §30.1
 14. **The re-draw itself**: refreshed-2022 product selection LOSES to frozen-2005 on the 0DTE
     era (−2.79 / −2.41); rot detector demoted to alarm-only — §32
+15. Cross-time (lagged-leg) products — §35b
+16. Conditional smear at the EOD horizon (pooled −0.33, slice −1.04) — the trading horizon
+    keeps the trailing constant, by measurement — §34.14
 
 ## Structural facts (not tradable, load-bearing)
 
@@ -111,7 +114,16 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
   EOD none. The new arrows' content decays within the hour.
 - Union smear era decomposition (§34.10b): +5.78 / +9.22 / +2.28 / +2.88 / **−0.37 (2022+)**
   ×1e-4 — the panel's vol-of-vol span died in the 0DTE era; §34.10c: nothing else converts
-  even in-union (quarticity −0.79, transmission +0.24).
+  even in-union (quarticity −0.79, transmission +0.24); §34.10d: rolling/faster refits FAIL
+  both dictionaries — the window/cadence laws do NOT govern the second moment.
+- **Amplitude predictability persists; amplitude COMPLEXITY died (§34.13):** 2020 posts the
+  sample-best OOS R² (0.552), 2022–24 at 0.37–0.49 — the 0DTE era made the second moment
+  SIMPLE (means-sufficient), which single-handedly explains the union's era decay, the
+  quarticity/label/EOD-smear deaths, and A4.
+- The union's historical span, named (§34.10e): calendar/half-day seasonality + slow
+  quarticity/bipower/liquidity aggregates; the named-10 carry 7.8% of coefficient mass.
+- New arrows replicate (§38.4): split-half +0.838 (old +0.907), sign agreement 0.856 —
+  the q = 40 width claim is robust; unpinnable labels, stable arrow field.
 - Breaks: 2013 (taper), 2017 (pre-Volmageddon), 2024 (0DTE) via map CPD; COVID did NOT break the
   map — §26, §27 C4.
 
