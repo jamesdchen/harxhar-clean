@@ -2828,6 +2828,18 @@ training, no mixed-horizon objects) read out two ways:
 Expectation (recorded): pooled ≈ +1.5…2.0; the 10:00 slice weaker than pooled but positive —
 i.e., both factors contribute, training pollution the larger.
 
+### 29.3 Per-horizon shrinkage from the msweep α-law — pre-registered (AM-07 executed)
+
+The msweep law says α scales with horizon and capacity; §29's ladder used the h = 1 penalties
+unretuned, so the composite's H = 8/16 numbers are floors. Their raw α values do not transfer
+across bases (different columns, standardization, window), so the import is the law's FORM,
+theory-anchored: the integrated target's noise variance grows ~linearly in H, so **α(H) = α₁·H**
+— solver α = 3000·H with the backbone's column scale following (√(3000H)) and the product
+block's relative scale unchanged (√0.1). One number per horizon, no grid, no bake-off. Arms at
+H ∈ {8, 16}, blocked engine, twins recomputed same-engine. Gate: QLIKE DM ≥ +2.0 vs the
+unretuned twin at either horizon. Expectation: positive at H = 16 (where the law bites
+hardest), uncertain at H = 8.
+
 ## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
 
 §26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
