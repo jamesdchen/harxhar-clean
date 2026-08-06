@@ -2603,6 +2603,101 @@ the cross-sectional unit is the passing pair — Hermitian lead-lag clustering a
 where n grows from 20 factors to thousands of names and the circulation becomes estimable per
 sector rather than once.
 
+## 28. Exploiting the rotation directly — the phase of the cycle, pre-registered
+
+§27's C1 found the flow is 92% curl with one dominant rotation plane (61% of energy, phases
+replicating +0.76). The direct exploitation question: project the state onto that plane, read off
+a **phase**, and ask (a) is the phase itself forecastable, and (b) does anything that pays depend
+on it. This is the RMM/MJO-index construction from climate science — the standard instrument for
+a stochastic quasi-cycle — applied to the factor trajectory. Pre-registered before running
+(`analysis/cucuringu.py --stage phase / --stage phasex`):
+
+* **K — kinematics (descriptive).** z(t) = (G_d·Re v, G_d·Im v) with v the top eigenvector of iA;
+  φ = atan2(y, x), radius r = |z|. Daily phase increments: circular drift ω, circular sd σ,
+  implied period 2π/ω, drift-to-noise ω/σ, and the diffusion-limited horizon where phase error
+  reaches π/2. Rotation direction must agree across halves (the flow replicated; this is a
+  consistency check, not a discovery).
+* **F — phase forecast.** Predict φ(t+h) = φ(t) + ω·h with ω estimated on the OPPOSITE half
+  (plane shared for gauge; drift out-of-half), h ∈ {1, 2, 5, 10, 21, 42, 63} days. Skill = mean
+  cos(error) minus the no-drift null (persistence, ω = 0). Gate: positive skill at h ≥ 5 in both
+  halves. Expectation: PASS mechanically if drift is real — the informative number is the horizon
+  where diffusion kills it.
+* **E1 — phase → residual.** IC of {cos φ, sin φ, cos 2φ, sin 2φ} with the daily-mean HAR
+  residual, per half. Gate: some harmonic with the same sign in both halves and |IC| above the
+  p95 of a 200-draw ≥63-day circular-shift null. Expectation: **FAIL** — harmonics are smooth
+  functions of the current state, which the linear backbone and products already span.
+* **E2 — phase → map-channel gain (the arm worth watching).** Realized product-channel gain
+  c(t) = Σ_pairs map_otherhalf[pair]·Q_pair(t)·e(t), daily-aggregated — the §18 dial's realized
+  counterpart — profiled over 8 phase bins, MJO-style. Gate: split-half bin-profile correlation
+  ≥ +0.5 AND profile amplitude above the shift-null p95. Expectation: **FAIL** per the meta-law
+  (this is a dial conditioner; ten predecessors are dead), but it is the first conditioner drawn
+  from a replicating dynamical object rather than a level variable — recorded as the most
+  interesting arm to fail, if it fails.
+
+### 28.1 First results and the falsification battery, pre-registered before celebrating
+
+K and F: the cycle is real. ω = −0.179 rad/day (direction agrees across halves), **period ≈ 35
+trading days**, drift-to-noise 0.194, and out-of-half phase-forecast skill positive at every
+horizon through h = 21 in both halves, **peaking at h = 21 (+0.15 / +0.18)** — the phase is
+forecastable about a month out (the h = 42 sign flip is wrap-around: at a full lap the no-drift
+null scores accidentally). E1 and E2 then **both passed their gates** — cos φ carries IC −0.35 /
+−0.29 against the HAR residual (null p95 0.074), and the map-channel gain has a phase profile
+replicating at **+0.96** with amplitude 5× the shift-null, concentrated in the two bins nearest
+±π (the carrier-side, antipodal-to-turnover half of the cycle).
+
+A double gate-pass would be the meta-law's first survivor, so before any claim it owes the
+falsification battery, pre-registered here (`--stage phasecheck`):
+
+* **(a) Implementability.** φ(t) uses the last bar of day t; the E1/E2 residuals include earlier
+  bars of day t — partial within-day contemporaneity. Re-run both with **φ lagged one day**.
+  Gates unchanged. Expectation: survives attenuated (daily phase coherence R = 0.65).
+* **(b) Amplitude confound — where this is expected to die.** "Phase near ±π" may simply be the
+  high-variance regime in disguise (§18: gain tracks form variance). Profile daily e² over the
+  same bins; report corr(gain profile, e² profile); then regress daily gain on daily e² and
+  re-test the **partial** profile's amplitude against the shift-null. Verdict "confound" if the
+  raw profiles are near-duplicates and the partial amplitude dies.
+* **(c) Increment vs the final model.** The gates were run against the HAR residual; the
+  679-column per-bar model already carries the linear scores and the products. Re-run E1 (lagged
+  φ) against the **final model's residual** (y − ŷ_bar from §22). Gate: same-sign both halves,
+  |IC| above the shift-null p95. Only a pass here makes the phase a candidate *feature*; a pass
+  on (a)+(b) with a fail here means the cycle is real but already priced by the dense model.
+
+Expectations: (a) pass, (b) **fail — amplitude confound**, (c) fail. A full pass on all three
+would trigger pre-registration of a walk-forward arm (phase harmonics as columns at the exog
+penalty) — written down now so the decision is not made after seeing the numbers.
+
+**Battery results.** (a) PASS — both effects survive the one-day lag (cos IC −0.18/−0.12 vs null
+0.078; E2 profile corr +0.80, amplitude above null both halves). (b) **FAIL, as expected:
+amplitude confound.** The gain profile is the e² profile in costume (corr +0.86/+0.88); the
+e²-partialled profile dies in h2 and the partial profiles do not replicate (−0.03).
+**Phase-conditioning the dial is the meta-law's eleventh casualty** — the dial remains
+unforecastable; its apparent phase structure was its known variance-tracking. (c) **PASS,
+against expectation** — lagged cos φ carries −0.096/−0.077 against the *final 679-column
+per-bar model's* residual (null p95 0.064), same sign both halves: the cycle's phase holds a
+sliver the dense model does not price.
+
+### 28.2 The feature arm, pre-registered — with the causality fixed
+
+The §28.1 trigger ("all three") did not fire strictly: (b) failed. But (b) adjudicated the
+*dial-conditioner* reading while (a) and (c) both passed for the *feature* reading, so the
+feature arm is escalated under a fresh pre-registration rather than smuggled through the old one.
+One further honesty repair is owed: (c) used the full-sample rotation plane — split-half
+replication guards against noise, not against the plane having seen the test years. The walk arm
+therefore rebuilds the phase **causally**: flow re-estimated on a trailing 504-day window of
+daily scores, refreshed quarterly, top eigenplane gauge-chained across refreshes (rotate each new
+eigenvector to maximize overlap with the previous — the eigenvalue's sign fixes the rotation
+direction, so no conjugation ambiguity), phase lagged one day, zero during the two-year warmup.
+
+* **Arm:** the §22 one-stage design plus two columns, {cos, sin} of the causal lagged phase
+  (both harmonics despite sin failing E1 — a phase feature must be rotation-equivariant), at the
+  exog penalty (α = 3,000), daily refit, 250-day window: 681 columns vs the cached 679-column
+  daily-refit twin.
+* **Gate:** QLIKE DM ≥ +2.0 over the span where the phase columns are active; full-span and
+  2020+ numbers reported alongside.
+* **Expectation:** sign positive, magnitude **below the gate** — a daily IC of −0.08 against the
+  final residual is real but small, and the causal plane will be noisier than the full-sample
+  plane that produced it.
+
 ## Reproducibility
 
 ```bash

@@ -331,10 +331,335 @@ def stage_flow() -> None:
         print("  gates not met -> no walk-forward arm; the flow stays descriptive on this panel.")
 
 
+# ---------------------------------------------------------------- §28: the phase of the cycle
+
+def _rot_plane(A: np.ndarray):
+    """The dominant rotation plane: real/imag parts of the top eigenvector of iA."""
+    lam, V = np.linalg.eigh(1j * A)
+    v = V[:, np.argmax(lam)]
+    return np.real(v), np.imag(v)
+
+
+def _wrap(a: np.ndarray) -> np.ndarray:
+    return np.angle(np.exp(1j * a))
+
+
+def stage_phase() -> None:
+    """§28 K + F: kinematics of the cycle, and the phase-forecast skill ladder."""
+    G, e, ts = _frame_and_scores()
+    Gd, _, _ = _daily(G, e, ts)
+    A = _antisym(Gd)
+    u, w = _rot_plane(A)
+    phi = np.arctan2(Gd @ w, Gd @ u)
+    d = _wrap(np.diff(phi))
+    mv = np.exp(1j * d).mean()
+    omega, R = float(np.angle(mv)), float(np.abs(mv))
+    sigma = float(np.sqrt(-2 * np.log(max(R, 1e-12))))
+    print("K. kinematics (shared plane = top Hermitian eigenpair of the full-sample flow):")
+    print(f"  daily drift omega {omega:+.4f} rad/d   circular sd {sigma:.3f} rad/d   R {R:.3f}")
+    print(f"  implied period {2 * np.pi / abs(omega):.0f} days   "
+          f"drift-to-noise {abs(omega) / sigma:.3f}")
+    print(f"  diffusion-limited horizon (phase error ~ pi/2, iid increments): "
+          f"{(np.pi / 2 / sigma) ** 2:.1f} days")
+    h = len(Gd) // 2
+    om_h = {}
+    for name, sl in (("h1", slice(0, h)), ("h2", slice(h, None))):
+        m = np.exp(1j * _wrap(np.diff(phi[sl]))).mean()
+        om_h[name] = float(np.angle(m))
+        print(f"  {name}: omega {om_h[name]:+.4f}  R {np.abs(m):.3f}")
+    agree = np.sign(om_h["h1"]) == np.sign(om_h["h2"])
+    print(f"  rotation direction agrees across halves: {bool(agree)}")
+
+    print("\nF. phase-forecast skill, S(h) = mean cos(err | omega from OTHER half) - no-drift null:")
+    H = [1, 2, 5, 10, 21, 42, 63]
+    gate5 = []
+    for name, sl, om in (("h1", slice(0, h), om_h["h2"]), ("h2", slice(h, None), om_h["h1"])):
+        ph = phi[sl]
+        row = []
+        for hh in H:
+            err = _wrap(ph[hh:] - ph[:-hh] - om * hh)
+            null = _wrap(ph[hh:] - ph[:-hh])
+            row.append(float(np.cos(err).mean() - np.cos(null).mean()))
+        gate5.append(row[H.index(5)])
+        print(f"  {name}: " + "  ".join(f"h={hh}: {s:+.3f}" for hh, s in zip(H, row)))
+    ok = all(s > 0 for s in gate5)
+    print(f"  gate (skill > 0 at h = 5 in both halves): {'PASS' if ok else 'FAIL'}")
+
+
+def stage_phasex() -> None:
+    """§28 E1 + E2: does anything that pays depend on the phase?"""
+    rng = np.random.default_rng(1)
+    G, e, ts = _frame_and_scores()
+    Gd, ed, _ = _daily(G, e, ts)
+    A = _antisym(Gd)
+    u, w = _rot_plane(A)
+    phi = np.arctan2(Gd @ w, Gd @ u)
+    nd = len(Gd)
+    hd = nd // 2
+
+    def ic(a: np.ndarray, b: np.ndarray) -> float:
+        a = (a - a.mean()) / (a.std() + 1e-12)
+        b = (b - b.mean()) / (b.std() + 1e-12)
+        return float((a * b).mean())
+
+    z = (ed - ed.mean()) / ed.std()
+    harm = {"cos": np.cos(phi), "sin": np.sin(phi),
+            "cos2": np.cos(2 * phi), "sin2": np.sin(2 * phi)}
+    halves = {"h1": slice(0, hd), "h2": slice(hd, None)}
+    null = []
+    for _ in range(200):
+        zz = np.roll(z, int(rng.integers(63, nd - 63)))
+        null.append(max(abs(ic(hv[sl], zz[sl])) for hv in harm.values()
+                        for sl in halves.values()))
+    p95 = float(np.quantile(null, 0.95))
+    print(f"E1. phase harmonics vs daily HAR residual (shift-null p95 of max|IC|: {p95:.4f}):")
+    any_pass = False
+    for name, hv in harm.items():
+        i1, i2 = ic(hv[:hd], z[:hd]), ic(hv[hd:], z[hd:])
+        hit = np.sign(i1) == np.sign(i2) and abs(i1) > p95 and abs(i2) > p95
+        any_pass |= hit
+        print(f"  {name:5s}: h1 {i1:+.4f}  h2 {i2:+.4f}   {'PASS' if hit else 'fail'}")
+    print(f"  E1 gate: {'PASS' if any_pass else 'FAIL'}")
+
+    # E2: realized map-channel gain, profiled over 8 phase bins (map from the OTHER half)
+    qi, qj = np.triu_indices(QPOOL)
+    Q = G[:, qi] * G[:, qj]
+    day_codes = pd.factorize(ts.dt.date.to_numpy())[0]
+    bmask1 = day_codes < hd
+    m1, m2 = _map(Q, e, bmask1), _map(Q, e, ~bmask1)
+    bins = np.clip(np.floor((phi + np.pi) / (2 * np.pi / 8)).astype(int), 0, 7)
+    profs, amps, amp_p95 = {}, {}, {}
+    for name, bm, mo, bsl in (("h1", bmask1, m2, slice(0, hd)),
+                              ("h2", ~bmask1, m1, slice(hd, None))):
+        Qs = (Q[bm] - Q[bm].mean(0)) / (Q[bm].std(0) + 1e-12)
+        ez = (e[bm] - e[bm].mean()) / e[bm].std()
+        cd = pd.Series((Qs @ mo) * ez).groupby(day_codes[bm]).mean().to_numpy()
+        bb = bins[bsl]
+        prof = np.array([cd[bb == k].mean() for k in range(8)])
+        profs[name], amps[name] = prof, float(prof.var())
+        nv = []
+        for _ in range(200):
+            cs = np.roll(cd, int(rng.integers(63, len(cd) - 63)))
+            nv.append(np.array([cs[bb == k].mean() for k in range(8)]).var())
+        amp_p95[name] = float(np.quantile(nv, 0.95))
+    pc = float(np.corrcoef(profs["h1"], profs["h2"])[0, 1])
+    print(f"\nE2. map-channel realized gain over 8 phase bins (map from other half):")
+    print("  bin centers (rad): " + "  ".join(f"{-np.pi + (k + .5) * np.pi / 4:+.2f}"
+                                              for k in range(8)))
+    for name in ("h1", "h2"):
+        print(f"  {name}: " + "  ".join(f"{v:+.4f}" for v in profs[name]) +
+              f"   amp {amps[name]:.6f} (null p95 {amp_p95[name]:.6f})")
+    amp_ok = all(amps[n] > amp_p95[n] for n in ("h1", "h2"))
+    print(f"  split-half profile corr: {pc:+.3f}   (gate >= +0.5)")
+    print(f"  E2 gate: {'PASS' if pc >= 0.5 and amp_ok else 'FAIL'}"
+          f"   (profile corr {'ok' if pc >= 0.5 else 'fail'}, "
+          f"amplitude {'ok' if amp_ok else 'fail'})")
+
+
+def stage_phasecheck() -> None:
+    """§28.1: the falsification battery a double gate-pass owes before any claim."""
+    rng = np.random.default_rng(2)
+    G, e, ts = _frame_and_scores()
+    Gd, ed, _ = _daily(G, e, ts)
+    A = _antisym(Gd)
+    u, w = _rot_plane(A)
+    phi = np.arctan2(Gd @ w, Gd @ u)
+    nd = len(Gd)
+    hd = nd // 2
+    phl = np.roll(phi, 1)[1:]  # phi(t-1), implementable
+    day_codes = pd.factorize(ts.dt.date.to_numpy())[0]
+
+    def ic(a: np.ndarray, b: np.ndarray) -> float:
+        m = np.isfinite(a) & np.isfinite(b)
+        a, b = a[m], b[m]
+        a = (a - a.mean()) / (a.std() + 1e-12)
+        b = (b - b.mean()) / (b.std() + 1e-12)
+        return float((a * b).mean())
+
+    def e1(res_daily: np.ndarray, label: str) -> None:
+        z = (res_daily - np.nanmean(res_daily)) / np.nanstd(res_daily)
+        z = z[1:]
+        n1 = hd - 1
+        harm = {"cos": np.cos(phl), "sin": np.sin(phl),
+                "cos2": np.cos(2 * phl), "sin2": np.sin(2 * phl)}
+        null = []
+        for _ in range(200):
+            zz = np.roll(z, int(rng.integers(63, len(z) - 63)))
+            null.append(max(abs(ic(hv[s], zz[s])) for hv in harm.values()
+                            for s in (slice(0, n1), slice(n1, None))))
+        p95 = float(np.quantile(null, 0.95))
+        print(f"{label} (lagged phase; shift-null p95 {p95:.4f}):")
+        any_pass = False
+        for name, hv in harm.items():
+            i1, i2 = ic(hv[:n1], z[:n1]), ic(hv[n1:], z[n1:])
+            hit = np.sign(i1) == np.sign(i2) and abs(i1) > p95 and abs(i2) > p95
+            any_pass |= hit
+            print(f"  {name:5s}: h1 {i1:+.4f}  h2 {i2:+.4f}   {'PASS' if hit else 'fail'}")
+        print(f"  gate: {'PASS' if any_pass else 'FAIL'}")
+
+    # (a) E1 at lag 1 vs HAR residual
+    e1(ed, "(a) E1, HAR residual")
+
+    # (a) E2 at lag 1, plus (b) the amplitude confound
+    qi, qj = np.triu_indices(QPOOL)
+    Q = G[:, qi] * G[:, qj]
+    bmask1 = day_codes < hd
+    m1, m2 = _map(Q, e, bmask1), _map(Q, e, ~bmask1)
+    bins_l = np.clip(np.floor((np.roll(phi, 1) + np.pi) / (2 * np.pi / 8)).astype(int), 0, 7)
+    e2d_all = pd.Series(e**2).groupby(day_codes).mean().to_numpy()
+    profs, parts, amp, amp95, pamp, pamp95, e2profs = {}, {}, {}, {}, {}, {}, {}
+    for name, bm, mo, bsl in (("h1", bmask1, m2, slice(1, hd)),
+                              ("h2", ~bmask1, m1, slice(hd, None))):
+        Qs = (Q[bm] - Q[bm].mean(0)) / (Q[bm].std(0) + 1e-12)
+        ez = (e[bm] - e[bm].mean()) / e[bm].std()
+        cd = pd.Series((Qs @ mo) * ez).groupby(day_codes[bm]).mean().to_numpy()
+        if name == "h1":
+            cd = cd[1:]  # drop day 0: its lagged phase wraps from the end
+        bb = bins_l[bsl]
+        e2d = e2d_all[bsl]
+        beta = np.polyfit(e2d, cd, 1)
+        part = cd - np.polyval(beta, e2d)
+
+        def prof_of(v: np.ndarray) -> np.ndarray:
+            return np.array([v[bb == k].mean() for k in range(8)])
+
+        profs[name], parts[name] = prof_of(cd), prof_of(part)
+        e2profs[name] = prof_of(e2d)
+        amp[name], pamp[name] = float(profs[name].var()), float(parts[name].var())
+        nv, pv = [], []
+        for _ in range(200):
+            off = int(rng.integers(63, len(cd) - 63))
+            nv.append(prof_of(np.roll(cd, off)).var())
+            pv.append(prof_of(np.roll(part, off)).var())
+        amp95[name], pamp95[name] = float(np.quantile(nv, 0.95)), float(np.quantile(pv, 0.95))
+    pc = float(np.corrcoef(profs["h1"], profs["h2"])[0, 1])
+    ppc = float(np.corrcoef(parts["h1"], parts["h2"])[0, 1])
+    print(f"\n(a) E2, lagged phase: split-half profile corr {pc:+.3f}")
+    for name in ("h1", "h2"):
+        print(f"  {name} gain profile: " + "  ".join(f"{v:+.4f}" for v in profs[name]) +
+              f"   amp {amp[name]:.6f} (null p95 {amp95[name]:.6f})")
+    a_ok = pc >= 0.5 and all(amp[n] > amp95[n] for n in ("h1", "h2"))
+    print(f"  gate: {'PASS' if a_ok else 'FAIL'}")
+    print("\n(b) amplitude confound:")
+    for name in ("h1", "h2"):
+        ce = float(np.corrcoef(profs[name], e2profs[name])[0, 1])
+        print(f"  {name}: corr(gain profile, e^2 profile) {ce:+.3f}   "
+              f"partial amp {pamp[name]:.6f} (null p95 {pamp95[name]:.6f}) "
+              f"{'survives' if pamp[name] > pamp95[name] else 'DIES'}")
+    print(f"  partial-profile split-half corr {ppc:+.3f}")
+    b_ok = ppc >= 0.5 and all(pamp[n] > pamp95[n] for n in ("h1", "h2"))
+    print(f"  verdict: {'phase structure beyond amplitude' if b_ok else 'AMPLITUDE CONFOUND'}")
+
+    # (c) increment vs the final 679-column per-bar model
+    fin = np.load(_p("final_onestage.npz"))["yhat_bar"]
+    hr = np.load(_p("har_resid.npz"))
+    y = hr["e"] + hr["pred"]
+    ef = (y - fin)[TW:]
+    ok = np.isfinite(ef)
+    efd = pd.Series(np.where(ok, ef, np.nan)).groupby(day_codes).mean().to_numpy()
+    good = np.isfinite(efd)
+    print(f"\n(c) vs FINAL model residual ({good.sum()} of {nd} days usable):")
+    e1(efd, "(c) E1, final-model residual")
+
+
+def _causal_phase() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Daily phase of the cycle, built causally: flow on a trailing 504-day window of daily
+    scores, refreshed quarterly, top eigenplane gauge-chained across refreshes, NaN in warmup.
+    Returns (phi_day, day_codes for the G span, number of days)."""
+    G, e, ts = _frame_and_scores()
+    day_codes = pd.factorize(ts.dt.date.to_numpy())[0]
+    day_last = np.flatnonzero(ts.dt.date.ne(ts.dt.date.shift(-1)).to_numpy())
+    Gd = G[day_last]
+    nd = len(Gd)
+    TRAIL_D, REFRESH = 504, 63
+    phi = np.full(nd, np.nan)
+    v_prev = None
+    for start in range(TRAIL_D, nd, REFRESH):
+        A = _antisym(Gd[start - TRAIL_D : start])
+        lam, V = np.linalg.eigh(1j * A)
+        v = V[:, np.argmax(lam)]
+        if v_prev is not None:
+            v = v * np.exp(-1j * np.angle(np.vdot(v_prev, v)))
+        v_prev = v
+        seg = Gd[start : min(start + REFRESH, nd)]
+        phi[start : min(start + REFRESH, nd)] = np.angle(
+            seg @ np.real(v) + 1j * (seg @ np.imag(v)))
+    return phi, day_codes, nd
+
+
+def stage_phasewalk() -> None:
+    """§28.2: the pre-registered feature arm — {cos, sin} of the causal lagged phase added to
+    the §22 one-stage design at the exog penalty, daily refit, vs the cached 679-column twin."""
+    from analysis.minimal_model import (CACHE, HOLDOUT, _qlike_series, _require_fixed_cache,
+                                        _upper, dm_test, r2_oos)
+    from analysis.wf import walk_forward
+    _require_fixed_cache()
+
+    p = load_panel()
+    sig = dict(np.load(_p(CACHE)))
+    frozen = sig["frozen"]
+    har_cols = np.concatenate([p.cols("har"), p.cols("calendar"), p.cols("regime")])
+    lin_cols = np.concatenate([p.cols("value"), p.cols("indicator")])
+    bc, _ = base_columns(p)
+    XH = np.ascontiguousarray(p.X[:, har_cols], dtype=np.float64)
+    XL = np.ascontiguousarray(p.X[:, lin_cols], dtype=np.float64)
+    XB = np.ascontiguousarray(p.X[:, bc], dtype=np.float64)
+    XS = np.load(_p("xsec_features.npz"))["F"].astype(np.float64)
+    ii, jj = _upper(XB.shape[1])
+    P = XB[:, ii[frozen]] * XB[:, jj[frozen]]
+    B = 250 * PERIODS_PER_DAY
+    sd = pd.DataFrame(P).rolling(B, min_periods=1000).std().shift(1)
+    med = np.nanmedian(sd.to_numpy(), axis=1, keepdims=True)
+    sdv = np.maximum(sd.to_numpy(), 0.1 * np.where(np.isfinite(med), med, 1.0))
+    P = P / pd.DataFrame(sdv).bfill().to_numpy()
+
+    phi, day_codes, nd = _causal_phase()
+    ph_lag = np.full(nd, np.nan)
+    ph_lag[1:] = phi[:-1]
+    n_all = p.X.shape[0]
+    PH = np.zeros((n_all, 2))
+    PH[2 * TW :, 0] = np.nan_to_num(np.cos(ph_lag))[day_codes]
+    PH[2 * TW :, 1] = np.nan_to_num(np.sin(ph_lag))[day_codes]
+    active_days = int(np.isfinite(ph_lag).sum())
+    print(f"causal phase: {active_days} of {nd} days active "
+          f"(504d warmup + quarterly refresh, gauge-chained)", flush=True)
+
+    ALPHA = 3000.0
+    X = np.hstack([XH * np.sqrt(ALPHA / 1.0), XL, XS, P * np.sqrt(ALPHA / 3e4), PH])
+    print(f"phase arm: {X.shape[1]} cols (679 + 2 phase@3e3), daily refit", flush=True)
+    yhat = walk_forward(X, p.y, TW, alpha=ALPHA, refit_every=PERIODS_PER_DAY)
+
+    ref = np.load(_p("final_onestage.npz"))["yhat_daily"]
+    y_adj = p.y[2 * TW :]
+    baseline = p.baseline[2 * TW :]
+    ts = pd.Series(pd.to_datetime(p.t[2 * TW :]))
+    late = (ts >= HOLDOUT).to_numpy()
+    act = PH[2 * TW :, 0] != 0.0
+    yc = y_adj - y_adj.mean()
+    f_new, f_ref = yhat[TW:], ref[TW:]
+    q_new = _qlike_series(f_new, y_adj, baseline)
+    q_ref = _qlike_series(f_ref, y_adj, baseline)
+    d = q_ref - q_new
+    print(f"\n  679-col twin : R2 {r2_oos(yc, f_ref - y_adj.mean()):+.5f}  "
+          f"QLIKE {np.nanmean(q_ref):.5f}")
+    print(f"  +phase (681) : R2 {r2_oos(yc, f_new - y_adj.mean()):+.5f}  "
+          f"QLIKE {np.nanmean(q_new):.5f}")
+    from analysis.minimal_model import _hac_mean_t
+    print(f"\n  QLIKE DM (+phase vs twin), ACTIVE span ({act.sum()} bars): "
+          f"{_hac_mean_t(d[act]):+.2f}   <- the gate (>= +2.0)")
+    print(f"  QLIKE DM full span: {_hac_mean_t(d):+.2f}   2020+: {_hac_mean_t(d[late]):+.2f}")
+    print(f"  sqrt DM active: {dm_test(y_adj[act], f_new[act], f_ref[act]):+.2f}")
+    g = _hac_mean_t(d[act])
+    print(f"\n  gate: {'PASS' if g >= 2.0 else 'FAIL'}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["hermitian", "sync", "sponge", "cpd", "rmt", "flow"],
+    ap.add_argument("--stage", choices=["hermitian", "sync", "sponge", "cpd", "rmt", "flow",
+                                        "phase", "phasex", "phasecheck", "phasewalk"],
                     required=True)
     a = ap.parse_args()
     {"hermitian": stage_hermitian, "sync": stage_sync, "sponge": stage_sponge,
-     "cpd": stage_cpd, "rmt": stage_rmt, "flow": stage_flow}[a.stage]()
+     "cpd": stage_cpd, "rmt": stage_rmt, "flow": stage_flow,
+     "phase": stage_phase, "phasex": stage_phasex, "phasecheck": stage_phasecheck,
+     "phasewalk": stage_phasewalk}[a.stage]()
