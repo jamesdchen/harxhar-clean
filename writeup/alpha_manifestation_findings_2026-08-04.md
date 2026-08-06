@@ -3217,6 +3217,15 @@ constant). Expectation: genuinely uncertain — recorded lean: small positive, u
 columns' marginal on the second moment is the open question). EWMA/GARCH variants are skipped
 as re-parameterizations of the means (§13.1: EWMA = the random-walk Kalman filter).
 
+**§34.3 result: FAIL, −1.85** (2020+ −1.21) — the 679 dense columns make the smear WORSE than
+three trailing means. The second moment is **saturated by its own persistence**: dense-weak does
+NOT extend to vol-of-vol on this panel (a boundary, not a casualty — the philosophy's first
+measured edge of applicability). Two consequences: the production smear is the means-only
+version, final; and per the registered decision rule, the LSTM-smear-head's odds collapse —
+if 679 linear columns subtract value, a sequence model has only nonlinearity-in-history left
+to mine on a channel that persistence already saturates. The sequence-model case on this panel
+is now confined to §33 P3 (the professor's adjudication) — no performance motivation remains.
+
 ## 35. Is there more in the product lever? — pre-registered (user question)
 
 The §4-era count ladder peaked at k = 100 AT FIXED α (200: dm +3.95; 400: +0.93 — real decline)
