@@ -2413,6 +2413,33 @@ intraday informational efficiency catching up). Forward expectation, stated for 
 1e-4 of QLIKE edge vs HAR, composed ~66 dense + ~7 products + ~5 cadence, with smearing and xsec
 at zero — and the trend of the dominant component is up, not down.
 
+## 25. The window question: extending it LOSES — the two-timescale architecture was already complete
+
+§23's "stable at the fitting horizon, autonomous at the secular horizon" raised the natural
+question of whether the 250-day training window (a Part-4 inheritance, never varied this session)
+should be longer. Ladder on the §22 one-stage design at daily refit, common rows from 2009:
+
+| window | R² | QLIKE | vs 250d (sqrt / QLIKE DM) |
+|---|---|---|---|
+| 125d | +0.61094 | 0.12452 | −0.32 / −0.33 |
+| **250d** | **+0.61120** | **0.12444** | — |
+| 500d | +0.61093 | 0.12506 | −0.31 / **−2.38** |
+| 1000d | +0.60935 | 0.12621 | −1.38 / **−3.50** |
+
+**Extending the window loses, significantly and monotonically on QLIKE; shortening to 125d is a
+statistical tie.** The two-timescale reading resolves rather than contradicts this: the slow
+object (the coupling support/map, stable for decades) is already estimated on an effectively
+infinite window — that is what the frozen selection *is* — so the rolling window's only job is the
+fast object (amplitudes, memory under a year), and 250d sits on that component's plateau. Longer
+windows dilute amplitude tracking without improving a support that was never theirs to estimate.
+The architecture had already assigned each timescale its correct window; the inherited 250d turns
+out to be matched, not lucky.
+
+This closes the inherited-parameters audit: refit cadence (tested — the biggest lever found),
+selection cadence (tested — freeze), stage split (tested — FWL tie), window length (tested — at
+optimum). Every parameter the model carries has now either been varied or shown to sit on a
+measured plateau.
+
 ## Reproducibility
 
 ```bash
