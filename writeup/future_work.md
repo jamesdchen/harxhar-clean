@@ -14,6 +14,18 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
 | [STRAT-06](#strat-06--strike-policies-beyond-atm-at-open) | `src/strategy_eval.py` | Strike policies beyond ATM-at-open | Unblocked, additive |
 | [STRAT-07](#strat-07--transaction-cost-calibration) | `src/strategy_eval.py` | Transaction cost calibration | Depends on `STRAT-02` |
 | [STRAT-08](#strat-08--per-horizon-qlike-vs-strategy-sharpe-consistency-study) | `src/strategy_eval.py` | Per-horizon QLIKE-vs-strategy-Sharpe consistency study | Depends on `STRAT-01` / `STRAT-02` (real data) |
+| [AM-01](#am-01--panel-refresh-through-the-present) | `analysis/*` (alpha-manifestation study) | Panel refresh through the present (2024-03 → now is unseen OOS) | Current raw bar data |
+| [AM-02](#am-02--land-the-options-chain--run-tier-1-vrp) | `analysis/vrp_eod.py` | Land the options chain + run Tier-1 VRP | Data transfer (chain parquets exist elsewhere) |
+| [AM-03](#am-03--qlike-to-straddle-pnl-translation) | `analysis/vrp_eod.py`, `src/evaluation/strategy.py` | QLIKE → straddle-P&L translation (real-data STRAT-08) | AM-02 |
+| [AM-04](#am-04--gamma-path-vs-integrated-variance-wedge) | `src/evaluation/strategy.py` | Gamma-path vs integrated-variance wedge | Unblocked (scaffold exists) |
+| [AM-05](#am-05--tail-treatment-and-distributional-forecast-head) | `analysis/straddle_horizon.py` | Tail/winsorization audit at horizon + quantile forecast head | Unblocked — runnable today |
+| [AM-06](#am-06--announcement-organ-port) | `analysis/straddle_horizon.py` | Announcement-organ port (msweep's settled lever) | `data/releases.parquet` absent in this environment |
+| [AM-07](#am-07--per-horizon-shrinkage-from-the-msweep-alpha-law) | `analysis/straddle_horizon.py` | Per-horizon shrinkage imported from the msweep α-law | Unblocked — runnable today |
+| [AM-08](#am-08--cross-market-replication) | study-wide | Cross-market replication of dense-weak + the meta-law | A second market's bar data |
+| [AM-09](#am-09--session-conditional-operator) | `analysis/straddle_horizon.py` | Session-conditional (per-clock) remaining-session model | §29.2 verdict first |
+| [AM-10](#am-10--multiplicity-sweep-over-the-s27-32-family) | `analysis/multiplicity.py` | Romano–Wolf sweep over the §27–§32 claim family | All §27–32 verdicts in |
+| [AM-11](#am-11--finer-resolution-intraday-flow) | `analysis/cucuringu.py` | Intraday flow at 1–5 min bars (sub-bar dynamics behind the −0.28 jitter) | Finer-resolution bar data |
+| [AM-12](#am-12--cross-sectional-panel-cucuringu-as-estimator) | new module | Cross-sectional panel: lead-lag portfolios, cross-impact OFI, SPONGE sectors | Cross-section of names |
 
 ---
 
@@ -86,3 +98,89 @@ This is the durable tracker for known-but-deferred work across harxhar modules. 
 - **Concrete change required:** Run the strategy eval across all executors at multiple horizons against real IV data; rank by QLIKE and by strategy Sharpe; report rank correlation and any regimes where the two diverge.
 - **Blocker:** Depends on `STRAT-01` / `STRAT-02` (real data) before the study is meaningful.
 - **Where flagged in code:** Module docstring of `src/strategy_eval.py`.
+
+
+---
+
+### AM-01 — Panel refresh through the present
+
+- **Module:** the whole alpha-manifestation study (`analysis/*`, `writeup/alpha_manifestation_findings_2026-08-04.md`).
+- **Symptom / why it matters:** The panel ends 2024-03; as of 2026-08 there are ~2.5 years of genuinely unseen data. Every §22–§32 claim (the per-bar composite, the era-GROWTH of the edge, the §28.2 phase sliver, the §26 rot-detector firing, the §32 re-draw) is validated only by internal splits. The rot detector fired AT the panel edge — whether the map recovered (2018 pattern) or broke permanently is the single most decision-relevant unknown and is unanswerable on this panel.
+- **Concrete change required:** Rebuild the panel through the present with the existing loaders; re-run the §22 final model, the rot-detector trace, the era table, and the §28.2/§32 gates on the 2024-03+ span as true OOS. No new methodology — this is pure adjudication.
+- **Blocker:** Current raw bar data (exists in the user's environment, not in this container).
+
+### AM-02 — Land the options chain + run Tier-1 VRP
+
+- **Module:** `analysis/vrp_eod.py` (consumer, built and waiting), `writeup/om_0dte_atopen_export_spec.md` (spec).
+- **Symptom / why it matters:** Every trade-shaped conclusion is QLIKE-proxy. The measured VRP, the `|edge| > half-spread` trade rule, and the Tier-2 purchase decision all wait on two files.
+- **Concrete change required:** Land `data/om_friction/chain_109820_dte0_*.parquet` + `data/optionm_spx_spot.parquet`; run `--stage gates` then `--stage vrp`. The overnight-decomposition cache (`straddle_overnight.npz`) is already computed.
+- **Blocker:** Data transfer — the prior dte0_10 landing already contains the 0–1 dte rows.
+
+### AM-03 — QLIKE-to-straddle-PnL translation
+
+- **Module:** `analysis/vrp_eod.py`, `src/evaluation/strategy.py`.
+- **Symptom / why it matters:** DM units do not answer "is the edge monetizable." STRAT-08 posed this; real implied (AM-02) makes it answerable: rank models by QLIKE and by net straddle Sharpe, report where the rankings diverge (a small DM edge can be un-monetizable after half-spreads; conversely the veto-overlay can pay more than its DM suggests).
+- **Blocker:** AM-02.
+
+### AM-04 — Gamma-path vs integrated-variance wedge
+
+- **Module:** `src/evaluation/strategy.py` (the delta-hedged straddle eval already computes path-dependent P&L).
+- **Symptom / why it matters:** A delta-hedged straddle earns dollar-gamma-weighted variance along the price path; our targets are flat integrated variance. On trending days the wedge is systematic. Unmeasured for the midday-entry hold-to-close shape (§29.1's recommended trade).
+- **Concrete change required:** On the synthetic-IV scaffold (real IV when AM-02 lands), compare variance-swap P&L vs path-dependent straddle P&L for the same signals; quantify the wedge by regime and day-of-week.
+- **Blocker:** None — scaffold exists today.
+
+### AM-05 — Tail treatment and a distributional forecast head
+
+- **Module:** `analysis/straddle_horizon.py`, `src/features/transforms/target.py`.
+- **Symptom / why it matters:** Targets are built from winsorized bar RV — defensible for regression, but a straddle payoff is convex in exactly the clipped tail. Unaudited at horizon. Deeper: the study forecasts the MEAN of RV; a straddle buyer prices the DISTRIBUTION (right tail especially). A quantile/distributional head is the most payoff-aligned modeling idea not yet tried on this panel.
+- **Concrete change required:** (a) audit: recompute §29 ladder QLIKE on unwinsorized reconstruction, report divergence; (b) pilot: quantile regression (same 679 design, pinball loss at τ = 0.75/0.9/0.95) on y_H at H = 8, gate on out-of-half pinball skill vs a scaled-mean baseline.
+- **Blocker:** None — runnable today.
+
+### AM-06 — Announcement-organ port
+
+- **Module:** `analysis/straddle_horizon.py` (feature block), source machinery in `drivers/msweep_2026-08-01/straddle_v3.py` lines 54–77.
+- **Symptom / why it matters:** The msweep session's settled lever: window-aware announcement features worth −0.005…−0.0067 QLIKE at H = 4–16 — larger than most §29-era increments — base-independent, and absent from our 543 columns.
+- **Concrete change required:** Port the 4-per-release-type organ (since/until/count-in-window/bars-until-first) onto the panel; one pre-registered arm at H = 8.
+- **Blocker:** `data/releases.parquet` absent in this environment.
+
+### AM-07 — Per-horizon shrinkage from the msweep α-law
+
+- **Module:** `analysis/straddle_horizon.py`.
+- **Symptom / why it matters:** The msweep law: α scales with horizon AND capacity (their 1077-col basis wanted 1e4 at H ≤ 8, 1e5 at H = 16). Our ladder used §22's h=1 penalties unretuned, so the composite's H = 8/16 numbers are floors.
+- **Concrete change required:** Import the law as a PRIOR (no bake-off): one pre-registered α per horizon scaled from their measurement to our 679-col capacity; single arm per horizon on the fast engine; gate DM ≥ +2.0 vs the unretuned twin.
+- **Blocker:** None — runnable today; cheapest known upside on the ladder.
+
+### AM-08 — Cross-market replication
+
+- **Module:** study-wide.
+- **Symptom / why it matters:** Every law here (dense-but-weak, the meta-law's 12+ casualties, the 35-day cycle, the intraday flow) is n = 1 market. One replication on a second series would upgrade or kill the program's generality claims more than any further instrument on this panel.
+- **Concrete change required:** Rebuild the panel machinery on a second market (NQ, rates vol, or a liquid single name); re-run §22 + §26 + §30 core objects only.
+- **Blocker:** A second market's bar data.
+
+### AM-09 — Session-conditional operator
+
+- **Module:** `analysis/straddle_horizon.py`.
+- **Symptom / why it matters:** One set of weights serves 10:00, 15:30, and 03:00; time-of-day enters only as features. The msweep session found session-conditional kernels; §29.2 (in flight) adjudicates whether the open-decision failure is clock-conditioning.
+- **Concrete change required:** If §29.2 implicates the morning information set: per-slot remaining-session models (13 small ridges, fast engine), pre-registered against the pooled model.
+- **Blocker:** §29.2 verdict first.
+
+### AM-10 — Multiplicity sweep over the §27–§32 family
+
+- **Module:** `analysis/multiplicity.py`.
+- **Symptom / why it matters:** The §24 sweep covered the model's spine; since then a new claim family accumulated (§28.2 sliver +2.09, §29 ladder, §30 objects, §32 re-draw). Marginal survivors must clear FWER before anything ships, or be labeled provisional — the smear claim died exactly this way.
+- **Concrete change required:** Romano–Wolf step-down over the family's loss differentials once all verdicts are in.
+- **Blocker:** All §27–32 verdicts in (nearly there).
+
+### AM-11 — Finer-resolution intraday flow
+
+- **Module:** `analysis/cucuringu.py`.
+- **Symptom / why it matters:** The intraday phase increments anticorrelate at −0.28 per 30-min bar — the signature of coherent dynamics (or microstructure noise) BELOW bar resolution. The flow at 1–5 min lags is unexplored and is exactly the frequency Cucuringu's lead-lag program targets.
+- **Concrete change required:** Rebuild factor scores at finer bars (or on raw quotes), re-run `--stage intraflow` + the kill-tests at 1–5 min lags.
+- **Blocker:** Finer-resolution bar data.
+
+### AM-12 — Cross-sectional panel: Cucuringu as estimator
+
+- **Module:** new module (the study's designated "next unit of progress").
+- **Symptom / why it matters:** On one series his methods are diagnostics; on thousands of names they are estimators with literature-verified economics: lead-lag portfolios (laggards traded on leaders), cross-impact of OFI (Cont–Cucuringu–Zhang — the OFI features already exist), SPONGE sector clustering for relative-vol trades, per-sector flow networks whose differences are tradable.
+- **Concrete change required:** Cross-sectional bar panel of names; port the frame/map/flow machinery per sector; pre-register the lead-lag portfolio as the first scored arm.
+- **Blocker:** Cross-section of names (bar-level).
