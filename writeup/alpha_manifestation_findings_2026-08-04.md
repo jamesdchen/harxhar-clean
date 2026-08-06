@@ -2483,6 +2483,126 @@ one-statistic instance of his dynamic-network change-point problem. On this pane
 descriptive (1-day-lag content overlaps the linear MAs); on a cross-section it becomes the
 estimation target.
 
+## 27. Maximum mining of Cucuringu — the full battery, pre-registered
+
+§26 established that his program finally has the right targets: three stable objects (frame,
+IC map +0.62, flow +0.79). This section runs everything in that program our single-market panel
+can support, pre-registered here before any stage executes (`analysis/cucuringu.py`). All
+instruments use the frozen first-window frame and the §26 machinery.
+
+**Candidates, gates, and expectations (written before running):**
+
+* **C1 — Hermitian spectral analysis of the flow** (H = iA, his directed-graph clustering
+  embedding) plus the **Hodge decomposition** the ranking program implicitly assumes: split
+  A into its gradient part (A_grad[i,j] = r_i − r_j, r = row means — a potential, i.e. a strict
+  lead-lag hierarchy) and its curl part (genuine rotation). Deliverables: gradient fraction
+  ‖A_grad‖²/‖A‖², top-eigenpair phase ordering, phase clustering. Gate: split-half correlation of
+  the aligned phase ordering ≥ +0.5. Expectation: gradient-dominant — §26's clean source/sink
+  ranking suggests a hierarchy, not a rotation.
+* **C2 — SyncRank** (angular synchronization ranking): global lead-lag ordering from the pairwise
+  flow via the top eigenvector of H_ij = exp(iπA_ij/max|A|). Gate: split-half Kendall τ of the
+  ranking ≥ 0.5, reported against the naive row-sum ranking's τ. Expectation: ≈ row-sum ordering
+  (on a complete dense graph the two are near-equivalent), with SyncRank no worse.
+* **C3 — SPONGE** (signed clustering) on the off-diagonal IC map as a signed weighted graph on 20
+  factor nodes, k = 2, 3, 4, τ± = 1. Gate: split-half ARI of the partition above the 95th
+  percentile of a 200-draw permutation null. Expectation: partial pass at k = 2 (carriers vs
+  non-carriers); higher k unstable.
+* **C4 — Dynamic-network change-point detection** (the rot detector done his way): quarterly
+  trailing-2y maps AND flows, T×T correlation-similarity matrices, scan statistic = mean
+  similarity between adjacent 4-quarter windows; minima = candidate breaks. Gate (descriptive):
+  detected breaks must coincide with independently known events (2018-02 Volmageddon, 2020-03
+  COVID, 2023–24 0DTE era) — no tuning to hit them. Expectation: breaks at 2017–18 and 2023–24
+  (the two §26 excursions), possibly 2020.
+* **C5 — RMT / Marchenko–Pastur**: eigenvalues of the first-window base correlation vs the MP
+  edge, with an autocorrelation-adjusted effective sample size (bar data is heavily dependent;
+  raw q lies). Where do the 20 frame factors, and specifically the §23 carriers, sit relative to
+  the noise edge; how much map energy lives above it. Expectation: all 20 above the adjusted
+  edge (the frame is real structure, not noise the trees could have invented).
+* **C6 — the only scored arm: flow-predicted products.** Ĝ_j(t) = Σ_i A[i,j]·G_i(t−1d): tomorrow's
+  scores as predicted by the flow; form their products Q̂ and compute the IC map with the HAR
+  residual. Gates, in order: (i) split-half replication of the flow-predicted map ≥ +0.30;
+  (ii) alignment with the actual product map > 0 with the same sign pattern. Only if both pass
+  does a walk-forward arm get pre-registered. **Expectation: FAIL** — the meta-law has killed
+  every timing/prediction arm, and one-day-lag content overlaps the linear MA columns the
+  backbone already carries.
+
+**Explicitly out of reach on this panel, flagged for the cross-sectional unit:** cross-impact of
+OFI (Cont–Cucuringu–Zhang needs many assets), lead-lag trading portfolios (laggards traded on
+leaders needs a cross-section of tradables), DIGRAC/SSSNET-style GNN clustering (n = 20 nodes is
+two orders of magnitude short, and the meta-law advises against the cleverness anyway).
+
+### 27.1 Results — two expectations overturned, one confirmed on schedule, and a corrected picture
+
+**C1 Hermitian + Hodge: PASS — and the biggest structural surprise since the frame.** The flow is
+**91.6% curl, 8.4% gradient** (halves: 0.070 / 0.108). It is not a hierarchy — it is a
+**rotation**: one dominant 2-plane carries 61% of the antisymmetric energy, and the Hermitian
+phase ordering replicates across halves at **+0.76** (gate ≥ 0.5). The pre-registered expectation
+(gradient-dominant) was wrong, and §26's source/sink language now needs its caveat: net
+leadingness is the *shadow* of the cycle (it reads only the 8% gradient part; spearman(phase,
+netlead) = +0.21). The replicating object is the **cyclic order of factors around a circulation**.
+And the carriers sit in a specific place on it: with the phase origin at PC0 (turnover), five of
+six §23 carriers (PC16 −2.58, PC11 −2.13, PC9 +2.13, PC19 +2.64, PC3 +2.95) lie at |phase| > 2 —
+**the far side of the cycle, near-antipodal to the dominant factor** (carriers mean |phase| 2.23
+vs 1.56 for the rest; PC14 at −0.94 the exception). "Downstream" was the acyclic approximation;
+the exact statement is *maximally out of phase with turnover on the circulation*.
+
+**C2 SyncRank: FAIL (split-half τ −0.06 vs gate 0.5) — and the failure is C1's pass restated.**
+SyncRank recovers a global *ranking*, which presumes the flow is a gradient; at 92% curl there is
+no ladder to recover, and the estimator that assumes one is unstable. The naive row-sum ordering
+(τ +0.48) beats it precisely because it only ever claimed the gradient part. Cucuringu's own
+toolkit adjudicated between two of its instruments: on this object, use the Hermitian cycle, not
+the synchronization ranking.
+
+**C3 SPONGE: FAIL at every k** (split-half ARI −0.08…−0.02 vs null p95 ≈ +0.12…+0.15). The map
+replicates cell-wise (+0.62) but supports **no replicating partition** — the same lesson §17.4
+learned on the interaction graph and §19 learned from soft thresholds, now at the community
+level: dense but weak has no blocks, here either. (The full-sample k=2 cut does put 5/6 carriers
+in one cluster — recorded as a non-replicating curiosity, nothing more.)
+
+**C4 dynamic-network CPD: the descriptive gate is met.** The map-sequence scan flags exactly two
+interior breaks: **2017-08** (independent confirmation, via a different statistic, of §26's
+pre-Volmageddon excursion) and **2013-07** (the taper-tantrum transition). **COVID does not
+appear**: the map's support held through 2020 while amplitudes exploded — consistent with §24's
+era table (the edge *grew* through 2020) and the study's amplitude/geometry split. The
+end-of-sample rot shows as a monotone slide into the scan boundary (0.90 → 0.62; the scan needs
+4 quarters on each side, so §26's 2024 minimum is boundary-truncated, not absent). The **flow
+sequence barely moves** (scan sd 0.034 vs the map's 0.126): the circulation is more permanent
+than the coupling — the trajectory keeps turning the same way even as what vol reads off it rots.
+
+**C5 RMT: expectation overturned in the humbling direction — and it explains two old findings.**
+At the naive iid edge (q = 0.0088, edge 1.20) 22 of 106 eigenvalues are "real" — comfortably
+covering QPOOL = 20 and matching §17's participation ratio 18.1. But bar data is dependent:
+median integrated autocorrelation time of the factor scores is **175 bars (≈ 3.6 days)**, giving
+T_eff ≈ 68, q ≈ 1.55, adjusted edge 5.04 — and only **5** eigenvalues clear it. PC5 downward,
+including five of six carriers, are *below the dependence-adjusted noise edge as individual
+directions*. Read correctly this is not "the carriers are noise" (the map on them replicates
++0.62 across independent halves — noise can't do that): it is that **individual mid-spectrum
+eigenvectors are rotationally degenerate** — not separately identifiable at this effective sample
+size. Which is exactly the mechanism behind two §23-era facts that lacked one: why the product
+representatives barely matter (a diffuse quadratic subspace — you cannot pin its basis, only its
+span), and why soft/hard spectral thresholds could not beat carrying the whole pool. The signal
+lives in a *subspace* the data can hold; the *basis* inside it is gauge.
+
+**C6 flow-predicted products: FAIL, exactly as pre-registered** — replication +0.24 (< 0.30),
+alignment with the actual map **−0.18** (< 0), mean |IC| 0.035 vs the actual products' 0.088. The
+tenth casualty of the meta-law, and the cleanest: even the study's second-most-stable object,
+used predictively at its own natural lag, produces a map *anticorrelated* with the real one. The
+flow is real and it is not a forecast. No walk-forward arm is registered.
+
+**The corrected picture.** The trajectory's stable structure is now fully characterized: a frozen
+frame; on it a **stable circulation** (curl-dominated, one dominant rotation plane, phases
+replicating +0.76) that survives every regime including COVID; a coupling map (+0.62) that tells
+vol which pairs to read and which **rots on structural breaks** (2013 taper, 2017 pre-Volmageddon,
+2024 0DTE — now confirmed by two independent statistics); carriers sitting near-antipodal to
+turnover on the cycle, individually gauge-degenerate but spanning a stable subspace; and
+amplitudes that remain unforecastable. Cucuringu's program delivered its verdicts symmetrically:
+the Hermitian embedding and dynamic-network CPD are the right instruments (both passed), the
+ranking and partition instruments are category errors on this object (both failed for reasons the
+passing instruments explain), and the predictive use fails per the meta-law. What transfers to
+the cross-sectional unit is the passing pair — Hermitian lead-lag clustering and network CPD —
+where n grows from 20 factors to thousands of names and the circulation becomes estimable per
+sector rather than once.
+
 ## Reproducibility
 
 ```bash
@@ -2537,6 +2657,12 @@ python analysis/pc_quadratics.py           # frame test: PC-quadratics, soft thr
 python analysis/pc_quadratics.py --map     # where the signal lives in the factor grid
 ALPHA_PANEL_CACHE=$C python analysis/map_monitor.py --stage calib    # §26 rot detector calibration
 ALPHA_PANEL_CACHE=$C python analysis/map_monitor.py --stage leadlag  # §26 factor flow network
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage hermitian  # §27 C1: cycle not hierarchy
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage sync       # §27 C2: SyncRank (fails; no ladder)
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage sponge     # §27 C3: SPONGE (fails; no blocks)
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage cpd        # §27 C4: network change points
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage rmt        # §27 C5: MP edge, gauge degeneracy
+ALPHA_PANEL_CACHE=$C python analysis/cucuringu.py --stage flow       # §27 C6: scored arm (fails, 10th)
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1
@@ -2569,4 +2695,4 @@ heat_graph_fit.csv, heat_graph_fit2.csv, intensity_gate.csv, intensity_modulator
 intensity_gate2_levels.csv, intensity_gate2_changes.csv, intensity_estimators.csv,
 intensity_gate3.csv, composition_geometry.csv, composition_weights_K{2,3,5}.csv, composition_geometry2.csv,
 composition_shrinkage_ladder.csv, composition_audit.csv, axis_direct.csv,
-axis_direct_summary.csv}`.
+axis_direct_summary.csv, map_rot_calibration.csv, factor_leadlag.csv, cucuringu_cpd.csv}`.
