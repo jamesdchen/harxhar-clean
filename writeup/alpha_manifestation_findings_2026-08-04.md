@@ -3023,10 +3023,14 @@ is real but lives secularly (rot events), cyclically (the 35-day phase), and in 
 (forecastable, §31).
 
 * **P1 — kNN residual correction on the deliverable** (`analysis/knn_arm.py`): the surviving
-  form of his idea, upgraded per the diagnosis — retrieval in AMBIENT/state coordinates (two
-  pre-registered view sets: trailing-24-bar residual path; the 20 frozen-frame factor scores —
-  our measured manifold chart), NO eigenmap, strictly causal pool (trailing 5y, stride 3,
-  embargoed), k = 100, Gaussian weights at frozen median bandwidth. Correction = weighted mean
+  form of his idea, upgraded per the diagnosis — retrieval in three
+  pre-registered view sets run head-to-head on the identical protocol: (i) trailing-24-bar
+  residual path, (ii) the 20 frozen-frame factor scores (the measured manifold chart), and
+  (iii) **his exact spec** — Laplacian eigenmap d = 6 with Nyström-style kNN extension, fit
+  causally on the first two OOS years (amendment registered before execution) — so the report
+  reads "your spec vs the diagnosis-corrected views, same data, same causality, same gates."
+  Strictly causal pool (trailing 5y, stride 3, embargoed), k = 100, Gaussian weights at frozen
+  median bandwidth. Correction = weighted mean
   of neighbors' residuals, added to the deliverable's forecast; h = 1-bar and H = 8. Gate:
   QLIKE DM ≥ +2.0 per view set per horizon. Expectation: small positive or harmless at h = 1
   (the msweep precedent); unknown at H = 8.
