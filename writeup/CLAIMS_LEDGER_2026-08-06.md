@@ -13,7 +13,9 @@ report).
 confirmed per-bar +8.54) + the conditional smear (means + leverage + probe, §34.8 FWER-graded):
 **QLIKE 0.12331** (679-const baseline 0.12579 on the same span; smear increment on the final
 model DM +3.95). ≈ −7% vs HAR, from −5.6% at session start. First moment dense-and-fast;
-second moment sparse-and-named. Original §22 record: 679 @ per-bar, QLIKE 0.12526 (§22 span),
+second moment carried by ten named columns — though §34.10 renames the law: the variance
+channel is SPAN-DEFICIENT, not sparse (ridge on the union beats the names +3.12, 2020+ flat;
+production smear unchanged). Original §22 record: 679 @ per-bar, QLIKE 0.12526 (§22 span),
 R² 0.612; 250-day window (§25: longer LOSES); edge GROWS by era: 65 → 79 → 82 ×1e-4 (§24).
 
 ## Tier 1 — proven (Romano–Wolf survivors, §24)
@@ -123,10 +125,12 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 
 ## Pending / open
 
-- §38 pool-width LANDED: width curve monotone through q = 40 (+7.27 vs twin; +2.29 vs q = 20
-  head-to-head) — "just 20" was a floor, not an optimum; q = 40 provisional pending per-bar
-  confirmation + family accounting. In flight: §38.1 extension (q ∈ {80, 106}); §34.10
-  ridge-union span discriminator (rerun under causal-standardization instrument).
+- §38/38.1 pool-width LANDED: transmission rank is finite, peak q ≈ 40 (beats 20 head-to-head
+  +2.29; q = 80 shoulder; q = 106 twin-gate FAIL) — "just 20" was a floor, not an optimum.
+  §34.10 ridge-union LANDED: union beats the ten names +3.12 (2020+ +0.50) — variance channel
+  span-deficient, not sparse; channel laws unified; production smear unchanged.
+- In flight: §38.2 per-bar entry test for q = 40 (gate ≥ +2.0 vs the 699 per-bar; stack
+  changes only on a pass).
 - Cluster (user's side): LSTM smear head (§34.7, `analysis/lstm_smear.py`); AM-13 battery rerun
   on the fixed panel + tree parity rematch on the 699 set.
 - Data-blocked: AM-01 panel refresh 2024-03 → present (the biggest item); AM-02 chain parquets;

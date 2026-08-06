@@ -103,5 +103,48 @@ def main() -> None:
               f"{'MOVE' if abs(g) >= 2.0 and g > 0 else 'STAY 20'}", flush=True)
 
 
+def perbar() -> None:
+    """§38.2 (PERBAR=1): per-bar entry test for the §38 winner — q = 40 vs the production
+    q = 20 per-bar forecast (final_699_perbar.npz, same SM dual engine), gate DM >= +2.0.
+    The production stack changes only if this passes."""
+    from analysis.synthesis import _p
+    from analysis.wf import walk_forward_embargo_dualcadence
+
+    p = load_panel()
+    ts = pd.Series(pd.to_datetime(p.t))
+    n = len(ts)
+    late = (ts >= HOLDOUT).to_numpy()
+    XH, XL, XS, P = _blocks(p)
+    A = 3000.0
+    X679 = np.hstack([XH * np.sqrt(A), XL, XS, P * np.sqrt(0.1)])
+    F40 = _trans_block(_frame_q(p, 40), n, lag=1, refresh_days=63)
+    act = np.abs(F40).sum(1) != 0.0
+    pb, _ = walk_forward_embargo_dualcadence(np.hstack([X679, F40]), p.y, TW, 1, A)
+    f40 = np.full(n, np.nan)
+    f40[TW:] = pb
+    np.savez_compressed(_p("pool40_perbar.npz"), yhat=f40)
+    f20 = np.load(_p("final_699_perbar.npz"))["yhat"]
+
+    def q_of(f):
+        m = np.isfinite(f) & np.isfinite(p.y)
+        q = np.full(n, np.nan)
+        q[m] = _qlike_series(f[m], p.y[m], p.baseline[m])
+        return q
+
+    q20, q40 = q_of(f20), q_of(f40)
+    print(f"  q=20 per-bar QLIKE {np.nanmean(q20):.5f}   q=40 per-bar QLIKE {np.nanmean(q40):.5f}",
+          flush=True)
+    d = q20 - q40
+    d[~act] = np.nan
+    md = np.isfinite(d)
+    g = _hac_mean_t(d[md], 480)
+    print(f"  q=40 vs q=20 PER-BAR: DM {g:+.2f} (2020+ {_hac_mean_t(d[md & late], 480):+.2f})  "
+          f"{'CONFIRMED — production moves to 40' if g >= 2.0 else 'NOT CONFIRMED — stay 20'}",
+          flush=True)
+
+
 if __name__ == "__main__":
-    main()
+    if os.environ.get("PERBAR"):
+        perbar()
+    else:
+        main()

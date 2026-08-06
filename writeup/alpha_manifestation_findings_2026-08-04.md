@@ -3374,6 +3374,30 @@ functionals; shrink generously; selection never adds"). If ridge-union LOSES ⇒
 survives as a channel property. Expectation: genuinely uncertain — recorded lean: ridge-union
 ties (the mean channel's whole history is span-expansion wins, not estimator wins).
 
+**Result (2026-08-06): the recorded lean confirmed, and then some — ridge-union BEATS the ten
+names, DM +3.12.** Two-pass history, both on record. First pass VOID on an instrument
+pathology: first-window z-scores on nonstationary panel snapshot columns exploded the exp()
+conversion (union QLIKE 4.8 — a blowup, not a verdict). Corrected instrument, applied
+identically to both arms: per-refit CAUSAL standardization (training-window mu/sd, z clipped
+±8), log-forecast clipped to the training target range ±1, per-refit causal Duan factor
+(§34.12b), RidgeCV LOO-GCV α per refit. Then: 10-named 0.12380, ridge-union **0.12334**,
+DM **+3.12** (2020+ +0.50).
+
+**The law is renamed.** The variance channel was never sparse — its original dictionary was
+span-deficient. Ridge over the union (10 named functionals + the full daily panel snapshot)
+beats the names themselves; §34.3's dense-679 failure was a dictionary that LACKED the
+target-derived functionals, not evidence that density fails. Both channels now sit under one
+principle: **expand the span with named causal functionals; shrink generously (scale-matched,
+GCV); selection never adds.** The §34.9 lasso tie, the §34.8 sweep's dense-679 negative
+control (an arm whose span was missing the signal), and this result are all consistent with
+that single sentence — the meta-law's first apparent inversion (§34) is repealed; the mean/
+variance asymmetry was an artifact of dictionary construction.
+
+Caveats, graded honestly: single-gate pass, post-instrument-fix — provisional until a family
+accounting; and the uplift is HISTORICAL (2020+ only +0.50 — flat on the 0DTE era), so the
+production smear does NOT change: means+leverage+probe stays, with ridge-union recorded as the
+span verdict, not a deployment.
+
 ### 34.11 THE COMPOSED FINAL NUMBER
 
 On one consistent evaluation span (all scored rows, same engine, smear rebuilt causally on the
@@ -3601,6 +3625,35 @@ Registered follow-up (§38.1, running): extend the ladder to q ∈ {80, 106 = al
 same protocol. Expectation now genuinely open: monotone-to-the-end says transmission is dense
 in the FULL basis (fold the whole lagged frame in, α-scaled); a peak at 40–80 says the arrows
 have finite rank ~2× the frame we froze.
+
+### 38.1 The extension — the curve turns: finite rank ≈ 40
+
+| width | QLIKE | vs 679 twin | 2020+ | vs q = 20 head-to-head |
+|---|---|---|---|---|
+| q = 20 | 0.12801 | +9.90 PASS | +5.38 | — |
+| q = 40 | 0.12788 | +7.27 PASS | +5.14 | **+2.29** (2020+ +1.89) |
+| q = 80 | 0.12791 | +4.75 PASS | +4.60 | +1.12 (2020+ +2.59) |
+| q = 106 | 0.12811 | **+1.62 FAIL** | +3.86 | −0.56 |
+
+The second reading wins: **the arrows have finite rank, peaking at q ≈ 40 — twice the frame we
+froze.** QLIKE bottoms at 40, holds a shoulder at 80, and decays at the full basis; q = 106 is
+the width ladder's first twin-gate failure. So transmission is dense WITHIN a ~40–80-dim
+sub-span and empty beyond it — wider than the raw MP edge (22) and far wider than the
+dependence-adjusted core (5), which quantifies how much of the "gauge-degenerate" mid-spectrum
+still carries real lead-lag arrows even though its static labels are unpinnable. Two mechanisms
+for the 106 decline, not separable on this run (noted for AM-14-adjacent work): genuine
+absence of arrows in the tail directions, vs D-estimation noise growing as q² against a fixed
+504-day trail (5,565 free parameters at q = 106 vs 780 at 40).
+
+### 38.2 Per-bar entry test for q = 40 — pre-registered (running)
+
+Production is per-bar; the §35c entry condition applies to any width change. Gate: q = 40
+per-bar (SM dual engine) vs the production q = 20 per-bar forecast (`final_699_perbar.npz`,
+same engine), DM ≥ +2.0 (`PERBAR=1 python analysis/pool_width.py`). Expectation: recorded
+lean PASS at reduced magnitude (daily-refit head-to-head was +2.29; per-bar confirmations in
+this study have held within ~±20% of blocked verdicts), with the 2020+ number (+1.89 at
+daily) the honest risk. Stack changes only on a pass; a fail leaves 20 in production and
+q = 40 as attribution.
 
 ## Reproducibility
 
