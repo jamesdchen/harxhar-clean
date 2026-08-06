@@ -2719,6 +2719,51 @@ mechanism behind the carriers' autonomy, the phase-forecastability of the state 
 the operational instruments (rot detector, flow monitor) — with, now, a footnote-sized and
 provisionally real alpha attached.
 
+## 29. The use case lands: intraday multi-horizon forecasting for straddles — the ladder, pre-registered
+
+The deliverable's true consumer is now on record: **multi-horizon vol forecasts to trade
+straddles**, and the user re-confirmed the 2026-08-01 scope ruling when asked: **the product is
+intraday straddles, H < 48 bars; H ≥ 48 stays descoped.** (A first draft of this section
+pre-registered a 5d/21d daily+ ladder; it was replaced by this one on the scope ruling before
+any run — recorded for the file.) This session therefore inherits, rather than rebuilds, the
+msweep-2026-08-01 program (`drivers/msweep_2026-08-01/`, `writeup/SESSION_HANDOFF_2026-08-01B.md`)
+and its settled facts on the b2 basis: the **honest-label convention** (training window
+[t−H−W, t−H) — the overlap leak invalidated their first multistep table, and it is the same
+embargo this section's walks use); the announcement **organ** as a large settled lever
+(−0.005…−0.0067, base-independent); **VIX dropped** at intraday product horizons (ablation
+negative); the **α-scales-with-horizon-and-capacity law**; and, from the pre-descope H = 48/240
+runs, a friction-priced edge (net t = +6.5 vs OptionMetrics half-spreads, cached in
+`results/straddle_v3_*.npz`) that becomes relevant only if scope reopens. The intraday friction
+eval remains blocked on intraday option quotes (OM is EOD) — QLIKE at horizon is the tradability
+proxy in scope, and §28.1(b)'s amplitude concentration is the sizing overlay.
+
+**What is genuinely open on THIS panel at intraday horizons** — the alpha-manifestation stack's
+levers that the msweep composite never carried: the 100 frozen products, the 36 xsec ratios,
+refit *cadence*, and the phase columns. Pre-registered construction
+(`analysis/straddle_horizon.py --stage ladder --hb {4,8,16}`): targets
+y_H = √(Σ RV / Σ baseline) over the next H ∈ {4, 8, 16} bars from the panel's winsorized
+reconstruction; embargoed walks ([t−H−W, t−H), 250d window — §25's answer, vs msweep's 500d,
+noted); QLIKE at horizon via the exact Duan reconstruction with integrated baseline; HAC lags
+2H + 480. Arms:
+
+* (a) **backbone** (27 cols, α = 1) at every H — the incumbent-class benchmark;
+* (c) **one-stage 679** (§22 penalties) at every H — the composite. Caveat recorded: the msweep
+  α-law says H = 16 wants heavier shrinkage than §22's 3e3/3e4, which we do NOT retune (no
+  bake-offs on exhausted data); our composite numbers are therefore floors at the top rung;
+* (d) **+2 causal phase columns**, H = 8 only — the §28 object as a *control*: a daily-scale
+  cycle should NOT pay inside the day. Expectation: FAIL/no-add. A pass would be suspicious
+  and trigger its own falsification round;
+* (e) **cadence**, H = 8 only: the 679 design refit per bar vs daily — the study's biggest h = 1
+  lever (+3.56), never tested at product horizons (msweep solved daily blocks). Gate: DM ≥ +2.0.
+  Prior: positive but smaller than h = 1 (freshness decays as the target integrates).
+
+**Expectations (written before running):** (i) composite-over-backbone positive at all three H,
+magnitude not directly comparable to msweep's table (different basis, span, window); (ii) the
+phase control fails; (iii) cadence at H = 8 passes but under half the h = 1 effect. Out-of-scope
+notes kept for the record: the organ port onto this panel (their settled lever, absent from our
+543 columns) is the highest-value known feature addition at these horizons; the H ≥ 48
+friction frame stays cached and reusable.
+
 ## Reproducibility
 
 ```bash
