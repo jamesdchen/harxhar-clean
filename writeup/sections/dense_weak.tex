@@ -6,10 +6,271 @@
 % ridge: alpha=1 on HAR-of-target + alpha=100 on HAR-of-all_features.
 % Base text: drafts_2026-07-30/linear_vs_nonlinear.tex (linear half).
 
+Section~\ref{sec:buckets} established that the exogenous panel carries
+information beyond the HAR lag structure of \citet{Corsi2009}, and that no
+single bucket carries much of it. This section holds the information set fixed
+at its widest and varies only the \emph{shrinkage geometry} of the linear
+estimator that reads it. The contest is between the two canonical responses to
+a wide design: $\ell_1$ selection --- the lasso \citep{Tibshirani1996}, which
+bets that the signal is concentrated in a small subset of columns and zeroes
+the rest --- and $\ell_2$ shrinkage --- ridge \citep{HoerlKennard1970}, which
+bets that the signal is spread across many columns and keeps all of them,
+small. The elastic net \citep{ZouHastie2005} interpolates between the two.
+Which penalty wins is therefore not a tuning detail; it is a measurement of
+how the predictive content is distributed across the design. The verdict here
+is one-sided --- selection loses to shrinkage everywhere it is tried --- and
+that verdict is the section's diagnosis: the signal is \textbf{dense but
+weak}, spread thinly across hundreds of columns of which none is individually
+strong. The diagnosis then dictates an estimator, and the section ends with
+it: a two-block ridge that shrinks the wide exogenous block a hundred times
+harder than the persistence backbone, and selects nothing.
+
 \subsection{The Head-to-Head}
-\pending{lasso vs ridge on the wide basis — the sparsity-loses result}
+\label{sec:dense_weak_headtohead}
+
+\paragraph{Design.}
+The three penalized linear estimators are run against nine exogenous feature
+buckets on one shared out-of-sample panel of $n = 218{,}934$ thirty-minute
+bars, with identical rows in every cell; nothing varies across the grid except
+the estimator and the bucket. The panel is computed as 100 walk-forward chunks
+over a rolling 500-trading-day ($24{,}000$-bar) training window, and every arm
+is refit \emph{every bar}. Each arm re-selects its own penalty periodically
+and causally: every 250 solves, the current training window is split forward
+into a fit block, a 25-bar embargo (covering the longest moving average
+entering the features), and a 125-bar validation tail, and the configuration
+minimizing validation MSE on that tail is adopted. No forecast's
+hyperparameters ever see its own future. The lasso and elastic-net arms are
+solved as exact every-bar online homotopies rather than warm-started batch
+approximations, so the head-to-head is not confounded with optimization error;
+the ridge arm runs on an exact rank-one update path.
+% Estimator engineering (rank-one algebra, homotopy, BlockRidge solver) is
+% appendix material per the restructure plan.
+
+All arms are compared against the shared incumbent of
+Section~\ref{sec:data_prep}: per-bar OLS on HAR plus calendar features with no
+exogenous inputs, at QLIKE $0.13415$ on this panel. Diebold--Mariano
+statistics \citep{DieboldMariano1995} are computed on per-bar QLIKE loss
+\citep{Patton2011} against that incumbent, with Newey--West HAC standard
+errors and the small-sample correction of
+\citet{HarveyLeybourneNewbold1997}; a negative $t$ favors the arm.
+\decide{panel unification: this is the frozen causal-tuning battery on the
+$218{,}934$-bar panel; the restructure plan flags that the paper's final
+tables may need this re-run on the paper's one-panel convention}
+
+% Source: drafts_2026-07-30/linear_vs_nonlinear.tex, Table
+% tab:battery_bucket_estimator (linear columns), itself sourced from
+% writeup/metrics_table_causal_tune_plus_spectral.csv (family == 'causal-tuned')
+% cross-checked against writeup/causal_tune_battery_table.tex.
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Lasso versus ridge: out-of-sample QLIKE by exogenous bucket and
+penalty, with the Diebold--Mariano $t$-statistic against the shared OLS--HAR
+incumbent in parentheses. \textbf{Panel: causal-tuning battery,}
+$n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent
+QLIKE $= 0.13415$. Negative $t$ favors the arm; $|t| > 1.96$ is significant at
+the 5\% level. Best QLIKE in each row is bold. \texttt{baseline} is the
+no-exogenous bucket: HAR plus calendar features only, so that row isolates the
+effect of shrinkage with the information set held at the incumbent's.}
+\label{tab:lasso_vs_ridge}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Bucket & Ridge & Elastic net & Lasso \\
+\midrule
+\texttt{all\_features} & \textbf{0.12788} ($-19.9$) & 0.12827 ($-19.3$) & 0.12907 ($-13.2$) \\
+\texttt{moments}       & \textbf{0.13085} ($-19.2$) & 0.13114 ($-17.7$) & 0.13179 ($-8.9$)  \\
+\texttt{liquidity}     & \textbf{0.13120} ($-13.4$) & 0.13184 ($-11.5$) & 0.13206 ($-11.2$) \\
+\texttt{implied\_vol}  & \textbf{0.13252} ($-11.3$) & 0.13262 ($-10.6$) & 0.13274 ($-9.8$)  \\
+\texttt{market\_vw}    & \textbf{0.13291} ($-9.1$)  & 0.13316 ($-7.3$)  & 0.13321 ($-6.4$)  \\
+\texttt{market\_ew}    & \textbf{0.13319} ($-7.2$)  & 0.13344 ($-5.4$)  & 0.13353 ($-4.6$)  \\
+\texttt{vol\_demand}   & \textbf{0.13337} ($-4.1$)  & 0.13361 ($-3.4$)  & 0.13359 ($-3.3$)  \\
+\texttt{sentiment}     & \textbf{0.13347} ($-5.7$)  & 0.13377 ($-3.5$)  & 0.13390 ($-2.1$)  \\
+\midrule
+\texttt{baseline} (no exog) & \textbf{0.13445} ($+5.0$) & 0.13471 ($+7.5$) & 0.13475 ($+7.0$) \\
+Incumbent: OLS on \texttt{baseline} & \multicolumn{3}{c}{0.13415} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Sparsity loses on every bucket.}
+Table~\ref{tab:lasso_vs_ridge} orders the same way in all nine rows: ridge is
+the best penalty on every bucket, and the lasso is never best on any. The
+margin runs from $0.00022$ (\texttt{implied\_vol}, \texttt{vol\_demand}) to
+$0.00119$ on the full design (\texttt{all\_features}: ridge $0.12788$ versus
+lasso $0.12907$), and the ordering ridge $<$ elastic net $<$ lasso holds in
+eight of the nine rows, the one exception a $2 \times 10^{-5}$ near-tie
+between the elastic net and the lasso on \texttt{vol\_demand}. The gradient is
+monotone in the $\ell_1$ weight: the more selection a penalty performs, the
+worse it forecasts. There is no bucket --- not one --- on which concentrating
+the fit into a subset of columns beats keeping every column and shrinking.
+
+The Diebold--Mariano statistics sharpen the same verdict. On
+\texttt{all\_features}, ridge reaches $t = -19.9$ against the incumbent while
+the lasso manages $-13.2$; on \texttt{moments} the gap is starker still,
+$-19.2$ against $-8.9$; on \texttt{sentiment} the lasso arm is barely
+significant at all ($-2.1$). Because DM normalizes the mean loss differential
+by its HAC standard error, ridge's larger $|t|$ at every level means its edge
+over HAR is steadier bar to bar: the dense reader collects a small,
+near-constant contribution from many columns and wins by a little on almost
+every bar, while the selective reader's edge comes and goes with whether its
+chosen subset happens to be the active one. One caveat travels with this
+paragraph: every DM statistic in the table is computed against the shared
+incumbent, a third model, so the ridge-minus-lasso differences themselves
+carry no significance statement yet.
+\pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling bound) per
+bucket, so the head-to-head margin is tested rather than pointed at}
+
+\paragraph{The negative control: shrinkage is only for wide designs.}
+The \texttt{baseline} row is the experiment's control, and it fails in the
+informative direction. When the only regressors are the HAR lags and calendar
+features --- a low-dimensional, well-conditioned, entirely informative design
+--- all three penalized arms are \emph{worse} than plain OLS: ridge $0.13445$
+($t = +5.0$), elastic net $0.13471$ ($+7.5$), lasso $0.13475$ ($+7.0$), all
+decisively significant. Shrinkage is a variance-reduction device; on a design
+with no estimation variance worth reducing, the bias it induces is pure cost.
+Penalized estimation earns its keep only once the design matrix contains a
+large number of weak columns --- which is exactly what the exogenous buckets
+supply, and exactly the regime the rest of this section characterizes. This
+asymmetry --- the backbone wants essentially no shrinkage, the wide block
+wants a great deal --- is the observation the two-block estimator of
+Section~\ref{sec:dense_weak_twoblock} is built on.
+
+\subsection{The Diagnosis: Dense, Not Sparse}
+\label{sec:dense_weak_diagnosis}
+
+Why does selection lose? The lasso's own solution path answers, because the
+support it chooses tells us what $\ell_1$ selection is actually doing on this
+design. On the full basis the lasso zeroes $304$ of $523$ exogenous columns
+--- and $235$ of those, $77\%$, are dead or constant availability indicators.
+The overwhelming bulk of the lasso's selection work is janitorial: removing
+columns that carry no signal at all. That work is real but cheap --- $\ell_2$
+shrinkage makes the same columns small without making them zero --- and it is
+the \emph{only} selection that helps. Wherever the penalty bites into live
+columns, it discards signal: on \texttt{implied\_vol}, a dense block of
+all-informative VIX levels with no junk to remove, ridge's margin persists
+because zeroing correlated informative columns is pure loss. Penalty
+preference tracks the junk fraction of the design and nothing else.
+
+The retained support says the same thing from the other side. The
+elastic-net solution keeps approximately $120$ effective dimensions out of
+$529$ features: the signal is not concentrated in five or ten strong columns
+that a selector could find, it is spread across a hundred-plus weak ones that
+a selector can only damage. And the spread is genuinely
+coordinate-by-coordinate rather than a low-dimensional structure in disguise:
+principal-component truncation fails outright, with five components retaining
+$72\%$ of the feature variance while losing essentially all of the predictive
+signal. Variance-directed rotation cannot find the signal because the signal
+does not live in the high-variance directions. The precise statement, and we
+choose the words carefully, is that the signal is \emph{sparse in the
+coordinate basis only in the trivial sense that dead columns exist, and it is
+not low-rank in the data's own covariance geometry}: no small subset of
+columns and no small set of principal directions concentrates it. Dense but
+weak is the only description left standing.
+
+The same verdict reproduces on an entirely different basis. On the curated
+kernel dictionary --- a compact design built to have no junk columns --- the
+elastic net at light penalty ties ridge, the free prune it performs there
+being confined to some sixty dead columns; the moment selection bites into
+live columns it hurts, by $+0.005$ QLIKE at $p = 0.002$.
+% Source: writeup/paper_restructure_2026-08-01.md (S3 content list: enet on
+% the curated dictionary, light-alpha ties, 60-col free prune, selection that
+% bites hurts +0.005 p=.002). Different basis and scale from the battery panel.
+Selection that removes nothing important is free; selection that removes
+anything else is harmful; and on a wide design there is no penalty level at
+which the second does not accompany the first.
+
+\subsection{No Escape Through the Penalty Dial}
+\label{sec:dense_weak_penalty}
+
+Two further experiments close the remaining loophole: that some better-chosen
+penalty, rather than a better penalty \emph{family}, could rescue selection.
+Both say the entire penalty channel is nearly empty.
+
+First, causal re-tuning of the penalty is worse than not touching it. On a
+companion rolling-tune panel (full 2005--2025 emit space, stitched from 100
+walk-forward chunks; levels not comparable to
+Table~\ref{tab:lasso_vs_ridge}), a leakage-free selector re-choosing every 250
+bars among six ridge, five lasso, and five elastic-net penalties \emph{trails}
+scikit-learn's untouched ridge default by $+0.0006$ to $+0.0012$ QLIKE on all
+seven landed buckets --- uniformly, one-signed. Acting every 250 bars on a
+125-bar validation statistic injects more variance than the penalty choice
+can recover. The selector's own behavior confirms the landscape is flat:
+across all tunings it never concentrates on a family, choosing ridge
+41--50\% of the time, lasso 29--35\%, and elastic net 20--25\% in every
+bucket --- the distribution of a chooser facing three near-equivalent options
+through validation noise, not a differentiated objective.
+
+Second, even an oracle allowed to cheat has almost nothing to find. Running a
+TPE search with the realized out-of-sample QLIKE as the objective directly ---
+test-set overfitting by construction, so a diagnostic bound rather than a
+forecast --- against an incumbent elastic net at $0.12540$ on its own
+evaluation panel (levels again not comparable across panels): the best lasso
+reaches $0.12524$, an improvement of $0.00015$ with the penalty at the search
+grid's floor; the best elastic net $0.12529$; and the best ridge $0.12578$,
+\emph{worse} than the incumbent even with cheating permitted. The ceiling on
+the entire penalty channel is $0.00015$ QLIKE, an order of magnitude below the
+bucket-level information effects of Section~\ref{sec:buckets}, and every
+oracle winner sits at minimal shrinkage. The penalty is a threshold to be
+cleared --- enough shrinkage to control a wide design, essentially none on a
+narrow one --- not a dimension along which to optimize. That reading is what
+licenses the fixed, untuned penalties of the estimator that follows.
 
 \subsection{The Two-Block Ridge}
+\label{sec:dense_weak_twoblock}
 % Endpoint: BlockRidge with block 1 = HAR(target), alpha=1; block 2 =
 % HAR(all_features), alpha=100.
-\pending{2-block spec + QLIKE}
+
+The head-to-head delivers a design rule --- \emph{never select, always
+shrink} --- but Table~\ref{tab:lasso_vs_ridge} contains a second fact that a
+single ridge penalty cannot honor. The \texttt{baseline} control row shows
+that the persistence backbone is injured by the very shrinkage that the wide
+exogenous block requires: the six HAR columns are few, well-conditioned, and
+individually strong, so any penalty large enough to discipline hundreds of
+weak columns over-shrinks the handful of strong ones, and any penalty small
+enough to spare the backbone lets the wide block flood the fit with
+estimation variance. One dial cannot serve two blocks whose optimal shrinkage
+differs by orders of magnitude. The resolution is to stop pretending the
+design is homogeneous.
+
+The section's endpoint is therefore a \textbf{two-block ridge}: a single
+jointly solved least-squares problem whose Tikhonov penalty is block-diagonal
+rather than scalar. Block 1 is the HAR ladder of the target --- the
+persistence backbone itself --- at $\alpha = 1$, shrunk only nominally. Block
+2 is the same HAR averaging construction applied to \emph{every} exogenous
+feature --- HAR-of-\texttt{all\_features}, the full wide basis --- at
+$\alpha = 100$, shrunk two orders of magnitude harder. The two blocks are not
+fit separately and stacked; the coefficients are estimated in one solve, so
+the wide block corrects only what the backbone leaves unexplained and the
+backbone is never distorted to accommodate it.
+\pending{how the $(\alpha_1, \alpha_2) = (1, 100)$ pair was fixed ---
+grid/validation provenance, and its sensitivity}
+
+The estimator is the dense-but-weak diagnosis made operational, clause by
+clause. Because the signal is dense, block 2 keeps all of its columns:
+nothing is selected, and every weak column contributes its small, shrunken
+share. Because the signal is weak, block 2 is shrunk hard: no individual
+exogenous coefficient is trusted, and the fit aggregates many attenuated
+contributions instead of amplifying any one. Because the backbone is neither
+dense nor weak, block 1 is left nearly alone, so the incumbent of
+Section~\ref{sec:data_prep} is effectively \emph{nested} inside the model:
+zeroing block 2 recovers, up to the nominal $\alpha = 1$, the OLS--HAR
+benchmark itself. The two-block ridge is thus the smallest estimator that
+takes both lessons of Table~\ref{tab:lasso_vs_ridge} seriously at once ---
+and it contains no selection step, no tuned dial, and nothing the penalty
+experiments of Section~\ref{sec:dense_weak_penalty} identify as a non-lever.
+
+\pending{two-block ridge QLIKE on the shared panel, with DM against the
+OLS--HAR incumbent and against single-penalty ridge on
+\texttt{all\_features} --- not yet in any documented table; the only
+two-block numbers on record are the multi-horizon product configuration with
+different penalties, which belongs to the companion paper}
+
+The two-block ridge is this paper's spine, and the next two sections grow it
+one block at a time: Section~\ref{sec:nonlinear_product} asks what
+nonlinearity the trees find, distills it into an explicit product block, and
+arrives at a three-block ridge; Section~\ref{sec:transmission} adds the
+transmission block of factor lead--lag features and arrives at the final
+four-block model. At every step the template is the one fixed here: keep
+everything, shrink each block as hard as its density-and-weakness demands,
+and select nothing.

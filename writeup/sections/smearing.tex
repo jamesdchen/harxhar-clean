@@ -16,10 +16,138 @@
 % src/evaluation/metrics.py.
 
 \subsection{Why the Back-Transform Needs a Second Moment}
-\pending{sqrt-space fit, raw-space loss — the retransformation bias}
+\label{sec:smearing_bias}
+
+Every model in this paper is fit on the preprocessed scale: realized variance
+is diurnally adjusted and then passed through the square-root transform, so
+the regression target is $y_t = \sqrt{\widetilde{RV}_t}$. Evaluation, however,
+happens on the raw variance scale, because QLIKE --- our primary loss --- is a
+strictly consistent scoring rule for the conditional \emph{variance}, not for
+any transform of it. A forecast issued in square-root space must therefore be
+mapped back to raw space before it can be scored, and it is at this seam that
+a subtlety enters.
+
+The na\"ive inverse is to square the forecast and undo the diurnal
+adjustment. But squaring does not commute with conditional expectation: by
+Jensen's inequality, $\mathbb{E}[\sqrt{X}]^2 \le \mathbb{E}[X]$, with
+equality only in the degenerate case. Concretely, if we decompose the target
+as $y_{t} = \hat{y}_{t} + \varepsilon_{t}$ with a conditionally mean-zero
+innovation, then
+\begin{equation}
+    \mathbb{E}\!\left[y_t^2 \,\middle|\, \mathcal{F}\right]
+    = \hat{y}_t^2 + \mathbb{E}\!\left[\varepsilon_t^2 \,\middle|\, \mathcal{F}\right],
+    \label{eq:second_moment}
+\end{equation}
+so the conditional mean of the squared target exceeds the squared forecast by
+exactly the second moment of the square-root-scale innovation. A forecast that
+is well calibrated in $\sqrt{RV}$-space is, once squared, systematically
+biased low in $RV$-space, and the size of the bias is not incidental --- it is
+the residual variance of the very model being evaluated.
+
+For QLIKE this downward bias is doubly consequential, because the loss
+penalizes under-prediction more heavily than over-prediction. An uncorrected
+squared forecast would not merely carry a bias; it would carry a bias in the
+direction the loss punishes hardest, and by an amount that differs across
+models with different residual variances. The back-transform therefore needs
+an explicit second-moment term, and how that term is estimated is part of the
+evaluation itself.
 
 \subsection{The Empirical Smear}
-\pending{Duan estimator as implemented in src/evaluation/metrics.py; rolling vs global choice}
+\label{sec:smearing_estimator}
+
+We supply the missing second moment with Duan's smearing estimator
+\citep{Duan1983}, in the analytic form implemented in
+\texttt{src/evaluation/metrics.py}. Let $\{(\hat{y}_t, y_t)\}_{t=1}^{N}$ be
+the forecasts and realizations on the transformed (square-root, diurnally
+adjusted) scale over an evaluation window, and let $B_t$ denote the diurnal
+baseline factor that reverses the Stage-1 adjustment at bar $t$. The
+implementation computes a single scalar smear from the window's own forecast
+residuals,
+\begin{equation}
+    \hat{\sigma}^2_{\varepsilon}
+    \;=\; \frac{1}{N}\sum_{t=1}^{N}\left(y_t - \hat{y}_t\right)^2,
+    \label{eq:smear_scalar}
+\end{equation}
+and maps both forecast and realization to the raw scale as
+\begin{equation}
+    \widehat{RV}_t^{\mathrm{raw}}
+    = \left(\hat{y}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right) B_t,
+    \qquad
+    RV_t^{\mathrm{raw}} = y_t^{\,2}\, B_t.
+    \label{eq:smear_map}
+\end{equation}
+Equation~\eqref{eq:smear_map} is the analytic counterpart of Duan's empirical
+smearing average $\frac{1}{N}\sum_i (\hat{y}_t + \hat{\varepsilon}_i)^2$; the
+two coincide when the residuals are mean-zero, since
+$\mathbb{E}[(\hat{y}+\varepsilon)^2] = \hat{y}^2 +
+2\hat{y}\,\mathbb{E}[\varepsilon] + \sigma^2_{\varepsilon}$. Because the
+correction is non-negative, the smeared forecast is positive whenever the
+baseline is, so the QLIKE ratio in the next sections is always well defined.
+
+Three implementation choices deserve to be stated plainly, because they are
+choices and not forced moves.
+
+\emph{Global, not rolling.} The smear is one scalar per evaluation window,
+not a rolling or bar-local estimate. In the chunked walk-forward harness the
+backtest is split into contiguous chunks and
+Equation~\eqref{eq:smear_scalar} is computed once per chunk, over all of that
+chunk's out-of-sample bars; the correction is therefore piecewise-constant
+across the panel on the transformed scale. On the raw scale it still varies
+bar by bar through the baseline factor $B_t$, and in relative terms it is
+largest exactly where the squared forecast is smallest --- the quiet bars.
+
+\emph{Out-of-sample residuals of the model itself.} The residuals entering
+Equation~\eqref{eq:smear_scalar} are the evaluated model's own out-of-sample
+forecast errors on the window being converted --- not training-set residuals,
+and not the residuals of any reference model. Two consequences follow. First,
+the smear is model-specific: an arm with larger residual variance receives a
+larger upward correction, so the correction is properly understood as part of
+each arm's forecast rather than a shared post-processing constant. Second,
+the smear at bar $t$ uses residuals from the whole window, including bars
+after $t$. This is an evaluation-time convention, applied identically to every
+arm, not a quantity a deployed forecaster could have computed at $t$; a
+deployable variant would estimate $\hat{\sigma}^2_{\varepsilon}$ from trailing
+residuals only, and we flag the distinction here because the correction sits
+inside every raw-scale number that follows.
+
+\emph{Two biases left uncorrected.} The residuals in
+Equation~\eqref{eq:smear_scalar} are computed on the winsorized scale while
+the evaluation target is unwinsorized, and the Stage-3 winsorization is a
+lossy operation that is not inverted at all. We do not quantify either
+effect; both are shared by every arm and so cancel to first order in
+comparisons, but they mean the raw-scale forecasts should be read as
+evaluation objects, not as unbiased variance estimates in an absolute sense.
 
 \subsection{What Downstream Inherits}
-\pending{sensitivity of QLIKE rankings to the smear choice — establishes the correction as part of the evaluation contract}
+\label{sec:smearing_contract}
+
+The reason this section precedes any model comparison is that
+Equation~\eqref{eq:smear_map} is not a detail of one table --- it is the
+common gateway through which every forecast in this paper passes on its way
+to a QLIKE number. Every downstream comparison
+\pending{enumerate the downstream analyses by their final section labels
+(bucket attribution, block structure, model classes) once those sections
+stabilize} scores its arms on raw-scale pairs produced by exactly this map,
+with exactly these window and residual choices. Whatever the smear does, it
+does to all of them; whatever it does differentially, it does through each
+arm's own residual variance.
+
+That differential channel is the substantive point. Because
+$\hat{\sigma}^2_{\varepsilon}$ is model-specific, the smear does not shift all
+arms by a common constant: it inflates weaker models' forecasts more than
+stronger ones', and under QLIKE's asymmetry this interacts with each arm's
+calibration in a way that a shared correction would not. A comparison run
+under a different convention --- training-set residuals, a rolling window, or
+no correction at all --- would be a comparison of different forecast objects,
+and there is no guarantee it would induce the same ranking.
+\pending{sensitivity check: re-score the frozen battery under alternative
+smear conventions (no smear, trailing-window smear, training-residual smear)
+and report whether any pairwise ranking flips; this is the empirical teeth of
+the contract claim}
+
+We therefore treat the correction as part of the evaluation contract: it is
+frozen here, before the first comparison, and no downstream section revisits
+it. Any future change to the second-moment model --- including the learned
+correction contemplated for this slot --- would constitute a change of
+contract, and would require re-scoring every comparison that inherited the
+old one.

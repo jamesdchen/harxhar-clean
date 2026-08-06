@@ -5,4 +5,180 @@
 % bucket against the HAR benchmark, showing the exogenous variables contribute.
 % Base text: drafts_2026-07-30/marginal_contribution.tex.
 
-\pending{seed from drafts\_2026-07-30/marginal\_contribution.tex — per-bucket OLS gains, overlap (sum of individual gains vs joint gain), joint-bucket result}
+The preceding sections fixed the panel, the target, and the reference point
+against which everything in this paper is measured: the per-bar least-squares
+fit of the HAR ladder plus calendar dummies, QLIKE $0.13415$. This section asks
+the first substantive question about the exogenous data programme: \emph{do the
+exogenous variables contribute at all, and how much of their contribution is
+shared?} We answer it at the level of the feature buckets defined in
+\pending{cross-ref to the panel/descriptive section defining the buckets}, and
+we answer it deliberately within a single model class, ordinary least squares.
+Holding the estimator fixed at the simplest linear map separates the question
+of whether a feature carries information from the question of whether a
+particular estimator can exploit it; what a richer hypothesis class does with
+the same features is the subject of \pending{cross-ref to the
+linear-vs-nonlinear section}, and the comparison between the two is only
+interpretable because this section refuses to move the estimator.
+
+\paragraph{What ``least squares'' means here, precisely.} Honesty requires
+stating the estimator actually run rather than asserting a uniform ``OLS'' that
+was never run in that exact form. The attribution table below is the ridge arm
+of the causal-tuning battery: rolling least squares over a window of $24{,}000$
+bars ($500$ trading days), refit at every bar by exact rank-one
+downdate/update of the normal equations, with a ridge penalty
+\citep{HoerlKennard1970} whose strength is re-selected causally from a forward
+validation split. The penalties selected are small, and the battery's own
+no-exogenous baseline row bounds the distance from exact OLS directly:
+penalizing the HAR ladder with no exogenous features present moves QLIKE by
+only $+0.0003$ against the $\alpha = 0$ incumbent --- and in the wrong
+direction, which is itself evidence that shrinkage is doing nothing here beyond
+numerical stabilisation. A literal $\alpha = 0$ battery with exogenous features
+has \emph{not} been run; the code path accepts $\alpha = 0$ directly, so this
+is a pending robustness run rather than an open question of feasibility.
+\decide{Estimator discrepancy: the section title and arc say ``OLS of the
+buckets,'' but the source battery ran causally tuned ridge (with elastic-net
+and lasso companions), with OLS appearing only as the incumbent and as the
+unpenalized-HAR limit. Either retitle/reframe the section as ``the
+least-squares class'' with ridge as the working OLS surrogate (the July-30
+draft's position), or gate the section on the pending literal $\alpha = 0$
+run.}
+
+\subsection{Per-Bucket Gains}
+
+Table~\ref{tab:buckets} reports the causally tuned ridge arm on each of the
+exogenous buckets, on the shared panel ($n = 218{,}934$ thirty-minute bars,
+identical rows in every cell), against the shared incumbent. Cells carry the
+Diebold--Mariano $t$-statistic \citep{DieboldMariano1995} against the
+incumbent, computed as the $t$-ratio of the mean per-bar loss differential to
+its Newey--West HAC standard error with the Harvey--Leybourne--Newbold
+small-sample correction \citep{HarveyLeybourneNewbold1997}; negative $t$
+favours the bucket arm. $\Delta$ is measured against the incumbent;
+$\Delta_{\text{own}}$ is measured against the same estimator's own
+no-exogenous baseline ($0.13445$), which is the correct within-class
+increment.
+
+% Provenance: writeup/metrics_table_causal_tune_plus_spectral.csv
+% (family=causal-tuned, estimator ridge), incumbent from
+% writeup/incumbent_metrics.json; Δ/Δ_own columns as in
+% reference/sections/marginal_contribution.tex Table tab:buckets.
+\begin{table}[H]
+\centering
+\caption{Bucket attribution: causally tuned ridge on each exogenous bucket.
+\textbf{Panel:} causal-tuning battery, diurnally adjusted, $n = 218{,}934$
+thirty-minute bars, identical rows in every cell; incumbent QLIKE $= 0.13415$
+(per-bar OLS on HAR $+$ calendar). \textbf{Estimator:} rolling least squares,
+window $24{,}000$ bars ($500$ trading days), refit every bar by exact rank-one
+updates, ridge penalty re-selected causally. $\Delta$ is against the shared
+incumbent; $\Delta_{\text{own}}$ against the same estimator's own no-exogenous
+baseline ($0.13445$). The joint row stacks all $41$ exogenous series
+($\approx 526$ columns after the moving-average ladder and availability
+indicators).}
+\label{tab:buckets}
+\begin{tabular}{lrrrr}
+\toprule
+Bucket & QLIKE & $\Delta$ vs.\ incumbent & $\Delta_{\text{own}}$ & DM $t$ \\
+\midrule
+all\_features (joint) & \textbf{0.12788} & $-0.00627$ & $-0.00657$ & $-19.9$ \\
+\midrule
+moments          & 0.13085 & $-0.00331$ & $-0.00360$ & $-19.2$ \\
+liquidity        & 0.13120 & $-0.00295$ & $-0.00325$ & $-13.4$ \\
+implied\_vol     & 0.13252 & $-0.00163$ & $-0.00193$ & $-11.3$ \\
+market\_vw       & 0.13291 & $-0.00125$ & $-0.00154$ & $-9.1$ \\
+market\_ew       & 0.13319 & $-0.00096$ & $-0.00126$ & $-7.2$ \\
+vol\_demand      & 0.13337 & $-0.00078$ & $-0.00108$ & $-4.1$ \\
+sentiment        & 0.13347 & $-0.00068$ & $-0.00098$ & $-5.7$ \\
+\midrule
+(no exogenous)   & 0.13445 & $+0.00030$ & --- & $+5.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Every bucket improves on HAR, significantly.} Reading down the
+table, there is no exogenous bucket whose addition degrades the forecast, and
+no bucket whose improvement is attributable to sampling noise: the weakest arm,
+\texttt{vol\_demand}, still rejects equal predictive accuracy at $t = -4.1$.
+The spread between the best single bucket (\texttt{moments}, $-0.00331$
+against the incumbent) and the weakest (\texttt{sentiment}, $-0.00068$) is a
+factor of five, but the sign is uniform. This uniformity is itself a finding,
+and a hard-won one: in an earlier revision of the pipeline, three of these
+buckets --- \texttt{sentiment}, \texttt{implied\_vol} and \texttt{vol\_demand}
+--- appeared to \emph{lose} to HAR, and were provisionally written up as such.
+Each apparent loss turned out to be a scaling defect in the feature
+construction rather than an absence of signal, and each bucket became a genuine
+improvement once the defect was repaired. The general lesson, stated because it
+bears on how any such table should be read, is that a feature that appears to
+hurt is very often a feature the pipeline mis-scales. An earlier, independent
+walk-forward battery at a fixed $\alpha = 1$ penalty --- a different
+configuration on the same panel --- produces the same ranking, with
+\texttt{moments} first among single buckets and the joint set dominant, so the
+attribution is not an artefact of the causal penalty selection.
+
+\subsection{Overlap: The Sum of the Parts Is Twice the Whole}
+
+The organising fact of Table~\ref{tab:buckets} is what happens when the
+individual gains are summed. Adding the seven within-class increments
+($\Delta_{\text{own}}$) gives $-0.01364$, against a joint increment of
+$-0.00657$: a ratio of $2.08$. \emph{The sum of the parts is roughly twice the
+whole.} The buckets are therefore not seven independent channels of
+information about future variance; they are seven partially redundant views of
+a much smaller amount of information. The same computation on the causally
+tuned LightGBM arm gives $2.24$, so the redundancy is a property of the
+information rather than of the linear estimator.
+
+We note a trap that an earlier draft of this analysis fell into. If the
+overlap ratio is computed against the \emph{shared incumbent} rather than each
+estimator's own baseline, every bucket's increment silently includes that
+estimator's model-class premium, and the ratio inflates --- to $3.98$ for
+LightGBM, against its true $2.24$. (Within the linear class the distortion is
+mild: incumbent-relative increments give a ratio of $1.84$, because the ridge
+baseline sits only $0.00030$ from the incumbent.) Overlap ratios must be
+computed within class.
+
+Sublinearity of this magnitude is the single most important structural fact
+about the feature set: the buckets overlap so heavily that no single bucket is
+a proxy for the information, yet each contributes enough unique signal that
+its individual addition is detectable. It is the bucket-level image of the
+dense-but-weak regime that \pending{cross-ref to the linear-vs-nonlinear /
+dense-but-weak section} takes as its starting point.
+
+\subsection{The Joint Bucket}
+
+Redundancy is partial rather than total: the joint \texttt{all\_features} arm
+at $0.12788$ beats the best single bucket by a further $-0.00297$, so stacking
+still pays --- it simply pays at roughly half the rate a naive addition of
+marginal gains would suggest. An independent every-bar robustness design on a
+different panel --- rolling $1{,}000$-trading-day window, HAR block exactly
+unpenalized via Frisch--Waugh--Lovell with only the exogenous block penalized,
+scored on a fixed COVID-inclusive window from January 2018 to May 2025,
+$n = 74{,}934$ bars --- reproduces the structure in full: every bucket again
+rejects equal predictive accuracy against HAR-only (the weakest,
+\texttt{vol\_demand}, at $t = -6.2$), and the joint set again dominates every
+single bucket, at $t = -13.0$. The bucket \emph{ranking} rotates with the
+window --- \texttt{implied\_vol} leads on the COVID-inclusive window,
+\texttt{moments} in Table~\ref{tab:buckets} --- which is what one expects when
+the evaluation window becomes dominated by a volatility crisis, and the
+rotation is a further argument against promoting any single bucket.
+
+An earlier draft went further and asserted that the $90\%$ model confidence
+set \citep{HansenLundeNason2011} over the feature sets is the singleton
+containing the joint bucket. We do not repeat that claim here: a model
+confidence set requires the arms' per-bar loss series, which were not retained
+for the battery, so the assertion was never supported by a computed set.
+\pending{battery MCS over the feature sets once per-bar losses are persisted}
+The conclusion the table does support is still worth stating plainly: every
+individual bucket is significantly better than HAR, the joint set is better
+than every individual bucket, and any narrative that promotes one bucket as
+the source of skill is reading a point estimate that the overlap structure
+does not support. The defensible unit of attribution is the joint feature set.
+
+\paragraph{A caveat on the benchmark.} Every $\Delta$ in
+Table~\ref{tab:buckets} is measured against the base-5 HAR incumbent, and
+\pending{cross-ref to the ladder-base section} shows that the same estimator on
+a base-2 ladder reaches QLIKE $0.13332$, at DM $t = -10.6$: a gap of $0.00082$
+that involves no additional information and is pure quadrature error in the
+benchmark. Orderings within the table are unaffected --- the debt is a constant
+additive offset shared by every arm --- but the smallest bucket increments are
+of the same order as the benchmark misspecification itself, and the joint gain
+of $0.00627$ is the figure that survives the correction comfortably.
+\pending{re-run of the bucket battery on the base-2 backbone, unifying panel,
+benchmark and ladder convention}
