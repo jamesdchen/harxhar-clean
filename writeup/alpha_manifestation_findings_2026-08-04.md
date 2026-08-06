@@ -2440,6 +2440,49 @@ selection cadence (tested — freeze), stage split (tested — FWL tie), window 
 optimum). Every parameter the model carries has now either been varied or shown to sit on a
 measured plateau.
 
+## 26. The rot detector — wired, calibrated, and firing — and the trajectory's stable flow
+
+**The map as a rot detector** (`analysis/map_monitor.py --stage calib`,
+`src.diagnostics.interaction_map_health`): trailing-2y factor-pair IC map vs a frozen 5-year
+reference, quarterly, 2013–2024. Historical operating range: mean +0.55, p10 +0.205, against a
+shift-null of 0.00 ± 0.11. Thresholds anchored accordingly (warn < 0.20, fail < 0.00). Two
+findings from the calibration itself:
+
+1. One prior excursion below the warn line — **2017-08 to 2018-01, bottom +0.05 — recovered fully
+   (2019: +0.61, 2020: +0.81), and immediately preceded Volmageddon.** The map decorrelating is
+   at minimum a regime-change symptom worth alarms.
+2. **The detector ships firing.** 2023 declines monotonically (+0.50 → +0.43), 2024-01 breaches
+   warn (+0.11), and 2024-03 posts the historical minimum, below the null band (**−0.08**): as of
+   the end of this panel, the interaction channel's support is statistically unrelated to its
+   2007-2011 reference — coincident with the 0DTE-era microstructure change that §8 found breaking
+   `voldemand`. Per the reselection policy (identity re-drawn on structural break, never on a
+   calendar), this is the first live trigger: the frozen product/pool block is due for a one-time
+   re-draw on current data, and the products' era-fade (§24: 11 → 7) now has a mechanism-level
+   correlate.
+
+**The Cucuringu connection, finally aimed at the right object** (`--stage leadlag`): §17.4
+dismissed signed-graph methods because the block partition did not forecast; §23 changed the
+target. The directed lead-lag network among the 20 frozen-frame factors — the antisymmetric part
+of the lag-1-day cross-correlation, the raw material of Hermitian lead-lag clustering — is the
+study's **second replicating geometric object: split-half +0.79** over 190 edges. Its structure:
+
+* **Sources** (net leaders): PC0 (the turnover complex, +0.32) and PC5 (slow vol level, +0.21) —
+  the dominant market factors lead.
+* **Sinks** (net laggards): PC11 (−0.16), PC19 (−0.14), PC1 (−0.14), PC9 (−0.10) — which are,
+  with PC16, the §23 signal carriers. corr(net leadingness, signal energy) = **−0.29**.
+
+So the trajectory has a stable circulation, and **the signal-bearing free coordinates sit
+downstream**: they integrate flow from the dominant factors with a delay, which is *why* they are
+contemporaneously autonomous (their current value reflects absorbed past flow, not current common
+motion) and why vol — itself a downstream quantity — reads them. The §23 picture completes: a
+stable frame, a stable directed flow on it (+0.79), stable coupling support (+0.62, currently
+rotting per the detector), and fast unforecastable amplitudes. Cucuringu's program — Hermitian
+lead-lag clustering, signed clustering on the map, change-point detection on dynamic networks —
+is the right toolkit for precisely these three stable objects, and the rot detector is itself a
+one-statistic instance of his dynamic-network change-point problem. On this panel the flow is
+descriptive (1-day-lag content overlaps the linear MAs); on a cross-section it becomes the
+estimation target.
+
 ## Reproducibility
 
 ```bash
@@ -2492,6 +2535,8 @@ ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage joint    # §21: j
 ALPHA_PANEL_CACHE=$C python analysis/minimal_model.py --stage final    # §22: one stage, everything, per bar
 python analysis/pc_quadratics.py           # frame test: PC-quadratics, soft thresholds
 python analysis/pc_quadratics.py --map     # where the signal lives in the factor grid
+ALPHA_PANEL_CACHE=$C python analysis/map_monitor.py --stage calib    # §26 rot detector calibration
+ALPHA_PANEL_CACHE=$C python analysis/map_monitor.py --stage leadlag  # §26 factor flow network
 python analysis/voldemand_fix.py --stage evaluate            # §8.4 variants vs the four bars
 python analysis/voldemand_fix.py --stage control             # §8.4 full rebuild + all-bucket control
 python analysis/multiplicity.py --stage conditioning         # §11.1 SPA + Romano-Wolf, claim 1

@@ -329,3 +329,39 @@ def check_and_report(
             f"Unset {STRICT_ENV} to downgrade to a warning."
         )
     return rep
+
+
+# ---------------------------------------------------------------------------
+# Interaction-map rot detector (§26 of the alpha-manifestation writeup)
+# ---------------------------------------------------------------------------
+
+# Thresholds anchored to the 2013-2024 calibration trace (results/alpha_manifestation/
+# map_rot_calibration.csv): trailing-2y factor-pair IC map vs the frozen 5y reference has
+# historical mean +0.55, p10 +0.205; the circular-shift null is 0.00 +/- 0.11. One prior
+# excursion below p10 (2017-08..2018-01, bottom +0.05) recovered — and preceded Volmageddon.
+# The 2024 readings (+0.11 then -0.08, the historical minimum, below the null band) are the
+# incident this check ships firing on: the interaction channel's support is currently
+# indistinguishable from unrelated to its 2007-2011 reference, coincident with the 0DTE-era
+# microstructure change that §8 already found breaking voldemand.
+MAP_ROT_WARN = 0.20  # historical p10; entered only in the 2017-18 dip and 2023-24
+MAP_ROT_FAIL = 0.00  # below the shift-null center: no detectable relation to the reference
+
+
+def interaction_map_health(map_current: np.ndarray, map_reference: np.ndarray) -> dict:
+    """Compare a trailing factor-pair IC map to its frozen reference (the §"map" object).
+
+    The map (IC of the forecast residual with each product of frozen-frame factor scores) is the
+    one geometric object in the interaction channel that replicates (split-half +0.62 vs null
+    0.00 +/- 0.11), which makes its *decorrelation* from a frozen reference the natural detector
+    for support rot — the event that justifies re-drawing the frozen product/pool block
+    (re-selection on structural break, never on a calendar; see the writeup's reselection answer).
+
+    Callers produce both maps with the same frame; ``analysis/map_monitor.py --stage calib``
+    documents the construction and produced the threshold anchors above.
+    """
+    m = np.isfinite(map_current) & np.isfinite(map_reference)
+    c = float(np.corrcoef(map_current[m], map_reference[m])[0, 1])
+    status = "FAIL" if c < MAP_ROT_FAIL else ("warn" if c < MAP_ROT_WARN else "ok")
+    return {"map_corr_to_reference": c, "status": status,
+            "note": "warn/fail anchored to 2013-24 calibration; FAIL means the interaction "
+                    "support is unrelated to its reference and the frozen block needs re-drawing"}
