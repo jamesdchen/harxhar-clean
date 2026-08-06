@@ -65,6 +65,18 @@ from src.evaluation.metrics import apply_duan_smearing, mz_regression  # noqa: E
 
 EXPECTED_CHUNKS = 100
 A0 = "a0_ols_har"
+# Chunks that are illegal BY DESIGN for the 24000-bar-window product /
+# transmission arms (selection/frame block + training window -> first legal
+# OOS row 48000 -> chunks 0-10 excluded). These arms are complete at 89.
+_LEGAL_MISSING: dict[str, set[int]] = {
+    arm: set(range(11))
+    for arm in (
+        "blk3_user",
+        "blk4_user",
+        "c4_product_alone_user",
+        "d3_transmission_alone_user",
+    )
+}
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
 
 # ── arm registry facts (mirrors src/unification.py ARMS; static so the scorer
@@ -227,7 +239,12 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
     res.n_chunks = len(found)
     res.missing = sorted(set(range(EXPECTED_CHUNKS)) - set(found))
     res.extra = sorted(i for i in found if i >= EXPECTED_CHUNKS)
-    res.incomplete = bool(res.missing)
+    # Structurally excluded chunks: the 24000-bar-window product/transmission
+    # arms refuse rows inside the selection/frame block plus the training
+    # window (first legal OOS row 48000 -> chunks 0-10 illegal BY DESIGN, per
+    # src/unification.py's legality check). Those arms are complete at 89.
+    legal_missing = _LEGAL_MISSING.get(res.arm, set())
+    res.incomplete = bool(set(res.missing) - legal_missing)
     if not found:
         return res
 
