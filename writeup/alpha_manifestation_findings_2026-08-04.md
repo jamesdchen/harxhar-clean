@@ -2375,6 +2375,44 @@ derived from the study's own prettiest finding. (The cross-section is, once agai
 would change: N assets give a contemporaneous estimate of coordinate autonomy without needing
 decades of hindsight.)
 
+## 24. Paying the multiplicity debt, and the era table that overturns the decay assumption
+
+**A. Romano–Wolf over the session's QLIKE claim family** — the hygiene step flagged in §18.1 and
+§22, now run (block bootstrap, 2000 draws, 21-day blocks, all four loss-differential series on
+common rows):
+
+| claim | mean dQLIKE | DM-t | RW-adjusted p |
+|---|---|---|---|
+| refit cadence (per-bar vs daily) | +0.00129 | +5.17 | **0.000** |
+| products at daily refit | +0.00093 | +3.55 | **0.001** |
+| per-slot smearing | +0.00008 | +1.43 | 0.181 |
+| xsec block (QLIKE) | −0.00004 | −0.21 | 0.569 |
+
+SPA p = 0.0000. So after family-wise correction the confirmed set **tightens to exactly the two
+load-bearing claims of the final model** — cadence and the product channel — and the two garnish
+claims drop out on the production metric: per-slot smearing stays as free-and-harmless calibration,
+and the cross-section block's edge is a sqrt-space, pre-2020 fact that never mattered on QLIKE.
+The final model's spine survives FWER at p ≤ 0.001; its ornaments do not, and are now labeled so.
+
+**B. The era-decay table** (ΔQLIKE × 1e4 per component):
+
+| component | 2007–2012 | 2013–2019 | 2020–2024 |
+|---|---|---|---|
+| dense linear | 42.0 | 53.9 | **66.4** |
+| products | 9.0 | 11.0 | 6.9 |
+| xsec + joint | 1.2 | −3.6 | 3.1 |
+| cadence (per-bar) | 12.6 | 17.7 | **5.4** |
+| **TOTAL vs HAR** | **64.9** | **79.0** | **81.8** |
+
+The assumption this table was drawn to check — that the edge is eroding — is **false**. The
+model's total QLIKE edge over HAR has *grown* every era. What changes is the composition: the
+**dense linear channel strengthens monotonically** (partly more feeds live in later eras —
+stocktwits 2010, vvix 2012 — partly genuine), the products hold roughly steady, and the **cadence
+premium fades by two-thirds** in the 2020s (consistent with its late DM of +1.38 — plausibly
+intraday informational efficiency catching up). Forward expectation, stated for the record: ~80 ×
+1e-4 of QLIKE edge vs HAR, composed ~66 dense + ~7 products + ~5 cadence, with smearing and xsec
+at zero — and the trend of the dominant component is up, not down.
+
 ## Reproducibility
 
 ```bash
