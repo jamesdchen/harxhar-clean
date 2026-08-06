@@ -106,6 +106,12 @@ first moment: transmission block CONFIRMED per-bar (+8.54) — final model = 699
 - Transmission term structure (DM vs twin, blocked engine): +9.90 (h=1) / +5.00 (H=4) / +2.58
   (H=8) / +1.38 FAIL (H=13) / **+5.85 (H=16 under the α-law's 16× shrinkage)** — fast decay
   dying at the EOD horizon, then revived by solver humility at H=16 — §35c, §30.2, §37.1.
+- **The width is horizon-local (§39a): F40 beats F20 ONLY at h = 1** (width gates FAIL at
+  H = 8/13/16; no EOD revival). Per-horizon production: h=1 F40 (719 per-bar), H=8/16 F20,
+  EOD none. The new arrows' content decays within the hour.
+- Union smear era decomposition (§34.10b): +5.78 / +9.22 / +2.28 / +2.88 / **−0.37 (2022+)**
+  ×1e-4 — the panel's vol-of-vol span died in the 0DTE era; §34.10c: nothing else converts
+  even in-union (quarticity −0.79, transmission +0.24).
 - Breaks: 2013 (taper), 2017 (pre-Volmageddon), 2024 (0DTE) via map CPD; COVID did NOT break the
   map — §26, §27 C4.
 

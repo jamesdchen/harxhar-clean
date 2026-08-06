@@ -3409,6 +3409,18 @@ with the means). c2: + daily aggregates of the 40 transmission arrows (the
 corrected-instrument retry of §37c's dead transmission-smear; recorded lean FAIL). Gates:
 DM ≥ +2.0 vs union1.
 
+**Results (§34.10b/c): both expansions FAIL; the union's edge is era-bounded and died in the
+0DTE era.** c1 quarticity −0.79 (2020+ −1.09), c2 transmission +0.24 (2020+ −0.23) — the
+second-moment saturation law survives the union instrument: nothing converts beyond the panel
+span, not even inside a GCV-shrunk union. The era decomposition names the union's +3.12
+precisely (ΔQLIKE ×1e-4): 2008–11 +5.78, 2012–15 +9.22, 2016–19 +2.28, 2020–21 +2.88,
+**2022–26 −0.37** — the panel columns' vol-of-vol content decayed monotonically after 2015
+and is DEAD in the 0DTE era. The span verdict stands as a historical fact with a boundary:
+the variance channel WAS span-deficient; on the current regime the ten names are again the
+whole convertible span. This is the sharpest version yet of the
+second-moment-edges-are-historical pattern — §34.13 (amplitude persistence by era) is now the
+load-bearing explanation candidate, and AM-01 (panel refresh) the only path to a modern union.
+
 ### 34.11 THE COMPOSED FINAL NUMBER
 
 On one consistent evaluation span (all scored rows, same engine, smear rebuilt causally on the
@@ -3739,6 +3751,24 @@ flatness has one untested lawful explanation. Four arms, two lanes:
   into the EOD/VRP stack for the first time. Recorded leans: 8 and 16 widen; the H = 13
   revival genuinely uncertain (the §37.1 failure tracked the open-concentration of the EOD
   edge, which width does not obviously fix).
+
+  **Result: the width does NOT propagate up the term structure — the new arrows are
+  h = 1-only content.**
+
+  | H | twin | +F20 | +F40 | F20 vs twin | F40 vs F20 (width gate) |
+  |---|---|---|---|---|---|
+  | 8 | 0.07332 | 0.07321 | 0.07318 | +2.58 PASS | +0.38 FAIL |
+  | 13 | 0.07068 | 0.07062 | 0.07060 | +1.38 FAIL | +0.19 FAIL — **no revival** |
+  | 16 | 0.06717 | 0.06707 | 0.06701 | +5.85 PASS | +1.56 FAIL |
+
+  Both recorded leans were WRONG in the honest direction: H = 8/16 do NOT widen, and H = 13
+  does not revive (F40-vs-twin +0.68 is actually weaker than F20's +1.38 there). The picture
+  is sharper than either lean: the h = 1 doubling (+2.29/+4.59) comes from arrows whose
+  content decays within the hour — the wider the span, the faster its content. Production
+  per-horizon: **h = 1 runs F40 (719 per-bar); H = 8 and 16 keep F20; the EOD stack stays
+  transmission-free.** The width is horizon-local, which also retroactively explains why the
+  inherited q = 20 survived so long: at every horizon anyone had tested before §35c, 20 was
+  enough.
 * **39b — quadratic content of the new directions** (`analysis/quad40.py`): directions 21–40
   carry arrows (§38); do they carry curvature? 610 degree-2 candidates involving ≥ 1 new
   direction, frozen first-window |IC| top-100 @ 3e4, vs the 719 twin. Recorded lean: FAIL
