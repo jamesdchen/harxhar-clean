@@ -3266,6 +3266,15 @@ death at the family bar. A3's amplitude-label uplift was excluded (different los
 monetization already died in the §34.2 ablation). §35/§34.3 arms land after this sweep and are
 graded provisional until a follow-up accounting.
 
+**§35 results.** 35a: FAIL both rungs (k = 200 @ 6e4: +0.23; k = 400 @ 1.2e5: −0.04) — the
+k = 100 peak was signal exhaustion, not under-shrinkage; the product-count direction is closed.
+35b: FAIL (−0.59) — the lagged-quadratic Volterra term is empty; **casualty #15**. 35c:
+**PASS +9.90 (2020+ +5.38)**, QLIKE 0.12839 → 0.12801 — the strongest feature DM in the study,
+as the pre-registered expectation predicted: one-bar-lag arrows tested at the one-bar horizon.
+The transmission block's horizon profile now reads +9.90 at h = 1, +2.58 at H = 8 — the flow
+content is fast, like everything else here. Post-sweep provisional grade; the per-bar SM-engine
+confirmation (registered above as the entry condition) launched.
+
 ## Reproducibility
 
 ```bash
