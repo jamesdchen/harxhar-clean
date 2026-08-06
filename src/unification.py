@@ -40,8 +40,10 @@ loss differentials + HAC DM from the above with ``t`` ordering; (c) OOS R^2 by j
 any two arms' (row_id, y_fit, yhat); (d) MZ calibration from (y_fit, yhat) or
 (rv_raw, reconstructed raw preds). Nothing requires recompute.
 
-Metrics sidecar (hpc_agent metrics_io, only when $RESULT_DIR is set): sqrt_mse,
-sqrt_sse, sum_y, sum_y2, n (pooled-R^2 sufficient statistics), ols_fallback_bars.
+Sufficient statistics ride INSIDE the npz (sqrt_mse, sqrt_sse, sum_y, sum_y2, n,
+ols_dropped_cols) — the npz is the single source of truth; the hpc_agent metrics
+sidecar (written only when $RESULT_DIR is set) duplicates the same scalars for
+the on-cluster combiner and is otherwise a no-op.
 
 Reproducibility: the executor is fully deterministic — no RNG anywhere (linear
 algebra only), so HPC_TASK_ID seeding is not needed. Thread counts are pinned
@@ -99,7 +101,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 # Pin BLAS threads before numpy import: serial-run parity with the cluster
 # preamble (which exports the same), and chunk results independent of node core
@@ -107,8 +109,8 @@ from typing import TYPE_CHECKING, Any, Callable
 for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_v, "1")
 
-import numpy as np
-import pandas as pd
+import numpy as np  # noqa: E402  (deliberately after the thread-count pinning)
+import pandas as pd  # noqa: E402
 
 if TYPE_CHECKING:
     import argparse
@@ -126,19 +128,27 @@ from src.models.reclasso_har import enet_coef, enet_online, forward_window_split
 from src.models.rolling_least_squares import RollingLeastSquares  # noqa: E402
 
 # ── frozen-spec constants ─────────────────────────────────────────────────────
-HAR_BASE = 2                                  # the crowned base-2 ladder (har_base_sweep, DM -10.6)
-BURNIN_ROWS = resolve_har_lags()[-1]          # 3125 — fixed arm-invariant burn-in drop
-DEFAULT_WINDOW_BARS = 500 * PERIODS_PER_DAY   # 24000 — the incumbent 500-day window
-DOC_WINDOW_BARS = 250 * PERIODS_PER_DAY       # 12000 — the documented convention's 250-day
+HAR_BASE = 2  # the crowned base-2 ladder (har_base_sweep, DM -10.6)
+BURNIN_ROWS = resolve_har_lags()[-1]  # 3125 — fixed arm-invariant burn-in drop
+DEFAULT_WINDOW_BARS = 500 * PERIODS_PER_DAY  # 24000 — the incumbent 500-day window
+DOC_WINDOW_BARS = 250 * PERIODS_PER_DAY  # 12000 — the documented convention's 250-day
 #   window (writeup/alpha_manifestation_findings_2026-08-04.md §22: "250-day window").
 #   NOTE the panel PRESCALE window stays the frozen prep's 24000 bars for doc arms too:
 #   prep is frozen campaign-wide; the doc convention's 250 days applies to the FIT window.
 
 # OLS arms run at literal alpha=0 (RollingLeastSquares rank-1 is EXACT OLS at zero
-# penalty — the audited incumbent estimator). Wide bucket designs can contain
-# exactly-duplicate availability-indicator columns (singular gram); such solves
-# fall back, per solve, to this tiny named ridge and the count is reported.
-OLS_FALLBACK_ALPHA = 1e-8
+# penalty — the audited incumbent estimator). Bucket designs can contain
+# exactly-duplicate availability-indicator columns and panel-constant columns
+# (indicator of an always-available source ≡ the intercept): both are dropped
+# DETERMINISTICALLY before the walk — bitwise equality over the FULL panel,
+# first column in canonical order wins, drops recorded in the output metadata —
+# so every chunk of an arm sees the identical design. Remaining WINDOW-level
+# degeneracies (availability steps constant within a training window) are
+# handled by the window-level identifiability mask in _walk_ols (ruling
+# 2026-08-06; the repo's lam2=0 mask precedent): zero-dispersion-in-window
+# columns get coefficient 0 and re-enter when the feed varies, masking
+# disclosed per chunk. No shrinkage fallback anywhere: a gram still singular
+# AFTER dedup + masking fails loudly.
 
 # Block-ridge alpha ladders. USER = the stated convention @ 24k window; DOC = the
 # documented §22 convention @ 250d window (backbone 1 / exog 3e3 / products 3e4,
@@ -150,34 +160,33 @@ DOC_ALPHAS = {"backbone": 1.0, "exog": 3e3, "product": 3e4, "trans": 3e3}
 
 # §5 head-to-head penalties are FIXED, untuned (user directive 2026-08-06: the
 # battery lore is that the untouched default beat the causal tuner).
-FIXED_RIDGE_ALPHA = 1.0   # src/models/ridge.py:16 DEFAULT_RIDGE_PARAMS — the
+FIXED_RIDGE_ALPHA = 1.0  # src/models/ridge.py:16 DEFAULT_RIDGE_PARAMS — the
 #   production untuned default, the exact comparator the rolling tuner trailed
 #   (specs/rolling_linear_tune.py "UNTUNED default (DEFAULT_RIDGE_PARAMS alpha=1.0)").
-FIXED_LASSO_ALPHA = 1e-3  # sklearn Lasso(alpha=...) units at l1_ratio=1.0.
-# DECIDE: the repo documents NO fixed pure-lasso penalty. 1e-3 is
-# configs/bucket_enet.yaml:10 ("incumbent enet penalty"), the repo's only
-# documented fixed L1-family constant — documented there at l1_ratio=0.2, reused
-# here at l1_ratio=1.0. sklearn's own Lasso default (alpha=1.0) zeroes every
-# coefficient on this standardized basis (an intercept-only arm) and was
-# rejected as the pin. Confirm before greenlight.
+FIXED_LASSO_ALPHA = 1e-4  # sklearn Lasso(alpha=...) units at l1_ratio=1.0 —
+#   pinned by final decision 2026-08-06 (center of the July battery's reclasso
+#   grid, logspace(-6, -2)). sklearn's own Lasso default (alpha=1.0) zeroes
+#   every coefficient on this standardized basis and was rejected as the pin.
 
 # Product block (analysis/nl_sparsity.py + analysis/synthesis.py conventions).
-N_PROD = 100                                  # synthesis.N_PROD — 100 frozen products
-SELECTION_RIDGE_ALPHA = 1.0                   # backbone ridge for the selection residual
+N_PROD = 100  # synthesis.N_PROD — 100 frozen products
+SELECTION_RIDGE_ALPHA = 1.0  # backbone ridge for the selection residual
 #   (analysis/synthesis.py stage_prep: alpha=1.0, per-bar refit)
 PRODUCT_EXOG_WINDOWS = (1, 32, 512)
-# DECIDE: nl_sparsity.EXOG_WINDOWS is (1, 25, 625) — fast/intraday/slow rungs of the
-# BASE-5 ladder. The b2 panel's exog rungs are powers of 2; (1, 32, 512) is the
-# nearest b2 tri. Confirm the mapping before greenlight.
+# ACCEPTED (ruling 2026-08-06): nl_sparsity.EXOG_WINDOWS is (1, 25, 625) — the
+# fast/intraday/slow rungs of the BASE-5 ladder. The b2 panel's exog rungs are
+# powers of 2, so (1, 32, 512) is the nearest b2 tri preserving the documented
+# fast (1 bar) / intraday (~half-day) / slow (~2-week) timescale roles.
 
 # Transmission block (analysis/map_monitor.py + analysis/trans_exploit.py conventions).
-TRANS_QPOOL = 20                              # map_monitor.QPOOL — 20 frozen-frame factors
-TRANS_TRAIL_DAYS = 504                        # trans_exploit._trans_block trail_days
-TRANS_REFRESH_DAYS = 63                       # quarterly D refresh
-TRANS_LAG_BARS = 1                            # lag-1 (bars) cross-correlation
-# DECIDE: the block here is [G (20 factor scores) | Ghat (20 lead-lag)] = 40 cols, per
-# the campaign brief ("20 frozen-frame factors + Cucuringu lead-lag Ghat = D.G(t-1)");
-# the study's 699 design (trans_exploit.py:64-66) appended Ghat ONLY. Confirm.
+TRANS_QPOOL = 20  # map_monitor.QPOOL — 20 frozen-frame factors
+TRANS_TRAIL_DAYS = 504  # trans_exploit._trans_block trail_days
+TRANS_REFRESH_DAYS = 63  # quarterly D refresh
+TRANS_LAG_BARS = 1  # lag-1 (bars) cross-correlation
+# Composition RULED 2026-08-06: _user arms carry [G (20 factor scores) | Ghat
+# (20 lead-lag)] = 40 cols (the paper's own design); _doc arms mirror the
+# documented construction EXACTLY — Ghat only (trans_exploit.py:64-66), because
+# convention fidelity is the point of the _doc ladder.
 # NOTE one causal deviation from map_monitor._frame_and_scores, disclosed not silent:
 # factor scores are standardized with FROZEN frame-window stats here, where the study
 # standardized G full-sample (descriptive code, mild leakage inadmissible in a scored arm).
@@ -186,9 +195,9 @@ TRANS_LAG_BARS = 1                            # lag-1 (bars) cross-correlation
 # the single-point FIXED grid below there is NO penalty selection: the periodic
 # "tune" reduces to the cold-reseed float-drift re-anchor + the identifiability-
 # mask refresh (the lam2=0 singularity fix), both still required.
-TUNE_PER = 250                                # reseed/mask cadence (solves)
-VAL_TAIL = 125                                # forward split geometry (unused for selection
-EMBARGO = 25                                  #  with a 1-point grid; kept for the split call)
+TUNE_PER = 250  # reseed/mask cadence (solves)
+VAL_TAIL = 125  # forward split geometry (unused for selection
+EMBARGO = 25  #  with a 1-point grid; kept for the split call)
 ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     # single-point grids = fixed penalties (user directive 2026-08-06; the causal
     # log-scale grids of the July battery are deliberately NOT used here, and the
@@ -196,10 +205,10 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     "lasso_fixed": [("lasso", FIXED_LASSO_ALPHA, 1.0)],
 }
 
-_DEGENERATE_SD = 1e-8                         # "no dispersion in window" guard (frame/live cols)
-_SD_EPS = 1e-12                               # standardization epsilon (study convention)
+_DEGENERATE_SD = 1e-8  # "no dispersion in window" guard (frame/live cols)
+_SD_EPS = 1e-12  # standardization epsilon (study convention)
 
-CACHE_DIR_ENV = "UNIFY_CACHE_DIR"             # prep-cache dir override (default "results")
+CACHE_DIR_ENV = "UNIFY_CACHE_DIR"  # prep-cache dir override (default "results")
 
 
 # ── panel ─────────────────────────────────────────────────────────────────────
@@ -207,11 +216,11 @@ CACHE_DIR_ENV = "UNIFY_CACHE_DIR"             # prep-cache dir override (default
 
 @dataclass
 class _Panel:
-    X: np.ndarray            # (n, p) prescaled features
-    y: np.ndarray            # (n,) adj_RV — winsorized sqrt(RV / B_t), the FIT target
-    baseline: np.ndarray     # (n,) B_t diurnal baseline
-    rv_raw: np.ndarray       # (n,) raw RV (unwinsorized truth)
-    t: np.ndarray            # (n,) datetime64[ns]
+    X: np.ndarray  # (n, p) prescaled features
+    y: np.ndarray  # (n,) adj_RV — winsorized sqrt(RV / B_t), the FIT target
+    baseline: np.ndarray  # (n,) B_t diurnal baseline
+    rv_raw: np.ndarray  # (n,) raw RV (unwinsorized truth)
+    t: np.ndarray  # (n,) datetime64[ns]
     names: list[str]
 
 
@@ -278,8 +287,12 @@ def _classify(name: str) -> tuple[str, str, int]:
     return "calendar", "", 0
 
 
-def _cols(names: list[str], kinds: set[str], stems: set[str] | None = None,
-          windows: set[int] | None = None) -> np.ndarray:
+def _cols(
+    names: list[str],
+    kinds: set[str],
+    stems: set[str] | None = None,
+    windows: set[int] | None = None,
+) -> np.ndarray:
     idx = []
     for j, nm in enumerate(names):
         kind, stem, w = _classify(nm)
@@ -350,8 +363,9 @@ def _selection_residual(p: _Panel, window: int) -> np.ndarray:
 
     bb = _backbone_cols(p.names)
     Xb = np.ascontiguousarray(p.X[: 2 * window, bb])
-    pred = walk_forward(Xb, p.y[: 2 * window], window,
-                        alpha=SELECTION_RIDGE_ALPHA, refit_every=1)
+    pred = walk_forward(
+        Xb, p.y[: 2 * window], window, alpha=SELECTION_RIDGE_ALPHA, refit_every=1
+    )
     return p.y[window : 2 * window] - pred
 
 
@@ -367,7 +381,8 @@ def _causal_floored_scale(P: np.ndarray, window: int) -> np.ndarray:
         med[ok, 0] = np.nanmedian(sd[ok], axis=1)
     sd = np.maximum(sd, 0.1 * np.where(np.isfinite(med), med, 1.0))
     sd = pd.DataFrame(sd).bfill().to_numpy()  # warm-up rows only; inside first window
-    out = P / sd
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out = P / sd
     # A column with literally zero window dispersion (e.g. a product of session
     # dummies inactive over the whole trailing window) yields 0/0 here; it carries
     # no signal, so it is zeroed — the identifiability-mask philosophy, not a clip.
@@ -392,8 +407,10 @@ def _frozen_products(p: _Panel, window: int) -> np.ndarray:
 # ── transmission block (frozen frame + Cucuringu lead-lag) ────────────────────
 
 
-def _transmission_block(p: _Panel, window: int) -> np.ndarray:
-    """(n, 2*TRANS_QPOOL) = [factor scores G | lead-lag Ghat].
+def _transmission_block(p: _Panel, window: int, include_scores: bool) -> np.ndarray:
+    """(n, 2*TRANS_QPOOL) = [factor scores G | lead-lag Ghat] when
+    ``include_scores`` (the _user convention), else (n, TRANS_QPOOL) = Ghat only
+    (the _doc convention — the documented construction verbatim).
 
     Frame: eigenvectors of the correlation of the product-base columns over rows
     [window, 2*window), FROZEN (analysis/map_monitor._frame_and_scores). Scores
@@ -435,7 +452,10 @@ def _transmission_block(p: _Panel, window: int) -> np.ndarray:
         Ghat[start:end] = G[start - lag : end - lag] @ D
     Ghat = _causal_floored_scale(Ghat, window)
     Ghat[~np.isfinite(Ghat)] = 0.0
-    return np.hstack([G, Ghat])
+    # Composition per the 2026-08-06 ruling: _doc arms mirror the documented
+    # construction EXACTLY — Ghat only, the study's design (trans_exploit.py:64-66);
+    # _user arms carry [G | Ghat] (40 cols), the paper's own design.
+    return np.hstack([G, Ghat]) if include_scores else Ghat
 
 
 # ── walk-forward drivers (per-bar refit; chunk seam) ──────────────────────────
@@ -451,49 +471,122 @@ def _slice(lo: int, hi: int, window: int, n: int) -> tuple[int, int]:
     return lo, hi
 
 
-def _walk_ridge(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int,
-                alpha: float) -> np.ndarray:
+def _walk_ridge(
+    F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int, alpha: float
+) -> np.ndarray:
     """Per-bar-refit rolling ridge for rows [lo, hi) — analysis/wf.walk_forward on
     the [lo-window, hi) slice (RollingLeastSquares rank-1, unpenalized intercept)."""
     from analysis.wf import walk_forward
 
-    return walk_forward(F[lo - window : hi], y[lo - window : hi], window,
-                        alpha=alpha, refit_every=1)
+    return walk_forward(
+        F[lo - window : hi], y[lo - window : hi], window, alpha=alpha, refit_every=1
+    )
 
 
-def _walk_ols(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int
-              ) -> tuple[np.ndarray, int]:
-    """Exact OLS (alpha=0) per-bar walk-forward with a named tiny-ridge fallback
-    for exactly-singular grams (duplicate indicator columns). Same loop shape as
-    analysis/wf.walk_forward."""
+def _dedup_ols_design(
+    F: np.ndarray, col_names: list[str]
+) -> tuple[np.ndarray, list[str], list[str]]:
+    """Deterministic exact-duplicate dedup for OLS designs (no shrinkage, ever).
+
+    Over the FULL panel (so every chunk of an arm sees the identical design),
+    drop (a) columns bitwise-equal to an earlier column — first in canonical
+    order wins — and (b) panel-constant columns, which are exact duplicates of
+    the unpenalized intercept. Returns (F_deduped, kept_names, dropped_names).
+    """
+    keep: list[int] = []
+    dropped: list[str] = []
+    seen: dict[bytes, int] = {}
+    for j in range(F.shape[1]):
+        col = np.ascontiguousarray(F[:, j])
+        if col.max() == col.min():  # panel-constant ≡ intercept duplicate
+            dropped.append(col_names[j])
+            continue
+        key = col.tobytes()  # bitwise equality, not tolerance-based
+        if key in seen:
+            dropped.append(col_names[j])
+            continue
+        seen[key] = j
+        keep.append(j)
+    kept_names = [col_names[j] for j in keep]
+    return np.ascontiguousarray(F[:, keep]), kept_names, dropped
+
+
+def _walk_ols(
+    F: np.ndarray,
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    col_names: list[str],
+) -> tuple[np.ndarray, dict[str, dict[str, int]]]:
+    """Exact OLS (alpha=0) per-bar walk-forward with WINDOW-LEVEL identifiability
+    masking (ruling 2026-08-06; the repo's own lam2=0 identifiability-mask
+    precedent, specs/causal_tune_linear.py, applied to the OLS path).
+
+    Per training window, columns with ZERO dispersion in that window (an
+    availability step that has not yet gone live, or has exited the window) are
+    masked: coefficient 0, excluded from the solve, re-entering the moment the
+    feed varies inside the window. Threshold-free and exact — a column is
+    masked iff its last value-change index precedes the window start, computed
+    from the RAW slice, never from drift-prone rolled statistics. Exact OLS on
+    the surviving columns (the unpenalized intercept absorbs in-window
+    constants). No shrinkage anywhere; a gram still singular AFTER masking
+    fails loudly. Returns (yhat, mask report: name -> {bars, first, last}
+    with global row indices).
+    """
     Xs = np.ascontiguousarray(F[lo - window : hi])
     ys = np.ascontiguousarray(y[lo - window : hi])
+    ns, p = Xs.shape
+    # last-change index per (row, col): largest r' <= r with Xs[r'] != Xs[r'-1]
+    # (0 if the column never changed up to r). Column j is constant over window
+    # rows [w0, t) iff lastchg[t-1, j] <= w0.
+    lastchg = np.zeros((ns, p), dtype=np.int32)
+    lastchg[1:] = np.where(
+        Xs[1:] != Xs[:-1], np.arange(1, ns, dtype=np.int32)[:, None], 0
+    )
+    np.maximum.accumulate(lastchg, axis=0, out=lastchg)
+
     solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
     solver.init_window(Xs[:window], ys[:window])
     out = np.empty(hi - lo, dtype=np.float64)
-    n_fallback = 0
-
-    def _solve() -> None:
-        nonlocal n_fallback
-        try:
-            solver.solve()
-            if np.all(np.isfinite(solver._coef)):
-                return
-        except np.linalg.LinAlgError:
-            pass
-        solver.alpha = OLS_FALLBACK_ALPHA
-        solver.solve()
-        solver.alpha = 0.0
-        n_fallback += 1
-
-    _solve()
+    mask_rows = np.zeros((hi - lo, p), dtype=bool)
+    n = float(window)
     for i in range(hi - lo):
         t = window + i
-        if i:
-            _solve()
-        out[i] = solver.predict_one(Xs[t])
+        mask = lastchg[t - 1] <= i  # zero dispersion within window rows [i, t)
+        mask_rows[i] = mask
+        free = ~mask
+        gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
+        rhs = solver._Sxy - solver._sx * (solver._sy / n)
+        coef = np.zeros(p)
+        if free.any():
+            try:
+                coef[free] = np.linalg.solve(gram[np.ix_(free, free)], rhs[free])
+            except np.linalg.LinAlgError as err:
+                raise RuntimeError(
+                    f"singular OLS gram at global row {lo + i} despite panel-level "
+                    "dedup AND window-level identifiability masking — an exact "
+                    "within-window collinearity beyond zero-dispersion. No "
+                    "shrinkage fallback by design; investigate the design."
+                ) from err
+            if not np.all(np.isfinite(coef)):
+                raise RuntimeError(
+                    f"non-finite OLS coefficients at global row {lo + i} — "
+                    "numerically degenerate window; no shrinkage fallback by design."
+                )
+        intercept = solver._sy / n - float(solver._sx @ coef) / n
+        out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
-    return out, n_fallback
+
+    masked: dict[str, dict[str, int]] = {}
+    for j in np.flatnonzero(mask_rows.any(axis=0)):
+        bars = np.flatnonzero(mask_rows[:, j])
+        masked[col_names[j]] = {
+            "bars": int(len(bars)),
+            "first": int(lo + bars[0]),
+            "last": int(lo + bars[-1]),
+        }
+    return out, masked
 
 
 # ── causally-tuned penalized arms ─────────────────────────────────────────────
@@ -591,7 +684,9 @@ class RollingTunedLinear:
             self._c = Xa.T @ yr
             th = _batch_theta(Xa, yr, self._locked, a, l1)
             self._A = list(np.where((np.abs(th) > 1e-9) | self._locked)[0])
-            self._s = [0.0 if self._locked[j] else float(np.sign(th[j])) for j in self._A]
+            self._s = [
+                0.0 if self._locked[j] else float(np.sign(th[j])) for j in self._A
+            ]
             self._th = th
 
     def roll(self, x_in, y_in, x_out, y_out):
@@ -614,12 +709,28 @@ class RollingTunedLinear:
             self._c -= ur * float(y_out)
         else:  # warm Garrigues homotopy: one rank-1 data change per call
             self._th, self._A, self._s = enet_online(
-                self._Gr, self._c, self._mu_vec, ua, float(y_in), +1.0,
-                self._th, self._A, self._s, self._locked,
+                self._Gr,
+                self._c,
+                self._mu_vec,
+                ua,
+                float(y_in),
+                +1.0,
+                self._th,
+                self._A,
+                self._s,
+                self._locked,
             )
             self._th, self._A, self._s = enet_online(
-                self._Gr, self._c, self._mu_vec, ur, float(y_out), -1.0,
-                self._th, self._A, self._s, self._locked,
+                self._Gr,
+                self._c,
+                self._mu_vec,
+                ur,
+                float(y_out),
+                -1.0,
+                self._th,
+                self._A,
+                self._s,
+                self._locked,
             )
 
     def _tune(self):
@@ -656,8 +767,14 @@ class RollingTunedLinear:
         return float(np.append(np.asarray(x, dtype=np.float64), 1.0) @ self._th)
 
 
-def _walk_tuned(F: np.ndarray, y: np.ndarray, window: int, lo: int, hi: int,
-                grid: list[tuple[str, float, float]]) -> np.ndarray:
+def _walk_tuned(
+    F: np.ndarray,
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    grid: list[tuple[str, float, float]],
+) -> np.ndarray:
     """Per-bar walk-forward driving the RollingTunedLinear incremental protocol
     (init_window / solve / predict_one / roll), chunk seam as in _walk_ridge."""
     Xs = np.ascontiguousarray(F[lo - window : hi])
@@ -680,14 +797,14 @@ class ArmSpec:
     """One campaign arm: design builder + estimator config under the frozen spec."""
 
     describe: str
-    kind: str                                   # "ols" | "blocks" | "tuned"
+    kind: str  # "ols" | "blocks" | "tuned"
     blocks: list[tuple[str, str]] = field(default_factory=list)
     #   (block name, alpha key) for kind="blocks"; block names:
     #   backbone | exog_all | bucket:<name> | product | trans
     alphas: dict[str, float] = field(default_factory=dict)
-    grid: str = ""                              # ESTIMATOR_GRIDS key for kind="tuned"
-    window_bars: int | None = None              # None = args.window; doc arms pin 12000
-    oos_mult: int = 1                           # first legal OOS row = oos_mult * window
+    grid: str = ""  # ESTIMATOR_GRIDS key for kind="tuned"
+    window_bars: int | None = None  # None = args.window; doc arms pin 12000
+    oos_mult: int = 1  # first legal OOS row = oos_mult * window
     aliases: tuple[str, ...] = ()
 
     @property
@@ -700,16 +817,25 @@ class ArmSpec:
 def _bucket_arm(bucket: str) -> ArmSpec:
     return ArmSpec(
         describe=f"OLS: HAR backbone + '{bucket}' bucket (literal alpha=0)",
-        kind="ols", blocks=[("backbone", ""), (f"bucket:{bucket}", "")],
+        kind="ols",
+        blocks=[("backbone", ""), (f"bucket:{bucket}", "")],
     )
 
 
-def _blk(arms: list[tuple[str, str]], alphas: dict[str, float], window: int | None,
-         label: str) -> ArmSpec:
-    needs_frozen = any(b in ("product", "trans") for b, _ in arms)
+def _blk(
+    arms: list[tuple[str, str]],
+    alphas: dict[str, float],
+    window: int | None,
+    label: str,
+) -> ArmSpec:
+    needs_frozen = any(b == "product" or b.startswith("trans") for b, _ in arms)
     return ArmSpec(
-        describe=label, kind="blocks", blocks=arms, alphas=alphas,
-        window_bars=window, oos_mult=2 if needs_frozen else 1,
+        describe=label,
+        kind="blocks",
+        blocks=arms,
+        alphas=alphas,
+        window_bars=window,
+        oos_mult=2 if needs_frozen else 1,
     )
 
 
@@ -720,66 +846,109 @@ _BUCKETS = [b for b in SUBGROUPS if b != "baseline"]
 ARMS: dict[str, ArmSpec] = {
     "a0_ols_har": ArmSpec(
         describe="OLS on the base-2 HAR ladder of the target (backbone: HAR + "
-                 "session-edge interactions + calendar). THE reference arm. "
-                 "Alias: a10_noexog — collapse VERIFIED computationally "
-                 "2026-08-06, not assumed: on the real 242,934-row panel the "
-                 "empty-bucket joint design == the plain backbone design "
-                 "bit-identically (np.array_equal True) and 300-bar walk-forward "
-                 "predictions match with max|diff| = 0.0; row sets identical by "
-                 "construction (one shared panel, no per-arm row filtering).",
-        kind="ols", blocks=[("backbone", "")], aliases=("a10_noexog",),
+        "session-edge interactions + calendar). THE reference arm. "
+        "Alias: a10_noexog — collapse VERIFIED computationally "
+        "2026-08-06, not assumed: on the real 242,934-row panel the "
+        "empty-bucket joint design == the plain backbone design "
+        "bit-identically (np.array_equal True) and 300-bar walk-forward "
+        "predictions match with max|diff| = 0.0; row sets identical by "
+        "construction (one shared panel, no per-arm row filtering).",
+        kind="ols",
+        blocks=[("backbone", "")],
+        aliases=("a10_noexog",),
     ),
     **{f"a_bucket_{b}": _bucket_arm(b) for b in _BUCKETS},
     "b1_ridge": ArmSpec(
         describe="FIXED-penalty ridge on the wide all_features basis, alpha=1.0 "
-                 "(DEFAULT_RIDGE_PARAMS — untuned production default; no tuning "
-                 "by user directive 2026-08-06)",
-        kind="blocks", blocks=[("wide", "wide")], alphas={"wide": FIXED_RIDGE_ALPHA},
+        "(DEFAULT_RIDGE_PARAMS — untuned production default; no tuning "
+        "by user directive 2026-08-06)",
+        kind="blocks",
+        blocks=[("wide", "wide")],
+        alphas={"wide": FIXED_RIDGE_ALPHA},
     ),
     "b2_lasso": ArmSpec(
-        describe="FIXED-penalty lasso on the wide basis, alpha=1e-3 l1_ratio=1.0 "
-                 "(# DECIDE pin — see FIXED_LASSO_ALPHA; warm Garrigues homotopy, "
-                 "per-bar refit; enet arm dropped: §5 is ridge vs lasso)",
-        kind="tuned", grid="lasso_fixed",
+        describe="FIXED-penalty lasso on the wide basis, alpha=1e-4 l1_ratio=1.0 "
+        "(pinned 2026-08-06; warm Garrigues homotopy, per-bar refit; "
+        "enet arm dropped: §5 is ridge vs lasso)",
+        kind="tuned",
+        grid="lasso_fixed",
     ),
-    "blk2_user": _blk([("backbone", "backbone"), ("exog_all", "exog")], USER_ALPHAS,
-                      None, "2-block ridge: backbone@1 + exog@100, args.window"),
-    "blk3_user": _blk([("backbone", "backbone"), ("exog_all", "exog"),
-                       ("product", "product")], USER_ALPHAS, None,
-                      "3-block ridge: + frozen products@1000"),
-    "blk4_user": _blk([("backbone", "backbone"), ("exog_all", "exog"),
-                       ("product", "product"), ("trans", "trans")], USER_ALPHAS, None,
-                      "4-block ridge: + transmission@1000 (alpha fixed by author "
-                      "decision 2026-08-06)"),
-    "blk2_doc": _blk([("backbone", "backbone"), ("exog_all", "exog")], DOC_ALPHAS,
-                     DOC_WINDOW_BARS, "2-block ridge, documented convention: "
-                     "backbone@1 + exog@3e3, 250-day window"),
-    "blk3_doc": _blk([("backbone", "backbone"), ("exog_all", "exog"),
-                      ("product", "product")], DOC_ALPHAS, DOC_WINDOW_BARS,
-                     "3-block ridge, documented: + products@3e4, 250-day window"),
-    "blk4_doc": _blk([("backbone", "backbone"), ("exog_all", "exog"),
-                      ("product", "product"), ("trans", "trans")], DOC_ALPHAS,
-                     DOC_WINDOW_BARS,
-                     "4-block ridge, documented: + transmission@3e3, 250-day window"),
+    "blk2_user": _blk(
+        [("backbone", "backbone"), ("exog_all", "exog")],
+        USER_ALPHAS,
+        None,
+        "2-block ridge: backbone@1 + exog@100, args.window",
+    ),
+    "blk3_user": _blk(
+        [("backbone", "backbone"), ("exog_all", "exog"), ("product", "product")],
+        USER_ALPHAS,
+        None,
+        "3-block ridge: + frozen products@1000",
+    ),
+    "blk4_user": _blk(
+        [
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_user", "trans"),
+        ],
+        USER_ALPHAS,
+        None,
+        "4-block ridge: + transmission [G|Ghat]@1000 (alpha + composition per "
+        "the 2026-08-06 rulings)",
+    ),
+    "blk2_doc": _blk(
+        [("backbone", "backbone"), ("exog_all", "exog")],
+        DOC_ALPHAS,
+        DOC_WINDOW_BARS,
+        "2-block ridge, documented convention: backbone@1 + exog@3e3, 250-day window",
+    ),
+    "blk3_doc": _blk(
+        [("backbone", "backbone"), ("exog_all", "exog"), ("product", "product")],
+        DOC_ALPHAS,
+        DOC_WINDOW_BARS,
+        "3-block ridge, documented: + products@3e4, 250-day window",
+    ),
+    "blk4_doc": _blk(
+        [
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_doc", "trans"),
+        ],
+        DOC_ALPHAS,
+        DOC_WINDOW_BARS,
+        "4-block ridge, documented: + transmission Ghat-only@3e3, 250-day window "
+        "(documented construction verbatim)",
+    ),
     # Isolation diagnostics run under BOTH block conventions (user directive
     # 2026-08-06): _user = stated alphas @ 24k window, _doc = documented §22
     # alphas @ 250-day window. Convention explicit in the arm name.
-    "c4_product_alone_user": _blk([("backbone", "backbone"), ("product", "product")],
-                                  USER_ALPHAS, None,
-                                  "diagnostic: backbone@1 + frozen products@1000, "
-                                  "args.window"),
-    "c4_product_alone_doc": _blk([("backbone", "backbone"), ("product", "product")],
-                                 DOC_ALPHAS, DOC_WINDOW_BARS,
-                                 "diagnostic: backbone@1 + frozen products@3e4, "
-                                 "250-day window"),
-    "d3_transmission_alone_user": _blk([("backbone", "backbone"), ("trans", "trans")],
-                                       USER_ALPHAS, None,
-                                       "diagnostic: backbone@1 + transmission@1000, "
-                                       "args.window (alpha per the 2026-08-06 ruling)"),
-    "d3_transmission_alone_doc": _blk([("backbone", "backbone"), ("trans", "trans")],
-                                      DOC_ALPHAS, DOC_WINDOW_BARS,
-                                      "diagnostic: backbone@1 + transmission@3e3, "
-                                      "250-day window"),
+    "c4_product_alone_user": _blk(
+        [("backbone", "backbone"), ("product", "product")],
+        USER_ALPHAS,
+        None,
+        "diagnostic: backbone@1 + frozen products@1000, args.window",
+    ),
+    "c4_product_alone_doc": _blk(
+        [("backbone", "backbone"), ("product", "product")],
+        DOC_ALPHAS,
+        DOC_WINDOW_BARS,
+        "diagnostic: backbone@1 + frozen products@3e4, 250-day window",
+    ),
+    "d3_transmission_alone_user": _blk(
+        [("backbone", "backbone"), ("trans_user", "trans")],
+        USER_ALPHAS,
+        None,
+        "diagnostic: backbone@1 + transmission [G|Ghat]@1000, "
+        "args.window (per the 2026-08-06 rulings)",
+    ),
+    "d3_transmission_alone_doc": _blk(
+        [("backbone", "backbone"), ("trans_doc", "trans")],
+        DOC_ALPHAS,
+        DOC_WINDOW_BARS,
+        "diagnostic: backbone@1 + transmission Ghat-only@3e3, 250-day window",
+    ),
 }
 _ALIASES = {alias: name for name, spec in ARMS.items() for alias in spec.aliases}
 
@@ -795,8 +964,10 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
     if block == "product":
         return _frozen_products(p, window)
-    if block == "trans":
-        return _transmission_block(p, window)
+    if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
+        return _transmission_block(p, window, include_scores=True)
+    if block == "trans_doc":  # Ghat only — the documented construction verbatim
+        return _transmission_block(p, window, include_scores=False)
     raise KeyError(f"unknown block '{block}'")
 
 
@@ -806,11 +977,10 @@ def _build_design(p: _Panel, spec: ArmSpec, window: int) -> tuple[np.ndarray, fl
     per-block penalty (minimal_model.py:297-299); intercept stays unpenalized."""
     if spec.kind == "tuned":
         return p.X, 0.0
-    if spec.kind == "ols":
-        parts = [_build_block(p, b, window) for b, _ in spec.blocks]
-        return (parts[0] if len(parts) == 1 else np.hstack(parts)), 0.0
-    a_ref = spec.alphas[spec.blocks[0][1]] if len(spec.blocks) == 1 else (
-        spec.alphas.get("exog", spec.alphas[spec.blocks[0][1]])
+    a_ref = (
+        spec.alphas[spec.blocks[0][1]]
+        if len(spec.blocks) == 1
+        else (spec.alphas.get("exog", spec.alphas[spec.blocks[0][1]]))
     )
     parts = []
     for b, akey in spec.blocks:
@@ -830,8 +1000,9 @@ def panel_length() -> int:
     """
     if _PANEL is not None:
         return len(_PANEL.y)
-    cache = os.path.join(os.environ.get(CACHE_DIR_ENV, "results"),
-                         "prep_cache_all_features_b2.npz")  # prepare_full's key for
+    cache = os.path.join(
+        os.environ.get(CACHE_DIR_ENV, "results"), "prep_cache_all_features_b2.npz"
+    )  # prepare_full's key for
     #   bucket=all_features, har_base=2, kernel=mean, diurnal=divide, no PREP_ROWS
     if os.path.exists(cache):
         with np.load(cache, allow_pickle=True) as z:
@@ -839,10 +1010,27 @@ def panel_length() -> int:
     return len(_load_panel().y)
 
 
+def _ols_design(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str], list[str]]:
+    """OLS design by named column selection + deterministic dedup (see
+    :func:`_dedup_ols_design`). Returns (F, kept_names, dropped_names)."""
+    cols: list[int] = []
+    for b, _ in spec.blocks:
+        if b == "backbone":
+            cols += list(_backbone_cols(p.names))
+        elif b.startswith("bucket:"):
+            cols += list(_bucket_cols(p.names, b.split(":", 1)[1]))
+        else:
+            raise KeyError(f"OLS arms only compose backbone/bucket blocks, got '{b}'")
+    names_design = [p.names[j] for j in cols]
+    return _dedup_ols_design(p.X[:, np.asarray(cols, dtype=np.int64)], names_design)
+
+
 def _registry_text() -> str:
     lines = ["unification arm registry (all arms REAL — no stubs):"]
     for name, spec in ARMS.items():
-        lines.append(f"  {name:24s} [{spec.kind:6s}] w={spec.window:5d}  {spec.describe}")
+        lines.append(
+            f"  {name:24s} [{spec.kind:6s}] w={spec.window:5d}  {spec.describe}"
+        )
     for alias, target in _ALIASES.items():
         lines.append(f"  {alias:24s} -> alias of {target}")
     lines.append(
@@ -866,13 +1054,14 @@ def compute(args: argparse.Namespace) -> None:
         return
     arm = _ALIASES.get(arm, arm)
     if arm not in ARMS:
-        raise SystemExit(
-            f"unknown arm '{arm}'.\n{_registry_text()}"
-        )
+        raise SystemExit(f"unknown arm '{arm}'.\n{_registry_text()}")
     spec = ARMS[arm]
 
-    missing = [f for f in ("chunk_start", "chunk_end", "output_file")
-               if getattr(args, f, None) is None]
+    missing = [
+        f
+        for f in ("chunk_start", "chunk_end", "output_file")
+        if getattr(args, f, None) is None
+    ]
     if missing:
         raise SystemExit(
             f"arm '{arm}' needs flags: {', '.join('--' + m.replace('_', '-') for m in missing)}\n"
@@ -899,13 +1088,16 @@ def compute(args: argparse.Namespace) -> None:
         raise SystemExit(f"empty chunk [{lo}, {hi})")
     _slice(lo, hi, window, n)
 
-    F, a_ref = _build_design(p, spec, window)
-    n_fallback = 0
+    dropped_cols: list[str] = []
+    masked_cols: dict[str, dict[str, int]] = {}
     if spec.kind == "ols":
-        yhat, n_fallback = _walk_ols(F, p.y, window, lo, hi)
+        F, kept_names, dropped_cols = _ols_design(p, spec)
+        yhat, masked_cols = _walk_ols(F, p.y, window, lo, hi, kept_names)
     elif spec.kind == "blocks":
+        F, a_ref = _build_design(p, spec, window)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
     else:
+        F, _ = _build_design(p, spec, window)
         yhat = _walk_tuned(F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid])
 
     y_fit = p.y[lo:hi]
@@ -916,7 +1108,8 @@ def compute(args: argparse.Namespace) -> None:
         "sum_y": float(np.sum(y_fit)),
         "sum_y2": float(np.sum(y_fit**2)),
         "n": int(hi - lo),
-        "ols_fallback_bars": int(n_fallback),
+        "ols_dropped_cols": len(dropped_cols),
+        "ols_masked_cols": len(masked_cols),
     }
 
     os.makedirs(os.path.dirname(args.output_file) or ".", exist_ok=True)
@@ -936,16 +1129,35 @@ def compute(args: argparse.Namespace) -> None:
         sum_y=np.float64(result["sum_y"]),
         sum_y2=np.float64(result["sum_y2"]),
         n=np.int64(result["n"]),
-        ols_fallback_bars=np.int64(n_fallback),
-        meta=json.dumps({
-            "arm": arm, "kind": spec.kind, "window_bars": window,
-            "chunk_start": lo, "chunk_end": hi, "first_oos": first_oos,
-            "har_base": HAR_BASE, "alphas": spec.alphas, "grid": spec.grid,
-            "n_design_cols": int(F.shape[1]), "smear": "none (scored locally, §3 contract)",
-        }),
+        ols_dropped_cols=np.int64(len(dropped_cols)),
+        ols_masked_cols=np.int64(len(masked_cols)),
+        meta=json.dumps(
+            {
+                "arm": arm,
+                "kind": spec.kind,
+                "window_bars": window,
+                "chunk_start": lo,
+                "chunk_end": hi,
+                "first_oos": first_oos,
+                "har_base": HAR_BASE,
+                "alphas": spec.alphas,
+                "grid": spec.grid,
+                "n_design_cols": int(F.shape[1]),
+                # deterministic exact-duplicate/constant drops (OLS arms; see
+                # _dedup_ols_design) — recorded so the design is auditable per task
+                "ols_dropped_cols": dropped_cols,
+                # window-level identifiability mask report (OLS arms; ruling
+                # 2026-08-06): name -> {bars, first, last} in GLOBAL row indices
+                "ols_masked_cols": masked_cols,
+                "smear": "none (scored locally, §3 contract)",
+            }
+        ),
     )
-    print(f"[{arm}] rows [{lo}, {hi}) window={window} cols={F.shape[1]} "
-          f"sqrt_mse={result['sqrt_mse']:.6f} fallback={n_fallback} -> {args.output_file}")
+    print(
+        f"[{arm}] rows [{lo}, {hi}) window={window} cols={F.shape[1]} "
+        f"sqrt_mse={result['sqrt_mse']:.6f} dropped={len(dropped_cols)} "
+        f"masked={len(masked_cols)} -> {args.output_file}"
+    )
 
     if os.environ.get("RESULT_DIR"):
         from hpc_agent.execution.mapreduce.metrics_io import write_metrics

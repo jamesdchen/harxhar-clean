@@ -48,7 +48,8 @@ the ridge arm runs on an exact rank-one update path.
 
 All arms are compared against the shared incumbent of
 Section~\ref{sec:data_prep}: per-bar OLS on HAR plus calendar features with no
-exogenous inputs, at QLIKE $0.13415$ on this panel. Diebold--Mariano
+exogenous inputs, at the benchmark QLIKE of \pending{campaign \texttt{a0}}.
+Diebold--Mariano
 statistics \citep{DieboldMariano1995} are computed on per-bar QLIKE loss
 \citep{Patton2011} against that incumbent, with Newey--West HAC standard
 errors and the small-sample correction of
@@ -69,7 +70,8 @@ tables may need this re-run on the paper's one-panel convention}
 penalty, with the Diebold--Mariano $t$-statistic against the shared OLS--HAR
 incumbent in parentheses. \textbf{Panel: causal-tuning battery,}
 $n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent
-QLIKE $= 0.13415$. Negative $t$ favors the arm; $|t| > 1.96$ is significant at
+QLIKE \pending{campaign \texttt{a0} benchmark}. Negative $t$ favors the arm;
+$|t| > 1.96$ is significant at
 the 5\% level. Best QLIKE in each row is bold. \texttt{baseline} is the
 no-exogenous bucket: HAR plus calendar features only, so that row isolates the
 effect of shrinkage with the information set held at the incumbent's.}
@@ -88,7 +90,7 @@ Bucket & Ridge & Elastic net & Lasso \\
 \texttt{sentiment}     & \textbf{0.13347} ($-5.7$)  & 0.13377 ($-3.5$)  & 0.13390 ($-2.1$)  \\
 \midrule
 \texttt{baseline} (no exog) & \textbf{0.13445} ($+5.0$) & 0.13471 ($+7.5$) & 0.13475 ($+7.0$) \\
-Incumbent: OLS on \texttt{baseline} & \multicolumn{3}{c}{0.13415} \\
+Incumbent: OLS on \texttt{baseline} & \multicolumn{3}{c}{\pending{a0}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -224,11 +226,10 @@ takes both lessons of Table~\ref{tab:lasso_vs_ridge} seriously at once ---
 and it contains no selection step and no tuned dial: the penalties are fixed
 constants, not optimized quantities.
 
-\pending{two-block ridge QLIKE on the shared panel, with DM against the
-OLS--HAR incumbent and against single-penalty ridge on
-\texttt{all\_features} --- not yet in any documented table; the only
-two-block numbers on record are the multi-horizon product configuration with
-different penalties, which belongs to the companion paper}
+\pending{two-block ridge QLIKE from the unification campaign
+(\texttt{blk2} arms), with DM against the OLS--HAR incumbent and against
+single-penalty ridge on \texttt{all\_features} --- the first scored run of
+this exact specification}
 
 The two-block ridge is this paper's spine, and the next two sections grow it
 one block at a time: Section~\ref{sec:nonlinear_product} asks what

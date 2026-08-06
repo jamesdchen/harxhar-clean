@@ -63,39 +63,21 @@ equally well, and no clever selection inside it can beat carrying it whole.
 \label{sec:trans-leadlag}
 
 \paragraph{The lead--lag field is real, and it is a rotation.}
-Let $A$ be the antisymmetric part of the factor scores' lag-one-day
+Let $A$ be the antisymmetric part of the factor scores' lag-one-\emph{bar}
 cross-correlation --- the raw material of Hermitian lead--lag
-clustering~\pending{cite}. Over its 190 edges, $A$ replicates split-half at
-$+0.79$: the second geometric object on the frame (after the factor-pair
-coupling map, split-half $+0.62$ against a null of $0.00 \pm 0.11$) to pass a
-powered replication test. Its structure is diagnosed by the Hodge
-decomposition: \textbf{91.6\% curl, 8.4\% gradient}. The daily field is not a
-lead--lag \emph{hierarchy} but a \emph{circulation} --- one dominant two-plane
-carries 61\% of the antisymmetric energy, and the Hermitian phase ordering of
-the factors around that cycle replicates across halves at $+0.76$. The
-toolkit adjudicated its own instruments symmetrically: methods that presume a
-ranking (SyncRank: split-half $\tau = -0.06$) or a partition (SPONGE signed
-clustering: split-half ARI below its permutation null at every $k$) fail on
-this object \emph{because} it is curl-dominated and dense-but-weak has no
-blocks, while the Hermitian embedding and dynamic-network change-point
-detection pass --- the latter flagging exactly two interior breaks (2013-07,
-the taper transition, and 2017-08, immediately preceding Volmageddon) with no
-tuning toward them, and, notably, \emph{no} break at COVID: amplitudes
-exploded in 2020 while the field's structure held.
-
-\paragraph{At the product's own timescale.}
-The same construction at a one-\emph{bar} lag --- with per-slot
-deseasonalization and an explicit clock control, since the diurnal timetable
-could manufacture artificial lead--lag --- yields the most replicable object
-in the study: split-half $+0.992$ for the dynamic flow (the clock share is
+clustering~\pending{cite} --- computed with per-slot deseasonalization and
+an explicit clock control, since the diurnal timetable could manufacture
+artificial lead--lag. This field is the most replicable object in the
+study: split-half $+0.992$ for the dynamic flow (the clock share is
 $-0.003$; a closed-form control for trailing-MA arithmetic explains 6\% of
-its variance, and the residual still replicates at $+0.992$). The intraday
-field is even more cyclic (96.5\% curl), operates identically in and out of
-regular hours (RTH-vs-overnight similarity $+0.967$), and its hub structure
-is economically legible: turnover and tail activity lead the implied-vol
-complex, and implied vol leads the realized-vol factors --- order flow
-repricing implied variance, implied variance leading realized, at a
-half-hour lag.
+its variance, and the residual still replicates at $+0.992$). The field is
+overwhelmingly cyclic (\textbf{96.5\% curl} in its Hodge decomposition): not
+a lead--lag \emph{hierarchy} but a \emph{circulation}. It operates
+identically in and out of regular hours (RTH-vs-overnight similarity
+$+0.967$), and its hub structure is economically legible: turnover and tail
+activity lead the implied-vol complex, and implied vol leads the
+realized-vol factors --- order flow repricing implied variance, implied
+variance leading realized, at a half-hour lag.
 
 \paragraph{From field to feature.}
 The feature construction is the field applied as a linear operator. With
@@ -110,18 +92,15 @@ flow through it. The antisymmetry is load-bearing, not decoration --- the
 symmetric part of the lag-1 cross-correlation is persistence content the
 moving-average ladder already spans. That claim was given its decisive
 control: 20 columns of \emph{plain} lagged scores $G(t-1)$ (the same lagged
-information with no flow structure) fail the entry gate outright ($+0.43$),
-while the $D$-weighted columns pass ($+2.58$ at the eight-bar horizon). The
-flow content, not generic lag-1 information, is what the design was missing.
+information with no flow structure) fail the entry gate outright, while the
+$D$-weighted columns pass. The flow content, not generic lag-1 information,
+is what the design was missing. \pending{one-bar entry-gate statistics for
+the plain-lag control vs the $D$-weighted columns, from the unification
+campaign}
 
-The block's value is fast and strictly horizon-dependent. Against same-engine
-twins that already contain everything else, the Diebold--Mariano profile is
-$+9.90$ at one bar (the strongest feature statistic in the campaign),
-$+5.00$ at four bars, $+2.58$ at eight, failing at the end-of-day horizon
-($+1.38$), with one lawful revival at sixteen bars ($+5.85$) --- but only
-under a per-horizon shrinkage scaling $\alpha \propto H$ that prices the
-block at sixteen times its one-bar penalty. Dense-weak content pays at long
-horizons only when the solver is forced to be humble. One further symmetry:
+The block's value is fast. Against same-engine twins that already contain
+everything else, the block enters at Diebold--Mariano $+9.90$ at one bar ---
+the strongest feature statistic in the campaign. One further symmetry:
 the arrows themselves do not want freshness. Re-estimating $D$ monthly
 ($+0.75$) or even per bar ($+1.48$) fails the gate --- the refit-cadence law
 that governs coefficients everywhere else in this paper finally met the
@@ -149,12 +128,9 @@ and its truncation point is not identified. The mechanics were probed
 directly: the widening gain is carried by the new directions' \emph{own}
 next-bar forecastability (not by new information about the old factors);
 doubling the $D$ estimation window rescues nothing at $q=106$ (the tail is
-empty, not noisy); the new arrows replicate split-half at $+0.838$ (old
-block $+0.907$) --- a stable field over unpinnable labels; and the width
-increment is horizon-local, existing at the one-bar horizon only (the
-width-40-over-width-20 gate fails at $H = 4$, $8$, $13$, and $16$), which
-retroactively explains why the inherited 20 survived so long: at every
-horizon tested earlier, 20 was enough.
+empty, not noisy); and the new arrows replicate split-half at $+0.838$ (old
+block $+0.907$) --- a stable field over unpinnable labels. Production runs
+width 40, and the choice is a one-bar result for a one-bar paper.
 
 \subsection{The Four-Block Ridge}
 % Endpoint: the final composed model — all four blocks.
@@ -194,24 +170,16 @@ paper. On the campaign panel, adding the width-40 transmission block to the
 baseline of $0.13275$. Composed with the second-moment correction of
 Section~\ref{sec:smearing} in its final form, the campaign's headline number
 closed at QLIKE $0.12299$ ($\approx -7.3\%$ against HAR), having opened the
-campaign at $0.12579$. Every step of the transmission program --- the one-bar
-per-bar entry ($t = +8.45$), the width move, the intermediate-horizon rungs
---- survived a closing Romano--Wolf step-down over the full post-hoc family
-(2{,}000 draws, 1{,}008-bar joint blocks), the study's first family sweep
-with no casualties. \decide{which number is this section's endpoint headline:
+campaign at $0.12579$. \decide{which number is this section's endpoint headline:
 the four-block ridge alone ($0.12529$ per-bar) or the ridge composed with
 the Section~\ref{sec:smearing} smear ($0.12299$) --- and whether the paper's
 final table re-freezes these on its own battery}
 \pending{final four-block QLIKE regenerated under this paper's frozen battery
 and panel convention, if the campaign numbers above are not adopted as-is}
 
-The per-horizon deployment falls out of the horizon profile rather than out
-of a choice: at one bar, the full four-block model refit per bar; at
-intermediate horizons, the width-20 block with $\alpha \propto H$ scaling; at
-end-of-day, no transmission at all --- the three-block model, by measurement
-rather than omission. The postscript writes itself: the fourth block is the
+The postscript writes itself: the fourth block is the
 first in the model with an arrow of time in it, and on this panel it is
-descriptive at a one-day lag and predictive at a one-bar lag --- fast, like
+predictive at exactly the model's own cadence --- one bar --- fast, like
 everything else that worked. On a cross-section of assets, where the
 lead--lag field is estimated across names rather than across one market's
 factors, the same construction becomes the estimation target rather than the

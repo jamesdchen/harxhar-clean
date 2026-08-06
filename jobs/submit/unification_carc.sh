@@ -4,6 +4,11 @@
 # Arm list = penalized + block ladders + diagnostics + a0 float-parity canary.
 set -e
 cd /scratch1/jc_905/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+PY=/home1/jc_905/.conda/envs/harxhar/bin/python
+# Warm the panel cache ONCE before the arrays fire (100 tasks racing to
+# build it simultaneously is a thundering herd + cache-write race).
+$PY -c "from src.unification import panel_length; print('panel rows:', panel_length())"
 ARMS_CARC=(
   a0_ols_har            # float-parity canary (also runs on Hoffman2)
   b1_ridge

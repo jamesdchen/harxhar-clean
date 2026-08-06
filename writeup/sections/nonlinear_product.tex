@@ -90,6 +90,19 @@ leaves most of the state space to its additive base and intervenes in
 particular regions --- and it is the first hint that the tree's edge is a
 \emph{specific, findable structure} rather than a diffuse capacity advantage.
 
+% ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
+% The passage from here through "...takes the hint literally." is held
+% pending the author's review: it carries three decompositions (fANOVA
+% shares, the expressivity ladder, the product distillation) from earlier
+% builds on non-comparable panels. Do not treat as final until the \decide
+% below is resolved.
+\decide{APPROVE OR REVISE this ``Where the nonlinearity lives'' passage
+(through ``takes the hint literally''): all three decompositions are
+carried over from earlier builds on non-comparable panels --- fANOVA
+$55/9/36$ with HAR $96\%$; the expressivity ladder $0.12757 \to 0.12108
+\to 0.12080 \to 0.12033$ vs XGBoost $0.12094$; the product distillation
+$58\%/62\%$. Held from final until reviewed.}
+
 \paragraph{Where the nonlinearity lives.} Three independent decompositions,
 carried over from the earlier phase of this project, agree on what that
 structure is.
@@ -176,18 +189,22 @@ chase. The product block is therefore \emph{sparse in identity and static in
 time}: which interactions matter was decided once, eighteen years before the
 end of the sample, and reselection never pays.
 
-\paragraph{The products are nameable.} The persistently selected products are
-not opaque. Nine of the top ten involve the signed bar return: its square (a
-variance-ratio/jump term), signed return $\times$ volume (order-flow
-imbalance in all but name), signed return $\times$ the HAR level (the
-leverage effect conditional on the volatility state), signed return $\times$
-absolute return (a semivariance-style asymmetry), signed return $\times$
-fourth-moment activity. The hub is the signed return, whose predictive value
-is almost entirely interactive rather than marginal --- a ridge can form any
-linear combination of the panel's columns, but it structurally cannot form a
-product, and these products are precisely the asymmetry and flow terms the
-volatility literature would nominate. The block is the tree's edge with
-names attached.
+\paragraph{How each product is computed.} A product column is not the raw
+product of two panel columns; both construction steps are causal and both
+matter. Each parent column is first standardized on a trailing window using
+a \emph{floored} scale estimate --- the floor prevents a low-dispersion
+window from inflating the standardized parent, the same failure mode the
+scaling discipline of Section~\ref{sec:data_prep} guards against --- and the
+product is then formed bar by bar from the two standardized parents, so
+every product value at bar $t$ is a function of data available at $t$. The
+selection statistic ranks candidates by the absolute correlation between
+the product column and the backbone's out-of-sample residual on the frozen
+selection window, so a product enters only for what it adds \emph{beyond}
+the fitted backbone, not for restating level information the HAR block
+already carries. \pending{the exact constants of the construction as frozen
+in the campaign executor: trailing-window lengths for the parent scaling,
+the floor rule, and the selection-window definition --- to be transcribed
+from \texttt{src/unification.py} so the paper states precisely what ran}
 
 \paragraph{The block needs its own penalty.} Products of centered features
 have variance on the order of the product of their parents' variances, so a
@@ -211,8 +228,7 @@ monthly coefficient refit the block inherited from the selection study, its
 QLIKE increment is indistinguishable from zero (DM $t = +0.52$); refit daily,
 in the same solver, the identical frozen block grows its residual-space
 increment to $+0.0108$ and carries it through the raw-scale reconstruction at
-$\Delta\text{QLIKE} = -0.00093$, DM $t = +3.56$ --- a result that survived
-the study's Romano--Wolf sweep ($p = 0.001$). The mechanism is consistent
+$\Delta\text{QLIKE} = -0.00093$, DM $t = +3.56$. The mechanism is consistent
 with what the products are: predominantly fast pairs built from one-bar
 quantities, exactly where stale coefficients cost the most, scored under a
 loss whose weight sits on high-volatility bars, exactly where fresh
