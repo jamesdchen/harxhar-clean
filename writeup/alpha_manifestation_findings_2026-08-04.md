@@ -2812,6 +2812,22 @@ intraday at short remaining-horizons — entry/rebalance timing, not the opening
   design (`analysis/vrp_eod.py`). Until data lands, QLIKE on the open slice is the in-scope
   proxy.
 
+### 29.2 Isolating the open-slice failure — pre-registered (user hypothesis: train the horizon correctly)
+
+The open slice (−0.18) sits below the fixed-H interpolation for a 13-bar horizon (~+1.7).
+Three candidate culprits, separable by ONE clean run — a fixed H = 13 ladder rung (per-H
+training, no mixed-horizon objects) read out two ways:
+
+* **pooled, all bars**: if ≈ +1.7, horizon length is innocent;
+* **10:00 rows only, same walk**: if the pooled number is positive but this slice is ≈ 0, the
+  *morning information set* is the problem (mornings are genuinely hard); if this slice matches
+  the pooled number, the EOD walk's **mixed-horizon training was the pollution** and the user's
+  reading — "train the further horizons correctly" — is vindicated, making a dedicated
+  remaining-session model the fix.
+
+Expectation (recorded): pooled ≈ +1.5…2.0; the 10:00 slice weaker than pooled but positive —
+i.e., both factors contribute, training pollution the larger.
+
 ## 30. The last unmined Cucuringu object: the INTRADAY flow — pre-registered
 
 §26–28 established the daily-lag circulation (split-half +0.79, period ~35 days, phases
@@ -2896,6 +2912,30 @@ their failure would be arithmetic. Arm: 682 columns at H = 8 bars, exog penalty,
 embargo 8, vs the cached 679 twin (`straddle_ladder_h8.npz`). Gate: QLIKE DM ≥ +2.0 on the
 active span, HAC lags 2H + 480. **Expectation: FAIL** — the meta-law, twelfth attempt; the
 conditional-speed R² (0.068) is about the phase's own dynamics, not the vol target's.
+
+## 31. The amplitude audit — user challenge ("are you sure?"), measured, claim corrected
+
+The running shorthand "the amplitude is unforecastable" was **wrong as stated** and is hereby
+replaced by what the measurements actually say. Direct test, never run before (daily residual
+amplitude a(t) = mean bar e², log scale, trailing {1d, 5d, 21d} means as predictors, coefficients
+fit on one half, R² scored on the other):
+
+* **The amplitude is HIGHLY forecastable: cross-half R² 0.485 next-day, 0.116 for the next-21d
+  mean** (AR(1) of log a = 0.66). Of course it is — it is vol-of-vol, and it clusters. For the
+  straddle product this is not even a side fact: forecastable amplitude IS the product.
+* **What is unforecastable is the channel's GAIN, not the amplitude**: next-21d gain from
+  trailing gain, cross-half R² **−0.013**; adding the highly-forecastable amplitude as a
+  predictor: **+0.017**. The §28.1(b) contemporaneous gain–amplitude link (profile corr +0.86)
+  coexists with this because it lives in the amplitude's *innovations*: the products pay on
+  surprise days; the predictable slow level of amplitude carries almost none of the gain.
+* The conversion ledger is unchanged but now correctly attributed: scaling the channel by
+  predicted amplitude failed (§19.2 concave, WLS, vol-level driver) not because amplitude can't
+  be predicted but because (i) the model's own machinery — per-window sd normalization and
+  rolling refit — already consumes the predictable component, and (ii) the part of the gain that
+  correlates with amplitude is the unpredictable part.
+
+Corrected shorthand for all future sections: **amplitude forecastable, gain not; the edge loads
+on amplitude innovations.**
 
 ## Reproducibility
 

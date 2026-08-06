@@ -153,6 +153,13 @@ def stage_ladder(hb: int) -> None:
     d = qs["backbone"] - qs["one-stage 679"]
     print(f"\n  679 vs backbone: QLIKE DM {_hac_mean_t(d, lags):+.2f} "
           f"(2020+ {_hac_mean_t(d[late], lags):+.2f})", flush=True)
+    if hb == 13:
+        hour = ts.dt.hour.to_numpy()
+        minute = ts.dt.minute.to_numpy()
+        open_rows = (hour == 10) & (minute == 0)
+        print(f"  §29.2 readout — same clean fixed-13 walk, 10:00 rows only "
+              f"({open_rows.sum()}): QLIKE DM {_hac_mean_t(d[open_rows], 63):+.2f} "
+              f"(2020+ {_hac_mean_t(d[open_rows & late], 63):+.2f})", flush=True)
     if hb == 8:
         act = PH[2 * TW :, 0] != 0.0
         dp = qs["one-stage 679"] - qs["679 + phase"]
@@ -341,7 +348,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["ladder", "cadence", "eod", "overnight", "flowarm"],
                     required=True)
-    ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 16])
+    ap.add_argument("--hb", type=int, default=8, choices=[4, 8, 13, 16])
     a = ap.parse_args()
     if a.stage == "ladder":
         stage_ladder(a.hb)
