@@ -707,7 +707,11 @@ def _smear_sensitivity(
         if r.qlike is None or r.qlike_none is None or r.qlike_duan is None:
             continue
         rows.append((arm, r.qlike_none, r.qlike_duan, r.qlike))
+    # Self-contained tabular: \input-ing bare booktabs rows inside a tabular
+    # breaks (trailing \par -> "Misplaced \noalign"), so the fragment carries
+    # its own environment and the section \input's it directly.
     lines = [
+        r"\begin{tabular}{lrrr}%",
         r"\toprule",
         r"Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\",
         r"\midrule",
@@ -733,6 +737,7 @@ def _smear_sensitivity(
         tau_none = _kendall_tau(qc, qn)
         tau_duan = _kendall_tau(qc, qd)
     lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}%")
     return lines, tau_none, tau_duan
 
 

@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\caption{Causal hyperparameter tuning vs.\ the fixed-HP OLS incumbent (QLIKE, full OOS, $n=218934$ bars per arm). Cells: pooled QLIKE with the Diebold--Mariano statistic vs.\ the shared OLS-on-HAR incumbent (QLIKE 0.1341) in parentheses; negative DM favors the tuned arm. Best arm per bucket in bold. Dashes: arms still computing at compile time.}
+\label{tab:causal-tune-verdict}
+\small
+\begin{tabular}{lccccc}
+\toprule
+bucket & Ridge & RecElasticNet & RecLasso & LightGBM & XGBoost \\
+\midrule
+baseline & 0.1344 (5.0) & 0.1347 (7.5) & 0.1347 (7.0) & \textbf{0.1311 (-5.5)} & --- \\
+moments & 0.1308 (-19.2) & 0.1311 (-17.6) & 0.1317 (-8.8) & \textbf{0.1281 (-11.2)} & --- \\
+liquidity & 0.1312 (-13.3) & 0.1318 (-11.4) & 0.1320 (-11.2) & \textbf{0.1283 (-14.6)} & 0.1288 (-13.9) \\
+market\_ew & 0.1331 (-7.2) & 0.1334 (-5.4) & 0.1335 (-4.6) & \textbf{0.1303 (-6.9)} & 0.1304 (-7.2) \\
+market\_vw & 0.1329 (-9.1) & 0.1331 (-7.3) & 0.1332 (-6.4) & \textbf{0.1296 (-10.8)} & --- \\
+sentiment & 0.1334 (-5.6) & 0.1337 (-3.5) & 0.1339 (-2.0) & \textbf{0.1303 (-8.0)} & --- \\
+implied\_vol & 0.1325 (-11.2) & 0.1326 (-10.6) & 0.1327 (-9.8) & \textbf{0.1300 (-7.8)} & --- \\
+vol\_demand & 0.1333 (-4.0) & 0.1336 (-3.4) & 0.1335 (-3.3) & \textbf{0.1297 (-10.0)} & --- \\
+all\_features & 0.1278 (-19.9) & 0.1282 (-19.3) & 0.1290 (-13.2) & \textbf{0.1260 (-15.4)} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}

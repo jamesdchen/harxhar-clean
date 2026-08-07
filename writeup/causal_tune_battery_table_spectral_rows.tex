@@ -1,0 +1,35 @@
+% spectral-kNN arms. Same panel (n=218,934) and same incumbent
+% (OLS on HAR+calendar, alpha=0) as the causal-tuning battery.
+% Trailing comment on each row is the submitted run identity.
+market\_vw & spectral-kNN OLS-masked W=12 passthrough k=100 & 0.13096 & 1.248e-06 & 4.220e-11 & 0.0267 & 0.928 & 0.7068 & -17.6, 4.4e-69 \\  % mask_exog
+market\_vw & spectral-kNN OLS W=12 passthrough k=100 & 0.13145 & 1.251e-06 & 4.222e-11 & 0.0263 & 0.930 & 0.7064 & -14.6, 2.9e-48 \\  % best_exog
+baseline & spectral-kNN OLS W=24 passthrough k=100 & 0.13218 & 1.267e-06 & 4.325e-11 & 0.0026 & 0.932 & 0.6988 & -12.9, 4.2e-38 \\  % fac_W24_d0_k100_ols
+baseline & spectral-kNN OLS W=12 passthrough k=100 & 0.13219 & 1.268e-06 & 4.291e-11 & 0.0104 & 0.931 & 0.7014 & -14.4, 7.7e-47 \\  % fac_W12_d0_k100_ols
+baseline & spectral-kNN OLS W=12 spectral d=6 k=100 & 0.13364 & 1.279e-06 & 4.337e-11 & -0.0003 & 0.921 & 0.6994 & -4.6, 4.0e-06 \\  % fac_W12_d6_k100_ols
+baseline & spectral-kNN OLS W=24 passthrough k=25 & 0.13397 & 1.276e-06 & 4.372e-11 & -0.0084 & 0.925 & 0.6964 & -0.9, 3.8e-01 \\  % fac_W24_d0_k25_ols
+baseline & spectral-kNN OLS W=24 spectral d=6 k=100 & 0.13399 & 1.274e-06 & 4.374e-11 & -0.0087 & 0.930 & 0.6957 & -1.6, 1.1e-01 \\  % fac_W24_d6_k100_ols
+baseline & spectral-kNN OLS W=12 passthrough k=25 & 0.13405 & 1.275e-06 & 4.230e-11 & 0.0244 & 0.929 & 0.7059 & -0.5, 6.0e-01 \\  % fac_W12_d0_k25_ols
+baseline & spectral-kNN OLS W=12 spectral d=6 k=25 & 0.13676 & 1.295e-06 & 4.425e-11 & -0.0206 & 0.914 & 0.6943 & 13.2, 1.5e-39 \\  % fac_W12_d6_k25_ols
+baseline & spectral-kNN OLS W=24 spectral d=6 k=25 & 0.13701 & 1.286e-06 & 4.397e-11 & -0.0140 & 0.924 & 0.6948 & 15.7, 2.7e-55 \\  % fac_W24_d6_k25_ols
+baseline & spectral-kNN identity W=12 passthrough k=25 & 0.14173 & 1.298e-06 & 4.377e-11 & -0.0095 & 0.947 & 0.6936 & 19.1, 1.6e-81 \\  % fac_W12_d0_k25_id
+baseline & spectral-kNN identity W=12 passthrough k=100 & 0.14236 & 1.297e-06 & 4.391e-11 & -0.0126 & 0.971 & 0.6910 & 18.3, 1.2e-74 \\  % fac_W12_d0_k100_id
+baseline & spectral-kNN identity W=24 passthrough k=25 & 0.14475 & 1.315e-06 & 4.554e-11 & -0.0502 & 0.958 & 0.6803 & 21.2, 1.6e-99 \\  % fac_W24_d0_k25_id
+baseline & spectral-kNN identity W=24 passthrough k=100 & 0.14539 & 1.310e-06 & 4.543e-11 & -0.0477 & 0.983 & 0.6800 & 20.8, 5.4e-96 \\  % fac_W24_d0_k100_id
+implied\_vol & spectral-kNN identity W=12 passthrough k=25 & 0.14938 & 1.388e-06 & 5.310e-11 & -0.2246 & 0.833 & 0.6528 & 28.3, 9.1e-177 \\  % best_exog_id
+sentiment & spectral-kNN identity W=12 passthrough k=25 & 0.15214 & 1.333e-06 & 4.387e-11 & -0.0118 & 0.947 & 0.6929 & 31.4, 2.2e-216 \\  % best_exog_id
+market\_vw & spectral-kNN identity W=12 passthrough k=25 & 0.15773 & 1.395e-06 & 5.085e-11 & -0.1728 & 0.871 & 0.6563 & 37.9, 9.4e-315 \\  % best_exog_id
+baseline & spectral-kNN identity W=12 spectral d=6 k=25 & 0.15993 & 1.413e-06 & 5.099e-11 & -0.1759 & 0.868 & 0.6561 & 45.7, 0.0e+00 \\  % fac_W12_d6_k25_id
+baseline & spectral-kNN identity W=12 spectral d=6 k=100 & 0.16213 & 1.427e-06 & 4.971e-11 & -0.1464 & 0.887 & 0.6607 & 41.2, 0.0e+00 \\  % fac_W12_d6_k100_id
+vol\_demand & spectral-kNN identity W=12 passthrough k=25 & 0.16490 & 1.388e-06 & 4.452e-11 & -0.0267 & 0.942 & 0.6888 & 28.4, 3.8e-177 \\  % best_exog_id
+baseline & spectral-kNN identity W=24 spectral d=6 k=25 & 0.16872 & 1.461e-06 & 5.270e-11 & -0.2155 & 0.895 & 0.6379 & 47.1, 0.0e+00 \\  % fac_W24_d6_k25_id
+baseline & spectral-kNN identity W=24 spectral d=6 k=100 & 0.16874 & 1.459e-06 & 5.161e-11 & -0.1903 & 0.909 & 0.6432 & 40.9, 0.0e+00 \\  % fac_W24_d6_k100_id
+all\_features & spectral-kNN identity W=12 passthrough k=25 & 0.17409 & 1.477e-06 & 5.421e-11 & -0.2502 & 0.852 & 0.6377 & 37.8, 1.9e-312 \\  % best_exog_id
+moments & spectral-kNN identity W=960 spectral d=8 k=25 & 0.24627 & 2.047e-06 & 1.307e-10 & -2.0143 & 0.532 & 0.3650 & 51.2, 0.0e+00 \\  % spectral_knn_fixed
+market\_vw & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25672 & 2.105e-06 & 1.990e-10 & -3.5893 & 0.384 & 0.2553 & 52.1, 0.0e+00 \\  % spectral_knn_fixed
+vol\_demand & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25689 & 2.072e-06 & 1.128e-10 & -1.6003 & 0.592 & 0.3985 & 50.0, 0.0e+00 \\  % spectral_knn_fixed
+market\_ew & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25776 & 2.149e-06 & 2.227e-10 & -4.1365 & 0.350 & 0.2321 & 52.4, 0.0e+00 \\  % spectral_knn_fixed
+implied\_vol & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25906 & 2.087e-06 & 1.227e-10 & -1.8298 & 0.556 & 0.3840 & 46.0, 0.0e+00 \\  % spectral_knn_fixed
+baseline & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25911 & 2.048e-06 & 1.105e-10 & -1.5480 & 0.601 & 0.4000 & 50.8, 0.0e+00 \\  % spectral_knn_fixed
+sentiment & spectral-kNN identity W=960 spectral d=8 k=25 & 0.25925 & 2.033e-06 & 9.900e-11 & -1.2833 & 0.649 & 0.4289 & 51.4, 0.0e+00 \\  % spectral_knn_fixed
+liquidity & spectral-kNN identity W=960 spectral d=8 k=25 & 0.26072 & 2.045e-06 & 1.037e-10 & -1.3918 & 0.634 & 0.4074 & 50.7, 0.0e+00 \\  % spectral_knn_fixed
+all\_features & spectral-kNN identity W=960 spectral d=8 k=25 & 0.26353 & 2.089e-06 & 1.254e-10 & -1.8916 & 0.548 & 0.3746 & 43.3, 0.0e+00 \\  % spectral_knn_fixed

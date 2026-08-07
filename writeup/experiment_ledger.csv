@@ -1,0 +1,54 @@
+cluster,arm,bucket,chunks_ok,bars,chunks_blown,chunks_bad,qlike,mz_beta,dm,dm_p,dm_better,view_window,embedding_dim,neighbor_k,residualizer,masked,omega,status,verdict,knobs
+carc,best_exog,all_features,100,218934,7,0,3.112503182999012,5.587505918303497e-27,24.616581407120467,8.3939170958145e-134,b,12,0,100,OLS,no,1.0,"complete, 7 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=no
+carc,best_exog,implied_vol,100,218934,2,0,1.228608524865718,5.834616678464854e-29,13.917018798858187,4.992995801936644e-44,b,12,0,100,OLS,no,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=no
+carc,best_exog,market_vw,100,218934,0,0,0.1314528295802928,0.930192917818638,-14.59773723238171,2.903222947288161e-48,a,12,0,100,OLS,no,1.0,complete,beats incumbent: 0.131453,W=12 d=0 k=100 OLS mask=no
+carc,best_exog,sentiment,100,218934,2,0,1.2173759953411956,5.427761113843368e-28,13.926440129741623,4.376305805125061e-44,b,12,0,100,OLS,no,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=no
+carc,best_exog,vol_demand,100,218934,2,0,1.1815719164029377,1.43359848859262e-26,13.918639441173806,4.881072628673676e-44,b,12,0,100,OLS,no,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=no
+carc,best_exog_id,all_features,100,218934,0,0,0.1740859487613289,0.8520479167316906,37.78672693106135,1.87711221582e-312,b,12,0,25,identity,no,1.0,complete,loses: 0.174086,W=12 d=0 k=25 identity mask=no
+carc,best_exog_id,implied_vol,100,218934,0,0,0.1493821201020338,0.8327971513368272,28.34720642470265,9.060687233655047e-177,b,12,0,25,identity,no,1.0,complete,loses: 0.149382,W=12 d=0 k=25 identity mask=no
+carc,best_exog_id,market_vw,100,218934,0,0,0.1577321287317309,0.8713278302247779,37.9265495560488,9.39884625e-315,b,12,0,25,identity,no,1.0,complete,loses: 0.157732,W=12 d=0 k=25 identity mask=no
+carc,best_exog_id,sentiment,100,218934,0,0,0.1521366762828638,0.9468390837036644,31.396913132817478,2.2295285255043272e-216,b,12,0,25,identity,no,1.0,complete,loses: 0.152137,W=12 d=0 k=25 identity mask=no
+carc,best_exog_id,vol_demand,100,218934,0,0,0.164896350543744,0.9419191800696236,28.377961124323477,3.783239166254479e-177,b,12,0,25,identity,no,1.0,complete,loses: 0.164896,W=12 d=0 k=25 identity mask=no
+carc,chan_exog,all_features,0,0,0,3,,,,,,,,,,,,no output,not pooled,
+carc,chan_exog,market_vw,1,2189,0,2,,,,,,,,,,,,partial 1/100,not pooled,
+carc,fac_W12_d0_k100_id,baseline,100,218934,0,0,0.1423612200393151,0.9711154127261932,18.27979363397463,1.1987879537690813e-74,b,12,0,100,identity,no,1.0,complete,loses: 0.142361,W=12 d=0 k=100 identity mask=no
+carc,fac_W12_d0_k25_id,baseline,100,218934,0,0,0.1417266322970673,0.9465785149998636,19.123331849141373,1.6145648846061643e-81,b,12,0,25,identity,no,1.0,complete,loses: 0.141727,W=12 d=0 k=25 identity mask=no
+carc,fac_W12_d6_k100_id,baseline,100,218934,0,0,0.1621324259972657,0.8870206003642302,41.22482133748838,0.0,b,12,6,100,identity,no,1.0,complete,loses: 0.162132,W=12 d=6 k=100 identity mask=no
+carc,fac_W12_d6_k25_id,baseline,100,218934,0,0,0.1599251634418195,0.8681195079975824,45.70682144988551,0.0,b,12,6,25,identity,no,1.0,complete,loses: 0.159925,W=12 d=6 k=25 identity mask=no
+carc,fac_W24_d0_k100_id,baseline,100,218934,0,0,0.1453858083051143,0.9825846783451893,20.78951590115313,5.38513600646658e-96,b,24,0,100,identity,no,1.0,complete,loses: 0.145386,W=24 d=0 k=100 identity mask=no
+carc,fac_W24_d0_k25_id,baseline,100,218934,0,0,0.1447493982147623,0.957569441162492,21.17438931485519,1.6450009309022194e-99,b,24,0,25,identity,no,1.0,complete,loses: 0.144749,W=24 d=0 k=25 identity mask=no
+carc,fac_W24_d6_k100_id,baseline,100,218934,0,0,0.1687420159361628,0.9093882955532064,40.90796171206446,0.0,b,24,6,100,identity,no,1.0,complete,loses: 0.168742,W=24 d=6 k=100 identity mask=no
+carc,fac_W24_d6_k25_id,baseline,100,218934,0,0,0.1687224131208283,0.895200399836785,47.08069875566592,0.0,b,24,6,25,identity,no,1.0,complete,loses: 0.168722,W=24 d=6 k=25 identity mask=no
+carc,mask_exog,all_features,51,111639,7,24,2.186832299160639,6.808009674278861e-26,11.612535686814889,3.5590224674390972e-31,b,12,0,100,OLS,dup,1.0,partial 51/100,SINGULAR (rejected),W=12 d=0 k=100 OLS mask=dup
+carc,mask_exog,implied_vol,100,218934,2,0,1.1189853483024088,1.1628831745205213e-25,13.91406734658275,5.203425264319576e-44,b,12,0,100,OLS,dup,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=dup
+carc,mask_exog,market_vw,100,218934,0,0,0.1309642552906875,0.928051693911087,-17.56692417311115,4.4146791286145033e-69,a,12,0,100,OLS,dup,1.0,complete,beats incumbent: 0.130964,W=12 d=0 k=100 OLS mask=dup
+carc,mask_exog,sentiment,100,218934,2,0,1.126304037089804,3.3898163216742044e-27,13.873093111545405,9.221293240574914e-44,b,12,0,100,OLS,dup,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=dup
+carc,mask_exog,vol_demand,100,218934,2,0,1.0580916542920853,1.259614080543091e-24,13.882743764380434,8.059858204588651e-44,b,12,0,100,OLS,dup,1.0,"complete, 2 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=dup
+carc,mwide_af_d0,all_features,40,87560,7,28,4.674794634737986,5.121271444038162e-26,13.10775521656319,2.972674015139651e-39,b,12,0,100,OLS,dup,1.0,partial 40/100,SINGULAR (rejected),W=12 d=0 k=100 OLS mask=dup
+carc,mwide_af_d32,all_features,35,76615,7,34,0.1402431725933372,0.8468161458330159,-3.3331610618192435,0.0008586522004657,a,12,32,100,OLS,dup,1.0,partial 35/100,partial: 0.140243,W=12 d=32 k=100 OLS mask=dup
+carc,mwide_af_d8,all_features,43,94127,7,27,5.209393718903355,2.620930855053997e-24,13.770987305216725,3.809708135297642e-43,b,12,8,100,OLS,dup,1.0,partial 43/100,SINGULAR (rejected),W=12 d=8 k=100 OLS mask=dup
+carc,mwide_liq_d0,liquidity,0,0,0,1,,,,,,,,,,,,no output,not pooled,
+carc,mwide_liq_d32,liquidity,0,0,0,1,,,,,,,,,,,,no output,not pooled,
+carc,mwide_liq_d8,liquidity,0,0,0,1,,,,,,,,,,,,no output,not pooled,
+carc,omega025,market_vw,0,0,0,1,,,,,,12,0,100,OLS,dup,0.25,no output,not pooled,W=12 d=0 k=100 OLS mask=dup omega=0.25
+carc,spectral_knn_fixed,all_features,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+carc,spectral_knn_fixed,implied_vol,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+carc,spectral_knn_fixed,market_vw,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+carc,spectral_knn_fixed,sentiment,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+carc,spectral_knn_fixed,vol_demand,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+carc,wide_af_d0,all_features,100,218934,7,0,3.0728623701074653,5.4614605571911116e-27,24.61016294324177,9.833031173105695e-134,b,12,0,100,OLS,no,1.0,"complete, 7 blown",SINGULAR (rejected),W=12 d=0 k=100 OLS mask=no
+carc,wide_af_d32,all_features,99,216745,7,1,3.1270075288117485,5.9288087539316886e-27,24.635909212573196,5.210905970133631e-134,b,12,32,100,OLS,no,1.0,partial 99/100,SINGULAR (rejected),W=12 d=32 k=100 OLS mask=no
+carc,wide_af_d8,all_features,100,218934,7,0,3.0699573178847044,5.460339936368117e-27,24.619171408432667,7.874597657361221e-134,b,12,8,100,OLS,no,1.0,"complete, 7 blown",SINGULAR (rejected),W=12 d=8 k=100 OLS mask=no
+hoffman2,fac_W12_d0_k100_ols,baseline,100,218934,0,0,0.1321934467760275,0.9310431509480788,-14.372594878368709,7.689527083860864e-47,a,12,0,100,OLS,no,1.0,complete,beats incumbent: 0.132193,W=12 d=0 k=100 OLS mask=no
+hoffman2,fac_W12_d0_k25_ols,baseline,100,218934,0,0,0.1340534392676872,0.9291718936416278,-0.5197324696668586,0.6032500526984668,a,12,0,25,OLS,no,1.0,complete,beats incumbent: 0.134053,W=12 d=0 k=25 OLS mask=no
+hoffman2,fac_W12_d6_k100_ols,baseline,100,218934,0,0,0.1336395173296233,0.9214094268374492,-4.611740887208854,3.99310558367067e-06,a,12,6,100,OLS,no,1.0,complete,beats incumbent: 0.133640,W=12 d=6 k=100 OLS mask=no
+hoffman2,fac_W12_d6_k25_ols,baseline,100,218934,0,0,0.13675742564423,0.9136146021433568,13.157445984788389,1.5421102318514812e-39,b,12,6,25,OLS,no,1.0,complete,loses: 0.136757,W=12 d=6 k=25 OLS mask=no
+hoffman2,fac_W24_d0_k100_ols,baseline,100,218934,0,0,0.1321764981877564,0.9323508508987643,-12.905583923950598,4.186300455684584e-38,a,24,0,100,OLS,no,1.0,complete,beats incumbent: 0.132176,W=24 d=0 k=100 OLS mask=no
+hoffman2,fac_W24_d0_k25_ols,baseline,100,218934,0,0,0.1339657827865059,0.92469278214746,-0.8808279953245038,0.378410924774674,a,24,0,25,OLS,no,1.0,complete,beats incumbent: 0.133966,W=24 d=0 k=25 OLS mask=no
+hoffman2,fac_W24_d6_k100_ols,baseline,100,218934,0,0,0.133991563902122,0.9296009062866794,-1.606280560184122,0.1082122796571559,a,24,6,100,OLS,no,1.0,complete,beats incumbent: 0.133992,W=24 d=6 k=100 OLS mask=no
+hoffman2,fac_W24_d6_k25_ols,baseline,100,218934,0,0,0.1370069609942358,0.9244234717476418,15.66380878105507,2.6739268115753167e-55,b,24,6,25,OLS,no,1.0,complete,loses: 0.137007,W=24 d=6 k=25 OLS mask=no
+hoffman2,spectral_knn_backtest,baseline,1,2189,0,0,,,,,,,,,,,,partial 1/100,not pooled,
+hoffman2,spectral_knn_fixed,baseline,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+hoffman2,spectral_knn_fixed,liquidity,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+hoffman2,spectral_knn_fixed,market_ew,100,218934,0,0,,,,,,,,,,,,complete,not pooled,
+hoffman2,spectral_knn_fixed,moments,100,218934,0,0,,,,,,,,,,,,complete,not pooled,

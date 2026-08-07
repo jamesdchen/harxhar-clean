@@ -100,13 +100,16 @@ tables may need this re-run on the paper's one-panel convention}
 The comparison is run on the full design --- the HAR ladder, the calendar
 features, and the full exogenous block --- under two penalty protocols:
 fixed constants (ridge $\alpha = 1.0$, lasso $\alpha = 10^{-4}$) and causal
-re-selection from the battery grids (Table~\ref{tab:lasso_vs_ridge}). The
-two protocols order the estimators oppositely. Under causal tuning, ridge
-($0.23480$, DM $-7.5$ against the incumbent) beats the lasso ($0.23571$,
-$-6.8$). At the fixed pins, the lasso ($0.23297$, $-10.4$) beats ridge
-($0.23442$, $-5.6$) and is the best linear arm in the campaign. Both tuned
-arms lose to their fixed counterparts: causal re-selection costs more in
-selection variance than it recovers, on both penalty families.
+re-selection from the battery grids (Table~\ref{tab:lasso_vs_ridge}). At
+the fixed pins, the lasso (\unifBTwoLassoQLIKE{}, DM \unifBTwoLassoDM{}
+against the incumbent) beats ridge (\unifBOneRidgeQLIKE{},
+\unifBOneRidgeDM{}). Under causal tuning the ordering reverses: tuned
+ridge (\unifBOneRidgeTunedQLIKE{}, \unifBOneRidgeTunedDM{}) beats tuned
+lasso (\unifBTwoLassoTunedQLIKE{}, \unifBTwoLassoTunedDM{}). Tuning moves
+the two families in opposite directions --- it improves ridge, whose fixed
+pin of $\alpha = 1.0$ the sweep below shows to be far from the loss
+minimum, and it costs the lasso, whose fixed pin already sits near its
+optimum.
 
 \begin{table}[H]
 \centering
@@ -130,14 +133,15 @@ Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
 \end{tabular}
 \end{table}
 
-A penalty-level sweep resolves the apparent contradiction. Holding the
-ridge family fixed and varying only the constant, QLIKE falls
-monotonically in $\alpha$ across the tested grid: $0.23564$ at
-$\alpha = 0.1$, $0.23511$ at $0.3$, $0.23442$ at $1$, $0.23384$ at $3$,
-and $0.23343$ at $10$, still decreasing at the grid's edge. The penalty
-\emph{level} moves the loss by more than the penalty \emph{family} does at
-any fixed level, and the wide design rewards heavier shrinkage than
-either arm's default pin --- the direction the block penalties of
+A penalty-level sweep explains the reversal. Holding the ridge family
+fixed and varying only the constant, QLIKE falls monotonically in $\alpha$
+across the tested grid: $0.23219$ at $\alpha = 0.1$, $0.23159$ at $0.3$,
+$0.23083$ at $1$, $0.23003$ at $3$, and $0.22909$ at $10$, still
+decreasing at the grid's edge; the tuned-ridge arm, which re-selects from
+a grid reaching $\alpha = 1000$, lands below every fixed point. The
+penalty \emph{level} moves the loss by more than the penalty \emph{family}
+does at any fixed level, and the wide design rewards heavier shrinkage
+than the $\alpha = 1$ default --- the direction the block penalties of
 Section~\ref{sec:dense_weak_twoblock} take further. One caveat: all DM
 statistics are computed against the incumbent, a third model, so the
 ridge-minus-lasso differences themselves carry no significance statement

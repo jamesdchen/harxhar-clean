@@ -1,0 +1,45 @@
+\begin{table}[t]
+\centering
+\caption{Every-bar (refit $=1$) exogenous-bucket battery vs.\ the HAR baseline. Train window
+1000 trading days; fixed COVID-inclusive evaluation window \textbf{Jan.\ 2018 -- May 2025}
+($n = 74{,}934$ thirty-minute bars; 1{,}843 trading days; identical rows for every cell); best
+penalty per bucket selected by QLIKE; HAR block unpenalized (OLS via Frisch--Waugh--Lovell).
+DM $=$ Diebold--Mariano test on per-bar QLIKE loss vs.\ HAR-only, reported as ($t$, $p$): the
+DM statistic is the $t$-ratio of the mean loss differential to its Newey--West HAC standard
+error (Harvey--Leybourne--Newbold small-sample correction), with two-sided $p$-value.
+The $90\%$ model confidence set contains ALL buckets alone;
+every other bucket is eliminated. Raw-variance MSE and OOS-$R^2$ are dominated by a small number
+of COVID bars; QLIKE, HMSE and MAE are the level-robust rankers.}
+\vspace{4pt}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llccccccc@{}}
+\toprule
+exogenous bucket & penalty & QLIKE & MAE & MSE & OOS-$R^2$ & MZ-$\beta$ & MZ-$R^2$ & DM vs.\ HAR ($t$, $p$) \\
+\midrule
+\textbf{ALL buckets} & ridge $\alpha{=}30$ & \textbf{0.14265} & $1.213 \times 10^{-6}$ & $4.571 \times 10^{-11}$ & 0.6969 & 0.902 & 0.7058 & $-13.0$, $1.2 \times 10^{-38}$ \\
+implied\_vol (VIX/VVIX) & ridge $\alpha{=}1$ & 0.14669 & $1.236 \times 10^{-6}$ & $4.558 \times 10^{-11}$ & 0.6978 & 0.907 & 0.7057 & $-8.7$, $2.3 \times 10^{-18}$ \\
+moments & ridge $\alpha{=}1000$ & 0.14678 & $1.246 \times 10^{-6}$ & $4.624 \times 10^{-11}$ & 0.6935 & 0.879 & 0.7074 & $-7.5$, $4.6 \times 10^{-14}$ \\
+liquidity & ridge $\alpha{=}1$ & 0.14679 & $1.250 \times 10^{-6}$ & $4.599 \times 10^{-11}$ & 0.6951 & 0.892 & 0.7060 & $-10.8$, $3.8 \times 10^{-27}$ \\
+sentiment & enet $\alpha{=}10^{-3}$, $\ell_1{=}0.6$ & 0.14726 & $1.250 \times 10^{-6}$ & $4.484 \times 10^{-11}$ & \textbf{0.7027} & 0.901 & 0.7120 & $-8.2$, $2.9 \times 10^{-16}$ \\
+market\_vw & enet $\alpha{=}10^{-3}$, $\ell_1{=}0.2$ & 0.14744 & $1.253 \times 10^{-6}$ & $4.558 \times 10^{-11}$ & 0.6978 & 0.891 & 0.7091 & $-8.7$, $4.5 \times 10^{-18}$ \\
+market\_ew & ridge $\alpha{=}1000$ & 0.14758 & $1.257 \times 10^{-6}$ & $4.593 \times 10^{-11}$ & 0.6955 & 0.889 & 0.7071 & $-9.3$, $1.0 \times 10^{-20}$ \\
+vol\_demand & enet $\alpha{=}10^{-3}$, $\ell_1{=}0.6$ & 0.14822 & $1.259 \times 10^{-6}$ & $4.553 \times 10^{-11}$ & 0.6982 & 0.900 & 0.7075 & $-6.2$, $5.0 \times 10^{-10}$ \\
+\emph{HAR-only (baseline)} & none (OLS) & 0.14863 & $1.262 \times 10^{-6}$ & $4.545 \times 10^{-11}$ & 0.6987 & 0.898 & 0.7084 & (baseline) \\
+\midrule
+\multicolumn{9}{@{}l}{\emph{Appended: causal HP-tuned tree models (per-bar refit; depth$\times$colsample grid re-selected every 250 bars on an embargoed forward split). Full-OOS panel, $n = 218{,}934$ bars; DM vs.\ the OLS-on-HAR incumbent (QLIKE 0.1341) --- note: different evaluation window and baseline than the rows above.}} \\
+\midrule
+all\_features & LightGBM causal-tuned & \textbf{0.12603} & $1.222 \times 10^{-6}$ & $4.080 \times 10^{-11}$ & 0.0590 & 0.891 & 0.7230 & $-15.4$, $1.1 \times 10^{-53}$ \\
+moments & LightGBM causal-tuned & 0.12815 & $1.230 \times 10^{-6}$ & $4.245 \times 10^{-11}$ & 0.0209 & 0.882 & 0.7133 & $-11.2$, $1.9 \times 10^{-29}$ \\
+liquidity & LightGBM causal-tuned & 0.12839 & $1.236 \times 10^{-6}$ & $4.086 \times 10^{-11}$ & 0.0576 & 0.892 & 0.7226 & $-14.6$, $7.1 \times 10^{-49}$ \\
+liquidity & XGBoost causal-tuned & 0.12886 & $1.240 \times 10^{-6}$ & $3.966 \times 10^{-11}$ & 0.0853 & 0.879 & 0.7346 & $-13.9$, $2.2 \times 10^{-44}$ \\
+market\_vw & LightGBM causal-tuned & 0.12963 & $1.247 \times 10^{-6}$ & $4.378 \times 10^{-11}$ & -0.0096 & 0.861 & 0.7098 & $-10.8$, $2.1 \times 10^{-27}$ \\
+vol\_demand & LightGBM causal-tuned & 0.12979 & $1.253 \times 10^{-6}$ & $4.486 \times 10^{-11}$ & -0.0346 & 0.860 & 0.7023 & $-10.0$, $1.5 \times 10^{-23}$ \\
+implied\_vol & LightGBM causal-tuned & 0.13000 & $1.262 \times 10^{-6}$ & $4.483 \times 10^{-11}$ & -0.0338 & 0.840 & 0.7099 & $-7.8$, $4.5 \times 10^{-15}$ \\
+sentiment & LightGBM causal-tuned & 0.13037 & $1.254 \times 10^{-6}$ & $4.611 \times 10^{-11}$ & -0.0633 & 0.867 & 0.6912 & $-8.0$, $7.6 \times 10^{-16}$ \\
+market\_ew & LightGBM causal-tuned & 0.13038 & $1.250 \times 10^{-6}$ & $4.321 \times 10^{-11}$ & 0.0034 & 0.867 & 0.7121 & $-6.9$, $3.2 \times 10^{-12}$ \\
+market\_ew & XGBoost causal-tuned & 0.13043 & $1.250 \times 10^{-6}$ & $4.337 \times 10^{-11}$ & -0.0002 & 0.864 & 0.7117 & $-7.2$, $3.0 \times 10^{-13}$ \\
+baseline & LightGBM causal-tuned & 0.13118 & $1.259 \times 10^{-6}$ & $4.508 \times 10^{-11}$ & -0.0396 & 0.870 & 0.6978 & $-5.5$, $2.2 \times 10^{-8}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

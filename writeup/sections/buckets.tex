@@ -108,45 +108,60 @@ market\_vw   & \unifMarketVwQLIKE{}   & \unifMarketVwDelta{}   & \unifMarketVwDM
 \end{tabular}
 \end{table}
 
-Five of the eight bucket arms have negative $\Delta$ against the incumbent
-and reject equal predictive accuracy: the joint set ($-0.00375$, $t = -3.0$),
-\texttt{moments} ($-0.00319$, $-4.7$), \texttt{liquidity} ($-0.00268$,
-$-5.6$), \texttt{implied\_vol} ($-0.00166$, $-4.9$), and
-\texttt{vol\_demand} ($-0.00118$, $-3.2$). Three arms have positive
-$\Delta$: \texttt{sentiment} ($+0.00940$, $t = +6.9$) and the two
-cross-sectional market aggregates (\texttt{market\_ew} $+0.03771$,
-\texttt{market\_vw} $+0.08041$), which raise QLIKE substantially under
-exact OLS. \decide{the market-aggregate arms' losses were unchanged across
-all three design-repair rules, so their failure is not a go-live artifact:
-either the cross-sectional aggregates carry a construction defect still to
-be found, or these channels genuinely require shrinkage to be usable ---
-investigate before the section's interpretation is frozen}
+Three single-bucket arms reject equal predictive accuracy with the
+incumbent in the bucket's favor: \texttt{sentiment}
+(\unifSentimentDelta{}, $t = $ \unifSentimentDM{}), \texttt{moments}
+(\unifMomentsDelta{}, \unifMomentsDM{}), and \texttt{market\_vw}
+(\unifMarketVwDelta{}, \unifMarketVwDM{}). Two further arms have negative
+$\Delta$ without significance (\texttt{market\_ew}, \unifMarketEwDM{};
+\texttt{implied\_vol}, \unifImpliedVolDM{}), and \texttt{liquidity} is
+indistinguishable from the incumbent (\unifLiquidityDM{}). One bucket,
+\texttt{vol\_demand}, is significantly worse (\unifVolDemandDM{}), and the
+joint arm is the worst in the table (\unifAllFeaturesDelta{},
+\unifAllFeaturesDM{}) --- the dimensionality result discussed below.
 
-\subsection{Overlap: The Sum of the Parts Is Twice the Whole}
+A disclosure attaches to the market-aggregate rows. In earlier passes of
+this campaign both aggregates appeared catastrophically harmful. The cause
+was a single evaluation window (December 2016 -- February 2017) in which a
+pair of availability-indicator columns, differing only through pre-2015
+history, decayed to exact collinearity as that history left the rolling
+window; the linear solver does not signal a nearly singular system, and the
+contaminated coefficients produced forecast errors that one window's
+correction then spread across all of its bars. The per-bar solve
+verification of the final design (Section~\ref{sec:data_prep}) closes this
+failure mode; under it the aggregates score as reported in
+Table~\ref{tab:buckets}.
 
-The overlap computation is restricted to the buckets that improve on the
-incumbent, since a bucket with positive $\Delta$ contributes no information
-to overlap with. The sum of the four helping single-bucket increments in
-Table~\ref{tab:buckets} is $-0.00871$. The joint arm's increment is
-$-0.00375$. The overlap ratio is therefore $R = 2.32$: the helping buckets'
-individual gains sum to more than twice what they deliver jointly, so their
-information overlaps substantially. An earlier battery under a causally
-tuned ridge measured the same ratio at $R = 2.08$ over its seven buckets,
-and the causally tuned LightGBM arm of that battery at $R = 2.24$; the
-overlap is present under every estimator class in which it has been
-computed. \pending{DM/MCS machinery on the campaign's per-bar losses for
-the joint-vs-best-single comparison under literal OLS}
+\subsection{Overlap}
 
-Section \pending{cross-ref to the linear-vs-nonlinear /
-dense-but-weak section} takes this overlap structure as its starting point.
+The overlap ratio --- the sum of single-bucket increments divided by the
+joint increment --- cannot be computed from Table~\ref{tab:buckets},
+because the joint arm's increment is positive: at this dimensionality the
+unshrunk joint fit's variance cost exceeds any information gain, so the
+joint OLS arm does not measure the buckets' combined information. The
+available overlap evidence comes from shrunk estimators: an earlier
+battery under a causally tuned ridge measured $R = 2.08$ over its seven
+buckets, and that battery's causally tuned LightGBM arm $R = 2.24$ ---
+individual gains summing to roughly twice the joint gain, under both
+estimator classes, on the prior convention. \pending{overlap ratio
+recomputed from shrunk joint fits under the paper's frozen convention ---
+the block estimators of Sections~\ref{sec:dense_weak}--\ref{sec:transmission}
+provide the joint fits}
 
 \subsection{The Joint Bucket}
 
-The joint \texttt{all\_features} arm has QLIKE $0.23675$, the lowest of all
-bucket arms: $-0.00056$ relative to the best single bucket
-(\texttt{moments}, $0.23731$) — despite the joint design carrying the three
-harmful buckets alongside the five helpful ones. Under literal OLS the
-joint fit dilutes rather than amplifies the harmful channels.
+The joint \texttt{all\_features} arm has QLIKE \unifAllFeaturesQLIKE{},
+the highest in Table~\ref{tab:buckets}: worse than the incumbent
+(\unifAllFeaturesDM{}) and worse than every single bucket, while five of
+those single buckets individually match or beat the incumbent. The design
+matrix behind the joint arm carries $\sim 1{,}077$ columns into an
+unpenalized least-squares fit on a $24{,}000$-bar window; the same columns
+under the per-block shrinkage of Sections~\ref{sec:dense_weak} and
+\ref{sec:nonlinear_product} produce the paper's best forecasts
+(\unifBlkThreeUserQLIKE{} at \unifBlkThreeUserDM{}). The pair of facts ---
+information present in the parts, joint extraction failing without
+shrinkage and succeeding with it --- is the section's handoff to the
+estimator design of Section~\ref{sec:dense_weak}.
 
 An independent every-bar robustness design was run on a different panel:
 rolling $1{,}000$-trading-day window; HAR block exactly unpenalized via
@@ -165,8 +180,9 @@ containing the joint bucket. The per-bar loss series required to compute a
 model confidence set were not retained for the battery, so no set was
 computed, and the claim is not repeated here.
 \pending{battery MCS over the feature sets once per-bar losses are persisted}
-Table~\ref{tab:buckets} supports three statements: five of the eight
-buckets, including the joint set, have lower QLIKE than the incumbent with
-$|t| \geq 3.0$; the joint set has lower QLIKE than every individual bucket;
-and the helping buckets' increments sum to $2.32$ times the joint
-increment.
+Table~\ref{tab:buckets} supports three statements: three buckets
+individually beat the incumbent at the $5\%$ level and two more lean the
+same way without significance; the unshrunk joint fit is worse than the
+incumbent and than every single bucket; and extracting the buckets'
+combined information therefore requires the shrinkage machinery the
+remainder of the paper develops.
