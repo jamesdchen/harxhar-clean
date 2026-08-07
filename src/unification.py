@@ -262,6 +262,39 @@ class _Panel:
 _PANEL: _Panel | None = None
 
 
+def _assert_fit_raw_alignment(
+    y_fit: np.ndarray, rv_raw: np.ndarray, baseline: np.ndarray, where: str
+) -> None:
+    """Loud-fail unless the fit-side target and the re-read raw side describe the
+    SAME rows (the v2 trail-arm incident, ruling 2026-08-07).
+
+    Identity used: the panel's ``y`` is winsorize(sqrt(RV / B_t)) with B_t the
+    stored baseline — so on every NON-winsorized row, ``sqrt(rv_raw/baseline)``
+    recomputed here is BIT-IDENTICAL to ``y_fit`` (same float64 division and
+    sqrt on the same values). Winsorization clips only the rolling 1/99 tails
+    (a few % of rows), therefore the MEDIAN absolute difference over any honest
+    row set is exactly 0.0 — threshold-free. A stale prep cache read against a
+    loader whose grid convention has since moved (the trail-arm root cause: the
+    cache key does not encode the grid convention, and the ``[:n]`` truncation
+    of the raw re-read masks the length mismatch) shifts the raw side by
+    thousands of rows and the median goes far from zero — caught here instead
+    of producing plausible-looking garbage QLIKE.
+    """
+    with np.errstate(divide="ignore", invalid="ignore"):
+        y_check = np.sqrt(rv_raw / baseline)
+    d = np.abs(y_fit - y_check)
+    med = float(np.nanmedian(d))
+    if not (med == 0.0):
+        raise RuntimeError(
+            f"fit/raw row misalignment detected ({where}): median "
+            f"|y_fit - sqrt(rv_raw/baseline)| = {med:.6g} (must be exactly 0.0 "
+            "on aligned rows — winsorization touches only the 1/99 tails). "
+            "The prep cache and the current loader grid convention disagree "
+            "(stale cache vs dead-session/start-date change). Rebuild the prep "
+            "cache under the current loader before rerunning; refusing to emit."
+        )
+
+
 def _load_panel() -> _Panel:
     """The frozen b2 panel via the repo's own builder, plus timestamps / raw RV.
 
@@ -298,6 +331,10 @@ def _load_panel() -> _Panel:
             f"panel/loader row misalignment: panel n={n}, loader rows after burn-in "
             f"{len(rv_raw)} — the b2 prep and the raw loader disagree; refusing to emit"
         )
+    # VALUE-level alignment gate (the length check above is insufficient: a
+    # LONGER raw series under a moved grid convention truncates to the right
+    # length while describing entirely different bars — the v2 trail incident).
+    _assert_fit_raw_alignment(y, rv_raw, baselines, "panel load, whole series")
 
     # Observed-availability bitmap per exog stem: notna BEFORE any fill (the
     # honest-indicator source, executor.load_and_transform's obs-before-ffill),
@@ -536,10 +573,28 @@ def _transmission_block(
     if standardization == "trailing":
         from src.features.transforms.scaling import rolling_robust_scale
 
-        block = np.hstack([G, Ghat]) if include_scores else Ghat
-        block = rolling_robust_scale(np.ascontiguousarray(block), window)
-        block[~np.isfinite(block)] = 0.0
-        return block
+        def _scale_from_activation(M: np.ndarray) -> np.ndarray:
+            """Robust-scale a sub-block from its ACTIVATION row on (v2 c027 fix:
+            feeding the all-zero warm-up region into the scaler let per-row
+            trailing windows straddle the zero->live transition, collapsing the
+            IQR to its floor and detonating the first live values — yhat 629.7
+            in the chunk one window past Ghat activation). Scaling from the
+            first nonzero row gives the scaler's initial-window convention real
+            data; the warm-up stays exactly zero. G and Ghat are scaled
+            separately because their activation rows differ (trail vs
+            frame+trail); within each sub-block all columns share one
+            activation row by construction."""
+            nz = np.flatnonzero(np.abs(M).sum(axis=1) > 0)
+            out = np.zeros_like(M)
+            if len(nz):
+                a0 = int(nz[0])
+                out[a0:] = rolling_robust_scale(np.ascontiguousarray(M[a0:]), window)
+            out[~np.isfinite(out)] = 0.0
+            return out
+
+        G = _scale_from_activation(G)
+        Ghat = _scale_from_activation(Ghat)
+        return np.hstack([G, Ghat]) if include_scores else Ghat
     Ghat = _causal_floored_scale(Ghat, window)
     Ghat[~np.isfinite(Ghat)] = 0.0
     # Composition per the 2026-08-06 ruling: _doc arms mirror the documented
@@ -1631,6 +1686,12 @@ def compute(args: argparse.Namespace) -> None:
         yhat = _walk_tuned(F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid])
 
     y_fit = p.y[lo:hi]
+    # Persistence-path alignment gate for EVERY arm (v2 trail incident): the
+    # fit-side rows and the raw-side rows written to the npz must describe the
+    # same bars, verified by value, not by length.
+    _assert_fit_raw_alignment(
+        y_fit, p.rv_raw[lo:hi], p.baseline[lo:hi], f"persistence, chunk [{lo},{hi})"
+    )
     resid = y_fit - yhat
     result: dict[str, Any] = {
         "sqrt_mse": float(np.mean(resid**2)),
