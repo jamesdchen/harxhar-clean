@@ -22,12 +22,20 @@ DESIGN DECISIONS (documented per directive):
     argument only (an exact-zero residual is a measure-zero float event; the
     smallest observed positive square is the natural resolution limit of the
     window, not a tuned epsilon).
-  * Design: the SAME standardized exogenous columns the tuned penalized
-    linears use, BACKBONE EXCLUDED by default — variance conditioning is on
-    the exog state; HAR-level persistence is already served by the scalar
-    via the window mean, and re-feeding it here would let the variance model
-    re-learn the level channel instead of the conditional shape.
-    --include-backbone flips to the full wide design (variant flag).
+  * Design (--design, three modes; see LEVEL-CHANNEL CONTROL below):
+      exog     (default) the SAME standardized exogenous columns the tuned
+               penalized linears use, BACKBONE EXCLUDED — variance
+               conditioning is on the exog state; HAR-level persistence is
+               already served by the scalar via the window mean, and
+               re-feeding it here would let the variance model re-learn the
+               level channel instead of the conditional shape;
+      backbone the HAR ladder + session-edge interactions + calendar columns
+               ONLY (_backbone_cols; the a0 incumbent design) — the LEVEL
+               CHANNEL on its own, i.e. the control arm;
+      both     the full wide design (backbone + exog), the union.
+    The three selections partition the panel: exog and backbone are DISJOINT
+    by construction (kinds {value,indicator} vs {har,regime,calendar}) and
+    their union is every column, which is exactly 'both'.
   * Estimator: rolling ridge, window 24000, PER-BAR refit off rank-1-rolled
     sufficient statistics; penalty re-selected every TUNE_PER=250 solves on
     the standard forward split (25-embargo / 125-tail); grid =
@@ -45,14 +53,43 @@ DESIGN DECISIONS (documented per directive):
     (float('inf') is not valid JSON; a numeric sentinel would collide with
     the real grid).
 
+LEVEL-CHANNEL CONTROL (2026-08-07). The decomposition question is: does the
+exogenous state predict forecast uncertainty BEYOND the volatility level it
+proxies? Answering it needs the level channel run on its own, hence
+--design backbone; the exog-vs-backbone contrast is the decomposition claim
+and the backbone-vs-scalar contrast asks whether level-conditioning buys
+anything at all.
+
+OUTPUT-PATH ASYMMETRY (deliberate, NOT a bug). --design exog writes to
+    <output-dir>/<arm>/chunk_XXX.npz            (NO design tag)
+while every other design writes to
+    <output-dir>/<arm>__<design>/chunk_XXX.npz  (tagged).
+The exog banks were already in flight on CARC under the untagged path when
+this flag was generalized; retagging them would have orphaned live output.
+exog is the contract default, so the untagged path IS the exog path — read
+the absence of a tag as '__exog'. score_unification.py's _CONDVAR_VARIANTS
+encodes the same rule (empty dir suffix for the exog variants).
+
 Chunking mirrors the arm's (run_unification chunk_bounds). A chunk is
 FEASIBLE when the variance model has a full 24000-bar residual window before
 the PREVIOUS chunk's start (the previous chunk's zhat is needed for c_k) —
 earlier chunks are a burn-in SKIP (exit 0, nothing written; consistent with
 the calibration burn-in convention).
 
-Usage (one task = one (arm, chunk)):
+CHAIN RULE (fixed 2026-08-07). LEADING chunk absence is LEGAL: the 24000-bar
+product/transmission arms (blk4_trail_tuned and kin) are COMPLETE at 91/100
+because chunks 0..8 never exist — their first scorable row lies past the
+frozen selection/frame window (score_unification._LEGAL_MISSING = range(9)).
+The chain is therefore required contiguous from the arm's OWN FIRST PRESENT
+CHUNK to the target; a target below that is a structural SKIP (exit 0), the
+first present chunk itself is a burn-in SKIP (no previous chunk to pin the
+level against), and any INTERIOR hole still fails loudly — that one is a
+genuinely broken causal chain.
+
+Usage (one task = one (arm, chunk, design)):
     python experiments/variance_sidecar.py --arm a0_ols_har --chunk-index 20
+    python experiments/variance_sidecar.py --arm a0_ols_har --chunk-index 20 \
+        --design backbone
 """
 
 import _bootstrap  # noqa: F401  (sys.path: repo root + experiments/)
@@ -60,6 +97,7 @@ import _bootstrap  # noqa: F401  (sys.path: repo root + experiments/)
 import argparse
 import json
 import os
+import re
 
 import numpy as np
 
@@ -73,6 +111,7 @@ from src.unification import (
     EMBARGO,
     TUNE_PER,
     VAL_TAIL,
+    _backbone_cols,
     _exog_all_cols,
     _load_panel,
     panel_length,
@@ -83,6 +122,33 @@ VS_WINDOW = DEFAULT_WINDOW_BARS  # 24000-bar rolling variance-model window
 ALPHA_GRID: tuple[float, ...] = tuple(float(a) for a in np.logspace(2, 6, 5)) + (
     float("inf"),
 )
+
+DESIGNS: tuple[str, ...] = ("exog", "backbone", "both")
+DESIGN_DEFAULT = "exog"  # the contract design; also the UNTAGGED output path
+
+
+def design_cols(names: list[str], design: str) -> np.ndarray:
+    """Column indices of the requested conditioning design (see docstring).
+
+    exog / backbone are disjoint by the src.unification column taxonomy
+    ({value,indicator} vs {har,regime,calendar}); 'both' is their union,
+    which is every panel column."""
+    if design == "exog":
+        return _exog_all_cols(names)
+    if design == "backbone":
+        return _backbone_cols(names)
+    if design == "both":
+        return np.arange(len(names), dtype=np.int64)
+    raise ValueError(f"unknown design {design!r}; expected one of {DESIGNS}")
+
+
+def design_out_dir(output_root: str, arm: str, design: str) -> str:
+    """Output dir for (arm, design). exog keeps the UNTAGGED historical path
+    (in-flight CARC banks); every other design is tagged. See the module
+    docstring's OUTPUT-PATH ASYMMETRY note — this is deliberate."""
+    if design == DESIGN_DEFAULT:
+        return os.path.join(output_root, arm)
+    return os.path.join(output_root, f"{arm}__{design}")
 
 
 def _chain(paths: list[str]) -> dict:
@@ -254,6 +320,59 @@ def assemble_sigma2(
     return v
 
 
+_CHUNK_RE = re.compile(r"^chunk_(\d{3})\.npz$")
+
+
+def present_chunks(results_dir: str, arm: str) -> list[int]:
+    """Sorted chunk indices actually on disk for ``arm``."""
+    d = os.path.join(results_dir, arm)
+    if not os.path.isdir(d):
+        return []
+    out = []
+    for fn in os.listdir(d):
+        m = _CHUNK_RE.match(fn)
+        if m:
+            out.append(int(m.group(1)))
+    return sorted(out)
+
+
+def chain_paths(results_dir: str, arm: str, idx: int) -> list[str]:
+    """Contiguous chunk paths [first_present .. idx] of ``arm``.
+
+    LEADING absence is LEGAL (score_unification._LEGAL_MISSING): the 24000-bar
+    product/transmission arms have no chunks 0..8 at all — their first scorable
+    row lies past the frozen selection/frame window, so those chunks are
+    structurally absent, not lost. Contiguity is therefore required from the
+    arm's OWN FIRST PRESENT CHUNK, not from chunk 0.
+
+    Returns [] when ``idx`` precedes the first present chunk (the caller treats
+    that as a structural SKIP). An INTERIOR hole — any gap between the first
+    present chunk and ``idx``, ``idx`` itself included — is a genuinely broken
+    causal chain and still raises loudly.
+    """
+    present = present_chunks(results_dir, arm)
+    if not present:
+        raise SystemExit(
+            f"chain broken: no chunk_*.npz under "
+            f"{os.path.join(results_dir, arm)} — nothing to chain"
+        )
+    first = present[0]
+    if idx < first:
+        return []
+    have = set(present)
+    missing = [k for k in range(first, idx + 1) if k not in have]
+    if missing:
+        raise SystemExit(
+            f"chain broken: chunk(s) {missing} of '{arm}' absent inside "
+            f"[{first}..{idx}] — the sidecar needs an unbroken chain from the "
+            f"arm's first present chunk ({first}) to {idx}"
+        )
+    return [
+        os.path.join(results_dir, arm, f"chunk_{k:03d}.npz")
+        for k in range(first, idx + 1)
+    ]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--arm", required=True)
@@ -261,29 +380,32 @@ def main() -> None:
     ap.add_argument("--results-dir", default=os.path.join("results", "unification"))
     ap.add_argument("--output-dir", default=os.path.join("results", "variance_sidecar"))
     ap.add_argument(
-        "--include-backbone",
-        action="store_true",
-        help="variant: condition on the FULL wide design instead of exog-only",
+        "--design",
+        choices=DESIGNS,
+        default=DESIGN_DEFAULT,
+        help="conditioning design: exog (contract, untagged output path) | "
+        "backbone (level-channel control) | both (wide union)",
     )
     args = ap.parse_args()
     idx = args.chunk_index
 
     n_rows = panel_length()
-    paths = []
-    for k in range(idx + 1):
-        pth = os.path.join(args.results_dir, args.arm, f"chunk_{k:03d}.npz")
-        if not os.path.exists(pth):
-            raise SystemExit(
-                f"chain broken: {pth} absent — the sidecar needs contiguous "
-                f"chunks 0..{idx} of '{args.arm}'"
-            )
-        paths.append(pth)
+    paths = chain_paths(args.results_dir, args.arm, idx)
+    if not paths:
+        print(
+            f"SKIP structural chunk {idx}: '{args.arm}' has no chunk {idx} "
+            "(it precedes the arm's first present chunk — legal leading "
+            "absence, see chain_paths)"
+        )
+        return
     lo_prev, _ = chunk_bounds(idx - 1, n_rows) if idx > 0 else (None, None)
     lo_i, hi_i = chunk_bounds(idx, n_rows)
 
     ch = _chain(paths)
     sub0 = int(ch["row_id"][0])  # global row of sub-series index 0
-    if idx == 0 or (lo_prev - sub0) < VS_WINDOW:
+    # len(paths) == 1 -> idx IS the arm's first present chunk: there is no
+    # previous chunk to pin the level against, so it is a burn-in like idx 0.
+    if idx == 0 or len(paths) == 1 or (lo_prev - sub0) < VS_WINDOW:
         print(
             f"SKIP burn-in chunk {idx}: variance model lacks a full "
             f"{VS_WINDOW}-bar residual window before the previous chunk"
@@ -291,7 +413,7 @@ def main() -> None:
         return
 
     p = _load_panel()
-    cols = np.arange(p.X.shape[1]) if args.include_backbone else _exog_all_cols(p.names)
+    cols = design_cols(p.names, args.design)
     # design rows aligned to the residual sub-series (global rows are
     # contiguous across chunks by chunk_bounds construction; asserted)
     assert np.all(np.diff(ch["row_id"]) == 1), "sub-series rows not contiguous"
@@ -346,7 +468,7 @@ def main() -> None:
         str(y): round(sum(v) / len(v), 4) for y, v in sorted(by_year.items())
     }
 
-    out_dir = os.path.join(args.output_dir, args.arm)
+    out_dir = design_out_dir(args.output_dir, args.arm, args.design)
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f"chunk_{idx:03d}.npz")
     np.savez_compressed(
@@ -359,7 +481,8 @@ def main() -> None:
             {
                 "arm": args.arm,
                 "chunk_index": idx,
-                "include_backbone": bool(args.include_backbone),
+                "design": args.design,
+                "n_design_cols": int(len(cols)),
                 "alpha_grid": ["inf" if np.isinf(a) else a for a in ALPHA_GRID],
                 "tuned_alpha": traj_out,
                 "frac_inf": round(n_inf / len(traj_out), 4) if traj_out else None,
@@ -370,8 +493,8 @@ def main() -> None:
         ),
     )
     print(
-        f"DONE {args.arm} sidecar chunk {idx} [{lo_i},{hi_i}) "
-        f"frac_inf={n_inf}/{len(traj_out)} -> {out}"
+        f"DONE {args.arm} [{args.design}] sidecar chunk {idx} [{lo_i},{hi_i}) "
+        f"p={len(cols)} frac_inf={n_inf}/{len(traj_out)} -> {out}"
     )
 
 

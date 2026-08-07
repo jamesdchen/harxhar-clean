@@ -58,7 +58,9 @@ joined per-bar contract losses the a0 comparisons use (join on row_id,
 dm_test on the loss differential).  Emitted as
 results/unification_increments.csv (sibling of --out) and macros
 \\unifIncr<UpperRungCamel>{DM,DQ} (e.g. \\unifIncrBlkFourUserDM for
-blk4_user vs blk3_user), pending until BOTH arms are complete.
+blk4_user vs blk3_user), pending until BOTH arms are complete.  When one
+upper arm carries SEVERAL pairs, the first keeps the bare name and the rest
+are qualified by their lower arm: \\unifIncr<Upper>Vs<Lower>{DM,DQ}.
 
 Smear-sensitivity layer (author directive, exactly three conventions): pooled
 QLIKE is also computed under (1) NONE — ``f = yhat^2 * B``, no correction —
@@ -258,6 +260,11 @@ _REGISTRY: list[tuple[str, str]] = [
     # benchmark arm, Champ = the champion contender.
     ("a0_ols_har_condvar", "CondVarBench"),
     ("blk4_trail_tuned_condvar", "CondVarChamp"),
+    # LEVEL-CHANNEL CONTROL: the same benchmark arm conditioned on the
+    # BACKBONE-only design (--design backbone), i.e. the volatility level the
+    # exog state proxies. Bench-vs-scalar and Bench-vs-BenchLevel together
+    # decompose the conditional-variance gain.
+    ("a0_ols_har_condvar_backbone", "CondVarBenchLevel"),
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
@@ -299,6 +306,7 @@ _ARM_TEX: dict[str, str] = {
     "tree_hedge": "Gradient-boosted trees (hedged expert bank)",
     "a0_ols_har_condvar": "Benchmark under the exog-conditional second moment",
     "blk4_trail_tuned_condvar": "Champion under the exog-conditional second moment",
+    "a0_ols_har_condvar_backbone": "Benchmark with backbone-only variance conditioning",
     "b1_ridge_a0p1": r"Ridge, fixed $\alpha=0.1$",
     "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
     "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
@@ -412,6 +420,14 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # \unifIncrCondVarBench{DM,DQ} / \unifIncrCondVarChamp{DM,DQ}
     ("a0_ols_har_condvar", A0),
     ("blk4_trail_tuned_condvar", "blk4_trail_tuned"),
+    # LEVEL-CHANNEL DECOMPOSITION (two pairs on the same upper arm):
+    #   vs the scalar-contract parent -> does level-conditioning help at all?
+    #     \unifIncrCondVarBenchLevel{DM,DQ}
+    #   vs the EXOG condvar variant -> does the exog state beat the level
+    #     channel it proxies? (the decomposition claim)
+    #     \unifIncrCondVarBenchLevelVsCondVarBench{DM,DQ}
+    ("a0_ols_har_condvar_backbone", A0),
+    ("a0_ols_har_condvar_backbone", "a0_ols_har_condvar"),
 ]
 
 
@@ -910,7 +926,18 @@ def _assemble_tree_arms(
 # per-bar QLIKE recomputed on the sidecar forecast — layer 1/2 and the burn-in
 # untouched, layer 3 swapped.
 
-_CONDVAR_TARGETS = (A0, "blk4_trail_tuned")
+# (parent arm, sidecar dir suffix, synthetic arm suffix, design label).
+# OUTPUT-PATH ASYMMETRY mirrored from variance_sidecar.py: --design exog
+# writes the UNTAGGED <arm>/ path (the banks were in flight when the design
+# flag was generalized), every other design writes <arm>__<design>/. An empty
+# dir suffix therefore MEANS exog — not a missing tag.
+_CONDVAR_VARIANTS: tuple[tuple[str, str, str, str], ...] = (
+    (A0, "", "_condvar", "exog"),
+    ("blk4_trail_tuned", "", "_condvar", "exog"),
+    # level-channel control: the benchmark's variance conditioned on the
+    # backbone (HAR ladder + calendar) only.
+    (A0, "__backbone", "_condvar_backbone", "backbone"),
+)
 
 
 def _assemble_condvar_arms(
@@ -919,79 +946,99 @@ def _assemble_condvar_arms(
     out: list[ArmResult] = []
     if not sidecar_root or not os.path.isdir(sidecar_root):
         return out
+    by_parent: dict[str, list[tuple[str, str, str]]] = {}
+    for p_arm, dir_sfx, arm_sfx, design in _CONDVAR_VARIANTS:
+        by_parent.setdefault(p_arm, []).append((dir_sfx, arm_sfx, design))
     for root_label, entries in by_root.items():
         for parent in entries:
-            if parent.arm not in _CONDVAR_TARGETS or not parent.n_rows:
+            if parent.arm not in by_parent or not parent.n_rows:
                 continue
-            sc_dir = os.path.join(sidecar_root, parent.arm)
-            if not os.path.isdir(sc_dir):
-                continue
-            rows, fc, yrs = [], [], []
-            frac_by_year: dict[str, list[float]] = {}
-            n_chunks = 0
-            for fn in sorted(os.listdir(sc_dir)):
-                if not _CHUNK_RE.match(fn):
+            for dir_sfx, arm_sfx, design in by_parent[parent.arm]:
+                sc_dir = os.path.join(sidecar_root, parent.arm + dir_sfx)
+                if not os.path.isdir(sc_dir):
                     continue
-                with np.load(os.path.join(sc_dir, fn), allow_pickle=False) as z:
-                    rows.append(np.asarray(z["row_id"], dtype=np.int64))
-                    fc.append(np.asarray(z["f_cond_raw"], dtype=np.float64))
-                    yrs.append(np.asarray(z["year"], dtype=np.int64))
-                    meta = json.loads(str(z["meta"]))
-                n_chunks += 1
-                for y, fr in (meta.get("frac_inf_by_year") or {}).items():
-                    frac_by_year.setdefault(y, []).append(float(fr))
-            if not rows:
-                continue
-            row_id = np.concatenate(rows)
-            f_cond = np.concatenate(fc)
-            year = np.concatenate(yrs)
-            order = np.argsort(row_id, kind="stable")
-            row_id, f_cond, year = row_id[order], f_cond[order], year[order]
-            common, ia, ib = np.intersect1d(
-                row_id, parent.row_id, assume_unique=True, return_indices=True
-            )
-            if len(common) == 0:
-                continue
-            res = ArmResult(root=root_label, arm=f"{parent.arm}_condvar")
-            res.n_chunks = n_chunks
-            res.incomplete = parent.incomplete or n_chunks == 0
-            res.row_id = common
-            res.t = parent.t[ib]
-            res.f_raw = f_cond[ia]
-            res.rv_raw = parent.rv_raw[ib]
-            res.loss = _qlike_bar(res.f_raw, res.rv_raw)
-            nf = len(common)
-            res.loss_none = np.full(nf, np.nan)
-            res.loss_duan = np.full(nf, np.nan)
-            res.err2 = np.full(nf, np.nan)
-            res.yhat = np.full(nf, np.nan)
-            res.n_rows = nf
-            res.n_valid = int(np.isfinite(res.f_raw).sum())
-            res.n_qlike = int(np.isfinite(res.loss).sum())
-            if res.n_qlike:
-                res.qlike = float(np.nanmean(res.loss))
-            m = (res.f_raw > 0) & (res.rv_raw > 0)
-            if m.sum() >= 3:
-                mz = mz_regression(res.rv_raw[m], res.f_raw[m])
-                res.mz_alpha, res.mz_beta = mz["alpha"], mz["beta"]
-                res.mz_r2 = mz["r2"]
-            res.warnings.append(
-                "synthetic: layer-3 scalar swapped for the exog-conditional "
-                "sigma2 (variance_sidecar); chunks without sidecars (variance "
-                "burn-in) excluded"
-            )
-            out.append(res)
-            for y, fr in sorted(frac_by_year.items()):
-                adoption_rows.append(
-                    {
-                        "arm": parent.arm,
-                        "root": root_label,
-                        "year": int(y),
-                        "n_chunks": len(fr),
-                        "frac_non_inf": round(1.0 - float(np.mean(fr)), 4),
-                    }
+                res = _condvar_arm_from_dir(
+                    parent, root_label, sc_dir, arm_sfx, design, adoption_rows
                 )
+                if res is not None:
+                    out.append(res)
     return out
+
+
+def _condvar_arm_from_dir(
+    parent: ArmResult,
+    root_label: str,
+    sc_dir: str,
+    arm_sfx: str,
+    design: str,
+    adoption_rows: list[dict],
+) -> ArmResult | None:
+    """One synthetic condvar arm from one sidecar design bank (None when the
+    bank is empty or shares no rows with its parent)."""
+    rows, fc = [], []
+    frac_by_year: dict[str, list[float]] = {}
+    n_chunks = 0
+    for fn in sorted(os.listdir(sc_dir)):
+        if not _CHUNK_RE.match(fn):
+            continue
+        with np.load(os.path.join(sc_dir, fn), allow_pickle=False) as z:
+            rows.append(np.asarray(z["row_id"], dtype=np.int64))
+            fc.append(np.asarray(z["f_cond_raw"], dtype=np.float64))
+            meta = json.loads(str(z["meta"]))
+        n_chunks += 1
+        for y, fr in (meta.get("frac_inf_by_year") or {}).items():
+            frac_by_year.setdefault(y, []).append(float(fr))
+    if not rows:
+        return None
+    row_id = np.concatenate(rows)
+    f_cond = np.concatenate(fc)
+    order = np.argsort(row_id, kind="stable")
+    row_id, f_cond = row_id[order], f_cond[order]
+    common, ia, ib = np.intersect1d(
+        row_id, parent.row_id, assume_unique=True, return_indices=True
+    )
+    if len(common) == 0:
+        return None
+    res = ArmResult(root=root_label, arm=f"{parent.arm}{arm_sfx}")
+    res.n_chunks = n_chunks
+    res.incomplete = parent.incomplete or n_chunks == 0
+    res.row_id = common
+    res.t = parent.t[ib]
+    res.f_raw = f_cond[ia]
+    res.rv_raw = parent.rv_raw[ib]
+    res.loss = _qlike_bar(res.f_raw, res.rv_raw)
+    nf = len(common)
+    res.loss_none = np.full(nf, np.nan)
+    res.loss_duan = np.full(nf, np.nan)
+    res.err2 = np.full(nf, np.nan)
+    res.yhat = np.full(nf, np.nan)
+    res.n_rows = nf
+    res.n_valid = int(np.isfinite(res.f_raw).sum())
+    res.n_qlike = int(np.isfinite(res.loss).sum())
+    if res.n_qlike:
+        res.qlike = float(np.nanmean(res.loss))
+    m = (res.f_raw > 0) & (res.rv_raw > 0)
+    if m.sum() >= 3:
+        mz = mz_regression(res.rv_raw[m], res.f_raw[m])
+        res.mz_alpha, res.mz_beta = mz["alpha"], mz["beta"]
+        res.mz_r2 = mz["r2"]
+    res.warnings.append(
+        f"synthetic: layer-3 scalar swapped for the '{design}'-conditional "
+        "sigma2 (variance_sidecar); chunks without sidecars (variance "
+        "burn-in) excluded"
+    )
+    for y, fr in sorted(frac_by_year.items()):
+        adoption_rows.append(
+            {
+                "arm": res.arm,
+                "design": design,
+                "root": root_label,
+                "year": int(y),
+                "n_chunks": len(fr),
+                "frac_non_inf": round(1.0 - float(np.mean(fr)), 4),
+            }
+        )
+    return res
 
 
 def _compare_vs_a0(res: ArmResult, a0: ArmResult) -> None:
@@ -1126,8 +1173,17 @@ def _macro_lines(
     # Ladder-increment statistics (product / transmission marginal value):
     # paired per-bar DM between adjacent rungs, keyed by the upper rung;
     # pending until BOTH arms of the pair are complete.
+    seen_hi: dict[str, int] = {}
     for rec in incs:
         camel = _CAMEL[rec["hi"]]
+        # An upper arm may appear in SEVERAL pairs (e.g. the level-channel
+        # decomposition: condvar_backbone vs the scalar parent AND vs the
+        # exog condvar). The first pair keeps the historical bare name; any
+        # further pair on the same upper arm is qualified by its lower arm,
+        # so \newcommand never collides.
+        seen_hi[rec["hi"]] = seen_hi.get(rec["hi"], 0) + 1
+        if seen_hi[rec["hi"]] > 1:
+            camel = f"{camel}Vs{_CAMEL[rec['lo']]}"
         pend_i = r"\pending{%s vs %s awaiting harvest}" % (
             _tex_escape(rec["hi"]),
             _tex_escape(rec["lo"]),
@@ -1483,11 +1539,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         with open(ad_csv, "w", newline="") as fh:
             w = csv.writer(fh)
-            w.writerow(["arm", "root", "year", "n_chunks", "frac_non_inf"])
+            w.writerow(["arm", "design", "root", "year", "n_chunks", "frac_non_inf"])
             for rec in adoption_rows:
                 w.writerow(
                     [
                         rec["arm"],
+                        rec["design"],
                         rec["root"],
                         rec["year"],
                         rec["n_chunks"],
