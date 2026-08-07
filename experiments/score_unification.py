@@ -230,6 +230,11 @@ _REGISTRY: list[tuple[str, str]] = [
     ("d3_transmission_alone_doc", "TransAloneDoc"),
     ("d3_transmission_alone_tuned", "TransAloneTuned"),
     ("d3_transmission_alone_trail", "TransAloneTrail"),
+    # Tree bank synthetics (assembled scorer-side from the 20 tree_expert_*
+    # banks; the expert arms themselves are CSV-only — digits are illegal in
+    # LaTeX macro stems, and the paper quotes the composites, not the experts).
+    ("tree_tuned", "TreeTuned"),
+    ("tree_hedge", "TreeHedge"),
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
@@ -267,6 +272,8 @@ _ARM_TEX: dict[str, str] = {
     "be_tuned_implied_vol": "HAR + implied vol bucket (elastic net, causally tuned, free mixing)",
     "be_tuned_vol_demand": "HAR + vol demand bucket (elastic net, causally tuned, free mixing)",
     "be_tuned_all_features": "HAR + all features bucket (elastic net, causally tuned, free mixing)",
+    "tree_tuned": "Gradient-boosted trees (causally tuned expert bank)",
+    "tree_hedge": "Gradient-boosted trees (hedged expert bank)",
     "b1_ridge_a0p1": r"Ridge, fixed $\alpha=0.1$",
     "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
     "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
@@ -347,6 +354,11 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("be_tuned_implied_vol", "br_tuned_implied_vol"),
     ("be_tuned_vol_demand", "br_tuned_vol_demand"),
     ("be_tuned_all_features", "br_tuned_all_features"),
+    # tree-bank verdicts (all tree_* joins are 2003+ by construction: the
+    # synthetic arms are assembled on the dev-prefix-excluded row set)
+    ("tree_tuned", "blk3_tuned"),
+    ("tree_tuned", "blk4_trail_tuned"),
+    ("tree_hedge", "tree_tuned"),
 ]
 
 
@@ -392,6 +404,7 @@ class ArmResult:
     _s2_n: int = 0
     # per-bar arrays (sorted by row_id, deduped)
     row_id: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+    t: np.ndarray = field(default_factory=lambda: np.empty(0, dtype="datetime64[ns]"))
     loss: np.ndarray = field(default_factory=lambda: np.empty(0))
     loss_none: np.ndarray = field(default_factory=lambda: np.empty(0))
     loss_duan: np.ndarray = field(default_factory=lambda: np.empty(0))
@@ -406,6 +419,7 @@ def _load_chunk(path: str) -> dict:
     with np.load(path, allow_pickle=False) as z:
         out = {
             "row_id": np.asarray(z["row_id"], dtype=np.int64),
+            "t": np.asarray(z["t"], dtype="datetime64[ns]"),
             "y_fit": np.asarray(z["y_fit"], dtype=np.float64),
             "yhat": np.asarray(z["yhat"], dtype=np.float64),
             "rv_raw": np.asarray(z["rv_raw"], dtype=np.float64),
@@ -611,6 +625,7 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
         prev = prev_state if prev_idx == idx - 1 else None
         c = _score_chunk_causal(raw, prev, res)
         prev_state, prev_idx = c.pop("state"), idx
+        c["t"] = raw["t"]  # timestamps ride along (tree dev-prefix filter)
         chunks.append(c)
     if res.calib_fallback_windows or res.var_fallback_windows:
         res.warnings.append(
@@ -635,7 +650,7 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
     res.row_id = row_id[~dupe]
     res.n_gaps = int((np.diff(res.row_id) > 1).sum()) if len(res.row_id) > 1 else 0
 
-    for name in ("loss", "loss_none", "loss_duan", "err2", "f", "rv_raw", "yhat"):
+    for name in ("loss", "loss_none", "loss_duan", "err2", "f", "rv_raw", "yhat", "t"):
         arr = np.concatenate([c[name] for c in chunks])[keep]
         setattr(res, {"f": "f_raw"}.get(name, name), arr)
     valid = np.concatenate([c["valid"] for c in chunks])[keep]
@@ -667,6 +682,172 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
         res.mz_alpha, res.mz_beta = mz["alpha"], mz["beta"]
         res.mz_r2 = mz["r2"]
     return res
+
+
+# ── tree expert bank -> synthetic causal-selection arms ───────────────────────
+# (author directive 2026-08-07). tree_tuned: at each retune boundary (every
+# TREE_TUNE_EVERY joined bars, TREE_EMBARGO-bar gap, TREE_TAIL-bar tail —
+# identical 250/25/125 protocol as the linear tuners) the expert with the
+# lowest tail mean per-bar loss fills the NEXT block from its PERSISTED
+# forecasts. tree_hedge: exponential weights on the same trailing tail losses,
+# eta = sqrt(8 ln K / L) with L = TREE_TAIL — the standard exponentially
+# weighted average forecaster rate (Cesa-Bianchi & Lugosi 2006, "Prediction,
+# Learning, and Games", Thm 2.2), no free constant. The first boundary before
+# any tail exists is a BURN-IN SKIP (consistent with the calibration burn-in).
+# ALL tree_* rows are restricted to t >= TREE_DEV_END (2003+): the menu was
+# tuned on the pre-2003 dev prefix, so that span is excluded from every tree
+# comparison — implemented as a timestamp row filter at assembly, which also
+# restricts every downstream join (vs a0, increment pairs) to 2003+.
+
+_TREE_EXPERTS = tuple(f"tree_expert_{k:02d}" for k in range(20))
+TREE_TUNE_EVERY = 250
+TREE_EMBARGO = 25
+TREE_TAIL = 125
+TREE_DEV_END = np.datetime64("2003-01-01")
+_TREE_MENU_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "tree_menu.json"
+)
+
+
+def _tree_family_of() -> dict[str, str]:
+    """Map tree_expert_<k> -> family tag from the frozen menu (mixed-family
+    expansion 2026-08-07); '?' per expert when the menu is not deployed
+    alongside the scorer (harvest still runs; the exhibit columns degrade)."""
+    try:
+        with open(_TREE_MENU_PATH, encoding="utf-8") as fh:
+            menu = json.load(fh)
+        return {
+            f"tree_expert_{k:02d}": str(e.get("family", "?"))
+            for k, e in enumerate(menu)
+        }
+    except (OSError, ValueError):
+        return {}
+
+
+def _qlike_bar(f: np.ndarray, rv: np.ndarray) -> np.ndarray:
+    """Per-bar QLIKE on raw forecasts (the repo convention: r - ln r - 1)."""
+    out = np.full(len(f), np.nan)
+    ok = np.isfinite(f) & np.isfinite(rv) & (f > 0) & (rv > 0)
+    r = rv[ok] / f[ok]
+    out[ok] = r - np.log(r) - 1.0
+    return out
+
+
+def _assemble_tree_arms(
+    by_root: dict[str, list[ArmResult]], sel_rows: list[dict]
+) -> list[ArmResult]:
+    """Build tree_tuned / tree_hedge per root from the harvested expert banks
+    (see the block comment above for the protocol). Appends the selection
+    trajectory to ``sel_rows`` for the CSV sidecar."""
+    out: list[ArmResult] = []
+    for root_label, entries in by_root.items():
+        experts = sorted(
+            (r for r in entries if r.arm in _TREE_EXPERTS and r.n_rows),
+            key=lambda r: r.arm,
+        )
+        if len(experts) < 2:
+            continue
+        k_n = len(experts)
+        common = experts[0].row_id
+        for e in experts[1:]:
+            common = np.intersect1d(common, e.row_id, assume_unique=True)
+        if len(common) == 0:
+            continue
+        f_mat = np.empty((k_n, len(common)))
+        rv = t_arr = None
+        for k, e in enumerate(experts):
+            _, _, ib = np.intersect1d(
+                common, e.row_id, assume_unique=True, return_indices=True
+            )
+            f_mat[k] = e.f_raw[ib]
+            if rv is None:
+                rv, t_arr = e.rv_raw[ib], e.t[ib]
+        dev = t_arr >= TREE_DEV_END  # dev-prefix exclusion (2003+ only)
+        common, f_mat, rv, t_arr = common[dev], f_mat[:, dev], rv[dev], t_arr[dev]
+        n = len(common)
+        if n == 0:
+            continue
+        loss_mat = np.vstack([_qlike_bar(f_mat[k], rv) for k in range(k_n)])
+        eta = float(np.sqrt(8.0 * np.log(k_n) / TREE_TAIL))
+        family_of = _tree_family_of()
+        sel_family = np.empty(n, dtype=object)
+        sel_family[:] = ""
+        f_sel = np.full(n, np.nan)
+        f_hed = np.full(n, np.nan)
+        for b in range(0, n, TREE_TUNE_EVERY):
+            tail_hi = b - TREE_EMBARGO
+            tail_lo = tail_hi - TREE_TAIL
+            if tail_lo < 0:
+                continue  # burn-in skip: no tail exists before the first boundary
+            tail_loss = loss_mat[:, tail_lo:tail_hi]
+            mean_tail = np.nanmean(tail_loss, axis=1)
+            if not np.isfinite(mean_tail).any():
+                continue
+            sel = int(np.nanargmin(mean_tail))
+            blk = slice(b, min(b + TREE_TUNE_EVERY, n))
+            f_sel[blk] = f_mat[sel][blk]
+            fam = family_of.get(experts[sel].arm, "?")
+            sel_family[blk] = fam
+            w = np.exp(-eta * np.nan_to_num(np.nansum(tail_loss, axis=1)))
+            w = w / w.sum()
+            f_hed[blk] = w @ f_mat[:, blk]
+            sel_rows.append(
+                {
+                    "root": root_label,
+                    "boundary_row": int(common[b]),
+                    "boundary_year": int(str(t_arr[b].astype("datetime64[Y]"))),
+                    "selected_expert": sel,
+                    "selected_arm": experts[sel].arm,
+                    "family": fam,
+                    "eta": eta,
+                }
+            )
+        for arm_name, f in (("tree_tuned", f_sel), ("tree_hedge", f_hed)):
+            filled = np.isfinite(f)
+            if not filled.any():
+                continue
+            res = ArmResult(root=root_label, arm=arm_name)
+            res.n_chunks = min(e.n_chunks for e in experts)
+            res.incomplete = any(e.incomplete for e in experts)
+            res.row_id = common[filled]
+            res.t = t_arr[filled]
+            res.f_raw = np.asarray(f[filled])
+            res.rv_raw = rv[filled]
+            res.loss = _qlike_bar(res.f_raw, res.rv_raw)
+            nf = int(filled.sum())
+            res.loss_none = np.full(nf, np.nan)
+            res.loss_duan = np.full(nf, np.nan)
+            res.err2 = np.full(nf, np.nan)  # fit-space err undefined for composites
+            res.yhat = np.full(nf, np.nan)
+            res.n_rows = nf
+            res.n_valid = nf
+            res.n_qlike = int(np.isfinite(res.loss).sum())
+            if res.n_qlike:
+                res.qlike = float(np.nanmean(res.loss))
+            ffin = res.f_raw[np.isfinite(res.f_raw)]
+            if ffin.size:
+                res.f_min = float(ffin.min())
+            m = (res.f_raw > 0) & (res.rv_raw > 0)
+            if m.sum() >= 3:
+                mz = mz_regression(res.rv_raw[m], res.f_raw[m])
+                res.mz_alpha, res.mz_beta = mz["alpha"], mz["beta"]
+                res.mz_r2 = mz["r2"]
+            res.warnings.append(
+                f"synthetic: causal composite of {k_n} expert banks; rows "
+                "restricted to t >= 2003-01-01 (dev-prefix exclusion)"
+            )
+            if arm_name == "tree_tuned":
+                # revealed family preference (paper exhibit): fraction of
+                # eval bars served by each family
+                fams = sel_family[filled]
+                tot = len(fams)
+                frac = {
+                    f: round(int((fams == f).sum()) / tot, 4)
+                    for f in sorted({str(x) for x in fams if x})
+                }
+                res.warnings.append(f"family fractions of eval bars: {frac}")
+            out.append(res)
+    return out
 
 
 def _compare_vs_a0(res: ArmResult, a0: ArmResult) -> None:
@@ -1079,6 +1260,67 @@ def main(argv: list[str] | None = None) -> int:
     by_root: dict[str, list[ArmResult]] = {}
     for r in results:
         by_root.setdefault(r.root, []).append(r)
+
+    # 4a. TREE SYNTHETICS: assemble tree_tuned / tree_hedge causally from the
+    # harvested expert banks (2003+ rows only), then let the ordinary
+    # comparison/table machinery treat them like any other arm. Selection
+    # trajectory lands in tree_selection.csv next to --out.
+    tree_sel_rows: list[dict] = []
+    for r in _assemble_tree_arms(by_root, tree_sel_rows):
+        results.append(r)
+        by_root.setdefault(r.root, []).append(r)
+    if tree_sel_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        sel_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "tree_selection.csv"
+        )
+        with open(sel_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(
+                [
+                    "root",
+                    "boundary_row",
+                    "boundary_year",
+                    "selected_expert",
+                    "selected_arm",
+                    "family",
+                    "eta",
+                ]
+            )
+            for rec in tree_sel_rows:
+                w.writerow(
+                    [
+                        rec["root"],
+                        rec["boundary_row"],
+                        rec["boundary_year"],
+                        rec["selected_expert"],
+                        rec["selected_arm"],
+                        rec["family"],
+                        f"{rec['eta']:.6g}",
+                    ]
+                )
+        print(
+            f"tree selection trajectory -> {sel_csv} ({len(tree_sel_rows)} boundaries)"
+        )
+        # per-era family preference (paper exhibit): boundary counts per
+        # (root, year, family) + fraction within the year
+        fam_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "tree_family_summary.csv"
+        )
+        agg: dict[tuple[str, int], dict[str, int]] = {}
+        for rec in tree_sel_rows:
+            key = (rec["root"], rec["boundary_year"])
+            agg.setdefault(key, {})
+            agg[key][rec["family"]] = agg[key].get(rec["family"], 0) + 1
+        with open(fam_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["root", "year", "family", "n_boundaries", "frac_of_year"])
+            for (root_l, year), fams in sorted(agg.items()):
+                tot = sum(fams.values())
+                for fam, cnt in sorted(fams.items()):
+                    w.writerow([root_l, year, fam, cnt, f"{cnt / tot:.4f}"])
+        print(f"tree family preference by era -> {fam_csv}")
+
     for root_label, entries in by_root.items():
         a0 = next((r for r in entries if r.arm == A0), None)
         if a0 is None or a0.n_rows == 0:

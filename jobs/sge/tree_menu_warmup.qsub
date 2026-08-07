@@ -1,0 +1,15 @@
+#!/bin/bash
+#$ -N tree_menu_warmup
+#$ -cwd
+#$ -l h_data=16G,h_rt=1:30:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Tree menu study warmup (Hoffman2): builds the panel cache ONCE, on a
+# compute node — MANDATORY before the workers (login-node ulimits kill panel
+# builds; H2 lesson (a)). Workers hold on this job AND re-verify the cache
+# themselves, because SGE hold_jid releases holds even when the held-on job
+# FAILS (H2 lesson (b) — the trap that bit us twice).
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY -c "from src.unification import panel_length; print('panel rows:', panel_length())"

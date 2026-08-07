@@ -248,6 +248,34 @@ _SD_EPS = 1e-12  # standardization epsilon (study convention)
 
 CACHE_DIR_ENV = "UNIFY_CACHE_DIR"  # prep-cache dir override (default "results")
 
+# Tree expert bank (author directive 2026-08-07, mixed-family expansion): 20
+# frozen tree configs — LightGBM AND XGBoost, tagged per entry — emitted by
+# the dev menu study (experiments/tree_menu_dev.py --freeze). The arms READ
+# the menu — no tuning inside an arm; causal, family-agnostic selection over
+# the experts happens scorer-side. DESIGN (author correction 2026-08-07): the
+# tree design matrix is IDENTICAL to the tuned penalized linear arms' wide
+# all_features design (backbone + all exog through the same ladder/indicator
+# expansion) — same information set, richer hypothesis class; NO product block,
+# no tree-specific columns.
+N_TREE_EXPERTS = 20
+TREE_MENU_PATH = os.path.join(_ROOT, "experiments", "tree_menu.json")
+
+
+def _load_tree_menu() -> list[dict[str, Any]]:
+    """The frozen expert menu; LOUD failure when absent — an expert arm must
+    never run against an implicit or stale configuration."""
+    if not os.path.exists(TREE_MENU_PATH):
+        raise SystemExit(
+            f"tree expert menu absent: {TREE_MENU_PATH} — run the dev menu "
+            "study and freeze it first (experiments/tree_menu_dev.py "
+            "--freeze); tree_expert_* arms refuse to run without it."
+        )
+    with open(TREE_MENU_PATH, encoding="utf-8") as fh:
+        menu = json.load(fh)
+    if not isinstance(menu, list) or not menu:
+        raise SystemExit(f"tree expert menu malformed/empty: {TREE_MENU_PATH}")
+    return menu
+
 
 # ── panel ─────────────────────────────────────────────────────────────────────
 
@@ -1208,6 +1236,55 @@ def _walk_tuned(
     return out, traj
 
 
+def _walk_tree(
+    F: np.ndarray,
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    params: dict[str, Any],
+    family: str,
+) -> np.ndarray:
+    """Per-bar-refit tree walk-forward (mixed-family expert bank, 2026-08-07).
+
+    Dispatches on the menu entry's ``family`` tag: "lgbm" (LightGBM,
+    num_threads) or "xgb" (XGBoost, tree_method='hist' via the frozen params,
+    n_jobs). One full refit per bar on the trailing ``window`` rows, one
+    prediction — NO tuning inside the arm (the config is a frozen menu entry;
+    causal expert selection happens scorer-side from the persisted banks).
+    Threads from $SLURM_CPUS_PER_TASK (1 outside SLURM; the sbatch exports
+    OMP_NUM_THREADS to match); fixed seed for determinism at a given thread
+    count. Tree libraries are imported here, not at module top, so the
+    executor stays importable on envs without them.
+    """
+    n_threads = int(os.environ.get("SLURM_CPUS_PER_TASK", "1"))
+    if family == "lgbm":
+        import lightgbm as lgb
+
+        def _model():
+            return lgb.LGBMRegressor(
+                **params, num_threads=n_threads, random_state=42, verbosity=-1
+            )
+    elif family == "xgb":
+        import xgboost as xgb
+
+        def _model():
+            return xgb.XGBRegressor(
+                **params, n_jobs=n_threads, random_state=42, verbosity=0
+            )
+    else:
+        raise SystemExit(f"unknown tree family '{family}' in the frozen menu")
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    out = np.empty(hi - lo, dtype=np.float64)
+    for i in range(hi - lo):
+        t = window + i
+        model = _model()
+        model.fit(Xs[i:t], ys[i:t])
+        out[i] = float(model.predict(Xs[t : t + 1])[0])
+    return out
+
+
 # ── arm registry ──────────────────────────────────────────────────────────────
 
 
@@ -1307,6 +1384,20 @@ ARMS: dict[str, ArmSpec] = {
             blocks=[("backbone", ""), (f"bucket:{b}", "")],
         )
         for b in _BUCKETS
+    },
+    # Tree expert bank (2026-08-07): 20 frozen LightGBM configs from
+    # experiments/tree_menu.json (LOUD failure at compute time if the menu is
+    # absent). Design = the wide all_features basis, IDENTICAL to the tuned
+    # linear arms (author correction); per-bar refit; no in-arm tuning.
+    **{
+        f"tree_expert_{k:02d}": ArmSpec(
+            describe=f"tree expert #{k} from experiments/tree_menu.json "
+            "(frozen mixed-family menu, lgbm|xgb per entry tag; per-bar "
+            "refit on the wide linear design; causal selection scorer-side)",
+            kind="tree",
+            grid=str(k),
+        )
+        for k in range(N_TREE_EXPERTS)
     },
     "b1_ridge": ArmSpec(
         describe="FIXED-penalty ridge on the wide all_features basis, alpha=1.0 "
@@ -1732,6 +1823,7 @@ def compute(args: argparse.Namespace) -> None:
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
     tuned_penalty: list[dict[str, Any]] = []
+    tree_cfg: dict[str, Any] = {}
     if spec.kind == "ols":
         # Min-norm path (2026-08-07): panel bitwise dedup stays (hygiene); the
         # QR entry drops / atomic ladder drops / sticky repair are retired —
@@ -1748,6 +1840,26 @@ def compute(args: argparse.Namespace) -> None:
     elif spec.kind == "blocks_tuned":
         F, segments = _tuned_blocks_design(p, spec, window)
         yhat, tuned_alphas = _walk_blocks_tuned(F, segments, p.y, window, lo, hi)
+    elif spec.kind == "tree":
+        menu = _load_tree_menu()  # LOUD failure when the frozen menu is absent
+        k = int(spec.grid)
+        if k >= len(menu):
+            raise SystemExit(
+                f"arm '{arm}': expert index {k} beyond menu length {len(menu)} "
+                f"({TREE_MENU_PATH})"
+            )
+        tree_cfg = menu[k]
+        if "family" not in tree_cfg:
+            raise SystemExit(
+                f"arm '{arm}': menu entry {k} lacks a 'family' tag "
+                f"({TREE_MENU_PATH} predates the mixed-family expansion?)"
+            )
+        # author correction 2026-08-07: design IDENTICAL to the tuned
+        # penalized linear arms — the full wide all_features basis, unchanged
+        F = p.X
+        yhat = _walk_tree(
+            F, p.y, window, lo, hi, tree_cfg["params"], tree_cfg["family"]
+        )
     else:
         F, _ = _build_design(p, spec, window)
         yhat, tuned_penalty = _walk_tuned(
@@ -1821,6 +1933,8 @@ def compute(args: argparse.Namespace) -> None:
                 # causal per-block alpha selection trajectory (blocks_tuned
                 # arms): [{row, alphas}] per retune boundary — paper-relevant
                 "tuned_alphas": tuned_alphas,
+                # tree expert arms: the frozen menu entry (name, params, sha)
+                "tree_config": tree_cfg,
                 # single-estimator tuned arms: selected (alpha, l1_ratio) per
                 # retune boundary + per-chunk means (the shrink-vs-select
                 # exhibit; l1_ratio=0 for pure-ridge grids)
