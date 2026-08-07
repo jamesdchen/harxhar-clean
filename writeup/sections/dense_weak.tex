@@ -98,34 +98,29 @@ tables may need this re-run on the paper's one-panel convention}
 % cross-checked against writeup/causal_tune_battery_table.tex.
 \paragraph{Result.}
 The comparison is run on the full design --- the HAR ladder, the calendar
-features, and the full exogenous block --- under two penalty protocols:
-fixed constants (ridge $\alpha = 1.0$, lasso $\alpha = 10^{-4}$) and causal
-re-selection from the battery grids (Table~\ref{tab:lasso_vs_ridge}). At
-the fixed pins, the lasso (\unifBTwoLassoQLIKE{}, DM \unifBTwoLassoDM{}
-against the incumbent) beats ridge (\unifBOneRidgeQLIKE{},
-\unifBOneRidgeDM{}). Under causal tuning the ordering reverses: tuned
-ridge (\unifBOneRidgeTunedQLIKE{}, \unifBOneRidgeTunedDM{}) beats tuned
-lasso (\unifBTwoLassoTunedQLIKE{}, \unifBTwoLassoTunedDM{}). Tuning moves
-the two families in opposite directions --- it improves ridge, whose fixed
-pin of $\alpha = 1.0$ the sweep below shows to be far from the loss
-minimum, and it costs the lasso, whose fixed pin already sits near its
-optimum.
+features, and the full exogenous block --- with both estimators under the
+same causal tuning protocol, so that neither family carries an informed
+penalty choice the other lacks
+(Table~\ref{tab:lasso_vs_ridge}). Ridge
+(\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
+incumbent) beats the lasso (\unifBTwoLassoTunedQLIKE{},
+\unifBTwoLassoTunedDM{}). Keeping every column and shrinking produces a
+lower loss than selecting a subset, when both strategies choose their
+penalty by the same causal rule.
 
 \begin{table}[H]
 \centering
 \caption{Ridge versus lasso on the full design, out-of-sample QLIKE with
 the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
 parentheses. Unification campaign, $n = 218{,}934$ thirty-minute bars,
-identical rows in every cell; negative $t$ favors the arm. Fixed penalties:
-ridge $\alpha = 1.0$, lasso $\alpha = 10^{-4}$. Causally tuned: penalty
-re-selected every $250$ solves from the battery grids on a forward
-validation split.}
+identical rows in every cell; negative $t$ favors the arm. Both arms
+re-select their penalty every $250$ solves from the battery grids on a
+forward validation split.}
 \label{tab:lasso_vs_ridge}
 \begin{tabular}{@{}lcc@{}}
 \toprule
-Protocol & Ridge & Lasso \\
+ & Ridge & Lasso \\
 \midrule
-Fixed penalty  & \unifBOneRidgeQLIKE{} (\unifBOneRidgeDM{}) & \unifBTwoLassoQLIKE{} (\unifBTwoLassoDM{}) \\
 Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
 \midrule
 Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
@@ -133,8 +128,9 @@ Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
 \end{tabular}
 \end{table}
 
-A penalty-level sweep explains the reversal. Holding the ridge family
-fixed and varying only the constant, QLIKE falls monotonically in $\alpha$
+A penalty-level sweep locates where the tuned arms operate. Holding the
+ridge family fixed and varying only the constant, QLIKE falls
+monotonically in $\alpha$
 across the tested grid: $0.23219$ at $\alpha = 0.1$, $0.23159$ at $0.3$,
 $0.23083$ at $1$, $0.23003$ at $3$, and $0.22909$ at $10$, still
 decreasing at the grid's edge; the tuned-ridge arm, which re-selects from
