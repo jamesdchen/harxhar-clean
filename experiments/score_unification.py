@@ -115,9 +115,11 @@ EXPECTED_CHUNKS = 100
 A0 = "a0_ols_har"
 # Chunks that are illegal BY DESIGN for the 24000-bar-window product /
 # transmission arms (selection/frame block + training window -> first legal
-# OOS row 48000 -> chunks 0-10 excluded). These arms are complete at 89.
+# OOS row 48000). v3 geometry (panel 300,317 -> ~2,763-bar chunks): row
+# 48000 falls in chunk 9, so chunks 0-8 are excluded and these arms are
+# complete at 91.
 _LEGAL_MISSING: dict[str, set[int]] = {
-    arm: set(range(11))
+    arm: set(range(9))
     for arm in (
         "blk3_user",
         "blk4_user",
