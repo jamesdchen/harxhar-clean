@@ -97,44 +97,53 @@ tables may need this re-run on the paper's one-panel convention}
 % writeup/metrics_table_causal_tune_plus_spectral.csv (family == 'causal-tuned')
 % cross-checked against writeup/causal_tune_battery_table.tex.
 \paragraph{Result.}
-The comparison is run on the full design: the HAR ladder, the calendar
-features, and all $523$ exogenous columns. Table~\ref{tab:lasso_vs_ridge}
-reports both estimators on that design, and, as a control, on the
-no-exogenous design (HAR plus calendar only). Ridge scores QLIKE $0.12788$,
-with a Diebold--Mariano statistic of $-19.9$ against the incumbent. The
-lasso scores $0.12907$ at $-13.2$. Ridge's margin over the lasso is
-$0.00119$. Keeping every column and shrinking produces a lower loss than
-restricting the fit to the subset of columns the $\ell_1$ penalty selects.
-On the control design the ordering inverts in sign against the incumbent:
-both penalized arms lose to plain OLS, because shrinking a small,
-well-conditioned design adds bias with no compensating variance reduction.
+The comparison is run on the full design --- the HAR ladder, the calendar
+features, and the full exogenous block --- under two penalty protocols:
+fixed constants (ridge $\alpha = 1.0$, lasso $\alpha = 10^{-4}$) and causal
+re-selection from the battery grids (Table~\ref{tab:lasso_vs_ridge}). The
+two protocols order the estimators oppositely. Under causal tuning, ridge
+($0.23480$, DM $-7.5$ against the incumbent) beats the lasso ($0.23571$,
+$-6.8$). At the fixed pins, the lasso ($0.23297$, $-10.4$) beats ridge
+($0.23442$, $-5.6$) and is the best linear arm in the campaign. Both tuned
+arms lose to their fixed counterparts: causal re-selection costs more in
+selection variance than it recovers, on both penalty families.
 
 \begin{table}[H]
 \centering
-\caption{Ridge versus lasso, out-of-sample QLIKE with the Diebold--Mariano
-$t$-statistic against the OLS--HAR incumbent in parentheses. $n = 218{,}934$
-thirty-minute bars, identical rows in every cell; negative $t$ favors the
-arm.}
+\caption{Ridge versus lasso on the full design, out-of-sample QLIKE with
+the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
+parentheses. Unification campaign, $n = 218{,}934$ thirty-minute bars,
+identical rows in every cell; negative $t$ favors the arm. Fixed penalties:
+ridge $\alpha = 1.0$, lasso $\alpha = 10^{-4}$. Causally tuned: penalty
+re-selected every $250$ solves from the battery grids on a forward
+validation split.}
 \label{tab:lasso_vs_ridge}
 \begin{tabular}{@{}lcc@{}}
 \toprule
-Design & Ridge & Lasso \\
+Protocol & Ridge & Lasso \\
 \midrule
-Full ($523$ exogenous columns) & \textbf{0.12788} ($-19.9$) & 0.12907 ($-13.2$) \\
-No-exogenous control           & \textbf{0.13445} ($+5.0$)  & 0.13475 ($+7.0$)  \\
+Fixed penalty  & \unifBOneRidgeQLIKE{} (\unifBOneRidgeDM{}) & \unifBTwoLassoQLIKE{} (\unifBTwoLassoDM{}) \\
+Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
 \midrule
-Incumbent (per-bar OLS--HAR)   & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
+Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}
-The DM statistic is the mean loss differential divided by its HAC standard
-error, so ridge's larger $|t|$ also states that its per-bar edge over the
-incumbent has lower serial-correlation-adjusted variance than the lasso's.
-One caveat: both DM statistics are computed against the incumbent, a third
-model, so the ridge-minus-lasso difference itself carries no significance
-statement yet. \pending{pairwise ridge-vs-lasso DM (or the
-incumbent-cancelling bound) on the full design, so the head-to-head margin
-is tested rather than pointed at}
+
+A penalty-level sweep resolves the apparent contradiction. Holding the
+ridge family fixed and varying only the constant, QLIKE falls
+monotonically in $\alpha$ across the tested grid: $0.23564$ at
+$\alpha = 0.1$, $0.23511$ at $0.3$, $0.23442$ at $1$, $0.23384$ at $3$,
+and $0.23343$ at $10$, still decreasing at the grid's edge. The penalty
+\emph{level} moves the loss by more than the penalty \emph{family} does at
+any fixed level, and the wide design rewards heavier shrinkage than
+either arm's default pin --- the direction the block penalties of
+Section~\ref{sec:dense_weak_twoblock} take further. One caveat: all DM
+statistics are computed against the incumbent, a third model, so the
+ridge-minus-lasso differences themselves carry no significance statement
+yet. \pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling
+bound) on the full design, so the head-to-head margin is tested rather
+than pointed at}
 
 \subsection{The Diagnosis: Dense, Not Sparse}
 \label{sec:dense_weak_diagnosis}

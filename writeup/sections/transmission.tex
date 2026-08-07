@@ -18,10 +18,11 @@ functions of data observable at the current bar. This section adds a directed
 lead--lag block: the transmission of activity from one part of the market to
 another at a one-bar delay. The construction has three steps. First, a factor
 frame is estimated from the eigenstructure of the panel's first training
-window. Second, a lead--lag field is estimated on that frame, using the
-toolkit of Cucuringu and coauthors~\pending{cite: Hermitian lead--lag
-clustering / SPONGE / dynamic-network CPD references}. Third, the resulting
-columns enter the ridge as a fourth block.
+window. Second, a one-bar lead--lag field is estimated on that frame: a
+matrix stating, for every ordered pair of factors, how much the first
+leads the second at a one-bar delay. Third, that field is applied as a
+linear operator --- no clustering, ranking, or partitioning step --- and
+the resulting columns enter the ridge as a fourth block.
 
 \subsection{Twenty Natural Factors}
 
@@ -117,7 +118,7 @@ split-half replication. Section~\ref{sec:trans-leadlag} tests the implied
 prediction directly in the width experiment: performance depends on covering
 the span, not on the choice of directions inside it.
 
-\subsection{Cucuringu Lead--Lag Features}
+\subsection{One-Bar Lead--Lag Features}
 \label{sec:trans-leadlag}
 
 \paragraph{The lead--lag field.}
@@ -142,8 +143,19 @@ and let
 A \;=\; \frac{C - C^{\top}}{2}
 \]
 be its antisymmetric part: $A_{ij} > 0$ states that factor $i$ leads factor
-$j$ at one bar more than $j$ leads $i$. This matrix is the raw material of
-Hermitian lead--lag clustering~\pending{cite}.
+$j$ at one bar more than $j$ leads $i$. The pairwise lead--lag statement
+is the whole content of the object; no clustering, ranking, or
+partitioning is performed anywhere in this construction --- $A$ (estimated
+causally as $D$ below) enters the feature map directly as a linear
+operator. Methods that summarize such a field into a partition or a global
+ordering (the lead--lag clustering literature; \pending{cite}) were
+applied only as diagnostics, and both fail on it: a signed-clustering
+partition replicates below its permutation null and a global ranking
+replicates at $\tau \approx -0.06$, because a field that is $96.5\%$ curl
+has neither a partition nor a ranking to recover. Lead--lag at one bar is
+therefore the correct description at the level of factor \emph{pairs},
+while the global structure is a circulation --- transmission around
+cycles, not a hierarchy from leaders to laggards.
 
 The field is the most replicable object in the study. Split-half replication
 is the correlation of the vectorized upper triangles of the two half-sample

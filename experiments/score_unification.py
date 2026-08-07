@@ -386,6 +386,7 @@ def _macro_lines(by_arm: dict[str, list[ArmResult]]) -> list[str]:
         _fmt(a0.mz_beta, ".3f") if a0_done and a0.mz_beta is not None else pend(A0),
     )
 
+    a0q = a0.qlike if a0_done else None
     for arm, camel in _REGISTRY:
         if arm == A0:
             continue
@@ -398,6 +399,12 @@ def _macro_lines(by_arm: dict[str, list[ArmResult]]) -> list[str]:
         emit(
             f"unif{camel}DM",
             _fmt(r.dm_t, "+.1f") if done and r.dm_t is not None else pend(arm),
+        )
+        # Delta vs a0 (signed, 5 dec) — wired directly into section tables.
+        delta_ok = done and r.qlike is not None and a0q is not None
+        emit(
+            f"unif{camel}Delta",
+            _fmt(r.qlike - a0q, "+.5f") if delta_ok else pend(arm),
         )
     return lines
 

@@ -77,75 +77,76 @@ exogenous buckets, on the shared panel, against the shared incumbent.
 % reference/sections/marginal_contribution.tex Table tab:buckets.
 \begin{table}[H]
 \centering
-\caption{Bucket attribution: causally tuned ridge on each exogenous bucket.
-\textbf{Panel:} causal-tuning battery, diurnally adjusted, $n = 218{,}934$
-thirty-minute bars, identical rows in every cell; incumbent QLIKE
-\unifAzeroQLIKE{} (per-bar OLS on HAR $+$ calendar).
-\textbf{Estimator:} rolling least squares,
-window $24{,}000$ bars ($500$ trading days), refit every bar by exact rank-one
-updates, ridge penalty re-selected causally. $\Delta$ is against the shared
-incumbent; $\Delta_{\text{own}}$ against the same estimator's own no-exogenous
-baseline ($0.13445$). The joint row stacks all $41$ exogenous series
-($\approx 526$ columns after the moving-average ladder and availability
-indicators).}
+\caption{Bucket attribution: literal per-bar OLS on each exogenous bucket,
+from the unification campaign. \textbf{Panel:} frozen base-2 panel,
+diurnally adjusted, $n = 218{,}934$ thirty-minute bars, identical rows in
+every cell; incumbent QLIKE $0.24050$ (per-bar OLS on HAR $+$ calendar).
+\textbf{Estimator:} exact OLS ($\alpha = 0$), rolling window $24{,}000$ bars
+($500$ trading days), refit every bar by exact rank-one updates. Columns
+participate in a window only when their feed went live before the window
+starts and printed within it; masked columns are disclosed per chunk.
+$\Delta$ is against the incumbent; the within-class increment coincides
+with $\Delta$ because the no-exogenous design is exactly the incumbent
+under literal OLS.}
 \label{tab:buckets}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrr}
 \toprule
-Bucket & QLIKE & $\Delta$ vs.\ incumbent & $\Delta_{\text{own}}$ & DM $t$ \\
+Bucket & QLIKE & $\Delta$ vs.\ incumbent & DM $t$ \\
 \midrule
-all\_features (joint) & \textbf{0.12788} & $-0.00627$ & $-0.00657$ & $-19.9$ \\
+all\_features (joint) & \unifAllFeaturesQLIKE{} & \unifAllFeaturesDelta{} & \unifAllFeaturesDM{} \\
 \midrule
-moments          & 0.13085 & $-0.00331$ & $-0.00360$ & $-19.2$ \\
-liquidity        & 0.13120 & $-0.00295$ & $-0.00325$ & $-13.4$ \\
-implied\_vol     & 0.13252 & $-0.00163$ & $-0.00193$ & $-11.3$ \\
-market\_vw       & 0.13291 & $-0.00125$ & $-0.00154$ & $-9.1$ \\
-market\_ew       & 0.13319 & $-0.00096$ & $-0.00126$ & $-7.2$ \\
-vol\_demand      & 0.13337 & $-0.00078$ & $-0.00108$ & $-4.1$ \\
-sentiment        & 0.13347 & $-0.00068$ & $-0.00098$ & $-5.7$ \\
+moments      & \unifMomentsQLIKE{}    & \unifMomentsDelta{}    & \unifMomentsDM{} \\
+liquidity    & \unifLiquidityQLIKE{}  & \unifLiquidityDelta{}  & \unifLiquidityDM{} \\
+implied\_vol & \unifImpliedVolQLIKE{} & \unifImpliedVolDelta{} & \unifImpliedVolDM{} \\
+vol\_demand  & \unifVolDemandQLIKE{}  & \unifVolDemandDelta{}  & \unifVolDemandDM{} \\
+sentiment    & \unifSentimentQLIKE{}  & \unifSentimentDelta{}  & \unifSentimentDM{} \\
+market\_ew   & \unifMarketEwQLIKE{}   & \unifMarketEwDelta{}   & \unifMarketEwDM{} \\
+market\_vw   & \unifMarketVwQLIKE{}   & \unifMarketVwDelta{}   & \unifMarketVwDM{} \\
 \midrule
-(no exogenous)   & 0.13445 & $+0.00030$ & --- & $+5.0$ \\
+(no exogenous $=$ incumbent) & \unifAzeroQLIKE{} & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Every bucket arm has negative $\Delta$ against the incumbent. Every bucket arm
-rejects equal predictive accuracy with the incumbent; the weakest arm,
-\texttt{vol\_demand}, has $t = -4.1$. The largest single-bucket increment is
-\texttt{moments} ($-0.00331$ against the incumbent); the smallest is
-\texttt{sentiment} ($-0.00068$); the two differ by a factor of five. In an
-earlier revision of the pipeline, three buckets --- \texttt{sentiment},
-\texttt{implied\_vol} and \texttt{vol\_demand} --- produced QLIKE above the
-incumbent. Each case was traced to a scaling defect in the feature
-construction. After each defect was repaired, each of the three buckets
-produced the negative $\Delta$ reported in the table. An earlier, independent
-walk-forward battery at a fixed $\alpha = 1$ penalty --- a different
-configuration on the same panel --- produces the same ranking:
-\texttt{moments} has the lowest QLIKE among single buckets, and the joint set
-has lower QLIKE than every single bucket.
+Five of the eight bucket arms have negative $\Delta$ against the incumbent
+and reject equal predictive accuracy: the joint set ($-0.00375$, $t = -3.0$),
+\texttt{moments} ($-0.00319$, $-4.7$), \texttt{liquidity} ($-0.00268$,
+$-5.6$), \texttt{implied\_vol} ($-0.00166$, $-4.9$), and
+\texttt{vol\_demand} ($-0.00118$, $-3.2$). Three arms have positive
+$\Delta$: \texttt{sentiment} ($+0.00940$, $t = +6.9$) and the two
+cross-sectional market aggregates (\texttt{market\_ew} $+0.03771$,
+\texttt{market\_vw} $+0.08041$), which raise QLIKE substantially under
+exact OLS. \decide{the market-aggregate arms' losses were unchanged across
+all three design-repair rules, so their failure is not a go-live artifact:
+either the cross-sectional aggregates carry a construction defect still to
+be found, or these channels genuinely require shrinkage to be usable ---
+investigate before the section's interpretation is frozen}
 
 \subsection{Overlap: The Sum of the Parts Is Twice the Whole}
 
-The sum of the seven single-bucket within-class increments
-$\Delta_{\text{own}}$ in Table~\ref{tab:buckets} is $-0.01364$. The joint
-arm's within-class increment is $-0.00657$. The overlap ratio is therefore
-$R = 2.08$. The same computation on the causally tuned LightGBM arm gives
-$R = 2.24$. Inference: the buckets carry partially overlapping information,
-and the overlap is present under both estimator classes.
-
-If the increments are instead computed against the shared incumbent, each
-increment includes the difference between the estimator's own no-exogenous
-baseline and the incumbent. Under that computation the LightGBM ratio is
-$3.98$ instead of $2.24$. For the ridge arm the incumbent-relative ratio is
-$1.84$, because the ridge no-exogenous baseline sits $0.00030$ from the
-incumbent. All overlap ratios in this paper are computed within class.
+The overlap computation is restricted to the buckets that improve on the
+incumbent, since a bucket with positive $\Delta$ contributes no information
+to overlap with. The sum of the four helping single-bucket increments in
+Table~\ref{tab:buckets} is $-0.00871$. The joint arm's increment is
+$-0.00375$. The overlap ratio is therefore $R = 2.32$: the helping buckets'
+individual gains sum to more than twice what they deliver jointly, so their
+information overlaps substantially. An earlier battery under a causally
+tuned ridge measured the same ratio at $R = 2.08$ over its seven buckets,
+and the causally tuned LightGBM arm of that battery at $R = 2.24$; the
+overlap is present under every estimator class in which it has been
+computed. \pending{DM/MCS machinery on the campaign's per-bar losses for
+the joint-vs-best-single comparison under literal OLS}
 
 Section \pending{cross-ref to the linear-vs-nonlinear /
 dense-but-weak section} takes this overlap structure as its starting point.
 
 \subsection{The Joint Bucket}
 
-The joint \texttt{all\_features} arm has QLIKE $0.12788$. This is $-0.00297$
-relative to the best single bucket (\texttt{moments}, $0.13085$).
+The joint \texttt{all\_features} arm has QLIKE $0.23675$, the lowest of all
+bucket arms: $-0.00056$ relative to the best single bucket
+(\texttt{moments}, $0.23731$) — despite the joint design carrying the three
+harmful buckets alongside the five helpful ones. Under literal OLS the
+joint fit dilutes rather than amplifies the harmful channels.
 
 An independent every-bar robustness design was run on a different panel:
 rolling $1{,}000$-trading-day window; HAR block exactly unpenalized via
@@ -164,12 +165,8 @@ containing the joint bucket. The per-bar loss series required to compute a
 model confidence set were not retained for the battery, so no set was
 computed, and the claim is not repeated here.
 \pending{battery MCS over the feature sets once per-bar losses are persisted}
-Table~\ref{tab:buckets} supports three statements: every individual bucket
-has lower QLIKE than the incumbent, with $|t| \geq 4.1$; the joint set has
-lower QLIKE than every individual bucket; and the single-bucket increments
-sum to $2.08$ times the joint increment.
-
-\pending{replace every cell of Table~\ref{tab:buckets} with the unification
-campaign's bucket-arm results --- literal per-bucket OLS on the base-2
-backbone, all $\Delta$s against the campaign \texttt{a0} benchmark, one
-panel and one ladder convention throughout}
+Table~\ref{tab:buckets} supports three statements: five of the eight
+buckets, including the joint set, have lower QLIKE than the incumbent with
+$|t| \geq 3.0$; the joint set has lower QLIKE than every individual bucket;
+and the helping buckets' increments sum to $2.32$ times the joint
+increment.
