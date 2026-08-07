@@ -108,17 +108,21 @@ market\_vw   & \unifMarketVwQLIKE{}   & \unifMarketVwDelta{}   & \unifMarketVwDM
 \end{tabular}
 \end{table}
 
-Three single-bucket arms reject equal predictive accuracy with the
-incumbent in the bucket's favor: \texttt{sentiment}
-(\unifSentimentDelta{}, $t = $ \unifSentimentDM{}), \texttt{moments}
-(\unifMomentsDelta{}, \unifMomentsDM{}), and \texttt{market\_vw}
-(\unifMarketVwDelta{}, \unifMarketVwDM{}). Two further arms have negative
-$\Delta$ without significance (\texttt{market\_ew}, \unifMarketEwDM{};
-\texttt{implied\_vol}, \unifImpliedVolDM{}), and \texttt{liquidity} is
-indistinguishable from the incumbent (\unifLiquidityDM{}). One bucket,
-\texttt{vol\_demand}, is significantly worse (\unifVolDemandDM{}), and the
+On the full 1998--2024 panel, one single-bucket arm rejects equal
+predictive accuracy with the incumbent in the bucket's favor: moments
+(\unifMomentsDelta{}, $t = $ \unifMomentsDM{}). Two arms lean the same
+way without significance (market VW, \unifMarketVwDM{}; implied
+volatility, \unifImpliedVolDM{}); three are indistinguishable from the
+incumbent (sentiment, \unifSentimentDM{}; market EW, \unifMarketEwDM{};
+volatility demand, \unifVolDemandDM{}). The liquidity arm is
+significantly worse (\unifLiquidityDelta{}, \unifLiquidityDM{}), and the
 joint arm is the worst in the table (\unifAllFeaturesDelta{},
 \unifAllFeaturesDM{}) --- the dimensionality result discussed below.
+Under literal least squares on twenty-six years, the single-bucket
+information that survives without shrinkage is thin; the same buckets
+inside the shrunk estimators of
+Sections~\ref{sec:dense_weak}--\ref{sec:transmission} drive the paper's
+best forecasts, which is this table's central message.
 
 A disclosure attaches to the market-aggregate rows. In earlier passes of
 this campaign both aggregates appeared catastrophically harmful. The cause

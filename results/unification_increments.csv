@@ -1,0 +1,8 @@
+pair,root,n_common,complete,dqlike,dm_t
+blk3_user-vs-blk2_user,unification_carc,248686,True,-6.410640735e-05,-0.222839
+blk4_user-vs-blk3_user,unification_carc,248686,True,-8.68748201e-05,-1.50383
+blk3_doc-vs-blk2_doc,unification_carc,273554,True,-0.001226372323,-7.05976
+blk4_doc-vs-blk3_doc,unification_carc,273554,True,-1.811096916e-05,-0.393602
+blk3_tuned-vs-blk2_tuned,unification_carc,248686,True,-0.0005489185478,-1.40787
+blk4_tuned-vs-blk3_tuned,unification_carc,248686,True,-0.000112097175,-1.07847
+blk4_trail-vs-blk3_user,unification_carc,248686,True,-0.000309133189,-4.14041

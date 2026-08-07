@@ -104,11 +104,12 @@ penalty choice the other lacks
 (Table~\ref{tab:lasso_vs_ridge}). Ridge
 (\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
 incumbent) beats the lasso (\unifBTwoLassoTunedQLIKE{},
-\unifBTwoLassoTunedDM{}); the elastic net, the interpolating family at the
-battery's mixed-penalty grid, scores \unifBThreeEnetTunedQLIKE{}
-(\unifBThreeEnetTunedDM{}). Keeping every column and shrinking produces a
-lower loss than selecting a subset, when every family chooses its penalty
-by the same causal rule.
+\unifBTwoLassoTunedDM{}), and the elastic net --- the interpolating
+family at the battery's mixed-penalty grid --- lands between the two
+(\unifBThreeEnetTunedQLIKE{}, \unifBThreeEnetTunedDM{}): the loss is
+monotone in how densely the penalty spreads the coefficients. Keeping
+every column and shrinking produces a lower loss than selecting a subset,
+when every family chooses its penalty by the same causal rule.
 
 \begin{table}[H]
 \centering

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  7 AUG 2026 15:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  7 AUG 2026 19:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -461,25 +461,25 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {C:/Users/james/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
-29.
+53.
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 ) [3] [4] [5]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 323.
-) (sections/smearing.tex [6] [7]
-Overfull \hbox (8.56995pt too wide) in paragraph at lines 183--191
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 347.
+) (sections/smearing.tex [6] [7] [8]
+Overfull \hbox (8.56995pt too wide) in paragraph at lines 191--199
 []\T1/cmr/m/it/12 One cal-i-bra-tion per win-dow, es-ti-mated on the pre-vi-ous
  win-dow. \T1/cmr/m/n/12 The three scalars $\OT1/cmr/m/n/12 ([]\OML/cmm/m/it/12
  ; []; []\OT1/cmr/m/n/12 )$
  []
 
-[8] (generated/table_smear_sensitivity.tex) [9]) (sections/buckets.tex [10]
+[9]) (sections/buckets.tex
 
-Package natbib Warning: Citation `HoerlKennard1970' on page 11 undefined on inp
+Package natbib Warning: Citation `HoerlKennard1970' on page 10 undefined on inp
 ut line 22.
 
-[11] [12]) (sections/dense_weak.tex
+[10] [11] [12]) (sections/dense_weak.tex
 
 Package natbib Warning: Citation `Tibshirani1996' on page 13 undefined on input
  line 13.
@@ -499,60 +499,68 @@ Package natbib Warning: Citation `Lou2013' on page 18 undefined on input line 1
 09.
 
 [18] [19] [20]) (sections/transmission.tex [21] [22] [23] [24] [25]
-Overfull \hbox (38.57663pt too wide) detected at line 306
+Overfull \hbox (38.57663pt too wide) detected at line 309
 \OML/cmm/m/it/12 y  \OMS/cmsy/m/n/12 ^^X  [][][] []  []  []  []  []  []  [] []\
 OML/cmm/m/it/12 :
  []
 
-) (sections/conclusion.tex [26]) (main.bbl [27] [28])
+[26]) (sections/conclusion.tex) (sections/appendix.tex [27] [28] (generated/tab
+le_smear_sensitivity.tex)
+Overfull \hbox (58.75095pt too wide) in paragraph at lines 1--90
+ [][] 
+ []
+
+) (main.bbl [29] [30] [31])
 
 Package natbib Warning: There were undefined citations.
 
-[29] (main.aux)
+[32] (main.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
  ***********
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: C4DE3628BE42D20C230C8F0189CA22CE;4899.
+(rerunfilecheck)             Checksum: FB39F5161A78D62E1E97E1F6E9580707;5345.
  ) 
 Here is how much of TeX's memory you used:
- 13252 strings out of 475248
- 209169 string characters out of 5757813
- 1933801 words of memory out of 5000000
- 34410 multiletter control sequences out of 15000+600000
- 575907 words of font info for 80 fonts, out of 8000000 for 9000
+ 13332 strings out of 475248
+ 210846 string characters out of 5757813
+ 1937801 words of memory out of 5000000
+ 34480 multiletter control sequences out of 15000+600000
+ 578144 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,10n,79p,894b,603s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm
-0800.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
-0\ecti1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
-/dpi600\ectt1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknap
-pen/ec/dpi600\tcrm1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour
-/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/
-ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\james\AppData\Local\MiKTeX\fon
-ts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\james\AppData\Local\MiKT
-eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\james\AppData\Loca
-l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\james\AppDat
-a\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\james\
-AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk><C:/Users/j
-ames/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C
-:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi
-12.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
-s/cm/cmmi6.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public
-/amsfonts/cm/cmmi8.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type
-1/public/amsfonts/cm/cmr12.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fo
-nts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/james/AppData/Local/Programs/Mi
-KTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/james/AppData/Local/Prog
-rams/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/james/AppData/L
-ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/james/A
-ppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on main.pdf (29 pages, 436949 bytes).
+ 75i,10n,79p,894b,613s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti
+1095.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
+0\ecrm1095.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
+/dpi600\ecrm0800.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknap
+pen/ec/dpi600\ecti1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour
+/jknappen/ec/dpi600\ectt1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/
+ljfour/jknappen/ec/dpi600\tcrm1200.pk> <C:\Users\james\AppData\Local\MiKTeX\fon
+ts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\james\AppData\Local\MiKT
+eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\james\AppData\Loca
+l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\james\AppDat
+a\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\james\
+AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\
+james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\
+Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk
+><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/c
+mex10.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsf
+onts/cm/cmmi10.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmmi12.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts
+/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/james/AppData/Local/Programs/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/james/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/james/AppData/Loc
+al/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/james/App
+Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/ja
+mes/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/U
+sers/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.
+pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
+m/cmsy8.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/am
+sfonts/symbols/msbm10.pfb>
+Output written on main.pdf (32 pages, 496294 bytes).
 PDF statistics:
- 992 PDF objects out of 1000 (max. 8388607)
- 161 named destinations out of 1000 (max. 500000)
- 217 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1126 PDF objects out of 1200 (max. 8388607)
+ 168 named destinations out of 1000 (max. 500000)
+ 233 words of extra memory for PDF output out of 10000 (max. 10000000)
 

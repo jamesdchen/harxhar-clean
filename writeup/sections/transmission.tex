@@ -352,7 +352,14 @@ $\Delta\mathrm{QLIKE} = $ \unifIncrBlkFourUserDQ{} at DM
 \unifIncrBlkFourDocDQ{} at \unifIncrBlkFourDocDM{} under the documented
 one, and \unifIncrBlkFourTunedDQ{} at \unifIncrBlkFourTunedDM{} under
 causal per-block tuning, where the tuner is free to place the transmission
-penalty anywhere in its grid. These three statistics are the section's
+penalty anywhere in its grid. A fourth variant replaces the frozen-window
+standardization of the factor scores with trailing standardization over
+the same window $D$ uses, and passes the resulting columns through the
+standard rolling scaler --- supplying causally the scale stability that
+the non-causal full-sample standardization of the original study provided
+illegitimately. Its increment over the three-block ridge is
+$\Delta\mathrm{QLIKE} = $ \unifIncrBlkFourTrailDQ{} at DM
+\unifIncrBlkFourTrailDM{}. These four statistics are the section's
 verdict on the block.
 
 The transmission block is the only block in the model that uses information
