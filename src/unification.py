@@ -137,19 +137,18 @@ DOC_WINDOW_BARS = 250 * PERIODS_PER_DAY  # 12000 — the documented convention's
 #   NOTE the panel PRESCALE window stays the frozen prep's 24000 bars for doc arms too:
 #   prep is frozen campaign-wide; the doc convention's 250 days applies to the FIT window.
 
-# OLS arms run at literal alpha=0 (RollingLeastSquares rank-1 is EXACT OLS at zero
-# penalty — the audited incumbent estimator). Bucket designs can contain
-# exactly-duplicate availability-indicator columns and panel-constant columns
-# (indicator of an always-available source ≡ the intercept): both are dropped
-# DETERMINISTICALLY before the walk — bitwise equality over the FULL panel,
-# first column in canonical order wins, drops recorded in the output metadata —
-# so every chunk of an arm sees the identical design. Remaining WINDOW-level
-# degeneracies (availability steps constant within a training window) are
-# handled by the window-level identifiability mask in _walk_ols (ruling
-# 2026-08-06; the repo's lam2=0 mask precedent): zero-dispersion-in-window
-# columns get coefficient 0 and re-enter when the feed varies, masking
-# disclosed per chunk. No shrinkage fallback anywhere: a gram still singular
-# AFTER dedup + masking fails loudly.
+# OLS-family estimator (author directive 2026-08-07): MINIMUM-NORM least
+# squares — the unique least-squares solution of minimal l2 norm, the
+# alpha->0+ limit of ridge, defined at any design rank (see _walk_ols;
+# eigh-based pinv of the centered gram at numpy.linalg.pinv's default rcond).
+# Rank deficiency is handled natively, so the former loud-fail guard stack
+# (QR entry drops, atomic ladder drops, sticky repair, per-bar verification)
+# is retired from this path; KEPT: the deterministic panel-level bitwise
+# dedup below (cheap hygiene — duplicate columns and panel-constants dropped,
+# first in canonical order wins, recorded in the output metadata), the
+# go-live/feed-dead participation masks (prep semantics), and the fit/raw
+# alignment gate. a0's full-rank backbone makes min-norm == plain OLS there;
+# it rides the same path for uniformity.
 
 # Block-ridge alpha ladders. USER = the stated convention @ 24k window; DOC = the
 # documented §22 convention @ 250d window (backbone 1 / exog 3e3 / products 3e4,
@@ -751,7 +750,13 @@ def _dedup_ols_design(
 def _eliminate_exact_collinear(
     F: np.ndarray, col_names: list[str], window: int, lo: int
 ) -> tuple[np.ndarray, list[str], list[str], dict[str, list[int]]]:
-    """Deterministic exact-collinearity elimination for OLS designs (ruling
+    """RETAINED-UNUSED (2026-08-07): the OLS family moved to minimum-norm least
+    squares (see _walk_ols), which handles rank deficiency natively, so this
+    guard is no longer wired into any arm. It stays implemented — the guard
+    stack remains in force for any future arm using a plain normal-equations
+    solve, and the c080 ladder analysis below documents a real failure class.
+
+    Deterministic exact-collinearity elimination for OLS designs (ruling
     2026-08-06, cluster loud-fails): drop columns that are EXACT linear
     combinations of retained earlier columns — accounting identities like
     total turnover = buy-initiated + sell-initiated, replicated by the MA
@@ -880,6 +885,12 @@ def _support_masks(
     return pre, dead
 
 
+# numpy.linalg.pinv's default rcond — the standard machine-precision cutoff
+# convention (eigenvalues below PINV_RCOND * lambda_max are treated as zero).
+# Cited, not invented: this is the documented numpy default, no new threshold.
+PINV_RCOND = 1e-15
+
+
 def _walk_ols(
     F: np.ndarray,
     y: np.ndarray,
@@ -889,132 +900,74 @@ def _walk_ols(
     col_names: list[str],
     support_masks: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> tuple[np.ndarray, dict[str, dict[str, Any]]]:
-    """Exact OLS (alpha=0) per-bar walk-forward with WINDOW-LEVEL identifiability
-    masking (ruling 2026-08-06; the repo's own lam2=0 identifiability-mask
-    precedent, specs/causal_tune_linear.py, applied to the OLS path).
+    """MINIMUM-NORM least-squares per-bar walk-forward (estimator change,
+    author directive 2026-08-07: §4's story needs min-norm OLS).
 
-    Per training window, columns with ZERO dispersion in that window (an
-    availability step that has not yet gone live, or has exited the window) are
-    masked: coefficient 0, excluded from the solve, re-entering the moment the
-    feed varies inside the window. ``support_masks`` layers the go-live /
-    feed-dead participation rule on top (see :func:`_support_masks` — the
-    go-live blowup fix, corrected form). Threshold-free and exact — a column is
-    masked iff its last value-change index precedes the window start, computed
-    from the RAW slice, never from drift-prone rolled statistics. Exact OLS on
-    the surviving columns (the unpenalized intercept absorbs in-window
-    constants). No shrinkage anywhere; a gram still singular AFTER masking
-    fails loudly. Returns (yhat, mask report: name -> {bars, first, last}
-    with global row indices).
+    ESTIMATOR: at each bar, coefficients are the unique least-squares solution
+    of minimal l2 norm on the centered training window — the alpha->0+ limit
+    of ridge, defined at ANY design rank: coef = pinv(gram) @ rhs via
+    eigendecomposition of the (symmetric PSD) centered gram, with eigenvalues
+    below ``PINV_RCOND * lambda_max`` treated as zero (numpy.linalg.pinv's
+    default rcond convention; for a symmetric PSD matrix eigh-based pinv is
+    the SVD-based pinv). The unpenalized intercept rides via centering; a
+    column with zero in-window dispersion centers to an exact null direction
+    and receives coefficient 0 natively.
+
+    IMPLEMENTATION CHOICE (simplest exact approach): one eigendecomposition
+    per bar, recomputed from the rank-1-rolled sufficient statistics — no
+    incremental eigen-update machinery, nothing approximate. COST: O(p^3)
+    eigh per bar; ~1 s/bar at p~650 (all_features bucket), ~2-3 s/bar at the
+    ~1,151-col worst case -> roughly 1-2.5 h per 2,763-bar v3 chunk for the
+    widest arms (inside the 6 h spec); a0's ~50-col design is negligible.
+
+    GUARD STACK (simplified per the same directive): pinv handles rank
+    deficiency natively, so the exact-collinearity QR entry drops, atomic
+    ladder drops, sticky lazy repair, and per-bar solve verification are
+    REDUNDANT here and removed from this path — there is nothing left to
+    loud-fail numerically. KEPT: panel-level bitwise dedup (cheap hygiene),
+    the go-live/feed-dead participation masks (prep semantics, not numerics),
+    and the fit/raw alignment gate (orthogonal concern). The retired guards
+    remain implemented in :func:`_eliminate_exact_collinear` for any future
+    arm using a plain normal-equations solve (none currently).
+
+    NOTE: a0's backbone design is full-rank, so min-norm == plain OLS there;
+    it is routed through this same path for uniformity.
+
+    Returns (yhat, mask report: name -> {bars, first, last, reasons} with
+    global row indices; reasons are pre_go_live / feed_dead only).
     """
     Xs = np.ascontiguousarray(F[lo - window : hi])
     ys = np.ascontiguousarray(y[lo - window : hi])
-    ns, p = Xs.shape
-    # last-change index per (row, col): largest r' <= r with Xs[r'] != Xs[r'-1]
-    # (0 if the column never changed up to r). Column j is constant over window
-    # rows [w0, t) iff lastchg[t-1, j] <= w0.
-    lastchg = np.zeros((ns, p), dtype=np.int32)
-    lastchg[1:] = np.where(
-        Xs[1:] != Xs[:-1], np.arange(1, ns, dtype=np.int32)[:, None], 0
-    )
-    np.maximum.accumulate(lastchg, axis=0, out=lastchg)
-
-    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    p = Xs.shape[1]
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)  # stats carrier
     solver.init_window(Xs[:window], ys[:window])
     out = np.empty(hi - lo, dtype=np.float64)
     mask_rows = np.zeros((hi - lo, p), dtype=bool)
-    # Sticky window-collinearity mask, populated LAZILY: only when a solve fails
-    # is the CURRENT window rank-diagnosed (one QR), and any column found exactly
-    # dependent there stays masked for the rest of the chunk. Lazy because the
-    # chunk-first-window QR in _eliminate_exact_collinear already proved the
-    # design full-rank at entry; a later failure means the degeneracy formed
-    # mid-chunk (or on this machine's float path — the repo's documented CARC
-    # precedent), so it must be diagnosed at the failing window itself.
-    forced = np.zeros(p, dtype=bool)
-    n = float(window)
-
-    def _window_rank_repair(i: int, t: int, free: np.ndarray) -> int:
-        """Rank-diagnose the CURRENT window (raw rows, not rolled stats) and
-        extend the sticky mask with exactly-dependent columns. Criterion: the
-        normal-equations rank tolerance — solving via the gram SQUARES the
-        design's conditioning (Golub & Van Loan), so a column is numerically
-        dependent for the gram path iff its QR residual ratio is below
-        sqrt(max(n_rows, n_cols) * eps_float64) (~7e-6 at n=24000). Machine-
-        epsilon-derived, not tuned. Returns the number of newly masked cols."""
-        Xw = Xs[i:t][:, free]
-        Xc = Xw - Xw.mean(0)
-        norms = np.linalg.norm(Xc, axis=0)
-        diag = np.abs(np.diag(np.linalg.qr(Xc, mode="r")))
-        ne_tol = np.sqrt(max(Xc.shape) * np.finfo(np.float64).eps)
-        bad = (norms > 0) & (diag <= ne_tol * norms)
-        forced[np.flatnonzero(free)[bad]] = True
-        return int(bad.sum())
-
-    any_zero = np.zeros(p, dtype=bool)
     any_pre = np.zeros(p, dtype=bool)
     any_dead = np.zeros(p, dtype=bool)
-    # Normal-equations verification tolerance — the SAME machine-derived formula
-    # as _window_rank_repair (sqrt(max(n_rows, n_cols) * eps): the gram squares
-    # the design's conditioning). Not tuned.
-    ne_tol = np.sqrt(max(window, p) * np.finfo(np.float64).eps)
+    n = float(window)
     for i in range(hi - lo):
         t = window + i
-        # zero dispersion within window rows [i, t), plus the go-live/feed-dead
-        # participation rule; the sticky repair mask joins below (it can grow
-        # inside this bar's repair loop)
-        zero = lastchg[t - 1] <= i
-        base = zero.copy()
+        mask = np.zeros(p, dtype=bool)
         if support_masks is not None:
             pre_i, dead_i = support_masks[0][i], support_masks[1][i]
-            base |= pre_i | dead_i
+            mask = pre_i | dead_i
             any_pre |= pre_i
             any_dead |= dead_i
-        any_zero |= zero
+        mask_rows[i] = mask
+        free = ~mask
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
-        while True:  # solve -> verify -> (repair, retry); bounded: forced only grows
-            mask = base | forced
-            free = ~mask
-            coef = np.zeros(p)
-            if not free.any():
-                break
+        coef = np.zeros(p)
+        if free.any():
             sub = gram[np.ix_(free, free)]
-            r = rhs[free]
-            failure = ""
-            try:
-                cf = np.linalg.solve(sub, r)
-                # VERIFY the solution against the normal equations (one O(p^2)
-                # matvec per bar — the cost of closing the near-singular
-                # approach path, not just its exact-singularity endpoint where
-                # LU raises). SCALE CHOICE: the residual is compared to
-                # ||rhs||_inf, NOT to ||gram||*||coef|| — LU is backward-stable,
-                # so the latter ratio stays ~eps even when the FORWARD error has
-                # contaminated every coefficient; relative to the right-hand
-                # side's own scale, a contaminated solve (residual ~
-                # eps*||gram||*||coef|| with ||coef|| exploded by cond*eps)
-                # stands out exactly when cond exceeds 1/ne_tol. Same
-                # machine-derived tolerance as the rank repair; no new
-                # thresholds.
-                scale = float(np.max(np.abs(r)))
-                if not np.all(np.isfinite(cf)):
-                    failure = "non-finite coefficients"
-                elif scale > 0.0 and (
-                    float(np.max(np.abs(sub @ cf - r))) > ne_tol * scale
-                ):
-                    failure = "normal-equations residual check failed"
-                else:
-                    coef[free] = cf
-                    break
-            except np.linalg.LinAlgError:
-                failure = "singular gram"
-            if _window_rank_repair(i, t, free) == 0:
-                raise RuntimeError(
-                    f"OLS solve at global row {lo + i}: {failure}, and the "
-                    "window rank diagnosis finds NO near-collinear column to "
-                    "mask — a pure float-path artifact or a panel-build "
-                    "divergence; no shrinkage fallback by design. Compare the "
-                    "panel builds before rerunning."
-                )
-        mask_rows[i] = mask
+            lam, V = np.linalg.eigh(sub)
+            lam_max = float(lam[-1])
+            if lam_max > 0.0:
+                keep = lam > PINV_RCOND * lam_max  # also discards FP-negative modes
+                if keep.any():
+                    Vk = V[:, keep]
+                    coef[free] = Vk @ ((Vk.T @ rhs[free]) / lam[keep])
         intercept = solver._sy / n - float(solver._sx @ coef) / n
         out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
@@ -1023,14 +976,10 @@ def _walk_ols(
     for j in np.flatnonzero(mask_rows.any(axis=0)):
         bars = np.flatnonzero(mask_rows[:, j])
         reasons = []
-        if any_zero[j]:
-            reasons.append("zero_dispersion")
         if any_pre[j]:
             reasons.append("pre_go_live")
         if any_dead[j]:
             reasons.append("feed_dead")
-        if forced[j]:
-            reasons.append("sticky_collinear")
         masked[col_names[j]] = {
             "bars": int(len(bars)),
             "first": int(lo + bars[0]),
@@ -1267,7 +1216,8 @@ class ArmSpec:
 
 def _bucket_arm(bucket: str) -> ArmSpec:
     return ArmSpec(
-        describe=f"OLS: HAR backbone + '{bucket}' bucket (literal alpha=0)",
+        describe=f"min-norm LS: HAR backbone + '{bucket}' bucket "
+        "(pinv; the alpha->0+ ridge limit)",
         kind="ols",
         blocks=[("backbone", ""), (f"bucket:{bucket}", "")],
     )
@@ -1296,8 +1246,10 @@ _BUCKETS = [b for b in SUBGROUPS if b != "baseline"]
 
 ARMS: dict[str, ArmSpec] = {
     "a0_ols_har": ArmSpec(
-        describe="OLS on the base-2 HAR ladder of the target (backbone: HAR + "
-        "session-edge interactions + calendar). THE reference arm. "
+        describe="min-norm LS on the base-2 HAR ladder of the target (backbone: "
+        "HAR + session-edge interactions + calendar; full-rank, so "
+        "identical to plain OLS — routed through the min-norm path for "
+        "uniformity). THE reference arm. "
         "Alias: a10_noexog — collapse VERIFIED computationally "
         "2026-08-06, not assumed: on the real 242,934-row panel the "
         "empty-bucket joint design == the plain backbone design "
@@ -1721,10 +1673,11 @@ def compute(args: argparse.Namespace) -> None:
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
     if spec.kind == "ols":
+        # Min-norm path (2026-08-07): panel bitwise dedup stays (hygiene); the
+        # QR entry drops / atomic ladder drops / sticky repair are retired —
+        # pinv handles rank deficiency natively (collinear/ladder meta keys
+        # stay in the schema, permanently empty for min-norm runs).
         F, kept_names, dropped_cols = _ols_design(p, spec)
-        F, kept_names, collinear_cols, ladder_drops = _eliminate_exact_collinear(
-            F, kept_names, window, lo
-        )
         support = _support_masks(p, kept_names, window, lo, hi)
         yhat, masked_cols = _walk_ols(
             F, p.y, window, lo, hi, kept_names, support_masks=support
