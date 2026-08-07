@@ -136,6 +136,10 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         # same first legal OOS row 48000
         "d3_transmission_alone_trail",
         "blk4_trail",
+        # ablation triple (same legality)
+        "blk4_trailG",
+        "blk4_trailGhat",
+        "blk4_trail_tuned",
     )
 }
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
@@ -197,6 +201,10 @@ _REGISTRY: list[tuple[str, str]] = [
     # Transmission-revival: trailing-standardized transmission (causal
     # replacement for the full-sample-standardization look-ahead).
     ("blk4_trail", "BlkFourTrail"),
+    # Ablation triple: factor levels only / lead-lag flow only / tuned contender.
+    ("blk4_trailG", "BlkFourTrailG"),
+    ("blk4_trailGhat", "BlkFourTrailGhat"),
+    ("blk4_trail_tuned", "BlkFourTrailTuned"),
     ("c4_product_alone_user", "ProductAloneUser"),
     ("c4_product_alone_doc", "ProductAloneDoc"),
     ("c4_product_alone_tuned", "ProductAloneTuned"),
@@ -239,6 +247,9 @@ _ARM_TEX: dict[str, str] = {
     "blk3_tuned": "Three-block ridge (per-block causal tuning)",
     "blk4_tuned": "Four-block ridge (per-block causal tuning)",
     "blk4_trail": "Four-block ridge (trailing-standardized transmission)",
+    "blk4_trailG": "Four-block ridge (trailing, factor levels only)",
+    "blk4_trailGhat": "Four-block ridge (trailing, lead-lag flow only)",
+    "blk4_trail_tuned": "Four-block ridge (trailing transmission, per-block causal tuning)",
     "c4_product_alone_user": "HAR + product block only (stated)",
     "c4_product_alone_doc": "HAR + product block only (documented)",
     "c4_product_alone_tuned": "HAR + product block only (tuned)",
@@ -261,6 +272,9 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
     ("blk3_tuned", 24000, "tuned (per-block causal)"),
     ("blk4_tuned", 24000, "tuned (per-block causal)"),
     ("blk4_trail", 24000, "1/100/1000/1000 (trailing-std transmission)"),
+    ("blk4_trailG", 24000, "1/100/1000/1000 (trailing, G only)"),
+    ("blk4_trailGhat", 24000, "1/100/1000/1000 (trailing, Ghat only)"),
+    ("blk4_trail_tuned", 24000, "tuned (per-block causal; trailing transmission)"),
     ("c4_product_alone_user", 24000, "1/1000"),
     ("c4_product_alone_doc", 12000, "1/3e4"),
     ("c4_product_alone_tuned", 24000, "tuned (per-block causal)"),
@@ -283,6 +297,12 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # the revival's verdict statistic: trailing-transmission increment over the
     # same untouched 3-block lower rung -> \unifIncrBlkFourTrail{DM,DQ}
     ("blk4_trail", "blk3_user"),
+    # ablation triple verdicts: each component's increment over its matching
+    # lower rung -> \unifIncrBlkFourTrailG{DM,DQ}, \unifIncrBlkFourTrailGhat
+    # {DM,DQ}, \unifIncrBlkFourTrailTuned{DM,DQ}
+    ("blk4_trailG", "blk3_user"),
+    ("blk4_trailGhat", "blk3_user"),
+    ("blk4_trail_tuned", "blk3_tuned"),
 ]
 
 

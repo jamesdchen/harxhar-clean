@@ -500,11 +500,13 @@ def _frozen_products(p: _Panel, window: int) -> np.ndarray:
 
 
 def _transmission_block(
-    p: _Panel, window: int, include_scores: bool, standardization: str = "frozen"
+    p: _Panel, window: int, parts: str, standardization: str = "frozen"
 ) -> np.ndarray:
-    """(n, 2*TRANS_QPOOL) = [factor scores G | lead-lag Ghat] when
-    ``include_scores`` (the _user convention), else (n, TRANS_QPOOL) = Ghat only
-    (the _doc convention — the documented construction verbatim).
+    """Transmission block; ``parts`` selects the composition (ablation triple,
+    author directive 2026-08-07): "both" = [factor scores G | lead-lag Ghat]
+    (2*TRANS_QPOOL cols, the _user convention), "scores" = G only (well-scaled
+    factor levels), "flow" = Ghat only (the lead-lag flow mechanism; also the
+    _doc convention's documented construction).
 
     Frame: eigenvectors of the correlation of the product-base columns over rows
     [window, 2*window), FROZEN in BOTH modes (span-stable per the
@@ -594,13 +596,21 @@ def _transmission_block(
 
         G = _scale_from_activation(G)
         Ghat = _scale_from_activation(Ghat)
-        return np.hstack([G, Ghat]) if include_scores else Ghat
+        if parts == "scores":
+            return G
+        if parts == "flow":
+            return Ghat
+        return np.hstack([G, Ghat])
     Ghat = _causal_floored_scale(Ghat, window)
     Ghat[~np.isfinite(Ghat)] = 0.0
     # Composition per the 2026-08-06 ruling: _doc arms mirror the documented
     # construction EXACTLY — Ghat only, the study's design (trans_exploit.py:64-66);
     # _user arms carry [G | Ghat] (40 cols), the paper's own design.
-    return np.hstack([G, Ghat]) if include_scores else Ghat
+    if parts == "scores":
+        return G
+    if parts == "flow":
+        return Ghat
+    return np.hstack([G, Ghat])
 
 
 # ── walk-forward drivers (per-bar refit; chunk seam) ──────────────────────────
@@ -1450,6 +1460,46 @@ ARMS: dict[str, ArmSpec] = {
         "revival 4-block ridge: 1/100/1000/1000 with TRAILING-standardized "
         "transmission",
     ),
+    # Ablation triple (author directive 2026-08-07): decompose and maximize the
+    # revived transmission block. G-only isolates well-scaled factor LEVELS,
+    # Ghat-only isolates the lead-lag FLOW mechanism, and the tuned variant is
+    # the best-model contender (per-block causal grids, transmission {1e2,1e3,1e4}).
+    "blk4_trailG": _blk(
+        [
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG", "trans"),
+        ],
+        USER_ALPHAS,
+        None,
+        "ablation 4-block ridge: trailing transmission, factor scores G ONLY "
+        "(20 cols), 1/100/1000/1000",
+    ),
+    "blk4_trailGhat": _blk(
+        [
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailGhat", "trans"),
+        ],
+        USER_ALPHAS,
+        None,
+        "ablation 4-block ridge: trailing transmission, lead-lag flow Ghat "
+        "ONLY (20 cols), 1/100/1000/1000",
+    ),
+    "blk4_trail_tuned": ArmSpec(
+        describe="best-model contender: [G|Ghat] trailing transmission with "
+        "PER-BLOCK CAUSAL TUNING (BLOCK_TUNE_GRIDS, 81 combos per retune)",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trail", "trans"),
+        ],
+        oos_mult=2,
+    ),
     # Causally-TUNED block ladder (author directive 2026-08-06): _user block
     # structures, per-block alphas re-selected jointly every TUNE_PER=250
     # solves over BLOCK_TUNE_GRIDS (see _walk_blocks_tuned; selection
@@ -1517,13 +1567,17 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "product":
         return _frozen_products(p, window)
     if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
-        return _transmission_block(p, window, include_scores=True)
+        return _transmission_block(p, window, parts="both")
     if block == "trans_doc":  # Ghat only — the documented construction verbatim
-        return _transmission_block(p, window, include_scores=False)
+        return _transmission_block(p, window, parts="flow")
     if block == "trans_trail":  # [G | Ghat], TRAILING standardization (revival)
+        return _transmission_block(p, window, parts="both", standardization="trailing")
+    if block == "trans_trailG":  # ablation: trailing factor LEVELS only
         return _transmission_block(
-            p, window, include_scores=True, standardization="trailing"
+            p, window, parts="scores", standardization="trailing"
         )
+    if block == "trans_trailGhat":  # ablation: trailing lead-lag FLOW only
+        return _transmission_block(p, window, parts="flow", standardization="trailing")
     raise KeyError(f"unknown block '{block}'")
 
 
