@@ -362,3 +362,18 @@ Where several arms are compared simultaneously, we report the Model
 Confidence Set of \citet{HansenLundeNason2011}. Every arm is scored on the
 identical row index, so all of these tests are paired bar-for-bar
 comparisons.
+
+\paragraph{Hyperparameter discipline.} No quantity anywhere in this paper
+is selected using evaluation loss. Every hyperparameter that is tuned is
+tuned \emph{causally}: the penalty (or penalty vector) is re-selected
+periodically from a grid fixed in advance, by minimizing validation error
+on a forward split of the current training window --- fit block, embargo,
+validation tail --- so that no forecast's configuration uses information
+from that forecast's future. Every hyperparameter that is not tuned is a
+fixed constant, set before the campaign was scored and reported with its
+arm: the fixed-penalty arms exist precisely as controls for what tuning
+contributes, and the structural constants of the design (training-window
+length, re-selection cadence, winsorization quantiles, block widths,
+estimation-window lengths) are conventions of the panel and estimator
+construction, disclosed where they are defined and never optimized against
+any loss.
