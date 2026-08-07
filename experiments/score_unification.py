@@ -105,6 +105,13 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_user",
         "c4_product_alone_user",
         "d3_transmission_alone_user",
+        # tuned twins run the same 24000-bar window; if their harvest covers
+        # only rows 48000+ the same legality rule applies (complete at 89),
+        # and a full 100-chunk harvest is simply never "missing" these.
+        "blk3_tuned",
+        "blk4_tuned",
+        "c4_product_alone_tuned",
+        "d3_transmission_alone_tuned",
     )
 }
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
@@ -149,10 +156,16 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk2_doc", "BlkTwoDoc"),
     ("blk3_doc", "BlkThreeDoc"),
     ("blk4_doc", "BlkFourDoc"),
+    # Causally-tuned block-ladder arms (per-block causal penalty selection).
+    ("blk2_tuned", "BlkTwoTuned"),
+    ("blk3_tuned", "BlkThreeTuned"),
+    ("blk4_tuned", "BlkFourTuned"),
     ("c4_product_alone_user", "ProductAloneUser"),
     ("c4_product_alone_doc", "ProductAloneDoc"),
+    ("c4_product_alone_tuned", "ProductAloneTuned"),
     ("d3_transmission_alone_user", "TransAloneUser"),
     ("d3_transmission_alone_doc", "TransAloneDoc"),
+    ("d3_transmission_alone_tuned", "TransAloneTuned"),
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
@@ -166,10 +179,15 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
     ("blk2_doc", 12000, "1/3e3"),
     ("blk3_doc", 12000, "1/3e3/3e4"),
     ("blk4_doc", 12000, "1/3e3/3e4/3e3"),
+    ("blk2_tuned", 24000, "tuned (per-block causal)"),
+    ("blk3_tuned", 24000, "tuned (per-block causal)"),
+    ("blk4_tuned", 24000, "tuned (per-block causal)"),
     ("c4_product_alone_user", 24000, "1/1000"),
     ("c4_product_alone_doc", 12000, "1/3e4"),
+    ("c4_product_alone_tuned", 24000, "tuned (per-block causal)"),
     ("d3_transmission_alone_user", 24000, "1/1000"),
     ("d3_transmission_alone_doc", 12000, "1/3e3"),
+    ("d3_transmission_alone_tuned", 24000, "tuned (per-block causal)"),
 ]
 
 
@@ -666,8 +684,8 @@ def _blocks_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
             rf"\texttt{{{alphas}}} & {q} & {t} \\"
         )
 
-    ladder = _BLOCKS_TABLE[:6]
-    diags = _BLOCKS_TABLE[6:]
+    ladder = _BLOCKS_TABLE[:9]
+    diags = _BLOCKS_TABLE[9:]
     return [
         r"\toprule",
         r"Arm & Window (bars) & $\alpha$ per block & QLIKE & DM $t$ vs.\ \texttt{a0} \\",

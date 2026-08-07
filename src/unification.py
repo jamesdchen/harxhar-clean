@@ -96,6 +96,7 @@ duplicate arm.
 
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import re
@@ -211,6 +212,21 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     "ridge_tuned": [("ridge", float(a), 0.0) for a in np.logspace(-2, 3, 6)],
     # lasso alphas: logspace(-6, -2, 5) = 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 (l1=1.0)
     "lasso_tuned": [("lasso", float(a), 1.0) for a in np.logspace(-6, -2, 5)],
+}
+
+# Per-block alpha grids for the causally-tuned BLOCK arms (author directive
+# 2026-08-06: the block ridges get the same fairness standard as the tuned
+# head-to-head). RATIONALE: 3 log-spaced points per block, centered so each
+# grid SPANS BOTH prior conventions — backbone: both ladders used 1 (grid
+# brackets it); linear exog: user 100 vs doc 3e3 (grid 1e2..1e4 contains
+# both); product: user 1e3 vs doc 3e4 (grid 1e3..1e5); transmission: user
+# 1e3 vs doc 3e3 (grid 1e2..1e4 contains both). Selection is JOINT (full
+# cartesian product per retune) so cross-block penalty trade-offs are seen.
+BLOCK_TUNE_GRIDS: dict[str, tuple[float, ...]] = {
+    "backbone": (0.1, 1.0, 10.0),
+    "exog": (1e2, 1e3, 1e4),
+    "product": (1e3, 1e4, 1e5),
+    "trans": (1e2, 1e3, 1e4),
 }
 
 _DEGENERATE_SD = 1e-8  # "no dispersion in window" guard (frame/live cols)
@@ -515,6 +531,88 @@ def _walk_ridge(
     return walk_forward(
         F[lo - window : hi], y[lo - window : hi], window, alpha=alpha, refit_every=1
     )
+
+
+def _walk_blocks_tuned(
+    F: np.ndarray,
+    segments: list[tuple[int, int, str]],
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    """Per-bar-refit block ridge with CAUSALLY re-selected per-block alphas.
+
+    Every TUNE_PER=250 solves, the current training window is split forward
+    (forward_window_split: fit block, EMBARGO=25 gap, VAL_TAIL=125 tail) and the
+    per-block alpha vector minimizing validation MSE is selected JOINTLY over
+    the cartesian product of BLOCK_TUNE_GRIDS. Each combo is one diag-penalty
+    solve off the SHARED fit-window gram — the column-scaling identity in gram
+    space (scaling block j by sqrt(a_ref/a_j) under global ridge a_ref has gram
+    D·G·D + a_ref·I, identically (G + diag(pen)) after undoing D; minimal_model
+    .py:297-299) — so no design rebuild per combo.
+
+    PER-BOUNDARY COST: one centered fit-gram build O(W_fit·p^2) plus
+    n_combos × O(p^3) solves (blk2/c4/d3-class: 9 combos; blk3: 27; blk4: 81 —
+    at p≈1200 roughly 1–3 min single-thread per boundary, amortized over 250
+    bars). Between retunes the selected alpha vector is FIXED and the existing
+    per-bar exact path runs unchanged: rank-1 sufficient-statistic rolls
+    (RollingLeastSquares) + one diag-penalty solve per bar (same O(p^3) as the
+    scalar-ridge path; intercept unpenalized via centering).
+
+    Returns (yhat, trajectory) — trajectory is the paper-relevant selection
+    record: [{row: global retune row, alphas: {block_key: alpha}}, ...].
+    """
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    p_ = Xs.shape[1]
+    keys = [k for _, _, k in segments]
+    grids = [BLOCK_TUNE_GRIDS[k] for k in keys]
+
+    def pen_vec(alphas: dict[str, float]) -> np.ndarray:
+        pen = np.empty(p_)
+        for s0, s1, k in segments:
+            pen[s0:s1] = alphas[k]
+        return pen
+
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)  # stats carrier
+    solver.init_window(Xs[:window], ys[:window])
+    out = np.empty(hi - lo, dtype=np.float64)
+    traj: list[dict[str, Any]] = []
+    pen: np.ndarray | None = None
+    n = float(window)
+    for i in range(hi - lo):
+        t = window + i
+        if i % TUNE_PER == 0:
+            Xw, yw = Xs[i:t], ys[i:t]
+            fl, fh, vl, vh = forward_window_split(window, window, VAL_TAIL, EMBARGO)
+            Xf, yf = Xw[fl:fh], yw[fl:fh]
+            Xv, yv = Xw[vl:vh], yw[vl:vh]
+            muf, myf = Xf.mean(0), float(yf.mean())
+            Xfc = Xf - muf
+            Gf = Xfc.T @ Xfc  # shared fit gram — built ONCE per boundary
+            cf = Xfc.T @ (yf - myf)
+            Xvc = Xv - muf
+            best: tuple[float, dict[str, float], np.ndarray] | None = None
+            for combo in itertools.product(*grids):
+                alphas = dict(zip(keys, (float(a) for a in combo)))
+                pv = pen_vec(alphas)
+                G = Gf.copy()
+                G[np.diag_indices_from(G)] += pv
+                b = np.linalg.solve(G, cf)
+                mse = float(np.mean((Xvc @ b + myf - yv) ** 2))
+                if best is None or mse < best[0]:
+                    best = (mse, alphas, pv)
+            _, sel, pen = best
+            traj.append({"row": int(lo + i), "alphas": sel})
+        gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
+        rhs = solver._Sxy - solver._sx * (solver._sy / n)
+        gram[np.diag_indices_from(gram)] += pen  # gram is a fresh array per bar
+        coef = np.linalg.solve(gram, rhs)
+        intercept = solver._sy / n - float(solver._sx @ coef) / n
+        out[i] = float(Xs[t] @ coef + intercept)
+        solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out, traj
 
 
 def _dedup_ols_design(
@@ -1194,6 +1292,57 @@ ARMS: dict[str, ArmSpec] = {
         DOC_WINDOW_BARS,
         "diagnostic: backbone@1 + transmission Ghat-only@3e3, 250-day window",
     ),
+    # Causally-TUNED block ladder (author directive 2026-08-06): _user block
+    # structures, per-block alphas re-selected jointly every TUNE_PER=250
+    # solves over BLOCK_TUNE_GRIDS (see _walk_blocks_tuned; selection
+    # trajectory persisted in meta.tuned_alphas).
+    **{
+        name: ArmSpec(
+            describe=desc,
+            kind="blocks_tuned",
+            blocks=blocks,
+            oos_mult=2
+            if any(b == "product" or b.startswith("trans") for b, _ in blocks)
+            else 1,
+        )
+        for name, blocks, desc in (
+            (
+                "blk2_tuned",
+                [("backbone", "backbone"), ("exog_all", "exog")],
+                "tuned 2-block ridge: joint 3x3 alpha grid per retune",
+            ),
+            (
+                "blk3_tuned",
+                [
+                    ("backbone", "backbone"),
+                    ("exog_all", "exog"),
+                    ("product", "product"),
+                ],
+                "tuned 3-block ridge: joint 27-combo alpha grid per retune",
+            ),
+            (
+                "blk4_tuned",
+                [
+                    ("backbone", "backbone"),
+                    ("exog_all", "exog"),
+                    ("product", "product"),
+                    ("trans_user", "trans"),
+                ],
+                "tuned 4-block ridge: joint 81-combo alpha grid per retune",
+            ),
+            (
+                "c4_product_alone_tuned",
+                [("backbone", "backbone"), ("product", "product")],
+                "tuned diagnostic: backbone + products, joint 9-combo grid",
+            ),
+            (
+                "d3_transmission_alone_tuned",
+                [("backbone", "backbone"), ("trans_user", "trans")],
+                "tuned diagnostic: backbone + transmission [G|Ghat], joint "
+                "9-combo grid",
+            ),
+        )
+    },
 }
 _ALIASES = {alias: name for name, spec in ARMS.items() for alias in spec.aliases}
 
@@ -1253,6 +1402,23 @@ def panel_length() -> int:
         with np.load(cache, allow_pickle=True) as z:
             return int(z["y"].shape[0])
     return len(_load_panel().y)
+
+
+def _tuned_blocks_design(
+    p: _Panel, spec: ArmSpec, window: int
+) -> tuple[np.ndarray, list[tuple[int, int, str]]]:
+    """UNSCALED block design + column segments for the causally-tuned block
+    arms: (F, [(col_start, col_end, alpha_key), ...]). Penalties are applied at
+    solve time as diag vectors (see _walk_blocks_tuned), never by pre-scaling."""
+    parts: list[np.ndarray] = []
+    segments: list[tuple[int, int, str]] = []
+    start = 0
+    for b, akey in spec.blocks:
+        blk = np.ascontiguousarray(_build_block(p, b, window), dtype=np.float64)
+        segments.append((start, start + blk.shape[1], akey))
+        start += blk.shape[1]
+        parts.append(blk)
+    return np.hstack(parts), segments
 
 
 def _ols_design(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str], list[str]]:
@@ -1336,6 +1502,7 @@ def compute(args: argparse.Namespace) -> None:
     dropped_cols: list[str] = []
     collinear_cols: list[str] = []
     masked_cols: dict[str, dict[str, Any]] = {}
+    tuned_alphas: list[dict[str, Any]] = []
     if spec.kind == "ols":
         F, kept_names, dropped_cols = _ols_design(p, spec)
         F, kept_names, collinear_cols = _eliminate_exact_collinear(
@@ -1348,6 +1515,9 @@ def compute(args: argparse.Namespace) -> None:
     elif spec.kind == "blocks":
         F, a_ref = _build_design(p, spec, window)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
+    elif spec.kind == "blocks_tuned":
+        F, segments = _tuned_blocks_design(p, spec, window)
+        yhat, tuned_alphas = _walk_blocks_tuned(F, segments, p.y, window, lo, hi)
     else:
         F, _ = _build_design(p, spec, window)
         yhat = _walk_tuned(F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid])
@@ -1406,6 +1576,9 @@ def compute(args: argparse.Namespace) -> None:
                 # window-level identifiability mask report (OLS arms; ruling
                 # 2026-08-06): name -> {bars, first, last} in GLOBAL row indices
                 "ols_masked_cols": masked_cols,
+                # causal per-block alpha selection trajectory (blocks_tuned
+                # arms): [{row, alphas}] per retune boundary — paper-relevant
+                "tuned_alphas": tuned_alphas,
                 "smear": "none (scored locally, §3 contract)",
             }
         ),
