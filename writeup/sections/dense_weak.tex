@@ -104,9 +104,11 @@ penalty choice the other lacks
 (Table~\ref{tab:lasso_vs_ridge}). Ridge
 (\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
 incumbent) beats the lasso (\unifBTwoLassoTunedQLIKE{},
-\unifBTwoLassoTunedDM{}). Keeping every column and shrinking produces a
-lower loss than selecting a subset, when both strategies choose their
-penalty by the same causal rule.
+\unifBTwoLassoTunedDM{}); the elastic net, the interpolating family at the
+battery's mixed-penalty grid, scores \unifBThreeEnetTunedQLIKE{}
+(\unifBThreeEnetTunedDM{}). Keeping every column and shrinking produces a
+lower loss than selecting a subset, when every family chooses its penalty
+by the same causal rule.
 
 \begin{table}[H]
 \centering
@@ -117,13 +119,13 @@ identical rows in every cell; negative $t$ favors the arm. Both arms
 re-select their penalty every $250$ solves from the battery grids on a
 forward validation split.}
 \label{tab:lasso_vs_ridge}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
- & Ridge & Lasso \\
+ & Ridge & Elastic net & Lasso \\
 \midrule
-Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
+Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
 \midrule
-Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
+Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}
