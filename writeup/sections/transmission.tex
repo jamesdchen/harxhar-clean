@@ -363,19 +363,39 @@ $\Delta\mathrm{QLIKE} = $ \unifIncrBlkFourTrailDQ{} at DM
 verdict on the block.
 
 The trailing-variant increment is not stationary across the sample, and
-we report its structure rather than only its pooled value. Splitting the
-scored panel at the midpoint, the increment is $+11.5 \times 10^{-5}$ per
-bar over 2003--2013 (the block does not help) and $-68.6 \times 10^{-5}$
-over 2014--2024 (it helps strongly); $48$ of $91$ evaluation windows
-favor the four-block, the three best windows carry $39\%$ of the total
-edge (spread across 2015--2021, not concentrated in one window), the
-effect is uniform across regular and overnight sessions, and the
-increment reverses sign in 2022. The transmission block's value is
-therefore an era property: absent in the panel's first decade, strong
-from roughly 2014 through 2021, and gone after 2022 --- the same
-post-2022 pattern this research program has documented for other
-dictionary expansions. A reader should weight the pooled Diebold--Mariano
-statistic accordingly.
+we report its structure rather than only its pooled value.
+% Provenance: era decomposition computed from the persisted per-bar losses
+% of blk4_trail / blk4_trailG / blk4_trailGhat vs blk3_user via
+% experiments/score_unification.py _harvest_arm (results/unification_carc,
+% 91/91 chunks, 248,686 joined rows); pooled values reproduce
+% results/unification_increments.csv to all digits. 2026-08-07.
+In three eras, the increment per bar is $+12.4 \times 10^{-5}$ over
+2003--2013 ($t = 1.78$; the block does not help), $-87.7 \times 10^{-5}$
+over 2014--2021 ($t = -5.61$; it helps strongly), and
+$-12.7 \times 10^{-5}$ over 2022--2024 ($t = -0.77$). The 2014--2021
+value is not an outlier artifact: removing the $1\%$ of bars with the
+largest loss differentials leaves $-65.6 \times 10^{-5}$, the era median
+is $-13.1 \times 10^{-5}$, the per-bar win rate is $52.3\%$, and every
+year from 2014 through 2023 has a negative median. Within 2022--2024,
+2022 is null ($-0.1 \times 10^{-5}$), 2023 favors the four-block
+significantly ($-46.6 \times 10^{-5}$, $t = -2.29$), and the only
+positive span is the four-month 2024 stub that ends the panel
+($+51.2 \times 10^{-5}$ over January--April 2024), carried entirely by
+the factor-score columns rather than the flow columns. The onset of the
+2014--2021 era is a step, not a ramp: the rolling twelve-month median of
+the per-bar differential sits at zero through November 2014 and departs
+permanently at December 2014--January 2015 (monthly means of
+$-122$, $-91$, $-71 \times 10^{-5}$ for December through February). No
+exogenous feed enters the panel in 2013--2015, and the frozen frame
+assigns any column that was dead in the frame window a loading of
+exactly zero, so a feed arrival could not enter the block's columns; the
+one dated change in the panel at that boundary is the homogenization of
+the equity-aggregate feed cadence, whose last heterogeneous availability
+bar is December 31, 2014, and which governs aggregate columns that are
+in the transmission base. \pending{mechanism test: operator variants
+(symmetric part, causally refreshed frame, lag depth) and per-refresh
+operator diagnostics are computed in the dig campaign; adjudicate the
+cadence-homogenization hypothesis on their results}
 
 An ablation decomposes the trailing block's value into its two column
 groups. With only the trailing-standardized factor scores $G$ (no flow
@@ -384,10 +404,18 @@ features), the increment over the three-block ridge is
 the flow features $\hat G$ it is \unifIncrBlkFourTrailGhatDQ{} at
 \unifIncrBlkFourTrailGhatDM{}; the full block's increment is the
 \unifIncrBlkFourTrailDQ{} at \unifIncrBlkFourTrailDM{} reported above.
-Both components carry signal at the $5\%$ level; the factor levels carry
-roughly twice the flow's increment, and the two are partially
-overlapping. The lead--lag flow is therefore a real but junior component
-of the block's value.
+Both components carry signal at the $5\%$ level in the pooled sample;
+the factor levels carry roughly twice the flow's increment, and the two
+are partially overlapping. The era structure of the two components
+differs in kind, not merely in size. The factor-score component helps in
+every era: $-6.9 \times 10^{-5}$ per bar with $t = -3.36$ already over
+2003--2013, $-55.9 \times 10^{-5}$ with $t = -5.70$ over 2014--2021.
+The flow component changes sign: over 2003--2013 it is significantly
+harmful ($+21.1 \times 10^{-5}$, $t = +2.95$), and over 2014--2021 it is
+significantly helpful ($-51.0 \times 10^{-5}$, $t = -4.60$). The pooled
+flow increment therefore understates the flow's post-2014 contribution,
+and the block's era structure is the flow's era structure superimposed
+on an always-present factor-score contribution.
 
 Finally, combining the trailing construction with per-block causal
 tuning yields the campaign's best pooled model: the tuned
