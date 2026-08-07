@@ -1,0 +1,90 @@
+\appendix
+
+\section{Master Table of Campaign Arms}
+\label{sec:appendix_master}
+
+Table~\ref{tab:master} lists every arm of the unification campaign: one
+frozen panel (Section~\ref{sec:data_prep}), one scoring contract
+(Section~\ref{sec:smearing}), every arm scored on the identical rows.
+QLIKE is the pooled contract loss; $\Delta$ is against the benchmark; DM
+is the Diebold--Mariano $t$-statistic of the per-bar loss differential
+against the benchmark. Product- and transmission-block arms with a
+$24{,}000$-bar window are scored from the first row outside their frozen
+selection and frame windows.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{All campaign arms under the frozen panel and scoring contract.}
+\label{tab:master}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Model & QLIKE & $\Delta$ & DM $t$ \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Benchmark}} \\
+OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & --- \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Single-bucket attribution (literal OLS)}} \\
+HAR $+$ moments bucket      & \unifMomentsQLIKE{}    & \unifMomentsDelta{}    & \unifMomentsDM{} \\
+HAR $+$ liquidity bucket    & \unifLiquidityQLIKE{}  & \unifLiquidityDelta{}  & \unifLiquidityDM{} \\
+HAR $+$ market bucket (equal-weighted) & \unifMarketEwQLIKE{} & \unifMarketEwDelta{} & \unifMarketEwDM{} \\
+HAR $+$ market bucket (value-weighted) & \unifMarketVwQLIKE{} & \unifMarketVwDelta{} & \unifMarketVwDM{} \\
+HAR $+$ sentiment bucket    & \unifSentimentQLIKE{}  & \unifSentimentDelta{}  & \unifSentimentDM{} \\
+HAR $+$ implied-volatility bucket & \unifImpliedVolQLIKE{} & \unifImpliedVolDelta{} & \unifImpliedVolDM{} \\
+HAR $+$ volatility-demand bucket & \unifVolDemandQLIKE{} & \unifVolDemandDelta{} & \unifVolDemandDM{} \\
+HAR $+$ all exogenous columns (joint) & \unifAllFeaturesQLIKE{} & \unifAllFeaturesDelta{} & \unifAllFeaturesDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Penalized linear, full design}} \\
+Ridge, fixed $\alpha = 0.1$ & \unifBOneRidgeAp1QLIKE{} & \unifBOneRidgeAp1Delta{} & \unifBOneRidgeAp1DM{} \\
+Ridge, fixed $\alpha = 0.3$ & \unifBOneRidgeAp3QLIKE{} & \unifBOneRidgeAp3Delta{} & \unifBOneRidgeAp3DM{} \\
+Ridge, fixed $\alpha = 1$   & \unifBOneRidgeQLIKE{}    & \unifBOneRidgeDelta{}    & \unifBOneRidgeDM{} \\
+Ridge, fixed $\alpha = 3$   & \unifBOneRidgeAthreeQLIKE{} & \unifBOneRidgeAthreeDelta{} & \unifBOneRidgeAthreeDM{} \\
+Ridge, fixed $\alpha = 10$  & \unifBOneRidgeAtenQLIKE{} & \unifBOneRidgeAtenDelta{} & \unifBOneRidgeAtenDM{} \\
+Lasso, fixed $\alpha = 10^{-4}$ & \unifBTwoLassoQLIKE{} & \unifBTwoLassoDelta{} & \unifBTwoLassoDM{} \\
+Ridge, causally tuned       & \unifBOneRidgeTunedQLIKE{} & \unifBOneRidgeTunedDelta{} & \unifBOneRidgeTunedDM{} \\
+Elastic net, causally tuned & \unifBThreeEnetTunedQLIKE{} & \unifBThreeEnetTunedDelta{} & \unifBThreeEnetTunedDM{} \\
+Lasso, causally tuned       & \unifBTwoLassoTunedQLIKE{} & \unifBTwoLassoTunedDelta{} & \unifBTwoLassoTunedDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Block ridges}} \\
+Two-block ridge (stated penalties)     & \unifBlkTwoUserQLIKE{}   & \unifBlkTwoUserDelta{}   & \unifBlkTwoUserDM{} \\
+Three-block ridge (stated penalties)   & \unifBlkThreeUserQLIKE{} & \unifBlkThreeUserDelta{} & \unifBlkThreeUserDM{} \\
+Four-block ridge (stated penalties)    & \unifBlkFourUserQLIKE{}  & \unifBlkFourUserDelta{}  & \unifBlkFourUserDM{} \\
+Two-block ridge (documented penalties) & \unifBlkTwoDocQLIKE{}    & \unifBlkTwoDocDelta{}    & \unifBlkTwoDocDM{} \\
+Three-block ridge (documented penalties) & \unifBlkThreeDocQLIKE{} & \unifBlkThreeDocDelta{} & \unifBlkThreeDocDM{} \\
+Four-block ridge (documented penalties)  & \unifBlkFourDocQLIKE{}  & \unifBlkFourDocDelta{}  & \unifBlkFourDocDM{} \\
+Two-block ridge (per-block causal tuning)   & \unifBlkTwoTunedQLIKE{}   & \unifBlkTwoTunedDelta{}   & \unifBlkTwoTunedDM{} \\
+Three-block ridge (per-block causal tuning) & \unifBlkThreeTunedQLIKE{} & \unifBlkThreeTunedDelta{} & \unifBlkThreeTunedDM{} \\
+Four-block ridge (per-block causal tuning)  & \unifBlkFourTunedQLIKE{}  & \unifBlkFourTunedDelta{}  & \unifBlkFourTunedDM{} \\
+Four-block ridge (trailing-standardized transmission) & \unifBlkFourTrailQLIKE{} & \unifBlkFourTrailDelta{} & \unifBlkFourTrailDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Single-block diagnostics}} \\
+HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifProductAloneUserDelta{} & \unifProductAloneUserDM{} \\
+HAR $+$ product block only (documented) & \unifProductAloneDocQLIKE{}  & \unifProductAloneDocDelta{}  & \unifProductAloneDocDM{} \\
+HAR $+$ product block only (tuned)      & \unifProductAloneTunedQLIKE{} & \unifProductAloneTunedDelta{} & \unifProductAloneTunedDM{} \\
+HAR $+$ transmission block only (stated)     & \unifTransAloneUserQLIKE{}  & \unifTransAloneUserDelta{}  & \unifTransAloneUserDM{} \\
+HAR $+$ transmission block only (documented) & \unifTransAloneDocQLIKE{}   & \unifTransAloneDocDelta{}   & \unifTransAloneDocDM{} \\
+HAR $+$ transmission block only (tuned)      & \unifTransAloneTunedQLIKE{} & \unifTransAloneTunedDelta{} & \unifTransAloneTunedDM{} \\
+HAR $+$ transmission block only (trailing)   & \unifTransAloneTrailQLIKE{} & \unifTransAloneTrailDelta{} & \unifTransAloneTrailDM{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Smear-Convention Sensitivity, All Arms}
+\label{sec:appendix_sensitivity}
+
+Table~\ref{tab:smear_sensitivity_full} reports every completed arm's
+pooled QLIKE under the three back-transform conventions of
+Section~\ref{sec:smearing}, with within-convention ranks. The rank
+agreement statistics quoted there ($\tau$ against the contract ranking:
+none \unifSmearTauNone{}, traditional Duan \unifSmearTauDuan{}) are
+computed over this table.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Pooled QLIKE per arm under the three back-transform conventions
+(within-convention rank in parentheses).}
+\label{tab:smear_sensitivity_full}
+\input{generated/table_smear_sensitivity}
+\end{table}

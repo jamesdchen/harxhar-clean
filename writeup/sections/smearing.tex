@@ -265,12 +265,19 @@ $\tau = \unifSmearTauDuan$ against \emph{Duan}.
 
 \begin{table}[H]
 \centering
-\caption{Smear sensitivity: pooled QLIKE per completed arm under the three
-back-transform conventions, within-convention rank in parentheses.
-Kendall $\tau$ of each alternative ranking against the contract ranking:
-none $\unifSmearTauNone$, Duan $\unifSmearTauDuan$.}
+\caption{The benchmark under the three back-transform conventions. The
+full per-arm table is Appendix Table~\ref{tab:smear_sensitivity_full};
+Kendall $\tau$ of each alternative ranking against the contract ranking
+over all arms: none $\unifSmearTauNone$, traditional Duan
+$\unifSmearTauDuan$.}
 \label{tab:smear_sensitivity}
-\input{generated/table_smear_sensitivity}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & No correction & Traditional Duan & Contract \\
+\midrule
+OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKENone{} & \unifAzeroQLIKEDuan{} & \unifAzeroQLIKE{} \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 The correction is treated as part of the evaluation contract: it is frozen

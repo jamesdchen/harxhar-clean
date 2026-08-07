@@ -178,6 +178,12 @@ _REGISTRY: list[tuple[str, str]] = [
     # window 24000, full design). tab:lasso_vs_ridge is macro-wired in
     # dense_weak.tex, so the macro trio below is the complete wiring.
     ("b3_enet_tuned", "BThreeEnetTuned"),
+    # Penalty-jiggle appendix arms: b1_ridge at fixed alternative alphas
+    # (LaTeX-safe camels — macro names cannot carry bare digits).
+    ("b1_ridge_a0p1", "BOneRidgeAp1"),
+    ("b1_ridge_a0p3", "BOneRidgeAp3"),
+    ("b1_ridge_a3", "BOneRidgeAthree"),
+    ("b1_ridge_a10", "BOneRidgeAten"),
     ("blk2_user", "BlkTwoUser"),
     ("blk3_user", "BlkThreeUser"),
     ("blk4_user", "BlkFourUser"),
@@ -201,6 +207,46 @@ _REGISTRY: list[tuple[str, str]] = [
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
+
+# Reader-facing descriptive names (appendix master table; used in ALL
+# generated fragments with arm-name rows — underscores never reader-facing).
+_ARM_TEX: dict[str, str] = {
+    A0: "OLS on HAR + calendar (benchmark)",
+    "a_bucket_moments": "HAR + moments bucket (OLS)",
+    "a_bucket_liquidity": "HAR + liquidity bucket (OLS)",
+    "a_bucket_market_ew": "HAR + market EW bucket (OLS)",
+    "a_bucket_market_vw": "HAR + market VW bucket (OLS)",
+    "a_bucket_sentiment": "HAR + sentiment bucket (OLS)",
+    "a_bucket_implied_vol": "HAR + implied vol bucket (OLS)",
+    "a_bucket_vol_demand": "HAR + vol demand bucket (OLS)",
+    "a_bucket_all_features": "HAR + all features bucket (OLS)",
+    "b1_ridge": r"Ridge, fixed $\alpha=1$",
+    "b2_lasso": r"Lasso, fixed $\alpha=10^{-4}$",
+    "b1_ridge_tuned": "Ridge, causally tuned",
+    "b2_lasso_tuned": "Lasso, causally tuned",
+    "b3_enet_tuned": "Elastic net, causally tuned",
+    "b1_ridge_a0p1": r"Ridge, fixed $\alpha=0.1$",
+    "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
+    "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
+    "b1_ridge_a10": r"Ridge, fixed $\alpha=10$",
+    "blk2_user": "Two-block ridge (stated penalties)",
+    "blk3_user": "Three-block ridge (stated penalties)",
+    "blk4_user": "Four-block ridge (stated penalties)",
+    "blk2_doc": "Two-block ridge (documented penalties)",
+    "blk3_doc": "Three-block ridge (documented penalties)",
+    "blk4_doc": "Four-block ridge (documented penalties)",
+    "blk2_tuned": "Two-block ridge (per-block causal tuning)",
+    "blk3_tuned": "Three-block ridge (per-block causal tuning)",
+    "blk4_tuned": "Four-block ridge (per-block causal tuning)",
+    "blk4_trail": "Four-block ridge (trailing-standardized transmission)",
+    "c4_product_alone_user": "HAR + product block only (stated)",
+    "c4_product_alone_doc": "HAR + product block only (documented)",
+    "c4_product_alone_tuned": "HAR + product block only (tuned)",
+    "d3_transmission_alone_user": "HAR + transmission block only (stated)",
+    "d3_transmission_alone_doc": "HAR + transmission block only (documented)",
+    "d3_transmission_alone_tuned": "HAR + transmission block only (tuned)",
+    "d3_transmission_alone_trail": "HAR + transmission block only (trailing)",
+}
 
 # blocks table: (arm, window bars, per-block alpha string) — 6 ladder + 4 diag,
 # windows/alphas per src/unification.py (USER_ALPHAS/DOC_ALPHAS, DOC 250d=12000).
@@ -642,6 +688,20 @@ def _macro_lines(
         "unifAzeroMZbeta",
         _fmt(a0.mz_beta, ".3f") if a0_done and a0.mz_beta is not None else pend(A0),
     )
+    # Benchmark row under the two alternative smear conventions (appendix
+    # master table); \unifAzeroQLIKE above stays the contract value.
+    emit(
+        "unifAzeroQLIKENone",
+        _fmt(a0.qlike_none, ".5f")
+        if a0_done and a0.qlike_none is not None
+        else pend(A0),
+    )
+    emit(
+        "unifAzeroQLIKEDuan",
+        _fmt(a0.qlike_duan, ".5f")
+        if a0_done and a0.qlike_duan is not None
+        else pend(A0),
+    )
 
     a0q = a0.qlike if a0_done else None
     for arm, camel in _REGISTRY:
@@ -790,10 +850,8 @@ def _blocks_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
         else:
             q = f"{r.qlike:.5f}"
             t = rf"${r.dm_t:+.1f}$" if r.dm_t is not None else _PENDING_CELL
-        return (
-            rf"\texttt{{{_tex_escape(arm)}}} & {w} & "
-            rf"\texttt{{{alphas}}} & {q} & {t} \\"
-        )
+        name = _ARM_TEX.get(arm, rf"\texttt{{{_tex_escape(arm)}}}")
+        return rf"{name} & {w} & \texttt{{{alphas}}} & {q} & {t} \\"
 
     ladder = _BLOCKS_TABLE[:9]
     diags = _BLOCKS_TABLE[9:]
@@ -899,8 +957,9 @@ def _smear_sensitivity(
 
         rn, rd, rc = _rank(qn), _rank(qd), _rank(qc)
         for k, (arm, _n, _d, _c) in enumerate(rows):
+            name = _ARM_TEX.get(arm, rf"\texttt{{{_tex_escape(arm)}}}")
             lines.append(
-                rf"\texttt{{{_tex_escape(arm)}}} & {_n:.5f} ({rn[k]}) & "
+                rf"{name} & {_n:.5f} ({rn[k]}) & "
                 rf"{_d:.5f} ({rd[k]}) & {_c:.5f} ({rc[k]}) \\"
             )
         tau_none = _kendall_tau(qc, qn)
