@@ -719,43 +719,67 @@ def _walk_ols(
     any_zero = np.zeros(p, dtype=bool)
     any_pre = np.zeros(p, dtype=bool)
     any_dead = np.zeros(p, dtype=bool)
+    # Normal-equations verification tolerance — the SAME machine-derived formula
+    # as _window_rank_repair (sqrt(max(n_rows, n_cols) * eps): the gram squares
+    # the design's conditioning). Not tuned.
+    ne_tol = np.sqrt(max(window, p) * np.finfo(np.float64).eps)
     for i in range(hi - lo):
         t = window + i
         # zero dispersion within window rows [i, t), plus the go-live/feed-dead
-        # participation rule, plus the sticky repair mask
+        # participation rule; the sticky repair mask joins below (it can grow
+        # inside this bar's repair loop)
         zero = lastchg[t - 1] <= i
-        mask = zero | forced
+        base = zero.copy()
         if support_masks is not None:
             pre_i, dead_i = support_masks[0][i], support_masks[1][i]
-            mask |= pre_i | dead_i
+            base |= pre_i | dead_i
             any_pre |= pre_i
             any_dead |= dead_i
         any_zero |= zero
-        free = ~mask
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
-        coef = np.zeros(p)
-        if free.any():
+        while True:  # solve -> verify -> (repair, retry); bounded: forced only grows
+            mask = base | forced
+            free = ~mask
+            coef = np.zeros(p)
+            if not free.any():
+                break
+            sub = gram[np.ix_(free, free)]
+            r = rhs[free]
+            failure = ""
             try:
-                coef[free] = np.linalg.solve(gram[np.ix_(free, free)], rhs[free])
-            except np.linalg.LinAlgError as err:
-                if _window_rank_repair(i, t, free) == 0:
-                    raise RuntimeError(
-                        f"singular OLS gram at global row {lo + i} with NO exact "
-                        "window-level collinearity found by the rank diagnosis — "
-                        "a pure float-path artifact or a panel-build divergence; "
-                        "no shrinkage fallback by design. Compare the panel "
-                        "builds before rerunning."
-                    ) from err
-                mask = (lastchg[t - 1] <= i) | forced
-                free = ~mask
-                coef = np.zeros(p)
-                if free.any():
-                    coef[free] = np.linalg.solve(gram[np.ix_(free, free)], rhs[free])
-            if not np.all(np.isfinite(coef)):
+                cf = np.linalg.solve(sub, r)
+                # VERIFY the solution against the normal equations (one O(p^2)
+                # matvec per bar — the cost of closing the near-singular
+                # approach path, not just its exact-singularity endpoint where
+                # LU raises). SCALE CHOICE: the residual is compared to
+                # ||rhs||_inf, NOT to ||gram||*||coef|| — LU is backward-stable,
+                # so the latter ratio stays ~eps even when the FORWARD error has
+                # contaminated every coefficient; relative to the right-hand
+                # side's own scale, a contaminated solve (residual ~
+                # eps*||gram||*||coef|| with ||coef|| exploded by cond*eps)
+                # stands out exactly when cond exceeds 1/ne_tol. Same
+                # machine-derived tolerance as the rank repair; no new
+                # thresholds.
+                scale = float(np.max(np.abs(r)))
+                if not np.all(np.isfinite(cf)):
+                    failure = "non-finite coefficients"
+                elif scale > 0.0 and (
+                    float(np.max(np.abs(sub @ cf - r))) > ne_tol * scale
+                ):
+                    failure = "normal-equations residual check failed"
+                else:
+                    coef[free] = cf
+                    break
+            except np.linalg.LinAlgError:
+                failure = "singular gram"
+            if _window_rank_repair(i, t, free) == 0:
                 raise RuntimeError(
-                    f"non-finite OLS coefficients at global row {lo + i} — "
-                    "numerically degenerate window; no shrinkage fallback by design."
+                    f"OLS solve at global row {lo + i}: {failure}, and the "
+                    "window rank diagnosis finds NO near-collinear column to "
+                    "mask — a pure float-path artifact or a panel-build "
+                    "divergence; no shrinkage fallback by design. Compare the "
+                    "panel builds before rerunning."
                 )
         mask_rows[i] = mask
         intercept = solver._sy / n - float(solver._sx @ coef) / n
