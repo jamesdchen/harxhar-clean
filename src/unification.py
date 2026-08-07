@@ -645,7 +645,7 @@ def _dedup_ols_design(
 
 def _eliminate_exact_collinear(
     F: np.ndarray, col_names: list[str], window: int, lo: int
-) -> tuple[np.ndarray, list[str], list[str]]:
+) -> tuple[np.ndarray, list[str], list[str], dict[str, list[int]]]:
     """Deterministic exact-collinearity elimination for OLS designs (ruling
     2026-08-06, cluster loud-fails): drop columns that are EXACT linear
     combinations of retained earlier columns — accounting identities like
@@ -681,7 +681,9 @@ def _eliminate_exact_collinear(
 
     Columns with ZERO dispersion in the first window are exempt (they belong to
     the per-bar identifiability mask and may go live mid-chunk). Returns
-    (F_reduced, kept_names, collinear_dropped_names).
+    (F_reduced, kept_names, collinear_dropped_names, ladder_drops) — the last
+    being the atomic availability-ladder drops {ladder_prefix: rung_windows}
+    (see the c080 block below).
     """
     Xw = np.asarray(F[lo - window : lo], dtype=np.float64)
     Xc = Xw - Xw.mean(0)
@@ -691,10 +693,38 @@ def _eliminate_exact_collinear(
     eps = np.finfo(np.float64).eps
     tol = max(Xc.shape) * eps
     collinear = (norms > 0) & (diag <= tol * norms)
+
+    # ATOMIC availability-ladder dropping (c080 root cause, ruling 2026-08-06):
+    # if ANY rung of a stem's availability/occurrence-indicator MA ladder is
+    # exactly dependent on retained columns at chunk entry, drop that stem's
+    # ENTIRE indicator ladder for the chunk. RATIONALE: a partial ladder drop is
+    # itself a DISCLOSED PROOF that the retained sibling rungs are
+    # near-duplicates whose separating variation lies entirely before the
+    # window (the short rungs went exactly dependent precisely because the
+    # ladder's distinguishing history predates the window; the long rungs then
+    # sit at ~1/rung separation — below any rank tolerance's radar but exactly
+    # the canceling-coefficient configuration that amplified a one-bar
+    # availability desync into yhat=+77.8 in chunk c080). Removing the whole
+    # ladder is rank hygiene derived from that exact disclosed fact — not
+    # shrinkage, and NO new tolerance is introduced (the trigger is the
+    # existing exact-dependence criterion above).
+    ladder_cols: dict[str, list[int]] = {}
+    for j, nm in enumerate(col_names):
+        m = re.match(r"^(.+_(?:avail|active))_ma_(\d+)$", nm)
+        if m:
+            ladder_cols.setdefault(m.group(1), []).append(j)
+    ladder_drops: dict[str, list[int]] = {}
+    for ladder, cols_ in ladder_cols.items():
+        if any(collinear[j] for j in cols_):
+            ladder_drops[ladder] = sorted(
+                int(re.match(r"^.+_ma_(\d+)$", col_names[j]).group(1)) for j in cols_
+            )
+            for j in cols_:
+                collinear[j] = True
     keep = np.flatnonzero(~collinear)
     dropped = [col_names[j] for j in np.flatnonzero(collinear)]
     kept_names = [col_names[j] for j in keep]
-    return np.ascontiguousarray(F[:, keep]), kept_names, dropped
+    return np.ascontiguousarray(F[:, keep]), kept_names, dropped, ladder_drops
 
 
 def _support_masks(
@@ -1501,11 +1531,12 @@ def compute(args: argparse.Namespace) -> None:
 
     dropped_cols: list[str] = []
     collinear_cols: list[str] = []
+    ladder_drops: dict[str, list[int]] = {}
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
     if spec.kind == "ols":
         F, kept_names, dropped_cols = _ols_design(p, spec)
-        F, kept_names, collinear_cols = _eliminate_exact_collinear(
+        F, kept_names, collinear_cols, ladder_drops = _eliminate_exact_collinear(
             F, kept_names, window, lo
         )
         support = _support_masks(p, kept_names, window, lo, hi)
@@ -1573,6 +1604,10 @@ def compute(args: argparse.Namespace) -> None:
                 # exact-collinearity drops on the chunk's first training window
                 # (accounting identities; see _eliminate_exact_collinear)
                 "ols_collinear_cols": collinear_cols,
+                # ATOMIC availability-ladder drops (c080 guard): ladder prefix
+                # -> rung windows dropped whole when any rung went exact-
+                # collinear at chunk entry
+                "ols_ladder_drops": ladder_drops,
                 # window-level identifiability mask report (OLS arms; ruling
                 # 2026-08-06): name -> {bars, first, last} in GLOBAL row indices
                 "ols_masked_cols": masked_cols,

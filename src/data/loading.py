@@ -195,7 +195,9 @@ SUNDAY_OPEN = "18:30"
 FREQ = "30min"
 
 
-def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
+def load_raw_data(
+    data_path: str, allow_missing: bool = False, drop_dead_session: bool = True
+) -> pd.DataFrame:
     """Load parquet data, grid to 30-min, filter market hours, clean NaNs.
 
     Parameters
@@ -205,6 +207,19 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
     allow_missing : bool
         If False (default), drop all rows with any remaining NaN after
         forward-filling the target column. If True, keep them.
+    drop_dead_session : bool
+        If True (default), a grid bar EXISTS in the panel iff the RV source
+        itself printed on it (notna before any fill) — the data-derived
+        dead-session rule. The calendar-only weekend trim cannot know about
+        early closes and holidays; the RV source's own print record does.
+        Threshold-free: the same observed-print fact the availability
+        indicators use, applied to the core source as the grid's existence
+        criterion. Motivation: the c080 incident — a ghost bar after the
+        2020-12-24 early close (calendar-open, market-dead) carried a one-bar
+        availability desync that near-duplicate avail-ladder rungs amplified
+        to yhat=+77.8, and ffilled RV flatlines on such bars contaminated the
+        evaluation target. Set False only for bit-compat with archived
+        results produced under the calendar-only grid.
 
     Returns
     -------
@@ -227,13 +242,23 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
         # not bar-panel families (e.g. the OptionMetrics chain/spot exports,
         # which are date/option keyed and loaded by their own consumers) —
         # skip them loudly instead of dying in the reduce-merge below.
-        keyed = [(f, fr) for f, fr in zip(parquet_files, frames) if "endbartime" in fr.columns]
-        skipped = [f for f, fr in zip(parquet_files, frames) if "endbartime" not in fr.columns]
+        keyed = [
+            (f, fr)
+            for f, fr in zip(parquet_files, frames)
+            if "endbartime" in fr.columns
+        ]
+        skipped = [
+            f for f, fr in zip(parquet_files, frames) if "endbartime" not in fr.columns
+        ]
         if skipped and len(frames) > 1:
-            print(f"load_raw_data: skipping non-bar-keyed parquet(s): {', '.join(skipped)}")
+            print(
+                f"load_raw_data: skipping non-bar-keyed parquet(s): {', '.join(skipped)}"
+            )
             frames = [fr for _, fr in keyed]
             if not frames:
-                raise FileNotFoundError(f"No endbartime-keyed .parquet files in {data_path}")
+                raise FileNotFoundError(
+                    f"No endbartime-keyed .parquet files in {data_path}"
+                )
 
     # ── 2. Merge on endbartime (outer join) ────────────────────────────
     if len(frames) == 1:
@@ -282,9 +307,19 @@ def load_raw_data(data_path: str, allow_missing: bool = False) -> pd.DataFrame:
     # it NaN overnight lets the normal ffill / impute-and-indicate path handle it honestly.
     add_derived_features(df)
 
-    # ── 7. Forward-fill RV, drop rows where RV is still NaN ──────────
-    df["RV"] = df["RV"].ffill()
-    df = df.dropna(subset=["RV"]).reset_index(drop=True)
+    # ── 7. Dead-session drop / RV fill ────────────────────────────────
+    if drop_dead_session:
+        # Data-derived grid existence (see docstring; c080): keep only bars
+        # the RV source printed on — BEFORE any forward fill, so no ghost
+        # bar survives to carry ffill-flatlined targets or desynced
+        # indicators. Everything downstream (diurnal slots, HAR ladders,
+        # indicators) operates on the reduced grid unchanged.
+        df = df[df["RV"].notna()].reset_index(drop=True)
+    else:
+        # Legacy calendar-only path: forward-fill RV over calendar-open
+        # bars, drop only the leading NaNs.
+        df["RV"] = df["RV"].ffill()
+        df = df.dropna(subset=["RV"]).reset_index(drop=True)
 
     # ── 8. NaN handling for remaining columns ─────────────────────────
     if not allow_missing:
