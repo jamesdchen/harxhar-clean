@@ -20,7 +20,8 @@ target (nonneg-guarded):
 
   * MEAN CALIBRATION (causal): ``m_t = a + b*yhat_t`` with (a, b) the
     Mincer-Zarnowitz OLS of y_raw on [1, yhat] over window k-1's valid bars;
-    first window / missing predecessor: identity (0, 1), flagged in the CSV.
+    a window whose predecessor is missing from the harvest (mid-panel gap —
+    zero on a complete harvest) falls back to the identity (0, 1), flagged.
   * SCALAR SECOND MOMENT (causal; FINAL contract, author decision
     2026-08-06): ``sigma2_k = mean(e^2)`` over window k-1's valid bars, with
     e^2 = (y_raw - m)^2 and m as applied THERE — one scalar per window,
@@ -29,8 +30,8 @@ target (nonneg-guarded):
     parameterizations (affine with zero floor; log-linear with Duan
     retransformation) were implemented and REJECTED on measurement — the
     documented negative result is smearing.tex's "conditional-variance
-    record".  First window / empty predecessor: in-window scalar mean,
-    flagged (``var_fallback_windows``).
+    record".  Mid-panel harvest gap (no predecessor present): in-window
+    scalar mean, flagged (``var_fallback_windows``).
   * RAW FORECAST: ``f_t = (m_t^2 + sigma2_t) * B_t``; raw target = the
     PERSISTED unwinsorized ``rv_raw`` (never y_fit^2 * B).  Per-bar QLIKE
     ``r - log r - 1`` with ``r = rv_raw / f``, excluding bars where either
@@ -38,9 +39,17 @@ target (nonneg-guarded):
     via ``src/evaluation/diebold_mariano.qlike_per_bar`` (REUSED).  Pooled
     arm QLIKE = mean over all included bars.
 
-The whole map for window k >= 1 uses only data through window k-1, so the
-scored forecast is deployable (sole exception: the first window's variance
-fallback, counted in ``var_fallback_windows``).
+CALIBRATION BURN-IN (author decision 2026-08-07): the FIRST PRESENT
+evaluation window of each (root, arm) — chunk 0 for full-coverage arms,
+chunk 11 for the legality-89 arms — only estimates the maps for its
+successor (its in-sample MZ fit supplies the m its successor's variance
+residuals are measured against) and is NOT scored: none of its bars enters
+pooled QLIKE, DM joins, MZ diagnostics, or the sensitivity conventions, so
+all three conventions score identical row sets.  Scoring begins at the
+second present window; every scored forecast is computable at its own bar
+with no exceptions.  The mid-panel fallbacks remain only for genuine
+harvest gaps and are expected 0/0 on complete harvests (a warning prints
+if they fire).
 
 Ladder-increment inference (the product / transmission marginal-value
 statistics): paired per-bar DM between ADJACENT ladder rungs — (blk3, blk2)
@@ -121,6 +130,10 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_tuned",
         "c4_product_alone_tuned",
         "d3_transmission_alone_tuned",
+        # transmission-revival arms: same 24000-bar window + frozen frame ->
+        # same first legal OOS row 48000
+        "d3_transmission_alone_trail",
+        "blk4_trail",
     )
 }
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
@@ -173,12 +186,16 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk2_tuned", "BlkTwoTuned"),
     ("blk3_tuned", "BlkThreeTuned"),
     ("blk4_tuned", "BlkFourTuned"),
+    # Transmission-revival: trailing-standardized transmission (causal
+    # replacement for the full-sample-standardization look-ahead).
+    ("blk4_trail", "BlkFourTrail"),
     ("c4_product_alone_user", "ProductAloneUser"),
     ("c4_product_alone_doc", "ProductAloneDoc"),
     ("c4_product_alone_tuned", "ProductAloneTuned"),
     ("d3_transmission_alone_user", "TransAloneUser"),
     ("d3_transmission_alone_doc", "TransAloneDoc"),
     ("d3_transmission_alone_tuned", "TransAloneTuned"),
+    ("d3_transmission_alone_trail", "TransAloneTrail"),
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
@@ -195,12 +212,14 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
     ("blk2_tuned", 24000, "tuned (per-block causal)"),
     ("blk3_tuned", 24000, "tuned (per-block causal)"),
     ("blk4_tuned", 24000, "tuned (per-block causal)"),
+    ("blk4_trail", 24000, "1/100/1000/1000 (trailing-std transmission)"),
     ("c4_product_alone_user", 24000, "1/1000"),
     ("c4_product_alone_doc", 12000, "1/3e4"),
     ("c4_product_alone_tuned", 24000, "tuned (per-block causal)"),
     ("d3_transmission_alone_user", 24000, "1/1000"),
     ("d3_transmission_alone_doc", 12000, "1/3e3"),
     ("d3_transmission_alone_tuned", 24000, "tuned (per-block causal)"),
+    ("d3_transmission_alone_trail", 24000, "1/1000 (trailing-std transmission)"),
 ]
 
 # Adjacent-rung increment pairs (upper rung first): the paper's
@@ -213,6 +232,9 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_doc", "blk3_doc"),
     ("blk3_tuned", "blk2_tuned"),
     ("blk4_tuned", "blk3_tuned"),
+    # the revival's verdict statistic: trailing-transmission increment over the
+    # same untouched 3-block lower rung -> \unifIncrBlkFourTrail{DM,DQ}
+    ("blk4_trail", "blk3_user"),
 ]
 
 
@@ -298,16 +320,42 @@ def _ols2(x: np.ndarray, y: np.ndarray) -> tuple[float, float] | None:
     return float(coef[0]), float(coef[1])
 
 
-def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
-    """Score one evaluation window under the calibrated second-moment stack
-    (smearing.tex): the mean map and the conditional-variance map are both fit
-    on the PREVIOUS window and applied here — causal, hence deployable."""
-    yhat, rv_raw, baseline, valid = c["yhat"], c["rv_raw"], c["baseline"], c["valid"]
-    n = len(yhat)
-    # 1. unwinsorized sqrt-scale target (nonneg guard: NaN where undefined)
-    y_raw = np.full(n, np.nan)
+def _y_raw_of(rv_raw: np.ndarray, baseline: np.ndarray) -> np.ndarray:
+    """Unwinsorized sqrt-scale target sqrt(rv_raw / B); NaN where undefined
+    (nonneg guard: baseline must be positive, rv_raw nonnegative)."""
+    y_raw = np.full(len(rv_raw), np.nan)
     ok = np.isfinite(rv_raw) & np.isfinite(baseline) & (baseline > 0) & (rv_raw >= 0)
     y_raw[ok] = np.sqrt(rv_raw[ok] / baseline[ok])
+    return y_raw
+
+
+def _burnin_state(c: dict) -> dict:
+    """CALIBRATION BURN-IN (author decision 2026-08-07): the first present
+    window of an arm estimates the maps for its successor and is NOT scored.
+
+    Its chain state carries its own in-sample MZ mean m — the mean the
+    successor's variance residuals are measured against. If the in-sample
+    fit is degenerate the identity stands in; the successor's own mean fit
+    is then degenerate too and flags itself."""
+    yhat, valid = c["yhat"], c["valid"]
+    y_raw = _y_raw_of(c["rv_raw"], c["baseline"])
+    a, b = 0.0, 1.0
+    s = valid & np.isfinite(y_raw) & np.isfinite(yhat)
+    if s.sum() >= 3:
+        fit = _ols2(yhat[s], y_raw[s])
+        if fit is not None:
+            a, b = fit
+    return {"yhat": yhat, "y_raw": y_raw, "m": a + b * yhat, "valid": valid}
+
+
+def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
+    """Score one evaluation window under the calibrated second-moment stack
+    (smearing.tex): the mean map and the scalar variance are both fit on the
+    PREVIOUS window and applied here — causal, hence deployable."""
+    yhat, rv_raw, baseline, valid = c["yhat"], c["rv_raw"], c["baseline"], c["valid"]
+    n = len(yhat)
+    # 1. unwinsorized sqrt-scale target
+    y_raw = _y_raw_of(rv_raw, baseline)
 
     def _sel(p: dict) -> np.ndarray:
         return p["valid"] & np.isfinite(p["y_raw"]) & np.isfinite(p["yhat"])
@@ -325,7 +373,9 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
     if fitted:
         res._ab.append((a, b))
     else:
-        res.calib_fallback_windows += 1  # identity (0, 1) applied
+        # identity (0, 1) applied — mid-panel harvest gap only (the first
+        # present window never reaches here: it is the calibration burn-in)
+        res.calib_fallback_windows += 1
     m = a + b * yhat
 
     # 3. causal SCALAR second moment (FINAL contract, author decision
@@ -344,7 +394,8 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
             e2 = (prev["y_raw"][s] - prev["m"][s]) ** 2
             sigma2 = np.full(n, float(np.mean(e2)))
             var_fitted = True
-    if sigma2 is None:  # first window / empty predecessor: in-window scalar
+    if sigma2 is None:  # mid-panel harvest gap: in-window scalar (never on
+        # a complete harvest — the first present window is the burn-in)
         s0 = valid & np.isfinite(y_raw)
         s_val = float(np.mean((y_raw[s0] - m[s0]) ** 2)) if s0.any() else np.nan
         sigma2 = np.full(n, s_val)
@@ -433,14 +484,28 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
         if len(raw["row_id"]) > 1 and not np.all(np.diff(raw["row_id"]) == 1):
             res.contiguous_in_chunk = False
             res.warnings.append(f"chunk_{idx}: row_id not contiguous within chunk")
+        res.masked_col_events += raw["masked"]
+        res.dropped_col_events += raw["dropped"]
+        if prev_idx is None and not chunks:
+            # CALIBRATION BURN-IN: the first present window estimates the
+            # maps for its successor and is NOT scored — no loss rows,
+            # excluded from pooled QLIKE, DM joins, MZ, and the sensitivity
+            # conventions alike.
+            prev_state, prev_idx = _burnin_state(raw), idx
+            continue
         # predecessor must be the immediately preceding chunk index; a gap in
-        # the harvest breaks the chain and the fallbacks fire (flagged).
+        # the harvest breaks the chain and the mid-panel fallbacks fire
+        # (flagged; expected never on a complete harvest).
         prev = prev_state if prev_idx == idx - 1 else None
         c = _score_chunk_causal(raw, prev, res)
         prev_state, prev_idx = c.pop("state"), idx
         chunks.append(c)
-        res.masked_col_events += raw["masked"]
-        res.dropped_col_events += raw["dropped"]
+    if res.calib_fallback_windows or res.var_fallback_windows:
+        res.warnings.append(
+            "mid-panel degenerate-predecessor fallback fired (calib="
+            f"{res.calib_fallback_windows}, var={res.var_fallback_windows}) "
+            "— expected 0/0 on a complete harvest"
+        )
     if not chunks:
         return res
 

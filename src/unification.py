@@ -462,18 +462,39 @@ def _frozen_products(p: _Panel, window: int) -> np.ndarray:
 # ── transmission block (frozen frame + Cucuringu lead-lag) ────────────────────
 
 
-def _transmission_block(p: _Panel, window: int, include_scores: bool) -> np.ndarray:
+def _transmission_block(
+    p: _Panel, window: int, include_scores: bool, standardization: str = "frozen"
+) -> np.ndarray:
     """(n, 2*TRANS_QPOOL) = [factor scores G | lead-lag Ghat] when
     ``include_scores`` (the _user convention), else (n, TRANS_QPOOL) = Ghat only
     (the _doc convention — the documented construction verbatim).
 
     Frame: eigenvectors of the correlation of the product-base columns over rows
-    [window, 2*window), FROZEN (analysis/map_monitor._frame_and_scores). Scores
-    standardized by frozen frame-window stats (causal deviation disclosed above).
+    [window, 2*window), FROZEN in BOTH modes (span-stable per the
+    gauge-degeneracy result; no frame refresh).
     Ghat: analysis/trans_exploit._trans_block — D = antisym(lag-1 cross-corr) of
     the trailing 504 days of G, refreshed quarterly, Ghat_t = G_{t-1} @ D; zero
     until the first D exists (the study zero-fills identically and masks activity
-    downstream via the persisted row indices). Ghat causally floored-sd scaled.
+    downstream via the persisted row indices).
+
+    ``standardization``:
+      * "frozen"   — scores standardized by frozen frame-window stats; Ghat
+        causally floored-sd scaled (the original campaign construction).
+      * "trailing" — the transmission-REVIVAL construction (author directive
+        2026-08-06): the study's promising transmission numbers are attributed
+        to its FULL-SAMPLE standardization of G — a look-ahead whose real
+        service was keeping the factor scores' effective scale (and hence the
+        block's effective shrinkage under a fixed alpha) from drifting as
+        factor variances wander over 18 years. This mode provides that service
+        CAUSALLY: (a) G is standardized by TRAILING mean/sd over the same
+        504-day window D uses (rolling, causal shift(1), min_periods = the
+        full window per the repo's trailing-stats convention); (b) the
+        resulting [G|Ghat] columns then pass through the SAME rolling robust
+        scaler every other exogenous feature gets (rolling_robust_scale at the
+        arm's window), folding them into the standard prep path instead of
+        entering frozen-scale. Together these remove the effective-shrinkage
+        drift the full-sample standardization was illegitimately fixing —
+        with trailing information only.
     """
     bc = _product_base_cols(p.names)
     Z = np.ascontiguousarray(p.X[:, bc])
@@ -489,11 +510,18 @@ def _transmission_block(p: _Panel, window: int, include_scores: bool) -> np.ndar
     V[live] = V_l[:, order]
     W = V[:, :TRANS_QPOOL] / sd0[:, None]
     G = (Z - mu0) @ W
-    g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
-    G = (G - g_mu) / g_sd
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    if standardization == "trailing":
+        gm = pd.DataFrame(G).rolling(trail, min_periods=trail).mean().shift(1)
+        gs = pd.DataFrame(G).rolling(trail, min_periods=trail).std().shift(1)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            G = (G - gm.to_numpy()) / gs.to_numpy()
+        G[~np.isfinite(G)] = 0.0  # warm-up rows (< trail bars of history)
+    else:
+        g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
+        G = (G - g_mu) / g_sd
 
     n = len(G)
-    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
     refresh = TRANS_REFRESH_DAYS * PERIODS_PER_DAY
     lag = TRANS_LAG_BARS
     Ghat = np.zeros_like(G)
@@ -505,6 +533,13 @@ def _transmission_block(p: _Panel, window: int, include_scores: bool) -> np.ndar
         D = (C - C.T) / 2.0
         end = min(start + refresh, n)
         Ghat[start:end] = G[start - lag : end - lag] @ D
+    if standardization == "trailing":
+        from src.features.transforms.scaling import rolling_robust_scale
+
+        block = np.hstack([G, Ghat]) if include_scores else Ghat
+        block = rolling_robust_scale(np.ascontiguousarray(block), window)
+        block[~np.isfinite(block)] = 0.0
+        return block
     Ghat = _causal_floored_scale(Ghat, window)
     Ghat[~np.isfinite(Ghat)] = 0.0
     # Composition per the 2026-08-06 ruling: _doc arms mirror the documented
@@ -1336,6 +1371,30 @@ ARMS: dict[str, ArmSpec] = {
         DOC_WINDOW_BARS,
         "diagnostic: backbone@1 + transmission Ghat-only@3e3, 250-day window",
     ),
+    # Transmission-REVIVAL arms (author directive 2026-08-06): the original
+    # transmission promise is attributed to the full-sample-standardization
+    # look-ahead; these arms provide that service causally via TRAILING
+    # standardization + the standard rolling robust scaler (see
+    # _transmission_block "trailing"). Same alphas/window as their _user twins.
+    "d3_transmission_alone_trail": _blk(
+        [("backbone", "backbone"), ("trans_trail", "trans")],
+        USER_ALPHAS,
+        None,
+        "revival diagnostic: backbone@1 + TRAILING-standardized transmission "
+        "[G|Ghat]@1000, args.window",
+    ),
+    "blk4_trail": _blk(
+        [
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trail", "trans"),
+        ],
+        USER_ALPHAS,
+        None,
+        "revival 4-block ridge: 1/100/1000/1000 with TRAILING-standardized "
+        "transmission",
+    ),
     # Causally-TUNED block ladder (author directive 2026-08-06): _user block
     # structures, per-block alphas re-selected jointly every TUNE_PER=250
     # solves over BLOCK_TUNE_GRIDS (see _walk_blocks_tuned; selection
@@ -1406,6 +1465,10 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _transmission_block(p, window, include_scores=True)
     if block == "trans_doc":  # Ghat only — the documented construction verbatim
         return _transmission_block(p, window, include_scores=False)
+    if block == "trans_trail":  # [G | Ghat], TRAILING standardization (revival)
+        return _transmission_block(
+            p, window, include_scores=True, standardization="trailing"
+        )
     raise KeyError(f"unknown block '{block}'")
 
 

@@ -89,10 +89,10 @@ forecast, estimated by ordinary least squares over the valid bars of
 window $k-1$ and applied to every bar of window $k$. The map absorbs the
 level and slope miscalibration the fit-scale construction leaves behind,
 including the attenuation induced by training on the winsorized target.
-For the first window, and for any window whose predecessor is missing or
-empty, the map falls back to the identity
-$(\hat{a}_k, \hat{b}_k) = (0, 1)$; every such window is flagged in the
-harvest accounting.
+For a window whose predecessor is missing from the harvest --- a
+mid-panel gap, which a complete harvest does not contain --- the map
+falls back to the identity $(\hat{a}_k, \hat{b}_k) = (0, 1)$; every such
+window is flagged in the harvest accounting.
 
 \emph{Conditional second moment.} Let
 $e_s = y^{\mathrm{raw}}_s - m_s$ denote window $k-1$'s residuals against
@@ -106,10 +106,18 @@ window $k$ is the scalar
 one constant per window, estimated on the previous window, where
 $N_{k-1}$ counts the valid bars entering the mean. Positivity is trivial
 --- a mean of squares --- and the estimator does not extrapolate: no
-value of window $k$'s forecasts can move it. For the first window, where
-no predecessor exists, it falls back to the in-window scalar mean of
-$(y^{\mathrm{raw}}_t - m_t)^2$; the fallback window is flagged in the
-harvest accounting.
+value of window $k$'s forecasts can move it. For a window whose
+predecessor is missing from the harvest, it falls back to the in-window
+scalar mean of $(y^{\mathrm{raw}}_t - m_t)^2$; every such window is
+flagged in the harvest accounting.
+
+\emph{Calibration burn-in.} The first evaluation window of each arm is
+the calibration burn-in, parallel to the feature construction's burn-in
+at the start of the panel: it estimates the two maps for its successor
+and is not scored --- none of its bars enters any loss, any join, or any
+calibration diagnostic. Scoring begins at the second window. Every
+scored forecast is therefore computable at its own bar, with no
+exceptions.
 
 \emph{The conditional-variance record.} Two bar-conditional
 parameterizations of the second moment were implemented and rejected on
@@ -193,10 +201,8 @@ quiet bars.
 window $k \ge 1$ is a function of data through window $k-1$ only, and
 windows are processed in strictly ascending order. The map is a quantity a
 deployed forecaster could have computed at $t$: the scored object is a
-real-time forecast, not a retrospectively corrected one. The single
-exception is the first window's second-moment fallback, which uses the
-window's own residuals because no predecessor exists; it is flagged in the
-harvest accounting.
+real-time forecast, not a retrospectively corrected one. Scoring begins
+after the calibration burn-in, so there are no exceptions.
 
 \emph{Residuals of the model itself, against the unwinsorized target.} The
 residuals entering Equation~\eqref{eq:var_reg} are the evaluated model's
