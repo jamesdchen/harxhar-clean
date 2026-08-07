@@ -537,8 +537,26 @@ on a fixed coordinate system, not on a current one.
 
 \subsection{The Best Pooled Model}
 
-Finally, combining the trailing construction with per-block causal
-tuning yields the campaign's best pooled model: the tuned
+The falsification result has a direct consequence for the model the paper
+carries forward. If the operator columns contribute nothing detectable,
+the block should be built without them. The arm that does so ---
+per-block causal tuning, trailing standardization, and a transmission
+block containing only the $20$ factor-score columns --- scores QLIKE
+\unifBlkFourTrailGTunedQLIKE{} at DM \unifBlkFourTrailGTunedDM{} against
+the benchmark, with an increment of \unifIncrBlkFourTrailGTunedDQ{} at
+\unifIncrBlkFourTrailGTunedDM{} over the tuned three-block ridge. It is
+the best pooled model in the campaign. Against the corresponding
+full-block model it is statistically indistinguishable
+(\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDQ{} at
+\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDM{}), so the two are
+equivalent on accuracy and the levels-only construction is preferred on
+parsimony: half the columns, and none of the operator machinery --- no
+trailing estimation window, no refresh schedule, no lag choice. The
+full-block figures are reported next for comparison, and the master table
+of Appendix~\ref{sec:appendix_master} carries both.
+
+Combining the trailing construction with per-block causal
+tuning yields the full-block counterpart: the tuned
 trailing-transmission four-block ridge scores
 \unifBlkFourTrailTunedQLIKE{} (DM \unifBlkFourTrailTunedDM{} against the
 benchmark), with an increment of \unifIncrBlkFourTrailTunedDQ{} at

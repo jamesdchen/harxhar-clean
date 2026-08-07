@@ -137,6 +137,59 @@ bar-conditional second moment therefore requires a model with controlled
 extrapolation, which is the reserved learned-correction slot for this
 section; the contract uses the scalar of Equation~\eqref{eq:var_reg}.
 
+\emph{A shrunk conditional second moment.} The two rejected forms fail
+for the same reason: neither is anchored to the estimator that works.
+A third form removes that failure mode by construction. Let
+\[
+z_t \;=\; \log\bigl( (y^{\mathrm{raw}}_t - m_t)^2 \bigr),
+\]
+and predict $z_t$ by ridge regression on a standardized design, fit on
+the rolling window and refit at every bar. The penalty is selected
+causally on the same embargoed forward split used for every other
+hyperparameter in this paper, from a grid that includes
+$\alpha = \infty$; at that grid point the fitted value is the
+training-window mean of $z$ and the assembled variance is
+\emph{exactly} the scalar $\hat{\sigma}^2_k$ of
+Equation~\eqref{eq:var_reg}. The scalar contract is therefore nested as
+the infinite-shrinkage limit, and conditioning is adopted only where the
+forward split prefers it. At finite $\alpha$ the variance is
+\[
+\hat{v}_t \;=\; \exp(\hat{z}_t)\, c_k,
+\qquad
+c_k \;=\;
+\frac{\text{mean of } (y^{\mathrm{raw}} - m)^2 \text{ on window } k-1}
+     {\text{mean of } \exp(\hat{z}) \text{ on window } k-1},
+\]
+so each window's variance \emph{level} is pinned to the scalar
+estimator's level and conditioning can only redistribute variance across
+bars within a window. No floor, clip, or additive constant appears
+anywhere in the construction.
+
+Measured against the benchmark on the shared panel, the conditional
+contract is the largest single effect in this study: applied to the
+benchmark's own residuals it improves QLIKE by
+\unifIncrCondVarBenchDQ{} at DM \unifIncrCondVarBenchDM{}, and applied
+to the paper's best mean model by \unifIncrCondVarChampDQ{} at
+\unifIncrCondVarChampDM{}. Both are an order of magnitude larger than
+any increment produced by changing the conditional mean.
+
+\emph{Which state carries the second moment.} That result invites the
+reading that the exogenous panel predicts forecast uncertainty. A
+control arm rejects it. Conditioning the variance on the backbone alone
+--- the autoregressive ladder and calendar dummies, with no exogenous
+column --- improves the benchmark by \unifIncrCondVarBenchLevelDQ{} at
+DM \unifIncrCondVarBenchLevelDM{}, and beats the exogenous-state
+version head to head
+(\unifIncrCondVarBenchLevelVsCondVarBenchDQ{} at
+\unifIncrCondVarBenchLevelVsCondVarBenchDM{}). The predictable part of
+the squared forecast error is therefore carried by the volatility level
+itself, which is what the realized-variance estimator's own measurement
+error scales with, and not by the exogenous state. The conditional
+second moment is a large and robust effect about heteroskedasticity in
+the target; it is not evidence that the exogenous buckets carry
+distributional information beyond the level, and this paper does not
+claim that they do.
+
 \emph{Back-transform.} Both members of the scored pair are mapped to the
 raw scale as
 \begin{equation}

@@ -1,112 +1,15 @@
-\begin{thebibliography}{36}
+\begin{thebibliography}{11}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Achab et~al.(2017)Achab, Bacry, Ga{\"i}ffas, Mastromatteo, and
-  Muzy]{AchabBacryGaiffas2017}
-Massil Achab, Emmanuel Bacry, St{\'e}phane Ga{\"i}ffas, Iacopo Mastromatteo,
-  and Jean-Fran{\c{c}}ois Muzy.
-\newblock Uncovering causality from multivariate hawkes integrated cumulants.
-\newblock In \emph{International Conference on Machine Learning}, pages 1--10,
-  2017.
-
-\bibitem[Akiba et~al.(2019)Akiba, Sano, Yanase, Ohta, and Koyama]{Akiba2019}
-Takuya Akiba, Shotaro Sano, Toshihiko Yanase, Takeru Ohta, and Masanori Koyama.
-\newblock Optuna: A next-generation hyperparameter optimization framework.
-\newblock In \emph{Proceedings of the 25th ACM SIGKDD International Conference
-  on Knowledge Discovery and Data Mining}, pages 2623--2631, 2019.
-
-\bibitem[Andersen and Bollerslev(1997)]{AndersenBollerslev1997}
-Torben~G. Andersen and Tim Bollerslev.
-\newblock Intraday periodicity and volatility persistence in financial markets.
-\newblock \emph{Journal of Empirical Finance}, 4\penalty0 (2-3):\penalty0
-  115--158, 1997.
-
-\bibitem[Andersen et~al.(2003)Andersen, Bollerslev, Diebold, and
-  Labys]{AndersenBollerslevDieboldLabys2003}
-Torben~G. Andersen, Tim Bollerslev, Francis~X. Diebold, and Paul Labys.
-\newblock Modeling and forecasting realized volatility.
-\newblock \emph{Econometrica}, 71\penalty0 (2):\penalty0 579--625, 2003.
-
-\bibitem[Andersen et~al.(2007)Andersen, Bollerslev, and
-  Diebold]{AndersenBollerslevDiebold2007}
-Torben~G. Andersen, Tim Bollerslev, and Francis~X. Diebold.
-\newblock Roughing it up: including jump components in the measurement,
-  modeling, and forecasting of return volatility.
-\newblock \emph{The Review of Economics and Statistics}, 89\penalty0
-  (4):\penalty0 701--720, 2007.
-
-\bibitem[Bacry et~al.(2015{\natexlab{a}})Bacry, Ga{\"i}ffas, and
-  Muzy]{BacryGaiffasMuzy2015}
-Emmanuel Bacry, St{\'e}phane Ga{\"i}ffas, and Jean-Fran{\c{c}}ois Muzy.
-\newblock A generalization error bound for sparse and low-rank multivariate
-  hawkes processes.
-\newblock \emph{arXiv preprint arXiv:1501.00725}, 2015{\natexlab{a}}.
-
-\bibitem[Bacry et~al.(2015{\natexlab{b}})Bacry, Mastromatteo, and
-  Muzy]{BacryMastromatteoMuzy2015}
-Emmanuel Bacry, Iacopo Mastromatteo, and Jean-Fran{\c{c}}ois Muzy.
-\newblock Hawkes processes in finance.
-\newblock \emph{Market Microstructure and Liquidity}, 1\penalty0 (1):\penalty0
-  1550005, 2015{\natexlab{b}}.
-
-\bibitem[Barndorff-Nielsen and Shephard(2004)]{BarndorffNielsenShephard2004}
-Ole~E. Barndorff-Nielsen and Neil Shephard.
-\newblock Power and bipower variation with stochastic volatility and jumps.
-\newblock \emph{Journal of Financial Econometrics}, 2\penalty0 (1):\penalty0
-  1--37, 2004.
-
-\bibitem[Belkin and Niyogi(2003)]{BelkinNiyogi2003}
-Mikhail Belkin and Partha Niyogi.
-\newblock Laplacian eigenmaps for dimensionality reduction and data
-  representation.
-\newblock \emph{Neural Computation}, 15\penalty0 (6):\penalty0 1373--1396,
-  2003.
-
-\bibitem[Bennedsen et~al.(2022)Bennedsen, Lunde, and
-  Pakkanen]{BennedsenLundePakkanen2022}
-Mikkel Bennedsen, Asger Lunde, and Mikko~S. Pakkanen.
-\newblock Decoupling the short- and long-term behavior of stochastic
-  volatility.
-\newblock \emph{Journal of Financial Econometrics}, 20\penalty0 (5):\penalty0
-  961--1006, 2022.
-
-\bibitem[Blanc et~al.(2017)Blanc, Donier, and
-  Bouchaud]{BlancDonierBouchaud2017}
-Pierre Blanc, Jonathan Donier, and Jean-Philippe Bouchaud.
-\newblock Quadratic hawkes processes for financial prices.
-\newblock \emph{Quantitative Finance}, 17\penalty0 (2):\penalty0 171--188,
-  2017.
-
-\bibitem[Bollerslev et~al.(2016)Bollerslev, Patton, and
-  Quaedvlieg]{BollerslevPattonQuaedvlieg2016}
-Tim Bollerslev, Andrew~J. Patton, and Rogier Quaedvlieg.
-\newblock Exploiting the errors: a simple approach for improved volatility
-  forecasting.
-\newblock \emph{Journal of Econometrics}, 192\penalty0 (1):\penalty0 1--18,
-  2016.
-
-\bibitem[Br{\'e}maud and Massouli{\'e}(1996)]{BremaudMassoulie1996}
-Pierre Br{\'e}maud and Laurent Massouli{\'e}.
-\newblock Stability of nonlinear hawkes processes.
-\newblock \emph{The Annals of Probability}, 24\penalty0 (3):\penalty0
-  1563--1588, 1996.
-
 \bibitem[Chen and Guestrin(2016)]{Chen2016}
 Tianqi Chen and Carlos Guestrin.
 \newblock {XGBoost}: A scalable tree boosting system.
 \newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
   on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
-
-\bibitem[Christensen et~al.(2023)Christensen, Siggaard, and
-  Veliyev]{christensen2023machine}
-Kim Christensen, Mathias Siggaard, and Bezirgen Veliyev.
-\newblock A machine learning approach to volatility forecasting.
-\newblock \emph{Journal of Financial Econometrics}, 21\penalty0 (5):\penalty0
-  1680--1727, 2023.
 
 \bibitem[Corsi(2009)]{Corsi2009}
 Fulvio Corsi.
@@ -126,65 +29,10 @@ Naihua Duan.
 \newblock \emph{Journal of the American Statistical Association}, 78\penalty0
   (383):\penalty0 605--610, 1983.
 
-\bibitem[El~Euch and Rosenbaum(2019)]{ElEuchRosenbaum2019}
-Omar El~Euch and Mathieu Rosenbaum.
-\newblock The characteristic function of rough heston models.
-\newblock \emph{Mathematical Finance}, 29\penalty0 (1):\penalty0 3--38, 2019.
-
-\bibitem[Engle and Gallo(2006)]{EngleGallo2006}
-Robert~F. Engle and Giampiero~M. Gallo.
-\newblock A multiple indicators model for volatility using intra-daily data.
-\newblock \emph{Journal of Econometrics}, 131\penalty0 (1-2):\penalty0 3--27,
-  2006.
-
-\bibitem[Filimonov and Sornette(2012)]{FilimonovSornette2012}
-Vladimir Filimonov and Didier Sornette.
-\newblock Quantifying reflexivity in financial markets: toward a prediction of
-  flash crashes.
-\newblock \emph{Physical Review E}, 85\penalty0 (5):\penalty0 056108, 2012.
-
-\bibitem[Frisch and Waugh(1933)]{FrischWaugh1933}
-Ragnar Frisch and Frederick~V. Waugh.
-\newblock Partial time regressions as compared with individual trends.
-\newblock \emph{Econometrica}, 1\penalty0 (4):\penalty0 387--401, 1933.
-
-\bibitem[Garrigues and El~Ghaoui(2008)]{Garrigues2008}
-Pierre Garrigues and Laurent El~Ghaoui.
-\newblock An homotopy algorithm for the lasso with online observations.
-\newblock In \emph{Advances in Neural Information Processing Systems},
-  volume~21, 2008.
-
-\bibitem[Gatheral et~al.(2018)Gatheral, Jaisson, and
-  Rosenbaum]{GatheralJaissonRosenbaum2018}
-Jim Gatheral, Thibault Jaisson, and Mathieu Rosenbaum.
-\newblock Volatility is rough.
-\newblock \emph{Quantitative Finance}, 18\penalty0 (6):\penalty0 933--949,
-  2018.
-
-\bibitem[Gu et~al.(2020)Gu, Kelly, and Xiu]{gu2020empirical}
-Shihao Gu, Bryan Kelly, and Dacheng Xiu.
-\newblock Empirical asset pricing via machine learning.
-\newblock \emph{Review of Financial Studies}, 33\penalty0 (5):\penalty0
-  2223--2273, 2020.
-
 \bibitem[Hansen et~al.(2011)Hansen, Lunde, and Nason]{HansenLundeNason2011}
 Peter~R. Hansen, Asger Lunde, and James~M. Nason.
 \newblock The model confidence set.
 \newblock \emph{Econometrica}, 79\penalty0 (2):\penalty0 453--497, 2011.
-
-\bibitem[Hansen et~al.(2012)Hansen, Huang, and Shek]{HansenHuangShek2012}
-Peter~R. Hansen, Zhuo Huang, and Howard~Howan Shek.
-\newblock Realized garch: a joint model for returns and realized measures of
-  volatility.
-\newblock \emph{Journal of Applied Econometrics}, 27\penalty0 (6):\penalty0
-  877--906, 2012.
-
-\bibitem[Hardiman et~al.(2013)Hardiman, Bercot, and
-  Bouchaud]{HardimanBercotBouchaud2013}
-Stephen~J. Hardiman, Nicolas Bercot, and Jean-Philippe Bouchaud.
-\newblock Critical reflexivity in financial markets: a hawkes process analysis.
-\newblock \emph{The European Physical Journal B}, 86\penalty0 (10):\penalty0
-  442, 2013.
 
 \bibitem[Harvey et~al.(1997)Harvey, Leybourne, and
   Newbold]{HarveyLeybourneNewbold1997}
@@ -193,23 +41,10 @@ David Harvey, Stephen Leybourne, and Paul Newbold.
 \newblock \emph{International Journal of Forecasting}, 13\penalty0
   (2):\penalty0 281--291, 1997.
 
-\bibitem[Hawkes(1971)]{Hawkes1971}
-Alan~G. Hawkes.
-\newblock Spectra of some self-exciting and mutually exciting point processes.
-\newblock \emph{Biometrika}, 58\penalty0 (1):\penalty0 83--90, 1971.
-
-\bibitem[Hawkes and Oakes(1974)]{HawkesOakes1974}
-Alan~G. Hawkes and David Oakes.
-\newblock A cluster process representation of a self-exciting process.
-\newblock \emph{Journal of Applied Probability}, 11\penalty0 (3):\penalty0
-  493--503, 1974.
-
-\bibitem[Jaisson and Rosenbaum(2016)]{JaissonRosenbaum2016}
-Thibault Jaisson and Mathieu Rosenbaum.
-\newblock Rough fractional diffusions as scaling limits of nearly unstable
-  heavy tailed hawkes processes.
-\newblock \emph{The Annals of Applied Probability}, 26\penalty0 (5):\penalty0
-  2860--2882, 2016.
+\bibitem[Hoerl and Kennard(1970)]{HoerlKennard1970}
+Arthur~E. Hoerl and Robert~W. Kennard.
+\newblock Ridge regression: Biased estimation for nonorthogonal problems.
+\newblock \emph{Technometrics}, 12\penalty0 (1):\penalty0 55--67, 1970.
 
 \bibitem[Ke et~al.(2017)Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu]{Ke2017}
 Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
@@ -218,12 +53,11 @@ Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
 \newblock In \emph{Advances in Neural Information Processing Systems},
   volume~30, 2017.
 
-\bibitem[Lovell(1963)]{Lovell1963}
-Michael~C. Lovell.
-\newblock Seasonal adjustment of economic time series and multiple regression
-  analysis.
-\newblock \emph{Journal of the American Statistical Association}, 58\penalty0
-  (304):\penalty0 993--1010, 1963.
+\bibitem[Lou et~al.(2013)Lou, Caruana, Gehrke, and Hooker]{Lou2013}
+Yin Lou, Rich Caruana, Johannes Gehrke, and Giles Hooker.
+\newblock Accurate intelligible models with pairwise interactions.
+\newblock In \emph{Proceedings of the 19th ACM SIGKDD International Conference
+  on Knowledge Discovery and Data Mining}, pages 623--631, 2013.
 
 \bibitem[Patton(2011)]{Patton2011}
 Andrew~J. Patton.
@@ -231,9 +65,10 @@ Andrew~J. Patton.
 \newblock \emph{Journal of Econometrics}, 160\penalty0 (1):\penalty0 246--256,
   2011.
 
-\bibitem[Zumbach(2009)]{Zumbach2009}
-Gilles Zumbach.
-\newblock Time reversal invariance in finance.
-\newblock \emph{Quantitative Finance}, 9\penalty0 (5):\penalty0 505--515, 2009.
+\bibitem[Tibshirani(1996)]{Tibshirani1996}
+Robert Tibshirani.
+\newblock Regression shrinkage and selection via the lasso.
+\newblock \emph{Journal of the Royal Statistical Society: Series B},
+  58\penalty0 (1):\penalty0 267--288, 1996.
 
 \end{thebibliography}
