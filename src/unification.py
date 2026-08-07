@@ -277,6 +277,73 @@ BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS
 )
+# The same (level, tilt) grid for the EXOGENOUS block — the generalized
+# Tikhonov arm (2026-08-07): anisotropic ridge applied directly, with no
+# duplicated columns, as the principled form of what the transmission block
+# achieves by augmentation. gamma=0 is plain scalar ridge.
+BLOCK_TUNE_GRIDS["exog_tilt"] = tuple(  # type: ignore[assignment]
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TRANS_SHAPE_GAMMAS
+)
+
+
+def _exog_tilt_design(p: _Panel, window: int) -> np.ndarray:
+    """Exogenous design ROTATED into its frozen eigenframe (generalized
+    Tikhonov arm, author directive 2026-08-07).
+
+    THE EQUIVALENCE (documented because the arm's whole claim rests on it):
+    the principled object is anisotropic ridge on the ORIGINAL columns,
+
+        min ||y - X_e b||^2 + b' Gamma b,   Gamma = V diag(w) V',
+        w_i = alpha * i**gamma  (i = eigen-rank, 1 = largest eigenvalue)
+
+    with V the eigenvectors of the FROZEN first-window correlation of the
+    exogenous columns. Because V is ORTHOGONAL, substituting b = V c gives
+    X_e b = (X_e V) c and b' Gamma b = c' diag(w) c — i.e. rotating the
+    columns ONCE and applying the DIAGONAL penalty diag(w) in the rotated
+    coordinates is EXACTLY the dense-Gamma problem, at the cost of the
+    existing diagonal-penalty solver (no new solver machinery, no per-bar
+    dense add). Coefficients in original coordinates are V c if ever needed;
+    fitted values and hence every scored quantity are identical.
+
+    NO SCALING is applied in the rotation: V is orthogonal, so ||b||^2 is
+    preserved and gamma=0 (w_i == alpha for all i) reproduces the plain
+    scalar-ridge problem exactly. Standardizing here would silently change
+    the penalty and break that nesting.
+
+    Frame convention MIRRORS ``_transmission_block._frame_of`` (same frame
+    window [window, 2*window), the same ``_DEGENERATE_SD`` liveness test, the
+    same eigh + descending-eigenvalue ordering). It is deliberately a
+    SEPARATE code path rather than a refactor of that function: transmission
+    arms are in flight, and any reordering of their float operations would
+    silently perturb running results. Dead (zero-dispersion) columns carry no
+    spectrum, so they pass through UNROTATED and are appended after the live
+    rotated block — they occupy the highest eigen-ranks, i.e. the most
+    heavily penalized positions under gamma>0, which is the correct treatment
+    for directions with no variance to explain.
+    """
+    cols = _exog_all_cols(p.names)
+    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    f0, f1 = window, 2 * window
+    zw = z[f0:f1]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    if not live.any():
+        raise SystemExit(
+            "exogenous tilt frame: no live columns in the frame window; "
+            "refusing to build a degenerate rotation"
+        )
+    sdl = np.where(live, sd, 1.0)
+    mu = zw.mean(0)
+    lam, v_l = np.linalg.eigh(np.corrcoef(((zw - mu) / sdl)[:, live], rowvar=False))
+    order = np.argsort(lam)[::-1]  # descending eigenvalue == eigen-rank order
+    v_mat = v_l[:, order]
+    out = np.empty_like(z)
+    n_live = int(live.sum())
+    out[:, :n_live] = z[:, live] @ v_mat  # orthogonal rotation, raw columns
+    out[:, n_live:] = z[:, ~live]  # dead columns pass through, ranked last
+    return out
 
 
 def _pen_value(a: Any) -> Any:
@@ -1885,6 +1952,28 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Generalized-Tikhonov arm (author directive 2026-08-07): the clean
+    # formulation of what the transmission block achieves by AUGMENTATION.
+    # Diagnosis: the transmission columns lie in the span of the existing
+    # design, so they add no information — they help only because their own
+    # weaker block penalty reduces effective shrinkage along those
+    # directions, i.e. anisotropic ridge implemented by duplication. Here the
+    # anisotropy is applied DIRECTLY: three blocks, no duplicated columns,
+    # exogenous penalty Gamma = V diag(alpha * i**gamma) V' realized exactly
+    # in rotated coordinates (see _exog_tilt_design). gamma=0 == blk3_tuned.
+    "blk3_tikhonov_tuned": ArmSpec(
+        describe="generalized Tikhonov: 3 blocks, NO transmission columns, "
+        "exogenous penalty spectrum-tilted as alpha*i**gamma in the frozen "
+        "eigenframe (12-point (alpha, gamma) grid), cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_rot", "exog_tilt"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # Spectral analogue of the per-bucket rung (author directive 2026-08-07):
     # is the K=40 collapse a penalty-allocation artifact rather than a signal
     # boundary? Levels-only (per the parsimony finding), frozen frame at K=40,
@@ -2068,6 +2157,8 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return p.X[:, _backbone_cols(p.names)]
     if block == "exog_all":
         return p.X[:, _exog_all_cols(p.names)]
+    if block == "exog_rot":  # frozen-eigenframe rotation (generalized Tikhonov)
+        return _exog_tilt_design(p, window)
     if block.startswith("bucket:"):
         return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
     if block == "product":

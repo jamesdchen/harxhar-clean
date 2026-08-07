@@ -145,6 +145,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailG_tuned",
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
+        "blk3_tikhonov_tuned",
         # transmission dig (same legality)
         "blk4_trailSym",
         "blk4_trailFullC",
@@ -243,6 +244,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk_bucketpen_tuned", "BlkBucketPenTuned"),
     # Spectral analogue: K=40 levels with a rank-shaped transmission penalty.
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
+    # Generalized Tikhonov: the anisotropy applied directly, no duplication.
+    ("blk3_tikhonov_tuned", "BlkThreeTikhonovTuned"),
     # Transmission dig: operator/frame/width/lag variants of the trailing block.
     ("blk4_trailSym", "BlkFourTrailSym"),
     ("blk4_trailFullC", "BlkFourTrailFullC"),
@@ -339,6 +342,8 @@ _ARM_TEX: dict[str, str] = {
     "(cyclic causal tuning)",
     "blk4_trailGShaped": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty, causally tuned)",
+    "blk3_tikhonov_tuned": "Three-block ridge with spectrum-tilted exogenous "
+    "penalty (generalized Tikhonov, causally tuned)",
     "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
     "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
     "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
@@ -415,6 +420,10 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # vs the levels-only champion the shaping extends)
     ("blk4_trailGShaped", "blk4_trailG_tuned"),
     ("blk4_trailGShaped", "blk4_trail_tuned"),
+    # generalized Tikhonov: does the tilt help at all (bare stem), and does
+    # it match the best model WITHOUT any duplicated transmission columns?
+    ("blk3_tikhonov_tuned", "blk3_tuned"),
+    ("blk3_tikhonov_tuned", "blk4_trailG_tuned"),
     # bucket-grid within-design family comparisons (free-l1 enet vs tuned
     # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
     ("be_tuned_moments", "br_tuned_moments"),
@@ -1562,7 +1571,11 @@ def main(argv: list[str] | None = None) -> int:
     pen_rows: list[dict] = []
     gamma_rows: list[dict] = []
     for root in args.roots:
-        for _pen_arm in ("blk_bucketpen_tuned", "blk4_trailGShaped"):
+        for _pen_arm in (
+            "blk_bucketpen_tuned",
+            "blk4_trailGShaped",
+            "blk3_tikhonov_tuned",
+        ):
             arm_dir = os.path.join(root, _pen_arm)
             if not os.path.isdir(arm_dir):
                 continue
