@@ -140,6 +140,14 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailG",
         "blk4_trailGhat",
         "blk4_trail_tuned",
+        # transmission dig (same legality)
+        "blk4_trailSym",
+        "blk4_trailFullC",
+        "blk4_trailRefresh",
+        "blk4_trailKFive",
+        "blk4_trailKTen",
+        "blk4_trailKForty",
+        "blk4_trailLagTwo",
     )
 }
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
@@ -223,6 +231,14 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailG", "BlkFourTrailG"),
     ("blk4_trailGhat", "BlkFourTrailGhat"),
     ("blk4_trail_tuned", "BlkFourTrailTuned"),
+    # Transmission dig: operator/frame/width/lag variants of the trailing block.
+    ("blk4_trailSym", "BlkFourTrailSym"),
+    ("blk4_trailFullC", "BlkFourTrailFullC"),
+    ("blk4_trailRefresh", "BlkFourTrailRefresh"),
+    ("blk4_trailKFive", "BlkFourTrailKFive"),
+    ("blk4_trailKTen", "BlkFourTrailKTen"),
+    ("blk4_trailKForty", "BlkFourTrailKForty"),
+    ("blk4_trailLagTwo", "BlkFourTrailLagTwo"),
     ("c4_product_alone_user", "ProductAloneUser"),
     ("c4_product_alone_doc", "ProductAloneDoc"),
     ("c4_product_alone_tuned", "ProductAloneTuned"),
@@ -291,6 +307,13 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailG": "Four-block ridge (trailing, factor levels only)",
     "blk4_trailGhat": "Four-block ridge (trailing, lead-lag flow only)",
     "blk4_trail_tuned": "Four-block ridge (trailing transmission, per-block causal tuning)",
+    "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
+    "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
+    "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
+    "blk4_trailKFive": "Four-block ridge (trailing, $K=5$ factors)",
+    "blk4_trailKTen": "Four-block ridge (trailing, $K=10$ factors)",
+    "blk4_trailKForty": "Four-block ridge (trailing, $K=40$ factors)",
+    "blk4_trailLagTwo": "Four-block ridge (trailing, lag-2 lead--lag)",
     "c4_product_alone_user": "HAR + product block only (stated)",
     "c4_product_alone_doc": "HAR + product block only (documented)",
     "c4_product_alone_tuned": "HAR + product block only (tuned)",
@@ -359,6 +382,17 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("tree_tuned", "blk3_tuned"),
     ("tree_tuned", "blk4_trail_tuned"),
     ("tree_hedge", "tree_tuned"),
+    # transmission dig: each variant's increment over the untouched 3-block
+    # lower rung, plus the two head-to-heads the paper quotes
+    ("blk4_trailSym", "blk3_user"),
+    ("blk4_trailFullC", "blk3_user"),
+    ("blk4_trailRefresh", "blk3_user"),
+    ("blk4_trailKFive", "blk3_user"),
+    ("blk4_trailKTen", "blk3_user"),
+    ("blk4_trailKForty", "blk3_user"),
+    ("blk4_trailLagTwo", "blk3_user"),
+    ("blk4_trailSym", "blk4_trail"),
+    ("blk4_trailRefresh", "blk4_trail"),
 ]
 
 

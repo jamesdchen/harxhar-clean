@@ -536,79 +536,199 @@ def _frozen_products(p: _Panel, window: int) -> np.ndarray:
 # ── transmission block (frozen frame + Cucuringu lead-lag) ────────────────────
 
 
-def _transmission_block(
-    p: _Panel, window: int, parts: str, standardization: str = "frozen"
-) -> np.ndarray:
-    """Transmission block; ``parts`` selects the composition (ablation triple,
-    author directive 2026-08-07): "both" = [factor scores G | lead-lag Ghat]
-    (2*TRANS_QPOOL cols, the _user convention), "scores" = G only (well-scaled
-    factor levels), "flow" = Ghat only (the lead-lag flow mechanism; also the
-    _doc convention's documented construction).
+# Diagnostics stash for the LAST transmission construction in this process
+# (transmission dig, 2026-08-07): per-refresh operator matrices, frame
+# eigenvalues (top-K per estimation), and refresh row indices — persisted as
+# npz arrays by compute() (arrays belong in the npz; JSON meta stays light).
+_LAST_TRANS_DIAG: dict[str, Any] | None = None
 
-    Frame: eigenvectors of the correlation of the product-base columns over rows
-    [window, 2*window), FROZEN in BOTH modes (span-stable per the
-    gauge-degeneracy result; no frame refresh).
-    Ghat: analysis/trans_exploit._trans_block — D = antisym(lag-1 cross-corr) of
-    the trailing 504 days of G, refreshed quarterly, Ghat_t = G_{t-1} @ D; zero
-    until the first D exists (the study zero-fills identically and masks activity
-    downstream via the persisted row indices).
 
-    ``standardization``:
-      * "frozen"   — scores standardized by frozen frame-window stats; Ghat
-        causally floored-sd scaled (the original campaign construction).
-      * "trailing" — the transmission-REVIVAL construction (author directive
-        2026-08-06): the study's promising transmission numbers are attributed
-        to its FULL-SAMPLE standardization of G — a look-ahead whose real
-        service was keeping the factor scores' effective scale (and hence the
-        block's effective shrinkage under a fixed alpha) from drifting as
-        factor variances wander over 18 years. This mode provides that service
-        CAUSALLY: (a) G is standardized by TRAILING mean/sd over the same
-        504-day window D uses (rolling, causal shift(1), min_periods = the
-        full window per the repo's trailing-stats convention); (b) the
-        resulting [G|Ghat] columns then pass through the SAME rolling robust
-        scaler every other exogenous feature gets (rolling_robust_scale at the
-        arm's window), folding them into the standard prep path instead of
-        entering frozen-scale. Together these remove the effective-shrinkage
-        drift the full-sample standardization was illegitimately fixing —
-        with trailing information only.
+def _lagged_xcorr_op(g_hist: np.ndarray, lag: int, operator: str) -> np.ndarray:
+    """The refresh-window operator from the lag-``lag`` cross-correlation C of
+    the (already standardized) trailing factor scores. ``operator``:
+      * "antisym" — D = (C - C')/2, the Cucuringu lead-lag flow (diagonal is
+        STRUCTURALLY zero: (C_ii - C_ii)/2 = 0).
+      * "sym"     — S = (C + C')/2 with the diagonal zeroed EXPLICITLY to
+        mirror D's structurally-zero diagonal (the lead-lag falsification
+        control must differ only in the antisymmetric/symmetric split, not in
+        self-persistence terms).
+      * "full"    — the undecomposed C itself (diagonal kept; S+D == C).
     """
+    a, b = g_hist[:-lag], g_hist[lag:]
+    az = (a - a.mean(0)) / (a.std(0) + _SD_EPS)
+    bz = (b - b.mean(0)) / (b.std(0) + _SD_EPS)
+    c_mat = (az.T @ bz) / len(az)
+    if operator == "antisym":
+        return (c_mat - c_mat.T) / 2.0
+    if operator == "sym":
+        s_mat = (c_mat + c_mat.T) / 2.0
+        np.fill_diagonal(s_mat, 0.0)
+        return s_mat
+    if operator == "full":
+        return c_mat
+    raise KeyError(f"unknown transmission operator '{operator}'")
+
+
+def _align_frame(v_prev: np.ndarray, v_new: np.ndarray) -> np.ndarray:
+    """Order+sign alignment of a refreshed eigenframe against its predecessor
+    (blk4_trailRefresh). RULE: greedy maximum-|dot| assignment — enumerate all
+    (prev_col, new_col) pairs by |v_prev_i . v_new_j| descending, assign each
+    prev slot the best unused new eigenvector; then flip each assigned
+    vector's sign so its dot with the predecessor is positive. Eigen-solvers
+    return vectors up to sign and eigenvalue-crossings reorder them; without
+    this, coefficient continuity across refreshes is destroyed by pure gauge
+    flips. Greedy on |dot| is the standard frame-tracking heuristic (near-
+    optimal when the frame is span-stable, which the gauge-degeneracy result
+    established)."""
+    k = v_prev.shape[1]
+    dots = np.abs(v_prev.T @ v_new)
+    pairs = sorted(
+        ((dots[i, j], i, j) for i in range(k) for j in range(k)), reverse=True
+    )
+    order = np.full(k, -1)
+    used: set[int] = set()
+    for _, i, j in pairs:
+        if order[i] == -1 and j not in used:
+            order[i] = j
+            used.add(j)
+    v_out = v_new[:, order]
+    signs = np.sign(np.sum(v_prev * v_out, axis=0))
+    signs[signs == 0] = 1.0
+    return v_out * signs
+
+
+def _transmission_block(
+    p: _Panel,
+    window: int,
+    parts: str,
+    standardization: str = "frozen",
+    operator: str = "antisym",
+    frame: str = "frozen",
+    qpool: int | None = None,
+    lag: int | None = None,
+) -> np.ndarray:
+    """Transmission block; ``parts`` selects the composition: "both" =
+    [factor scores G | lead-lag Ghat] (2K cols, the _user convention),
+    "scores" = G only, "flow" = Ghat only (the _doc documented construction).
+
+    ``standardization``: "frozen" (frame-window stats + floored-sd Ghat scale
+    — the original campaign construction) or "trailing" (the revival: causal
+    trailing standardization + the standard rolling robust scaler; see the
+    2026-08-06 ruling notes at the TRANS constants).
+
+    TRANSMISSION DIG knobs (author directive 2026-08-07; every new arm keeps
+    the trailing standardization and the fixed user penalties):
+      * ``operator`` — "antisym" (D, the construction), "sym" (S, the
+        lead-lag falsification control; diagonal zeroed to mirror D), "full"
+        (undecomposed C). See :func:`_lagged_xcorr_op`.
+      * ``frame`` — "frozen" (top-K eigenvectors of the first-window
+        correlation, the span-stability convention) or "refresh" (top-K
+        eigenvectors of the TRAILING 504d correlation, re-estimated quarterly
+        IN LOCKSTEP with the operator, never seeing the future; consecutive
+        frames order+sign-aligned per :func:`_align_frame`; scores are
+        standardized by each refresh's own estimation-window stats — a causal
+        quarterly standardization, so the extra rolling G-standardization of
+        the frozen-frame trailing path is redundant here and skipped).
+      * ``qpool`` — frame width K (default TRANS_QPOOL=20; LOUD failure when
+        K exceeds the available spectrum).
+      * ``lag`` — cross-correlation lag in bars (default 1); Ghat_t =
+        Op·G(t-lag) with Op estimated from the lag-``lag`` cross-correlation.
+
+    Diagnostics: per-refresh operator matrices, top-K frame eigenvalues, and
+    refresh row indices are stashed in module-level ``_LAST_TRANS_DIAG`` and
+    persisted by compute() into the chunk npz (mechanism analysis without
+    refits).
+    """
+    global _LAST_TRANS_DIAG
+    k_pool = TRANS_QPOOL if qpool is None else int(qpool)
+    lag = TRANS_LAG_BARS if lag is None else int(lag)
     bc = _product_base_cols(p.names)
     Z = np.ascontiguousarray(p.X[:, bc])
     f0, f1 = window, 2 * window
-    mu0, sd0 = Z[f0:f1].mean(0), Z[f0:f1].std(0)
-    live = sd0 > _DEGENERATE_SD
-    sd0 = np.where(live, sd0, 1.0)
-    lam, V_l = np.linalg.eigh(
-        np.corrcoef(((Z[f0:f1] - mu0) / sd0)[:, live], rowvar=False)
-    )
-    order = np.argsort(lam)[::-1]
-    V = np.zeros((Z.shape[1], len(lam)))
-    V[live] = V_l[:, order]
-    W = V[:, :TRANS_QPOOL] / sd0[:, None]
-    G = (Z - mu0) @ W
+    n = len(Z)
     trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
-    if standardization == "trailing":
-        gm = pd.DataFrame(G).rolling(trail, min_periods=trail).mean().shift(1)
-        gs = pd.DataFrame(G).rolling(trail, min_periods=trail).std().shift(1)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            G = (G - gm.to_numpy()) / gs.to_numpy()
-        G[~np.isfinite(G)] = 0.0  # warm-up rows (< trail bars of history)
-    else:
-        g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
-        G = (G - g_mu) / g_sd
-
-    n = len(G)
     refresh = TRANS_REFRESH_DAYS * PERIODS_PER_DAY
-    lag = TRANS_LAG_BARS
-    Ghat = np.zeros_like(G)
-    for start in range(f1 + trail, n, refresh):
-        a, b = G[start - trail : start - lag], G[start - trail + lag : start]
-        az = (a - a.mean(0)) / (a.std(0) + _SD_EPS)
-        bz = (b - b.mean(0)) / (b.std(0) + _SD_EPS)
-        C = (az.T @ bz) / len(az)
-        D = (C - C.T) / 2.0
-        end = min(start + refresh, n)
-        Ghat[start:end] = G[start - lag : end - lag] @ D
+    ops_rec: list[np.ndarray] = []
+    eig_rec: list[np.ndarray] = []
+    rows_rec: list[int] = []
+
+    def _frame_of(zw: np.ndarray):
+        """(unit eigvec matrix V (n_base, K), per-col scale, mean, top-K eigvals)
+        of the correlation of one estimation window; LOUD failure when K
+        exceeds the available (live-column) spectrum."""
+        mu, sd = zw.mean(0), zw.std(0)
+        live = sd > _DEGENERATE_SD
+        sdl = np.where(live, sd, 1.0)
+        lam, v_l = np.linalg.eigh(np.corrcoef(((zw - mu) / sdl)[:, live], rowvar=False))
+        order = np.argsort(lam)[::-1]
+        n_avail = int(live.sum())
+        if k_pool > n_avail:
+            raise SystemExit(
+                f"transmission qpool K={k_pool} exceeds the available spectrum "
+                f"({n_avail} live base columns) — no silent cap"
+            )
+        v_full = np.zeros((Z.shape[1], len(lam)))
+        v_full[live] = v_l[:, order]
+        return v_full[:, :k_pool], sdl, mu, lam[order][:k_pool]
+
+    if frame == "frozen":
+        v0, sd0, mu0, eig0 = _frame_of(Z[f0:f1])
+        eig_rec.append(eig0)
+        w_mat = v0 / sd0[:, None]
+        G = (Z - mu0) @ w_mat
+        if standardization == "trailing":
+            gm = pd.DataFrame(G).rolling(trail, min_periods=trail).mean().shift(1)
+            gs = pd.DataFrame(G).rolling(trail, min_periods=trail).std().shift(1)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                G = (G - gm.to_numpy()) / gs.to_numpy()
+            G[~np.isfinite(G)] = 0.0  # warm-up rows (< trail bars of history)
+        else:
+            g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
+            G = (G - g_mu) / g_sd
+        Ghat = np.zeros_like(G)
+        for start in range(f1 + trail, n, refresh):
+            op = _lagged_xcorr_op(G[start - trail : start], lag, operator)
+            end = min(start + refresh, n)
+            Ghat[start:end] = G[start - lag : end - lag] @ op
+            ops_rec.append(op)
+            rows_rec.append(start)
+    elif frame == "refresh":
+        # Causal trailing frame, quarterly, order+sign-aligned; G and Ghat both
+        # zero before the first refresh boundary (frame needs 504d of history
+        # and starts in lockstep with the operator loop).
+        G = np.zeros((n, k_pool))
+        Ghat = np.zeros((n, k_pool))
+        v_prev: np.ndarray | None = None
+        for start in range(f1 + trail, n, refresh):
+            zw = Z[start - trail : start]
+            v_new, sdl, mu, eig = _frame_of(zw)
+            if v_prev is not None:
+                v_new = _align_frame(v_prev, v_new)
+            v_prev = v_new
+            w_mat = v_new / sdl[:, None]
+            g_hist = (zw - mu) @ w_mat
+            g_mu, g_sd = g_hist.mean(0), g_hist.std(0) + _SD_EPS
+            g_hist = (g_hist - g_mu) / g_sd
+            end = min(start + refresh, n)
+            G[start:end] = ((Z[start:end] - mu) @ w_mat - g_mu) / g_sd
+            op = _lagged_xcorr_op(g_hist, lag, operator)
+            g_lagged = ((Z[start - lag : end - lag] - mu) @ w_mat - g_mu) / g_sd
+            Ghat[start:end] = g_lagged @ op
+            ops_rec.append(op)
+            eig_rec.append(eig)
+            rows_rec.append(start)
+    else:
+        raise KeyError(f"unknown transmission frame mode '{frame}'")
+
+    _LAST_TRANS_DIAG = {
+        "operator": operator,
+        "frame": frame,
+        "qpool": k_pool,
+        "lag": lag,
+        "ops": np.stack(ops_rec) if ops_rec else np.zeros((0, k_pool, k_pool)),
+        "eigvals": np.stack(eig_rec) if eig_rec else np.zeros((0, k_pool)),
+        "refresh_rows": np.asarray(rows_rec, dtype=np.int64),
+    }
     if standardization == "trailing":
         from src.features.transforms.scaling import rolling_robust_scale
 
@@ -1590,6 +1710,63 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Transmission dig (author directive 2026-08-07): 7 variants of the
+    # trailing construction, fixed user penalties, same window/legality as
+    # blk4_trail. Mechanism diagnostics (per-refresh operators, frame
+    # eigenvalues, refresh rows) persist per chunk as npz arrays.
+    **{
+        name: _blk(
+            [
+                ("backbone", "backbone"),
+                ("exog_all", "exog"),
+                ("product", "product"),
+                (trans_key, "trans"),
+            ],
+            USER_ALPHAS,
+            None,
+            desc,
+        )
+        for name, trans_key, desc in (
+            (
+                "blk4_trailSym",
+                "trans_trailSym",
+                "dig: SYMMETRIC part S of the lagged cross-correlation "
+                "(lead-lag falsification control; diag zeroed to mirror D)",
+            ),
+            (
+                "blk4_trailFullC",
+                "trans_trailFullC",
+                "dig: undecomposed lagged cross-correlation C as the operator",
+            ),
+            (
+                "blk4_trailRefresh",
+                "trans_trailRefresh",
+                "dig: frame re-estimated causally (trailing 504d corr, "
+                "quarterly, order+sign-aligned across refreshes)",
+            ),
+            (
+                "blk4_trailKFive",
+                "trans_trailK5",
+                "dig: frozen frame at K=5 eigenvectors",
+            ),
+            (
+                "blk4_trailKTen",
+                "trans_trailK10",
+                "dig: frozen frame at K=10 eigenvectors",
+            ),
+            (
+                "blk4_trailKForty",
+                "trans_trailK40",
+                "dig: frozen frame at K=40 eigenvectors (loud fail if the "
+                "spectrum is narrower)",
+            ),
+            (
+                "blk4_trailLagTwo",
+                "trans_trailLag2",
+                "dig: lag-2-bar cross-correlation operator, Ghat = D2.G(t-2)",
+            ),
+        )
+    },
     # Causally-TUNED block ladder (author directive 2026-08-06): _user block
     # structures, per-block alphas re-selected jointly every TUNE_PER=250
     # solves over BLOCK_TUNE_GRIDS (see _walk_blocks_tuned; selection
@@ -1668,6 +1845,35 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         )
     if block == "trans_trailGhat":  # ablation: trailing lead-lag FLOW only
         return _transmission_block(p, window, parts="flow", standardization="trailing")
+    # Transmission dig (2026-08-07): variants of the trailing construction.
+    if block == "trans_trailSym":  # lead-lag falsification: symmetric part S
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", operator="sym"
+        )
+    if block == "trans_trailFullC":  # undecomposed lagged cross-correlation C
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", operator="full"
+        )
+    if block == "trans_trailRefresh":  # causal quarterly-refreshed frame
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", frame="refresh"
+        )
+    if block == "trans_trailK5":
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", qpool=5
+        )
+    if block == "trans_trailK10":
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", qpool=10
+        )
+    if block == "trans_trailK40":
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", qpool=40
+        )
+    if block == "trans_trailLag2":  # lag-2-bar cross-correlation; Ghat = Op.G(t-2)
+        return _transmission_block(
+            p, window, parts="both", standardization="trailing", lag=2
+        )
     raise KeyError(f"unknown block '{block}'")
 
 
@@ -1785,6 +1991,8 @@ def compute(args: argparse.Namespace) -> None:
     if arm not in ARMS:
         raise SystemExit(f"unknown arm '{arm}'.\n{_registry_text()}")
     spec = ARMS[arm]
+    global _LAST_TRANS_DIAG
+    _LAST_TRANS_DIAG = None  # populated by any transmission-block build below
 
     missing = [
         f
@@ -1886,8 +2094,22 @@ def compute(args: argparse.Namespace) -> None:
     }
 
     os.makedirs(os.path.dirname(args.output_file) or ".", exist_ok=True)
+    # transmission mechanism diagnostics (dig 2026-08-07): arrays ride in the
+    # npz (meta carries only the summary — a 90x40x40 float stack does not
+    # belong in JSON), unlocking operator/spectrum analysis without refits.
+    td = _LAST_TRANS_DIAG
+    trans_arrays: dict[str, Any] = (
+        {
+            "trans_ops": td["ops"],
+            "trans_eigvals": td["eigvals"],
+            "trans_refresh_rows": td["refresh_rows"],
+        }
+        if td is not None
+        else {}
+    )
     np.savez_compressed(
         args.output_file,
+        **trans_arrays,
         row_id=np.arange(lo, hi, dtype=np.int64),
         t=p.t[lo:hi],
         y_fit=np.asarray(y_fit, dtype=np.float64),
@@ -1935,6 +2157,19 @@ def compute(args: argparse.Namespace) -> None:
                 "tuned_alphas": tuned_alphas,
                 # tree expert arms: the frozen menu entry (name, params, sha)
                 "tree_config": tree_cfg,
+                # transmission dig: construction summary (arrays in the npz
+                # under trans_ops / trans_eigvals / trans_refresh_rows)
+                "transmission_diag": (
+                    {
+                        "operator": td["operator"],
+                        "frame": td["frame"],
+                        "qpool": td["qpool"],
+                        "lag": td["lag"],
+                        "n_refresh": int(len(td["refresh_rows"])),
+                    }
+                    if td is not None
+                    else {}
+                ),
                 # single-estimator tuned arms: selected (alpha, l1_ratio) per
                 # retune boundary + per-chunk means (the shrink-vs-select
                 # exhibit; l1_ratio=0 for pure-ridge grids)
