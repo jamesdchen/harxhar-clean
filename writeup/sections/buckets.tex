@@ -151,17 +151,22 @@ provide the joint fits}
 \subsection{The Joint Bucket}
 
 The joint \texttt{all\_features} arm has QLIKE \unifAllFeaturesQLIKE{},
-the highest in Table~\ref{tab:buckets}: worse than the incumbent
-(\unifAllFeaturesDM{}) and worse than every single bucket, while five of
-those single buckets individually match or beat the incumbent. The design
-matrix behind the joint arm carries $\sim 1{,}077$ columns into an
-unpenalized least-squares fit on a $24{,}000$-bar window; the same columns
-under the per-block shrinkage of Sections~\ref{sec:dense_weak} and
-\ref{sec:nonlinear_product} produce the paper's best forecasts
-(\unifBlkThreeUserQLIKE{} at \unifBlkThreeUserDM{}). The pair of facts ---
-information present in the parts, joint extraction failing without
-shrinkage and succeeding with it --- is the section's handoff to the
-estimator design of Section~\ref{sec:dense_weak}.
+the highest in Table~\ref{tab:buckets} (\unifAllFeaturesDM{} against the
+incumbent). That headline number is not a statement about the joint
+information: per-window loss decomposition attributes more than the
+arm's entire net deficit to a single evaluation window, in which a small
+number of bars carry forecast values far outside the arm's normal range
+and the window-level correction spreads their residuals across every bar
+of the window; excluding that one window the joint arm improves on the
+incumbent. \decide{the single-window incident in the joint arm is under
+investigation (same class as the market-aggregate window disclosed above:
+localized numerical contamination amplified by a window-scalar
+correction); the arm is to be re-run once the mechanism is closed, and no
+conclusion about joint extraction under literal OLS should be drawn from
+the current row} The same columns under the per-block shrinkage of
+Sections~\ref{sec:dense_weak} and \ref{sec:nonlinear_product} produce the
+paper's best forecasts (\unifBlkThreeUserQLIKE{} at
+\unifBlkThreeUserDM{}).
 
 An independent every-bar robustness design was run on a different panel:
 rolling $1{,}000$-trading-day window; HAR block exactly unpenalized via
