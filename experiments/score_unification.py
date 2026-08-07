@@ -182,6 +182,24 @@ _REGISTRY: list[tuple[str, str]] = [
     # window 24000, full design). tab:lasso_vs_ridge is macro-wired in
     # dense_weak.tex, so the macro trio below is the complete wiring.
     ("b3_enet_tuned", "BThreeEnetTuned"),
+    # Merged-§4/§5 bucket grid: per-bucket causally tuned ridge / free-l1 enet
+    # (8 designs = 7 single buckets + the joint all_features, as with A1..A8).
+    ("br_tuned_moments", "BrTunedMoments"),
+    ("br_tuned_liquidity", "BrTunedLiquidity"),
+    ("br_tuned_market_ew", "BrTunedMarketEw"),
+    ("br_tuned_market_vw", "BrTunedMarketVw"),
+    ("br_tuned_sentiment", "BrTunedSentiment"),
+    ("br_tuned_implied_vol", "BrTunedImpliedVol"),
+    ("br_tuned_vol_demand", "BrTunedVolDemand"),
+    ("br_tuned_all_features", "BrTunedAllFeatures"),
+    ("be_tuned_moments", "BeTunedMoments"),
+    ("be_tuned_liquidity", "BeTunedLiquidity"),
+    ("be_tuned_market_ew", "BeTunedMarketEw"),
+    ("be_tuned_market_vw", "BeTunedMarketVw"),
+    ("be_tuned_sentiment", "BeTunedSentiment"),
+    ("be_tuned_implied_vol", "BeTunedImpliedVol"),
+    ("be_tuned_vol_demand", "BeTunedVolDemand"),
+    ("be_tuned_all_features", "BeTunedAllFeatures"),
     # Penalty-jiggle appendix arms: b1_ridge at fixed alternative alphas
     # (LaTeX-safe camels — macro names cannot carry bare digits).
     ("b1_ridge_a0p1", "BOneRidgeApOne"),
@@ -233,6 +251,22 @@ _ARM_TEX: dict[str, str] = {
     "b1_ridge_tuned": "Ridge, causally tuned",
     "b2_lasso_tuned": "Lasso, causally tuned",
     "b3_enet_tuned": "Elastic net, causally tuned",
+    "br_tuned_moments": "HAR + moments bucket (ridge, causally tuned)",
+    "br_tuned_liquidity": "HAR + liquidity bucket (ridge, causally tuned)",
+    "br_tuned_market_ew": "HAR + market EW bucket (ridge, causally tuned)",
+    "br_tuned_market_vw": "HAR + market VW bucket (ridge, causally tuned)",
+    "br_tuned_sentiment": "HAR + sentiment bucket (ridge, causally tuned)",
+    "br_tuned_implied_vol": "HAR + implied vol bucket (ridge, causally tuned)",
+    "br_tuned_vol_demand": "HAR + vol demand bucket (ridge, causally tuned)",
+    "br_tuned_all_features": "HAR + all features bucket (ridge, causally tuned)",
+    "be_tuned_moments": "HAR + moments bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_liquidity": "HAR + liquidity bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_market_ew": "HAR + market EW bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_market_vw": "HAR + market VW bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_sentiment": "HAR + sentiment bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_implied_vol": "HAR + implied vol bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_vol_demand": "HAR + vol demand bucket (elastic net, causally tuned, free mixing)",
+    "be_tuned_all_features": "HAR + all features bucket (elastic net, causally tuned, free mixing)",
     "b1_ridge_a0p1": r"Ridge, fixed $\alpha=0.1$",
     "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
     "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
@@ -303,6 +337,16 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailG", "blk3_user"),
     ("blk4_trailGhat", "blk3_user"),
     ("blk4_trail_tuned", "blk3_tuned"),
+    # bucket-grid within-design family comparisons (free-l1 enet vs tuned
+    # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
+    ("be_tuned_moments", "br_tuned_moments"),
+    ("be_tuned_liquidity", "br_tuned_liquidity"),
+    ("be_tuned_market_ew", "br_tuned_market_ew"),
+    ("be_tuned_market_vw", "br_tuned_market_vw"),
+    ("be_tuned_sentiment", "br_tuned_sentiment"),
+    ("be_tuned_implied_vol", "br_tuned_implied_vol"),
+    ("be_tuned_vol_demand", "br_tuned_vol_demand"),
+    ("be_tuned_all_features", "br_tuned_all_features"),
 ]
 
 

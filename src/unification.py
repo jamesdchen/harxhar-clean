@@ -216,6 +216,16 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     # grid VERBATIM (specs/causal_tune_linear.py:170): alphas logspace(-6,-2,5)
     # at l1_ratio=0.5, sklearn ElasticNet units, warm Garrigues homotopy.
     "enet_tuned": [("enet", float(a), 0.5) for a in np.logspace(-6, -2, 5)],
+    # FREE-l1 elastic net (merged-§4/§5 directive 2026-08-07): alphas
+    # logspace(-6,-2,5) x l1_ratio {0.25, 0.5, 0.75, 1.0} = 20 combos per
+    # retune. The l1_ratio=1.0 rows ARE lasso — the family spans selection
+    # strength and the tuner's revealed (alpha, l1_ratio) trajectory (persisted
+    # in meta.tuned_penalty) is the section's key exhibit.
+    "enet_free": [
+        ("enet", float(a), float(l1))
+        for a in np.logspace(-6, -2, 5)
+        for l1 in (0.25, 0.5, 0.75, 1.0)
+    ],
 }
 
 # Per-block alpha grids for the causally-tuned BLOCK arms (author directive
@@ -1017,6 +1027,9 @@ class RollingTunedLinear:
 
     def __init__(self, grid: list[tuple[str, float, float]]) -> None:
         self.grid = list(grid)
+        # selection trajectory: (solve index at retune, alpha, l1_ratio) —
+        # persisted by the caller as meta.tuned_penalty (2026-08-07 directive)
+        self.trace: list[tuple[int, float, float]] = []
 
     def init_window(self, X_win, y_win):
         X = np.asarray(X_win, dtype=np.float64)
@@ -1154,6 +1167,7 @@ class RollingTunedLinear:
             if best is None or mse < best[0]:
                 best = (mse, kind, a, l1)
         _, self.kind_, self.alpha_, self.l1_ = best
+        self.trace.append((int(self._n_solve), float(self.alpha_), float(self.l1_)))
         self._seed()
 
     def solve(self):
@@ -1174,9 +1188,11 @@ def _walk_tuned(
     lo: int,
     hi: int,
     grid: list[tuple[str, float, float]],
-) -> np.ndarray:
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
     """Per-bar walk-forward driving the RollingTunedLinear incremental protocol
-    (init_window / solve / predict_one / roll), chunk seam as in _walk_ridge."""
+    (init_window / solve / predict_one / roll), chunk seam as in _walk_ridge.
+    Returns (yhat, tuned_penalty trajectory: [{row, alpha, l1_ratio}] per
+    retune boundary — the revealed shrink-vs-select preference)."""
     Xs = np.ascontiguousarray(F[lo - window : hi])
     ys = np.ascontiguousarray(y[lo - window : hi])
     solver = RollingTunedLinear(grid).init_window(Xs[:window], ys[:window])
@@ -1186,7 +1202,10 @@ def _walk_tuned(
         solver.solve()
         out[i] = solver.predict_one(Xs[t])
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
-    return out
+    traj = [
+        {"row": int(lo + s), "alpha": a, "l1_ratio": l1} for s, a, l1 in solver.trace
+    ]
+    return out, traj
 
 
 # ── arm registry ──────────────────────────────────────────────────────────────
@@ -1261,6 +1280,34 @@ ARMS: dict[str, ArmSpec] = {
         aliases=("a10_noexog",),
     ),
     **{f"a_bucket_{b}": _bucket_arm(b) for b in _BUCKETS},
+    # Merged-§4/§5 bucket grid (author directive 2026-08-07): the attribution
+    # story rerun under competent causal estimators — per bucket design
+    # (backbone + bucket cols, same matrices as a_bucket_*), a causally tuned
+    # ridge and a causally tuned FREE-l1 elastic net. NOTE the directive's
+    # count of 9 designs resolves to the canonical SUBGROUPS enumeration's 8
+    # (7 single buckets + all_features = the joint design), as with A1..A8.
+    # No legality exclusion: no frozen constructions involved.
+    **{
+        f"br_tuned_{b}": ArmSpec(
+            describe=f"bucket grid: '{b}' design, causally TUNED ridge "
+            "(battery grid logspace(-2,3,6), TUNE_PER=250)",
+            kind="tuned",
+            grid="ridge_tuned",
+            blocks=[("backbone", ""), (f"bucket:{b}", "")],
+        )
+        for b in _BUCKETS
+    },
+    **{
+        f"be_tuned_{b}": ArmSpec(
+            describe=f"bucket grid: '{b}' design, causally TUNED elastic net "
+            "with FREE l1_ratio (20-combo grid; l1=1 rows are lasso; "
+            "trajectory in meta.tuned_penalty)",
+            kind="tuned",
+            grid="enet_free",
+            blocks=[("backbone", ""), (f"bucket:{b}", "")],
+        )
+        for b in _BUCKETS
+    },
     "b1_ridge": ArmSpec(
         describe="FIXED-penalty ridge on the wide all_features basis, alpha=1.0 "
         "(DEFAULT_RIDGE_PARAMS — untuned production default; no tuning "
@@ -1538,7 +1585,10 @@ def _build_design(p: _Panel, spec: ArmSpec, window: int) -> tuple[np.ndarray, fl
     scaling block j by sqrt(a_ref / a_j) under global ridge a_ref is EXACTLY the
     per-block penalty (minimal_model.py:297-299); intercept stays unpenalized."""
     if spec.kind == "tuned":
-        return p.X, 0.0
+        if spec.blocks:  # per-bucket tuned family: backbone + bucket design
+            idx, _ = _design_cols(p, spec)
+            return np.ascontiguousarray(p.X[:, idx]), 0.0
+        return p.X, 0.0  # head-to-head tuned arms: the full wide basis
     a_ref = (
         spec.alphas[spec.blocks[0][1]]
         if len(spec.blocks) == 1
@@ -1589,9 +1639,9 @@ def _tuned_blocks_design(
     return np.hstack(parts), segments
 
 
-def _ols_design(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str], list[str]]:
-    """OLS design by named column selection + deterministic dedup (see
-    :func:`_dedup_ols_design`). Returns (F, kept_names, dropped_names)."""
+def _design_cols(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str]]:
+    """Column indices + names for backbone/bucket-composed designs (the OLS
+    family and the per-bucket tuned family share this assembly)."""
     cols: list[int] = []
     for b, _ in spec.blocks:
         if b == "backbone":
@@ -1599,9 +1649,18 @@ def _ols_design(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str], list[s
         elif b.startswith("bucket:"):
             cols += list(_bucket_cols(p.names, b.split(":", 1)[1]))
         else:
-            raise KeyError(f"OLS arms only compose backbone/bucket blocks, got '{b}'")
-    names_design = [p.names[j] for j in cols]
-    return _dedup_ols_design(p.X[:, np.asarray(cols, dtype=np.int64)], names_design)
+            raise KeyError(
+                f"only backbone/bucket blocks compose this design, got '{b}'"
+            )
+    idx = np.asarray(cols, dtype=np.int64)
+    return idx, [p.names[j] for j in idx]
+
+
+def _ols_design(p: _Panel, spec: ArmSpec) -> tuple[np.ndarray, list[str], list[str]]:
+    """OLS design by named column selection + deterministic dedup (see
+    :func:`_dedup_ols_design`). Returns (F, kept_names, dropped_names)."""
+    idx, names_design = _design_cols(p, spec)
+    return _dedup_ols_design(p.X[:, idx], names_design)
 
 
 def _registry_text() -> str:
@@ -1672,6 +1731,7 @@ def compute(args: argparse.Namespace) -> None:
     ladder_drops: dict[str, list[int]] = {}
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
+    tuned_penalty: list[dict[str, Any]] = []
     if spec.kind == "ols":
         # Min-norm path (2026-08-07): panel bitwise dedup stays (hygiene); the
         # QR entry drops / atomic ladder drops / sticky repair are retired —
@@ -1690,7 +1750,9 @@ def compute(args: argparse.Namespace) -> None:
         yhat, tuned_alphas = _walk_blocks_tuned(F, segments, p.y, window, lo, hi)
     else:
         F, _ = _build_design(p, spec, window)
-        yhat = _walk_tuned(F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid])
+        yhat, tuned_penalty = _walk_tuned(
+            F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid]
+        )
 
     y_fit = p.y[lo:hi]
     # Persistence-path alignment gate for EVERY arm (v2 trail incident): the
@@ -1759,6 +1821,23 @@ def compute(args: argparse.Namespace) -> None:
                 # causal per-block alpha selection trajectory (blocks_tuned
                 # arms): [{row, alphas}] per retune boundary — paper-relevant
                 "tuned_alphas": tuned_alphas,
+                # single-estimator tuned arms: selected (alpha, l1_ratio) per
+                # retune boundary + per-chunk means (the shrink-vs-select
+                # exhibit; l1_ratio=0 for pure-ridge grids)
+                "tuned_penalty": tuned_penalty,
+                "tuned_penalty_summary": (
+                    {
+                        "mean_alpha": float(
+                            np.mean([e["alpha"] for e in tuned_penalty])
+                        ),
+                        "mean_l1_ratio": float(
+                            np.mean([e["l1_ratio"] for e in tuned_penalty])
+                        ),
+                        "n_retunes": len(tuned_penalty),
+                    }
+                    if tuned_penalty
+                    else {}
+                ),
                 "smear": "none (scored locally, §3 contract)",
             }
         ),
