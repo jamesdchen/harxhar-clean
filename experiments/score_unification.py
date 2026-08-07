@@ -150,6 +150,10 @@ _REGISTRY: list[tuple[str, str]] = [
     # periodic causal forward-split re-selection; window 24000, full design).
     ("b1_ridge_tuned", "BOneRidgeTuned"),
     ("b2_lasso_tuned", "BTwoLassoTuned"),
+    # v2 addition: causally tuned elastic net (battery reclasticnet grid,
+    # window 24000, full design). tab:lasso_vs_ridge is macro-wired in
+    # dense_weak.tex, so the macro trio below is the complete wiring.
+    ("b3_enet_tuned", "BThreeEnetTuned"),
     ("blk2_user", "BlkTwoUser"),
     ("blk3_user", "BlkThreeUser"),
     ("blk4_user", "BlkFourUser"),

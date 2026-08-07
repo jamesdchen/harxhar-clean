@@ -212,6 +212,11 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     "ridge_tuned": [("ridge", float(a), 0.0) for a in np.logspace(-2, 3, 6)],
     # lasso alphas: logspace(-6, -2, 5) = 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 (l1=1.0)
     "lasso_tuned": [("lasso", float(a), 1.0) for a in np.logspace(-6, -2, 5)],
+    # elastic net (author directive 2026-08-06: the tuned ridge/lasso near-tie
+    # needs the interpolating family) — the battery's documented reclasticnet
+    # grid VERBATIM (specs/causal_tune_linear.py:170): alphas logspace(-6,-2,5)
+    # at l1_ratio=0.5, sklearn ElasticNet units, warm Garrigues homotopy.
+    "enet_tuned": [("enet", float(a), 0.5) for a in np.logspace(-6, -2, 5)],
 }
 
 # Per-block alpha grids for the causally-tuned BLOCK arms (author directive
@@ -1245,6 +1250,15 @@ ARMS: dict[str, ArmSpec] = {
         "Garrigues homotopy between reselections, identifiability mask",
         kind="tuned",
         grid="lasso_tuned",
+    ),
+    "b3_enet_tuned": ArmSpec(
+        describe="causally-TUNED elastic net on the wide basis (the "
+        "ridge/lasso-interpolating family): battery reclasticnet grid "
+        "verbatim — logspace(-6,-2,5) at l1_ratio=0.5 "
+        "(specs/causal_tune_linear.py:170), 250-solve reselection, warm "
+        "enet_online homotopy, identifiability mask",
+        kind="tuned",
+        grid="enet_tuned",
     ),
     "blk2_user": _blk(
         [("backbone", "backbone"), ("exog_all", "exog")],
