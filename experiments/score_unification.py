@@ -180,8 +180,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("b3_enet_tuned", "BThreeEnetTuned"),
     # Penalty-jiggle appendix arms: b1_ridge at fixed alternative alphas
     # (LaTeX-safe camels — macro names cannot carry bare digits).
-    ("b1_ridge_a0p1", "BOneRidgeAp1"),
-    ("b1_ridge_a0p3", "BOneRidgeAp3"),
+    ("b1_ridge_a0p1", "BOneRidgeApOne"),
+    ("b1_ridge_a0p3", "BOneRidgeApThree"),
     ("b1_ridge_a3", "BOneRidgeAthree"),
     ("b1_ridge_a10", "BOneRidgeAten"),
     ("blk2_user", "BlkTwoUser"),
