@@ -25,7 +25,7 @@ Model & QLIKE & $\Delta$ & DM $t$ \\
 \multicolumn{4}{@{}l}{\emph{Benchmark}} \\
 OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & --- \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{Single-bucket attribution (literal OLS)}} \\
+\multicolumn{4}{@{}l}{\emph{Single-bucket attribution (minimum-norm least squares)}} \\
 HAR $+$ moments bucket      & \unifMomentsQLIKE{}    & \unifMomentsDelta{}    & \unifMomentsDM{} \\
 HAR $+$ liquidity bucket    & \unifLiquidityQLIKE{}  & \unifLiquidityDelta{}  & \unifLiquidityDM{} \\
 HAR $+$ market bucket (equal-weighted) & \unifMarketEwQLIKE{} & \unifMarketEwDelta{} & \unifMarketEwDM{} \\
@@ -34,6 +34,26 @@ HAR $+$ sentiment bucket    & \unifSentimentQLIKE{}  & \unifSentimentDelta{}  & 
 HAR $+$ implied-volatility bucket & \unifImpliedVolQLIKE{} & \unifImpliedVolDelta{} & \unifImpliedVolDM{} \\
 HAR $+$ volatility-demand bucket & \unifVolDemandQLIKE{} & \unifVolDemandDelta{} & \unifVolDemandDM{} \\
 HAR $+$ all exogenous columns (joint) & \unifAllFeaturesQLIKE{} & \unifAllFeaturesDelta{} & \unifAllFeaturesDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Bucket designs under causally tuned ridge}} \\
+HAR $+$ moments bucket      & \unifBrTunedMomentsQLIKE{}     & \unifBrTunedMomentsDelta{}     & \unifBrTunedMomentsDM{} \\
+HAR $+$ liquidity bucket    & \unifBrTunedLiquidityQLIKE{}   & \unifBrTunedLiquidityDelta{}   & \unifBrTunedLiquidityDM{} \\
+HAR $+$ market bucket (equal-weighted) & \unifBrTunedMarketEwQLIKE{} & \unifBrTunedMarketEwDelta{} & \unifBrTunedMarketEwDM{} \\
+HAR $+$ market bucket (value-weighted) & \unifBrTunedMarketVwQLIKE{} & \unifBrTunedMarketVwDelta{} & \unifBrTunedMarketVwDM{} \\
+HAR $+$ sentiment bucket    & \unifBrTunedSentimentQLIKE{}   & \unifBrTunedSentimentDelta{}   & \unifBrTunedSentimentDM{} \\
+HAR $+$ implied-volatility bucket & \unifBrTunedImpliedVolQLIKE{} & \unifBrTunedImpliedVolDelta{} & \unifBrTunedImpliedVolDM{} \\
+HAR $+$ volatility-demand bucket & \unifBrTunedVolDemandQLIKE{} & \unifBrTunedVolDemandDelta{} & \unifBrTunedVolDemandDM{} \\
+HAR $+$ all exogenous columns (joint) & \unifBrTunedAllFeaturesQLIKE{} & \unifBrTunedAllFeaturesDelta{} & \unifBrTunedAllFeaturesDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Bucket designs under causally tuned elastic net (free mixing)}} \\
+HAR $+$ moments bucket      & \unifBeTunedMomentsQLIKE{}     & \unifBeTunedMomentsDelta{}     & \unifBeTunedMomentsDM{} \\
+HAR $+$ liquidity bucket    & \unifBeTunedLiquidityQLIKE{}   & \unifBeTunedLiquidityDelta{}   & \unifBeTunedLiquidityDM{} \\
+HAR $+$ market bucket (equal-weighted) & \unifBeTunedMarketEwQLIKE{} & \unifBeTunedMarketEwDelta{} & \unifBeTunedMarketEwDM{} \\
+HAR $+$ market bucket (value-weighted) & \unifBeTunedMarketVwQLIKE{} & \unifBeTunedMarketVwDelta{} & \unifBeTunedMarketVwDM{} \\
+HAR $+$ sentiment bucket    & \unifBeTunedSentimentQLIKE{}   & \unifBeTunedSentimentDelta{}   & \unifBeTunedSentimentDM{} \\
+HAR $+$ implied-volatility bucket & \unifBeTunedImpliedVolQLIKE{} & \unifBeTunedImpliedVolDelta{} & \unifBeTunedImpliedVolDM{} \\
+HAR $+$ volatility-demand bucket & \unifBeTunedVolDemandQLIKE{} & \unifBeTunedVolDemandDelta{} & \unifBeTunedVolDemandDM{} \\
+HAR $+$ all exogenous columns (joint) & \unifBeTunedAllFeaturesQLIKE{} & \unifBeTunedAllFeaturesDelta{} & \unifBeTunedAllFeaturesDM{} \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Penalized linear, full design}} \\
 Ridge, fixed $\alpha = 0.1$ & \unifBOneRidgeApOneQLIKE{} & \unifBOneRidgeApOneDelta{} & \unifBOneRidgeApOneDM{} \\
@@ -57,6 +77,9 @@ Two-block ridge (per-block causal tuning)   & \unifBlkTwoTunedQLIKE{}   & \unifB
 Three-block ridge (per-block causal tuning) & \unifBlkThreeTunedQLIKE{} & \unifBlkThreeTunedDelta{} & \unifBlkThreeTunedDM{} \\
 Four-block ridge (per-block causal tuning)  & \unifBlkFourTunedQLIKE{}  & \unifBlkFourTunedDelta{}  & \unifBlkFourTunedDM{} \\
 Four-block ridge (trailing-standardized transmission) & \unifBlkFourTrailQLIKE{} & \unifBlkFourTrailDelta{} & \unifBlkFourTrailDM{} \\
+Four-block ridge (trailing, factor levels only) & \unifBlkFourTrailGQLIKE{} & \unifBlkFourTrailGDelta{} & \unifBlkFourTrailGDM{} \\
+Four-block ridge (trailing, lead--lag flow only) & \unifBlkFourTrailGhatQLIKE{} & \unifBlkFourTrailGhatDelta{} & \unifBlkFourTrailGhatDM{} \\
+Four-block ridge (trailing transmission, per-block causal tuning) & \unifBlkFourTrailTunedQLIKE{} & \unifBlkFourTrailTunedDelta{} & \unifBlkFourTrailTunedDM{} \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Single-block diagnostics}} \\
 HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifProductAloneUserDelta{} & \unifProductAloneUserDM{} \\
@@ -66,6 +89,21 @@ HAR $+$ transmission block only (stated)     & \unifTransAloneUserQLIKE{}  & \un
 HAR $+$ transmission block only (documented) & \unifTransAloneDocQLIKE{}   & \unifTransAloneDocDelta{}   & \unifTransAloneDocDM{} \\
 HAR $+$ transmission block only (tuned)      & \unifTransAloneTunedQLIKE{} & \unifTransAloneTunedDelta{} & \unifTransAloneTunedDM{} \\
 HAR $+$ transmission block only (trailing)   & \unifTransAloneTrailQLIKE{} & \unifTransAloneTrailDelta{} & \unifTransAloneTrailDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Transmission-operator variants (all trailing-standardized)}} \\
+Symmetric part of the lagged cross-correlation & \unifBlkFourTrailSymQLIKE{} & \unifBlkFourTrailSymDelta{} & \unifBlkFourTrailSymDM{} \\
+Undecomposed lagged cross-correlation & \unifBlkFourTrailFullCQLIKE{} & \unifBlkFourTrailFullCDelta{} & \unifBlkFourTrailFullCDM{} \\
+Causally refreshed frame & \unifBlkFourTrailRefreshQLIKE{} & \unifBlkFourTrailRefreshDelta{} & \unifBlkFourTrailRefreshDM{} \\
+Frame width $K = 5$   & \unifBlkFourTrailKFiveQLIKE{}  & \unifBlkFourTrailKFiveDelta{}  & \unifBlkFourTrailKFiveDM{} \\
+Frame width $K = 10$  & \unifBlkFourTrailKTenQLIKE{}   & \unifBlkFourTrailKTenDelta{}   & \unifBlkFourTrailKTenDM{} \\
+Frame width $K = 40$  & \unifBlkFourTrailKFortyQLIKE{} & \unifBlkFourTrailKFortyDelta{} & \unifBlkFourTrailKFortyDM{} \\
+Two-bar lag operator & \unifBlkFourTrailLagTwoQLIKE{} & \unifBlkFourTrailLagTwoDelta{} & \unifBlkFourTrailLagTwoDM{} \\
+Transmission base excluding cadence-heterogeneous aggregates & \unifBlkFourTrailDropHetQLIKE{} & \unifBlkFourTrailDropHetDelta{} & \unifBlkFourTrailDropHetDM{} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Conditional second-moment contract}} \\
+Benchmark, exogenous-state variance conditioning & \unifCondVarBenchQLIKE{} & \unifCondVarBenchDelta{} & \unifCondVarBenchDM{} \\
+Benchmark, backbone-only variance conditioning & \unifCondVarBenchLevelQLIKE{} & \unifCondVarBenchLevelDelta{} & \unifCondVarBenchLevelDM{} \\
+Best model, exogenous-state variance conditioning & \unifCondVarChampQLIKE{} & \unifCondVarChampDelta{} & \unifCondVarChampDM{} \\
 \bottomrule
 \end{tabular}
 \end{table}
