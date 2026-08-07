@@ -277,6 +277,25 @@ BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS
 )
+# PCR block grid (author directive 2026-08-07). DELIBERATELY WIDER than the
+# `trans` grid: that one is calibrated for a factor block competing against
+# 526 exogenous columns, where the tuner must shrink it hard to stop it
+# duplicating their span. With the wide block REMOVED the factor block is the
+# only exogenous information in the model, so the appropriate penalty scale is
+# unknown a priori and plausibly orders of magnitude smaller. Grid scale is
+# configuration-dependent; a grid whose optimum sits at an endpoint is not a
+# valid selection, so this spans seven decades and the scorer flags endpoint
+# pile-up (see meta.tuned_grids + the penalty summary's frac_at_grid_* cols).
+BLOCK_TUNE_GRIDS["pcr"] = (1e-2, 1e-1, 1.0, 1e1, 1e2, 1e3, 1e4)
+# PC-ladder block: one rank-tilted penalty per PC rank, SHARED across that
+# rank's ladder rungs (see _pc_ladder_design). Power family only, 12 points;
+# the group size (rungs per rank) rides in the descriptor.
+BLOCK_TUNE_GRIDS["pc_ladder_tilt"] = tuple(  # type: ignore[assignment]
+    (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TRANS_SHAPE_GAMMAS
+)
+
 # The same (level, tilt) grid for the EXOGENOUS block — the generalized
 # Tikhonov arm (2026-08-07): anisotropic ridge applied directly, with no
 # duplicated columns, as the principled form of what the transmission block
@@ -285,6 +304,30 @@ BLOCK_TUNE_GRIDS["exog_tilt"] = tuple(  # type: ignore[assignment]
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS
+)
+
+# HARD-vs-SOFT tilt, decided WITHIN one arm (author directive 2026-08-07).
+# PCR is the hard-threshold limit of a rank-tilted penalty (weight alpha on the
+# top K, effectively infinite beyond); the power law is a SMOOTH tilt, and with
+# gamma in {0, .5, 1, 2} it cannot approximate a cutoff. Comparing the two
+# ACROSS arms is confounded — they differ in design AND in which space the
+# eigenbasis lives (transmission factors are PCs of the 133-column base;
+# the Tikhonov rotation is of the ~526-column exog design). Putting both
+# families in ONE block grid makes the causal tuner choose, per retune.
+# STEP_MULTIPLIER is a FINITE stand-in for truncation: at 1e4 x alpha the
+# beyond-K directions are effectively truncated relative to the signal scale,
+# while the solve stays well-conditioned and the gamma=0 scalar-ridge nesting
+# is preserved — literal infinity would forfeit both.
+STEP_MULTIPLIER = 1e4
+TIKHONOV_STEP_KS: tuple[int, ...] = (20, 40, 80)
+BLOCK_TUNE_GRIDS["exog_tilt_step"] = tuple(  # type: ignore[assignment]
+    (float(lam0), "power", float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TRANS_SHAPE_GAMMAS
+) + tuple(
+    (float(lam0), "step", float(k))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for k in TIKHONOV_STEP_KS
 )
 
 
@@ -309,8 +352,18 @@ def _exog_tilt_design(p: _Panel, window: int) -> np.ndarray:
 
     NO SCALING is applied in the rotation: V is orthogonal, so ||b||^2 is
     preserved and gamma=0 (w_i == alpha for all i) reproduces the plain
-    scalar-ridge problem exactly. Standardizing here would silently change
-    the penalty and break that nesting.
+    scalar-ridge problem. Standardizing here would silently change the
+    penalty and break that nesting.
+
+    NESTING PRECISION (stated so nobody later reads the residue as a bug):
+    at gamma=0 this arm is ALGEBRAICALLY EXACT against the scalar-penalty
+    path of blk3_tuned, and agrees with it TO MACHINE PRECISION — measured
+    ~3e-15 max absolute difference on fitted values — NOT bit-for-bit. An
+    orthogonal reparameterization is exact in real arithmetic but not in
+    float64; the penalty VECTOR is bit-identical (see _fill_pen_span at
+    gamma=0), the ~1e-15 residue is the rotation itself. Recovering literal
+    bit-identity would need a special-cased dense-Gamma branch that buys
+    nothing.
 
     Frame convention MIRRORS ``_transmission_block._frame_of`` (same frame
     window [window, 2*window), the same ``_DEGENERATE_SD`` liveness test, the
@@ -323,34 +376,109 @@ def _exog_tilt_design(p: _Panel, window: int) -> np.ndarray:
     heavily penalized positions under gamma>0, which is the correct treatment
     for directions with no variance to explain.
     """
-    cols = _exog_all_cols(p.names)
-    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
-    f0, f1 = window, 2 * window
+    return _rotate_frozen(
+        np.ascontiguousarray(p.X[:, _exog_all_cols(p.names)], dtype=np.float64),
+        window,
+        2 * window,
+    )
+
+
+def _rotate_frozen(z: np.ndarray, f0: int, f1: int) -> np.ndarray:
+    """Orthogonally rotate a design into the frozen eigenframe of its own
+    first-window CORRELATION matrix (shared by the Tikhonov-family arms).
+
+    Same convention as ``_transmission_block._frame_of``: frame window rows
+    [f0, f1), ``_DEGENERATE_SD`` liveness, eigh + descending-eigenvalue order.
+    Live columns are rotated by the orthogonal V (RAW columns — no scaling, so
+    ||b||^2 is preserved and gamma=0 nests scalar ridge exactly); dead columns
+    pass through unrotated and are appended at the highest eigen-ranks.
+    """
     zw = z[f0:f1]
     sd = zw.std(0)
     live = sd > _DEGENERATE_SD
     if not live.any():
         raise SystemExit(
-            "exogenous tilt frame: no live columns in the frame window; "
-            "refusing to build a degenerate rotation"
+            "tilt frame: no live columns in the frame window; refusing to "
+            "build a degenerate rotation"
         )
     sdl = np.where(live, sd, 1.0)
     mu = zw.mean(0)
     lam, v_l = np.linalg.eigh(np.corrcoef(((zw - mu) / sdl)[:, live], rowvar=False))
-    order = np.argsort(lam)[::-1]  # descending eigenvalue == eigen-rank order
-    v_mat = v_l[:, order]
+    v_mat = v_l[:, np.argsort(lam)[::-1]]
     out = np.empty_like(z)
     n_live = int(live.sum())
-    out[:, :n_live] = z[:, live] @ v_mat  # orthogonal rotation, raw columns
-    out[:, n_live:] = z[:, ~live]  # dead columns pass through, ranked last
+    out[:, :n_live] = z[:, live] @ v_mat
+    out[:, n_live:] = z[:, ~live]
+    return out
+
+
+def _pc_ladder_design(
+    p: _Panel,
+    window: int,
+    qpool: int = TRANS_QPOOL,
+    rungs: tuple[int, ...] = PRODUCT_EXOG_WINDOWS,
+) -> np.ndarray:
+    """Ladder-expanded principal components: columns {ma_j(G_i)}.
+
+    CONSTRUCTION (author correction 2026-08-07): the moving-average ladder is
+    applied TO THE EIGENVECTOR SERIES, not to the raw features. Factor scores
+    G_i(t) are the projection of the BASE feature vector onto eigenvector i of
+    the frozen first-window frame — the SAME frame ``_transmission_block``
+    builds — and each score is then expanded through the ladder rungs.
+
+    WHY THIS IS THE RIGHT ORGANIZATION: moving averages and linear projections
+    commute, ma_j(V'x) = V' ma_j(x), so these columns span exactly the
+    eigen-projection of the ladder-expanded design — the SAME subspace as
+    rotating the expanded design, but organized so every column carries a
+    two-part identity (PC rank x horizon). That is what makes a rank-tilted
+    penalty meaningful: ONE penalty per PC rank, SHARED across that rank's
+    ladder rungs. The tilt is a prior over DIRECTIONS, not over horizons.
+
+    ORDER OF OPERATIONS (deliberate, asserted in the checks): the scores are
+    TRAILING-STANDARDIZED FIRST — the same standardization the winning
+    transmission arms use — and the ladder is applied to the standardized
+    series. standardize-then-ladder and ladder-then-standardize are NOT the
+    same operation: the former gives every rung a common, causally-rescaled
+    input so a rank's rungs differ only in horizon, which is precisely the
+    factorization the shared per-rank penalty assumes.
+
+    COLUMN LAYOUT: grouped by PC rank, rungs contiguous within a rank —
+    column (i-1)*n_rungs + j is ma_{rungs[j]}(G_i). ``_fill_pen_span``'s
+    'pcrank' family relies on this grouping. Rungs are the base's own
+    fast/intraday/slow tri (``PRODUCT_EXOG_WINDOWS``), so K=20 gives 60
+    columns. Ladder convention matches ``generate_har_features``: causal
+    rolling mean, ``min_periods=1``, shifted one bar.
+    """
+    g_scores = _transmission_block(
+        p, window, parts="scores", standardization="trailing", qpool=qpool
+    )
+    out = np.empty((g_scores.shape[0], qpool * len(rungs)), dtype=np.float64)
+    for i in range(qpool):
+        s = pd.Series(g_scores[:, i])
+        for j, w in enumerate(rungs):
+            out[:, i * len(rungs) + j] = (
+                s.rolling(window=int(w), min_periods=1).mean().shift(1).to_numpy()
+            )
+    out[~np.isfinite(out)] = 0.0  # the single shifted warm-up row
     return out
 
 
 def _pen_value(a: Any) -> Any:
-    """Normalize a grid point: scalar penalty -> float; shaped penalty ->
-    (lambda0, gamma) tuple. Keeps equality comparisons exact in the tuner."""
+    """Normalize a grid point so tuner equality comparisons are exact.
+
+    scalar                        -> float (flat penalty)
+    (lambda0, gamma)              -> ('power', lambda0, gamma), the existing
+                                     2-tuple shaped grids
+    (lambda0, family, par)        -> (family, lambda0, par)
+    (lambda0, family, par, group) -> (family, lambda0, par, group) for the
+                                     grouped 'pcrank' family
+    """
     if isinstance(a, (tuple, list)):
-        return (float(a[0]), float(a[1]))
+        if len(a) == 4:
+            return (str(a[1]), float(a[0]), float(a[2]), int(a[3]))
+        if len(a) == 3:
+            return (str(a[1]), float(a[0]), float(a[2]))
+        return ("power", float(a[0]), float(a[1]))
     return float(a)
 
 
@@ -363,10 +491,30 @@ def _fill_pen_span(pen: np.ndarray, s0: int, s1: int, value: Any) -> None:
     order, so column j IS factor rank j+1). At gamma=0 this is lambda0 * 1.0
     for every column — bit-identical to the flat fill.
     """
-    if isinstance(value, tuple):
-        lam0, gamma = value
-        ranks = np.arange(1, s1 - s0 + 1, dtype=np.float64)
+    if isinstance(value, tuple) and value[0] == "pcrank":
+        # grouped rank tilt: columns are blocked by PC rank with `group`
+        # contiguous ladder rungs each, so every rung of rank i shares the
+        # penalty alpha * i**gamma (the tilt is over DIRECTIONS, not horizons)
+        _fam, lam0, gamma, group = value
+        idx = np.arange(s1 - s0)
+        ranks = (idx // int(group) + 1).astype(np.float64)
         pen[s0:s1] = lam0 * ranks**gamma
+    elif isinstance(value, tuple):
+        family, lam0, par = value
+        k_span = s1 - s0
+        if family == "power":
+            ranks = np.arange(1, k_span + 1, dtype=np.float64)
+            pen[s0:s1] = lam0 * ranks**par
+        elif family == "step":
+            # HARD-threshold family: flat at lam0 up to rank K, elevated by
+            # STEP_MULTIPLIER beyond it — a finite stand-in for truncation
+            # (see STEP_MULTIPLIER). Degenerates to flat when K >= span width.
+            pen[s0:s1] = lam0
+            k_cut = int(par)
+            if k_cut < k_span:
+                pen[s0 + k_cut : s1] = lam0 * STEP_MULTIPLIER
+        else:
+            raise KeyError(f"unknown penalty shape family '{family}'")
     else:
         pen[s0:s1] = value
 
@@ -1952,6 +2100,80 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Ladder-expanded principal components (author correction 2026-08-07):
+    # the ladder is applied TO THE EIGENVECTOR SERIES, giving every column a
+    # (PC rank x horizon) identity and letting ONE rank-tilted penalty be
+    # SHARED across a rank's rungs. See _pc_ladder_design for the commuting
+    # identity that justifies the construction and for the deliberate
+    # standardize-then-ladder ordering. Availability indicators are binary and
+    # are NOT projected — they ride in their own scalar-penalty block.
+    "blk_pcladder_tuned": ArmSpec(
+        describe="ridge on ladder-expanded principal components: backbone + "
+        "{ma_j(G_i)} at K=20 x 3 rungs = 60 cols with a per-rank tilted "
+        "penalty shared across rungs + availability indicators + product; "
+        "cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("pc_ladder", "pc_ladder_tilt"),
+            ("avail_ind", "exog"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # Hard-vs-soft tilt as a WITHIN-ARM selection (author directive
+    # 2026-08-07): identical to blk3_tikhonov_tuned except the exogenous tilt
+    # grid is the UNION of the power family (smooth) and the step family
+    # (PCR's hard threshold, finite-M stand-in) — 3 alphas x (4 power + 3
+    # step) = 21 points on one block. THE EXHIBIT is which SHAPE FAMILY the
+    # causal tuner picks per retune and whether it is stable across eras:
+    # consistent step at some K vindicates truncation (PCR) on the
+    # estimator's own terms; consistent power says smooth tilting wins; a
+    # flip era to era is a finding about regime-dependent effective
+    # dimension. power/gamma=0 remains the exact scalar-ridge nesting.
+    "blk3_tikhonovStep_tuned": ArmSpec(
+        describe="generalized Tikhonov with BOTH tilt families: exogenous "
+        "penalty selected causally from power (alpha*i**gamma) UNION step "
+        "(alpha, then alpha*1e4 beyond rank K in {20,40,80}) — 21-point "
+        "block grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_rot", "exog_tilt_step"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # Genuine PCR (author directive 2026-08-07): the principal components
+    # REPLACE the wide exogenous design instead of augmenting it. Two blocks
+    # only — HAR ladder + calendar, plus the trailing-standardized frozen-frame
+    # factor scores. No exog_all, no product, no operator columns.
+    # SCIENTIFIC QUESTION: can a 20-column PCA summary REPLACE the 526-column
+    # exogenous panel? Reference points on the same rows: blk3_user
+    # (HAR+exog+product) OOS R^2 3.12% vs benchmark, HAR+transmission-alone
+    # 2.57%, best model blk4_trailG_tuned QLIKE 0.21909. The K=40 twin asks a
+    # second question: does the K=40 collapse reproduce when the factor block
+    # is NOT sharing a penalty with a wide block alongside it? If K=40 does
+    # fine here but collapsed there, the collapse was contamination, not noise.
+    # Penalty grid: BLOCK_TUNE_GRIDS["pcr"], deliberately wide — see there.
+    "blk2_pcr_tuned": ArmSpec(
+        describe="genuine PCR: HAR backbone + K=20 trailing-standardized "
+        "frozen-frame factor scores, NOTHING else (no exog, no product, no "
+        "Ghat); per-block causal tuning over 3 x 7 = 21 combos",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("trans_trailG", "pcr")],
+        oos_mult=2,
+    ),
+    "blk2_pcrForty_tuned": ArmSpec(
+        describe="genuine PCR at K=40: HAR backbone + 40 trailing-standardized "
+        "factor scores, NOTHING else — the K question without a wide block "
+        "sharing the penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("trans_trailG40", "pcr")],
+        oos_mult=2,
+    ),
     # Generalized-Tikhonov arm (author directive 2026-08-07): the clean
     # formulation of what the transmission block achieves by AUGMENTATION.
     # Diagnosis: the transmission columns lie in the span of the existing
@@ -2159,6 +2381,10 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return p.X[:, _exog_all_cols(p.names)]
     if block == "exog_rot":  # frozen-eigenframe rotation (generalized Tikhonov)
         return _exog_tilt_design(p, window)
+    if block == "pc_ladder":  # {ma_j(G_i)} — ladder applied to the PC series
+        return _pc_ladder_design(p, window)
+    if block == "avail_ind":  # availability indicators (binary; never projected)
+        return p.X[:, _cols(p.names, {"indicator"})]
     if block.startswith("bucket:"):
         return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
     if block == "product":
@@ -2372,6 +2598,7 @@ def compute(args: argparse.Namespace) -> None:
     ladder_drops: dict[str, list[int]] = {}
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
+    tuned_grids: dict[str, list[Any]] = {}
     tuned_penalty: list[dict[str, Any]] = []
     tree_cfg: dict[str, Any] = {}
     if spec.kind == "ols":
@@ -2389,6 +2616,7 @@ def compute(args: argparse.Namespace) -> None:
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
     elif spec.kind == "blocks_tuned":
         arm_keys = [k for _, k in spec.blocks]
+        tuned_grids = {k: list(BLOCK_TUNE_GRIDS[k]) for k in arm_keys}
         if spec.grid == "cyclic" and any(
             k.startswith(_BUCKET_PEN_KEY) for k in arm_keys
         ):
@@ -2522,6 +2750,11 @@ def compute(args: argparse.Namespace) -> None:
                 # causal per-block alpha selection trajectory (blocks_tuned
                 # arms): [{row, alphas}] per retune boundary — paper-relevant
                 "tuned_alphas": tuned_alphas,
+                # the grids the tuner actually searched, per block key — lets
+                # the scorer flag endpoint pile-up without importing the
+                # executor (a grid whose optimum sits at an endpoint is not a
+                # valid selection)
+                "tuned_grids": tuned_grids,
                 # tree expert arms: the frozen menu entry (name, params, sha)
                 "tree_config": tree_cfg,
                 # transmission dig: construction summary (arrays in the npz

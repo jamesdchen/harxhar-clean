@@ -146,6 +146,10 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
         "blk3_tikhonov_tuned",
+        "blk3_tikhonovStep_tuned",
+        "blk_pcladder_tuned",
+        "blk2_pcr_tuned",
+        "blk2_pcrForty_tuned",
         # transmission dig (same legality)
         "blk4_trailSym",
         "blk4_trailFullC",
@@ -246,6 +250,13 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
     # Generalized Tikhonov: the anisotropy applied directly, no duplication.
     ("blk3_tikhonov_tuned", "BlkThreeTikhonovTuned"),
+    # Ladder-expanded principal components with a per-rank tilted penalty.
+    ("blk_pcladder_tuned", "BlkPcLadderTuned"),
+    # Hard-vs-soft tilt decided within one arm (power UNION step families).
+    ("blk3_tikhonovStep_tuned", "BlkThreeTikhonovStepTuned"),
+    # Genuine PCR: components REPLACE the wide exogenous design.
+    ("blk2_pcr_tuned", "BlkTwoPcrTuned"),
+    ("blk2_pcrForty_tuned", "BlkTwoPcrFortyTuned"),
     # Transmission dig: operator/frame/width/lag variants of the trailing block.
     ("blk4_trailSym", "BlkFourTrailSym"),
     ("blk4_trailFullC", "BlkFourTrailFullC"),
@@ -344,6 +355,14 @@ _ARM_TEX: dict[str, str] = {
     "rank-shaped transmission penalty, causally tuned)",
     "blk3_tikhonov_tuned": "Three-block ridge with spectrum-tilted exogenous "
     "penalty (generalized Tikhonov, causally tuned)",
+    "blk_pcladder_tuned": "Ridge on ladder-expanded principal components with "
+    "rank-tilted penalty (causally tuned)",
+    "blk3_tikhonovStep_tuned": "Three-block ridge with spectrum-tilted exogenous "
+    "penalty, power and step families (causally tuned)",
+    "blk2_pcr_tuned": "Two-block ridge: HAR backbone + $K=20$ principal "
+    "components (causally tuned)",
+    "blk2_pcrForty_tuned": "Two-block ridge: HAR backbone + $K=40$ principal "
+    "components (causally tuned)",
     "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
     "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
     "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
@@ -424,6 +443,17 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # it match the best model WITHOUT any duplicated transmission columns?
     ("blk3_tikhonov_tuned", "blk3_tuned"),
     ("blk3_tikhonov_tuned", "blk4_trailG_tuned"),
+    # ladder-of-PCs: does it beat the best model? (bare stem)
+    ("blk_pcladder_tuned", "blk4_trailG_tuned"),
+    ("blk_pcladder_tuned", "blk3_tuned"),
+    # hard-vs-soft: does adding the step family help? (bare stem)
+    ("blk3_tikhonovStep_tuned", "blk3_tikhonov_tuned"),
+    ("blk3_tikhonovStep_tuned", "blk4_trailG_tuned"),
+    # genuine PCR: can 20 components replace 526 exogenous columns?
+    ("blk2_pcr_tuned", A0),
+    ("blk2_pcr_tuned", "blk3_tuned"),
+    # the K question, without a wide block sharing the penalty
+    ("blk2_pcrForty_tuned", "blk2_pcr_tuned"),
     # bucket-grid within-design family comparisons (free-l1 enet vs tuned
     # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
     ("be_tuned_moments", "br_tuned_moments"),
@@ -1575,13 +1605,18 @@ def main(argv: list[str] | None = None) -> int:
             "blk_bucketpen_tuned",
             "blk4_trailGShaped",
             "blk3_tikhonov_tuned",
+            "blk3_tikhonovStep_tuned",
+            "blk_pcladder_tuned",
+            "blk2_pcr_tuned",
+            "blk2_pcrForty_tuned",
         ):
             arm_dir = os.path.join(root, _pen_arm)
             if not os.path.isdir(arm_dir):
                 continue
             acc: dict[tuple[int, str], list[float]] = {}
-            gam: dict[int, list[float]] = {}
+            gam: dict[tuple[int, str], list[float]] = {}
             evals: list[int] = []
+            grids: dict[str, list[float]] = {}
             for fn in sorted(os.listdir(arm_dir)):
                 if not _CHUNK_RE.match(fn):
                     continue
@@ -1592,6 +1627,14 @@ def main(argv: list[str] | None = None) -> int:
                         rid = np.asarray(z["row_id"], dtype=np.int64)
                 except Exception:
                     continue
+                for k, gv in (meta.get("tuned_grids") or {}).items():
+                    # shaped grids are [[level, gamma], ...]; the level axis is
+                    # what an endpoint check is about
+                    lv = [
+                        float(v[0]) if isinstance(v, (list, tuple)) else float(v)
+                        for v in gv
+                    ]
+                    grids.setdefault(k, sorted(set(lv)))
                 for e in meta.get("tuned_alphas") or []:
                     if "n_tail_evals" in e:
                         evals.append(int(e["n_tail_evals"]))
@@ -1600,14 +1643,28 @@ def main(argv: list[str] | None = None) -> int:
                         continue
                     yr = int(str(t_arr[pos].astype("datetime64[Y]")))
                     for k, a in (e.get("alphas") or {}).items():
-                        # shaped blocks serialize as [lambda0, gamma]; the level
-                        # goes to the penalty summary, gamma to its own exhibit
+                        # Shaped blocks serialize as a descriptor list:
+                        #   ['power', lambda0, gamma] | ['step', lambda0, K]
+                        # The LEVEL goes to the penalty summary; the family +
+                        # its parameter go to the shape exhibit.
                         if isinstance(a, (list, tuple)):
-                            acc.setdefault((yr, k), []).append(float(a[0]))
-                            gam.setdefault(yr, []).append(float(a[1]))
+                            fam, lvl, par = str(a[0]), float(a[1]), float(a[2])
+                            acc.setdefault((yr, k), []).append(lvl)
+                            gam.setdefault((yr, fam), []).append(par)
                         else:
                             acc.setdefault((yr, k), []).append(float(a))
+            endpoint_tot: dict[str, list[float]] = {}
             for (yr, k), vals in sorted(acc.items()):
+                g = grids.get(k) or []
+                lo_frac = (
+                    float(np.mean([v == g[0] for v in vals])) if g else float("nan")
+                )
+                hi_frac = (
+                    float(np.mean([v == g[-1] for v in vals])) if g else float("nan")
+                )
+                endpoint_tot.setdefault(k, []).extend(
+                    [1.0 if (g and (v == g[0] or v == g[-1])) else 0.0 for v in vals]
+                )
                 pen_rows.append(
                     {
                         "arm": _pen_arm,
@@ -1617,19 +1674,46 @@ def main(argv: list[str] | None = None) -> int:
                         "n_retunes": len(vals),
                         "mean_alpha": float(np.mean(vals)),
                         "geo_mean_alpha": float(np.exp(np.mean(np.log(vals)))),
+                        "frac_at_grid_min": lo_frac,
+                        "frac_at_grid_max": hi_frac,
                     }
                 )
-            for yr, vals in sorted(gam.items()):
+            # A grid whose optimum sits at an endpoint is not a valid
+            # selection — warn so the grid gets widened before the number is
+            # quoted (author directive 2026-08-07, ~20% threshold).
+            for k, flags in sorted(endpoint_tot.items()):
+                if flags and float(np.mean(flags)) > 0.20:
+                    print(
+                        f"[{labels[root]}] WARNING {_pen_arm} block '{k}': "
+                        f"{100 * float(np.mean(flags)):.0f}% of retunes select a "
+                        f"GRID ENDPOINT (grid {grids.get(k)}) — widen the grid "
+                        "before quoting this arm"
+                    )
+            year_tot: dict[int, int] = {}
+            for (yr, _fam), vals in gam.items():
+                year_tot[yr] = year_tot.get(yr, 0) + len(vals)
+            for (yr, fam), vals in sorted(gam.items()):
                 modal = max(sorted(set(vals)), key=vals.count)
+                is_power = fam == "power"
                 gamma_rows.append(
                     {
                         "arm": _pen_arm,
                         "root": labels[root],
                         "year": yr,
+                        "shape_family": fam,
                         "n_retunes": len(vals),
-                        "mean_gamma": float(np.mean(vals)),
-                        "modal_gamma": float(modal),
-                        "frac_gamma_pos": float(np.mean([v > 0 for v in vals])),
+                        # share of the year's retunes that chose THIS family —
+                        # the hard-vs-soft exhibit
+                        "frac_of_year": len(vals) / year_tot[yr],
+                        "mean_param": float(np.mean(vals)),
+                        "modal_param": float(modal),
+                        # gamma-specific columns stay valid for power-only arms;
+                        # blank for step rows, whose parameter is a rank cutoff
+                        "mean_gamma": float(np.mean(vals)) if is_power else None,
+                        "modal_gamma": float(modal) if is_power else None,
+                        "frac_gamma_pos": (
+                            float(np.mean([v > 0 for v in vals])) if is_power else None
+                        ),
                     }
                 )
             if evals:
@@ -1679,7 +1763,11 @@ def main(argv: list[str] | None = None) -> int:
                     "arm",
                     "root",
                     "year",
+                    "shape_family",
                     "n_retunes",
+                    "frac_of_year",
+                    "mean_param",
+                    "modal_param",
                     "mean_gamma",
                     "modal_gamma",
                     "frac_gamma_pos",
@@ -1691,13 +1779,17 @@ def main(argv: list[str] | None = None) -> int:
                         rec["arm"],
                         rec["root"],
                         rec["year"],
+                        rec["shape_family"],
                         rec["n_retunes"],
-                        f"{rec['mean_gamma']:.4f}",
-                        f"{rec['modal_gamma']:.4f}",
-                        f"{rec['frac_gamma_pos']:.4f}",
+                        f"{rec['frac_of_year']:.4f}",
+                        f"{rec['mean_param']:.4f}",
+                        f"{rec['modal_param']:.4f}",
+                        _fmt(rec["mean_gamma"], ".4f"),
+                        _fmt(rec["modal_gamma"], ".4f"),
+                        _fmt(rec["frac_gamma_pos"], ".4f"),
                     ]
                 )
-        print(f"rank-shape (gamma) trajectory -> {gam_csv}")
+        print(f"penalty-shape (family/parameter) trajectory -> {gam_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.
