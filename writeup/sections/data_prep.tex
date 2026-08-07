@@ -8,31 +8,44 @@
 \subsection{Data}
 \label{sec:dp_data}
 
-The raw data are 30-minute bars for the S\&P~500 complex. The bars are
-gridded to a regular 30-minute frequency. The sample spans January 2005
-through April 2024. The panel covers pre-market, regular, and after-hours
-sessions on a near-24-hour clock, running Sunday $18{:}30$ through Friday
-$20{:}00$. Each trading day contributes $48$ bars: roughly $34$ overnight
-or extended-session bars and roughly $14$ regular-session bars. The
-majority of bars are therefore not regular-session bars. Any statement
-about intraday structure in this panel refers to the full 24-hour cycle,
-not to the $09{:}30$--$16{:}00$ window alone. A fixed calendar filter
-removes periods in which no venue is open: all bars on Friday after
-$20{:}00$, all of Saturday, and all of Sunday before $18{:}30$. No other
-calendar exclusions are applied. Holidays and half-days remain in the
-panel; they are handled by the availability construction of
-Section~\ref{sec:dp_prep}, not by deletion. After the filter, the regular
-grid contains $246{,}057$ rows, from 2005-01-02 to 2024-04-30. One
-consequence of the calendar-only rule is disclosed here because it
-produced a measurable incident (Section~\ref{sec:buckets}): bars after an
-early close exist on the grid as forward-filled values, and on such bars
-different feeds' availability indicators can disagree for a single bar.
-\decide{root repair: derive dead-session bars from the data itself ---
-drop grid bars on which the realized-variance source did not print, the
-same observed-print fact the availability indicators already use ---
-instead of the calendar-only rule. Threshold-free, but it changes the
-panel row set and therefore every number in the paper; a frozen-panel
-amendment for the author.}
+The raw data are 30-minute bars for the S\&P~500 complex, gridded to a
+regular 30-minute frequency. The panel's extent is not set by a chosen
+date: \textbf{a bar exists in the panel if and only if the
+realized-variance source printed on it} --- the same observed-print fact
+the availability indicators of Section~\ref{sec:dp_prep} are built from,
+applied as the grid's own existence criterion. Under this rule the panel
+begins at the source's first print, in January 1998, and ends at its last,
+in April 2024. No weekend rule, holiday calendar, or session table is
+supplied anywhere: weekends, holidays, early closes, and sessions that do
+not yet exist are all absent from the panel for the same reason --- the
+source did not print.
+
+The panel's session structure therefore evolves as the market's did. The
+source prints around the clock from its first day --- the panel's first
+bar is an overnight bar --- but the early sessions are sparser: roughly
+$7{,}500$ bars per year in 1998 (median $32$ bars per trading day before
+2004), growing through roughly $10{,}600$ bars in 2003 to a stable
+$\approx 12{,}400$ bars per year from 2005 onward, when the near-24-hour
+cycle (Sunday $18{:}30$ through Friday $20{:}00$, $48$ bars per full
+trading day, roughly $34$ of them outside regular hours) is fully live. A
+time-of-day slot that thickens or enters mid-sample behaves exactly like
+a feed going live: the rolling per-slot estimators of
+Section~\ref{sec:dp_prep} have whatever history the slot has and
+accumulate it causally. Any statement about intraday structure in this
+panel refers to the full cycle as it stood at the time, not to the
+$09{:}30$--$16{:}00$ window alone.
+
+The existence rule replaced an earlier calendar-only filter (weekend trim
+plus forward fill) after that filter produced a measurable incident: bars
+following an early close existed on the calendar grid as forward-filled
+ghosts, and on one such bar --- the only one in more than twenty-five
+thousand --- two feeds' availability indicators disagreed for a single
+bar, with consequences documented in Section~\ref{sec:buckets}. On the
+overlapping 2005--2024 span the rule removes $4{,}925$ such dead-session
+bars ($\approx 2\%$ of the calendar grid).
+\pending{v3 panel counts from the harvest: grid rows, panel rows after
+burn-in, and scored evaluation rows after the training window and the
+calibration burn-in of Section~\ref{sec:smearing}}
 
 The forecasting target is realized variance. For each 30-minute bar it is
 computed as the sum of squared 5-minute log-returns within the bar:
@@ -53,14 +66,16 @@ at 30-minute resolution.
 
 \paragraph{The evaluation panel.}
 Feature construction consumes a fixed burn-in of $3{,}125$ bars at the
-start of the sample, a constant of the panel construction that exceeds the
-longest feature lookback. This reduces the usable panel to $242{,}934$
-bars.
-The walk-forward protocol consumes a further $24{,}000$ bars as the
-initial training window. The evaluation panel therefore contains
-$n = 218{,}934$ bars. Every arm reported in this paper is scored on those
-identical rows. The paired bar-for-bar comparisons used throughout require
-this shared row index.
+start of the sample (January to June 1998), a constant of the panel
+construction that exceeds the longest feature lookback. This reduces the
+grid's $303{,}442$ print-bars to a usable panel of $300{,}317$ bars. The
+walk-forward protocol consumes a further $24{,}000$ bars as the initial
+training window, and the calibration burn-in of
+Section~\ref{sec:smearing} consumes the first evaluation window. Every
+arm reported in this paper is scored on the identical remaining rows; the
+paired bar-for-bar comparisons used throughout require this shared row
+index. \pending{scored evaluation $n$ from the harvest (the scorer's
+\texttt{a0} valid-bar count)}
 
 \paragraph{Exogenous information.}
 Beyond the target's own history, the design uses $41$ exogenous channels.

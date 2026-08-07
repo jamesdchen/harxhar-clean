@@ -189,6 +189,12 @@ def get_bucket(name: str) -> list[str]:
 
 
 # ── Constants ──────────────────────────────────────────────────────────
+# Panel v3 (2026-08-07): the grid start is DATA-DERIVED (first bar the RV
+# source printed on, ~1998-01) — same philosophy as the dead-session rule:
+# the source's own print record, not a hardcoded calendar pin, decides what
+# exists. START_DATE is retained ONLY as the legacy 2005 pin for consumers
+# that need bit-compat with archived results (pass it as ``start_date``);
+# the loader no longer reads it.
 START_DATE = "2005-01-01"
 FRIDAY_CLOSE = "20:00"
 SUNDAY_OPEN = "18:30"
@@ -196,7 +202,10 @@ FREQ = "30min"
 
 
 def load_raw_data(
-    data_path: str, allow_missing: bool = False, drop_dead_session: bool = True
+    data_path: str,
+    allow_missing: bool = False,
+    drop_dead_session: bool = True,
+    start_date: str | None = None,
 ) -> pd.DataFrame:
     """Load parquet data, grid to 30-min, filter market hours, clean NaNs.
 
@@ -207,6 +216,11 @@ def load_raw_data(
     allow_missing : bool
         If False (default), drop all rows with any remaining NaN after
         forward-filling the target column. If True, keep them.
+    start_date : str | None
+        Grid start. None (default) = DATA-DERIVED: the first bar on which
+        the RV source printed (panel v3; ~1998-01). Pass an explicit date
+        (e.g. the legacy ``START_DATE`` 2005 pin) to reproduce an archived
+        grid.
     drop_dead_session : bool
         If True (default), a grid bar EXISTS in the panel iff the RV source
         itself printed on it (notna before any fill) — the data-derived
@@ -283,7 +297,13 @@ def load_raw_data(
 
     # ── 5. Create 30-min grid and reindex ─────────────────────────────
     end_date = df["t"].max()
-    grid = pd.date_range(start=START_DATE, end=end_date, freq=FREQ)
+    if start_date is None:
+        # Panel v3: DATA-DERIVED grid start — the first bar the RV source
+        # printed on. The RV source's own print record decides the grid's
+        # existence at BOTH ends (start here, per-bar via drop_dead_session):
+        # no hardcoded calendar pin, no pre-history ghost bars.
+        start_date = df.loc[df["RV"].notna(), "t"].min()
+    grid = pd.date_range(start=start_date, end=end_date, freq=FREQ)
     df = df.set_index("t").reindex(grid).rename_axis("t").reset_index()
 
     # ── 6. Filter out market-closed hours ─────────────────────────────
