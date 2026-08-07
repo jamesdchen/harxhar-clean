@@ -85,8 +85,8 @@ DIURNAL_PINNED_MAX: float = 0.5
 # Halflife (days) of the causal |x|-EWMA that sets asinh's scale. 250d matches the Part-4
 # optimal train window; the result is insensitive to it (60d and 250d score within 0.0001).
 ASINH_SCALE_HALFLIFE_DAYS: int = 250
-WINSOR_LOWER_Q: float = 0.05
-WINSOR_UPPER_Q: float = 0.95
+WINSOR_LOWER_Q: float = 0.01  # 1/99 per author decision 2026-08-06 (was 5/95):
+WINSOR_UPPER_Q: float = 0.99  # clip less of the tail; magnitudes are signal.
 # Per-slot winsorisation is implemented (``rolling_winsorize(slots=...)``) and **off by default,
 # because it was measured and it fails its own invariant.** On the thirteen flagged columns it is
 # spectacular on the bulk — extreme *rows* fall from 4,383 to 287 and columns past |z| 20 from 37 to

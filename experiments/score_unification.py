@@ -61,7 +61,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from src.evaluation.diebold_mariano import dm_test, qlike_per_bar  # noqa: E402
-from src.evaluation.metrics import apply_duan_smearing, mz_regression  # noqa: E402
+from src.evaluation.metrics import mz_regression  # noqa: E402
 
 EXPECTED_CHUNKS = 100
 A0 = "a0_ols_har"
@@ -202,12 +202,17 @@ def _score_chunk(path: str) -> dict:
     f = np.full(n, np.nan)
     err2 = np.full(n, np.nan)
     if valid.any():
-        # sigma2 + raw-forecast map via the reference implementation (the smear
-        # is one scalar per chunk, from the chunk's own valid residuals).
-        pred_raw, _ = apply_duan_smearing(yhat[valid], y_fit[valid], baseline[valid])
-        f[valid] = pred_raw
+        # Smear residuals against the UNWINSORIZED sqrt-space target,
+        # reconstructed exactly from the persisted raw target and baseline:
+        # y_unwins = sqrt(rv_raw / B). This makes the second-moment
+        # decomposition exact for the evaluation target and removes the
+        # winsorized-residual under-correction (author decision 2026-08-06;
+        # smearing.tex documents the contract). One scalar per chunk.
+        with np.errstate(invalid="ignore", divide="ignore"):
+            y_unwins = np.sqrt(np.clip(rv_raw / baseline, 0.0, None))
+        sigma2 = float(np.mean((y_unwins[valid] - yhat[valid]) ** 2))
+        f[valid] = (yhat[valid] ** 2 + sigma2) * baseline[valid]
         err2[valid] = (y_fit[valid] - yhat[valid]) ** 2
-        sigma2 = float(np.mean((y_fit[valid] - yhat[valid]) ** 2))
     else:
         sigma2 = float("nan")
     # raw target is the persisted unwinsorized rv_raw; exclusion rule ==

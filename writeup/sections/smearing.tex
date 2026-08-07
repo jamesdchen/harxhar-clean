@@ -58,14 +58,14 @@ estimator of that term is specified as part of the evaluation procedure.
 \label{sec:smearing_estimator}
 
 The second-moment term is supplied by Duan's smearing estimator
-\citep{Duan1983}, in the analytic form implemented in
-\texttt{src/evaluation/metrics.py}. Fix one evaluation window of $N$ bars.
-The inputs are three per-bar arrays: the realizations $\{y_t\}_{t=1}^{N}$
-and forecasts $\{\hat{y}_t\}_{t=1}^{N}$ on the transformed (square-root,
-diurnally adjusted) scale, and the diurnal baseline factors
-$\{B_t\}_{t=1}^{N}$, where $B_t$ is the factor that reverses the Stage-1
-adjustment at bar $t$. The implementation computes a single scalar smear
-from the window's own forecast residuals,
+\citep{Duan1983}. Fix one evaluation window of $N$ bars. The inputs are
+three per-bar arrays: the forecasts $\{\hat{y}_t\}_{t=1}^{N}$ on the
+transformed (square-root, diurnally adjusted) scale, the diurnal baseline
+factors $\{B_t\}_{t=1}^{N}$, where $B_t$ is the factor that reverses the
+Stage-1 adjustment at bar $t$, and the \emph{unwinsorized} transformed
+realizations $y_t = \sqrt{RV^{\mathrm{raw}}_t / B_t}$, reconstructed
+exactly from the persisted raw target. The scorer computes a single scalar
+smear from the window's own forecast residuals against that target,
 \begin{equation}
     \hat{\sigma}^2_{\varepsilon}
     \;=\; \frac{1}{N}\sum_{t=1}^{N}\left(y_t - \hat{y}_t\right)^2,
@@ -140,13 +140,18 @@ every arm. It is not a quantity a deployed forecaster could have computed
 at $t$; a deployable variant would estimate
 $\hat{\sigma}^2_{\varepsilon}$ from trailing residuals only.
 
-\emph{Two biases left uncorrected.} The residuals in
-Equation~\eqref{eq:smear_scalar} are computed on the winsorized scale,
-while the evaluation target is unwinsorized. The Stage-3 winsorization is a
-lossy operation and is not inverted. Neither effect is quantified. Both
-effects are shared by every arm, so they cancel to first order in
-comparisons between arms. The raw-scale forecasts are therefore evaluation
-objects, not unbiased variance estimates in an absolute sense.
+\emph{Residuals against the unwinsorized target.} The residuals entering
+Equation~\eqref{eq:smear_scalar} are computed against the unwinsorized
+square-root-scale target, reconstructed exactly from the persisted raw
+realization as $y^{\mathrm{raw}}_t = \sqrt{RV^{\mathrm{raw}}_t / B_t}$,
+not against the winsorized fit target. With this choice the decomposition
+of Equation~\eqref{eq:second_moment} holds for the evaluation target
+itself: the second moment being added is the second moment of the errors
+against the quantity actually scored, tails included. One bias remains and
+is stated plainly: the \emph{coefficients} are estimated on the winsorized
+fit target, so the forecast $\hat{y}_t$ itself carries the fit-scale
+clipping, which is a modeling choice rather than a scoring defect. It is
+shared by every arm and cancels to first order in comparisons.
 
 \subsection{What Downstream Inherits}
 \label{sec:smearing_contract}
