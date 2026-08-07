@@ -11,10 +11,12 @@ emits:
   * ``<tex-dir>/table_lasso_ridge.tex``            (tabular body, dense_weak.tex format)
   * ``<tex-dir>/table_blocks.tex``                 (tabular body: ladder + diagnostics)
 
-Scoring contract (writeup/sections/smearing.tex; reference implementation
-``src/evaluation/metrics.apply_duan_smearing`` — REUSED, not re-derived): one
-evaluation window == one CHUNK.  Per chunk, over valid bars,
-``sigma2 = mean((y_fit - yhat)^2)``; raw forecast ``f_t = (yhat_t^2 + sigma2) * B_t``;
+Scoring contract (writeup/sections/smearing.tex): one evaluation window ==
+one CHUNK.  Per chunk, over valid bars, the smear residuals are taken against
+the UNWINSORIZED sqrt-space target ``y_unwins = sqrt(rv_raw / B)`` —
+``sigma2 = mean((y_unwins - yhat)^2)`` (author decision 2026-08-06; makes the
+second-moment decomposition exact for the evaluation target); raw forecast
+``f_t = (yhat_t^2 + sigma2) * B_t``;
 raw target = the PERSISTED unwinsorized ``rv_raw`` (never y_fit^2 * B).  Per-bar
 QLIKE ``r - log r - 1`` with ``r = rv_raw / f``, excluding bars where either
 member of the pair is non-positive — the exact metrics.py exclusion rule, via
