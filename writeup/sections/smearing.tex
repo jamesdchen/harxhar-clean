@@ -1,4 +1,4 @@
-\section{The Second-Moment Correction: Duan Smearing}
+\section{A Calibrated Second-Moment Correction}
 \label{sec:smearing}
 
 % Arc: developed HERE, immediately after the data section introduces it,
@@ -13,7 +13,8 @@
 % right here — between data prep and the bucket attribution — so the contract
 % upgrade happens before any comparison that would inherit it.
 % Source material: reference/sections/methodology.tex (Duan smearing),
-% src/evaluation/metrics.py.
+% src/evaluation/metrics.py; implementation of the calibrated stack:
+% experiments/score_unification.py (contract upgrade 2026-08-06).
 
 \subsection{Why the Back-Transform Needs a Second Moment}
 \label{sec:smearing_bias}
@@ -54,47 +55,108 @@ model's own residual variance, so it differs across models. The
 back-transform therefore includes an explicit second-moment term, and the
 estimator of that term is specified as part of the evaluation procedure.
 
-\subsection{The Empirical Smear}
+\subsection{The Calibrated Estimator}
 \label{sec:smearing_estimator}
 
-The second-moment term is supplied by Duan's smearing estimator
-\citep{Duan1983}. Fix one evaluation window of $N$ bars. The inputs are
-three per-bar arrays: the forecasts $\{\hat{y}_t\}_{t=1}^{N}$ on the
-transformed (square-root, diurnally adjusted) scale, the diurnal baseline
-factors $\{B_t\}_{t=1}^{N}$, where $B_t$ is the factor that reverses the
-Stage-1 adjustment at bar $t$, and the \emph{unwinsorized} transformed
-realizations $y_t = \sqrt{RV^{\mathrm{raw}}_t / B_t}$, reconstructed
-exactly from the persisted raw target. The scorer computes a single scalar
-smear from the window's own forecast residuals against that target,
+The correction is a two-component causal calibration, re-estimated for
+every evaluation window on the window before it. Fix the chunked
+walk-forward grid: the backtest is split into contiguous evaluation
+windows indexed $k = 0, 1, \dots$, tiling the panel in row order. The
+inputs for window $k$ are three per-bar arrays over its bars: the
+forecasts $\{\hat{y}_t\}$ on the transformed (square-root, diurnally
+adjusted) scale, the diurnal baseline factors $\{B_t\}$, where $B_t$ is
+the factor that reverses the Stage-1 adjustment at bar $t$, and the raw
+realizations $\{RV^{\mathrm{raw}}_t\}$. The evaluation-scale target is the
+\emph{unwinsorized} transformed realization, reconstructed exactly from
+the persisted raw target,
 \begin{equation}
-    \hat{\sigma}^2_{\varepsilon}
-    \;=\; \frac{1}{N}\sum_{t=1}^{N}\left(y_t - \hat{y}_t\right)^2,
-    \label{eq:smear_scalar}
+    y^{\mathrm{raw}}_t = \sqrt{RV^{\mathrm{raw}}_t / B_t}.
+    \label{eq:yraw}
 \end{equation}
-and maps both forecast and realization to the raw scale as
+
+\emph{Mean calibration.} The forecast is passed through one affine map per
+window,
+\begin{equation}
+    m_t = \hat{a}_k + \hat{b}_k\, \hat{y}_t,
+    \qquad
+    (\hat{a}_k, \hat{b}_k)
+    = \arg\min_{a,\, b} \sum_{s \,\in\, k-1}
+      \bigl(y^{\mathrm{raw}}_s - a - b\,\hat{y}_s\bigr)^2,
+    \label{eq:mean_calib}
+\end{equation}
+the Mincer--Zarnowitz regression of the evaluation-scale target on the
+forecast, estimated by ordinary least squares over the valid bars of
+window $k-1$ and applied to every bar of window $k$. The map absorbs the
+level and slope miscalibration the fit-scale construction leaves behind,
+including the attenuation induced by training on the winsorized target.
+For the first window, and for any window whose predecessor is missing or
+empty, the map falls back to the identity
+$(\hat{a}_k, \hat{b}_k) = (0, 1)$; every such window is flagged in the
+harvest accounting.
+
+\emph{Conditional second moment.} Let
+$e_s = y^{\mathrm{raw}}_s - m_s$ denote window $k-1$'s residuals against
+its own calibrated mean, as applied there. The second-moment term for
+window $k$ is the scalar
+\begin{equation}
+    \hat{\sigma}^2_k
+    = \frac{1}{N_{k-1}} \sum_{s \,\in\, k-1} e_s^2,
+    \label{eq:var_reg}
+\end{equation}
+one constant per window, estimated on the previous window, where
+$N_{k-1}$ counts the valid bars entering the mean. Positivity is trivial
+--- a mean of squares --- and the estimator does not extrapolate: no
+value of window $k$'s forecasts can move it. For the first window, where
+no predecessor exists, it falls back to the in-window scalar mean of
+$(y^{\mathrm{raw}}_t - m_t)^2$; the fallback window is flagged in the
+harvest accounting.
+
+\emph{The conditional-variance record.} Two bar-conditional
+parameterizations of the second moment were implemented and rejected on
+measurement. An affine form,
+$\hat{\sigma}^2_t = \max(\hat{c}_0 + \hat{c}_1 \hat{y}_t^{\,2},\, 0)$,
+fit on the previous window's squared residuals, admits zero variance on
+quiet bars and lets the raw forecast collapse: under it, twenty bars
+carried $99\%$ of one arm's pooled QLIKE. A log-linear form,
+$\hat{\sigma}^2_t
+= \exp(\hat{d}_0 + \hat{d}_1 \hat{y}_t^{\,2})\,\hat{S}$, with $\hat{S}$
+the \citet{Duan1983} smearing factor for the log-retransformation, is
+structurally positive but extrapolates exponentially at bars whose
+$\hat{y}_t^{\,2}$ lies outside the previous window's fitted range: the
+second moment reached $10^{44}$, inflating every arm's loss and
+collapsing the Diebold--Mariano differentials toward zero. A
+bar-conditional second moment therefore requires a model with controlled
+extrapolation, which is the reserved learned-correction slot for this
+section; the contract uses the scalar of Equation~\eqref{eq:var_reg}.
+
+\emph{Back-transform.} Both members of the scored pair are mapped to the
+raw scale as
 \begin{equation}
     \widehat{RV}_t^{\mathrm{raw}}
-    = \left(\hat{y}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right) B_t,
+    = \bigl(m_t^2 + \hat{\sigma}^2_k\bigr) B_t,
     \qquad
-    RV_t^{\mathrm{raw}} = y_t^{\,2}\, B_t.
+    RV_t^{\mathrm{raw}} = \bigl(y^{\mathrm{raw}}_t\bigr)^2 B_t,
     \label{eq:smear_map}
 \end{equation}
-Equation~\eqref{eq:smear_map} is the analytic counterpart of Duan's empirical
-smearing average $\frac{1}{N}\sum_i (\hat{y}_t + \hat{\varepsilon}_i)^2$; the
-two coincide when the residuals are mean-zero, since
-$\mathbb{E}[(\hat{y}+\varepsilon)^2] = \hat{y}^2 +
-2\hat{y}\,\mathbb{E}[\varepsilon] + \sigma^2_{\varepsilon}$.
+where the right-hand identity is Equation~\eqref{eq:yraw} inverted: the
+realization is the persisted raw target itself, never reconstructed from
+the winsorized fit target. The traditional scalar estimator of
+\citet{Duan1983} is the same scalar form with the identity mean map and
+in-window fit-scale residuals: the contract differs from Duan smearing
+in exactly two ways --- the calibrated mean, and previous-window
+residuals against that mean on the evaluation scale.
 
 The full scoring procedure for one evaluation window is:
 \begin{enumerate}
-    \item \emph{Inputs.} The per-bar arrays $\{y_t\}$, $\{\hat{y}_t\}$, and
-    $\{B_t\}$ defined above, each of length $N$.
-    \item \emph{Residual variance.} Compute the scalar
-    $\hat{\sigma}^2_{\varepsilon}$ from
-    Equation~\eqref{eq:smear_scalar}, using all $N$ out-of-sample residuals
-    of the window.
-    \item \emph{Back-transform.} Map every bar to the raw scale with
-    Equation~\eqref{eq:smear_map}, producing the per-bar pairs
+    \item \emph{Inputs.} The per-bar arrays $\{\hat{y}_t\}$, $\{B_t\}$,
+    and $\{RV^{\mathrm{raw}}_t\}$ over windows $k-1$ and $k$; reconstruct
+    $y^{\mathrm{raw}}$ by Equation~\eqref{eq:yraw}.
+    \item \emph{Calibration.} Estimate $(\hat{a}_k, \hat{b}_k)$ by
+    Equation~\eqref{eq:mean_calib} and $\hat{\sigma}^2_k$ by
+    Equation~\eqref{eq:var_reg} on window $k-1$'s valid bars, with the
+    stated fallbacks.
+    \item \emph{Back-transform.} Map every bar of window $k$ to the raw
+    scale with Equation~\eqref{eq:smear_map}, producing the per-bar pairs
     $\bigl(\widehat{RV}_t^{\mathrm{raw}}, RV_t^{\mathrm{raw}}\bigr)$.
     \item \emph{Loss.} Evaluate QLIKE on the raw-scale pairs,
     \begin{equation}
@@ -110,48 +172,49 @@ The full scoring procedure for one evaluation window is:
     where the mean is taken over the bars at which both members of the pair
     are positive; bars failing that condition are excluded from the mean.
 \end{enumerate}
-Because $\hat{\sigma}^2_{\varepsilon} \ge 0$, the smeared forecast
-$\widehat{RV}_t^{\mathrm{raw}}$ is positive whenever $B_t$ is, so the ratio
-in Equation~\eqref{eq:qlike_raw} is defined at every bar with a positive
+Because $\hat{\sigma}^2_k$ is a mean of squares and $m_t^2 \ge 0$, the
+calibrated forecast $\widehat{RV}_t^{\mathrm{raw}}$ is positive whenever
+$B_t$ is and window $k-1$'s residuals are not identically zero; the
+positivity condition of the exclusion rule then binds only through the
 realization.
 
 Three implementation choices define the estimator.
 
-\emph{Global, not rolling.} The smear is one scalar per evaluation window.
-It is not a rolling estimate and not a bar-local estimate. In the chunked
-walk-forward harness the backtest is split into contiguous chunks, and
-Equation~\eqref{eq:smear_scalar} is computed once per chunk, over all of
-that chunk's out-of-sample bars. The correction is therefore
-piecewise-constant across the panel on the transformed scale. On the raw
-scale the correction varies bar by bar through the baseline factor $B_t$.
-Relative to the squared forecast, the correction is largest at the bars
-where $\hat{y}_t^{\,2}$ is smallest --- the quiet bars.
+\emph{One calibration per window, estimated on the previous window.} The
+three scalars $(\hat{a}_k, \hat{b}_k, \hat{\sigma}^2_k)$ are window-level
+constants, re-estimated at every window boundary from the window before
+it. The correction is piecewise-constant across the panel on the
+transformed scale; on the raw scale it varies bar by bar through the
+baseline factor $B_t$. Relative to the squared calibrated forecast, the
+correction is largest at the bars where $m_t^2$ is smallest --- the
+quiet bars.
 
-\emph{Out-of-sample residuals of the model itself.} The residuals entering
-Equation~\eqref{eq:smear_scalar} are the evaluated model's own
-out-of-sample forecast errors on the window being converted. They are not
-training-set residuals, and they are not the residuals of any reference
-model. Two consequences follow. First, the smear is model-specific: an arm
-with larger residual variance receives a larger upward correction, so the
-correction is part of each arm's forecast, not a shared post-processing
-constant. Second, the smear at bar $t$ uses residuals from the whole
-window, including bars after $t$. This convention is applied identically to
-every arm. It is not a quantity a deployed forecaster could have computed
-at $t$; a deployable variant would estimate
-$\hat{\sigma}^2_{\varepsilon}$ from trailing residuals only.
+\emph{Causal, hence deployable.} Every estimated quantity applied in
+window $k \ge 1$ is a function of data through window $k-1$ only, and
+windows are processed in strictly ascending order. The map is a quantity a
+deployed forecaster could have computed at $t$: the scored object is a
+real-time forecast, not a retrospectively corrected one. The single
+exception is the first window's second-moment fallback, which uses the
+window's own residuals because no predecessor exists; it is flagged in the
+harvest accounting.
 
-\emph{Residuals against the unwinsorized target.} The residuals entering
-Equation~\eqref{eq:smear_scalar} are computed against the unwinsorized
-square-root-scale target, reconstructed exactly from the persisted raw
-realization as $y^{\mathrm{raw}}_t = \sqrt{RV^{\mathrm{raw}}_t / B_t}$,
-not against the winsorized fit target. With this choice the decomposition
-of Equation~\eqref{eq:second_moment} holds for the evaluation target
-itself: the second moment being added is the second moment of the errors
-against the quantity actually scored, tails included. One bias remains and
-is stated plainly: the \emph{coefficients} are estimated on the winsorized
-fit target, so the forecast $\hat{y}_t$ itself carries the fit-scale
-clipping, which is a modeling choice rather than a scoring defect. It is
-shared by every arm and cancels to first order in comparisons.
+\emph{Residuals of the model itself, against the unwinsorized target.} The
+residuals entering Equation~\eqref{eq:var_reg} are the evaluated model's
+own out-of-sample forecast errors from the preceding window, measured
+against the unwinsorized evaluation-scale target of
+Equation~\eqref{eq:yraw} --- not training-set residuals, not the residuals
+of any reference model, and not fit-scale residuals. The correction is
+therefore model-specific: an arm with larger residual variance receives a
+larger upward correction, so the correction is part of each arm's
+forecast, not a shared post-processing constant. With this choice the
+decomposition of Equation~\eqref{eq:second_moment} holds for the
+evaluation target itself, tails included. One bias remains and is stated
+plainly: the \emph{coefficients} of each arm are estimated on the
+winsorized fit target, so the forecast $\hat{y}_t$ itself carries the
+fit-scale clipping. That is a modeling choice rather than a scoring
+defect; the mean calibration of Equation~\eqref{eq:mean_calib} absorbs its
+first-order attenuation, it is shared by every arm, and it cancels to
+first order in comparisons.
 
 \subsection{What Downstream Inherits}
 \label{sec:smearing_contract}
@@ -163,18 +226,48 @@ before any QLIKE number is computed. Every downstream comparison
 stabilize} scores its arms on raw-scale pairs produced by exactly this map,
 with exactly these window and residual choices.
 
-Because $\hat{\sigma}^2_{\varepsilon}$ is model-specific, the smear does not
-shift all arms by a common constant. It inflates the forecasts of an arm
-with larger residual variance by more. Under QLIKE's asymmetric penalty,
-this interacts with each arm's calibration in a way that a shared
-correction would not. A comparison run under a different convention ---
-training-set residuals, a rolling window, or no correction at all --- would
-be a comparison of different forecast objects, and it would not necessarily
-induce the same ranking.
-\pending{sensitivity check: re-score the frozen battery under alternative
-smear conventions (no smear, trailing-window smear, training-residual smear)
-and report whether any pairwise ranking flips; this is the empirical teeth of
-the contract claim}
+Because the calibration pair and the second-moment coefficients are
+model-specific, the correction does not shift all arms by a common
+constant. It inflates the forecasts of an arm with larger residual
+variance by more, and it straightens the forecasts of a miscalibrated arm
+by more. Under QLIKE's asymmetric penalty, this interacts with each arm's
+calibration in a way that a shared correction would not. A comparison run
+under a different convention --- an uncalibrated squared forecast, a
+scalar in-window smear, or no correction at all --- would be a comparison
+of different forecast objects, and it would not necessarily induce the
+same ranking.
+
+That comparison is run, restricted to exactly three conventions on the
+identical persisted per-bar arrays and the identical exclusion rule.
+Convention \emph{none} is the na\"ive inverse of
+Section~\ref{sec:smearing_bias}: the squared forecast with the diurnal
+adjustment reversed, $\widehat{RV}_t^{\mathrm{raw}} = \hat{y}_t^{\,2} B_t$,
+with no second-moment term. Convention \emph{Duan} is the in-window scalar
+smear --- the \citet{Duan1983} special case identified after
+Equation~\eqref{eq:smear_map} --- with one scalar per evaluation window,
+the mean of that window's own squared fit-scale residuals, added to the
+squared forecast before the baseline reversal. Convention \emph{contract}
+is the calibrated stack of
+Equations~\eqref{eq:mean_calib}--\eqref{eq:smear_map}, the convention
+every headline number in this paper inherits.
+Table~\ref{tab:smear_sensitivity} reports each completed arm's pooled
+QLIKE under the three conventions, with within-convention ranks. The
+rank-stability summary is the Kendall rank correlation between the
+contract ranking and each alternative's:
+$\tau = \unifSmearTauNone$ against \emph{none} and
+$\tau = \unifSmearTauDuan$ against \emph{Duan}.
+
+\begin{table}[H]
+\centering
+\caption{Smear sensitivity: pooled QLIKE per completed arm under the three
+back-transform conventions, within-convention rank in parentheses.
+Kendall $\tau$ of each alternative ranking against the contract ranking:
+none $\unifSmearTauNone$, Duan $\unifSmearTauDuan$.}
+\label{tab:smear_sensitivity}
+\begin{tabular}{lrrr}
+\input{generated/table_smear_sensitivity}
+\end{tabular}
+\end{table}
 
 The correction is treated as part of the evaluation contract: it is frozen
 here, before the first comparison, and no downstream section revisits it.

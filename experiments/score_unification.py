@@ -11,17 +11,45 @@ emits:
   * ``<tex-dir>/table_lasso_ridge.tex``            (tabular body, dense_weak.tex format)
   * ``<tex-dir>/table_blocks.tex``                 (tabular body: ladder + diagnostics)
 
-Scoring contract (writeup/sections/smearing.tex): one evaluation window ==
-one CHUNK.  Per chunk, over valid bars, the smear residuals are taken against
-the UNWINSORIZED sqrt-space target ``y_unwins = sqrt(rv_raw / B)`` —
-``sigma2 = mean((y_unwins - yhat)^2)`` (author decision 2026-08-06; makes the
-second-moment decomposition exact for the evaluation target); raw forecast
-``f_t = (yhat_t^2 + sigma2) * B_t``;
-raw target = the PERSISTED unwinsorized ``rv_raw`` (never y_fit^2 * B).  Per-bar
-QLIKE ``r - log r - 1`` with ``r = rv_raw / f``, excluding bars where either
-member of the pair is non-positive — the exact metrics.py exclusion rule, via
-``src/evaluation/diebold_mariano.qlike_per_bar`` (REUSED).  Pooled arm QLIKE =
-mean over all included bars.
+Scoring contract (writeup/sections/smearing.tex — the causal calibrated
+second-moment stack; author directive 2026-08-06, replaces the in-window
+scalar smear entirely): one evaluation window == one CHUNK, chunks processed
+in strictly ascending index order (they tile the panel in row order).  Per
+window k, with ``y_raw = sqrt(rv_raw / B)`` the unwinsorized sqrt-scale
+target (nonneg-guarded):
+
+  * MEAN CALIBRATION (causal): ``m_t = a + b*yhat_t`` with (a, b) the
+    Mincer-Zarnowitz OLS of y_raw on [1, yhat] over window k-1's valid bars;
+    first window / missing predecessor: identity (0, 1), flagged in the CSV.
+  * SCALAR SECOND MOMENT (causal; FINAL contract, author decision
+    2026-08-06): ``sigma2_k = mean(e^2)`` over window k-1's valid bars, with
+    e^2 = (y_raw - m)^2 and m as applied THERE — one scalar per window,
+    previous-window estimated.  Positivity is trivial (a mean of squares)
+    and the estimator cannot extrapolate.  Two bar-conditional
+    parameterizations (affine with zero floor; log-linear with Duan
+    retransformation) were implemented and REJECTED on measurement — the
+    documented negative result is smearing.tex's "conditional-variance
+    record".  First window / empty predecessor: in-window scalar mean,
+    flagged (``var_fallback_windows``).
+  * RAW FORECAST: ``f_t = (m_t^2 + sigma2_t) * B_t``; raw target = the
+    PERSISTED unwinsorized ``rv_raw`` (never y_fit^2 * B).  Per-bar QLIKE
+    ``r - log r - 1`` with ``r = rv_raw / f``, excluding bars where either
+    member of the pair is non-positive — the exact metrics.py exclusion rule,
+    via ``src/evaluation/diebold_mariano.qlike_per_bar`` (REUSED).  Pooled
+    arm QLIKE = mean over all included bars.
+
+The whole map for window k >= 1 uses only data through window k-1, so the
+scored forecast is deployable (sole exception: the first window's variance
+fallback, counted in ``var_fallback_windows``).
+
+Smear-sensitivity layer (author directive, exactly three conventions): pooled
+QLIKE is also computed under (1) NONE — ``f = yhat^2 * B``, no correction —
+and (2) DUAN — the traditional in-window scalar smear from FIT-scale
+residuals, ``f = (yhat^2 + mean((y_fit - yhat)^2)) * B`` — on the same arrays
+and exclusion rule.  These are comparison columns only (CSV qlike_none /
+qlike_duan, table_smear_sensitivity.tex, Kendall-tau macros
+\\unifSmearTauNone / \\unifSmearTauDuan); the CONTRACT convention above is
+the sole basis for the headline macros, DM tests, and tables.
 
 Same-environment comparisons: each arm vs ITS OWN root's ``a0_ols_har``, joined
 per-bar on row_id.  DM t reuses ``src/evaluation/diebold_mariano.dm_test``
@@ -31,9 +59,9 @@ the sqrt FIT scale: 1 - SSE_arm/SSE_a0 from per-bar (y_fit - yhat)^2 on the
 joined rows.  MZ alpha/beta reuse ``src/evaluation/metrics.mz_regression``
 (rv_raw on the raw forecast, positive pairs).
 
-Cross-cluster canary: ``a0_ols_har`` present in two roots is joined on row_id
-and max|yhat diff| / mean|diff| / pooled-QLIKE diff are reported — the float-
-parity bound between clusters.
+Single-cluster campaign (author directive 2026-08-06): the cross-cluster a0
+float-parity canary was retired with the Hoffman2 leg; ``--roots`` still
+accepts several trees and each is scored independently.
 
 Partial-harvest robust: runs cleanly at ANY completion level (zero files emits
 all-pending macros and pending tables), always exits 0, one summary line per
@@ -164,7 +192,14 @@ class ArmResult:
     n_gaps: int = 0
     contiguous_in_chunk: bool = True
     qlike: float | None = None
-    sigma2_mean: float | None = None
+    sigma2_mean: float | None = None  # mean per-bar sigma2_t over valid bars
+    calib_a_mean: float | None = None  # mean fitted MZ intercept over windows
+    calib_b_mean: float | None = None  # mean fitted MZ slope over windows
+    calib_fallback_windows: int = 0  # windows scored with the identity (0, 1)
+    var_fallback_windows: int = 0  # windows without the 2-param variance fit
+    f_min: float | None = None  # min finite raw forecast (positivity check)
+    qlike_none: float | None = None  # sensitivity: no correction
+    qlike_duan: float | None = None  # sensitivity: in-window fit-scale Duan
     masked_col_events: int = 0
     dropped_col_events: int = 0
     dm_t: float | None = None
@@ -174,64 +209,145 @@ class ArmResult:
     mz_r2: float | None = None
     n_asym: int | None = None
     warnings: list[str] = field(default_factory=list)
+    # accumulators for the causal calibration stack
+    _ab: list[tuple[float, float]] = field(default_factory=list)
+    _s2_sum: float = 0.0
+    _s2_n: int = 0
     # per-bar arrays (sorted by row_id, deduped)
     row_id: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
     loss: np.ndarray = field(default_factory=lambda: np.empty(0))
+    loss_none: np.ndarray = field(default_factory=lambda: np.empty(0))
+    loss_duan: np.ndarray = field(default_factory=lambda: np.empty(0))
     err2: np.ndarray = field(default_factory=lambda: np.empty(0))
     f_raw: np.ndarray = field(default_factory=lambda: np.empty(0))
     rv_raw: np.ndarray = field(default_factory=lambda: np.empty(0))
     yhat: np.ndarray = field(default_factory=lambda: np.empty(0))
 
 
-def _score_chunk(path: str) -> dict:
-    """Load one chunk npz and score it as ONE evaluation window (smearing.tex)."""
+def _load_chunk(path: str) -> dict:
+    """Load one chunk npz (raw arrays only; scoring is sequential per arm)."""
     with np.load(path, allow_pickle=False) as z:
-        row_id = np.asarray(z["row_id"], dtype=np.int64)
-        y_fit = np.asarray(z["y_fit"], dtype=np.float64)
-        yhat = np.asarray(z["yhat"], dtype=np.float64)
-        rv_raw = np.asarray(z["rv_raw"], dtype=np.float64)
-        baseline = np.asarray(z["baseline"], dtype=np.float64)
-        valid = np.asarray(z["valid_mask"], dtype=bool)
+        out = {
+            "row_id": np.asarray(z["row_id"], dtype=np.int64),
+            "y_fit": np.asarray(z["y_fit"], dtype=np.float64),
+            "yhat": np.asarray(z["yhat"], dtype=np.float64),
+            "rv_raw": np.asarray(z["rv_raw"], dtype=np.float64),
+            "baseline": np.asarray(z["baseline"], dtype=np.float64),
+            "valid": np.asarray(z["valid_mask"], dtype=bool),
+        }
         masked = int(z["ols_masked_cols"]) if "ols_masked_cols" in z.files else -1
         dropped = int(z["ols_dropped_cols"]) if "ols_dropped_cols" in z.files else 0
         if masked < 0 and "meta" in z.files:
             meta = json.loads(str(z["meta"]))
             mc = meta.get("ols_masked_cols", {})
             masked = len(mc) if isinstance(mc, dict) else int(mc)
-        masked = max(masked, 0)
+    out["masked"] = max(masked, 0)
+    out["dropped"] = dropped
+    return out
 
-    n = len(row_id)
-    f = np.full(n, np.nan)
-    err2 = np.full(n, np.nan)
-    if valid.any():
-        # Smear residuals against the UNWINSORIZED sqrt-space target,
-        # reconstructed exactly from the persisted raw target and baseline:
-        # y_unwins = sqrt(rv_raw / B). This makes the second-moment
-        # decomposition exact for the evaluation target and removes the
-        # winsorized-residual under-correction (author decision 2026-08-06;
-        # smearing.tex documents the contract). One scalar per chunk.
-        with np.errstate(invalid="ignore", divide="ignore"):
-            y_unwins = np.sqrt(np.clip(rv_raw / baseline, 0.0, None))
-        sigma2 = float(np.mean((y_unwins[valid] - yhat[valid]) ** 2))
-        f[valid] = (yhat[valid] ** 2 + sigma2) * baseline[valid]
-        err2[valid] = (y_fit[valid] - yhat[valid]) ** 2
+
+def _ols2(x: np.ndarray, y: np.ndarray) -> tuple[float, float] | None:
+    """OLS of y on [1, x]; None when degenerate (rank < 2 or non-finite coef)."""
+    design = np.column_stack([np.ones_like(x), x])
+    coef, _, rank, _ = np.linalg.lstsq(design, y, rcond=None)
+    if rank < 2 or not np.all(np.isfinite(coef)):
+        return None
+    return float(coef[0]), float(coef[1])
+
+
+def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
+    """Score one evaluation window under the calibrated second-moment stack
+    (smearing.tex): the mean map and the conditional-variance map are both fit
+    on the PREVIOUS window and applied here — causal, hence deployable."""
+    yhat, rv_raw, baseline, valid = c["yhat"], c["rv_raw"], c["baseline"], c["valid"]
+    n = len(yhat)
+    # 1. unwinsorized sqrt-scale target (nonneg guard: NaN where undefined)
+    y_raw = np.full(n, np.nan)
+    ok = np.isfinite(rv_raw) & np.isfinite(baseline) & (baseline > 0) & (rv_raw >= 0)
+    y_raw[ok] = np.sqrt(rv_raw[ok] / baseline[ok])
+
+    def _sel(p: dict) -> np.ndarray:
+        return p["valid"] & np.isfinite(p["y_raw"]) & np.isfinite(p["yhat"])
+
+    # 2. causal mean calibration: MZ OLS of y_raw on [1, yhat], previous window
+    a, b = 0.0, 1.0
+    fitted = False
+    if prev is not None:
+        s = _sel(prev)
+        if s.sum() >= 3:
+            fit = _ols2(prev["yhat"][s], prev["y_raw"][s])
+            if fit is not None:
+                a, b = fit
+                fitted = True
+    if fitted:
+        res._ab.append((a, b))
     else:
-        sigma2 = float("nan")
-    # raw target is the persisted unwinsorized rv_raw; exclusion rule ==
-    # metrics.py: bars where either member is non-positive drop out (NaN).
+        res.calib_fallback_windows += 1  # identity (0, 1) applied
+    m = a + b * yhat
+
+    # 3. causal SCALAR second moment (FINAL contract, author decision
+    # 2026-08-06): sigma2_k = mean of window k-1's e^2 = (y_raw - m)^2, m as
+    # applied there — one scalar per window, previous-window estimated.
+    # Positivity is trivial (mean of squares); no extrapolation. Two
+    # bar-conditional parameterizations were implemented and rejected on
+    # measurement (affine zero-floor: forecast collapse on quiet bars;
+    # log-linear + Duan retransformation: exponential extrapolation to ~1e44
+    # on extreme bars) — smearing.tex, "the conditional-variance record".
+    sigma2: np.ndarray | None = None
+    var_fitted = False
+    if prev is not None:
+        s = _sel(prev) & np.isfinite(prev["m"])
+        if s.sum() >= 3:
+            e2 = (prev["y_raw"][s] - prev["m"][s]) ** 2
+            sigma2 = np.full(n, float(np.mean(e2)))
+            var_fitted = True
+    if sigma2 is None:  # first window / empty predecessor: in-window scalar
+        s0 = valid & np.isfinite(y_raw)
+        s_val = float(np.mean((y_raw[s0] - m[s0]) ** 2)) if s0.any() else np.nan
+        sigma2 = np.full(n, s_val)
+    if not var_fitted:
+        res.var_fallback_windows += 1
+
+    # 4. raw forecast + per-bar QLIKE (metrics.py exclusion rule, REUSED)
+    f = np.full(n, np.nan)
+    okf = valid & np.isfinite(m) & np.isfinite(sigma2) & np.isfinite(baseline)
+    f[okf] = (m[okf] ** 2 + sigma2[okf]) * baseline[okf]
     loss = qlike_per_bar(f, rv_raw)
     loss[~valid] = np.nan
+    err2 = np.full(n, np.nan)
+    y_fit = c["y_fit"]
+    err2[valid] = (y_fit[valid] - yhat[valid]) ** 2
+    sv = valid & np.isfinite(sigma2)
+    res._s2_sum += float(np.sum(sigma2[sv]))
+    res._s2_n += int(sv.sum())
+
+    # 5. sensitivity conventions (comparison columns only): NONE = naive
+    # squared back-transform; DUAN = traditional in-window scalar smear from
+    # FIT-scale residuals (the textbook analytic form as first implemented
+    # here). Same arrays, same exclusion rule; the contract stays the headline.
+    f_none = np.full(n, np.nan)
+    f_duan = np.full(n, np.nan)
+    okb = valid & np.isfinite(baseline)
+    f_none[okb] = yhat[okb] ** 2 * baseline[okb]
+    if valid.any():
+        s2_fit = float(np.mean((y_fit[valid] - yhat[valid]) ** 2))
+        f_duan[okb] = (yhat[okb] ** 2 + s2_fit) * baseline[okb]
+    loss_none = qlike_per_bar(f_none, rv_raw)
+    loss_none[~valid] = np.nan
+    loss_duan = qlike_per_bar(f_duan, rv_raw)
+    loss_duan[~valid] = np.nan
     return {
-        "row_id": row_id,
+        "row_id": c["row_id"],
         "loss": loss,
+        "loss_none": loss_none,
+        "loss_duan": loss_duan,
         "err2": err2,
         "f": f,
         "rv_raw": rv_raw,
         "yhat": yhat,
         "valid": valid,
-        "sigma2": sigma2,
-        "masked": masked,
-        "dropped": dropped,
+        # chain state consumed by the NEXT window's calibration fits
+        "state": {"yhat": yhat, "y_raw": y_raw, "m": m, "valid": valid},
     }
 
 
@@ -256,23 +372,32 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
         return res
 
     chunks = []
-    sigma2s = []
-    for idx in sorted(found):
+    idxs = sorted(found)
+    # The causal maps chain window-to-window: strictly ascending order required.
+    assert all(j > i for i, j in zip(idxs, idxs[1:])), "chunk order not ascending"
+    prev_state: dict | None = None
+    prev_idx: int | None = None
+    for idx in idxs:
         try:
-            c = _score_chunk(found[idx])
+            raw = _load_chunk(found[idx])
         except Exception as err:  # a corrupt chunk must not sink the harvest
             res.warnings.append(f"chunk_{idx}: unreadable ({err}); skipped")
             res.incomplete = True
             if idx not in res.missing:
                 res.missing.append(idx)
+            prev_state, prev_idx = None, None  # calibration chain broken
             continue
-        if len(c["row_id"]) > 1 and not np.all(np.diff(c["row_id"]) == 1):
+        if len(raw["row_id"]) > 1 and not np.all(np.diff(raw["row_id"]) == 1):
             res.contiguous_in_chunk = False
             res.warnings.append(f"chunk_{idx}: row_id not contiguous within chunk")
+        # predecessor must be the immediately preceding chunk index; a gap in
+        # the harvest breaks the chain and the fallbacks fire (flagged).
+        prev = prev_state if prev_idx == idx - 1 else None
+        c = _score_chunk_causal(raw, prev, res)
+        prev_state, prev_idx = c.pop("state"), idx
         chunks.append(c)
-        sigma2s.append(c["sigma2"])
-        res.masked_col_events += c["masked"]
-        res.dropped_col_events += c["dropped"]
+        res.masked_col_events += raw["masked"]
+        res.dropped_col_events += raw["dropped"]
     if not chunks:
         return res
 
@@ -290,7 +415,7 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
     res.row_id = row_id[~dupe]
     res.n_gaps = int((np.diff(res.row_id) > 1).sum()) if len(res.row_id) > 1 else 0
 
-    for name in ("loss", "err2", "f", "rv_raw", "yhat"):
+    for name in ("loss", "loss_none", "loss_duan", "err2", "f", "rv_raw", "yhat"):
         arr = np.concatenate([c[name] for c in chunks])[keep]
         setattr(res, {"f": "f_raw"}.get(name, name), arr)
     valid = np.concatenate([c["valid"] for c in chunks])[keep]
@@ -301,9 +426,18 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
     res.n_qlike = int(np.isfinite(res.loss).sum())
     if res.n_qlike:
         res.qlike = float(np.nanmean(res.loss))
-    s2 = np.asarray(sigma2s, dtype=np.float64)
-    if np.isfinite(s2).any():
-        res.sigma2_mean = float(np.nanmean(s2))
+    if np.isfinite(res.loss_none).any():
+        res.qlike_none = float(np.nanmean(res.loss_none))
+    if np.isfinite(res.loss_duan).any():
+        res.qlike_duan = float(np.nanmean(res.loss_duan))
+    ffin = res.f_raw[np.isfinite(res.f_raw)]
+    if ffin.size:
+        res.f_min = float(ffin.min())
+    if res._s2_n:
+        res.sigma2_mean = res._s2_sum / res._s2_n
+    if res._ab:  # fitted (non-fallback) windows only; fallbacks counted apart
+        res.calib_a_mean = float(np.mean([ab[0] for ab in res._ab]))
+        res.calib_b_mean = float(np.mean([ab[1] for ab in res._ab]))
 
     # Mincer-Zarnowitz: rv_raw on the raw forecast, positive finite pairs.
     m = np.isfinite(res.f_raw) & np.isfinite(res.rv_raw)
@@ -359,15 +493,20 @@ def _pick_primary(entries: list[ArmResult]) -> ArmResult | None:
     return sorted(entries, key=lambda r: (r.incomplete, -r.n_valid))[0]
 
 
-def _macro_lines(by_arm: dict[str, list[ArmResult]]) -> list[str]:
+def _macro_lines(
+    by_arm: dict[str, list[ArmResult]],
+    tau_none: float | None,
+    tau_duan: float | None,
+) -> list[str]:
     from datetime import datetime, timezone
 
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%MZ")
     lines = [
         "% GENERATED FILE -- do not edit by hand.",
         f"% Written by experiments/score_unification.py at {stamp}.",
-        "% Scoring: per-chunk Duan smear (smearing.tex), rv_raw evaluation",
-        "% target, DM vs the same root's a0 (src/evaluation/diebold_mariano).",
+        "% Scoring: causal calibrated second-moment stack (smearing.tex) --",
+        "% prev-window MZ mean + conditional-variance maps; rv_raw evaluation",
+        "% target; DM vs the same root's a0 (src/evaluation/diebold_mariano).",
         r"% \unifAzeroRsq is a0's Mincer-Zarnowitz R^2 (rv_raw on raw forecast).",
         "% Incomplete arms render as red pending boxes until harvest completes.",
     ]
@@ -413,6 +552,17 @@ def _macro_lines(by_arm: dict[str, list[ArmResult]]) -> list[str]:
             f"unif{camel}Delta",
             _fmt(r.qlike - a0q, "+.5f") if delta_ok else pend(arm),
         )
+    # Smear-sensitivity rank stability: Kendall tau of each alternative
+    # convention's arm ranking against the contract's, over completed arms.
+    pend_tau = r"\pending{smear sensitivity awaiting harvest}"
+    emit(
+        "unifSmearTauNone",
+        _fmt(tau_none, ".3f") if tau_none is not None else pend_tau,
+    )
+    emit(
+        "unifSmearTauDuan",
+        _fmt(tau_duan, ".3f") if tau_duan is not None else pend_tau,
+    )
     return lines
 
 
@@ -529,6 +679,63 @@ def _blocks_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
     ]
 
 
+def _kendall_tau(x: np.ndarray, y: np.ndarray) -> float | None:
+    """Kendall rank correlation (tau-a) via pairwise sign concordance.
+
+    Numpy only (no scipy dependency); tied pairs contribute zero, matching
+    tau-a. None when fewer than two observations.
+    """
+    n = len(x)
+    if n < 2:
+        return None
+    i, j = np.triu_indices(n, 1)
+    s = np.sign(x[i] - x[j]) * np.sign(y[i] - y[j])
+    return float(np.sum(s) / len(s))
+
+
+def _smear_sensitivity(
+    by_arm: dict[str, list[ArmResult]],
+) -> tuple[list[str], float | None, float | None]:
+    """Three-convention sensitivity: table body (one row per COMPLETED arm in
+    registry order; QLIKE under none / Duan / contract with within-convention
+    ranks) + Kendall taus of each alternative ranking vs the contract's."""
+    rows: list[tuple[str, float, float, float]] = []
+    for arm, _ in _REGISTRY:
+        r = _pick_primary(by_arm.get(arm, []))
+        if r is None or r.incomplete:
+            continue
+        if r.qlike is None or r.qlike_none is None or r.qlike_duan is None:
+            continue
+        rows.append((arm, r.qlike_none, r.qlike_duan, r.qlike))
+    lines = [
+        r"\toprule",
+        r"Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\",
+        r"\midrule",
+    ]
+    tau_none: float | None = None
+    tau_duan: float | None = None
+    if rows:
+        qn = np.array([r[1] for r in rows])
+        qd = np.array([r[2] for r in rows])
+        qc = np.array([r[3] for r in rows])
+
+        def _rank(v: np.ndarray) -> np.ndarray:
+            rk = np.empty(len(v), dtype=np.int64)
+            rk[np.argsort(v, kind="stable")] = np.arange(1, len(v) + 1)
+            return rk
+
+        rn, rd, rc = _rank(qn), _rank(qd), _rank(qc)
+        for k, (arm, _n, _d, _c) in enumerate(rows):
+            lines.append(
+                rf"\texttt{{{_tex_escape(arm)}}} & {_n:.5f} ({rn[k]}) & "
+                rf"{_d:.5f} ({rd[k]}) & {_c:.5f} ({rc[k]}) \\"
+            )
+        tau_none = _kendall_tau(qc, qn)
+        tau_duan = _kendall_tau(qc, qd)
+    lines.append(r"\bottomrule")
+    return lines, tau_none, tau_duan
+
+
 # ── driver ────────────────────────────────────────────────────────────────────
 
 
@@ -610,12 +817,18 @@ def main(argv: list[str] | None = None) -> int:
                 "n_chunks_present",
                 "incomplete",
                 "qlike",
+                "qlike_none",
+                "qlike_duan",
                 "dm_t_vs_a0",
                 "oos_r2_vs_a0",
                 "mz_alpha",
                 "mz_beta",
                 "sigma2_mean",
                 "masked_col_events",
+                "calib_a_mean",
+                "calib_b_mean",
+                "calib_fallback_windows",
+                "var_fallback_windows",
             ]
         )
         for r in results:
@@ -627,12 +840,18 @@ def main(argv: list[str] | None = None) -> int:
                     r.n_chunks,
                     r.incomplete,
                     _fmt(r.qlike, ".10g"),
+                    _fmt(r.qlike_none, ".10g"),
+                    _fmt(r.qlike_duan, ".10g"),
                     _fmt(r.dm_t, ".6g"),
                     _fmt(r.oos_r2, ".10g"),
                     _fmt(r.mz_alpha, ".10g"),
                     _fmt(r.mz_beta, ".10g"),
                     _fmt(r.sigma2_mean, ".10g"),
                     r.masked_col_events,
+                    _fmt(r.calib_a_mean, ".6g"),
+                    _fmt(r.calib_b_mean, ".6g"),
+                    r.calib_fallback_windows,
+                    r.var_fallback_windows,
                 ]
             )
 
@@ -641,11 +860,13 @@ def main(argv: list[str] | None = None) -> int:
     for r in results:
         by_arm.setdefault(r.arm, []).append(r)
     os.makedirs(args.tex_dir, exist_ok=True)
+    sens_lines, tau_none, tau_duan = _smear_sensitivity(by_arm)
     outputs = {
-        "campaign_numbers.tex": _macro_lines(by_arm),
+        "campaign_numbers.tex": _macro_lines(by_arm, tau_none, tau_duan),
         "table_buckets.tex": _buckets_table(by_arm),
         "table_lasso_ridge.tex": _lasso_ridge_table(by_arm),
         "table_blocks.tex": _blocks_table(by_arm),
+        "table_smear_sensitivity.tex": sens_lines,
     }
     for name, lines in outputs.items():
         with open(os.path.join(args.tex_dir, name), "w", newline="\n") as fh:
@@ -667,12 +888,16 @@ def main(argv: list[str] | None = None) -> int:
                 f" gaps={r.n_gaps}" if r.n_gaps and not r.missing else "",
                 f" invalid={r.n_invalid}" if r.n_invalid else "",
                 f" asym={r.n_asym}" if r.n_asym else "",
+                f" fb={r.calib_fallback_windows}/{r.var_fallback_windows}"
+                if r.n_chunks
+                else "",
             ]
         )
         print(
             f"[{r.root}] {r.arm:28s} chunks {r.n_chunks:3d}/{EXPECTED_CHUNKS}"
             f" n_valid={r.n_valid:7d} qlike={_fmt(r.qlike, '.5f') or '------'}"
             f" dm={_fmt(r.dm_t, '+.1f') or '----'}"
+            f" fmin={_fmt(r.f_min, '.2e') or '----'}"
             f"{' INCOMPLETE' if r.incomplete else ''}{miss}{extras}{flags}"
         )
         for wmsg in r.warnings:
