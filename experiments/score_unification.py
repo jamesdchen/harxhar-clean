@@ -143,6 +143,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGhat",
         "blk4_trail_tuned",
         "blk4_trailG_tuned",
+        "blk_bucketpen_tuned",
         # transmission dig (same legality)
         "blk4_trailSym",
         "blk4_trailFullC",
@@ -237,6 +238,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trail_tuned", "BlkFourTrailTuned"),
     # Parsimony counterpart: the champion with levels-only transmission.
     ("blk4_trailG_tuned", "BlkFourTrailGTuned"),
+    # Penalty-allocation ladder: the per-bucket exogenous-penalty rung.
+    ("blk_bucketpen_tuned", "BlkBucketPenTuned"),
     # Transmission dig: operator/frame/width/lag variants of the trailing block.
     ("blk4_trailSym", "BlkFourTrailSym"),
     ("blk4_trailFullC", "BlkFourTrailFullC"),
@@ -329,6 +332,8 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trail_tuned": "Four-block ridge (trailing transmission, per-block causal tuning)",
     "blk4_trailG_tuned": "Four-block ridge (trailing factor levels only, per-block "
     "causal tuning)",
+    "blk_bucketpen_tuned": "Four-block ridge with per-bucket exogenous penalties "
+    "(cyclic causal tuning)",
     "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
     "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
     "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
@@ -396,6 +401,11 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # the operator drops out of the headline model)
     ("blk4_trailG_tuned", "blk3_tuned"),
     ("blk4_trailG_tuned", "blk4_trail_tuned"),
+    # penalty-allocation rung: does finer allocation beat ONE exog penalty?
+    # (bare stem = vs the champion, the question the rung exists to answer;
+    # the vs-blk3_tuned pair is qualified by the emitter's repeat convention)
+    ("blk_bucketpen_tuned", "blk4_trail_tuned"),
+    ("blk_bucketpen_tuned", "blk3_tuned"),
     # bucket-grid within-design family comparisons (free-l1 enet vs tuned
     # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
     ("be_tuned_moments", "br_tuned_moments"),
@@ -1535,6 +1545,75 @@ def main(argv: list[str] | None = None) -> int:
                 for fam, cnt in sorted(fams.items()):
                     w.writerow([root_l, year, fam, cnt, f"{cnt / tot:.4f}"])
         print(f"tree family preference by era -> {fam_csv}")
+
+    # 4a2. PENALTY-ALLOCATION EXHIBIT: mean selected penalty per block key,
+    # per year, for the cyclic per-bucket rung — which families the tuner
+    # shrinks hardest and whether that ordering is stable over time. Read
+    # straight from the arms' persisted meta.tuned_alphas (no refits).
+    pen_rows: list[dict] = []
+    for root in args.roots:
+        arm_dir = os.path.join(root, "blk_bucketpen_tuned")
+        if not os.path.isdir(arm_dir):
+            continue
+        acc: dict[tuple[int, str], list[float]] = {}
+        evals: list[int] = []
+        for fn in sorted(os.listdir(arm_dir)):
+            if not _CHUNK_RE.match(fn):
+                continue
+            try:
+                with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                    meta = json.loads(str(z["meta"]))
+                    t_arr = np.asarray(z["t"], dtype="datetime64[ns]")
+                    rid = np.asarray(z["row_id"], dtype=np.int64)
+            except Exception:
+                continue
+            for e in meta.get("tuned_alphas") or []:
+                if "n_tail_evals" in e:
+                    evals.append(int(e["n_tail_evals"]))
+                pos = int(np.searchsorted(rid, int(e.get("row", -1))))
+                if not 0 <= pos < len(t_arr):
+                    continue
+                yr = int(str(t_arr[pos].astype("datetime64[Y]")))
+                for k, a in (e.get("alphas") or {}).items():
+                    acc.setdefault((yr, k), []).append(float(a))
+        for (yr, k), vals in sorted(acc.items()):
+            pen_rows.append(
+                {
+                    "root": labels[root],
+                    "year": yr,
+                    "block": k,
+                    "n_retunes": len(vals),
+                    "mean_alpha": float(np.mean(vals)),
+                    "geo_mean_alpha": float(np.exp(np.mean(np.log(vals)))),
+                }
+            )
+        if evals:
+            print(
+                f"[{labels[root]}] blk_bucketpen_tuned tail evals/retune: "
+                f"min {min(evals)} max {max(evals)} mean {np.mean(evals):.1f}"
+            )
+    if pen_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        pen_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "bucket_penalty_summary.csv"
+        )
+        with open(pen_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(
+                ["root", "year", "block", "n_retunes", "mean_alpha", "geo_mean_alpha"]
+            )
+            for rec in pen_rows:
+                w.writerow(
+                    [
+                        rec["root"],
+                        rec["year"],
+                        rec["block"],
+                        rec["n_retunes"],
+                        f"{rec['mean_alpha']:.6g}",
+                        f"{rec['geo_mean_alpha']:.6g}",
+                    ]
+                )
+        print(f"per-bucket penalty allocation -> {pen_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.

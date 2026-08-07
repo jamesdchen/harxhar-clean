@@ -252,6 +252,61 @@ BLOCK_TUNE_GRIDS: dict[str, tuple[float, ...]] = {
     "trans": (1e2, 1e3, 1e4),
 }
 
+# Penalty-allocation ladder (author directive 2026-08-07): 1 penalty (uniform)
+# -> 4 (per-block, the current champion) -> PER-BUCKET (this rung) -> per-column
+# (rejected: 526 penalties are unselectable on a 125-bar tail — that is
+# estimation/ARD territory, and ARD is selection-like, which loses in this
+# paper). Each canonical exogenous FAMILY gets its own penalty, drawn from the
+# same grid the single exog block used, so the rung nests the champion exactly
+# (all bucket penalties equal == the 4-block allocation).
+CYCLIC_PASSES = 3
+_BUCKET_PEN_KEY = "bkt_"  # alpha-key prefix; one key per SUBGROUP family
+# Canonical FAMILY enumeration = SUBGROUPS minus `baseline` (empty) and
+# `all_features` (the joint design, not a family). NOTE this is SEVEN families,
+# not eight — the same count correction as the A1..A8 bucket arms.
+_BUCKET_FAMILIES = [b for b in SUBGROUPS if b not in ("baseline", "all_features")]
+for _b in _BUCKET_FAMILIES:
+    BLOCK_TUNE_GRIDS[f"{_BUCKET_PEN_KEY}{_b}"] = BLOCK_TUNE_GRIDS["exog"]
+
+
+def assert_bucket_partition(names: list[str]) -> dict[str, int]:
+    """LOUD guard: the canonical families must partition the exogenous columns
+    EXACTLY — every value/indicator column assigned to one family, none to two.
+
+    Silent misassignment would invalidate the per-bucket-penalty arm (a column
+    shrunk under the wrong family's penalty, or dropped from the design), so
+    this runs before the arm builds. Returns {family: n_cols}.
+    """
+    exog = set(_exog_all_cols(names).tolist())
+    counts: dict[str, int] = {}
+    seen: dict[int, str] = {}
+    for fam in _BUCKET_FAMILIES:
+        cols = _bucket_cols(names, fam).tolist()
+        counts[fam] = len(cols)
+        for j in cols:
+            if j in seen:
+                raise SystemExit(
+                    f"bucket partition broken: column '{names[j]}' assigned to "
+                    f"BOTH '{seen[j]}' and '{fam}' — the per-bucket penalty arm "
+                    "refuses to run on an ambiguous taxonomy"
+                )
+            seen[j] = fam
+    unassigned = sorted(exog - set(seen))
+    if unassigned:
+        raise SystemExit(
+            f"bucket partition broken: {len(unassigned)} exogenous column(s) "
+            f"belong to NO canonical family (e.g. {[names[j] for j in unassigned[:5]]}) "
+            "— the per-bucket penalty arm refuses to silently drop them"
+        )
+    stray = sorted(set(seen) - exog)
+    if stray:
+        raise SystemExit(
+            f"bucket partition broken: {len(stray)} family column(s) are not in "
+            f"the exogenous set (e.g. {[names[j] for j in stray[:5]]})"
+        )
+    return counts
+
+
 _DEGENERATE_SD = 1e-8  # "no dispersion in window" guard (frame/live cols)
 _SD_EPS = 1e-12  # standardization epsilon (study convention)
 
@@ -836,6 +891,8 @@ def _walk_blocks_tuned(
     window: int,
     lo: int,
     hi: int,
+    selection: str = "cartesian",
+    sweep_order: tuple[str, ...] = (),
 ) -> tuple[np.ndarray, list[dict[str, Any]]]:
     """Per-bar-refit block ridge with CAUSALLY re-selected per-block alphas.
 
@@ -856,8 +913,20 @@ def _walk_blocks_tuned(
     (RollingLeastSquares) + one diag-penalty solve per bar (same O(p^3) as the
     scalar-ridge path; intercept unpenalized via centering).
 
+    ``selection="cyclic"`` (the per-bucket penalty rung, 2026-08-07) replaces
+    the cartesian sweep with deterministic CYCLIC COORDINATE DESCENT: all
+    penalties start at their grid's MIDPOINT, then for ``CYCLIC_PASSES``
+    passes the blocks are swept in the FIXED order ``sweep_order``, each
+    block's penalty re-selected from its own grid with all others held — same
+    fit gram, same embargoed tail, same criterion. Cost is
+    passes x n_blocks x |grid| tail evaluations instead of |grid|^n_blocks
+    (10 blocks x 3 points: 90 vs 59,049), which is what makes the per-bucket
+    rung feasible at all. No randomness anywhere: the initial point, the
+    sweep order, and the argmin tie-break (first minimum wins) are fixed.
+
     Returns (yhat, trajectory) — trajectory is the paper-relevant selection
-    record: [{row: global retune row, alphas: {block_key: alpha}}, ...].
+    record: [{row: global retune row, alphas: {block_key: alpha},
+    n_tail_evals: int}, ...].
     """
     Xs = np.ascontiguousarray(F[lo - window : hi])
     ys = np.ascontiguousarray(y[lo - window : hi])
@@ -889,18 +958,46 @@ def _walk_blocks_tuned(
             Gf = Xfc.T @ Xfc  # shared fit gram — built ONCE per boundary
             cf = Xfc.T @ (yf - myf)
             Xvc = Xv - muf
-            best: tuple[float, dict[str, float], np.ndarray] | None = None
-            for combo in itertools.product(*grids):
-                alphas = dict(zip(keys, (float(a) for a in combo)))
+
+            def _tail_mse(alphas: dict[str, float]) -> tuple[float, np.ndarray]:
                 pv = pen_vec(alphas)
                 G = Gf.copy()
                 G[np.diag_indices_from(G)] += pv
                 b = np.linalg.solve(G, cf)
-                mse = float(np.mean((Xvc @ b + myf - yv) ** 2))
-                if best is None or mse < best[0]:
-                    best = (mse, alphas, pv)
-            _, sel, pen = best
-            traj.append({"row": int(lo + i), "alphas": sel})
+                return float(np.mean((Xvc @ b + myf - yv) ** 2)), pv
+
+            n_evals = 0
+            if selection == "cyclic":
+                # deterministic start: every block at its grid's midpoint
+                sel = {
+                    k: float(BLOCK_TUNE_GRIDS[k][len(BLOCK_TUNE_GRIDS[k]) // 2])
+                    for k in keys
+                }
+                cur, pen = _tail_mse(sel)
+                n_evals += 1
+                for _ in range(CYCLIC_PASSES):
+                    for k in sweep_order or keys:
+                        for a in BLOCK_TUNE_GRIDS[k]:
+                            if float(a) == sel[k]:
+                                continue
+                            trial = dict(sel)
+                            trial[k] = float(a)
+                            mse, pv = _tail_mse(trial)
+                            n_evals += 1
+                            if mse < cur:  # strict: first minimum wins ties
+                                cur, sel, pen = mse, trial, pv
+            else:
+                best: tuple[float, dict[str, float], np.ndarray] | None = None
+                for combo in itertools.product(*grids):
+                    alphas = dict(zip(keys, (float(a) for a in combo)))
+                    mse, pv = _tail_mse(alphas)
+                    n_evals += 1
+                    if best is None or mse < best[0]:
+                        best = (mse, alphas, pv)
+                _, sel, pen = best
+            traj.append(
+                {"row": int(lo + i), "alphas": sel, "n_tail_evals": int(n_evals)}
+            )
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
         gram[np.diag_indices_from(gram)] += pen  # gram is a fresh array per bar
@@ -1744,6 +1841,24 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Penalty-allocation ladder's per-bucket rung (author directive
+    # 2026-08-07): champion structure, but the ONE exogenous penalty is
+    # replaced by one penalty per canonical family, selected by deterministic
+    # cyclic coordinate descent (see _walk_blocks_tuned selection="cyclic").
+    # Nests blk4_trail_tuned exactly when all family penalties coincide.
+    "blk_bucketpen_tuned": ArmSpec(
+        describe="penalty-allocation rung: per-BUCKET exogenous penalties "
+        f"({len(_BUCKET_FAMILIES)} families, one each) + backbone/product/"
+        "trailing-transmission, cyclic causal tuning (3 passes, fixed order)",
+        kind="blocks_tuned",
+        blocks=(
+            [("backbone", "backbone")]
+            + [(f"bucket:{b}", f"{_BUCKET_PEN_KEY}{b}") for b in _BUCKET_FAMILIES]
+            + [("product", "product"), ("trans_trail", "trans")]
+        ),
+        grid="cyclic",  # selection mode marker (see compute dispatch)
+        oos_mult=2,
+    ),
     # Parsimony counterpart of the champion (author directive 2026-08-07): the
     # falsification result put the transmission block's value in the trailing
     # factor LEVELS G, not the operator columns Ghat (levels-only vs full:
@@ -2114,8 +2229,29 @@ def compute(args: argparse.Namespace) -> None:
         F, a_ref = _build_design(p, spec, window)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
     elif spec.kind == "blocks_tuned":
+        if spec.grid == "cyclic":
+            # per-bucket rung: verify the family taxonomy partitions the
+            # exogenous columns BEFORE building anything (loud on failure)
+            assert_bucket_partition(p.names)
         F, segments = _tuned_blocks_design(p, spec, window)
-        yhat, tuned_alphas = _walk_blocks_tuned(F, segments, p.y, window, lo, hi)
+        # sweep order (fixed, deterministic): families in canonical order,
+        # then backbone, product, transmission — per the directive
+        sweep = (
+            tuple(f"{_BUCKET_PEN_KEY}{b}" for b in _BUCKET_FAMILIES)
+            + ("backbone", "product", "trans")
+            if spec.grid == "cyclic"
+            else ()
+        )
+        yhat, tuned_alphas = _walk_blocks_tuned(
+            F,
+            segments,
+            p.y,
+            window,
+            lo,
+            hi,
+            selection="cyclic" if spec.grid == "cyclic" else "cartesian",
+            sweep_order=sweep,
+        )
     elif spec.kind == "tree":
         menu = _load_tree_menu()  # LOUD failure when the frozen menu is absent
         k = int(spec.grid)
