@@ -260,6 +260,50 @@ BLOCK_TUNE_GRIDS: dict[str, tuple[float, ...]] = {
 # same grid the single exog block used, so the rung nests the champion exactly
 # (all bucket penalties equal == the 4-block allocation).
 CYCLIC_PASSES = 3
+
+# Rank-SHAPED transmission penalty (author directive 2026-08-07): the K-ladder
+# collapse at K=40 (increments vs blk3_user: K5 -17.7e-5, K10 -23.5e-5,
+# K20 -30.9e-5, K40 -1.9e-5 n.s. and worse than K10 at t=2.62) may be a
+# PENALTY-ALLOCATION artifact, not a signal boundary: the block carries ONE
+# shared penalty, so widening the frame forces the tuner to over-shrink every
+# direction. Shaped alternative, for factor i = 1..K in EIGEN-RANK order
+# (1 = largest eigenvalue): lambda_i = lambda0 * i**gamma. gamma=0 reduces
+# EXACTLY to the flat block penalty (i**0 == 1.0 bit-exactly), which is what
+# makes the comparison honest. (lambda0, gamma) is ONE block's 12-point grid —
+# selected by the same cyclic descent, never a cartesian explosion.
+TRANS_SHAPE_GAMMAS: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0)
+BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["trans"]
+    for g in TRANS_SHAPE_GAMMAS
+)
+
+
+def _pen_value(a: Any) -> Any:
+    """Normalize a grid point: scalar penalty -> float; shaped penalty ->
+    (lambda0, gamma) tuple. Keeps equality comparisons exact in the tuner."""
+    if isinstance(a, (tuple, list)):
+        return (float(a[0]), float(a[1]))
+    return float(a)
+
+
+def _fill_pen_span(pen: np.ndarray, s0: int, s1: int, value: Any) -> None:
+    """Write one block's penalties into the diag-penalty vector.
+
+    Scalar -> flat span. (lambda0, gamma) -> RANK-SHAPED span:
+    lambda_i = lambda0 * i**gamma for i = 1..K, columns in eigen-rank order
+    (the transmission builder returns factor scores in descending-eigenvalue
+    order, so column j IS factor rank j+1). At gamma=0 this is lambda0 * 1.0
+    for every column — bit-identical to the flat fill.
+    """
+    if isinstance(value, tuple):
+        lam0, gamma = value
+        ranks = np.arange(1, s1 - s0 + 1, dtype=np.float64)
+        pen[s0:s1] = lam0 * ranks**gamma
+    else:
+        pen[s0:s1] = value
+
+
 _BUCKET_PEN_KEY = "bkt_"  # alpha-key prefix; one key per SUBGROUP family
 # Canonical FAMILY enumeration = SUBGROUPS minus `baseline` (empty) and
 # `all_features` (the joint design, not a family). NOTE this is SEVEN families,
@@ -934,10 +978,10 @@ def _walk_blocks_tuned(
     keys = [k for _, _, k in segments]
     grids = [BLOCK_TUNE_GRIDS[k] for k in keys]
 
-    def pen_vec(alphas: dict[str, float]) -> np.ndarray:
+    def pen_vec(alphas: dict[str, Any]) -> np.ndarray:
         pen = np.empty(p_)
         for s0, s1, k in segments:
-            pen[s0:s1] = alphas[k]
+            _fill_pen_span(pen, s0, s1, alphas[k])  # scalar or (lambda0, gamma)
         return pen
 
     solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)  # stats carrier
@@ -970,7 +1014,7 @@ def _walk_blocks_tuned(
             if selection == "cyclic":
                 # deterministic start: every block at its grid's midpoint
                 sel = {
-                    k: float(BLOCK_TUNE_GRIDS[k][len(BLOCK_TUNE_GRIDS[k]) // 2])
+                    k: _pen_value(BLOCK_TUNE_GRIDS[k][len(BLOCK_TUNE_GRIDS[k]) // 2])
                     for k in keys
                 }
                 cur, pen = _tail_mse(sel)
@@ -978,10 +1022,10 @@ def _walk_blocks_tuned(
                 for _ in range(CYCLIC_PASSES):
                     for k in sweep_order or keys:
                         for a in BLOCK_TUNE_GRIDS[k]:
-                            if float(a) == sel[k]:
+                            if _pen_value(a) == sel[k]:
                                 continue
                             trial = dict(sel)
-                            trial[k] = float(a)
+                            trial[k] = _pen_value(a)
                             mse, pv = _tail_mse(trial)
                             n_evals += 1
                             if mse < cur:  # strict: first minimum wins ties
@@ -989,7 +1033,7 @@ def _walk_blocks_tuned(
             else:
                 best: tuple[float, dict[str, float], np.ndarray] | None = None
                 for combo in itertools.product(*grids):
-                    alphas = dict(zip(keys, (float(a) for a in combo)))
+                    alphas = dict(zip(keys, (_pen_value(a) for a in combo)))
                     mse, pv = _tail_mse(alphas)
                     n_evals += 1
                     if best is None or mse < best[0]:
@@ -1841,6 +1885,26 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Spectral analogue of the per-bucket rung (author directive 2026-08-07):
+    # is the K=40 collapse a penalty-allocation artifact rather than a signal
+    # boundary? Levels-only (per the parsimony finding), frozen frame at K=40,
+    # transmission penalty RANK-SHAPED as lambda_i = lambda0 * i**gamma with
+    # (lambda0, gamma) causally selected as ONE 12-point block grid. gamma=0
+    # nests the flat penalty exactly, so the comparison is honest.
+    "blk4_trailGShaped": ArmSpec(
+        describe="spectral rung: trailing factor LEVELS at K=40 with a "
+        "RANK-SHAPED transmission penalty (lambda_i = lambda0 * i**gamma, "
+        "12-point (lambda0, gamma) grid), cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40", "trans_shaped"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # Penalty-allocation ladder's per-bucket rung (author directive
     # 2026-08-07): champion structure, but the ONE exogenous penalty is
     # replaced by one penalty per canonical family, selected by deterministic
@@ -2017,6 +2081,10 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "trans_trailG":  # ablation: trailing factor LEVELS only
         return _transmission_block(
             p, window, parts="scores", standardization="trailing"
+        )
+    if block == "trans_trailG40":  # levels only, WIDE frame (rank-shaped arm)
+        return _transmission_block(
+            p, window, parts="scores", standardization="trailing", qpool=40
         )
     if block == "trans_trailGhat":  # ablation: trailing lead-lag FLOW only
         return _transmission_block(p, window, parts="flow", standardization="trailing")
@@ -2229,19 +2297,23 @@ def compute(args: argparse.Namespace) -> None:
         F, a_ref = _build_design(p, spec, window)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
     elif spec.kind == "blocks_tuned":
-        if spec.grid == "cyclic":
+        arm_keys = [k for _, k in spec.blocks]
+        if spec.grid == "cyclic" and any(
+            k.startswith(_BUCKET_PEN_KEY) for k in arm_keys
+        ):
             # per-bucket rung: verify the family taxonomy partitions the
             # exogenous columns BEFORE building anything (loud on failure)
             assert_bucket_partition(p.names)
         F, segments = _tuned_blocks_design(p, spec, window)
-        # sweep order (fixed, deterministic): families in canonical order,
-        # then backbone, product, transmission — per the directive
-        sweep = (
-            tuple(f"{_BUCKET_PEN_KEY}{b}" for b in _BUCKET_FAMILIES)
-            + ("backbone", "product", "trans")
-            if spec.grid == "cyclic"
-            else ()
-        )
+        # Sweep order (fixed, deterministic): bucket families in canonical
+        # order first (when present, per the per-bucket directive), then the
+        # remaining block keys in their declared order.
+        sweep: tuple[str, ...] = ()
+        if spec.grid == "cyclic":
+            bucket_keys = [k for k in arm_keys if k.startswith(_BUCKET_PEN_KEY)]
+            sweep = tuple(bucket_keys) + tuple(
+                k for k in arm_keys if k not in bucket_keys
+            )
         yhat, tuned_alphas = _walk_blocks_tuned(
             F,
             segments,

@@ -144,6 +144,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trail_tuned",
         "blk4_trailG_tuned",
         "blk_bucketpen_tuned",
+        "blk4_trailGShaped",
         # transmission dig (same legality)
         "blk4_trailSym",
         "blk4_trailFullC",
@@ -240,6 +241,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailG_tuned", "BlkFourTrailGTuned"),
     # Penalty-allocation ladder: the per-bucket exogenous-penalty rung.
     ("blk_bucketpen_tuned", "BlkBucketPenTuned"),
+    # Spectral analogue: K=40 levels with a rank-shaped transmission penalty.
+    ("blk4_trailGShaped", "BlkFourTrailGShaped"),
     # Transmission dig: operator/frame/width/lag variants of the trailing block.
     ("blk4_trailSym", "BlkFourTrailSym"),
     ("blk4_trailFullC", "BlkFourTrailFullC"),
@@ -334,6 +337,8 @@ _ARM_TEX: dict[str, str] = {
     "causal tuning)",
     "blk_bucketpen_tuned": "Four-block ridge with per-bucket exogenous penalties "
     "(cyclic causal tuning)",
+    "blk4_trailGShaped": "Four-block ridge (trailing factor levels, $K=40$, "
+    "rank-shaped transmission penalty, causally tuned)",
     "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
     "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
     "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
@@ -406,6 +411,10 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # the vs-blk3_tuned pair is qualified by the emitter's repeat convention)
     ("blk_bucketpen_tuned", "blk4_trail_tuned"),
     ("blk_bucketpen_tuned", "blk3_tuned"),
+    # spectral rung: does rank-shaping rescue the wider frame? (bare stem =
+    # vs the levels-only champion the shaping extends)
+    ("blk4_trailGShaped", "blk4_trailG_tuned"),
+    ("blk4_trailGShaped", "blk4_trail_tuned"),
     # bucket-grid within-design family comparisons (free-l1 enet vs tuned
     # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
     ("be_tuned_moments", "br_tuned_moments"),
@@ -1551,47 +1560,70 @@ def main(argv: list[str] | None = None) -> int:
     # shrinks hardest and whether that ordering is stable over time. Read
     # straight from the arms' persisted meta.tuned_alphas (no refits).
     pen_rows: list[dict] = []
+    gamma_rows: list[dict] = []
     for root in args.roots:
-        arm_dir = os.path.join(root, "blk_bucketpen_tuned")
-        if not os.path.isdir(arm_dir):
-            continue
-        acc: dict[tuple[int, str], list[float]] = {}
-        evals: list[int] = []
-        for fn in sorted(os.listdir(arm_dir)):
-            if not _CHUNK_RE.match(fn):
+        for _pen_arm in ("blk_bucketpen_tuned", "blk4_trailGShaped"):
+            arm_dir = os.path.join(root, _pen_arm)
+            if not os.path.isdir(arm_dir):
                 continue
-            try:
-                with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
-                    meta = json.loads(str(z["meta"]))
-                    t_arr = np.asarray(z["t"], dtype="datetime64[ns]")
-                    rid = np.asarray(z["row_id"], dtype=np.int64)
-            except Exception:
-                continue
-            for e in meta.get("tuned_alphas") or []:
-                if "n_tail_evals" in e:
-                    evals.append(int(e["n_tail_evals"]))
-                pos = int(np.searchsorted(rid, int(e.get("row", -1))))
-                if not 0 <= pos < len(t_arr):
+            acc: dict[tuple[int, str], list[float]] = {}
+            gam: dict[int, list[float]] = {}
+            evals: list[int] = []
+            for fn in sorted(os.listdir(arm_dir)):
+                if not _CHUNK_RE.match(fn):
                     continue
-                yr = int(str(t_arr[pos].astype("datetime64[Y]")))
-                for k, a in (e.get("alphas") or {}).items():
-                    acc.setdefault((yr, k), []).append(float(a))
-        for (yr, k), vals in sorted(acc.items()):
-            pen_rows.append(
-                {
-                    "root": labels[root],
-                    "year": yr,
-                    "block": k,
-                    "n_retunes": len(vals),
-                    "mean_alpha": float(np.mean(vals)),
-                    "geo_mean_alpha": float(np.exp(np.mean(np.log(vals)))),
-                }
-            )
-        if evals:
-            print(
-                f"[{labels[root]}] blk_bucketpen_tuned tail evals/retune: "
-                f"min {min(evals)} max {max(evals)} mean {np.mean(evals):.1f}"
-            )
+                try:
+                    with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                        meta = json.loads(str(z["meta"]))
+                        t_arr = np.asarray(z["t"], dtype="datetime64[ns]")
+                        rid = np.asarray(z["row_id"], dtype=np.int64)
+                except Exception:
+                    continue
+                for e in meta.get("tuned_alphas") or []:
+                    if "n_tail_evals" in e:
+                        evals.append(int(e["n_tail_evals"]))
+                    pos = int(np.searchsorted(rid, int(e.get("row", -1))))
+                    if not 0 <= pos < len(t_arr):
+                        continue
+                    yr = int(str(t_arr[pos].astype("datetime64[Y]")))
+                    for k, a in (e.get("alphas") or {}).items():
+                        # shaped blocks serialize as [lambda0, gamma]; the level
+                        # goes to the penalty summary, gamma to its own exhibit
+                        if isinstance(a, (list, tuple)):
+                            acc.setdefault((yr, k), []).append(float(a[0]))
+                            gam.setdefault(yr, []).append(float(a[1]))
+                        else:
+                            acc.setdefault((yr, k), []).append(float(a))
+            for (yr, k), vals in sorted(acc.items()):
+                pen_rows.append(
+                    {
+                        "arm": _pen_arm,
+                        "root": labels[root],
+                        "year": yr,
+                        "block": k,
+                        "n_retunes": len(vals),
+                        "mean_alpha": float(np.mean(vals)),
+                        "geo_mean_alpha": float(np.exp(np.mean(np.log(vals)))),
+                    }
+                )
+            for yr, vals in sorted(gam.items()):
+                modal = max(sorted(set(vals)), key=vals.count)
+                gamma_rows.append(
+                    {
+                        "arm": _pen_arm,
+                        "root": labels[root],
+                        "year": yr,
+                        "n_retunes": len(vals),
+                        "mean_gamma": float(np.mean(vals)),
+                        "modal_gamma": float(modal),
+                        "frac_gamma_pos": float(np.mean([v > 0 for v in vals])),
+                    }
+                )
+            if evals:
+                print(
+                    f"[{labels[root]}] {_pen_arm} tail evals/retune: "
+                    f"min {min(evals)} max {max(evals)} mean {np.mean(evals):.1f}"
+                )
     if pen_rows:
         os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
         pen_csv = os.path.join(
@@ -1600,11 +1632,20 @@ def main(argv: list[str] | None = None) -> int:
         with open(pen_csv, "w", newline="") as fh:
             w = csv.writer(fh)
             w.writerow(
-                ["root", "year", "block", "n_retunes", "mean_alpha", "geo_mean_alpha"]
+                [
+                    "arm",
+                    "root",
+                    "year",
+                    "block",
+                    "n_retunes",
+                    "mean_alpha",
+                    "geo_mean_alpha",
+                ]
             )
             for rec in pen_rows:
                 w.writerow(
                     [
+                        rec["arm"],
                         rec["root"],
                         rec["year"],
                         rec["block"],
@@ -1613,7 +1654,37 @@ def main(argv: list[str] | None = None) -> int:
                         f"{rec['geo_mean_alpha']:.6g}",
                     ]
                 )
-        print(f"per-bucket penalty allocation -> {pen_csv}")
+        print(f"per-block penalty allocation -> {pen_csv}")
+    if gamma_rows:
+        gam_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "penalty_shape_summary.csv"
+        )
+        with open(gam_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(
+                [
+                    "arm",
+                    "root",
+                    "year",
+                    "n_retunes",
+                    "mean_gamma",
+                    "modal_gamma",
+                    "frac_gamma_pos",
+                ]
+            )
+            for rec in gamma_rows:
+                w.writerow(
+                    [
+                        rec["arm"],
+                        rec["root"],
+                        rec["year"],
+                        rec["n_retunes"],
+                        f"{rec['mean_gamma']:.4f}",
+                        f"{rec['modal_gamma']:.4f}",
+                        f"{rec['frac_gamma_pos']:.4f}",
+                    ]
+                )
+        print(f"rank-shape (gamma) trajectory -> {gam_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.
