@@ -1,4 +1,4 @@
-\section{Transmission: Factors and Lead--Lag Structure}
+\section{Transmission: Factors and Cross-Factor Structure}
 \label{sec:transmission}
 
 % Arc: the transmission story. First the 20 factors, derived naturally; then
@@ -14,15 +14,30 @@
 
 The three blocks assembled so far are contemporaneous: the target's own
 history, the exogenous panel, and the frozen pairwise products are all
-functions of data observable at the current bar. This section adds a directed
-lead--lag block: the transmission of activity from one part of the market to
-another at a one-bar delay. The construction has three steps. First, a factor
-frame is estimated from the eigenstructure of the panel's first training
-window. Second, a one-bar lead--lag field is estimated on that frame: a
-matrix stating, for every ordered pair of factors, how much the first
-leads the second at a one-bar delay. Third, that field is applied as a
-linear operator --- no clustering, ranking, or partitioning step --- and
-the resulting columns enter the ridge as a fourth block.
+functions of data observable at the current bar. This section adds a fourth
+block built on the panel's cross-sectional structure. The construction has
+three steps. First, a factor frame is estimated from the eigenstructure of
+the panel's first training window. Second, a one-bar cross-correlation
+field is estimated on that frame and its antisymmetric part is retained:
+a matrix stating, for every ordered pair of factors, the degree to which
+the first leads the second at a one-bar delay. Third, that field is
+applied as a linear operator --- no clustering, ranking, or partitioning
+step --- and the resulting columns, together with the factor scores
+themselves, enter the ridge as a fourth block.
+
+The construction is directional by design, and this section reports that
+its measured value is \emph{not}. Section~\ref{sec:trans_falsification}
+substitutes the symmetric part of the same cross-correlation for the
+antisymmetric part, substitutes the undecomposed cross-correlation for
+both, and removes the operator entirely; none of these substitutions
+changes the block's contribution by a detectable amount, while the
+operator columns alone are the weakest member of the family. We therefore
+describe the block's value as cross-factor co-movement carried by
+well-scaled factor levels, and we retain the directional construction
+only because it is the one the columns are actually built from. The
+lead--lag reading, which motivated the construction and which an earlier
+draft asserted, is withdrawn on the evidence in
+Section~\ref{sec:trans_falsification}.
 
 \subsection{Twenty Natural Factors}
 
@@ -227,23 +242,23 @@ transmission columns are
 one column per factor: column $j$ is the next-bar motion of factor $j$ as
 predicted by the flow through it; each column is then scaled by its own
 trailing standard deviation, computed causally. The antisymmetric part is
-used, and not the full lag-one cross-correlation, because the symmetric part
-is persistence content that the moving-average ladder already spans. This
-choice was tested directly: 20 columns of \emph{plain} lagged scores $G(t-1)$
---- the same lagged information with no flow structure --- fail the entry
-gate outright, while the $D$-weighted columns pass. The flow content, not
-generic lag-one information, is what the design was missing. \pending{one-bar entry-gate
-statistics for the plain-lag control vs the $D$-weighted columns, from the
-unification campaign}
+used, and not the full lag-one cross-correlation, on the reasoning that the
+symmetric part is persistence content the moving-average ladder already
+spans. That reasoning is what the construction encodes; it is tested in
+Section~\ref{sec:trans_falsification}, where the symmetric part and the
+undecomposed cross-correlation are both substituted for $D$ directly, and
+it does not survive the test.
 
-The block is evaluated against same-engine twins: models with the same ridge
-engine and the other three blocks, differing only by the candidate block.
-Against those twins the block enters at Diebold--Mariano $+9.90$ at one bar
---- the strongest feature statistic in the campaign. The estimation cadence
-of $D$ was also varied. Re-estimating $D$ monthly ($+0.75$) or per bar
-($+1.48$) fails the gate; only the quarterly cadence passes. Elsewhere in
-this paper more frequent refitting helps or is neutral; for $D$ it hurts.
-Lag-one $D$, re-estimated quarterly, is the complete form of the feature. As
+The design choices above --- lag one, quarterly re-estimation --- were
+fixed in an earlier study whose entry statistics are not reproduced here.
+That study reported the block entering at Diebold--Mariano $+9.90$ against
+same-engine twins, and reported monthly ($+0.75$) and per-bar ($+1.48$)
+re-estimation of $D$ failing the same gate. Those statistics were computed
+under a full-sample standardization of the factor scores and are therefore
+inflated by look-ahead; Section~\ref{sec:trans_falsification} supersedes
+them, and the two design choices they motivated are re-tested there
+causally. Lag-one $D$, re-estimated quarterly, is the complete form of the
+feature. As
 run on this paper's own battery, the transmission block is the concatenation
 $[\, G(t) \mid \hat G(t) \,]$ --- $2q = 40$ columns --- under the paper's
 convention, and $\hat G(t)$ alone --- $q = 20$ columns --- under the
@@ -392,10 +407,45 @@ exactly zero, so a feed arrival could not enter the block's columns; the
 one dated change in the panel at that boundary is the homogenization of
 the equity-aggregate feed cadence, whose last heterogeneous availability
 bar is December 31, 2014, and which governs aggregate columns that are
-in the transmission base. \pending{mechanism test: operator variants
-(symmetric part, causally refreshed frame, lag depth) and per-refresh
-operator diagnostics are computed in the dig campaign; adjudicate the
-cadence-homogenization hypothesis on their results}
+in the transmission base. That coincidence was tested directly and does not survive. An arm
+identical to the trailing construction in every respect except that the
+two cadence-heterogeneous aggregate families are withheld from the
+transmission base --- they remain in the exogenous ridge block, so only
+what feeds the frame and the operator changes --- reproduces the era
+structure rather than removing it. Within 2003--2013 the two arms are
+indistinguishable (paired $\Delta\mathrm{QLIKE} = -3.8 \times 10^{-5}$,
+DM $t = -0.76$, $p = 0.45$), so the pre-2014 penalty is not attributable
+to those families; within 2014--2021 the withheld-family arm is
+significantly \emph{worse} ($+18.9 \times 10^{-5}$, $t = 2.27$,
+$p = 0.023$), the opposite of what the hypothesis predicts. The
+December-2014 step is likewise unchanged: measured as the
+December-2014-through-February-2015 mean minus the
+September-through-November-2014 mean, it is $-72.3 \times 10^{-5}$ for
+the incumbent and $-74.2 \times 10^{-5}$ with the families withheld. The
+per-refresh operator diagnostics agree: across the $76$ refreshes the
+Frobenius norm of the operator is flat across the boundary (pre-2015 mean
+$0.282$ against post-2015 $0.279$), and refresh-to-refresh drift is
+\emph{lower} before 2015 than after ($0.028$ against $0.034$), so the
+operator shows no pre-2015 instability of the kind stale-fill
+contamination would produce. The cadence-homogenization hypothesis is
+therefore rejected, and the December-2014 onset is left unexplained. One
+observation constrains any future explanation: the symmetric-operator
+variant of Section~\ref{sec:trans_falsification} shows essentially no
+step at that date ($-6.2 \times 10^{-5}$ by the same measure), already
+sitting at its later level through the autumn of 2014.
+
+The increment is also concentrated in time rather than spread across the
+2014--2021 era. Four years account for the entire pooled loss reduction
+--- 2018 contributes $55.6\%$, 2015 $21.1\%$, 2020 $17.3\%$, and 2017
+$8.4\%$ --- and the remaining years net slightly positive. Per-year
+Diebold--Mariano statistics reject equal accuracy in only two years
+(2015, $t = -4.32$; 2018, $t = -4.83$), and the per-bar win rate never
+exceeds $53\%$ in any era. The concentration is not a small number of
+outlying bars: trimming the $1\%$ of bars with the largest loss
+differentials leaves $75\%$ of the era's gain, and within 2015 and 2018
+the median differential and the win rate move with the mean. The pooled
+statistic should be read as evidence that the block helps materially in a
+few stressed years, not as evidence of a uniform edge.
 
 An ablation decomposes the trailing block's value into its two column
 groups. With only the trailing-standardized factor scores $G$ (no flow
@@ -416,6 +466,76 @@ significantly helpful ($-51.0 \times 10^{-5}$, $t = -4.60$). The pooled
 flow increment therefore understates the flow's post-2014 contribution,
 and the block's era structure is the flow's era structure superimposed
 on an always-present factor-score contribution.
+
+\subsection{Falsification of the Directional Reading}
+\label{sec:trans_falsification}
+
+% Provenance: eight operator/frame variants, each a full 91-chunk arm on the
+% frozen panel (src/unification.py _transmission_block knobs: operator, frame,
+% qpool, lag, exclude_stems); harvested through score_unification._harvest_arm;
+% paired DM on 248,280 common scored bars, identical row_id sets verified
+% element-wise. 2026-08-07.
+The construction of Section~\ref{sec:trans-leadlag} retains the
+antisymmetric part $D = (C - C^{\top})/2$ of the one-bar cross-correlation
+$C$ precisely because antisymmetry is what encodes direction: $D_{ij} =
+-D_{ji}$ states that factor $i$ leads factor $j$ exactly as much as $j$
+lags $i$. If the block's forecasting value comes from directional
+transmission, then replacing $D$ by the symmetric part $S = (C +
+C^{\top})/2$, which encodes co-movement and carries no direction, should
+destroy it. Four substitutions test this, each a complete arm on the
+frozen panel:
+\begin{enumerate}
+\item $S$ in place of $D$ (symmetric control);
+\item $C$ itself, undecomposed;
+\item the factor scores $G$ alone, with no operator columns at all;
+\item the operator columns $\hat G$ alone, with no factor scores.
+\end{enumerate}
+Every comparison below is a paired Diebold--Mariano test on the
+$248{,}280$ bars common to all arms.
+
+The directional construction is not distinguishable from any of its
+non-directional controls. Against the three-block ridge, the symmetric
+control's increment is \unifIncrBlkFourTrailSymDQ{} at DM
+\unifIncrBlkFourTrailSymDM{}, the undecomposed cross-correlation's is
+\unifIncrBlkFourTrailFullCDQ{} at \unifIncrBlkFourTrailFullCDM{}, and the
+directional incumbent's is \unifIncrBlkFourTrailDQ{} at
+\unifIncrBlkFourTrailDM{}. Compared head to head against the directional
+incumbent on the same rows, the symmetric control loses
+$4.6 \times 10^{-5}$ at DM $t = 0.50$ ($p = 0.62$) and the undecomposed
+operator $1.7 \times 10^{-5}$ at $t = 0.29$ ($p = 0.78$): neither
+substitution costs a detectable amount. The factor scores alone --- no
+operator of any kind --- give up $5.2 \times 10^{-5}$ against the full
+block at $t = 1.00$ ($p = 0.32$), and are statistically indistinguishable
+from the symmetric control ($0.5 \times 10^{-5}$, $t = 0.06$, $p =
+0.96$). The operator columns alone are the weakest member of the family
+(\unifIncrBlkFourTrailGhatDQ{} at \unifIncrBlkFourTrailGhatDM{}, losing
+$18.7 \times 10^{-5}$ to the full block at $t = 5.25$).
+
+The magnitudes of the three matrices explain the pattern. On the frozen
+frame, averaged over the $76$ quarterly refreshes, $\lVert C \rVert_F =
+4.73$, $\lVert S \rVert_F = 3.20$, and $\lVert D \rVert_F = 0.28$: the
+antisymmetric part carries about $6\%$ of the cross-correlation's energy,
+and the symmetric part about eleven times the antisymmetric part's. The
+block's columns are dominated by the symmetric structure whichever
+operator is nominally applied, and the forecasts behave accordingly.
+
+Two further variants bound the construction's remaining free choices. The
+frame width $K$ has an interior optimum at the pinned value: the
+increment improves monotonically from $K = 5$ (\unifIncrBlkFourTrailKFiveDQ{},
+DM \unifIncrBlkFourTrailKFiveDM{}) through $K = 10$
+(\unifIncrBlkFourTrailKTenDQ{}, \unifIncrBlkFourTrailKTenDM{}) to $K = 20$, and
+collapses at $K = 40$ (\unifIncrBlkFourTrailKFortyDQ{},
+\unifIncrBlkFourTrailKFortyDM{}; $21.6 \times 10^{-5}$ worse than $K = 10$ at
+$t = 2.62$), so the pinned width is a measured optimum rather than an
+unexamined constant. Estimating the operator at a two-bar lag instead of
+one is indistinguishable from the one-bar construction
+($1.8 \times 10^{-5}$, $t = 0.18$). Re-estimating the frame causally from
+the trailing window at each refresh, rather than freezing it on the first
+window, removes the effect entirely (\unifIncrBlkFourTrailRefreshDQ{} at
+\unifIncrBlkFourTrailRefreshDM{}, not significant): the block's value depends
+on a fixed coordinate system, not on a current one.
+
+\subsection{The Best Pooled Model}
 
 Finally, combining the trailing construction with per-block causal
 tuning yields the campaign's best pooled model: the tuned
