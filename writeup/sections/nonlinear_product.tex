@@ -287,9 +287,13 @@ convention pins $(1, 3\times10^{3}, 3\times10^{4})$ at a $12{,}000$-bar
 scores QLIKE \unifBlkThreeUserQLIKE{}, with Diebold--Mariano
 \unifBlkThreeUserDM{} against the OLS--HAR incumbent; under the
 documented convention it scores \unifBlkThreeDocQLIKE{} at
-\unifBlkThreeDocDM{}. \pending{per-bar DM statistic for the product-block
-increment (three-block vs.\ two-block on the same rows) --- computed from
-the persisted per-bar losses at harvest}
+\unifBlkThreeDocDM{}. The product-block \emph{increment} --- the paired
+per-bar comparison of the three-block against the two-block ridge on the
+same rows --- is $\Delta\mathrm{QLIKE} = $ \unifIncrBlkThreeUserDQ{} at
+DM \unifIncrBlkThreeUserDM{} under the stated convention, and
+\unifIncrBlkThreeDocDQ{} at \unifIncrBlkThreeDocDM{} under the documented
+one; under causal per-block tuning, \unifIncrBlkThreeTunedDQ{} at
+\unifIncrBlkThreeTunedDM{}.
 \decide{whether the three-block table, once run, reports the tree arms
 alongside it --- the natural closing comparison is the three-block ridge
 against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),

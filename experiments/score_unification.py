@@ -42,6 +42,15 @@ The whole map for window k >= 1 uses only data through window k-1, so the
 scored forecast is deployable (sole exception: the first window's variance
 fallback, counted in ``var_fallback_windows``).
 
+Ladder-increment inference (the product / transmission marginal-value
+statistics): paired per-bar DM between ADJACENT ladder rungs — (blk3, blk2)
+and (blk4, blk3) under each convention (user / doc / tuned) — from the same
+joined per-bar contract losses the a0 comparisons use (join on row_id,
+dm_test on the loss differential).  Emitted as
+results/unification_increments.csv (sibling of --out) and macros
+\\unifIncr<UpperRungCamel>{DM,DQ} (e.g. \\unifIncrBlkFourUserDM for
+blk4_user vs blk3_user), pending until BOTH arms are complete.
+
 Smear-sensitivity layer (author directive, exactly three conventions): pooled
 QLIKE is also computed under (1) NONE — ``f = yhat^2 * B``, no correction —
 and (2) DUAN — the traditional in-window scalar smear from FIT-scale
@@ -192,6 +201,18 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
     ("d3_transmission_alone_user", 24000, "1/1000"),
     ("d3_transmission_alone_doc", 12000, "1/3e3"),
     ("d3_transmission_alone_tuned", 24000, "tuned (per-block causal)"),
+]
+
+# Adjacent-rung increment pairs (upper rung first): the paper's
+# product-increment (blk3 vs blk2) and transmission-increment (blk4 vs blk3)
+# statistics, per ladder convention. Macros are keyed by the UPPER rung.
+_INCREMENT_PAIRS: list[tuple[str, str]] = [
+    ("blk3_user", "blk2_user"),
+    ("blk4_user", "blk3_user"),
+    ("blk3_doc", "blk2_doc"),
+    ("blk4_doc", "blk3_doc"),
+    ("blk3_tuned", "blk2_tuned"),
+    ("blk4_tuned", "blk3_tuned"),
 ]
 
 
@@ -519,6 +540,7 @@ def _macro_lines(
     by_arm: dict[str, list[ArmResult]],
     tau_none: float | None,
     tau_duan: float | None,
+    incs: list[dict],
 ) -> list[str]:
     from datetime import datetime, timezone
 
@@ -585,6 +607,24 @@ def _macro_lines(
         "unifSmearTauDuan",
         _fmt(tau_duan, ".3f") if tau_duan is not None else pend_tau,
     )
+    # Ladder-increment statistics (product / transmission marginal value):
+    # paired per-bar DM between adjacent rungs, keyed by the upper rung;
+    # pending until BOTH arms of the pair are complete.
+    for rec in incs:
+        camel = _CAMEL[rec["hi"]]
+        pend_i = r"\pending{%s vs %s awaiting harvest}" % (
+            _tex_escape(rec["hi"]),
+            _tex_escape(rec["lo"]),
+        )
+        ok = rec["complete"]
+        emit(
+            f"unifIncr{camel}DM",
+            _fmt(rec["dm_t"], "+.1f") if ok and rec["dm_t"] is not None else pend_i,
+        )
+        emit(
+            f"unifIncr{camel}DQ",
+            _fmt(rec["dqlike"], "+.5f") if ok and rec["dqlike"] is not None else pend_i,
+        )
     return lines
 
 
@@ -699,6 +739,46 @@ def _blocks_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
         *[row(*x) for x in diags],
         r"\bottomrule",
     ]
+
+
+def _increments(by_arm: dict[str, list[ArmResult]]) -> list[dict]:
+    """Paired per-bar DM between adjacent ladder rungs (upper vs lower), on
+    the joined contract losses — the product/transmission increment tests.
+
+    Same-environment rule: both rungs must come from the same root; the
+    repo DM utility (dm_test) is reused on the per-bar loss differential.
+    """
+    out: list[dict] = []
+    for hi_arm, lo_arm in _INCREMENT_PAIRS:
+        hi = _pick_primary(by_arm.get(hi_arm, []))
+        lo = _pick_primary(by_arm.get(lo_arm, []))
+        rec: dict = {
+            "hi": hi_arm,
+            "lo": lo_arm,
+            "root": "",
+            "n_common": 0,
+            "dqlike": None,
+            "dm_t": None,
+            "complete": False,
+        }
+        if hi is not None and lo is not None and hi.n_rows and lo.n_rows:
+            if hi.root != lo.root:  # same-environment rule: never cross roots
+                rec["root"] = f"MIXED({hi.root},{lo.root})"
+            else:
+                rec["root"] = hi.root
+                _, ia, ib = np.intersect1d(
+                    hi.row_id, lo.row_id, assume_unique=True, return_indices=True
+                )
+                rec["n_common"] = int(len(ia))
+                if len(ia):
+                    dm = dm_test(hi.loss[ia], lo.loss[ib], h=1)  # repo utility
+                    if np.isfinite(dm.get("dm", float("nan"))):
+                        rec["dm_t"] = float(dm["dm"])
+                    if np.isfinite(dm.get("mean_diff", float("nan"))):
+                        rec["dqlike"] = float(dm["mean_diff"])
+                rec["complete"] = (not hi.incomplete) and (not lo.incomplete)
+        out.append(rec)
+    return out
 
 
 def _kendall_tau(x: np.ndarray, y: np.ndarray) -> float | None:
@@ -886,10 +966,28 @@ def main(argv: list[str] | None = None) -> int:
     by_arm: dict[str, list[ArmResult]] = {}
     for r in results:
         by_arm.setdefault(r.arm, []).append(r)
+    incs = _increments(by_arm)
+    inc_csv = os.path.join(
+        os.path.dirname(os.path.abspath(args.out)), "unification_increments.csv"
+    )
+    with open(inc_csv, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["pair", "root", "n_common", "complete", "dqlike", "dm_t"])
+        for rec in incs:
+            w.writerow(
+                [
+                    f"{rec['hi']}-vs-{rec['lo']}",
+                    rec["root"],
+                    rec["n_common"],
+                    rec["complete"],
+                    _fmt(rec["dqlike"], ".10g"),
+                    _fmt(rec["dm_t"], ".6g"),
+                ]
+            )
     os.makedirs(args.tex_dir, exist_ok=True)
     sens_lines, tau_none, tau_duan = _smear_sensitivity(by_arm)
     outputs = {
-        "campaign_numbers.tex": _macro_lines(by_arm, tau_none, tau_duan),
+        "campaign_numbers.tex": _macro_lines(by_arm, tau_none, tau_duan, incs),
         "table_buckets.tex": _buckets_table(by_arm),
         "table_lasso_ridge.tex": _lasso_ridge_table(by_arm),
         "table_blocks.tex": _blocks_table(by_arm),
@@ -935,8 +1033,15 @@ def main(argv: list[str] | None = None) -> int:
         ]
         if len(roots_missing) == len(set(labels.values())):
             print(f"[--] {arm:28s} no chunks in any root -> pending")
+    for rec in incs:
+        state = "" if rec["complete"] else " PENDING"
+        print(
+            f"[incr] {rec['hi']:12s} vs {rec['lo']:12s} n={rec['n_common']:7d}"
+            f" dq={_fmt(rec['dqlike'], '+.5f') or '--------'}"
+            f" dm={_fmt(rec['dm_t'], '+.1f') or '----'}{state}"
+        )
     print(
-        f"\nwrote {args.out} + "
+        f"\nwrote {args.out} + {inc_csv} + "
         f"{', '.join(os.path.join(args.tex_dir, n) for n in outputs)}"
     )
     return 0
