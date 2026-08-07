@@ -22,7 +22,17 @@ $20{:}00$, all of Saturday, and all of Sunday before $18{:}30$. No other
 calendar exclusions are applied. Holidays and half-days remain in the
 panel; they are handled by the availability construction of
 Section~\ref{sec:dp_prep}, not by deletion. After the filter, the regular
-grid contains $246{,}057$ rows, from 2005-01-02 to 2024-04-30.
+grid contains $246{,}057$ rows, from 2005-01-02 to 2024-04-30. One
+consequence of the calendar-only rule is disclosed here because it
+produced a measurable incident (Section~\ref{sec:buckets}): bars after an
+early close exist on the grid as forward-filled values, and on such bars
+different feeds' availability indicators can disagree for a single bar.
+\decide{root repair: derive dead-session bars from the data itself ---
+drop grid bars on which the realized-variance source did not print, the
+same observed-print fact the availability indicators already use ---
+instead of the calendar-only rule. Threshold-free, but it changes the
+panel row set and therefore every number in the paper; a frozen-panel
+amendment for the author.}
 
 The forecasting target is realized variance. For each 30-minute bar it is
 computed as the sum of squared 5-minute log-returns within the bar:

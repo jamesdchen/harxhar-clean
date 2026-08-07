@@ -153,17 +153,24 @@ provide the joint fits}
 The joint \texttt{all\_features} arm has QLIKE \unifAllFeaturesQLIKE{},
 the highest in Table~\ref{tab:buckets} (\unifAllFeaturesDM{} against the
 incumbent). That headline number is not a statement about the joint
-information: per-window loss decomposition attributes more than the
-arm's entire net deficit to a single evaluation window, in which a small
-number of bars carry forecast values far outside the arm's normal range
-and the window-level correction spreads their residuals across every bar
-of the window; excluding that one window the joint arm improves on the
-incumbent. \decide{the single-window incident in the joint arm is under
-investigation (same class as the market-aggregate window disclosed above:
-localized numerical contamination amplified by a window-scalar
-correction); the arm is to be re-run once the mechanism is closed, and no
-conclusion about joint extraction under literal OLS should be drawn from
-the current row} The same columns under the per-block shrinkage of
+information: per-window loss decomposition attributes more than the arm's
+entire net deficit to a single forecast at a single bar --- the first bar
+after the December 24, 2020 early close, a grid bar carried by forward
+fill past the actual close. On that bar, and on no other bar in twenty-five
+thousand, two feeds' availability indicators disagreed; the design retained
+long-window availability-ladder columns whose only separating variation
+lay before the training window (their short-window siblings had been
+dropped as exactly collinear), and the exact-least-squares fit held large
+mutually canceling coefficients on that near-duplicate pair. The one-bar
+disagreement moved the pair along a direction absent from the training
+window, producing a forecast of $77.8$ against a target of $0.26$; the
+window-level correction then spread the resulting residual across every
+bar of its window, which accounts for over $99.5\%$ of the incident's
+loss. Every other arm, including ridge at $\alpha = 1$ on the identical
+design, forecast normally on the same bar. The arm is re-run under a
+design rule that drops a partially collinear availability ladder whole;
+excluding the incident the joint arm improves on the incumbent.
+\pending{joint-arm row from the re-run under the atomic-ladder rule} The same columns under the per-block shrinkage of
 Sections~\ref{sec:dense_weak} and \ref{sec:nonlinear_product} produce the
 paper's best forecasts (\unifBlkThreeUserQLIKE{} at
 \unifBlkThreeUserDM{}).
