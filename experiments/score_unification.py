@@ -253,6 +253,11 @@ _REGISTRY: list[tuple[str, str]] = [
     # LaTeX macro stems, and the paper quotes the composites, not the experts).
     ("tree_tuned", "TreeTuned"),
     ("tree_hedge", "TreeHedge"),
+    # Exog-conditional second-moment variants (variance_sidecar.py): layer-3
+    # scalar swapped for sigma2_cond on sidecar-equipped arms. Bench = the
+    # benchmark arm, Champ = the champion contender.
+    ("a0_ols_har_condvar", "CondVarBench"),
+    ("blk4_trail_tuned_condvar", "CondVarChamp"),
 ]
 _CAMEL = dict(_REGISTRY)
 _ORDER = {arm: i for i, (arm, _) in enumerate(_REGISTRY)}
@@ -292,6 +297,8 @@ _ARM_TEX: dict[str, str] = {
     "be_tuned_all_features": "HAR + all features bucket (elastic net, causally tuned, free mixing)",
     "tree_tuned": "Gradient-boosted trees (causally tuned expert bank)",
     "tree_hedge": "Gradient-boosted trees (hedged expert bank)",
+    "a0_ols_har_condvar": "Benchmark under the exog-conditional second moment",
+    "blk4_trail_tuned_condvar": "Champion under the exog-conditional second moment",
     "b1_ridge_a0p1": r"Ridge, fixed $\alpha=0.1$",
     "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
     "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
@@ -400,6 +407,11 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # cadence-homogenization surgical test (era-dig hypothesis)
     ("blk4_trailDropHet", "blk3_user"),
     ("blk4_trailDropHet", "blk4_trail"),
+    # conditional-variance contract test: each condvar variant vs its own
+    # scalar-contract parent (paired per-bar DM on common rows) ->
+    # \unifIncrCondVarBench{DM,DQ} / \unifIncrCondVarChamp{DM,DQ}
+    ("a0_ols_har_condvar", A0),
+    ("blk4_trail_tuned_condvar", "blk4_trail_tuned"),
 ]
 
 
@@ -891,6 +903,97 @@ def _assemble_tree_arms(
     return out
 
 
+# ── conditional-variance sidecar -> synthetic *_condvar arms ─────────────────
+# (variance_sidecar.py, 2026-08-07): the sidecar persists per-bar f_cond_raw =
+# (m^2 + sigma2_cond) * B under the SAME calibration chain (it reuses this
+# module's functions); the condvar variant of an arm is therefore just its
+# per-bar QLIKE recomputed on the sidecar forecast — layer 1/2 and the burn-in
+# untouched, layer 3 swapped.
+
+_CONDVAR_TARGETS = (A0, "blk4_trail_tuned")
+
+
+def _assemble_condvar_arms(
+    by_root: dict[str, list[ArmResult]], sidecar_root: str, adoption_rows: list[dict]
+) -> list[ArmResult]:
+    out: list[ArmResult] = []
+    if not sidecar_root or not os.path.isdir(sidecar_root):
+        return out
+    for root_label, entries in by_root.items():
+        for parent in entries:
+            if parent.arm not in _CONDVAR_TARGETS or not parent.n_rows:
+                continue
+            sc_dir = os.path.join(sidecar_root, parent.arm)
+            if not os.path.isdir(sc_dir):
+                continue
+            rows, fc, yrs = [], [], []
+            frac_by_year: dict[str, list[float]] = {}
+            n_chunks = 0
+            for fn in sorted(os.listdir(sc_dir)):
+                if not _CHUNK_RE.match(fn):
+                    continue
+                with np.load(os.path.join(sc_dir, fn), allow_pickle=False) as z:
+                    rows.append(np.asarray(z["row_id"], dtype=np.int64))
+                    fc.append(np.asarray(z["f_cond_raw"], dtype=np.float64))
+                    yrs.append(np.asarray(z["year"], dtype=np.int64))
+                    meta = json.loads(str(z["meta"]))
+                n_chunks += 1
+                for y, fr in (meta.get("frac_inf_by_year") or {}).items():
+                    frac_by_year.setdefault(y, []).append(float(fr))
+            if not rows:
+                continue
+            row_id = np.concatenate(rows)
+            f_cond = np.concatenate(fc)
+            year = np.concatenate(yrs)
+            order = np.argsort(row_id, kind="stable")
+            row_id, f_cond, year = row_id[order], f_cond[order], year[order]
+            common, ia, ib = np.intersect1d(
+                row_id, parent.row_id, assume_unique=True, return_indices=True
+            )
+            if len(common) == 0:
+                continue
+            res = ArmResult(root=root_label, arm=f"{parent.arm}_condvar")
+            res.n_chunks = n_chunks
+            res.incomplete = parent.incomplete or n_chunks == 0
+            res.row_id = common
+            res.t = parent.t[ib]
+            res.f_raw = f_cond[ia]
+            res.rv_raw = parent.rv_raw[ib]
+            res.loss = _qlike_bar(res.f_raw, res.rv_raw)
+            nf = len(common)
+            res.loss_none = np.full(nf, np.nan)
+            res.loss_duan = np.full(nf, np.nan)
+            res.err2 = np.full(nf, np.nan)
+            res.yhat = np.full(nf, np.nan)
+            res.n_rows = nf
+            res.n_valid = int(np.isfinite(res.f_raw).sum())
+            res.n_qlike = int(np.isfinite(res.loss).sum())
+            if res.n_qlike:
+                res.qlike = float(np.nanmean(res.loss))
+            m = (res.f_raw > 0) & (res.rv_raw > 0)
+            if m.sum() >= 3:
+                mz = mz_regression(res.rv_raw[m], res.f_raw[m])
+                res.mz_alpha, res.mz_beta = mz["alpha"], mz["beta"]
+                res.mz_r2 = mz["r2"]
+            res.warnings.append(
+                "synthetic: layer-3 scalar swapped for the exog-conditional "
+                "sigma2 (variance_sidecar); chunks without sidecars (variance "
+                "burn-in) excluded"
+            )
+            out.append(res)
+            for y, fr in sorted(frac_by_year.items()):
+                adoption_rows.append(
+                    {
+                        "arm": parent.arm,
+                        "root": root_label,
+                        "year": int(y),
+                        "n_chunks": len(fr),
+                        "frac_non_inf": round(1.0 - float(np.mean(fr)), 4),
+                    }
+                )
+    return out
+
+
 def _compare_vs_a0(res: ArmResult, a0: ArmResult) -> None:
     """Same-environment comparison: join per-bar on row_id vs the root's own a0."""
     common, ia, ib = np.intersect1d(
@@ -1272,6 +1375,11 @@ def main(argv: list[str] | None = None) -> int:
         default=os.path.join("writeup", "generated"),
         help="dir for campaign_numbers.tex + table bodies",
     )
+    ap.add_argument(
+        "--variance-sidecar-root",
+        default=os.path.join("results", "variance_sidecar"),
+        help="root of variance_sidecar.py outputs (absent -> no condvar arms)",
+    )
     args = ap.parse_args(argv)
 
     # 1. DISCOVER + 2/3. VALIDATE + SCORE per (root, arm).
@@ -1361,6 +1469,32 @@ def main(argv: list[str] | None = None) -> int:
                 for fam, cnt in sorted(fams.items()):
                     w.writerow([root_l, year, fam, cnt, f"{cnt / tot:.4f}"])
         print(f"tree family preference by era -> {fam_csv}")
+
+    # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
+    # sidecar banks + the adoption-trajectory CSV.
+    adoption_rows: list[dict] = []
+    for r in _assemble_condvar_arms(by_root, args.variance_sidecar_root, adoption_rows):
+        results.append(r)
+        by_root.setdefault(r.root, []).append(r)
+    if adoption_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        ad_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "condvar_adoption.csv"
+        )
+        with open(ad_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["arm", "root", "year", "n_chunks", "frac_non_inf"])
+            for rec in adoption_rows:
+                w.writerow(
+                    [
+                        rec["arm"],
+                        rec["root"],
+                        rec["year"],
+                        rec["n_chunks"],
+                        rec["frac_non_inf"],
+                    ]
+                )
+        print(f"condvar adoption trajectory -> {ad_csv}")
 
     for root_label, entries in by_root.items():
         a0 = next((r for r in entries if r.arm == A0), None)
