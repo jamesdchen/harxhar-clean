@@ -148,6 +148,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailKTen",
         "blk4_trailKForty",
         "blk4_trailLagTwo",
+        "blk4_trailDropHet",
     )
 }
 _CHUNK_RE = re.compile(r"^chunk_(\d+)\.npz$")
@@ -239,6 +240,7 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailKTen", "BlkFourTrailKTen"),
     ("blk4_trailKForty", "BlkFourTrailKForty"),
     ("blk4_trailLagTwo", "BlkFourTrailLagTwo"),
+    ("blk4_trailDropHet", "BlkFourTrailDropHet"),
     ("c4_product_alone_user", "ProductAloneUser"),
     ("c4_product_alone_doc", "ProductAloneDoc"),
     ("c4_product_alone_tuned", "ProductAloneTuned"),
@@ -314,6 +316,8 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailKTen": "Four-block ridge (trailing, $K=10$ factors)",
     "blk4_trailKForty": "Four-block ridge (trailing, $K=40$ factors)",
     "blk4_trailLagTwo": "Four-block ridge (trailing, lag-2 lead--lag)",
+    "blk4_trailDropHet": "Four-block ridge (trailing, transmission base excluding "
+    "the cadence-heterogeneous aggregate families)",
     "c4_product_alone_user": "HAR + product block only (stated)",
     "c4_product_alone_doc": "HAR + product block only (documented)",
     "c4_product_alone_tuned": "HAR + product block only (tuned)",
@@ -393,6 +397,9 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailLagTwo", "blk3_user"),
     ("blk4_trailSym", "blk4_trail"),
     ("blk4_trailRefresh", "blk4_trail"),
+    # cadence-homogenization surgical test (era-dig hypothesis)
+    ("blk4_trailDropHet", "blk3_user"),
+    ("blk4_trailDropHet", "blk4_trail"),
 ]
 
 

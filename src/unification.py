@@ -183,6 +183,15 @@ TRANS_QPOOL = 20  # map_monitor.QPOOL — 20 frozen-frame factors
 TRANS_TRAIL_DAYS = 504  # trans_exploit._trans_block trail_days
 TRANS_REFRESH_DAYS = 63  # quarterly D refresh
 TRANS_LAG_BARS = 1  # lag-1 (bars) cross-correlation
+# Cadence-heterogeneous aggregate families (era dig 2026-08-07): the ew/vw
+# feed-cadence homogenization lands Dec-2014, coinciding to the month with the
+# flow component's sign-flip; sumret3_ewstock / sumret3_vwstock carry
+# availability patterns differing from the other ten ew/vw columns on 6,029
+# bars, ALL pre-2015 (last differing bar 2014-12-31 06:30). blk4_trailDropHet
+# excludes these two families from the TRANSMISSION BASE ONLY (the test is
+# about what feeds the operator/scores; the exog ridge block keeps them).
+TRANS_HET_STEMS = ("sumret3_ewstock", "sumret3_vwstock")
+
 # Composition RULED 2026-08-06: _user arms carry [G (20 factor scores) | Ghat
 # (20 lead-lag)] = 40 cols (the paper's own design); _doc arms mirror the
 # documented construction EXACTLY — Ghat only (trans_exploit.py:64-66), because
@@ -606,6 +615,7 @@ def _transmission_block(
     frame: str = "frozen",
     qpool: int | None = None,
     lag: int | None = None,
+    exclude_stems: tuple[str, ...] = (),
 ) -> np.ndarray:
     """Transmission block; ``parts`` selects the composition: "both" =
     [factor scores G | lead-lag Ghat] (2K cols, the _user convention),
@@ -633,6 +643,13 @@ def _transmission_block(
         K exceeds the available spectrum).
       * ``lag`` — cross-correlation lag in bars (default 1); Ghat_t =
         Op·G(t-lag) with Op estimated from the lag-``lag`` cross-correlation.
+      * ``exclude_stems`` — raw-feature families removed from the transmission
+        BASE Z before the frame/operator (blk4_trailDropHet: the
+        cadence-heterogeneous aggregates, TRANS_HET_STEMS — the surgical test
+        of the Dec-2014 cadence-homogenization hypothesis; the exog ridge
+        block keeps these columns, only what feeds the operator changes).
+        Loud failure if the filter removes nothing (a misspelled stem must
+        not silently degenerate to blk4_trail).
 
     Diagnostics: per-refresh operator matrices, top-K frame eigenvalues, and
     refresh row indices are stashed in module-level ``_LAST_TRANS_DIAG`` and
@@ -643,6 +660,22 @@ def _transmission_block(
     k_pool = TRANS_QPOOL if qpool is None else int(qpool)
     lag = TRANS_LAG_BARS if lag is None else int(lag)
     bc = _product_base_cols(p.names)
+    excluded_names: list[str] = []
+    if exclude_stems:
+        kept = []
+        for j in bc:
+            _kind, stem, _w = _classify(p.names[j])
+            if stem in exclude_stems:
+                excluded_names.append(p.names[j])
+            else:
+                kept.append(j)
+        if not excluded_names:
+            raise SystemExit(
+                f"transmission exclude_stems {exclude_stems} removed NO base "
+                "columns — misspelled stem or drifted naming; refusing to run "
+                "an arm identical to its parent"
+            )
+        bc = np.asarray(kept, dtype=np.int64)
     Z = np.ascontiguousarray(p.X[:, bc])
     f0, f1 = window, 2 * window
     n = len(Z)
@@ -725,6 +758,7 @@ def _transmission_block(
         "frame": frame,
         "qpool": k_pool,
         "lag": lag,
+        "excluded_base_cols": excluded_names,
         "ops": np.stack(ops_rec) if ops_rec else np.zeros((0, k_pool, k_pool)),
         "eigvals": np.stack(eig_rec) if eig_rec else np.zeros((0, k_pool)),
         "refresh_rows": np.asarray(rows_rec, dtype=np.int64),
@@ -1765,6 +1799,13 @@ ARMS: dict[str, ArmSpec] = {
                 "trans_trailLag2",
                 "dig: lag-2-bar cross-correlation operator, Ghat = D2.G(t-2)",
             ),
+            (
+                "blk4_trailDropHet",
+                "trans_trailDropHet",
+                "dig: transmission base excludes the cadence-heterogeneous "
+                "sumret3_{ew,vw}stock families (Dec-2014 homogenization "
+                "hypothesis; exog ridge block keeps them)",
+            ),
         )
     },
     # Causally-TUNED block ladder (author directive 2026-08-06): _user block
@@ -1873,6 +1914,14 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "trans_trailLag2":  # lag-2-bar cross-correlation; Ghat = Op.G(t-2)
         return _transmission_block(
             p, window, parts="both", standardization="trailing", lag=2
+        )
+    if block == "trans_trailDropHet":  # cadence-homogenization surgical test
+        return _transmission_block(
+            p,
+            window,
+            parts="both",
+            standardization="trailing",
+            exclude_stems=TRANS_HET_STEMS,
         )
     raise KeyError(f"unknown block '{block}'")
 
@@ -2166,6 +2215,7 @@ def compute(args: argparse.Namespace) -> None:
                         "qpool": td["qpool"],
                         "lag": td["lag"],
                         "n_refresh": int(len(td["refresh_rows"])),
+                        "excluded_base_cols": td.get("excluded_base_cols", []),
                     }
                     if td is not None
                     else {}
