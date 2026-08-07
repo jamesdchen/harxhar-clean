@@ -2,40 +2,43 @@
 \toprule
 Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\
 \midrule
-OLS on HAR + calendar (benchmark) & 0.24099 (20) & 0.23165 (33) & 0.23353 (29) \\
-HAR + moments bucket (OLS) & 0.24042 (16) & 0.22730 (20) & 0.23088 (21) \\
-HAR + liquidity bucket (OLS) & 0.28790 (33) & 0.24761 (34) & 0.24864 (34) \\
-HAR + market EW bucket (OLS) & 0.24112 (21) & 0.23044 (32) & 0.23357 (31) \\
-HAR + market VW bucket (OLS) & 0.24061 (17) & 0.22976 (28) & 0.23303 (26) \\
-HAR + sentiment bucket (OLS) & 0.24154 (23) & 0.22988 (30) & 0.23356 (30) \\
-HAR + implied vol bucket (OLS) & 0.24161 (24) & 0.22987 (29) & 0.23347 (28) \\
-HAR + vol demand bucket (OLS) & 0.24077 (18) & 0.23006 (31) & 0.23366 (33) \\
-HAR + all features bucket (OLS) & 0.86042 (35) & 0.26957 (35) & 0.27142 (35) \\
-Ridge, fixed $\alpha=1$ & 0.25403 (30) & 0.22816 (24) & 0.23243 (24) \\
-Lasso, fixed $\alpha=10^{-4}$ & 0.24017 (15) & 0.22512 (16) & 0.22950 (16) \\
-Ridge, causally tuned & 0.24304 (28) & 0.22665 (18) & 0.23040 (17) \\
-Lasso, causally tuned & 0.24238 (26) & 0.22800 (23) & 0.23134 (22) \\
-Elastic net, causally tuned & 0.24008 (14) & 0.22730 (21) & 0.23056 (18) \\
-Ridge, fixed $\alpha=0.1$ & 0.28959 (34) & 0.22962 (27) & 0.23361 (32) \\
-Ridge, fixed $\alpha=0.3$ & 0.26750 (32) & 0.22901 (25) & 0.23312 (27) \\
-Ridge, fixed $\alpha=3$ & 0.24698 (29) & 0.22725 (19) & 0.23169 (23) \\
-Ridge, fixed $\alpha=10$ & 0.24303 (27) & 0.22630 (17) & 0.23087 (20) \\
-Two-block ridge (stated penalties) & 0.23885 (12) & 0.22489 (15) & 0.22941 (15) \\
-Three-block ridge (stated penalties) & 0.23129 (9) & 0.21630 (5) & 0.22111 (5) \\
-Four-block ridge (stated penalties) & 0.23128 (8) & 0.21621 (4) & 0.22102 (4) \\
-Two-block ridge (documented penalties) & 0.24085 (19) & 0.22383 (13) & 0.22775 (13) \\
-Three-block ridge (documented penalties) & 0.25568 (31) & 0.22282 (12) & 0.22652 (12) \\
-Four-block ridge (documented penalties) & 0.24153 (22) & 0.22278 (11) & 0.22650 (11) \\
-Two-block ridge (per-block causal tuning) & 0.23633 (11) & 0.22458 (14) & 0.22822 (14) \\
-Three-block ridge (per-block causal tuning) & 0.22590 (2) & 0.21566 (2) & 0.21942 (2) \\
-Four-block ridge (per-block causal tuning) & 0.22573 (1) & 0.21542 (1) & 0.21931 (1) \\
-Four-block ridge (trailing-standardized transmission) & 0.22937 (7) & 0.21601 (3) & 0.22080 (3) \\
-HAR + product block only (stated) & 0.22910 (6) & 0.22227 (10) & 0.22403 (10) \\
-HAR + product block only (documented) & 0.24179 (25) & 0.22776 (22) & 0.23078 (19) \\
-HAR + product block only (tuned) & 0.22902 (5) & 0.22219 (9) & 0.22378 (9) \\
-HAR + transmission block only (stated) & 0.22874 (4) & 0.21997 (7) & 0.22248 (6) \\
-HAR + transmission block only (documented) & 0.23898 (13) & 0.22929 (26) & 0.23298 (25) \\
-HAR + transmission block only (tuned) & 0.22861 (3) & 0.21997 (8) & 0.22249 (7) \\
-HAR + transmission block only (trailing) & 0.23255 (10) & 0.21996 (6) & 0.22272 (8) \\
+OLS on HAR + calendar (benchmark) & 0.24097 (22) & 0.23165 (38) & 0.23353 (32) \\
+HAR + moments bucket (OLS) & 0.24041 (19) & 0.22729 (23) & 0.23089 (24) \\
+HAR + liquidity bucket (OLS) & 0.28789 (36) & 0.23152 (37) & 0.23471 (38) \\
+HAR + market EW bucket (OLS) & 0.24110 (23) & 0.23043 (35) & 0.23357 (33) \\
+HAR + market VW bucket (OLS) & 0.24061 (20) & 0.22976 (32) & 0.23303 (30) \\
+HAR + sentiment bucket (OLS) & 0.24175 (25) & 0.22969 (31) & 0.23253 (28) \\
+HAR + implied vol bucket (OLS) & 0.24187 (27) & 0.22993 (33) & 0.23363 (35) \\
+HAR + vol demand bucket (OLS) & 0.24746 (32) & 0.23008 (34) & 0.23375 (36) \\
+HAR + all features bucket (OLS) & 0.92974 (38) & 0.23051 (36) & 0.23444 (37) \\
+Ridge, fixed $\alpha=1$ & 0.25403 (33) & 0.22816 (27) & 0.23243 (27) \\
+Lasso, fixed $\alpha=10^{-4}$ & 0.24017 (18) & 0.22512 (19) & 0.22950 (19) \\
+Ridge, causally tuned & 0.24304 (30) & 0.22665 (21) & 0.23040 (20) \\
+Lasso, causally tuned & 0.24238 (28) & 0.22800 (26) & 0.23134 (25) \\
+Elastic net, causally tuned & 0.24008 (17) & 0.22730 (24) & 0.23056 (21) \\
+Ridge, fixed $\alpha=0.1$ & 0.28959 (37) & 0.22962 (30) & 0.23361 (34) \\
+Ridge, fixed $\alpha=0.3$ & 0.26750 (35) & 0.22901 (28) & 0.23312 (31) \\
+Ridge, fixed $\alpha=3$ & 0.24698 (31) & 0.22725 (22) & 0.23169 (26) \\
+Ridge, fixed $\alpha=10$ & 0.24303 (29) & 0.22630 (20) & 0.23087 (23) \\
+Two-block ridge (stated penalties) & 0.23885 (15) & 0.22489 (18) & 0.22941 (18) \\
+Three-block ridge (stated penalties) & 0.23129 (12) & 0.21630 (8) & 0.22111 (8) \\
+Four-block ridge (stated penalties) & 0.23128 (11) & 0.21621 (7) & 0.22102 (7) \\
+Two-block ridge (documented penalties) & 0.24085 (21) & 0.22383 (16) & 0.22775 (16) \\
+Three-block ridge (documented penalties) & 0.25568 (34) & 0.22282 (15) & 0.22652 (15) \\
+Four-block ridge (documented penalties) & 0.24153 (24) & 0.22278 (14) & 0.22650 (14) \\
+Two-block ridge (per-block causal tuning) & 0.23633 (14) & 0.22458 (17) & 0.22822 (17) \\
+Three-block ridge (per-block causal tuning) & 0.22590 (2) & 0.21566 (3) & 0.21942 (3) \\
+Four-block ridge (per-block causal tuning) & 0.22573 (1) & 0.21542 (2) & 0.21931 (2) \\
+Four-block ridge (trailing-standardized transmission) & 0.22937 (8) & 0.21601 (4) & 0.22080 (4) \\
+Four-block ridge (trailing, factor levels only) & 0.22945 (9) & 0.21605 (5) & 0.22085 (5) \\
+Four-block ridge (trailing, lead-lag flow only) & 0.23062 (10) & 0.21620 (6) & 0.22098 (6) \\
+Four-block ridge (trailing transmission, per-block causal tuning) & 0.22598 (3) & 0.21518 (1) & 0.21915 (1) \\
+HAR + product block only (stated) & 0.22910 (7) & 0.22227 (13) & 0.22403 (13) \\
+HAR + product block only (documented) & 0.24179 (26) & 0.22776 (25) & 0.23078 (22) \\
+HAR + product block only (tuned) & 0.22902 (6) & 0.22219 (12) & 0.22378 (12) \\
+HAR + transmission block only (stated) & 0.22874 (5) & 0.21997 (10) & 0.22248 (9) \\
+HAR + transmission block only (documented) & 0.23898 (16) & 0.22929 (29) & 0.23298 (29) \\
+HAR + transmission block only (tuned) & 0.22861 (4) & 0.21997 (11) & 0.22249 (10) \\
+HAR + transmission block only (trailing) & 0.23255 (13) & 0.21996 (9) & 0.22272 (11) \\
 \bottomrule
 \end{tabular}%

@@ -6,3 +6,6 @@ blk4_doc-vs-blk3_doc,unification_carc,273554,True,-1.811096916e-05,-0.393602
 blk3_tuned-vs-blk2_tuned,unification_carc,248686,True,-0.0005489185478,-1.40787
 blk4_tuned-vs-blk3_tuned,unification_carc,248686,True,-0.000112097175,-1.07847
 blk4_trail-vs-blk3_user,unification_carc,248686,True,-0.000309133189,-4.14041
+blk4_trailG-vs-blk3_user,unification_carc,248686,True,-0.0002575074979,-5.95067
+blk4_trailGhat-vs-blk3_user,unification_carc,248686,True,-0.0001224817503,-2.09036
+blk4_trail_tuned-vs-blk3_tuned,unification_carc,248686,True,-0.0002766636977,-2.05517

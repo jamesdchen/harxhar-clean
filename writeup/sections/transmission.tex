@@ -377,6 +377,25 @@ post-2022 pattern this research program has documented for other
 dictionary expansions. A reader should weight the pooled Diebold--Mariano
 statistic accordingly.
 
+An ablation decomposes the trailing block's value into its two column
+groups. With only the trailing-standardized factor scores $G$ (no flow
+features), the increment over the three-block ridge is
+\unifIncrBlkFourTrailGDQ{} at DM \unifIncrBlkFourTrailGDM{}; with only
+the flow features $\hat G$ it is \unifIncrBlkFourTrailGhatDQ{} at
+\unifIncrBlkFourTrailGhatDM{}; the full block's increment is the
+\unifIncrBlkFourTrailDQ{} at \unifIncrBlkFourTrailDM{} reported above.
+Both components carry signal at the $5\%$ level; the factor levels carry
+roughly twice the flow's increment, and the two are partially
+overlapping. The lead--lag flow is therefore a real but junior component
+of the block's value.
+
+Finally, combining the trailing construction with per-block causal
+tuning yields the campaign's best pooled model: the tuned
+trailing-transmission four-block ridge scores
+\unifBlkFourTrailTunedQLIKE{} (DM \unifBlkFourTrailTunedDM{} against the
+benchmark), with an increment of \unifIncrBlkFourTrailTunedDQ{} at
+\unifIncrBlkFourTrailTunedDM{} over the tuned three-block.
+
 The transmission block is the only block in the model that uses information
 at a delay: the other three read the current bar, and this one predicts
 next-bar factor motion from the previous bar. On a cross-section of assets,
