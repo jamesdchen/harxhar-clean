@@ -1744,6 +1744,25 @@ ARMS: dict[str, ArmSpec] = {
         ],
         oos_mult=2,
     ),
+    # Parsimony counterpart of the champion (author directive 2026-08-07): the
+    # falsification result put the transmission block's value in the trailing
+    # factor LEVELS G, not the operator columns Ghat (levels-only vs full:
+    # paired DM t=1.00, p=0.32; stronger vs the 3-block ridge, -5.95 vs -4.14;
+    # half the columns; no operator machinery at all). The headline model
+    # cannot claim parsimony without this arm.
+    "blk4_trailG_tuned": ArmSpec(
+        describe="parsimony contender: trailing factor SCORES ONLY (20 cols, "
+        "no Ghat, no operator machinery) with PER-BLOCK CAUSAL TUNING "
+        "— blk4_trail_tuned's levels-only twin",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG", "trans"),
+        ],
+        oos_mult=2,
+    ),
     # Transmission dig (author directive 2026-08-07): 7 variants of the
     # trailing construction, fixed user penalties, same window/legality as
     # blk4_trail. Mechanism diagnostics (per-refresh operators, frame

@@ -142,6 +142,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailG",
         "blk4_trailGhat",
         "blk4_trail_tuned",
+        "blk4_trailG_tuned",
         # transmission dig (same legality)
         "blk4_trailSym",
         "blk4_trailFullC",
@@ -234,6 +235,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailG", "BlkFourTrailG"),
     ("blk4_trailGhat", "BlkFourTrailGhat"),
     ("blk4_trail_tuned", "BlkFourTrailTuned"),
+    # Parsimony counterpart: the champion with levels-only transmission.
+    ("blk4_trailG_tuned", "BlkFourTrailGTuned"),
     # Transmission dig: operator/frame/width/lag variants of the trailing block.
     ("blk4_trailSym", "BlkFourTrailSym"),
     ("blk4_trailFullC", "BlkFourTrailFullC"),
@@ -324,6 +327,8 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailG": "Four-block ridge (trailing, factor levels only)",
     "blk4_trailGhat": "Four-block ridge (trailing, lead-lag flow only)",
     "blk4_trail_tuned": "Four-block ridge (trailing transmission, per-block causal tuning)",
+    "blk4_trailG_tuned": "Four-block ridge (trailing factor levels only, per-block "
+    "causal tuning)",
     "blk4_trailSym": "Four-block ridge (trailing, symmetric-part control)",
     "blk4_trailFullC": "Four-block ridge (trailing, undecomposed cross-correlation)",
     "blk4_trailRefresh": "Four-block ridge (trailing, causally refreshed frame)",
@@ -386,6 +391,11 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailG", "blk3_user"),
     ("blk4_trailGhat", "blk3_user"),
     ("blk4_trail_tuned", "blk3_tuned"),
+    # parsimony test: levels-only champion vs its own lower rung, then the
+    # head-to-head against the full-block champion (indistinguishable =>
+    # the operator drops out of the headline model)
+    ("blk4_trailG_tuned", "blk3_tuned"),
+    ("blk4_trailG_tuned", "blk4_trail_tuned"),
     # bucket-grid within-design family comparisons (free-l1 enet vs tuned
     # ridge on the SAME design) -> \unifIncrBeTuned<Bucket>{DM,DQ}
     ("be_tuned_moments", "br_tuned_moments"),
