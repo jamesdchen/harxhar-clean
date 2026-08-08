@@ -277,6 +277,60 @@ BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS
 )
+
+# ENDPOINT-RELIEF grid (author directive 2026-08-07). The shaped arm's tuner
+# picks gamma=2 — the TOP of TRANS_SHAPE_GAMMAS — in ~45% of its 1092 retunes,
+# and an optimum sitting at a grid endpoint is not a valid selection: it says
+# the grid, not the data, chose the answer. This constant extends the exponent
+# axis to 3 and 4 (18 (lambda0, gamma) points) so the same causal tuner can
+# express a STEEPER tilt if it wants one. TRANS_SHAPE_GAMMAS itself is left
+# untouched on purpose — blk4_trailGShaped's results are on disk and must stay
+# reproducible byte-for-byte, so the wide grid lives under its own block key
+# and its own arm. gamma=0 is retained, so the wide grid still nests the flat
+# penalty exactly and STRICTLY CONTAINS the original 12 points (any wide-vs-
+# narrow difference is attributable to the two added exponents alone).
+#
+# HOW TO READ A SELECTED GAMMA (derived + measured, same verify script,
+# section D). The transmission scores are TRAILING-STANDARDIZED, i.e. score i
+# is divided by its own rolling sd ~ sqrt(d_i) with d_i the frame eigenvalue.
+# If c_i is the coefficient on the standardized column and b_i the coefficient
+# on the RAW score, b_i = c_i / sqrt(d_i), so a penalty lambda_i on c IS a
+# penalty lambda_i * d_i on b. The standardization is therefore ITSELF a
+# spectral tilt. With the measured spectrum d_i ~ c * i**-1.176 (log-log
+# R^2 = 0.981 over the top 40, d_1/d_40 = 83.6):
+#     gamma_eff (on the raw eigen-directions) = gamma - 1.176
+# so gamma=0 is already a -1.176 tilt (leading directions shrunk HARDEST),
+# gamma=1.176 is the genuinely FLAT point, the shipped grid tops out at
+# gamma_eff = +0.824 — barely into positive tilt — and this wide grid reaches
+# +2.824. That is the mechanical reason the tuner pins the old endpoint: the
+# old grid could hardly express a positive tilt at all.
+#
+# NUMERICAL NOTE — MEASURED, NOT ASSUMED (experiments/verify_unification_shapes
+# .py section C). At the extreme corner lambda0=1e4, gamma=4, K=40 the largest
+# block penalty is 1e4 * 40**4 = 2.56e10: EXACT in float64 (an integer power —
+# no overflow, no rounding), and ~3 decades above the shipped arm's worst case
+# (1e4 * 40**2 = 1.6e7). On a worst-case fit gram at the campaign's own scale
+# (23,850 fit rows x 906 columns, exogenous block a power-law factor model,
+# backbone deliberately made numerically singular so lambda_min is pinned at
+# the 0.1 penalty FLOOR — the least favourable configuration the tuner can
+# reach) the penalized gram's condition number rises from 1.6e8 at gamma=2 to
+# 2.6e11 at gamma=4, and the fitted values from the normal-equation solve the
+# code performs still agree with the numerically stable augmented-QR ridge
+# solve to 1.2e-13 RELATIVE (4.9e-15 at gamma=2). SO NO CAP IS APPLIED: the
+# large condition number is entirely due to the huge penalties themselves, and
+# the directions carrying them are precisely the ones being shrunk to zero, so
+# they contribute nothing to the fit that could be corrupted. (Individual
+# coefficients of the near-duplicate backbone pair carry ~6e-10 relative
+# error, but that is the collinear pair's own indeterminacy — it is identical
+# at the FLAT penalty and is not caused by the shaping.) If a future grid goes
+# steeper still, the documented fix is to cap lambda_i at a fixed multiple of
+# the fit gram's trace rather than to drop grid points silently.
+TRANS_SHAPE_GAMMAS_WIDE: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0, 3.0, 4.0)
+BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(  # type: ignore[assignment]
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["trans"]
+    for g in TRANS_SHAPE_GAMMAS_WIDE
+)
 # PCR block grid (author directive 2026-08-07). DELIBERATELY WIDER than the
 # `trans` grid: that one is calibrated for a factor block competing against
 # 526 exogenous columns, where the tuner must shrink it hard to stop it
@@ -294,6 +348,15 @@ BLOCK_TUNE_GRIDS["pc_ladder_tilt"] = tuple(  # type: ignore[assignment]
     (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS
+)
+# WIDE-exponent twin for the K-sweep PC-ladder arms (author directive
+# 2026-08-07): at full rank the tail directions are the ones the tilt has to
+# suppress, so the exponent axis must be able to go steeper than 2 — same
+# extension, same rationale, as TRANS_SHAPE_GAMMAS_WIDE. 18 points.
+BLOCK_TUNE_GRIDS["pc_ladder_tilt_wide"] = tuple(  # type: ignore[assignment]
+    (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TRANS_SHAPE_GAMMAS_WIDE
 )
 
 # The same (level, tilt) grid for the EXOGENOUS block — the generalized
@@ -320,6 +383,42 @@ BLOCK_TUNE_GRIDS["exog_tilt"] = tuple(  # type: ignore[assignment]
 # is preserved — literal infinity would forfeit both.
 STEP_MULTIPLIER = 1e4
 TIKHONOV_STEP_KS: tuple[int, ...] = (20, 40, 80)
+
+# SHAPE ZOO for the K=40 transmission block (author directive 2026-08-07):
+# three penalty FAMILIES in one block grid, so the causal tuner — not the
+# author — picks the prior, per retune.
+#   power       lambda_i = lambda0 * i**gamma          gamma in the wide grid
+#   exponential lambda_i = lambda0 * exp(kappa*(i-1))  kappa in TRANS_SHAPE_KAPPAS
+#   step        lambda0 up to rank K0, lambda0*M after K0 in TRANS_SHAPE_STEP_KS
+# WHY THESE THREE AND NOT AN EIGENVALUE PROFILE: the frozen frame's spectrum is
+# a clean power law (d_i ~ c*i^-1.176, log-log R^2 = 0.981 over the top 40,
+# d_1/d_40 = 83.6), so lambda_i ∝ d_i^-theta IS the rank power law with
+# gamma = 1.176*theta. Running it would be a reparameterization, not an
+# experiment. What a power-law spectrum does NOT already contain is a
+# geometric tail (exponential) or a hard cutoff on this basis (step).
+# 12 shape points x 3 lambda0 = 36 points, one block, cyclic selection.
+# THE EXHIBIT is the selected FAMILY by retune and by year: a dominant family
+# is this panel's revealed prior; a family that flips by era is a statement
+# about regime-dependent effective dimension.
+TRANS_SHAPE_KAPPAS: tuple[float, ...] = (0.02, 0.05, 0.10)
+TRANS_SHAPE_STEP_KS: tuple[int, ...] = (10, 20, 30)
+BLOCK_TUNE_GRIDS["trans_shaped_zoo"] = (
+    tuple(  # type: ignore[assignment]
+        (float(lam0), "power", float(g))
+        for lam0 in BLOCK_TUNE_GRIDS["trans"]
+        for g in TRANS_SHAPE_GAMMAS_WIDE
+    )
+    + tuple(
+        (float(lam0), "exp", float(kap))
+        for lam0 in BLOCK_TUNE_GRIDS["trans"]
+        for kap in TRANS_SHAPE_KAPPAS
+    )
+    + tuple(
+        (float(lam0), "step", float(k0))
+        for lam0 in BLOCK_TUNE_GRIDS["trans"]
+        for k0 in TRANS_SHAPE_STEP_KS
+    )
+)
 BLOCK_TUNE_GRIDS["exog_tilt_step"] = tuple(  # type: ignore[assignment]
     (float(lam0), "power", float(g))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
@@ -412,6 +511,29 @@ def _rotate_frozen(z: np.ndarray, f0: int, f1: int) -> np.ndarray:
     return out
 
 
+def _frame_live_rank(p: _Panel, window: int) -> int:
+    """FULL rank available to the frozen transmission/PC frame, read from the
+    frame construction's own liveness rule — never hardcoded.
+
+    ``_transmission_block._frame_of`` builds the frame from the correlation of
+    the LIVE base columns of the frame window ``Z[window:2*window]``, where
+    live means ``std > _DEGENERATE_SD``; the eigendecomposition therefore
+    yields exactly ``live.sum()`` directions and ``_frame_of`` already fails
+    LOUDLY when a requested K exceeds that. This function reproduces that count
+    (same columns, same window, same threshold) so the full-rank PC-ladder arm
+    can ASK for it instead of assuming a number that drifts with the panel.
+    """
+    bc = _product_base_cols(p.names)
+    zw = np.ascontiguousarray(p.X[window : 2 * window, bc])
+    n_live = int((zw.std(0) > _DEGENERATE_SD).sum())
+    if n_live < 1:
+        raise SystemExit(
+            "PC frame: no live base columns in the frame window — refusing to "
+            "build a degenerate full-rank design"
+        )
+    return n_live
+
+
 def _pc_ladder_design(
     p: _Panel,
     window: int,
@@ -463,6 +585,119 @@ def _pc_ladder_design(
     return out
 
 
+# Alignment diagnostic of the last per-rung build (mean |dot| of matched
+# eigenvectors and the principal-angle cosines between the extreme rungs);
+# read by the tests and printed at build time.
+_LAST_PERRUNG_DIAG: dict[str, Any] = {}
+
+
+def _pc_ladder_perrung_design(
+    p: _Panel,
+    window: int,
+    qpool: int = TRANS_QPOOL,
+    rungs: tuple[int, ...] = PRODUCT_EXOG_WINDOWS,
+) -> np.ndarray:
+    """PER-RUNG eigenbases: each horizon gets its OWN frozen frame.
+
+    THE QUESTION (author directive 2026-08-07): every construction in this
+    campaign so far uses ONE eigenbasis — that of the raw base features — and
+    applies it at every horizon. But ma_j is a linear smoother, so ma_j(X) has
+    its own cross-sectional correlation structure; the leading directions of
+    the fast panel need not be the leading directions of the slow panel. If
+    they coincide, this arm ties ``blk_pcladder_tuned`` and the alignment
+    number below IS the explanation; if they do not, a per-horizon basis is
+    strictly more expressive at the same column count.
+
+    CONSTRUCTION, per rung j (smooth FIRST, rotate SECOND — the exact reverse
+    of :func:`_pc_ladder_design`):
+      1. Z_j = ma_j(Z) over the base features (causal rolling mean,
+         min_periods=1, shifted one bar — the ladder convention of
+         ``generate_har_features``).
+      2. V_j = top-``qpool`` eigenvectors of the FROZEN first-window
+         correlation of Z_j, same frame window ``Z_j[window:2*window]``, same
+         ``_DEGENERATE_SD`` liveness rule, eigenvalues descending. LOUD failure
+         if qpool exceeds that rung's live spectrum.
+      3. Scores G_j = ((Z_j - mu_j) / sd_j) @ V_j, then TRAILING-standardized
+         exactly as the winning transmission arms standardize theirs (rolling
+         ``TRANS_TRAIL_DAYS`` mean/std, shifted one bar, warm-up rows zeroed).
+
+    COLUMN LAYOUT is identical to ``_pc_ladder_design`` — grouped by PC rank,
+    rungs contiguous within a rank, column (i-1)*n_rungs + j — because the
+    penalty is the SAME ``pcrank`` family: one (lambda0, gamma) shared across
+    all rungs of a rank AND across rungs. Sharing the penalty parameterization
+    is deliberate: it leaves the BASIS as the only difference from
+    ``blk_pcladder_tuned``, which is what makes the head-to-head clean.
+    """
+    bc = _product_base_cols(p.names)
+    Z = np.ascontiguousarray(p.X[:, bc], dtype=np.float64)
+    n = len(Z)
+    k_pool = int(qpool)
+    f0, f1 = window, 2 * window
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    n_rungs = len(rungs)
+    out = np.empty((n, k_pool * n_rungs), dtype=np.float64)
+    bases: list[np.ndarray] = []
+    for j, w in enumerate(rungs):
+        zj = (
+            pd.DataFrame(Z)
+            .rolling(window=int(w), min_periods=1)
+            .mean()
+            .shift(1)
+            .to_numpy()
+        )
+        zj[~np.isfinite(zj)] = 0.0  # the single shifted warm-up row
+        zw = zj[f0:f1]
+        mu, sd = zw.mean(0), zw.std(0)
+        live = sd > _DEGENERATE_SD
+        n_avail = int(live.sum())
+        if k_pool > n_avail:
+            raise SystemExit(
+                f"per-rung PC frame (rung {w}): K={k_pool} exceeds the "
+                f"available spectrum ({n_avail} live base columns) — no "
+                "silent cap"
+            )
+        sdl = np.where(live, sd, 1.0)
+        lam, v_l = np.linalg.eigh(np.corrcoef(((zw - mu) / sdl)[:, live], rowvar=False))
+        order = np.argsort(lam)[::-1]
+        v_full = np.zeros((Z.shape[1], len(lam)))
+        v_full[live] = v_l[:, order]
+        v_j = v_full[:, :k_pool]
+        bases.append(v_j)
+        g = ((zj - mu) / sdl) @ v_j
+        gm = pd.DataFrame(g).rolling(trail, min_periods=trail).mean().shift(1)
+        gs = pd.DataFrame(g).rolling(trail, min_periods=trail).std().shift(1)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            g = (g - gm.to_numpy()) / gs.to_numpy()
+        g[~np.isfinite(g)] = 0.0  # warm-up rows (< trail bars of history)
+        out[:, j::n_rungs] = g  # rank-major layout: col i*n_rungs + j
+    # SUBSPACE-ALIGNMENT DIAGNOSTIC (the arm's own explanation if it ties):
+    # principal angles between the fastest and slowest rung's top-K subspaces
+    # (singular values of V_fast' V_slow, all 1.0 <=> identical subspace) and
+    # the mean |dot| of RANK-MATCHED eigenvectors (sign-invariant).
+    v_a, v_b = bases[0], bases[-1]
+    cos_pa = np.linalg.svd(v_a.T @ v_b, compute_uv=False)
+    matched = np.abs(np.sum(v_a * v_b, axis=0))
+    _LAST_PERRUNG_DIAG.clear()
+    _LAST_PERRUNG_DIAG.update(
+        {
+            "rungs": [int(w) for w in rungs],
+            "qpool": k_pool,
+            "principal_angle_cos": cos_pa.tolist(),
+            "mean_principal_angle_cos": float(np.mean(cos_pa)),
+            "min_principal_angle_cos": float(np.min(cos_pa)),
+            "mean_matched_abs_dot": float(np.mean(matched)),
+        }
+    )
+    print(
+        f"[pc_ladder_perrung] K={k_pool} rungs={list(rungs)}: "
+        f"fast-vs-slow subspace mean cos(principal angle) "
+        f"{float(np.mean(cos_pa)):.4f} (min {float(np.min(cos_pa)):.4f}), "
+        f"mean |dot| of rank-matched eigenvectors "
+        f"{float(np.mean(matched)):.4f}"
+    )
+    return out
+
+
 def _pen_value(a: Any) -> Any:
     """Normalize a grid point so tuner equality comparisons are exact.
 
@@ -505,6 +740,21 @@ def _fill_pen_span(pen: np.ndarray, s0: int, s1: int, value: Any) -> None:
         if family == "power":
             ranks = np.arange(1, k_span + 1, dtype=np.float64)
             pen[s0:s1] = lam0 * ranks**par
+        elif family == "exp":
+            # EXPONENTIAL profile: lambda_i = lam0 * exp(kappa * (i-1)).
+            # NOT redundant with the power family (author directive
+            # 2026-08-07): the frozen frame's eigenvalue spectrum is itself a
+            # clean power law (d_i ~ c*i^-1.176, log-log R^2 = 0.981 over the
+            # top 40, d_1/d_40 = 83.6), so an EIGENVALUE-based profile
+            # lambda_i ∝ d_i^-theta is the SAME family as the rank power law
+            # under gamma = 1.176*theta — a reparameterization, deliberately
+            # not run. An exponential has genuinely different TAIL behaviour
+            # (geometric, not polynomial) and is therefore a real alternative
+            # prior. kappa=0 would nest flat, but the flat nesting is already
+            # carried EXACTLY by power/gamma=0, so the grids do not duplicate
+            # it (see the duplicate-free assertion in the shape-zoo test).
+            ranks0 = np.arange(k_span, dtype=np.float64)
+            pen[s0:s1] = lam0 * np.exp(par * ranks0)
         elif family == "step":
             # HARD-threshold family: flat at lam0 up to rank K, elevated by
             # STEP_MULTIPLIER beyond it — a finite stand-in for truncation
@@ -2122,6 +2372,88 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # K-SWEEP of the PC-ladder construction (author directive 2026-08-07).
+    # THE STRUCTURAL POINT: moving averages commute with a linear projection,
+    # so {ma_j(G_i)} spans the eigen-projection of the ladder-expanded base
+    # design. At K=20 that projection THROWS AWAY most of the space and the arm
+    # measures compression. At FULL RANK nothing is thrown away: the two
+    # designs differ by a block-diagonal orthogonal rotation, a flat-penalty
+    # ridge on either is identical, and the ONLY thing that can move the score
+    # is the penalty PROFILE. So gamma=0 at full rank should reproduce the flat
+    # result and any gain is attributable to the tilt alone.
+    # CAVEAT — MEASURED, and it matters (experiments/verify_unification_shapes
+    # .py section D). The exact-rotation identity holds for the FROZEN-frame
+    # scores: at full rank, flat-penalty ridge fitted values on the ladder-of-
+    # PCs and on the ladder-expanded standardized base agree to 1.6e-14
+    # RELATIVE. But the arm's TRAILING standardization of the scores is a
+    # time-varying PER-COLUMN rescaling and is NOT orthogonal, and with it the
+    # same comparison differs by 0.80 relative — not a rounding effect, a
+    # different estimator. Reason: dividing score i by sqrt(d_i) turns a flat
+    # penalty into an eigenvalue-weighted one (see the gamma_eff note at
+    # TRANS_SHAPE_GAMMAS_WIDE). So "gamma=0 at full rank reproduces the flat
+    # exog result" is TRUE of the rotation and FALSE of the arm as built; what
+    # the arm tests is the tilt ON TOP OF the standardization's implicit
+    # -1.176 tilt. Read the K-sweep as a reparameterization of the SPAN, not
+    # of the estimator.
+    # All three arms are identical to blk_pcladder_tuned except K and the WIDE
+    # exponent grid (steeper tilts are exactly what the tail directions of a
+    # full-rank frame may need).
+    **{
+        name: ArmSpec(
+            describe=(
+                "ladder-expanded principal components at "
+                f"{k_desc} x {len(PRODUCT_EXOG_WINDOWS)} rungs with a per-rank "
+                "tilted penalty (WIDE exponent grid) shared across rungs + "
+                "backbone + availability indicators + product; NO raw exog "
+                "block; cyclic causal tuning"
+            ),
+            kind="blocks_tuned",
+            blocks=[
+                ("backbone", "backbone"),
+                (blk, "pc_ladder_tilt_wide"),
+                ("avail_ind", "exog"),
+                ("product", "product"),
+            ],
+            grid="cyclic",
+            oos_mult=2,
+        )
+        for name, blk, k_desc in (
+            ("blk_pcladder_fortyK_tuned", "pc_ladder40", "K=40"),
+            ("blk_pcladder_eightyK_tuned", "pc_ladder80", "K=80"),
+            (
+                "blk_pcladder_fullK_tuned",
+                "pc_ladder_full",
+                "K=FULL live frame rank",
+            ),
+        )
+    },
+    # PER-RUNG EIGENBASES (author directive 2026-08-07). Everything above uses
+    # ONE eigenbasis — that of the raw base features — at every horizon. But
+    # ma_j is a linear smoother, so ma_j(X) has its own correlation structure
+    # and the leading cross-sectional directions of the fast and slow panels
+    # need not coincide. Here each rung is SMOOTHED FIRST and rotated into its
+    # OWN frozen frame second (see _pc_ladder_perrung_design). The penalty
+    # parameterization is deliberately UNCHANGED from blk_pcladder_tuned (same
+    # pcrank family, same 12-point grid, one (lambda0, gamma) shared across
+    # rungs) so the BASIS is the only difference and the head-to-head is clean.
+    # The build log prints the fast-vs-slow subspace alignment: near-identical
+    # bases predict a tie, and the number is then the explanation.
+    "blk_pcladderPerRung_tuned": ArmSpec(
+        describe="per-RUNG eigenbases: each ladder horizon is smoothed first "
+        "and rotated into its OWN frozen first-window frame (K=20 x 3 rungs), "
+        "with the rank-tilted penalty shared across rungs; + backbone + "
+        "availability indicators + product, NO raw exog block; cyclic causal "
+        "tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("pc_ladder_perrung", "pc_ladder_tilt"),
+            ("avail_ind", "exog"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # Hard-vs-soft tilt as a WITHIN-ARM selection (author directive
     # 2026-08-07): identical to blk3_tikhonov_tuned except the exogenous tilt
     # grid is the UNION of the power family (smooth) and the step family
@@ -2212,6 +2544,58 @@ ARMS: dict[str, ArmSpec] = {
             ("exog_all", "exog"),
             ("product", "product"),
             ("trans_trailG40", "trans_shaped"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # ENDPOINT-RELIEF twin of the arm above (author directive 2026-08-07).
+    # blk4_trailGShaped's tuner selects gamma=2 — the TOP of its exponent grid
+    # — in ~45% of 1092 retunes, which by this campaign's own >20% rule is an
+    # invalid selection: the grid boundary, not the validation tail, is setting
+    # the tilt. This arm is BYTE-FOR-BYTE identical except that the exponent
+    # axis runs to 4 (TRANS_SHAPE_GAMMAS_WIDE, 18 (lambda0, gamma) points, a
+    # STRICT superset of the original 12), so the increment against
+    # blk4_trailGShaped isolates exactly one thing: whether a steeper-than-
+    # quadratic rank tilt buys anything. If the wide tuner still piles up at
+    # the new top, the tilt is a proxy for truncation and the step family (see
+    # BLOCK_TUNE_GRIDS["exog_tilt_step"]) is the honest next rung.
+    "blk4_trailGShapedWide": ArmSpec(
+        describe="endpoint relief for the spectral rung: trailing factor "
+        "LEVELS at K=40 with a RANK-SHAPED transmission penalty over the "
+        "EXTENDED exponent grid (lambda_i = lambda0 * i**gamma, gamma up to "
+        "4, 18-point (lambda0, gamma) grid), cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # SHAPE ZOO (author directive 2026-08-07): the same K=40 transmission
+    # block, but the tuner chooses the penalty FAMILY as well as its parameter
+    # — power (polynomial tail), exponential (geometric tail), or step (hard
+    # cutoff on this basis), 36 points on one block. An eigenvalue-based
+    # profile is deliberately ABSENT: the frame's spectrum is a power law
+    # (d_i ~ c*i^-1.176, log-log R^2 = 0.981, d_1/d_40 = 83.6), so
+    # lambda_i ∝ d_i^-theta is the rank power law at gamma = 1.176*theta and
+    # would be a reparameterization, not an experiment. See
+    # BLOCK_TUNE_GRIDS["trans_shaped_zoo"]. THE EXHIBIT is the selected family
+    # per retune and by year (penalty_shape_summary.csv shape_family /
+    # frac_of_year), not the QLIKE alone.
+    "blk4_trailGZoo": ArmSpec(
+        describe="shape zoo: trailing factor LEVELS at K=40 with the "
+        "transmission penalty selected from THREE families — power, "
+        "exponential and step (36-point block grid) — by the same cyclic "
+        "causal tuner; power/gamma=0 still nests the flat penalty exactly",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40", "trans_shaped_zoo"),
         ],
         grid="cyclic",
         oos_mult=2,
@@ -2383,6 +2767,18 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _exog_tilt_design(p, window)
     if block == "pc_ladder":  # {ma_j(G_i)} — ladder applied to the PC series
         return _pc_ladder_design(p, window)
+    # K-sweep of the same construction (2026-08-07): K=20 discards most of the
+    # space, so the arm is a COMPRESSION experiment; at full rank the ladder-of-
+    # PCs and the ladder-expanded base span the same columns and it becomes a
+    # REPARAMETERIZATION experiment where only the penalty profile can differ.
+    if block == "pc_ladder40":
+        return _pc_ladder_design(p, window, qpool=40)
+    if block == "pc_ladder80":
+        return _pc_ladder_design(p, window, qpool=80)
+    if block == "pc_ladder_full":  # K read from the frame's own liveness rule
+        return _pc_ladder_design(p, window, qpool=_frame_live_rank(p, window))
+    if block == "pc_ladder_perrung":  # one frozen eigenbasis PER ladder rung
+        return _pc_ladder_perrung_design(p, window)
     if block == "avail_ind":  # availability indicators (binary; never projected)
         return p.X[:, _cols(p.names, {"indicator"})]
     if block.startswith("bucket:"):

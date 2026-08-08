@@ -145,9 +145,16 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailG_tuned",
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
+        "blk4_trailGShapedWide",
         "blk3_tikhonov_tuned",
         "blk3_tikhonovStep_tuned",
         "blk_pcladder_tuned",
+        # PC-ladder K-sweep (same 24000-bar window + frozen frame)
+        "blk_pcladder_fortyK_tuned",
+        "blk_pcladder_eightyK_tuned",
+        "blk_pcladder_fullK_tuned",
+        "blk_pcladderPerRung_tuned",
+        "blk4_trailGZoo",
         "blk2_pcr_tuned",
         "blk2_pcrForty_tuned",
         # transmission dig (same legality)
@@ -248,10 +255,20 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk_bucketpen_tuned", "BlkBucketPenTuned"),
     # Spectral analogue: K=40 levels with a rank-shaped transmission penalty.
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
+    # Endpoint relief for the same rung: exponent grid extended to gamma=4.
+    ("blk4_trailGShapedWide", "BlkFourTrailGShapedWide"),
     # Generalized Tikhonov: the anisotropy applied directly, no duplication.
     ("blk3_tikhonov_tuned", "BlkThreeTikhonovTuned"),
     # Ladder-expanded principal components with a per-rank tilted penalty.
     ("blk_pcladder_tuned", "BlkPcLadderTuned"),
+    # K-sweep of the same construction: compression -> reparameterization.
+    ("blk_pcladder_fortyK_tuned", "BlkPcLadderFortyKTuned"),
+    ("blk_pcladder_eightyK_tuned", "BlkPcLadderEightyKTuned"),
+    ("blk_pcladder_fullK_tuned", "BlkPcLadderFullKTuned"),
+    # Per-RUNG eigenbases: one frozen frame per ladder horizon.
+    ("blk_pcladderPerRung_tuned", "BlkPcLadderPerRungTuned"),
+    # Shape zoo: power / exponential / step, chosen by the causal tuner.
+    ("blk4_trailGZoo", "BlkFourTrailGZoo"),
     # Hard-vs-soft tilt decided within one arm (power UNION step families).
     ("blk3_tikhonovStep_tuned", "BlkThreeTikhonovStepTuned"),
     # Genuine PCR: components REPLACE the wide exogenous design.
@@ -353,10 +370,25 @@ _ARM_TEX: dict[str, str] = {
     "(cyclic causal tuning)",
     "blk4_trailGShaped": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty, causally tuned)",
+    "blk4_trailGShapedWide": "Four-block ridge (trailing factor levels, $K=40$, "
+    "rank-shaped transmission penalty over an extended exponent grid, causally "
+    "tuned)",
     "blk3_tikhonov_tuned": "Three-block ridge with spectrum-tilted exogenous "
     "penalty (generalized Tikhonov, causally tuned)",
     "blk_pcladder_tuned": "Ridge on ladder-expanded principal components with "
     "rank-tilted penalty (causally tuned)",
+    "blk_pcladder_fortyK_tuned": "Ridge on ladder-expanded principal components "
+    "at $K=40$ with rank-tilted penalty (causally tuned)",
+    "blk_pcladder_eightyK_tuned": "Ridge on ladder-expanded principal components "
+    "at $K=80$ with rank-tilted penalty (causally tuned)",
+    "blk_pcladder_fullK_tuned": "Ridge on ladder-expanded principal components at "
+    "the FULL frame rank $K$ with rank-tilted penalty (causally tuned)",
+    "blk_pcladderPerRung_tuned": "Ridge on principal components computed "
+    "SEPARATELY PER LADDER HORIZON ($K=20$ per rung, rank-tilted penalty shared "
+    "across rungs, causally tuned)",
+    "blk4_trailGZoo": "Four-block ridge (trailing factor levels, $K=40$, "
+    "transmission penalty shape selected from power, exponential and step "
+    "families by the causal tuner)",
     "blk3_tikhonovStep_tuned": "Three-block ridge with spectrum-tilted exogenous "
     "penalty, power and step families (causally tuned)",
     "blk2_pcr_tuned": "Two-block ridge: HAR backbone + $K=20$ principal "
@@ -439,6 +471,10 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # vs the levels-only champion the shaping extends)
     ("blk4_trailGShaped", "blk4_trailG_tuned"),
     ("blk4_trailGShaped", "blk4_trail_tuned"),
+    # endpoint relief: does a STEEPER tilt than the original grid allowed buy
+    # anything? (bare stem = vs the shaped arm whose grid it widens)
+    ("blk4_trailGShapedWide", "blk4_trailGShaped"),
+    ("blk4_trailGShapedWide", "blk4_trailG_tuned"),
     # generalized Tikhonov: does the tilt help at all (bare stem), and does
     # it match the best model WITHOUT any duplicated transmission columns?
     ("blk3_tikhonov_tuned", "blk3_tuned"),
@@ -446,6 +482,23 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # ladder-of-PCs: does it beat the best model? (bare stem)
     ("blk_pcladder_tuned", "blk4_trailG_tuned"),
     ("blk_pcladder_tuned", "blk3_tuned"),
+    # PC-ladder K-sweep: can the construction REPLACE the exogenous block once
+    # it stops discarding the space? (bare stem = vs blk3_tuned, the
+    # replacement question; the second pair is the K question)
+    ("blk_pcladder_fortyK_tuned", "blk3_tuned"),
+    ("blk_pcladder_fortyK_tuned", "blk_pcladder_tuned"),
+    ("blk_pcladder_eightyK_tuned", "blk3_tuned"),
+    ("blk_pcladder_eightyK_tuned", "blk_pcladder_tuned"),
+    ("blk_pcladder_fullK_tuned", "blk3_tuned"),
+    ("blk_pcladder_fullK_tuned", "blk_pcladder_tuned"),
+    # per-rung basis: does a per-HORIZON eigenbasis beat one shared basis?
+    # (bare stem = vs the shared-basis arm it is otherwise identical to)
+    ("blk_pcladderPerRung_tuned", "blk_pcladder_tuned"),
+    ("blk_pcladderPerRung_tuned", "blk3_tuned"),
+    # shape zoo: does letting the tuner pick the FAMILY beat the power family
+    # alone? (bare stem = vs the power-only shaped arm)
+    ("blk4_trailGZoo", "blk4_trailGShaped"),
+    ("blk4_trailGZoo", "blk4_trailG_tuned"),
     # hard-vs-soft: does adding the step family help? (bare stem)
     ("blk3_tikhonovStep_tuned", "blk3_tikhonov_tuned"),
     ("blk3_tikhonovStep_tuned", "blk4_trailG_tuned"),
@@ -1604,9 +1657,15 @@ def main(argv: list[str] | None = None) -> int:
         for _pen_arm in (
             "blk_bucketpen_tuned",
             "blk4_trailGShaped",
+            "blk4_trailGShapedWide",
             "blk3_tikhonov_tuned",
             "blk3_tikhonovStep_tuned",
             "blk_pcladder_tuned",
+            "blk_pcladder_fortyK_tuned",
+            "blk_pcladder_eightyK_tuned",
+            "blk_pcladder_fullK_tuned",
+            "blk_pcladderPerRung_tuned",
+            "blk4_trailGZoo",
             "blk2_pcr_tuned",
             "blk2_pcrForty_tuned",
         ):
@@ -1617,6 +1676,7 @@ def main(argv: list[str] | None = None) -> int:
             gam: dict[tuple[int, str], list[float]] = {}
             evals: list[int] = []
             grids: dict[str, list[float]] = {}
+            pgrids: dict[str, set[float]] = {}
             for fn in sorted(os.listdir(arm_dir)):
                 if not _CHUNK_RE.match(fn):
                     continue
@@ -1628,13 +1688,24 @@ def main(argv: list[str] | None = None) -> int:
                 except Exception:
                     continue
                 for k, gv in (meta.get("tuned_grids") or {}).items():
-                    # shaped grids are [[level, gamma], ...]; the level axis is
-                    # what an endpoint check is about
+                    # shaped grids are [[level, gamma], ...] or the named-family
+                    # form [[level, family, param, ...], ...]; BOTH axes get an
+                    # endpoint check — a tilt pinned at the top exponent is as
+                    # invalid a selection as a level pinned at the top alpha,
+                    # and it is exactly what motivated the wide-gamma arms.
                     lv = [
                         float(v[0]) if isinstance(v, (list, tuple)) else float(v)
                         for v in gv
                     ]
                     grids.setdefault(k, sorted(set(lv)))
+                    for v in gv:
+                        if not isinstance(v, (list, tuple)) or len(v) < 2:
+                            continue
+                        if len(v) >= 3:
+                            vfam, vpar = str(v[1]), float(v[2])
+                        else:
+                            vfam, vpar = "power", float(v[1])
+                        pgrids.setdefault(vfam, set()).add(vpar)
                 for e in meta.get("tuned_alphas") or []:
                     if "n_tail_evals" in e:
                         evals.append(int(e["n_tail_evals"]))
@@ -1648,9 +1719,33 @@ def main(argv: list[str] | None = None) -> int:
                         # The LEVEL goes to the penalty summary; the family +
                         # its parameter go to the shape exhibit.
                         if isinstance(a, (list, tuple)):
-                            fam, lvl, par = str(a[0]), float(a[1]), float(a[2])
+                            # Three shapes reach here:
+                            #   ['power'|'step'|'pcrank', level, param, ...]
+                            #        -> the NAMED-family descriptor written by
+                            #           src.unification._pen_value
+                            #   [level, param]
+                            #        -> the ORIGINAL 2-tuple written by runs
+                            #           predating that normalization (the
+                            #           on-disk blk4_trailGShaped chunks). Its
+                            #           family is implicit and is EXACTLY the
+                            #           rank-power tilt: _fill_pen_span applies
+                            #           lambda0 * i**param to a bare 2-tuple.
+                            #           Labelling it 'power' — not the block key
+                            #           — is what keeps old and new chunks of
+                            #           the same arm on one row, and is what
+                            #           populates the gamma columns below.
+                            #   [level]  -> degenerate/flat, no shape parameter
+                            if len(a) >= 3:
+                                fam, lvl, par = str(a[0]), float(a[1]), float(a[2])
+                            elif len(a) == 2:
+                                fam, lvl, par = "power", float(a[0]), float(a[1])
+                            elif len(a) == 1:
+                                fam, lvl, par = "flat", float(a[0]), float("nan")
+                            else:
+                                continue
                             acc.setdefault((yr, k), []).append(lvl)
-                            gam.setdefault((yr, fam), []).append(par)
+                            if par == par:  # skip NaN params
+                                gam.setdefault((yr, fam), []).append(par)
                         else:
                             acc.setdefault((yr, k), []).append(float(a))
             endpoint_tot: dict[str, list[float]] = {}
@@ -1689,12 +1784,45 @@ def main(argv: list[str] | None = None) -> int:
                         f"GRID ENDPOINT (grid {grids.get(k)}) — widen the grid "
                         "before quoting this arm"
                     )
+            # Same >20% endpoint rule on the SHAPE axis: pooled over years, how
+            # often does the tuner sit at the extreme exponent/cutoff its grid
+            # offers? (blk4_trailGShaped fails this at gamma=2, which is why
+            # blk4_trailGShapedWide exists.)
+            shape_tot: dict[str, list[float]] = {}
+            for (_yr, fam), vals in gam.items():
+                pg = sorted(pgrids.get(fam) or [])
+                if len(pg) < 2:
+                    continue
+                shape_tot.setdefault(fam, []).extend(
+                    [1.0 if (v == pg[0] or v == pg[-1]) else 0.0 for v in vals]
+                )
+            for fam, flags in sorted(shape_tot.items()):
+                if flags and float(np.mean(flags)) > 0.20:
+                    print(
+                        f"[{labels[root]}] WARNING {_pen_arm} shape family "
+                        f"'{fam}': {100 * float(np.mean(flags)):.0f}% of retunes "
+                        f"select a GRID-ENDPOINT parameter (grid "
+                        f"{sorted(pgrids.get(fam) or [])}) — widen the shape "
+                        "grid before quoting this arm"
+                    )
             year_tot: dict[int, int] = {}
             for (yr, _fam), vals in gam.items():
                 year_tot[yr] = year_tot.get(yr, 0) + len(vals)
             for (yr, fam), vals in sorted(gam.items()):
                 modal = max(sorted(set(vals)), key=vals.count)
-                is_power = fam == "power"
+                # Which families have an EXPONENT for a parameter: 'power'
+                # (per-column rank tilt) and 'pcrank' (the same tilt shared
+                # across a rank's ladder rungs). 'step' does NOT — its
+                # parameter is a rank cutoff K — so its gamma columns stay
+                # blank. mean_param/modal_param are the family-agnostic
+                # parameter and are ALWAYS populated; mean_gamma/modal_gamma/
+                # frac_gamma_pos duplicate them for exponent families only, so
+                # a reader can filter the exponent rows without knowing the
+                # family taxonomy. (Before this fix every shaped row carried a
+                # block-key family, no row matched 'power', and the three gamma
+                # columns were empty in results/penalty_shape_summary.csv while
+                # mean_param/modal_param quietly carried the gammas.)
+                is_power = fam in ("power", "pcrank")
                 gamma_rows.append(
                     {
                         "arm": _pen_arm,
