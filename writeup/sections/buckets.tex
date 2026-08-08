@@ -201,34 +201,66 @@ more signal; with one that does not, they produce none. What
 Table~\ref{tab:buckets} measures is the cost of forgoing shrinkage, and
 that cost is larger than everything the buckets individually contain.
 
-Second, \emph{ridge beats the elastic net in every information set}. All
-eight paired comparisons favour ridge --- there is no design on which
-free mixing wins --- and three do so at conventional significance
-(market VW \unifIncrBeTunedMarketVwDM{}, sentiment
-\unifIncrBeTunedSentimentDM{}, moments \unifIncrBeTunedMomentsDM{}).
-The result of Section~\ref{sec:dense_weak_headtohead} is therefore not a
-property of the joint design: it reproduces bucket by bucket, on
-information sets ranging from nine columns to five hundred.
+Second, ridge attains a lower pooled loss than the elastic net in every
+information set. All eight paired comparisons favour ridge, and three do
+so at conventional significance (market VW
+\unifIncrBeTunedMarketVwDM{}, sentiment \unifIncrBeTunedSentimentDM{},
+moments \unifIncrBeTunedMomentsDM{}). That ordering, however, is not yet
+a statement about the two \emph{families}, for the reason given next.
 
-\paragraph{What the tuner reveals about selection.}
-Because the elastic net's mixing parameter is selected causally at every
-retune, its trajectory is itself a measurement. Across $1{,}200$
-retunes the selected $\ell_1$ share is \emph{bimodal}: the modal choice
-is $1.0$ --- pure lasso --- taken at roughly a third of retunes, with
-almost as many at the grid's minimum of $0.25$, and the interior values
-chosen less often than either extreme (mean $0.63$). The same shape
-appears in every bucket. The tuner does not settle on a preferred amount
-of selection; it alternates between heavy and light selection every
-$250$ bars.
+\paragraph{Where the elastic net's deficit comes from.}
+% Provenance: per-bar losses of be_tuned_* and br_tuned_* partitioned by
+% the (alpha, l1_ratio) the tuner selected at the governing retune;
+% 9,600 retunes over 8 designs; pooled differentials reproduce
+% results/unification_increments.csv to 10 decimal places. 2026-08-08.
+Because the elastic net selects its penalty causally at every retune,
+each scored bar can be attributed to the penalty in force when it was
+forecast, and the deficit can be located rather than merely totalled.
+It does not spread across the sample. On the $72.1\%$ of bars whose
+governing penalty was interior to the grid ($\alpha \le 10^{-3}$), the
+elastic net \emph{beats} tuned ridge by
+$3.9 \times 10^{-4}$ (DM $-6.70$, favouring the elastic net in all eight
+designs). The entire pooled deficit is contributed by the $27.9\%$ of
+bars whose governing penalty sat at the \emph{top point of the grid},
+$\alpha = 10^{-2}$, where it loses by $2.5 \times 10^{-3}$ (DM $+6.85$,
+in all eight designs and in $18$ of $24$ years). The
+difference between the two subsets is $2.9 \times 10^{-3}$ at
+$z = 7.8$.
 
-That instability, and not a revealed preference for dense coefficients,
-is what the head-to-head measures. A $125$-bar validation tail cannot
-identify how much selection this design wants, so an estimator that must
-choose pays for the choice, while ridge --- which never chooses --- does
-not. The evidence in this section supports the narrow claim that
-uniform shrinkage outperforms selection here, and specifically does
-\emph{not} support the stronger claim that the data are dense because a
-selection-capable estimator declined to select.
+A grid endpoint carrying a result is a statement about the grid. Under
+the correspondence of Section~\ref{sec:dense_weak_headtohead} between
+the elastic net's parameterization and a ridge penalty --- an
+$\ell_2$ weight of $N \alpha (1 - \rho)$ on the window gram, with $N =
+24{,}000$ and $\rho$ the mixing share --- the elastic net's largest
+expressible $\ell_2$ weight is $24{,}000 \times 10^{-2} \times 0.75 =
+180$, while the tuned ridge arm draws from a grid reaching $1{,}000$ and
+selects that top value in $41.3\%$ of its own retunes. The elastic net
+cannot reach the shrinkage level ridge chooses, and it loses precisely
+on the bars where it has run out of grid. Until the comparison is re-run
+with matched reach, the ordering in Table~\ref{tab:buckets_tuned}
+measures the grids and not the families.
+\pending{extended-grid elastic net ($\alpha$ to $10^{-1}$, nesting the
+current grid) is running; the family comparison is settled on it}
+
+\paragraph{What the trajectories do and do not show.}
+The selected mixing share is bimodal --- $36.7\%$ of retunes at pure
+lasso, $32.5\%$ at the minimum $0.25$, mean $0.64$ --- and the same
+shape appears in every bucket. It is tempting to read this as the
+estimator declining to select. Two measurements argue against that
+reading. Holding $\alpha$ fixed, the mixing share accounts for only
+$4.2 \times 10^{-4}$ of the deficit, significant in one of eight designs
+and reversing sign at $\alpha = 10^{-4}$; and the selected mixing share
+is unrelated to the volatility regime (Spearman $-0.013$ against the
+preceding window's realized volatility, $p = 0.23$). The mixing
+trajectory is a symptom of a validation tail too short to identify the
+penalty, not the channel through which the loss is incurred.
+
+Nor is ridge exempt from that instability: it pins an endpoint of its
+own grid in $58.1\%$ of retunes, against $43.3\%$ for the elastic net.
+The asymmetry this section can support is therefore narrower than a
+family verdict --- both estimators are choosing badly on a $125$-bar
+tail, and ridge's bad choices happen to be inexpensive while the
+elastic net's are not.
 
 \subsection{Overlap}
 
