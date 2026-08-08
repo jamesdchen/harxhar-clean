@@ -58,6 +58,13 @@ Covers, in order:
      and the degenerate pure-lasso corner driven end-to-end through the warm
      homotopy to confirm it lands on the intercept-only limit.
 
+  M. PROPER PCR — the real panel's ladder tensor verified uniform and
+     reconciled to 1144 columns, K x 12 column counts, scores confirmed
+     UNstandardized, the predictive ordering's frame-window-only causality,
+     the two orderings coinciding at K=full, and THE GATE: at K=full the
+     rotated design's James-Stein fit equals the unrotated one to machine
+     precision, end to end.
+
   L. GRID-FREE SHRINKAGE — causality (post-window perturbation leaves every
      coefficient bit-identical), the James-Stein factor against an independent
      closed-form route, the Schur complement against the literal block
@@ -1518,6 +1525,255 @@ def section_l() -> None:
     )
 
 
+# ── M. proper PCR: tensor, gate, ordering ─────────────────────────────────────
+def _pcr_panel(n=2000, window=400, n_stem=12, n_ind=5, seed=3) -> U._Panel:
+    """Fixture panel with the REAL name grammar and a uniform value tensor, so
+    the production selectors (_value_slab_cols, _classify) apply unchanged."""
+    rng = np.random.default_rng(seed)
+    wins = [1, 2, 4, 8]
+    stems = [f"q{i:02d}" for i in range(n_stem)]
+    names = [f"har_ma_{w}" for w in (1, 2, 4, 8)]
+    names += [f"adj_{s}_ma_{w}" for w in wins for s in stems]
+    names += [f"{s}_avail_ma_{w}" for w in wins for s in stems[:n_ind]]
+    names += ["is_open", "is_close", "is_overnight", "hour"]
+    p = len(names)
+    fac = rng.standard_normal((n, 5))
+    x = np.empty((n, p))
+    for j in range(p):
+        x[:, j] = fac @ rng.standard_normal(5) + 0.7 * rng.standard_normal(n)
+    y = x[:, :3].sum(1) + rng.standard_normal(n)
+    return U._Panel(
+        X=np.ascontiguousarray(x),
+        y=y,
+        baseline=np.ones(n),
+        rv_raw=np.ones(n),
+        t=np.arange(n).astype("datetime64[s]").astype("datetime64[ns]"),
+        names=names,
+        avail=np.ones((n, n_stem), dtype=bool),
+        stem_index={s: i for i, s in enumerate(stems)},
+    )
+
+
+def section_m() -> None:
+    print("\nM. PROPER PCR — TENSOR, GATE, ORDERING")
+
+    # --- tensor structure of the REAL panel, from the dumped name list ---
+    import json as _json
+
+    try:
+        real = _json.load(open("results/panel_columns.json"))["names"]
+    except Exception:
+        real = None
+    if real:
+        kinds: dict[str, int] = {}
+        val: dict[str, set] = {}
+        ind: dict[str, set] = {}
+        for nm in real:
+            k, stem, w = U._classify(nm)
+            kinds[k] = kinds.get(k, 0) + 1
+            if k == "value":
+                val.setdefault(stem, set()).add(w)
+            if k == "indicator":
+                ind.setdefault(nm.rsplit("_ma_", 1)[0], set()).add(w)
+        wins = sorted({w for ws in val.values() for w in ws})
+        check(
+            "REAL panel: value tensor is UNIFORM (every stem at every window)",
+            all(sorted(ws) == wins for ws in val.values()),
+            f"{len(val)} stems x {len(wins)} windows",
+        )
+        check(
+            "REAL panel: indicator tensor is UNIFORM",
+            all(sorted(ws) == wins for ws in ind.values()),
+            f"{len(ind)} prefixes x {len(wins)} windows",
+        )
+        extras = kinds.get("har", 0) + kinds.get("regime", 0) + kinds.get("calendar", 0)
+        total = len(val) * len(wins) + len(ind) * len(wins) + extras
+        check(
+            "REAL panel: tensor reconciles to the full column count EXACTLY",
+            total == len(real),
+            f"{len(val)}x{len(wins)} value + {len(ind)}x{len(wins)} indicator + "
+            f"{extras} extras = {total} == {len(real)}",
+        )
+        check(
+            "ROTATABLE rank is the VALUE stem count, not the indicator count",
+            len(val) == 43 and len(ind) == 48 and len(wins) == 12,
+            f"K_max = {len(val)} (brief said 92); indicators {len(ind)}; "
+            f"windows {len(wins)}",
+        )
+        print(
+            f"    real panel: 12 x {len(val)} value + 12 x {len(ind)} indicator "
+            f"+ {extras} extras = {total}"
+        )
+    else:
+        print("    (results/panel_columns.json unavailable — real-panel check skipped)")
+
+    # --- ragged tensor must fail LOUDLY ---
+    p = _pcr_panel()
+    bad = list(p.names)
+    bad.remove("adj_q00_ma_8")
+    try:
+        U._value_slab_cols(bad)
+        check("ragged value tensor fails loudly", False, "no exception raised")
+    except SystemExit as exc:
+        check("ragged value tensor fails LOUDLY", "RAGGED" in str(exc))
+
+    window = 400
+    n_w = len({U._classify(nm)[2] for nm in p.names if U._classify(nm)[0] == "value"})
+    _, live, n_live = U._rot_value_frame(p, window)
+    print(f"    fixture: {n_live} live base quantities x {n_w} MA windows")
+
+    # --- column counts: K x n_windows ---
+    for k_req in (None, 8, 5, 3):
+        d = U._rot_value_design(p, window, k_req, "variance")
+        kk = n_live if k_req is None else k_req
+        check(
+            f"rotated design is K x windows = {kk} x {n_w}",
+            d.shape[1] == kk * n_w,
+            str(d.shape),
+        )
+    try:
+        U._rot_value_design(p, window, n_live + 1, "variance")
+        check("K beyond live rank fails loudly", False, "no exception")
+    except SystemExit as exc:
+        check("K beyond the live rank fails LOUDLY", "exceeds" in str(exc))
+
+    # --- SCORES ARE NEVER STANDARDIZED (the instruction that matters most) ---
+    d_full = U._rot_value_design(p, window, None, "variance")
+    sds = d_full[window : 2 * window].std(0)
+    check(
+        "scores are NOT standardized (frame-window sds are NOT all 1)",
+        float(np.std(sds)) > 1e-6,
+        f"score sd range [{sds.min():.4f}, {sds.max():.4f}] — per-score "
+        "standardization is what broke the PC-ladder",
+    )
+
+    # --- ORDERINGS coincide at K = full (free correctness check) ---
+    d_var = U._rot_value_design(p, window, None, "variance")
+    d_pred = U._rot_value_design(p, window, None, "predictive")
+    # bitwise column-multiset equality, not a summary statistic
+    cols_var = sorted(
+        np.ascontiguousarray(d_var[:, j]).tobytes() for j in range(d_var.shape[1])
+    )
+    cols_pred = sorted(
+        np.ascontiguousarray(d_pred[:, j]).tobytes() for j in range(d_pred.shape[1])
+    )
+    check(
+        "at K=FULL the two orderings keep BITWISE-IDENTICAL column multisets",
+        cols_var == cols_pred,
+        "both keep everything — a free correctness check on the ranking code",
+    )
+    check(
+        "at K=FULL predictive is a PERMUTATION of variance (not a new design)",
+        d_var.shape == d_pred.shape,
+        str(d_var.shape),
+    )
+    # ...and at K < full they genuinely differ
+    check(
+        "at K<full the two orderings select DIFFERENT directions",
+        not np.array_equal(
+            U._rot_value_design(p, window, 3, "variance"),
+            U._rot_value_design(p, window, 3, "predictive"),
+        ),
+    )
+
+    # --- CAUSALITY of the predictive ranking ---
+    p2 = _pcr_panel()
+    p2.X[2 * window :] += 50.0 * np.random.default_rng(9).standard_normal(
+        p2.X[2 * window :].shape
+    )
+    p2.y[2 * window :] += 50.0
+    check(
+        "PREDICTIVE ordering is CAUSAL: post-frame-window rows cannot move it",
+        np.array_equal(
+            U._rot_value_design(p, window, 5, "predictive")[: 2 * window],
+            U._rot_value_design(p2, window, 5, "predictive")[: 2 * window],
+        ),
+        "frame window is rows [W, 2W), which precede every scored bar",
+    )
+
+    # --- THE GATE ---
+    # At K=full the rotated design is an orthogonal reparameterization of the
+    # standardized unrotated design, and exact JS is rotation-invariant, so the
+    # two must agree to machine precision END TO END.
+    ind_cols = U._cols(p.names, {"indicator"})
+    back = p.X[:, U._backbone_cols(p.names)]
+    cols = U._value_slab_cols(p.names)
+    wins_sorted = sorted(cols)
+    unrot = np.empty((len(p.y), n_live * n_w))
+    for j, w in enumerate(wins_sorted):
+        slab = p.X[:, cols[w][live]]
+        fw = slab[window : 2 * window]
+        sd = fw.std(0)
+        sd = np.where(sd > U._DEGENERATE_SD, sd, 1.0)
+        unrot[:, j::n_w] = (slab - fw.mean(0)) / sd
+    f_rot = np.hstack([back, d_full, p.X[:, ind_cols]])
+    f_unrot = np.hstack([back, unrot, p.X[:, ind_cols]])
+    nb = back.shape[1]
+    segs = [
+        (0, nb, "backbone"),
+        (nb, nb + d_full.shape[1], "exog"),
+        (nb + d_full.shape[1], f_rot.shape[1], "exog"),
+    ]
+    lo, hi = 2 * window, 2 * window + 30
+    yr, _ = U._walk_shrink(f_rot, p.y, window, lo, hi, segs, estimator="js")
+    yu, _ = U._walk_shrink(f_unrot, p.y, window, lo, hi, segs, estimator="js")
+    rel = float(np.max(np.abs(yr - yu)) / max(np.max(np.abs(yu)), 1e-300))
+    check(
+        "GATE: K=full rotated JS == unrotated JS to machine precision",
+        rel < 1e-9,
+        f"max relative fitted-value difference {rel:.3e} over {hi - lo} bars",
+    )
+    print(
+        f"    GATE tolerance achieved: {rel:.3e} relative (max abs "
+        f"{np.max(np.abs(yr - yu)):.3e})"
+    )
+
+    # --- arm wiring ---
+    for arm in _PCR_ARM_NAMES:
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: kind='shrink', js, oos_mult=2",
+            spec.kind == "shrink" and spec.grid == "js" and spec.oos_mult == 2,
+        )
+        blocks = [b for b, _ in spec.blocks]
+        check(
+            f"{arm}: backbone + rotated value + indicators, NO product",
+            blocks[0] == "backbone"
+            and blocks[1].startswith("rotval:")
+            and blocks[2] == "avail_ind"
+            and "product" not in blocks,
+            str(blocks),
+        )
+    g = U.ARMS["blk2_gated_tuned"]
+    check(
+        "blk2_gated_tuned is blk2_tuned's design at oos_mult=2 (matched rows)",
+        [b for b, _ in g.blocks] == [b for b, _ in U.ARMS["blk2_tuned"].blocks]
+        and g.kind == "blocks_tuned"
+        and g.oos_mult == 2
+        and U.ARMS["blk2_tuned"].oos_mult == 1,
+        "blk2_tuned scores 273,554 rows; the gated twin scores 248,686",
+    )
+    check(
+        "matched-K ordering pairs exist at BOTH 30 and 20",
+        all(
+            f"blk2_rot{fam}{k}_js" in U.ARMS
+            for fam in ("Var", "Pred")
+            for k in ("ThirtyK", "TwentyK")
+        ),
+    )
+
+
+_PCR_ARM_NAMES = (
+    "blk2_rotVarFullK_js",
+    "blk2_rotVarFortyK_js",
+    "blk2_rotVarThirtyK_js",
+    "blk2_rotVarTwentyK_js",
+    "blk2_rotPredThirtyK_js",
+    "blk2_rotPredTwentyK_js",
+    "blk2_rotPredTenK_js",
+    "blk2_rotPredFiveK_js",
+)
+
 _SHRINK_ARM_NAMES = (
     "blk3_js_tuned",
     "blk3_npeb_tuned",
@@ -1540,5 +1796,6 @@ if __name__ == "__main__":
     section_j()
     section_k()
     section_l()
+    section_m()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

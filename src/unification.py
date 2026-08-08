@@ -989,6 +989,171 @@ def _pc_ladder_perrung_design(
     return out
 
 
+# ── PROPER PCR: rotate the LADDER TENSOR, never the scores ────────────────────
+# TENSOR STRUCTURE, verified against the real panel name list
+# (results/panel_columns.json, 1144 columns) rather than assumed:
+#     value      43 base quantities x 12 MA windows (1,2,4,...,2048) = 516
+#     indicator  48 prefixes        x 12 MA windows                  = 576
+#     extras     12 har + 24 regime + 16 calendar                    =  52
+#                                                          total      1144  (exact)
+# Every value stem is present at EVERY window and every indicator prefix is
+# present at every window — no ragged columns, so the ladder IS a clean uniform
+# tensor and "rotate each window's slab by a shared V" is well posed.
+# THE ARITHMETIC DIFFERS FROM THE BRIEF, and it changes the arm ladder: the
+# rotatable set is the VALUE tensor, which is 12 x 43, NOT 12 x 92. The 48
+# indicator prefixes exceed the 43 value stems because five quantities carry
+# BOTH an _avail_ and an _active_ column (numobs and the four voldemand
+# families). So the maximum meaningful K is 43, and K = 92/80/60 do not exist.
+# The A-family ladder is therefore FULL/40/30/20 and the B-family 30/20/10/5,
+# which also yields matched-K pairs at BOTH 30 and 20 for the ordering test.
+#
+# WHY V IS BUILT ON THE ma_1 SLAB: under the commuting identity
+# ma_w(V'x) = V' ma_w(x), the object being rotated is the BASE QUANTITY vector
+# x, and `generate_har_features` builds ma_1 as rolling(1).mean().shift(1) —
+# i.e. the ma_1 slab IS x, lagged one bar. It is the only slab that is the base
+# quantity rather than a smoothing of it.
+#
+# WHAT IS STANDARDIZED, AND WHAT IS NOT (the author's central instruction): the
+# INPUTS are standardized — each slab is centered and scaled by its own
+# FRAME-WINDOW statistics, which is what makes this a correlation-matrix PCA
+# and keeps the twelve slabs commensurate under one shared shrinkage. The
+# SCORES ARE NEVER STANDARDIZED. Per-score standardization is a time-varying
+# per-column rescaling; it is not orthogonal, it silently broke the PC-ladder's
+# equivalence (measured at 0.796 relative fitted-value difference), and it is
+# why that family sat ~1.6pp below the panel at every K. Nothing here touches a
+# score after the rotation.
+# (Per-slab standardization keeps the design an ORTHOGONAL reparameterization
+# of the standardized unrotated design, which is what the K=full gate needs;
+# standardizing every slab by the ma_1 statistics instead would also satisfy
+# the gate but would leave the smoothed slabs at shrinking scale.)
+_ROT_ORDERINGS = ("variance", "predictive")
+
+
+def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, int]:
+    """(V, live mask over the 43 base quantities, live rank) from the FRAME
+    WINDOW only — rows [window, 2*window), the same window and the same
+    ``_DEGENERATE_SD`` liveness rule the transmission frame uses.
+
+    V is the eigenvector matrix of the CORRELATION of the ma_1 slab, columns
+    ordered by descending eigenvalue. Frozen: computed once, applied to every
+    bar and every MA window.
+    """
+    cols = _value_slab_cols(p.names)
+    z1 = np.ascontiguousarray(p.X[window : 2 * window, cols[1]])
+    sd = z1.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            "proper PCR frame: fewer than 2 live base quantities in the frame "
+            "window — refusing to build a degenerate rotation"
+        )
+    mu = z1[:, live].mean(0)
+    zs = (z1[:, live] - mu) / sd[live]
+    lam, vec = np.linalg.eigh(np.corrcoef(zs, rowvar=False))
+    return vec[:, np.argsort(lam)[::-1]], live, n_live
+
+
+def _value_slab_cols(names: list[str]) -> dict[int, np.ndarray]:
+    """{MA window -> column indices of that window's VALUE slab}, base
+    quantities in a single canonical (sorted-stem) order shared by every
+    window. LOUD failure if the tensor is ragged — a missing stem at one
+    window would silently misalign the rotation."""
+    by_w: dict[int, dict[str, int]] = {}
+    for j, nm in enumerate(names):
+        kind, stem, w = _classify(nm)
+        if kind == "value":
+            by_w.setdefault(w, {})[stem] = j
+    if not by_w:
+        raise SystemExit("proper PCR: no value columns found in the panel")
+    stems = sorted(next(iter(by_w.values())))
+    out: dict[int, np.ndarray] = {}
+    for w, d in sorted(by_w.items()):
+        if sorted(d) != stems:
+            raise SystemExit(
+                f"proper PCR: value tensor is RAGGED at MA window {w} "
+                f"({len(d)} stems vs {len(stems)}) — the shared rotation would "
+                "misalign; refusing to build"
+            )
+        out[w] = np.asarray([d[s] for s in stems], dtype=np.int64)
+    return out
+
+
+def _rot_predictive_order(
+    p: _Panel, window: int, rot: np.ndarray, n_dir: int, n_w: int
+) -> np.ndarray:
+    """Direction ranking by PREDICTIVE content, estimated on the FRAME WINDOW
+    ONLY — rows [window, 2*window), which precede every scored bar (the first
+    legal OOS row is 2*window), so the ordering cannot see a scored outcome.
+    Frozen permanently, exactly as V is.
+
+    THE STATISTIC, stated because it is a choice: for each direction i, the
+    MULTIPLE R^2 of regressing the frame-window target on that direction's
+    OWN 12 ladder columns (12 numerator df), computed with an intercept. A
+    direction is a 12-column object under this design, so a literal
+    per-column univariate R^2 would force an arbitrary choice of which MA
+    window speaks for the direction; the block R^2 is the natural
+    "how much does this direction explain" statistic and treats every
+    direction identically. Ties break by direction index (deterministic).
+    """
+    y = p.y[window : 2 * window]
+    yc = y - y.mean()
+    sst = float(yc @ yc)
+    r2 = np.zeros(n_dir)
+    if sst > 0.0:
+        for i in range(n_dir):
+            blk = rot[window : 2 * window, i * n_w : (i + 1) * n_w]
+            bc = blk - blk.mean(0)
+            g = bc.T @ bc
+            c = bc.T @ yc
+            try:
+                coef = np.linalg.solve(g, c)
+            except np.linalg.LinAlgError:
+                coef = np.linalg.pinv(g) @ c
+            r2[i] = float(coef @ c) / sst
+    return np.argsort(-r2, kind="stable")
+
+
+def _rot_value_design(
+    p: _Panel, window: int, qpool: int | None, ordering: str
+) -> np.ndarray:
+    """Rotated VALUE tensor, top-``qpool`` directions by ``ordering``.
+
+    Columns are grouped by DIRECTION, the direction's 12 MA-window columns
+    contiguous within it — so a K-truncation is a contiguous prefix and the
+    column count is exactly K x 12.
+    """
+    if ordering not in _ROT_ORDERINGS:
+        raise SystemExit(f"unknown PCR ordering '{ordering}'")
+    cols = _value_slab_cols(p.names)
+    v_mat, live, n_live = _rot_value_frame(p, window)
+    wins = sorted(cols)
+    n_w = len(wins)
+    n = len(p.y)
+    rot = np.empty((n, n_live * n_w), dtype=np.float64)
+    for j, w in enumerate(wins):
+        slab = np.ascontiguousarray(p.X[:, cols[w][live]])
+        fw = slab[window : 2 * window]
+        mu, sd = fw.mean(0), fw.std(0)
+        sd = np.where(sd > _DEGENERATE_SD, sd, 1.0)
+        scores = ((slab - mu) / sd) @ v_mat  # INPUTS standardized, scores NOT
+        rot[:, j::n_w] = scores  # direction-major: col i*n_w + j
+    order = (
+        np.arange(n_live)
+        if ordering == "variance"
+        else _rot_predictive_order(p, window, rot, n_live, n_w)
+    )
+    k = n_live if qpool is None else int(qpool)
+    if k > n_live:
+        raise SystemExit(
+            f"proper PCR: K={k} exceeds the live base-quantity rank "
+            f"({n_live} of {len(cols[wins[0]])}) — no silent cap"
+        )
+    keep = order[:k]
+    take = np.concatenate([np.arange(i * n_w, (i + 1) * n_w) for i in keep])
+    return np.ascontiguousarray(rot[:, take])
+
+
 def _pen_value(a: Any) -> Any:
     """Normalize a grid point so tuner equality comparisons are exact.
 
@@ -3418,6 +3583,108 @@ ARMS: dict[str, ArmSpec] = {
         grid="js_diag",
         oos_mult=2,
     ),
+    # ── PROPER PCR (author-specified design, 2026-08-07) ──────────────────────
+    # Supersedes the blk3_rotK_tuned sketch. The earlier PC families could
+    # never answer the replacement question: blk_pcladder_* standardized each
+    # SCORE (a non-orthogonal, time-varying rescale that broke the equivalence
+    # and capped the family ~1.6pp below the panel at every K), and blk2_pcr_*
+    # dropped the product block AND the indicators, so they differed from the
+    # comparator in more than the representation. This family fixes both.
+    #
+    # SHARED DESIGN, only ORDERING and K vary:
+    #   backbone            UNROTATED, UNSHRUNK — the benchmark's own basis,
+    #                       not something a rotation is entitled to mix into.
+    #   rotated VALUE       one frozen V from the frame window applied to every
+    #                       MA window's slab (12 x 43 tensor, verified uniform
+    #                       against the real name list; see _value_slab_cols).
+    #                       INPUTS standardized, SCORES NEVER.
+    #   availability        UNROTATED, own block — a linear combination of
+    #                       binary indicators indicates nothing — but SHRUNK
+    #                       together with the rotated block as "the exogenous
+    #                       set".
+    #   NO PRODUCT BLOCK    the comparison is against the two-block model.
+    #
+    # ESTIMATOR: the exact positive-part James-Stein of blk3_js_tuned, no tuned
+    # penalty anywhere. THIS CHOICE IS LOAD-BEARING: the exact JS factor is
+    # INVARIANT under an orthogonal rotation of the shrunk block (proved and
+    # asserted in the verify script), so at FULL RANK the rotation is provably
+    # a no-op and the ONLY thing this family varies is what the truncation
+    # DISCARDS. That is what makes it a clean isolation of truncation and
+    # ordering rather than a confound of representation with penalty.
+    #
+    # K LADDER, corrected against the panel: the rotatable set is 12 x 43, not
+    # 12 x 92 (the 48 indicator prefixes exceed the 43 value stems because five
+    # quantities carry both _avail_ and _active_). Maximum K is 43, so the
+    # requested 92/80/60 do not exist; the ladder is FULL/40/30/20 for the
+    # variance family and 30/20/10/5 for the predictive one, which also gives
+    # matched-K pairs at BOTH 30 and 20.
+    **{
+        f"blk2_rotVar{tag}_js": ArmSpec(
+            describe=(
+                "proper PCR, VARIANCE ordering, "
+                f"K={'full live rank' if kt == 'full' else kt} directions x 12 "
+                "MA windows: backbone (unrotated, unshrunk) + frozen-frame "
+                "rotated VALUE tensor + unrotated availability indicators; "
+                "inputs standardized, scores never; exact positive-part "
+                "James-Stein on the exogenous set, NO tuned penalty"
+            ),
+            kind="shrink",
+            blocks=[
+                ("backbone", "backbone"),
+                (f"rotval:variance:{kt}", "exog"),
+                ("avail_ind", "exog"),
+            ],
+            grid="js",
+            oos_mult=2,
+        )
+        for tag, kt in (
+            ("FullK", "full"),
+            ("FortyK", "40"),
+            ("ThirtyK", "30"),
+            ("TwentyK", "20"),
+        )
+    },
+    **{
+        f"blk2_rotPred{tag}_js": ArmSpec(
+            describe=(
+                f"proper PCR, PREDICTIVE ordering, K={kt} directions x 12 MA "
+                "windows: directions ranked by frame-window-only block R^2 of "
+                "the target on each direction's own 12 ladder columns, frozen "
+                "exactly as V is; otherwise identical to the variance family"
+            ),
+            kind="shrink",
+            blocks=[
+                ("backbone", "backbone"),
+                (f"rotval:predictive:{kt}", "exog"),
+                ("avail_ind", "exog"),
+            ],
+            grid="js",
+            oos_mult=2,
+        )
+        for tag, kt in (
+            ("ThirtyK", "30"),
+            ("TwentyK", "20"),
+            ("TenK", "10"),
+            ("FiveK", "5"),
+        )
+    },
+    # FRAME-GATED comparator (author directive 2026-08-07). blk2_tuned runs at
+    # oos_mult=1 and is therefore scored on 273,554 rows, while every arm with
+    # a frozen construction is scored on 248,686. Comparing their QLIKE is a
+    # row-set confound that has already bitten this campaign once. This arm is
+    # blk2_tuned's design at oos_mult=2 so it lands on the SAME rows as the
+    # PCR family. DELIBERATELY NOT grid-free: it is the incumbent two-block
+    # ridge, tuned on the ordinary per-block grids, and it is what the PCR arms
+    # must beat — putting it on the grid-free estimator would change what is
+    # being compared.
+    "blk2_gated_tuned": ArmSpec(
+        describe="frame-gated two-block ridge: backbone + full UNROTATED "
+        "exogenous set, per-block causal tuning on the ordinary grids, "
+        "oos_mult=2 so it is scored on the same rows as the proper-PCR family",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("exog_all", "exog")],
+        oos_mult=2,
+    ),
     # DE-CONFOUNDING CONTROL (author directive 2026-08-07). THIS ARM EXISTS TO
     # FIX A PUBLISHED COMPARISON, not to win.
     #
@@ -3747,6 +4014,16 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _pc_ladder_design(p, window, qpool=_frame_live_rank(p, window))
     if block == "pc_ladder_perrung":  # one frozen eigenbasis PER ladder rung
         return _pc_ladder_perrung_design(p, window)
+    if block.startswith("rotval:"):  # proper PCR: rotated VALUE tensor
+        _, ordering, ktag = block.split(":")
+        return _rot_value_design(
+            p, window, None if ktag == "full" else int(ktag), ordering
+        )
+    if block == "value_all":  # the unrotated VALUE tensor (gate comparator)
+        cols = _value_slab_cols(p.names)
+        return np.ascontiguousarray(
+            p.X[:, np.concatenate([cols[w] for w in sorted(cols)])]
+        )
     if block == "avail_ind":  # availability indicators (binary; never projected)
         return p.X[:, _cols(p.names, {"indicator"})]
     if block.startswith("bucket:"):

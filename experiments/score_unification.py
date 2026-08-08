@@ -149,6 +149,15 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
         # grid-free shrinkage: same 24000-bar window + frozen product/rotation
+        "blk2_rotVarFullK_js",
+        "blk2_rotVarFortyK_js",
+        "blk2_rotVarThirtyK_js",
+        "blk2_rotVarTwentyK_js",
+        "blk2_rotPredThirtyK_js",
+        "blk2_rotPredTwentyK_js",
+        "blk2_rotPredTenK_js",
+        "blk2_rotPredFiveK_js",
+        "blk2_gated_tuned",
         "blk3_js_tuned",
         "blk3_npeb_tuned",
         "blk3_js_pcbasis_tuned",
@@ -291,6 +300,16 @@ _REGISTRY: list[tuple[str, str]] = [
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
+    # PROPER PCR: rotated ladder tensor, variance vs predictive ordering.
+    ("blk2_rotVarFullK_js", "BlkTwoRotVarFullKJs"),
+    ("blk2_rotVarFortyK_js", "BlkTwoRotVarFortyKJs"),
+    ("blk2_rotVarThirtyK_js", "BlkTwoRotVarThirtyKJs"),
+    ("blk2_rotVarTwentyK_js", "BlkTwoRotVarTwentyKJs"),
+    ("blk2_rotPredThirtyK_js", "BlkTwoRotPredThirtyKJs"),
+    ("blk2_rotPredTwentyK_js", "BlkTwoRotPredTwentyKJs"),
+    ("blk2_rotPredTenK_js", "BlkTwoRotPredTenKJs"),
+    ("blk2_rotPredFiveK_js", "BlkTwoRotPredFiveKJs"),
+    ("blk2_gated_tuned", "BlkTwoGatedTuned"),
     # GRID-FREE shrinkage: zero tuned hyperparameters.
     ("blk3_js_tuned", "BlkThreeJsTuned"),
     ("blk3_npeb_tuned", "BlkThreeNpebTuned"),
@@ -438,6 +457,15 @@ _ARM_TEX: dict[str, str] = {
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
     "b1_ridge_tuned_fine": "Ridge, causally tuned on a half-decade grid",
+    "blk2_rotVarFullK_js": "Two-block PCR (full rank), variance ordering, James-Stein shrinkage",
+    "blk2_rotVarFortyK_js": "Two-block PCR ($K=40$), variance ordering, James-Stein shrinkage",
+    "blk2_rotVarThirtyK_js": "Two-block PCR ($K=30$), variance ordering, James-Stein shrinkage",
+    "blk2_rotVarTwentyK_js": "Two-block PCR ($K=20$), variance ordering, James-Stein shrinkage",
+    "blk2_rotPredThirtyK_js": "Two-block PCR ($K=30$), predictive ordering, James-Stein shrinkage",
+    "blk2_rotPredTwentyK_js": "Two-block PCR ($K=20$), predictive ordering, James-Stein shrinkage",
+    "blk2_rotPredTenK_js": "Two-block PCR ($K=10$), predictive ordering, James-Stein shrinkage",
+    "blk2_rotPredFiveK_js": "Two-block PCR ($K=5$), predictive ordering, James-Stein shrinkage",
+    "blk2_gated_tuned": "Two-block ridge, unrotated exogenous set (frame-gated rows, causally tuned)",
     "blk3_js_tuned": "Three-block design, positive-part James-Stein shrinkage, "
     "no tuned hyperparameters",
     "blk3_npeb_tuned": "Three-block design, nonparametric empirical-Bayes "
@@ -551,6 +579,14 @@ _ESTIMATOR_PEN_ARMS: tuple[str, ...] = (
 # GRID-FREE shrinkage arms — zero tuned hyperparameters, so they carry no
 # tuned_alphas/tuned_grids at all and their exhibit is meta.shrink_profile.
 _SHRINK_ARMS: tuple[str, ...] = (
+    "blk2_rotVarFullK_js",
+    "blk2_rotVarFortyK_js",
+    "blk2_rotVarThirtyK_js",
+    "blk2_rotVarTwentyK_js",
+    "blk2_rotPredThirtyK_js",
+    "blk2_rotPredTwentyK_js",
+    "blk2_rotPredTenK_js",
+    "blk2_rotPredFiveK_js",
     "blk3_js_tuned",
     "blk3_npeb_tuned",
     "blk3_js_pcbasis_tuned",
@@ -622,6 +658,22 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailGShaped_fine", "blk4_trailGShaped"),
     ("blk4_trailGShaped_fine", "blk4_trailG_tuned"),
     ("b1_ridge_tuned_fine", "b1_ridge_tuned"),
+    # PROPER PCR — the replacement question on MATCHED ROWS and MATCHED block
+    # structure. Bare stem = vs blk2_gated_tuned, which is the same two-block
+    # design unrotated and untruncated, scored on the SAME 248,686 rows.
+    ("blk2_rotVarFullK_js", "blk2_gated_tuned"),
+    ("blk2_rotVarFortyK_js", "blk2_gated_tuned"),
+    ("blk2_rotVarThirtyK_js", "blk2_gated_tuned"),
+    ("blk2_rotVarTwentyK_js", "blk2_gated_tuned"),
+    ("blk2_rotPredThirtyK_js", "blk2_gated_tuned"),
+    ("blk2_rotPredTwentyK_js", "blk2_gated_tuned"),
+    ("blk2_rotPredTenK_js", "blk2_gated_tuned"),
+    ("blk2_rotPredFiveK_js", "blk2_gated_tuned"),
+    # ORDERING at matched K — the direct test of whether the SPECTRUM is the
+    # right ranking for a forecasting problem. Two matched pairs, not one.
+    ("blk2_rotPredThirtyK_js", "blk2_rotVarThirtyK_js"),
+    ("blk2_rotPredTwentyK_js", "blk2_rotVarTwentyK_js"),
+    ("blk2_gated_tuned", "blk3_tuned"),
     # GRID-FREE vs SELECTED shrinkage — the campaign's sharpest methodological
     # comparison. Bare stem = vs blk3_tuned, which is the SAME DESIGN tuned on
     # a 27-combo grid over a 125-bar tail: the only difference is whether the
