@@ -70,3 +70,4 @@ results/winablate_full/*_lossbar.npz
 # Rebuilt feature caches (regenerable, ~2GB)
 results/b2_mmap/
 results/prep_cache_*.npz
+results/.harvest_cache/
