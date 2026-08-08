@@ -164,6 +164,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailG40_tuned",
         # capture test at the full frame spectrum
         "blk2_gfull_tuned",
+        "blk2_rotFullProd_tuned",
         "blk2_gFortyRungs_tuned",
         "blk2_gFortyRungsInd_tuned",
         "blk2_plsTwentyRungsInd_tuned",
@@ -369,6 +370,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailG40_tuned", "BlkFourTrailGFortyTuned"),
     # CAPTURE: can the trailing PCA levels replicate the wide exog block?
     ("blk2_gfull_tuned", "BlkTwoGFullTuned"),
+    # corrected rotation base: production rolling-scaled inputs
+    ("blk2_rotFullProd_tuned", "BlkTwoRotFullProdTuned"),
     ("blk2_gFortyRungs_tuned", "BlkTwoGFortyRungsTuned"),
     ("blk2_gFortyRungsInd_tuned", "BlkTwoGFortyRungsIndTuned"),
     ("blk2_plsTwentyRungsInd_tuned", "BlkTwoPlsTwentyRungsIndTuned"),
@@ -556,6 +559,8 @@ _ARM_TEX: dict[str, str] = {
     "James-Stein (raw-basis control), no tuned hyperparameters",
     "blk2_gfull_tuned": "Two-block ridge: HAR backbone + trailing factor "
     "levels at the full frame spectrum (causally tuned)",
+    "blk2_rotFullProd_tuned": "Two-block ridge: HAR backbone + full-rank "
+    "rotation of the production-scaled exogenous columns (causally tuned)",
     "blk2_gFortyRungs_tuned": "Two-block ridge: HAR backbone + $K=40$ frozen-frame directions over all twelve ladder rungs (causally tuned)",
     "blk2_gFortyRungsInd_tuned": "As above plus unrotated availability indicators (causally tuned)",
     "blk2_plsTwentyRungsInd_tuned": "HAR backbone + $K=20$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned)",
@@ -814,6 +819,13 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk2_gfull_tuned", "blk2_gated_tuned"),
     ("blk2_gfull_tuned", "blk2_pcrForty_tuned"),
     ("blk2_gfull_tuned", A0),
+    # CORRECTED ROTATION BASE. Bare stem = vs blk2_gated_tuned, which this must
+    # TIE at full rank (orthogonal reparameterization under a uniform penalty);
+    # the vs-blk2_rotVarFullK_tuned pair isolates the standardization change,
+    # i.e. how much of that family's ~2.2e-3 full-rank deficit was frozen-vs-
+    # rolling input scaling rather than anything about the rotation.
+    ("blk2_rotFullProd_tuned", "blk2_gated_tuned"),
+    ("blk2_rotFullProd_tuned", "blk2_rotVarFullK_tuned"),
     # THE CUMULATIVE REPAIR LADDER. Bare stems = distance from replication
     # (vs blk2_gated_tuned); the CHAIN pairs decompose the gap by cause.
     ("blk2_gFortyRungs_tuned", "blk2_gated_tuned"),
@@ -2221,6 +2233,7 @@ def main(argv: list[str] | None = None) -> int:
             "blk_bucketpen_tuned",
             "blk4_trailGShaped",
             "blk2_gfull_tuned",
+            "blk2_rotFullProd_tuned",
             "blk2_gFortyRungs_tuned",
             "blk2_gFortyRungsInd_tuned",
             "blk2_plsTwentyRungsInd_tuned",

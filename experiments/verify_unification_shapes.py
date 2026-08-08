@@ -1979,6 +1979,111 @@ def _cholesky_fails(mat: np.ndarray) -> bool:
         return True
 
 
+# -- T. corrected rotation base: the orthogonality GATE ------------------------
+def section_t() -> None:
+    """The arm's gate is an IDENTITY, not a tolerance: at full rank the
+    production-scaled rotated block is an orthogonal reparameterization of the
+    raw exogenous block, so under the single uniform penalty both carry, ridge
+    fitted values must agree to machine precision. Asserted offline so the
+    canary only has to confirm the production path reproduces it."""
+    print(chr(10) + "T. CORRECTED ROTATION BASE (orthogonality gate)")
+    window = 400
+    p = _pcr_panel(n=3 * window, window=window)
+
+    rot = U._build_block(p, "rot_prod_full", window)
+    val = U._cols(p.names, {"value"})
+    ind = U._cols(p.names, {"indicator"})
+    raw = np.hstack([p.X[:, val], p.X[:, ind]])
+    check(
+        "rotated block has the SAME width as the raw exogenous block",
+        rot.shape == raw.shape,
+        f"{rot.shape} vs {raw.shape}",
+    )
+    check(
+        "it is NOT the raw block (a rotation was actually applied)",
+        not np.allclose(rot, raw),
+    )
+    # indicators pass through UNROTATED and bit-identically
+    check(
+        "indicators pass through UNROTATED, bitwise",
+        np.array_equal(rot[:, val.size :], p.X[:, ind]),
+    )
+
+    # THE GATE: uniform ridge on either design gives identical fitted values.
+    back = p.X[:, U._backbone_cols(p.names)]
+    lo = 2 * window
+    yv = p.y
+
+    def ridge_fit(exog_blk, a_back, a_exog):
+        f = np.hstack([back, exog_blk])
+        fw = f[window:lo]
+        yw = yv[window:lo]
+        fc, yc = fw - fw.mean(0), yw - yw.mean()
+        g = fc.T @ fc
+        pen = np.concatenate(
+            [np.full(back.shape[1], a_back), np.full(exog_blk.shape[1], a_exog)]
+        )
+        g[np.diag_indices_from(g)] += pen
+        b = np.linalg.solve(g, fc.T @ yc)
+        return (f[lo:] - fw.mean(0)) @ b + yw.mean()
+
+    worst = 0.0
+    for a_back, a_exog in ((1.0, 1e2), (0.1, 1e3), (10.0, 1e4)):
+        f_rot = ridge_fit(rot, a_back, a_exog)
+        f_raw = ridge_fit(raw, a_back, a_exog)
+        rel = float(np.max(np.abs(f_rot - f_raw)) / max(np.max(np.abs(f_raw)), 1e-300))
+        worst = max(worst, rel)
+        check(
+            f"GATE: rotated == raw under uniform ridge "
+            f"(backbone {a_back:g}, exog {a_exog:g})",
+            rel < 1e-9,
+            f"max relative fitted-value difference {rel:.3e}",
+        )
+    print(
+        f"    GATE tolerance achieved: {worst:.3e} relative — against the "
+        "+2.18e-3 the arm exists to explain (>8 orders of headroom)"
+    )
+    # the rotation must be genuinely orthogonal on the live sub-block
+    zw = p.X[window : 2 * window, val]
+    sd = zw.std(0)
+    live = sd > U._DEGENERATE_SD
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(np.corrcoef((zw[:, live] - mu) / sd[live], rowvar=False))
+    v = vec[:, np.argsort(lam)[::-1]]
+    check(
+        "the applied frame is ORTHOGONAL (V'V == I)",
+        bool(np.allclose(v.T @ v, np.eye(v.shape[1]), atol=1e-12)),
+        f"max|V'V - I| = {np.max(np.abs(v.T @ v - np.eye(v.shape[1]))):.2e}",
+    )
+    # RELATIVE tolerance: these columns are O(10), so an absolute bound would
+    # be testing float summation order rather than the construction.
+    mine = p.X[:, val][:, live] @ v
+    rel_repro = float(
+        np.max(np.abs(rot[:, : int(live.sum())] - mine))
+        / max(np.max(np.abs(mine)), 1e-300)
+    )
+    check(
+        "NO extra standardization is applied to the production columns",
+        rel_repro < 1e-10,
+        f"independent rebuild agrees to {rel_repro:.2e} relative — columns "
+        "enter as p.X gives them (already rolling-scaled by the prep)",
+    )
+    # arm wiring: structurally identical to the comparator
+    a = U.ARMS["blk2_rotFullProd_tuned"]
+    g = U.ARMS["blk2_gated_tuned"]
+    check(
+        "blk2_rotFullProd_tuned matches blk2_gated_tuned in EVERY field but "
+        "the exogenous block builder",
+        a.kind == g.kind
+        and a.oos_mult == g.oos_mult
+        and a.grid == g.grid
+        and [k for _, k in a.blocks] == [k for _, k in g.blocks]
+        and [b for b, _ in a.blocks] == ["backbone", "rot_prod_full"]
+        and [b for b, _ in g.blocks] == ["backbone", "exog_all"],
+        "so the increment isolates input standardization alone",
+    )
+
+
 # -- S. PRODUCTION-PATH provenance (the void-fleet regression test) -----------
 def section_s() -> None:
     """Drive compute()'s REAL write path and assert on what lands in the npz.
@@ -2825,6 +2930,7 @@ if __name__ == "__main__":
     section_p()
     section_r()
     section_s()
+    section_t()
     section_q()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

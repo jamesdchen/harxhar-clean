@@ -1159,6 +1159,72 @@ def _walk_blocks_ew(
 _ROT_ORDERINGS = ("variance", "predictive")
 
 
+def _rot_prod_design(p: _Panel, window: int) -> np.ndarray:
+    """PRODUCTION-SCALED full-rank rotation: [rotated VALUE columns | dead
+    value columns | UNROTATED indicators], as ONE penalized block.
+
+    WHY THIS EXISTS (measured 2026-08-08). Uniform ridge is invariant under an
+    orthogonal rotation of a block, so a FULL-RANK rotated exogenous design
+    must tie the raw one. The rotation family did not tie — it lost to
+    blk2_gated_tuned by ~2.2e-3 even at full rank (DM +7.28). The rotation was
+    never the problem: the two paths standardize their INPUTS differently. The
+    rotation family (_rot_value_frame) rebuilds each slab from FROZEN
+    frame-window statistics, while the production/gated path uses the panel's
+    own ROLLING scaler (run_geometry_local.prepare_full applies
+    rolling_robust_scale to X before any arm sees it). The full-rank gap is
+    therefore the measured cost of frozen-vs-rolling input standardization —
+    the same lesson the transmission revival already paid for once, when
+    trailing standardization beat frozen.
+
+    THE CORRECTION: take the value columns STRAIGHT FROM p.X, which are already
+    rolling-scaled by the prep, and apply NO further standardization. The frame
+    is the eigenvectors of those columns' correlation over the frame window
+    (rows [window, 2*window), the same rows and the same ``_DEGENERATE_SD``
+    liveness rule every other frozen frame uses). Dead columns pass through
+    unrotated so the block's SPAN is preserved exactly.
+
+    ORTHOGONALITY, which is the whole point: V is the eigenvector matrix of a
+    symmetric matrix, hence orthogonal, and the applied map is
+    blkdiag(V, I_dead, I_indicators) — orthogonal. Under the single uniform
+    penalty this block carries, fitted values are therefore IDENTICAL to the
+    unrotated exog_all block at full rank. That identity is asserted offline to
+    machine precision in the verify script, so the arm's gate does not depend
+    on reading a canary. This mirrors _exog_tilt_design, which already rotates
+    the production exogenous columns with no rescaling for exactly this reason.
+
+    CAUTION, stated rather than glossed: the rolling scaler is TIME-VARYING, so
+    "V computed on rolling-scaled frame inputs" is V of one SNAPSHOT, and
+    applying it to later rolling-scaled columns is a FROZEN linear map of
+    time-varying-scaled inputs. That is not a new convention — it is precisely
+    what the production trailing-standardized transmission levels already do
+    (``_transmission_block`` with standardization="trailing": a frozen frame
+    applied to rolling-rescaled inputs), and it is the configuration that won
+    the transmission revival. Cited, not invented.
+    """
+    val = _cols(p.names, {"value"})
+    ind = _cols(p.names, {"indicator"})
+    z = np.ascontiguousarray(p.X[:, val], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            "production-scaled rotation: fewer than 2 live value columns in "
+            "the frame window; refusing to build a degenerate rotation"
+        )
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(
+        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    )
+    v_mat = vec[:, np.argsort(lam)[::-1]]  # descending eigenvalue order
+    out = np.empty((len(p.y), z.shape[1] + ind.size), dtype=np.float64)
+    out[:, :n_live] = z[:, live] @ v_mat
+    out[:, n_live : z.shape[1]] = z[:, ~live]
+    out[:, z.shape[1] :] = p.X[:, ind]
+    return out
+
+
 def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, int]:
     """(V, live mask over the 43 base quantities, live rank) from the FRAME
     WINDOW only — rows [window, 2*window), the same window and the same
@@ -4405,6 +4471,36 @@ ARMS: dict[str, ArmSpec] = {
         blocks=[("backbone", "backbone"), ("trans_trailGFull", "pcr")],
         oos_mult=2,
     ),
+    # CORRECTED ROTATION BASE (author directive 2026-08-08). The PCR-tuned
+    # ladder's K-curve came back FLAT under working shrinkage (FullK 0.22215 /
+    # K30 0.22221 / K20 0.22182 / K5 0.22270) with ordering null at matched K,
+    # confirming the JS family's monotonicity was a regularization artifact.
+    # But the whole family lost to blk2_gated_tuned by ~2.2e-3 INCLUDING AT
+    # FULL RANK (+2.18e-3, DM +7.28), which is impossible if the only
+    # difference is an orthogonal rotation — uniform ridge cannot see one.
+    # The residual is the INPUT STANDARDIZATION: the rotation family rebuilds
+    # its slabs from frozen frame-window statistics, the production path uses
+    # the panel's rolling scaler. This arm removes that difference and nothing
+    # else, so it is the corrected base every capture-ladder rung should be
+    # rebuilt on once the tie is confirmed.
+    #
+    # THE GATE is not a tolerance, it is an identity: at full rank this design
+    # is an ORTHOGONAL reparameterization of blk2_gated_tuned's exogenous
+    # block under the single uniform penalty both carry, so the two arms must
+    # agree to machine precision. That is asserted offline in the verify script
+    # rather than inferred from a canary; the canary then only has to confirm
+    # the production path reproduces it (expected |dQLIKE| at float noise,
+    # ~1e-12, against the +2.18e-3 it is explaining — three orders of magnitude
+    # of headroom, so the test cannot be passed by accident).
+    "blk2_rotFullProd_tuned": ArmSpec(
+        describe="corrected rotation base: HAR backbone + full-rank rotation "
+        "of the PRODUCTION rolling-scaled exogenous VALUE columns, indicators "
+        "unrotated, as one penalized block — isolates frozen-vs-rolling input "
+        "standardization from the rotation itself",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_full", "exog")],
+        oos_mult=2,
+    ),
     # CUMULATIVE REPAIR LADDER (author directive 2026-08-08). The goal is no
     # longer to test whether the levels capture the exogenous block but to MAKE
     # them, discarding one deficit at a time so the increments DECOMPOSE the
@@ -4904,6 +5000,8 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _rot_value_design(
             p, window, None if ktag == "full" else int(ktag), ordering
         )
+    if block == "rot_prod_full":  # production-scaled full-rank rotation
+        return _rot_prod_design(p, window)
     if block.startswith("plsval:"):
         # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
         return _rot_value_design(
