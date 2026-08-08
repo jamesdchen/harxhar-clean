@@ -46,7 +46,7 @@ blk4_trailG40_tuned-vs-blk3_tuned,unification_carc,248686,True,-0.000485218232,-
 blk4_trailGShapedFrozen-vs-blk4_trailGShapedWide,unification_carc,248686,True,0.0004244588295,4.43362
 blk4_trailGShapedFrozen-vs-blk4_trailG_tuned,unification_carc,248686,True,0.0002233774945,2.11333
 blk_pcladderWide_tuned-vs-blk_pcladder_tuned,unification_carc,248686,True,-3.979746887e-05,-0.527181
-blk3_tikhonovStepWide_tuned-vs-blk3_tikhonovStep_tuned,,0,False,,
+blk3_tikhonovStepWide_tuned-vs-blk3_tikhonovStep_tuned,unification_carc,237634,False,0.0004917107245,2.8882
 blk3_tikhonov_tuned-vs-blk3_tuned,unification_carc,248686,True,0.0003116917827,1.1034
 blk3_tikhonov_tuned-vs-blk4_trailG_tuned,unification_carc,248686,True,0.0006452842974,2.19514
 blk_pcladder_tuned-vs-blk4_trailG_tuned,unification_carc,248686,True,0.003181482469,7.13986
