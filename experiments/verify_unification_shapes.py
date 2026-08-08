@@ -1979,6 +1979,152 @@ def _cholesky_fails(mat: np.ndarray) -> bool:
         return True
 
 
+# -- S. PRODUCTION-PATH provenance (the void-fleet regression test) -----------
+def section_s() -> None:
+    """Drive compute()'s REAL write path and assert on what lands in the npz.
+
+    WHY THIS SECTION EXISTS. The first PLS canary shipped chunks with no
+    provenance at all: the weights were recorded into a module global that the
+    synthetics read, but nothing ever merged it into the meta dict the runner
+    serializes. Every builder-level check passed while the production artefact
+    was empty — the exact synthetic-verified-but-production-absent pattern.
+    Testing the builder cannot catch that. This drives compute() end to end,
+    reads the file back, and asserts on the FILE.
+    """
+    import json as _json
+    import os as _os
+    import tempfile as _tempfile
+    import types as _types
+
+    print(chr(10) + "S. PRODUCTION-PATH PROVENANCE (compute -> npz -> meta)")
+    window = 400
+    panel = _pcr_panel(n=4 * window, window=window)
+    # compute() enforces y == sqrt(rv_raw / baseline) (_assert_fit_raw_alignment).
+    # Satisfy it exactly rather than weakening the guard; a non-negative target
+    # also matches the real one, which is a sqrt of an RV ratio.
+    panel.y = np.abs(panel.y)
+    panel.baseline = np.ones_like(panel.y)
+    panel.rv_raw = panel.y**2
+
+    saved_panel = U._PANEL
+    saved_trail = U.TRANS_TRAIL_DAYS
+    saved_real = U._pls_frame
+    U._PANEL = panel
+    U.TRANS_TRAIL_DAYS = 4
+    U.ARMS["_probe_pls"] = U.ArmSpec(
+        describe="probe",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("plsval:4", "trans_sub"),
+            ("avail_ind", "exog"),
+        ],
+        oos_mult=2,
+    )
+    U.ARMS["_probe_nopls"] = U.ArmSpec(
+        describe="probe",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("avail_ind", "exog")],
+        oos_mult=2,
+    )
+
+    def _run(arm, out, start):
+        U.compute(
+            _types.SimpleNamespace(
+                arm=arm,
+                output_file=out,
+                window=window,
+                halo=0,
+                chunk_start=start,
+                chunk_end=start + 30,
+            )
+        )
+
+    def _meta(path):
+        with np.load(path, allow_pickle=False) as z:
+            return _json.loads(str(z["meta"]))
+
+    try:
+        with _tempfile.TemporaryDirectory() as td:
+            f0 = _os.path.join(td, "chunk_00.npz")
+            _run("_probe_pls", f0, 2 * window)
+            m0 = _meta(f0)
+            check(
+                "meta CONTAINS 'pls_diag' (the key absent from the first canary)",
+                "pls_diag" in m0,
+            )
+            d = m0.get("pls_diag") or {}
+            check(
+                "pls_diag carries weights_sha256 / weights_shape / frame_rows",
+                {"weights_sha256", "weights_shape", "frame_rows"} <= set(d),
+                str(sorted(d)),
+            )
+            check(
+                "frame_rows are the FRAME window [W, 2W)",
+                d.get("frame_rows") == [window, 2 * window],
+                str(d.get("frame_rows")),
+            )
+            check(
+                "weights_shape is (n_live x K)",
+                isinstance(d.get("weights_shape"), list) and d["weights_shape"][1] == 4,
+                str(d.get("weights_shape")),
+            )
+            f1 = _os.path.join(td, "chunk_01.npz")
+            _run("_probe_pls", f1, 2 * window + 40)
+            check(
+                "hash IDENTICAL across chunks (the frame really is frozen)",
+                _meta(f1)["pls_diag"]["weights_sha256"] == d["weights_sha256"],
+                "a varying hash would mean the frame is refit per chunk",
+            )
+            f2 = _os.path.join(td, "chunk_02.npz")
+            _run("_probe_nopls", f2, 2 * window)
+            check(
+                "a NON-PLS arm carries an EMPTY pls_diag (no stale leakage)",
+                _meta(f2).get("pls_diag") == {},
+                str(_meta(f2).get("pls_diag")),
+            )
+
+        # the loud gate must FIRE, not just exist
+        def _silent(p_, w_, k_):
+            out = saved_real(p_, w_, k_)
+            U._LAST_PLS_DIAG.clear()  # reproduce the shipped bug exactly
+            return out
+
+        U._pls_frame = _silent
+        try:
+            with _tempfile.TemporaryDirectory() as td:
+                _run("_probe_pls", _os.path.join(td, "c.npz"), 2 * window)
+            check("MISSING provenance fails LOUDLY", False, "no exception raised")
+        except SystemExit as exc:
+            check(
+                "MISSING provenance fails LOUDLY",
+                "pls_diag" in str(exc) and "Refusing to write" in str(exc),
+            )
+        finally:
+            U._pls_frame = saved_real
+
+        def _partial(p_, w_, k_):
+            out = saved_real(p_, w_, k_)
+            U._LAST_PLS_DIAG.pop("weights_sha256", None)
+            return out
+
+        U._pls_frame = _partial
+        try:
+            with _tempfile.TemporaryDirectory() as td:
+                _run("_probe_pls", _os.path.join(td, "c.npz"), 2 * window)
+            check("INCOMPLETE provenance fails LOUDLY", False, "no exception raised")
+        except SystemExit as exc:
+            check("INCOMPLETE provenance fails LOUDLY", "weights_sha256" in str(exc))
+        finally:
+            U._pls_frame = saved_real
+    finally:
+        U._pls_frame = saved_real
+        U._PANEL = saved_panel
+        U.TRANS_TRAIL_DAYS = saved_trail
+        U.ARMS.pop("_probe_pls", None)
+        U.ARMS.pop("_probe_nopls", None)
+
+
 # -- R. cumulative repair ladder ----------------------------------------------
 def section_r() -> None:
     print(chr(10) + "R. CUMULATIVE REPAIR LADDER (making the levels replicate exog)")
@@ -2678,6 +2824,7 @@ if __name__ == "__main__":
     section_o()
     section_p()
     section_r()
+    section_s()
     section_q()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

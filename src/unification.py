@@ -5131,6 +5131,10 @@ def compute(args: argparse.Namespace) -> None:
     spec = ARMS[arm]
     global _LAST_TRANS_DIAG
     _LAST_TRANS_DIAG = None  # populated by any transmission-block build below
+    # Same discipline for the PLS frame: CLEARED here so a diag left behind by
+    # a previous arm in the same process can never be mistaken for this arm's
+    # provenance, and so the loud check below tests THIS build.
+    _LAST_PLS_DIAG.clear()
 
     missing = [
         f
@@ -5312,6 +5316,37 @@ def compute(args: argparse.Namespace) -> None:
     # transmission mechanism diagnostics (dig 2026-08-07): arrays ride in the
     # npz (meta carries only the summary — a 90x40x40 float stack does not
     # belong in JSON), unlocking operator/spectrum analysis without refits.
+    # PLS frame provenance. THE GAP THIS CLOSES (2026-08-08): the weights were
+    # recorded into a module global that the synthetic read, but nothing ever
+    # merged it into the meta dict the runner serializes — so the arm passed
+    # every local check and shipped chunks with no provenance at all. The
+    # assertion below makes that class of gap impossible to repeat: an arm that
+    # BUILDS a PLS block must be able to SHOW the frame it used, or it refuses
+    # to write. Checked against what is about to be persisted, not against the
+    # builder's intent.
+    pls_diag = dict(_LAST_PLS_DIAG)
+    _uses_pls = any(b.startswith("plsval:") for b, _ in spec.blocks)
+    if _uses_pls and not pls_diag:
+        raise SystemExit(
+            f"arm '{arm}' declares a PLS block "
+            f"({[b for b, _ in spec.blocks if b.startswith('plsval:')]}) but no "
+            "pls_diag was produced by the build — the frozen supervised frame "
+            "would be unauditable in the persisted chunk. Refusing to write."
+        )
+    if _uses_pls:
+        missing_keys = {"weights_sha256", "weights_shape", "frame_rows"} - set(pls_diag)
+        if missing_keys:
+            raise SystemExit(
+                f"arm '{arm}': pls_diag is missing {sorted(missing_keys)} — the "
+                "frame's provenance must be complete or it is not provenance. "
+                "Refusing to write."
+            )
+    if pls_diag and not _uses_pls:
+        # a stale diag from another arm would silently mislabel this chunk
+        raise SystemExit(
+            f"arm '{arm}' produced a pls_diag but declares no PLS block — "
+            "stale module state; refusing to write a mislabelled chunk."
+        )
     td = _LAST_TRANS_DIAG
     trans_arrays: dict[str, Any] = (
         {
@@ -5390,6 +5425,12 @@ def compute(args: argparse.Namespace) -> None:
                 "tree_config": tree_cfg,
                 # transmission dig: construction summary (arrays in the npz
                 # under trans_ops / trans_eigvals / trans_refresh_rows)
+                # PLS arms only: sha256 + shape of the FROZEN supervised
+                # weight matrix and the frame rows it was fit on. Constant
+                # across every chunk of an arm by construction (the frame is
+                # frozen) — a varying hash means the frame is being refit and
+                # the arm is not what it claims. Empty for every other arm.
+                "pls_diag": pls_diag,
                 "transmission_diag": (
                     {
                         "operator": td["operator"],
