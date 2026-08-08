@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -N unifs
 #$ -cwd
-#$ -l h_data=18G,h_rt=6:00:00
+#$ -l h_data=32G,h_rt=6:00:00
 #$ -t 1-100
 #$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
 #$ -j y
@@ -15,10 +15,15 @@
 # reader keeps its own thread pool during the panel build and ignores
 # those variables; measured CPU/wall is ~2.4 there, ~1.0 afterwards.)
 #
-# h_data=18G is sized from measurement, not guessed: peak maxvmem across
-# running tasks is 15.8G. Memory per slot governs how many tasks pack
-# onto a node, so an over-generous reservation costs concurrency
-# directly — a 24G request held us at ~69 concurrent tasks.
+# h_data=32G, and the history is worth keeping because two earlier values
+# were wrong in opposite directions. 24G scheduled only ~69 concurrent
+# tasks (memory per slot governs node packing, so an over-generous
+# reservation costs concurrency directly). 18G then died with a numpy
+# MemoryError mid-build: that value came from a maxvmem reading taken
+# while tasks were still crashing on the fork bug below, so they never
+# reached peak and the reading was biased low. Sized from the panel
+# instead: 300317 x 1273 float64 is 3.1G for X alone, and the rebuild
+# holds raw copies plus pandas merge intermediates on top.
 #
 # Submit with:  qsub -N unif_<arm> -v ARM=<arm> jobs/sge/unification_serial.sge
 cd /u/scratch/j/jamesdc1/harxhar-clean
