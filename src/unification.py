@@ -374,14 +374,25 @@ BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(
 # If c_i is the coefficient on the standardized column and b_i the coefficient
 # on the RAW score, b_i = c_i / sqrt(d_i), so a penalty lambda_i on c IS a
 # penalty lambda_i * d_i on b. The standardization is therefore ITSELF a
-# spectral tilt. With the measured spectrum d_i ~ c * i**-1.176 (log-log
-# R^2 = 0.981 over the top 40, d_1/d_40 = 83.6):
-#     gamma_eff (on the raw eigen-directions) = gamma - 1.176
-# so gamma=0 is already a -1.176 tilt (leading directions shrunk HARDEST),
-# gamma=1.176 is the genuinely FLAT point, the shipped grid tops out at
-# gamma_eff = +0.824 — barely into positive tilt — and this wide grid reaches
-# +2.824. That is the mechanical reason the tuner pins the old endpoint: the
-# old grid could hardly express a positive tilt at all.
+# spectral tilt. Writing the spectrum as d_i ~ c * i**-a:
+#     gamma_eff (on the raw eigen-directions) = gamma - a
+# so gamma=0 is ALREADY a tilt of -a (leading directions shrunk HARDEST),
+# gamma=a is the genuinely FLAT point, and a grid that stops at gamma=2 can
+# barely express a positive tilt at all. That is the mechanical reason the
+# tuner pins BOTH ends of the old grid.
+# `a` IS NOT A SINGLE NUMBER — do not quote one (correction 2026-08-07). It is
+# truncation-dependent, and the log-log R^2 = 0.981 of the top-40 fit hides
+# real curvature; refits on nested truncations of the frozen frame give
+#     a = 1.111 (top-5), 0.983 (top-10), 1.018 (top-20), 1.176 (top-40)
+# i.e. the tail STEEPENS. Anywhere this file quotes 1.176 it means the top-40
+# frozen-frame fit specifically, which is the right scale only for the K=40
+# blocks. On the causally REFRESHED frame — the only arm with genuinely
+# distinct spectra, blk4_trailRefresh, 76 of them — a = 0.956 +/- 0.052.
+# (The frozen arms' persisted trans_eigvals is ONE spectrum replicated across
+# all 91 chunks, verified 1 unique row, so no stability claim may cite them.)
+# The practical consequence: gamma_eff is a useful REFRAMING, not a calibrated
+# offset, and the grid must bracket the flat point from both sides rather than
+# assume where it sits — which is what the bipolar axis does.
 #
 # NUMERICAL NOTE — MEASURED, NOT ASSUMED (experiments/verify_unification_shapes
 # .py section C). At the extreme corner lambda0=1e4, gamma=4, K=40 the largest
@@ -434,10 +445,40 @@ FINE_GRID_PARENT: dict[str, str] = {
 }
 
 TRANS_SHAPE_GAMMAS_WIDE: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0, 3.0, 4.0)
+
+# BIPOLAR exponent axis — the shared relief for a TWO-SIDED endpoint pathology
+# (author directive 2026-08-07, second round). MEASURED on blk4_trailGShaped's
+# 1092 persisted retunes: 45% sit at the exponent grid FLOOR (gamma=0) and 41%
+# at the CEILING (gamma=2). An upward-only extension relieves half the problem
+# and leaves the larger half in place.
+# NEGATIVE EXPONENTS ARE COHERENT HERE, which is why the floor is extended
+# rather than merely documented. lambda_i = lambda0 * i**gamma stays strictly
+# positive and monotone for gamma<0; it simply shrinks the LEADING directions
+# hardest and lets the tail run. That is not an exotic prior on this design —
+# it is what the trailing standardization already does implicitly (see the
+# gamma_eff note below), so gamma=0 is an interior point of the mechanism, not
+# a natural boundary, and a tuner pinned there in 45% of retunes is asking to
+# go further in a direction the grid does not offer.
+# gamma=0 is retained, so the bit-exact flat nesting survives and the axis is a
+# strict superset of the original (0, 0.5, 1, 2).
+TRANS_SHAPE_GAMMAS_BIPOLAR: tuple[float, ...] = (
+    -1.0,
+    -0.5,
+    0.0,
+    0.5,
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+)
+# blk4_trailGShapedWide / blk4_trailGShapedFrozen carry this: 8 gammas x 3
+# lambda0 = 24 points. Safe at this width — the block is K=40, so the steepest
+# corner is lambda0*40**4 = 2.56e10 (cond 2.6e11, fitted agreement 1.2e-13,
+# measured) and the shallowest is lambda0/40 (cond 1.3e6).
 BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
-    for g in TRANS_SHAPE_GAMMAS_WIDE
+    for g in TRANS_SHAPE_GAMMAS_BIPOLAR
 )
 # PCR block grid (author directive 2026-08-07). DELIBERATELY WIDER than the
 # `trans` grid: that one is calibrated for a factor block competing against
@@ -465,6 +506,22 @@ BLOCK_TUNE_GRIDS["pc_ladder_tilt_wide"] = tuple(
     (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS_WIDE
+)
+
+# Same BIPOLAR axis for the PC-ladder rung (author directive 2026-08-07, after
+# the shape-endpoint diagnostic fired on real data). MEASURED PINNING, read off
+# blk_pcladder_tuned's 1092 persisted retunes: the pcrank exponent is selected
+# at gamma=0 in 49% of retunes and at gamma=2 in 32% — 81% at an ENDPOINT, with
+# the LOW end the larger of the two, the same two-sided pattern as
+# blk4_trailGShaped. The coherence argument for gamma<0 is identical and lives
+# at TRANS_SHAPE_GAMMAS_BIPOLAR; these scores are trailing-standardized too.
+# SAFE AT THIS WIDTH: the pcrank penalty is indexed by PC RANK, and this arm
+# has K=20 ranks, so the steepest corner is lambda0 * 20**4 = 1.6e9 at
+# lambda0=1e4 — measured cond 1.6e10, fitted agreement 3.4e-14 (section C3).
+BLOCK_TUNE_GRIDS["pc_ladder_tilt_bipolar"] = tuple(
+    (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TRANS_SHAPE_GAMMAS_BIPOLAR
 )
 
 # The same (level, tilt) grid for the EXOGENOUS block — the generalized
@@ -499,10 +556,10 @@ TIKHONOV_STEP_KS: tuple[int, ...] = (20, 40, 80)
 #   exponential lambda_i = lambda0 * exp(kappa*(i-1))  kappa in TRANS_SHAPE_KAPPAS
 #   step        lambda0 up to rank K0, lambda0*M after K0 in TRANS_SHAPE_STEP_KS
 # WHY THESE THREE AND NOT AN EIGENVALUE PROFILE: the frozen frame's spectrum is
-# a clean power law (d_i ~ c*i^-1.176, log-log R^2 = 0.981 over the top 40,
-# d_1/d_40 = 83.6), so lambda_i ∝ d_i^-theta IS the rank power law with
-# gamma = 1.176*theta. Running it would be a reparameterization, not an
-# experiment. What a power-law spectrum does NOT already contain is a
+# a power law over the top 40 (d_i ~ c*i^-a with a = 1.176 on THAT truncation
+# — a is truncation-dependent, see TRANS_SHAPE_GAMMAS_WIDE), so
+# lambda_i ∝ d_i^-theta IS the rank power law with gamma = a*theta. Running it
+# would be a reparameterization, not an experiment. What a power-law spectrum does NOT already contain is a
 # geometric tail (exponential) or a hard cutoff on this basis (step).
 # 12 shape points x 3 lambda0 = 36 points, one block, cyclic selection.
 # THE EXHIBIT is the selected FAMILY by retune and by year: a dominant family
@@ -535,6 +592,57 @@ BLOCK_TUNE_GRIDS["exog_tilt_step"] = tuple(
     (float(lam0), "step", float(k))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for k in TIKHONOV_STEP_KS
+)
+
+# WIDE twin of the grid above (author directive 2026-08-07, after the
+# shape-endpoint diagnostic fired). MEASURED PINNING over blk3_tikhonovStep_
+# tuned's 1092 persisted retunes — the two families pin in OPPOSITE directions,
+# which is why each is extended asymmetrically rather than both blindly widened:
+#   power  gamma 0: 56%, 0.5: 19%, 1: 7%, 2: 18%   -> 74% at an endpoint,
+#          dominated by the LOW end (gamma=0, the grid floor).
+#   step   K0 20: 23%, 40: 29%, 80: 48%            -> 71% at an endpoint,
+#          dominated by the HIGH end (K0=80, the grid ceiling).
+# POWER, extended DOWN to -1: unlike the transmission block, the rotated
+# exogenous design is NOT standardization-tilted — _exog_tilt_design applies an
+# ORTHOGONAL rotation with no rescaling, so here gamma_eff == gamma exactly and
+# gamma=0 is literally plain scalar ridge. A tuner pinned at 0 in 56% of
+# retunes is asking for a tilt in the direction the grid does not offer:
+# shrink the LEADING directions harder, not the tail.
+# POWER, capped at 3 — a DELIBERATE, MEASURED deviation from the requested
+# (0..4), documented rather than silently dropped. The power family here spans
+# the WHOLE ~526-column rotated design, so its dynamic range is lambda0*526**g,
+# not lambda0*40**g:
+#     gamma=2 -> 2.77e9   (shipped)      cond 2.8e10   fitted agreement 1.1e-13
+#     gamma=3 -> 1.46e12                 cond 1.5e13   fitted agreement 1.2e-12
+#     gamma=4 -> 7.65e14                 cond 5.3e16   fitted agreement 3.4e-11
+# cond 5.3e16 EXCEEDS 1/eps = 4.5e15: at gamma=4 the penalized gram is
+# numerically singular to working precision. The fitted values happen to
+# survive (the over-penalized directions are annihilated, so nothing corrupt
+# reaches the score), but shipping a grid point whose normal-equation solve is
+# formally meaningless is not something to do quietly. It also buys nothing
+# scientifically: lambda_1/lambda_526 = 7.6e10 at gamma=4 is not "a tilt", it
+# is hard truncation at rank ~10 — and hard truncation is ALREADY in this same
+# block grid, explicitly and interpretably, as the step family. The exponent
+# ceiling is a function of BLOCK WIDTH, which is why the 40-wide transmission
+# block safely carries gamma=4 (corner 2.56e10, cond 2.6e11) and this one does
+# not. No cap constant is introduced: capping lambda_i would be exactly the
+# kind of clip that bites and destroys the signal-carrying extreme.
+TIKHONOV_GAMMAS_WIDE: tuple[float, ...] = (-1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0)
+# STEP, extended BOTH ways and kept a STRICT SUPERSET of TIKHONOV_STEP_KS.
+# NOTE the requested (5,10,20,30,60,100) drops 40 and 80 — the two points the
+# shipped arm actually selects most (29% and 48%) — which would have made the
+# wide-vs-narrow increment uninterpretable: a difference could then come from
+# REMOVING the incumbent optimum rather than from adding reach. Same cardinality
+# (6), same both-ended widening, superset restored.
+TIKHONOV_STEP_KS_WIDE: tuple[int, ...] = (5, 10, 20, 40, 80, 100)
+BLOCK_TUNE_GRIDS["exog_tilt_step_wide"] = tuple(
+    (float(lam0), "power", float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for g in TIKHONOV_GAMMAS_WIDE
+) + tuple(
+    (float(lam0), "step", float(k))
+    for lam0 in BLOCK_TUNE_GRIDS["exog"]
+    for k in TIKHONOV_STEP_KS_WIDE
 )
 
 
@@ -852,10 +960,11 @@ def _fill_pen_span(pen: np.ndarray, s0: int, s1: int, value: Any) -> None:
             # EXPONENTIAL profile: lambda_i = lam0 * exp(kappa * (i-1)).
             # NOT redundant with the power family (author directive
             # 2026-08-07): the frozen frame's eigenvalue spectrum is itself a
-            # clean power law (d_i ~ c*i^-1.176, log-log R^2 = 0.981 over the
-            # top 40, d_1/d_40 = 83.6), so an EIGENVALUE-based profile
+            # power law over the top 40 (d_i ~ c*i^-a, a = 1.176 on that
+            # truncation; a is truncation-dependent — see
+            # TRANS_SHAPE_GAMMAS_WIDE), so an EIGENVALUE-based profile
             # lambda_i ∝ d_i^-theta is the SAME family as the rank power law
-            # under gamma = 1.176*theta — a reparameterization, deliberately
+            # under gamma = a*theta — a reparameterization, deliberately
             # not run. An exponential has genuinely different TAIL behaviour
             # (geometric, not polynomial) and is therefore a real alternative
             # prior. kappa=0 would nest flat, but the flat nesting is already
@@ -2554,7 +2663,7 @@ ARMS: dict[str, ArmSpec] = {
     # TRANS_SHAPE_GAMMAS_WIDE). So "gamma=0 at full rank reproduces the flat
     # exog result" is TRUE of the rotation and FALSE of the arm as built; what
     # the arm tests is the tilt ON TOP OF the standardization's implicit
-    # -1.176 tilt. Read the K-sweep as a reparameterization of the SPAN, not
+    # NEGATIVE tilt. Read the K-sweep as a reparameterization of the SPAN, not
     # of the estimator.
     # All three arms are identical to blk_pcladder_tuned except K and the WIDE
     # exponent grid (steeper tilts are exactly what the tail directions of a
@@ -2759,13 +2868,137 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # DE-CONFOUNDING CONTROL (author directive 2026-08-07). THIS ARM EXISTS TO
+    # FIX A PUBLISHED COMPARISON, not to win.
+    #
+    # THE PROBLEM. The paper reports blk4_trailGShaped beating blk4_trailG_tuned
+    # (-1.836e-4, DM -2.019) and attributes the gain to the RANK-SHAPED penalty.
+    # The persisted trajectories do not support that attribution, twice over:
+    #  (1) gamma=0 is BIT-EXACTLY the flat penalty (_fill_pen_span writes
+    #      lambda0 * i**0 == lambda0) and is selected in 45% of retunes. The
+    #      entire aggregate edge lives in the gamma<=0.5 subset — mean diff
+    #      -4.697e-4, DM -3.604, better in 19 of 21 years — while on the windows
+    #      where a tilt is actually applied (gamma>=2) the shaped arm LOSES:
+    #      +2.079e-4, DM +2.113. Difference-in-differences z = -4.15, p = 6.7e-5.
+    #      So the edge is concentrated exactly where the "shaped" arm is not
+    #      shaped.
+    #  (2) The two arms also differ in FRAME WIDTH: blk4_trailGShaped uses
+    #      trans_trailG40 (K=40), blk4_trailG_tuned uses trans_trailG (K=20,
+    #      TRANS_QPOOL). Every other block and grid is identical. The pair
+    #      therefore confounds TILT with K, and the honest reading is that the
+    #      gain is the K=40-vs-K=20 effect measured on the windows where the
+    #      penalty happened to be flat.
+    #
+    # THE CONTROL. K=40 factor levels with the ORDINARY FLAT `trans` grid
+    # (1e2, 1e3, 1e4) — no shape axis at all. That splits the confounded
+    # comparison into two clean ones:
+    #     vs blk4_trailG_tuned  -> the pure K effect at flat penalty (40 vs 20)
+    #     vs blk4_trailGShaped  -> the pure SHAPE effect at matched K=40
+    # The second is the comparison that decides whether rank-shaping earns
+    # anything, and it is the one the campaign never ran.
+    "blk4_trailG40_tuned": ArmSpec(
+        describe="de-confounding control: K=40 trailing factor LEVELS with the "
+        "ORDINARY FLAT transmission penalty (no shape axis) — isolates the K "
+        "effect from the tilt effect in the blk4_trailGShaped vs "
+        "blk4_trailG_tuned comparison",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40", "trans"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # ADAPTIVE vs FIXED spectral tilt (author directive 2026-08-07).
+    #
+    # THIS ARM IS NOT ABOUT STANDARDIZATION CONVENTION. It exists to separate
+    # two mechanisms the campaign currently conflates. Standardizing factor
+    # score i divides it by ~sqrt(d_i), so a penalty lambda_i on the
+    # standardized coefficient is lambda_i * d_i on the raw eigen-direction:
+    # STANDARDIZATION IS ITSELF A SPECTRAL TILT (the gamma_eff identity at
+    # TRANS_SHAPE_GAMMAS_WIDE). The two conventions differ in whether that
+    # tilt ADAPTS:
+    #   * TRAILING (blk4_trailGShapedWide) divides by a ROLLING sd, which
+    #     tracks the CURRENT spectrum -> a TIME-VARYING tilt. Any single
+    #     exponent quoted for it is only an average under the frozen power
+    #     law, and even that is truncation-dependent (a = 0.98..1.18 across
+    #     top-10..top-40 refits) — see TRANS_SHAPE_GAMMAS_WIDE.
+    #   * FROZEN (this arm) divides by a CONSTANT frame-window sd -> a FIXED
+    #     tilt of the same average magnitude.
+    # The paper currently attributes trailing-beats-frozen to "causal scale
+    # stability". If that is the whole story the two arms should differ by
+    # little once both can reach the same gamma_eff. If the trailing arm still
+    # wins, the claim is a stronger and more interesting one: an ADAPTIVE
+    # spectral prior beats a fixed one, i.e. the useful content of the
+    # transmission block is that its shrinkage tracks a moving spectrum.
+    #
+    # THE WIDE GAMMA GRID IS ESSENTIAL, not incidental: the two standardizations
+    # sit at different points of the SAME tilt family, so a narrow exponent grid
+    # would confound the mechanism question with grid REACH. Both arms carry
+    # trans_shaped_wide, so both span the same gamma_eff range and the increment
+    # isolates adaptivity.
+    "blk4_trailGShapedFrozen": ArmSpec(
+        describe="adaptive-vs-fixed tilt control: K=40 factor LEVELS with "
+        "FROZEN-window standardization (the fixed-tilt twin of "
+        "blk4_trailGShapedWide) and the same RANK-SHAPED transmission penalty "
+        "over the wide exponent grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_frozenG40", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # ENDPOINT RELIEF for the two arms the shape-endpoint diagnostic flagged
+    # (author directive 2026-08-07). Both change ONLY their shape grid; the
+    # originals are untouched and stay byte-reproducible. Extension DIRECTION
+    # was chosen from the measured pinning in each arm's own persisted
+    # trajectory, not assumed — see TRANS_SHAPE_GAMMAS_BIPOLAR and
+    # TIKHONOV_GAMMAS_WIDE / TIKHONOV_STEP_KS_WIDE for the percentages and for
+    # why the pcrank and power families needed relief at the LOW end (the
+    # larger pile-up in both cases) while the step family needed it at the top.
+    "blk_pcladderWide_tuned": ArmSpec(
+        describe="endpoint relief for the PC-ladder rung: blk_pcladder_tuned "
+        "with the pcrank exponent grid made BIPOLAR (-1..4, 24 points) — the "
+        "tuner pinned at BOTH ends of the old grid, 49% at gamma=0 and 32% at "
+        "gamma=2; cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("pc_ladder", "pc_ladder_tilt_bipolar"),
+            ("avail_ind", "exog"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_tikhonovStepWide_tuned": ArmSpec(
+        describe="endpoint relief for the hard-vs-soft rung: "
+        "blk3_tikhonovStep_tuned with BOTH families widened — power to "
+        "(-1..3) where it pinned at the gamma=0 floor in 56% of retunes, and "
+        "step K0 to (5..100) where it pinned at the K0=80 ceiling in 48%; "
+        "39-point block grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_rot", "exog_tilt_step_wide"),
+            ("product", "product"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # SHAPE ZOO (author directive 2026-08-07): the same K=40 transmission
     # block, but the tuner chooses the penalty FAMILY as well as its parameter
     # — power (polynomial tail), exponential (geometric tail), or step (hard
     # cutoff on this basis), 36 points on one block. An eigenvalue-based
     # profile is deliberately ABSENT: the frame's spectrum is a power law
-    # (d_i ~ c*i^-1.176, log-log R^2 = 0.981, d_1/d_40 = 83.6), so
-    # lambda_i ∝ d_i^-theta is the rank power law at gamma = 1.176*theta and
+    # (d_i ~ c*i^-a, a = 1.176 on the top-40 truncation), so
+    # lambda_i ∝ d_i^-theta is the rank power law at gamma = a*theta and
     # would be a reparameterization, not an experiment. See
     # BLOCK_TUNE_GRIDS["trans_shaped_zoo"]. THE EXHIBIT is the selected family
     # per retune and by year (penalty_shape_summary.csv shape_family /
@@ -2983,6 +3216,14 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "trans_trailG40":  # levels only, WIDE frame (rank-shaped arm)
         return _transmission_block(
             p, window, parts="scores", standardization="trailing", qpool=40
+        )
+    if block == "trans_frozenG40":
+        # ADAPTIVE-vs-FIXED tilt control (see blk4_trailGShapedFrozen): the
+        # SAME K=40 factor levels, standardized with FROZEN frame-window stats
+        # instead of trailing ones. Identical columns, identical frame; only
+        # the divisor's time-dependence changes.
+        return _transmission_block(
+            p, window, parts="scores", standardization="frozen", qpool=40
         )
     if block == "trans_trailGhat":  # ablation: trailing lead-lag FLOW only
         return _transmission_block(p, window, parts="flow", standardization="trailing")

@@ -147,6 +147,10 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShaped",
         "blk4_trailGShapedWide",
         "blk4_trailGShaped_fine",
+        "blk4_trailG40_tuned",
+        "blk4_trailGShapedFrozen",
+        "blk_pcladderWide_tuned",
+        "blk3_tikhonovStepWide_tuned",
         "blk3_tikhonov_tuned",
         "blk3_tikhonovStep_tuned",
         "blk_pcladder_tuned",
@@ -272,6 +276,13 @@ _REGISTRY: list[tuple[str, str]] = [
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
+    # De-confounding control: K=40 levels at the ORDINARY FLAT penalty.
+    ("blk4_trailG40_tuned", "BlkFourTrailGFortyTuned"),
+    # Adaptive-vs-fixed spectral tilt: the frozen-standardization twin.
+    ("blk4_trailGShapedFrozen", "BlkFourTrailGShapedFrozen"),
+    # Endpoint relief for the two arms the shape-endpoint diagnostic flagged.
+    ("blk_pcladderWide_tuned", "BlkPcLadderWideTuned"),
+    ("blk3_tikhonovStepWide_tuned", "BlkThreeTikhonovStepWideTuned"),
     # Generalized Tikhonov: the anisotropy applied directly, no duplication.
     ("blk3_tikhonov_tuned", "BlkThreeTikhonovTuned"),
     # Ladder-expanded principal components with a per-rank tilted penalty.
@@ -399,6 +410,16 @@ _ARM_TEX: dict[str, str] = {
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
     "b1_ridge_tuned_fine": "Ridge, causally tuned on a half-decade grid",
+    "blk4_trailG40_tuned": "Four-block ridge (trailing factor levels, $K=40$, "
+    "flat transmission penalty, causally tuned)",
+    "blk4_trailGShapedFrozen": "Four-block ridge (FROZEN-standardized factor "
+    "levels, $K=40$, rank-shaped transmission penalty over the extended "
+    "exponent grid, causally tuned)",
+    "blk_pcladderWide_tuned": "Ridge on ladder-expanded principal components "
+    "with a BIPOLAR rank-tilted penalty (causally tuned)",
+    "blk3_tikhonovStepWide_tuned": "Three-block ridge with spectrum-tilted "
+    "exogenous penalty, power and step families on WIDENED grids (causally "
+    "tuned)",
     "blk3_tikhonov_tuned": "Three-block ridge with spectrum-tilted exogenous "
     "penalty (generalized Tikhonov, causally tuned)",
     "blk_pcladder_tuned": "Ridge on ladder-expanded principal components with "
@@ -532,6 +553,27 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailGShaped_fine", "blk4_trailGShaped"),
     ("blk4_trailGShaped_fine", "blk4_trailG_tuned"),
     ("b1_ridge_tuned_fine", "b1_ridge_tuned"),
+    # DE-CONFOUNDING the published shaped-vs-levels comparison. The shipped
+    # pair (blk4_trailGShaped vs blk4_trailG_tuned) differs in BOTH the penalty
+    # shape and the frame width (K=40 vs K=20), and the measured edge is
+    # concentrated where gamma=0, i.e. where the shaped arm is bit-exactly
+    # flat (DiD z = -4.15, p = 6.7e-5). These three pairs separate the two
+    # effects. Bare stem = vs blk4_trailG_tuned, the pure K effect at flat
+    # penalty; the vs-blk4_trailGShaped pair is the pure SHAPE effect at
+    # matched K=40 and is the one that decides whether tilting earns anything.
+    ("blk4_trailG40_tuned", "blk4_trailG_tuned"),
+    ("blk4_trailG40_tuned", "blk4_trailGShaped"),
+    ("blk4_trailG40_tuned", "blk3_tuned"),
+    # ADAPTIVE vs FIXED spectral tilt. Bare stem = vs the matched TRAILING arm
+    # on the SAME wide exponent grid, so the two differ only in whether the
+    # standardization's implicit tilt tracks the current spectrum. That pair,
+    # not the vs-champion one, is the mechanism test.
+    ("blk4_trailGShapedFrozen", "blk4_trailGShapedWide"),
+    ("blk4_trailGShapedFrozen", "blk4_trailG_tuned"),
+    # Endpoint relief: does letting the tuner off its grid boundary change the
+    # verdict? Bare stem = vs the narrow original each one widens.
+    ("blk_pcladderWide_tuned", "blk_pcladder_tuned"),
+    ("blk3_tikhonovStepWide_tuned", "blk3_tikhonovStep_tuned"),
     # generalized Tikhonov: does the tilt help at all (bare stem), and does
     # it match the best model WITHOUT any duplicated transmission columns?
     ("blk3_tikhonov_tuned", "blk3_tuned"),
@@ -1729,6 +1771,9 @@ def main(argv: list[str] | None = None) -> int:
             "blk4_trailGShaped",
             "blk4_trailGShapedWide",
             "blk4_trailGShaped_fine",
+            "blk4_trailGShapedFrozen",
+            "blk_pcladderWide_tuned",
+            "blk3_tikhonovStepWide_tuned",
             "blk3_tikhonov_tuned",
             "blk3_tikhonovStep_tuned",
             "blk_pcladder_tuned",

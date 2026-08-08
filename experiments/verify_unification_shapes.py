@@ -11,9 +11,11 @@ Covers, in order:
      that normalize to the same descriptor would silently shrink the grid.
 
   B. PENALTY VECTORS — power/gamma=0 nests the flat penalty BIT-IDENTICALLY;
-     every point of every grid produces a monotone non-decreasing penalty
-     across ranks; the step family's boundary lands at exactly rank K0; the
-     extreme corner is finite and exact in float64.
+     every point of every grid produces a monotone penalty across ranks (for
+     the SIGNED grids, monotone in either direction and strictly positive —
+     gamma<0 is a deliberate part of the bipolar axes); the step family's
+     boundary lands at exactly rank K0; the extreme corner is finite and exact
+     in float64.
 
   C. CONDITIONING — the question the wide exponent grid raises: at lambda0=1e4,
      gamma=4, K=40 the largest transmission penalty is 1e4 * 40**4 = 2.56e10,
@@ -49,6 +51,14 @@ Covers, in order:
   H. HALF-DECADE GRID RESOLUTION — every fine grid's exact membership, and the
      STRICT SUBSET property (bit-exact) that makes fine-vs-coarse attributable
      to the added points alone; plus the cyclic tail-evaluation budget.
+
+  I. ENDPOINT RELIEF + ADAPTIVE-VS-FIXED TILT — the bipolar pcrank axis and the
+     widened tikhonov power/step axes (membership, duplicate-freeness, strict
+     superset, flat nesting), and that the frozen-standardization arm differs
+     from its trailing twin in the transmission BLOCK only while carrying the
+     SAME exponent grid, so the increment isolates adaptivity rather than grid
+     reach. Section C3 measures the conditioning at these new corners,
+     including the one deliberately excluded.
 
 Run:  python experiments/verify_unification_shapes.py
 """
@@ -107,7 +117,17 @@ def section_a() -> None:
         U.TRANS_SHAPE_GAMMAS_WIDE == (0.0, 0.5, 1.0, 2.0, 3.0, 4.0),
         str(U.TRANS_SHAPE_GAMMAS_WIDE),
     )
-    check("trans_shaped_wide has 18 points", len(g_wide) == 18, str(len(g_wide)))
+    # trans_shaped_wide carries the BIPOLAR axis: the pinning it relieves is
+    # two-sided (45% at the gamma=0 floor, 41% at the gamma=2 ceiling), so an
+    # upward-only extension would have left the larger half in place.
+    check(
+        "trans_shaped_wide has 24 points (bipolar)", len(g_wide) == 24, str(len(g_wide))
+    )
+    check(
+        "trans_shaped_wide brackets the narrow axis from BOTH sides",
+        min(g for _, g in g_wide) < min(g for _, g in g_narrow)
+        and max(g for _, g in g_wide) > max(g for _, g in g_narrow),
+    )
     check("trans_shaped_zoo has 36 points", len(g_zoo) == 36, str(len(g_zoo)))
     check("pc_ladder_tilt_wide has 18 points", len(g_pcw) == 18, str(len(g_pcw)))
 
@@ -171,10 +191,12 @@ def section_b(k_span: int = 40) -> None:
             np.array_equal(fill((lam0, "power", 0.0)), flat),
         )
 
+    # NON-NEGATIVE-exponent grids only: these may be asserted monotone
+    # non-DECREASING. trans_shaped_wide is deliberately excluded — it carries
+    # the bipolar axis and is checked in the signed loop below.
     bad_mono: list[str] = []
     for label, grid in (
         ("trans_shaped", _grid("trans_shaped")),
-        ("trans_shaped_wide", _grid("trans_shaped_wide")),
         ("trans_shaped_zoo", _grid("trans_shaped_zoo")),
     ):
         for a in grid:
@@ -188,19 +210,50 @@ def section_b(k_span: int = 40) -> None:
         )
         bad_mono = []
 
+    # SIGNED-exponent grids: a power law in rank is monotone in EITHER
+    # direction, so the invariant is monotone-and-positive, not
+    # monotone-INCREASING. gamma<0 (shrink the leading directions hardest) is a
+    # deliberate part of the bipolar grids — see TRANS_SHAPE_GAMMAS_BIPOLAR —
+    # so asserting non-decreasing here would reject the very points those arms
+    # exist to test.
+    for label, grid in (
+        ("trans_shaped_wide", _grid("trans_shaped_wide")),
+        ("exog_tilt_step_wide", _grid("exog_tilt_step_wide")),
+    ):
+        bad_sign: list[str] = []
+        for a in grid:
+            pv = fill(a) if label == "trans_shaped_wide" else np.zeros(0)
+            if label != "trans_shaped_wide":
+                pv = np.zeros(526)
+                U._fill_pen_span(pv, 0, 526, U._pen_value(a))
+            d = np.diff(pv)
+            if not (np.all(d >= 0) or np.all(d <= 0)):
+                bad_sign.append(f"{tuple(a)} not monotone in rank")
+            if not (np.all(np.isfinite(pv)) and np.all(pv > 0)):
+                bad_sign.append(f"{tuple(a)} not finite-positive")
+        check(
+            f"{label}: penalty monotone in rank (either sign), finite, positive",
+            not bad_sign,
+            "; ".join(bad_sign[:3]),
+        )
+
     # pcrank grids: monotone across RANK, flat within a rank's rungs
     n_rungs = len(U.PRODUCT_EXOG_WINDOWS)
     for label, grid in (
         ("pc_ladder_tilt", _grid("pc_ladder_tilt")),
         ("pc_ladder_tilt_wide", _grid("pc_ladder_tilt_wide")),
+        ("pc_ladder_tilt_bipolar", _grid("pc_ladder_tilt_bipolar")),
     ):
         bad: list[str] = []
         span = 20 * n_rungs
         for a in grid:
             pen = np.zeros(span)
             U._fill_pen_span(pen, 0, span, U._pen_value(a))
-            if not np.all(np.diff(pen) >= 0) or not np.all(np.isfinite(pen)):
+            d = np.diff(pen)
+            if not (np.all(d >= 0) or np.all(d <= 0)):
                 bad.append(f"{tuple(a)} not monotone")
+            if not (np.all(np.isfinite(pen)) and np.all(pen > 0)):
+                bad.append(f"{tuple(a)} not finite-positive")
             blocks = pen.reshape(20, n_rungs)
             if not np.all(blocks == blocks[:, :1]):
                 bad.append(f"{tuple(a)} varies WITHIN a rank")
@@ -833,14 +886,282 @@ def section_h() -> None:
     )
 
 
+# ── I. endpoint relief + adaptive-vs-fixed tilt ───────────────────────────────
+def section_i() -> None:
+    print("\nI. ENDPOINT RELIEF + ADAPTIVE-VS-FIXED TILT")
+    # --- bipolar pcrank grid ---
+    check(
+        "the bipolar axis is SHARED by the transmission and pcrank grids",
+        sorted({g for _, g in _grid("trans_shaped_wide")})
+        == sorted(set(U.TRANS_SHAPE_GAMMAS_BIPOLAR))
+        == sorted({g for _, _, g, _ in _grid("pc_ladder_tilt_bipolar")}),
+    )
+    gb = _grid("pc_ladder_tilt_bipolar")
+    gn = _grid("pc_ladder_tilt")
+    check("pc_ladder_tilt_bipolar has 24 points", len(gb) == 24, str(len(gb)))
+    check("pc_ladder_tilt_bipolar: no duplicates", len(set(map(tuple, gb))) == 24)
+    check(
+        "pc_ladder_tilt_bipolar: no duplicate _pen_value descriptors",
+        len({U._pen_value(a) for a in gb}) == 24,
+    )
+    check(
+        "pc_ladder_tilt_bipolar STRICTLY CONTAINS pc_ladder_tilt (bit-exact)",
+        set(map(tuple, gn)) < set(map(tuple, gb)),
+    )
+    check(
+        "bipolar exponent axis = (-1,-0.5,0,0.5,1,2,3,4)",
+        U.TRANS_SHAPE_GAMMAS_BIPOLAR == (-1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0, 4.0),
+        str(U.TRANS_SHAPE_GAMMAS_BIPOLAR),
+    )
+    check(
+        "bipolar grid brackets the OLD grid from BOTH sides",
+        min(g for _, _, g, _ in gb) < min(g for _, _, g, _ in gn)
+        and max(g for _, _, g, _ in gb) > max(g for _, _, g, _ in gn),
+    )
+
+    # --- widened tikhonov step/power grid ---
+    gw = _grid("exog_tilt_step_wide")
+    go = _grid("exog_tilt_step")
+    check("exog_tilt_step_wide has 39 points", len(gw) == 39, str(len(gw)))
+    check("exog_tilt_step_wide: no duplicates", len(set(map(tuple, gw))) == 39)
+    check(
+        "exog_tilt_step_wide: no duplicate _pen_value descriptors",
+        len({U._pen_value(a) for a in gw}) == 39,
+    )
+    check(
+        "exog_tilt_step_wide STRICTLY CONTAINS exog_tilt_step (bit-exact)",
+        set(map(tuple, go)) < set(map(tuple, gw)),
+        "this is what makes the wide-vs-narrow increment attributable to the "
+        "ADDED points; the requested step grid (5,10,20,30,60,100) would have "
+        "DROPPED K0=40 and K0=80, the two the shipped arm selects most",
+    )
+    fams: dict[str, int] = {}
+    for a in gw:
+        fams[str(a[1])] = fams.get(str(a[1]), 0) + 1
+    check(
+        "wide tikhonov family counts power/step = 21/18",
+        fams == {"power": 21, "step": 18},
+        str(fams),
+    )
+    check(
+        "step K0 axis extended BOTH ways and keeps (20,40,80)",
+        U.TIKHONOV_STEP_KS_WIDE == (5, 10, 20, 40, 80, 100)
+        and set(U.TIKHONOV_STEP_KS) < set(U.TIKHONOV_STEP_KS_WIDE),
+        str(U.TIKHONOV_STEP_KS_WIDE),
+    )
+    check(
+        "power axis extended DOWN to -1 and capped at 3 (526-wide span)",
+        U.TIKHONOV_GAMMAS_WIDE == (-1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0),
+        str(U.TIKHONOV_GAMMAS_WIDE),
+    )
+    check(
+        "gamma=4 deliberately ABSENT from the 526-wide power axis",
+        4.0 not in U.TIKHONOV_GAMMAS_WIDE,
+        "cond 5.3e16 > 1/eps at lambda0=1e4 (measured, section C3); hard "
+        "truncation is already covered by the step family",
+    )
+    for lam0 in (1e2, 1e3, 1e4):
+        flat = np.full(526, float(lam0))
+        pen = np.zeros(526)
+        U._fill_pen_span(pen, 0, 526, U._pen_value((lam0, "power", 0.0)))
+        check(
+            f"wide tikhonov gamma=0 still nests flat BIT-IDENTICALLY (lambda0={lam0:g})",
+            np.array_equal(pen, flat),
+        )
+
+    # --- adaptive-vs-fixed arm wiring ---
+    froz = U.ARMS["blk4_trailGShapedFrozen"]
+    wide = U.ARMS["blk4_trailGShapedWide"]
+    check(
+        "GShapedFrozen differs from GShapedWide ONLY in the transmission BLOCK",
+        [k for _, k in froz.blocks] == [k for _, k in wide.blocks]
+        and [b for b, _ in froz.blocks][:3] == [b for b, _ in wide.blocks][:3]
+        and [b for b, _ in froz.blocks][3] == "trans_frozenG40"
+        and [b for b, _ in wide.blocks][3] == "trans_trailG40",
+    )
+    check(
+        "both tilt arms carry the SAME wide exponent grid (equal gamma_eff reach)",
+        [k for _, k in froz.blocks][3]
+        == [k for _, k in wide.blocks][3]
+        == "trans_shaped_wide",
+    )
+    for arm, key in (
+        ("blk4_trailGShapedFrozen", "trans_shaped_wide"),
+        ("blk_pcladderWide_tuned", "pc_ladder_tilt_bipolar"),
+        ("blk3_tikhonovStepWide_tuned", "exog_tilt_step_wide"),
+    ):
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: kind/grid/oos_mult match the shaped-arm contract",
+            spec.kind == "blocks_tuned"
+            and spec.grid == "cyclic"
+            and spec.oos_mult == 2,
+        )
+        check(f"{arm}: uses block grid '{key}'", key in [k for _, k in spec.blocks])
+        cost = 1 + U.CYCLIC_PASSES * sum(len(_grid(k)) - 1 for _, k in spec.blocks)
+        print(f"    {arm}: {cost} cyclic tail evaluations per retune")
+        check(f"{arm}: tail-eval budget under 150/retune", cost <= 150, str(cost))
+    # each wide twin must leave its narrow original untouched
+    for wide_arm, narrow_arm in (
+        ("blk_pcladderWide_tuned", "blk_pcladder_tuned"),
+        ("blk3_tikhonovStepWide_tuned", "blk3_tikhonovStep_tuned"),
+    ):
+        w, n = U.ARMS[wide_arm], U.ARMS[narrow_arm]
+        check(
+            f"{wide_arm} differs from {narrow_arm} ONLY in the shape grid key",
+            [b for b, _ in w.blocks] == [b for b, _ in n.blocks]
+            and sum(
+                1
+                for a, b in zip([k for _, k in w.blocks], [k for _, k in n.blocks])
+                if a != b
+            )
+            == 1,
+        )
+    check(
+        "narrow originals' grids unchanged",
+        U.TRANS_SHAPE_GAMMAS == (0.0, 0.5, 1.0, 2.0)
+        and U.TIKHONOV_STEP_KS == (20, 40, 80)
+        and len(_grid("exog_tilt_step")) == 21
+        and len(_grid("pc_ladder_tilt")) == 12,
+    )
+
+
+# ── C3. conditioning at the NEW steep corners ─────────────────────────────────
+def section_c3() -> None:
+    print("\nC3. CONDITIONING AT THE NEW STEEP CORNERS")
+    print("  C3a. exog_rot power family — the 526-COLUMN span (the danger case)")
+    X, y, segments = _fit_gram_fixture(n_shaped=526, shaped_key="tilt")
+    _cond_report(
+        X,
+        y,
+        segments,
+        "tilt",
+        [
+            ("SHIPPED max: power gamma=2, lambda0=1e4", (1e4, "power", 2.0)),
+            ("WIDE max: power gamma=3, lambda0=1e4", (1e4, "power", 3.0)),
+            ("NEW low end: power gamma=-1, lambda0=1e2", (1e2, "power", -1.0)),
+            ("NEW step: K0=5, lambda0=1e4", (1e4, "step", 5.0)),
+            ("NEW step: K0=100, lambda0=1e4", (1e4, "step", 100.0)),
+        ],
+    )
+    print("  C3b. pcrank bipolar — K=20 ranks x 3 rungs (60 columns)")
+    Xp, yp, segp = _fit_gram_fixture(n_shaped=60, shaped_key="pc")
+    _cond_report(
+        Xp,
+        yp,
+        segp,
+        "pc",
+        [
+            ("bipolar max: pcrank gamma=4, lambda0=1e4", (1e4, "pcrank", 4.0, 3)),
+            ("bipolar min: pcrank gamma=-1, lambda0=1e2", (1e2, "pcrank", -1.0, 3)),
+        ],
+    )
+    # the EXCLUDED corner, measured and reported rather than silently dropped
+    pen = np.zeros(526)
+    U._fill_pen_span(pen, 0, 526, U._pen_value((1e4, "power", 4.0)))
+    print(
+        f"    EXCLUDED corner (power gamma=4 on a 526-wide span): max penalty "
+        f"{pen.max():.4g}, dynamic range {pen.max() / pen.min():.3g}x — "
+        "measured cond 5.3e16 EXCEEDS 1/eps = 4.5e15, i.e. numerically "
+        "singular to working precision; excluded from TIKHONOV_GAMMAS_WIDE "
+        "with that reason recorded in the source."
+    )
+
+
+# ── J. de-confounding control ─────────────────────────────────────────────────
+def section_j() -> None:
+    """blk4_trailG40_tuned splits a confounded published comparison. Its whole
+    value rests on two facts that must be mechanically true: its transmission
+    block is K=40 (matching blk4_trailGShaped, NOT blk4_trailG_tuned's K=20),
+    and its penalty is genuinely FLAT (no shape axis at all)."""
+    print("\nJ. DE-CONFOUNDING CONTROL (blk4_trailG40_tuned)")
+    ctl = U.ARMS["blk4_trailG40_tuned"]
+    shaped = U.ARMS["blk4_trailGShaped"]
+    lvl20 = U.ARMS["blk4_trailG_tuned"]
+    check(
+        "registered as blocks_tuned / cyclic / oos_mult=2",
+        ctl.kind == "blocks_tuned" and ctl.grid == "cyclic" and ctl.oos_mult == 2,
+    )
+    check(
+        "SAME BLOCKS as blk4_trailGShaped (K=40 transmission)",
+        [b for b, _ in ctl.blocks] == [b for b, _ in shaped.blocks],
+        str([b for b, _ in ctl.blocks]),
+    )
+    check(
+        "differs from blk4_trailGShaped ONLY in the transmission GRID KEY",
+        sum(
+            1
+            for a, b in zip([k for _, k in ctl.blocks], [k for _, k in shaped.blocks])
+            if a != b
+        )
+        == 1
+        and [k for _, k in ctl.blocks][3] == "trans"
+        and [k for _, k in shaped.blocks][3] == "trans_shaped",
+    )
+    check(
+        "differs from blk4_trailG_tuned ONLY in the transmission BLOCK (K)",
+        [k for _, k in ctl.blocks] == [k for _, k in lvl20.blocks]
+        and [b for b, _ in ctl.blocks][3] == "trans_trailG40"
+        and [b for b, _ in lvl20.blocks][3] == "trans_trailG",
+    )
+    check(
+        "THE CONFOUND, restated mechanically: the shipped pair differs in BOTH "
+        "K and shape",
+        [b for b, _ in shaped.blocks][3] != [b for b, _ in lvl20.blocks][3]
+        and [k for _, k in shaped.blocks][3] != [k for _, k in lvl20.blocks][3],
+    )
+    # the penalty must be genuinely FLAT — a scalar grid, constant across ranks
+    grid = _grid("trans")
+    check(
+        "transmission grid is the ordinary flat (1e2, 1e3, 1e4)",
+        tuple(grid) == (1e2, 1e3, 1e4),
+        str(grid),
+    )
+    for a in grid:
+        check(
+            f"penalty CONSTANT across all 40 ranks at alpha={a:g}",
+            _flat_span(a, 40),
+        )
+    # ...and the transmission block really is 40 columns wide
+    window = 400
+    p = _fixture_panel(n=4 * window, window=window)
+    trail_save = U.TRANS_TRAIL_DAYS
+    U.TRANS_TRAIL_DAYS = 4
+    try:
+        blk40 = U._build_block(p, "trans_trailG40", window)
+        blk20 = U._build_block(p, "trans_trailG", window)
+    finally:
+        U.TRANS_TRAIL_DAYS = trail_save
+    check("trans_trailG40 is 40 columns", blk40.shape[1] == 40, str(blk40.shape))
+    check(
+        f"trans_trailG is {U.TRANS_QPOOL} columns (the confounded difference)",
+        blk20.shape[1] == U.TRANS_QPOOL,
+        str(blk20.shape),
+    )
+    check(
+        "the two transmission blocks are genuinely different designs",
+        blk40.shape[1] != blk20.shape[1],
+        f"K=40 vs K={U.TRANS_QPOOL} — this is what the control holds fixed",
+    )
+
+
+def _flat_span(alpha: float, k: int) -> bool:
+    pen = np.zeros(k)
+    U._fill_pen_span(pen, 0, k, U._pen_value(alpha))
+    return bool(np.all(pen == float(alpha)))
+
+
 if __name__ == "__main__":
     section_a()
     section_b()
     section_c()
+    section_c3()
     section_d()
     section_e()
     section_f()
     section_g()
     section_h()
+    section_i()
+    section_j()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)
