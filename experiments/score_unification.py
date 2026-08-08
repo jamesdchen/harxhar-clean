@@ -148,6 +148,11 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedWide",
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
+        # grid-free shrinkage: same 24000-bar window + frozen product/rotation
+        "blk3_js_tuned",
+        "blk3_npeb_tuned",
+        "blk3_js_pcbasis_tuned",
+        "blk3_jsDiag_tuned",
         "blk4_trailGShapedFrozen",
         "blk_pcladderWide_tuned",
         "blk3_tikhonovStepWide_tuned",
@@ -286,6 +291,11 @@ _REGISTRY: list[tuple[str, str]] = [
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
+    # GRID-FREE shrinkage: zero tuned hyperparameters.
+    ("blk3_js_tuned", "BlkThreeJsTuned"),
+    ("blk3_npeb_tuned", "BlkThreeNpebTuned"),
+    ("blk3_js_pcbasis_tuned", "BlkThreeJsPcBasisTuned"),
+    ("blk3_jsDiag_tuned", "BlkThreeJsDiagTuned"),
     # De-confounding control: K=40 levels at the ORDINARY FLAT penalty.
     ("blk4_trailG40_tuned", "BlkFourTrailGFortyTuned"),
     # Adaptive-vs-fixed spectral tilt: the frozen-standardization twin.
@@ -428,6 +438,14 @@ _ARM_TEX: dict[str, str] = {
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
     "b1_ridge_tuned_fine": "Ridge, causally tuned on a half-decade grid",
+    "blk3_js_tuned": "Three-block design, positive-part James-Stein shrinkage, "
+    "no tuned hyperparameters",
+    "blk3_npeb_tuned": "Three-block design, nonparametric empirical-Bayes "
+    "(Tweedie) per-coefficient shrinkage, no tuned hyperparameters",
+    "blk3_js_pcbasis_tuned": "Three-block design in the PC basis, "
+    "diagonal-whitened positive-part James-Stein, no tuned hyperparameters",
+    "blk3_jsDiag_tuned": "Three-block design, diagonal-whitened positive-part "
+    "James-Stein (raw-basis control), no tuned hyperparameters",
     "blk4_trailG40_tuned": "Four-block ridge (trailing factor levels, $K=40$, "
     "flat transmission penalty, causally tuned)",
     "blk4_trailGShapedFrozen": "Four-block ridge (FROZEN-standardized factor "
@@ -530,6 +548,15 @@ _ESTIMATOR_PEN_ARMS: tuple[str, ...] = (
     for b in _BUCKET_NAMES
 )
 
+# GRID-FREE shrinkage arms — zero tuned hyperparameters, so they carry no
+# tuned_alphas/tuned_grids at all and their exhibit is meta.shrink_profile.
+_SHRINK_ARMS: tuple[str, ...] = (
+    "blk3_js_tuned",
+    "blk3_npeb_tuned",
+    "blk3_js_pcbasis_tuned",
+    "blk3_jsDiag_tuned",
+)
+
 # HALF-DECADE grid-resolution twins. Bookkeeping only — the coarse grid each
 # one refines is read from the chunk's own meta.coarse_grids, never from here.
 _FINE_GRID_ARMS: tuple[str, ...] = (
@@ -595,6 +622,21 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailGShaped_fine", "blk4_trailGShaped"),
     ("blk4_trailGShaped_fine", "blk4_trailG_tuned"),
     ("b1_ridge_tuned_fine", "b1_ridge_tuned"),
+    # GRID-FREE vs SELECTED shrinkage — the campaign's sharpest methodological
+    # comparison. Bare stem = vs blk3_tuned, which is the SAME DESIGN tuned on
+    # a 27-combo grid over a 125-bar tail: the only difference is whether the
+    # shrinkage is estimated or selected. A tie is already the finding.
+    ("blk3_js_tuned", "blk3_tuned"),
+    ("blk3_js_tuned", "blk4_trailG_tuned"),
+    ("blk3_npeb_tuned", "blk3_tuned"),
+    ("blk3_npeb_tuned", "blk4_trailG_tuned"),
+    ("blk3_js_pcbasis_tuned", "blk3_tuned"),
+    ("blk3_js_pcbasis_tuned", "blk4_trailG_tuned"),
+    # the raw-basis diagonal twin: pairing it against the PC-basis arm isolates
+    # the BASIS, and against blk3_js_tuned isolates the decoupling cost
+    ("blk3_jsDiag_tuned", "blk3_tuned"),
+    ("blk3_jsDiag_tuned", "blk3_js_pcbasis_tuned"),
+    ("blk3_jsDiag_tuned", "blk3_js_tuned"),
     # DE-CONFOUNDING the published shaped-vs-levels comparison. The shipped
     # pair (blk4_trailGShaped vs blk4_trailG_tuned) differs in BOTH the penalty
     # shape and the frame width (K=40 vs K=20), and the measured edge is
@@ -2341,6 +2383,111 @@ def main(argv: list[str] | None = None) -> int:
                     ]
                 )
         print(f"single-estimator penalty / endpoint exhibit -> {est_csv}")
+
+    # 4a5. GRID-FREE SHRINKAGE PROFILE (author directive 2026-08-07). The
+    # arms with ZERO tuned hyperparameters persist, per boundary, the
+    # DISTRIBUTION of the shrinkage factors their estimator derived from the
+    # training window. That profile is the exhibit: it shows the shrinkage the
+    # DATA asks for, against the shapes the tuned arms impose. A JS arm emits a
+    # single scalar factor per boundary (constant across the block); the NPEB
+    # arm emits one factor per coefficient, so its deciles are the interesting
+    # object — a flat decile profile would mean the estimated prior is
+    # effectively constant, i.e. ridge in disguise (the negative result these
+    # arms are built to avoid rediscovering).
+    shrink_rows: list[dict] = []
+    for root in args.roots:
+        for _sh_arm in _SHRINK_ARMS:
+            arm_dir = os.path.join(root, _sh_arm)
+            if not os.path.isdir(arm_dir):
+                continue
+            recs: list[dict] = []
+            for fn in sorted(os.listdir(arm_dir)):
+                if not _CHUNK_RE.match(fn):
+                    continue
+                try:
+                    with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                        meta = json.loads(str(z["meta"]))
+                        t_arr = np.asarray(z["t"], dtype="datetime64[ns]")
+                        rid = np.asarray(z["row_id"], dtype=np.int64)
+                except Exception:
+                    continue
+                for rec in meta.get("shrink_profile") or []:
+                    pos = int(np.searchsorted(rid, int(rec.get("row", -1))))
+                    if not 0 <= pos < len(t_arr):
+                        continue
+                    rec = dict(rec)
+                    rec["year"] = int(str(t_arr[pos].astype("datetime64[Y]")))
+                    recs.append(rec)
+            if not recs:
+                continue
+            by_year: dict[int, list[dict]] = {}
+            for rec in recs:
+                by_year.setdefault(rec["year"], []).append(rec)
+            for yr, rs in sorted(by_year.items()):
+                dec = np.mean([r["deciles"] for r in rs], axis=0)
+                shrink_rows.append(
+                    {
+                        "arm": _sh_arm,
+                        "root": labels[root],
+                        "year": yr,
+                        "n_boundaries": len(rs),
+                        "n_coef": int(np.mean([r["n_coef"] for r in rs])),
+                        "mean_factor": float(np.mean([r["mean"] for r in rs])),
+                        "median_factor": float(np.mean([r["median"] for r in rs])),
+                        "frac_below_0p1": float(
+                            np.mean([r["frac_below_0p1"] for r in rs])
+                        ),
+                        "frac_above_0p9": float(
+                            np.mean([r["frac_above_0p9"] for r in rs])
+                        ),
+                        "frac_negative": float(
+                            np.mean([r.get("frac_negative", 0.0) for r in rs])
+                        ),
+                        "mean_sigma2": float(
+                            np.mean([r.get("sigma2", float("nan")) for r in rs])
+                        ),
+                        "n_singular_bars": int(
+                            max(r.get("n_singular_bars", 0) for r in rs)
+                        ),
+                        **{f"d{k + 1}": float(v) for k, v in enumerate(dec)},
+                    }
+                )
+            allf = [r["mean"] for r in recs]
+            print(
+                f"[{labels[root]}] {_sh_arm}: {len(recs)} boundaries, mean "
+                f"shrinkage factor {np.mean(allf):.4f} "
+                f"[{np.min(allf):.4f}, {np.max(allf):.4f}]"
+            )
+    if shrink_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        sh_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "shrinkage_profile.csv"
+        )
+        cols = [
+            "arm",
+            "root",
+            "year",
+            "n_boundaries",
+            "n_coef",
+            "mean_factor",
+            "median_factor",
+            "frac_below_0p1",
+            "frac_above_0p9",
+            "frac_negative",
+            "mean_sigma2",
+            "n_singular_bars",
+        ] + [f"d{k}" for k in range(1, 10)]
+        with open(sh_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(cols)
+            for rec in shrink_rows:
+                w.writerow(
+                    [
+                        rec[c] if isinstance(rec[c], (str, int)) else f"{rec[c]:.6g}"
+                        for c in cols
+                    ]
+                )
+        print(f"grid-free shrinkage-factor profile -> {sh_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.

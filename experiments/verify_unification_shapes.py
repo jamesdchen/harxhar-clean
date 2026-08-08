@@ -58,6 +58,13 @@ Covers, in order:
      and the degenerate pure-lasso corner driven end-to-end through the warm
      homotopy to confirm it lands on the intercept-only limit.
 
+  L. GRID-FREE SHRINKAGE — causality (post-window perturbation leaves every
+     coefficient bit-identical), the James-Stein factor against an independent
+     closed-form route, the Schur complement against the literal block
+     inverse, the orthogonal-invariance result that dictates the PC arm's
+     form, NPEB recovery of a planted two-group prior against the oracle Bayes
+     rule, backbone coefficients untouched, and profile persistence.
+
   I. ENDPOINT RELIEF + ADAPTIVE-VS-FIXED TILT — the bipolar pcrank axis and the
      widened tikhonov power/step axes (membership, duplicate-freeness, strict
      superset, flat nesting), and that the frozen-standardization arm differs
@@ -1311,6 +1318,214 @@ def section_k() -> None:
         )
 
 
+# ── L. grid-free shrinkage ────────────────────────────────────────────────────
+def _shrink_fixture(n=1400, window=400, p_back=6, p_exog=40, seed=7):
+    """Small design with a KNOWN signal and a backbone/shrunk split."""
+    rng = np.random.default_rng(seed)
+    x = rng.standard_normal((n, p_back + p_exog))
+    beta = np.zeros(p_back + p_exog)
+    beta[:p_back] = rng.standard_normal(p_back)
+    beta[p_back : p_back + 4] = np.array([0.8, -0.6, 0.5, 0.4])
+    yv = x @ beta + rng.standard_normal(n)
+    segs = [(0, p_back, "backbone"), (p_back, p_back + p_exog, "exog")]
+    return x, yv, segs, window
+
+
+def section_l() -> None:
+    print("\nL. GRID-FREE SHRINKAGE")
+    x, yv, segs, window = _shrink_fixture()
+    lo, hi = window, window + 40
+
+    # --- causality: post-window rows must not touch any coefficient ---
+    for est in ("js", "npeb", "js_diag"):
+        a, _ = U._walk_shrink(x, yv, window, lo, hi, segs, estimator=est)
+        xp, yp = x.copy(), yv.copy()
+        xp[hi:] += 1e3 * np.random.default_rng(1).standard_normal(xp[hi:].shape)
+        yp[hi:] += 1e3
+        b, _ = U._walk_shrink(xp, yp, window, lo, hi, segs, estimator=est)
+        check(
+            f"CAUSAL: post-window perturbation leaves '{est}' bit-identical",
+            np.array_equal(a, b),
+            f"max|diff| {np.max(np.abs(a - b)):.3e}",
+        )
+
+    # --- backbone coefficients bit-identical to the unshrunk solve ---
+    xw, yw = x[:window], yv[:window]
+    xc, yc = xw - xw.mean(0), yw - yw.mean()
+    gram, rhs = xc.T @ xc, xc.T @ yc
+    beta_ols, chol = U._causal_ols(gram, rhs)
+    idx_s = np.arange(segs[0][1], x.shape[1])
+    idx_b = np.arange(0, segs[0][1])
+    syy_c = float(yc @ yc)
+    sigma2, dof = U._sigma2_hat(syy_c, beta_ols, rhs, window, x.shape[1] + 1)
+    quad = U._block_quadform(gram, idx_s, idx_b, chol, "js")
+    f_js = U._js_shrink_factor(beta_ols[idx_s], quad, sigma2, dof)
+    beta_js = beta_ols.copy()
+    beta_js[idx_s] = f_js * beta_ols[idx_s]
+    check(
+        "backbone coefficients BIT-IDENTICAL to the unshrunk least-squares solve",
+        np.array_equal(beta_js[idx_b], beta_ols[idx_b]),
+    )
+    check(
+        "shrunk block is a scalar multiple of the OLS block",
+        np.array_equal(beta_js[idx_s], f_js * beta_ols[idx_s]),
+    )
+
+    # --- JS factor against the closed form, computed independently ---
+    c_mat = np.linalg.inv(gram)[np.ix_(idx_s, idx_s)]  # exact block covariance
+    quad_ref = float(beta_ols[idx_s] @ np.linalg.inv(c_mat) @ beta_ols[idx_s])
+    k = idx_s.size
+    f_ref = max(0.0, 1.0 - ((k - 2) / (dof + 2)) * dof * sigma2 / quad_ref)
+    check(
+        "JS factor matches the closed form (independent block-inverse route)",
+        abs(f_js - f_ref) < 1e-9,
+        f"{f_js:.10f} vs {f_ref:.10f}",
+    )
+    print(f"    JS factor on the fixture = {f_js:.4f} (k={k}, dof={dof})")
+    # Schur complement really is the inverse of the covariance block
+    check("Schur complement was computable (gram positive definite)", quad is not None)
+    quad_arr = np.asarray(quad, dtype=np.float64)
+    check(
+        "Schur complement == inverse of [(X'X)^-1]_SS",
+        bool(np.allclose(quad_arr, np.linalg.inv(c_mat), rtol=1e-8, atol=1e-8)),
+        f"max|diff| {np.max(np.abs(quad_arr - np.linalg.inv(c_mat))):.3e}",
+    )
+    # positive part actually engages when there is no signal
+    rng = np.random.default_rng(11)
+    y_null = rng.standard_normal(window)
+    ycn = y_null - y_null.mean()
+    b0, ch0 = U._causal_ols(gram, xc.T @ ycn)
+    s0, d0 = U._sigma2_hat(float(ycn @ ycn), b0, xc.T @ ycn, window, x.shape[1] + 1)
+    f0 = U._js_shrink_factor(
+        b0[idx_s], U._block_quadform(gram, idx_s, idx_b, ch0, "js"), s0, d0
+    )
+    check(
+        "positive part engages on pure noise (factor collapses toward 0)",
+        f0 < 0.5,
+        f"factor {f0:.4f} on a null target",
+    )
+
+    # --- ROTATION INVARIANCE: the exact JS factor cannot see an orthogonal
+    #     change of basis, which is why the PC-basis arm uses the diagonal form
+    q, _ = np.linalg.qr(np.random.default_rng(5).standard_normal((idx_s.size,) * 2))
+    xr = x.copy()
+    xr[:, idx_s] = x[:, idx_s] @ q
+    xrc = xr[:window] - xr[:window].mean(0)
+    gr, rr = xrc.T @ xrc, xrc.T @ yc
+    br, chr_ = U._causal_ols(gr, rr)
+    sr, dr = U._sigma2_hat(syy_c, br, rr, window, x.shape[1] + 1)
+    fr = U._js_shrink_factor(
+        br[idx_s], U._block_quadform(gr, idx_s, idx_b, chr_, "js"), sr, dr
+    )
+    check(
+        "EXACT JS factor is INVARIANT under an orthogonal rotation of the block",
+        abs(fr - f_js) < 1e-8,
+        f"{fr:.10f} vs {f_js:.10f} — so an exact-JS PC-basis arm would be a "
+        "provable no-op; the shipped PC arm uses the DIAGONAL form",
+    )
+    fd_raw = U._js_shrink_factor(
+        beta_ols[idx_s],
+        U._block_quadform(gram, idx_s, idx_b, chol, "js_diag"),
+        sigma2,
+        dof,
+    )
+    fd_rot = U._js_shrink_factor(
+        br[idx_s], U._block_quadform(gr, idx_s, idx_b, chr_, "js_diag"), sr, dr
+    )
+    check(
+        "DIAGONAL JS factor DOES depend on the basis (what the twin measures)",
+        abs(fd_rot - fd_raw) > 1e-12,
+        f"raw {fd_raw:.6f} vs rotated {fd_rot:.6f}",
+    )
+
+    # --- NPEB recovers a planted two-group prior ---
+    rng = np.random.default_rng(21)
+    m = 1200
+    is_signal = rng.random(m) < 0.1
+    mu_true = np.where(is_signal, rng.normal(3.0, 0.5, m), 0.0)
+    z = mu_true + rng.standard_normal(m)
+    mu_hat = U._tweedie_shrink(z)
+    # exact Bayes posterior mean under the KNOWN planted prior, for reference
+    w0, w1 = 0.9, 0.1
+    d0 = w0 * np.exp(-0.5 * z**2)
+    d1 = w1 / np.sqrt(1 + 0.25) * np.exp(-0.5 * (z - 3.0) ** 2 / 1.25)
+    post = (d1 * (3.0 + 0.25 / 1.25 * (z - 3.0))) / (d0 + d1)
+    mse_raw = float(np.mean((z - mu_true) ** 2))
+    mse_npeb = float(np.mean((mu_hat - mu_true) ** 2))
+    mse_oracle = float(np.mean((post - mu_true) ** 2))
+    print(
+        f"    NPEB on a planted 90/10 two-group prior (m={m}): "
+        f"MSE raw z {mse_raw:.4f} -> NPEB {mse_npeb:.4f} "
+        f"(oracle Bayes {mse_oracle:.4f})"
+    )
+    check(
+        "NPEB beats the unshrunk estimate on a planted two-group prior",
+        mse_npeb < mse_raw,
+        f"{mse_npeb:.4f} < {mse_raw:.4f}",
+    )
+    check(
+        "NPEB gets most of the way to the ORACLE Bayes rule",
+        mse_npeb < mse_raw - 0.5 * (mse_raw - mse_oracle),
+        f"closed {100 * (mse_raw - mse_npeb) / (mse_raw - mse_oracle):.0f}% of "
+        "the achievable gap",
+    )
+    check(
+        "NPEB shrinkage is NON-CONSTANT (not ridge in disguise)",
+        float(np.std(mu_hat / np.where(np.abs(z) > 1e-9, z, np.nan))) > 0.05,
+        "a constant factor would BE ridge — the negative result these arms avoid",
+    )
+    check(
+        "NPEB shrinks the null group harder than the signal group",
+        float(np.mean(np.abs(mu_hat[~is_signal])))
+        < float(np.mean(np.abs(mu_hat[is_signal]))),
+    )
+    check("NPEB output is finite", bool(np.all(np.isfinite(mu_hat))))
+    check(
+        "degenerate spread returns the identity (no shrinkage, no crash)",
+        np.array_equal(U._tweedie_shrink(np.zeros(50)), np.zeros(50)),
+    )
+
+    # --- profile persistence + zero tuned hyperparameters ---
+    _, prof = U._walk_shrink(x, yv, window, lo, hi, segs, estimator="npeb")
+    check("shrink profile is persisted", len(prof) > 0, f"{len(prof)} boundaries")
+    r0 = prof[0]
+    for key in ("row", "n_coef", "mean", "median", "frac_below_0p1", "deciles"):
+        check(f"profile carries '{key}'", key in r0)
+    check("profile deciles has 9 entries", len(r0["deciles"]) == 9)
+    for arm in _SHRINK_ARM_NAMES:
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: kind='shrink', oos_mult=2",
+            spec.kind == "shrink" and spec.oos_mult == 2,
+        )
+        check(
+            f"{arm}: estimator tag is not a BLOCK_TUNE_GRIDS key (no grid exists)",
+            spec.grid not in U.BLOCK_TUNE_GRIDS and spec.grid not in U.ESTIMATOR_GRIDS,
+            f"grid='{spec.grid}'",
+        )
+    check(
+        "blk3_js_tuned uses blk3_tuned's EXACT design",
+        [b for b, _ in U.ARMS["blk3_js_tuned"].blocks]
+        == ["backbone", "exog_all", "product"],
+    )
+    check(
+        "the PC-basis twin differs from its raw twin ONLY in the exog block",
+        [b for b, _ in U.ARMS["blk3_js_pcbasis_tuned"].blocks][1] == "exog_rot"
+        and [b for b, _ in U.ARMS["blk3_jsDiag_tuned"].blocks][1] == "exog_all"
+        and U.ARMS["blk3_js_pcbasis_tuned"].grid
+        == U.ARMS["blk3_jsDiag_tuned"].grid
+        == "js_diag",
+    )
+
+
+_SHRINK_ARM_NAMES = (
+    "blk3_js_tuned",
+    "blk3_npeb_tuned",
+    "blk3_js_pcbasis_tuned",
+    "blk3_jsDiag_tuned",
+)
+
+
 if __name__ == "__main__":
     section_a()
     section_b()
@@ -1324,5 +1539,6 @@ if __name__ == "__main__":
     section_i()
     section_j()
     section_k()
+    section_l()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

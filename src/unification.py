@@ -1809,6 +1809,358 @@ def _walk_blocks_tuned(
     return out, traj
 
 
+# ── GRID-FREE SHRINKAGE (author directive 2026-08-07) ─────────────────────────
+# THE PRINCIPLE. Every estimator in this campaign allocates shrinkage by a
+# hand-designed structure and then SELECTS its level on a 125-bar validation
+# tail. The diagnostics say that machinery is failing on its own terms: tuned
+# ridge pins its modal alpha at the grid top in 8/8 bucket designs, the elastic
+# net pins 43%, the PCR block 74% bimodally, backbone blocks 53%. These arms
+# replace SELECTION with ESTIMATION. Each fitted coefficient carries its own
+# standard error — beta_hat ~ N(beta, sigma^2 (X'X)^-1) — so the risk-minimizing
+# shrinkage is computable from the TRAINING WINDOW ALONE. No grid, no tail, no
+# tuned hyperparameter of any kind.
+#
+# THE NEGATIVE RESULT WE ARE NOT REDISCOVERING: empirical Bayes with a SINGLE
+# prior variance tau^2 gives shrinkage d_i tau^2 / (d_i tau^2 + sigma^2), which
+# is EXACTLY ridge at lambda = sigma^2/tau^2. A common prior IS the overarching
+# shrinkage we already have. The content is in a NON-CONSTANT prior, ESTIMATED
+# rather than parameterized as a shape — the shape family was already tested
+# (power/exponential/step are interchangeable, and the tilt loses where it is
+# actually applied: DiD z = -4.15).
+#
+# WHY IT MATTERS FOR THE PAPER: if a zero-hyperparameter estimator matches or
+# beats the tuned arms, the whole tuning apparatus — and the endpoint pinning
+# that contaminates it — was unnecessary, and the paper's methodological
+# conclusion turns from cautionary into constructive.
+_SHRINK_PROFILE_DECILES = np.arange(1, 10) / 10.0
+
+
+def _causal_ols(
+    gram: np.ndarray, rhs: np.ndarray
+) -> tuple[np.ndarray, np.ndarray | None]:
+    """(beta, cholesky factor) of the centered window normal equations.
+
+    CONDITIONING FALLBACK, documented because it changes the estimator: the
+    Cholesky is rank-revealing for a PSD gram, so a ``LinAlgError`` IS the
+    near-singularity signal. On failure we drop to the MIN-NORM pseudo-inverse
+    solution — the same path ``_walk_ols`` already takes for the rank-deficient
+    OLS arms — and return ``None`` for the factor, which makes every downstream
+    consumer (the standard errors, the Schur complement) fall back explicitly
+    rather than silently propagate a bad factorization. Fallbacks are counted
+    and persisted in meta, so a run that leaned on this is never mistaken for
+    one that did not.
+    """
+    try:
+        chol = np.linalg.cholesky(gram)
+    except np.linalg.LinAlgError:
+        return np.linalg.pinv(gram) @ rhs, None
+    z = np.linalg.solve(chol, rhs)
+    return np.linalg.solve(chol.T, z), chol
+
+
+def _sigma2_hat(syy_c: float, beta: np.ndarray, rhs: np.ndarray, n: int, p: int):
+    """(sigma^2, residual dof) from the window's own residuals.
+
+    RSS = y_c'y_c - beta'X_c'y_c, exact for the least-squares solution (the
+    normal equations make the cross term collapse), so no residual vector is
+    ever formed — it is read straight off the rolling sufficient statistics.
+
+    DEGREES OF FREEDOM: n - p with p = (number of design columns) + 1, the +1
+    for the intercept absorbed by centering. That is the honest OLS convention;
+    it is NOT reduced further for the shrinkage, because the shrinkage factor
+    is estimated FROM this sigma^2 and using a shrinkage-aware dof here would
+    be circular. With n = 24000 and p ~ 1250 the correction is ~5%, not
+    cosmetic. Guarded to stay positive when a window is degenerate.
+    """
+    dof = max(int(n) - int(p), 1)
+    rss = float(syy_c) - float(beta @ rhs)
+    return max(rss, 0.0) / dof, dof
+
+
+def _js_shrink_factor(
+    beta_s: np.ndarray, quad_form: np.ndarray | None, sigma2: float, dof: int
+) -> float:
+    """POSITIVE-PART JAMES-STEIN factor for the shrunk block.
+
+    THE ESTIMATOR, stated exactly. Write the design as [B | S] (backbone |
+    shrunk). The OLS sub-vector is beta_hat_S ~ N(beta_S, sigma^2 C) with
+    C = [(X'X)^-1]_SS — the block OF THE INVERSE, which is NOT the inverse of
+    the block, and which the Schur complement gives exactly:
+        C^-1 = G_SS - G_SB G_BB^-1 G_BS.
+    Whitening by any R with R R' = C gives gamma = R^-1 beta_hat_S with
+    Cov(gamma) = sigma^2 I_k, i.e. the spherical coordinates JS needs. The
+    positive-part estimator there is
+        gamma_JS = (1 - (k-2) sigma^2 / ||gamma||^2)_+ gamma,
+    and since that is a SCALAR multiple it maps back as beta_JS = f beta_hat_S
+    with the SAME f — the whitening never has to be formed, only the quadratic
+    form ||gamma||^2 = beta_hat_S' C^-1 beta_hat_S, which is the block's Wald
+    statistic. That is what makes this cheap enough to run per bar.
+
+    UNKNOWN-VARIANCE CONVENTION: sigma^2 is estimated, not known, so the
+    classical correction for S ~ sigma^2 chi^2_m applies —
+        f = (1 - [(k-2)/(m+2)] * m * sigma2_hat / ||gamma||^2)_+
+    with m the residual dof. At m ~ 22750 the factor m/(m+2) is 0.99991, so
+    this changes nothing numerically; it is implemented because the estimator
+    with estimated variance IS this one, and a reader checking the algebra
+    should find the textbook form rather than a convenient approximation.
+
+    Returns 1.0 (no shrinkage) when the block is too small for a JS guarantee
+    (k <= 2), when the quadratic form is unavailable (singular gram), or when
+    it is non-positive.
+    """
+    k = int(beta_s.size)
+    if k <= 2 or quad_form is None:
+        return 1.0
+    quad = float(beta_s @ quad_form @ beta_s)
+    if not np.isfinite(quad) or quad <= 0.0:
+        return 1.0
+    m = float(dof)
+    return max(0.0, 1.0 - ((k - 2) / (m + 2)) * m * sigma2 / quad)
+
+
+def _tweedie_shrink(z: np.ndarray) -> np.ndarray:
+    """NONPARAMETRIC EMPIRICAL BAYES posterior means via Tweedie's formula.
+
+    For z_i | mu_i ~ N(mu_i, 1) with marginal density f, Tweedie gives the
+    posterior mean in closed form, WITHOUT ever parameterizing the prior:
+        E[mu | z] = z + d/dz log f(z).
+    Standardizing each coefficient by its own standard error is what makes the
+    unit-variance assumption hold BY CONSTRUCTION, so the estimator is applied
+    in exactly the setting it is derived for.
+
+    WHY THIS AND NOT A PARAMETRIC MIXTURE: the whole point is a prior the DATA
+    chooses. A two-group or spike-and-slab prior would reintroduce exactly the
+    hand-designed structure these arms exist to remove.
+
+    IMPLEMENTATION, chosen for numerical robustness at this dimension (~1200
+    coefficients per window):
+      * f and f' come from a Gaussian KDE evaluated ANALYTICALLY, never by
+        finite differences. Both are smooth sums over the sample, so
+        f'/f is a weighted average of -(z - z_j)/h^2 and is therefore BOUNDED
+        by max_j |z - z_j| / h^2 — no tail blow-up of the kind that makes naive
+        density-ratio estimates unusable.
+      * f is evaluated AT THE SAMPLE POINTS, so every f(z_i) >= phi(0)/(n h) is
+        strictly positive by construction and the ratio can never divide by
+        zero. This is the reason to evaluate on-sample rather than on a grid.
+      * bandwidth by Silverman's rule, h = 0.9 min(sd, IQR/1.34) n^(-1/5). This
+        is a DETERMINISTIC function of the data, not a tuned hyperparameter:
+        nothing is selected, nothing is validated. Degenerate spread (h <= 0)
+        returns the identity, i.e. no shrinkage.
+
+    DOCUMENTED APPROXIMATION: Tweedie treats the z_i as a sample from one
+    marginal, i.e. as independent. The coefficients are NOT independent — the
+    rolling gram is not diagonal — so the estimated marginal is the empirical
+    distribution of correlated draws. This is the standard NPEB compromise at
+    this dimension and it is why the PC-basis twin exists: rotating toward the
+    frame's eigenbasis is what makes the independence assumption least wrong.
+
+    NO CLIPPING. Tweedie can return |E[mu|z]| > |z| where the estimated
+    marginal is multimodal; that is a legitimate posterior mean under a
+    multimodal prior, not an error, and clipping it would be exactly the kind
+    of ad-hoc bound this campaign refuses. The full factor distribution is
+    persisted per boundary so any pathology is visible rather than hidden.
+
+    Returns the posterior means (same shape as z).
+    """
+    n = z.size
+    if n < 2:
+        return z.copy()
+    sd = float(np.std(z, ddof=1))
+    q75, q25 = np.percentile(z, [75, 25])
+    spread = min(sd, float(q75 - q25) / 1.34) if q75 > q25 else sd
+    h = 0.9 * spread * n ** (-0.2)
+    if not np.isfinite(h) or h <= 0.0:
+        return z.copy()
+    u = (z[:, None] - z[None, :]) / h  # (n, n) standardized pair distances
+    k = np.exp(-0.5 * u * u)
+    dens = k.sum(1)  # proportional to f(z_i); constants cancel in f'/f
+    dscore = -(k * u).sum(1) / h  # proportional to f'(z_i), same constant
+    return z + dscore / dens
+
+
+def _shrink_profile(factors: np.ndarray, row: int, extra: dict) -> dict:
+    """One persisted row of the shrinkage-factor exhibit — the paper's picture
+    of the shrinkage the DATA asks for, against the shapes we imposed."""
+    f = np.asarray(factors, dtype=np.float64)
+    rec = {
+        "row": int(row),
+        "n_coef": int(f.size),
+        "mean": float(np.mean(f)),
+        "median": float(np.median(f)),
+        "frac_below_0p1": float(np.mean(f < 0.1)),
+        "frac_above_0p9": float(np.mean(f > 0.9)),
+        "frac_negative": float(np.mean(f < 0.0)),
+        "deciles": [float(v) for v in np.quantile(f, _SHRINK_PROFILE_DECILES)],
+    }
+    rec.update(extra)
+    return rec
+
+
+def _walk_shrink(
+    F: np.ndarray,
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    segments: list[tuple[int, int, str]],
+    estimator: str,
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    """Per-bar-refit walk-forward with GRID-FREE, ESTIMATED shrinkage.
+
+    No grid, no validation tail, no tuned hyperparameter — the shrinkage is a
+    function of the training window's own sufficient statistics. The backbone
+    block (HAR ladder + session interactions + calendar) is left UNSHRUNK and
+    its coefficients are bit-identical to the plain least-squares solve: JS's
+    risk guarantee is a statement about the shrunk block, and the backbone is
+    the incumbent's own audited basis, not something this estimator is entitled
+    to touch.
+
+    ``estimator``:
+      "js"      positive-part James-Stein, EXACT block covariance via the
+                Schur complement (see _js_shrink_factor).
+      "js_diag" the same, but whitening by the DIAGONAL of the block covariance
+                only — i.e. pretending the coefficients decouple. Exact iff the
+                gram is diagonal; the gap to "js" measures what the decoupling
+                costs in a given basis.
+      "npeb"    per-coefficient Tweedie posterior means (see _tweedie_shrink).
+
+    CAUSALITY: every quantity — gram, rhs, y'y, sigma^2, the factor — is built
+    from rows strictly inside [t-window, t). Row t enters only through the
+    prediction, and only after the coefficients are fixed. Asserted end-to-end
+    in the verify script by perturbing post-window rows and requiring
+    bit-identical coefficients.
+    """
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    p_ = Xs.shape[1]
+    # the backbone block is the one carrying the "backbone" alpha key; every
+    # other column belongs to the shrunk set
+    shrink_mask = np.ones(p_, dtype=bool)
+    for s0, s1, key in segments:
+        if key == "backbone":
+            shrink_mask[s0:s1] = False
+    idx_s = np.where(shrink_mask)[0]
+    idx_b = np.where(~shrink_mask)[0]
+    if idx_s.size == 0:
+        raise SystemExit("grid-free shrinkage: empty shrink block")
+
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    solver.init_window(Xs[:window], ys[:window])
+    syy = float(ys[:window] @ ys[:window])  # rolled alongside; RLS omits it
+    out = np.empty(hi - lo, dtype=np.float64)
+    profile: list[dict[str, Any]] = []
+    n_singular = 0
+    n = float(window)
+    for i in range(hi - lo):
+        t = window + i
+        gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
+        rhs = solver._Sxy - solver._sx * (solver._sy / n)
+        syy_c = syy - (solver._sy * solver._sy) / n
+        beta, chol = _causal_ols(gram, rhs)
+        if chol is None:
+            n_singular += 1
+        sigma2, dof = _sigma2_hat(syy_c, beta, rhs, int(n), p_ + 1)
+        beta_s = beta[idx_s]
+
+        if estimator == "npeb":
+            se = _block_std_errors(chol, idx_s, sigma2, gram)
+            good = np.isfinite(se) & (se > 0.0)
+            new_s = beta_s.copy()
+            fac = np.ones(idx_s.size)
+            if good.any():
+                z = beta_s[good] / se[good]
+                mu = _tweedie_shrink(z)
+                new_s[good] = mu * se[good]
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    f_all = np.where(np.abs(z) > 0.0, mu / z, 1.0)
+                fac[good] = np.where(np.isfinite(f_all), f_all, 1.0)
+            beta = beta.copy()
+            beta[idx_s] = new_s
+            factors, extra = fac, {"sigma2": sigma2}
+        else:
+            quad = _block_quadform(gram, idx_s, idx_b, chol, estimator)
+            f = _js_shrink_factor(beta_s, quad, sigma2, dof)
+            beta = beta.copy()
+            beta[idx_s] = f * beta_s
+            factors = np.full(idx_s.size, f)
+            extra = {"sigma2": sigma2, "js_factor": float(f)}
+
+        intercept = solver._sy / n - float(solver._sx @ beta) / n
+        out[i] = float(Xs[t] @ beta + intercept)
+        if i % TUNE_PER == 0:
+            # same cadence as the tuned arms' retune boundaries, so the exhibit
+            # is directly comparable to their trajectories
+            profile.append(_shrink_profile(factors, lo + i, extra))
+        y_in, y_out = ys[t], ys[t - window]
+        syy += float(y_in) * float(y_in) - float(y_out) * float(y_out)
+        solver.roll(Xs[t], y_in, Xs[t - window], y_out)
+    if n_singular:
+        print(
+            f"[grid-free shrinkage] min-norm fallback on {n_singular} of "
+            f"{hi - lo} bars (gram not positive definite)"
+        )
+    for rec in profile:
+        rec["n_singular_bars"] = n_singular
+    return out, profile
+
+
+def _block_quadform(
+    gram: np.ndarray,
+    idx_s: np.ndarray,
+    idx_b: np.ndarray,
+    chol: np.ndarray | None,
+    estimator: str,
+) -> np.ndarray | None:
+    """C^-1 for the shrunk block, C = [(X'X)^-1]_SS.
+
+    EXACT ("js"): the Schur complement C^-1 = G_SS - G_SB G_BB^-1 G_BS. Cheap
+    because the backbone block is small (~52 columns), so this adds a few
+    percent to the per-bar cost rather than another O(p^3).
+
+    DIAGONAL ("js_diag"): 1/diag(C), i.e. the coefficients treated as
+    decoupled. NOT equal to diag(C^-1) — that distinction is the whole point of
+    the twin, since the two coincide only when the gram is diagonal.
+    """
+    if chol is None:
+        return None
+    if estimator == "js_diag":
+        var = _block_std_errors(chol, idx_s, 1.0, gram) ** 2  # diag(C)
+        if not np.all(np.isfinite(var)) or np.any(var <= 0.0):
+            return None
+        return np.diag(1.0 / var)
+    g_ss = gram[np.ix_(idx_s, idx_s)]
+    if idx_b.size == 0:
+        return g_ss
+    g_bb = gram[np.ix_(idx_b, idx_b)]
+    g_bs = gram[np.ix_(idx_b, idx_s)]
+    try:
+        return g_ss - g_bs.T @ np.linalg.solve(g_bb, g_bs)
+    except np.linalg.LinAlgError:
+        return None
+
+
+def _block_std_errors(
+    chol: np.ndarray | None, idx_s: np.ndarray, sigma2: float, gram: np.ndarray
+) -> np.ndarray:
+    """Per-coefficient standard errors sigma * sqrt([(X'X)^-1]_ii) for the
+    shrunk block, from the Cholesky factor without forming the full inverse.
+
+    (X'X)^-1 = L^-T L^-1, so [(X'X)^-1]_ii = ||L^-1 e_i||^2 — one triangular
+    solve against the selected unit columns, O(p^2 k) instead of an O(p^3)
+    inverse. This is the ONLY place the arms need a second factorization-scale
+    operation, and it is why the NPEB arm costs roughly twice a plain solve.
+    """
+    if chol is None:
+        return np.full(idx_s.size, np.nan)
+    from scipy.linalg import solve_triangular
+
+    e = np.zeros((chol.shape[0], idx_s.size))
+    e[idx_s, np.arange(idx_s.size)] = 1.0
+    zcol = solve_triangular(chol, e, lower=True)
+    var = sigma2 * np.einsum("ij,ij->j", zcol, zcol)
+    return np.sqrt(np.maximum(var, 0.0))
+
+
 def _dedup_ols_design(
     F: np.ndarray, col_names: list[str]
 ) -> tuple[np.ndarray, list[str], list[str]]:
@@ -2985,6 +3337,87 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # GRID-FREE SHRINKAGE (author directive 2026-08-07). Three estimators with
+    # ZERO tuned hyperparameters, on blk3_tuned's exact design, so the bare-stem
+    # increment against blk3_tuned asks the campaign's sharpest methodological
+    # question: does shrinkage ESTIMATED from the training window beat shrinkage
+    # SELECTED on a 125-bar tail? See the block comment above _causal_ols for
+    # the principle, the single-prior negative result these deliberately avoid,
+    # and why a positive answer makes the paper's conclusion constructive.
+    # No grid => no tuning machinery at all; meta.tuned_alphas / tuned_grids
+    # stay EMPTY for these arms by construction (the shape summary skips arms
+    # with no descriptors, so nothing downstream sees a malformed entry), and
+    # the exhibit rides in meta.shrink_profile instead.
+    "blk3_js_tuned": ArmSpec(
+        describe="grid-free shrinkage: three-block design with POSITIVE-PART "
+        "JAMES-STEIN shrinkage of the exog+product coefficients (exact block "
+        "covariance via the Schur complement, backbone unshrunk), NO tuned "
+        "hyperparameters",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="js",
+        oos_mult=2,
+    ),
+    "blk3_npeb_tuned": ArmSpec(
+        describe="grid-free shrinkage: three-block design with NONPARAMETRIC "
+        "EMPIRICAL BAYES per-coefficient shrinkage (Tweedie's formula on a "
+        "Gaussian-KDE marginal of the standardized coefficients, backbone "
+        "unshrunk), NO tuned hyperparameters",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="npeb",
+        oos_mult=2,
+    ),
+    # PC-BASIS twin. IMPORTANT ALGEBRAIC FINDING, recorded here because it
+    # changes what this arm can possibly measure: the EXACT James-Stein factor
+    # is INVARIANT under any orthogonal rotation of the shrunk block. It
+    # depends on the data only through beta_S' C^-1 beta_S, and under
+    # beta -> A beta, C -> A C A' with A orthogonal that quadratic form is
+    # unchanged. So "blk3_js in the PC basis" with the exact covariance would
+    # be a BIT-IDENTICAL DUPLICATE of blk3_js_tuned — 100 chunks of cluster
+    # time for a provable no-op. (The synthetic asserts the invariance rather
+    # than asserting a difference that cannot exist.)
+    # What DOES depend on the basis is the DECOUPLING APPROXIMATION: whitening
+    # by the diagonal of the block covariance alone is exact only when the gram
+    # is diagonal, and rotating into the frozen frame is precisely what makes
+    # it nearly so. So this arm is diagonal-whitened JS in the PC basis, and
+    # blk3_jsDiag_tuned below is its raw-basis twin. The pair isolates the
+    # basis; each against blk3_js_tuned measures what the decoupling costs.
+    "blk3_js_pcbasis_tuned": ArmSpec(
+        describe="grid-free shrinkage in the PC basis: exogenous block rotated "
+        "into the frozen base-feature eigenbasis, then DIAGONAL-whitened "
+        "positive-part James-Stein (the decoupling is closest to exact there), "
+        "NO tuned hyperparameters",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_rot", "exog"),
+            ("product", "product"),
+        ],
+        grid="js_diag",
+        oos_mult=2,
+    ),
+    "blk3_jsDiag_tuned": ArmSpec(
+        describe="raw-basis control for the PC-basis shrinkage arm: identical "
+        "diagonal-whitened positive-part James-Stein WITHOUT the rotation, so "
+        "the pair isolates the basis; NO tuned hyperparameters",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="js_diag",
+        oos_mult=2,
+    ),
     # DE-CONFOUNDING CONTROL (author directive 2026-08-07). THIS ARM EXISTS TO
     # FIX A PUBLISHED COMPARISON, not to win.
     #
@@ -3540,6 +3973,7 @@ def compute(args: argparse.Namespace) -> None:
     tuned_grids: dict[str, list[Any]] = {}
     coarse_grids: dict[str, list[Any]] = {}
     tuned_penalty: list[dict[str, Any]] = []
+    shrink_profile: list[dict[str, Any]] = []
     tree_cfg: dict[str, Any] = {}
     if spec.kind == "ols":
         # Min-norm path (2026-08-07): panel bitwise dedup stays (hygiene); the
@@ -3589,6 +4023,14 @@ def compute(args: argparse.Namespace) -> None:
             hi,
             selection="cyclic" if spec.grid == "cyclic" else "cartesian",
             sweep_order=sweep,
+        )
+    elif spec.kind == "shrink":
+        # GRID-FREE: no BLOCK_TUNE_GRIDS lookup, no tuner, no validation tail.
+        # The block keys are carried only to mark which columns are the
+        # backbone (left unshrunk); no penalty is ever read from them.
+        F, segments = _tuned_blocks_design(p, spec, window)
+        yhat, shrink_profile = _walk_shrink(
+            F, p.y, window, lo, hi, segments, estimator=spec.grid
         )
     elif spec.kind == "tree":
         menu = _load_tree_menu()  # LOUD failure when the frozen menu is absent
@@ -3720,6 +4162,11 @@ def compute(args: argparse.Namespace) -> None:
                 # executor (a grid whose optimum sits at an endpoint is not a
                 # valid selection)
                 "tuned_grids": tuned_grids,
+                # GRID-FREE arms only: the per-boundary distribution of the
+                # ESTIMATED shrinkage factors. Empty for every other arm. This
+                # is the exhibit — the shrinkage the DATA asks for, against the
+                # shapes the tuned arms impose.
+                "shrink_profile": shrink_profile,
                 # HALF-DECADE arms only: the COARSE grid each fine grid
                 # refines, so the scorer can report what fraction of retunes
                 # land on an INTERSTITIAL point — the number that separates
