@@ -1,0 +1,33 @@
+#!/bin/bash
+#$ -N unifs
+#$ -cwd
+#$ -l h_data=18G,h_rt=6:00:00
+#$ -t 1-100
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Unification campaign task, SERIAL variant: one (arm, chunk), one core.
+#
+# Why no parallel environment: the linear arms are single-threaded numpy
+# (rank-one rolling updates + one dense solve per bar). Requesting `-pe
+# shared 4` made these queue for slots they never use; a 1-core request
+# schedules against a far larger pool. BLAS threading is pinned to 1 so a
+# task cannot oversubscribe the core it was granted. (pyarrow's parquet
+# reader keeps its own thread pool during the panel build and ignores
+# those variables; measured CPU/wall is ~2.4 there, ~1.0 afterwards.)
+#
+# h_data=18G is sized from measurement, not guessed: peak maxvmem across
+# running tasks is 15.8G. Memory per slot governs how many tasks pack
+# onto a node, so an over-generous reservation costs concurrency
+# directly — a 24G request held us at ~69 concurrent tasks.
+#
+# Submit with:  qsub -N unif_<arm> -v ARM=<arm> jobs/sge/unification_serial.sge
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+# Idempotent resume: a chunk that already produced its npz is done.
+OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" $((SGE_TASK_ID - 1)))
+[ -f "$OUT" ] && { echo "SKIP existing $OUT"; exit 0; }
+$PY experiments/run_unification.py --arm "$ARM" --chunk-index "$((SGE_TASK_ID - 1))" \
+    --output-dir results/unification
