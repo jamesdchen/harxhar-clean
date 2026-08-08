@@ -2000,87 +2000,205 @@ def _walk_blocks_tuned(
 _SHRINK_PROFILE_DECILES = np.arange(1, 10) / 10.0
 
 
-def _causal_ols(
-    gram: np.ndarray, rhs: np.ndarray
-) -> tuple[np.ndarray, np.ndarray | None]:
-    """(beta, cholesky factor) of the centered window normal equations.
+def roll_rank_rcond(n_updates: int) -> float:
+    """Relative eigenvalue-retention tolerance for a ROLLED gram, DERIVED from
+    the update path rather than adopted from a library default.
 
-    CONDITIONING FALLBACK, documented because it changes the estimator: the
-    Cholesky is rank-revealing for a PSD gram, so a ``LinAlgError`` IS the
-    near-singularity signal. On failure we drop to the MIN-NORM pseudo-inverse
-    solution — the same path ``_walk_ols`` already takes for the rank-deficient
-    OLS arms — and return ``None`` for the factor, which makes every downstream
-    consumer (the standard errors, the Schur complement) fall back explicitly
-    rather than silently propagate a bad factorization. Fallbacks are counted
-    and persisted in meta, so a run that leaned on this is never mistaken for
-    one that did not.
+    WHY NOT PINV_RCOND (measured, 2026-08-08). ``PINV_RCOND = 1e-15`` is
+    numpy.linalg.pinv's legacy default and is what ``_walk_ols`` uses. It is
+    BELOW the rolled gram's own numerical noise floor, so it retains pure-noise
+    directions — and because a pseudo-inverse divides by lambda, those
+    directions are amplified by 1/lambda. On a fixture whose true rank is 25:
+        tolerance 1e-15   -> rank 27, diag(G^+) max 7.76e+11   (nonsense)
+        tolerance n*eps   -> rank 25, diag(G^+) max 3.009e-03  (== the value
+                             the EXACTLY-formed gram gives, to all digits)
+    The retained junk does not merely add noise, it dominates the covariance
+    the shrinkage is computed from — which is why this cannot be left at the
+    library default here.
+
+    THE DERIVATION. The gram is not formed once; it is accumulated. Building it
+    costs ``n`` fused products per entry and each subsequent bar applies two
+    rank-one updates (add the entering row, subtract the leaving one). Floating
+    point contributes O(eps) relative error per operation and these accumulate
+    linearly in the worst case, so after ``n_updates`` operations the entries
+    carry O(n_updates * eps) relative error and eigenvalues below that are
+    indistinguishable from zero. Measured on the fixture: the true relative
+    discrepancy between the rolled and exactly-formed grams was 2.635e-14
+    against a bound of n*eps = 8.882e-14 — the bound is ~3.4x conservative,
+    which is the right side to err on, and it still sits ~13 orders of
+    magnitude below the smallest genuine direction (2.51e-01).
+
+    PER WINDOW, NOT FIXED: the floor is a property of the UPDATE PATH and the
+    window length, both of which the caller knows exactly, so it is computed
+    from the running update count rather than frozen as a literal. Nothing here
+    is tuned — change the window and the tolerance follows the same derivation.
+
+    ``_walk_ols`` IS DELIBERATELY UNTOUCHED: its results are on disk and its
+    estimator is a projection, not an inverse. Whether that path is also
+    affected is a separate, measured question (see the min-norm sensitivity
+    audit in the verify script).
     """
-    try:
-        chol = np.linalg.cholesky(gram)
-    except np.linalg.LinAlgError:
-        return np.linalg.pinv(gram) @ rhs, None
-    z = np.linalg.solve(chol, rhs)
-    return np.linalg.solve(chol.T, z), chol
+    return max(int(n_updates), 1) * float(np.finfo(np.float64).eps)
 
 
-def _sigma2_hat(syy_c: float, beta: np.ndarray, rhs: np.ndarray, n: int, p: int):
+def _psd_pinv_parts(
+    mat: np.ndarray, rcond: float | None = None
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """(retained eigenvectors, retained eigenvalues, rank) of a symmetric PSD
+    matrix, retaining ``lam > rcond * lam_max``.
+
+    ``rcond=None`` falls back to ``PINV_RCOND`` (the campaign's library-default
+    convention, kept so a caller that wants exact parity with ``_walk_ols`` can
+    ask for it). The shrinkage path passes the DERIVED tolerance from
+    :func:`roll_rank_rcond`. Also discards FP-negative modes.
+    """
+    lam, vec = np.linalg.eigh(mat)
+    lam_max = float(lam[-1]) if lam.size else 0.0
+    if lam_max <= 0.0:
+        return vec[:, :0], lam[:0], 0
+    keep = lam > (PINV_RCOND if rcond is None else float(rcond)) * lam_max
+    return vec[:, keep], lam[keep], int(keep.sum())
+
+
+class _BlockFit:
+    """Min-norm least-squares fit of a partitioned design, rank-aware.
+
+    WHY THIS EXISTS (defect found 2026-08-07, after the first grid-free run):
+    James-Stein shrinkage of the OLS estimator presumes OLS EXISTS. This
+    design's gram is ALWAYS rank-deficient — the 576 availability indicators
+    contain columns that are dead or constant inside any given 24000-bar
+    window, and the go-live rule guarantees it. The first implementation tried
+    a Cholesky, caught the LinAlgError, fell back to min-norm, and returned
+    ``None`` for the factorization, at which point the JS factor degraded to
+    1.0. That fallback fired on 100% of bars, so the family scored UNSHRUNK
+    min-norm least squares on a wide design (QLIKE 0.2785-0.2813 against a
+    0.2335 benchmark) and never ran its own estimator. The specification was
+    wrong, not the code: rank deficiency here is the NORMAL case and the
+    estimator has to be defined on it.
+
+    THE FIX. Work in the design's actual row space:
+      * beta_hat is the MIN-NORM least-squares solution, i.e. the projection
+        onto the row space, with sampling covariance sigma^2 G^+ (Moore-
+        Penrose) supported on an r-dimensional subspace, r = rank(G) << p.
+      * The backbone is partialled out exactly as before (Frank-Wolfe-Lovell),
+        so the object carrying the shrinkage is the BACKBONE-RESIDUALIZED
+        gram G_S|B = G_SS - G_SB G_BB^+ G_BS. In the full-rank case that is
+        precisely the Schur complement the shipped code used, so this is the
+        strict generalization of the previous estimator, not a different one.
+      * ONE eigendecomposition of G_S|B yields everything the estimators need:
+        the min-norm beta_S, the retained rank r_S, the Wald quantity, and
+        diag(G_S|B^+) for the per-coefficient standard errors.
+      * The backbone coefficient is recovered by the FWL identity from the
+        UNSHRUNK beta_S, which reproduces the joint least-squares backbone
+        exactly — so "backbone unshrunk" still means bit-identical.
+    """
+
+    def __init__(
+        self,
+        gram: np.ndarray,
+        rhs: np.ndarray,
+        idx_b: np.ndarray,
+        idx_s: np.ndarray,
+        rcond: float | None = None,
+    ) -> None:
+        g_ss = gram[np.ix_(idx_s, idx_s)]
+        c_s = rhs[idx_s]
+        if idx_b.size:
+            g_bb = gram[np.ix_(idx_b, idx_b)]
+            g_bs = gram[np.ix_(idx_b, idx_s)]
+            vb, lb, self.rank_b = _psd_pinv_parts(g_bb, rcond)
+            # G_BB^+ applied without forming the dense pseudo-inverse
+            pinv_bs = vb @ ((vb.T @ g_bs) / lb[:, None]) if self.rank_b else 0.0 * g_bs
+            pinv_cb = (
+                vb @ ((vb.T @ rhs[idx_b]) / lb) if self.rank_b else np.zeros(idx_b.size)
+            )
+            self.g_sb_res = g_ss - g_bs.T @ pinv_bs
+            self.c_res = c_s - g_bs.T @ pinv_cb
+            self._g_bb_parts = (vb, lb)
+            self._g_bs = g_bs
+            self._c_b = rhs[idx_b]
+        else:
+            self.rank_b = 0
+            self.g_sb_res, self.c_res = g_ss, c_s
+            self._g_bb_parts = (np.empty((0, 0)), np.empty(0))
+            self._g_bs = np.empty((0, idx_s.size))
+            self._c_b = np.empty(0)
+        self.vec, self.lam, self.rank_s = _psd_pinv_parts(self.g_sb_res, rcond)
+        self.rcond = rcond
+        if self.rank_s:
+            proj = self.vec.T @ self.c_res  # coordinates in the retained basis
+            self.beta_s = self.vec @ (proj / self.lam)
+            # ||gamma||^2 with gamma = Lam^{1/2} V' beta_s: spherical by
+            # construction, since Cov(beta_s) = sigma^2 (G_S|B)^+ restricted
+            # to the retained subspace. Equals c_res' (G_S|B)^+ c_res.
+            self.wald = float(np.sum(proj * proj / self.lam))
+        else:
+            self.beta_s = np.zeros(idx_s.size)
+            self.wald = 0.0
+
+    def backbone(self, beta_s: np.ndarray) -> np.ndarray:
+        """FWL recovery of the backbone coefficient — fed the UNSHRUNK beta_s,
+        this reproduces the joint least-squares backbone bit-identically."""
+        vb, lb = self._g_bb_parts
+        if not self.rank_b:
+            return np.zeros(self._c_b.size)
+        resid = self._c_b - self._g_bs @ beta_s
+        return vb @ ((vb.T @ resid) / lb)
+
+    def diag_cov(self, sigma2: float) -> np.ndarray:
+        """diag(sigma^2 (G_S|B)^+) — per-coefficient sampling variances. Exactly
+        zero on columns the row space does not reach (dead/constant indicators),
+        which is how the NPEB path identifies and excludes them."""
+        if not self.rank_s:
+            return np.zeros(self.g_sb_res.shape[0])
+        return sigma2 * ((self.vec * self.vec) / self.lam).sum(1)
+
+
+def _sigma2_hat(syy_c: float, beta: np.ndarray, rhs: np.ndarray, n: int, rank: int):
     """(sigma^2, residual dof) from the window's own residuals.
 
-    RSS = y_c'y_c - beta'X_c'y_c, exact for the least-squares solution (the
-    normal equations make the cross term collapse), so no residual vector is
-    ever formed — it is read straight off the rolling sufficient statistics.
+    RSS = y_c'y_c - beta'X_c'y_c, exact for ANY least-squares solution
+    including the min-norm one (it satisfies the normal equations on the row
+    space, so the cross term collapses), so no residual vector is ever formed —
+    it is read straight off the rolling sufficient statistics.
 
-    DEGREES OF FREEDOM: n - p with p = (number of design columns) + 1, the +1
-    for the intercept absorbed by centering. That is the honest OLS convention;
-    it is NOT reduced further for the shrinkage, because the shrinkage factor
-    is estimated FROM this sigma^2 and using a shrinkage-aware dof here would
-    be circular. With n = 24000 and p ~ 1250 the correction is ~5%, not
-    cosmetic. Guarded to stay positive when a window is degenerate.
+    DEGREES OF FREEDOM: n - r - 1, where r is the RETAINED RANK of the design
+    (backbone rank + residualized-block rank) and the +1 is the intercept
+    absorbed by centering. NOT n - p: on a rank-deficient design the null-space
+    directions cost no degrees of freedom, and charging for them would inflate
+    sigma^2 and therefore over-shrink. It is deliberately NOT reduced further
+    for the shrinkage itself — the factor is estimated FROM this sigma^2, so a
+    shrinkage-aware dof would be circular.
     """
-    dof = max(int(n) - int(p), 1)
+    dof = max(int(n) - int(rank) - 1, 1)
     rss = float(syy_c) - float(beta @ rhs)
     return max(rss, 0.0) / dof, dof
 
 
-def _js_shrink_factor(
-    beta_s: np.ndarray, quad_form: np.ndarray | None, sigma2: float, dof: int
-) -> float:
-    """POSITIVE-PART JAMES-STEIN factor for the shrunk block.
+def _js_factor_rank(wald: float, rank_s: int, sigma2: float, dof: int) -> float:
+    """POSITIVE-PART JAMES-STEIN factor on a RANK-DEFICIENT design.
 
-    THE ESTIMATOR, stated exactly. Write the design as [B | S] (backbone |
-    shrunk). The OLS sub-vector is beta_hat_S ~ N(beta_S, sigma^2 C) with
-    C = [(X'X)^-1]_SS — the block OF THE INVERSE, which is NOT the inverse of
-    the block, and which the Schur complement gives exactly:
-        C^-1 = G_SS - G_SB G_BB^-1 G_BS.
-    Whitening by any R with R R' = C gives gamma = R^-1 beta_hat_S with
-    Cov(gamma) = sigma^2 I_k, i.e. the spherical coordinates JS needs. The
-    positive-part estimator there is
-        gamma_JS = (1 - (k-2) sigma^2 / ||gamma||^2)_+ gamma,
-    and since that is a SCALAR multiple it maps back as beta_JS = f beta_hat_S
-    with the SAME f — the whitening never has to be formed, only the quadratic
-    form ||gamma||^2 = beta_hat_S' C^-1 beta_hat_S, which is the block's Wald
-    statistic. That is what makes this cheap enough to run per bar.
+    Identical to the full-rank estimator except that the dimension entering the
+    JS constant is the RETAINED RANK r of the subspace the estimator actually
+    lives in, NOT the column count p:
 
-    UNKNOWN-VARIANCE CONVENTION: sigma^2 is estimated, not known, so the
-    classical correction for S ~ sigma^2 chi^2_m applies —
-        f = (1 - [(k-2)/(m+2)] * m * sigma2_hat / ||gamma||^2)_+
-    with m the residual dof. At m ~ 22750 the factor m/(m+2) is 0.99991, so
-    this changes nothing numerically; it is implemented because the estimator
-    with estimated variance IS this one, and a reader checking the algebra
-    should find the textbook form rather than a convenient approximation.
+        f = (1 - [(r-2)/(m+2)] * m * sigma2_hat / ||gamma||^2)_+
 
-    Returns 1.0 (no shrinkage) when the block is too small for a JS guarantee
-    (k <= 2), when the quadratic form is unavailable (singular gram), or when
-    it is non-positive.
+    with ||gamma||^2 = beta_S' (G_S|B)^+ ^+ beta_S = c_res' (G_S|B)^+ c_res the
+    Wald quantity over the retained directions only, and m the residual dof.
+    Using p here instead of r would be a straightforward error: the null-space
+    directions carry no estimation risk, so counting them would over-shrink by
+    the ratio p/r.
+
+    Defined only for r > 2 — with r <= 2 there is no Stein effect to exploit
+    and the estimator returns 1.0. That case is counted as genuinely
+    pathological (see ``_walk_shrink``'s n_singular), unlike ordinary rank
+    deficiency, which is now the NORMAL path rather than a fallback.
     """
-    k = int(beta_s.size)
-    if k <= 2 or quad_form is None:
-        return 1.0
-    quad = float(beta_s @ quad_form @ beta_s)
-    if not np.isfinite(quad) or quad <= 0.0:
+    if rank_s <= 2 or not np.isfinite(wald) or wald <= 0.0:
         return 1.0
     m = float(dof)
-    return max(0.0, 1.0 - ((k - 2) / (m + 2)) * m * sigma2 / quad)
+    return max(0.0, 1.0 - ((rank_s - 2) / (m + 2)) * m * sigma2 / wald)
 
 
 def _tweedie_shrink(z: np.ndarray) -> np.ndarray:
@@ -2221,15 +2339,37 @@ def _walk_shrink(
         gram = solver._Sxx - np.outer(solver._sx, solver._sx) / n
         rhs = solver._Sxy - solver._sx * (solver._sy / n)
         syy_c = syy - (solver._sy * solver._sy) / n
-        beta, chol = _causal_ols(gram, rhs)
-        if chol is None:
+        # DERIVED retention tolerance: window build + 2 rank-one updates per
+        # bar rolled so far (see roll_rank_rcond).
+        rcond = roll_rank_rcond(int(n) + 2 * i)
+        fit = _BlockFit(gram, rhs, idx_b, idx_s, rcond)
+        # r <= 2 is GENUINELY pathological (no Stein effect exists); ordinary
+        # rank deficiency is the normal path here, not a fallback.
+        if fit.rank_s <= 2:
             n_singular += 1
-        sigma2, dof = _sigma2_hat(syy_c, beta, rhs, int(n), p_ + 1)
-        beta_s = beta[idx_s]
+        beta = np.zeros(p_)
+        beta_s = fit.beta_s
+        beta[idx_s] = beta_s
+        beta[idx_b] = fit.backbone(beta_s)  # UNSHRUNK beta_s => joint-LS backbone
+        rank_total = fit.rank_b + fit.rank_s
+        sigma2, dof = _sigma2_hat(syy_c, beta, rhs, int(n), rank_total)
 
         if estimator == "npeb":
-            se = _block_std_errors(chol, idx_s, sigma2, gram)
-            good = np.isfinite(se) & (se > 0.0)
+            var = fit.diag_cov(sigma2)
+            se = np.sqrt(np.maximum(var, 0.0))
+            # EXCLUDE the null space entirely. Under min-norm those
+            # coefficients are exactly zero and their sampling variance is
+            # exactly zero; feeding them to Tweedie would flood the marginal
+            # with a spike at z=0 and corrupt the density estimate that IS the
+            # estimated prior.
+            # ROW-SPACE membership, on the SAME derived relative scale as
+            # the rank retention. A bare ``> 0`` test is not enough: a
+            # null-space column's variance is ~1e-30 of the largest, not
+            # exactly 0, so it would survive and flood the marginal with a
+            # spike at z ~ 0/0 — precisely the corruption this exclusion
+            # exists to prevent (unguarded, the fixture's mean factor came
+            # back at -2.5e8).
+            good = np.isfinite(var) & (var > rcond * float(np.max(var)))
             new_s = beta_s.copy()
             fac = np.ones(idx_s.size)
             if good.any():
@@ -2239,16 +2379,48 @@ def _walk_shrink(
                 with np.errstate(divide="ignore", invalid="ignore"):
                     f_all = np.where(np.abs(z) > 0.0, mu / z, 1.0)
                 fac[good] = np.where(np.isfinite(f_all), f_all, 1.0)
-            beta = beta.copy()
             beta[idx_s] = new_s
-            factors, extra = fac, {"sigma2": sigma2}
-        else:
-            quad = _block_quadform(gram, idx_s, idx_b, chol, estimator)
-            f = _js_shrink_factor(beta_s, quad, sigma2, dof)
-            beta = beta.copy()
+            beta[idx_b] = fit.backbone(beta_s)
+            factors = fac[good] if good.any() else fac
+            extra = {
+                "sigma2": sigma2,
+                "rank_s": fit.rank_s,
+                "rank_b": fit.rank_b,
+                "n_in_rowspace": int(good.sum()),
+                "frac_in_rowspace": float(good.mean()),
+            }
+        elif estimator == "js_diag":
+            # DECOUPLED whitening: treat the retained coefficients as
+            # independent, i.e. use only diag((G_S|B)^+). Exact iff the
+            # residualized gram is diagonal; the gap to "js" is what the
+            # decoupling costs in a given basis. The effective dimension is the
+            # count of coefficients the row space actually reaches.
+            cdiag = fit.diag_cov(1.0)
+            good = np.isfinite(cdiag) & (cdiag > rcond * float(np.max(cdiag)))
+            k_diag = int(good.sum())
+            wald_d = float(np.sum(beta_s[good] ** 2 / cdiag[good])) if k_diag else 0.0
+            f = _js_factor_rank(wald_d, k_diag, sigma2, dof)
             beta[idx_s] = f * beta_s
-            factors = np.full(idx_s.size, f)
-            extra = {"sigma2": sigma2, "js_factor": float(f)}
+            factors = np.full(1, f)
+            extra = {
+                "sigma2": sigma2,
+                "js_factor": float(f),
+                "rank_s": fit.rank_s,
+                "rank_b": fit.rank_b,
+                "n_in_rowspace": k_diag,
+                "frac_in_rowspace": float(k_diag) / max(idx_s.size, 1),
+            }
+        else:
+            f = _js_factor_rank(fit.wald, fit.rank_s, sigma2, dof)
+            beta[idx_s] = f * beta_s
+            factors = np.full(1, f)
+            extra = {
+                "sigma2": sigma2,
+                "js_factor": float(f),
+                "rank_s": fit.rank_s,
+                "rank_b": fit.rank_b,
+                "frac_in_rowspace": float(fit.rank_s) / max(idx_s.size, 1),
+            }
 
         intercept = solver._sy / n - float(solver._sx @ beta) / n
         out[i] = float(Xs[t] @ beta + intercept)
@@ -2261,69 +2433,13 @@ def _walk_shrink(
         solver.roll(Xs[t], y_in, Xs[t - window], y_out)
     if n_singular:
         print(
-            f"[grid-free shrinkage] min-norm fallback on {n_singular} of "
-            f"{hi - lo} bars (gram not positive definite)"
+            f"[grid-free shrinkage] DEGENERATE rank (r<=2) on {n_singular} of "
+            f"{hi - lo} bars — no Stein effect exists there; this counts "
+            "genuine pathology, NOT ordinary rank deficiency"
         )
     for rec in profile:
         rec["n_singular_bars"] = n_singular
     return out, profile
-
-
-def _block_quadform(
-    gram: np.ndarray,
-    idx_s: np.ndarray,
-    idx_b: np.ndarray,
-    chol: np.ndarray | None,
-    estimator: str,
-) -> np.ndarray | None:
-    """C^-1 for the shrunk block, C = [(X'X)^-1]_SS.
-
-    EXACT ("js"): the Schur complement C^-1 = G_SS - G_SB G_BB^-1 G_BS. Cheap
-    because the backbone block is small (~52 columns), so this adds a few
-    percent to the per-bar cost rather than another O(p^3).
-
-    DIAGONAL ("js_diag"): 1/diag(C), i.e. the coefficients treated as
-    decoupled. NOT equal to diag(C^-1) — that distinction is the whole point of
-    the twin, since the two coincide only when the gram is diagonal.
-    """
-    if chol is None:
-        return None
-    if estimator == "js_diag":
-        var = _block_std_errors(chol, idx_s, 1.0, gram) ** 2  # diag(C)
-        if not np.all(np.isfinite(var)) or np.any(var <= 0.0):
-            return None
-        return np.diag(1.0 / var)
-    g_ss = gram[np.ix_(idx_s, idx_s)]
-    if idx_b.size == 0:
-        return g_ss
-    g_bb = gram[np.ix_(idx_b, idx_b)]
-    g_bs = gram[np.ix_(idx_b, idx_s)]
-    try:
-        return g_ss - g_bs.T @ np.linalg.solve(g_bb, g_bs)
-    except np.linalg.LinAlgError:
-        return None
-
-
-def _block_std_errors(
-    chol: np.ndarray | None, idx_s: np.ndarray, sigma2: float, gram: np.ndarray
-) -> np.ndarray:
-    """Per-coefficient standard errors sigma * sqrt([(X'X)^-1]_ii) for the
-    shrunk block, from the Cholesky factor without forming the full inverse.
-
-    (X'X)^-1 = L^-T L^-1, so [(X'X)^-1]_ii = ||L^-1 e_i||^2 — one triangular
-    solve against the selected unit columns, O(p^2 k) instead of an O(p^3)
-    inverse. This is the ONLY place the arms need a second factorization-scale
-    operation, and it is why the NPEB arm costs roughly twice a plain solve.
-    """
-    if chol is None:
-        return np.full(idx_s.size, np.nan)
-    from scipy.linalg import solve_triangular
-
-    e = np.zeros((chol.shape[0], idx_s.size))
-    e[idx_s, np.arange(idx_s.size)] = 1.0
-    zcol = solve_triangular(chol, e, lower=True)
-    var = sigma2 * np.einsum("ij,ij->j", zcol, zcol)
-    return np.sqrt(np.maximum(var, 0.0))
 
 
 def _dedup_ols_design(

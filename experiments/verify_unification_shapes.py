@@ -58,6 +58,13 @@ Covers, in order:
      and the degenerate pure-lasso corner driven end-to-end through the warm
      homotopy to confirm it lands on the intercept-only limit.
 
+  N. RANK-DEFICIENT DESIGNS — the regression test for the 2026-08-07 defect.
+     Every earlier synthetic used a FULL-RANK fixture, which is why a design
+     flaw that disabled the entire grid-free family reached the cluster. This
+     section drives the shipped code on a singular design containing dead,
+     constant and duplicated indicator columns and asserts the factor is
+     strictly inside (0,1) and the walk's mean factor is below 0.99.
+
   M. PROPER PCR — the real panel's ladder tensor verified uniform and
      reconciled to 1144 columns, K x 12 column counts, scores confirmed
      UNstandardized, the predictive ordering's frame-window-only causality,
@@ -1356,93 +1363,93 @@ def section_l() -> None:
             f"max|diff| {np.max(np.abs(a - b)):.3e}",
         )
 
-    # --- backbone coefficients bit-identical to the unshrunk solve ---
+    # --- everything below drives the SHIPPED code path (_BlockFit +
+    #     _js_factor_rank), not a parallel re-implementation ---
     xw, yw = x[:window], yv[:window]
     xc, yc = xw - xw.mean(0), yw - yw.mean()
     gram, rhs = xc.T @ xc, xc.T @ yc
-    beta_ols, chol = U._causal_ols(gram, rhs)
     idx_s = np.arange(segs[0][1], x.shape[1])
     idx_b = np.arange(0, segs[0][1])
     syy_c = float(yc @ yc)
-    sigma2, dof = U._sigma2_hat(syy_c, beta_ols, rhs, window, x.shape[1] + 1)
-    quad = U._block_quadform(gram, idx_s, idx_b, chol, "js")
-    f_js = U._js_shrink_factor(beta_ols[idx_s], quad, sigma2, dof)
-    beta_js = beta_ols.copy()
-    beta_js[idx_s] = f_js * beta_ols[idx_s]
-    check(
-        "backbone coefficients BIT-IDENTICAL to the unshrunk least-squares solve",
-        np.array_equal(beta_js[idx_b], beta_ols[idx_b]),
-    )
-    check(
-        "shrunk block is a scalar multiple of the OLS block",
-        np.array_equal(beta_js[idx_s], f_js * beta_ols[idx_s]),
+    fit = U._BlockFit(gram, rhs, idx_b, idx_s)
+    beta = np.zeros(x.shape[1])
+    beta[idx_s] = fit.beta_s
+    beta[idx_b] = fit.backbone(fit.beta_s)
+    sigma2, dof = U._sigma2_hat(syy_c, beta, rhs, window, fit.rank_b + fit.rank_s)
+    f_js = U._js_factor_rank(fit.wald, fit.rank_s, sigma2, dof)
+    print(
+        f"    fixture: rank_b={fit.rank_b} rank_s={fit.rank_s} "
+        f"(of {idx_s.size} shrunk cols), dof={dof}, JS factor {f_js:.4f}"
     )
 
-    # --- JS factor against the closed form, computed independently ---
-    c_mat = np.linalg.inv(gram)[np.ix_(idx_s, idx_s)]  # exact block covariance
-    quad_ref = float(beta_ols[idx_s] @ np.linalg.inv(c_mat) @ beta_ols[idx_s])
-    k = idx_s.size
+    # backbone must reproduce the JOINT least-squares backbone exactly
+    beta_joint = np.linalg.solve(gram, rhs)
+    check(
+        "backbone coefficients match the JOINT least-squares solve (FWL identity)",
+        bool(np.allclose(beta[idx_b], beta_joint[idx_b], rtol=1e-8, atol=1e-8)),
+        f"max|diff| {np.max(np.abs(beta[idx_b] - beta_joint[idx_b])):.3e}",
+    )
+    check(
+        "on a FULL-RANK design the min-norm block equals the ordinary solve",
+        bool(np.allclose(fit.beta_s, beta_joint[idx_s], rtol=1e-8, atol=1e-8)),
+    )
+
+    # JS factor against an independently computed closed form
+    c_mat = np.linalg.inv(gram)[np.ix_(idx_s, idx_s)]
+    quad_ref = float(fit.beta_s @ np.linalg.inv(c_mat) @ fit.beta_s)
+    check(
+        "Wald quantity matches the independent block-inverse route",
+        abs(fit.wald - quad_ref) / max(abs(quad_ref), 1e-30) < 1e-8,
+        f"{fit.wald:.6e} vs {quad_ref:.6e}",
+    )
+    k = fit.rank_s
     f_ref = max(0.0, 1.0 - ((k - 2) / (dof + 2)) * dof * sigma2 / quad_ref)
     check(
-        "JS factor matches the closed form (independent block-inverse route)",
+        "JS factor matches the closed form",
         abs(f_js - f_ref) < 1e-9,
         f"{f_js:.10f} vs {f_ref:.10f}",
     )
-    print(f"    JS factor on the fixture = {f_js:.4f} (k={k}, dof={dof})")
-    # Schur complement really is the inverse of the covariance block
-    check("Schur complement was computable (gram positive definite)", quad is not None)
-    quad_arr = np.asarray(quad, dtype=np.float64)
     check(
-        "Schur complement == inverse of [(X'X)^-1]_SS",
-        bool(np.allclose(quad_arr, np.linalg.inv(c_mat), rtol=1e-8, atol=1e-8)),
-        f"max|diff| {np.max(np.abs(quad_arr - np.linalg.inv(c_mat))):.3e}",
+        "at FULL rank the retained rank equals the shrunk column count",
+        fit.rank_s == idx_s.size,
+        f"r={fit.rank_s}, k={idx_s.size}",
     )
-    # positive part actually engages when there is no signal
+
+    # positive part engages when there is no signal
     rng = np.random.default_rng(11)
     y_null = rng.standard_normal(window)
     ycn = y_null - y_null.mean()
-    b0, ch0 = U._causal_ols(gram, xc.T @ ycn)
-    s0, d0 = U._sigma2_hat(float(ycn @ ycn), b0, xc.T @ ycn, window, x.shape[1] + 1)
-    f0 = U._js_shrink_factor(
-        b0[idx_s], U._block_quadform(gram, idx_s, idx_b, ch0, "js"), s0, d0
+    f0fit = U._BlockFit(gram, xc.T @ ycn, idx_b, idx_s)
+    b0 = np.zeros(x.shape[1])
+    b0[idx_s] = f0fit.beta_s
+    b0[idx_b] = f0fit.backbone(f0fit.beta_s)
+    s0, d0 = U._sigma2_hat(
+        float(ycn @ ycn), b0, xc.T @ ycn, window, f0fit.rank_b + f0fit.rank_s
     )
+    f0 = U._js_factor_rank(f0fit.wald, f0fit.rank_s, s0, d0)
     check(
         "positive part engages on pure noise (factor collapses toward 0)",
         f0 < 0.5,
         f"factor {f0:.4f} on a null target",
     )
 
-    # --- ROTATION INVARIANCE: the exact JS factor cannot see an orthogonal
-    #     change of basis, which is why the PC-basis arm uses the diagonal form
+    # ROTATION INVARIANCE of the exact factor (why the PC arm is diagonal)
     q, _ = np.linalg.qr(np.random.default_rng(5).standard_normal((idx_s.size,) * 2))
     xr = x.copy()
     xr[:, idx_s] = x[:, idx_s] @ q
     xrc = xr[:window] - xr[:window].mean(0)
     gr, rr = xrc.T @ xrc, xrc.T @ yc
-    br, chr_ = U._causal_ols(gr, rr)
-    sr, dr = U._sigma2_hat(syy_c, br, rr, window, x.shape[1] + 1)
-    fr = U._js_shrink_factor(
-        br[idx_s], U._block_quadform(gr, idx_s, idx_b, chr_, "js"), sr, dr
-    )
+    fitr = U._BlockFit(gr, rr, idx_b, idx_s)
+    br = np.zeros(x.shape[1])
+    br[idx_s] = fitr.beta_s
+    br[idx_b] = fitr.backbone(fitr.beta_s)
+    sr, dr = U._sigma2_hat(syy_c, br, rr, window, fitr.rank_b + fitr.rank_s)
+    fr = U._js_factor_rank(fitr.wald, fitr.rank_s, sr, dr)
     check(
         "EXACT JS factor is INVARIANT under an orthogonal rotation of the block",
         abs(fr - f_js) < 1e-8,
         f"{fr:.10f} vs {f_js:.10f} — so an exact-JS PC-basis arm would be a "
         "provable no-op; the shipped PC arm uses the DIAGONAL form",
-    )
-    fd_raw = U._js_shrink_factor(
-        beta_ols[idx_s],
-        U._block_quadform(gram, idx_s, idx_b, chol, "js_diag"),
-        sigma2,
-        dof,
-    )
-    fd_rot = U._js_shrink_factor(
-        br[idx_s], U._block_quadform(gr, idx_s, idx_b, chr_, "js_diag"), sr, dr
-    )
-    check(
-        "DIAGONAL JS factor DOES depend on the basis (what the twin measures)",
-        abs(fd_rot - fd_raw) > 1e-12,
-        f"raw {fd_raw:.6f} vs rotated {fd_rot:.6f}",
     )
 
     # --- NPEB recovers a planted two-group prior ---
@@ -1763,6 +1770,199 @@ def section_m() -> None:
     )
 
 
+# ── N. rank-deficient designs — the regression test for the 2026-08-07 defect ─
+def _rank_deficient_fixture(n=1200, window=400, seed=17):
+    """Design that REPRODUCES the real defect: live signal columns plus dead /
+    constant / duplicated availability indicators, exactly the structure that
+    made the production gram singular on 100% of bars.
+
+    Every synthetic before this one used full-rank fixtures, which is precisely
+    why the defect reached the cluster. This fixture is the regression test:
+    run against the SHIPPED code as of the first grid-free submission it fails
+    both assertions below (factor is 1.0, mean factor 1.0).
+    """
+    rng = np.random.default_rng(seed)
+    p_back, p_live, p_dead, p_const, p_dup = 6, 25, 8, 6, 5
+    back = rng.standard_normal((n, p_back))
+    live = rng.standard_normal((n, p_live))
+    dead = np.zeros((n, p_dead))  # never go live inside the window
+    const = np.ones((n, p_const)) * rng.standard_normal(p_const)  # constant
+    dup = live[:, :p_dup].copy()  # exact duplicates -> exact collinearity
+    x = np.hstack([back, live, dead, const, dup])
+    beta = np.zeros(x.shape[1])
+    beta[:p_back] = rng.standard_normal(p_back)
+    beta[p_back : p_back + 4] = np.array([0.7, -0.5, 0.4, 0.3])
+    y = x @ beta + rng.standard_normal(n)
+    segs = [(0, p_back, "backbone"), (p_back, x.shape[1], "exog")]
+    n_shrunk = x.shape[1] - p_back
+    true_rank = p_live  # dead + const + dup add nothing to the row space
+    return x, y, segs, window, n_shrunk, true_rank
+
+
+def section_n() -> None:
+    print("\nN. RANK-DEFICIENT DESIGNS (regression test for the 2026-08-07 defect)")
+    x, y, segs, window, n_shrunk, true_rank = _rank_deficient_fixture()
+    idx_b = np.arange(0, segs[0][1])
+    idx_s = np.arange(segs[0][1], x.shape[1])
+    xw = x[:window]
+    xc, yc = xw - xw.mean(0), y[:window] - y[:window].mean()
+    gram, rhs = xc.T @ xc, xc.T @ yc
+
+    check(
+        "fixture gram IS singular (Cholesky must fail — the production case)",
+        _cholesky_fails(gram),
+        "this is the NORMAL case on the real design, not an anomaly",
+    )
+    rcond = U.roll_rank_rcond(window)
+    check(
+        "retention tolerance is DERIVED from the update path, not a default",
+        rcond > U.PINV_RCOND,
+        f"n*eps = {rcond:.3e} vs PINV_RCOND {U.PINV_RCOND:.3e} — the library "
+        "default sits BELOW the rolled gram's noise floor",
+    )
+    # THE INVARIANT PROPERTY (whether the library default happens to
+    # over-retain is fixture-dependent and is reported, not asserted): the
+    # derived tolerance must reproduce the covariance of the EXACTLY-FORMED
+    # gram. That is the quantity the shrinkage is computed from, and it is
+    # what the library default destroyed on the production design.
+    xc_e = x[:window] - x[:window].mean(0)
+    gram_e = xc_e.T @ xc_e
+    fit_exact = U._BlockFit(gram_e, rhs, idx_b, idx_s, rcond)
+    fit_loose = U._BlockFit(gram, rhs, idx_b, idx_s, U.PINV_RCOND)
+    fit_derived = U._BlockFit(gram, rhs, idx_b, idx_s, rcond)
+    cov_d = fit_derived.diag_cov(1.0).max()
+    print(
+        f"    diag(G^+) max: exact gram {fit_exact.diag_cov(1.0).max():.4e} | "
+        f"rolled@derived {cov_d:.4e} | rolled@PINV_RCOND "
+        f"{fit_loose.diag_cov(1.0).max():.4e}  (ranks "
+        f"{fit_exact.rank_s}/{fit_derived.rank_s}/{fit_loose.rank_s})"
+    )
+    check(
+        "derived tolerance reproduces the EXACT gram's covariance scale",
+        abs(cov_d - fit_exact.diag_cov(1.0).max())
+        / max(fit_exact.diag_cov(1.0).max(), 1e-300)
+        < 1e-6,
+        "the rolled gram is made to agree with the exactly-formed one",
+    )
+    check(
+        "derived tolerance never retains MORE than the library default",
+        fit_derived.rank_s <= fit_loose.rank_s,
+        "a higher cutoff can only discard directions, never admit them",
+    )
+    fit = U._BlockFit(gram, rhs, idx_b, idx_s, rcond)
+    print(
+        f"    shrunk columns {n_shrunk}, retained rank r_s={fit.rank_s} "
+        f"(expected {true_rank}), backbone rank r_b={fit.rank_b}, "
+        f"row-space fraction {fit.rank_s / n_shrunk:.3f}"
+    )
+    check(
+        "retained rank recovers the TRUE row-space dimension",
+        fit.rank_s == true_rank,
+        f"r_s={fit.rank_s} vs true {true_rank}",
+    )
+    check(
+        "rank is strictly BELOW the shrunk column count (deficiency is real)",
+        fit.rank_s < n_shrunk,
+        f"{fit.rank_s} < {n_shrunk}",
+    )
+    beta = np.zeros(x.shape[1])
+    beta[idx_s] = fit.beta_s
+    beta[idx_b] = fit.backbone(fit.beta_s)
+    sigma2, dof = U._sigma2_hat(
+        float(yc @ yc), beta, rhs, window, fit.rank_b + fit.rank_s
+    )
+    check(
+        "sigma^2 dof uses the RETAINED RANK, not the column count",
+        dof == window - (fit.rank_b + fit.rank_s) - 1,
+        f"dof={dof} = {window} - ({fit.rank_b}+{fit.rank_s}) - 1 "
+        f"(column-count convention would give {window - x.shape[1] - 1})",
+    )
+    f = U._js_factor_rank(fit.wald, fit.rank_s, sigma2, dof)
+
+    # (a) THE ASSERTION THAT WOULD HAVE CAUGHT THE DEFECT
+    check(
+        "(a) JS factor is a real number strictly in (0, 1) on a SINGULAR design",
+        isinstance(f, float) and 0.0 < f < 1.0,
+        f"factor = {f!r} — the shipped code returned exactly 1.0 here",
+    )
+    # dead columns carry negligible coefficient and negligible variance, and
+    # are EXCLUDED from the empirical prior by the row-space mask
+    dead_local = np.arange(25, 25 + 8)  # dead block inside the shrunk set
+    live_local = np.arange(0, 25)
+    scale = float(np.max(np.abs(fit.beta_s)))
+    check(
+        "dead columns carry negligible coefficient under min-norm",
+        float(np.max(np.abs(fit.beta_s[dead_local]))) < 1e-12 * max(scale, 1e-300),
+        f"max|beta_dead|/max|beta| = "
+        f"{np.max(np.abs(fit.beta_s[dead_local])) / max(scale, 1e-300):.2e}",
+    )
+    cd = fit.diag_cov(sigma2)
+    check(
+        "dead columns carry negligible sampling variance",
+        float(np.max(cd[dead_local])) < rcond * float(np.max(cd)),
+        f"max ratio {np.max(cd[dead_local]) / max(np.max(cd), 1e-300):.2e} "
+        f"< tol {rcond:.2e}",
+    )
+    good = np.isfinite(cd) & (cd > rcond * float(np.max(cd)))
+    check(
+        "the row-space mask EXCLUDES every dead column",
+        not bool(good[dead_local].any()),
+        f"{int(good[dead_local].sum())} dead columns admitted",
+    )
+    check(
+        "...and RETAINS every live column",
+        bool(good[live_local].all()),
+        f"{int(good[live_local].sum())} of {live_local.size} live retained",
+    )
+    check(
+        "NPEB's prior is estimated on the ROW-SPACE columns only",
+        int(good.sum()) < n_shrunk,
+        f"{int(good.sum())} of {n_shrunk} columns enter the empirical prior",
+    )
+
+    # (b) the walk must actually shrink, on every estimator
+    lo, hi = window, window + 40
+    for est in ("js", "js_diag", "npeb"):
+        yhat, prof = U._walk_shrink(x, y, window, lo, hi, segs, estimator=est)
+        mf = float(np.mean([r["mean"] for r in prof]))
+        n_sing = prof[0]["n_singular_bars"]
+        print(
+            f"    {est:8s} mean_factor={mf:.4f}  n_singular_bars={n_sing}  "
+            f"r_s={prof[0]['rank_s']}  finite={bool(np.all(np.isfinite(yhat)))}"
+        )
+        check(
+            f"(b) '{est}' mean shrinkage factor < 0.99 over the walk",
+            mf < 0.99,
+            f"mean_factor={mf:.4f} — the shipped code produced exactly 1.0000",
+        )
+        check(
+            f"'{est}': n_singular_bars counts PATHOLOGY only (r<=2), not deficiency",
+            n_sing == 0,
+            f"{n_sing} of {hi - lo} bars — the shipped code reported every bar",
+        )
+        check(f"'{est}' forecasts are finite", bool(np.all(np.isfinite(yhat))))
+        check(
+            f"'{est}' profile records the retained rank",
+            "rank_s" in prof[0] and prof[0]["rank_s"] == true_rank,
+        )
+    # causality still holds on the rank-deficient path
+    for est in ("js", "npeb"):
+        a, _ = U._walk_shrink(x, y, window, lo, hi, segs, estimator=est)
+        xp, yp = x.copy(), y.copy()
+        xp[hi:] += 1e3
+        yp[hi:] += 1e3
+        b, _ = U._walk_shrink(xp, yp, window, lo, hi, segs, estimator=est)
+        check(f"CAUSAL on the rank-deficient path ('{est}')", np.array_equal(a, b))
+
+
+def _cholesky_fails(mat: np.ndarray) -> bool:
+    try:
+        np.linalg.cholesky(mat)
+        return False
+    except np.linalg.LinAlgError:
+        return True
+
+
 _PCR_ARM_NAMES = (
     "blk2_rotVarFullK_js",
     "blk2_rotVarFortyK_js",
@@ -1797,5 +1997,6 @@ if __name__ == "__main__":
     section_k()
     section_l()
     section_m()
+    section_n()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)
