@@ -185,6 +185,8 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk3_ewFixed_H3000",
         "blk3_ewFixed_H12000",
         "blk3_js_tuned",
+        "blk3_jsNeff_tuned",
+        "blk3_npebNeff_tuned",
         "blk3_npeb_tuned",
         "blk3_js_pcbasis_tuned",
         "blk3_jsDiag_tuned",
@@ -351,6 +353,9 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk3_ewFixed_H12000", "BlkThreeEwFixedHTwelveK"),
     # GRID-FREE shrinkage: zero tuned hyperparameters.
     ("blk3_js_tuned", "BlkThreeJsTuned"),
+    # serial-correlation-corrected noise scale
+    ("blk3_jsNeff_tuned", "BlkThreeJsNeffTuned"),
+    ("blk3_npebNeff_tuned", "BlkThreeNpebNeffTuned"),
     ("blk3_npeb_tuned", "BlkThreeNpebTuned"),
     ("blk3_js_pcbasis_tuned", "BlkThreeJsPcBasisTuned"),
     ("blk3_jsDiag_tuned", "BlkThreeJsDiagTuned"),
@@ -525,6 +530,10 @@ _ARM_TEX: dict[str, str] = {
     "(fixed half-life 3{,}000 bars)",
     "blk3_ewFixed_H12000": "Three-block ridge on an exponentially weighted "
     "gram (fixed half-life 12{,}000 bars)",
+    "blk3_jsNeff_tuned": "Three-block design, positive-part James-Stein "
+    "shrinkage with a serial-correlation-corrected noise scale",
+    "blk3_npebNeff_tuned": "Three-block design, nonparametric empirical-Bayes "
+    "shrinkage with a serial-correlation-corrected noise scale",
     "blk3_js_tuned": "Three-block design, positive-part James-Stein shrinkage, "
     "no tuned hyperparameters",
     "blk3_npeb_tuned": "Three-block design, nonparametric empirical-Bayes "
@@ -647,6 +656,8 @@ _SHRINK_ARMS: tuple[str, ...] = (
     "blk2_rotPredTenK_js",
     "blk2_rotPredFiveK_js",
     "blk3_js_tuned",
+    "blk3_jsNeff_tuned",
+    "blk3_npebNeff_tuned",
     "blk3_npeb_tuned",
     "blk3_js_pcbasis_tuned",
     "blk3_jsDiag_tuned",
@@ -776,6 +787,13 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # comparison. Bare stem = vs blk3_tuned, which is the SAME DESIGN tuned on
     # a 27-combo grid over a 125-bar tail: the only difference is whether the
     # shrinkage is estimated or selected. A tie is already the finding.
+    # DOES THE SERIAL-CORRELATION CORRECTION CLOSE THE JS GAP? Bare stem = vs
+    # blk3_tuned (the same design, shrinkage SELECTED not estimated); the
+    # vs-blk3_js_tuned pair isolates what the correction itself bought.
+    ("blk3_jsNeff_tuned", "blk3_tuned"),
+    ("blk3_jsNeff_tuned", "blk3_js_tuned"),
+    ("blk3_npebNeff_tuned", "blk3_tuned"),
+    ("blk3_npebNeff_tuned", "blk3_npeb_tuned"),
     ("blk3_js_tuned", "blk3_tuned"),
     ("blk3_js_tuned", "blk4_trailG_tuned"),
     ("blk3_npeb_tuned", "blk3_tuned"),
@@ -2756,6 +2774,8 @@ def main(argv: list[str] | None = None) -> int:
                         "rank_b": _mean_recorded(rs, "rank_b"),
                         "n_in_rowspace": _mean_recorded(rs, "n_in_rowspace"),
                         "frac_in_rowspace": _mean_recorded(rs, "frac_in_rowspace"),
+                        "tau_resid": _mean_recorded(rs, "tau_resid"),
+                        "n_eff_resid": _mean_recorded(rs, "n_eff_resid"),
                         "n_singular_bars": int(
                             max(r.get("n_singular_bars", 0) for r in rs)
                         ),
@@ -2789,6 +2809,8 @@ def main(argv: list[str] | None = None) -> int:
             "rank_b",
             "n_in_rowspace",
             "frac_in_rowspace",
+            "tau_resid",
+            "n_eff_resid",
             "n_singular_bars",
         ] + [f"d{k}" for k in range(1, 10)]
         with open(sh_csv, "w", newline="") as fh:

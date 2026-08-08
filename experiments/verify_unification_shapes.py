@@ -58,6 +58,22 @@ Covers, in order:
      and the degenerate pure-lasso corner driven end-to-end through the warm
      homotopy to confirm it lands on the intercept-only limit.
 
+  Q. SERIAL-CORRELATION-CORRECTED SHRINKAGE — tau recovered against the
+     closed form on AR(1), clamped at 1 under white and negative correlation,
+     the corrected factor shrinking by exactly tau times the uncorrected, and
+     an end-to-end AR(1)-residual walk.
+
+  P. TUNED-RIDGE PCR TWINS — the rerun's designs asserted BIT-IDENTICAL to
+     the _js ladder's via the _js construction path itself, the wide 0.1..1e4
+     exogenous grid, and the two-block wiring that gives the rotated values and
+     the indicators ONE shared penalty.
+
+  O. DISCOUNTED GRAM — the exponentially weighted sufficient statistics:
+     H grid membership, w^H = 1/2 exactly, no boundary underflow, the
+     recurrence against a direct weighted computation, H=inf nesting
+     RollingLeastSquares term for term, and the motivating scenario as a test
+     (with drifting beta, EW beats the best flat-window ridge).
+
   N. RANK-DEFICIENT DESIGNS — the regression test for the 2026-08-07 defect.
      Every earlier synthetic used a FULL-RANK fixture, which is why a design
      flaw that disabled the entire grid-free family reached the cluster. This
@@ -1963,6 +1979,473 @@ def _cholesky_fails(mat: np.ndarray) -> bool:
         return True
 
 
+# ── Q. serial-correlation-corrected shrinkage ─────────────────────────────────
+def section_q() -> None:
+    """The correction's whole claim is that tau is recovered from the data and
+    that inflating the noise scale by it shrinks harder by the expected ratio.
+    Both are checked against closed forms on an AR(1) fixture with KNOWN tau."""
+    print("\nQ. SERIAL-CORRELATION-CORRECTED SHRINKAGE")
+
+    # --- tau recovery on AR(1) with known tau = (1+phi)/(1-phi) ---
+    rng = np.random.default_rng(4)
+    n = 200_000
+    for phi in (0.0, 0.5, 0.9, 0.98):
+        e = rng.standard_normal(n)
+        x = np.empty(n)
+        x[0] = e[0] / np.sqrt(1 - phi**2) if phi else e[0]
+        for i in range(1, n):
+            x[i] = phi * x[i - 1] + e[i]
+        tau_hat = U._integrated_act(x)
+        tau_true = (1 + phi) / (1 - phi)
+        rel = abs(tau_hat - tau_true) / tau_true
+        check(
+            f"tau recovered on AR(1) phi={phi:g} (true {tau_true:.1f})",
+            rel < 0.15,
+            f"estimated {tau_hat:.2f}, rel err {rel:.3f}",
+        )
+    check(
+        "tau is clamped at 1 for white noise (no precision bonus)",
+        U._integrated_act(rng.standard_normal(50_000)) >= 1.0,
+    )
+    check(
+        "tau is clamped at 1 under NEGATIVE serial correlation",
+        U._integrated_act(
+            np.diff(rng.standard_normal(50_000))  # MA(1) with rho_1 = -0.5
+        )
+        == 1.0,
+        "the correction may only ever shrink harder, never less",
+    )
+    check("tau on a degenerate series is 1.0", U._integrated_act(np.zeros(100)) == 1.0)
+
+    # --- the corrected factor shrinks harder by the EXPECTED ratio ---
+    # f = 1 - c/W with c = [(r-2)/(m+2)] m sigma^2 and W the Wald form; the
+    # correction multiplies sigma^2 by tau, so (1-f) scales EXACTLY by tau.
+    # Wald chosen large enough that NO tau in the sweep hits the positive-part
+    # floor, so the exact scaling is genuinely exercised rather than escaping
+    # through a degenerate branch.
+    for tau in (1.0, 25.0, 175.0):
+        f0 = U._js_factor_rank(wald=1e6, rank_s=40, sigma2=1.0, dof=20_000)
+        ft = U._js_factor_rank(wald=1e6, rank_s=40, sigma2=tau, dof=20_000)
+        assert 0.0 < ft < 1.0, "test must not floor — it would be vacuous"
+        ratio = (1.0 - ft) / (1.0 - f0)
+        check(
+            f"corrected shrinkage is EXACTLY tau={tau:g}x the uncorrected",
+            abs(ratio - tau) < 1e-9,
+            f"(1-f) ratio {ratio:.9f} vs tau {tau:g}, factor {f0:.6f}->{ft:.6f}",
+        )
+    check(
+        "a large enough tau drives the factor to the positive-part floor",
+        U._js_factor_rank(wald=500.0, rank_s=40, sigma2=1000.0, dof=20_000) == 0.0,
+    )
+
+    # --- end to end on a fixture with AR(1) residuals ---
+    rng = np.random.default_rng(9)
+    n2, window = 2600, 800
+    p_back, p_exog = 6, 30
+    x2 = rng.standard_normal((n2, p_back + p_exog))
+    beta = np.zeros(p_back + p_exog)
+    beta[:p_back] = rng.standard_normal(p_back)
+    beta[p_back : p_back + 3] = np.array([0.5, -0.4, 0.3])
+    phi = 0.9
+    e = rng.standard_normal(n2)
+    u = np.empty(n2)
+    u[0] = e[0]
+    for i in range(1, n2):
+        u[i] = phi * u[i - 1] + e[i]
+    y2 = x2 @ beta + u
+    segs = [(0, p_back, "backbone"), (p_back, x2.shape[1], "exog")]
+    lo, hi = window, window + 30
+    _, prof_raw = U._walk_shrink(x2, y2, window, lo, hi, segs, estimator="js")
+    _, prof_cor = U._walk_shrink(x2, y2, window, lo, hi, segs, estimator="js_neff")
+    f_raw = prof_raw[0]["mean"]
+    f_cor = prof_cor[0]["mean"]
+    tau_seen = prof_cor[0]["tau_resid"]
+    print(
+        f"    AR(1) phi={phi} residual fixture (true tau {(1 + phi) / (1 - phi):.0f}): "
+        f"tau_resid={tau_seen:.1f}  factor {f_raw:.4f} -> {f_cor:.4f}"
+    )
+    check(
+        "the walk estimates a tau well above 1 on AR(1) residuals",
+        tau_seen > 3.0,
+        f"tau_resid = {tau_seen:.2f}",
+    )
+    check(
+        "the corrected arm shrinks STRICTLY HARDER than the uncorrected",
+        f_cor < f_raw,
+        f"{f_cor:.4f} < {f_raw:.4f}",
+    )
+    # WORTH SEEING IN THE CANARY: at a tau this large the positive part can
+    # FLOOR, i.e. the correction shrinks the whole block to zero and the arm
+    # degenerates to backbone-only. That is a legitimate outcome of the
+    # estimator, not a bug — but it is a distinct verdict from "shrinks more",
+    # so the profile must make it visible rather than leave it inferred.
+    if f_cor == 0.0:
+        print(
+            "    NOTE the corrected factor FLOORED at 0 on this fixture "
+            f"(tau={tau_seen:.1f}): the block is fully shrunk and the model "
+            "reduces to the backbone. Expect this on real data if tau is large."
+        )
+    check(
+        "a floored factor is recorded as exactly 0, not as a missing value",
+        f_cor >= 0.0 and np.isfinite(f_cor),
+    )
+    check(
+        "'tau_resid' is persisted in the shrink profile",
+        "tau_resid" in prof_cor[0] and "n_eff_resid" in prof_cor[0],
+    )
+    check(
+        "n_eff_resid == window / tau",
+        abs(prof_cor[0]["n_eff_resid"] - window / tau_seen) < 1e-6,
+    )
+    # the UNcorrected arm still records tau=None-free profile keys it owns
+    check(
+        "the uncorrected arm is untouched (tau defaults to 1.0)",
+        prof_raw[0].get("tau_resid", 1.0) == 1.0,
+        "blk3_js_tuned's numbers must stay reproducible",
+    )
+    # NPEB variant shares the machinery
+    _, prof_np = U._walk_shrink(x2, y2, window, lo, hi, segs, estimator="npeb_neff")
+    check(
+        "the NPEB variant shares the correction machinery",
+        "tau_resid" in prof_np[0] and prof_np[0]["tau_resid"] > 1.0,
+        f"tau_resid = {prof_np[0]['tau_resid']:.2f}",
+    )
+
+    # --- arm wiring ---
+    for arm, tag in (
+        ("blk3_jsNeff_tuned", "js_neff"),
+        ("blk3_npebNeff_tuned", "npeb_neff"),
+    ):
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: kind='shrink', oos_mult=2, blk3 design",
+            spec.kind == "shrink"
+            and spec.oos_mult == 2
+            and [b for b, _ in spec.blocks] == ["backbone", "exog_all", "product"],
+        )
+        check(f"{arm}: estimator tag '{tag}'", spec.grid == tag)
+    check(
+        "blk3_jsNeff_tuned differs from blk3_js_tuned ONLY in the estimator tag",
+        U.ARMS["blk3_jsNeff_tuned"].blocks == U.ARMS["blk3_js_tuned"].blocks
+        and U.ARMS["blk3_js_tuned"].grid == "js",
+    )
+
+
+# ── P. tuned-ridge twins of the proper-PCR ladder ─────────────────────────────
+def section_p() -> None:
+    """The rerun's whole validity rests on the designs being the SAME as the
+    _js ladder's — only the estimator may differ. So this asserts bit-identity
+    against the _js construction path itself, not against a re-derivation."""
+    print("\nP. TUNED-RIDGE PCR TWINS")
+    p = _pcr_panel()
+    window = 400
+    ind_cols = U._cols(p.names, {"indicator"})
+
+    for ordering, ktag in (
+        ("variance", "full"),
+        ("variance", "3"),
+        ("predictive", "3"),
+        ("predictive", "5"),
+    ):
+        k_req = None if ktag == "full" else int(ktag)
+        # the _js twins' columns: [rotated values | indicators], two blocks
+        rot_js = U._rot_value_design(p, window, k_req, ordering)
+        js_cols = np.hstack([rot_js, p.X[:, ind_cols]])
+        # the tuned twin's single combined block
+        combined = U._build_block(p, f"rotexog:{ordering}:{ktag}", window)
+        check(
+            f"rotexog:{ordering}:{ktag} is BIT-IDENTICAL to the _js column set",
+            np.array_equal(combined, js_cols),
+            f"shape {combined.shape} vs {js_cols.shape}",
+        )
+        check(
+            "...and preserves column ORDER (rotated values, then indicators)",
+            np.array_equal(combined[:, : rot_js.shape[1]], rot_js)
+            and np.array_equal(combined[:, rot_js.shape[1] :], p.X[:, ind_cols]),
+        )
+
+    # grid as stated
+    g = _grid("rotexog_wide")
+    check("rotexog_wide == logspace(-1, 4, 6)", len(g) == 6 and g[0] == 0.1)
+    check(
+        "rotexog_wide membership 0.1 .. 1e4",
+        [f"{v:g}" for v in g] == ["0.1", "1", "10", "100", "1000", "10000"],
+        str([f"{v:g}" for v in g]),
+    )
+    check(
+        "rotexog_wide reaches ONE DECADE above the usual ridge top (1000)",
+        max(g) == 1e4 and 1e3 in g,
+        "so the endpoint diagnostic can report whether 1e4 pins too",
+    )
+
+    # arm wiring: two blocks, ONE shared exogenous penalty
+    for arm in _PCR_TUNED_ARM_NAMES:
+        spec = U.ARMS[arm]
+        keys = [k for _, k in spec.blocks]
+        blocks = [b for b, _ in spec.blocks]
+        check(
+            f"{arm}: kind='blocks_tuned', oos_mult=2, TWO blocks",
+            spec.kind == "blocks_tuned" and spec.oos_mult == 2 and len(keys) == 2,
+        )
+        check(
+            f"{arm}: backbone grid + rotexog_wide, no duplicate alpha key",
+            keys == ["backbone", "rotexog_wide"] and len(set(keys)) == 2,
+            str(keys),
+        )
+        check(
+            f"{arm}: exogenous set is ONE block (values+indicators together)",
+            blocks[1].startswith("rotexog:"),
+            str(blocks),
+        )
+        check(
+            f"{arm}: cartesian selection, as the other 2-block tuned arms use",
+            spec.grid != "cyclic",
+            f"grid={spec.grid!r} (blk2_tuned: {U.ARMS['blk2_tuned'].grid!r})",
+        )
+    # the tuned ladder must mirror the _js ladder arm-for-arm where they overlap
+    for js_arm, tuned_arm in (
+        ("blk2_rotVarFullK_js", "blk2_rotVarFullK_tuned"),
+        ("blk2_rotVarThirtyK_js", "blk2_rotVarThirtyK_tuned"),
+        ("blk2_rotVarTwentyK_js", "blk2_rotVarTwentyK_tuned"),
+        ("blk2_rotPredThirtyK_js", "blk2_rotPredThirtyK_tuned"),
+        ("blk2_rotPredTwentyK_js", "blk2_rotPredTwentyK_tuned"),
+        ("blk2_rotPredTenK_js", "blk2_rotPredTenK_tuned"),
+        ("blk2_rotPredFiveK_js", "blk2_rotPredFiveK_tuned"),
+    ):
+        js_blocks = [b for b, _ in U.ARMS[js_arm].blocks]
+        tn_blocks = [b for b, _ in U.ARMS[tuned_arm].blocks]
+        js_tag = js_blocks[1].split(":", 1)[1]
+        tn_tag = tn_blocks[1].split(":", 1)[1]
+        check(
+            f"{tuned_arm} targets the SAME (ordering, K) as {js_arm}",
+            js_tag == tn_tag,
+            f"{js_tag} vs {tn_tag}",
+        )
+    check(
+        "ordering pairs exist at BOTH K=30 and K=20 in the tuned ladder",
+        all(
+            f"blk2_rot{f}{k}_tuned" in U.ARMS
+            for f in ("Var", "Pred")
+            for k in ("ThirtyK", "TwentyK")
+        ),
+    )
+
+
+_PCR_TUNED_ARM_NAMES = (
+    "blk2_rotVarFullK_tuned",
+    "blk2_rotVarThirtyK_tuned",
+    "blk2_rotVarTwentyK_tuned",
+    "blk2_rotPredThirtyK_tuned",
+    "blk2_rotPredTwentyK_tuned",
+    "blk2_rotPredTenK_tuned",
+    "blk2_rotPredFiveK_tuned",
+)
+
+
+# ── O. discounted gram (exponentially weighted sufficient statistics) ─────────
+def section_o() -> None:
+    print("\nO. DISCOUNTED GRAM (exponentially weighted statistics)")
+
+    # (c) H grid enumerates correctly
+    check(
+        "H grid = {1000,3000,6000,12000,24000,inf}",
+        U.EW_HALF_LIVES == (1000.0, 3000.0, 6000.0, 12000.0, 24000.0, np.inf),
+        str(U.EW_HALF_LIVES),
+    )
+    check("H grid has no duplicates", len(set(U.EW_HALF_LIVES)) == 6)
+    check(
+        "H=inf maps to w = 1.0 EXACTLY (float equality, not approximately)",
+        U.ew_decay(np.inf) == 1.0,
+    )
+    check(
+        "half-life round-trips through the decay factor",
+        all(
+            abs(np.log(2.0) / np.log(1.0 / U.ew_decay(h)) - h) < 1e-6
+            for h in U.EW_HALF_LIVES[:-1]
+        ),
+    )
+    for h in U.EW_HALF_LIVES[:-1]:
+        w = U.ew_decay(h)
+        check(
+            f"H={h:g}: weights decay to exactly 1/2 after H bars",
+            abs(w**h - 0.5) < 1e-12,
+            f"w^H = {w**h:.12f}",
+        )
+    print(
+        "    boundary weight w^W at W=24000: "
+        + ", ".join(
+            f"H={h:g}:{U.ew_decay(h) ** 24000:.2e}" for h in U.EW_HALF_LIVES[:-1]
+        )
+    )
+    check(
+        "boundary weight never underflows on the shipped grid",
+        all(U.ew_decay(h) ** 24000 > 0.0 for h in U.EW_HALF_LIVES[:-1]),
+    )
+
+    # n_eff
+    check(
+        "n_eff at H=inf is exactly the window length",
+        U.ew_n_eff(np.inf, 24000) == 24000.0,
+    )
+    for h in (1000.0, 3000.0, 12000.0, 24000.0):
+        ne = U.ew_n_eff(h, 24000)
+        check(
+            f"n_eff(H={h:g}) is finite, positive and below W",
+            0.0 < ne < 24000.0,
+            f"n_eff = {ne:.1f}",
+        )
+
+    # (b) recurrence matches the DIRECT weighted computation to machine precision
+    rng = np.random.default_rng(5)
+    n, p, w_len = 900, 9, 300
+    x = rng.standard_normal((n, p))
+    yv = x[:, 0] - 0.5 * x[:, 1] + rng.standard_normal(n)
+    for h in (500.0, 2000.0, np.inf):
+        st = U._EwStats(x[:w_len], yv[:w_len], h)
+        t_last = w_len + 119
+        for t in range(w_len, t_last + 1):
+            st.roll(x[t], yv[t], x[t - w_len], yv[t - w_len])
+        g_rec, c_rec = st.centered()
+        # after the last roll the window holds rows [t_last-w_len+1, t_last]
+        lo_row = t_last - w_len + 1
+        xw, yw = x[lo_row : t_last + 1], yv[lo_row : t_last + 1]
+        wts = U.ew_weights(h, w_len)
+        g_dir, c_dir, _, _, _ = U._ew_weighted_stats(xw, yw, wts)
+        rg = np.max(np.abs(g_rec - g_dir)) / max(np.max(np.abs(g_dir)), 1e-300)
+        rc = np.max(np.abs(c_rec - c_dir)) / max(np.max(np.abs(c_dir)), 1e-300)
+        check(
+            f"recurrence == direct EW computation (H={h:g})",
+            rg < 1e-10 and rc < 1e-10,
+            f"gram rel {rg:.2e}, rhs rel {rc:.2e} after 120 rolls",
+        )
+
+    # (a) w=1 / H=inf NESTS the flat sliding-window path
+    st_inf = U._EwStats(x[:w_len], yv[:w_len], np.inf)
+    rls = U.RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    rls.init_window(x[:w_len], yv[:w_len])
+    for t in range(w_len, w_len + 120):
+        st_inf.roll(x[t], yv[t], x[t - w_len], yv[t - w_len])
+        rls.roll(x[t], yv[t], x[t - w_len], yv[t - w_len])
+    nfl = float(w_len)
+    g_flat = rls._Sxx - np.outer(rls._sx, rls._sx) / nfl
+    c_flat = rls._Sxy - rls._sx * (rls._sy / nfl)
+    g_ew, c_ew = st_inf.centered()
+    check(
+        "H=inf reproduces RollingLeastSquares' centered gram to machine precision",
+        np.allclose(g_ew, g_flat, rtol=0, atol=1e-8),
+        f"max|diff| {np.max(np.abs(g_ew - g_flat)):.3e}",
+    )
+    check(
+        "H=inf reproduces its rhs to machine precision",
+        np.allclose(c_ew, c_flat, rtol=0, atol=1e-8),
+        f"max|diff| {np.max(np.abs(c_ew - c_flat)):.3e}",
+    )
+    check(
+        "H=inf total weight is exactly the window length",
+        st_inf.sw == float(w_len),
+    )
+    check(
+        "H=inf weights are exactly ones",
+        np.array_equal(U.ew_weights(np.inf, 50), np.ones(50)),
+    )
+
+    # (d) THE MOTIVATING SCENARIO: with DRIFTING beta, the right H beats ANY
+    #     flat-window ridge. This is the JS verdict's hypothesis as a test.
+    rng = np.random.default_rng(11)
+    n2, p2, w2 = 3000, 6, 600
+    x2 = rng.standard_normal((n2, p2))
+    drift = np.linspace(-1.5, 1.5, n2)  # coefficient walks across the sample
+    y2 = np.array(
+        [
+            x2[i, 0] * drift[i] + 0.4 * x2[i, 1] + rng.standard_normal()
+            for i in range(n2)
+        ]
+    )
+    lo2, hi2 = w2, n2 - 1
+
+    def _flat_ridge_mse(alpha: float) -> float:
+        st = U._EwStats(x2[:w2], y2[:w2], np.inf)
+        err = []
+        for i in range(lo2, hi2):
+            g, c = st.centered()
+            g = g.copy()
+            g[np.diag_indices_from(g)] += alpha
+            b = np.linalg.solve(g, c)
+            err.append(float(x2[i] @ b + st.intercept(b) - y2[i]))
+            st.roll(x2[i], y2[i], x2[i - w2], y2[i - w2])
+        return float(np.mean(np.square(err)))
+
+    def _ew_mse(h: float, alpha: float) -> float:
+        st = U._EwStats(x2[:w2], y2[:w2], h)
+        err = []
+        for i in range(lo2, hi2):
+            g, c = st.centered()
+            g = g.copy()
+            g[np.diag_indices_from(g)] += alpha
+            b = np.linalg.solve(g, c)
+            err.append(float(x2[i] @ b + st.intercept(b) - y2[i]))
+            st.roll(x2[i], y2[i], x2[i - w2], y2[i - w2])
+        return float(np.mean(np.square(err)))
+
+    alphas = (1e-2, 1e0, 1e1, 1e2, 1e3, 1e4)
+    best_flat = min(_flat_ridge_mse(a) for a in alphas)
+    best_ew = min(_ew_mse(h, a) for h in (100.0, 200.0, 400.0) for a in alphas)
+    print(
+        f"    drifting-beta fixture: best FLAT-window ridge MSE {best_flat:.5f} "
+        f"| best EW MSE {best_ew:.5f}  ({100 * (1 - best_ew / best_flat):.1f}% better)"
+    )
+    check(
+        "(d) with DRIFTING beta, EW beats the best flat-window ridge",
+        best_ew < best_flat,
+        "no penalty level on a flat window recovers what forgetting does — "
+        "the motivating hypothesis, as a test",
+    )
+    check(
+        "...and the margin is material, not marginal",
+        best_ew < 0.97 * best_flat,
+        f"{100 * (1 - best_ew / best_flat):.1f}% MSE reduction",
+    )
+
+    # arm wiring
+    for arm, tag in (
+        ("blk3_ew_tuned", "ew_grid"),
+        ("blk3_ewFixed_H3000", "ew_fixed:3000"),
+        ("blk3_ewFixed_H12000", "ew_fixed:12000"),
+    ):
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: kind='blocks_ew', oos_mult=2, blk3 design",
+            spec.kind == "blocks_ew"
+            and spec.oos_mult == 2
+            and [b for b, _ in spec.blocks] == ["backbone", "exog_all", "product"],
+        )
+        check(f"{arm}: grid tag '{tag}'", spec.grid == tag)
+        check(
+            f"{arm}: block grid keys identical to blk3_tuned",
+            [k for _, k in spec.blocks] == [k for _, k in U.ARMS["blk3_tuned"].blocks],
+        )
+
+    # the walk runs, selects, and persists a trajectory
+    xs, ys2, segs, win = _shrink_fixture(n=1400, window=400)
+    yhat, traj = U._walk_blocks_ew(xs, segs, ys2, win, win, win + 60, (1000.0, np.inf))
+    check("EW walk produces finite forecasts", bool(np.all(np.isfinite(yhat))))
+    check("EW walk persists a selection trajectory", len(traj) > 0)
+    r0 = traj[0]
+    for key in ("row", "half_life", "decay", "n_eff", "alphas", "n_tail_evals"):
+        check(f"trajectory carries '{key}'", key in r0)
+    check(
+        "single-element H list degenerates to a fixed-H arm",
+        U._walk_blocks_ew(xs, segs, ys2, win, win, win + 30, (3000.0,))[1][0][
+            "half_life"
+        ]
+        == 3000.0,
+    )
+    print(
+        f"    fixture trajectory[0]: H={r0['half_life']:g} w={r0['decay']:.6f} "
+        f"n_eff={r0['n_eff']:.0f} evals={r0['n_tail_evals']}"
+    )
+
+
 _PCR_ARM_NAMES = (
     "blk2_rotVarFullK_js",
     "blk2_rotVarFortyK_js",
@@ -1998,5 +2481,8 @@ if __name__ == "__main__":
     section_l()
     section_m()
     section_n()
+    section_o()
+    section_p()
+    section_q()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

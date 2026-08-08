@@ -2172,6 +2172,56 @@ def roll_rank_rcond(n_updates: int) -> float:
     return max(int(n_updates), 1) * float(np.finfo(np.float64).eps)
 
 
+def _integrated_act(resid: np.ndarray, max_lag: int | None = None) -> float:
+    """Integrated autocorrelation time tau of a residual series, by GEYER's
+    INITIAL POSITIVE SEQUENCE truncation. Deterministic; nothing is tuned.
+
+    tau = 1 + 2 * sum_{k>=1} rho_k is the factor by which serial correlation
+    inflates the variance of a sample mean: the effective sample is n/tau, not
+    n. The infinite sum is not estimable, so it is truncated by Geyer's rule —
+    pair the autocorrelations, Gamma_j = rho_{2j} + rho_{2j+1}, and stop at the
+    first j with Gamma_j <= 0. For a reversible/stationary process the Gamma_j
+    are positive and decreasing in population, so the first non-positive pair
+    sum is noise, not signal. The rule has NO bandwidth to choose, which is why
+    it is used here in preference to a Newey-West window (whose bandwidth
+    would be exactly the kind of tuned quantity these arms exist to remove).
+
+    The ACF is computed by FFT, O(n log n), so this is negligible against the
+    O(p^3) solve it accompanies. Normalization is the biased (divide-by-n)
+    estimator, the standard choice for ACT: it damps high-lag noise and keeps
+    the sequence positive-definite.
+
+    CLAMPED AT 1.0. A tau below 1 means net NEGATIVE serial correlation, which
+    would license SHRINKING LESS than the independence assumption does. This
+    arm exists to test whether the independence assumption under-shrinks;
+    letting the correction run the other way would be claiming a precision
+    bonus from a noisy ACF tail. Clamping is the conservative direction.
+    """
+    x = np.asarray(resid, dtype=np.float64)
+    x = x - x.mean()
+    n = x.size
+    if n < 8:
+        return 1.0
+    ss = float(x @ x)
+    if not np.isfinite(ss) or ss <= 0.0:
+        return 1.0
+    m = 1 << (2 * n - 1).bit_length()
+    fx = np.fft.rfft(x, m)
+    acf = np.fft.irfft(fx * np.conjugate(fx), m)[:n].real / ss
+    lag_cap = n // 4 if max_lag is None else int(max_lag)
+    rho = acf[: max(lag_cap, 2)]
+    n_pair = (rho.size - 1) // 2
+    if n_pair < 1:
+        return 1.0
+    gam = rho[0 : 2 * n_pair : 2] + rho[1 : 2 * n_pair + 1 : 2]
+    nonpos = np.flatnonzero(gam <= 0.0)
+    j_stop = int(nonpos[0]) if nonpos.size else int(gam.size)
+    if j_stop < 1:
+        return 1.0
+    tau = 2.0 * float(gam[:j_stop].sum()) - 1.0
+    return float(max(tau, 1.0)) if np.isfinite(tau) else 1.0
+
+
 def _psd_pinv_parts(
     mat: np.ndarray, rcond: float | None = None
 ) -> tuple[np.ndarray, np.ndarray, int]:
@@ -2458,6 +2508,15 @@ def _walk_shrink(
     if idx_s.size == 0:
         raise SystemExit("grid-free shrinkage: empty shrink block")
 
+    # "<est>_neff" selects the serial-correlation-corrected noise scale
+    want_neff = estimator.endswith("_neff")
+    if want_neff:
+        estimator = estimator[: -len("_neff")]
+    # 1.0 == "no serial-correlation correction", which is exactly what the
+    # uncorrected arms apply: sigma2 * 1.0 is bit-identical to sigma2, so
+    # blk3_js_tuned's numbers stay reproducible while every arm records the
+    # key. Only the *_neff arms ever re-estimate it.
+    tau_resid: float = 1.0
     solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
     solver.init_window(Xs[:window], ys[:window])
     syy = float(ys[:window] @ ys[:window])  # rolled alongside; RLS omits it
@@ -2474,6 +2533,17 @@ def _walk_shrink(
         # bar rolled so far (see roll_rank_rcond).
         rcond = roll_rank_rcond(int(n) + 2 * i)
         fit = _BlockFit(gram, rhs, idx_b, idx_s, rcond)
+        if want_neff and i % TUNE_PER == 0:
+            # RESIDUAL SERIAL CORRELATION, re-estimated on the retune cadence
+            # and held between boundaries (tau is a slowly varying property of
+            # the panel, and forming the residual vector is O(W p) per call).
+            # Strictly causal: the residuals are the CURRENT window's own.
+            b_tmp = np.zeros(p_)
+            b_tmp[idx_s] = fit.beta_s
+            b_tmp[idx_b] = fit.backbone(fit.beta_s)
+            xw_, yw_ = Xs[i:t], ys[i:t]
+            fitted = xw_ @ b_tmp
+            tau_resid = _integrated_act(yw_ - fitted - float(np.mean(yw_ - fitted)))
         # r <= 2 is GENUINELY pathological (no Stein effect exists); ordinary
         # rank deficiency is the normal path here, not a fallback.
         if fit.rank_s <= 2:
@@ -2484,9 +2554,20 @@ def _walk_shrink(
         beta[idx_b] = fit.backbone(beta_s)  # UNSHRUNK beta_s => joint-LS backbone
         rank_total = fit.rank_b + fit.rank_s
         sigma2, dof = _sigma2_hat(syy_c, beta, rhs, int(n), rank_total)
+        # SERIAL-CORRELATION CORRECTION. With correlated residuals the
+        # effective sample is n/tau, so the coefficient covariance
+        # sigma^2 (X'X)^+ is understated by ~tau and the Wald form is
+        # overstated by ~tau. Inflating the noise scale by tau is exactly
+        # equivalent to dividing the Wald quantity by it.
+        # DOF IS DELIBERATELY NOT ALSO DIVIDED: n/tau at tau~175 is ~137,
+        # far below the retained rank, so an "effective dof" of n/tau - r - 1
+        # would go NEGATIVE. dof normalizes the RSS, which is a sum over
+        # actual rows and is correct as it stands; tau belongs to the
+        # SAMPLING variance of the coefficients, which is where it is applied.
+        sigma2_js = sigma2 * tau_resid if want_neff else sigma2
 
         if estimator == "npeb":
-            var = fit.diag_cov(sigma2)
+            var = fit.diag_cov(sigma2_js)
             se = np.sqrt(np.maximum(var, 0.0))
             # EXCLUDE the null space entirely. Under min-norm those
             # coefficients are exactly zero and their sampling variance is
@@ -2515,6 +2596,8 @@ def _walk_shrink(
             factors = fac[good] if good.any() else fac
             extra = {
                 "sigma2": sigma2,
+                "tau_resid": tau_resid,
+                "n_eff_resid": float(n) / tau_resid,
                 "rank_s": fit.rank_s,
                 "rank_b": fit.rank_b,
                 "n_in_rowspace": int(good.sum()),
@@ -2530,11 +2613,13 @@ def _walk_shrink(
             good = np.isfinite(cdiag) & (cdiag > rcond * float(np.max(cdiag)))
             k_diag = int(good.sum())
             wald_d = float(np.sum(beta_s[good] ** 2 / cdiag[good])) if k_diag else 0.0
-            f = _js_factor_rank(wald_d, k_diag, sigma2, dof)
+            f = _js_factor_rank(wald_d, k_diag, sigma2_js, dof)
             beta[idx_s] = f * beta_s
             factors = np.full(1, f)
             extra = {
                 "sigma2": sigma2,
+                "tau_resid": tau_resid,
+                "n_eff_resid": float(n) / tau_resid,
                 "js_factor": float(f),
                 "rank_s": fit.rank_s,
                 "rank_b": fit.rank_b,
@@ -2542,11 +2627,13 @@ def _walk_shrink(
                 "frac_in_rowspace": float(k_diag) / max(idx_s.size, 1),
             }
         else:
-            f = _js_factor_rank(fit.wald, fit.rank_s, sigma2, dof)
+            f = _js_factor_rank(fit.wald, fit.rank_s, sigma2_js, dof)
             beta[idx_s] = f * beta_s
             factors = np.full(1, f)
             extra = {
                 "sigma2": sigma2,
+                "tau_resid": tau_resid,
+                "n_eff_resid": float(n) / tau_resid,
                 "js_factor": float(f),
                 "rank_s": fit.rank_s,
                 "rank_b": fit.rank_b,
@@ -4166,6 +4253,82 @@ ARMS: dict[str, ArmSpec] = {
         )
         for hl in (3000.0, 12000.0)
     },
+    # SERIAL-CORRELATION-CORRECTED grid-free shrinkage (author directive
+    # 2026-08-08). THE LEADING REMAINING EXPLANATION of the JS gap, now that
+    # drift has been measured and found insufficient: the drift audit put the
+    # optimal-shrinkage increase from exog coefficient drift at only 1.4-3x
+    # (17% -> 23-35% next-bar), with the backbone stable 94-97% over 22 years
+    # and the drift itself a one-time ~40% drop on a 62-250 day timescale
+    # followed by a 20-year plateau. That is nowhere near the observed gap:
+    # blk3_js_tuned shrank 23% and scored 0.24631 (DM +26.6 vs blk3_tuned).
+    #
+    # THE SUSPECT. blk3_js_tuned's sigma^2 and coefficient covariance assume
+    # INDEPENDENT residuals. They are not: this panel's bars carry substantial
+    # serial correlation. With integrated autocorrelation time tau the
+    # effective sample is n/tau, so sigma^2 (X'X)^+ UNDERSTATES the coefficient
+    # covariance by ~tau, the Wald form ||gamma||^2 OVERSTATES the signal by
+    # ~tau, and the positive-part factor 1 - (r-2) sigma^2 / ||gamma||^2 lands
+    # far too close to 1. That is precisely the direction and roughly the
+    # magnitude of the observed under-shrinkage.
+    #
+    # THE CORRECTION: estimate tau from the CURRENT WINDOW's own residuals by
+    # Geyer's initial-positive-sequence rule (deterministic, no bandwidth to
+    # choose — see _integrated_act) and inflate the noise scale entering the
+    # factor by it. Everything else is byte-identical to blk3_js_tuned.
+    # NOTE tau is measured on the RESIDUALS rather than reusing the ~175-bar
+    # figure from the transmission section's factor-score spectrum: the
+    # residuals are a different series and are what the estimator's
+    # distributional assumption is actually about.
+    #
+    # A THIRD OUTCOME TO WATCH FOR, found in the synthetic and not in the
+    # brief's two branches: the correction can OVERSHOOT into the positive
+    # part's floor. On an AR(1) fixture with tau ~12 the factor went 0.769 ->
+    # 0.000, i.e. the whole exog+product block is shrunk away and the model
+    # reduces to the BACKBONE ALONE. With the panel's tau plausibly 50-300
+    # that is a live possibility here. It is a legitimate output of the
+    # estimator, not a failure — but it is a THIRD verdict, distinct from both
+    # "closes the gap" and "still under-shrinks", and it would mean the
+    # correction is right in direction and wrong in magnitude (tau applied to
+    # the whole coefficient vector when only part of the covariance is
+    # inflated by it). Read the factor in the canary before reading the QLIKE.
+    #
+    # PREDICTION, recorded so the outcome is falsifiable either way. If serial
+    # correlation IS the mechanism, the corrected factor should land at
+    # shrinkage comparable to what the tuned ridge effectively applies, and the
+    # arm should score near blk3_tuned (0.2194) rather than near the benchmark
+    # (0.2335). If it STILL under-shrinks, the gap has a third cause, and the
+    # standing next hypothesis is the OBJECTIVE MISMATCH: QLIKE is asymmetric
+    # in the forecast, while this estimator minimizes squared error in the
+    # sqrt-transformed space — a risk-optimal rule for the wrong loss is not
+    # optimal for the reported one.
+    "blk3_jsNeff_tuned": ArmSpec(
+        describe="grid-free shrinkage with a SERIAL-CORRELATION-CORRECTED "
+        "noise scale: positive-part James-Stein on the exog+product block "
+        "with sigma^2 inflated by the residuals' integrated autocorrelation "
+        "time (Geyer initial-positive-sequence, causal, no tuned quantity); "
+        "otherwise identical to blk3_js_tuned",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="js_neff",
+        oos_mult=2,
+    ),
+    "blk3_npebNeff_tuned": ArmSpec(
+        describe="the same serial-correlation correction applied to the "
+        "nonparametric empirical-Bayes arm (standard errors scaled by "
+        "sqrt(tau) before Tweedie); otherwise identical to blk3_npeb_tuned",
+        kind="shrink",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="npeb_neff",
+        oos_mult=2,
+    ),
     # DE-CONFOUNDING CONTROL (author directive 2026-08-07). THIS ARM EXISTS TO
     # FIX A PUBLISHED COMPARISON, not to win.
     #
