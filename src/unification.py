@@ -2004,15 +2004,34 @@ def roll_rank_rcond(n_updates: int) -> float:
     """Relative eigenvalue-retention tolerance for a ROLLED gram, DERIVED from
     the update path rather than adopted from a library default.
 
-    WHY NOT PINV_RCOND (measured, 2026-08-08). ``PINV_RCOND = 1e-15`` is
-    numpy.linalg.pinv's legacy default and is what ``_walk_ols`` uses. It is
-    BELOW the rolled gram's own numerical noise floor, so it retains pure-noise
-    directions — and because a pseudo-inverse divides by lambda, those
-    directions are amplified by 1/lambda. On a fixture whose true rank is 25:
-        tolerance 1e-15   -> rank 27, diag(G^+) max 7.76e+11   (nonsense)
-        tolerance n*eps   -> rank 25, diag(G^+) max 3.009e-03  (== the value
-                             the EXACTLY-formed gram gives, to all digits)
-    The retained junk does not merely add noise, it dominates the covariance
+    WHY A DERIVED TOLERANCE, AND WHAT IT IS *NOT* FOR (measured on the real
+    panel, 2026-08-08). An earlier version of this docstring claimed that
+    ``PINV_RCOND = 1e-15`` sits below the rolled gram's noise floor and so
+    retains amplified junk. That claim came from a synthetic fixture with true
+    rank 25 and a CONTINUOUS spectrum, and it does NOT hold on this design.
+    Measured on the real b2 panel (242,934 x 1,077, driven through
+    ``RollingLeastSquares`` with ``_walk_ols``'s exact call pattern over
+    2,800-3,000 rolls, two eras):
+        rolled-vs-exact gram, relative      1.7e-15 .. 6.7e-15
+        same gram, summation order reversed 7.4e-15   (i.e. rolling costs
+                                            nothing beyond forming X'X at all)
+        null cluster top                    2.9e-15
+        smallest GENUINE eigenvalue         7.4e-05   (an ~11-decade gap)
+        retained rank, rcond 1e-15 .. 1e-12 IDENTICAL (597 / 585)
+        forecasts across those four decades BIT-IDENTICAL (rms delta 0.0)
+        max diag(G^+)                       6.5e+03, not 7.8e+11
+    The design's spectrum is bimodal because pre-go-live indicator columns give
+    bit-exact ZERO gram rows, and a rank-one update of a zero row stays zero
+    (median smallest positive eigenvalue 1.2e-31). Any cutoff inside that gap
+    gives the same answer, and ``PINV_RCOND`` is inside it. So ``_walk_ols`` is
+    sound as it stands and Section 4 needs no re-run.
+
+    The tolerance below is therefore a MARGIN, not a correction. It is derived
+    rather than picked so that the one thin spot closes: the largest measured
+    eigenvalue perturbation (1.12e-8) sat only 1.2x below the production cutoff
+    (1.32e-8) — never enough to tip a direction over 2,800 rolls, and the gap
+    above is six decades wide, but 1.2x is not a margin worth defending in
+    print. On a fixture with a continuous spectrum the retained junk would
     the shrinkage is computed from — which is why this cannot be left at the
     library default here.
 
@@ -2033,10 +2052,12 @@ def roll_rank_rcond(n_updates: int) -> float:
     from the running update count rather than frozen as a literal. Nothing here
     is tuned — change the window and the tolerance follows the same derivation.
 
-    ``_walk_ols`` IS DELIBERATELY UNTOUCHED: its results are on disk and its
-    estimator is a projection, not an inverse. Whether that path is also
-    affected is a separate, measured question (see the min-norm sensitivity
-    audit in the verify script).
+    ``_walk_ols`` IS DELIBERATELY UNTOUCHED, and now for a measured reason
+    rather than an assumed one: on this design its cutoff sits in the middle of
+    an 11-decade spectral gap, retains zero below-floor directions, and yields
+    bit-identical forecasts across four decades of rcond (see above). Its
+    estimator is also a projection rather than an inverse. There is nothing to
+    fix there.
     """
     return max(int(n_updates), 1) * float(np.finfo(np.float64).eps)
 
