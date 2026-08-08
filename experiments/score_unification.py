@@ -87,6 +87,18 @@ Partial-harvest robust: runs cleanly at ANY completion level (zero files emits
 all-pending macros and pending tables), always exits 0, one summary line per
 (root, arm).  Float64 throughout; numpy only for the core scoring.
 
+RAW-HARVEST CACHE (incremental passes): decompressing ~8k per-chunk npz files
+dominates the runtime, so each (root, arm)'s DESERIALIZED CHUNK ARRAYS — the
+exact ``_load_chunk`` output, i.e. everything read off disk BEFORE any
+contract scoring — are pickled to ``results/.harvest_cache/<arm>__<root>.pkl``
+keyed by a fingerprint of the arm's chunk file set (sorted basenames + mtime_ns
++ size).  Any chunk added, removed or rewritten re-harvests that arm and
+nothing else.  NOTHING SCORED IS EVER CACHED: the calibration chain, the
+sensitivity conventions, the pooled statistics, the DM joins and every
+cross-arm synthetic are recomputed on every pass, so edits to the contract
+code take effect immediately.  ``--no-cache`` bypasses read and write; each
+pass prints ``harvest cache: N hit / M rebuilt``.
+
 CLI:
     python experiments/score_unification.py \
         --roots results/unification_carc results/unification_h2 \
@@ -97,8 +109,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
+import pickle
 import re
 import sys
 from dataclasses import dataclass, field
@@ -601,6 +615,18 @@ _FINE_GRID_ARMS: tuple[str, ...] = (
 )
 
 
+def _mean_recorded(recs: list[dict], key: str) -> float:
+    """Mean of ``key`` over the records that RECORD it; NaN when none do.
+
+    A field added to a persisted schema mid-campaign is present on the new
+    chunks and absent on the old ones. Averaging over the present ones surfaces
+    the number as soon as it exists (a plain mean over a NaN-filled list would
+    hide it until every chunk is re-run), while an all-absent year still reads
+    NaN rather than a fabricated zero."""
+    vals = [float(r[key]) for r in recs if r.get(key) is not None]
+    return float(np.mean(vals)) if vals else float("nan")
+
+
 def _pen_level(a) -> float:
     """The PENALTY LEVEL of a persisted alpha descriptor, whatever its shape:
 
@@ -1032,14 +1058,139 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
     }
 
 
-def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
-    res = ArmResult(root=root_label, arm=arm)
-    arm_dir = os.path.join(root_path, arm)
+# ── raw-harvest cache ─────────────────────────────────────────────────────────
+# The cached VALUE is exactly the per-chunk ``_load_chunk`` output for one
+# (root, arm): the deserialized npz arrays and the two column-event counters,
+# with an unreadable chunk recorded as its error string so the warning it
+# raises is reproduced verbatim.  That is the boundary BEFORE any scoring —
+# no calibrated mean, no sigma2, no per-bar loss, no cross-arm state — so a
+# cache hit can never freeze a contract number.  The KEY is the arm's chunk
+# file set (sorted basenames + mtime_ns + size); anything added, removed or
+# rewritten changes the fingerprint and re-harvests that arm alone.
+
+_HARVEST_CACHE_DIR = os.path.join(_ROOT, "results", ".harvest_cache")
+_HARVEST_CACHE_VERSION = 1  # bump when the cached payload's SHAPE changes
+_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+@dataclass
+class HarvestCache:
+    """Per-pass raw-harvest cache state (counters feed the summary line)."""
+
+    enabled: bool = True
+    directory: str = _HARVEST_CACHE_DIR
+    hits: int = 0
+    rebuilt: int = 0
+
+    def path_for(self, arm: str, root_label: str) -> str:
+        return os.path.join(
+            self.directory,
+            f"{_SAFE_RE.sub('_', arm)}__{_SAFE_RE.sub('_', root_label)}.pkl",
+        )
+
+    def summary(self) -> str:
+        return f"harvest cache: {self.hits} hit / {self.rebuilt} rebuilt"
+
+
+def _chunk_files(arm_dir: str) -> dict[int, str]:
+    """chunk index -> path, for every chunk_<n>.npz in an arm dir."""
     found: dict[int, str] = {}
     for fn in sorted(os.listdir(arm_dir)):
         m = _CHUNK_RE.match(fn)
         if m:
             found[int(m.group(1))] = os.path.join(arm_dir, fn)
+    return found
+
+
+def _chunk_fingerprint(found: dict[int, str]) -> str:
+    """Fingerprint of an arm's chunk FILE SET: sorted basenames + mtime + size.
+
+    Strict by construction — a chunk that is added, removed, or rewritten (even
+    to the same length) moves the digest, and a stat that fails is itself part
+    of the digest rather than silently ignored."""
+    h = hashlib.sha256()
+    for idx in sorted(found):
+        p = found[idx]
+        try:
+            st = os.stat(p)
+            token = f"{st.st_mtime_ns}|{st.st_size}"
+        except OSError as err:
+            token = f"unstattable|{err.__class__.__name__}"
+        h.update(f"{os.path.basename(p)}|{token}\n".encode())
+    return h.hexdigest()
+
+
+def _read_chunks(found: dict[int, str]) -> dict[int, dict]:
+    """Deserialize every chunk of one arm (the cacheable raw product)."""
+    raw: dict[int, dict] = {}
+    for idx in sorted(found):
+        try:
+            raw[idx] = _load_chunk(found[idx])
+        except Exception as err:  # a corrupt chunk must not sink the harvest
+            raw[idx] = {"__error__": str(err)}
+    return raw
+
+
+def _raw_chunks(
+    found: dict[int, str], arm: str, root_label: str, cache: HarvestCache
+) -> dict[int, dict]:
+    """The arm's raw chunk arrays, from cache when the fingerprint matches."""
+    if not cache.enabled:
+        cache.rebuilt += 1
+        return _read_chunks(found)
+    fp = _chunk_fingerprint(found)
+    path = cache.path_for(arm, root_label)
+    try:
+        with open(path, "rb") as fh:
+            blob = pickle.load(fh)
+        if (
+            blob.get("version") == _HARVEST_CACHE_VERSION
+            and blob.get("fingerprint") == fp
+            and blob.get("arm") == arm
+            and blob.get("root") == root_label
+        ):
+            cache.hits += 1
+            return blob["chunks"]
+    except (
+        OSError,
+        EOFError,
+        ValueError,
+        AttributeError,
+        KeyError,
+        pickle.UnpicklingError,
+    ):
+        pass  # absent, truncated, or otherwise unusable -> re-harvest
+    raw = _read_chunks(found)
+    cache.rebuilt += 1
+    blob = {
+        "version": _HARVEST_CACHE_VERSION,
+        "arm": arm,
+        "root": root_label,
+        "fingerprint": fp,
+        "chunks": raw,
+    }
+    tmp = f"{path}.tmp{os.getpid()}"
+    try:  # atomic replace: a killed pass never leaves a half-written entry
+        os.makedirs(cache.directory, exist_ok=True)
+        with open(tmp, "wb") as fh:
+            pickle.dump(blob, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        os.replace(tmp, path)
+    except OSError as err:
+        print(f"[cache] WARNING could not write {path}: {err}")
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    return raw
+
+
+def _harvest_arm(
+    root_path: str, root_label: str, arm: str, cache: HarvestCache | None = None
+) -> ArmResult:
+    cache = cache if cache is not None else HarvestCache(enabled=False)
+    res = ArmResult(root=root_label, arm=arm)
+    arm_dir = os.path.join(root_path, arm)
+    found = _chunk_files(arm_dir)
     res.n_chunks = len(found)
     res.missing = sorted(set(range(EXPECTED_CHUNKS)) - set(found))
     res.extra = sorted(i for i in found if i >= EXPECTED_CHUNKS)
@@ -1056,13 +1207,16 @@ def _harvest_arm(root_path: str, root_label: str, arm: str) -> ArmResult:
     idxs = sorted(found)
     # The causal maps chain window-to-window: strictly ascending order required.
     assert all(j > i for i, j in zip(idxs, idxs[1:])), "chunk order not ascending"
+    # RAW harvest only — every line below this one re-runs on every pass.
+    raw_chunks = _raw_chunks(found, arm, root_label, cache)
     prev_state: dict | None = None
     prev_idx: int | None = None
     for idx in idxs:
-        try:
-            raw = _load_chunk(found[idx])
-        except Exception as err:  # a corrupt chunk must not sink the harvest
-            res.warnings.append(f"chunk_{idx}: unreadable ({err}); skipped")
+        raw = raw_chunks[idx]
+        if "__error__" in raw:  # a corrupt chunk must not sink the harvest
+            res.warnings.append(
+                f"chunk_{idx}: unreadable ({raw['__error__']}); skipped"
+            )
             res.incomplete = True
             if idx not in res.missing:
                 res.missing.append(idx)
@@ -1828,7 +1982,16 @@ def main(argv: list[str] | None = None) -> int:
         default=os.path.join("results", "variance_sidecar"),
         help="root of variance_sidecar.py outputs (absent -> no condvar arms)",
     )
+    ap.add_argument(
+        "--no-cache",
+        action="store_true",
+        help=(
+            "bypass the raw-harvest cache (neither read nor write "
+            f"{_HARVEST_CACHE_DIR}); every chunk npz is re-read"
+        ),
+    )
     args = ap.parse_args(argv)
+    cache = HarvestCache(enabled=not args.no_cache)
 
     # 1. DISCOVER + 2/3. VALIDATE + SCORE per (root, arm).
     labels: dict[str, str] = {}
@@ -1851,7 +2014,8 @@ def main(argv: list[str] | None = None) -> int:
                     f"[{labels[root]}] NOTE: unknown arm dir '{arm}' "
                     "(scored, CSV only, no macro/table slot)"
                 )
-            results.append(_harvest_arm(root, labels[root], arm))
+            results.append(_harvest_arm(root, labels[root], arm, cache))
+    print(cache.summary())
 
     # 4. COMPARISONS: within each root, vs that root's own a0.
     by_root: dict[str, list[ArmResult]] = {}
@@ -2498,6 +2662,18 @@ def main(argv: list[str] | None = None) -> int:
                         "mean_sigma2": float(
                             np.mean([r.get("sigma2", float("nan")) for r in rs])
                         ),
+                        # ROW-SPACE GEOMETRY (src/unification.py row-space JS
+                        # fix): the retained rank r that enters the JS constant,
+                        # the raw coefficient count it is taken from, and how
+                        # much of the coefficient vector actually lives in the
+                        # design's row space. Chunks written before the fix
+                        # carry none of these keys and the columns read 'nan' —
+                        # they are NOT zero-filled, because 'not recorded' and
+                        # 'rank 0' are different facts.
+                        "rank_s": _mean_recorded(rs, "rank_s"),
+                        "rank_b": _mean_recorded(rs, "rank_b"),
+                        "n_in_rowspace": _mean_recorded(rs, "n_in_rowspace"),
+                        "frac_in_rowspace": _mean_recorded(rs, "frac_in_rowspace"),
                         "n_singular_bars": int(
                             max(r.get("n_singular_bars", 0) for r in rs)
                         ),
@@ -2527,6 +2703,10 @@ def main(argv: list[str] | None = None) -> int:
             "frac_above_0p9",
             "frac_negative",
             "mean_sigma2",
+            "rank_s",
+            "rank_b",
+            "n_in_rowspace",
+            "frac_in_rowspace",
             "n_singular_bars",
         ] + [f"d{k}" for k in range(1, 10)]
         with open(sh_csv, "w", newline="") as fh:
