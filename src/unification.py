@@ -2057,7 +2057,13 @@ def roll_rank_rcond(n_updates: int) -> float:
     an 11-decade spectral gap, retains zero below-floor directions, and yields
     bit-identical forecasts across four decades of rcond (see above). Its
     estimator is also a projection rather than an inverse. There is nothing to
-    fix there.
+    fix there. The converse also holds and is measured: applying THIS tolerance
+    to ``_walk_ols`` would be over-aggressive — on ``a_bucket_all_features``
+    chunk 0, W*eps = 5.33e-12 cuts an eigenvalue (6.17e-6 relative) that is
+    present at the same magnitude in the exactly-formed gram, i.e. genuine
+    data 1,637x above the roll perturbation, moving mean QLIKE by -1.485e-4
+    and per-bar loss by up to 0.178 (independent audit, 2026-08-08). The two
+    paths need different tolerances for measured reasons; do not unify them.
     """
     return max(int(n_updates), 1) * float(np.finfo(np.float64).eps)
 

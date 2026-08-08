@@ -22,7 +22,13 @@ $\ell_2$ norm, computed through the pseudoinverse of the window gram at
 the standard machine-precision cutoff. This is the $\alpha \to 0^{+}$
 limit of ridge regression, it is defined at any design rank, and it
 carries no penalty and no tuned quantity of any kind --- the strongest
-attribution claim an unpenalized estimator supports. Each arm is refit at
+attribution claim an unpenalized estimator supports. The rank cutoff is
+not a tuned quantity either: the centered gram's spectrum is gapped by
+more than five orders of magnitude around the retention threshold (on
+the widest design, largest discarded eigenvalue $1.8 \times 10^{-11}$
+relative, weakest retained $6.2 \times 10^{-6}$, with no eigenvalue
+between them at any bar), so every tolerance across four decades retains
+the identical subspace and reproduces the reported forecasts bitwise. Each arm is refit at
 every bar over a rolling window of $24{,}000$ bars ($500$ trading days).
 On a full-rank design (the benchmark's $52$ columns) minimum-norm least
 squares coincides exactly with ordinary least squares. An earlier pass of
