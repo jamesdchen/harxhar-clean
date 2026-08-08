@@ -545,12 +545,22 @@ block containing only the $20$ factor-score columns --- scores QLIKE
 \unifBlkFourTrailGTunedQLIKE{} at DM \unifBlkFourTrailGTunedDM{} against
 the benchmark, with an increment of \unifIncrBlkFourTrailGTunedDQ{} at
 \unifIncrBlkFourTrailGTunedDM{} over the tuned three-block ridge. It is
-the best pooled model among the constructions this section presents.
-\pending{a wider frame ($K = 40$) scores lower still; whether that gain
-belongs to the frame width or to the rank-shaped penalty it was run with
-is confounded in the arms currently on disk, and the $K$-matched
-flat-penalty control is running. The headline model will be settled on
-that control, not before.}
+the best pooled model among the constructions this section presents at
+$K = 20$. A wider frame does better still, and a control settles what
+the gain belongs to. Doubling the frame to $K = 40$ while leaving the
+penalty flat scores \unifBlkFourTrailGFortyTunedQLIKE{} (DM
+\unifBlkFourTrailGFortyTunedDM{}), improving on the $K = 20$ arm by
+\unifIncrBlkFourTrailGFortyTunedDQ{} at
+\unifIncrBlkFourTrailGFortyTunedDM{} and on the tuned three-block by
+\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDQ{} at
+\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDM{}. Running the same
+$K = 40$ frame with a rank-shaped rather than flat penalty changes
+nothing measurable
+(\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDQ{} at
+\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDM{}). The frame
+width is the lever; the penalty shape is not. The headline model is
+therefore the wider frame under a flat penalty --- the simpler of the
+two constructions, with no shape parameter to select.
 Against the corresponding
 full-block model it is statistically indistinguishable
 (\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDQ{} at

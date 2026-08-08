@@ -227,20 +227,43 @@ in all eight designs and in $18$ of $24$ years). The
 difference between the two subsets is $2.9 \times 10^{-3}$ at
 $z = 7.8$.
 
-A grid endpoint carrying a result is a statement about the grid. Under
-the correspondence of Section~\ref{sec:dense_weak_headtohead} between
-the elastic net's parameterization and a ridge penalty --- an
-$\ell_2$ weight of $N \alpha (1 - \rho)$ on the window gram, with $N =
-24{,}000$ and $\rho$ the mixing share --- the elastic net's largest
-expressible $\ell_2$ weight is $24{,}000 \times 10^{-2} \times 0.75 =
-180$, while the tuned ridge arm draws from a grid reaching $1{,}000$ and
-selects that top value in $41.3\%$ of its own retunes. The elastic net
-cannot reach the shrinkage level ridge chooses, and it loses precisely
-on the bars where it has run out of grid. Until the comparison is re-run
-with matched reach, the ordering in Table~\ref{tab:buckets_tuned}
-measures the grids and not the families.
-\pending{extended-grid elastic net ($\alpha$ to $10^{-1}$, nesting the
-current grid) is running; the family comparison is settled on it}
+A result carried by a grid endpoint invites the explanation that the
+grid is too small. Under the correspondence between the elastic net's
+parameterization and a ridge penalty --- an $\ell_2$ weight of $N \alpha
+(1 - \rho)$ on the window gram, with $N = 24{,}000$ and $\rho$ the
+mixing share --- the elastic net's largest expressible $\ell_2$ weight
+is $24{,}000 \times 10^{-2} \times 0.75 = 180$, while the tuned ridge
+arm draws from a grid reaching $1{,}000$ and selects that top value in
+$41.3\%$ of its own retunes. The elastic net cannot express the
+shrinkage ridge chooses, and it loses on the bars where it has run out
+of grid.
+
+That explanation is testable and it is false. Re-running every design
+with the penalty grid extended to $\alpha = 1$ --- which reaches $6$ to
+$18$ times ridge's selected weight at every mixing value, and contains
+the original grid as a subset --- makes the elastic net
+\emph{substantially worse}, not better. On the moments design the
+extended-grid arm loses $2.9 \times 10^{-3}$ to its own narrow-grid twin
+(DM $+7.01$) and $3.3 \times 10^{-3}$ to tuned ridge (DM $+6.68$); on
+the joint design, $1.7 \times 10^{-3}$ (DM $+4.56$) and $2.4 \times
+10^{-3}$ (DM $+3.46$). Giving the estimator more room to shrink causes
+it to shrink worse.
+
+This locates the asymmetry precisely, and it is not about how much
+shrinkage each family can express. Both tuners pin the tops of their
+grids --- ridge in $41.3\%$ of retunes, the elastic net in a comparable
+share --- because on a $125$-bar validation tail neither can resolve the
+penalty. What differs is the consequence. For ridge, the loss is
+monotone and flat in $\log \alpha$ near its optimum
+(Section~\ref{sec:dense_weak_headtohead}), so selecting too large a
+penalty costs almost nothing: over-shrinking a dense coefficient vector
+degrades gracefully. For the elastic net, a larger penalty is partly an
+$\ell_1$ penalty, and over-penalizing in that direction removes columns
+outright. The same selection error is benign in one family and
+destructive in the other. Selection loses here not because the data
+prefer dense coefficients, but because the price of a hyperparameter
+mistake is asymmetric --- and a short causal validation window
+guarantees such mistakes.
 
 \paragraph{What the trajectories do and do not show.}
 The selected mixing share is bimodal --- $36.7\%$ of retunes at pure
