@@ -211,6 +211,33 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     # single-point grid = fixed penalty (directive 2026-08-06; elastic net dropped:
     # §5 is ridge vs lasso)
     "lasso_fixed": [("lasso", FIXED_LASSO_ALPHA, 1.0)],
+    # LASSO JIGGLE (author directive 2026-08-07). b2_lasso at alpha=1e-4 beats
+    # every other single-estimator arm (0.22950, DM -8.39) — including tuned
+    # ridge (0.23040, -4.45), tuned enet (0.23056, -2.58) and tuned lasso
+    # (0.23134, -2.03) — but 1e-4 was HAND-PICKED with hindsight, so the number
+    # is currently uninterpretable. Two explanations with opposite implications
+    # must be separated: (a) 1e-4 is an oracle point and the result is an
+    # artifact, or (b) the lasso family genuinely wins on this design and the
+    # CAUSAL TUNER is what costs performance (independent evidence: the tuner's
+    # selected l1_ratio is bimodal, flipping between 0.25 and 1.0 across ~1200
+    # retunes — the signature of a 125-bar validation tail that cannot identify
+    # the parameter). THE READOUT is QLIKE against log(alpha): a SHARP peak at
+    # 1e-4 with much worse neighbours means luck; a BROAD flat optimum spanning
+    # decades means the family wins and the tuner is the underperformer. Each
+    # entry is a single-point grid, so there is no selection — identical
+    # machinery to b2_lasso (warm Garrigues homotopy at l1_ratio=1.0, the
+    # periodic "tune" reducing to the cold-reseed re-anchor + identifiability
+    # mask), only alpha moves. 1e-4 is NOT rebuilt here: b2_lasso already IS
+    # that point and its chunks stay untouched.
+    **{
+        f"lasso_fixed_a{tag}": [("lasso", a, 1.0)]
+        for tag, a in (
+            ("1em6", 1e-6),
+            ("1em5", 1e-5),
+            ("1em3", 1e-3),
+            ("1em2", 1e-2),
+        )
+    },
     # causally-tuned CONTROL arms (directive 2026-08-06, second round): the July
     # battery's exact grids — specs/causal_tune_linear.py:167-171 ESTIMATOR_GRIDS.
     # With >1 grid point the TUNE_PER=250 reselection is a real causal re-tune:
@@ -237,6 +264,53 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     ],
 }
 
+
+def _halve_decades(grid: tuple[float, ...]) -> tuple[float, ...]:
+    """Insert the GEOMETRIC MIDPOINT between consecutive grid points.
+
+    Subset-by-construction: the original points are carried through as the
+    SAME float64 objects, so ``set(coarse) < set(fine)`` holds bit-exactly and
+    a fine-vs-coarse increment is attributable to the interstitial points
+    alone. (Rebuilding the fine grid with ``np.logspace`` would usually — but
+    is not GUARANTEED to — reproduce the coarse points bit-identically; that
+    is not a property to leave to luck when it is the comparison's premise.)
+    """
+    out: list[float] = []
+    for a, b in zip(grid[:-1], grid[1:]):
+        out.append(float(a))
+        out.append(float(np.sqrt(float(a) * float(b))))
+    out.append(float(grid[-1]))
+    return tuple(out)
+
+
+# HALF-DECADE tuner grids (author directive 2026-08-07). THE ARITHMETIC: the
+# fixed-ridge envelope moves ~0.0009 in QLIKE per DECADE of alpha (0.1: 0.23360,
+# 0.3: 0.23312, 1: 0.23243, 3: 0.23169, 10: 0.23087), so a half-decade error in
+# the selected penalty costs ~0.0004 — LARGER than increments this paper reports
+# as significant (the transmission increment is 0.00028 at DM -2.06). The tuned
+# grids are decade-spaced (ridge logspace(-2,3,6)) or 3-point (the block grids
+# the BEST MODEL is tuned on). We are resolving the hyperparameter more coarsely
+# than the effects we measure.
+# COUNTER-CONSIDERATION, and why this is an empirical trade rather than an
+# obvious win: a finer grid is also more opportunities to overfit the 125-bar
+# validation tail, and there is direct evidence that tail is a noisy selector —
+# the enet arms' chosen l1_ratio is BIMODAL, flipping between 0.25 and 1.0
+# across ~1200 retunes. These arms must be able to show a LOSS, and the
+# interstitial-usage diagnostic (meta.coarse_grids -> the scorer's
+# fine_grid_usage.csv) is what makes either outcome interpretable:
+#   * interstitial points rarely selected      -> resolution was never binding,
+#                                                 the coarse grid is vindicated;
+#   * selected constantly, no QLIKE gain       -> selection noise, i.e. evidence
+#                                                 FOR the coarse grid as
+#                                                 implicit regularization.
+ESTIMATOR_GRIDS["ridge_tuned_fine"] = [
+    ("ridge", float(a), 0.0)
+    for a in _halve_decades(tuple(a for _, a, _ in ESTIMATOR_GRIDS["ridge_tuned"]))
+]
+# COARSE ancestry for the single-estimator fine arm (same role as
+# FINE_GRID_PARENT for the block arms): persisted into meta.coarse_grids.
+ESTIMATOR_GRID_PARENT: dict[str, str] = {"ridge_tuned_fine": "ridge_tuned"}
+
 # Per-block alpha grids for the causally-tuned BLOCK arms (author directive
 # 2026-08-06: the block ridges get the same fairness standard as the tuned
 # head-to-head). RATIONALE: 3 log-spaced points per block, centered so each
@@ -245,7 +319,11 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
 # both); product: user 1e3 vs doc 3e4 (grid 1e3..1e5); transmission: user
 # 1e3 vs doc 3e3 (grid 1e2..1e4 contains both). Selection is JOINT (full
 # cartesian product per retune) so cross-block penalty trade-offs are seen.
-BLOCK_TUNE_GRIDS: dict[str, tuple[float, ...]] = {
+# NOTE the value type is Any, not float: the SHAPED block grids (trans_shaped*,
+# pc_ladder_tilt*, exog_tilt*) store descriptor TUPLES under the same mapping,
+# e.g. (lambda0, gamma) or (lambda0, family, param[, group]). _pen_value
+# normalizes whichever form a key holds; _fill_pen_span dispatches on it.
+BLOCK_TUNE_GRIDS: dict[str, tuple[Any, ...]] = {
     "backbone": (0.1, 1.0, 10.0),
     "exog": (1e2, 1e3, 1e4),
     "product": (1e3, 1e4, 1e5),
@@ -272,7 +350,7 @@ CYCLIC_PASSES = 3
 # makes the comparison honest. (lambda0, gamma) is ONE block's 12-point grid —
 # selected by the same cyclic descent, never a cartesian explosion.
 TRANS_SHAPE_GAMMAS: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0)
-BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS
@@ -325,8 +403,38 @@ BLOCK_TUNE_GRIDS["trans_shaped"] = tuple(  # type: ignore[assignment]
 # at the FLAT penalty and is not caused by the shaping.) If a future grid goes
 # steeper still, the documented fix is to cap lambda_i at a fixed multiple of
 # the fit gram's trace rather than to drop grid points silently.
+# HALF-DECADE block grids for blk4_trailGShaped_fine (author directive
+# 2026-08-07): every block refined over the SAME range it already spans, so the
+# arm differs from blk4_trailGShaped in RESOLUTION ONLY. Each coarse grid is a
+# strict subset (see _halve_decades). Cyclic cost is 1 + passes * sum(|grid|-1)
+# = 1 + 3 * (4+4+4+19) = 94 tail evaluations per retune, against the shipped
+# arm's 52 — under 2x, and well inside the ~150 ceiling.
+BLOCK_TUNE_GRIDS["backbone_fine"] = _halve_decades(BLOCK_TUNE_GRIDS["backbone"])
+BLOCK_TUNE_GRIDS["exog_fine"] = _halve_decades(BLOCK_TUNE_GRIDS["exog"])
+BLOCK_TUNE_GRIDS["product_fine"] = _halve_decades(BLOCK_TUNE_GRIDS["product"])
+BLOCK_TUNE_GRIDS["trans_fine"] = _halve_decades(BLOCK_TUNE_GRIDS["trans"])
+# Half-decade lambda0 axis for the shaped transmission block, gammas UNCHANGED
+# (the resolution question is about the PENALTY LEVEL; changing both axes at
+# once would confound it): 5 lambda0 x 4 gammas = 20 points, coarse 12 a strict
+# subset.
+BLOCK_TUNE_GRIDS["trans_shaped_fine"] = tuple(
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["trans_fine"]
+    for g in TRANS_SHAPE_GAMMAS
+)
+# COARSE ancestry, persisted into every chunk's meta so the interstitial-usage
+# diagnostic needs no scorer-side hardcoding: a selected penalty is
+# "interstitial" iff its level is NOT a point of the coarse grid this one
+# refines.
+FINE_GRID_PARENT: dict[str, str] = {
+    "backbone_fine": "backbone",
+    "exog_fine": "exog",
+    "product_fine": "product",
+    "trans_shaped_fine": "trans_shaped",
+}
+
 TRANS_SHAPE_GAMMAS_WIDE: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0, 3.0, 4.0)
-BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS_WIDE
@@ -344,7 +452,7 @@ BLOCK_TUNE_GRIDS["pcr"] = (1e-2, 1e-1, 1.0, 1e1, 1e2, 1e3, 1e4)
 # PC-ladder block: one rank-tilted penalty per PC rank, SHARED across that
 # rank's ladder rungs (see _pc_ladder_design). Power family only, 12 points;
 # the group size (rungs per rank) rides in the descriptor.
-BLOCK_TUNE_GRIDS["pc_ladder_tilt"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["pc_ladder_tilt"] = tuple(
     (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS
@@ -353,7 +461,7 @@ BLOCK_TUNE_GRIDS["pc_ladder_tilt"] = tuple(  # type: ignore[assignment]
 # 2026-08-07): at full rank the tail directions are the ones the tilt has to
 # suppress, so the exponent axis must be able to go steeper than 2 — same
 # extension, same rationale, as TRANS_SHAPE_GAMMAS_WIDE. 18 points.
-BLOCK_TUNE_GRIDS["pc_ladder_tilt_wide"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["pc_ladder_tilt_wide"] = tuple(
     (float(lam0), "pcrank", float(g), len(PRODUCT_EXOG_WINDOWS))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS_WIDE
@@ -363,7 +471,7 @@ BLOCK_TUNE_GRIDS["pc_ladder_tilt_wide"] = tuple(  # type: ignore[assignment]
 # Tikhonov arm (2026-08-07): anisotropic ridge applied directly, with no
 # duplicated columns, as the principled form of what the transmission block
 # achieves by augmentation. gamma=0 is plain scalar ridge.
-BLOCK_TUNE_GRIDS["exog_tilt"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["exog_tilt"] = tuple(
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS
@@ -403,7 +511,7 @@ TIKHONOV_STEP_KS: tuple[int, ...] = (20, 40, 80)
 TRANS_SHAPE_KAPPAS: tuple[float, ...] = (0.02, 0.05, 0.10)
 TRANS_SHAPE_STEP_KS: tuple[int, ...] = (10, 20, 30)
 BLOCK_TUNE_GRIDS["trans_shaped_zoo"] = (
-    tuple(  # type: ignore[assignment]
+    tuple(
         (float(lam0), "power", float(g))
         for lam0 in BLOCK_TUNE_GRIDS["trans"]
         for g in TRANS_SHAPE_GAMMAS_WIDE
@@ -419,7 +527,7 @@ BLOCK_TUNE_GRIDS["trans_shaped_zoo"] = (
         for k0 in TRANS_SHAPE_STEP_KS
     )
 )
-BLOCK_TUNE_GRIDS["exog_tilt_step"] = tuple(  # type: ignore[assignment]
+BLOCK_TUNE_GRIDS["exog_tilt_step"] = tuple(
     (float(lam0), "power", float(g))
     for lam0 in BLOCK_TUNE_GRIDS["exog"]
     for g in TRANS_SHAPE_GAMMAS
@@ -2180,6 +2288,25 @@ ARMS: dict[str, ArmSpec] = {
         )
         for tag, a in (("0p1", 0.1), ("0p3", 0.3), ("3", 3.0), ("10", 10.0))
     },
+    # RIDGE GRID EXTENSION (author directive 2026-08-07). The jiggle grid above
+    # is MONOTONE across its whole range — 0.1: 0.23360, 0.3: 0.23312,
+    # 1: 0.23243, 3: 0.23169, 10: 0.23087 — i.e. still improving at its top
+    # endpoint, so it never located its own optimum, and b1_ridge_tuned (whose
+    # grid runs to 1e3) beats every point on it. Without these three the
+    # FIXED-RIDGE ENVELOPE is unmeasured and the fixed-vs-tuned comparison is
+    # not a comparison. Same wide design, same window, same persistence — only
+    # alpha moves.
+    **{
+        f"b1_ridge_a{tag}": ArmSpec(
+            describe=f"fixed-ridge grid extension: wide all_features basis, "
+            f"alpha={a:g} (the jiggle grid was monotone to its endpoint; these "
+            "bracket the fixed-ridge envelope)",
+            kind="blocks",
+            blocks=[("wide", "wide")],
+            alphas={"wide": a},
+        )
+        for tag, a in (("30", 30.0), ("100", 100.0), ("300", 300.0))
+    },
     "b2_lasso": ArmSpec(
         describe="FIXED-penalty lasso on the wide basis, alpha=1e-4 l1_ratio=1.0 "
         "(pinned 2026-08-06; warm Garrigues homotopy, per-bar refit; "
@@ -2187,12 +2314,46 @@ ARMS: dict[str, ArmSpec] = {
         kind="tuned",
         grid="lasso_fixed",
     ),
+    # LASSO JIGGLE arms (author directive 2026-08-07): the fixed-penalty
+    # envelope of the lasso family, four points bracketing b2_lasso's pinned
+    # alpha=1e-4 by two decades each way. See ESTIMATOR_GRIDS["lasso_fixed_a*"]
+    # for why this is the experiment that makes 0.22950 interpretable. b2_lasso
+    # itself is the 1e-4 rung and is NOT rebuilt.
+    **{
+        f"b2_lasso_a{tag}": ArmSpec(
+            describe=f"fixed-lasso jiggle: wide all_features basis, alpha={a:g} "
+            "l1_ratio=1.0 (fixed-penalty envelope around b2_lasso's pinned "
+            "alpha=1e-4; same warm Garrigues homotopy, no selection)",
+            kind="tuned",
+            grid=f"lasso_fixed_a{tag}",
+        )
+        for tag, a in (
+            ("1em6", 1e-6),
+            ("1em5", 1e-5),
+            ("1em3", 1e-3),
+            ("1em2", 1e-2),
+        )
+    },
     "b1_ridge_tuned": ArmSpec(
         describe="causally-TUNED ridge control on the wide basis: battery grid "
         "logspace(-2,3,6), re-selected every 250 solves on the "
         "fit/embargo-25/val-tail-125 forward split of the current window",
         kind="tuned",
         grid="ridge_tuned",
+    ),
+    # GRID-RESOLUTION test, single-estimator rung (author directive
+    # 2026-08-07): identical to b1_ridge_tuned except the alpha grid is
+    # HALF-DECADE (11 points over the same 1e-2..1e3 range, the coarse 6 a
+    # strict subset). See ESTIMATOR_GRIDS["ridge_tuned_fine"] for the arithmetic
+    # that motivates it AND the selection-variance counter-consideration —
+    # this arm is allowed to LOSE, and the interstitial-usage diagnostic makes
+    # either outcome readable.
+    "b1_ridge_tuned_fine": ArmSpec(
+        describe="causally-tuned ridge at HALF-DECADE grid resolution: wide "
+        "basis, logspace(-2,3,11), otherwise identical to b1_ridge_tuned "
+        "(same 250-solve cadence, same embargo-25/tail-125 forward split)",
+        kind="tuned",
+        grid="ridge_tuned_fine",
     ),
     "b2_lasso_tuned": ArmSpec(
         describe="causally-TUNED lasso control on the wide basis: battery grid "
@@ -2570,6 +2731,30 @@ ARMS: dict[str, ArmSpec] = {
             ("exog_all", "exog"),
             ("product", "product"),
             ("trans_trailG40", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # GRID-RESOLUTION test on the BEST MODEL (author directive 2026-08-07):
+    # identical to blk4_trailGShaped except EVERY block grid is refined to
+    # half-decade spacing over the SAME range it already spans, so the arm
+    # differs in RESOLUTION ONLY and each coarse grid is a strict subset. The
+    # paper's best model is currently tuned on 3-point-per-block grids while
+    # the fixed-penalty envelope moves ~0.0009/decade — i.e. coarser than the
+    # effects reported as significant. Cost: 94 tail evaluations per retune vs
+    # the shipped arm's 52. Allowed to lose (see the counter-consideration at
+    # ESTIMATOR_GRIDS["ridge_tuned_fine"]).
+    "blk4_trailGShaped_fine": ArmSpec(
+        describe="grid-resolution test on the best model: blk4_trailGShaped "
+        "with HALF-DECADE per-block grids (5 points each; the shaped "
+        "transmission block's lambda0 refined to 5, gammas unchanged, 20 "
+        "points), cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone_fine"),
+            ("exog_all", "exog_fine"),
+            ("product", "product_fine"),
+            ("trans_trailG40", "trans_shaped_fine"),
         ],
         grid="cyclic",
         oos_mult=2,
@@ -2995,6 +3180,7 @@ def compute(args: argparse.Namespace) -> None:
     masked_cols: dict[str, dict[str, Any]] = {}
     tuned_alphas: list[dict[str, Any]] = []
     tuned_grids: dict[str, list[Any]] = {}
+    coarse_grids: dict[str, list[Any]] = {}
     tuned_penalty: list[dict[str, Any]] = []
     tree_cfg: dict[str, Any] = {}
     if spec.kind == "ols":
@@ -3013,6 +3199,13 @@ def compute(args: argparse.Namespace) -> None:
     elif spec.kind == "blocks_tuned":
         arm_keys = [k for _, k in spec.blocks]
         tuned_grids = {k: list(BLOCK_TUNE_GRIDS[k]) for k in arm_keys}
+        # Fine-grid arms carry their COARSE ancestor so the interstitial-usage
+        # diagnostic reads out of the chunk itself (no scorer-side arm list).
+        coarse_grids = {
+            k: list(BLOCK_TUNE_GRIDS[FINE_GRID_PARENT[k]])
+            for k in arm_keys
+            if k in FINE_GRID_PARENT
+        }
         if spec.grid == "cyclic" and any(
             k.startswith(_BUCKET_PEN_KEY) for k in arm_keys
         ):
@@ -3061,6 +3254,13 @@ def compute(args: argparse.Namespace) -> None:
         )
     else:
         F, _ = _build_design(p, spec, window)
+        if spec.grid in ESTIMATOR_GRID_PARENT:  # fine-grid twin: carry the ancestor
+            coarse_grids = {
+                "__estimator_alpha__": [
+                    float(a)
+                    for _, a, _ in ESTIMATOR_GRIDS[ESTIMATOR_GRID_PARENT[spec.grid]]
+                ]
+            }
         yhat, tuned_penalty = _walk_tuned(
             F, p.y, window, lo, hi, ESTIMATOR_GRIDS[spec.grid]
         )
@@ -3151,6 +3351,12 @@ def compute(args: argparse.Namespace) -> None:
                 # executor (a grid whose optimum sits at an endpoint is not a
                 # valid selection)
                 "tuned_grids": tuned_grids,
+                # HALF-DECADE arms only: the COARSE grid each fine grid
+                # refines, so the scorer can report what fraction of retunes
+                # land on an INTERSTITIAL point — the number that separates
+                # "resolution was never binding" from "selection noise"
+                # (fine_grid_usage.csv). Empty for every other arm.
+                "coarse_grids": coarse_grids,
                 # tree expert arms: the frozen menu entry (name, params, sha)
                 "tree_config": tree_cfg,
                 # transmission dig: construction summary (arrays in the npz

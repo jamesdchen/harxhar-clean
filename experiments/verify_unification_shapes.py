@@ -1,0 +1,846 @@
+"""Synthetics for the 2026-08-07 penalty-shape / PC-basis arm set.
+
+Covers, in order:
+
+  A. GRID ENUMERATION — the wide exponent grid, the shape zoo and the wide
+     pcrank grid enumerate the intended number of points with NO duplicates,
+     and the wide grids STRICTLY CONTAIN the narrow ones they extend (so any
+     wide-vs-narrow increment is attributable to the added points alone).
+     Duplicate-freeness is load-bearing: ``_walk_blocks_tuned``'s cyclic
+     descent skips a trial when ``_pen_value(a) == sel[k]``, so two grid points
+     that normalize to the same descriptor would silently shrink the grid.
+
+  B. PENALTY VECTORS — power/gamma=0 nests the flat penalty BIT-IDENTICALLY;
+     every point of every grid produces a monotone non-decreasing penalty
+     across ranks; the step family's boundary lands at exactly rank K0; the
+     extreme corner is finite and exact in float64.
+
+  C. CONDITIONING — the question the wide exponent grid raises: at lambda0=1e4,
+     gamma=4, K=40 the largest transmission penalty is 1e4 * 40**4 = 2.56e10,
+     ~3 decades above the shaped arm's current worst case. This section builds
+     a realistically structured fit gram at the campaign's own fit-window size
+     and reports, per grid corner, the condition number of the penalized gram
+     AND the fitted-value agreement between the normal-equation solve the code
+     performs and the numerically stable augmented-QR ridge solve. The latter
+     is the number that decides whether a cap is needed: cond alone overstates
+     the danger, because the directions carrying the huge penalty are exactly
+     the ones being shrunk to zero.
+
+  D. PC-LADDER REPARAMETERIZATION — at full rank, {ma_j(G_i)} and the
+     ladder-expanded standardized base differ by a block-diagonal ORTHOGONAL
+     rotation, so a flat-penalty ridge on either must give identical fitted
+     values. Verified to machine precision on a fixture, and then re-run WITH
+     the arm's trailing standardization to quantify how much that (non-
+     orthogonal, time-varying) rescaling breaks the identity.
+
+  E. PER-RUNG BASES — column count, rank-major layout, and the fast-vs-slow
+     subspace alignment that predicts whether blk_pcladderPerRung_tuned can
+     differ from blk_pcladder_tuned at all.
+
+  F. ARM WIRING — every new arm is registered, resolves its block grids, and
+     differs from the arm it extends in EXACTLY the intended field.
+
+  G. FIXED-PENALTY JIGGLE ENVELOPE — every ridge/lasso jiggle arm's penalty is
+     literally what its name says, and the two arms already on disk (b1_ridge
+     at alpha=1, b2_lasso at alpha=1e-4) are untouched. The experiment is a
+     QLIKE-vs-log(alpha) curve, so an arm mislabelled by one decade would
+     invert the reading.
+
+  H. HALF-DECADE GRID RESOLUTION — every fine grid's exact membership, and the
+     STRICT SUBSET property (bit-exact) that makes fine-vs-coarse attributable
+     to the added points alone; plus the cyclic tail-evaluation budget.
+
+Run:  python experiments/verify_unification_shapes.py
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+import src.unification as U  # noqa: E402
+
+FAIL: list[str] = []
+
+
+def _grid(key: str) -> list[Any]:
+    """A block grid as a list of opaque points. BLOCK_TUNE_GRIDS is declared
+    ``dict[str, tuple[float, ...]]`` for the scalar blocks; the shaped blocks
+    store descriptor tuples under the same key, so the checks read them
+    untyped rather than fight the declaration."""
+    return list(U.BLOCK_TUNE_GRIDS[key])
+
+
+def check(name: str, ok: bool, detail: str = "") -> None:
+    print(f"  [{'ok ' if ok else 'FAIL'}] {name}{(' — ' + detail) if detail else ''}")
+    if not ok:
+        FAIL.append(name)
+
+
+# ── A. grid enumeration ───────────────────────────────────────────────────────
+def section_a() -> None:
+    print("\nA. GRID ENUMERATION")
+    g_narrow = _grid("trans_shaped")
+    g_wide = _grid("trans_shaped_wide")
+    g_zoo = _grid("trans_shaped_zoo")
+    g_pcn = _grid("pc_ladder_tilt")
+    g_pcw = _grid("pc_ladder_tilt_wide")
+
+    check(
+        "trans_shaped unchanged at 12 points", len(g_narrow) == 12, str(len(g_narrow))
+    )
+    check(
+        "TRANS_SHAPE_GAMMAS unchanged",
+        U.TRANS_SHAPE_GAMMAS == (0.0, 0.5, 1.0, 2.0),
+        str(U.TRANS_SHAPE_GAMMAS),
+    )
+    check(
+        "TRANS_SHAPE_GAMMAS_WIDE = (0, .5, 1, 2, 3, 4)",
+        U.TRANS_SHAPE_GAMMAS_WIDE == (0.0, 0.5, 1.0, 2.0, 3.0, 4.0),
+        str(U.TRANS_SHAPE_GAMMAS_WIDE),
+    )
+    check("trans_shaped_wide has 18 points", len(g_wide) == 18, str(len(g_wide)))
+    check("trans_shaped_zoo has 36 points", len(g_zoo) == 36, str(len(g_zoo)))
+    check("pc_ladder_tilt_wide has 18 points", len(g_pcw) == 18, str(len(g_pcw)))
+
+    for label, grid in (
+        ("trans_shaped_wide", g_wide),
+        ("trans_shaped_zoo", g_zoo),
+        ("pc_ladder_tilt_wide", g_pcw),
+    ):
+        raw = [tuple(a) for a in grid]
+        norm = [U._pen_value(a) for a in grid]
+        check(f"{label}: no duplicate grid points", len(set(raw)) == len(raw))
+        # the tuner compares NORMALIZED descriptors, so those must be distinct
+        check(
+            f"{label}: no duplicate _pen_value descriptors",
+            len(set(norm)) == len(norm),
+            f"{len(set(norm))}/{len(norm)}",
+        )
+
+    check(
+        "wide exponent grid STRICTLY CONTAINS the narrow one",
+        set(map(tuple, g_narrow)) < set(map(tuple, g_wide)),
+    )
+    check(
+        "wide pcrank grid STRICTLY CONTAINS the narrow one",
+        set(map(tuple, g_pcn)) < set(map(tuple, g_pcw)),
+    )
+    fams: dict[str, int] = {}
+    for a in g_zoo:
+        fams[str(a[1])] = fams.get(str(a[1]), 0) + 1
+    check(
+        "zoo family counts power/exp/step = 18/9/9",
+        fams == {"power": 18, "exp": 9, "step": 9},
+        str(fams),
+    )
+    check(
+        "zoo contains the exact flat nesting point (power, gamma=0)",
+        all(
+            (lam, "power", 0.0) in [tuple(a) for a in g_zoo] for lam in (1e2, 1e3, 1e4)
+        ),
+    )
+
+
+# ── B. penalty vectors ────────────────────────────────────────────────────────
+def section_b(k_span: int = 40) -> None:
+    print(f"\nB. PENALTY VECTORS (K={k_span})")
+
+    def fill(value) -> np.ndarray:
+        pen = np.zeros(k_span)
+        U._fill_pen_span(pen, 0, k_span, U._pen_value(value))
+        return pen
+
+    for lam0 in (1e2, 1e3, 1e4):
+        flat = np.zeros(k_span)
+        U._fill_pen_span(flat, 0, k_span, float(lam0))
+        check(
+            f"gamma=0 nests flat BIT-IDENTICALLY (lambda0={lam0:g}, 2-tuple)",
+            np.array_equal(fill((lam0, 0.0)), flat),
+        )
+        check(
+            f"power/gamma=0 nests flat BIT-IDENTICALLY (lambda0={lam0:g}, zoo form)",
+            np.array_equal(fill((lam0, "power", 0.0)), flat),
+        )
+
+    bad_mono: list[str] = []
+    for label, grid in (
+        ("trans_shaped", _grid("trans_shaped")),
+        ("trans_shaped_wide", _grid("trans_shaped_wide")),
+        ("trans_shaped_zoo", _grid("trans_shaped_zoo")),
+    ):
+        for a in grid:
+            pv = fill(a)
+            if not np.all(np.diff(pv) >= 0) or not np.all(np.isfinite(pv)):
+                bad_mono.append(f"{label}{tuple(a)}")
+        check(
+            f"{label}: penalty monotone non-decreasing + finite at every point",
+            not bad_mono,
+            "; ".join(bad_mono[:3]),
+        )
+        bad_mono = []
+
+    # pcrank grids: monotone across RANK, flat within a rank's rungs
+    n_rungs = len(U.PRODUCT_EXOG_WINDOWS)
+    for label, grid in (
+        ("pc_ladder_tilt", _grid("pc_ladder_tilt")),
+        ("pc_ladder_tilt_wide", _grid("pc_ladder_tilt_wide")),
+    ):
+        bad: list[str] = []
+        span = 20 * n_rungs
+        for a in grid:
+            pen = np.zeros(span)
+            U._fill_pen_span(pen, 0, span, U._pen_value(a))
+            if not np.all(np.diff(pen) >= 0) or not np.all(np.isfinite(pen)):
+                bad.append(f"{tuple(a)} not monotone")
+            blocks = pen.reshape(20, n_rungs)
+            if not np.all(blocks == blocks[:, :1]):
+                bad.append(f"{tuple(a)} varies WITHIN a rank")
+        check(
+            f"{label}: rank-monotone and constant within a rank", not bad, str(bad[:2])
+        )
+
+    # step boundary at EXACTLY rank K0
+    for k0 in U.TRANS_SHAPE_STEP_KS:
+        pv = fill((1e3, "step", float(k0)))
+        ok = (
+            np.all(pv[:k0] == 1e3)
+            and np.all(pv[k0:] == 1e3 * U.STEP_MULTIPLIER)
+            and pv[k0 - 1] != pv[k0]
+        )
+        check(f"step boundary lands at exactly rank K0={k0}", bool(ok))
+
+    # exponential family: geometric, strictly increasing, distinct from power
+    for kap in U.TRANS_SHAPE_KAPPAS:
+        pv = fill((1e3, "exp", float(kap)))
+        ratios = pv[1:] / pv[:-1]
+        check(
+            f"exp/kappa={kap}: constant ratio exp(kappa) (geometric tail)",
+            bool(np.allclose(ratios, np.exp(kap), rtol=1e-12)),
+            f"max|ratio-exp(k)|={np.max(np.abs(ratios - np.exp(kap))):.2e}",
+        )
+
+    corner = fill((1e4, 4.0))
+    check(
+        "extreme corner lambda0=1e4, gamma=4, K=40 is exact and finite",
+        corner[-1] == 1e4 * 40.0**4 and np.isfinite(corner).all(),
+        f"max penalty {corner[-1]:.6g} (= 1e4 * 40**4)",
+    )
+    print(
+        f"    penalty range at the extreme corner: "
+        f"[{corner[0]:.4g}, {corner[-1]:.4g}], "
+        f"vs the SHIPPED arm's steepest (gamma=2) "
+        f"[{fill((1e4, 2.0))[0]:.4g}, {fill((1e4, 2.0))[-1]:.4g}]"
+    )
+
+
+# ── C. conditioning ───────────────────────────────────────────────────────────
+def _fit_gram_fixture(
+    n_shaped: int = 40, shaped_key: str = "trans", seed: int = 0
+) -> tuple[np.ndarray, np.ndarray, list]:
+    """Realistically STRUCTURED fit-window design at the campaign's own scale.
+
+    Not the real panel (which needs the feature cache) but built to reproduce
+    the three properties the condition number depends on:
+      * the row count of the ACTUAL fit block (window - VAL_TAIL - EMBARGO);
+      * the heavy near-collinearity of the exogenous MA panel — a low-rank
+        factor model whose spectrum is the POWER LAW measured on the real
+        frozen frame (d_i ~ i**-1.176) plus small idiosyncratic noise;
+      * a WORST-CASE floor: the backbone block, whose grid minimum is the
+        smallest penalty in the whole design (0.1), is given a near-duplicate
+        column pair so its gram contribution is numerically singular. That
+        pins lambda_min of the penalized gram at the penalty floor, which is
+        the least favourable configuration the tuner can reach. Real backbones
+        contain near-duplicate calendar/session columns, so this is a stress
+        test, not a strawman.
+    """
+    rng = np.random.default_rng(seed)
+    n_fit = U.DEFAULT_WINDOW_BARS - U.VAL_TAIL - U.EMBARGO
+    n_back, n_exog, n_prod = 40, 526, 300
+    n_fac = 106  # live rank of the real base frame
+    d = np.arange(1, n_fac + 1, dtype=np.float64) ** -1.176
+    fac = rng.standard_normal((n_fit, n_fac)) * np.sqrt(d)
+    load = rng.standard_normal((n_fac, n_exog)) / np.sqrt(n_fac)
+    exog = fac @ load + 0.01 * rng.standard_normal((n_fit, n_exog))
+    back = rng.standard_normal((n_fit, n_back))
+    back[:, 1] = back[:, 0] + 1e-9 * rng.standard_normal(n_fit)  # near-duplicate
+    prod = exog[:, :n_prod] * exog[:, 1 : n_prod + 1]
+    # trailing-standardized scores => unit variance by construction
+    shaped = fac[:, :n_shaped] / np.sqrt(d[:n_shaped])
+    X = np.hstack([back, exog, prod, shaped])
+    y = X[:, :5].sum(1) + rng.standard_normal(n_fit)
+    segments = [
+        (0, n_back, "backbone"),
+        (n_back, n_back + n_exog, "exog"),
+        (n_back + n_exog, n_back + n_exog + n_prod, "product"),
+        (n_back + n_exog + n_prod, X.shape[1], shaped_key),
+    ]
+    return X, y, segments
+
+
+def _cond_report(X, y, segments, shaped_key, corners) -> None:
+    Xc = X - X.mean(0)
+    yc = y - y.mean()
+    G = Xc.T @ Xc
+    c = Xc.T @ yc
+    p = X.shape[1]
+    base = {"backbone": 0.1, "exog": 1e2, "product": 1e3}
+    print(
+        f"    fixture: {X.shape[0]} fit rows x {p} cols; "
+        f"cond(unpenalized gram) = {np.linalg.cond(G):.3e}, "
+        f"||G||_2 = {np.linalg.norm(G, 2):.3e}"
+    )
+    for label, tv in corners:
+        pen = np.empty(p)
+        for s0, s1, k in segments:
+            U._fill_pen_span(pen, s0, s1, base[k] if k in base else U._pen_value(tv))
+        A = G.copy()
+        A[np.diag_indices_from(A)] += pen
+        cond = np.linalg.cond(A)
+        b = np.linalg.solve(A, c)
+        # STABLE reference: augmented least squares [Xc; sqrt(diag(pen))] via
+        # QR, whose conditioning is the SQUARE ROOT of the normal equations'.
+        aug = np.vstack([Xc, np.diag(np.sqrt(pen))])
+        rhs = np.concatenate([yc, np.zeros(p)])
+        b_ref = np.linalg.lstsq(aug, rhs, rcond=None)[0]
+        fit, fit_ref = Xc @ b, Xc @ b_ref
+        rel_fit = float(
+            np.max(np.abs(fit - fit_ref)) / max(np.max(np.abs(fit_ref)), 1e-300)
+        )
+        rel_coef = float(np.max(np.abs(b - b_ref)) / max(np.max(np.abs(b_ref)), 1e-300))
+        print(
+            f"    {label:<46s} pen [{pen.min():.3g}, {pen.max():.3g}]  "
+            f"cond {cond:.3e}  max rel fitted diff vs stable QR "
+            f"{rel_fit:.2e}  (coef {rel_coef:.2e})"
+        )
+        check(
+            f"solve is well-behaved at: {label}",
+            bool(np.isfinite(b).all()) and rel_fit < 1e-6,
+            f"cond {cond:.3e}, rel fitted diff {rel_fit:.2e}",
+        )
+
+
+def section_c() -> None:
+    print("\nC. CONDITIONING AT THE EXTREME GRID CORNERS")
+    print("  C1. blk4_trailGShapedWide / blk4_trailGZoo (K=40 transmission block)")
+    X, y, segments = _fit_gram_fixture(n_shaped=40, shaped_key="trans")
+    _cond_report(
+        X,
+        y,
+        segments,
+        "trans",
+        [
+            ("flat (lambda0=1e2)", 1e2),
+            ("SHIPPED steepest: power gamma=2, lambda0=1e4", (1e4, 2.0)),
+            ("WIDE steepest: power gamma=4, lambda0=1e4", (1e4, 4.0)),
+            ("zoo steepest exp: kappa=0.10, lambda0=1e4", (1e4, "exp", 0.10)),
+            ("zoo steepest step: K0=10, lambda0=1e4", (1e4, "step", 10.0)),
+        ],
+    )
+    print("\n  C2. blk_pcladder_fullK_tuned (K=106 ranks x 3 rungs = 318 columns)")
+    Xp, yp, segp = _fit_gram_fixture(n_shaped=318, shaped_key="pc")
+    _cond_report(
+        Xp,
+        yp,
+        segp,
+        "pc",
+        [
+            ("flat (lambda0=1e2)", 1e2),
+            ("narrow steepest: pcrank gamma=2, lambda0=1e4", (1e4, "pcrank", 2.0, 3)),
+            ("WIDE steepest: pcrank gamma=4, lambda0=1e4", (1e4, "pcrank", 4.0, 3)),
+        ],
+    )
+    pen = np.empty(106 * 3)
+    U._fill_pen_span(pen, 0, pen.size, U._pen_value((1e4, "pcrank", 4.0, 3)))
+    check(
+        "full-rank pcrank corner stays finite and exact in float64",
+        bool(np.isfinite(pen).all()) and pen.max() == 1e4 * 106.0**4,
+        f"max penalty {pen.max():.6g} = 1e4 * 106**4, "
+        f"{pen.max() / pen.min():.3g}x span",
+    )
+
+
+# ── fixture panel for D/E ─────────────────────────────────────────────────────
+def _fixture_panel(n: int = 2400, window: int = 400, seed: int = 1) -> U._Panel:
+    """Small synthetic panel with the real NAME grammar, so the production
+    column selectors (`_product_base_cols`, `_backbone_cols`, ...) apply
+    unchanged. The algebraic claims in D/E are scale-free, so a small fixture
+    proves them; the trailing-standardization window is shortened to fit
+    (see the TRANS_TRAIL_DAYS override at the call site)."""
+    rng = np.random.default_rng(seed)
+    stems = [f"s{i:02d}" for i in range(30)]
+    names = [f"har_ma_{w}" for w in (1, 2, 4, 8, 16, 32, 64)]
+    names += [f"adj_{s}_ma_{w}" for s in stems for w in U.PRODUCT_EXOG_WINDOWS]
+    names += [f"{s}_avail_ma_1" for s in stems[:5]]
+    names += ["is_open", "is_close", "is_overnight", "hour"]
+    p = len(names)
+    # factor structure with a power-law spectrum, so the frame is non-trivial
+    n_fac = 40
+    d = np.arange(1, n_fac + 1, dtype=np.float64) ** -1.176
+    fac = rng.standard_normal((n, n_fac)) * np.sqrt(d)
+    X = fac @ (rng.standard_normal((n_fac, p)) / np.sqrt(n_fac))
+    X += 0.1 * rng.standard_normal((n, p))
+    y = X[:, :3].sum(1) + rng.standard_normal(n)
+    return U._Panel(
+        X=np.ascontiguousarray(X),
+        y=y,
+        baseline=np.ones(n),
+        rv_raw=np.ones(n),
+        t=np.arange(n).astype("datetime64[s]").astype("datetime64[ns]"),
+        names=names,
+        avail=np.ones((n, len(stems)), dtype=bool),
+        stem_index={s: i for i, s in enumerate(stems)},
+    )
+
+
+# ── D. PC-ladder reparameterization at full rank ──────────────────────────────
+def section_d() -> None:
+    print("\nD. PC-LADDER FULL-RANK REPARAMETERIZATION")
+    window = 400
+    p = _fixture_panel(n=3 * window, window=window)
+    k_full = U._frame_live_rank(p, window)
+    bc = U._product_base_cols(p.names)
+    Z = np.ascontiguousarray(p.X[:, bc])
+    check(
+        "_frame_live_rank matches the frame builder's own liveness rule",
+        k_full == int((Z[window : 2 * window].std(0) > U._DEGENERATE_SD).sum()),
+        f"K_full = {k_full} of {Z.shape[1]} base columns",
+    )
+
+    # frozen frame, exactly as _transmission_block._frame_of builds it
+    zw = Z[window : 2 * window]
+    mu, sd = zw.mean(0), zw.std(0)
+    live = sd > U._DEGENERATE_SD
+    sdl = np.where(live, sd, 1.0)
+    lam, v_l = np.linalg.eigh(np.corrcoef(((zw - mu) / sdl)[:, live], rowvar=False))
+    v = v_l[:, np.argsort(lam)[::-1]]  # (n_live, n_live) ORTHOGONAL at full rank
+    check(
+        "full-rank frame is orthogonal",
+        bool(np.allclose(v.T @ v, np.eye(v.shape[1]), atol=1e-12)),
+        f"max|V'V - I| = {np.max(np.abs(v.T @ v - np.eye(v.shape[1]))):.2e}",
+    )
+
+    zs = ((Z - mu) / sdl)[:, live]  # standardized live base series
+    rungs = U.PRODUCT_EXOG_WINDOWS
+    n_rungs = len(rungs)
+
+    def ladder(mat: np.ndarray) -> list[np.ndarray]:
+        out = []
+        for w in rungs:
+            a = (
+                pd.DataFrame(mat)
+                .rolling(window=int(w), min_periods=1)
+                .mean()
+                .shift(1)
+                .to_numpy()
+            )
+            a[~np.isfinite(a)] = 0.0
+            out.append(a)
+        return out
+
+    # comparator: ladder of the STANDARDIZED BASE (not rotated)
+    a_blocks = ladder(zs)
+    design_base = np.hstack(a_blocks)
+    # PC-ladder WITHOUT trailing standardization: ladder of the rotated series,
+    # laid out rank-major exactly as _pc_ladder_design does
+    g_blocks = ladder(zs @ v)
+    design_pc = np.empty_like(design_base)
+    for j in range(n_rungs):
+        design_pc[:, j::n_rungs] = g_blocks[j]
+
+    lo = 2 * window
+    yv = p.y
+
+    def ridge_fit(F: np.ndarray, alpha: float) -> np.ndarray:
+        Fw, yw = F[window:lo], yv[window:lo]
+        Fc, yc = Fw - Fw.mean(0), yw - yw.mean()
+        A = Fc.T @ Fc
+        A[np.diag_indices_from(A)] += alpha
+        b = np.linalg.solve(A, Fc.T @ yc)
+        return (F[lo:] - Fw.mean(0)) @ b + yw.mean()
+
+    for alpha in (1e0, 1e2, 1e4):
+        f1, f2 = ridge_fit(design_base, alpha), ridge_fit(design_pc, alpha)
+        rel = float(np.max(np.abs(f1 - f2)) / max(np.max(np.abs(f1)), 1e-300))
+        check(
+            f"flat-ridge fitted values identical under the rotation (alpha={alpha:g})",
+            rel < 1e-9,
+            f"max relative difference {rel:.3e}",
+        )
+
+    # ...and now the SAME comparison with the arm's actual trailing
+    # standardization of the scores, which is a TIME-VARYING PER-COLUMN
+    # rescaling and therefore NOT orthogonal.
+    trail = 200
+    gm = pd.DataFrame(zs @ v).rolling(trail, min_periods=trail).mean().shift(1)
+    gs = pd.DataFrame(zs @ v).rolling(trail, min_periods=trail).std().shift(1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        g_t = ((zs @ v) - gm.to_numpy()) / gs.to_numpy()
+    g_t[~np.isfinite(g_t)] = 0.0
+    gt_blocks = ladder(g_t)
+    design_pc_trail = np.empty_like(design_base)
+    for j in range(n_rungs):
+        design_pc_trail[:, j::n_rungs] = gt_blocks[j]
+    rels = []
+    for alpha in (1e0, 1e2, 1e4):
+        f1 = ridge_fit(design_base, alpha)
+        f3 = ridge_fit(design_pc_trail, alpha)
+        rels.append(float(np.max(np.abs(f1 - f3)) / max(np.max(np.abs(f1)), 1e-300)))
+    print(
+        "    WITH the arm's trailing standardization the identity does NOT "
+        f"hold: max relative fitted-value difference {max(rels):.3e} "
+        "(alpha 1e0/1e2/1e4: " + ", ".join(f"{r:.2e}" for r in rels) + ")"
+    )
+    check(
+        "trailing standardization is correctly identified as NON-orthogonal",
+        max(rels) > 1e-6,
+        "the equivalence is a span statement, not a bit-level one",
+    )
+
+    # WHY it breaks, quantified: standardizing score i to unit variance divides
+    # the column by sqrt(d_i). If c_i is the coefficient on the standardized
+    # column and b_i the coefficient on the RAW score, b_i = c_i / sqrt(d_i),
+    # so a penalty lambda_i on c is a penalty lambda_i * d_i on b. Trailing
+    # standardization is therefore ITSELF a spectral tilt: with d_i ~ i**-s the
+    # flat penalty already behaves as i**-s on the raw eigen-directions, and an
+    # explicit rank tilt gamma lands at gamma_eff = gamma - s. That is the
+    # single most useful number for reading the tuner's selected gamma.
+    dsort = np.sort(lam)[::-1][: min(40, len(lam))]
+    dsort = dsort[dsort > 0]
+    i = np.arange(1, len(dsort) + 1, dtype=float)
+    slope, intercept = np.polyfit(np.log(i), np.log(dsort), 1)
+    pred = intercept + slope * np.log(i)
+    r2 = 1.0 - np.sum((np.log(dsort) - pred) ** 2) / np.sum(
+        (np.log(dsort) - np.log(dsort).mean()) ** 2
+    )
+    print(
+        f"    fixture frame spectrum: d_i ~ i**{slope:.3f} (log-log R^2 "
+        f"{r2:.3f}, d_1/d_K = {dsort[0] / dsort[-1]:.1f}). With the REAL "
+        "frame's s = 1.176, a selected gamma maps to gamma_eff = gamma - "
+        "1.176 on the raw eigen-directions: the flat penalty (gamma=0) is "
+        "already a -1.176 tilt, gamma=1.176 is the FLAT point, the shipped "
+        "grid tops out at gamma_eff = +0.824, and the wide grid reaches "
+        "+2.824."
+    )
+
+
+# ── E. per-rung bases ─────────────────────────────────────────────────────────
+def section_e() -> None:
+    print("\nE. PER-RUNG EIGENBASES")
+    window = 400
+    # 4 windows of rows: _pc_ladder_design's shared-basis path runs the full
+    # _transmission_block, whose Ghat rolling scaler needs window bars AFTER
+    # the frame + trailing warm-up.
+    p = _fixture_panel(n=4 * window, window=window)
+    k = 20
+    n_rungs = len(U.PRODUCT_EXOG_WINDOWS)
+    trail_save = U.TRANS_TRAIL_DAYS
+    U.TRANS_TRAIL_DAYS = 4  # 4 * 48 = 192 bars, so the fixture has warm history
+    try:
+        d_pr = U._pc_ladder_perrung_design(p, window, qpool=k)
+        d_sh = U._pc_ladder_design(p, window, qpool=k)
+    finally:
+        U.TRANS_TRAIL_DAYS = trail_save
+    check(
+        f"per-rung column count = K x n_rungs = {k} x {n_rungs}",
+        d_pr.shape[1] == k * n_rungs,
+        str(d_pr.shape),
+    )
+    check(
+        "shared-basis arm has the same column count (basis is the ONLY change)",
+        d_sh.shape[1] == d_pr.shape[1],
+        f"{d_sh.shape[1]} vs {d_pr.shape[1]}",
+    )
+    check(
+        "per-rung design is NOT the shared-basis design",
+        not np.allclose(d_pr, d_sh),
+        f"max|diff| {np.max(np.abs(d_pr - d_sh)):.3e}",
+    )
+    diag = U._LAST_PERRUNG_DIAG
+    check("per-rung alignment diagnostic recorded", bool(diag))
+    print(
+        f"    fast-vs-slow subspace: mean cos(principal angle) "
+        f"{diag['mean_principal_angle_cos']:.4f}, min "
+        f"{diag['min_principal_angle_cos']:.4f}, mean |dot| of rank-matched "
+        f"eigenvectors {diag['mean_matched_abs_dot']:.4f}"
+    )
+    check(
+        "V_fast and V_slow are numerically DISTINCT bases",
+        diag["min_principal_angle_cos"] < 1.0 - 1e-9,
+        f"min cos = {diag['min_principal_angle_cos']:.6f}",
+    )
+    # rank-major layout: penalty rank r must map to columns r*n_rungs..+n_rungs
+    pen = np.zeros(d_pr.shape[1])
+    U._fill_pen_span(
+        pen, 0, pen.size, U._pen_value((1.0, "pcrank", 1.0, float(n_rungs)))
+    )
+    check(
+        "pcrank penalty maps onto the rank-major layout (rank r -> lambda0*r)",
+        bool(np.array_equal(pen, np.repeat(np.arange(1, k + 1, dtype=float), n_rungs))),
+    )
+
+
+# ── F. arm wiring ─────────────────────────────────────────────────────────────
+def section_f() -> None:
+    print("\nF. ARM WIRING")
+    new_arms = {
+        "blk4_trailGShapedWide": "trans_shaped_wide",
+        "blk4_trailGZoo": "trans_shaped_zoo",
+        "blk_pcladder_fortyK_tuned": "pc_ladder_tilt_wide",
+        "blk_pcladder_eightyK_tuned": "pc_ladder_tilt_wide",
+        "blk_pcladder_fullK_tuned": "pc_ladder_tilt_wide",
+        "blk_pcladderPerRung_tuned": "pc_ladder_tilt",
+    }
+    for arm, key in new_arms.items():
+        spec = U.ARMS.get(arm)
+        check(f"{arm} registered", spec is not None)
+        if spec is None:
+            continue
+        keys = [k for _, k in spec.blocks]
+        check(
+            f"{arm}: kind/grid/oos_mult match the shaped-arm contract",
+            spec.kind == "blocks_tuned"
+            and spec.grid == "cyclic"
+            and spec.oos_mult == 2,
+            f"{spec.kind}/{spec.grid}/{spec.oos_mult}",
+        )
+        check(f"{arm}: uses block grid '{key}'", key in keys, str(keys))
+        check(
+            f"{arm}: every block grid key resolves",
+            all(k in U.BLOCK_TUNE_GRIDS for k in keys),
+        )
+    ref = U.ARMS["blk4_trailGShaped"]
+    wide = U.ARMS["blk4_trailGShapedWide"]
+    check(
+        "GShapedWide differs from GShaped ONLY in the transmission grid key",
+        [b for b, _ in ref.blocks] == [b for b, _ in wide.blocks]
+        and [k for _, k in ref.blocks][:3] == [k for _, k in wide.blocks][:3]
+        and ref.kind == wide.kind
+        and ref.grid == wide.grid
+        and ref.oos_mult == wide.oos_mult,
+    )
+    zoo = U.ARMS["blk4_trailGZoo"]
+    check(
+        "GZoo differs from GShaped ONLY in the transmission grid key",
+        [b for b, _ in ref.blocks] == [b for b, _ in zoo.blocks]
+        and [k for _, k in ref.blocks][:3] == [k for _, k in zoo.blocks][:3],
+    )
+    base = U.ARMS["blk_pcladder_tuned"]
+    pr = U.ARMS["blk_pcladderPerRung_tuned"]
+    check(
+        "PerRung differs from blk_pcladder_tuned ONLY in the PC block builder",
+        [k for _, k in base.blocks] == [k for _, k in pr.blocks]
+        and [b for b, _ in base.blocks][0] == [b for b, _ in pr.blocks][0],
+    )
+
+
+# ── G. fixed-penalty jiggle envelope ──────────────────────────────────────────
+def section_g() -> None:
+    """Every jiggle arm's penalty must be EXACTLY what its name says — the whole
+    experiment is a QLIKE-vs-log(alpha) curve, so an arm mislabelled by one
+    decade would invert the reading."""
+    print("\nG. FIXED-PENALTY JIGGLE ENVELOPE")
+    ridge = {
+        "b1_ridge": 1.0,
+        "b1_ridge_a0p1": 0.1,
+        "b1_ridge_a0p3": 0.3,
+        "b1_ridge_a3": 3.0,
+        "b1_ridge_a10": 10.0,
+        "b1_ridge_a30": 30.0,
+        "b1_ridge_a100": 100.0,
+        "b1_ridge_a300": 300.0,
+    }
+    for arm, alpha in ridge.items():
+        spec = U.ARMS.get(arm)
+        ok = (
+            spec is not None
+            and spec.kind == "blocks"
+            and [b for b, _ in spec.blocks] == ["wide"]
+            and spec.alphas == {"wide": alpha}
+        )
+        check(
+            f"{arm}: fixed ridge alpha == {alpha:g}",
+            bool(ok),
+            str(spec and spec.alphas),
+        )
+    check(
+        "b1_ridge (alpha=1) NOT perturbed by the extension",
+        U.ARMS["b1_ridge"].alphas == {"wide": U.FIXED_RIDGE_ALPHA},
+    )
+
+    lasso = {
+        "b2_lasso": 1e-4,
+        "b2_lasso_a1em6": 1e-6,
+        "b2_lasso_a1em5": 1e-5,
+        "b2_lasso_a1em3": 1e-3,
+        "b2_lasso_a1em2": 1e-2,
+    }
+    for arm, alpha in lasso.items():
+        spec = U.ARMS.get(arm)
+        grid = U.ESTIMATOR_GRIDS.get(spec.grid) if spec is not None else None
+        ok = (
+            spec is not None
+            and spec.kind == "tuned"
+            and grid is not None
+            and len(grid) == 1  # single point => NO selection, a fixed penalty
+            and grid[0][0] == "lasso"
+            and grid[0][1] == alpha
+            and grid[0][2] == 1.0  # l1_ratio=1 => the pure lasso path
+        )
+        check(
+            f"{arm}: fixed lasso alpha == {alpha:g}, l1_ratio == 1", bool(ok), str(grid)
+        )
+    check(
+        "b2_lasso (alpha=1e-4) NOT rebuilt or perturbed",
+        U.ESTIMATOR_GRIDS["lasso_fixed"] == [("lasso", U.FIXED_LASSO_ALPHA, 1.0)],
+    )
+    # the two envelopes must each span their decades with no gaps or repeats
+    r_alphas = sorted(v for v in ridge.values())
+    l_alphas = sorted(v for _, v in lasso.items())
+    check(
+        "ridge envelope covers 0.1 .. 300 with 8 distinct points",
+        len(set(r_alphas)) == 8 and r_alphas[0] == 0.1 and r_alphas[-1] == 300.0,
+        str(r_alphas),
+    )
+    check(
+        "lasso envelope covers 1e-6 .. 1e-2 with 5 distinct points",
+        len(set(l_alphas)) == 5 and l_alphas[0] == 1e-6 and l_alphas[-1] == 1e-2,
+        str(l_alphas),
+    )
+
+
+# ── H. half-decade grid resolution ────────────────────────────────────────────
+def section_h() -> None:
+    """The fine-vs-coarse comparison is only clean if the coarse grid is a
+    STRICT SUBSET of the fine one — otherwise a fine-arm difference could come
+    from having moved a point rather than from having added points."""
+    print("\nH. HALF-DECADE GRID RESOLUTION")
+    pairs = (
+        ("backbone_fine", "backbone", 5),
+        ("exog_fine", "exog", 5),
+        ("product_fine", "product", 5),
+        ("trans_fine", "trans", 5),
+        ("trans_shaped_fine", "trans_shaped", 20),
+    )
+    for fine, coarse, n in pairs:
+        gf, gc = _grid(fine), _grid(coarse)
+        check(f"{fine}: {n} points", len(gf) == n, str(len(gf)))
+        check(
+            f"{fine}: no duplicates",
+            len(set(map(tuple, gf))) == len(gf)
+            if isinstance(gf[0], tuple)
+            else len(set(gf)) == len(gf),
+        )
+        sf = set(map(tuple, gf)) if isinstance(gf[0], tuple) else set(gf)
+        sc = set(map(tuple, gc)) if isinstance(gc[0], tuple) else set(gc)
+        check(f"{fine} STRICTLY CONTAINS {coarse} (bit-exact)", sc < sf)
+    check(
+        "backbone_fine membership is exactly 0.1 .. 10 half-decades",
+        [f"{v:.6g}" for v in _grid("backbone_fine")]
+        == ["0.1", "0.316228", "1", "3.16228", "10"],
+        str([f"{v:.6g}" for v in _grid("backbone_fine")]),
+    )
+    check(
+        "exog_fine membership",
+        [f"{v:.6g}" for v in _grid("exog_fine")]
+        == ["100", "316.228", "1000", "3162.28", "10000"],
+        str([f"{v:.6g}" for v in _grid("exog_fine")]),
+    )
+    check(
+        "product_fine membership",
+        [f"{v:.6g}" for v in _grid("product_fine")]
+        == ["1000", "3162.28", "10000", "31622.8", "100000"],
+        str([f"{v:.6g}" for v in _grid("product_fine")]),
+    )
+    check(
+        "trans_shaped_fine keeps the gamma axis UNCHANGED (level axis only)",
+        sorted({g for _, g in _grid("trans_shaped_fine")})
+        == sorted(set(U.TRANS_SHAPE_GAMMAS)),
+    )
+
+    gr_c = [a for _, a, _ in U.ESTIMATOR_GRIDS["ridge_tuned"]]
+    gr_f = [a for _, a, _ in U.ESTIMATOR_GRIDS["ridge_tuned_fine"]]
+    check("ridge_tuned_fine has 11 points", len(gr_f) == 11, str(len(gr_f)))
+    check("ridge_tuned_fine: no duplicates", len(set(gr_f)) == 11)
+    check(
+        "ridge_tuned_fine STRICTLY CONTAINS ridge_tuned (bit-exact)",
+        set(gr_c) < set(gr_f),
+    )
+    check(
+        "ridge_tuned_fine spans 1e-2 .. 1e3 unchanged",
+        gr_f[0] == gr_c[0] and gr_f[-1] == gr_c[-1],
+        f"{gr_f[0]:g} .. {gr_f[-1]:g}",
+    )
+    check(
+        "ridge_tuned_fine l1_ratio is 0 everywhere (still ridge)",
+        all(
+            fam == "ridge" and l1 == 0.0
+            for fam, _, l1 in U.ESTIMATOR_GRIDS["ridge_tuned_fine"]
+        ),
+    )
+    check(
+        "ridge_tuned (coarse) NOT perturbed",
+        [f"{a:g}" for a in gr_c] == ["0.01", "0.1", "1", "10", "100", "1000"],
+        str([f"{a:g}" for a in gr_c]),
+    )
+
+    # arm wiring + the cyclic tail-evaluation budget
+    for arm, keys in (
+        (
+            "blk4_trailGShaped_fine",
+            ["backbone_fine", "exog_fine", "product_fine", "trans_shaped_fine"],
+        ),
+    ):
+        spec = U.ARMS[arm]
+        check(f"{arm}: block grid keys", [k for _, k in spec.blocks] == keys)
+        check(
+            f"{arm}: blocks identical to blk4_trailGShaped",
+            [b for b, _ in spec.blocks]
+            == [b for b, _ in U.ARMS["blk4_trailGShaped"].blocks],
+        )
+        cost = 1 + U.CYCLIC_PASSES * sum(len(_grid(k)) - 1 for k in keys)
+        ref = 1 + U.CYCLIC_PASSES * sum(
+            len(_grid(k)) - 1 for _, k in U.ARMS["blk4_trailGShaped"].blocks
+        )
+        print(
+            f"    cyclic tail evaluations per retune: {cost} "
+            f"(blk4_trailGShaped: {ref}; observed on disk 52-58, mean 54)"
+        )
+        check(f"{arm}: tail-eval budget stays under 150/retune", cost <= 150, str(cost))
+    spec = U.ARMS["b1_ridge_tuned_fine"]
+    check(
+        "b1_ridge_tuned_fine wired to ridge_tuned_fine",
+        spec.kind == "tuned" and spec.grid == "ridge_tuned_fine",
+    )
+    check(
+        "coarse ancestry registered for both fine arms",
+        U.ESTIMATOR_GRID_PARENT == {"ridge_tuned_fine": "ridge_tuned"}
+        and set(U.FINE_GRID_PARENT)
+        == {
+            "backbone_fine",
+            "exog_fine",
+            "product_fine",
+            "trans_shaped_fine",
+        },
+    )
+
+
+if __name__ == "__main__":
+    section_a()
+    section_b()
+    section_c()
+    section_d()
+    section_e()
+    section_f()
+    section_g()
+    section_h()
+    print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
+    sys.exit(1 if FAIL else 0)

@@ -146,6 +146,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
         "blk4_trailGShapedWide",
+        "blk4_trailGShaped_fine",
         "blk3_tikhonov_tuned",
         "blk3_tikhonovStep_tuned",
         "blk_pcladder_tuned",
@@ -232,6 +233,17 @@ _REGISTRY: list[tuple[str, str]] = [
     ("b1_ridge_a0p3", "BOneRidgeApThree"),
     ("b1_ridge_a3", "BOneRidgeAthree"),
     ("b1_ridge_a10", "BOneRidgeAten"),
+    # Ridge GRID EXTENSION (2026-08-07): the jiggle grid was monotone to its
+    # top endpoint, so these three bracket the fixed-ridge envelope.
+    ("b1_ridge_a30", "BOneRidgeAthirty"),
+    ("b1_ridge_a100", "BOneRidgeAhundred"),
+    ("b1_ridge_a300", "BOneRidgeAthreehundred"),
+    # LASSO jiggle (2026-08-07): the fixed-penalty envelope around b2_lasso's
+    # pinned alpha=1e-4, two decades either way.
+    ("b2_lasso_a1em6", "BTwoLassoAoneEminusSix"),
+    ("b2_lasso_a1em5", "BTwoLassoAoneEminusFive"),
+    ("b2_lasso_a1em3", "BTwoLassoAoneEminusThree"),
+    ("b2_lasso_a1em2", "BTwoLassoAoneEminusTwo"),
     ("blk2_user", "BlkTwoUser"),
     ("blk3_user", "BlkThreeUser"),
     ("blk4_user", "BlkFourUser"),
@@ -257,6 +269,9 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
     # Endpoint relief for the same rung: exponent grid extended to gamma=4.
     ("blk4_trailGShapedWide", "BlkFourTrailGShapedWide"),
+    # Grid-RESOLUTION twins: half-decade spacing, same ranges.
+    ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
+    ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
     # Generalized Tikhonov: the anisotropy applied directly, no duplication.
     ("blk3_tikhonov_tuned", "BlkThreeTikhonovTuned"),
     # Ladder-expanded principal components with a per-rank tilted penalty.
@@ -351,6 +366,13 @@ _ARM_TEX: dict[str, str] = {
     "b1_ridge_a0p3": r"Ridge, fixed $\alpha=0.3$",
     "b1_ridge_a3": r"Ridge, fixed $\alpha=3$",
     "b1_ridge_a10": r"Ridge, fixed $\alpha=10$",
+    "b1_ridge_a30": r"Ridge, fixed $\alpha=30$",
+    "b1_ridge_a100": r"Ridge, fixed $\alpha=100$",
+    "b1_ridge_a300": r"Ridge, fixed $\alpha=300$",
+    "b2_lasso_a1em6": r"Lasso, fixed $\alpha=10^{-6}$",
+    "b2_lasso_a1em5": r"Lasso, fixed $\alpha=10^{-5}$",
+    "b2_lasso_a1em3": r"Lasso, fixed $\alpha=10^{-3}$",
+    "b2_lasso_a1em2": r"Lasso, fixed $\alpha=10^{-2}$",
     "blk2_user": "Two-block ridge (stated penalties)",
     "blk3_user": "Three-block ridge (stated penalties)",
     "blk4_user": "Four-block ridge (stated penalties)",
@@ -373,6 +395,10 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailGShapedWide": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty over an extended exponent grid, causally "
     "tuned)",
+    "blk4_trailGShaped_fine": "Four-block ridge (trailing factor levels, $K=40$, "
+    "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
+    "grids)",
+    "b1_ridge_tuned_fine": "Ridge, causally tuned on a half-decade grid",
     "blk3_tikhonov_tuned": "Three-block ridge with spectrum-tilted exogenous "
     "penalty (generalized Tikhonov, causally tuned)",
     "blk_pcladder_tuned": "Ridge on ladder-expanded principal components with "
@@ -441,6 +467,29 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
 # Adjacent-rung increment pairs (upper rung first): the paper's
 # product-increment (blk3 vs blk2) and transmission-increment (blk4 vs blk3)
 # statistics, per ladder convention. Macros are keyed by the UPPER rung.
+# HALF-DECADE grid-resolution twins. Bookkeeping only — the coarse grid each
+# one refines is read from the chunk's own meta.coarse_grids, never from here.
+_FINE_GRID_ARMS: tuple[str, ...] = (
+    "blk4_trailGShaped_fine",
+    "b1_ridge_tuned_fine",
+)
+
+
+def _pen_level(a) -> float:
+    """The PENALTY LEVEL of a persisted alpha descriptor, whatever its shape:
+
+    scalar                       -> itself
+    ['power'|'step'|'pcrank', level, param, ...]   (named family)
+    [level, param]               (implicit power family, pre-normalization)
+    [level]                      (degenerate)
+    """
+    if isinstance(a, (list, tuple)):
+        if len(a) >= 3:
+            return float(a[1])
+        return float(a[0])
+    return float(a)
+
+
 _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk3_user", "blk2_user"),
     ("blk4_user", "blk3_user"),
@@ -475,6 +524,14 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # anything? (bare stem = vs the shaped arm whose grid it widens)
     ("blk4_trailGShapedWide", "blk4_trailGShaped"),
     ("blk4_trailGShapedWide", "blk4_trailG_tuned"),
+    # grid RESOLUTION: does half-decade spacing alone help? The tuned grids are
+    # decade-spaced while the fixed-penalty envelope moves ~0.0009/decade, so a
+    # half-decade selection error costs ~0.0004 — larger than increments this
+    # paper calls significant. A LOSS is a real outcome here (finer grids also
+    # overfit the 125-bar tail); read it with fine_grid_usage.csv.
+    ("blk4_trailGShaped_fine", "blk4_trailGShaped"),
+    ("blk4_trailGShaped_fine", "blk4_trailG_tuned"),
+    ("b1_ridge_tuned_fine", "b1_ridge_tuned"),
     # generalized Tikhonov: does the tilt help at all (bare stem), and does
     # it match the best model WITHOUT any duplicated transmission columns?
     ("blk3_tikhonov_tuned", "blk3_tuned"),
@@ -503,6 +560,19 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk3_tikhonovStep_tuned", "blk3_tikhonov_tuned"),
     ("blk3_tikhonovStep_tuned", "blk4_trailG_tuned"),
     # genuine PCR: can 20 components replace 526 exogenous columns?
+    # FIXED-PENALTY ENVELOPE (2026-08-07): every new jiggle rung against the
+    # benchmark, so QLIKE-vs-log(alpha) can be read straight off the arm table.
+    # A sharp peak at b2_lasso's 1e-4 with much worse neighbours means the
+    # headline fixed-lasso number was luck; a broad flat optimum spanning
+    # decades means the family genuinely wins and the causal tuner is what
+    # underperforms. No best-rung-vs-tuned pairs: the envelope IS the exhibit.
+    ("b1_ridge_a30", A0),
+    ("b1_ridge_a100", A0),
+    ("b1_ridge_a300", A0),
+    ("b2_lasso_a1em6", A0),
+    ("b2_lasso_a1em5", A0),
+    ("b2_lasso_a1em3", A0),
+    ("b2_lasso_a1em2", A0),
     ("blk2_pcr_tuned", A0),
     ("blk2_pcr_tuned", "blk3_tuned"),
     # the K question, without a wide block sharing the penalty
@@ -1658,6 +1728,7 @@ def main(argv: list[str] | None = None) -> int:
             "blk_bucketpen_tuned",
             "blk4_trailGShaped",
             "blk4_trailGShapedWide",
+            "blk4_trailGShaped_fine",
             "blk3_tikhonov_tuned",
             "blk3_tikhonovStep_tuned",
             "blk_pcladder_tuned",
@@ -1918,6 +1989,121 @@ def main(argv: list[str] | None = None) -> int:
                     ]
                 )
         print(f"penalty-shape (family/parameter) trajectory -> {gam_csv}")
+
+    # 4a3. GRID-RESOLUTION EXHIBIT (author directive 2026-08-07). For each
+    # half-decade twin: what fraction of retunes selects an INTERSTITIAL point,
+    # i.e. one that did not exist in the coarse grid the arm refines? This is
+    # the number that makes the resolution experiment interpretable whichever
+    # way the QLIKE goes:
+    #   * interstitials rarely chosen        -> resolution was never binding;
+    #                                           the coarse grid is vindicated.
+    #   * chosen constantly, no QLIKE gain   -> the 125-bar validation tail is
+    #                                           selecting noise, i.e. evidence
+    #                                           FOR the coarse grid as implicit
+    #                                           regularization.
+    # The COARSE grid is read from each chunk's own meta.coarse_grids — the arm
+    # names below are bookkeeping, the grid contents are never hardcoded here.
+    fine_rows: list[dict] = []
+    for root in args.roots:
+        for _fine_arm in _FINE_GRID_ARMS:
+            arm_dir = os.path.join(root, _fine_arm)
+            if not os.path.isdir(arm_dir):
+                continue
+            hit: dict[tuple[int, str], list[float]] = {}
+            coarse: dict[str, set[float]] = {}
+            for fn in sorted(os.listdir(arm_dir)):
+                if not _CHUNK_RE.match(fn):
+                    continue
+                try:
+                    with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                        meta = json.loads(str(z["meta"]))
+                        t_arr = np.asarray(z["t"], dtype="datetime64[ns]")
+                        rid = np.asarray(z["row_id"], dtype=np.int64)
+                except Exception:
+                    continue
+                for k, gv in (meta.get("coarse_grids") or {}).items():
+                    coarse.setdefault(k, set()).update(
+                        float(v[0]) if isinstance(v, (list, tuple)) else float(v)
+                        for v in gv
+                    )
+                if not coarse:
+                    continue
+
+                def _year(row: int, t_arr=t_arr, rid=rid) -> int | None:
+                    pos = int(np.searchsorted(rid, row))
+                    if not 0 <= pos < len(t_arr):
+                        return None
+                    return int(str(t_arr[pos].astype("datetime64[Y]")))
+
+                for e in meta.get("tuned_alphas") or []:
+                    yr_f = _year(int(e.get("row", -1)))
+                    if yr_f is None:
+                        continue
+                    for k, a in (e.get("alphas") or {}).items():
+                        hit.setdefault((yr_f, k), []).append(_pen_level(a))
+                for e in meta.get("tuned_penalty") or []:
+                    yr_f = _year(int(e.get("row", -1)))
+                    if yr_f is None or "alpha" not in e:
+                        continue
+                    hit.setdefault((yr_f, "__estimator_alpha__"), []).append(
+                        float(e["alpha"])
+                    )
+            pooled: dict[str, list[float]] = {}
+            for (yr, k), vals in sorted(hit.items()):
+                cg = coarse.get(k)
+                if not cg:  # a block whose grid was never refined
+                    continue
+                flags = [0.0 if v in cg else 1.0 for v in vals]
+                pooled.setdefault(k, []).extend(flags)
+                fine_rows.append(
+                    {
+                        "arm": _fine_arm,
+                        "root": labels[root],
+                        "year": yr,
+                        "block": k,
+                        "n_retunes": len(vals),
+                        "n_coarse_points": len(cg),
+                        "frac_interstitial": float(np.mean(flags)),
+                    }
+                )
+            for k, flags in sorted(pooled.items()):
+                print(
+                    f"[{labels[root]}] {_fine_arm} block '{k}': "
+                    f"{100 * float(np.mean(flags)):.0f}% of retunes select an "
+                    f"INTERSTITIAL point (absent from the coarse "
+                    f"{len(coarse[k])}-point grid)"
+                )
+    if fine_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        fine_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "fine_grid_usage.csv"
+        )
+        with open(fine_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(
+                [
+                    "arm",
+                    "root",
+                    "year",
+                    "block",
+                    "n_retunes",
+                    "n_coarse_points",
+                    "frac_interstitial",
+                ]
+            )
+            for rec in fine_rows:
+                w.writerow(
+                    [
+                        rec["arm"],
+                        rec["root"],
+                        rec["year"],
+                        rec["block"],
+                        rec["n_retunes"],
+                        rec["n_coarse_points"],
+                        f"{rec['frac_interstitial']:.4f}",
+                    ]
+                )
+        print(f"fine-grid interstitial usage -> {fine_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.
