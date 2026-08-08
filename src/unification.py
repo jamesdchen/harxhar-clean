@@ -565,6 +565,13 @@ BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
 # valid selection, so this spans seven decades and the scorer flags endpoint
 # pile-up (see meta.tuned_grids + the penalty summary's frac_at_grid_* cols).
 BLOCK_TUNE_GRIDS["pcr"] = (1e-2, 1e-1, 1.0, 1e1, 1e2, 1e3, 1e4)
+# Rotated-exogenous grid for the TUNED PCR twins (author directive 2026-08-08):
+# logspace(-1, 4, 6) = 0.1 .. 1e4 — ONE DECADE ABOVE ridge's usual top,
+# because the tuned-ridge family pins its modal alpha at 1000 in 8/8 bucket
+# designs. If 1e4 pins too, the endpoint diagnostic says so and the grid moves
+# again; that is the point of putting the extra decade there rather than
+# assuming 1000 was the optimum.
+BLOCK_TUNE_GRIDS["rotexog_wide"] = tuple(float(a) for a in np.logspace(-1, 4, 6))
 # PC-ladder block: one rank-tilted penalty per PC rank, SHARED across that
 # rank's ladder rungs (see _pc_ladder_design). Power family only, 12 points;
 # the group size (rungs per rank) rides in the descriptor.
@@ -987,6 +994,103 @@ def _pc_ladder_perrung_design(
         f"{float(np.mean(matched)):.4f}"
     )
     return out
+
+
+def _walk_blocks_ew(
+    F: np.ndarray,
+    segments: list[tuple[int, int, str]],
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    half_lives: tuple[float, ...],
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    """Per-bar-refit block ridge on a DISCOUNTED gram, with the half-life
+    selected causally ALONGSIDE the per-block penalties.
+
+    Identical to ``_walk_blocks_tuned`` in every respect except that the
+    sufficient statistics carry an exponential weight: same TUNE_PER=250
+    cadence, same forward split (fit block, EMBARGO=25 gap, VAL_TAIL=125 tail),
+    same per-block grids, same argmin-validation-MSE rule, same first-minimum
+    tie-break. The search is the CARTESIAN product of the block grids TIMES the
+    half-life grid, so the tuner sees the forgetting-vs-shrinking tradeoff
+    jointly rather than in sequence — which is the whole point: if it picks a
+    finite H with LIGHTER penalties than the flat arm selects, the tradeoff is
+    real and measured.
+
+    A single-element ``half_lives`` makes this a FIXED-H arm at no extra cost:
+    the H axis degenerates and only the penalties are selected.
+
+    COST: one weighted fit-gram build per half-life per boundary (the flat arm
+    builds one), then the same n_combos solves off each. The per-bar path is
+    one rank-one EW update plus one diag-penalty solve — the same O(p^3) the
+    incumbent pays.
+    """
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    p_ = Xs.shape[1]
+    keys = [k for _, _, k in segments]
+    grids = [BLOCK_TUNE_GRIDS[k] for k in keys]
+
+    def pen_vec(alphas: dict[str, Any]) -> np.ndarray:
+        pen = np.empty(p_)
+        for s0, s1, k in segments:
+            _fill_pen_span(pen, s0, s1, alphas[k])
+        return pen
+
+    out = np.empty(hi - lo, dtype=np.float64)
+    traj: list[dict[str, Any]] = []
+    stats: _EwStats | None = None
+    pen: np.ndarray | None = None
+    sel_h = float(half_lives[0])
+    for i in range(hi - lo):
+        t = window + i
+        if i % TUNE_PER == 0:
+            Xw, yw = Xs[i:t], ys[i:t]
+            fl, fh, vl, vh = forward_window_split(window, window, VAL_TAIL, EMBARGO)
+            Xf, yf = Xw[fl:fh], yw[fl:fh]
+            Xv, yv = Xw[vl:vh], yw[vl:vh]
+            best: tuple[float, float, dict[str, Any], np.ndarray] | None = None
+            n_evals = 0
+            for hl in half_lives:
+                # weights anchored at the MOST RECENT fit row (weight 1.0)
+                wts = ew_weights(hl, fh - fl)
+                gf, cf, sw_f, sx_f, sy_f = _ew_weighted_stats(Xf, yf, wts)
+                muf = sx_f / sw_f
+                myf = sy_f / sw_f
+                Xvc = Xv - muf
+                for combo in itertools.product(*grids):
+                    alphas = dict(zip(keys, (_pen_value(a) for a in combo)))
+                    pv = pen_vec(alphas)
+                    g = gf.copy()
+                    g[np.diag_indices_from(g)] += pv
+                    b = np.linalg.solve(g, cf)
+                    mse = float(np.mean((Xvc @ b + myf - yv) ** 2))
+                    n_evals += 1
+                    if best is None or mse < best[0]:
+                        best = (mse, float(hl), alphas, pv)
+            assert best is not None  # the grids are non-empty by construction
+            _, sel_h, sel, pen = best
+            # exact rebuild at the selected half-life (also bounds update drift)
+            stats = _EwStats(Xw, yw, sel_h)
+            traj.append(
+                {
+                    "row": int(lo + i),
+                    "half_life": sel_h,
+                    "decay": ew_decay(sel_h),
+                    "n_eff": ew_n_eff(sel_h, window),
+                    "alphas": sel,
+                    "n_tail_evals": int(n_evals),
+                }
+            )
+        # i == 0 is a boundary, so both are set on the first pass
+        assert stats is not None and pen is not None
+        gram, rhs = stats.centered()
+        gram[np.diag_indices_from(gram)] += pen
+        coef = np.linalg.solve(gram, rhs)
+        out[i] = float(Xs[t] @ coef + stats.intercept(coef))
+        stats.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out, traj
 
 
 # ── PROPER PCR: rotate the LADDER TENSOR, never the scores ────────────────────
@@ -2469,6 +2573,151 @@ def _walk_shrink(
     return out, profile
 
 
+# ── DISCOUNTED-GRAM (exponentially weighted) FAMILY ───────────────────────────
+# MOTIVATION, from the JS verdict (2026-08-08). blk3_js_tuned scored 0.24631
+# (DM +26.6 vs blk3_tuned) with its estimator VERIFIED firing — mean shrinkage
+# factor 0.77, stable, zero singular bars. So risk-optimal IN-SAMPLE shrinkage
+# (23%) is orders of magnitude below forecast-optimal shrinkage. The reading:
+# beta DRIFTS, and in-sample precision is a bad guide to forecast risk when the
+# coefficients being estimated are not constant over the window. Heavy ridge on
+# a flat 24000-bar window is a crude patch for that — it distrusts ALL evidence
+# equally when the real problem is that OLD evidence is STALE. Window length is
+# the one hyperparameter this campaign never varied.
+#
+# THE OBJECT: exponentially weighted sufficient statistics
+#     G_t = sum_s w^(t-s) x_s x_s',   c_t = sum_s w^(t-s) x_s y_s
+# with forgetting factor w, parameterized by HALF-LIFE H (bars):
+#     w = 2^(-1/H)   equivalently   H = ln(2) / ln(1/w).
+#
+# TRUNCATED, NOT INFINITE-MEMORY — a deliberate deviation from the brief, for
+# two reasons that both matter more than the saved flop:
+#   (1) NESTING. The brief asks that H=infinity be the flat window EXACTLY. An
+#       infinite-memory recursion (G_t = w G_{t-1} + x_t x_t') at w=1 is a
+#       CUMULATIVE sum over all history, not the 24000-bar window, so it would
+#       NOT nest blk3_tuned. Summing over the same trailing W bars does:
+#           G_t = sum_{s=t-W+1..t} w^(t-s) x_s x_s'
+#       and at w=1 this is the sliding-window gram term for term.
+#   (2) COMPARABILITY. Holding the data span fixed at W=24000 means these arms
+#       vary the WEIGHTING and nothing else — same rows, same legality, same
+#       first legal OOS row as every other frozen-construction arm.
+# The cost is that the recurrence keeps a subtraction:
+#     G_{t+1} = w G_t + x_{t+1} x_{t+1}' - w^W x_{t-W+1} x_{t-W+1}'
+# which at w=1 is exactly the existing sliding-window update. So it is the same
+# price as the incumbent, not cheaper — the brief's "no subtraction" saving is
+# available only to the non-nesting infinite-memory variant.
+#
+# NO POWERS OF w ARE EVER ACCUMULATED: the recurrence is applied per bar and
+# the single boundary weight w^W is computed as exp(-ln2 * W / H) in closed
+# form. For the shipped grid the smallest is H=1000 -> w^W = 2^-24 = 6.0e-8,
+# nowhere near underflow; the closed form keeps that true for any H.
+EW_HALF_LIVES: tuple[float, ...] = (1000.0, 3000.0, 6000.0, 12000.0, 24000.0, np.inf)
+
+
+def ew_decay(half_life: float) -> float:
+    """Forgetting factor w from a half-life in bars. H=inf -> w=1.0 EXACTLY
+    (float equality, not approximately), which is what makes the flat-window
+    nesting bit-exact rather than merely close."""
+    if not np.isfinite(half_life):
+        return 1.0
+    if half_life <= 0.0:
+        raise SystemExit(f"ew: half-life must be positive, got {half_life}")
+    return float(np.exp(-np.log(2.0) / float(half_life)))
+
+
+def ew_weights(half_life: float, w_len: int) -> np.ndarray:
+    """Weights w^(t-s) for the trailing ``w_len`` rows, OLDEST FIRST, so the
+    most recent row carries weight 1.0. At H=inf this is exactly ones(w_len)."""
+    w = ew_decay(half_life)
+    if w == 1.0:
+        return np.ones(int(w_len))
+    age = np.arange(int(w_len) - 1, -1, -1, dtype=np.float64)
+    return np.exp(-np.log(2.0) * age / float(half_life))
+
+
+def ew_n_eff(half_life: float, w_len: int) -> float:
+    """KISH effective sample size of the truncated EW window:
+        n_eff = (sum_k w^k)^2 / sum_k w^(2k),  k = 0 .. W-1.
+    At w=1 this is exactly W (the flat window's own count). As W -> infinity it
+    converges to the (1+w)/(1-w) form quoted in the brief; the FINITE sum is
+    used because the window IS finite, and for H comparable to W the two differ
+    by a factor of three (H=24000, W=24000: finite 23083 vs
+    infinite-horizon 69249) — quoting the infinite form on a truncated
+    window would overstate the evidence by that factor.
+    This is the dof any sigma^2 on this path must use — the arms themselves
+    tune penalties by validation MSE and need no sigma^2, so it is persisted as
+    a diagnostic rather than consumed."""
+    w = ew_decay(half_life)
+    n = int(w_len)
+    if w == 1.0:
+        return float(n)
+    s1 = (1.0 - w**n) / (1.0 - w)
+    s2 = (1.0 - w ** (2 * n)) / (1.0 - w * w)
+    return float(s1 * s1 / s2)
+
+
+def _ew_weighted_stats(x: np.ndarray, y: np.ndarray, wts: np.ndarray):
+    """(centered weighted gram, rhs, sum of weights) for one block of rows.
+
+    Weighted centering is the generalization of the incumbent's centering: the
+    unpenalized intercept rides via the WEIGHTED mean, so at w=1 every
+    expression below collapses term-for-term to the flat-window formulas
+    ``_walk_blocks_tuned`` uses.
+    """
+    sw = float(wts.sum())
+    xw = x * wts[:, None]
+    sx = xw.sum(0)
+    sy = float(wts @ y)
+    gram = x.T @ xw - np.outer(sx, sx) / sw
+    rhs = xw.T @ y - sx * (sy / sw)
+    return gram, rhs, sw, sx, sy
+
+
+class _EwStats:
+    """Rolling EW sufficient statistics over a FIXED-LENGTH trailing window.
+
+    Maintains Sxx/Sxy/sx/sy under
+        S_{t+1} = w S_t + (entering) - w^W (leaving)
+    which at w=1.0 is bit-identical to ``RollingLeastSquares``'s update. The
+    total weight ``sw`` is time-invariant (a geometric sum over the fixed
+    window length) so it is computed once in closed form.
+
+    Drift: with w < 1 old contributions decay, so update error is
+    self-correcting; at w = 1 the behaviour is the incumbent's. The caller
+    additionally rebuilds exactly at every retune boundary (every TUNE_PER
+    bars), which bounds accumulation regardless.
+    """
+
+    def __init__(self, x_win: np.ndarray, y_win: np.ndarray, half_life: float) -> None:
+        self.w = ew_decay(half_life)
+        self.n = int(len(y_win))
+        self.w_pow = 1.0 if self.w == 1.0 else float(self.w**self.n)
+        wts = ew_weights(half_life, self.n)
+        xw = x_win * wts[:, None]
+        self._Sxx = x_win.T @ xw
+        self._Sxy = xw.T @ y_win
+        self._sx = xw.sum(0)
+        self._sy = float(wts @ y_win)
+        self.sw = float(wts.sum())
+
+    def centered(self):
+        gram = self._Sxx - np.outer(self._sx, self._sx) / self.sw
+        rhs = self._Sxy - self._sx * (self._sy / self.sw)
+        return gram, rhs
+
+    def intercept(self, beta: np.ndarray) -> float:
+        return self._sy / self.sw - float(self._sx @ beta) / self.sw
+
+    def roll(self, x_in, y_in, x_out, y_out) -> None:
+        w, wp = self.w, self.w_pow
+        self._Sxx *= w
+        self._Sxx += np.outer(x_in, x_in) - wp * np.outer(x_out, x_out)
+        self._Sxy *= w
+        self._Sxy += x_in * y_in - wp * x_out * y_out
+        self._sx *= w
+        self._sx += x_in - wp * x_out
+        self._sy = w * self._sy + float(y_in) - wp * float(y_out)
+
+
 def _dedup_ols_design(
     F: np.ndarray, col_names: list[str]
 ) -> tuple[np.ndarray, list[str], list[str]]:
@@ -3828,6 +4077,95 @@ ARMS: dict[str, ArmSpec] = {
         blocks=[("backbone", "backbone"), ("exog_all", "exog")],
         oos_mult=2,
     ),
+    # TUNED-RIDGE twins of the proper-PCR ladder (author directive 2026-08-08).
+    # WHY THE RERUN: the _js ladder came back CONFOUNDED. James-Stein
+    # under-shrinks on this design (factor ~0.77-0.83 everywhere, consistent
+    # with blk3_js_tuned's 0.24631 verdict), so its K-curve is a
+    # REGULARIZATION curve, not an information curve — FullK (which discards
+    # nothing) was the family's WORST arm at 0.2407 and performance improved
+    # monotonically as K fell, in BOTH orderings, with every arm losing to
+    # blk2_gated_tuned. Under-shrinkage makes a wide design look bad and a
+    # narrow one look good regardless of what the discarded directions carry.
+    # The one clean readout was ordering at matched K: predictive beat variance
+    # at K=30 (-0.00107, DM -2.94) and was null at K=20 (+1.63).
+    # WHAT THESE SETTLE: with shrinkage restored to the level the design
+    # actually demands, the K-curve becomes interpretable. If truncation still
+    # improves or holds under proper tuning, compression is REAL; if the curve
+    # flattens toward blk2_gated_tuned as K grows, the panel needs its full
+    # span and the earlier "compression" was regularization in disguise.
+    # Designs are BIT-IDENTICAL to the _js twins (same frozen V on the ma_1
+    # slab, same per-slab input standardization, scores never standardized,
+    # same frozen predictive ordering, indicators unrotated); the ONLY change
+    # is the estimator: two blocks, backbone on its usual grid and the whole
+    # exogenous set on rotexog_wide.
+    **{
+        f"blk2_rot{fam}{tag}_tuned": ArmSpec(
+            describe=(
+                f"proper PCR under TUNED RIDGE, {fam_label} ordering, "
+                f"K={'full live rank' if kt == 'full' else kt} directions x 12 "
+                "MA windows: backbone + (rotated VALUE tensor | unrotated "
+                "availability indicators) as one penalized block on the wide "
+                "0.1..1e4 grid; the estimator-corrected twin of the _js ladder"
+            ),
+            kind="blocks_tuned",
+            blocks=[
+                ("backbone", "backbone"),
+                (f"rotexog:{ordering}:{kt}", "rotexog_wide"),
+            ],
+            oos_mult=2,
+        )
+        for fam, fam_label, ordering, tag, kt in (
+            ("Var", "VARIANCE", "variance", "FullK", "full"),
+            ("Var", "VARIANCE", "variance", "ThirtyK", "30"),
+            ("Var", "VARIANCE", "variance", "TwentyK", "20"),
+            ("Pred", "PREDICTIVE", "predictive", "ThirtyK", "30"),
+            ("Pred", "PREDICTIVE", "predictive", "TwentyK", "20"),
+            ("Pred", "PREDICTIVE", "predictive", "TenK", "10"),
+            ("Pred", "PREDICTIVE", "predictive", "FiveK", "5"),
+        )
+    },
+    # DISCOUNTED-GRAM family (author directive 2026-08-08). Same blk3 design
+    # and same per-block penalty grids as blk3_tuned; the ONLY change is that
+    # the sufficient statistics are exponentially weighted. See the block
+    # comment at EW_HALF_LIVES for the JS-verdict motivation, the truncation
+    # decision, and why H=infinity nests the flat window exactly.
+    # THE EXHIBIT is meta.tuned_alphas' half_life trajectory: a finite H chosen
+    # WITH lighter penalties than the flat arm selects is direct evidence that
+    # the campaign has been paying for drift with shrinkage.
+    "blk3_ew_tuned": ArmSpec(
+        describe="discounted gram: blk3 design with EXPONENTIALLY WEIGHTED "
+        "sufficient statistics, half-life selected causally from "
+        "{1000,3000,6000,12000,24000,inf} bars JOINTLY with the per-block "
+        "penalties (inf = the flat 24000-bar window exactly)",
+        kind="blocks_ew",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+        ],
+        grid="ew_grid",
+        oos_mult=2,
+    ),
+    # FIXED-H twins: they bound the selection-noise question. The H grid adds a
+    # dial the 125-bar validation tail must resolve, and this campaign has
+    # repeatedly found that tail to be a noisy selector; these show what a
+    # half-life is worth WITHOUT paying for its selection.
+    **{
+        f"blk3_ewFixed_H{int(hl)}": ArmSpec(
+            describe=f"discounted gram at FIXED half-life {int(hl)} bars "
+            "(blk3 design, per-block penalties tuned as usual) — the "
+            "selection-free counterpart of blk3_ew_tuned",
+            kind="blocks_ew",
+            blocks=[
+                ("backbone", "backbone"),
+                ("exog_all", "exog"),
+                ("product", "product"),
+            ],
+            grid=f"ew_fixed:{int(hl)}",
+            oos_mult=2,
+        )
+        for hl in (3000.0, 12000.0)
+    },
     # DE-CONFOUNDING CONTROL (author directive 2026-08-07). THIS ARM EXISTS TO
     # FIX A PUBLISHED COMPARISON, not to win.
     #
@@ -4162,6 +4500,20 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _rot_value_design(
             p, window, None if ktag == "full" else int(ktag), ordering
         )
+    if block.startswith("rotexog:"):
+        # ROTATED VALUES + UNROTATED INDICATORS as ONE penalized block. The
+        # _js twins carry these as two segments sharing the shrinkage; the
+        # tuned twins must give them ONE alpha, and the block tuner keys its
+        # search on segment alpha-keys, so two segments with the same key
+        # would collapse in the combo dict and silently waste the axis.
+        # Concatenated in the SAME column order as the _js arms
+        # (rotated values first, then indicators), which is asserted
+        # bit-identical in the verify script.
+        _, ordering, ktag = block.split(":")
+        rot = _rot_value_design(
+            p, window, None if ktag == "full" else int(ktag), ordering
+        )
+        return np.hstack([rot, p.X[:, _cols(p.names, {"indicator"})]])
     if block == "value_all":  # the unrotated VALUE tensor (gate comparator)
         cols = _value_slab_cols(p.names)
         return np.ascontiguousarray(
@@ -4444,6 +4796,21 @@ def compute(args: argparse.Namespace) -> None:
             selection="cyclic" if spec.grid == "cyclic" else "cartesian",
             sweep_order=sweep,
         )
+    elif spec.kind == "blocks_ew":
+        # DISCOUNTED GRAM: same block grids as the flat tuned arms, plus the
+        # half-life axis. "ew_grid" searches EW_HALF_LIVES; "ew_fixed:<H>"
+        # pins a single half-life so only the penalties are selected.
+        arm_keys = [k for _, k in spec.blocks]
+        tuned_grids = {k: list(BLOCK_TUNE_GRIDS[k]) for k in arm_keys}
+        if spec.grid == "ew_grid":
+            hls: tuple[float, ...] = EW_HALF_LIVES
+        elif spec.grid.startswith("ew_fixed:"):
+            hls = (float(spec.grid.split(":", 1)[1]),)
+        else:
+            raise SystemExit(f"arm '{arm}': unknown EW grid tag '{spec.grid}'")
+        tuned_grids["half_life"] = [float(h) for h in hls]
+        F, segments = _tuned_blocks_design(p, spec, window)
+        yhat, tuned_alphas = _walk_blocks_ew(F, segments, p.y, window, lo, hi, hls)
     elif spec.kind == "shrink":
         # GRID-FREE: no BLOCK_TUNE_GRIDS lookup, no tuner, no validation tail.
         # The block keys are carried only to mark which columns are the

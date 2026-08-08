@@ -172,6 +172,18 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk2_rotPredTenK_js",
         "blk2_rotPredFiveK_js",
         "blk2_gated_tuned",
+        # tuned-ridge twins of the PCR ladder (same designs, same frozen V)
+        "blk2_rotVarFullK_tuned",
+        "blk2_rotVarThirtyK_tuned",
+        "blk2_rotVarTwentyK_tuned",
+        "blk2_rotPredThirtyK_tuned",
+        "blk2_rotPredTwentyK_tuned",
+        "blk2_rotPredTenK_tuned",
+        "blk2_rotPredFiveK_tuned",
+        # discounted-gram family (same 24000-bar span, frozen product block)
+        "blk3_ew_tuned",
+        "blk3_ewFixed_H3000",
+        "blk3_ewFixed_H12000",
         "blk3_js_tuned",
         "blk3_npeb_tuned",
         "blk3_js_pcbasis_tuned",
@@ -324,6 +336,19 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk2_rotPredTenK_js", "BlkTwoRotPredTenKJs"),
     ("blk2_rotPredFiveK_js", "BlkTwoRotPredFiveKJs"),
     ("blk2_gated_tuned", "BlkTwoGatedTuned"),
+    # TUNED-RIDGE twins of the PCR ladder: same designs, shrinkage restored to
+    # the level the design demands so the K-curve is an information curve.
+    ("blk2_rotVarFullK_tuned", "BlkTwoRotVarFullKTuned"),
+    ("blk2_rotVarThirtyK_tuned", "BlkTwoRotVarThirtyKTuned"),
+    ("blk2_rotVarTwentyK_tuned", "BlkTwoRotVarTwentyKTuned"),
+    ("blk2_rotPredThirtyK_tuned", "BlkTwoRotPredThirtyKTuned"),
+    ("blk2_rotPredTwentyK_tuned", "BlkTwoRotPredTwentyKTuned"),
+    ("blk2_rotPredTenK_tuned", "BlkTwoRotPredTenKTuned"),
+    ("blk2_rotPredFiveK_tuned", "BlkTwoRotPredFiveKTuned"),
+    # DISCOUNTED GRAM: exponentially weighted sufficient statistics.
+    ("blk3_ew_tuned", "BlkThreeEwTuned"),
+    ("blk3_ewFixed_H3000", "BlkThreeEwFixedHThreeK"),
+    ("blk3_ewFixed_H12000", "BlkThreeEwFixedHTwelveK"),
     # GRID-FREE shrinkage: zero tuned hyperparameters.
     ("blk3_js_tuned", "BlkThreeJsTuned"),
     ("blk3_npeb_tuned", "BlkThreeNpebTuned"),
@@ -480,6 +505,26 @@ _ARM_TEX: dict[str, str] = {
     "blk2_rotPredTenK_js": "Two-block PCR ($K=10$), predictive ordering, James-Stein shrinkage",
     "blk2_rotPredFiveK_js": "Two-block PCR ($K=5$), predictive ordering, James-Stein shrinkage",
     "blk2_gated_tuned": "Two-block ridge, unrotated exogenous set (frame-gated rows, causally tuned)",
+    "blk2_rotVarFullK_tuned": "Two-block PCR (full rank), variance ordering, "
+    "causally tuned ridge",
+    "blk2_rotVarThirtyK_tuned": "Two-block PCR ($K=30$), variance ordering, "
+    "causally tuned ridge",
+    "blk2_rotVarTwentyK_tuned": "Two-block PCR ($K=20$), variance ordering, "
+    "causally tuned ridge",
+    "blk2_rotPredThirtyK_tuned": "Two-block PCR ($K=30$), predictive ordering, "
+    "causally tuned ridge",
+    "blk2_rotPredTwentyK_tuned": "Two-block PCR ($K=20$), predictive ordering, "
+    "causally tuned ridge",
+    "blk2_rotPredTenK_tuned": "Two-block PCR ($K=10$), predictive ordering, "
+    "causally tuned ridge",
+    "blk2_rotPredFiveK_tuned": "Two-block PCR ($K=5$), predictive ordering, "
+    "causally tuned ridge",
+    "blk3_ew_tuned": "Three-block ridge on an exponentially weighted gram "
+    "(half-life selected causally with the block penalties)",
+    "blk3_ewFixed_H3000": "Three-block ridge on an exponentially weighted gram "
+    "(fixed half-life 3{,}000 bars)",
+    "blk3_ewFixed_H12000": "Three-block ridge on an exponentially weighted "
+    "gram (fixed half-life 12{,}000 bars)",
     "blk3_js_tuned": "Three-block design, positive-part James-Stein shrinkage, "
     "no tuned hyperparameters",
     "blk3_npeb_tuned": "Three-block design, nonparametric empirical-Bayes "
@@ -700,6 +745,33 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk2_rotPredThirtyK_js", "blk2_rotVarThirtyK_js"),
     ("blk2_rotPredTwentyK_js", "blk2_rotVarTwentyK_js"),
     ("blk2_gated_tuned", "blk3_tuned"),
+    # TUNED-RIDGE rerun of the PCR ladder. The _js ladder's K-curve was a
+    # REGULARIZATION curve, not an information curve: JS under-shrinks on this
+    # design, so FullK (which discards nothing) was its WORST arm and every
+    # narrower arm looked better. With proper tuning the curve is readable.
+    # Bare stem = vs blk2_gated_tuned, the same two-block design unrotated and
+    # untruncated on the SAME rows.
+    ("blk2_rotVarFullK_tuned", "blk2_gated_tuned"),
+    ("blk2_rotVarThirtyK_tuned", "blk2_gated_tuned"),
+    ("blk2_rotVarTwentyK_tuned", "blk2_gated_tuned"),
+    ("blk2_rotPredThirtyK_tuned", "blk2_gated_tuned"),
+    ("blk2_rotPredTwentyK_tuned", "blk2_gated_tuned"),
+    ("blk2_rotPredTenK_tuned", "blk2_gated_tuned"),
+    # THE HEADLINE compression claim: the narrowest arm against the full panel.
+    ("blk2_rotPredFiveK_tuned", "blk2_gated_tuned"),
+    # ORDERING at matched K under a correct estimator — the one readout the _js
+    # ladder did give cleanly (predictive beat variance at K=30, DM -2.94), now
+    # without the under-shrinkage confound.
+    ("blk2_rotPredThirtyK_tuned", "blk2_rotVarThirtyK_tuned"),
+    ("blk2_rotPredTwentyK_tuned", "blk2_rotVarTwentyK_tuned"),
+    # DISCOUNTED GRAM — does FORGETTING beat flat-window SHRINKING? Bare stem =
+    # vs blk3_tuned, the same design and same block grids on a flat window: the
+    # only difference is whether old evidence is down-weighted. The fixed-H
+    # twins show what a half-life is worth without paying to select it.
+    ("blk3_ew_tuned", "blk3_tuned"),
+    ("blk3_ew_tuned", "blk4_trailG40_tuned"),
+    ("blk3_ewFixed_H3000", "blk3_tuned"),
+    ("blk3_ewFixed_H12000", "blk3_tuned"),
     # GRID-FREE vs SELECTED shrinkage — the campaign's sharpest methodological
     # comparison. Bare stem = vs blk3_tuned, which is the SAME DESIGN tuned on
     # a 27-combo grid over a 125-bar tail: the only difference is whether the
@@ -2107,6 +2179,16 @@ def main(argv: list[str] | None = None) -> int:
             "blk4_trailGZoo",
             "blk2_pcr_tuned",
             "blk2_pcrForty_tuned",
+            "blk2_rotVarFullK_tuned",
+            "blk2_rotVarThirtyK_tuned",
+            "blk2_rotVarTwentyK_tuned",
+            "blk2_rotPredThirtyK_tuned",
+            "blk2_rotPredTwentyK_tuned",
+            "blk2_rotPredTenK_tuned",
+            "blk2_rotPredFiveK_tuned",
+            "blk3_ew_tuned",
+            "blk3_ewFixed_H3000",
+            "blk3_ewFixed_H12000",
         ):
             arm_dir = os.path.join(root, _pen_arm)
             if not os.path.isdir(arm_dir):
