@@ -2,7 +2,12 @@
 #SBATCH --job-name=unif_tree
 #SBATCH --account=pollok_1603
 #SBATCH --partition=main
-#SBATCH --time=6:00:00
+# 24h, not 6h. Per-bar tree refits do ~2,760 fits per chunk; the 6h that
+# the linear arms inherit is not obviously enough, and a task that runs
+# out of wall is a total loss (the menu study died exactly this way).
+# `main` allows 2-00:00:00 and the `normal` QOS sets no MaxWall, so the
+# 6h cap was self-imposed and bought nothing.
+#SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --array=0-99
