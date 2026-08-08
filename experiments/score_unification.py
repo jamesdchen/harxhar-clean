@@ -231,6 +231,16 @@ _REGISTRY: list[tuple[str, str]] = [
     ("be_tuned_implied_vol", "BeTunedImpliedVol"),
     ("be_tuned_vol_demand", "BeTunedVolDemand"),
     ("be_tuned_all_features", "BeTunedAllFeatures"),
+    # REACH-MATCHED enet twins (2026-08-07): alpha axis extended to 1e-1 so
+    # the family can express the shrinkage the tuned ridge actually selects.
+    ("be_tunedWide_moments", "BeTunedWideMoments"),
+    ("be_tunedWide_liquidity", "BeTunedWideLiquidity"),
+    ("be_tunedWide_market_ew", "BeTunedWideMarketEw"),
+    ("be_tunedWide_market_vw", "BeTunedWideMarketVw"),
+    ("be_tunedWide_sentiment", "BeTunedWideSentiment"),
+    ("be_tunedWide_implied_vol", "BeTunedWideImpliedVol"),
+    ("be_tunedWide_vol_demand", "BeTunedWideVolDemand"),
+    ("be_tunedWide_all_features", "BeTunedWideAllFeatures"),
     # Penalty-jiggle appendix arms: b1_ridge at fixed alternative alphas
     # (LaTeX-safe camels — macro names cannot carry bare digits).
     ("b1_ridge_a0p1", "BOneRidgeApOne"),
@@ -352,6 +362,14 @@ _ARM_TEX: dict[str, str] = {
     "b1_ridge_tuned": "Ridge, causally tuned",
     "b2_lasso_tuned": "Lasso, causally tuned",
     "b3_enet_tuned": "Elastic net, causally tuned",
+    "be_tunedWide_moments": "HAR + moments bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_liquidity": "HAR + liquidity bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_market_ew": "HAR + market EW bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_market_vw": "HAR + market VW bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_sentiment": "HAR + sentiment bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_implied_vol": "HAR + implied vol bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_vol_demand": "HAR + vol demand bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
+    "be_tunedWide_all_features": "HAR + all-features bucket (elastic net, causally tuned, free mixing, extended penalty grid)",
     "br_tuned_moments": "HAR + moments bucket (ridge, causally tuned)",
     "br_tuned_liquidity": "HAR + liquidity bucket (ridge, causally tuned)",
     "br_tuned_market_ew": "HAR + market EW bucket (ridge, causally tuned)",
@@ -488,6 +506,30 @@ _BLOCKS_TABLE: list[tuple[str, int, str]] = [
 # Adjacent-rung increment pairs (upper rung first): the paper's
 # product-increment (blk3 vs blk2) and transmission-increment (blk4 vs blk3)
 # statistics, per ladder convention. Macros are keyed by the UPPER rung.
+# SINGLE-ESTIMATOR arms carrying a persisted (alpha, l1_ratio) trajectory — the
+# shrinkage-vs-selection section. Bookkeeping only: the grid each one searched
+# is read from the chunk's own meta.tuned_grids["__estimator__"], never here.
+_BUCKET_NAMES: tuple[str, ...] = (
+    "moments",
+    "liquidity",
+    "market_ew",
+    "market_vw",
+    "sentiment",
+    "implied_vol",
+    "vol_demand",
+    "all_features",
+)
+_ESTIMATOR_PEN_ARMS: tuple[str, ...] = (
+    "b1_ridge_tuned",
+    "b1_ridge_tuned_fine",
+    "b2_lasso_tuned",
+    "b3_enet_tuned",
+) + tuple(
+    f"{pre}_{b}"
+    for pre in ("br_tuned", "be_tuned", "be_tunedWide")
+    for b in _BUCKET_NAMES
+)
+
 # HALF-DECADE grid-resolution twins. Bookkeeping only — the coarse grid each
 # one refines is read from the chunk's own meta.coarse_grids, never from here.
 _FINE_GRID_ARMS: tuple[str, ...] = (
@@ -615,6 +657,29 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("b2_lasso_a1em5", A0),
     ("b2_lasso_a1em3", A0),
     ("b2_lasso_a1em2", A0),
+    # CORRECTED shrinkage-vs-selection head-to-head (2026-08-07). The shipped
+    # be_tuned vs br_tuned comparison comes from grids with different reach:
+    # the enet's alpha ceiling caps its ridge-equivalent penalty at 180 while
+    # the tuned ridge reaches 1000 and pins there 41.3% of the time, and the
+    # enet's entire pooled deficit sits at its own ceiling (DiD +0.00289,
+    # z = +7.78). Bare stem = vs br_tuned, the corrected head-to-head; the
+    # vs-be_tuned pair measures how much of the original deficit was reach.
+    ("be_tunedWide_moments", "br_tuned_moments"),
+    ("be_tunedWide_liquidity", "br_tuned_liquidity"),
+    ("be_tunedWide_market_ew", "br_tuned_market_ew"),
+    ("be_tunedWide_market_vw", "br_tuned_market_vw"),
+    ("be_tunedWide_sentiment", "br_tuned_sentiment"),
+    ("be_tunedWide_implied_vol", "br_tuned_implied_vol"),
+    ("be_tunedWide_vol_demand", "br_tuned_vol_demand"),
+    ("be_tunedWide_all_features", "br_tuned_all_features"),
+    ("be_tunedWide_moments", "be_tuned_moments"),
+    ("be_tunedWide_liquidity", "be_tuned_liquidity"),
+    ("be_tunedWide_market_ew", "be_tuned_market_ew"),
+    ("be_tunedWide_market_vw", "be_tuned_market_vw"),
+    ("be_tunedWide_sentiment", "be_tuned_sentiment"),
+    ("be_tunedWide_implied_vol", "be_tuned_implied_vol"),
+    ("be_tunedWide_vol_demand", "be_tuned_vol_demand"),
+    ("be_tunedWide_all_features", "be_tuned_all_features"),
     ("blk2_pcr_tuned", A0),
     ("blk2_pcr_tuned", "blk3_tuned"),
     # the K question, without a wide block sharing the penalty
@@ -2149,6 +2214,133 @@ def main(argv: list[str] | None = None) -> int:
                     ]
                 )
         print(f"fine-grid interstitial usage -> {fine_csv}")
+
+    # 4a4. SINGLE-ESTIMATOR PENALTY EXHIBIT (author directive 2026-08-07). The
+    # block arms have had an endpoint diagnostic since the shaped rung; the
+    # single-estimator arms did not, which is precisely why the elastic net's
+    # alpha-ceiling defect stayed invisible while its head-to-head against
+    # ridge was being quoted. Same >20% rule, now on (alpha, l1_ratio), read
+    # from each chunk's own meta.tuned_grids["__estimator__"].
+    # Also carries frac_intercept_only: how often the selected penalty zeroes
+    # every non-intercept coefficient so the forecast falls back to the
+    # intercept-only limit — a legitimate outcome of a wide alpha grid at
+    # l1_ratio=1, but one that must be visible rather than assumed.
+    est_rows: list[dict] = []
+    for root in args.roots:
+        for _est_arm in _ESTIMATOR_PEN_ARMS:
+            arm_dir = os.path.join(root, _est_arm)
+            if not os.path.isdir(arm_dir):
+                continue
+            alphas: list[float] = []
+            l1s: list[float] = []
+            nacts: list[int] = []
+            agrid: set[float] = set()
+            lgrid: set[float] = set()
+            for fn in sorted(os.listdir(arm_dir)):
+                if not _CHUNK_RE.match(fn):
+                    continue
+                try:
+                    with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                        meta = json.loads(str(z["meta"]))
+                except Exception:
+                    continue
+                for row in (meta.get("tuned_grids") or {}).get("__estimator__") or []:
+                    if isinstance(row, (list, tuple)) and len(row) >= 3:
+                        agrid.add(float(row[1]))
+                        lgrid.add(float(row[2]))
+                for e in meta.get("tuned_penalty") or []:
+                    if "alpha" not in e:
+                        continue
+                    alphas.append(float(e["alpha"]))
+                    l1s.append(float(e.get("l1_ratio", float("nan"))))
+                    if "n_active" in e:
+                        nacts.append(int(e["n_active"]))
+            if not alphas:
+                continue
+            # Chunks written before meta.tuned_grids["__estimator__"] existed
+            # carry no grid. Report the trajectory anyway — but leave every
+            # ENDPOINT column blank rather than inferring the grid from the
+            # selections themselves, which would make frac_at_alpha_max
+            # vacuously large (the observed max IS a selected point).
+            ga, gl = sorted(agrid), sorted(lgrid)
+            lo_f = float(np.mean([a == ga[0] for a in alphas])) if ga else float("nan")
+            hi_f = float(np.mean([a == ga[-1] for a in alphas])) if ga else float("nan")
+            rec = {
+                "arm": _est_arm,
+                "root": labels[root],
+                "n_retunes": len(alphas),
+                "n_alpha_points": len(ga),
+                "alpha_min": ga[0] if ga else float("nan"),
+                "alpha_max": ga[-1] if ga else float("nan"),
+                "mean_alpha": float(np.mean(alphas)),
+                "geo_mean_alpha": float(np.exp(np.mean(np.log(alphas)))),
+                "modal_alpha": float(max(sorted(set(alphas)), key=alphas.count)),
+                "frac_at_alpha_min": lo_f,
+                "frac_at_alpha_max": hi_f,
+                "frac_at_alpha_endpoint": lo_f + hi_f,
+                "mean_l1_ratio": float(np.nanmean(l1s)) if l1s else float("nan"),
+                "frac_at_l1_max": (
+                    float(np.mean([x == gl[-1] for x in l1s])) if gl else float("nan")
+                ),
+                "mean_n_active": float(np.mean(nacts)) if nacts else float("nan"),
+                "frac_intercept_only": (
+                    float(np.mean([k == 0 for k in nacts])) if nacts else float("nan")
+                ),
+            }
+            est_rows.append(rec)
+            if lo_f == lo_f and lo_f + hi_f > 0.20:  # NaN-safe: skip if no grid
+                print(
+                    f"[{labels[root]}] WARNING {_est_arm}: "
+                    f"{100 * (lo_f + hi_f):.0f}% of retunes select an ALPHA GRID "
+                    f"ENDPOINT ({100 * lo_f:.0f}% at {ga[0]:g}, "
+                    f"{100 * hi_f:.0f}% at {ga[-1]:g}) — this arm's penalty is "
+                    "grid-constrained; do not quote it against an arm with "
+                    "different reach"
+                )
+            if nacts and rec["frac_intercept_only"] > 0.0:
+                print(
+                    f"[{labels[root]}] {_est_arm}: "
+                    f"{100 * rec['frac_intercept_only']:.1f}% of retunes select "
+                    "an EMPTY active set (intercept-only forecast; the correct "
+                    "limit, disclosed not silent)"
+                )
+    if est_rows:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        est_csv = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)),
+            "estimator_penalty_summary.csv",
+        )
+        cols = [
+            "arm",
+            "root",
+            "n_retunes",
+            "n_alpha_points",
+            "alpha_min",
+            "alpha_max",
+            "mean_alpha",
+            "geo_mean_alpha",
+            "modal_alpha",
+            "frac_at_alpha_min",
+            "frac_at_alpha_max",
+            "frac_at_alpha_endpoint",
+            "mean_l1_ratio",
+            "frac_at_l1_max",
+            "mean_n_active",
+            "frac_intercept_only",
+        ]
+        with open(est_csv, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(cols)
+            for rec in est_rows:
+                w.writerow(
+                    [
+                        rec[c]
+                        if isinstance(rec[c], str)
+                        else (rec[c] if isinstance(rec[c], int) else f"{rec[c]:.6g}")
+                        for c in cols
+                    ]
+                )
+        print(f"single-estimator penalty / endpoint exhibit -> {est_csv}")
 
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.

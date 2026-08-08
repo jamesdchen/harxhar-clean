@@ -52,6 +52,12 @@ Covers, in order:
      STRICT SUBSET property (bit-exact) that makes fine-vs-coarse attributable
      to the added points alone; plus the cyclic tail-evaluation budget.
 
+  K. REACH-MATCHED ELASTIC-NET GRID — the be_tunedWide alpha axis asserted
+     against reclasso's own lam2 = N*alpha*(1-l1_ratio) mapping at every
+     mixing value, the old grid a bit-exact strict subset in unchanged order,
+     and the degenerate pure-lasso corner driven end-to-end through the warm
+     homotopy to confirm it lands on the intercept-only limit.
+
   I. ENDPOINT RELIEF + ADAPTIVE-VS-FIXED TILT — the bipolar pcrank axis and the
      widened tikhonov power/step axes (membership, duplicate-freeness, strict
      superset, flat nesting), and that the frozen-standardization arm differs
@@ -76,6 +82,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+import src.models.reclasso_har as R  # noqa: E402
 import src.unification as U  # noqa: E402
 
 FAIL: list[str] = []
@@ -1151,6 +1158,159 @@ def _flat_span(alpha: float, k: int) -> bool:
     return bool(np.all(pen == float(alpha)))
 
 
+# ── K. reach-matched elastic-net grid ─────────────────────────────────────────
+def section_k() -> None:
+    """The whole point of be_tunedWide is that its penalty grid can express the
+    shrinkage tuned ridge selects. That is an ARITHMETIC claim about the
+    reclasso mapping, so it is asserted against the mapping, not eyeballed."""
+    print("\nK. REACH-MATCHED ELASTIC-NET GRID")
+    n_win = U.DEFAULT_WINDOW_BARS  # N in lam2 = N * alpha * (1 - l1_ratio)
+    narrow = U.ESTIMATOR_GRIDS["enet_free"]
+    wide = U.ESTIMATOR_GRIDS["enet_free_wide"]
+    ridge_top = max(a for _, a, _ in U.ESTIMATOR_GRIDS["ridge_tuned"])
+
+    check("N used by the mapping is the 24000-bar window", n_win == 24000, str(n_win))
+    check("enet_free unchanged at 20 points", len(narrow) == 20, str(len(narrow)))
+    check("enet_free_wide has 28 points", len(wide) == 28, str(len(wide)))
+    check("enet_free_wide: no duplicates", len(set(wide)) == 28)
+    check(
+        "enet_free_wide STRICTLY CONTAINS enet_free (bit-exact)",
+        set(narrow) < set(wide),
+    )
+    check(
+        "the original 20 points keep their ORDER (tuner tie-break unchanged)",
+        list(wide[: len(narrow)]) == list(narrow),
+    )
+    alphas = sorted({a for _, a, _ in wide})
+    check(
+        "alpha axis == np.logspace(-6, 0, 7)",
+        np.allclose(alphas, np.logspace(-6, 0, 7), rtol=0, atol=0),
+        str([f"{a:g}" for a in alphas]),
+    )
+    check(
+        "mixings unchanged at (0.25, 0.5, 0.75, 1.0)",
+        sorted({x for _, _, x in wide}) == [0.25, 0.5, 0.75, 1.0],
+    )
+    check(
+        "every point is the enet kind (l1=1 rows ARE the lasso)",
+        all(k == "enet" for k, _, _ in wide),
+    )
+
+    # THE REACH CLAIM, asserted against the documented mapping at each mixing.
+    print(
+        f"    ridge's selected top alpha = {ridge_top:g}; "
+        f"lam2 = N*alpha*(1-l1) with N = {n_win}"
+    )
+    a_top = max(alphas)
+    for l1 in (0.25, 0.5, 0.75, 1.0):
+        max_lam2 = n_win * a_top * (1.0 - l1)
+        narrow_lam2 = n_win * max(a for _, a, x in narrow if x == l1) * (1.0 - l1)
+        need = ridge_top / (n_win * (1.0 - l1)) if l1 < 1.0 else float("inf")
+        print(
+            f"      l1={l1:<5g} needs alpha {need:>9.4f} | narrow reach "
+            f"{narrow_lam2:>8.0f} | WIDE reach {max_lam2:>8.0f} "
+            f"({max_lam2 / ridge_top:.1f}x ridge)"
+        )
+        if l1 < 1.0:
+            check(
+                f"wide grid REACHES ridge's shrinkage at l1={l1:g}",
+                max_lam2 >= ridge_top,
+                f"{max_lam2:.0f} >= {ridge_top:.0f}",
+            )
+            check(
+                f"narrow grid did NOT reach it at l1={l1:g} (the defect)",
+                narrow_lam2 < ridge_top,
+                f"{narrow_lam2:.0f} < {ridge_top:.0f}",
+            )
+            check(
+                f"the grid contains a point at/above the required alpha (l1={l1:g})",
+                any(a >= need for a in alphas),
+            )
+        else:
+            check(
+                "l1=1.0 has lam2 == 0 at EVERY alpha (structural, not a defect)",
+                all(n_win * a * (1.0 - l1) == 0.0 for a in alphas),
+            )
+
+    # lam2/mu arithmetic must match reclasso's own solver, not just the comment
+    for a, l1 in ((1e-4, 0.5), (1e-2, 0.25), (1e0, 0.75), (1e0, 1.0)):
+        rng = np.random.default_rng(3)
+        m = 12
+        x = rng.standard_normal((200, m))
+        yv = x[:, 0] + rng.standard_normal(200)
+        g, c = x.T @ x, x.T @ yv
+        th_api = R.enet_coef(g, c, 200, a, l1)
+        th_manual, _, _ = R.lasso_homotopy(
+            g + 200 * a * (1.0 - l1) * np.eye(m), c, 200 * a * l1
+        )
+        check(
+            f"enet_coef == lasso-on-Gram at (alpha={a:g}, l1={l1:g})",
+            bool(np.allclose(th_api, th_manual, rtol=0, atol=0)),
+        )
+
+    # DEGENERATE CORNER through the FULL warm path, end to end.
+    rng = np.random.default_rng(0)
+    nrow, ncol = 2000, 40
+    xw = rng.standard_normal((nrow + 5, ncol))
+    yw = xw[:, :3] @ np.array([0.3, -0.2, 0.15]) + rng.standard_normal(nrow + 5)
+    for a, l1, expect_empty in ((1e0, 1.0, True), (1e-6, 0.5, False)):
+        solver = U.RollingTunedLinear([("enet", a, l1)])
+        solver.init_window(xw[:nrow], yw[:nrow])
+        preds = []
+        for i in range(4):
+            t = nrow + i
+            solver.solve()
+            preds.append(solver.predict_one(xw[t]))
+            solver.roll(xw[t], yw[t], xw[i], yw[i])
+        n_active = solver.trace[0][3]
+        check(
+            f"trace records n_active at (alpha={a:g}, l1={l1:g})",
+            isinstance(n_active, int),
+            f"n_active={n_active}",
+        )
+        check(
+            f"forecasts are FINITE at (alpha={a:g}, l1={l1:g})",
+            bool(np.all(np.isfinite(preds))),
+        )
+        if expect_empty:
+            check(
+                "extreme alpha at pure lasso EMPTIES the active set",
+                n_active == 0,
+                f"mu = {nrow * a * l1:g} exceeds mu_max",
+            )
+            check(
+                "...and the forecast is the INTERCEPT-ONLY limit, not zero/NaN",
+                abs(preds[0] - float(yw[:nrow].mean())) < 1e-9,
+                f"pred {preds[0]:.6f} vs window mean {yw[:nrow].mean():.6f}",
+            )
+        else:
+            check(f"active set is non-empty at (alpha={a:g}, l1={l1:g})", n_active > 0)
+
+    # arm wiring
+    for b in (
+        "moments",
+        "liquidity",
+        "market_ew",
+        "market_vw",
+        "sentiment",
+        "implied_vol",
+        "vol_demand",
+        "all_features",
+    ):
+        arm, ref = f"be_tunedWide_{b}", f"be_tuned_{b}"
+        spec, rspec = U.ARMS.get(arm), U.ARMS[ref]
+        check(f"{arm} registered", spec is not None)
+        if spec is None:
+            continue
+        check(
+            f"{arm} differs from {ref} ONLY in the estimator grid",
+            spec.kind == rspec.kind
+            and spec.blocks == rspec.blocks
+            and spec.grid == "enet_free_wide"
+            and rspec.grid == "enet_free",
+        )
+
+
 if __name__ == "__main__":
     section_a()
     section_b()
@@ -1163,5 +1323,6 @@ if __name__ == "__main__":
     section_h()
     section_i()
     section_j()
+    section_k()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)

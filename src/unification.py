@@ -264,6 +264,81 @@ ESTIMATOR_GRIDS: dict[str, list[tuple[str, float, float]]] = {
     ],
 }
 
+# REACH-MATCHED elastic-net grid (author directive 2026-08-07). THIS IS A GRID
+# DEFECT REPAIR, NOT A NEW HYPOTHESIS — the paper's "shrinkage beats selection"
+# conclusion currently rests on a head-to-head between two families whose
+# penalty grids do not span the same shrinkage.
+#
+# THE ARITHMETIC. reclasso's sklearn-compatible mapping (see
+# src/models/reclasso_har, module docstring) over N = 24000 window rows is
+#     mu   = N * alpha * l1_ratio        (L1)
+#     lam2 = N * alpha * (1 - l1_ratio)  (L2, the ridge-equivalent)
+# `enet_free` tops out at alpha = 1e-2, so its LARGEST expressible
+# ridge-equivalent penalty is 24000 * 1e-2 * 0.75 = 180 at l1_ratio=0.25, and
+# less at every heavier mixing. The tuned RIDGE grid reaches alpha = 1000 and
+# SELECTS that top point in 41.3% of retunes. The elastic net therefore cannot
+# reach the shrinkage level ridge picks: the two arms are not comparable at the
+# margin where ridge actually operates.
+#
+# THE MEASURED SYMPTOM: the enet's pooled deficit vs tuned ridge is entirely
+# concentrated at its own grid ceiling. On the 72.1% of bars where the tuner
+# picked alpha <= 1e-3 the ENET WINS (d = -0.00039, DM -6.70, negative in 8/8
+# designs); on the 27.9% where it picked alpha = 1e-2 it loses by +0.00250
+# (DM +6.85, 8/8 designs, 18/24 years). Alpha-endpoint DiD +0.00289, stacked
+# z = +7.78. Once alpha is controlled the l1_ratio heavy-vs-light effect halves
+# and survives in only 1 of 8 designs, with a sign reversal at alpha=1e-4 — so
+# MIXING IS A SYMPTOM, NOT THE CHANNEL. The losses are where it ran out of grid.
+#
+# THE FIX. The requirement is that EVERY mixing value be able to express the
+# L2 weight ridge selects, since ridge pins alpha=1000 in 41.3% of retunes.
+# Inverting lam2 = N * alpha * (1 - l1_ratio) at lam2 = 1000, N = 24000:
+#     l1=0.25 -> alpha = 1000 / (24000 * 0.75) = 0.0556
+#     l1=0.50 -> alpha = 1000 / (24000 * 0.50) = 0.0833
+#     l1=0.75 -> alpha = 1000 / (24000 * 0.25) = 0.1667
+#     l1=1.00 -> UNREACHABLE at any alpha (no L2 term at pure lasso)
+# The l1=0.75 row is the binding one at 0.1667, so a top of 1e-1 would NOT
+# suffice — it would leave the reach confound in place at exactly one mixing
+# value, which is the sort of residual that later gets mistaken for a family
+# effect. Top = 1e0, i.e. alphas = np.logspace(-6, 0, 7). Maximum expressible
+# lam2 at that top (= 24000 * 1 * (1 - l1)):
+#     l1=0.25 -> 18000   (18.0x ridge's selected 1000)
+#     l1=0.50 -> 12000   (12.0x)
+#     l1=0.75 ->  6000   ( 6.0x)
+#     l1=1.00 ->     0   (structural, see below)
+# Comfortably past ridge's reach at every mixing value where the comparison is
+# defined, so an endpoint selection at 1e0 now MEANS something: that the enet
+# genuinely wants more shrinkage than ridge's own grid offers, rather than that
+# it ran out of room.
+#
+# STRUCTURAL LIMIT AT PURE LASSO, stated so no one later reads it as a second
+# grid defect: at l1_ratio=1.0 the L2 term is identically zero for EVERY alpha,
+# so pure lasso can never match ridge's shrinkage no matter how far the alpha
+# axis extends. That is the definition of the family. This grid removes the
+# reach confound at l1_ratio < 1 only; any residual pure-lasso deficit that
+# survives is a genuine family limitation and may be reported as one.
+#
+# CONSTRUCTED AS A STRICT SUPERSET, by extension rather than by rebuilding the
+# axis: the original 20 points are carried through as the SAME tuples, in the
+# SAME order, so (a) set(enet_free) < set(enet_free_wide) holds bit-exactly and
+# the wide-vs-narrow increment is attributable to the added points alone, and
+# (b) the tuner's first-minimum-wins tie-break over the original points is
+# unchanged. The resulting alpha axis equals np.logspace(-6, 0, 7); that is
+# asserted in the synthetic rather than assumed.
+#
+# DEGENERATE CORNER, verified on a fixture (see the note in
+# RollingTunedLinear._tune and section K of the verify script): alpha=1e0 at
+# l1_ratio=1.0 gives mu = 24000 * 1 * 1 = 24000, far above mu_max = max|X'y|,
+# so the homotopy returns an EMPTY active set. The forecast is still
+# well-defined — the intercept is a locked, unpenalized augmented column, so
+# the prediction degrades to the intercept-only limit (window mean of y) — and
+# the frequency is disclosed in meta.tuned_penalty_summary.frac_intercept_only.
+ENET_WIDE_ALPHA_ADDED: tuple[float, ...] = (1e-1, 1e0)
+ESTIMATOR_GRIDS["enet_free_wide"] = list(ESTIMATOR_GRIDS["enet_free"]) + [
+    ("enet", float(a), float(l1))
+    for a in ENET_WIDE_ALPHA_ADDED
+    for l1 in (0.25, 0.5, 0.75, 1.0)
+]
+
 
 def _halve_decades(grid: tuple[float, ...]) -> tuple[float, ...]:
     """Insert the GEOMETRIC MIDPOINT between consecutive grid points.
@@ -2032,9 +2107,12 @@ class RollingTunedLinear:
 
     def __init__(self, grid: list[tuple[str, float, float]]) -> None:
         self.grid = list(grid)
-        # selection trajectory: (solve index at retune, alpha, l1_ratio) —
-        # persisted by the caller as meta.tuned_penalty (2026-08-07 directive)
-        self.trace: list[tuple[int, float, float]] = []
+        # selection trajectory: (solve index at retune, alpha, l1_ratio,
+        # n_active) — persisted by the caller as meta.tuned_penalty. n_active
+        # is the number of NON-INTERCEPT coefficients left nonzero at the
+        # selected penalty; 0 means the forecast fell back to the
+        # intercept-only limit (see _tune).
+        self.trace: list[tuple[int, float, float, int]] = []
 
     def init_window(self, X_win, y_win):
         X = np.asarray(X_win, dtype=np.float64)
@@ -2172,8 +2250,24 @@ class RollingTunedLinear:
             if best is None or mse < best[0]:
                 best = (mse, kind, a, l1)
         _, self.kind_, self.alpha_, self.l1_ = best
-        self.trace.append((int(self._n_solve), float(self.alpha_), float(self.l1_)))
         self._seed()
+        # ACTIVE-SET SIZE at the selected penalty (author directive 2026-08-07,
+        # asked of the reach-matched enet grid). At a large alpha with
+        # l1_ratio=1.0 the L1 penalty can exceed mu_max = max|X'y| and the
+        # homotopy returns an EMPTY active set — a legitimate selection
+        # outcome, not an error. It is safe here BY CONSTRUCTION rather than by
+        # luck: the intercept is an augmented column carried in ``_locked``, so
+        # it takes neither the L1 penalty (``_mu_vec`` is 0 there) nor the L2
+        # ridge (added only at ``~_locked``), never leaves the active set, and
+        # ``_batch_theta``'s FWL step then returns th[intercept] = mean(y).
+        # The forecast therefore degenerates to INTERCEPT-ONLY, which is the
+        # correct limit of the family, never to an undefined or all-zero
+        # prediction. Recorded per retune so the meta can disclose how often
+        # it happens instead of leaving it to be assumed.
+        n_active = int(np.sum(np.abs(self._th[~self._locked]) > 0.0))
+        self.trace.append(
+            (int(self._n_solve), float(self.alpha_), float(self.l1_), n_active)
+        )
 
     def solve(self):
         if self._n_solve > 0 and self._n_solve % TUNE_PER == 0:
@@ -2208,7 +2302,8 @@ def _walk_tuned(
         out[i] = solver.predict_one(Xs[t])
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
     traj = [
-        {"row": int(lo + s), "alpha": a, "l1_ratio": l1} for s, a, l1 in solver.trace
+        {"row": int(lo + s), "alpha": a, "l1_ratio": l1, "n_active": k}
+        for s, a, l1, k in solver.trace
     ]
     return out, traj
 
@@ -2358,6 +2453,28 @@ ARMS: dict[str, ArmSpec] = {
             "trajectory in meta.tuned_penalty)",
             kind="tuned",
             grid="enet_free",
+            blocks=[("backbone", ""), (f"bucket:{b}", "")],
+        )
+        for b in _BUCKETS
+    },
+    # REACH-MATCHED twin of the arm above (author directive 2026-08-07).
+    # Identical in every respect — same design, free l1_ratio, warm
+    # enet_online homotopy, identifiability mask, window, TUNE_PER=250,
+    # 25-embargo/125-tail, per-bar refit, same (alpha, l1_ratio) persistence —
+    # EXCEPT that the alpha axis extends one decade to 1e-1 so the family can
+    # express the shrinkage the tuned ridge actually selects. See
+    # ESTIMATOR_GRIDS["enet_free_wide"] for the lam2 arithmetic and for the
+    # measured evidence that the enet's whole reported deficit sits at its own
+    # grid ceiling. The vs-br_tuned pair is the CORRECTED head-to-head; the
+    # vs-be_tuned pair measures how much of the original deficit was grid reach.
+    **{
+        f"be_tunedWide_{b}": ArmSpec(
+            describe=f"bucket grid: '{b}' design, causally TUNED elastic net "
+            "with FREE l1_ratio on the REACH-MATCHED alpha grid "
+            "(logspace(-6,0,7) x 4 mixings = 28 combos; nests be_tuned's "
+            "20-point choice set exactly)",
+            kind="tuned",
+            grid="enet_free_wide",
             blocks=[("backbone", ""), (f"bucket:{b}", "")],
         )
         for b in _BUCKETS
@@ -3495,6 +3612,17 @@ def compute(args: argparse.Namespace) -> None:
         )
     else:
         F, _ = _build_design(p, spec, window)
+        # Persist the estimator grid the tuner actually searched, so the scorer
+        # can flag alpha/l1 endpoint pile-up for the SINGLE-ESTIMATOR arms the
+        # same way it already does for the block arms — without importing this
+        # module or hardcoding any grid. (The enet reach defect was invisible
+        # for exactly this reason: nothing downstream knew where the ceiling
+        # was.)
+        tuned_grids = {
+            "__estimator__": [
+                [str(k), float(a), float(l1)] for k, a, l1 in ESTIMATOR_GRIDS[spec.grid]
+            ]
+        }
         if spec.grid in ESTIMATOR_GRID_PARENT:  # fine-grid twin: carry the ancestor
             coarse_grids = {
                 "__estimator_alpha__": [
@@ -3627,6 +3755,23 @@ def compute(args: argparse.Namespace) -> None:
                             np.mean([e["l1_ratio"] for e in tuned_penalty])
                         ),
                         "n_retunes": len(tuned_penalty),
+                        # DEGENERATE-ACTIVE-SET DISCLOSURE (2026-08-07): how
+                        # often the selected penalty zeroes every non-intercept
+                        # coefficient, i.e. the forecast falls back to the
+                        # intercept-only limit (mean of the window target).
+                        # A legitimate selection outcome — see the note in
+                        # RollingTunedLinear._tune — but it must be VISIBLE,
+                        # not inferred, now that the alpha grid reaches a
+                        # decade higher.
+                        "min_n_active": int(
+                            min(e.get("n_active", -1) for e in tuned_penalty)
+                        ),
+                        "mean_n_active": float(
+                            np.mean([e.get("n_active", 0) for e in tuned_penalty])
+                        ),
+                        "frac_intercept_only": float(
+                            np.mean([e.get("n_active", -1) == 0 for e in tuned_penalty])
+                        ),
                     }
                     if tuned_penalty
                     else {}
