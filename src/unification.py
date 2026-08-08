@@ -96,6 +96,7 @@ duplicate arm.
 
 from __future__ import annotations
 
+import hashlib
 import itertools
 import json
 import os
@@ -191,6 +192,13 @@ TRANS_LAG_BARS = 1  # lag-1 (bars) cross-correlation
 # excludes these two families from the TRANSMISSION BASE ONLY (the test is
 # about what feeds the operator/scores; the exog ridge block keeps them).
 TRANS_HET_STEMS = ("sumret3_ewstock", "sumret3_vwstock")
+
+# FULL LIVE SPECTRUM of the frozen transmission frame — the number of base
+# columns with dispersion in the frame window, i.e. the maximum K the frame can
+# supply. Documented from the transmission section's liveness count; asserted
+# against _frame_live_rank at build time (see the trans_trailGFull block), so a
+# drifted panel fails loudly instead of quietly redefining the arm.
+TRANS_FULL_SPECTRUM = 106
 
 # Composition RULED 2026-08-06: _user arms carry [G (20 factor scores) | Ghat
 # (20 lead-lag)] = 40 cols (the paper's own design); _doc arms mirror the
@@ -564,6 +572,15 @@ BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
 # configuration-dependent; a grid whose optimum sits at an endpoint is not a
 # valid selection, so this spans seven decades and the scorer flags endpoint
 # pile-up (see meta.tuned_grids + the penalty summary's frac_at_grid_* cols).
+# WIDENED levels grid for the CAPTURE-LADDER arms (2026-08-08): the `trans`
+# grid (1e2..1e4) was calibrated for a factor block competing against the
+# 526-column wide design. With the exogenous block ABSENT the levels are the
+# only exogenous information, so the appropriate scale is plausibly lower.
+# Same extension, same evidence: with the exogenous block absent the levels
+# carry ALL the exogenous information, so if anything they want MORE reach than
+# the rotated-exog block did. logspace(0,6,7); the previous 1e0..1e4 points are
+# a strict subset.
+BLOCK_TUNE_GRIDS["trans_sub"] = tuple(float(a) for a in np.logspace(0, 6, 7))
 BLOCK_TUNE_GRIDS["pcr"] = (1e-2, 1e-1, 1.0, 1e1, 1e2, 1e3, 1e4)
 # Rotated-exogenous grid for the TUNED PCR twins (author directive 2026-08-08):
 # logspace(-1, 4, 6) = 0.1 .. 1e4 — ONE DECADE ABOVE ridge's usual top,
@@ -571,7 +588,16 @@ BLOCK_TUNE_GRIDS["pcr"] = (1e-2, 1e-1, 1.0, 1e1, 1e2, 1e3, 1e4)
 # designs. If 1e4 pins too, the endpoint diagnostic says so and the grid moves
 # again; that is the point of putting the extra decade there rather than
 # assuming 1000 was the optimum.
-BLOCK_TUNE_GRIDS["rotexog_wide"] = tuple(float(a) for a in np.logspace(-1, 4, 6))
+# EXTENDED on canary evidence (2026-08-08): the first cut, logspace(-1,4,6),
+# was PINNED at its 1e4 top in 67% of retunes — the endpoint gate did its job
+# and the grid, not the data, was setting the penalty. Two more decades.
+# NOTE the requested logspace(0,6,7) would have DROPPED the old 0.1 point,
+# which contradicts keeping the previous grid as a subset; 0.1 is retained so
+# the extension can only ADD reach. Any wide-vs-narrow read stays attributable
+# to the added decades, and 0.1 costs three tail evaluations per retune.
+BLOCK_TUNE_GRIDS["rotexog_wide"] = (0.1,) + tuple(
+    float(a) for a in np.logspace(0, 6, 7)
+)
 # PC-ladder block: one rank-tilted penalty per PC rank, SHARED across that
 # rank's ladder rungs (see _pc_ladder_design). Power family only, 12 points;
 # the group size (rungs per rank) rides in the descriptor.
@@ -1158,6 +1184,63 @@ def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, in
     return vec[:, np.argsort(lam)[::-1]], live, n_live
 
 
+# Weight-matrix provenance of the last PLS build (hash + shape), persisted so
+# the frozen supervised frame is auditable chunk to chunk.
+_LAST_PLS_DIAG: dict[str, Any] = {}
+
+
+def _pls_frame(p: _Panel, window: int, k: int) -> tuple[np.ndarray, np.ndarray, int]:
+    """(W, live mask, live rank) — SUPERVISED basis for the value tensor.
+
+    The PCA frame maximizes VARIANCE among the base quantities and never looks
+    at the target; PLS maximizes COVARIANCE WITH THE TARGET, so at equal K it
+    should carry more forecasting content. That is the whole point of the
+    supervised rung of the capture ladder.
+
+    CAUSALITY, identical in status to the frozen predictive ORDERING already
+    shipped: the weights are fit on the FRAME WINDOW ONLY — rows
+    [window, 2*window), which precede every scored bar (the first legal OOS row
+    is 2*window) — and then FROZEN permanently, exactly as V is. No post-frame
+    row can touch them; asserted in the verify script by perturbing every row
+    beyond the frame window and requiring bit-identical weights.
+
+    ESTIMATOR: sklearn's PLSRegression (NIPALS with deflation). Deterministic —
+    NIPALS has no random initialization and the deflation order is fixed — so
+    repeated builds give bit-identical weights, which the synthetic checks.
+    Inputs are the ma_1 slab (the base-quantity vector) standardized by its own
+    frame-window statistics, matching the PCA path exactly; ``scale=False``
+    because the standardization is already applied and letting PLS rescale
+    again would silently change the basis.
+    """
+    from sklearn.cross_decomposition import PLSRegression
+
+    cols = _value_slab_cols(p.names)
+    z1 = np.ascontiguousarray(p.X[window : 2 * window, cols[1]])
+    sd = z1.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit("PLS frame: fewer than 2 live base quantities")
+    if k > n_live:
+        raise SystemExit(f"PLS frame: K={k} exceeds live rank {n_live}")
+    zs = (z1[:, live] - z1[:, live].mean(0)) / sd[live]
+    yv = p.y[window : 2 * window]
+    model = PLSRegression(n_components=int(k), scale=False)
+    model.fit(zs, yv - yv.mean())
+    w = np.ascontiguousarray(model.x_weights_, dtype=np.float64)
+    _LAST_PLS_DIAG.clear()
+    _LAST_PLS_DIAG.update(
+        {
+            "k": int(k),
+            "n_live": n_live,
+            "weights_sha256": hashlib.sha256(w.tobytes()).hexdigest(),
+            "weights_shape": list(w.shape),
+            "frame_rows": [int(window), int(2 * window)],
+        }
+    )
+    return w, live, n_live
+
+
 def _value_slab_cols(names: list[str]) -> dict[int, np.ndarray]:
     """{MA window -> column indices of that window's VALUE slab}, base
     quantities in a single canonical (sorted-stem) order shared by every
@@ -1219,7 +1302,12 @@ def _rot_predictive_order(
 
 
 def _rot_value_design(
-    p: _Panel, window: int, qpool: int | None, ordering: str
+    p: _Panel,
+    window: int,
+    qpool: int | None,
+    ordering: str,
+    basis: str = "pca",
+    rungs: tuple[int, ...] | None = None,
 ) -> np.ndarray:
     """Rotated VALUE tensor, top-``qpool`` directions by ``ordering``.
 
@@ -1230,11 +1318,19 @@ def _rot_value_design(
     if ordering not in _ROT_ORDERINGS:
         raise SystemExit(f"unknown PCR ordering '{ordering}'")
     cols = _value_slab_cols(p.names)
-    v_mat, live, n_live = _rot_value_frame(p, window)
-    wins = sorted(cols)
+    if basis == "pls":
+        k_req = n_live_guess = None
+        v_mat, live, n_live = _pls_frame(
+            p, window, int(qpool) if qpool is not None else 0
+        )
+        del k_req, n_live_guess
+    else:
+        v_mat, live, n_live = _rot_value_frame(p, window)
+    wins = sorted(cols) if rungs is None else [w for w in sorted(cols) if w in rungs]
     n_w = len(wins)
     n = len(p.y)
-    rot = np.empty((n, n_live * n_w), dtype=np.float64)
+    n_dir = v_mat.shape[1]
+    rot = np.empty((n, n_dir * n_w), dtype=np.float64)
     for j, w in enumerate(wins):
         slab = np.ascontiguousarray(p.X[:, cols[w][live]])
         fw = slab[window : 2 * window]
@@ -1243,10 +1339,14 @@ def _rot_value_design(
         scores = ((slab - mu) / sd) @ v_mat  # INPUTS standardized, scores NOT
         rot[:, j::n_w] = scores  # direction-major: col i*n_w + j
     order = (
-        np.arange(n_live)
+        np.arange(n_dir)
         if ordering == "variance"
         else _rot_predictive_order(p, window, rot, n_live, n_w)
     )
+    if basis == "pls":
+        # the weight matrix already HAS k columns and its order is the PLS
+        # component order; there is nothing to re-rank or truncate
+        return np.ascontiguousarray(rot)
     k = n_live if qpool is None else int(qpool)
     if k > n_live:
         raise SystemExit(
@@ -4253,6 +4353,133 @@ ARMS: dict[str, ArmSpec] = {
         )
         for hl in (3000.0, 12000.0)
     },
+    # CAN THE TRAILING-STANDARDIZED PCA LEVELS REPLICATE THE EXOGENOUS BLOCK
+    # BY THEMSELVES? (author directive 2026-08-08, product block removed on
+    # correction — the comparison must be pure, two blocks each side with
+    # nothing shared but the backbone.)
+    #
+    # WHAT IS ALREADY KNOWN, from arms on disk at matched rows (248,686) and
+    # matched tuning:
+    #     blk2_gated_tuned            backbone + FULL exog      0.21997
+    #     blk2_pcrForty_tuned         backbone + K=40 levels    0.22134
+    #     d3_transmission_alone_tuned backbone + K=20 levels    0.22249
+    #     blk2_pcr_tuned              backbone + K=20 levels    0.22287
+    # So the K=40 case IS ALREADY RUN — blk2_pcrForty_tuned is exactly
+    # "backbone + trans_trailG40, nothing else, tuned", and it LOSES to the
+    # exogenous block by 1.37e-3. Widening K from 20 to 40 closed roughly 45%
+    # of the K=20 gap (2.5e-3 -> 1.37e-3) but did not close it. A separate
+    # K=40 arm on a NARROWER penalty grid would be a strict re-run of that
+    # result and could only do worse, so it is deliberately not built.
+    #
+    # WHAT IS GENUINELY UNTESTED is the FULL SPECTRUM: if the residual 1.37e-3
+    # is truncation, taking every live direction should close it; if it is
+    # content the construction cannot see, it will not.
+    #
+    # GRID CHOICE, and why it is `pcr` rather than a fresh one: the K=40 arm's
+    # penalty selections are already on disk under `pcr`, and the K=40-vs-full
+    # comparison is only clean if both arms search the SAME grid — otherwise
+    # spectrum width is confounded with grid reach. `pcr` also spans 1e-2..1e4,
+    # and blk2_pcrForty_tuned selects the 1e-2 end in 32% of retunes, so a grid
+    # starting at 1e0 would amputate the region a third of its selections
+    # actually use.
+    #
+    # INTERPRETATION, fixed in advance:
+    #   full ~= blk2_gated_tuned -> the levels DO replicate the exogenous block
+    #                               once the spectrum is not truncated;
+    #                               truncation at 40 was the binding limit.
+    #   full still < gated       -> the exogenous block carries content
+    #                               structurally OUTSIDE this construction.
+    #                               Candidates in order of prior: the nine
+    #                               ladder windows the frame's base omits (it
+    #                               takes value columns at only 1/32/512 of
+    #                               twelve), the 576 availability indicators
+    #                               (absent from the base entirely), and
+    #                               per-column idiosyncratic content a
+    #                               correlation frame cannot represent.
+    "blk2_gfull_tuned": ArmSpec(
+        describe="capture test at the FULL frame spectrum: HAR backbone + "
+        "every live trailing-standardized frozen-frame factor level (K read "
+        "from the frame's liveness rule at build time), NOTHING else — the "
+        "spectrum-width twin of blk2_pcrForty_tuned on the same penalty grid",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("trans_trailGFull", "pcr")],
+        oos_mult=2,
+    ),
+    # CUMULATIVE REPAIR LADDER (author directive 2026-08-08). The goal is no
+    # longer to test whether the levels capture the exogenous block but to MAKE
+    # them, discarding one deficit at a time so the increments DECOMPOSE the
+    # gap by cause. Replication is guaranteed at the limit: full rank + all
+    # rungs + indicators + NO score standardization is an exact orthogonal
+    # reparameterization of the exogenous design (proven end-to-end at
+    # 3.99e-15 in the verify script's GATE), so every rung of this ladder is a
+    # step along a path whose destination is known.
+    #
+    # THE DEFICITS, and which arm discards each:
+    #   0 baseline   blk2_pcrForty_tuned (on disk, 0.22134) is backbone + K=40
+    #                levels, nothing else, and loses to blk2_gated_tuned
+    #                (0.21997) by 1.37e-3. blk2_gfull_tuned takes K to the full
+    #                live spectrum, isolating pure truncation.
+    #   1 RUNGS      the frame's base takes value columns at only 1/32/512 of
+    #                the exogenous block's TWELVE windows, so nine rungs of
+    #                information are simply absent. blk2_gFortyRungs_tuned
+    #                expands each retained direction through all twelve via
+    #                ma_j(V'x) = V' ma_j(x) — the commuting identity, which is
+    #                what makes the ladder-of-scores the eigen-projection of
+    #                the full ladder rather than an approximation of it.
+    #   2 INDICATORS the 576 availability columns are absent from the frame's
+    #                base entirely, and a correlation frame over continuous
+    #                values cannot represent them. They enter UNROTATED as
+    #                their own block (a linear combination of binary indicators
+    #                indicates nothing).
+    #   3 SUPERVISION the PCA frame maximizes variance among the regressors and
+    #                never looks at the target. The PLS arms replace it with a
+    #                frame that maximizes covariance WITH the target, at HALF
+    #                and a QUARTER of the directions.
+    #   4 REMAINDER  whatever gap blk2_plsTwentyRungsInd_tuned still leaves
+    #                against blk2_gated_tuned is the measured IRREDUCIBLE part:
+    #                per-column idiosyncratic content no low-rank frame over
+    #                these base quantities can carry. That number is the
+    #                deliverable, not a failure.
+    #
+    # Column counts on the real panel (backbone 52): 40 directions x 12 rungs =
+    # 480; plus 576 indicators = 1108.
+    "blk2_gFortyRungs_tuned": ArmSpec(
+        describe="capture ladder, rungs repaired: backbone + K=40 "
+        "variance-ordered frozen-frame directions expanded through ALL TWELVE "
+        "ladder rungs (480 columns), inputs standardized, scores NEVER "
+        "standardized; no indicators",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rotval:variance:40", "trans_sub")],
+        oos_mult=2,
+    ),
+    "blk2_gFortyRungsInd_tuned": ArmSpec(
+        describe="capture ladder, rungs + indicators: the arm above plus the "
+        "availability indicators UNROTATED in their own scalar-penalty block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rotval:variance:40", "trans_sub"),
+            ("avail_ind", "exog"),
+        ],
+        oos_mult=2,
+    ),
+    **{
+        f"blk2_pls{tag}RungsInd_tuned": ArmSpec(
+            describe=f"capture ladder, SUPERVISED basis at K={k}: PLS weight "
+            "vectors fit on the FRAME WINDOW ONLY and frozen permanently, "
+            "expanded through all twelve rungs, plus the unrotated "
+            "availability indicators — covariance-with-target in place of "
+            "variance-among-regressors, at a fraction of the directions",
+            kind="blocks_tuned",
+            blocks=[
+                ("backbone", "backbone"),
+                (f"plsval:{k}", "trans_sub"),
+                ("avail_ind", "exog"),
+            ],
+            oos_mult=2,
+        )
+        for tag, k in (("Twenty", 20), ("Ten", 10))
+    },
     # SERIAL-CORRELATION-CORRECTED grid-free shrinkage (author directive
     # 2026-08-08). THE LEADING REMAINING EXPLANATION of the JS gap, now that
     # drift has been measured and found insufficient: the drift audit put the
@@ -4291,6 +4518,20 @@ ARMS: dict[str, ArmSpec] = {
     # correction is right in direction and wrong in magnitude (tau applied to
     # the whole coefficient vector when only part of the covariance is
     # inflated by it). Read the factor in the canary before reading the QLIKE.
+    #
+    # OUTCOME (measured 2026-08-08, recorded because a negative that cost a
+    # canary is worth keeping): THE HYPOTHESIS IS REFUTED, and by measurement
+    # rather than by bug. The canary returned tau_resid = 1.0, and tau measured
+    # directly on blk3_tuned's persisted OUT-OF-SAMPLE residuals gives Geyer
+    # IPS tau = 1.88 with first-lag ACF 0.029. Per-bar refitting WHITENS the
+    # one-step errors: each forecast is made from a window ending at t-1, so
+    # consecutive residuals share almost no estimation error. The correction is
+    # therefore INERT AND CORRECTLY SO — a tau near 1 multiplies sigma^2 by
+    # near 1 — and this arm stands as a documented negative, not a fleet
+    # candidate. The standing explanation for the JS gap reverts to the third
+    # hypothesis below: the OBJECTIVE MISMATCH between QLIKE's asymmetry (and
+    # the retransform from sqrt space) and the squared-error loss this
+    # estimator is risk-optimal for.
     #
     # PREDICTION, recorded so the outcome is falsifiable either way. If serial
     # correlation IS the mechanism, the corrected factor should land at
@@ -4663,6 +4904,11 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return _rot_value_design(
             p, window, None if ktag == "full" else int(ktag), ordering
         )
+    if block.startswith("plsval:"):
+        # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
+        return _rot_value_design(
+            p, window, int(block.split(":")[1]), "variance", basis="pls"
+        )
     if block.startswith("rotexog:"):
         # ROTATED VALUES + UNROTATED INDICATORS as ONE penalized block. The
         # _js twins carry these as two segments sharing the shrinkage; the
@@ -4701,6 +4947,23 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "trans_trailG40":  # levels only, WIDE frame (rank-shaped arm)
         return _transmission_block(
             p, window, parts="scores", standardization="trailing", qpool=40
+        )
+    if block == "trans_trailGFull":
+        # FULL LIVE SPECTRUM of the frozen frame, read from the frame's own
+        # liveness rule at build time (never hardcoded). The documented count
+        # is TRANS_FULL_SPECTRUM; a panel whose live rank has drifted changes
+        # what this arm MEANS, so the mismatch is loud rather than silent.
+        k_live = _frame_live_rank(p, window)
+        if k_live != TRANS_FULL_SPECTRUM:
+            raise SystemExit(
+                f"trans_trailGFull: frame live rank is {k_live}, not the "
+                f"documented {TRANS_FULL_SPECTRUM} (of "
+                f"{len(_product_base_cols(p.names))} base columns). The arm's "
+                "identity is tied to that count — re-audit the liveness before "
+                "running, or update TRANS_FULL_SPECTRUM deliberately."
+            )
+        return _transmission_block(
+            p, window, parts="scores", standardization="trailing", qpool=k_live
         )
     if block == "trans_frozenG40":
         # ADAPTIVE-vs-FIXED tilt control (see blk4_trailGShapedFrozen): the

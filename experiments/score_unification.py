@@ -162,6 +162,12 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedWide",
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
+        # capture test at the full frame spectrum
+        "blk2_gfull_tuned",
+        "blk2_gFortyRungs_tuned",
+        "blk2_gFortyRungsInd_tuned",
+        "blk2_plsTwentyRungsInd_tuned",
+        "blk2_plsTenRungsInd_tuned",
         # grid-free shrinkage: same 24000-bar window + frozen product/rotation
         "blk2_rotVarFullK_js",
         "blk2_rotVarFortyK_js",
@@ -361,6 +367,12 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk3_jsDiag_tuned", "BlkThreeJsDiagTuned"),
     # De-confounding control: K=40 levels at the ORDINARY FLAT penalty.
     ("blk4_trailG40_tuned", "BlkFourTrailGFortyTuned"),
+    # CAPTURE: can the trailing PCA levels replicate the wide exog block?
+    ("blk2_gfull_tuned", "BlkTwoGFullTuned"),
+    ("blk2_gFortyRungs_tuned", "BlkTwoGFortyRungsTuned"),
+    ("blk2_gFortyRungsInd_tuned", "BlkTwoGFortyRungsIndTuned"),
+    ("blk2_plsTwentyRungsInd_tuned", "BlkTwoPlsTwentyRungsIndTuned"),
+    ("blk2_plsTenRungsInd_tuned", "BlkTwoPlsTenRungsIndTuned"),
     # Adaptive-vs-fixed spectral tilt: the frozen-standardization twin.
     ("blk4_trailGShapedFrozen", "BlkFourTrailGShapedFrozen"),
     # Endpoint relief for the two arms the shape-endpoint diagnostic flagged.
@@ -542,6 +554,12 @@ _ARM_TEX: dict[str, str] = {
     "diagonal-whitened positive-part James-Stein, no tuned hyperparameters",
     "blk3_jsDiag_tuned": "Three-block design, diagonal-whitened positive-part "
     "James-Stein (raw-basis control), no tuned hyperparameters",
+    "blk2_gfull_tuned": "Two-block ridge: HAR backbone + trailing factor "
+    "levels at the full frame spectrum (causally tuned)",
+    "blk2_gFortyRungs_tuned": "Two-block ridge: HAR backbone + $K=40$ frozen-frame directions over all twelve ladder rungs (causally tuned)",
+    "blk2_gFortyRungsInd_tuned": "As above plus unrotated availability indicators (causally tuned)",
+    "blk2_plsTwentyRungsInd_tuned": "HAR backbone + $K=20$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned)",
+    "blk2_plsTenRungsInd_tuned": "HAR backbone + $K=10$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned)",
     "blk4_trailG40_tuned": "Four-block ridge (trailing factor levels, $K=40$, "
     "flat transmission penalty, causally tuned)",
     "blk4_trailGShapedFrozen": "Four-block ridge (FROZEN-standardized factor "
@@ -787,6 +805,26 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # comparison. Bare stem = vs blk3_tuned, which is the SAME DESIGN tuned on
     # a 27-combo grid over a 125-bar tail: the only difference is whether the
     # shrinkage is estimated or selected. A tie is already the finding.
+    # CAPTURE: do the trailing PCA levels replicate the exogenous block BY
+    # THEMSELVES? Bare stem = vs blk2_gated_tuned (backbone + full exog,
+    # tuned, same gated rows) — a null increment means yes. The
+    # vs-blk2_pcrForty_tuned pair is the SPECTRUM-WIDTH question at matched
+    # grid: does taking every live direction close the 1.37e-3 that K=40
+    # leaves?
+    ("blk2_gfull_tuned", "blk2_gated_tuned"),
+    ("blk2_gfull_tuned", "blk2_pcrForty_tuned"),
+    ("blk2_gfull_tuned", A0),
+    # THE CUMULATIVE REPAIR LADDER. Bare stems = distance from replication
+    # (vs blk2_gated_tuned); the CHAIN pairs decompose the gap by cause.
+    ("blk2_gFortyRungs_tuned", "blk2_gated_tuned"),
+    ("blk2_gFortyRungsInd_tuned", "blk2_gated_tuned"),
+    ("blk2_plsTwentyRungsInd_tuned", "blk2_gated_tuned"),
+    ("blk2_plsTenRungsInd_tuned", "blk2_gated_tuned"),
+    # worth of RUNGS / of INDICATORS / of SUPERVISION / of fewer directions
+    ("blk2_gFortyRungs_tuned", "blk2_pcrForty_tuned"),
+    ("blk2_gFortyRungsInd_tuned", "blk2_gFortyRungs_tuned"),
+    ("blk2_plsTwentyRungsInd_tuned", "blk2_gFortyRungsInd_tuned"),
+    ("blk2_plsTenRungsInd_tuned", "blk2_plsTwentyRungsInd_tuned"),
     # DOES THE SERIAL-CORRELATION CORRECTION CLOSE THE JS GAP? Bare stem = vs
     # blk3_tuned (the same design, shrinkage SELECTED not estimated); the
     # vs-blk3_js_tuned pair isolates what the correction itself bought.
@@ -2182,6 +2220,11 @@ def main(argv: list[str] | None = None) -> int:
         for _pen_arm in (
             "blk_bucketpen_tuned",
             "blk4_trailGShaped",
+            "blk2_gfull_tuned",
+            "blk2_gFortyRungs_tuned",
+            "blk2_gFortyRungsInd_tuned",
+            "blk2_plsTwentyRungsInd_tuned",
+            "blk2_plsTenRungsInd_tuned",
             "blk4_trailGShapedWide",
             "blk4_trailGShaped_fine",
             "blk4_trailGShapedFrozen",

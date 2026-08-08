@@ -1979,6 +1979,195 @@ def _cholesky_fails(mat: np.ndarray) -> bool:
         return True
 
 
+# -- R. cumulative repair ladder ----------------------------------------------
+def section_r() -> None:
+    print(chr(10) + "R. CUMULATIVE REPAIR LADDER (making the levels replicate exog)")
+
+    # The K=40 baseline is ALREADY an arm on disk; assert we did not duplicate it.
+    check(
+        "blk2_pcrForty_tuned IS the K=40 capture baseline (backbone + levels)",
+        [b for b, _ in U.ARMS["blk2_pcrForty_tuned"].blocks]
+        == ["backbone", "trans_trailG40"]
+        and U.ARMS["blk2_pcrForty_tuned"].oos_mult == 2,
+        "so a fresh K=40 arm would be a strict re-run of a scored result",
+    )
+    check(
+        "no duplicate K=40 capture arm was built",
+        "blk2_g40_tuned" not in U.ARMS and "blk_g40sub_tuned" not in U.ARMS,
+    )
+    check(
+        "the comparator is backbone + FULL exog at oos_mult=2 (matched rows)",
+        [b for b, _ in U.ARMS["blk2_gated_tuned"].blocks] == ["backbone", "exog_all"]
+        and U.ARMS["blk2_gated_tuned"].oos_mult == 2,
+    )
+
+    p = _pcr_panel(n=2400, window=400)
+    window = 400
+    cols = U._value_slab_cols(p.names)
+    n_w = len(cols)
+    n_back = len(U._backbone_cols(p.names))
+    n_ind = len(U._cols(p.names, {"indicator"}))
+    _, live, n_live = U._rot_value_frame(p, window)
+
+    # (a) THE COMMUTING IDENTITY on the full rung expansion:
+    #     ma_j(V'x) == V' ma_j(x), so rotating each rung's slab by the shared V
+    #     IS the eigen-projection of the ladder-expanded design.
+    v_mat, live_m, _ = U._rot_value_frame(p, window)
+    z1 = p.X[:, cols[1]][:, live_m]
+    fw = p.X[window : 2 * window, cols[1]][:, live_m]
+    zs1 = (z1 - fw.mean(0)) / np.where(fw.std(0) > U._DEGENERATE_SD, fw.std(0), 1.0)
+    import pandas as _pd
+
+    rung = sorted(cols)[2]
+    ma_then_rot = (
+        _pd.DataFrame(zs1).rolling(rung, min_periods=1).mean().to_numpy() @ v_mat
+    )
+    rot_then_ma = (
+        _pd.DataFrame(zs1 @ v_mat).rolling(rung, min_periods=1).mean().to_numpy()
+    )
+    rel = np.max(np.abs(ma_then_rot - rot_then_ma)) / max(
+        np.max(np.abs(rot_then_ma)), 1e-300
+    )
+    check(
+        "COMMUTING IDENTITY ma_j(V'x) == V' ma_j(x) to machine precision",
+        rel < 1e-12,
+        f"max relative difference {rel:.3e} at rung {rung}",
+    )
+
+    # (b) column counts, exact, per arm shape
+    for k in (3, 5):
+        d = U._rot_value_design(p, window, k, "variance")
+        check(
+            f"rung-expanded design is K x n_rungs = {k} x {n_w}",
+            d.shape[1] == k * n_w,
+            str(d.shape),
+        )
+    print(
+        f"    fixture: backbone {n_back}, {n_w} rungs, {n_live} live directions, "
+        f"{n_ind} indicators"
+    )
+
+    # (c) PLS: determinism, causality, shape, hash
+    w1, _, _ = U._pls_frame(p, window, 4)
+    h1 = dict(U._LAST_PLS_DIAG)
+    w2, _, _ = U._pls_frame(p, window, 4)
+    check(
+        "PLS weights are DETERMINISTIC (bit-identical across builds)",
+        np.array_equal(w1, w2),
+    )
+    check(
+        "PLS weight matrix is (n_live x K)",
+        w1.shape == (n_live, 4),
+        str(w1.shape),
+    )
+    check(
+        "PLS provenance recorded (sha256 + shape + frame rows)",
+        set(h1) >= {"weights_sha256", "weights_shape", "frame_rows", "k", "n_live"}
+        and h1["frame_rows"] == [window, 2 * window],
+        f"sha {h1['weights_sha256'][:12]}...",
+    )
+    p2 = _pcr_panel(n=2400, window=400)
+    p2.X[2 * window :] += 100.0
+    p2.y[2 * window :] += 100.0
+    w3, _, _ = U._pls_frame(p2, window, 4)
+    check(
+        "PLS frame is CAUSAL: post-frame-window rows cannot move the weights",
+        np.array_equal(w1, w3),
+        "frame is rows [W, 2W), which precede every scored bar",
+    )
+    check(
+        "...and the resulting design agrees on the pre-scoring rows",
+        np.array_equal(
+            U._rot_value_design(p, window, 4, "variance", basis="pls")[: 2 * window],
+            U._rot_value_design(p2, window, 4, "variance", basis="pls")[: 2 * window],
+        ),
+    )
+    d_pls = U._rot_value_design(p, window, 4, "variance", basis="pls")
+    check(
+        f"PLS design is K x n_rungs = 4 x {n_w}",
+        d_pls.shape[1] == 4 * n_w,
+        str(d_pls.shape),
+    )
+    check(
+        "PLS basis differs from the PCA basis (supervision changes the frame)",
+        not np.allclose(d_pls, U._rot_value_design(p, window, 4, "variance")),
+    )
+    try:
+        U._pls_frame(p, window, n_live + 1)
+        check("PLS K beyond the live rank fails loudly", False, "no exception")
+    except SystemExit as exc:
+        check("PLS K beyond the live rank fails LOUDLY", "exceeds" in str(exc))
+
+    # (d) arm wiring + the ladder's cumulative block structure
+    ladder = [
+        ("blk2_gFortyRungs_tuned", ["backbone", "rotval:variance:40"]),
+        (
+            "blk2_gFortyRungsInd_tuned",
+            ["backbone", "rotval:variance:40", "avail_ind"],
+        ),
+        ("blk2_plsTwentyRungsInd_tuned", ["backbone", "plsval:20", "avail_ind"]),
+        ("blk2_plsTenRungsInd_tuned", ["backbone", "plsval:10", "avail_ind"]),
+    ]
+    for arm, blocks in ladder:
+        spec = U.ARMS[arm]
+        check(
+            f"{arm}: blocks_tuned, oos_mult=2, expected blocks",
+            spec.kind == "blocks_tuned"
+            and spec.oos_mult == 2
+            and [b for b, _ in spec.blocks] == blocks,
+            str([b for b, _ in spec.blocks]),
+        )
+        keys = [k for _, k in spec.blocks]
+        check(
+            f"{arm}: levels/PLS block on the widened grid, indicators on exog",
+            keys[1] == "trans_sub" and (len(keys) < 3 or keys[2] == "exog"),
+            str(keys),
+        )
+        check(f"{arm}: no duplicate alpha key", len(set(keys)) == len(keys))
+    check(
+        "the ladder is CUMULATIVE: each rung adds exactly one block or basis",
+        [b for b, _ in U.ARMS["blk2_gFortyRungsInd_tuned"].blocks][:2]
+        == [b for b, _ in U.ARMS["blk2_gFortyRungs_tuned"].blocks]
+        and [b for b, _ in U.ARMS["blk2_plsTwentyRungsInd_tuned"].blocks][2:]
+        == [b for b, _ in U.ARMS["blk2_gFortyRungsInd_tuned"].blocks][2:],
+    )
+    ts = _grid("trans_sub")
+    check(
+        "trans_sub EXTENDED to 1e6 (same canary evidence as rotexog_wide)",
+        [f"{v:g}" for v in ts]
+        == ["1", "10", "100", "1000", "10000", "100000", "1e+06"],
+        str([f"{v:g}" for v in ts]),
+    )
+    check(
+        "the previous 1e0..1e4 points are a STRICT SUBSET",
+        {1.0, 10.0, 100.0, 1e3, 1e4} < set(ts),
+    )
+
+    # (e) real-panel column arithmetic
+    try:
+        import json as _json
+
+        real = _json.load(open("results/panel_columns.json"))["names"]
+    except Exception:
+        real = None
+    if real:
+        nb = len(U._backbone_cols(real))
+        ni = len(U._cols(real, {"indicator"}))
+        nr = len(U._value_slab_cols(real))
+        print(
+            f"    REAL panel widths: backbone {nb}, rungs {nr}, indicators {ni}"
+            + chr(10)
+            + f"      gFortyRungs    {nb} + 40x{nr} = {nb + 40 * nr}"
+            + chr(10)
+            + f"      gFortyRungsInd {nb} + 40x{nr} + {ni} = {nb + 40 * nr + ni}"
+            + chr(10)
+            + f"      plsTwenty      {nb} + 20x{nr} + {ni} = {nb + 20 * nr + ni}"
+            + chr(10)
+            + f"      plsTen         {nb} + 10x{nr} + {ni} = {nb + 10 * nr + ni}"
+        )
+        check("12 ladder rungs on the real panel", nr == 12, str(nr))
+
+
 # ── Q. serial-correlation-corrected shrinkage ─────────────────────────────────
 def section_q() -> None:
     """The correction's whole claim is that tau is recovered from the data and
@@ -2166,16 +2355,21 @@ def section_p() -> None:
 
     # grid as stated
     g = _grid("rotexog_wide")
-    check("rotexog_wide == logspace(-1, 4, 6)", len(g) == 6 and g[0] == 0.1)
     check(
-        "rotexog_wide membership 0.1 .. 1e4",
-        [f"{v:g}" for v in g] == ["0.1", "1", "10", "100", "1000", "10000"],
+        "rotexog_wide EXTENDED to 1e6 after the 67% top-pinning canary",
+        len(g) == 8 and max(g) == 1e6,
         str([f"{v:g}" for v in g]),
     )
     check(
-        "rotexog_wide reaches ONE DECADE above the usual ridge top (1000)",
-        max(g) == 1e4 and 1e3 in g,
-        "so the endpoint diagnostic can report whether 1e4 pins too",
+        "rotexog_wide membership 0.1 .. 1e6",
+        [f"{v:g}" for v in g]
+        == ["0.1", "1", "10", "100", "1000", "10000", "100000", "1e+06"],
+        str([f"{v:g}" for v in g]),
+    )
+    check(
+        "the PREVIOUS grid is a STRICT SUBSET (extension only adds reach)",
+        {0.1, 1.0, 10.0, 100.0, 1e3, 1e4} < set(g),
+        "0.1 retained despite logspace(0,6,7) dropping it",
     )
 
     # arm wiring: two blocks, ONE shared exogenous penalty
@@ -2483,6 +2677,7 @@ if __name__ == "__main__":
     section_n()
     section_o()
     section_p()
+    section_r()
     section_q()
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILURES: {FAIL}"))
     sys.exit(1 if FAIL else 0)
