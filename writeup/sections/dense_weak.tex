@@ -1,4 +1,4 @@
-\section{A Dense but Weak Signal: Lasso versus Ridge}
+\subsection{A Dense but Weak Signal: Lasso versus Ridge}
 \label{sec:dense_weak}
 
 % Arc: the lasso-vs-ridge head-to-head is center stage — sparsity loses, dense
@@ -6,9 +6,10 @@
 % ridge: alpha=1 on HAR-of-target + alpha=100 on HAR-of-all_features.
 % Base text: drafts_2026-07-30/linear_vs_nonlinear.tex (linear half).
 
-Section~\ref{sec:buckets} established that the exogenous panel carries
-information beyond the HAR lag structure of \citet{Corsi2009}, and that no
-single bucket carries much of it. This section holds the information set
+The preceding subsections established that the exogenous panel carries
+information beyond the HAR lag structure of \citet{Corsi2009}, that no
+single bucket carries much of it, and that the estimator decides whether
+any of it is recovered. This subsection holds the information set
 fixed and varies only the penalty of the linear estimator. Two estimators are
 compared: the lasso \citep{Tibshirani1996}, which applies an $\ell_1$ penalty
 and sets a subset of coefficients to exactly zero, and ridge
@@ -29,7 +30,7 @@ defines the estimator built for this structure: a two-block ridge with
 penalty $\alpha = 1$ on the HAR-of-target block and $\alpha = 100$ on the
 HAR-of-all-features block, with no selection step.
 
-\subsection{The Head-to-Head}
+\subsubsection{The Head-to-Head}
 \label{sec:dense_weak_headtohead}
 
 \paragraph{Design.}
@@ -148,7 +149,7 @@ yet. \pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling
 bound) on the full design, so the head-to-head margin is tested rather
 than pointed at}
 
-\subsection{The Diagnosis: Dense, Not Sparse}
+\subsubsection{The Diagnosis: Dense, Not Sparse}
 \label{sec:dense_weak_diagnosis}
 
 The lasso's own solution path shows what $\ell_1$ selection does on this
@@ -178,7 +179,7 @@ but weak.
 % the curated dictionary, light-alpha ties, 60-col free prune, selection that
 % bites hurts +0.005 p=.002). Different basis and scale from the battery panel.
 
-\subsection{The Two-Block Ridge}
+\subsubsection{The Two-Block Ridge}
 \label{sec:dense_weak_twoblock}
 % Endpoint: BlockRidge with block 1 = HAR(target), alpha=1; block 2 =
 % HAR(all_features), alpha=100.

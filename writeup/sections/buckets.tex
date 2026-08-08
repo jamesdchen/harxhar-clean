@@ -1,4 +1,4 @@
-\section{Where the Information Lives: OLS on the Feature Buckets}
+\section{Where the Information Lives, and What Extracts It}
 \label{sec:buckets}
 
 % Arc: as in the July-30 marginal-contribution section — OLS of each exogenous
@@ -138,6 +138,97 @@ correction then spread across all of its bars. The per-bar solve
 verification of the final design (Section~\ref{sec:data_prep}) closes this
 failure mode; under it the aggregates score as reported in
 Table~\ref{tab:buckets}.
+
+\subsection{The Same Buckets under a Competent Estimator}
+\label{sec:buckets_tuned}
+
+% Provenance: 16 arms (br_tuned_*, be_tuned_*), each a full 100-chunk run on
+% the frozen panel; causally tuned ridge (logspace(-2,3,6)) and causally
+% tuned elastic net with FREE mixing (alpha logspace(-6,-2,5) x l1_ratio
+% {0.25,0.5,0.75,1.0}), TUNE_PER=250, 25-bar embargo, 125-bar tail.
+% Selected (alpha, l1_ratio) persisted per retune. 2026-08-07.
+Table~\ref{tab:buckets} answers what an unpenalized estimator recovers.
+It is not the same question as what the columns contain. Each bucket
+design is therefore re-run under two penalized estimators, both choosing
+their penalty by the causal rule of Section~\ref{sec:dense_weak}: ridge,
+and an elastic net whose mixing parameter is \emph{free} --- the tuner
+selects $\ell_1$ share as well as penalty strength at every retune, so
+the amount of selection is chosen by the estimator rather than fixed by
+the author. Table~\ref{tab:buckets_tuned} reports both.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Each bucket design under two causally tuned penalized
+estimators. \textbf{Panel:} the frozen panel of
+Section~\ref{sec:data_prep}, identical rows in every cell; benchmark
+QLIKE \unifAzeroQLIKE{}. DM $t$ is against the benchmark; negative
+favours the arm. The final column is the paired Diebold--Mariano
+statistic of the elastic net against ridge \emph{on the same design},
+positive meaning ridge is the better of the two.}
+\label{tab:buckets_tuned}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Ridge} & \multicolumn{2}{c}{Elastic net} & Enet vs.\ ridge \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-6}
+Design & QLIKE & DM $t$ & QLIKE & DM $t$ & DM $t$ \\
+\midrule
+moments      & \unifBrTunedMomentsQLIKE{}    & \unifBrTunedMomentsDM{}    & \unifBeTunedMomentsQLIKE{}    & \unifBeTunedMomentsDM{}    & \unifIncrBeTunedMomentsDM{} \\
+liquidity    & \unifBrTunedLiquidityQLIKE{}  & \unifBrTunedLiquidityDM{}  & \unifBeTunedLiquidityQLIKE{}  & \unifBeTunedLiquidityDM{}  & \unifIncrBeTunedLiquidityDM{} \\
+market (EW)  & \unifBrTunedMarketEwQLIKE{}   & \unifBrTunedMarketEwDM{}   & \unifBeTunedMarketEwQLIKE{}   & \unifBeTunedMarketEwDM{}   & \unifIncrBeTunedMarketEwDM{} \\
+market (VW)  & \unifBrTunedMarketVwQLIKE{}   & \unifBrTunedMarketVwDM{}   & \unifBeTunedMarketVwQLIKE{}   & \unifBeTunedMarketVwDM{}   & \unifIncrBeTunedMarketVwDM{} \\
+sentiment    & \unifBrTunedSentimentQLIKE{}  & \unifBrTunedSentimentDM{}  & \unifBeTunedSentimentQLIKE{}  & \unifBeTunedSentimentDM{}  & \unifIncrBeTunedSentimentDM{} \\
+implied vol. & \unifBrTunedImpliedVolQLIKE{} & \unifBrTunedImpliedVolDM{} & \unifBeTunedImpliedVolQLIKE{} & \unifBeTunedImpliedVolDM{} & \unifIncrBeTunedImpliedVolDM{} \\
+vol.\ demand & \unifBrTunedVolDemandQLIKE{}  & \unifBrTunedVolDemandDM{}  & \unifBeTunedVolDemandQLIKE{}  & \unifBeTunedVolDemandDM{}  & \unifIncrBeTunedVolDemandDM{} \\
+\midrule
+all exogenous (joint) & \unifBrTunedAllFeaturesQLIKE{} & \unifBrTunedAllFeaturesDM{} & \unifBeTunedAllFeaturesQLIKE{} & \unifBeTunedAllFeaturesDM{} & \unifIncrBeTunedAllFeaturesDM{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two readings follow, and they are the reason this section and the
+estimator comparison belong together.
+
+First, \emph{the joint design is now the best design, not the worst}.
+Under minimum-norm least squares the joint arm was indistinguishable
+from the benchmark (Table~\ref{tab:buckets}); under a causally tuned
+ridge it is the strongest arm in the table
+(\unifBrTunedAllFeaturesQLIKE{}, DM \unifBrTunedAllFeaturesDM{}),
+stronger than any single bucket including the best of them. The ordering
+of the two tables is not a refinement of the same result but a reversal
+of it: with an estimator that shrinks, more exogenous columns produce
+more signal; with one that does not, they produce none. What
+Table~\ref{tab:buckets} measures is the cost of forgoing shrinkage, and
+that cost is larger than everything the buckets individually contain.
+
+Second, \emph{ridge beats the elastic net in every information set}. All
+eight paired comparisons favour ridge --- there is no design on which
+free mixing wins --- and three do so at conventional significance
+(market VW \unifIncrBeTunedMarketVwDM{}, sentiment
+\unifIncrBeTunedSentimentDM{}, moments \unifIncrBeTunedMomentsDM{}).
+The result of Section~\ref{sec:dense_weak_headtohead} is therefore not a
+property of the joint design: it reproduces bucket by bucket, on
+information sets ranging from nine columns to five hundred.
+
+\paragraph{What the tuner reveals about selection.}
+Because the elastic net's mixing parameter is selected causally at every
+retune, its trajectory is itself a measurement. Across $1{,}200$
+retunes the selected $\ell_1$ share is \emph{bimodal}: the modal choice
+is $1.0$ --- pure lasso --- taken at roughly a third of retunes, with
+almost as many at the grid's minimum of $0.25$, and the interior values
+chosen less often than either extreme (mean $0.63$). The same shape
+appears in every bucket. The tuner does not settle on a preferred amount
+of selection; it alternates between heavy and light selection every
+$250$ bars.
+
+That instability, and not a revealed preference for dense coefficients,
+is what the head-to-head measures. A $125$-bar validation tail cannot
+identify how much selection this design wants, so an estimator that must
+choose pays for the choice, while ridge --- which never chooses --- does
+not. The evidence in this section supports the narrow claim that
+uniform shrinkage outperforms selection here, and specifically does
+\emph{not} support the stronger claim that the data are dense because a
+selection-capable estimator declined to select.
 
 \subsection{Overlap}
 
