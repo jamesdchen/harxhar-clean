@@ -25,6 +25,12 @@ cd /u/scratch/j/jamesdc1/harxhar-clean
 export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
 export TQDM_DISABLE=1
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
+# The panel rebuild fans column scaling over PROCESSES sized by
+# os.cpu_count() -- the node's cores, not our grant. SGE bills each child's
+# full address space against h_vmem, so 8 forks of a 15G process ask for
+# ~120G and die with ENOMEM before a single chunk is written. Pin it to
+# the slots we actually hold.
+export UNIF_SCALE_PROCS="${NSLOTS:-1}"
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
 # Idempotent resume: a chunk that already produced its npz is done.
 OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" $((SGE_TASK_ID - 1)))

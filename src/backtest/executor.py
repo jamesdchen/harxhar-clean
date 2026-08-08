@@ -249,7 +249,19 @@ def apply_masked_scaling(
     # processes, which is exact: the workers run the same function on the same
     # inputs and only the scheduling changes. Threads would not do: numpy's
     # partition holds the GIL for the window sizes here.
-    n_proc = max(1, min(os.cpu_count() or 1, 8))
+    # Worker count. os.cpu_count() reports the NODE's cores, not the cores
+    # this task was granted, so on a scheduler that enforces a per-task
+    # address-space cap (SGE's h_vmem) the forks below can exceed it: each
+    # child's address space is counted in full, so 8 children of a 15G
+    # process bill about 120G. UNIF_SCALE_PROCS lets the job script pass
+    # the real grant (SGE exports NSLOTS); unset, the historical default
+    # stands so CARC/Slurm runs are byte-for-byte unchanged.
+    _env_proc = os.environ.get("UNIF_SCALE_PROCS", "").strip()
+    n_proc = (
+        max(1, int(_env_proc))
+        if _env_proc.isdigit() and int(_env_proc) > 0
+        else max(1, min(os.cpu_count() or 1, 8))
+    )
     if len(jobs) > 8 and n_proc > 1:
         # Submitted in batches rather than all at once: each task carries a
         # column copy, so queueing all ~500 upfront would hold about a
