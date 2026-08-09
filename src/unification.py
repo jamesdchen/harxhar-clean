@@ -5568,7 +5568,8 @@ def compute(args: argparse.Namespace) -> None:
                 d["bag_member"] = m
             tuned_alphas.extend(ta_m)
             yhat = y_m if yhat is None else yhat + y_m
-            del F
+            if m < 7:
+                del F
         assert yhat is not None
         yhat = yhat / 8.0
     elif spec.kind == "blocks_ew":
