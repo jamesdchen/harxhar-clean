@@ -79,6 +79,15 @@ blk4_trailGShapedTrailMean-vs-blk4_trailGShapedWide,unification,248686,True,0.00
 blk4_trailGShapedTrailMean-vs-blk4_trailGShapedFrozen,unification,248686,True,-0.0002729137542,-2.39087
 blk4_trailGShapedTrailSd-vs-blk4_trailGShapedWide,unification,248686,True,-2.608514608e-05,-0.319007
 blk4_trailGShapedTrailSd-vs-blk4_trailGShapedFrozen,unification,248686,True,-0.0004505439756,-3.57233
+blk3_trailGShapedTrailSd-vs-blk2_gated_tuned,unification,248686,True,-0.0003613958727,-2.32096
+blk3_trailGShapedTrailSd-vs-blk3_tuned,,0,False,,
+blk4_trailGShapedTrailSd-vs-blk3_trailGShapedTrailSd,unification,248686,True,-0.000747794521,-1.76068
+blk2_trailGShapedTrailSd-vs-blk2_gated_tuned,unification,248686,True,0.001685952928,4.44319
+blk3_prodBbExog_tuned-vs-blk2_gated_tuned,unification,248686,True,-0.0002894942024,-0.730821
+blk3_prodBbExog_tuned-vs-blk3_tuned,,0,False,,
+blk4_prodBbExogTrailSd-vs-blk3_prodBbExog_tuned,unification,248686,True,-0.0006394031792,-4.15008
+blk4_prodBbExogTrailSd-vs-blk3_trailGShapedTrailSd,unification,248686,True,-0.0005675015089,-1.30582
+blk4_prodBbExogTrailSd-vs-blk4_trailGShapedTrailSd,unification,248686,True,0.0001802930121,1.01232
 blk_pcladderWide_tuned-vs-blk_pcladder_tuned,unification,248686,True,-3.979746887e-05,-0.527181
 blk3_tikhonovStepWide_tuned-vs-blk3_tikhonovStep_tuned,unification,248686,True,0.0003601494512,2.3431
 blk3_tikhonov_tuned-vs-blk3_tuned,,0,False,,
