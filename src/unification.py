@@ -1258,7 +1258,7 @@ def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     panel_to_live = {int(idx): i for i, idx in enumerate(val[live])}
     log2w = np.empty(n_live, dtype=np.float64)
     pos = 0
-    for w in PRODUCT_EXOG_WINDOWS:
+    for w in sorted(cols_by_win):
         for c in cols_by_win[w]:
             if c in panel_to_live:
                 log2w[panel_to_live[c]] = np.log2(w)
