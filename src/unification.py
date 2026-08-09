@@ -1268,8 +1268,10 @@ def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
 
     profile = np.sum(v_mat**2 * log2w[np.newaxis, :], axis=1)
     profile = profile - profile.mean()
+    block_profile = np.zeros(z.shape[1] + ind.size, dtype=np.float64)
+    block_profile[:n_live] = profile
     key = f"{arm}_{window}"
-    _TIMEAWARE_PROFILES[key] = profile
+    _TIMEAWARE_PROFILES[key] = block_profile
 
     out = np.empty((len(p.y), z.shape[1] + ind.size), dtype=np.float64)
     out[:, :n_live] = z[:, live] @ v_mat
