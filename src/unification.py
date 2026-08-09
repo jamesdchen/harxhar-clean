@@ -1279,6 +1279,96 @@ def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     out[:, z.shape[1]:] = p.X[:, ind]
     return out
 
+
+def _wobble_eps_from_arm(arm: str) -> float:
+    """Fixed wobble radius encoded in the arm name: ...Eps1em2 -> 1e-2.
+
+    Kept OUT of the causal tuner on purpose: epsilon is a design perturbation,
+    not a penalty; tuning it on the same 125-bar tail would confound the test.
+    """
+    m = re.search(r"Eps(\d+)em(\d+)", arm)
+    if not m:
+        return 0.0
+    return float(int(m.group(1)) * (10.0 ** (-int(m.group(2)))))
+
+
+def _causal_wobble_q(n_live: int, arm: str, window: int, eps: float) -> np.ndarray:
+    """Deterministic orthogonal perturbation Q = exp(eps * A), A^T = -A.
+
+    Causal by construction: the seed depends only on (arm, window, n_live),
+    never on current-chunk outcomes. A is normalized to unit spectral norm so
+    eps is interpretable as the maximum rotation angle in radians.
+    """
+    if eps == 0.0:
+        return np.eye(n_live, dtype=np.float64)
+    import hashlib
+    from scipy.linalg import expm
+
+    seed = int.from_bytes(
+        hashlib.sha256(f"{arm}|{window}|{n_live}".encode()).digest()[:8], "little"
+    )
+    rng = np.random.default_rng(seed)
+    a = rng.standard_normal((n_live, n_live))
+    a = 0.5 * (a - a.T)
+    norm = float(np.linalg.norm(a, 2))
+    if norm > 0:
+        a /= norm
+    q = np.asarray(expm(eps * a), dtype=np.float64)
+    # Numerical hygiene: expm of an antisymmetric matrix is orthogonal to roundoff.
+    return q
+
+
+def _rot_prod_wobble_design(
+    p: _Panel, window: int, arm: str, timeaware: bool
+) -> np.ndarray:
+    """Full-rank production rotation plus a causal orthogonal wobble.
+
+    Full-rank information is preserved exactly; only the orientation relative
+    to the penalty ellipsoid changes. With timeaware=True the timescale profile
+    is computed AFTER the effective rotation VQ so penalty direction i and
+    output column i remain the same object.
+    """
+    val = _cols(p.names, {"value"})
+    ind = _cols(p.names, {"indicator"})
+    z = np.ascontiguousarray(p.X[:, val], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit("wobble rotation: fewer than 2 live value columns")
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(
+        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    )
+    v_mat = vec[:, np.argsort(lam)[::-1]]
+    q = _causal_wobble_q(n_live, arm, window, _wobble_eps_from_arm(arm))
+    v_eff = np.ascontiguousarray(v_mat @ q, dtype=np.float64)
+
+    if timeaware:
+        cols_by_win = _value_slab_cols(p.names)
+        panel_to_live = {int(idx): i for i, idx in enumerate(val[live])}
+        log2w = np.empty(n_live, dtype=np.float64)
+        pos = 0
+        for w in sorted(cols_by_win):
+            for c in cols_by_win[w]:
+                if c in panel_to_live:
+                    log2w[panel_to_live[c]] = np.log2(w)
+                    pos += 1
+        if pos != n_live:
+            raise SystemExit(f"timeaware wobble: window count mismatch {pos} != {n_live}")
+        profile = np.sum(v_eff**2 * log2w[np.newaxis, :], axis=1)
+        profile = profile - profile.mean()
+        block_profile = np.zeros(z.shape[1] + ind.size, dtype=np.float64)
+        block_profile[:n_live] = profile
+        _TIMEAWARE_PROFILES[f"{arm}_{window}"] = block_profile
+
+    out = np.empty((len(p.y), z.shape[1] + ind.size), dtype=np.float64)
+    out[:, :n_live] = z[:, live] @ v_eff
+    out[:, n_live:z.shape[1]] = z[:, ~live]
+    out[:, z.shape[1]:] = p.X[:, ind]
+    return out
+
 def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, int]:
     """(V, live mask over the 43 base quantities, live rank) from the FRAME
     WINDOW only — rows [window, 2*window), the same window and the same
@@ -4574,6 +4664,48 @@ ARMS: dict[str, ArmSpec] = {
         blocks=[("backbone", "backbone"), ("rot_prod_full", "exog")],
         oos_mult=2,
     ),
+    "blk2_rotFullProd_wobbleEps1em3_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-3); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps1em2_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-2); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps3em2_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=3e-2); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps1em1_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-1); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_timeaware_wobbleEps1em2_tuned": ArmSpec(
+        describe="time-aware post-PCA penalties with the eigenframe wobbled "
+        "(eps=1e-2) BEFORE the horizon profile is computed",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_timeaware_wobble", "exog_timeaware")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleBagEps1em2_tuned": ArmSpec(
+        describe="bagged causal ellipsoid wobble (8 seeded members, eps=1e-2) "
+        "under the uniform exog block penalty",
+        kind="blocks_tuned_bag",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
     # CUMULATIVE REPAIR LADDER (author directive 2026-08-08). The goal is no
     # longer to test whether the levels capture the exogenous block but to MAKE
     # them, discarding one deficit at a time so the increments DECOMPOSE the
@@ -5065,6 +5197,10 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         return _exog_tilt_design(p, window)
     if block == "rot_prod_timeaware":  # time-aware post-PCA (author directive 2026-08-09)
         return _rot_prod_timeaware_design(p, window, arm)
+    if block == "rot_prod_wobble":  # deterministic causal ellipsoid wobble, uniform exog penalty
+        return _rot_prod_wobble_design(p, window, arm, timeaware=False)
+    if block == "rot_prod_timeaware_wobble":  # wobble aligned to the timescale penalty profile
+        return _rot_prod_wobble_design(p, window, arm, timeaware=True)
     if block == "pc_ladder":  # {ma_j(G_i)} — ladder applied to the PC series
         return _pc_ladder_design(p, window)
     # K-sweep of the same construction (2026-08-07): K=20 discards most of the
@@ -5408,6 +5544,33 @@ def compute(args: argparse.Namespace) -> None:
             selection="cyclic" if spec.grid == "cyclic" else "cartesian",
             sweep_order=sweep,
         )
+    elif spec.kind == "blocks_tuned_bag":
+        # ROTATION BAGGING: average per-bar predictions over 8 seeded causal
+        # orthogonal perturbations. Designs are built one member at a time and
+        # released immediately — eight full panels would not fit in memory.
+        arm_keys = [k for _, k in spec.blocks]
+        tuned_grids = {k: list(BLOCK_TUNE_GRIDS[k]) for k in arm_keys}
+        yhat = None
+        tuned_alphas = []
+        for m in range(8):
+            F, segments = _tuned_blocks_design(p, spec, window, arm=f"{arm}__bag{m}")
+            y_m, ta_m = _walk_blocks_tuned(
+                F,
+                segments,
+                p.y,
+                window,
+                lo,
+                hi,
+                selection="cartesian",
+                sweep_order=(),
+            )
+            for d in ta_m:
+                d["bag_member"] = m
+            tuned_alphas.extend(ta_m)
+            yhat = y_m if yhat is None else yhat + y_m
+            del F
+        assert yhat is not None
+        yhat = yhat / 8.0
     elif spec.kind == "blocks_ew":
         # DISCOUNTED GRAM: same block grids as the flat tuned arms, plus the
         # half-life axis. "ew_grid" searches EW_HALF_LIVES; "ew_fixed:<H>"
