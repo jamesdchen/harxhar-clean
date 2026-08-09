@@ -160,6 +160,8 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
         "blk4_trailGShapedWide",
+        "blk4_trailGShapedTrailMean",
+        "blk4_trailGShapedTrailSd",
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
         # capture test at the full frame spectrum
@@ -339,6 +341,9 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
     # Endpoint relief for the same rung: exponent grid extended to gamma=4.
     ("blk4_trailGShapedWide", "BlkFourTrailGShapedWide"),
+    # Decomposition twins of the same rung: moving mean vs moving sd.
+    ("blk4_trailGShapedTrailMean", "BlkFourTrailGShapedTrailMean"),
+    ("blk4_trailGShapedTrailSd", "BlkFourTrailGShapedTrailSd"),
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
@@ -519,6 +524,12 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailGShapedWide": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty over an extended exponent grid, causally "
     "tuned)",
+    "blk4_trailGShapedTrailMean": "Four-block ridge (causal trailing-demeaned "
+    "factor levels, $K=40$, rank-shaped transmission penalty over the extended "
+    "exponent grid, causally tuned)",
+    "blk4_trailGShapedTrailSd": "Four-block ridge (factor levels divided by "
+    "their causal trailing SD, $K=40$, rank-shaped transmission penalty over "
+    "the extended exponent grid, causally tuned)",
     "blk4_trailGShaped_fine": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
@@ -879,6 +890,12 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # not the vs-champion one, is the mechanism test.
     ("blk4_trailGShapedFrozen", "blk4_trailGShapedWide"),
     ("blk4_trailGShapedFrozen", "blk4_trailG_tuned"),
+    # Which half of the trailing z-score carries the gain? Against the parent
+    # each twin removes one moving half; against the frozen twin each adds one.
+    ("blk4_trailGShapedTrailMean", "blk4_trailGShapedWide"),
+    ("blk4_trailGShapedTrailMean", "blk4_trailGShapedFrozen"),
+    ("blk4_trailGShapedTrailSd", "blk4_trailGShapedWide"),
+    ("blk4_trailGShapedTrailSd", "blk4_trailGShapedFrozen"),
     # Endpoint relief: does letting the tuner off its grid boundary change the
     # verdict? Bare stem = vs the narrow original each one widens.
     ("blk_pcladderWide_tuned", "blk_pcladder_tuned"),
@@ -2246,6 +2263,8 @@ def main(argv: list[str] | None = None) -> int:
             "blk2_plsTwentyRungsInd_tuned",
             "blk2_plsTenRungsInd_tuned",
             "blk4_trailGShapedWide",
+            "blk4_trailGShapedTrailMean",
+            "blk4_trailGShapedTrailSd",
             "blk4_trailGShaped_fine",
             "blk4_trailGShapedFrozen",
             "blk_pcladderWide_tuned",

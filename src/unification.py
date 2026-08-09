@@ -2069,9 +2069,11 @@ def _transmission_block(
     "scores" = G only, "flow" = Ghat only (the _doc documented construction).
 
     ``standardization``: "frozen" (frame-window stats + floored-sd Ghat scale
-    — the original campaign construction) or "trailing" (the revival: causal
-    trailing standardization + the standard rolling robust scaler; see the
-    2026-08-06 ruling notes at the TRANS constants).
+    — the original campaign construction), "trailing" (the revival: causal
+    trailing demeaning AND division by the trailing sd + the standard rolling
+    robust scaler; see the 2026-08-06 ruling notes at the TRANS constants),
+    or the decomposition modes "trail_mean" (causal trailing demeaning only)
+    and "trail_sd" (division by the causal trailing sd only).
 
     TRANSMISSION DIG knobs (author directive 2026-08-07; every new arm keeps
     the trailing standardization and the fixed user penalties):
@@ -2156,11 +2158,18 @@ def _transmission_block(
         eig_rec.append(eig0)
         w_mat = v0 / sd0[:, None]
         G = (Z - mu0) @ w_mat
-        if standardization == "trailing":
+        if standardization in ("trailing", "trail_mean", "trail_sd"):
             gm = pd.DataFrame(G).rolling(trail, min_periods=trail).mean().shift(1)
             gs = pd.DataFrame(G).rolling(trail, min_periods=trail).std().shift(1)
+            gm = gm.to_numpy()
+            gs = gs.to_numpy()
             with np.errstate(divide="ignore", invalid="ignore"):
-                G = (G - gm.to_numpy()) / gs.to_numpy()
+                if standardization == "trailing":
+                    G = (G - gm) / gs
+                elif standardization == "trail_mean":
+                    G = G - gm
+                else:  # trail_sd
+                    G = G / gs
             G[~np.isfinite(G)] = 0.0  # warm-up rows (< trail bars of history)
         else:
             g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
@@ -2210,7 +2219,7 @@ def _transmission_block(
         "eigvals": np.stack(eig_rec) if eig_rec else np.zeros((0, k_pool)),
         "refresh_rows": np.asarray(rows_rec, dtype=np.int64),
     }
-    if standardization == "trailing":
+    if standardization in ("trailing", "trail_mean", "trail_sd"):
         from src.features.transforms.scaling import rolling_robust_scale
 
         def _scale_from_activation(M: np.ndarray) -> np.ndarray:
@@ -4279,6 +4288,41 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # TRAILING-STANDARDIZATION DECOMPOSITION (author directive 2026-08-09):
+    # the parent's causal z-score has two moving parts — the trailing mean and
+    # the trailing sd. These twins keep the frame, truncation, production
+    # scaler, block grids, and tuner byte-identical to blk4_trailGShapedWide,
+    # changing only which half of the z-score is active. Read against the
+    # parent and the frozen twin: mean-vs-parent isolates the moving divisor;
+    # sd-vs-parent isolates the moving location.
+    "blk4_trailGShapedTrailMean": ArmSpec(
+        describe="trailing-standardization decomposition: K=40 factor LEVELS, "
+        "causal trailing DEMEANING ONLY (no trailing-sd division), same "
+        "rank-shaped wide transmission grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40_trailmean", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk4_trailGShapedTrailSd": ArmSpec(
+        describe="trailing-standardization decomposition: K=40 factor LEVELS, "
+        "division by the causal trailing SD ONLY (no trailing demeaning), "
+        "same rank-shaped wide transmission grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # GRID-RESOLUTION test on the BEST MODEL (author directive 2026-08-07):
     # identical to blk4_trailGShaped except EVERY block grid is refined to
     # half-decade spacing over the SAME range it already spans, so the arm
@@ -5265,6 +5309,18 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
     if block == "trans_trailG40":  # levels only, WIDE frame (rank-shaped arm)
         return _transmission_block(
             p, window, parts="scores", standardization="trailing", qpool=40
+        )
+    if block == "trans_trailG40_trailmean":
+        # Trailing-standardization decomposition: causal trailing DEMEANING
+        # only, then the same production rolling robust scaler as the parent.
+        return _transmission_block(
+            p, window, parts="scores", standardization="trail_mean", qpool=40
+        )
+    if block == "trans_trailG40_trailsd":
+        # Trailing-standardization decomposition: division by the causal
+        # trailing SD only, then the same production rolling robust scaler.
+        return _transmission_block(
+            p, window, parts="scores", standardization="trail_sd", qpool=40
         )
     if block == "trans_trailGFull":
         # FULL LIVE SPECTRUM of the frozen frame, read from the frame's own
