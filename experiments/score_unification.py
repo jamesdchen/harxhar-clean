@@ -164,6 +164,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedTrailSd",
         "blk3_trailGShapedTrailSd",
         "blk2_trailGShapedTrailSd",
+        "blk2_rotAllTrailSd_tuned",
         "blk3_prodBbExog_tuned",
         "blk4_prodBbExogTrailSd",
         "blk4_trailGShaped_fine",
@@ -351,6 +352,7 @@ _REGISTRY: list[tuple[str, str]] = [
     # Product x trailing-SD factorial and backbone/session-x-exog subset.
     ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
     ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
+    ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
     ("blk3_prodBbExog_tuned", "BlkThreeProdBbExogTuned"),
     ("blk4_prodBbExogTrailSd", "BlkFourProdBbExogTrailSd"),
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
@@ -544,6 +546,9 @@ _ARM_TEX: dict[str, str] = {
     "causally tuned)",
     "blk2_trailGShapedTrailSd": "Two-block ridge (backbone + causal "
     "trailing-SD factor levels, $K=40$, causally tuned)",
+    "blk2_rotAllTrailSd_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block and causal trailing-SD factor scores "
+    "(causally tuned)",
     "blk3_prodBbExog_tuned": "Three-block ridge with products restricted to "
     "(HAR/session) $\\times$ exogenous-value interactions (causally tuned)",
     "blk4_prodBbExogTrailSd": "Four-block ridge with (HAR/session) $\\times$ "
@@ -923,6 +928,12 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk3_trailGShapedTrailSd", "blk3_tuned"),
     ("blk4_trailGShapedTrailSd", "blk3_trailGShapedTrailSd"),
     ("blk2_trailGShapedTrailSd", "blk2_gated_tuned"),
+    # FULL-RANK no-K-cutoff version: can the complete trailing-SD rotation
+    # replace the raw wide exog block, and how does it compare with K=40?
+    ("blk2_rotAllTrailSd_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSd_tuned", "blk2_rotFullProd_tuned"),
+    ("blk2_rotAllTrailSd_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSd_tuned", "blk4_trailGShapedTrailSd"),
     # BACKBONE/session x EXOG interaction subset: its increment alone, against
     # the full product block, and conditionally on the trailing-SD block.
     ("blk3_prodBbExog_tuned", "blk2_gated_tuned"),
@@ -2301,6 +2312,7 @@ def main(argv: list[str] | None = None) -> int:
             "blk4_trailGShapedTrailSd",
             "blk3_trailGShapedTrailSd",
             "blk2_trailGShapedTrailSd",
+            "blk2_rotAllTrailSd_tuned",
             "blk3_prodBbExog_tuned",
             "blk4_prodBbExogTrailSd",
             "blk4_trailGShaped_fine",

@@ -1236,6 +1236,95 @@ def _rot_prod_design(p: _Panel, window: int) -> np.ndarray:
     return out
 
 
+def _rot_all_trailsd_design(
+    p: _Panel, window: int, chunk_cols: int = 64
+) -> np.ndarray:
+    """FULL-RANK production rotation of the backbone+exog panel, with causal
+    trailing-SD factor scores.
+
+    BASE = the full production panel (backbone + exog_all; asserted to be
+    every panel column, disjointly), already rolling-scaled by prep.
+    FRAME = correlation eigenvectors on rows ``[window, 2*window)``.
+    SCORES = the complete live eigen-spectrum, in descending eigenvalue
+    order, projected with frame-window correlation scaling.
+    STANDARDIZATION = divide each score by its trailing 504-day SD, shifted
+    one bar, then run the same activation-aware production rolling robust
+    scaler used by the K=40 trailing-SD block. DEAD columns pass through
+    unrotated after the live factors, preserving the full panel span.
+
+    The K=40 helper is not reused because a full 1144-column score matrix plus
+    pandas rolling intermediates needs column-chunked construction; 64-column
+    chunks keep transient score/SD/scaler buffers bounded while preserving the
+    same per-column operations.
+    """
+    bb = set(map(int, _backbone_cols(p.names)))
+    ex = set(map(int, _exog_all_cols(p.names)))
+    if bb & ex or bb | ex != set(range(p.X.shape[1])):
+        raise SystemExit(
+            "rot_all_trailsd: backbone + exog_all no longer partition the "
+            "panel; refusing to guess which columns belong in the full frame"
+        )
+
+    z = p.X
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            "rot_all_trailsd: fewer than 2 live columns in the frame window; "
+            "refusing to build a degenerate full-rank rotation"
+        )
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(
+        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    )
+    v_mat = vec[:, np.argsort(lam)[::-1]]
+
+    # Correlation-frame projection in ORIGINAL panel coordinate order. Dead
+    # columns carry zeros so p.X @ W_chunk never materializes a full-width
+    # copy of the live panel.
+    w_full = np.zeros((z.shape[1], n_live), dtype=np.float64)
+    w_full[live] = v_mat / sd[live, None]
+    mu_full = np.zeros(z.shape[1], dtype=np.float64)
+    mu_full[live] = mu
+
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    from src.features.transforms.scaling import rolling_robust_scale
+
+    out = np.zeros((len(p.y), z.shape[1]), dtype=np.float64)
+    for c0 in range(0, n_live, chunk_cols):
+        c1 = min(c0 + chunk_cols, n_live)
+        w_chunk = w_full[:, c0:c1]
+        g = z @ w_chunk - (mu_full @ w_chunk)
+        gs = (
+            pd.DataFrame(g, copy=False)
+            .rolling(trail, min_periods=trail)
+            .std()
+            .shift(1)
+            .to_numpy()
+        )
+        with np.errstate(divide="ignore", invalid="ignore"):
+            g = g / gs
+        g[~np.isfinite(g)] = 0.0
+
+        # Same activation-aware production scaler as _transmission_block's
+        # trailing modes: all-zero warm-up stays zero; scaling starts at the
+        # first row with a real trailing-SD value.
+        nz = np.flatnonzero(np.abs(g).sum(axis=1) > 0)
+        scaled = np.zeros_like(g)
+        if len(nz):
+            a0 = int(nz[0])
+            scaled[a0:] = rolling_robust_scale(np.ascontiguousarray(g[a0:]), window)
+        scaled[~np.isfinite(scaled)] = 0.0
+        out[:, c0:c1] = scaled
+
+    # Preserve the complete panel span: columns degenerate over the frozen
+    # frame cannot define an eigen-direction, so they pass through unrotated.
+    out[:, n_live:] = z[:, ~live]
+    return out
+
+
 def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     """Production-scaled full-rank rotation with time-scale penalty profile."""
     val = _cols(p.names, {"value"})
@@ -4374,6 +4463,18 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk2_rotAllTrailSd_tuned": ArmSpec(
+        describe="FULL-RANK rotation of the backbone+exog panel with causal "
+        "trailing-SD factor scores; raw backbone remains a separate block, "
+        "no K cutoff and no product block, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "trans"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # BACKBONE x EXOG INTERACTION subset. Same candidate base, same residual-IC
     # selection, same N_PROD=100 width, same causal floored scaling as the
     # generic product block; only the allowed PAIR TYPES change. One arm tests
@@ -5348,6 +5449,10 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         )
     if block == "rot_prod_full":  # production-scaled full-rank rotation
         return _rot_prod_design(p, window)
+    if block == "rot_all_trailsd":
+        # No K cutoff: full live spectrum of the backbone+exog panel,
+        # causal trailing-SD factor scores, dead columns passed through.
+        return _rot_all_trailsd_design(p, window)
     if block.startswith("plsval:"):
         # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
         return _rot_value_design(
