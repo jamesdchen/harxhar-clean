@@ -162,6 +162,10 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedWide",
         "blk4_trailGShapedTrailMean",
         "blk4_trailGShapedTrailSd",
+        "blk3_trailGShapedTrailSd",
+        "blk2_trailGShapedTrailSd",
+        "blk3_prodBbExog_tuned",
+        "blk4_prodBbExogTrailSd",
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
         # capture test at the full frame spectrum
@@ -344,6 +348,11 @@ _REGISTRY: list[tuple[str, str]] = [
     # Decomposition twins of the same rung: moving mean vs moving sd.
     ("blk4_trailGShapedTrailMean", "BlkFourTrailGShapedTrailMean"),
     ("blk4_trailGShapedTrailSd", "BlkFourTrailGShapedTrailSd"),
+    # Product x trailing-SD factorial and backbone/session-x-exog subset.
+    ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
+    ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
+    ("blk3_prodBbExog_tuned", "BlkThreeProdBbExogTuned"),
+    ("blk4_prodBbExogTrailSd", "BlkFourProdBbExogTrailSd"),
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
@@ -530,6 +539,16 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailGShapedTrailSd": "Four-block ridge (factor levels divided by "
     "their causal trailing SD, $K=40$, rank-shaped transmission penalty over "
     "the extended exponent grid, causally tuned)",
+    "blk3_trailGShapedTrailSd": "Three-block ridge (backbone + wide exogenous "
+    "block + causal trailing-SD factor levels, $K=40$, no product block, "
+    "causally tuned)",
+    "blk2_trailGShapedTrailSd": "Two-block ridge (backbone + causal "
+    "trailing-SD factor levels, $K=40$, causally tuned)",
+    "blk3_prodBbExog_tuned": "Three-block ridge with products restricted to "
+    "(HAR/session) $\\times$ exogenous-value interactions (causally tuned)",
+    "blk4_prodBbExogTrailSd": "Four-block ridge with (HAR/session) $\\times$ "
+    "exogenous-value products plus causal trailing-SD factor levels, $K=40$ "
+    "(causally tuned)",
     "blk4_trailGShaped_fine": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
@@ -896,6 +915,21 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk4_trailGShapedTrailMean", "blk4_trailGShapedFrozen"),
     ("blk4_trailGShapedTrailSd", "blk4_trailGShapedWide"),
     ("blk4_trailGShapedTrailSd", "blk4_trailGShapedFrozen"),
+    # PRODUCT x TRAILING-SD factorial. The no-product cell asks whether the SD
+    # block is additive on backbone+exog; the product-only and full cells give
+    # the conditional product/SD increments. blk2_gated_tuned is the matched
+    # rows backbone+exog baseline.
+    ("blk3_trailGShapedTrailSd", "blk2_gated_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_tuned"),
+    ("blk4_trailGShapedTrailSd", "blk3_trailGShapedTrailSd"),
+    ("blk2_trailGShapedTrailSd", "blk2_gated_tuned"),
+    # BACKBONE/session x EXOG interaction subset: its increment alone, against
+    # the full product block, and conditionally on the trailing-SD block.
+    ("blk3_prodBbExog_tuned", "blk2_gated_tuned"),
+    ("blk3_prodBbExog_tuned", "blk3_tuned"),
+    ("blk4_prodBbExogTrailSd", "blk3_prodBbExog_tuned"),
+    ("blk4_prodBbExogTrailSd", "blk3_trailGShapedTrailSd"),
+    ("blk4_prodBbExogTrailSd", "blk4_trailGShapedTrailSd"),
     # Endpoint relief: does letting the tuner off its grid boundary change the
     # verdict? Bare stem = vs the narrow original each one widens.
     ("blk_pcladderWide_tuned", "blk_pcladder_tuned"),
@@ -2265,6 +2299,10 @@ def main(argv: list[str] | None = None) -> int:
             "blk4_trailGShapedWide",
             "blk4_trailGShapedTrailMean",
             "blk4_trailGShapedTrailSd",
+            "blk3_trailGShapedTrailSd",
+            "blk2_trailGShapedTrailSd",
+            "blk3_prodBbExog_tuned",
+            "blk4_prodBbExogTrailSd",
             "blk4_trailGShaped_fine",
             "blk4_trailGShapedFrozen",
             "blk_pcladderWide_tuned",

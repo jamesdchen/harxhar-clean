@@ -1975,15 +1975,38 @@ def _causal_floored_scale(P: np.ndarray, window: int) -> np.ndarray:
     return out
 
 
-def _frozen_products(p: _Panel, window: int) -> np.ndarray:
+def _frozen_products(
+    p: _Panel,
+    window: int,
+    allowed_pair_kinds: frozenset[frozenset[str]] | None = None,
+) -> np.ndarray:
     """(n, N_PROD) frozen product columns: pairs of the product base ranked by
-    |IC| against the first-block OOS residual, selected ONCE, causally scaled."""
+    |IC| against the first-block OOS residual, selected ONCE, causally scaled.
+
+    ``allowed_pair_kinds`` optionally restricts the candidate pairs by their
+    taxonomy (symmetric frozensets such as {har, value}), still selecting the
+    top N_PROD from the SAME residual-IC rule. A restriction that cannot fill
+    the block fails loudly rather than silently changing its width."""
     bc = _product_base_cols(p.names)
     Z = np.ascontiguousarray(p.X[:, bc])
     e = _selection_residual(p, window)
     ii, jj = _upper(len(bc))
     Zw = Z[window : 2 * window]
     ic = np.abs(np.nan_to_num(_pair_ic(Zw - Zw.mean(0), e)[ii, jj]))
+    if allowed_pair_kinds is not None:
+        kinds = [_classify(p.names[j])[0] for j in bc]
+        allowed = np.asarray(
+            [
+                frozenset((kinds[i], kinds[j])) in allowed_pair_kinds
+                for i, j in zip(ii, jj)
+            ]
+        )
+        if int(allowed.sum()) < N_PROD:
+            raise SystemExit(
+                f"product pair restriction leaves {int(allowed.sum())} candidates "
+                f"< N_PROD={N_PROD} — refusing a silently narrower block"
+            )
+        ic = np.where(allowed, ic, -np.inf)
     frozen = np.argsort(-ic)[:N_PROD]
     P = Z[:, ii[frozen]] * Z[:, jj[frozen]]
     return _causal_floored_scale(P, window)
@@ -4323,6 +4346,65 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # PRODUCT x TRAILING-SD FACTORIAL (author directive 2026-08-09): hold the
+    # backbone + wide exog base fixed and cross (generic products present) with
+    # (trailing-SD factor block present). The no-product twin asks whether the
+    # SD benefit survives without nonlinear pair columns; the backbone-only
+    # diagnostic asks how much it carries by itself.
+    "blk3_trailGShapedTrailSd": ArmSpec(
+        describe="factorial: backbone + wide exog + K=40 trailing-SD factor "
+        "LEVELS, NO product block, same shaped wide grid and cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_trailGShapedTrailSd": ArmSpec(
+        describe="factorial diagnostic: backbone + K=40 trailing-SD factor "
+        "LEVELS only, no wide exog and no products, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # BACKBONE x EXOG INTERACTION subset. Same candidate base, same residual-IC
+    # selection, same N_PROD=100 width, same causal floored scaling as the
+    # generic product block; only the allowed PAIR TYPES change. One arm tests
+    # the interaction without the SD block, the other asks whether it closes
+    # the full product block's conditional contribution.
+    "blk3_prodBbExog_tuned": ArmSpec(
+        describe="interaction-only product control: backbone + wide exog + "
+        "top-100 products restricted to (HAR/session) x exogenous-value pairs, "
+        "ordinary joint per-block causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product_bb_exog", "product"),
+        ],
+        oos_mult=2,
+    ),
+    "blk4_prodBbExogTrailSd": ArmSpec(
+        describe="interaction-only product + K=40 trailing-SD factor LEVELS: "
+        "the factorial cell asking whether HAR/session x exog interactions "
+        "reproduce the full product block's contribution, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product_bb_exog", "product"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # GRID-RESOLUTION test on the BEST MODEL (author directive 2026-08-07):
     # identical to blk4_trailGShaped except EVERY block grid is refined to
     # half-decade spacing over the SAME range it already spans, so the arm
@@ -5296,6 +5378,23 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
     if block == "product":
         return _frozen_products(p, window)
+    if block == "product_bb_exog":
+        # BACKBONE x EXOG subset of the SAME frozen product candidates: one
+        # side must be a HAR rung or session calendar column, the other an
+        # exogenous VALUE column. Selection remains residual-IC top-100, so
+        # this isolates the pair-type composition rather than the selection
+        # objective or the block width. Product-base candidates never include
+        # indicator columns; "exog" here means the product-base value tensor.
+        return _frozen_products(
+            p,
+            window,
+            allowed_pair_kinds=frozenset(
+                (
+                    frozenset(("har", "value")),
+                    frozenset(("calendar", "value")),
+                )
+            ),
+        )
     if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
         return _transmission_block(p, window, parts="both")
     if block == "trans_doc":  # Ghat only — the documented construction verbatim
