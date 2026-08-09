@@ -62,7 +62,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}What Downstream Inherits}{10}{subsection.3.3}\protected@file@percent }
 \newlabel{sec:smearing_contract}{{3.3}{10}{What Downstream Inherits}{subsection.3.3}{}}
 \citation{Duan1983}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $0.637$, traditional Duan $0.918$.}}{11}{table.caption.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $0.612$, traditional Duan $0.933$.}}{11}{table.caption.9}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{tab:smear_sensitivity}{{1}{11}{The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table~\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $\unifSmearTauNone $, traditional Duan $\unifSmearTauDuan $}{table.caption.9}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Where the Information Lives, and What Extracts It}{11}{section.4}\protected@file@percent }
@@ -71,7 +71,7 @@
 \citation{DieboldMariano1995}
 \citation{HarveyLeybourneNewbold1997}
 \@writefile{toc}{\contentsline {paragraph}{Protocol.}{12}{section*.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Per-Bucket Gains}{12}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Per-Bucket Gains}{13}{subsection.4.1}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bucket attribution: literal per-bar OLS on each exogenous bucket, from the unification campaign. \textbf  {Panel:} frozen base-2 panel, diurnally adjusted, $n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent QLIKE $0.24050$ (per-bar OLS on HAR $+$ calendar). \textbf  {Estimator:} exact OLS ($\alpha = 0$), rolling window $24{,}000$ bars ($500$ trading days), refit every bar by exact rank-one updates. Columns participate in a window only when their feed went live before the window starts and printed within it; masked columns are disclosed per chunk. $\Delta $ is against the incumbent; the within-class increment coincides with $\Delta $ because the no-exogenous design is exactly the incumbent under literal OLS.}}{13}{table.caption.12}\protected@file@percent }
 \newlabel{tab:buckets}{{2}{13}{Bucket attribution: literal per-bar OLS on each exogenous bucket, from the unification campaign. \textbf {Panel:} frozen base-2 panel, diurnally adjusted, $n = 218{,}934$ thirty-minute bars, identical rows in every cell; incumbent QLIKE $0.24050$ (per-bar OLS on HAR $+$ calendar). \textbf {Estimator:} exact OLS ($\alpha = 0$), rolling window $24{,}000$ bars ($500$ trading days), refit every bar by exact rank-one updates. Columns participate in a window only when their feed went live before the window starts and printed within it; masked columns are disclosed per chunk. $\Delta $ is against the incumbent; the within-class increment coincides with $\Delta $ because the no-exogenous design is exactly the incumbent under literal OLS}{table.caption.12}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}The Same Buckets under a Competent Estimator}{14}{subsection.4.2}\protected@file@percent }
@@ -104,51 +104,55 @@
 \newlabel{sec:dense_weak_diagnosis}{{4.5.2}{19}{The Diagnosis: Dense, Not Sparse}{subsubsection.4.5.2}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.3}The Two-Block Ridge}{19}{subsubsection.4.5.3}\protected@file@percent }
 \newlabel{sec:dense_weak_twoblock}{{4.5.3}{19}{The Two-Block Ridge}{subsubsection.4.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Time-Weighting the Window}{20}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:dense_weak_ew}{{4.6}{20}{Time-Weighting the Window}{subsection.4.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Can a Factor Summary Replace the Panel?}{21}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:dense_weak_capture}{{4.7}{21}{Can a Factor Summary Replace the Panel?}{subsection.4.7}{}}
 \citation{Ke2017}
 \citation{Chen2016}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Nonlinearity and the Product Block}{20}{section.5}\protected@file@percent }
-\newlabel{sec:nonlinear_product}{{5}{20}{Nonlinearity and the Product Block}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Tree Edge}{20}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:tree_edge}{{5.1}{20}{The Tree Edge}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Protocol.}{20}{section*.22}\protected@file@percent }
 \citation{DieboldMariano1995,HarveyLeybourneNewbold1997}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Nonlinearity and the Product Block}{22}{section.5}\protected@file@percent }
+\newlabel{sec:nonlinear_product}{{5}{22}{Nonlinearity and the Product Block}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Tree Edge}{22}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:tree_edge}{{5.1}{22}{The Tree Edge}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Protocol.}{22}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Results.}{22}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The function-class premium at fixed information.}{22}{section*.24}\protected@file@percent }
 \citation{Lou2013}
-\@writefile{toc}{\contentsline {paragraph}{Results.}{21}{section*.23}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The function-class premium at fixed information.}{21}{section*.24}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Dispersion of the improvement.}{21}{section*.25}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{21}{section*.26}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}The Product Block}{22}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:product_block}{{5.2}{22}{The Product Block}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Construction.}{22}{section*.27}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Set size.}{23}{section*.28}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Reselection cadence.}{23}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Block penalty.}{23}{section*.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Coefficient refit cadence.}{24}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}The Three-Block Ridge}{24}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:three_block}{{5.3}{24}{The Three-Block Ridge}{subsection.5.3}{}}
-\newlabel{eq:three_block}{{12}{24}{The Three-Block Ridge}{equation.5.12}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Transmission: Factors and Cross-Factor Structure}{25}{section.6}\protected@file@percent }
-\newlabel{sec:transmission}{{6}{25}{Transmission: Factors and Cross-Factor Structure}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Twenty Natural Factors}{25}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}One-Bar Lead--Lag Features}{27}{subsection.6.2}\protected@file@percent }
-\newlabel{sec:trans-leadlag}{{6.2}{27}{One-Bar Lead--Lag Features}{subsection.6.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{The lead--lag field.}{27}{section*.32}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{From field to feature.}{28}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The width plateau.}{29}{section*.34}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}The Four-Block Ridge}{29}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Falsification of the Directional Reading}{32}{subsection.6.4}\protected@file@percent }
-\newlabel{sec:trans_falsification}{{6.4}{32}{Falsification of the Directional Reading}{subsection.6.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}The Best Pooled Model}{33}{subsection.6.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{33}{section.7}\protected@file@percent }
-\newlabel{sec:conclusion}{{7}{33}{Conclusion}{section.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{33}{appendix.A}\protected@file@percent }
-\newlabel{sec:appendix_master}{{A}{33}{Master Table of Campaign Arms}{appendix.A}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces All campaign arms under the frozen panel and scoring contract.}}{34}{table.caption.35}\protected@file@percent }
-\newlabel{tab:master}{{5}{34}{All campaign arms under the frozen panel and scoring contract}{table.caption.35}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Smear-Convention Sensitivity, All Arms}{35}{appendix.B}\protected@file@percent }
-\newlabel{sec:appendix_sensitivity}{{B}{35}{Smear-Convention Sensitivity, All Arms}{appendix.B}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{36}{table.caption.36}\protected@file@percent }
-\newlabel{tab:smear_sensitivity_full}{{6}{36}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.caption.36}{}}
+\@writefile{toc}{\contentsline {paragraph}{Dispersion of the improvement.}{23}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{23}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}The Product Block}{23}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:product_block}{{5.2}{23}{The Product Block}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Construction.}{24}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Set size.}{24}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reselection cadence.}{25}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Block penalty.}{25}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Coefficient refit cadence.}{25}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}The Three-Block Ridge}{25}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:three_block}{{5.3}{25}{The Three-Block Ridge}{subsection.5.3}{}}
+\newlabel{eq:three_block}{{12}{25}{The Three-Block Ridge}{equation.5.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Transmission: Factors and Cross-Factor Structure}{26}{section.6}\protected@file@percent }
+\newlabel{sec:transmission}{{6}{26}{Transmission: Factors and Cross-Factor Structure}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Twenty Natural Factors}{27}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}One-Bar Lead--Lag Features}{28}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:trans-leadlag}{{6.2}{28}{One-Bar Lead--Lag Features}{subsection.6.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{The lead--lag field.}{28}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{From field to feature.}{29}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The width plateau.}{30}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}The Four-Block Ridge}{31}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Falsification of the Directional Reading}{33}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:trans_falsification}{{6.4}{33}{Falsification of the Directional Reading}{subsection.6.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}The Best Pooled Model}{34}{subsection.6.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{35}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{7}{35}{Conclusion}{section.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{35}{appendix.A}\protected@file@percent }
+\newlabel{sec:appendix_master}{{A}{35}{Master Table of Campaign Arms}{appendix.A}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces All campaign arms under the frozen panel and scoring contract.}}{36}{table.caption.35}\protected@file@percent }
+\newlabel{tab:master}{{5}{36}{All campaign arms under the frozen panel and scoring contract}{table.caption.35}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Smear-Convention Sensitivity, All Arms}{37}{appendix.B}\protected@file@percent }
+\newlabel{sec:appendix_sensitivity}{{B}{37}{Smear-Convention Sensitivity, All Arms}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{38}{table.caption.36}\protected@file@percent }
+\newlabel{tab:smear_sensitivity_full}{{6}{38}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.caption.36}{}}
 \bibstyle{plainnat}
 \bibdata{references}
 \bibcite{Chen2016}{{1}{2016}{{Chen and Guestrin}}{{}}}
@@ -162,4 +166,4 @@
 \bibcite{Lou2013}{{9}{2013}{{Lou et~al.}}{{Lou, Caruana, Gehrke, and Hooker}}}
 \bibcite{Patton2011}{{10}{2011}{{Patton}}{{}}}
 \bibcite{Tibshirani1996}{{11}{1996}{{Tibshirani}}{{}}}
-\gdef \@abspage@last{37}
+\gdef \@abspage@last{39}

@@ -253,3 +253,93 @@ ridge. Section~\ref{sec:transmission} adds a block of factor lead--lag
 transmission features and estimates the final four-block model. In every
 extension, each block keeps all of its columns, each block carries its own
 fixed penalty, and nothing is selected.
+
+\subsection{Time-Weighting the Window}
+\label{sec:dense_weak_ew}
+
+Every estimator above weights the $24{,}000$ bars of its training window
+equally. A direct measurement of coefficient stability motivates asking
+whether it should: on non-overlapping windows across the panel, the
+backbone's coefficient vector is $94$--$97\%$ directionally invariant
+over twenty-two years, while the exogenous block's loses roughly $40\%$
+of its direction --- once, on a timescale of $62$--$250$ trading days
+--- and then holds a plateau for two decades. There is no ongoing decay
+to track, but the oldest bars in a two-year window do describe a
+slightly different exogenous coefficient than the newest.
+
+Exponentially down-weighting the window tests this. The gram and
+cross-moment are accumulated with weight $w^{\,t-s}$ on bar $s$,
+truncated to the same $24{,}000$ bars so that $w = 1$ reproduces the
+flat window exactly, with the half-life $H = \log 2 / \log(1/w)$ the
+only new quantity. Three variants were run. With $H$ \emph{fixed} at
+half the window ($12{,}000$ bars), the estimator improves on the flat
+window: QLIKE \unifBlkThreeEwFixedHTwelveKQLIKE{} against the
+three-block ridge's \unifBlkThreeTunedQLIKE{}, a paired increment of
+\unifIncrBlkThreeEwFixedHTwelveKDQ{} at DM
+\unifIncrBlkThreeEwFixedHTwelveKDM{}. With $H$ fixed at $3{,}000$ bars
+it is worse (\unifIncrBlkThreeEwFixedHThreeKDQ{} at
+\unifIncrBlkThreeEwFixedHThreeKDM{}), and --- the now-familiar pattern
+--- letting the causal tuner \emph{select} $H$ from a grid is worse
+still (\unifIncrBlkThreeEwTunedDQ{} at \unifIncrBlkThreeEwTunedDM{}):
+the selected half-life flickers across the entire grid from one retune
+to the next, and the flicker costs several times what the right fixed
+value earns. Mild fixed down-weighting of the oldest half-window helps;
+handing the forgetting rate to a $125$-bar validation tail destroys the
+gain. This is the same asymmetry the penalty comparison of
+Section~\ref{sec:dense_weak_headtohead} measures, appearing on a
+temporal dial.
+
+One negative result belongs beside this. The hypothesis that serial
+correlation of the residuals explains why validation-selected penalties
+so far exceed in-sample risk-optimal ones was tested and fails on
+measurement: the out-of-sample one-step residuals are nearly white
+(integrated autocorrelation time $1.88$, first-lag autocorrelation
+$0.03$), because per-bar refitting leaves consecutive forecasts sharing
+almost no estimation error. A correction built on that hypothesis is
+inert by construction, and the discrepancy between in-sample and
+validation-selected shrinkage remains attributed to the loss geometry
+--- the QLIKE criterion on levels against the squared-error criterion
+the estimator is risk-optimal for --- which this paper measures but
+does not resolve.
+
+\subsection{Can a Factor Summary Replace the Panel?}
+\label{sec:dense_weak_capture}
+
+The transmission results of Section~\ref{sec:transmission} show that
+$40$ principal directions of the base features, carried as their own
+block, \emph{add} forecast value. The converse question is whether such
+a summary can \emph{replace} the exogenous block outright. A ladder of
+two-block models --- the backbone plus $K$ rotated directions, $K$ from
+$5$ to the full live rank, under both eigenvalue ordering and a frozen
+predictive ordering, each causally tuned --- measures the distance from
+that goal against the matched two-block model on the full exogenous
+set (\unifBlkTwoGatedTunedQLIKE{} on the same rows).
+
+Three facts emerge. First, the loss curve is flat in $K$: under working
+shrinkage, truncating to five directions costs about the same as keeping
+all of them, so the discarded directions carry little that the penalty
+was not already suppressing. Second, the ordering is immaterial at
+matched $K$ (paired differences insignificant), so the earlier
+appearance that predictive ordering helped was an artifact of an
+under-shrunk estimator, for which truncation was standing in as the
+missing regularization. Third --- and dominating both --- every rung of
+the ladder, \emph{including full rank}, trails the raw exogenous block
+by roughly $2 \times 10^{-3}$
+(\unifIncrBlkTwoRotVarFullKTunedDQ{} at DM
+\unifIncrBlkTwoRotVarFullKTunedDM{}). At full rank under a uniform
+block penalty a rotation cannot change a ridge fit, so this gap cannot
+be a property of the rotation: it traces to the construction having
+re-standardized its inputs by frozen frame-window statistics where the
+production path uses the rolling scaler. The identity was verified
+directly --- rotating the production-scaled columns reproduces the raw
+block's fitted values to $4 \times 10^{-15}$ --- and the ladder is
+being re-estimated on that corrected base. \pending{capture ladder on
+the rolling-scaled base: truncation, rung, indicator, and supervised
+(PLS) increments, each priced against the full block}
+
+The standardization lesson deserves its own sentence, because it has
+now decided two constructions: rolling standardization of the inputs is
+worth on the order of $2 \times 10^{-3}$ against frozen standardization
+--- several times the size of most increments this paper reports ---
+and it, not the choice of basis, ordering, or width, is the largest
+single design decision in the factor machinery.
