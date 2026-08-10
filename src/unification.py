@@ -198,7 +198,13 @@ TRANS_HET_STEMS = ("sumret3_ewstock", "sumret3_vwstock")
 # supply. Documented from the transmission section's liveness count; asserted
 # against _frame_live_rank at build time (see the trans_trailGFull block), so a
 # drifted panel fails loudly instead of quietly redefining the arm.
-TRANS_FULL_SPECTRUM = 106
+TRANS_FULL_SPECTRUM = 115
+
+# RE-AUDITED 2026-08-09 on the production panel: live rank is 115 of 145 (the
+
+# panel drifted from the documented 106 as more base columns came live in the
+
+# frame window [24000, 48000)); experiments/_audit_liveness.py reproduces it.
 
 # Composition RULED 2026-08-06: _user arms carry [G (20 factor scores) | Ghat
 # (20 lead-lag)] = 40 cols (the paper's own design); _doc arms mirror the
@@ -411,6 +417,11 @@ BLOCK_TUNE_GRIDS: dict[str, tuple[Any, ...]] = {
     "exog": (1e2, 1e3, 1e4),
     "product": (1e3, 1e4, 1e5),
     "trans": (1e2, 1e3, 1e4),
+    "exog_timeaware": tuple(
+        (float(lam0), "timescale", float(g))
+        for lam0 in (1e2, 1e3, 1e4)
+        for g in (-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0)
+    ),
 }
 
 # Penalty-allocation ladder (author directive 2026-08-07): 1 penalty (uniform)
@@ -562,6 +573,21 @@ BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
     (float(lam0), float(g))
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS_BIPOLAR
+)
+
+# FULL-RANK rotated-panel grids (2026-08-09): the flat trans grid's 1e4 top
+# was endpoint-pinned and produced rare tail detonations at full spectrum.
+# rot_all_flat tests whether more TOTAL shrinkage alone fixes that. The shaped
+# grid is the no-hard-cutoff version: keep every direction but let the penalty
+# rise smoothly by eigen-rank. gamma=2 is the top exponent (K=1144, lambda0=1e4
+# gives max penalty ~1.3e10 — the same order already validated at K=40,
+# gamma=4), avoiding the 1e16 corner of the old gamma=4 grid at full rank.
+BLOCK_TUNE_GRIDS["rot_all_flat"] = tuple(float(a) for a in np.logspace(2, 6, 5))
+ROT_ALL_SHAPE_GAMMAS: tuple[float, ...] = (-1.0, -0.5, 0.0, 0.5, 1.0, 2.0)
+BLOCK_TUNE_GRIDS["rot_all_shaped"] = tuple(
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["trans"]
+    for g in ROT_ALL_SHAPE_GAMMAS
 )
 # PCR block grid (author directive 2026-08-07). DELIBERATELY WIDER than the
 # `trans` grid: that one is calibrated for a factor block competing against
@@ -1225,6 +1251,534 @@ def _rot_prod_design(p: _Panel, window: int) -> np.ndarray:
     return out
 
 
+def _rot_all_trailsd_design(
+    p: _Panel,
+    window: int,
+    chunk_cols: int = 64,
+    numerical_rank: bool = False,
+) -> np.ndarray:
+    """FULL-RANK production rotation of the backbone+exog panel, with causal
+    trailing-SD factor scores.
+
+    BASE = the full production panel (backbone + exog_all; asserted to be
+    every panel column, disjointly), already rolling-scaled by prep.
+    FRAME = correlation eigenvectors on rows ``[window, 2*window)``.
+    SCORES = the complete live eigen-spectrum, in descending eigenvalue
+    order, projected with frame-window correlation scaling.
+    STANDARDIZATION = divide each score by its trailing 504-day SD, shifted
+    one bar, then run the same activation-aware production rolling robust
+    scaler used by the K=40 trailing-SD block. DEAD columns pass through
+    unrotated after the live factors, preserving the full panel span.
+
+    With ``numerical_rank=True``, the spectrum is truncated only at the
+    canonical floating-point matrix-rank boundary,
+    ``lambda_i > n_live * eps * lambda_max``. This is not a scientific K
+    cutoff: it removes frame directions whose frozen-window variance is at
+    roundoff level (including negative eigh eigenvalues), whose trailing SDs
+    can be O(1e-10) and whose O(1) reactivations detonate after division.
+
+    The K=40 helper is not reused because a full 1144-column score matrix plus
+    pandas rolling intermediates needs column-chunked construction; 64-column
+    chunks keep transient score/SD/scaler buffers bounded while preserving the
+    same per-column operations.
+    """
+    bb = set(map(int, _backbone_cols(p.names)))
+    ex = set(map(int, _exog_all_cols(p.names)))
+    if bb & ex or bb | ex != set(range(p.X.shape[1])):
+        raise SystemExit(
+            "rot_all_trailsd: backbone + exog_all no longer partition the "
+            "panel; refusing to guess which columns belong in the full frame"
+        )
+
+    z = p.X
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            "rot_all_trailsd: fewer than 2 live columns in the frame window; "
+            "refusing to build a degenerate full-rank rotation"
+        )
+    mu = zw[:, live].mean(0)
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1]
+    lam = lam[order]
+    v_mat = vec[:, order]
+    if numerical_rank:
+        rank_tol = np.finfo(np.float64).eps * n_live * max(float(lam[0]), 0.0)
+        keep = lam > rank_tol
+        v_mat = v_mat[:, keep]
+        lam = lam[keep]
+    n_spec = int(v_mat.shape[1])
+    if n_spec < 1:
+        raise SystemExit(
+            "rot_all_trailsd: numerical-rank filter removed the complete "
+            "spectrum; refusing to emit an empty rotated block"
+        )
+
+    # Correlation-frame projection in ORIGINAL panel coordinate order. Dead
+    # columns carry zeros so p.X @ W_chunk never materializes a full-width
+    # copy of the live panel.
+    w_full = np.zeros((z.shape[1], n_spec), dtype=np.float64)
+    w_full[live] = v_mat / sd[live, None]
+    mu_full = np.zeros(z.shape[1], dtype=np.float64)
+    mu_full[live] = mu
+
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    from src.features.transforms.scaling import rolling_robust_scale
+
+    out = np.zeros((len(p.y), n_spec + int((~live).sum())), dtype=np.float64)
+    for c0 in range(0, n_spec, chunk_cols):
+        c1 = min(c0 + chunk_cols, n_spec)
+        w_chunk = w_full[:, c0:c1]
+        g = z @ w_chunk - (mu_full @ w_chunk)
+        gs = (
+            pd.DataFrame(g, copy=False)
+            .rolling(trail, min_periods=trail)
+            .std()
+            .shift(1)
+            .to_numpy()
+        )
+        with np.errstate(divide="ignore", invalid="ignore"):
+            g = g / gs
+        g[~np.isfinite(g)] = 0.0
+
+        # Same activation-aware production scaler as _transmission_block's
+        # trailing modes: all-zero warm-up stays zero; scaling starts at the
+        # first row with a real trailing-SD value.
+        nz = np.flatnonzero(np.abs(g).sum(axis=1) > 0)
+        scaled = np.zeros_like(g)
+        if len(nz):
+            a0 = int(nz[0])
+            scaled[a0:] = rolling_robust_scale(np.ascontiguousarray(g[a0:]), window)
+        scaled[~np.isfinite(scaled)] = 0.0
+        out[:, c0:c1] = scaled
+
+    # Preserve the complete panel span: columns degenerate over the frozen
+    # frame cannot define an eigen-direction, so they pass through unrotated.
+    out[:, n_spec:] = z[:, ~live]
+    return out
+
+
+def _fullrank_scaled_rotation_design(
+    p: _Panel,
+    window: int,
+    input_kind: str,
+    scaling: str,
+    chunk_cols: int = 64,
+) -> np.ndarray:
+    """Full numerical-rank rotation of one input set under one scaling rule.
+
+    This is the full-rank INPUT x SCALING factorial. Every cell uses the same
+    frozen frame window, liveness rule, correlation eigensolver, descending
+    eigenvalue order, and canonical float64 numerical-rank boundary
+    ``lambda_i > n_live * eps * lambda_max``. What varies is ONLY:
+
+      * input_kind: "exog" (all exogenous value+indicator columns), "prod"
+        (the transmission/product base), or "all" (the complete panel);
+      * scaling: "raw" (ZV), "frozen" ((Z-mu0)V/sd0), or "trailsd"
+        (frozen scores divided by their shifted trailing 504-day SD, then the
+        production rolling robust scaler).
+
+    Dead columns pass through unrotated in every cell. The raw cell is the
+    no-scaling control; the frozen cell isolates frame-score standardization;
+    the trailing cell adds the time-varying SD metric.
+    """
+    if input_kind == "exog":
+        cols = _exog_all_cols(p.names)
+    elif input_kind == "prod":
+        cols = _product_base_cols(p.names)
+    elif input_kind == "all":
+        cols = np.arange(p.X.shape[1], dtype=np.int64)
+    else:
+        raise KeyError(f"unknown full-rank input_kind '{input_kind}'")
+    if scaling not in {"raw", "frozen", "trailsd"}:
+        raise KeyError(f"unknown full-rank scaling '{scaling}'")
+
+    if (
+        len(cols) == p.X.shape[1]
+        and np.array_equal(cols, np.arange(p.X.shape[1], dtype=np.int64))
+        and p.X.flags.c_contiguous
+    ):
+        z = p.X
+    else:
+        z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            f"full-rank factorial {input_kind}/{scaling}: fewer than 2 live "
+            "columns in the frame window"
+        )
+    mu = zw[:, live].mean(0)
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1]
+    lam = lam[order]
+    v_mat = vec[:, order]
+    rank_tol = np.finfo(np.float64).eps * n_live * max(float(lam[0]), 0.0)
+    keep = lam > rank_tol
+    v_mat = v_mat[:, keep]
+    n_spec = int(v_mat.shape[1])
+    if n_spec < 1:
+        raise SystemExit(
+            f"full-rank factorial {input_kind}/{scaling}: numerical-rank "
+            "filter removed the complete spectrum"
+        )
+
+    out = np.zeros((len(p.y), n_spec + int((~live).sum())), dtype=np.float64)
+    if scaling == "raw":
+        out[:, :n_spec] = z[:, live] @ v_mat
+    else:
+        w_mat = v_mat / sd[live, None]
+        if scaling == "frozen":
+            z_live = np.ascontiguousarray(z[:, live], dtype=np.float64)
+            for c0 in range(0, n_spec, chunk_cols):
+                c1 = min(c0 + chunk_cols, n_spec)
+                w_chunk = w_mat[:, c0:c1]
+                out[:, c0:c1] = z_live @ w_chunk
+                out[:, c0:c1] -= mu @ w_chunk
+        else:
+            trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+            from src.features.transforms.scaling import rolling_robust_scale
+
+            for c0 in range(0, n_spec, chunk_cols):
+                c1 = min(c0 + chunk_cols, n_spec)
+                w_chunk = w_mat[:, c0:c1]
+                g = z[:, live] @ w_chunk - mu @ w_chunk
+                gs = (
+                    pd.DataFrame(g, copy=False)
+                    .rolling(trail, min_periods=trail)
+                    .std()
+                    .shift(1)
+                    .to_numpy()
+                )
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    g = g / gs
+                g[~np.isfinite(g)] = 0.0
+                nz = np.flatnonzero(np.abs(g).sum(axis=1) > 0)
+                scaled = np.zeros_like(g)
+                if len(nz):
+                    a0 = int(nz[0])
+                    scaled[a0:] = rolling_robust_scale(
+                        np.ascontiguousarray(g[a0:]), window
+                    )
+                scaled[~np.isfinite(scaled)] = 0.0
+                out[:, c0:c1] = scaled
+    out[:, n_spec:] = z[:, ~live]
+    return out
+
+
+def _exog_frozen_factor_design(
+    p: _Panel,
+    window: int,
+    k: int = 40,
+    chunk_cols: int = 8,
+) -> np.ndarray:
+    """TOP-K FROZEN EXOGENOUS FACTOR MAP for the spiked-prior P model.
+
+    This is the constructive form G = Z A of the pure exogenous model
+    delta = nu + A gamma. The map A is estimated ONLY from the exog_all
+    block's frozen frame window [window, 2*window): correlation eigenvectors
+    on live columns, scaled by frame SDs. No product-base columns, trailing
+    SD, rolling robust score scaler, numerical-rank truncation, or separate
+    score standardization enters. Those later transformations would break the
+    fixed-P interpretation.
+
+    With exog penalty lambda_Z and shaped factor penalty D_G, marginalizing
+    (nu, gamma) gives the exact two-block generalized-ridge penalty
+    P = (lambda_Z^{-1} I + A D_G^{-1} A^T)^{-1} on the exogenous coefficient.
+    """
+    cols = _exog_all_cols(p.names)
+    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < k:
+        raise SystemExit(
+            f"exog frozen factor map: only {n_live} live columns for K={k}"
+        )
+    mu = zw[:, live].mean(0)
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1][:k]
+    a_map = vec[:, order] / sd[live, None]
+    out = np.empty((len(p.y), k), dtype=np.float64)
+    z_live = np.ascontiguousarray(z[:, live], dtype=np.float64)
+    for c0 in range(0, k, chunk_cols):
+        c1 = min(c0 + chunk_cols, k)
+        w_chunk = a_map[:, c0:c1]
+        out[:, c0:c1] = z_live @ w_chunk
+        out[:, c0:c1] -= mu @ w_chunk
+    out[~np.isfinite(out)] = 0.0
+    return out
+
+
+def _frame_factor_design(
+    p: _Panel,
+    window: int,
+    frame: str,
+    k: int = 40,
+    scaling: str = "frozen",
+    chunk_cols: int = 8,
+    part: str | None = None,
+) -> np.ndarray:
+    # Top-K factor map from a chosen frozen frame, for frame factorials.
+    session_names = {"is_open", "is_close", "is_overnight", "hour"}
+    permute_blocks = frame == "prod_blockperm"
+    frame_key = "prod" if permute_blocks else frame
+    if frame_key == "exog":
+        cols = _exog_all_cols(p.names)
+    elif frame_key == "prod":
+        cols = _product_base_cols(p.names)
+    elif frame_key == "prod_nohar":
+        cols = np.asarray(
+            [
+                j
+                for j in _product_base_cols(p.names)
+                if _classify(p.names[j])[0] != "har"
+            ],
+            dtype=np.int64,
+        )
+    elif frame_key == "prod_nosession":
+        cols = np.asarray(
+            [j for j in _product_base_cols(p.names) if p.names[j] not in session_names],
+            dtype=np.int64,
+        )
+    elif frame_key == "prod_values":
+        cols = np.asarray(
+            [
+                j
+                for j in _product_base_cols(p.names)
+                if _classify(p.names[j])[0] == "value"
+            ],
+            dtype=np.int64,
+        )
+    elif frame_key == "all":
+        cols = np.arange(p.X.shape[1], dtype=np.int64)
+    else:
+        raise KeyError(f"unknown factor frame '{frame}'")
+    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < k:
+        raise SystemExit(f"{frame} factor frame: only {n_live} live columns for K={k}")
+    mu = zw[:, live].mean(0)
+    zw_fit = zw
+    if permute_blocks:
+        zw_fit = zw.copy()
+        kinds = np.asarray([_classify(p.names[j])[0] for j in cols], dtype=object)
+        groups = [
+            np.flatnonzero(kinds == "har"),
+            np.flatnonzero(kinds == "value"),
+            np.asarray(
+                [i for i, j in enumerate(cols) if p.names[j] in session_names],
+                dtype=np.int64,
+            ),
+        ]
+        rng = np.random.default_rng(20260810)
+        for idx in groups:
+            if len(idx) > 1:
+                perm = rng.permutation(len(zw_fit))
+                zw_fit[:, idx] = zw_fit[perm][:, idx]
+    corr = np.corrcoef(((zw_fit[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1][:k]
+    a_map = vec[:, order] / sd[live, None]
+    live_cols = np.flatnonzero(live)
+    if part is not None:
+        bb = set(map(int, _backbone_cols(p.names)))
+        ex = set(map(int, _exog_all_cols(p.names)))
+        if part == "backbone":
+            wanted = bb
+        elif part == "exog":
+            wanted = ex
+        else:
+            raise KeyError(f"unknown factor-map part '{part}'")
+        part_mask = np.asarray([int(cols[j]) in wanted for j in live_cols], dtype=bool)
+        live_cols = live_cols[part_mask]
+        a_use = a_map[part_mask]
+        mu_use = mu[part_mask]
+    else:
+        a_use = a_map
+        mu_use = mu
+    out = np.empty((len(p.y), k), dtype=np.float64)
+    z_live = np.ascontiguousarray(z[:, live_cols], dtype=np.float64)
+    for c0 in range(0, k, chunk_cols):
+        c1 = min(c0 + chunk_cols, k)
+        w_chunk = a_use[:, c0:c1]
+        out[:, c0:c1] = z_live @ w_chunk
+        out[:, c0:c1] -= mu_use @ w_chunk
+    if scaling == "frozen":
+        out[~np.isfinite(out)] = 0.0
+        return out
+    if scaling != "trail_sd":
+        raise KeyError(f"unknown factor scaling '{scaling}'")
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    gs = (
+        pd.DataFrame(out, copy=False)
+        .rolling(trail, min_periods=trail)
+        .std()
+        .shift(1)
+        .to_numpy()
+    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out = out / gs
+    out[~np.isfinite(out)] = 0.0
+    nz = np.flatnonzero(np.abs(out).sum(axis=1) > 0)
+    scaled = np.zeros_like(out)
+    if len(nz):
+        from src.features.transforms.scaling import rolling_robust_scale
+
+        a0 = int(nz[0])
+        scaled[a0:] = rolling_robust_scale(np.ascontiguousarray(out[a0:]), window)
+    scaled[~np.isfinite(scaled)] = 0.0
+    return scaled
+
+
+def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
+    """Production-scaled full-rank rotation with time-scale penalty profile."""
+    val = _cols(p.names, {"value"})
+    ind = _cols(p.names, {"indicator"})
+    z = np.ascontiguousarray(p.X[:, val], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit("timeaware rotation: fewer than 2 live value columns")
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(
+        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    )
+    order = np.argsort(lam)[::-1]
+    v_mat = vec[:, order]
+
+    cols_by_win = _value_slab_cols(p.names)
+    panel_to_live = {int(idx): i for i, idx in enumerate(val[live])}
+    log2w = np.empty(n_live, dtype=np.float64)
+    pos = 0
+    for w in sorted(cols_by_win):
+        for c in cols_by_win[w]:
+            if c in panel_to_live:
+                log2w[panel_to_live[c]] = np.log2(w)
+                pos += 1
+    if pos != n_live:
+        raise SystemExit(f"timeaware: window count mismatch {pos} != {n_live}")
+
+    profile = np.sum(v_mat**2 * log2w[np.newaxis, :], axis=1)
+    profile = profile - profile.mean()
+    block_profile = np.zeros(z.shape[1] + ind.size, dtype=np.float64)
+    block_profile[:n_live] = profile
+    key = f"{arm}_{window}"
+    _TIMEAWARE_PROFILES[key] = block_profile
+
+    out = np.empty((len(p.y), z.shape[1] + ind.size), dtype=np.float64)
+    out[:, :n_live] = z[:, live] @ v_mat
+    out[:, n_live : z.shape[1]] = z[:, ~live]
+    out[:, z.shape[1] :] = p.X[:, ind]
+    return out
+
+
+def _wobble_eps_from_arm(arm: str) -> float:
+    """Fixed wobble radius encoded in the arm name: ...Eps1em2 -> 1e-2.
+
+    Kept OUT of the causal tuner on purpose: epsilon is a design perturbation,
+    not a penalty; tuning it on the same 125-bar tail would confound the test.
+    """
+    m = re.search(r"Eps(\d+)em(\d+)", arm)
+    if not m:
+        return 0.0
+    return float(int(m.group(1)) * (10.0 ** (-int(m.group(2)))))
+
+
+def _causal_wobble_q(n_live: int, arm: str, window: int, eps: float) -> np.ndarray:
+    """Deterministic orthogonal perturbation Q = exp(eps * A), A^T = -A.
+
+    Causal by construction: the seed depends only on (arm, window, n_live),
+    never on current-chunk outcomes. A is normalized to unit spectral norm so
+    eps is interpretable as the maximum rotation angle in radians.
+    """
+    if eps == 0.0:
+        return np.eye(n_live, dtype=np.float64)
+    import hashlib
+    from scipy.linalg import expm
+
+    seed = int.from_bytes(
+        hashlib.sha256(f"{arm}|{window}|{n_live}".encode()).digest()[:8], "little"
+    )
+    rng = np.random.default_rng(seed)
+    a = rng.standard_normal((n_live, n_live))
+    a = 0.5 * (a - a.T)
+    norm = float(np.linalg.norm(a, 2))
+    if norm > 0:
+        a /= norm
+    q = np.asarray(expm(eps * a), dtype=np.float64)
+    # Numerical hygiene: expm of an antisymmetric matrix is orthogonal to roundoff.
+    return q
+
+
+def _rot_prod_wobble_design(
+    p: _Panel, window: int, arm: str, timeaware: bool
+) -> np.ndarray:
+    """Full-rank production rotation plus a causal orthogonal wobble.
+
+    Full-rank information is preserved exactly; only the orientation relative
+    to the penalty ellipsoid changes. With timeaware=True the timescale profile
+    is computed AFTER the effective rotation VQ so penalty direction i and
+    output column i remain the same object.
+    """
+    val = _cols(p.names, {"value"})
+    ind = _cols(p.names, {"indicator"})
+    z = np.ascontiguousarray(p.X[:, val], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit("wobble rotation: fewer than 2 live value columns")
+    mu = zw[:, live].mean(0)
+    lam, vec = np.linalg.eigh(
+        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    )
+    v_mat = vec[:, np.argsort(lam)[::-1]]
+    q = _causal_wobble_q(n_live, arm, window, _wobble_eps_from_arm(arm))
+    v_eff = np.ascontiguousarray(v_mat @ q, dtype=np.float64)
+
+    if timeaware:
+        cols_by_win = _value_slab_cols(p.names)
+        panel_to_live = {int(idx): i for i, idx in enumerate(val[live])}
+        log2w = np.empty(n_live, dtype=np.float64)
+        pos = 0
+        for w in sorted(cols_by_win):
+            for c in cols_by_win[w]:
+                if c in panel_to_live:
+                    log2w[panel_to_live[c]] = np.log2(w)
+                    pos += 1
+        if pos != n_live:
+            raise SystemExit(
+                f"timeaware wobble: window count mismatch {pos} != {n_live}"
+            )
+        profile = np.sum(v_eff**2 * log2w[np.newaxis, :], axis=1)
+        profile = profile - profile.mean()
+        block_profile = np.zeros(z.shape[1] + ind.size, dtype=np.float64)
+        block_profile[:n_live] = profile
+        _TIMEAWARE_PROFILES[f"{arm}_{window}"] = block_profile
+
+    out = np.empty((len(p.y), z.shape[1] + ind.size), dtype=np.float64)
+    out[:, :n_live] = z[:, live] @ v_eff
+    out[:, n_live : z.shape[1]] = z[:, ~live]
+    out[:, z.shape[1] :] = p.X[:, ind]
+    return out
+
+
 def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, int]:
     """(V, live mask over the 43 base quantities, live rank) from the FRAME
     WINDOW only — rows [window, 2*window), the same window and the same
@@ -1253,6 +1807,9 @@ def _rot_value_frame(p: _Panel, window: int) -> tuple[np.ndarray, np.ndarray, in
 # Weight-matrix provenance of the last PLS build (hash + shape), persisted so
 # the frozen supervised frame is auditable chunk to chunk.
 _LAST_PLS_DIAG: dict[str, Any] = {}
+
+# TIME-AWARE POST-PCA PENALTY PROFILES (author directive 2026-08-09)
+_TIMEAWARE_PROFILES: dict[str, np.ndarray] = {}
 
 
 def _pls_frame(p: _Panel, window: int, k: int) -> tuple[np.ndarray, np.ndarray, int]:
@@ -1490,6 +2047,19 @@ def _fill_pen_span(pen: np.ndarray, s0: int, s1: int, value: Any) -> None:
             k_cut = int(par)
             if k_cut < k_span:
                 pen[s0 + k_cut : s1] = lam0 * STEP_MULTIPLIER
+        elif family == "timescale":
+            key = next(
+                (
+                    k
+                    for k in _TIMEAWARE_PROFILES
+                    if _TIMEAWARE_PROFILES[k].shape[0] == s1 - s0
+                ),
+                None,
+            )
+            if key is None:
+                raise KeyError(f"timescale penalty: no profile for span [{s0},{s1})")
+            prof = _TIMEAWARE_PROFILES[key]
+            pen[s0:s1] = lam0 * np.exp(par * prof)
         else:
             raise KeyError(f"unknown penalty shape family '{family}'")
     else:
@@ -1819,15 +2389,38 @@ def _causal_floored_scale(P: np.ndarray, window: int) -> np.ndarray:
     return out
 
 
-def _frozen_products(p: _Panel, window: int) -> np.ndarray:
+def _frozen_products(
+    p: _Panel,
+    window: int,
+    allowed_pair_kinds: frozenset[frozenset[str]] | None = None,
+) -> np.ndarray:
     """(n, N_PROD) frozen product columns: pairs of the product base ranked by
-    |IC| against the first-block OOS residual, selected ONCE, causally scaled."""
+    |IC| against the first-block OOS residual, selected ONCE, causally scaled.
+
+    ``allowed_pair_kinds`` optionally restricts the candidate pairs by their
+    taxonomy (symmetric frozensets such as {har, value}), still selecting the
+    top N_PROD from the SAME residual-IC rule. A restriction that cannot fill
+    the block fails loudly rather than silently changing its width."""
     bc = _product_base_cols(p.names)
     Z = np.ascontiguousarray(p.X[:, bc])
     e = _selection_residual(p, window)
     ii, jj = _upper(len(bc))
     Zw = Z[window : 2 * window]
     ic = np.abs(np.nan_to_num(_pair_ic(Zw - Zw.mean(0), e)[ii, jj]))
+    if allowed_pair_kinds is not None:
+        kinds = [_classify(p.names[j])[0] for j in bc]
+        allowed = np.asarray(
+            [
+                frozenset((kinds[i], kinds[j])) in allowed_pair_kinds
+                for i, j in zip(ii, jj)
+            ]
+        )
+        if int(allowed.sum()) < N_PROD:
+            raise SystemExit(
+                f"product pair restriction leaves {int(allowed.sum())} candidates "
+                f"< N_PROD={N_PROD} — refusing a silently narrower block"
+            )
+        ic = np.where(allowed, ic, -np.inf)
     frozen = np.argsort(-ic)[:N_PROD]
     P = Z[:, ii[frozen]] * Z[:, jj[frozen]]
     return _causal_floored_scale(P, window)
@@ -1913,9 +2506,11 @@ def _transmission_block(
     "scores" = G only, "flow" = Ghat only (the _doc documented construction).
 
     ``standardization``: "frozen" (frame-window stats + floored-sd Ghat scale
-    — the original campaign construction) or "trailing" (the revival: causal
-    trailing standardization + the standard rolling robust scaler; see the
-    2026-08-06 ruling notes at the TRANS constants).
+    — the original campaign construction), "trailing" (the revival: causal
+    trailing demeaning AND division by the trailing sd + the standard rolling
+    robust scaler; see the 2026-08-06 ruling notes at the TRANS constants),
+    or the decomposition modes "trail_mean" (causal trailing demeaning only)
+    and "trail_sd" (division by the causal trailing sd only).
 
     TRANSMISSION DIG knobs (author directive 2026-08-07; every new arm keeps
     the trailing standardization and the fixed user penalties):
@@ -2000,11 +2595,18 @@ def _transmission_block(
         eig_rec.append(eig0)
         w_mat = v0 / sd0[:, None]
         G = (Z - mu0) @ w_mat
-        if standardization == "trailing":
+        if standardization in ("trailing", "trail_mean", "trail_sd"):
             gm = pd.DataFrame(G).rolling(trail, min_periods=trail).mean().shift(1)
             gs = pd.DataFrame(G).rolling(trail, min_periods=trail).std().shift(1)
+            gm = gm.to_numpy()
+            gs = gs.to_numpy()
             with np.errstate(divide="ignore", invalid="ignore"):
-                G = (G - gm.to_numpy()) / gs.to_numpy()
+                if standardization == "trailing":
+                    G = (G - gm) / gs
+                elif standardization == "trail_mean":
+                    G = G - gm
+                else:  # trail_sd
+                    G = G / gs
             G[~np.isfinite(G)] = 0.0  # warm-up rows (< trail bars of history)
         else:
             g_mu, g_sd = G[f0:f1].mean(0), G[f0:f1].std(0) + _SD_EPS
@@ -2054,7 +2656,7 @@ def _transmission_block(
         "eigvals": np.stack(eig_rec) if eig_rec else np.zeros((0, k_pool)),
         "refresh_rows": np.asarray(rows_rec, dtype=np.int64),
     }
-    if standardization == "trailing":
+    if standardization in ("trailing", "trail_mean", "trail_sd"):
         from src.features.transforms.scaling import rolling_robust_scale
 
         def _scale_from_activation(M: np.ndarray) -> np.ndarray:
@@ -2241,6 +2843,136 @@ def _walk_blocks_tuned(
         intercept = solver._sy / n - float(solver._sx @ coef) / n
         out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out, traj
+
+
+def _walk_blocks_tuned_rank2(
+    F: np.ndarray,
+    segments: list[tuple[int, int, str]],
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    selection: str = "cartesian",
+    sweep_order: tuple[str, ...] = (),
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    """One-pass tuned block ridge by rank-two rolling inverse updates.
+
+    This is the streamed form of ``_walk_blocks_tuned`` for a FIXED arm. It
+    carries the same sufficient statistics, the same causal TUNE_PER penalty
+    selection, and the same centered/intercept-unpenalized ridge problem, but
+    replaces the fresh O(p^3) solve at every bar with:
+
+      A = X'X + diag(penalty)
+      A^-1 <- downdate/update by x_old x_old' and x_new x_new'
+
+    The intercept's centering is one additional Sherman-Morrison correction:
+      G = A - sx sx'/W
+      G^-1 = A^-1 + (A^-1 sx)(A^-1 sx)' / (W - sx'A^-1 sx).
+
+    Penalty changes are NOT updated by Sherman-Morrison: a new diagonal penalty
+    is a high-rank change, so the inverse is rebuilt once per retune boundary
+    (amortized over TUNE_PER bars). The tuner remains the production path, so
+    selected-alpha trajectories are unchanged by construction. This function is
+    used only by explicit ``--solver rank2`` runs after NPZ validation against
+    the exact walker; the default production walker remains untouched.
+    """
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    p_ = Xs.shape[1]
+    keys = [k for _, _, k in segments]
+    grids = [BLOCK_TUNE_GRIDS[k] for k in keys]
+
+    def pen_vec(alphas: dict[str, Any]) -> np.ndarray:
+        pen = np.empty(p_)
+        for s0, s1, k in segments:
+            _fill_pen_span(pen, s0, s1, alphas[k])
+        return pen
+
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    solver.init_window(Xs[:window], ys[:window])
+    out = np.empty(hi - lo, dtype=np.float64)
+    traj: list[dict[str, Any]] = []
+    pen: np.ndarray | None = None
+    a_inv: np.ndarray | None = None
+    n = float(window)
+    diag = np.diag_indices(p_)
+
+    for i in range(hi - lo):
+        t = window + i
+        if i % TUNE_PER == 0:
+            Xw, yw = Xs[i:t], ys[i:t]
+            fl, fh, vl, vh = forward_window_split(window, window, VAL_TAIL, EMBARGO)
+            Xf, yf = Xw[fl:fh], yw[fl:fh]
+            Xv, yv = Xw[vl:vh], yw[vl:vh]
+            muf, myf = Xf.mean(0), float(yf.mean())
+            Xfc = Xf - muf
+            Gf = Xfc.T @ Xfc
+            cf = Xfc.T @ (yf - myf)
+            Xvc = Xv - muf
+
+            def _tail_mse(alphas: dict[str, float]) -> tuple[float, np.ndarray]:
+                pv = pen_vec(alphas)
+                G = Gf.copy()
+                G[diag] += pv
+                b = np.linalg.solve(G, cf)
+                return float(np.mean((Xvc @ b + myf - yv) ** 2)), pv
+
+            n_evals = 0
+            if selection == "cyclic":
+                sel = {
+                    k: _pen_value(BLOCK_TUNE_GRIDS[k][len(BLOCK_TUNE_GRIDS[k]) // 2])
+                    for k in keys
+                }
+                cur, pen = _tail_mse(sel)
+                n_evals += 1
+                for _ in range(CYCLIC_PASSES):
+                    for k in sweep_order or keys:
+                        for a in BLOCK_TUNE_GRIDS[k]:
+                            if _pen_value(a) == sel[k]:
+                                continue
+                            trial = dict(sel)
+                            trial[k] = _pen_value(a)
+                            mse, pv = _tail_mse(trial)
+                            n_evals += 1
+                            if mse < cur:
+                                cur, sel, pen = mse, trial, pv
+            else:
+                best: tuple[float, dict[str, float], np.ndarray] | None = None
+                for combo in itertools.product(*grids):
+                    alphas = dict(zip(keys, (_pen_value(a) for a in combo)))
+                    mse, pv = _tail_mse(alphas)
+                    n_evals += 1
+                    if best is None or mse < best[0]:
+                        best = (mse, alphas, pv)
+                _, sel, pen = best
+            traj.append(
+                {"row": int(lo + i), "alphas": sel, "n_tail_evals": int(n_evals)}
+            )
+            assert pen is not None
+            A = solver._Sxx.copy()
+            A[diag] += pen
+            a_inv = np.linalg.inv(A)
+
+        assert a_inv is not None
+        sx = solver._sx
+        rhs = solver._Sxy - sx * (solver._sy / n)
+        a_sx = a_inv @ sx
+        a_rhs = a_inv @ rhs
+        coef = a_rhs + a_sx * (float(a_sx @ rhs) / (n - float(sx @ a_sx)))
+        intercept = solver._sy / n - float(sx @ coef) / n
+        out[i] = float(Xs[t] @ coef + intercept)
+
+        x_in = Xs[t]
+        x_out = Xs[t - window]
+        # A <- A + x_in x_in' - x_out x_out', penalty fixed until next retune.
+        q = a_inv @ x_in
+        a_inv -= np.outer(q, q) / (1.0 + float(x_in @ q))
+        q = a_inv @ x_out
+        a_inv += np.outer(q, q) / (1.0 - float(x_out @ q))
+        if (i + 1) % 50 == 0:
+            a_inv = (a_inv + a_inv.T) * 0.5
+        solver.roll(x_in, ys[t], x_out, ys[t - window])
     return out, traj
 
 
@@ -4123,6 +4855,338 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    # TRAILING-STANDARDIZATION DECOMPOSITION (author directive 2026-08-09):
+    # the parent's causal z-score has two moving parts — the trailing mean and
+    # the trailing sd. These twins keep the frame, truncation, production
+    # scaler, block grids, and tuner byte-identical to blk4_trailGShapedWide,
+    # changing only which half of the z-score is active. Read against the
+    # parent and the frozen twin: mean-vs-parent isolates the moving divisor;
+    # sd-vs-parent isolates the moving location.
+    "blk4_trailGShapedTrailMean": ArmSpec(
+        describe="trailing-standardization decomposition: K=40 factor LEVELS, "
+        "causal trailing DEMEANING ONLY (no trailing-sd division), same "
+        "rank-shaped wide transmission grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40_trailmean", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk4_trailGShapedTrailSd": ArmSpec(
+        describe="trailing-standardization decomposition: K=40 factor LEVELS, "
+        "division by the causal trailing SD ONLY (no trailing demeaning), "
+        "same rank-shaped wide transmission grid, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # PRODUCT x TRAILING-SD FACTORIAL (author directive 2026-08-09): hold the
+    # backbone + wide exog base fixed and cross (generic products present) with
+    # (trailing-SD factor block present). The no-product twin asks whether the
+    # SD benefit survives without nonlinear pair columns; the backbone-only
+    # diagnostic asks how much it carries by itself.
+    "blk3_trailGShapedTrailSd": ArmSpec(
+        describe="factorial: backbone + wide exog + K=40 trailing-SD factor "
+        "LEVELS, NO product block, same shaped wide grid and cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_trailGShapedTrailSd": ArmSpec(
+        describe="factorial diagnostic: backbone + K=40 trailing-SD factor "
+        "LEVELS only, no wide exog and no products, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSd_tuned": ArmSpec(
+        describe="FULL-RANK rotation of the backbone+exog panel with causal "
+        "trailing-SD factor scores; raw backbone remains a separate block, "
+        "no K cutoff and no product block, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "trans"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSdNumRank_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation with no scientific K cutoff: "
+        "keep the complete numerically representable spectrum "
+        "(lambda_i > n*eps*lambda_max), remove only roundoff-null directions, "
+        "raw backbone separate, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd_numrank", "trans"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_exogSpikeFrozen_tuned": ArmSpec(
+        describe="PURE EXOGENOUS SPIKED-PRIOR P MODEL: backbone plus broad "
+        "exog block plus the deterministic top-40 frozen exog map G=ZA; "
+        "equivalent to one generalized-ridge exog coefficient with prior "
+        "covariance lambda_Z^{-1}I + A D_G^{-1}A^T, no product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("exog_frozenG40", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_exogSpikeTrailSd_tuned": ArmSpec(
+        describe="frame factorial: backbone plus broad exog block plus top-40 "
+        "EXOGENOUS-frame trailing-SD factor scores; no product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("exogG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodSpikeFrozen_tuned": ArmSpec(
+        describe="frame factorial: backbone plus broad exog block plus top-40 "
+        "PRODUCT-BASE-frame FROZEN factor scores; fixed spiked prior P, no "
+        "product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodNoCrossSpikeFrozen_tuned": ArmSpec(
+        describe="CROSS-BLOCK P TEST: product-base frozen frame split into independent backbone and exog factor blocks, deleting cross-covariance; no product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodG40_frozen_bbpart", "trans_shaped_wide"),
+            ("prodG40_frozen_exogpart", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodNoHarSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: product-base frozen spike with HAR columns removed; no product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodNoHarG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodNoSessionSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: product-base frozen spike with session columns removed; no product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodNoSessionG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodValuesSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: VALUE-only product-base frozen spike; no product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodValuesG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodBlockPermSpikeFrozen_tuned": ArmSpec(
+        describe="frame falsification: block-permuted product-base frozen spike; no product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodBlockPermG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk4_prodSpikeFrozen_tuned": ArmSpec(
+        describe="PRODUCT INCREMENT TEST: joint product-base frozen linear spike plus nonlinear product block",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product", "product"),
+            ("prodG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogRaw_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, RAW orthogonal "
+        "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, frozen mean/SD factor "
+        "scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogTrailSd_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, causal trailing-SD "
+        "factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_trailsd", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogTrailSdShaped_tuned": ArmSpec(
+        describe="POWER-LAW TRANSFER TEST: full-rank exog_all frame, causal "
+        "trailing-SD factor scores, numerical-rank rule, and the champion's "
+        "wide rank-shaped transmission penalty; raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_trailsd", "trans_shaped_wide")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogFrozenShaped_tuned": ArmSpec(
+        describe="full-rank refinement: exog_all frame, frozen mean/SD factor "
+        "scores, numerical-rank rule, and the same wide rank-shaped transmission "
+        "penalty; raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_frozen", "trans_shaped_wide")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdRaw_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, RAW "
+        "orthogonal rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, frozen "
+        "mean/SD factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdTrailSd_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, causal "
+        "trailing-SD factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_trailsd", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frAllRaw_tuned": ArmSpec(
+        describe="full-rank factorial: complete-panel frame, RAW orthogonal "
+        "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_all_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frAllFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: complete-panel frame, frozen mean/SD "
+        "factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_all_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSdWide_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation endpoint-relief control: "
+        "same no-cutoff backbone+exog rotated block, FLAT penalty grid "
+        "widened to 1e6, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "rot_all_flat"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSdShaped_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation with a smooth rank-shaped "
+        "penalty (no hard K cutoff; lambda_i=lambda0*i^gamma, gamma<=2), "
+        "cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "rot_all_shaped"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    # BACKBONE x EXOG INTERACTION subset. Same candidate base, same residual-IC
+    # selection, same N_PROD=100 width, same causal floored scaling as the
+    # generic product block; only the allowed PAIR TYPES change. One arm tests
+    # the interaction without the SD block, the other asks whether it closes
+    # the full product block's conditional contribution.
+    "blk3_prodBbExog_tuned": ArmSpec(
+        describe="interaction-only product control: backbone + wide exog + "
+        "top-100 products restricted to (HAR/session) x exogenous-value pairs, "
+        "ordinary joint per-block causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product_bb_exog", "product"),
+        ],
+        oos_mult=2,
+    ),
+    "blk4_prodBbExogTrailSd": ArmSpec(
+        describe="interaction-only product + K=40 trailing-SD factor LEVELS: "
+        "the factorial cell asking whether HAR/session x exog interactions "
+        "reproduce the full product block's contribution, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("product_bb_exog", "product"),
+            ("trans_trailG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # GRID-RESOLUTION test on the BEST MODEL (author directive 2026-08-07):
     # identical to blk4_trailGShaped except EVERY block grid is refined to
     # half-decade spacing over the SAME range it already spans, so the arm
@@ -4492,6 +5556,13 @@ ARMS: dict[str, ArmSpec] = {
     # the production path reproduces it (expected |dQLIKE| at float noise,
     # ~1e-12, against the +2.18e-3 it is explaining — three orders of magnitude
     # of headroom, so the test cannot be passed by accident).
+    "blk2_rotFullProd_timeaware_tuned": ArmSpec(
+        describe="time-aware post-PCA penalization: production-scaled full-rank "
+        "rotation with per-PC penalty scaling by effective MA-window horizon",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_timeaware", "exog_timeaware")],
+        oos_mult=2,
+    ),
     "blk2_rotFullProd_tuned": ArmSpec(
         describe="corrected rotation base: HAR backbone + full-rank rotation "
         "of the PRODUCTION rolling-scaled exogenous VALUE columns, indicators "
@@ -4499,6 +5570,51 @@ ARMS: dict[str, ArmSpec] = {
         "standardization from the rotation itself",
         kind="blocks_tuned",
         blocks=[("backbone", "backbone"), ("rot_prod_full", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps1em3_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-3); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps1em2_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-2); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps3em2_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=3e-2); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleEps1em1_tuned": ArmSpec(
+        describe="full-rank production rotation + fixed causal orthogonal wobble "
+        "(eps=1e-1); full-rank span preserved, uniform exog penalty",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_timeaware_wobbleEps1em2_tuned": ArmSpec(
+        describe="time-aware post-PCA penalties with the eigenframe wobbled "
+        "(eps=1e-2) BEFORE the horizon profile is computed",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_prod_timeaware_wobble", "exog_timeaware"),
+        ],
+        oos_mult=2,
+    ),
+    "blk2_rotFullProd_wobbleBagEps1em2_tuned": ArmSpec(
+        describe="bagged causal ellipsoid wobble (8 seeded members, eps=1e-2) "
+        "under the uniform exog block penalty",
+        kind="blocks_tuned_bag",
+        blocks=[("backbone", "backbone"), ("rot_prod_wobble", "exog")],
         oos_mult=2,
     ),
     # CUMULATIVE REPAIR LADDER (author directive 2026-08-08). The goal is no
@@ -4537,15 +5653,24 @@ ARMS: dict[str, ArmSpec] = {
     #                these base quantities can carry. That number is the
     #                deliverable, not a failure.
     #
-    # Column counts on the real panel (backbone 52): 40 directions x 12 rungs =
-    # 480; plus 576 indicators = 1108.
+    # Column counts on the real panel (backbone 52): K=33 live directions
+    # (audited 2026-08-09; 10 of 43 base quantities pre-go-live dead in the
+    # frame window) x 12 rungs = 396; plus 576 indicators = 972.
+    # K RE-AUDIT NOTE (2026-08-09): the rotval arms requested K=40 but the
+    # value frame's live rank is 33 of 43 — ten base quantities (3 stocktwits,
+    # vix/vix3m/vvix, 4 voldemand) are pre-go-live DEAD (sd=0) in the frozen
+    # frame window [24000, 48000), reproduced by experiments/_audit_liveness.py.
+    # K=33 is the FULL live spectrum of this frame; the go-live signal is
+    # carried by the 576 availability indicators (the Ind twin's own block),
+    # so no information is lost. Registry keys keep the "Forty" label because
+    # the increments pairs are already registered under it.
     "blk2_gFortyRungs_tuned": ArmSpec(
-        describe="capture ladder, rungs repaired: backbone + K=40 "
-        "variance-ordered frozen-frame directions expanded through ALL TWELVE "
-        "ladder rungs (480 columns), inputs standardized, scores NEVER "
-        "standardized; no indicators",
+        describe="capture ladder, rungs repaired: backbone + K=33 (full live "
+        "spectrum of the value frame, audited 2026-08-09) variance-ordered "
+        "frozen-frame directions expanded through ALL TWELVE ladder rungs "
+        "(396 columns), inputs standardized, scores NEVER standardized; no indicators",
         kind="blocks_tuned",
-        blocks=[("backbone", "backbone"), ("rotval:variance:40", "trans_sub")],
+        blocks=[("backbone", "backbone"), ("rotval:variance:33", "trans_sub")],
         oos_mult=2,
     ),
     "blk2_gFortyRungsInd_tuned": ArmSpec(
@@ -4554,7 +5679,7 @@ ARMS: dict[str, ArmSpec] = {
         kind="blocks_tuned",
         blocks=[
             ("backbone", "backbone"),
-            ("rotval:variance:40", "trans_sub"),
+            ("rotval:variance:33", "trans_sub"),
             ("avail_ind", "exog"),
         ],
         oos_mult=2,
@@ -4972,7 +6097,7 @@ ARMS: dict[str, ArmSpec] = {
 _ALIASES = {alias: name for name, spec in ARMS.items() for alias in spec.aliases}
 
 
-def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
+def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarray:
     if block == "wide":
         return p.X  # the full all_features basis (backbone + every exog MA)
     if block == "backbone":
@@ -4981,6 +6106,18 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return p.X[:, _exog_all_cols(p.names)]
     if block == "exog_rot":  # frozen-eigenframe rotation (generalized Tikhonov)
         return _exog_tilt_design(p, window)
+    if (
+        block == "rot_prod_timeaware"
+    ):  # time-aware post-PCA (author directive 2026-08-09)
+        return _rot_prod_timeaware_design(p, window, arm)
+    if (
+        block == "rot_prod_wobble"
+    ):  # deterministic causal ellipsoid wobble, uniform exog penalty
+        return _rot_prod_wobble_design(p, window, arm, timeaware=False)
+    if (
+        block == "rot_prod_timeaware_wobble"
+    ):  # wobble aligned to the timescale penalty profile
+        return _rot_prod_wobble_design(p, window, arm, timeaware=True)
     if block == "pc_ladder":  # {ma_j(G_i)} — ladder applied to the PC series
         return _pc_ladder_design(p, window)
     # K-sweep of the same construction (2026-08-07): K=20 discards most of the
@@ -5002,6 +6139,18 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         )
     if block == "rot_prod_full":  # production-scaled full-rank rotation
         return _rot_prod_design(p, window)
+    if block == "rot_all_trailsd":
+        # No K cutoff: full live spectrum of the backbone+exog panel,
+        # causal trailing-SD factor scores, dead columns passed through.
+        return _rot_all_trailsd_design(p, window)
+    if block == "rot_all_trailsd_numrank":
+        # Same no-scientific-K construction, truncated only at float64's
+        # canonical numerical-rank boundary (roundoff-null directions removed).
+        return _rot_all_trailsd_design(p, window, numerical_rank=True)
+    if block.startswith("fr_"):
+        # Full-rank INPUT x SCALING factorial cells: fr_{exog,prod,all}_*
+        _, input_kind, scaling = block.split("_", 2)
+        return _fullrank_scaled_rotation_design(p, window, input_kind, scaling)
     if block.startswith("plsval:"):
         # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
         return _rot_value_design(
@@ -5032,6 +6181,43 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
         return p.X[:, _bucket_cols(p.names, block.split(":", 1)[1])]
     if block == "product":
         return _frozen_products(p, window)
+    if block == "product_bb_exog":
+        # BACKBONE x EXOG subset of the SAME frozen product candidates: one
+        # side must be a HAR rung or session calendar column, the other an
+        # exogenous VALUE column. Selection remains residual-IC top-100, so
+        # this isolates the pair-type composition rather than the selection
+        # objective or the block width. Product-base candidates never include
+        # indicator columns; "exog" here means the product-base value tensor.
+        return _frozen_products(
+            p,
+            window,
+            allowed_pair_kinds=frozenset(
+                (
+                    frozenset(("har", "value")),
+                    frozenset(("calendar", "value")),
+                )
+            ),
+        )
+    if block == "exog_frozenG40":
+        # Constructive [Z | ZA] form of the pure exogenous spiked-covariance
+        # prior; see _exog_frozen_factor_design for the exact P identity.
+        return _exog_frozen_factor_design(p, window, k=40)
+    if block == "exogG40_trailsd":
+        return _frame_factor_design(p, window, "exog", k=40, scaling="trail_sd")
+    if block == "prodG40_frozen":
+        return _frame_factor_design(p, window, "prod", k=40, scaling="frozen")
+    if block == "prodG40_frozen_bbpart":
+        return _frame_factor_design(p, window, "prod", k=40, part="backbone")
+    if block == "prodG40_frozen_exogpart":
+        return _frame_factor_design(p, window, "prod", k=40, part="exog")
+    if block == "prodNoHarG40_frozen":
+        return _frame_factor_design(p, window, "prod_nohar", k=40)
+    if block == "prodNoSessionG40_frozen":
+        return _frame_factor_design(p, window, "prod_nosession", k=40)
+    if block == "prodValuesG40_frozen":
+        return _frame_factor_design(p, window, "prod_values", k=40)
+    if block == "prodBlockPermG40_frozen":
+        return _frame_factor_design(p, window, "prod_blockperm", k=40)
     if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
         return _transmission_block(p, window, parts="both")
     if block == "trans_doc":  # Ghat only — the documented construction verbatim
@@ -5045,6 +6231,18 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     if block == "trans_trailG40":  # levels only, WIDE frame (rank-shaped arm)
         return _transmission_block(
             p, window, parts="scores", standardization="trailing", qpool=40
+        )
+    if block == "trans_trailG40_trailmean":
+        # Trailing-standardization decomposition: causal trailing DEMEANING
+        # only, then the same production rolling robust scaler as the parent.
+        return _transmission_block(
+            p, window, parts="scores", standardization="trail_mean", qpool=40
+        )
+    if block == "trans_trailG40_trailsd":
+        # Trailing-standardization decomposition: division by the causal
+        # trailing SD only, then the same production rolling robust scaler.
+        return _transmission_block(
+            p, window, parts="scores", standardization="trail_sd", qpool=40
         )
     if block == "trans_trailGFull":
         # FULL LIVE SPECTRUM of the frozen frame, read from the frame's own
@@ -5113,7 +6311,9 @@ def _build_block(p: _Panel, block: str, window: int) -> np.ndarray:
     raise KeyError(f"unknown block '{block}'")
 
 
-def _build_design(p: _Panel, spec: ArmSpec, window: int) -> tuple[np.ndarray, float]:
+def _build_design(
+    p: _Panel, spec: ArmSpec, window: int, arm: str = ""
+) -> tuple[np.ndarray, float]:
     """(design, solver_alpha). Per-block penalties imposed by column scaling:
     scaling block j by sqrt(a_ref / a_j) under global ridge a_ref is EXACTLY the
     per-block penalty (minimal_model.py:297-299); intercept stays unpenalized."""
@@ -5129,7 +6329,9 @@ def _build_design(p: _Panel, spec: ArmSpec, window: int) -> tuple[np.ndarray, fl
     )
     parts = []
     for b, akey in spec.blocks:
-        blk = np.ascontiguousarray(_build_block(p, b, window), dtype=np.float64)
+        blk = np.ascontiguousarray(
+            _build_block(p, b, window, arm=arm), dtype=np.float64
+        )
         a_j = spec.alphas[akey]
         if a_j != a_ref:
             blk = blk * np.sqrt(a_ref / a_j)
@@ -5156,7 +6358,7 @@ def panel_length() -> int:
 
 
 def _tuned_blocks_design(
-    p: _Panel, spec: ArmSpec, window: int
+    p: _Panel, spec: ArmSpec, window: int, arm: str = ""
 ) -> tuple[np.ndarray, list[tuple[int, int, str]]]:
     """UNSCALED block design + column segments for the causally-tuned block
     arms: (F, [(col_start, col_end, alpha_key), ...]). Penalties are applied at
@@ -5165,7 +6367,9 @@ def _tuned_blocks_design(
     segments: list[tuple[int, int, str]] = []
     start = 0
     for b, akey in spec.blocks:
-        blk = np.ascontiguousarray(_build_block(p, b, window), dtype=np.float64)
+        blk = np.ascontiguousarray(
+            _build_block(p, b, window, arm=arm), dtype=np.float64
+        )
         segments.append((start, start + blk.shape[1], akey))
         start += blk.shape[1]
         parts.append(blk)
@@ -5286,7 +6490,7 @@ def compute(args: argparse.Namespace) -> None:
             F, p.y, window, lo, hi, kept_names, support_masks=support
         )
     elif spec.kind == "blocks":
-        F, a_ref = _build_design(p, spec, window)
+        F, a_ref = _build_design(p, spec, window, arm=arm)
         yhat = _walk_ridge(F, p.y, window, lo, hi, alpha=a_ref)
     elif spec.kind == "blocks_tuned":
         arm_keys = [k for _, k in spec.blocks]
@@ -5304,7 +6508,7 @@ def compute(args: argparse.Namespace) -> None:
             # per-bucket rung: verify the family taxonomy partitions the
             # exogenous columns BEFORE building anything (loud on failure)
             assert_bucket_partition(p.names)
-        F, segments = _tuned_blocks_design(p, spec, window)
+        F, segments = _tuned_blocks_design(p, spec, window, arm=arm)
         # Sweep order (fixed, deterministic): bucket families in canonical
         # order first (when present, per the per-bucket directive), then the
         # remaining block keys in their declared order.
@@ -5324,6 +6528,34 @@ def compute(args: argparse.Namespace) -> None:
             selection="cyclic" if spec.grid == "cyclic" else "cartesian",
             sweep_order=sweep,
         )
+    elif spec.kind == "blocks_tuned_bag":
+        # ROTATION BAGGING: average per-bar predictions over 8 seeded causal
+        # orthogonal perturbations. Designs are built one member at a time and
+        # released immediately — eight full panels would not fit in memory.
+        arm_keys = [k for _, k in spec.blocks]
+        tuned_grids = {k: list(BLOCK_TUNE_GRIDS[k]) for k in arm_keys}
+        yhat = None
+        tuned_alphas = []
+        for m in range(8):
+            F, segments = _tuned_blocks_design(p, spec, window, arm=f"{arm}__bag{m}")
+            y_m, ta_m = _walk_blocks_tuned(
+                F,
+                segments,
+                p.y,
+                window,
+                lo,
+                hi,
+                selection="cartesian",
+                sweep_order=(),
+            )
+            for d in ta_m:
+                d["bag_member"] = m
+            tuned_alphas.extend(ta_m)
+            yhat = y_m if yhat is None else yhat + y_m
+            if m < 7:
+                del F
+        assert yhat is not None
+        yhat = yhat / 8.0
     elif spec.kind == "blocks_ew":
         # DISCOUNTED GRAM: same block grids as the flat tuned arms, plus the
         # half-life axis. "ew_grid" searches EW_HALF_LIVES; "ew_fixed:<H>"
@@ -5337,13 +6569,13 @@ def compute(args: argparse.Namespace) -> None:
         else:
             raise SystemExit(f"arm '{arm}': unknown EW grid tag '{spec.grid}'")
         tuned_grids["half_life"] = [float(h) for h in hls]
-        F, segments = _tuned_blocks_design(p, spec, window)
+        F, segments = _tuned_blocks_design(p, spec, window, arm=arm)
         yhat, tuned_alphas = _walk_blocks_ew(F, segments, p.y, window, lo, hi, hls)
     elif spec.kind == "shrink":
         # GRID-FREE: no BLOCK_TUNE_GRIDS lookup, no tuner, no validation tail.
         # The block keys are carried only to mark which columns are the
         # backbone (left unshrunk); no penalty is ever read from them.
-        F, segments = _tuned_blocks_design(p, spec, window)
+        F, segments = _tuned_blocks_design(p, spec, window, arm=arm)
         yhat, shrink_profile = _walk_shrink(
             F, p.y, window, lo, hi, segments, estimator=spec.grid
         )

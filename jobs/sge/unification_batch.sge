@@ -1,0 +1,22 @@
+#!/bin/bash
+#$ -N unif_batch
+#$ -cwd
+#$ -l h_data=16G,h_rt=6:00:00
+#$ -t 1-5
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+if [ -z "${CHUNKS:-}" ]; then
+  case "$SGE_TASK_ID" in
+    1) CHUNKS='9-27' ;;
+    2) CHUNKS='28-46' ;;
+    3) CHUNKS='47-65' ;;
+    4) CHUNKS='66-84' ;;
+    5) CHUNKS='85-99' ;;
+    *) echo "bad SGE_TASK_ID=$SGE_TASK_ID" >&2; exit 2 ;;
+  esac
+fi
+$PY experiments/run_unification_batch.py --arm "$ARM" --chunks "$CHUNKS"     --output-dir "${OUTPUT_DIR:-results/unification}" --solver "${SOLVER:-exact}"

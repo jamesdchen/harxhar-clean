@@ -1,0 +1,10 @@
+#!/bin/bash
+#$ -N frame_align
+#$ -cwd
+#$ -l h_data=20G,h_rt=4:00:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 NUMBA_NUM_THREADS=1
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python experiments/analyze_frame_alignment.py

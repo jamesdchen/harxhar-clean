@@ -160,11 +160,47 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk_bucketpen_tuned",
         "blk4_trailGShaped",
         "blk4_trailGShapedWide",
+        "blk4_trailGShapedTrailMean",
+        "blk4_trailGShapedTrailSd",
+        "blk3_trailGShapedTrailSd",
+        "blk3_exogSpikeFrozen_tuned",
+        "blk3_exogSpikeTrailSd_tuned",
+        "blk3_prodSpikeFrozen_tuned",
+        "blk3_prodNoCrossSpikeFrozen_tuned",
+        "blk3_prodNoHarSpikeFrozen_tuned",
+        "blk3_prodNoSessionSpikeFrozen_tuned",
+        "blk3_prodValuesSpikeFrozen_tuned",
+        "blk3_prodBlockPermSpikeFrozen_tuned",
+        "blk4_prodSpikeFrozen_tuned",
+        "blk2_trailGShapedTrailSd",
+        "blk2_rotAllTrailSd_tuned",
+        "blk2_rotAllTrailSdNumRank_tuned",
+        "blk2_frExogRaw_tuned",
+        "blk2_frExogFrozen_tuned",
+        "blk2_frExogTrailSd_tuned",
+        "blk2_frExogTrailSdShaped_tuned",
+        "blk2_frExogFrozenShaped_tuned",
+        "blk2_frProdRaw_tuned",
+        "blk2_frProdFrozen_tuned",
+        "blk2_frProdTrailSd_tuned",
+        "blk2_frAllRaw_tuned",
+        "blk2_frAllFrozen_tuned",
+        "blk2_rotAllTrailSdWide_tuned",
+        "blk2_rotAllTrailSdShaped_tuned",
+        "blk3_prodBbExog_tuned",
+        "blk4_prodBbExogTrailSd",
         "blk4_trailGShaped_fine",
         "blk4_trailG40_tuned",
         # capture test at the full frame spectrum
         "blk2_gfull_tuned",
         "blk2_rotFullProd_tuned",
+        "blk2_rotFullProd_timeaware_tuned",
+        "blk2_rotFullProd_wobbleEps1em3_tuned",
+        "blk2_rotFullProd_wobbleEps1em2_tuned",
+        "blk2_rotFullProd_wobbleEps3em2_tuned",
+        "blk2_rotFullProd_wobbleEps1em1_tuned",
+        "blk2_rotFullProd_timeaware_wobbleEps1em2_tuned",
+        "blk2_rotFullProd_wobbleBagEps1em2_tuned",
         "blk2_gFortyRungs_tuned",
         "blk2_gFortyRungsInd_tuned",
         "blk2_plsTwentyRungsInd_tuned",
@@ -332,6 +368,37 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailGShaped", "BlkFourTrailGShaped"),
     # Endpoint relief for the same rung: exponent grid extended to gamma=4.
     ("blk4_trailGShapedWide", "BlkFourTrailGShapedWide"),
+    # Decomposition twins of the same rung: moving mean vs moving sd.
+    ("blk4_trailGShapedTrailMean", "BlkFourTrailGShapedTrailMean"),
+    ("blk4_trailGShapedTrailSd", "BlkFourTrailGShapedTrailSd"),
+    # Product x trailing-SD factorial and backbone/session-x-exog subset.
+    ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
+    ("blk3_exogSpikeFrozen_tuned", "BlkThreeExogSpikeFrozenTuned"),
+    ("blk3_exogSpikeTrailSd_tuned", "BlkThreeExogSpikeTrailSdTuned"),
+    ("blk3_prodSpikeFrozen_tuned", "BlkThreeProdSpikeFrozenTuned"),
+    ("blk3_prodNoCrossSpikeFrozen_tuned", "Blk3ProdNoCrossSpikeFrozenTuned"),
+    ("blk3_prodNoHarSpikeFrozen_tuned", "Blk3ProdNoHarSpikeFrozenTuned"),
+    ("blk3_prodNoSessionSpikeFrozen_tuned", "Blk3ProdNoSessionSpikeFrozenTuned"),
+    ("blk3_prodValuesSpikeFrozen_tuned", "Blk3ProdValuesSpikeFrozenTuned"),
+    ("blk3_prodBlockPermSpikeFrozen_tuned", "Blk3ProdBlockPermSpikeFrozenTuned"),
+    ("blk4_prodSpikeFrozen_tuned", "Blk4ProdSpikeFrozenTuned"),
+    ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
+    ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "BlkTwoRotAllTrailSdNumRankTuned"),
+    ("blk2_frExogRaw_tuned", "BlkTwoFrExogRawTuned"),
+    ("blk2_frExogFrozen_tuned", "BlkTwoFrExogFrozenTuned"),
+    ("blk2_frExogTrailSd_tuned", "BlkTwoFrExogTrailSdTuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "BlkTwoFrExogTrailSdShapedTuned"),
+    ("blk2_frExogFrozenShaped_tuned", "BlkTwoFrExogFrozenShapedTuned"),
+    ("blk2_frProdRaw_tuned", "BlkTwoFrProdRawTuned"),
+    ("blk2_frProdFrozen_tuned", "BlkTwoFrProdFrozenTuned"),
+    ("blk2_frProdTrailSd_tuned", "BlkTwoFrProdTrailSdTuned"),
+    ("blk2_frAllRaw_tuned", "BlkTwoFrAllRawTuned"),
+    ("blk2_frAllFrozen_tuned", "BlkTwoFrAllFrozenTuned"),
+    ("blk2_rotAllTrailSdWide_tuned", "BlkTwoRotAllTrailSdWideTuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "BlkTwoRotAllTrailSdShapedTuned"),
+    ("blk3_prodBbExog_tuned", "BlkThreeProdBbExogTuned"),
+    ("blk4_prodBbExogTrailSd", "BlkFourProdBbExogTrailSd"),
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
     ("blk4_trailGShaped_fine", "BlkFourTrailGShapedFine"),
     ("b1_ridge_tuned_fine", "BOneRidgeTunedFine"),
@@ -512,6 +579,69 @@ _ARM_TEX: dict[str, str] = {
     "blk4_trailGShapedWide": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty over an extended exponent grid, causally "
     "tuned)",
+    "blk4_trailGShapedTrailMean": "Four-block ridge (causal trailing-demeaned "
+    "factor levels, $K=40$, rank-shaped transmission penalty over the extended "
+    "exponent grid, causally tuned)",
+    "blk4_trailGShapedTrailSd": "Four-block ridge (factor levels divided by "
+    "their causal trailing SD, $K=40$, rank-shaped transmission penalty over "
+    "the extended exponent grid, causally tuned)",
+    "blk3_trailGShapedTrailSd": "Three-block ridge (backbone + wide exogenous "
+    "block + causal trailing-SD factor levels, $K=40$, no product block, "
+    "causally tuned)",
+    "blk2_trailGShapedTrailSd": "Two-block ridge (backbone + causal "
+    "trailing-SD factor levels, $K=40$, causally tuned)",
+    "blk2_rotAllTrailSd_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block and causal trailing-SD factor scores "
+    "(causally tuned)",
+    "blk2_rotAllTrailSdNumRank_tuned": "Two-block ridge with a full "
+    "numerical-rank rotated backbone+exogenous block and causal trailing-SD "
+    "factor scores (roundoff-null directions removed; causally tuned)",
+    "blk3_exogSpikeFrozen_tuned": "Pure exogenous spiked-prior model: "
+    "backbone plus broad exogenous block with a rank-40 frozen-factor "
+    "covariance spike (causally tuned)",
+    "blk3_exogSpikeTrailSd_tuned": "Frame factorial: exogenous frame, "
+    "top-40 trailing-SD scores, no product block (causally tuned)",
+    "blk3_prodSpikeFrozen_tuned": "Frame factorial: product-base frame, "
+    "top-40 frozen scores, fixed spiked prior, no product block "
+    "(causally tuned)",
+    "blk3_prodNoCrossSpikeFrozen_tuned": "Mechanism test: product-base frame, top-40 frozen scores, cross-block covariance deleted (split backbone/exog spike), no product block (causally tuned)",
+    "blk3_prodNoHarSpikeFrozen_tuned": "Mechanism test: product-base frame without HAR columns, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodNoSessionSpikeFrozen_tuned": "Mechanism test: product-base frame without session columns, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodValuesSpikeFrozen_tuned": "Mechanism test: product-base values-only frame, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodBlockPermSpikeFrozen_tuned": "Mechanism test: product-base frame with within-family row permutation (cross-family correlation destroyed), top-40 frozen scores, no product block (causally tuned)",
+    "blk4_prodSpikeFrozen_tuned": "Mechanism test: product-base frame, top-40 frozen spiked prior plus nonlinear product block (causally tuned)",
+    "blk2_frExogRaw_tuned": "Full-rank factorial: exogenous frame, raw "
+    "orthogonal rotation (causally tuned)",
+    "blk2_frExogFrozen_tuned": "Full-rank factorial: exogenous frame, frozen "
+    "mean/SD factor scores (causally tuned)",
+    "blk2_frExogTrailSd_tuned": "Full-rank factorial: exogenous frame, causal "
+    "trailing-SD factor scores (causally tuned)",
+    "blk2_frExogTrailSdShaped_tuned": "Power-law transfer test: exogenous "
+    "frame, causal trailing-SD full-rank scores, rank-shaped penalty "
+    "(causally tuned)",
+    "blk2_frExogFrozenShaped_tuned": "Full-rank refinement: exogenous frame, "
+    "frozen scores, rank-shaped penalty (causally tuned)",
+    "blk2_frProdRaw_tuned": "Full-rank factorial: product-base frame, raw "
+    "orthogonal rotation (causally tuned)",
+    "blk2_frProdFrozen_tuned": "Full-rank factorial: product-base frame, "
+    "frozen mean/SD factor scores (causally tuned)",
+    "blk2_frProdTrailSd_tuned": "Full-rank factorial: product-base frame, "
+    "causal trailing-SD factor scores (causally tuned)",
+    "blk2_frAllRaw_tuned": "Full-rank factorial: complete-panel frame, raw "
+    "orthogonal rotation (causally tuned)",
+    "blk2_frAllFrozen_tuned": "Full-rank factorial: complete-panel frame, "
+    "frozen mean/SD factor scores (causally tuned)",
+    "blk2_rotAllTrailSdWide_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block, trailing-SD factor scores, and a widened flat "
+    "penalty grid (causally tuned)",
+    "blk2_rotAllTrailSdShaped_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block, trailing-SD factor scores, and a smooth "
+    "rank-shaped penalty (causally tuned)",
+    "blk3_prodBbExog_tuned": "Three-block ridge with products restricted to "
+    "(HAR/session) $\\times$ exogenous-value interactions (causally tuned)",
+    "blk4_prodBbExogTrailSd": "Four-block ridge with (HAR/session) $\\times$ "
+    "exogenous-value products plus causal trailing-SD factor levels, $K=40$ "
+    "(causally tuned)",
     "blk4_trailGShaped_fine": "Four-block ridge (trailing factor levels, $K=40$, "
     "rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block "
     "grids)",
@@ -872,6 +1002,117 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     # not the vs-champion one, is the mechanism test.
     ("blk4_trailGShapedFrozen", "blk4_trailGShapedWide"),
     ("blk4_trailGShapedFrozen", "blk4_trailG_tuned"),
+    # Which half of the trailing z-score carries the gain? Against the parent
+    # each twin removes one moving half; against the frozen twin each adds one.
+    ("blk4_trailGShapedTrailMean", "blk4_trailGShapedWide"),
+    ("blk4_trailGShapedTrailMean", "blk4_trailGShapedFrozen"),
+    ("blk4_trailGShapedTrailSd", "blk4_trailGShapedWide"),
+    ("blk4_trailGShapedTrailSd", "blk4_trailGShapedFrozen"),
+    # PRODUCT x TRAILING-SD factorial. The no-product cell asks whether the SD
+    # block is additive on backbone+exog; the product-only and full cells give
+    # the conditional product/SD increments. blk2_gated_tuned is the matched
+    # rows backbone+exog baseline.
+    ("blk3_trailGShapedTrailSd", "blk2_gated_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_tuned"),
+    ("blk4_trailGShapedTrailSd", "blk3_trailGShapedTrailSd"),
+    ("blk2_trailGShapedTrailSd", "blk2_gated_tuned"),
+    # FULL-RANK no-K-cutoff version: can the complete trailing-SD rotation
+    # replace the raw wide exog block, and how does it compare with K=40?
+    ("blk2_rotAllTrailSd_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSd_tuned", "blk2_rotFullProd_tuned"),
+    ("blk2_rotAllTrailSd_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSd_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk4_trailGShapedTrailSd"),
+    # FULL-RANK INPUT x SCALING factorial. Within an input, scaling effects:
+    ("blk2_frExogFrozen_tuned", "blk2_frExogRaw_tuned"),
+    ("blk2_frExogTrailSd_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk2_frExogTrailSd_tuned", "blk2_frExogRaw_tuned"),
+    ("blk2_frProdFrozen_tuned", "blk2_frProdRaw_tuned"),
+    ("blk2_frProdTrailSd_tuned", "blk2_frProdFrozen_tuned"),
+    ("blk2_frProdTrailSd_tuned", "blk2_frProdRaw_tuned"),
+    ("blk2_frAllFrozen_tuned", "blk2_frAllRaw_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_frAllFrozen_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_frAllRaw_tuned"),
+    # Within a scaling rule, frame-input effects:
+    ("blk2_frProdRaw_tuned", "blk2_frExogRaw_tuned"),
+    ("blk2_frAllRaw_tuned", "blk2_frExogRaw_tuned"),
+    ("blk2_frAllRaw_tuned", "blk2_frProdRaw_tuned"),
+    ("blk2_frProdFrozen_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk2_frAllFrozen_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk2_frAllFrozen_tuned", "blk2_frProdFrozen_tuned"),
+    ("blk2_frProdTrailSd_tuned", "blk2_frExogTrailSd_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_frExogTrailSd_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_frProdTrailSd_tuned"),
+    # Full-rank factorial against the ordinary full-exog control:
+    ("blk2_frExogRaw_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogFrozen_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogTrailSd_tuned", "blk2_gated_tuned"),
+    ("blk2_frProdRaw_tuned", "blk2_gated_tuned"),
+    ("blk2_frProdFrozen_tuned", "blk2_gated_tuned"),
+    ("blk2_frProdTrailSd_tuned", "blk2_gated_tuned"),
+    ("blk2_frAllRaw_tuned", "blk2_gated_tuned"),
+    ("blk2_frAllFrozen_tuned", "blk2_gated_tuned"),
+    # Full-rank winner vs the campaign's trailing-SD shaped champions: tests
+    # whether ANY no-scientific-cutoff cell recovers the K=40 trailing winner.
+    ("blk2_frExogFrozen_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_frAllFrozen_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_frExogFrozen_tuned", "blk3_trailGShapedTrailSd"),
+    # POWER-LAW TRANSFER: does the K=40 trailing-SD mechanism move onto the
+    # exogenous full-rank rotation, and does the best frozen cell need an
+    # explicit power-law tail penalty?
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_frExogTrailSd_tuned"),
+    ("blk2_frExogFrozenShaped_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_frExogFrozenShaped_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogFrozenShaped_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_frExogFrozenShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_frExogFrozenShaped_tuned", "blk4_trailGShapedTrailSd"),
+    # Pure exogenous spiked-prior P model: ordinary exog ridge control,
+    # product-frame no-product champion, and full-rank exog power-law cells.
+    ("blk3_exogSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_exogSpikeFrozen_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozenShaped_tuned"),
+    # Frame x scaling factorial, no nonlinear product block anywhere.
+    ("blk3_exogSpikeTrailSd_tuned", "blk3_exogSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_exogSpikeFrozen_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_prodSpikeFrozen_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_exogSpikeTrailSd_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoCrossSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoHarSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoSessionSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodValuesSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodBlockPermSpikeFrozen_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk3_prodSpikeFrozen_tuned"),
+    ("blk3_prodNoCrossSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodNoHarSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodNoSessionSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodValuesSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodBlockPermSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk3_exogSpikeTrailSd_tuned", "blk2_gated_tuned"),
+    # Full-rank endpoint/shape diagnostics: total shrinkage vs smooth tail
+    # shrinkage, each against the failed flat-grid parent and the K=40 winner.
+    ("blk2_rotAllTrailSdWide_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdWide_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk2_rotAllTrailSdWide_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk4_trailGShapedTrailSd"),
+    # BACKBONE/session x EXOG interaction subset: its increment alone, against
+    # the full product block, and conditionally on the trailing-SD block.
+    ("blk3_prodBbExog_tuned", "blk2_gated_tuned"),
+    ("blk3_prodBbExog_tuned", "blk3_tuned"),
+    ("blk4_prodBbExogTrailSd", "blk3_prodBbExog_tuned"),
+    ("blk4_prodBbExogTrailSd", "blk3_trailGShapedTrailSd"),
+    ("blk4_prodBbExogTrailSd", "blk4_trailGShapedTrailSd"),
     # Endpoint relief: does letting the tuner off its grid boundary change the
     # verdict? Bare stem = vs the narrow original each one widens.
     ("blk_pcladderWide_tuned", "blk_pcladder_tuned"),
@@ -2239,6 +2480,26 @@ def main(argv: list[str] | None = None) -> int:
             "blk2_plsTwentyRungsInd_tuned",
             "blk2_plsTenRungsInd_tuned",
             "blk4_trailGShapedWide",
+            "blk4_trailGShapedTrailMean",
+            "blk4_trailGShapedTrailSd",
+            "blk3_trailGShapedTrailSd",
+            "blk2_trailGShapedTrailSd",
+            "blk2_rotAllTrailSd_tuned",
+            "blk2_rotAllTrailSdNumRank_tuned",
+            "blk2_frExogRaw_tuned",
+            "blk2_frExogFrozen_tuned",
+            "blk2_frExogTrailSd_tuned",
+            "blk2_frExogTrailSdShaped_tuned",
+            "blk2_frExogFrozenShaped_tuned",
+            "blk2_frProdRaw_tuned",
+            "blk2_frProdFrozen_tuned",
+            "blk2_frProdTrailSd_tuned",
+            "blk2_frAllRaw_tuned",
+            "blk2_frAllFrozen_tuned",
+            "blk2_rotAllTrailSdWide_tuned",
+            "blk2_rotAllTrailSdShaped_tuned",
+            "blk3_prodBbExog_tuned",
+            "blk4_prodBbExogTrailSd",
             "blk4_trailGShaped_fine",
             "blk4_trailGShapedFrozen",
             "blk_pcladderWide_tuned",

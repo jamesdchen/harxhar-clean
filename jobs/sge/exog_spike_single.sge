@@ -1,0 +1,12 @@
+#!/bin/bash
+#$ -N exog_spike_p
+#$ -cwd
+#$ -l h_data=16G,h_rt=2:00:00
+#$ -t 9-99
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY experiments/run_unification_batch.py --arm "${ARM:-blk3_exogSpikeFrozen_tuned}" --chunks "$SGE_TASK_ID" --output-dir "${OUTPUT_DIR:-results/unification}" --solver "${SOLVER:-rank2}"
