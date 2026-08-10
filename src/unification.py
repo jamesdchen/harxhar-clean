@@ -1519,6 +1519,93 @@ def _exog_frozen_factor_design(
     return out
 
 
+def _frame_factor_design(
+    p: _Panel,
+    window: int,
+    frame: str,
+    k: int = 40,
+    scaling: str = "frozen",
+    chunk_cols: int = 8,
+    part: str | None = None,
+) -> np.ndarray:
+    # Top-K factor map from a chosen frozen frame, for frame factorials.
+    session_names = {"is_open", "is_close", "is_overnight", "hour"}
+    permute_blocks = frame == "prod_blockperm"
+    frame_key = "prod" if permute_blocks else frame
+    if frame_key == "exog":
+        cols = _exog_all_cols(p.names)
+    elif frame_key == "prod":
+        cols = _product_base_cols(p.names)
+    elif frame_key == "prod_nohar":
+        cols = np.asarray([j for j in _product_base_cols(p.names) if _classify(p.names[j])[0] != "har"], dtype=np.int64)
+    elif frame_key == "prod_nosession":
+        cols = np.asarray([j for j in _product_base_cols(p.names) if p.names[j] not in session_names], dtype=np.int64)
+    elif frame_key == "prod_values":
+        cols = np.asarray([j for j in _product_base_cols(p.names) if _classify(p.names[j])[0] == "value"], dtype=np.int64)
+    elif frame_key == "all":
+        cols = np.arange(p.X.shape[1], dtype=np.int64)
+    else:
+        raise KeyError(f"unknown factor frame '{frame}'")
+    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < k:
+        raise SystemExit(f"{frame} factor frame: only {n_live} live columns for K={k}")
+    mu = zw[:, live].mean(0)
+    zw_fit = zw
+    if permute_blocks:
+        zw_fit = zw.copy()
+        kinds = np.asarray([_classify(p.names[j])[0] for j in cols], dtype=object)
+        groups = [np.flatnonzero(kinds == "har"), np.flatnonzero(kinds == "value"), np.asarray([i for i,j in enumerate(cols) if p.names[j] in session_names], dtype=np.int64)]
+        rng = np.random.default_rng(20260810)
+        for idx in groups:
+            if len(idx) > 1:
+                perm = rng.permutation(len(zw_fit))
+                zw_fit[:, idx] = zw_fit[perm][:, idx]
+    corr = np.corrcoef(((zw_fit[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1][:k]
+    a_map = vec[:, order] / sd[live, None]
+    live_cols = np.flatnonzero(live)
+    if part is not None:
+        bb = set(map(int, _backbone_cols(p.names)))
+        ex = set(map(int, _exog_all_cols(p.names)))
+        if part == "backbone": wanted = bb
+        elif part == "exog": wanted = ex
+        else: raise KeyError(f"unknown factor-map part '{part}'")
+        part_mask = np.asarray([int(cols[j]) in wanted for j in live_cols], dtype=bool)
+        live_cols = live_cols[part_mask]
+        a_use = a_map[part_mask]
+        mu_use = mu[part_mask]
+    else:
+        a_use = a_map
+        mu_use = mu
+    out = np.empty((len(p.y), k), dtype=np.float64)
+    z_live = np.ascontiguousarray(z[:, live_cols], dtype=np.float64)
+    for c0 in range(0, k, chunk_cols):
+        c1 = min(c0 + chunk_cols, k)
+        w_chunk = a_use[:, c0:c1]
+        out[:, c0:c1] = z_live @ w_chunk
+        out[:, c0:c1] -= mu_use @ w_chunk
+    if scaling == "frozen":
+        out[~np.isfinite(out)] = 0.0
+        return out
+    if scaling != "trail_sd": raise KeyError(f"unknown factor scaling '{scaling}'")
+    trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+    gs = pd.DataFrame(out, copy=False).rolling(trail, min_periods=trail).std().shift(1).to_numpy()
+    with np.errstate(divide="ignore", invalid="ignore"): out = out / gs
+    out[~np.isfinite(out)] = 0.0
+    nz = np.flatnonzero(np.abs(out).sum(axis=1) > 0)
+    scaled = np.zeros_like(out)
+    if len(nz):
+        from src.features.transforms.scaling import rolling_robust_scale
+        a0 = int(nz[0]); scaled[a0:] = rolling_robust_scale(np.ascontiguousarray(out[a0:]), window)
+    scaled[~np.isfinite(scaled)] = 0.0
+    return scaled
+
+
 def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     """Production-scaled full-rank rotation with time-scale penalty profile."""
     val = _cols(p.names, {"value"})
@@ -4826,6 +4913,55 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk3_exogSpikeTrailSd_tuned": ArmSpec(
+        describe="frame factorial: backbone plus broad exog block plus top-40 "
+        "EXOGENOUS-frame trailing-SD factor scores; no product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("exogG40_trailsd", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodSpikeFrozen_tuned": ArmSpec(
+        describe="frame factorial: backbone plus broad exog block plus top-40 "
+        "PRODUCT-BASE-frame FROZEN factor scores; fixed spiked prior P, no "
+        "product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("prodG40_frozen", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk3_prodNoCrossSpikeFrozen_tuned": ArmSpec(
+        describe="CROSS-BLOCK P TEST: product-base frozen frame split into independent backbone and exog factor blocks, deleting cross-covariance; no product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("prodG40_frozen_bbpart", "trans_shaped_wide"), ("prodG40_frozen_exogpart", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
+    "blk3_prodNoHarSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: product-base frozen spike with HAR columns removed; no product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("prodNoHarG40_frozen", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
+    "blk3_prodNoSessionSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: product-base frozen spike with session columns removed; no product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("prodNoSessionG40_frozen", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
+    "blk3_prodValuesSpikeFrozen_tuned": ArmSpec(
+        describe="frame necessity: VALUE-only product-base frozen spike; no product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("prodValuesG40_frozen", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
+    "blk3_prodBlockPermSpikeFrozen_tuned": ArmSpec(
+        describe="frame falsification: block-permuted product-base frozen spike; no product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("prodBlockPermG40_frozen", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
+    "blk4_prodSpikeFrozen_tuned": ArmSpec(
+        describe="PRODUCT INCREMENT TEST: joint product-base frozen linear spike plus nonlinear product block",
+        kind="blocks_tuned", blocks=[("backbone", "backbone"), ("exog_all", "exog"), ("product", "product"), ("prodG40_frozen", "trans_shaped_wide")], grid="cyclic", oos_mult=2,
+    ),
     "blk2_frExogRaw_tuned": ArmSpec(
         describe="full-rank factorial: exog_all frame, RAW orthogonal "
         "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
@@ -5971,6 +6107,16 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         # Constructive [Z | ZA] form of the pure exogenous spiked-covariance
         # prior; see _exog_frozen_factor_design for the exact P identity.
         return _exog_frozen_factor_design(p, window, k=40)
+    if block == "exogG40_trailsd":
+        return _frame_factor_design(p, window, "exog", k=40, scaling="trail_sd")
+    if block == "prodG40_frozen":
+        return _frame_factor_design(p, window, "prod", k=40, scaling="frozen")
+    if block == "prodG40_frozen_bbpart": return _frame_factor_design(p, window, "prod", k=40, part="backbone")
+    if block == "prodG40_frozen_exogpart": return _frame_factor_design(p, window, "prod", k=40, part="exog")
+    if block == "prodNoHarG40_frozen": return _frame_factor_design(p, window, "prod_nohar", k=40)
+    if block == "prodNoSessionG40_frozen": return _frame_factor_design(p, window, "prod_nosession", k=40)
+    if block == "prodValuesG40_frozen": return _frame_factor_design(p, window, "prod_values", k=40)
+    if block == "prodBlockPermG40_frozen": return _frame_factor_design(p, window, "prod_blockperm", k=40)
     if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
         return _transmission_block(p, window, parts="both")
     if block == "trans_doc":  # Ghat only — the documented construction verbatim

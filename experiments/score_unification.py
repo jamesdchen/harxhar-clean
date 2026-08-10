@@ -164,6 +164,14 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedTrailSd",
         "blk3_trailGShapedTrailSd",
         "blk3_exogSpikeFrozen_tuned",
+        "blk3_exogSpikeTrailSd_tuned",
+        "blk3_prodSpikeFrozen_tuned",
+        "blk3_prodNoCrossSpikeFrozen_tuned",
+        "blk3_prodNoHarSpikeFrozen_tuned",
+        "blk3_prodNoSessionSpikeFrozen_tuned",
+        "blk3_prodValuesSpikeFrozen_tuned",
+        "blk3_prodBlockPermSpikeFrozen_tuned",
+        "blk4_prodSpikeFrozen_tuned",
         "blk2_trailGShapedTrailSd",
         "blk2_rotAllTrailSd_tuned",
         "blk2_rotAllTrailSdNumRank_tuned",
@@ -366,6 +374,14 @@ _REGISTRY: list[tuple[str, str]] = [
     # Product x trailing-SD factorial and backbone/session-x-exog subset.
     ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
     ("blk3_exogSpikeFrozen_tuned", "BlkThreeExogSpikeFrozenTuned"),
+    ("blk3_exogSpikeTrailSd_tuned", "BlkThreeExogSpikeTrailSdTuned"),
+    ("blk3_prodSpikeFrozen_tuned", "BlkThreeProdSpikeFrozenTuned"),
+    ("blk3_prodNoCrossSpikeFrozen_tuned", "Blk3ProdNoCrossSpikeFrozenTuned"),
+    ("blk3_prodNoHarSpikeFrozen_tuned", "Blk3ProdNoHarSpikeFrozenTuned"),
+    ("blk3_prodNoSessionSpikeFrozen_tuned", "Blk3ProdNoSessionSpikeFrozenTuned"),
+    ("blk3_prodValuesSpikeFrozen_tuned", "Blk3ProdValuesSpikeFrozenTuned"),
+    ("blk3_prodBlockPermSpikeFrozen_tuned", "Blk3ProdBlockPermSpikeFrozenTuned"),
+    ("blk4_prodSpikeFrozen_tuned", "Blk4ProdSpikeFrozenTuned"),
     ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
     ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
     ("blk2_rotAllTrailSdNumRank_tuned", "BlkTwoRotAllTrailSdNumRankTuned"),
@@ -583,6 +599,17 @@ _ARM_TEX: dict[str, str] = {
     "blk3_exogSpikeFrozen_tuned": "Pure exogenous spiked-prior model: "
     "backbone plus broad exogenous block with a rank-40 frozen-factor "
     "covariance spike (causally tuned)",
+    "blk3_exogSpikeTrailSd_tuned": "Frame factorial: exogenous frame, "
+    "top-40 trailing-SD scores, no product block (causally tuned)",
+    "blk3_prodSpikeFrozen_tuned": "Frame factorial: product-base frame, "
+    "top-40 frozen scores, fixed spiked prior, no product block "
+    "(causally tuned)",
+    "blk3_prodNoCrossSpikeFrozen_tuned": "Mechanism test: product-base frame, top-40 frozen scores, cross-block covariance deleted (split backbone/exog spike), no product block (causally tuned)",
+    "blk3_prodNoHarSpikeFrozen_tuned": "Mechanism test: product-base frame without HAR columns, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodNoSessionSpikeFrozen_tuned": "Mechanism test: product-base frame without session columns, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodValuesSpikeFrozen_tuned": "Mechanism test: product-base values-only frame, top-40 frozen scores, no product block (causally tuned)",
+    "blk3_prodBlockPermSpikeFrozen_tuned": "Mechanism test: product-base frame with within-family row permutation (cross-family correlation destroyed), top-40 frozen scores, no product block (causally tuned)",
+    "blk4_prodSpikeFrozen_tuned": "Mechanism test: product-base frame, top-40 frozen spiked prior plus nonlinear product block (causally tuned)",
     "blk2_frExogRaw_tuned": "Full-rank factorial: exogenous frame, raw "
     "orthogonal rotation (causally tuned)",
     "blk2_frExogFrozen_tuned": "Full-rank factorial: exogenous frame, frozen "
@@ -1051,6 +1078,26 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk3_exogSpikeFrozen_tuned", "blk3_trailGShapedTrailSd"),
     ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozen_tuned"),
     ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozenShaped_tuned"),
+    # Frame x scaling factorial, no nonlinear product block anywhere.
+    ("blk3_exogSpikeTrailSd_tuned", "blk3_exogSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_exogSpikeFrozen_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_prodSpikeFrozen_tuned"),
+    ("blk3_trailGShapedTrailSd", "blk3_exogSpikeTrailSd_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoCrossSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoHarSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodNoSessionSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodValuesSpikeFrozen_tuned"),
+    ("blk3_prodSpikeFrozen_tuned", "blk3_prodBlockPermSpikeFrozen_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk3_prodSpikeFrozen_tuned"),
+    ("blk3_prodNoCrossSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodNoHarSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodNoSessionSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodValuesSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_prodBlockPermSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk4_prodSpikeFrozen_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk3_exogSpikeTrailSd_tuned", "blk2_gated_tuned"),
     # Full-rank endpoint/shape diagnostics: total shrinkage vs smooth tail
     # shrinkage, each against the failed flat-grid parent and the K=40 winner.
     ("blk2_rotAllTrailSdWide_tuned", "blk2_rotAllTrailSd_tuned"),
