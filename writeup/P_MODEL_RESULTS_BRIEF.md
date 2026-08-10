@@ -146,18 +146,51 @@ do **not** replace the hard \(K=40\) projection.
 7. **Where the QLIKE lives**: exog block ≈ −0.0046 (DM ≈ −10) over HAR-only;
    all spectral machinery ≈ −0.0011 total; static-P portion ≈ −0.00007.
 
-## 5. Framing for the paper/talk
+## 5. Framing for the paper/talk: volatility-gated PCA adapter
 
-- Forecasting model: HAR backbone + broad exogenous block, coefficients shrunk
-  by a **gated low-rank adapter**: \(\delta_t=\beta_Z+A\,\mathrm{diag}(s_t)\gamma\),
-  rank 40, \(A\) = frozen-window frame eigenvectors, \(s_t\) = trailing realized
-  SD per adapter direction (causal, observable at forecast time).
-- The static \(P\) model is the constant-gate special case, exactly equivalent
-  to the frozen three-block regression.
-- Honest magnitudes: gains over backbone+exog are ~1e-4–1e-3 QLIKE on a base of
-  ~0.22; DM values are single-path and there is a multiple-testing caveat across
-  ~dozens of arms. The contribution is identification of the mechanism
-  (geometry vs gate vs nonlinearity), not a large forecast improvement.
+One-display model:
+
+    y_t = a + B_t' beta_B + Z_t'( beta_Z + A diag(s_t) gamma ) + eps_t
+
+where the bracketed term is the **volatility-gated PCA adapter**. Three
+ingredients, one job each:
+
+1. **PCA gives the basis.** A = top-40 eigenvectors of the panel correlation
+   matrix, estimated once in a frozen window [24000, 48000). The design
+   question "what is the spectral block doing?" reduces to: *which variables do
+   you PCA, and what do you do with the components?*
+2. **PCA gives the low-rank structure.** A gamma is a rank-40 update to the
+   ~1092 exogenous loadings: coefficients move only along principal directions
+   of the data. This is LoRA with the adapter basis fixed to the PCA basis --
+   no learned projection, just eigenvectors.
+3. **Trailing SD makes it adaptive.** s_t = trailing realized volatility of
+   each PC score: an observable, causal gain per principal direction. High-vol
+   components get expressed; quiet components shrink to the base loadings.
+   This is the piece no static prior P can express (Sec. 3.2).
+
+Every empirical result restates in PCA language:
+
+| Finding | PCA statement |
+|---|---|
+| Pure-exog P fails (DM = -0.76) | PCs of the exog block alone do not span the predictive direction (alignment ~0.05) |
+| Frame is the key | The PCA **input panel** is the design choice that matters; prod-frame PCs carry the signal |
+| Cross-block covariance (DM = -2.48) | Useful PCs are mixed-family: joint loadings on backbone/session and exog variables |
+| Block permutation ~null (DM = +1.15) | Cross-family correlation structure matters, not time synchrony |
+| Trail-SD x frame interaction (DM = -3.17) | A PC basis pays only when gated by its own realized volatility; gating the wrong basis does nothing |
+| Static P = 19% of gain | Ungated PC regression (constant-gate LoRA) is the absorbable special case; the gate is the other 81% |
+| Product block separate (DM ~ -1.8) | Nonlinear channel, orthogonal to the linear PC adapter |
+
+One-sentence version:
+
+> The spectral block is a **volatility-gated PCA adapter**: project the panel
+> onto its top principal components, let the exogenous loadings move along
+> those principal directions, and gate each direction by its own trailing
+> realized volatility. The generalized-ridge prior P is the same object with
+> the gate held constant.
+
+The negative results are load-bearing: exog-frame PCA fails, ungated PCA
+fails -- so the paper is "which PCA, and why gating", not a QLIKE
+improvement claim.
 
 ## 6. Reproduce / verify
 
