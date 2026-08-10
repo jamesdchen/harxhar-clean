@@ -165,6 +165,9 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk3_trailGShapedTrailSd",
         "blk2_trailGShapedTrailSd",
         "blk2_rotAllTrailSd_tuned",
+        "blk2_rotAllTrailSdNumRank_tuned",
+        "blk2_rotAllTrailSdWide_tuned",
+        "blk2_rotAllTrailSdShaped_tuned",
         "blk3_prodBbExog_tuned",
         "blk4_prodBbExogTrailSd",
         "blk4_trailGShaped_fine",
@@ -353,6 +356,9 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
     ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
     ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "BlkTwoRotAllTrailSdNumRankTuned"),
+    ("blk2_rotAllTrailSdWide_tuned", "BlkTwoRotAllTrailSdWideTuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "BlkTwoRotAllTrailSdShapedTuned"),
     ("blk3_prodBbExog_tuned", "BlkThreeProdBbExogTuned"),
     ("blk4_prodBbExogTrailSd", "BlkFourProdBbExogTrailSd"),
     # Grid-RESOLUTION twins: half-decade spacing, same ranges.
@@ -549,6 +555,15 @@ _ARM_TEX: dict[str, str] = {
     "blk2_rotAllTrailSd_tuned": "Two-block ridge with a FULL-RANK rotated "
     "backbone+exogenous block and causal trailing-SD factor scores "
     "(causally tuned)",
+    "blk2_rotAllTrailSdNumRank_tuned": "Two-block ridge with a full "
+    "numerical-rank rotated backbone+exogenous block and causal trailing-SD "
+    "factor scores (roundoff-null directions removed; causally tuned)",
+    "blk2_rotAllTrailSdWide_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block, trailing-SD factor scores, and a widened flat "
+    "penalty grid (causally tuned)",
+    "blk2_rotAllTrailSdShaped_tuned": "Two-block ridge with a FULL-RANK rotated "
+    "backbone+exogenous block, trailing-SD factor scores, and a smooth "
+    "rank-shaped penalty (causally tuned)",
     "blk3_prodBbExog_tuned": "Three-block ridge with products restricted to "
     "(HAR/session) $\\times$ exogenous-value interactions (causally tuned)",
     "blk4_prodBbExogTrailSd": "Four-block ridge with (HAR/session) $\\times$ "
@@ -934,6 +949,18 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk2_rotAllTrailSd_tuned", "blk2_rotFullProd_tuned"),
     ("blk2_rotAllTrailSd_tuned", "blk3_trailGShapedTrailSd"),
     ("blk2_rotAllTrailSd_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdNumRank_tuned", "blk4_trailGShapedTrailSd"),
+    # Full-rank endpoint/shape diagnostics: total shrinkage vs smooth tail
+    # shrinkage, each against the failed flat-grid parent and the K=40 winner.
+    ("blk2_rotAllTrailSdWide_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdWide_tuned", "blk2_gated_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk2_rotAllTrailSd_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk2_rotAllTrailSdWide_tuned"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_rotAllTrailSdShaped_tuned", "blk4_trailGShapedTrailSd"),
     # BACKBONE/session x EXOG interaction subset: its increment alone, against
     # the full product block, and conditionally on the trailing-SD block.
     ("blk3_prodBbExog_tuned", "blk2_gated_tuned"),
@@ -2313,6 +2340,9 @@ def main(argv: list[str] | None = None) -> int:
             "blk3_trailGShapedTrailSd",
             "blk2_trailGShapedTrailSd",
             "blk2_rotAllTrailSd_tuned",
+            "blk2_rotAllTrailSdNumRank_tuned",
+            "blk2_rotAllTrailSdWide_tuned",
+            "blk2_rotAllTrailSdShaped_tuned",
             "blk3_prodBbExog_tuned",
             "blk4_prodBbExogTrailSd",
             "blk4_trailGShaped_fine",

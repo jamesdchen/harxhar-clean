@@ -2,71 +2,73 @@
 \toprule
 Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\
 \midrule
-HAR + moments bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 2.46967 (63) & 0.23208 (50) & 0.23420 (50) \\
-HAR + liquidity bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24565 (49) & 0.23452 (58) & 0.23688 (58) \\
-HAR + market EW bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24221 (41) & 0.23426 (57) & 0.23578 (54) \\
-HAR + market VW bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24411 (48) & 0.23377 (54) & 0.23556 (53) \\
-HAR + sentiment bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24221 (42) & 0.23387 (55) & 0.23599 (56) \\
-HAR + implied vol bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24267 (45) & 0.23370 (53) & 0.23597 (55) \\
-HAR + vol demand bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.46802 (59) & 0.62449 (63) & 0.62693 (64) \\
-HAR + all-features bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24251 (44) & 0.22974 (49) & 0.23282 (49) \\
-Ridge, fixed $\alpha=30$ & 0.24101 (39) & 0.22570 (45) & 0.23025 (46) \\
-Ridge, fixed $\alpha=100$ & 0.24046 (38) & 0.22555 (44) & 0.22989 (45) \\
-Ridge, fixed $\alpha=300$ & 0.24204 (40) & 0.22586 (46) & 0.22986 (44) \\
-Lasso, fixed $\alpha=10^{-6}$ & 0.73215 (61) & 0.71933 (65) & 0.71976 (66) \\
-Lasso, fixed $\alpha=10^{-5}$ & 0.29023 (53) & 0.69309 (64) & 0.69639 (65) \\
-Lasso, fixed $\alpha=10^{-3}$ & 0.24009 (37) & 0.22797 (48) & 0.23074 (48) \\
-Lasso, fixed $\alpha=10^{-2}$ & 0.24615 (50) & 0.23357 (52) & 0.23474 (51) \\
+HAR + moments bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 2.46967 (65) & 0.23208 (51) & 0.23420 (51) \\
+HAR + liquidity bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24565 (50) & 0.23452 (59) & 0.23688 (59) \\
+HAR + market EW bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24221 (42) & 0.23426 (58) & 0.23578 (55) \\
+HAR + market VW bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24411 (49) & 0.23377 (55) & 0.23556 (54) \\
+HAR + sentiment bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24221 (43) & 0.23387 (56) & 0.23599 (57) \\
+HAR + implied vol bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24267 (46) & 0.23370 (54) & 0.23597 (56) \\
+HAR + vol demand bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.46802 (60) & 0.62449 (64) & 0.62693 (66) \\
+HAR + all-features bucket (elastic net, causally tuned, free mixing, extended penalty grid) & 0.24251 (45) & 0.22974 (50) & 0.23282 (50) \\
+Ridge, fixed $\alpha=30$ & 0.24101 (40) & 0.22570 (46) & 0.23025 (47) \\
+Ridge, fixed $\alpha=100$ & 0.24046 (39) & 0.22555 (45) & 0.22989 (46) \\
+Ridge, fixed $\alpha=300$ & 0.24204 (41) & 0.22586 (47) & 0.22986 (45) \\
+Lasso, fixed $\alpha=10^{-6}$ & 0.73215 (62) & 0.71933 (67) & 0.71976 (68) \\
+Lasso, fixed $\alpha=10^{-5}$ & 0.29023 (54) & 0.69309 (66) & 0.69639 (67) \\
+Lasso, fixed $\alpha=10^{-3}$ & 0.24009 (38) & 0.22797 (49) & 0.23074 (49) \\
+Lasso, fixed $\alpha=10^{-2}$ & 0.24615 (51) & 0.23357 (53) & 0.23474 (52) \\
 Four-block ridge (trailing factor levels, $K=40$, rank-shaped transmission penalty, causally tuned) & 0.22556 (5) & 0.21496 (6) & 0.21891 (4) \\
 Four-block ridge (trailing factor levels, $K=40$, rank-shaped transmission penalty over an extended exponent grid, causally tuned) & 0.22557 (6) & 0.21494 (4) & 0.21889 (3) \\
 Four-block ridge (causal trailing-demeaned factor levels, $K=40$, rank-shaped transmission penalty over the extended exponent grid, causally tuned) & 0.22572 (8) & 0.21508 (8) & 0.21904 (7) \\
 Four-block ridge (factor levels divided by their causal trailing SD, $K=40$, rank-shaped transmission penalty over the extended exponent grid, causally tuned) & 0.22551 (3) & 0.21489 (2) & 0.21886 (1) \\
 Three-block ridge (backbone + wide exogenous block + causal trailing-SD factor levels, $K=40$, no product block, causally tuned) & 0.22649 (11) & 0.21575 (12) & 0.21961 (11) \\
-Two-block ridge (backbone + causal trailing-SD factor levels, $K=40$, causally tuned) & 0.22896 (25) & 0.21892 (29) & 0.22166 (23) \\
-Three-block ridge with products restricted to (HAR/session) $\times$ exogenous-value interactions (causally tuned) & 0.29253 (55) & 0.21594 (13) & 0.21968 (12) \\
-Four-block ridge with (HAR/session) $\times$ exogenous-value products plus causal trailing-SD factor levels, $K=40$ (causally tuned) & 0.29169 (54) & 0.21509 (9) & 0.21904 (8) \\
+Two-block ridge (backbone + causal trailing-SD factor levels, $K=40$, causally tuned) & 0.22896 (26) & 0.21892 (30) & 0.22166 (24) \\
+Two-block ridge with a FULL-RANK rotated backbone+exogenous block and causal trailing-SD factor scores (causally tuned) & 0.94728 (63) & 0.66677 (65) & 0.54813 (65) \\
+Two-block ridge with a full numerical-rank rotated backbone+exogenous block and causal trailing-SD factor scores (roundoff-null directions removed; causally tuned) & 0.22650 (12) & 0.21650 (18) & 0.22036 (18) \\
+Three-block ridge with products restricted to (HAR/session) $\times$ exogenous-value interactions (causally tuned) & 0.29253 (56) & 0.21594 (13) & 0.21968 (12) \\
+Four-block ridge with (HAR/session) $\times$ exogenous-value products plus causal trailing-SD factor levels, $K=40$ (causally tuned) & 0.29169 (55) & 0.21509 (9) & 0.21904 (8) \\
 Four-block ridge (trailing factor levels, $K=40$, rank-shaped transmission penalty, causally tuned on HALF-DECADE per-block grids) & 0.22552 (4) & 0.21492 (3) & 0.21889 (2) \\
-Ridge, causally tuned on a half-decade grid & 0.24306 (47) & 0.22661 (47) & 0.23044 (47) \\
-Two-block PCR (full rank), variance ordering, James-Stein shrinkage & 1.25820 (62) & 0.23766 (59) & 0.24068 (59) \\
-Two-block PCR ($K=30$), variance ordering, James-Stein shrinkage & 0.53476 (60) & 0.23409 (56) & 0.23647 (57) \\
-Two-block PCR ($K=20$), variance ordering, James-Stein shrinkage & 0.24245 (43) & 0.22386 (42) & 0.22670 (42) \\
-Two-block PCR ($K=30$), predictive ordering, James-Stein shrinkage & 0.25642 (51) & 0.23309 (51) & 0.23540 (52) \\
-Two-block PCR ($K=20$), predictive ordering, James-Stein shrinkage & 0.24289 (46) & 0.22413 (43) & 0.22745 (43) \\
-Two-block PCR ($K=10$), predictive ordering, James-Stein shrinkage & 0.26847 (52) & 0.22146 (41) & 0.22538 (41) \\
-Two-block PCR ($K=5$), predictive ordering, James-Stein shrinkage & 0.23901 (36) & 0.22009 (39) & 0.22389 (40) \\
-Two-block ridge, unrotated exogenous set (frame-gated rows, causally tuned) & 0.22695 (15) & 0.21629 (15) & 0.21997 (14) \\
-Two-block PCR (full rank), variance ordering, causally tuned ridge & 0.23256 (32) & 0.21858 (27) & 0.22215 (29) \\
-Two-block PCR ($K=30$), variance ordering, causally tuned ridge & 0.23146 (31) & 0.21856 (26) & 0.22221 (30) \\
-Two-block PCR ($K=20$), variance ordering, causally tuned ridge & 0.22892 (24) & 0.21826 (24) & 0.22182 (26) \\
-Two-block PCR ($K=30$), predictive ordering, causally tuned ridge & 0.22978 (28) & 0.21864 (28) & 0.22199 (27) \\
-Two-block PCR ($K=20$), predictive ordering, causally tuned ridge & 0.22811 (20) & 0.21814 (20) & 0.22163 (22) \\
-Two-block PCR ($K=10$), predictive ordering, causally tuned ridge & 0.22829 (22) & 0.21900 (31) & 0.22247 (37) \\
-Two-block PCR ($K=5$), predictive ordering, causally tuned ridge & 0.22868 (23) & 0.21955 (38) & 0.22270 (38) \\
-Three-block ridge on an exponentially weighted gram (half-life selected causally with the block penalties) & 0.30072 (56) & 0.21646 (17) & 0.22087 (18) \\
-Three-block ridge on an exponentially weighted gram (fixed half-life 3{,}000 bars) & 0.23652 (34) & 0.21552 (11) & 0.22029 (16) \\
-Three-block ridge on an exponentially weighted gram (fixed half-life 12{,}000 bars) & 0.23673 (35) & 0.21503 (7) & 0.21910 (9) \\
-Three-block design, positive-part James-Stein shrinkage, no tuned hyperparameters & 0.33246 (58) & 0.24173 (60) & 0.24631 (60) \\
-Three-block design, nonparametric empirical-Bayes (Tweedie) per-coefficient shrinkage, no tuned hyperparameters & 243990.30522 (66) & 1.26414 (66) & 0.44185 (63) \\
-Three-block design in the PC basis, diagonal-whitened positive-part James-Stein, no tuned hyperparameters & 68.74239 (65) & 0.28576 (61) & 0.28626 (61) \\
-Three-block design, diagonal-whitened positive-part James-Stein (raw-basis control), no tuned hyperparameters & 55.53465 (64) & 0.31051 (62) & 0.30614 (62) \\
+Ridge, causally tuned on a half-decade grid & 0.24306 (48) & 0.22661 (48) & 0.23044 (48) \\
+Two-block PCR (full rank), variance ordering, James-Stein shrinkage & 1.25820 (64) & 0.23766 (60) & 0.24068 (60) \\
+Two-block PCR ($K=30$), variance ordering, James-Stein shrinkage & 0.53476 (61) & 0.23409 (57) & 0.23647 (58) \\
+Two-block PCR ($K=20$), variance ordering, James-Stein shrinkage & 0.24245 (44) & 0.22386 (43) & 0.22670 (43) \\
+Two-block PCR ($K=30$), predictive ordering, James-Stein shrinkage & 0.25642 (52) & 0.23309 (52) & 0.23540 (53) \\
+Two-block PCR ($K=20$), predictive ordering, James-Stein shrinkage & 0.24289 (47) & 0.22413 (44) & 0.22745 (44) \\
+Two-block PCR ($K=10$), predictive ordering, James-Stein shrinkage & 0.26847 (53) & 0.22146 (42) & 0.22538 (42) \\
+Two-block PCR ($K=5$), predictive ordering, James-Stein shrinkage & 0.23901 (37) & 0.22009 (40) & 0.22389 (41) \\
+Two-block ridge, unrotated exogenous set (frame-gated rows, causally tuned) & 0.22695 (16) & 0.21629 (15) & 0.21997 (14) \\
+Two-block PCR (full rank), variance ordering, causally tuned ridge & 0.23256 (33) & 0.21858 (28) & 0.22215 (30) \\
+Two-block PCR ($K=30$), variance ordering, causally tuned ridge & 0.23146 (32) & 0.21856 (27) & 0.22221 (31) \\
+Two-block PCR ($K=20$), variance ordering, causally tuned ridge & 0.22892 (25) & 0.21826 (25) & 0.22182 (27) \\
+Two-block PCR ($K=30$), predictive ordering, causally tuned ridge & 0.22978 (29) & 0.21864 (29) & 0.22199 (28) \\
+Two-block PCR ($K=20$), predictive ordering, causally tuned ridge & 0.22811 (21) & 0.21814 (21) & 0.22163 (23) \\
+Two-block PCR ($K=10$), predictive ordering, causally tuned ridge & 0.22829 (23) & 0.21900 (32) & 0.22247 (38) \\
+Two-block PCR ($K=5$), predictive ordering, causally tuned ridge & 0.22868 (24) & 0.21955 (39) & 0.22270 (39) \\
+Three-block ridge on an exponentially weighted gram (half-life selected causally with the block penalties) & 0.30072 (57) & 0.21646 (17) & 0.22087 (19) \\
+Three-block ridge on an exponentially weighted gram (fixed half-life 3{,}000 bars) & 0.23652 (35) & 0.21552 (11) & 0.22029 (16) \\
+Three-block ridge on an exponentially weighted gram (fixed half-life 12{,}000 bars) & 0.23673 (36) & 0.21503 (7) & 0.21910 (9) \\
+Three-block design, positive-part James-Stein shrinkage, no tuned hyperparameters & 0.33246 (59) & 0.24173 (61) & 0.24631 (61) \\
+Three-block design, nonparametric empirical-Bayes (Tweedie) per-coefficient shrinkage, no tuned hyperparameters & 243990.30522 (68) & 1.26414 (68) & 0.44185 (64) \\
+Three-block design in the PC basis, diagonal-whitened positive-part James-Stein, no tuned hyperparameters & 68.74239 (67) & 0.28576 (62) & 0.28626 (62) \\
+Three-block design, diagonal-whitened positive-part James-Stein (raw-basis control), no tuned hyperparameters & 55.53465 (66) & 0.31051 (63) & 0.30614 (63) \\
 Four-block ridge (trailing factor levels, $K=40$, flat transmission penalty, causally tuned) & 0.22538 (2) & 0.21496 (5) & 0.21894 (6) \\
-Two-block ridge: HAR backbone + trailing factor levels at the full frame spectrum (causally tuned) & 0.22824 (21) & 0.21816 (22) & 0.22177 (24) \\
-Two-block ridge: HAR backbone + full-rank rotation of the production-scaled exogenous columns (causally tuned) & 0.22695 (16) & 0.21629 (16) & 0.21997 (15) \\
-Two-block ridge: HAR backbone + $K=40$ frozen-frame directions over all twelve ladder rungs (causally tuned) & 0.23320 (33) & 0.21898 (30) & 0.22227 (33) \\
-As above plus unrotated availability indicators (causally tuned) & 0.22897 (26) & 0.21788 (19) & 0.22142 (21) \\
-HAR backbone + $K=20$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned) & 0.22903 (27) & 0.21815 (21) & 0.22177 (25) \\
-HAR backbone + $K=10$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned) & 0.22716 (18) & 0.21826 (23) & 0.22135 (20) \\
+Two-block ridge: HAR backbone + trailing factor levels at the full frame spectrum (causally tuned) & 0.22824 (22) & 0.21816 (23) & 0.22177 (25) \\
+Two-block ridge: HAR backbone + full-rank rotation of the production-scaled exogenous columns (causally tuned) & 0.22695 (17) & 0.21629 (16) & 0.21997 (15) \\
+Two-block ridge: HAR backbone + $K=40$ frozen-frame directions over all twelve ladder rungs (causally tuned) & 0.23320 (34) & 0.21898 (31) & 0.22227 (34) \\
+As above plus unrotated availability indicators (causally tuned) & 0.22897 (27) & 0.21788 (20) & 0.22142 (22) \\
+HAR backbone + $K=20$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned) & 0.22903 (28) & 0.21815 (22) & 0.22177 (26) \\
+HAR backbone + $K=10$ PLS (supervised) directions over all twelve ladder rungs, plus availability indicators (causally tuned) & 0.22716 (19) & 0.21826 (24) & 0.22135 (21) \\
 Four-block ridge (FROZEN-standardized factor levels, $K=40$, rank-shaped transmission penalty over the extended exponent grid, causally tuned) & 0.22576 (9) & 0.21548 (10) & 0.21931 (10) \\
-Ridge on ladder-expanded principal components with a BIPOLAR rank-tilted penalty (causally tuned) & 0.22692 (13) & 0.21922 (35) & 0.22223 (31) \\
-Three-block ridge with spectrum-tilted exogenous penalty, power and step families on WIDENED grids (causally tuned) & 0.22600 (10) & 0.21653 (18) & 0.22029 (17) \\
-Ridge on ladder-expanded principal components with rank-tilted penalty (causally tuned) & 0.22682 (12) & 0.21936 (36) & 0.22227 (32) \\
-Ridge on ladder-expanded principal components at $K=40$ with rank-tilted penalty (causally tuned) & 0.23031 (30) & 0.21938 (37) & 0.22237 (34) \\
-Ridge on ladder-expanded principal components at $K=80$ with rank-tilted penalty (causally tuned) & 0.22712 (17) & 0.21909 (33) & 0.22238 (35) \\
-Ridge on ladder-expanded principal components at the FULL frame rank $K$ with rank-tilted penalty (causally tuned) & 0.22745 (19) & 0.21906 (32) & 0.22247 (36) \\
-Ridge on principal components computed SEPARATELY PER LADDER HORIZON ($K=20$ per rung, rank-tilted penalty shared across rungs, causally tuned) & 0.22692 (14) & 0.21911 (34) & 0.22208 (28) \\
+Ridge on ladder-expanded principal components with a BIPOLAR rank-tilted penalty (causally tuned) & 0.22692 (14) & 0.21922 (36) & 0.22223 (32) \\
+Three-block ridge with spectrum-tilted exogenous penalty, power and step families on WIDENED grids (causally tuned) & 0.22600 (10) & 0.21653 (19) & 0.22029 (17) \\
+Ridge on ladder-expanded principal components with rank-tilted penalty (causally tuned) & 0.22682 (13) & 0.21936 (37) & 0.22227 (33) \\
+Ridge on ladder-expanded principal components at $K=40$ with rank-tilted penalty (causally tuned) & 0.23031 (31) & 0.21938 (38) & 0.22237 (35) \\
+Ridge on ladder-expanded principal components at $K=80$ with rank-tilted penalty (causally tuned) & 0.22712 (18) & 0.21909 (34) & 0.22238 (36) \\
+Ridge on ladder-expanded principal components at the FULL frame rank $K$ with rank-tilted penalty (causally tuned) & 0.22745 (20) & 0.21906 (33) & 0.22247 (37) \\
+Ridge on principal components computed SEPARATELY PER LADDER HORIZON ($K=20$ per rung, rank-tilted penalty shared across rungs, causally tuned) & 0.22692 (15) & 0.21911 (35) & 0.22208 (29) \\
 Four-block ridge (trailing factor levels, $K=40$, transmission penalty shape selected from power, exponential and step families by the causal tuner) & 0.22566 (7) & 0.21489 (1) & 0.21892 (5) \\
 Three-block ridge with spectrum-tilted exogenous penalty, power and step families (causally tuned) & 0.22508 (1) & 0.21625 (14) & 0.21993 (13) \\
-Two-block ridge: HAR backbone + $K=20$ principal components (causally tuned) & 0.23004 (29) & 0.22029 (40) & 0.22287 (39) \\
-Two-block ridge: HAR backbone + $K=40$ principal components (causally tuned) & 0.30128 (57) & 0.21852 (25) & 0.22134 (19) \\
+Two-block ridge: HAR backbone + $K=20$ principal components (causally tuned) & 0.23004 (30) & 0.22029 (41) & 0.22287 (40) \\
+Two-block ridge: HAR backbone + $K=40$ principal components (causally tuned) & 0.30128 (58) & 0.21852 (26) & 0.22134 (20) \\
 \bottomrule
 \end{tabular}%

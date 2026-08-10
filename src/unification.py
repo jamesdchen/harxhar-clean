@@ -574,6 +574,21 @@ BLOCK_TUNE_GRIDS["trans_shaped_wide"] = tuple(
     for lam0 in BLOCK_TUNE_GRIDS["trans"]
     for g in TRANS_SHAPE_GAMMAS_BIPOLAR
 )
+
+# FULL-RANK rotated-panel grids (2026-08-09): the flat trans grid's 1e4 top
+# was endpoint-pinned and produced rare tail detonations at full spectrum.
+# rot_all_flat tests whether more TOTAL shrinkage alone fixes that. The shaped
+# grid is the no-hard-cutoff version: keep every direction but let the penalty
+# rise smoothly by eigen-rank. gamma=2 is the top exponent (K=1144, lambda0=1e4
+# gives max penalty ~1.3e10 — the same order already validated at K=40,
+# gamma=4), avoiding the 1e16 corner of the old gamma=4 grid at full rank.
+BLOCK_TUNE_GRIDS["rot_all_flat"] = tuple(float(a) for a in np.logspace(2, 6, 5))
+ROT_ALL_SHAPE_GAMMAS: tuple[float, ...] = (-1.0, -0.5, 0.0, 0.5, 1.0, 2.0)
+BLOCK_TUNE_GRIDS["rot_all_shaped"] = tuple(
+    (float(lam0), float(g))
+    for lam0 in BLOCK_TUNE_GRIDS["trans"]
+    for g in ROT_ALL_SHAPE_GAMMAS
+)
 # PCR block grid (author directive 2026-08-07). DELIBERATELY WIDER than the
 # `trans` grid: that one is calibrated for a factor block competing against
 # 526 exogenous columns, where the tuner must shrink it hard to stop it
@@ -1237,7 +1252,10 @@ def _rot_prod_design(p: _Panel, window: int) -> np.ndarray:
 
 
 def _rot_all_trailsd_design(
-    p: _Panel, window: int, chunk_cols: int = 64
+    p: _Panel,
+    window: int,
+    chunk_cols: int = 64,
+    numerical_rank: bool = False,
 ) -> np.ndarray:
     """FULL-RANK production rotation of the backbone+exog panel, with causal
     trailing-SD factor scores.
@@ -1251,6 +1269,13 @@ def _rot_all_trailsd_design(
     one bar, then run the same activation-aware production rolling robust
     scaler used by the K=40 trailing-SD block. DEAD columns pass through
     unrotated after the live factors, preserving the full panel span.
+
+    With ``numerical_rank=True``, the spectrum is truncated only at the
+    canonical floating-point matrix-rank boundary,
+    ``lambda_i > n_live * eps * lambda_max``. This is not a scientific K
+    cutoff: it removes frame directions whose frozen-window variance is at
+    roundoff level (including negative eigh eigenvalues), whose trailing SDs
+    can be O(1e-10) and whose O(1) reactivations detonate after division.
 
     The K=40 helper is not reused because a full 1144-column score matrix plus
     pandas rolling intermediates needs column-chunked construction; 64-column
@@ -1276,15 +1301,27 @@ def _rot_all_trailsd_design(
             "refusing to build a degenerate full-rank rotation"
         )
     mu = zw[:, live].mean(0)
-    lam, vec = np.linalg.eigh(
-        np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
-    )
-    v_mat = vec[:, np.argsort(lam)[::-1]]
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1]
+    lam = lam[order]
+    v_mat = vec[:, order]
+    if numerical_rank:
+        rank_tol = np.finfo(np.float64).eps * n_live * max(float(lam[0]), 0.0)
+        keep = lam > rank_tol
+        v_mat = v_mat[:, keep]
+        lam = lam[keep]
+    n_spec = int(v_mat.shape[1])
+    if n_spec < 1:
+        raise SystemExit(
+            "rot_all_trailsd: numerical-rank filter removed the complete "
+            "spectrum; refusing to emit an empty rotated block"
+        )
 
     # Correlation-frame projection in ORIGINAL panel coordinate order. Dead
     # columns carry zeros so p.X @ W_chunk never materializes a full-width
     # copy of the live panel.
-    w_full = np.zeros((z.shape[1], n_live), dtype=np.float64)
+    w_full = np.zeros((z.shape[1], n_spec), dtype=np.float64)
     w_full[live] = v_mat / sd[live, None]
     mu_full = np.zeros(z.shape[1], dtype=np.float64)
     mu_full[live] = mu
@@ -1292,9 +1329,9 @@ def _rot_all_trailsd_design(
     trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
     from src.features.transforms.scaling import rolling_robust_scale
 
-    out = np.zeros((len(p.y), z.shape[1]), dtype=np.float64)
-    for c0 in range(0, n_live, chunk_cols):
-        c1 = min(c0 + chunk_cols, n_live)
+    out = np.zeros((len(p.y), n_spec + int((~live).sum())), dtype=np.float64)
+    for c0 in range(0, n_spec, chunk_cols):
+        c1 = min(c0 + chunk_cols, n_spec)
         w_chunk = w_full[:, c0:c1]
         g = z @ w_chunk - (mu_full @ w_chunk)
         gs = (
@@ -1321,7 +1358,7 @@ def _rot_all_trailsd_design(
 
     # Preserve the complete panel span: columns degenerate over the frozen
     # frame cannot define an eigen-direction, so they pass through unrotated.
-    out[:, n_live:] = z[:, ~live]
+    out[:, n_spec:] = z[:, ~live]
     return out
 
 
@@ -4475,6 +4512,43 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk2_rotAllTrailSdNumRank_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation with no scientific K cutoff: "
+        "keep the complete numerically representable spectrum "
+        "(lambda_i > n*eps*lambda_max), remove only roundoff-null directions, "
+        "raw backbone separate, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd_numrank", "trans"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSdWide_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation endpoint-relief control: "
+        "same no-cutoff backbone+exog rotated block, FLAT penalty grid "
+        "widened to 1e6, cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "rot_all_flat"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_rotAllTrailSdShaped_tuned": ArmSpec(
+        describe="FULL-RANK trailing-SD rotation with a smooth rank-shaped "
+        "penalty (no hard K cutoff; lambda_i=lambda0*i^gamma, gamma<=2), "
+        "cyclic causal tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("rot_all_trailsd", "rot_all_shaped"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     # BACKBONE x EXOG INTERACTION subset. Same candidate base, same residual-IC
     # selection, same N_PROD=100 width, same causal floored scaling as the
     # generic product block; only the allowed PAIR TYPES change. One arm tests
@@ -5453,6 +5527,10 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         # No K cutoff: full live spectrum of the backbone+exog panel,
         # causal trailing-SD factor scores, dead columns passed through.
         return _rot_all_trailsd_design(p, window)
+    if block == "rot_all_trailsd_numrank":
+        # Same no-scientific-K construction, truncated only at float64's
+        # canonical numerical-rank boundary (roundoff-null directions removed).
+        return _rot_all_trailsd_design(p, window, numerical_rank=True)
     if block.startswith("plsval:"):
         # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
         return _rot_value_design(
