@@ -1362,6 +1362,117 @@ def _rot_all_trailsd_design(
     return out
 
 
+def _fullrank_scaled_rotation_design(
+    p: _Panel,
+    window: int,
+    input_kind: str,
+    scaling: str,
+    chunk_cols: int = 64,
+) -> np.ndarray:
+    """Full numerical-rank rotation of one input set under one scaling rule.
+
+    This is the full-rank INPUT x SCALING factorial. Every cell uses the same
+    frozen frame window, liveness rule, correlation eigensolver, descending
+    eigenvalue order, and canonical float64 numerical-rank boundary
+    ``lambda_i > n_live * eps * lambda_max``. What varies is ONLY:
+
+      * input_kind: "exog" (all exogenous value+indicator columns), "prod"
+        (the transmission/product base), or "all" (the complete panel);
+      * scaling: "raw" (ZV), "frozen" ((Z-mu0)V/sd0), or "trailsd"
+        (frozen scores divided by their shifted trailing 504-day SD, then the
+        production rolling robust scaler).
+
+    Dead columns pass through unrotated in every cell. The raw cell is the
+    no-scaling control; the frozen cell isolates frame-score standardization;
+    the trailing cell adds the time-varying SD metric.
+    """
+    if input_kind == "exog":
+        cols = _exog_all_cols(p.names)
+    elif input_kind == "prod":
+        cols = _product_base_cols(p.names)
+    elif input_kind == "all":
+        cols = np.arange(p.X.shape[1], dtype=np.int64)
+    else:
+        raise KeyError(f"unknown full-rank input_kind '{input_kind}'")
+    if scaling not in {"raw", "frozen", "trailsd"}:
+        raise KeyError(f"unknown full-rank scaling '{scaling}'")
+
+    if (
+        len(cols) == p.X.shape[1]
+        and np.array_equal(cols, np.arange(p.X.shape[1], dtype=np.int64))
+        and p.X.flags.c_contiguous
+    ):
+        z = p.X
+    else:
+        z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < 2:
+        raise SystemExit(
+            f"full-rank factorial {input_kind}/{scaling}: fewer than 2 live "
+            "columns in the frame window"
+        )
+    mu = zw[:, live].mean(0)
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1]
+    lam = lam[order]
+    v_mat = vec[:, order]
+    rank_tol = np.finfo(np.float64).eps * n_live * max(float(lam[0]), 0.0)
+    keep = lam > rank_tol
+    v_mat = v_mat[:, keep]
+    n_spec = int(v_mat.shape[1])
+    if n_spec < 1:
+        raise SystemExit(
+            f"full-rank factorial {input_kind}/{scaling}: numerical-rank "
+            "filter removed the complete spectrum"
+        )
+
+    out = np.zeros((len(p.y), n_spec + int((~live).sum())), dtype=np.float64)
+    if scaling == "raw":
+        out[:, :n_spec] = z[:, live] @ v_mat
+    else:
+        w_mat = v_mat / sd[live, None]
+        if scaling == "frozen":
+            z_live = np.ascontiguousarray(z[:, live], dtype=np.float64)
+            for c0 in range(0, n_spec, chunk_cols):
+                c1 = min(c0 + chunk_cols, n_spec)
+                w_chunk = w_mat[:, c0:c1]
+                out[:, c0:c1] = z_live @ w_chunk
+                out[:, c0:c1] -= mu @ w_chunk
+        else:
+            trail = TRANS_TRAIL_DAYS * PERIODS_PER_DAY
+            from src.features.transforms.scaling import rolling_robust_scale
+
+            for c0 in range(0, n_spec, chunk_cols):
+                c1 = min(c0 + chunk_cols, n_spec)
+                w_chunk = w_mat[:, c0:c1]
+                g = z[:, live] @ w_chunk - mu @ w_chunk
+                gs = (
+                    pd.DataFrame(g, copy=False)
+                    .rolling(trail, min_periods=trail)
+                    .std()
+                    .shift(1)
+                    .to_numpy()
+                )
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    g = g / gs
+                g[~np.isfinite(g)] = 0.0
+                nz = np.flatnonzero(np.abs(g).sum(axis=1) > 0)
+                scaled = np.zeros_like(g)
+                if len(nz):
+                    a0 = int(nz[0])
+                    scaled[a0:] = rolling_robust_scale(
+                        np.ascontiguousarray(g[a0:]), window
+                    )
+                scaled[~np.isfinite(scaled)] = 0.0
+                out[:, c0:c1] = scaled
+    out[:, n_spec:] = z[:, ~live]
+    return out
+
+
 def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     """Production-scaled full-rank rotation with time-scale penalty profile."""
     val = _cols(p.names, {"value"})
@@ -2555,6 +2666,136 @@ def _walk_blocks_tuned(
         intercept = solver._sy / n - float(solver._sx @ coef) / n
         out[i] = float(Xs[t] @ coef + intercept)
         solver.roll(Xs[t], ys[t], Xs[t - window], ys[t - window])
+    return out, traj
+
+
+def _walk_blocks_tuned_rank2(
+    F: np.ndarray,
+    segments: list[tuple[int, int, str]],
+    y: np.ndarray,
+    window: int,
+    lo: int,
+    hi: int,
+    selection: str = "cartesian",
+    sweep_order: tuple[str, ...] = (),
+) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    """One-pass tuned block ridge by rank-two rolling inverse updates.
+
+    This is the streamed form of ``_walk_blocks_tuned`` for a FIXED arm. It
+    carries the same sufficient statistics, the same causal TUNE_PER penalty
+    selection, and the same centered/intercept-unpenalized ridge problem, but
+    replaces the fresh O(p^3) solve at every bar with:
+
+      A = X'X + diag(penalty)
+      A^-1 <- downdate/update by x_old x_old' and x_new x_new'
+
+    The intercept's centering is one additional Sherman-Morrison correction:
+      G = A - sx sx'/W
+      G^-1 = A^-1 + (A^-1 sx)(A^-1 sx)' / (W - sx'A^-1 sx).
+
+    Penalty changes are NOT updated by Sherman-Morrison: a new diagonal penalty
+    is a high-rank change, so the inverse is rebuilt once per retune boundary
+    (amortized over TUNE_PER bars). The tuner remains the production path, so
+    selected-alpha trajectories are unchanged by construction. This function is
+    used only by explicit ``--solver rank2`` runs after NPZ validation against
+    the exact walker; the default production walker remains untouched.
+    """
+    Xs = np.ascontiguousarray(F[lo - window : hi])
+    ys = np.ascontiguousarray(y[lo - window : hi])
+    p_ = Xs.shape[1]
+    keys = [k for _, _, k in segments]
+    grids = [BLOCK_TUNE_GRIDS[k] for k in keys]
+
+    def pen_vec(alphas: dict[str, Any]) -> np.ndarray:
+        pen = np.empty(p_)
+        for s0, s1, k in segments:
+            _fill_pen_span(pen, s0, s1, alphas[k])
+        return pen
+
+    solver = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+    solver.init_window(Xs[:window], ys[:window])
+    out = np.empty(hi - lo, dtype=np.float64)
+    traj: list[dict[str, Any]] = []
+    pen: np.ndarray | None = None
+    a_inv: np.ndarray | None = None
+    n = float(window)
+    diag = np.diag_indices(p_)
+
+    for i in range(hi - lo):
+        t = window + i
+        if i % TUNE_PER == 0:
+            Xw, yw = Xs[i:t], ys[i:t]
+            fl, fh, vl, vh = forward_window_split(window, window, VAL_TAIL, EMBARGO)
+            Xf, yf = Xw[fl:fh], yw[fl:fh]
+            Xv, yv = Xw[vl:vh], yw[vl:vh]
+            muf, myf = Xf.mean(0), float(yf.mean())
+            Xfc = Xf - muf
+            Gf = Xfc.T @ Xfc
+            cf = Xfc.T @ (yf - myf)
+            Xvc = Xv - muf
+
+            def _tail_mse(alphas: dict[str, float]) -> tuple[float, np.ndarray]:
+                pv = pen_vec(alphas)
+                G = Gf.copy()
+                G[diag] += pv
+                b = np.linalg.solve(G, cf)
+                return float(np.mean((Xvc @ b + myf - yv) ** 2)), pv
+
+            n_evals = 0
+            if selection == "cyclic":
+                sel = {
+                    k: _pen_value(BLOCK_TUNE_GRIDS[k][len(BLOCK_TUNE_GRIDS[k]) // 2])
+                    for k in keys
+                }
+                cur, pen = _tail_mse(sel)
+                n_evals += 1
+                for _ in range(CYCLIC_PASSES):
+                    for k in sweep_order or keys:
+                        for a in BLOCK_TUNE_GRIDS[k]:
+                            if _pen_value(a) == sel[k]:
+                                continue
+                            trial = dict(sel)
+                            trial[k] = _pen_value(a)
+                            mse, pv = _tail_mse(trial)
+                            n_evals += 1
+                            if mse < cur:
+                                cur, sel, pen = mse, trial, pv
+            else:
+                best: tuple[float, dict[str, float], np.ndarray] | None = None
+                for combo in itertools.product(*grids):
+                    alphas = dict(zip(keys, (_pen_value(a) for a in combo)))
+                    mse, pv = _tail_mse(alphas)
+                    n_evals += 1
+                    if best is None or mse < best[0]:
+                        best = (mse, alphas, pv)
+                _, sel, pen = best
+            traj.append(
+                {"row": int(lo + i), "alphas": sel, "n_tail_evals": int(n_evals)}
+            )
+            assert pen is not None
+            A = solver._Sxx.copy()
+            A[diag] += pen
+            a_inv = np.linalg.inv(A)
+
+        assert a_inv is not None
+        sx = solver._sx
+        rhs = solver._Sxy - sx * (solver._sy / n)
+        a_sx = a_inv @ sx
+        a_rhs = a_inv @ rhs
+        coef = a_rhs + a_sx * (float(a_sx @ rhs) / (n - float(sx @ a_sx)))
+        intercept = solver._sy / n - float(sx @ coef) / n
+        out[i] = float(Xs[t] @ coef + intercept)
+
+        x_in = Xs[t]
+        x_out = Xs[t - window]
+        # A <- A + x_in x_in' - x_out x_out', penalty fixed until next retune.
+        q = a_inv @ x_in
+        a_inv -= np.outer(q, q) / (1.0 + float(x_in @ q))
+        q = a_inv @ x_out
+        a_inv += np.outer(q, q) / (1.0 - float(x_out @ q))
+        if (i + 1) % 50 == 0:
+            a_inv = (a_inv + a_inv.T) * 0.5
+        solver.roll(x_in, ys[t], x_out, ys[t - window])
     return out, traj
 
 
@@ -4525,6 +4766,70 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk2_frExogRaw_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, RAW orthogonal "
+        "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, frozen mean/SD factor "
+        "scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogTrailSd_tuned": ArmSpec(
+        describe="full-rank factorial: exog_all frame, causal trailing-SD "
+        "factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_trailsd", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdRaw_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, RAW "
+        "orthogonal rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, frozen "
+        "mean/SD factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frProdTrailSd_tuned": ArmSpec(
+        describe="full-rank factorial: transmission/product-base frame, causal "
+        "trailing-SD factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_prod_trailsd", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frAllRaw_tuned": ArmSpec(
+        describe="full-rank factorial: complete-panel frame, RAW orthogonal "
+        "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_all_raw", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frAllFrozen_tuned": ArmSpec(
+        describe="full-rank factorial: complete-panel frame, frozen mean/SD "
+        "factor scores, numerical-rank rule, raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_all_frozen", "trans")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     "blk2_rotAllTrailSdWide_tuned": ArmSpec(
         describe="FULL-RANK trailing-SD rotation endpoint-relief control: "
         "same no-cutoff backbone+exog rotated block, FLAT penalty grid "
@@ -5531,6 +5836,12 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         # Same no-scientific-K construction, truncated only at float64's
         # canonical numerical-rank boundary (roundoff-null directions removed).
         return _rot_all_trailsd_design(p, window, numerical_rank=True)
+    if block.startswith("fr_"):
+        # Full-rank INPUT x SCALING factorial cells: fr_{exog,prod,all}_*
+        _, input_kind, scaling = block.split("_", 2)
+        return _fullrank_scaled_rotation_design(
+            p, window, input_kind, scaling
+        )
     if block.startswith("plsval:"):
         # SUPERVISED basis, all 12 ladder rungs, indicators handled separately
         return _rot_value_design(
