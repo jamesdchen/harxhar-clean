@@ -1473,6 +1473,52 @@ def _fullrank_scaled_rotation_design(
     return out
 
 
+def _exog_frozen_factor_design(
+    p: _Panel,
+    window: int,
+    k: int = 40,
+    chunk_cols: int = 8,
+) -> np.ndarray:
+    """TOP-K FROZEN EXOGENOUS FACTOR MAP for the spiked-prior P model.
+
+    This is the constructive form G = Z A of the pure exogenous model
+    delta = nu + A gamma. The map A is estimated ONLY from the exog_all
+    block's frozen frame window [window, 2*window): correlation eigenvectors
+    on live columns, scaled by frame SDs. No product-base columns, trailing
+    SD, rolling robust score scaler, numerical-rank truncation, or separate
+    score standardization enters. Those later transformations would break the
+    fixed-P interpretation.
+
+    With exog penalty lambda_Z and shaped factor penalty D_G, marginalizing
+    (nu, gamma) gives the exact two-block generalized-ridge penalty
+    P = (lambda_Z^{-1} I + A D_G^{-1} A^T)^{-1} on the exogenous coefficient.
+    """
+    cols = _exog_all_cols(p.names)
+    z = np.ascontiguousarray(p.X[:, cols], dtype=np.float64)
+    zw = z[window : 2 * window]
+    sd = zw.std(0)
+    live = sd > _DEGENERATE_SD
+    n_live = int(live.sum())
+    if n_live < k:
+        raise SystemExit(
+            f"exog frozen factor map: only {n_live} live columns for K={k}"
+        )
+    mu = zw[:, live].mean(0)
+    corr = np.corrcoef(((zw[:, live] - mu) / sd[live]), rowvar=False)
+    lam, vec = np.linalg.eigh(corr)
+    order = np.argsort(lam)[::-1][:k]
+    a_map = vec[:, order] / sd[live, None]
+    out = np.empty((len(p.y), k), dtype=np.float64)
+    z_live = np.ascontiguousarray(z[:, live], dtype=np.float64)
+    for c0 in range(0, k, chunk_cols):
+        c1 = min(c0 + chunk_cols, k)
+        w_chunk = a_map[:, c0:c1]
+        out[:, c0:c1] = z_live @ w_chunk
+        out[:, c0:c1] -= mu @ w_chunk
+    out[~np.isfinite(out)] = 0.0
+    return out
+
+
 def _rot_prod_timeaware_design(p: _Panel, window: int, arm: str) -> np.ndarray:
     """Production-scaled full-rank rotation with time-scale penalty profile."""
     val = _cols(p.names, {"value"})
@@ -4766,6 +4812,20 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk3_exogSpikeFrozen_tuned": ArmSpec(
+        describe="PURE EXOGENOUS SPIKED-PRIOR P MODEL: backbone plus broad "
+        "exog block plus the deterministic top-40 frozen exog map G=ZA; "
+        "equivalent to one generalized-ridge exog coefficient with prior "
+        "covariance lambda_Z^{-1}I + A D_G^{-1}A^T, no product block, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[
+            ("backbone", "backbone"),
+            ("exog_all", "exog"),
+            ("exog_frozenG40", "trans_shaped_wide"),
+        ],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     "blk2_frExogRaw_tuned": ArmSpec(
         describe="full-rank factorial: exog_all frame, RAW orthogonal "
         "rotation, numerical-rank rule, raw backbone separate, cyclic tuning",
@@ -5907,6 +5967,10 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
                 )
             ),
         )
+    if block == "exog_frozenG40":
+        # Constructive [Z | ZA] form of the pure exogenous spiked-covariance
+        # prior; see _exog_frozen_factor_design for the exact P identity.
+        return _exog_frozen_factor_design(p, window, k=40)
     if block == "trans_user":  # [G | Ghat] — the paper's own design (ruling 2026-08-06)
         return _transmission_block(p, window, parts="both")
     if block == "trans_doc":  # Ghat only — the documented construction verbatim

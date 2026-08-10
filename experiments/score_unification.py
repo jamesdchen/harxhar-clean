@@ -163,6 +163,7 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk4_trailGShapedTrailMean",
         "blk4_trailGShapedTrailSd",
         "blk3_trailGShapedTrailSd",
+        "blk3_exogSpikeFrozen_tuned",
         "blk2_trailGShapedTrailSd",
         "blk2_rotAllTrailSd_tuned",
         "blk2_rotAllTrailSdNumRank_tuned",
@@ -364,6 +365,7 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk4_trailGShapedTrailSd", "BlkFourTrailGShapedTrailSd"),
     # Product x trailing-SD factorial and backbone/session-x-exog subset.
     ("blk3_trailGShapedTrailSd", "BlkThreeTrailGShapedTrailSd"),
+    ("blk3_exogSpikeFrozen_tuned", "BlkThreeExogSpikeFrozenTuned"),
     ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
     ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
     ("blk2_rotAllTrailSdNumRank_tuned", "BlkTwoRotAllTrailSdNumRankTuned"),
@@ -578,6 +580,9 @@ _ARM_TEX: dict[str, str] = {
     "blk2_rotAllTrailSdNumRank_tuned": "Two-block ridge with a full "
     "numerical-rank rotated backbone+exogenous block and causal trailing-SD "
     "factor scores (roundoff-null directions removed; causally tuned)",
+    "blk3_exogSpikeFrozen_tuned": "Pure exogenous spiked-prior model: "
+    "backbone plus broad exogenous block with a rank-40 frozen-factor "
+    "covariance spike (causally tuned)",
     "blk2_frExogRaw_tuned": "Full-rank factorial: exogenous frame, raw "
     "orthogonal rotation (causally tuned)",
     "blk2_frExogFrozen_tuned": "Full-rank factorial: exogenous frame, frozen "
@@ -1040,6 +1045,12 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk2_frExogFrozenShaped_tuned", "blk3_trailGShapedTrailSd"),
     ("blk2_frExogTrailSdShaped_tuned", "blk4_trailGShapedTrailSd"),
     ("blk2_frExogFrozenShaped_tuned", "blk4_trailGShapedTrailSd"),
+    # Pure exogenous spiked-prior P model: ordinary exog ridge control,
+    # product-frame no-product champion, and full-rank exog power-law cells.
+    ("blk3_exogSpikeFrozen_tuned", "blk2_gated_tuned"),
+    ("blk3_exogSpikeFrozen_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk3_exogSpikeFrozen_tuned", "blk2_frExogFrozenShaped_tuned"),
     # Full-rank endpoint/shape diagnostics: total shrinkage vs smooth tail
     # shrinkage, each against the failed flat-grid parent and the K=40 winner.
     ("blk2_rotAllTrailSdWide_tuned", "blk2_rotAllTrailSd_tuned"),
