@@ -247,10 +247,11 @@ These are the first scored runs of this exact specification.
 \texttt{all\_features} --- computed from the same per-bar losses at harvest}
 
 The next two sections extend this estimator one block at a time.
-Section~\ref{sec:nonlinear_product} identifies the nonlinearity the trees
-use, writes it as an explicit product block, and estimates a three-block
-ridge. Section~\ref{sec:transmission} adds a block of factor lead--lag
-transmission features and estimates the final four-block model. In every
+Section~\ref{sec:pca_factors} summarizes the panel by its principal
+directions and adds them as a volatility-scaled factor block, estimating a
+three-block ridge. Section~\ref{sec:nonlinear_product} identifies the
+nonlinearity the trees use, writes it as an explicit product block, and
+estimates the final four-block model. In every
 extension, each block keeps all of its columns, each block carries its own
 fixed penalty, and nothing is selected.
 
@@ -305,7 +306,7 @@ does not resolve.
 \subsection{Can a Factor Summary Replace the Panel?}
 \label{sec:dense_weak_capture}
 
-The transmission results of Section~\ref{sec:transmission} show that
+The results of Section~\ref{sec:pca_factors} show that
 $40$ principal directions of the base features, carried as their own
 block, \emph{add} forecast value. The converse question is whether such
 a summary can \emph{replace} the exogenous block outright. A ladder of
