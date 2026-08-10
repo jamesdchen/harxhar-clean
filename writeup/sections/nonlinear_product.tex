@@ -3,7 +3,10 @@
 
 % Arc: nonlinearity gets its own section. Tree results open it — the tree edge
 % is the tease that motivates the product block of the latest model. Ends with
-% the 3-block ridge: alpha=1 target-HAR + alpha=100 linear exog block +
+% the 4-block ridge: alpha=1 target-HAR + alpha=100 linear exog block +
+% (arc reordered 2026-08-10: PCA factor block is now rung 3, products rung 4;
+%  the blk3/blk4 macro names below still key the scorer's arm registry and
+%  must be re-frozen under the new ladder at harvest)
 % alpha=1000 product block.
 % Base text: drafts_2026-07-30/linear_vs_nonlinear.tex (nonlinear half),
 % reference/sections/linear_vs_nonlinear.tex (tree premium, saturation at
@@ -20,9 +23,9 @@ the pairwise part to products of columns the panel already contains, gated
 on the session clock. Third, those products are written down as explicit
 columns, appended to the linear design, and shrunk as a block of their own
 (Section~\ref{sec:product_block}). The section ends with the resulting
-three-block ridge, the second rung of the block ladder this paper builds
-(two blocks in Section~\ref{sec:dense_weak}, four in
-Section~\ref{sec:transmission}).
+four-block ridge, the final rung of the block ladder this paper builds
+(two blocks in Section~\ref{sec:dense_weak}, three in
+Section~\ref{sec:pca_factors}).
 
 \subsection{The Tree Edge}
 \label{sec:tree_edge}
@@ -262,7 +265,7 @@ coefficient $\tilde{\beta}$ on a scaled column corresponds to
 $\beta = \sqrt{\alpha_1/\alpha_b}\,\tilde{\beta}$ on the raw column, and
 the shared penalty $\alpha_1 \|\tilde{\beta}\|^2$ on the scaled
 coefficients equals the per-block penalties $\alpha_b \|\beta\|^2$ on the
-raw coefficients. After scaling, the three-block estimator runs in the same
+raw coefficients. After scaling, the four-block estimator runs in the same
 exact rank-one rolling least-squares path as every other linear model in
 this paper, refit at every bar. Setting $\beta_3 = 0$ recovers the
 two-block model exactly.
@@ -279,24 +282,24 @@ between $\alpha_2$ and $\alpha_3$ is the ratio the study's own ladder
 selected on its panel. No penalty was chosen by grid search on the
 evaluation loss.
 
-The campaign executor runs the three-block arm under two conventions. The
+The campaign executor runs the four-block arm under two conventions. The
 stated convention is Equation~\eqref{eq:three_block} at a $24{,}000$-bar
 ($500$-day) rolling fit window: penalties
 $(\alpha_1, \alpha_2, \alpha_3) = (1, 100, 1000)$. The documented
 convention pins $(1, 3\times10^{3}, 3\times10^{4})$ at a $12{,}000$-bar
-($250$-day) window. Under the stated convention the three-block ridge
+($250$-day) window. Under the stated convention the four-block ridge
 scores QLIKE \unifBlkThreeUserQLIKE{}, with Diebold--Mariano
 \unifBlkThreeUserDM{} against the OLS--HAR incumbent; under the
 documented convention it scores \unifBlkThreeDocQLIKE{} at
 \unifBlkThreeDocDM{}. The product-block \emph{increment} --- the paired
-per-bar comparison of the three-block against the two-block ridge on the
+per-bar comparison of the four-block against the three-block ridge on the
 same rows --- is $\Delta\mathrm{QLIKE} = $ \unifIncrBlkThreeUserDQ{} at
 DM \unifIncrBlkThreeUserDM{} under the stated convention, and
 \unifIncrBlkThreeDocDQ{} at \unifIncrBlkThreeDocDM{} under the documented
 one; under causal per-block tuning, \unifIncrBlkThreeTunedDQ{} at
 \unifIncrBlkThreeTunedDM{}.
-\decide{whether the three-block table, once run, reports the tree arms
-alongside it --- the natural closing comparison is the three-block ridge
+\decide{whether the four-block table, once run, reports the tree arms
+alongside it --- the natural closing comparison is the four-block ridge
 against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
 i.e.\ whether naming the tree's structure recovers the tree's level within
 the linear class}

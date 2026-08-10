@@ -5,23 +5,40 @@
 
 Table~\ref{tab:master} lists every arm of the unification campaign: one
 frozen panel (Section~\ref{sec:data_prep}), one scoring contract
-(Section~\ref{sec:smearing}), every arm scored on the identical rows.
-QLIKE is the pooled contract loss; $\Delta$ is against the benchmark; DM
-is the Diebold--Mariano $t$-statistic of the per-bar loss differential
-against the benchmark. Product- and transmission-block arms with a
-$24{,}000$-bar window are scored from the first row outside their frozen
-selection and frame windows.
+(Section~\ref{sec:smearing}). QLIKE is the pooled contract loss;
+$\Delta$ is the \emph{paired} mean per-bar loss differential against the
+benchmark, and DM its Diebold--Mariano $t$-statistic, both computed on the
+row intersection of the two arms. Product- and transmission-block arms
+with a $24{,}000$-bar window are scored from the first row outside their
+frozen selection and frame windows. \textbf{Protocol note.} Two row sets
+appear in this table: arms run under the original scoring protocol and
+arms run under the \texttt{oos\_mult=2} protocol (chunks 9--99,
+$248{,}686$ rows), which excludes the earliest out-of-sample period.
+Pooled QLIKE \emph{levels} are not comparable across protocols --- the
+excluded rows carry above-average loss, so \texttt{oos\_mult=2} arms
+read mechanically lower. The $\Delta$ and DM columns are paired on
+common rows and are comparable throughout; level comparisons should be
+made only within a protocol. The gated two-block ridge and the
+\emph{trail}-family arms are the \texttt{oos\_mult=2} panel.
 
-\begin{table}[H]
-\centering
-\small
+{\small
 \setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}lrrr@{}}
 \caption{All campaign arms under the frozen panel and scoring contract.}
-\label{tab:master}
-\begin{tabular}{@{}lrrr@{}}
+\label{tab:master}\\
 \toprule
 Model & QLIKE & $\Delta$ & DM $t$ \\
 \midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\emph{Table \ref{tab:master} (continued)}} \\
+\toprule
+Model & QLIKE & $\Delta$ & DM $t$ \\
+\midrule
+\endhead
+\midrule \multicolumn{4}{r}{\emph{continued}} \\
+\endfoot
+\bottomrule
+\endlastfoot
 \multicolumn{4}{@{}l}{\emph{Benchmark}} \\
 OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & --- \\
 \midrule
@@ -81,6 +98,11 @@ Four-block ridge (trailing, factor levels only) & \unifBlkFourTrailGQLIKE{} & \u
 Four-block ridge (trailing, lead--lag flow only) & \unifBlkFourTrailGhatQLIKE{} & \unifBlkFourTrailGhatDelta{} & \unifBlkFourTrailGhatDM{} \\
 Four-block ridge (trailing transmission, per-block causal tuning) & \unifBlkFourTrailTunedQLIKE{} & \unifBlkFourTrailTunedDelta{} & \unifBlkFourTrailTunedDM{} \\
 \midrule
+\multicolumn{4}{@{}l}{\emph{Block ridges, \texttt{oos\_mult=2} protocol (248{,}686 rows)}} \\
+Two-block ridge (gated rows, per-block causal tuning) & \unifBlkTwoGatedTunedQLIKE{} & \unifBlkTwoGatedTunedDelta{} & \unifBlkTwoGatedTunedDM{} \\
+Three-block ridge (volatility-gated PCA adapter) & \unifBlkThreeTrailGShapedTrailSdQLIKE{} & \unifBlkThreeTrailGShapedTrailSdDelta{} & \unifBlkThreeTrailGShapedTrailSdDM{} \\
+Four-block ridge (adapter $+$ products, champion) & \unifBlkFourTrailGShapedTrailSdQLIKE{} & \unifBlkFourTrailGShapedTrailSdDelta{} & \unifBlkFourTrailGShapedTrailSdDM{} \\
+\midrule
 \multicolumn{4}{@{}l}{\emph{Single-block diagnostics}} \\
 HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifProductAloneUserDelta{} & \unifProductAloneUserDM{} \\
 HAR $+$ product block only (documented) & \unifProductAloneDocQLIKE{}  & \unifProductAloneDocDelta{}  & \unifProductAloneDocDM{} \\
@@ -104,9 +126,8 @@ Transmission base excluding cadence-heterogeneous aggregates & \unifBlkFourTrail
 Benchmark, exogenous-state variance conditioning & \unifCondVarBenchQLIKE{} & \unifCondVarBenchDelta{} & \unifCondVarBenchDM{} \\
 Benchmark, backbone-only variance conditioning & \unifCondVarBenchLevelQLIKE{} & \unifCondVarBenchLevelDelta{} & \unifCondVarBenchLevelDM{} \\
 Best model, exogenous-state variance conditioning & \unifCondVarChampQLIKE{} & \unifCondVarChampDelta{} & \unifCondVarChampDM{} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\end{longtable}
+}
 
 \section{Smear-Convention Sensitivity, All Arms}
 \label{sec:appendix_sensitivity}
