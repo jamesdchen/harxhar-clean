@@ -120,6 +120,15 @@ blk2_frAllFrozen_tuned-vs-blk2_gated_tuned,unification,248686,True,-0.0002398048
 blk2_frExogFrozen_tuned-vs-blk4_trailGShapedTrailSd,unification,248686,True,0.0008672033776,2.20711
 blk2_frAllFrozen_tuned-vs-blk4_trailGShapedTrailSd,unification,248686,True,0.0008693855426,2.23571
 blk2_frExogFrozen_tuned-vs-blk3_trailGShapedTrailSd,unification,248686,True,0.0001194088566,0.665063
+blk2_frExogTrailSdShaped_tuned-vs-blk2_frExogTrailSd_tuned,unification,248686,True,0.0006945045058,3.71732
+blk2_frExogFrozenShaped_tuned-vs-blk2_frExogFrozen_tuned,unification,248686,True,0.001578086179,8.02131
+blk2_frExogTrailSdShaped_tuned-vs-blk2_frExogFrozenShaped_tuned,unification,248686,True,-0.0004091868521,-1.31783
+blk2_frExogTrailSdShaped_tuned-vs-blk2_gated_tuned,unification,248686,True,0.0009269123107,3.27486
+blk2_frExogFrozenShaped_tuned-vs-blk2_gated_tuned,unification,248686,True,0.001336099163,6.91716
+blk2_frExogTrailSdShaped_tuned-vs-blk3_trailGShapedTrailSd,unification,248686,True,0.001288308183,4.60847
+blk2_frExogFrozenShaped_tuned-vs-blk3_trailGShapedTrailSd,unification,248686,True,0.001697495036,7.13019
+blk2_frExogTrailSdShaped_tuned-vs-blk4_trailGShapedTrailSd,unification,248686,True,0.002036102704,4.13061
+blk2_frExogFrozenShaped_tuned-vs-blk4_trailGShapedTrailSd,unification,248686,True,0.002445289557,5.0494
 blk2_rotAllTrailSdWide_tuned-vs-blk2_rotAllTrailSd_tuned,unification,5526,False,-13.38275142,-21.7904
 blk2_rotAllTrailSdWide_tuned-vs-blk2_gated_tuned,unification,5526,False,0.5856431202,21.8776
 blk2_rotAllTrailSdShaped_tuned-vs-blk2_rotAllTrailSd_tuned,unification,5526,False,-13.77210084,-23.0492

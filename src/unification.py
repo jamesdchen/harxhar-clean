@@ -4790,6 +4790,24 @@ ARMS: dict[str, ArmSpec] = {
         grid="cyclic",
         oos_mult=2,
     ),
+    "blk2_frExogTrailSdShaped_tuned": ArmSpec(
+        describe="POWER-LAW TRANSFER TEST: full-rank exog_all frame, causal "
+        "trailing-SD factor scores, numerical-rank rule, and the champion's "
+        "wide rank-shaped transmission penalty; raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_trailsd", "trans_shaped_wide")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
+    "blk2_frExogFrozenShaped_tuned": ArmSpec(
+        describe="full-rank refinement: exog_all frame, frozen mean/SD factor "
+        "scores, numerical-rank rule, and the same wide rank-shaped transmission "
+        "penalty; raw backbone separate, cyclic tuning",
+        kind="blocks_tuned",
+        blocks=[("backbone", "backbone"), ("fr_exog_frozen", "trans_shaped_wide")],
+        grid="cyclic",
+        oos_mult=2,
+    ),
     "blk2_frProdRaw_tuned": ArmSpec(
         describe="full-rank factorial: transmission/product-base frame, RAW "
         "orthogonal rotation, numerical-rank rule, raw backbone separate, cyclic tuning",

@@ -169,6 +169,8 @@ _LEGAL_MISSING: dict[str, set[int]] = {
         "blk2_frExogRaw_tuned",
         "blk2_frExogFrozen_tuned",
         "blk2_frExogTrailSd_tuned",
+        "blk2_frExogTrailSdShaped_tuned",
+        "blk2_frExogFrozenShaped_tuned",
         "blk2_frProdRaw_tuned",
         "blk2_frProdFrozen_tuned",
         "blk2_frProdTrailSd_tuned",
@@ -368,6 +370,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk2_frExogRaw_tuned", "BlkTwoFrExogRawTuned"),
     ("blk2_frExogFrozen_tuned", "BlkTwoFrExogFrozenTuned"),
     ("blk2_frExogTrailSd_tuned", "BlkTwoFrExogTrailSdTuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "BlkTwoFrExogTrailSdShapedTuned"),
+    ("blk2_frExogFrozenShaped_tuned", "BlkTwoFrExogFrozenShapedTuned"),
     ("blk2_frProdRaw_tuned", "BlkTwoFrProdRawTuned"),
     ("blk2_frProdFrozen_tuned", "BlkTwoFrProdFrozenTuned"),
     ("blk2_frProdTrailSd_tuned", "BlkTwoFrProdTrailSdTuned"),
@@ -580,6 +584,11 @@ _ARM_TEX: dict[str, str] = {
     "mean/SD factor scores (causally tuned)",
     "blk2_frExogTrailSd_tuned": "Full-rank factorial: exogenous frame, causal "
     "trailing-SD factor scores (causally tuned)",
+    "blk2_frExogTrailSdShaped_tuned": "Power-law transfer test: exogenous "
+    "frame, causal trailing-SD full-rank scores, rank-shaped penalty "
+    "(causally tuned)",
+    "blk2_frExogFrozenShaped_tuned": "Full-rank refinement: exogenous frame, "
+    "frozen scores, rank-shaped penalty (causally tuned)",
     "blk2_frProdRaw_tuned": "Full-rank factorial: product-base frame, raw "
     "orthogonal rotation (causally tuned)",
     "blk2_frProdFrozen_tuned": "Full-rank factorial: product-base frame, "
@@ -1019,6 +1028,18 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("blk2_frExogFrozen_tuned", "blk4_trailGShapedTrailSd"),
     ("blk2_frAllFrozen_tuned", "blk4_trailGShapedTrailSd"),
     ("blk2_frExogFrozen_tuned", "blk3_trailGShapedTrailSd"),
+    # POWER-LAW TRANSFER: does the K=40 trailing-SD mechanism move onto the
+    # exogenous full-rank rotation, and does the best frozen cell need an
+    # explicit power-law tail penalty?
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_frExogTrailSd_tuned"),
+    ("blk2_frExogFrozenShaped_tuned", "blk2_frExogFrozen_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_frExogFrozenShaped_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogFrozenShaped_tuned", "blk2_gated_tuned"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_frExogFrozenShaped_tuned", "blk3_trailGShapedTrailSd"),
+    ("blk2_frExogTrailSdShaped_tuned", "blk4_trailGShapedTrailSd"),
+    ("blk2_frExogFrozenShaped_tuned", "blk4_trailGShapedTrailSd"),
     # Full-rank endpoint/shape diagnostics: total shrinkage vs smooth tail
     # shrinkage, each against the failed flat-grid parent and the K=40 winner.
     ("blk2_rotAllTrailSdWide_tuned", "blk2_rotAllTrailSd_tuned"),
@@ -2410,6 +2431,8 @@ def main(argv: list[str] | None = None) -> int:
             "blk2_frExogRaw_tuned",
             "blk2_frExogFrozen_tuned",
             "blk2_frExogTrailSd_tuned",
+            "blk2_frExogTrailSdShaped_tuned",
+            "blk2_frExogFrozenShaped_tuned",
             "blk2_frProdRaw_tuned",
             "blk2_frProdFrozen_tuned",
             "blk2_frProdTrailSd_tuned",
