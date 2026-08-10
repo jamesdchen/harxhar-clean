@@ -376,12 +376,12 @@ _REGISTRY: list[tuple[str, str]] = [
     ("blk3_exogSpikeFrozen_tuned", "BlkThreeExogSpikeFrozenTuned"),
     ("blk3_exogSpikeTrailSd_tuned", "BlkThreeExogSpikeTrailSdTuned"),
     ("blk3_prodSpikeFrozen_tuned", "BlkThreeProdSpikeFrozenTuned"),
-    ("blk3_prodNoCrossSpikeFrozen_tuned", "Blk3ProdNoCrossSpikeFrozenTuned"),
-    ("blk3_prodNoHarSpikeFrozen_tuned", "Blk3ProdNoHarSpikeFrozenTuned"),
-    ("blk3_prodNoSessionSpikeFrozen_tuned", "Blk3ProdNoSessionSpikeFrozenTuned"),
-    ("blk3_prodValuesSpikeFrozen_tuned", "Blk3ProdValuesSpikeFrozenTuned"),
-    ("blk3_prodBlockPermSpikeFrozen_tuned", "Blk3ProdBlockPermSpikeFrozenTuned"),
-    ("blk4_prodSpikeFrozen_tuned", "Blk4ProdSpikeFrozenTuned"),
+    ("blk3_prodNoCrossSpikeFrozen_tuned", "BlkThreeProdNoCrossSpikeFrozenTuned"),
+    ("blk3_prodNoHarSpikeFrozen_tuned", "BlkThreeProdNoHarSpikeFrozenTuned"),
+    ("blk3_prodNoSessionSpikeFrozen_tuned", "BlkThreeProdNoSessionSpikeFrozenTuned"),
+    ("blk3_prodValuesSpikeFrozen_tuned", "BlkThreeProdValuesSpikeFrozenTuned"),
+    ("blk3_prodBlockPermSpikeFrozen_tuned", "BlkThreeProdBlockPermSpikeFrozenTuned"),
+    ("blk4_prodSpikeFrozen_tuned", "BlkFourProdSpikeFrozenTuned"),
     ("blk2_trailGShapedTrailSd", "BlkTwoTrailGShapedTrailSd"),
     ("blk2_rotAllTrailSd_tuned", "BlkTwoRotAllTrailSdTuned"),
     ("blk2_rotAllTrailSdNumRank_tuned", "BlkTwoRotAllTrailSdNumRankTuned"),
@@ -1260,6 +1260,7 @@ class ArmResult:
     masked_col_events: int = 0
     dropped_col_events: int = 0
     dm_t: float | None = None
+    delta_join: float | None = None  # paired mean loss differential vs a0 on the row_id intersection
     oos_r2: float | None = None
     mz_alpha: float | None = None
     mz_beta: float | None = None
@@ -1982,6 +1983,9 @@ def _compare_vs_a0(res: ArmResult, a0: ArmResult) -> None:
         )
     if len(common) == 0:
         return
+    _d = res.loss[ia] - a0.loss[ib]
+    _dm = np.isfinite(_d)
+    res.delta_join = float(np.mean(_d[_dm])) if _dm.any() else None
     dm = dm_test(res.loss[ia], a0.loss[ib], h=1)  # repo DM utility, reused exactly
     if np.isfinite(dm.get("dm", float("nan"))):
         res.dm_t = float(dm["dm"])
@@ -2081,11 +2085,20 @@ def _macro_lines(
             _fmt(r.dm_t, "+.1f") if done and r.dm_t is not None else pend(arm),
         )
         # Delta vs a0 (signed, 5 dec) — wired directly into section tables.
-        delta_ok = done and r.qlike is not None and a0q is not None
-        emit(
-            f"unif{camel}Delta",
-            _fmt(r.qlike - a0q, "+.5f") if delta_ok else pend(arm),
-        )
+        # Paired on the row_id intersection whenever the join ran (it always
+        # does when both arms are present); the pooled difference is only a
+        # fallback. This makes Delta honest across mixed row sets (the
+        # oos_mult=2 protocol excludes the earliest OOS rows, so pooled
+        # QLIKE levels are NOT cross-protocol comparable; paired Delta and
+        # DM are).
+        if done and r.delta_join is not None:
+            emit(f"unif{camel}Delta", _fmt(r.delta_join, "+.5f"))
+        else:
+            delta_ok = done and r.qlike is not None and a0q is not None
+            emit(
+                f"unif{camel}Delta",
+                _fmt(r.qlike - a0q, "+.5f") if delta_ok else pend(arm),
+            )
     # Smear-sensitivity rank stability: Kendall tau of each alternative
     # convention's arm ranking against the contract's, over completed arms.
     pend_tau = r"\pending{smear sensitivity awaiting harvest}"

@@ -1,0 +1,12 @@
+#!/bin/bash
+#$ -N a0_fill
+#$ -cwd
+#$ -l h_data=8G,h_rt=1:00:00
+#$ -t 76-99
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY experiments/run_unification_batch.py --arm a0_ols_har --chunks "$SGE_TASK_ID" --output-dir results/unification --solver rank2
