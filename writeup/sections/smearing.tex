@@ -133,19 +133,105 @@ the harvest accounting.
 \emph{Relation to the literature.} Standard practice corrects the
 back-transform with a \emph{static} scalar: the analytic log-normal
 factor $\exp(\hat\sigma^2_\varepsilon / 2)$ of the log-RV literature,
-extended by \citet{BekiermanManner2018} with the state variance of
-their state-space HAR, or \citet{Duan1983}'s nonparametric mean of the
-exponentiated residuals. Whether the correction is worth applying at
-all is contested: \citet{DemetrescuGolosnoyTitova2020} compare bias
-corrections for exponentially transformed forecasts, find none
-uniformly best, and recommend skipping the correction under high
-persistence. The origin of the second moment's predictability is the
-realized estimator's own measurement error
+deployed since \citet{AndersenBollerslevDieboldLabys2003}'s
+lognormal--normal mixture and extended by \citet{BekiermanManner2018}
+with the state variance of their state-space HAR, or
+\citet{Duan1983}'s nonparametric mean of the exponentiated residuals.
+Whether the correction is worth applying at all is contested:
+\citet{DemetrescuGolosnoyTitova2020} compare bias corrections for
+exponentially transformed forecasts, find none uniformly best, and
+recommend skipping the correction under high persistence;
+\citet{HalbleibVoev2011} reach a parallel conclusion in the
+multivariate case, finding parsimonious uncorrected forecasts best.
+The origin of the second moment's predictability is the realized
+estimator's own measurement error
 \citep{AsaiMcAleerMedeiros2012}, whose variance scales with the
-volatility level. To our knowledge no existing convention lets the
-correction itself track that level; Equation~\eqref{eq:var_ewma} is
-exactly the standard scalar correction with its level allowed to adapt
-causally, and the static scalar is recovered at $\lambda = 1$.
+volatility level.
+
+Time-varying second moments are nonetheless standard \emph{inside}
+transform-scale models, and each ingredient of the adaptive correction
+has a precedent. Volatility clustering in the residuals of
+realized-variance models motivates GARCH$(1,1)$ innovation variances
+in the HAR-GARCH of \citet{CorsiMittnikPigorschPigorsch2008} ---
+under a log-scale specification the retransformation factor becomes
+$\exp(m_t + h_t/2)$ in place of $\exp(m_t + \hat\sigma^2/2)$ ---
+with \citet{BollerslevKretschmerPigorschTauchen2009} modeling log
+bipower variation and \citet{CiarretaZarraga2016} the Spanish
+intraday electricity market with the same device. Inside log-variance
+GARCH models the Jensen gap is handled by construction, at a price:
+converting $\mathbb{E}[\log \sigma^2_{t+h} \mid \mathcal{F}_t]$
+forecasts to $\mathbb{E}[\sigma^2_{t+h} \mid \mathcal{F}_t]$ requires
+the full $h$-step predictive distribution, approximated by Monte Carlo
+convolution of the one-step predictives
+\citep{AndersenBollerslevChristoffersenDiebold2006}. The multivariate
+analogue of the smearing factor is exact: \citet{ChiriacVoev2011}
+forecast the Cholesky factors of realized covariance matrices and
+derive the analytic second-moment correction from the forecast-error
+covariance. Outside finance, \citet{Manning1998} shows that under
+heteroscedastic log-scale errors the scalar \citet{Duan1983} factor is
+biased and must be replaced by a retransformation conditional on an
+estimated variance function; \citet{ManningMullahy2001} find the
+conditional correction consistent but cumbersome enough to recommend
+sidestepping the back-transform entirely.
+
+What we have not found is the correction used as a post-hoc
+\emph{contract}: a causal second-moment model of an arbitrary
+forecaster's own residuals, applied uniformly across heterogeneous
+model classes at evaluation time. In every precedent above the
+time-varying second moment is estimated jointly within one model's
+likelihood and serves that model's own forecasts.
+Equation~\eqref{eq:var_ewma} is the standard scalar correction with
+its level allowed to adapt causally --- the static scalar is recovered
+at $\lambda = 1$ --- and Equation~\eqref{eq:var_garch} below is the
+HAR-GARCH device re-purposed as an evaluation layer.
+
+\emph{A mean-reverting refinement of the recursion.} The volatility
+clustering that motivates \citet{CorsiMittnikPigorschPigorsch2008} is
+present in this panel's residuals: the autocorrelation of $e_t^2$ is
+$0.15$ at lag one and decays to zero within roughly one hundred bars.
+A mean-reverting GARCH$(1,1)$ second moment,
+\begin{equation}
+    \hat{\sigma}^2_t
+    = \hat\omega_k + \hat{A}_k\, e_{t-1}^2
+      + \hat{B}_k\, \hat{\sigma}^2_{t-1},
+    \qquad
+    \hat\omega_k = (1 - \hat{A}_k - \hat{B}_k)\,\bar{e}^2_{k-1},
+    \label{eq:var_garch}
+\end{equation}
+anchors the recursion to $\bar{e}^2_{k-1}$, the previous year's mean
+squared residual, so the process reverts to a causally estimated level
+instead of integrating shocks permanently; the EWMA of
+Equation~\eqref{eq:var_ewma} is the integrated special case
+($\hat\omega = 0$, $\hat{B} = \lambda$). The pair
+$(\hat{A}_k, \hat{B}_k)$ is re-selected at each year boundary by
+scored QLIKE on the previous year over a coarse grid
+($\hat{A} \in \{0.02, 0.05, 0.1, 0.15, 0.2, 0.3\}$,
+$\hat{B} \in \{0.2, \dots, 0.9\}$), and the recursion is seeded from
+the previous year's terminal state; every quantity applied in year $k$
+is a function of data through year $k-1$. Selections concentrate at
+persistent mean-reverting dynamics: $\hat{A} = 0.3$, the top of the
+grid, in most years, with $\hat{B}$ between $0.2$ and $0.6$, so
+$\hat{A} + \hat{B}$ lies between $0.5$ and $0.9$. Paired against the
+EWMA on identical bars, the refinement improves the benchmark's pooled
+QLIKE from $0.22072$ to $0.21842$ --- $\Delta\mathrm{QLIKE}$
+$-0.00230$ at DM $-9.10$, the paired differential negative in $21$ of
+$23$ years --- and improves the paper's best mean model from
+$0.21386$ to $0.21044$ --- $\Delta\mathrm{QLIKE}$ $-0.00342$ at DM
+$-6.00$, negative in $21$ of $23$ years.\footnote{The shootout's EWMA
+comparator runs one continuous recursion seeded at the first scored
+year for a like-for-like race, so its pooled levels differ slightly
+from the frozen contract's headline levels, which re-seed at every
+window boundary; the paired differentials are unaffected.} That the
+gain is at least as large on the stronger mean model argues that the
+harvestable structure is volatility-of-volatility in the target, in
+the sense of \citet{CorsiMittnikPigorschPigorsch2008}, rather than an
+artifact of a weak conditional mean. The deployed contract
+nevertheless retains the EWMA of Equation~\eqref{eq:var_ewma}: it has
+a single parameter on a flat optimum and no yearly selection step, and
+promoting the refinement would be a change of contract in the sense of
+Section~\ref{sec:smearing_contract}, requiring a re-score of every
+comparison that inherits it. Equation~\eqref{eq:var_garch} is reported
+as an available upgrade, not adopted.
 
 \emph{Calibration burn-in.} The first evaluation window of each arm is
 the calibration burn-in, parallel to the feature construction's burn-in
