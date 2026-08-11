@@ -47,6 +47,15 @@ import pandas as pd
 
 GO_LIVE_TIME = "00:00"  # next-day boundary, exchange time; see module docstring
 CHANNEL_PREFIX = "opt_"
+# A daily feature row is legitimate for the session after its go-live, over
+# weekends, and over short holidays --- but NOT indefinitely. Without a
+# staleness cutoff, merge_asof carries a dead feed's last print forward
+# forever (the exact failure the panel's availability discipline documents:
+# the vol_demand feed died 2023-08-31 and read as alive for eight months).
+# Five calendar days covers a long weekend plus margin; beyond it the channel
+# reads NaN, and the downstream availability indicator correctly reports the
+# feed as not publishing.
+MAX_STALENESS = pd.Timedelta(days=5)
 
 
 def _go_live_index(dates: pd.DatetimeIndex, go_live_time: str) -> pd.Series:
@@ -60,6 +69,7 @@ def attach_daily_to_bars(
     feat: pd.DataFrame,
     bar_times: pd.DatetimeIndex,
     go_live_time: str = GO_LIVE_TIME,
+    max_staleness: pd.Timedelta = MAX_STALENESS,
 ) -> pd.DataFrame:
     """Attach date-keyed options features to panel bars under the go-live rule.
 
@@ -110,6 +120,12 @@ def attach_daily_to_bars(
             f"causality violation: {int((~ok).sum())} bars carry features "
             f"published after the bar (first: {list(bad)})"
         )
+
+    # -- Staleness cutoff: a feed that stops publishing stops existing. --
+    age = merged.index.to_series().subtract(merged["_live_ts"])
+    stale = merged["_live_ts"].notna() & (age > max_staleness)
+    if bool(stale.any()):
+        merged.loc[stale, channels] = np.nan
     return merged
 
 
