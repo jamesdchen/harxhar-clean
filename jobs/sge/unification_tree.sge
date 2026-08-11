@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -N unif_tree
 #$ -cwd
-#$ -l h_data=8G,h_rt=8:00:00
-#$ -pe shared 4
+#$ -l h_data=8G,h_rt=16:00:00
+
 #$ -t 1-100
 #$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
 #$ -j y

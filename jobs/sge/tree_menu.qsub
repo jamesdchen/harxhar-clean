@@ -1,0 +1,43 @@
+#!/bin/bash
+#$ -N tree_menu
+#$ -cwd
+#$ -l h_data=8G,h_rt=6:00:00
+
+#$ -t 1-8
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Tree menu study worker (Hoffman2): 8 workers x 8 cores (h_data is PER SLOT
+# on H2: 8 x 4G = 32G/worker), both families, shared Optuna JournalStorage
+# file backends on H2 scratch (NOT sqlite on NFS). Submit via
+# jobs/submit/tree_menu_h2.sh (warmup + hold).
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=$NSLOTS MKL_NUM_THREADS=$NSLOTS
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+
+# H2 lesson (b): SGE hold_jid RELEASES holds even when the held-on warmup
+# FAILED — so re-verify the cache here, READ-ONLY, before touching anything.
+# H2 lesson (c): workers must NEVER rebuild on a miss (a rebuild stampede is
+# the Bad CRC-32 failure mode that retired H2) — missing/corrupt cache is a
+# hard nonzero exit, not a build trigger.
+CACHE=results/prep_cache_all_features_b2.npz
+$PY - <<EOF || { echo "ABORT: panel cache missing/unloadable ($CACHE) — warmup failed; NOT rebuilding (stampede guard)"; exit 1; }
+import sys, zipfile
+import numpy as np
+try:
+    with zipfile.ZipFile("$CACHE") as zf:
+        names = set(zf.namelist())
+    assert {"X.npy", "y.npy", "baselines.npy", "names.npy"} <= names, names
+    z = np.load("$CACHE", allow_pickle=True)
+    n = int(z["y"].shape[0])          # decompresses y fully: CRC-checked
+    _ = z["baselines"].shape, len(z["names"])
+    print(f"cache verified read-only: {n} rows")
+except Exception as e:
+    print(f"cache verification FAILED: {e}", file=sys.stderr)
+    sys.exit(1)
+EOF
+
+$PY experiments/tree_menu_dev.py \
+    --journal-lgbm /u/scratch/j/jamesdc1/harxhar-clean/results/tree_menu_journal_lgbm.log \
+    --journal-xgb /u/scratch/j/jamesdc1/harxhar-clean/results/tree_menu_journal_xgb.log \
+    --n-trials 24
