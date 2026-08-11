@@ -4,7 +4,8 @@
 % Information -> estimator -> structure. All scored numbers live here,
 % under the contract of Section 3 and the methods of Section 4.
 
-The results run from information to estimator to structure.
+The results proceed from attribution to estimator comparisons to
+nonlinear structure.
 Sections~\ref{sec:buckets} through \ref{sec:joint_bucket} locate the
 signal: per-bucket attribution under an unpenalized estimator, the same
 buckets under shrinkage, and the overlap and joint-bucket evidence.
@@ -97,7 +98,7 @@ verification of the final design (Section~\ref{sec:data_prep}) closes this
 failure mode; under it the aggregates score as reported in
 Table~\ref{tab:buckets}.
 
-\subsection{The Same Buckets under Shrinkage}
+\subsection{Bucket Attribution under Penalized Estimators}
 \label{sec:buckets_tuned}
 
 
@@ -311,7 +312,7 @@ incumbent and than every single bucket; and extracting the buckets'
 combined information therefore requires the shrinkage machinery the
 remainder of the paper develops.
 
-\subsection{Dense but Weak: Lasso versus Ridge}
+\subsection{Lasso versus Ridge}
 \label{sec:dense_weak}
 
 Section~\ref{sec:buckets} established that the exogenous panel carries
@@ -517,7 +518,7 @@ frozen standardization --- several times the size of most increments
 this paper reports --- and it, not the choice of basis, ordering, or
 width, is the largest single design decision in the factor machinery.
 
-\subsection{The Tree Edge}
+\subsection{Gradient-Boosted Trees}
 \label{sec:tree_edge}
 
 The linear results are now in place: the exogenous signal is dense and
@@ -621,7 +622,7 @@ The tree experiments therefore yield a specification statement:
 products of columns the design already contains}. The rest of this section
 constructs that set of products as an explicit feature block.
 
-\subsection{The Final Model}
+\subsection{Three-Block Ridge Results}
 \label{sec:three_block_results}
 
 The campaign executor runs the three-block arm under two conventions. The

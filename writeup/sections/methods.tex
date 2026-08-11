@@ -16,7 +16,7 @@ fitting scale to the variance scale carries an explicit second moment
 estimator of that second moment (Section~\ref{sec:smearing_estimator});
 and the inheritance rule that makes the whole stack binding on every
 downstream comparison (Section~\ref{sec:smearing_contract}). The second
-half defines what is compared: the estimator zoo --- one unpenalized
+half defines what is compared: the estimators --- one unpenalized
 member, the penalized linear family, and two tree ensembles --- with the
 walk-forward protocol and the causal tuning rule every tuned arm obeys
 (Section~\ref{sec:estimators}); the attribution protocol
@@ -108,7 +108,7 @@ estimation-window lengths) are conventions of the panel and estimator
 construction, disclosed where they are defined and never optimized against
 any loss.
 
-\subsection{Why the Back-Transform Needs a Second Moment}
+\subsection{The Back-Transformation Bias}
 \label{sec:smearing_bias}
 
 Every model in this paper is fit on the preprocessed scale. Realized variance
@@ -503,7 +503,7 @@ defect; the mean calibration of Equation~\eqref{eq:mean_calib} absorbs its
 first-order attenuation, it is shared by every arm, and it cancels to
 first order in comparisons.
 
-\subsection{The Contract Every Comparison Inherits}
+\subsection{The Evaluation Contract}
 \label{sec:smearing_contract}
 
 Every forecast in this paper passes through Equation~\eqref{eq:smear_map}
