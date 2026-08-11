@@ -6,8 +6,8 @@ S\&P~500 complex on a near-twenty-four-hour panel running from January
 1998 to April 2024 --- over a quarter million scored half-hour bars,
 most of them outside regular trading hours. The question is not whether
 volatility is predictable; on this panel the target's own lag ladder
-carries the overwhelming share of the predictable variation, and any
-model worth reporting starts there. The questions are what, if anything,
+carries the overwhelming share of the predictable variation; the lag
+ladder is the benchmark throughout. The questions are what, if anything,
 forty-one exogenous channels --- higher-order moments, liquidity,
 cross-sectional aggregates, sentiment, implied volatility, and options
 order flow --- add to that backbone; which estimator class can extract
@@ -25,7 +25,7 @@ cannot distinguish the two produces single-window failures orders of
 magnitude larger than every model-class effect in the paper. The
 preparation pipeline --- availability indicators computed before the
 fill, masked scaling statistics, neutral substitution --- is therefore
-presented as first-class material, with the incident record attached.
+presented in full, with the incident record attached.
 
 The second finding is about evaluation. Models are fit on a
 variance-stabilized scale and scored on the raw variance scale, and the
@@ -51,7 +51,8 @@ information but the cost of forgoing shrinkage. The head-to-head that
 follows locates the structure precisely: ridge beats lasso on every
 design, the lasso's zeroes fall where zeroing is free, and no small set
 of columns or principal directions concentrates the signal. The
-coefficient structure is \emph{dense but weak} --- many nonzero
+coefficient structure is \emph{dense but weak}, the regime of
+\citet{GiannoneLenzaPrimiceri2021} and \citet{ShenXiu2025} --- many nonzero
 coefficients, none large --- and the estimator built for it is a
 two-block ridge: the strong low-dimensional backbone barely penalized,
 the wide exogenous block shrunk two orders of magnitude harder, with
@@ -77,7 +78,7 @@ measures what that selection buys --- repeatedly, less than it costs.
 Tuned elastic nets lose to tuned ridge not because the data prefer dense
 coefficients but because penalty mistakes are cheap for ridge and
 destructive for selectors; a fixed forgetting half-life helps and a
-tuned one destroys the gain; fixed block penalties outperform their
+tuned one eliminates the gain; fixed block penalties outperform their
 causally tuned counterparts. The final model's constants are justified
 individually by measurement and never optimized on evaluation loss.
 

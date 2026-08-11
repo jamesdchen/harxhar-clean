@@ -21,12 +21,13 @@ measures \citep{HansenHuangShek2012}, and multiple-indicator intraday
 structures \citep{EngleGallo2006}. We keep the backbone deliberately
 plain --- per-bar least squares on the lag ladder --- because the paper's
 questions concern what can be added to it, and its strength makes every
-addition honest: on this panel the HAR backbone's coefficients are
+addition a stringent test: on this panel the HAR backbone's coefficients are
 $94$--$97\%$ directionally stable over two decades, so a predictor that
 survives next to it carries information the ladder does not.
 
 \paragraph{Machine learning for volatility and return prediction.}
-Tree ensembles are the empirical workhorse of the recent
+Tree ensembles are the strongest-performing estimators in much of
+the recent
 machine-learning literature in asset pricing and volatility
 \citep{gu2020empirical,christensen2023machine}, with gradient-boosted
 implementations \citep{Ke2017,Chen2016} typically the strongest off the
@@ -41,47 +42,38 @@ the same exact rolling least-squares path as every other arm. The
 product block is therefore a statement about what the trees know, not
 merely a score they achieve.
 
-\paragraph{Regularization geometry.}
-The linear estimators are textbook families --- ridge
+\paragraph{Sparse selection versus dense shrinkage.}
+The linear estimators are standard families --- ridge
 \citep{HoerlKennard1970}, lasso \citep{Tibshirani1996}, elastic net
 \citep{ZouHastie2005}, with the least-angle-regression path
 \citep{Efron2004} behind our exact online lasso solve --- but the
-question they are put to is less standard: not which family predicts
-best on average, but what the head-to-head reveals about how predictive
-coefficients are distributed across hundreds of weakly informative
-columns. The dense-but-weak finding (selection loses; uniform heavy
-shrinkage wins; no low-rank rotation concentrates the signal) is a
-statement about this panel's coefficient geometry, and it is what
-licenses the block-penalty construction. A companion finding is about
-tuning rather than families: on short causal validation tails, the price
-of a hyperparameter mistake is asymmetric across families --- benign for
-ridge, destructive for selectors --- which is why the paper's final
-model carries fixed penalties rather than tuned ones.
-
-\paragraph{Retransformation.}
-Because models are fit on a transformed scale and scored on the variance
-scale, the back-transform is part of the estimator, and its literature
-is reviewed where the protocol is defined
-(Section~\ref{sec:smearing_estimator}). In brief: static scalar
-corrections are standard, from the log-normal factor of
-\citet{AndersenBollerslevDieboldLabys2003} to \citet{Duan1983}'s
-nonparametric smear; their value is contested
-\citep{DemetrescuGolosnoyTitova2020,HalbleibVoev2011}; time-varying
-second moments are standard inside transform-scale models
-\citep{CorsiMittnikPigorschPigorsch2008,BollerslevKretschmerPigorschTauchen2009,CiarretaZarraga2016}
-but always estimated jointly within one model's likelihood; and the
-conditional variant is old outside finance
-\citep{Manning1998,ManningMullahy2001}. The protocol used here --- a
-causal, model-specific second moment applied uniformly at evaluation
-time across heterogeneous model classes --- sits between these poles,
-and the adaptive recursion that beats the retrospective
-\citet{Duan1983} baseline causally is, to our knowledge, new as an
-evaluation-layer convention.
-
-\paragraph{Forecast evaluation.}
-QLIKE is the strictly consistent loss for the conditional variance
-\citep{Patton2011}; comparisons are paired Diebold--Mariano tests
-\citep{DieboldMariano1995} with the small-sample correction of
-\citet{HarveyLeybourneNewbold1997}, and model confidence sets where
-several arms are compared \citep{HansenLundeNason2011}. Calibration is
-read through \citet{MincerZarnowitz1969} regressions.
+question they are put to has a now-substantial literature: whether
+economic signal is concentrated in a few predictors or spread thinly
+across many. \citet{GiannoneLenzaPrimiceri2021} compare sparse and
+dense representations across macro, micro, and finance prediction
+problems and find that the posterior rarely concentrates on a sparse
+model --- sparsity is largely an illusion, and dense methods (ridge,
+factor models) predict best. \citet{KozakNagelSantosh2020} reach the
+parallel conclusion for the cross-section of expected returns, where a
+dense, heavily shrunk stochastic discount factor dominates sparse
+characteristic selections. \citet{ShenXiu2025} supply the estimation
+theory: in the weak-signal regime the zero predictor is asymptotically
+Bayes-optimal, ridge can improve on it while lasso cannot for any
+penalty, and the ranking extends to nonlinear methods (dense random
+forests over sparse boosted trees, $\ell_2$- over $\ell_1$-penalized
+networks); lasso's failure reflects signal \emph{weakness}, not
+necessarily the absence of sparsity. The rare-and-weak detection
+literature \citep{DonohoJin2004} formalizes the underlying phase
+structure, in which a dense regime of individually undetectable
+effects is separated from the sparse regime by a sharp boundary. Our
+head-to-head (Section~\ref{sec:dense_weak}) is the
+intraday-volatility instance of this phenomenon, measured under a
+stricter protocol than the literature's cross-validation standard:
+every penalty is selected causally on a short forward tail, and the
+comparison is scored on a consistent loss. That protocol isolates a
+mechanism the asymptotic results abstract from: on short validation
+tails the price of a hyperparameter mistake is asymmetric across
+families --- benign for ridge, whose loss is flat in the penalty near
+the optimum, destructive for selectors, whose penalty is partly a
+selection dial --- which is why the paper's final model carries fixed
+penalties rather than tuned ones.

@@ -83,8 +83,8 @@ essentially nothing from the stacked design, while the same columns under
 the per-block shrinkage of
 Sections~\ref{sec:dense_weak_twoblock}--\ref{sec:three_block} drive the paper's
 best forecasts. That contrast --- information present, unpenalized joint
-extraction null, shrunk extraction strong --- is this table's central
-message.
+extraction null, shrunk extraction strong --- is the table's central
+finding.
 
 A disclosure attaches to the market-aggregate rows. In earlier passes of
 this campaign both aggregates appeared catastrophically harmful. The cause
@@ -146,8 +146,8 @@ all exogenous (joint) & \unifBrTunedAllFeaturesQLIKE{} & \unifBrTunedAllFeatures
 \end{tabular}
 \end{table}
 
-Two readings follow, and they are the reason this section and the
-estimator comparison belong together.
+Two readings follow, and they motivate presenting the
+attribution and the estimator comparison jointly.
 
 First, \emph{the joint design is now the best design, not the worst}.
 Under minimum-norm least squares the joint arm was indistinguishable
@@ -187,8 +187,8 @@ in all eight designs and in $18$ of $24$ years). The
 difference between the two subsets is $2.9 \times 10^{-3}$ at
 $z = 7.8$.
 
-A result carried by a grid endpoint invites the explanation that the
-grid is too small. Under the correspondence between the elastic net's
+A result carried by a grid endpoint suggests that the grid may be
+too small. Under the correspondence between the elastic net's
 parameterization and a ridge penalty --- an $\ell_2$ weight of $N \alpha
 (1 - \rho)$ on the window gram, with $N = 24{,}000$ and $\rho$ the
 mixing share --- the elastic net's largest expressible $\ell_2$ weight
@@ -198,7 +198,7 @@ $41.3\%$ of its own retunes. The elastic net cannot express the
 shrinkage ridge chooses, and it loses on the bars where it has run out
 of grid.
 
-That explanation is testable and it is false. Re-running every design
+That explanation is testable, and it is rejected. Re-running every design
 with the penalty grid extended to $\alpha = 1$ --- which reaches $6$ to
 $18$ times ridge's selected weight at every mixing value, and contains
 the original grid as a subset --- makes the elastic net
@@ -223,14 +223,19 @@ outright. The same selection error is benign in one family and
 destructive in the other. Selection loses here not because the data
 prefer dense coefficients, but because the price of a hyperparameter
 mistake is asymmetric --- and a short causal validation window
-guarantees such mistakes.
+guarantees such mistakes. This mechanism complements the asymptotic
+analysis of \citet{ShenXiu2025}: their ridge-over-lasso ordering is
+established under oracle or cross-validated tuning, whereas here the
+ordering persists --- and is amplified --- under causal selection on a
+short forward tail, whose mistakes load on exactly the dial the two
+families price differently.
 
 \paragraph{What the trajectories do and do not show.}
 The selected mixing share is bimodal --- $36.7\%$ of retunes at pure
 lasso, $32.5\%$ at the minimum $0.25$, mean $0.64$ --- and the same
-shape appears in every bucket. It is tempting to read this as the
-estimator declining to select. Two measurements argue against that
-reading. Holding $\alpha$ fixed, the mixing share accounts for only
+shape appears in every bucket. One might read this as the estimator
+declining to select; two measurements argue against that
+interpretation. Holding $\alpha$ fixed, the mixing share accounts for only
 $4.2 \times 10^{-4}$ of the deficit, significant in one of eight designs
 and reversing sign at $\alpha = 10^{-4}$; and the selected mixing share
 is unrelated to the volatility regime (Spearman $-0.013$ against the
@@ -280,12 +285,12 @@ catastrophically worse than the incumbent; the deficit traced to
 solution components in near-null directions of the design --- large
 mutually canceling coefficients on nearly duplicate availability-ladder
 columns, which a one-bar feed desynchronization on a forward-filled
-post-early-close ghost bar (December 24, 2020, the only such
+post-early-close bar (December 24, 2020, the only such
 disagreement in over twenty-five thousand bars) turned into a forecast
 of $77.8$ against a target of $0.26$, whose residual the window-level
 correction then spread across its whole window. The minimum-norm
 solution suppresses near-null components by construction, and the
-dead-session grid rule removed the ghost-bar class; under the two
+dead-session grid rule removed this bar class; under the two
 repairs the arm scores as reported.
 
 An independent every-bar robustness design was run on a different panel:
@@ -332,9 +337,11 @@ $304$ of $523$ exogenous columns on the full basis, of which $235$ are dead
 or constant availability indicators
 (Section~\ref{sec:dense_weak_diagnosis}); and five principal components
 retain $72\%$ of the feature variance while losing essentially all of the
-predictive signal (Section~\ref{sec:dense_weak_diagnosis}). The section
-calls this coefficient structure \emph{dense but weak}: many nonzero
-coefficients, none individually large. Section~\ref{sec:dense_weak_twoblock}
+predictive signal (Section~\ref{sec:dense_weak_diagnosis}). The coefficient structure is
+\emph{dense but weak}, in the sense of the sparse-versus-dense
+prediction literature
+\citep{GiannoneLenzaPrimiceri2021,KozakNagelSantosh2020,ShenXiu2025}:
+many nonzero coefficients, none individually large. Section~\ref{sec:dense_weak_twoblock}
 defines the estimator built for this structure: a two-block ridge with
 penalty $\alpha = 1$ on the HAR-of-target block and $\alpha = 100$ on the
 HAR-of-all-features block, with no selection step.
@@ -438,8 +445,9 @@ columns concentrates the signal --- the only columns the lasso can zero
 without raising QLIKE are dead or constant ones; and (ii) no small set of
 principal directions concentrates it. The coefficient structure has many
 small nonzero entries in the coordinate basis and is not low-rank in the
-data's covariance geometry. This is the structure the section labels dense
-but weak.
+data's covariance geometry. This is the dense-but-weak structure of
+\citet{GiannoneLenzaPrimiceri2021}, verified on the solution path
+rather than inferred from the loss ordering.
 
 The two-block ridge scores QLIKE \unifBlkTwoUserQLIKE{}, with
 Diebold--Mariano \unifBlkTwoUserDM{} against the OLS--HAR incumbent. Under
@@ -474,18 +482,18 @@ three-block ridge's \unifBlkThreeTunedQLIKE{}, a paired increment of
 \unifIncrBlkThreeEwFixedHTwelveKDQ{} at DM
 \unifIncrBlkThreeEwFixedHTwelveKDM{}. With $H$ fixed at $3{,}000$ bars
 it is worse (\unifIncrBlkThreeEwFixedHThreeKDQ{} at
-\unifIncrBlkThreeEwFixedHThreeKDM{}), and --- the now-familiar pattern
---- letting the causal tuner \emph{select} $H$ from a grid is worse
+\unifIncrBlkThreeEwFixedHThreeKDM{}), and --- consistent with the penalty-selection
+results above --- letting the causal tuner \emph{select} $H$ from a grid is worse
 still (\unifIncrBlkThreeEwTunedDQ{} at \unifIncrBlkThreeEwTunedDM{}):
 the selected half-life flickers across the entire grid from one retune
 to the next, and the flicker costs several times what the right fixed
 value earns. Mild fixed down-weighting of the oldest half-window helps;
-handing the forgetting rate to a $125$-bar validation tail destroys the
-gain. This is the same asymmetry the penalty comparison of
+selecting the forgetting rate on a $125$-bar validation tail
+eliminates the gain. This is the same asymmetry the penalty comparison of
 Section~\ref{sec:dense_weak_headtohead} measures, appearing on a
 temporal dial.
 
-One negative result belongs beside this. The hypothesis that serial
+We report a related negative result. The hypothesis that serial
 correlation of the residuals explains why validation-selected penalties
 so far exceed in-sample risk-optimal ones was tested and fails on
 measurement: the out-of-sample one-step residuals are nearly white

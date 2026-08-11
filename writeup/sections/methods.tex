@@ -20,7 +20,8 @@ half defines what is compared: the estimators --- one unpenalized
 member, the penalized linear family, and two tree ensembles --- with the
 walk-forward protocol and the causal tuning rule every tuned arm obeys
 (Section~\ref{sec:estimators}); the attribution protocol
-(Section~\ref{sec:attribution}); and the block ladder the paper ends on,
+(Section~\ref{sec:attribution}); and the block ladder culminating in the
+paper's final model,
 from the two-block ridge through the product block to the three-block
 ridge (Sections~\ref{sec:dense_weak_twoblock}--\ref{sec:three_block}).
 Every estimator is fit on the shared panel of
@@ -393,9 +394,9 @@ construction, since the conditional model and the recursion trade on
 the same level channel, and re-scoring the sidecar under the new
 protocol is reserved.
 
-\emph{Which state carries the second moment.} That result invites the
-reading that the exogenous panel predicts forecast uncertainty. A
-control arm rejects it. Conditioning the variance on the backbone alone
+\emph{Which state carries the second moment.} That result might be taken to
+show that the exogenous panel predicts forecast uncertainty; a
+control arm rejects that interpretation. Conditioning the variance on the backbone alone
 --- the autoregressive ladder and calendar dummies, with no exogenous
 column --- improves the benchmark by \unifIncrCondVarBenchLevelDQ{} at
 DM \unifIncrCondVarBenchLevelDM{}, and beats the exogenous-state
@@ -493,7 +494,7 @@ larger upward correction, so the correction is part of each arm's
 forecast, not a shared post-processing constant. With this choice the
 decomposition of Equation~\eqref{eq:second_moment} holds for the
 evaluation target itself, tails included. One bias remains and is stated
-plainly: the \emph{coefficients} of each arm are estimated on the
+explicitly: the \emph{coefficients} of each arm are estimated on the
 winsorized fit target, so the forecast $\hat{y}_t$ itself carries the
 fit-scale clipping. That is a modeling choice rather than a scoring
 defect; the mean calibration of Equation~\eqref{eq:mean_calib} absorbs its
