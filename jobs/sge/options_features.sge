@@ -1,0 +1,35 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -l h_data=16G,h_rt=4:00:00
+#$ -o logs/options_features.o$JOB_ID
+# Options features dry-run: full-chain GEX build -> causal bar attachment ->
+# validated endbartime parquet. Single-slot by design (no -pe: parallel
+# environment requests throttle the queue).
+set -e
+cd /u/scratch/j/jamesdc1/harxhar-clean
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+mkdir -p logs results/gex
+
+echo "=== 1. GEX daily features from the full OptionMetrics chain ==="
+$PY experiments/gex.py \
+    --options data/optionm_spx_chain.parquet \
+    --spot    data/optionm_spx_spot.parquet \
+    --out     results/gex/gex_daily.parquet
+
+echo "=== 2. Causal attachment to the 30-min panel + validation gates ==="
+$PY experiments/build_options_features.py \
+    --features results/gex/gex_daily.parquet \
+    --panel    data/core_stats.parquet \
+    --out      data/options_features.parquet
+
+echo "=== 3. Merge smoke test: load_raw_data picks the parquet up ==="
+$PY - <<'EOF'
+import sys; sys.path.insert(0, ".")
+import pandas as pd
+df = pd.read_parquet("data/options_features.parquet")
+print("options parquet:", df.shape, "| endbartime keyed:", "endbartime" in df.columns)
+print("non-null fractions:")
+print(df.drop(columns="endbartime").notna().mean().round(4).to_string())
+EOF
+echo "options features pipeline complete"

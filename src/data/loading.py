@@ -116,6 +116,16 @@ ALL_FEATURES: list[str] = [
     "ofi_vwstock",
 ]
 
+# Options block (real options data; panel-v4 activation). Date-keyed options
+# features (GEX family + chain aggregates) enter the panel through
+# src/data/options_features.py, which enforces the publication-lag (go-live)
+# rule in code. Registered as their own bucket so new arms can target them,
+# but deliberately NOT appended to ALL_FEATURES: the frozen campaign panel
+# must not change underfoot. ACTIVATION (when the real feed lands): append
+# OPTIONS_FEATURES to ALL_FEATURES, rebuild the panel (new version), re-harvest.
+from src.data.options_features import expected_channels as _opt_channels
+OPTIONS_FEATURES: list[str] = _opt_channels()
+
 # Signed order-flow imbalance, built in ``add_derived_features``: the panel carries buy and sell
 # turnover as separate *levels*, so a linear model can only reach the imbalance as a difference of
 # two coefficients on two columns that are ~0.99 correlated with each other and with total volume.
@@ -178,6 +188,7 @@ SUBGROUPS: dict[str, list[str]] = {
     "sentiment": [f for f in ALL_FEATURES if "stocktwits" in f],
     "implied_vol": [f for f in ALL_FEATURES if "vix" in f],
     "vol_demand": [f for f in ALL_FEATURES if "voldemand" in f],
+    "options": list(OPTIONS_FEATURES),
     "all_features": ALL_FEATURES,
 }
 
