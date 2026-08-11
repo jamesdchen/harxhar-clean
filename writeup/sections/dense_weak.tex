@@ -246,13 +246,11 @@ These are the first scored runs of this exact specification.
 \pending{DM of the two-block ridge against single-penalty ridge on
 \texttt{all\_features} --- computed from the same per-bar losses at harvest}
 
-The next two sections extend this estimator one block at a time.
-Section~\ref{sec:pca_factors} summarizes the panel by its principal
-directions and adds them as a volatility-scaled factor block, estimating a
-three-block ridge. Section~\ref{sec:nonlinear_product} identifies the
+The next section extends this estimator by one block.
+Section~\ref{sec:nonlinear_product} identifies the
 nonlinearity the trees use, writes it as an explicit product block, and
-estimates the final four-block model. In every
-extension, each block keeps all of its columns, each block carries its own
+estimates the final three-block model. The added
+block keeps all of its columns, carries its own
 fixed penalty, and nothing is selected.
 
 \subsection{Time-Weighting the Window}
@@ -303,44 +301,22 @@ validation-selected shrinkage remains attributed to the loss geometry
 the estimator is risk-optimal for --- which this paper measures but
 does not resolve.
 
-\subsection{Can a Factor Summary Replace the Panel?}
-\label{sec:dense_weak_capture}
-
-The results of Section~\ref{sec:pca_factors} show that
-$40$ principal directions of the base features, carried as their own
-block, \emph{add} forecast value. The converse question is whether such
-a summary can \emph{replace} the exogenous block outright. A ladder of
-two-block models --- the backbone plus $K$ rotated directions, $K$ from
-$5$ to the full live rank, under both eigenvalue ordering and a frozen
-predictive ordering, each causally tuned --- measures the distance from
-that goal against the matched two-block model on the full exogenous
-set (\unifBlkTwoGatedTunedQLIKE{} on the same rows).
-
-Three facts emerge. First, the loss curve is flat in $K$: under working
-shrinkage, truncating to five directions costs about the same as keeping
-all of them, so the discarded directions carry little that the penalty
-was not already suppressing. Second, the ordering is immaterial at
-matched $K$ (paired differences insignificant), so the earlier
-appearance that predictive ordering helped was an artifact of an
-under-shrunk estimator, for which truncation was standing in as the
-missing regularization. Third --- and dominating both --- every rung of
-the ladder, \emph{including full rank}, trails the raw exogenous block
-by roughly $2 \times 10^{-3}$
+One further negative result closes the linear discussion. A factor
+summary of the panel cannot replace the exogenous block outright: a
+ladder of two-block models --- the backbone plus $K$ rotated directions
+of the exogenous set, $K$ from $5$ to the full live rank, under both
+eigenvalue and frozen predictive orderings, each causally tuned ---
+trails the matched two-block model on the raw columns by roughly
+$2 \times 10^{-3}$ at every rung, \emph{including full rank}
 (\unifIncrBlkTwoRotVarFullKTunedDQ{} at DM
-\unifIncrBlkTwoRotVarFullKTunedDM{}). At full rank under a uniform
-block penalty a rotation cannot change a ridge fit, so this gap cannot
-be a property of the rotation: it traces to the construction having
+\unifIncrBlkTwoRotVarFullKTunedDM{}). At full rank under a uniform block
+penalty a rotation cannot change a ridge fit, so the gap is not a
+property of the rotation: it traces to the construction having
 re-standardized its inputs by frozen frame-window statistics where the
-production path uses the rolling scaler. The identity was verified
-directly --- rotating the production-scaled columns reproduces the raw
-block's fitted values to $4 \times 10^{-15}$ --- and the ladder is
-being re-estimated on that corrected base. \pending{capture ladder on
-the rolling-scaled base: truncation, rung, indicator, and supervised
-(PLS) increments, each priced against the full block}
-
-The standardization lesson deserves its own sentence, because it has
-now decided two constructions: rolling standardization of the inputs is
-worth on the order of $2 \times 10^{-3}$ against frozen standardization
---- several times the size of most increments this paper reports ---
-and it, not the choice of basis, ordering, or width, is the largest
-single design decision in the factor machinery.
+production path uses the rolling scaler, an identity verified directly
+(rotating the production-scaled columns reproduces the raw block's
+fitted values to $4 \times 10^{-15}$). Rolling standardization of the
+inputs is therefore worth on the order of $2 \times 10^{-3}$ against
+frozen standardization --- several times the size of most increments
+this paper reports --- and it, not the choice of basis, ordering, or
+width, is the largest single design decision in the factor machinery.

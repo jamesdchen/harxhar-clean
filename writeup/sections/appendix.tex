@@ -100,8 +100,8 @@ Four-block ridge (trailing transmission, per-block causal tuning) & \unifBlkFour
 \midrule
 \multicolumn{4}{@{}l}{\emph{Block ridges, \texttt{oos\_mult=2} protocol (248{,}686 rows)}} \\
 Two-block ridge (gated rows, per-block causal tuning) & \unifBlkTwoGatedTunedQLIKE{} & \unifBlkTwoGatedTunedDelta{} & \unifBlkTwoGatedTunedDM{} \\
-Three-block ridge (volatility-gated PCA adapter) & \unifBlkThreeTrailGShapedTrailSdQLIKE{} & \unifBlkThreeTrailGShapedTrailSdDelta{} & \unifBlkThreeTrailGShapedTrailSdDM{} \\
-Four-block ridge (adapter $+$ products, champion) & \unifBlkFourTrailGShapedTrailSdQLIKE{} & \unifBlkFourTrailGShapedTrailSdDelta{} & \unifBlkFourTrailGShapedTrailSdDM{} \\
+Three-block ridge (product block, per-block causal tuning) & \unifBlkThreeProdBbExogTunedQLIKE{} & \unifBlkThreeProdBbExogTunedDelta{} & \unifBlkThreeProdBbExogTunedDM{} \\
+Three-block ridge (volatility-gated product block) & \unifBlkFourProdBbExogTrailSdQLIKE{} & \unifBlkFourProdBbExogTrailSdDelta{} & \unifBlkFourProdBbExogTrailSdDM{} \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Single-block diagnostics}} \\
 HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifProductAloneUserDelta{} & \unifProductAloneUserDM{} \\
