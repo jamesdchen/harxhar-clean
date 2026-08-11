@@ -1,4 +1,43 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-\decide{write once the arc is frozen — base material: drafts\_2026-07-30/conclusion.tex}
+On a quarter-million-bar intraday panel, we asked what exogenous
+information adds to a HAR backbone, what estimator can extract it, and
+what the nonlinearity is made of. The answers form a single chain. The
+exogenous panel carries real, statistically significant information ---
+but the information is spread densely and weakly across hundreds of
+columns, so it is invisible to selection and to unpenalized joint fits,
+and recoverable only by shrinkage. The appropriate shrinkage is
+block-structured: almost none on the strong low-dimensional backbone,
+heavy and uniform on the wide exogenous block. The recoverable
+nonlinearity is a sparse, frozen set of pairwise products gated on the
+session clock, distillable from tree fits into one hundred explicit
+columns, and valuable only when shrunk harder still and refit often. The
+final model is linear in its parameters throughout: three blocks, three
+fixed penalties, one exact rolling solve, and it outperforms the
+benchmark by a margin an order of magnitude beyond the fourth decimal
+place at strong paired significance.
+
+Two findings sit beside the model rather than inside it, and may matter
+more broadly. First, the evaluation contract is a modeling choice: the
+causal calibrated back-transform beats the retrospective Duan convention
+on every arm, and its adaptive second moment --- not any conditional-mean
+device --- is among the largest measured effects in the study. Second,
+causal hyperparameter tuning on short validation tails is repeatedly
+worse than well-chosen constants, because the price of a selection
+mistake is asymmetric across estimator families. Both findings are about
+the discipline surrounding the model, and both are measured, not
+assumed.
+
+The limitations are stated where they bind. Results are computed on one
+asset complex and one loss; levels are comparable only within one
+preprocessing regime and one contract, and arms that survive only under
+the legacy contract are labeled as such in the appendix. Several
+protocol quantities remain marked pending in the text, and the
+conditional-variance panel awaits re-scoring under the current contract.
+The natural extensions are equally concrete: promoting the
+mean-reverting second-moment refinement to the contract (a re-score of
+every comparison); the frozen tree-expert bank, which puts the trees and
+the product block on identical footing; and model confidence sets over
+the feature sets once per-bar losses are persisted. None of these
+changes the chain above; each tightens a link in it.

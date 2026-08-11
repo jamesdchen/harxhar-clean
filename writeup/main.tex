@@ -36,7 +36,7 @@
 % Fallbacks for arms still on the cluster; no-ops once the scorer defines them.
 \input{pending_macros}
 
-\title{\pending{working title — the block-ridge arc}}
+\title{Dense Signals, Sparse Products: Block-Shrunk Forecasts of\\Intraday Realized Variance}
 \author{}
 \date{\today}
 
@@ -45,14 +45,32 @@
 \maketitle
 
 \begin{abstract}
-\pending{abstract — written last, once the arc is frozen}
+We forecast thirty-minute-ahead S\&P 500 realized variance on a
+near-24-hour panel of over a quarter million bars (1998--2024), asking
+what forty-one exogenous channels add to a HAR backbone, which estimator
+can extract it, and what structure the nonlinearity has. Three
+discipline findings precede the model findings: the representation of
+missing and stale data moves accuracy more than any modeling decision;
+the back-transform from the fitting scale to the variance scale is a
+modeling choice, and a calibrated, strictly causal second-moment
+contract beats the retrospective Duan convention on every arm; and
+causal hyperparameter tuning on short validation tails is repeatedly
+worse than measured constants. The exogenous information is real but
+dense and weak: invisible to selection and unpenalized joint fits,
+recoverable only by shrinkage, and optimally handled by a two-block
+ridge with penalties differing by two orders of magnitude. The
+recoverable nonlinearity is a sparse set of frozen pairwise products
+gated on the session clock, distilled from tree fits into explicit
+columns; shrunk as a third block, it yields the final three-block ridge
+--- one exact rolling solve, three fixed penalties --- which improves
+the benchmark at strong paired significance.
 \end{abstract}
 
 \input{sections/introduction}
-\input{sections/data_prep}          % §2 data, preparation, descriptive analysis
+\input{sections/related_works}     % §2 literature: RV, ML, regularization, retransformation
+\input{sections/data_prep}          % §3 data: panel, preparation, descriptive
                                     %    future LSTM-fitted correction wedges into this same slot
-\input{sections/evaluation}         % §3 evaluation framework: benchmark, contract, inheritance
-\input{sections/methods}            % §4 estimators, attribution protocol, block ladder
+\input{sections/methods}            % §4 evaluation framework + estimators + block ladder
 \input{sections/results}            % §5 attribution → dense-weak → tree edge → final model
 \input{sections/conclusion}
 
