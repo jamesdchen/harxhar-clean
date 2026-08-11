@@ -1,190 +1,50 @@
-\subsection{A Dense but Weak Signal: Lasso versus Ridge}
+\subsection{The Two-Block Ridge}
 \label{sec:dense_weak}
-
-% Arc: the lasso-vs-ridge head-to-head is center stage — sparsity loses, dense
-% shrinkage wins, that IS the dense-but-weak diagnosis. Ends with the 2-block
-% ridge: alpha=1 on HAR-of-target + alpha=100 on HAR-of-all_features.
-% Base text: drafts_2026-07-30/linear_vs_nonlinear.tex (linear half).
-
-The preceding subsections established that the exogenous panel carries
-information beyond the HAR lag structure of \citet{Corsi2009}, that no
-single bucket carries much of it, and that the estimator decides whether
-any of it is recovered. This subsection holds the information set
-fixed and varies only the penalty of the linear estimator. Two estimators are
-compared: the lasso \citep{Tibshirani1996}, which applies an $\ell_1$ penalty
-and sets a subset of coefficients to exactly zero, and ridge
-\citep{HoerlKennard1970}, which applies an $\ell_2$ penalty and shrinks all
-coefficients toward zero without setting any to zero. The result of the
-comparison is a property of how the predictive coefficients are distributed
-across the columns of the design. In this section that property is measured
-directly: ridge attains lower out-of-sample QLIKE than the lasso on the
-full design (Section~\ref{sec:dense_weak_headtohead}); the lasso zeroes
-$304$ of $523$ exogenous columns on the full basis, of which $235$ are dead
-or constant availability indicators
-(Section~\ref{sec:dense_weak_diagnosis}); and five principal components
-retain $72\%$ of the feature variance while losing essentially all of the
-predictive signal (Section~\ref{sec:dense_weak_diagnosis}). The section
-calls this coefficient structure \emph{dense but weak}: many nonzero
-coefficients, none individually large. Section~\ref{sec:dense_weak_twoblock}
-defines the estimator built for this structure: a two-block ridge with
-penalty $\alpha = 1$ on the HAR-of-target block and $\alpha = 100$ on the
-HAR-of-all-features block, with no selection step.
-
-\subsubsection{The Head-to-Head}
-\label{sec:dense_weak_headtohead}
-
-\paragraph{Design.}
-The two penalized linear estimators are run on the full feature design ---
-every exogenous column at once --- on one shared out-of-sample panel of
-$n = 218{,}934$ thirty-minute bars, with identical rows in both cells;
-nothing varies between the two arms except the penalty.
-
-\paragraph{Estimators.}
-The design matrix $X$ has one row per bar in the current training window
-and one column per feature: the HAR ladder of the target, the calendar
-features, and the full exogenous block of $523$ columns. Let $y$
-be the vector of targets over the same window, and let $x_s$ denote row $s$
-of $X$. The two estimators solve, at each refit,
-\begin{align*}
-\hat\beta^{\mathrm{ridge}} &= \arg\min_{\beta}
-  \sum_{s} \left( y_s - x_s^\top \beta \right)^2
-  + \alpha \,\lVert \beta \rVert_2^2, \\
-\hat\beta^{\mathrm{lasso}} &= \arg\min_{\beta}
-  \sum_{s} \left( y_s - x_s^\top \beta \right)^2
-  + \lambda \,\lVert \beta \rVert_1,
-\end{align*}
-where the sums run over the bars of the training window and the penalties
-$\alpha$ and $\lambda$ are held constant between the periodic re-selections
-described below. The $\ell_1$ penalty produces a coefficient vector
-supported on a subset of columns; the $\ell_2$ penalty produces a
-coefficient vector with all entries nonzero.
-
-\paragraph{Walk-forward protocol.}
-The panel is computed as 100 walk-forward chunks over a rolling
-500-trading-day ($24{,}000$-bar) training window. Every arm is refit
-\emph{every bar}: at each bar the oldest bar leaves the window, the newest
-enters, and the coefficients are re-estimated before the next forecast is
-issued. Each arm re-selects its own penalty periodically and causally: every
-250 solves, the current training window is split forward into a fit block, a
-25-bar embargo (covering the longest moving average entering the features),
-and a 125-bar validation tail, and the penalty value minimizing validation
-MSE on that tail is adopted. No forecast's hyperparameters ever see its own
-future. The lasso arm is solved as an exact every-bar online homotopy: the
-solution and active set at each bar are obtained by exactly updating the
-previous bar's solution for the one-row change in the window, not by a
-warm-started batch solver terminated at a tolerance, so the head-to-head is
-not confounded with optimization error. The ridge arm runs on an exact
-rank-one update path.
-% Estimator engineering (rank-one algebra, homotopy, BlockRidge solver) is
-% appendix material per the restructure plan.
-
-\paragraph{Comparison protocol.}
-Both arms are compared against the shared incumbent of
-Section~\ref{sec:data_prep}: per-bar OLS on HAR plus calendar features with
-no exogenous inputs, at the benchmark QLIKE of \unifAzeroQLIKE{}. For each
-arm, let $\ell^{\mathrm{arm}}_t$ and
-$\ell^{\mathrm{inc}}_t$ be the per-bar QLIKE losses \citep{Patton2011} of
-the arm and the incumbent at bar $t$, and let
-$d_t = \ell^{\mathrm{arm}}_t - \ell^{\mathrm{inc}}_t$. The Diebold--Mariano
-statistic \citep{DieboldMariano1995} is the sample mean $\bar d$ divided by
-its Newey--West HAC standard error, with the small-sample correction of
-\citet{HarveyLeybourneNewbold1997} applied; a negative $t$ favors the arm.
-\decide{panel unification: this is the frozen causal-tuning battery on the
-$218{,}934$-bar panel; the restructure plan flags that the paper's final
-tables may need this re-run on the paper's one-panel convention}
-
-% Source: drafts_2026-07-30/linear_vs_nonlinear.tex (linear columns of the
-% battery), itself sourced from
-% writeup/metrics_table_causal_tune_plus_spectral.csv (family == 'causal-tuned')
-% cross-checked against writeup/causal_tune_battery_table.tex.
-\paragraph{Result.}
-The comparison is run on the full design --- the HAR ladder, the calendar
-features, and the full exogenous block --- with both estimators under the
-same causal tuning protocol, so that neither family carries an informed
-penalty choice the other lacks
-(Table~\ref{tab:lasso_vs_ridge}). Ridge
-(\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
-incumbent) beats the lasso (\unifBTwoLassoTunedQLIKE{},
-\unifBTwoLassoTunedDM{}), and the elastic net --- the interpolating
-family at the battery's mixed-penalty grid --- lands between the two
-(\unifBThreeEnetTunedQLIKE{}, \unifBThreeEnetTunedDM{}): the loss is
-monotone in how densely the penalty spreads the coefficients. Keeping
-every column and shrinking produces a lower loss than selecting a subset,
-when every family chooses its penalty by the same causal rule.
-
-\begin{table}[H]
-\centering
-\caption{Ridge versus lasso on the full design, out-of-sample QLIKE with
-the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
-parentheses. Unification campaign, $n = 218{,}934$ thirty-minute bars,
-identical rows in every cell; negative $t$ favors the arm. Both arms
-re-select their penalty every $250$ solves from the battery grids on a
-forward validation split.}
-\label{tab:lasso_vs_ridge}
-\begin{tabular}{@{}lccc@{}}
-\toprule
- & Ridge & Elastic net & Lasso \\
-\midrule
-Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
-\midrule
-Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKE{}} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A penalty-level sweep locates where the tuned arms operate. Holding the
-ridge family fixed and varying only the constant, QLIKE falls
-monotonically in $\alpha$
-across the tested grid: $0.23219$ at $\alpha = 0.1$, $0.23159$ at $0.3$,
-$0.23083$ at $1$, $0.23003$ at $3$, and $0.22909$ at $10$, still
-decreasing at the grid's edge; the tuned-ridge arm, which re-selects from
-a grid reaching $\alpha = 1000$, lands below every fixed point. The
-penalty \emph{level} moves the loss by more than the penalty \emph{family}
-does at any fixed level, and the wide design rewards heavier shrinkage
-than the $\alpha = 1$ default --- the direction the block penalties of
-Section~\ref{sec:dense_weak_twoblock} take further. One caveat: all DM
-statistics are computed against the incumbent, a third model, so the
-ridge-minus-lasso differences themselves carry no significance statement
-yet. \pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling
-bound) on the full design, so the head-to-head margin is tested rather
-than pointed at}
-
-\subsubsection{The Diagnosis: Dense, Not Sparse}
-\label{sec:dense_weak_diagnosis}
-
-The lasso's own solution path shows what $\ell_1$ selection does on this
-design. On the full basis the lasso zeroes $304$ of $523$ exogenous columns.
-Of those $304$, $235$ --- $77\%$ --- are dead or constant availability
-indicators. Most of the lasso's selection therefore removes columns that
-carry no signal. Removing such columns does not lower QLIKE relative to
-ridge, because $\ell_2$ shrinkage makes the same columns small without
-making them zero. Where the $\ell_1$ penalty zeroes live columns, QLIKE
-rises: the margin by which ridge beats the lasso is carried by the live
-columns the lasso zeroes, not by the dead ones.
-
-A principal-component check measures whether the spread of coefficients
-across columns is a low-dimensional structure in a rotated basis.
-Truncating the design to five principal components retains $72\%$ of the
-feature variance and loses essentially all of the predictive signal. The
-signal therefore does not lie in the high-variance directions of the
-feature covariance. The measured structure is: (i) no small subset of
-columns concentrates the signal --- the only columns the lasso can zero
-without raising QLIKE are dead or constant ones; and (ii) no small set of
-principal directions concentrates it. The coefficient structure has many
-small nonzero entries in the coordinate basis and is not low-rank in the
-data's covariance geometry. This is the structure the section labels dense
-but weak.
-
-% Source: writeup/paper_restructure_2026-08-01.md (S3 content list: enet on
-% the curated dictionary, light-alpha ties, 60-col free prune, selection that
-% bites hurts +0.005 p=.002). Different basis and scale from the battery panel.
-
-\subsubsection{The Two-Block Ridge}
 \label{sec:dense_weak_twoblock}
 % Endpoint: BlockRidge with block 1 = HAR(target), alpha=1; block 2 =
-% HAR(all_features), alpha=100.
+% HAR(all_features), alpha=100. The former standalone lasso-vs-ridge
+% subsection is blended into this one: the family comparison, the
+% dense-not-sparse diagnosis, and the penalty-level sweep now motivate the
+% estimator directly rather than standing as their own result.
 
-The head-to-head leaves two facts that a single ridge penalty cannot
+\label{sec:dense_weak_headtohead}
+The estimator comparisons above generalize beyond the buckets. On the
+\emph{full} design --- the HAR ladder, the calendar features, and the
+full exogenous block of $523$ columns, all under the causal tuning
+protocol of Table~\ref{tab:buckets} so that no family carries an
+informed penalty choice another lacks --- the loss is monotone in how
+densely the penalty spreads the coefficients: ridge
+(\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
+incumbent) beats the elastic net (\unifBThreeEnetTunedQLIKE{},
+\unifBThreeEnetTunedDM{}), which beats the lasso
+(\unifBTwoLassoTunedQLIKE{}, \unifBTwoLassoTunedDM{}). Keeping every
+column and shrinking produces a lower loss than selecting a subset ---
+and Section~\ref{sec:buckets_tuned} located why: not a preference of
+the data for dense coefficients per se, but the asymmetric price of a
+hyperparameter mistake, benign under $\ell_2$ over-shrinkage and
+destructive when an $\ell_1$ penalty deletes live columns.
+
+The lasso's own solution path completes the diagnosis. On the full
+basis it zeroes $304$ of $523$ exogenous columns, of which $235$ ---
+$77\%$ --- are dead or constant availability indicators: most of its
+selection removes columns carrying no signal, which $\ell_2$ shrinkage
+handles equally well by making them small. Where it zeroes \emph{live}
+columns, QLIKE rises --- the margin ridge wins by is carried there. Nor
+is the signal low-dimensional in a rotated basis: truncating the design
+to five principal components retains $72\%$ of the feature variance and
+loses essentially all of the predictive signal. Many small nonzero
+coefficients in the coordinate basis, no concentration in any small
+column subset or principal subspace: the structure this paper calls
+\emph{dense but weak}. A penalty-level sweep adds the final fact: with
+the ridge family held fixed, QLIKE falls monotonically in $\alpha$
+across the tested grid ($0.23219$ at $\alpha = 0.1$ down to $0.22909$
+at $10$, still decreasing at the edge), and the tuned arm, drawing from
+a grid reaching $1000$, lands below every fixed point. The penalty
+\emph{level} moves the loss by more than the penalty \emph{family} does
+at any fixed level, and the wide design rewards far heavier shrinkage
+than any textbook default.
+
+These measurements leave two facts that a single ridge penalty cannot
 satisfy at once. First, penalizing the HAR-plus-calendar design alone
 raises QLIKE relative to plain OLS (the battery's no-exogenous control arm:
 ridge $t = +5.0$ against the incumbent): the HAR columns are few,
@@ -303,44 +163,3 @@ validation-selected shrinkage remains attributed to the loss geometry
 the estimator is risk-optimal for --- which this paper measures but
 does not resolve.
 
-\subsection{Can a Factor Summary Replace the Panel?}
-\label{sec:dense_weak_capture}
-
-The results of Section~\ref{sec:pca_factors} show that
-$40$ principal directions of the base features, carried as their own
-block, \emph{add} forecast value. The converse question is whether such
-a summary can \emph{replace} the exogenous block outright. A ladder of
-two-block models --- the backbone plus $K$ rotated directions, $K$ from
-$5$ to the full live rank, under both eigenvalue ordering and a frozen
-predictive ordering, each causally tuned --- measures the distance from
-that goal against the matched two-block model on the full exogenous
-set (\unifBlkTwoGatedTunedQLIKE{} on the same rows).
-
-Three facts emerge. First, the loss curve is flat in $K$: under working
-shrinkage, truncating to five directions costs about the same as keeping
-all of them, so the discarded directions carry little that the penalty
-was not already suppressing. Second, the ordering is immaterial at
-matched $K$ (paired differences insignificant), so the earlier
-appearance that predictive ordering helped was an artifact of an
-under-shrunk estimator, for which truncation was standing in as the
-missing regularization. Third --- and dominating both --- every rung of
-the ladder, \emph{including full rank}, trails the raw exogenous block
-by roughly $2 \times 10^{-3}$
-(\unifIncrBlkTwoRotVarFullKTunedDQ{} at DM
-\unifIncrBlkTwoRotVarFullKTunedDM{}). At full rank under a uniform
-block penalty a rotation cannot change a ridge fit, so this gap cannot
-be a property of the rotation: it traces to the construction having
-re-standardized its inputs by frozen frame-window statistics where the
-production path uses the rolling scaler. The identity was verified
-directly --- rotating the production-scaled columns reproduces the raw
-block's fitted values to $4 \times 10^{-15}$ --- and the ladder is
-being re-estimated on that corrected base. \pending{capture ladder on
-the rolling-scaled base: truncation, rung, indicator, and supervised
-(PLS) increments, each priced against the full block}
-
-The standardization lesson deserves its own sentence, because it has
-now decided two constructions: rolling standardization of the inputs is
-worth on the order of $2 \times 10^{-3}$ against frozen standardization
---- several times the size of most increments this paper reports ---
-and it, not the choice of basis, ordering, or width, is the largest
-single design decision in the factor machinery.
