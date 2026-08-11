@@ -53,110 +53,98 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}The Calibrated Estimator}{7}{subsection.3.2}\protected@file@percent }
 \newlabel{sec:smearing_estimator}{{3.2}{7}{The Calibrated Estimator}{subsection.3.2}{}}
 \newlabel{eq:yraw}{{7}{7}{The Calibrated Estimator}{equation.3.7}{}}
+\citation{BekiermanManner2018}
 \citation{Duan1983}
+\citation{DemetrescuGolosnoyTitova2020}
+\citation{AsaiMcAleerMedeiros2012}
 \newlabel{eq:mean_calib}{{8}{8}{The Calibrated Estimator}{equation.3.8}{}}
 \newlabel{eq:var_reg}{{9}{8}{The Calibrated Estimator}{equation.3.9}{}}
+\newlabel{eq:var_ewma}{{10}{8}{The Calibrated Estimator}{equation.3.10}{}}
 \citation{Duan1983}
-\newlabel{eq:smear_map}{{10}{9}{The Calibrated Estimator}{equation.3.10}{}}
-\newlabel{eq:qlike_raw}{{11}{10}{The Calibrated Estimator}{equation.3.11}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}What Downstream Inherits}{10}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:smearing_contract}{{3.3}{10}{What Downstream Inherits}{subsection.3.3}{}}
 \citation{Duan1983}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $0.634$, traditional Duan $0.948$.}}{11}{table.caption.9}\protected@file@percent }
+\newlabel{eq:smear_map}{{11}{10}{The Calibrated Estimator}{equation.3.11}{}}
+\newlabel{eq:qlike_raw}{{12}{10}{The Calibrated Estimator}{equation.3.12}{}}
+\citation{Duan1983}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}What Downstream Inherits}{11}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:smearing_contract}{{3.3}{11}{What Downstream Inherits}{subsection.3.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $0.681$, traditional Duan $0.873$.}}{12}{table.caption.9}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:smear_sensitivity}{{1}{11}{The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table~\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $\unifSmearTauNone $, traditional Duan $\unifSmearTauDuan $}{table.caption.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Where the Information Lives, and What Extracts It}{11}{section.4}\protected@file@percent }
-\newlabel{sec:buckets}{{4}{11}{Where the Information Lives, and What Extracts It}{section.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Estimator.}{11}{section*.10}\protected@file@percent }
+\newlabel{tab:smear_sensitivity}{{1}{12}{The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table~\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $\unifSmearTauNone $, traditional Duan $\unifSmearTauDuan $}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Where the Information Lives, and What Extracts It}{12}{section.4}\protected@file@percent }
+\newlabel{sec:buckets}{{4}{12}{Where the Information Lives, and What Extracts It}{section.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Estimator.}{12}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Protocol.}{12}{section*.11}\protected@file@percent }
 \citation{DieboldMariano1995}
 \citation{HarveyLeybourneNewbold1997}
-\@writefile{toc}{\contentsline {paragraph}{Protocol.}{12}{section*.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Per-Bucket Gains}{12}{subsection.4.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE 0.23353{} (per-bar OLS on HAR $+$ calendar). \textbf  {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm.}}{13}{table.caption.12}\protected@file@percent }
-\newlabel{tab:buckets}{{2}{13}{Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE \unifAzeroQLIKE {} (per-bar OLS on HAR $+$ calendar). \textbf {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm}{table.caption.12}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}The Same Buckets under a Competent Estimator}{13}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:buckets_tuned}{{4.2}{13}{The Same Buckets under a Competent Estimator}{subsection.4.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Each bucket design under two causally tuned penalized estimators. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE 0.23353{}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph  {on the same design}, positive meaning ridge is the better of the two.}}{14}{table.caption.13}\protected@file@percent }
-\newlabel{tab:buckets_tuned}{{3}{14}{Each bucket design under two causally tuned penalized estimators. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE \unifAzeroQLIKE {}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph {on the same design}, positive meaning ridge is the better of the two}{table.caption.13}{}}
-\@writefile{toc}{\contentsline {paragraph}{Where the elastic net's deficit comes from.}{14}{section*.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What the trajectories do and do not show.}{15}{section*.15}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Overlap}{15}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Per-Bucket Gains}{13}{subsection.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE 0.22519{} (per-bar OLS on HAR $+$ calendar). \textbf  {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm.}}{14}{table.caption.12}\protected@file@percent }
+\newlabel{tab:buckets}{{2}{14}{Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE \unifAzeroQLIKE {} (per-bar OLS on HAR $+$ calendar). \textbf {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}The Same Buckets under a Competent Estimator}{14}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:buckets_tuned}{{4.2}{14}{The Same Buckets under a Competent Estimator}{subsection.4.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Each bucket design under two causally tuned penalized estimators. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE 0.22519{}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph  {on the same design}, positive meaning ridge is the better of the two.}}{15}{table.caption.13}\protected@file@percent }
+\newlabel{tab:buckets_tuned}{{3}{15}{Each bucket design under two causally tuned penalized estimators. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE \unifAzeroQLIKE {}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph {on the same design}, positive meaning ridge is the better of the two}{table.caption.13}{}}
+\@writefile{toc}{\contentsline {paragraph}{Where the elastic net's deficit comes from.}{15}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What the trajectories do and do not show.}{16}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Overlap}{16}{subsection.4.3}\protected@file@percent }
 \citation{HansenLundeNason2011}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}The Joint Bucket without Shrinkage}{16}{subsection.4.4}\protected@file@percent }
-\newlabel{sec:buckets_joint}{{4.4}{16}{The Joint Bucket without Shrinkage}{subsection.4.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}The Two-Block Ridge}{17}{subsection.4.5}\protected@file@percent }
-\newlabel{sec:dense_weak}{{4.5}{17}{The Two-Block Ridge}{subsection.4.5}{}}
-\newlabel{sec:dense_weak_twoblock}{{4.5}{17}{The Two-Block Ridge}{subsection.4.5}{}}
-\newlabel{sec:dense_weak_headtohead}{{4.5}{17}{The Two-Block Ridge}{subsection.4.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Time-Weighting the Window}{18}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:dense_weak_ew}{{4.6}{18}{Time-Weighting the Window}{subsection.4.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Factor Structure: The Volatility-Gated PCA Adapter}{19}{section.5}\protected@file@percent }
-\newlabel{sec:pca_factors}{{5}{19}{Factor Structure: The Volatility-Gated PCA Adapter}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Construction, in Four Steps}{19}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:pca_frame}{{5.1}{19}{The Construction, in Four Steps}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Step 1: freeze a frame of principal directions.}{19}{section*.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 2: project the panel onto the frame.}{20}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 3: gate each direction by its trailing volatility.}{20}{section*.18}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 4: shrink the scores as a block of their own.}{20}{section*.19}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}What the Block Is, in Three Steps}{20}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:pca_mechanism}{{5.2}{20}{What the Block Is, in Three Steps}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Step 1: the block adds no information.}{20}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 2: without the gate, the block is exactly a spiked prior.}{20}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 3: the gate is the part no static prior can express.}{21}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Which PCA: The Frame Is the Mechanism}{21}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:pca_which_frame}{{5.3}{21}{Which PCA: The Frame Is the Mechanism}{subsection.5.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}What Remains Outside the Adapter}{22}{subsection.5.4}\protected@file@percent }
-\newlabel{sec:pca_outside}{{5.4}{22}{What Remains Outside the Adapter}{subsection.5.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Reading.}{22}{section*.23}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Nonlinearity and the Product Block}{22}{section.6}\protected@file@percent }
-\newlabel{sec:nonlinear_product}{{6}{22}{Nonlinearity and the Product Block}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}The Joint Bucket without Shrinkage}{17}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:buckets_joint}{{4.4}{17}{The Joint Bucket without Shrinkage}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}The Two-Block Ridge}{18}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:dense_weak}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
+\newlabel{sec:dense_weak_twoblock}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
+\newlabel{sec:dense_weak_headtohead}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Time-Weighting the Window}{19}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:dense_weak_ew}{{4.6}{19}{Time-Weighting the Window}{subsection.4.6}{}}
 \citation{Ke2017}
 \citation{Chen2016}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Nonlinearity and the Product Block}{20}{section.5}\protected@file@percent }
+\newlabel{sec:nonlinear_product}{{5}{20}{Nonlinearity and the Product Block}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Tree Edge}{20}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:tree_edge}{{5.1}{20}{The Tree Edge}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Protocol.}{20}{section*.16}\protected@file@percent }
 \citation{DieboldMariano1995,HarveyLeybourneNewbold1997}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}The Tree Edge}{23}{subsection.6.1}\protected@file@percent }
-\newlabel{sec:tree_edge}{{6.1}{23}{The Tree Edge}{subsection.6.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Protocol.}{23}{section*.24}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Results.}{23}{section*.25}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The function-class premium at fixed information.}{23}{section*.26}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Dispersion of the improvement.}{23}{section*.27}\protected@file@percent }
 \citation{Lou2013}
-\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{24}{section*.28}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}The Product Block}{24}{subsection.6.2}\protected@file@percent }
-\newlabel{sec:product_block}{{6.2}{24}{The Product Block}{subsection.6.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Construction.}{25}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Set size.}{25}{section*.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Reselection cadence.}{26}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Block penalty.}{26}{section*.32}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Coefficient refit cadence.}{26}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}The Three-Block Ridge}{26}{subsection.6.3}\protected@file@percent }
-\newlabel{sec:three_block}{{6.3}{26}{The Three-Block Ridge}{subsection.6.3}{}}
-\newlabel{eq:three_block}{{12}{26}{The Three-Block Ridge}{equation.6.12}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{27}{section.7}\protected@file@percent }
-\newlabel{sec:conclusion}{{7}{27}{Conclusion}{section.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{27}{appendix.A}\protected@file@percent }
-\newlabel{sec:appendix_master}{{A}{27}{Master Table of Campaign Arms}{appendix.A}{}}
+\@writefile{toc}{\contentsline {paragraph}{Results.}{21}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The function-class premium at fixed information.}{21}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dispersion of the improvement.}{21}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{21}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}The Product Block}{22}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:product_block}{{5.2}{22}{The Product Block}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Construction.}{22}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Set size.}{23}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reselection cadence.}{23}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Block penalty.}{23}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Coefficient refit cadence.}{24}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}The Three-Block Ridge}{24}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:three_block}{{5.3}{24}{The Three-Block Ridge}{subsection.5.3}{}}
+\newlabel{eq:three_block}{{13}{24}{The Three-Block Ridge}{equation.5.13}{}}
 \gdef \LT@i {\LT@entry 
     {5}{309.5879pt}\LT@entry 
     {5}{43.68974pt}\LT@entry 
     {5}{52.15598pt}\LT@entry 
     {1}{29.8728pt}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces All campaign arms under the frozen panel and scoring contract.}}{28}{table.4}\protected@file@percent }
-\newlabel{tab:master}{{4}{28}{All campaign arms under the frozen panel and scoring contract}{table.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Smear-Convention Sensitivity, All Arms}{30}{appendix.B}\protected@file@percent }
-\newlabel{sec:appendix_sensitivity}{{B}{30}{Smear-Convention Sensitivity, All Arms}{appendix.B}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{31}{table.caption.34}\protected@file@percent }
-\newlabel{tab:smear_sensitivity_full}{{5}{31}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.caption.34}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{25}{section.6}\protected@file@percent }
+\newlabel{sec:conclusion}{{6}{25}{Conclusion}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{25}{appendix.A}\protected@file@percent }
+\newlabel{sec:appendix_master}{{A}{25}{Master Table of Campaign Arms}{appendix.A}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces All campaign arms under the frozen panel and scoring contract.}}{25}{table.4}\protected@file@percent }
+\newlabel{tab:master}{{4}{25}{All campaign arms under the frozen panel and scoring contract}{table.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Smear-Convention Sensitivity, All Arms}{27}{appendix.B}\protected@file@percent }
+\newlabel{sec:appendix_sensitivity}{{B}{27}{Smear-Convention Sensitivity, All Arms}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{28}{table.caption.26}\protected@file@percent }
+\newlabel{tab:smear_sensitivity_full}{{5}{28}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.caption.26}{}}
 \bibstyle{plainnat}
 \bibdata{references}
-\bibcite{Chen2016}{{1}{2016}{{Chen and Guestrin}}{{}}}
-\bibcite{Corsi2009}{{2}{2009}{{Corsi}}{{}}}
-\bibcite{DieboldMariano1995}{{3}{1995}{{Diebold and Mariano}}{{}}}
-\bibcite{Duan1983}{{4}{1983}{{Duan}}{{}}}
-\bibcite{HansenLundeNason2011}{{5}{2011}{{Hansen et~al.}}{{Hansen, Lunde, and Nason}}}
-\bibcite{HarveyLeybourneNewbold1997}{{6}{1997}{{Harvey et~al.}}{{Harvey, Leybourne, and Newbold}}}
-\bibcite{HoerlKennard1970}{{7}{1970}{{Hoerl and Kennard}}{{}}}
-\bibcite{Ke2017}{{8}{2017}{{Ke et~al.}}{{Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu}}}
-\bibcite{Lou2013}{{9}{2013}{{Lou et~al.}}{{Lou, Caruana, Gehrke, and Hooker}}}
-\bibcite{Patton2011}{{10}{2011}{{Patton}}{{}}}
-\bibcite{Tibshirani1996}{{11}{1996}{{Tibshirani}}{{}}}
-\gdef \@abspage@last{32}
+\bibcite{AsaiMcAleerMedeiros2012}{{1}{2012}{{Asai et~al.}}{{Asai, McAleer, and Medeiros}}}
+\bibcite{BekiermanManner2018}{{2}{2018}{{Bekierman and Manner}}{{}}}
+\bibcite{Chen2016}{{3}{2016}{{Chen and Guestrin}}{{}}}
+\bibcite{Corsi2009}{{4}{2009}{{Corsi}}{{}}}
+\bibcite{DemetrescuGolosnoyTitova2020}{{5}{2020}{{Demetrescu et~al.}}{{Demetrescu, Golosnoy, and Titova}}}
+\bibcite{DieboldMariano1995}{{6}{1995}{{Diebold and Mariano}}{{}}}
+\bibcite{Duan1983}{{7}{1983}{{Duan}}{{}}}
+\bibcite{HansenLundeNason2011}{{8}{2011}{{Hansen et~al.}}{{Hansen, Lunde, and Nason}}}
+\bibcite{HarveyLeybourneNewbold1997}{{9}{1997}{{Harvey et~al.}}{{Harvey, Leybourne, and Newbold}}}
+\bibcite{Ke2017}{{10}{2017}{{Ke et~al.}}{{Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu}}}
+\bibcite{Lou2013}{{11}{2013}{{Lou et~al.}}{{Lou, Caruana, Gehrke, and Hooker}}}
+\bibcite{Patton2011}{{12}{2011}{{Patton}}{{}}}
+\gdef \@abspage@last{29}

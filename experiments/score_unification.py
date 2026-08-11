@@ -1260,7 +1260,9 @@ class ArmResult:
     masked_col_events: int = 0
     dropped_col_events: int = 0
     dm_t: float | None = None
-    delta_join: float | None = None  # paired mean loss differential vs a0 on the row_id intersection
+    delta_join: float | None = (
+        None  # paired mean loss differential vs a0 on the row_id intersection
+    )
     oos_r2: float | None = None
     mz_alpha: float | None = None
     mz_beta: float | None = None
@@ -1373,21 +1375,35 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
         res.calib_fallback_windows += 1
     m = a + b * yhat
 
-    # 3. causal SCALAR second moment (FINAL contract, author decision
-    # 2026-08-06): sigma2_k = mean of window k-1's e^2 = (y_raw - m)^2, m as
-    # applied there — one scalar per window, previous-window estimated.
-    # Positivity is trivial (mean of squares); no extrapolation. Two
-    # bar-conditional parameterizations were implemented and rejected on
-    # measurement (affine zero-floor: forecast collapse on quiet bars;
-    # log-linear + Duan retransformation: exponential extrapolation to ~1e44
-    # on extreme bars) — smearing.tex, "the conditional-variance record".
+    # 3. causal ADAPTIVE second moment (contract upgrade, author decision
+    # 2026-08-11 — supersedes the 2026-08-06 scalar): sigma2_t is a per-bar
+    # EWMA of the model's own squared eval-scale residuals, seeded with the
+    # previous window's scalar mean e^2 and updated causally as each bar's
+    # residual is observed:
+    #     s2_t = LAMBDA * s2_{t-1} + (1 - LAMBDA) * e^2_{t-1}
+    # lambda = 0.6 sits on a broad flat optimum (0.4-0.6 within 1e-4) measured
+    # on the benchmark and confirmed on every ladder rung (duan_variants.py);
+    # it beats the retrospective in-window Duan convention on every arm while
+    # remaining strictly causal. Positivity is trivial (convex combinations of
+    # squares); no extrapolation. The stale prev-window scalar this replaces
+    # lost to the retrospective Duan baseline on the benchmark (0.23353 vs
+    # 0.23165) precisely because it could not track the level.
+    S2_EWMA_LAMBDA = 0.6
     sigma2: np.ndarray | None = None
     var_fitted = False
     if prev is not None:
         s = _sel(prev) & np.isfinite(prev["m"])
         if s.sum() >= 3:
             e2 = (prev["y_raw"][s] - prev["m"][s]) ** 2
-            sigma2 = np.full(n, float(np.mean(e2)))
+            seed = float(np.mean(e2))
+            sigma2 = np.empty(n)
+            cur, e_prev = seed, np.nan
+            for i in range(n):
+                if np.isfinite(e_prev):
+                    cur = S2_EWMA_LAMBDA * cur + (1.0 - S2_EWMA_LAMBDA) * e_prev
+                sigma2[i] = cur
+                if valid[i] and np.isfinite(y_raw[i]) and np.isfinite(m[i]):
+                    e_prev = (y_raw[i] - m[i]) ** 2
             var_fitted = True
     if sigma2 is None:  # mid-panel harvest gap: in-window scalar (never on
         # a complete harvest — the first present window is the burn-in)

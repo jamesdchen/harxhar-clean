@@ -4243,10 +4243,18 @@ def _walk_tree(
     Xs = np.ascontiguousarray(F[lo - window : hi])
     ys = np.ascontiguousarray(y[lo - window : hi])
     out = np.empty(hi - lo, dtype=np.float64)
+    # Refit cadence (cost containment, disclosed; author directive 2026-08-10):
+    # TREE_REFIT_EVERY=k reuses each fit for k consecutive bars (strictly
+    # causal: the model at bar t was fit on rows < the refit anchor <= t).
+    # Default 1 = the documented per-bar contract; k>1 only via env override
+    # in the array job. Every bar still gets its own forecast.
+    cadence = max(1, int(os.environ.get("TREE_REFIT_EVERY", "1")))
+    model = None
     for i in range(hi - lo):
         t = window + i
-        model = _model()
-        model.fit(Xs[i:t], ys[i:t])
+        if model is None or i % cadence == 0:
+            model = _model()
+            model.fit(Xs[i:t], ys[i:t])
         out[i] = float(model.predict(Xs[t : t + 1])[0])
     return out
 

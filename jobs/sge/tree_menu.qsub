@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -N tree_menu
 #$ -cwd
-#$ -l h_data=4G,h_rt=6:00:00
-#$ -pe shared 8
+#$ -l h_data=8G,h_rt=6:00:00
+
 #$ -t 1-8
 #$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
 #$ -j y
@@ -40,4 +40,4 @@ EOF
 $PY experiments/tree_menu_dev.py \
     --journal-lgbm /u/scratch/j/jamesdc1/harxhar-clean/results/tree_menu_journal_lgbm.log \
     --journal-xgb /u/scratch/j/jamesdc1/harxhar-clean/results/tree_menu_journal_xgb.log \
-    --n-trials 100
+    --n-trials 24
