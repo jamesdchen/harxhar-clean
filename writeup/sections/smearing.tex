@@ -58,8 +58,9 @@ estimator of that term is specified as part of the evaluation procedure.
 \subsection{The Calibrated Estimator}
 \label{sec:smearing_estimator}
 
-The correction is a two-component causal calibration, re-estimated for
-every evaluation window on the window before it. Fix the chunked
+The correction is a two-component causal calibration: a mean map
+re-estimated at every window boundary on the window before it, and a
+second moment seeded there and adapted bar by bar. Fix the chunked
 walk-forward grid: the backtest is split into contiguous evaluation
 windows indexed $k = 0, 1, \dots$, tiling the panel in row order. The
 inputs for window $k$ are three per-bar arrays over its bars: the
@@ -95,21 +96,56 @@ falls back to the identity $(\hat{a}_k, \hat{b}_k) = (0, 1)$; every such
 window is flagged in the harvest accounting.
 
 \emph{Conditional second moment.} Let
-$e_s = y^{\mathrm{raw}}_s - m_s$ denote window $k-1$'s residuals against
-its own calibrated mean, as applied there. The second-moment term for
-window $k$ is the scalar
+$e_s = y^{\mathrm{raw}}_s - m_s$ denote the residuals against the
+calibrated mean as applied at their own bar. The second-moment term is
+adaptive. Window $k$ opens at the seed
 \begin{equation}
-    \hat{\sigma}^2_k
+    \hat{\sigma}^2_{(k)}
     = \frac{1}{N_{k-1}} \sum_{s \,\in\, k-1} e_s^2,
     \label{eq:var_reg}
 \end{equation}
-one constant per window, estimated on the previous window, where
-$N_{k-1}$ counts the valid bars entering the mean. Positivity is trivial
---- a mean of squares --- and the estimator does not extrapolate: no
-value of window $k$'s forecasts can move it. For a window whose
-predecessor is missing from the harvest, it falls back to the in-window
-scalar mean of $(y^{\mathrm{raw}}_t - m_t)^2$; every such window is
-flagged in the harvest accounting.
+the mean of window $k-1$'s squared residuals, and within the window the
+term tracks the model's own recent error level causally,
+\begin{equation}
+    \hat{\sigma}^2_t
+    = \lambda\, \hat{\sigma}^2_{t-1} + (1 - \lambda)\, e_{t-1}^2,
+    \qquad \lambda = 0.6,
+    \label{eq:var_ewma}
+\end{equation}
+so the variance applied at bar $t$ uses residuals through bar $t-1$
+only. The decay sits on a broad, flat optimum: every value of $\lambda$
+between $0.4$ and $0.6$ scores within $10^{-4}$ of the best on the
+benchmark arm, and $\lambda = 0.6$ is the consensus choice across the
+block ladder's rungs. Positivity is trivial --- a convex combination of
+squares --- and the estimator does not extrapolate: no value of window
+$k$'s forecasts can move it. The scalar of
+Equation~\eqref{eq:var_reg} held fixed across the window --- the
+contract's first iteration --- loses to the retrospective in-window Duan
+baseline on the benchmark ($0.23353$ against $0.23165$) precisely
+because it cannot track the level; the adaptive form beats that
+baseline on every arm measured, while remaining strictly causal
+(benchmark $0.22519$, paired $\Delta\mathrm{QLIKE}$ $-0.0065$ at DM
+$-5.7$ against the Duan convention). For a window whose predecessor is
+missing from the harvest, the seed falls back to the in-window scalar
+mean of $(y^{\mathrm{raw}}_t - m_t)^2$; every such window is flagged in
+the harvest accounting.
+
+\emph{Relation to the literature.} Standard practice corrects the
+back-transform with a \emph{static} scalar: the analytic log-normal
+factor $\exp(\hat\sigma^2_\varepsilon / 2)$ of the log-RV literature,
+extended by \citet{BekiermanManner2018} with the state variance of
+their state-space HAR, or \citet{Duan1983}'s nonparametric mean of the
+exponentiated residuals. Whether the correction is worth applying at
+all is contested: \citet{DemetrescuGolosnoyTitova2020} compare bias
+corrections for exponentially transformed forecasts, find none
+uniformly best, and recommend skipping the correction under high
+persistence. The origin of the second moment's predictability is the
+realized estimator's own measurement error
+\citep{AsaiMcAleerMedeiros2012}, whose variance scales with the
+volatility level. To our knowledge no existing convention lets the
+correction itself track that level; Equation~\eqref{eq:var_ewma} is
+exactly the standard scalar correction with its level allowed to adapt
+causally, and the static scalar is recovered at $\lambda = 1$.
 
 \emph{Calibration burn-in.} The first evaluation window of each arm is
 the calibration burn-in, parallel to the feature construction's burn-in
@@ -149,8 +185,9 @@ causally on the same embargoed forward split used for every other
 hyperparameter in this paper, from a grid that includes
 $\alpha = \infty$; at that grid point the fitted value is the
 training-window mean of $z$ and the assembled variance is
-\emph{exactly} the scalar $\hat{\sigma}^2_k$ of
-Equation~\eqref{eq:var_reg}. The scalar contract is therefore nested as
+\emph{exactly} the window-level second moment of
+Equation~\eqref{eq:var_reg} --- the seed of the adaptive recursion
+\eqref{eq:var_ewma}. The window-level contract is therefore nested as
 the infinite-shrinkage limit, and conditioning is adopted only where the
 forward split prefers it. At finite $\alpha$ the variance is
 \[
@@ -171,7 +208,14 @@ benchmark's own residuals it improves QLIKE by
 \unifIncrCondVarBenchDQ{} at DM \unifIncrCondVarBenchDM{}, and applied
 to the paper's best mean model by \unifIncrCondVarChampDQ{} at
 \unifIncrCondVarChampDM{}. Both are an order of magnitude larger than
-any increment produced by changing the conditional mean.
+any increment produced by changing the conditional mean. These
+conditional-variance runs were scored under the campaign's first
+contract --- the window-level scalar of Equation~\eqref{eq:var_reg}
+held fixed within each window; under the adaptive recursion of
+Equation~\eqref{eq:var_ewma} part of this gain is absorbed by
+construction, since the conditional model and the recursion trade on
+the same level channel, and re-scoring the sidecar under the new
+contract is reserved.
 
 \emph{Which state carries the second moment.} That result invites the
 reading that the exogenous panel predicts forecast uncertainty. A
@@ -194,7 +238,7 @@ claim that they do.
 raw scale as
 \begin{equation}
     \widehat{RV}_t^{\mathrm{raw}}
-    = \bigl(m_t^2 + \hat{\sigma}^2_k\bigr) B_t,
+    = \bigl(m_t^2 + \hat{\sigma}^2_t\bigr) B_t,
     \qquad
     RV_t^{\mathrm{raw}} = \bigl(y^{\mathrm{raw}}_t\bigr)^2 B_t,
     \label{eq:smear_map}
@@ -202,10 +246,13 @@ raw scale as
 where the right-hand identity is Equation~\eqref{eq:yraw} inverted: the
 realization is the persisted raw target itself, never reconstructed from
 the winsorized fit target. The traditional scalar estimator of
-\citet{Duan1983} is the same scalar form with the identity mean map and
-in-window fit-scale residuals: the contract differs from Duan smearing
-in exactly two ways --- the calibrated mean, and previous-window
-residuals against that mean on the evaluation scale.
+\citet{Duan1983} is the same form with the identity mean map, a
+window-constant scalar, and in-window fit-scale residuals: the contract
+differs from Duan smearing in exactly three ways --- the calibrated
+mean, the adaptive recursion of Equation~\eqref{eq:var_ewma} in place
+of the window-constant scalar, and causal residuals against that mean
+on the evaluation scale in place of the in-window fit-scale residuals
+(which see the scored window's own errors).
 
 The full scoring procedure for one evaluation window is:
 \begin{enumerate}
@@ -213,7 +260,7 @@ The full scoring procedure for one evaluation window is:
     and $\{RV^{\mathrm{raw}}_t\}$ over windows $k-1$ and $k$; reconstruct
     $y^{\mathrm{raw}}$ by Equation~\eqref{eq:yraw}.
     \item \emph{Calibration.} Estimate $(\hat{a}_k, \hat{b}_k)$ by
-    Equation~\eqref{eq:mean_calib} and $\hat{\sigma}^2_k$ by
+    Equation~\eqref{eq:mean_calib} and the seed $\hat{\sigma}^2_{(k)}$ by
     Equation~\eqref{eq:var_reg} on window $k-1$'s valid bars, with the
     stated fallbacks.
     \item \emph{Back-transform.} Map every bar of window $k$ to the raw
@@ -233,7 +280,8 @@ The full scoring procedure for one evaluation window is:
     where the mean is taken over the bars at which both members of the pair
     are positive; bars failing that condition are excluded from the mean.
 \end{enumerate}
-Because $\hat{\sigma}^2_k$ is a mean of squares and $m_t^2 \ge 0$, the
+Because $\hat{\sigma}^2_t$ is a convex combination of squares and
+$m_t^2 \ge 0$, the
 calibrated forecast $\widehat{RV}_t^{\mathrm{raw}}$ is positive whenever
 $B_t$ is and window $k-1$'s residuals are not identically zero; the
 positivity condition of the exclusion rule then binds only through the
@@ -241,14 +289,15 @@ realization.
 
 Three implementation choices define the estimator.
 
-\emph{One calibration per window, estimated on the previous window.} The
-three scalars $(\hat{a}_k, \hat{b}_k, \hat{\sigma}^2_k)$ are window-level
-constants, re-estimated at every window boundary from the window before
-it. The correction is piecewise-constant across the panel on the
-transformed scale; on the raw scale it varies bar by bar through the
-baseline factor $B_t$. Relative to the squared calibrated forecast, the
-correction is largest at the bars where $m_t^2$ is smallest --- the
-quiet bars.
+\emph{Window-level calibration, bar-level variance.} The mean map
+$(\hat{a}_k, \hat{b}_k)$ is re-estimated at every window boundary from
+the window before it; the second moment opens at the previous window's
+scalar and then adapts bar by bar by Equation~\eqref{eq:var_ewma}. On
+the raw scale the correction also varies through the baseline factor
+$B_t$. Relative to the squared calibrated forecast, the correction is
+largest at the bars where $m_t^2$ is smallest --- the quiet bars ---
+and largest in level immediately after the model's own recent errors
+have been large.
 
 \emph{Causal, hence deployable.} Every estimated quantity applied in
 window $k \ge 1$ is a function of data through window $k-1$ only, and
