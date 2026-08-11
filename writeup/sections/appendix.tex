@@ -20,6 +20,18 @@ read mechanically lower. The $\Delta$ and DM columns are paired on
 common rows and are comparable throughout; level comparisons should be
 made only within a protocol. The gated two-block ridge and the
 \emph{trail}-family arms are the \texttt{oos\_mult=2} panel.
+\textbf{Contract note.} The scoring contract's second-moment layer was
+upgraded on 2026-08-11 from the window-level scalar to the causal
+adaptive recursion of Section~\ref{sec:smearing}
+(Equation~\eqref{eq:var_ewma}). Rows harvested on Hoffman2 --- the
+benchmark, the \texttt{oos\_mult=2} panel, and every increment between
+them --- are scored under the adaptive contract. Rows whose chunks
+survive only on the decommissioned cluster (the original-protocol
+block ridges and the conditional second-moment panel) retain their
+\emph{legacy} scalar-contract levels; the two contracts shift QLIKE
+levels by roughly $5$--$8 \times 10^{-3}$, so legacy levels are not
+comparable to adaptive-contract levels, while paired $\Delta$ and DM
+within each contract remain valid.
 
 {\small
 \setlength{\tabcolsep}{4pt}
