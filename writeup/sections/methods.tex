@@ -147,7 +147,7 @@ model's own residual variance, so it differs across models. The
 back-transform therefore includes an explicit second-moment term, and the
 estimator of that term is specified as part of the evaluation procedure.
 
-\subsection{The Calibrated Estimator}
+\subsection{The Calibrated Back-Transformation}
 \label{sec:smearing_estimator}
 \label{sec:smearing}
 
@@ -212,8 +212,7 @@ benchmark arm, and $\lambda = 0.6$ is the consensus choice across the
 block ladder's rungs. Positivity is trivial --- a convex combination of
 squares --- and the estimator does not extrapolate: no value of window
 $k$'s forecasts can move it. The scalar of
-Equation~\eqref{eq:var_reg} held fixed across the window --- the
-contract's first iteration --- loses to the retrospective in-window Duan
+Equation~\eqref{eq:var_reg} held fixed across the window --- the protocol's first iteration --- loses to the retrospective in-window Duan
 baseline on the benchmark ($0.23353$ against $0.23165$) precisely
 because it cannot track the level; the adaptive form beats that
 baseline on every arm measured, while remaining strictly causal
@@ -267,8 +266,7 @@ estimated variance function; \citet{ManningMullahy2001} find the
 conditional correction consistent but cumbersome enough to recommend
 sidestepping the back-transform entirely.
 
-What we have not found is the correction used as a post-hoc
-\emph{contract}: a causal second-moment model of an arbitrary
+What we have not found is the correction used as a post-hoc \emph{evaluation protocol}: a causal second-moment model of an arbitrary
 forecaster's own residuals, applied uniformly across heterogeneous
 model classes at evaluation time. In every precedent above the
 time-varying second moment is estimated jointly within one model's
@@ -313,15 +311,15 @@ $0.21386$ to $0.21044$ --- $\Delta\mathrm{QLIKE}$ $-0.00342$ at DM
 $-6.00$, negative in $21$ of $23$ years.\footnote{The shootout's EWMA
 comparator runs one continuous recursion seeded at the first scored
 year for a like-for-like race, so its pooled levels differ slightly
-from the frozen contract's headline levels, which re-seed at every
+from the frozen protocol's headline levels, which re-seed at every
 window boundary; the paired differentials are unaffected.} That the
 gain is at least as large on the stronger mean model argues that the
 harvestable structure is volatility-of-volatility in the target, in
 the sense of \citet{CorsiMittnikPigorschPigorsch2008}, rather than an
-artifact of a weak conditional mean. The deployed contract
+artifact of a weak conditional mean. The deployed protocol
 nevertheless retains the EWMA of Equation~\eqref{eq:var_ewma}: it has
 a single parameter on a flat optimum and no yearly selection step, and
-promoting the refinement would be a change of contract in the sense of
+promoting the refinement would be a change of protocol in the sense of
 Section~\ref{sec:smearing_contract}, requiring a re-score of every
 comparison that inherits it. Equation~\eqref{eq:var_garch} is reported
 as an available upgrade, not adopted.
@@ -350,7 +348,7 @@ second moment reached $10^{44}$, inflating every arm's loss and
 collapsing the Diebold--Mariano differentials toward zero. A
 bar-conditional second moment therefore requires a model with controlled
 extrapolation, which is the reserved learned-correction slot for this
-section; the contract uses the scalar of Equation~\eqref{eq:var_reg}.
+section; the protocol uses the scalar of Equation~\eqref{eq:var_reg}.
 
 \emph{A shrunk conditional second moment.} The two rejected forms fail
 for the same reason: neither is anchored to the estimator that works.
@@ -366,7 +364,7 @@ $\alpha = \infty$; at that grid point the fitted value is the
 training-window mean of $z$ and the assembled variance is
 \emph{exactly} the window-level second moment of
 Equation~\eqref{eq:var_reg} --- the seed of the adaptive recursion
-\eqref{eq:var_ewma}. The window-level contract is therefore nested as
+\eqref{eq:var_ewma}. The window-level protocol is therefore nested as
 the infinite-shrinkage limit, and conditioning is adopted only where the
 forward split prefers it. At finite $\alpha$ the variance is
 \[
@@ -382,19 +380,18 @@ bars within a window. No floor, clip, or additive constant appears
 anywhere in the construction.
 
 Measured against the benchmark on the shared panel, the conditional
-contract is the largest single effect in this study: applied to the
+protocol is the largest single effect in this study: applied to the
 benchmark's own residuals it improves QLIKE by
 \unifIncrCondVarBenchDQ{} at DM \unifIncrCondVarBenchDM{}, and applied
 to the paper's best mean model by \unifIncrCondVarChampDQ{} at
 \unifIncrCondVarChampDM{}. Both are an order of magnitude larger than
 any increment produced by changing the conditional mean. These
-conditional-variance runs were scored under the campaign's first
-contract --- the window-level scalar of Equation~\eqref{eq:var_reg}
+conditional-variance runs were scored under the campaign's first protocol --- the window-level scalar of Equation~\eqref{eq:var_reg}
 held fixed within each window; under the adaptive recursion of
 Equation~\eqref{eq:var_ewma} part of this gain is absorbed by
 construction, since the conditional model and the recursion trade on
 the same level channel, and re-scoring the sidecar under the new
-contract is reserved.
+protocol is reserved.
 
 \emph{Which state carries the second moment.} That result invites the
 reading that the exogenous panel predicts forecast uncertainty. A
@@ -426,7 +423,7 @@ where the right-hand identity is Equation~\eqref{eq:yraw} inverted: the
 realization is the persisted raw target itself, never reconstructed from
 the winsorized fit target. The traditional scalar estimator of
 \citet{Duan1983} is the same form with the identity mean map, a
-window-constant scalar, and in-window fit-scale residuals: the contract
+window-constant scalar, and in-window fit-scale residuals: the calibrated protocol
 differs from Duan smearing in exactly three ways --- the calibrated
 mean, the adaptive recursion of Equation~\eqref{eq:var_ewma} in place
 of the window-constant scalar, and causal residuals against that mean
@@ -503,7 +500,7 @@ defect; the mean calibration of Equation~\eqref{eq:mean_calib} absorbs its
 first-order attenuation, it is shared by every arm, and it cancels to
 first order in comparisons.
 
-\subsection{The Evaluation Contract}
+\subsection{A Common Evaluation Protocol}
 \label{sec:smearing_contract}
 
 Every forecast in this paper passes through Equation~\eqref{eq:smear_map}
@@ -533,14 +530,14 @@ with no second-moment term. Convention \emph{Duan} is the in-window scalar
 smear --- the \citet{Duan1983} special case identified after
 Equation~\eqref{eq:smear_map} --- with one scalar per evaluation window,
 the mean of that window's own squared fit-scale residuals, added to the
-squared forecast before the baseline reversal. Convention \emph{contract}
-is the calibrated stack of
+squared forecast before the baseline reversal. Convention \emph{calibrated}
+is the calibrated back-transformation of
 Equations~\eqref{eq:mean_calib}--\eqref{eq:smear_map}, the convention
 every headline number in this paper inherits.
 Table~\ref{tab:smear_sensitivity} reports each completed arm's pooled
 QLIKE under the three conventions, with within-convention ranks. The
-rank-stability summary is the Kendall rank correlation between the
-contract ranking and each alternative's:
+rank-stability summary is the Kendall rank correlation between the calibrated-protocol
+ranking and each alternative's:
 $\tau = \unifSmearTauNone$ against \emph{none} and
 $\tau = \unifSmearTauDuan$ against \emph{Duan}.
 
@@ -548,24 +545,24 @@ $\tau = \unifSmearTauDuan$ against \emph{Duan}.
 \centering
 \caption{The benchmark under the three back-transform conventions. The
 full per-arm table is Appendix Table~\ref{tab:smear_sensitivity_full};
-Kendall $\tau$ of each alternative ranking against the contract ranking
+Kendall $\tau$ of each alternative ranking against the calibrated-protocol ranking
 over all arms: none $\unifSmearTauNone$, traditional Duan
 $\unifSmearTauDuan$.}
 \label{tab:smear_sensitivity}
 \begin{tabular}{@{}lccc@{}}
 \toprule
- & No correction & Traditional Duan & Contract \\
+ & No correction & Traditional Duan & Calibrated \\
 \midrule
 OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKENone{} & \unifAzeroQLIKEDuan{} & \unifAzeroQLIKE{} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The correction is treated as part of the evaluation contract: it is frozen
+The correction is treated as part of the evaluation protocol: it is frozen
 here, before the first comparison, and no downstream section revisits it.
 Any future change to the second-moment model --- including the learned
 correction contemplated for this slot --- would constitute a change of
-contract, and would require re-scoring every comparison that inherited the
+protocol, and would require re-scoring every comparison that inherited the
 old one.
 
 \subsection{Estimators and Causal Tuning}

@@ -2,7 +2,7 @@
 \label{sec:related}
 
 % Four strands: RV modeling; ML in prediction; regularization geometry;
-% retransformation. The contract-specific literature discussion sits with
+% retransformation. The protocol-specific literature discussion sits with
 % the estimator in Section 4.3; this section orients the paper.
 
 \paragraph{Realized-volatility modeling.}
@@ -61,7 +61,7 @@ model carries fixed penalties rather than tuned ones.
 \paragraph{Retransformation.}
 Because models are fit on a transformed scale and scored on the variance
 scale, the back-transform is part of the estimator, and its literature
-is reviewed where the contract is defined
+is reviewed where the protocol is defined
 (Section~\ref{sec:smearing_estimator}). In brief: static scalar
 corrections are standard, from the log-normal factor of
 \citet{AndersenBollerslevDieboldLabys2003} to \citet{Duan1983}'s
@@ -71,7 +71,7 @@ second moments are standard inside transform-scale models
 \citep{CorsiMittnikPigorschPigorsch2008,BollerslevKretschmerPigorschTauchen2009,CiarretaZarraga2016}
 but always estimated jointly within one model's likelihood; and the
 conditional variant is old outside finance
-\citep{Manning1998,ManningMullahy2001}. The contract used here --- a
+\citep{Manning1998,ManningMullahy2001}. The protocol used here --- a
 causal, model-specific second moment applied uniformly at evaluation
 time across heterogeneous model classes --- sits between these poles,
 and the adaptive recursion that beats the retrospective

@@ -4,8 +4,8 @@
 \label{sec:appendix_master}
 
 Table~\ref{tab:master} lists every arm of the unification campaign: one
-frozen panel (Section~\ref{sec:data_prep}), one scoring contract
-(Section~\ref{sec:smearing}). QLIKE is the pooled contract loss;
+frozen panel (Section~\ref{sec:data_prep}), one scoring protocol
+(Section~\ref{sec:smearing}). QLIKE is the pooled loss under the evaluation protocol;
 $\Delta$ is the \emph{paired} mean per-bar loss differential against the
 benchmark, and DM its Diebold--Mariano $t$-statistic, both computed on the
 row intersection of the two arms. Product- and transmission-block arms
@@ -20,26 +20,26 @@ read mechanically lower. The $\Delta$ and DM columns are paired on
 common rows and are comparable throughout; level comparisons should be
 made only within a protocol. The gated two-block ridge and the
 \emph{trail}-family arms are the \texttt{oos\_mult=2} panel.
-\textbf{Contract note.} The scoring contract's second-moment layer was
+\textbf{Protocol note.} The scoring protocol's second-moment layer was
 upgraded on 2026-08-11 from the window-level scalar to the causal
 adaptive recursion of Section~\ref{sec:smearing}
 (Equation~\eqref{eq:var_ewma}). Rows harvested on Hoffman2 --- the
 benchmark, the \texttt{oos\_mult=2} panel, and every increment between
-them --- are scored under the adaptive contract. Rows whose chunks
+them --- are scored under the adaptive protocol. Rows whose chunks
 survive only on the decommissioned cluster (the original-protocol
 block ridges and the conditional second-moment panel) retain their
-\emph{legacy} scalar-contract levels; the two contracts shift QLIKE
+\emph{legacy} scalar-protocol levels; the two protocols shift QLIKE
 levels by roughly $5$--$8 \times 10^{-3}$, so legacy levels are not
-comparable to adaptive-contract levels, while paired $\Delta$ and DM
-within each contract remain valid. A mean-reverting GARCH$(1,1)$
+comparable to adaptive-protocol levels, while paired $\Delta$ and DM
+within each protocol remain valid. A mean-reverting GARCH$(1,1)$
 refinement of the recursion (Equation~\eqref{eq:var_garch}) is
 measured in Section~\ref{sec:smearing} but not adopted; promoting it
-would be a further change of contract.
+would be a further change of protocol.
 
 {\small
 \setlength{\tabcolsep}{4pt}
 \begin{longtable}{@{}lrrr@{}}
-\caption{All campaign arms under the frozen panel and scoring contract.}
+\caption{All campaign arms under the frozen panel and scoring protocol.}
 \label{tab:master}\\
 \toprule
 Model & QLIKE & $\Delta$ & DM $t$ \\
@@ -137,7 +137,7 @@ Frame width $K = 40$  & \unifBlkFourTrailKFortyQLIKE{} & \unifBlkFourTrailKForty
 Two-bar lag operator & \unifBlkFourTrailLagTwoQLIKE{} & \unifBlkFourTrailLagTwoDelta{} & \unifBlkFourTrailLagTwoDM{} \\
 Transmission base excluding cadence-heterogeneous aggregates & \unifBlkFourTrailDropHetQLIKE{} & \unifBlkFourTrailDropHetDelta{} & \unifBlkFourTrailDropHetDM{} \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{Conditional second-moment contract}} \\
+\multicolumn{4}{@{}l}{\emph{Conditional second-moment arms}} \\
 Benchmark, exogenous-state variance conditioning & \unifCondVarBenchQLIKE{} & \unifCondVarBenchDelta{} & \unifCondVarBenchDM{} \\
 Benchmark, backbone-only variance conditioning & \unifCondVarBenchLevelQLIKE{} & \unifCondVarBenchLevelDelta{} & \unifCondVarBenchLevelDM{} \\
 Best model, exogenous-state variance conditioning & \unifCondVarChampQLIKE{} & \unifCondVarChampDelta{} & \unifCondVarChampDM{} \\
@@ -150,7 +150,7 @@ Best model, exogenous-state variance conditioning & \unifCondVarChampQLIKE{} & \
 Table~\ref{tab:smear_sensitivity_full} reports every completed arm's
 pooled QLIKE under the three back-transform conventions of
 Section~\ref{sec:smearing}, with within-convention ranks. The rank
-agreement statistics quoted there ($\tau$ against the contract ranking:
+agreement statistics quoted there ($\tau$ against the calibrated-protocol ranking:
 none \unifSmearTauNone{}, traditional Duan \unifSmearTauDuan{}) are
 computed over this table.
 
