@@ -1,0 +1,22 @@
+#!/bin/bash
+#$ -N unif_tree
+#$ -cwd
+#$ -l h_data=8G,h_rt=8:00:00
+#$ -pe shared 4
+#$ -t 1-100
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Tree expert bank chunk task (Hoffman2): one (tree_expert_XX, chunk).
+# Per-bar forecasts; refit cadence via TREE_REFIT_EVERY (disclosed cost
+# containment; default upstream is 1 = per-bar). Threads exported to match
+# the executor's SLURM_CPUS_PER_TASK convention.
+# Submit: qsub -N unif_tree_XX -v ARM=tree_expert_XX jobs/sge/unification_tree.sge
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=$NSLOTS MKL_NUM_THREADS=$NSLOTS
+export SLURM_CPUS_PER_TASK=$NSLOTS TREE_REFIT_EVERY=10
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" $((SGE_TASK_ID - 1)))
+[ -f "$OUT" ] && { echo "SKIP existing $OUT"; exit 0; }
+$PY experiments/run_unification.py --arm "$ARM" --chunk-index "$((SGE_TASK_ID - 1))" \
+    --output-dir results/unification

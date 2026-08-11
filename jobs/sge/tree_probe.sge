@@ -1,0 +1,24 @@
+#!/bin/bash
+#$ -N tree_probe
+#$ -cwd
+#$ -l h_data=8G,h_rt=0:30:00
+#$ -pe shared 4
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY - <<'EOF'
+import numpy as np, time
+z=np.load('results/prep_cache_all_features_b2.npz')
+X,y=z['X'],z['y']
+Xtr=np.ascontiguousarray(X[:24000]); ytr=np.ascontiguousarray(y[:24000])
+import lightgbm as lgb
+params=dict(num_leaves=127,learning_rate=0.05,n_estimators=300,min_child_samples=100,feature_fraction=0.8,bagging_fraction=0.8,bagging_freq=1,lambda_l1=1e-4,lambda_l2=1e-4,num_threads=4,random_state=42,verbosity=-1)
+t0=time.time(); m=lgb.LGBMRegressor(**params).fit(Xtr,ytr); t1=time.time()
+print('lgbm fit 4 threads: %.2fs'%(t1-t0))
+import xgboost as xgb
+xp=dict(max_depth=6,learning_rate=0.05,n_estimators=300,min_child_weight=10,subsample=0.8,colsample_bytree=0.8,reg_alpha=1e-4,reg_lambda=1e-4,gamma=1e-4,tree_method='hist',n_jobs=4,random_state=42,verbosity=0)
+t0=time.time(); m=xgb.XGBRegressor(**xp).fit(Xtr,ytr); t1=time.time()
+print('xgb fit 4 threads: %.2fs'%(t1-t0))
+print('panel rows',X.shape[0])
+EOF
