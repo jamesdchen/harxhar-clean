@@ -635,7 +635,23 @@ where the sums run over the bars of the training window and the penalties
 $\alpha$ and $\lambda$ are held constant between the periodic re-selections
 described below. The $\ell_1$ penalty produces a coefficient vector
 supported on a subset of columns; the $\ell_2$ penalty produces a
-coefficient vector with all entries nonzero.
+coefficient vector with all entries nonzero. The elastic net
+\citep{ZouHastie2005} interpolates the two,
+\begin{equation*}
+\hat\beta^{\mathrm{enet}} = \arg\min_{\beta}
+  \sum_{s} \left( y_s - x_s^\top \beta \right)^2
+  + \lambda \left( \tfrac{1 - \rho}{2}\, \lVert \beta \rVert_2^2
+  + \rho\, \lVert \beta \rVert_1 \right),
+\end{equation*}
+recovering ridge at $\rho = 0$ and the lasso at $\rho = 1$. Its role in
+this paper is diagnostic as much as predictive: in the causally tuned
+arms the mixing share $\rho$ is \emph{free} --- re-selected from
+$\{0.25, 0.5, 0.75, 1.0\}$ jointly with the penalty strength at every
+retune --- so the estimator, not the author, chooses how much selection
+to apply, and the selected trajectory is part of the evidence in
+Section~\ref{sec:buckets_tuned}. All three penalized families are
+parameterized in the units of \texttt{scikit-learn}'s solvers, against
+which every custom solver below was validated.
 
 \paragraph{Walk-forward protocol.}
 The panel is computed as 100 walk-forward chunks over a rolling
@@ -647,25 +663,49 @@ issued. Each arm re-selects its own penalty periodically and causally: every
 25-bar embargo (covering the longest moving average entering the features),
 and a 125-bar validation tail, and the penalty value minimizing validation
 MSE on that tail is adopted. No forecast's hyperparameters ever see its own
-future. The lasso arm is solved as an exact every-bar online homotopy: the
-solution and active set at each bar are obtained by exactly updating the
-previous bar's solution for the one-row change in the window, not by a
-warm-started batch solver terminated at a tolerance, so the head-to-head is
-not confounded with optimization error. The ridge arm runs on an exact
-rank-one update path.
+future. The lasso and elastic-net arms are solved as exact every-bar online
+homotopies \citep{Garrigues2008}: the solution and active set at each bar
+are obtained by exactly updating the previous bar's solution for the
+one-row change in the window, not by a warm-started batch solver
+terminated at a tolerance, so the head-to-head is not confounded with
+optimization error. The implementation is a re-authored recursive elastic
+net (Gram-form active-set homotopy with rank-1 Cholesky maintenance,
+validated coefficientwise against \texttt{scikit-learn}). The ridge arm
+runs on an exact rank-one update path.
 % Estimator engineering (rank-one algebra, homotopy, BlockRidge solver) is
 % appendix material per the restructure plan.
 
 \paragraph{Tree ensembles.} The nonlinear members of the estimator set
-are the gradient-boosted tree ensembles LightGBM \citep{Ke2017} and
-XGBoost \citep{Chen2016}. The comparison battery fully crosses the
-estimators of this subsection with the nine feature buckets on the
-shared panel ($n = 218{,}934$ thirty-minute bars, identical rows in
-every cell). Every arm, tree and linear alike, reselects its own
-hyperparameters on the same periodic causal schedule: each reselection
-uses only data available before the reselection date, so no forecast's
-configuration uses information from that forecast's future. The shared
-comparator is the per-bar OLS--HAR incumbent
+are two implementations of gradient-boosted regression trees. Gradient
+boosting builds an additive ensemble
+$F_M(x) = \sum_{m=1}^{M} \eta\, f_m(x)$ of shallow regression trees,
+each $f_m$ fit to the negative gradient of the loss at the current
+ensemble's predictions and scaled by a shrinkage rate $\eta$.
+\textbf{XGBoost} \citep{Chen2016} fits each tree to a second-order
+Taylor expansion of the loss: leaf weights are obtained in closed form
+from the per-leaf gradient and Hessian sums with an $\ell_2$ penalty,
+and the split criterion includes an explicit complexity penalty per
+added leaf; row and column subsampling decorrelate successive trees.
+\textbf{LightGBM} \citep{Ke2017} uses the same first-order boosting
+scheme with engineering that matters at this design's width: features
+are binned into histograms so split search costs are independent of the
+window length, gradient-based one-side sampling concentrates the fit on
+large-gradient rows, exclusive feature bundling compresses the many
+mutually exclusive availability-indicator columns, and trees grow
+leaf-wise under a size cap rather than level-wise. The two enter the
+campaign in two distinct roles. In the causal-tuning battery they are
+tuned arms like any other: their hyperparameters are re-selected on the
+same periodic forward-split schedule as every tuned arm, and the
+battery fully crosses the five estimators of this subsection with the
+nine feature buckets on the battery's shared panel ($n = 218{,}934$
+thirty-minute bars, identical rows in every cell). In the frozen
+\emph{expert bank}, a menu of twenty fixed configurations --- the top
+eight unique configurations plus two Sobol points per family from a
+dev-span Optuna study, frozen permanently before any scored bar ---
+is refit every bar on the identical wide design at the disclosed refit
+cadence, so the tree class and the linear class are compared on the
+same information set with no per-arm tuning freedom. The shared
+comparator in both roles is the per-bar OLS--HAR incumbent
 (Section~\ref{sec:dp_benchmark}).
 
 
