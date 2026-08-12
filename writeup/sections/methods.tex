@@ -60,7 +60,7 @@ variables, refit at every bar. The forecasting protocol is:
     r_t = \frac{RV^{\mathrm{raw}}_t}{\widehat{RV}^{\mathrm{raw}}_t},
     \label{eq:dp_qlike}
 \end{equation}
-computed on the full $218{,}934$-bar evaluation panel. QLIKE is used for
+computed on the full $273{,}554$-bar evaluation panel. QLIKE is used for
 three reasons: it is scale-invariant in the level of volatility; it is
 strictly consistent for the conditional variance; and it penalises
 under-prediction more heavily than over-prediction, which matches the
@@ -71,11 +71,31 @@ several tenths of a QLIKE unit lower than on a raw, unadjusted panel.
 Every comparison in this paper is therefore made within one preprocessing
 regime, and every table is labelled with the panel it was computed on.
 
-\pending{the benchmark table: per-bar OLS-on-HAR QLIKE and secondary
-metrics (out-of-sample $R^2$, Mincer--Zarnowitz $\alpha$/$\beta$, MSE, MAE)
-from the unification campaign's \texttt{a0} arm on the frozen base-2
-panel --- the single benchmark every comparison in this paper is measured
-against}
+\begin{table}[H]
+\centering
+\caption{The benchmark: per-bar OLS on the HAR ladder plus calendar
+dummies, scored on the frozen panel under the evaluation protocol of
+Sections~\ref{sec:smearing_bias}--\ref{sec:smearing_contract}. QLIKE is
+computed on the raw variance scale; the secondary metrics are computed on
+the fitting (square-root) scale where the model is estimated, on the same
+scored pairs.\label{tab:benchmark}}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Scored bars & $273{,}554$ (positivity exclusion removes $0.2\%$) \\
+QLIKE (raw scale) & \unifAzeroQLIKE{} \\
+Out-of-sample $R^2$ (fit scale) & $0.417$ \\
+Mincer--Zarnowitz $\alpha$ (fit scale) & $-0.034$ \\
+Mincer--Zarnowitz $\beta$ (fit scale) & $1.039$ \\
+MSE (fit scale) & $0.1397$ \\
+MAE (fit scale) & $0.2208$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+Squared-error metrics computed on the raw variance scale are uninformative
+on this panel: the median absolute error is $3.3 \times 10^{-7}$ against a
+maximum of $35.6$, so a handful of volatility-spike bars dominates every
+squared-error aggregate --- the asymmetry that motivates QLIKE as the
+primary loss (Section~\ref{sec:dp_benchmark}).
 
 Differences in QLIKE at the fourth decimal place require a significance
 assessment. Every comparison against this benchmark is therefore
@@ -505,10 +525,12 @@ first order in comparisons.
 \label{sec:smearing_contract}
 
 Every forecast in this paper passes through Equation~\eqref{eq:smear_map}
-before any QLIKE number is computed. Every downstream comparison
-\pending{enumerate the downstream analyses by their final section labels
-(bucket attribution, block structure, model classes) once those sections
-stabilize} scores its arms on raw-scale pairs produced by exactly this map,
+before any QLIKE number is computed. Every downstream comparison --- the
+bucket attribution of Sections~\ref{sec:buckets}--\ref{sec:joint_bucket},
+the linear-class comparisons of Sections~\ref{sec:dense_weak} and
+\ref{sec:dense_weak_ew}, and the tree and final-model results of
+Sections~\ref{sec:tree_edge} and \ref{sec:three_block_results} --- scores
+its arms on raw-scale pairs produced by exactly this map,
 with exactly these window and residual choices.
 
 Because the calibration pair and the second-moment coefficients are
@@ -756,9 +778,9 @@ $0.13275$ --- which shares its rows with the battery panel but not its
 window or backbone convention. The levels below are therefore not
 comparable to the battery tables and are quoted only for the design
 decisions they settle.
-\pending{confirmation that the paper's production product block is exactly
-this construction (candidate space, selection window, column scaling) once
-the block is re-run under the paper's panel convention}
+The production block is exactly this construction --- the same candidate
+space, selection window, and column scaling, verified against the campaign
+executor that runs the product arms.
 
 \paragraph{Construction.} The block is built in four steps. The constants
 below are those frozen in the campaign executor,

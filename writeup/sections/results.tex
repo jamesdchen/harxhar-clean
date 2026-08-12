@@ -36,17 +36,21 @@ exogenous buckets, on the shared panel, against the shared incumbent.
 % reference/sections/marginal_contribution.tex Table tab:buckets.
 \begin{table}[H]
 \centering
-\caption{Bucket attribution: literal per-bar OLS on each exogenous bucket,
-from the unification campaign. \textbf{Panel:} frozen base-2 panel,
-diurnally adjusted, $n = 218{,}934$ thirty-minute bars, identical rows in
-every cell; incumbent QLIKE $0.24050$ (per-bar OLS on HAR $+$ calendar).
-\textbf{Estimator:} exact OLS ($\alpha = 0$), rolling window $24{,}000$ bars
-($500$ trading days), refit every bar by exact rank-one updates. Columns
+\caption{Bucket attribution: minimum-norm least squares on each exogenous
+bucket, from the unification campaign. \textbf{Panel:} the frozen panel of
+Section~\ref{sec:data_prep}, $n = 273{,}554$ thirty-minute bars, identical
+rows in every cell. \textbf{Protocol:} rows are scored under the campaign's
+first-iteration scalar back-transform protocol, whose benchmark is QLIKE
+\unifAzeroQLIKEScalar{} --- the incumbent every $\Delta$ and DM in this
+table is computed against; under the current protocol the benchmark is
+\unifAzeroQLIKE{} (Section~\ref{sec:smearing_contract}), and this grid's
+re-harvest under it is in progress (Appendix~\ref{app:protocol_note}).
+\textbf{Estimator:} minimum-norm least squares (Section~\ref{sec:estimators}),
+rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns
 participate in a window only when their feed went live before the window
 starts and printed within it; masked columns are disclosed per chunk.
 $\Delta$ is against the incumbent; the within-class increment coincides
-with $\Delta$ because the no-exogenous design is exactly the incumbent
-under literal OLS.}
+with $\Delta$ because the no-exogenous design is exactly the incumbent.}
 \label{tab:buckets}
 \begin{tabular}{lrrr}
 \toprule
@@ -62,7 +66,7 @@ sentiment    & \unifSentimentQLIKE{}  & \unifSentimentDelta{}  & \unifSentimentD
 market\_ew   & \unifMarketEwQLIKE{}   & \unifMarketEwDelta{}   & \unifMarketEwDM{} \\
 market\_vw   & \unifMarketVwQLIKE{}   & \unifMarketVwDelta{}   & \unifMarketVwDM{} \\
 \midrule
-(no exogenous $=$ incumbent) & \unifAzeroQLIKE{} & --- & --- \\
+(no exogenous $=$ incumbent) & \unifAzeroQLIKEScalar{} & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -120,9 +124,12 @@ the author. Table~\ref{tab:buckets_tuned} reports both.
 \centering
 \small
 \caption{Each bucket design under two causally tuned penalized
-estimators. \textbf{Panel:} the frozen panel of
-Section~\ref{sec:data_prep}, identical rows in every cell; benchmark
-QLIKE \unifAzeroQLIKE{}. DM $t$ is against the benchmark; negative
+estimators. \textbf{Panel and protocol:} as in Table~\ref{tab:buckets}
+--- the frozen panel of Section~\ref{sec:data_prep}, identical rows in
+every cell, rows scored under the first-iteration scalar protocol
+(benchmark \unifAzeroQLIKEScalar{}; current protocol
+\unifAzeroQLIKE{}); re-harvest under the current protocol is in
+progress. DM $t$ is against the benchmark; negative
 favours the arm. The final column is the paired Diebold--Mariano
 statistic of the elastic net against ridge \emph{on the same design},
 positive meaning ridge is the better of the two.}
@@ -391,10 +398,11 @@ when every family chooses its penalty by the same causal rule.
 \centering
 \caption{Ridge versus lasso on the full design, out-of-sample QLIKE with
 the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
-parentheses. Unification campaign, $n = 218{,}934$ thirty-minute bars,
-identical rows in every cell; negative $t$ favors the arm. Both arms
-re-select their penalty every $250$ solves from the battery grids on a
-forward validation split.}
+parentheses. Panel and protocol as in Table~\ref{tab:buckets} (frozen
+panel, $n = 273{,}554$ identical rows in every cell; first-iteration
+scalar protocol, incumbent \unifAzeroQLIKEScalar{}); negative $t$ favors
+the arm. Both arms re-select their penalty every $250$ solves from the
+battery grids on a forward validation split.}
 \label{tab:lasso_vs_ridge}
 \begin{tabular}{@{}lccc@{}}
 \toprule
@@ -402,7 +410,7 @@ forward validation split.}
 \midrule
 Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
 \midrule
-Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKE{}} \\
+Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKEScalar{}} \\
 \bottomrule
 \end{tabular}
 \end{table}

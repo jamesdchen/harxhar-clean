@@ -20,7 +20,7 @@ read mechanically lower. The $\Delta$ and DM columns are paired on
 common rows and are comparable throughout; level comparisons should be
 made only within a protocol. The gated two-block ridge and the
 \emph{trail}-family arms are the \texttt{oos\_mult=2} panel.
-\textbf{Protocol note.} The scoring protocol's second-moment layer was
+\textbf{Protocol note.}\label{app:protocol_note} The scoring protocol's second-moment layer was
 upgraded on 2026-08-11 from the window-level scalar to the causal
 adaptive recursion of Section~\ref{sec:smearing}
 (Equation~\eqref{eq:var_ewma}). Rows harvested on Hoffman2 --- the
@@ -34,7 +34,13 @@ comparable to adaptive-protocol levels, while paired $\Delta$ and DM
 within each protocol remain valid. A mean-reverting GARCH$(1,1)$
 refinement of the recursion (Equation~\eqref{eq:var_garch}) is
 measured in Section~\ref{sec:smearing} but not adopted; promoting it
-would be a further change of protocol.
+would be a further change of protocol. Tables~\ref{tab:buckets},
+\ref{tab:buckets_tuned}, and \ref{tab:lasso_vs_ridge} currently carry
+rows scored under the campaign's \emph{first-iteration} scalar
+protocol (incumbent \unifAzeroQLIKEScalar{}), internally consistent
+within each table; their re-harvest under the current protocol was
+submitted on 2026-08-11 and the tables will be regenerated from the
+scorer when it completes.
 
 {\small
 \setlength{\tabcolsep}{4pt}
