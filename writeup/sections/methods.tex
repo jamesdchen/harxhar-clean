@@ -10,11 +10,10 @@
 The methods come in two halves. The first half fixes the evaluation
 framework before any comparison is made: the comparator each arm is
 measured against and the testing machinery that accompanies it
-(Section~\ref{sec:dp_benchmark}); the reason the back-transform from the
-fitting scale to the variance scale carries an explicit second moment
-(Section~\ref{sec:smearing_bias}); the calibrated, strictly causal
-estimator of that second moment (Section~\ref{sec:smearing_estimator});
-and the inheritance rule that makes the whole stack binding on every
+(Section~\ref{sec:dp_benchmark}); the back-transformation from the
+fitting scale to the variance scale and the calibrated, strictly causal
+second-moment correction it carries (Section~\ref{sec:smearing}); and
+the inheritance rule that makes the whole stack binding on every
 downstream comparison (Section~\ref{sec:smearing_contract}). The second
 half defines what is compared: the estimators --- one unpenalized
 member, the penalized linear family, and two tree ensembles --- with the
@@ -129,7 +128,7 @@ estimation-window lengths) are conventions of the panel and estimator
 construction, disclosed where they are defined and never optimized against
 any loss.
 
-\subsection{The Back-Transformation Bias}
+\subsection{The Back-Transformation}
 \label{sec:smearing_bias}
 
 Every model in this paper is fit on the preprocessed scale. Realized variance
@@ -168,7 +167,6 @@ model's own residual variance, so it differs across models. The
 back-transform therefore includes an explicit second-moment term, and the
 estimator of that term is specified as part of the evaluation procedure.
 
-\subsection{The Calibrated Back-Transformation}
 \label{sec:smearing_estimator}
 \label{sec:smearing}
 
@@ -677,37 +675,84 @@ runs on an exact rank-one update path.
 
 \paragraph{Tree ensembles.} The nonlinear members of the estimator set
 are two implementations of gradient-boosted regression trees. Gradient
-boosting builds an additive ensemble
-$F_M(x) = \sum_{m=1}^{M} \eta\, f_m(x)$ of shallow regression trees,
-each $f_m$ fit to the negative gradient of the loss at the current
-ensemble's predictions and scaled by a shrinkage rate $\eta$.
-\textbf{XGBoost} \citep{Chen2016} fits each tree to a second-order
-Taylor expansion of the loss: leaf weights are obtained in closed form
-from the per-leaf gradient and Hessian sums with an $\ell_2$ penalty,
-and the split criterion includes an explicit complexity penalty per
-added leaf; row and column subsampling decorrelate successive trees.
-\textbf{LightGBM} \citep{Ke2017} uses the same first-order boosting
-scheme with engineering that matters at this design's width: features
-are binned into histograms so split search costs are independent of the
-window length, gradient-based one-side sampling concentrates the fit on
-large-gradient rows, exclusive feature bundling compresses the many
-mutually exclusive availability-indicator columns, and trees grow
-leaf-wise under a size cap rather than level-wise. The two enter the
-campaign in two distinct roles. In the causal-tuning battery they are
-tuned arms like any other: their hyperparameters are re-selected on the
-same periodic forward-split schedule as every tuned arm, and the
-battery fully crosses the five estimators of this subsection with the
-nine feature buckets on the battery's shared panel ($n = 218{,}934$
-thirty-minute bars, identical rows in every cell). In the frozen
-\emph{expert bank}, a menu of twenty fixed configurations --- the top
-eight unique configurations plus two Sobol points per family from a
-dev-span Optuna study, frozen permanently before any scored bar ---
-is refit every bar on the identical wide design at the disclosed refit
-cadence, so the tree class and the linear class are compared on the
-same information set with no per-arm tuning freedom. The shared
-comparator in both roles is the per-bar OLS--HAR incumbent
-(Section~\ref{sec:dp_benchmark}).
+boosting fits an additive ensemble forward-stagewise: starting from a
+constant, at stage $m$ it adds a shallow regression tree $f_m$ fit to the
+negative gradient of the loss at the current ensemble's predictions,
+\begin{equation*}
+    F_m(x) = F_{m-1}(x) + \eta\, f_m(x),
+    \qquad
+    f_m \approx \arg\min_{f \in \mathcal{T}}
+      \sum_{i} \Bigl( -\frac{\partial \ell(y_i, F_{m-1}(x_i))}
+                            {\partial F_{m-1}(x_i)} - f(x_i) \Bigr)^2,
+\end{equation*}
+where $\mathcal{T}$ is the space of depth-limited regression trees,
+$\eta \in (0, 1]$ is the shrinkage rate, and for the squared loss used
+throughout this paper the negative gradient is exactly the current
+residual, so each tree is a regression tree on the residuals of the
+ensemble so far.
 
+\emph{XGBoost} \citep{Chen2016} fits each tree to a second-order Taylor
+expansion of the loss rather than the raw gradient. Writing
+$g_i = \partial \ell / \partial F_{m-1}(x_i)$ and
+$h_i = \partial^2 \ell / \partial F_{m-1}(x_i)^2$, the per-tree objective
+\begin{equation*}
+    \mathrm{Obj}_m \;\approx\;
+    \sum_{i} \Bigl[ g_i f_m(x_i) + \tfrac{1}{2} h_i f_m(x_i)^2 \Bigr]
+    + \gamma T + \tfrac{1}{2} \lambda \sum_{j=1}^{T} w_j^2,
+\end{equation*}
+with $T$ leaves and leaf weights $w_j$, has closed-form optimal weights
+$w_j^{*} = -G_j / (H_j + \lambda)$, where $G_j$ and $H_j$ are the
+gradient and Hessian sums over the rows in leaf $j$, and a split is
+accepted only if it improves
+$\tfrac{1}{2}\bigl[ G_L^2/(H_L+\lambda) + G_R^2/(H_R+\lambda)
+- G^2/(H+\lambda) \bigr]$ by more than $\gamma$. The curvature term makes
+the leaf weights loss-aware (for squared error $h_i = 2$ and the scheme
+reduces to a regularized mean), and $\gamma$ prices complexity per added
+leaf explicitly; row and column subsampling decorrelate successive trees.
+Our configurations use its histogram split finder
+(\texttt{tree\_method="hist"}).
+
+\emph{LightGBM} \citep{Ke2017} uses the first-order scheme with three
+engineering choices that matter at this design's width. First, feature
+values are binned into histograms, so split search costs depend on the
+bin count rather than the $24{,}000$-row window length. Second,
+gradient-based one-side sampling keeps all large-$|g_i|$ rows and samples
+small-$|g_i|$ rows with compensating weights, concentrating the fit on
+the hard bars. Third, exclusive feature bundling merges mutually
+exclusive columns --- a property this design has in abundance, since an
+availability indicator and its siblings are zero whenever another
+feed's indicator is one --- shrinking the effective width without
+changing the fitted function class. Trees grow leaf-wise (best-first)
+under a leaf-count cap rather than level-wise: deeper trees for the same
+budget, with the cap standing in for depth control.
+
+\emph{Roles in the campaign.} The two families enter twice, under
+different tuning disciplines. In the causal-tuning battery they are
+tuned arms like any other: their hyperparameters are re-selected on the
+same periodic forward-split schedule as every tuned arm, and the battery
+fully crosses the five estimators of this subsection with the nine
+feature buckets on the battery's shared panel ($n = 218{,}934$
+thirty-minute bars, identical rows in every cell). In the frozen
+\emph{expert bank} the configurations are fixed permanently before any
+scored bar: a dev-span study (rows before 2003, screen refits every
+$250$ bars) searched each family's box --- LightGBM:
+\texttt{num\_leaves} $15$--$255$ and \texttt{min\_child\_samples}
+$20$--$500$ and \texttt{lambda\_l1}/\texttt{l2} $10^{-8}$--$10$ on log
+scales, \texttt{learning\_rate} $0.01$--$0.3$,
+\texttt{n\_estimators} $50$--$500$, feature and bagging fractions
+$0.5$--$1.0$; XGBoost: \texttt{max\_depth} $3$--$10$,
+\texttt{min\_child\_weight} $1$--$100$,
+\texttt{reg\_alpha}/\texttt{reg\_lambda} $10^{-8}$--$10$,
+\texttt{gamma} $10^{-8}$--$1$ on log scales, the same learning-rate and
+estimator ranges, subsample and column-subsample $0.5$--$1.0$ --- and
+the menu froze the top eight unique configurations plus two seeded Sobol
+points per family ($2 \times 10$ experts). Each expert is then refit on
+the trailing $24{,}000$-bar window at the disclosed refit cadence, on
+the identical wide design the linear arms read, with a fixed seed and
+threads following the slot count, so the tree class and the linear
+class are compared on the same information set with no per-arm tuning
+freedom. The shared comparator in both roles is the per-bar OLS--HAR
+incumbent (Section~\ref{sec:dp_benchmark}).
 
 \subsection{The Attribution Protocol}
 \label{sec:attribution}
