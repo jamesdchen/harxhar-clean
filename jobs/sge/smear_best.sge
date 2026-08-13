@@ -1,0 +1,9 @@
+#!/bin/bash
+#$ -N smear_best
+#$ -cwd
+#$ -l h_data=8G,h_rt=6:00:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export OMP_NUM_THREADS=4
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python experiments/smear_best_model.py

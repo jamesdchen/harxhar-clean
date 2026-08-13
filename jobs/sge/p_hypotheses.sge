@@ -1,0 +1,10 @@
+#!/bin/bash
+#$ -N p_hypotheses
+#$ -cwd
+#$ -l h_data=20G,h_rt=6:00:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 NUMBA_NUM_THREADS=1
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python experiments/analyze_p_hypotheses.py

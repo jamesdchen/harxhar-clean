@@ -7,7 +7,9 @@
 # All-interactions probe, divide-and-conquer: 6 span slices, one per task.
 set -e
 cd /u/scratch/j/jamesdc1/harxhar-clean
-export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+# moderate threading inside single slots: authorized 2026-08-13 (user directive;
+# scheduler still sees 1 slot per task; -pe remains unused)
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
 mkdir -p results/allint
 $PY experiments/probe_allint.py --span 60000 --nslices 6 --slice $((SGE_TASK_ID - 1)) --out results/allint

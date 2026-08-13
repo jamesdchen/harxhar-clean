@@ -1,0 +1,47 @@
+#!/bin/bash
+#$ -N unif_spike30
+#$ -cwd
+#$ -l h_data=16G,h_rt=6:00:00
+#$ -t 1-30
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+if [ -z "${CHUNKS:-}" ]; then
+  case "$SGE_TASK_ID" in
+    1) CHUNKS=9-12 ;;
+    2) CHUNKS=13-15 ;;
+    3) CHUNKS=16-18 ;;
+    4) CHUNKS=19-21 ;;
+    5) CHUNKS=22-24 ;;
+    6) CHUNKS=25-27 ;;
+    7) CHUNKS=28-30 ;;
+    8) CHUNKS=31-33 ;;
+    9) CHUNKS=34-36 ;;
+    10) CHUNKS=37-39 ;;
+    11) CHUNKS=40-42 ;;
+    12) CHUNKS=43-45 ;;
+    13) CHUNKS=46-48 ;;
+    14) CHUNKS=49-51 ;;
+    15) CHUNKS=52-54 ;;
+    16) CHUNKS=55-57 ;;
+    17) CHUNKS=58-60 ;;
+    18) CHUNKS=61-63 ;;
+    19) CHUNKS=64-66 ;;
+    20) CHUNKS=67-69 ;;
+    21) CHUNKS=70-72 ;;
+    22) CHUNKS=73-75 ;;
+    23) CHUNKS=76-78 ;;
+    24) CHUNKS=79-81 ;;
+    25) CHUNKS=82-84 ;;
+    26) CHUNKS=85-87 ;;
+    27) CHUNKS=88-90 ;;
+    28) CHUNKS=91-93 ;;
+    29) CHUNKS=94-96 ;;
+    30) CHUNKS=97-99 ;;
+    *) echo "bad SGE_TASK_ID=$SGE_TASK_ID" >&2; exit 2 ;;
+  esac
+fi
+$PY experiments/run_unification_batch.py --arm "$ARM" --chunks "$CHUNKS" --output-dir "${OUTPUT_DIR:-results/unification}" --solver "${SOLVER:-rank2}"

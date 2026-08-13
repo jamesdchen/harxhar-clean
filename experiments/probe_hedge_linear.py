@@ -135,6 +135,8 @@ def run_walk(model, n, window, lo, tag, t0):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--span", type=int, default=60000)
+    ap.add_argument("--arm", default="all",
+                    help="all (default) or one of ridge_hedge, ridge_tuned, blk2_hedge, blk2_tuned, blk2_fixed, a0_ols_har; single-arm mode writes its own npz")
     ap.add_argument("--out", default="results/hedge_lin")
     args = ap.parse_args()
     t0 = time.time()
@@ -164,59 +166,62 @@ def main():
     import gc; gc.collect()
     print(f"designs ready {time.time()-t0:.0f}s", flush=True)
 
+    ARM = args.arm
+
+    def _want(*names):
+        return ARM == "all" or ARM in names
+
     losses = {}
     pv_full = [np.full(Ffull.shape[1], a) for a in RIDGE_GRID]
-    mh = HedgeLinear(Ffull, y, pv_full, WINDOW)
-    ma = ArgminRidge(Ffull, y, pv_full, WINDOW)
-    losses["ridge_hedge"] = run_walk(mh, ns, WINDOW, OFF, "ridge_hedge", t0)
-    losses["ridge_tuned"] = run_walk(ma, ns, WINDOW, OFF, "ridge_tuned", t0)
+    if _want("ridge_hedge"):
+        mh = HedgeLinear(Ffull, y, pv_full, WINDOW)
+        losses["ridge_hedge"] = run_walk(mh, ns, WINDOW, OFF, "ridge_hedge", t0)
+    if _want("ridge_tuned"):
+        ma = ArgminRidge(Ffull, y, pv_full, WINDOW)
+        losses["ridge_tuned"] = run_walk(ma, ns, WINDOW, OFF, "ridge_tuned", t0)
     del Ffull; gc.collect()
 
-    Fb = np.hstack([H, E]).astype(np.float64)
+    nH = H.shape[1]
+    if _want("blk2_hedge", "blk2_tuned", "blk2_fixed"):
+        Fb = np.hstack([H, E]).astype(np.float64)
+        pv_blk = []
+        for a2 in BLK2_GRID:
+            pv = np.empty(Fb.shape[1])
+            pv[:nH] = A1
+            pv[nH:] = a2
+            pv_blk.append(pv)
+        if _want("blk2_hedge"):
+            mb_h = HedgeLinear(Fb, y, pv_blk, WINDOW)
+            losses["blk2_hedge"] = run_walk(mb_h, ns, WINDOW, OFF, "blk2_hedge", t0)
+        if _want("blk2_tuned"):
+            mb_a = ArgminRidge(Fb, y, pv_blk, WINDOW)
+            losses["blk2_tuned"] = run_walk(mb_a, ns, WINDOW, OFF, "blk2_tuned", t0)
+        if _want("blk2_fixed"):
+            pv_fixed = np.empty(Fb.shape[1])
+            pv_fixed[:nH] = A1
+            pv_fixed[nH:] = 100.0
+            sf = RollingLeastSquares(alpha=0.0, fit_intercept=True)
+            sf.init_window(Fb[:WINDOW], y[:WINDOW])
+            yh = np.full(ns, np.nan)
+            for i in range(OFF, ns):
+                if i > OFF:
+                    sf.roll(Fb[i - 1], y[i - 1], Fb[i - 1 - WINDOW], y[i - 1 - WINDOW])
+                gram = sf._Sxx - np.outer(sf._sx, sf._sx) / sf.n
+                beta = np.linalg.solve(gram + np.diag(pv_fixed),
+                                       sf._Sxy - sf._sx * sf._sy / sf.n)
+                yh[i] = float(beta @ (Fb[i] - sf._sx / sf.n) + sf._sy / sf.n)
+                if (i - OFF) % 10000 == 0:
+                    print(f"  blk2_fixed bar {i-OFF} {time.time()-t0:.0f}s", flush=True)
+            losses["blk2_fixed"] = yh
+        del Fb; gc.collect()
     del H, E; gc.collect()
-    pv_blk = []
-    for a2 in BLK2_GRID:
-        pv = np.empty(Fb.shape[1])
-        pv[: nH] = A1
-        pv[nH:] = a2
-        pv_blk.append(pv)
-    nH = H.shape[1] if False else 0  # placeholder, replaced below    nH = H.shape[1]
-    Fb = np.hstack([H, E]).astype(np.float64)
-    del H, E; gc.collect()
-    pv_blk = []
-    for a2 in BLK2_GRID:
-        pv = np.empty(Fb.shape[1])
-        pv[:nH] = A1
-        pv[nH:] = a2
-        pv_blk.append(pv)
-    mb_h = HedgeLinear(Fb, y, pv_blk, WINDOW)
-    mb_a = ArgminRidge(Fb, y, pv_blk, WINDOW)
-    losses["blk2_hedge"] = run_walk(mb_h, ns, WINDOW, OFF, "blk2_hedge", t0)
-    losses["blk2_tuned"] = run_walk(mb_a, ns, WINDOW, OFF, "blk2_tuned", t0)
 
-    pv_fixed = np.empty(Fb.shape[1])
-    pv_fixed[:nH] = A1
-    pv_fixed[nH:] = 100.0
-    sf = RollingLeastSquares(alpha=0.0, fit_intercept=True)
-    sf.init_window(Fb[:WINDOW], y[:WINDOW])
-    yh = np.full(ns, np.nan)
-    for i in range(OFF, ns):
-        if i > OFF:
-            sf.roll(Fb[i - 1], y[i - 1], Fb[i - 1 - WINDOW], y[i - 1 - WINDOW])
-        gram = sf._Sxx - np.outer(sf._sx, sf._sx) / sf.n
-        beta = np.linalg.solve(gram + np.diag(pv_fixed),
-                               sf._Sxy - sf._sx * sf._sy / sf.n)
-        yh[i] = float(beta @ (Fb[i] - sf._sx / sf.n) + sf._sy / sf.n)
-        if (i - OFF) % 10000 == 0:
-            print(f"  blk2_fixed bar {i-OFF} {time.time()-t0:.0f}s", flush=True)
-    losses["blk2_fixed"] = yh
-    del Fb; gc.collect()
-
-    yh0 = np.full(ns, np.nan)
-    yh0[OFF:] = U._walk_ols(F0, y, WINDOW, OFF, ns, kept0)[0]
-    losses["a0_ols_har"] = yh0
-    del F0; gc.collect()
-    print(f"a0 done {time.time()-t0:.0f}s", flush=True)
+    if _want("a0_ols_har"):
+        yh0 = np.full(ns, np.nan)
+        yh0[OFF:] = U._walk_ols(F0, y, WINDOW, OFF, ns, kept0)[0]
+        losses["a0_ols_har"] = yh0
+        del F0; gc.collect()
+        print(f"a0 done {time.time()-t0:.0f}s", flush=True)
 
     import score_unification as su
     print("\n=== paired table (contract scoring, common scored bars) ===")
@@ -249,7 +254,7 @@ def main():
     print("argmin selections (first 14):", sel_arr[:14])
 
     os.makedirs(args.out, exist_ok=True)
-    np.savez(os.path.join(args.out, "hedge_lin.npz"),
+    np.savez(os.path.join(args.out, "hedge_lin.npz" if args.arm == "all" else f"hedge_lin_{args.arm}.npz"),
              **{f"loss_{k}": v for k, v in L.items()},
              ridge_w=warr, blk2_w=wblk)
     print(f"wrote {args.out}/hedge_lin.npz")

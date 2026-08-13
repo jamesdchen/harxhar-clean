@@ -1,0 +1,20 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -l h_data=8G,h_vmem=10G,h_rt=12:00:00
+#$ -t 1-3
+#$ -o logs/probe_hedge_split.o$JOB_ID.$TASK_ID
+# blk2 arms of the hedge probe, fanned out in parallel with the running job
+# (which delivers the ridge pair). threads=2 inside single slots (2026-08-13).
+set -e
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+ARM=$(sed -n "${SGE_TASK_ID}p" <<'EOF'
+blk2_hedge
+blk2_tuned
+blk2_fixed
+EOF
+)
+mkdir -p results/hedge_lin
+$PY experiments/probe_hedge_linear.py --span 60000 --arm "$ARM"

@@ -1,0 +1,21 @@
+#!/bin/bash
+#$ -N unif
+#$ -cwd
+#$ -l h_data=8G,h_rt=24:00:00
+#$ -t 1-25
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+# Chunk-batched unification task: FOUR chunks per task (25 tasks x 4 chunks
+# = the 100-chunk arm). Single-slot, no -pe (queue policy). Amortizes the
+# panel load + design build across four chunks, ~10-20% throughput on
+# chunk-light arms. Moderate threading inside the slot: authorized 2026-08-13.
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
+export TQDM_DISABLE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+for c in $(( (SGE_TASK_ID - 1) * 4 )) $(( (SGE_TASK_ID - 1) * 4 + 1 )) $(( (SGE_TASK_ID - 1) * 4 + 2 )) $(( (SGE_TASK_ID - 1) * 4 + 3 )); do
+  OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" "$c")
+  [ -f "$OUT" ] && { echo "SKIP existing $OUT"; continue; }
+  $PY experiments/run_unification.py --arm "$ARM" --chunk-index "$c" \
+      --output-dir results/unification
+done

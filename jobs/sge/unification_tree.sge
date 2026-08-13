@@ -13,8 +13,9 @@
 # Submit: qsub -N unif_tree_XX -v ARM=tree_expert_XX jobs/sge/unification_tree.sge
 cd /u/scratch/j/jamesdc1/harxhar-clean
 export PYTHONPATH="$PWD:$PWD/experiments${PYTHONPATH:+:$PYTHONPATH}"
-export TQDM_DISABLE=1 OMP_NUM_THREADS=$NSLOTS MKL_NUM_THREADS=$NSLOTS
-export SLURM_CPUS_PER_TASK=$NSLOTS TREE_REFIT_EVERY=10
+export TQDM_DISABLE=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+export SLURM_CPUS_PER_TASK=2 TREE_REFIT_EVERY=10
+# moderate threading inside single slots: authorized 2026-08-13 (future tree submissions only)
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
 OUT=$(printf 'results/unification/%s/chunk_%03d.npz' "$ARM" $((SGE_TASK_ID - 1)))
 [ -f "$OUT" ] && { echo "SKIP existing $OUT"; exit 0; }

@@ -1,0 +1,10 @@
+#!/bin/bash
+#$ -N audit_live
+#$ -cwd
+#$ -l h_data=16G,h_rt=0:30:00
+#$ -o /u/scratch/j/jamesdc1/harxhar-clean/logs/
+#$ -j y
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export PYTHONPATH="$PWD:$PWD/experiments"
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY experiments/_audit_liveness.py

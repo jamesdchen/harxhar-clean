@@ -7,6 +7,8 @@
 # Multi-horizon probe: one task per horizon (bars). Single-slot by policy.
 set -e
 cd /u/scratch/j/jamesdc1/harxhar-clean
+export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+# moderate threading inside single slots: authorized 2026-08-13
 PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
 H=$(sed -n "${SGE_TASK_ID}p" <<'EOF'
 1
