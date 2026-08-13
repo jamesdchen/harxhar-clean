@@ -552,14 +552,16 @@ in the final three-block ridge (Section~\ref{sec:three_block_results}).
 
 \paragraph{The expert bank.} The twenty frozen configurations of
 Section~\ref{sec:estimators} were walked per bar on the full panel and
-scored under the evaluation protocol. Sixteen of the seventeen
+scored under the evaluation protocol. Seventeen of the nineteen
 completed experts beat the benchmark, at QLIKE $0.21796$--$0.22108$
 against the benchmark's \unifAzeroQLIKE{} (DM $-11.3$ to $-7.6$); the
 two seeded Sobol points --- included deliberately as unoptimized
 controls --- lose to it ($0.23064$ and $0.23853$), so the Optuna
 selection is worth $1$--$2 \times 10^{-2}$ over a random draw. One
-expert's harvest is completing at this writing; the partial coverage is
-disclosed wherever it binds below.
+expert's harvest is still completing; the bank aggregates below are
+computed on the nineteen complete experts over their full common row
+set ($263{,}782$ bars, 2003 onward), and the twentieth's inclusion is
+expected to move them only marginally.
 
 \paragraph{The bank beats its members.} The bank is aggregated two ways
 on the same trailing-$125$-bar tail with a $25$-bar embargo, refreshed
@@ -570,12 +572,15 @@ exponential weights $\propto \exp(-\eta \sum \ell)$ with
 $\eta = \sqrt{8 \ln K / L}$ --- the standard weighted-average
 forecaster rate, no free constant. All tree rows are restricted to
 2003 onward, since the menu was tuned on the pre-2003 dev span. The
-selection arm scores $0.21848$ (DM $-3.3$ against the benchmark); the
-hedged arm scores $0.21518$ (DM $-8.9$) --- \textbf{better than every
+selection arm scores \unifTreeTunedQLIKE{} (DM \unifTreeTunedDM{}
+against the benchmark); the
+hedged arm scores \unifTreeHedgeQLIKE{} (DM \unifTreeHedgeDM{}) ---
+\textbf{better than every
 individual expert, including the best of them} ($0.21796$), a paired
-improvement of $-0.0028$ over the strongest member. The ordering
-(selection $<$ best expert $<$ hedge, with hedge $-0.0033$ better than
-selection at DM $-4.5$) is the paper's recurring tuning lesson in its
+improvement of $-0.0046$ over the strongest member. The ordering
+(selection $<$ best expert $<$ hedge, with hedge
+\unifIncrTreeHedgeDQ{} better than
+selection at DM \unifIncrTreeHedgeDM{}) is the paper's recurring tuning lesson in its
 purest form: causal selection on a short tail is expensive, and
 weighting is cheaper than selecting. The selection trajectory splits
 nearly evenly across families ($296$ XGBoost to $262$ LightGBM
@@ -584,16 +589,20 @@ in 2018), and no expert dominates: the most-selected fills $22\%$ of
 boundaries.
 
 \paragraph{Comparison discipline against the linear ladder.} The tree
-rows above are $2003$+ by construction and, at this writing, cover
-$139{,}438$ bars while one expert completes; the linear arms are scored
+rows above are $2003$+ by construction ($263{,}782$ bars); the linear
+arms are scored
 on $248{,}686$--$273{,}554$ bars under their own row rules. Pooled
 levels across these row sets are not comparable (the campaign's row-set
-discipline of Section~\ref{sec:smearing_contract}), so the
-trees-versus-products verdict is reserved for the scorer's paired
+discipline of Section~\ref{sec:smearing_contract}) --- the hedged
+bank's \unifTreeHedgeQLIKE{} and the linear champion's
+\unifBlkFourProdBbExogTrailSdQLIKE{} are separated by
+$2 \times 10^{-5}$ \emph{on different row sets}, which is exactly why
+the trees-versus-products verdict is reserved for the scorer's paired
 increments on common rows, registered as the block-ladder harvest
 completes (Appendix~\ref{app:protocol_note}). What is comparable as
-stated: the hedged bank's $-0.0100$ improvement over the benchmark at
-DM $-8.9$, and the bank-internal ordering above.
+stated: the hedged bank's \unifTreeHedgeDelta{} improvement over the
+benchmark at
+DM \unifTreeHedgeDM{}, and the bank-internal ordering above.
 
 % ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
 % The passage from here through "...takes the hint literally." is held
