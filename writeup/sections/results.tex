@@ -550,43 +550,50 @@ explicit columns and shrunk as a block of their own
 (Section~\ref{sec:product_block}) --- close the paper's model ladder
 in the final three-block ridge (Section~\ref{sec:three_block_results}).
 
-\paragraph{Results.} On the battery of Section~\ref{sec:estimators},
-LightGBM has the lowest QLIKE on all nine feature sets. Ridge, the best linear arm, is second on all nine. The ranking
-reverses on no bucket. On the richest set, \texttt{all\_features}, LightGBM
-scores $0.12604$ and ridge scores $0.12788$, a model-class gap of
-$0.00184$; across the nine sets the tree-minus-linear gap ranges from
-$0.00184$ to $0.00358$. An exact sign test over the nine sets gives
-$p = 0.0039$. A bound-based pairwise test resolves all nine matched
-comparisons in the tree's favour after Holm adjustment; the test uses the
-fact that the incumbent cancels from the tree-minus-linear loss
-differential, so the pairwise standard error is bounded by the sum of the
-two arms' standard errors with no assumption on their dependence. The
-\texttt{all\_features} pair is the weakest at $|t| \ge 2.19$,
-$p \le 0.029$; the other eight range from $|t| \ge 3.73$ to
-$|t| \ge 5.91$. The model-class gap is roughly a quarter of the information
-effect of Section~\ref{sec:buckets}.
+\paragraph{The expert bank.} The twenty frozen configurations of
+Section~\ref{sec:estimators} were walked per bar on the full panel and
+scored under the evaluation protocol. Sixteen of the seventeen
+completed experts beat the benchmark, at QLIKE $0.21796$--$0.22108$
+against the benchmark's \unifAzeroQLIKE{} (DM $-11.3$ to $-7.6$); the
+two seeded Sobol points --- included deliberately as unoptimized
+controls --- lose to it ($0.23064$ and $0.23853$), so the Optuna
+selection is worth $1$--$2 \times 10^{-2}$ over a random draw. One
+expert's harvest is completing at this writing; the partial coverage is
+disclosed wherever it binds below.
 
-\paragraph{The function-class premium at fixed information.} The battery's
-no-exogenous \texttt{baseline} row uses the incumbent's information set
-exactly: HAR lags and calendar features, nothing else. On that row the
-causally tuned LightGBM scores $0.13118$ ($t = -5.6$) and XGBoost scores
-$0.13163$ ($t = -5.5$). Measured against the base-2 OLS ladder at
-$0.13332$, the premium from relaxing the linear functional form is
-$0.00215$. Measured against the causally tuned ridge on the same features
-($0.13445$), the premium is $0.00327$. We carry the smaller figure,
-$0.00215$, forward. On this same row the
-three linear arms are the only arms in the battery with higher QLIKE than
-the incumbent.
+\paragraph{The bank beats its members.} The bank is aggregated two ways
+on the same trailing-$125$-bar tail with a $25$-bar embargo, refreshed
+every $250$ bars (the identical schedule to the linear tuners): a
+\emph{selection} arm, which fills the next block from the
+lowest-tail-loss expert, and a \emph{hedged} arm, which applies
+exponential weights $\propto \exp(-\eta \sum \ell)$ with
+$\eta = \sqrt{8 \ln K / L}$ --- the standard weighted-average
+forecaster rate, no free constant. All tree rows are restricted to
+2003 onward, since the menu was tuned on the pre-2003 dev span. The
+selection arm scores $0.21848$ (DM $-3.3$ against the benchmark); the
+hedged arm scores $0.21518$ (DM $-8.9$) --- \textbf{better than every
+individual expert, including the best of them} ($0.21796$), a paired
+improvement of $-0.0028$ over the strongest member. The ordering
+(selection $<$ best expert $<$ hedge, with hedge $-0.0033$ better than
+selection at DM $-4.5$) is the paper's recurring tuning lesson in its
+purest form: causal selection on a short tail is expensive, and
+weighting is cheaper than selecting. The selection trajectory splits
+nearly evenly across families ($296$ XGBoost to $262$ LightGBM
+boundaries) with era-specific leans (LightGBM in 2009 and 2013, XGBoost
+in 2018), and no expert dominates: the most-selected fills $22\%$ of
+boundaries.
 
-\paragraph{Dispersion of the improvement.} The Diebold--Mariano statistics
-\citep{DieboldMariano1995,HarveyLeybourneNewbold1997} against the incumbent
-on \texttt{all\_features} order the two arms opposite to their QLIKE
-levels: ridge reaches $t = -19.9$ and LightGBM reaches $t = -15.4$. The DM
-statistic is the mean per-bar loss improvement divided by the standard
-error of that improvement, so a larger $|t|$ at a smaller mean improvement
-implies a smaller bar-to-bar dispersion of the improvement: ridge's
-per-bar improvement has the smaller dispersion, the tree's the larger
-mean.
+\paragraph{Comparison discipline against the linear ladder.} The tree
+rows above are $2003$+ by construction and, at this writing, cover
+$139{,}438$ bars while one expert completes; the linear arms are scored
+on $248{,}686$--$273{,}554$ bars under their own row rules. Pooled
+levels across these row sets are not comparable (the campaign's row-set
+discipline of Section~\ref{sec:smearing_contract}), so the
+trees-versus-products verdict is reserved for the scorer's paired
+increments on common rows, registered as the block-ladder harvest
+completes (Appendix~\ref{app:protocol_note}). What is comparable as
+stated: the hedged bank's $-0.0100$ improvement over the benchmark at
+DM $-8.9$, and the bank-internal ordering above.
 
 % ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
 % The passage from here through "...takes the hint literally." is held
