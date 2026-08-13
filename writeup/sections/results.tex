@@ -190,6 +190,10 @@ a statement about the two \emph{families}, for the reason given next.
 % the (alpha, l1_ratio) the tuner selected at the governing retune;
 % 9,600 retunes over 8 designs; pooled differentials reproduce
 % results/unification_increments.csv to 10 decimal places. 2026-08-08.
+\emph{The decomposition in this paragraph is computed on the
+first-iteration protocol's arms; the mechanism it documents is what the
+current protocol's volatility-demand arm exhibits live in
+Table~\ref{tab:buckets_tuned}.}
 Because the elastic net selects its penalty causally at every retune,
 each scored bar can be attributed to the penalty in force when it was
 forecast, and the deficit can be located rather than merely totalled.
@@ -248,7 +252,8 @@ short forward tail, whose mistakes load on exactly the dial the two
 families price differently.
 
 \paragraph{What the trajectories do and do not show.}
-The selected mixing share is bimodal --- $36.7\%$ of retunes at pure
+\emph{(Also computed on the first-iteration arms.)} The selected mixing
+share is bimodal --- $36.7\%$ of retunes at pure
 lasso, $32.5\%$ at the minimum $0.25$, mean $0.64$ --- and the same
 shape appears in every bucket. One might read this as the estimator
 declining to select; two measurements argue against that
