@@ -166,13 +166,19 @@ def write_options_parquet(
 
 
 def expected_channels() -> list[str]:
-    """Channel names the options block registers, in panel order."""
+    """Channel names the options block registers, in panel order. Matches the
+    validated dry-run output (data/options_features.parquet, 2026-08-12)."""
     return [
+        "opt_spot",            # underlying EOD close (spot reference)
         "opt_gex_level",       # net dealer gamma exposure ($ per +1% move)
+        "opt_gex_0dte",        # gamma exposure from 0-DTE contracts only
         "opt_gex_zero",        # zero-gamma flip level (index points)
         "opt_gex_flip_dist",   # (S - flip)/S: signed distance to the flip
         "opt_pin_strike",      # max |gamma*OI| strike (sign-free magnet)
+        "opt_dist_to_pin",     # (S - pin)/S: signed distance to the magnet
         "opt_vanna_net",       # net vanna (calendar-timed hedging pressure)
         "opt_charm_net",       # net charm
+        "opt_n_opt",           # live contracts in the chain (coverage gauge)
+        "opt_total_oi",        # total open interest
         "opt_regime_long",     # 1{gex_level > 0}: long-gamma regime flag
     ]

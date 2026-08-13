@@ -1,0 +1,11 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -l h_data=8G,h_rt=1:00:00
+#$ -o logs/loader_canary.o$JOB_ID
+set -e
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+$PY experiments/run_unification.py --arm a_bucket_moments --chunk-index 99 --output-dir results/unification_canary
+echo CANARY_OK

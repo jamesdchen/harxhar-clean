@@ -263,6 +263,13 @@ def load_raw_data(
         if not parquet_files:
             raise FileNotFoundError(f"No .parquet files found in {data_path}")
         frames = [pd.read_parquet(os.path.join(data_path, f)) for f in parquet_files]
+        # Normalize the merge key: feeds arrive with endbartime as string OR
+        # timestamp (e.g. vix_and_voldemand=string, options_features=timestamp);
+        # a mixed-dtype outer merge raises ValueError (2026-08-12 incident:
+        # the options_features parquet landed and killed every running harvest).
+        for fr in frames:
+            if "endbartime" in fr.columns:
+                fr["endbartime"] = pd.to_datetime(fr["endbartime"])
         # Directory mode merges on endbartime; parquets without that key are
         # not bar-panel families (e.g. the OptionMetrics chain/spot exports,
         # which are date/option keyed and loaded by their own consumers) —

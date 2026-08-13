@@ -1,0 +1,13 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -l h_data=8G,h_vmem=12G,h_rt=12:00:00
+#$ -t 1-6
+#$ -o logs/probe_allint.o$JOB_ID.$TASK_ID
+# All-interactions probe, divide-and-conquer: 6 span slices, one per task.
+set -e
+cd /u/scratch/j/jamesdc1/harxhar-clean
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+mkdir -p results/allint
+$PY experiments/probe_allint.py --span 60000 --nslices 6 --slice $((SGE_TASK_ID - 1)) --out results/allint

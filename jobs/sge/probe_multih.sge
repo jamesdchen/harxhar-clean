@@ -1,0 +1,20 @@
+#!/bin/bash
+#$ -cwd
+#$ -j y
+#$ -l h_data=8G,h_vmem=16G,h_rt=8:00:00
+#$ -t 1-5
+#$ -o logs/probe_multih.o$JOB_ID.$TASK_ID
+# Multi-horizon probe: one task per horizon (bars). Single-slot by policy.
+set -e
+cd /u/scratch/j/jamesdc1/harxhar-clean
+PY=/u/home/j/jamesdc1/.conda/envs/hpc-pi/bin/python
+H=$(sed -n "${SGE_TASK_ID}p" <<'EOF'
+1
+4
+16
+48
+240
+EOF
+)
+echo "task $SGE_TASK_ID: horizon $H bars"
+$PY experiments/probe_multih.py --horizon "$H" --span 60000
