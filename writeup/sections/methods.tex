@@ -20,8 +20,7 @@ Section~\ref{sec:dp_prep}. The second
 half defines what is compared: the estimators --- one unpenalized
 member, the penalized linear family, and two tree ensembles --- with the
 walk-forward protocol and the causal tuning rule every tuned arm obeys
-(Section~\ref{sec:estimators}); the attribution protocol
-(Section~\ref{sec:attribution}); and the block ladder culminating in the
+(Section~\ref{sec:estimators}); and the block ladder culminating in the
 paper's final model,
 from the two-block ridge through the product block to the three-block
 ridge (Sections~\ref{sec:dense_weak_twoblock}--\ref{sec:three_block}).
@@ -135,8 +134,7 @@ any loss.
 
 Every forecast in this paper passes through Equation~\eqref{eq:smear_map}
 before any QLIKE number is computed. Every downstream comparison --- the
-bucket attribution of Sections~\ref{sec:buckets}--\ref{sec:joint_bucket},
-the linear-class comparisons of Sections~\ref{sec:dense_weak} and
+linear-class comparisons of Sections~\ref{sec:dense_weak} and
 \ref{sec:dense_weak_ew}, and the tree and final-model results of
 Sections~\ref{sec:tree_edge} and \ref{sec:three_block_results} --- scores
 its arms on raw-scale pairs produced by exactly this map,
@@ -219,7 +217,7 @@ On a full-rank design (the benchmark's $52$ columns) minimum-norm least
 squares coincides exactly with ordinary least squares. An earlier pass of
 this campaign used the plain normal-equations solve, whose solution is
 arbitrary in near-null directions of the design; two single-window
-incidents documented in Section~\ref{sec:buckets} trace to that path, and
+incidents in the campaign record trace to that path, and
 its results are archived. Because the pseudoinverse is defined at any
 rank, the estimator requires no rank guards; the only design
 intervention retained is the go-live participation rule of
@@ -258,7 +256,7 @@ arms the mixing share $\rho$ is \emph{free} --- re-selected from
 $\{0.25, 0.5, 0.75, 1.0\}$ jointly with the penalty strength at every
 retune --- so the estimator, not the author, chooses how much selection
 to apply, and the selected trajectory is part of the evidence in
-Section~\ref{sec:buckets_tuned}. All three penalized families are
+Section~\ref{sec:dense_weak}. All three penalized families are
 parameterized in the units of \texttt{scikit-learn}'s solvers, against
 which every custom solver below was validated.
 
@@ -364,43 +362,6 @@ threads following the slot count, so the tree class and the linear
 class are compared on the same information set with no per-arm tuning
 freedom. The shared comparator in both roles is the per-bar OLS--HAR
 incumbent (Section~\ref{sec:dp_benchmark}).
-
-\subsection{The Attribution Protocol}
-\label{sec:attribution}
-
-\paragraph{Protocol.} The attribution is computed as follows.
-\begin{enumerate}
-\item \emph{Arms.} The incumbent arm's design matrix contains the HAR ladder
-columns and the calendar dummies. Each bucket arm's design matrix contains
-those backbone columns plus the bucket's own columns, expanded through the
-same moving-average ladder and availability indicators as the joint arm. The
-joint arm's design matrix contains the backbone columns plus all $41$
-exogenous series ($\approx 526$ columns after the moving-average ladder and
-availability indicators).
-\item \emph{Fit.} Each arm is fit by the rolling estimator of
-Section~
-ef{sec:estimators} and produces
-one out-of-sample forecast per bar.
-\item \emph{Loss.} Each arm is scored by per-bar QLIKE on the shared panel
-($n = 218{,}934$ thirty-minute bars, identical rows in every cell). The
-reported QLIKE is the mean of the arm's per-bar losses.
-\item \emph{Increments.} $\Delta$ is the arm's QLIKE minus the incumbent's
-QLIKE. $\Delta_{\text{own}}$ is the arm's QLIKE minus the same estimator's
-own no-exogenous baseline ($0.13445$).
-\item \emph{DM test.} For each arm, the per-bar loss differential against the
-incumbent is $d_t = \ell^{\text{arm}}_t - \ell^{\text{inc}}_t$. The
-Diebold--Mariano statistic \citep{DieboldMariano1995} is the $t$-ratio of
-$\bar{d}$ to its Newey--West HAC standard error, with the
-Harvey--Leybourne--Newbold small-sample correction
-\citep{HarveyLeybourneNewbold1997}. Negative $t$ favours the arm.
-\item \emph{Overlap.} The overlap ratio is
-\[
-R \;=\; \frac{\sum_{b} \Delta_{\text{own}}(b)}{\Delta_{\text{own}}(\text{joint})},
-\]
-the sum of the single-bucket within-class increments divided by the joint
-arm's within-class increment, both measured against the same estimator's
-no-exogenous baseline.
-\end{enumerate}
 
 \subsection{The Two-Block Ridge}
 \label{sec:dense_weak_twoblock}
@@ -525,7 +486,7 @@ ran.
 
 \paragraph{Set size.} The interaction study's set-size ladder is
 unimodal: accuracy peaks at $k = 25$--$100$ of $8{,}911$ and degrades by
-$k = 400$. The linear channel of Section~\ref{sec:buckets_tuned} improved
+$k = 400$. The linear channel of Section~\ref{sec:dense_weak} improved
 monotonically in the number of columns; the interaction channel peaks and
 degrades. The block uses $k = 100$.
 

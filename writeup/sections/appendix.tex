@@ -429,13 +429,13 @@ comparable to adaptive-protocol levels, while paired $\Delta$ and DM
 within each protocol remain valid. A mean-reverting GARCH$(1,1)$
 refinement of the recursion (Equation~\eqref{eq:var_garch}) is
 measured in Section~\ref{sec:smearing} but not adopted; promoting it
-would be a further change of protocol. Table~\ref{tab:buckets}
-was regenerated under the current protocol on 2026-08-13 (and its
-attribution flipped accordingly, as Section~\ref{sec:buckets} records);
-Tables~\ref{tab:buckets_tuned} and \ref{tab:lasso_vs_ridge} still
-carry first-iteration scalar-protocol rows (incumbent
-\unifAzeroQLIKEScalar{}), internally consistent within each table,
-pending the tuned-grid harvest launched 2026-08-13.
+would be a further change of protocol. The bucket and tuned grids
+completed their harvest under the current protocol on 2026-08-13 (the
+per-bucket attribution flipped accordingly: no bucket beats the
+benchmark unpenalized). The head-to-head table
+(Table~\ref{tab:lasso_vs_ridge}) still carries a first-iteration
+scalar-protocol incumbent (\unifAzeroQLIKEScalar{}) pending the lasso
+arm, launched 2026-08-13.
 
 {\small
 \setlength{\tabcolsep}{4pt}

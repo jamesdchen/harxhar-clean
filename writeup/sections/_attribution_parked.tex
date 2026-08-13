@@ -1,0 +1,368 @@
+% Parked 2026-08-13 (author directive: attribution section commented out).
+% Restore by splicing back into results.tex before sec:dense_weak.
+
+\subsection{Per-Bucket Attribution}
+\label{sec:buckets}
+
+The reference point for the attribution is the per-bar least-squares
+fit of the HAR ladder plus calendar dummies, QLIKE \unifAzeroQLIKE{}.
+The first measurement is two quantities: the change in QLIKE when each
+exogenous feature bucket is added to that backbone, and the overlap
+between the buckets' individual contributions. The buckets are defined
+in Section~\ref{sec:dp_data}. The estimator is held fixed at the
+least-squares class of Section~\ref{sec:estimators} throughout the
+attribution; the same features under richer hypothesis classes are
+treated in Sections~\ref{sec:dense_weak} and \ref{sec:tree_edge}.
+
+Table~\ref{tab:buckets} reports the causally tuned ridge arm on each of the
+exogenous buckets, on the shared panel, against the shared incumbent.
+
+% Provenance: writeup/metrics_table_causal_tune_plus_spectral.csv
+% (family=causal-tuned, estimator ridge), incumbent from
+% writeup/incumbent_metrics.json; Δ/Δ_own columns as in
+% reference/sections/marginal_contribution.tex Table tab:buckets.
+\begin{table}[H]
+\centering
+\caption{Bucket attribution: minimum-norm least squares on each exogenous
+bucket, from the unification campaign. \textbf{Panel:} the frozen panel of
+Section~\ref{sec:data_prep}, $n = 273{,}554$ thirty-minute bars, identical
+rows in every cell. \textbf{Protocol:} rows are scored under the campaign's
+the evaluation protocol of
+Section~\ref{sec:smearing_contract}; the incumbent every $\Delta$ and
+DM in this table is computed against is QLIKE \unifAzeroQLIKE{}. (The
+first-iteration version of this table, scored under the scalar protocol,
+is superseded; the text records what changed and why.)
+\textbf{Estimator:} minimum-norm least squares (Section~\ref{sec:estimators}),
+rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns
+participate in a window only when their feed went live before the window
+starts and printed within it; masked columns are disclosed per chunk.
+$\Delta$ is against the incumbent; the within-class increment coincides
+with $\Delta$ because the no-exogenous design is exactly the incumbent.}
+\label{tab:buckets}
+\begin{tabular}{lrrr}
+\toprule
+Bucket & QLIKE & $\Delta$ vs.\ incumbent & DM $t$ \\
+\midrule
+all\_features (joint) & \unifAllFeaturesQLIKE{} & \unifAllFeaturesDelta{} & \unifAllFeaturesDM{} \\
+\midrule
+moments      & \unifMomentsQLIKE{}    & \unifMomentsDelta{}    & \unifMomentsDM{} \\
+liquidity    & \unifLiquidityQLIKE{}  & \unifLiquidityDelta{}  & \unifLiquidityDM{} \\
+implied\_vol & \unifImpliedVolQLIKE{} & \unifImpliedVolDelta{} & \unifImpliedVolDM{} \\
+vol\_demand  & \unifVolDemandQLIKE{}  & \unifVolDemandDelta{}  & \unifVolDemandDM{} \\
+sentiment    & \unifSentimentQLIKE{}  & \unifSentimentDelta{}  & \unifSentimentDM{} \\
+market\_ew   & \unifMarketEwQLIKE{}   & \unifMarketEwDelta{}   & \unifMarketEwDM{} \\
+market\_vw   & \unifMarketVwQLIKE{}   & \unifMarketVwDelta{}   & \unifMarketVwDM{} \\
+\midrule
+(no exogenous $=$ incumbent) & \unifAzeroQLIKE{} & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the full 1998--2024 panel, no single-bucket arm improves on the
+incumbent. Two are statistically indistinguishable from it --- moments
+(\unifMomentsDelta{}, $t = $ \unifMomentsDM{}) and sentiment
+(\unifSentimentDelta{}, \unifSentimentDM{}) --- and the remaining five
+are significantly worse: market EW (\unifMarketEwDM{}), market VW
+(\unifMarketVwDM{}), implied volatility (\unifImpliedVolDM{}),
+volatility demand (\unifVolDemandDM{}), and liquidity
+(\unifLiquidityDelta{}, \unifLiquidityDM{}). The joint arm --- all
+exogenous columns in one minimum-norm fit --- is significantly worse
+still (\unifAllFeaturesDelta{}, \unifAllFeaturesDM{}), worse than every
+single bucket it contains: even the strongest unpenalized estimator
+extracts nothing from the stacked design, and pays the variance cost of
+its width. The information these columns carry under shrinkage
+(Sections~\ref{sec:dense_weak_twoblock}--\ref{sec:three_block_results})
+is invisible to the unshrunk fit. That contrast --- information present,
+unpenalized extraction null, shrunk extraction strong --- is the table's
+central finding, and the first-iteration table it replaces told the same
+story more weakly: under the earlier scalar protocol the two best
+buckets appeared to win outright, an artifact the current model-specific
+second moment removes --- the correction is largest exactly where the
+mean model is weakest, which is the benchmark, not the bucket arms.
+
+A disclosure attaches to the market-aggregate rows. In earlier passes of
+this campaign both aggregates appeared catastrophically harmful. The cause
+was a single evaluation window (December 2016 -- February 2017) in which a
+pair of availability-indicator columns, differing only through pre-2015
+history, decayed to exact collinearity as that history left the rolling
+window; the linear solver does not signal a nearly singular system, and the
+contaminated coefficients produced forecast errors that one window's
+correction then spread across all of its bars. The per-bar solve
+verification of the final design (Section~\ref{sec:data_prep}) closes this
+failure mode; under it the aggregates score as reported in
+Table~\ref{tab:buckets}.
+
+\subsection{Bucket Attribution under Penalized Estimators}
+\label{sec:buckets_tuned}
+
+
+% Provenance: 16 arms (br_tuned_*, be_tuned_*), each a full 100-chunk run on
+% the frozen panel; causally tuned ridge (logspace(-2,3,6)) and causally
+% tuned elastic net with FREE mixing (alpha logspace(-6,-2,5) x l1_ratio
+% {0.25,0.5,0.75,1.0}), TUNE_PER=250, 25-bar embargo, 125-bar tail.
+% Selected (alpha, l1_ratio) persisted per retune. 2026-08-07.
+Table~\ref{tab:buckets} answers what an unpenalized estimator recovers.
+It is not the same question as what the columns contain. Each bucket
+design is therefore re-run under two penalized estimators, both choosing
+their penalty by the causal rule of Section~\ref{sec:estimators}: ridge,
+and an elastic net whose mixing parameter is \emph{free} --- the tuner
+selects $\ell_1$ share as well as penalty strength at every retune, so
+the amount of selection is chosen by the estimator rather than fixed by
+the author. Table~\ref{tab:buckets_tuned} reports both.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Each bucket design under two causally tuned penalized
+estimators. \textbf{Panel and protocol:} as in Table~\ref{tab:buckets}
+--- the frozen panel of Section~\ref{sec:data_prep}, identical rows in
+every cell, rows scored under the evaluation protocol of
+Section~\ref{sec:smearing_contract} (benchmark \unifAzeroQLIKE{}). DM $t$ is against the benchmark; negative
+favours the arm. The final column is the paired Diebold--Mariano
+statistic of the elastic net against ridge \emph{on the same design},
+positive meaning ridge is the better of the two.}
+\label{tab:buckets_tuned}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Ridge} & \multicolumn{2}{c}{Elastic net} & Enet vs.\ ridge \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-6}
+Design & QLIKE & DM $t$ & QLIKE & DM $t$ & DM $t$ \\
+\midrule
+moments      & \unifBrTunedMomentsQLIKE{}    & \unifBrTunedMomentsDM{}    & \unifBeTunedMomentsQLIKE{}    & \unifBeTunedMomentsDM{}    & \unifIncrBeTunedMomentsDM{} \\
+liquidity    & \unifBrTunedLiquidityQLIKE{}  & \unifBrTunedLiquidityDM{}  & \unifBeTunedLiquidityQLIKE{}  & \unifBeTunedLiquidityDM{}  & \unifIncrBeTunedLiquidityDM{} \\
+market (EW)  & \unifBrTunedMarketEwQLIKE{}   & \unifBrTunedMarketEwDM{}   & \unifBeTunedMarketEwQLIKE{}   & \unifBeTunedMarketEwDM{}   & \unifIncrBeTunedMarketEwDM{} \\
+market (VW)  & \unifBrTunedMarketVwQLIKE{}   & \unifBrTunedMarketVwDM{}   & \unifBeTunedMarketVwQLIKE{}   & \unifBeTunedMarketVwDM{}   & \unifIncrBeTunedMarketVwDM{} \\
+sentiment    & \unifBrTunedSentimentQLIKE{}  & \unifBrTunedSentimentDM{}  & \unifBeTunedSentimentQLIKE{}  & \unifBeTunedSentimentDM{}  & \unifIncrBeTunedSentimentDM{} \\
+implied vol. & \unifBrTunedImpliedVolQLIKE{} & \unifBrTunedImpliedVolDM{} & \unifBeTunedImpliedVolQLIKE{} & \unifBeTunedImpliedVolDM{} & \unifIncrBeTunedImpliedVolDM{} \\
+vol.\ demand & \unifBrTunedVolDemandQLIKE{}  & \unifBrTunedVolDemandDM{}  & \unifBeTunedVolDemandQLIKE{}  & \unifBeTunedVolDemandDM{}  & \unifIncrBeTunedVolDemandDM{} \\
+\midrule
+all exogenous (joint) & \unifBrTunedAllFeaturesQLIKE{} & \unifBrTunedAllFeaturesDM{} & \unifBeTunedAllFeaturesQLIKE{} & \unifBeTunedAllFeaturesDM{} & \unifIncrBeTunedAllFeaturesDM{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two readings follow, and they motivate presenting the
+attribution and the estimator comparison jointly.
+
+First, \emph{shrinkage reverses the joint design from liability to
+contender}. Under minimum-norm least squares the joint arm was
+significantly worse than every bucket it contains
+(Table~\ref{tab:buckets}); under a causally tuned ridge it is the
+second-best row in the table (\unifBrTunedAllFeaturesQLIKE{}, DM
+\unifBrTunedAllFeaturesDM{}) and, with the moments bucket
+(\unifBrTunedMomentsQLIKE{}, DM \unifBrTunedMomentsDM{}), one of only
+two rows not significantly worse than the benchmark. The strong claim of
+the first-iteration table --- the joint design made outright best ---
+does not survive the current protocol; what survives is the reversal
+itself: with an estimator that shrinks, more exogenous columns stop
+costing and start paying, and the single best row in the table beats the
+benchmark outright. What Table~\ref{tab:buckets} measures is the cost of
+forgoing shrinkage, and that cost is larger than everything the buckets
+individually contain.
+
+Second, ridge attains a lower pooled loss than the elastic net on every
+information set: all eight paired comparisons favour ridge except
+liquidity, which is a tie, and four do so at conventional significance
+(vol.\ demand \unifIncrBeTunedVolDemandDM{}, moments
+\unifIncrBeTunedMomentsDM{}, sentiment \unifIncrBeTunedSentimentDM{},
+market VW \unifIncrBeTunedMarketVwDM{}). The elastic net's failure mode
+is visible in the table itself: the volatility-demand arm scores
+\unifBeTunedVolDemandQLIKE{} --- worse than its own unpenalized fit in
+Table~\ref{tab:buckets} --- a catastrophic penalty selection of exactly
+the kind the analysis below locates. That ordering, however, is not yet
+a statement about the two \emph{families}, for the reason given next.
+
+\paragraph{Where the elastic net's deficit comes from.}
+% Provenance: per-bar losses of be_tuned_* and br_tuned_* partitioned by
+% the (alpha, l1_ratio) the tuner selected at the governing retune;
+% 9,600 retunes over 8 designs; pooled differentials reproduce
+% results/unification_increments.csv to 10 decimal places. 2026-08-08.
+\emph{The decomposition in this paragraph is computed on the
+first-iteration protocol's arms; the mechanism it documents is what the
+current protocol's volatility-demand arm exhibits live in
+Table~\ref{tab:buckets_tuned}.}
+Because the elastic net selects its penalty causally at every retune,
+each scored bar can be attributed to the penalty in force when it was
+forecast, and the deficit can be located rather than merely totalled.
+It does not spread across the sample. On the $72.1\%$ of bars whose
+governing penalty was interior to the grid ($\alpha \le 10^{-3}$), the
+elastic net \emph{beats} tuned ridge by
+$3.9 \times 10^{-4}$ (DM $-6.70$, favouring the elastic net in all eight
+designs). The entire pooled deficit is contributed by the $27.9\%$ of
+bars whose governing penalty sat at the \emph{top point of the grid},
+$\alpha = 10^{-2}$, where it loses by $2.5 \times 10^{-3}$ (DM $+6.85$,
+in all eight designs and in $18$ of $24$ years). The
+difference between the two subsets is $2.9 \times 10^{-3}$ at
+$z = 7.8$.
+
+A result carried by a grid endpoint suggests that the grid may be
+too small. Under the correspondence between the elastic net's
+parameterization and a ridge penalty --- an $\ell_2$ weight of $N \alpha
+(1 - \rho)$ on the window gram, with $N = 24{,}000$ and $\rho$ the
+mixing share --- the elastic net's largest expressible $\ell_2$ weight
+is $24{,}000 \times 10^{-2} \times 0.75 = 180$, while the tuned ridge
+arm draws from a grid reaching $1{,}000$ and selects that top value in
+$41.3\%$ of its own retunes. The elastic net cannot express the
+shrinkage ridge chooses, and it loses on the bars where it has run out
+of grid.
+
+That explanation is testable, and it is rejected. Re-running every design
+with the penalty grid extended to $\alpha = 1$ --- which reaches $6$ to
+$18$ times ridge's selected weight at every mixing value, and contains
+the original grid as a subset --- makes the elastic net
+\emph{substantially worse}, not better. On the moments design the
+extended-grid arm loses $2.9 \times 10^{-3}$ to its own narrow-grid twin
+(DM $+7.01$) and $3.3 \times 10^{-3}$ to tuned ridge (DM $+6.68$); on
+the joint design, $1.7 \times 10^{-3}$ (DM $+4.56$) and $2.4 \times
+10^{-3}$ (DM $+3.46$). Giving the estimator more room to shrink causes
+it to shrink worse.
+
+This locates the asymmetry precisely, and it is not about how much
+shrinkage each family can express. Both tuners pin the tops of their
+grids --- ridge in $41.3\%$ of retunes, the elastic net in a comparable
+share --- because on a $125$-bar validation tail neither can resolve the
+penalty. What differs is the consequence. For ridge, the loss is
+monotone and flat in $\log \alpha$ near its optimum
+(Section~\ref{sec:dense_weak_headtohead}), so selecting too large a
+penalty costs almost nothing: over-shrinking a dense coefficient vector
+degrades gracefully. For the elastic net, a larger penalty is partly an
+$\ell_1$ penalty, and over-penalizing in that direction removes columns
+outright. The same selection error is benign in one family and
+destructive in the other. Selection loses here not because the data
+prefer dense coefficients, but because the price of a hyperparameter
+mistake is asymmetric --- and a short causal validation window
+guarantees such mistakes. This mechanism complements the asymptotic
+analysis of \citet{ShenXiu2025}: their ridge-over-lasso ordering is
+established under oracle or cross-validated tuning, whereas here the
+ordering persists --- and is amplified --- under causal selection on a
+short forward tail, whose mistakes load on exactly the dial the two
+families price differently.
+
+\paragraph{What the trajectories do and do not show.}
+\emph{(Also computed on the first-iteration arms.)} The selected mixing
+share is bimodal --- $36.7\%$ of retunes at pure
+lasso, $32.5\%$ at the minimum $0.25$, mean $0.64$ --- and the same
+shape appears in every bucket. One might read this as the estimator
+declining to select; two measurements argue against that
+interpretation. Holding $\alpha$ fixed, the mixing share accounts for only
+$4.2 \times 10^{-4}$ of the deficit, significant in one of eight designs
+and reversing sign at $\alpha = 10^{-4}$; and the selected mixing share
+is unrelated to the volatility regime (Spearman $-0.013$ against the
+preceding window's realized volatility, $p = 0.23$). The mixing
+trajectory is a symptom of a validation tail too short to identify the
+penalty, not the channel through which the loss is incurred.
+
+Nor is ridge exempt from that instability: it pins an endpoint of its
+own grid in $58.1\%$ of retunes, against $43.3\%$ for the elastic net.
+The asymmetry this section can support is therefore narrower than a
+family verdict --- both estimators are choosing badly on a $125$-bar
+tail, and ridge's bad choices happen to be inexpensive while the
+elastic net's are not.
+
+\subsection{Overlap}
+\label{sec:overlap}
+
+The overlap ratio --- the sum of single-bucket increments divided by the
+joint increment --- cannot be computed from Table~\ref{tab:buckets},
+because the joint arm's increment is positive: at this dimensionality the
+unshrunk joint fit's variance cost exceeds any information gain, so the
+joint OLS arm does not measure the buckets' combined information. The
+available overlap evidence comes from shrunk estimators: an earlier
+battery under a causally tuned ridge measured $R = 2.08$ over its seven
+buckets, and that battery's causally tuned LightGBM arm $R = 2.24$ ---
+individual gains summing to roughly twice the joint gain, under both
+estimator classes, on the prior convention. \pending{overlap ratio
+recomputed from shrunk joint fits under the paper's frozen convention ---
+the block estimators of Sections~\ref{sec:dense_weak_twoblock}--\ref{sec:three_block}
+provide the joint fits}
+
+\subsection{The Joint Bucket}
+\label{sec:joint_bucket}
+
+The joint \texttt{all\_features} arm --- every exogenous column in one
+minimum-norm fit --- has QLIKE \unifAllFeaturesQLIKE{}, significantly
+\emph{worse} than the incumbent (DM \unifAllFeaturesDM{}). The same
+columns under the per-block shrinkage of Sections~\ref{sec:dense_weak_twoblock}
+and \ref{sec:three_block} produce the paper's best forecasts
+(\unifBlkThreeUserQLIKE{} at \unifBlkThreeUserDM{}), so what the joint
+row measures is the cost of forgoing shrinkage, not the absence of
+information.
+
+The estimator choice matters here, and its history is part of the
+record. Under the earlier plain normal-equations solve, this arm appeared
+catastrophically worse than the incumbent; the deficit traced to
+solution components in near-null directions of the design --- large
+mutually canceling coefficients on nearly duplicate availability-ladder
+columns, which a one-bar feed desynchronization on a forward-filled
+post-early-close bar (December 24, 2020, the only such
+disagreement in over twenty-five thousand bars) turned into a forecast
+of $77.8$ against a target of $0.26$, whose residual the window-level
+correction then spread across its whole window. The minimum-norm
+solution suppresses near-null components by construction, and the
+dead-session grid rule removed this bar class; under the two
+repairs the arm scores as reported.
+
+An independent every-bar robustness design was run on a different panel:
+rolling $1{,}000$-trading-day window; HAR block exactly unpenalized via
+Frisch--Waugh--Lovell, with only the exogenous block penalized; scored on a
+fixed COVID-inclusive window from January 2018 to May 2025, $n = 74{,}934$
+bars. On that panel, every bucket rejects equal predictive accuracy against
+HAR-only (the weakest, \texttt{vol\_demand}, at $t = -6.2$), and the joint
+set rejects equal predictive accuracy against every single bucket, at
+$t = -13.0$. The bucket ranking differs across the two panels:
+\texttt{implied\_vol} has the largest single-bucket increment on the
+COVID-inclusive window, \texttt{moments} in Table~\ref{tab:buckets}.
+
+An earlier draft asserted that the $90\%$ model confidence set
+\citep{HansenLundeNason2011} over the feature sets is the singleton
+containing the joint bucket. The per-bar loss series required to compute a
+model confidence set were not retained for the battery, so no set was
+computed, and the claim is not repeated here.
+\pending{battery MCS over the feature sets once per-bar losses are persisted}
+Table~\ref{tab:buckets} supports three statements: three buckets
+individually beat the incumbent at the $5\%$ level and two more lean the
+same way without significance; the unshrunk joint fit is worse than the
+incumbent and than every single bucket; and extracting the buckets'
+combined information therefore requires the shrinkage machinery the
+remainder of the paper develops.
+
+
+% Methods-side attribution protocol subsection, parked with the above.
+
+\subsection{The Attribution Protocol}
+\label{sec:attribution}
+
+\paragraph{Protocol.} The attribution is computed as follows.
+\begin{enumerate}
+\item \emph{Arms.} The incumbent arm's design matrix contains the HAR ladder
+columns and the calendar dummies. Each bucket arm's design matrix contains
+those backbone columns plus the bucket's own columns, expanded through the
+same moving-average ladder and availability indicators as the joint arm. The
+joint arm's design matrix contains the backbone columns plus all $41$
+exogenous series ($\approx 526$ columns after the moving-average ladder and
+availability indicators).
+\item \emph{Fit.} Each arm is fit by the rolling estimator of
+Section~
+ef{sec:estimators} and produces
+one out-of-sample forecast per bar.
+\item \emph{Loss.} Each arm is scored by per-bar QLIKE on the shared panel
+($n = 218{,}934$ thirty-minute bars, identical rows in every cell). The
+reported QLIKE is the mean of the arm's per-bar losses.
+\item \emph{Increments.} $\Delta$ is the arm's QLIKE minus the incumbent's
+QLIKE. $\Delta_{\text{own}}$ is the arm's QLIKE minus the same estimator's
+own no-exogenous baseline ($0.13445$).
+\item \emph{DM test.} For each arm, the per-bar loss differential against the
+incumbent is $d_t = \ell^{\text{arm}}_t - \ell^{\text{inc}}_t$. The
+Diebold--Mariano statistic \citep{DieboldMariano1995} is the $t$-ratio of
+$\bar{d}$ to its Newey--West HAC standard error, with the
+Harvey--Leybourne--Newbold small-sample correction
+\citep{HarveyLeybourneNewbold1997}. Negative $t$ favours the arm.
+\item \emph{Overlap.} The overlap ratio is
+\[
+R \;=\; \frac{\sum_{b} \Delta_{\text{own}}(b)}{\Delta_{\text{own}}(\text{joint})},
+\]
+the sum of the single-bucket within-class increments divided by the joint
+arm's within-class increment, both measured against the same estimator's
+no-exogenous baseline.
+\end{enumerate}
+

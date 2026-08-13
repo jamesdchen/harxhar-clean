@@ -41,13 +41,10 @@ refinement of the same recursion improves further still and is reported
 as an available, not adopted, upgrade.
 
 The third finding is about the exogenous information and the estimator
-jointly --- they cannot be separated. Added one bucket at a time to the
-backbone, no bucket improves on the benchmark under plain least squares
---- five of seven are significantly worse --- and stacked into one wide
-design, the unpenalized joint fit is worse than every bucket it
-contains. Under causal shrinkage the ordering reverses: the joint
-design becomes the best design, and the contrast measures not absent
-information but the cost of forgoing shrinkage. The head-to-head that
+jointly --- they cannot be separated. The exogenous channels carry
+real, statistically significant information, but none of it is
+recoverable by an unshrunk fit at this width: selection and unpenalized
+joint fits fail, and only shrinkage recovers the signal. The head-to-head that
 follows locates the structure precisely: ridge beats lasso on every
 design, the lasso's zeroes fall where zeroing is free, and no small set
 of columns or principal directions concentrates the signal. The
@@ -87,7 +84,7 @@ literature. Section~\ref{sec:data_prep} defines the panel, the
 preparation pipeline, and the exogenous buckets.
 Section~\ref{sec:methods} fixes the evaluation framework --- the
 benchmark, the testing machinery, and the back-transformation protocol ---
-and then the methods: the estimators, the attribution protocol, and
+and then the methods: the estimators and
 the block constructions. Section~\ref{sec:results} reports the
 results in the order summarized above.
 Section~\ref{sec:conclusion} concludes. The appendix carries the full
