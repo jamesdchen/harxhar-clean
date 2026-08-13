@@ -129,10 +129,8 @@ the author. Table~\ref{tab:buckets_tuned} reports both.
 \caption{Each bucket design under two causally tuned penalized
 estimators. \textbf{Panel and protocol:} as in Table~\ref{tab:buckets}
 --- the frozen panel of Section~\ref{sec:data_prep}, identical rows in
-every cell, rows scored under the first-iteration scalar protocol
-(benchmark \unifAzeroQLIKEScalar{}; current protocol
-\unifAzeroQLIKE{}); re-harvest under the current protocol is in
-progress. DM $t$ is against the benchmark; negative
+every cell, rows scored under the evaluation protocol of
+Section~\ref{sec:smearing_contract} (benchmark \unifAzeroQLIKE{}). DM $t$ is against the benchmark; negative
 favours the arm. The final column is the paired Diebold--Mariano
 statistic of the elastic net against ridge \emph{on the same design},
 positive meaning ridge is the better of the two.}
@@ -159,23 +157,32 @@ all exogenous (joint) & \unifBrTunedAllFeaturesQLIKE{} & \unifBrTunedAllFeatures
 Two readings follow, and they motivate presenting the
 attribution and the estimator comparison jointly.
 
-First, \emph{the joint design is now the best design, not the worst}.
-Under minimum-norm least squares the joint arm was indistinguishable
-from the benchmark (Table~\ref{tab:buckets}); under a causally tuned
-ridge it is the strongest arm in the table
-(\unifBrTunedAllFeaturesQLIKE{}, DM \unifBrTunedAllFeaturesDM{}),
-stronger than any single bucket including the best of them. The ordering
-of the two tables is not a refinement of the same result but a reversal
-of it: with an estimator that shrinks, more exogenous columns produce
-more signal; with one that does not, they produce none. What
-Table~\ref{tab:buckets} measures is the cost of forgoing shrinkage, and
-that cost is larger than everything the buckets individually contain.
+First, \emph{shrinkage reverses the joint design from liability to
+contender}. Under minimum-norm least squares the joint arm was
+significantly worse than every bucket it contains
+(Table~\ref{tab:buckets}); under a causally tuned ridge it is the
+second-best row in the table (\unifBrTunedAllFeaturesQLIKE{}, DM
+\unifBrTunedAllFeaturesDM{}) and, with the moments bucket
+(\unifBrTunedMomentsQLIKE{}, DM \unifBrTunedMomentsDM{}), one of only
+two rows not significantly worse than the benchmark. The strong claim of
+the first-iteration table --- the joint design made outright best ---
+does not survive the current protocol; what survives is the reversal
+itself: with an estimator that shrinks, more exogenous columns stop
+costing and start paying, and the single best row in the table beats the
+benchmark outright. What Table~\ref{tab:buckets} measures is the cost of
+forgoing shrinkage, and that cost is larger than everything the buckets
+individually contain.
 
-Second, ridge attains a lower pooled loss than the elastic net in every
-information set. All eight paired comparisons favour ridge, and three do
-so at conventional significance (market VW
-\unifIncrBeTunedMarketVwDM{}, sentiment \unifIncrBeTunedSentimentDM{},
-moments \unifIncrBeTunedMomentsDM{}). That ordering, however, is not yet
+Second, ridge attains a lower pooled loss than the elastic net on every
+information set: all eight paired comparisons favour ridge except
+liquidity, which is a tie, and four do so at conventional significance
+(vol.\ demand \unifIncrBeTunedVolDemandDM{}, moments
+\unifIncrBeTunedMomentsDM{}, sentiment \unifIncrBeTunedSentimentDM{},
+market VW \unifIncrBeTunedMarketVwDM{}). The elastic net's failure mode
+is visible in the table itself: the volatility-demand arm scores
+\unifBeTunedVolDemandQLIKE{} --- worse than its own unpenalized fit in
+Table~\ref{tab:buckets} --- a catastrophic penalty selection of exactly
+the kind the analysis below locates. That ordering, however, is not yet
 a statement about the two \emph{families}, for the reason given next.
 
 \paragraph{Where the elastic net's deficit comes from.}
