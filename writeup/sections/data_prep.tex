@@ -203,10 +203,18 @@ the trailing $W_{\mathrm{clip}} = 240$ observations (about five trading
 days) ending at $t-1$. Winsorization is not inverted at evaluation time;
 only the diurnal division and the square root are inverted. Because
 $\mathbb{E}[\sqrt{X}]^2 \neq \mathbb{E}[X]$, squaring a forecast of
-$\sqrt{RV}$ gives a downward-biased forecast of $RV$. We therefore apply
-Duan's smearing correction \citep{Duan1983}: add the in-sample residual
-variance to the squared forecast, then multiply by the stored diurnal
-baseline to undo the division of Stage 1:
+$\sqrt{RV}$ gives a downward-biased forecast of $RV$. The standard
+remedy in the literature is the classical retransformation estimator of
+\citet{Duan1983} --- add the in-sample residual variance to the squared
+forecast. We refine on that traditional construction with a calibrated,
+strictly causal \emph{second-order adjustment}: a Mincer--Zarnowitz
+mean map re-estimated at every window boundary, and an adaptive second
+moment that tracks the model's own recent error level bar by bar. The
+refinement is specified and analyzed in
+Appendix~\ref{sec:appendix_backtransform}; its sensitivity against the
+na"ive inverse and the classical estimator is measured in
+Section~\ref{sec:smearing_contract}. In raw form the back-transform is
+the traditional one:
 \begin{equation}
     \widehat{RV}^{\mathrm{raw}}_t
     = \left(\hat{f}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right)\cdot

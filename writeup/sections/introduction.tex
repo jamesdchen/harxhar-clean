@@ -32,7 +32,7 @@ variance-stabilized scale and scored on the raw variance scale, and the
 back-transform between them is not neutral: squaring a calibrated
 forecast is biased low by exactly the model's own residual variance, so
 the correction is part of each arm's forecast. We replace the standard
-static smearing scalar with a calibrated, strictly causal retransformation protocol --- a
+static scalar correction with a calibrated, strictly causal retransformation protocol --- a
 Mincer--Zarnowitz mean map re-estimated per window and an adaptive
 second moment seeded by the previous window and updated bar by bar ---
 which beats the retrospective \citet{Duan1983} convention it replaces on

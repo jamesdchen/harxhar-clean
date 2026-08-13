@@ -603,6 +603,29 @@ boundaries) with era-specific leans (LightGBM in 2009 and 2013, XGBoost
 in 2018), and no expert dominates: the most-selected fills $22\%$ of
 boundaries.
 
+\begin{table}[H]
+\centering
+\caption{The tree expert bank under the evaluation protocol
+(Section~\ref{sec:smearing_contract}). Individual experts are scored on
+the full panel; the bank aggregates are computed on their common row set
+($263{,}782$ bars, 2003 onward). DM $t$ is against the OLS--HAR
+benchmark (\unifAzeroQLIKE{}); negative favours the arm.
+\label{tab:tree_bank}}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & QLIKE & DM $t$ \\
+\midrule
+Best individual expert & $0.21796$ & $-11.3$ \\
+Median completed expert & $0.21969$ & --- \\
+Weakest Optuna-selected expert & $0.22108$ & --- \\
+Sobol controls (2, unoptimized) & $0.23064$, $0.23853$ & --- \\
+\midrule
+\texttt{tree\_tuned} (causal best-expert selection) & \unifTreeTunedQLIKE{} & \unifTreeTunedDM{} \\
+\texttt{tree\_hedge} (exponential weights) & \unifTreeHedgeQLIKE{} & \unifTreeHedgeDM{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Comparison discipline against the linear ladder.} The tree
 rows above are $2003$+ by construction ($263{,}782$ bars); the linear
 arms are scored
@@ -688,6 +711,30 @@ DM \unifIncrBlkThreeUserDM{} under the stated convention, and
 \unifIncrBlkThreeDocDQ{} at \unifIncrBlkThreeDocDM{} under the documented
 one; under causal per-block tuning, \unifIncrBlkThreeTunedDQ{} at
 \unifIncrBlkThreeTunedDM{}.
+
+\begin{table}[H]
+\centering
+\caption{The block ladder under the evaluation protocol
+(Section~\ref{sec:smearing_contract}), stated and documented conventions.
+DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE{}); negative
+favours the arm. The product-block increment is the paired comparison of
+the three-block against the two-block ridge on the same rows.
+\label{tab:block_ladder}}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & QLIKE & DM $t$ & $n$ \\
+\midrule
+OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & $273{,}554$ \\
+Two-block ridge, stated $(1, 100)$ & \unifBlkTwoUserQLIKE{} & \unifBlkTwoUserDM{} & $272{,}971$ \\
+Two-block ridge, documented $(1, 3{\times}10^{3})$ & \unifBlkTwoDocQLIKE{} & \unifBlkTwoDocDM{} & $272{,}971$ \\
+Three-block ridge, stated $(1, 100, 1000)$ & \unifBlkThreeUserQLIKE{} & \unifBlkThreeUserDM{} & $248{,}280$ \\
+Three-block ridge, documented $(1, 3{\times}10^{3}, 3{\times}10^{4})$ & \unifBlkThreeDocQLIKE{} & \unifBlkThreeDocDM{} & $272{,}971$ \\
+\midrule
+Product-block increment (stated) & \unifIncrBlkThreeUserDQ{} & \unifIncrBlkThreeUserDM{} & $248{,}280$ \\
+Product-block increment (documented) & \unifIncrBlkThreeDocDQ{} & \unifIncrBlkThreeDocDM{} & $272{,}971$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 \decide{whether the three-block table, once run, reports the tree arms
 alongside it --- the natural closing comparison is the three-block ridge
 against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
