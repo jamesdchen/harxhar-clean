@@ -72,34 +72,32 @@ The comparison is run on the full design --- the HAR ladder, the calendar
 features, and the full exogenous block --- with both estimators under the
 same causal tuning protocol, so that neither family carries an informed
 penalty choice the other lacks
-(Table~\ref{tab:lasso_vs_ridge}). Ridge
-(\unifBOneRidgeTunedQLIKE{}, DM \unifBOneRidgeTunedDM{} against the
-incumbent) beats the lasso (\unifBTwoLassoTunedQLIKE{},
-\unifBTwoLassoTunedDM{}), and the elastic net --- the interpolating
-family at the battery's mixed-penalty grid --- lands between the two
-(\unifBThreeEnetTunedQLIKE{}, \unifBThreeEnetTunedDM{}): the loss is
-monotone in how densely the penalty spreads the coefficients. Keeping
-every column and shrinking produces a lower loss than selecting a subset,
-when every family chooses its penalty by the same causal rule.
+(Table~\ref{tab:lasso_vs_ridge}). Under the evaluation protocol, causally
+tuned ridge
+(\unifBOneRidgeTunedFineQLIKE{}, DM \unifBOneRidgeTunedFineDM{})
+beats the incumbent; causally tuned lasso
+(\unifBTwoLassoTunedQLIKE{}, DM \unifBTwoLassoTunedDM{}) does not.
+Keeping every column and shrinking produces a lower loss than selecting
+a subset, when both families choose their penalty by the same causal
+rule. The elastic-net arm is not on this harvest.
 
 \begin{table}[H]
 \centering
-\caption{Ridge versus lasso on the full design, out-of-sample QLIKE with
-the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
-parentheses. Panel: the frozen panel of
-Section~\ref{sec:data_prep}, $n = 273{,}554$ identical rows in every
-cell; rows scored under the first-iteration scalar protocol (incumbent
-\unifAzeroQLIKEScalar{}), pending the one-protocol refresh (the lasso
-arm is in harvest); negative $t$ favors the arm. Both arms re-select their penalty every $250$ solves from the
-battery grids on a forward validation split.}
+\caption{Ridge versus lasso on the full design under the evaluation
+protocol, out-of-sample QLIKE with the Diebold--Mariano $t$-statistic
+against the OLS--HAR incumbent in parentheses. Panel: the frozen panel of
+Section~\ref{sec:data_prep}, $n = 273{,}554$ identical rows.
+Ridge is the fine-grid causal tune already harvested on this root
+(\texttt{b1\_ridge\_tuned\_fine}); lasso is \texttt{b2\_lasso\_tuned}.
+Negative $t$ favors the arm.}
 \label{tab:lasso_vs_ridge}
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lcc@{}}
 \toprule
- & Ridge & Elastic net & Lasso \\
+ & Ridge & Lasso \\
 \midrule
-Causally tuned & \unifBOneRidgeTunedQLIKE{} (\unifBOneRidgeTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
+Causally tuned & \unifBOneRidgeTunedFineQLIKE{} (\unifBOneRidgeTunedFineDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
 \midrule
-Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKEScalar{}} \\
+Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}

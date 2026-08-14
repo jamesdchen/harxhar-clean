@@ -128,15 +128,18 @@ def run_walk(model, n, window, lo, tag, t0):
             model.retune(i, window)
         yh[i] = model.predict(i, window, roll=(i > lo))
         if (i - lo) % 5000 == 0:
-            print(f"  {tag} bar {i-lo}/{n-lo} {time.time()-t0:.0f}s", flush=True)
+            print(f"  {tag} bar {i - lo}/{n - lo} {time.time() - t0:.0f}s", flush=True)
     return yh
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--span", type=int, default=60000)
-    ap.add_argument("--arm", default="all",
-                    help="all (default) or one of ridge_hedge, ridge_tuned, blk2_hedge, blk2_tuned, blk2_fixed, a0_ols_har; single-arm mode writes its own npz")
+    ap.add_argument(
+        "--arm",
+        default="all",
+        help="all (default) or one of ridge_hedge, ridge_tuned, blk2_hedge, blk2_tuned, blk2_fixed, a0_ols_har; single-arm mode writes its own npz",
+    )
     ap.add_argument("--out", default="results/hedge_lin")
     args = ap.parse_args()
     t0 = time.time()
@@ -154,7 +157,9 @@ def main():
     OFF = WINDOW
 
     spec_full = U.ARMS["br_tuned_all_features"]
-    Ffull = np.ascontiguousarray(U._build_design(p, spec_full, WINDOW, arm="probe")[0][rows], dtype=np.float64)
+    Ffull = np.ascontiguousarray(
+        U._build_design(p, spec_full, WINDOW, arm="probe")[0][rows], dtype=np.float64
+    )
     bb_idx = U._backbone_cols(p.names)
     ex_idx = U._exog_all_cols(p.names)
     H = np.ascontiguousarray(p.X[rows][:, bb_idx])
@@ -163,8 +168,10 @@ def main():
     F0, kept0, _ = U._ols_design(p, spec0)
     F0 = F0[rows]
     p.X = None
-    import gc; gc.collect()
-    print(f"designs ready {time.time()-t0:.0f}s", flush=True)
+    import gc
+
+    gc.collect()
+    print(f"designs ready {time.time() - t0:.0f}s", flush=True)
 
     ARM = args.arm
 
@@ -179,7 +186,8 @@ def main():
     if _want("ridge_tuned"):
         ma = ArgminRidge(Ffull, y, pv_full, WINDOW)
         losses["ridge_tuned"] = run_walk(ma, ns, WINDOW, OFF, "ridge_tuned", t0)
-    del Ffull; gc.collect()
+    del Ffull
+    gc.collect()
 
     nH = H.shape[1]
     if _want("blk2_hedge", "blk2_tuned", "blk2_fixed"):
@@ -207,57 +215,112 @@ def main():
                 if i > OFF:
                     sf.roll(Fb[i - 1], y[i - 1], Fb[i - 1 - WINDOW], y[i - 1 - WINDOW])
                 gram = sf._Sxx - np.outer(sf._sx, sf._sx) / sf.n
-                beta = np.linalg.solve(gram + np.diag(pv_fixed),
-                                       sf._Sxy - sf._sx * sf._sy / sf.n)
+                beta = np.linalg.solve(
+                    gram + np.diag(pv_fixed), sf._Sxy - sf._sx * sf._sy / sf.n
+                )
                 yh[i] = float(beta @ (Fb[i] - sf._sx / sf.n) + sf._sy / sf.n)
                 if (i - OFF) % 10000 == 0:
-                    print(f"  blk2_fixed bar {i-OFF} {time.time()-t0:.0f}s", flush=True)
+                    print(
+                        f"  blk2_fixed bar {i - OFF} {time.time() - t0:.0f}s",
+                        flush=True,
+                    )
             losses["blk2_fixed"] = yh
-        del Fb; gc.collect()
-    del H, E; gc.collect()
+        del Fb
+        gc.collect()
+    del H, E
+    gc.collect()
 
     if _want("a0_ols_har"):
         yh0 = np.full(ns, np.nan)
         yh0[OFF:] = U._walk_ols(F0, y, WINDOW, OFF, ns, kept0)[0]
         losses["a0_ols_har"] = yh0
-        del F0; gc.collect()
-        print(f"a0 done {time.time()-t0:.0f}s", flush=True)
+        del F0
+        gc.collect()
+        print(f"a0 done {time.time() - t0:.0f}s", flush=True)
 
     import score_unification as su
+
     print("\n=== paired table (contract scoring, common scored bars) ===")
-    L = {k: pm._contract_losses(v[OFF:], y_raw[OFF:], base[OFF:]) for k, v in losses.items()}
-    b0 = L["a0_ols_har"]
-    for tag in ["a0_ols_har", "ridge_tuned", "ridge_hedge", "blk2_fixed", "blk2_tuned", "blk2_hedge"]:
+    L = {
+        k: pm._contract_losses(v[OFF:], y_raw[OFF:], base[OFF:])
+        for k, v in losses.items()
+    }
+    tags = [
+        "a0_ols_har",
+        "ridge_tuned",
+        "ridge_hedge",
+        "blk2_fixed",
+        "blk2_tuned",
+        "blk2_hedge",
+    ]
+    b0 = L.get("a0_ols_har")
+    for tag in tags:
+        if tag not in L:
+            continue
         l = L[tag]
+        if b0 is None:
+            ok = np.isfinite(l)
+            print(f"{tag:14s} QLIKE {np.nanmean(l[ok]):.5f}")
+            continue
         ok = np.isfinite(l) & np.isfinite(b0)
         if tag == "a0_ols_har":
             print(f"{tag:14s} QLIKE {np.nanmean(l[ok]):.5f}")
         else:
             dm = su.dm_test(l[ok], b0[ok], h=1)
-            print(f"{tag:14s} QLIKE {np.nanmean(l[ok]):.5f}  dQ {np.nanmean(l[ok]-b0[ok]):+.5f}  DM {dm['dm']:+.2f}")
-    for pair in [("ridge_hedge", "ridge_tuned"), ("blk2_hedge", "blk2_tuned"), ("blk2_hedge", "blk2_fixed"), ("ridge_hedge", "blk2_fixed")]:
+            print(
+                f"{tag:14s} QLIKE {np.nanmean(l[ok]):.5f}  dQ {np.nanmean(l[ok] - b0[ok]):+.5f}  DM {dm['dm']:+.2f}"
+            )
+    for pair in [
+        ("ridge_hedge", "ridge_tuned"),
+        ("blk2_hedge", "blk2_tuned"),
+        ("blk2_hedge", "blk2_fixed"),
+        ("ridge_hedge", "blk2_fixed"),
+    ]:
+        if pair[0] not in L or pair[1] not in L:
+            continue
         a, b = L[pair[0]], L[pair[1]]
         ok = np.isfinite(a) & np.isfinite(b)
         dm = su.dm_test(a[ok], b[ok], h=1)
-        print(f"{pair[0]} vs {pair[1]}: dQ {np.mean(a[ok]-b[ok]):+.5f}  DM {dm['dm']:+.2f}")
+        print(
+            f"{pair[0]} vs {pair[1]}: dQ {np.mean(a[ok] - b[ok]):+.5f}  DM {dm['dm']:+.2f}"
+        )
 
-    warr = np.array([t[1] for t in mh.trajectory])
-    wblk = np.array([t[1] for t in mb_h.trajectory])
-    print("\nridge hedge: mean weights by grid point:")
-    for g, wv in zip(RIDGE_GRID, warr.mean(0)):
-        print(f"  alpha={g:>7g}: {wv:.3f}")
-    print("blk2 hedge: mean weights by grid point:")
-    for g, wv in zip(BLK2_GRID, wblk.mean(0)):
-        print(f"  alpha={g:>7g}: {wv:.3f}")
-    print("ridge hedge top-grid weight over retunes (first 10):", np.round(warr[:10, -1], 3))
-    sel_arr = [t[1] for t in ma.trajectory]
-    print("argmin selections (first 14):", sel_arr[:14])
+    warr = (
+        np.array([t[1] for t in mh.trajectory])
+        if "mh" in locals() and mh.trajectory
+        else None
+    )
+    wblk = (
+        np.array([t[1] for t in mb_h.trajectory])
+        if "mb_h" in locals() and mb_h.trajectory
+        else None
+    )
+    if warr is not None:
+        print("\nridge hedge: mean weights by grid point:")
+        for g, wv in zip(RIDGE_GRID, warr.mean(0)):
+            print(f"  alpha={g:>7g}: {wv:.3f}")
+        print(
+            "ridge hedge top-grid weight over retunes (first 10):",
+            np.round(warr[:10, -1], 3),
+        )
+    if wblk is not None:
+        print("blk2 hedge: mean weights by grid point:")
+        for g, wv in zip(BLK2_GRID, wblk.mean(0)):
+            print(f"  alpha={g:>7g}: {wv:.3f}")
+    if "ma" in locals() and ma.trajectory:
+        print("argmin selections (first 14):", [t[1] for t in ma.trajectory][:14])
 
     os.makedirs(args.out, exist_ok=True)
-    np.savez(os.path.join(args.out, "hedge_lin.npz" if args.arm == "all" else f"hedge_lin_{args.arm}.npz"),
-             **{f"loss_{k}": v for k, v in L.items()},
-             ridge_w=warr, blk2_w=wblk)
-    print(f"wrote {args.out}/hedge_lin.npz")
+    payload = {f"loss_{k}": v for k, v in L.items()}
+    if warr is not None:
+        payload["ridge_w"] = warr
+    if wblk is not None:
+        payload["blk2_w"] = wblk
+    out_npz = os.path.join(
+        args.out, "hedge_lin.npz" if args.arm == "all" else f"hedge_lin_{args.arm}.npz"
+    )
+    np.savez(out_npz, **payload)
+    print(f"wrote {out_npz}")
 
 
 if __name__ == "__main__":
