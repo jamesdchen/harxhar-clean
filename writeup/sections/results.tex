@@ -338,3 +338,33 @@ functional-ANOVA remainder and the expressivity ladder's residual gap sit
 above pairwise order, and the block contains pairwise products only. What
 the block does carry runs in a linear estimator --- one solver, three
 penalties, refit every bar.
+
+\subsection{An Economic Reading: Same-Day Index Variance}
+\label{sec:spxw_econ}
+
+The forecast increment maps onto a listed product. S\&P~500 index
+options now expire every weekday, so each session carries a
+zero-days-to-expiry (0DTE) chain settling on that day's close. On the
+expiration-day chains from 2020 through 2025 we form, at 10:00~ET, each
+model's forecast of the variance remaining to the 16:00 close --- the
+per-bar forecasts underlying Table~\ref{tab:block_ladder} accumulated
+over the remaining intraday bars --- and score them against the
+realized remainder. On the $711$ expiration days with a full option
+strip quoted at 10:00, the OLS--HAR benchmark scores QLIKE $0.0661$
+and the two-block ridge $0.0615$: $\Delta\mathrm{QLIKE} = 0.0046$,
+and the daily loss-difference series annualizes to a Sharpe ratio of
+$1.1$. The trading analogue holds a variance swap on the remaining
+session, struck at the benchmark forecast $\hat v_{0}$ and sized by
+the exogenous revision under the QLIKE curvature,
+$N = (\hat v_{2\mathrm{b}} - \hat v_{0}) / \hat v_{0}^{2}$; the book
+$N(\mathrm{RV} - \hat v_{0})$ realizes an annualized Sharpe ratio of
+$3.2$ with a $61\%$ hit rate over the same days. The benchmark sets
+the strike; the exogenous block only sizes the position, which is the
+economic content of the increment.\footnote{The option-implied strike
+sits far above both statistical forecasts on a typical day --- the
+variance risk premium. An always-short-variance book consequently
+earns an annualized Sharpe ratio of $11.7$ against paper settlement
+($6.0$ shorting the traded strip), identically under either model:
+that return is the premium, not evidence about the exogenous
+increment, and neither forecast improves on the smile as a directional
+signal against implied variance.}
