@@ -35,7 +35,11 @@ is retuned for the horizon; the only change is the left-hand side.
 This is the direct method: one regression per horizon on the features
 at the origin, so the estimator sees the horizon-$h$ target and learns
 its own map to it, with no iteration of one-step forecasts and no
-forecast of the exogenous inputs. Horizons are $h \in \{1, 4, 16, 48,
+forecast of the exogenous inputs. Each horizon is a single bar at a
+fixed distance from the origin --- $h = 4$ forecasts the fourth bar
+ahead, not the four bars in between --- so the rows of the profile are
+five separate distances, not a path; the intraday path from $t$ to the
+close is the object of part~B. Horizons are $h \in \{1, 4, 16, 48,
 240\}$ bars --- thirty minutes, two hours, eight hours, one trading day
 and one trading week --- each fit and scored on the identical rows. The
 scoring is the paper's contract (Section~\ref{sec:smearing_contract}):
