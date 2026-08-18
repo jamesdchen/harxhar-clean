@@ -35,13 +35,18 @@ two-block ridge (Section~\ref{sec:block_tikhonov}), exactly as scored in
 Section~\ref{sec:three_block_results}; no forecast is refit for this
 purpose.
 
-\paragraph{Constructions.} Let $\hat v_t$ be a model's forecast, issued
-at $t$, of the next bar's variance, and let $RV_{\mathrm{open},t}$ be
-the variance already realized in the session through bar $t$. Three
-nested constructions map the one-step forecast to the remaining
-horizon, each an expanding log-linear regression fit separately for
-each entry hour $h$ on strictly earlier sessions and applied one session
-forward:
+\paragraph{Constructions.} A per-bar model produces exactly one
+forecast at bar $t$: $\hat v_t$, its forecast of the next bar's
+variance. It says nothing yet about the bars after that. Reaching the
+remaining horizon from that single number therefore requires a map, and
+the map is learned from history: on earlier sessions, how did the
+next-bar forecast standing at this hour relate to the variance that was
+then realized from this hour to the close? Let $RV_{\mathrm{open},t}$
+be the variance already realized in the session through bar $t$. Three
+nested constructions supply that map, each an expanding log-linear
+regression fit separately for each entry hour $h$ on strictly earlier
+sessions and applied one session forward, and each a strictly
+more-informed forecast that a user standing at $t$ could make:
 \begin{align}
     \text{(M1)}\quad
     \log RV_{t,T} &= a_h + b_h \log \hat v_t + \varepsilon_t,
@@ -57,11 +62,16 @@ forward:
     \label{eq:mh_m3}
 \end{align}
 where $RV^{(-1)}_{t,T}$ is the previous session's realized variance
-over the same remaining horizon. M1 asks how much of the rest of the
-session a single next-bar forecast reaches; M2 adds the running
-realization of the current session, which is known at $t$ and carries
-the session's level so far; M3 adds yesterday's realization of the same
-horizon, a seasonal anchor. The regression is what maps thirty minutes
+over the same remaining horizon. Read as a ladder: M1 uses the model's
+next-bar forecast and nothing else, and asks how much of the rest of
+the session that one number reaches; M2 adds what has already happened
+today, which is known at $t$ and carries the session's level so far;
+M3 adds what happened yesterday over this same window, a seasonal
+anchor. The rung below M1 is the benchmark of the next paragraph, which
+uses no model at all --- so the four rows of
+Table~\ref{tab:multihorizon_pooled} run from no information about
+today, to the model's next bar, to today so far, to yesterday's same
+window. The regression is what maps thirty minutes
 to the rest of the day: its slope on $\log \hat v_t$ is fitted per
 hour, because the map from ``the next bar'' to ``the rest of the
 session'' differs at 10:00, with the opening bar's turbulence still
