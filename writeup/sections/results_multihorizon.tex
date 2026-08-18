@@ -1,18 +1,61 @@
-\subsection{From One Bar to the Rest of the Session}
+\subsection{Beyond One Bar: Longer Horizons and the Rest of the Session}
 \label{sec:multihorizon}
 \label{sec:multihorizon_results}
 
-The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts. This
-subsection extends them to the variance remaining in the session,
-Equation~\eqref{eq:mh_target}, using the constructions of
-Section~\ref{sec:multihorizon_methods}, on \mhNDays{} complete regular
-sessions of the paper's panel. Two questions are asked of the
-extension. The first is how much of the remaining session a single
-next-bar forecast reaches, and what the running realization of the
-current session adds to it. The second is whether the two-block ridge's
-one-bar advantage over the incumbent survives the extension to a
-horizon of hours --- the multi-horizon counterpart of the paired
-comparison in Table~\ref{tab:block_ladder}.
+The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts.
+This subsection asks two things of the exogenous block beyond that
+horizon (Section~\ref{sec:multihorizon_methods}): whether its advantage
+over the incumbent grows or decays as the target moves from the next
+bar to the next week, refitting the paper's estimator directly at each
+horizon; and, within the session, how far the one-step forecast reaches
+into the variance remaining before the close.
+
+\paragraph{The horizon profile.} Table~\ref{tab:multih_profile} refits
+the incumbent and the two-block ridge directly at five horizons from
+thirty minutes to a trading week, on one shared evaluation span of
+\mhpNBars{} bars per horizon. Both models lose accuracy as the horizon
+lengthens, as they must. What changes across the rows is the
+\emph{difference} between them. At one bar the two arms are level on
+this span (paired DM \mhpHOneBlkDM{}); at two hours the ridge is behind
+(\mhpHFourBlkDM{}); at eight hours it is level again
+(\mhpHSixteenBlkDM{}); at one day it is ahead at
+\mhpHFortyEightBlkDM{}; and at one week it is ahead by
+\mhpHTwoFortyBlkRel{}\% of the incumbent's loss, at
+\mhpHTwoFortyBlkDM{}. The exogenous block's advantage is not a property
+of the thirty-minute horizon that decays away from it: it is smallest
+there and largest at the longest horizon fit. The information in the
+wide block is about slow-moving variance, and it pays most where the
+HAR lag structure has the least to say. The two-hour row is the one
+exception in sign and is not significant; it is reported as found.
+
+\begin{table}[H]
+\centering
+\caption{Direct forecasts at longer horizons. Both arms are refit at
+each horizon $h$ with the paper's estimator and penalties, on the same
+final \mhpNBars{} bars of the panel; the target is the realized
+variance of bar $t+h-1$. QLIKE under the evaluation protocol
+(Section~\ref{sec:smearing_contract}); $\Delta$ is the two-block ridge
+minus the incumbent on common rows; DM~$t$ is the paired
+Diebold--Mariano statistic, negative favouring the ridge. The one-bar
+row is a subsample of Table~\ref{tab:block_ladder}'s panel and is
+reported here only to anchor the profile.
+\label{tab:multih_profile}}
+\begin{tabular}{@{}lcccrr@{}}
+\toprule
+Horizon & $n$ & OLS--HAR & Two-block & $\Delta$QLIKE & DM~$t$ \\
+\midrule
+\input{generated/table_multih_profile}
+\end{tabular}
+\end{table}
+
+\paragraph{The rest of the session.} The second object is the variance
+remaining before the close, Equation~\eqref{eq:mh_target}, forecast at
+every bar from the one-step forecast standing then, on \mhNDays{}
+complete regular sessions. Two questions are asked of it: how much of
+the remaining session a single next-bar forecast reaches, and what the
+running realization of the current session adds; and whether the
+two-block ridge's one-bar advantage survives the extension to a horizon
+of hours.
 
 \begin{table}[H]
 \centering

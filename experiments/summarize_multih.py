@@ -22,7 +22,10 @@ ARMS = ("a0_ols_har", "blk2_user", "blk3_user")
 
 def main():
     rows = []
-    for f in sorted(glob.glob("results/multih/h*.npz"), key=lambda p: int(p.split("/h")[-1].split(".")[0])):
+    for f in sorted(
+        glob.glob("results/multih/h*.npz"),
+        key=lambda p: int(os.path.basename(p)[1:].split(".")[0]),
+    ):
         z = np.load(f)
         h = int(z["horizon"])
         L = {a: z[f"loss_{a}"] for a in ARMS}
@@ -53,8 +56,8 @@ def main():
         if r1:
             for r in rows:
                 print(
-                    f"  h={r['h']:>3}: blk2 {r['d_blk2_user']/r1['d_blk2_user']:6.3f}   "
-                    f"blk3 {r['d_blk3_user']/r1['d_blk3_user']:6.3f}"
+                    f"  h={r['h']:>3}: blk2 {r['d_blk2_user'] / r1['d_blk2_user']:6.3f}   "
+                    f"blk3 {r['d_blk3_user'] / r1['d_blk3_user']:6.3f}"
                 )
 
 

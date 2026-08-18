@@ -1,31 +1,64 @@
-% Multi-horizon macros, minted by experiments/multihorizon_tex.py from
-% results/multihorizon/*.csv. Guarded so a second \input is a no-op.
+% Multi-horizon macros, minted by experiments/multihorizon_tex.py
+% (rest-of-session, results/multihorizon/*.csv) and
+% experiments/multih_probe_tex.py (direct h-step, results/multih/h*.npz).
 \ifdefined\mhNDays\else\input{generated/multihorizon_numbers}\fi
+\ifdefined\mhpNBars\else\input{generated/multih_numbers}\fi
 
-\subsection{From One Bar to the Rest of the Session}
+\subsection{Beyond One Bar: Longer Horizons and the Rest of the Session}
 \label{sec:multihorizon_methods}
 
-% Methods only: the multi-horizon object, the constructions that reach
-% it from a per-bar forecast, the causality convention, the scoring.
+% Methods only. Two multi-horizon objects: (A) the direct h-step-ahead
+% forecast, refit per horizon with the paper's estimator; (B) the
+% variance remaining in the session, reached from the one-step forecast.
 
-The models of this paper issue one forecast per thirty-minute bar. An
-intraday user rarely wants only the next bar: at any bar $t$ of a
-session the quantity of interest is often the variance still to come
-before the close,
+The models of this paper are fit and scored one bar ahead. Two further
+questions follow. The first is whether the exogenous block's advantage
+is a property of the thirty-minute horizon or carries to longer ones:
+does it grow, hold, or decay as the target moves from the next bar to
+the next day and the next week? The second is intraday: at any bar $t$
+of a session, a user often wants not the next bar but the variance
+still to come before the close, a horizon that shrinks through the
+day. Each question has its own construction, and both are
+$\mathcal{F}_t$-measurable: nothing on any right-hand side is formed
+after the forecast origin.
+
+\paragraph{A. Direct forecasts at longer horizons.} For a horizon of
+$h$ bars the target at origin $t$ is the realized variance of bar
+$t+h-1$ --- the same per-bar object the paper forecasts at $h = 1$,
+moved $h-1$ bars ahead --- and the design is the paper's own, exactly
+as it stands at $t$: the OLS--HAR incumbent's backbone
+(Section~\ref{sec:dp_benchmark}) and the two-block ridge's backbone plus
+wide exogenous block (Section~\ref{sec:block_tikhonov}), the same
+columns, the same fixed penalties $(\alpha_1, \alpha_2) = (1, 100)$,
+the same $24{,}000$-bar rolling window and per-bar exact solve. Nothing
+is retuned for the horizon; the only change is the left-hand side.
+This is the direct method: one regression per horizon on the features
+at the origin, so the estimator sees the horizon-$h$ target and learns
+its own map to it, with no iteration of one-step forecasts and no
+forecast of the exogenous inputs. Horizons are $h \in \{1, 4, 16, 48,
+240\}$ bars --- thirty minutes, two hours, eight hours, one trading day
+and one trading week --- each fit and scored on the identical rows. The
+scoring is the paper's contract (Section~\ref{sec:smearing_contract}):
+per-window causal mean calibration and second moment, QLIKE on the raw
+variance scale, and the paired Diebold--Mariano statistic of the
+two-block ridge against the incumbent, all on the final \mhpNBars{}
+bars of the panel per horizon, one evaluation span shared by every
+horizon so that the profile across $h$ compares like with like.
+
+\paragraph{B. The variance remaining in the session.} At any bar $t$ of
+a session the second object is
 \begin{equation}
     RV_{t,T} \;=\; \sum_{t < t_k \le T} RV_{t_k},
     \label{eq:mh_target}
 \end{equation}
 the sum of the per-bar realized variances from the next bar through the
-last regular-hours bar. This is a multi-horizon target whose horizon
-shrinks through the day --- eleven bars remain at 10:00, one at 15:00
---- and it must be forecast afresh at every bar, from what is known
-then. This subsection fixes how a per-bar forecast is extended to it,
-and how the extension is scored. Every construction below is
-$\mathcal{F}_t$-measurable: nothing on its right-hand side is formed
-after $t$.
+last regular-hours bar --- eleven bars remain at 10:00, one at 15:00
+--- forecast afresh at every bar from what is known then. Here the
+per-bar models are not refit; the question is how far the one-step
+forecast they already issue reaches into the rest of the session, and
+what the session's own history adds.
 
-\paragraph{The multi-horizon panel.} The target is formed on the paper's
+\paragraph{The rest-of-session panel.} The target is formed on the paper's
 own panel (Section~\ref{sec:data_prep}), restricted to the regular
 session, 10:00 to 15:30~ET, twelve bars a day: \mhNDays{} complete
 sessions. Entry bars run from 10:00 to 15:00; the 15:30 bar has no
