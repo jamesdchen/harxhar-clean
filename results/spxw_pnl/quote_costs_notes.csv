@@ -1,0 +1,24 @@
+key,value
+data,data/spxw_chain.parquet
+filter,bid>0 & mid>0 & ask>=bid & finite underlying & finite delta
+stamps,30-min RTH; the terminal 16:00 ET stamp (tau=0) is dropped
+tau,"hours to 16:00 ET on the expiration day / (252*6.5), DST-aware"
+rate,r = 0
+iv,solved from the quote with scipy brentq; vendor IV column ignored
+moneyness,"vendor delta column, |delta| buckets"
+early_close,"column is True on every row: uninformative, not used"
+half_sessions,"days whose vendor hours_to_expiration disagrees with the 16:00 clock are dropped whole: 1291 days on file, 1279 kept"
+hour_9_gap,"the 09:30 stamp carries neither underlying_price nor delta on any row, so the opening bar cannot be bucketed, IV-solved or hedged from this file; it shows as 0 availability (a data gap, not a market fact)"
+two_sided_quotes,"4231513 two-sided rows, of which 104233 carry no underlying_price/delta and are unusable"
+iv_day_stride,1
+iv_subsampling,none: every expiration day solved
+iv_rows,387227
+iv_solve_rate,0.9938
+live_quotes,387227
+snapshots,16627
+days,1279
+era_daily_0dte,expiration >= 2022-05-16
+theta_min,ln(IV_ask/IV_bid): round-trip crossing cost in log-vol
+oneway_frac,"(IV_ask-IV_mid)/IV_mid: one-way crossing, fraction of IV"
+scope,quote cost only; depth/impact/capacity not measurable here
+runtime_s,103
