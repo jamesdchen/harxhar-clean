@@ -1,0 +1,3 @@
+check,n,max_abs_diff,frac_within_1e-6,frac_within_1e-9
+hold_to_settle_long_dh_mid,74000,3.094746681142624e-15,1.0,1.0
+hold_to_settle_long_dh_x,74000,3.0895425107146934e-15,1.0,1.0
