@@ -71,3 +71,4 @@ results/winablate_full/*_lossbar.npz
 results/b2_mmap/
 results/prep_cache_*.npz
 results/.harvest_cache/
+writeup/overleaf_*.zip
