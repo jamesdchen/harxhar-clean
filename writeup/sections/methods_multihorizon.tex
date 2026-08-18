@@ -1,0 +1,90 @@
+% Multi-horizon macros, minted by experiments/multihorizon_tex.py from
+% results/multihorizon/*.csv. Guarded so a second \input is a no-op.
+\ifdefined\mhNDays\else\input{generated/multihorizon_numbers}\fi
+
+\subsection{From One Bar to the Rest of the Session}
+\label{sec:multihorizon_methods}
+
+% Methods only: the multi-horizon object, the constructions that reach
+% it from a per-bar forecast, the causality convention, the scoring.
+
+The models of this paper issue one forecast per thirty-minute bar. An
+intraday user rarely wants only the next bar: at any bar $t$ of a
+session the quantity of interest is often the variance still to come
+before the close,
+\begin{equation}
+    RV_{t,T} \;=\; \sum_{t < t_k \le T} RV_{t_k},
+    \label{eq:mh_target}
+\end{equation}
+the sum of the per-bar realized variances from the next bar through the
+last regular-hours bar. This is a multi-horizon target whose horizon
+shrinks through the day --- eleven bars remain at 10:00, one at 15:00
+--- and it must be forecast afresh at every bar, from what is known
+then. This subsection fixes how a per-bar forecast is extended to it,
+and how the extension is scored. Every construction below is
+$\mathcal{F}_t$-measurable: nothing on its right-hand side is formed
+after $t$.
+
+\paragraph{The multi-horizon panel.} The target is formed on the paper's
+own panel (Section~\ref{sec:data_prep}), restricted to the regular
+session, 10:00 to 15:30~ET, twelve bars a day: \mhNDays{} complete
+sessions. Entry bars run from 10:00 to 15:00; the 15:30 bar has no
+remaining horizon. The per-bar forecasts entering the constructions are
+those of the OLS--HAR incumbent (Section~\ref{sec:dp_benchmark}) and the
+two-block ridge (Section~\ref{sec:block_tikhonov}), exactly as scored in
+Section~\ref{sec:three_block_results}; no forecast is refit for this
+purpose.
+
+\paragraph{Constructions.} Let $\hat v_t$ be a model's forecast, issued
+at $t$, of the next bar's variance, and let $RV_{\mathrm{open},t}$ be
+the variance already realized in the session through bar $t$. Three
+nested constructions map the one-step forecast to the remaining
+horizon, each an expanding log-linear regression fit separately for
+each entry hour $h$ on strictly earlier sessions and applied one session
+forward:
+\begin{align}
+    \text{(M1)}\quad
+    \log RV_{t,T} &= a_h + b_h \log \hat v_t + \varepsilon_t,
+    \label{eq:mh_m1} \\
+    \text{(M2)}\quad
+    \log RV_{t,T} &= a_h + b_h \log \hat v_t
+                   + d_h \log RV_{\mathrm{open},t} + \varepsilon_t,
+    \label{eq:mh_m2} \\
+    \text{(M3)}\quad
+    \log RV_{t,T} &= a_h + b_h \log \hat v_t
+                   + d_h \log RV_{\mathrm{open},t}
+                   + e_h \log RV^{(-1)}_{t,T} + \varepsilon_t,
+    \label{eq:mh_m3}
+\end{align}
+where $RV^{(-1)}_{t,T}$ is the previous session's realized variance
+over the same remaining horizon. M1 asks how much of the rest of the
+session a single next-bar forecast reaches; M2 adds the running
+realization of the current session, which is known at $t$ and carries
+the session's level so far; M3 adds yesterday's realization of the same
+horizon, a seasonal anchor. The regression is what maps thirty minutes
+to the rest of the day: its slope on $\log \hat v_t$ is fitted per
+hour, because the map from ``the next bar'' to ``the rest of the
+session'' differs at 10:00, with the opening bar's turbulence still
+ahead, from 14:30, with three bars left. Each fitted value is
+back-transformed by the same causal, QLIKE-optimal multiplicative
+factor used throughout the paper --- the expanding mean of the
+realized-to-forecast ratio over earlier sessions, applied one session
+forward --- and no forecast is issued before $63$ sessions of history.
+A fourth construction pools the eleven entry hours into one regression
+with hour dummies (M2, pooled), so that the gain from hour-specific
+slopes can be separated from the gain from the regressors.
+
+\paragraph{Benchmark and scoring.} The horizon-specific benchmark is
+the unconditional one: for each entry hour, the expanding mean of
+$\log RV_{t,T}$ over earlier sessions, back-transformed the same way
+--- the best constant forecast of that horizon with no model in it.
+Every construction is scored by QLIKE \citep{Patton2011} on the
+remaining variance, one loss per session per entry hour, and reported
+per entry hour and pooled across hours (the session mean of the eleven
+losses). Two comparisons are made by Diebold--Mariano statistics
+\citep{DieboldMariano1995} on paired daily loss differences: each
+construction against the horizon benchmark, and, within each
+construction, the two-block ridge against the incumbent --- the
+multi-horizon counterpart of the one-bar comparison in
+Table~\ref{tab:block_ladder}. The sample is also split at
+1~January~2016 as a pre-registered era check.

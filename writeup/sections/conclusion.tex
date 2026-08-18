@@ -29,10 +29,17 @@ final model is ridge with a block-diagonal Tikhonov penalty, linear in
 its parameters throughout: two nested blocks, two fixed penalties, one
 exact rolling solve, and it outperforms the benchmark by a margin an
 order of magnitude beyond the fourth decimal place at strong paired
-significance. Read against the same-day index-option market through a
+significance. Extended to the variance remaining in the session, the
+same per-bar forecast serves as a multi-horizon forecast at every bar
+using only information available then, and the two-block ridge's
+advantage over the incumbent carries to that horizon.
+% OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
+\iffalse
+Read against the same-day index-option market through a
 delta-hedged near-the-money book, its remaining-variance forecast is
 compared with the incumbent's under one fixed rule; the reading is a
 demonstration under stated constants.
+\fi
 
 Two findings sit beside the model rather than inside it, and may matter
 more broadly. First, the evaluation protocol is a modeling choice: the

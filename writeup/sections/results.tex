@@ -371,9 +371,11 @@ penalties, refit every bar.
 \fi
 
 What the two-block ridge carries runs in a linear estimator --- one
-solver, two penalties, refit every bar; the next subsection reads its
-forecast against the market.
+solver, two penalties, refit every bar; the next subsection extends its
+forecast from one bar to the rest of the session.
 
+% OPTIONS PARKED 2026-08-18: option-market results held out of the rendered paper.
+\iffalse
 \subsection{Reading the Forecast Against the Option Market}
 \label{sec:spxw_econ}
 \label{sec:options_results}
@@ -437,3 +439,7 @@ Table~\ref{tab:block_ladder}. The book is a demonstration under stated
 constants, not a trading claim: no capacity or market-impact model is
 applied, and the dead-zone and hedging conventions are those of
 Section~\ref{sec:options_methods}, not tuned on outcomes.
+
+\fi
+
+\input{sections/results_multihorizon}

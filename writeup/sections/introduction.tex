@@ -78,10 +78,18 @@ That structure is a specification statement, not yet an estimator: the
 paper's linear ladder ends at the two-block ridge --- one solver, two
 fixed penalties, refit exactly at every bar --- which scores
 \unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
-benchmark's \unifAzeroQLIKE{}. The paper closes by reading the
+benchmark's \unifAzeroQLIKE{}. The paper closes by extending the
+one-bar forecast to the variance remaining in the session --- the
+multi-horizon object an intraday user needs at every bar --- and asks
+whether the two-block ridge's advantage carries to it
+(Section~\ref{sec:multihorizon}).
+% OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
+\iffalse
+The paper closes by reading the
 forecast against the same-day index-option market through a
 delta-hedged near-the-money book on the model's signal
 (Section~\ref{sec:spxw_econ}).
+\fi
 
 A methodological theme runs through all four: discipline beats tuning.
 Every hyperparameter in the campaign is either a fixed constant or

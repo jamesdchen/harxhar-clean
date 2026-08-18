@@ -1,0 +1,83 @@
+\subsection{From One Bar to the Rest of the Session}
+\label{sec:multihorizon}
+\label{sec:multihorizon_results}
+
+The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts. This
+subsection extends them to the variance remaining in the session,
+Equation~\eqref{eq:mh_target}, using the constructions of
+Section~\ref{sec:multihorizon_methods}, on \mhNDays{} complete regular
+sessions of the paper's panel. Two questions are asked of the
+extension. The first is how much of the remaining session a single
+next-bar forecast reaches, and what the running realization of the
+current session adds to it. The second is whether the two-block ridge's
+one-bar advantage over the incumbent survives the extension to a
+horizon of hours --- the multi-horizon counterpart of the paired
+comparison in Table~\ref{tab:block_ladder}.
+
+\begin{table}[H]
+\centering
+\caption{Multi-horizon forecasts of the variance remaining in the
+session, pooled over entry hours 10:00--15:00~ET (one loss per session,
+the mean over the eleven entry hours). QLIKE on remaining variance,
+lower is better. DM~$t$ (ridge vs.\ incumbent) is the paired
+Diebold--Mariano statistic of the two-block ridge against the OLS--HAR
+incumbent under the same construction; DM~$t$ (vs.\ benchmark) is the
+two-block ridge against the horizon-specific unconditional benchmark.
+Negative favours the ridge. All constructions use only information
+available at the entry bar.
+\label{tab:multihorizon_pooled}}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+Construction & Sample & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs.\ bench.) \\
+\midrule
+\input{generated/table_multihorizon_pooled}
+\end{tabular}
+\end{table}
+
+\paragraph{How far one bar reaches.} Mapped alone to the rest of the
+session (M1), the incumbent's next-bar forecast scores QLIKE
+\mhAzeroMOneQLIKE{} against the horizon benchmark's \mhNaiveQLIKE{},
+and the two-block ridge's scores \mhBlkMOneQLIKE{}: a single next-bar
+forecast carries substantial information about the hours that follow
+(DM \mhBlkMOneDMVsNaive{} against the benchmark for the ridge). Adding
+the variance already realized in the session (M2) improves both models
+further --- the ridge to \mhBlkMTwoQLIKE{} --- and yesterday's
+realization of the same horizon (M3) improves them again, to
+\mhBlkMThreeQLIKE{} for the ridge. Pooling the eleven entry hours into
+one regression with hour dummies scores the same as the eleven
+hour-specific fits (DM \mhPooledVsPerHourBlk{} for the ridge), even
+though the slope from ``the next bar'' to ``the rest of the session''
+moves through the day (\mhBlkSlopeOnestepEarly{} at 10:00 against
+\mhBlkSlopeOnestepLate{} at 14:30 on the one-step term, with the
+running realization taking up the difference: \mhBlkSlopeSofarEarly{}
+against \mhBlkSlopeSofarLate{}; descriptive, full sample).
+
+\paragraph{The ridge's advantage at the longer horizon.} Under every
+construction the two-block ridge scores below the incumbent. Mapped
+alone, the paired DM is \mhMOneDMBlkVsAzero{}; with the running
+realization, \mhMTwoDMBlkVsAzero{}; with the seasonal anchor,
+\mhMThreeDMBlkVsAzero{}. Table~\ref{tab:multihorizon_byhour} gives the
+M2 comparison by entry hour: the ridge scores below the incumbent at
+\mhHoursBlkBetter{} of the \mhHoursTotal{} entry hours, with paired DM
+ranging from \mhDMBlkVsAzeroMin{} to \mhDMBlkVsAzeroMax{}. The one-bar
+advantage of Table~\ref{tab:block_ladder} therefore carries to the
+remaining-session horizon: the exogenous block improves the forecast
+an intraday user needs at every bar, not only the next thirty minutes.
+The 2016--2024 rows of Table~\ref{tab:multihorizon_pooled} show the
+same ordering.
+
+\begin{table}[H]
+\centering
+\caption{Multi-horizon forecasts by entry hour, construction M2 (next-bar
+forecast plus realized variance so far), all sessions. QLIKE on the
+variance remaining from that hour to the close; DM~$t$ as in
+Table~\ref{tab:multihorizon_pooled}. The remaining horizon shrinks from
+eleven bars at 10:00 to one at 15:00.
+\label{tab:multihorizon_byhour}}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Entry & Benchmark & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs.\ bench.) \\
+\midrule
+\input{generated/table_multihorizon_byhour}
+\end{tabular}
+\end{table}
