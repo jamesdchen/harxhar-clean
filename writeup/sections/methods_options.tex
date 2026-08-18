@@ -6,9 +6,8 @@
 \subsection{Reading the Forecast Against the Option Market}
 \label{sec:options_methods}
 
-% Methods only: instrument, measurement, signal, execution, controls.
-% Every number here is a design constant or a measurement on the quote
-% surface; no result is reported in this subsection.
+% Methods only: instrument, measurement, signal, execution, control.
+% Every number here is a design constant; no result is reported.
 
 The same-day index option market posts, at every half hour of every
 expiration session, a price for the object this paper forecasts: the
@@ -16,7 +15,7 @@ variance still to come before the close. The forecast can therefore be
 read against a quoted price as well as against a squared error. What
 follows fixes the instrument, the two measurements that have to be made
 commensurate, the decision rule, the execution convention, and the
-controls; every constant it names was set before the book was scored.
+control; every constant it names was set before the book was scored.
 
 \paragraph{Instrument and panel.} S\&P~500 index (SPX) options with zero
 days to expiry, cash settled at the 16:00~ET close, so a position carried
@@ -35,8 +34,7 @@ mispricing is visible leg by leg instead of netted within a strike, and
 the two legs' agreement is itself a check that the signal is about
 variance and not direction. Entries begin at 10:00, because the vendor
 supplies neither underlying price nor greeks at the 09:30 stamp, and half
-sessions --- identified by disagreement between the 16:00 clock and the
-vendor's own hours-to-expiration --- are dropped whole.
+sessions are dropped whole.
 
 \paragraph{Time-till-close implied variance.} At each stamp the implied
 volatility is solved from the mid under Black--Scholes with $r = 0$ and
@@ -53,58 +51,39 @@ $\tau$ the trading time remaining to the settle,
 with $\phi = +1$ for a call and $-1$ for a put and
 $\tau = (\text{hours to } 16{:}00)/(252 \times 6.5)$ on a DST-aware
 clock; $\mathrm{IV}_{t,T}$ is the root of Equation~\eqref{eq:opt_bs} at
-the quoted mid, and the vendor's own volatility column is never read.
-Black--Scholes is sufficient here, and the reason is worth stating
-because the choice would otherwise read as an assumption. The position
-settles at intrinsic, a model-free payoff: realized profit and loss is
-fixed by the settlement price and the hedge path, not by a pricing model.
-Black--Scholes enters only as the quoting map that renders prices
-comparable across strikes and stamps as a time-till-close volatility, and
-as the hedge ratio, a second-order term; any smile-consistent model gives
-the identical intrinsic profit and loss and differs only in the delta it
-prescribes. Where a strike-independent measurement is wanted the
-model-free log strip is used instead --- out-of-the-money puts below the
-forward, calls above, the at-the-money strike averaged across the two
-sides, trapezoidal strike weights,
-\begin{equation}
-    C_t \;=\; 2 \sum_i \frac{\Delta K_i}{K_i^{2}}\, Q_t(K_i)
-    \;-\; \Bigl( \frac{F_t}{K_0} - 1 \Bigr)^{2},
-    \label{eq:opt_mfiv}
-\end{equation}
-the integrated implied variance to the close, written MFIV below. It is a
-strip mark rather than a tradeable single contract, and it is used for
-the encompassing and information-set tests only.
+the quoted mid. Black--Scholes is sufficient here, and the reason is worth
+stating because the choice would otherwise read as an assumption. The
+position settles at intrinsic, a model-free payoff: realized profit and
+loss is fixed by the settlement price and the hedge path, not by a
+pricing model. Black--Scholes enters only as the quoting map that renders
+prices comparable across strikes and stamps as a time-till-close
+volatility, and as the hedge ratio, a second-order term; any
+smile-consistent model gives the identical intrinsic profit and loss and
+differs only in the delta it prescribes.
 
 \paragraph{Time-till-close variance forecast.} The model's counterpart to
-$C_t$ is the sum of its per-bar forecasts over the remaining bars of the
-session, rescaled by a causally estimated multiplicative factor,
+$\mathrm{IV}_{t,T}$ must use only what is known at $t$. The per-bar
+forecast $\hat v_t$ standing at $t$ is mapped to the remaining horizon by
+an expanding log-linear regression, fit for each entry hour $h$ on
+strictly earlier expiration days and applied one day forward,
 \begin{equation}
-    \widehat{RV}_{t,T} \;=\; c_{h(t)} \sum_{t < t_k \le T} \hat v_{t_k},
+    \log \widehat{RV}_{t,T} \;=\; a_h + b_h \log \hat v_t,
     \qquad
-    c_{h} \;=\; \operatorname*{mean}_{d' < d}
-      \frac{RV_{d',h}}{\sum_k \hat v_{d',k}},
+    \widehat{RV}_{t,T} \;\leftarrow\;
+      c_h \exp\bigl(a_h + b_h \log \hat v_t\bigr),
     \label{eq:opt_ttc}
 \end{equation}
-where $h(t)$ is the entry hour, the mean of realized-to-forecast ratios
-is the QLIKE-optimal multiplicative rescale, and the average runs over
-strictly earlier expiration days with a minimum of $63$ before any value
-is issued, applied shifted one day. The result is converted to an
-annualized volatility on the option's own horizon,
+where $c_h$ is the causal QLIKE-optimal multiplicative rescale --- the
+expanding mean of realized-to-forecast ratios over earlier days --- and
+no value is issued before $63$ days of history. The result is converted
+to an annualized volatility on the option's own horizon,
 $\hat\sigma_{t,T} = ( \widehat{RV}_{t,T} / \tau_t )^{1/2}$, the unit
-$\mathrm{IV}_{t,T}$ already carries. One caveat is stated here and not
-repeated: the per-bar forecast for a later bar is formed \emph{at} that
-bar, so the sum is not $\mathcal{F}_t$-measurable and quietly carries
-information the trader standing at $t$ does not have. It is the
-construction used elsewhere in this paper and a generous one. The
-strictly $\mathcal{F}_t$ alternatives --- the one-step forecast standing
-at $t$, and a direct regression of remaining variance on information
-available at $t$ --- are reported alongside it in the forecast-structure
-comparison over \optTtcNDays{} days; the trading book is a demonstration
-run under the sum.
+$\mathrm{IV}_{t,T}$ already carries; everything on the right of
+Equation~\eqref{eq:opt_ttc} is known at the decision time.
 
-\paragraph{Signal, dead zone, and the cost floor.} The signal is the
-price-form variance risk premium, the log ratio of the two commensurate
-volatilities, and the rule is a dead zone around zero:
+\paragraph{Signal and decision rule.} The signal is the price-form
+variance risk premium, the log ratio of the two commensurate
+volatilities, and the rule acts only when it clears a fixed dead zone:
 \begin{equation}
     s_t \;=\; \log \frac{\mathrm{IV}_{t,T}}
                         {\sqrt{\widehat{RV}_{t,T} / \tau_t}} ,
@@ -116,27 +95,8 @@ volatilities, and the rule is a dead zone around zero:
 so the book sells the contract and hedges it when the option is expensive
 relative to the forecast by more than $\theta$, buys and hedges when it
 is cheap by more than $\theta$, and stands flat in between. The dead zone
-is read from a grid fixed in advance, $\theta \in \{0, 0.05, 0.10,
-0.20\}$, every level reported; no value is selected on realized profit
-and loss. Its floor is a measurement, not a preference: crossing the
-spread moves the quoted volatility, and in the same log-volatility unit
-as $s_t$ the round trip costs
-\begin{equation}
-    \theta_{\min}
-    \;=\; \log \frac{\mathrm{IV}(\mathrm{ask})}{\mathrm{IV}(\mathrm{bid})},
-    \label{eq:opt_costfloor}
-\end{equation}
-both volatilities solved from Equation~\eqref{eq:opt_bs} at the same
-stamp and strike. The median floor is \optCostElevenLo{} at 11:00~ET for
-$|\Delta| \in [0.30, 0.50)$ and \optCostElevenMid{} for $[0.50, 0.70)$,
-rising to \optCostFifteenLo{} and \optCostFifteenMid{} by 15:00~ET; for
-$|\Delta| > 0.70$ it is \optCostDeepLo{}--\optCostDeepHi{}, which no
-signal in this study approaches, and that measurement rather than a taste
-for at-the-money exposure is why the band stops at $0.70$. The absolute
-half-spread is pinned at the minimum tick across the session, so the
-intraday rise in $\theta_{\min}$ is the premium thinning toward the close
-against a fixed tick, not quotes widening. A dead zone below the measured
-floor is one the market has already closed.
+is the fixed constant $\theta = 0.10$, set before the book was scored;
+no value is selected on realized profit and loss.
 
 \paragraph{Delta hedge and settlement.} Each entered contract is hedged
 with the Black--Scholes delta evaluated at that contract's \emph{entry}
@@ -156,74 +116,18 @@ Two execution conventions run side by side: a mid-quote variant, and a
 crossed variant charging the option at the bid when sold and at the ask
 when bought, with $0.5$~bp of traded notional on the underlying per
 rebalance --- a documented assumption, since no trade sizes exist on
-disk. Two exit rules likewise run side by side: hold to settlement, and
-exit at the first later stamp at which the re-measured signal crosses
-back through zero, which pays the option spread again in the crossed
-variant. Neither is selected on outcome.
+disk. Positions are held to settlement.
 
-\paragraph{Aggregation and controls.} Contracts within a session are not
+\paragraph{Aggregation and control.} Contracts within a session are not
 independent draws, so the unit of account is the day: one
 profit-and-loss number per expiration day, the mean over that day's
 traded contracts. The annualized Sharpe ratio is the mean of those daily
 numbers over their standard deviation, scaled by $\sqrt{252}$; the hit
-rate is the fraction of positive days. The book is cut per leg, per era
-(the whole sample against the daily-0DTE era beginning 16~May~2022, from
-which every weekday carries an expiration), and per entry hour. Two
-controls run on the identical contract set. The first is unconditional:
-always short, and always long, the same contracts under the same hedge
-and settlement conventions --- the variance risk premium with no forecast
-in it, which is what any conditional book must be measured against. The
-second is the \emph{swap test}: the identical machinery with the OLS--HAR
-incumbent's forecast substituted for the two-block ridge in
-Equation~\eqref{eq:opt_ttc}, compared by a paired daily difference
-$t$-statistic on the same days. Because the two arms differ only in the
-forecast entering the signal, the swap test is the test of whether the
-exogenous block, rather than the HAR family it is attached to, is doing
-the work. As robustness the book is tabulated by causal VIX quintile, VIX
-term slope, day of week, macro-release day, and FOMC-announcement day;
-the release flags end 2024-01-09, and later days are \emph{unknown}
-rather than ``no announcement.''
-
-\paragraph{Encompassing and information-set tests.} The book asks whether
-the forecast is worth money; the regressions ask the prior question of
-whether it carries information the market price does not. Two are run: at
-10:00~ET, an expanding log-log regression of the variance realized to the
-close on the strip alone, on the model alone, and on both jointly; and at
-every stamp, a direct expanding regression of remaining variance on the
-information available at that stamp, built up one regressor at a time,
-\begin{align}
-    \log RV_{10{:}00,T}
-    &= a + b \log C_{10{:}00} + c \log \widehat{RV}_{10{:}00,T}
-    + \varepsilon,
-    \label{eq:opt_enc} \\
-    \log RV_{t,T}
-    &= a_h + b_h \log \widehat{RV}^{\mathrm{sum}}_{t,T}
-    + c_h \log C_t + d_h \log RV_{\mathrm{open},t} + \varepsilon_t,
-    \label{eq:opt_direct}
-\end{align}
-where $RV_{\mathrm{open},t}$ is the variance already realized in the
-session. Equation~\eqref{eq:opt_direct} is fit two ways --- separately
-per entry hour, and once pooled with hour dummies --- so that the gain
-from hour-specific coefficients is separated from the gain from the
-regressors. Strictly $\mathcal{F}_t$ versions of every variant replace
-the remaining sum with the one-step forecast standing at $t$, which
-together with $C_t$ and $RV_{\mathrm{open},t}$ makes the whole right-hand
-side measurable at the decision time. Every fit is causal on the
-convention of Equation~\eqref{eq:opt_ttc} --- expanding over strictly
-earlier days, minimum $63$, applied one day forward --- back-transformed
-by the expanding multiplicative factor computed in the same grouping as
-the fit it corrects, scored by QLIKE \citep{Patton2011} on remaining
-variance, and compared by a Diebold--Mariano statistic
-\citep{DieboldMariano1995,HarveyLeybourneNewbold1997} on paired daily
-loss differences.
-
-\paragraph{What is not modelled.} Two things lie outside what this data
-can support, and neither is approximated. The first is capacity: no trade
-sizes exist on disk, so Equation~\eqref{eq:opt_costfloor} and the crossed
-variant are a \emph{quote-cost} study at the posted top of book, and
-depth, queue position, and market impact are not measurable here. The
-second is cross-expiry structure: only expiration-day chains are on disk,
-and within a single expiry the vega-to-gamma ratio is $S^2 \sigma \tau$
-at every strike, so no position in that expiry is long gamma and flat
-vega and the gamma exposure cannot be separated from the marks the smile
-assigns it.
+rate is the fraction of positive days. The book is reported for the whole
+sample and for the daily-0DTE era beginning 16~May~2022, from which every
+weekday carries an expiration. One control runs on the identical contract
+set: always short, the same contracts under the same hedge and settlement
+conventions --- the variance risk premium with no forecast in it, which
+is what any conditional book must be measured against. The rule is then
+run twice, once with each of the paper's two forecasts entering
+Equation~\eqref{eq:opt_ttc}.

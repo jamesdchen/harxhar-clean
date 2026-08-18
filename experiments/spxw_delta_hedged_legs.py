@@ -51,6 +51,14 @@ THETAS = (0.0, 0.05, 0.10, 0.20)
 UNDERLYING_COST_BP = 0.5
 DAILY_0DTE = pd.Timestamp("2022-05-16")
 HOURS_PER_YEAR = 252.0 * 6.5
+# --ft: use the strictly F_t-measurable remaining-variance forecast (per-hour
+# expanding log-log regression of realized remaining variance on the ONE-STEP
+# forecast standing at t) instead of the sum of not-yet-made per-bar forecasts.
+FT_MODE = False
+
+
+def _SFX() -> str:
+    return "_ft" if FT_MODE else ""
 
 
 def _sh(x: np.ndarray) -> float:
@@ -167,18 +175,35 @@ def main() -> None:
     eb["a0_rem"] = g["pa"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
     eb["hhmm"] = eb["et"].dt.strftime("%H:%M")
     eb["expiration"] = pd.to_datetime(eb["expiration"])
-    for tag in ("b2_rem", "a0_rem"):
+    for tag, one in (("b2_rem", "pb"), ("a0_rem", "pa")):
         eb[f"{tag}_cal"] = np.nan
         for _, gh in eb.groupby("hhmm"):
             gh = gh.sort_values("expiration")
-            r = gh["rv_rem"].to_numpy(float) / np.maximum(
-                gh[tag].to_numpy(float), 1e-18
-            )
+            y = gh["rv_rem"].to_numpy(float)
+            if FT_MODE:
+                # F_t: expanding log-log OLS of log rv_rem on [1, log one-step
+                # forecast at t], fit on strictly earlier days, applied to
+                # the current day; then the causal multiplicative rescale.
+                x = np.log(np.maximum(gh[one].to_numpy(float), 1e-18))
+                ly = np.log(np.maximum(y, 1e-18))
+                f = np.full(len(gh), np.nan)
+                for j in range(BURN, len(gh)):
+                    Z = np.column_stack([np.ones(j), x[:j]])
+                    beta, *_ = np.linalg.lstsq(Z, ly[:j], rcond=None)
+                    f[j] = np.exp(beta[0] + beta[1] * x[j])
+                base = f
+            else:
+                base = gh[tag].to_numpy(float)
+            r = y / np.maximum(base, 1e-18)
             cal = (
                 pd.Series(r).expanding(min_periods=BURN).mean().shift(1).to_numpy(float)
             )
-            eb.loc[gh.index, f"{tag}_cal"] = cal * gh[tag].to_numpy(float)
+            eb.loc[gh.index, f"{tag}_cal"] = cal * base
     eb = eb.dropna(subset=["b2_rem_cal", "a0_rem_cal"])
+    print(
+        f"forecast mode: {'F_t one-step regression' if FT_MODE else 'summed per-bar'}",
+        flush=True,
+    )
 
     ch = pd.read_parquet(
         os.path.join(ROOT, "data", "spxw_chain.parquet"),
@@ -318,7 +343,7 @@ def main() -> None:
     ch["long_dh_mid"] = (ch["intr"] - ch["mid"] + ch["hedge"]) / prem
     ch["long_dh_x"] = (ch["intr"] - ch["ask"] + ch["hedge"] - ch["hedge_cost"]) / prem
     ch["short_dh_x"] = (ch["bid"] - ch["intr"] - ch["hedge"] - ch["hedge_cost"]) / prem
-    ch.to_parquet(os.path.join(OUT, "dh_legs_ledger.parquet"))
+    ch.to_parquet(os.path.join(OUT, f"dh_legs{_SFX()}_ledger.parquet"))
 
     def daily(x: np.ndarray, m: np.ndarray, idx: np.ndarray) -> np.ndarray:
         s = pd.Series(np.where(m, x, np.nan), index=idx)
@@ -423,13 +448,16 @@ def main() -> None:
             hours.append(rec)
 
     summ = pd.DataFrame(rows)
-    summ.to_csv(os.path.join(OUT, "dh_legs_summary.csv"), index=False)
+    summ.to_csv(os.path.join(OUT, f"dh_legs{_SFX()}_summary.csv"), index=False)
     byh = pd.DataFrame(hours)
-    byh.to_csv(os.path.join(OUT, "dh_legs_by_hour.csv"), index=False)
+    byh.to_csv(os.path.join(OUT, f"dh_legs{_SFX()}_by_hour.csv"), index=False)
     pd.set_option("display.width", 220)
     print(summ.to_string(index=False), flush=True)
     print(byh.to_string(index=False), flush=True)
 
 
 if __name__ == "__main__":
+    import sys as _sys
+
+    FT_MODE = "--ft" in _sys.argv
     main()

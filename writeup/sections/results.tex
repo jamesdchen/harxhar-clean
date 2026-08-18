@@ -424,27 +424,16 @@ in which every weekday carries an expiring chain
 
 Selling variance without a forecast earns an annualized Sharpe ratio of
 \optBareCtrlShMid{} at mid quotes with a \optBareCtrlHit{} hit rate:
-the premium is large and one-signed, and the control is a demanding
-one. Conditioning on the incumbent's forecast raises the book to
-\optBareAzeroShMid{} at mids and \optBareAzeroShX{} after crossing the
-spread, on \optBareAzeroTraded{} of days, and the position is now
-two-sided (\optBareAzeroLong{} long). The two-block ridge under the
-identical rule scores \optBareBlkShMid{} at mids and \optBareBlkShX{}
-crossed on \optBareBlkTraded{} of days, \optBareBlkLong{} long. Both
-forecasts beat the no-forecast control at mids and remain positive
-after costs; both do so on calls and puts separately (incumbent
-\optBareCallAzeroShMid{} and \optBarePutAzeroShMid{}; two-block ridge
-\optBareCallBlkShMid{} and \optBarePutBlkShMid{} at mids), which is the
-check the single-leg construction was chosen to permit; and both hold
-in the daily-0DTE era.
-
-The gap between the two forecasts is small on this book relative to
-the gap between either forecast and none. The economic reading of the
-one-bar forecast is therefore that it carries content the option
-market does not price into the remaining session, and that the
-content sits in the level of the remaining-variance forecast that the
-HAR family already provides; the exogenous increment of
-Table~\ref{tab:block_ladder} rides on that level. The reading is a
-demonstration, not a trading claim: no capacity or market-impact model
-is applied, and the dead-zone and hedging conventions are the stated
-constants of Section~\ref{sec:options_methods}, not tuned on outcomes.
+the premium is large and one-signed. Conditioning on the incumbent's
+forecast under the fixed rule gives \optBareAzeroShMid{} at mids and
+\optBareAzeroShX{} after crossing the spread, on \optBareAzeroTraded{}
+of days, with \optBareAzeroLong{} of positions long. The two-block ridge
+under the identical rule gives \optBareBlkShMid{} at mids and
+\optBareBlkShX{} crossed, on \optBareBlkTraded{} of days,
+\optBareBlkLong{} long. Neither forecast-conditioned book clears the
+quoted spread at this sample under this rule; the ordering of the two
+forecasts on the book matches their ordering in
+Table~\ref{tab:block_ladder}. The book is a demonstration under stated
+constants, not a trading claim: no capacity or market-impact model is
+applied, and the dead-zone and hedging conventions are those of
+Section~\ref{sec:options_methods}, not tuned on outcomes.
