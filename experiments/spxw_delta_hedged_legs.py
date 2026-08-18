@@ -262,12 +262,24 @@ def main() -> None:
     # Vectorized hedge: for each contract, at each later 30-min stamp j on its
     # day, delta_j from entry IV; pnl += -delta_j * (S_{j+1} - S_j), last step
     # to settlement S_T. Build a wide (contract x stamp-of-day) underlying grid.
-    stamps = sorted(ch["t"].unique())
-    day_grid = path.pivot(index="expiration", columns="t", values="underlying_price")
+    # Grid columns are BAR-OF-DAY (ET wall clock): pivot is (days x ~14),
+    # not (days x all absolute stamps).
+    path = path.copy()
+    path["bod"] = (
+        pd.to_datetime(path["t"], utc=True)
+        .dt.tz_convert("America/New_York")
+        .dt.strftime("%H:%M")
+    )
+    ch["bod"] = (
+        pd.to_datetime(ch["t"], utc=True)
+        .dt.tz_convert("America/New_York")
+        .dt.strftime("%H:%M")
+    )
+    stamps = sorted(path["bod"].unique())
+    day_grid = path.pivot(index="expiration", columns="bod", values="underlying_price")
     day_grid = day_grid.reindex(columns=stamps)
-    # per-contract row of underlying path from its own day
-    grid = day_grid.loc[ch["expiration"].to_numpy()].to_numpy(float)  # (n, nstamps)
-    t_idx = pd.Index(stamps).get_indexer(ch["t"].to_numpy())
+    grid = day_grid.loc[ch["expiration"].to_numpy()].to_numpy(float)  # (n, nbars)
+    t_idx = pd.Index(stamps).get_indexer(ch["bod"].to_numpy())
     n, m = grid.shape
     col = np.arange(m)[None, :]
     active = col >= t_idx[:, None]  # stamps at/after entry
