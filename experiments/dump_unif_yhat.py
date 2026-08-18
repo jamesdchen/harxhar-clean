@@ -10,6 +10,20 @@ import numpy as np
 import pandas as pd
 
 
+def _et_to_utc(t: np.ndarray) -> pd.DatetimeIndex:
+    """Panel endbartime is NAIVE America/New_York wall clock (bar-end labelled).
+
+    Localize as ET, then convert to UTC. Stamping the raw values utc=True
+    mislabels every bar by 4-5 h (bug found 2026-08-17 via the everybar
+    clock defect).
+    """
+    return (
+        pd.to_datetime(t)
+        .tz_localize("America/New_York", ambiguous="NaT", nonexistent="NaT")
+        .tz_convert("UTC")
+    )
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", required=True)
@@ -31,7 +45,7 @@ def main() -> None:
         chunks.append(
             pd.DataFrame(
                 {
-                    "t": pd.to_datetime(np.asarray(z["t"]), utc=True),
+                    "t": _et_to_utc(np.asarray(z["t"])),
                     "yhat": np.asarray(z["yhat"], dtype=np.float64),
                     "baseline": np.asarray(z["baseline"], dtype=np.float64),
                     "rv_raw": np.asarray(z["rv_raw"], dtype=np.float64),
