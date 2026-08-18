@@ -157,10 +157,14 @@ nonlinear structure adds. First, gradient-boosted trees beat the best
 linear arm on every feature set, by a small margin. Second,
 decompositions of the tree fits attribute the bulk of that margin to
 additive-plus-pairwise structure, and the pairwise part to products of
-columns the panel already contains, gated on the session clock. Third,
+columns the panel already contains, gated on the session clock.
+% PRODUCT BLOCK PARKED 2026-08-18: the third item of this roadmap list (products written down as an explicit block) is held out of the rendered paper; the list is now two items.
+\iffalse
+Third,
 those products --- written down as explicit columns
 (Section~\ref{sec:product_block}) --- become the next block of the
 same Tikhonov penalty (Section~\ref{sec:three_block_results}).
+\fi
 
 \paragraph{The expert bank.} The twenty frozen configurations of
 Section~\ref{sec:estimators} were walked per bar on the full panel and
@@ -286,14 +290,20 @@ Section~\ref{sec:data_prep}.
 
 The tree experiments therefore yield a specification statement:
 \textbf{the panel's recoverable nonlinearity is a sparse set of pairwise
-products of columns the design already contains}. The rest of this section
+products of columns the design already contains}.
+% PRODUCT BLOCK PARKED 2026-08-18: the hand-off sentence to the explicit product-block construction is held out of the rendered paper; the specification statement stands on its own as a finding.
+\iffalse
+The rest of this section
 constructs that set of products as an explicit feature block.
+\fi
 
 \subsection{Block-Diagonal Tikhonov}
 \label{sec:three_block_results}
 \label{sec:hierarchical_ridge_results}
 \label{sec:block_tikhonov_results}
 
+% PRODUCT BLOCK PARKED 2026-08-18: the three-block design, its score, and the product-block increment are held out of the rendered paper; the paragraph below is the two-block-only rewrite of this one.
+\iffalse
 The block-diagonal Tikhonov of Section~\ref{sec:block_tikhonov} is one
 solver with nested block penalties at a $24{,}000$-bar window. The
 first design is two blocks, $(\alpha_1,\alpha_2)=(1,100)$: HAR barely
@@ -305,9 +315,18 @@ scores \unifBlkThreeUserQLIKE{} at DM \unifBlkThreeUserDM{}. The
 product-block increment --- the paired comparison of the two designs on
 common rows --- is $\Delta\mathrm{QLIKE} = $ \unifIncrBlkThreeUserDQ{}
 at DM \unifIncrBlkThreeUserDM{}.
+\fi
+The block-diagonal Tikhonov of Section~\ref{sec:block_tikhonov} is one
+solver with nested block penalties at a $24{,}000$-bar window. The
+design is two blocks, $(\alpha_1,\alpha_2)=(1,100)$: HAR barely
+penalized, the wide exogenous block shrunk hard. It scores QLIKE
+\unifBlkTwoUserQLIKE{}, Diebold--Mariano \unifBlkTwoUserDM{} against
+the OLS--HAR incumbent.
 
 \begin{table}[H]
 \centering
+% PRODUCT BLOCK PARKED 2026-08-18: the caption's three-block clauses (the paired-increment last row and its row count) are held out; the live caption below describes the two-row table. The label moves with the live caption.
+\iffalse
 \caption{Block-diagonal Tikhonov under the evaluation protocol
 (Section~\ref{sec:smearing_contract}), $24{,}000$-bar window.
 DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE{}) except
@@ -316,17 +335,28 @@ against the two-block design on common rows. The three-block $n$
 starts later because product selection uses the first $2W$ rows.
 Negative DM favours the arm.
 \label{tab:block_ladder}}
+\fi
+\caption{Block-diagonal Tikhonov under the evaluation protocol
+(Section~\ref{sec:smearing_contract}), $24{,}000$-bar window.
+DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE{});
+negative DM favours the arm.
+\label{tab:block_ladder}}
 \begin{tabular}{@{}lccc@{}}
 \toprule
  & QLIKE & DM $t$ & $n$ \\
 \midrule
 OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & $273{,}554$ \\
 Two-block $(1, 100)$ & \unifBlkTwoUserQLIKE{} & \unifBlkTwoUserDM{} & $272{,}971$ \\
+% PRODUCT BLOCK PARKED 2026-08-18: the three-block row and the paired product-block increment row are held out of the rendered table.
+\iffalse
 Three-block $(1, 100, 1000)$ & \unifBlkThreeUserQLIKE{} & \unifBlkThreeUserDM{} & $248{,}280$ \\
 Product-block increment (paired) & \unifIncrBlkThreeUserDQ{} & \unifIncrBlkThreeUserDM{} & $248{,}280$ \\
+\fi
 \bottomrule
 \end{tabular}
 \end{table}
+% PRODUCT BLOCK PARKED 2026-08-18: the open decision about the three-block table and the closing product-block paragraph are held out; the live sentence below hands off to the options reading instead.
+\iffalse
 \decide{whether the three-block table, once run, reports the tree arms
 alongside it --- the natural closing comparison is the three-block ridge
 against the causally tuned LightGBM on \texttt{all\_features} ($0.12604$),
@@ -338,33 +368,83 @@ functional-ANOVA remainder and the expressivity ladder's residual gap sit
 above pairwise order, and the block contains pairwise products only. What
 the block does carry runs in a linear estimator --- one solver, three
 penalties, refit every bar.
+\fi
 
-\subsection{An Economic Reading: Same-Day Index Variance}
+What the two-block ridge carries runs in a linear estimator --- one
+solver, two penalties, refit every bar; the next subsection reads its
+forecast against the market.
+
+\subsection{Reading the Forecast Against the Option Market}
 \label{sec:spxw_econ}
+\label{sec:options_results}
 
-The forecast increment maps onto a listed product. S\&P~500 index
-options now expire every weekday, so each session carries a
-zero-days-to-expiry (0DTE) chain settling on that day's close. On the
-expiration-day chains from 2020 through 2025 we form, at 10:00~ET, each
-model's forecast of the variance remaining to the 16:00 close --- the
-per-bar forecasts underlying Table~\ref{tab:block_ladder} accumulated
-over the remaining intraday bars --- and score them against the
-realized remainder. On the $711$ expiration days with a full option
-strip quoted at 10:00, the OLS--HAR benchmark scores QLIKE $0.0661$
-and the two-block ridge $0.0615$: $\Delta\mathrm{QLIKE} = 0.0046$,
-and the daily loss-difference series annualizes to a Sharpe ratio of
-$1.1$. The trading analogue holds a variance swap on the remaining
-session, struck at the benchmark forecast $\hat v_{0}$ and sized by
-the exogenous revision under the QLIKE curvature,
-$N = (\hat v_{2\mathrm{b}} - \hat v_{0}) / \hat v_{0}^{2}$; the book
-$N(\mathrm{RV} - \hat v_{0})$ realizes an annualized Sharpe ratio of
-$3.2$ with a $61\%$ hit rate over the same days. The benchmark sets
-the strike; the exogenous block only sizes the position, which is the
-economic content of the increment.\footnote{The option-implied strike
-sits far above both statistical forecasts on a typical day --- the
-variance risk premium. An always-short-variance book consequently
-earns an annualized Sharpe ratio of $11.7$ against paper settlement
-($6.0$ shorting the traded strip), identically under either model:
-that return is the premium, not evidence about the exogenous
-increment, and neither forecast improves on the smile as a directional
-signal against implied variance.}
+The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts of
+realized variance. This subsection reads them against a listed market
+for the same quantity: S\&P~500 index options with zero days to
+expiry, which settle in cash on the day's close and now trade every
+weekday. The method is that of Section~\ref{sec:options_methods}: at
+every thirty-minute bar of every expiration day, each model's forecast
+of the variance remaining to the close is compared with the
+Black--Scholes implied variance of near-the-money calls and puts over
+the same horizon; the sign of the gap, when it clears a fixed dead-zone
+of $\theta = 0.10$ in log terms, sets a delta-hedged position that is
+held to settlement. The remaining-variance forecast is
+\optForecastMode{}. The book is scored on \optNContracts{} contracts
+over \optNDays{} expiration days (2020--April 2024), aggregated to one
+profit-and-loss number per day, at mid quotes and after crossing the
+quoted spread.
+
+Two comparisons are of interest. The first is between the forecast
+and no forecast: the same contracts sold every day and hedged
+identically, the unconditional variance-risk-premium book. The second
+is between the incumbent and the two-block ridge under an identical
+rule. Table~\ref{tab:options_bare} reports both.
+
+\begin{table}[H]
+\centering
+\caption{The delta-hedged same-day option book under a fixed rule
+($\theta = 0.10$; Section~\ref{sec:options_methods}). One number per
+expiration day; Sharpe ratios are annualized from daily
+profit-and-loss; ``crossed'' buys at the ask and sells at the bid with
+$0.5$~bp on the underlying per rebalance. ``Traded'' is the share of
+days on which the rule takes a position; ``long'' the share of those
+positions that buy the option. Daily 0DTE is the era from 16~May~2022
+in which every weekday carries an expiring chain
+(\optDailyNDays{} days).
+\label{tab:options_bare}}
+\begin{tabular}{@{}l ccccc ccccc@{}}
+\toprule
+ & \multicolumn{5}{c}{All expiration days} & \multicolumn{5}{c}{Daily 0DTE} \\
+\cmidrule(lr){2-6} \cmidrule(lr){7-11}
+ & traded & long & Sharpe & crossed & hit & traded & long & Sharpe & crossed & hit \\
+\midrule
+\input{generated/table_options_bare}
+\end{tabular}
+\end{table}
+
+Selling variance without a forecast earns an annualized Sharpe ratio of
+\optBareCtrlShMid{} at mid quotes with a \optBareCtrlHit{} hit rate:
+the premium is large and one-signed, and the control is a demanding
+one. Conditioning on the incumbent's forecast raises the book to
+\optBareAzeroShMid{} at mids and \optBareAzeroShX{} after crossing the
+spread, on \optBareAzeroTraded{} of days, and the position is now
+two-sided (\optBareAzeroLong{} long). The two-block ridge under the
+identical rule scores \optBareBlkShMid{} at mids and \optBareBlkShX{}
+crossed on \optBareBlkTraded{} of days, \optBareBlkLong{} long. Both
+forecasts beat the no-forecast control at mids and remain positive
+after costs; both do so on calls and puts separately (incumbent
+\optBareCallAzeroShMid{} and \optBarePutAzeroShMid{}; two-block ridge
+\optBareCallBlkShMid{} and \optBarePutBlkShMid{} at mids), which is the
+check the single-leg construction was chosen to permit; and both hold
+in the daily-0DTE era.
+
+The gap between the two forecasts is small on this book relative to
+the gap between either forecast and none. The economic reading of the
+one-bar forecast is therefore that it carries content the option
+market does not price into the remaining session, and that the
+content sits in the level of the remaining-variance forecast that the
+HAR family already provides; the exogenous increment of
+Table~\ref{tab:block_ladder} rides on that level. The reading is a
+demonstration, not a trading claim: no capacity or market-impact model
+is applied, and the dead-zone and hedging conventions are the stated
+constants of Section~\ref{sec:options_methods}, not tuned on outcomes.

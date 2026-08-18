@@ -1,5 +1,7 @@
 \appendix
 
+% PRODUCT BLOCK PARKED 2026-08-18: this whole appendix section reports its window-weighting increments on the three-block arm, so it is held out of the rendered paper; its label is referenced nowhere else.
+\iffalse
 \section{Window Weighting}
 \label{sec:dense_weak_ew}
 
@@ -15,6 +17,7 @@ the half-life is worse still (\unifIncrBlkThreeEwTunedDQ{} at
 half-window helps; selecting the forgetting rate on a $125$-bar
 validation tail eliminates the gain. The production estimator keeps
 equal weights.
+\fi
 
 \section{Master Table of Campaign Arms}
 \label{sec:appendix_master}
@@ -24,9 +27,14 @@ frozen panel (Section~\ref{sec:data_prep}), one scoring protocol
 (Section~\ref{sec:smearing}). QLIKE is the pooled loss under the evaluation protocol;
 $\Delta$ is the \emph{paired} mean per-bar loss differential against the
 benchmark, and DM its Diebold--Mariano $t$-statistic, both computed on the
-row intersection of the two arms. Product-block arms
+row intersection of the two arms.
+% PRODUCT BLOCK PARKED 2026-08-18: the product-block row-rule sentence is held out; no product-block arm remains in the rendered table.
+\iffalse
+Product-block arms
 with a $24{,}000$-bar window are scored from the first row outside their
-frozen selection and frame windows. \textbf{Protocol note.} Two row sets
+frozen selection and frame windows.
+\fi
+\textbf{Protocol note.} Two row sets
 appear in this table: arms run under the original scoring protocol and
 arms run under the \texttt{oos\_mult=2} protocol (chunks 9--99,
 $248{,}686$ rows), which excludes the earliest out-of-sample period.
@@ -522,22 +530,37 @@ Lasso, causally tuned       & \unifBTwoLassoTunedQLIKE{} & \unifBTwoLassoTunedDe
 \midrule
 \multicolumn{4}{@{}l}{\emph{Block ridges}} \\
 Two-block ridge (stated penalties)     & \unifBlkTwoUserQLIKE{}   & \unifBlkTwoUserDelta{}   & \unifBlkTwoUserDM{} \\
+% PRODUCT BLOCK PARKED 2026-08-18: three-block row (stated penalties).
+\iffalse
 Three-block ridge (stated penalties)   & \unifBlkThreeUserQLIKE{} & \unifBlkThreeUserDelta{} & \unifBlkThreeUserDM{} \\
+\fi
 Two-block ridge (documented penalties) & \unifBlkTwoDocQLIKE{}    & \unifBlkTwoDocDelta{}    & \unifBlkTwoDocDM{} \\
+% PRODUCT BLOCK PARKED 2026-08-18: three-block row (documented penalties).
+\iffalse
 Three-block ridge (documented penalties) & \unifBlkThreeDocQLIKE{} & \unifBlkThreeDocDelta{} & \unifBlkThreeDocDM{} \\
+\fi
 Two-block ridge (per-block causal tuning)   & \unifBlkTwoTunedQLIKE{}   & \unifBlkTwoTunedDelta{}   & \unifBlkTwoTunedDM{} \\
+% PRODUCT BLOCK PARKED 2026-08-18: three- and four-block causally tuned rows (both carry the product block).
+\iffalse
 Three-block ridge (per-block causal tuning) & \unifBlkThreeTunedQLIKE{} & \unifBlkThreeTunedDelta{} & \unifBlkThreeTunedDM{} \\
 Four-block ridge (per-block causal tuning)  & \unifBlkFourTunedQLIKE{}  & \unifBlkFourTunedDelta{}  & \unifBlkFourTunedDM{} \\
+\fi
 \midrule
 \multicolumn{4}{@{}l}{\emph{Block ridges, \texttt{oos\_mult=2} protocol (248{,}686 rows)}} \\
 Two-block ridge (gated rows, per-block causal tuning) & \unifBlkTwoGatedTunedQLIKE{} & \unifBlkTwoGatedTunedDelta{} & \unifBlkTwoGatedTunedDM{} \\
+% PRODUCT BLOCK PARKED 2026-08-18: the two product-block rows of the oos_mult=2 panel.
+\iffalse
 Three-block ridge (product block, per-block causal tuning) & \unifBlkThreeProdBbExogTunedQLIKE{} & \unifBlkThreeProdBbExogTunedDelta{} & \unifBlkThreeProdBbExogTunedDM{} \\
 Three-block ridge (volatility-gated product block) & \unifBlkFourProdBbExogTrailSdQLIKE{} & \unifBlkFourProdBbExogTrailSdDelta{} & \unifBlkFourProdBbExogTrailSdDM{} \\
+\fi
+% PRODUCT BLOCK PARKED 2026-08-18: the single-block diagnostics group is product-block-only, so the rule, its heading, and all three rows are held out.
+\iffalse
 \midrule
 \multicolumn{4}{@{}l}{\emph{Single-block diagnostics}} \\
 HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifProductAloneUserDelta{} & \unifProductAloneUserDM{} \\
 HAR $+$ product block only (documented) & \unifProductAloneDocQLIKE{}  & \unifProductAloneDocDelta{}  & \unifProductAloneDocDM{} \\
 HAR $+$ product block only (tuned)      & \unifProductAloneTunedQLIKE{} & \unifProductAloneTunedDelta{} & \unifProductAloneTunedDM{} \\
+\fi
 \midrule
 \multicolumn{4}{@{}l}{\emph{Conditional second-moment arms}} \\
 Benchmark, exogenous-state variance conditioning & \unifCondVarBenchQLIKE{} & \unifCondVarBenchDelta{} & \unifCondVarBenchDM{} \\

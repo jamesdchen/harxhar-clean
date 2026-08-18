@@ -63,13 +63,26 @@ the best linear arm on all nine feature sets, but by a margin an order
 of magnitude smaller than the information effect, and decompositions of
 the tree fits attribute the bulk of that margin to additive-plus-pairwise
 structure --- products of columns the panel already contains, gated on
-the session clock. Writing those products down as one hundred frozen
+the session clock.
+% PRODUCT BLOCK PARKED 2026-08-18: the product-block/three-block conclusion of the fourth finding is held out of the rendered paper; the paragraph now closes on the two-block ridge.
+\iffalse
+Writing those products down as one hundred frozen
 columns and shrinking them as a third block converts the tree's
 specification into the next block of the same Tikhonov penalty:
 one solver, three fixed penalties, refit exactly at
 every bar, scoring \unifBlkThreeUserQLIKE{} against the benchmark's
 \unifAzeroQLIKE{} (paired increment \unifIncrBlkThreeUserDQ{} at DM
 \unifIncrBlkThreeUserDM{} for the product block alone).
+\fi
+That structure is a specification statement, not yet an estimator: the
+paper's linear ladder ends at the two-block ridge --- one solver, two
+fixed penalties, refit exactly at every bar --- which scores
+\unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
+benchmark's \unifAzeroQLIKE{}. The paper closes by reading the
+forecast against the same-day index-option market: the option-implied
+variance is informationally redundant given the model, and a
+delta-hedged near-the-money book on the model's signal clears quoted
+spreads (Section~\ref{sec:spxw_econ}).
 
 A methodological theme runs through all four: discipline beats tuning.
 Every hyperparameter in the campaign is either a fixed constant or

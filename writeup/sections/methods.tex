@@ -418,9 +418,11 @@ estimator matches the measured coefficient structure: block 2 keeps
 every column and shrinks them two orders of magnitude harder than
 block 1.
 
-\paragraph{The product block.}
+% PRODUCT BLOCK PARKED 2026-08-18: the whole product-block construction (candidate set, selection, set size, reselection cadence, block penalty, refit cadence) is held out of the rendered paper; the two labels are kept live outside the conditional so any surviving cross-reference still resolves.
 \label{sec:nonlinear_product}
 \label{sec:product_block}
+\iffalse
+\paragraph{The product block.}
 The construction enumerates candidate products, selects a subset, and
 appends the subset to the linear design as ordinary columns, read by the
 same rolling ridge machinery as every other block. The interaction study
@@ -523,7 +525,10 @@ Assembled, the product block is one hundred columns with four measured
 properties --- sparse, frozen, heavily shrunk, frequently refit --- and it
 converts the specification statement of Section~\ref{sec:tree_edge} into a
 feature block the paper's estimator can carry.
+\fi
 
+% PRODUCT BLOCK PARKED 2026-08-18: the three-block design, its equation (eq:three_block), and its penalty justification are held out of the rendered paper; the estimator section now ends at the two-block design.
+\iffalse
 \paragraph{Three blocks.}
 The three-block design appends the product block as $X_3$ at
 $\alpha_3 = 1000$:
@@ -544,3 +549,5 @@ the measured optimum. $\alpha_3 = 1000$: the product block's
 contribution is positive and stable only when it is shrunk an order
 of magnitude harder than the linear exogenous block. No penalty was
 chosen by grid search on the evaluation loss.
+\fi
+\input{sections/methods_options}

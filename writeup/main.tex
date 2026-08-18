@@ -70,12 +70,25 @@ causal hyperparameter tuning on short validation tails is repeatedly
 worse than measured constants. The exogenous information is real but
 dense and weak: invisible to selection and unpenalized joint fits,
 recoverable only by shrinkage, and optimally handled by a two-block
-ridge with penalties differing by two orders of magnitude. The
+ridge with penalties differing by two orders of magnitude.
+% PRODUCT BLOCK PARKED 2026-08-18: three-block/product-block closing sentence held out of the rendered abstract; the contribution now ends at the two-block ridge.
+\iffalse
+The
 recoverable nonlinearity is a sparse set of frozen pairwise products
 gated on the session clock, distilled from tree fits into explicit
 columns; shrunk as a third block, it yields the final three-block ridge
 --- one exact rolling solve, three fixed penalties --- which improves
 the benchmark at strong paired significance.
+\fi
+The recoverable nonlinearity is small beside that
+information effect and sits at pairwise order --- products of columns
+the panel already contains, gated on the session clock. The two-block
+ridge --- one exact rolling
+solve, two fixed penalties --- improves the benchmark at strong paired
+significance, and its remaining-variance forecast is shown to be
+informationally sufficient for the option-implied variance and to
+support a delta-hedged same-day index-option book that clears quoted
+spreads.
 \end{abstract}
 
 \input{sections/introduction}
