@@ -1,0 +1,308 @@
+\section{Data}
+\label{sec:data_prep}
+
+% Arc: everything about the data prep, front and center — then preliminary
+% descriptive analysis (content TBD), ending with per-bar OLS on HAR as the
+% shared benchmark every later section is measured against.
+
+\subsection{The Panel}
+\label{sec:dp_data}
+
+The raw data are 30-minute bars for the S\&P~500 complex, gridded to a
+regular 30-minute frequency. The panel's extent is not set by a chosen
+date: \textbf{a bar exists in the panel if and only if the
+realized-variance source printed on it} --- the same observed-print fact
+the availability indicators of Section~\ref{sec:dp_prep} are built from,
+applied as the grid's own existence criterion. Under this rule the panel
+begins at the source's first print, in January 1998, and ends at its last,
+in April 2024. No weekend rule, holiday calendar, or session table is
+supplied anywhere: weekends, holidays, early closes, and sessions that do
+not yet exist are all absent from the panel for the same reason --- the
+source did not print.
+
+The panel's session structure therefore evolves as the market's did. The
+source prints around the clock from its first day --- the panel's first
+bar is an overnight bar --- but the early sessions are sparser: roughly
+$7{,}500$ bars per year in 1998 (median $32$ bars per trading day before
+2004), growing through roughly $10{,}600$ bars in 2003 to a stable
+$\approx 12{,}400$ bars per year from 2005 onward, when the near-24-hour
+cycle (Sunday $18{:}30$ through Friday $20{:}00$, $48$ bars per full
+trading day, roughly $34$ of them outside regular hours) is fully live. A
+time-of-day slot that thickens or enters mid-sample behaves exactly like
+a feed going live: the rolling per-slot estimators of
+Section~\ref{sec:dp_prep} have whatever history the slot has and
+accumulate it causally. Any statement about intraday structure in this
+panel refers to the full cycle as it stood at the time, not to the
+$09{:}30$--$16{:}00$ window alone.
+
+The existence rule replaced an earlier calendar-only filter (weekend trim
+plus forward fill) after that filter produced a measurable incident: bars
+following an early close existed on the calendar grid as forward-filled
+dead-session bars, and on one such bar --- the only one in more than twenty-five
+thousand --- two feeds' availability indicators disagreed for a single
+bar, which turned a nearly singular solve into forecasts orders of magnitude off target. On the
+overlapping 2005--2024 span the rule removes $4{,}925$ such dead-session
+bars ($\approx 2\%$ of the calendar grid).
+The accounting is: $303{,}442$ print-bars on the grid, $300{,}317$ panel
+rows after the construction burn-in, and $273{,}554$ scored evaluation rows
+after the $24{,}000$-bar training window and the calibration burn-in of
+Section~\ref{sec:smearing}.
+
+The forecasting target is realized variance. For each 30-minute bar it is
+computed as the sum of squared 5-minute log-returns within the bar:
+\begin{equation}
+    RV_{d,j} = \sum_{i=1}^{M} r_{d,j,i}^{2}, \qquad M = 6,
+    \label{eq:dp_rv}
+\end{equation}
+where $r_{d,j,i}$ is the $i$-th 5-minute log-return inside the $j$-th
+30-minute bar of day $d$. Bars are indexed sequentially as $RV_t$. The
+forecast horizon is one bar ahead: the model at bar $t$ predicts
+$RV_{t+1}$. Throughout, ``realized variance'' denotes the target $RV_t$,
+and ``volatility'' denotes its square root; models are estimated on the
+square-root scale (Section~\ref{sec:dp_prep}). The construction in
+Equation~\eqref{eq:dp_rv} is the standard realized-measure definition. The
+heterogeneous autoregressive model of \citet{Corsi2009} uses the trading
+day as its base unit; here both the target and the lag ladder are defined
+at 30-minute resolution.
+
+\paragraph{The evaluation panel.}
+Feature construction consumes a fixed burn-in of $3{,}125$ bars at the
+start of the sample (January to June 1998), a constant of the panel
+construction that exceeds the longest feature lookback. This reduces the
+grid's $303{,}442$ print-bars to a usable panel of $300{,}317$ bars. The
+walk-forward protocol consumes a further $24{,}000$ bars as the initial
+training window, and the calibration burn-in of
+Section~\ref{sec:smearing} consumes the first evaluation window. Every
+arm reported in this paper is scored on the identical remaining rows; the
+paired bar-for-bar comparisons used throughout require this shared row
+index. The scored evaluation panel contains $n = 273{,}554$ bars.
+
+\paragraph{Exogenous information.}
+Beyond the target's own history, the design uses $41$ exogenous channels.
+The channels are organised into thematic buckets that partition the
+columns exactly ($7+12+6+6+3+3+4 = 41$):
+\begin{itemize}
+    \item \textbf{Moments} ($7$): own-asset higher-order return moments:
+      bipower variation, realized semi-variance, autocovariance, absolute,
+      cubic, and quartic returns.
+    \item \textbf{Liquidity} ($12$): trading volume, turnover (total,
+      buy-initiated, sell-initiated), effective and quoted spreads, number
+      of trades.
+    \item \textbf{Market, equal-weighted} ($6$) and \textbf{value-weighted}
+      ($6$): cross-sectional stock-factor aggregates of return moments,
+      bipower variation, semi-variance, and absolute returns.
+    \item \textbf{Sentiment} ($3$): StockTwits attention, sentiment score,
+      and sentiment count.
+    \item \textbf{Implied volatility} ($3$): VIX, VVIX, VIX3M.
+    \item \textbf{Volatility demand} ($4$): options order-flow indicators
+      (SPX open/close, all options open/close, open only).
+\end{itemize}
+The buckets differ in column count; liquidity contributes twelve columns
+and sentiment three. A per-bucket comparison therefore mixes information
+content with dimensionality unless it is read per feature. Availability
+also differs across buckets: the cross-sectional aggregates are observed
+on $138{,}357$ bars, the options order-flow bucket on $54{,}062$ bars, and
+the VIX family does not exist for the earliest part of the sample. Row
+deletion would score each bucket on a different sub-sample.
+Section~\ref{sec:dp_prep} describes the impute-and-indicate construction
+used instead; it scores every bucket on the same rows.
+
+\pending{feature accounting: a per-bucket table giving channels, the lag
+set applied to each, derived columns, and the reconciliation of the three
+circulating counts (41 channels, 359-column exogenous block, 529-column
+design) --- the stated expansion rule of six rolling means per channel gives
+$41 \times 6 = 246$ and does not reconcile them; no per-column claim should
+be read as final until this table exists}
+
+\subsection{Preparation}
+\label{sec:dp_prep}
+% The full prep pipeline as first-class material: overnight fills, diurnal
+% adjustment, winsorized sqrt target, rolling robust scaling, availability
+% indicators (the stale-data lesson folded in as prep discipline, not as the
+% paper's centerpiece).
+
+This subsection specifies the preparation pipeline. The pipeline is
+presented in full because, measured on this panel, the representation of
+missing and stale data has a larger effect on QLIKE than any model-class,
+basis, or penalty decision reported in this paper; the magnitudes are given
+under ``Rolling robust scaling'' below. At any given bar, $36\%$ of the
+exogenous design consists of forward-filled values rather than new
+measurements; on the sparsest channels the figure is $78\%$. Without
+availability information, an estimator cannot distinguish a filled value
+from a new measurement.
+
+\paragraph{Overnight fills and availability indicators.}
+The $41$ exogenous channels are not all published on the near-24-hour
+grid. Most are US cash- or extended-session equity quantities; each prints
+only inside its own session. Averaged across channels, $0.638$ of panel
+rows carry a print from the raw feed and the remaining $0.362$ do not.
+Each channel is processed in the following order:
+\begin{enumerate}
+    \item Compute a binary availability indicator from the raw feed: the
+      indicator is $1$ on bars where the feed printed and $0$ otherwise.
+    \item Forward-fill the channel within its availability window.
+    \item Where the channel is structurally absent (no prior print
+      exists), substitute a fixed in-distribution neutral value.
+\end{enumerate}
+Every value column is accompanied by its indicator column. The indicator
+is computed before the fill. An earlier build of this pipeline computed
+the indicator after the fill, so every forward-filled bar was labelled
+observed. Under that build, the volatility-demand feed stopped publishing
+on 2023-08-31, the unlimited forward fill carried its final August print
+across the following eight months ($8{,}453$ bars, $3.44\%$ of the
+sample), and the indicator read $\approx 1$ throughout. Three further
+feeds (\texttt{vix}, \texttt{vix3m}, \texttt{vvix}) stopped publishing the
+same way on 2024-02-12. Every built cache is now gated on one check: for
+each channel, the mean of the constructed availability indicator must
+equal the fraction of rows on which the raw feed printed. The two
+quantities are estimates of the same number, so any gap indicates a
+construction error of this kind. On the uncorrected panel the check fails
+for $31$ of $41$ channels. The check requires no model, no held-out data,
+and no threshold tuning. We recommend it for any mixed-frequency panel in
+which exogenous series are filled.
+
+The indicator also enters estimation as a regressor. Its linear
+coefficient absorbs any level shift between the pre- and post-availability
+eras, and the value column contributes only where the feed exists. Every
+bucket, including implied volatility and volatility demand, is therefore
+scored on the same $218{,}934$-row index. The exact paired significance
+tests of the later sections require this shared index.
+
+\paragraph{Stage 1: diurnal adjustment.}
+Intraday volatility has a time-of-day profile. Let
+$s(t) \in \{1,\dots,48\}$ index the time-of-day slot of bar $t$, and let
+$\mathcal{W}_t = \{j : j < t,\ s(j)=s(t)\}$ be the set of the most recent
+$W = 20$ observations sharing that slot, with at least $5$ required before
+the baseline is valid. For non-negative series, the baseline is the
+same-slot rolling mean and the adjustment divides by it:
+\begin{equation}
+    \bar{RV}_{t\mid s} = \frac{1}{|\mathcal{W}_t|}\sum_{j \in \mathcal{W}_t} RV_j,
+    \qquad
+    \widetilde{RV}_t = \frac{RV_t}{\bar{RV}_{t\mid s}},
+    \label{eq:dp_diurnal}
+\end{equation}
+Signed series (e.g.\ autocovariance) are divided by the same-slot rolling
+standard deviation instead. The window condition is $j < t$, not
+$j \le t$, so the baseline at bar $t$ uses no information from bar $t$;
+the adjustment is non-anticipative. Warm-up bars pass through with
+baseline $1$. They are consumed by the burn-in and never enter the
+evaluation panel.
+
+\paragraph{Stage 2: the winsorized square-root target.}
+After the diurnal adjustment, each variable class receives a fixed
+variance-stabilising map. The map is chosen in advance from the class's
+support and tail behaviour; no transform parameters are fitted. The maps
+are: $x \mapsto \sqrt{x}$ for squared-return and volatility-like measures,
+including $RV$ itself, bipower variation, turnover, and effective spread;
+$x \mapsto \mathrm{sign}(x)\sqrt{|x|}$ for autocovariance;
+$x \mapsto x^{1/3}$ and $x \mapsto x^{1/4}$ for third and fourth moments;
+and $x \mapsto \log x$ for the implied-volatility family. Models are
+estimated on the adjusted $\sqrt{RV}$ scale. After transformation, each
+series is clipped to rolling 1st and 99th percentile bounds estimated on
+the trailing $W_{\mathrm{clip}} = 240$ observations (about five trading
+days) ending at $t-1$. Winsorization is not inverted at evaluation time;
+only the diurnal division and the square root are inverted. Because
+$\mathbb{E}[\sqrt{X}]^2 \neq \mathbb{E}[X]$, squaring a forecast of
+$\sqrt{RV}$ gives a downward-biased forecast of $RV$. The standard
+remedy in the literature is the classical retransformation estimator of
+\citet{Duan1983} --- add the in-sample residual variance to the squared
+forecast. We refine on that traditional construction with a calibrated,
+strictly causal \emph{second-order adjustment}: a Mincer--Zarnowitz
+mean map re-estimated at every window boundary, and an adaptive second
+moment that tracks the model's own recent error level bar by bar. The
+refinement is specified and analyzed in
+Appendix~\ref{sec:appendix_backtransform}; its sensitivity against the
+na"ive inverse and the classical estimator is measured in
+Section~\ref{sec:smearing_contract}. In raw form the back-transform is
+the traditional one:
+\begin{equation}
+    \widehat{RV}^{\mathrm{raw}}_t
+    = \left(\hat{f}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right)\cdot
+      \bar{RV}^{\mathrm{baseline}}_{t\mid s},
+    \qquad
+    \hat{\sigma}^2_{\varepsilon} = \frac{1}{N}\sum_i (y_i - \hat{y}_i)^2.
+    \label{eq:dp_duan}
+\end{equation}
+
+\paragraph{HAR features.}
+The target's own history enters through trailing rolling means of the
+adjusted series on a base-2 geometric ladder,
+\begin{equation}
+    \mathcal{L} = \{1,\ 2,\ 4,\ \ldots,\ 2^{k_{\max}}\},
+    % \pending{exact base-2 rung set as frozen in the unification
+    % campaign's a0 arm (har_base=2, rungs_cap per the executor)}
+    \qquad
+    \overline{RV}^{(k)}_t = \frac{1}{k}\sum_{i=0}^{k-1}\widetilde{RV}_{t-1-i},
+    \label{eq:dp_har}
+\end{equation}
+The rungs span roughly $30$ minutes, $2.5$ hours, half a trading day,
+$2.6$ days, $13$ days, and $65$ trading days. The sum starts at $t-1$, so
+the feature at bar $t$ contains no contemporaneous information. The ladder
+adapts the daily/weekly/monthly averages of \citet{Corsi2009} to six
+intraday horizons. The same ladder is applied to each included exogenous
+channel, contributing $|\mathcal{L}| = 6$ rolling-mean columns per
+channel.
+
+\paragraph{Rolling robust scaling.}
+Input features to the linear estimators are standardised by subtracting a
+rolling median and dividing by a rolling interquartile range. Both
+statistics are estimated from the current training buffer and updated at
+every step. Two rules govern the estimation.
+
+First, the median and IQR are estimated from observed rows only, i.e.\
+rows on which the availability indicator is $1$. If the statistics are
+instead estimated over forward-filled values, a series whose feed has
+stopped contributes identical repeated values, its rolling IQR shrinks
+toward zero, and the standardising division divides by a value near zero.
+On the uncorrected panel, the stale volatility-demand columns reached
+$2{,}260$ rolling IQRs by this mechanism; the raw series did not move, and
+the denominator shrank.
+
+Second, a scale is used only after $512$ observed values have accumulated,
+and the IQR is floored at $1\%$ of the largest scale the channel has
+shown. This rule exists because masked estimation fails at the start of a
+feed's life: with few observed rows, a low-dispersion opening window would
+otherwise set the scale for all subsequent bars.
+
+The three elements --- indicators computed before the fill, masked
+estimation, and neutral substitution --- are applied together. Each
+element applied alone does not remove the failure. Applied together, they
+reduce the worst channel's maximum standardised value from $2{,}260.4$ to
+$96.2$ rolling IQRs. On the October 2023 window affected by the stale
+feed, the uncorrected panel scored QLIKE $6.37170$ and the repaired panel
+scored QLIKE $0.12391$. Every modelling effect reported in this paper lies
+between $0.0005$ and $0.004$ QLIKE. This difference in magnitude is the
+reason the preparation pipeline is presented before the modelling
+sections.
+
+All stages are strictly causal: every quantity dated $t$ uses only
+information available strictly before $t$.
+
+\subsection{Descriptive Analysis}
+\label{sec:dp_descriptive}
+
+\decide{what preliminary descriptive analysis goes here --- candidates for
+which material already exists in the sources:
+(i) the persistence result --- a pure persistence forecast beats both direct
+kNN and spectral-embedding kNN on the six HAR features in the prototype
+walk-forward (MSE $0.076277$ vs $0.087887$ and $0.089581$, against a
+moving-average baseline at $0.107461$), establishing that the conditional
+mean is overwhelmingly the recent level;
+(ii) the diurnal profile and its residual --- Stage 1 removes $77\%$ of the
+diurnal variance, the $23\%$ leak retains about $48\%$ of the original
+amplitude but only about $4\%$ of residual noise (the profile figure itself
+does not yet exist as an artifact);
+(iii) the clock-anchored persistence sign-flip --- corr(\texttt{har\_ma\_5},
+residual) is $+0.05$ to $+0.13$ through the continuous session but
+$-0.085$ at the open and $-0.085/-0.21/-0.14/-0.03$ across hours 16--19,
+the motivation for the linear-vs-tree question;
+(iv) design-matrix geometry --- $p=529$ columns, participation ratio
+$\approx 6.8$, eigenvalue decay $\approx i^{-3.13}$, numerical rank $317$,
+PC1 carrying $\approx 0\%$ of target signal: the dense-but-weak fact;
+(v) crisis-window conduct --- the 2008 and 2020 figures showing the HAR
+baseline tracking the level regime but undershooting peak bars, motivating
+QLIKE;
+(vi) an era overview / raw-$RV$ summary-statistics table by session segment
+(no such table exists yet).
+Note that (i)--(v) were computed for the reference paper's panel and would
+need re-verification on the current frozen panel before inclusion.}

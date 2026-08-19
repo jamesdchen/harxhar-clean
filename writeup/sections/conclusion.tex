@@ -29,13 +29,10 @@ final model is ridge with a block-diagonal Tikhonov penalty, linear in
 its parameters throughout: two nested blocks, two fixed penalties, one
 exact rolling solve, and it outperforms the benchmark by a margin an
 order of magnitude beyond the fourth decimal place at strong paired
-significance. Refit directly at longer horizons, the exogenous
-advantage grows with the horizon --- level at thirty minutes, and
-largest at one week --- so the information in the wide block is about
-slow-moving variance and pays most where the HAR lags say least; and
-within the session the same per-bar forecast, using only what is known
-at each bar, carries that advantage to the variance remaining before
-the close.
+significance. Extended to the variance remaining in the session, the
+same per-bar forecast serves as a multi-horizon forecast at every bar
+using only information available then, and the two-block ridge's
+advantage over the incumbent carries to that horizon.
 % OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
 \iffalse
 Read against the same-day index-option market through a

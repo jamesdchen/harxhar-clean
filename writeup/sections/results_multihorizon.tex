@@ -1,15 +1,14 @@
-\subsection{Beyond One Bar: Longer Horizons and the Rest of the Session}
+\subsection{From One Bar to the Rest of the Session}
 \label{sec:multihorizon}
 \label{sec:multihorizon_results}
 
 The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts.
-This subsection asks two things of the exogenous block beyond that
-horizon (Section~\ref{sec:multihorizon_methods}): whether its advantage
-over the incumbent grows or decays as the target moves from the next
-bar to the next week, refitting the paper's estimator directly at each
-horizon; and, within the session, how far the one-step forecast reaches
-into the variance remaining before the close.
+This subsection extends them to the variance remaining in the session,
+Equation~\eqref{eq:mh_target}, using the constructions of
+Section~\ref{sec:multihorizon_methods}.
 
+% PARKED 2026-08-19: horizon-profile results + tab:multih_profile held out
+\iffalse
 \paragraph{The horizon profile.} Table~\ref{tab:multih_profile} refits
 the incumbent and the two-block ridge directly at five horizons from
 thirty minutes to a trading week, on one shared evaluation span of
@@ -48,7 +47,9 @@ Horizon & $n$ & OLS--HAR & Two-block & $\Delta$QLIKE & DM~$t$ \\
 \end{tabular}
 \end{table}
 
-\paragraph{The rest of the session.} The second object is the variance
+\fi
+
+\paragraph{The rest of the session.} The object is the variance
 remaining before the close, Equation~\eqref{eq:mh_target}, forecast at
 every bar from the one-step forecast standing then, on \mhNDays{}
 complete regular sessions. Two questions are asked of it: how much of
@@ -124,3 +125,4 @@ Entry & Benchmark & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs
 \input{generated/table_multihorizon_byhour}
 \end{tabular}
 \end{table}
+

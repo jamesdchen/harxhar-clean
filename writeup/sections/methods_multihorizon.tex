@@ -4,24 +4,23 @@
 \ifdefined\mhNDays\else\input{generated/multihorizon_numbers}\fi
 \ifdefined\mhpNBars\else\input{generated/multih_numbers}\fi
 
-\subsection{Beyond One Bar: Longer Horizons and the Rest of the Session}
+\subsection{From One Bar to the Rest of the Session}
 \label{sec:multihorizon_methods}
 
 % Methods only. Two multi-horizon objects: (A) the direct h-step-ahead
 % forecast, refit per horizon with the paper's estimator; (B) the
 % variance remaining in the session, reached from the one-step forecast.
 
-The models of this paper are fit and scored one bar ahead. Two further
-questions follow. The first is whether the exogenous block's advantage
-is a property of the thirty-minute horizon or carries to longer ones:
-does it grow, hold, or decay as the target moves from the next bar to
-the next day and the next week? The second is intraday: at any bar $t$
-of a session, a user often wants not the next bar but the variance
-still to come before the close, a horizon that shrinks through the
-day. Each question has its own construction, and both are
-$\mathcal{F}_t$-measurable: nothing on any right-hand side is formed
-after the forecast origin.
+The models of this paper are fit and scored one bar ahead. At any bar
+$t$ of a session, however, a user often wants not the next bar but the
+variance still to come before the close, a horizon that shrinks
+through the day. This subsection fixes how the one-step forecast is
+extended to that object and how the extension is scored. Every
+construction is $\mathcal{F}_t$-measurable: nothing on any right-hand
+side is formed after the forecast origin.
 
+% PARKED 2026-08-19: direct horizon-profile methods held out
+\iffalse
 \paragraph{A. Direct forecasts at longer horizons.} For a horizon of
 $h$ bars the target at origin $t$ is the realized variance of bar
 $t+h-1$ --- the same per-bar object the paper forecasts at $h = 1$,
@@ -49,8 +48,10 @@ two-block ridge against the incumbent, all on the final \mhpNBars{}
 bars of the panel per horizon, one evaluation span shared by every
 horizon so that the profile across $h$ compares like with like.
 
-\paragraph{B. The variance remaining in the session.} At any bar $t$ of
-a session the second object is
+\fi
+
+\paragraph{The variance remaining in the session.} At any bar $t$ of
+a session the object is
 \begin{equation}
     RV_{t,T} \;=\; \sum_{t < t_k \le T} RV_{t_k},
     \label{eq:mh_target}
@@ -120,6 +121,7 @@ forward --- and no forecast is issued before $63$ sessions of history.
 A fourth construction pools the eleven entry hours into one regression
 with hour dummies (M2, pooled), so that the gain from hour-specific
 slopes can be separated from the gain from the regressors.
+
 
 \paragraph{Benchmark and scoring.} The horizon-specific benchmark is
 the unconditional one: for each entry hour, the expanding mean of

@@ -1,0 +1,3 @@
+- add back Random Forest
+- look at simple nonlinearities to analyze tree nonlinearity performance (or just don't bring this part of the story up since we're going for finance journal+option story)
+- glass box machine learning (Berkeley recent paper)
