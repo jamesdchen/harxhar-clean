@@ -137,3 +137,25 @@ construction, the two-block ridge against the incumbent --- the
 multi-horizon counterpart of the one-bar comparison in
 Table~\ref{tab:block_ladder}. The sample is also split at
 1~January~2016 as a pre-registered era check.
+
+\ifdefined\dmhN\else\input{generated/dense_numbers}\fi
+
+\paragraph{The per-bar path, refit directly.} The constructions above
+extend the \emph{one-step} forecast to the rest of the session. A
+second route refits the estimator itself at every horizon: at origin
+$t$, with the design exactly as it stands at $t$ (the incumbent's
+backbone; the two-block ridge's backbone plus exogenous block, the same
+columns and penalties $(\alpha_1,\alpha_2) = (1, 100)$, the same
+$24{,}000$-bar rolling window), the target is the per-bar realized
+variance of each of the next eleven bars, $t+1, \dots, t+11$, one
+left-hand side per horizon, so that the eleven forecasts at $t$ form
+the sequence of the next five and a half hours and their running sum
+the variance to any point within it. The rolling Gram matrix does not
+depend on the horizon, so one rank-one roll per bar serves all eleven;
+each origin's coefficients are re-solved every \dmhRefit{} bars ---
+daily --- rather than at every bar as in Section~\ref{sec:block_tikhonov},
+a throughput compromise stated here and returned to in the results.
+Scoring is the paper's contract per horizon (Section~\ref{sec:smearing_contract}),
+paired between the two arms on identical origins, on every origin of the
+panel from the first full window and on regular-hours origins
+separately.
