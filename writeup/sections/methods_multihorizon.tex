@@ -147,10 +147,12 @@ $t$, with the design exactly as it stands at $t$ (the incumbent's
 backbone; the two-block ridge's backbone plus exogenous block, the same
 columns and penalties $(\alpha_1,\alpha_2) = (1, 100)$, the same
 $24{,}000$-bar rolling window), the target is the per-bar realized
-variance of each of the next eleven bars, $t+1, \dots, t+11$, one
-left-hand side per horizon, so that the eleven forecasts at $t$ form
-the sequence of the next five and a half hours and their running sum
-the variance to any point within it. The rolling Gram matrix does not
+variance of each of the eleven bars beyond the one-bar horizon of
+Section~\ref{sec:block_tikhonov} --- the second through the twelfth
+bar ahead of the information set, written $t+1, \dots, t+11$ in the
+tables --- one left-hand side per horizon, so that the eleven
+forecasts at $t$ tile the following five and a half hours and their
+running sum gives the variance to any point within them. The rolling Gram matrix does not
 depend on the horizon, so one rank-one roll per bar serves all eleven;
 each origin's coefficients are re-solved every \dmhRefit{} bars ---
 daily --- rather than at every bar as in Section~\ref{sec:block_tikhonov},

@@ -128,34 +128,39 @@ Entry & Benchmark & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs
 
 
 \paragraph{The per-bar path, refit directly.}
-Table~\ref{tab:dense_byk} refits both arms at every horizon $t+1$
-through $t+11$ on \dmhN{} origins across the panel, under the
-daily-refit compromise of Section~\ref{sec:multihorizon_methods}. On
-this construction the ordering of the two arms is the reverse of every
-other table in the paper: the two-block ridge scores above the
-incumbent at every horizon, from DM \dmhKOneDM{} at one bar to
-\dmhKElevenDM{} at eleven, and on regular-hours origins from
-\dmhRthKOneDM{} to \dmhRthKElevenDM{}. The one-bar row of this table
-and Table~\ref{tab:block_ladder} score the same target with the same
-design and penalties on overlapping rows; the constructions differ in
-one respect only, the refit cadence --- every forty-eight bars here,
-every bar there --- and the reversal at one bar therefore isolates that
-difference. Held coefficients cost the wide, heavily shrunk exogenous
-block its thin margin in a way they do not cost the fifty-two-column
-backbone. The per-bar-refit version of this table is the object of
-record and is pending; the daily-refit rows are reported as found, and
-should be read as a measurement of the refit cadence rather than of the
-information in the block.
+Table~\ref{tab:dense_byk} refits both arms at each of the eleven bars
+beyond the one Table~\ref{tab:block_ladder} scores, on \dmhN{} origins
+across the panel. The horizon convention matters for reading it: the
+paper's one-bar forecast pairs the information standing at the start of
+a bar with that bar's variance; the first row here targets the bar
+after that, so the table covers the second through the twelfth bar
+ahead --- the horizons between Table~\ref{tab:block_ladder} and a full
+session, at bar-level resolution. On every one of them the exogenous
+block does not help: the two-block ridge scores above the incumbent
+from DM \dmhKOneDM{} at the second bar to \dmhKElevenDM{} at the
+twelfth (regular-hours origins \dmhRthKOneDM{} to
+\dmhRthKElevenDM{}), in every era of the panel separately, and under
+per-bar refit as well as the daily refit reported in the table (a
+per-bar-refit diagnostic on the first eighth of the panel narrows the
+gap materially --- the cadence is not free for a wide, heavily shrunk
+block --- but does not change its sign). The one-bar advantage of
+Table~\ref{tab:block_ladder} therefore does not extend to the hours
+immediately beyond it: the exogenous information is about the next
+thirty minutes and, as the rest-of-session results above show in
+aggregate, about the level of the session --- not about the particular
+bar two hours from now.
 
 \begin{table}[H]
 \centering
-\caption{Direct per-bar forecasts of the next eleven bars, both arms
-refit at every horizon with coefficients re-solved daily. QLIKE under
-the evaluation protocol on all origins from the first full window;
-$\Delta$ is the two-block ridge minus the incumbent on common rows;
-DM~$t$ is the paired Diebold--Mariano statistic, negative favouring the
-ridge. The one-bar row differs from Table~\ref{tab:block_ladder} in
-refit cadence only.
+\caption{Direct per-bar forecasts at bar-level horizons beyond
+Table~\ref{tab:block_ladder}: the row labelled $t+k$ targets the
+$(k+1)$-th bar ahead of the information set, so the table covers the
+second through the twelfth bar. Both arms are refit at every horizon
+with the paper's design and penalties, coefficients re-solved daily.
+QLIKE under the evaluation protocol on all origins from the first full
+window; $\Delta$ is the two-block ridge minus the incumbent on common
+rows; DM~$t$ is the paired Diebold--Mariano statistic, negative
+favouring the ridge.
 \label{tab:dense_byk}}
 \begin{tabular}{@{}lcccrr@{}}
 \toprule
