@@ -1,0 +1,150 @@
+\subsection{A Last-Bar Same-Day Option Reading}
+\label{sec:close_option_results}
+
+The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts of
+realized variance. This subsection reads them against the last thirty
+minutes of the expiration-day chain, under the rules of
+Section~\ref{sec:close_option_methods}: the nearest out-of-the-money
+call and put taken at the 15:30~ET mid, cash-settled at the close, with
+the position fixed by the sign and the size of
+$s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to
+the seven forecast files leaves 871 expiration days common to all seven
+(3~January~2020 to 30~April~2024). Table~\ref{tab:close_option_rules}
+crosses every rule with every forecast on those days.
+
+\begin{table}[H]
+\centering
+\caption{Last-bar same-day option book by position rule, 15:30~ET to
+the close (Section~\ref{sec:close_option_methods}). One panel per rule;
+rows are the seven forecasts. One return per expiration day, on the 871
+days common to all seven forecasts (3~January~2020 to 30~April~2024),
+filled at the 15:30 mid. $t=\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ is
+computed on the daily $R'$ and is not annualized;
+$\mathrm{Sharpe}_{\mathrm{ann}}=
+(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ is the only annualized
+column. \emph{ex.\ kurt} is Fisher excess kurtosis --- the fourth
+standardized moment minus 3, so a Gaussian scores 0. The
+short-volatility rule takes no forecast, so its seven model rows are
+identical and it is shown as a single row.
+\label{tab:close_option_rules}}
+\resizebox{\textwidth}{!}{\input{generated/table_rule_by_strategy_paper}}
+\end{table}
+
+Read the control first. Selling the package every day earns a mean
+0.020 per expiration day at a standard deviation of 1.127
+($t=0.53$, annualized Sharpe 0.28): a positive premium, at a size that
+871 days cannot separate from zero. Putting the forecast in charge of
+\emph{direction} destroys even that. The long--short rule
+$q=\mathrm{sign}(s)$ scores $t$ between $-0.35$ and $0.20$ across the
+seven forecasts, with means within 0.013 of zero in either direction; the
+forecast is above implied variance on 13 to 17 percent of days
+depending on the model, and those are not days worth being long.
+
+Putting the forecast in charge of \emph{size} is what pays. The
+unit-median VRP rule of Equation~\eqref{eq:close_opt_size} lifts the
+mean to between 0.047 and 0.060 per day and the annualized Sharpe to
+between 0.69 and 0.90, with $t$ ranging from 1.28 for HAR{+}calendar
+OLS and 1.31 for the elastic net through 1.67 for the block-diag ridge
+to 1.63 for the causally tuned lasso. The ordering is the paper's
+ordering, but no book in the panel is significant at conventional
+levels.
+
+Three qualifications follow, and they matter more than the point
+estimates.
+
+\paragraph{The edge is premium collection, not a variance call.} The
+straddle expires worthless --- $R=-1$ exactly --- on 198 of the 871
+days, 22.7 percent, whenever the close settles inside the one-strike
+window. Those days carry the entire mean of the book: the unit-median
+VRP return averages about $+0.63$ per day on them against about
+$-0.11$ per day on every other day. What the rule harvests is the
+premium on days the index pins, sized by the forecast; it is not a
+directional call on realized variance, and it should not be read as one.
+
+\paragraph{The full-sample insignificance is regime dilution.}
+Splitting at 16~May~2022, when SPXW listings became daily --- a
+market-structure date, not a threshold chosen on the book --- the same
+rule scores $t$ between 2.18 and 2.55 on the 2022--2024 tape, against
+$t=-0.17$ on the tape before it. The 2020--21 weekly-0DTE regime carries no edge
+for this rule at all; pooling the two halves is what holds the
+full-sample statistic below two.
+
+\paragraph{Seven rows are one bet.} The seven daily books are correlated
+at high pairwise levels, an effective count near one independent book.
+Agreement down a column of Table~\ref{tab:close_option_rules} is
+evidence that the rule is insensitive to which forecast drives it ---
+not seven independent confirmations of the rule.
+
+% PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
+\iffalse
+\paragraph{An event filter, with a pre-registration caveat.} Tail
+forensics on the unit-median VRP book locate two calendar flags that
+predict two-sided \emph{dispersion} rather than direction: FOMC
+statement days and month-ends. Sitting flat on both, under the
+convention of Section~\ref{sec:close_option_methods} --- 83 of the 871
+days --- gives the book of Table~\ref{tab:close_option_filtered}. The
+full-sample $t$ rises to between 2.19 and 2.86 (2.79 for the two-block
+ridge, 2.86 for the tuned lasso) and the era $t$ to between 3.09 and
+3.71, with the mean roughly 50 percent higher and the standard
+deviation lower in every row. Against a matched-size random-flat
+placebo the combined lift looks strong ($p<0.001$), but that null
+ignores the search: fourteen flat-day variants were examined, and
+under the correct null --- the maximum $t$ over the same family with
+each candidate replaced by a random day-set of its size --- the
+combined filter survives at $p=0.02$, the month-end leg alone is
+marginal ($p=0.07$), and the FOMC leg's marginal contribution to the
+mean is not distinguishable from chance ($p=0.06$ on top of
+month-end). The family-max null is sobering in its own right: its
+mean is $t=2.1$, so a flat-day filter that merely clears $t=2$ carries
+no evidence at all.
+
+\begin{table}[H]
+\centering
+\caption{Unit-median VRP with FOMC statement days and month-ends flat,
+15:30~ET to the close (Section~\ref{sec:close_option_methods}). Same
+contracts, same days, and the same causal sizing as
+Table~\ref{tab:close_option_rules}; on a flagged day the position is
+$q_t=0$ and the day remains in the record with $R'=0$, so $n$ is
+unchanged --- a track-record convention, not a sample exclusion. FOMC
+days are the \texttt{fomc release} flag of \texttt{releases.parquet},
+populated through 2023, plus four hand-filled public-calendar dates
+(3~March~2020, 13~December~2023, 31~January~2024, 20~March~2024); a
+month-end is the last trading day of each calendar month in the sample
+index. Upper panel: the full sample. Lower panel: the daily-0DTE era,
+16~May~2022 onward. Columns as in
+Table~\ref{tab:close_option_rules}.
+\label{tab:close_option_filtered}}
+\resizebox{\textwidth}{!}{\input{generated/table_rule_flat_fomc_me_paper}}
+\end{table}
+
+Two things keep that from being a result. The filter was examined
+\emph{after} the tail forensics that motivated it, so the $t$ in
+Table~\ref{tab:close_option_filtered} is a post-hoc statistic and not a
+pre-registered one; and the month-end contribution rests on roughly
+seven tail events, too few to carry a distributional claim on their
+own. The largest single loss in the book, 8~January~2020, carries
+neither flag and survives the filter untouched. The two flags also
+rest on different mechanisms, only one of which a forecast can reach.
+On FOMC statement days the forecast under-predicts the last-bar
+variance by roughly 46 percent at the median, and realized variance
+exceeds even the quoted implied variance on 47 percent of those days
+against 6 percent elsewhere --- a genuine information gap that belongs
+in the forecasting model (an event-aware recalibration recovers part
+of it, raising the era $t$ from 2.52 to 2.72 without any filter), and
+the pre-registerable fix is event-by-time-of-day features in the
+forecasts themselves. Month-ends show no forecast miss at all --- the
+loss-condition frequency is at baseline --- so their tail damage is a
+property of the settlement returns that no variance forecast can
+absorb, and sitting flat is the only lever. The honest reading is a
+hypothesis for new tape, not a finding on this one.
+\fi
+
+The book as a whole is a demonstration under the stated constants of
+Section~\ref{sec:close_option_methods}, not a trading claim: there is
+no delta hedge, no borrow, no market-impact model, and every fill is at
+the 15:30 mid, so a book that receives the bid instead is a different
+book. What survives the qualifications is narrow and worth stating
+plainly. At the last bar the quoted implied variance is above the
+forecast on roughly 85 percent of days, the forecast has no usable
+edge on direction, and its only demonstrated contribution is the size
+it puts on a short that was going to be short anyway.

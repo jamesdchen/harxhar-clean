@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from functools import reduce
 
+import numpy as np
 import pandas as pd
 
 # ── Overnight fill windows (start, end) — wrap-around midnight ────────
@@ -116,6 +117,24 @@ ALL_FEATURES: list[str] = [
     "ofi_vwstock",
 ]
 
+# FOMC exogenous bucket (panel tag FEATURE_SET_TAG). Derived from
+# data/releases.parquet ``fomc release`` (one 14:30 bar per scheduled
+# statement). Unscheduled actions never enter until/since. Dead tail
+# (after last live scheduled print) is NaN so impute-and-indicate sees
+# feed-dead rather than a wall of zeros.
+FEATURE_SET_TAG = "fomc1"
+FOMC_RAW_COL = "fomc release"
+FOMC_FEATURES: list[str] = [
+    "fomc_release",
+    "fomc_day",
+    "fomc_until_inv",
+    "fomc_since_inv",
+]
+UNSCHEDULED_FOMC_DAYS: frozenset[pd.Timestamp] = frozenset(
+    {pd.Timestamp(d).normalize() for d in ("2020-03-03",)}
+)
+ALL_FEATURES.extend(FOMC_FEATURES)
+
 # Options block (real options data; panel-v4 activation). Date-keyed options
 # features (GEX family + chain aggregates) enter the panel through
 # src/data/options_features.py, which enforces the publication-lag (go-live)
@@ -123,7 +142,8 @@ ALL_FEATURES: list[str] = [
 # but deliberately NOT appended to ALL_FEATURES: the frozen campaign panel
 # must not change underfoot. ACTIVATION (when the real feed lands): append
 # OPTIONS_FEATURES to ALL_FEATURES, rebuild the panel (new version), re-harvest.
-from src.data.options_features import expected_channels as _opt_channels
+from src.data.options_features import expected_channels as _opt_channels  # noqa: E402
+
 OPTIONS_FEATURES: list[str] = _opt_channels()
 
 # Signed order-flow imbalance, built in ``add_derived_features``: the panel carries buy and sell
@@ -160,6 +180,47 @@ def add_derived_features(df: pd.DataFrame) -> list[str]:
     return added
 
 
+def add_fomc_features(df: pd.DataFrame) -> list[str]:
+    """Scheduled-FOMC dummies + inverse bar-distance; NaN after last live print."""
+    if FOMC_RAW_COL not in df.columns or "t" not in df.columns:
+        return []
+    t = pd.to_datetime(df["t"])
+    raw = pd.to_numeric(df[FOMC_RAW_COL], errors="coerce").to_numpy(dtype=np.float64)
+    raw = np.nan_to_num(raw, nan=0.0)
+    day = t.dt.normalize()
+    unsch = day.isin(UNSCHEDULED_FOMC_DAYS).to_numpy()
+    is_event = (raw > 0.0) & ~unsch
+    n = len(df)
+    event_pos = np.flatnonzero(is_event)
+    release = is_event.astype(np.float64)
+    event_days = (
+        pd.DatetimeIndex(np.asarray(day)[is_event]).unique()
+        if event_pos.size
+        else pd.DatetimeIndex([])
+    )
+    is_day = day.isin(event_days).to_numpy().astype(np.float64)
+    until = np.full(n, np.nan, dtype=np.float64)
+    since = np.full(n, np.nan, dtype=np.float64)
+    if event_pos.size:
+        i = np.arange(n)
+        nxt = np.searchsorted(event_pos, i, side="left")
+        ok = nxt < event_pos.size
+        until[ok] = 1.0 / (1.0 + (event_pos[nxt[ok]] - i[ok]).astype(np.float64))
+        prev = np.searchsorted(event_pos, i, side="right") - 1
+        ok2 = prev >= 0
+        since[ok2] = 1.0 / (1.0 + (i[ok2] - event_pos[prev[ok2]]).astype(np.float64))
+    df["fomc_release"] = release
+    df["fomc_day"] = is_day
+    df["fomc_until_inv"] = until
+    df["fomc_since_inv"] = since
+    if event_pos.size:
+        dead = t > t.iloc[int(event_pos[-1])]
+        df.loc[dead, FOMC_FEATURES] = np.nan
+    else:
+        df[FOMC_FEATURES] = np.nan
+    return list(FOMC_FEATURES)
+
+
 def _is_moment(f: str) -> bool:
     return f.startswith("sum") and "stock" not in f and "volume" not in f
 
@@ -188,6 +249,7 @@ SUBGROUPS: dict[str, list[str]] = {
     "sentiment": [f for f in ALL_FEATURES if "stocktwits" in f],
     "implied_vol": [f for f in ALL_FEATURES if "vix" in f],
     "vol_demand": [f for f in ALL_FEATURES if "voldemand" in f],
+    "fomc": list(FOMC_FEATURES),
     "options": list(OPTIONS_FEATURES),
     "all_features": ALL_FEATURES,
 }
@@ -344,6 +406,7 @@ def load_raw_data(
     # imbalance exactly 0 — fabricating "perfectly balanced flow" on bars with no trading. Leaving
     # it NaN overnight lets the normal ffill / impute-and-indicate path handle it honestly.
     add_derived_features(df)
+    add_fomc_features(df)
 
     # ── 7. Dead-session drop / RV fill ────────────────────────────────
     if drop_dead_session:

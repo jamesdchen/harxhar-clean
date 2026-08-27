@@ -10,7 +10,8 @@ carries the overwhelming share of the predictable variation; the lag
 ladder is the benchmark throughout. The questions are what, if anything,
 forty-one exogenous channels --- higher-order moments, liquidity,
 cross-sectional aggregates, sentiment, implied volatility, and options
-order flow --- add to that backbone; which estimator class can extract
+order flow --- plus four scheduled FOMC calendar channels overlaying
+that design, add to that backbone; which estimator class can extract
 it; and what structure the extractable nonlinearity has. Every answer is
 measured out of sample, bar by bar, under one common evaluation
 protocol, and every claim is paired against the same per-bar
@@ -75,14 +76,18 @@ every bar, scoring \unifBlkThreeUserQLIKE{} against the benchmark's
 \unifIncrBlkThreeUserDM{} for the product block alone).
 \fi
 That structure is a specification statement, not yet an estimator: the
-paper's linear ladder ends at the two-block ridge --- one solver, two
+paper's linear ladder ends at the block-diag ridge --- one solver, two
 fixed penalties, refit exactly at every bar --- which scores
 \unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
-benchmark's \unifAzeroQLIKE{}. The paper closes by extending the
-one-bar forecast to the variance remaining in the session --- the
-multi-horizon object an intraday user needs at every bar --- and shows
-that the two-block ridge's advantage carries to it
-(Section~\ref{sec:multihorizon}).
+benchmark's \unifAzeroQLIKE{}. The paper closes by reading the
+one-bar forecast against the last thirty minutes of the
+expiration-day chain --- a last-bar same-day option book whose
+position is fixed at 15:30~ET from the forecast of remaining variance
+against quoted implied --- and shows that quoted implied already sits
+above the forecast on the bulk of days, so the reading is mostly a
+short: the forecast has no usable directional edge, and what it adds
+is size on that short
+(Section~\ref{sec:close_option_results}).
 % OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
 \iffalse
 The paper closes by reading the

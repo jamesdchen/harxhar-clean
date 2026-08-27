@@ -275,6 +275,8 @@ _BUCKET_TEX = {
     "a_bucket_market_ew": r"market\_ew",
     "a_bucket_vol_demand": r"vol\_demand",
     "a_bucket_sentiment": "sentiment",
+    # Extra OLS overlay, not one of the original 8 (41-col joint + 7 singles).
+    "a_bucket_fomc": r"fomc (calendar overlay)",
 }
 
 # (arm, camel) in canonical registry order.
@@ -288,6 +290,8 @@ _REGISTRY: list[tuple[str, str]] = [
     ("a_bucket_implied_vol", "ImpliedVol"),
     ("a_bucket_vol_demand", "VolDemand"),
     ("a_bucket_all_features", "AllFeatures"),
+    # Extra overlay, not one of the original 8 buckets (no br/be_tuned twin).
+    ("a_bucket_fomc", "Fomc"),
     ("b1_ridge", "BOneRidge"),
     ("b2_lasso", "BTwoLasso"),
     # Causally-tuned penalty controls for the head-to-head (battery protocol:
@@ -512,6 +516,7 @@ _ARM_TEX: dict[str, str] = {
     "a_bucket_implied_vol": "HAR + implied vol bucket (OLS)",
     "a_bucket_vol_demand": "HAR + vol demand bucket (OLS)",
     "a_bucket_all_features": "HAR + all features bucket (OLS)",
+    "a_bucket_fomc": "HAR + FOMC calendar bucket (OLS)",
     "b1_ridge": r"Ridge, fixed $\alpha=1$",
     "b2_lasso": r"Lasso, fixed $\alpha=10^{-4}$",
     "b1_ridge_tuned": "Ridge, causally tuned",
@@ -2182,7 +2187,10 @@ def _buckets_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
             return (1, _ORDER[arm])
         return (0, r.qlike)
 
-    singles = sorted((a for a in _BUCKET_TEX if a != "a_bucket_all_features"), key=key)
+    singles = sorted(
+        (a for a in _BUCKET_TEX if a not in ("a_bucket_all_features", "a_bucket_fomc")),
+        key=key,
+    )
     a0_cell = f"{a0q:.5f}" if a0q is not None else _PENDING_CELL
     return [
         r"\toprule",
@@ -2191,6 +2199,8 @@ def _buckets_table(by_arm: dict[str, list[ArmResult]]) -> list[str]:
         row("a_bucket_all_features"),
         r"\midrule",
         *[row(a) for a in singles],
+        r"\midrule",
+        row("a_bucket_fomc"),
         r"\midrule",
         rf"(no exogenous $=$ incumbent \texttt{{a0}}) & {a0_cell} & --- & --- & --- \\",
         r"\bottomrule",

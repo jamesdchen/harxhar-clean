@@ -79,25 +79,29 @@ beats the incumbent; causally tuned lasso
 (\unifBTwoLassoTunedQLIKE{}, DM \unifBTwoLassoTunedDM{}) does not.
 Keeping every column and shrinking produces a lower loss than selecting
 a subset, when both families choose their penalty by the same causal
-rule. The elastic-net arm is not on this harvest.
+rule. The elastic net (causally tuned) on the same full design scores
+\unifBThreeEnetTunedQLIKE{} (DM \unifBThreeEnetTunedDM{}), interpolating
+ridge and lasso, closer to ridge, and not distinguishable from the
+incumbent at conventional size.
 
 \begin{table}[H]
 \centering
-\caption{Ridge versus lasso on the full design under the evaluation
+\caption{Ridge versus lasso versus elastic net on the full design under the evaluation
 protocol, out-of-sample QLIKE with the Diebold--Mariano $t$-statistic
 against the OLS--HAR incumbent in parentheses. Panel: the frozen panel of
 Section~\ref{sec:data_prep}, $n = 273{,}554$ identical rows.
 Ridge is the fine-grid causal tune already harvested on this root
-(\texttt{b1\_ridge\_tuned\_fine}); lasso is \texttt{b2\_lasso\_tuned}.
+(\texttt{b1\_ridge\_tuned\_fine}); lasso is \texttt{b2\_lasso\_tuned};
+elastic net is \texttt{b3\_enet\_tuned}.
 Negative $t$ favors the arm.}
 \label{tab:lasso_vs_ridge}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
- & Ridge & Lasso \\
+ & Ridge & Lasso & Elastic net \\
 \midrule
-Causally tuned & \unifBOneRidgeTunedFineQLIKE{} (\unifBOneRidgeTunedFineDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) \\
+Causally tuned & \unifBOneRidgeTunedFineQLIKE{} (\unifBOneRidgeTunedFineDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) \\
 \midrule
-Incumbent (per-bar OLS--HAR) & \multicolumn{2}{c}{\unifAzeroQLIKE{}} \\
+Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -370,11 +374,14 @@ the block does carry runs in a linear estimator --- one solver, three
 penalties, refit every bar.
 \fi
 
-What the two-block ridge carries runs in a linear estimator --- one
-solver, two penalties, refit every bar; the next subsection extends its
-forecast from one bar to the rest of the session.
+What the block-diag ridge carries runs in a linear estimator --- one
+solver, two penalties, refit every bar. The next subsection reads that
+one-bar forecast against the last thirty minutes of the expiration-day
+option chain.
 
-% OPTIONS PARKED 2026-08-18: option-market results held out of the rendered paper.
+\input{sections/results_close_option}
+
+% OPTIONS PARKED 2026-08-18: all-session delta-hedged leg book held out.
 \iffalse
 \subsection{Reading the Forecast Against the Option Market}
 \label{sec:spxw_econ}
@@ -442,4 +449,7 @@ Section~\ref{sec:options_methods}, not tuned on outcomes.
 
 \fi
 
+% PARKED 2026-08-28: rest-of-session / multi-horizon held out of the rendered paper.
+\iffalse
 \input{sections/results_multihorizon}
+\fi

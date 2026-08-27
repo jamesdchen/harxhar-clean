@@ -29,10 +29,20 @@ final model is ridge with a block-diagonal Tikhonov penalty, linear in
 its parameters throughout: two nested blocks, two fixed penalties, one
 exact rolling solve, and it outperforms the benchmark by a margin an
 order of magnitude beyond the fourth decimal place at strong paired
-significance. Extended to the variance remaining in the session, the
+significance.
+% PARKED 2026-08-28: rest-of-session / multi-horizon held out of the rendered paper.
+\iffalse
+Extended to the variance remaining in the session, the
 same per-bar forecast serves as a multi-horizon forecast at every bar
 using only information available then, and the two-block ridge's
 advantage over the incumbent carries to that horizon.
+\fi
+The paper closes by reading that one-bar forecast against the last
+thirty minutes of the expiration-day chain
+(Section~\ref{sec:close_option_results}): quoted implied already sits
+above the forecast on the bulk of days, so the last-bar book is
+mostly a short, and what the forecast adds is size on that short
+rather than a directional flip.
 % OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
 \iffalse
 Read against the same-day index-option market through a

@@ -107,6 +107,37 @@ deletion would score each bucket on a different sub-sample.
 Section~\ref{sec:dp_prep} describes the impute-and-indicate construction
 used instead; it scores every bucket on the same rows.
 
+\paragraph{FOMC calendar channels.}
+Four further columns enter as a scheduled public calendar overlay on
+top of the $41$ exogenous channels. They are not part of the
+$7+12+6+6+3+3+4 = 41$ partition above. The source is the
+\texttt{fomc release} flag: one $14{:}30$ bar per scheduled FOMC
+statement ($246$ events; last live scheduled print 2023-11-01
+$14{:}30$). \texttt{fomc\_release} is $1$ on that statement bar;
+\texttt{fomc\_day} is $1$ on every bar of a scheduled-statement day;
+\texttt{fomc\_until\_inv} and \texttt{fomc\_since\_inv} are the inverse
+bar-distance to the next and previous scheduled event. The unscheduled
+2020-03-03 action is excluded from all four. After the last live
+scheduled print the four channels are missing (a dead tail), so the
+impute-and-indicate construction of Section~\ref{sec:dp_prep} sees a
+stopped feed rather than a wall of zeros.
+
+OLS on the HAR ladder plus this FOMC calendar bucket beats HAR +
+calendar OLS on the shared evaluation panel
+(Table~\ref{tab:fomc_bucket}): scheduled calendar information in the
+design, not a post-forecast filter. Joint OLS on all features, with
+the FOMC channels included among the rest, still loses to HAR +
+calendar OLS.
+
+\begin{table}[H]
+\centering
+\caption{FOMC calendar channels on the shared evaluation panel of
+Section~\ref{sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano
+$t$ versus HAR + calendar OLS; negative $t$ favors the arm.}
+\label{tab:fomc_bucket}
+\input{generated_fomc1/table_fomc_bucket}
+\end{table}
+
 \pending{feature accounting: a per-bucket table giving channels, the lag
 set applied to each, derived columns, and the reconciliation of the three
 circulating counts (41 channels, 359-column exogenous block, 529-column

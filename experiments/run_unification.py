@@ -42,6 +42,9 @@ def main() -> None:
     p.add_argument("--output-dir", default="results/unification")
     p.add_argument("--halo", type=int, default=WARMUP)
     args = p.parse_args()
+    result_dir = os.environ.get("HPC_RESULT_DIR")
+    if result_dir:
+        args.output_dir = result_dir
 
     n_rows = panel_length()
     start, end = chunk_bounds(args.chunk_index, n_rows)

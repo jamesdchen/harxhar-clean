@@ -11,6 +11,8 @@ they're rooted in the 30-min bar / RTH-day shape the target transforms assume.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -50,7 +52,9 @@ DIURNAL_STD_FLOOR_FRAC: float = 0.1
 # sampling error is large, and constraining it toward a longer-run per-slot level is better
 # estimation rather than less adjustment.
 DIURNAL_SLOT_BAND_FRAC: float = 0.5
-DIURNAL_SLOT_REF_MIN: int = 20  # in-slot observations before the reference median is usable
+DIURNAL_SLOT_REF_MIN: int = (
+    20  # in-slot observations before the reference median is usable
+)
 # Trailing in-slot observations the reference median is taken over: one observation per trading day
 # per slot, so 250 is ~one year — long enough to be a far better-estimated statistic than the
 # DIURNAL_WINDOW = 20 estimate it disciplines, short enough to track a volatility regime.
@@ -64,7 +68,9 @@ DIURNAL_SLOT_REF_WINDOW: int = 250
 # version of its hard counterpart, near-identity in the healthy region, asymptotic to the same
 # bounds. Flag off is bit-identical to the historical chain.
 SOFT_GUARDS: bool = False
-SOFT_MAX_K: float = 8.0  # sharpness of the smooth max (p-norm order); higher = closer to hard
+SOFT_MAX_K: float = (
+    8.0  # sharpness of the smooth max (p-norm order); higher = closer to hard
+)
 # Order of the smooth saturator g(u) = u(1+|u|^k)^(-1/k) used by the soft band and soft winsoriser.
 # g is identity to O(u^(k+1)) near 0 and asymptotes to +-1, so the interior of the healthy band is
 # untouched to numerical precision while the boundary is approached smoothly. The first cut used
@@ -77,6 +83,8 @@ SOFT_SAT_K: float = 6.0
 def _soft_sat(u: np.ndarray, k: float = SOFT_SAT_K) -> np.ndarray:
     """Smooth saturation to [-1, 1]: identity to O(u^(k+1)), the C-inf version of clip(u, -1, 1)."""
     return u * (1.0 + np.abs(u) ** k) ** (-1.0 / k)
+
+
 # If the per-slot rolling-std divisor is pinned at ``DIURNAL_STD_FLOOR_FRAC``'s floor for more
 # than this fraction of rows, ``diurnal_adjust`` is not adjusting anything — it has degenerated
 # into division by a single global constant, which cannot track a feature whose scale drifts.
@@ -87,6 +95,10 @@ DIURNAL_PINNED_MAX: float = 0.5
 ASINH_SCALE_HALFLIFE_DAYS: int = 250
 WINSOR_LOWER_Q: float = 0.01  # 1/99 per author decision 2026-08-06 (was 5/95):
 WINSOR_UPPER_Q: float = 0.99  # clip less of the tail; magnitudes are signal.
+# Residual tail slope for TARGET_CLIP=slope: identity in the causal 1/99
+# band, W(y)=q+α(y-q) outside. α=1 is no compression; α=0 is hard clip.
+# Default 0.2 is invertible (stretch 5x in the tail) without a 1/α bomb.
+WINSOR_TAIL_SLOPE: float = 0.2
 # Per-slot winsorisation is implemented (``rolling_winsorize(slots=...)``) and **off by default,
 # because it was measured and it fails its own invariant.** On the thirteen flagged columns it is
 # spectacular on the bulk — extreme *rows* fall from 4,383 to 287 and columns past |z| 20 from 37 to
@@ -126,7 +138,16 @@ DIURNAL_EXCLUDED: set[str] = SKIP_VARS | {"vix", "sentiment"}
 # against the constant's stated intent, and no column named ``sentiment`` has ever existed, which
 # left ``stocktwits_sentiment`` (a ratio bounded in [-1, 1]) dividing by a per-slot rolling std that
 # collapses 10x on overnight slots and reaching |z| 70. Matched as stems below.
-DIURNAL_EXCLUDED_STEMS: tuple[str, ...] = ("vix", "sentiment")
+# FOMC binary / inverse-proximity flags are sparse 0/1 (or inverse-day counts): a per-slot
+# rolling std collapses on the zeros and would divide the flag by a near-zero divisor.
+DIURNAL_EXCLUDED_STEMS: tuple[str, ...] = (
+    "vix",
+    "sentiment",
+    "fomc_release",
+    "fomc_day",
+    "fomc_until_inv",
+    "fomc_since_inv",
+)
 
 
 def is_diurnal_excluded(col_name: str) -> bool:
@@ -147,7 +168,9 @@ def _soft_floor(x: pd.Series, floor: float, k: float = SOFT_MAX_K) -> pd.Series:
     xa = x.to_numpy(dtype=np.float64)
     out = np.where(
         xa > 0,
-        np.exp(np.logaddexp(k * np.log(np.clip(xa, 1e-300, None)), k * np.log(floor)) / k),
+        np.exp(
+            np.logaddexp(k * np.log(np.clip(xa, 1e-300, None)), k * np.log(floor)) / k
+        ),
         floor,
     )
     return pd.Series(out, index=x.index)
@@ -188,10 +211,14 @@ def _band_to_slot_level(
     """
     if frac <= 0:
         return baseline
-    ref = baseline.abs().groupby(slots).transform(
-        lambda g: g.rolling(
-            DIURNAL_SLOT_REF_WINDOW, min_periods=DIURNAL_SLOT_REF_MIN
-        ).median()
+    ref = (
+        baseline.abs()
+        .groupby(slots)
+        .transform(
+            lambda g: g.rolling(
+                DIURNAL_SLOT_REF_WINDOW, min_periods=DIURNAL_SLOT_REF_MIN
+            ).median()
+        )
     )
     ref = ref.where(ref > 0)
     if not soft:
@@ -297,6 +324,14 @@ def asinh_stabilize(
     well-behaved, ``|x| / s_t`` is O(1) and ``asinh`` is near-identity, so applying it costs
     nothing.
     """
+    z, _ = asinh_stabilize_pair(series, halflife_days=halflife_days)
+    return z
+
+
+def asinh_stabilize_pair(
+    series: pd.Series, halflife_days: int = ASINH_SCALE_HALFLIFE_DAYS
+) -> tuple[pd.Series, pd.Series]:
+    """Like asinh_stabilize, but also return the causal scale s_t (for sinh inverse)."""
     x = pd.to_numeric(series, errors="coerce")
     active = x.abs().where((x != 0) & x.notna())
     s = active.ewm(
@@ -306,7 +341,8 @@ def asinh_stabilize(
     s = np.maximum(s, 0.01 * s.expanding(min_periods=50).median()).replace(0.0, np.nan)
     med = s.median()
     s = s.fillna(med if pd.notna(med) and med > 0 else 1.0)
-    return pd.Series(np.arcsinh(x / s), index=series.index)
+    z = pd.Series(np.arcsinh(x / s), index=series.index)
+    return z, s.astype(np.float64)
 
 
 def diurnal_rank(
@@ -337,7 +373,9 @@ def diurnal_rank(
     count = g.transform(lambda s: s.rolling(window, min_periods=min_periods).count())
     u = ((rank - 0.5) / count).clip(1e-6, 1.0 - 1e-6).to_numpy()
     adj = ndtri(u) if gaussianize else (2.0 * u - 1.0)
-    adj = np.where(np.isfinite(adj), adj, 0.0)  # warm-up rows (count < min_periods) → neutral
+    adj = np.where(
+        np.isfinite(adj), adj, 0.0
+    )  # warm-up rows (count < min_periods) → neutral
     return pd.Series(adj, index=series.index), pd.Series(1.0, index=series.index)
 
 
@@ -449,6 +487,7 @@ def rolling_winsorize(
     min_per = 1 if use_nan else window
 
     if slots is not None:
+
         def _q(g: pd.Series, q: float) -> pd.Series:
             return g.rolling(window, min_periods=min_per).quantile(q).shift(1)
 
@@ -457,10 +496,14 @@ def rolling_winsorize(
         upper = grouped.transform(_q, WINSOR_UPPER_Q)
     else:
         lower = (
-            series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
+            series.rolling(window, min_periods=min_per)
+            .quantile(WINSOR_LOWER_Q)
+            .shift(1)
         )
         upper = (
-            series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
+            series.rolling(window, min_periods=min_per)
+            .quantile(WINSOR_UPPER_Q)
+            .shift(1)
         )
     if soft if soft is not None else SOFT_GUARDS:
         c = (upper + lower) / 2.0
@@ -470,6 +513,61 @@ def rolling_winsorize(
         out[ok] = c[ok] + h[ok] * _soft_sat(((series - c) / h)[ok].to_numpy())
         return out
     return series.clip(lower=lower, upper=upper)
+
+
+def slope_winsorize_pair(
+    series: pd.Series,
+    window: int = 240,
+    alpha: float | None = None,
+    is_target: bool = True,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Causal 1/99 band, identity inside, tail slope alpha (strictly monotone).
+
+    Bounds are rolling quantiles shifted one bar (F_{t-1}).
+    Returns (z, q_lo, q_hi). Inverse is invert_slope_winsor.
+    """
+    if alpha is None:
+        alpha = float(os.environ.get("WINSOR_ALPHA", str(WINSOR_TAIL_SLOPE)))
+    if not (0.0 < float(alpha) <= 1.0):
+        raise ValueError(f"WINSOR_ALPHA must be in (0, 1], got {alpha!r}")
+    alpha = float(alpha)
+    min_per = window if is_target else 1
+    lower = (
+        series.rolling(window, min_periods=min_per).quantile(WINSOR_LOWER_Q).shift(1)
+    )
+    upper = (
+        series.rolling(window, min_periods=min_per).quantile(WINSOR_UPPER_Q).shift(1)
+    )
+    x = pd.to_numeric(series, errors="coerce")
+    z = x.copy()
+    ok = lower.notna() & upper.notna() & (upper > lower) & x.notna()
+    lo = ok & (x < lower)
+    hi = ok & (x > upper)
+    z = z.astype(np.float64)
+    z.loc[lo] = lower.loc[lo] + alpha * (x.loc[lo] - lower.loc[lo])
+    z.loc[hi] = upper.loc[hi] + alpha * (x.loc[hi] - upper.loc[hi])
+    return z, lower.astype(np.float64), upper.astype(np.float64)
+
+
+def invert_slope_winsor(
+    z: np.ndarray,
+    q_lo: np.ndarray,
+    q_hi: np.ndarray,
+    alpha: float,
+) -> np.ndarray:
+    """Undo :func:`slope_winsorize_pair` with the same causal bounds."""
+    if not (0.0 < float(alpha) <= 1.0):
+        raise ValueError(f"alpha must be in (0, 1], got {alpha!r}")
+    z = np.asarray(z, dtype=np.float64)
+    q_lo = np.asarray(q_lo, dtype=np.float64)
+    q_hi = np.asarray(q_hi, dtype=np.float64)
+    y = z.copy()
+    ok = np.isfinite(q_lo) & np.isfinite(q_hi) & (q_hi > q_lo) & np.isfinite(z)
+    lo = ok & (z < q_lo)
+    hi = ok & (z > q_hi)
+    y[lo] = q_lo[lo] + (z[lo] - q_lo[lo]) / float(alpha)
+    y[hi] = q_hi[hi] + (z[hi] - q_hi[hi]) / float(alpha)
+    return y
 
 
 # ---------------------------------------------------------------------------
@@ -520,7 +618,9 @@ def robust_transform(
     the gate and the evidence. Set False to restore the pre-fix chain exactly.
     """
     if diurnal_mode not in ("divide", "rank"):
-        raise ValueError(f"diurnal_mode must be 'divide' or 'rank', got {diurnal_mode!r}")
+        raise ValueError(
+            f"diurnal_mode must be 'divide' or 'rank', got {diurnal_mode!r}"
+        )
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
     if slot_band is None:
@@ -535,7 +635,9 @@ def robust_transform(
     stabilized = False
     if use_diurnal and not is_diurnal_excluded(col_name) and time_col in df.columns:
         if diurnal_mode == "rank" and not is_target:
-            return diurnal_rank(series, df[time_col])  # final feature; skip semantic + winsor
+            return diurnal_rank(
+                series, df[time_col]
+            )  # final feature; skip semantic + winsor
         adjusted, baseline = diurnal_adjust(
             series, df[time_col], has_negatives, slot_band=slot_band, soft=soft_guards
         )
@@ -550,7 +652,9 @@ def robust_transform(
         if (
             signed_stabilizer
             and has_negatives
-            and not has_name_stabilizer(col_name)  # only rule 5 (identity) is overridable
+            and not has_name_stabilizer(
+                col_name
+            )  # only rule 5 (identity) is overridable
             and float(np.isclose(baseline, baseline.min(), rtol=1e-9).mean())
             >= DIURNAL_PINNED_MAX
         ):
@@ -567,15 +671,16 @@ def robust_transform(
     elif stabilized and not allow_missing:
         series = series.fillna(0.0)  # matches rule 5's NaN policy for signed features
 
-    ww = winsor_window if winsor_window is not None else 240
-    series = rolling_winsorize(
-        series,
-        window=ww,
-        allow_missing=allow_missing,
-        is_target=is_target,
-        slots=df[time_col] if (winsor_by_slot and time_col in df.columns) else None,
-        soft=soft_guards,
-    )
+    if winsor_window != 0:
+        ww = winsor_window if winsor_window is not None else 240
+        series = rolling_winsorize(
+            series,
+            window=ww,
+            allow_missing=allow_missing,
+            is_target=is_target,
+            slots=df[time_col] if (winsor_by_slot and time_col in df.columns) else None,
+            soft=soft_guards,
+        )
 
     return series, baseline
 

@@ -40,18 +40,25 @@ def main() -> None:
     miss = [k for k in need if k not in z0.files]
     if miss:
         raise SystemExit(f"missing {miss} in {z0.files}")
+    has_asinh = "asinh_scale" in z0.files
+    has_slope = "slope_q_lo" in z0.files
     for f in files:
         z = np.load(f, allow_pickle=True)
-        chunks.append(
-            pd.DataFrame(
-                {
-                    "t": _et_to_utc(np.asarray(z["t"])),
-                    "yhat": np.asarray(z["yhat"], dtype=np.float64),
-                    "baseline": np.asarray(z["baseline"], dtype=np.float64),
-                    "rv_raw": np.asarray(z["rv_raw"], dtype=np.float64),
-                }
-            )
-        )
+        row = {
+            "t": _et_to_utc(np.asarray(z["t"])),
+            "yhat": np.asarray(z["yhat"], dtype=np.float64),
+            "baseline": np.asarray(z["baseline"], dtype=np.float64),
+            "rv_raw": np.asarray(z["rv_raw"], dtype=np.float64),
+        }
+        if has_asinh:
+            row["asinh_scale"] = np.asarray(z["asinh_scale"], dtype=np.float64)
+            row["fit_space"] = np.full(len(z["yhat"]), "asinh")
+        if has_slope:
+            row["slope_q_lo"] = np.asarray(z["slope_q_lo"], dtype=np.float64)
+            row["slope_q_hi"] = np.asarray(z["slope_q_hi"], dtype=np.float64)
+            row["slope_alpha"] = np.asarray(z["slope_alpha"], dtype=np.float64)
+            row["fit_space"] = np.full(len(z["yhat"]), "slope")
+        chunks.append(pd.DataFrame(row))
     df = pd.concat(chunks, ignore_index=True).sort_values("t")
     os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
     df.to_parquet(a.out, index=False)

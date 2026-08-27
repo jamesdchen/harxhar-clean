@@ -1,0 +1,24 @@
+% Standalone render of generated/table_rule_by_strategy.tex
+% Build: pdflatex -interaction=nonstopmode rule_by_strategy_standalone.tex
+\documentclass{article}
+\usepackage[landscape,margin=0.5in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\pagestyle{empty}
+\begin{document}
+\begin{center}
+\textbf{0DTE 15:30--16:00 nearest-OTM package: per-rule return summary, models compared on the same 871 days}\\[1.5ex]
+\input{generated/table_rule_by_strategy}
+\end{center}
+\vspace{1ex}
+\noindent\small One expiration day = one return; mid fill. $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$.
+``ex.\ kurt'' is Fisher excess kurtosis (fourth standardized moment minus 3; Gaussian $=0$).
+$n_{\mathrm{buy}}$/\%buy count days the rule is net long ($q_t>0$).
+The short-volatility rule takes no forecast, so it is one row for all models.
+Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
+
+\smallskip
+\noindent\small Forecasts: HAR + calendar OLS; block-diagonal ridge (HAR block and exogenous block, separate penalties);
+LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
+elastic net (causally tuned).
+\end{document}

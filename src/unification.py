@@ -123,7 +123,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "experiments")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from src.data.loading import SUBGROUPS  # noqa: E402
+from src.data.loading import FEATURE_SET_TAG, SUBGROUPS  # noqa: E402
 from src.features.extractors.har import resolve_har_lags  # noqa: E402
 from src.features.transforms.target import PERIODS_PER_DAY  # noqa: E402
 from src.models.reclasso_har import enet_coef, enet_online, forward_window_split  # noqa: E402
@@ -2153,7 +2153,7 @@ def _load_tree_menu() -> list[dict[str, Any]]:
 @dataclass
 class _Panel:
     X: np.ndarray  # (n, p) prescaled features
-    y: np.ndarray  # (n,) adj_RV — winsorized sqrt(RV / B_t), the FIT target
+    y: np.ndarray  # (n,) adj_RV — FIT target (winsorized sqrt(RV/B), or asinh of that)
     baseline: np.ndarray  # (n,) B_t diurnal baseline
     rv_raw: np.ndarray  # (n,) raw RV (unwinsorized truth)
     t: np.ndarray  # (n,) datetime64[ns]
@@ -2164,13 +2164,24 @@ class _Panel:
     # the loader. Feeds the full-support mask of the OLS arms.
     avail: np.ndarray  # (n, n_stems) bool
     stem_index: dict[str, int]
+    asinh_scale: np.ndarray | None = None  # causal s_t if TARGET_CLIP=asinh, else None
+    slope_q_lo: np.ndarray | None = None  # causal 1/99 if TARGET_CLIP=slope
+    slope_q_hi: np.ndarray | None = None
+    slope_alpha: float | None = None
 
 
 _PANEL: _Panel | None = None
 
 
 def _assert_fit_raw_alignment(
-    y_fit: np.ndarray, rv_raw: np.ndarray, baseline: np.ndarray, where: str
+    y_fit: np.ndarray,
+    rv_raw: np.ndarray,
+    baseline: np.ndarray,
+    where: str,
+    asinh_scale: np.ndarray | None = None,
+    slope_q_lo: np.ndarray | None = None,
+    slope_q_hi: np.ndarray | None = None,
+    slope_alpha: float | None = None,
 ) -> None:
     """Loud-fail unless the fit-side target and the re-read raw side describe the
     SAME rows (the v2 trail-arm incident, ruling 2026-08-07).
@@ -2189,6 +2200,32 @@ def _assert_fit_raw_alignment(
     """
     with np.errstate(divide="ignore", invalid="ignore"):
         y_check = np.sqrt(rv_raw / baseline)
+    if asinh_scale is not None:
+        y_from_fit = asinh_scale * np.sinh(y_fit)
+        d = np.abs(y_from_fit - y_check)
+        med = float(np.nanmedian(d))
+        if not np.isfinite(med) or med > 1e-10:
+            raise RuntimeError(
+                f"fit/raw row misalignment detected ({where}): median "
+                f"|asinh_scale*sinh(y_fit) - sqrt(rv_raw/baseline)| = {med:.6g} "
+                "(must be ~0 after asinh inverse). Rebuild the asinh prep cache."
+            )
+        return
+    if slope_q_lo is not None:
+        from src.features.transforms.target import invert_slope_winsor
+
+        if slope_q_hi is None or slope_alpha is None:
+            raise RuntimeError(f"slope invert incomplete ({where})")
+        y_from_fit = invert_slope_winsor(y_fit, slope_q_lo, slope_q_hi, slope_alpha)
+        d = np.abs(y_from_fit - y_check)
+        med = float(np.nanmedian(d))
+        if not np.isfinite(med) or med > 1e-10:
+            raise RuntimeError(
+                f"fit/raw row misalignment detected ({where}): median "
+                f"|slope_winsor_inv(y_fit) - sqrt(rv_raw/baseline)| = {med:.6g} "
+                "(must be ~0 after slope inverse). Rebuild the slope prep cache."
+            )
+        return
     d = np.abs(y_fit - y_check)
     med = float(np.nanmedian(d))
     if not (med == 0.0):
@@ -2223,6 +2260,24 @@ def _load_panel() -> _Panel:
     y = np.asarray(y, dtype=np.float64)
     baselines = np.asarray(baselines, dtype=np.float64)
     n = len(y)
+    asinh_scale = getattr(R, "LAST_ASINH_SCALE", None)
+    if asinh_scale is not None:
+        asinh_scale = np.asarray(asinh_scale, dtype=np.float64)
+        if len(asinh_scale) != n:
+            raise RuntimeError(f"asinh_scale length {len(asinh_scale)} != panel n={n}")
+    slope_q_lo = getattr(R, "LAST_SLOPE_Q_LO", None)
+    slope_q_hi = getattr(R, "LAST_SLOPE_Q_HI", None)
+    slope_alpha = getattr(R, "LAST_SLOPE_ALPHA", None)
+    if slope_q_lo is not None:
+        if slope_q_hi is None or slope_alpha is None:
+            raise RuntimeError("slope invert incomplete (panel load)")
+        slope_q_lo = np.asarray(slope_q_lo, dtype=np.float64)
+        slope_q_hi = np.asarray(slope_q_hi, dtype=np.float64)
+        slope_alpha = float(slope_alpha)
+        if len(slope_q_lo) != n or len(slope_q_hi) != n:
+            raise RuntimeError(
+                f"slope bounds length {len(slope_q_lo)},{len(slope_q_hi)} != panel n={n}"
+            )
 
     from src.data.loading import load_raw_data
 
@@ -2241,7 +2296,16 @@ def _load_panel() -> _Panel:
     # VALUE-level alignment gate (the length check above is insufficient: a
     # LONGER raw series under a moved grid convention truncates to the right
     # length while describing entirely different bars — the v2 trail incident).
-    _assert_fit_raw_alignment(y, rv_raw, baselines, "panel load, whole series")
+    _assert_fit_raw_alignment(
+        y,
+        rv_raw,
+        baselines,
+        "panel load, whole series",
+        asinh_scale=asinh_scale,
+        slope_q_lo=slope_q_lo,
+        slope_q_hi=slope_q_hi,
+        slope_alpha=slope_alpha,
+    )
 
     # Observed-availability bitmap per exog stem: notna BEFORE any fill (the
     # honest-indicator source, executor.load_and_transform's obs-before-ffill),
@@ -2262,6 +2326,10 @@ def _load_panel() -> _Panel:
         names=list(names),
         avail=avail,
         stem_index={c: k for k, c in enumerate(stems)},
+        asinh_scale=asinh_scale,
+        slope_q_lo=slope_q_lo,
+        slope_q_hi=slope_q_hi,
+        slope_alpha=slope_alpha,
     )
     return _PANEL
 
@@ -6355,8 +6423,11 @@ def panel_length() -> int:
     """
     if _PANEL is not None:
         return len(_PANEL.y)
+    suffix = f"_b{HAR_BASE:g}"  # har_base=2 → _b2 (prepare_full: "" only at base 5)
+    if FEATURE_SET_TAG:
+        suffix += f"_{FEATURE_SET_TAG}"
     cache = os.path.join(
-        os.environ.get(CACHE_DIR_ENV, "results"), "prep_cache_all_features_b2.npz"
+        os.environ.get(CACHE_DIR_ENV, "results"), f"prep_cache_all_features{suffix}.npz"
     )  # prepare_full's key for
     #   bucket=all_features, har_base=2, kernel=mean, diurnal=divide, no PREP_ROWS
     if os.path.exists(cache):
@@ -6636,7 +6707,14 @@ def compute(args: argparse.Namespace) -> None:
     # fit-side rows and the raw-side rows written to the npz must describe the
     # same bars, verified by value, not by length.
     _assert_fit_raw_alignment(
-        y_fit, p.rv_raw[lo:hi], p.baseline[lo:hi], f"persistence, chunk [{lo},{hi})"
+        y_fit,
+        p.rv_raw[lo:hi],
+        p.baseline[lo:hi],
+        f"persistence, chunk [{lo},{hi})",
+        asinh_scale=None if p.asinh_scale is None else p.asinh_scale[lo:hi],
+        slope_q_lo=None if p.slope_q_lo is None else p.slope_q_lo[lo:hi],
+        slope_q_hi=None if p.slope_q_hi is None else p.slope_q_hi[lo:hi],
+        slope_alpha=p.slope_alpha,
     )
     resid = y_fit - yhat
     result: dict[str, Any] = {
@@ -6695,6 +6773,16 @@ def compute(args: argparse.Namespace) -> None:
         if td is not None
         else {}
     )
+    if p.asinh_scale is not None:
+        trans_arrays["asinh_scale"] = np.asarray(p.asinh_scale[lo:hi], dtype=np.float64)
+    if p.slope_q_lo is not None:
+        if p.slope_q_hi is None or p.slope_alpha is None:
+            raise RuntimeError("slope invert incomplete (persist)")
+        trans_arrays["slope_q_lo"] = np.asarray(p.slope_q_lo[lo:hi], dtype=np.float64)
+        trans_arrays["slope_q_hi"] = np.asarray(p.slope_q_hi[lo:hi], dtype=np.float64)
+        trans_arrays["slope_alpha"] = np.full(
+            hi - lo, float(p.slope_alpha), dtype=np.float64
+        )
     np.savez_compressed(
         args.output_file,
         **trans_arrays,
@@ -6727,6 +6815,11 @@ def compute(args: argparse.Namespace) -> None:
                 "alphas": spec.alphas,
                 "grid": spec.grid,
                 "n_design_cols": int(F.shape[1]),
+                "fit_space": (
+                    "asinh"
+                    if p.asinh_scale is not None
+                    else ("slope" if p.slope_q_lo is not None else "y")
+                ),
                 # deterministic exact-duplicate/constant drops (OLS arms; see
                 # _dedup_ols_design) — recorded so the design is auditable per task
                 "ols_dropped_cols": dropped_cols,

@@ -1,8 +1,8 @@
 \section{Related Works}
 \label{sec:related}
 
-% Four strands, all present: RV modeling; ML in prediction;
-% regularization geometry; retransformation. The protocol-specific
+% Five strands: RV modeling; ML in prediction; regularization
+% geometry; retransformation; VRP clock. The protocol-specific
 % literature discussion sits with the estimator in Section 4.3; this
 % section orients the paper.
 
@@ -91,3 +91,20 @@ back-transform is treated as part of the evaluation protocol --- a
 calibrated, strictly causal second-moment correction that replaces the
 retrospective in-window Duan scalar --- and the comparison is reported
 in Section~\ref{sec:smearing_contract}.
+
+\paragraph{The clock of the variance risk premium.}
+\citet{HizmeriBevilacqua2025} identify \emph{when} volatility
+uncertainty is incorporated into real-time option prices. Volatility
+of volatility measured at 10:00~EST, during the U.S.--European
+overlap, predicts next-day variance-asset returns; that content is
+gone by midday. Variance prices respond with a delay, consistent with
+underreaction and slow-moving beliefs about volatility. This paper's last-bar option
+reading (Section~\ref{sec:close_option_methods}) is the 15:30 end of
+the same clock. If the morning is when the early bird gets the vol,
+15:30 is when that bird has already flown: quoted implied variance
+already exceeds the remaining-variance forecast on the bulk of
+expiration days, so a two-sided reading of the forecast is mostly a
+short, and what the forecast adds is size on that short rather than a
+directional flip. We do not restage their next-day VVIX regression;
+the object here is same-day remaining variance against the
+expiration-day chain.

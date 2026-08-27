@@ -1,0 +1,150 @@
+\subsection{A Last-Bar Same-Day Option Reading}
+\label{sec:close_option_methods}
+
+The one-bar forecast can be read against a listed price on the last
+thirty minutes of an expiration day. What follows fixes the instrument,
+the two measurements, the position rules, and the control; constants
+were set before the book was scored.
+
+\paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
+to expiry, cash-settled on the day's official close. The panel is the
+expiration-day chain at 15:30~ET (bid, ask, mid, underlying, quoted
+implied volatility), 2020 through 2025. At 15:30 the trade is the
+nearest out-of-the-money pair: the smallest listed strike
+$K_c \ge S$ with a live mid and the largest listed strike
+$K_p \le S$ with a live mid, where $S$ is the 15:30 underlying print.
+When $S$ sits on a listed strike the two coincide (a straddle);
+otherwise the package is a one-strike-wide strangle. Entry
+$P_{15:30}$ is the sum of the two mids. The position is held to the
+close and settled at intrinsic against the official S\&P~500 close
+$S_{\mathrm{cl}}$,
+\begin{equation}
+    \Pi_{\mathrm{long}}
+    \;=\;
+    \bigl(S_{\mathrm{cl}}-K_c\bigr)^{+}
+    + \bigl(K_p-S_{\mathrm{cl}}\bigr)^{+}
+    \;-\; P_{15:30},
+    \label{eq:close_opt_settle}
+\end{equation}
+with no delta hedge and no share unwinding. The long return is
+$R = \Pi_{\mathrm{long}}/P_{15:30}$; a short earns $-R$. By
+construction $R \ge -1$, with equality on the days the close settles
+strictly between $K_p$ and $K_c$ and both legs expire worthless. The
+16:00 chain underlying is retained only as a check on the settlement
+print. Half sessions without a close are dropped.
+
+\paragraph{Forecast remaining variance.} Seven of the paper's per-bar
+forecasts enter the same rules on the same contracts: OLS on HAR and
+calendar (Section~\ref{sec:dp_benchmark}), the block-diag ridge
+(HAR versus exogenous block, separate penalties;
+Section~\ref{sec:block_tikhonov}), LightGBM and XGBoost on the wide
+all-features design (Section~\ref{sec:tree_edge}, frozen expert menu),
+a causally tuned lasso on that same design under the selection
+protocol of the paper's tuned ridge (Section~\ref{sec:dense_weak}), a
+lasso at a fixed $\alpha = 10^{-4}$, and a causally tuned elastic net
+--- the interpolating $\ell_1/\ell_2$ family --- on the same wide
+all-features design (battery grid \texttt{logspace(-6,-2,5)} at
+\texttt{l1\_ratio=0.5}, arm \texttt{b3\_enet\_tuned}). All seven are
+stored on the estimation scale $y=\sqrt{RV/B}$. The 15:30 row is mapped
+to raw thirty-minute variance by the causal second-order back-transform
+of
+Section~\ref{sec:smearing_contract}: a Mincer--Zarnowitz map
+$m=a+b\,\widehat{y}$ and a residual second moment $\hat\sigma^2$, both
+fit on the previous 250 days only, then
+$\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
+15:30--16:00 bar. Forecast files end on 30~April~2024, so later
+expiration days are not scored.
+
+\paragraph{Quoted implied volatility.} Implied volatility is the
+chain's quoted value on each of the two legs at 15:30; the package
+quote is the mean of those two. The vendor quote is an \emph{hourly}
+volatility while the window that remains is thirty minutes, so the
+quote is rescaled before it is compared with anything,
+\begin{equation}
+    \mathrm{IV}_{30,t}
+    \;=\;
+    \mathrm{IV}^{\mathrm{hourly}}_t \big/ \sqrt{2},
+    \label{eq:close_opt_ivscale}
+\end{equation}
+and $\mathrm{IV}_{30,t}^{2}$ is the implied variance of the remaining
+bar --- the same window, and the same units, as $\widehat{RV}_t$. No
+inversion from the mid is applied.
+
+\paragraph{Signal.} The two measurements are compared in variance
+space,
+\begin{equation}
+    s_t \;=\; \widehat{RV}_t - \mathrm{IV}_{30,t}^{2},
+    \qquad
+    \mathrm{VRP}_t \;=\; \mathrm{IV}_{30,t}^{2} - \widehat{RV}_t
+    \;=\; -\,s_t,
+    \label{eq:close_opt_signal}
+\end{equation}
+so $s_t>0$ says the forecast is above the price of the remaining
+variance and $s_t<0$ says the premium is positive. The daily portfolio
+return is $R'_t = q_t R_t$ for a position $q_t$ fixed at 15:30 from
+information dated $t$ or earlier.
+
+\paragraph{Position rules.} Three rules are scored on the same $R_t$ and
+the same days; only $q_t$ changes.
+\begin{itemize}
+\itemsep2pt
+\item \emph{Short volatility}: $q_t = -1$ every day. The rule takes no
+      forecast --- it is the variance-risk-premium book with nothing in
+      it, and the control for the other two.
+\item \emph{Long--short volatility}: $q_t = \mathrm{sign}(s_t)$, long
+      the package when the forecast exceeds implied variance and short
+      otherwise. Direction only, at unit size.
+\item \emph{Unit-median VRP}: signed and linear in the premium,
+      \begin{equation}
+          q_t \;=\; \mathrm{clip}\!\left(
+              \frac{s_t}{\mathrm{med}_{u<t}\,|s_u|},\,-3,\,3
+          \right),
+          \label{eq:close_opt_size}
+      \end{equation}
+      where the scale is the expanding median of $|s_u|$ taken over
+      days strictly before $t$ (at least 63 observations, shifted one
+      day), so the size is known at 15:30. One lot on a day of typical
+      $|\mathrm{VRP}|$; the clip caps the position at three lots. This
+      is the headline rule.
+\end{itemize}
+The cap is not cosmetic. The largest single-day losses in the levered
+book fall on days sized at or near it --- days on which the forecast
+disagreed with the quote most --- rather than on small-signal days, so
+the clip is what bounds the left tail of the rule.
+
+% PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
+\iffalse
+\paragraph{Event filter.} One variant of the headline rule is reported
+separately. Trade unit-median VRP exactly as above, but take no
+position when day $t$ is an FOMC statement day or a month-end: $q_t=0$
+and $R'_t=0$, with the day staying in the record. FOMC days are the
+\texttt{fomc release} flag of the release panel, which is populated
+through 2023, plus four public-calendar dates hand-filled to cover the
+remainder (3~March~2020, the unscheduled inter-meeting cut, and
+13~December~2023, 31~January~2024, 20~March~2024). A month-end is the
+last trading day of each calendar month in the sample index. Both flags
+are known before 15:30, so the rule is ex ante implementable, and flat
+days count in $n$ with $R'=0$ --- a track-record convention rather than
+a sample exclusion. The two flags were selected after tail forensics on
+the unfiltered book, not before it;
+Section~\ref{sec:close_option_results} states what that costs the
+inference.
+\fi
+
+\paragraph{Scoring and control.} The unit of account is the expiration
+day. For a book of $n$ daily returns,
+$t = \sqrt{n}\,\overline{R'}/\hat{s}(R')$, and the annualized Sharpe
+ratio is $\overline{R'}/\hat{s}(R')\times\sqrt{252}$; the two carry the
+same information at fixed $n$, and both are reported so the tables read
+either way. Fills are at the 15:30 mid throughout, and no spread
+crossing, borrow, or market-impact model is applied.
+
+The short-volatility control is the 15:30 end of the clock in
+Section~\ref{sec:related}: \citet{HizmeriBevilacqua2025} locate the
+predictive content of volatility uncertainty at 10:00~EST and gone by
+midday; by the last bar the quoted implied already embeds a premium
+over remaining realized variance. On the scaled comparison of
+Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
+forecast on roughly 85\% of days, so every forecast-driven rule here is
+mostly that short. What the forecast can contribute at this hour is
+size on the short, not direction.
