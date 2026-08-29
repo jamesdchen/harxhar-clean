@@ -42,7 +42,10 @@ $\widehat{RV}=(m^2+\hat\sigma^2)B$ the causal second-order map from
 `yhat`. The book that survives the variants below is **always short**,
 with optional unit-median $|\mathrm{VRP}|$ size. Long-short volatility $\pm 1$ is a
 control. Vol-space maps ($\hat y\sqrt{B}$, $m\sqrt{B}$) live in
-`atm_straddle_volmap.ipynb`.
+`atm_straddle_volmap.ipynb` if present, else section 7 of
+`atm_straddle_experimental.ipynb`. Ensembles / $R\sim s$ / extra
+weights: `atm_straddle_experimental.ipynb`. Every-bar 30-min book:
+`atm_straddle_intraday.ipynb`.
 
 Every cell reads from `data/` (or from a frame the previous cell just built).
 Print the table before using it.
@@ -762,6 +765,320 @@ plt.close(fig)
 """
     ),
     # Event-filter (FOMC+ME flat) cells omitted from generation.
+    md(
+        r"""
+## 10. Gross return over time
+
+Compound wealth $W_t=\prod(1+R'_u)$ and the arithmetic path $\sum R'$.
+If $1+R'\le 0$ the compound path stops (ruin). Always-short is the
+benchmark path.
+"""
+    ),
+    code(
+        r"""
+import sys
+sys.path.insert(0, str(REPO / "notebooks"))
+import atm_straddle_lib as asl
+
+def wealth_and_dd(rp: pd.Series):
+    x = rp.astype(float).dropna()
+    acc = []
+    w = 1.0
+    ruined = False
+    for v in x.to_numpy():
+        if ruined or not np.isfinite(v) or (1.0 + v) <= 0:
+            ruined = True
+            acc.append(np.nan)
+        else:
+            w *= 1.0 + v
+            acc.append(w)
+    W = pd.Series(acc, index=x.index)
+    peak = W.cummax()
+    dd = float(((W / peak) - 1.0).min()) if W.notna().any() else float("nan")
+    term = float(W.dropna().iloc[-1]) if W.notna().any() else float("nan")
+    return W, x.cumsum(), term, dd, ruined
+
+rows = []
+fig, axes = plt.subplots(2, 1, figsize=(11, 6.4), sharex=True)
+for tag in MODEL_ORDER:
+    px = books[tag]
+    sizes = rule_sizes(px)
+    for name in order:
+        rp = (sizes[name] * px["R"]).loc[common]
+        W, S, term, dd, ruined = wealth_and_dd(rp)
+        rows.append({
+            "model": LABEL[tag], "rule": name,
+            "terminal_W": term, "max_dd": dd, "ruined": ruined,
+            "sum_R": float(S.iloc[-1]) if len(S) else float("nan"),
+        })
+        if tag == "blk2":
+            axes[0].plot(W.index, W.values, label=name, lw=1.1)
+            axes[1].plot(S.index, S.values, label=name, lw=1.1)
+axes[0].set_ylabel(r"$W_t=\prod(1+R')$")
+axes[1].set_ylabel(r"$\sum R'$")
+axes[0].legend(fontsize=8)
+axes[0].set_title("block-diag ridge — gross return over time")
+fig.tight_layout()
+fig.savefig(OUT / "gross_return_over_time.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "gross_return_over_time.png")
+display(fig)
+plt.close(fig)
+wealth_tab = pd.DataFrame(rows)
+print(wealth_tab.to_string(index=False))
+wealth_tab.to_csv(OUT / "gross_return_over_time.csv", index=False)
+"""
+    ),
+    md(
+        r"""
+## 11. Information ratio vs always-short
+
+Active return $R_a := R^p - R_{\mathrm{benchmark}}$ with
+$R_{\mathrm{benchmark}}=-R$ (always short). Annualized IR is
+$\mathrm{mean}(R_a)/\mathrm{std}(R_a)\times\sqrt{252}$. Tracking error
+is the annualized std. Flipping long versus the VRP book is the
+active bet.
+"""
+    ),
+    code(
+        r"""
+ir_rows = []
+for tag in MODEL_ORDER:
+    px = books[tag]
+    sizes = rule_sizes(px)
+    bench = (sizes["always short"] * px["R"]).loc[common]
+    for name in ("long-short volatility", "unit-median VRP"):
+        port = (sizes[name] * px["R"]).loc[common]
+        st = asl.information_ratio(port, bench)
+        ir_rows.append({"model": LABEL[tag], "rule": name, **st.to_dict()})
+ir_tab = pd.DataFrame(ir_rows)
+print(ir_tab.to_string(index=False))
+ir_tab.to_csv(OUT / "information_ratio_vs_always_short.csv", index=False)
+print("IR = active return / tracking error; benchmark is always-short.")
+"""
+    ),
+    md(
+        r"""
+## 12. Buy-signal diagnostic
+
+A buy day is $q_t>0$. Long-short and unit-median share the same buy
+*days* (same sign); unit-median only changes size. Always-short never
+buys. Compare models on the common index; overlay FOMC / month-end.
+"""
+    ),
+    code(
+        r"""
+flags = asl.fomc_and_monthend(common, REPO)
+buy = {}
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    buy[tag] = (px["pos"] > 0)
+diag_rows = []
+for tag in MODEL_ORDER:
+    b = buy[tag]
+    px = books[tag].loc[common]
+    diag_rows.append({
+        "model": LABEL[tag],
+        "n_buy": int(b.sum()),
+        "pct_buy": 100.0 * float(b.mean()),
+        "mean_R|buy": float(px.loc[b, "R"].mean()) if b.any() else float("nan"),
+        "mean_R|sell": float(px.loc[~b, "R"].mean()),
+        "median_|s|_buy": float(px.loc[b, "signal"].abs().median()) if b.any() else float("nan"),
+        "frac_buy_fomc": float(flags.loc[b, "is_fomc"].mean()) if b.any() else float("nan"),
+        "median_|q|_um_buy": float(
+            rule_sizes(books[tag])["unit-median VRP"].loc[common][b].abs().median()
+        ) if b.any() else float("nan"),
+    })
+print(pd.DataFrame(diag_rows).to_string(index=False))
+print("always-short n_buy = 0. L/S and unit-median buy the same days.")
+
+jacc = pd.DataFrame(index=MODEL_ORDER, columns=MODEL_ORDER, dtype=float)
+for a in MODEL_ORDER:
+    for b in MODEL_ORDER:
+        u = buy[a] | buy[b]
+        jacc.loc[a, b] = float((buy[a] & buy[b]).sum() / u.sum()) if u.any() else 1.0
+jacc.index = [LABEL[t] for t in MODEL_ORDER]
+jacc.columns = jacc.index
+print("Jaccard of buy-day sets")
+print(jacc.round(3).to_string())
+jacc.to_csv(OUT / "buy_signal_agreement.csv")
+off = jacc.values[np.triu_indices(len(jacc), 1)]
+print(f"mean pairwise Jaccard {float(off.mean()):.3f}")
+
+fig, axes = plt.subplots(len(MODEL_ORDER) + 1, 1, figsize=(11, 8), sharex=True)
+t = np.arange(len(common))
+for ax, tag in zip(axes, MODEL_ORDER):
+    ax.vlines(t[buy[tag].to_numpy()], 0, 1, color="C0", lw=0.4)
+    ax.vlines(t[flags["is_event"].to_numpy()], 0, 1, color="C3", lw=0.3, alpha=0.5)
+    ax.set_yticks([])
+    ax.set_ylabel(tag, rotation=0, ha="right", va="center", fontsize=8)
+axes[-1].vlines(t[flags["is_fomc"].to_numpy()], 0, 1, color="C3", lw=0.6, label="FOMC")
+axes[-1].vlines(t[flags["is_me"].to_numpy()], 0, 1, color="C2", lw=0.6, label="month-end")
+axes[-1].legend(fontsize=7, loc="upper right")
+axes[-1].set_yticks([])
+axes[0].set_title("buy days (blue) vs FOMC/ME (red overlay)")
+fig.tight_layout()
+# year-month heatmap for blk2
+bm = pd.Series(buy["blk2"].to_numpy(), index=pd.DatetimeIndex(common))
+hm = bm.groupby([bm.index.year, bm.index.month]).sum().unstack(fill_value=0)
+fig2, ax2 = plt.subplots(figsize=(9, 3.2))
+im = ax2.imshow(hm.to_numpy(), aspect="auto", cmap="Blues")
+ax2.set_yticks(range(len(hm.index)))
+ax2.set_yticklabels(hm.index)
+ax2.set_xticks(range(12))
+ax2.set_xticklabels(list(range(1, 13)))
+ax2.set_title("blk2 buy-day counts by year-month")
+fig2.colorbar(im, ax=ax2, fraction=0.02)
+fig.savefig(OUT / "buy_signal_diag_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "buy_signal_diag_blk2.png")
+display(fig)
+display(fig2)
+plt.close(fig)
+plt.close(fig2)
+"""
+    ),
+    md(
+        r"""
+## 13. Iron condors (straddle + wings / strangle + wings)
+
+Body is the existing nearest-OTM package. Wings are the nearest live
+mids at least $25$ (and $50$) points further OTM. Short iron condor =
+short body + long wings. Defined-risk long-package return is
+$R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
+so the paper's $q$ rules apply unchanged. Credit-denominator $R$ is
+printed as a warning only — net credit can be tiny.
+"""
+    ),
+    code(
+        r"""
+live1530 = book_chain[(book_chain["hhmm"] == "15:30") & np.isfinite(book_chain["mid"]) & (book_chain["mid"] > 0)].copy()
+body = atm.reset_index()
+close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
+close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
+
+def score_condor(width: float):
+    ic = asl.pick_wings(live1530, body, width=width)
+    print(f"width {width}: days with both wings {len(ic)} / body {len(body)} dropped {len(body)-len(ic)}")
+    ic = asl.settle_package(ic, close_map)
+    ic = ic[np.isfinite(ic["entry_ic"]) & np.isfinite(ic["exit_ic"]) & (ic["width"] > 0)].copy()
+    ic["R_long_ic"] = (ic["exit_ic"] - ic["entry_ic"]) / ic["width"]
+    ic["R_credit"] = np.where(ic["entry_ic"] > 0, ic["exit_ic"] / ic["entry_ic"] - 1.0, np.nan)
+    if "day" in ic.columns:
+        ic = ic.set_index("day")
+    elif "et_c" in ic.columns:
+        ic["day"] = pd.to_datetime(ic["et_c"]).dt.tz_convert("America/New_York").dt.normalize().dt.tz_localize(None)
+        ic = ic.set_index("day")
+    return ic
+
+ic_tabs = {}
+for w in (25.0, 50.0):
+    ic = score_condor(w)
+    ic_tabs[w] = ic
+    print(f"width {w} credit-denom warning: frac entry_ic<=0 = {float((ic['entry_ic']<=0).mean()):.2%}")
+    for tag in MODEL_ORDER:
+        px = books[tag]
+        joined = ic.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
+        sizes = asl.rule_sizes(joined)
+        common_ic = joined.index.intersection(common)
+        tab = pd.DataFrame({
+            name: asl.rule_row((sizes[name] * joined["R_long_ic"]).loc[common_ic], sizes[name].loc[common_ic])
+            for name in order
+        }).T
+        safe = f"iron_condor_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
+        tab.to_csv(OUT / f"{safe}.csv")
+    # one strategy-grouped print on blk2
+    joined = ic.join(books["blk2"][["signal", "pos", "R"]], how="inner", rsuffix="_strad")
+    sizes = asl.rule_sizes(joined)
+    common_ic = joined.index.intersection(common)
+    print(f"--- iron condor width {w}, defined-risk R, blk2 ---")
+    for name in order:
+        print(name)
+        print(asl.rule_row((sizes[name] * joined["R_long_ic"]).loc[common_ic], sizes[name].loc[common_ic]).to_string())
+
+fig, ax = plt.subplots(figsize=(11, 3.4))
+rp_s = (-books["blk2"]["R"]).loc[common].cumsum()
+ax.plot(rp_s.index, rp_s.values, label="always-short straddle", lw=1.2)
+for w, ic in ic_tabs.items():
+    joined = ic.join(books["blk2"][["signal"]], how="inner")
+    idx = joined.index.intersection(common)
+    ax.plot(idx, (-joined.loc[idx, "R_long_ic"]).cumsum().values, label=f"always-short IC w={int(w)}", lw=1.1)
+ax.set_title("cumulative defined-risk $R'$ — always short, blk2 days")
+ax.legend(fontsize=8)
+fig.tight_layout()
+fig.savefig(OUT / "iron_condor_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "iron_condor_vs_straddle_cum.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 14. P&L / return calculations (book-variants, return-summary)
+
+Same contracts and $q$ as the rule table. Mid fill is the published
+book. Crossed fill: long pays the ask, short receives the bid.
+Half-spread TC charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against the
+trade. Point P&L is $q(\mathrm{exit}-\mathrm{entry})$; dollars use the
+SPXW $100$ multiplier. Margin-scaled return uses a CBOE-style short
+straddle margin on short days and the premium on long days.
+"""
+    ),
+    code(
+        r"""
+px = books["blk2"].loc[common].copy()
+if "bid_entry" not in px.columns:
+    px["bid_entry"] = px["bid_c"].astype(float) + px["bid_p"].astype(float)
+    px["ask_entry"] = px["ask_c"].astype(float) + px["ask_p"].astype(float)
+hs = 0.5 * (px["ask_entry"] - px["bid_entry"])
+sizes = rule_sizes(books["blk2"])
+rows = []
+
+def add_variant(series, q, rule, variant, unit):
+    st = asl.rule_row(series, q)
+    rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
+
+for name in ("always short", "unit-median VRP"):
+    q = sizes[name].loc[common]
+    mid = (q * px["R"])
+    add_variant(mid, q, name, "mid premium R", "return")
+    signq = np.sign(q.replace(0, -1.0))
+    crossed = asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs()
+    add_variant(crossed, q, name, "crossed fill", "return")
+    trade = px["entry"] + signq * hs
+    tc = q * (px["exit"] - trade) / px["entry"]
+    add_variant(tc, q, name, "half-spread TC", "return")
+    pts = asl.points_pnl(q, px["exit"], px["entry"])
+    add_variant(pts, q, name, "index-point P&L", "points")
+    usd = pts * asl.SPX_MULTIPLIER
+    add_variant(usd, q, name, "dollar P&L", "USD")
+    margin_pts = [
+        asl.cboe_short_straddle_margin_points(S, Kc, Kp, ent)
+        for S, Kc, Kp, ent in zip(px["S"], px["K_c"], px["K_p"], px["entry"])
+    ]
+    margin_pts = pd.Series(margin_pts, index=px.index)
+    capital = np.where(q < 0, margin_pts * asl.SPX_MULTIPLIER, px["entry"] * asl.SPX_MULTIPLIER)
+    mret = usd / np.maximum(capital, 1e-8)
+    add_variant(pd.Series(mret, index=px.index), q, name, "margin-scaled", "return")
+
+var_tab = pd.DataFrame(rows)
+print(var_tab.to_string(index=False))
+var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
+
+fig, ax = plt.subplots(figsize=(11, 3.4))
+q = sizes["unit-median VRP"].loc[common]
+ax.plot(px.index, asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER, label="mid")
+signq = np.sign(q.replace(0, -1.0))
+crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
+ax.plot(px.index, crossed_usd.cumsum(), label="crossed")
+ax.set_title("blk2 unit-median VRP — cumulative $ P&L")
+ax.set_ylabel("USD")
+ax.legend(fontsize=8)
+fig.tight_layout()
+fig.savefig(OUT / "pnl_cum_usd_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "pnl_cum_usd_blk2.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
     md(
         r"""
 ## Hand-check one row
