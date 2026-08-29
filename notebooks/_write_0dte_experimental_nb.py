@@ -29,6 +29,7 @@ Same instrument, clocks, smear, and signal as
 `atm_straddle_rv_iv.ipynb`. This notebook is the lab for:
 
 1. ensembles of the seven models and of the three paper rules
+   (including a causal PCR / spectral ensemble)
 2. $R \sim a + b\,s$ (and scaled $s$)
 3. vol-space maps $\hat y\sqrt{B}$, $m\sqrt{B}$ (stand-in if
    `atm_straddle_volmap.ipynb` is not in the tree)
@@ -171,9 +172,24 @@ print("common days", len(common), pd.Timestamp(common.min()), "->", pd.Timestamp
 
 (a) mean $s$ then sign. (b) majority vote of sign. (c) equal-weight
 average of unit-median $q$. (d) trailing-Sharpe and trailing-IR
-weights on unit-median $q$ (expanding 63, lag 1). Also a 50/50 mix of
+weights on unit-median $q$ (expanding 63, lag 1). (e) causal spectral /
+PCR ensemble of the seven signals (below). Also a 50/50 mix of
 always-short and unit-median on blk2, and an equal-weight mix of the
 three paper rules on blk2.
+
+**Spectral / PCR.** Let $X_t\in\mathbb{R}^7$ be the vector of model
+signals $s=\widehat{RV}-\mathrm{IV}_{30}^{2}$ on day $t$. On days
+$u<t$ (min 63) center $X$, take the SVD, and read day $t$ onto the
+leading $k$ right singular vectors. Two books:
+
+- *spectral PC1:* $s^{\mathrm{pc1}}_t$ is the PC1 score; sign is
+  flipped so PC1 co-moves with the cross-sectional mean $s$. Position
+  is $\mathrm{sign}(s^{\mathrm{pc1}})$ or unit-median in that score.
+- *PCR $k=1,2$:* regress $R_u$ on the lagged PC scores, apply the
+  coefficients to day $t$. Position is $\mathrm{sign}(\hat R_t)$.
+
+The SVD and the PCR fit use only $u<t$. Full-sample eigenvalues are
+printed as a diagnostic, not used to trade.
 """
     ),
     code(
@@ -222,6 +238,85 @@ ens["blk2 EW 3 rules"] = (
 ens["blk2 unit-median (bench)"] = blk_sizes["unit-median VRP"].loc[common] * R
 ens["blk2 long-short"] = blk_sizes["long-short volatility"].loc[common] * R
 ens["always short"] = blk_sizes["always short"].loc[common] * R
+
+# Causal spectral / PCR ensemble of the 7-vector of signals.
+# Day t sees only X[:t] (strict). Min 63 days; earlier days sit at EW sign.
+X = sig.to_numpy(float)
+r = R.to_numpy(float)
+n, p = X.shape
+s_pc1 = np.full(n, np.nan)
+rhat_k1 = np.full(n, np.nan)
+rhat_k2 = np.full(n, np.nan)
+loadings_last = None
+for t in range(n):
+    if t < 63:
+        s_pc1[t] = float(X[t].mean())
+        rhat_k1[t] = s_pc1[t]
+        rhat_k2[t] = s_pc1[t]
+        continue
+    past = X[:t]
+    mu = past.mean(axis=0)
+    Xc = past - mu
+    # economy SVD on T x 7
+    _, S_sing, Vt = np.linalg.svd(Xc, full_matrices=False)
+    v1 = Vt[0]
+    if np.dot(v1, np.ones(p)) < 0:
+        v1 = -v1
+        Vt = Vt.copy()
+        Vt[0] = v1
+    xt = X[t] - mu
+    z1 = float(xt @ Vt[0])
+    z2 = float(xt @ Vt[1])
+    s_pc1[t] = z1
+    Z1 = Xc @ Vt[0]
+    Z2 = np.column_stack([Z1, Xc @ Vt[1]])
+    y = r[:t]
+    def ols_apply(Z, y, znew):
+        Z1c = np.column_stack([np.ones(len(y)), Z])
+        beta, *_ = np.linalg.lstsq(Z1c, y, rcond=None)
+        z = np.concatenate([[1.0], np.atleast_1d(znew)])
+        return float(z @ beta)
+    rhat_k1[t] = ols_apply(Z1, y, z1)
+    rhat_k2[t] = ols_apply(Z2, y, [z1, z2])
+    loadings_last = (S_sing, Vt)
+
+s_pc1 = pd.Series(s_pc1, index=sig.index)
+rhat_k1 = pd.Series(rhat_k1, index=sig.index)
+rhat_k2 = pd.Series(rhat_k2, index=sig.index)
+q_pc1 = np.sign(s_pc1).replace(0.0, -1.0)
+q_pcr1 = np.sign(rhat_k1).replace(0.0, -1.0)
+q_pcr2 = np.sign(rhat_k2).replace(0.0, -1.0)
+q_pc1_um = q_pc1 * asl.causal_leverage(s_pc1)
+ens["spectral PC1 sign"] = q_pc1 * R
+ens["spectral PC1 unit-median"] = q_pc1_um * R
+ens["PCR k=1 sign"] = q_pcr1 * R
+ens["PCR k=2 sign"] = q_pcr2 * R
+
+# Full-sample SVD diagnostic only (not a trading input).
+Xc_all = X - X.mean(axis=0)
+_, S_all, Vt_all = np.linalg.svd(Xc_all, full_matrices=False)
+share = S_all**2 / (S_all**2).sum()
+load_tab = pd.DataFrame(Vt_all[:2].T, index=[LABEL[t] for t in MODEL_ORDER], columns=["PC1", "PC2"])
+if np.dot(load_tab["PC1"], np.ones(p)) < 0:
+    load_tab["PC1"] *= -1
+print("full-sample variance share (diagnostic)")
+print(pd.Series(share, index=[f"PC{i+1}" for i in range(p)]).to_string())
+print("full-sample loadings (sign of PC1 aligned to mean s)")
+print(load_tab.to_string())
+load_tab.to_csv(OUT / "ensemble_spectral_loadings.csv")
+pd.Series(share, index=[f"PC{i+1}" for i in range(p)]).to_csv(OUT / "ensemble_spectral_varshare.csv")
+
+fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
+axes[0].bar(load_tab.index, load_tab["PC1"].to_numpy())
+axes[0].set_title("PC1 loadings on s")
+axes[0].tick_params(axis="x", rotation=40, labelsize=7)
+axes[1].plot(np.arange(1, p + 1), share.cumsum(), marker="o")
+axes[1].set_title("cumulative variance share")
+axes[1].set_xlabel("k")
+fig.tight_layout()
+fig.savefig(OUT / "ensemble_spectral_pca.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
 
 ens_tab = pd.DataFrame({k: asl.rule_row(v, np.sign(v).replace(0, -1)) for k, v in ens.items()}).T
 print(ens_tab.to_string())
