@@ -70,14 +70,23 @@ def second_order_raw(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
     }
     pre = {
         k: np.concatenate(
-            [[0.0], np.cumsum(np.bincount(dc, weights=np.where(valid_day, v, 0.0), minlength=n_days))]
+            [
+                [0.0],
+                np.cumsum(
+                    np.bincount(
+                        dc, weights=np.where(valid_day, v, 0.0), minlength=n_days
+                    )
+                ),
+            ]
         )
         for k, v in stats.items()
     }
     if need_days is None:
         days = np.arange(63, n_days, dtype=np.int64)
     else:
-        days = np.asarray(sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64)
+        days = np.asarray(
+            sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
+        )
     lo = np.maximum(0, days - WINDOW_DAYS)
     w = {k: p[days] - p[lo] for k, p in pre.items()}
     n = w["n"]
@@ -118,14 +127,23 @@ def second_order_mz(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
     }
     pre = {
         k: np.concatenate(
-            [[0.0], np.cumsum(np.bincount(dc, weights=np.where(valid_day, v, 0.0), minlength=n_days))]
+            [
+                [0.0],
+                np.cumsum(
+                    np.bincount(
+                        dc, weights=np.where(valid_day, v, 0.0), minlength=n_days
+                    )
+                ),
+            ]
         )
         for k, v in stats.items()
     }
     if need_days is None:
         days = np.arange(63, n_days, dtype=np.int64)
     else:
-        days = np.asarray(sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64)
+        days = np.asarray(
+            sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
+        )
     lo = np.maximum(0, days - WINDOW_DAYS)
     w = {k: p[days] - p[lo] for k, p in pre.items()}
     n = w["n"]
@@ -164,7 +182,9 @@ def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
     if need_dates is not None:
         pos = {d: k for k, d in enumerate(uniq)}
         need_days = {pos[d] for d in need_dates if d in pos}
-    df["rv_hat"] = second_order_raw(yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days)
+    df["rv_hat"] = second_order_raw(
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days
+    )
     out = (
         df.loc[is_1530, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
         .dropna(subset=["rv_hat"])
@@ -174,7 +194,9 @@ def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
     return out
 
 
-def load_yhat_1530_mz_cached(tag: str, path: Path, need_dates, cache: Path) -> pd.DataFrame:
+def load_yhat_1530_mz_cached(
+    tag: str, path: Path, need_dates, cache: Path
+) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
     h.update(f"v2-mz:{st.st_size}:{st.st_mtime_ns}:{WINDOW_DAYS}".encode())
@@ -194,14 +216,29 @@ def load_yhat_1530_mz_cached(tag: str, path: Path, need_dates, cache: Path) -> p
     day_codes, uniq = pd.factorize(df["date"], sort=True)
     pos = {d: k for k, d in enumerate(uniq)}
     need_days = {pos[d] for d in need_dates if d in pos}
-    rv, m, s2 = second_order_mz(yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days)
+    rv, m, s2 = second_order_mz(
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days
+    )
     df["rv_hat"] = rv
     df["m"] = m
     df["s2"] = s2
     df["yhat_vol"] = df["yhat"] * np.sqrt(np.maximum(df["baseline"], 0.0))
     df["m_vol"] = df["m"] * np.sqrt(np.maximum(df["baseline"], 0.0))
     out = (
-        df.loc[is_1530, ["date", "yhat", "baseline", "rv_raw", "rv_hat", "m", "s2", "yhat_vol", "m_vol"]]
+        df.loc[
+            is_1530,
+            [
+                "date",
+                "yhat",
+                "baseline",
+                "rv_raw",
+                "rv_hat",
+                "m",
+                "s2",
+                "yhat_vol",
+                "m_vol",
+            ],
+        ]
         .dropna(subset=["rv_hat"])
         .drop_duplicates("date")
         .set_index("date")
@@ -212,7 +249,9 @@ def load_yhat_1530_mz_cached(tag: str, path: Path, need_dates, cache: Path) -> p
     return out
 
 
-def load_yhat_1530_cached(tag: str, path: Path, need_dates, cache: Path) -> pd.DataFrame:
+def load_yhat_1530_cached(
+    tag: str, path: Path, need_dates, cache: Path
+) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
     h.update(f"v2-vec:{st.st_size}:{st.st_mtime_ns}:{WINDOW_DAYS}".encode())
@@ -238,7 +277,9 @@ def load_yhat_panel(path: Path) -> pd.DataFrame:
     base = df["baseline"].to_numpy(float)
     rv_raw = df["rv_raw"].to_numpy(float)
     day_codes, uniq = pd.factorize(df["date"], sort=True)
-    df["rv_hat"] = second_order_raw(yhat, rv_raw, base, day_codes, len(uniq), need_days=None)
+    df["rv_hat"] = second_order_raw(
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=None
+    )
     return df
 
 
@@ -250,7 +291,9 @@ def causal_leverage(signal: pd.Series, cap: float = 3.0) -> pd.Series:
 
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
     lev = causal_leverage(px["signal"])
-    pos = pd.Series(np.where(px["signal"].to_numpy(float) > 0, 1.0, -1.0), index=px.index)
+    pos = pd.Series(
+        np.where(px["signal"].to_numpy(float) > 0, 1.0, -1.0), index=px.index
+    )
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "long-short volatility": pos,
@@ -297,22 +340,24 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
     sd = float(x.std(ddof=1)) if n >= 2 else float("nan")
     n_buy = int((size > 0).sum())
     n_sz = int(size.notna().sum())
-    return pd.Series({
-        "n": n,
-        "mean": mu,
-        "std": sd,
-        "min": float(x.min()) if n else float("nan"),
-        "25%": float(x.quantile(0.25)) if n else float("nan"),
-        "50%": float(x.median()) if n else float("nan"),
-        "75%": float(x.quantile(0.75)) if n else float("nan"),
-        "max": float(x.max()) if n else float("nan"),
-        "skew": float(x.skew()) if n else float("nan"),
-        "ex_kurt": float(x.kurt()) if n else float("nan"),
-        "t_mean": mu / sd * np.sqrt(n) if (sd and sd > 0) else float("nan"),
-        "Sharpe_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
-        "n_buy": n_buy,
-        "pct_buy": 100.0 * n_buy / n_sz if n_sz else float("nan"),
-    })
+    return pd.Series(
+        {
+            "n": n,
+            "mean": mu,
+            "std": sd,
+            "min": float(x.min()) if n else float("nan"),
+            "25%": float(x.quantile(0.25)) if n else float("nan"),
+            "50%": float(x.median()) if n else float("nan"),
+            "75%": float(x.quantile(0.75)) if n else float("nan"),
+            "max": float(x.max()) if n else float("nan"),
+            "skew": float(x.skew()) if n else float("nan"),
+            "ex_kurt": float(x.kurt()) if n else float("nan"),
+            "t_mean": mu / sd * np.sqrt(n) if (sd and sd > 0) else float("nan"),
+            "Sharpe_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
+            "n_buy": n_buy,
+            "pct_buy": 100.0 * n_buy / n_sz if n_sz else float("nan"),
+        }
+    )
 
 
 def information_ratio(r_port: pd.Series, r_bench: pd.Series) -> pd.Series:
@@ -323,18 +368,22 @@ def information_ratio(r_port: pd.Series, r_bench: pd.Series) -> pd.Series:
     n = int(len(x))
     mu = float(x.mean()) if n else float("nan")
     sd = float(x.std(ddof=1)) if n >= 2 else float("nan")
-    return pd.Series({
-        "n": n,
-        "mean_active": mu,
-        "te_daily": sd,
-        "te_ann": sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
-        "IR_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
-        "t_active": mu / sd * np.sqrt(n) if (sd and sd > 0) else float("nan"),
-        "corr_to_bench": float(a[0].corr(a[1])) if n >= 3 else float("nan"),
-    })
+    return pd.Series(
+        {
+            "n": n,
+            "mean_active": mu,
+            "te_daily": sd,
+            "te_ann": sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
+            "IR_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
+            "t_active": mu / sd * np.sqrt(n) if (sd and sd > 0) else float("nan"),
+            "corr_to_bench": float(a[0].corr(a[1])) if n >= 3 else float("nan"),
+        }
+    )
 
 
-def cboe_short_straddle_margin_points(S: float, K_c: float, K_p: float, premium: float) -> float:
+def cboe_short_straddle_margin_points(
+    S: float, K_c: float, K_p: float, premium: float
+) -> float:
     """CBOE-style strategy-based margin for a short index straddle, index points."""
     otm = min(abs(float(S) - float(K_c)), abs(float(S) - float(K_p)))
     a = 0.15 * float(S) - otm + float(premium)
@@ -342,7 +391,9 @@ def cboe_short_straddle_margin_points(S: float, K_c: float, K_p: float, premium:
     return float(max(a, b, 0.0))
 
 
-def crossed_premium_return(q: pd.Series, exit_: pd.Series, bid: pd.Series, ask: pd.Series) -> pd.Series:
+def crossed_premium_return(
+    q: pd.Series, exit_: pd.Series, bid: pd.Series, ask: pd.Series
+) -> pd.Series:
     q = q.astype(float)
     exit_ = exit_.astype(float)
     bid = bid.astype(float)
@@ -366,13 +417,15 @@ def attach_iv_hourly_as_30min(atm: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def iv_var_from_conventions(iv_raw: pd.Series, hours_remaining: float) -> dict[str, pd.Series]:
+def iv_var_from_conventions(
+    iv_raw: pd.Series, hours_remaining: float
+) -> dict[str, pd.Series]:
     iv = pd.to_numeric(iv_raw, errors="coerce")
     hrs = float(hours_remaining)
     return {
-        "chris_hourly": (iv ** 2) * hrs,
-        "annualized_om": (iv ** 2) * hrs / (252.0 * 6.5),
-        "already_window": iv ** 2,
+        "chris_hourly": (iv**2) * hrs,
+        "annualized_om": (iv**2) * hrs / (252.0 * 6.5),
+        "already_window": iv**2,
     }
 
 
@@ -385,10 +438,18 @@ def pick_nearest_otm(live: pd.DataFrame, spot: pd.Series) -> pd.DataFrame:
     p = p[np.isfinite(p["S"])]
     c_otm = c[c["strike"] >= c["S"]].copy()
     c_otm["k_gap"] = c_otm["strike"].astype(float) - c_otm["S"]
-    c_pick = c_otm.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
+    c_pick = (
+        c_otm.sort_values(["expiration", "k_gap", "strike"])
+        .groupby("expiration", as_index=False)
+        .first()
+    )
     p_otm = p[p["strike"] <= p["S"]].copy()
     p_otm["k_gap"] = p_otm["S"] - p_otm["strike"].astype(float)
-    p_pick = p_otm.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
+    p_pick = (
+        p_otm.sort_values(["expiration", "k_gap", "strike"])
+        .groupby("expiration", as_index=False)
+        .first()
+    )
     atm = c_pick.merge(p_pick, on="expiration", suffixes=("_c", "_p"))
     atm["S"] = atm["S_c"].astype(float)
     atm["K_c"] = atm["strike_c"].astype(float)
@@ -400,7 +461,9 @@ def pick_nearest_otm(live: pd.DataFrame, spot: pd.Series) -> pd.DataFrame:
     return atm
 
 
-def pick_wings(live: pd.DataFrame, body: pd.DataFrame, width: float = 25.0) -> pd.DataFrame:
+def pick_wings(
+    live: pd.DataFrame, body: pd.DataFrame, width: float = 25.0
+) -> pd.DataFrame:
     c = live[live["cp"] == "C"].copy()
     p = live[live["cp"] == "P"].copy()
     want_c = body[["expiration", "K_c"]].copy()
@@ -411,10 +474,21 @@ def pick_wings(live: pd.DataFrame, body: pd.DataFrame, width: float = 25.0) -> p
     p = p[p["strike"].astype(float) <= (p["K_p"] - width)]
     c["k_gap"] = c["strike"].astype(float) - c["K_c"]
     p["k_gap"] = p["K_p"] - p["strike"].astype(float)
-    c_w = c.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
-    p_w = p.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
+    c_w = (
+        c.sort_values(["expiration", "k_gap", "strike"])
+        .groupby("expiration", as_index=False)
+        .first()
+    )
+    p_w = (
+        p.sort_values(["expiration", "k_gap", "strike"])
+        .groupby("expiration", as_index=False)
+        .first()
+    )
     wings = c_w.merge(p_w, on="expiration", suffixes=("_cw", "_pw"))
-    out = body.merge(wings, on="expiration", how="inner")
+    # Keep only wing quotes so body.K_c / body.K_p / body.entry survive the merge.
+    wing_cols = ["expiration", "strike_cw", "strike_pw", "mid_cw", "mid_pw"]
+    extra = [c for c in ("bid_cw", "ask_cw", "bid_pw", "ask_pw") if c in wings.columns]
+    out = body.merge(wings[wing_cols + extra], on="expiration", how="inner")
     out["K_c_wing"] = out["strike_cw"].astype(float)
     out["K_p_wing"] = out["strike_pw"].astype(float)
     out["mid_c_wing"] = out["mid_cw"].astype(float)
@@ -422,7 +496,9 @@ def pick_wings(live: pd.DataFrame, body: pd.DataFrame, width: float = 25.0) -> p
     out["entry_body"] = out["entry"].astype(float)
     out["entry_wings"] = out["mid_c_wing"] + out["mid_p_wing"]
     out["entry_ic"] = out["entry_body"] - out["entry_wings"]
-    out["width"] = np.minimum(out["K_c_wing"] - out["K_c"], out["K_p"] - out["K_p_wing"])
+    out["width"] = np.minimum(
+        out["K_c_wing"] - out["K_c"], out["K_p"] - out["K_p_wing"]
+    )
     return out
 
 
@@ -453,7 +529,14 @@ def fomc_and_monthend(index: pd.DatetimeIndex, repo: Path) -> pd.DataFrame:
     fomc: set[pd.Timestamp] = set()
     if rel.exists():
         r = pd.read_parquet(rel)
-        col = next((c for c in r.columns if str(c).lower() in {"fomc release", "fomc", "fomc_release"}), None)
+        col = next(
+            (
+                c
+                for c in r.columns
+                if str(c).lower() in {"fomc release", "fomc", "fomc_release"}
+            ),
+            None,
+        )
         date_col = "date" if "date" in r.columns else r.columns[0]
         if col is not None:
             dts = pd.to_datetime(r.loc[r[col].astype(bool), date_col], errors="coerce")

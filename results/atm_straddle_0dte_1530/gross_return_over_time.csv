@@ -1,0 +1,22 @@
+model,rule,terminal_W,max_dd,ruined,sum_R
+HAR + calendar OLS,always short,2.376483049822554,0.0,True,17.535383934169356
+HAR + calendar OLS,long-short volatility,2.376483049822554,0.0,True,-6.047170263578508
+HAR + calendar OLS,unit-median VRP,2.376483049822554,0.0,True,40.83427566362693
+block-diag ridge,always short,2.376483049822554,0.0,True,17.535383934169356
+block-diag ridge,long-short volatility,2.376483049822554,0.0,True,3.785319285656942
+block-diag ridge,unit-median VRP,2.376483049822554,0.0,True,51.81532386941573
+LightGBM,always short,2.376483049822554,0.0,True,17.535383934169356
+LightGBM,long-short volatility,2.376483049822554,0.0,True,6.721984832456264
+LightGBM,unit-median VRP,2.376483049822554,0.0,True,49.9273435191959
+XGBoost,always short,2.376483049822554,0.0,True,17.535383934169356
+XGBoost,long-short volatility,2.376483049822554,0.0,True,-4.140156329393443
+XGBoost,unit-median VRP,2.376483049822554,0.0,True,45.64974618200429
+lasso (causally tuned),always short,2.376483049822554,0.0,True,17.535383934169356
+lasso (causally tuned),long-short volatility,2.376483049822554,0.0,True,-9.788621060926566
+lasso (causally tuned),unit-median VRP,2.376483049822554,0.0,True,52.38442141761486
+lasso (fixed 1e-4),always short,2.376483049822554,0.0,True,17.535383934169356
+lasso (fixed 1e-4),long-short volatility,2.376483049822554,0.0,True,-1.7361409392104736
+lasso (fixed 1e-4),unit-median VRP,2.376483049822554,0.0,True,50.311503199913176
+elastic net (causally tuned),always short,2.376483049822554,0.0,True,17.535383934169356
+elastic net (causally tuned),long-short volatility,2.376483049822554,0.0,True,-11.614377693795618
+elastic net (causally tuned),unit-median VRP,2.376483049822554,0.0,True,41.51292704411105
