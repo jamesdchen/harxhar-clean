@@ -53,18 +53,38 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
 
 
 def _mz_day_coefs(
-    yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask=None
+    yhat,
+    rv_raw,
+    baseline,
+    day_codes,
+    n_days,
+    need_days,
+    halflife,
+    fit_mask=None,
+    weighted=True,
 ):
     """Per-day causal MZ coefficients (a, b, s2) in y-space.
 
-    halflife=None reproduces the legacy flat [d-WINDOW_DAYS, d) window
-    via prefix sums; otherwise prior days are exponentially weighted
-    with the given halflife and gated on a Kish effective sample size
-    >= 200 (same constant as the flat path's n >= 200). Both paths use
-    strictly prior days and start at day 63. fit_mask (bool per row)
-    restricts which rows enter the fit — the loaders pass the scored
-    session bars (10:00-15:30 ET) so off-session dynamics cannot
-    pollute the calibration; coefficients still apply to every row.
+    weighted=True (the default, QLIKE-refereed 2026-09-01) fits by
+    GLS/weighted least squares with per-window weights
+    w = 1/max(yhat, q10_window)^2 — the variance-stabilizing weighting
+    under multiplicative errors, aligning the fit's loss with the
+    QLIKE scale; q10 is the 10th percentile of yhat *within each
+    trailing window* (causal), falling back to the smallest positive
+    yhat if q10 <= 0. s2 becomes the weighted mean squared residual.
+    The per-window q10 makes weights day-specific, so the weighted
+    flat path runs a day loop instead of prefix sums; weighted=False
+    reproduces the legacy unweighted fit. The EWMA path
+    (halflife set) is unweighted regardless.
+
+    halflife=None uses the flat [d-WINDOW_DAYS, d) window; otherwise
+    prior days are exponentially weighted with the given halflife and
+    gated on a Kish effective sample size >= 200 (same constant as
+    the flat path's n >= 200). All paths use strictly prior days and
+    start at day 63. fit_mask (bool per row) restricts which rows
+    enter the fit — the loaders pass the scored session bars so
+    off-session dynamics cannot pollute the calibration; coefficients
+    still apply to every row.
     """
     with np.errstate(divide="ignore", invalid="ignore"):
         y = np.sqrt(np.maximum(rv_raw, 0.0) / np.maximum(baseline, 1e-18))
@@ -90,6 +110,45 @@ def _mz_day_coefs(
     a_d = np.full(n_days, np.nan)
     b_d = np.full(n_days, np.nan)
     s2_d = np.full(n_days, np.nan)
+    if halflife is None and weighted:
+        # GLS path: per-window q10 weights break prefix sums — loop days.
+        u_f = np.asarray(yhat, float)[finite]
+        y_f = y[finite]
+        dc_f = day_codes[finite]
+        srt = np.argsort(dc_f, kind="stable")
+        u_f, y_f, dc_f = u_f[srt], y_f[srt], dc_f[srt]
+        if need_days is None:
+            days = range(63, n_days)
+        else:
+            days = sorted(d for d in need_days if 63 <= d < n_days)
+        for d in days:
+            lo = int(np.searchsorted(dc_f, d - WINDOW_DAYS, side="left"))
+            hi = int(np.searchsorted(dc_f, d, side="left"))
+            if hi - lo < 200:
+                continue
+            u_sl, y_sl = u_f[lo:hi], y_f[lo:hi]
+            q10 = float(np.quantile(u_sl, 0.10))
+            if q10 <= 0:
+                pos = u_sl[u_sl > 0]
+                if len(pos) == 0:
+                    continue
+                q10 = float(pos.min())
+            w = 1.0 / np.maximum(u_sl, q10) ** 2
+            w_n = float(w.sum())
+            wx = float((w * u_sl).sum())
+            wxx = float((w * u_sl * u_sl).sum())
+            wy = float((w * y_sl).sum())
+            wxy = float((w * u_sl * y_sl).sum())
+            wyy = float((w * y_sl * y_sl).sum())
+            denom = w_n * wxx - wx * wx
+            if denom <= 0:
+                continue
+            b = (w_n * wxy - wx * wy) / denom
+            a = (wy - b * wx) / w_n
+            a_d[d] = a
+            b_d[d] = b
+            s2_d[d] = (wyy - a * wy - b * wxy) / w_n
+        return a_d, b_d, s2_d
     if halflife is None:
         pre = {k: np.concatenate([[0.0], np.cumsum(v)]) for k, v in daily.items()}
         if need_days is None:
@@ -216,7 +275,7 @@ def load_yhat_1530_mz_cached(
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v5-mz-fresh:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
+    h.update(f"v6-mz-gls:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = cache / f"yhat1530mz_{tag}_{h.hexdigest()[:16]}.parquet"
@@ -274,7 +333,7 @@ def load_yhat_1530_cached(
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v5-vec-fresh:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
+    h.update(f"v6-vec-gls:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = cache / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"

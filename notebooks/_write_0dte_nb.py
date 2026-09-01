@@ -41,9 +41,8 @@ $\max(K_p-S_{\mathrm{close}},0)$.
 Signal is remaining RV minus remaining IV in variance space:
 $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, with
 $\widehat{RV}=(m^2+\hat\sigma^2)B$ the causal second-order map from
-`yhat`. The book that survives the variants below is **always short**,
-with optional unit-median $|\mathrm{VRP}|$ size. Long-short volatility $\pm 1$ is a
-control. Vol-space maps ($\hat y\sqrt{B}$, $m\sqrt{B}$) live in
+`yhat`. The book that survives the variants below is **always short**.
+Long-short volatility $\pm 1$ is a control. Vol-space maps ($\hat y\sqrt{B}$, $m\sqrt{B}$) live in
 `atm_straddle_volmap.ipynb` if present, else
 `atm_straddle_experimental.ipynb`. Ensembles / extra weights:
 `atm_straddle_experimental.ipynb`. $R\sim a+b s$ is below with the
@@ -429,7 +428,7 @@ load_yhat_1530 = asl.load_yhat_1530
 def load_yhat_1530_cached(tag: str, path: Path, need_dates) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v5-vec-fresh:{st.st_size}:{st.st_mtime_ns}:flat{asl.WINDOW_DAYS}".encode())
+    h.update(f"v6-vec-gls:{st.st_size}:{st.st_mtime_ns}:flat{asl.WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = CACHE / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"
@@ -557,7 +556,7 @@ print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var
     # Unit-median VRP, long-books, book-variants, lesson, return-summary omitted.
     md(
         r"""
-## Rule table — grouped by strategy
+## 10. Rule table — grouped by strategy
 
 Same days and the same long-straddle $R$ (15:30 mid to cash settlement).
 Only the position $q_t$ changes. One block per rule; **rows are the seven
@@ -571,9 +570,6 @@ identical — so it is shown as a single anonymous row.
 - **long-short volatility:** $q_t=\mathrm{sign}(s_t)$, with
   $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$. Long the package when the
   forecast exceeds implied variance, short otherwise.
-- **unit-median VRP:** $q_t=\mathrm{clip}(s_t/\mathrm{med}_{u<t}|s_u|,-3,3)$.
-  Same sign as long-short volatility; size is one lot per causal expanding
-  median $|s|$ (63-day min, lagged one day). Cap 3.
 
 Columns are `Series.describe()` plus skew, excess kurtosis, the $t$-stat of the
 mean $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and buy-signal
@@ -593,25 +589,15 @@ the same information at fixed $n$
 ($t=\mathrm{Sharpe}\times\sqrt{n/252}$); both are shown so the table
 reads either way.
 
-Per-model sizing stays causal: unit-median sizes use each model's own
-full signal history; only the scored days are restricted to the
-common set.
+Only the scored days are restricted to the common set.
 """
     ),
     code(
         r"""
-def causal_leverage(signal: pd.Series, cap: float = 3.0) -> pd.Series:
-    med = signal.abs().expanding(min_periods=63).median().shift(1)
-    lev = (signal.abs() / med).clip(upper=cap)
-    return lev.fillna(1.0)
-
-
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
-    lev = causal_leverage(px["signal"])
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "long-short volatility": px["pos"],
-        "unit-median VRP": px["pos"] * lev,
     }
 
 
@@ -645,7 +631,6 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
 order = [
     "always short",
     "long-short volatility",
-    "unit-median VRP",
 ]
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
         "skew", "ex_kurt", "t_mean", "Sharpe_ann", "n_buy", "pct_buy"]
@@ -712,7 +697,7 @@ plt.close(fig)
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
-## 10. P&L / return calculations (non-compounded)
+## 11. P&L / return calculations (non-compounded)
 
 Same contracts and $q$ as the rule table. All series below are
 **daily arithmetic** (not $\prod(1+R')$). Mid fill is the published
@@ -742,7 +727,7 @@ def add_variant(series, q, rule, variant, unit):
     st = asl.rule_row(series, q)
     rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
 
-for name in ("always short", "unit-median VRP"):
+for name in ("always short", "long-short volatility"):
     q = sizes[name].loc[common]
     mid = (q * px["R"])
     add_variant(mid, q, name, "mid premium R", "return")
@@ -770,12 +755,12 @@ print(var_tab.to_string(index=False))
 var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
-q = sizes["unit-median VRP"].loc[common]
+q = sizes["always short"].loc[common]
 ax.plot(px.index, asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER, label="mid")
 signq = np.sign(q.replace(0, -1.0))
 crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
 ax.plot(px.index, crossed_usd.cumsum(), label="crossed")
-ax.set_title("blk2 unit-median VRP — cumulative $ P&L (non-compounded)")
+ax.set_title("blk2 always short — cumulative $ P&L (non-compounded)")
 ax.set_ylabel("USD")
 ax.legend(fontsize=8)
 fig.tight_layout()
@@ -787,11 +772,11 @@ plt.close(fig)
     ),
     md(
         r"""
-## 11. Information ratio vs always-short
+## 12. Information ratio vs always-short
 
 Benchmark is always-short: $R^{\mathrm{AS}}_t=-R_t$ (one short package
-every day). Portfolio is $R^p_t=q_t R_t$ for long-short ($q=\mathrm{sign}(s)$)
-or unit-median ($q=\mathrm{sign}(s)\times$ leverage).
+every day). Portfolio is $R^p_t=q_t R_t$ for long-short
+($q=\mathrm{sign}(s)$).
 
 **Active return** (daily): $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short
 days $q=-1$ so $R^a=0$ (same as the bench). On buy days $q>0$ you
@@ -823,7 +808,7 @@ for tag in MODEL_ORDER:
     px = books[tag]
     sizes = rule_sizes(px)
     bench = (sizes["always short"] * px["R"]).loc[common]
-    for name in ("long-short volatility", "unit-median VRP"):
+    for name in ("long-short volatility",):
         port = (sizes[name] * px["R"]).loc[common]
         st = asl.information_ratio(port, bench)
         ir_rows.append({"model": LABEL[tag], "rule": name, **st.to_dict()})
@@ -840,12 +825,14 @@ print("IR = active return / tracking error; benchmark is always-short.")
     ),
     md(
         r"""
-## 12. Regression of straddle returns on the signal
+## 13. Regression of straddle returns on the signal
 
-$R = a + b s$ and $R = a + b\,(s/\mathrm{med}_{u<t}|s_u|)$. OLS with
-HAC lags $=6$. $b>0$ would mean the long package pays when the
-forecast exceeds implied variance — the paper L/S book dying says
-this is near zero or negative.
+$R_t = a + b\,s_{t-1}$: today's package return on the **previous
+expiration day's** signal. OLS with HAC lags $=6$. The question is
+whether yesterday's signal carries into today's premium (day-scale
+persistence); the lagged regressor is measurable strictly before
+the trade by construction, so any surviving $b$ would be immune to
+same-day timing concerns.
 """
     ),
     code(
@@ -855,8 +842,7 @@ for tag in MODEL_ORDER:
     px = books[tag].loc[common]
     s = px["signal"].astype(float)
     r = px["R"].astype(float)
-    med = s.abs().expanding(min_periods=63).median().shift(1).fillna(s.abs().median())
-    for name, x in (("raw s", s), ("s / med|s|", s / med)):
+    for name, x in (("raw s (t-1)", s.shift(1)),):
         X = sm.add_constant(x.to_numpy())
         fit = sm.OLS(r.to_numpy(), X, missing="drop").fit(cov_type="HAC", cov_kwds={"maxlags": 6})
         reg_rows.append({
@@ -868,18 +854,20 @@ for tag in MODEL_ORDER:
 reg_tab = pd.DataFrame(reg_rows)
 print(reg_tab.to_string(index=False))
 reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
-print("reading: b>0 => long straddle when s>0 is the right side; L/S dying => b ~ 0 or <0.")
+print("reading: b tests whether yesterday's signal prices today's premium; b ~ 0 across models = no day-scale persistence.")
 
 px = books["blk2"].loc[common]
+s_lag = px["signal"].shift(1)
+ok = np.isfinite(s_lag) & np.isfinite(px["R"])
 fig, ax = plt.subplots(figsize=(6.2, 4.2))
-ax.scatter(px["signal"], px["R"], s=8, alpha=0.35)
-X = sm.add_constant(px["signal"].to_numpy())
-fit = sm.OLS(px["R"].to_numpy(), X).fit()
-xx = np.linspace(px["signal"].min(), px["signal"].max(), 50)
+ax.scatter(s_lag[ok], px["R"][ok], s=8, alpha=0.35)
+X = sm.add_constant(s_lag[ok].to_numpy())
+fit = sm.OLS(px["R"][ok].to_numpy(), X).fit()
+xx = np.linspace(s_lag[ok].min(), s_lag[ok].max(), 50)
 ax.plot(xx, fit.params[0] + fit.params[1] * xx, color="C3", lw=1.2)
-ax.set_xlabel(r"$s=\widehat{RV}-\mathrm{IV}_{30}^2$")
-ax.set_ylabel(r"$R$")
-ax.set_title("blk2  $R$ vs $s$")
+ax.set_xlabel(r"$s_{t-1}=\widehat{RV}_{t-1}-\mathrm{IV}_{30,t-1}^2$")
+ax.set_ylabel(r"$R_t$")
+ax.set_title("blk2  $R_t$ vs $s_{t-1}$")
 fig.tight_layout()
 fig.savefig(OUT / "regression_R_on_signal_blk2.png", dpi=120, bbox_inches="tight")
 display(fig)
@@ -888,11 +876,10 @@ plt.close(fig)
     ),
     md(
         r"""
-## 13. Buy-signal diagnostic
+## 14. Buy-signal diagnostic
 
-A buy day is $q_t>0$. Long-short and unit-median share the same buy
-*days* (same sign); unit-median only changes size. Always-short never
-buys. Compare models on the common dates.
+A buy day is $q_t>0$. Always-short never buys. Compare models on the
+common dates.
 """
     ),
     code(
@@ -912,12 +899,9 @@ for tag in MODEL_ORDER:
         "mean_R|buy": float(px.loc[b, "R"].mean()) if b.any() else float("nan"),
         "mean_R|sell": float(px.loc[~b, "R"].mean()),
         "median_|s|_buy": float(px.loc[b, "signal"].abs().median()) if b.any() else float("nan"),
-        "median_|q|_um_buy": float(
-            rule_sizes(books[tag])["unit-median VRP"].loc[common][b].abs().median()
-        ) if b.any() else float("nan"),
     })
 print(pd.DataFrame(diag_rows).to_string(index=False))
-print("always-short n_buy = 0. L/S and unit-median buy the same days.")
+print("always-short n_buy = 0.")
 
 jacc = pd.DataFrame(index=MODEL_ORDER, columns=MODEL_ORDER, dtype=float)
 for a in MODEL_ORDER:
@@ -952,7 +936,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 14. Iron condors (straddle + wings / strangle + wings)
+## 15. Iron condors (straddle + wings / strangle + wings)
 
 Body is the existing nearest-OTM package. Wings are the nearest live
 mids at least $25$ (and $50$) points further OTM. Short iron condor =
@@ -1026,7 +1010,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## Hand-check one row
+## 16. Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
 - `entry` = 15:30 `mid_c + mid_p`.
@@ -1036,8 +1020,7 @@ plt.close(fig)
   30-min variance.
 - Quoted IV is hourly; `iv_30 = iv_hourly / sqrt(2)`, `iv_var = iv_30**2`.
 - `signal = rv_hat - iv_var`. $\mathrm{VRP}=-s$. Long-short volatility `pos` is
-  $+1$ if signal $> 0$, else $-1$. Unit-median VRP is
-  $q_t=s_t/\mathrm{med}_{u<t}|s_u|$.
+  $+1$ if signal $> 0$, else $-1$.
 """
     ),
 ]
