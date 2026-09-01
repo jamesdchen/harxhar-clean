@@ -789,7 +789,7 @@ print("saved experimental_weights_*.csv")
 
 Body is the §1 nearest-OTM package; wings are the nearest live 15:30
 mids at least $w$ points further OTM (`asl.pick_wings`, conventions of
-the RV–IV notebook §16). Short iron condor = short body + long wings.
+the RV–IV notebook §17). Short iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged; the three rules use the blk2
@@ -949,8 +949,9 @@ Four diagnostics, all on blk2 common days:
    `te_daily` $=\mathrm{sd}(R^a)$, $\mathrm{IR}_{ann}=\bar R^a/\mathrm{sd}\times\sqrt{252}$,
    $t=\bar R^a/\mathrm{sd}\times\sqrt{n}$.
 
-Condor sizes follow the RV–IV §16 convention (unit-median leverage from
-the expanding median on the condor-day frame); straddle sizes are the
+Condor sizes use unit-median leverage from the expanding median on the
+condor-day frame (the former RV–IV condor-slide convention; that slide
+now reports credit verticals at $|q|=1$); straddle sizes are the
 §5 full-book sizes. Cumulative $R'$ is a non-compounded sum.
 """
     ),
@@ -1067,7 +1068,8 @@ plt.close(fig)
         r"""
 ## 10. Strangle-body condors and per-side attribution
 
-§16 of the RV–IV notebook prices the condor around the straddle body.
+§17 of the RV–IV notebook prices the straddle-body package as credit
+vertical spreads.
 Here the body is a **strangle**: the next listed strike above the
 nearest-OTM call and below the nearest-OTM put, from the same 15:30
 live mids (one step on the actual grid — $5$ points on $99.6\%$ of
@@ -1202,7 +1204,7 @@ sign, majority vote, EW unit-median $q$, causal spectral PC1 sign /
 unit-median, and the blk2 single-model benchmarks) are built once on
 the common days exactly as in §5 and are not refit. Only the
 instrument swaps: wings are the nearest live mids at least $w$ points
-further OTM ($w=25,50$; the RV–IV notebook's §16 construction) and
+further OTM ($w=25,50$; the same wing selection as RV–IV §17) and
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged.
 
@@ -1215,8 +1217,9 @@ Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
 quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days), so it can differ slightly from the RV–IV §16 row,
-which recomputes leverage on condor-coverage days.
+on the common days). The RV–IV §17 slide now reports credit verticals
+per body premium (with a capital-at-risk view) at $|q|=1$, so its rows
+are not in the same units as these tables.
 """
     ),
     code(
@@ -1481,7 +1484,7 @@ def pair_row(name, rp, rb, B=2000):
         "sig_boot_dS": (lo_s > 0) or (hi_s < 0),
     }
 
-# condor w=25, §16 conventions; blk2 straddle-book UM sizes on both legs
+# condor w=25, §17 conventions; blk2 straddle-book UM sizes on both legs
 body = atm.reset_index()
 close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()

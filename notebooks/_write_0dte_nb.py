@@ -1006,7 +1006,141 @@ plt.close(fig)
     ),
     md(
         r"""
-## 15. Buy-signal diagnostic
+## 15. Sizing by trailing book volatility
+
+The two rules above hold $|q_t|=1$ every day, so the book inherits the
+market's volatility cycle: its own risk swings roughly $2.4\times$
+between calm and stormy quarters. The lagged-signal slides show the
+signal's information at day scale is its **sign** — so we do not try to
+size by conviction. Instead we standardize **risk**: scale the whole
+position by how volatile the book itself has recently been.
+
+Construction (causal throughout): let $\hat\sigma_t$ be the standard
+deviation of the rule's own daily return $R'$ over the trailing 63
+sessions, lagged one day. The scale factor is
+
+$$\ell_t=\min\!\left(\frac{\operatorname{median}_{u\le t-1}\hat\sigma_u}{\hat\sigma_t},\,3\right),
+\qquad R''_t=\ell_t\,R'_t .$$
+
+The target in the numerator is the expanding median of $\hat\sigma$
+itself, so average leverage is close to one by construction and there is
+no free target parameter; 63 sessions is the standing quarter window and
+3 the standing leverage cap (it never binds — realized $\ell$ stays in
+$[0.6,\,1.6]$). The first 63+1 sessions have no estimate and sit flat;
+raw and scaled books are compared on the same remaining days.
+
+This overlay claims **no forecast information** — it reads only the
+book's own past returns. The scoreboard is therefore risk stability
+(the variability of the book's rolling volatility, its drawdown, its
+per-year volatility), **not** Sharpe: a pure rescaling should leave
+Sharpe roughly unchanged, and does. One honest limitation is structural:
+a trailing estimator cannot see the first day of a regime change, so
+single worst days keep their size; what shrinks is the quarter-to-year
+wander of realized risk.
+"""
+    ),
+    code(
+        r"""
+VT_WIN, VT_CAP = 63, 3.0  # standing quarter window, standing leverage cap
+
+
+def vol_target(rp: pd.Series) -> pd.DataFrame:
+    rp = rp.astype(float)
+    sig = rp.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).shift(1)
+    target = sig.expanding(min_periods=1).median().shift(1)
+    ell = (target / sig).clip(0.0, VT_CAP)
+    return pd.DataFrame({"raw": rp, "ell": ell, "scaled": ell * rp})
+
+
+def risk_row(r: pd.Series) -> pd.Series:
+    rv = r.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).dropna()
+    cum = r.cumsum()
+    mu, sd = float(r.mean()), float(r.std(ddof=1))
+    return pd.Series({
+        "n": len(r),
+        "vol_CV": float(rv.std(ddof=1) / rv.mean()),
+        "vol_max": float(rv.max()),
+        "vol_min": float(rv.min()),
+        "maxDD": float((cum - cum.cummax()).min()),
+        "worst_day": float(r.min()),
+        "skew": float(r.skew()),
+        "ex_kurt": float(r.kurt()),
+        "mean": mu,
+        "std": sd,
+        "Sharpe_ann": mu / sd * np.sqrt(252.0),
+    })
+
+
+vt_rows, vt_lev, vt_year = [], [], []
+for tag in MODEL_ORDER:
+    px = books[tag]
+    for name, q in rule_sizes(px).items():
+        f = vol_target((q * px["R"]).loc[common]).dropna(subset=["ell"])
+        for kind in ("raw", "scaled"):
+            vt_rows.append(risk_row(f[kind]).rename((name, tag, kind)))
+        vt_lev.append(pd.Series({
+            "mean_ell": float(f["ell"].mean()),
+            "median_ell": float(f["ell"].median()),
+            "min_ell": float(f["ell"].min()),
+            "max_ell": float(f["ell"].max()),
+            "pct_at_cap": 100.0 * float((f["ell"] >= VT_CAP - 1e-12).mean()),
+        }, name=(name, tag)))
+        for yr, g in f.groupby(f.index.year):
+            vt_year.append({"rule": name, "model": tag, "year": yr,
+                            "vol_raw": float(g["raw"].std(ddof=1)),
+                            "vol_scaled": float(g["scaled"].std(ddof=1))})
+
+vt_tab = pd.DataFrame(vt_rows)
+vt_tab.index = pd.MultiIndex.from_tuples(vt_tab.index, names=["rule", "model", "book"])
+vt_lev = pd.DataFrame(vt_lev)
+vt_lev.index = pd.MultiIndex.from_tuples(vt_lev.index, names=["rule", "model"])
+vt_year = pd.DataFrame(vt_year).set_index(["rule", "model", "year"]).sort_index()
+
+# always short takes no forecast: assert model-invariance, print one row pair
+base = vt_tab.loc["always short"].loc["blk2"]
+for tag in MODEL_ORDER:
+    assert np.allclose(vt_tab.loc["always short"].loc[tag], base)
+print("always short (all models identical)")
+print(pd.DataFrame({"raw": base.loc["raw"], "scaled": base.loc["scaled"]}).T.to_string())
+print("---")
+print("long-short volatility")
+ls = vt_tab.loc["long-short volatility"]
+print(pd.concat({LABEL[t]: ls.loc[t] for t in MODEL_ORDER}, axis=0).to_string())
+print("---")
+print("scale-factor diagnostics (raw |q| is 1 every day by construction)")
+print(vt_lev.rename(index=LABEL, level="model").to_string())
+print("---")
+print("per-year book volatility, block-diag ridge long-short")
+print(vt_year.loc[("long-short volatility", "blk2")].to_string())
+
+vt_tab.to_csv(OUT / "voltarget_scoreboard.csv")
+vt_lev.to_csv(OUT / "voltarget_leverage.csv")
+vt_year.to_csv(OUT / "voltarget_per_year.csv")
+print("saved voltarget_{scoreboard,leverage,per_year}.csv in", OUT)
+
+f = vol_target(
+    (rule_sizes(books["blk2"])["long-short volatility"] * books["blk2"]["R"]).loc[common]
+).dropna(subset=["ell"])
+fig, axes = plt.subplots(2, 1, figsize=(9, 5.4), sharex=True)
+axes[0].plot(f.index, f["ell"], lw=0.8, color="C0")
+axes[0].axhline(1.0, color="k", lw=0.6)
+axes[0].set_ylabel(r"scale $\ell_t$")
+axes[0].set_title("block-diag ridge, long-short — trailing-volatility scale and its effect")
+for kind, c, lab in (("raw", "C1", "raw ($|q|=1$)"), ("scaled", "C0", "vol-scaled")):
+    rv = f[kind].rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1)
+    axes[1].plot(rv.index, rv, lw=0.9, color=c, label=lab)
+axes[1].set_ylabel("rolling 63-day vol of $R'$")
+axes[1].legend(fontsize=8)
+fig.tight_layout()
+fig.savefig(OUT / "voltarget_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "voltarget_blk2.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 16. Buy-signal diagnostic
 
 A buy day is $q_t>0$. Always-short never buys. Compare models on the
 common dates.
@@ -1066,14 +1200,45 @@ plt.close(fig)
     ),
     md(
         r"""
-## 16. Iron condors (straddle + wings / strangle + wings)
+## 17. Credit vertical spreads — capping the downside when selling
 
-Body is the existing nearest-OTM package. Wings are the nearest live
-mids at least $25$ (and $50$) points further OTM. Short iron condor =
-short body + long wings. Defined-risk long-package return is
-$R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
-so the paper's $q$ rules apply unchanged. Credit-denominator $R$ is
-printed as a warning only — net credit can be tiny.
+Selling the straddle body leaves an unbounded downside. Buy a wing on
+each side — the nearest live mid at least $25$ (and $50$) points
+further OTM — and each short leg becomes a **credit vertical spread**:
+short call + long higher-strike call, short put + long lower-strike
+put. The pair is exactly the short iron condor of the earlier version
+of this slide; the framing here makes the risk cap explicit. Net
+credit $C$ = body premium $-$ wing premium. Days where $C \le 0$
+(deep wing quotes missing; roughly one day in a thousand) are dropped
+with a printed count.
+
+**Primary units: per body premium.** The day's return is
+
+$$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
+
+package P&L over the straddle entry mid — the same denominator as the
+§10 straddle rows, so the wing drag reads directly against the
+uncapped book. A **capital-at-risk** view is reported alongside:
+divide instead by the worst-case loss, the larger *actual* wing gap
+minus the credit. The nearest live wing can sit farther out than the
+nominal $25/50$, so the actual gap — not the nominal width — is the
+honest worst case; with it this view is bounded below by $-1$
+exactly, and the cell asserts that. Capital-at-risk is not the
+primary view because it over-weights rich-credit (high-volatility)
+days — the smallest denominators carry most of the series variance —
+and misreads nearly-free tail insurance as a losing trade: a units
+artifact, not a trading result. Per-credit returns are worse still
+($C$ can be tiny); they are not reported.
+
+The hedge is **asymmetric by design**: wings are bought only when the
+book sells volatility. On long-volatility days the rule holds the
+plain §6 straddle — a bought straddle already risks at most its
+premium, and wings there would cap the payoff tail the long position
+exists to own; its $R$ is already per body premium, so the long-short
+composite is unit-consistent day by day. The dollar block at the end
+prices the insurance itself, in index points per package: wing drag
+per day with a paired HAC $t$, worst day and drawdown naked vs
+capped, and the points the wings hand back on the days the cap binds.
 """
     ),
     code(
@@ -1083,64 +1248,114 @@ body = atm.reset_index()
 close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
 
-def score_condor(width: float):
-    ic = asl.pick_wings(live1530, body, width=width)
-    print(f"width {width}: days with both wings {len(ic)} / body {len(body)} dropped {len(body)-len(ic)}")
-    ic = asl.settle_package(ic, close_map)
-    ic = ic[np.isfinite(ic["entry_ic"]) & np.isfinite(ic["exit_ic"]) & (ic["width"] > 0)].copy()
-    ic["R_long_ic"] = (ic["exit_ic"] - ic["entry_ic"]) / ic["width"]
-    ic["R_credit"] = np.where(ic["entry_ic"] > 0, ic["exit_ic"] / ic["entry_ic"] - 1.0, np.nan)
-    if "day" in ic.columns:
-        ic = ic.set_index("day")
-    elif "et_c" in ic.columns:
-        ic["day"] = pd.to_datetime(ic["et_c"]).dt.tz_convert("America/New_York").dt.normalize().dt.tz_localize(None)
-        ic = ic.set_index("day")
-    return ic
+def maxdd(r):
+    cum = r.cumsum()
+    return float((cum - cum.cummax()).min())
 
-ic_tabs = {}
+def score_verticals(width: float):
+    vs = asl.pick_wings(live1530, body, width=width)
+    print(f"width {width}: days with both wings {len(vs)} / body {len(body)} dropped {len(body)-len(vs)}")
+    vs = asl.settle_package(vs, close_map)
+    vs = vs[np.isfinite(vs["entry_ic"]) & np.isfinite(vs["exit_ic"]) & (vs["width"] > 0)].copy()
+    # short seller receives the body premium and pays for the wings
+    vs["credit"] = vs["entry_ic"]
+    # worst case loses the larger ACTUAL wing gap (the nearest live wing
+    # can sit farther out than the nominal width) minus the credit
+    vs["gap_max"] = np.maximum(vs["K_c_wing"] - vs["K_c"], vs["K_p"] - vs["K_p_wing"])
+    bad = ~((vs["credit"] > 0) & (vs["credit"] < vs["gap_max"]))
+    print(f"width {width}: dropped {int(bad.sum())} day(s) with credit <= 0 or credit >= max wing gap")
+    vs = vs[~bad].copy()
+    vs["max_loss"] = vs["gap_max"] - vs["credit"]
+    vs["pnl"] = vs["credit"] - vs["exit_ic"]          # index points per package
+    vs["R_prem"] = vs["pnl"] / vs["entry_body"]       # primary: per body premium
+    vs["R_risk"] = vs["pnl"] / vs["max_loss"]         # secondary: per capital at risk
+    n_floor = int((vs["R_risk"] < -1.0 - 1e-12).sum())
+    assert n_floor == 0, f"{n_floor} day(s) breach the -1 capital-at-risk floor"
+    print(f"width {width}: capital-at-risk floor check min R' {float(vs['R_risk'].min()):+.6f} (>= -1, 0 violations)")
+    vs["cap_binds"] = (vs["S_close"] >= vs["K_c_wing"]) | (vs["S_close"] <= vs["K_p_wing"])
+    if "day" in vs.columns:
+        vs = vs.set_index("day")
+    return vs.sort_index()
+
+vs_tabs = {}
 for w in (25.0, 50.0):
-    ic = score_condor(w)
-    ic_tabs[w] = ic
-    print(f"width {w} credit-denom warning: frac entry_ic<=0 = {float((ic['entry_ic']<=0).mean()):.2%}")
+    vs = score_verticals(w)
+    vs_tabs[w] = vs
+    bind = vs["cap_binds"]
+    print(f"width {w}: cap binds (settle beyond a wing) on {int(bind.sum())} of {len(vs)} days "
+          f"({float(bind.mean()):.2%}); mean per-premium R' on those days {float(vs.loc[bind, 'R_prem'].mean()):+.4f}")
     for tag in MODEL_ORDER:
         px = books[tag]
-        joined = ic.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
-        sizes = asl.rule_sizes(joined)
-        common_ic = joined.index.intersection(common)
-        tab = pd.DataFrame({
-            name: asl.rule_row((sizes[name] * joined["R_long_ic"]).loc[common_ic], sizes[name].loc[common_ic])
-            for name in order
-        }).T
-        safe = f"iron_condor_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
+        joined = vs.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
+        j = joined.loc[joined.index.intersection(common)]
+        series = {
+            ("always short", "per premium"): (j["R_prem"], pd.Series(-1.0, index=j.index)),
+            ("always short", "per max risk"): (j["R_risk"], pd.Series(-1.0, index=j.index)),
+            ("long-short volatility", "per premium"): (j["R_prem"].where(j["pos"] < 0, j["R"]), j["pos"]),
+            ("long-short volatility", "per max risk"): (j["R_risk"].where(j["pos"] < 0, j["R"]), j["pos"]),
+        }
+        tab = pd.DataFrame({key: asl.rule_row(r, sz) for key, (r, sz) in series.items()}).T
+        tab.index = pd.MultiIndex.from_tuples(tab.index, names=["rule", "units"])
+        safe = f"credit_spread_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
         tab.to_csv(OUT / f"{safe}.csv")
-    # one strategy-grouped print on blk2
-    joined = ic.join(books["blk2"][["signal", "pos", "R"]], how="inner", rsuffix="_strad")
-    sizes = asl.rule_sizes(joined)
-    common_ic = joined.index.intersection(common)
-    print(f"--- iron condor width {w}, defined-risk R, blk2 ---")
-    for name in order:
-        print(name)
-        print(asl.rule_row((sizes[name] * joined["R_long_ic"]).loc[common_ic], sizes[name].loc[common_ic]).to_string())
+        if tag != "blk2":
+            continue
+        print(f"--- credit verticals width {w}, per body premium, blk2 ---")
+        print(f"days {len(j)} = wing days & common; "
+              f"{int((j['pos'] < 0).sum())} short-vertical, {int((j['pos'] > 0).sum())} long-straddle")
+        for name in ("always short", "long-short volatility"):
+            r, sz = series[(name, "per premium")]
+            print(name)
+            print(asl.rule_row(r, sz).to_string())
+        print("capital-at-risk view (bounded at -1), same days:")
+        for name in ("always short", "long-short volatility"):
+            r, _ = series[(name, "per max risk")]
+            print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
+                  f"min {float(r.min()):+.3f} max {float(r.max()):+.3f}")
+        print("capped vs uncapped straddle, same days, per body premium:")
+        for name in ("always short", "long-short volatility"):
+            r, _ = series[(name, "per premium")]
+            bench = (-j["R"]) if name == "always short" else j["pos"] * j["R"]
+            print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
+                  f"worst {float(r.min()):+.3f} maxDD {maxdd(r):+.2f} | uncapped: "
+                  f"mean {float(bench.mean()):+.5f} Sharpe {float(bench.mean()/bench.std(ddof=1)*np.sqrt(252)):+.3f} "
+                  f"worst {float(bench.min()):+.3f} maxDD {maxdd(bench):+.2f}")
+        # the insurance itself, in index points per package (always-short frame)
+        naked = (j["entry_body"] - j["exit"]).astype(float)
+        capped = j["pnl"].astype(float)
+        drag = naked - capped
+        t_drag = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(
+            cov_type="HAC", cov_kwds={"maxlags": 6}
+        )
+        jb = j["cap_binds"]
+        worst10 = naked.nsmallest(10).index
+        print(f"insurance in index points/package, always short, {len(j)} days:")
+        print(f"  wing drag {float(drag.mean()):+.3f}/day (paired HAC-6 t {float(t_drag.tvalues[0]):+.2f}); "
+              f"worst day naked {float(naked.min()):+.1f} vs capped {float(capped.min()):+.1f}; "
+              f"maxDD naked {maxdd(naked):+.1f} vs capped {maxdd(capped):+.1f}")
+        print(f"  cap binds on {int(jb.sum())} of these days: points saved there "
+              f"{float((capped - naked)[jb].sum()):+.1f}; over the 10 worst naked days "
+              f"{float((capped - naked)[worst10].sum()):+.1f}")
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
 rp_s = (-books["blk2"]["R"]).loc[common].cumsum()
 ax.plot(rp_s.index, rp_s.values, label="always-short straddle", lw=1.2)
-for w, ic in ic_tabs.items():
-    joined = ic.join(books["blk2"][["signal"]], how="inner")
-    idx = joined.index.intersection(common)
-    ax.plot(idx, (-joined.loc[idx, "R_long_ic"]).cumsum().values, label=f"always-short IC w={int(w)}", lw=1.1)
-ax.set_title("cumulative defined-risk $R'$ — always short, blk2 days")
+for w, vs in vs_tabs.items():
+    idx = vs.index.intersection(common)
+    ax.plot(idx, vs.loc[idx, "R_prem"].cumsum().values,
+            label=f"always-short verticals w={int(w)}", lw=1.1)
+ax.set_title("cumulative $R'$ per body premium — always short, blk2 days")
 ax.legend(fontsize=8)
 fig.tight_layout()
-fig.savefig(OUT / "iron_condor_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "iron_condor_vs_straddle_cum.png")
+fig.savefig(OUT / "credit_spread_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "credit_spread_vs_straddle_cum.png")
 display(fig)
 plt.close(fig)
 """
     ),
     md(
         r"""
-## 17. Hand-check one row
+## 18. Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
 - `entry` = 15:30 `mid_c + mid_p`.
