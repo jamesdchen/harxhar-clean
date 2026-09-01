@@ -77,15 +77,16 @@ def main() -> int:
         return 0
 
     class _TimedClient(NotebookClient):
-        def execute_cell(self, *args, **kwargs):
+        async def async_execute_cell(self, cell, cell_index, *args, **kwargs):
             import time
 
-            idx = args[1] if len(args) > 1 else kwargs.get("cell_index", "?")
             t0 = time.perf_counter()
             try:
-                return super().execute_cell(*args, **kwargs)
+                return await super().async_execute_cell(
+                    cell, cell_index, *args, **kwargs
+                )
             finally:
-                print(f"cell {idx} {time.perf_counter() - t0:.1f}s", flush=True)
+                print(f"cell {cell_index} {time.perf_counter() - t0:.1f}s", flush=True)
 
     client = _TimedClient(
         nb,

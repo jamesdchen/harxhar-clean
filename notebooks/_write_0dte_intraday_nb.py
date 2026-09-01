@@ -1,5 +1,6 @@
 """Write notebooks/atm_straddle_intraday.ipynb — every 30-min 0DTE bar."""
 
+import hashlib
 from pathlib import Path
 
 import nbformat as nbf
@@ -36,18 +37,18 @@ intraday extensions, spelled out before any table.
 | | **Hold** (path of one straddle) | **Re-pick** (**this notebook**) |
 |---|---|---|
 | strikes | pick once, keep $K$ all day | new nearest-OTM at every 30-min bar $t$ |
-| $R_t$ | 30-min mid path of **those** $K$; last bar cash-settles | next mid of the **$t$-straddle**; 16:00 cash-settles **that** straddle |
+| $R_t$ | 30-min mid path of **those** $K$; last bar cash-settles | next mid of the **$t$-straddle**; **15:30 cash-settles that straddle** |
 | what it is | scalar expansion of one trade | a sequence of 30-min straddles |
 
 **Proper $R_t$.** Pair the return with the forecast window.
 
 - Re-pick + next-bar $\widehat{RV}_t$: $R_t =$ next mid of the straddle
-  picked at $t$, divided by entry, minus 1. That is a 30-min hold.
-  16:00 has no next mid — cash-settle is a **different** payoff; park
-  it or score it as a last-bar settlement book, not as a 30-min hold.
-- The paper book cash-settles at the official close. This notebook's
-  15:30 row marks to the 16:00 mid. Those are not the same $R$.
-  Score both; do not substitute.
+  picked at $t$, divided by entry, minus 1 — a 30-min hold — for bars
+  through 15:00. The **15:30** straddle cash-settles at the official
+  close (the paper payoff): by decision, **no return in this book uses
+  a 16:00 quote**. The 16:00 mids are zero-bid artifacts (median entry
+  $\sim\$0.25$, ask-only quotes), so the 16:00 straddle is not built
+  and the 15:30 exit is settlement, not the 16:00 mid.
 
 This notebook **re-picks**. It does not mark one straddle through the
 day.
@@ -111,19 +112,27 @@ pd.set_option("display.float_format", lambda x: f"{x: .6f}")
     md("## 1. Load the 0DTE chain (every 30-min bar)"),
     code(
         """
+# [cache:load]
 path = REPO / "data" / "spxw_chain.parquet"
 COLS = ["expiration", "timestamp", "strike", "cp", "bid", "ask", "mid",
         "underlying_price", "impl_volatility"]
 opt = ["hours_to_expiration"]
 import pyarrow.parquet as pq
-avail_cols = set(pq.ParquetFile(path).schema_arrow.names)
-keep_cols = [c for c in COLS + opt if c in avail_cols]
 _st = os.stat(path)
-_ck = CACHE / f"chain_0dte_{_st.st_size}_{_st.st_mtime_ns}.parquet"
-if _ck.exists():
+# Cache keys carry a hash of the construction cells' source (injected by
+# the writer), so any change to the load/filter/pick/exit logic mints a
+# new key and stale caches can never serve the new code.
+_ck = CACHE / f"chain_0dte_{_st.st_size}_{_st.st_mtime_ns}_{CHAIN_CODE_HASH}.parquet"
+_book_ck = CACHE / f"book_{_st.st_size}_{_st.st_mtime_ns}_{BOOK_CODE_HASH}.parquet"
+if _book_ck.exists():
+    chain = None
+    print("chain load skipped: book cache hit (code-hashed key)")
+elif _ck.exists():
     chain = pd.read_parquet(_ck)
     print("cache hit", _ck.name)
 else:
+    avail_cols = set(pq.ParquetFile(path).schema_arrow.names)
+    keep_cols = [c for c in COLS + opt if c in avail_cols]
     raw = pd.read_parquet(path, columns=keep_cols)
     raw["timestamp"] = pd.to_datetime(raw["timestamp"], utc=True)
     raw["expiration"] = pd.to_datetime(raw["expiration"])
@@ -140,53 +149,50 @@ else:
     for old in CACHE.glob("chain_0dte_*.parquet"):
         old.unlink()
     chain.to_parquet(_ck)
-print("0DTE rows", f"{len(chain):,}")
-et0 = pd.to_datetime(chain["et"])
-print("clock times", sorted(et0.dt.strftime("%H:%M").unique()))
-print(chain.head(3))
+if chain is not None:
+    print("0DTE rows", f"{len(chain):,}")
+    et0 = pd.to_datetime(chain["et"])
+    print("clock times", sorted(et0.dt.strftime("%H:%M").unique()))
+    print(chain.head(3))
 """
     ),
     md("## 2. Regular hours; drop half-sessions"),
     code(
         """
-et = pd.to_datetime(chain["et"])
-mins = et.dt.hour * 60 + et.dt.minute
-rth = (mins >= 9 * 60 + 30) & (mins <= 16 * 60)
-chain = chain[rth].copy()
-if "hours_to_expiration" in chain.columns:
-    open_hte = (
-        chain[(et.dt.hour == 9) & (et.dt.minute == 30)]
-        .groupby("expiration")["hours_to_expiration"].median()
-    )
-    half = open_hte[np.abs(open_hte.astype(float) - 6.5) > 0.2].index
-    print("half-sessions dropped", len(half))
-    chain = chain[~chain["expiration"].isin(half)].copy()
-print("rows after RTH filter", f"{len(chain):,}", "days", chain["expiration"].nunique())
+# [cache:rth]
+if chain is None:
+    print("skipped (cached book already reflects the RTH / half-session filter)")
+else:
+    et = pd.to_datetime(chain["et"])
+    mins = et.dt.hour * 60 + et.dt.minute
+    rth = (mins >= 9 * 60 + 30) & (mins <= 16 * 60)
+    chain = chain[rth].copy()
+    if "hours_to_expiration" in chain.columns:
+        open_hte = (
+            chain[(et.dt.hour == 9) & (et.dt.minute == 30)]
+            .groupby("expiration")["hours_to_expiration"].median()
+        )
+        half = open_hte[np.abs(open_hte.astype(float) - 6.5) > 0.2].index
+        print("half-sessions dropped", len(half))
+        chain = chain[~chain["expiration"].isin(half)].copy()
+    print("rows after RTH filter", f"{len(chain):,}", "days", chain["expiration"].nunique())
 """
     ),
     md(
         r"""
-## 2b. Why the scored book starts at 10:00, and `^GSPC` Open as $S_{9:30}$
+## 2b. The scored book starts at 10:00, not 9:30
 
 Vendor `underlying_price` at 9:30 is **all NaN** — the picker has no
-$S$ to choose $K_c\ge S$, $K_p\le S$. That is not a 10:00 cash open.
-
-`^GSPC` daily Open **is** the 9:30 cash print. It can fill $S_{9:30}$.
-It is a **different** series than the vendor underlying used from
-10:00 on (median $|$10:00 vendor $S$ − Open$|$ is several index
-points, which is the 9:30→10:00 move, not a bug). The close book uses
-vendor $S$ at 15:30 and yfinance only for **settlement**. Mixing Open
-at 9:30 with vendor $S$ later is a documented splice, not the paper
-protocol.
-
-The binding constraint is quotes, not spot: live 9:30 mids exist on
-only about 40% of expiration days. The diagnostic below counts how
-many ATM straddles Open would actually form. They are **not** in the
-default scored panel.
+$S$ to choose $K_c\ge S$, $K_p\le S$, so no 9:30 straddle can be
+formed. Quotes bind too: live 9:30 mids exist on only ~40% of
+expiration days. The first bar with both a vendor spot and live mids
+on every day is 10:00. `yfinance` is used only for **settlement**
+(the official close).
 """
     ),
     code(
         """
+# [cache:gspc]
 def load_gspc_ohlc(days):
     days = pd.to_datetime(days)
     cp = CACHE / "gspc_ohlc.parquet"
@@ -214,46 +220,13 @@ def load_gspc_ohlc(days):
     out.to_parquet(cp)
     return out.astype(float)
 
-et = pd.to_datetime(chain["et"])
-hh, mm = et.dt.hour, et.dt.minute
-exp_day = pd.to_datetime(chain["expiration"])
-if getattr(exp_day.dt, "tz", None) is not None:
-    exp_day = exp_day.dt.tz_convert("America/New_York").dt.tz_localize(None)
-exp_day = exp_day.dt.normalize()
-ohlc = load_gspc_ohlc(exp_day)
-s930 = chain[(hh == 9) & (mm == 30)]
-print("9:30 rows", len(s930), "days", s930["expiration"].nunique())
-print("9:30 vendor underlying finite", float(np.isfinite(s930["underlying_price"]).mean()))
-print("9:30 mid>0 fraction", float((np.isfinite(s930["mid"]) & (s930["mid"] > 0)).mean()))
-live930 = s930[np.isfinite(s930["mid"]) & (s930["mid"] > 0)].copy()
-live930["exp_day"] = exp_day.loc[live930.index]
-live930["S_open"] = live930["exp_day"].map(ohlc["open"])
-live930 = live930[np.isfinite(live930["S_open"])]
-c = live930[live930["cp"] == "C"].copy()
-p = live930[live930["cp"] == "P"].copy()
-c["S"] = c["S_open"]
-p["S"] = p["S_open"]
-c_otm = c[c["strike"] >= c["S"]].copy()
-p_otm = p[p["strike"] <= p["S"]].copy()
-c_otm["k_gap"] = c_otm["strike"].astype(float) - c_otm["S"]
-p_otm["k_gap"] = p_otm["S"] - p_otm["strike"].astype(float)
-c_pick = c_otm.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
-p_pick = p_otm.sort_values(["expiration", "k_gap", "strike"]).groupby("expiration", as_index=False).first()
-both930 = c_pick.merge(p_pick, on="expiration", suffixes=("_c", "_p"))
-print("days with any live 9:30 mid", live930["expiration"].nunique(), "/", s930["expiration"].nunique())
-print("9:30 ATM straddles if S = GSPC Open", len(both930))
-s10 = chain[(hh == 10) & (mm == 0)].dropna(subset=["underlying_price"])
-s10m = s10.groupby(exp_day.loc[s10.index])["underlying_price"].first()
-common = s10m.index.intersection(ohlc.index)
-gap = (s10m.loc[common] - ohlc.loc[common, "open"]).abs()
-print("|10:00 vendor S - GSPC Open| median", float(gap.median()), "n", len(common))
-print("default book does not include these 9:30 straddles.")
+print("settlement source: GSPC official close via load_gspc_ohlc (cached)")
 """
     ),
     md("## 3. Nearest-OTM straddle at each 30-min bar (re-pick; vendor $S$ only)"),
     code(
         """
-_book_ck = CACHE / f"book_{_st.st_size}_{_st.st_mtime_ns}.parquet"
+# [cache:pick]
 if _book_ck.exists():
     pkg = pd.read_parquet(_book_ck)
     live = None
@@ -298,29 +271,28 @@ else:
     ),
     md(
         r"""
-## 4. Exit: next-bar mid of the same strikes; last bar cash-settles
+## 4. Exit: next-bar mid; the 15:30 bar cash-settles
 
 Re-pick 30-min hold: $R_t = \mathrm{exit}_{t+1}/P_t - 1$ with
-$\mathrm{exit}_{t+1}$ = next mid of **those** $K$. If a leg is missing
-at $t+1$, the row is dropped — counts printed below.
+$\mathrm{exit}_{t+1}$ = next mid of **those** $K$, for bars
+10:00–15:00. If a leg is missing at $t+1$, the row is dropped —
+counts printed below.
 
-**16:00 / last bar** has no next mid. Cash-settle vs `^GSPC` close
-is the paper payoff, applied here to the **16:00 straddle**, not the
-15:30 straddle. That row is settlement, not a 30-min hold.
-
-**15:30** in this book is 15:30→**16:00 mid** of the 15:30 $K$. The
-paper is 15:30→**official close** of the 15:30 $K$. A cell below
-scores always-short both ways on the same 15:30 straddles. Use the
-close calculation when comparing to the paper; use next-mid when this
-row is one step in the 30-min re-pick path.
+**15:30 / last bar** cash-settles vs `^GSPC` close — the paper
+payoff on the 15:30 straddle.
 """
     ),
     code(
         """
+# [cache:exit]
 if "R" in pkg.columns and _book_ck.exists():
     print("book cache: skip exit rebuild")
     n_pkg = len(pkg)
 else:
+    et_pick = pd.to_datetime(pkg["timestamp"], utc=True).dt.tz_convert("America/New_York")
+    is_1600 = (et_pick.dt.hour == 16) & (et_pick.dt.minute == 0)
+    print("dropped", int(is_1600.sum()), "16:00 straddles (entry would be a 16:00 quote; excluded by decision)")
+    pkg = pkg[~is_1600].copy()
     pkg["nxt_ts"] = pkg.groupby("expiration")["timestamp"].shift(-1)
     pkg["is_last"] = pkg["nxt_ts"].isna()
     days = pd.to_datetime(pkg["expiration"])
@@ -352,7 +324,7 @@ miss_either = (~pkg["is_last"]) & ~np.isfinite(pkg["exit_mark"])
 miss_settle = pkg["is_last"] & ~np.isfinite(pkg["exit_settle"])
 bad_entry = ~np.isfinite(pkg["entry"]) | (pkg["entry"] <= 0)
 print("straddles before exit filter", n_pkg)
-print("last-bar (cash-settle path)", n_last)
+print("last bar = 15:30 (cash-settle vs official close)", n_last)
 print("non-last (next-mid path)", n_nonlast)
 print("non-last missing next CALL mid", int(miss_c.sum()))
 print("non-last missing next PUT mid", int(miss_p.sum()))
@@ -372,6 +344,8 @@ pkg["hour"] = pkg["et"].dt.hour
 pkg["hhmm"] = pkg["et"].dt.strftime("%H:%M")
 pkg["date"] = pkg["et"].dt.normalize().dt.tz_localize(None)
 if not _book_ck.exists():
+    for _old in CACHE.glob("book_*.parquet"):
+        _old.unlink()
     pkg.to_parquet(_book_ck)
     print("wrote book cache", _book_ck.name)
 print("bars with a return", len(pkg), "last-bar fraction", float(pkg["is_last"].mean()))
@@ -380,33 +354,6 @@ as_raw = pkg.groupby("hhmm")["R_as"].agg(["count", "mean", "std", "median"])
 as_raw["t"] = as_raw["mean"] / as_raw["std"] * np.sqrt(as_raw["count"])
 as_raw["Sharpe_ann"] = as_raw["mean"] / as_raw["std"] * np.sqrt(252.0)
 print(as_raw.to_string())
-"""
-    ),
-    md(
-        r"""
-## 4b. 15:30 next-mid vs 15:30 cash-settle (always-short)
-
-Paper book: 15:30 straddle, exit = official close. This notebook's
-15:30 row: same straddle, exit = 16:00 mid. Always-short on both,
-same days. The close calculation is the one that matches the paper.
-"""
-    ),
-    code(
-        """
-m1530 = (pkg["et"].dt.hour == 15) & (pkg["et"].dt.minute == 30)
-p15 = pkg.loc[m1530].copy()
-p15["R_mid"] = p15["exit_mark"] / p15["entry"] - 1.0
-p15["R_close"] = p15["exit_settle"] / p15["entry"] - 1.0
-ok = np.isfinite(p15["R_mid"]) & np.isfinite(p15["R_close"])
-p15 = p15.loc[ok]
-print("15:30 straddles with both exits", len(p15))
-for name, col in (("15:30 -> 16:00 mid (this notebook)", "R_mid"),
-                  ("15:30 -> official close (paper)", "R_close")):
-    x = -p15[col]  # always short
-    mu, sd = float(x.mean()), float(x.std(ddof=1))
-    n = int(len(x))
-    print(name)
-    print(f"  n {n}  mean {mu:.4f}  Sharpe {mu/sd*np.sqrt(252):.3f}  t {mu/sd*np.sqrt(n):.3f}")
 """
     ),
     md(
@@ -527,6 +474,7 @@ n_pre = len(work)
 work["signal"] = work["rv_hat"] - work["iv_var_chris"]
 work = work.dropna(subset=["R", "signal"])
 print("dropped at forecast join (no yhat / no smear)", n_pre - len(work), "kept", len(work))
+print("last scored bar is 15:30, cash-settled at the official close (paper payoff); no 16:00 quotes anywhere")
 work["pos"] = np.where(work["signal"] > 0, 1.0, -1.0)
 print("bars after join", len(work), "clock times", sorted(work["hhmm"].unique()))
 """
@@ -535,9 +483,10 @@ print("bars after join", len(work), "clock times", sorted(work["hhmm"].unique())
         r"""
 ## 6. Rule table — three books (pooled)
 
-Same bars and the same long-straddle $R$ (next-mid 30-min hold;
-16:00 cash-settles vs the official close). Only the position $q_t$
-changes. One forecast: block-diag ridge (`blk2`). Mid fill.
+Same bars and the same long-straddle $R$ (next-mid 30-min holds
+10:00–15:00; the 15:30 leg cash-settles at the official close — the
+paper payoff; no 16:00 quotes anywhere, see §4). Only the position
+$q_t$ changes. One forecast: block-diag ridge (`blk2`). Mid fill.
 
 **Rules** (each returns $R'_t=q_t R_t$):
 
@@ -555,8 +504,13 @@ changes. One forecast: block-diag ridge (`blk2`). Mid fill.
   (median bars per day) $\approx 63$ trading days. Before warmup,
   $\mathrm{med}$ is NaN $\Rightarrow$ leverage $1$. Cap 3.
   Numerator is this bar's $|s_t|$; denominator is only bars
-  **strictly before** $t$. 16:00 $|s|$ sits on a different scale
-  (cash-settle) and can hit the cap — park that bar for UM.
+  **strictly before** $t$. All scored bars (10:00–15:30) enter the
+  median; no 16:00 quotes exist in the panel.
+- **AS + UM 15:30:** $q_t=-1$ on every bar before 15:30; the
+  unit-median position on the 15:30 bar. Motivation: the per-clock
+  split shows always-short earns at every intraday bar while the
+  paper's unit-median sizing earns on the 15:30 settlement leg —
+  this rule stacks the two.
 
 The table is **pooled**: every clock stacked into one list
 ($\sim 11{,}254$ rows). Those are $\sim 13$ bars **on the same
@@ -603,8 +557,9 @@ moments of the **30-min** $R'$ (unannualized). The rest:
 - `n_buy` / `pct_buy` — bars with $q_t>0$ (buy the straddle).
   Always-short is 0 by construction.
 
-16:00 cash-settle contaminates always-short and UM in this pooled
-table. Split by clock is the next section.
+The 16:00 straddle never enters the book (§4): bars are 10:00–15:00
+next-mid holds plus the 15:30 settlement leg — the paper payoff.
+Split by clock is the next section.
 """
     ),
     code(
@@ -619,6 +574,10 @@ q = {
     "always short": pd.Series(-1.0, index=work.index),
     "long-short volatility": work["pos"],
     "unit-median VRP": work["pos"] * work["lev"],
+    "AS + UM 15:30": pd.Series(
+        np.where(work["hhmm"] == "15:30", (work["pos"] * work["lev"]).to_numpy(), -1.0),
+        index=work.index,
+    ),
 }
 rows = []
 for name, size in q.items():
@@ -644,7 +603,7 @@ cols = [
     "n", "n_days", "mean", "mean_daily", "std", "min", "25%", "50%", "75%", "max",
     "skew", "ex_kurt", "Sharpe_bar", "t_mean", "Sharpe_ann", "n_buy", "pct_buy",
 ]
-print("pooled (16:00 cash-settle contaminates always-short / UM)")
+print("pooled, 10:00-15:30; 15:30 leg cash-settles at the official close (no 16:00 quotes)")
 print("Sharpe_bar = mean/std of 30-min R' (no sqrt)")
 print("Sharpe_ann = mean/std of (sum of R' that calendar day) * sqrt(252)")
 print("t_mean = mean_daily / sd_daily * sqrt(n_days)")
@@ -676,8 +635,9 @@ clock time, not a count of 30-min bars.
 
 The plot is the by-clock-time slice, not the pooled mean: each
 dot is the average of *that clock time's* daily series, for
-always-short and unit-median. 10:00–15:30 are next-mid 30-min
-holds; **16:00 is cash-settle vs official close** — a different $R$.
+always-short and unit-median. Bars 10:00–15:00 are next-mid 30-min
+holds; the **15:30 bar cash-settles at the official close**, so its
+row is the paper's book (up to the pooled-median leverage scale).
 """
     ),
     code(
@@ -715,7 +675,7 @@ for rule, marker in (("always short", "o"), ("unit-median VRP", "s")):
 ax.axhline(0, color="k", lw=0.6)
 ax.set_xlabel("entry time (ET)")
 ax.set_ylabel("mean R'")
-ax.set_title("16:00 is cash-settle vs close; other bars are next-mid 30-min holds")
+ax.set_title("next-mid 30-min holds 10:00-15:00; 15:30 cash-settles at the official close")
 ax.tick_params(axis="x", rotation=45)
 ax.legend(fontsize=8)
 fig.tight_layout()
@@ -727,6 +687,28 @@ print("saved CSVs in", OUT)
     ),
 ]
 
+
+# Inject construction-code hashes into the load cell so cache keys
+# self-invalidate whenever the load/filter/pick/exit logic changes.
+def _cell_src(tag: str) -> str:
+    for c in nb.cells:
+        if c.cell_type == "code" and c.source.startswith(f"# [{tag}]"):
+            return c.source
+    raise KeyError(tag)
+
+
+def _code_hash(*tags: str) -> str:
+    return hashlib.sha256("".join(_cell_src(t) for t in tags).encode()).hexdigest()[:10]
+
+
+_pre = (
+    f'CHAIN_CODE_HASH = "{_code_hash("cache:load")}"\n'
+    f'BOOK_CODE_HASH = "{_code_hash("cache:load", "cache:rth", "cache:gspc", "cache:pick", "cache:exit")}"\n'
+)
+for _c in nb.cells:
+    if _c.cell_type == "code" and _c.source.startswith("# [cache:load]"):
+        _c.source = _pre + _c.source
+        break
 
 path = Path(__file__).resolve().parent / "atm_straddle_intraday.ipynb"
 n_kept = carry_outputs(nb, path)

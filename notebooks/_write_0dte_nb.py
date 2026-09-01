@@ -893,9 +893,9 @@ for tag in MODEL_ORDER:
         port = (sizes[name] * px["R"]).loc[common]
         st = asl.information_ratio(port, bench)
         ir_rows.append({"model": LABEL[tag], "rule": name, **st.to_dict()})
-ir_tab = pd.DataFrame(ir_rows)
-print(ir_tab.to_string(index=False))
-ir_tab.to_csv(OUT / "information_ratio_vs_always_short.csv", index=False)
+ir_tab = pd.DataFrame(ir_rows).set_index(["rule", "model"]).sort_index().sort_values(by="IR_ann", ascending=False)
+print(ir_tab.to_string())
+ir_tab.to_csv(OUT / "information_ratio_vs_always_short.csv")
 print("IR = active return / tracking error; benchmark is always-short.")
 """
     ),
