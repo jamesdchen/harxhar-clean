@@ -53,6 +53,20 @@ intraday extensions, spelled out before any table.
 This notebook **re-picks**. It does not mark one straddle through the
 day.
 
+## No-peek protocol
+
+Every position-forming quantity at bar $t$ is one of two things: the
+bar's **own entry quote** (the tradable price at decision time), or
+an estimate built **strictly from prior days, lagged at least one
+day** — the smear's $(a,b,\hat\sigma^2)$, the diurnal profile $w$,
+the per-clock leverage medians. Realized exits enter only as
+outcomes, never as inputs. No quantity differences two quotes taken
+at different times: that construction (the implied-decay $\Delta V$)
+embeds the later quote's view of the bar it brackets, and is
+confined to parked studies. Audited mechanically: perturbing day-$d$
+inputs leaves every day-$d$ estimate invariant (rtol $10^{-12}$)
+while registering on day $d{+}1$.
+
 ## Choice 2 — IV (same window as $\widehat{RV}$)
 
 $\widehat{RV}_t$ is next-**30-min** realized variance (smeared
@@ -428,7 +442,11 @@ Close book and this notebook share `second_order_raw` /
    over **all 30-min bars** that day (not 15:30-only).
 3. Prefix sums. For evaluation day $d\ge 63$, the MZ window is days
    $[d-250,\,d)$ — **prior days only**. Same-day bars are not in the
-   window. Require $n\ge 200$ finite bars in that window.
+   window. Require $n\ge 200$ finite bars in that window. **Only
+   session bars (10:00–15:30) enter the fit** — off-session bars are
+   mispredicted by $\sim$50–100$\times$ and previously polluted the
+   calibration (mean $\widehat{RV}/RV$ on session bars
+   1.14 $\to$ 1.08 after the restriction).
 4. Fit $m=a+b\,\widehat{y}$ and residual $\hat\sigma^{2}$ on that
    window. Apply **that day's** $(a,b,\hat\sigma^{2})$ to **each** bar
    $t$ on day $d$:
@@ -441,6 +459,17 @@ smear is fit.
 
 $\widehat{RV}_t$ is $E[RV]$ for the **next 30-min bar**, not remaining
 session.
+
+**Alignment.** Panel stamps are **bar-end labelled**: the row at
+stamp $\tau$ carries the realized variance of $[\tau-30,\tau]$ and
+the forecast of that same bar, issued at $\tau-30$ (lead–lag peak
+corr 0.816 at one bar; same-row MZ slope 1.02). A trade entered at
+$t$ therefore pairs with the **stamp $t{+}30$ row** — the forecast
+issued at $t$ for the bar actually held — and that row's realized
+variance is the bar's own. Earlier versions paired stamp $t$ with
+trade $t$: causal (a *stale* forecast, the opposite of lookahead)
+but one bar behind, and it shifted every per-clock realized
+attribution by one row.
 """
     ),
     code(
@@ -460,7 +489,13 @@ else:
 pkg["t"] = pd.to_datetime(pkg["timestamp"], utc=True)
 work = pkg.copy()
 if "blk2" in panels:
-    work = work.merge(panels["blk2"].reset_index(), left_on="t", right_on="t", how="left")
+    # Bar-end-labelled panel: stamp t+30 carries the forecast issued AT t
+    # for the bar [t, t+30] being held, and that bar's own realized
+    # variance. Shift the panel stamps back one bar so trade bar t joins
+    # its fresh forecast and its own realized.
+    _p = panels["blk2"].reset_index()
+    _p["t"] = pd.to_datetime(_p["t"], utc=True) - pd.Timedelta(minutes=30)
+    work = work.merge(_p, on="t", how="left")
 work["iv_var_chris"] = (work["iv_hourly"].astype(float) ** 2) * 0.5
 work["iv_var_om"] = (work["iv_hourly"].astype(float) ** 2) * 0.5 / (252.0 * 6.5)
 work["iv_var_raw"] = work["iv_hourly"].astype(float) ** 2
@@ -481,36 +516,160 @@ print("bars after join", len(work), "clock times", sorted(work["hhmm"].unique())
     ),
     md(
         r"""
-## 6. Rule table — three books (pooled)
+## 5b. Window-matched signal and forecast calibration
+
+One construction plus one verification, both causal, feeding extra
+rows of the §6 table.
+
+**Forecast calibration (the fit-set fix).** The smear previously fit
+its MZ regression on every 30-min bar of the day, overnight included;
+off-session bars are mispredicted by $\sim$50–100$\times$ and
+polluted the fit, leaving a $\sim$14% mean overshoot on session bars.
+The fix lives in the lib: `second_order_raw` fits only the scored
+session bars (10:00–15:30), same flat 250-day window. Mean
+$\widehat{RV}/RV \approx 1.08$ after the restriction; the residual
+$\sim$8% is a two-decade-stable second-moment overshoot, plausibly
+QLIKE-protective, and is left alone. No debias layer — the cell
+below just verifies calibration.
+
+**Resliced implied (window-matched signal).** One option prices only
+the integral of variance to the close; the vendor hourly IV is that
+integral per hour. To compare against a *next-30-min* forecast,
+reslice: $\mathrm{IV}^{2}_{\mathrm{hr}}\times h_t$ is the remaining
+implied variance ($h_t$ = hours to close), and the next bar's share
+is $w_t$ = this clock's fraction of remaining realized variance,
+estimated from the **expanding per-clock mean** of realized bar
+variance on prior days only. Then
+
+$$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t.$$
+
+At 15:30, $w=1$, $h=\tfrac12$: the matched implied collapses to the
+paper's $\mathrm{IV}^2/2$ exactly (checked in-cell). Warmup rows
+(first 63 days) carry no matched signal and sit flat in the matched
+books.
+"""
+    ),
+    code(
+        r"""
+# The fit-set fix lives in asl.second_order_raw (session-only MZ fit).
+# Verify calibration on the scored panel, per year: the pooled ratio of
+# means is dominated by 2020's variance, so the per-year view is the
+# honest one (2021-24 sit at ~1.05-1.07; all-bars fit gave ~1.11-1.14).
+ok = np.isfinite(work["rv_hat"]) & np.isfinite(work["rv_raw"])
+_cal = work.loc[ok].groupby(work.loc[ok, "date"].dt.year).apply(
+    lambda g: float(g["rv_hat"].mean() / g["rv_raw"].mean()), include_groups=False
+)
+print("mean rv_hat/rv_raw by year, session-fit smear:")
+print(_cal.round(3).to_string())
+
+# Causal diurnal profile: expanding per-clock mean of realized bar variance,
+# prior days only; w = this clock's share of the remaining-session sum.
+prof = work.pivot_table(index="date", columns="hhmm", values="rv_raw", aggfunc="mean").sort_index()
+prof_exp = prof.expanding(min_periods=63).mean().shift(1)
+clocks = sorted(work["hhmm"].unique())
+rem_sum = prof_exp[clocks[::-1]].cumsum(axis=1)[clocks]
+w_slice = prof_exp / rem_sum
+mi = pd.MultiIndex.from_arrays([work["date"], work["hhmm"]])
+work["w_slice"] = w_slice.stack().reindex(mi).to_numpy()
+n_rem = {c: len(clocks) - i for i, c in enumerate(clocks)}
+work["h_rem"] = work["hhmm"].map(n_rem).astype(float) * 0.5
+work["iv_next30_matched"] = work["iv_var_raw"] * work["h_rem"] * work["w_slice"]
+work["s_matched"] = work["rv_hat"] - work["iv_next30_matched"]
+
+chk = work[(work["hhmm"] == "15:30") & np.isfinite(work["iv_next30_matched"])]
+print("15:30 collapse check: median |matched/chris - 1| =",
+      float((chk["iv_next30_matched"] / chk["iv_var_chris"] - 1.0).abs().median()))
+mvalid = work[np.isfinite(work["s_matched"])]
+print("matched-signal rows", len(mvalid), "/", len(work))
+print("pct s_matched>0 by clock (was ~94% at 10:00 under the 30-min pairing)")
+print(mvalid.groupby("hhmm")["s_matched"].apply(lambda x: 100.0 * float((x > 0).mean())).round(1).to_string())
+
+# Remaining-session pairing (option 1), kept for reference. Same sign as
+# s_matched when the forecast follows the profile (s_rem = s_matched / w),
+# so the LS book is identical and only the UM sizing scale changes:
+# rvhat_rem = work["rv_hat"] / work["w_slice"]
+# iv_rem = work["iv_var_raw"] * work["h_rem"]
+# work["s_rem"] = rvhat_rem - iv_rem
+"""
+    ),
+    md(
+        r"""
+## 6. Rule table (pooled)
 
 Same bars and the same long-straddle $R$ (next-mid 30-min holds
 10:00–15:00; the 15:30 leg cash-settles at the official close — the
 paper payoff; no 16:00 quotes anywhere, see §4). Only the position
 $q_t$ changes. One forecast: block-diag ridge (`blk2`). Mid fill.
 
-**Rules** (each returns $R'_t=q_t R_t$):
+**Rules** (each returns $R'_t=q_t R_t$). Every rule below that uses
+a forecast uses the §5b window-matched signal
+$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t\,w_t$
+— the only pairing whose two sides live on the same window at every
+clock. Earlier versions of the long-short and unit-median rows used
+the 30-min pairing; those are **retired**: that signal compared a
+next-bar forecast to a remaining-session-average implied, so away
+from 15:30 it detected the diurnal profile, not mispricing (§5b).
 
 - **always short:** $q_t\equiv -1$ every bar. No forecast. This is
   the scalar: short every re-picked straddle.
-- **long-short volatility:** $q_t=\mathrm{sign}(s_t)$, with
-  $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ and $s_t=0$ mapped to
-  $-1$. Long the straddle when the forecast exceeds implied 30-min
-  variance, short otherwise. Size is always one straddle.
+- **long-short volatility:** $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ —
+  long the straddle when the matched forecast exceeds the matched
+  implied slice, short otherwise; warmup bars with no signal sit
+  flat ($q=0$).
 - **unit-median VRP:**
-  $q_t=\mathrm{clip}(s_t/\mathrm{med}_{u<t}|s_u|,-3,3)$.
-  Same sign as long-short; size is one lot per causal expanding
-  median $|s|$. The median is over **all prior 30-min bars** (not
-  15:30-only), lagged one bar (`.shift(1)`), warmup $63\times$
-  (median bars per day) $\approx 63$ trading days. Before warmup,
-  $\mathrm{med}$ is NaN $\Rightarrow$ leverage $1$. Cap 3.
-  Numerator is this bar's $|s_t|$; denominator is only bars
-  **strictly before** $t$. All scored bars (10:00–15:30) enter the
-  median; no 16:00 quotes exist in the panel.
-- **AS + UM 15:30:** $q_t=-1$ on every bar before 15:30; the
-  unit-median position on the 15:30 bar. Motivation: the per-clock
-  split shows always-short earns at every intraday bar while the
-  paper's unit-median sizing earns on the 15:30 settlement leg —
-  this rule stacks the two.
+  $q_t=\mathrm{clip}(s^{\mathrm{m}}_t/\mathrm{med}^{(c)}_{u<t}|s^{\mathrm{m}}_u|,-3,3)$
+  with **one trailing median per clock** $c$: the expanding median of
+  that clock's own prior days, lagged one day, warmup 63 days of
+  that clock; leverage 1 before warmup. Cap 3. The typical $|s|$
+  scale is clock-dependent (the premium has a term structure), so a
+  pooled all-bars median mixes units — it over-levers small-$|s|$
+  clocks and under-levers large-$|s|$ ones; one median per clock is
+  the correct "unit" (a multiple-variants caveat applies to the
+  15:30-leg comparison that motivated this choice).
+- **always short, unit-median close:** $q_t=-1$ on every bar before
+  15:30; the unit-median position on the 15:30 bar, where the
+  matched signal collapses to the paper's $s$ exactly. Motivation:
+  the per-clock split shows always-short earns at every intraday
+  bar while the sizing information lives on the 15:30 settlement
+  leg.
+
+**Tested and parked.** A clock-weighted extension (per-clock leverage
+on the short legs from each clock's own trailing daily Sharpe,
+expanding, lagged, cap 3; unit-median close leg unchanged) was built
+and adversarially audited by two independent implementations (both
+score it 2.811 pooled). It is **not adopted**: its Sharpe edge over
+the rule above is insignificant ($\Delta$Sharpe $+0.11$, bootstrap CI
+$[-0.48, 0.73]$), it fails the placebo gate (random clock-to-weight
+permutations do as well on $\sim$20% of draws), its year-by-year edge
+sign-flips (2021 $-0.48$, 2024 $-1.68$), and its heaviest weight
+lands on a nearly premium-free clock — the trailing-Sharpe estimator
+amplifies sampling noise, not the diurnal curve.
+
+A second extension sized the short legs by a premium-intensity map
+$\kappa_c$ = (trailing share of the day's variance implied by the IV
+term structure's own decay) $-$ (trailing realized share). The map
+itself is structural — placebo 95th percentile, lag-insensitive, and
+it ranks clocks by premium where trailing Sharpe tracked noise — but
+the rule is also **not adopted**: $\Delta$Sharpe over the rule above
+is $+0.03$ (CI $[-0.69, 0.80]$, a pure releveraging), the signed
+variant (long where the market undercharges) is significantly worse,
+and the map's two-bar concentration (15:00 pinned at cap) collapses
+in 2024 ($-2.71$ vs the hybrid). Conclusion of the sizing campaign:
+the one sizing decision that pays is the settlement leg, and the
+matched unit-median already makes it.
+
+A conditional profile $w$ (slices conditioned on the day's 10:00
+implied level and the morning realized surprise — endogenous states
+only) was likewise tested and **not adopted**. The shape dependence
+is statistically real (on high-IV days allocation shifts from the
+morning into the last 90 minutes; placebo 98.5th percentile, not a
+2020 artifact), and the causal regression nearly saturates the
+peeking-oracle ceiling (unit-median 1.43 $\to$ 1.69 vs oracle 1.74)
+— but the ceiling itself is small, the paired test does not clear 5%
+($\Delta$Sharpe $+0.27$, CI $[-0.06, 0.59]$) at the session's
+variant count, and the headline rule is $w$-invariant ($w\equiv 1$
+at 15:30). Leading candidate for a pre-registered out-of-sample
+retest; nothing more.
 
 The table is **pooled**: every clock stacked into one list
 ($\sim 11{,}254$ rows). Those are $\sim 13$ bars **on the same
@@ -565,17 +724,21 @@ Split by clock is the next section.
     code(
         r"""
 work = work.sort_values("t").reset_index(drop=True)
-n_bars_per_day = int(work.groupby("date").size().median())
-min_bars = int(63 * max(n_bars_per_day, 1))
-print("UM expanding median over all prior bars; warmup", min_bars, "bars (~63 days x", n_bars_per_day, "bars/day)")
-med_all = asl.lagged_expanding_median(work["signal"], min_periods=min_bars)
-work["lev"] = asl.um_leverage_vs_lagged_scale(work["signal"], med_all)
+print("UM leverage scale: one expanding median of |s_matched| per clock, lagged one day, warmup 63 days per clock")
+med_m = work.groupby("hhmm")["s_matched"].transform(
+    lambda s: s.abs().expanding(min_periods=63).median().shift(1)
+)
+work["lev_m"] = asl.um_leverage_vs_lagged_scale(work["s_matched"], med_m)
+pos_m = pd.Series(np.where(work["s_matched"] > 0, 1.0, -1.0), index=work.index).where(
+    np.isfinite(work["s_matched"])
+)
+um_m = (pos_m * work["lev_m"]).fillna(0.0)
 q = {
     "always short": pd.Series(-1.0, index=work.index),
-    "long-short volatility": work["pos"],
-    "unit-median VRP": work["pos"] * work["lev"],
-    "AS + UM 15:30": pd.Series(
-        np.where(work["hhmm"] == "15:30", (work["pos"] * work["lev"]).to_numpy(), -1.0),
+    "long-short volatility": pos_m.fillna(0.0),
+    "unit-median VRP": um_m,
+    "always short, unit-median close": pd.Series(
+        np.where(work["hhmm"] == "15:30", um_m.to_numpy(), -1.0),
         index=work.index,
     ),
 }
@@ -635,9 +798,10 @@ clock time, not a count of 30-min bars.
 
 The plot is the by-clock-time slice, not the pooled mean: each
 dot is the average of *that clock time's* daily series, for
-always-short and unit-median. Bars 10:00–15:00 are next-mid 30-min
-holds; the **15:30 bar cash-settles at the official close**, so its
-row is the paper's book (up to the pooled-median leverage scale).
+always-short and unit-median VRP (the §6 constructions: matched
+signal, one leverage median per clock). Bars 10:00–15:00 are
+next-mid 30-min holds; the **15:30 bar cash-settles at the official
+close**, so its row is the paper's book (up to the leverage scale).
 """
     ),
     code(
@@ -654,7 +818,7 @@ print("always short by clock time")
 print(stab[stab["rule"] == "always short"][
     ["hhmm", "n", "mean", "t_mean", "Sharpe_ann"]
 ].to_string(index=False))
-print("unit-median by clock time")
+print("unit-median VRP by clock time (window-matched signal, per-clock median)")
 print(stab[stab["rule"] == "unit-median VRP"][
     ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
 ].to_string(index=False))
@@ -669,7 +833,7 @@ htab = pd.DataFrame(hour_rows)
 htab.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(9, 3.4))
-for rule, marker in (("always short", "o"), ("unit-median VRP", "s")):
+for rule, marker in (("always short", "o"), ("unit-median VRP", "^")):
     sub = stab[stab["rule"] == rule]
     ax.plot(sub["hhmm"], sub["mean"], marker=marker, label=rule)
 ax.axhline(0, color="k", lw=0.6)
@@ -683,6 +847,55 @@ fig.savefig(OUT / "mean_by_entry_hhmm_as.png", dpi=120, bbox_inches="tight")
 display(fig)
 plt.close(fig)
 print("saved CSVs in", OUT)
+"""
+    ),
+    md(
+        r"""
+## 8. Buy-signal fingerprint (day $\times$ clock)
+
+Each column is one expiration day, each row one 30-min clock. Blue:
+the matched signal says **buy** the straddle
+($s^{\mathrm{m}}_t>0$ — forecast above the implied slice); red:
+short; grey: warmup, no signal. The §7 tables average this grid down
+each row; the fingerprint shows the day-resolved structure — whether
+buys cluster in episodes (vol spikes), drift across regimes, and how
+the buy share thins from the morning rows to the settlement row.
+"""
+    ),
+    code(
+        r"""
+grid = work.assign(qsign=pos_m.fillna(0.0)).pivot_table(
+    index="hhmm", columns="date", values="qsign", aggfunc="first"
+)
+grid = grid.sort_index()
+
+from matplotlib.colors import BoundaryNorm, ListedColormap
+cmap = ListedColormap(["#c44e52", "#e8e8e8", "#4c72b0"])
+norm = BoundaryNorm([-1.5, -0.5, 0.5, 1.5], cmap.N)
+fig, ax = plt.subplots(figsize=(11, 3.6))
+ax.imshow(grid.to_numpy(), aspect="auto", cmap=cmap, norm=norm, interpolation="none")
+ax.set_yticks(range(len(grid.index)), grid.index, fontsize=7)
+yrs = pd.DatetimeIndex(grid.columns).year
+ticks = [int(np.argmax(yrs == y)) for y in sorted(set(yrs))]
+ax.set_xticks(ticks, sorted(set(yrs)), fontsize=8)
+ax.set_xlabel("expiration day")
+ax.set_ylabel("clock (ET)")
+ax.set_title("buy (blue) / short (red) / warmup (grey) — matched signal")
+fig.tight_layout()
+fig.savefig(OUT / "buy_fingerprint_day_clock.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
+
+sgn = pos_m.fillna(0.0)
+by_year = work.assign(buy=(sgn > 0)).groupby(work["date"].dt.year)["buy"].mean() * 100.0
+print("buy share by year (%)")
+print(by_year.round(1).to_string())
+runs = (
+    work.assign(qsign=sgn)
+    .groupby("date")["qsign"]
+    .apply(lambda s: (s != s.shift()).cumsum().value_counts().mean())
+)
+print("mean same-stance run length within a day (bars):", round(float(runs.mean()), 2))
 """
     ),
 ]

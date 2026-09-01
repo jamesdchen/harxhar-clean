@@ -14,7 +14,8 @@ import numpy as np
 import pandas as pd
 
 SPX_MULTIPLIER = 100.0
-WINDOW_DAYS = 250
+WINDOW_DAYS = 250  # legacy flat MZ window (halflife=None path)
+MZ_HALFLIFE_DAYS = 63  # EWMA halflife (days) for the smear's sufficient statistics
 YHAT_LABEL = {
     "a0": "HAR + calendar OLS",
     "blk2": "block-diag ridge",
@@ -51,12 +52,26 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
     }
 
 
-def second_order_raw(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
-    """Causal second-moment back-transform via day-level prefix sums."""
+def _mz_day_coefs(
+    yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask=None
+):
+    """Per-day causal MZ coefficients (a, b, s2) in y-space.
+
+    halflife=None reproduces the legacy flat [d-WINDOW_DAYS, d) window
+    via prefix sums; otherwise prior days are exponentially weighted
+    with the given halflife and gated on a Kish effective sample size
+    >= 200 (same constant as the flat path's n >= 200). Both paths use
+    strictly prior days and start at day 63. fit_mask (bool per row)
+    restricts which rows enter the fit — the loaders pass the scored
+    session bars (10:00-15:30 ET) so off-session dynamics cannot
+    pollute the calibration; coefficients still apply to every row.
+    """
     with np.errstate(divide="ignore", invalid="ignore"):
         y = np.sqrt(np.maximum(rv_raw, 0.0) / np.maximum(baseline, 1e-18))
     valid_day = day_codes >= 0
     finite = np.isfinite(yhat) & np.isfinite(y) & (baseline > 0) & valid_day
+    if fit_mask is not None:
+        finite = finite & np.asarray(fit_mask, dtype=bool)
     x0 = np.where(finite, yhat, 0.0)
     y0 = np.where(finite, y, 0.0)
     dc = np.where(valid_day, day_codes, 0)
@@ -68,39 +83,69 @@ def second_order_raw(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
         "xy": x0 * y0,
         "yy": y0 * y0,
     }
-    pre = {
-        k: np.concatenate(
-            [
-                [0.0],
-                np.cumsum(
-                    np.bincount(
-                        dc, weights=np.where(valid_day, v, 0.0), minlength=n_days
-                    )
-                ),
-            ]
-        )
+    daily = {
+        k: np.bincount(dc, weights=np.where(valid_day, v, 0.0), minlength=n_days)
         for k, v in stats.items()
     }
-    if need_days is None:
-        days = np.arange(63, n_days, dtype=np.int64)
-    else:
-        days = np.asarray(
-            sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
-        )
-    lo = np.maximum(0, days - WINDOW_DAYS)
-    w = {k: p[days] - p[lo] for k, p in pre.items()}
-    n = w["n"]
-    denom = n * w["xx"] - w["x"] ** 2
-    ok = (n >= 200) & (denom > 0)
-    safe_den = np.where(ok, denom, 1.0)
-    safe_n = np.where(ok, n, 1.0)
-    b = np.where(ok, (n * w["xy"] - w["x"] * w["y"]) / safe_den, np.nan)
-    a = np.where(ok, (w["y"] - b * w["x"]) / safe_n, np.nan)
-    s2 = np.where(ok, (w["yy"] - a * w["y"] - b * w["xy"]) / safe_n, np.nan)
     a_d = np.full(n_days, np.nan)
     b_d = np.full(n_days, np.nan)
     s2_d = np.full(n_days, np.nan)
-    a_d[days], b_d[days], s2_d[days] = a, b, s2
+    if halflife is None:
+        pre = {k: np.concatenate([[0.0], np.cumsum(v)]) for k, v in daily.items()}
+        if need_days is None:
+            days = np.arange(63, n_days, dtype=np.int64)
+        else:
+            days = np.asarray(
+                sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
+            )
+        lo = np.maximum(0, days - WINDOW_DAYS)
+        w = {k: p[days] - p[lo] for k, p in pre.items()}
+        n = w["n"]
+        denom = n * w["xx"] - w["x"] ** 2
+        ok = (n >= 200) & (denom > 0)
+        safe_den = np.where(ok, denom, 1.0)
+        safe_n = np.where(ok, n, 1.0)
+        b = np.where(ok, (n * w["xy"] - w["x"] * w["y"]) / safe_den, np.nan)
+        a = np.where(ok, (w["y"] - b * w["x"]) / safe_n, np.nan)
+        s2 = np.where(ok, (w["yy"] - a * w["y"] - b * w["xy"]) / safe_n, np.nan)
+        a_d[days], b_d[days], s2_d[days] = a, b, s2
+        return a_d, b_d, s2_d
+    lam = 0.5 ** (1.0 / float(halflife))
+    acc = dict.fromkeys(daily, 0.0)
+    acc2_n = 0.0  # lambda^2-weighted n, for the Kish effective sample size
+    for d in range(n_days):
+        w_n = acc["n"]
+        if d >= 63 and w_n > 0 and acc2_n > 0:
+            n_eff = w_n * w_n / acc2_n
+            denom = w_n * acc["xx"] - acc["x"] ** 2
+            if n_eff >= 200 and denom > 0:
+                b = (w_n * acc["xy"] - acc["x"] * acc["y"]) / denom
+                a = (acc["y"] - b * acc["x"]) / w_n
+                a_d[d] = a
+                b_d[d] = b
+                s2_d[d] = (acc["yy"] - a * acc["y"] - b * acc["xy"]) / w_n
+        for k in acc:
+            acc[k] = lam * acc[k] + daily[k][d]
+        acc2_n = lam * lam * acc2_n + daily["n"][d]
+    return a_d, b_d, s2_d
+
+
+def second_order_raw(
+    yhat,
+    rv_raw,
+    baseline,
+    day_codes,
+    n_days,
+    need_days=None,
+    halflife=None,
+    fit_mask=None,
+):
+    """Causal second-moment back-transform (flat 250-day window by default)."""
+    a_d, b_d, s2_d = _mz_day_coefs(
+        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask
+    )
+    valid_day = day_codes >= 0
+    dc = np.where(valid_day, day_codes, 0)
     te = np.isfinite(yhat) & (baseline > 0) & valid_day & np.isfinite(a_d[dc])
     m = a_d[day_codes[te]] + b_d[day_codes[te]] * yhat[te]
     f = np.full(len(yhat), np.nan)
@@ -108,56 +153,22 @@ def second_order_raw(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
     return f
 
 
-def second_order_mz(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
+def second_order_mz(
+    yhat,
+    rv_raw,
+    baseline,
+    day_codes,
+    n_days,
+    need_days=None,
+    halflife=None,
+    fit_mask=None,
+):
     """Same map as second_order_raw, also returning m and s2 on each row."""
-    with np.errstate(divide="ignore", invalid="ignore"):
-        y = np.sqrt(np.maximum(rv_raw, 0.0) / np.maximum(baseline, 1e-18))
+    a_d, b_d, s2_d = _mz_day_coefs(
+        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask
+    )
     valid_day = day_codes >= 0
-    finite = np.isfinite(yhat) & np.isfinite(y) & (baseline > 0) & valid_day
-    x0 = np.where(finite, yhat, 0.0)
-    y0 = np.where(finite, y, 0.0)
     dc = np.where(valid_day, day_codes, 0)
-    stats = {
-        "n": finite.astype(np.float64),
-        "x": x0,
-        "xx": x0 * x0,
-        "y": y0,
-        "xy": x0 * y0,
-        "yy": y0 * y0,
-    }
-    pre = {
-        k: np.concatenate(
-            [
-                [0.0],
-                np.cumsum(
-                    np.bincount(
-                        dc, weights=np.where(valid_day, v, 0.0), minlength=n_days
-                    )
-                ),
-            ]
-        )
-        for k, v in stats.items()
-    }
-    if need_days is None:
-        days = np.arange(63, n_days, dtype=np.int64)
-    else:
-        days = np.asarray(
-            sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
-        )
-    lo = np.maximum(0, days - WINDOW_DAYS)
-    w = {k: p[days] - p[lo] for k, p in pre.items()}
-    n = w["n"]
-    denom = n * w["xx"] - w["x"] ** 2
-    ok = (n >= 200) & (denom > 0)
-    safe_den = np.where(ok, denom, 1.0)
-    safe_n = np.where(ok, n, 1.0)
-    b = np.where(ok, (n * w["xy"] - w["x"] * w["y"]) / safe_den, np.nan)
-    a = np.where(ok, (w["y"] - b * w["x"]) / safe_n, np.nan)
-    s2 = np.where(ok, (w["yy"] - a * w["y"] - b * w["xy"]) / safe_n, np.nan)
-    a_d = np.full(n_days, np.nan)
-    b_d = np.full(n_days, np.nan)
-    s2_d = np.full(n_days, np.nan)
-    a_d[days], b_d[days], s2_d[days] = a, b, s2
     te = np.isfinite(yhat) & (baseline > 0) & valid_day & np.isfinite(a_d[dc])
     m = np.full(len(yhat), np.nan)
     s2_row = np.full(len(yhat), np.nan)
@@ -169,11 +180,15 @@ def second_order_mz(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
 
 
 def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
+    # Bar-end-labelled stamps: the 15:30 book's fresh forecast — issued at
+    # 15:30 for the 15:30->close bar it trades — lives on the STAMP-16:00
+    # row, whose rv_raw is that bar's own realized variance. (The stamp-
+    # 15:30 row is the forecast of 15:00->15:30, one bar stale.)
     df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
     df["t"] = pd.to_datetime(df["t"], utc=True)
     df["et"] = df["t"].dt.tz_convert("America/New_York")
     df["date"] = df["et"].dt.normalize().dt.tz_localize(None)
-    is_1530 = (df["et"].dt.hour == 15) & (df["et"].dt.minute == 30)
+    is_row = (df["et"].dt.hour == 16) & (df["et"].dt.minute == 0)
     yhat = df["yhat"].to_numpy(float)
     base = df["baseline"].to_numpy(float)
     rv_raw = df["rv_raw"].to_numpy(float)
@@ -182,11 +197,13 @@ def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
     if need_dates is not None:
         pos = {d: k for k, d in enumerate(uniq)}
         need_days = {pos[d] for d in need_dates if d in pos}
+    mins = df["et"].dt.hour * 60 + df["et"].dt.minute
+    rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     df["rv_hat"] = second_order_raw(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth
     )
     out = (
-        df.loc[is_1530, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
+        df.loc[is_row, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
         .dropna(subset=["rv_hat"])
         .drop_duplicates("date")
         .set_index("date")
@@ -199,7 +216,7 @@ def load_yhat_1530_mz_cached(
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v2-mz:{st.st_size}:{st.st_mtime_ns}:{WINDOW_DAYS}".encode())
+    h.update(f"v5-mz-fresh:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = cache / f"yhat1530mz_{tag}_{h.hexdigest()[:16]}.parquet"
@@ -209,15 +226,18 @@ def load_yhat_1530_mz_cached(
     df["t"] = pd.to_datetime(df["t"], utc=True)
     df["et"] = df["t"].dt.tz_convert("America/New_York")
     df["date"] = df["et"].dt.normalize().dt.tz_localize(None)
-    is_1530 = (df["et"].dt.hour == 15) & (df["et"].dt.minute == 30)
+    # Fresh row for the 15:30 book: stamp 16:00 (see load_yhat_1530).
+    is_row = (df["et"].dt.hour == 16) & (df["et"].dt.minute == 0)
     yhat = df["yhat"].to_numpy(float)
     base = df["baseline"].to_numpy(float)
     rv_raw = df["rv_raw"].to_numpy(float)
     day_codes, uniq = pd.factorize(df["date"], sort=True)
     pos = {d: k for k, d in enumerate(uniq)}
     need_days = {pos[d] for d in need_dates if d in pos}
+    mins = df["et"].dt.hour * 60 + df["et"].dt.minute
+    rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     rv, m, s2 = second_order_mz(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth
     )
     df["rv_hat"] = rv
     df["m"] = m
@@ -226,7 +246,7 @@ def load_yhat_1530_mz_cached(
     df["m_vol"] = df["m"] * np.sqrt(np.maximum(df["baseline"], 0.0))
     out = (
         df.loc[
-            is_1530,
+            is_row,
             [
                 "date",
                 "yhat",
@@ -254,7 +274,7 @@ def load_yhat_1530_cached(
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v2-vec:{st.st_size}:{st.st_mtime_ns}:{WINDOW_DAYS}".encode())
+    h.update(f"v5-vec-fresh:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = cache / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"
@@ -277,8 +297,12 @@ def load_yhat_panel(path: Path) -> pd.DataFrame:
     base = df["baseline"].to_numpy(float)
     rv_raw = df["rv_raw"].to_numpy(float)
     day_codes, uniq = pd.factorize(df["date"], sort=True)
+    # Bar-end-labelled stamps: the scored trade bars 10:00-15:30 live on
+    # stamps 10:30-16:00, so the session fit mask covers those stamps.
+    mins = df["et"].dt.hour * 60 + df["et"].dt.minute
+    rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     df["rv_hat"] = second_order_raw(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=None
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=None, fit_mask=rth
     )
     return df
 

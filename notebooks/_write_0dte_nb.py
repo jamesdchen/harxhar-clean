@@ -379,14 +379,26 @@ $y^{\mathrm{raw}}=\sqrt{RV^{\mathrm{raw}}/B}$, then
 $\mathrm{rv\_hat}=(m^2+\hat\sigma^2)B$. That is $E[RV]$ for the
 15:30–16:00 bar. All models load in parallel.
 
-Mechanics (numbers unchanged, wall clock only): the 2-parameter fit is
-solved in closed form from day-level **prefix sums** (exact windowing,
-no per-day scan, no sequential rank-1 updates); the solve runs only on
-the option days actually joined downstream (the trailing training
-window still sees every panel row); and each model's 15:30 table is
-cached under `results/atm_straddle_0dte_1530/cache/`, keyed on the
-source parquet's size+mtime and the option-day set, so a re-run with
-unchanged inputs skips the whole computation.
+**Fit set and alignment.** Panel stamps are **bar-end labelled**: the
+row at stamp $\tau$ carries the realized variance of $[\tau-30,\tau]$
+and the forecast of that bar, issued at $\tau-30$. The 15:30 book
+therefore reads the **stamp-16:00 row** — the forecast issued at
+15:30 for the 15:30$\to$close bar it trades; earlier versions read
+the stamp-15:30 row, which is the forecast of 15:00$\to$15:30:
+causal but one bar stale. The MZ regression fits only the scored
+session bars (stamps 10:30–16:00, i.e. bars 10:00–16:00);
+off-session bars are mispredicted by $\sim$50–100$\times$ and
+previously polluted the calibration (mean $\mathrm{rv\_hat}/RV$
+1.14 $\to$ 1.08 after the restriction). Coefficients still apply to
+every row.
+
+Mechanics (wall clock only): the 2-parameter fit is solved in closed
+form from day-level **prefix sums**; the machinery lives in
+`atm_straddle_lib.second_order_raw` (shared with the intraday
+notebook); each model's 15:30 table is cached under
+`results/atm_straddle_0dte_1530/cache/`, keyed on the source
+parquet's size+mtime, the fit-set/window version, and the option-day
+set, so a re-run with unchanged inputs skips the whole computation.
 """
     ),
     code(
@@ -402,100 +414,22 @@ YHATS = {
     "lasso_f": REPO / "results" / "spxw_pnl" / "yhat_b2lasso.parquet",
     "enet": REPO / "results" / "spxw_pnl" / "yhat_b3enet_tuned.parquet",
 }
-WINDOW_DAYS = 250
+# The second-order map (MZ smear) lives in atm_straddle_lib: flat
+# 250-day window, fit restricted to the scored session bars
+# (10:00-15:30 ET) so off-session dynamics cannot pollute the
+# calibration. Delegate rather than duplicate.
+import sys
+sys.path.insert(0, str(REPO / "notebooks"))
+import atm_straddle_lib as asl
 
-
-def second_order_raw(yhat, rv_raw, baseline, day_codes, n_days, need_days=None):
-    # Causal second-moment back-transform, O(n) via day-level prefix
-    # sums. Same estimator as the original per-day lstsq loop: on days
-    # [d-WINDOW_DAYS, d) fit y = a + b*yhat over finite rows, take
-    # s2 = mean squared residual, then rv_hat = ((a+b*yhat)^2 + s2)*B
-    # on day d. The 2-parameter normal equations are solved in closed
-    # form from windowed sums of (n, x, x^2, y, xy, y^2); the window
-    # sums are differences of two prefix entries — exact windowing, no
-    # per-day scan, no sequential rank-1 updates (and none of their
-    # float drift).
-    # need_days restricts the solve to the days actually read
-    # downstream; the training window still sees every panel row. Days
-    # with fewer than 200 finite training rows (the original loop's
-    # rule) or a degenerate window (constant yhat) stay NaN.
-    with np.errstate(divide="ignore", invalid="ignore"):
-        y = np.sqrt(np.maximum(rv_raw, 0.0) / np.maximum(baseline, 1e-18))
-    # day_codes == -1 marks rows whose ET date is NaT (DST-ambiguous
-    # stamps dropped by the dumper); the loop version excluded them by
-    # construction, so exclude them here too.
-    valid_day = day_codes >= 0
-    finite = np.isfinite(yhat) & np.isfinite(y) & (baseline > 0) & valid_day
-    x0 = np.where(finite, yhat, 0.0)
-    y0 = np.where(finite, y, 0.0)
-    dc = np.where(valid_day, day_codes, 0)
-    stats = {
-        "n": finite.astype(np.float64),
-        "x": x0, "xx": x0 * x0, "y": y0, "xy": x0 * y0, "yy": y0 * y0,
-    }
-    pre = {
-        k: np.concatenate(
-            [[0.0], np.cumsum(np.bincount(dc, weights=np.where(valid_day, v, 0.0), minlength=n_days))]
-        )
-        for k, v in stats.items()
-    }
-    if need_days is None:
-        days = np.arange(63, n_days, dtype=np.int64)
-    else:
-        days = np.asarray(
-            sorted(d for d in need_days if 63 <= d < n_days), dtype=np.int64
-        )
-    lo = np.maximum(0, days - WINDOW_DAYS)
-    w = {k: p[days] - p[lo] for k, p in pre.items()}
-    n = w["n"]
-    denom = n * w["xx"] - w["x"] ** 2
-    ok = (n >= 200) & (denom > 0)
-    safe_den = np.where(ok, denom, 1.0)
-    safe_n = np.where(ok, n, 1.0)
-    b = np.where(ok, (n * w["xy"] - w["x"] * w["y"]) / safe_den, np.nan)
-    a = np.where(ok, (w["y"] - b * w["x"]) / safe_n, np.nan)
-    s2 = np.where(ok, (w["yy"] - a * w["y"] - b * w["xy"]) / safe_n, np.nan)
-    a_d = np.full(n_days, np.nan)
-    b_d = np.full(n_days, np.nan)
-    s2_d = np.full(n_days, np.nan)
-    a_d[days], b_d[days], s2_d[days] = a, b, s2
-    te = np.isfinite(yhat) & (baseline > 0) & valid_day & np.isfinite(a_d[dc])
-    m = a_d[day_codes[te]] + b_d[day_codes[te]] * yhat[te]
-    f = np.full(len(yhat), np.nan)
-    f[te] = (m**2 + s2_d[day_codes[te]]) * baseline[te]
-    return f
-
-
-def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
-    df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
-    df["t"] = pd.to_datetime(df["t"], utc=True)
-    df["et"] = df["t"].dt.tz_convert("America/New_York")
-    df["date"] = df["et"].dt.normalize().dt.tz_localize(None)
-    is_1530 = (df["et"].dt.hour == 15) & (df["et"].dt.minute == 30)
-    yhat = df["yhat"].to_numpy(float)
-    base = df["baseline"].to_numpy(float)
-    rv_raw = df["rv_raw"].to_numpy(float)
-    day_codes, uniq = pd.factorize(df["date"], sort=True)
-    need_days = None
-    if need_dates is not None:
-        pos = {d: k for k, d in enumerate(uniq)}
-        need_days = {pos[d] for d in need_dates if d in pos}
-    df["rv_hat"] = second_order_raw(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days
-    )
-    out = (
-        df.loc[is_1530, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
-        .dropna(subset=["rv_hat"])
-        .drop_duplicates("date")
-        .set_index("date")
-    )
-    return out
+second_order_raw = asl.second_order_raw
+load_yhat_1530 = asl.load_yhat_1530
 
 
 def load_yhat_1530_cached(tag: str, path: Path, need_dates) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v2-vec:{st.st_size}:{st.st_mtime_ns}:{WINDOW_DAYS}".encode())
+    h.update(f"v5-vec-fresh:{st.st_size}:{st.st_mtime_ns}:flat{asl.WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
     cp = CACHE / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"
