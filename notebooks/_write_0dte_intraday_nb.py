@@ -67,6 +67,17 @@ confined to parked studies. Audited mechanically: perturbing day-$d$
 inputs leaves every day-$d$ estimate invariant (rtol $10^{-12}$)
 while registering on day $d{+}1$.
 
+Re-audited after the bar-end alignment fix (the fresh
+stamp-$t{+}30$ join): 25/25 whole-day and 3/3 single-row
+perturbations of the joined row's realized variance leave every
+same-day position bit-identical; the join-shift curve places the
+book on a smooth staleness decay (stale 2.33 $\to$ 2.71 $\to$ fresh
+2.89) while one bar of *actual* lookahead jumps to Sharpe 5–7 — an
+order of magnitude above the fresh book; and upstream, `baseline` is
+a strictly-prior-days per-clock estimator (code-traced, numerically
+identical to an independent rebuild) and every forecast feature
+carries the universal one-bar shift.
+
 ## Choice 2 — IV (same window as $\widehat{RV}$)
 
 $\widehat{RV}_t$ is next-**30-min** realized variance (smeared
