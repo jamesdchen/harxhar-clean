@@ -3,8 +3,9 @@
 
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
-the two measurements, the position rules, and the control; constants
-were set before the book was scored.
+the two measurements, the position rules, a sizing overlay, a
+defined-risk variant, and the control; constants were set before the
+book was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
 to expiry, cash-settled on the day's official close. The panel is the
@@ -55,6 +56,20 @@ $\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
 15:30--16:00 bar. Forecast files end on 30~April~2024, so later
 expiration days are not scored.
 
+Two conventions matter for honesty. \emph{Alignment}: forecast rows
+are labelled by the end of the bar they predict, so the row read at
+15:30 is the one stamped 16:00 --- issued at 15:30 for the thirty
+minutes that remain --- and not the stamp-15:30 row, which was issued
+at 15:00 for a bar already finished; every input to the signal below
+is therefore known at 15:30. \emph{Weighting}: the map and the
+residual moment solve weighted least squares with weights
+$1/\max(\widehat{y}_u,\,q_{10})^{2}$, where $q_{10}$ is the tenth
+percentile of $\widehat{y}$ within the same trailing window, and the
+fit window is restricted to regular-session bars. The weighting
+addresses a level effect --- an unweighted fit is dominated by the
+largest bars --- and was adopted on the forecast-accuracy referee
+(QLIKE improves for all seven models), not on any book outcome.
+
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package
 quote is the mean of those two. The vendor quote is an \emph{hourly}
@@ -68,7 +83,11 @@ quote is rescaled before it is compared with anything,
 \end{equation}
 and $\mathrm{IV}_{30,t}^{2}$ is the implied variance of the remaining
 bar --- the same window, and the same units, as $\widehat{RV}_t$. No
-inversion from the mid is applied.
+separate inversion from the mid is applied; as a check, inverting the
+Black--Scholes--Merton price of the package mid over the remaining
+half hour reproduces the vendor quote to quote precision, so
+``quoted'' and ``inverted'' implied volatility coincide on this
+panel.
 
 \paragraph{Signal.} The two measurements are compared in variance
 space,
@@ -84,33 +103,84 @@ variance and $s_t<0$ says the premium is positive. The daily portfolio
 return is $R'_t = q_t R_t$ for a position $q_t$ fixed at 15:30 from
 information dated $t$ or earlier.
 
-\paragraph{Position rules.} Three rules are scored on the same $R_t$ and
+\paragraph{Position rules.} Two rules are scored on the same $R_t$ and
 the same days; only $q_t$ changes.
 \begin{itemize}
 \itemsep2pt
 \item \emph{Short volatility}: $q_t = -1$ every day. The rule takes no
       forecast --- it is the variance-risk-premium book with nothing in
-      it, and the control for the other two.
+      it, and the control for the other.
 \item \emph{Long--short volatility}: $q_t = \mathrm{sign}(s_t)$, long
       the package when the forecast exceeds implied variance and short
-      otherwise. Direction only, at unit size.
-\item \emph{Unit-median VRP}: signed and linear in the premium,
-      \begin{equation}
-          q_t \;=\; \mathrm{clip}\!\left(
-              \frac{s_t}{\mathrm{med}_{u<t}\,|s_u|},\,-3,\,3
-          \right),
-          \label{eq:close_opt_size}
-      \end{equation}
-      where the scale is the expanding median of $|s_u|$ taken over
-      days strictly before $t$ (at least 63 observations, shifted one
-      day), so the size is known at 15:30. One lot on a day of typical
-      $|\mathrm{VRP}|$; the clip caps the position at three lots. This
-      is the headline rule.
+      otherwise. Direction only, at unit size. This is the headline
+      rule.
 \end{itemize}
+% UNIT-MEDIAN PARKED 2026-09-02: the graduated unit-median VRP rule was
+% removed from the book. Sizing linear in the premium's magnitude failed
+% the adoption gates --- the signal's day-scale information is its sign;
+% magnitude prices next-day risk, not return.
+\iffalse
+\emph{Unit-median VRP}: signed and linear in the premium,
+\begin{equation}
+    q_t \;=\; \mathrm{clip}\!\left(
+        \frac{s_t}{\mathrm{med}_{u<t}\,|s_u|},\,-3,\,3
+    \right),
+    \label{eq:close_opt_size}
+\end{equation}
+where the scale is the expanding median of $|s_u|$ taken over
+days strictly before $t$ (at least 63 observations, shifted one
+day), so the size is known at 15:30. One lot on a day of typical
+$|\mathrm{VRP}|$; the clip caps the position at three lots.
 The cap is not cosmetic. The largest single-day losses in the levered
 book fall on days sized at or near it --- days on which the forecast
 disagreed with the quote most --- rather than on small-signal days, so
 the clip is what bounds the left tail of the rule.
+\fi
+
+\paragraph{Sizing overlay.} A book that holds $|q_t| = 1$ every day
+inherits the market's volatility cycle. One overlay is scored on top
+of each rule, and it reads no forecast: let $\hat\sigma_t$ be the
+standard deviation of the rule's own daily return over the trailing
+63 sessions, lagged one day. The position is scaled by
+\begin{equation}
+    \ell_t \;=\;
+    \min\!\left(
+        \frac{\operatorname{med}_{u \le t-1} \hat\sigma_u}{\hat\sigma_t},
+        \, 3
+    \right),
+    \label{eq:close_opt_voltarget}
+\end{equation}
+the expanding median of $\hat\sigma$ over its own past divided by its
+current value. Average leverage is near one by construction and there
+is no free target parameter; the cap at three never binds in sample.
+The first sessions before an estimate exists stay flat, and scaled and
+unscaled books are compared on the same remaining days. Because the
+overlay claims no forecast information, it is judged on risk
+stability --- the wander of the book's rolling volatility, its
+drawdown, its per-year volatility --- and not on the Sharpe ratio,
+which a pure rescaling should leave roughly unchanged.
+
+\paragraph{Defined-risk variant.} Selling the package leaves an
+unbounded downside. On short days a variant of each rule buys a wing
+on each side of the body --- the nearest strike with a live 15:30 mid
+at least $w$ points further out of the money, $w \in \{25, 50\}$ ---
+turning each short leg into a credit vertical spread; the pair is a
+short iron condor. The net credit is $C$, body premium minus wing
+premium, and days with $C \le 0$ are dropped with a printed count. The
+worst settlement loses the larger \emph{actual} wing gap minus the
+credit --- the nearest listed wing can sit farther out than the
+nominal $w$ --- so the return on capital at risk is bounded below by
+$-1$ exactly, and the scoring asserts that bound. The hedge is
+asymmetric by design: on long-volatility days the rule holds the plain
+package of Equation~\eqref{eq:close_opt_settle}, whose loss is already
+capped at the premium paid, and wings there would cap the tail the
+position exists to own. Returns are quoted per dollar of body premium
+--- the same denominator as the unhedged book, so short and long days
+live in one unit and rows compare across tables. The bounded
+capital-at-risk view is reported as a diagnostic only: its denominator
+is smallest exactly on rich-credit, high-volatility days, so it
+concentrates the series' variance in a handful of days and misreads
+cheap tail insurance as a losing trade.
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 \iffalse
@@ -146,5 +216,10 @@ midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
 Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
 forecast on roughly 85\% of days, so every forecast-driven rule here is
-mostly that short. What the forecast can contribute at this hour is
-size on the short, not direction.
+mostly that short. What the forecast contributes at this hour is the
+\emph{sign} of the day --- which side of the quoted premium to stand
+on. Sizing beyond the sign is tested rather than assumed:
+Section~\ref{sec:close_option_results} reports the magnitude
+experiments, and the overlay of
+Equation~\eqref{eq:close_opt_voltarget} is the one graduation
+retained --- it reads the book's own past returns, not the signal.

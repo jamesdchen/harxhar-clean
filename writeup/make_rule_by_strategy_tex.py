@@ -23,13 +23,14 @@ SRC = os.path.join(ROOT, "results", "atm_straddle_0dte_1530")
 GEN = os.path.join(ROOT, "writeup", "generated")
 
 # (csv stem, panel label) in display order
+# Unit-median VRP panel removed 2026-09-02: the rule was dropped from the
+# RV-IV notebook (its CSV is no longer written).
 PANELS = [
     ("rule_by_strategy_always_short", r"Short volatility (always short)"),
     (
         "rule_by_strategy_long_short_volatility",
         r"Long--short volatility ($\pm 1$ on $\mathrm{sign}(s)$)",
     ),
-    ("rule_by_strategy_unit_median_VRP", r"Unit-median VRP size"),
 ]
 
 FLAT_PANELS = [

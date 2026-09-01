@@ -6,7 +6,7 @@ realized variance. This subsection reads them against the last thirty
 minutes of the expiration-day chain, under the rules of
 Section~\ref{sec:close_option_methods}: the nearest out-of-the-money
 call and put taken at the 15:30~ET mid, cash-settled at the close, with
-the position fixed by the sign and the size of
+the position fixed by the sign of
 $s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to
 the seven forecast files leaves 871 expiration days common to all seven
 (3~January~2020 to 30~April~2024). Table~\ref{tab:close_option_rules}
@@ -34,12 +34,17 @@ Read the control first. Selling the package every day earns a mean
 0.020 per expiration day at a standard deviation of 1.127
 ($t=0.53$, annualized Sharpe 0.28): a positive premium, at a size that
 871 days cannot separate from zero. Putting the forecast in charge of
-\emph{direction} destroys even that. The long--short rule
-$q=\mathrm{sign}(s)$ scores $t$ between $-0.35$ and $0.20$ across the
-seven forecasts, with means within 0.013 of zero in either direction; the
-forecast is above implied variance on 13 to 17 percent of days
-depending on the model, and those are not days worth being long.
+\emph{direction} is what pays. The long--short rule
+$q=\mathrm{sign}(s)$ earns between 0.071 and 0.130 per day across the
+seven forecasts ($t$ between 1.85 and 3.42, significant at conventional
+levels for six of the seven), with the block-diagonal ridge at a mean
+of 0.115, $t=3.03$, and an annualized Sharpe of 1.63. The forecast sits
+above the quoted implied variance --- a long-volatility day --- on 32
+to 42 percent of days depending on the model.
 
+% UNIT-MEDIAN PARKED 2026-09-02: the unit-median VRP rule was removed
+% from the notebook; its CSV panel is no longer generated.
+\iffalse
 Putting the forecast in charge of \emph{size} is what pays. The
 unit-median VRP rule of Equation~\eqref{eq:close_opt_size} lifts the
 mean to between 0.047 and 0.060 per day and the annualized Sharpe to
@@ -48,26 +53,31 @@ OLS and 1.31 for the elastic net through 1.67 for the block-diag ridge
 to 1.63 for the causally tuned lasso. The ordering is the paper's
 ordering, but no book in the panel is significant at conventional
 levels.
+\fi
 
-Three qualifications follow, and they matter more than the point
-estimates.
+The qualifications matter as much as the point estimates.
 
-\paragraph{The edge is premium collection, not a variance call.} The
+\paragraph{Where the level comes from.} Two sample splits qualify the
+level rather than the sign. Excluding the first 64 trading days --- the
+estimation warm-up shared by the volatility overlay below, which
+happens to cover the February--March 2020 spike --- \emph{raises} the
+block-diagonal ridge book to Sharpe 1.94 (Newey--West $t=3.71$ on the
+remaining 807 days): the full-sample figure is dragged, not flattered,
+by the COVID quarter. Splitting instead at 16~May~2022, when SPXW
+listings became daily --- a market-structure date, not a threshold
+chosen on the book --- the same book scores Sharpe 1.13 ($t=1.38$)
+before and 2.05 ($t=2.86$) after: the direction edge is positive on
+both tapes but earns its significance on the daily-0DTE era.
+
+\paragraph{Settlement pins carry a disproportionate share.} The
 straddle expires worthless --- $R=-1$ exactly --- on 198 of the 871
 days, 22.7 percent, whenever the close settles inside the one-strike
-window. Those days carry the entire mean of the book: the unit-median
-VRP return averages about $+0.63$ per day on them against about
-$-0.11$ per day on every other day. What the rule harvests is the
-premium on days the index pins, sized by the forecast; it is not a
-directional call on realized variance, and it should not be read as one.
-
-\paragraph{The full-sample insignificance is regime dilution.}
-Splitting at 16~May~2022, when SPXW listings became daily --- a
-market-structure date, not a threshold chosen on the book --- the same
-rule scores $t$ between 2.18 and 2.55 on the 2022--2024 tape, against
-$t=-0.17$ on the tape before it. The 2020--21 weekly-0DTE regime carries no edge
-for this rule at all; pooling the two halves is what holds the
-full-sample statistic below two.
+window. The always-short control collects $+1$ on those days against
+$-0.27$ on all others; the long--short book averages $+0.23$ on them
+against $+0.08$ elsewhere, so pin days supply roughly half of its total
+return from under a quarter of the days. The book monetizes a direction
+call and the pin premium together, and its P\&L remains tilted toward
+days the index settles inside the strikes.
 
 \paragraph{Seven rows are one bet.} The seven daily books are correlated
 at high pairwise levels, an effective count near one independent book.
@@ -75,7 +85,55 @@ Agreement down a column of Table~\ref{tab:close_option_rules} is
 evidence that the rule is insensitive to which forecast drives it ---
 not seven independent confirmations of the rule.
 
+\paragraph{The signal prices tomorrow's risk, not tomorrow's return.}
+Regressing day-$t$ returns on the previous day's signal finds nothing,
+five ways: an OLS of $R_t$ on the causal expanding percentile rank of
+$s_{t-1}$ scores $t$ between 0.70 and 1.32 across the seven forecasts,
+and a split by $\mathrm{sign}(s_{t-1})$, Spearman and Kendall
+association, and a top-versus-bottom tercile spread are equally null
+(largest $|t|=1.31$; association $p \ge 0.24$). The same lagged rank is
+strongly significant for the \emph{magnitude} $|R_t|$ ($t$ between 3.32
+and 4.25, every forecast): yesterday's signal says how large today's
+settlement move will be, not which way the premium resolves. The
+tradable content of $s$ is its same-day sign; its magnitude is a risk
+forecast.
+
+\paragraph{Sizing by trailing book volatility standardizes risk without
+touching the edge.} Scaling the daily position by the ratio of the
+expanding median of the book's own trailing 63-day volatility to its
+current lagged value --- self-normalizing, no free target parameter, a
+cap of 3 that never binds --- leaves mean and Sharpe statistically
+unchanged (block-diagonal ridge long--short 1.94 to 1.98 on the 807
+post-warm-up days) while cutting the variability of the book's rolling
+volatility by 15 to 21 percent for every forecast and rule and roughly
+halving the spread of its per-year volatility (cross-year coefficient
+of variation 0.196 to 0.104). This is a standardization of risk, not a
+forecast claim, and its structural limit is stated plainly: a trailing
+estimator cannot see the first day of a regime change, so single worst
+days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
+COVID transition itself falls inside the estimator's warm-up.
+
+\paragraph{Capping the sell-side tail costs almost nothing in dollars.}
+Buying the nearest wing at least 25 (or 50) points further
+out-of-the-money on every selling day turns the short straddle into a
+pair of credit vertical spreads whose worst case is the larger actual
+wing gap minus the credit received; long-volatility days hold the plain
+straddle, whose risk is already its premium. Per dollar of body premium
+the long--short book keeps most of its performance --- Sharpe 1.42 at
+$w=25$ and 1.54 at $w=50$ against 1.62 uncapped on the same days ---
+while the always-short control's thin edge does not survive the wing
+drag ($-0.06$ and $+0.10$ against $+0.27$). In dollar terms the
+insurance is close to free: at $w=25$ the wings cost 0.007 index points
+per package-day (paired HAC $t=-0.04$) while cutting the worst
+settlement day from $-78$ to $-22$ points and returning $+310$ points
+across the ten worst naked days. Quoted per unit of capital at risk the
+same cap looks expensive; that is an artifact of the denominator, which
+is smallest exactly on rich-credit, high-volatility days.
+
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
+% UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,
+% which was removed from the notebook; rule_flat_fomc_me CSVs and the
+% generated table_rule_flat_fomc_me_paper.tex are no longer produced.
 \iffalse
 \paragraph{An event filter, with a pre-registration caveat.} Tail
 forensics on the unit-median VRP book locate two calendar flags that
@@ -143,8 +201,9 @@ The book as a whole is a demonstration under the stated constants of
 Section~\ref{sec:close_option_methods}, not a trading claim: there is
 no delta hedge, no borrow, no market-impact model, and every fill is at
 the 15:30 mid, so a book that receives the bid instead is a different
-book. What survives the qualifications is narrow and worth stating
-plainly. At the last bar the quoted implied variance is above the
-forecast on roughly 85 percent of days, the forecast has no usable
-edge on direction, and its only demonstrated contribution is the size
-it puts on a short that was going to be short anyway.
+book. What survives the qualifications is worth stating plainly. At the
+last bar the quoted implied variance sits above the forecast on 61
+percent of days; the sign of that gap carries a direction edge that is
+significant for six of the seven forecasts and strongest for the ridge
+this paper argues for; and the previous day's signal prices the size of
+the next settlement move rather than its direction.
