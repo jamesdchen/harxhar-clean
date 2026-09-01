@@ -59,11 +59,17 @@ def _print(r: dict) -> None:
 def main() -> None:
     tr = pd.read_parquet(os.path.join(OUT, "mfiv_toclose_trades.parquet"))
     rv = tr["rv_rem"].to_numpy(float)
-    a0 = tr["pa_rem"].to_numpy(float)
-    b2 = tr["pb_rem"].to_numpy(float)
+    # At-entry (F_t-measurable) remaining forecasts are the decision
+    # inputs. The p*_rem sums condition on bars inside the window and are
+    # kept only as labelled ex-post record rows ("pRem ..." below).
+    a0 = tr["F_a0_rem"].to_numpy(float)
+    b2 = tr["F_b2_rem"].to_numpy(float)
+    pa = tr["pa_rem"].to_numpy(float)
+    pb = tr["pb_rem"].to_numpy(float)
     iv = tr["mfiv_int"].to_numpy(float)
     ok = np.isfinite(rv) & np.isfinite(a0) & np.isfinite(b2) & np.isfinite(iv)
     rv, a0, b2, iv = rv[ok], a0[ok], b2[ok], iv[ok]
+    pa, pb = pa[ok], pb[ok]
 
     ql_a = _ql(a0, rv)
     ql_b = _ql(b2, rv)
@@ -73,6 +79,12 @@ def main() -> None:
     rows.append(_row("QLIKE remaining a0 (loss)", ql_a))
     rows.append(_row("QLIKE remaining blk2 (loss)", ql_b))
     rows.append(_row("QLIKE increment (a0-blk2)", ql_a - ql_b))
+    # Ex-post record: the within-window p*_rem sums (not decision-quotable)
+    rows.append(_row("pRem QLIKE remaining a0 (ex-post record)", _ql(pa, rv)))
+    rows.append(_row("pRem QLIKE remaining blk2 (ex-post record)", _ql(pb, rv)))
+    rows.append(
+        _row("pRem QLIKE increment (ex-post record)", _ql(pa, rv) - _ql(pb, rv))
+    )
 
     # Same strategy: trade remaining variance vs the smile, forecast = f
     for name, f in (("a0", a0), ("blk2", b2)):

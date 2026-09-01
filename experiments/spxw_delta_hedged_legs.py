@@ -170,6 +170,13 @@ def main() -> None:
     eb = pd.read_parquet(os.path.join(OUT, "everybar_mtm_trades.parquet"))
     eb = eb.sort_values(["day", "et"]).reset_index(drop=True)
     g = eb.groupby("day", sort=False)
+    # Convention contract with spxw_mfiv_everybar (post alignment fix):
+    # rows are bar-START labelled — the row at stamp t carries the bar
+    # [t, t+30] (rv is that bar's own realized; pa/pb are forecasts
+    # issued at t). The INCLUSIVE reverse-cumsum is therefore exact:
+    # remaining at an entry t = rows t..15:30 = the window [t, close],
+    # matching tau (t to settle) with no pre-entry bar. Verified
+    # empirically: eb.rv at stamp t == panel rv_raw at stamp t+30.
     eb["rv_rem"] = g["rv"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
     eb["b2_rem"] = g["pb"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
     eb["a0_rem"] = g["pa"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])

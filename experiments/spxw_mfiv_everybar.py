@@ -8,6 +8,13 @@ Hold N units one bar:
   hybrid (doc):   N * (RV_t + C_{t+1} - a0_t)
 
 N = (blk2 - a0) / a0^2, 1% winsor. Last bar of the day has C_{t+1}=0.
+
+Alignment: yhat-panel stamps are bar-END labelled (the row at stamp
+tau carries the realized variance of [tau-30, tau] and forecasts
+issued at tau-30), so the panel stamps are shifted back one bar
+before the join. RV_t, a0_t and the N sizing at decision stamp t
+then all refer to the bar [t, t+30] actually held -- the same window
+as the strip legs C_t -> C_{t+1} -- with forecasts issued at t.
 """
 
 from __future__ import annotations
@@ -113,13 +120,20 @@ def reduce(parts: int) -> None:
     yh["pb"] = yh["yhat_b"].to_numpy(float) ** 2 * yh["baseline_b"].to_numpy(float)
     yh["rv"] = yh["rv_raw_a"].to_numpy(float)
     yh = yh[["t", "pa", "pb", "rv"]].sort_values("t")
+    # Bar-END-labelled panel: shift stamps back one bar so the decision
+    # row at t joins the forecasts issued AT t and the realized variance
+    # of the held bar [t, t+30] (previously this attached the stale
+    # forecast and the accrual of the bar that had just ended).
+    yh["t"] = yh["t"] - pd.Timedelta(minutes=30)
 
     j = pd.merge_asof(
         C.sort_values("t"),
         yh,
         on="t",
         direction="backward",
-        tolerance=pd.Timedelta("40min"),
+        # < one bar: match only the fresh row; a missing row yields NaN
+        # (entry dropped) instead of silently falling back one bar.
+        tolerance=pd.Timedelta(minutes=29),
     )
     j["et"] = j["t"].dt.tz_convert("America/New_York")
     j["hod"] = j["et"].dt.hour

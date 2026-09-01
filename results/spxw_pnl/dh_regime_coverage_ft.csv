@@ -1,0 +1,2 @@
+ledger_days,ledger_rows,days_with_vix,days_with_causal_vix_quintile,days_with_gap,days_with_release_flags,release_days,fomc_days,days_with_voldemand,analysis_window_end,last_day_with_vix,last_day_with_release_flags,mean_vix_at_1000
+565,60532,527,502,317,508,129,16,437,2024-04-30,2024-02-08,2024-01-09,22.471438596491225

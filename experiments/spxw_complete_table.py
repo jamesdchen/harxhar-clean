@@ -19,14 +19,27 @@ BARS_PER_YEAR = 252.0 * 48.0
 def _yh(path: str, tag: str) -> pd.DataFrame:
     df = pd.read_parquet(path)
     df["t"] = pd.to_datetime(df["t"], utc=True).astype("datetime64[ns, UTC]")
+    # Panel stamps are bar-END labelled: the row at stamp tau carries the
+    # forecast issued at tau-30 for the bar [tau-30, tau]. Shift stamps
+    # back one bar so an entry at t0 joins the forecast issued AT t0 for
+    # the bar it actually holds (the old backward-asof on raw stamps
+    # attached the stale forecast of the bar that had just ended).
+    df["t"] = df["t"] - pd.Timedelta(minutes=30)
     return df.sort_values("t")[["t", "yhat", "baseline"]].rename(
         columns={"yhat": f"y_{tag}", "baseline": f"b_{tag}", "t": f"t_{tag}"}
     )
 
 
 def _join(tr: pd.DataFrame, yh: pd.DataFrame, tag: str) -> pd.DataFrame:
+    # Tolerance < one bar: match only the fresh row; a missing fresh row
+    # yields NaN (position 0) instead of silently falling back one bar.
     return pd.merge_asof(
-        tr, yh, left_on="t0", right_on=f"t_{tag}", direction="backward"
+        tr,
+        yh,
+        left_on="t0",
+        right_on=f"t_{tag}",
+        direction="backward",
+        tolerance=pd.Timedelta(minutes=29),
     )
 
 

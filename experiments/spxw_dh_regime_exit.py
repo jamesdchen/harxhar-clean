@@ -67,6 +67,11 @@ from spxw_delta_hedged_legs import bs_delta_v, bs_iv_v  # noqa: E402
 OUT = os.path.join(ROOT, "results", "spxw_pnl")
 DATA = os.path.join(ROOT, "data")
 
+# --ft: run on the strictly-at-entry (F_t-measurable) ledger variant and
+# write every output with an _ft suffix; the default path is untouched.
+FT = "--ft" in sys.argv
+SFX = "_ft" if FT else ""
+
 ANN = float(np.sqrt(252.0))
 UNDERLYING_COST_BP = 0.5
 HOURS_PER_YEAR = 252.0 * 6.5
@@ -576,7 +581,7 @@ def rule_exit_index(p: dict[str, Any], pos: np.ndarray, rule: str) -> np.ndarray
 
 # --------------------------------------------------------------------------
 def main() -> None:
-    led = pd.read_parquet(os.path.join(OUT, "dh_legs_ledger.parquet"))
+    led = pd.read_parquet(os.path.join(OUT, f"dh_legs{SFX}_ledger.parquet"))
     led["expiration"] = pd.to_datetime(led["expiration"])
     led = led.sort_values(["expiration", "t", "strike", "cp"]).reset_index(drop=True)
     print(f"ledger rows {len(led)}  days {led['expiration'].nunique()}", flush=True)
@@ -600,13 +605,27 @@ def main() -> None:
         "hit_mid": base_mid["hit"],
         "always_short_sh": base_as["sh"],
     }
-    want = {
-        "sh_daily_mid": 6.78,
-        "sh_daily_crossed": 3.62,
-        "frac_traded": 0.58,
-        "hit_mid": 0.697,
-        "always_short_sh": 3.81,
-    }
+    # Baseline re-pinned 2026-09-01 after the bar-end alignment fix in the
+    # dh_legs producers (fresh forecast join + held-bar windows); the old
+    # pins (6.78 / 3.62 / 0.58 / 0.697 / 3.81) reproduced the stale ledger.
+    # The _ft pins come from the strictly-at-entry ledger's own first run
+    # (dh_legs_ft_ledger.parquet, 565 days) via the identical computation.
+    if FT:
+        want = {
+            "sh_daily_mid": 0.67,
+            "sh_daily_crossed": -2.47,
+            "frac_traded": 0.59,
+            "hit_mid": 0.512,
+            "always_short_sh": 4.26,
+        }
+    else:
+        want = {
+            "sh_daily_mid": 9.00,
+            "sh_daily_crossed": 5.93,
+            "frac_traded": 0.55,
+            "hit_mid": 0.749,
+            "always_short_sh": 4.18,
+        }
     chk = pd.DataFrame(
         [
             {
@@ -620,12 +639,12 @@ def main() -> None:
         ]
     )
     print(chk.to_string(index=False), flush=True)
-    chk.to_csv(os.path.join(OUT, "dh_regime_baseline_check.csv"), index=False)
+    chk.to_csv(os.path.join(OUT, f"dh_regime_baseline_check{SFX}.csv"), index=False)
     assert bool(chk["within_0p05"].all()), "baseline reproduction failed"
 
     clock = _clock_check(led)
     print(clock.to_string(index=False), flush=True)
-    clock.to_csv(os.path.join(OUT, "dh_regime_clockcheck.csv"), index=False)
+    clock.to_csv(os.path.join(OUT, f"dh_regime_clockcheck{SFX}.csv"), index=False)
 
     # ---------------- PART 1: state ----------------
     st = build_state(led)
@@ -673,7 +692,7 @@ def main() -> None:
         ]
     )
     print(cov.to_string(index=False), flush=True)
-    cov.to_csv(os.path.join(OUT, "dh_regime_coverage.csv"), index=False)
+    cov.to_csv(os.path.join(OUT, f"dh_regime_coverage{SFX}.csv"), index=False)
 
     led["slope_terc"] = _tercile(led["slope"]).astype(object)
     led["gap_terc"] = _tercile(led["abs_gap"]).astype(object)
@@ -713,7 +732,7 @@ def main() -> None:
     }
     for tag, (dim, bucket) in tables.items():
         tb = regime_rows(led, dim, pd.Series(bucket, index=led.index))
-        tb.to_csv(os.path.join(OUT, f"dh_regime_{tag}.csv"), index=False)
+        tb.to_csv(os.path.join(OUT, f"dh_regime_{tag}{SFX}.csv"), index=False)
 
     sigmag = (
         led.groupby("vix_q_lab")
@@ -736,11 +755,11 @@ def main() -> None:
             .mean()
         )
         sigmag[f"frac_traded_b2_th{th}"] = fr.reindex(sigmag["vix_q_lab"]).to_numpy()
-    sigmag.to_csv(os.path.join(OUT, "dh_regime_sigmag.csv"), index=False)
+    sigmag.to_csv(os.path.join(OUT, f"dh_regime_sigmag{SFX}.csv"), index=False)
     print(sigmag.to_string(index=False), flush=True)
 
     ols = descriptive_ols(led)
-    ols.to_csv(os.path.join(OUT, "dh_regime_ols.csv"), index=False)
+    ols.to_csv(os.path.join(OUT, f"dh_regime_ols{SFX}.csv"), index=False)
     print(ols.to_string(index=False), flush=True)
 
     # ---------------- PART 3: exits ----------------
@@ -770,7 +789,7 @@ def main() -> None:
         ]
     )
     print(mtm_chk.to_string(index=False), flush=True)
-    mtm_chk.to_csv(os.path.join(OUT, "dh_exit_mtm_check.csv"), index=False)
+    mtm_chk.to_csv(os.path.join(OUT, f"dh_exit_mtm_check{SFX}.csv"), index=False)
     assert float(np.nanmax(np.abs(d_mid))) < 1e-6, "MTM hold-to-settle mismatch"
 
     pos = _positions(led[f"sig_{EXIT_MODEL}"].to_numpy(float), EXIT_THETA)
@@ -813,7 +832,7 @@ def main() -> None:
                     "mean_crossed": c["mean"],
                 }
             )
-    pd.DataFrame(rows).to_csv(os.path.join(OUT, "dh_exit_rules.csv"), index=False)
+    pd.DataFrame(rows).to_csv(os.path.join(OUT, f"dh_exit_rules{SFX}.csv"), index=False)
 
     # realized fraction of settlement pnl after k bars
     final = pos * hold["long_mid"]
@@ -839,7 +858,7 @@ def main() -> None:
                 }
             )
     pd.DataFrame(frac_rows).to_csv(
-        os.path.join(OUT, "dh_exit_realized_fraction.csv"), index=False
+        os.path.join(OUT, f"dh_exit_realized_fraction{SFX}.csv"), index=False
     )
 
     pd.set_option("display.width", 220)

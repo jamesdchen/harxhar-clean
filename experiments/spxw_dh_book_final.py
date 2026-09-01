@@ -33,6 +33,7 @@ sys.path.insert(0, HERE)
 from spxw_dh_regime_exit import (  # noqa: E402
     DAILY_0DTE,
     OUT,
+    SFX,
     _positions,
     build_paths,
     build_state,
@@ -41,6 +42,8 @@ from spxw_dh_regime_exit import (  # noqa: E402
     rule_exit_index,
 )
 
+# SFX comes from the regime module and reflects --ft in sys.argv: the
+# strictly-at-entry ledger variant, with every output suffixed _ft.
 THETAS = (0.05, 0.10, 0.20)
 
 
@@ -69,7 +72,7 @@ def _book(
 
 
 def main() -> None:
-    led = pd.read_parquet(os.path.join(OUT, "dh_legs_ledger.parquet"))
+    led = pd.read_parquet(os.path.join(OUT, f"dh_legs{SFX}_ledger.parquet"))
     led["expiration"] = pd.to_datetime(led["expiration"])
     led = led.sort_values(["expiration", "t", "strike", "cp"]).reset_index(drop=True)
     st = build_state(led)
@@ -89,7 +92,6 @@ def main() -> None:
     )
 
     p = build_paths(led)
-    m = p["m"]
     hold_e = np.full(n, -1)
     pe_hold = exit_pnl(p, hold_e)
 
@@ -184,12 +186,12 @@ def main() -> None:
             }
         ]
     )
-    out.to_csv(os.path.join(OUT, "dh_book_final.csv"), index=False)
+    out.to_csv(os.path.join(OUT, f"dh_book_final{SFX}.csv"), index=False)
     pd.DataFrame(byhour).to_csv(
-        os.path.join(OUT, "dh_book_final_by_hour.csv"), index=False
+        os.path.join(OUT, f"dh_book_final{SFX}_by_hour.csv"), index=False
     )
-    swap_df.to_csv(os.path.join(OUT, "dh_book_final_swap.csv"), index=False)
-    cov.to_csv(os.path.join(OUT, "dh_book_final_coverage.csv"), index=False)
+    swap_df.to_csv(os.path.join(OUT, f"dh_book_final{SFX}_swap.csv"), index=False)
+    cov.to_csv(os.path.join(OUT, f"dh_book_final{SFX}_coverage.csv"), index=False)
 
     pd.set_option("display.width", 240)
     pd.set_option("display.max_rows", 500)

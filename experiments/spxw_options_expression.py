@@ -93,7 +93,10 @@ def main() -> None:
     tr = pd.read_parquet(os.path.join(OUT, "mfiv_toclose_trades.parquet"))
     tr = tr.sort_values("t0").reset_index(drop=True)
     rv = tr["rv_rem"].to_numpy(float)
-    b2 = tr["pb_rem"].to_numpy(float)
+    # At-entry (F_t-measurable) remaining forecast; the within-window
+    # pb_rem sum is not decision-quotable (kept in the parquet as an
+    # ex-post decomposition only).
+    b2 = tr["F_b2_rem"].to_numpy(float)
     iv = tr["mfiv_int"].to_numpy(float)
     t0 = pd.to_datetime(tr["expiration"]).to_numpy()
     ok = np.isfinite(rv) & np.isfinite(b2) & np.isfinite(iv) & (rv > 0)

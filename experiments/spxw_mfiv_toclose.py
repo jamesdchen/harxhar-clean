@@ -2,6 +2,11 @@
 
 Shard the chain by timestamp range (--part/--parts). Reduce joins the
 dumped a0/blk2 remaining-path book and scores paper vs strip vs VRP.
+
+Window convention: panel stamps are bar-END labelled (the row at stamp
+tau carries bar [tau-30, tau]). The 10:00 entry holds (10:00, 16:00],
+so the remaining sums use stamps 10:30..16:00 — strictly after the
+entry stamp — matching the MFIV strip window [10:00, close] exactly.
 """
 
 from __future__ import annotations
@@ -11,16 +16,18 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import pandas as pd
+
+from ft_remaining import ft_remaining
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "results", "spxw_pnl")
 PARTS = os.path.join(OUT, "parts")
 CHAIN = os.path.join(ROOT, "data", "spxw_chain.parquet")
 ANN_DAY = float(np.sqrt(252.0))
-RTH = (10, 11, 12, 13, 14, 15)
 
 
 def _sh(x: np.ndarray) -> float:
@@ -212,12 +219,30 @@ def _entries() -> pd.DataFrame:
     m["dow"] = m["et"].dt.dayofweek
     m["absrel"] = np.abs(np.log(m["pb"] / m["pa"]))
     d10 = float(m["absrel"].quantile(0.9))
-    rth = m[m["hod"].isin(RTH) & (m["dow"] < 5) & (m["et"] >= "2020-01-01")].copy()
+    # Bar-END-labelled stamps: keep stamps 10:00..16:00 (the old hour
+    # filter 10..15 dropped the 16:00 stamp, i.e. the settle bar
+    # [15:30, 16:00]) and make the remaining sums STRICTLY after the
+    # entry stamp via shift(-1) — the entry stamp's own row is the
+    # pre-entry bar [09:30, 10:00]. rv_rem/pa_rem/pb_rem at the 10:00
+    # stamp then cover bars (10:00, 16:00], the MFIV strip's window.
+    mins = m["hod"] * 60 + m["et"].dt.minute
+    rth = m[
+        (mins >= 10 * 60)
+        & (mins <= 16 * 60)
+        & (m["dow"] < 5)
+        & (m["et"] >= "2020-01-01")
+    ].copy()
+    rth = rth.sort_values("t")
+
+    def _rem_after(s: pd.Series) -> pd.Series:
+        return s.iloc[::-1].cumsum().iloc[::-1].shift(-1)
+
     gr = rth.groupby("day", sort=False)
-    rth["rv_rem"] = gr["rv"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
-    rth["pa_rem"] = gr["pa"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
-    rth["pb_rem"] = gr["pb"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
-    first = rth[rth["hod"] == 10].groupby("day", sort=False).head(1)
+    rth["rv_rem"] = gr["rv"].transform(_rem_after)
+    rth["pa_rem"] = gr["pa"].transform(_rem_after)
+    rth["pb_rem"] = gr["pb"].transform(_rem_after)
+    is_entry = (rth["hod"] == 10) & (rth["et"].dt.minute == 0)
+    first = rth[is_entry].groupby("day", sort=False).head(1)
     first["d10"] = d10
     return first
 
@@ -262,12 +287,29 @@ def reduce(parts: int) -> None:
         left_on="t0",
         right_on="t",
         direction="backward",
-        tolerance=pd.Timedelta("40min"),
+        # < one bar: attach exactly the entry-stamp row; a missing row
+        # yields NaN instead of silently falling back one bar.
+        tolerance=pd.Timedelta(minutes=29),
     )
     j = j.dropna(subset=["pa_rem", "mfiv_int", "rv_rem", "strip_pnl"])
     d10 = float(j["d10"].iloc[0])
     keep = j["absrel"] <= d10
     f = j.loc[keep].copy()
+    # At-entry (F_t-measurable) remaining forecasts: F_rem(10:00) per model
+    # from the bar-END-labelled panels (ft_remaining). The p*_rem columns
+    # are retained as labelled EX-POST decompositions only — they sum
+    # forecasts issued during the window and must not sign a decision.
+    day_key = (
+        f["t0"].dt.tz_convert("America/New_York").dt.tz_localize(None).dt.normalize()
+    )
+    f["dkey"] = day_key
+    for nm, fn in (("a0", "yhat_a0.parquet"), ("b2", "yhat_blk2.parquet")):
+        fr = ft_remaining(os.path.join(OUT, fn))
+        e10 = fr[fr["clock"] == "10:00"][["day", "F_rem"]].rename(
+            columns={"day": "dkey", "F_rem": f"F_{nm}_rem"}
+        )
+        f = f.merge(e10, on="dkey", how="left")
+    f = f.drop(columns=["dkey"])
     gap = f["pb_rem"] - f["pa_rem"]
     size_u = gap.to_numpy(float)
     hess = size_u / np.maximum(f["pa_rem"].to_numpy(float), 1e-18) ** 2
@@ -298,6 +340,27 @@ def reduce(parts: int) -> None:
         _report("unsigned (RV-a0)", rv - a0),
         _report("unsigned (RV-MFIV)", rv - iv),
         _report("unsigned strip_pnl", sp),
+    ]
+    # F_t-measurable books: same formulas, signals from the at-entry
+    # remaining forecasts (these are the quotable decision books).
+    fa = f["F_a0_rem"].to_numpy(float)
+    fb = f["F_b2_rem"].to_numpy(float)
+    gap_ft = fb - fa
+    with np.errstate(divide="ignore", invalid="ignore"):
+        hess_ft = gap_ft / np.maximum(fa, 1e-18) ** 2
+    lo_ft, hi_ft = np.nanquantile(hess_ft, [0.01, 0.99])
+    hess_ft = np.clip(hess_ft, lo_ft, hi_ft)
+    rows += [
+        _report("ft paper unit (RV-Fa0)*gap", gap_ft * (rv - fa)),
+        _report("ft paper hess (RV-Fa0)*1/f2", hess_ft * (rv - fa)),
+        _report("ft paper QLIKE remaining", _ql(fa, rv) - _ql(fb, rv)),
+        _report("ft VRP unit (RV-MFIV)*gap", gap_ft * (rv - iv)),
+        _report("ft VRP hess (RV-MFIV)*1/f2", hess_ft * (rv - iv)),
+        _report("ft strip unit (strip_T-MFIV)*gap", gap_ft * sp),
+        _report("ft strip hess (strip_T-MFIV)*1/f2", hess_ft * sp),
+        _report("ft strip+shift unit ~paper", gap_ft * (sp + iv - fa)),
+        _report("ft strip+shift hess ~paper", hess_ft * (sp + iv - fa)),
+        _report("ft unsigned (RV-Fa0)", rv - fa),
     ]
     out = pd.DataFrame(rows)
     path = os.path.join(OUT, "mfiv_toclose.csv")

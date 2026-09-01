@@ -1,0 +1,5 @@
+test,hypothesis,n_days,corr,rmse
+panel_sumret_vs_chain_underlying_return_1000_to_1100,bar_end_labelled,564,0.9993761767266428,0.000139702108460924
+panel_sumret_vs_chain_underlying_return_1000_to_1100,bar_start_labelled,564,0.5482533191871299,0.0038987065431941707
+vix_at_1000_vs_ledger_atm_iv_at_1000ET,same_day_row_labelled_1000,526,0.8270275575265847,
+vix_at_1000_vs_ledger_atm_iv_at_1000ET,previous_day_row_labelled_1000,513,0.7925128175423045,
