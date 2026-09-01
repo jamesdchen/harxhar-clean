@@ -755,12 +755,17 @@ print(var_tab.to_string(index=False))
 var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
-q = sizes["always short"].loc[common]
-ax.plot(px.index, asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER, label="mid")
-signq = np.sign(q.replace(0, -1.0))
-crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
-ax.plot(px.index, crossed_usd.cumsum(), label="crossed")
-ax.set_title("blk2 always short — cumulative $ P&L (non-compounded)")
+for name, ls in (("always short", "-"), ("long-short volatility", "--")):
+    q = sizes[name].loc[common]
+    ax.plot(
+        px.index,
+        asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER,
+        ls, lw=1.2, label=f"{name} mid",
+    )
+    signq = np.sign(q.replace(0, -1.0))
+    crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
+    ax.plot(px.index, crossed_usd.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name} crossed")
+ax.set_title("blk2 — cumulative $ P&L (non-compounded)")
 ax.set_ylabel("USD")
 ax.legend(fontsize=8)
 fig.tight_layout()
