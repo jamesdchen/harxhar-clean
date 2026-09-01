@@ -881,7 +881,132 @@ plt.close(fig)
     ),
     md(
         r"""
-## 14. Buy-signal diagnostic
+## 14. Lagged signal, outlier-robust
+
+The §13 OLS is leverage-dominated: $s$ is in variance units with
+crash-scale tails, so a handful of extreme $s_{t-1}$ days carry most
+of the fit. House rules forbid the two common fixes — no
+winsorizing/clipping (the threshold is a tuned knob and clips that
+bite destroy signal-carrying extremes) and no $|s|$-median scaling
+(removed by decision) — so the robust checks below are all
+**bounded- or parameter-free-by-construction**:
+
+- **Rank-OLS:** regressor = the expanding percentile rank of $s$
+  among days $\le t-1$ (min 63, causal), bounded $[0,1]$; OLS of
+  $R_t$ on it with HAC(6). An outlier day becomes "the 99.9th
+  percentile", not a 50$\sigma$ leverage point. Magnitude is
+  deliberately discarded — this asks only whether any monotone
+  lagged relation exists.
+- **Sign split:** mean $R_t$ on $s_{t-1}>0$ vs $\le 0$ days and the
+  HAC(6) $t$ of the difference — the lagged trading book's own
+  economics.
+- **Rank–rank association:** Spearman $\rho$ and Kendall $\tau$ of
+  $(s_{t-1}, R_t)$ — both sides robust (the rank-OLS above still
+  carries $R$'s $-1$ atom and tails in its residuals); parameter-free
+  association tests, not causal constructions.
+- **Tercile spread:** mean $R_t$ on top- vs bottom-tercile
+  rank$(s_{t-1})$ days, HAC(6) $t$ — catches relations living only
+  in the extremes.
+- **Magnitude:** $|R_t|$ on rank$(s_{t-1})$, HAC(6) — the signal is
+  a variance forecast, so even with no premium predictability it
+  should predict the *size* of the next day's move. A significant
+  $b$ here beside the null above is the complete statement:
+  yesterday's signal prices tomorrow's risk, not tomorrow's return.
+
+The §13 null was measured under outlier leverage; these make the
+null (or any effect) trustworthy.
+"""
+    ),
+    code(
+        r"""
+from scipy import stats as sps
+
+rob_rank, rob_sign, rob_assoc, rob_terc, rob_mag = [], [], [], [], []
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    s = px["signal"].astype(float)
+    r = px["R"].astype(float)
+    rk = s.expanding(min_periods=63).rank(pct=True).shift(1)
+    ok = np.isfinite(rk) & np.isfinite(r)
+    X = sm.add_constant(rk[ok].to_numpy())
+    fit = sm.OLS(r[ok].to_numpy(), X).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    rob_rank.append({"model": LABEL[tag], "b_rank": float(fit.params[1]),
+                     "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)})
+
+    x = s.shift(1)
+    ok2 = np.isfinite(x) & np.isfinite(r)
+    yv = r[ok2].to_numpy()
+    ind = (x[ok2] > 0).astype(float).to_numpy()
+    Xs = sm.add_constant(ind)
+    fs = sm.OLS(yv, Xs).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    rob_sign.append({"model": LABEL[tag],
+                     "mean_R|s>0": float(yv[ind == 1].mean()),
+                     "mean_R|s<=0": float(yv[ind == 0].mean()),
+                     "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
+                     "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())})
+
+    xr = x[ok2].to_numpy()
+    sp_rho, sp_p = sps.spearmanr(xr, yv)
+    kt_tau, kt_p = sps.kendalltau(xr, yv)
+    rob_assoc.append({"model": LABEL[tag],
+                      "spearman_rho": float(sp_rho), "p_sp": float(sp_p),
+                      "kendall_tau": float(kt_tau), "p_kt": float(kt_p),
+                      "n": int(len(xr))})
+
+    rkv = rk[ok].to_numpy()
+    rv_ = r[ok].to_numpy()
+    hi = rkv > 2.0 / 3.0
+    lo = rkv < 1.0 / 3.0
+    sel = hi | lo
+    Xt = sm.add_constant(hi[sel].astype(float))
+    ft = sm.OLS(rv_[sel], Xt).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    rob_terc.append({"model": LABEL[tag],
+                     "mean_R_top": float(rv_[hi].mean()),
+                     "mean_R_bottom": float(rv_[lo].mean()),
+                     "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
+                     "n_top": int(hi.sum()), "n_bottom": int(lo.sum())})
+
+    Xm = sm.add_constant(rkv)
+    fm = sm.OLS(np.abs(rv_), Xm).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    rob_mag.append({"model": LABEL[tag], "b_absR": float(fm.params[1]),
+                    "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
+                    "n": int(fm.nobs)})
+
+for title, rows in (("rank-OLS: R_t on expanding pct-rank of s_{t-1}", rob_rank),
+                    ("sign split: mean R_t by sign(s_{t-1})", rob_sign),
+                    ("association: Spearman/Kendall of (s_{t-1}, R_t)", rob_assoc),
+                    ("tercile spread: top vs bottom rank(s_{t-1})", rob_terc),
+                    ("magnitude: |R_t| on rank(s_{t-1})", rob_mag)):
+    print(title)
+    print(pd.DataFrame(rows).to_string(index=False))
+    print("---")
+pd.DataFrame(rob_rank).to_csv(OUT / "lagged_robust_rank.csv", index=False)
+pd.DataFrame(rob_sign).to_csv(OUT / "lagged_robust_sign.csv", index=False)
+pd.DataFrame(rob_assoc).to_csv(OUT / "lagged_robust_assoc.csv", index=False)
+pd.DataFrame(rob_terc).to_csv(OUT / "lagged_robust_tercile.csv", index=False)
+pd.DataFrame(rob_mag).to_csv(OUT / "lagged_robust_magnitude.csv", index=False)
+
+px = books["blk2"].loc[common]
+rk = px["signal"].astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
+ok = np.isfinite(rk) & np.isfinite(px["R"])
+fig, ax = plt.subplots(figsize=(6.2, 4.2))
+ax.scatter(rk[ok], px["R"][ok], s=8, alpha=0.35)
+Xp = sm.add_constant(rk[ok].to_numpy())
+fitp = sm.OLS(px["R"][ok].to_numpy(), Xp).fit()
+xx = np.linspace(0, 1, 50)
+ax.plot(xx, fitp.params[0] + fitp.params[1] * xx, color="C3", lw=1.2)
+ax.set_xlabel(r"expanding pct-rank of $s_{t-1}$")
+ax.set_ylabel(r"$R_t$")
+ax.set_title("blk2  $R_t$ vs rank of $s_{t-1}$")
+fig.tight_layout()
+fig.savefig(OUT / "lagged_robust_rank_blk2.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 15. Buy-signal diagnostic
 
 A buy day is $q_t>0$. Always-short never buys. Compare models on the
 common dates.
@@ -941,7 +1066,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 15. Iron condors (straddle + wings / strangle + wings)
+## 16. Iron condors (straddle + wings / strangle + wings)
 
 Body is the existing nearest-OTM package. Wings are the nearest live
 mids at least $25$ (and $50$) points further OTM. Short iron condor =
@@ -1015,7 +1140,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 16. Hand-check one row
+## 17. Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
 - `entry` = 15:30 `mid_c + mid_p`.
