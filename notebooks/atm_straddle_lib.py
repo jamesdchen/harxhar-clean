@@ -283,10 +283,23 @@ def load_yhat_panel(path: Path) -> pd.DataFrame:
     return df
 
 
+def lagged_expanding_median(signal: pd.Series, min_periods: int = 63) -> pd.Series:
+    """Expanding median of |signal|, shifted 1. Known before the current row."""
+    return signal.abs().expanding(min_periods=min_periods).median().shift(1)
+
+
 def causal_leverage(signal: pd.Series, cap: float = 3.0) -> pd.Series:
-    med = signal.abs().expanding(min_periods=63).median().shift(1)
+    med = lagged_expanding_median(signal)
     lev = (signal.abs() / med).clip(upper=cap)
     return lev.fillna(1.0)
+
+
+def um_leverage_vs_lagged_scale(
+    signal: pd.Series, med: pd.Series, cap: float = 3.0
+) -> pd.Series:
+    """|s_t| / med_t with med already lagged. Do not pass same-bar 15:30 |s| as med."""
+    lev = (signal.abs() / med.astype(float)).clip(upper=cap)
+    return lev.replace([np.inf, -np.inf], np.nan).fillna(1.0)
 
 
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
@@ -405,6 +418,21 @@ def crossed_premium_return(
 
 def points_pnl(q: pd.Series, exit_: pd.Series, entry: pd.Series) -> pd.Series:
     return q.astype(float) * (exit_.astype(float) - entry.astype(float))
+
+
+def stamp_spot(live: pd.DataFrame, keys) -> pd.Series:
+    """NaN-safe copy of underlying_price at each key. Not a consensus.
+
+    After dropna, this tape has one value per stamp. ``first`` is that
+    value; all-NaN keys are absent from the index.
+    """
+    if isinstance(keys, str):
+        keys = [keys]
+    return (
+        live.dropna(subset=["underlying_price"])
+        .groupby(list(keys))["underlying_price"]
+        .first()
+    )
 
 
 def attach_iv_hourly_as_30min(atm: pd.DataFrame) -> pd.DataFrame:

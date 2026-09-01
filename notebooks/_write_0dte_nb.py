@@ -4,6 +4,8 @@ from pathlib import Path
 
 import nbformat as nbf
 
+from _nb_io import carry_outputs
+
 nb = nbf.v4.new_notebook()
 nb.metadata["kernelspec"] = {
     "display_name": "285J",
@@ -42,10 +44,10 @@ $\widehat{RV}=(m^2+\hat\sigma^2)B$ the causal second-order map from
 `yhat`. The book that survives the variants below is **always short**,
 with optional unit-median $|\mathrm{VRP}|$ size. Long-short volatility $\pm 1$ is a
 control. Vol-space maps ($\hat y\sqrt{B}$, $m\sqrt{B}$) live in
-`atm_straddle_volmap.ipynb` if present, else section 7 of
-`atm_straddle_experimental.ipynb`. Ensembles / $R\sim s$ / extra
-weights: `atm_straddle_experimental.ipynb`. Every-bar 30-min book:
-`atm_straddle_intraday.ipynb`.
+`atm_straddle_volmap.ipynb` if present, else
+`atm_straddle_experimental.ipynb`. Ensembles / extra weights:
+`atm_straddle_experimental.ipynb`. $R\sim a+b s$ is below with the
+signal. Every-bar 30-min book: `atm_straddle_intraday.ipynb`.
 
 Every cell reads from `data/` (or from a frame the previous cell just built).
 Print the table before using it.
@@ -63,6 +65,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.display import display
 import yfinance as yf
+import statsmodels.api as sm
 
 def find_repo(start: Path) -> Path:
     for q in [start.resolve(), *start.resolve().parents]:
@@ -212,7 +215,7 @@ e = book_chain[book_chain["hhmm"] == "15:30"].copy()
 n_days = e["expiration"].nunique()
 live = e[np.isfinite(e["mid"]) & (e["mid"] > 0)].copy()
 live["S"] = live["underlying_price"].astype(float)
-spot = live.dropna(subset=["S"]).groupby("expiration")["S"].median()
+spot = live.dropna(subset=["S"]).groupby("expiration")["S"].first()
 print("15:30 0DTE days", n_days, "with a spot", int(spot.notna().sum()))
 print("15:30 0DTE rows", f"{len(e):,}", "with finite mid>0", f"{len(live):,}",
       f"({len(live) / max(len(e), 1):.1%} of rows)")
@@ -537,15 +540,23 @@ for tag, rv in models.items():
         r"""
 ## 8. Put IV in the same space as RV
 
-Quoted `new_implied_vol` is an hourly vol. Remaining window is 30 min:
+The chain column is `impl_volatility` (export name `new_implied_vol`).
+OM's manual says **annualized** BS vol (ATM $\sim 0.20$). The tape is
+$\sim 0.002$ at ATM — $\sim 100\times$ too small. Mids still price
+$\sim 20\%$ vol. That is the unit tell: the number behaves as a
+**1-hour SD**, not as OM annualized vol.
 
 $$
-\sigma_{30} = \mathrm{IV}_{\mathrm{hourly}} / \sqrt{2},
-\qquad
-\mathrm{IV}_{30}^{2} = \sigma_{30}^{2}.
+\mathrm{Var}(1\mathrm{h})\approx 0.002^{2}=4\times 10^{-6},\qquad
+\mathrm{IV}_{30}=\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2},\qquad
+\mathrm{iv\_var}=\mathrm{IV}_{30}^{2}=(\mathrm{IV}_{\mathrm{hourly}})^{2}/2.
 $$
 
-`rv_hat` and $\mathrm{IV}_{30}^{2}$ are both 30-minute variances.
+That $10^{-6}$ variance is the same scale as $\widehat{RV}$. Treating
+$0.002$ as annualized and dividing by $252\times 6.5$ lands at
+$\sim 10^{-9}$ and cannot be compared to $\widehat{RV}$. No BS inversion
+from the mid. Remaining window here is 30 min, so this is also
+remaining-session variance.
 """
     ),
     code(
@@ -767,11 +778,16 @@ plt.close(fig)
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
-## 10. Gross return over time
+## 10. P&L / return calculations (non-compounded)
 
-Compound wealth $W_t=\prod(1+R'_u)$ and the arithmetic path $\sum R'$.
-If $1+R'\le 0$ the compound path stops (ruin). Always-short is the
-benchmark path.
+Same contracts and $q$ as the rule table. All series below are
+**daily arithmetic** (not $\prod(1+R')$). Mid fill is the published
+book. Crossed fill: long pays the ask, short receives the bid.
+Half-spread TC charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against the
+trade. Point P&L is $q(\mathrm{exit}-\mathrm{entry})$; dollars use the
+SPXW $100$ multiplier. Margin-scaled return uses a CBOE-style short
+straddle margin on short days and the premium on long days. The plot is
+cumsum of dollars.
 """
     ),
     code(
@@ -780,63 +796,90 @@ import sys
 sys.path.insert(0, str(REPO / "notebooks"))
 import atm_straddle_lib as asl
 
-def wealth_and_dd(rp: pd.Series):
-    x = rp.astype(float).dropna()
-    acc = []
-    w = 1.0
-    ruined = False
-    for v in x.to_numpy():
-        if ruined or not np.isfinite(v) or (1.0 + v) <= 0:
-            ruined = True
-            acc.append(np.nan)
-        else:
-            w *= 1.0 + v
-            acc.append(w)
-    W = pd.Series(acc, index=x.index)
-    peak = W.cummax()
-    dd = float(((W / peak) - 1.0).min()) if W.notna().any() else float("nan")
-    term = float(W.dropna().iloc[-1]) if W.notna().any() else float("nan")
-    return W, x.cumsum(), term, dd, ruined
-
+px = books["blk2"].loc[common].copy()
+if "bid_entry" not in px.columns:
+    px["bid_entry"] = px["bid_c"].astype(float) + px["bid_p"].astype(float)
+    px["ask_entry"] = px["ask_c"].astype(float) + px["ask_p"].astype(float)
+hs = 0.5 * (px["ask_entry"] - px["bid_entry"])
+sizes = rule_sizes(books["blk2"])
 rows = []
-fig, axes = plt.subplots(2, 1, figsize=(11, 6.4), sharex=True)
-for tag in MODEL_ORDER:
-    px = books[tag]
-    sizes = rule_sizes(px)
-    for name in order:
-        rp = (sizes[name] * px["R"]).loc[common]
-        W, S, term, dd, ruined = wealth_and_dd(rp)
-        rows.append({
-            "model": LABEL[tag], "rule": name,
-            "terminal_W": term, "max_dd": dd, "ruined": ruined,
-            "sum_R": float(S.iloc[-1]) if len(S) else float("nan"),
-        })
-        if tag == "blk2":
-            axes[0].plot(W.index, W.values, label=name, lw=1.1)
-            axes[1].plot(S.index, S.values, label=name, lw=1.1)
-axes[0].set_ylabel(r"$W_t=\prod(1+R')$")
-axes[1].set_ylabel(r"$\sum R'$")
-axes[0].legend(fontsize=8)
-axes[0].set_title("block-diag ridge — gross return over time")
+
+def add_variant(series, q, rule, variant, unit):
+    st = asl.rule_row(series, q)
+    rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
+
+for name in ("always short", "unit-median VRP"):
+    q = sizes[name].loc[common]
+    mid = (q * px["R"])
+    add_variant(mid, q, name, "mid premium R", "return")
+    signq = np.sign(q.replace(0, -1.0))
+    crossed = asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs()
+    add_variant(crossed, q, name, "crossed fill", "return")
+    trade = px["entry"] + signq * hs
+    tc = q * (px["exit"] - trade) / px["entry"]
+    add_variant(tc, q, name, "half-spread TC", "return")
+    pts = asl.points_pnl(q, px["exit"], px["entry"])
+    add_variant(pts, q, name, "index-point P&L", "points")
+    usd = pts * asl.SPX_MULTIPLIER
+    add_variant(usd, q, name, "dollar P&L", "USD")
+    margin_pts = [
+        asl.cboe_short_straddle_margin_points(S, Kc, Kp, ent)
+        for S, Kc, Kp, ent in zip(px["S"], px["K_c"], px["K_p"], px["entry"])
+    ]
+    margin_pts = pd.Series(margin_pts, index=px.index)
+    capital = np.where(q < 0, margin_pts * asl.SPX_MULTIPLIER, px["entry"] * asl.SPX_MULTIPLIER)
+    mret = usd / np.maximum(capital, 1e-8)
+    add_variant(pd.Series(mret, index=px.index), q, name, "margin-scaled", "return")
+
+var_tab = pd.DataFrame(rows)
+print(var_tab.to_string(index=False))
+var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
+
+fig, ax = plt.subplots(figsize=(11, 3.4))
+q = sizes["unit-median VRP"].loc[common]
+ax.plot(px.index, asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER, label="mid")
+signq = np.sign(q.replace(0, -1.0))
+crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
+ax.plot(px.index, crossed_usd.cumsum(), label="crossed")
+ax.set_title("blk2 unit-median VRP — cumulative $ P&L (non-compounded)")
+ax.set_ylabel("USD")
+ax.legend(fontsize=8)
 fig.tight_layout()
-fig.savefig(OUT / "gross_return_over_time.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "gross_return_over_time.png")
+fig.savefig(OUT / "pnl_cum_usd_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "pnl_cum_usd_blk2.png")
 display(fig)
 plt.close(fig)
-wealth_tab = pd.DataFrame(rows)
-print(wealth_tab.to_string(index=False))
-wealth_tab.to_csv(OUT / "gross_return_over_time.csv", index=False)
 """
     ),
     md(
         r"""
 ## 11. Information ratio vs always-short
 
-Active return $R_a := R^p - R_{\mathrm{benchmark}}$ with
-$R_{\mathrm{benchmark}}=-R$ (always short). Annualized IR is
-$\mathrm{mean}(R_a)/\mathrm{std}(R_a)\times\sqrt{252}$. Tracking error
-is the annualized std. Flipping long versus the VRP book is the
-active bet.
+Benchmark is always-short: $R^{\mathrm{AS}}_t=-R_t$ (one short package
+every day). Portfolio is $R^p_t=q_t R_t$ for long-short ($q=\mathrm{sign}(s)$)
+or unit-median ($q=\mathrm{sign}(s)\times$ leverage).
+
+**Active return** (daily): $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short
+days $q=-1$ so $R^a=0$ (same as the bench). On buy days $q>0$ you
+flipped from short to long, so $R^a=q R-(-R)=(q+1)R$ (equals $2R$
+for $\pm 1$ long-short). The whole series is those daily differences
+on the 871 common days.
+
+**mean_active** $= \overline{R^a}$, the sample mean of that daily
+series (not annualized).
+
+**te_daily** (tracking error, daily) $= \mathrm{std}(R^a)$ with
+$n-1$ in the denominator (`ddof=1`). **te_ann** $= \mathrm{te\_daily}\times\sqrt{252}$.
+
+**IR_ann** $= \overline{R^a}/\mathrm{std}(R^a)\times\sqrt{252}$
+$= \mathrm{mean\_active}/\mathrm{te\_ann}$. It is the Sharpe of the
+*active* series, not of $R^p$.
+
+**t_active** $= \overline{R^a}/\mathrm{std}(R^a)\times\sqrt{n}$, the
+usual $t$-stat that mean active is zero. Same algebra as `t_mean` on
+$R^a$. IR and $t$ move together; $t$ does not annualize.
+
+**corr_to_bench** $= \mathrm{corr}(R^p,R^{\mathrm{AS}})$.
 """
     ),
     code(
@@ -858,16 +901,63 @@ print("IR = active return / tracking error; benchmark is always-short.")
     ),
     md(
         r"""
-## 12. Buy-signal diagnostic
+## 12. Regression of straddle returns on the signal
 
-A buy day is $q_t>0$. Long-short and unit-median share the same buy
-*days* (same sign); unit-median only changes size. Always-short never
-buys. Compare models on the common index; overlay FOMC / month-end.
+$R = a + b s$ and $R = a + b\,(s/\mathrm{med}_{u<t}|s_u|)$. OLS with
+HAC lags $=6$. $b>0$ would mean the long package pays when the
+forecast exceeds implied variance — the paper L/S book dying says
+this is near zero or negative.
 """
     ),
     code(
         r"""
-flags = asl.fomc_and_monthend(common, REPO)
+reg_rows = []
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    s = px["signal"].astype(float)
+    r = px["R"].astype(float)
+    med = s.abs().expanding(min_periods=63).median().shift(1).fillna(s.abs().median())
+    for name, x in (("raw s", s), ("s / med|s|", s / med)):
+        X = sm.add_constant(x.to_numpy())
+        fit = sm.OLS(r.to_numpy(), X, missing="drop").fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+        reg_rows.append({
+            "model": LABEL[tag], "x": name,
+            "a": float(fit.params[0]), "b": float(fit.params[1]),
+            "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
+            "R2": float(fit.rsquared), "n": int(fit.nobs),
+        })
+reg_tab = pd.DataFrame(reg_rows)
+print(reg_tab.to_string(index=False))
+reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
+print("reading: b>0 => long straddle when s>0 is the right side; L/S dying => b ~ 0 or <0.")
+
+px = books["blk2"].loc[common]
+fig, ax = plt.subplots(figsize=(6.2, 4.2))
+ax.scatter(px["signal"], px["R"], s=8, alpha=0.35)
+X = sm.add_constant(px["signal"].to_numpy())
+fit = sm.OLS(px["R"].to_numpy(), X).fit()
+xx = np.linspace(px["signal"].min(), px["signal"].max(), 50)
+ax.plot(xx, fit.params[0] + fit.params[1] * xx, color="C3", lw=1.2)
+ax.set_xlabel(r"$s=\widehat{RV}-\mathrm{IV}_{30}^2$")
+ax.set_ylabel(r"$R$")
+ax.set_title("blk2  $R$ vs $s$")
+fig.tight_layout()
+fig.savefig(OUT / "regression_R_on_signal_blk2.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 13. Buy-signal diagnostic
+
+A buy day is $q_t>0$. Long-short and unit-median share the same buy
+*days* (same sign); unit-median only changes size. Always-short never
+buys. Compare models on the common dates.
+"""
+    ),
+    code(
+        r"""
 buy = {}
 for tag in MODEL_ORDER:
     px = books[tag].loc[common]
@@ -883,7 +973,6 @@ for tag in MODEL_ORDER:
         "mean_R|buy": float(px.loc[b, "R"].mean()) if b.any() else float("nan"),
         "mean_R|sell": float(px.loc[~b, "R"].mean()),
         "median_|s|_buy": float(px.loc[b, "signal"].abs().median()) if b.any() else float("nan"),
-        "frac_buy_fomc": float(flags.loc[b, "is_fomc"].mean()) if b.any() else float("nan"),
         "median_|q|_um_buy": float(
             rule_sizes(books[tag])["unit-median VRP"].loc[common][b].abs().median()
         ) if b.any() else float("nan"),
@@ -904,41 +993,27 @@ jacc.to_csv(OUT / "buy_signal_agreement.csv")
 off = jacc.values[np.triu_indices(len(jacc), 1)]
 print(f"mean pairwise Jaccard {float(off.mean()):.3f}")
 
-fig, axes = plt.subplots(len(MODEL_ORDER) + 1, 1, figsize=(11, 8), sharex=True)
-t = np.arange(len(common))
+idx = pd.DatetimeIndex(common)
+fig, axes = plt.subplots(len(MODEL_ORDER), 1, figsize=(11, 7.2), sharex=True)
 for ax, tag in zip(axes, MODEL_ORDER):
-    ax.vlines(t[buy[tag].to_numpy()], 0, 1, color="C0", lw=0.4)
-    ax.vlines(t[flags["is_event"].to_numpy()], 0, 1, color="C3", lw=0.3, alpha=0.5)
+    days = idx[buy[tag].to_numpy()]
+    ax.vlines(days, 0, 1, color="C0", lw=0.5)
     ax.set_yticks([])
     ax.set_ylabel(tag, rotation=0, ha="right", va="center", fontsize=8)
-axes[-1].vlines(t[flags["is_fomc"].to_numpy()], 0, 1, color="C3", lw=0.6, label="FOMC")
-axes[-1].vlines(t[flags["is_me"].to_numpy()], 0, 1, color="C2", lw=0.6, label="month-end")
-axes[-1].legend(fontsize=7, loc="upper right")
-axes[-1].set_yticks([])
-axes[0].set_title("buy days (blue) vs FOMC/ME (red overlay)")
+    ax.set_ylim(0, 1)
+axes[-1].set_xlabel("date")
+axes[0].set_title("buy days")
+fig.autofmt_xdate()
 fig.tight_layout()
-# year-month heatmap for blk2
-bm = pd.Series(buy["blk2"].to_numpy(), index=pd.DatetimeIndex(common))
-hm = bm.groupby([bm.index.year, bm.index.month]).sum().unstack(fill_value=0)
-fig2, ax2 = plt.subplots(figsize=(9, 3.2))
-im = ax2.imshow(hm.to_numpy(), aspect="auto", cmap="Blues")
-ax2.set_yticks(range(len(hm.index)))
-ax2.set_yticklabels(hm.index)
-ax2.set_xticks(range(12))
-ax2.set_xticklabels(list(range(1, 13)))
-ax2.set_title("blk2 buy-day counts by year-month")
-fig2.colorbar(im, ax=ax2, fraction=0.02)
 fig.savefig(OUT / "buy_signal_diag_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "buy_signal_diag_blk2.png")
 display(fig)
-display(fig2)
 plt.close(fig)
-plt.close(fig2)
 """
     ),
     md(
         r"""
-## 13. Iron condors (straddle + wings / strangle + wings)
+## 14. Iron condors (straddle + wings / strangle + wings)
 
 Body is the existing nearest-OTM package. Wings are the nearest live
 mids at least $25$ (and $50$) points further OTM. Short iron condor =
@@ -1012,75 +1087,6 @@ plt.close(fig)
     ),
     md(
         r"""
-## 14. P&L / return calculations (book-variants, return-summary)
-
-Same contracts and $q$ as the rule table. Mid fill is the published
-book. Crossed fill: long pays the ask, short receives the bid.
-Half-spread TC charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against the
-trade. Point P&L is $q(\mathrm{exit}-\mathrm{entry})$; dollars use the
-SPXW $100$ multiplier. Margin-scaled return uses a CBOE-style short
-straddle margin on short days and the premium on long days.
-"""
-    ),
-    code(
-        r"""
-px = books["blk2"].loc[common].copy()
-if "bid_entry" not in px.columns:
-    px["bid_entry"] = px["bid_c"].astype(float) + px["bid_p"].astype(float)
-    px["ask_entry"] = px["ask_c"].astype(float) + px["ask_p"].astype(float)
-hs = 0.5 * (px["ask_entry"] - px["bid_entry"])
-sizes = rule_sizes(books["blk2"])
-rows = []
-
-def add_variant(series, q, rule, variant, unit):
-    st = asl.rule_row(series, q)
-    rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
-
-for name in ("always short", "unit-median VRP"):
-    q = sizes[name].loc[common]
-    mid = (q * px["R"])
-    add_variant(mid, q, name, "mid premium R", "return")
-    signq = np.sign(q.replace(0, -1.0))
-    crossed = asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs()
-    add_variant(crossed, q, name, "crossed fill", "return")
-    trade = px["entry"] + signq * hs
-    tc = q * (px["exit"] - trade) / px["entry"]
-    add_variant(tc, q, name, "half-spread TC", "return")
-    pts = asl.points_pnl(q, px["exit"], px["entry"])
-    add_variant(pts, q, name, "index-point P&L", "points")
-    usd = pts * asl.SPX_MULTIPLIER
-    add_variant(usd, q, name, "dollar P&L", "USD")
-    margin_pts = [
-        asl.cboe_short_straddle_margin_points(S, Kc, Kp, ent)
-        for S, Kc, Kp, ent in zip(px["S"], px["K_c"], px["K_p"], px["entry"])
-    ]
-    margin_pts = pd.Series(margin_pts, index=px.index)
-    capital = np.where(q < 0, margin_pts * asl.SPX_MULTIPLIER, px["entry"] * asl.SPX_MULTIPLIER)
-    mret = usd / np.maximum(capital, 1e-8)
-    add_variant(pd.Series(mret, index=px.index), q, name, "margin-scaled", "return")
-
-var_tab = pd.DataFrame(rows)
-print(var_tab.to_string(index=False))
-var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
-
-fig, ax = plt.subplots(figsize=(11, 3.4))
-q = sizes["unit-median VRP"].loc[common]
-ax.plot(px.index, asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER, label="mid")
-signq = np.sign(q.replace(0, -1.0))
-crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
-ax.plot(px.index, crossed_usd.cumsum(), label="crossed")
-ax.set_title("blk2 unit-median VRP — cumulative $ P&L")
-ax.set_ylabel("USD")
-ax.legend(fontsize=8)
-fig.tight_layout()
-fig.savefig(OUT / "pnl_cum_usd_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "pnl_cum_usd_blk2.png")
-display(fig)
-plt.close(fig)
-"""
-    ),
-    md(
-        r"""
 ## Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
@@ -1097,6 +1103,8 @@ plt.close(fig)
     ),
 ]
 
+
 path = Path(__file__).resolve().parent / "atm_straddle_rv_iv.ipynb"
+n_kept = carry_outputs(nb, path)
 nbf.write(nb, path)
-print("wrote", path)
+print("wrote", path, "carried outputs for", n_kept, "code cells")

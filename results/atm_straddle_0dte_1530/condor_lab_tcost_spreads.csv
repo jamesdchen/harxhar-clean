@@ -1,0 +1,7 @@
+,median (ask-bid)/mid
+body call,0.058823540806770325
+body put,0.058823540806770325
+wing call w25,1.0000000745058049
+wing put w25,0.49999996274709757
+wing call w50,2.0
+wing put w50,2.0
