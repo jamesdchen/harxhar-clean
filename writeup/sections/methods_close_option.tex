@@ -3,9 +3,8 @@
 
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
-the two measurements, the position rules, a sizing overlay, a
-defined-risk variant, and the control; constants were set before the
-book was scored.
+the two measurements, the position rules, a defined-risk variant, and
+the control; constants were set before the book was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
 to expiry, cash-settled on the day's official close. The panel is the
@@ -137,6 +136,8 @@ disagreed with the quote most --- rather than on small-signal days, so
 the clip is what bounds the left tail of the rule.
 \fi
 
+% VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
+\iffalse
 \paragraph{Sizing overlay.} A book that holds $|q_t| = 1$ every day
 inherits the market's volatility cycle. One overlay is scored on top
 of each rule, and it reads no forecast: let $\hat\sigma_t$ be the
@@ -159,6 +160,7 @@ overlay claims no forecast information, it is judged on risk
 stability --- the wander of the book's rolling volatility, its
 drawdown, its per-year volatility --- and not on the Sharpe ratio,
 which a pure rescaling should leave roughly unchanged.
+\fi
 
 \paragraph{Defined-risk variant.} Selling the package leaves an
 unbounded downside. On short days a variant of each rule buys a wing
@@ -181,6 +183,30 @@ capital-at-risk view is reported as a diagnostic only: its denominator
 is smallest exactly on rich-credit, high-volatility days, so it
 concentrates the series' variance in a handful of days and misreads
 cheap tail insurance as a losing trade.
+
+\paragraph{Compounding at a fraction of wealth.} The tables above
+price one unit of premium per day and add P\&L up. A reinvesting
+trader bets a fraction $f_t$ of current wealth instead, so wealth
+compounds as $W_T=\prod_t(1+f_t\,q_t R_t)$ and the natural objective
+is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
+any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
+day, so the unhedged short book, with a worst day near $-10$ premium
+units, can only ever bet a small fraction of wealth no matter how
+good its mean --- the defined-risk variant bounds the worst day by
+construction, which is exactly what loosens this constraint. The
+fraction is estimated causally from the book's own past returns,
+\begin{equation}
+    \hat f_t \;=\;
+    \min\!\left(
+        \frac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},
+        \, \frac{1}{|\min_{u\le t-1} R'_u|}
+    \right)_{\!+},
+    \label{eq:close_opt_kelly}
+\end{equation}
+the quadratic growth rule under a running ruin cap, expanding with a
+minimum of 63 sessions and lagged one day. The half-fraction path
+$\hat f_t/2$ is scored alongside, and every realized wealth factor is
+asserted positive.
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 \iffalse
@@ -215,11 +241,12 @@ predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
 Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
-forecast on roughly 85\% of days, so every forecast-driven rule here is
-mostly that short. What the forecast contributes at this hour is the
+forecast on about 61\% of days, so the book leans short more often
+than long. What the forecast contributes at this hour is the
 \emph{sign} of the day --- which side of the quoted premium to stand
 on. Sizing beyond the sign is tested rather than assumed:
 Section~\ref{sec:close_option_results} reports the magnitude
-experiments, and the overlay of
-Equation~\eqref{eq:close_opt_voltarget} is the one graduation
-retained --- it reads the book's own past returns, not the signal.
+experiments, none of which is retained; the only graduation of
+exposure kept is the causal fraction-of-wealth rule of
+Equation~\eqref{eq:close_opt_kelly}, which reads the book's own past
+returns, not the signal.

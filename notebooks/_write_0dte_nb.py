@@ -1004,143 +1004,144 @@ display(fig)
 plt.close(fig)
 """
     ),
+    # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
+    # md(
+    # r"""
+    # ## 15. Sizing by trailing book volatility
+    #
+    # The two rules above hold $|q_t|=1$ every day, so the book inherits the
+    # market's volatility cycle: its own risk swings roughly $2.4\times$
+    # between calm and stormy quarters. The lagged-signal slides show the
+    # signal's information at day scale is its **sign** — so we do not try to
+    # size by conviction. Instead we standardize **risk**: scale the whole
+    # position by how volatile the book itself has recently been.
+    #
+    # Construction (causal throughout): let $\hat\sigma_t$ be the standard
+    # deviation of the rule's own daily return $R'$ over the trailing 63
+    # sessions, lagged one day. The scale factor is
+    #
+    # $$\ell_t=\min\!\left(\frac{\operatorname{median}_{u\le t-1}\hat\sigma_u}{\hat\sigma_t},\,3\right),
+    # \qquad R''_t=\ell_t\,R'_t .$$
+    #
+    # The target in the numerator is the expanding median of $\hat\sigma$
+    # itself, so average leverage is close to one by construction and there is
+    # no free target parameter; 63 sessions is the standing quarter window and
+    # 3 the standing leverage cap (it never binds — realized $\ell$ stays in
+    # $[0.6,\,1.6]$). The first 63+1 sessions have no estimate and sit flat;
+    # raw and scaled books are compared on the same remaining days.
+    #
+    # This overlay claims **no forecast information** — it reads only the
+    # book's own past returns. The scoreboard is therefore risk stability
+    # (the variability of the book's rolling volatility, its drawdown, its
+    # per-year volatility), **not** Sharpe: a pure rescaling should leave
+    # Sharpe roughly unchanged, and does. One honest limitation is structural:
+    # a trailing estimator cannot see the first day of a regime change, so
+    # single worst days keep their size; what shrinks is the quarter-to-year
+    # wander of realized risk.
+    # """
+    # ),
+    # code(
+    # r"""
+    # VT_WIN, VT_CAP = 63, 3.0  # standing quarter window, standing leverage cap
+    #
+    #
+    # def vol_target(rp: pd.Series) -> pd.DataFrame:
+    # rp = rp.astype(float)
+    # sig = rp.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).shift(1)
+    # target = sig.expanding(min_periods=1).median().shift(1)
+    # ell = (target / sig).clip(0.0, VT_CAP)
+    # return pd.DataFrame({"raw": rp, "ell": ell, "scaled": ell * rp})
+    #
+    #
+    # def risk_row(r: pd.Series) -> pd.Series:
+    # rv = r.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).dropna()
+    # cum = r.cumsum()
+    # mu, sd = float(r.mean()), float(r.std(ddof=1))
+    # return pd.Series({
+    # "n": len(r),
+    # "vol_CV": float(rv.std(ddof=1) / rv.mean()),
+    # "vol_max": float(rv.max()),
+    # "vol_min": float(rv.min()),
+    # "maxDD": float((cum - cum.cummax()).min()),
+    # "worst_day": float(r.min()),
+    # "skew": float(r.skew()),
+    # "ex_kurt": float(r.kurt()),
+    # "mean": mu,
+    # "std": sd,
+    # "Sharpe_ann": mu / sd * np.sqrt(252.0),
+    # })
+    #
+    #
+    # vt_rows, vt_lev, vt_year = [], [], []
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # for name, q in rule_sizes(px).items():
+    # f = vol_target((q * px["R"]).loc[common]).dropna(subset=["ell"])
+    # for kind in ("raw", "scaled"):
+    # vt_rows.append(risk_row(f[kind]).rename((name, tag, kind)))
+    # vt_lev.append(pd.Series({
+    # "mean_ell": float(f["ell"].mean()),
+    # "median_ell": float(f["ell"].median()),
+    # "min_ell": float(f["ell"].min()),
+    # "max_ell": float(f["ell"].max()),
+    # "pct_at_cap": 100.0 * float((f["ell"] >= VT_CAP - 1e-12).mean()),
+    # }, name=(name, tag)))
+    # for yr, g in f.groupby(f.index.year):
+    # vt_year.append({"rule": name, "model": tag, "year": yr,
+    # "vol_raw": float(g["raw"].std(ddof=1)),
+    # "vol_scaled": float(g["scaled"].std(ddof=1))})
+    #
+    # vt_tab = pd.DataFrame(vt_rows)
+    # vt_tab.index = pd.MultiIndex.from_tuples(vt_tab.index, names=["rule", "model", "book"])
+    # vt_lev = pd.DataFrame(vt_lev)
+    # vt_lev.index = pd.MultiIndex.from_tuples(vt_lev.index, names=["rule", "model"])
+    # vt_year = pd.DataFrame(vt_year).set_index(["rule", "model", "year"]).sort_index()
+    #
+    # # always short takes no forecast: assert model-invariance, print one row pair
+    # base = vt_tab.loc["always short"].loc["blk2"]
+    # for tag in MODEL_ORDER:
+    # assert np.allclose(vt_tab.loc["always short"].loc[tag], base)
+    # print("always short (all models identical)")
+    # print(pd.DataFrame({"raw": base.loc["raw"], "scaled": base.loc["scaled"]}).T.to_string())
+    # print("---")
+    # print("long-short volatility")
+    # ls = vt_tab.loc["long-short volatility"]
+    # print(pd.concat({LABEL[t]: ls.loc[t] for t in MODEL_ORDER}, axis=0).to_string())
+    # print("---")
+    # print("scale-factor diagnostics (raw |q| is 1 every day by construction)")
+    # print(vt_lev.rename(index=LABEL, level="model").to_string())
+    # print("---")
+    # print("per-year book volatility, block-diag ridge long-short")
+    # print(vt_year.loc[("long-short volatility", "blk2")].to_string())
+    #
+    # vt_tab.to_csv(OUT / "voltarget_scoreboard.csv")
+    # vt_lev.to_csv(OUT / "voltarget_leverage.csv")
+    # vt_year.to_csv(OUT / "voltarget_per_year.csv")
+    # print("saved voltarget_{scoreboard,leverage,per_year}.csv in", OUT)
+    #
+    # f = vol_target(
+    # (rule_sizes(books["blk2"])["long-short volatility"] * books["blk2"]["R"]).loc[common]
+    # ).dropna(subset=["ell"])
+    # fig, axes = plt.subplots(2, 1, figsize=(9, 5.4), sharex=True)
+    # axes[0].plot(f.index, f["ell"], lw=0.8, color="C0")
+    # axes[0].axhline(1.0, color="k", lw=0.6)
+    # axes[0].set_ylabel(r"scale $\ell_t$")
+    # axes[0].set_title("block-diag ridge, long-short — trailing-volatility scale and its effect")
+    # for kind, c, lab in (("raw", "C1", "raw ($|q|=1$)"), ("scaled", "C0", "vol-scaled")):
+    # rv = f[kind].rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1)
+    # axes[1].plot(rv.index, rv, lw=0.9, color=c, label=lab)
+    # axes[1].set_ylabel("rolling 63-day vol of $R'$")
+    # axes[1].legend(fontsize=8)
+    # fig.tight_layout()
+    # fig.savefig(OUT / "voltarget_blk2.png", dpi=120, bbox_inches="tight")
+    # print("saved", OUT / "voltarget_blk2.png")
+    # display(fig)
+    # plt.close(fig)
+    # """
+    # ),
     md(
         r"""
-## 15. Sizing by trailing book volatility
-
-The two rules above hold $|q_t|=1$ every day, so the book inherits the
-market's volatility cycle: its own risk swings roughly $2.4\times$
-between calm and stormy quarters. The lagged-signal slides show the
-signal's information at day scale is its **sign** — so we do not try to
-size by conviction. Instead we standardize **risk**: scale the whole
-position by how volatile the book itself has recently been.
-
-Construction (causal throughout): let $\hat\sigma_t$ be the standard
-deviation of the rule's own daily return $R'$ over the trailing 63
-sessions, lagged one day. The scale factor is
-
-$$\ell_t=\min\!\left(\frac{\operatorname{median}_{u\le t-1}\hat\sigma_u}{\hat\sigma_t},\,3\right),
-\qquad R''_t=\ell_t\,R'_t .$$
-
-The target in the numerator is the expanding median of $\hat\sigma$
-itself, so average leverage is close to one by construction and there is
-no free target parameter; 63 sessions is the standing quarter window and
-3 the standing leverage cap (it never binds — realized $\ell$ stays in
-$[0.6,\,1.6]$). The first 63+1 sessions have no estimate and sit flat;
-raw and scaled books are compared on the same remaining days.
-
-This overlay claims **no forecast information** — it reads only the
-book's own past returns. The scoreboard is therefore risk stability
-(the variability of the book's rolling volatility, its drawdown, its
-per-year volatility), **not** Sharpe: a pure rescaling should leave
-Sharpe roughly unchanged, and does. One honest limitation is structural:
-a trailing estimator cannot see the first day of a regime change, so
-single worst days keep their size; what shrinks is the quarter-to-year
-wander of realized risk.
-"""
-    ),
-    code(
-        r"""
-VT_WIN, VT_CAP = 63, 3.0  # standing quarter window, standing leverage cap
-
-
-def vol_target(rp: pd.Series) -> pd.DataFrame:
-    rp = rp.astype(float)
-    sig = rp.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).shift(1)
-    target = sig.expanding(min_periods=1).median().shift(1)
-    ell = (target / sig).clip(0.0, VT_CAP)
-    return pd.DataFrame({"raw": rp, "ell": ell, "scaled": ell * rp})
-
-
-def risk_row(r: pd.Series) -> pd.Series:
-    rv = r.rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1).dropna()
-    cum = r.cumsum()
-    mu, sd = float(r.mean()), float(r.std(ddof=1))
-    return pd.Series({
-        "n": len(r),
-        "vol_CV": float(rv.std(ddof=1) / rv.mean()),
-        "vol_max": float(rv.max()),
-        "vol_min": float(rv.min()),
-        "maxDD": float((cum - cum.cummax()).min()),
-        "worst_day": float(r.min()),
-        "skew": float(r.skew()),
-        "ex_kurt": float(r.kurt()),
-        "mean": mu,
-        "std": sd,
-        "Sharpe_ann": mu / sd * np.sqrt(252.0),
-    })
-
-
-vt_rows, vt_lev, vt_year = [], [], []
-for tag in MODEL_ORDER:
-    px = books[tag]
-    for name, q in rule_sizes(px).items():
-        f = vol_target((q * px["R"]).loc[common]).dropna(subset=["ell"])
-        for kind in ("raw", "scaled"):
-            vt_rows.append(risk_row(f[kind]).rename((name, tag, kind)))
-        vt_lev.append(pd.Series({
-            "mean_ell": float(f["ell"].mean()),
-            "median_ell": float(f["ell"].median()),
-            "min_ell": float(f["ell"].min()),
-            "max_ell": float(f["ell"].max()),
-            "pct_at_cap": 100.0 * float((f["ell"] >= VT_CAP - 1e-12).mean()),
-        }, name=(name, tag)))
-        for yr, g in f.groupby(f.index.year):
-            vt_year.append({"rule": name, "model": tag, "year": yr,
-                            "vol_raw": float(g["raw"].std(ddof=1)),
-                            "vol_scaled": float(g["scaled"].std(ddof=1))})
-
-vt_tab = pd.DataFrame(vt_rows)
-vt_tab.index = pd.MultiIndex.from_tuples(vt_tab.index, names=["rule", "model", "book"])
-vt_lev = pd.DataFrame(vt_lev)
-vt_lev.index = pd.MultiIndex.from_tuples(vt_lev.index, names=["rule", "model"])
-vt_year = pd.DataFrame(vt_year).set_index(["rule", "model", "year"]).sort_index()
-
-# always short takes no forecast: assert model-invariance, print one row pair
-base = vt_tab.loc["always short"].loc["blk2"]
-for tag in MODEL_ORDER:
-    assert np.allclose(vt_tab.loc["always short"].loc[tag], base)
-print("always short (all models identical)")
-print(pd.DataFrame({"raw": base.loc["raw"], "scaled": base.loc["scaled"]}).T.to_string())
-print("---")
-print("long-short volatility")
-ls = vt_tab.loc["long-short volatility"]
-print(pd.concat({LABEL[t]: ls.loc[t] for t in MODEL_ORDER}, axis=0).to_string())
-print("---")
-print("scale-factor diagnostics (raw |q| is 1 every day by construction)")
-print(vt_lev.rename(index=LABEL, level="model").to_string())
-print("---")
-print("per-year book volatility, block-diag ridge long-short")
-print(vt_year.loc[("long-short volatility", "blk2")].to_string())
-
-vt_tab.to_csv(OUT / "voltarget_scoreboard.csv")
-vt_lev.to_csv(OUT / "voltarget_leverage.csv")
-vt_year.to_csv(OUT / "voltarget_per_year.csv")
-print("saved voltarget_{scoreboard,leverage,per_year}.csv in", OUT)
-
-f = vol_target(
-    (rule_sizes(books["blk2"])["long-short volatility"] * books["blk2"]["R"]).loc[common]
-).dropna(subset=["ell"])
-fig, axes = plt.subplots(2, 1, figsize=(9, 5.4), sharex=True)
-axes[0].plot(f.index, f["ell"], lw=0.8, color="C0")
-axes[0].axhline(1.0, color="k", lw=0.6)
-axes[0].set_ylabel(r"scale $\ell_t$")
-axes[0].set_title("block-diag ridge, long-short — trailing-volatility scale and its effect")
-for kind, c, lab in (("raw", "C1", "raw ($|q|=1$)"), ("scaled", "C0", "vol-scaled")):
-    rv = f[kind].rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1)
-    axes[1].plot(rv.index, rv, lw=0.9, color=c, label=lab)
-axes[1].set_ylabel("rolling 63-day vol of $R'$")
-axes[1].legend(fontsize=8)
-fig.tight_layout()
-fig.savefig(OUT / "voltarget_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "voltarget_blk2.png")
-display(fig)
-plt.close(fig)
-"""
-    ),
-    md(
-        r"""
-## 16. Betting a fixed fraction of wealth
+## 15. Betting a fixed fraction of wealth
 
 Every table so far is non-compounded: one unit of premium per day, P&L
 added up. A trader who reinvests instead bets a fraction $f_t$ of
@@ -1154,7 +1155,7 @@ actually maximizes. One structural fact frames the exercise: **ruin is
 one bad day** — any $f\ge 1/|\min_t R'_t|$ puts wealth at or below
 zero on the worst day, so the uncapped short book, with a worst day
 near $-10$ premium units, can only ever bet a small fraction of wealth
-no matter how good its mean is. (The §18 credit verticals bound the
+no matter how good its mean is. (The §17 credit verticals bound the
 worst day by construction, which is exactly what loosens this
 constraint.)
 
@@ -1251,7 +1252,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 17. Buy-signal diagnostic
+## 16. Buy-signal diagnostic
 
 A buy day is $q_t>0$. Always-short never buys. Compare models on the
 common dates.
@@ -1311,7 +1312,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 18. Credit vertical spreads — capping the downside when selling
+## 17. Credit vertical spreads — capping the downside when selling
 
 Selling the straddle body leaves an unbounded downside. Buy a wing on
 each side — the nearest live mid at least $25$ (and $50$) points
@@ -1350,6 +1351,24 @@ composite is unit-consistent day by day. The dollar block at the end
 prices the insurance itself, in index points per package: wing drag
 per day with a paired HAC $t$, worst day and drawdown naked vs
 capped, and the points the wings hand back on the days the cap binds.
+
+A fractional-wealth read closes the loop with §15, and the frame must
+be named before any number. Two wealth processes are scored with
+§15's estimator, unchanged. In the **capital-at-risk frame** the
+fraction is the share of wealth posted as max-loss collateral: each
+day's return on that capital is bounded below by $-1$ by construction
+(buy days already are — a bought straddle's capital is its premium),
+so no fraction below one can be ruined. This is the fully
+collateralized floor; one unit of collateral controls only a fraction
+of a unit of premium exposure, so its growth is **not** comparable to
+§15's numbers. In the **per-premium frame** the fraction is deployed
+as body premium — §15's unit — and the uncapped book over the same
+days is printed beside it: that pair, and only that pair, supports a
+capped-versus-uncapped growth reading. Two estimator behaviors are
+printed rather than hidden: in the bounded frame the running ruin cap
+pins at one after the first $-1$ day and never binds (the bound, not
+the cap, excludes ruin), and where the trailing mean is negative
+throughout, the estimator refuses the book and the row is zeros.
 """
     ),
     code(
@@ -1448,14 +1467,55 @@ for w in (25.0, 50.0):
               f"{float((capped - naked)[jb].sum()):+.1f}; over the 10 worst naked days "
               f"{float((capped - naked)[worst10].sum()):+.1f}")
 
-fig, ax = plt.subplots(figsize=(11, 3.4))
-rp_s = (-books["blk2"]["R"]).loc[common].cumsum()
-ax.plot(rp_s.index, rp_s.values, label="always-short straddle", lw=1.2)
+print("=== fractional bets on the defined-risk book (estimator of section 15; frame named first) ===")
+kv_rows = {}
 for w, vs in vs_tabs.items():
-    idx = vs.index.intersection(common)
-    ax.plot(idx, vs.loc[idx, "R_prem"].cumsum().values,
-            label=f"always-short verticals w={int(w)}", lw=1.1)
-ax.set_title("cumulative $R'$ per body premium — always short, blk2 days")
+    for tag in MODEL_ORDER:
+        px = books[tag]
+        joined = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
+        j = joined.loc[joined.index.intersection(common)]
+        series = {
+            ("always short", "capital at risk"): j["R_risk"],
+            ("always short", "per premium"): j["R_prem"],
+            ("long-short volatility", "capital at risk"): j["R_risk"].where(j["pos"] < 0, j["R"]),
+            ("long-short volatility", "per premium"): j["R_prem"].where(j["pos"] < 0, j["R"]),
+        }
+        for (name, frame), rs in series.items():
+            rs = rs.astype(float)
+            r = rs.to_numpy()
+            fk = causal_kelly(rs).to_numpy()
+            row = pd.concat({"causal": wealth_row(fk, r), "half": wealth_row(fk / 2, r)})
+            row.index = ["_".join(k) for k in row.index]
+            row["mean_f"] = float(fk.mean())
+            if frame == "per premium":
+                # uncapped comparison lives ONLY in the shared premium unit
+                ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
+                fku = causal_kelly(ru).to_numpy()
+                unc = wealth_row(fku, ru.to_numpy())
+                row["uncapped_g_ann"] = unc["g_ann"]
+                row["uncapped_terminal"] = unc["terminal"]
+                row["uncapped_mean_f"] = float(fku.mean())
+            kv_rows[(name, frame, tag, int(w))] = row
+kv = pd.DataFrame(kv_rows).T
+kv.index = pd.MultiIndex.from_tuples(kv.index, names=["rule", "frame", "model", "w"])
+for tag in MODEL_ORDER:
+    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
+    kv.xs(tag, level="model").to_csv(OUT / f"kelly_verticals_{safe}.csv")
+print("blk2 (uncapped columns appear only in the per-premium frame — the shared unit):")
+print(kv.xs("blk2", level="model").T.to_string(float_format=lambda x: f"{x:+.4f}", na_rep=""))
+print("saved kelly_verticals_<model>.csv in", OUT)
+
+fig, ax = plt.subplots(figsize=(11, 3.4))
+px = books["blk2"]
+rp_s = (px["pos"] * px["R"]).loc[common].cumsum()
+ax.plot(rp_s.index, rp_s.values, label="long-short straddle (uncapped)", lw=1.2)
+for w, vs in vs_tabs.items():
+    j = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
+    j = j.loc[j.index.intersection(common)]
+    ls = j["R_prem"].where(j["pos"] < 0, j["R"])
+    ax.plot(ls.index, ls.cumsum().values,
+            label=f"long-short, verticals on sell days w={int(w)}", lw=1.1)
+ax.set_title("cumulative $R'$ per body premium — long-short volatility, blk2 days")
 ax.legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "credit_spread_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
@@ -1466,7 +1526,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 19. Hand-check one row
+## 18. Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
 - `entry` = 15:30 `mid_c + mid_p`.
@@ -1477,6 +1537,32 @@ plt.close(fig)
 - Quoted IV is hourly; `iv_30 = iv_hourly / sqrt(2)`, `iv_var = iv_30**2`.
 - `signal = rv_hat - iv_var`. $\mathrm{VRP}=-s$. Long-short volatility `pos` is
   $+1$ if signal $> 0$, else $-1$.
+"""
+    ),
+    md(
+        r"""
+---
+
+*Housekeeping note (2026-09-02, not analysis).* Repo state to clean up
+later. The two working directories are worktrees of one repo on sibling
+branches that diverged at `5db8240`: this branch
+(`grok/0dte-professor-notes`, +15) carries all the notebook work and
+the close-option writeup prose; `paper2` (+1, `d3809a4`) carries the
+F$_t$-measurability scorer fixes and the honest options macros in
+`writeup/generated/`. The writeup therefore has two truths pending
+consolidation (both options narratives are parked, so nothing renders
+wrong yet). Plan sketched: (a) merge this branch into `paper2` (merge,
+not rebase) and fast-forward this branch to the merge; (b) fast-forward
+local `main` (behind `origin/main` by 6 campaign-sync commits that are
+already ancestors of `paper2`); (c) fix `paper2`'s upstream (tracks
+`origin/main`, should be `origin/paper2`) and delete-or-archive the two
+dead local branches (`edge-features-legibility`,
+`prop-exploration-2026-07-02`, upstreams gone); (d) untrack LaTeX aux
+and volatile `.hpc` state via `.gitignore` to stop the chronic dirty
+tree; (e) review the real uncommitted diffs in `harxhar-clean`
+(`experiments/run_geometry_local.py`, spec/pack jsons) before touching
+anything. Open decision: one unified line vs keeping this branch as a
+deliberate fork; delete vs archive for the dead branches.
 """
     ),
 ]

@@ -59,8 +59,8 @@ The qualifications matter as much as the point estimates.
 
 \paragraph{Where the level comes from.} Two sample splits qualify the
 level rather than the sign. Excluding the first 64 trading days --- the
-estimation warm-up shared by the volatility overlay below, which
-happens to cover the February--March 2020 spike --- \emph{raises} the
+estimation warm-up, which happens to cover the
+February--March 2020 spike --- \emph{raises} the
 block-diagonal ridge book to Sharpe 1.94 (Newey--West $t=3.71$ on the
 remaining 807 days): the full-sample figure is dragged, not flattered,
 by the COVID quarter. Splitting instead at 16~May~2022, when SPXW
@@ -98,6 +98,8 @@ settlement move will be, not which way the premium resolves. The
 tradable content of $s$ is its same-day sign; its magnitude is a risk
 forecast.
 
+% VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
+\iffalse
 \paragraph{Sizing by trailing book volatility standardizes risk without
 touching the edge.} Scaling the daily position by the ratio of the
 expanding median of the book's own trailing 63-day volatility to its
@@ -112,6 +114,7 @@ forecast claim, and its structural limit is stated plainly: a trailing
 estimator cannot see the first day of a regime change, so single worst
 days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
 COVID transition itself falls inside the estimator's warm-up.
+\fi
 
 \paragraph{Capping the sell-side tail costs almost nothing in dollars.}
 Buying the nearest wing at least 25 (or 50) points further
@@ -129,6 +132,23 @@ settlement day from $-78$ to $-22$ points and returning $+310$ points
 across the ten worst naked days. Quoted per unit of capital at risk the
 same cap looks expensive; that is an artifact of the denominator, which
 is smallest exactly on rich-credit, high-volatility days.
+
+\paragraph{Compounded at a causally estimated fraction, the long--short
+book grows; the control does not.} Betting the fraction of
+Equation~\eqref{eq:close_opt_kelly} (mean $\hat f_t = 0.063$), the
+block-diagonal ridge long--short book turns one unit of wealth into
+$36.8$ over the sample (annualized log-growth $+1.04$), and into
+$12.2$ at the half fraction. Its worst single day removes 49 percent
+of wealth at the full fraction and 25 percent at half --- the case
+for the half path in one number. All seven long--short books compound
+positively under the same procedure (terminal wealth $1.9$ to $177$),
+and the growth is uneven: 2021 and 2022 are negative years for the
+headline book. The always-short control loses outright (terminal
+$0.67$) --- its mean is too small for the plug-in estimate, which is
+noise there --- and the ruin arithmetic favors the defined-risk
+variant: a book whose worst day is bounded by construction can carry
+a larger fraction of wealth than one whose worst day is $-10$ premium
+units.
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 % UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,
