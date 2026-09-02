@@ -1140,7 +1140,200 @@ plt.close(fig)
     ),
     md(
         r"""
-## 16. Buy-signal diagnostic
+## 16. Betting a fixed fraction of wealth
+
+Every table so far is non-compounded: one unit of premium per day, P&L
+added up. A trader who reinvests instead bets a **fixed fraction** $f$
+of current wealth each day, so wealth compounds,
+
+$$W_T(f)=\prod_{t}\bigl(1+f\,q_t R_t\bigr),$$
+
+and the natural objective is the annualized log-growth
+$g(f)=252\cdot\overline{\log(1+f R'_t)}$, which is what compounding
+actually maximizes. Two structural facts frame the exercise. First,
+**ruin is one bad day**: any $f\ge 1/|\min_t R'_t|$ puts wealth at or
+below zero on the worst day, so the uncapped short book — worst day
+$-10.3$ premium units — is confined to $f<0.097$ no matter how good
+its mean is. (The §18 credit verticals bound the worst day by
+construction, which is exactly what loosens this constraint.) Second,
+the growth-optimal fraction $f^{*}$ — the exact root of
+$\sum_t R'_t/(1+fR'_t)=0$, found by bracketed root-finding, no grid —
+uses the **full sample**, so it is an in-sample diagnostic, not a
+strategy. The implementable variant is the causal Kelly fraction
+$\hat f_t=\min\!\bigl(\hat\mu_{t-1}/\widehat{E[R'^2]}_{t-1},\,
+1/|\min_{u\le t-1}R'_u|\bigr)_+$ (expanding, minimum 63 sessions,
+lagged one day; the small-$f$ quadratic rule with a running ruin cap).
+Half-Kelly, the standard robustness convention, is reported alongside;
+the small-$f$ quadratic reference $\mu/E[R'^2]$ is printed as a check
+on the exact root.
+
+**The design is reported in full, failures included.** Every variant
+appears below, and three of the printed diagnostics are warnings, not
+features. First, the always-short optimum is set by a single day: a
+jackknife over the five worst days moves its $f^{*}$ by $+74\%$ when
+one day (2021-11-22) is dropped, while the long-short optimum barely
+moves — and the causal Kelly path on always-short **loses money**
+(the plug-in estimate is noise-dominated at that book's tiny mean);
+it is shown as the failure it is. Second, the causal ruin clip is a
+formality, not protection: at each rule's worst day the live running
+cap was *looser* than the retrospective bound — a trailing minimum
+cannot see the first worst day coming, and safety came from the noisy
+mean estimate happening to sit low. Third, the worst single-day
+wealth factors are printed because they are the half-Kelly rationale
+in one number: the causal long-short path was betting roughly the
+full in-sample Kelly fraction on the day it lost half its wealth.
+More broadly: $f^{*}$ is an in-sample diagnostic by construction and
+its terminal wealth is the ceiling of hindsight, not an achievable
+number; the causal path is the only implementable claim; the fraction
+is **one** fitted parameter, and the split-half line below tests
+whether that one choice transfers out of sample; half-Kelly is a
+fixed prior convention, not fitted. Where levels are quoted, the
+warmup caveat applies as everywhere in this deck: excluding the first
+64 sessions raises both books' optima and growth.
+"""
+    ),
+    code(
+        r"""
+from scipy.optimize import brentq
+
+def g_ann(f, r):
+    return 252.0 * float(np.mean(np.log1p(f * r)))
+
+def f_star_exact(r):
+    # growth-optimal fraction: root of sum r/(1+f r) = 0 on (0, f_ruin)
+    if float(r.mean()) <= 0.0:
+        return 0.0
+    hi = (1.0 / abs(float(r.min()))) * (1 - 1e-9)
+    h = lambda f: float(np.sum(r / (1.0 + f * r)))
+    if h(hi) > 0:
+        return hi
+    return float(brentq(h, 1e-12, hi, xtol=1e-12))
+
+def causal_kelly(rs):
+    mu = rs.expanding(min_periods=63).mean().shift(1)
+    m2 = (rs**2).expanding(min_periods=63).mean().shift(1)
+    cap = 1.0 / rs.expanding(min_periods=1).min().shift(1).abs()
+    return np.minimum((mu / m2).clip(lower=0.0), cap).fillna(0.0)
+
+def wealth_row(f, r):
+    w = np.cumprod(1.0 + np.asarray(f) * np.asarray(r))
+    return float(w[-1]), float((w / np.maximum.accumulate(w) - 1.0).min())
+
+kelly_rows = {}
+for tag in MODEL_ORDER:
+    px = books[tag]
+    for name, q in rule_sizes(px).items():
+        rs = (q * px["R"]).loc[common].astype(float)
+        r = rs.to_numpy()
+        f_ruin = 1.0 / abs(float(r.min()))
+        fs = f_star_exact(r)
+        # gates: small-f limit and local optimality of the exact root
+        assert abs(g_ann(1e-4, r) - 1e-4 * 252 * r.mean()) < 0.01 * abs(1e-4 * 252 * r.mean()) + 1e-12
+        eps = 1e-4
+        assert g_ann(fs, r) >= g_ann(max(fs - eps, 0.0), r)
+        assert g_ann(fs, r) >= g_ann(min(fs + eps, f_ruin * (1 - 1e-9)), r)
+        fk = causal_kelly(rs).to_numpy()
+        wt_s, dd_s = wealth_row(fs, r)
+        wt_h, dd_h = wealth_row(fs / 2, r)
+        wt_c, dd_c = wealth_row(fk, r)
+        kelly_rows[(name, tag)] = pd.Series({
+            "n": len(r),
+            "f_ruin": f_ruin,
+            "f_star": fs,
+            "f_quad": float(r.mean() / np.mean(r**2)),
+            "g_ann_at_f_star": g_ann(fs, r),
+            "terminal_f_star": wt_s,
+            "maxDD_f_star": dd_s,
+            "terminal_half": wt_h,
+            "maxDD_half": dd_h,
+            "causal_mean_f": float(fk.mean()),
+            "g_ann_causal": 252.0 * float(np.mean(np.log1p(fk * r))),
+            "terminal_causal": wt_c,
+            "maxDD_causal": dd_c,
+        })
+
+kelly_tab = pd.DataFrame(kelly_rows).T
+kelly_tab.index = pd.MultiIndex.from_tuples(kelly_tab.index, names=["rule", "model"])
+for tag in MODEL_ORDER:
+    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
+    kelly_tab.xs(tag, level="model").to_csv(OUT / f"kelly_summary_{safe}.csv")
+print("blk2 — fixed-fraction compounding, 871 common days")
+print(kelly_tab.xs("blk2", level="model").T.to_string())
+print("saved kelly_summary_<model>.csv in", OUT)
+
+print("---")
+print("model spread (no model was picked for this slide; blk2 is the deck's standing headline)")
+spread = kelly_tab[["f_star", "g_ann_at_f_star", "g_ann_causal"]].rename(index=LABEL, level="model")
+print(spread.to_string(float_format=lambda x: f"{x:+.4f}"))
+
+for name in ("always short", "long-short volatility"):
+    rs = (rule_sizes(books["blk2"])[name] * books["blk2"]["R"]).loc[common].astype(float)
+    r = rs.to_numpy()
+    f_ruin = 1.0 / abs(float(r.min()))
+    fs = f_star_exact(r)
+    fk = causal_kelly(rs).to_numpy()
+    print(f"--- diagnostics, blk2 {name} ---")
+    worst5 = np.argsort(r)[:5]
+    jk = [f_star_exact(np.delete(r, i)) for i in worst5]
+    print(f"jackknife f* over the 5 worst days: [{min(jk):.4f}, {max(jk):.4f}] vs full {fs:.4f} "
+          f"(worst day {rs.index[worst5[0]].date()})")
+    t_w = int(np.argmin(r))
+    live_cap = 1.0 / abs(float(np.min(r[:t_w])))
+    print(f"causal ruin clip at the worst day: live cap {live_cap:.3f} vs retrospective bound {f_ruin:.3f} "
+          f"({'LOOSER — decorative, not protective' if live_cap > f_ruin else 'tighter'})")
+    wf_s = 1.0 + fs * float(r.min())
+    wf_h = 1.0 + (fs / 2) * float(r.min())
+    wf_c = float(np.min(1.0 + fk * r))
+    print(f"worst single-day wealth factor: f* {wf_s:.3f}  half-Kelly {wf_h:.3f}  causal {wf_c:.3f}")
+    rw = r[64:]
+    print(f"warmup-matched (drop first 64d): f* {f_star_exact(rw):.4f}  g {g_ann(f_star_exact(rw), rw):+.3f} "
+          f"(unconditional {fs:.4f} / {g_ann(fs, r):+.3f})")
+    n2 = len(r) // 2
+    ra, rb = r[:n2], r[n2:]
+    fa, fb = f_star_exact(ra), f_star_exact(rb)
+    print(f"split-half: f(first)={fa:.4f} -> g(second)={g_ann(fa, rb):+.3f} vs second's own optimum {g_ann(fb, rb):+.3f}")
+    print(f"            f(second)={fb:.4f} -> g(first)={g_ann(fb, ra):+.3f} vs first's own optimum {g_ann(fa, ra):+.3f}")
+    gy = pd.Series(np.log1p((fs / 2) * r), index=rs.index)
+    print("per-year annualized log-growth at half-Kelly:")
+    print((252.0 * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
+
+px = books["blk2"]
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
+for name, c in (("always short", "C1"), ("long-short volatility", "C0")):
+    rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
+    r = rs.to_numpy()
+    f_ruin = 1.0 / abs(float(r.min()))
+    fs = f_star_exact(r)
+    ff = np.linspace(0.0, f_ruin * 0.985, 200)
+    axes[0].plot(ff, [g_ann(f, r) for f in ff], lw=1.1, color=c, label=name)
+    axes[0].axvline(f_ruin, color=c, lw=0.6, ls=":")
+    axes[0].plot([fs], [g_ann(fs, r)], marker="o", ms=4, color=c)
+axes[0].axhline(0.0, color="k", lw=0.5)
+axes[0].set_ylim(-3, None)
+axes[0].set_xlabel("fraction of wealth $f$")
+axes[0].set_ylabel("annualized log-growth $g(f)$")
+axes[0].set_title("blk2 — growth vs fraction (dots $f^*$, dotted ruin)")
+axes[0].legend(fontsize=8)
+rs = (rule_sizes(px)["long-short volatility"] * px["R"]).loc[common].astype(float)
+r = rs.to_numpy()
+fs = f_star_exact(r)
+fk = causal_kelly(rs).to_numpy()
+for f, c, lab in ((fs, "C3", "$f^*$ (in-sample)"), (fs / 2, "C2", "half-Kelly"), (fk, "C0", "causal Kelly")):
+    w = np.cumprod(1.0 + np.asarray(f) * r)
+    axes[1].plot(rs.index, np.log(w), lw=1.0, color=c, label=lab)
+axes[1].set_ylabel("log wealth")
+axes[1].set_title("blk2 long-short — compounded wealth paths")
+axes[1].legend(fontsize=8)
+fig.tight_layout()
+fig.savefig(OUT / "kelly_curve_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "kelly_curve_blk2.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 17. Buy-signal diagnostic
 
 A buy day is $q_t>0$. Always-short never buys. Compare models on the
 common dates.
@@ -1200,7 +1393,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 17. Credit vertical spreads — capping the downside when selling
+## 18. Credit vertical spreads — capping the downside when selling
 
 Selling the straddle body leaves an unbounded downside. Buy a wing on
 each side — the nearest live mid at least $25$ (and $50$) points
@@ -1355,7 +1548,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 18. Hand-check one row
+## 19. Hand-check one row
 
 - `K_c >= S` and `K_p <= S` at 15:30.
 - `entry` = 15:30 `mid_c + mid_p`.
