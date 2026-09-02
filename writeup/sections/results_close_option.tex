@@ -145,10 +145,27 @@ positively under the same procedure (terminal wealth $1.9$ to $177$),
 and the growth is uneven: 2021 and 2022 are negative years for the
 headline book. The always-short control loses outright (terminal
 $0.67$) --- its mean is too small for the plug-in estimate, which is
-noise there --- and the ruin arithmetic favors the defined-risk
-variant: a book whose worst day is bounded by construction can carry
-a larger fraction of wealth than one whose worst day is $-10$ premium
-units.
+noise there. Whether the defined-risk variant's bounded worst day
+pays for itself in growth is a question that needs its frame named
+first.
+
+\paragraph{The defined-risk book compounds in two frames, and the
+frame decides the verdict.} In the capital-at-risk frame --- well
+defined here because the worst day is bounded at $-1$, so no fraction
+below one can be ruined --- the long--short book is a fully
+collateralized floor: it compounds to about $2.5$ at the causal
+fraction at either width, the estimator's running ruin cap pins at
+one after the first $-1$ day and never binds (the bound, not the cap,
+excludes ruin), and at $w=50$ the always-short row is exact zeros:
+the trailing mean is negative throughout, so the estimator refuses
+the book entirely. In the per-premium frame --- the only unit shared
+with the uncapped book --- the capped long--short book compounds to
+$12.3$ at $w=25$ and $21.9$ at $w=50$ against $33.9$ uncapped on the
+same days: the wing drag compounds into a real growth cost, and the
+bounded worst day does not pay for itself in growth on this sample,
+because the causal estimator already bets too small for the cap to
+matter. The insurance case for the wings is the dollar story above,
+not a growth story; the two scoreboards must not be blended.
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 % UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,

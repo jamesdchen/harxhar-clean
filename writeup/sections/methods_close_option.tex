@@ -208,6 +208,20 @@ minimum of 63 sessions and lagged one day. The half-fraction path
 $\hat f_t/2$ is scored alongside, and every realized wealth factor is
 asserted positive.
 
+``A fraction of wealth'' needs a unit before any growth number can be
+read, and two frames are used. In the \emph{per-premium} frame ---
+the frame for the plain book --- $f_t$ is the share of wealth
+deployed as body premium; a bought straddle's premium is also its
+capital at risk, while the uncapped short side's capital at risk is
+unbounded, which is exactly why the ruin bound above governs the
+admissible fraction. A true \emph{capital-at-risk} frame --- $f_t$
+posted as max-loss collateral, the day's return on that capital
+bounded below by $-1$ by construction --- exists only once the worst
+day is bounded, and is scored on the defined-risk variant. One unit
+of wealth posted as collateral controls several times less premium
+exposure than one unit deployed as premium, and the ratio varies day
+to day, so growth rates compare only within a frame, never across.
+
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 \iffalse
 \paragraph{Event filter.} One variant of the headline rule is reported
