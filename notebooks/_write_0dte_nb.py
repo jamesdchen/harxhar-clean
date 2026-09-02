@@ -1170,6 +1170,22 @@ minimum of 63 sessions and lagged one day. The half-fraction path
 $\hat f_t/2$ is reported alongside (the standard robustness halving),
 and each path's worst single-day wealth factor is printed with its
 growth, terminal wealth, and drawdown.
+
+**Two frames for "a fraction of wealth."** The phrase needs a unit
+before any growth number can be read. In the **per-premium frame** —
+the frame used throughout this section — $f_t$ is the share of wealth
+deployed as body premium. For a bought straddle the premium is also
+the capital at risk, so on long days the two coincide; for the
+uncapped short book the capital at risk is unbounded, which is
+exactly why the ruin bound above, and not a collateral bound, governs
+the admissible fraction. A true **capital-at-risk frame** — $f_t$ as
+the share of wealth posted as max-loss collateral, with the day's
+return on that capital bounded below by $-1$ by construction — exists
+only once the worst day is bounded, and the defined-risk book of §17
+scores it there. One unit of wealth posted as collateral controls
+several times less premium exposure than one unit deployed as
+premium, and the ratio varies day to day, so growth rates compare
+only within a frame, never across.
 """
     ),
     code(
@@ -1352,23 +1368,18 @@ prices the insurance itself, in index points per package: wing drag
 per day with a paired HAC $t$, worst day and drawdown naked vs
 capped, and the points the wings hand back on the days the cap binds.
 
-A fractional-wealth read closes the loop with §15, and the frame must
-be named before any number. Two wealth processes are scored with
-§15's estimator, unchanged. In the **capital-at-risk frame** the
-fraction is the share of wealth posted as max-loss collateral: each
-day's return on that capital is bounded below by $-1$ by construction
-(buy days already are — a bought straddle's capital is its premium),
-so no fraction below one can be ruined. This is the fully
-collateralized floor; one unit of collateral controls only a fraction
-of a unit of premium exposure, so its growth is **not** comparable to
-§15's numbers. In the **per-premium frame** the fraction is deployed
-as body premium — §15's unit — and the uncapped book over the same
-days is printed beside it: that pair, and only that pair, supports a
-capped-versus-uncapped growth reading. Two estimator behaviors are
-printed rather than hidden: in the bounded frame the running ruin cap
-pins at one after the first $-1$ day and never binds (the bound, not
-the cap, excludes ruin), and where the trailing mean is negative
-throughout, the estimator refuses the book and the row is zeros.
+A fractional-wealth read closes the loop with §15, in the two frames
+defined there, with §15's estimator unchanged. The
+**capital-at-risk frame** is well-defined here because the worst day
+is bounded at $-1$ by construction: no fraction below one can be
+ruined — the bound itself excludes ruin, and the running cap of §15's
+estimator pins at one after the first $-1$ day and never binds. This
+is the fully collateralized floor. In the **per-premium frame** —
+§15's unit — the uncapped book over the same days is printed beside
+the capped one: that pair, and only that pair, supports a
+capped-versus-uncapped growth reading. Where the trailing mean is
+negative throughout, the estimator refuses the book and the row is
+zeros.
 """
     ),
     code(
