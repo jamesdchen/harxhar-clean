@@ -58,11 +58,10 @@ return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the two rules across the seven forecasts;
 §11 adds up the profit and loss; §12 reports information ratios against
-the always-short book; §13 asks whether yesterday's signal predicts
-today's return, plainly and then robustly to outliers, finds nothing, and explains
-why: the gap between forecast and implied is renewed daily, and its
-magnitude tracks the size of the next day's move mainly through the
-level of implied variance; §14 bets a fixed
+the always-short book; §13 measures the 15:30 signal against the same afternoon's
+settlement return — a sign effect, not a slope — and shows why
+yesterday's signal carries nothing: the gap between forecast and
+implied is renewed daily; §14 bets a fixed
 fraction of wealth and sets out the two frames in which such a fraction
 can be read; §15 diagnoses the buy days; §16 checks one row by hand. A
 defined-risk variant with credit vertical spreads is under construction
@@ -789,80 +788,80 @@ print("IR = active return / tracking error; benchmark is always-short.")
     ),
     md(
         r"""
-## 13. Does yesterday's signal predict today's straddle return?
+## 13. Does the 15:30 signal predict the settlement return?
 
-We regress today's package return on the signal from the **previous
-expiration day**, $R_t = a + b\,s_{t-1}$, by ordinary least squares
-with Newey–West standard errors (six lags). Only this lagged form is
-scored: a same-day regression of $R_t$ on $s_t$ would restate the
-position rule of §9 rather than test anything new, whereas the lagged
-version asks whether a signal carries from one expiration day into
-the next day's premium. Because the regressor is known a full day
-before the trade, any relation that survives here cannot be an
-artifact of same-day timing.
+The signal is fixed at 15:30 and the package settles at 16:00 the same
+day, so the natural test pairs $s_t$ with $R_t$: every input to the
+signal is known before the position is taken, and nothing from the
+settlement enters it. This is the relation the position rule of §9
+trades, measured here as a regression object rather than as a book.
+Six checks are printed, all with Newey–West standard errors (six lags)
+and no tuning parameters; the percentile rank of $s_t$ is taken among
+all days up to and including $t$ once 63 days of history exist, so it
+compares today's signal only with the past.
 
-That least-squares fit is dominated by a few extreme days: the signal
-is measured in variance units and has crash-sized tails, so a handful
-of large values of $s_{t-1}$ carry most of the fit. The two usual
-remedies are ruled out here. We do not winsorize or clip, because the
-threshold would be a tuned choice and a clip that binds destroys
-exactly the extreme days that carry information; and we do not scale
-by the median of $|s|$, which was removed earlier. The second half of
-this section therefore repeats the question with quantities that are
-bounded, or free of tuning parameters, by construction:
-
-- **Regression on the percentile rank.** The regressor is the
-  percentile rank of $s$ among all days up to $t-1$, computed from
-  past data only once at least 63 days of history exist, so it lies
-  in $[0,1]$. We regress $R_t$ on it with Newey–West standard errors
-  (six lags). An extreme day becomes "the 99.9th percentile" rather
-  than a point of enormous leverage. The size of the signal is
-  deliberately thrown away: this asks only whether any monotone
-  relation exists between yesterday's signal and today's return.
-- **Split by sign.** The mean of $R_t$ on days with $s_{t-1}>0$
-  versus days with $s_{t-1}\le 0$, and the Newey–West $t$-statistic
-  (six lags) of the difference. This is the economics of a book that
-  trades on yesterday's sign.
+- **Split by sign.** The mean of $R_t$ on days with $s_t>0$ against
+  days with $s_t\le 0$, and the $t$-statistic of the difference. This
+  is the long–short edge itself.
+- **Top third against bottom third** of the rank of $s_t$: the same
+  question restricted to the extremes.
 - **Rank correlations.** Spearman's $\rho$ and Kendall's $\tau$
-  between $s_{t-1}$ and $R_t$. Both sides are ranked here, whereas
-  the rank regression above still carries the mass of $R$ at exactly
-  $-1$, and its heavy tails, in the residuals. These are association
-  tests with no tuning parameters, not trading constructions.
-- **Top third versus bottom third.** The mean of $R_t$ on days whose
-  rank of $s_{t-1}$ falls in the top third versus the bottom third,
-  with a Newey–West $t$ (six lags). This catches a relation that
-  lives only in the extremes.
-- **Size of the move.** The regression of $|R_t|$ on the rank of
-  $s_{t-1}$, again with Newey–West standard errors (six lags). The
-  signal is a variance forecast, so even if it says nothing about
-  the direction of the premium it should predict how large the next
-  day's move is.
+  between $s_t$ and $R_t$, with both sides ranked.
+- **Regression on the percentile rank** of $s_t$: a monotone relation
+  without leverage from extreme values of the signal.
+- **Plain least squares** of $R_t$ on the raw signal, shown for
+  completeness as the weak instrument it is.
+- **Size of the move.** $|R_t|$ on the rank of $s_t$, alone and with
+  today's log implied variance added.
 
-Read together, the two halves give one verdict. The plain regression
-above was measured under the influence of the outliers, and the
-robust checks make its null trustworthy: the return prediction is
-null every way it is measured. Two diagnostics printed at the end of
-the cell say why. The signal is the gap between two highly
+The same-day content is a sign effect, not a slope. For the
+block-diagonal ridge forecast the package returns about $+0.12$ on
+days the forecast sits above implied variance and about $-0.11$ on the
+others — a spread near $0.23$ with $t$ near $2.9$ — and the top third
+of the ranked signal against the bottom third gives about the same
+spread and $t$; every one of the seven forecasts shows the split, with
+$t$ between about $1.9$ and $3.3$. The rank regression sees it too
+($t$ around $2.6$ for the headline forecast, positive for all seven).
+But the rank correlations are essentially zero ($\rho$ within
+$\pm 0.02$, $p$ above $0.6$), and the raw least-squares slope is null
+for the headline forecast ($t$ about $-0.5$; two of the tree forecasts
+show a positive slope with $t$ above $3$, at an $R^2$ below $0.001$).
+The reason is the shape of $R$: it has a point mass at exactly $-1$ on
+the days the package expires worthless and a long right tail, so the
+relation lives in the means of two groups — which side of the quoted
+variance the forecast stands on — and not in a monotone ordering of
+days. A slope, or a rank-against-rank correlation, is the wrong
+instrument for that payoff; the sign split is the right one.
+
+The size of the move is a separate matter. The rank of $s_t$ predicts
+$|R_t|$ strongly ($t$ above $4$ for every forecast), but most of that
+is the level of implied variance: the rank is high when options are
+cheap relative to the forecast, and a cheap straddle moves more per
+dollar of premium. With today's log implied variance in the
+regression the rank's $t$ falls from about $4.3$ to about $1.7$ for
+the headline forecast (to between about $1.3$ and $2.5$ across the
+seven), while implied variance itself enters with $t$ near $-3.8$. It
+is a price-level effect more than a variance forecast.
+
+**Does yesterday's signal carry anything?** The second half of the
+cell repeats the same checks with $s_{t-1}$ in place of $s_t$, as a
+persistence check. It finds nothing: the sign split is flat (spread
+within $\pm 0.03$, $|t|$ below $0.35$ for every forecast), the rank
+regression and the tercile spread are insignificant ($t$ below about
+$1.3$), and the rank correlations sit at zero. The reason is printed
+at the end of the cell. The signal is the gap between two highly
 persistent quantities — the variance forecast and the implied
 variance — whose difference is largely renewed each day as the market
 re-prices the afternoon's variance: yesterday's sign repeats today
-only about 65% of the time, against a 52% baseline if signs were
+about 65% of the time, against a 52% baseline if signs were
 independent, and a book traded on yesterday's sign earns a Sharpe
-ratio near 0.2 against 1.6 on the same-day sign. What trades is the
-same-day comparison; yesterday's is stale by the afternoon.
-
-The magnitude regression is significant for all seven forecasts, but
-it should not be read as a warning about the short side. Most of it
-is the level of implied variance: the lagged rank is high when
-options are cheap relative to the forecast, and a cheap straddle
-moves more per dollar of premium — once yesterday's implied variance
-enters the regression, the rank's $t$ falls from about 3.7 to about
-0.6. And the large moves it flags fall disproportionately on buy
-days (over half of the top-third days, against under 40% of days
-overall), where a large settlement move is the profit. The lagged
-signal predicts the size of the next day's move, largely through the
-price level of the options; it is not a forecast of the short side's
-losses.
+ratio near $0.2$ against about $1.6$ on the same-day sign. The lagged
+rank still predicts $|R_t|$, for the same price-level reason — with
+yesterday's implied variance added, its $t$ falls from about $3.7$ to
+about $0.6$ — and the large moves it flags fall mostly on buy days
+(over half of the top-third days, against under 40% overall), where a
+large settlement move is the profit. The edge is a same-afternoon
+comparison; yesterday's is stale by the time the market re-prices.
 """
     ),
     code(
@@ -875,115 +874,123 @@ def hac_fit(y, x):
     return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
 
 
-reg_rows, rob_rank, rob_sign, rob_assoc, rob_terc, rob_mag = [], [], [], [], [], []
+def battery(x_raw, x_rank, r, iv_log, label):
+    # the same checks for whichever version of the signal is passed in:
+    # x_raw = the signal, x_rank = its percentile rank, iv_log = log implied variance dated like x
+    ok_raw = np.isfinite(x_raw) & np.isfinite(r)
+    ok_rk = np.isfinite(x_rank) & np.isfinite(r)
+    xr, yr = x_raw[ok_raw].to_numpy(), r[ok_raw].to_numpy()
+    rkv, rv_ = x_rank[ok_rk].to_numpy(), r[ok_rk].to_numpy()
+    out = {}
+    # mean return split by the sign of the signal
+    ind = (xr > 0).astype(float)
+    fs = hac_fit(yr, ind)
+    out["sign"] = {"model": label,
+                   "mean_R|s>0": float(yr[ind == 1].mean()),
+                   "mean_R|s<=0": float(yr[ind == 0].mean()),
+                   "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
+                   "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())}
+    # top third against bottom third of the rank
+    hi = rkv > 2.0 / 3.0
+    lo = rkv < 1.0 / 3.0
+    sel = hi | lo
+    ft = hac_fit(rv_[sel], hi[sel].astype(float))
+    out["tercile"] = {"model": label,
+                      "mean_R_top": float(rv_[hi].mean()),
+                      "mean_R_bottom": float(rv_[lo].mean()),
+                      "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
+                      "n_top": int(hi.sum()), "n_bottom": int(lo.sum())}
+    # rank association
+    sp_rho, sp_p = sps.spearmanr(xr, yr)
+    kt_tau, kt_p = sps.kendalltau(xr, yr)
+    out["assoc"] = {"model": label,
+                    "spearman_rho": float(sp_rho), "p_sp": float(sp_p),
+                    "kendall_tau": float(kt_tau), "p_kt": float(kt_p),
+                    "n": int(len(xr))}
+    # regression on the percentile rank
+    fit = hac_fit(rv_, rkv)
+    out["rank"] = {"model": label, "b_rank": float(fit.params[1]),
+                   "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)}
+    # plain least squares on the raw signal
+    fit = hac_fit(yr, xr)
+    out["raw"] = {"model": label,
+                  "a": float(fit.params[0]), "b": float(fit.params[1]),
+                  "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
+                  "R2": float(fit.rsquared), "n": int(fit.nobs)}
+    # size of the move on the rank, alone and with the level of implied variance
+    fm = hac_fit(np.abs(rv_), rkv)
+    out["mag"] = {"model": label, "b_absR": float(fm.params[1]),
+                  "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
+                  "n": int(fm.nobs)}
+    ok3 = ok_rk & np.isfinite(iv_log)
+    f3 = hac_fit(np.abs(r[ok3].to_numpy()),
+                 np.column_stack([x_rank[ok3].to_numpy(), iv_log[ok3].to_numpy()]))
+    out["mag_iv"] = {"model": label,
+                     "t_rank_alone": float(fm.tvalues[1]),
+                     "t_rank_with_iv": float(f3.tvalues[1]),
+                     "t_iv": float(f3.tvalues[2]), "n": int(f3.nobs)}
+    return out
+
+
+same = {k: [] for k in ("sign", "tercile", "assoc", "rank", "raw", "mag", "mag_iv")}
+lag = {k: [] for k in same}
 fig_inputs = None
 for tag in MODEL_ORDER:
     px = books[tag].loc[common]
     s = px["signal"].astype(float)
     r = px["R"].astype(float)
-    s_lag = s.shift(1)
-    rk = s.expanding(min_periods=63).rank(pct=True).shift(1)
-    ok_raw = np.isfinite(s_lag) & np.isfinite(r)
-    ok_rk = np.isfinite(rk) & np.isfinite(r)
-    xr, yr = s_lag[ok_raw].to_numpy(), r[ok_raw].to_numpy()
-    rkv, rv_ = rk[ok_rk].to_numpy(), r[ok_rk].to_numpy()
+    iv_log = np.log(px["iv_var"].astype(float))
+    rk_same = s.expanding(min_periods=63).rank(pct=True)   # today's signal ranked among all days up to today
+    out_same = battery(s, rk_same, r, iv_log, LABEL[tag])
+    out_lag = battery(s.shift(1), rk_same.shift(1), r, iv_log.shift(1), LABEL[tag])
+    for k in same:
+        same[k].append(out_same[k])
+        lag[k].append(out_lag[k])
     if tag == "blk2":
-        fig_inputs = (s_lag, rk, r)
+        fig_inputs = (s, rk_same, r)
 
-    # plain regression of today's return on yesterday's raw signal
-    fit = hac_fit(yr, xr)
-    reg_rows.append({
-        "model": LABEL[tag], "x": "raw s (t-1)",
-        "a": float(fit.params[0]), "b": float(fit.params[1]),
-        "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
-        "R2": float(fit.rsquared), "n": int(fit.nobs),
-    })
+print("=== SAME DAY: the 15:30 signal against the 16:00 settlement return ===")
+for key, title in (("sign", "(1) sign split: mean R_t by sign(s_t)"),
+                   ("tercile", "(2) top third vs bottom third of the rank of s_t"),
+                   ("assoc", "(3) rank association: Spearman / Kendall of (s_t, R_t)"),
+                   ("rank", "(4) regression of R_t on the percentile rank of s_t"),
+                   ("raw", "(5) plain least squares of R_t on raw s_t (a weak instrument for a sign effect)"),
+                   ("mag", "(6) size of the move: |R_t| on the rank of s_t"),
+                   ("mag_iv", "(6) ... with today's log implied variance added")):
+    print(title)
+    print(pd.DataFrame(same[key]).to_string(index=False))
+    print("---")
+same_tab = pd.concat({k: pd.DataFrame(v) for k, v in same.items()}, names=["statistic", None]).reset_index(level=0)
+same_tab.to_csv(OUT / "sameday_battery.csv", index=False)
 
-    # regression on the percentile rank of yesterday's signal
-    fit = hac_fit(rv_, rkv)
-    rob_rank.append({"model": LABEL[tag], "b_rank": float(fit.params[1]),
-                     "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)})
-
-    # mean return split by the sign of yesterday's signal
-    ind = (xr > 0).astype(float)
-    fs = hac_fit(yr, ind)
-    rob_sign.append({"model": LABEL[tag],
-                     "mean_R|s>0": float(yr[ind == 1].mean()),
-                     "mean_R|s<=0": float(yr[ind == 0].mean()),
-                     "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
-                     "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())})
-
-    # rank association
-    sp_rho, sp_p = sps.spearmanr(xr, yr)
-    kt_tau, kt_p = sps.kendalltau(xr, yr)
-    rob_assoc.append({"model": LABEL[tag],
-                      "spearman_rho": float(sp_rho), "p_sp": float(sp_p),
-                      "kendall_tau": float(kt_tau), "p_kt": float(kt_p),
-                      "n": int(len(xr))})
-
-    # top tercile against bottom tercile of the rank
-    hi = rkv > 2.0 / 3.0
-    lo = rkv < 1.0 / 3.0
-    sel = hi | lo
-    ft = hac_fit(rv_[sel], hi[sel].astype(float))
-    rob_terc.append({"model": LABEL[tag],
-                     "mean_R_top": float(rv_[hi].mean()),
-                     "mean_R_bottom": float(rv_[lo].mean()),
-                     "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
-                     "n_top": int(hi.sum()), "n_bottom": int(lo.sum())})
-
-    # magnitude of today's return on the rank of yesterday's signal
-    fm = hac_fit(np.abs(rv_), rkv)
-    rob_mag.append({"model": LABEL[tag], "b_absR": float(fm.params[1]),
-                    "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
-                    "n": int(fm.nobs)})
-
-reg_tab = pd.DataFrame(reg_rows)
+print("=== PERSISTENCE CHECK: yesterday's signal against today's return ===")
+reg_tab = pd.DataFrame([dict(row, x="raw s (same day)") for row in same["raw"]]
+                       + [dict(row, x="raw s (t-1)") for row in lag["raw"]])
+reg_tab = reg_tab[["model", "x", "a", "b", "t_b", "p_b", "R2", "n"]]
+print("plain least squares, both versions of the signal:")
 print(reg_tab.to_string(index=False))
 reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
-print("reading: b tests whether yesterday's signal prices today's premium; b ~ 0 across models = no day-scale persistence.")
-for title, rows in (("rank-OLS: R_t on expanding pct-rank of s_{t-1}", rob_rank),
-                    ("sign split: mean R_t by sign(s_{t-1})", rob_sign),
-                    ("association: Spearman/Kendall of (s_{t-1}, R_t)", rob_assoc),
-                    ("tercile spread: top vs bottom rank(s_{t-1})", rob_terc),
-                    ("magnitude: |R_t| on rank(s_{t-1})", rob_mag)):
+print("---")
+for key, title, fname in (("rank", "regression of R_t on the rank of s_{t-1}", "lagged_robust_rank.csv"),
+                          ("sign", "sign split: mean R_t by sign(s_{t-1})", "lagged_robust_sign.csv"),
+                          ("assoc", "rank association of (s_{t-1}, R_t)", "lagged_robust_assoc.csv"),
+                          ("tercile", "top third vs bottom third of the rank of s_{t-1}", "lagged_robust_tercile.csv"),
+                          ("mag", "size of the move: |R_t| on the rank of s_{t-1}", "lagged_robust_magnitude.csv")):
     print(title)
-    print(pd.DataFrame(rows).to_string(index=False))
+    print(pd.DataFrame(lag[key]).to_string(index=False))
     print("---")
-pd.DataFrame(rob_rank).to_csv(OUT / "lagged_robust_rank.csv", index=False)
-pd.DataFrame(rob_sign).to_csv(OUT / "lagged_robust_sign.csv", index=False)
-pd.DataFrame(rob_assoc).to_csv(OUT / "lagged_robust_assoc.csv", index=False)
-pd.DataFrame(rob_terc).to_csv(OUT / "lagged_robust_tercile.csv", index=False)
-pd.DataFrame(rob_mag).to_csv(OUT / "lagged_robust_magnitude.csv", index=False)
+    pd.DataFrame(lag[key]).to_csv(OUT / fname, index=False)
+print("size of the move on the lagged rank, with yesterday's log implied variance added:")
+print(pd.DataFrame(lag["mag_iv"]).to_string(index=False))
+print("---")
 
-s_lag, rk, r = fig_inputs
-fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
-for ax, x, xlab, ttl in (
-    (axes[0], s_lag, r"$s_{t-1}=\widehat{RV}_{t-1}-\mathrm{IV}_{30,t-1}^2$", "yesterday's signal, raw"),
-    (axes[1], rk, r"percentile rank of $s_{t-1}$ among prior days", "yesterday's signal, percentile rank"),
-):
-    ok = np.isfinite(x) & np.isfinite(r)
-    ax.scatter(x[ok], r[ok], s=8, alpha=0.35)
-    f = sm.OLS(r[ok].to_numpy(), sm.add_constant(x[ok].to_numpy())).fit()
-    xx = np.linspace(float(x[ok].min()), float(x[ok].max()), 50)
-    ax.plot(xx, f.params[0] + f.params[1] * xx, color="C3", lw=1.2)
-    ax.set_xlabel(xlab)
-    ax.set_ylabel(r"$R_t$")
-    ax.set_title(f"block-diagonal ridge — $R_t$ against {ttl}")
-fig.tight_layout()
-fig.savefig(OUT / "lagged_signal_scatter_blk2.png", dpi=120, bbox_inches="tight")
-display(fig)
-plt.close(fig)
-
-# why the lagged signal fails (block-diagonal ridge): the gap is renewed daily,
-# and the magnitude result is mostly the level of implied variance
+# why yesterday's signal carries nothing (block-diagonal ridge): the gap is renewed daily
 px = books["blk2"].loc[common]
 sg = np.sign(px["signal"].astype(float))
 prev = sg.shift(1)
 ok = np.isfinite(prev)
 persist = float((sg[ok] == prev[ok]).mean())
 p_pos = float((sg[ok] > 0).mean())
-print("---")
 print(f"sign persistence: P[sign(s_t) = sign(s_t-1)] = {persist:.3f} "
       f"vs {p_pos**2 + (1 - p_pos)**2:.3f} if signs were independent")
 r_lag = (prev * px["R"])[ok]
@@ -992,19 +999,32 @@ f_lag = sm.OLS(r_lag.to_numpy(), np.ones((len(r_lag), 1))).fit(cov_type="HAC", c
 print(f"book traded on yesterday's sign: mean {float(r_lag.mean()):+.4f}, Newey-West t {float(f_lag.tvalues[0]):+.2f}, "
       f"Sharpe {float(r_lag.mean() / r_lag.std(ddof=1) * np.sqrt(252)):+.2f} | same-day sign: "
       f"Sharpe {float(r_same.mean() / r_same.std(ddof=1) * np.sqrt(252)):+.2f}")
-rk = px["signal"].astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
-liv = np.log(px["iv_var"].astype(float)).shift(1)
+rk_lag = px["signal"].astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
 absr = px["R"].abs()
-ok2 = np.isfinite(rk) & np.isfinite(liv) & np.isfinite(absr)
-f1 = sm.OLS(absr[ok2].to_numpy(), sm.add_constant(rk[ok2].to_numpy())).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-f2 = sm.OLS(absr[ok2].to_numpy(), sm.add_constant(np.column_stack([rk[ok2].to_numpy(), liv[ok2].to_numpy()]))).fit(
-    cov_type="HAC", cov_kwds={"maxlags": 6})
-print(f"|R_t| on rank(s_t-1): t {float(f1.tvalues[1]):+.2f}; with yesterday's log implied variance added: "
-      f"rank t {float(f2.tvalues[1]):+.2f}, implied-variance t {float(f2.tvalues[2]):+.2f}")
 buy = px["pos"] > 0
-top = rk > 2 / 3
+top = rk_lag > 2 / 3
 print(f"mean |R| on buy days {float(absr[buy].mean()):.3f} vs sell days {float(absr[~buy].mean()):.3f}; "
-      f"share of buy days among top-third-rank days {float(buy[top].mean()):.2f} vs {float(buy[ok2].mean()):.2f} overall")
+      f"share of buy days among top-third lagged-rank days {float(buy[top].mean()):.2f} "
+      f"vs {float(buy[np.isfinite(rk_lag)].mean()):.2f} overall")
+
+s, rk_same, r = fig_inputs
+fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+for ax, x, xlab, ttl in (
+    (axes[0], s, r"$s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^2$ at 15:30", "the 15:30 signal, raw"),
+    (axes[1], rk_same, r"percentile rank of $s_t$ among days up to $t$", "the 15:30 signal, percentile rank"),
+):
+    ok = np.isfinite(x) & np.isfinite(r)
+    ax.scatter(x[ok], r[ok], s=8, alpha=0.35)
+    f = sm.OLS(r[ok].to_numpy(), sm.add_constant(x[ok].to_numpy())).fit()
+    xx = np.linspace(float(x[ok].min()), float(x[ok].max()), 50)
+    ax.plot(xx, f.params[0] + f.params[1] * xx, color="C3", lw=1.2)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(r"$R_t$ (settled at 16:00)")
+    ax.set_title(f"block-diagonal ridge — $R_t$ against {ttl}")
+fig.tight_layout()
+fig.savefig(OUT / "sameday_scatter_blk2.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
 """
     ),
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
