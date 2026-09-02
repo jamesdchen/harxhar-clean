@@ -25,31 +25,57 @@ def code(s: str):
 nb.cells = [
     md(
         r"""
-# 0DTE nearest-OTM call + put, 15:30 → 16:00
+# Same-day-expiry nearest-out-of-the-money call and put, 15:30 → 16:00
 
-One trade per expiration day. At 15:30 ET, "ATM" means the **nearest
-out-of-the-money** legs:
+One trade per expiration day. At 15:30 ET the "at-the-money" package is
+defined as the **nearest out-of-the-money** legs:
 
-- call: smallest listed $K_c \ge S$ with a live mid
-- put: largest listed $K_p \le S$ with a live mid
+- call: the smallest listed strike $K_c \ge S$ with a live midpoint quote
+- put: the largest listed strike $K_p \le S$ with a live midpoint quote
 
-If $S$ sits on a strike those are the same $K$ (a straddle); otherwise it is
-a one-strike-wide strangle. Cash settlement uses the official S&P 500 close
-from yfinance (`^GSPC`): call $\max(S_{\mathrm{close}}-K_c,0)$, put
+When the index sits exactly on a strike the two legs share it and the
+package is a straddle; otherwise it is a strangle one strike wide. The
+package is held to the close and settled in cash against the official
+S&P 500 close (yfinance `^GSPC`): the call pays
+$\max(S_{\mathrm{close}}-K_c,0)$ and the put pays
 $\max(K_p-S_{\mathrm{close}},0)$.
 
-Signal is remaining RV minus remaining IV in variance space:
-$s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, with
-$\widehat{RV}=(m^2+\hat\sigma^2)B$ the causal second-order map from
-`yhat`. The book that survives the variants below is **always short**.
-Long-short volatility $\pm 1$ is a control. Vol-space maps ($\hat y\sqrt{B}$, $m\sqrt{B}$) live in
-`atm_straddle_volmap.ipynb` if present, else
-`atm_straddle_experimental.ipynb`. Ensembles / extra weights:
-`atm_straddle_experimental.ipynb`. $R\sim a+b s$ is below with the
-signal. Every-bar 30-min book: `atm_straddle_intraday.ipynb`.
+The signal compares the forecast of realized variance over the final
+half hour with the variance the option market quotes for that same
+half hour, both in variance units:
+$s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
+$\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
+the realized scale by a recalibration estimated from past data only
+(§7). Two position rules are scored on the same 871 days. The headline
+is the **long–short** book, which sells the package when the market's
+quoted variance exceeds the forecast and buys it otherwise: on the
+block-diagonal ridge forecast it earns an annualized Sharpe ratio of
+1.63 ($t = 3.03$). The **always-short** book, which uses no forecast, is
+the control, at a Sharpe ratio of 0.28.
 
-Every cell reads from `data/` (or from a frame the previous cell just built).
-Print the table before using it.
+The notebook runs as follows. Sections 1–6 build the instrument and its
+return; §7 loads the variance forecasts and recalibrates them; §8 puts
+the quoted implied volatility in the same units; §9 forms the signal and
+the position; §10 tabulates the two rules across the seven forecasts;
+§11 adds up the profit and loss; §12 reports information ratios against
+the always-short book; §13 asks whether yesterday's signal predicts
+today's return, plainly and then robustly to outliers, finds nothing, and explains
+why: the gap between forecast and implied is renewed daily, and its
+magnitude tracks the size of the next day's move mainly through the
+level of implied variance; §14 bets a fixed
+fraction of wealth and sets out the two frames in which such a fraction
+can be read; §15 diagnoses the buy days; §16 checks one row by hand. A
+defined-risk variant with credit vertical spreads is under construction
+and not shown in this deck.
+
+Volatility-scale views of the forecasts ($\hat y\sqrt{B}$, $m\sqrt{B}$)
+are in `atm_straddle_volmap.ipynb` where present and otherwise in
+`atm_straddle_experimental.ipynb`; ensembles and alternative weightings
+are in `atm_straddle_experimental.ipynb`; the every-half-hour version of
+this book is in `atm_straddle_intraday.ipynb`.
+
+Every cell reads from `data/` or from a table built by the cell before
+it, and prints each table before using it.
 """
     ),
     code(
@@ -88,13 +114,14 @@ pd.set_option("display.float_format", lambda x: f"{x: .6f}")
     ),
     md(
         r"""
-## 1. Load the chain (15:30 and 16:00 ET only)
+## 1. Load the option chain (15:30 and 16:00 ET only)
 
-File: `data/spxw_chain.parquet`. The file has every 30-minute stamp; this
-strategy needs 15:30 (entry quotes). 16:00 chain stamps are kept only to
-compare the tape underlying against the official close. First read
-`timestamp` and keep those two Eastern clocks; then load the remaining
-columns for those stamps only.
+The source file, `data/spxw_chain.parquet`, holds a quote for every
+30-minute time stamp. This book needs only the 15:30 quotes, which are
+the entry prices; the 16:00 rows are kept solely to compare the tape's
+underlying price against the official close. The load therefore reads
+the time stamps first, keeps those two Eastern times of day, and only
+then loads the remaining columns for those rows.
 """
     ),
     code(
@@ -142,10 +169,11 @@ print(chain.head(3))
     ),
     md(
         r"""
-## 2. Clocks and 0DTE flag
+## 2. Times of day and the same-day-expiry flag
 
-Vendor stamps are UTC. Session clock is America/New_York. A row is 0DTE when the
-ET calendar date of the stamp equals the expiration date.
+The vendor's time stamps are in UTC; the trading session runs on New
+York time. A quote row is same-day expiry (0DTE) when the Eastern
+calendar date of its time stamp equals the option's expiration date.
 """
     ),
     code(
@@ -180,11 +208,12 @@ print("16:00 0DTE stamps", chain.loc[chain["is_0dte"] & (chain["hhmm"] == "16:00
     ),
     md(
         r"""
-## 3. Restrict to 0DTE rows at those two clocks
+## 3. Keep only same-day-expiry rows at those two times
 
-15:30 is the entry quote. 16:00 chain rows are only for a tape-vs-close
-check; settlement spot is yfinance `^GSPC`. The chain load already dropped
-other hours; this drops any non-expiration-day leftovers.
+The 15:30 quote is the entry. The 16:00 rows serve only the
+tape-versus-close check; settlement uses the official close from
+yfinance (`^GSPC`), never a 16:00 option quote. The load already dropped
+the other hours; this step drops whatever is not an expiration-day row.
 """
     ),
     code(
@@ -198,14 +227,16 @@ del chain
     ),
     md(
         r"""
-## 4. Nearest OTM call and put at 15:30
+## 4. Nearest out-of-the-money call and put at 15:30
 
-Spot $S$ from the 15:30 print. Among quotes with a finite mid $> 0$:
+The index level $S$ is the 15:30 print. Among quotes with a finite,
+positive midpoint:
 
-- call: smallest $K_c \ge S$
-- put: largest $K_p \le S$
+- call: the smallest strike $K_c \ge S$
+- put: the largest strike $K_p \le S$
 
-Print how many days lose a leg. Entry $= \mathrm{mid}(K_c) + \mathrm{mid}(K_p)$.
+The number of days that lose a leg is printed. The entry price is
+$\mathrm{mid}(K_c) + \mathrm{mid}(K_p)$.
 """
     ),
     code(
@@ -262,16 +293,18 @@ print(atm[["S", "K_c", "K_p", "entry"]].describe())
     ),
     md(
         r"""
-## 5. Exit = cash settlement at the official close
+## 5. Exit: cash settlement at the official close
 
-Each leg cash-settles at intrinsic vs the official S&P 500 close
-(`^GSPC` from yfinance), not a 16:00 option quote:
+Each leg settles in cash at its intrinsic value against the official
+S&P 500 close (`^GSPC` from yfinance), not against a 16:00 option
+quote:
 
 - call: $\max(S_{\mathrm{close}}-K_c, 0)$
 - put: $\max(K_p-S_{\mathrm{close}}, 0)$
 
-If the close stays between $K_p$ and $K_c$, both finish OTM and settlement is 0.
-Print the gap vs the 16:00 chain underlying as a check.
+If the close lands between $K_p$ and $K_c$, both legs expire worthless
+and the settlement is zero. As a check, the gap between this close and
+the 16:00 underlying on the option tape is printed.
 """
     ),
     code(
@@ -336,7 +369,9 @@ atm = atm[np.isfinite(atm["entry"]) & np.isfinite(atm["exit"]) & (atm["entry"] >
         r"""
 ## 6. Return $R = \mathrm{exit}/P_{15:30} - 1$
 
-Paid `entry` at 15:30; received `pay_c + pay_p` in cash at the close.
+The package costs its entry price at 15:30 and pays the two legs'
+settlement values in cash at the close; $R$ is that payout divided by
+the entry price, minus one.
 """
     ),
     code(
@@ -353,51 +388,20 @@ print("n", len(atm))
         r"""
 ## 7. Variance forecasts
 
-Six models, one parquet each (all dumped by
-`experiments/dump_unif_yhat.py` from the CARC unification chunks,
-post-2026-08-17 ET→UTC clock fix):
+Seven forecasting models are read in, one stored table each, all produced by the paper's forecasting pipeline on the same panel:
 
-- `yhat_a0.parquet` — HAR + calendar OLS (`a0_ols_har`)
-- `yhat_blk2_fomc1.parquet` — two-block ridge with FOMC in X
-  (`blk2_user` on the `fomc1` panel)
-- `yhat_tree00.parquet` — LGBM on the wide all-features design
-  (`tree_expert_00`, frozen tree-expert menu)
-- `yhat_tree16.parquet` — XGB on the wide all-features design
-  (`tree_expert_16`, frozen tree-expert menu)
-- `yhat_b2lasso_tuned.parquet` — causal-tuned lasso on the same
-  all-features design (`b2_lasso_tuned`, the paper-protocol lasso)
-- `yhat_b2lasso.parquet` — fixed $\alpha=10^{-4}$ lasso
-  (`b2_lasso`, hand-pinned $\alpha$; envelope center, not the
-  paper head-to-head)
+- the HAR-plus-calendar least-squares forecast;
+- the block-diagonal ridge forecast, the paper's headline model, with the FOMC calendar columns in its design;
+- LightGBM and XGBoost, each on the wide all-features design with a frozen menu of settings;
+- the lasso on the same all-features design, with its penalty chosen from past data only (the paper's protocol);
+- the lasso at a fixed penalty of $10^{-4}$, set by hand — the centre of the tuning envelope rather than the paper's head-to-head entry;
+- the elastic net, with its penalties chosen from past data only.
 
-Stored `yhat` is on the fit scale
-$y=\sqrt{RV/B}$ (winsorized). Map back to raw 30-minute variance with
-the causal second-order correction: on days $[t-250,t)$ fit
-$m=a+b\,\hat y$ and residual $\hat\sigma^2$ against unwinsorized
-$y^{\mathrm{raw}}=\sqrt{RV^{\mathrm{raw}}/B}$, then
-$\mathrm{rv\_hat}=(m^2+\hat\sigma^2)B$. That is $E[RV]$ for the
-15:30–16:00 bar. All models load in parallel.
+Each stored forecast is on the scale the models were fitted on, $y=\sqrt{RV/B}$ with $B$ the time-of-day profile, and winsorized. It is mapped back to a raw 30-minute variance by the Mincer–Zarnowitz recalibration: a regression of realized on forecast that maps the forecast onto the realized scale, including its variance term. Over the trailing 250 days $[t-250,t)$ the line $m=a+b\,\hat y$ and its residual variance $\hat\sigma^2$ are fitted against the unwinsorized realized value $y^{\mathrm{raw}}=\sqrt{RV^{\mathrm{raw}}/B}$, by weighted least squares with weights $1/\max(\hat y, q_{10})^2$, where $q_{10}$ is the tenth percentile of $\hat y$ within the window. The variance forecast is then $\widehat{RV}=(m^2+\hat\sigma^2)\,B$: the expected realized variance of the 15:30–16:00 bar. Nothing observed after the decision time enters the fit.
 
-**Fit set and alignment.** Panel stamps are **bar-end labelled**: the
-row at stamp $\tau$ carries the realized variance of $[\tau-30,\tau]$
-and the forecast of that bar, issued at $\tau-30$. The 15:30 book
-therefore reads the **stamp-16:00 row** — the forecast issued at
-15:30 for the 15:30$\to$close bar it trades; earlier versions read
-the stamp-15:30 row, which is the forecast of 15:00$\to$15:30:
-causal but one bar stale. The MZ regression fits only the scored
-session bars (stamps 10:30–16:00, i.e. bars 10:00–16:00);
-off-session bars are mispredicted by $\sim$50–100$\times$ and
-previously polluted the calibration (mean $\mathrm{rv\_hat}/RV$
-1.14 $\to$ 1.08 after the restriction). Coefficients still apply to
-every row.
+**Which forecast, and which bars it is fitted on.** The forecast table labels each half-hour bar by the time it ends: the row labelled $\tau$ carries the realized variance of the bar from $\tau-30$ to $\tau$ together with the forecast of that bar, which was issued at $\tau-30$. The 15:30 book therefore uses the row labelled 16:00 — the forecast issued at 15:30 for the very bar it trades. An earlier version of this notebook used the row labelled 15:30, which is the forecast of the 15:00–15:30 bar: it uses nothing observed after the decision time, but it is one bar stale. The recalibration is fitted only on the bars the paper scores, from 10:00 to 16:00; bars outside that window are mispredicted by a factor of roughly 50 to 100 and, when they were included, distorted the calibration (the mean ratio of forecast to realized variance fell from 1.14 to 1.08 once they were excluded). The fitted coefficients are then applied to every row.
 
-Mechanics (wall clock only): the 2-parameter fit is solved in closed
-form from day-level **prefix sums**; the machinery lives in
-`atm_straddle_lib.second_order_raw` (shared with the intraday
-notebook); each model's 15:30 table is cached under
-`results/atm_straddle_0dte_1530/cache/`, keyed on the source
-parquet's size+mtime, the fit-set/window version, and the option-day
-set, so a re-run with unchanged inputs skips the whole computation.
+Two practical notes. The two-parameter fit is solved in closed form, one day at a time, in a routine shared with the intraday notebook. Each model's 15:30 table is cached and keyed to its inputs — the source file, the fitting conventions, and the set of option days — so a re-run with unchanged inputs skips the computation, and any change to the inputs forces it to be redone. The seven tables are loaded in parallel.
 """
     ),
     code(
@@ -471,13 +475,9 @@ for tag, rv in models.items():
     ),
     md(
         r"""
-## 8. Put IV in the same space as RV
+## 8. Putting implied volatility on the same footing as realized variance
 
-The chain column is `impl_volatility` (export name `new_implied_vol`).
-OM's manual says **annualized** BS vol (ATM $\sim 0.20$). The tape is
-$\sim 0.002$ at ATM — $\sim 100\times$ too small. Mids still price
-$\sim 20\%$ vol. That is the unit tell: the number behaves as a
-**1-hour SD**, not as OM annualized vol.
+The option chain carries a vendor implied-volatility column. The vendor's documentation describes it as an **annualized** Black–Scholes volatility, which at the money would be about $0.20$. The values on the tape are about $0.002$ at the money — roughly a hundred times too small for that reading — yet the midpoint quotes price roughly 20% annualized volatility. The units resolve if the number is read as a **one-hour standard deviation** rather than an annualized volatility:
 
 $$
 \mathrm{Var}(1\mathrm{h})\approx 0.002^{2}=4\times 10^{-6},\qquad
@@ -485,11 +485,7 @@ $$
 \mathrm{iv\_var}=\mathrm{IV}_{30}^{2}=(\mathrm{IV}_{\mathrm{hourly}})^{2}/2.
 $$
 
-That $10^{-6}$ variance is the same scale as $\widehat{RV}$. Treating
-$0.002$ as annualized and dividing by $252\times 6.5$ lands at
-$\sim 10^{-9}$ and cannot be compared to $\widehat{RV}$. No BS inversion
-from the mid. Remaining window here is 30 min, so this is also
-remaining-session variance.
+A variance of order $10^{-6}$ is the same scale as the realized-variance forecast $\widehat{RV}$. Reading $0.002$ as annualized instead and dividing by $252\times 6.5$ hours gives about $10^{-9}$, which cannot be compared with $\widehat{RV}$ at all. No Black–Scholes inversion of the midpoint quote is performed here. Because the window remaining at 15:30 is thirty minutes, this quantity is also the implied variance of the remainder of the session.
 """
     ),
     code(
@@ -507,11 +503,11 @@ print("days missing quoted IV", int(atm["iv_hourly"].isna().sum()))
     ),
     md(
         r"""
-## 9. Signal and long-short volatility position
+## 9. The signal and the long–short volatility position
 
-Variance space: $s=\mathrm{rv\_hat}-(\mathrm{IV}/\sqrt{2})^2$.
-$\mathrm{pos}=+1$ if $s>0$, else $-1$. Portfolio return is
-$\mathrm{pos}\cdot R$.
+Both quantities are now in variance units. The signal is the gap between the forecast and the implied variance,
+$s_t=\widehat{RV}_t-\bigl(\mathrm{IV}_{\mathrm{hourly},t}/\sqrt{2}\bigr)^{2}$.
+The position is long the package when the signal is positive and short otherwise: $q_t=+1$ if $s_t>0$ and $q_t=-1$ if not. The position's return is $q_t R_t$.
 """
     ),
     code(
@@ -556,40 +552,24 @@ print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var
     # Unit-median VRP, long-books, book-variants, lesson, return-summary omitted.
     md(
         r"""
-## 10. Rule table — grouped by strategy
+## 10. Rule table, grouped by strategy
 
-Same days and the same long-straddle $R$ (15:30 mid to cash settlement).
-Only the position $q_t$ changes. One block per rule; **rows are the seven
-forecast models**, scored on the intersection of all model books. Mid
-fill. The always-short rule takes no forecast — every model row is
-identical — so it is shown as a single anonymous row.
+Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the seven forecasting models as rows**, scored on the days common to all seven books. Fills are at the midpoint quote. The always-short rule uses no forecast, so its seven rows are identical and it is shown as a single row.
 
-**Rules** (each returns $R'_t = q_t R_t$):
+**The rules** (each returns $R'_t = q_t R_t$):
 
-- **always short:** $q_t=-1$ every day. No forecast.
-- **long-short volatility:** $q_t=\mathrm{sign}(s_t)$, with
-  $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$. Long the package when the
+- **always short:** $q_t=-1$ every day; no forecast is used.
+- **long–short volatility:** $q_t=\mathrm{sign}(s_t)$ with
+  $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the package when the
   forecast exceeds implied variance, short otherwise.
 
-Columns are `Series.describe()` plus skew, excess kurtosis, the $t$-stat of the
-mean $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and buy-signal
-count / percent (days with $q_t>0$). $t$ uses the raw
-mean/std, not annualized Sharpe.
+The columns are the usual summary statistics (count, mean, standard deviation, minimum, quartiles, maximum), skewness, excess kurtosis, the $t$-statistic of the mean, $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and the count and share of buy days (days with $q_t>0$). The $t$-statistic uses the raw daily mean and standard deviation, not the annualized Sharpe ratio.
 
-`ex_kurt` is **excess** kurtosis (Fisher's definition, what pandas
-`Series.kurt()` returns): the fourth standardized moment minus 3, so
-the Gaussian benchmark scores 0 rather than 3. Positive values mean
-fatter tails than a normal with the same variance; raw (Pearson)
-kurtosis is `ex_kurt + 3`.
+Excess kurtosis (the `ex_kurt` column) follows Fisher's definition: the fourth standardized moment minus 3, so a normal distribution scores 0 rather than 3. Positive values mean fatter tails than a normal with the same variance; ordinary (Pearson) kurtosis is this value plus 3.
 
-`Sharpe_ann` is the **annualized** Sharpe ratio,
-$\mathrm{mean}/\mathrm{std}\times\sqrt{252}$ on the daily $R'$; every
-other moment column is daily and unannualized. $t$ and Sharpe carry
-the same information at fixed $n$
-($t=\mathrm{Sharpe}\times\sqrt{n/252}$); both are shown so the table
-reads either way.
+The annualized Sharpe ratio (the `Sharpe_ann` column) is $\mathrm{mean}/\mathrm{std}\times\sqrt{252}$ on the daily $R'$; every other moment column is daily and unannualized. At fixed $n$ the $t$-statistic and the Sharpe ratio carry the same information ($t=\mathrm{Sharpe}\times\sqrt{n/252}$); both are shown so the table can be read either way.
 
-Only the scored days are restricted to the common set.
+Only the scoring is restricted to the common days; each book itself is built on all of its own days.
 """
     ),
     code(
@@ -697,16 +677,9 @@ plt.close(fig)
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
-## 11. P&L / return calculations (non-compounded)
+## 11. Profit and loss, without compounding
 
-Same contracts and $q$ as the rule table. All series below are
-**daily arithmetic** (not $\prod(1+R')$). Mid fill is the published
-book. Crossed fill: long pays the ask, short receives the bid.
-Half-spread TC charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against the
-trade. Point P&L is $q(\mathrm{exit}-\mathrm{entry})$; dollars use the
-SPXW $100$ multiplier. Margin-scaled return uses a CBOE-style short
-straddle margin on short days and the premium on long days. The plot is
-cumsum of dollars.
+The contracts and positions are those of the rule table. Every series below is a **daily arithmetic** return or profit, summed rather than compounded. The published book is filled at the midpoint quote. Paying the full spread means a long pays the ask and a short receives the bid; a half-spread cost variant charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against each trade. Profit in index points is $q(\mathrm{exit}-\mathrm{entry})$, and dollar profit applies the SPXW multiplier of $100$. The margin-scaled return divides dollar profit by an exchange-style short-straddle margin on short days and by the premium paid on long days. The plot is the cumulative sum of dollar profit.
 """
     ),
     code(
@@ -777,33 +750,19 @@ plt.close(fig)
     ),
     md(
         r"""
-## 12. Information ratio vs always-short
+## 12. Information ratio against always-short
 
-Benchmark is always-short: $R^{\mathrm{AS}}_t=-R_t$ (one short package
-every day). Portfolio is $R^p_t=q_t R_t$ for long-short
-($q=\mathrm{sign}(s)$).
+The benchmark is the always-short book, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The portfolio is the long–short book, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
 
-**Active return** (daily): $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short
-days $q=-1$ so $R^a=0$ (same as the bench). On buy days $q>0$ you
-flipped from short to long, so $R^a=q R-(-R)=(q+1)R$ (equals $2R$
-for $\pm 1$ long-short). The whole series is those daily differences
-on the 871 common days.
+The **active return** is the daily difference $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short days $q_t=-1$ and the two books coincide, so $R^a_t=0$. On buy days the position has flipped from short to long, so $R^a_t=q_tR_t-(-R_t)=(q_t+1)R_t$, which equals $2R_t$ for a $\pm1$ position. The series is those daily differences on the 871 common days.
 
-**mean_active** $= \overline{R^a}$, the sample mean of that daily
-series (not annualized).
+The table's columns are:
 
-**te_daily** (tracking error, daily) $= \mathrm{std}(R^a)$ with
-$n-1$ in the denominator (`ddof=1`). **te_ann** $= \mathrm{te\_daily}\times\sqrt{252}$.
-
-**IR_ann** $= \overline{R^a}/\mathrm{std}(R^a)\times\sqrt{252}$
-$= \mathrm{mean\_active}/\mathrm{te\_ann}$. It is the Sharpe of the
-*active* series, not of $R^p$.
-
-**t_active** $= \overline{R^a}/\mathrm{std}(R^a)\times\sqrt{n}$, the
-usual $t$-stat that mean active is zero. Same algebra as `t_mean` on
-$R^a$. IR and $t$ move together; $t$ does not annualize.
-
-**corr_to_bench** $= \mathrm{corr}(R^p,R^{\mathrm{AS}})$.
+- the **mean active return** (`mean_active`), the sample mean of that daily series, not annualized;
+- the **tracking error**, the standard deviation of the active return with $n-1$ in the denominator, reported daily (`te_daily`) and annualized by $\sqrt{252}$ (`te_ann`);
+- the **annualized information ratio** (`IR_ann`), $\overline{R^a}/\mathrm{std}(R^a)\times\sqrt{252}$, which equals the mean active return over the annualized tracking error — the Sharpe ratio of the *active* series, not of $R^p$;
+- the **$t$-statistic of the active return** (`t_active`), $\overline{R^a}/\mathrm{std}(R^a)\times\sqrt{n}$, the usual test that the mean active return is zero — the same algebra as the $t$-statistic in the rule table, applied to $R^a$; the information ratio and this $t$ move together, but $t$ is not annualized;
+- the **correlation to the benchmark** (`corr_to_bench`), $\mathrm{corr}(R^p,R^{\mathrm{AS}})$.
 """
     ),
     code(
@@ -830,148 +789,159 @@ print("IR = active return / tracking error; benchmark is always-short.")
     ),
     md(
         r"""
-## 13. Regression of straddle returns on the signal
+## 13. Does yesterday's signal predict today's straddle return?
 
-$R_t = a + b\,s_{t-1}$: today's package return on the **previous
-expiration day's** signal. OLS with HAC lags $=6$. The question is
-whether yesterday's signal carries into today's premium (day-scale
-persistence); the lagged regressor is measurable strictly before
-the trade by construction, so any surviving $b$ would be immune to
-same-day timing concerns.
-"""
-    ),
-    code(
-        r"""
-reg_rows = []
-for tag in MODEL_ORDER:
-    px = books[tag].loc[common]
-    s = px["signal"].astype(float)
-    r = px["R"].astype(float)
-    for name, x in (("raw s (t-1)", s.shift(1)),):
-        X = sm.add_constant(x.to_numpy())
-        fit = sm.OLS(r.to_numpy(), X, missing="drop").fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-        reg_rows.append({
-            "model": LABEL[tag], "x": name,
-            "a": float(fit.params[0]), "b": float(fit.params[1]),
-            "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
-            "R2": float(fit.rsquared), "n": int(fit.nobs),
-        })
-reg_tab = pd.DataFrame(reg_rows)
-print(reg_tab.to_string(index=False))
-reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
-print("reading: b tests whether yesterday's signal prices today's premium; b ~ 0 across models = no day-scale persistence.")
+We regress today's package return on the signal from the **previous
+expiration day**, $R_t = a + b\,s_{t-1}$, by ordinary least squares
+with Newey–West standard errors (six lags). Only this lagged form is
+scored: a same-day regression of $R_t$ on $s_t$ would restate the
+position rule of §9 rather than test anything new, whereas the lagged
+version asks whether a signal carries from one expiration day into
+the next day's premium. Because the regressor is known a full day
+before the trade, any relation that survives here cannot be an
+artifact of same-day timing.
 
-px = books["blk2"].loc[common]
-s_lag = px["signal"].shift(1)
-ok = np.isfinite(s_lag) & np.isfinite(px["R"])
-fig, ax = plt.subplots(figsize=(6.2, 4.2))
-ax.scatter(s_lag[ok], px["R"][ok], s=8, alpha=0.35)
-X = sm.add_constant(s_lag[ok].to_numpy())
-fit = sm.OLS(px["R"][ok].to_numpy(), X).fit()
-xx = np.linspace(s_lag[ok].min(), s_lag[ok].max(), 50)
-ax.plot(xx, fit.params[0] + fit.params[1] * xx, color="C3", lw=1.2)
-ax.set_xlabel(r"$s_{t-1}=\widehat{RV}_{t-1}-\mathrm{IV}_{30,t-1}^2$")
-ax.set_ylabel(r"$R_t$")
-ax.set_title("blk2  $R_t$ vs $s_{t-1}$")
-fig.tight_layout()
-fig.savefig(OUT / "regression_R_on_signal_blk2.png", dpi=120, bbox_inches="tight")
-display(fig)
-plt.close(fig)
-"""
-    ),
-    md(
-        r"""
-## 14. Lagged signal, outlier-robust
+That least-squares fit is dominated by a few extreme days: the signal
+is measured in variance units and has crash-sized tails, so a handful
+of large values of $s_{t-1}$ carry most of the fit. The two usual
+remedies are ruled out here. We do not winsorize or clip, because the
+threshold would be a tuned choice and a clip that binds destroys
+exactly the extreme days that carry information; and we do not scale
+by the median of $|s|$, which was removed earlier. The second half of
+this section therefore repeats the question with quantities that are
+bounded, or free of tuning parameters, by construction:
 
-The §13 OLS is leverage-dominated: $s$ is in variance units with
-crash-scale tails, so a handful of extreme $s_{t-1}$ days carry most
-of the fit. House rules forbid the two common fixes — no
-winsorizing/clipping (the threshold is a tuned knob and clips that
-bite destroy signal-carrying extremes) and no $|s|$-median scaling
-(removed by decision) — so the robust checks below are all
-**bounded- or parameter-free-by-construction**:
+- **Regression on the percentile rank.** The regressor is the
+  percentile rank of $s$ among all days up to $t-1$, computed from
+  past data only once at least 63 days of history exist, so it lies
+  in $[0,1]$. We regress $R_t$ on it with Newey–West standard errors
+  (six lags). An extreme day becomes "the 99.9th percentile" rather
+  than a point of enormous leverage. The size of the signal is
+  deliberately thrown away: this asks only whether any monotone
+  relation exists between yesterday's signal and today's return.
+- **Split by sign.** The mean of $R_t$ on days with $s_{t-1}>0$
+  versus days with $s_{t-1}\le 0$, and the Newey–West $t$-statistic
+  (six lags) of the difference. This is the economics of a book that
+  trades on yesterday's sign.
+- **Rank correlations.** Spearman's $\rho$ and Kendall's $\tau$
+  between $s_{t-1}$ and $R_t$. Both sides are ranked here, whereas
+  the rank regression above still carries the mass of $R$ at exactly
+  $-1$, and its heavy tails, in the residuals. These are association
+  tests with no tuning parameters, not trading constructions.
+- **Top third versus bottom third.** The mean of $R_t$ on days whose
+  rank of $s_{t-1}$ falls in the top third versus the bottom third,
+  with a Newey–West $t$ (six lags). This catches a relation that
+  lives only in the extremes.
+- **Size of the move.** The regression of $|R_t|$ on the rank of
+  $s_{t-1}$, again with Newey–West standard errors (six lags). The
+  signal is a variance forecast, so even if it says nothing about
+  the direction of the premium it should predict how large the next
+  day's move is.
 
-- **Rank-OLS:** regressor = the expanding percentile rank of $s$
-  among days $\le t-1$ (min 63, causal), bounded $[0,1]$; OLS of
-  $R_t$ on it with HAC(6). An outlier day becomes "the 99.9th
-  percentile", not a 50$\sigma$ leverage point. Magnitude is
-  deliberately discarded — this asks only whether any monotone
-  lagged relation exists.
-- **Sign split:** mean $R_t$ on $s_{t-1}>0$ vs $\le 0$ days and the
-  HAC(6) $t$ of the difference — the lagged trading book's own
-  economics.
-- **Rank–rank association:** Spearman $\rho$ and Kendall $\tau$ of
-  $(s_{t-1}, R_t)$ — both sides robust (the rank-OLS above still
-  carries $R$'s $-1$ atom and tails in its residuals); parameter-free
-  association tests, not causal constructions.
-- **Tercile spread:** mean $R_t$ on top- vs bottom-tercile
-  rank$(s_{t-1})$ days, HAC(6) $t$ — catches relations living only
-  in the extremes.
-- **Magnitude:** $|R_t|$ on rank$(s_{t-1})$, HAC(6) — the signal is
-  a variance forecast, so even with no premium predictability it
-  should predict the *size* of the next day's move. A significant
-  $b$ here beside the null above is the complete statement:
-  yesterday's signal prices tomorrow's risk, not tomorrow's return.
+Read together, the two halves give one verdict. The plain regression
+above was measured under the influence of the outliers, and the
+robust checks make its null trustworthy: the return prediction is
+null every way it is measured. Two diagnostics printed at the end of
+the cell say why. The signal is the gap between two highly
+persistent quantities — the variance forecast and the implied
+variance — whose difference is largely renewed each day as the market
+re-prices the afternoon's variance: yesterday's sign repeats today
+only about 65% of the time, against a 52% baseline if signs were
+independent, and a book traded on yesterday's sign earns a Sharpe
+ratio near 0.2 against 1.6 on the same-day sign. What trades is the
+same-day comparison; yesterday's is stale by the afternoon.
 
-The §13 null was measured under outlier leverage; these make the
-null (or any effect) trustworthy.
+The magnitude regression is significant for all seven forecasts, but
+it should not be read as a warning about the short side. Most of it
+is the level of implied variance: the lagged rank is high when
+options are cheap relative to the forecast, and a cheap straddle
+moves more per dollar of premium — once yesterday's implied variance
+enters the regression, the rank's $t$ falls from about 3.7 to about
+0.6. And the large moves it flags fall disproportionately on buy
+days (over half of the top-third days, against under 40% of days
+overall), where a large settlement move is the profit. The lagged
+signal predicts the size of the next day's move, largely through the
+price level of the options; it is not a forecast of the short side's
+losses.
 """
     ),
     code(
         r"""
 from scipy import stats as sps
 
-rob_rank, rob_sign, rob_assoc, rob_terc, rob_mag = [], [], [], [], []
+
+def hac_fit(y, x):
+    # least squares with Newey-West (six-lag) standard errors
+    return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+
+
+reg_rows, rob_rank, rob_sign, rob_assoc, rob_terc, rob_mag = [], [], [], [], [], []
+fig_inputs = None
 for tag in MODEL_ORDER:
     px = books[tag].loc[common]
     s = px["signal"].astype(float)
     r = px["R"].astype(float)
+    s_lag = s.shift(1)
     rk = s.expanding(min_periods=63).rank(pct=True).shift(1)
-    ok = np.isfinite(rk) & np.isfinite(r)
-    X = sm.add_constant(rk[ok].to_numpy())
-    fit = sm.OLS(r[ok].to_numpy(), X).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    ok_raw = np.isfinite(s_lag) & np.isfinite(r)
+    ok_rk = np.isfinite(rk) & np.isfinite(r)
+    xr, yr = s_lag[ok_raw].to_numpy(), r[ok_raw].to_numpy()
+    rkv, rv_ = rk[ok_rk].to_numpy(), r[ok_rk].to_numpy()
+    if tag == "blk2":
+        fig_inputs = (s_lag, rk, r)
+
+    # plain regression of today's return on yesterday's raw signal
+    fit = hac_fit(yr, xr)
+    reg_rows.append({
+        "model": LABEL[tag], "x": "raw s (t-1)",
+        "a": float(fit.params[0]), "b": float(fit.params[1]),
+        "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
+        "R2": float(fit.rsquared), "n": int(fit.nobs),
+    })
+
+    # regression on the percentile rank of yesterday's signal
+    fit = hac_fit(rv_, rkv)
     rob_rank.append({"model": LABEL[tag], "b_rank": float(fit.params[1]),
                      "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)})
 
-    x = s.shift(1)
-    ok2 = np.isfinite(x) & np.isfinite(r)
-    yv = r[ok2].to_numpy()
-    ind = (x[ok2] > 0).astype(float).to_numpy()
-    Xs = sm.add_constant(ind)
-    fs = sm.OLS(yv, Xs).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    # mean return split by the sign of yesterday's signal
+    ind = (xr > 0).astype(float)
+    fs = hac_fit(yr, ind)
     rob_sign.append({"model": LABEL[tag],
-                     "mean_R|s>0": float(yv[ind == 1].mean()),
-                     "mean_R|s<=0": float(yv[ind == 0].mean()),
+                     "mean_R|s>0": float(yr[ind == 1].mean()),
+                     "mean_R|s<=0": float(yr[ind == 0].mean()),
                      "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
                      "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())})
 
-    xr = x[ok2].to_numpy()
-    sp_rho, sp_p = sps.spearmanr(xr, yv)
-    kt_tau, kt_p = sps.kendalltau(xr, yv)
+    # rank association
+    sp_rho, sp_p = sps.spearmanr(xr, yr)
+    kt_tau, kt_p = sps.kendalltau(xr, yr)
     rob_assoc.append({"model": LABEL[tag],
                       "spearman_rho": float(sp_rho), "p_sp": float(sp_p),
                       "kendall_tau": float(kt_tau), "p_kt": float(kt_p),
                       "n": int(len(xr))})
 
-    rkv = rk[ok].to_numpy()
-    rv_ = r[ok].to_numpy()
+    # top tercile against bottom tercile of the rank
     hi = rkv > 2.0 / 3.0
     lo = rkv < 1.0 / 3.0
     sel = hi | lo
-    Xt = sm.add_constant(hi[sel].astype(float))
-    ft = sm.OLS(rv_[sel], Xt).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    ft = hac_fit(rv_[sel], hi[sel].astype(float))
     rob_terc.append({"model": LABEL[tag],
                      "mean_R_top": float(rv_[hi].mean()),
                      "mean_R_bottom": float(rv_[lo].mean()),
                      "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
                      "n_top": int(hi.sum()), "n_bottom": int(lo.sum())})
 
-    Xm = sm.add_constant(rkv)
-    fm = sm.OLS(np.abs(rv_), Xm).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    # magnitude of today's return on the rank of yesterday's signal
+    fm = hac_fit(np.abs(rv_), rkv)
     rob_mag.append({"model": LABEL[tag], "b_absR": float(fm.params[1]),
                     "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
                     "n": int(fm.nobs)})
 
+reg_tab = pd.DataFrame(reg_rows)
+print(reg_tab.to_string(index=False))
+reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
+print("reading: b tests whether yesterday's signal prices today's premium; b ~ 0 across models = no day-scale persistence.")
 for title, rows in (("rank-OLS: R_t on expanding pct-rank of s_{t-1}", rob_rank),
                     ("sign split: mean R_t by sign(s_{t-1})", rob_sign),
                     ("association: Spearman/Kendall of (s_{t-1}, R_t)", rob_assoc),
@@ -986,22 +956,55 @@ pd.DataFrame(rob_assoc).to_csv(OUT / "lagged_robust_assoc.csv", index=False)
 pd.DataFrame(rob_terc).to_csv(OUT / "lagged_robust_tercile.csv", index=False)
 pd.DataFrame(rob_mag).to_csv(OUT / "lagged_robust_magnitude.csv", index=False)
 
-px = books["blk2"].loc[common]
-rk = px["signal"].astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
-ok = np.isfinite(rk) & np.isfinite(px["R"])
-fig, ax = plt.subplots(figsize=(6.2, 4.2))
-ax.scatter(rk[ok], px["R"][ok], s=8, alpha=0.35)
-Xp = sm.add_constant(rk[ok].to_numpy())
-fitp = sm.OLS(px["R"][ok].to_numpy(), Xp).fit()
-xx = np.linspace(0, 1, 50)
-ax.plot(xx, fitp.params[0] + fitp.params[1] * xx, color="C3", lw=1.2)
-ax.set_xlabel(r"expanding pct-rank of $s_{t-1}$")
-ax.set_ylabel(r"$R_t$")
-ax.set_title("blk2  $R_t$ vs rank of $s_{t-1}$")
+s_lag, rk, r = fig_inputs
+fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+for ax, x, xlab, ttl in (
+    (axes[0], s_lag, r"$s_{t-1}=\widehat{RV}_{t-1}-\mathrm{IV}_{30,t-1}^2$", "yesterday's signal, raw"),
+    (axes[1], rk, r"percentile rank of $s_{t-1}$ among prior days", "yesterday's signal, percentile rank"),
+):
+    ok = np.isfinite(x) & np.isfinite(r)
+    ax.scatter(x[ok], r[ok], s=8, alpha=0.35)
+    f = sm.OLS(r[ok].to_numpy(), sm.add_constant(x[ok].to_numpy())).fit()
+    xx = np.linspace(float(x[ok].min()), float(x[ok].max()), 50)
+    ax.plot(xx, f.params[0] + f.params[1] * xx, color="C3", lw=1.2)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(r"$R_t$")
+    ax.set_title(f"block-diagonal ridge — $R_t$ against {ttl}")
 fig.tight_layout()
-fig.savefig(OUT / "lagged_robust_rank_blk2.png", dpi=120, bbox_inches="tight")
+fig.savefig(OUT / "lagged_signal_scatter_blk2.png", dpi=120, bbox_inches="tight")
 display(fig)
 plt.close(fig)
+
+# why the lagged signal fails (block-diagonal ridge): the gap is renewed daily,
+# and the magnitude result is mostly the level of implied variance
+px = books["blk2"].loc[common]
+sg = np.sign(px["signal"].astype(float))
+prev = sg.shift(1)
+ok = np.isfinite(prev)
+persist = float((sg[ok] == prev[ok]).mean())
+p_pos = float((sg[ok] > 0).mean())
+print("---")
+print(f"sign persistence: P[sign(s_t) = sign(s_t-1)] = {persist:.3f} "
+      f"vs {p_pos**2 + (1 - p_pos)**2:.3f} if signs were independent")
+r_lag = (prev * px["R"])[ok]
+r_same = (sg * px["R"])[ok]
+f_lag = sm.OLS(r_lag.to_numpy(), np.ones((len(r_lag), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+print(f"book traded on yesterday's sign: mean {float(r_lag.mean()):+.4f}, Newey-West t {float(f_lag.tvalues[0]):+.2f}, "
+      f"Sharpe {float(r_lag.mean() / r_lag.std(ddof=1) * np.sqrt(252)):+.2f} | same-day sign: "
+      f"Sharpe {float(r_same.mean() / r_same.std(ddof=1) * np.sqrt(252)):+.2f}")
+rk = px["signal"].astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
+liv = np.log(px["iv_var"].astype(float)).shift(1)
+absr = px["R"].abs()
+ok2 = np.isfinite(rk) & np.isfinite(liv) & np.isfinite(absr)
+f1 = sm.OLS(absr[ok2].to_numpy(), sm.add_constant(rk[ok2].to_numpy())).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+f2 = sm.OLS(absr[ok2].to_numpy(), sm.add_constant(np.column_stack([rk[ok2].to_numpy(), liv[ok2].to_numpy()]))).fit(
+    cov_type="HAC", cov_kwds={"maxlags": 6})
+print(f"|R_t| on rank(s_t-1): t {float(f1.tvalues[1]):+.2f}; with yesterday's log implied variance added: "
+      f"rank t {float(f2.tvalues[1]):+.2f}, implied-variance t {float(f2.tvalues[2]):+.2f}")
+buy = px["pos"] > 0
+top = rk > 2 / 3
+print(f"mean |R| on buy days {float(absr[buy].mean()):.3f} vs sell days {float(absr[~buy].mean()):.3f}; "
+      f"share of buy days among top-third-rank days {float(buy[top].mean()):.2f} vs {float(buy[ok2].mean()):.2f} overall")
 """
     ),
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
@@ -1141,51 +1144,53 @@ plt.close(fig)
     # ),
     md(
         r"""
-## 15. Betting a fixed fraction of wealth
+## 14. Betting a fixed fraction of wealth
 
-Every table so far is non-compounded: one unit of premium per day, P&L
-added up. A trader who reinvests instead bets a fraction $f_t$ of
-current wealth each day, so wealth compounds,
+Every table so far adds up profits and losses without compounding:
+one unit of premium per day. A trader who reinvests instead bets a
+fraction $f_t$ of current wealth each day, so wealth compounds,
 
 $$W_T=\prod_{t}\bigl(1+f_t\,q_t R_t\bigr),$$
 
-and the natural objective is the annualized log-growth
-$g=252\cdot\overline{\log(1+f_t R'_t)}$, which is what compounding
-actually maximizes. One structural fact frames the exercise: **ruin is
-one bad day** — any $f\ge 1/|\min_t R'_t|$ puts wealth at or below
-zero on the worst day, so the uncapped short book, with a worst day
-near $-10$ premium units, can only ever bet a small fraction of wealth
-no matter how good its mean is. (The §17 credit verticals bound the
-worst day by construction, which is exactly what loosens this
-constraint.)
+and the natural objective is the annualized growth rate of log
+wealth, $g=252\cdot\overline{\log(1+f_t R'_t)}$, which is what
+compounding actually maximizes. One structural fact frames the
+exercise: **ruin is one bad day.** Any fraction
+$f\ge 1/|\min_t R'_t|$ takes wealth to zero or below on the worst
+day, so the short book without wings, whose worst day is near $-10$
+premium units, can only ever bet a small fraction of wealth no matter
+how good its average return is. (A defined-risk variant, under construction and not shown in this
+deck, bounds the worst day by construction, which is exactly what
+loosens this constraint.)
 
-The fraction is estimated causally, from the book's own past returns
-only:
+The fraction is estimated from the book's own past returns only:
 
 $$\hat f_t=\min\!\Bigl(\tfrac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},\,
 \tfrac{1}{|\min_{u\le t-1}R'_u|}\Bigr)_{\!+}$$
 
-— the quadratic growth rule with a running ruin cap, expanding with a
-minimum of 63 sessions and lagged one day. The half-fraction path
-$\hat f_t/2$ is reported alongside (the standard robustness halving),
-and each path's worst single-day wealth factor is printed with its
-growth, terminal wealth, and drawdown.
+— the growth-optimal (Kelly) fraction in its quadratic form, held
+below the running ruin bound, computed on an expanding window once at
+least 63 sessions of history exist and lagged one day. The half
+fraction $\hat f_t/2$ is reported alongside as the standard
+conservative choice, and for each path we print the growth rate, the
+terminal wealth, the drawdown, and the worst single-day wealth factor.
 
 **Two frames for "a fraction of wealth."** The phrase needs a unit
 before any growth number can be read. In the **per-premium frame** —
 the frame used throughout this section — $f_t$ is the share of wealth
 deployed as body premium. For a bought straddle the premium is also
-the capital at risk, so on long days the two coincide; for the
-uncapped short book the capital at risk is unbounded, which is
-exactly why the ruin bound above, and not a collateral bound, governs
-the admissible fraction. A true **capital-at-risk frame** — $f_t$ as
-the share of wealth posted as max-loss collateral, with the day's
-return on that capital bounded below by $-1$ by construction — exists
-only once the worst day is bounded, and the defined-risk book of §17
-scores it there. One unit of wealth posted as collateral controls
-several times less premium exposure than one unit deployed as
-premium, and the ratio varies day to day, so growth rates compare
-only within a frame, never across.
+the capital at risk, so on long days the two coincide; for the short
+book without wings the capital at risk is unbounded, which is exactly
+why the ruin bound above, and not a collateral bound, governs the
+admissible fraction. A true **capital-at-risk frame** — $f_t$ as the
+share of wealth posted as collateral against the maximum loss, with
+the day's return on that capital bounded below by $-1$ by
+construction — exists only once the worst day is bounded; it applies to a
+defined-risk variant that is under construction and not shown in
+this deck. One unit of wealth
+posted as collateral controls several times less premium exposure
+than one unit deployed as premium, and the ratio varies from day to
+day, so growth rates compare only within a frame, never across.
 """
     ),
     code(
@@ -1268,10 +1273,10 @@ plt.close(fig)
     ),
     md(
         r"""
-## 16. Buy-signal diagnostic
+## 15. When does each forecast say buy?
 
-A buy day is $q_t>0$. Always-short never buys. Compare models on the
-common dates.
+A buy day is one with $q_t>0$. The always-short rule never buys. The
+forecasts are compared on the days they share.
 """
     ),
     code(
@@ -1326,228 +1331,241 @@ display(fig)
 plt.close(fig)
 """
     ),
+    # SECTION PARKED 2026-09-02 (user order): credit verticals under construction — see the experimental notebook's lab.
+    # md(
+    # r"""
+    # ## 17. Credit vertical spreads — capping the downside when selling
+    #
+    # Selling the straddle body leaves an unbounded downside. Buy a wing on
+    # each side — the nearest strike with a live midpoint quote at least 25
+    # (or 50) points further out of the money — and each short leg becomes
+    # a **credit vertical spread**: a short call with a long call at a
+    # higher strike, a short put with a long put at a lower strike. The
+    # pair is exactly the short iron condor of the earlier version of this
+    # section; the present framing makes the risk cap explicit. The net
+    # credit $C$ is the body premium minus the wing premium. Days on which
+    # $C \le 0$ (deep wing quotes missing, roughly one day in a thousand)
+    # are dropped, and the count is printed.
+    #
+    # **Primary units: per body premium.** The day's return is
+    #
+    # $$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
+    #
+    # the package's profit or loss over the straddle's entry midpoint — the
+    # same denominator as the straddle rows of §10, so the cost of the
+    # wings reads directly against the plain book. A **capital-at-risk**
+    # view is reported alongside: divide instead by the worst-case loss,
+    # which is the larger of the two actual wing gaps minus the credit. The
+    # nearest live wing can sit farther out than the nominal 25 or 50
+    # points, so the actual gap, not the nominal width, is the honest worst
+    # case; with it this view is bounded below by exactly $-1$, and the
+    # cell checks that bound. Capital at risk is not the primary view
+    # because it overweights the days with a rich credit — the
+    # high-volatility days — since the smallest denominators carry most of
+    # the variance of the series, and it therefore reads nearly free tail
+    # insurance as a losing trade: an artifact of the unit, not a trading
+    # result. Returns per unit of credit are worse still, because $C$ can
+    # be tiny; they are not reported.
+    #
+    # The hedge is **asymmetric by design**: wings are bought only when the
+    # book sells volatility. On the days when the rule buys volatility it
+    # holds the plain straddle of §6 — a bought straddle already risks at
+    # most its premium, and wings there would cap the very payoff tail the
+    # long position exists to own; its return is already per body premium,
+    # so the long-short composite is in one unit from day to day. The
+    # dollar block at the end prices the insurance itself, in index points
+    # per package: the cost of the wings per day with a paired Newey–West
+    # $t$, the worst day and the drawdown with and without wings, and the
+    # points the wings hand back on the days when the settlement lands
+    # beyond a wing.
+    #
+    # A fractional-wealth reading closes the loop with §15, in the two
+    # frames defined there and with the same estimator. The
+    # **capital-at-risk frame** is well defined here because the worst day
+    # is bounded at $-1$ by construction: no fraction below one can be
+    # ruined. The bound itself excludes ruin, and the running ruin bound
+    # inside the §15 estimator settles at one after the first day at $-1$
+    # and never binds thereafter. This is the fully collateralized floor.
+    # In the **per-premium frame** — the unit of §15 — the plain book over
+    # the same days is printed beside the hedged one; that pair, and only
+    # that pair, supports a comparison of growth with and without wings.
+    # Where the trailing mean is negative throughout, the estimator
+    # declines to bet and the row is zeros.
+    # """
+    # ),
+    # code(
+    # r"""
+    # live1530 = book_chain[(book_chain["hhmm"] == "15:30") & np.isfinite(book_chain["mid"]) & (book_chain["mid"] > 0)].copy()
+    # body = atm.reset_index()
+    # close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
+    # close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
+    #
+    # def maxdd(r):
+    # cum = r.cumsum()
+    # return float((cum - cum.cummax()).min())
+    #
+    # def score_verticals(width: float):
+    # vs = asl.pick_wings(live1530, body, width=width)
+    # print(f"width {width}: days with both wings {len(vs)} / body {len(body)} dropped {len(body)-len(vs)}")
+    # vs = asl.settle_package(vs, close_map)
+    # vs = vs[np.isfinite(vs["entry_ic"]) & np.isfinite(vs["exit_ic"]) & (vs["width"] > 0)].copy()
+    # # short seller receives the body premium and pays for the wings
+    # vs["credit"] = vs["entry_ic"]
+    # # worst case loses the larger ACTUAL wing gap (the nearest live wing
+    # # can sit farther out than the nominal width) minus the credit
+    # vs["gap_max"] = np.maximum(vs["K_c_wing"] - vs["K_c"], vs["K_p"] - vs["K_p_wing"])
+    # bad = ~((vs["credit"] > 0) & (vs["credit"] < vs["gap_max"]))
+    # print(f"width {width}: dropped {int(bad.sum())} day(s) with credit <= 0 or credit >= max wing gap")
+    # vs = vs[~bad].copy()
+    # vs["max_loss"] = vs["gap_max"] - vs["credit"]
+    # vs["pnl"] = vs["credit"] - vs["exit_ic"]          # index points per package
+    # vs["R_prem"] = vs["pnl"] / vs["entry_body"]       # primary: per body premium
+    # vs["R_risk"] = vs["pnl"] / vs["max_loss"]         # secondary: per capital at risk
+    # n_floor = int((vs["R_risk"] < -1.0 - 1e-12).sum())
+    # assert n_floor == 0, f"{n_floor} day(s) breach the -1 capital-at-risk floor"
+    # print(f"width {width}: capital-at-risk floor check min R' {float(vs['R_risk'].min()):+.6f} (>= -1, 0 violations)")
+    # vs["cap_binds"] = (vs["S_close"] >= vs["K_c_wing"]) | (vs["S_close"] <= vs["K_p_wing"])
+    # if "day" in vs.columns:
+    # vs = vs.set_index("day")
+    # return vs.sort_index()
+    #
+    # vs_tabs = {}
+    # for w in (25.0, 50.0):
+    # vs = score_verticals(w)
+    # vs_tabs[w] = vs
+    # bind = vs["cap_binds"]
+    # print(f"width {w}: cap binds (settle beyond a wing) on {int(bind.sum())} of {len(vs)} days "
+    # f"({float(bind.mean()):.2%}); mean per-premium R' on those days {float(vs.loc[bind, 'R_prem'].mean()):+.4f}")
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # joined = vs.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
+    # j = joined.loc[joined.index.intersection(common)]
+    # series = {
+    # ("always short", "per premium"): (j["R_prem"], pd.Series(-1.0, index=j.index)),
+    # ("always short", "per max risk"): (j["R_risk"], pd.Series(-1.0, index=j.index)),
+    # ("long-short volatility", "per premium"): (j["R_prem"].where(j["pos"] < 0, j["R"]), j["pos"]),
+    # ("long-short volatility", "per max risk"): (j["R_risk"].where(j["pos"] < 0, j["R"]), j["pos"]),
+    # }
+    # tab = pd.DataFrame({key: asl.rule_row(r, sz) for key, (r, sz) in series.items()}).T
+    # tab.index = pd.MultiIndex.from_tuples(tab.index, names=["rule", "units"])
+    # safe = f"credit_spread_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
+    # tab.to_csv(OUT / f"{safe}.csv")
+    # if tag != "blk2":
+    # continue
+    # print(f"--- credit verticals width {w}, per body premium, blk2 ---")
+    # print(f"days {len(j)} = wing days & common; "
+    # f"{int((j['pos'] < 0).sum())} short-vertical, {int((j['pos'] > 0).sum())} long-straddle")
+    # for name in ("always short", "long-short volatility"):
+    # r, sz = series[(name, "per premium")]
+    # print(name)
+    # print(asl.rule_row(r, sz).to_string())
+    # print("capital-at-risk view (bounded at -1), same days:")
+    # for name in ("always short", "long-short volatility"):
+    # r, _ = series[(name, "per max risk")]
+    # print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
+    # f"min {float(r.min()):+.3f} max {float(r.max()):+.3f}")
+    # print("capped vs uncapped straddle, same days, per body premium:")
+    # for name in ("always short", "long-short volatility"):
+    # r, _ = series[(name, "per premium")]
+    # bench = (-j["R"]) if name == "always short" else j["pos"] * j["R"]
+    # print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
+    # f"worst {float(r.min()):+.3f} maxDD {maxdd(r):+.2f} | uncapped: "
+    # f"mean {float(bench.mean()):+.5f} Sharpe {float(bench.mean()/bench.std(ddof=1)*np.sqrt(252)):+.3f} "
+    # f"worst {float(bench.min()):+.3f} maxDD {maxdd(bench):+.2f}")
+    # # the insurance itself, in index points per package (always-short frame)
+    # naked = (j["entry_body"] - j["exit"]).astype(float)
+    # capped = j["pnl"].astype(float)
+    # drag = naked - capped
+    # t_drag = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(
+    # cov_type="HAC", cov_kwds={"maxlags": 6}
+    # )
+    # jb = j["cap_binds"]
+    # worst10 = naked.nsmallest(10).index
+    # print(f"insurance in index points/package, always short, {len(j)} days:")
+    # print(f"  wing drag {float(drag.mean()):+.3f}/day (paired HAC-6 t {float(t_drag.tvalues[0]):+.2f}); "
+    # f"worst day naked {float(naked.min()):+.1f} vs capped {float(capped.min()):+.1f}; "
+    # f"maxDD naked {maxdd(naked):+.1f} vs capped {maxdd(capped):+.1f}")
+    # print(f"  cap binds on {int(jb.sum())} of these days: points saved there "
+    # f"{float((capped - naked)[jb].sum()):+.1f}; over the 10 worst naked days "
+    # f"{float((capped - naked)[worst10].sum()):+.1f}")
+    #
+    # print("=== fractional bets on the defined-risk book (estimator of section 15; frame named first) ===")
+    # kv_rows = {}
+    # for w, vs in vs_tabs.items():
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # joined = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
+    # j = joined.loc[joined.index.intersection(common)]
+    # series = {
+    # ("always short", "capital at risk"): j["R_risk"],
+    # ("always short", "per premium"): j["R_prem"],
+    # ("long-short volatility", "capital at risk"): j["R_risk"].where(j["pos"] < 0, j["R"]),
+    # ("long-short volatility", "per premium"): j["R_prem"].where(j["pos"] < 0, j["R"]),
+    # }
+    # for (name, frame), rs in series.items():
+    # rs = rs.astype(float)
+    # r = rs.to_numpy()
+    # fk = causal_kelly(rs).to_numpy()
+    # row = pd.concat({"causal": wealth_row(fk, r), "half": wealth_row(fk / 2, r)})
+    # row.index = ["_".join(k) for k in row.index]
+    # row["mean_f"] = float(fk.mean())
+    # if frame == "per premium":
+    # # uncapped comparison lives ONLY in the shared premium unit
+    # ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
+    # fku = causal_kelly(ru).to_numpy()
+    # unc = wealth_row(fku, ru.to_numpy())
+    # row["uncapped_g_ann"] = unc["g_ann"]
+    # row["uncapped_terminal"] = unc["terminal"]
+    # row["uncapped_mean_f"] = float(fku.mean())
+    # kv_rows[(name, frame, tag, int(w))] = row
+    # kv = pd.DataFrame(kv_rows).T
+    # kv.index = pd.MultiIndex.from_tuples(kv.index, names=["rule", "frame", "model", "w"])
+    # for tag in MODEL_ORDER:
+    # safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
+    # kv.xs(tag, level="model").to_csv(OUT / f"kelly_verticals_{safe}.csv")
+    # print("blk2 (uncapped columns appear only in the per-premium frame — the shared unit):")
+    # print(kv.xs("blk2", level="model").T.to_string(float_format=lambda x: f"{x:+.4f}", na_rep=""))
+    # print("saved kelly_verticals_<model>.csv in", OUT)
+    #
+    # fig, ax = plt.subplots(figsize=(11, 3.4))
+    # px = books["blk2"]
+    # rp_s = (px["pos"] * px["R"]).loc[common].cumsum()
+    # ax.plot(rp_s.index, rp_s.values, label="long-short straddle (uncapped)", lw=1.2)
+    # for w, vs in vs_tabs.items():
+    # j = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
+    # j = j.loc[j.index.intersection(common)]
+    # ls = j["R_prem"].where(j["pos"] < 0, j["R"])
+    # ax.plot(ls.index, ls.cumsum().values,
+    # label=f"long-short, verticals on sell days w={int(w)}", lw=1.1)
+    # ax.set_title("cumulative $R'$ per body premium — long-short volatility, blk2 days")
+    # ax.legend(fontsize=8)
+    # fig.tight_layout()
+    # fig.savefig(OUT / "credit_spread_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
+    # print("saved", OUT / "credit_spread_vs_straddle_cum.png")
+    # display(fig)
+    # plt.close(fig)
+    # """
+    # ),
     md(
         r"""
-## 17. Credit vertical spreads — capping the downside when selling
+## 16. Checking one row by hand
 
-Selling the straddle body leaves an unbounded downside. Buy a wing on
-each side — the nearest live mid at least $25$ (and $50$) points
-further OTM — and each short leg becomes a **credit vertical spread**:
-short call + long higher-strike call, short put + long lower-strike
-put. The pair is exactly the short iron condor of the earlier version
-of this slide; the framing here makes the risk cap explicit. Net
-credit $C$ = body premium $-$ wing premium. Days where $C \le 0$
-(deep wing quotes missing; roughly one day in a thousand) are dropped
-with a printed count.
+The columns of a single row map onto the construction as follows.
 
-**Primary units: per body premium.** The day's return is
-
-$$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
-
-package P&L over the straddle entry mid — the same denominator as the
-§10 straddle rows, so the wing drag reads directly against the
-uncapped book. A **capital-at-risk** view is reported alongside:
-divide instead by the worst-case loss, the larger *actual* wing gap
-minus the credit. The nearest live wing can sit farther out than the
-nominal $25/50$, so the actual gap — not the nominal width — is the
-honest worst case; with it this view is bounded below by $-1$
-exactly, and the cell asserts that. Capital-at-risk is not the
-primary view because it over-weights rich-credit (high-volatility)
-days — the smallest denominators carry most of the series variance —
-and misreads nearly-free tail insurance as a losing trade: a units
-artifact, not a trading result. Per-credit returns are worse still
-($C$ can be tiny); they are not reported.
-
-The hedge is **asymmetric by design**: wings are bought only when the
-book sells volatility. On long-volatility days the rule holds the
-plain §6 straddle — a bought straddle already risks at most its
-premium, and wings there would cap the payoff tail the long position
-exists to own; its $R$ is already per body premium, so the long-short
-composite is unit-consistent day by day. The dollar block at the end
-prices the insurance itself, in index points per package: wing drag
-per day with a paired HAC $t$, worst day and drawdown naked vs
-capped, and the points the wings hand back on the days the cap binds.
-
-A fractional-wealth read closes the loop with §15, in the two frames
-defined there, with §15's estimator unchanged. The
-**capital-at-risk frame** is well-defined here because the worst day
-is bounded at $-1$ by construction: no fraction below one can be
-ruined — the bound itself excludes ruin, and the running cap of §15's
-estimator pins at one after the first $-1$ day and never binds. This
-is the fully collateralized floor. In the **per-premium frame** —
-§15's unit — the uncapped book over the same days is printed beside
-the capped one: that pair, and only that pair, supports a
-capped-versus-uncapped growth reading. Where the trailing mean is
-negative throughout, the estimator refuses the book and the row is
-zeros.
-"""
-    ),
-    code(
-        r"""
-live1530 = book_chain[(book_chain["hhmm"] == "15:30") & np.isfinite(book_chain["mid"]) & (book_chain["mid"] > 0)].copy()
-body = atm.reset_index()
-close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
-close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
-
-def maxdd(r):
-    cum = r.cumsum()
-    return float((cum - cum.cummax()).min())
-
-def score_verticals(width: float):
-    vs = asl.pick_wings(live1530, body, width=width)
-    print(f"width {width}: days with both wings {len(vs)} / body {len(body)} dropped {len(body)-len(vs)}")
-    vs = asl.settle_package(vs, close_map)
-    vs = vs[np.isfinite(vs["entry_ic"]) & np.isfinite(vs["exit_ic"]) & (vs["width"] > 0)].copy()
-    # short seller receives the body premium and pays for the wings
-    vs["credit"] = vs["entry_ic"]
-    # worst case loses the larger ACTUAL wing gap (the nearest live wing
-    # can sit farther out than the nominal width) minus the credit
-    vs["gap_max"] = np.maximum(vs["K_c_wing"] - vs["K_c"], vs["K_p"] - vs["K_p_wing"])
-    bad = ~((vs["credit"] > 0) & (vs["credit"] < vs["gap_max"]))
-    print(f"width {width}: dropped {int(bad.sum())} day(s) with credit <= 0 or credit >= max wing gap")
-    vs = vs[~bad].copy()
-    vs["max_loss"] = vs["gap_max"] - vs["credit"]
-    vs["pnl"] = vs["credit"] - vs["exit_ic"]          # index points per package
-    vs["R_prem"] = vs["pnl"] / vs["entry_body"]       # primary: per body premium
-    vs["R_risk"] = vs["pnl"] / vs["max_loss"]         # secondary: per capital at risk
-    n_floor = int((vs["R_risk"] < -1.0 - 1e-12).sum())
-    assert n_floor == 0, f"{n_floor} day(s) breach the -1 capital-at-risk floor"
-    print(f"width {width}: capital-at-risk floor check min R' {float(vs['R_risk'].min()):+.6f} (>= -1, 0 violations)")
-    vs["cap_binds"] = (vs["S_close"] >= vs["K_c_wing"]) | (vs["S_close"] <= vs["K_p_wing"])
-    if "day" in vs.columns:
-        vs = vs.set_index("day")
-    return vs.sort_index()
-
-vs_tabs = {}
-for w in (25.0, 50.0):
-    vs = score_verticals(w)
-    vs_tabs[w] = vs
-    bind = vs["cap_binds"]
-    print(f"width {w}: cap binds (settle beyond a wing) on {int(bind.sum())} of {len(vs)} days "
-          f"({float(bind.mean()):.2%}); mean per-premium R' on those days {float(vs.loc[bind, 'R_prem'].mean()):+.4f}")
-    for tag in MODEL_ORDER:
-        px = books[tag]
-        joined = vs.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
-        j = joined.loc[joined.index.intersection(common)]
-        series = {
-            ("always short", "per premium"): (j["R_prem"], pd.Series(-1.0, index=j.index)),
-            ("always short", "per max risk"): (j["R_risk"], pd.Series(-1.0, index=j.index)),
-            ("long-short volatility", "per premium"): (j["R_prem"].where(j["pos"] < 0, j["R"]), j["pos"]),
-            ("long-short volatility", "per max risk"): (j["R_risk"].where(j["pos"] < 0, j["R"]), j["pos"]),
-        }
-        tab = pd.DataFrame({key: asl.rule_row(r, sz) for key, (r, sz) in series.items()}).T
-        tab.index = pd.MultiIndex.from_tuples(tab.index, names=["rule", "units"])
-        safe = f"credit_spread_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
-        tab.to_csv(OUT / f"{safe}.csv")
-        if tag != "blk2":
-            continue
-        print(f"--- credit verticals width {w}, per body premium, blk2 ---")
-        print(f"days {len(j)} = wing days & common; "
-              f"{int((j['pos'] < 0).sum())} short-vertical, {int((j['pos'] > 0).sum())} long-straddle")
-        for name in ("always short", "long-short volatility"):
-            r, sz = series[(name, "per premium")]
-            print(name)
-            print(asl.rule_row(r, sz).to_string())
-        print("capital-at-risk view (bounded at -1), same days:")
-        for name in ("always short", "long-short volatility"):
-            r, _ = series[(name, "per max risk")]
-            print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
-                  f"min {float(r.min()):+.3f} max {float(r.max()):+.3f}")
-        print("capped vs uncapped straddle, same days, per body premium:")
-        for name in ("always short", "long-short volatility"):
-            r, _ = series[(name, "per premium")]
-            bench = (-j["R"]) if name == "always short" else j["pos"] * j["R"]
-            print(f"  {name}: mean {float(r.mean()):+.5f} Sharpe {float(r.mean()/r.std(ddof=1)*np.sqrt(252)):+.3f} "
-                  f"worst {float(r.min()):+.3f} maxDD {maxdd(r):+.2f} | uncapped: "
-                  f"mean {float(bench.mean()):+.5f} Sharpe {float(bench.mean()/bench.std(ddof=1)*np.sqrt(252)):+.3f} "
-                  f"worst {float(bench.min()):+.3f} maxDD {maxdd(bench):+.2f}")
-        # the insurance itself, in index points per package (always-short frame)
-        naked = (j["entry_body"] - j["exit"]).astype(float)
-        capped = j["pnl"].astype(float)
-        drag = naked - capped
-        t_drag = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(
-            cov_type="HAC", cov_kwds={"maxlags": 6}
-        )
-        jb = j["cap_binds"]
-        worst10 = naked.nsmallest(10).index
-        print(f"insurance in index points/package, always short, {len(j)} days:")
-        print(f"  wing drag {float(drag.mean()):+.3f}/day (paired HAC-6 t {float(t_drag.tvalues[0]):+.2f}); "
-              f"worst day naked {float(naked.min()):+.1f} vs capped {float(capped.min()):+.1f}; "
-              f"maxDD naked {maxdd(naked):+.1f} vs capped {maxdd(capped):+.1f}")
-        print(f"  cap binds on {int(jb.sum())} of these days: points saved there "
-              f"{float((capped - naked)[jb].sum()):+.1f}; over the 10 worst naked days "
-              f"{float((capped - naked)[worst10].sum()):+.1f}")
-
-print("=== fractional bets on the defined-risk book (estimator of section 15; frame named first) ===")
-kv_rows = {}
-for w, vs in vs_tabs.items():
-    for tag in MODEL_ORDER:
-        px = books[tag]
-        joined = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
-        j = joined.loc[joined.index.intersection(common)]
-        series = {
-            ("always short", "capital at risk"): j["R_risk"],
-            ("always short", "per premium"): j["R_prem"],
-            ("long-short volatility", "capital at risk"): j["R_risk"].where(j["pos"] < 0, j["R"]),
-            ("long-short volatility", "per premium"): j["R_prem"].where(j["pos"] < 0, j["R"]),
-        }
-        for (name, frame), rs in series.items():
-            rs = rs.astype(float)
-            r = rs.to_numpy()
-            fk = causal_kelly(rs).to_numpy()
-            row = pd.concat({"causal": wealth_row(fk, r), "half": wealth_row(fk / 2, r)})
-            row.index = ["_".join(k) for k in row.index]
-            row["mean_f"] = float(fk.mean())
-            if frame == "per premium":
-                # uncapped comparison lives ONLY in the shared premium unit
-                ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
-                fku = causal_kelly(ru).to_numpy()
-                unc = wealth_row(fku, ru.to_numpy())
-                row["uncapped_g_ann"] = unc["g_ann"]
-                row["uncapped_terminal"] = unc["terminal"]
-                row["uncapped_mean_f"] = float(fku.mean())
-            kv_rows[(name, frame, tag, int(w))] = row
-kv = pd.DataFrame(kv_rows).T
-kv.index = pd.MultiIndex.from_tuples(kv.index, names=["rule", "frame", "model", "w"])
-for tag in MODEL_ORDER:
-    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
-    kv.xs(tag, level="model").to_csv(OUT / f"kelly_verticals_{safe}.csv")
-print("blk2 (uncapped columns appear only in the per-premium frame — the shared unit):")
-print(kv.xs("blk2", level="model").T.to_string(float_format=lambda x: f"{x:+.4f}", na_rep=""))
-print("saved kelly_verticals_<model>.csv in", OUT)
-
-fig, ax = plt.subplots(figsize=(11, 3.4))
-px = books["blk2"]
-rp_s = (px["pos"] * px["R"]).loc[common].cumsum()
-ax.plot(rp_s.index, rp_s.values, label="long-short straddle (uncapped)", lw=1.2)
-for w, vs in vs_tabs.items():
-    j = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
-    j = j.loc[j.index.intersection(common)]
-    ls = j["R_prem"].where(j["pos"] < 0, j["R"])
-    ax.plot(ls.index, ls.cumsum().values,
-            label=f"long-short, verticals on sell days w={int(w)}", lw=1.1)
-ax.set_title("cumulative $R'$ per body premium — long-short volatility, blk2 days")
-ax.legend(fontsize=8)
-fig.tight_layout()
-fig.savefig(OUT / "credit_spread_vs_straddle_cum.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "credit_spread_vs_straddle_cum.png")
-display(fig)
-plt.close(fig)
-"""
-    ),
-    md(
-        r"""
-## 18. Hand-check one row
-
-- `K_c >= S` and `K_p <= S` at 15:30.
-- `entry` = 15:30 `mid_c + mid_p`.
-- `exit` = `max(S_close - K_c, 0) + max(K_p - S_close, 0)` with `S_close` from yfinance `^GSPC`.
-- `R` = `exit/entry - 1`.
-- `yhat` is $\widehat{\sqrt{RV/B}}$ (fit scale). `rv_hat=(m^2+s2)*B` is
-  30-min variance.
-- Quoted IV is hourly; `iv_30 = iv_hourly / sqrt(2)`, `iv_var = iv_30**2`.
-- `signal = rv_hat - iv_var`. $\mathrm{VRP}=-s$. Long-short volatility `pos` is
-  $+1$ if signal $> 0$, else $-1$.
+- `K_c >= S` and `K_p <= S` at 15:30: the call strike sits at or
+  above the spot and the put strike at or below it.
+- `entry` is the 15:30 midpoint quote of the package, `mid_c + mid_p`.
+- `exit` is the cash settlement,
+  `max(S_close - K_c, 0) + max(K_p - S_close, 0)`, with `S_close`
+  the official close from yfinance `^GSPC`.
+- `R` is `exit/entry - 1`.
+- `yhat` is the forecast on the fitted scale, $\widehat{\sqrt{RV/B}}$;
+  `rv_hat = (m^2 + s2) * B` converts it to a 30-minute variance.
+- The quoted implied volatility is hourly, so
+  `iv_30 = iv_hourly / sqrt(2)` and `iv_var = iv_30**2`.
+- `signal = rv_hat - iv_var`; the variance risk premium is
+  $\mathrm{VRP}=-s$. The long-short volatility position `pos` is $+1$
+  when the signal is positive and $-1$ otherwise.
 """
     ),
     md(

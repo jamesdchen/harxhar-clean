@@ -3,8 +3,7 @@
 
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
-the two measurements, the position rules, a defined-risk variant, and
-the control; constants were set before the book was scored.
+the two measurements, the position rules, and the control; constants were set before the book was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
 to expiry, cash-settled on the day's official close. The panel is the
@@ -162,6 +161,8 @@ drawdown, its per-year volatility --- and not on the Sharpe ratio,
 which a pure rescaling should leave roughly unchanged.
 \fi
 
+% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
+\iffalse
 \paragraph{Defined-risk variant.} Selling the package leaves an
 unbounded downside. On short days a variant of each rule buys a wing
 on each side of the body --- the nearest strike with a live 15:30 mid
@@ -183,6 +184,7 @@ capital-at-risk view is reported as a diagnostic only: its denominator
 is smallest exactly on rich-credit, high-volatility days, so it
 concentrates the series' variance in a handful of days and misreads
 cheap tail insurance as a losing trade.
+\fi
 
 \paragraph{Compounding at a fraction of wealth.} The tables above
 price one unit of premium per day and add P\&L up. A reinvesting
@@ -192,7 +194,8 @@ is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
 any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
 day, so the unhedged short book, with a worst day near $-10$ premium
 units, can only ever bet a small fraction of wealth no matter how
-good its mean --- the defined-risk variant bounds the worst day by
+good its mean --- a defined-risk variant, under construction and not
+reported here, bounds the worst day by
 construction, which is exactly what loosens this constraint. The
 fraction is estimated causally from the book's own past returns,
 \begin{equation}
@@ -217,7 +220,8 @@ unbounded, which is exactly why the ruin bound above governs the
 admissible fraction. A true \emph{capital-at-risk} frame --- $f_t$
 posted as max-loss collateral, the day's return on that capital
 bounded below by $-1$ by construction --- exists only once the worst
-day is bounded, and is scored on the defined-risk variant. One unit
+day is bounded; it applies to a defined-risk variant that is under
+construction and not reported here. One unit
 of wealth posted as collateral controls several times less premium
 exposure than one unit deployed as premium, and the ratio varies day
 to day, so growth rates compare only within a frame, never across.

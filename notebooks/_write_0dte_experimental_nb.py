@@ -43,6 +43,13 @@ Same instrument, clocks, smear, and signal as
    sensitivity
 5. paired significance (NW + block bootstrap) on the headline deltas
    (§13)
+6. credit verticals under construction (§14): why wings on selling
+   days do not pay per dollar of premium — wing-cost decomposition,
+   quoted-spread fills, one-sided wings, a width ladder, and when the
+   cap pays
+7. cutting exposure on days the lagged signal flags risk (§15): the
+   deck's day-ahead risk forecast used as a stand-aside rule, scored on
+   the tail against a placebo
 
 $R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`.
 
@@ -788,8 +795,9 @@ print("saved experimental_weights_*.csv")
 ## 8. Iron condor lab: width ladder
 
 Body is the §1 nearest-OTM package; wings are the nearest live 15:30
-mids at least $w$ points further OTM (`asl.pick_wings`, conventions of
-the RV–IV notebook §17). Short iron condor = short body + long wings.
+mids at least $w$ points further OTM (`asl.pick_wings`; the same wing
+selection as the credit-vertical construction, parked in the RV–IV deck
+and under construction in §14 here). Short iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged; the three rules use the blk2
@@ -1068,7 +1076,8 @@ plt.close(fig)
         r"""
 ## 10. Strangle-body condors and per-side attribution
 
-§17 of the RV–IV notebook prices the straddle-body package as credit
+The credit-vertical construction (parked in the RV–IV deck, under
+construction in §14) prices the straddle-body package as credit
 vertical spreads.
 Here the body is a **strangle**: the next listed strike above the
 nearest-OTM call and below the nearest-OTM put, from the same 15:30
@@ -1204,7 +1213,8 @@ sign, majority vote, EW unit-median $q$, causal spectral PC1 sign /
 unit-median, and the blk2 single-model benchmarks) are built once on
 the common days exactly as in §5 and are not refit. Only the
 instrument swaps: wings are the nearest live mids at least $w$ points
-further OTM ($w=25,50$; the same wing selection as RV–IV §17) and
+further OTM ($w=25,50$; the same wing selection as the credit-vertical
+construction of §14) and
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged.
 
@@ -1217,9 +1227,9 @@ Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
 quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days). The RV–IV §17 slide now reports credit verticals
-per body premium (with a capital-at-risk view) at $|q|=1$, so its rows
-are not in the same units as these tables.
+on the common days). The credit-vertical book (parked in the RV–IV
+deck, under construction in §14) is scored per body premium at
+$|q|=1$, so its rows are not in the same units as these tables.
 """
     ),
     code(
@@ -1484,7 +1494,7 @@ def pair_row(name, rp, rb, B=2000):
         "sig_boot_dS": (lo_s > 0) or (hi_s < 0),
     }
 
-# condor w=25, §17 conventions; blk2 straddle-book UM sizes on both legs
+# condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 straddle-book UM sizes on both legs
 body = atm.reset_index()
 close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
@@ -1507,6 +1517,613 @@ sig_tab = pd.DataFrame([
 print(sig_tab.to_string(float_format=lambda v: f"{v: .3f}"))
 sig_tab.to_csv(OUT / "significance_pairs.csv")
 print("saved", OUT / "significance_pairs.csv")
+"""
+    ),
+    md(
+        r"""
+## 14. Credit verticals under construction
+
+The credit-vertical version of the book — a wing bought on each side
+of the body whenever the book sells, which turns the short straddle
+into two credit spreads — has been parked in the main notebook
+because, per dollar of body premium, it does not help: the long–short
+book loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
+against 1.62 without wings on the same days), the always-short control
+loses what little edge it had, and compounded wealth suffers in
+proportion. The only frame in which the wings look free is index
+points per package, where they cost 0.007 points a day on average with
+a paired $t$-statistic of essentially zero. This section asks why, so
+that the construction can be revisited with the right question rather
+than dropped.
+
+The book is rebuilt here exactly as the parked slide built it. The
+body is the 15:30 nearest-out-of-the-money package; the wings are the
+nearest live 15:30 midpoint quotes at least $w$ points further out of
+the money; the package is settled in cash at the official close; the
+net credit is body premium minus wing premium, and days with a
+non-positive credit are dropped with a printed count; the seller's
+worst case is the larger actual wing gap minus the credit. Returns are
+per dollar of body premium throughout, on the same days and with the
+same denominator for the hedged and the plain book, so every
+comparison is like against like. The cell first reproduces the parked
+slide's headline and stops if it cannot.
+
+Four questions follow.
+
+1. *Where does the wing cost come from?* For each year, the premium
+   paid for the wings on an average day against what they pay back at
+   settlement, and how much of the payback arrives on the few days the
+   settlement lands beyond a wing. The accounting is repeated with the
+   body sold at the bid and the wings bought at the ask, because deep
+   out-of-the-money wings are quoted with very wide spreads relative to
+   their price.
+2. *Does one wing do the work?* The crash tail of an index is
+   asymmetric, so the put wing alone and the call wing alone are scored
+   against both wings and none.
+3. *Is there a width at which the hedged book wins?* The width ladder
+   of §8 — fixed gaps of 10 to 100 points and gaps scaled to the
+   package price — scored per premium on the long–short composite,
+   with the share of selling days on which the settlement reaches a
+   wing.
+4. *When do the wings pay?* The distribution of how far the settlement
+   travels from the body strike, in units of the wing gap, and the
+   per-year Sharpe ratios of the hedged and plain books, to see whether
+   the wings earn their keep only in the crash year.
+
+**What the exploration shows.** The wings do not pay per dollar of
+premium in any configuration tried, and the tables say why. The cost
+is not the midpoint premium: at midpoint quotes the wings roughly pay
+for themselves over the whole sample. It is concentration. Essentially
+all of the payback arrived in 2020 — at 25 points, 249 of the 398
+points ever returned beyond a wing, and a net gain of 152 points that
+year against a net cost in every year since — so the "free insurance"
+is one crash quarter's payouts spread over four years of premium, and
+that quarter sits inside the first 64 sessions that the main deck's
+other slides exclude as their estimation window. On the days that
+matter for the long–short book the settlement rarely travels far: on
+selling days the median settlement sits a sixth of the way from the
+body strike to a 25-point wing, and reaches the wing on 4.3% of them
+(1.1% at 50 points). The wing that protects is the expensive one: the
+put wing alone costs almost as much Sharpe as both wings and is the
+only one that shortens the worst day, while the call wing is nearly
+free and protects nothing. No width on the ladder beats the plain book
+— the best is 50 points, 0.08 of Sharpe behind with a paired $t$ of
+$-2.2$ — and the gap is negative for all seven forecasts. Paying the
+quoted spread makes it worse: with the wings bought at the ask, which
+is quoted at 1.3 to 2 times their midpoint, they cost 0.09 points a
+day and the long–short book gives up 0.3 of Sharpe at 25 points
+against the plain book filled the same way.
+
+**What the construction still owes**, as questions rather than claims.
+Would wings placed by delta, or by the forecast itself — wider when
+the forecast is calm, tighter when it is not — change the ratio of
+cost to coverage, given that the cap is reached on one selling day in
+twenty-five? Would hedging conditionally, only on days the lagged
+signal flags elevated risk (the main notebook's §14 shows it prices
+tomorrow's risk), buy the protection where it is cheap relative to the
+payoff? And is the crash-year payoff a property of the instrument or
+of one event?
+"""
+    ),
+    code(
+        r"""
+# --- the credit-vertical book, rebuilt exactly as the parked RV-IV slide built it ---
+vl_body = atm.reset_index()
+vl_close = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
+vl_close.index = pd.to_datetime(vl_close.index).tz_localize(None).normalize()
+
+def vl_settle(raw):
+    vs = asl.settle_package(raw, vl_close)
+    vs = vs[np.isfinite(vs["entry_ic"]) & np.isfinite(vs["exit_ic"]) & (vs["width"] > 0)].copy()
+    vs["credit"] = vs["entry_ic"]
+    vs["gap_c"] = vs["K_c_wing"] - vs["K_c"]
+    vs["gap_p"] = vs["K_p"] - vs["K_p_wing"]
+    vs["gap_max"] = np.maximum(vs["gap_c"], vs["gap_p"])
+    vs = vs[(vs["credit"] > 0) & (vs["credit"] < vs["gap_max"])].copy()
+    # package P&L in index points for a seller, four wing configurations
+    vs["pnl_none"] = vs["entry_body"] - vs["exit"]
+    vs["pnl_both"] = vs["credit"] - vs["exit_ic"]
+    vs["pnl_put"] = (vs["entry_body"] - vs["mid_p_wing"]) - (vs["exit"] - vs["pay_p_wing"])
+    vs["pnl_call"] = (vs["entry_body"] - vs["mid_c_wing"]) - (vs["exit"] - vs["pay_c_wing"])
+    # what each wing costs net of what it pays back (positive = the wing cost money that day)
+    vs["drag_both"] = vs["entry_wings"] - vs["exit_wings"]
+    vs["drag_put"] = vs["mid_p_wing"] - vs["pay_p_wing"]
+    vs["drag_call"] = vs["mid_c_wing"] - vs["pay_c_wing"]
+    vs["drag_none"] = 0.0
+    vs["beyond_call"] = vs["S_close"] >= vs["K_c_wing"]
+    vs["beyond_put"] = vs["S_close"] <= vs["K_p_wing"]
+    vs["beyond_both"] = vs["beyond_call"] | vs["beyond_put"]
+    vs["beyond_none"] = False
+    # settlement distance from the body strike, in units of the wing gap on that side (0 inside the body)
+    up = (vs["S_close"] - vs["K_c"]) / vs["gap_c"]
+    dn = (vs["K_p"] - vs["S_close"]) / vs["gap_p"]
+    vs["dist_gap"] = np.maximum(np.maximum(up, dn), 0.0)
+    return vs.set_index("day").sort_index()
+
+def vl_book(width=None, w_row=None):
+    raw = asl.pick_wings(live, vl_body, width=width) if w_row is None else pick_wings_perday(live, vl_body, w_row)
+    return vl_settle(raw)
+
+def vl_rows(vs, px, cfg="both"):
+    # per-premium rows for the two rules; the hedged book against the plain book on the same days
+    j = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
+    j = j.loc[j.index.intersection(common)]
+    hedged = j[f"pnl_{cfg}"] / j["entry_body"]
+    out = {}
+    for name, h, plain, sell in (
+        ("always short", hedged, -j["R"], pd.Series(True, index=j.index)),
+        ("long-short volatility", hedged.where(j["pos"] < 0, j["R"]), j["pos"] * j["R"], j["pos"] < 0),
+    ):
+        t_nw, _ = _nw_t((h - plain).to_numpy(float))
+        out[name] = pd.Series({
+            "n": len(j),
+            "Sharpe_hedged": _sharpe(h), "Sharpe_plain": _sharpe(plain), "dSharpe": _sharpe(h) - _sharpe(plain),
+            "NW_t_diff": t_nw,
+            "worst_hedged": float(h.min()), "worst_plain": float(plain.min()),
+            "wing_cost_pts_per_sell_day": float(j.loc[sell, f"drag_{cfg}"].mean()),
+            "pct_sell_days_beyond_wing": 100.0 * float(j.loc[sell, f"beyond_{cfg}"].mean()),
+        })
+    return pd.DataFrame(out).T, j
+
+px_b = books["blk2"]
+vl = {w: vl_book(width=w) for w in (25.0, 50.0)}
+
+# --- gate: reproduce the parked slide's headline before extending ---
+rows25, j25 = vl_rows(vl[25.0], px_b)
+print("gate: w=25 long-short per premium, hedged Sharpe", f"{rows25.loc['long-short volatility', 'Sharpe_hedged']:.4f}",
+      "(parked slide 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (parked slide -0.007)")
+assert abs(rows25.loc["long-short volatility", "Sharpe_hedged"] - 1.417) < 0.005
+assert abs(float(j25["drag_both"].mean()) - (-0.007)) < 0.002
+print("gate passed")
+
+# (a) where the wing cost comes from: premium paid vs settlement received, by year
+print("=== (a) wing premium paid vs wing settlement received, index points per package ===")
+dec_rows = []
+for w, vs in vl.items():
+    j = vs.join(px_b[["pos", "R"]], how="inner", rsuffix="_strad")
+    j = j.loc[j.index.intersection(common)]
+    for frame, mask in (("all days (always short)", pd.Series(True, index=j.index)), ("sell days (long-short)", j["pos"] < 0)):
+        g = j.loc[mask]
+        for yr, gy in [("all", g)] + list(g.groupby(g.index.year)):
+            dec_rows.append({
+                "w": int(w), "frame": frame, "year": yr, "days": len(gy),
+                "wing_premium_paid": float(gy["entry_wings"].mean()),
+                "wing_settlement_received": float(gy["exit_wings"].mean()),
+                "net_cost": float(gy["drag_both"].mean()),
+                "days_beyond_wing": int(gy["beyond_both"].sum()),
+                "pts_returned_on_those_days": float((gy["exit_wings"] - gy["entry_wings"])[gy["beyond_both"]].sum()),
+            })
+vl_dec = pd.DataFrame(dec_rows).set_index(["w", "frame", "year"])
+print(vl_dec.to_string(float_format=lambda v: f"{v: .3f}"))
+vl_dec.to_csv(OUT / "vert_lab_wing_cost_by_year_blk2.csv")
+
+# (a2) realistic fills: body sold at the bid, wings bought at the ask; buy days pay the ask on the body
+print("=== (a2) paying the quoted spread: body at the bid, wings at the ask ===")
+fill_rows = []
+for w, vs in vl.items():
+    j = vs.join(px_b[["pos", "R"]], how="inner", rsuffix="_strad")
+    j = j.loc[j.index.intersection(common)]
+    ok = (_tc_leg_ok(j["bid_c"], j["ask_c"], True) & _tc_leg_ok(j["bid_p"], j["ask_p"], True)
+          & _tc_leg_ok(j["bid_cw"], j["ask_cw"], False) & _tc_leg_ok(j["bid_pw"], j["ask_pw"], False))
+    j = j.loc[ok]
+    body_bid = j["bid_c"].astype(float) + j["bid_p"].astype(float)
+    body_ask = j["ask_c"].astype(float) + j["ask_p"].astype(float)
+    wings_ask = j["ask_cw"].astype(float) + j["ask_pw"].astype(float)
+    denom = j["entry_body"]  # the mid premium stays the unit; only the fills move
+    sell = j["pos"] < 0
+    books_x = {
+        "mid, plain": (j["pnl_none"] / denom, (j["exit"] - j["entry_body"]) / denom),
+        "mid, wings": (j["pnl_both"] / denom, (j["exit"] - j["entry_body"]) / denom),
+        "spread, plain": ((body_bid - j["exit"]) / denom, (j["exit"] - body_ask) / denom),
+        "spread, wings": ((body_bid - wings_ask - j["exit_ic"]) / denom, (j["exit"] - body_ask) / denom),
+    }
+    drag_x = wings_ask - j["exit_wings"]
+    for label, (short_leg, long_leg) in books_x.items():
+        as_ = short_leg
+        ls = short_leg.where(sell, long_leg)
+        fill_rows.append({"w": int(w), "fill": label, "days": len(j),
+                          "Sharpe_always_short": _sharpe(as_), "Sharpe_long_short": _sharpe(ls),
+                          "worst_long_short": float(ls.min())})
+    t_mid, _ = _nw_t(j["drag_both"].to_numpy(float))
+    t_x, _ = _nw_t(drag_x.to_numpy(float))
+    print(f"w={int(w)}: wing cost at mid {float(j['drag_both'].mean()):+.3f} pts/day (NW t {t_mid:+.2f}); "
+          f"wings at the ask {float(drag_x.mean()):+.3f} pts/day (NW t {t_x:+.2f}); "
+          f"median wing ask/mid {float((wings_ask / j['entry_wings']).median()):.2f}")
+vl_fill = pd.DataFrame(fill_rows).set_index(["w", "fill"])
+print(vl_fill.to_string(float_format=lambda v: f"{v: .3f}"))
+vl_fill.to_csv(OUT / "vert_lab_fills_blk2.csv")
+
+# (b) one wing at a time
+print("=== (b) one-sided wings on sell days, per body premium, blk2 ===")
+side_rows = []
+for w, vs in vl.items():
+    for cfg in ("none", "put", "call", "both"):
+        r, _ = vl_rows(vs, px_b, cfg=cfg)
+        for name, row in r.iterrows():
+            side_rows.append({"w": int(w), "wings": cfg, "rule": name, **row.to_dict()})
+vl_side = pd.DataFrame(side_rows).set_index(["w", "wings", "rule"])
+print(vl_side[["Sharpe_hedged", "Sharpe_plain", "NW_t_diff", "worst_hedged", "wing_cost_pts_per_sell_day",
+               "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
+vl_side.to_csv(OUT / "vert_lab_one_sided_blk2.csv")
+
+# (c) the width ladder, per body premium
+print("=== (c) width ladder, wings on sell days, per body premium, blk2 ===")
+lad_books = {f"w{int(w)}": vl_book(width=w) for w in (10.0, 25.0, 50.0, 75.0, 100.0)}
+for cmult in (1.0, 2.0, 4.0):
+    lad_books[f"c{int(cmult)}xentry"] = vl_book(w_row=cmult * vl_body["entry"].to_numpy(float))
+lad_rows = []
+for label, vs in lad_books.items():
+    r, j = vl_rows(vs, px_b)
+    for name, row in r.iterrows():
+        lad_rows.append({"width": label, "rule": name, "med_gap": float(j["gap_max"].median()), **row.to_dict()})
+vl_lad = pd.DataFrame(lad_rows).set_index(["width", "rule"])
+print(vl_lad[["n", "med_gap", "Sharpe_hedged", "Sharpe_plain", "dSharpe", "NW_t_diff", "worst_hedged", "worst_plain",
+              "wing_cost_pts_per_sell_day", "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
+vl_lad.to_csv(OUT / "vert_lab_width_ladder_blk2.csv")
+best = vl_lad.xs("long-short volatility", level="rule")["dSharpe"]
+print("long-short: any width where the hedged book beats the plain book per premium?",
+      ("yes: " + ", ".join(best[best > 0].index)) if (best > 0).any() else "no")
+
+# (d) when the wings pay: how far the settlement travels, and per-year books
+print("=== (d) settlement distance from the body strike in wing-gap units, sell days ===")
+dist_rows = {}
+for w, vs in vl.items():
+    j = vs.join(px_b[["pos"]], how="inner")
+    d = j.loc[(j.index.isin(common)) & (j["pos"] < 0), "dist_gap"]
+    dist_rows[f"w{int(w)}"] = pd.Series({
+        "sell days": len(d), "share inside body": float((d == 0).mean()),
+        "q50": float(d.quantile(0.5)), "q75": float(d.quantile(0.75)), "q90": float(d.quantile(0.9)),
+        "q95": float(d.quantile(0.95)), "q99": float(d.quantile(0.99)),
+        "share between half-gap and wing": float(((d >= 0.5) & (d < 1)).mean()),
+        "share beyond wing": float((d >= 1).mean()),
+    })
+vl_dist = pd.DataFrame(dist_rows)
+print(vl_dist.to_string(float_format=lambda v: f"{v: .3f}"))
+vl_dist.to_csv(OUT / "vert_lab_settle_distance_blk2.csv")
+
+print("=== (d2) per-year Sharpe, plain vs hedged, and the points the wings hand back, blk2 ===")
+yr_rows = []
+j25 = vl[25.0].join(px_b[["pos", "R"]], how="inner", rsuffix="_strad")
+j25 = j25.loc[j25.index.intersection(common)]
+j50 = vl[50.0].join(px_b[["pos", "R"]], how="inner", rsuffix="_strad").loc[j25.index]
+for yr, g in j25.groupby(j25.index.year):
+    g50 = j50.loc[g.index]
+    ls_plain = g["pos"] * g["R"]
+    row = {"year": yr, "days": len(g),
+           "LS plain": _sharpe(ls_plain),
+           "LS w25": _sharpe((g["pnl_both"] / g["entry_body"]).where(g["pos"] < 0, g["R"])),
+           "LS w50": _sharpe((g50["pnl_both"] / g50["entry_body"]).where(g50["pos"] < 0, g50["R"])),
+           "AS plain": _sharpe(-g["R"]),
+           "AS w25": _sharpe(g["pnl_both"] / g["entry_body"]),
+           "AS w50": _sharpe(g50["pnl_both"] / g50["entry_body"]),
+           "w25 pts returned beyond wing": float((g["exit_wings"] - g["entry_wings"])[g["beyond_both"]].sum()),
+           "w25 wing cost, all days": float(g["drag_both"].sum()),
+           "w50 pts returned beyond wing": float((g50["exit_wings"] - g50["entry_wings"])[g50["beyond_both"]].sum()),
+           "w50 wing cost, all days": float(g50["drag_both"].sum())}
+    yr_rows.append(row)
+vl_year = pd.DataFrame(yr_rows).set_index("year")
+print(vl_year.to_string(float_format=lambda v: f"{v: .3f}"))
+vl_year.to_csv(OUT / "vert_lab_per_year_blk2.csv")
+
+# the seven forecasts, long-short per premium, hedged vs plain
+print("=== all seven forecasts: long-short per premium, wings on sell days vs none ===")
+mod_rows = []
+for tag in MODEL_ORDER:
+    for w, vs in vl.items():
+        r, _ = vl_rows(vs, books[tag])
+        row = r.loc["long-short volatility"]
+        mod_rows.append({"model": LABEL[tag], "w": int(w), "Sharpe_hedged": row["Sharpe_hedged"],
+                         "Sharpe_plain": row["Sharpe_plain"], "dSharpe": row["dSharpe"], "NW_t_diff": row["NW_t_diff"],
+                         "worst_hedged": row["worst_hedged"], "worst_plain": row["worst_plain"]})
+vl_mod = pd.DataFrame(mod_rows).set_index(["model", "w"])
+print(vl_mod.to_string(float_format=lambda v: f"{v: .3f}"))
+vl_mod.to_csv(OUT / "vert_lab_models.csv")
+
+fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
+order = ["w10", "w25", "w50", "w75", "w100", "c1xentry", "c2xentry", "c4xentry"]
+xs = np.arange(len(order))
+for name, c in (("long-short volatility", "C0"), ("always short", "C1")):
+    sub = vl_lad.xs(name, level="rule").loc[order]
+    axes[0].plot(xs, sub["dSharpe"], marker="o", color=c, label=name)
+axes[0].axhline(0.0, color="k", lw=0.6)
+axes[0].set_xticks(xs, order, rotation=40, fontsize=7)
+axes[0].set_ylabel("Sharpe, hedged minus plain")
+axes[0].set_title("per body premium: what the wings cost")
+axes[0].legend(fontsize=7)
+sub = vl_lad.xs("long-short volatility", level="rule").loc[order]
+axes[1].bar(xs, sub["pct_sell_days_beyond_wing"], color="C2")
+axes[1].set_xticks(xs, order, rotation=40, fontsize=7)
+axes[1].set_ylabel("% of sell days settling beyond a wing")
+axes[1].set_title("how often the cap is reached")
+fig.tight_layout()
+fig.savefig(OUT / "vert_lab_width_ladder.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "vert_lab_width_ladder.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 15. Cutting exposure on days the lagged signal flags risk
+
+The RV–IV deck's lagged-signal section finds that yesterday's signal
+does not predict today's return, but that its percentile rank does
+predict the size of today's move: the regression of $|R_t|$ on the
+rank of $s_{t-1}$ is significant for all seven forecasts. That reads
+like a day-ahead risk forecast, and wings have already failed to
+manage the sell-side tail (§14). This section asks the natural
+follow-up: does stepping aside on the days the lagged signal flags as
+risky improve the tail of the long–short book?
+
+**Construction.** The flag is built exactly as in the deck: the
+percentile rank of $s_{t-1}$ among all days up to $t-1$, computed from
+past data only once at least 63 days of history exist. Three flags are
+declared here, before any result is read, and none is chosen after the
+fact:
+
+- **primary** — the top tercile of the rank of $s_{t-1}$, the
+  regressor the deck validated;
+- alternate — the bottom tercile of the same rank (yesterday's implied
+  variance far above the forecast), in case the sell-side tail lives at
+  that end;
+- alternate — the top tercile of the rank of $|s_{t-1}|$, the unsigned
+  version.
+
+Two rules are scored on the long–short book, which sells the package
+when the same-day signal is negative and buys it otherwise: rule A is
+flat on every flagged day; rule B is flat on a flagged day only when
+the same-day rule would sell, since a bought package already risks no
+more than its premium. Rule A is also applied to the always-short
+control. Days before the rank exists are traded as usual in both the
+flagged and the reference book, so every comparison is on the same 871
+days. The criterion is the tail — worst day, maximum drawdown, annual
+volatility, excess kurtosis, and the worst day of each calendar year —
+with mean and Sharpe reported beside it. Each rule is tested against
+the reference with Newey–West standard errors on the daily difference
+and a block bootstrap on the Sharpe change, and against a placebo:
+2,000 random sets of flagged days of the same size, so that a flag
+which helps only by trading fewer days sits at the placebo median. The
+cell first checks that the flag reads nothing after $t-1$ and that the
+reference row reproduces the deck. It then shows where the sell-side
+losses actually sit — selling days split by tercile of the lagged rank
+— and what the flag sacrifices against what it protects: the share of
+the reference return earned on flagged days against the share of the
+ten worst days' losses that fell on them, with a placebo percentile for
+the latter.
+
+**What it shows: a negative result.** The flag does not reach the
+tail. Under every flag and both rules, for all seven forecasts, the
+worst day ($-5.42$) and the maximum drawdown are unchanged; neither
+book's worst day is flagged. The primary rule cuts the Sharpe ratio
+from 1.63 to 1.33 and roughly doubles the excess kurtosis, because it
+inserts zeros on ordinary days and leaves the extremes in place. The
+reason is that the flag points at the wrong tail. Yesterday's forecast
+sitting far above implied variance persists into today's sign, so the
+top tercile of the lagged rank is only about 45 percent selling days
+(the bottom tercile is about 81 percent): the flag mostly removes
+*buying* days, whose large settlement moves are the book's profit, not
+its loss — a bought package cannot lose more than its premium. The
+selling days that hurt sit in the *middle* tercile (198 selling days,
+worst $-5.42$, ten days below $-2$), against four such days in the
+top tercile and three in the bottom. Flagged days carry about 32
+percent of the reference return but only about 11 percent of the ten
+worst days' losses, and random flags of the same size cover more of
+the worst days than this one on roughly 89 percent of draws. A
+no-forecast comparator — the top tercile of yesterday's realized
+$|R|$ — separates large from small moves better than the lagged signal
+does.
+
+This reinterprets the deck's magnitude finding. The lagged rank
+predicts the *size* of the settlement move, and on buying days that
+size is the payoff; it is not a warning about the short side. Any
+control of the sell-side tail would have to condition on selling days
+and on a quantity that separates the middle-tercile losses from the
+rest — which this one does not — and whether such a quantity exists in
+the 15:30 information set is the open question.
+"""
+    ),
+    code(
+        r"""
+def rank_lag(s):
+    return s.astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
+
+# declared before any result is read; the first entry is the primary flag
+FLAGS = {
+    "top tercile of rank(s_{t-1}) [primary]": lambda px: rank_lag(px["signal"]) > 2 / 3,
+    "bottom tercile of rank(s_{t-1})": lambda px: rank_lag(px["signal"]) < 1 / 3,
+    "top tercile of rank(|s_{t-1}|)": lambda px: rank_lag(px["signal"].abs()) > 2 / 3,
+}
+
+def scoreboard(r):
+    r = r.astype(float)
+    cum = r.cumsum()
+    return pd.Series({
+        "n": len(r), "mean": float(r.mean()),
+        "Sharpe_ann": float(r.mean() / r.std(ddof=1) * np.sqrt(252)),
+        "vol_ann": float(r.std(ddof=1) * np.sqrt(252)),
+        "worst_day": float(r.min()),
+        "maxDD": float((cum - cum.cummax()).min()),
+        "ex_kurt": float(r.kurt()),
+    })
+
+def nw_t(d):
+    d = np.asarray(d, float)
+    lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
+    f = sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag})
+    return float(f.tvalues[0]), lag
+
+def sharpe(a):
+    a = np.asarray(a, float)
+    return float(a.mean() / a.std(ddof=1) * np.sqrt(252))
+
+def boot_dsharpe(a, b, B=2000):
+    rng = np.random.default_rng(0)
+    n = len(a); blen = int(np.ceil(n ** (1 / 3))); nblk = int(np.ceil(n / blen))
+    a = np.asarray(a, float); b = np.asarray(b, float); out = np.empty(B)
+    for i in range(B):
+        starts = rng.integers(0, n - blen + 1, nblk)
+        idx = np.concatenate([np.arange(s, s + blen) for s in starts])[:n]
+        out[i] = sharpe(a[idx]) - sharpe(b[idx])
+    return np.percentile(out, [2.5, 97.5])
+
+def apply_rules(px, flag):
+    ref = px["pos"] * px["R"]
+    sell = px["pos"] < 0
+    return {
+        "reference long-short": ref,
+        "A: flat on flagged days": ref.where(~flag, 0.0),
+        "B: flat on flagged days only when selling": ref.where(~(flag & sell), 0.0),
+        "reference always-short": -px["R"],
+        "A on always-short": (-px["R"]).where(~flag, 0.0),
+    }
+
+def placebo(px, flag, B=2000):
+    # random flag sets with the same number of flagged days; rule A and rule B analogues
+    rng = np.random.default_rng(0)
+    n = len(px); k = int(flag.sum())
+    R = px["R"].to_numpy(float); pos = px["pos"].to_numpy(float); ref = pos * R
+    sell = pos < 0
+    def stats(r):
+        cum = np.cumsum(r)
+        return r.min(), (cum - np.maximum.accumulate(cum)).min(), sharpe(r)
+    ref_w, ref_dd, ref_sh = stats(ref)
+    rows = {"A": np.empty((B, 3)), "B": np.empty((B, 3))}
+    for i in range(B):
+        f = np.zeros(n, bool); f[rng.choice(n, k, replace=False)] = True
+        ra = np.where(f, 0.0, ref); rb = np.where(f & sell, 0.0, ref)
+        for key, r in (("A", ra), ("B", rb)):
+            w, dd, sh = stats(r)
+            rows[key][i] = (w - ref_w, dd - ref_dd, sh - ref_sh)
+    return rows, (ref_w, ref_dd, ref_sh)
+
+def pct_rank(sample, x):
+    return 100.0 * float((sample <= x).mean())
+
+# ---- causality gate (flags read only s up to t-1; R never enters the flag) ----
+px0 = books["blk2"].loc[common]
+prim = list(FLAGS)[0]
+rng_g = np.random.default_rng(0)
+for t in rng_g.choice(np.arange(70, len(px0) - 1), 10, replace=False):
+    base = FLAGS[prim](px0).to_numpy()
+    p1 = px0.copy(); p1.loc[p1.index[t:], "R"] *= 3.0
+    p2 = px0.copy(); p2.loc[p2.index[t:], "signal"] *= 3.0
+    f1 = FLAGS[prim](p1).to_numpy(); f2 = FLAGS[prim](p2).to_numpy()
+    assert (f1[: t + 1] == base[: t + 1]).all() and (f2[: t + 1] == base[: t + 1]).all()
+print("causality: flags for days <= t unchanged by perturbing R or s on days >= t (10 draws)")
+
+# ---- reference gate ----
+ref0 = px0["pos"] * px0["R"]
+print(f"reference long-short, block-diagonal ridge: n {len(ref0)} mean {ref0.mean():.4f} Sharpe {sharpe(ref0):.3f}")
+assert len(ref0) == 871 and abs(ref0.mean() - 0.1152) < 5e-4 and abs(sharpe(ref0) - 1.631) < 5e-3
+
+# ---- scoreboards, all models, all flags ----
+rows = {}
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    for fname, fn in FLAGS.items():
+        flag = fn(px).fillna(False).astype(bool)
+        for rname, r in apply_rules(px, flag).items():
+            s = scoreboard(r)
+            s["flagged_days"] = int(flag.sum())
+            s["flagged_sell_days"] = int((flag & (px["pos"] < 0)).sum())
+            rows[(fname, rname, tag)] = s
+tab = pd.DataFrame(rows).T
+tab.index = pd.MultiIndex.from_tuples(tab.index, names=["flag", "rule", "model"])
+for tag in MODEL_ORDER:
+    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
+    tab.xs(tag, level="model").to_csv(OUT / f"riskflag_summary_{safe}.csv")
+print("saved riskflag_summary_<model>.csv in", OUT)
+
+px = books["blk2"].loc[common]
+MAIN = ("reference long-short", "A: flat on flagged days", "B: flat on flagged days only when selling")
+for fname in FLAGS:
+    flag = FLAGS[fname](px).fillna(False).astype(bool)
+    print(f"\n=== flag: {fname} --- block-diagonal ridge, {len(px)} days ===")
+    sub = tab.xs(fname, level="flag").xs("blk2", level="model")
+    print(sub.to_string(float_format=lambda x: f"{x:+.4f}"))
+    rr = px["pos"] * px["R"]
+    print("what the flag bought: mean return on flagged days {:+.4f} vs unflagged {:+.4f}; mean |R| flagged {:.4f} vs unflagged {:.4f}; "
+          "flagged {} days, of which {} sells".format(
+              rr[flag].mean(), rr[~flag].mean(), px["R"].abs()[flag].mean(), px["R"].abs()[~flag].mean(),
+              int(flag.sum()), int((flag & (px["pos"] < 0)).sum())))
+    rules = apply_rules(px, flag)
+    per_year = pd.DataFrame({k: rules[k].groupby(rules[k].index.year).min() for k in MAIN})
+    print("per-year worst day:")
+    print(per_year.to_string(float_format=lambda x: f"{x:+.3f}"))
+    ref = rules[MAIN[0]]
+    plc, (rw, rdd, rsh) = placebo(px, flag)
+    pair_rows = []
+    for key, rname in (("A", MAIN[1]), ("B", MAIN[2])):
+        r = rules[rname]; d = r - ref
+        t, lag = nw_t(d); lo, hi = boot_dsharpe(r, ref)
+        real = (float(r.min() - rw), float((r.cumsum() - r.cumsum().cummax()).min() - rdd), sharpe(r) - rsh)
+        pcts = [pct_rank(plc[key][:, j], real[j]) for j in range(3)]
+        pair_rows.append({"rule": rname, "mean_delta": float(d.mean()), "NW_t": t, "nw_lag": lag,
+                          "dSharpe": real[2], "boot_lo": lo, "boot_hi": hi,
+                          "worst_day_change": real[0], "maxDD_change": real[1],
+                          "placebo_pct_worst": pcts[0], "placebo_pct_maxDD": pcts[1], "placebo_pct_dSharpe": pcts[2]})
+    pr = pd.DataFrame(pair_rows).set_index("rule")
+    print("paired against the reference (Newey-West t on the daily difference; block-bootstrap 95% interval on the Sharpe change)")
+    print("and placebo percentiles: where the realized change sits among 2000 random flag sets of the same size (higher = better than chance):")
+    print(pr.to_string(float_format=lambda x: f"{x:+.3f}"))
+    if fname == prim:
+        pr.to_csv(OUT / "riskflag_paired_blk2.csv")
+
+# ---- where the sell-side losses live, and what the primary flag sacrifices ----
+flag = FLAGS[prim](px).fillna(False).astype(bool)
+rk = rank_lag(px["signal"])
+ref = px["pos"] * px["R"]
+sell = px["pos"] < 0
+terc = pd.cut(rk, [0.0, 1 / 3, 2 / 3, 1.0], labels=["bottom", "middle", "top"], include_lowest=True)
+trows = []
+for name in ("bottom", "middle", "top"):
+    in_t = terc == name
+    m = sell & in_t
+    trows.append({"tercile of rank(s_{t-1})": name, "days": int(in_t.sum()),
+                  "share that are sell days": float(sell[in_t].mean()),
+                  "sell days": int(m.sum()), "mean |R| on sell days": float(px["R"].abs()[m].mean()),
+                  "worst sell-day return": float(ref[m].min()), "sell days below -2": int((ref[m] < -2).sum())})
+tterc = pd.DataFrame(trows).set_index("tercile of rank(s_{t-1})")
+print("\nsell days by tercile of the lagged rank (the top tercile is the primary flag):")
+print(tterc.to_string(float_format=lambda x: f"{x:+.3f}"))
+tterc.to_csv(OUT / "riskflag_sell_terciles_blk2.csv")
+
+worst10 = ref.nsmallest(10)
+share_ret = float(ref[flag].sum() / ref.sum())
+share_loss = float(worst10[flag.reindex(worst10.index)].sum() / worst10.sum())
+rng_p = np.random.default_rng(0)
+n, k = len(ref), int(flag.sum())
+w10_mask = ref.index.isin(worst10.index)
+plc_share = np.empty(2000)
+for i in range(2000):
+    f = np.zeros(n, bool)
+    f[rng_p.choice(n, k, replace=False)] = True
+    plc_share[i] = ref.to_numpy()[f & w10_mask].sum() / worst10.sum()
+print(f"sacrifice versus protection: flagged days carry {100 * share_ret:.1f}% of the reference return "
+      f"but only {100 * share_loss:.1f}% of the ten worst days' losses; "
+      f"placebo percentile of that loss share {pct_rank(plc_share, share_loss):.0f} "
+      f"(random flags of the same size cover more of the worst days than this flag on {100 - pct_rank(plc_share, share_loss):.0f}% of draws)")
+print(f"worst day flagged: long-short {bool(flag.loc[ref.idxmin()])}, always-short {bool(flag.loc[(-px['R']).idxmin()])}")
+absflag = (rank_lag(px["R"].abs()) > 2 / 3).fillna(False).astype(bool)
+print("a no-forecast comparator, the top tercile of yesterday's realized |R|: mean |R| on flagged days "
+      f"{px['R'].abs()[absflag].mean():.3f} vs unflagged {px['R'].abs()[~absflag].mean():.3f} "
+      f"(the lagged-signal flag: {px['R'].abs()[flag].mean():.3f} vs {px['R'].abs()[~flag].mean():.3f})")
+
+flag = FLAGS[prim](px).fillna(False).astype(bool)
+rules = apply_rules(px, flag)
+fig, ax = plt.subplots(figsize=(11, 3.6))
+for k, c in zip(MAIN, ("C0", "C3", "C2")):
+    ax.plot(px.index, rules[k].cumsum().values, lw=1.1, color=c, label=k)
+lo_y, hi_y = ax.get_ylim()
+ax.fill_between(px.index, lo_y, hi_y, where=flag.to_numpy(), color="0.85", alpha=0.6, lw=0, label="flagged days")
+ax.set_ylim(lo_y, hi_y)
+ax.set_title("block-diagonal ridge: cumulative return with and without the risk flag (flagged days shaded)")
+ax.legend(fontsize=8)
+fig.tight_layout()
+fig.savefig(OUT / "riskflag_cum_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "riskflag_cum_blk2.png")
+display(fig)
+plt.close(fig)
 """
     ),
 ]

@@ -85,18 +85,30 @@ Agreement down a column of Table~\ref{tab:close_option_rules} is
 evidence that the rule is insensitive to which forecast drives it ---
 not seven independent confirmations of the rule.
 
-\paragraph{The signal prices tomorrow's risk, not tomorrow's return.}
-Regressing day-$t$ returns on the previous day's signal finds nothing,
-five ways: an OLS of $R_t$ on the causal expanding percentile rank of
-$s_{t-1}$ scores $t$ between 0.70 and 1.32 across the seven forecasts,
-and a split by $\mathrm{sign}(s_{t-1})$, Spearman and Kendall
-association, and a top-versus-bottom tercile spread are equally null
-(largest $|t|=1.31$; association $p \ge 0.24$). The same lagged rank is
-strongly significant for the \emph{magnitude} $|R_t|$ ($t$ between 3.32
-and 4.25, every forecast): yesterday's signal says how large today's
-settlement move will be, not which way the premium resolves. The
-tradable content of $s$ is its same-day sign; its magnitude is a risk
-forecast.
+\paragraph{Yesterday's signal predicts the size of today's move, not
+its direction --- and mostly through the price level.} Regressing
+day-$t$ returns on the previous day's signal finds nothing, five ways:
+an OLS of $R_t$ on the causal expanding percentile rank of $s_{t-1}$
+scores $t$ between 0.70 and 1.32 across the seven forecasts, and a
+split by $\mathrm{sign}(s_{t-1})$, Spearman and Kendall association,
+and a top-versus-bottom tercile spread are equally null (largest
+$|t|=1.31$; association $p \ge 0.24$). The reason is that the signal
+is the gap between two highly persistent quantities --- the forecast
+and the implied variance --- whose difference is largely renewed each
+day as the market re-prices the afternoon's variance: yesterday's sign
+repeats today about 65 percent of the time against a 52 percent
+independence baseline, and a book traded on yesterday's sign earns a
+Sharpe ratio of 0.19 against 1.63 on the same-day sign
+(block-diagonal ridge). The same lagged rank is strongly significant
+for the magnitude $|R_t|$ ($t$ between 3.32 and 4.25, every forecast),
+but that is not a short-side warning. The lagged rank is high when
+options are cheap relative to the forecast, and a cheap straddle moves
+more per dollar of premium: once yesterday's implied variance enters
+the regression the rank's $t$ falls from about 3.7 to about 0.6, and
+the large moves it flags fall disproportionately on long-volatility
+days --- over half of the top-tercile days, against under 40 percent
+overall --- where a large settlement move is the profit. The tradable
+content of $s$ is its same-day sign.
 
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
@@ -116,6 +128,8 @@ days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
 COVID transition itself falls inside the estimator's warm-up.
 \fi
 
+% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
+\iffalse
 \paragraph{Capping the sell-side tail costs almost nothing in dollars.}
 Buying the nearest wing at least 25 (or 50) points further
 out-of-the-money on every selling day turns the short straddle into a
@@ -132,6 +146,7 @@ settlement day from $-78$ to $-22$ points and returning $+310$ points
 across the ten worst naked days. Quoted per unit of capital at risk the
 same cap looks expensive; that is an artifact of the denominator, which
 is smallest exactly on rich-credit, high-volatility days.
+\fi
 
 \paragraph{Compounded at a causally estimated fraction, the long--short
 book grows; the control does not.} Betting the fraction of
@@ -145,10 +160,11 @@ positively under the same procedure (terminal wealth $1.9$ to $177$),
 and the growth is uneven: 2021 and 2022 are negative years for the
 headline book. The always-short control loses outright (terminal
 $0.67$) --- its mean is too small for the plug-in estimate, which is
-noise there. Whether the defined-risk variant's bounded worst day
-pays for itself in growth is a question that needs its frame named
-first.
+noise there. A defined-risk variant with credit vertical spreads is
+under construction and is not reported here.
 
+% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
+\iffalse
 \paragraph{The defined-risk book compounds in two frames, and the
 frame decides the verdict.} In the capital-at-risk frame --- well
 defined here because the worst day is bounded at $-1$, so no fraction
@@ -166,6 +182,7 @@ bounded worst day does not pay for itself in growth on this sample,
 because the causal estimator already bets too small for the cap to
 matter. The insurance case for the wings is the dollar story above,
 not a growth story; the two scoreboards must not be blended.
+\fi
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 % UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,
