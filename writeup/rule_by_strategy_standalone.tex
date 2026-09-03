@@ -4,11 +4,18 @@
 \usepackage[landscape,margin=0.5in]{geometry}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \pagestyle{empty}
 \begin{document}
 \begin{center}
 \textbf{0DTE 15:30--16:00 nearest-OTM package: per-rule return summary, models compared on the same 871 days}\\[1.5ex]
 \input{generated/table_rule_by_strategy}
+\end{center}
+\vspace{1ex}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../results/atm_straddle_0dte_1530/rule_hists_blk2.png}\[0.5ex]
+\small Distribution of the daily return of the position taken, block-diagonal ridge forecast, one panel per rule
+(returns inside their 1st--99th percentile window; the mass at $-1$ is the days the package expires worthless).
 \end{center}
 \vspace{1ex}
 \noindent\small One expiration day = one return; mid fill. $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$.
