@@ -501,15 +501,39 @@ for tag, rv in models.items():
         r"""
 ## 8. Putting implied volatility on the same footing as realized variance
 
-The option chain carries a vendor implied-volatility column. The vendor's documentation describes it as an **annualized** Black–Scholes volatility, which at the money would be about $0.20$. The values on the tape are about $0.002$ at the money — roughly a hundred times too small for that reading — yet the midpoint quotes price roughly 20% annualized volatility. The units resolve if the number is read as a **one-hour standard deviation** rather than an annualized volatility:
+The option chain carries an implied-volatility column for each leg. Its
+units decide whether the signal makes sense, and the reading used here
+rests on two sources.
+
+- **The field's definition.** The intraday SPXW chain and its
+  implied-volatility field are Chris Jones's data, and the field is a
+  **one-hour standard deviation** of the index return — not an
+  annualized volatility, which is the convention of end-of-day vendors
+  such as OptionMetrics and does not apply to this chain. At the money
+  the values are about $0.002$: read as annualized that is a hundred
+  times too small for quotes that price roughly 20% annualized
+  volatility; read as a one-hour standard deviation it is exactly right.
+- **A check against the market's own prices.** Pricing the 15:30
+  package with the Black–Scholes–Merton formula (Black and Scholes,
+  1973; Merton, 1973) over the remaining half hour, with the one-hour
+  figure scaled to thirty minutes, reproduces the quoted midpoint to
+  quote precision, while the other candidate readings — a thirty-minute,
+  a daily, or an annualized standard deviation — miss by large factors.
+  The check is reported in the paper's methods for the last-bar option
+  reading; this notebook uses the quoted field directly and performs no
+  inversion of its own.
+
+Scaling to the window that remains at 15:30:
 
 $$
-\mathrm{Var}(1\mathrm{h})\approx 0.002^{2}=4\times 10^{-6},\qquad
 \mathrm{IV}_{30}=\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2},\qquad
-\mathrm{iv\_var}=\mathrm{IV}_{30}^{2}=(\mathrm{IV}_{\mathrm{hourly}})^{2}/2.
+\mathrm{iv\_var}=\mathrm{IV}_{30}^{2}=(\mathrm{IV}_{\mathrm{hourly}})^{2}/2
+\approx 2\times 10^{-6},
 $$
 
-A variance of order $10^{-6}$ is the same scale as the realized-variance forecast $\widehat{RV}$. Reading $0.002$ as annualized instead and dividing by $252\times 6.5$ hours gives about $10^{-9}$, which cannot be compared with $\widehat{RV}$ at all. No Black–Scholes inversion of the midpoint quote is performed here. Because the window remaining at 15:30 is thirty minutes, this quantity is also the implied variance of the remainder of the session.
+the same scale as the realized-variance forecast $\widehat{RV}$. Because
+thirty minutes is all that remains at 15:30, this is also the implied
+variance of the rest of the session.
 """
     ),
     code(
