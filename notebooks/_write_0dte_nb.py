@@ -780,8 +780,8 @@ axes[0].legend(fontsize=8, loc="upper right")
 
 bench_mean = float((-r).mean())   # the always-short portfolio, the deck's benchmark
 stats = [("always short\n(all days)", bench_mean, int(len(r)), "0.6")]
-for lab, mask, c in (("forecast below implied\n(sell side)", s <= 0, "C3"),
-                     ("forecast above implied\n(buy side)", s > 0, "C0")):
+for lab, mask, c in ((r"$s_t \leq 0$" + "\n(sell side)", s <= 0, "C3"),
+                     (r"$s_t > 0$" + "\n(buy side)", s > 0, "C0")):
     stats.append((lab, float(r[mask].mean()), int(mask.sum()), c))
 top = max(m for _, m, _, _ in stats); bot = min(m for _, m, _, _ in stats)
 pad = 0.25 * (top - bot)
