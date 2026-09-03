@@ -14,7 +14,7 @@ crosses every rule with every forecast on those days.
 
 \begin{table}[H]
 \centering
-\caption{Last-bar same-day option book by position rule, 15:30~ET to
+\caption{Last-bar same-day option trade by position rule, 15:30~ET to
 the close (Section~\ref{sec:close_option_methods}). One panel per rule;
 rows are the seven forecasts. One return per expiration day, on the 871
 days common to all seven forecasts (3~January~2020 to 30~April~2024),
@@ -51,7 +51,7 @@ mean to between 0.047 and 0.060 per day and the annualized Sharpe to
 between 0.69 and 0.90, with $t$ ranging from 1.28 for the baseline (HAR + calendar OLS)
 and 1.31 for the elastic net through 1.67 for the block-diag ridge
 to 1.63 for the causally tuned lasso. The ordering is the paper's
-ordering, but no book in the panel is significant at conventional
+ordering, but no portfolio in the panel is significant at conventional
 levels.
 \fi
 
@@ -61,11 +61,11 @@ The qualifications matter as much as the point estimates.
 level rather than the sign. Excluding the first 64 trading days --- the
 estimation warm-up, which happens to cover the
 February--March 2020 spike --- \emph{raises} the
-block-diagonal ridge book to Sharpe 1.94 (Newey--West $t=3.71$ on the
+block-diagonal ridge portfolio to Sharpe 1.94 (Newey--West $t=3.71$ on the
 remaining 807 days): the full-sample figure is dragged, not flattered,
 by the COVID quarter. Splitting instead at 16~May~2022, when SPXW
 listings became daily --- a market-structure date, not a threshold
-chosen on the book --- the same book scores Sharpe 1.13 ($t=1.38$)
+chosen on the portfolio --- the same portfolio scores Sharpe 1.13 ($t=1.38$)
 before and 2.05 ($t=2.86$) after: the direction edge is positive on
 both tapes but earns its significance on the daily-0DTE era.
 
@@ -73,14 +73,14 @@ both tapes but earns its significance on the daily-0DTE era.
 straddle expires worthless --- $R=-1$ exactly --- on 198 of the 871
 days, 22.7 percent, whenever the close settles inside the one-strike
 window. The always-short control collects $+1$ on those days against
-$-0.27$ on all others; the $\mathrm{sign}(s)$ book averages $+0.23$ on them
+$-0.27$ on all others; the $\mathrm{sign}(s)$ portfolio averages $+0.23$ on them
 against $+0.08$ elsewhere, so pin days supply roughly half of its total
-return from under a quarter of the days. The book monetizes a direction
+return from under a quarter of the days. The portfolio monetizes a direction
 call and the pin premium together, and its P\&L remains tilted toward
 days the index settles inside the strikes.
 
-\paragraph{Seven rows are one bet.} The seven daily books are correlated
-at high pairwise levels, an effective count near one independent book.
+\paragraph{Seven rows are one bet.} The seven daily portfolios are correlated
+at high pairwise levels, an effective count near one independent portfolio.
 Agreement down a column of Table~\ref{tab:close_option_rules} is
 evidence that the rule is insensitive to which forecast drives it ---
 not seven independent confirmations of the rule.
@@ -95,7 +95,7 @@ average, and $-0.11$ when it does not (difference $0.23$, Newey--West
 $t=2.9$ for the block-diagonal ridge; $t$ between 1.9 and 3.3 across
 the seven forecasts), and the top third of days by the percentile
 rank of $s_t$ beats the bottom third with $t$ between 2.0 and 3.0 for
-every forecast. That is the $\mathrm{sign}(s)$ book of
+every forecast. That is the $\mathrm{sign}(s)$ portfolio of
 Table~\ref{tab:close_option_rules}, read as a regression, and
 Figure~\ref{fig:close_option_sameday} shows it. A straight
 line is the wrong instrument for the same relation: the slope of
@@ -116,7 +116,7 @@ a cheap straddle moves more per dollar of premium.
 ridge forecast, 871 expiration days. Left: the mean settled return $R_t$ on
 days the forecast sat below the quoted implied variance and on days it sat
 above, with Newey--West standard errors (six lags); the grey bar and the
-dashed line are the always-short book over all days, the benchmark
+dashed line are the always-short portfolio over all days, the benchmark
 throughout. Right: the same mean by decile of the signal's percentile rank
 among all days up to and including $t$ (decile 1 furthest below implied,
 decile 10 furthest above). The relation is a step at the sign with no
@@ -127,13 +127,13 @@ variance the forecast stands on, not how far.}
 
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
-\paragraph{Sizing by trailing book volatility standardizes risk without
+\paragraph{Sizing by trailing portfolio volatility standardizes risk without
 touching the edge.} Scaling the daily position by the ratio of the
-expanding median of the book's own trailing 63-day volatility to its
+expanding median of the portfolio's own trailing 63-day volatility to its
 current lagged value --- self-normalizing, no free target parameter, a
 cap of 3 that never binds --- leaves mean and Sharpe statistically
 unchanged (block-diagonal ridge $\mathrm{sign}(s)$ 1.94 to 1.98 on the 807
-post-warm-up days) while cutting the variability of the book's rolling
+post-warm-up days) while cutting the variability of the portfolio's rolling
 volatility by 15 to 21 percent for every forecast and rule and roughly
 halving the spread of its per-year volatility (cross-year coefficient
 of variation 0.196 to 0.104). This is a standardization of risk, not a
@@ -146,20 +146,20 @@ COVID transition itself falls inside the estimator's warm-up.
 % IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
 \iffalse
 \paragraph{The price of the defined-risk constraint.} Per dollar of
-body premium the wings cost the $\mathrm{sign}(s)$ book at every width, and
+body premium the wings cost the $\mathrm{sign}(s)$ portfolio at every width, and
 the cost falls with distance: annualized Sharpe 1.36, 1.42, 1.47 and
-1.54 at $w = 20, 25, 30, 50$ against 1.62 for the plain book on the
+1.54 at $w = 20, 25, 30, 50$ against 1.62 for the plain portfolio on the
 same 870 days (paired daily difference $-221$, $-164$, $-120$ and $-62$
 basis points; Newey--West $t$ between $-2.4$ and $-3.0$ for the
 block-diagonal ridge, and a lower Sharpe ratio for every one of the seven
 forecasts at every width). The always-short control does not survive the constraint at
 any width below 50 ($-0.15$, $-0.06$, $0.00$ and $+0.10$ against
 $+0.27$). What the constraint buys is the dollar tail on the days the
-$\mathrm{sign}(s)$ book sells:
+$\mathrm{sign}(s)$ portfolio sells:
 the worst settlement falls from $-78$ points per package to $-17$,
 $-20$, $-25$ and $-37$, with the settlement landing beyond a wing on
 7.3, 4.3, 2.5 and 1.1 percent of selling days. Per premium the
-$\mathrm{sign}(s)$ book's worst day barely moves ($-4.7$ at $w=20$; unchanged
+$\mathrm{sign}(s)$ portfolio's worst day barely moves ($-4.7$ at $w=20$; unchanged
 at $-5.4$ for any wider wing), because its worst days are moderate
 moves on low-premium days that no wing reaches. At midpoint quotes the
 wings roughly pay for themselves in points --- premium paid against
@@ -170,21 +170,21 @@ percent of everything the wings ever paid back, and in 2021 and 2024
 they paid nothing at any width of 25 or more. At realistic fills ---
 the body sold at the bid, the wings bought at the ask, whose median
 sits 20 to 100 percent above the midpoint --- the price is higher: the
-$\mathrm{sign}(s)$ book's crossed-spread Sharpe is 0.69, 0.77, 0.83 and 0.92 against
-1.11 for the plain book at the crossed spread.
+$\mathrm{sign}(s)$ portfolio's crossed-spread Sharpe is 0.69, 0.77, 0.83 and 0.92 against
+1.11 for the plain portfolio at the crossed spread.
 \fi
 
 \paragraph{Compounded at a causally estimated fraction, the $\mathrm{sign}(s)$
-book grows; the control does not.} Betting the fraction of
+portfolio grows; the control does not.} Betting the fraction of
 Equation~\eqref{eq:close_opt_kelly} (mean $\hat f_t = 0.063$), the
-block-diagonal ridge $\mathrm{sign}(s)$ book turns one unit of wealth into
+block-diagonal ridge $\mathrm{sign}(s)$ portfolio turns one unit of wealth into
 $36.8$ over the sample (annualized log-growth $+1.04$), and into
 $12.2$ at the half fraction. Its worst single day removes 49 percent
 of wealth at the full fraction and 25 percent at half --- the case
-for the half path in one number. All seven $\mathrm{sign}(s)$ books compound
+for the half path in one number. All seven $\mathrm{sign}(s)$ portfolios compound
 positively under the same procedure (terminal wealth $1.9$ to $177$),
 and the growth is uneven: 2021 and 2022 are negative years for the
-headline book. The always-short control loses outright (terminal
+headline portfolio. The always-short control loses outright (terminal
 $0.67$) --- its mean is too small for the plug-in estimate, which is
 noise there. A defined-risk variant is parked and not reported here.
 
@@ -195,18 +195,18 @@ and the frame decides the number.} The bounded worst day is exactly
 what would loosen the ruin bound on the fraction, but in this sample
 the bound was never the binding term: the causal fraction of
 Equation~\eqref{eq:close_opt_kelly} sits well below it on every day for
-the plain book (mean 0.063, maximum 0.106) and stays there under the
+the plain portfolio (mean 0.063, maximum 0.106) and stays there under the
 wings (mean 0.054 to 0.062 per premium across the four widths; the
-running cap binds on no day in any book). The fraction is set by the
+running cap binds on no day in any portfolio). The fraction is set by the
 estimate of mean over second moment, not by the worst day, so capping
 the worst day does not let the trader bet more. In the per-premium
-frame the defined-risk book compounds to 10.3, 12.3, 14.8 and 21.9
+frame the defined-risk portfolio compounds to 10.3, 12.3, 14.8 and 21.9
 times initial wealth at $w = 20, 25, 30, 50$ against 33.9 for the plain
-book on the same days --- the wing cost compounds into a real growth
+portfolio on the same days --- the wing cost compounds into a real growth
 cost, smallest at the widest wing --- while the worst single-day wealth
 factor improves only from 0.51 to between 0.53 and 0.64. In the
 capital-at-risk frame, well defined here because no fraction below one
-can be ruined, the same book is a fully collateralized floor: a mean
+can be ruined, the same portfolio is a fully collateralized floor: a mean
 fraction of 0.03 to 0.04 of wealth posted as collateral, terminal
 wealth 2.3 to 2.7, worst single day $-7$ percent of wealth. The two
 frames are different units and compare only within themselves. Taken
@@ -225,11 +225,11 @@ figure that worsens at the ask.
 % generated table_rule_flat_fomc_me_paper.tex are no longer produced.
 \iffalse
 \paragraph{An event filter, with a pre-registration caveat.} Tail
-forensics on the unit-median VRP book locate two calendar flags that
+forensics on the unit-median VRP portfolio locate two calendar flags that
 predict two-sided \emph{dispersion} rather than direction: FOMC
 statement days and month-ends. Sitting flat on both, under the
 convention of Section~\ref{sec:close_option_methods} --- 83 of the 871
-days --- gives the book of Table~\ref{tab:close_option_filtered}. The
+days --- gives the portfolio of Table~\ref{tab:close_option_filtered}. The
 full-sample $t$ rises to between 2.19 and 2.86 (2.79 for the two-block
 ridge, 2.86 for the tuned lasso) and the era $t$ to between 3.09 and
 3.71, with the mean roughly 50 percent higher and the standard
@@ -269,7 +269,7 @@ Two things keep that from being a result. The filter was examined
 Table~\ref{tab:close_option_filtered} is a post-hoc statistic and not a
 pre-registered one; and the month-end contribution rests on roughly
 seven tail events, too few to carry a distributional claim on their
-own. The largest single loss in the book, 8~January~2020, carries
+own. The largest single loss in the portfolio, 8~January~2020, carries
 neither flag and survives the filter untouched. The two flags also
 rest on different mechanisms, only one of which a forecast can reach.
 On FOMC statement days the forecast under-predicts the last-bar
@@ -286,11 +286,11 @@ absorb, and sitting flat is the only lever. The honest reading is a
 hypothesis for new tape, not a finding on this one.
 \fi
 
-The book as a whole is a demonstration under the stated constants of
+The trade as a whole is a demonstration under the stated constants of
 Section~\ref{sec:close_option_methods}, not a trading claim: there is
 no delta hedge, no borrow, no market-impact model, and every fill is at
-the 15:30 mid, so a book that receives the bid instead is a different
-book. What survives the qualifications is worth stating plainly. At the
+the 15:30 mid, so a portfolio that receives the bid instead is a different
+portfolio. What survives the qualifications is worth stating plainly. At the
 last bar the quoted implied variance sits above the forecast on 61
 percent of days; the sign of that gap carries a direction edge that is
 significant for six of the seven forecasts and strongest for the ridge

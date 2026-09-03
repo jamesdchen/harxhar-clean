@@ -4,7 +4,7 @@
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
 the two measurements, the position rules, and the
-control; constants were set before the book was scored.
+control; constants were set before the portfolio was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
 to expiry, cash-settled on the day's official close. The panel is the
@@ -67,7 +67,7 @@ percentile of $\widehat{y}$ within the same trailing window, and the
 fit window is restricted to regular-session bars. The weighting
 addresses a level effect --- an unweighted fit is dominated by the
 largest bars --- and was adopted on the forecast-accuracy referee
-(QLIKE improves for all seven models), not on any book outcome.
+(QLIKE improves for all seven models), not on any portfolio outcome.
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package
@@ -107,7 +107,7 @@ the same days; only $q_t$ changes.
 \begin{itemize}
 \itemsep2pt
 \item \emph{Short volatility}: $q_t = -1$ every day. The rule takes no
-      forecast --- it is the variance-risk-premium book with nothing in
+      forecast --- it is the variance-risk-premium portfolio with nothing in
       it, and the control for the other.
 \item \emph{$\mathrm{sign}(s)$}: $q_t = \mathrm{sign}(s_t)$, long
       the package when the forecast exceeds implied variance and short
@@ -115,7 +115,7 @@ the same days; only $q_t$ changes.
       rule.
 \end{itemize}
 % UNIT-MEDIAN PARKED 2026-09-02: the graduated unit-median VRP rule was
-% removed from the book. Sizing linear in the premium's magnitude failed
+% removed from the portfolio. Sizing linear in the premium's magnitude failed
 % the adoption gates --- the signal's day-scale information is its sign;
 % magnitude prices next-day risk, not return.
 \iffalse
@@ -131,14 +131,14 @@ days strictly before $t$ (at least 63 observations, shifted one
 day), so the size is known at 15:30. One lot on a day of typical
 $|\mathrm{VRP}|$; the clip caps the position at three lots.
 The cap is not cosmetic. The largest single-day losses in the levered
-book fall on days sized at or near it --- days on which the forecast
+portfolio fall on days sized at or near it --- days on which the forecast
 disagreed with the quote most --- rather than on small-signal days, so
 the clip is what bounds the left tail of the rule.
 \fi
 
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
-\paragraph{Sizing overlay.} A book that holds $|q_t| = 1$ every day
+\paragraph{Sizing overlay.} A portfolio that holds $|q_t| = 1$ every day
 inherits the market's volatility cycle. One overlay is scored on top
 of each rule, and it reads no forecast: let $\hat\sigma_t$ be the
 standard deviation of the rule's own daily return over the trailing
@@ -155,9 +155,9 @@ the expanding median of $\hat\sigma$ over its own past divided by its
 current value. Average leverage is near one by construction and there
 is no free target parameter; the cap at three never binds in sample.
 The first sessions before an estimate exists stay flat, and scaled and
-unscaled books are compared on the same remaining days. Because the
+unscaled portfolios are compared on the same remaining days. Because the
 overlay claims no forecast information, it is judged on risk
-stability --- the wander of the book's rolling volatility, its
+stability --- the wander of the portfolio's rolling volatility, its
 drawdown, its per-year volatility --- and not on the Sharpe ratio,
 which a pure rescaling should leave roughly unchanged.
 \fi
@@ -182,14 +182,14 @@ long-volatility days the rule holds the plain package of
 Equation~\eqref{eq:close_opt_settle}, whose loss is already capped at
 the premium paid, and wings there would cap the tail the position
 exists to own. Returns are quoted per dollar of body premium --- the
-same denominator as the unhedged book, so short and long days live in
+same denominator as the unhedged portfolio, so short and long days live in
 one unit and the cost of the constraint reads directly against the
-plain book. The bounded capital-at-risk view is kept as the second
+plain portfolio. The bounded capital-at-risk view is kept as the second
 frame for the fraction-of-wealth exercise below, not as a headline: its
 denominator is smallest exactly on rich-credit, high-volatility days.
 Because the constraint is a venue fact rather than a modeling choice,
 the questions asked of it are its price and the width and fraction to
-choose under it, not whether the wings improve the book.
+choose under it, not whether the wings improve the portfolio.
 \fi
 
 \paragraph{Compounding at a fraction of wealth.} The tables above
@@ -198,11 +198,11 @@ trader bets a fraction $f_t$ of current wealth instead, so wealth
 compounds as $W_T=\prod_t(1+f_t\,q_t R_t)$ and the natural objective
 is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
 any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
-day, so the unhedged short book, with a worst day near $-10$ premium
+day, so the unhedged short portfolio, with a worst day near $-10$ premium
 units, can only ever bet a small fraction of wealth no matter how
 good its mean. A defined-risk variant, which would bound the worst day
 by construction, is parked and not reported here. The
-fraction is estimated causally from the book's own past returns,
+fraction is estimated causally from the portfolio's own past returns,
 \begin{equation}
     \hat f_t \;=\;
     \min\!\left(
@@ -218,7 +218,7 @@ asserted positive.
 
 ``A fraction of wealth'' needs a unit before any growth number can be
 read, and two frames are used. In the \emph{per-premium} frame ---
-the frame for the plain book --- $f_t$ is the share of wealth
+the frame for the plain portfolio --- $f_t$ is the share of wealth
 deployed as body premium; a bought straddle's premium is also its
 capital at risk, while the uncapped short side's capital at risk is
 unbounded, which is exactly why the ruin bound above governs the
@@ -245,13 +245,13 @@ last trading day of each calendar month in the sample index. Both flags
 are known before 15:30, so the rule is ex ante implementable, and flat
 days count in $n$ with $R'=0$ --- a track-record convention rather than
 a sample exclusion. The two flags were selected after tail forensics on
-the unfiltered book, not before it;
+the unfiltered portfolio, not before it;
 Section~\ref{sec:close_option_results} states what that costs the
 inference.
 \fi
 
 \paragraph{Scoring and control.} The unit of account is the expiration
-day. For a book of $n$ daily returns,
+day. For a portfolio of $n$ daily returns,
 $t = \sqrt{n}\,\overline{R'}/\hat{s}(R')$, and the annualized Sharpe
 ratio is $\overline{R'}/\hat{s}(R')\times\sqrt{252}$; the two carry the
 same information at fixed $n$, and both are reported so the tables read
@@ -264,12 +264,12 @@ predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
 Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
-forecast on about 61\% of days, so the book leans short more often
+forecast on about 61\% of days, so the portfolio leans short more often
 than long. What the forecast contributes at this hour is the
 \emph{sign} of the day --- which side of the quoted premium to stand
 on. Sizing beyond the sign is tested rather than assumed:
 Section~\ref{sec:close_option_results} reports the magnitude
 experiments, none of which is retained; the only graduation of
 exposure kept is the causal fraction-of-wealth rule of
-Equation~\eqref{eq:close_opt_kelly}, which reads the book's own past
+Equation~\eqref{eq:close_opt_kelly}, which reads the portfolio's own past
 returns, not the signal.

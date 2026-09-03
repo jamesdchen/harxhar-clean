@@ -15,7 +15,7 @@ variance still to come before the close. The forecast can therefore be
 read against a quoted price as well as against a squared error. What
 follows fixes the instrument, the two measurements that have to be made
 commensurate, the decision rule, the execution convention, and the
-control; every constant it names was set before the book was scored.
+control; every constant it names was set before the portfolio was scored.
 
 \paragraph{Instrument and panel.} S\&P~500 index (SPX) options with zero
 days to expiry, cash settled at the 16:00~ET close, so a position carried
@@ -92,10 +92,10 @@ volatilities, and the rule acts only when it clears a fixed dead zone:
               \;+\; \mathbf{1}\{ s_t < -\theta \},
     \label{eq:opt_signal}
 \end{equation}
-so the book sells the contract and hedges it when the option is expensive
+so the portfolio sells the contract and hedges it when the option is expensive
 relative to the forecast by more than $\theta$, buys and hedges when it
 is cheap by more than $\theta$, and stands flat in between. The dead zone
-is the fixed constant $\theta = 0.10$, set before the book was scored;
+is the fixed constant $\theta = 0.10$, set before the portfolio was scored;
 no value is selected on realized profit and loss.
 
 \paragraph{Delta hedge and settlement.} Each entered contract is hedged
@@ -123,11 +123,11 @@ independent draws, so the unit of account is the day: one
 profit-and-loss number per expiration day, the mean over that day's
 traded contracts. The annualized Sharpe ratio is the mean of those daily
 numbers over their standard deviation, scaled by $\sqrt{252}$; the hit
-rate is the fraction of positive days. The book is reported for the whole
+rate is the fraction of positive days. The portfolio is reported for the whole
 sample and for the daily-0DTE era beginning 16~May~2022, from which every
 weekday carries an expiration. One control runs on the identical contract
 set: always short, the same contracts under the same hedge and settlement
 conventions --- the variance risk premium with no forecast in it, which
-is what any conditional book must be measured against. The rule is then
+is what any conditional portfolio must be measured against. The rule is then
 run twice, once with each of the paper's two forecasts entering
 Equation~\eqref{eq:opt_ttc}.

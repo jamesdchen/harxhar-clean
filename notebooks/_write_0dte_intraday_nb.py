@@ -28,7 +28,7 @@ nb.cells = [
         r"""
 # 0DTE nearest-OTM straddle, every 30-min bar
 
-This notebook is **not** the paper 15:30→close book
+This notebook is **not** the paper 15:30→close trade
 (`atm_straddle_rv_iv.ipynb`). It is one explicit choice of two
 intraday extensions, spelled out before any table.
 
@@ -45,7 +45,7 @@ intraday extensions, spelled out before any table.
 - Re-pick + next-bar $\widehat{RV}_t$: $R_t =$ next mid of the straddle
   picked at $t$, divided by entry, minus 1 — a 30-min hold — for bars
   through 15:00. The **15:30** straddle cash-settles at the official
-  close (the paper payoff): by decision, **no return in this book uses
+  close (the paper payoff): by decision, **no return in this trade uses
   a 16:00 quote**. The 16:00 mids are zero-bid artifacts (median entry
   $\sim\$0.25$, ask-only quotes), so the 16:00 straddle is not built
   and the 15:30 exit is settlement, not the 16:00 mid.
@@ -71,9 +71,9 @@ Re-audited after the bar-end alignment fix (the fresh
 stamp-$t{+}30$ join): 25/25 whole-day and 3/3 single-row
 perturbations of the joined row's realized variance leave every
 same-day position bit-identical; the join-shift curve places the
-book on a smooth staleness decay (stale 2.33 $\to$ 2.71 $\to$ fresh
+portfolio on a smooth staleness decay (stale 2.33 $\to$ 2.71 $\to$ fresh
 2.89) while one bar of *actual* lookahead jumps to Sharpe 5–7 — an
-order of magnitude above the fresh book; and upstream, `baseline` is
+order of magnitude above the fresh portfolio; and upstream, `baseline` is
 a strictly-prior-days per-clock estimator (code-traced, numerically
 identical to an independent rebuild) and every forecast feature
 carries the universal one-bar shift.
@@ -95,7 +95,7 @@ $\mathrm{IV}^{2}/2$ at 10:00 is the 30-min pairing, **not**
 remaining-session VRP.
 
 Hourly IV of the two legs is $(\mathrm{IV}_c+\mathrm{IV}_p)/2$ — equal-weight
-on the two contracts, same as the close book.
+on the two contracts, same as the close trade.
 
 ## Choice 3 — 9:30
 
@@ -103,7 +103,7 @@ The cash session opens at 9:30. This tape has the 9:30 bar and **no**
 vendor `underlying_price` (0% finite). `^GSPC` Open **is** the 9:30
 cash print and can be $S_{9:30}$. Live mids at 9:30 exist on only
 ~40% of days, so a GSPC-Open ATM straddle is a **sparse** extra bar,
-not a full panel. Default scored book starts at 10:00 (vendor $S$
+not a full panel. Default scored trade starts at 10:00 (vendor $S$
 live). A diagnostic below tries Open anyway.
 """
     ),
@@ -151,7 +151,7 @@ _ck = CACHE / f"chain_0dte_{_st.st_size}_{_st.st_mtime_ns}_{CHAIN_CODE_HASH}.par
 _book_ck = CACHE / f"book_{_st.st_size}_{_st.st_mtime_ns}_{BOOK_CODE_HASH}.parquet"
 if _book_ck.exists():
     chain = None
-    print("chain load skipped: book cache hit (code-hashed key)")
+    print("chain load skipped: trade cache hit (code-hashed key)")
 elif _ck.exists():
     chain = pd.read_parquet(_ck)
     print("cache hit", _ck.name)
@@ -186,7 +186,7 @@ if chain is not None:
         """
 # [cache:rth]
 if chain is None:
-    print("skipped (cached book already reflects the RTH / half-session filter)")
+    print("skipped (cached trade already reflects the RTH / half-session filter)")
 else:
     et = pd.to_datetime(chain["et"])
     mins = et.dt.hour * 60 + et.dt.minute
@@ -205,7 +205,7 @@ else:
     ),
     md(
         r"""
-## 2b. The scored book starts at 10:00, not 9:30
+## 2b. The scored trade starts at 10:00, not 9:30
 
 Vendor `underlying_price` at 9:30 is **all NaN** — the picker has no
 $S$ to choose $K_c\ge S$, $K_p\le S$, so no 9:30 straddle can be
@@ -255,7 +255,7 @@ print("settlement source: GSPC official close via load_gspc_ohlc (cached)")
 if _book_ck.exists():
     pkg = pd.read_parquet(_book_ck)
     live = None
-    print("book cache hit", _book_ck.name, "straddles", len(pkg), "days", pkg["expiration"].nunique())
+    print("trade cache hit", _book_ck.name, "straddles", len(pkg), "days", pkg["expiration"].nunique())
     print(pkg[["expiration", "timestamp", "S", "K_c", "K_p", "entry"]].head())
 else:
     live = chain[np.isfinite(chain["mid"]) & (chain["mid"] > 0)]
@@ -311,7 +311,7 @@ payoff on the 15:30 straddle.
         """
 # [cache:exit]
 if "R" in pkg.columns and _book_ck.exists():
-    print("book cache: skip exit rebuild")
+    print("trade cache: skip exit rebuild")
     n_pkg = len(pkg)
 else:
     et_pick = pd.to_datetime(pkg["timestamp"], utc=True).dt.tz_convert("America/New_York")
@@ -372,7 +372,7 @@ if not _book_ck.exists():
     for _old in CACHE.glob("book_*.parquet"):
         _old.unlink()
     pkg.to_parquet(_book_ck)
-    print("wrote book cache", _book_ck.name)
+    print("wrote trade cache", _book_ck.name)
 print("bars with a return", len(pkg), "last-bar fraction", float(pkg["is_last"].mean()))
 print("always-short R by clock time (no model; long R is the negative)")
 as_raw = pkg.groupby("hhmm")["R_as"].agg(["count", "mean", "std", "median"])
@@ -442,9 +442,9 @@ print("remaining-session pairing would need hours_left * (IV_hr)^2 and remaining
     ),
     md(
         r"""
-## 5. Forecasts and the smear (same map as the close book)
+## 5. Forecasts and the smear (same map as the close trade)
 
-Close book and this notebook share `second_order_raw` /
+The close trade and this notebook share `second_order_raw` /
 `load_yhat_panel`:
 
 1. Forecasts live on $y=\sqrt{RV/B}$. Actual $y$ on each bar:
@@ -463,7 +463,7 @@ Close book and this notebook share `second_order_raw` /
    $t$ on day $d$:
    $\widehat{RV}_t=(m_t^{2}+\hat\sigma^{2}_d)B_t$.
 
-The close book runs this on the full panel, then **keeps the 15:30
+The close-trade notebook runs this on the full panel, then **keeps the 15:30
 row**. This notebook keeps every row. Coefficients $(a_d,b_d,\hat\sigma^{2}_d)$
 are the same object. What changes is which $t$ you score, not how the
 smear is fit.
@@ -557,7 +557,7 @@ $$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t.$$
 At 15:30, $w=1$, $h=\tfrac12$: the matched implied collapses to the
 paper's $\mathrm{IV}^2/2$ exactly (checked in-cell). Warmup rows
 (first 63 days) carry no matched signal and sit flat in the matched
-books.
+portfolios.
 """
     ),
     code(
@@ -597,7 +597,7 @@ print(mvalid.groupby("hhmm")["s_matched"].apply(lambda x: 100.0 * float((x > 0).
 
 # Remaining-session pairing (option 1), kept for reference. Same sign as
 # s_matched when the forecast follows the profile (s_rem = s_matched / w),
-# so the LS book is identical and only the UM sizing scale changes:
+# so the sign(s) portfolio is identical and only the UM sizing scale changes:
 # rvhat_rem = work["rv_hat"] / work["w_slice"]
 # iv_rem = work["iv_var_raw"] * work["h_rem"]
 # work["s_rem"] = rvhat_rem - iv_rem
@@ -699,7 +699,7 @@ bars (that treats each 30-min row as a full trading day). Not that
 quantity times $\sqrt{13}$ (the $\sim 13$ bars on one day are not
 13 independent days). Daily collapse is the conversion that
 respects same-day dependence. $\sqrt{252}$ is then the same
-year-length as the 15:30 paper book.
+year-length as the 15:30 paper trade.
 
 **Columns.** `mean` through `ex_kurt` are `Series.describe`-style
 moments of the **30-min** $R'$ (unannualized). The rest:
@@ -727,7 +727,7 @@ moments of the **30-min** $R'$ (unannualized). The rest:
 - `n_buy` / `pct_buy` — bars with $q_t>0$ (buy the straddle).
   Always-short is 0 by construction.
 
-The 16:00 straddle never enters the book (§4): bars are 10:00–15:00
+The 16:00 straddle never enters the trade (§4): bars are 10:00–15:00
 next-mid holds plus the 15:30 settlement leg — the paper payoff.
 Split by clock is the next section.
 """
@@ -793,17 +793,17 @@ tab.to_csv(OUT / "rule_table_intraday_blk2.csv")
 $\mathrm{Sharpe}_{ann}=\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$.
 $\sqrt{252}$ is the year-length for a **daily** series: 252 trading
 days, one return per day. It is the same conversion the paper uses
-on the 15:30 book. It is *not* a free "make it annual" button; it
+on the 15:30 trade. It is *not* a free "make it annual" button; it
 is only right when each row is one day's return.
 
 **Table by clock time / the plot (use these Sharpes).**
 Keep one clock time, throw the rest away. Example: only 11:30. The
-scored book has one 11:30 bar per expiration day, so the series
+scored trade has one 11:30 bar per expiration day, so the series
 is $\sim 866$ numbers — one per day, same shape as the paper's
-15:30 book. Question answered: *"if I only ever entered at
+15:30 trade. Question answered: *"if I only ever entered at
 11:30, what is my annual Sharpe?"* $\sqrt{252}$ is the right
 conversion because you have one return per day. Same question
-at 10:00, 14:30, \ldots; each clock time is its own daily book.
+at 10:00, 14:30, \ldots; each clock time is its own daily portfolio.
 The $n$ in that row is the number of expiration days with that
 clock time, not a count of 30-min bars.
 
@@ -812,7 +812,7 @@ dot is the average of *that clock time's* daily series, for
 always-short and unit-median VRP (the §6 constructions: matched
 signal, one leverage median per clock). Bars 10:00–15:00 are
 next-mid 30-min holds; the **15:30 bar cash-settles at the official
-close**, so its row is the paper's book (up to the leverage scale).
+close**, so its row is the paper's trade (up to the leverage scale).
 """
     ),
     code(

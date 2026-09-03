@@ -1,4 +1,4 @@
-"""Re-score the intraday book by 30-min stamp (not clock hour)."""
+"""Re-score the intraday trade by 30-min stamp (not clock hour)."""
 
 from __future__ import annotations
 

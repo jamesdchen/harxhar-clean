@@ -47,10 +47,10 @@ $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
 $\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
 the realized scale by a recalibration estimated from past data only
 (§7). Two position rules are scored on the same 871 days. The headline
-is the **$\mathrm{sign}(s)$** book, which sells the package when the market's
+is the **$\mathrm{sign}(s)$** portfolio, which sells the package when the market's
 quoted variance exceeds the forecast and buys it otherwise: on the
 block-diagonal ridge forecast it earns an annualized Sharpe ratio of
-1.63 ($t = 3.03$). The **always-short** book, which uses no forecast, is
+1.63 ($t = 3.03$). The **always-short** portfolio, which uses no forecast, is
 the control, at a Sharpe ratio of 0.28.
 
 The notebook runs as follows. Sections 1–6 build the instrument and its
@@ -59,15 +59,15 @@ the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the two rules across the seven forecasts;
 §11 regresses the settlement return on the 15:30 signal; §12 adds up
 the profit and loss; §13 reports information ratios against the
-always-short book; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
-defined-risk variant (wings on the days the book sells) is parked and
+always-short portfolio; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
+defined-risk variant (wings on the days the portfolio sells) is parked and
 explored in the experimental notebook.
 
 Volatility-scale views of the forecasts ($\hat y\sqrt{B}$, $m\sqrt{B}$)
 are in `atm_straddle_volmap.ipynb` where present and otherwise in
 `atm_straddle_experimental.ipynb`; ensembles and alternative weightings
 are in `atm_straddle_experimental.ipynb`; the every-half-hour version of
-this book is in `atm_straddle_intraday.ipynb`.
+this trade is in `atm_straddle_intraday.ipynb`.
 
 Every cell reads from `data/` or from a table built by the cell before
 it, and prints each table before using it.
@@ -112,7 +112,7 @@ pd.set_option("display.float_format", lambda x: f"{x: .6f}")
 ## 1. Load the option chain (15:30 and 16:00 ET only)
 
 The source file, `data/spxw_chain.parquet`, holds a quote for every
-30-minute time stamp. This book needs only the 15:30 quotes, which are
+30-minute time stamp. This trade needs only the 15:30 quotes, which are
 the entry prices; the 16:00 rows are kept solely to compare the tape's
 underlying price against the official close. The load therefore reads
 the time stamps first, keeps those two Eastern times of day, and only
@@ -386,7 +386,7 @@ print("n", len(atm))
 **Which half-hour bar.** The forecast table labels every bar by the
 time it *ends*: the row labelled 16:00 holds the realized variance of
 the 15:30–16:00 bar and the forecast of that bar, issued at 15:30. The
-15:30 book must therefore read the **row labelled 16:00** — the
+15:30 trade must therefore read the **row labelled 16:00** — the
 forecast for the very bar it trades, made with nothing observed after
 15:30. The row labelled 15:30 is the forecast of the 15:00–15:30 bar:
 also free of look-ahead, but one bar stale. (An earlier version of this
@@ -594,12 +594,12 @@ print("hand-check baseline (HAR + calendar OLS) (R_p = R if pos==1, else -R):")
 print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var", "signal", "pos", "R_p"]].head(8))
 """
     ),
-    # Unit-median VRP, long-books, book-variants, lesson, return-summary omitted.
+    # Unit-median VRP, long-only variants, portfolio variants, lesson, return-summary omitted.
     md(
         r"""
 ## 10. Rule table, grouped by strategy
 
-Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the seven forecasting models as rows**, scored on the days common to all seven books. Fills are at the midpoint quote. The always-short rule uses no forecast, so its seven rows are identical and it is shown as a single row.
+Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the seven forecasting models as rows**, scored on the days common to all seven portfolios. Fills are at the midpoint quote. The always-short rule uses no forecast, so its seven rows are identical and it is shown as a single row.
 
 **The rules** (each returns $R'_t = q_t R_t$):
 
@@ -614,7 +614,7 @@ Excess kurtosis (the `ex_kurt` column) follows Fisher's definition: the fourth s
 
 The annualized Sharpe ratio (the `Sharpe_ann` column) is $\mathrm{mean}/\mathrm{std}\times\sqrt{252}$ on the daily $R'$; every other moment column is daily and unannualized. At fixed $n$ the $t$-statistic and the Sharpe ratio carry the same information ($t=\mathrm{Sharpe}\times\sqrt{n/252}$); both are shown so the table can be read either way.
 
-Only the scoring is restricted to the common days; each book itself is built on all of its own days.
+Only the scoring is restricted to the common days; each portfolio itself is built on all of its own days.
 """
     ),
     code(
@@ -730,18 +730,18 @@ decision enters the signal. Per forecast, plain least squares
 
 $$R_t = a + b\,s_t + \varepsilon_t$$
 
-with Newey–West standard errors (six lags); the table reports $b$, its
-$t$ and $R^2$ for the seven forecasts. The figure shows the
+the table reports $b$, its
+$t$-statistic and $R^2$ for the seven forecasts. The figure shows the
 block-diagonal ridge fit and, beside it, the mean of $R_t$ on each side
-of the signal against the always-short book — means only; the Newey–West
-standard errors of the table are the ones to read them against. It is a
+of the signal against the always-short portfolio — means only;
+read them against the $t$-statistics in the table. It is a
 reading the paper takes up.
 """
     ),
     code(
         r"""
-def hac_fit(y, x):
-    # least squares with Newey-West (six-lag) standard errors
+def ls_fit(y, x):
+    # least squares fit for the table
     return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
 
 
@@ -752,7 +752,7 @@ for tag in MODEL_ORDER:
     s = px["signal"].astype(float)
     r = px["R"].astype(float)
     ok = np.isfinite(s) & np.isfinite(r)
-    fit = hac_fit(r[ok].to_numpy(), s[ok].to_numpy())
+    fit = ls_fit(r[ok].to_numpy(), s[ok].to_numpy())
     reg_rows.append({"model": LABEL[tag], "x": "raw s (same day)",
                      "a": float(fit.params[0]), "b": float(fit.params[1]),
                      "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
@@ -761,7 +761,7 @@ for tag in MODEL_ORDER:
         fig_inputs = (s[ok], r[ok], fit)
 
 reg_tab = pd.DataFrame(reg_rows)
-print("least squares of R_t on the 15:30 signal s_t, Newey-West standard errors (six lags):")
+print("least squares of R_t on the 15:30 signal s_t:")
 print(reg_tab.to_string(index=False))
 reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
 
@@ -777,7 +777,7 @@ axes[0].set_ylabel(r"$R_t$ (settled at 16:00)")
 axes[0].set_title("settlement return against the 15:30 signal", fontsize=10)
 axes[0].legend(fontsize=8, loc="upper right")
 
-bench_mean = float((-r).mean())   # the always-short book, the deck's benchmark
+bench_mean = float((-r).mean())   # the always-short portfolio, the deck's benchmark
 stats = [("always short\n(all days)", bench_mean, int(len(r)), "0.6")]
 for lab, mask, c in (("forecast below implied\n(sell side)", s <= 0, "C3"),
                      ("forecast above implied\n(buy side)", s > 0, "C0")):
@@ -856,14 +856,14 @@ plt.close(fig)
     # slope.
     #
     # The figure: left, the mean $R_t$ on each side of the signal against the
-    # always-short book (grey bar and dashed line); right, the same mean by
+    # always-short portfolio (grey bar and dashed line); right, the same mean by
     # decile of the signal's rank — a step at the sign, no trend within
     # either half.
     # """
     # ),
     # code(
     # r"""
-    # def hac_fit(y, x):
+    # def ls_fit(y, x):
     # # least squares with Newey-West (six-lag) standard errors
     # return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
     #
@@ -895,11 +895,11 @@ plt.close(fig)
     # "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
     # "n_top": int(hi.sum()), "n_bottom": int(lo.sum())}
     # # regression on the percentile rank
-    # fit = hac_fit(rv_, rkv)
+    # fit = ls_fit(rv_, rkv)
     # out["rank"] = {"model": label, "b_rank": float(fit.params[1]),
     # "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)}
     # # plain least squares on the raw signal
-    # fit = hac_fit(yr, xr)
+    # fit = ls_fit(yr, xr)
     # out["raw"] = {"model": label,
     # "a": float(fit.params[0]), "b": float(fit.params[1]),
     # "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
@@ -956,7 +956,7 @@ plt.close(fig)
     # f = sm.OLS(np.asarray(y, float), np.ones((len(y), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
     # return float(f.params[0]), float(f.bse[0])
     #
-    # bench_mean, bench_se = mean_se(-r[okr])   # the always-short book, the deck's benchmark
+    # bench_mean, bench_se = mean_se(-r[okr])   # the always-short portfolio, the deck's benchmark
     # fig, axes = plt.subplots(1, 2, figsize=(12, 4.6), gridspec_kw={"width_ratios": [1, 1.7]})
     #
     # # (a) mean settled return by what the 15:30 signal said, against the always-short benchmark
@@ -1018,14 +1018,14 @@ payout $X$, contract multiplier $M=100$.
 
 $$
 \begin{aligned}
-\text{mid premium return}\quad & R' = q\,\Bigl(\frac{X}{P}-1\Bigr) \[2pt]
+\text{mid premium return}\quad & R' = q\,\Bigl(\frac{X}{P}-1\Bigr) \\[2pt]
 \text{crossed spread}\quad & R'_{\times} =
-  \begin{cases} X/P_a-1, & q>0 \ 1-X/P_b, & q<0 \end{cases} \[2pt]
-\text{half-spread cost}\quad & R'_{h} = \frac{q\,\bigl(X-(P+q\,h)\bigr)}{P} = R'-\frac{h}{P} \[2pt]
-\text{index points}\quad & \Pi = q\,(X-P) \[2pt]
-\text{dollars}\quad & \Pi_{\$} = M\,\Pi \[2pt]
+  \begin{cases} X/P_a-1, & q>0 \\ 1-X/P_b, & q<0 \end{cases} \\[2pt]
+\text{half-spread cost}\quad & R'_{h} = \frac{q\,\bigl(X-(P+q\,h)\bigr)}{P} = R'-\frac{h}{P} \\[2pt]
+\text{index points}\quad & \Pi = q\,(X-P) \\[2pt]
+\text{dollars}\quad & \Pi_{\$} = M\,\Pi \\[2pt]
 \text{margin-scaled}\quad & R'_{m} = \frac{\Pi_{\$}}{C},\qquad
-  C=\begin{cases} M\,m, & q<0 \ M\,P, & q>0 \end{cases}
+  C=\begin{cases} M\,m, & q<0 \\ M\,P, & q>0 \end{cases}
 \end{aligned}
 $$
 
@@ -1036,7 +1036,7 @@ m=\max\bigl(0.15\,S-\mathrm{OTM}+P,\;0.10\,S+P,\;0\bigr),\qquad
 \mathrm{OTM}=\min\bigl(|S-K_c|,\,|S-K_p|\bigr).
 $$
 
-The published book is the first line, filled at the midpoint. The plot
+The published series is the first line, filled at the midpoint. The plot
 is $\sum_t \Pi_{\$,t}$ for the midpoint and crossed-spread fills.
 """
     ),
@@ -1110,9 +1110,9 @@ plt.close(fig)
         r"""
 ## 13. Information ratio against always-short
 
-The benchmark is the always-short book, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The portfolio is the $\mathrm{sign}(s)$ book, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
+The benchmark is the always-short portfolio, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The active portfolio is the $\mathrm{sign}(s)$ portfolio, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
 
-The **active return** is the daily difference $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short days $q_t=-1$ and the two books coincide, so $R^a_t=0$. On buy days the position has flipped from short to long, so $R^a_t=q_tR_t-(-R_t)=(q_t+1)R_t$, which equals $2R_t$ for a $\pm1$ position. The series is those daily differences on the 871 common days.
+The **active return** is the daily difference $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short days $q_t=-1$ and the two portfolios coincide, so $R^a_t=0$. On buy days the position has flipped from short to long, so $R^a_t=q_tR_t-(-R_t)=(q_t+1)R_t$, which equals $2R_t$ for a $\pm1$ position. The series is those daily differences on the 871 common days.
 
 The table's columns are:
 
@@ -1148,14 +1148,14 @@ print("IR = active return / tracking error; benchmark is always-short.")
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
     # md(
     # r"""
-    # ## 15. Sizing by trailing book volatility
+    # ## 15. Sizing by trailing portfolio volatility
     #
-    # The two rules above hold $|q_t|=1$ every day, so the book inherits the
+    # The two rules above hold $|q_t|=1$ every day, so the portfolio inherits the
     # market's volatility cycle: its own risk swings roughly $2.4\times$
     # between calm and stormy quarters. The lagged-signal slides show the
     # signal's information at day scale is its **sign** — so we do not try to
     # size by conviction. Instead we standardize **risk**: scale the whole
-    # position by how volatile the book itself has recently been.
+    # position by how volatile the portfolio itself has recently been.
     #
     # Construction (causal throughout): let $\hat\sigma_t$ be the standard
     # deviation of the rule's own daily return $R'$ over the trailing 63
@@ -1169,11 +1169,11 @@ print("IR = active return / tracking error; benchmark is always-short.")
     # no free target parameter; 63 sessions is the standing quarter window and
     # 3 the standing leverage cap (it never binds — realized $\ell$ stays in
     # $[0.6,\,1.6]$). The first 63+1 sessions have no estimate and sit flat;
-    # raw and scaled books are compared on the same remaining days.
+    # raw and scaled portfolios are compared on the same remaining days.
     #
     # This overlay claims **no forecast information** — it reads only the
-    # book's own past returns. The scoreboard is therefore risk stability
-    # (the variability of the book's rolling volatility, its drawdown, its
+    # portfolio's own past returns. The scoreboard is therefore risk stability
+    # (the variability of the portfolio's rolling volatility, its drawdown, its
     # per-year volatility), **not** Sharpe: a pure rescaling should leave
     # Sharpe roughly unchanged, and does. One honest limitation is structural:
     # a trailing estimator cannot see the first day of a regime change, so
@@ -1252,7 +1252,7 @@ print("IR = active return / tracking error; benchmark is always-short.")
     # print("scale-factor diagnostics (raw |q| is 1 every day by construction)")
     # print(vt_lev.rename(index=LABEL, level="model").to_string())
     # print("---")
-    # print("per-year book volatility, block-diag ridge sign(s)")
+    # print("per-year portfolio volatility, block-diag ridge sign(s)")
     # print(vt_year.loc[("sign(s)", "blk2")].to_string())
     #
     # vt_tab.to_csv(OUT / "voltarget_scoreboard.csv")
@@ -1394,13 +1394,13 @@ plt.close(fig)
     # compounding actually maximizes. One structural fact frames the
     # exercise: **ruin is one bad day.** Any fraction
     # $f\ge 1/|\min_t R'_t|$ takes wealth to zero or below on the worst
-    # day, so the short book without wings, whose worst day is near $-10$
+    # day, so the short portfolio without wings, whose worst day is near $-10$
     # premium units, can only ever bet a small fraction of wealth no matter
     # how good its average return is. (A defined-risk variant — parked; explored in the experimental
     # notebook — bounds the worst day by construction, which is exactly
     # what loosens this constraint.)
     #
-    # The fraction is estimated from the book's own past returns only:
+    # The fraction is estimated from the portfolio's own past returns only:
     #
     # $$\hat f_t=\min\!\Bigl(\tfrac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},\,
     # \tfrac{1}{|\min_{u\le t-1}R'_u|}\Bigr)_{\!+}$$
@@ -1417,7 +1417,7 @@ plt.close(fig)
     # the frame used throughout this section — $f_t$ is the share of wealth
     # deployed as body premium. For a bought straddle the premium is also
     # the capital at risk, so on long days the two coincide; for the short
-    # book without wings the capital at risk is unbounded, which is exactly
+    # portfolio without wings the capital at risk is unbounded, which is exactly
     # why the ruin bound above, and not a collateral bound, governs the
     # admissible fraction. A true **capital-at-risk frame** — $f_t$ as the
     # share of wealth posted as collateral against the maximum loss, with
@@ -1598,10 +1598,10 @@ plt.close(fig)
     # SECTION PARKED 2026-09-03 (user order): iron flies do not pay — cost at every width, fraction of wealth unchanged; see the experimental notebook's lab.
     # md(
     # r"""
-    # ## 16. Iron flies — defined risk on the days the book sells
+    # ## 16. Iron flies — defined risk on the days the portfolio sells
     #
     # Everything above holds the plain package of §4. On a selling day the
-    # book is short a call and a put with nothing behind them, and its loss
+    # portfolio is short a call and a put with nothing behind them, and its loss
     # is unbounded. A retail account trading the cash-settled index options
     # (SPX or XSP) under defined-risk margin cannot hold that position: on a
     # selling day it must buy a wing on each side — the nearest strike with
@@ -1612,7 +1612,7 @@ plt.close(fig)
     # long position exists to own. This section treats the wings as what
     # they are for such an account: a **constraint, not a choice**. The
     # experimental notebook's lab found that, per dollar of premium, wings
-    # cost the book Sharpe at every width it tried, and that the "free
+    # cost the portfolio Sharpe at every width it tried, and that the "free
     # insurance" visible in index points came from one quarter in 2020. The
     # questions the constraint leaves open are which width to use and how
     # much of wealth to bet, given that a fly is required. Four widths are
@@ -1630,7 +1630,7 @@ plt.close(fig)
     # $$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
     #
     # the same denominator as the plain rows of §10, so the cost of the
-    # wings reads directly against the plain book on the same days, and the
+    # wings reads directly against the plain portfolio on the same days, and the
     # buy days' plain return is already in this unit. The capital-at-risk
     # frame, $R'' = (C - \text{payout})/(\text{gap} - C)$, is the fully
     # collateralized view a margin account actually posts against; it is
@@ -1638,18 +1638,18 @@ plt.close(fig)
     # the richest credit — the high-volatility days — so it overweights
     # exactly those days and reads cheap tail insurance as a losing trade,
     # an artifact of the unit. The fraction-of-wealth estimator of §14 is
-    # applied unchanged in both frames; the plain book is compared only in
+    # applied unchanged in both frames; the plain portfolio is compared only in
     # the per-premium frame, the unit the two share.
     #
     # **What the constraint costs, and what it leaves.** Per dollar of body
-    # premium the fly costs the $\mathrm{sign}(s)$ book at every width, and the cost
+    # premium the fly costs the $\mathrm{sign}(s)$ portfolio at every width, and the cost
     # falls as the wings move out: an annualized Sharpe ratio of about 1.36
     # at 20 points, 1.42 at 25, 1.47 at 30 and 1.54 at 50, against about
     # 1.62 for the plain package on the same 870 days. The wings are touched
     # on about 7% of fly days at 20 points and 1% at 50. Only the narrowest
-    # fly changes the $\mathrm{sign}(s)$ book's worst day in this unit (about $-4.7$
+    # fly changes the $\mathrm{sign}(s)$ portfolio's worst day in this unit (about $-4.7$
     # against $-5.4$); from 25 points out the worst day is where it was,
-    # because the book's worst days are moderate moves on days when the
+    # because the portfolio's worst days are moderate moves on days when the
     # premium was small, which a wing 25 points away never reaches. The fly
     # does cut the drawdown in this unit at every width (about $-14$ to
     # $-16$ against $-18.6$). In index points the wings roughly pay for
@@ -1659,7 +1659,7 @@ plt.close(fig)
     # traced that payoff to one quarter in 2020. The always-short control
     # does not survive the constraint at any width: its thin edge (Sharpe
     # about 0.27) becomes roughly zero or negative once wings are bought
-    # every day. Under defined-risk margin the book that remains is the
+    # every day. Under defined-risk margin the portfolio that remains is the
     # $\mathrm{sign}(s)$ rule.
     #
     # **How much of wealth to bet.** In the per-premium frame the estimator
@@ -1682,10 +1682,10 @@ plt.close(fig)
     # premium; the 20-point fly is the only one that also bounds the
     # per-premium tail, and it costs about 0.26 of Sharpe and two-thirds of
     # the compounded growth. Nothing here lets the account bet more of its
-    # wealth than the plain book would.
+    # wealth than the plain portfolio would.
     #
     # The figure at the end of the cell shows, for the block-diagonal ridge
-    # forecast, the cumulative per-premium return of the $\mathrm{sign}(s)$ book
+    # forecast, the cumulative per-premium return of the $\mathrm{sign}(s)$ portfolio
     # with the plain package and with flies at each width, and the
     # compounded wealth under the causal fraction with and without wings.
     # """
@@ -1806,7 +1806,7 @@ plt.close(fig)
     # print("saved ironfly_w<w>_rule_by_strategy_<model>.csv and ironfly_summary.csv in", OUT)
     # print("---")
     #
-    # print("=== fraction of wealth (estimator of section 14) on the fly book; frame named first ===")
+    # print("=== fraction of wealth (estimator of section 14) on the fly portfolio; frame named first ===")
     # kv_rows = {}
     # for w, fl in flies.items():
     # for tag in MODEL_ORDER:
@@ -1828,7 +1828,7 @@ plt.close(fig)
     # row.index = ["_".join(k) for k in row.index]
     # row["mean_f"] = float(fk.mean())
     # if frame == "per premium":
-    # # the plain book is compared ONLY in the shared premium unit
+    # # the plain portfolio is compared ONLY in the shared premium unit
     # ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
     # fku = causal_kelly(ru).to_numpy()
     # unc = wealth_row(fku, ru.to_numpy())
@@ -1844,7 +1844,7 @@ plt.close(fig)
     # kv.xs(tag, level="model").to_csv(OUT / f"ironfly_kelly_{safe}.csv")
     # show = ["mean_f", "causal_g_ann", "causal_terminal", "causal_worst_day_factor", "half_terminal",
     # "plain_mean_f", "plain_g_ann", "plain_terminal", "plain_worst_day_factor"]
-    # print("block-diagonal ridge (plain-book columns appear only in the per-premium frame, the shared unit):")
+    # print("block-diagonal ridge (plain-portfolio columns appear only in the per-premium frame, the shared unit):")
     # print(kv.xs("blk2", level="model")[show].to_string(float_format=lambda x: f"{x:+.3f}", na_rep=""))
     # print("saved ironfly_kelly_<model>.csv in", OUT)
     #

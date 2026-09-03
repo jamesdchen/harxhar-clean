@@ -32,7 +32,7 @@ Same instrument, clocks, smear, and signal as
 
 1. ensembles of the seven models and of the three paper rules
    (including a causal PCR / spectral ensemble), plus extended causal
-   PCA/PCR books (§5b), supervised PLS/PCovR projections (§5c), and
+   PCA/PCR portfolios (§5b), supervised PLS/PCovR projections (§5c), and
    PCA structure diagnostics (§5d)
 2. vol-space maps $\hat y\sqrt{B}$, $m\sqrt{B}$ (stand-in if
    `atm_straddle_volmap.ipynb` is not in the tree)
@@ -43,7 +43,7 @@ Same instrument, clocks, smear, and signal as
    sensitivity
 5. paired significance (NW + block bootstrap) on the headline deltas
    (§13)
-6. the defined-risk book, parked in the RV–IV deck (§14): why wings on selling days do
+6. the defined-risk portfolio, parked in the RV–IV deck (§14): why wings on selling days do
    not pay per dollar of premium — wing-cost decomposition,
    quoted-spread fills, one-sided wings, a width ladder, and when the
    cap pays
@@ -203,7 +203,7 @@ three paper rules on blk2.
 **Spectral / PCR.** Let $X_t\in\mathbb{R}^7$ be the vector of model
 signals $s=\widehat{RV}-\mathrm{IV}_{30}^{2}$ on day $t$. On days
 $u<t$ (min 63) center $X$, take the SVD, and read day $t$ onto the
-leading $k$ right singular vectors. Two books:
+leading $k$ right singular vectors. Two portfolios:
 
 - *spectral PC1:* $s^{\mathrm{pc1}}_t$ is the PC1 score; sign is
   flipped so PC1 co-moves with the cross-sectional mean $s$. Position
@@ -350,7 +350,7 @@ print("saved ensemble_*.csv")
     ),
     md(
         r"""
-## 5b. Causal PCA/PCR books — where the ensemble information lives
+## 5b. Causal PCA/PCR portfolios — where the ensemble information lives
 
 Extensions of the §5 spectral machinery, same protocol throughout: day
 $t$ uses the SVD of the centered signal matrix on days $u<t$ only
@@ -363,7 +363,7 @@ information lives.
   $k=1,\dots,7$, apply the coefficients to day $t$, trade
   $\mathrm{sign}(\hat R_t)$. Fitted values are invariant to component
   sign flips, so the sweep needs no convention beyond PC1's.
-- *PC2 / PC3 sign books:* $q_t=\mathrm{sign}(\hat\beta_{j,t})\,
+- *PC2 / PC3 sign portfolios:* $q_t=\mathrm{sign}(\hat\beta_{j,t})\,
   \mathrm{sign}(z_{j,t})$, where $\hat\beta_{j,t}$ is the OLS slope of
   $R_u$ on the past PC$_j$ scores — the sign convention is itself
   estimated only from $u<t$.
@@ -373,7 +373,7 @@ information lives.
   unit-median positions $q$ instead of raw $s$; trade the sign of the
   score.
 
-Benchmarks repeat from §5. The first four rows reproduce the §5 books
+Benchmarks repeat from §5. The first four rows reproduce the §5 portfolios
 exactly; the in-cell check prints the max $|R'|$ discrepancy against
 `ens`.
 """
@@ -458,7 +458,7 @@ chk = max(
     for k_ in ("spectral PC1 sign", "spectral PC1 unit-median",
                "PCR k=1 sign", "PCR k=2 sign")
 )
-print("max |R' diff| vs the §5 books:", chk)
+print("max |R' diff| vs the §5 portfolios:", chk)
 pca_tab = pd.DataFrame({k: asl.rule_row(v, _sgn(v)) for k, v in pca_books.items()}).T
 print(pca_tab.to_string())
 pca_tab.to_csv(OUT / "pca_lab_books.csv")
@@ -469,7 +469,7 @@ print("saved", OUT / "pca_lab_books.csv")
         r"""
 ## 5c. Causal supervised projections (PLS / PCovR)
 
-Section 5's PC1/PCR books are unsupervised: the direction is chosen by
+Section 5's PC1/PCR portfolios are unsupervised: the direction is chosen by
 the variance of the seven signals, and $R$ enters only through the PCR
 coefficients. Here the *direction itself* is supervised, with the same
 strict causality as §5 (day $t$ uses $X_{u<t}$, $R_{u<t}$ only; min 63;
@@ -479,20 +479,20 @@ lab's standing result is that ensembles do not beat blk2 unit-median,
 so a null is the expected answer.
 
 - *PLS1:* $w\propto X_c^{\top}R_c$ (the covariance-with-target
-  direction), $\|w\|=1$; score $z_t=(x_t-\mu)^{\top}w$. Books:
+  direction), $\|w\|=1$; score $z_t=(x_t-\mu)^{\top}w$. Portfolios:
   $\mathrm{sign}(z)$ and unit-median in $z$.
 - *PLS2:* one NIPALS deflation ($X_c^{(2)}=X_c-t_1p_1^{\top}$,
   $w_2\propto X_c^{(2)\top}R_c$), then OLS of $R$ on $[z_1,z_2]$ with
   intercept, applied to day $t$ — the supervised analog of PCR $k=2$.
-  Book: $\mathrm{sign}(\hat R_t)$.
+  Portfolio: $\mathrm{sign}(\hat R_t)$.
 - *PCovR blend:* leading eigenvector of
   $\alpha\,G_1/\mathrm{tr}\,G_1+(1-\alpha)\,G_2/\mathrm{tr}\,G_2$ with
   $G_1=(X_c^{\top}R_c)(X_c^{\top}R_c)^{\top}$, $G_2=X_c^{\top}X_c$,
   $\alpha\in\{0.25,0.5,0.75\}$; each Gram is normalized by its trace so
   the mix is scale-free. Sign aligned so the score co-moves with the
-  PLS1 direction. Book: $\mathrm{sign}(z)$.
+  PLS1 direction. Portfolio: $\mathrm{sign}(z)$.
 
-Columns as in §5's ensemble table (`asl.rule_row`; daily book,
+Columns as in §5's ensemble table (`asl.rule_row`; daily portfolio,
 $\sqrt{252}$). Benchmarks are pulled from §5's `ens` dict, not
 recomputed.
 """
@@ -590,7 +590,7 @@ print("saved", OUT / "pca_lab_pls.csv")
 ## 5d. PCA structure diagnostics
 
 How much structure is there in the seven signals, and how many
-independent bets are the seven books? **Diagnostics only — nothing
+independent bets are the seven portfolios? **Diagnostics only — nothing
 here is a trading input.** Six views:
 
 - *Correlation / sign agreement.* Pearson correlation of the daily
@@ -603,14 +603,14 @@ here is a trading input.** Six views:
 - *Loading stability.* PC1 loadings at expanding cutoffs
   (every 21 days). Answers: does any model rotate in or out of the
   factor?
-- *Risk-space PCA.* Full-sample PCA of the seven unit-median book
+- *Risk-space PCA.* Full-sample PCA of the seven unit-median portfolio
   returns $q_i R$. Answers: how many independent bets are the seven
-  books in return space?
+  portfolios in return space?
 - *PC1 vs mean.* Full-sample PC1 score against the cross-sectional
   mean $s$. Answers: is PC1 anything other than the equal-weight
   mean?
 - *$R^2$ ladder.* Full-sample $R^2$ of daily $R$ on the first $k$ PC
-  scores, $k=1..7$ — the in-sample ceiling for the causal PCR books
+  scores, $k=1..7$ — the in-sample ceiling for the causal PCR portfolios
   of §5.
 """
     ),
@@ -656,13 +656,13 @@ print("PC1 loading range over expanding cutoffs")
 print(pd.DataFrame({"min": traj.min(), "max": traj.max()}).to_string())
 traj.to_csv(OUT / "pca_lab_loadings_traj.csv")
 
-# risk-space PCA: how many independent bets are the 7 UM books?
+# risk-space PCA: how many independent bets are the 7 UM portfolios?
 rets = um.mul(R, axis=0)
 Rc = rets.to_numpy(float)
 Rc = Rc - Rc.mean(axis=0)
 s_r = np.linalg.svd(Rc, compute_uv=False)
 share_risk = pd.Series(s_r**2 / (s_r**2).sum(), index=[f"PC{i+1}" for i in range(p)])
-print("risk-space PCA variance share (7 UM-book daily returns, diagnostic)")
+print("risk-space PCA variance share (7 UM-portfolio daily returns, diagnostic)")
 print(share_risk.to_string())
 share_risk.to_csv(OUT / "pca_lab_riskspace_share.csv")
 
@@ -707,7 +707,7 @@ ax.set_title("PC1 loadings at expanding cutoffs", fontsize=9)
 ax.legend(fontsize=5)
 ax = axes[1, 0]
 ax.bar(share_risk.index, share_risk.to_numpy())
-ax.set_title("risk-space PCA: UM-book returns", fontsize=9)
+ax.set_title("risk-space PCA: UM-portfolio returns", fontsize=9)
 ax = axes[1, 1]
 ax.scatter(mean_s, z1, s=6, alpha=0.4)
 ax.set_xlabel("mean $s$")
@@ -772,7 +772,7 @@ plt.close(fig)
 ## 7. Other well-motivated weighting strategies
 
 Rank of $|s|$, inverse expanding vol of $R$, dead-zone at half the
-expanding median, vol-target of the unit-median book, and a Kelly-ish
+expanding median, vol-target of the unit-median portfolio, and a Kelly-ish
 $q=\mathrm{clip}(s/\widehat{\mathrm{Var}}(R),-3,3)$. Scored on the
 common days. blk2 shown; CSVs for every model.
 """
@@ -801,7 +801,7 @@ print("saved experimental_weights_*.csv")
 
 Body is the §1 nearest-OTM package; wings are the nearest live 15:30
 mids at least $w$ points further OTM (`asl.pick_wings`; the same wing
-selection as the defined-risk book parked in the RV–IV deck and explored in §14 here). Short
+selection as the defined-risk portfolio parked in the RV–IV deck and explored in §14 here). Short
 iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
@@ -958,14 +958,14 @@ Four diagnostics, all on blk2 common days:
    loss is capped at $(\mathrm{width}-\mathrm{entry}_{ic})/\mathrm{width}$
    per unit — better tails are **mechanical** (defined risk), not alpha.
 4. **IR** of condor unit-median against the straddle always-short and
-   straddle unit-median books: active $R^a=R^{ic}-R^{\mathrm{bench}}$,
+   straddle unit-median portfolios: active $R^a=R^{ic}-R^{\mathrm{bench}}$,
    `te_daily` $=\mathrm{sd}(R^a)$, $\mathrm{IR}_{ann}=\bar R^a/\mathrm{sd}\times\sqrt{252}$,
    $t=\bar R^a/\mathrm{sd}\times\sqrt{n}$.
 
 Condor sizes use unit-median leverage from the expanding median on the
 condor-day frame (the former RV–IV condor-slide convention; that slide
 now reports credit verticals at $|q|=1$); straddle sizes are the
-§5 full-book sizes. Cumulative $R'$ is a non-compounded sum.
+§5 full-portfolio sizes. Cumulative $R'$ is a non-compounded sum.
 """
     ),
     code(
@@ -1081,7 +1081,7 @@ plt.close(fig)
         r"""
 ## 10. Strangle-body condors and per-side attribution
 
-The defined-risk book (parked in the RV–IV deck, explored in §14) wraps the straddle-body
+The defined-risk portfolio (parked in the RV–IV deck, explored in §14) wraps the straddle-body
 package in wings. Here the body is a **strangle**: the next listed strike above the
 nearest-OTM call and below the nearest-OTM put, from the same 15:30
 live mids (one step on the actual grid — $5$ points on $99.6\%$ of
@@ -1096,7 +1096,7 @@ vertical: $R_{\mathrm{call}}=\big[(\mathrm{pay}_c-\mathrm{pay}_{cw})-(\mathrm{mi
 same for the put side, so
 $R_{\mathrm{call}}+R_{\mathrm{put}}=R_{\mathrm{long,ic}}$ exactly
 (same denominator). $R'_{\mathrm{side}}=q\,R_{\mathrm{side}}$ answers
-two questions: which spread earns the short-book mean, and which
+two questions: which spread earns the short-portfolio mean, and which
 spread bleeds on the worst-decile days.
 """
     ),
@@ -1222,7 +1222,7 @@ $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged.
 
 Each width prints two tables on the same day set $D_w$ (common days
-with both wings): the condor book, and the same $q$ on the straddle
+with both wings): the condor portfolio, and the same $q$ on the straddle
 $R$. The mirror isolates instrument transfer from day-set drift; with
 full wing coverage $D_w$ equals the common days and the drift is zero.
 
@@ -1230,7 +1230,7 @@ Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
 quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days). The defined-risk book, parked in the RV–IV deck, is scored per
+on the common days). The defined-risk portfolio, parked in the RV–IV deck, is scored per
 body premium at $|q|=1$, so its rows are not in the same units as
 these tables.
 """
@@ -1291,7 +1291,7 @@ $$\mathrm{fill} = \mathrm{mid} + \sigma\,\lambda\,\tfrac{\mathrm{ask}-\mathrm{bi
 \qquad \sigma=+1\ \text{bought},\ \sigma=-1\ \text{sold},\qquad
 \lambda\in\{0,\tfrac12,1\}.$$
 
-$\lambda=0$ is the mid-fill book; $\lambda=1$ fills every short leg at
+$\lambda=0$ is the mid-fill portfolio; $\lambda=1$ fills every short leg at
 the bid and every long leg at the ask (the lib's
 `crossed_premium_return` at the straddle). Exit is cash settlement at
 the official close — no exit spread. The signal $s$ is untouched:
@@ -1424,8 +1424,8 @@ plt.close(fig)
         r"""
 ## 13. Paired significance on the headline deltas
 
-The `rule_row` $t$'s test each book's mean against zero. The questions
-that matter are *differences*: does book $A$ beat book $B$ on the same
+The `rule_row` $t$'s test each portfolio's mean against zero. The questions
+that matter are *differences*: does portfolio $A$ beat portfolio $B$ on the same
 days? Let $d_t = R'^{A}_t - R'^{B}_t$ on the common days of the pair.
 Two tests, both stated once and applied to every pair:
 
@@ -1434,18 +1434,18 @@ Two tests, both stated once and applied to every pair:
 - **Circular moving-block bootstrap:** block length
   $b=\lceil n^{1/3}\rceil$, $B=2000$, seed $0$, resampling the pair
   jointly. 95% percentile CI on $\bar d$ and on
-  $\Delta\mathrm{Sharpe}_{ann}$ (both books' Sharpes recomputed per
+  $\Delta\mathrm{Sharpe}_{ann}$ (both portfolios' Sharpes recomputed per
   resample, then differenced).
 
 Pairs: (a) condor $w{=}25$ unit-median vs straddle unit-median, same
-blk2 $q_t$ both legs (the published straddle-book sizes restricted to
+blk2 $q_t$ both legs (the published straddle-portfolio sizes restricted to
 condor days — leverage is *not* refit on the condor subset); (b)
 spectral PC1 unit-median vs blk2 unit-median; (c) EW unit-median $q$
 vs blk2 unit-median; (d) blk2 unit-median vs always short.
 
 Caveats. In (a) the two returns sit on different denominators
 (straddle entry vs condor width), so $\bar d$ is a bookkeeping
-comparison of the published book definitions; $\Delta$Sharpe is the
+comparison of the published portfolio definitions; $\Delta$Sharpe is the
 scale-free column. A null here is the expected outcome — nothing in
 this lab has beaten blk2 unit-median — these rows say whether the
 *gaps* in the ensemble table are distinguishable from noise at all.
@@ -1497,7 +1497,7 @@ def pair_row(name, rp, rb, B=2000):
         "sig_boot_dS": (lo_s > 0) or (hi_s < 0),
     }
 
-# condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 straddle-book UM sizes on both legs
+# condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 straddle-portfolio UM sizes on both legs
 body = atm.reset_index()
 close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
@@ -1526,13 +1526,13 @@ print("saved", OUT / "significance_pairs.csv")
         r"""
 ## 14. Why the iron-fly wings do not pay per premium
 
-A defined-risk version of the book, parked in the main notebook and explored here, wraps it in an iron fly — a wing bought
-on each side of the body whenever the book sells, which turns the
+A defined-risk version of the trade, parked in the main notebook and explored here, wraps it in an iron fly — a wing bought
+on each side of the body whenever the portfolio sells, which turns the
 short straddle into two credit spreads — and keeps it as a venue
 constraint, the defined-risk structure a retail margin account
 requires on cash-settled SPX or XSP, not as an improvement. Per dollar
 of body premium the wings do not help: the $\mathrm{sign}(s)$
-book loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
+portfolio loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
 against 1.62 without wings on the same days), the always-short control
 loses what little edge it had, and compounded wealth suffers in
 proportion. The only frame in which the wings look free is index
@@ -1541,7 +1541,7 @@ a paired $t$-statistic of essentially zero. This section asks why, so
 that the construction can be revisited with the right question rather
 than dropped.
 
-The book is rebuilt here exactly as the parked deck section built it. The
+The portfolio is rebuilt here exactly as the parked deck section built it. The
 body is the 15:30 nearest-out-of-the-money package; the wings are the
 nearest live 15:30 midpoint quotes at least $w$ points further out of
 the money; the package is settled in cash at the official close; the
@@ -1549,7 +1549,7 @@ net credit is body premium minus wing premium, and days with a
 non-positive credit are dropped with a printed count; the seller's
 worst case is the larger actual wing gap minus the credit. Returns are
 per dollar of body premium throughout, on the same days and with the
-same denominator for the hedged and the plain book, so every
+same denominator for the hedged and the plain portfolio, so every
 comparison is like against like. The cell first reproduces the parked section's
 headline at 25 points and stops if it cannot.
 
@@ -1565,7 +1565,7 @@ Four questions follow.
 2. *Does one wing do the work?* The crash tail of an index is
    asymmetric, so the put wing alone and the call wing alone are scored
    against both wings and none.
-3. *Is there a width at which the hedged book wins?* The width ladder
+3. *Is there a width at which the hedged portfolio wins?* The width ladder
    of §8 — fixed gaps of 10 to 100 points, including the 20- and
    30-point wings the parked section reported, and gaps scaled to the package price —
    scored per premium on the $\mathrm{sign}(s)$ composite,
@@ -1573,7 +1573,7 @@ Four questions follow.
    wing.
 4. *When do the wings pay?* The distribution of how far the settlement
    travels from the body strike, in units of the wing gap, and the
-   per-year Sharpe ratios of the hedged and plain books, to see whether
+   per-year Sharpe ratios of the hedged and plain portfolios, to see whether
    the wings earn their keep only in the crash year.
 
 **What the exploration shows.** The wings do not pay per dollar of
@@ -1586,22 +1586,22 @@ year against a net cost in every year since — so the "free insurance"
 is one crash quarter's payouts spread over four years of premium, and
 that quarter sits inside the first 64 sessions that the main deck's
 other slides exclude as their estimation window. On the days that
-matter for the $\mathrm{sign}(s)$ book the settlement rarely travels far: on
+matter for the $\mathrm{sign}(s)$ portfolio the settlement rarely travels far: on
 selling days the median settlement sits a sixth of the way from the
 body strike to a 25-point wing, and reaches the wing on 4.3% of them
 (1.1% at 50 points). The wing that protects is the expensive one: the
 put wing alone costs almost as much Sharpe as both wings and is the
 only one that shortens the worst day, while the call wing is nearly
-free and protects nothing. No width on the ladder beats the plain book
+free and protects nothing. No width on the ladder beats the plain portfolio
 — the best is 50 points, 0.08 of Sharpe behind with a paired $t$ of
 $-2.2$ — and the gap is negative for all seven forecasts. At the 20-
-and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ book gives up 0.26 and
+and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ portfolio gives up 0.26 and
 0.15 of Sharpe (paired $t$ of $-2.8$ and $-2.1$) and the settlement
 reaches a wing on 7.3% and 2.4% of selling days. Paying the quoted
 spread makes it worse: with the wings bought at the ask, which is
 quoted at 1.2 to 2 times their midpoint, they cost 0.09 points a
-day and the $\mathrm{sign}(s)$ book gives up 0.3 of Sharpe at 25 points
-against the plain book filled the same way.
+day and the $\mathrm{sign}(s)$ portfolio gives up 0.3 of Sharpe at 25 points
+against the plain portfolio filled the same way.
 
 **What the construction still owes**, as questions rather than claims.
 Would wings placed by delta, or by the forecast itself — wider when
@@ -1616,7 +1616,7 @@ of one event?
     ),
     code(
         r"""
-# --- the iron-fly book, rebuilt exactly as the parked RV-IV deck section built it ---
+# --- the iron-fly portfolio, rebuilt exactly as the parked RV-IV deck section built it ---
 vl_body = atm.reset_index()
 vl_close = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 vl_close.index = pd.to_datetime(vl_close.index).tz_localize(None).normalize()
@@ -1654,7 +1654,7 @@ def vl_book(width=None, w_row=None):
     return vl_settle(raw)
 
 def vl_rows(vs, px, cfg="both"):
-    # per-premium rows for the two rules; the hedged book against the plain book on the same days
+    # per-premium rows for the two rules; the hedged portfolio against the plain portfolio on the same days
     j = vs.join(px[["pos", "R"]], how="inner", rsuffix="_strad")
     j = j.loc[j.index.intersection(common)]
     hedged = j[f"pnl_{cfg}"] / j["entry_body"]
@@ -1773,10 +1773,10 @@ print(vl_lad[["n", "med_gap", "Sharpe_hedged", "Sharpe_plain", "dSharpe", "NW_t_
               "wing_cost_pts_per_sell_day", "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
 vl_lad.to_csv(OUT / "vert_lab_width_ladder_blk2.csv")
 best = vl_lad.xs("sign(s)", level="rule")["dSharpe"]
-print("sign(s): any width where the hedged book beats the plain book per premium?",
+print("sign(s): any width where the hedged portfolio beats the plain portfolio per premium?",
       ("yes: " + ", ".join(best[best > 0].index)) if (best > 0).any() else "no")
 
-# (d) when the wings pay: how far the settlement travels, and per-year books
+# (d) when the wings pay: how far the settlement travels, and per-year portfolios
 print("=== (d) settlement distance from the body strike in wing-gap units, sell days ===")
 dist_rows = {}
 for w, vs in vl.items():
@@ -1864,7 +1864,7 @@ average — the flagged-against-unflagged comparison printed below.
 Taken at face value that reads like a day-ahead risk flag, and wings
 have already failed to manage the sell-side tail (§14). This section asks the natural
 follow-up: does stepping aside on the days the lagged signal flags as
-risky improve the tail of the $\mathrm{sign}(s)$ book?
+risky improve the tail of the $\mathrm{sign}(s)$ portfolio?
 
 **Construction.** The flag is the percentile rank of $s_{t-1}$ among all days up to $t-1$, computed from
 past data only once at least 63 days of history exist. Three flags are
@@ -1880,13 +1880,13 @@ fact:
 - alternate — the top tercile of the rank of $|s_{t-1}|$, the unsigned
   version.
 
-Two rules are scored on the $\mathrm{sign}(s)$ book, which sells the package
+Two rules are scored on the $\mathrm{sign}(s)$ portfolio, which sells the package
 when the same-day signal is negative and buys it otherwise: rule A is
 flat on every flagged day; rule B is flat on a flagged day only when
 the same-day rule would sell, since a bought package already risks no
 more than its premium. Rule A is also applied to the always-short
 control. Days before the rank exists are traded as usual in both the
-flagged and the reference book, so every comparison is on the same 871
+flagged and the reference portfolio, so every comparison is on the same 871
 days. The criterion is the tail — worst day, maximum drawdown, annual
 volatility, excess kurtosis, and the worst day of each calendar year —
 with mean and Sharpe reported beside it. Each rule is tested against
@@ -1905,14 +1905,14 @@ the latter.
 **What it shows: a negative result.** The flag does not reach the
 tail. Under every flag and both rules, for all seven forecasts, the
 worst day ($-5.42$) and the maximum drawdown are unchanged; neither
-book's worst day is flagged. The primary rule cuts the Sharpe ratio
+portfolio's worst day is flagged. The primary rule cuts the Sharpe ratio
 from 1.63 to 1.33 and roughly doubles the excess kurtosis, because it
 inserts zeros on ordinary days and leaves the extremes in place. The
 reason is that the flag points at the wrong tail. Yesterday's forecast
 sitting far above implied variance persists into today's sign, so the
 top tercile of the lagged rank is only about 45 percent selling days
 (the bottom tercile is about 81 percent): the flag mostly removes
-*buying* days, whose large settlement moves are the book's profit, not
+*buying* days, whose large settlement moves are the portfolio's profit, not
 its loss — a bought package cannot lose more than its premium. The
 selling days that hurt sit in the *middle* tercile (198 selling days,
 worst $-5.42$, ten days below $-2$), against four such days in the
@@ -2142,7 +2142,7 @@ plt.close(fig)
         r"""
 ## 16. The body itself: a same-strike straddle against the nearest out-of-the-money pair
 
-Every book in the deck is built on the same package: the nearest
+Every portfolio in the deck is built on the same package: the nearest
 out-of-the-money call (smallest listed strike at or above the 15:30
 index level) and the nearest out-of-the-money put (largest strike at or
 below it). SPX strikes sit five points apart and the index almost never
@@ -2162,7 +2162,7 @@ lower of the strangle's two strikes, straddle = strangle + a long
 five-point call spread between them; if it is the upper strike,
 straddle = strangle + a long five-point put spread. The cell verifies
 this identity day by day from the leg quotes and then reports each
-book in three frames: per dollar of premium (the deck's unit), per
+portfolio in three frames: per dollar of premium (the deck's unit), per
 dollar of **time value**, and in index points per package. The
 time-value frame matters here because the straddle's premium contains
 intrinsic value — the distance from the index level to its strike,
@@ -2182,11 +2182,11 @@ priced risk; crossed-spread fills (sell at the bid, buy at the ask, on every
 leg, with the in-the-money leg's relative spread printed against the
 others); and the estimated-fraction rule (parked in the main
 notebook: expanding mean over second moment with a running ruin cap,
-minimum 63 days, lagged one day) on the $\mathrm{sign}(s)$ book in the
+minimum 63 days, lagged one day) on the $\mathrm{sign}(s)$ portfolio in the
 two return frames.
 
-**What the numbers say.** In dollars the two $\mathrm{sign}(s)$ books are the
-same book: about 0.34 index points per package-day each, a paired
+**What the numbers say.** In dollars the two $\mathrm{sign}(s)$ portfolios are the
+same portfolio: about 0.34 index points per package-day each, a paired
 difference of about −0.01 points per day with a $t$ near zero, and the
 same worst day (the crash day, about −80 points). The extra premium
 the straddle collects — a median 7.67 points against 5.35, of which
@@ -2232,7 +2232,7 @@ property of those days, not of either body. Crossed-spread fills favour the
 strangle: the straddle's legs are not wider in relative terms (about
 5.1% and 5.5% of mid against 5.9%), but its package spread is larger
 in points and its per-premium returns smaller, so after paying the
-spread the $\mathrm{sign}(s)$ book scores about 0.90 against 1.10 per
+spread the $\mathrm{sign}(s)$ portfolio scores about 0.90 against 1.10 per
 premium (about 1.04 against 1.09 per time value), and always-short is
 negative for both.
 
