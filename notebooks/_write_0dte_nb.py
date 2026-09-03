@@ -1185,6 +1185,18 @@ def causal_kelly(rs):
     cap = 1.0 / rs.expanding(min_periods=1).min().shift(1).abs()
     return np.minimum((mu / m2).clip(lower=0.0), cap).fillna(0.0)
 
+def wealth_axis(ax):
+    # log-scaled axis labelled in wealth multiples; 1x = the starting stake
+    from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
+    ax.set_yscale("log")
+    ticks = [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
+    ax.yaxis.set_major_locator(FixedLocator(ticks))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
+    ax.yaxis.set_minor_locator(NullLocator())
+    ax.axhline(1.0, color="k", lw=0.6, ls="--")
+    ax.set_ylabel("wealth (starting stake = 1×)")
+
+
 def wealth_row(f, r):
     factors = 1.0 + np.asarray(f) * np.asarray(r)
     assert (factors > 0).all(), "a wealth factor hit zero — ruin"
@@ -1237,16 +1249,16 @@ for name, c in (("always short", "C1"), ("long-short volatility", "C0")):
     fk = causal_kelly(rs)
     axes[0].plot(rs.index, fk, lw=0.9, color=c, label=name)
     w = np.cumprod(1.0 + fk.to_numpy() * rs.to_numpy())
-    axes[1].plot(rs.index, np.log(w), lw=1.0, color=c, label=name)
+    axes[1].plot(rs.index, w, lw=1.0, color=c, label=name)
 rs = (rule_sizes(px)["long-short volatility"] * px["R"]).loc[common].astype(float)
 fk = causal_kelly(rs)
 w = np.cumprod(1.0 + (fk.to_numpy() / 2) * rs.to_numpy())
-axes[1].plot(rs.index, np.log(w), lw=1.0, color="C2", label="long-short, half fraction")
+axes[1].plot(rs.index, w, lw=1.0, color="C2", label="long-short, half fraction")
 axes[0].set_ylabel(r"fraction of wealth $\hat f_t$")
 axes[0].set_title("blk2 — causally estimated fraction")
 axes[0].legend(fontsize=8)
-axes[1].set_ylabel("log wealth")
-axes[1].set_title("blk2 — compounded wealth")
+wealth_axis(axes[1])
+axes[1].set_title("block-diagonal ridge — compounded wealth (starting stake = 1×)")
 axes[1].legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "kelly_causal_blk2.png", dpi=120, bbox_inches="tight")
@@ -1589,16 +1601,15 @@ plt.close(fig)
 fig, ax = plt.subplots(figsize=(11, 3.6))
 rp = (px["pos"] * px["R"]).loc[common].astype(float)
 fk = causal_kelly(rp).to_numpy()
-ax.plot(rp.index, np.log(np.cumprod(1.0 + fk * rp.to_numpy())), color="k", lw=1.3, label="plain package")
+ax.plot(rp.index, np.cumprod(1.0 + fk * rp.to_numpy()), color="k", lw=1.3, label="plain package")
 for w, c in ((20.0, "C3"), (30.0, "C2")):
     j = flies[w].join(px[["pos", "R"]], how="inner", rsuffix="_body")
     j = j.loc[j.index.intersection(common)]
     ls = j["R_prem"].where(j["pos"] < 0, j["R"]).astype(float)
     fk = causal_kelly(ls).to_numpy()
-    ax.plot(ls.index, np.log(np.cumprod(1.0 + fk * ls.to_numpy())), color=c, lw=1.0, label=f"fly on selling days, w = {int(w)}")
-ax.axhline(0.0, color="k", lw=0.5)
-ax.set_ylabel("log wealth")
-ax.set_title("compounded wealth at the causal fraction, per-premium frame, long-short volatility")
+    ax.plot(ls.index, np.cumprod(1.0 + fk * ls.to_numpy()), color=c, lw=1.0, label=f"fly on selling days, w = {int(w)}")
+wealth_axis(ax)
+ax.set_title("compounded wealth at the causal fraction, per-premium frame, long-short volatility (starting stake = 1×)")
 ax.legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "ironfly_wealth_blk2.png", dpi=120, bbox_inches="tight")
