@@ -50,6 +50,10 @@ Same instrument, clocks, smear, and signal as
 7. cutting exposure on days yesterday's signal ranked high (§15): a
    stand-aside rule scored on the tail against a placebo — a negative
    result; the flag lands on buying days, not on the losses
+8. the body itself (§16): a same-strike straddle against the deck's
+   nearest out-of-the-money pair — one dollar P&L in three frames, the
+   five-point vertical that separates them, offset, fills, and the
+   fraction of wealth; the strangle body stays
 
 $R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`.
 
@@ -2128,6 +2132,394 @@ ax.legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "riskflag_cum_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "riskflag_cum_blk2.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 16. The body itself: a same-strike straddle against the nearest out-of-the-money pair
+
+Every book in the deck is built on the same package: the nearest
+out-of-the-money call (smallest listed strike at or above the 15:30
+index level) and the nearest out-of-the-money put (largest strike at or
+below it). SPX strikes sit five points apart and the index almost never
+lands on one, so that package is a five-point-wide strangle on more
+than 99% of days (the two strikes coincide on about 0.1% of days, and
+sit ten apart on about 0.5% when a strike lacks quotes). This section
+asks what changes if the body is instead a true straddle: both legs at
+the single listed strike nearest to the index level, with live quotes
+on both legs (an exact tie goes to the lower strike). The signal and
+the position rules are unchanged; only the instrument differs. Both
+bodies are settled in cash against the official close on the same
+days.
+
+**Three ways to measure the same dollars.** The two bodies differ by
+one thing, and it can be written down. If the straddle strike is the
+lower of the strangle's two strikes, straddle = strangle + a long
+five-point call spread between them; if it is the upper strike,
+straddle = strangle + a long five-point put spread. The cell verifies
+this identity day by day from the leg quotes and then reports each
+book in three frames: per dollar of premium (the deck's unit), per
+dollar of **time value**, and in index points per package. The
+time-value frame matters here because the straddle's premium contains
+intrinsic value — the distance from the index level to its strike,
+known at entry — that the strangle's premium does not; dividing by
+total premium therefore dilutes the straddle's returns relative to
+the strangle's by construction. The strangle's premium is all time
+value, so its per-premium and per-time-value figures coincide. A
+comparison across bodies is like-for-like only in the time-value frame
+or in points.
+
+Also reported: where the index sits on the strike grid (the offset
+$|S-K^*|$ lies between 0 and 2.5 points) and both bodies' long–short
+results by tercile of that offset; the five-point vertical on its own —
+its mean, its Newey–West $t$, and its share of the straddle's daily
+variance — which decides whether the extra premium is edge or fairly
+priced risk; crossed fills (sell at the bid, buy at the ask, on every
+leg, with the in-the-money leg's relative spread printed against the
+others); and the fraction-of-wealth rule of the deck's §14 on the
+long–short book in the two return frames.
+
+**What the numbers say.** In dollars the two long–short books are the
+same book: about 0.34 index points per package-day each, a paired
+difference of about −0.01 points per day with a $t$ near zero, and the
+same worst day (the crash day, about −80 points). The extra premium
+the straddle collects — a median 7.67 points against 5.35, of which
+about 1.41 is intrinsic and 6.36 time value — is the five-point
+vertical, and the vertical is fairly priced risk rather than edge: sold
+on its own it earns about 0.11 points per day with a $t$ of about 1.5,
+carries about 7% of the straddle's daily variance, is essentially
+uncorrelated with the strangle, and the long–short signal has nothing
+to say about it (about −0.01 points per day, $t$ near zero). It is a
+small directional bet on which side of the strike the index closes;
+the variance forecast does not inform it.
+
+The frames then re-scale that one dollar P&L in three ways, and the
+choice of denominator produces every apparent difference. Per dollar
+of premium the straddle looks worse on the long–short rule — Sharpe
+about 1.50 against 1.63, a mean lower by about 0.04 per day with a
+Newey–West $t$ near −2.5, lower for all seven forecasts — and its
+worst day looks halved (about −3.2 against −5.4). Both are the
+intrinsic value in the denominator: the same dollar loss divided by a
+larger, partly riskless premium. Per dollar of time value, the
+like-for-like frame, the two bodies are indistinguishable — Sharpe
+about 1.72 against 1.63 for the block-diagonal ridge, a paired $t$
+near −0.4, the sign of the difference varying across the seven
+forecasts — and the worst day is about −4.1 against −5.4, a smaller
+gap that again reflects the denominator (the straddle's time value
+exceeds the strangle's premium by about a point on a typical day). The
+always-short control gains in every frame (about 0.44–0.50 against
+0.28), but that gain is the vertical's 0.11 points per day, which is
+not significant.
+
+The fraction-of-wealth rule sees the same thing: the estimated
+fraction is about 0.063 for either body in either frame. Because the
+fraction is applied to the scaled return, each frame is a different
+position-sizing rule on the same instrument — the per-time-value
+straddle path holds more packages on days when time value is small —
+and the terminal-wealth differences (about ×37 for the strangle, ×17
+for the straddle per premium, ×61 per time value) are those sizing
+rules, not a difference in edge. Where the index sits on the strike
+grid does not separate the bodies either: both earn essentially nothing
+in the third of days on which the index sits closest to a listed
+strike and about the same as each other in the other two thirds — a
+property of those days, not of either body. Crossed fills favour the
+strangle: the straddle's legs are not wider in relative terms (about
+5.1% and 5.5% of mid against 5.9%), but its package spread is larger
+in points and its per-premium returns smaller, so after paying the
+spread the long–short book scores about 0.90 against 1.10 per
+premium (about 1.04 against 1.09 per time value), and always-short is
+negative for both.
+
+**Verdict.** The same-strike straddle is not a tail fix. The halved
+per-premium worst day is intrinsic value in the denominator, the dollar
+P&L is identical, and the difference between the bodies is a fairly
+priced five-point vertical that the signal cannot time and that costs
+more to cross. The strangle body stays: it is all time value, so its
+per-premium figures are already the like-for-like ones, and it is
+cheaper to fill. The compensation for the strike not sitting at the
+index level is not a different instrument but a different denominator
+— measure returns on time value, which is what the strangle's premium
+already is. On XSP, where strikes are one point apart (ten SPX
+points), the same construction would have a ten-point gap and the
+question would have to be asked again.
+"""
+    ),
+    code(
+        r"""
+# --- the two bodies -----------------------------------------------------------
+# strangle body: the deck's nearest out-of-the-money call and put (books[tag] carries it)
+# straddle body: call and put at the single listed strike nearest to the 15:30 index level
+_c = live[live["cp"] == "C"][["expiration", "strike", "bid", "ask", "mid"]].rename(
+    columns={"bid": "bid_c", "ask": "ask_c", "mid": "mid_c"})
+_p = live[live["cp"] == "P"][["expiration", "strike", "bid", "ask", "mid"]].rename(
+    columns={"bid": "bid_p", "ask": "ask_p", "mid": "mid_p"})
+_both = _c.merge(_p, on=["expiration", "strike"])
+_both["strike"] = _both["strike"].astype(float)
+_both["S"] = _both["expiration"].map(spot).astype(float)
+_both = _both[np.isfinite(_both["S"])]
+_both["dist"] = (_both["strike"] - _both["S"]).abs()
+# nearest strike with live quotes on both legs; an exact tie goes to the lower strike
+strad = _both.sort_values(["expiration", "dist", "strike"]).groupby("expiration", as_index=False).first()
+_emap = atm.reset_index()[["day", "expiration", "S_close", "K_c", "K_p", "mid_c", "mid_p"]].rename(
+    columns={"mid_c": "sg_mid_c", "mid_p": "sg_mid_p"})
+strad = strad.merge(_emap, on="expiration", how="inner").set_index("day").sort_index()
+strad["K"] = strad["strike"]
+strad["entry"] = strad["mid_c"] + strad["mid_p"]
+strad["exit"] = (strad["S_close"] - strad["K"]).abs()
+strad = strad[np.isfinite(strad["entry"]) & (strad["entry"] > 0) & np.isfinite(strad["exit"])].copy()
+strad["R"] = strad["exit"] / strad["entry"] - 1.0
+strad["offset"] = strad["dist"]                       # |S - K*|, the intrinsic value at entry
+strad["time_value"] = strad["entry"] - strad["offset"]
+strad["itm_leg"] = np.where(strad["S"] >= strad["K"], "call", "put")
+# the 5-point vertical that turns the strangle into the straddle:
+#   K* = K_p -> long call spread K_p/K_c ; K* = K_c -> long put spread K_c/K_p
+_on_grid = (strad["K"] == strad["K_p"]) | (strad["K"] == strad["K_c"])
+_is_low = strad["K"] == strad["K_p"]
+strad["vert_entry"] = np.where(_is_low, strad["mid_c"] - strad["sg_mid_c"], strad["mid_p"] - strad["sg_mid_p"])
+strad["vert_exit"] = np.where(
+    _is_low,
+    np.maximum(strad["S_close"] - strad["K_p"], 0.0) - np.maximum(strad["S_close"] - strad["K_c"], 0.0),
+    np.maximum(strad["K_c"] - strad["S_close"], 0.0) - np.maximum(strad["K_p"] - strad["S_close"], 0.0),
+)
+strad.loc[~_on_grid, ["vert_entry", "vert_exit"]] = np.nan
+
+gap = (atm.loc[common, "K_c"] - atm.loc[common, "K_p"]).round(2)
+print("the deck's body on the common days: gap between the two strikes (points), share of days")
+print((gap.value_counts(normalize=True).sort_index() * 100).round(2).to_string())
+days = common.intersection(strad.index)
+print(f"days scored: {len(days)} of {len(common)} common days have a same-strike straddle with live quotes on both legs")
+print(f"straddle strike is one of the strangle's two strikes on {float(_on_grid.loc[days].mean()):.1%} of scored days; "
+      f"the call is the in-the-money leg on {float((strad.loc[days, 'itm_leg'] == 'call').mean()):.1%}")
+
+
+def bl_sharpe(a):
+    a = np.asarray(a, float)
+    return float(a.mean() / a.std(ddof=1) * np.sqrt(252))
+
+
+def bl_nw(d):
+    d = np.asarray(d, float)
+    lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
+    f = sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag})
+    return float(f.params[0]), float(f.tvalues[0]), lag
+
+
+def bl_boot(a, b, B=2000):
+    rng = np.random.default_rng(0)
+    a = np.asarray(a, float); b = np.asarray(b, float)
+    n = len(a); blen = int(np.ceil(n ** (1 / 3))); nblk = int(np.ceil(n / blen))
+    out = np.empty(B)
+    for i in range(B):
+        starts = rng.integers(0, n - blen + 1, nblk)
+        idx = np.concatenate([np.arange(s, s + blen) for s in starts])[:n]
+        out[i] = bl_sharpe(a[idx]) - bl_sharpe(b[idx])
+    return np.percentile(out, [2.5, 97.5])
+
+
+def bl_kelly(rs):
+    mu = rs.expanding(min_periods=63).mean().shift(1)
+    m2 = (rs**2).expanding(min_periods=63).mean().shift(1)
+    cap = 1.0 / rs.expanding(min_periods=1).min().shift(1).abs()
+    return np.minimum((mu / m2).clip(lower=0.0), cap).fillna(0.0)
+
+
+def bl_wealth(f, r):
+    fac = 1.0 + np.asarray(f, float) * np.asarray(r, float)
+    assert (fac > 0).all()
+    w = np.cumprod(fac)
+    return {"g_ann": 252.0 * float(np.mean(np.log(fac))), "terminal": float(w[-1]),
+            "maxDD": float((w / np.maximum.accumulate(w) - 1.0).min()), "worst_day_factor": float(fac.min())}
+
+
+def bl_row(rp):
+    cum = rp.cumsum()
+    return {"mean": float(rp.mean()), "Sharpe": bl_sharpe(rp), "worst_day": float(rp.min()),
+            "maxDD": float((cum - cum.cummax()).min())}
+
+
+# gate: the strangle rows must reproduce the published rule table before anything is compared
+_rt = pd.read_csv(OUT / "rule_table_blk2.csv", index_col=0)
+_pxg = books["blk2"].loc[common]
+assert abs(float((-_pxg["R"]).mean()) - float(_rt.loc["always short", "mean"])) < 1e-9
+assert abs(float((_pxg["pos"] * _pxg["R"]).mean()) - float(_rt.loc["long-short volatility", "mean"])) < 1e-9
+print("gate: strangle rows reproduce rule_table_blk2 (always short and long-short means) exactly")
+
+BODIES = ("strangle (nearest OTM pair)", "straddle (same strike)")
+RULES = ("always short", "long-short volatility")
+FRAMES = ("per premium", "per time value", "index points")
+score, paired, kelly_rows = {}, {}, {}
+for tag in MODEL_ORDER:
+    px = books[tag].loc[days]
+    st = strad.loc[days]
+    # three frames: per dollar of premium, per dollar of time value, index points per package
+    frames = {
+        BODIES[0]: {"per premium": px["R"], "per time value": px["R"], "index points": px["exit"] - px["entry"]},
+        BODIES[1]: {"per premium": st["R"], "per time value": (st["exit"] - st["entry"]) / st["time_value"],
+                    "index points": st["exit"] - st["entry"]},
+    }
+    q = {"always short": pd.Series(-1.0, index=days), "long-short volatility": px["pos"].astype(float)}
+    rp = {}
+    for b in BODIES:
+        for rule, qq in q.items():
+            for fr in FRAMES:
+                rp[(b, rule, fr)] = qq * frames[b][fr]
+                row = bl_row(qq * frames[b][fr])
+                row["n"] = int(len(days))
+                row["premium_median"] = float((px if b == BODIES[0] else st)["entry"].median())
+                row["pin_share"] = float(((px if b == BODIES[0] else st)["R"] <= -0.999).mean())
+                score[(LABEL[tag], b, rule, fr)] = row
+    for rule in RULES:
+        for fr in ("per premium", "per time value"):
+            a, b_ = rp[(BODIES[1], rule, fr)], rp[(BODIES[0], rule, fr)]
+            m, t, lag = bl_nw(a - b_)
+            lo, hi = bl_boot(a, b_)
+            paired[(LABEL[tag], rule, fr)] = {"mean_diff": m, "NW_t": t, "lag": lag,
+                                              "dSharpe": bl_sharpe(a) - bl_sharpe(b_), "dSharpe_lo": lo, "dSharpe_hi": hi}
+    for b in BODIES:
+        for fr in ("per premium", "per time value"):
+            r = rp[(b, "long-short volatility", fr)]
+            fk = bl_kelly(r)
+            row = {"mean_f": float(fk.mean()), **bl_wealth(fk, r)}
+            half = bl_wealth(fk / 2, r)
+            row["half_terminal"] = half["terminal"]; row["half_worst_day_factor"] = half["worst_day_factor"]
+            kelly_rows[(LABEL[tag], b, fr)] = row
+    if tag == "blk2":
+        blk2_rp, blk2_px, blk2_st = rp, px, st
+
+score_tab = pd.DataFrame(score).T
+score_tab.index = pd.MultiIndex.from_tuples(score_tab.index, names=["model", "body", "rule", "frame"])
+score_tab.to_csv(OUT / "body_lab_scoreboard.csv")
+paired_tab = pd.DataFrame(paired).T
+paired_tab.index = pd.MultiIndex.from_tuples(paired_tab.index, names=["model", "rule", "frame"])
+paired_tab.to_csv(OUT / "body_lab_paired.csv")
+kelly_tab = pd.DataFrame(kelly_rows).T
+kelly_tab.index = pd.MultiIndex.from_tuples(kelly_tab.index, names=["model", "body", "frame"])
+kelly_tab.to_csv(OUT / "body_lab_kelly.csv")
+
+px, st = blk2_px, blk2_st
+print("--- block-diagonal ridge: the two bodies in three frames ---")
+print(f"premium, median points: strangle {float(px['entry'].median()):.2f}, straddle {float(st['entry'].median()):.2f} "
+      f"(of which intrinsic {float(st['offset'].median()):.2f}, time value {float(st['time_value'].median()):.2f})")
+print(f"the strangle expires worthless on {float((px['R'] <= -0.999).mean()):.1%} of days; "
+      f"the straddle settles within 1 point of its strike on {float((st['exit'] < 1.0).mean()):.1%}")
+for fr in FRAMES:
+    print(f"[{fr}]")
+    print(score_tab.xs((LABEL["blk2"], fr), level=("model", "frame"))[["mean", "Sharpe", "worst_day", "maxDD"]]
+          .to_string(float_format=lambda x: f"{x:+.4f}"))
+print("--- paired daily difference, straddle minus strangle, block-diagonal ridge ---")
+print(paired_tab.xs(LABEL["blk2"], level="model").to_string(float_format=lambda x: f"{x:+.3f}"))
+print("--- all seven forecasts: change in Sharpe from switching to the straddle body ---")
+print(paired_tab["dSharpe"].unstack(["rule", "frame"]).to_string(float_format=lambda x: f"{x:+.3f}"))
+
+# per-year Sharpe, both bodies, both rules, per premium and per time value
+per_year = pd.DataFrame({(b, rule, fr): blk2_rp[(b, rule, fr)].groupby(blk2_rp[(b, rule, fr)].index.year).apply(bl_sharpe)
+                         for b in BODIES for rule in RULES for fr in ("per premium", "per time value")})
+per_year.columns = pd.MultiIndex.from_tuples(per_year.columns, names=["body", "rule", "frame"])
+per_year.to_csv(OUT / "body_lab_per_year_blk2.csv")
+print("--- per-year Sharpe, block-diagonal ridge, long-short ---")
+print(per_year.xs("long-short volatility", level="rule", axis=1).to_string(float_format=lambda x: f"{x:+.2f}"))
+
+# where spot sits on the strike grid: does the straddle's result depend on it?
+off = st["offset"]
+print("--- offset |S - K*| at entry: median "
+      f"{float(off.median()):.2f} points; above 1.25 on {float((off > 1.25).mean()):.1%} of days ---")
+terc = pd.qcut(off, 3, labels=["near the strike", "middle", "far from the strike"])
+for fr in ("per premium", "per time value"):
+    tab = {}
+    for b in BODIES:
+        r = blk2_rp[(b, "long-short volatility", fr)]
+        g = r.groupby(terc, observed=True)
+        tab[(b, "n")] = g.size(); tab[(b, "mean")] = g.mean(); tab[(b, "Sharpe")] = g.apply(bl_sharpe); tab[(b, "worst")] = g.min()
+    tab = pd.DataFrame(tab)
+    print(f"long-short by tercile of the straddle's offset, both bodies on the same days [{fr}]")
+    print(tab.to_string(float_format=lambda x: f"{x:+.3f}"))
+    tab.to_csv(OUT / f"body_lab_offset_{fr.replace(' ', '_')}_blk2.csv")
+
+# the identity: short straddle = short strangle + short 5-point vertical between the two strikes
+grid = np.isfinite(st["vert_entry"])
+strad_short = (st["entry"] - st["exit"])[grid]
+sg_short = (px["entry"] - px["exit"])[grid]
+vert_short = (st["vert_entry"] - st["vert_exit"])[grid]
+resid = float((strad_short - sg_short - vert_short).abs().max())
+print(f"--- decomposition on {int(grid.sum())} days where the straddle strike is one of the strangle's strikes; "
+      f"max identity residual {resid:.2e} points ---")
+m_v, t_v, lag_v = bl_nw(vert_short)
+print(f"short 5-point vertical alone: mean {m_v:+.3f} points/day (Newey-West t {t_v:+.2f}, lag {lag_v}); "
+      f"premium collected median {float(st.loc[grid, 'vert_entry'].median()):.2f} of a 5-point maximum loss")
+print(f"variance shares of the short straddle: strangle {float(np.cov(sg_short, strad_short)[0, 1] / strad_short.var(ddof=1)):.3f}, "
+      f"vertical {float(np.cov(vert_short, strad_short)[0, 1] / strad_short.var(ddof=1)):.3f}; "
+      f"var(vertical)/var(straddle) {float(vert_short.var(ddof=1) / strad_short.var(ddof=1)):.3f}; "
+      f"corr(vertical, strangle) {float(np.corrcoef(vert_short, sg_short)[0, 1]):+.3f}")
+ls_v = (px["pos"].astype(float) * (st["vert_exit"] - st["vert_entry"]))[grid]
+m_lv, t_lv, _ = bl_nw(ls_v)
+print(f"the vertical under the long-short rule: mean {m_lv:+.3f} points/day (t {t_lv:+.2f})")
+pd.DataFrame({"straddle_short_pts": strad_short, "strangle_short_pts": sg_short, "vertical_short_pts": vert_short}).to_csv(
+    OUT / "body_lab_decomposition_blk2.csv")
+
+print("--- fraction of wealth (long-short), all forecasts ---")
+print(kelly_tab.to_string(float_format=lambda x: f"{x:+.3f}"))
+
+
+# --- realistic fills: sell at the bid, buy at the ask, on every leg -----------
+def _leg_ok(bid, ask, sold):
+    b = pd.to_numeric(bid, errors="coerce"); a = pd.to_numeric(ask, errors="coerce")
+    base = np.isfinite(b) & np.isfinite(a) & (a >= b) & (b >= 0)
+    return base & (b > 0) if sold else base & (a > 0)
+
+
+pos = px["pos"].astype(float)
+ok = pd.Series(True, index=days)
+for fr_ in (px, st):
+    for bcol, acol in (("bid_c", "ask_c"), ("bid_p", "ask_p")):
+        ok &= _leg_ok(fr_[bcol], fr_[acol], True)                       # the sold legs (always short sells both every day)
+        ok &= _leg_ok(fr_[bcol], fr_[acol], False)                      # the bought legs on long days
+print(f"--- crossed fills: {int(ok.sum())} of {len(days)} days have usable bid/ask on all four legs of both bodies ---")
+fills, spreads = {}, {}
+for b, fr_ in ((BODIES[0], px), (BODIES[1], st)):
+    bid_sum = fr_["bid_c"] + fr_["bid_p"]; ask_sum = fr_["ask_c"] + fr_["ask_p"]
+    half = ((fr_["ask_c"] - fr_["bid_c"]) + (fr_["ask_p"] - fr_["bid_p"])) / 2.0
+    for rule, qq in (("always short", pd.Series(-1.0, index=days)), ("long-short volatility", pos)):
+        entry_fill = bid_sum.where(qq < 0, ask_sum)
+        rpf = (qq * (fr_["exit"] / entry_fill - 1.0))[ok]
+        rpm = (qq * fr_["R"])[ok]
+        tv = fr_["time_value"] if b == BODIES[1] else fr_["entry"]
+        rpf_tv = (qq * (fr_["exit"] - entry_fill) / tv)[ok]
+        rpm_tv = (qq * (fr_["exit"] - fr_["entry"]) / tv)[ok]
+        fills[(b, rule)] = {"n": int(ok.sum()), "Sharpe_mid": bl_sharpe(rpm), "Sharpe_crossed": bl_sharpe(rpf),
+                            "Sharpe_mid_tv": bl_sharpe(rpm_tv), "Sharpe_crossed_tv": bl_sharpe(rpf_tv),
+                            "mean_mid": float(rpm.mean()), "mean_crossed": float(rpf.mean()),
+                            "half_spread_over_premium_median": float((half / fr_["entry"])[ok].median())}
+    rel_c = ((fr_["ask_c"] - fr_["bid_c"]) / fr_["mid_c"])[ok]; rel_p = ((fr_["ask_p"] - fr_["bid_p"]) / fr_["mid_p"])[ok]
+    if b == BODIES[1]:
+        itm_call = (fr_["itm_leg"] == "call")[ok]
+        spreads["straddle, in-the-money leg"] = float(pd.concat([rel_c[itm_call], rel_p[~itm_call]]).median())
+        spreads["straddle, out-of-the-money leg"] = float(pd.concat([rel_c[~itm_call], rel_p[itm_call]]).median())
+    else:
+        spreads["strangle call"] = float(rel_c.median()); spreads["strangle put"] = float(rel_p.median())
+fills_tab = pd.DataFrame(fills).T
+fills_tab.index = pd.MultiIndex.from_tuples(fills_tab.index, names=["body", "rule"])
+print(fills_tab.to_string(float_format=lambda x: f"{x:+.4f}"))
+print("median relative spread (ask - bid) / mid by leg:")
+print(pd.Series(spreads).to_string(float_format=lambda x: f"{x:.3f}"))
+fills_tab.to_csv(OUT / "body_lab_fills_blk2.csv")
+pd.Series(spreads, name="rel_spread").to_csv(OUT / "body_lab_spreads_blk2.csv")
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 3.8))
+for b, c in zip(BODIES, ("C0", "C1")):
+    for ax, fr, ttl in ((axes[0], "per premium", "per dollar of premium"), (axes[1], "per time value", "per dollar of time value"),
+                        (axes[2], "index points", "index points per package")):
+        r = blk2_rp[(b, "long-short volatility", fr)]
+        lab = f"{b}: Sharpe {bl_sharpe(r):.2f}" if fr != "index points" else b
+        ax.plot(r.index, r.cumsum().values, lw=1.1, color=c, label=lab)
+        ax.set_title(f"long-short, cumulative return {ttl}", fontsize=10)
+for ax in axes:
+    ax.axhline(0, color="k", lw=0.5); ax.legend(fontsize=8)
+fig.suptitle("block-diagonal ridge forecast, one signal, two bodies", fontsize=9)
+fig.tight_layout()
+fig.savefig(OUT / "body_lab_cum_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "body_lab_cum_blk2.png")
 display(fig)
 plt.close(fig)
 """
