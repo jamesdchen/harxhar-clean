@@ -726,16 +726,17 @@ plt.close(fig)
 
 The signal is fixed at 15:30 and the package settles at 16:00 the same
 day, so the test pairs $s_t$ with $R_t$; nothing observed after the
-decision enters the signal. Per forecast, plain least squares
+decision enters the signal. Per forecast, the plain least-squares fit
 
 $$R_t = a + b\,s_t + \varepsilon_t$$
 
-the table reports $b$, its
-$t$-statistic and $R^2$ for the seven forecasts. The figure shows the
-block-diagonal ridge fit and, beside it, the mean of $R_t$ on each side
-of the signal against the always-short portfolio — means only;
-read them against the $t$-statistics in the table. It is a
-reading the paper takes up.
+is reported: the table gives $b$, its $t$-statistic and $R^2$ for the
+seven forecasts. The figure, for the block-diagonal ridge forecast,
+shows the fit; the mean of $R_t$ on each side of the signal against the
+always-short portfolio; and the mean of $R_t$ by level of the signal —
+ten equal-count bins of $s_t$, each labelled by its median value in
+units of $10^{-6}$ (30-minute variance). Means only; read them against
+the $t$-statistics in the table. It is a reading the paper takes up.
 """
     ),
     code(
@@ -766,7 +767,7 @@ print(reg_tab.to_string(index=False))
 reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
 
 s, r, fit = fig_inputs
-fig, axes = plt.subplots(1, 2, figsize=(12, 4.4), gridspec_kw={"width_ratios": [1.4, 1]})
+fig, axes = plt.subplots(1, 3, figsize=(16, 4.4), gridspec_kw={"width_ratios": [1.3, 1, 1.2]})
 axes[0].scatter(s, r, s=8, alpha=0.35)
 xx = np.linspace(float(s.min()), float(s.max()), 50)
 axes[0].plot(xx, fit.params[0] + fit.params[1] * xx, color="C3", lw=1.2,
@@ -796,6 +797,19 @@ axes[1].set_xticklabels([f"{lab}\nn = {n}" for lab, _, n, _ in stats], fontsize=
 axes[1].set_ylabel(r"mean $R_t$")
 axes[1].set_title("mean return by the sign of the signal", fontsize=10)
 axes[1].legend(fontsize=8, loc="upper left", frameon=False)
+
+# mean return by level of the signal: ten equal-count bins of s_t, labelled by the bin median in units of 1e-6
+bins = pd.qcut(s, 10, labels=False, duplicates="drop")
+levels = s.groupby(bins).median() * 1e6
+means = r.groupby(bins).mean()
+axes[2].bar(range(len(means)), means.to_numpy(), color=["C3" if v <= 0 else "C0" for v in levels], alpha=0.85, width=0.7)
+axes[2].axhline(bench_mean, color="k", lw=0.9, ls="--")
+axes[2].axhline(0.0, color="k", lw=0.5)
+axes[2].set_xticks(range(len(means)))
+axes[2].set_xticklabels([f"{v:+.1f}" for v in levels], fontsize=8)
+axes[2].set_xlabel(r"level of $s_t$: bin medians, $	imes 10^{-6}$ (ten equal-count bins)", fontsize=9)
+axes[2].set_ylabel(r"mean $R_t$")
+axes[2].set_title("mean return by level of the signal", fontsize=10)
 fig.text(0.5, 0.005, "block-diagonal ridge forecast", ha="center", fontsize=8, color="0.3")
 fig.tight_layout(rect=(0, 0.03, 1, 1))
 fig.savefig(OUT / "regression_R_on_signal_blk2.png", dpi=120, bbox_inches="tight")
