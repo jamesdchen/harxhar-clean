@@ -43,13 +43,13 @@ Same instrument, clocks, smear, and signal as
    sensitivity
 5. paired significance (NW + block bootstrap) on the headline deltas
    (§13)
-6. credit verticals under construction (§14): why wings on selling
-   days do not pay per dollar of premium — wing-cost decomposition,
+6. the iron flies of RV–IV §16 (§14): why wings on selling days do
+   not pay per dollar of premium — wing-cost decomposition,
    quoted-spread fills, one-sided wings, a width ladder, and when the
    cap pays
-7. cutting exposure on days the lagged signal flags risk (§15): the
-   deck's day-ahead risk forecast used as a stand-aside rule, scored on
-   the tail against a placebo
+7. cutting exposure on days yesterday's signal ranked high (§15): a
+   stand-aside rule scored on the tail against a placebo — a negative
+   result; the flag lands on buying days, not on the losses
 
 $R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`.
 
@@ -796,8 +796,8 @@ print("saved experimental_weights_*.csv")
 
 Body is the §1 nearest-OTM package; wings are the nearest live 15:30
 mids at least $w$ points further OTM (`asl.pick_wings`; the same wing
-selection as the credit-vertical construction, parked in the RV–IV deck
-and under construction in §14 here). Short iron condor = short body + long wings.
+selection as the iron flies of RV–IV §16, explored in §14 here). Short
+iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged; the three rules use the blk2
@@ -1076,10 +1076,8 @@ plt.close(fig)
         r"""
 ## 10. Strangle-body condors and per-side attribution
 
-The credit-vertical construction (parked in the RV–IV deck, under
-construction in §14) prices the straddle-body package as credit
-vertical spreads.
-Here the body is a **strangle**: the next listed strike above the
+The iron flies of RV–IV §16 (explored in §14) wrap the straddle-body
+package in wings. Here the body is a **strangle**: the next listed strike above the
 nearest-OTM call and below the nearest-OTM put, from the same 15:30
 live mids (one step on the actual grid — $5$ points on $99.6\%$ of
 days, never a fixed offset). Wings are `asl.pick_wings` measured from
@@ -1227,9 +1225,9 @@ Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
 quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days). The credit-vertical book (parked in the RV–IV
-deck, under construction in §14) is scored per body premium at
-$|q|=1$, so its rows are not in the same units as these tables.
+on the common days). The iron-fly book of RV–IV §16 is scored per
+body premium at $|q|=1$, so its rows are not in the same units as
+these tables.
 """
     ),
     code(
@@ -1521,12 +1519,14 @@ print("saved", OUT / "significance_pairs.csv")
     ),
     md(
         r"""
-## 14. Credit verticals under construction
+## 14. Why the iron-fly wings do not pay per premium
 
-The credit-vertical version of the book — a wing bought on each side
-of the body whenever the book sells, which turns the short straddle
-into two credit spreads — has been parked in the main notebook
-because, per dollar of body premium, it does not help: the long–short
+The main notebook's §16 wraps the book in an iron fly — a wing bought
+on each side of the body whenever the book sells, which turns the
+short straddle into two credit spreads — and keeps it as a venue
+constraint, the defined-risk structure a retail margin account
+requires on cash-settled SPX or XSP, not as an improvement. Per dollar
+of body premium the wings do not help: the long–short
 book loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
 against 1.62 without wings on the same days), the always-short control
 loses what little edge it had, and compounded wealth suffers in
@@ -1536,7 +1536,7 @@ a paired $t$-statistic of essentially zero. This section asks why, so
 that the construction can be revisited with the right question rather
 than dropped.
 
-The book is rebuilt here exactly as the parked slide built it. The
+The book is rebuilt here exactly as §16 of the main notebook builds it. The
 body is the 15:30 nearest-out-of-the-money package; the wings are the
 nearest live 15:30 midpoint quotes at least $w$ points further out of
 the money; the package is settled in cash at the official close; the
@@ -1545,8 +1545,8 @@ non-positive credit are dropped with a printed count; the seller's
 worst case is the larger actual wing gap minus the credit. Returns are
 per dollar of body premium throughout, on the same days and with the
 same denominator for the hedged and the plain book, so every
-comparison is like against like. The cell first reproduces the parked
-slide's headline and stops if it cannot.
+comparison is like against like. The cell first reproduces the §16
+headline at 25 points and stops if it cannot.
 
 Four questions follow.
 
@@ -1561,8 +1561,9 @@ Four questions follow.
    asymmetric, so the put wing alone and the call wing alone are scored
    against both wings and none.
 3. *Is there a width at which the hedged book wins?* The width ladder
-   of §8 — fixed gaps of 10 to 100 points and gaps scaled to the
-   package price — scored per premium on the long–short composite,
+   of §8 — fixed gaps of 10 to 100 points, including the 20- and
+   30-point wings §16 reports, and gaps scaled to the package price —
+   scored per premium on the long–short composite,
    with the share of selling days on which the settlement reaches a
    wing.
 4. *When do the wings pay?* The distribution of how far the settlement
@@ -1588,9 +1589,12 @@ put wing alone costs almost as much Sharpe as both wings and is the
 only one that shortens the worst day, while the call wing is nearly
 free and protects nothing. No width on the ladder beats the plain book
 — the best is 50 points, 0.08 of Sharpe behind with a paired $t$ of
-$-2.2$ — and the gap is negative for all seven forecasts. Paying the
-quoted spread makes it worse: with the wings bought at the ask, which
-is quoted at 1.3 to 2 times their midpoint, they cost 0.09 points a
+$-2.2$ — and the gap is negative for all seven forecasts. At the 20-
+and 30-point wings §16 reports, the long–short book gives up 0.26 and
+0.15 of Sharpe (paired $t$ of $-2.8$ and $-2.1$) and the settlement
+reaches a wing on 7.3% and 2.4% of selling days. Paying the quoted
+spread makes it worse: with the wings bought at the ask, which is
+quoted at 1.2 to 2 times their midpoint, they cost 0.09 points a
 day and the long–short book gives up 0.3 of Sharpe at 25 points
 against the plain book filled the same way.
 
@@ -1598,16 +1602,16 @@ against the plain book filled the same way.
 Would wings placed by delta, or by the forecast itself — wider when
 the forecast is calm, tighter when it is not — change the ratio of
 cost to coverage, given that the cap is reached on one selling day in
-twenty-five? Would hedging conditionally, only on days the lagged
-signal flags elevated risk (the main notebook's §14 shows it prices
-tomorrow's risk), buy the protection where it is cheap relative to the
-payoff? And is the crash-year payoff a property of the instrument or
+twenty-five? Would hedging conditionally, only on days some measure
+flags elevated risk, buy the protection where it is cheap relative to
+the payoff? (§15 tries the lagged signal's rank as that measure and
+finds it points at the wrong tail.) And is the crash-year payoff a property of the instrument or
 of one event?
 """
     ),
     code(
         r"""
-# --- the credit-vertical book, rebuilt exactly as the parked RV-IV slide built it ---
+# --- the iron-fly book, rebuilt exactly as the RV-IV deck section 16 builds it ---
 vl_body = atm.reset_index()
 vl_close = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 vl_close.index = pd.to_datetime(vl_close.index).tz_localize(None).normalize()
@@ -1667,11 +1671,13 @@ def vl_rows(vs, px, cfg="both"):
 
 px_b = books["blk2"]
 vl = {w: vl_book(width=w) for w in (25.0, 50.0)}
+# the wing widths the RV-IV deck section 16 reports, for the fills and one-sided tables
+vl_wide = {w: (vl[w] if w in vl else vl_book(width=w)) for w in (20.0, 25.0, 30.0, 50.0)}
 
-# --- gate: reproduce the parked slide's headline before extending ---
+# --- gate: reproduce the RV-IV section 16 headline before extending ---
 rows25, j25 = vl_rows(vl[25.0], px_b)
 print("gate: w=25 long-short per premium, hedged Sharpe", f"{rows25.loc['long-short volatility', 'Sharpe_hedged']:.4f}",
-      "(parked slide 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (parked slide -0.007)")
+      "(RV-IV section 16 at w=25: 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (RV-IV section 16: -0.007)")
 assert abs(rows25.loc["long-short volatility", "Sharpe_hedged"] - 1.417) < 0.005
 assert abs(float(j25["drag_both"].mean()) - (-0.007)) < 0.002
 print("gate passed")
@@ -1700,7 +1706,7 @@ vl_dec.to_csv(OUT / "vert_lab_wing_cost_by_year_blk2.csv")
 # (a2) realistic fills: body sold at the bid, wings bought at the ask; buy days pay the ask on the body
 print("=== (a2) paying the quoted spread: body at the bid, wings at the ask ===")
 fill_rows = []
-for w, vs in vl.items():
+for w, vs in vl_wide.items():
     j = vs.join(px_b[["pos", "R"]], how="inner", rsuffix="_strad")
     j = j.loc[j.index.intersection(common)]
     ok = (_tc_leg_ok(j["bid_c"], j["ask_c"], True) & _tc_leg_ok(j["bid_p"], j["ask_p"], True)
@@ -1736,7 +1742,7 @@ vl_fill.to_csv(OUT / "vert_lab_fills_blk2.csv")
 # (b) one wing at a time
 print("=== (b) one-sided wings on sell days, per body premium, blk2 ===")
 side_rows = []
-for w, vs in vl.items():
+for w, vs in vl_wide.items():
     for cfg in ("none", "put", "call", "both"):
         r, _ = vl_rows(vs, px_b, cfg=cfg)
         for name, row in r.iterrows():
@@ -1748,7 +1754,8 @@ vl_side.to_csv(OUT / "vert_lab_one_sided_blk2.csv")
 
 # (c) the width ladder, per body premium
 print("=== (c) width ladder, wings on sell days, per body premium, blk2 ===")
-lad_books = {f"w{int(w)}": vl_book(width=w) for w in (10.0, 25.0, 50.0, 75.0, 100.0)}
+lad_books = {f"w{int(w)}": (vl_wide[w] if w in vl_wide else vl_book(width=w))
+             for w in (10.0, 20.0, 25.0, 30.0, 50.0, 75.0, 100.0)}
 for cmult in (1.0, 2.0, 4.0):
     lad_books[f"c{int(cmult)}xentry"] = vl_book(w_row=cmult * vl_body["entry"].to_numpy(float))
 lad_rows = []
@@ -1820,7 +1827,7 @@ print(vl_mod.to_string(float_format=lambda v: f"{v: .3f}"))
 vl_mod.to_csv(OUT / "vert_lab_models.csv")
 
 fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
-order = ["w10", "w25", "w50", "w75", "w100", "c1xentry", "c2xentry", "c4xentry"]
+order = ["w10", "w20", "w25", "w30", "w50", "w75", "w100", "c1xentry", "c2xentry", "c4xentry"]
 xs = np.arange(len(order))
 for name, c in (("long-short volatility", "C0"), ("always short", "C1")):
     sub = vl_lad.xs(name, level="rule").loc[order]
@@ -1846,12 +1853,11 @@ plt.close(fig)
         r"""
 ## 15. Cutting exposure on days the lagged signal flags risk
 
-The RV–IV deck's lagged-signal section finds that yesterday's signal
-does not predict today's return, but that its percentile rank does
-predict the size of today's move: the regression of $|R_t|$ on the
-rank of $s_{t-1}$ is significant for all seven forecasts. That reads
-like a day-ahead risk forecast, and wings have already failed to
-manage the sell-side tail (§14). This section asks the natural
+Yesterday's signal does not predict today's return, but days on which
+its percentile rank was high do show larger settlement moves on
+average — the flagged-against-unflagged comparison printed below.
+Taken at face value that reads like a day-ahead risk flag, and wings
+have already failed to manage the sell-side tail (§14). This section asks the natural
 follow-up: does stepping aside on the days the lagged signal flags as
 risky improve the tail of the long–short book?
 

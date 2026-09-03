@@ -3,7 +3,8 @@
 
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
-the two measurements, the position rules, and the control; constants were set before the book was scored.
+the two measurements, the position rules, a defined-risk variant, and the
+control; constants were set before the book was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
 to expiry, cash-settled on the day's official close. The panel is the
@@ -161,30 +162,32 @@ drawdown, its per-year volatility --- and not on the Sharpe ratio,
 which a pure rescaling should leave roughly unchanged.
 \fi
 
-% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
-\iffalse
-\paragraph{Defined-risk variant.} Selling the package leaves an
-unbounded downside. On short days a variant of each rule buys a wing
-on each side of the body --- the nearest strike with a live 15:30 mid
-at least $w$ points further out of the money, $w \in \{25, 50\}$ ---
-turning each short leg into a credit vertical spread; the pair is a
-short iron condor. The net credit is $C$, body premium minus wing
-premium, and days with $C \le 0$ are dropped with a printed count. The
-worst settlement loses the larger \emph{actual} wing gap minus the
-credit --- the nearest listed wing can sit farther out than the
-nominal $w$ --- so the return on capital at risk is bounded below by
-$-1$ exactly, and the scoring asserts that bound. The hedge is
-asymmetric by design: on long-volatility days the rule holds the plain
-package of Equation~\eqref{eq:close_opt_settle}, whose loss is already
-capped at the premium paid, and wings there would cap the tail the
-position exists to own. Returns are quoted per dollar of body premium
---- the same denominator as the unhedged book, so short and long days
-live in one unit and rows compare across tables. The bounded
-capital-at-risk view is reported as a diagnostic only: its denominator
-is smallest exactly on rich-credit, high-volatility days, so it
-concentrates the series' variance in a handful of days and misreads
-cheap tail insurance as a losing trade.
-\fi
+\paragraph{Defined-risk variant.} A retail account trading cash-settled
+SPX or XSP under defined-risk margin cannot hold the short package
+naked: every short leg must be covered. The variant scored here is that
+constraint made explicit. On selling days the rule buys a wing on each
+side of the body --- the nearest strike with a live 15:30 mid at least
+$w$ points further out of the money, $w \in \{20, 25, 30, 50\}$ --- so
+the position is an iron butterfly around the same package as everywhere
+else in this section (an iron condor one strike wide when the body is a
+strangle). The net credit is $C$, body premium minus wing premium, and
+days with $C \le 0$ are dropped with a printed count. The worst
+settlement loses the larger \emph{actual} wing gap minus the credit ---
+the nearest listed wing can sit farther out than the nominal $w$ --- so
+the return on capital at risk is bounded below by $-1$ exactly, and the
+scoring asserts that bound. The hedge is asymmetric by design: on
+long-volatility days the rule holds the plain package of
+Equation~\eqref{eq:close_opt_settle}, whose loss is already capped at
+the premium paid, and wings there would cap the tail the position
+exists to own. Returns are quoted per dollar of body premium --- the
+same denominator as the unhedged book, so short and long days live in
+one unit and the cost of the constraint reads directly against the
+plain book. The bounded capital-at-risk view is kept as the second
+frame for the fraction-of-wealth exercise below, not as a headline: its
+denominator is smallest exactly on rich-credit, high-volatility days.
+Because the constraint is a venue fact rather than a modeling choice,
+the questions asked of it are its price and the width and fraction to
+choose under it, not whether the wings improve the book.
 
 \paragraph{Compounding at a fraction of wealth.} The tables above
 price one unit of premium per day and add P\&L up. A reinvesting
@@ -194,9 +197,8 @@ is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
 any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
 day, so the unhedged short book, with a worst day near $-10$ premium
 units, can only ever bet a small fraction of wealth no matter how
-good its mean --- a defined-risk variant, under construction and not
-reported here, bounds the worst day by
-construction, which is exactly what loosens this constraint. The
+good its mean --- the defined-risk variant above bounds the worst day
+by construction, which is exactly what would loosen this constraint. The
 fraction is estimated causally from the book's own past returns,
 \begin{equation}
     \hat f_t \;=\;
@@ -220,8 +222,7 @@ unbounded, which is exactly why the ruin bound above governs the
 admissible fraction. A true \emph{capital-at-risk} frame --- $f_t$
 posted as max-loss collateral, the day's return on that capital
 bounded below by $-1$ by construction --- exists only once the worst
-day is bounded; it applies to a defined-risk variant that is under
-construction and not reported here. One unit
+day is bounded; it applies to the defined-risk variant. One unit
 of wealth posted as collateral controls several times less premium
 exposure than one unit deployed as premium, and the ratio varies day
 to day, so growth rates compare only within a frame, never across.

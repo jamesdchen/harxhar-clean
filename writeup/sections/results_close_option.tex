@@ -96,7 +96,8 @@ $t=2.9$ for the block-diagonal ridge; $t$ between 1.9 and 3.3 across
 the seven forecasts), and the top third of days by the percentile
 rank of $s_t$ beats the bottom third with $t$ between 2.0 and 3.0 for
 every forecast. That is the long--short book of
-Table~\ref{tab:close_option_rules}, read as a regression. A straight
+Table~\ref{tab:close_option_rules}, read as a regression, and
+Figure~\ref{fig:close_option_sameday} shows it. A straight
 line is the wrong instrument for the same relation: the slope of
 $R_t$ on the raw signal has no stable sign across forecasts ($t$ from $-0.5$ to $+3.6$), because $R$ has a
 point mass at $-1$ on 22.7 percent of days and a fat right tail, so
@@ -107,6 +108,22 @@ The same rank is strongly related to the \emph{magnitude} $|R_t|$
 the day's implied variance enters the regression the rank's $t$ falls
 to between 1.3 and 2.5 (implied variance itself $t \approx -3.8$) ---
 a cheap straddle moves more per dollar of premium.
+
+\begin{figure}[H]
+\centering
+\treefigorpending{\textwidth}{../results/atm_straddle_0dte_1530/sameday_figure_blk2.png}
+\caption{The 15:30 signal against the 16:00 settlement return, block-diagonal
+ridge forecast, 871 expiration days. Left: the mean settled return $R_t$ on
+days the forecast sat below the quoted implied variance and on days it sat
+above, with Newey--West standard errors (six lags); the grey bar and the
+dashed line are the always-short book over all days, the benchmark
+throughout. Right: the same mean by decile of the signal's percentile rank
+among all days up to and including $t$ (decile 1 furthest below implied,
+decile 10 furthest above). The relation is a step at the sign with no
+trend within either half: the signal's content is which side of the quoted
+variance the forecast stands on, not how far.}
+\label{fig:close_option_sameday}
+\end{figure}
 
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
@@ -126,25 +143,33 @@ days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
 COVID transition itself falls inside the estimator's warm-up.
 \fi
 
-% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
-\iffalse
-\paragraph{Capping the sell-side tail costs almost nothing in dollars.}
-Buying the nearest wing at least 25 (or 50) points further
-out-of-the-money on every selling day turns the short straddle into a
-pair of credit vertical spreads whose worst case is the larger actual
-wing gap minus the credit received; long-volatility days hold the plain
-straddle, whose risk is already its premium. Per dollar of body premium
-the long--short book keeps most of its performance --- Sharpe 1.42 at
-$w=25$ and 1.54 at $w=50$ against 1.62 uncapped on the same days ---
-while the always-short control's thin edge does not survive the wing
-drag ($-0.06$ and $+0.10$ against $+0.27$). In dollar terms the
-insurance is close to free: at $w=25$ the wings cost 0.007 index points
-per package-day (paired HAC $t=-0.04$) while cutting the worst
-settlement day from $-78$ to $-22$ points and returning $+310$ points
-across the ten worst naked days. Quoted per unit of capital at risk the
-same cap looks expensive; that is an artifact of the denominator, which
-is smallest exactly on rich-credit, high-volatility days.
-\fi
+\paragraph{The price of the defined-risk constraint.} Per dollar of
+body premium the wings cost the long--short book at every width, and
+the cost falls with distance: annualized Sharpe 1.36, 1.42, 1.47 and
+1.54 at $w = 20, 25, 30, 50$ against 1.62 for the plain book on the
+same 870 days (paired daily difference $-221$, $-164$, $-120$ and $-62$
+basis points; Newey--West $t$ between $-2.4$ and $-3.0$ for the
+block-diagonal ridge, and a lower Sharpe ratio for every one of the seven
+forecasts at every width). The always-short control does not survive the constraint at
+any width below 50 ($-0.15$, $-0.06$, $0.00$ and $+0.10$ against
+$+0.27$). What the constraint buys is the dollar tail on the days the
+long--short book sells:
+the worst settlement falls from $-78$ points per package to $-17$,
+$-20$, $-25$ and $-37$, with the settlement landing beyond a wing on
+7.3, 4.3, 2.5 and 1.1 percent of selling days. Per premium the
+long--short book's worst day barely moves ($-4.7$ at $w=20$; unchanged
+at $-5.4$ for any wider wing), because its worst days are moderate
+moves on low-premium days that no wing reaches. At midpoint quotes the
+wings roughly pay for themselves in points --- premium paid against
+settlement received on selling days is within a few points at every
+width, $t$ near zero --- but that is one quarter's doing: the first
+quarter of 2020, inside the estimation warm-up, returned 50 to 83
+percent of everything the wings ever paid back, and in 2021 and 2024
+they paid nothing at any width of 25 or more. At realistic fills ---
+the body sold at the bid, the wings bought at the ask, whose median
+sits 20 to 100 percent above the midpoint --- the price is higher: the
+long--short book's crossed Sharpe is 0.69, 0.77, 0.83 and 0.92 against
+1.11 for the plain book crossed.
 
 \paragraph{Compounded at a causally estimated fraction, the long--short
 book grows; the control does not.} Betting the fraction of
@@ -158,29 +183,36 @@ positively under the same procedure (terminal wealth $1.9$ to $177$),
 and the growth is uneven: 2021 and 2022 are negative years for the
 headline book. The always-short control loses outright (terminal
 $0.67$) --- its mean is too small for the plug-in estimate, which is
-noise there. A defined-risk variant with credit vertical spreads is
-under construction and is not reported here.
+noise there. Whether the defined-risk variant loosens the ruin bound
+that limits this fraction is the next question.
 
-% CREDIT-VERTICALS PARKED 2026-09-02: under construction; slide parked in the deck.
-\iffalse
-\paragraph{The defined-risk book compounds in two frames, and the
-frame decides the verdict.} In the capital-at-risk frame --- well
-defined here because the worst day is bounded at $-1$, so no fraction
-below one can be ruined --- the long--short book is a fully
-collateralized floor: it compounds to about $2.5$ at the causal
-fraction at either width, the estimator's running ruin cap pins at
-one after the first $-1$ day and never binds (the bound, not the cap,
-excludes ruin), and at $w=50$ the always-short row is exact zeros:
-the trailing mean is negative throughout, so the estimator refuses
-the book entirely. In the per-premium frame --- the only unit shared
-with the uncapped book --- the capped long--short book compounds to
-$12.3$ at $w=25$ and $21.9$ at $w=50$ against $33.9$ uncapped on the
-same days: the wing drag compounds into a real growth cost, and the
-bounded worst day does not pay for itself in growth on this sample,
-because the causal estimator already bets too small for the cap to
-matter. The insurance case for the wings is the dollar story above,
-not a growth story; the two scoreboards must not be blended.
-\fi
+\paragraph{Under the constraint the fraction of wealth barely moves,
+and the frame decides the number.} The bounded worst day is exactly
+what would loosen the ruin bound on the fraction, but in this sample
+the bound was never the binding term: the causal fraction of
+Equation~\eqref{eq:close_opt_kelly} sits well below it on every day for
+the plain book (mean 0.063, maximum 0.106) and stays there under the
+wings (mean 0.054 to 0.062 per premium across the four widths; the
+running cap binds on no day in any book). The fraction is set by the
+estimate of mean over second moment, not by the worst day, so capping
+the worst day does not let the trader bet more. In the per-premium
+frame the defined-risk book compounds to 10.3, 12.3, 14.8 and 21.9
+times initial wealth at $w = 20, 25, 30, 50$ against 33.9 for the plain
+book on the same days --- the wing cost compounds into a real growth
+cost, smallest at the widest wing --- while the worst single-day wealth
+factor improves only from 0.51 to between 0.53 and 0.64. In the
+capital-at-risk frame, well defined here because no fraction below one
+can be ruined, the same book is a fully collateralized floor: a mean
+fraction of 0.03 to 0.04 of wealth posted as collateral, terminal
+wealth 2.3 to 2.7, worst single day $-7$ percent of wealth. The two
+frames are different units and compare only within themselves. Taken
+together the numbers support the widest wing the margin rule allows:
+at $w=50$ the constraint costs 0.08 of Sharpe and a third of compounded
+growth while halving the worst selling day in points, and every
+narrower wing buys a smaller dollar tail at two to three times that
+cost. The width is a choice of the dollar worst day the account can
+carry, not a growth decision --- and every figure here is a midpoint
+figure that worsens at the ask.
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 % UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,
