@@ -386,20 +386,46 @@ print("n", len(atm))
         r"""
 ## 7. Variance forecasts
 
-Seven forecasting models are read in, one stored table each, all produced by the paper's forecasting pipeline on the same panel:
+**Which half-hour bar.** The forecast table labels every bar by the
+time it *ends*: the row labelled 16:00 holds the realized variance of
+the 15:30–16:00 bar and the forecast of that bar, issued at 15:30. The
+15:30 book must therefore read the **row labelled 16:00** — the
+forecast for the very bar it trades, made with nothing observed after
+15:30. The row labelled 15:30 is the forecast of the 15:00–15:30 bar:
+also free of look-ahead, but one bar stale. (An earlier version of this
+notebook used it.)
 
-- the baseline forecast (HAR + calendar OLS);
-- the block-diagonal ridge forecast, the paper's headline model, with the FOMC calendar columns in its design;
-- LightGBM and XGBoost, each on the wide all-features design with a frozen menu of settings;
-- the lasso on the same all-features design, with its penalty chosen from past data only (the paper's protocol);
-- the lasso at a fixed penalty of $10^{-4}$, set by hand — the centre of the tuning envelope rather than the paper's head-to-head entry;
-- the elastic net, with its penalties chosen from past data only.
+**Seven forecasts**, one stored table each, all from the paper's
+pipeline on the same panel:
 
-Each stored forecast is on the scale the models were fitted on, $y=\sqrt{RV/B}$ with $B$ the time-of-day profile, and winsorized. It is mapped back to a raw 30-minute variance by the Mincer–Zarnowitz recalibration: a regression of realized on forecast that maps the forecast onto the realized scale, including its variance term. Over the trailing 250 days $[t-250,t)$ the line $m=a+b\,\hat y$ and its residual variance $\hat\sigma^2$ are fitted against the unwinsorized realized value $y^{\mathrm{raw}}=\sqrt{RV^{\mathrm{raw}}/B}$, by weighted least squares with weights $1/\max(\hat y, q_{10})^2$, where $q_{10}$ is the tenth percentile of $\hat y$ within the window. The variance forecast is then $\widehat{RV}=(m^2+\hat\sigma^2)\,B$: the expected realized variance of the 15:30–16:00 bar. Nothing observed after the decision time enters the fit.
+- baseline (HAR + calendar OLS);
+- block-diagonal ridge — the paper's headline model, with the FOMC
+  calendar columns in its design;
+- LightGBM and XGBoost on the wide all-features design, frozen settings;
+- the lasso on that design with its penalty chosen from past data only,
+  and the lasso at a fixed penalty of $10^{-4}$;
+- the elastic net, penalties chosen from past data only.
 
-**Which forecast, and which bars it is fitted on.** The forecast table labels each half-hour bar by the time it ends: the row labelled $\tau$ carries the realized variance of the bar from $\tau-30$ to $\tau$ together with the forecast of that bar, which was issued at $\tau-30$. The 15:30 book therefore uses the row labelled 16:00 — the forecast issued at 15:30 for the very bar it trades. An earlier version of this notebook used the row labelled 15:30, which is the forecast of the 15:00–15:30 bar: it uses nothing observed after the decision time, but it is one bar stale. The recalibration is fitted only on the bars the paper scores, from 10:00 to 16:00; bars outside that window are mispredicted by a factor of roughly 50 to 100 and, when they were included, distorted the calibration (the mean ratio of forecast to realized variance fell from 1.14 to 1.08 once they were excluded). The fitted coefficients are then applied to every row.
+**From stored forecast to a variance.** Forecasts are stored on the
+fitted scale $y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized.
+Each is mapped to a 30-minute variance by a Mincer–Zarnowitz
+recalibration fitted on the trailing 250 days only:
 
-Two practical notes. The two-parameter fit is solved in closed form, one day at a time, in a routine shared with the intraday notebook. Each model's 15:30 table is cached and keyed to its inputs — the source file, the fitting conventions, and the set of option days — so a re-run with unchanged inputs skips the computation, and any change to the inputs forces it to be redone. The seven tables are loaded in parallel.
+- fit $m=a+b\,\hat y$ and the residual variance $\hat\sigma^2$ against
+  the unwinsorized realized $\sqrt{RV/B}$, by weighted least squares
+  with weights $1/\max(\hat y, q_{10})^2$ ($q_{10}$ the window's tenth
+  percentile of $\hat y$);
+- $\widehat{RV}=(m^2+\hat\sigma^2)\,B$ — the expected realized variance
+  of the 15:30–16:00 bar;
+- the fit uses only the bars the paper scores, 10:00 to 16:00; bars
+  outside that window are mispredicted by a factor of 50 to 100 and,
+  when they were included, pushed the forecast-to-realized ratio from
+  1.08 to 1.14.
+
+Housekeeping: the fit is solved in closed form one day at a time, in a
+routine shared with the intraday notebook; each model's table is cached
+and keyed to its inputs, so unchanged inputs skip the computation and
+any change forces it; the seven tables load in parallel.
 """
     ),
     code(
