@@ -17,7 +17,7 @@ SPX_MULTIPLIER = 100.0
 WINDOW_DAYS = 250  # legacy flat MZ window (halflife=None path)
 MZ_HALFLIFE_DAYS = 63  # EWMA halflife (days) for the smear's sufficient statistics
 YHAT_LABEL = {
-    "a0": "HAR + calendar OLS",
+    "a0": "baseline (HAR + calendar OLS)",
     "blk2": "block-diag ridge",
     "lgbm": "LightGBM",
     "xgb": "XGBoost",

@@ -122,18 +122,18 @@ scheduled print the four channels are missing (a dead tail), so the
 impute-and-indicate construction of Section~\ref{sec:dp_prep} sees a
 stopped feed rather than a wall of zeros.
 
-OLS on the HAR ladder plus this FOMC calendar bucket beats HAR +
-calendar OLS on the shared evaluation panel
+OLS on the HAR ladder plus this FOMC calendar bucket beats the baseline (HAR + calendar OLS)
+on the shared evaluation panel
 (Table~\ref{tab:fomc_bucket}): scheduled calendar information in the
 design, not a post-forecast filter. Joint OLS on all features, with
-the FOMC channels included among the rest, still loses to HAR +
-calendar OLS.
+the FOMC channels included among the rest, still loses to the
+baseline (HAR + calendar OLS).
 
 \begin{table}[H]
 \centering
 \caption{FOMC calendar channels on the shared evaluation panel of
 Section~\ref{sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano
-$t$ versus HAR + calendar OLS; negative $t$ favors the arm.}
+$t$ versus the baseline (HAR + calendar OLS); negative $t$ favors the arm.}
 \label{tab:fomc_bucket}
 \input{generated_fomc1/table_fomc_bucket}
 \end{table}

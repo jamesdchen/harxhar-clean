@@ -45,8 +45,9 @@ FLAT_PANELS = [
 ]
 
 MODEL_TEX = {
-    "HAR + calendar OLS": r"HAR + calendar OLS",
-    "HAR+calendar OLS": r"HAR + calendar OLS",
+    "baseline (HAR + calendar OLS)": r"baseline (HAR + calendar OLS)",
+    "HAR + calendar OLS": r"baseline (HAR + calendar OLS)",
+    "HAR+calendar OLS": r"baseline (HAR + calendar OLS)",
     "two-block ridge": r"block-diag ridge",
     "two-block ridge (FOMC in X)": r"block-diag ridge",
     "gen. Tikhonov ridge": r"block-diag ridge",

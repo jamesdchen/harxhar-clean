@@ -388,7 +388,7 @@ print("n", len(atm))
 
 Seven forecasting models are read in, one stored table each, all produced by the paper's forecasting pipeline on the same panel:
 
-- the HAR-plus-calendar least-squares forecast;
+- the baseline forecast (HAR + calendar OLS);
 - the block-diagonal ridge forecast, the paper's headline model, with the FOMC calendar columns in its design;
 - LightGBM and XGBoost, each on the wide all-features design with a frozen menu of settings;
 - the lasso on the same all-features design, with its penalty chosen from past data only (the paper's protocol);
@@ -452,7 +452,7 @@ with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
     models = {tag: futs[tag].result() for tag in YHATS}
 
 LABEL = {
-    "a0": "HAR + calendar OLS",
+    "a0": "baseline (HAR + calendar OLS)",
     "blk2": "block-diag ridge",
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
@@ -543,7 +543,7 @@ for tag, rv in models.items():
 
 print(pd.DataFrame(stat_cols).rename(columns=LABEL).to_string())
 print("---")
-print("hand-check HAR+calendar (R_p = R if pos==1, else -R):")
+print("hand-check baseline (HAR + calendar OLS) (R_p = R if pos==1, else -R):")
 print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var", "signal", "pos", "R_p"]].head(8))
 """
     ),
@@ -790,62 +790,56 @@ print("IR = active return / tracking error; benchmark is always-short.")
 ## 13. Does the 15:30 signal predict the settlement return?
 
 The signal is fixed at 15:30 and the package settles at 16:00 the same
-day, so the natural test pairs $s_t$ with $R_t$: every input to the
-signal is known before the position is taken, and nothing from the
-settlement enters it. This is the relation the position rule of §9
-trades, measured here as a regression object rather than as a book.
-Five checks are printed, all with Newey–West standard errors (six lags)
-and no tuning parameters; the percentile rank of $s_t$ is taken among
-all days up to and including $t$ once 63 days of history exist, so it
-compares today's signal only with the past.
+day, so the test pairs $s_t$ with $R_t$ directly; nothing observed after
+the decision enters the signal. Every check uses Newey–West standard
+errors (six lags) and no tuning parameters; the percentile rank of $s_t$
+is taken among days up to and including $t$, once 63 days of history
+exist.
 
-- **Split by sign.** The mean of $R_t$ on days with $s_t>0$ against
-  days with $s_t\le 0$, and the $t$-statistic of the difference. This
-  is the $\mathrm{sign}(s)$ edge itself.
-- **Top third against bottom third** of the rank of $s_t$: the same
-  question restricted to the extremes.
-- **Regression on the percentile rank** of $s_t$: a monotone relation
-  without leverage from extreme values of the signal.
-- **Plain least squares** of $R_t$ on the raw signal, shown for
-  completeness as the weak instrument it is.
-- **Size of the move.** $|R_t|$ on the rank of $s_t$, alone and with
-  today's log implied variance added.
+**Five checks, in the order printed**
 
-The same-day content is a sign effect, not a slope. For the
-block-diagonal ridge forecast the package returns about $+0.12$ on
-days the forecast sits above implied variance and about $-0.11$ on the
-others — a spread near $0.23$ with $t$ near $2.9$ — and the top third
-of the ranked signal against the bottom third gives about the same
-spread and $t$; every one of the seven forecasts shows the split, with
-$t$ between about $1.9$ and $3.3$. The rank regression sees it too
-($t$ around $2.6$ for the headline forecast, positive for all seven).
-But the raw least-squares slope is null
-for the headline forecast ($t$ about $-0.5$; two of the tree forecasts
-show a positive slope with $t$ above $3$, at an $R^2$ below $0.001$).
-The reason is the shape of $R$: it has a point mass at exactly $-1$ on
-the days the package expires worthless and a long right tail, so the
-relation lives in the means of two groups — which side of the quoted
-variance the forecast stands on — and not in a monotone ordering of
-days. A slope is the wrong instrument for that payoff; the sign
-split is the right one.
+- **Sign split** — mean $R_t$ when $s_t>0$ versus $s_t\le 0$. This is
+  the sign(s) edge itself.
+- **Top third versus bottom third** of the rank of $s_t$.
+- **Regression on the rank** of $s_t$ — a monotone relation without
+  leverage from extreme signals.
+- **Plain least squares** of $R_t$ on the raw signal — shown as the weak
+  instrument it is.
+- **Size of the move** — $|R_t|$ on the rank of $s_t$, with and without
+  today's log implied variance.
 
-The size of the move is a separate matter. The rank of $s_t$ predicts
-$|R_t|$ strongly ($t$ above $4$ for every forecast), but most of that
-is the level of implied variance: the rank is high when options are
-cheap relative to the forecast, and a cheap straddle moves more per
-dollar of premium. With today's log implied variance in the
-regression the rank's $t$ falls from about $4.3$ to about $1.7$ for
-the headline forecast (to between about $1.3$ and $2.5$ across the
-seven), while implied variance itself enters with $t$ near $-3.8$. It
-is a price-level effect more than a variance forecast.
+**What the checks show** (block-diagonal ridge forecast; the other six
+forecasts agree)
 
-The figure at the end of the cell shows the split for the block-diagonal
-ridge forecast, anchored on the always-short book (grey bar and dashed
-line), the deck's benchmark throughout. Left: the mean settled return on
-days the forecast sat below the market's price and on days it sat above,
-with error bars. Right: the same mean by decile of the signal's rank — a
-step at the sign, and no trend within either half, which is what one bit
-of information looks like.
+- **The content is a sign, not a slope.** $R_t$ averages about $+0.12$
+  when the forecast sits above implied variance and about $-0.11$ when
+  it sits below: a spread near $0.23$ with $t \approx 2.9$ (across the
+  seven forecasts, $t$ between about $1.9$ and $3.3$). The
+  top-third-versus-bottom-third split gives the same spread and $t$.
+- **A straight line misses it.** The raw least-squares slope is null
+  ($t \approx -0.5$), because $R$ has a point mass at exactly $-1$ on
+  the 22.7% of days the package expires worthless and a long right
+  tail. The relation lives in the means of two groups, not in a
+  monotone ordering: the sign split is the right instrument and a slope
+  is the wrong one. (The rank regression, which ranks the signal first,
+  does see it: $t \approx 2.6$.)
+- **Strength adds nothing.** Within each side, a larger signal does not
+  earn more — see the deciles in the figure.
+- **The size of the move is mostly the price level.** The rank predicts
+  $|R_t|$ ($t \approx 4.3$), but adding today's log implied variance
+  cuts that to $t \approx 1.7$ while implied variance itself enters at
+  $t \approx -3.8$: options are cheap when the forecast sits above
+  implied, and a cheap straddle moves more per dollar of premium.
+
+**Takeaway.** The 15:30 signal is a one-bit, same-day direction call
+worth about $0.23$ of premium per day on average. It carries no
+how-much information, and it should never be judged by a regression
+slope.
+
+The figure: left, the mean $R_t$ on each side of the signal against the
+always-short book (grey bar and dashed line); right, the same mean by
+decile of the signal's rank — a step at the sign, no trend within
+either half.
 """
     ),
     code(
@@ -1195,7 +1189,8 @@ def wealth_axis(ax):
     ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
     ax.yaxis.set_minor_locator(NullLocator())
     ax.axhline(1.0, color="k", lw=0.6, ls="--")
-    ax.set_ylabel("wealth (starting stake = 1×)")
+    ax.grid(axis="y", which="major", alpha=0.3)
+    ax.set_ylabel("wealth multiple (log scale; 1× = starting stake)")
 
 
 def wealth_row(f, r):
@@ -1240,27 +1235,42 @@ for name in ("always short", "sign(s)"):
     rs = (rule_sizes(books["blk2"])[name] * books["blk2"]["R"]).loc[common].astype(float)
     fk = causal_kelly(rs)
     gy = pd.Series(np.log1p(fk.to_numpy() * rs.to_numpy()), index=rs.index)
-    print(f"per-year annualized log-growth, blk2 {name}:")
+    print(f"per-year annualized log-growth, block-diagonal ridge, {name}:")
     print((252.0 * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
+
+from matplotlib.dates import DateFormatter, YearLocator
 
 px = books["blk2"]
 fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
+
+
+def end_label(ax, idx, w, color):
+    # terminal wealth multiple at the end of a path
+    ax.annotate(f"{w[-1]:.1f}×", (idx[-1], w[-1]), xytext=(4, 0), textcoords="offset points",
+                fontsize=8, va="center", color=color)
+
+
 for name, c in (("always short", "C1"), ("sign(s)", "C0")):
     rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
     fk = causal_kelly(rs)
     axes[0].plot(rs.index, fk, lw=0.9, color=c, label=name)
     w = np.cumprod(1.0 + fk.to_numpy() * rs.to_numpy())
     axes[1].plot(rs.index, w, lw=1.0, color=c, label=name)
+    end_label(axes[1], rs.index, w, c)
 rs = (rule_sizes(px)["sign(s)"] * px["R"]).loc[common].astype(float)
 fk = causal_kelly(rs)
 w = np.cumprod(1.0 + (fk.to_numpy() / 2) * rs.to_numpy())
 axes[1].plot(rs.index, w, lw=1.0, color="C2", label="sign(s), half fraction")
+end_label(axes[1], rs.index, w, "C2")
 axes[0].set_ylabel(r"fraction of wealth $\hat f_t$")
-axes[0].set_title("blk2 — causally estimated fraction")
+axes[0].set_title("block-diagonal ridge — fraction of wealth bet each day")
 axes[0].legend(fontsize=8)
 wealth_axis(axes[1])
-axes[1].set_title("block-diagonal ridge — compounded wealth (starting stake = 1×)")
-axes[1].legend(fontsize=8)
+axes[1].set_title("block-diagonal ridge — compounded wealth")
+axes[1].legend(fontsize=8, loc="upper left")
+for ax in axes:
+    ax.xaxis.set_major_locator(YearLocator())
+    ax.xaxis.set_major_formatter(DateFormatter("%Y"))
 fig.tight_layout()
 fig.savefig(OUT / "kelly_causal_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "kelly_causal_blk2.png")

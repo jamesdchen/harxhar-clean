@@ -18,7 +18,7 @@ The short-volatility rule takes no forecast, so it is one row for all models.
 Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
 
 \smallskip
-\noindent\small Forecasts: HAR + calendar OLS; block-diagonal ridge (HAR block and exogenous block, separate penalties);
+\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties);
 LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
 elastic net (causally tuned).
 \end{document}

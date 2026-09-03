@@ -34,8 +34,8 @@ strictly between $K_p$ and $K_c$ and both legs expire worthless. The
 print. Half sessions without a close are dropped.
 
 \paragraph{Forecast remaining variance.} Seven of the paper's per-bar
-forecasts enter the same rules on the same contracts: OLS on HAR and
-calendar (Section~\ref{sec:dp_benchmark}), the block-diag ridge
+forecasts enter the same rules on the same contracts: the baseline (HAR + calendar OLS) forecast
+(Section~\ref{sec:dp_benchmark}), the block-diag ridge
 (HAR versus exogenous block, separate penalties;
 Section~\ref{sec:block_tikhonov}), LightGBM and XGBoost on the wide
 all-features design (Section~\ref{sec:tree_edge}, frozen expert menu),

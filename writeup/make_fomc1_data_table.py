@@ -18,7 +18,7 @@ OUT = os.path.join(OUT_DIR, "table_fomc_bucket.tex")
 
 # Display order and names for the Data-section table.
 ARMS: list[tuple[str, str]] = [
-    ("a0_ols_har", r"HAR + calendar OLS"),
+    ("a0_ols_har", r"baseline (HAR + calendar OLS)"),
     ("a_bucket_fomc", r"FOMC calendar bucket (OLS)"),
     ("a_bucket_all_features", r"all features (OLS)"),
     ("b1_ridge", r"ridge (joint)"),
