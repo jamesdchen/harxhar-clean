@@ -28,8 +28,8 @@ GEN = os.path.join(ROOT, "writeup", "generated")
 PANELS = [
     ("rule_by_strategy_always_short", r"Short volatility (always short)"),
     (
-        "rule_by_strategy_long_short_volatility",
-        r"Long--short volatility ($\pm 1$ on $\mathrm{sign}(s)$)",
+        "rule_by_strategy_sign_s",
+        r"$\mathrm{sign}(s)$ ($\pm 1$ on the sign of $s$)",
     ),
 ]
 

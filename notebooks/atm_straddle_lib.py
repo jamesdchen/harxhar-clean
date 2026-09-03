@@ -26,7 +26,7 @@ YHAT_LABEL = {
     "enet": "elastic net (causally tuned)",
 }
 MODEL_ORDER = ["a0", "blk2", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
-RULE_ORDER = ["always short", "long-short volatility", "unit-median VRP"]
+RULE_ORDER = ["always short", "sign(s)", "unit-median VRP"]
 
 
 def find_repo(start: Path | None = None) -> Path:
@@ -392,7 +392,7 @@ def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
     )
     return {
         "always short": pd.Series(-1.0, index=px.index),
-        "long-short volatility": pos,
+        "sign(s)": pos,
         "unit-median VRP": pos * lev,
     }
 
@@ -422,7 +422,7 @@ def extra_weight_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
         "vol-target unit-median": vt,
         "kelly-ish s/var(R)": kelly,
         "unit-median VRP": um,
-        "long-short volatility": pos,
+        "sign(s)": pos,
         "always short": pd.Series(-1.0, index=px.index),
     }
 

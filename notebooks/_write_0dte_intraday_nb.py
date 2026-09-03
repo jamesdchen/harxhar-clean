@@ -616,14 +616,14 @@ $q_t$ changes. One forecast: block-diag ridge (`blk2`). Mid fill.
 a forecast uses the §5b window-matched signal
 $s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t\,w_t$
 — the only pairing whose two sides live on the same window at every
-clock. Earlier versions of the long-short and unit-median rows used
+clock. Earlier versions of the $\mathrm{sign}(s)$ and unit-median rows used
 the 30-min pairing; those are **retired**: that signal compared a
 next-bar forecast to a remaining-session-average implied, so away
 from 15:30 it detected the diurnal profile, not mispricing (§5b).
 
 - **always short:** $q_t\equiv -1$ every bar. No forecast. This is
   the scalar: short every re-picked straddle.
-- **long-short volatility:** $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ —
+- **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ —
   long the straddle when the matched forecast exceeds the matched
   implied slice, short otherwise; warmup bars with no signal sit
   flat ($q=0$).
@@ -746,7 +746,7 @@ pos_m = pd.Series(np.where(work["s_matched"] > 0, 1.0, -1.0), index=work.index).
 um_m = (pos_m * work["lev_m"]).fillna(0.0)
 q = {
     "always short": pd.Series(-1.0, index=work.index),
-    "long-short volatility": pos_m.fillna(0.0),
+    "sign(s)": pos_m.fillna(0.0),
     "unit-median VRP": um_m,
     "always short, unit-median close": pd.Series(
         np.where(work["hhmm"] == "15:30", um_m.to_numpy(), -1.0),

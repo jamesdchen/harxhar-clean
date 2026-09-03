@@ -1,4 +1,4 @@
-w,fill,days,Sharpe_always_short,Sharpe_long_short,worst_long_short
+w,fill,days,Sharpe_always_short,Sharpe_sign_s,worst_sign_s
 20,"mid, plain",867,0.21981173463881232,1.57218279391998,-5.422480279928936
 20,"mid, wings",867,-0.1881711857644667,1.3318542970169558,-4.676056415948148
 20,"spread, plain",867,-0.2554234559136447,1.0940544449599028,-5.450649284317786

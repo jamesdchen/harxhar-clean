@@ -43,7 +43,7 @@ Same instrument, clocks, smear, and signal as
    sensitivity
 5. paired significance (NW + block bootstrap) on the headline deltas
    (§13)
-6. the iron flies of RV–IV §16 (§14): why wings on selling days do
+6. the defined-risk book, parked in the RV–IV deck (§14): why wings on selling days do
    not pay per dollar of premium — wing-cost decomposition,
    quoted-spread fills, one-sided wings, a width ladder, and when the
    cap pays
@@ -255,10 +255,10 @@ ens["trail-IR um q"] = trailing_w(um, "ir") * R
 blk_sizes = asl.rule_sizes(books["blk2"])
 ens["blk2 0.5 AS + 0.5 UM"] = (0.5 * blk_sizes["always short"] + 0.5 * blk_sizes["unit-median VRP"]).loc[common] * R
 ens["blk2 EW 3 rules"] = (
-    blk_sizes["always short"] + blk_sizes["long-short volatility"] + blk_sizes["unit-median VRP"]
+    blk_sizes["always short"] + blk_sizes["sign(s)"] + blk_sizes["unit-median VRP"]
 ).loc[common] / 3.0 * R
 ens["blk2 unit-median (bench)"] = blk_sizes["unit-median VRP"].loc[common] * R
-ens["blk2 long-short"] = blk_sizes["long-short volatility"].loc[common] * R
+ens["blk2 sign(s)"] = blk_sizes["sign(s)"].loc[common] * R
 ens["always short"] = blk_sizes["always short"].loc[common] * R
 
 # Causal spectral / PCR ensemble of the 7-vector of signals.
@@ -800,7 +800,7 @@ print("saved experimental_weights_*.csv")
 
 Body is the §1 nearest-OTM package; wings are the nearest live 15:30
 mids at least $w$ points further OTM (`asl.pick_wings`; the same wing
-selection as the iron flies of RV–IV §16, explored in §14 here). Short
+selection as the defined-risk book parked in the RV–IV deck and explored in §14 here). Short
 iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
@@ -1080,7 +1080,7 @@ plt.close(fig)
         r"""
 ## 10. Strangle-body condors and per-side attribution
 
-The iron flies of RV–IV §16 (explored in §14) wrap the straddle-body
+The defined-risk book (parked in the RV–IV deck, explored in §14) wraps the straddle-body
 package in wings. Here the body is a **strangle**: the next listed strike above the
 nearest-OTM call and below the nearest-OTM put, from the same 15:30
 live mids (one step on the actual grid — $5$ points on $99.6\%$ of
@@ -1140,7 +1140,7 @@ def score_ic(body, width, label):
     ic["R_long_ic"] = (ic["exit_ic"] - ic["entry_ic"]) / ic["width"]
     return ic.set_index("day").sort_index()
 
-RULES = ["always short", "long-short volatility", "unit-median VRP"]
+RULES = ["always short", "sign(s)", "unit-median VRP"]
 KEEP = ["n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
 sg_tabs, sg_frames = {}, {}
 for label, body in (("straddle", body_straddle), ("strangle", body_strangle)):
@@ -1229,7 +1229,7 @@ Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
 quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days). The iron-fly book of RV–IV §16 is scored per
+on the common days). The defined-risk book, parked in the RV–IV deck, is scored per
 body premium at $|q|=1$, so its rows are not in the same units as
 these tables.
 """
@@ -1525,12 +1525,12 @@ print("saved", OUT / "significance_pairs.csv")
         r"""
 ## 14. Why the iron-fly wings do not pay per premium
 
-The main notebook's §16 wraps the book in an iron fly — a wing bought
+A defined-risk version of the book, parked in the main notebook and explored here, wraps it in an iron fly — a wing bought
 on each side of the body whenever the book sells, which turns the
 short straddle into two credit spreads — and keeps it as a venue
 constraint, the defined-risk structure a retail margin account
 requires on cash-settled SPX or XSP, not as an improvement. Per dollar
-of body premium the wings do not help: the long–short
+of body premium the wings do not help: the $\mathrm{sign}(s)$
 book loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
 against 1.62 without wings on the same days), the always-short control
 loses what little edge it had, and compounded wealth suffers in
@@ -1540,7 +1540,7 @@ a paired $t$-statistic of essentially zero. This section asks why, so
 that the construction can be revisited with the right question rather
 than dropped.
 
-The book is rebuilt here exactly as §16 of the main notebook builds it. The
+The book is rebuilt here exactly as the parked deck section built it. The
 body is the 15:30 nearest-out-of-the-money package; the wings are the
 nearest live 15:30 midpoint quotes at least $w$ points further out of
 the money; the package is settled in cash at the official close; the
@@ -1549,7 +1549,7 @@ non-positive credit are dropped with a printed count; the seller's
 worst case is the larger actual wing gap minus the credit. Returns are
 per dollar of body premium throughout, on the same days and with the
 same denominator for the hedged and the plain book, so every
-comparison is like against like. The cell first reproduces the §16
+comparison is like against like. The cell first reproduces the parked section's
 headline at 25 points and stops if it cannot.
 
 Four questions follow.
@@ -1566,8 +1566,8 @@ Four questions follow.
    against both wings and none.
 3. *Is there a width at which the hedged book wins?* The width ladder
    of §8 — fixed gaps of 10 to 100 points, including the 20- and
-   30-point wings §16 reports, and gaps scaled to the package price —
-   scored per premium on the long–short composite,
+   30-point wings the parked section reported, and gaps scaled to the package price —
+   scored per premium on the $\mathrm{sign}(s)$ composite,
    with the share of selling days on which the settlement reaches a
    wing.
 4. *When do the wings pay?* The distribution of how far the settlement
@@ -1585,7 +1585,7 @@ year against a net cost in every year since — so the "free insurance"
 is one crash quarter's payouts spread over four years of premium, and
 that quarter sits inside the first 64 sessions that the main deck's
 other slides exclude as their estimation window. On the days that
-matter for the long–short book the settlement rarely travels far: on
+matter for the $\mathrm{sign}(s)$ book the settlement rarely travels far: on
 selling days the median settlement sits a sixth of the way from the
 body strike to a 25-point wing, and reaches the wing on 4.3% of them
 (1.1% at 50 points). The wing that protects is the expensive one: the
@@ -1594,12 +1594,12 @@ only one that shortens the worst day, while the call wing is nearly
 free and protects nothing. No width on the ladder beats the plain book
 — the best is 50 points, 0.08 of Sharpe behind with a paired $t$ of
 $-2.2$ — and the gap is negative for all seven forecasts. At the 20-
-and 30-point wings §16 reports, the long–short book gives up 0.26 and
+and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ book gives up 0.26 and
 0.15 of Sharpe (paired $t$ of $-2.8$ and $-2.1$) and the settlement
 reaches a wing on 7.3% and 2.4% of selling days. Paying the quoted
 spread makes it worse: with the wings bought at the ask, which is
 quoted at 1.2 to 2 times their midpoint, they cost 0.09 points a
-day and the long–short book gives up 0.3 of Sharpe at 25 points
+day and the $\mathrm{sign}(s)$ book gives up 0.3 of Sharpe at 25 points
 against the plain book filled the same way.
 
 **What the construction still owes**, as questions rather than claims.
@@ -1615,7 +1615,7 @@ of one event?
     ),
     code(
         r"""
-# --- the iron-fly book, rebuilt exactly as the RV-IV deck section 16 builds it ---
+# --- the iron-fly book, rebuilt exactly as the parked RV-IV deck section built it ---
 vl_body = atm.reset_index()
 vl_close = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 vl_close.index = pd.to_datetime(vl_close.index).tz_localize(None).normalize()
@@ -1660,7 +1660,7 @@ def vl_rows(vs, px, cfg="both"):
     out = {}
     for name, h, plain, sell in (
         ("always short", hedged, -j["R"], pd.Series(True, index=j.index)),
-        ("long-short volatility", hedged.where(j["pos"] < 0, j["R"]), j["pos"] * j["R"], j["pos"] < 0),
+        ("sign(s)", hedged.where(j["pos"] < 0, j["R"]), j["pos"] * j["R"], j["pos"] < 0),
     ):
         t_nw, _ = _nw_t((h - plain).to_numpy(float))
         out[name] = pd.Series({
@@ -1680,9 +1680,9 @@ vl_wide = {w: (vl[w] if w in vl else vl_book(width=w)) for w in (20.0, 25.0, 30.
 
 # --- gate: reproduce the RV-IV section 16 headline before extending ---
 rows25, j25 = vl_rows(vl[25.0], px_b)
-print("gate: w=25 long-short per premium, hedged Sharpe", f"{rows25.loc['long-short volatility', 'Sharpe_hedged']:.4f}",
+print("gate: w=25 sign(s) per premium, hedged Sharpe", f"{rows25.loc['sign(s)', 'Sharpe_hedged']:.4f}",
       "(RV-IV section 16 at w=25: 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (RV-IV section 16: -0.007)")
-assert abs(rows25.loc["long-short volatility", "Sharpe_hedged"] - 1.417) < 0.005
+assert abs(rows25.loc["sign(s)", "Sharpe_hedged"] - 1.417) < 0.005
 assert abs(float(j25["drag_both"].mean()) - (-0.007)) < 0.002
 print("gate passed")
 
@@ -1692,7 +1692,7 @@ dec_rows = []
 for w, vs in vl.items():
     j = vs.join(px_b[["pos", "R"]], how="inner", rsuffix="_strad")
     j = j.loc[j.index.intersection(common)]
-    for frame, mask in (("all days (always short)", pd.Series(True, index=j.index)), ("sell days (long-short)", j["pos"] < 0)):
+    for frame, mask in (("all days (always short)", pd.Series(True, index=j.index)), ("sell days (sign(s))", j["pos"] < 0)):
         g = j.loc[mask]
         for yr, gy in [("all", g)] + list(g.groupby(g.index.year)):
             dec_rows.append({
@@ -1732,8 +1732,8 @@ for w, vs in vl_wide.items():
         as_ = short_leg
         ls = short_leg.where(sell, long_leg)
         fill_rows.append({"w": int(w), "fill": label, "days": len(j),
-                          "Sharpe_always_short": _sharpe(as_), "Sharpe_long_short": _sharpe(ls),
-                          "worst_long_short": float(ls.min())})
+                          "Sharpe_always_short": _sharpe(as_), "Sharpe_sign_s": _sharpe(ls),
+                          "worst_sign_s": float(ls.min())})
     t_mid, _ = _nw_t(j["drag_both"].to_numpy(float))
     t_x, _ = _nw_t(drag_x.to_numpy(float))
     print(f"w={int(w)}: wing cost at mid {float(j['drag_both'].mean()):+.3f} pts/day (NW t {t_mid:+.2f}); "
@@ -1771,8 +1771,8 @@ vl_lad = pd.DataFrame(lad_rows).set_index(["width", "rule"])
 print(vl_lad[["n", "med_gap", "Sharpe_hedged", "Sharpe_plain", "dSharpe", "NW_t_diff", "worst_hedged", "worst_plain",
               "wing_cost_pts_per_sell_day", "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
 vl_lad.to_csv(OUT / "vert_lab_width_ladder_blk2.csv")
-best = vl_lad.xs("long-short volatility", level="rule")["dSharpe"]
-print("long-short: any width where the hedged book beats the plain book per premium?",
+best = vl_lad.xs("sign(s)", level="rule")["dSharpe"]
+print("sign(s): any width where the hedged book beats the plain book per premium?",
       ("yes: " + ", ".join(best[best > 0].index)) if (best > 0).any() else "no")
 
 # (d) when the wings pay: how far the settlement travels, and per-year books
@@ -1816,13 +1816,13 @@ vl_year = pd.DataFrame(yr_rows).set_index("year")
 print(vl_year.to_string(float_format=lambda v: f"{v: .3f}"))
 vl_year.to_csv(OUT / "vert_lab_per_year_blk2.csv")
 
-# the seven forecasts, long-short per premium, hedged vs plain
-print("=== all seven forecasts: long-short per premium, wings on sell days vs none ===")
+# the seven forecasts, sign(s) per premium, hedged vs plain
+print("=== all seven forecasts: sign(s) per premium, wings on sell days vs none ===")
 mod_rows = []
 for tag in MODEL_ORDER:
     for w, vs in vl.items():
         r, _ = vl_rows(vs, books[tag])
-        row = r.loc["long-short volatility"]
+        row = r.loc["sign(s)"]
         mod_rows.append({"model": LABEL[tag], "w": int(w), "Sharpe_hedged": row["Sharpe_hedged"],
                          "Sharpe_plain": row["Sharpe_plain"], "dSharpe": row["dSharpe"], "NW_t_diff": row["NW_t_diff"],
                          "worst_hedged": row["worst_hedged"], "worst_plain": row["worst_plain"]})
@@ -1833,7 +1833,7 @@ vl_mod.to_csv(OUT / "vert_lab_models.csv")
 fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
 order = ["w10", "w20", "w25", "w30", "w50", "w75", "w100", "c1xentry", "c2xentry", "c4xentry"]
 xs = np.arange(len(order))
-for name, c in (("long-short volatility", "C0"), ("always short", "C1")):
+for name, c in (("sign(s)", "C0"), ("always short", "C1")):
     sub = vl_lad.xs(name, level="rule").loc[order]
     axes[0].plot(xs, sub["dSharpe"], marker="o", color=c, label=name)
 axes[0].axhline(0.0, color="k", lw=0.6)
@@ -1841,7 +1841,7 @@ axes[0].set_xticks(xs, order, rotation=40, fontsize=7)
 axes[0].set_ylabel("Sharpe, hedged minus plain")
 axes[0].set_title("per body premium: what the wings cost")
 axes[0].legend(fontsize=7)
-sub = vl_lad.xs("long-short volatility", level="rule").loc[order]
+sub = vl_lad.xs("sign(s)", level="rule").loc[order]
 axes[1].bar(xs, sub["pct_sell_days_beyond_wing"], color="C2")
 axes[1].set_xticks(xs, order, rotation=40, fontsize=7)
 axes[1].set_ylabel("% of sell days settling beyond a wing")
@@ -1863,7 +1863,7 @@ average — the flagged-against-unflagged comparison printed below.
 Taken at face value that reads like a day-ahead risk flag, and wings
 have already failed to manage the sell-side tail (§14). This section asks the natural
 follow-up: does stepping aside on the days the lagged signal flags as
-risky improve the tail of the long–short book?
+risky improve the tail of the $\mathrm{sign}(s)$ book?
 
 **Construction.** The flag is built exactly as in the deck: the
 percentile rank of $s_{t-1}$ among all days up to $t-1$, computed from
@@ -1879,7 +1879,7 @@ fact:
 - alternate — the top tercile of the rank of $|s_{t-1}|$, the unsigned
   version.
 
-Two rules are scored on the long–short book, which sells the package
+Two rules are scored on the $\mathrm{sign}(s)$ book, which sells the package
 when the same-day signal is negative and buys it otherwise: rule A is
 flat on every flagged day; rule B is flat on a flagged day only when
 the same-day rule would sell, since a bought package already risks no
@@ -1980,7 +1980,7 @@ def apply_rules(px, flag):
     ref = px["pos"] * px["R"]
     sell = px["pos"] < 0
     return {
-        "reference long-short": ref,
+        "reference sign(s)": ref,
         "A: flat on flagged days": ref.where(~flag, 0.0),
         "B: flat on flagged days only when selling": ref.where(~(flag & sell), 0.0),
         "reference always-short": -px["R"],
@@ -2023,7 +2023,7 @@ print("causality: flags for days <= t unchanged by perturbing R or s on days >= 
 
 # ---- reference gate ----
 ref0 = px0["pos"] * px0["R"]
-print(f"reference long-short, block-diagonal ridge: n {len(ref0)} mean {ref0.mean():.4f} Sharpe {sharpe(ref0):.3f}")
+print(f"reference sign(s), block-diagonal ridge: n {len(ref0)} mean {ref0.mean():.4f} Sharpe {sharpe(ref0):.3f}")
 assert len(ref0) == 871 and abs(ref0.mean() - 0.1152) < 5e-4 and abs(sharpe(ref0) - 1.631) < 5e-3
 
 # ---- scoreboards, all models, all flags ----
@@ -2045,7 +2045,7 @@ for tag in MODEL_ORDER:
 print("saved riskflag_summary_<model>.csv in", OUT)
 
 px = books["blk2"].loc[common]
-MAIN = ("reference long-short", "A: flat on flagged days", "B: flat on flagged days only when selling")
+MAIN = ("reference sign(s)", "A: flat on flagged days", "B: flat on flagged days only when selling")
 for fname in FLAGS:
     flag = FLAGS[fname](px).fillna(False).astype(bool)
     print(f"\n=== flag: {fname} --- block-diagonal ridge, {len(px)} days ===")
@@ -2113,7 +2113,7 @@ print(f"sacrifice versus protection: flagged days carry {100 * share_ret:.1f}% o
       f"but only {100 * share_loss:.1f}% of the ten worst days' losses; "
       f"placebo percentile of that loss share {pct_rank(plc_share, share_loss):.0f} "
       f"(random flags of the same size cover more of the worst days than this flag on {100 - pct_rank(plc_share, share_loss):.0f}% of draws)")
-print(f"worst day flagged: long-short {bool(flag.loc[ref.idxmin()])}, always-short {bool(flag.loc[(-px['R']).idxmin()])}")
+print(f"worst day flagged: sign(s) {bool(flag.loc[ref.idxmin()])}, always-short {bool(flag.loc[(-px['R']).idxmin()])}")
 absflag = (rank_lag(px["R"].abs()) > 2 / 3).fillna(False).astype(bool)
 print("a no-forecast comparator, the top tercile of yesterday's realized |R|: mean |R| on flagged days "
       f"{px['R'].abs()[absflag].mean():.3f} vs unflagged {px['R'].abs()[~absflag].mean():.3f} "
@@ -2172,16 +2172,16 @@ comparison across bodies is like-for-like only in the time-value frame
 or in points.
 
 Also reported: where the index sits on the strike grid (the offset
-$|S-K^*|$ lies between 0 and 2.5 points) and both bodies' long–short
+$|S-K^*|$ lies between 0 and 2.5 points) and both bodies' $\mathrm{sign}(s)$
 results by tercile of that offset; the five-point vertical on its own —
 its mean, its Newey–West $t$, and its share of the straddle's daily
 variance — which decides whether the extra premium is edge or fairly
 priced risk; crossed fills (sell at the bid, buy at the ask, on every
 leg, with the in-the-money leg's relative spread printed against the
 others); and the fraction-of-wealth rule of the deck's §14 on the
-long–short book in the two return frames.
+$\mathrm{sign}(s)$ book in the two return frames.
 
-**What the numbers say.** In dollars the two long–short books are the
+**What the numbers say.** In dollars the two $\mathrm{sign}(s)$ books are the
 same book: about 0.34 index points per package-day each, a paired
 difference of about −0.01 points per day with a $t$ near zero, and the
 same worst day (the crash day, about −80 points). The extra premium
@@ -2190,14 +2190,14 @@ about 1.41 is intrinsic and 6.36 time value — is the five-point
 vertical, and the vertical is fairly priced risk rather than edge: sold
 on its own it earns about 0.11 points per day with a $t$ of about 1.5,
 carries about 7% of the straddle's daily variance, is essentially
-uncorrelated with the strangle, and the long–short signal has nothing
+uncorrelated with the strangle, and the $\mathrm{sign}(s)$ rule has nothing
 to say about it (about −0.01 points per day, $t$ near zero). It is a
 small directional bet on which side of the strike the index closes;
 the variance forecast does not inform it.
 
 The frames then re-scale that one dollar P&L in three ways, and the
 choice of denominator produces every apparent difference. Per dollar
-of premium the straddle looks worse on the long–short rule — Sharpe
+of premium the straddle looks worse on the $\mathrm{sign}(s)$ rule — Sharpe
 about 1.50 against 1.63, a mean lower by about 0.04 per day with a
 Newey–West $t$ near −2.5, lower for all seven forecasts — and its
 worst day looks halved (about −3.2 against −5.4). Both are the
@@ -2228,7 +2228,7 @@ property of those days, not of either body. Crossed fills favour the
 strangle: the straddle's legs are not wider in relative terms (about
 5.1% and 5.5% of mid against 5.9%), but its package spread is larger
 in points and its per-premium returns smaller, so after paying the
-spread the long–short book scores about 0.90 against 1.10 per
+spread the $\mathrm{sign}(s)$ book scores about 0.90 against 1.10 per
 premium (about 1.04 against 1.09 per time value), and always-short is
 negative for both.
 
@@ -2343,11 +2343,11 @@ def bl_row(rp):
 _rt = pd.read_csv(OUT / "rule_table_blk2.csv", index_col=0)
 _pxg = books["blk2"].loc[common]
 assert abs(float((-_pxg["R"]).mean()) - float(_rt.loc["always short", "mean"])) < 1e-9
-assert abs(float((_pxg["pos"] * _pxg["R"]).mean()) - float(_rt.loc["long-short volatility", "mean"])) < 1e-9
-print("gate: strangle rows reproduce rule_table_blk2 (always short and long-short means) exactly")
+assert abs(float((_pxg["pos"] * _pxg["R"]).mean()) - float(_rt.loc["sign(s)", "mean"])) < 1e-9
+print("gate: strangle rows reproduce rule_table_blk2 (always short and sign(s) means) exactly")
 
 BODIES = ("strangle (nearest OTM pair)", "straddle (same strike)")
-RULES = ("always short", "long-short volatility")
+RULES = ("always short", "sign(s)")
 FRAMES = ("per premium", "per time value", "index points")
 score, paired, kelly_rows = {}, {}, {}
 for tag in MODEL_ORDER:
@@ -2359,7 +2359,7 @@ for tag in MODEL_ORDER:
         BODIES[1]: {"per premium": st["R"], "per time value": (st["exit"] - st["entry"]) / st["time_value"],
                     "index points": st["exit"] - st["entry"]},
     }
-    q = {"always short": pd.Series(-1.0, index=days), "long-short volatility": px["pos"].astype(float)}
+    q = {"always short": pd.Series(-1.0, index=days), "sign(s)": px["pos"].astype(float)}
     rp = {}
     for b in BODIES:
         for rule, qq in q.items():
@@ -2379,7 +2379,7 @@ for tag in MODEL_ORDER:
                                               "dSharpe": bl_sharpe(a) - bl_sharpe(b_), "dSharpe_lo": lo, "dSharpe_hi": hi}
     for b in BODIES:
         for fr in ("per premium", "per time value"):
-            r = rp[(b, "long-short volatility", fr)]
+            r = rp[(b, "sign(s)", fr)]
             fk = bl_kelly(r)
             row = {"mean_f": float(fk.mean()), **bl_wealth(fk, r)}
             half = bl_wealth(fk / 2, r)
@@ -2418,8 +2418,8 @@ per_year = pd.DataFrame({(b, rule, fr): blk2_rp[(b, rule, fr)].groupby(blk2_rp[(
                          for b in BODIES for rule in RULES for fr in ("per premium", "per time value")})
 per_year.columns = pd.MultiIndex.from_tuples(per_year.columns, names=["body", "rule", "frame"])
 per_year.to_csv(OUT / "body_lab_per_year_blk2.csv")
-print("--- per-year Sharpe, block-diagonal ridge, long-short ---")
-print(per_year.xs("long-short volatility", level="rule", axis=1).to_string(float_format=lambda x: f"{x:+.2f}"))
+print("--- per-year Sharpe, block-diagonal ridge, sign(s) ---")
+print(per_year.xs("sign(s)", level="rule", axis=1).to_string(float_format=lambda x: f"{x:+.2f}"))
 
 # where spot sits on the strike grid: does the straddle's result depend on it?
 off = st["offset"]
@@ -2429,11 +2429,11 @@ terc = pd.qcut(off, 3, labels=["near the strike", "middle", "far from the strike
 for fr in ("per premium", "per time value"):
     tab = {}
     for b in BODIES:
-        r = blk2_rp[(b, "long-short volatility", fr)]
+        r = blk2_rp[(b, "sign(s)", fr)]
         g = r.groupby(terc, observed=True)
         tab[(b, "n")] = g.size(); tab[(b, "mean")] = g.mean(); tab[(b, "Sharpe")] = g.apply(bl_sharpe); tab[(b, "worst")] = g.min()
     tab = pd.DataFrame(tab)
-    print(f"long-short by tercile of the straddle's offset, both bodies on the same days [{fr}]")
+    print(f"sign(s) by tercile of the straddle's offset, both bodies on the same days [{fr}]")
     print(tab.to_string(float_format=lambda x: f"{x:+.3f}"))
     tab.to_csv(OUT / f"body_lab_offset_{fr.replace(' ', '_')}_blk2.csv")
 
@@ -2454,11 +2454,11 @@ print(f"variance shares of the short straddle: strangle {float(np.cov(sg_short, 
       f"corr(vertical, strangle) {float(np.corrcoef(vert_short, sg_short)[0, 1]):+.3f}")
 ls_v = (px["pos"].astype(float) * (st["vert_exit"] - st["vert_entry"]))[grid]
 m_lv, t_lv, _ = bl_nw(ls_v)
-print(f"the vertical under the long-short rule: mean {m_lv:+.3f} points/day (t {t_lv:+.2f})")
+print(f"the vertical under the sign(s) rule: mean {m_lv:+.3f} points/day (t {t_lv:+.2f})")
 pd.DataFrame({"straddle_short_pts": strad_short, "strangle_short_pts": sg_short, "vertical_short_pts": vert_short}).to_csv(
     OUT / "body_lab_decomposition_blk2.csv")
 
-print("--- fraction of wealth (long-short), all forecasts ---")
+print("--- fraction of wealth (sign(s)), all forecasts ---")
 print(kelly_tab.to_string(float_format=lambda x: f"{x:+.3f}"))
 
 
@@ -2480,7 +2480,7 @@ fills, spreads = {}, {}
 for b, fr_ in ((BODIES[0], px), (BODIES[1], st)):
     bid_sum = fr_["bid_c"] + fr_["bid_p"]; ask_sum = fr_["ask_c"] + fr_["ask_p"]
     half = ((fr_["ask_c"] - fr_["bid_c"]) + (fr_["ask_p"] - fr_["bid_p"])) / 2.0
-    for rule, qq in (("always short", pd.Series(-1.0, index=days)), ("long-short volatility", pos)):
+    for rule, qq in (("always short", pd.Series(-1.0, index=days)), ("sign(s)", pos)):
         entry_fill = bid_sum.where(qq < 0, ask_sum)
         rpf = (qq * (fr_["exit"] / entry_fill - 1.0))[ok]
         rpm = (qq * fr_["R"])[ok]
@@ -2510,10 +2510,10 @@ fig, axes = plt.subplots(1, 3, figsize=(15, 3.8))
 for b, c in zip(BODIES, ("C0", "C1")):
     for ax, fr, ttl in ((axes[0], "per premium", "per dollar of premium"), (axes[1], "per time value", "per dollar of time value"),
                         (axes[2], "index points", "index points per package")):
-        r = blk2_rp[(b, "long-short volatility", fr)]
+        r = blk2_rp[(b, "sign(s)", fr)]
         lab = f"{b}: Sharpe {bl_sharpe(r):.2f}" if fr != "index points" else b
         ax.plot(r.index, r.cumsum().values, lw=1.1, color=c, label=lab)
-        ax.set_title(f"long-short, cumulative return {ttl}", fontsize=10)
+        ax.set_title(f"sign(s), cumulative return {ttl}", fontsize=10)
 for ax in axes:
     ax.axhline(0, color="k", lw=0.5); ax.legend(fontsize=8)
 fig.suptitle("block-diagonal ridge forecast, one signal, two bodies", fontsize=9)

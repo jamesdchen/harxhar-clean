@@ -47,7 +47,7 @@ $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
 $\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
 the realized scale by a recalibration estimated from past data only
 (§7). Two position rules are scored on the same 871 days. The headline
-is the **long–short** book, which sells the package when the market's
+is the **$\mathrm{sign}(s)$** book, which sells the package when the market's
 quoted variance exceeds the forecast and buys it otherwise: on the
 block-diagonal ridge forecast it earns an annualized Sharpe ratio of
 1.63 ($t = 3.03$). The **always-short** book, which uses no forecast, is
@@ -62,9 +62,9 @@ the always-short book; §13 tests the 15:30 signal against the 16:00 settlement 
 robustly to outliers: the content is a sign effect, and the size of the move
 tracks the level of implied variance; §14 bets a fixed
 fraction of wealth and sets out the two frames in which such a fraction
-can be read; §15 diagnoses the buy days; §16 puts wings on the days the book
-sells — the iron fly a defined-risk account must hold — and prices that
-constraint; §17 checks one row by hand.
+can be read; §15 diagnoses the buy days; §16 checks one row by hand. A
+defined-risk variant (wings on the days the book sells) is parked and
+explored in the experimental notebook.
 
 Volatility-scale views of the forecasts ($\hat y\sqrt{B}$, $m\sqrt{B}$)
 are in `atm_straddle_volmap.ipynb` where present and otherwise in
@@ -501,7 +501,7 @@ print("days missing quoted IV", int(atm["iv_hourly"].isna().sum()))
     ),
     md(
         r"""
-## 9. The signal and the long–short volatility position
+## 9. The signal and the $\mathrm{sign}(s)$ position
 
 Both quantities are now in variance units. The signal is the gap between the forecast and the implied variance,
 $s_t=\widehat{RV}_t-\bigl(\mathrm{IV}_{\mathrm{hourly},t}/\sqrt{2}\bigr)^{2}$.
@@ -557,7 +557,7 @@ Each rule is scored on the same days and on the same long-package return $R$ (mi
 **The rules** (each returns $R'_t = q_t R_t$):
 
 - **always short:** $q_t=-1$ every day; no forecast is used.
-- **long–short volatility:** $q_t=\mathrm{sign}(s_t)$ with
+- **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s_t)$ with
   $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the package when the
   forecast exceeds implied variance, short otherwise.
 
@@ -575,7 +575,7 @@ Only the scoring is restricted to the common days; each book itself is built on 
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
     return {
         "always short": pd.Series(-1.0, index=px.index),
-        "long-short volatility": px["pos"],
+        "sign(s)": px["pos"],
     }
 
 
@@ -608,7 +608,7 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
 
 order = [
     "always short",
-    "long-short volatility",
+    "sign(s)",
 ]
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
         "skew", "ex_kurt", "t_mean", "Sharpe_ann", "n_buy", "pct_buy"]
@@ -648,7 +648,7 @@ for name in order:
     print(name)
     print(tab.to_string())
     print("---")
-    safe = "".join(ch if ch.isalnum() else "_" for ch in name)
+    safe = "".join(ch if ch.isalnum() else "_" for ch in name).rstrip("_")
     tab.to_csv(OUT / f"rule_by_strategy_{safe}.csv")
 print("saved per-model rule_table_*.csv and per-rule rule_by_strategy_*.csv in", OUT)
 
@@ -698,7 +698,7 @@ def add_variant(series, q, rule, variant, unit):
     st = asl.rule_row(series, q)
     rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
 
-for name in ("always short", "long-short volatility"):
+for name in ("always short", "sign(s)"):
     q = sizes[name].loc[common]
     mid = (q * px["R"])
     add_variant(mid, q, name, "mid premium R", "return")
@@ -726,7 +726,7 @@ print(var_tab.to_string(index=False))
 var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
-for name, ls in (("always short", "-"), ("long-short volatility", "--")):
+for name, ls in (("always short", "-"), ("sign(s)", "--")):
     q = sizes[name].loc[common]
     ax.plot(
         px.index,
@@ -750,7 +750,7 @@ plt.close(fig)
         r"""
 ## 12. Information ratio against always-short
 
-The benchmark is the always-short book, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The portfolio is the long–short book, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
+The benchmark is the always-short book, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The portfolio is the $\mathrm{sign}(s)$ book, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
 
 The **active return** is the daily difference $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short days $q_t=-1$ and the two books coincide, so $R^a_t=0$. On buy days the position has flipped from short to long, so $R^a_t=q_tR_t-(-R_t)=(q_t+1)R_t$, which equals $2R_t$ for a $\pm1$ position. The series is those daily differences on the 871 common days.
 
@@ -770,7 +770,7 @@ for tag in MODEL_ORDER:
     px = books[tag]
     sizes = rule_sizes(px)
     bench = (sizes["always short"] * px["R"]).loc[common]
-    for name in ("long-short volatility",):
+    for name in ("sign(s)",):
         port = (sizes[name] * px["R"]).loc[common]
         st = asl.information_ratio(port, bench)
         ir_rows.append({"model": LABEL[tag], "rule": name, **st.to_dict()})
@@ -801,7 +801,7 @@ compares today's signal only with the past.
 
 - **Split by sign.** The mean of $R_t$ on days with $s_t>0$ against
   days with $s_t\le 0$, and the $t$-statistic of the difference. This
-  is the long–short edge itself.
+  is the $\mathrm{sign}(s)$ edge itself.
 - **Top third against bottom third** of the rank of $s_t$: the same
   question restricted to the extremes.
 - **Regression on the percentile rank** of $s_t$: a monotone relation
@@ -1093,15 +1093,15 @@ plt.close(fig)
     # print("always short (all models identical)")
     # print(pd.DataFrame({"raw": base.loc["raw"], "scaled": base.loc["scaled"]}).T.to_string())
     # print("---")
-    # print("long-short volatility")
-    # ls = vt_tab.loc["long-short volatility"]
+    # print("sign(s)")
+    # ls = vt_tab.loc["sign(s)"]
     # print(pd.concat({LABEL[t]: ls.loc[t] for t in MODEL_ORDER}, axis=0).to_string())
     # print("---")
     # print("scale-factor diagnostics (raw |q| is 1 every day by construction)")
     # print(vt_lev.rename(index=LABEL, level="model").to_string())
     # print("---")
-    # print("per-year book volatility, block-diag ridge long-short")
-    # print(vt_year.loc[("long-short volatility", "blk2")].to_string())
+    # print("per-year book volatility, block-diag ridge sign(s)")
+    # print(vt_year.loc[("sign(s)", "blk2")].to_string())
     #
     # vt_tab.to_csv(OUT / "voltarget_scoreboard.csv")
     # vt_lev.to_csv(OUT / "voltarget_leverage.csv")
@@ -1109,13 +1109,13 @@ plt.close(fig)
     # print("saved voltarget_{scoreboard,leverage,per_year}.csv in", OUT)
     #
     # f = vol_target(
-    # (rule_sizes(books["blk2"])["long-short volatility"] * books["blk2"]["R"]).loc[common]
+    # (rule_sizes(books["blk2"])["sign(s)"] * books["blk2"]["R"]).loc[common]
     # ).dropna(subset=["ell"])
     # fig, axes = plt.subplots(2, 1, figsize=(9, 5.4), sharex=True)
     # axes[0].plot(f.index, f["ell"], lw=0.8, color="C0")
     # axes[0].axhline(1.0, color="k", lw=0.6)
     # axes[0].set_ylabel(r"scale $\ell_t$")
-    # axes[0].set_title("block-diag ridge, long-short — trailing-volatility scale and its effect")
+    # axes[0].set_title("block-diag ridge, sign(s) — trailing-volatility scale and its effect")
     # for kind, c, lab in (("raw", "C1", "raw ($|q|=1$)"), ("scaled", "C0", "vol-scaled")):
     # rv = f[kind].rolling(VT_WIN, min_periods=VT_WIN).std(ddof=1)
     # axes[1].plot(rv.index, rv, lw=0.9, color=c, label=lab)
@@ -1145,8 +1145,9 @@ exercise: **ruin is one bad day.** Any fraction
 $f\ge 1/|\min_t R'_t|$ takes wealth to zero or below on the worst
 day, so the short book without wings, whose worst day is near $-10$
 premium units, can only ever bet a small fraction of wealth no matter
-how good its average return is. (The iron fly of §16 bounds the worst day by construction, which is
-exactly what loosens this constraint.)
+how good its average return is. (A defined-risk variant — parked; explored in the experimental
+notebook — bounds the worst day by construction, which is exactly
+what loosens this constraint.)
 
 The fraction is estimated from the book's own past returns only:
 
@@ -1170,8 +1171,8 @@ why the ruin bound above, and not a collateral bound, governs the
 admissible fraction. A true **capital-at-risk frame** — $f_t$ as the
 share of wealth posted as collateral against the maximum loss, with
 the day's return on that capital bounded below by $-1$ by
-construction — exists only once the worst day is bounded, and §16 scores it on the
-iron fly. One unit of wealth
+construction — exists only once the worst day is bounded; it applies to a
+defined-risk variant (parked; explored in the experimental notebook). One unit of wealth
 posted as collateral controls several times less premium exposure
 than one unit deployed as premium, and the ratio varies from day to
 day, so growth rates compare only within a frame, never across.
@@ -1224,7 +1225,7 @@ for tag in MODEL_ORDER:
 kelly_tab = pd.DataFrame(kelly_rows).T
 kelly_tab.index = pd.MultiIndex.from_tuples(kelly_tab.index, names=["rule", "model"])
 for tag in MODEL_ORDER:
-    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
+    safe = "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
     kelly_tab.xs(tag, level="model").to_csv(OUT / f"kelly_summary_{safe}.csv")
 print("blk2 — causally estimated fraction of wealth, 871 common days")
 print(kelly_tab.xs("blk2", level="model").T.to_string())
@@ -1235,7 +1236,7 @@ print("causal growth across models, both rules")
 spread = kelly_tab[["mean_f", "causal_g_ann", "causal_terminal"]].rename(index=LABEL, level="model")
 print(spread.to_string(float_format=lambda x: f"{x:+.4f}"))
 
-for name in ("always short", "long-short volatility"):
+for name in ("always short", "sign(s)"):
     rs = (rule_sizes(books["blk2"])[name] * books["blk2"]["R"]).loc[common].astype(float)
     fk = causal_kelly(rs)
     gy = pd.Series(np.log1p(fk.to_numpy() * rs.to_numpy()), index=rs.index)
@@ -1244,16 +1245,16 @@ for name in ("always short", "long-short volatility"):
 
 px = books["blk2"]
 fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
-for name, c in (("always short", "C1"), ("long-short volatility", "C0")):
+for name, c in (("always short", "C1"), ("sign(s)", "C0")):
     rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
     fk = causal_kelly(rs)
     axes[0].plot(rs.index, fk, lw=0.9, color=c, label=name)
     w = np.cumprod(1.0 + fk.to_numpy() * rs.to_numpy())
     axes[1].plot(rs.index, w, lw=1.0, color=c, label=name)
-rs = (rule_sizes(px)["long-short volatility"] * px["R"]).loc[common].astype(float)
+rs = (rule_sizes(px)["sign(s)"] * px["R"]).loc[common].astype(float)
 fk = causal_kelly(rs)
 w = np.cumprod(1.0 + (fk.to_numpy() / 2) * rs.to_numpy())
-axes[1].plot(rs.index, w, lw=1.0, color="C2", label="long-short, half fraction")
+axes[1].plot(rs.index, w, lw=1.0, color="C2", label="sign(s), half fraction")
 axes[0].set_ylabel(r"fraction of wealth $\hat f_t$")
 axes[0].set_title("blk2 — causally estimated fraction")
 axes[0].legend(fontsize=8)
@@ -1327,300 +1328,301 @@ display(fig)
 plt.close(fig)
 """
     ),
+    # SECTION PARKED 2026-09-03 (user order): iron flies do not pay — cost at every width, fraction of wealth unchanged; see the experimental notebook's lab.
+    # md(
+    # r"""
+    # ## 16. Iron flies — defined risk on the days the book sells
+    #
+    # Everything above holds the plain package of §4. On a selling day the
+    # book is short a call and a put with nothing behind them, and its loss
+    # is unbounded. A retail account trading the cash-settled index options
+    # (SPX or XSP) under defined-risk margin cannot hold that position: on a
+    # selling day it must buy a wing on each side — the nearest strike with
+    # a live 15:30 midpoint quote at least $w$ points further out of the
+    # money — so that the short body sits inside two long options, an iron
+    # fly. On a buying day it holds the plain package, whose loss is already
+    # capped at the premium paid; wings there would cap the very payoff the
+    # long position exists to own. This section treats the wings as what
+    # they are for such an account: a **constraint, not a choice**. The
+    # experimental notebook's lab found that, per dollar of premium, wings
+    # cost the book Sharpe at every width it tried, and that the "free
+    # insurance" visible in index points came from one quarter in 2020. The
+    # questions the constraint leaves open are which width to use and how
+    # much of wealth to bet, given that a fly is required. Four widths are
+    # scored: 20 and 30 points, and the 25 and 50 points used in the lab.
+    #
+    # **Construction.** The net credit $C$ is the body premium minus the
+    # wing premium; days with $C \le 0$ (a deep wing quote missing, about
+    # one day in a thousand) are dropped and counted. The worst case loses
+    # the larger of the two *actual* wing gaps minus the credit — the
+    # nearest listed wing can sit farther out than the nominal width — and
+    # with that denominator the return on capital at risk is bounded below
+    # by exactly $-1$, which the cell asserts. Returns are reported in the
+    # two frames of §14. Per body premium is the primary frame,
+    #
+    # $$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
+    #
+    # the same denominator as the plain rows of §10, so the cost of the
+    # wings reads directly against the plain book on the same days, and the
+    # buy days' plain return is already in this unit. The capital-at-risk
+    # frame, $R'' = (C - \text{payout})/(\text{gap} - C)$, is the fully
+    # collateralized view a margin account actually posts against; it is
+    # reported second because its denominator is smallest on the days with
+    # the richest credit — the high-volatility days — so it overweights
+    # exactly those days and reads cheap tail insurance as a losing trade,
+    # an artifact of the unit. The fraction-of-wealth estimator of §14 is
+    # applied unchanged in both frames; the plain book is compared only in
+    # the per-premium frame, the unit the two share.
+    #
+    # **What the constraint costs, and what it leaves.** Per dollar of body
+    # premium the fly costs the $\mathrm{sign}(s)$ book at every width, and the cost
+    # falls as the wings move out: an annualized Sharpe ratio of about 1.36
+    # at 20 points, 1.42 at 25, 1.47 at 30 and 1.54 at 50, against about
+    # 1.62 for the plain package on the same 870 days. The wings are touched
+    # on about 7% of fly days at 20 points and 1% at 50. Only the narrowest
+    # fly changes the $\mathrm{sign}(s)$ book's worst day in this unit (about $-4.7$
+    # against $-5.4$); from 25 points out the worst day is where it was,
+    # because the book's worst days are moderate moves on days when the
+    # premium was small, which a wing 25 points away never reaches. The fly
+    # does cut the drawdown in this unit at every width (about $-14$ to
+    # $-16$ against $-18.6$). In index points the wings roughly pay for
+    # themselves at every width — the paired $t$ on their daily cost is
+    # within $\pm 0.6$ — and cut the worst settlement day from about $-78$
+    # points to between $-17$ (20 points) and $-37$ (50 points); the lab
+    # traced that payoff to one quarter in 2020. The always-short control
+    # does not survive the constraint at any width: its thin edge (Sharpe
+    # about 0.27) becomes roughly zero or negative once wings are bought
+    # every day. Under defined-risk margin the book that remains is the
+    # $\mathrm{sign}(s)$ rule.
+    #
+    # **How much of wealth to bet.** In the per-premium frame the estimator
+    # of §14 lands on almost the same fraction with wings as without — about
+    # 0.054 to 0.062 of wealth deployed as premium, against 0.063 for the
+    # plain package — because it is the estimate of the mean and second
+    # moment, not the ruin bound, that sets the fraction. Wealth compounds
+    # to about 10 times at 20 points, 12 at 25, 15 at 30 and 22 at 50,
+    # against about 34 for the plain package; at the half fraction, about 5
+    # to 9 times. The narrowest fly is again the only one that changes the
+    # worst single day of wealth (a factor of about 0.64 against 0.51). In
+    # the capital-at-risk frame — the collateral a margin account posts —
+    # the fraction is about 0.03 to 0.04 of wealth at every width, the
+    # growth rate about 0.25 to 0.29 a year, and the worst day removes
+    # about 7% of wealth; this is the fully collateralized floor, and its
+    # numbers are not comparable to the per-premium ones. The choice the
+    # constraint leaves is therefore narrow: the widest wing the margin
+    # rule allows costs the least (about 0.08 of Sharpe and a third of the
+    # compounded growth at 50 points) and protects in points but not per
+    # premium; the 20-point fly is the only one that also bounds the
+    # per-premium tail, and it costs about 0.26 of Sharpe and two-thirds of
+    # the compounded growth. Nothing here lets the account bet more of its
+    # wealth than the plain book would.
+    #
+    # The figure at the end of the cell shows, for the block-diagonal ridge
+    # forecast, the cumulative per-premium return of the $\mathrm{sign}(s)$ book
+    # with the plain package and with flies at each width, and the
+    # compounded wealth under the causal fraction with and without wings.
+    # """
+    # ),
+    # code(
+    # r"""
+    # live1530 = book_chain[(book_chain["hhmm"] == "15:30") & np.isfinite(book_chain["mid"]) & (book_chain["mid"] > 0)].copy()
+    # body = atm.reset_index()
+    # close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
+    # close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
+    #
+    # def maxdd(x):
+    # cum = x.cumsum()
+    # return float((cum - cum.cummax()).min())
+    #
+    # def sharpe(x):
+    # return float(x.mean() / x.std(ddof=1) * np.sqrt(252))
+    #
+    # def score_fly(width: float):
+    # fl = asl.pick_wings(live1530, body, width=width)
+    # n_wings = len(fl)
+    # fl = asl.settle_package(fl, close_map)
+    # fl = fl[np.isfinite(fl["entry_ic"]) & np.isfinite(fl["exit_ic"]) & (fl["width"] > 0)].copy()
+    # fl["credit"] = fl["entry_ic"]                      # body premium received minus wing premium paid
+    # # the worst case loses the larger ACTUAL wing gap (the nearest listed wing can sit
+    # # farther out than the nominal width) minus the credit
+    # fl["gap_max"] = np.maximum(fl["K_c_wing"] - fl["K_c"], fl["K_p"] - fl["K_p_wing"])
+    # bad = ~((fl["credit"] > 0) & (fl["credit"] < fl["gap_max"]))
+    # fl = fl[~bad].copy()
+    # fl["max_loss"] = fl["gap_max"] - fl["credit"]
+    # fl["pnl"] = fl["credit"] - fl["exit_ic"]           # index points per package
+    # fl["R_prem"] = fl["pnl"] / fl["entry_body"]        # primary frame: per body premium
+    # fl["R_risk"] = fl["pnl"] / fl["max_loss"]          # second frame: per capital at risk
+    # n_floor = int((fl["R_risk"] < -1.0 - 1e-12).sum())
+    # assert n_floor == 0, f"{n_floor} day(s) breach the -1 capital-at-risk floor"
+    # fl["cap_binds"] = (fl["S_close"] >= fl["K_c_wing"]) | (fl["S_close"] <= fl["K_p_wing"])
+    # if "day" in fl.columns:
+    # fl = fl.set_index("day")
+    # fl = fl.sort_index()
+    # print(f"width {int(width)}: wings on {n_wings} of {len(body)} body days; dropped {int(bad.sum())} day(s) with "
+    # f"credit <= 0 or credit >= wing gap; capital-at-risk floor min {float(fl['R_risk'].min()):+.4f} "
+    # f"(>= -1, 0 violations); settlement beyond a wing on {int(fl['cap_binds'].sum())} of {len(fl)} days "
+    # f"({float(fl['cap_binds'].mean()):.2%})")
+    # return fl
+    #
+    # WIDTHS = (20.0, 25.0, 30.0, 50.0)
+    # flies = {w: score_fly(w) for w in WIDTHS}
+    # print("---")
+    #
+    # summary = []
+    # for w, fl in flies.items():
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # j = fl.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_body")
+    # j = j.loc[j.index.intersection(common)]
+    # sell = j["pos"] < 0
+    # series = {
+    # ("always short", "per premium"): (j["R_prem"], pd.Series(-1.0, index=j.index)),
+    # ("always short", "capital at risk"): (j["R_risk"], pd.Series(-1.0, index=j.index)),
+    # ("sign(s)", "per premium"): (j["R_prem"].where(sell, j["R"]), j["pos"]),
+    # ("sign(s)", "capital at risk"): (j["R_risk"].where(sell, j["R"]), j["pos"]),
+    # }
+    # tab = pd.DataFrame({key: asl.rule_row(rr, sz) for key, (rr, sz) in series.items()}).T
+    # tab.index = pd.MultiIndex.from_tuples(tab.index, names=["rule", "units"])
+    # safe = f"ironfly_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
+    # tab.to_csv(OUT / f"{safe}.csv")
+    # plain = {"always short": -j["R"], "sign(s)": j["pos"] * j["R"]}
+    # naked = (j["entry_body"] - j["exit"]).astype(float)   # the short body alone, index points per package
+    # hedged = j["pnl"].astype(float)
+    # drag = naked - hedged                                 # what the wings cost (or return) each day
+    # for name in ("always short", "sign(s)"):
+    # held = pd.Series(True, index=j.index) if name == "always short" else sell
+    # rr = series[(name, "per premium")][0]
+    # d = drag[held]
+    # t_d = sm.OLS(d.to_numpy(), np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    # summary.append({"w": int(w), "model": tag, "rule": name, "n": len(j), "n_fly_days": int(held.sum()),
+    # "Sharpe_fly": sharpe(rr), "Sharpe_plain": sharpe(plain[name]),
+    # "worst_fly": float(rr.min()), "worst_plain": float(plain[name].min()),
+    # "maxDD_fly": maxdd(rr), "maxDD_plain": maxdd(plain[name]),
+    # "pct_beyond_wing": float(j.loc[held, "cap_binds"].mean()),
+    # "wing_cost_pts_day": float(d.mean()), "t_wing_cost": float(t_d.tvalues[0])})
+    # if tag != "blk2":
+    # continue
+    # print(f"=== width {int(w)}, block-diagonal ridge: {len(j)} days = wing days & common; "
+    # f"{int(sell.sum())} selling days hold the fly, {int((~sell).sum())} buying days hold the plain package ===")
+    # for name in ("always short", "sign(s)"):
+    # rr, sz = series[(name, "per premium")]
+    # print(f"{name}, per body premium:")
+    # print(asl.rule_row(rr, sz).to_string())
+    # print("capital-at-risk frame (bounded at -1), same days:")
+    # for name in ("always short", "sign(s)"):
+    # rr, _ = series[(name, "capital at risk")]
+    # print(f"  {name}: mean {float(rr.mean()):+.5f} Sharpe {sharpe(rr):+.3f} min {float(rr.min()):+.3f} max {float(rr.max()):+.3f}")
+    # print("fly vs plain package, same days, per body premium:")
+    # for name in ("always short", "sign(s)"):
+    # rr, _ = series[(name, "per premium")]
+    # pl = plain[name]
+    # print(f"  {name}: mean {float(rr.mean()):+.5f} Sharpe {sharpe(rr):+.3f} worst {float(rr.min()):+.3f} "
+    # f"maxDD {maxdd(rr):+.2f} | plain: mean {float(pl.mean()):+.5f} Sharpe {sharpe(pl):+.3f} "
+    # f"worst {float(pl.min()):+.3f} maxDD {maxdd(pl):+.2f}")
+    # t_all = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    # jb = j["cap_binds"]
+    # worst10 = naked.nsmallest(10).index
+    # print(f"the insurance in index points per package, short body every day, {len(j)} days:")
+    # print(f"  wing cost {float(drag.mean()):+.3f}/day (paired Newey-West t {float(t_all.tvalues[0]):+.2f}); "
+    # f"worst day naked {float(naked.min()):+.1f} vs fly {float(hedged.min()):+.1f}; "
+    # f"maxDD naked {maxdd(naked):+.1f} vs fly {maxdd(hedged):+.1f}")
+    # print(f"  settlement beyond a wing on {int(jb.sum())} of these days: points returned there "
+    # f"{float((hedged - naked)[jb].sum()):+.1f}; over the 10 worst naked days {float((hedged - naked)[worst10].sum()):+.1f}")
+    # print("---")
+    #
+    # summary = pd.DataFrame(summary)
+    # summary.to_csv(OUT / "ironfly_summary.csv", index=False)
+    # print("=== the four widths at a glance, block-diagonal ridge, per body premium ===")
+    # cols = ["w", "rule", "n_fly_days", "Sharpe_fly", "Sharpe_plain", "worst_fly", "worst_plain", "maxDD_fly", "maxDD_plain",
+    # "pct_beyond_wing", "wing_cost_pts_day", "t_wing_cost"]
+    # print(summary[summary["model"] == "blk2"][cols].sort_values(["rule", "w"]).to_string(index=False, float_format=lambda x: f"{x:+.3f}"))
+    # print("saved ironfly_w<w>_rule_by_strategy_<model>.csv and ironfly_summary.csv in", OUT)
+    # print("---")
+    #
+    # print("=== fraction of wealth (estimator of section 14) on the fly book; frame named first ===")
+    # kv_rows = {}
+    # for w, fl in flies.items():
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # j = fl.join(px[["pos", "R"]], how="inner", rsuffix="_body")
+    # j = j.loc[j.index.intersection(common)]
+    # sell = j["pos"] < 0
+    # frames = {
+    # ("always short", "capital at risk"): j["R_risk"],
+    # ("always short", "per premium"): j["R_prem"],
+    # ("sign(s)", "capital at risk"): j["R_risk"].where(sell, j["R"]),
+    # ("sign(s)", "per premium"): j["R_prem"].where(sell, j["R"]),
+    # }
+    # for (name, frame), rs in frames.items():
+    # rs = rs.astype(float)
+    # rv = rs.to_numpy()
+    # fk = causal_kelly(rs).to_numpy()
+    # row = pd.concat({"causal": wealth_row(fk, rv), "half": wealth_row(fk / 2, rv)})
+    # row.index = ["_".join(k) for k in row.index]
+    # row["mean_f"] = float(fk.mean())
+    # if frame == "per premium":
+    # # the plain book is compared ONLY in the shared premium unit
+    # ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
+    # fku = causal_kelly(ru).to_numpy()
+    # unc = wealth_row(fku, ru.to_numpy())
+    # row["plain_g_ann"] = unc["g_ann"]
+    # row["plain_terminal"] = unc["terminal"]
+    # row["plain_worst_day_factor"] = unc["worst_day_factor"]
+    # row["plain_mean_f"] = float(fku.mean())
+    # kv_rows[(name, frame, tag, int(w))] = row
+    # kv = pd.DataFrame(kv_rows).T
+    # kv.index = pd.MultiIndex.from_tuples(kv.index, names=["rule", "frame", "model", "w"])
+    # for tag in MODEL_ORDER:
+    # safe = "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
+    # kv.xs(tag, level="model").to_csv(OUT / f"ironfly_kelly_{safe}.csv")
+    # show = ["mean_f", "causal_g_ann", "causal_terminal", "causal_worst_day_factor", "half_terminal",
+    # "plain_mean_f", "plain_g_ann", "plain_terminal", "plain_worst_day_factor"]
+    # print("block-diagonal ridge (plain-book columns appear only in the per-premium frame, the shared unit):")
+    # print(kv.xs("blk2", level="model")[show].to_string(float_format=lambda x: f"{x:+.3f}", na_rep=""))
+    # print("saved ironfly_kelly_<model>.csv in", OUT)
+    #
+    # px = books["blk2"]
+    # fig, ax = plt.subplots(figsize=(11, 3.6))
+    # rp = (px["pos"] * px["R"]).loc[common]
+    # ax.plot(rp.index, rp.cumsum().values, color="k", lw=1.3, label=f"plain package (Sharpe {sharpe(rp):.2f})")
+    # for (w, fl), c in zip(flies.items(), ("C3", "C1", "C2", "C0")):
+    # j = fl.join(px[["pos", "R"]], how="inner", rsuffix="_body")
+    # j = j.loc[j.index.intersection(common)]
+    # ls = j["R_prem"].where(j["pos"] < 0, j["R"])
+    # ax.plot(ls.index, ls.cumsum().values, color=c, lw=1.0, label=f"fly on selling days, w = {int(w)} (Sharpe {sharpe(ls):.2f})")
+    # ax.axhline(0.0, color="k", lw=0.5)
+    # ax.set_ylabel("cumulative return per body premium")
+    # ax.set_title("sign(s), block-diagonal ridge: the plain package against iron flies of four widths")
+    # ax.legend(fontsize=8)
+    # fig.tight_layout()
+    # fig.savefig(OUT / "ironfly_cum_blk2.png", dpi=120, bbox_inches="tight")
+    # print("saved", OUT / "ironfly_cum_blk2.png")
+    # display(fig)
+    # plt.close(fig)
+    #
+    # fig, ax = plt.subplots(figsize=(11, 3.6))
+    # rp = (px["pos"] * px["R"]).loc[common].astype(float)
+    # fk = causal_kelly(rp).to_numpy()
+    # ax.plot(rp.index, np.cumprod(1.0 + fk * rp.to_numpy()), color="k", lw=1.3, label="plain package")
+    # for w, c in ((20.0, "C3"), (30.0, "C2")):
+    # j = flies[w].join(px[["pos", "R"]], how="inner", rsuffix="_body")
+    # j = j.loc[j.index.intersection(common)]
+    # ls = j["R_prem"].where(j["pos"] < 0, j["R"]).astype(float)
+    # fk = causal_kelly(ls).to_numpy()
+    # ax.plot(ls.index, np.cumprod(1.0 + fk * ls.to_numpy()), color=c, lw=1.0, label=f"fly on selling days, w = {int(w)}")
+    # wealth_axis(ax)
+    # ax.set_title("compounded wealth at the causal fraction, per-premium frame, sign(s) (starting stake = 1×)")
+    # ax.legend(fontsize=8)
+    # fig.tight_layout()
+    # fig.savefig(OUT / "ironfly_wealth_blk2.png", dpi=120, bbox_inches="tight")
+    # print("saved", OUT / "ironfly_wealth_blk2.png")
+    # display(fig)
+    # plt.close(fig)
+    # """
+    # ),
     md(
         r"""
-## 16. Iron flies — defined risk on the days the book sells
-
-Everything above holds the plain package of §4. On a selling day the
-book is short a call and a put with nothing behind them, and its loss
-is unbounded. A retail account trading the cash-settled index options
-(SPX or XSP) under defined-risk margin cannot hold that position: on a
-selling day it must buy a wing on each side — the nearest strike with
-a live 15:30 midpoint quote at least $w$ points further out of the
-money — so that the short body sits inside two long options, an iron
-fly. On a buying day it holds the plain package, whose loss is already
-capped at the premium paid; wings there would cap the very payoff the
-long position exists to own. This section treats the wings as what
-they are for such an account: a **constraint, not a choice**. The
-experimental notebook's lab found that, per dollar of premium, wings
-cost the book Sharpe at every width it tried, and that the "free
-insurance" visible in index points came from one quarter in 2020. The
-questions the constraint leaves open are which width to use and how
-much of wealth to bet, given that a fly is required. Four widths are
-scored: 20 and 30 points, and the 25 and 50 points used in the lab.
-
-**Construction.** The net credit $C$ is the body premium minus the
-wing premium; days with $C \le 0$ (a deep wing quote missing, about
-one day in a thousand) are dropped and counted. The worst case loses
-the larger of the two *actual* wing gaps minus the credit — the
-nearest listed wing can sit farther out than the nominal width — and
-with that denominator the return on capital at risk is bounded below
-by exactly $-1$, which the cell asserts. Returns are reported in the
-two frames of §14. Per body premium is the primary frame,
-
-$$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
-
-the same denominator as the plain rows of §10, so the cost of the
-wings reads directly against the plain book on the same days, and the
-buy days' plain return is already in this unit. The capital-at-risk
-frame, $R'' = (C - \text{payout})/(\text{gap} - C)$, is the fully
-collateralized view a margin account actually posts against; it is
-reported second because its denominator is smallest on the days with
-the richest credit — the high-volatility days — so it overweights
-exactly those days and reads cheap tail insurance as a losing trade,
-an artifact of the unit. The fraction-of-wealth estimator of §14 is
-applied unchanged in both frames; the plain book is compared only in
-the per-premium frame, the unit the two share.
-
-**What the constraint costs, and what it leaves.** Per dollar of body
-premium the fly costs the long–short book at every width, and the cost
-falls as the wings move out: an annualized Sharpe ratio of about 1.36
-at 20 points, 1.42 at 25, 1.47 at 30 and 1.54 at 50, against about
-1.62 for the plain package on the same 870 days. The wings are touched
-on about 7% of fly days at 20 points and 1% at 50. Only the narrowest
-fly changes the long–short book's worst day in this unit (about $-4.7$
-against $-5.4$); from 25 points out the worst day is where it was,
-because the book's worst days are moderate moves on days when the
-premium was small, which a wing 25 points away never reaches. The fly
-does cut the drawdown in this unit at every width (about $-14$ to
-$-16$ against $-18.6$). In index points the wings roughly pay for
-themselves at every width — the paired $t$ on their daily cost is
-within $\pm 0.6$ — and cut the worst settlement day from about $-78$
-points to between $-17$ (20 points) and $-37$ (50 points); the lab
-traced that payoff to one quarter in 2020. The always-short control
-does not survive the constraint at any width: its thin edge (Sharpe
-about 0.27) becomes roughly zero or negative once wings are bought
-every day. Under defined-risk margin the book that remains is the
-long–short rule.
-
-**How much of wealth to bet.** In the per-premium frame the estimator
-of §14 lands on almost the same fraction with wings as without — about
-0.054 to 0.062 of wealth deployed as premium, against 0.063 for the
-plain package — because it is the estimate of the mean and second
-moment, not the ruin bound, that sets the fraction. Wealth compounds
-to about 10 times at 20 points, 12 at 25, 15 at 30 and 22 at 50,
-against about 34 for the plain package; at the half fraction, about 5
-to 9 times. The narrowest fly is again the only one that changes the
-worst single day of wealth (a factor of about 0.64 against 0.51). In
-the capital-at-risk frame — the collateral a margin account posts —
-the fraction is about 0.03 to 0.04 of wealth at every width, the
-growth rate about 0.25 to 0.29 a year, and the worst day removes
-about 7% of wealth; this is the fully collateralized floor, and its
-numbers are not comparable to the per-premium ones. The choice the
-constraint leaves is therefore narrow: the widest wing the margin
-rule allows costs the least (about 0.08 of Sharpe and a third of the
-compounded growth at 50 points) and protects in points but not per
-premium; the 20-point fly is the only one that also bounds the
-per-premium tail, and it costs about 0.26 of Sharpe and two-thirds of
-the compounded growth. Nothing here lets the account bet more of its
-wealth than the plain book would.
-
-The figure at the end of the cell shows, for the block-diagonal ridge
-forecast, the cumulative per-premium return of the long–short book
-with the plain package and with flies at each width, and the
-compounded wealth under the causal fraction with and without wings.
-"""
-    ),
-    code(
-        r"""
-live1530 = book_chain[(book_chain["hhmm"] == "15:30") & np.isfinite(book_chain["mid"]) & (book_chain["mid"] > 0)].copy()
-body = atm.reset_index()
-close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
-close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
-
-def maxdd(x):
-    cum = x.cumsum()
-    return float((cum - cum.cummax()).min())
-
-def sharpe(x):
-    return float(x.mean() / x.std(ddof=1) * np.sqrt(252))
-
-def score_fly(width: float):
-    fl = asl.pick_wings(live1530, body, width=width)
-    n_wings = len(fl)
-    fl = asl.settle_package(fl, close_map)
-    fl = fl[np.isfinite(fl["entry_ic"]) & np.isfinite(fl["exit_ic"]) & (fl["width"] > 0)].copy()
-    fl["credit"] = fl["entry_ic"]                      # body premium received minus wing premium paid
-    # the worst case loses the larger ACTUAL wing gap (the nearest listed wing can sit
-    # farther out than the nominal width) minus the credit
-    fl["gap_max"] = np.maximum(fl["K_c_wing"] - fl["K_c"], fl["K_p"] - fl["K_p_wing"])
-    bad = ~((fl["credit"] > 0) & (fl["credit"] < fl["gap_max"]))
-    fl = fl[~bad].copy()
-    fl["max_loss"] = fl["gap_max"] - fl["credit"]
-    fl["pnl"] = fl["credit"] - fl["exit_ic"]           # index points per package
-    fl["R_prem"] = fl["pnl"] / fl["entry_body"]        # primary frame: per body premium
-    fl["R_risk"] = fl["pnl"] / fl["max_loss"]          # second frame: per capital at risk
-    n_floor = int((fl["R_risk"] < -1.0 - 1e-12).sum())
-    assert n_floor == 0, f"{n_floor} day(s) breach the -1 capital-at-risk floor"
-    fl["cap_binds"] = (fl["S_close"] >= fl["K_c_wing"]) | (fl["S_close"] <= fl["K_p_wing"])
-    if "day" in fl.columns:
-        fl = fl.set_index("day")
-    fl = fl.sort_index()
-    print(f"width {int(width)}: wings on {n_wings} of {len(body)} body days; dropped {int(bad.sum())} day(s) with "
-          f"credit <= 0 or credit >= wing gap; capital-at-risk floor min {float(fl['R_risk'].min()):+.4f} "
-          f"(>= -1, 0 violations); settlement beyond a wing on {int(fl['cap_binds'].sum())} of {len(fl)} days "
-          f"({float(fl['cap_binds'].mean()):.2%})")
-    return fl
-
-WIDTHS = (20.0, 25.0, 30.0, 50.0)
-flies = {w: score_fly(w) for w in WIDTHS}
-print("---")
-
-summary = []
-for w, fl in flies.items():
-    for tag in MODEL_ORDER:
-        px = books[tag]
-        j = fl.join(px[["signal", "pos", "R"]], how="inner", rsuffix="_body")
-        j = j.loc[j.index.intersection(common)]
-        sell = j["pos"] < 0
-        series = {
-            ("always short", "per premium"): (j["R_prem"], pd.Series(-1.0, index=j.index)),
-            ("always short", "capital at risk"): (j["R_risk"], pd.Series(-1.0, index=j.index)),
-            ("long-short volatility", "per premium"): (j["R_prem"].where(sell, j["R"]), j["pos"]),
-            ("long-short volatility", "capital at risk"): (j["R_risk"].where(sell, j["R"]), j["pos"]),
-        }
-        tab = pd.DataFrame({key: asl.rule_row(rr, sz) for key, (rr, sz) in series.items()}).T
-        tab.index = pd.MultiIndex.from_tuples(tab.index, names=["rule", "units"])
-        safe = f"ironfly_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag)
-        tab.to_csv(OUT / f"{safe}.csv")
-        plain = {"always short": -j["R"], "long-short volatility": j["pos"] * j["R"]}
-        naked = (j["entry_body"] - j["exit"]).astype(float)   # the short body alone, index points per package
-        hedged = j["pnl"].astype(float)
-        drag = naked - hedged                                 # what the wings cost (or return) each day
-        for name in ("always short", "long-short volatility"):
-            held = pd.Series(True, index=j.index) if name == "always short" else sell
-            rr = series[(name, "per premium")][0]
-            d = drag[held]
-            t_d = sm.OLS(d.to_numpy(), np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-            summary.append({"w": int(w), "model": tag, "rule": name, "n": len(j), "n_fly_days": int(held.sum()),
-                            "Sharpe_fly": sharpe(rr), "Sharpe_plain": sharpe(plain[name]),
-                            "worst_fly": float(rr.min()), "worst_plain": float(plain[name].min()),
-                            "maxDD_fly": maxdd(rr), "maxDD_plain": maxdd(plain[name]),
-                            "pct_beyond_wing": float(j.loc[held, "cap_binds"].mean()),
-                            "wing_cost_pts_day": float(d.mean()), "t_wing_cost": float(t_d.tvalues[0])})
-        if tag != "blk2":
-            continue
-        print(f"=== width {int(w)}, block-diagonal ridge: {len(j)} days = wing days & common; "
-              f"{int(sell.sum())} selling days hold the fly, {int((~sell).sum())} buying days hold the plain package ===")
-        for name in ("always short", "long-short volatility"):
-            rr, sz = series[(name, "per premium")]
-            print(f"{name}, per body premium:")
-            print(asl.rule_row(rr, sz).to_string())
-        print("capital-at-risk frame (bounded at -1), same days:")
-        for name in ("always short", "long-short volatility"):
-            rr, _ = series[(name, "capital at risk")]
-            print(f"  {name}: mean {float(rr.mean()):+.5f} Sharpe {sharpe(rr):+.3f} min {float(rr.min()):+.3f} max {float(rr.max()):+.3f}")
-        print("fly vs plain package, same days, per body premium:")
-        for name in ("always short", "long-short volatility"):
-            rr, _ = series[(name, "per premium")]
-            pl = plain[name]
-            print(f"  {name}: mean {float(rr.mean()):+.5f} Sharpe {sharpe(rr):+.3f} worst {float(rr.min()):+.3f} "
-                  f"maxDD {maxdd(rr):+.2f} | plain: mean {float(pl.mean()):+.5f} Sharpe {sharpe(pl):+.3f} "
-                  f"worst {float(pl.min()):+.3f} maxDD {maxdd(pl):+.2f}")
-        t_all = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-        jb = j["cap_binds"]
-        worst10 = naked.nsmallest(10).index
-        print(f"the insurance in index points per package, short body every day, {len(j)} days:")
-        print(f"  wing cost {float(drag.mean()):+.3f}/day (paired Newey-West t {float(t_all.tvalues[0]):+.2f}); "
-              f"worst day naked {float(naked.min()):+.1f} vs fly {float(hedged.min()):+.1f}; "
-              f"maxDD naked {maxdd(naked):+.1f} vs fly {maxdd(hedged):+.1f}")
-        print(f"  settlement beyond a wing on {int(jb.sum())} of these days: points returned there "
-              f"{float((hedged - naked)[jb].sum()):+.1f}; over the 10 worst naked days {float((hedged - naked)[worst10].sum()):+.1f}")
-        print("---")
-
-summary = pd.DataFrame(summary)
-summary.to_csv(OUT / "ironfly_summary.csv", index=False)
-print("=== the four widths at a glance, block-diagonal ridge, per body premium ===")
-cols = ["w", "rule", "n_fly_days", "Sharpe_fly", "Sharpe_plain", "worst_fly", "worst_plain", "maxDD_fly", "maxDD_plain",
-        "pct_beyond_wing", "wing_cost_pts_day", "t_wing_cost"]
-print(summary[summary["model"] == "blk2"][cols].sort_values(["rule", "w"]).to_string(index=False, float_format=lambda x: f"{x:+.3f}"))
-print("saved ironfly_w<w>_rule_by_strategy_<model>.csv and ironfly_summary.csv in", OUT)
-print("---")
-
-print("=== fraction of wealth (estimator of section 14) on the fly book; frame named first ===")
-kv_rows = {}
-for w, fl in flies.items():
-    for tag in MODEL_ORDER:
-        px = books[tag]
-        j = fl.join(px[["pos", "R"]], how="inner", rsuffix="_body")
-        j = j.loc[j.index.intersection(common)]
-        sell = j["pos"] < 0
-        frames = {
-            ("always short", "capital at risk"): j["R_risk"],
-            ("always short", "per premium"): j["R_prem"],
-            ("long-short volatility", "capital at risk"): j["R_risk"].where(sell, j["R"]),
-            ("long-short volatility", "per premium"): j["R_prem"].where(sell, j["R"]),
-        }
-        for (name, frame), rs in frames.items():
-            rs = rs.astype(float)
-            rv = rs.to_numpy()
-            fk = causal_kelly(rs).to_numpy()
-            row = pd.concat({"causal": wealth_row(fk, rv), "half": wealth_row(fk / 2, rv)})
-            row.index = ["_".join(k) for k in row.index]
-            row["mean_f"] = float(fk.mean())
-            if frame == "per premium":
-                # the plain book is compared ONLY in the shared premium unit
-                ru = (-px["R"] if name == "always short" else px["pos"] * px["R"]).loc[rs.index].astype(float)
-                fku = causal_kelly(ru).to_numpy()
-                unc = wealth_row(fku, ru.to_numpy())
-                row["plain_g_ann"] = unc["g_ann"]
-                row["plain_terminal"] = unc["terminal"]
-                row["plain_worst_day_factor"] = unc["worst_day_factor"]
-                row["plain_mean_f"] = float(fku.mean())
-            kv_rows[(name, frame, tag, int(w))] = row
-kv = pd.DataFrame(kv_rows).T
-kv.index = pd.MultiIndex.from_tuples(kv.index, names=["rule", "frame", "model", "w"])
-for tag in MODEL_ORDER:
-    safe = "".join(ch if ch.isalnum() else "_" for ch in tag)
-    kv.xs(tag, level="model").to_csv(OUT / f"ironfly_kelly_{safe}.csv")
-show = ["mean_f", "causal_g_ann", "causal_terminal", "causal_worst_day_factor", "half_terminal",
-        "plain_mean_f", "plain_g_ann", "plain_terminal", "plain_worst_day_factor"]
-print("block-diagonal ridge (plain-book columns appear only in the per-premium frame, the shared unit):")
-print(kv.xs("blk2", level="model")[show].to_string(float_format=lambda x: f"{x:+.3f}", na_rep=""))
-print("saved ironfly_kelly_<model>.csv in", OUT)
-
-px = books["blk2"]
-fig, ax = plt.subplots(figsize=(11, 3.6))
-rp = (px["pos"] * px["R"]).loc[common]
-ax.plot(rp.index, rp.cumsum().values, color="k", lw=1.3, label=f"plain package (Sharpe {sharpe(rp):.2f})")
-for (w, fl), c in zip(flies.items(), ("C3", "C1", "C2", "C0")):
-    j = fl.join(px[["pos", "R"]], how="inner", rsuffix="_body")
-    j = j.loc[j.index.intersection(common)]
-    ls = j["R_prem"].where(j["pos"] < 0, j["R"])
-    ax.plot(ls.index, ls.cumsum().values, color=c, lw=1.0, label=f"fly on selling days, w = {int(w)} (Sharpe {sharpe(ls):.2f})")
-ax.axhline(0.0, color="k", lw=0.5)
-ax.set_ylabel("cumulative return per body premium")
-ax.set_title("long-short volatility, block-diagonal ridge: the plain package against iron flies of four widths")
-ax.legend(fontsize=8)
-fig.tight_layout()
-fig.savefig(OUT / "ironfly_cum_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "ironfly_cum_blk2.png")
-display(fig)
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(11, 3.6))
-rp = (px["pos"] * px["R"]).loc[common].astype(float)
-fk = causal_kelly(rp).to_numpy()
-ax.plot(rp.index, np.cumprod(1.0 + fk * rp.to_numpy()), color="k", lw=1.3, label="plain package")
-for w, c in ((20.0, "C3"), (30.0, "C2")):
-    j = flies[w].join(px[["pos", "R"]], how="inner", rsuffix="_body")
-    j = j.loc[j.index.intersection(common)]
-    ls = j["R_prem"].where(j["pos"] < 0, j["R"]).astype(float)
-    fk = causal_kelly(ls).to_numpy()
-    ax.plot(ls.index, np.cumprod(1.0 + fk * ls.to_numpy()), color=c, lw=1.0, label=f"fly on selling days, w = {int(w)}")
-wealth_axis(ax)
-ax.set_title("compounded wealth at the causal fraction, per-premium frame, long-short volatility (starting stake = 1×)")
-ax.legend(fontsize=8)
-fig.tight_layout()
-fig.savefig(OUT / "ironfly_wealth_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "ironfly_wealth_blk2.png")
-display(fig)
-plt.close(fig)
-"""
-    ),
-    md(
-        r"""
-## 17. Checking one row by hand
+## 16. Checking one row by hand
 
 The columns of a single row map onto the construction as follows.
 
@@ -1636,7 +1638,7 @@ The columns of a single row map onto the construction as follows.
 - The quoted implied volatility is hourly, so
   `iv_30 = iv_hourly / sqrt(2)` and `iv_var = iv_30**2`.
 - `signal = rv_hat - iv_var`; the variance risk premium is
-  $\mathrm{VRP}=-s$. The long-short volatility position `pos` is $+1$
+  $\mathrm{VRP}=-s$. The sign(s) position `pos` is $+1$
   when the signal is positive and $-1$ otherwise.
 """
     ),

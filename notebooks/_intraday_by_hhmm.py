@@ -125,7 +125,7 @@ med_all = asl.lagged_expanding_median(work["signal"], min_periods=min_bars)
 work["lev"] = asl.um_leverage_vs_lagged_scale(work["signal"], med_all)
 q = {
     "always short": pd.Series(-1.0, index=work.index),
-    "long-short volatility": work["pos"],
+    "sign(s)": work["pos"],
     "unit-median VRP": work["pos"] * work["lev"],
 }
 rows = []
@@ -147,9 +147,9 @@ print(
         ["hhmm", "n", "mean", "std", "t_mean", "Sharpe_ann"]
     ].to_string(index=False)
 )
-print("\nlong-short by stamp")
+print("\nsign(s) by stamp")
 print(
-    htab[htab["rule"] == "long-short volatility"][
+    htab[htab["rule"] == "sign(s)"][
         ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
     ].to_string(index=False)
 )

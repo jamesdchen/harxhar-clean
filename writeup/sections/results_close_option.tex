@@ -34,7 +34,7 @@ Read the control first. Selling the package every day earns a mean
 0.020 per expiration day at a standard deviation of 1.127
 ($t=0.53$, annualized Sharpe 0.28): a positive premium, at a size that
 871 days cannot separate from zero. Putting the forecast in charge of
-\emph{direction} is what pays. The long--short rule
+\emph{direction} is what pays. The rule
 $q=\mathrm{sign}(s)$ earns between 0.071 and 0.130 per day across the
 seven forecasts ($t$ between 1.85 and 3.42, significant at conventional
 levels for six of the seven), with the block-diagonal ridge at a mean
@@ -73,7 +73,7 @@ both tapes but earns its significance on the daily-0DTE era.
 straddle expires worthless --- $R=-1$ exactly --- on 198 of the 871
 days, 22.7 percent, whenever the close settles inside the one-strike
 window. The always-short control collects $+1$ on those days against
-$-0.27$ on all others; the long--short book averages $+0.23$ on them
+$-0.27$ on all others; the $\mathrm{sign}(s)$ book averages $+0.23$ on them
 against $+0.08$ elsewhere, so pin days supply roughly half of its total
 return from under a quarter of the days. The book monetizes a direction
 call and the pin premium together, and its P\&L remains tilted toward
@@ -95,7 +95,7 @@ average, and $-0.11$ when it does not (difference $0.23$, Newey--West
 $t=2.9$ for the block-diagonal ridge; $t$ between 1.9 and 3.3 across
 the seven forecasts), and the top third of days by the percentile
 rank of $s_t$ beats the bottom third with $t$ between 2.0 and 3.0 for
-every forecast. That is the long--short book of
+every forecast. That is the $\mathrm{sign}(s)$ book of
 Table~\ref{tab:close_option_rules}, read as a regression, and
 Figure~\ref{fig:close_option_sameday} shows it. A straight
 line is the wrong instrument for the same relation: the slope of
@@ -132,7 +132,7 @@ touching the edge.} Scaling the daily position by the ratio of the
 expanding median of the book's own trailing 63-day volatility to its
 current lagged value --- self-normalizing, no free target parameter, a
 cap of 3 that never binds --- leaves mean and Sharpe statistically
-unchanged (block-diagonal ridge long--short 1.94 to 1.98 on the 807
+unchanged (block-diagonal ridge $\mathrm{sign}(s)$ 1.94 to 1.98 on the 807
 post-warm-up days) while cutting the variability of the book's rolling
 volatility by 15 to 21 percent for every forecast and rule and roughly
 halving the spread of its per-year volatility (cross-year coefficient
@@ -143,8 +143,10 @@ days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
 COVID transition itself falls inside the estimator's warm-up.
 \fi
 
+% IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
+\iffalse
 \paragraph{The price of the defined-risk constraint.} Per dollar of
-body premium the wings cost the long--short book at every width, and
+body premium the wings cost the $\mathrm{sign}(s)$ book at every width, and
 the cost falls with distance: annualized Sharpe 1.36, 1.42, 1.47 and
 1.54 at $w = 20, 25, 30, 50$ against 1.62 for the plain book on the
 same 870 days (paired daily difference $-221$, $-164$, $-120$ and $-62$
@@ -153,11 +155,11 @@ block-diagonal ridge, and a lower Sharpe ratio for every one of the seven
 forecasts at every width). The always-short control does not survive the constraint at
 any width below 50 ($-0.15$, $-0.06$, $0.00$ and $+0.10$ against
 $+0.27$). What the constraint buys is the dollar tail on the days the
-long--short book sells:
+$\mathrm{sign}(s)$ book sells:
 the worst settlement falls from $-78$ points per package to $-17$,
 $-20$, $-25$ and $-37$, with the settlement landing beyond a wing on
 7.3, 4.3, 2.5 and 1.1 percent of selling days. Per premium the
-long--short book's worst day barely moves ($-4.7$ at $w=20$; unchanged
+$\mathrm{sign}(s)$ book's worst day barely moves ($-4.7$ at $w=20$; unchanged
 at $-5.4$ for any wider wing), because its worst days are moderate
 moves on low-premium days that no wing reaches. At midpoint quotes the
 wings roughly pay for themselves in points --- premium paid against
@@ -168,24 +170,26 @@ percent of everything the wings ever paid back, and in 2021 and 2024
 they paid nothing at any width of 25 or more. At realistic fills ---
 the body sold at the bid, the wings bought at the ask, whose median
 sits 20 to 100 percent above the midpoint --- the price is higher: the
-long--short book's crossed Sharpe is 0.69, 0.77, 0.83 and 0.92 against
+$\mathrm{sign}(s)$ book's crossed Sharpe is 0.69, 0.77, 0.83 and 0.92 against
 1.11 for the plain book crossed.
+\fi
 
-\paragraph{Compounded at a causally estimated fraction, the long--short
+\paragraph{Compounded at a causally estimated fraction, the $\mathrm{sign}(s)$
 book grows; the control does not.} Betting the fraction of
 Equation~\eqref{eq:close_opt_kelly} (mean $\hat f_t = 0.063$), the
-block-diagonal ridge long--short book turns one unit of wealth into
+block-diagonal ridge $\mathrm{sign}(s)$ book turns one unit of wealth into
 $36.8$ over the sample (annualized log-growth $+1.04$), and into
 $12.2$ at the half fraction. Its worst single day removes 49 percent
 of wealth at the full fraction and 25 percent at half --- the case
-for the half path in one number. All seven long--short books compound
+for the half path in one number. All seven $\mathrm{sign}(s)$ books compound
 positively under the same procedure (terminal wealth $1.9$ to $177$),
 and the growth is uneven: 2021 and 2022 are negative years for the
 headline book. The always-short control loses outright (terminal
 $0.67$) --- its mean is too small for the plug-in estimate, which is
-noise there. Whether the defined-risk variant loosens the ruin bound
-that limits this fraction is the next question.
+noise there. A defined-risk variant is parked and not reported here.
 
+% IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
+\iffalse
 \paragraph{Under the constraint the fraction of wealth barely moves,
 and the frame decides the number.} The bounded worst day is exactly
 what would loosen the ruin bound on the fraction, but in this sample
@@ -213,6 +217,7 @@ narrower wing buys a smaller dollar tail at two to three times that
 cost. The width is a choice of the dollar worst day the account can
 carry, not a growth decision --- and every figure here is a midpoint
 figure that worsens at the ask.
+\fi
 
 % PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
 % UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,

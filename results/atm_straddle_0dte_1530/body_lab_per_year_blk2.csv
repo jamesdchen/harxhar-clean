@@ -1,5 +1,5 @@
 body,strangle (nearest OTM pair),strangle (nearest OTM pair),strangle (nearest OTM pair),strangle (nearest OTM pair),straddle (same strike),straddle (same strike),straddle (same strike),straddle (same strike)
-rule,always short,always short,long-short volatility,long-short volatility,always short,always short,long-short volatility,long-short volatility
+rule,always short,always short,sign(s),sign(s),always short,always short,sign(s),sign(s)
 frame,per premium,per time value,per premium,per time value,per premium,per time value,per premium,per time value
 2020,-0.2468534754860137,-0.2468534754860137,1.5696415922736715,1.5696415922736715,-1.1572206629012496,-1.2812809332176054,0.9531897610328269,1.3495443117764006
 2021,-0.48290529229486256,-0.48290529229486256,1.0053900650797265,1.0053900650797265,-0.4124359966955146,-0.405993036068559,0.7488491958374177,0.8513573194669298

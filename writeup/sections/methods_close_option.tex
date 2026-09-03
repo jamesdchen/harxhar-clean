@@ -3,7 +3,7 @@
 
 The one-bar forecast can be read against a listed price on the last
 thirty minutes of an expiration day. What follows fixes the instrument,
-the two measurements, the position rules, a defined-risk variant, and the
+the two measurements, the position rules, and the
 control; constants were set before the book was scored.
 
 \paragraph{Instrument.} S\&P~500 weekly (SPXW) options with zero days
@@ -109,7 +109,7 @@ the same days; only $q_t$ changes.
 \item \emph{Short volatility}: $q_t = -1$ every day. The rule takes no
       forecast --- it is the variance-risk-premium book with nothing in
       it, and the control for the other.
-\item \emph{Long--short volatility}: $q_t = \mathrm{sign}(s_t)$, long
+\item \emph{$\mathrm{sign}(s)$}: $q_t = \mathrm{sign}(s_t)$, long
       the package when the forecast exceeds implied variance and short
       otherwise. Direction only, at unit size. This is the headline
       rule.
@@ -162,6 +162,8 @@ drawdown, its per-year volatility --- and not on the Sharpe ratio,
 which a pure rescaling should leave roughly unchanged.
 \fi
 
+% IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
+\iffalse
 \paragraph{Defined-risk variant.} A retail account trading cash-settled
 SPX or XSP under defined-risk margin cannot hold the short package
 naked: every short leg must be covered. The variant scored here is that
@@ -188,6 +190,7 @@ denominator is smallest exactly on rich-credit, high-volatility days.
 Because the constraint is a venue fact rather than a modeling choice,
 the questions asked of it are its price and the width and fraction to
 choose under it, not whether the wings improve the book.
+\fi
 
 \paragraph{Compounding at a fraction of wealth.} The tables above
 price one unit of premium per day and add P\&L up. A reinvesting
@@ -197,8 +200,8 @@ is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
 any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
 day, so the unhedged short book, with a worst day near $-10$ premium
 units, can only ever bet a small fraction of wealth no matter how
-good its mean --- the defined-risk variant above bounds the worst day
-by construction, which is exactly what would loosen this constraint. The
+good its mean. A defined-risk variant, which would bound the worst day
+by construction, is parked and not reported here. The
 fraction is estimated causally from the book's own past returns,
 \begin{equation}
     \hat f_t \;=\;
@@ -222,7 +225,8 @@ unbounded, which is exactly why the ruin bound above governs the
 admissible fraction. A true \emph{capital-at-risk} frame --- $f_t$
 posted as max-loss collateral, the day's return on that capital
 bounded below by $-1$ by construction --- exists only once the worst
-day is bounded; it applies to the defined-risk variant. One unit
+day is bounded; it applies to a defined-risk variant that is parked and
+not reported here. One unit
 of wealth posted as collateral controls several times less premium
 exposure than one unit deployed as premium, and the ratio varies day
 to day, so growth rates compare only within a frame, never across.
