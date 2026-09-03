@@ -727,7 +727,34 @@ plt.close(fig)
         r"""
 ## 11. Profit and loss, without compounding
 
-The contracts and positions are those of the rule table. Every series below is a **daily arithmetic** return or profit, summed rather than compounded. The published book is filled at the midpoint quote. Paying the full spread means a long pays the ask and a short receives the bid; a half-spread cost variant charges $\tfrac12(\mathrm{ask}-\mathrm{bid})$ against each trade. Profit in index points is $q(\mathrm{exit}-\mathrm{entry})$, and dollar profit applies the SPXW multiplier of $100$. The margin-scaled return divides dollar profit by an exchange-style short-straddle margin on short days and by the premium paid on long days. The plot is the cumulative sum of dollar profit.
+Same contracts and positions as the rule table; every series is a daily
+quantity, **summed, not compounded**. Notation for one day: position
+$q\in\{-1,+1\}$, entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
+and ask sums $P_b$, $P_a$, half-spread $h=\tfrac12(P_a-P_b)$, settlement
+payout $X$, contract multiplier $M=100$.
+
+$$
+\begin{aligned}
+\text{mid premium return}\quad & R' = q\,\Bigl(\frac{X}{P}-1\Bigr) \[2pt]
+\text{crossed fill}\quad & R'_{\times} =
+  \begin{cases} X/P_a-1, & q>0 \ 1-X/P_b, & q<0 \end{cases} \[2pt]
+\text{half-spread cost}\quad & R'_{h} = \frac{q\,\bigl(X-(P+q\,h)\bigr)}{P} = R'-\frac{h}{P} \[2pt]
+\text{index points}\quad & \Pi = q\,(X-P) \[2pt]
+\text{dollars}\quad & \Pi_{\$} = M\,\Pi \[2pt]
+\text{margin-scaled}\quad & R'_{m} = \frac{\Pi_{\$}}{C},\qquad
+  C=\begin{cases} M\,m, & q<0 \ M\,P, & q>0 \end{cases}
+\end{aligned}
+$$
+
+with the short-side capital an exchange-style short-straddle margin,
+
+$$
+m=\max\bigl(0.15\,S-\mathrm{OTM}+P,\;0.10\,S+P,\;0\bigr),\qquad
+\mathrm{OTM}=\min\bigl(|S-K_c|,\,|S-K_p|\bigr).
+$$
+
+The published book is the first line, filled at the midpoint. The plot
+is $\sum_t \Pi_{\$,t}$ for the midpoint and crossed fills.
 """
     ),
     code(
@@ -786,7 +813,7 @@ for name, ls in (("always short", "-"), ("sign(s)", "--")):
     signq = np.sign(q.replace(0, -1.0))
     crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
     ax.plot(px.index, crossed_usd.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name} crossed")
-ax.set_title("blk2 — cumulative $ P&L (non-compounded)")
+ax.set_title("block-diagonal ridge — cumulative dollar P&L (summed, not compounded)")
 ax.set_ylabel("USD")
 ax.legend(fontsize=8)
 fig.tight_layout()
