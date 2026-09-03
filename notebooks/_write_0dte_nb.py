@@ -57,12 +57,9 @@ The notebook runs as follows. Sections 1–6 build the instrument and its
 return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the two rules across the seven forecasts;
-§11 adds up the profit and loss; §12 reports information ratios against
-the always-short book; §13 tests the 15:30 signal against the 16:00 settlement return, plainly and
-robustly to outliers: the content is a sign effect, and the size of the move
-tracks the level of implied variance; §14 bets a fixed
-fraction of wealth and sets out the two frames in which such a fraction
-can be read; §15 diagnoses the buy days; §16 checks one row by hand. A
+§11 regresses the settlement return on the 15:30 signal; §12 adds up
+the profit and loss; §13 reports information ratios against the
+always-short book; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
 defined-risk variant (wings on the days the book sells) is parked and
 explored in the experimental notebook.
 
@@ -725,7 +722,293 @@ plt.close(fig)
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
-## 11. Profit and loss, without compounding
+## 11. Regressing the settlement return on the 15:30 signal
+
+The signal is fixed at 15:30 and the package settles at 16:00 the same
+day, so the test pairs $s_t$ with $R_t$; nothing observed after the
+decision enters the signal. Per forecast, plain least squares
+
+$$R_t = a + b\,s_t + \varepsilon_t$$
+
+with Newey–West standard errors (six lags); the table reports $b$, its
+$t$ and $R^2$ for the seven forecasts. The figure shows the
+block-diagonal ridge fit and, beside it, the mean of $R_t$ on each side
+of the signal against the always-short book — means only; the Newey–West
+standard errors of the table are the ones to read them against. It is a
+reading the paper takes up.
+"""
+    ),
+    code(
+        r"""
+def hac_fit(y, x):
+    # least squares with Newey-West (six-lag) standard errors
+    return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+
+
+reg_rows = []
+fig_inputs = None
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    s = px["signal"].astype(float)
+    r = px["R"].astype(float)
+    ok = np.isfinite(s) & np.isfinite(r)
+    fit = hac_fit(r[ok].to_numpy(), s[ok].to_numpy())
+    reg_rows.append({"model": LABEL[tag], "x": "raw s (same day)",
+                     "a": float(fit.params[0]), "b": float(fit.params[1]),
+                     "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
+                     "R2": float(fit.rsquared), "n": int(fit.nobs)})
+    if tag == "blk2":
+        fig_inputs = (s[ok], r[ok], fit)
+
+reg_tab = pd.DataFrame(reg_rows)
+print("least squares of R_t on the 15:30 signal s_t, Newey-West standard errors (six lags):")
+print(reg_tab.to_string(index=False))
+reg_tab.to_csv(OUT / "regression_R_on_signal.csv", index=False)
+
+s, r, fit = fig_inputs
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.4), gridspec_kw={"width_ratios": [1.4, 1]})
+axes[0].scatter(s, r, s=8, alpha=0.35)
+xx = np.linspace(float(s.min()), float(s.max()), 50)
+axes[0].plot(xx, fit.params[0] + fit.params[1] * xx, color="C3", lw=1.2,
+             label=f"least squares: $b$ = {fit.params[1]:+.0f}, $t$ = {fit.tvalues[1]:+.2f}")
+axes[0].axhline(0.0, color="k", lw=0.5)
+axes[0].set_xlabel(r"$s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^2$ at 15:30")
+axes[0].set_ylabel(r"$R_t$ (settled at 16:00)")
+axes[0].set_title("settlement return against the 15:30 signal", fontsize=10)
+axes[0].legend(fontsize=8, loc="upper right")
+
+bench_mean = float((-r).mean())   # the always-short book, the deck's benchmark
+stats = [("always short\n(all days)", bench_mean, int(len(r)), "0.6")]
+for lab, mask, c in (("forecast below implied\n(sell side)", s <= 0, "C3"),
+                     ("forecast above implied\n(buy side)", s > 0, "C0")):
+    stats.append((lab, float(r[mask].mean()), int(mask.sum()), c))
+top = max(m for _, m, _, _ in stats); bot = min(m for _, m, _, _ in stats)
+pad = 0.25 * (top - bot)
+for i, (lab, m, n, c) in enumerate(stats):
+    axes[1].bar(i, m, color=c, alpha=0.85, width=0.6)
+    axes[1].annotate(f"{m:+.3f}", (i, m), xytext=(0, 5 if m >= 0 else -5),
+                     textcoords="offset points", ha="center", va="bottom" if m >= 0 else "top", fontsize=9)
+axes[1].axhline(bench_mean, color="k", lw=0.9, ls="--", label=f"always short, all days: {bench_mean:+.3f}")
+axes[1].axhline(0.0, color="k", lw=0.5)
+axes[1].set_ylim(bot - pad, top + pad)
+axes[1].set_xticks(range(3))
+axes[1].set_xticklabels([f"{lab}\nn = {n}" for lab, _, n, _ in stats], fontsize=8)
+axes[1].set_ylabel(r"mean $R_t$")
+axes[1].set_title("mean return by the sign of the signal", fontsize=10)
+axes[1].legend(fontsize=8, loc="upper left", frameon=False)
+fig.text(0.5, 0.005, "block-diagonal ridge forecast", ha="center", fontsize=8, color="0.3")
+fig.tight_layout(rect=(0, 0.03, 1, 1))
+fig.savefig(OUT / "regression_R_on_signal_blk2.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    # SECTION PARKED 2026-09-04 (user order): the sign-split / rank battery is held back; the deck shows the plain regression and hints at the split with one chart.
+    # md(
+    # r"""
+    # ## 13. Does the 15:30 signal predict the settlement return?
+    #
+    # The signal is fixed at 15:30 and the package settles at 16:00 the same
+    # day, so the test pairs $s_t$ with $R_t$ directly; nothing observed after
+    # the decision enters the signal. Every check uses Newey–West standard
+    # errors (six lags) and no tuning parameters; the percentile rank of $s_t$
+    # is taken among days up to and including $t$, once 63 days of history
+    # exist.
+    #
+    # **Five checks, in the order printed**
+    #
+    # - **Sign split** — mean $R_t$ when $s_t>0$ versus $s_t\le 0$. This is
+    # the sign(s) edge itself.
+    # - **Top third versus bottom third** of the rank of $s_t$.
+    # - **Regression on the rank** of $s_t$ — a monotone relation without
+    # leverage from extreme signals.
+    # - **Plain least squares** of $R_t$ on the raw signal — shown as the weak
+    # instrument it is.
+    # - **Size of the move** — $|R_t|$ on the rank of $s_t$, with and without
+    # today's log implied variance.
+    #
+    # **What the checks show** (block-diagonal ridge forecast; the other six
+    # forecasts agree)
+    #
+    # - **The content is a sign, not a slope.** $R_t$ averages about $+0.12$
+    # when the forecast sits above implied variance and about $-0.11$ when
+    # it sits below: a spread near $0.23$ with $t \approx 2.9$ (across the
+    # seven forecasts, $t$ between about $1.9$ and $3.3$). The
+    # top-third-versus-bottom-third split gives the same spread and $t$.
+    # - **A straight line misses it.** The raw least-squares slope is null
+    # ($t \approx -0.5$), because $R$ has a point mass at exactly $-1$ on
+    # the 22.7% of days the package expires worthless and a long right
+    # tail. The relation lives in the means of two groups, not in a
+    # monotone ordering: the sign split is the right instrument and a slope
+    # is the wrong one. (The rank regression, which ranks the signal first,
+    # does see it: $t \approx 2.6$.)
+    # - **Strength adds nothing.** Within each side, a larger signal does not
+    # earn more — see the deciles in the figure.
+    # - **The size of the move is mostly the price level.** The rank predicts
+    # $|R_t|$ ($t \approx 4.3$), but adding today's log implied variance
+    # cuts that to $t \approx 1.7$ while implied variance itself enters at
+    # $t \approx -3.8$: options are cheap when the forecast sits above
+    # implied, and a cheap straddle moves more per dollar of premium.
+    #
+    # **Takeaway.** The 15:30 signal is a one-bit, same-day direction call
+    # worth about $0.23$ of premium per day on average. It carries no
+    # how-much information, and it should never be judged by a regression
+    # slope.
+    #
+    # The figure: left, the mean $R_t$ on each side of the signal against the
+    # always-short book (grey bar and dashed line); right, the same mean by
+    # decile of the signal's rank — a step at the sign, no trend within
+    # either half.
+    # """
+    # ),
+    # code(
+    # r"""
+    # def hac_fit(y, x):
+    # # least squares with Newey-West (six-lag) standard errors
+    # return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    #
+    #
+    # def battery(x_raw, x_rank, r, iv_log, label):
+    # # the same checks for whichever version of the signal is passed in:
+    # # x_raw = the signal, x_rank = its percentile rank, iv_log = log implied variance dated like x
+    # ok_raw = np.isfinite(x_raw) & np.isfinite(r)
+    # ok_rk = np.isfinite(x_rank) & np.isfinite(r)
+    # xr, yr = x_raw[ok_raw].to_numpy(), r[ok_raw].to_numpy()
+    # rkv, rv_ = x_rank[ok_rk].to_numpy(), r[ok_rk].to_numpy()
+    # out = {}
+    # # mean return split by the sign of the signal
+    # ind = (xr > 0).astype(float)
+    # fs = hac_fit(yr, ind)
+    # out["sign"] = {"model": label,
+    # "mean_R|s>0": float(yr[ind == 1].mean()),
+    # "mean_R|s<=0": float(yr[ind == 0].mean()),
+    # "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
+    # "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())}
+    # # top third against bottom third of the rank
+    # hi = rkv > 2.0 / 3.0
+    # lo = rkv < 1.0 / 3.0
+    # sel = hi | lo
+    # ft = hac_fit(rv_[sel], hi[sel].astype(float))
+    # out["tercile"] = {"model": label,
+    # "mean_R_top": float(rv_[hi].mean()),
+    # "mean_R_bottom": float(rv_[lo].mean()),
+    # "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
+    # "n_top": int(hi.sum()), "n_bottom": int(lo.sum())}
+    # # regression on the percentile rank
+    # fit = hac_fit(rv_, rkv)
+    # out["rank"] = {"model": label, "b_rank": float(fit.params[1]),
+    # "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)}
+    # # plain least squares on the raw signal
+    # fit = hac_fit(yr, xr)
+    # out["raw"] = {"model": label,
+    # "a": float(fit.params[0]), "b": float(fit.params[1]),
+    # "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
+    # "R2": float(fit.rsquared), "n": int(fit.nobs)}
+    # # size of the move on the rank, alone and with the level of implied variance
+    # fm = hac_fit(np.abs(rv_), rkv)
+    # out["mag"] = {"model": label, "b_absR": float(fm.params[1]),
+    # "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
+    # "n": int(fm.nobs)}
+    # ok3 = ok_rk & np.isfinite(iv_log)
+    # f3 = hac_fit(np.abs(r[ok3].to_numpy()),
+    # np.column_stack([x_rank[ok3].to_numpy(), iv_log[ok3].to_numpy()]))
+    # out["mag_iv"] = {"model": label,
+    # "t_rank_alone": float(fm.tvalues[1]),
+    # "t_rank_with_iv": float(f3.tvalues[1]),
+    # "t_iv": float(f3.tvalues[2]), "n": int(f3.nobs)}
+    # return out
+    #
+    #
+    # same = {k: [] for k in ("sign", "tercile", "rank", "raw", "mag", "mag_iv")}
+    # fig_inputs = None
+    # for tag in MODEL_ORDER:
+    # px = books[tag].loc[common]
+    # s = px["signal"].astype(float)
+    # r = px["R"].astype(float)
+    # iv_log = np.log(px["iv_var"].astype(float))
+    # rk_same = s.expanding(min_periods=63).rank(pct=True)   # today's signal ranked among all days up to today
+    # out_same = battery(s, rk_same, r, iv_log, LABEL[tag])
+    # for k in same:
+    # same[k].append(out_same[k])
+    # if tag == "blk2":
+    # fig_inputs = (s, rk_same, r)
+    #
+    # print("=== SAME DAY: the 15:30 signal against the 16:00 settlement return ===")
+    # for key, title in (("sign", "(1) sign split: mean R_t by sign(s_t)"),
+    # ("tercile", "(2) top third vs bottom third of the rank of s_t"),
+    # ("rank", "(3) regression of R_t on the percentile rank of s_t"),
+    # ("raw", "(4) plain least squares of R_t on raw s_t (a weak instrument for a sign effect)"),
+    # ("mag", "(5) size of the move: |R_t| on the rank of s_t"),
+    # ("mag_iv", "(5) ... with today's log implied variance added")):
+    # print(title)
+    # print(pd.DataFrame(same[key]).to_string(index=False))
+    # print("---")
+    # same_tab = pd.concat({k: pd.DataFrame(v) for k, v in same.items()}, names=["statistic", None]).reset_index(level=0)
+    # same_tab.to_csv(OUT / "sameday_battery.csv", index=False)
+    # pd.DataFrame(same["raw"]).to_csv(OUT / "regression_R_on_signal.csv", index=False)
+    #
+    # s, rk_same, r = fig_inputs
+    # s = s.astype(float); r = r.astype(float)
+    # okr = np.isfinite(r)
+    #
+    # def mean_se(y):
+    # # mean with a Newey-West (six-lag) standard error
+    # f = sm.OLS(np.asarray(y, float), np.ones((len(y), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
+    # return float(f.params[0]), float(f.bse[0])
+    #
+    # bench_mean, bench_se = mean_se(-r[okr])   # the always-short book, the deck's benchmark
+    # fig, axes = plt.subplots(1, 2, figsize=(12, 4.6), gridspec_kw={"width_ratios": [1, 1.7]})
+    #
+    # # (a) mean settled return by what the 15:30 signal said, against the always-short benchmark
+    # stats = [("always short\n(all days)", bench_mean, bench_se, int(okr.sum()), "0.6")]
+    # for lab, mask, c in (("forecast below implied\n(sell side)", okr & (s <= 0), "C3"),
+    # ("forecast above implied\n(buy side)", okr & (s > 0), "C0")):
+    # m, se = mean_se(r[mask]); stats.append((lab, m, se, int(mask.sum()), c))
+    # top = max(m + se for _, m, se, _, _ in stats); bot = min(m - se for _, m, se, _, _ in stats)
+    # pad = 0.22 * (top - bot)
+    # for i, (lab, m, se, n, c) in enumerate(stats):
+    # axes[0].bar(i, m, yerr=se, color=c, alpha=0.85, capsize=4, width=0.6)
+    # axes[0].annotate(f"{m:+.3f}", (i, m + se if m >= 0 else m - se), xytext=(0, 5 if m >= 0 else -5),
+    # textcoords="offset points", ha="center", va="bottom" if m >= 0 else "top", fontsize=9)
+    # axes[0].axhline(bench_mean, color="k", lw=0.9, ls="--", label=f"always short, all days: {bench_mean:+.3f}")
+    # axes[0].axhline(0.0, color="k", lw=0.5)
+    # axes[0].set_ylim(bot - pad, top + pad)
+    # axes[0].set_xticks(range(3))
+    # axes[0].set_xticklabels([f"{lab}\nn = {n}" for lab, _, _, n, _ in stats], fontsize=8)
+    # axes[0].set_ylabel(r"mean $R_t$ (settled at 16:00)")
+    # axes[0].set_title("mean return by the sign of the 15:30 signal", fontsize=10)
+    # axes[0].legend(fontsize=8, loc="upper left", frameon=False)
+    #
+    # # (b) mean return by decile of the signal's rank, same benchmark
+    # okd = np.isfinite(rk_same) & okr
+    # dec = pd.qcut(rk_same[okd], 10, labels=False) + 1
+    # means, ses = zip(*(mean_se(r[okd][dec == d]) for d in range(1, 11)))
+    # top = max(m + se for m, se in zip(means, ses)); bot = min(m - se for m, se in zip(means, ses))
+    # pad = 0.22 * (top - bot)
+    # axes[1].bar(range(1, 11), means, yerr=ses, color=["C3"] * 5 + ["C0"] * 5, alpha=0.85, capsize=3, width=0.7)
+    # axes[1].axhline(bench_mean, color="k", lw=0.9, ls="--")
+    # axes[1].axhline(0.0, color="k", lw=0.5)
+    # axes[1].axvline(5.5, color="k", lw=0.6, ls=":")
+    # axes[1].set_ylim(bot - pad, top + pad)
+    # axes[1].text(3, top + 0.6 * pad, "forecast below implied", ha="center", va="center", fontsize=8, color="C3")
+    # axes[1].text(8, top + 0.6 * pad, "forecast above implied", ha="center", va="center", fontsize=8, color="C0")
+    # axes[1].set_xticks(range(1, 11))
+    # axes[1].set_xlabel("decile of the signal's percentile rank (1 = most below implied, 10 = most above)", fontsize=9)
+    # axes[1].set_ylabel(r"mean $R_t$")
+    # axes[1].set_title("mean return by decile of the signal (dashed: always short, all days)", fontsize=10)
+    # for ax in axes:
+    # ax.tick_params(labelsize=8)
+    # fig.text(0.5, 0.005, "block-diagonal ridge forecast; error bars are Newey–West standard errors (six lags)",
+    # ha="center", fontsize=8, color="0.3")
+    # fig.tight_layout(rect=(0, 0.03, 1, 1))
+    # fig.savefig(OUT / "sameday_figure_blk2.png", dpi=120, bbox_inches="tight")
+    # display(fig)
+    # plt.close(fig)
+    # """
+    # ),
+    md(
+        r"""
+## 12. Profit and loss, without compounding
 
 Same contracts and positions as the rule table; every series is a daily
 quantity, **summed, not compounded**. Notation for one day: position
@@ -736,7 +1019,7 @@ payout $X$, contract multiplier $M=100$.
 $$
 \begin{aligned}
 \text{mid premium return}\quad & R' = q\,\Bigl(\frac{X}{P}-1\Bigr) \[2pt]
-\text{crossed fill}\quad & R'_{\times} =
+\text{crossed spread}\quad & R'_{\times} =
   \begin{cases} X/P_a-1, & q>0 \ 1-X/P_b, & q<0 \end{cases} \[2pt]
 \text{half-spread cost}\quad & R'_{h} = \frac{q\,\bigl(X-(P+q\,h)\bigr)}{P} = R'-\frac{h}{P} \[2pt]
 \text{index points}\quad & \Pi = q\,(X-P) \[2pt]
@@ -754,7 +1037,7 @@ m=\max\bigl(0.15\,S-\mathrm{OTM}+P,\;0.10\,S+P,\;0\bigr),\qquad
 $$
 
 The published book is the first line, filled at the midpoint. The plot
-is $\sum_t \Pi_{\$,t}$ for the midpoint and crossed fills.
+is $\sum_t \Pi_{\$,t}$ for the midpoint and crossed-spread fills.
 """
     ),
     code(
@@ -781,7 +1064,7 @@ for name in ("always short", "sign(s)"):
     add_variant(mid, q, name, "mid premium R", "return")
     signq = np.sign(q.replace(0, -1.0))
     crossed = asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs()
-    add_variant(crossed, q, name, "crossed fill", "return")
+    add_variant(crossed, q, name, "crossed spread", "return")
     trade = px["entry"] + signq * hs
     tc = q * (px["exit"] - trade) / px["entry"]
     add_variant(tc, q, name, "half-spread TC", "return")
@@ -812,7 +1095,7 @@ for name, ls in (("always short", "-"), ("sign(s)", "--")):
     )
     signq = np.sign(q.replace(0, -1.0))
     crossed_usd = (asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * q.abs() * px["entry"] * asl.SPX_MULTIPLIER)
-    ax.plot(px.index, crossed_usd.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name} crossed")
+    ax.plot(px.index, crossed_usd.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name} crossed spread")
 ax.set_title("block-diagonal ridge — cumulative dollar P&L (summed, not compounded)")
 ax.set_ylabel("USD")
 ax.legend(fontsize=8)
@@ -825,7 +1108,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 12. Information ratio against always-short
+## 13. Information ratio against always-short
 
 The benchmark is the always-short book, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The portfolio is the $\mathrm{sign}(s)$ book, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
 
@@ -860,208 +1143,6 @@ ir_tab = (
 print(ir_tab.to_string())
 ir_tab.to_csv(OUT / "information_ratio_vs_always_short.csv")
 print("IR = active return / tracking error; benchmark is always-short.")
-"""
-    ),
-    md(
-        r"""
-## 13. Does the 15:30 signal predict the settlement return?
-
-The signal is fixed at 15:30 and the package settles at 16:00 the same
-day, so the test pairs $s_t$ with $R_t$ directly; nothing observed after
-the decision enters the signal. Every check uses Newey–West standard
-errors (six lags) and no tuning parameters; the percentile rank of $s_t$
-is taken among days up to and including $t$, once 63 days of history
-exist.
-
-**Five checks, in the order printed**
-
-- **Sign split** — mean $R_t$ when $s_t>0$ versus $s_t\le 0$. This is
-  the sign(s) edge itself.
-- **Top third versus bottom third** of the rank of $s_t$.
-- **Regression on the rank** of $s_t$ — a monotone relation without
-  leverage from extreme signals.
-- **Plain least squares** of $R_t$ on the raw signal — shown as the weak
-  instrument it is.
-- **Size of the move** — $|R_t|$ on the rank of $s_t$, with and without
-  today's log implied variance.
-
-**What the checks show** (block-diagonal ridge forecast; the other six
-forecasts agree)
-
-- **The content is a sign, not a slope.** $R_t$ averages about $+0.12$
-  when the forecast sits above implied variance and about $-0.11$ when
-  it sits below: a spread near $0.23$ with $t \approx 2.9$ (across the
-  seven forecasts, $t$ between about $1.9$ and $3.3$). The
-  top-third-versus-bottom-third split gives the same spread and $t$.
-- **A straight line misses it.** The raw least-squares slope is null
-  ($t \approx -0.5$), because $R$ has a point mass at exactly $-1$ on
-  the 22.7% of days the package expires worthless and a long right
-  tail. The relation lives in the means of two groups, not in a
-  monotone ordering: the sign split is the right instrument and a slope
-  is the wrong one. (The rank regression, which ranks the signal first,
-  does see it: $t \approx 2.6$.)
-- **Strength adds nothing.** Within each side, a larger signal does not
-  earn more — see the deciles in the figure.
-- **The size of the move is mostly the price level.** The rank predicts
-  $|R_t|$ ($t \approx 4.3$), but adding today's log implied variance
-  cuts that to $t \approx 1.7$ while implied variance itself enters at
-  $t \approx -3.8$: options are cheap when the forecast sits above
-  implied, and a cheap straddle moves more per dollar of premium.
-
-**Takeaway.** The 15:30 signal is a one-bit, same-day direction call
-worth about $0.23$ of premium per day on average. It carries no
-how-much information, and it should never be judged by a regression
-slope.
-
-The figure: left, the mean $R_t$ on each side of the signal against the
-always-short book (grey bar and dashed line); right, the same mean by
-decile of the signal's rank — a step at the sign, no trend within
-either half.
-"""
-    ),
-    code(
-        r"""
-def hac_fit(y, x):
-    # least squares with Newey-West (six-lag) standard errors
-    return sm.OLS(y, sm.add_constant(x)).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-
-
-def battery(x_raw, x_rank, r, iv_log, label):
-    # the same checks for whichever version of the signal is passed in:
-    # x_raw = the signal, x_rank = its percentile rank, iv_log = log implied variance dated like x
-    ok_raw = np.isfinite(x_raw) & np.isfinite(r)
-    ok_rk = np.isfinite(x_rank) & np.isfinite(r)
-    xr, yr = x_raw[ok_raw].to_numpy(), r[ok_raw].to_numpy()
-    rkv, rv_ = x_rank[ok_rk].to_numpy(), r[ok_rk].to_numpy()
-    out = {}
-    # mean return split by the sign of the signal
-    ind = (xr > 0).astype(float)
-    fs = hac_fit(yr, ind)
-    out["sign"] = {"model": label,
-                   "mean_R|s>0": float(yr[ind == 1].mean()),
-                   "mean_R|s<=0": float(yr[ind == 0].mean()),
-                   "diff": float(fs.params[1]), "t_diff": float(fs.tvalues[1]),
-                   "n_pos": int(ind.sum()), "n_nonpos": int((1 - ind).sum())}
-    # top third against bottom third of the rank
-    hi = rkv > 2.0 / 3.0
-    lo = rkv < 1.0 / 3.0
-    sel = hi | lo
-    ft = hac_fit(rv_[sel], hi[sel].astype(float))
-    out["tercile"] = {"model": label,
-                      "mean_R_top": float(rv_[hi].mean()),
-                      "mean_R_bottom": float(rv_[lo].mean()),
-                      "diff": float(ft.params[1]), "t_diff": float(ft.tvalues[1]),
-                      "n_top": int(hi.sum()), "n_bottom": int(lo.sum())}
-    # regression on the percentile rank
-    fit = hac_fit(rv_, rkv)
-    out["rank"] = {"model": label, "b_rank": float(fit.params[1]),
-                   "t": float(fit.tvalues[1]), "p": float(fit.pvalues[1]), "n": int(fit.nobs)}
-    # plain least squares on the raw signal
-    fit = hac_fit(yr, xr)
-    out["raw"] = {"model": label,
-                  "a": float(fit.params[0]), "b": float(fit.params[1]),
-                  "t_b": float(fit.tvalues[1]), "p_b": float(fit.pvalues[1]),
-                  "R2": float(fit.rsquared), "n": int(fit.nobs)}
-    # size of the move on the rank, alone and with the level of implied variance
-    fm = hac_fit(np.abs(rv_), rkv)
-    out["mag"] = {"model": label, "b_absR": float(fm.params[1]),
-                  "t": float(fm.tvalues[1]), "p": float(fm.pvalues[1]),
-                  "n": int(fm.nobs)}
-    ok3 = ok_rk & np.isfinite(iv_log)
-    f3 = hac_fit(np.abs(r[ok3].to_numpy()),
-                 np.column_stack([x_rank[ok3].to_numpy(), iv_log[ok3].to_numpy()]))
-    out["mag_iv"] = {"model": label,
-                     "t_rank_alone": float(fm.tvalues[1]),
-                     "t_rank_with_iv": float(f3.tvalues[1]),
-                     "t_iv": float(f3.tvalues[2]), "n": int(f3.nobs)}
-    return out
-
-
-same = {k: [] for k in ("sign", "tercile", "rank", "raw", "mag", "mag_iv")}
-fig_inputs = None
-for tag in MODEL_ORDER:
-    px = books[tag].loc[common]
-    s = px["signal"].astype(float)
-    r = px["R"].astype(float)
-    iv_log = np.log(px["iv_var"].astype(float))
-    rk_same = s.expanding(min_periods=63).rank(pct=True)   # today's signal ranked among all days up to today
-    out_same = battery(s, rk_same, r, iv_log, LABEL[tag])
-    for k in same:
-        same[k].append(out_same[k])
-    if tag == "blk2":
-        fig_inputs = (s, rk_same, r)
-
-print("=== SAME DAY: the 15:30 signal against the 16:00 settlement return ===")
-for key, title in (("sign", "(1) sign split: mean R_t by sign(s_t)"),
-                   ("tercile", "(2) top third vs bottom third of the rank of s_t"),
-                   ("rank", "(3) regression of R_t on the percentile rank of s_t"),
-                   ("raw", "(4) plain least squares of R_t on raw s_t (a weak instrument for a sign effect)"),
-                   ("mag", "(5) size of the move: |R_t| on the rank of s_t"),
-                   ("mag_iv", "(5) ... with today's log implied variance added")):
-    print(title)
-    print(pd.DataFrame(same[key]).to_string(index=False))
-    print("---")
-same_tab = pd.concat({k: pd.DataFrame(v) for k, v in same.items()}, names=["statistic", None]).reset_index(level=0)
-same_tab.to_csv(OUT / "sameday_battery.csv", index=False)
-pd.DataFrame(same["raw"]).to_csv(OUT / "regression_R_on_signal.csv", index=False)
-
-s, rk_same, r = fig_inputs
-s = s.astype(float); r = r.astype(float)
-okr = np.isfinite(r)
-
-def mean_se(y):
-    # mean with a Newey-West (six-lag) standard error
-    f = sm.OLS(np.asarray(y, float), np.ones((len(y), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
-    return float(f.params[0]), float(f.bse[0])
-
-bench_mean, bench_se = mean_se(-r[okr])   # the always-short book, the deck's benchmark
-fig, axes = plt.subplots(1, 2, figsize=(12, 4.6), gridspec_kw={"width_ratios": [1, 1.7]})
-
-# (a) mean settled return by what the 15:30 signal said, against the always-short benchmark
-stats = [("always short\n(all days)", bench_mean, bench_se, int(okr.sum()), "0.6")]
-for lab, mask, c in (("forecast below implied\n(sell side)", okr & (s <= 0), "C3"),
-                     ("forecast above implied\n(buy side)", okr & (s > 0), "C0")):
-    m, se = mean_se(r[mask]); stats.append((lab, m, se, int(mask.sum()), c))
-top = max(m + se for _, m, se, _, _ in stats); bot = min(m - se for _, m, se, _, _ in stats)
-pad = 0.22 * (top - bot)
-for i, (lab, m, se, n, c) in enumerate(stats):
-    axes[0].bar(i, m, yerr=se, color=c, alpha=0.85, capsize=4, width=0.6)
-    axes[0].annotate(f"{m:+.3f}", (i, m + se if m >= 0 else m - se), xytext=(0, 5 if m >= 0 else -5),
-                     textcoords="offset points", ha="center", va="bottom" if m >= 0 else "top", fontsize=9)
-axes[0].axhline(bench_mean, color="k", lw=0.9, ls="--", label=f"always short, all days: {bench_mean:+.3f}")
-axes[0].axhline(0.0, color="k", lw=0.5)
-axes[0].set_ylim(bot - pad, top + pad)
-axes[0].set_xticks(range(3))
-axes[0].set_xticklabels([f"{lab}\nn = {n}" for lab, _, _, n, _ in stats], fontsize=8)
-axes[0].set_ylabel(r"mean $R_t$ (settled at 16:00)")
-axes[0].set_title("mean return by the sign of the 15:30 signal", fontsize=10)
-axes[0].legend(fontsize=8, loc="upper left", frameon=False)
-
-# (b) mean return by decile of the signal's rank, same benchmark
-okd = np.isfinite(rk_same) & okr
-dec = pd.qcut(rk_same[okd], 10, labels=False) + 1
-means, ses = zip(*(mean_se(r[okd][dec == d]) for d in range(1, 11)))
-top = max(m + se for m, se in zip(means, ses)); bot = min(m - se for m, se in zip(means, ses))
-pad = 0.22 * (top - bot)
-axes[1].bar(range(1, 11), means, yerr=ses, color=["C3"] * 5 + ["C0"] * 5, alpha=0.85, capsize=3, width=0.7)
-axes[1].axhline(bench_mean, color="k", lw=0.9, ls="--")
-axes[1].axhline(0.0, color="k", lw=0.5)
-axes[1].axvline(5.5, color="k", lw=0.6, ls=":")
-axes[1].set_ylim(bot - pad, top + pad)
-axes[1].text(3, top + 0.6 * pad, "forecast below implied", ha="center", va="center", fontsize=8, color="C3")
-axes[1].text(8, top + 0.6 * pad, "forecast above implied", ha="center", va="center", fontsize=8, color="C0")
-axes[1].set_xticks(range(1, 11))
-axes[1].set_xlabel("decile of the signal's percentile rank (1 = most below implied, 10 = most above)", fontsize=9)
-axes[1].set_ylabel(r"mean $R_t$")
-axes[1].set_title("mean return by decile of the signal (dashed: always short, all days)", fontsize=10)
-for ax in axes:
-    ax.tick_params(labelsize=8)
-fig.text(0.5, 0.005, "block-diagonal ridge forecast; error bars are Newey–West standard errors (six lags)",
-         ha="center", fontsize=8, color="0.3")
-fig.tight_layout(rect=(0, 0.03, 1, 1))
-fig.savefig(OUT / "sameday_figure_blk2.png", dpi=120, bbox_inches="tight")
-display(fig)
-plt.close(fig)
 """
     ),
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
@@ -1203,66 +1284,48 @@ plt.close(fig)
         r"""
 ## 14. Betting a fixed fraction of wealth
 
-Every table so far adds up profits and losses without compounding:
-one unit of premium per day. A trader who reinvests instead bets a
-fraction $f_t$ of current wealth each day, so wealth compounds,
+Every table so far adds up one unit of premium per day. Here each rule
+reinvests: a **fixed** share $f$ of current wealth is deployed as body
+premium every day, the same number on every day and for both rules,
 
-$$W_T=\prod_{t}\bigl(1+f_t\,q_t R_t\bigr),$$
+$$
+f = 0.03, \qquad
+W_T=\prod_{t}\bigl(1+f\,q_t R_t\bigr), \qquad
+g = 252\cdot\overline{\log\bigl(1+f\,R'_t\bigr)},
+$$
 
-and the natural objective is the annualized growth rate of log
-wealth, $g=252\cdot\overline{\log(1+f_t R'_t)}$, which is what
-compounding actually maximizes. One structural fact frames the
-exercise: **ruin is one bad day.** Any fraction
-$f\ge 1/|\min_t R'_t|$ takes wealth to zero or below on the worst
-day, so the short book without wings, whose worst day is near $-10$
-premium units, can only ever bet a small fraction of wealth no matter
-how good its average return is. (A defined-risk variant — parked; explored in the experimental
-notebook — bounds the worst day by construction, which is exactly
-what loosens this constraint.)
-
-The fraction is estimated from the book's own past returns only:
-
-$$\hat f_t=\min\!\Bigl(\tfrac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},\,
-\tfrac{1}{|\min_{u\le t-1}R'_u|}\Bigr)_{\!+}$$
-
-— the growth-optimal (Kelly) fraction in its quadratic form, held
-below the running ruin bound, computed on an expanding window once at
-least 63 sessions of history exist and lagged one day. The half
-fraction $\hat f_t/2$ is reported alongside as the standard
-conservative choice, and for each path we print the growth rate, the
-terminal wealth, the drawdown, and the worst single-day wealth factor.
-
-**Two frames for "a fraction of wealth."** The phrase needs a unit
-before any growth number can be read. In the **per-premium frame** —
-the frame used throughout this section — $f_t$ is the share of wealth
-deployed as body premium. For a bought straddle the premium is also
-the capital at risk, so on long days the two coincide; for the short
-book without wings the capital at risk is unbounded, which is exactly
-why the ruin bound above, and not a collateral bound, governs the
-admissible fraction. A true **capital-at-risk frame** — $f_t$ as the
-share of wealth posted as collateral against the maximum loss, with
-the day's return on that capital bounded below by $-1$ by
-construction — exists only once the worst day is bounded; it applies to a
-defined-risk variant (parked; explored in the experimental notebook). One unit of wealth
-posted as collateral controls several times less premium exposure
-than one unit deployed as premium, and the ratio varies from day to
-day, so growth rates compare only within a frame, never across.
+with $R'_t=q_tR_t$ the rule's daily return and $g$ the annualized
+log-growth. The number is a chosen round figure, not fitted. Ruin is one
+bad day: wealth reaches zero on the worst day once
+$f \ge 1/|\min_t R'_t|$, and the worst single-day wealth factor is
+$1+f\min_t R'_t$; both are printed per rule.
 """
     ),
     code(
         r"""
-def causal_kelly(rs):
-    mu = rs.expanding(min_periods=63).mean().shift(1)
-    m2 = (rs**2).expanding(min_periods=63).mean().shift(1)
-    cap = 1.0 / rs.expanding(min_periods=1).min().shift(1).abs()
-    return np.minimum((mu / m2).clip(lower=0.0), cap).fillna(0.0)
+F_FIXED = 0.03  # share of wealth deployed as body premium, every day
+
+
+def wealth_stats(f, r):
+    factors = 1.0 + f * np.asarray(r, float)
+    assert (factors > 0).all(), "a wealth factor hit zero - ruin"
+    w = np.cumprod(factors)
+    return pd.Series({
+        "f": f,
+        "g_ann": 252.0 * float(np.mean(np.log(factors))),
+        "terminal": float(w[-1]),
+        "maxDD": float((w / np.maximum.accumulate(w) - 1.0).min()),
+        "worst_day_factor": float(factors.min()),
+        "ruin_bound_f": 1.0 / abs(float(np.min(r))),
+        "n": len(r),
+    })
+
 
 def wealth_axis(ax):
     # log-scaled axis labelled in wealth multiples; 1x = the starting stake
     from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
     ax.set_yscale("log")
-    ticks = [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
-    ax.yaxis.set_major_locator(FixedLocator(ticks))
+    ax.yaxis.set_major_locator(FixedLocator([0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
     ax.yaxis.set_minor_locator(NullLocator())
     ax.axhline(1.0, color="k", lw=0.6, ls="--")
@@ -1270,91 +1333,208 @@ def wealth_axis(ax):
     ax.set_ylabel("wealth multiple (log scale; 1× = starting stake)")
 
 
-def wealth_row(f, r):
-    factors = 1.0 + np.asarray(f) * np.asarray(r)
-    assert (factors > 0).all(), "a wealth factor hit zero — ruin"
-    w = np.cumprod(factors)
-    return pd.Series({
-        "g_ann": 252.0 * float(np.mean(np.log(factors))),
-        "terminal": float(w[-1]),
-        "maxDD": float((w / np.maximum.accumulate(w) - 1.0).min()),
-        "worst_day_factor": float(factors.min()),
-    })
-
-kelly_rows = {}
+ff_rows = {}
 for tag in MODEL_ORDER:
     px = books[tag]
     for name, q in rule_sizes(px).items():
         rs = (q * px["R"]).loc[common].astype(float)
-        r = rs.to_numpy()
-        fk = causal_kelly(rs).to_numpy()
-        row = pd.concat({"causal": wealth_row(fk, r), "half": wealth_row(fk / 2, r)})
-        row.index = ["_".join(k) for k in row.index]
-        row["mean_f"] = float(fk.mean())
-        row["n"] = len(r)
-        kelly_rows[(name, tag)] = row
-
-kelly_tab = pd.DataFrame(kelly_rows).T
-kelly_tab.index = pd.MultiIndex.from_tuples(kelly_tab.index, names=["rule", "model"])
+        ff_rows[(name, tag)] = wealth_stats(F_FIXED, rs.to_numpy())
+ff_tab = pd.DataFrame(ff_rows).T
+ff_tab.index = pd.MultiIndex.from_tuples(ff_tab.index, names=["rule", "model"])
 for tag in MODEL_ORDER:
     safe = "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
-    kelly_tab.xs(tag, level="model").to_csv(OUT / f"kelly_summary_{safe}.csv")
-print("blk2 — causally estimated fraction of wealth, 871 common days")
-print(kelly_tab.xs("blk2", level="model").T.to_string())
-print("saved kelly_summary_<model>.csv in", OUT)
-
+    ff_tab.xs(tag, level="model").to_csv(OUT / f"fixedfrac_summary_{safe}.csv")
+print(f"block-diagonal ridge - fixed fraction f = {F_FIXED:.2f} of wealth per day, {len(common)} common days")
+print(ff_tab.xs("blk2", level="model").T.to_string())
+print("saved fixedfrac_summary_<model>.csv in", OUT)
 print("---")
-print("causal growth across models, both rules")
-spread = kelly_tab[["mean_f", "causal_g_ann", "causal_terminal"]].rename(index=LABEL, level="model")
-print(spread.to_string(float_format=lambda x: f"{x:+.4f}"))
+print("terminal wealth across models, both rules")
+print(ff_tab["terminal"].unstack("rule").rename(index=LABEL).to_string(float_format=lambda x: f"{x:.2f}"))
 
+px = books["blk2"]
 for name in ("always short", "sign(s)"):
-    rs = (rule_sizes(books["blk2"])[name] * books["blk2"]["R"]).loc[common].astype(float)
-    fk = causal_kelly(rs)
-    gy = pd.Series(np.log1p(fk.to_numpy() * rs.to_numpy()), index=rs.index)
+    rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
+    gy = pd.Series(np.log1p(F_FIXED * rs.to_numpy()), index=rs.index)
     print(f"per-year annualized log-growth, block-diagonal ridge, {name}:")
     print((252.0 * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
 
-from matplotlib.dates import DateFormatter, YearLocator
-
-px = books["blk2"]
-fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
-
-
-def end_label(ax, idx, w, color):
-    # terminal wealth multiple at the end of a path
-    ax.annotate(f"{w[-1]:.1f}×", (idx[-1], w[-1]), xytext=(4, 0), textcoords="offset points",
-                fontsize=8, va="center", color=color)
-
-
-for name, c in (("always short", "C1"), ("sign(s)", "C0")):
+import matplotlib.dates as mdates
+fig, ax = plt.subplots(figsize=(9, 4.2))
+for name, c in (("always short", "0.5"), ("sign(s)", "C0")):
     rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
-    fk = causal_kelly(rs)
-    axes[0].plot(rs.index, fk, lw=0.9, color=c, label=name)
-    w = np.cumprod(1.0 + fk.to_numpy() * rs.to_numpy())
-    axes[1].plot(rs.index, w, lw=1.0, color=c, label=name)
-    end_label(axes[1], rs.index, w, c)
-rs = (rule_sizes(px)["sign(s)"] * px["R"]).loc[common].astype(float)
-fk = causal_kelly(rs)
-w = np.cumprod(1.0 + (fk.to_numpy() / 2) * rs.to_numpy())
-axes[1].plot(rs.index, w, lw=1.0, color="C2", label="sign(s), half fraction")
-end_label(axes[1], rs.index, w, "C2")
-axes[0].set_ylabel(r"fraction of wealth $\hat f_t$")
-axes[0].set_title("block-diagonal ridge — fraction of wealth bet each day")
-axes[0].legend(fontsize=8)
-wealth_axis(axes[1])
-axes[1].set_title("block-diagonal ridge — compounded wealth")
-axes[1].legend(fontsize=8, loc="upper left")
-for ax in axes:
-    ax.xaxis.set_major_locator(YearLocator())
-    ax.xaxis.set_major_formatter(DateFormatter("%Y"))
+    w = np.cumprod(1.0 + F_FIXED * rs.to_numpy())
+    ax.plot(rs.index, w, lw=1.1, color=c, label=name)
+    ax.annotate(f"{w[-1]:.1f}×", (rs.index[-1], w[-1]), xytext=(4, 0), textcoords="offset points",
+                fontsize=8, va="center", color=c)
+wealth_axis(ax)
+ax.xaxis.set_major_locator(mdates.YearLocator())
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+ax.set_title(f"block-diagonal ridge - compounded wealth at a fixed {F_FIXED:.0%} of wealth per day")
+ax.legend(fontsize=8, loc="upper left")
 fig.tight_layout()
-fig.savefig(OUT / "kelly_causal_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "kelly_causal_blk2.png")
+fig.savefig(OUT / "fixedfrac_wealth_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "fixedfrac_wealth_blk2.png")
 display(fig)
 plt.close(fig)
 """
     ),
+    # SECTION PARKED 2026-09-04 (user order): estimated fraction of wealth held back; the deck shows a fixed fraction instead.
+    # md(
+    # r"""
+    # ## 14. Betting a fixed fraction of wealth
+    #
+    # Every table so far adds up profits and losses without compounding:
+    # one unit of premium per day. A trader who reinvests instead bets a
+    # fraction $f_t$ of current wealth each day, so wealth compounds,
+    #
+    # $$W_T=\prod_{t}\bigl(1+f_t\,q_t R_t\bigr),$$
+    #
+    # and the natural objective is the annualized growth rate of log
+    # wealth, $g=252\cdot\overline{\log(1+f_t R'_t)}$, which is what
+    # compounding actually maximizes. One structural fact frames the
+    # exercise: **ruin is one bad day.** Any fraction
+    # $f\ge 1/|\min_t R'_t|$ takes wealth to zero or below on the worst
+    # day, so the short book without wings, whose worst day is near $-10$
+    # premium units, can only ever bet a small fraction of wealth no matter
+    # how good its average return is. (A defined-risk variant — parked; explored in the experimental
+    # notebook — bounds the worst day by construction, which is exactly
+    # what loosens this constraint.)
+    #
+    # The fraction is estimated from the book's own past returns only:
+    #
+    # $$\hat f_t=\min\!\Bigl(\tfrac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},\,
+    # \tfrac{1}{|\min_{u\le t-1}R'_u|}\Bigr)_{\!+}$$
+    #
+    # — the growth-optimal (Kelly) fraction in its quadratic form, held
+    # below the running ruin bound, computed on an expanding window once at
+    # least 63 sessions of history exist and lagged one day. The half
+    # fraction $\hat f_t/2$ is reported alongside as the standard
+    # conservative choice, and for each path we print the growth rate, the
+    # terminal wealth, the drawdown, and the worst single-day wealth factor.
+    #
+    # **Two frames for "a fraction of wealth."** The phrase needs a unit
+    # before any growth number can be read. In the **per-premium frame** —
+    # the frame used throughout this section — $f_t$ is the share of wealth
+    # deployed as body premium. For a bought straddle the premium is also
+    # the capital at risk, so on long days the two coincide; for the short
+    # book without wings the capital at risk is unbounded, which is exactly
+    # why the ruin bound above, and not a collateral bound, governs the
+    # admissible fraction. A true **capital-at-risk frame** — $f_t$ as the
+    # share of wealth posted as collateral against the maximum loss, with
+    # the day's return on that capital bounded below by $-1$ by
+    # construction — exists only once the worst day is bounded; it applies to a
+    # defined-risk variant (parked; explored in the experimental notebook). One unit of wealth
+    # posted as collateral controls several times less premium exposure
+    # than one unit deployed as premium, and the ratio varies from day to
+    # day, so growth rates compare only within a frame, never across.
+    # """
+    # ),
+    # code(
+    # r"""
+    # def causal_kelly(rs):
+    # mu = rs.expanding(min_periods=63).mean().shift(1)
+    # m2 = (rs**2).expanding(min_periods=63).mean().shift(1)
+    # cap = 1.0 / rs.expanding(min_periods=1).min().shift(1).abs()
+    # return np.minimum((mu / m2).clip(lower=0.0), cap).fillna(0.0)
+    #
+    # def wealth_axis(ax):
+    # # log-scaled axis labelled in wealth multiples; 1x = the starting stake
+    # from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
+    # ax.set_yscale("log")
+    # ticks = [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]
+    # ax.yaxis.set_major_locator(FixedLocator(ticks))
+    # ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
+    # ax.yaxis.set_minor_locator(NullLocator())
+    # ax.axhline(1.0, color="k", lw=0.6, ls="--")
+    # ax.grid(axis="y", which="major", alpha=0.3)
+    # ax.set_ylabel("wealth multiple (log scale; 1× = starting stake)")
+    #
+    #
+    # def wealth_row(f, r):
+    # factors = 1.0 + np.asarray(f) * np.asarray(r)
+    # assert (factors > 0).all(), "a wealth factor hit zero — ruin"
+    # w = np.cumprod(factors)
+    # return pd.Series({
+    # "g_ann": 252.0 * float(np.mean(np.log(factors))),
+    # "terminal": float(w[-1]),
+    # "maxDD": float((w / np.maximum.accumulate(w) - 1.0).min()),
+    # "worst_day_factor": float(factors.min()),
+    # })
+    #
+    # kelly_rows = {}
+    # for tag in MODEL_ORDER:
+    # px = books[tag]
+    # for name, q in rule_sizes(px).items():
+    # rs = (q * px["R"]).loc[common].astype(float)
+    # r = rs.to_numpy()
+    # fk = causal_kelly(rs).to_numpy()
+    # row = pd.concat({"causal": wealth_row(fk, r), "half": wealth_row(fk / 2, r)})
+    # row.index = ["_".join(k) for k in row.index]
+    # row["mean_f"] = float(fk.mean())
+    # row["n"] = len(r)
+    # kelly_rows[(name, tag)] = row
+    #
+    # kelly_tab = pd.DataFrame(kelly_rows).T
+    # kelly_tab.index = pd.MultiIndex.from_tuples(kelly_tab.index, names=["rule", "model"])
+    # for tag in MODEL_ORDER:
+    # safe = "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
+    # kelly_tab.xs(tag, level="model").to_csv(OUT / f"kelly_summary_{safe}.csv")
+    # print("blk2 — causally estimated fraction of wealth, 871 common days")
+    # print(kelly_tab.xs("blk2", level="model").T.to_string())
+    # print("saved kelly_summary_<model>.csv in", OUT)
+    #
+    # print("---")
+    # print("causal growth across models, both rules")
+    # spread = kelly_tab[["mean_f", "causal_g_ann", "causal_terminal"]].rename(index=LABEL, level="model")
+    # print(spread.to_string(float_format=lambda x: f"{x:+.4f}"))
+    #
+    # for name in ("always short", "sign(s)"):
+    # rs = (rule_sizes(books["blk2"])[name] * books["blk2"]["R"]).loc[common].astype(float)
+    # fk = causal_kelly(rs)
+    # gy = pd.Series(np.log1p(fk.to_numpy() * rs.to_numpy()), index=rs.index)
+    # print(f"per-year annualized log-growth, block-diagonal ridge, {name}:")
+    # print((252.0 * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
+    #
+    # from matplotlib.dates import DateFormatter, YearLocator
+    #
+    # px = books["blk2"]
+    # fig, axes = plt.subplots(1, 2, figsize=(11, 3.8))
+    #
+    #
+    # def end_label(ax, idx, w, color):
+    # # terminal wealth multiple at the end of a path
+    # ax.annotate(f"{w[-1]:.1f}×", (idx[-1], w[-1]), xytext=(4, 0), textcoords="offset points",
+    # fontsize=8, va="center", color=color)
+    #
+    #
+    # for name, c in (("always short", "C1"), ("sign(s)", "C0")):
+    # rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
+    # fk = causal_kelly(rs)
+    # axes[0].plot(rs.index, fk, lw=0.9, color=c, label=name)
+    # w = np.cumprod(1.0 + fk.to_numpy() * rs.to_numpy())
+    # axes[1].plot(rs.index, w, lw=1.0, color=c, label=name)
+    # end_label(axes[1], rs.index, w, c)
+    # rs = (rule_sizes(px)["sign(s)"] * px["R"]).loc[common].astype(float)
+    # fk = causal_kelly(rs)
+    # w = np.cumprod(1.0 + (fk.to_numpy() / 2) * rs.to_numpy())
+    # axes[1].plot(rs.index, w, lw=1.0, color="C2", label="sign(s), half fraction")
+    # end_label(axes[1], rs.index, w, "C2")
+    # axes[0].set_ylabel(r"fraction of wealth $\hat f_t$")
+    # axes[0].set_title("block-diagonal ridge — fraction of wealth bet each day")
+    # axes[0].legend(fontsize=8)
+    # wealth_axis(axes[1])
+    # axes[1].set_title("block-diagonal ridge — compounded wealth")
+    # axes[1].legend(fontsize=8, loc="upper left")
+    # for ax in axes:
+    # ax.xaxis.set_major_locator(YearLocator())
+    # ax.xaxis.set_major_formatter(DateFormatter("%Y"))
+    # fig.tight_layout()
+    # fig.savefig(OUT / "kelly_causal_blk2.png", dpi=120, bbox_inches="tight")
+    # print("saved", OUT / "kelly_causal_blk2.png")
+    # display(fig)
+    # plt.close(fig)
+    # """
+    # ),
     md(
         r"""
 ## 15. When does each forecast say buy?

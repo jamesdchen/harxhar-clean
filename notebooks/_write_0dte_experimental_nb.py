@@ -53,7 +53,8 @@ Same instrument, clocks, smear, and signal as
 8. the body itself (§16): a same-strike straddle against the deck's
    nearest out-of-the-money pair — one dollar P&L in three frames, the
    five-point vertical that separates them, offset, fills, and the
-   fraction of wealth; the strangle body stays
+   estimated-fraction wealth rule (parked in the main notebook); the
+   strangle body stays
 
 $R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`.
 
@@ -1327,7 +1328,7 @@ def _tc_hygiene(df, b, a, label, sold):
     ok = _tc_leg_ok(bb, aa, sold)
     print(f"hygiene {label:14s} n={len(df)} missing={int((~np.isfinite(bb) | ~np.isfinite(aa)).sum())} "
           f"bid<=0={int((np.isfinite(bb) & (bb <= 0)).sum())} "
-          f"crossed={int((np.isfinite(bb) & np.isfinite(aa) & (bb > aa)).sum())} "
+          f"bid>ask={int((np.isfinite(bb) & np.isfinite(aa) & (bb > aa)).sum())} "
           f"usable={int(ok.sum())} (strict bid>0: {int(_tc_leg_ok(bb, aa, True).sum())})")
     return ok
 
@@ -1675,13 +1676,13 @@ def vl_rows(vs, px, cfg="both"):
 
 px_b = books["blk2"]
 vl = {w: vl_book(width=w) for w in (25.0, 50.0)}
-# the wing widths the RV-IV deck section 16 reports, for the fills and one-sided tables
+# the wing widths the parked iron-fly section of the main notebook reports, for the fills and one-sided tables
 vl_wide = {w: (vl[w] if w in vl else vl_book(width=w)) for w in (20.0, 25.0, 30.0, 50.0)}
 
-# --- gate: reproduce the RV-IV section 16 headline before extending ---
+# --- gate: reproduce the parked iron-fly section's headline before extending ---
 rows25, j25 = vl_rows(vl[25.0], px_b)
 print("gate: w=25 sign(s) per premium, hedged Sharpe", f"{rows25.loc['sign(s)', 'Sharpe_hedged']:.4f}",
-      "(RV-IV section 16 at w=25: 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (RV-IV section 16: -0.007)")
+      "(parked iron-fly section at w=25: 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (parked iron-fly section: -0.007)")
 assert abs(rows25.loc["sign(s)", "Sharpe_hedged"] - 1.417) < 0.005
 assert abs(float(j25["drag_both"].mean()) - (-0.007)) < 0.002
 print("gate passed")
@@ -1865,14 +1866,14 @@ have already failed to manage the sell-side tail (§14). This section asks the n
 follow-up: does stepping aside on the days the lagged signal flags as
 risky improve the tail of the $\mathrm{sign}(s)$ book?
 
-**Construction.** The flag is built exactly as in the deck: the
-percentile rank of $s_{t-1}$ among all days up to $t-1$, computed from
+**Construction.** The flag is the percentile rank of $s_{t-1}$ among all days up to $t-1$, computed from
 past data only once at least 63 days of history exist. Three flags are
 declared here, before any result is read, and none is chosen after the
 fact:
 
 - **primary** — the top tercile of the rank of $s_{t-1}$, the
-  regressor the deck validated;
+  regressor of the lagged-magnitude reading (parked in the main
+  notebook; the deck shows the plain regression);
 - alternate — the bottom tercile of the same rank (yesterday's implied
   variance far above the forecast), in case the sell-side tail lives at
   that end;
@@ -1923,7 +1924,8 @@ no-forecast comparator — the top tercile of yesterday's realized
 $|R|$ — separates large from small moves better than the lagged signal
 does.
 
-This reinterprets the deck's magnitude finding. The lagged rank
+This reinterprets the lagged-magnitude reading (parked in the main
+notebook). The lagged rank
 predicts the *size* of the settlement move, and on buying days that
 size is the payoff; it is not a warning about the short side. Any
 control of the sell-side tail would have to condition on selling days
@@ -2176,10 +2178,12 @@ $|S-K^*|$ lies between 0 and 2.5 points) and both bodies' $\mathrm{sign}(s)$
 results by tercile of that offset; the five-point vertical on its own —
 its mean, its Newey–West $t$, and its share of the straddle's daily
 variance — which decides whether the extra premium is edge or fairly
-priced risk; crossed fills (sell at the bid, buy at the ask, on every
+priced risk; crossed-spread fills (sell at the bid, buy at the ask, on every
 leg, with the in-the-money leg's relative spread printed against the
-others); and the fraction-of-wealth rule of the deck's §14 on the
-$\mathrm{sign}(s)$ book in the two return frames.
+others); and the estimated-fraction rule (parked in the main
+notebook: expanding mean over second moment with a running ruin cap,
+minimum 63 days, lagged one day) on the $\mathrm{sign}(s)$ book in the
+two return frames.
 
 **What the numbers say.** In dollars the two $\mathrm{sign}(s)$ books are the
 same book: about 0.34 index points per package-day each, a paired
@@ -2213,8 +2217,8 @@ always-short control gains in every frame (about 0.44–0.50 against
 0.28), but that gain is the vertical's 0.11 points per day, which is
 not significant.
 
-The fraction-of-wealth rule sees the same thing: the estimated
-fraction is about 0.063 for either body in either frame. Because the
+The estimated-fraction rule sees the same thing: its fraction is
+about 0.063 for either body in either frame. Because the
 fraction is applied to the scaled return, each frame is a different
 position-sizing rule on the same instrument — the per-time-value
 straddle path holds more packages on days when time value is small —
@@ -2224,7 +2228,7 @@ rules, not a difference in edge. Where the index sits on the strike
 grid does not separate the bodies either: both earn essentially nothing
 in the third of days on which the index sits closest to a listed
 strike and about the same as each other in the other two thirds — a
-property of those days, not of either body. Crossed fills favour the
+property of those days, not of either body. Crossed-spread fills favour the
 strangle: the straddle's legs are not wider in relative terms (about
 5.1% and 5.5% of mid against 5.9%), but its package spread is larger
 in points and its per-premium returns smaller, so after paying the
@@ -2475,7 +2479,7 @@ for fr_ in (px, st):
     for bcol, acol in (("bid_c", "ask_c"), ("bid_p", "ask_p")):
         ok &= _leg_ok(fr_[bcol], fr_[acol], True)                       # the sold legs (always short sells both every day)
         ok &= _leg_ok(fr_[bcol], fr_[acol], False)                      # the bought legs on long days
-print(f"--- crossed fills: {int(ok.sum())} of {len(days)} days have usable bid/ask on all four legs of both bodies ---")
+print(f"--- crossed-spread fills: {int(ok.sum())} of {len(days)} days have usable bid/ask on all four legs of both bodies ---")
 fills, spreads = {}, {}
 for b, fr_ in ((BODIES[0], px), (BODIES[1], st)):
     bid_sum = fr_["bid_c"] + fr_["bid_p"]; ask_sum = fr_["ask_c"] + fr_["ask_p"]
@@ -2487,9 +2491,9 @@ for b, fr_ in ((BODIES[0], px), (BODIES[1], st)):
         tv = fr_["time_value"] if b == BODIES[1] else fr_["entry"]
         rpf_tv = (qq * (fr_["exit"] - entry_fill) / tv)[ok]
         rpm_tv = (qq * (fr_["exit"] - fr_["entry"]) / tv)[ok]
-        fills[(b, rule)] = {"n": int(ok.sum()), "Sharpe_mid": bl_sharpe(rpm), "Sharpe_crossed": bl_sharpe(rpf),
-                            "Sharpe_mid_tv": bl_sharpe(rpm_tv), "Sharpe_crossed_tv": bl_sharpe(rpf_tv),
-                            "mean_mid": float(rpm.mean()), "mean_crossed": float(rpf.mean()),
+        fills[(b, rule)] = {"n": int(ok.sum()), "Sharpe_mid": bl_sharpe(rpm), "Sharpe_crossed_spread": bl_sharpe(rpf),
+                            "Sharpe_mid_tv": bl_sharpe(rpm_tv), "Sharpe_crossed_spread_tv": bl_sharpe(rpf_tv),
+                            "mean_mid": float(rpm.mean()), "mean_crossed_spread": float(rpf.mean()),
                             "half_spread_over_premium_median": float((half / fr_["entry"])[ok].median())}
     rel_c = ((fr_["ask_c"] - fr_["bid_c"]) / fr_["mid_c"])[ok]; rel_p = ((fr_["ask_p"] - fr_["bid_p"]) / fr_["mid_p"])[ok]
     if b == BODIES[1]:

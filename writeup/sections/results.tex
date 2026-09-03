@@ -414,7 +414,7 @@ rule. Table~\ref{tab:options_bare} reports both.
 \caption{The delta-hedged same-day option book under a fixed rule
 ($\theta = 0.10$; Section~\ref{sec:options_methods}). One number per
 expiration day; Sharpe ratios are annualized from daily
-profit-and-loss; ``crossed'' buys at the ask and sells at the bid with
+profit-and-loss; ``crossed spread'' buys at the ask and sells at the bid with
 $0.5$~bp on the underlying per rebalance. ``Traded'' is the share of
 days on which the rule takes a position; ``long'' the share of those
 positions that buy the option. Daily 0DTE is the era from 16~May~2022
@@ -425,7 +425,7 @@ in which every weekday carries an expiring chain
 \toprule
  & \multicolumn{5}{c}{All expiration days} & \multicolumn{5}{c}{Daily 0DTE} \\
 \cmidrule(lr){2-6} \cmidrule(lr){7-11}
- & traded & long & Sharpe & crossed & hit & traded & long & Sharpe & crossed & hit \\
+ & traded & long & Sharpe & crossed spread & hit & traded & long & Sharpe & crossed spread & hit \\
 \midrule
 \input{generated/table_options_bare}
 \end{tabular}
@@ -438,7 +438,7 @@ forecast under the fixed rule gives \optBareAzeroShMid{} at mids and
 \optBareAzeroShX{} after crossing the spread, on \optBareAzeroTraded{}
 of days, with \optBareAzeroLong{} of positions long. The two-block ridge
 under the identical rule gives \optBareBlkShMid{} at mids and
-\optBareBlkShX{} crossed, on \optBareBlkTraded{} of days,
+\optBareBlkShX{} crossed spread, on \optBareBlkTraded{} of days,
 \optBareBlkLong{} long. Neither forecast-conditioned book clears the
 quoted spread at this sample under this rule; the ordering of the two
 forecasts on the book matches their ordering in
