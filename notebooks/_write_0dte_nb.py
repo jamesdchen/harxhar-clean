@@ -719,6 +719,101 @@ display(fig)
 plt.close(fig)
 """
     ),
+    md(
+        r"""
+### Shifting the forecast in time: the look-ahead cliff
+
+The forecast rows are labelled by the bar they end, and the trade reads
+the row labelled 16:00 — issued at 15:30 for the bar it trades (§7).
+Shift that choice by $k$ half-hour bars,
+$\widehat{RV}^{(k)}_t$ = the row labelled $16{:}00+30k$ minutes on the
+same day, keep everything else, and rescore the $\mathrm{sign}(s)$
+rule: $k<0$ is a stale forecast, still free of look-ahead; $k=0$ is the
+trade. Rows after the close ($k>0$) forecast after-hours bars whose
+variance is far lower, so they sit below the implied variance on almost
+every day and collapse the rule into always short — they are in the
+table but not in the figure. The same exercise by days uses the 16:00
+row of day $t+k$; for $k\ge 1$ that forecast's lags contain the traded
+bar's realized variance. The end of the look-ahead road is the traded
+bar's realized variance itself in place of the forecast.
+
+The rule is sharp at $k=0$: one bar stale, the block-diagonal ridge
+forecast falls from about $1.6$ to under $0.1$, and every stale shift
+sits below the trade for every forecast. Tomorrow's forecast lifts
+five of the seven above their honest value (the baseline from about
+$1.0$ to $1.9$), and the traded bar's realized variance takes all seven
+to about $4.6$ — the cliff.
+"""
+    ),
+    code(
+        r"""
+# rescore sign(s) with the forecast row shifted in time; everything else unchanged
+BAR_SHIFTS = list(range(-11, 9))   # -11 = the 10:30 row ... 0 = the 16:00 row (the trade) ... +8 = the 20:00 row
+DAY_SHIFTS = list(range(-3, 4))
+
+
+def sharpe_ann(x):
+    x = pd.Series(x).dropna()
+    return float(x.mean() / x.std(ddof=1) * np.sqrt(252.0))
+
+
+def shifted_sharpes(tag):
+    pan = asl.load_yhat_panel(YHATS[tag])
+    pan["mins"] = pan["et"].dt.hour * 60 + pan["et"].dt.minute
+    d = books[tag].loc[common, ["R", "iv_var"]]
+    out = {}
+    for k in BAR_SHIFTS:
+        sel = pan[pan["mins"] == 16 * 60 + 30 * k].drop_duplicates("date").set_index("date")["rv_hat"]
+        f = d.join(sel.rename("f"), how="left")["f"]
+        out[f"bar{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"]) if f.notna().mean() > 0.95 else np.nan
+    p16 = pan[pan["mins"] == 16 * 60].drop_duplicates("date").set_index("date").sort_index()
+    for k in DAY_SHIFTS:
+        f = d.join(p16["rv_hat"].shift(-k).rename("f"), how="left")["f"]
+        out[f"day{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"])
+    f = d.join(p16["rv_raw"].rename("f"), how="left")["f"]
+    out["realized"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"])
+    return out
+
+
+with ThreadPoolExecutor(max_workers=len(MODEL_ORDER)) as pool:
+    futs = {tag: pool.submit(shifted_sharpes, tag) for tag in MODEL_ORDER}
+    shift_tab = pd.DataFrame({LABEL[tag]: futs[tag].result() for tag in MODEL_ORDER}).T
+for tag in MODEL_ORDER:
+    assert abs(shift_tab.loc[LABEL[tag], "bar+0"] - rule_tabs[tag].loc["sign(s)", "Sharpe_ann"]) < 1e-9, tag
+sharpe_as = float(rule_tabs["blk2"].loc["always short", "Sharpe_ann"])
+print("annualized Sharpe of sign(s) with the forecast row shifted; bar+0 is the trade")
+print(shift_tab.round(3).to_string())
+shift_tab.to_csv(OUT / "forecast_shift_cliff.csv")
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4.4), gridspec_kw={"width_ratios": [1.6, 1]})
+bars = [k for k in BAR_SHIFTS if k <= 0]
+for tag in MODEL_ORDER:
+    lw = 1.8 if tag == "blk2" else 1.0
+    axes[0].plot(bars, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in bars], marker="o", ms=3, lw=lw, label=LABEL[tag])
+    axes[1].plot(DAY_SHIFTS, [shift_tab.loc[LABEL[tag], f"day{k:+d}"] for k in DAY_SHIFTS], marker="o", ms=3, lw=lw)
+for ax in axes:
+    ax.axvline(0.0, color="k", lw=0.8)
+    ax.axhline(sharpe_as, color="0.5", lw=0.9, ls="--")
+    ax.axhline(0.0, color="k", lw=0.4)
+    ax.set_ylabel("annualized Sharpe of sign(s)")
+pf = float(shift_tab["realized"].mean())
+axes[0].plot([2.0], [pf], marker="*", ms=11, lw=0, color="k")
+axes[0].annotate(f"{pf:.1f} (all seven forecasts)", (2.0, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
+axes[0].set_xticks(bars + [2.0])
+axes[0].set_xticklabels([str(k) for k in bars] + ["realized\nvariance"], fontsize=8)
+axes[0].set_xlabel("forecast row, in half-hour bars from the 16:00 row (0 = the trade); star = the traded bar's realized variance")
+axes[0].set_title("bar shifts on the same day", fontsize=10)
+axes[0].text(-11, sharpe_as, " always short", fontsize=8, color="0.4", va="bottom")
+axes[0].legend(fontsize=7, loc="upper left", frameon=False)
+axes[1].set_xlabel("forecast from day $t+k$ (0 = the trade)")
+axes[1].set_title("day shifts, same 16:00 row", fontsize=10)
+fig.tight_layout()
+fig.savefig(OUT / "forecast_shift_cliff.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "forecast_shift_cliff.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
