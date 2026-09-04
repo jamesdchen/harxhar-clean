@@ -67,7 +67,13 @@ percentile of $\widehat{y}$ within the same trailing window, and the
 fit window is restricted to regular-session bars. The weighting
 addresses a level effect --- an unweighted fit is dominated by the
 largest bars --- and was adopted on the forecast-accuracy referee
-(QLIKE improves for all seven models), not on any portfolio outcome.
+(QLIKE improves for all seven models), not on any portfolio outcome. A median-targeting map (the same line fitted by weighted least
+absolute deviations, $\widehat{RV}=m^2 B$) was tested and not adopted:
+it is right about the sign more often but earns less, because the
+straddle's payoff is carried by the right tail of realized variance
+that a median discards, and it cuts the $\mathrm{sign}(s)$ portfolio's
+Sharpe ratio for six of the seven forecasts (block-diagonal ridge 1.63
+to 0.70).
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package

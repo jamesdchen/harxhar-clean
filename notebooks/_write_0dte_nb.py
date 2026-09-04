@@ -419,10 +419,24 @@ recalibration fitted on the trailing 250 days only:
   when they were included, pushed the forecast-to-realized ratio from
   1.08 to 1.14.
 
+**Mean, not median.** One could argue that a rule that bets on the
+*sign* of forecast minus price should be built on the median of
+realized variance — "more likely above than below" is a statement
+about the median — and that the mean, which sits above the median on a
+right-skewed target, says "above" too often. That alternative was
+built on 2026-09-04 (the same line fitted by weighted median
+regression, $\widehat{RV}=m^2B$ with no variance term, because the
+median commutes with the square) and is compared with the mean map
+immediately below. It is not adopted: the trade is scored on what the
+position earns, not on how often its sign is right, and the expected
+payoff of a straddle is driven by the right tail of realized variance
+that the median ignores.
+
 Housekeeping: the fit is solved in closed form one day at a time, in a
 routine shared with the intraday notebook; each model's table is cached
-and keyed to its inputs, so unchanged inputs skip the computation and
-any change forces it; the seven tables load in parallel.
+and keyed to its inputs and to the fitting method, so unchanged inputs
+skip the computation and any change forces it; the seven tables load in
+parallel.
 """
     ),
     code(
@@ -438,10 +452,11 @@ YHATS = {
     "lasso_f": REPO / "results" / "spxw_pnl" / "yhat_b2lasso.parquet",
     "enet": REPO / "results" / "spxw_pnl" / "yhat_b3enet_tuned.parquet",
 }
-# The second-order map (MZ smear) lives in atm_straddle_lib: flat
-# 250-day window, fit restricted to the scored session bars
-# (10:00-15:30 ET) so off-session dynamics cannot pollute the
-# calibration. Delegate rather than duplicate.
+# The recalibration lives in atm_straddle_lib: flat 250-day window, fit
+# restricted to the scored session bars (10:00-15:30 ET) so off-session
+# dynamics cannot pollute the calibration. Delegate rather than duplicate.
+# method="mean" is the deck's map; method="median" is the alternative
+# tested in the next cell (its tables are cached under their own key).
 import sys
 sys.path.insert(0, str(REPO / "notebooks"))
 import atm_straddle_lib as asl
@@ -450,26 +465,15 @@ second_order_raw = asl.second_order_raw
 load_yhat_1530 = asl.load_yhat_1530
 
 
-def load_yhat_1530_cached(tag: str, path: Path, need_dates) -> pd.DataFrame:
-    h = hashlib.sha1()
-    st = os.stat(path)
-    h.update(f"v6-vec-gls:{st.st_size}:{st.st_mtime_ns}:flat{asl.WINDOW_DAYS}".encode())
-    for d in sorted(need_dates):
-        h.update(str(d).encode())
-    cp = CACHE / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"
-    if cp.exists():
-        return pd.read_parquet(cp)
-    out = load_yhat_1530(path, need_dates)
-    for old in CACHE.glob(f"yhat1530_{tag}_*.parquet"):
-        old.unlink()
-    out.to_parquet(cp)
-    return out
+def load_yhat_1530_cached(tag: str, path: Path, need_dates, method: str = "mean") -> pd.DataFrame:
+    # cache key = source file size and mtime, the fitting method, and the set of option days
+    return asl.load_yhat_1530_cached(tag, path, need_dates, CACHE, method=method)
 
 
 need_dates = set(atm.index)
 with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
     futs = {
-        tag: pool.submit(load_yhat_1530_cached, tag, path, need_dates)
+        tag: pool.submit(load_yhat_1530_cached, tag, path, need_dates, "mean")
         for tag, path in YHATS.items()
     }
     models = {tag: futs[tag].result() for tag in YHATS}
@@ -492,6 +496,120 @@ for tag, rv in models.items():
     print("median rv_hat", float(rv["rv_hat"].median()),
           "median rv_raw", float(rv["rv_raw"].median()))
     print("---")
+"""
+    ),
+    md(
+        r"""
+### A median map, tested and not adopted
+
+The alternative is fitted on the same inputs — the same trailing 250
+days, the same session bars, the same weights — by weighted median
+regression, and its forecast is $m^2 B$ with no variance term. The two
+maps are compared on identical days: the sign(s) row for every forecast
+under each map; the paired daily difference with its $t$-statistic and
+a block-bootstrap interval on the Sharpe difference; the share of buy
+days and the hit rate (the share of days the position earns a positive
+return); the calibration of each map by year — the share of days on
+which realized variance exceeds the forecast, one half for a median —
+and the days on which the two maps disagree, with the return the trade
+would have earned on them. Always short is identical under both maps by
+construction. The implied variance is the one §8 constructs, computed
+here in the same units so the check does not depend on later cells.
+
+**Verdict, from the numbers below.** The median map is calibrated as
+intended — realized variance exceeds its forecast on about half of the
+days in every year, against roughly a third for the mean map — and it is
+right more often (hit rate about $0.59$–$0.61$ against $0.55$). Yet it
+earns less for six of the seven forecasts (block-diagonal ridge Sharpe
+about $1.63 	o 0.70$; only the baseline improves), with no Sharpe
+difference resolved at the $95\%$ level. The two maps disagree on
+roughly 170 to 210 days per forecast — days the mean map buys and the
+median map sells — and the long straddle pays on those days on average
+(block-diagonal ridge about $+0.15$ per unit of premium). What the trade
+earns is the expected payoff minus the price; the expected payoff of a
+straddle is driven by the right tail of realized variance, which the
+median ignores by construction. A median-calibrated forecast maximizes
+how often the sign is right; the mean-calibrated forecast maximizes what
+the sign earns, and that is the quantity the rule is scored on. The mean
+map stays.
+"""
+    ),
+    code(
+        r"""
+# the median map, cached under its own key, on the same inputs and days
+with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
+    futs_med = {tag: pool.submit(load_yhat_1530_cached, tag, path, need_dates, "median") for tag, path in YHATS.items()}
+    models_median = {tag: futs_med[tag].result() for tag in YHATS}
+
+_iv = atm[["impl_volatility_c", "impl_volatility_p"]].apply(pd.to_numeric, errors="coerce").mean(axis=1)
+_iv_var = (_iv / np.sqrt(2.0)) ** 2                      # section 8's units: hourly SD -> 30-minute variance
+_common = atm.index
+for _t in YHATS:
+    assert models[_t].index.equals(models_median[_t].index), _t   # same fit gate, same days
+    _common = _common.intersection(models[_t].index)
+_R = atm.loc[_common, "R"].astype(float)
+_ivv = _iv_var.loc[_common].astype(float)
+
+
+def _nw_t(d):
+    d = np.asarray(d, float)
+    lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
+    return float(sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag}).tvalues[0])
+
+
+def _boot_dsharpe(a, b, B=2000, seed=0):
+    rng = np.random.default_rng(seed)
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    n = len(a); blen = int(np.ceil(n ** (1 / 3))); nblk = int(np.ceil(n / blen))
+    out = []
+    for _ in range(B):
+        starts = rng.integers(0, n - blen + 1, nblk)
+        idx = np.concatenate([np.arange(s, s + blen) for s in starts])[:n]
+        xa, xb = a[idx], b[idx]
+        out.append(xa.mean() / xa.std(ddof=1) * np.sqrt(252) - xb.mean() / xb.std(ddof=1) * np.sqrt(252))
+    return np.percentile(out, [2.5, 97.5])
+
+
+_rows, _cal = [], []
+for _t in YHATS:
+    _rec = {"model": LABEL[_t]}
+    _ser = {}
+    for _name, _tab in (("mean", models[_t]), ("median", models_median[_t])):
+        _rv = _tab.loc[_common]
+        _pos = pd.Series(np.where(_rv["rv_hat"] - _ivv > 0, 1.0, -1.0), index=_common)
+        _rp = _pos * _R
+        _ser[_name] = (_rp, _pos)
+        _rr = asl.rule_row(_rp, _pos)
+        _rec[f"Sharpe_{_name}"] = float(_rr["Sharpe_ann"]); _rec[f"t_{_name}"] = float(_rr["t_mean"])
+        _rec[f"mean_{_name}"] = float(_rr["mean"]); _rec[f"buy_share_{_name}"] = float((_pos > 0).mean())
+        _rec[f"hit_rate_{_name}"] = float((_rp > 0).mean())
+        _ratio = _rv["rv_raw"] / _rv["rv_hat"]
+        for _yr, _g in _ratio.groupby(_ratio.index.year):
+            _cal.append({"model": LABEL[_t], "map": _name, "year": int(_yr),
+                         "share_realized_above": float((_g > 1).mean()), "median_realized_over_forecast": float(_g.median())})
+    _d = _ser["median"][0] - _ser["mean"][0]
+    _rec["diff_per_day"] = float(_d.mean()); _rec["diff_t"] = _nw_t(_d)
+    _rec["dSharpe_lo"], _rec["dSharpe_hi"] = (float(v) for v in _boot_dsharpe(_ser["median"][0], _ser["mean"][0]))
+    _swing = (_ser["mean"][1] > 0) & (_ser["median"][1] < 0)
+    _rec["days_mean_buys_median_sells"] = int(_swing.sum()); _rec["their_mean_R"] = float(_R[_swing].mean())
+    _rec["same_position_share"] = float((_ser["median"][1] == _ser["mean"][1]).mean())
+    _rows.append(_rec)
+_as = asl.rule_row(-_R, pd.Series(-1.0, index=_common))
+swap_tab = pd.DataFrame(_rows).set_index("model")
+cal_tab = pd.DataFrame(_cal)
+print(f"days common to all seven forecasts under both maps: {len(_common)}; always short Sharpe {float(_as['Sharpe_ann']):.3f} under either map")
+print("sign(s) under the two maps:")
+print(swap_tab[["Sharpe_mean", "t_mean", "Sharpe_median", "t_median", "diff_per_day", "diff_t", "dSharpe_lo", "dSharpe_hi"]].round(3).to_string())
+print("---")
+print(swap_tab[["buy_share_mean", "buy_share_median", "hit_rate_mean", "hit_rate_median", "same_position_share",
+                "days_mean_buys_median_sells", "their_mean_R"]].round(3).to_string())
+print("---")
+print("calibration by year, block-diagonal ridge (share of days realized > forecast; median realized / forecast):")
+print(cal_tab[cal_tab["model"] == LABEL["blk2"]].pivot(index="year", columns="map",
+      values=["share_realized_above", "median_realized_over_forecast"]).round(3).to_string())
+swap_tab.to_csv(OUT / "recalibration_mean_vs_median.csv")
+cal_tab.to_csv(OUT / "recalibration_calibration_by_year.csv", index=False)
+print("saved recalibration_mean_vs_median.csv, recalibration_calibration_by_year.csv in", OUT)
 """
     ),
     md(
@@ -594,7 +712,7 @@ print("hand-check baseline (HAR + calendar OLS) (R_p = R if pos==1, else -R):")
 print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var", "signal", "pos", "R_p"]].head(8))
 """
     ),
-    # Unit-median VRP, long-only variants, portfolio variants, lesson, return-summary omitted.
+    # Long-only variants, portfolio variants, lesson, return-summary omitted.
     md(
         r"""
 ## 10. Rule table, grouped by strategy

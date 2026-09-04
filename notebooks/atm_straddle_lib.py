@@ -26,7 +26,7 @@ YHAT_LABEL = {
     "enet": "elastic net (causally tuned)",
 }
 MODEL_ORDER = ["a0", "blk2", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
-RULE_ORDER = ["always short", "sign(s)", "unit-median VRP"]
+RULE_ORDER = ["always short", "sign(s)"]
 
 
 def find_repo(start: Path | None = None) -> Path:
@@ -52,6 +52,39 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
     }
 
 
+def _wlad_line(x, y, w, a, b, iters=100):
+    """Weighted least-absolute-deviations line: minimise sum w_i |y_i - a - b x_i|.
+
+    Iteratively reweighted least squares warm-started at the weighted
+    least-squares line (a, b): each pass solves the 2x2 weighted normal
+    equations with weights w_i / |r_i|. The floor on |r_i| is a numerical
+    guard against division by zero only; the solution is validated against
+    statsmodels' QuantReg (q = 0.5) in the swap's audit script.
+    """
+    scale = float(np.median(np.abs(y)))
+    eps = 1e-8 * scale if scale > 0 else 1e-300
+    for _ in range(iters):
+        r = np.abs(y - a - b * x)
+        ww = w / np.maximum(r, eps)
+        n = float(ww.sum())
+        sx = float((ww * x).sum())
+        sxx = float((ww * x * x).sum())
+        sy = float((ww * y).sum())
+        sxy = float((ww * x * y).sum())
+        den = n * sxx - sx * sx
+        if den <= 0:
+            break
+        b_new = (n * sxy - sx * sy) / den
+        a_new = (sy - b_new * sx) / n
+        done = abs(a_new - a) <= 1e-12 * (1.0 + abs(a)) and abs(b_new - b) <= 1e-12 * (
+            1.0 + abs(b)
+        )
+        a, b = a_new, b_new
+        if done:
+            break
+    return a, b
+
+
 def _mz_day_coefs(
     yhat,
     rv_raw,
@@ -62,8 +95,20 @@ def _mz_day_coefs(
     halflife,
     fit_mask=None,
     weighted=True,
+    method="mean",
 ):
     """Per-day causal MZ coefficients (a, b, s2) in y-space.
+
+    method="mean" (the default; bit-identical to the pre-2026-09-04 code)
+    fits the line by weighted least squares and returns the weighted
+    residual variance s2, so the back-transform (m^2 + s2) B is the
+    conditional MEAN of RV. method="median" fits the same line, on the
+    same window, mask and weights, by weighted least absolute
+    deviations and returns s2 = 0: the back-transform is then m^2 B,
+    the conditional MEDIAN of RV, because the median commutes with the
+    square for y >= 0 whereas the mean does not (that is what the s2
+    term corrects for on the mean path). The median path is only
+    implemented on the weighted flat-window path.
 
     weighted=True (the default, QLIKE-refereed 2026-09-01) fits by
     GLS/weighted least squares with per-window weights
@@ -86,6 +131,10 @@ def _mz_day_coefs(
     off-session dynamics cannot pollute the calibration; coefficients
     still apply to every row.
     """
+    if method not in ("mean", "median"):
+        raise ValueError(f"method must be mean or median, got {method!r}")
+    if method == "median" and not (halflife is None and weighted):
+        raise NotImplementedError("median recalibration needs the weighted flat-window path")
     with np.errstate(divide="ignore", invalid="ignore"):
         y = np.sqrt(np.maximum(rv_raw, 0.0) / np.maximum(baseline, 1e-18))
     valid_day = day_codes >= 0
@@ -145,6 +194,15 @@ def _mz_day_coefs(
                 continue
             b = (w_n * wxy - wx * wy) / denom
             a = (wy - b * wx) / w_n
+            if method == "median":
+                # weighted LAD on the same rows and weights, warm-started at the
+                # least-squares line; s2 = 0 so (m^2 + s2) B collapses to m^2 B,
+                # the conditional median (the median commutes with the square, y >= 0)
+                a, b = _wlad_line(u_sl, y_sl, w, a, b)
+                a_d[d] = a
+                b_d[d] = b
+                s2_d[d] = 0.0
+                continue
             a_d[d] = a
             b_d[d] = b
             s2_d[d] = (wyy - a * wy - b * wxy) / w_n
@@ -198,10 +256,11 @@ def second_order_raw(
     need_days=None,
     halflife=None,
     fit_mask=None,
+    method="mean",
 ):
     """Causal second-moment back-transform (flat 250-day window by default)."""
     a_d, b_d, s2_d = _mz_day_coefs(
-        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask
+        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask, method=method
     )
     valid_day = day_codes >= 0
     dc = np.where(valid_day, day_codes, 0)
@@ -221,10 +280,11 @@ def second_order_mz(
     need_days=None,
     halflife=None,
     fit_mask=None,
+    method="mean",
 ):
     """Same map as second_order_raw, also returning m and s2 on each row."""
     a_d, b_d, s2_d = _mz_day_coefs(
-        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask
+        yhat, rv_raw, baseline, day_codes, n_days, need_days, halflife, fit_mask, method=method
     )
     valid_day = day_codes >= 0
     dc = np.where(valid_day, day_codes, 0)
@@ -238,7 +298,7 @@ def second_order_mz(
     return rv, m, s2_row
 
 
-def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
+def load_yhat_1530(path: Path, need_dates=None, method: str = "mean") -> pd.DataFrame:
     # Bar-end-labelled stamps: the 15:30 book's fresh forecast — issued at
     # 15:30 for the 15:30->close bar it trades — lives on the STAMP-16:00
     # row, whose rv_raw is that bar's own realized variance. (The stamp-
@@ -259,7 +319,7 @@ def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
     mins = df["et"].dt.hour * 60 + df["et"].dt.minute
     rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     df["rv_hat"] = second_order_raw(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth, method=method
     )
     out = (
         df.loc[is_row, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
@@ -271,14 +331,15 @@ def load_yhat_1530(path: Path, need_dates=None) -> pd.DataFrame:
 
 
 def load_yhat_1530_mz_cached(
-    tag: str, path: Path, need_dates, cache: Path
+    tag: str, path: Path, need_dates, cache: Path, method: str = "mean"
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v6-mz-gls:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
+    ver = "v6-mz-gls" if method == "mean" else "v7-mz-median"
+    h.update(f"{ver}:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
-    cp = cache / f"yhat1530mz_{tag}_{h.hexdigest()[:16]}.parquet"
+    cp = cache / f"yhat1530mz_{tag}_{method}_{h.hexdigest()[:16]}.parquet"
     if cp.exists():
         return pd.read_parquet(cp)
     df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
@@ -296,7 +357,7 @@ def load_yhat_1530_mz_cached(
     mins = df["et"].dt.hour * 60 + df["et"].dt.minute
     rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     rv, m, s2 = second_order_mz(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=need_days, fit_mask=rth, method=method
     )
     df["rv_hat"] = rv
     df["m"] = m
@@ -322,31 +383,32 @@ def load_yhat_1530_mz_cached(
         .drop_duplicates("date")
         .set_index("date")
     )
-    for old in cache.glob(f"yhat1530mz_{tag}_*.parquet"):
+    for old in cache.glob(f"yhat1530mz_{tag}_{method}_*.parquet"):
         old.unlink()
     out.to_parquet(cp)
     return out
 
 
 def load_yhat_1530_cached(
-    tag: str, path: Path, need_dates, cache: Path
+    tag: str, path: Path, need_dates, cache: Path, method: str = "mean"
 ) -> pd.DataFrame:
     h = hashlib.sha1()
     st = os.stat(path)
-    h.update(f"v6-vec-gls:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
+    ver = "v6-vec-gls" if method == "mean" else "v7-vec-median"
+    h.update(f"{ver}:{st.st_size}:{st.st_mtime_ns}:flat{WINDOW_DAYS}".encode())
     for d in sorted(need_dates):
         h.update(str(d).encode())
-    cp = cache / f"yhat1530_{tag}_{h.hexdigest()[:16]}.parquet"
+    cp = cache / f"yhat1530_{tag}_{method}_{h.hexdigest()[:16]}.parquet"
     if cp.exists():
         return pd.read_parquet(cp)
-    out = load_yhat_1530(path, need_dates)
-    for old in cache.glob(f"yhat1530_{tag}_*.parquet"):
+    out = load_yhat_1530(path, need_dates, method=method)
+    for old in cache.glob(f"yhat1530_{tag}_{method}_*.parquet"):
         old.unlink()
     out.to_parquet(cp)
     return out
 
 
-def load_yhat_panel(path: Path) -> pd.DataFrame:
+def load_yhat_panel(path: Path, method: str = "mean") -> pd.DataFrame:
     """Every 30-min stamp. Same second-order map as the 15:30 loader."""
     df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
     df["t"] = pd.to_datetime(df["t"], utc=True)
@@ -361,67 +423,35 @@ def load_yhat_panel(path: Path) -> pd.DataFrame:
     mins = df["et"].dt.hour * 60 + df["et"].dt.minute
     rth = ((mins >= 10 * 60 + 30) & (mins <= 16 * 60)).to_numpy()
     df["rv_hat"] = second_order_raw(
-        yhat, rv_raw, base, day_codes, len(uniq), need_days=None, fit_mask=rth
+        yhat, rv_raw, base, day_codes, len(uniq), need_days=None, fit_mask=rth, method=method
     )
     return df
 
 
-def lagged_expanding_median(signal: pd.Series, min_periods: int = 63) -> pd.Series:
-    """Expanding median of |signal|, shifted 1. Known before the current row."""
-    return signal.abs().expanding(min_periods=min_periods).median().shift(1)
-
-
-def causal_leverage(signal: pd.Series, cap: float = 3.0) -> pd.Series:
-    med = lagged_expanding_median(signal)
-    lev = (signal.abs() / med).clip(upper=cap)
-    return lev.fillna(1.0)
-
-
-def um_leverage_vs_lagged_scale(
-    signal: pd.Series, med: pd.Series, cap: float = 3.0
-) -> pd.Series:
-    """|s_t| / med_t with med already lagged. Do not pass same-bar 15:30 |s| as med."""
-    lev = (signal.abs() / med.astype(float)).clip(upper=cap)
-    return lev.replace([np.inf, -np.inf], np.nan).fillna(1.0)
-
-
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
-    lev = causal_leverage(px["signal"])
     pos = pd.Series(
         np.where(px["signal"].to_numpy(float) > 0, 1.0, -1.0), index=px.index
     )
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "sign(s)": pos,
-        "unit-median VRP": pos * lev,
     }
 
 
 def extra_weight_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
     s = px["signal"].astype(float)
     pos = pd.Series(np.where(s.to_numpy() > 0, 1.0, -1.0), index=px.index)
-    lev = causal_leverage(s)
     abs_s = s.abs()
     rank = abs_s.expanding(min_periods=63).rank(pct=True).shift(1).fillna(0.5)
     r = px["R"].astype(float)
     vol = r.expanding(min_periods=63).std().shift(1)
     inv_vol = (vol.median() / vol).clip(upper=3.0).fillna(1.0)
-    med = abs_s.expanding(min_periods=63).median().shift(1)
-    dead = (abs_s >= 0.5 * med).fillna(False)
-    um = pos * lev
-    rp = um * r
-    rp_vol = rp.expanding(min_periods=63).std().shift(1)
-    vt = um * (1.0 / rp_vol).clip(upper=5.0)
-    vt = vt.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     exp_var = r.expanding(min_periods=63).var().shift(1)
     kelly = (s / exp_var).clip(-3.0, 3.0).replace([np.inf, -np.inf], np.nan).fillna(0.0)
     return {
         "rank-|s|": pos * (1.0 + 4.0 * (rank - 0.5)).clip(0.0, 3.0),
         "inv-vol of R": pos * inv_vol,
-        "dead-zone 0.5 med": pos.where(dead, 0.0),
-        "vol-target unit-median": vt,
         "kelly-ish s/var(R)": kelly,
-        "unit-median VRP": um,
         "sign(s)": pos,
         "always short": pd.Series(-1.0, index=px.index),
     }
