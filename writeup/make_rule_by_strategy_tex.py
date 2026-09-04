@@ -1,12 +1,9 @@
 """Render results/atm_straddle_0dte_1530/rule_*.csv as booktabs tables.
 
-Two tables, each with a wide (all columns) and a narrow ("paper") variant:
+One table, in a wide (all columns) and a narrow ("paper") variant:
 
   table_rule_by_strategy.tex        one panel per portfolio rule, models down the rows
   table_rule_by_strategy_paper.tex  same, reduced column set for the portrait paper
-  table_rule_flat_fomc_me.tex       unit-median VRP flat on FOMC + month-end,
-                                    full sample / daily-0DTE era panels
-  table_rule_flat_fomc_me_paper.tex same, reduced column set
 
 Reads the CSVs the notebook wrote (never retypes a number) and writes
 self-contained tabulars, to be wrapped in a table float at the include site.
@@ -23,8 +20,6 @@ SRC = os.path.join(ROOT, "results", "atm_straddle_0dte_1530")
 GEN = os.path.join(ROOT, "writeup", "generated")
 
 # (csv stem, panel label) in display order
-# Unit-median VRP panel removed 2026-09-02: the rule was dropped from the
-# RV-IV notebook (its CSV is no longer written).
 PANELS = [
     ("rule_by_strategy_always_short", r"Short volatility (always short)"),
     (
@@ -33,16 +28,6 @@ PANELS = [
     ),
 ]
 
-FLAT_PANELS = [
-    (
-        "rule_flat_fomc_me_full",
-        r"Full sample (2020--2024-04): 83 of 871 days flat",
-    ),
-    (
-        "rule_flat_fomc_me_era",
-        r"Daily-0DTE era (2022-05-16+): 38 of 492 days flat",
-    ),
-]
 
 MODEL_TEX = {
     "baseline (HAR + calendar OLS)": r"baseline (HAR + calendar OLS)",
@@ -125,7 +110,6 @@ def write(name: str, lines: list[str]) -> None:
 
 def main() -> None:
     by_strategy_src = "results/atm_straddle_0dte_1530/rule_by_strategy_*.csv"
-    flat_src = "results/atm_straddle_0dte_1530/rule_flat_fomc_me_{full,era}.csv"
     write(
         "table_rule_by_strategy.tex",
         render(PANELS, COLS, by_strategy_src, "3.5pt"),
@@ -134,20 +118,6 @@ def main() -> None:
         "table_rule_by_strategy_paper.tex",
         render(PANELS, PAPER_COLS, by_strategy_src, "4.5pt"),
     )
-    flat_ok = all(
-        os.path.exists(os.path.join(SRC, f"{stem}.csv")) for stem, _ in FLAT_PANELS
-    )
-    if flat_ok:
-        write(
-            "table_rule_flat_fomc_me.tex",
-            render(FLAT_PANELS, COLS, flat_src, "3.5pt"),
-        )
-        write(
-            "table_rule_flat_fomc_me_paper.tex",
-            render(FLAT_PANELS, PAPER_COLS, flat_src, "4.5pt"),
-        )
-    else:
-        print("skip flat FOMC/ME tables (CSV missing)")
 
 
 if __name__ == "__main__":

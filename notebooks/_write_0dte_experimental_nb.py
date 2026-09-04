@@ -30,13 +30,13 @@ nb.cells = [
 Same instrument, clocks, smear, and signal as
 `atm_straddle_rv_iv.ipynb`. This notebook is the lab for:
 
-1. ensembles of the seven models and of the three paper rules
+1. ensembles of the seven models and of the two paper rules
    (including a causal PCR / spectral ensemble), plus extended causal
    PCA/PCR portfolios (§5b), supervised PLS/PCovR projections (§5c), and
    PCA structure diagnostics (§5d)
 2. vol-space maps $\hat y\sqrt{B}$, $m\sqrt{B}$ (stand-in if
    `atm_straddle_volmap.ipynb` is not in the tree)
-3. extra weighting rules (rank, inv-vol, dead-zone, vol-target, Kelly-ish)
+3. extra weighting rules (rank, inv-vol, dead-zone, Kelly-ish)
 4. an iron condor lab (§8–§12): width ladder, wing-cost / tail / IR
    diagnostics, strangle bodies with per-side attribution, the §5
    ensembles on the defined-risk instrument, and quoted-spread fill
@@ -194,11 +194,10 @@ print("common days", len(common), pd.Timestamp(common.min()), "->", pd.Timestamp
 ## 5. Ensemble of the seven models
 
 (a) mean $s$ then sign. (b) majority vote of sign. (c) equal-weight
-average of unit-median $q$. (d) trailing-Sharpe and trailing-IR
-weights on unit-median $q$ (expanding 63, lag 1). (e) causal spectral /
-PCR ensemble of the seven signals (below). Also a 50/50 mix of
-always-short and unit-median on blk2, and an equal-weight mix of the
-three paper rules on blk2.
+average of the seven $\mathrm{sign}(s)$ positions $q$. (d) trailing-Sharpe
+and trailing-IR weights on those positions (expanding 63, lag 1). (e)
+causal spectral / PCR ensemble of the seven signals (below). Also an
+equal-weight mix of the two paper rules on blk2.
 
 **Spectral / PCR.** Let $X_t\in\mathbb{R}^7$ be the vector of model
 signals $s=\widehat{RV}-\mathrm{IV}_{30}^{2}$ on day $t$. On days
@@ -207,7 +206,7 @@ leading $k$ right singular vectors. Two portfolios:
 
 - *spectral PC1:* $s^{\mathrm{pc1}}_t$ is the PC1 score; sign is
   flipped so PC1 co-moves with the cross-sectional mean $s$. Position
-  is $\mathrm{sign}(s^{\mathrm{pc1}})$ or unit-median in that score.
+  is $\mathrm{sign}(s^{\mathrm{pc1}})$.
 - *PCR $k=1,2$:* regress $R_u$ on the lagged PC scores, apply the
   coefficients to day $t$. Position is $\mathrm{sign}(\hat R_t)$.
 
@@ -220,12 +219,11 @@ printed as a diagnostic, not used to trade.
 sig = pd.DataFrame({tag: books[tag]["signal"].loc[common] for tag in MODEL_ORDER})
 pos = np.sign(sig).replace(0.0, -1.0)
 R = books["blk2"]["R"].loc[common]
-um = pd.DataFrame({tag: asl.rule_sizes(books[tag])["unit-median VRP"].loc[common] for tag in MODEL_ORDER})
 
 ens = {}
 ens["mean-s then sign"] = np.sign(sig.mean(axis=1)).replace(0.0, -1.0) * R
 ens["majority vote"] = np.sign(pos.sum(axis=1)).replace(0.0, -1.0) * R
-ens["EW unit-median q"] = um.mean(axis=1) * R
+ens["EW sign(s) q"] = pos.mean(axis=1) * R
 
 def trailing_w(q: pd.DataFrame, kind: str) -> pd.Series:
     w_hist = []
@@ -251,14 +249,10 @@ def trailing_w(q: pd.DataFrame, kind: str) -> pd.Series:
         out.iloc[i] = float((q.iloc[i] * w).sum())
     return out
 
-ens["trail-Sharpe um q"] = trailing_w(um, "sharpe") * R
-ens["trail-IR um q"] = trailing_w(um, "ir") * R
+ens["trail-Sharpe sign(s) q"] = trailing_w(pos, "sharpe") * R
+ens["trail-IR sign(s) q"] = trailing_w(pos, "ir") * R
 blk_sizes = asl.rule_sizes(books["blk2"])
-ens["blk2 0.5 AS + 0.5 UM"] = (0.5 * blk_sizes["always short"] + 0.5 * blk_sizes["unit-median VRP"]).loc[common] * R
-ens["blk2 EW 3 rules"] = (
-    blk_sizes["always short"] + blk_sizes["sign(s)"] + blk_sizes["unit-median VRP"]
-).loc[common] / 3.0 * R
-ens["blk2 unit-median (bench)"] = blk_sizes["unit-median VRP"].loc[common] * R
+ens["blk2 0.5 AS + 0.5 sign(s)"] = (blk_sizes["always short"] + blk_sizes["sign(s)"]).loc[common] / 2.0 * R
 ens["blk2 sign(s)"] = blk_sizes["sign(s)"].loc[common] * R
 ens["always short"] = blk_sizes["always short"].loc[common] * R
 
@@ -309,9 +303,7 @@ rhat_k2 = pd.Series(rhat_k2, index=sig.index)
 q_pc1 = np.sign(s_pc1).replace(0.0, -1.0)
 q_pcr1 = np.sign(rhat_k1).replace(0.0, -1.0)
 q_pcr2 = np.sign(rhat_k2).replace(0.0, -1.0)
-q_pc1_um = q_pc1 * asl.causal_leverage(s_pc1)
 ens["spectral PC1 sign"] = q_pc1 * R
-ens["spectral PC1 unit-median"] = q_pc1_um * R
 ens["PCR k=1 sign"] = q_pcr1 * R
 ens["PCR k=2 sign"] = q_pcr2 * R
 
@@ -367,13 +359,11 @@ information lives.
   \mathrm{sign}(z_{j,t})$, where $\hat\beta_{j,t}$ is the OLS slope of
   $R_u$ on the past PC$_j$ scores — the sign convention is itself
   estimated only from $u<t$.
-- *PCR $k{=}1$ unit-median:* unit-median leverage in the fitted value
-  $\hat R$ (expanding median of $|\hat R|$, lag 1, cap 3).
 - *PC1-of-$q$:* the same causal PC1 taken on the 7-vector of signed
-  unit-median positions $q$ instead of raw $s$; trade the sign of the
-  score.
+  positions $q=\mathrm{sign}(s)$ instead of raw $s$; trade the sign of
+  the score.
 
-Benchmarks repeat from §5. The first four rows reproduce the §5 portfolios
+Benchmarks repeat from §5. The first three rows reproduce the §5 portfolios
 exactly; the in-cell check prints the max $|R'|$ discrepancy against
 `ens`.
 """
@@ -425,16 +415,14 @@ def _sgn(x):
 pca_books = {}
 q1 = _sgn(s_pc1x)
 pca_books["spectral PC1 sign"] = q1 * R
-pca_books["spectral PC1 unit-median"] = q1 * asl.causal_leverage(s_pc1x) * R
 for k in range(1, p + 1):
     pca_books[f"PCR k={k} sign"] = _sgn(rhat[k]) * R
-pca_books["PCR k=1 unit-median"] = _sgn(rhat[1]) * asl.causal_leverage(rhat[1]) * R
 for j in (1, 2):
     zj = pd.Series(scores[:, j] * bsign[:, j], index=idx)
     pca_books[f"PC{j+1} sign (beta-aligned)"] = _sgn(zj) * R
 
-# Causal PC1 on the 7-vector of signed unit-median positions q.
-Xq = um.to_numpy(float)
+# Causal PC1 on the 7-vector of signed positions q = sign(s).
+Xq = pos.to_numpy(float)
 s_q1 = np.full(n, np.nan)
 for t in range(n):
     if t < 63:
@@ -449,14 +437,13 @@ for t in range(n):
 s_q1 = pd.Series(s_q1, index=idx)
 pca_books["PC1-of-q sign"] = _sgn(s_q1) * R
 
-pca_books["EW unit-median q"] = ens["EW unit-median q"]
-pca_books["blk2 unit-median (bench)"] = ens["blk2 unit-median (bench)"]
+pca_books["EW sign(s) q"] = ens["EW sign(s) q"]
+pca_books["blk2 sign(s)"] = ens["blk2 sign(s)"]
 pca_books["always short"] = ens["always short"]
 
 chk = max(
     float((pca_books[k_] - ens[k_]).abs().max())
-    for k_ in ("spectral PC1 sign", "spectral PC1 unit-median",
-               "PCR k=1 sign", "PCR k=2 sign")
+    for k_ in ("spectral PC1 sign", "PCR k=1 sign", "PCR k=2 sign")
 )
 print("max |R' diff| vs the §5 portfolios:", chk)
 pca_tab = pd.DataFrame({k: asl.rule_row(v, _sgn(v)) for k, v in pca_books.items()}).T
@@ -475,12 +462,13 @@ coefficients. Here the *direction itself* is supervised, with the same
 strict causality as §5 (day $t$ uses $X_{u<t}$, $R_{u<t}$ only; min 63;
 earlier days sit at the EW-mean score). Nothing here is a search for a
 better rule — it maps whether supervision adds anything over PC1. The
-lab's standing result is that ensembles do not beat blk2 unit-median,
+lab's standing result is that ensembles do not beat the block-diagonal
+ridge $\mathrm{sign}(s)$ portfolio,
 so a null is the expected answer.
 
 - *PLS1:* $w\propto X_c^{\top}R_c$ (the covariance-with-target
-  direction), $\|w\|=1$; score $z_t=(x_t-\mu)^{\top}w$. Portfolios:
-  $\mathrm{sign}(z)$ and unit-median in $z$.
+  direction), $\|w\|=1$; score $z_t=(x_t-\mu)^{\top}w$. Portfolio:
+  $\mathrm{sign}(z)$.
 - *PLS2:* one NIPALS deflation ($X_c^{(2)}=X_c-t_1p_1^{\top}$,
   $w_2\propto X_c^{(2)\top}R_c$), then OLS of $R$ on $[z_1,z_2]$ with
   intercept, applied to day $t$ — the supervised analog of PCR $k=2$.
@@ -567,13 +555,12 @@ rhat_pls2 = pd.Series(rhat_pls2, index=sig.index)
 sup = {}
 q_pls1 = np.sign(z_pls1).replace(0.0, -1.0)
 sup["PLS1 sign"] = q_pls1 * R
-sup["PLS1 unit-median"] = q_pls1 * asl.causal_leverage(z_pls1) * R
 sup["PLS2 rhat sign"] = np.sign(rhat_pls2).replace(0.0, -1.0) * R
 for a in PLS_ALPHAS:
     za = pd.Series(z_pcovr[a], index=sig.index)
     sup[f"PCovR a={a} sign"] = np.sign(za).replace(0.0, -1.0) * R
-for k in ("PCR k=1 sign", "spectral PC1 sign", "EW unit-median q",
-          "blk2 unit-median (bench)", "always short"):
+for k in ("PCR k=1 sign", "spectral PC1 sign", "EW sign(s) q",
+          "blk2 sign(s)", "always short"):
     sup[k] = ens[k]
 
 pls_tab = pd.DataFrame({k: asl.rule_row(v, np.sign(v).replace(0, -1)) for k, v in sup.items()}).T
@@ -603,8 +590,8 @@ here is a trading input.** Six views:
 - *Loading stability.* PC1 loadings at expanding cutoffs
   (every 21 days). Answers: does any model rotate in or out of the
   factor?
-- *Risk-space PCA.* Full-sample PCA of the seven unit-median portfolio
-  returns $q_i R$. Answers: how many independent bets are the seven
+- *Risk-space PCA.* Full-sample PCA of the seven $\mathrm{sign}(s)$
+  portfolio returns $q_i R$. Answers: how many independent bets are the seven
   portfolios in return space?
 - *PC1 vs mean.* Full-sample PC1 score against the cross-sectional
   mean $s$. Answers: is PC1 anything other than the equal-weight
@@ -656,13 +643,13 @@ print("PC1 loading range over expanding cutoffs")
 print(pd.DataFrame({"min": traj.min(), "max": traj.max()}).to_string())
 traj.to_csv(OUT / "pca_lab_loadings_traj.csv")
 
-# risk-space PCA: how many independent bets are the 7 UM portfolios?
-rets = um.mul(R, axis=0)
+# risk-space PCA: how many independent bets are the 7 sign(s) portfolios?
+rets = pos.mul(R, axis=0)
 Rc = rets.to_numpy(float)
 Rc = Rc - Rc.mean(axis=0)
 s_r = np.linalg.svd(Rc, compute_uv=False)
 share_risk = pd.Series(s_r**2 / (s_r**2).sum(), index=[f"PC{i+1}" for i in range(p)])
-print("risk-space PCA variance share (7 UM-portfolio daily returns, diagnostic)")
+print("risk-space PCA variance share (7 sign(s)-portfolio daily returns, diagnostic)")
 print(share_risk.to_string())
 share_risk.to_csv(OUT / "pca_lab_riskspace_share.csv")
 
@@ -707,7 +694,7 @@ ax.set_title("PC1 loadings at expanding cutoffs", fontsize=9)
 ax.legend(fontsize=5)
 ax = axes[1, 0]
 ax.bar(share_risk.index, share_risk.to_numpy())
-ax.set_title("risk-space PCA: UM-portfolio returns", fontsize=9)
+ax.set_title("risk-space PCA: sign(s)-portfolio returns", fontsize=9)
 ax = axes[1, 1]
 ax.scatter(mean_s, z1, s=6, alpha=0.4)
 ax.set_xlabel("mean $s$")
@@ -772,21 +759,21 @@ plt.close(fig)
 ## 7. Other well-motivated weighting strategies
 
 Rank of $|s|$, inverse expanding vol of $R$, dead-zone at half the
-expanding median, vol-target of the unit-median portfolio, and a Kelly-ish
+expanding median, and a Kelly-ish
 $q=\mathrm{clip}(s/\widehat{\mathrm{Var}}(R),-3,3)$. Scored on the
 common days. blk2 shown; CSVs for every model.
 """
     ),
     code(
         r"""
-extra_names = ["rank-|s|", "inv-vol of R", "dead-zone 0.5 med",
-               "vol-target unit-median", "kelly-ish s/var(R)"]
 for tag in MODEL_ORDER:
     px = books[tag]
     sizes = asl.extra_weight_sizes(px)
+    extra_names = list(sizes)
+    sizes.update(asl.rule_sizes(px))
     tab = pd.DataFrame({
         name: asl.rule_row((sizes[name] * px["R"]).loc[common], sizes[name].loc[common])
-        for name in extra_names + ["unit-median VRP", "always short"]
+        for name in extra_names + ["sign(s)", "always short"]
     }).T
     tab.to_csv(OUT / f"experimental_weights_{tag}.csv")
     if tag == "blk2":
@@ -805,7 +792,7 @@ selection as the defined-risk portfolio parked in the RV–IV deck and explored 
 iron condor = short body + long wings.
 Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
-so the paper's $q$ rules apply unchanged; the three rules use the blk2
+so the paper's $q$ rules apply unchanged; the two rules use the blk2
 signal. Credit-denominator $R$ stays a warning only
 (`frac_entry_ic_le0` is the fraction of days with net credit
 $\le 0$).
@@ -953,19 +940,17 @@ Four diagnostics, all on blk2 common days:
    by year and by $\mathrm{IV}_{30}$ quintile. This is what the tail
    insurance costs, and when.
 2. **Coverage**: days with both wings vs body days.
-3. **Tail tables**: worst 10 days by straddle unit-median $R'$ with the
-   condor unit-median $R'$ beside them, and the reverse. The condor
+3. **Tail tables**: worst 10 days by straddle $\mathrm{sign}(s)$ $R'$ with the
+   condor $\mathrm{sign}(s)$ $R'$ beside them, and the reverse. The condor
    loss is capped at $(\mathrm{width}-\mathrm{entry}_{ic})/\mathrm{width}$
    per unit — better tails are **mechanical** (defined risk), not alpha.
-4. **IR** of condor unit-median against the straddle always-short and
-   straddle unit-median portfolios: active $R^a=R^{ic}-R^{\mathrm{bench}}$,
+4. **IR** of condor $\mathrm{sign}(s)$ against the straddle always-short and
+   straddle $\mathrm{sign}(s)$ portfolios: active $R^a=R^{ic}-R^{\mathrm{bench}}$,
    `te_daily` $=\mathrm{sd}(R^a)$, $\mathrm{IR}_{ann}=\bar R^a/\mathrm{sd}\times\sqrt{252}$,
    $t=\bar R^a/\mathrm{sd}\times\sqrt{n}$.
 
-Condor sizes use unit-median leverage from the expanding median on the
-condor-day frame (the former RV–IV condor-slide convention; that slide
-now reports credit verticals at $|q|=1$); straddle sizes are the
-§5 full-portfolio sizes. Cumulative $R'$ is a non-compounded sum.
+Condor and straddle positions are the $\mathrm{sign}(s)$ rule at
+$|q|=1$ (and always short). Cumulative $R'$ is a non-compounded sum.
 """
     ),
     code(
@@ -1010,36 +995,36 @@ pd.DataFrame(share_tabs).to_csv(OUT / "condor_lab_diag_wingshare.csv")
 
 blk = books["blk2"]
 strad_sizes = asl.rule_sizes(blk)
-strad_um = (strad_sizes["unit-median VRP"] * blk["R"]).loc[common]
+strad_sg = (strad_sizes["sign(s)"] * blk["R"]).loc[common]
 strad_as = (-blk["R"]).loc[common]
 
-cond_um = {}
+cond_sg = {}
 for w, ic in ics.items():
     joined = ic.join(blk[["signal", "pos", "R"]], how="inner", rsuffix="_strad")
     sizes = asl.rule_sizes(joined)
     idx = joined.index.intersection(common)
-    cond_um[w] = (sizes["unit-median VRP"] * joined["R_long_ic"]).loc[idx]
+    cond_sg[w] = (sizes["sign(s)"] * joined["R_long_ic"]).loc[idx]
 
 ir_rows = {}
 for w in ics:
-    ir_rows[f"IC-UM w{int(w)} vs straddle AS"] = asl.information_ratio(cond_um[w], strad_as)
-    ir_rows[f"IC-UM w{int(w)} vs straddle UM"] = asl.information_ratio(cond_um[w], strad_um)
+    ir_rows[f"IC-sign(s) w{int(w)} vs straddle AS"] = asl.information_ratio(cond_sg[w], strad_as)
+    ir_rows[f"IC-sign(s) w{int(w)} vs straddle sign(s)"] = asl.information_ratio(cond_sg[w], strad_sg)
 ir_tab = pd.DataFrame(ir_rows).T
-print("IR of condor unit-median vs straddle benchmarks")
+print("IR of condor sign(s) vs straddle benchmarks")
 print(ir_tab.to_string())
 ir_tab.to_csv(OUT / "condor_lab_diag_ir.csv")
 
-joint = strad_um.index.intersection(cond_um[25.0].index).intersection(cond_um[50.0].index)
+joint = strad_sg.index.intersection(cond_sg[25.0].index).intersection(cond_sg[50.0].index)
 tails = pd.DataFrame({
-    "straddle UM": strad_um.loc[joint],
-    "IC-UM w25": cond_um[25.0].loc[joint],
-    "IC-UM w50": cond_um[50.0].loc[joint],
+    "straddle sign(s)": strad_sg.loc[joint],
+    "IC-sign(s) w25": cond_sg[25.0].loc[joint],
+    "IC-sign(s) w50": cond_sg[50.0].loc[joint],
 })
-worst_strad = tails.nsmallest(10, "straddle UM")
-worst_ic25 = tails.nsmallest(10, "IC-UM w25")
-print("worst 10 days by straddle UM R'")
+worst_strad = tails.nsmallest(10, "straddle sign(s)")
+worst_ic25 = tails.nsmallest(10, "IC-sign(s) w25")
+print("worst 10 days by straddle sign(s) R'")
 print(worst_strad.to_string())
-print("worst 10 days by IC-UM w25 R'")
+print("worst 10 days by IC-sign(s) w25 R'")
 print(worst_ic25.to_string())
 worst_strad.to_csv(OUT / "condor_lab_diag_tails_straddle.csv")
 worst_ic25.to_csv(OUT / "condor_lab_diag_tails_ic25.csv")
@@ -1065,10 +1050,10 @@ display(fig)
 plt.close(fig)
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
-ax.plot(joint, strad_um.loc[joint].cumsum().values, label="straddle unit-median", lw=1.2)
+ax.plot(joint, strad_sg.loc[joint].cumsum().values, label="straddle sign(s)", lw=1.2)
 for w in ics:
-    ax.plot(joint, cond_um[w].loc[joint].cumsum().values, label=f"IC unit-median w={int(w)}", lw=1.1)
-ax.set_title("non-compounded cumulative $R'$ — unit-median, blk2, joint days")
+    ax.plot(joint, cond_sg[w].loc[joint].cumsum().values, label=f"IC sign(s) w={int(w)}", lw=1.1)
+ax.set_title("non-compounded cumulative $R'$ — sign(s), blk2, joint days")
 ax.legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "condor_lab_cum.png", dpi=120, bbox_inches="tight")
@@ -1091,7 +1076,7 @@ unchanged,
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply as-is; blk2 signal, common days.
 
-**Per-side split** ($w=25$, unit-median $q$). Each side is its own
+**Per-side split** ($w=25$, $\mathrm{sign}(s)$ $q$). Each side is its own
 vertical: $R_{\mathrm{call}}=\big[(\mathrm{pay}_c-\mathrm{pay}_{cw})-(\mathrm{mid}_c-\mathrm{mid}_{cw})\big]/\mathrm{width}$,
 same for the put side, so
 $R_{\mathrm{call}}+R_{\mathrm{put}}=R_{\mathrm{long,ic}}$ exactly
@@ -1141,7 +1126,7 @@ def score_ic(body, width, label):
     ic["R_long_ic"] = (ic["exit_ic"] - ic["entry_ic"]) / ic["width"]
     return ic.set_index("day").sort_index()
 
-RULES = ["always short", "sign(s)", "unit-median VRP"]
+RULES = ["always short", "sign(s)"]
 KEEP = ["n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
 sg_tabs, sg_frames = {}, {}
 for label, body in (("straddle", body_straddle), ("strangle", body_strangle)):
@@ -1170,7 +1155,7 @@ side_rows, side_cum = {}, {}
 for label in ("straddle", "strangle"):
     joined, sizes, common_ic = sg_frames[(label, 25)]
     j = joined.loc[common_ic].copy()
-    q = sizes["unit-median VRP"].loc[common_ic]
+    q = sizes["sign(s)"].loc[common_ic]
     j["R_call"] = ((j["pay_c"] - j["pay_c_wing"]) - (j["mid_c"].astype(float) - j["mid_c_wing"])) / j["width"]
     j["R_put"] = ((j["pay_p"] - j["pay_p_wing"]) - (j["mid_p"].astype(float) - j["mid_p_wing"])) / j["width"]
     assert (j["R_call"] + j["R_put"] - j["R_long_ic"]).abs().max() < 1e-10
@@ -1189,7 +1174,7 @@ for label in ("straddle", "strangle"):
             }
 side_tab = pd.DataFrame(side_rows).T
 side_tab.index.names = ["body", "side", "scope"]
-print("per-side attribution, w=25, unit-median R'")
+print("per-side attribution, w=25, sign(s) R'")
 print(side_tab.to_string())
 side_tab.to_csv(OUT / "condor_lab_strangle_per_side_w25.csv")
 
@@ -1198,7 +1183,7 @@ for (label, side), cum in side_cum.items():
     ax.plot(cum.index, cum.values, lw=1.1,
             label=f"{label} {side.replace('R_', '')} side")
 ax.axhline(0, color="k", lw=0.6)
-ax.set_title("cumulative per-side $R'$, unit-median, $w=25$ (non-compounded)")
+ax.set_title("cumulative per-side $R'$, sign(s), $w=25$ (non-compounded)")
 ax.legend(fontsize=8)
 fig.tight_layout()
 fig.savefig(OUT / "condor_lab_strangle.png", dpi=120, bbox_inches="tight")
@@ -1212,8 +1197,8 @@ plt.close(fig)
 
 One question: do the §5 ensemble positions transfer from the straddle
 to the defined-risk condor instrument? The positions $q_t$ (mean-$s$
-sign, majority vote, EW unit-median $q$, causal spectral PC1 sign /
-unit-median, and the blk2 single-model benchmarks) are built once on
+sign, majority vote, EW $\mathrm{sign}(s)$ $q$, causal spectral PC1
+sign, and the blk2 single-model benchmarks) are built once on
 the common days exactly as in §5 and are not refit. Only the
 instrument swaps: wings are the nearest live mids at least $w$ points
 further OTM ($w=25,50$; the same wing selection as the credit-vertical
@@ -1229,8 +1214,7 @@ full wing coverage $D_w$ equals the common days and the drift is zero.
 Caveats. Defined-risk $R$ divides by width, not premium: losses are
 capped by construction and the denominator differs across instruments,
 so Sharpe moves are partly tail/denominator effects, not signal
-quality. The blk2 unit-median row uses §5's leverage (expanding median
-on the common days). The defined-risk portfolio, parked in the RV–IV deck, is scored per
+quality. The defined-risk portfolio, parked in the RV–IV deck, is scored per
 body premium at $|q|=1$, so its rows are not in the same units as
 these tables.
 """
@@ -1240,10 +1224,9 @@ these tables.
 qs = {
     "mean-s then sign": np.sign(sig.mean(axis=1)).replace(0.0, -1.0),
     "majority vote": np.sign(pos.sum(axis=1)).replace(0.0, -1.0),
-    "EW unit-median q": um.mean(axis=1),
+    "EW sign(s) q": pos.mean(axis=1),
     "spectral PC1 sign": q_pc1,
-    "spectral PC1 unit-median": q_pc1_um,
-    "blk2 unit-median": blk_sizes["unit-median VRP"].loc[common],
+    "blk2 sign(s)": blk_sizes["sign(s)"].loc[common],
     "blk2 always short": pd.Series(-1.0, index=common),
 }
 body = atm.reset_index()
@@ -1334,7 +1317,7 @@ def _tc_hygiene(df, b, a, label, sold):
 
 px = books["blk2"]
 tc_sizes = asl.rule_sizes(px)
-TC_RULES = ["always short", "unit-median VRP"]
+TC_RULES = ["always short", "sign(s)"]
 TC_LAMS = [0.0, 0.5, 1.0]
 
 ok_c = _tc_hygiene(px, "bid_c", "ask_c", "body call", sold=True)
@@ -1437,17 +1420,17 @@ Two tests, both stated once and applied to every pair:
   $\Delta\mathrm{Sharpe}_{ann}$ (both portfolios' Sharpes recomputed per
   resample, then differenced).
 
-Pairs: (a) condor $w{=}25$ unit-median vs straddle unit-median, same
-blk2 $q_t$ both legs (the published straddle-portfolio sizes restricted to
-condor days — leverage is *not* refit on the condor subset); (b)
-spectral PC1 unit-median vs blk2 unit-median; (c) EW unit-median $q$
-vs blk2 unit-median; (d) blk2 unit-median vs always short.
+Pairs: (a) condor $w{=}25$ $\mathrm{sign}(s)$ vs straddle
+$\mathrm{sign}(s)$, same blk2 $q_t$ both legs (the published straddle
+positions restricted to condor days); (b) spectral PC1 sign vs blk2
+$\mathrm{sign}(s)$; (c) EW $\mathrm{sign}(s)$ $q$ vs blk2
+$\mathrm{sign}(s)$; (d) blk2 $\mathrm{sign}(s)$ vs always short.
 
 Caveats. In (a) the two returns sit on different denominators
 (straddle entry vs condor width), so $\bar d$ is a bookkeeping
 comparison of the published portfolio definitions; $\Delta$Sharpe is the
 scale-free column. A null here is the expected outcome — nothing in
-this lab has beaten blk2 unit-median — these rows say whether the
+this lab has beaten the block-diagonal ridge $\mathrm{sign}(s)$ portfolio — these rows say whether the
 *gaps* in the ensemble table are distinguishable from noise at all.
 `mean_delta_bp` is $\bar d\times 10^4$ per day; `sig_*` flags are 5%
 two-sided.
@@ -1497,7 +1480,7 @@ def pair_row(name, rp, rb, B=2000):
         "sig_boot_dS": (lo_s > 0) or (hi_s < 0),
     }
 
-# condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 straddle-portfolio UM sizes on both legs
+# condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 sign(s) positions on both legs
 body = atm.reset_index()
 close_map = pd.Series(atm["S_close"].to_numpy(), index=pd.to_datetime(atm["expiration"]).values)
 close_map.index = pd.to_datetime(close_map.index).tz_localize(None).normalize()
@@ -1507,15 +1490,15 @@ ic25 = ic25[np.isfinite(ic25["entry_ic"]) & np.isfinite(ic25["exit_ic"]) & (ic25
 ic25["R_long_ic"] = (ic25["exit_ic"] - ic25["entry_ic"]) / ic25["width"]
 ic25 = ic25.set_index("day")
 common_ic = ic25.index.intersection(common).sort_values()
-um_blk2 = blk_sizes["unit-median VRP"]
-r_ic_um = um_blk2.loc[common_ic] * ic25["R_long_ic"].loc[common_ic]
+q_blk2 = blk_sizes["sign(s)"]
+r_ic_sg = q_blk2.loc[common_ic] * ic25["R_long_ic"].loc[common_ic]
 print("condor w25 coverage on common days", len(common_ic), "/", len(common))
 
 sig_tab = pd.DataFrame([
-    pair_row("condor25 UM - straddle UM (blk2)", r_ic_um, ens["blk2 unit-median (bench)"].loc[common_ic]),
-    pair_row("PC1 UM - blk2 UM", ens["spectral PC1 unit-median"], ens["blk2 unit-median (bench)"]),
-    pair_row("EW um q - blk2 UM", ens["EW unit-median q"], ens["blk2 unit-median (bench)"]),
-    pair_row("blk2 UM - always short", ens["blk2 unit-median (bench)"], ens["always short"]),
+    pair_row("condor25 sign(s) - straddle sign(s) (blk2)", r_ic_sg, ens["blk2 sign(s)"].loc[common_ic]),
+    pair_row("PC1 sign - blk2 sign(s)", ens["spectral PC1 sign"], ens["blk2 sign(s)"]),
+    pair_row("EW sign(s) q - blk2 sign(s)", ens["EW sign(s) q"], ens["blk2 sign(s)"]),
+    pair_row("blk2 sign(s) - always short", ens["blk2 sign(s)"], ens["always short"]),
 ]).set_index("pair")
 print(sig_tab.to_string(float_format=lambda v: f"{v: .3f}"))
 sig_tab.to_csv(OUT / "significance_pairs.csv")

@@ -42,19 +42,6 @@ of 0.115, $t=3.03$, and an annualized Sharpe of 1.63. The forecast sits
 above the quoted implied variance --- a long-volatility day --- on 32
 to 42 percent of days depending on the model.
 
-% UNIT-MEDIAN PARKED 2026-09-02: the unit-median VRP rule was removed
-% from the notebook; its CSV panel is no longer generated.
-\iffalse
-Putting the forecast in charge of \emph{size} is what pays. The
-unit-median VRP rule of Equation~\eqref{eq:close_opt_size} lifts the
-mean to between 0.047 and 0.060 per day and the annualized Sharpe to
-between 0.69 and 0.90, with $t$ ranging from 1.28 for the baseline (HAR + calendar OLS)
-and 1.31 for the elastic net through 1.67 for the block-diag ridge
-to 1.63 for the causally tuned lasso. The ordering is the paper's
-ordering, but no portfolio in the panel is significant at conventional
-levels.
-\fi
-
 The qualifications matter as much as the point estimates.
 
 \paragraph{Where the level comes from.} Two sample splits qualify the
@@ -217,73 +204,6 @@ narrower wing buys a smaller dollar tail at two to three times that
 cost. The width is a choice of the dollar worst day the account can
 carry, not a growth decision --- and every figure here is a midpoint
 figure that worsens at the ask.
-\fi
-
-% PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
-% UNIT-MEDIAN PARKED 2026-09-02: the filter is built on the unit-median rule,
-% which was removed from the notebook; rule_flat_fomc_me CSVs and the
-% generated table_rule_flat_fomc_me_paper.tex are no longer produced.
-\iffalse
-\paragraph{An event filter, with a pre-registration caveat.} Tail
-forensics on the unit-median VRP portfolio locate two calendar flags that
-predict two-sided \emph{dispersion} rather than direction: FOMC
-statement days and month-ends. Sitting flat on both, under the
-convention of Section~\ref{sec:close_option_methods} --- 83 of the 871
-days --- gives the portfolio of Table~\ref{tab:close_option_filtered}. The
-full-sample $t$ rises to between 2.19 and 2.86 (2.79 for the two-block
-ridge, 2.86 for the tuned lasso) and the era $t$ to between 3.09 and
-3.71, with the mean roughly 50 percent higher and the standard
-deviation lower in every row. Against a matched-size random-flat
-placebo the combined lift looks strong ($p<0.001$), but that null
-ignores the search: fourteen flat-day variants were examined, and
-under the correct null --- the maximum $t$ over the same family with
-each candidate replaced by a random day-set of its size --- the
-combined filter survives at $p=0.02$, the month-end leg alone is
-marginal ($p=0.07$), and the FOMC leg's marginal contribution to the
-mean is not distinguishable from chance ($p=0.06$ on top of
-month-end). The family-max null is sobering in its own right: its
-mean is $t=2.1$, so a flat-day filter that merely clears $t=2$ carries
-no evidence at all.
-
-\begin{table}[H]
-\centering
-\caption{Unit-median VRP with FOMC statement days and month-ends flat,
-15:30~ET to the close (Section~\ref{sec:close_option_methods}). Same
-contracts, same days, and the same causal sizing as
-Table~\ref{tab:close_option_rules}; on a flagged day the position is
-$q_t=0$ and the day remains in the record with $R'=0$, so $n$ is
-unchanged --- a track-record convention, not a sample exclusion. FOMC
-days are the \texttt{fomc release} flag of \texttt{releases.parquet},
-populated through 2023, plus four hand-filled public-calendar dates
-(3~March~2020, 13~December~2023, 31~January~2024, 20~March~2024); a
-month-end is the last trading day of each calendar month in the sample
-index. Upper panel: the full sample. Lower panel: the daily-0DTE era,
-16~May~2022 onward. Columns as in
-Table~\ref{tab:close_option_rules}.
-\label{tab:close_option_filtered}}
-\resizebox{\textwidth}{!}{\input{generated/table_rule_flat_fomc_me_paper}}
-\end{table}
-
-Two things keep that from being a result. The filter was examined
-\emph{after} the tail forensics that motivated it, so the $t$ in
-Table~\ref{tab:close_option_filtered} is a post-hoc statistic and not a
-pre-registered one; and the month-end contribution rests on roughly
-seven tail events, too few to carry a distributional claim on their
-own. The largest single loss in the portfolio, 8~January~2020, carries
-neither flag and survives the filter untouched. The two flags also
-rest on different mechanisms, only one of which a forecast can reach.
-On FOMC statement days the forecast under-predicts the last-bar
-variance by roughly 46 percent at the median, and realized variance
-exceeds even the quoted implied variance on 47 percent of those days
-against 6 percent elsewhere --- a genuine information gap that belongs
-in the forecasting model (an event-aware recalibration recovers part
-of it, raising the era $t$ from 2.52 to 2.72 without any filter), and
-the pre-registerable fix is event-by-time-of-day features in the
-forecasts themselves. Month-ends show no forecast miss at all --- the
-loss-condition frequency is at baseline --- so their tail damage is a
-property of the settlement returns that no variance forecast can
-absorb, and sitting flat is the only lever. The honest reading is a
-hypothesis for new tape, not a finding on this one.
 \fi
 
 The trade as a whole is a demonstration under the stated constants of

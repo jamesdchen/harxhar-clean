@@ -72,3 +72,6 @@ results/b2_mmap/
 results/prep_cache_*.npz
 results/.harvest_cache/
 writeup/overleaf_*.zip
+
+# derived-input caches (hash-keyed, rebuilt on demand)
+results/**/cache/

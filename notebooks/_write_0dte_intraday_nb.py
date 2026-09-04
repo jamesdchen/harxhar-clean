@@ -597,7 +597,7 @@ print(mvalid.groupby("hhmm")["s_matched"].apply(lambda x: 100.0 * float((x > 0).
 
 # Remaining-session pairing (option 1), kept for reference. Same sign as
 # s_matched when the forecast follows the profile (s_rem = s_matched / w),
-# so the sign(s) portfolio is identical and only the UM sizing scale changes:
+# so the sign(s) portfolio is identical:
 # rvhat_rem = work["rv_hat"] / work["w_slice"]
 # iv_rem = work["iv_var_raw"] * work["h_rem"]
 # work["s_rem"] = rvhat_rem - iv_rem
@@ -616,7 +616,7 @@ $q_t$ changes. One forecast: block-diag ridge (`blk2`). Mid fill.
 a forecast uses the §5b window-matched signal
 $s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t\,w_t$
 — the only pairing whose two sides live on the same window at every
-clock. Earlier versions of the $\mathrm{sign}(s)$ and unit-median rows used
+clock. An earlier version of the $\mathrm{sign}(s)$ row used
 the 30-min pairing; those are **retired**: that signal compared a
 next-bar forecast to a remaining-session-average implied, so away
 from 15:30 it detected the diurnal profile, not mispricing (§5b).
@@ -627,64 +627,11 @@ from 15:30 it detected the diurnal profile, not mispricing (§5b).
   long the straddle when the matched forecast exceeds the matched
   implied slice, short otherwise; warmup bars with no signal sit
   flat ($q=0$).
-- **unit-median VRP:**
-  $q_t=\mathrm{clip}(s^{\mathrm{m}}_t/\mathrm{med}^{(c)}_{u<t}|s^{\mathrm{m}}_u|,-3,3)$
-  with **one trailing median per clock** $c$: the expanding median of
-  that clock's own prior days, lagged one day, warmup 63 days of
-  that clock; leverage 1 before warmup. Cap 3. The typical $|s|$
-  scale is clock-dependent (the premium has a term structure), so a
-  pooled all-bars median mixes units — it over-levers small-$|s|$
-  clocks and under-levers large-$|s|$ ones; one median per clock is
-  the correct "unit" (a multiple-variants caveat applies to the
-  15:30-leg comparison that motivated this choice).
-- **always short, unit-median close:** $q_t=-1$ on every bar before
-  15:30; the unit-median position on the 15:30 bar, where the
-  matched signal collapses to the paper's $s$ exactly. Motivation:
-  the per-clock split shows always-short earns at every intraday
-  bar while the sizing information lives on the 15:30 settlement
-  leg.
 - **always short, $\mathrm{sign}(s)$ close:** $q_t=-1$ on every bar
   before 15:30 and $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ on the 15:30
-  bar — the same hybrid with the settlement leg sized by sign only.
-  The next section shows why it is the construction worth keeping.
-
-**Tested and parked.** A clock-weighted extension (per-clock leverage
-on the short legs from each clock's own trailing daily Sharpe,
-expanding, lagged, cap 3; unit-median close leg unchanged) was built
-and adversarially audited by two independent implementations (both
-score it 2.811 pooled). It is **not adopted**: its Sharpe edge over
-the rule above is insignificant ($\Delta$Sharpe $+0.11$, bootstrap CI
-$[-0.48, 0.73]$), it fails the placebo gate (random clock-to-weight
-permutations do as well on $\sim$20% of draws), its year-by-year edge
-sign-flips (2021 $-0.48$, 2024 $-1.68$), and its heaviest weight
-lands on a nearly premium-free clock — the trailing-Sharpe estimator
-amplifies sampling noise, not the diurnal curve.
-
-A second extension sized the short legs by a premium-intensity map
-$\kappa_c$ = (trailing share of the day's variance implied by the IV
-term structure's own decay) $-$ (trailing realized share). The map
-itself is structural — placebo 95th percentile, lag-insensitive, and
-it ranks clocks by premium where trailing Sharpe tracked noise — but
-the rule is also **not adopted**: $\Delta$Sharpe over the rule above
-is $+0.03$ (CI $[-0.69, 0.80]$, a pure releveraging), the signed
-variant (long where the market undercharges) is significantly worse,
-and the map's two-bar concentration (15:00 pinned at cap) collapses
-in 2024 ($-2.71$ vs the hybrid). Conclusion of the sizing campaign:
-the one sizing decision that pays is the settlement leg, and the
-matched unit-median already makes it.
-
-A conditional profile $w$ (slices conditioned on the day's 10:00
-implied level and the morning realized surprise — endogenous states
-only) was likewise tested and **not adopted**. The shape dependence
-is statistically real (on high-IV days allocation shifts from the
-morning into the last 90 minutes; placebo 98.5th percentile, not a
-2020 artifact), and the causal regression nearly saturates the
-peeking-oracle ceiling (unit-median 1.43 $\to$ 1.69 vs oracle 1.74)
-— but the ceiling itself is small, the paired test does not clear 5%
-($\Delta$Sharpe $+0.27$, CI $[-0.06, 0.59]$) at the session's
-variant count, and the headline rule is $w$-invariant ($w\equiv 1$
-at 15:30). Leading candidate for a pre-registered out-of-sample
-retest; nothing more.
+  bar — always short on every intraday bar, with the settlement leg
+  sized by the forecast's sign. The next section shows why it is the
+  construction worth keeping.
 
 The table is **pooled**: every clock stacked into one list
 ($\sim 11{,}254$ rows). Those are $\sim 13$ bars **on the same
@@ -739,23 +686,12 @@ Split by clock is §8.
     code(
         r"""
 work = work.sort_values("t").reset_index(drop=True)
-print("UM leverage scale: one expanding median of |s_matched| per clock, lagged one day, warmup 63 days per clock")
-med_m = work.groupby("hhmm")["s_matched"].transform(
-    lambda s: s.abs().expanding(min_periods=63).median().shift(1)
-)
-work["lev_m"] = asl.um_leverage_vs_lagged_scale(work["s_matched"], med_m)
 pos_m = pd.Series(np.where(work["s_matched"] > 0, 1.0, -1.0), index=work.index).where(
     np.isfinite(work["s_matched"])
 )
-um_m = (pos_m * work["lev_m"]).fillna(0.0)
 q = {
     "always short": pd.Series(-1.0, index=work.index),
     "sign(s)": pos_m.fillna(0.0),
-    "unit-median VRP": um_m,
-    "always short, unit-median close": pd.Series(
-        np.where(work["hhmm"] == "15:30", um_m.to_numpy(), -1.0),
-        index=work.index,
-    ),
     "always short, sign(s) close": pd.Series(
         np.where(work["hhmm"] == "15:30", pos_m.fillna(0.0).to_numpy(), -1.0),
         index=work.index,
@@ -803,10 +739,9 @@ belong next to the rule table.
 **The hybrid with the settlement leg sized by sign.**
 $$q_t=\begin{cases}-1, & t<15{:}30\\ \mathrm{sign}(s^{\mathrm{m}}_t), & t=15{:}30\end{cases}$$
 Always short collects the decay on every intraday bar; the forecast's
-information is the sign on the settlement leg. Sized by sign only it
-scores above the unit-median hybrid with one construction fewer; the
-cell asserts its daily-sum Sharpe against the figure the study found
-(3.37 on this frame, 866 days).
+information is the sign on the settlement leg. The cell asserts its
+daily-sum Sharpe against the figure the study found (3.37 on this
+frame, 866 days).
 
 **The settlement leg on non-event days — a forward test, not a rule.**
 The 15:30 leg is scored with the position set flat on FOMC-statement
@@ -870,7 +805,7 @@ def _boot_dsharpe(a, b, B=2000, seed=0):
 
 # --- 1. the hybrid with the settlement leg sized by sign
 print("1. rule table rows (daily-sum Sharpe, this frame:", int(tab.loc["always short", "n_days"]), "days)")
-print(tab.loc[["always short", "sign(s)", "always short, unit-median close", "always short, sign(s) close"],
+print(tab.loc[["always short", "sign(s)", "always short, sign(s) close"],
               ["n_days", "mean_daily", "t_mean", "Sharpe_ann", "pct_buy"]].to_string())
 assert abs(float(tab.loc["always short, sign(s) close", "Sharpe_ann"]) - 3.37) < 0.01, tab.loc["always short, sign(s) close", "Sharpe_ann"]
 
@@ -962,7 +897,7 @@ for _name, _size in q.items():
 _cost = pd.DataFrame(_cost_rows).set_index("rule")
 print(_cost.to_string(float_format=lambda x: f"{x:+.3f}"))
 _cost.to_csv(OUT / "rule_table_intraday_crossed_blk2.csv")
-for _name, _ref in (("sign(s)", -3.09), ("always short", -3.54), ("always short, unit-median close", -2.10)):
+for _name, _ref in (("sign(s)", -3.09), ("always short", -3.54)):
     assert abs(float(_cost.loc[_name, "Sharpe crossed"]) - _ref) < 0.05, (_name, _cost.loc[_name, "Sharpe crossed"])
 assert abs(float(_cost.loc["sign(s)", "settlement leg Sharpe crossed"]) - 1.40) < 0.05, _cost.loc["sign(s)", "settlement leg Sharpe crossed"]
 print("every rule is negative at the crossed spread across the day; the settlement leg alone survives it")
@@ -992,10 +927,10 @@ clock time, not a count of 30-min bars.
 
 The plot is the by-clock-time slice, not the pooled mean: each
 dot is the average of *that clock time's* daily series, for
-always-short, unit-median VRP and the sign(s)-close hybrid (the §6
-constructions: matched signal, one leverage median per clock). Bars 10:00–15:00 are
+always short and the sign(s)-close hybrid (the §6 constructions).
+Bars 10:00–15:00 are
 next-mid 30-min holds; the **15:30 bar cash-settles at the official
-close**, so its row is the paper's trade (up to the leverage scale).
+close**, so its row is the paper's trade.
 """
     ),
     code(
@@ -1012,8 +947,8 @@ print("always short by clock time")
 print(stab[stab["rule"] == "always short"][
     ["hhmm", "n", "mean", "t_mean", "Sharpe_ann"]
 ].to_string(index=False))
-print("unit-median VRP by clock time (window-matched signal, per-clock median)")
-print(stab[stab["rule"] == "unit-median VRP"][
+print("sign(s) by clock time (window-matched signal)")
+print(stab[stab["rule"] == "sign(s)"][
     ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
 ].to_string(index=False))
 
@@ -1027,7 +962,7 @@ htab = pd.DataFrame(hour_rows)
 htab.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(9, 3.4))
-for rule, marker in (("always short", "o"), ("unit-median VRP", "^"), ("always short, sign(s) close", "s")):
+for rule, marker in (("always short", "o"), ("sign(s)", "^"), ("always short, sign(s) close", "s")):
     sub = stab[stab["rule"] == rule]
     ax.plot(sub["hhmm"], sub["mean"], marker=marker, label=rule)
 ax.axhline(0, color="k", lw=0.6)

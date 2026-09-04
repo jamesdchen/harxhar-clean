@@ -114,28 +114,6 @@ the same days; only $q_t$ changes.
       otherwise. Direction only, at unit size. This is the headline
       rule.
 \end{itemize}
-% UNIT-MEDIAN PARKED 2026-09-02: the graduated unit-median VRP rule was
-% removed from the portfolio. Sizing linear in the premium's magnitude failed
-% the adoption gates --- the signal's day-scale information is its sign;
-% magnitude prices next-day risk, not return.
-\iffalse
-\emph{Unit-median VRP}: signed and linear in the premium,
-\begin{equation}
-    q_t \;=\; \mathrm{clip}\!\left(
-        \frac{s_t}{\mathrm{med}_{u<t}\,|s_u|},\,-3,\,3
-    \right),
-    \label{eq:close_opt_size}
-\end{equation}
-where the scale is the expanding median of $|s_u|$ taken over
-days strictly before $t$ (at least 63 observations, shifted one
-day), so the size is known at 15:30. One lot on a day of typical
-$|\mathrm{VRP}|$; the clip caps the position at three lots.
-The cap is not cosmetic. The largest single-day losses in the levered
-portfolio fall on days sized at or near it --- days on which the forecast
-disagreed with the quote most --- rather than on small-signal days, so
-the clip is what bounds the left tail of the rule.
-\fi
-
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
 \paragraph{Sizing overlay.} A portfolio that holds $|q_t| = 1$ every day
@@ -230,25 +208,6 @@ not reported here. One unit
 of wealth posted as collateral controls several times less premium
 exposure than one unit deployed as premium, and the ratio varies day
 to day, so growth rates compare only within a frame, never across.
-
-% PARKED 2026-08-28: FOMC+month-end event filter held out of the rendered paper.
-\iffalse
-\paragraph{Event filter.} One variant of the headline rule is reported
-separately. Trade unit-median VRP exactly as above, but take no
-position when day $t$ is an FOMC statement day or a month-end: $q_t=0$
-and $R'_t=0$, with the day staying in the record. FOMC days are the
-\texttt{fomc release} flag of the release panel, which is populated
-through 2023, plus four public-calendar dates hand-filled to cover the
-remainder (3~March~2020, the unscheduled inter-meeting cut, and
-13~December~2023, 31~January~2024, 20~March~2024). A month-end is the
-last trading day of each calendar month in the sample index. Both flags
-are known before 15:30, so the rule is ex ante implementable, and flat
-days count in $n$ with $R'=0$ --- a track-record convention rather than
-a sample exclusion. The two flags were selected after tail forensics on
-the unfiltered portfolio, not before it;
-Section~\ref{sec:close_option_results} states what that costs the
-inference.
-\fi
 
 \paragraph{Scoring and control.} The unit of account is the expiration
 day. For a portfolio of $n$ daily returns,

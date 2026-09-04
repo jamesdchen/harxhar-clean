@@ -119,14 +119,9 @@ work["signal"] = work["rv_hat"] - work["iv_var_chris"]
 work = work.dropna(subset=["R", "signal"])
 work["pos"] = np.where(work["signal"] > 0, 1.0, -1.0)
 work = work.sort_values("t").reset_index(drop=True)
-n_stamps = int(work.groupby("date").size().median())
-min_bars = int(63 * max(n_stamps, 1))
-med_all = asl.lagged_expanding_median(work["signal"], min_periods=min_bars)
-work["lev"] = asl.um_leverage_vs_lagged_scale(work["signal"], med_all)
 q = {
     "always short": pd.Series(-1.0, index=work.index),
     "sign(s)": work["pos"],
-    "unit-median VRP": work["pos"] * work["lev"],
 }
 rows = []
 for hhmm, g in work.groupby("hhmm", sort=True):
@@ -153,12 +148,6 @@ print(
         ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
     ].to_string(index=False)
 )
-print("\nunit-median by stamp")
-print(
-    htab[htab["rule"] == "unit-median VRP"][
-        ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
-    ].to_string(index=False)
-)
 
 rows = []
 for name, size in q.items():
@@ -179,9 +168,9 @@ for hr, g in work.groupby("hour"):
         hour_rows.append({"hour": int(hr), "rule": name, **st.to_dict()})
 htab_h = pd.DataFrame(hour_rows)
 htab_h.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
-print("\nalways short / UM by hour")
+print("\nalways short / sign(s) by hour")
 print(
-    htab_h[htab_h["rule"].isin(["always short", "unit-median VRP"])][
+    htab_h[htab_h["rule"].isin(["always short", "sign(s)"])][
         ["hour", "rule", "n", "mean", "t_mean", "Sharpe_ann"]
     ].to_string(index=False)
 )
