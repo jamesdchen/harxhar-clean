@@ -738,10 +738,9 @@ model's fitted-scale forecast $\hat y$ from the later row, the same
 recalibration $m=a+b\,\hat y$ and $\hat\sigma^2$ already fitted for the
 trade, and the traded bar's profile $B$,
 $\widehat{RV}^{(k)}=(m(\hat y_{16{:}00+30k})^2+\hat\sigma^2)\,B_{16{:}00}$
-— so the only thing that changes is what the model had seen. The
-right-hand panel does the same exercise by days (the 16:00 row of day
-$t+k$), and the star is the end of the road: the traded bar's realized
-variance in place of the forecast.
+— so the only thing that changes is what the model had seen. The star
+is the end of the road: the traded bar's realized variance in place of
+the forecast.
 
 The rule is sharp on both sides of the close. One bar stale, the
 block-diagonal ridge forecast falls from about $1.6$ to under $0.1$,
@@ -749,15 +748,13 @@ and every stale shift sits below the trade for every forecast. One bar
 after the close, with the traded bar now inside the lags, it jumps to
 about $3.1$ and the tree forecasts to $4.3$–$4.6$, at the
 realized-variance ceiling of about $4.6$; the lift fades over the next
-bars as the lags move on. By days, tomorrow's forecast lifts five of
-the seven above their honest value.
+bars as the lags move on.
 """
     ),
     code(
         r"""
 # rescore sign(s) with the forecast row shifted in time; everything else unchanged
 BAR_SHIFTS = list(range(-11, 7))   # -11 = the 10:30 row ... 0 = the 16:00 row (the trade) ... +6 = the 19:00 row
-DAY_SHIFTS = list(range(-3, 4))
 
 
 def sharpe_ann(x):
@@ -795,9 +792,6 @@ def shifted_sharpes(tag):
         else:
             f = (j["m"] ** 2 + j["s2"]) * j["B16"]            # the later forecast on the traded bar's scale
         out[f"bar{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"]) if f.notna().mean() > 0.95 else np.nan
-    for k in DAY_SHIFTS:
-        f = d.join(p16["rv_hat"].shift(-k).rename("f"), how="left")["f"]
-        out[f"day{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"])
     f = d.join(p16["rv_raw"].rename("f"), how="left")["f"]
     out["realized"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"])
     return out
@@ -814,28 +808,24 @@ print("bar+k for k>0 places the later forecast on the traded bar's scale; realiz
 print(shift_tab.round(3).to_string())
 shift_tab.to_csv(OUT / "forecast_shift_cliff.csv")
 
-fig, axes = plt.subplots(1, 2, figsize=(13, 4.4), gridspec_kw={"width_ratios": [1.7, 1]})
+fig, ax = plt.subplots(figsize=(10, 4.6))
 x_star = BAR_SHIFTS[-1] + 2
 for tag in MODEL_ORDER:
     lw = 1.8 if tag == "blk2" else 1.0
-    axes[0].plot(BAR_SHIFTS, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in BAR_SHIFTS], marker="o", ms=3, lw=lw, label=LABEL[tag])
-    axes[1].plot(DAY_SHIFTS, [shift_tab.loc[LABEL[tag], f"day{k:+d}"] for k in DAY_SHIFTS], marker="o", ms=3, lw=lw)
+    ax.plot(BAR_SHIFTS, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in BAR_SHIFTS], marker="o", ms=3, lw=lw, label=LABEL[tag])
 pf = float(shift_tab["realized"].mean())
-axes[0].plot([x_star], [pf], marker="*", ms=11, lw=0, color="k")
-axes[0].annotate(f"{pf:.1f} (all seven forecasts)", (x_star, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
-for ax in axes:
-    ax.axvline(0.0, color="k", lw=0.8)
-    ax.axhline(sharpe_as, color="0.5", lw=0.9, ls="--")
-    ax.axhline(0.0, color="k", lw=0.4)
-    ax.set_ylabel("annualized Sharpe of sign(s)")
-axes[0].set_xticks(BAR_SHIFTS + [x_star])
-axes[0].set_xticklabels([str(k) for k in BAR_SHIFTS] + ["realized\nvariance"], fontsize=8)
-axes[0].set_xlabel("forecast row, in half-hour bars from the 16:00 row (0 = the trade; k>0 on the traded bar's scale)")
-axes[0].set_title("bar shifts on the same day", fontsize=10)
-axes[0].text(BAR_SHIFTS[0], sharpe_as, " always short", fontsize=8, color="0.4", va="bottom")
-axes[0].legend(fontsize=7, loc="upper left", frameon=False)
-axes[1].set_xlabel("forecast from day $t+k$ (0 = the trade)")
-axes[1].set_title("day shifts, same 16:00 row", fontsize=10)
+ax.plot([x_star], [pf], marker="*", ms=11, lw=0, color="k")
+ax.annotate(f"{pf:.1f} (all seven forecasts)", (x_star, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
+ax.axvline(0.0, color="k", lw=0.8)
+ax.axhline(sharpe_as, color="0.5", lw=0.9, ls="--")
+ax.axhline(0.0, color="k", lw=0.4)
+ax.set_ylabel("annualized Sharpe of sign(s)")
+ax.set_xticks(BAR_SHIFTS + [x_star])
+ax.set_xticklabels([str(k) for k in BAR_SHIFTS] + ["realized\nvariance"], fontsize=8)
+ax.set_xlabel("forecast row, in half-hour bars from the 16:00 row (0 = the trade; k>0 on the traded bar's scale)")
+ax.set_title("sign(s) Sharpe as the forecast is shifted in time, same day", fontsize=10)
+ax.text(BAR_SHIFTS[0], sharpe_as, " always short", fontsize=8, color="0.4", va="bottom")
+ax.legend(fontsize=7, loc="upper left", frameon=False)
 fig.tight_layout()
 fig.savefig(OUT / "forecast_shift_cliff.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "forecast_shift_cliff.png")
