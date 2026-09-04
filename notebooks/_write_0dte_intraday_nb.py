@@ -643,6 +643,10 @@ from 15:30 it detected the diurnal profile, not mispricing (§5b).
   the per-clock split shows always-short earns at every intraday
   bar while the sizing information lives on the 15:30 settlement
   leg.
+- **always short, $\mathrm{sign}(s)$ close:** $q_t=-1$ on every bar
+  before 15:30 and $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ on the 15:30
+  bar — the same hybrid with the settlement leg sized by sign only.
+  The next section shows why it is the construction worth keeping.
 
 **Tested and parked.** A clock-weighted extension (per-clock leverage
 on the short legs from each clock's own trailing daily Sharpe,
@@ -729,7 +733,7 @@ moments of the **30-min** $R'$ (unannualized). The rest:
 
 The 16:00 straddle never enters the trade (§4): bars are 10:00–15:00
 next-mid holds plus the 15:30 settlement leg — the paper payoff.
-Split by clock is the next section.
+Split by clock is §8.
 """
     ),
     code(
@@ -750,6 +754,10 @@ q = {
     "unit-median VRP": um_m,
     "always short, unit-median close": pd.Series(
         np.where(work["hhmm"] == "15:30", um_m.to_numpy(), -1.0),
+        index=work.index,
+    ),
+    "always short, sign(s) close": pd.Series(
+        np.where(work["hhmm"] == "15:30", pos_m.fillna(0.0).to_numpy(), -1.0),
         index=work.index,
     ),
 }
@@ -787,7 +795,182 @@ tab.to_csv(OUT / "rule_table_intraday_blk2.csv")
     ),
     md(
         r"""
-## 7. Always-short by 30-min bar (a clock hour is two bars mashed)
+## 7. Two constructions worth keeping, and what fills do to them
+
+Three things from the study of this trade survive their gates and
+belong next to the rule table.
+
+**The hybrid with the settlement leg sized by sign.**
+$$q_t=\begin{cases}-1, & t<15{:}30\\ \mathrm{sign}(s^{\mathrm{m}}_t), & t=15{:}30\end{cases}$$
+Always short collects the decay on every intraday bar; the forecast's
+information is the sign on the settlement leg. Sized by sign only it
+scores above the unit-median hybrid with one construction fewer; the
+cell asserts its daily-sum Sharpe against the figure the study found
+(3.37 on this frame, 866 days).
+
+**The settlement leg on non-event days — a forward test, not a rule.**
+The 15:30 leg is scored with the position set flat on FOMC-statement
+days and month-ends, against the same leg unfiltered, on the days
+with all twelve bars. The paired daily difference carries a
+$t$-statistic and a block-bootstrap interval on the Sharpe
+difference. Caveat, stated plainly: the two calendar flags were
+identified in-sample on an earlier version of this trade, so the
+result below is a forward test registered on 2026-09-04, not an
+adopted rule.
+
+**At the crossed spread.** Each entry is filled at the bid when
+selling and at the ask when buying, leg by leg; a one-bar hold exits
+the same way at the next bar; the 15:30 leg settles in cash. Every
+re-pick is a crossing, so a day of twelve bars crosses about twice
+per bar. For each rule the block reports the daily-sum Sharpe at
+those fills, the crossings per day, and the break-even half-spread
+$\bar\Pi/\bar n_{\times}$ — the mean daily profit per unit premium
+divided by the mean crossings per day, the largest half-spread the
+rule could pay and still break even.
+"""
+    ),
+    code(
+        r"""
+import statsmodels.api as sm
+
+
+def _daily(rp):
+    return rp.groupby(work["date"]).sum()
+
+
+def _sh(d):
+    d = np.asarray(d, float)
+    return float(d.mean() / d.std(ddof=1) * np.sqrt(252.0))
+
+
+def _tstat(x):
+    x = np.asarray(x, float)
+    lag = int(np.floor(1.5 * len(x) ** (1.0 / 3.0)))
+    return float(sm.OLS(x, np.ones((len(x), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag}).tvalues[0])
+
+
+def _dd(d):
+    c = np.asarray(d, float).cumsum()
+    return float((c - np.maximum.accumulate(c)).min())
+
+
+def _boot_dsharpe(a, b, B=2000, seed=0):
+    rng = np.random.default_rng(seed)
+    a = np.asarray(a, float)
+    b = np.asarray(b, float)
+    n = len(a)
+    blen = int(np.ceil(n ** (1.0 / 3.0)))
+    nblk = int(np.ceil(n / blen))
+    out = []
+    for _ in range(B):
+        idx = np.concatenate([np.arange(s, s + blen) for s in rng.integers(0, n - blen + 1, nblk)])[:n]
+        out.append(_sh(a[idx]) - _sh(b[idx]))
+    return float(np.percentile(out, 2.5)), float(np.percentile(out, 97.5))
+
+
+# --- 1. the hybrid with the settlement leg sized by sign
+print("1. rule table rows (daily-sum Sharpe, this frame:", int(tab.loc["always short", "n_days"]), "days)")
+print(tab.loc[["always short", "sign(s)", "always short, unit-median close", "always short, sign(s) close"],
+              ["n_days", "mean_daily", "t_mean", "Sharpe_ann", "pct_buy"]].to_string())
+assert abs(float(tab.loc["always short, sign(s) close", "Sharpe_ann"]) - 3.37) < 0.01, tab.loc["always short, sign(s) close", "Sharpe_ann"]
+
+# --- 2. the settlement leg on non-event days (forward test registered 2026-09-04)
+_flags = asl.fomc_and_monthend(pd.DatetimeIndex(pd.to_datetime(work["date"].unique())), REPO)
+_ev_map = (_flags["is_me"] | _flags["is_fomc"]).to_dict()
+_cnt = work.groupby("date")["hhmm"].nunique()
+_full_days = _cnt[_cnt == work["hhmm"].nunique()].index
+_close = work[(work["hhmm"] == "15:30") & work["date"].isin(_full_days)].sort_values("date")
+_ev = _close["date"].map(_ev_map).fillna(False).astype(bool).to_numpy()
+print()
+print("2. settlement leg, days with all bars:", len(_close), "| flat days (FOMC statement or month-end):", int(_ev.sum()))
+_cal_rows = []
+for _name, _qbase in (("sign(s)", pos_m.loc[_close.index].fillna(0.0).to_numpy()),
+                      ("always short", -np.ones(len(_close)))):
+    _r0 = pd.Series(_qbase * _close["R"].to_numpy(), index=_close["date"])
+    _r1 = pd.Series(np.where(_ev, 0.0, _qbase) * _close["R"].to_numpy(), index=_close["date"])
+    _d = (_r1 - _r0).to_numpy()
+    _lo, _hi = _boot_dsharpe(_r1.to_numpy(), _r0.to_numpy())
+    _cal_rows.append({"rule at 15:30": _name, "Sharpe unfiltered": _sh(_r0), "Sharpe flat on event days": _sh(_r1),
+                      "worst unfiltered": float(_r0.min()), "worst filtered": float(_r1.min()),
+                      "mean diff/day": float(_d.mean()), "t-stat of diff": _tstat(_d),
+                      "dSharpe 95% lo": _lo, "dSharpe 95% hi": _hi,
+                      "event-day mean (unfiltered)": float(_r0.to_numpy()[_ev].mean()),
+                      "other-day mean": float(_r0.to_numpy()[~_ev].mean())})
+    if _name == "sign(s)":
+        assert abs(_sh(_r0) - 1.83) < 0.02 and abs(_sh(_r1) - 2.30) < 0.02, (_sh(_r0), _sh(_r1))
+_cal = pd.DataFrame(_cal_rows).set_index("rule at 15:30")
+print(_cal.T.to_string())
+_cal.to_csv(OUT / "close_leg_calendar_forward_test.csv")
+# the hybrid, with its settlement leg flat on those days (intraday legs unchanged)
+_hyb = q["always short, sign(s) close"].copy()
+_ev_bar = work["date"].map(_ev_map).fillna(False).astype(bool).to_numpy()
+_hyb_flat = pd.Series(np.where((work["hhmm"] == "15:30") & _ev_bar, 0.0, _hyb.to_numpy()), index=work.index)
+_dh0, _dh1 = _daily(_hyb * work["R"]), _daily(_hyb_flat * work["R"])
+_lo, _hi = _boot_dsharpe(_dh1.to_numpy(), _dh0.to_numpy())
+print(f"hybrid (always short, sign(s) close): Sharpe {_sh(_dh0):.2f} -> {_sh(_dh1):.2f} with the close leg flat on event days; "
+      f"t-stat of the daily difference {_tstat((_dh1 - _dh0).to_numpy()):+.2f}; dSharpe 95% [{_lo:+.2f}, {_hi:+.2f}]")
+
+# --- 3. at the crossed spread
+_chain = pd.read_parquet(sorted(CACHE.glob("chain_0dte_*.parquet"))[0], columns=["expiration", "timestamp", "strike", "cp", "bid", "ask"])
+_chain["timestamp"] = pd.to_datetime(_chain["timestamp"], utc=True)
+_chain["strike"] = _chain["strike"].astype(float)
+_wq = work.copy()
+_wq["nxt_ts"] = pd.to_datetime(_wq["nxt_ts"], utc=True)
+
+
+def _attach(w, ts_col, kcol, cp, prefix):
+    m = _chain[_chain["cp"] == cp][["expiration", "timestamp", "strike", "bid", "ask"]].rename(
+        columns={"timestamp": ts_col, "strike": kcol, "bid": f"bid_{prefix}", "ask": f"ask_{prefix}"})
+    return w.merge(m, on=["expiration", ts_col, kcol], how="left")
+
+
+for _ts, _k, _cp, _pre in (("t", "K_c", "C", "c"), ("t", "K_p", "P", "p"), ("nxt_ts", "K_c", "C", "c_nxt"), ("nxt_ts", "K_p", "P", "p_nxt")):
+    _wq = _attach(_wq, _ts, _k, _cp, _pre)
+_wq.index = work.index
+_ask_e = _wq["ask_c"] + _wq["ask_p"]
+_bid_e = _wq["bid_c"] + _wq["bid_p"]
+_ask_x = _wq["ask_c_nxt"] + _wq["ask_p_nxt"]
+_bid_x = _wq["bid_c_nxt"] + _wq["bid_p_nxt"]
+_half = 0.5 * (_ask_e - _bid_e)
+print()
+print("3. crossed spread: bid/ask coverage at entry", f"{float(np.isfinite(_bid_e).mean()):.3f},",
+      "median half-spread", f"{float(_half.median()):.3f} pts =", f"{float((_half / work['entry']).median() * 100):.2f}% of premium")
+
+
+def _crossed_pts(qq):
+    qq = np.asarray(qq, float)
+    long, short = qq > 0, qq < 0
+    entry_px = np.where(long, _ask_e, np.where(short, _bid_e, work["entry"]))
+    exit_px = np.where(work["is_last"], work["exit"], np.where(long, _bid_x, np.where(short, _ask_x, work["exit"])))
+    return pd.Series(qq * (exit_px - entry_px), index=work.index)
+
+
+_cost_rows = []
+for _name, _size in q.items():
+    _qq = _size.to_numpy(dtype=float)
+    _dm = _daily(_size * work["R"])
+    _dcr = _daily(_crossed_pts(_qq) / work["entry"])
+    _act = (_qq != 0).astype(float)
+    _ncross = pd.Series(2 * _act - _act * work["is_last"].to_numpy(), index=work.index).groupby(work["date"]).sum()
+    _cr15 = (_crossed_pts(_qq) / work["entry"])[work["hhmm"] == "15:30"]
+    _cost_rows.append({"rule": _name, "Sharpe mid": _sh(_dm), "Sharpe crossed": _sh(_dcr),
+                       "mean/day mid": float(_dm.mean()), "mean/day crossed": float(_dcr.mean()),
+                       "crossings/day": float(_ncross.mean()),
+                       "break-even half-spread % prem": float(_dm.mean() / _ncross.mean() * 100.0),
+                       "settlement leg Sharpe crossed": float(_cr15.mean() / _cr15.std(ddof=1) * np.sqrt(252.0)),
+                       "worst day crossed": float(_dcr.min()), "maxDD crossed": _dd(_dcr)})
+_cost = pd.DataFrame(_cost_rows).set_index("rule")
+print(_cost.to_string(float_format=lambda x: f"{x:+.3f}"))
+_cost.to_csv(OUT / "rule_table_intraday_crossed_blk2.csv")
+for _name, _ref in (("sign(s)", -3.09), ("always short", -3.54), ("always short, unit-median close", -2.10)):
+    assert abs(float(_cost.loc[_name, "Sharpe crossed"]) - _ref) < 0.05, (_name, _cost.loc[_name, "Sharpe crossed"])
+assert abs(float(_cost.loc["sign(s)", "settlement leg Sharpe crossed"]) - 1.40) < 0.05, _cost.loc["sign(s)", "settlement leg Sharpe crossed"]
+print("every rule is negative at the crossed spread across the day; the settlement leg alone survives it")
+"""
+    ),
+    md(
+        r"""
+## 8. Always-short by 30-min bar (a clock hour is two bars mashed)
 
 `rule_row` reports
 $\mathrm{Sharpe}_{ann}=\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$.
@@ -809,8 +992,8 @@ clock time, not a count of 30-min bars.
 
 The plot is the by-clock-time slice, not the pooled mean: each
 dot is the average of *that clock time's* daily series, for
-always-short and unit-median VRP (the §6 constructions: matched
-signal, one leverage median per clock). Bars 10:00–15:00 are
+always-short, unit-median VRP and the sign(s)-close hybrid (the §6
+constructions: matched signal, one leverage median per clock). Bars 10:00–15:00 are
 next-mid 30-min holds; the **15:30 bar cash-settles at the official
 close**, so its row is the paper's trade (up to the leverage scale).
 """
@@ -844,7 +1027,7 @@ htab = pd.DataFrame(hour_rows)
 htab.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(9, 3.4))
-for rule, marker in (("always short", "o"), ("unit-median VRP", "^")):
+for rule, marker in (("always short", "o"), ("unit-median VRP", "^"), ("always short, sign(s) close", "s")):
     sub = stab[stab["rule"] == rule]
     ax.plot(sub["hhmm"], sub["mean"], marker=marker, label=rule)
 ax.axhline(0, color="k", lw=0.6)
@@ -862,12 +1045,12 @@ print("saved CSVs in", OUT)
     ),
     md(
         r"""
-## 8. Buy-signal fingerprint (day $\times$ clock)
+## 9. Buy-signal fingerprint (day $\times$ clock)
 
 Each column is one expiration day, each row one 30-min clock. Blue:
 the matched signal says **buy** the straddle
 ($s^{\mathrm{m}}_t>0$ — forecast above the implied slice); red:
-short; grey: warmup, no signal. The §7 tables average this grid down
+short; grey: warmup, no signal. The §8 tables average this grid down
 each row; the fingerprint shows the day-resolved structure — whether
 buys cluster in episodes (vol spikes), drift across regimes, and how
 the buy share thins from the morning rows to the settlement row.
