@@ -2,33 +2,57 @@
 \label{sec:bsm_rootfinding}
 
 Where an option price is read as a volatility, the map is the
-Black--Scholes--Merton formula \citep{BlackScholes1973,Merton1973}. For
-a European option on a forward-like underlying $S$ with strike $K$ and
-time to expiry $\tau$, at zero rate,
+Black--Scholes--Merton formula \citep{BlackScholes1973,Merton1973} at zero
+rate on a forward-like underlying --- the futures form, and the form the
+option vendor's own quoted field uses. Only the product $\sigma\sqrt{\tau}$
+enters that form, so it is carried here as a single \emph{total volatility}
+$s=\sigma\sqrt{\tau}$ over the window that remains. For a strike $K$ on an
+underlying level $F$,
 \begin{equation}
-    V^{\mathrm{BSM}}(\sigma)
-    \;=\; \phi \bigl[\, S\,\Phi(\phi d_1) - K\,\Phi(\phi d_2) \,\bigr],
+    V^{\mathrm{BSM}}(s; F, K)
+    \;=\; \phi \bigl[\, F\,\Phi(\phi d_1) - K\,\Phi(\phi d_2) \,\bigr],
     \qquad
-    d_{1,2} \;=\; \frac{\log(S/K) \pm \tfrac{1}{2}\sigma^{2}\tau}
-                        {\sigma\sqrt{\tau}},
+    d_1 \;=\; \frac{\log(F/K) + \tfrac{1}{2}s^{2}}{s},
+    \quad
+    d_2 \;=\; d_1 - s,
     \label{eq:bsm}
 \end{equation}
-with $\phi = +1$ for a call and $-1$ for a put and $\Phi$ the standard
-normal distribution function. The implied volatility of a quoted price
-$V^{\ast}$ is the root of $V^{\mathrm{BSM}}(\sigma) - V^{\ast} = 0$.
-The map $\sigma \mapsto V^{\mathrm{BSM}}(\sigma)$ is continuous and
-strictly increasing on $\sigma > 0$ --- its derivative is the vega
-$S\,\varphi(d_1)\sqrt{\tau} > 0$ --- from the intrinsic value
-$(\phi(S-K))^{+}$ at $\sigma \to 0$ to $S$ (call) or $K$ (put) as
-$\sigma \to \infty$, so a root exists and is unique exactly when
-$V^{\ast}$ lies strictly inside that interval, and there is no closed
-form for it. It is found numerically: a bracketed bisection on
-$[10^{-4}, 5]$ that halves the interval thirty times, followed by three
-Newton steps $\sigma \leftarrow \sigma - (V^{\mathrm{BSM}}(\sigma) -
-V^{\ast})/\mathrm{vega}(\sigma)$ from the bisection point. Bisection
-supplies a guaranteed bracket; Newton supplies the last digits. Prices
-at or below intrinsic --- deep in-the-money quotes on a same-day
-expiry, and any quote at $\tau = 0$ --- have no root and are excluded
-rather than clipped. The solver is vectorized over contracts and agrees
-with a scalar Brent root-finder to $5\times 10^{-7}$ on a random
-battery.
+with $\phi=+1$ for a call and $\phi=-1$ for a put and $\Phi$ the standard
+normal distribution function.
+
+What is inverted is the \emph{package}, not a leg. The recovery of
+Section~\ref{sec:close_option_methods} needs the one volatility that
+reprices the nearest out-of-the-money call and put together, so the root
+is taken of
+\begin{equation}
+    V^{\mathrm{pkg}}(s)
+    \;=\;
+    V^{\mathrm{BSM}}(s; F, K_c) + V^{\mathrm{BSM}}(s; F, K_p)
+    \;-\; P^{\ast},
+    \label{eq:bsm_package}
+\end{equation}
+where $P^{\ast}$ is the quoted package midpoint. The map
+$s \mapsto V^{\mathrm{pkg}}(s) + P^{\ast}$ is continuous and strictly
+increasing on $s>0$ --- its derivative is the sum of two positive vegas ---
+and rises from the intrinsic value $(F-K_c)^{+}+(K_p-F)^{+}$ at
+$s \to 0$ to $F+K_p$ as $s \to \infty$, so a root exists and is unique
+exactly when $P^{\ast}$ lies inside that interval, and there is no closed
+form for it.
+
+It is found by bisection alone, on the bracket $[10^{-8},\,1]$ in total
+volatility: up to one hundred halvings, stopped when the bracket is
+narrower than $10^{-12}$, which a unit bracket reaches in the first forty.
+Monotonicity makes the bracket sufficient and no Newton polish is applied;
+a guaranteed bracket is worth more at this precision than the last digits.
+Package midpoints at or below intrinsic --- and any quote at $\tau=0$ ---
+have no root, and are returned as missing rather than clipped to a bound.
+
+Two conventions are inherited rather than chosen. First, the underlying
+passed in is the 15:30 index level itself and not a put--call-parity
+forward: on legs where the vendor's field is a genuine quote, an inversion
+on the index level reproduces that field to $10^{-4}$ and a parity-forward
+inversion does not, so a re-inverted leg stays on the same footing as the
+legs around it. Second, the vendor publishes an \emph{hourly} standard
+deviation, so the total volatility returned here is converted as
+$\mathrm{IV}^{\mathrm{hourly}} = s/\sqrt{h}$ over the $h$ hours that
+remain --- at 15:30, $s\sqrt{2}$ --- before it is compared with anything.

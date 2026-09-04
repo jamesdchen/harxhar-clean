@@ -39,9 +39,11 @@ Equation~\eqref{eq:dp_har} plus calendar dummies, with no exogenous
 variables, refit at every bar. The forecasting protocol is:
 \begin{enumerate}
     \item Walk-forward with a rolling origin. The training window is the
-      most recent $T_{\mathrm{train}} = 24{,}000$ bars (approximately
-      $500$ trading days at $48$ bars per day). The window slides forward
-      by one bar per prediction.
+      most recent $T_{\mathrm{train}} = 24{,}000$ bars, which is the
+      window's definition. Measured on the panel that is about $480$
+      trading sessions, not the $500$ a flat $48$ bars per session would
+      imply, because early-sample and shortened sessions print fewer. The
+      window slides forward by one bar per prediction.
     \item The model is refit at every bar. The refit is exact and
       computationally feasible because the sliding-window normal
       equations admit rank-1 up-dating (add the entering bar) and
@@ -210,7 +212,8 @@ the widest design, largest discarded eigenvalue $1.8 \times 10^{-11}$
 relative, weakest retained $6.2 \times 10^{-6}$, with no eigenvalue
 between them at any bar), so every tolerance across four decades retains
 the identical subspace and reproduces the reported forecasts bitwise. Each arm is refit at
-every bar over a rolling window of $24{,}000$ bars ($500$ trading days).
+every bar over a rolling window of $24{,}000$ bars (about $480$ trading
+sessions).
 On a full-rank design (the benchmark's $52$ columns) minimum-norm least
 squares coincides exactly with ordinary least squares. An earlier pass of
 this campaign used the plain normal-equations solve, whose solution is

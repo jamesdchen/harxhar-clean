@@ -8,26 +8,37 @@ Section~\ref{sec:close_option_methods}: the nearest out-of-the-money
 call and put taken at the 15:30~ET mid, cash-settled at the close, with
 the position fixed by the sign of
 $s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to
-the seven forecast files leaves 866 expiration days common to all seven
-(3~January~2020 to 30~April~2024). Table~\ref{tab:close_option_rules}
-crosses every rule with every forecast on those days.
+the eight forecast columns leaves 866 expiration days common to all
+eight (3~January~2020 to 30~April~2024). The 413 expiration days
+after that date --- the most recent twenty months of chain --- carry no
+forecast row and appear nowhere below.
+Table~\ref{tab:close_option_rules} crosses every rule with every forecast
+on the days that remain.
 
 \begin{table}[H]
 \centering
 \caption{Last-bar same-day option trade by position rule, 15:30~ET to
 the close (Section~\ref{sec:close_option_methods}). One panel per rule;
-rows are the seven forecasts. One return per expiration day, on the 866
-days common to all seven forecasts (3~January~2020 to 30~April~2024),
+rows are the eight forecast columns. One return per expiration day, on the
+866 days common to all eight (3~January~2020 to 30~April~2024),
 filled at the 15:30 mid. $t=\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ is
 computed on the daily $R'$ and is not annualized;
 $\mathrm{Sharpe}_{\mathrm{ann}}=
 (\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ is the only annualized
-column. \emph{ex.\ kurt} is the bias-corrected sample excess kurtosis
+column, and it scales one \emph{trade} day to a year. The 0DTE frame
+trades about 200.3 days a year over this sample rather than $252$ --- SPXW
+listed Monday, Wednesday and Friday expirations before June 2022 and every
+session after --- so a calendar-time annualization multiplies that column
+by 0.892 throughout and changes no comparison inside it.
+\emph{ex.\ kurt} is the bias-corrected sample excess kurtosis
 (a Gaussian scores 0). Every $t$ in this subsection is the plain
 $\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ of a daily series unless it is
-named heteroskedasticity-robust. The
-short-volatility rule takes no forecast, so its seven model rows are
-identical and it is shown as a single row.
+named heteroskedasticity-robust or paired. The
+always-short rule takes no forecast, so its eight model rows are
+identical and it is shown as a single row. $\dagger$ marks the four
+columns still fitted on the earlier design panel, for which a run on the
+panel of record is pending
+(Section~\ref{sec:close_option_methods}).
 \label{tab:close_option_rules}}
 \resizebox{\textwidth}{!}{\input{generated/table_rule_by_strategy_paper}}
 \end{table}
@@ -36,76 +47,130 @@ Read the control first. Selling the package every day earns a mean
 0.014 per expiration day at a standard deviation of 1.128
 ($t=0.38$, annualized Sharpe 0.20): a positive premium, at a size that
 866 days cannot separate from zero. Putting the forecast in charge of
-\emph{direction} is what pays. The rule
-$q=\mathrm{sign}(s)$ earns between 0.072 and 0.111 per day across the
-seven forecasts ($t$ between 1.89 and 2.92, significant at conventional
-levels for six of the seven), and every one of the seven improves on the
-control. The block-diagonal ridge --- the estimator the rest of the paper
-argues for --- earns a mean of 0.100, $t=2.63$, and an annualized Sharpe
-of 1.42, but it does not lead this table: the fixed lasso (1.57), LightGBM (1.55) and XGBoost (1.44) all score higher, and the seven rows are
-near-duplicates of one another (below), so the ordering within the panel is
-not a ranking of forecasts. What the panel establishes is the rule, not the
-model. The forecast
-sits above the quoted implied variance --- a long-volatility day --- on 32
-to 43 percent of days depending on the model.
+\emph{direction} is what pays, and it pays in the same direction in every
+column: the rule $q=\mathrm{sign}(s)$ earns between 0.069 and
+0.107 per day across the eight, and every one of the eight improves
+on the control.
+
+How \emph{strong} that evidence is is a different question from how
+consistent it is, and the honest answer is that it is not strong. The two
+rules trade the same contracts on the same days, so the statistic that
+carries the comparison is the paired one --- the daily difference between
+the two portfolios --- and not each portfolio's own $t$ against zero.
+Paired against the control, the eight improvements run from 0.76 to
+1.31 in annualized Sharpe at an autocorrelation-robust $t$ between
+1.18 and 1.90 (plain paired $t$ 1.06 to
+1.70), and seven of the eight bootstrap percentile intervals on
+that difference include zero. The exception is XGBoost, whose interval
+clears zero by a knife edge --- a lower bound of 0.017 on an
+interval 2.46 wide. For the column the rest of the paper argues for
+the difference is 1.13 at an autocorrelation-robust paired $t$ of
+1.57. Two
+statistics that would read as significance are worth naming so they are not
+mistaken for it: each portfolio's own $t$ against zero clears $1.96$ for
+six of the eight, and the active-return $t$ against the control
+clears it for none of them. Eight columns pointing the same way is worth
+more than any one of them --- though not eight times more, since they are
+close to one bet (below) --- but on this sample only one of them separates
+itself from the always-short control, and that marginally. What the panel
+establishes is the rule, at that strength, and not any model.
+
+The headline column is the block-diagonal ridge fitted on the design that
+carries the FOMC calendar block, the panel of record of
+Section~\ref{sec:close_option_methods}. It earns a mean of 0.095,
+$t=2.48$, and an annualized Sharpe of 1.34 --- with a bootstrap
+standard error of 0.55 and a 95\% percentile interval from
+0.27 to 2.42, which is the width an 866-day Sharpe ratio
+has and the reason no ordering below is asserted. Directly beneath it sits
+the same estimator on the earlier design, which has no calendar block, and
+the gap between those two rows is what the calendar channels are worth on
+this trade: +0.07 of annualized Sharpe at a paired $t$ of 0.26, on
+an interval from $-0.49$ to $0.63$ --- one-signed, small, and not
+resolved. It is reported because the headline column and four of its
+comparators do not sit on the same design, and a reader is entitled to see
+the size of that.
+
+The ridge does not lead the panel: the fixed lasso (1.51), XGBoost (1.50), LightGBM (1.46) and the causally tuned lasso (1.41) all score higher. The paper does not read
+that ordering as a ranking of forecasts. The eight columns take the same
+side of the trade on 82 to 87 percent of days, which is
+far too little separation for 866 days to order them by; the spread
+down the column is smaller than the paired intervals just quoted, and the
+ordering is left unresolved. The forecast sits above the quoted implied
+variance --- a long-volatility day --- on 32 to 41 percent of
+days depending on the column.
 
 The qualifications matter as much as the point estimates.
 
 \paragraph{Where the level comes from.} Two sample splits qualify the
 level rather than the sign. Dropping the 39 expiration days through
 31~March~2020 --- the February--March 2020 spike --- \emph{raises} the
-block-diagonal ridge portfolio to Sharpe 1.59 ($t=2.88$ on the
-remaining 827 days): the full-sample figure is dragged, not flattered,
-by that quarter. Splitting instead at
+block-diagonal ridge portfolio to Sharpe 1.51 ($t=2.73$ on the
+remaining 827 days): the full-sample figure is dragged, not
+flattered, by that quarter. Splitting instead at
 16~May~2022, when SPXW listings became daily --- a market-structure date, not a
-threshold chosen on the portfolio --- the same portfolio scores Sharpe 1.04
-($t=1.27$) on the 377 days before and 1.73 ($t=2.41$) on the
+threshold chosen on the portfolio --- the same portfolio scores Sharpe 0.98
+($t=1.20$) on the 377 days before and 1.63 ($t=2.27$) on the
 489 after: the direction edge is positive on both tapes but earns its
-significance on the daily-0DTE era. The split is not uniform across forecasts
+significance on the daily-0DTE era. The split is not uniform across columns
 --- the two tree forecasts score higher before the date than after --- which is
-one more reason to read the panel as one rule rather than as seven results.
+one more reason to read the panel as one rule rather than as eight results.
 
 \paragraph{Settlement pins carry a disproportionate share.} The
-straddle expires worthless --- $R=-1$ exactly --- on 193 of the 866
+package expires worthless --- $R=-1$ exactly --- on 193 of the 866
 days, 22.3 percent, whenever the close settles inside the one-strike
 window. The always-short control collects $+1$ on those days against
-$-0.27$ on all others; the $\mathrm{sign}(s)$ portfolio averages $+0.19$ on them
-against $+0.07$ elsewhere, so pin days supply 43 percent of its total
-return from 22.3 percent of the days. The portfolio monetizes a direction
+$-0.27$ on all others; the $\mathrm{sign}(s)$ portfolio averages
+$+0.18$ on them against $+0.07$ elsewhere, so pin days supply
+43 percent of its total return from 22.3 percent of the
+days. The portfolio monetizes a direction
 call and the pin premium together, and its P\&L remains tilted toward
 days the index settles inside the strikes.
 
-\paragraph{Seven rows are one or two bets.} The seven daily $\mathrm{sign}(s)$
-portfolios are correlated (mean pairwise correlation 0.68, from
-0.58 to 0.92; their buy-day sets overlap at a mean pairwise Jaccard
-index of 0.68), an effective count of 1.8 independent portfolios by the
+\paragraph{Eight rows are one or two bets.} The eight daily $\mathrm{sign}(s)$
+portfolios are correlated (mean pairwise correlation 0.70, from
+0.58 to 0.93; their buy-day sets overlap at a mean pairwise Jaccard
+index of 0.70), an effective count of 1.8 independent portfolios by the
 participation ratio $(\sum_i \lambda_i)^2 / \sum_i \lambda_i^2$ of their
 correlation matrix. Agreement down a column of
 Table~\ref{tab:close_option_rules} is evidence that the rule is insensitive to
-which forecast drives it --- not seven independent confirmations of the rule.
+which forecast drives it --- not eight independent confirmations of the rule.
 
 \paragraph{The signal's content is a same-day sign, and the right test
 is the same-day one.} The signal is fixed at 15:30 and the return
 settles at 16:00 on the same expiration day, so pairing $s_t$ with
 $R_t$ involves nothing observed after the decision. On that pairing
 the content is a shift in the conditional mean by sign: when the
-forecast exceeds the implied variance the package returns $+0.11$ on
-average, and $-0.10$ when it does not (difference $0.20$,
-heteroskedasticity-robust $t=2.45$ for the block-diagonal ridge; $t$
-between 1.72 and 2.74 across
-the seven forecasts). That is the $\mathrm{sign}(s)$ portfolio of
+forecast exceeds the implied variance the package returns $+0.10$ on
+average, and $-0.09$ when it does not (difference $0.19$,
+heteroskedasticity-robust $t=2.32$ for the block-diagonal ridge; $t$
+between 1.63 and 2.61 across
+the eight columns). That is the $\mathrm{sign}(s)$ portfolio of
 Table~\ref{tab:close_option_rules}, read as a regression, and
 Figure~\ref{fig:close_option_sameday} shows it. A straight
 line is the wrong instrument for the same relation: fitted by least squares
 the slope of $R_t$ on the raw signal comes out \emph{negative} for every one
-of the seven forecasts (heteroskedasticity-robust $t$ from $-4.1$ to
+of the eight columns (heteroskedasticity-robust $t$ from $-3.9$ to
 $-0.2$) --- the opposite sign to the step the split finds --- because
 $R$ has a point mass at $-1$ on 22.3 percent of days and a fat right
 tail that a few extreme values of $s_t$ can lever. The effect lives in the
 conditional means of the two sides, which a sign split sees and a slope does
-not. Within either side the mean return shows
-no trend in the level of the signal (the right panel of the figure): the
-signal's magnitude adds nothing to its sign.
+not.
+
+\paragraph{Magnitude carries information; sizing on it does not.} Within
+either side of the split the binned means of the figure show no trend in
+the level of the signal, but a line fitted \emph{inside} a side does find
+one, and it runs the wrong way for a trader. Restricted to the sell side
+the heteroskedasticity-robust slope of $R_t$ on $s_t$ is negative and
+resolved for all eight columns ($|t|$ from 2.2 to 5.7;
+$5.4$ for the block-diagonal ridge): the further below zero the
+signal, the larger the settlement return, so the short earns \emph{less}
+on precisely the days its signal is most extreme. On the buy side the
+slope is negative too, but resolved for only two of the eight. The
+precise claim is therefore narrower than ``magnitude adds nothing to the
+sign'': the conditional mean does vary with $|s|$ inside a side. What does
+not follow is a sizing rule, and none is retained --- scaling the position
+by the rank of $|s_t|$ raised no column's Sharpe ratio, and that overlay is
+parked (Section~\ref{sec:close_option_methods}). Only the sign is used.
 
 \begin{figure}[H]
 \centering
@@ -118,10 +183,41 @@ always-short portfolio's mean over all days (grey bar), the benchmark throughout
 Right: the mean of $R_t$ in ten equal-count bins of the signal's level, each
 labelled by its median value of $s_t$ in units of $10^{-6}$ (thirty-minute
 variance); the dashed line is the always-short mean. The relation is a step at
-the sign with no trend within either half: the signal's content is which side
-of the quoted variance the forecast stands on, not how far.}
+the sign, and the binned means inside either half show no trend in the level:
+what the signal carries is which side of the quoted variance the forecast
+stands on.}
 \label{fig:close_option_sameday}
 \end{figure}
+
+\paragraph{At the crossed spread the edge survives and the control does
+not.} Every figure above is a midpoint figure. Charging the spread at
+entry --- both legs bought at the ask when the rule is long, both sold at
+the bid when it is short, with nothing charged at the exit because the
+position settles in cash --- takes the block-diagonal ridge
+$\mathrm{sign}(s)$ portfolio from an annualized Sharpe of 1.34 to
+0.87 ($t=1.61$) and the always-short control from 0.20 to
+$-0.27$. That is the comparison the trade turns on: the direction rule
+pays for its own spread and the always-short control does not. It is one
+crossing per day at the quoted touch, with no size, no queue and no model
+of impact --- a bound on the fill rather than a fill model --- but it is
+the crossing the venue charges, and the sign of the answer does not depend
+on where inside the spread a real fill would land.
+
+\paragraph{The forecast is dated where it claims to be.} A same-day trade
+driven by a same-day forecast invites the obvious suspicion, so the shift
+test is reported rather than asserted. Re-running the whole portfolio on
+the forecast row stamped $k$ bars away from the one the rule uses gives an
+annualized Sharpe of 0.48 at $k=-1$ (a forecast issued one bar early,
+for a window that has already closed), 1.34 at $k=0$ (the row actually
+used), and 3.11 at $k=+1$ --- one bar of genuine look-ahead ---
+against a ceiling of 4.53 for a portfolio told the settlement in
+advance. The profile is a step exactly at $k=0$: flat to its left and far
+higher to its right. A leak would have lifted the bars left of $k=0$ or
+flattened the step, and it does neither. One column is worth flagging: the
+elastic net's best stale shift, at $k=-2$, is 1.04 against its own
+1.02 at $k=0$, so that one forecast is not separated from its own stale
+copies by this test. Every other column's best stale shift sits below its
+trade.
 
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
@@ -175,13 +271,13 @@ $\mathrm{sign}(s)$ portfolio's crossed-spread Sharpe is 0.69, 0.77, 0.83 and 0.9
 \paragraph{Compounded at a fixed three percent of wealth, the $\mathrm{sign}(s)$
 portfolio grows; the control does not.} Betting the fixed fraction
 $f=0.03$ of Section~\ref{sec:close_option_methods}, the block-diagonal ridge
-$\mathrm{sign}(s)$ portfolio turns one unit of wealth into $8.3$ over the
-sample (annualized log-growth $+0.62$), with a maximum wealth drawdown
+$\mathrm{sign}(s)$ portfolio turns one unit of wealth into $7.2$ over the
+sample (annualized log-growth $+0.57$), with a maximum wealth drawdown
 of 42 percent and a worst single day that removes 16 percent of
 wealth; the ruin bound $1/|\min_t R'_t|$ is 0.18 for this portfolio and
-0.10 for the control, so three percent sits well inside both. All seven
+0.10 for the control, so three percent sits well inside both. All eight
 $\mathrm{sign}(s)$ portfolios compound positively under the same fraction (terminal
-wealth $4.0$ to $11.1$), and the headline portfolio's annualized
+wealth $3.6$ to $9.9$), and the headline portfolio's annualized
 log-growth is positive in four of the five calendar years (2022 is $-0.04$). The
 always-short control ends at $0.86$ --- its premium does not compound. A defined-risk variant is
 parked and not reported here.
@@ -219,13 +315,13 @@ figure that worsens at the ask.
 
 The trade as a whole is a demonstration under the stated constants of
 Section~\ref{sec:close_option_methods}, not a trading claim: there is
-no delta hedge, no borrow, no market-impact model, and every fill is at
-the 15:30 mid, so a portfolio that receives the bid instead is a different
-portfolio. What survives the qualifications is worth stating plainly. At the
-last bar the quoted implied variance sits above the forecast on 57 to
-68 percent of days depending on the forecast (60 for the headline);
-the sign of that gap carries a direction edge --- worth more than the
-unconditional short for all seven forecasts, and significant at conventional
-levels for six of them --- though the ridge the rest of the paper argues for
-is not the strongest of the seven on this trade; and the magnitude of the gap
-adds nothing to its sign.
+no delta hedge, no borrow and no market-impact model, and the headline
+fills are at the 15:30 mid. What survives the qualifications is worth
+stating plainly. At the last bar the quoted implied variance sits above the
+forecast on 59 to 68 percent of days depending on the column
+(60 for the headline); the sign of that gap carries a direction
+edge, one that improves on the always-short control in every one of the
+eight columns and survives a crossed spread --- though only one column's
+improvement clears zero on a bootstrap interval, and that by a knife edge,
+and the columns cannot be ordered against one another; and sizing on the
+magnitude of the gap does not improve on its sign.

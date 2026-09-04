@@ -41,9 +41,15 @@ The paper closes by reading that one-bar forecast against the last
 thirty minutes of the expiration-day chain
 (Section~\ref{sec:close_option_results}): the sign of the gap between
 forecast and quoted implied is the tradable content --- a $\pm 1$
-portfolio on $\mathrm{sign}(s)$ improves on the unconditional short for
-every one of the seven forecasts, the block-diagonal ridge among them ---
-while the signal's magnitude adds nothing to its sign.
+portfolio on $\mathrm{sign}(s)$ improves on the always-short control for
+every one of the eight forecast columns, the block-diagonal ridge of record
+among them, and survives a crossed spread, though only one column's paired
+improvement clears zero on a bootstrap interval and the columns cannot be
+ordered against one another --- while sizing on the magnitude of that gap
+does not improve on its sign. The ridge of record is fitted on the design
+carrying the FOMC calendar block; four comparators are still on the earlier
+design, and the table reports a diagnostic row that isolates what those
+calendar channels are worth on this trade.
 % OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
 \iffalse
 Read against the same-day index-option market through a

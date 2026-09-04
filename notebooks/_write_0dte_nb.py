@@ -50,14 +50,16 @@ the realized scale by a recalibration estimated from past data only
 is the **$\mathrm{sign}(s)$** portfolio, which sells the package when the market's
 quoted variance exceeds the forecast and buys it when the forecast
 exceeds the price: on the
-block-diagonal ridge forecast it earns an annualized Sharpe ratio of
-1.42 ($t = 2.63$). The **always-short** portfolio, which uses no forecast, is
-the control, at a Sharpe ratio of 0.20.
+block-diagonal ridge forecast — the ridge fitted on the FOMC panel, this
+notebook's panel of record — it earns an annualized Sharpe ratio of
+1.34 ($t = 2.48$). The **always-short** portfolio, which uses no
+forecast, is the control, at a Sharpe ratio of 0.20.
 
 The notebook runs as follows. Sections 1–6 build the instrument and its
 return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
-the position; §10 tabulates the two rules across the seven forecasts;
+the position; §10 tabulates the two rules across the eight forecast
+tables and tests each portfolio against the control day by day;
 §11 regresses the settlement return on the 15:30 signal; §12 adds up
 the profit and loss; §13 reports information ratios against the
 always-short portfolio; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
@@ -447,12 +449,15 @@ forecast for the very bar it trades, made with nothing observed after
 also free of look-ahead, but one bar stale. (An earlier version of this
 notebook used it.)
 
-**Seven forecasts**, one stored table each, all from the paper's
-pipeline on the same panel:
+**Eight forecast tables**, one stored table each, all from the paper's
+pipeline:
 
 - baseline (HAR + calendar OLS);
-- block-diagonal ridge — the paper's headline model, with the FOMC
-  calendar columns in its design;
+- block-diagonal ridge — the paper's headline model, fitted on the FOMC
+  panel, the design that carries the FOMC calendar columns;
+- block-diagonal ridge, without the FOMC columns — the same estimator on
+  the earlier panel, carried as a diagnostic row so that the calendar
+  channels' contribution to this trade is visible;
 - LightGBM and XGBoost on the wide all-features design, frozen settings;
 - the lasso on that design with its penalty chosen from past data only,
   and the lasso at a fixed penalty of $10^{-4}$;
@@ -484,13 +489,13 @@ regression, $\widehat{RV}=m^2B$ with no variance term, because the
 median commutes with the square) and is compared with the mean map
 immediately below. It is not adopted: the trade is scored on what the
 position earns, not on how often its sign is right, and the expected
-payoff of a straddle is driven by the right tail of realized variance
+payoff of a long package is driven by the right tail of realized variance
 that the median ignores.
 
 Housekeeping: the fit is solved in closed form one day at a time, in a
 routine shared with the intraday notebook; each model's table is cached
 and keyed to its inputs and to the fitting method, so unchanged inputs
-skip the computation and any change forces it; the seven tables load in
+skip the computation and any change forces it; the eight tables load in
 parallel.
 """
     ),
@@ -498,15 +503,10 @@ parallel.
         """
 from concurrent.futures import ThreadPoolExecutor
 
-YHATS = {
-    "a0": REPO / "results" / "spxw_pnl" / "yhat_a0.parquet",
-    "blk2": REPO / "results" / "spxw_pnl" / "yhat_blk2_fomc1.parquet",
-    "lgbm": REPO / "results" / "spxw_pnl" / "yhat_tree00.parquet",
-    "xgb": REPO / "results" / "spxw_pnl" / "yhat_tree16.parquet",
-    "lasso_t": REPO / "results" / "spxw_pnl" / "yhat_b2lasso_tuned.parquet",
-    "lasso_f": REPO / "results" / "spxw_pnl" / "yhat_b2lasso.parquet",
-    "enet": REPO / "results" / "spxw_pnl" / "yhat_b3enet_tuned.parquet",
-}
+# the model set, its labels and its files all come from the library, so the
+# notebook, the intraday deck and the paper's tables can never drift apart
+_PATHS = asl.yhat_paths(REPO)
+YHATS = {tag: _PATHS[tag] for tag in asl.MODEL_ORDER}
 # The recalibration lives in atm_straddle_lib: flat 250-day window, fit
 # restricted to the scored session bars (rows labelled 10:30-16:00 ET) so off-session
 # dynamics cannot pollute the calibration. Delegate rather than duplicate.
@@ -529,15 +529,10 @@ with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
     }
     models = {tag: futs[tag].result() for tag in YHATS}
 
-LABEL = {
-    "a0": "baseline (HAR + calendar OLS)",
-    "blk2": "block-diagonal ridge",
-    "lgbm": "LightGBM",
-    "xgb": "XGBoost",
-    "lasso_t": "lasso (causally tuned)",
-    "lasso_f": "lasso (fixed 1e-4)",
-    "enet": "elastic net (causally tuned)",
-}
+LABEL = {tag: asl.YHAT_LABEL[tag] for tag in asl.MODEL_ORDER}
+print("models:", len(YHATS))
+for _tg in YHATS:
+    print(f"  {_tg:<9} {LABEL[_tg]:<48} {YHATS[_tg].name}")
 print("option days", len(atm), pd.Timestamp(atm.index.min()), "->", pd.Timestamp(atm.index.max()))
 # which of the half sessions dropped in section 4 fall inside the scored range, and which of those
 # carry a 16:00 forecast row: those are the days the half-session filter removes from the scored frame
@@ -557,6 +552,204 @@ for tag, rv in models.items():
     print("median rv_hat", float(rv["rv_hat"].median()),
           "median rv_raw", float(rv["rv_raw"].median()))
     print("---")
+"""
+    ),
+    md(
+        r"""### Panels, provenance, and what this frame leaves out
+
+**The panel of record is the FOMC panel.** The block-diagonal ridge and
+the fixed-penalty lasso are fitted on it. The tuned lasso, the elastic
+net and the two tree models are still on the earlier panel and are
+labelled as such in the provenance table below; a re-run on the FOMC
+panel is pending, so those rows are read as comparators, not as a
+ranking. The baseline carries no exogenous columns, so its forecast is
+the same on either panel. The row "block-diagonal ridge, without the
+FOMC columns" is that same ridge on the earlier panel: the gap between
+the two ridge rows is what the calendar channels are worth on this
+trade, and §10 tests it.
+
+**Fit mask.** The recalibration is fitted on session dates only, on the
+stamps labelled 10:30 to 16:00. A date counts as a session when it
+carries a 16:00 stamp. The 13:00 early closes of 2001–2025 are excluded,
+and so are the exchange holidays, whose rows in this panel are
+futures-only bars ending at 13:00 or 11:30 and whose realized variance
+is a fraction of a session bar's. The cell below prints how many
+in-window rows that removes.
+
+**The profile is not yet clean.** The scale $B$ that each forecast is
+divided by is a trailing twenty-day mean per time of day, built upstream
+from a series that still contains the post-close bars of early-close
+days. Those bars sit far below the slot's usual level, so $B$ is a few
+per cent low for twenty sessions after each of them; the cell below
+prints how many scored days sit inside such a window. The forecast-side
+audit of 2026-09-05 bounded the effect on this trade at 0.06 in
+annualized Sharpe ratio on the block-diagonal ridge, moving 5 to 8
+positions, every one of them from short to long. That bound is the
+audit's measurement, not a number this notebook recomputes. The fix is
+upstream of this notebook and is pending; the disclosure stands in the
+meantime.
+
+**What `rv_raw` is.** The realized-variance column is computed on
+24-hour index futures. The row labelled 16:00 is therefore the futures
+bar from 15:30 to 16:00, not the cash settlement window; the option
+itself settles against the official cash close (§5).
+
+**Annualization.** Every Sharpe ratio and information ratio in this
+notebook scales the daily series by $\sqrt{252}$. That is a
+per-trade-day convention: one unit of premium on each day the trade is
+taken. This frame does not trade 252 days a year — same-day-expiry SPX
+listings were Monday, Wednesday and Friday before June 2022 and every
+session after — so the days-per-year count printed below rises from 158
+in 2020 to 248 in 2023. A calendar-time convention, filling the untraded
+sessions with zero, would multiply every Sharpe ratio here by the scale
+factor printed below. Relative comparisons are unaffected either way.
+
+**The last twenty months are unscored.** The option chain runs to
+2025-12-31, but the forecast panel ends 2024-04-30, so every expiration
+day after that carries no forecast row and leaves the frame. The count
+and the date range are printed below. Those days are the most recent
+tape in the sample, not a scattered remainder.
+
+**Model provenance.** The cell prints, per model, the file, the panel,
+the fitting window, the refit contract and where the hyperparameters
+came from. Three entries are weak and are printed as such: the two tree
+models were run at two different refit cadences on two clusters and
+neither the tables nor their metadata record which chunk came from
+which; the frozen twenty-arm hyperparameter menu the two tree arms were
+picked from is on neither disk nor git history, so their settings cannot
+be recovered; and the FOMC-panel tables are identified by a file
+fingerprint and a cluster run id rather than by a commit.
+"""
+    ),
+    code(
+        r"""# --- panels, provenance, and the frame's exclusions -----------------------
+_idx = atm.index
+for _t in YHATS:
+    _idx = _idx.intersection(models[_t].index)
+_idx = pd.DatetimeIndex(_idx).sort_values()
+print(f"scored frame: {len(_idx)} days, {_idx.min().date()} -> {_idx.max().date()}, "
+      f"identical for all {len(YHATS)} forecasts")
+
+# annualization: the convention, and what this frame actually trades
+_tpy = asl.trades_per_year(_idx)
+print(f"annualization: PERIODS_PER_YEAR = {asl.PERIODS_PER_YEAR:.0f} (per trade day); this frame trades "
+      f"{_tpy:.1f} days a year, so a calendar-time convention would multiply every Sharpe ratio by "
+      f"sqrt({_tpy:.1f}/{asl.PERIODS_PER_YEAR:.0f}) = {float(np.sqrt(_tpy / asl.PERIODS_PER_YEAR)):.3f}")
+_per_year = pd.Series(1, index=_idx).groupby(_idx.year).size()
+print("days traded per calendar year, and that year's calendar-time scale factor sqrt(n/252):")
+print(pd.DataFrame({"days": _per_year,
+                    "sqrt(n/252)": np.sqrt(_per_year / asl.PERIODS_PER_YEAR)}).to_string(
+                        float_format=lambda x: f"{x:.3f}"))
+
+# the unscored tail
+_unscored = atm.index.difference(_idx)
+print(f"expiration days with no forecast row: {len(_unscored)}, "
+      f"{_unscored.min().date()} -> {_unscored.max().date()}; "
+      f"{int((_unscored > _idx.max()).sum())} of them fall after the panel's last day "
+      f"{_idx.max().date()} - the most recent tape in the sample is the part that is unscored")
+
+# the fit mask, counted on the panel of record
+_pt = pd.read_parquet(YHATS["blk2"], columns=["t"])
+_pet = pd.to_datetime(_pt["t"], utc=True).dt.tz_convert("America/New_York")
+_pmins = (_pet.dt.hour * 60 + _pet.dt.minute).to_numpy()
+_pdate = _pet.dt.normalize().dt.tz_localize(None)
+_lo, _hi = asl.FIT_MASK_MINUTES
+_inwin = (_pmins >= _lo) & (_pmins <= _hi)
+_sess = set(pd.DatetimeIndex(_pdate[_pmins == 16 * 60]).unique())
+_ec = set(pd.to_datetime(list(asl.EARLY_CLOSE_DATES)))
+_is_sess = _pdate.isin(_sess).to_numpy()
+_is_ec = _pdate.isin(_ec).to_numpy()
+_ecl = _inwin & _is_ec                  # every in-window row on a 13:00 early close
+_hol = _inwin & ~_is_ec & ~_is_sess     # the rest: dates that never print a 16:00 stamp
+print(f"fit mask on {YHATS['blk2'].name}: {int(_inwin.sum())} rows carry a stamp inside 10:30-16:00. "
+      f"Excluded: {int(_ecl.sum())} rows on {int(_pdate[_ecl].nunique())} of the "
+      f"{len(asl.EARLY_CLOSE_DATES)} early-close dates on the 2001-2025 calendar, and {int(_hol.sum())} rows on "
+      f"{int(_pdate[_hol].nunique())} further dates with no 16:00 stamp (exchange holidays, whose rows here are "
+      f"futures-only bars, and a few dates whose tape stops early); {int((_hol | _ecl).sum())} rows in all, "
+      f"{100.0 * float((_hol | _ecl).sum()) / float(_inwin.sum()):.2f}% of the in-window rows, leaving "
+      f"{int(_inwin.sum()) - int((_hol | _ecl).sum())}")
+
+# how many scored days sit inside the twenty sessions after an early close that
+# still carries a post-close 16:00 bar (the profile's contamination window)
+_sess_days = pd.DatetimeIndex(sorted(_sess))
+_ec16 = [d for d in sorted(_ec) if d in _sess]
+_post: set = set()
+for _d in _ec16:
+    _p = int(_sess_days.searchsorted(_d, side="right"))
+    _post.update(_sess_days[_p:_p + 20])
+print(f"early-close dates that still carry a post-close 16:00 bar in this panel: {len(_ec16)}; "
+      f"scored days inside the twenty sessions after one of them: "
+      f"{int(pd.Index(_idx).isin(_post).sum())} of {len(_idx)}")
+
+# the FOMC release feed
+_feed_end = pd.Timestamp("2023-11-01")
+_fomc_dead = [d for d in pd.to_datetime(list(asl.FOMC_STATEMENT_DAYS))
+              if d > _feed_end and d in set(_idx)]
+print(f"FOMC release feed ends {_feed_end.date()}: {int((_idx > _feed_end).sum())} of {len(_idx)} "
+      f"scored days ({100.0 * float((_idx > _feed_end).mean()):.1f}%) fall after it; the scored FOMC "
+      f"statement days that carry no release signal are {[str(d.date()) for d in _fomc_dead]}")
+print('the panel\'s FOMC release channel is a dead constant over the whole panel (the rolling '
+      'winsorization clips a single-bar event), so "FOMC in the design" means the FOMC-day flag and '
+      'the bars until and since the meeting, not a release surprise')
+
+# --- the provenance table -------------------------------------------------
+_WINDOW = "24,000 bars, about 480 sessions"
+PROVENANCE = {
+    "a0": {
+        "panel": "earlier panel; no exogenous columns, so the same forecast on either panel",
+        "window": _WINDOW, "refit": "every bar",
+        "hyperparameters": "none (ordinary least squares on the HAR ladder and the calendar block)",
+        "code provenance": "no campaign record; dumped from the earlier chunk tree"},
+    "blk2": {
+        "panel": "FOMC panel (the panel of record), 1,264 design columns",
+        "window": _WINDOW, "refit": "every bar",
+        "hyperparameters": "block penalties, backbone 1 and exogenous 100, recorded in the chunk meta",
+        "code provenance": "run main-a95517c1 on carc-d1, 2026-08-27; code identified by file fingerprint, not by commit"},
+    "blk2_inc": {
+        "panel": "earlier panel (no FOMC calendar columns), 1,144 design columns",
+        "window": _WINDOW, "refit": "every bar",
+        "hyperparameters": "block penalties, backbone 1 and exogenous 100",
+        "code provenance": "no campaign record"},
+    "lgbm": {
+        "panel": "earlier panel (FOMC-panel run pending)",
+        "window": _WINDOW,
+        "refit": "every bar on one cluster and every 10 bars on the other; the cadence is not recorded per chunk",
+        "hyperparameters": "arm 00, hand-picked from a 20-arm bank; the frozen menu file is on neither disk nor git history, so the settings are unrecoverable",
+        "code provenance": "no campaign record"},
+    "xgb": {
+        "panel": "earlier panel (FOMC-panel run pending)",
+        "window": _WINDOW,
+        "refit": "every bar on one cluster and every 10 bars on the other; the cadence is not recorded per chunk",
+        "hyperparameters": "arm 16, hand-picked from the same 20-arm bank; settings unrecoverable; predictions stored as float32",
+        "code provenance": "no campaign record"},
+    "lasso_t": {
+        "panel": "earlier panel (FOMC-panel run pending)",
+        "window": _WINDOW, "refit": "every bar; reseeded and retuned every 250 solves",
+        "hyperparameters": "penalty chosen from past data only, on the 125 bars ending at the trade bar after a 25-bar embargo",
+        "code provenance": "no campaign record"},
+    "lasso_f": {
+        "panel": "FOMC panel (the panel of record)",
+        "window": _WINDOW, "refit": "every bar",
+        "hyperparameters": "fixed penalty 1e-4",
+        "code provenance": "run main-a95517c1 on carc-d1, 2026-08-27; dumped 2026-09-05"},
+    "enet": {
+        "panel": "earlier panel (FOMC-panel run pending)",
+        "window": _WINDOW, "refit": "every bar; reseeded and retuned every 250 solves",
+        "hyperparameters": "penalties chosen from past data only, same validation tail as the tuned lasso",
+        "code provenance": "no campaign record"},
+}
+prov = pd.DataFrame([
+    {"model": LABEL[t], "file": YHATS[t].name,
+     "rows": int(len(pd.read_parquet(YHATS[t], columns=["t"]))), **PROVENANCE[t]}
+    for t in asl.MODEL_ORDER
+])
+for _r in prov.to_dict("records"):
+    print(_r["model"])
+    for _k, _v in _r.items():
+        if _k != "model":
+            print(f"    {_k:<16} {_v}")
+prov.to_csv(OUT / "model_provenance.csv", index=False)
+print("saved", OUT / "model_provenance.csv")
 """
     ),
     md(
@@ -581,18 +774,18 @@ day's package midpoint re-inverted — built here by the same routine, so
 this comparison and the rule table price the trade the same way.
 
 **Verdict, from the numbers below.** The median map is calibrated as
-intended — realized variance exceeds its forecast on about half of the
-days in every year, against roughly a third for the mean map — and it is
-right more often (hit rate about $0.59$–$0.61$ against $0.54$–$0.56$).
-Yet it earns less for every one of the seven forecasts (block-diagonal
-ridge Sharpe about $1.42 \to 0.50$), with no Sharpe
-difference resolved at the $95\%$ level. The two maps disagree on
-roughly 170 to 220 days per forecast — days the mean map buys and the
-median map sells — and the long straddle pays on those days on average
-(block-diagonal ridge about $+0.14$ per unit of premium). What the trade
+intended — realized variance exceeds its forecast on $0.51$ to $0.58$ of
+the days in every year, against $0.30$ to $0.42$ for the mean map — and
+it is right more often (hit rate $0.58$–$0.61$ against $0.54$–$0.55$).
+Yet it earns less for every one of the eight forecasts (block-diagonal
+ridge Sharpe $1.34 \to 0.49$), with no Sharpe
+difference resolved at the $95\%$ level. The two maps disagree on 178
+to 210 days per forecast — days the mean map buys and the median map
+sells — and the long package pays on those days on average
+(block-diagonal ridge $+0.13$ per unit of premium). What the trade
 earns is the expected payoff minus the price; the expected payoff of a
-straddle is driven by the right tail of realized variance, which the
-median ignores by construction. A median-calibrated forecast maximizes
+long package is driven by the right tail of realized variance, which
+the median ignores by construction. A median-calibrated forecast maximizes
 how often the sign is right; the mean-calibrated forecast maximizes what
 the sign earns, and that is the quantity the rule is scored on. The mean
 map stays.
@@ -658,10 +851,10 @@ def _boot_dsharpe(a, b, B=2000, seed=0):
     a, b = np.asarray(a, float), np.asarray(b, float)
     n = len(a); blen = int(np.ceil(n ** (1 / 3)))
     idx = asl.circular_block_bootstrap_idx(rng, n, blen, B)
-    sh = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(252.0)
+    sh = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
     d = sh(a[idx]) - sh(b[idx])
     lo, hi = (float(v) for v in np.percentile(d, [2.5, 97.5]))
-    hat = float(a.mean() / a.std(ddof=1) * np.sqrt(252.0) - b.mean() / b.std(ddof=1) * np.sqrt(252.0))
+    hat = float(a.mean() / a.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR) - b.mean() / b.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
     return {"pct_lo": lo, "pct_hi": hi, "basic_lo": 2 * hat - hi, "basic_hi": 2 * hat - lo}
 
 
@@ -705,7 +898,7 @@ for _t in YHATS:
 _as = asl.rule_row(-_R, pd.Series(-1.0, index=_common))
 swap_tab = pd.DataFrame(_rows).set_index("model")
 cal_tab = pd.DataFrame(_cal)
-print(f"days common to all seven forecasts under both maps: {len(_common)}; always short Sharpe {float(_as['Sharpe_ann']):.3f} under either map")
+print(f"days common to all {len(YHATS)} forecasts under both maps: {len(_common)}; always short Sharpe {float(_as['Sharpe_ann']):.3f} under either map")
 print("sign(s) under the two maps:")
 print(swap_tab[["Sharpe_mean", "t_mean", "Sharpe_median", "t_median", "diff_per_day", "diff_t"]].round(3).to_string())
 print("---")
@@ -840,7 +1033,7 @@ volatilities: drop those days instead of re-inverting the package
 midpoint (§8). Five of the 866 scored days carry a censored leg — the
 March 2020 days on the vendor's upper bound; on the remaining 861 the
 block-diagonal ridge portfolio earns an annualized Sharpe ratio of
-1.45 ($t = 2.69$) against 1.42 on all 866, and no forecast's Sharpe
+1.37 ($t = 2.54$) against 1.34 on all 866, and no forecast's Sharpe
 ratio moves by more than $0.06$ between the two treatments, so the
 choice does not carry the result.
 """
@@ -862,9 +1055,9 @@ def make_book(rv: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
         "frac_long": float((px["pos"] > 0).mean()),
         "frac_short": float((px["pos"] < 0).mean()),
         "mean_Rp": mu,
-        "Sharpe_ann": mu / sd * np.sqrt(252.0) if sd > 0 else float("nan"),
+        "Sharpe_ann": mu / sd * np.sqrt(asl.PERIODS_PER_YEAR) if sd > 0 else float("nan"),
         "mean_Rp always-short": float(r_short.mean()),
-        "Sharpe_ann always-short": float(r_short.mean() / r_short.std() * np.sqrt(252)),
+        "Sharpe_ann always-short": float(r_short.mean() / r_short.std() * np.sqrt(asl.PERIODS_PER_YEAR)),
         "start": pd.Timestamp(px.index.min()),
         "end": pd.Timestamp(px.index.max()),
     })
@@ -886,7 +1079,7 @@ for tag, rv in models.items():
     px = books[tag]
     keep = px["iv_var_dropcens"].notna()
     rp = px.loc[keep, "R_p"]
-    drop_rows[LABEL[tag]] = {"n_days": int(keep.sum()), "Sharpe_ann": float(rp.mean() / rp.std() * np.sqrt(252.0)),
+    drop_rows[LABEL[tag]] = {"n_days": int(keep.sum()), "Sharpe_ann": float(rp.mean() / rp.std() * np.sqrt(asl.PERIODS_PER_YEAR)),
                              "t": float(rp.mean() / rp.std() * np.sqrt(len(rp)))}
 print(f"sign(s) with the {int((~books['blk2']['iv_var_dropcens'].notna()).sum())} censored-implied days dropped instead of re-inverted (per model):")
 print(pd.DataFrame(drop_rows).T.to_string())
@@ -900,7 +1093,7 @@ print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var
         r"""
 ## 10. Rule table, grouped by strategy
 
-Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the seven forecasting models as rows**, scored on the days common to all seven portfolios. Fills are at the midpoint quote. The always-short rule uses no forecast, so its seven rows are identical and it is shown as a single row.
+Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the eight forecast tables as rows**, scored on the days common to all eight portfolios. Fills are at the midpoint quote. The always-short rule uses no forecast, so its eight rows are identical and it is shown as a single row.
 
 **The rules** (each returns $R'_t = q_t R_t$):
 
@@ -948,7 +1141,7 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
         "skew": float(x.skew()),
         "ex_kurt": float(x.kurt()),
         "t_mean": mu / sd * np.sqrt(n) if sd > 0 else float("nan"),
-        "Sharpe_ann": mu / sd * np.sqrt(252.0) if sd > 0 else float("nan"),
+        "Sharpe_ann": mu / sd * np.sqrt(asl.PERIODS_PER_YEAR) if sd > 0 else float("nan"),
         "n_buy": n_buy,
         "pct_buy": 100.0 * n_buy / n_sz if n_sz else float("nan"),
     })
@@ -960,7 +1153,7 @@ order = [
 ]
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
         "skew", "ex_kurt", "t_mean", "Sharpe_ann", "n_buy", "pct_buy"]
-MODEL_ORDER = ["a0", "blk2", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
+MODEL_ORDER = list(asl.MODEL_ORDER)
 
 common = None
 for tag in MODEL_ORDER:
@@ -1021,6 +1214,156 @@ plt.close(fig)
 """
     ),
     md(
+        r"""### Beating the control, and telling the forecasts apart
+
+The rule table gives each portfolio's own $t$-statistic against zero.
+That is not the question the table is read for. The question is whether
+the $\mathrm{sign}(s)$ portfolio beats the always-short control — and the
+two portfolios hold the identical position on every day the rule stays
+short, so the comparison has to be paired, day by day.
+
+The cell tests three differences on the common days:
+
+- each $\mathrm{sign}(s)$ portfolio minus the always-short control;
+- each exogenous forecast's portfolio minus the baseline's
+  (HAR + calendar OLS);
+- the block-diagonal ridge minus the same ridge without the FOMC
+  columns — what the calendar channels are worth on this trade.
+
+For each it reports the mean daily difference, its plain $t$-statistic,
+its $t$-statistic with heteroskedasticity- and autocorrelation-robust
+standard errors at lag $\lfloor 1.5\,n^{1/3}\rfloor$, and the difference
+of annualized Sharpe ratios with a 95% interval from a circular block
+bootstrap (blocks of 21 days, 2,000 draws, one fixed seed), in both the
+percentile and the basic form. The same resampled days are used for
+every row, so the columns can be compared draw by draw.
+
+Before the differences the cell prints the level: each portfolio's own
+annualized Sharpe ratio with the bootstrap standard error of that Sharpe
+ratio and its 95% percentile interval, on the same resampled days. That
+standard error is the scale against which every difference below should
+be read. A separate line prints how often each portfolio takes the same
+position as the baseline on the same day.
+
+**The reading.** The improvement over the control is unanimous in point
+estimate: every $\mathrm{sign}(s)$ portfolio beats always short, by 0.76
+to 1.31 in annualized Sharpe ratio. It is not resolved. The paired
+$t$-statistics run from 1.06 to 1.70 plain and from 1.18 to 1.90
+autocorrelation-robust, and seven of the eight percentile intervals
+include zero; only XGBoost's clears it, and it clears it by a knife
+edge — a lower bound of 0.02 on an interval 2.46 wide. The scale those
+differences should be read against is the bootstrap standard error of
+the level itself: 0.44 to 0.55, on Sharpe ratios of 0.97 to 1.51.
+
+The forecasts cannot be told apart on this trade. Each exogenous
+forecast minus the baseline is positive in point estimate and none is
+resolved, the largest being the fixed-penalty lasso at 0.54 in Sharpe
+ratio with an autocorrelation-robust $t$ of 1.14; the portfolios take
+the same position as the baseline on 0.82 to 0.87 of the days. The FOMC
+calendar columns are worth 0.07 in Sharpe ratio here ($t$ 0.26,
+percentile interval $-0.49$ to $0.63$) — a contribution this trade
+cannot see, which is why the diagnostic ridge is reported next to the
+ridge of record and not in place of it.
+"""
+    ),
+    code(
+        r"""# --- paired tests: every portfolio against the control, and against the baseline
+PAIR_BLOCK = 21     # circular block length, in trading days
+PAIR_B = 2000       # bootstrap draws
+PAIR_SEED = 0
+
+
+def _sharpe_ann(x) -> float:
+    x = np.asarray(x, float)
+    return float(x.mean() / x.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
+
+
+# ONE set of resampled day indices, drawn once and reused by every portfolio and
+# by the control, so that levels and differences are comparable draw by draw
+PAIR_IDX = asl.circular_block_bootstrap_idx(
+    np.random.default_rng(PAIR_SEED), len(common), PAIR_BLOCK, PAIR_B
+)
+
+
+def _boot_sharpe(x) -> np.ndarray:
+    # the annualized Sharpe ratio of x on each of the PAIR_B resampled day sets
+    x = np.asarray(x, float)
+    assert len(x) == PAIR_IDX.shape[1], "bootstrap indices and series disagree in length"
+    d = x[PAIR_IDX]
+    return d.mean(axis=1) / d.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
+
+
+def _paired(a, b) -> dict:
+    # a minus b on the same days: mean difference, plain and HAC t, Sharpe difference
+    a = np.asarray(a, float)
+    b = np.asarray(b, float)
+    d = a - b
+    n = len(d)
+    sd = float(d.std(ddof=1))
+    t_hac, lag = asl.newey_west_t(d)
+    boot = _boot_sharpe(a) - _boot_sharpe(b)
+    lo, hi = (float(v) for v in np.percentile(boot, [2.5, 97.5]))
+    hat = _sharpe_ann(a) - _sharpe_ann(b)
+    return {"n": n, "mean_diff": float(d.mean()),
+            "t_plain": float(d.mean() / sd * np.sqrt(n)) if sd > 0 else float("nan"),
+            "t_hac": t_hac, "hac_lag": lag, "dSharpe": hat,
+            "pct_lo": lo, "pct_hi": hi, "basic_lo": 2 * hat - hi, "basic_hi": 2 * hat - lo,
+            "interval": _interval_reading(lo, hi)}
+
+
+_rp = {tag: (rule_sizes(books[tag])["sign(s)"] * books[tag]["R"]).loc[common].astype(float)
+       for tag in MODEL_ORDER}
+_bench = (-books[MODEL_ORDER[0]]["R"]).loc[common].astype(float)
+_pos = {tag: books[tag].loc[common, "pos"] for tag in MODEL_ORDER}
+
+pair_rows = []
+for tag in MODEL_ORDER:
+    pair_rows.append({"comparison": "sign(s) minus always short", "model": LABEL[tag],
+                      **_paired(_rp[tag], _bench),
+                      "same_position_as_baseline": float((_pos[tag] == _pos["a0"]).mean())})
+for tag in MODEL_ORDER[1:]:
+    pair_rows.append({"comparison": "sign(s) minus the baseline's sign(s)", "model": LABEL[tag],
+                      **_paired(_rp[tag], _rp["a0"]),
+                      "same_position_as_baseline": float((_pos[tag] == _pos["a0"]).mean())})
+pair_rows.append({"comparison": "FOMC panel minus earlier panel, same ridge",
+                  "model": LABEL["blk2"] + " minus " + LABEL["blk2_inc"],
+                  **_paired(_rp["blk2"], _rp["blk2_inc"]),
+                  "same_position_as_baseline": float((_pos["blk2"] == _pos["blk2_inc"]).mean())})
+# the Sharpe ratio itself, with the sampling spread of the SAME resampled days
+level_rows = []
+for tag in MODEL_ORDER + ["always short"]:
+    _x = _bench if tag == "always short" else _rp[tag]
+    _b = _boot_sharpe(_x)
+    level_rows.append({"comparison": "Sharpe ratio of the portfolio (level)",
+                       "model": "always short (no forecast)" if tag == "always short" else LABEL[tag],
+                       "n": len(common), "sharpe": _sharpe_ann(_x),
+                       "sharpe_se": float(_b.std(ddof=1)),
+                       "sharpe_lo": float(np.percentile(_b, 2.5)),
+                       "sharpe_hi": float(np.percentile(_b, 97.5))})
+level_tab = pd.DataFrame(level_rows)
+print("annualized Sharpe ratio of each portfolio, with the circular block-bootstrap standard error and")
+print(f"95% percentile interval (blocks of {PAIR_BLOCK} days, {PAIR_B} draws, one seed, the same resampled days on every row):")
+print(level_tab[["model", "n", "sharpe", "sharpe_se", "sharpe_lo", "sharpe_hi"]].to_string(
+    index=False, float_format=lambda x: f"{x: .4f}"))
+print("---")
+
+diff_tab = pd.DataFrame(pair_rows)
+pair_tab = pd.concat([level_tab, diff_tab], ignore_index=True)
+_show = ["model", "n", "mean_diff", "t_plain", "t_hac", "hac_lag", "dSharpe",
+         "pct_lo", "pct_hi", "basic_lo", "basic_hi", "interval"]
+for _cmp, _g in diff_tab.groupby("comparison", sort=False):
+    print(_cmp)
+    print(_g[_show].to_string(index=False, float_format=lambda x: f"{x: .4f}"))
+    print("---")
+print("share of days each portfolio takes the same position as the baseline:")
+print(diff_tab[diff_tab["comparison"] == "sign(s) minus always short"]
+      .set_index("model")["same_position_as_baseline"].to_string(float_format=lambda x: f"{x:.3f}"))
+print("the last row of the second block compares the two ridge rows, not a portfolio with the baseline")
+pair_tab.to_csv(OUT / "paired_tests.csv", index=False)
+print("saved", OUT / "paired_tests.csv")
+"""
+    ),
+    md(
         r"""
 ### Shifting the forecast in time: the look-ahead cliff
 
@@ -1044,12 +1387,14 @@ is the end of the road: the traded bar's realized variance in place of
 the forecast.
 
 The rule is sharp on both sides of the close. One bar stale, the
-block-diagonal ridge forecast falls from about $1.4$ to about $0.3$,
-and every stale shift sits below the trade for every forecast. One bar
-after the close, with the traded bar now inside the lags, it jumps to
-about $3.3$ and the tree forecasts to $4.0$–$4.3$, close to the
-realized-variance ceiling of about $4.5$; the lift fades over the next
-bars as the lags move on.
+block-diagonal ridge forecast falls from 1.34 to 0.48, and no stale
+shift reaches its own trade for any forecast except the elastic net,
+whose two-bar-stale row (1.04) edges past its bar+0 (1.02) — the one
+forecast this test does not separate from its stale copies. One bar
+after the close, with the traded bar now inside the lags, the ridge
+jumps to 3.11 and the two tree forecasts to 4.09 and 4.26, close to the
+realized-variance ceiling of 4.53; the lift fades over the next bars as
+the lags move on.
 """
     ),
     code(
@@ -1060,7 +1405,7 @@ BAR_SHIFTS = list(range(-11, 7))   # -11 = the 10:30 row ... 0 = the 16:00 row (
 
 def sharpe_ann(x):
     x = pd.Series(x).dropna()
-    return float(x.mean() / x.std(ddof=1) * np.sqrt(252.0))
+    return float(x.mean() / x.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
 
 
 def load_panel_mz(path):
@@ -1108,7 +1453,7 @@ for tag in MODEL_ORDER:
     ax.plot(BAR_SHIFTS, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in BAR_SHIFTS], marker="o", ms=3, lw=lw, label=LABEL[tag])
 pf = float(shift_tab["realized"].mean())
 ax.plot([x_star], [pf], marker="*", ms=11, lw=0, color="k")
-ax.annotate(f"{pf:.1f} (all seven forecasts)", (x_star, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
+ax.annotate(f"{pf:.1f} (all {len(MODEL_ORDER)} forecasts)", (x_star, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
 ax.axvline(0.0, color="k", lw=0.8)
 ax.axhline(sharpe_as, color="0.5", lw=0.9, ls="--")
 ax.axhline(0.0, color="k", lw=0.4)
@@ -1138,7 +1483,7 @@ decision enters the signal. Per forecast, the least-squares fit
 $$R_t = a + b\,s_t + \varepsilon_t$$
 
 with heteroskedasticity-robust standard errors: the table gives $b$, its
-$t$-statistic and $R^2$ for the seven forecasts. The slope is a weak
+$t$-statistic and $R^2$ for the eight forecasts. The slope is a weak
 instrument for this relation — a few very large signals carry most of
 its leverage — so it is read against the second table, the mean of
 $R_t$ on each side of the signal with the $t$-statistic of the
@@ -1152,6 +1497,22 @@ mean of $R_t$ by level of the signal, ten equal-count bins of $s_t$
 labelled by their median value in units of $10^{-6}$ (30-minute
 variance), coloured by the sign of that median (the bin that straddles
 zero is mixed). Means only; the $t$-statistics are in the tables.
+
+The third table takes the magnitude of the signal seriously. Within each
+side of the signal — the days the rule sells and the days it buys — the
+settlement return is regressed on $s_t$ again, with
+heteroskedasticity-robust standard errors. The slopes are not zero.
+Within the sell side the slope of $R_t$ on $s_t$ is negative for every
+model and resolved for every model ($t$ between $-2.2$ and $-5.7$): the
+further below zero the signal sits, the larger the settlement return,
+so the short position earns less on the days its signal is most
+extreme. Within the buy side the slope is negative too, but resolved
+for only two of the eight, the two ridge rows.
+The precise claim is therefore narrower than "only the sign matters":
+conditional means do vary with the magnitude inside a side, and sizing
+the position by $|s_t|$ did not raise the Sharpe ratio when it was
+tried. That sizing work is parked and lives in the experimental
+notebook; this notebook holds $|q_t| = 1$ every day.
 """
     ),
     code(
@@ -1199,6 +1560,26 @@ print("---")
 print("mean R_t by the sign of the 15:30 signal (difference with a heteroskedasticity-robust t):")
 print(split_tab.to_string(index=False))
 split_tab.to_csv(OUT / "sameday_sign_split.csv", index=False)
+
+# within-side slopes: does the MAGNITUDE of the signal carry anything beyond its sign?
+mag_rows = []
+for tag in MODEL_ORDER:
+    px = books[tag].loc[common]
+    s = px["signal"].astype(float)
+    r = px["R"].astype(float)
+    ok = np.isfinite(s) & np.isfinite(r)
+    rec = {"model": LABEL[tag]}
+    for side, mask in (("sell", ok & (s <= 0)), ("buy", ok & (s > 0))):
+        f_ = ls_fit(r[mask].to_numpy(), s[mask].to_numpy())
+        rec[f"b_{side}"] = float(f_.params[1])
+        rec[f"t_{side}"] = float(f_.tvalues[1])
+        rec[f"n_{side}"] = int(mask.sum())
+    mag_rows.append(rec)
+mag_tab = pd.DataFrame(mag_rows)
+print("---")
+print("least squares of R_t on s_t WITHIN each side of the signal (heteroskedasticity-robust t):")
+print(mag_tab.to_string(index=False))
+mag_tab.to_csv(OUT / "within_side_slope.csv", index=False)
 
 s, r, fit = fig_inputs
 fig, axes = plt.subplots(1, 3, figsize=(16, 4.4), gridspec_kw={"width_ratios": [1.3, 1, 1.2]})
@@ -1486,6 +1867,16 @@ $$
 
 The published series is the first line, filled at the midpoint. The plot
 is $\sum_t \Pi_{\$,t}$ for the midpoint and crossed-spread fills.
+
+The crossed-spread row is the one to read next to the midpoint row. It
+pays the ask to buy and receives the bid to sell on the way in and
+settles in cash on the way out, so it charges the whole quoted spread
+once — the worst fill a taker can get, and a bound rather than an
+estimate. On the block-diagonal ridge the $\mathrm{sign}(s)$ portfolio
+goes from an annualized Sharpe ratio of 1.34 at the midpoint to 0.87 at
+the crossed spread ($t$ 1.61), while the always-short control goes from
+0.20 to $-0.27$: the control does not survive the spread and the rule
+does.
 """
     ),
     code(
@@ -1761,7 +2152,7 @@ def wealth_stats(f, r):
     w = np.cumprod(factors)
     return pd.Series({
         "f": f,
-        "g_ann": 252.0 * float(np.mean(np.log(factors))),
+        "g_ann": float(asl.PERIODS_PER_YEAR) * float(np.mean(np.log(factors))),
         "terminal": float(w[-1]),
         "maxDD_frac": float((w / np.maximum.accumulate(w) - 1.0).min()),   # fall from the running peak, as a fraction of the peak
         "worst_day_factor": float(factors.min()),
@@ -1807,7 +2198,7 @@ for name in ("always short", "sign(s)"):
     rs = (rule_sizes(px)[name] * px["R"]).loc[common].astype(float)
     gy = pd.Series(np.log1p(F_FIXED * rs.to_numpy()), index=rs.index)
     print(f"per-year annualized log-growth, block-diagonal ridge, {name}:")
-    print((252.0 * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
+    print((float(asl.PERIODS_PER_YEAR) * gy.groupby(gy.index.year).mean()).to_string(float_format=lambda x: f"{x:+.3f}"))
 
 import matplotlib.dates as mdates
 fig, ax = plt.subplots(figsize=(9, 4.2))
@@ -2028,7 +2419,7 @@ off = jacc.values[np.triu_indices(len(jacc), 1)]
 print(f"mean pairwise Jaccard {float(off.mean()):.3f}")
 
 idx = pd.DatetimeIndex(common)
-fig, axes = plt.subplots(len(MODEL_ORDER), 1, figsize=(11, 7.2), sharex=True)
+fig, axes = plt.subplots(len(MODEL_ORDER), 1, figsize=(11, 8.2), sharex=True)
 for ax, tag in zip(axes, MODEL_ORDER):
     days = idx[buy[tag].to_numpy()]
     ax.vlines(days, 0, 1, color="C0", lw=0.5)

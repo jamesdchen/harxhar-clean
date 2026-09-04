@@ -29,18 +29,23 @@ $S_{\mathrm{cl}}$,
 with no delta hedge and no share unwinding. The long return is
 $R = \Pi_{\mathrm{long}}/P_{15:30}$; a short earns $-R$. By
 construction $R \ge -1$, with equality on the days the close settles
-strictly between $K_p$ and $K_c$ and both legs expire worthless. The
+between $K_p$ and $K_c$, either endpoint included, and both legs expire
+worthless. The
 16:00 chain underlying is retained only as a check on the settlement
 print. Early-close sessions are dropped. The session ends at 13:00 on those
 days, so the 15:30 chain row is stamped after the close and carries stale
 quotes: the settlement is already known there and the short is a certain
 $+1$. The test is a non-positive time to expiry on the 15:30 row --- the
 vendor's \texttt{early\_close} column is true on every row of this file and
-is not used. Twelve such sessions appear in the chain, and the five
-that fall inside the forecast window leave the scored frame.
+is not used. Twelve such sessions appear in the chain.
+Six of them fall inside the forecast window, and the
+five of those that carry a $16{:}00$ forecast row are the days
+the filter takes out of the scored frame; the remaining one never had a
+forecast row to lose.
 
-\paragraph{Forecast remaining variance.} Seven of the paper's per-bar
-forecasts enter the same rules on the same contracts: the baseline (HAR + calendar OLS) forecast
+\paragraph{Forecast remaining variance.} Eight per-bar forecast series
+enter the same rules on the same contracts. Seven are estimators the body
+of the paper defines: the baseline (HAR + calendar OLS) forecast
 (Section~\ref{sec:dp_benchmark}), the block-diagonal ridge
 (HAR versus exogenous block, separate penalties;
 Section~\ref{sec:block_tikhonov}), LightGBM and XGBoost on the wide
@@ -50,16 +55,35 @@ protocol of the paper's tuned ridge (Section~\ref{sec:dense_weak}), a
 lasso at a fixed $\alpha = 10^{-4}$, and a causally tuned elastic net
 --- the interpolating $\ell_1/\ell_2$ family --- on the same wide
 all-features design (battery grid \texttt{logspace(-6,-2,5)} at
-\texttt{l1\_ratio=0.5}, arm \texttt{b3\_enet\_tuned}). All seven are
-stored on the estimation scale $y=\sqrt{RV/B}$. The 15:30 row is mapped
-to raw thirty-minute variance by the causal second-order back-transform
-of
+\texttt{l1\_ratio=0.5}, arm \texttt{b3\_enet\_tuned}). The eighth is not
+a competing model: it is the block-diagonal ridge again, refit on a design
+that carries no FOMC calendar columns, and it is carried as a diagnostic
+row --- ``block-diagonal ridge, without the FOMC columns'' --- because the
+gap between it and the ridge of record is what those calendar channels are
+worth on this trade, and nothing else in the table isolates them. All eight
+are stored on the estimation scale $y=\sqrt{RV/B}$. The 15:30 row is mapped
+to raw thirty-minute variance by a causal second-order back-transform
+\emph{adapted from} the evaluation protocol of
 Section~\ref{sec:smearing_contract}: a Mincer--Zarnowitz map
 $m=a+b\,\widehat{y}$ and a residual second moment $\hat\sigma^2$, both
 fit on the previous 250 trading sessions only, then
 $\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
-15:30--16:00 bar. Forecast files end on 30~April~2024, so later
-expiration days are not scored.
+15:30--16:00 bar. Adapted, not inherited, and the three differences are
+stated rather than buried. The protocol's map is an ordinary least-squares
+fit over the preceding \emph{evaluation window}, and its second moment
+opens at that window's mean squared residual and then decays
+exponentially within the window at $\lambda = 0.6$
+(Equations~\eqref{eq:mean_calib}--\eqref{eq:var_ewma}). The map used here
+is a \emph{weighted} fit, over a flat lookback of $250$ trading
+\emph{sessions}, and its second moment is that same window's residual
+variance held fixed across it. The differences are what a daily exercise
+can refit --- this section scores 866 daily observations, not a quarter
+million bars --- but they mean no number in this section is produced by the
+map that produced the QLIKE tables, and none is carried between the two.
+Forecast files end on 30~April~2024. The chain itself runs to
+31~December~2025, so the 413 expiration days from 1~May~2024
+onward --- the most recent twenty months of contiguous tape --- carry no
+forecast row and are not scored anywhere below.
 
 Two conventions matter for honesty. \emph{Alignment}: forecast rows
 are labelled by the end of the bar they predict, so the row read at
@@ -70,17 +94,115 @@ is therefore known at 15:30. \emph{Weighting}: the map and the
 residual moment solve weighted least squares with weights
 $1/\max(\widehat{y}_u,\,q_{10})^{2}$, where $q_{10}$ is the tenth
 percentile of $\widehat{y}$ within the same trailing window, and the
-fit window is restricted to regular-session bars. The weighting
+fit window is restricted to regular-session bars. \emph{Regular session}
+is an explicit mask, not an assumption, because the panel underneath is a
+futures panel (Section~\ref{sec:dp_data}): a bar enters the fit only if
+its own stamp lies in $10{:}30$--$16{:}00$, if its date carries a
+$16{:}00$ stamp at all --- which drops cash-market holidays, whose futures
+session ends at $13{:}00$ or $11{:}30$ --- and if its date is not one of
+the NYSE $13{:}00$ early closes of 2001--2025, which drops the post-close
+bars those days print through $16{:}00$. The mask is not cosmetic. Of the
+$69{,}298$ bars the stamp window alone would admit it removes $1{,}083$,
+which is $1.56\%$ of them: $510$ rows on $48$ of the $55$ early-close dates
+in the 2001--2025 calendar, and $573$ rows on a further $125$ dates that
+carry no $16{:}00$ stamp at all --- exchange holidays, whose rows here are
+futures-only bars, and a few dates whose tape stops early. Those bars carry
+far less variance than a regular one, so in a weighted fit they enter at a
+low $y$ and drag the calibrated forecast down on every scored row.
+
+One related contamination is disclosed rather than repaired. The per-slot
+factor $B$ that scales the target is a trailing twenty-session mean of the
+same slot, and it is built upstream of this section, before any of the
+masking above: on an early close it absorbs that day's post-close bars, so
+for the following twenty sessions the $16{:}00$ slot's $B$ sits a few
+percent low. Ninety-four of the 866 scored days fall inside such a window.
+The effect on the trade is second order --- $\widehat{RV}=(m^2+\hat\sigma^2)B$
+moves with $B$, but so does the $y$ the map is calibrated against, and the
+two largely cancel --- and a separate audit bounded what survives the
+cancellation at under a tenth of a Sharpe ratio and a handful of flipped
+positions. Repairing it at the source means regenerating the forecast
+tables, and it is part of the pending campaign.
+
+The weighting
 addresses a level effect --- an unweighted fit is dominated by the
 largest bars --- and was adopted on a forecast-accuracy criterion, not on
 any portfolio outcome. A median-targeting map (the same line fitted by weighted least
 absolute deviations, $\widehat{RV}=m^2 B$) was tested and not adopted:
 it is right about the sign more often but earns less, because the
-straddle's payoff is carried by the right tail of realized variance
+package's payoff is carried by the right tail of realized variance
 that a median discards, and it cuts the $\mathrm{sign}(s)$ portfolio's
-Sharpe ratio for all seven forecasts (block-diagonal ridge 1.42 to
-0.50), though no one of those differences is resolved at 95\% by a
+Sharpe ratio for all eight columns (block-diagonal ridge 1.34 to
+0.49), though no one of those differences is resolved at 95\% by a
 circular-block bootstrap.
+
+\paragraph{Which panel produced which row.} The eight columns were not
+all produced on one design, and the tables say which each came from. The
+\emph{FOMC panel} --- the $1{,}264$-column design that carries the FOMC
+calendar block --- is the panel of record here: the block-diagonal ridge
+and the fixed lasso are fitted on it. The causally tuned lasso, the
+elastic net, LightGBM and XGBoost are still on the $1{,}144$-column
+\emph{earlier} panel, which has no such block; a run of those four on the
+panel of record is pending, and the tables mark them so. The baseline is
+invariant to the swap --- it reads no exogenous column, and re-derived on
+both panels it agrees to $2\times 10^{-11}$ --- so its row is unaffected.
+For an arm that does read exogenous columns the swap is not cosmetic: on
+the ridge it moves the $16{:}00$ forecast by a median of $1.1\%$, and by
+more than $1\%$ on $53\%$ of trading days. That is why the diagnostic row
+exists, and why a ranking that mixes rows from the two panels would not be
+a like-for-like ranking. Each table's file, panel, chunk tree, code
+fingerprint and refit contract is recorded in
+\texttt{results/spxw\_pnl/MANIFEST.md}.
+
+\paragraph{Refit contract, hyperparameters, and what is not recoverable.}
+Every linear arm is refit at each bar on a rolling window of $24{,}000$
+bars (about $480$ trading sessions); the tuned lasso and elastic net
+re-select their penalty from the fixed grid every $250$ solves, on the
+embargoed forward tail of the current window. The two tree columns are
+reported as shipped and are less clean than that. Their settings are
+indices $00$ and $16$ into a frozen twenty-arm menu whose file is absent
+both from the working tree and from the repository's history, so the
+hyperparameters behind those two columns cannot be recovered; the two arms
+were hand-picked from that bank and the basis of the pick is not recorded.
+Their refit cadence is mixed as well: one cluster refit at every bar and
+another every tenth bar, both contributed chunks to the same harvest, and
+neither the chunk metadata nor the shipped table records which cadence
+produced which stretch. A cadence coarser than one bar is stale but still
+causal --- the fit still sees only strictly prior data, and an instrumented
+replay found no look-ahead at either cadence --- so this is a provenance
+defect and not a leak. One caveat attaches to the ridge of record too: its
+table came from a cluster run identified by code fingerprint rather than by
+a commit. The same estimator specification reproduces the corresponding
+earlier-panel chunks to $2\times 10^{-13}$, so the estimator is confirmed;
+what cannot be re-derived on a workstation is the panel build under that
+exact code. A campaign that regenerates all eight columns under one
+committed revision --- tree menu re-frozen, and cadence, thread count,
+library versions and code hash written into every chunk --- is the stated
+remedy, and it has not been run.
+
+Two facts about the FOMC block itself belong with that. The release feed
+behind it ends on 1~November~2023, so 122 of the 866 scored
+expiration days --- $14.1\%$ --- fall after the feed is dead, and the
+meetings of
+13~December~2023, 31~January~2024 and 20~March~2024 carry no FOMC signal at
+all. And the release-\emph{surprise} channel is a dead constant over the
+whole panel: it is logged and then winsorized on a rolling $240$-bar
+window, which clips a single-bar event to the running bound every time. So
+``FOMC in the design'' means, operationally, the meeting-day indicator and
+the bars-until and bars-since counters, and it means them only through
+1~November~2023. The diagnostic row above measures the calendar channels as
+they actually are in the shipped panel, not as they would be with a feed
+that reaches the end of the sample.
+
+\paragraph{What the 16:00 target is.} The forecast series predict $RV$ on
+the paper's own panel, which is built from a near-24-hour futures tape
+(Section~\ref{sec:dp_data}). The row read at 15:30 is therefore the
+realized variance of the futures $15{:}30$--$16{:}00$ bar; it is not a
+measurement of the cash market's settlement procedure, and it is nonzero on
+days the cash market is shut. The option, by contrast, settles at the
+official S\&P~500 close. On a regular session the two describe the same
+half hour of the same index and the comparison is the intended one; the fit
+mask above exists precisely to keep the sessions on which they are not
+aligned out of both the calibration and the trade.
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package
@@ -105,11 +227,11 @@ zero rate on the 15:30 index level, the vendor's own convention, over the
 remaining half hour --- for the total volatility that reproduces the 15:30
 midpoint. On uncensored legs that same inversion
 reproduces the quoted midpoint to quote precision (median model-to-quote
-price ratio 1.0000, 5th to 95th percentile 0.9969 to 1.0062),
-so ``quoted'' and ``inverted'' implied volatility coincide there. Dropping
-the censored days outright instead of recovering them moves no
-$\mathrm{sign}(s)$ Sharpe ratio in Section~\ref{sec:close_option_results} by
-more than 0.06.
+price ratio 1.0000, 5th to 95th percentile 0.9969 to
+1.0062), so ``quoted'' and ``inverted'' implied volatility coincide
+there. Dropping the censored days outright instead of recovering them moves
+no $\mathrm{sign}(s)$ Sharpe ratio in
+Section~\ref{sec:close_option_results} by more than 0.06.
 
 \paragraph{Signal.} The two measurements are compared in variance
 space,
@@ -129,13 +251,16 @@ information dated $t$ or earlier.
 the same days; only $q_t$ changes.
 \begin{itemize}
 \itemsep2pt
-\item \emph{Short volatility}: $q_t = -1$ every day. The rule takes no
-      forecast --- it is the variance-risk-premium portfolio with nothing in
-      it, and the control for the other.
-\item \emph{$\mathrm{sign}(s)$}: $q_t = \mathrm{sign}(s_t)$, long
-      the package when the forecast exceeds implied variance and short
-      otherwise. Direction only, at unit size. This is the headline
-      rule.
+\item \emph{Always short}: $q_t = -1$ every day. The rule reads no
+      forecast --- it is the variance-risk-premium portfolio with nothing
+      in it --- and it is the control for the other. It is called the
+      always-short control throughout, and it is one row of every table
+      because it is the same portfolio whichever forecast sits beside it.
+\item \emph{$\mathrm{sign}(s)$}: $q_t = +1$ when $s_t > 0$ and
+      $q_t = -1$ otherwise --- long the package when the forecast exceeds
+      implied variance, short when it does not, with the tie at $s_t = 0$
+      resolved short so that the position is never flat. Direction only, at
+      unit size. This is the headline rule.
 \end{itemize}
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
@@ -213,20 +338,40 @@ day. For a portfolio of $n$ daily returns,
 $t = \sqrt{n}\,\overline{R'}/\hat{s}(R')$, and the annualized Sharpe
 ratio is $\overline{R'}/\hat{s}(R')\times\sqrt{252}$; the two carry the
 same information at fixed $n$, and both are reported so the tables read
-either way. Fills are at the 15:30 mid throughout, and no spread
-crossing, borrow, or market-impact model is applied.
+either way. The $\sqrt{252}$ is a per-\emph{trade}-day convention: one row
+of the daily series is one trading period, and $252$ of them make a year.
+This frame does not trade $252$ days a year. SPXW listed Monday, Wednesday
+and Friday expirations before June~2022 and every session after, so over
+2020--2024 it trades 200.3 days a year and reaches $252$ only from
+mid-2022 on. A calendar-time annualization --- fill the non-expiration
+sessions with a zero return and keep $\sqrt{252}$ --- multiplies every
+annualized figure in this section by 0.892 and leaves every comparison
+between rules and columns unchanged. The convention is stated rather than
+switched, because the per-trade-day figure is the one a reader can
+recompute from a table row's own mean and standard deviation. Fills are at
+the 15:30 midpoint throughout, and no borrow or
+market-impact model is applied. The one alternative fill that is reported
+is the \emph{crossed spread}: both legs bought at the ask when the rule is
+long and both sold at the bid when it is short, at entry only, since the
+position is held into a cash settlement and pays no exit spread. It is
+quoted beside the midpoint figure in
+Section~\ref{sec:close_option_results} rather than replacing it, because
+the midpoint figure is the one every other number in this section is
+computed at.
 
-The short-volatility control is the 15:30 end of the clock in
+The always-short control is the 15:30 end of the clock in
 Section~\ref{sec:related}: \citet{HizmeriBevilacqua2025} locate the
 predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
 Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
-forecast on 57 to 68\% of days depending on the forecast
+forecast on 59 to 68\% of days depending on the column
 (60\% for the headline), so the portfolio leans short more often
 than long. What the forecast contributes at this hour is the
 \emph{sign} of the day --- which side of the quoted premium to stand
-on. Sizing beyond the sign is tested rather than assumed:
-Section~\ref{sec:close_option_results} reports the magnitude
-experiments, none of which is retained; the compounding exercise there
-bets a fixed fraction of wealth and reads nothing from the signal.
+on. Sizing beyond the sign was tested rather than assumed, and it is not
+retained: scaling the position by the rank of $|s_t|$ within its own
+trailing distribution raised no portfolio's Sharpe ratio, and that overlay
+is parked rather than reported. The compounding exercise of
+Section~\ref{sec:close_option_results} bets a fixed fraction of wealth and
+reads nothing from the signal.

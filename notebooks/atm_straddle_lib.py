@@ -25,14 +25,40 @@ MZ_HALFLIFE_DAYS = 63  # EWMA halflife (days) for the smear's sufficient statist
 YHAT_LABEL = {
     "a0": "baseline (HAR + calendar OLS)",
     "blk2": "block-diagonal ridge",
+    "blk2_inc": "block-diagonal ridge, without the FOMC columns",
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
     "lasso_t": "lasso (causally tuned)",
     "lasso_f": "lasso (fixed 1e-4)",
     "enet": "elastic net (causally tuned)",
 }
-MODEL_ORDER = ["a0", "blk2", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
+# The FOMC panel is the panel of record: "blk2" and "lasso_f" are fitted on it.
+# "blk2_inc" is the same ridge on the earlier panel, which carries no FOMC
+# columns; it sits directly after "blk2" as the diagnostic that isolates those
+# channels. "lgbm", "xgb", "lasso_t" and "enet" are still on the earlier panel
+# (a run on the FOMC panel is pending). results/spxw_pnl/MANIFEST.md records the
+# panel, chunk tree and code provenance of every table.
+MODEL_ORDER = ["a0", "blk2", "blk2_inc", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
 RULE_ORDER = ["always short", "sign(s)"]
+
+PERIODS_PER_YEAR = 252.0
+"""Annualization convention: per TRADE-DAY scaling, not calendar time.
+
+Every annualized figure in this library (rule_row's Sharpe_ann,
+information_ratio's te_ann and IR_ann) multiplies a per-observation
+statistic by sqrt(PERIODS_PER_YEAR): each row of the return series is
+one trading period and 252 of them make a year.
+
+The 0DTE frame does not trade 252 days a year over the whole sample.
+SPXW listed Monday/Wednesday/Friday expirations before June 2022 and
+every session after, so the traded frame averages about 200 trade days
+a year across 2020-2024 and reaches 252 only from 2022-06 on. A
+calendar-time annualization (fill the non-0DTE sessions with a zero
+return, keep sqrt(252)) therefore scales the whole-sample figures by
+sqrt(200.3 / 252) = 0.89; relative comparisons between rules and models
+are unaffected. Call trades_per_year() on the frame's index to print
+the realized rate for the period being reported.
+"""
 
 
 def find_repo(start: Path | None = None) -> Path:
@@ -46,16 +72,40 @@ def find_repo(start: Path | None = None) -> Path:
 
 
 def yhat_paths(repo: Path) -> dict[str, Path]:
+    """Tag -> forecast table. Keys and order match MODEL_ORDER.
+
+    yhat_b2lasso.parquet (the fixed lasso on the earlier panel) is still on
+    disk but no tag points at it: the fixed lasso is reported on the panel of
+    record. results/spxw_pnl/MANIFEST.md covers it too.
+    """
     root = repo / "results" / "spxw_pnl"
     return {
         "a0": root / "yhat_a0.parquet",
         "blk2": root / "yhat_blk2_fomc1.parquet",
+        "blk2_inc": root / "yhat_blk2.parquet",
         "lgbm": root / "yhat_tree00.parquet",
         "xgb": root / "yhat_tree16.parquet",
         "lasso_t": root / "yhat_b2lasso_tuned.parquet",
-        "lasso_f": root / "yhat_b2lasso.parquet",
+        "lasso_f": root / "yhat_b2lasso_fomc1.parquet",
         "enet": root / "yhat_b3enet_tuned.parquet",
     }
+
+
+def trades_per_year(index) -> float:
+    """Realized trade days per year on a DatetimeIndex: n / (span in years).
+
+    The span runs from the first to the last stamp and is measured in
+    365.25-day years, so a frame that trades every session returns about
+    252 and the 0DTE frame's 2020-2024 span returns about 200. Use it to
+    print the rate behind the sqrt(PERIODS_PER_YEAR) convention; see the
+    PERIODS_PER_YEAR docstring. Returns NaN for fewer than two stamps or a
+    zero-length span.
+    """
+    idx = pd.DatetimeIndex(pd.to_datetime(pd.Index(index)))
+    if len(idx) < 2:
+        return float("nan")
+    span = (idx.max() - idx.min()).total_seconds() / (365.25 * 86400.0)
+    return float(len(idx) / span) if span > 0 else float("nan")
 
 
 def weighted_median(y, w) -> float:
@@ -414,6 +464,49 @@ FIT_MASK_MINUTES = (
     16 * 60,
 )  # stamps 10:30..16:00 = trade bars 10:00..15:30 under bar-end labels
 EARLY_CLOSE_DATES = (
+    "2001-07-03",
+    "2001-11-23",
+    "2001-12-24",
+    "2002-07-03",
+    "2002-11-29",
+    "2002-12-24",
+    "2003-07-03",
+    "2003-11-28",
+    "2003-12-24",
+    "2004-11-26",
+    "2005-11-25",
+    "2006-07-03",
+    "2006-11-24",
+    "2007-07-03",
+    "2007-11-23",
+    "2007-12-24",
+    "2008-07-03",
+    "2008-11-28",
+    "2008-12-24",
+    "2009-11-27",
+    "2009-12-24",
+    "2010-11-26",
+    "2011-11-25",
+    "2012-07-03",
+    "2012-11-23",
+    "2012-12-24",
+    "2013-07-03",
+    "2013-11-29",
+    "2013-12-24",
+    "2014-07-03",
+    "2014-11-28",
+    "2014-12-24",
+    "2015-11-27",
+    "2015-12-24",
+    "2016-11-25",
+    "2017-07-03",
+    "2017-11-24",
+    "2018-07-03",
+    "2018-11-23",
+    "2018-12-24",
+    "2019-07-03",
+    "2019-11-29",
+    "2019-12-24",
     "2020-11-27",
     "2020-12-24",
     "2021-11-26",
@@ -426,7 +519,54 @@ EARLY_CLOSE_DATES = (
     "2025-07-03",
     "2025-11-28",
     "2025-12-24",
-)  # 13:00 ET closes; the 24-h forecast grid still carries a post-close 16:00 bar on them
+)
+"""The NYSE 13:00 ET early-close calendar, 2001-2025 (55 dates).
+
+A calendar property, known ex ante, not a property of any data file.
+Generated by the standing NYSE rule and checked date by date:
+
+  * the Friday after Thanksgiving, every year;
+  * December 24 when it is a weekday and is not itself the observed
+    Christmas holiday (when December 25 falls on a Saturday the holiday
+    is observed on Friday December 24 and the market is closed, not
+    early-closed: 2004, 2010, 2021 carry no December 24 entry);
+  * July 3 when both July 3 and July 4 are weekdays (July 4 on a Monday
+    puts July 3 on a Sunday; July 4 on a Saturday makes July 3 the
+    observed holiday, a full closure).
+
+No further one-off 13:00 closes fall in 2001-2025: the other calendar
+irregularities of the period are full closures (2001-09-11..14,
+2004-06-11, 2007-01-02, 2012-10-29..30, 2018-12-05, 2025-01-09) and
+leave no row behind.
+
+VERIFICATION against results/spxw_pnl/yhat_a0.parquet (2001-07-13 to
+2024-04-30, 5,713 dates with a 16:00 stamp). Statistic: the 16:00-slot
+rv_raw divided by the mean of the previous 20 sessions' 16:00-slot
+rv_raw. 28 of the 55 calendar dates carry a 16:00 row in the panel; 26
+of those 28 sit in the bottom 2% of that ratio over all sessions (24 in
+the bottom 1%), and every panel date whose ratio falls below 0.05 (15
+dates) is a calendar date -- the panel produces no collapse the
+calendar does not name. Two documented discrepancies, both kept in the
+constant because the calendar is the authority:
+
+  * 2002-07-03 -- ratio 1.00; the panel's 10:30-16:00 rv is flat through
+    the afternoon with no collapse at all. The early close is real
+    (July 4, 2002 was a Thursday); the pre-2008 tape repeats stale
+    prints overnight, so the post-close bars carry manufactured
+    variance rather than none.
+  * 2019-11-29 -- ratio 1.05; F1 flagged this half session separately
+    for an inverted intraday profile (the 13:30 bar is the day's
+    largest).
+
+The 24-hour futures grid keeps printing after the 13:00 cash close, so
+these dates still carry a stamp-16:00 row; it is a post-close bar, not
+a forecast of the traded 15:30-16:00 window, and it is excluded from
+the fit mask and from every loader's output.
+
+early_close_days(chain), which derives the half sessions from the
+option chain's hours_to_expiration, covers 2020 onward only and must
+stay a subset of this constant within the chain's coverage.
+"""
 
 
 def _panel_frame(path: Path) -> tuple[pd.DataFrame, np.ndarray]:
@@ -434,10 +574,38 @@ def _panel_frame(path: Path) -> tuple[pd.DataFrame, np.ndarray]:
 
     The tables store t as tz-aware UTC. A tz-naive file would silently be
     read as the 20:00/21:00 ET overnight bars (the 2026-08-17 misjoin), so
-    tz-awareness is asserted. The fit mask covers the stamps in
-    FIT_MASK_MINUTES and is False on EARLY_CLOSE_DATES, whose stamp-16:00
-    row is a post-close bar (the cash market closed at 13:00); those dates
-    are also excluded from every loader's output.
+    tz-awareness is asserted.
+
+    The fit mask is the paper's "fit window restricted to regular-session
+    bars": a row is in the mask when all three hold.
+
+      1. its stamp lies in FIT_MASK_MINUTES (10:30..16:00, the trade bars
+         10:00..15:30 under bar-end labels);
+      2. its date is not in EARLY_CLOSE_DATES, whose stamp-16:00 row is a
+         post-close bar (the cash market closed at 13:00);
+      3. its date is a SESSION date, meaning the table carries a
+         stamp-16:00 row for it. NYSE holidays are not gaps in this
+         24-hour futures panel but shortened futures sessions whose bars
+         end at 13:00 or 11:30 and never reach 16:00; their rows are
+         low-variance morning bars that would otherwise enter the
+         recalibration fit at about a seventh of the typical y.
+
+    Measured on the forecast tables (all nine share t): 69,298 rows fall in
+    the stamp window and 68,215 survive both rules, so 1,083 are removed.
+    Against the library's previous mask -- which knew only the twelve 2020+
+    early closes and had no session rule, leaving 69,230 rows -- the change
+    removes 1,015 rows:
+
+      * 547 futures-only holiday rows on 122 dates whose last in-window
+        stamp is 11:30 or 13:00 (shortened futures sessions on NYSE
+        holidays);
+      *  26 rows on 3 dates whose tape stops before 16:00 (2002-07-05,
+        2003-12-26, 2018-09-03);
+      * 442 rows on the 42 pre-2020 early-close dates the calendar adds.
+
+    The gate suite prints the count. The frame carries the boolean columns
+    early_close and session_date; early-close dates are also excluded from
+    every loader's output.
     """
     df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
     t = pd.to_datetime(df["t"])
@@ -453,7 +621,10 @@ def _panel_frame(path: Path) -> tuple[pd.DataFrame, np.ndarray]:
     rth = ((mins >= lo) & (mins <= hi)).to_numpy()
     early = df["date"].isin(pd.to_datetime(list(EARLY_CLOSE_DATES))).to_numpy()
     df["early_close"] = early
-    return df, rth & ~early
+    at_close = (mins == 16 * 60).to_numpy()
+    session = df["date"].isin(df.loc[at_close, "date"].unique()).to_numpy()
+    df["session_date"] = session
+    return df, rth & ~early & session
 
 
 def _need_days(need_dates, uniq) -> set[int] | None:
@@ -506,7 +677,11 @@ def _recal_source_hash() -> str:
             load_yhat_panel_mz,
         )
     )
+    # Every constant that changes the fit belongs here, not only the code:
+    # the stamp window, the early-close calendar and the session-date rule
+    # (a date is in the fit only if the table carries a stamp-16:00 row).
     src += repr(FIT_MASK_MINUTES) + repr(EARLY_CLOSE_DATES)
+    src += "session_date=has-1600-row"
     return hashlib.sha1(src.encode()).hexdigest()[:12]
 
 
@@ -744,7 +919,9 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
     """Summary row of a daily return series.
 
     t_mean = sqrt(n) * mean / std (no autocorrelation correction);
-    Sharpe_ann = mean / std * sqrt(252); std with ddof=1. skew and
+    Sharpe_ann = mean / std * sqrt(PERIODS_PER_YEAR) (252 trade days a
+    year; see the PERIODS_PER_YEAR docstring for the convention and the
+    calendar-time equivalent); std with ddof=1. skew and
     ex_kurt are pandas' bias-corrected sample estimates (G1 and G2),
     not the raw standardized moments — the standalone footnote says so.
     n_buy counts days with size > 0 (size == 0 is not a buy) among the
@@ -773,7 +950,9 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
             "skew": float(x.skew()) if n else float("nan"),
             "ex_kurt": float(x.kurt()) if n else float("nan"),
             "t_mean": mu / sd * np.sqrt(n) if (sd and sd > 0) else float("nan"),
-            "Sharpe_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
+            "Sharpe_ann": mu / sd * np.sqrt(PERIODS_PER_YEAR)
+            if (sd and sd > 0)
+            else float("nan"),
             "n_buy": n_buy,
             "pct_buy": 100.0 * n_buy / n_sz if n_sz else float("nan"),
         }
@@ -815,6 +994,8 @@ def information_ratio(r_port: pd.Series, r_bench: pd.Series) -> pd.Series:
 
     t_active is the Newey-West (Bartlett) HAC t of the mean active
     return at lag floor(1.5 n^(1/3)) (reported as t_lag); te uses ddof=1.
+    te_ann and IR_ann scale by sqrt(PERIODS_PER_YEAR); see that
+    constant's docstring for the per-trade-day convention.
     """
     a = r_port.astype(float).align(r_bench.astype(float), join="inner")
     active = a[0] - a[1]
@@ -828,8 +1009,12 @@ def information_ratio(r_port: pd.Series, r_bench: pd.Series) -> pd.Series:
             "n": n,
             "mean_active": mu,
             "te_daily": sd,
-            "te_ann": sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
-            "IR_ann": mu / sd * np.sqrt(252.0) if (sd and sd > 0) else float("nan"),
+            "te_ann": sd * np.sqrt(PERIODS_PER_YEAR)
+            if (sd and sd > 0)
+            else float("nan"),
+            "IR_ann": mu / sd * np.sqrt(PERIODS_PER_YEAR)
+            if (sd and sd > 0)
+            else float("nan"),
             "t_active": t_hac,
             "t_lag": lag,
             "corr_to_bench": float(a[0].corr(a[1])) if n >= 3 else float("nan"),

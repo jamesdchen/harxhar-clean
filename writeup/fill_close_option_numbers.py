@@ -1,15 +1,23 @@
 """Resolve the close-option prose numbers from the deck's own artifacts (audit + fill).
 
-The @TOKEN@ slots this script filled on 2026-09-04 are consumed; re-running it
-with --dry prints every resolved value so a reader can check each number in the
-close-option sections against the deck's CSVs, parquets and run log.
+Every value below is read from a file the deck wrote: the rule-table CSVs, the
+paired-test / regression / sign-split / within-side-slope / recalibration /
+fill-variant / cliff / fixed-fraction CSVs, the per-day parquets, and the
+executed run log.  Nothing is retyped from memory.
 
-Every value is read from a file the deck wrote: the rule-table CSVs, the
-regression / sign-split / recalibration / fixed-fraction CSVs, the per-day
-parquets, and the executed run log.  Re-runnable: after the deck re-executes,
-run this again and the paper follows.
+Two modes:
 
-Usage:  python fill_close_option_numbers.py [--dry]
+  python fill_close_option_numbers.py          fill the @TOKEN@ slots in FILES
+  python fill_close_option_numbers.py --dry    resolve and AUDIT, writing nothing
+
+In audit mode the script also checks that every resolved value still appears
+somewhere in FILES.  A value that has gone MISSING means the deck moved a number
+and the prose did not follow, which is exactly the drift this script exists to
+catch.  (Short values such as ``866`` can of course match coincidentally; the
+check is a tripwire, not a proof.)
+
+Re-runnable: after the deck re-executes, re-tokenize the sentence that moved and
+run this again, and the paper follows.
 """
 
 import re
@@ -24,9 +32,13 @@ RES = REPO / "results" / "atm_straddle_0dte_1530"
 WRITEUP = REPO / "writeup"
 LOG = REPO / "notebooks" / "atm_straddle_rv_iv.run.log"
 
+# Eight forecast columns, in the library's MODEL_ORDER.  "blk2_inc" is the
+# diagnostic row (the same ridge on the earlier panel); the four marked
+# "earlier panel" in the manifest carry a dagger in the generated table.
 TAGS = {
     "a0": "baseline (HAR + calendar OLS)",
     "blk2": "block-diagonal ridge",
+    "blk2_inc": "block-diagonal ridge, without the FOMC columns",
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
     "lasso_t": "lasso (causally tuned)",
@@ -34,6 +46,8 @@ TAGS = {
     "enet": "elastic net (causally tuned)",
 }
 B2 = "block-diagonal ridge"
+B2_INC = "block-diagonal ridge, without the FOMC columns"
+ALWAYS_SHORT = "always short (no forecast)"
 
 WORDS = {
     0: "none",
@@ -80,6 +94,10 @@ asr = pd.read_csv(RES / "rule_by_strategy_always_short.csv", index_col=0).iloc[0
 reg = pd.read_csv(RES / "regression_R_on_signal.csv").set_index("model")
 spl = pd.read_csv(RES / "sameday_sign_split.csv").set_index("model")
 rec = pd.read_csv(RES / "recalibration_mean_vs_median.csv").set_index("model")
+pair = pd.read_csv(RES / "paired_tests.csv")
+wside = pd.read_csv(RES / "within_side_slope.csv").set_index("model")
+variants = pd.read_csv(RES / "pnl_variants_blk2.csv")
+cliff = pd.read_csv(RES / "forecast_shift_cliff.csv", index_col=0)
 ff = {t: pd.read_csv(RES / ("fixedfrac_summary_%s.csv" % t), index_col=0) for t in TAGS}
 D = {t: pd.read_parquet(RES / ("daily_%s.parquet" % t)) for t in TAGS}
 
@@ -87,6 +105,7 @@ n_days = int(asr["n"])
 b = D["blk2"]
 assert len(b) == n_days, (len(b), n_days)
 assert list(ss.index) == list(TAGS.values()), list(ss.index)
+assert list(wside.index) == list(TAGS.values()), list(wside.index)
 
 V = {}
 V["NDAYS"] = str(n_days)
@@ -100,19 +119,17 @@ V["AS_SH"] = "%.2f" % asr["Sharpe_ann"]
 # --- sign(s) panel -------------------------------------------------------
 V["SS_MEAN_LO"] = "%.3f" % ss["mean"].min()
 V["SS_MEAN_HI"] = "%.3f" % ss["mean"].max()
-V["SS_T_LO"] = "%.2f" % ss["t_mean"].min()
-V["SS_T_HI"] = "%.2f" % ss["t_mean"].max()
 V["B2_MEAN"] = "%.3f" % ss.loc[B2, "mean"]
 V["B2_T"] = "%.2f" % ss.loc[B2, "t_mean"]
 V["B2_SH"] = "%.2f" % ss.loc[B2, "Sharpe_ann"]
 
-# claim: six of the seven are significant at conventional levels
-n_sig = int((ss["t_mean"].abs() >= 1.96).sum())
-assert n_sig == 6, "PROSE says six of seven significant; table says %d" % n_sig
-# claim: every one of the seven improves on the control
+# claim: every one of the eight improves on the control
 assert (ss["Sharpe_ann"] > asr["Sharpe_ann"]).all(), (
     "not every sign(s) row beats always short"
 )
+# claim: each portfolio's OWN t clears 1.96 for N of the eight -- named in the
+# prose precisely so it is not mistaken for the paired statistic.
+V["NOWNSIG"] = WORDS[int((ss["t_mean"].abs() >= 1.96).sum())]
 
 # claim: the ridge does not lead; name every row above it
 above = ss[ss["Sharpe_ann"] > ss.loc[B2, "Sharpe_ann"]].sort_values(
@@ -125,6 +142,7 @@ NICE = {
     "lasso (causally tuned)": "the causally tuned lasso",
     "elastic net (causally tuned)": "the causally tuned elastic net",
     "baseline (HAR + calendar OLS)": "the baseline",
+    B2_INC: "the same ridge without the FOMC columns",
 }
 if len(above) == 0:
     print("!! the ridge now LEADS the table - the prose must be rewritten by hand")
@@ -139,6 +157,54 @@ V["BUY_HI"] = "%d" % round(ss["pct_buy"].max())
 V["SELL_LO"] = "%d" % round(100 - ss["pct_buy"].max())
 V["SELL_HI"] = "%d" % round(100 - ss["pct_buy"].min())
 V["B2_SELL"] = "%d" % round(100 - ss.loc[B2, "pct_buy"])
+
+# --- paired tests --------------------------------------------------------
+lev = pair[pair["comparison"] == "Sharpe ratio of the portfolio (level)"].set_index(
+    "model"
+)
+vs_as = pair[pair["comparison"] == "sign(s) minus always short"].set_index("model")
+vs_pan = pair[pair["comparison"] == "FOMC panel minus earlier panel, same ridge"].iloc[
+    0
+]
+assert set(vs_as.index) == set(TAGS.values()), sorted(vs_as.index)
+assert ALWAYS_SHORT in lev.index, sorted(lev.index)
+
+V["B2_SH_SE"] = "%.2f" % lev.loc[B2, "sharpe_se"]
+V["B2_SH_LO"] = "%.2f" % lev.loc[B2, "sharpe_lo"]
+V["B2_SH_HI"] = "%.2f" % lev.loc[B2, "sharpe_hi"]
+
+assert (vs_as["dSharpe"] > 0).all(), "the paired improvement is no longer unanimous"
+V["PAIR_DS_LO"] = "%.2f" % vs_as["dSharpe"].min()
+V["PAIR_DS_HI"] = "%.2f" % vs_as["dSharpe"].max()
+V["PAIR_T_LO"] = "%.2f" % vs_as["t_plain"].min()
+V["PAIR_T_HI"] = "%.2f" % vs_as["t_plain"].max()
+V["PAIR_HACT_LO"] = "%.2f" % vs_as["t_hac"].min()
+V["PAIR_HACT_HI"] = "%.2f" % vs_as["t_hac"].max()
+V["B2_PAIR_DS"] = "%.2f" % vs_as.loc[B2, "dSharpe"]
+V["B2_PAIR_T"] = "%.2f" % vs_as.loc[B2, "t_hac"]
+
+incl = vs_as["pct_lo"] <= 0
+V["NPCTZERO"] = WORDS[int(incl.sum())]
+excl = vs_as[~incl]
+assert len(excl) == 1 and excl.index[0] == "XGBoost", (
+    "the set of intervals excluding zero is no longer {XGBoost}: %s" % list(excl.index)
+)
+V["XGB_PCT_LO"] = "%.3f" % float(excl["pct_lo"].iloc[0])
+V["XGB_PCT_W"] = "%.2f" % float(excl["pct_hi"].iloc[0] - excl["pct_lo"].iloc[0])
+
+# FOMC columns' contribution: the two ridge rows, paired
+V["FOMC_DS"] = sig(vs_pan["dSharpe"], 2)
+V["FOMC_T"] = "%.2f" % vs_pan["t_hac"]
+V["FOMC_LO"] = m(vs_pan["pct_lo"], 2)
+V["FOMC_HI"] = m(vs_pan["pct_hi"], 2)
+assert vs_pan["pct_lo"] < 0 < vs_pan["pct_hi"], (
+    "the FOMC-panel difference is now resolved; the prose says it is not"
+)
+
+# sign agreement with the baseline, over the seven non-baseline columns
+agree = vs_as["same_position_as_baseline"].drop(TAGS["a0"])
+V["AGREE_LO"] = "%d" % round(100 * agree.min())
+V["AGREE_HI"] = "%d" % round(100 * agree.max())
 
 
 def stats(x):
@@ -222,6 +288,48 @@ assert (reg["b"] < 0).all(), "the OLS slope is no longer negative for every fore
 V["SLOPE_T_LO"] = m(reg["t_b"].min(), 1)
 V["SLOPE_T_HI"] = m(reg["t_b"].max(), 1)
 
+# --- magnitude: within-side slopes --------------------------------------
+assert (wside["b_sell"] < 0).all() and (wside["t_sell"] <= -1.96).all(), (
+    "the sell-side slope is no longer negative and resolved for every column"
+)
+V["SELL_T_LO"] = "%.1f" % abs(wside["t_sell"].max())  # smallest |t|
+V["SELL_T_HI"] = "%.1f" % abs(wside["t_sell"].min())  # largest |t|
+V["SELL_T_B2"] = m(abs(wside.loc[B2, "t_sell"]), 1)
+V["NBUYRES"] = WORDS[int((wside["t_buy"].abs() >= 1.96).sum())]
+
+# --- crossed spread ------------------------------------------------------
+pv = variants.set_index(["rule", "variant"])
+V["XS_B2_MID"] = "%.2f" % pv.loc[("sign(s)", "mid premium R"), "Sharpe_ann"]
+V["XS_B2"] = "%.2f" % pv.loc[("sign(s)", "crossed spread"), "Sharpe_ann"]
+V["XS_B2_T"] = "%.2f" % pv.loc[("sign(s)", "crossed spread"), "t_mean"]
+V["XS_AS_MID"] = "%.2f" % pv.loc[("always short", "mid premium R"), "Sharpe_ann"]
+V["XS_AS"] = m(pv.loc[("always short", "crossed spread"), "Sharpe_ann"], 2)
+assert (
+    pv.loc[("sign(s)", "crossed spread"), "Sharpe_ann"]
+    > 0
+    > pv.loc[("always short", "crossed spread"), "Sharpe_ann"]
+), "the crossed spread no longer separates the rule from the control"
+
+# --- look-ahead cliff ----------------------------------------------------
+V["CLIFF_M1"] = "%.2f" % cliff.loc[B2, "bar-1"]
+V["CLIFF_0"] = "%.2f" % cliff.loc[B2, "bar+0"]
+V["CLIFF_P1"] = "%.2f" % cliff.loc[B2, "bar+1"]
+V["CLIFF_CEIL"] = "%.2f" % cliff.loc[B2, "realized"]
+assert abs(cliff.loc[B2, "bar+0"] - ss.loc[B2, "Sharpe_ann"]) < 1e-9, (
+    "the k=0 cliff column no longer equals the rule table"
+)
+stale_cols = ["bar-%d" % k for k in range(1, 12)]
+enet = TAGS["enet"]
+V["ENET_STALE"] = "%.2f" % cliff.loc[enet, stale_cols].max()
+V["ENET_0"] = "%.2f" % cliff.loc[enet, "bar+0"]
+beats = [
+    k for k in TAGS.values() if cliff.loc[k, stale_cols].max() > cliff.loc[k, "bar+0"]
+]
+assert beats == [enet], (
+    "the set of columns whose best stale shift beats their trade is no longer "
+    "{elastic net}: %s" % beats
+)
+
 # --- fixed fraction ------------------------------------------------------
 f2 = ff["blk2"]
 sgn = f2.loc["sign(s)"]
@@ -256,7 +364,7 @@ else:
 
 # --- median map ----------------------------------------------------------
 assert (rec["Sharpe_median"] < rec["Sharpe_mean"]).all(), (
-    "the median map no longer loses on all seven"
+    "the median map no longer loses on all eight"
 )
 assert (rec["percentile_interval"] == "includes zero").all(), (
     "a median-map interval now excludes zero"
@@ -273,13 +381,30 @@ V["NEARLY"] = WORDS[
         ).group(1)
     )
 ].capitalize()
-V["NEARLYSCORED"] = WORDS[
-    int(
-        logsearch(
-            r"; (\d+) of them carry a 16:00 forecast row", "scored half sessions"
-        ).group(1)
-    )
-]
+inside = logsearch(
+    r"half sessions inside the scored range:\s*(\d+).*?; (\d+) of them carry a "
+    r"16:00 forecast row",
+    "half sessions inside the scored range",
+)
+V["NEARLYINSIDE_CAP"] = WORDS[int(inside.group(1))].capitalize()
+V["NEARLYSCORED"] = WORDS[int(inside.group(2))]
+
+# --- unscored tail, annualization, FOMC feed -----------------------------
+V["NUNSCORED"] = logsearch(
+    r"expiration days with no forecast row:\s*(\d+)", "unscored expiration days"
+).group(1)
+ann = logsearch(
+    r"this frame trades ([0-9.]+) days a year, so a calendar-time convention would "
+    r"multiply every Sharpe ratio by sqrt\([0-9./]+\) = ([0-9.]+)",
+    "annualization convention",
+)
+V["TPY"] = ann.group(1)
+V["ANNSCALE"] = ann.group(2)
+V["NFOMCDEAD"] = logsearch(
+    r"(\d+) of (?:the )?866 scored days.*?after (?:it|2023-11-01)"
+    r"|FOMC feed ends 2023-11-01[^\n]*?(\d+) of 866",
+    "scored days after the FOMC feed end",
+).group(1)
 
 # --- implied-volatility censoring ---------------------------------------
 h = logsearch(
@@ -320,11 +445,23 @@ FILES = [
 
 print("=== resolved values ===")
 for k in sorted(V):
-    print("  %-14s %s" % (k, V[k]))
+    print("  %-16s %s" % (k, V[k]))
 
 if "--dry" in sys.argv:
+    print("\n=== audit: is every resolved value still in the prose? ===")
+    blob = "\n".join(
+        (WRITEUP / rel).read_bytes().decode("utf-8").replace("\r\n", "\n")
+        for rel in FILES
+    )
+    missing = [k for k, v in V.items() if v and v not in blob]
+    for k in sorted(missing):
+        print("  MISSING  %-16s %s" % (k, V[k]))
+    print(
+        "  %d of %d resolved values found in the prose"
+        % (len(V) - len(missing), len(V))
+    )
     print("\n(dry run: no files written)")
-    sys.exit(0)
+    sys.exit(1 if missing else 0)
 
 used = set()
 for rel in FILES:

@@ -1,0 +1,9 @@
+tag,n_deck_days,n_matched,max_rel_err,pass
+a0,866,866,0.0,True
+blk2,866,866,0.0,True
+blk2_inc,866,866,0.0,True
+lgbm,866,866,0.0,True
+xgb,866,866,0.0,True
+lasso_t,866,866,0.0,True
+lasso_f,866,866,0.0,True
+enet,866,866,0.0,True

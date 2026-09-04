@@ -37,18 +37,31 @@ MODEL_TEX = {
     "two-block ridge (FOMC in X)": r"block-diagonal ridge",
     "gen. Tikhonov ridge": r"block-diagonal ridge",
     "block-diag ridge": r"block-diagonal ridge",
-    "LightGBM": r"LightGBM",
-    "XGBoost": r"XGBoost",
-    "LGBM all-features": r"LightGBM",
-    "XGB all-features": r"XGBoost",
-    "lasso (tuned)": r"lasso (causally tuned)",
-    "lasso (causally tuned)": r"lasso (causally tuned)",
+    "block-diagonal ridge": r"block-diagonal ridge",
+    "block-diagonal ridge + FOMC panel": r"block-diagonal ridge",
+    # the diagnostic row: the same estimator on the earlier panel, so the gap
+    # between the two ridge rows is the FOMC calendar channels' contribution
+    "block-diagonal ridge, without the FOMC columns": (
+        r"block-diagonal ridge, without the FOMC columns"
+    ),
+    # A dagger marks a column still fitted on the EARLIER design panel (no FOMC
+    # calendar block); a run of those four on the panel of record is pending, and
+    # the table caption says so.  The two panel-of-record columns (the ridge and
+    # the fixed lasso) and the panel-invariant baseline carry no mark, and neither
+    # does the diagnostic ridge row, whose whole point is that it is on the
+    # earlier panel.
+    "LightGBM": r"LightGBM$^{\dagger}$",
+    "XGBoost": r"XGBoost$^{\dagger}$",
+    "LGBM all-features": r"LightGBM$^{\dagger}$",
+    "XGB all-features": r"XGBoost$^{\dagger}$",
+    "lasso (tuned)": r"lasso (causally tuned)$^{\dagger}$",
+    "lasso (causally tuned)": r"lasso (causally tuned)$^{\dagger}$",
     "lasso (fixed 1e-4)": r"lasso ($\alpha=10^{-4}$)",
-    "lasso all-features (tuned)": r"lasso (causally tuned)",
+    "lasso all-features (tuned)": r"lasso (causally tuned)$^{\dagger}$",
     "lasso all-features (fixed 1e-4)": r"lasso ($\alpha=10^{-4}$)",
     "all models": r"all models (no forecast)",
-    "elastic net (causally tuned)": r"elastic net (causally tuned)",
-    "elastic net": r"elastic net (causally tuned)",
+    "elastic net (causally tuned)": r"elastic net (causally tuned)$^{\dagger}$",
+    "elastic net": r"elastic net (causally tuned)$^{\dagger}$",
 }
 
 # (csv column, format, tex header cell) — display order.

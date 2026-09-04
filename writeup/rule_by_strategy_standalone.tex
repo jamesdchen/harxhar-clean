@@ -26,7 +26,9 @@ The short-volatility rule takes no forecast, so it is one row for all models.
 Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
 
 \smallskip
-\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties);
+\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties)
+on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row;
 LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
-elastic net (causally tuned).
+elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the
+panel of record is pending.
 \end{document}

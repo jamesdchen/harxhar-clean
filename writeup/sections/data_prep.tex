@@ -16,9 +16,19 @@ the availability indicators of Section~\ref{sec:dp_prep} are built from,
 applied as the grid's own existence criterion. Under this rule the panel
 begins at the source's first print, in January 1998, and ends at its last,
 in April 2024. No weekend rule, holiday calendar, or session table is
-supplied anywhere: weekends, holidays, early closes, and sessions that do
-not yet exist are all absent from the panel for the same reason --- the
-source did not print.
+supplied anywhere: what is absent --- weekends, and sessions that do not
+yet exist --- is absent for that one reason, that the source did not print.
+The converse deserves saying, because a reader will assume otherwise: the
+source is a near-24-hour \emph{futures} tape, so exchange holidays and
+early closes are not absent from it. A cash-market holiday is a shortened
+futures session and prints regular-hours bars ending at $13{:}00$ or
+$11{:}30$ with no $16{:}00$ bar at all; an early close prints post-close
+bars right through $16{:}00$, on which realized variance collapses to a few
+percent of what that slot normally carries. Both are legitimate rows of a
+futures panel and are kept. They are not legitimate rows of a
+\emph{cash-session} exercise, and the last-bar option reading of
+Section~\ref{sec:close_option_methods} excludes them by an explicit
+calendar.
 
 The panel's session structure therefore evolves as the market's did. The
 source prints around the clock from its first day --- the panel's first
@@ -27,7 +37,12 @@ $7{,}500$ bars per year in 1998 (median $32$ bars per trading day before
 2004), growing through roughly $10{,}600$ bars in 2003 to a stable
 $\approx 12{,}400$ bars per year from 2005 onward, when the near-24-hour
 cycle (Sunday $18{:}30$ through Friday $20{:}00$, $48$ bars per full
-trading day, roughly $34$ of them outside regular hours) is fully live. A
+trading day, roughly $34$ of them outside regular hours) is fully live.
+The Friday boundary in that cycle is a grid convention and not a market
+fact: the futures week ends at $17{:}00$~ET, and the bars the $20{:}00$
+cut keeps after it carry a thin tape --- median thirty-minute volume
+about one and a quarter percent of the $17{:}00$ bar's --- which the panel
+treats like any other low-activity slot rather than dropping. A
 time-of-day slot that thickens or enters mid-sample behaves exactly like
 a feed going live: the rolling per-slot estimators of
 Section~\ref{sec:dp_prep} have whatever history the slot has and
@@ -49,15 +64,25 @@ after the $24{,}000$-bar training window and the calibration burn-in of
 Section~\ref{sec:smearing}.
 
 The forecasting target is realized variance. For each 30-minute bar it is
-computed as the sum of squared 5-minute log-returns within the bar:
+computed as the sum of squared one-minute log-returns within the bar:
 \begin{equation}
-    RV_{d,j} = \sum_{i=1}^{M} r_{d,j,i}^{2}, \qquad M = 6,
+    RV_{d,j} = \sum_{i=1}^{M_{d,j}} r_{d,j,i}^{2},
+    \qquad M_{d,j} \le 30,
     \label{eq:dp_rv}
 \end{equation}
-where $r_{d,j,i}$ is the $i$-th 5-minute log-return inside the $j$-th
-30-minute bar of day $d$. Bars are indexed sequentially as $RV_t$. The
-forecast horizon is one bar ahead: the model at bar $t$ predicts
-$RV_{t+1}$. Throughout, ``realized variance'' denotes the target $RV_t$,
+where $r_{d,j,i}$ is the $i$-th one-minute log-return inside the $j$-th
+30-minute bar of day $d$, and $M_{d,j}$ is the number of returns the tape
+printed in that bar. The vendor supplies that count beside every bar; it
+reaches exactly $30$ and never exceeds it, which is how the sampling
+frequency is read off the file rather than assumed. Seventy-one percent of
+the panel's bars are full, and short bars are overnight and early-sample
+bars, not regular-hours ones: $99\%$ of bars in the $10{:}00$--$16{:}00$
+window carry all thirty returns. Bars are indexed sequentially as $RV_t$.
+The forecast horizon is one bar ahead. The arrays carry that alignment the
+other way round: row $t$ holds the target $RV_t$ beside features every one
+of which is shifted by one bar, so a row's regressors are known at the end
+of bar $t-1$ and the model standing there forecasts the bar the row is
+labelled by. Throughout, ``realized variance'' denotes the target $RV_t$,
 and ``volatility'' denotes its square root; models are estimated on the
 square-root scale (Section~\ref{sec:dp_prep}). The construction in
 Equation~\eqref{eq:dp_rv} is the standard realized-measure definition. The
@@ -306,8 +331,24 @@ between $0.0005$ and $0.004$ QLIKE. This difference in magnitude is the
 reason the preparation pipeline is presented before the modelling
 sections.
 
-All stages are strictly causal: every quantity dated $t$ uses only
-information available strictly before $t$.
+All stages are causal by construction, and the two places where the panel
+as shipped falls short of that are named here rather than left implicit.
+Every rolling statistic, fill, winsorization and scaling above uses only
+information dated strictly before $t$; the HAR ladder, the target, and the
+benchmark of Section~\ref{sec:dp_benchmark} were re-derived under prefix
+truncation and reproduce bit for bit. Two stages of the exogenous build do
+not. The neutral value substituted where a channel is structurally absent
+(step~3 above) is the full-sample median of that column rather than a
+trailing one; and the availability indicators enter the design after the
+forward fill rather than before it, so on a filled bar they assert a live
+state the feed did not print. Neither stage touches the HAR block or the
+benchmark, which read no exogenous column. Their footprint on the design
+matrix is that $456$ of $1{,}264$ columns move under prefix truncation, by
+up to $0.8$ standard deviations on the bars the last-bar reading of
+Section~\ref{sec:close_option_results} uses and by much more at isolated
+points early in the sample. Both are one-line pipeline changes; both
+require the panel to be rebuilt and every exogenous arm re-scored, and that
+rebuild is pending.
 
 \subsection{Descriptive Analysis}
 \label{sec:dp_descriptive}

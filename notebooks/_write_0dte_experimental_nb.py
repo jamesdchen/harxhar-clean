@@ -1,10 +1,36 @@
 """Write notebooks/atm_straddle_experimental.ipynb — ensembles, extra weights."""
 
+import sys
 from pathlib import Path
 
 import nbformat as nbf
 
 from _nb_io import carry_outputs
+
+# The model set is the library's, never a literal in this file: the markdown
+# placeholders below are filled from atm_straddle_lib.MODEL_ORDER at write time,
+# so adding or removing a forecast table cannot leave stale prose behind.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import atm_straddle_lib as asl  # noqa: E402
+
+MODEL_ORDER = list(asl.MODEL_ORDER)
+LABEL = dict(asl.YHAT_LABEL)
+BENCH_TAG = "blk2"
+DIAG_TAG = "blk2_inc"  # the no-FOMC ridge: a diagnostic row, never a cross-model input
+# MODELS is the forecast set: every ensemble, correlation, participation ratio and
+# PCA/PLS lab runs on it. MODEL_ORDER is the full table list and only ever indexes
+# plain per-model tables, where the diagnostic row is shown and labelled as one.
+MODELS = [t for t in MODEL_ORDER if t != DIAG_TAG]
+N_MODELS = len(MODELS)
+N_TABLES = len(MODEL_ORDER)
+_WORDS = {5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+MD_SUBS = {
+    "@NMODELS@": _WORDS.get(N_MODELS, str(N_MODELS)),
+    "@NMODELSNUM@": str(N_MODELS),
+    "@NTABLES@": _WORDS.get(N_TABLES, str(N_TABLES)),
+    "@NTABLESNUM@": str(N_TABLES),
+    "@BENCH@": LABEL[BENCH_TAG],
+}
 
 nb = nbf.v4.new_notebook()
 nb.metadata["kernelspec"] = {
@@ -15,6 +41,8 @@ nb.metadata["kernelspec"] = {
 
 
 def md(s: str):
+    for _k, _v in MD_SUBS.items():
+        s = s.replace(_k, _v)
     return nbf.v4.new_markdown_cell(s.strip("\n"))
 
 
@@ -30,7 +58,7 @@ nb.cells = [
 Same instrument, clocks, smear, and signal as
 `atm_straddle_rv_iv.ipynb`. This notebook is the lab for:
 
-1. ensembles of the seven models and of the two paper rules
+1. ensembles of the @NMODELS@ models and of the two paper rules
    (including a causal PCR / spectral ensemble), plus extended causal
    PCA/PCR portfolios (§5b), supervised PLS/PCovR projections (§5c), and
    PCA structure diagnostics (§5d)
@@ -41,7 +69,7 @@ Same instrument, clocks, smear, and signal as
    diagnostics, strangle bodies with per-side attribution, the §5
    ensembles on the defined-risk instrument, and quoted-spread fill
    sensitivity
-5. paired significance (NW + block bootstrap) on the headline deltas
+5. paired significance (HAC $t$ + block bootstrap) on the headline deltas
    (§13)
 6. the defined-risk portfolio, parked in the RV–IV deck (§14): why wings on selling days do
    not pay per dollar of premium — wing-cost decomposition,
@@ -102,8 +130,9 @@ pd.set_option("display.float_format", lambda x: f"{x: .6f}")
 Same construction as the RV-IV deck, and the same two data rules. Twelve
 days in the file are half sessions (a 13:00 close, with the 13:00
 quotes carried forward to a full grid, so the "15:30" row sits after expiry):
-they are dropped by the shared library filter and listed below, five of
-them inside the scored range. The nearest-OTM pick is guarded against
+they are dropped by the shared library filter and listed below, six of
+them inside the scored range and five of those scored days before the
+filter. The nearest-OTM pick is guarded against
 vendor outages — a stamp with almost no live contracts, or a nearest
 strike more than ten points from the index level, is not a package —
 and a leg quoted `bid == ask == 0` carries no price, so its mid is
@@ -113,9 +142,40 @@ converge; those legs are censored and the day's implied variance is
 recovered by inverting the package midpoint through Black-Scholes-Merton
 over the remaining half hour, as in the deck's §8 — the five COVID cap
 days are kept, not dropped. The common frame is the intersection of the
-seven forecast tables' scored days, and a gate checks that it is the
+@NTABLES@ forecast tables' scored days, and a gate checks that it is the
 deck's scored frame day for day; every table in this notebook is scored
 on it.
+
+**Benchmark and panel.** The benchmark everywhere in this notebook is
+the FOMC-panel ridge — `@BENCH@`, the ridge of record — and every
+single-model row labelled `blk2` is that model. The panel of record is
+the FOMC panel: the ridge and the fixed-penalty lasso are estimated on
+it. The diagnostic row `blk2_inc` is the same ridge on the earlier
+panel, which carries no FOMC columns, so the pair isolates what the
+calendar channels contribute.
+The four remaining comparators (the two tree models, the causally tuned
+lasso, and the elastic net) are still on the earlier panel, pending a
+re-run on the FOMC panel; their rows are read as comparators, not as
+like-for-like panel-matched entries. The model set, its order, and its
+labels come from `asl.MODEL_ORDER` / `asl.YHAT_LABEL`, so this notebook
+enumerates whatever the library defines.
+
+**What the diagnostic row may and may not enter.** `blk2_inc` is a
+diagnostic, not a forecast. The ensembles of §5, the causal PCA/PCR and
+supervised PLS/PCovR labs of §5b–§5c, the correlation and
+sign-agreement matrices, the near-duplicate list and the participation
+ratio all run on the @NMODELS@ forecasts and exclude it; the notebook
+holds that set as `MODELS`. The plain per-model tables — the extra
+weights of §7, the wing ladder of §14, the risk-flag scoreboards of
+§15, the body comparison of §16 — still carry all @NTABLES@ rows with
+the diagnostic labelled as such.
+
+**Annualization.** Every Sharpe ratio and information ratio here scales
+a per-observation statistic by $\sqrt{252}$ (`asl.PERIODS_PER_YEAR`),
+one row per trade day. The 0DTE frame does not trade 252 days a year
+over this window — SPXW listed Monday/Wednesday/Friday expirations
+before June 2022 — so the cell prints the realized trade days per year
+and the factor that converts to calendar time.
 """
     ),
     code(
@@ -240,7 +300,8 @@ with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
             for tag, path in YHATS.items()}
     models = {tag: futs[tag].result() for tag in YHATS}
 LABEL = asl.YHAT_LABEL
-MODEL_ORDER = asl.MODEL_ORDER
+MODEL_ORDER = list(asl.MODEL_ORDER)          # every table, including the diagnostic row
+MODELS = [t for t in MODEL_ORDER if t != "blk2_inc"]   # the forecasts: ensembles and cross-model statistics
 
 books = {}
 for tag, rv in models.items():
@@ -277,19 +338,24 @@ _dq = int((books["blk2"].loc[common, "pos"] != deck_daily.loc[common, "pos"]).su
 print(f"frame gate: the common frame is the deck's scored frame, day for day; "
       f"positions differ on {_dq} days, max |R - deck R| {_dR:.2e} (quote rounding)")
 assert _dq == 0 and _dR < 1e-5
+# annualization convention behind every sqrt(PERIODS_PER_YEAR) in this notebook (asl.PERIODS_PER_YEAR)
+_tpy = asl.trades_per_year(common)
+print(f"annualization: per trade day, PERIODS_PER_YEAR {asl.PERIODS_PER_YEAR:g}; this frame trades "
+      f"{_tpy:.1f} days a year, so the calendar-time equivalent scales by "
+      f"sqrt({_tpy:.1f}/{asl.PERIODS_PER_YEAR:g}) = {np.sqrt(_tpy / asl.PERIODS_PER_YEAR):.3f}")
 """
     ),
     md(
         r"""
-## 5. Ensemble of the seven models
+## 5. Ensemble of the @NMODELS@ models
 
 (a) mean $s$ then sign. (b) majority vote of sign. (c) equal-weight
-average of the seven $\mathrm{sign}(s)$ positions $q$. (d) trailing-Sharpe
+average of the @NMODELS@ $\mathrm{sign}(s)$ positions $q$. (d) trailing-Sharpe
 and trailing-IR weights on those positions (expanding 63, lag 1). (e)
-causal spectral / PCR ensemble of the seven signals (below). Also an
+causal spectral / PCR ensemble of the @NMODELS@ signals (below). Also an
 equal-weight mix of the two paper rules on blk2.
 
-**Spectral / PCR.** Let $X_t\in\mathbb{R}^7$ be the vector of model
+**Spectral / PCR.** Let $X_t\in\mathbb{R}^{@NMODELSNUM@}$ be the vector of model
 signals $s=\widehat{RV}-\mathrm{IV}_{30}^{2}$ on day $t$. On days
 $u<t$ (min 63) standardise each signal by its own past mean and
 standard deviation — a correlation PCA, so that a model's dispersion
@@ -308,19 +374,22 @@ leading $k$ right singular vectors. Two portfolios:
   coefficients to day $t$. Position is $\mathrm{sign}(\hat R_t)$.
 
 The SVD and the PCR fit use only $u<t$. Full-sample eigenvalues are
-printed as a diagnostic, not used to trade. The seven signals are far
-from seven votes: the block-diagonal ridge and the fixed-penalty lasso
-are near-duplicates (correlation 0.99), the two tree models sit at
-0.96, and the participation ratio of the correlation eigenvalues puts
-the effective count at about two — the cell prints it, and the vote and
-mean rows should be read with it.
+printed as a diagnostic, not used to trade. The set is the @NMODELS@
+forecasts; the no-FOMC ridge is a diagnostic row and is not in it. The
+@NMODELS@ signals are still far from @NMODELS@ votes: the ridge and the
+fixed-penalty lasso on the same panel are near-duplicates, and the two
+tree models are close as well; the participation ratio of the
+correlation eigenvalues puts the effective count far below
+@NMODELSNUM@ — the cell prints the correlations, the near-duplicate
+pairs, and the participation ratio, and the vote and mean rows should
+be read with them.
 Every table carries the mean absolute position, so rows with different
 gross exposure are not compared as if they were the same size.
 """
     ),
     code(
         r"""
-sig = pd.DataFrame({tag: books[tag]["signal"].loc[common] for tag in MODEL_ORDER})
+sig = pd.DataFrame({tag: books[tag]["signal"].loc[common] for tag in MODELS})
 pos = np.sign(sig).replace(0.0, -1.0)
 R = books["blk2"]["R"].loc[common]
 
@@ -366,7 +435,8 @@ _add("blk2 0.5 AS + 0.5 sign(s)", (blk_sizes["always short"] + blk_sizes["sign(s
 _add("blk2 sign(s)", blk_sizes["sign(s)"].loc[common])
 _add("always short", blk_sizes["always short"].loc[common])
 
-# Causal spectral / PCR ensemble of the 7-vector of signals.
+# Causal spectral / PCR ensemble of the model-signal vector (len(MODELS) wide; the
+# diagnostic no-FOMC ridge is not a forecast and never enters an ensemble).
 # Day t sees only X[:t] (strict). Min 63 days; earlier days use the same demeaned
 # rule with the equal-weight direction in place of the eigenvector.
 X = sig.to_numpy(float)
@@ -437,7 +507,7 @@ _add("PCR k=2 sign", q_pcr2)
 Xc_all = (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 _, S_all, Vt_all = np.linalg.svd(Xc_all, full_matrices=False)
 share = S_all**2 / (S_all**2).sum()
-load_tab = pd.DataFrame(Vt_all[:2].T, index=[LABEL[t] for t in MODEL_ORDER], columns=["PC1", "PC2"])
+load_tab = pd.DataFrame(Vt_all[:2].T, index=[LABEL[t] for t in MODELS], columns=["PC1", "PC2"])
 if np.dot(load_tab["PC1"], np.ones(p)) < 0:
     load_tab["PC1"] *= -1
 print("full-sample variance share (diagnostic)")
@@ -462,12 +532,12 @@ plt.close(fig)
 ens_tab = pd.DataFrame({k: asl.rule_row(v, ens_q[k]) for k, v in ens.items()}).T
 ens_tab["mean_abs_q"] = pd.Series({k: float(q.abs().mean()) for k, q in ens_q.items()})
 print(ens_tab.to_string())
-# effective breadth of the seven signals: participation ratio of the correlation eigenvalues
+# effective breadth of the signals: participation ratio of the correlation eigenvalues
 _corr = sig.corr()
 _ev = np.linalg.eigvalsh(_corr.to_numpy())
 _n_eff = float(_ev.sum() ** 2 / (_ev**2).sum())
 _dups = [(LABEL[a], LABEL[b], round(float(_corr.loc[a, b]), 3))
-         for i, a in enumerate(MODEL_ORDER) for b in list(MODEL_ORDER)[i + 1:] if float(_corr.loc[a, b]) > 0.98]
+         for i, a in enumerate(MODELS) for b in list(MODELS)[i + 1:] if float(_corr.loc[a, b]) > 0.98]
 print(f"effective number of independent signals (participation ratio): {_n_eff:.2f} of {p}")
 print("near-duplicate pairs (correlation > 0.98):", _dups)
 ens_tab.to_csv(OUT / "ensemble_summary.csv")
@@ -488,14 +558,14 @@ search for a better rule — the table maps where the ensemble
 information lives.
 
 - *PCR $k$-sweep:* regress $R_u$ on the first $k$ lagged PC scores,
-  $k=1,\dots,7$, apply the coefficients to day $t$, trade
+  $k=1,\dots,@NMODELSNUM@$, apply the coefficients to day $t$, trade
   $\mathrm{sign}(\hat R_t)$. Fitted values are invariant to component
   sign flips, so the sweep needs no convention beyond PC1's.
 - *PC2 / PC3 sign portfolios:* $q_t=\mathrm{sign}(\hat\beta_{j,t})\,
   \mathrm{sign}(z_{j,t})$, where $\hat\beta_{j,t}$ is the OLS slope of
   $R_u$ on the past PC$_j$ scores — the sign convention is itself
   estimated only from $u<t$.
-- *PC1-of-$q$:* the same causal PC1 taken on the 7-vector of signed
+- *PC1-of-$q$:* the same causal PC1 taken on the @NMODELSNUM@-vector of signed
   positions $q=\mathrm{sign}(s)$ instead of raw $s$; trade the sign of
   the score.
 
@@ -563,7 +633,7 @@ for j in (1, 2):
     zj = pd.Series(scores[:, j] * bsign[:, j], index=idx)
     _add_pca(f"PC{j+1} sign (beta-aligned)", _sgn(zj))
 
-# Causal PC1 on the 7-vector of signed positions q = sign(s), same standardisation and warm-up rule.
+# Causal PC1 on the vector of signed positions q = sign(s), same standardisation and warm-up rule.
 Xq = pos.to_numpy(float)
 s_q1 = np.full(n, np.nan)
 for t in range(n):
@@ -600,7 +670,7 @@ print("saved", OUT / "pca_lab_books.csv")
 ## 5c. Causal supervised projections (PLS / PCovR)
 
 Section 5's PC1/PCR portfolios are unsupervised: the direction is chosen by
-the variance of the seven signals, and $R$ enters only through the PCR
+the variance of the @NMODELS@ signals, and $R$ enters only through the PCR
 coefficients. Here the *direction itself* is supervised, with the same
 strict causality as §5 (day $t$ uses $X_{u<t}$, $R_{u<t}$ only, each
 signal standardised on that past; min 63; earlier days use the §5
@@ -728,13 +798,13 @@ print("saved", OUT / "pca_lab_pls.csv")
         r"""
 ## 5d. PCA structure diagnostics
 
-How much structure is there in the seven signals, and how many
-independent bets are the seven portfolios? **Diagnostics only — nothing
+How much structure is there in the @NMODELS@ signals, and how many
+independent bets are the @NMODELS@ portfolios? **Diagnostics only — nothing
 here is a trading input.** Six views:
 
 - *Correlation / sign agreement.* Pearson correlation of the daily
   $s$ vectors and pairwise sign-agreement %. Answers: how far from
-  one signal are the seven models?
+  one signal are the @NMODELS@ models?
 - *Expanding causal PC1 share.* At each $t\ge 63$, PC1 variance share
   of the SVD of $X_{u<t}$ on the correlation scale (each signal
   standardised by its past mean and standard deviation, as in §5) —
@@ -743,26 +813,26 @@ here is a trading input.** Six views:
 - *Loading stability.* PC1 loadings at expanding cutoffs
   (every 21 days). Answers: does any model rotate in or out of the
   factor?
-- *Risk-space PCA.* Full-sample PCA of the seven $\mathrm{sign}(s)$
-  portfolio returns $q_i R$. Answers: how many independent bets are the seven
+- *Risk-space PCA.* Full-sample PCA of the @NMODELS@ $\mathrm{sign}(s)$
+  portfolio returns $q_i R$. Answers: how many independent bets are the @NMODELS@
   portfolios in return space?
 - *PC1 vs mean.* Full-sample PC1 score against the cross-sectional
   mean $s$. Answers: is PC1 anything other than the equal-weight
   mean?
 - *$R^2$ ladder.* Full-sample $R^2$ of daily $R$ on the first $k$ PC
-  scores, $k=1..7$ — the in-sample ceiling for the causal PCR portfolios
+  scores, $k=1..@NMODELSNUM@$ — the in-sample ceiling for the causal PCR portfolios
   of §5.
 """
     ),
     code(
         r"""
 n, p = X.shape
-names = [LABEL[t] for t in MODEL_ORDER]
+names = [LABEL[t] for t in MODELS]
 
 corr = sig.corr()
 agree = pd.DataFrame(
-    {ci: {cj: float((pos[ci] == pos[cj]).mean() * 100.0) for cj in MODEL_ORDER} for ci in MODEL_ORDER}
-).T.loc[MODEL_ORDER, MODEL_ORDER]
+    {ci: {cj: float((pos[ci] == pos[cj]).mean() * 100.0) for cj in MODELS} for ci in MODELS}
+).T.loc[MODELS, MODELS]
 print("Pearson correlation of daily signals s (diagnostic)")
 print(corr.to_string())
 print("pairwise sign-agreement % (diagnostic)")
@@ -792,18 +862,18 @@ for c in range(63, n + 1, 21):
     _, _, Vt = np.linalg.svd(Xc, full_matrices=False)
     v1 = Vt[0] if np.dot(Vt[0], np.ones(p)) >= 0 else -Vt[0]
     traj_rows[sig.index[c - 1]] = v1
-traj = pd.DataFrame(traj_rows, index=MODEL_ORDER).T
+traj = pd.DataFrame(traj_rows, index=MODELS).T
 print("PC1 loading range over expanding cutoffs")
 print(pd.DataFrame({"min": traj.min(), "max": traj.max()}).to_string())
 traj.to_csv(OUT / "pca_lab_loadings_traj.csv")
 
-# risk-space PCA: how many independent bets are the 7 sign(s) portfolios?
+# risk-space PCA: how many independent bets are the sign(s) portfolios?
 rets = pos.mul(R, axis=0)
 Rc = rets.to_numpy(float)
 Rc = Rc - Rc.mean(axis=0)
 s_r = np.linalg.svd(Rc, compute_uv=False)
 share_risk = pd.Series(s_r**2 / (s_r**2).sum(), index=[f"PC{i+1}" for i in range(p)])
-print("risk-space PCA variance share (7 sign(s)-portfolio daily returns, diagnostic)")
+print(f"risk-space PCA variance share ({p} sign(s)-portfolio daily returns, diagnostic)")
 print(share_risk.to_string())
 share_risk.to_csv(OUT / "pca_lab_riskspace_share.csv")
 
@@ -842,7 +912,7 @@ ax.plot(share_ts.index, share_ts.to_numpy())
 ax.set_title("expanding causal PC1 var share", fontsize=9)
 ax.set_ylim(0, 1)
 ax = axes[0, 2]
-for tag in MODEL_ORDER:
+for tag in MODELS:
     ax.plot(traj.index, traj[tag], label=LABEL[tag], lw=1)
 ax.set_title("PC1 loadings at expanding cutoffs", fontsize=9)
 ax.legend(fontsize=5)
@@ -895,13 +965,14 @@ print("saved", OUT / "volmap_a0_blk2.png")
 display(fig)
 plt.close(fig)
 
-fig, axes = plt.subplots(1, 5, figsize=(14, 2.8), sharey=True)
-for ax, tag in zip(axes, ("lgbm", "xgb", "lasso_t", "lasso_f", "enet")):
+rest = [t for t in MODEL_ORDER if t not in ("a0", "blk2")]
+fig, axes = plt.subplots(1, len(rest), figsize=(2.8 * len(rest), 2.8), sharey=True)
+for ax, tag in zip(np.atleast_1d(axes), rest):
     px = books[tag].loc[common]
     ax.scatter(px["iv_30"], px["yhat_vol"], s=5, alpha=0.3)
-    ax.set_title(tag, fontsize=8)
+    ax.set_title(LABEL[tag], fontsize=7)
     ax.set_xlabel(r"$\mathrm{IV}_{30}$")
-axes[0].set_ylabel(r"$\hat y\sqrt{B}$")
+np.atleast_1d(axes)[0].set_ylabel(r"$\hat y\sqrt{B}$")
 fig.tight_layout()
 fig.savefig(OUT / "volmap_yhat_vs_iv_rest.png", dpi=120, bbox_inches="tight")
 display(fig)
@@ -1615,7 +1686,7 @@ positions restricted to condor days); (b) spectral PC1 sign vs blk2
 $\mathrm{sign}(s)$; (c) EW $\mathrm{sign}(s)$ $q$ vs blk2
 $\mathrm{sign}(s)$; (d) blk2 $\mathrm{sign}(s)$ vs always short;
 (e) PC1-of-$q$ sign vs blk2 $\mathrm{sign}(s)$; (f) trailing-Sharpe
-$\mathrm{sign}(s)$ $q$ vs blk2 $\mathrm{sign}(s)$ — the two ensemble
+$\mathrm{sign}(s)$ $q$ vs blk2 $\mathrm{sign}(s)$ — two more ensemble
 rows that sit above the benchmark in the tables.
 
 Caveats. In (a) the two returns sit on different denominators
@@ -1676,7 +1747,7 @@ def pair_row(name, rp, rb, B=2000, qa=None, qb=None):
     x, y = a[0][m].to_numpy(float), a[1][m].to_numpy(float)
     d = x - y
     n_ = len(d)
-    t_nw, L = hac_t(d)
+    t_hac, L = hac_t(d)
     idx = _cmb_idx(n_, B, np.random.default_rng(0))
     dm = d[idx].mean(axis=1)
     lo_m, hi_m = np.percentile(dm, [2.5, 97.5])
@@ -1689,12 +1760,12 @@ def pair_row(name, rp, rb, B=2000, qa=None, qb=None):
         "pair": name, "n": n_, "hac_lag": L,
         "block_len": int(np.ceil(n_ ** (1.0 / 3.0))),
         "gross_a": ga, "gross_b": gb,
-        "mean_delta_bp": d.mean() * 1e4, "HAC_t": t_nw,
+        "mean_delta_bp": d.mean() * 1e4, "HAC_t": t_hac,
         "boot_lo_bp": lo_m * 1e4, "boot_hi_bp": hi_m * 1e4,
         "basic_lo_bp": blo_m * 1e4, "basic_hi_bp": bhi_m * 1e4,
         "dSharpe_ann": dS, "dS_lo": lo_s, "dS_hi": hi_s,
         "dS_basic_lo": blo_s, "dS_basic_hi": bhi_s,
-        "sig_HAC": abs(t_nw) > 1.96,
+        "sig_HAC": abs(t_hac) > 1.96,
         "verdict_mean": _verdict(lo_m, hi_m),
         "verdict_dS": _verdict(lo_s, hi_s),
     }
@@ -1743,8 +1814,8 @@ short straddle into two credit spreads — and keeps it as a venue
 constraint, the defined-risk structure a retail margin account
 requires on cash-settled SPX or XSP, not as an improvement. Per dollar
 of body premium the wings do not help: the $\mathrm{sign}(s)$
-portfolio loses Sharpe (1.24 with wings 25 points out and 1.36 at 50 points,
-against 1.42 without wings on the same days), the always-short control
+portfolio loses Sharpe (1.16 with wings 25 points out and 1.28 at 50 points,
+against 1.34 without wings on the same days), the always-short control
 loses what little edge it had, and compounded wealth suffers in
 proportion. The only frame in which the wings look free is index
 points per package, and even there the sign runs the other way: over
@@ -1808,18 +1879,19 @@ costs almost as much Sharpe as both wings, while the call wing is
 nearly free. Neither, though, shortens the $\mathrm{sign}(s)$
 portfolio's worst day. That day's settlement runs *up*, so the put wing
 only adds its premium to the loss and makes the worst day worse at
-every width; the call wing at $w=20$ is the one configuration that
-shortens it at all. The put wing does cap the always-short control's
+every width. Only at $w=20$ does anything shorten it — the call wing
+alone ($-4.66$) and the pair ($-4.68$) — and at every wider gap both
+are worse than the plain $-5.42$. The put wing does cap the always-short control's
 worst day — that control is short on the crash day, when the put wing
 pays — which is where the reading that the put wing is the protective
 one comes from; for the traded rule it does not hold. The
 `worst_hedged` and `worst_plain` columns of the one-sided table print
 both, at every width. No width on the ladder beats the plain portfolio
 — the best is 50 points, 0.06 of Sharpe behind with a paired $t$ of
-$-1.8$ — and the gap is negative for all seven forecasts. At the 20-
-and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ portfolio gives up 0.23 and
-0.13 of Sharpe (paired $t$ of $-2.5$ and $-1.8$) and the settlement
-reaches a wing on 7.9% and 2.7% of selling days. Paying the quoted
+$-1.8$ — and the gap is negative for all @NTABLES@ forecasts. At the 20-
+and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ portfolio gives up 0.22 and
+0.13 of Sharpe (paired $t$ of $-2.4$ and $-1.8$) and the settlement
+reaches a wing on 8.1% and 2.7% of selling days. Paying the quoted
 spread makes it worse: with the wings bought at the ask, which is
 quoted at 1.2 to 2 times their midpoint, they cost 0.09 points a
 day and the $\mathrm{sign}(s)$ portfolio gives up 0.3 of Sharpe at 25 points
@@ -1888,11 +1960,11 @@ def vl_rows(vs, px, cfg="both"):
         _d = (h - plain).to_numpy(float)
         # cfg="none" is the plain portfolio: there is no difference to test, and a HAC t on a
         # series of float noise around zero is not a number worth printing
-        t_nw = float("nan") if np.abs(_d).max() < 1e-12 else hac_t(_d)[0]
+        t_hac = float("nan") if np.abs(_d).max() < 1e-12 else hac_t(_d)[0]
         out[name] = pd.Series({
             "n": len(j),
             "Sharpe_hedged": _sharpe(h), "Sharpe_plain": _sharpe(plain), "dSharpe": _sharpe(h) - _sharpe(plain),
-            "HAC_t_diff": t_nw,
+            "HAC_t_diff": t_hac,
             "worst_hedged": float(h.min()), "worst_plain": float(plain.min()),
             "wing_cost_pts_per_sell_day": float(j.loc[sell, f"drag_{cfg}"].mean()),
             "pct_sell_days_beyond_wing": 100.0 * float(j.loc[sell, f"beyond_{cfg}"].mean()),
@@ -2061,8 +2133,8 @@ vl_year = pd.DataFrame(yr_rows).set_index("year")
 print(vl_year.to_string(float_format=lambda v: f"{v: .3f}"))
 vl_year.to_csv(OUT / "vert_lab_per_year_blk2.csv")
 
-# the seven forecasts, sign(s) per premium, hedged vs plain
-print("=== all seven forecasts: sign(s) per premium, wings on sell days vs none ===")
+# every forecast, sign(s) per premium, hedged vs plain
+print(f"=== all {len(MODEL_ORDER)} forecasts: sign(s) per premium, wings on sell days vs none ===")
 mod_rows = []
 for tag in MODEL_ORDER:
     for w, vs in vl.items():
@@ -2170,23 +2242,27 @@ ten worst days' losses that fell on them, with a placebo percentile for
 the latter.
 
 **What it shows: a negative result.** The flag does not reach the
-tail. Under every flag and both rules, for all seven forecasts, the
-worst day ($-5.42$) and the maximum drawdown are unchanged; neither
-portfolio's worst day is flagged. The primary rule cuts the Sharpe ratio
-from 1.42 to 1.22 and roughly doubles the excess kurtosis, because it
+tail. Under every flag and both rules, for all @NTABLES@ forecast tables, the
+worst day is unchanged — 48 of 48 table-flag-rule cells, the ridge's at
+$-5.42$ — and neither portfolio's worst day is flagged. The maximum
+drawdown is unchanged for the ridge under the primary flag, but across
+the @NTABLES@ tables it moves in 30 of those 48 cells and in both
+directions ($-7.8$ to $+4.2$ points), so the flag does not shorten the
+drawdown either. The primary rule cuts the Sharpe ratio
+from 1.34 to 1.14 and roughly doubles the excess kurtosis, because it
 inserts zeros on ordinary days and leaves the extremes in place. The
 reason is that the flag points at the wrong tail. Yesterday's forecast
 sitting far above implied variance persists into today's sign, so the
 top tercile of the lagged rank is only about 45 percent selling days
-(the bottom tercile is about 81 percent): the flag mostly removes
+(the bottom tercile is about 80 percent): the flag mostly removes
 *buying* days, whose large settlement moves are the portfolio's profit, not
 its loss — a bought package cannot lose more than its premium. The
-selling days that hurt sit in the *middle* tercile (189 selling days,
-worst $-5.42$, ten days below $-2$), against four such days in the
-top tercile and three in the bottom. Flagged days carry about 28
-percent of the reference return but only about 11 percent of the ten
+selling days that hurt sit in the *middle* tercile (187 selling days,
+worst $-5.42$, ten days below $-2$), against five such days in the
+top tercile and three in the bottom. Flagged days carry about 29
+percent of the reference return but only about 21 percent of the ten
 worst days' losses, and shifted flags cover more of the worst days'
-losses than this one on about 93 percent of shifts. A
+losses than this one on about 79 percent of shifts. A
 no-forecast comparator — the top tercile of yesterday's realized
 $|R|$ — separates large from small moves better than the lagged signal
 does.
@@ -2384,6 +2460,21 @@ for tag in MODEL_ORDER:
     tab.xs(tag, level="model").to_csv(OUT / f"riskflag_summary_{safe}.csv")
 print("saved riskflag_summary_<model>.csv in", OUT)
 
+# does the flag reach the tail for ANY model? one row per (model, flag, rule) against its own reference
+_cells = []
+for (fname, rname, tag), row in tab.iterrows():
+    if rname not in ("A: flat on flagged days", "B: flat on flagged days only when selling"):
+        continue
+    ref = tab.loc[(fname, "reference sign(s)", tag)]
+    _cells.append((float(row["worst_day"]) - float(ref["worst_day"]),
+                   float(row["maxDD_pts"]) - float(ref["maxDD_pts"])))
+_dw = np.array([c[0] for c in _cells])
+_dd = np.array([c[1] for c in _cells])
+print(f"across {len(MODEL_ORDER)} forecasts x {len(FLAGS)} flags x 2 rules = {len(_cells)} cells: "
+      f"worst day unchanged in {int((np.abs(_dw) < 1e-9).sum())}, "
+      f"maximum drawdown unchanged in {int((np.abs(_dd) < 1e-9).sum())}; "
+      f"drawdown changes span {_dd.min():+.2f} to {_dd.max():+.2f} points")
+
 px = books["blk2"].loc[common]
 MAIN = ("reference sign(s)", "A: flat on flagged days", "B: flat on flagged days only when selling")
 for fname in FLAGS:
@@ -2538,8 +2629,8 @@ minimum 63 days, lagged one day) on the $\mathrm{sign}(s)$ portfolio in the
 two return frames.
 
 **What the numbers say.** In dollars the two $\mathrm{sign}(s)$ portfolios are the
-same portfolio: about 0.24 index points per package-day each, a
-difference under half a hundredth of a point a day, and the same worst
+same portfolio: about 0.22 index points per package-day each, a
+difference of about a hundredth of a point a day, and the same worst
 day to within the strike gap (−78.4 points for the strangle against
 −80.0 for the straddle). The extra premium the straddle collects — a
 median 7.68 points against 5.39, of which about 1.41 is intrinsic and
@@ -2548,24 +2639,25 @@ fairly priced risk rather than edge: sold on its own it earns about
 0.11 points per day with a $t$ of about 1.4, carries about 7% of the
 straddle's daily variance, is essentially uncorrelated with the
 strangle ($-0.05$), and the $\mathrm{sign}(s)$ rule has nothing to say
-about it (about $+0.004$ points per day, $t$ near zero). It is a
+about it (about $-0.01$ points per day, $t$ near zero). It is a
 small directional bet on which side of the strike the index closes;
 the variance forecast does not inform it.
 
 The frames then re-scale that one dollar P&L in three ways, and the
 choice of denominator produces every apparent difference. Per dollar
 of premium the straddle looks worse on the $\mathrm{sign}(s)$ rule — Sharpe
-about 1.32 against 1.42, a mean lower by about 0.03 per day with a
-HAC $t$ near −2.3 — and its worst day looks shorter (about −3.2
+about 1.19 against 1.34, a mean lower by about 0.035 per day with a
+HAC $t$ near −2.2 — and its worst day looks shorter (about −3.2
 against −5.4). Both are the intrinsic value in the denominator: the
 same dollar loss divided by a larger, partly riskless premium; and the
-sign of the Sharpe change is not even uniform across the seven
-forecasts (four gain, three lose, none by as much as a tenth), which is
+sign of the Sharpe change is not even uniform across the @NTABLES@
+forecast tables (four gain, four lose, none by more than 0.15), which is
 itself the signature of a denominator effect rather than an edge. Per
 dollar of time value, the like-for-like frame, the two bodies are
-indistinguishable — Sharpe about 1.49 against 1.42 for the
-block-diagonal ridge, a paired $t$ near −0.3, and a gain of 0.06 to
-0.15 for every one of the seven forecasts — and the worst day is about
+indistinguishable — Sharpe about 1.35 against 1.34 for the
+block-diagonal ridge, a paired $t$ near −0.5, and a change between
+$-0.005$ and $+0.147$ across the @NTABLES@ forecast tables (seven gain,
+one a hair negative) — and the worst day is about
 −4.1 against −5.4, a smaller gap that again reflects the denominator
 (the straddle's time value exceeds the strangle's premium by about a
 point on a typical day). The always-short control gains in every frame
@@ -2574,27 +2666,27 @@ against 0.04 in points), but that gain is the vertical's 0.11 points
 per day, which is not significant.
 
 The estimated-fraction rule sees the same thing: its fraction is
-about 0.053 to 0.056 for either body in either frame. Because the
+about 0.050 to 0.054 for either body in either frame. Because the
 fraction is applied to the scaled return, each frame is a different
 position-sizing rule on the same instrument — the per-time-value
 straddle path holds more packages on days when time value is small —
-and the terminal-wealth differences (about ×12 for the strangle, ×7
-for the straddle per premium, ×18 per time value) are those sizing
+and the terminal-wealth differences (about ×8 for the strangle, ×4
+for the straddle per premium, ×8 per time value) are those sizing
 rules, not a difference in edge. Where the index sits on the strike
 grid does not separate the bodies either: both lose a little in the
 third of days on which the index sits closest to a listed strike
-(Sharpe about −0.4 for each) and both earn about the same as each other
+(Sharpe about −0.23 and −0.27) and both earn about the same as each other
 in the other two thirds — a property of those days, not of either body.
 Crossed-spread fills favour the strangle: the straddle's legs are not
 wider in relative terms (about 5.1% and 5.5% of mid against 5.9%), but
 its package spread is larger in points and its per-premium returns
 smaller, so after crossing the spread on every leg the
-$\mathrm{sign}(s)$ portfolio scores about 0.73 against 0.95 per premium
-(about 0.90 against 0.95 per time value, where the crossed-spread
+$\mathrm{sign}(s)$ portfolio scores about 0.60 against 0.87 per premium
+(about 0.75 against 0.87 per time value, where the crossed-spread
 return is measured against the *filled* time value, not the midpoint one), and
 always-short is negative for both.
 
-**Verdict.** The same-strike straddle is not a tail fix. The halved
+**Verdict.** The same-strike straddle is not a tail fix. The shorter
 per-premium worst day is intrinsic value in the denominator, the dollar
 P&L is identical, and the difference between the bodies is a fairly
 priced five-point vertical that the signal cannot time and that costs
@@ -2781,7 +2873,7 @@ for fr in FRAMES:
           .to_string(float_format=lambda x: f"{x:+.4f}"))
 print("--- paired daily difference, straddle minus strangle, block-diagonal ridge ---")
 print(paired_tab.xs(LABEL["blk2"], level="model").to_string(float_format=lambda x: f"{x:+.3f}"))
-print("--- all seven forecasts: change in Sharpe from switching to the straddle body ---")
+print(f"--- all {len(MODEL_ORDER)} forecasts: change in Sharpe from switching to the straddle body ---")
 print(paired_tab["dSharpe"].unstack(["rule", "frame"]).to_string(float_format=lambda x: f"{x:+.3f}"))
 
 # per-year Sharpe, both bodies, both rules, per premium and per time value

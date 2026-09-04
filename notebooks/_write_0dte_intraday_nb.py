@@ -143,17 +143,36 @@ pd.set_option("display.float_format", lambda x: f"{x: .6f}")
     code(
         """
 # [cache:load]
+import hashlib
+import pyarrow.parquet as pq
 path = REPO / "data" / "spxw_chain.parquet"
 COLS = ["expiration", "timestamp", "strike", "cp", "bid", "ask", "mid",
         "underlying_price", "impl_volatility"]
 opt = ["hours_to_expiration"]
-import pyarrow.parquet as pq
 _st = os.stat(path)
 # Cache keys carry a hash of the construction cells' source (injected by
 # the writer), so any change to the load/filter/pick/exit logic mints a
-# new key and stale caches can never serve the new code.
+# new key and stale caches can never serve the new code. The trade key
+# also carries the CONTENT hash of the settlement cache: every last bar
+# settles against the official close, so a revised close changes those
+# returns, and a key that named only the loader's source would go on
+# serving the old ones.
+_gspc_p = CACHE / "gspc_ohlc.parquet"
+
+
+def _gspc_fp():
+    if not _gspc_p.exists():
+        return "nosettle"
+    return hashlib.sha256(_gspc_p.read_bytes()).hexdigest()[:10]
+
+
+def _trade_key():
+    return CACHE / f"trade_{_st.st_size}_{_st.st_mtime_ns}_{TRADE_CODE_HASH}_{_gspc_fp()}.parquet"
+
+
 _ck = CACHE / f"chain_0dte_{_st.st_size}_{_st.st_mtime_ns}_{CHAIN_CODE_HASH}.parquet"
-_trade_ck = CACHE / f"trade_{_st.st_size}_{_st.st_mtime_ns}_{TRADE_CODE_HASH}.parquet"
+_trade_ck = _trade_key()
+print("settlement cache content hash in the trade key:", _gspc_fp())
 if _trade_ck.exists():
     chain = None
     print("chain load skipped: trade cache hit (code-hashed key)")
@@ -429,6 +448,14 @@ pkg["hour"] = pkg["et"].dt.hour
 pkg["hhmm"] = pkg["et"].dt.strftime("%H:%M")
 pkg["date"] = pkg["et"].dt.normalize().dt.tz_localize(None)
 if not _trade_ck.exists():
+    # The settlement cache is on disk now (this cell downloaded it if it was missing),
+    # so re-mint the key with its content hash and carry the sidecars to the new stem.
+    _stem0 = _trade_ck.stem
+    _trade_ck = _trade_key()
+    if _trade_ck.stem != _stem0:
+        for _sc in CACHE.glob(_stem0 + "_*.csv"):
+            _sc.rename(CACHE / _sc.name.replace(_stem0, _trade_ck.stem, 1))
+        print("settlement cache was written during this run; trade key re-minted:", _trade_ck.name)
     for _old in CACHE.glob("trade_*"):       # stale caches and their diagnostic sidecars
         if not _old.name.startswith(_trade_ck.stem):
             _old.unlink()
@@ -438,7 +465,7 @@ print("bars with a return", len(pkg), "last-bar fraction", float(pkg["is_last"].
 print("always-short R by clock time (no model; long R is the negative)")
 as_raw = pkg.groupby("hhmm")["R_as"].agg(["count", "mean", "std", "median"])
 as_raw["t"] = as_raw["mean"] / as_raw["std"] * np.sqrt(as_raw["count"])
-as_raw["Sharpe_ann"] = as_raw["mean"] / as_raw["std"] * np.sqrt(252.0)
+as_raw["Sharpe_ann"] = as_raw["mean"] / as_raw["std"] * np.sqrt(asl.PERIODS_PER_YEAR)
 print(as_raw.to_string())
 """
     ),
@@ -515,9 +542,15 @@ The close trade and this notebook share `second_order_raw` /
 
 1. Forecasts live on $y=\sqrt{RV/B}$. Actual $y$ on each bar:
    $\sqrt{\mathrm{rv\_raw}/B}$.
-2. **Only session bars enter the fit** (rows labelled 10:30–16:00,
-   the bars 10:00–15:30): off-session bars are mispredicted by orders
-   of magnitude and would pollute the calibration.
+2. **Only regular-session bars enter the fit** (rows labelled
+   10:30–16:00, the bars 10:00–15:30), and the mask goes further: a
+   date is in the fit only if the panel carries a stamp-16:00 row for
+   it, and dates on the 2001–2025 NYSE 13:00 early-close calendar are
+   excluded whole. Off-session bars, the futures-only bars printed on
+   NYSE holidays, and the post-close half-session bars are all
+   mispredicted by orders of magnitude and would pollute the
+   calibration. The cell prints the surviving fit-row count and how
+   many panel rows fall on early-close dates.
 3. Sessions are counted on those fit rows, so for evaluation session
    $d\ge 63$ the window is the **250 trading sessions strictly before
    $d$** — prior days only; same-day bars are not in the window. The
@@ -718,6 +751,10 @@ from 15:30 it detected the diurnal profile, not mispricing (§5b).
 
 - **always short:** $q_t\equiv -1$ every bar. No forecast. This is
   the scalar: short every re-picked straddle.
+- **always short, flat at 15:30:** $q_t=-1$ on every bar before 15:30
+  and $q_t=0$ on the 15:30 bar. No forecast. It drops the settlement
+  leg — the one bar that carries most of the day's variance — and is
+  the forecast-free control the hybrid has to clear.
 - **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ —
   long the straddle when the matched forecast exceeds the matched
   implied slice, short otherwise; bars with no signal — warm-up, or a
@@ -727,8 +764,9 @@ from 15:30 it detected the diurnal profile, not mispricing (§5b).
 - **always short, $\mathrm{sign}(s)$ close:** $q_t=-1$ on every bar
   before 15:30 and $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ on the 15:30
   bar — always short on every intraday bar, with the settlement leg
-  sized by the forecast's sign. The next section shows why it is the
-  construction worth keeping.
+  sized by the forecast's sign. The next section reads it against the
+  two forecast-free rules, at the midpoint and at the crossed spread;
+  the two fills do not agree.
 
 The table is **pooled**: every clock stacked into one list (the row
 count is the `n` column). Those are the twelve bars **of the same
@@ -789,6 +827,9 @@ pos_m = pd.Series(np.where(work["s_matched"] > 0, 1.0, -1.0), index=work.index).
 )
 q = {
     "always short": pd.Series(-1.0, index=work.index),
+    "always short, flat at 15:30": pd.Series(
+        np.where(work["hhmm"] == "15:30", 0.0, -1.0), index=work.index
+    ),
     "sign(s)": pos_m.fillna(0.0),
     "always short, sign(s) close": pd.Series(
         np.where(work["hhmm"] == "15:30", pos_m.fillna(0.0).to_numpy(), -1.0),
@@ -808,7 +849,7 @@ for name, size in q.items():
     st["n_days"] = n_days
     st["mean_daily"] = dmu
     st["Sharpe_ann"] = (
-        dmu / dsd * np.sqrt(252.0) if (dsd and dsd > 0) else float("nan")
+        dmu / dsd * np.sqrt(asl.PERIODS_PER_YEAR) if (dsd and dsd > 0) else float("nan")
     )
     st["t_mean"] = (
         dmu / dsd * np.sqrt(n_days) if (dsd and dsd > 0) else float("nan")
@@ -832,17 +873,103 @@ tab.to_csv(OUT / "rule_table_intraday_blk2.csv")
     ),
     md(
         r"""
-## 7. Two constructions worth keeping, and what fills do to them
+## 6b. Annualization, sizing, and what the frame covers
+
+Three conventions the table above rests on. Each is printed by the
+cell below rather than asserted here.
+
+**Annualization.** `Sharpe_ann` is the mean of the daily sums over
+their standard deviation, times $\sqrt{252}$. That is a
+**per-trade-day** convention: one scored expiration day is one unit of
+time. This frame does not trade every session — SPXW listed
+Monday/Wednesday/Friday expirations before June 2022 and every session
+after — so the cell prints the trades per year the frame actually
+delivers (`asl.trades_per_year`) and the day count per calendar year.
+Read $\sqrt{252}$ as *per 252 trades*. This frame delivers $200.3$ of
+them a year — $158$ scored days in 2020, $158$ in 2021, $219$ in 2022,
+$248$ in 2023, $83$ in the partial 2024 — so the calendar-time
+equivalent (one number per NYSE session, zero on the sessions with no
+0DTE expiration) scales every whole-sample figure by
+$\sqrt{200.3/252}=0.892$. The shortfall is entirely the early years,
+and relative comparisons between the rules are unaffected.
+
+**Sizing.** Every $R_t$ is a return **per unit of midpoint premium**,
+and the daily sum adds twelve of them. That is one dollar of premium
+at each bar, which in contracts is more size where the straddle is
+cheap — and the 15:30 straddle is the cheapest of the day (median
+$5.39$ index points against $19.82$ at 10:00), so the settlement leg
+carries $3.68$ times the contracts the opening one does. The
+cell prints the median entry premium by clock and, beside the table's
+Sharpes, the one-contract alternative: sum the index-point P&L, one
+straddle per bar. That reads $2.485$ for always short, $1.747$ for
+$\mathrm{sign}(s)$ and $3.369$ for the hybrid, against $1.902$,
+$1.721$ and $3.171$ per unit of premium. The ordering of the rules is
+the same under both conventions; the levels are not.
+
+**Coverage.** A bar is scored only when the forecast panel has a row
+for it, and the panel ends before the chain does. Of the $1{,}279$
+expiration days that carry a trade, $866$ are scored and $413$ are
+not, and those $413$ are one contiguous stretch at the **end** of the
+tape: **2024-05-01 to 2025-12-31**, the most recent twenty months, the
+panel stopping on 2024-04-30. They are unscored here, not evidence of
+anything; extending the panel would turn them into a genuine holdout.
+"""
+    ),
+    code(
+        r"""
+# Annualization, sizing and coverage: printed, not asserted.
+_dix = pd.DatetimeIndex(sorted(work["date"].unique()))
+_tpy = float(asl.trades_per_year(_dix))
+_per_year = work.groupby(work["date"].dt.year)["date"].nunique()
+print("scored expiration days", len(_dix), "|", _dix.min().date(), "->", _dix.max().date())
+print("trades per year on the scored frame:", round(_tpy, 1),
+      "| annualization constant is sqrt(PERIODS_PER_YEAR), PERIODS_PER_YEAR =", asl.PERIODS_PER_YEAR)
+print("scored days per calendar year:", ", ".join(f"{int(_y)} {int(_n)}" for _y, _n in _per_year.items()))
+print("per-trade-day convention: sqrt(252) means per 252 trades; calendar-time factor",
+      "sqrt(trades per year / 252) =", round(float(np.sqrt(_tpy / asl.PERIODS_PER_YEAR)), 3))
+
+print()
+_prem = work.groupby("hhmm")["entry"].median()
+print("median entry premium by clock (index points): unit premium buys more contracts where it is small")
+print(_prem.round(2).to_string())
+print("   one unit of premium at 15:30 is", round(float(_prem.iloc[0] / _prem.iloc[-1]), 2),
+      "times the contracts it buys at", _prem.index[0])
+_sz_rows = []
+for _name, _size in q.items():
+    _dprem = (_size * work["R"]).groupby(work["date"]).sum()
+    _dpts = asl.points_pnl(_size, work["exit"], work["entry"]).groupby(work["date"]).sum()
+    _sz_rows.append({
+        "rule": _name,
+        "Sharpe_ann unit premium": float(_dprem.mean() / _dprem.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)),
+        "Sharpe_ann one contract": float(_dpts.mean() / _dpts.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)),
+        "mean/day index points": float(_dpts.mean()),
+    })
+print(pd.DataFrame(_sz_rows).set_index("rule").to_string(float_format=lambda x: f"{x:+.3f}"))
+
+print()
+_all_days = pd.DatetimeIndex(sorted(pkg["date"].unique()))
+_unscored = _all_days.difference(_dix)
+print("expiration days with a trade:", len(_all_days), "| scored:", len(_dix),
+      "| with a trade and no forecast row:", len(_unscored))
+print("   unscored:", _unscored.min().date(), "->", _unscored.max().date(),
+      "| all of them after the last scored day:", bool((_unscored > _dix.max()).all()))
+"""
+    ),
+    md(
+        r"""
+## 7. Two constructions, their forecast-free control, and what fills do to them
 
 Two constructions from the study of this trade survive their gates
 and belong next to the rule table; a third block prices every rule at
-the quoted spread.
+the quoted spread. The forecast-free control — always short, flat at
+15:30 — runs through all three, and the two fills do not agree about
+it.
 
-Conventions shared by the three blocks. $\mathrm{sign}(s)$ and the
+Conventions shared by the four blocks. $\mathrm{sign}(s)$ and the
 hybrid sit flat wherever the matched signal is missing — the diurnal
 profile's warm-up, and any bar whose vendor implied volatility was
 censored, both counted in §5b — so the first block also prints the
-three rules on the days after that warm-up. Two frames appear: the
+four rules on the days after that warm-up. Two frames appear: the
 rule table runs on every expiration day, and the calendar test on the
 days that have all twelve bars (the §6 cell names the days that lack
 a bar). Bootstrap
@@ -862,6 +989,32 @@ Always short collects the decay on every intraday bar; the forecast's
 information is the sign on the settlement leg. The cell asserts its
 daily-sum Sharpe against the value recorded at the last regeneration,
 so a silent change in the construction fails loudly.
+
+**The control: drop the settlement leg.** Always short, flat at 15:30
+uses no forecast and simply does not trade the last bar. It is the
+rule the hybrid has to clear, and the two fills disagree about
+whether it does.
+
+- **At the midpoint** the control scores *above* the hybrid: 3.430
+  against 3.171, a difference of $+0.259$. The reason is in §8 — the
+  15:30 bar is the loosest of the day for a plain short (the lowest
+  by-clock Sharpe of the twelve) while carrying most of the day's
+  variance, so at mid the cheapest thing to do with the settlement leg
+  is not to trade it. It is a *variance* argument, not a return one:
+  the control earns $0.1459$ a day against the hybrid's $0.2520$, and
+  the $t$ on that daily mean difference is $-2.93$. The Sharpe
+  difference is **not
+  resolved** — percentile $[-0.90, +1.51]$, basic $[-1.00, +1.42]$,
+  both covering zero — so this is not a claim that the control wins.
+- **At the crossed spread** the ordering reverses and the hybrid is
+  well ahead: $-0.969$ against $-3.621$. The mechanism is not subtle:
+  the settlement leg is the only leg of the day that pays **no exit
+  spread**, because it cash-settles instead of being sold back.
+  Dropping it removes the one cheap trade and keeps eleven expensive
+  ones.
+
+So "worth keeping" is established **at the spread, not at the
+midpoint**. Both readings are printed; neither is dropped.
 
 **The settlement leg on non-event days — a forward test, not a rule.**
 The 15:30 leg is scored with the position set flat on FOMC-statement
@@ -893,6 +1046,14 @@ largest half-spread the rule could pay and still break even. Both
 the mid and crossed-spread P&L are divided by the same midpoint
 entry premium, so the two columns are comparable and neither is a
 return on a fill price.
+
+The hold-through exemption is a modelling choice with a size, so the
+block prices it both ways: the same table is recomputed with a round
+trip charged at **every** re-pick boundary, and the two are printed
+side by side. The gap is what the exemption is worth, and it is not
+small. For the hybrid, charging every re-pick raises the crossings
+from $16.615$ to $22.916$ a day and takes the crossed-spread Sharpe
+from $-0.969$ to $-2.587$.
 """
     ),
     code(
@@ -906,7 +1067,7 @@ def _daily(rp):
 
 def _sh(d):
     d = np.asarray(d, float)
-    return float(d.mean() / d.std(ddof=1) * np.sqrt(252.0))
+    return float(d.mean() / d.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
 
 
 def _tstat(x):
@@ -927,7 +1088,7 @@ def _boot_dsharpe(a, b, B=2000, seed=0):
     a, b = np.asarray(a, float), np.asarray(b, float)
     n = len(a)
     idx = asl.circular_block_bootstrap_idx(rng, n, int(np.ceil(n ** (1.0 / 3.0))), B)
-    _shr = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(252.0)   # noqa: E731
+    _shr = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)   # noqa: E731
     d = _shr(a[idx]) - _shr(b[idx])
     lo, hi = (float(v) for v in np.percentile(d, [2.5, 97.5]))
     hat = _sh(a) - _sh(b)
@@ -955,14 +1116,25 @@ def _ci_str(ci):
 # Recorded at the last regeneration on the frame this notebook prints. They are
 # change-detectors: if the construction moves, the assert fails and the number here is
 # re-derived from the new run — never loosened to accommodate it.
-RECORDED = {"hybrid": 3.2276, "close_sign_s": 1.6658, "close_sign_s_flat": 2.1274}
+RECORDED = {"hybrid": 3.1714, "flat_close": 3.4300, "close_sign_s": 1.5819, "close_sign_s_flat": 2.0369}
 
-# --- 1. the hybrid with the settlement leg sized by sign
+# --- 1. the hybrid with the settlement leg sized by sign, and its forecast-free control
 print("1. rule table rows (daily-sum Sharpe, this frame:", int(tab.loc["always short", "n_days"]), "days)")
-print(tab.loc[["always short", "sign(s)", "always short, sign(s) close"],
-              ["n_days", "mean_daily", "t_mean", "Sharpe_ann", "pct_buy"]].to_string())
+print(tab.loc[list(q), ["n_days", "mean_daily", "t_mean", "Sharpe_ann", "pct_buy"]].to_string())
 assert abs(float(tab.loc["always short, sign(s) close", "Sharpe_ann"]) - RECORDED["hybrid"]) < 0.01, \
     tab.loc["always short, sign(s) close", "Sharpe_ann"]
+assert abs(float(tab.loc["always short, flat at 15:30", "Sharpe_ann"]) - RECORDED["flat_close"]) < 0.01, \
+    tab.loc["always short, flat at 15:30", "Sharpe_ann"]
+_d_flat = _daily(q["always short, flat at 15:30"] * work["R"])
+_d_hyb = _daily(q["always short, sign(s) close"] * work["R"])
+_ci = _boot_dsharpe(_d_flat.to_numpy(), _d_hyb.to_numpy())
+print(f"at the midpoint, flat at 15:30 minus the hybrid: {_sh(_d_flat) - _sh(_d_hyb):+.3f} Sharpe "
+      f"({_sh(_d_flat):.3f} against {_sh(_d_hyb):.3f}) on mean/day {_d_flat.mean():+.4f} against "
+      f"{_d_hyb.mean():+.4f} - the control gives up return and more than its share of variance; "
+      f"t-stat of the daily MEAN difference {_tstat((_d_flat - _d_hyb).to_numpy()):+.2f}; "
+      f"dSharpe 95% {_ci_str(_ci)}")
+print("   dropping the settlement leg is ahead at the midpoint and the difference is unresolved;",
+      "block 3 reverses the ordering at the crossed spread")
 _warm_dates = set(work.loc[~np.isfinite(work["w_slice"]), "date"].unique())
 _post = ~work["date"].isin(_warm_dates)
 print("after the profile warm-up:", int(work.loc[_post, "date"].nunique()), "days (the",
@@ -1028,12 +1200,15 @@ _same_k = ((work["K_c"].shift(-1) == work["K_c"]) & (work["K_p"].shift(-1) == wo
 print("next bar re-picks the same strikes on", f"{float(_same_k[~_is_last].mean()):.1%}", "of the one-bar holds")
 
 
-def _at_spread(qq):
-    # crossed-spread P&L in index points and the number of spread crossings, per bar
+def _at_spread(qq, charge_repicks=False):
+    # crossed-spread P&L in index points and the number of spread crossings, per bar.
+    # charge_repicks=True withdraws the hold-through exemption: every re-pick pays a
+    # round trip even when it lands on the same two strikes with the same position.
     qq = np.asarray(qq, float)
     long, short = qq > 0, qq < 0
     nxt_q = np.append(qq[1:], 0.0)
-    hold = _same_k & (np.sign(nxt_q) == np.sign(qq)) & (qq != 0)       # held through into the next bar
+    same_k = np.zeros(len(qq), dtype=bool) if charge_repicks else _same_k
+    hold = same_k & (np.sign(nxt_q) == np.sign(qq)) & (qq != 0)       # held through into the next bar
     held_in = np.concatenate([[False], hold[:-1]])                         # this bar's entry was a hold-through
     entry_px = np.where(held_in, work["entry"], np.where(long, _ask_e, np.where(short, _bid_e, work["entry"])))
     exit_px = np.where(_is_last, work["exit"],
@@ -1047,20 +1222,29 @@ def _at_spread(qq):
     return pd.Series(pts, index=work.index), pd.Series(ncross, index=work.index), int(untradeable.sum())
 
 
-_cost_rows = []
+_cost_rows, _ht_rows = [], []
 for _name, _size in q.items():
     _pts, _nc, _n_untr = _at_spread(_size.to_numpy(dtype=float))
     _dm = _daily(_size * work["R"])
     _dcr = _daily(_pts / work["entry"])
     _ncross = _nc.groupby(work["date"]).sum()
     _cr15 = (_pts / work["entry"])[work["hhmm"] == "15:30"]
+    _sd15 = float(_cr15.std(ddof=1))
     _cost_rows.append({"rule": _name, "Sharpe mid": _sh(_dm), "Sharpe crossed-spread": _sh(_dcr),
                        "mean/day mid": float(_dm.mean()), "mean/day crossed-spread": float(_dcr.mean()),
                        "crossings/day": float(_ncross.mean()),
                        "break-even half-spread % prem": float(_dm.mean() / _ncross.mean() * 100.0),
-                       "settlement leg Sharpe crossed-spread": float(_cr15.mean() / _cr15.std(ddof=1) * np.sqrt(252.0)),
+                       "settlement leg Sharpe crossed-spread":
+                           float(_cr15.mean() / _sd15 * np.sqrt(asl.PERIODS_PER_YEAR)) if _sd15 > 0 else float("nan"),
                        "worst day crossed-spread": float(_dcr.min()), "maxDD_prem crossed-spread": _dd(_dcr),
                        "bars with no tradeable fill": _n_untr})
+    # the hold-through exemption, priced: charge a round trip at every re-pick boundary
+    _pts_c, _nc_c, _ = _at_spread(_size.to_numpy(dtype=float), charge_repicks=True)
+    _ht_rows.append({"rule": _name,
+                     "crossings/day exempt": float(_ncross.mean()),
+                     "crossings/day charged": float(_nc_c.groupby(work["date"]).sum().mean()),
+                     "Sharpe crossed-spread exempt": _sh(_dcr),
+                     "Sharpe crossed-spread charged": _sh(_daily(_pts_c / work["entry"]))})
 _cost = pd.DataFrame(_cost_rows).set_index("rule")
 print(_cost.to_string(float_format=lambda x: f"{x:+.3f}"))
 _cost.to_csv(OUT / "rule_table_intraday_crossed_blk2.csv")
@@ -1068,7 +1252,19 @@ assert bool((_cost["Sharpe crossed-spread"] < _cost["Sharpe mid"]).all()), "cros
 assert bool((_cost["Sharpe crossed-spread"] < 0).all()), "every re-picking rule is expected to be negative at the crossed spread"
 _surv = [r for r in _cost.index if float(_cost.loc[r, "settlement leg Sharpe crossed-spread"]) > 0]
 print("every rule is negative at the crossed spread across the day; the settlement leg survives it only when sized by sign:",
-      ", ".join(_surv) if _surv else "none")
+      ", ".join(_surv) if _surv else "none",
+      "(the flat-at-close control has no settlement leg, so its column is blank)")
+print("the ordering at the crossed spread is the reverse of the midpoint: flat at 15:30",
+      f"{float(_cost.loc['always short, flat at 15:30', 'Sharpe crossed-spread']):+.3f}",
+      "against the hybrid", f"{float(_cost.loc['always short, sign(s) close', 'Sharpe crossed-spread']):+.3f}",
+      "- the settlement leg cash-settles, so it is the only leg that pays no exit spread")
+
+# the hold-through exemption, priced both ways
+print()
+print("4. the hold-through exemption priced: every re-pick charged a round trip")
+_ht = pd.DataFrame(_ht_rows).set_index("rule")
+print(_ht.to_string(float_format=lambda x: f"{x:+.3f}"))
+assert bool((_ht["crossings/day charged"] >= _ht["crossings/day exempt"]).all()), "charging re-picks cannot reduce crossings"
 """
     ),
     md(
@@ -1095,7 +1291,9 @@ clock time, not a count of 30-min bars.
 
 The plot is the by-clock-time slice, not the pooled mean: each
 dot is the average of *that clock time's* daily series, for
-the three §6 rules.
+the four §6 rules. The 15:30 column is where they separate: the
+control sits at zero there by construction, and the always-short dot
+is the leg the hybrid re-signs.
 Bars 10:00–15:00 are
 next-mid 30-min holds; the **15:30 bar cash-settles at the official
 close**, so its row is the paper's trade.
@@ -1130,7 +1328,8 @@ htab = pd.DataFrame(hour_rows)
 htab.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(9, 3.4))
-for rule, marker in (("always short", "o"), ("sign(s)", "^"), ("always short, sign(s) close", "s")):
+for rule, marker in (("always short", "o"), ("always short, flat at 15:30", "d"),
+                     ("sign(s)", "^"), ("always short, sign(s) close", "s")):
     sub = stab[stab["rule"] == rule]
     ax.plot(sub["hhmm"], sub["mean"], marker=marker, label=rule)
 ax.axhline(0, color="k", lw=0.6)
