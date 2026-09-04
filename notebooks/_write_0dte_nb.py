@@ -725,30 +725,38 @@ plt.close(fig)
 
 The forecast rows are labelled by the bar they end, and the trade reads
 the row labelled 16:00 — issued at 15:30 for the bar it trades (§7).
-Shift that choice by $k$ half-hour bars,
-$\widehat{RV}^{(k)}_t$ = the row labelled $16{:}00+30k$ minutes on the
-same day, keep everything else, and rescore the $\mathrm{sign}(s)$
-rule: $k<0$ is a stale forecast, still free of look-ahead; $k=0$ is the
-trade. Rows after the close ($k>0$) forecast after-hours bars whose
-variance is far lower, so they sit below the implied variance on almost
-every day and collapse the rule into always short — they are in the
-table but not in the figure. The same exercise by days uses the 16:00
-row of day $t+k$; for $k\ge 1$ that forecast's lags contain the traded
-bar's realized variance. The end of the look-ahead road is the traded
-bar's realized variance itself in place of the forecast.
+Shift that choice by $k$ half-hour bars and rescore the
+$\mathrm{sign}(s)$ rule with everything else unchanged: $k<0$ reads an
+earlier row, a stale forecast that is still free of look-ahead; $k=0$
+is the trade; $k>0$ reads a row issued after the close, whose lags
+contain the traded bar's realized variance. Read raw, the rows after
+the close forecast after-hours bars whose variance is far lower, so
+they sit below the implied variance on almost every day and collapse
+the rule into always short (Sharpe about $0.2$ to $0.3$). For $k>0$ the
+later forecast is therefore placed on the traded bar's own scale: the
+model's fitted-scale forecast $\hat y$ from the later row, the same
+recalibration $m=a+b\,\hat y$ and $\hat\sigma^2$ already fitted for the
+trade, and the traded bar's profile $B$,
+$\widehat{RV}^{(k)}=(m(\hat y_{16{:}00+30k})^2+\hat\sigma^2)\,B_{16{:}00}$
+— so the only thing that changes is what the model had seen. The
+right-hand panel does the same exercise by days (the 16:00 row of day
+$t+k$), and the star is the end of the road: the traded bar's realized
+variance in place of the forecast.
 
-The rule is sharp at $k=0$: one bar stale, the block-diagonal ridge
-forecast falls from about $1.6$ to under $0.1$, and every stale shift
-sits below the trade for every forecast. Tomorrow's forecast lifts
-five of the seven above their honest value (the baseline from about
-$1.0$ to $1.9$), and the traded bar's realized variance takes all seven
-to about $4.6$ — the cliff.
+The rule is sharp on both sides of the close. One bar stale, the
+block-diagonal ridge forecast falls from about $1.6$ to under $0.1$,
+and every stale shift sits below the trade for every forecast. One bar
+after the close, with the traded bar now inside the lags, it jumps to
+about $3.1$ and the tree forecasts to $4.3$–$4.6$, at the
+realized-variance ceiling of about $4.6$; the lift fades over the next
+bars as the lags move on. By days, tomorrow's forecast lifts five of
+the seven above their honest value.
 """
     ),
     code(
         r"""
 # rescore sign(s) with the forecast row shifted in time; everything else unchanged
-BAR_SHIFTS = list(range(-11, 9))   # -11 = the 10:30 row ... 0 = the 16:00 row (the trade) ... +8 = the 20:00 row
+BAR_SHIFTS = list(range(-11, 7))   # -11 = the 10:30 row ... 0 = the 16:00 row (the trade) ... +6 = the 19:00 row
 DAY_SHIFTS = list(range(-3, 4))
 
 
@@ -757,16 +765,36 @@ def sharpe_ann(x):
     return float(x.mean() / x.std(ddof=1) * np.sqrt(252.0))
 
 
+def load_panel_mz(path):
+    # every 30-min row with the trade's recalibration: rv_hat, and its pieces m and s2
+    df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
+    df["t"] = pd.to_datetime(df["t"], utc=True)
+    df["et"] = df["t"].dt.tz_convert("America/New_York")
+    df["date"] = df["et"].dt.normalize().dt.tz_localize(None)
+    yhat = df["yhat"].to_numpy(float)
+    base = df["baseline"].to_numpy(float)
+    rv_raw = df["rv_raw"].to_numpy(float)
+    day_codes, uniq = pd.factorize(df["date"], sort=True)
+    mins = (df["et"].dt.hour * 60 + df["et"].dt.minute).to_numpy()
+    rth = (mins >= 10 * 60 + 30) & (mins <= 16 * 60)
+    rv, m, s2 = asl.second_order_mz(yhat, rv_raw, base, day_codes, len(uniq), need_days=None, fit_mask=rth)
+    df["rv_hat"], df["m"], df["s2"], df["mins"] = rv, m, s2, mins
+    return df
+
+
 def shifted_sharpes(tag):
-    pan = asl.load_yhat_panel(YHATS[tag])
-    pan["mins"] = pan["et"].dt.hour * 60 + pan["et"].dt.minute
+    pan = load_panel_mz(YHATS[tag])
     d = books[tag].loc[common, ["R", "iv_var"]]
+    p16 = pan[pan["mins"] == 16 * 60].drop_duplicates("date").set_index("date").sort_index()
     out = {}
     for k in BAR_SHIFTS:
-        sel = pan[pan["mins"] == 16 * 60 + 30 * k].drop_duplicates("date").set_index("date")["rv_hat"]
-        f = d.join(sel.rename("f"), how="left")["f"]
+        sel = pan[pan["mins"] == 16 * 60 + 30 * k].drop_duplicates("date").set_index("date")[["rv_hat", "m", "s2"]]
+        j = d.join(sel, how="left").join(p16["baseline"].rename("B16"), how="left")
+        if k <= 0:
+            f = j["rv_hat"]                                   # the row as it is
+        else:
+            f = (j["m"] ** 2 + j["s2"]) * j["B16"]            # the later forecast on the traded bar's scale
         out[f"bar{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"]) if f.notna().mean() > 0.95 else np.nan
-    p16 = pan[pan["mins"] == 16 * 60].drop_duplicates("date").set_index("date").sort_index()
     for k in DAY_SHIFTS:
         f = d.join(p16["rv_hat"].shift(-k).rename("f"), how="left")["f"]
         out[f"day{k:+d}"] = sharpe_ann(np.sign(f - d["iv_var"]).replace(0, -1.0) * d["R"])
@@ -781,29 +809,30 @@ with ThreadPoolExecutor(max_workers=len(MODEL_ORDER)) as pool:
 for tag in MODEL_ORDER:
     assert abs(shift_tab.loc[LABEL[tag], "bar+0"] - rule_tabs[tag].loc["sign(s)", "Sharpe_ann"]) < 1e-9, tag
 sharpe_as = float(rule_tabs["blk2"].loc["always short", "Sharpe_ann"])
-print("annualized Sharpe of sign(s) with the forecast row shifted; bar+0 is the trade")
+print("annualized Sharpe of sign(s) with the forecast row shifted; bar+0 is the trade;")
+print("bar+k for k>0 places the later forecast on the traded bar's scale; realized = the traded bar's realized variance")
 print(shift_tab.round(3).to_string())
 shift_tab.to_csv(OUT / "forecast_shift_cliff.csv")
 
-fig, axes = plt.subplots(1, 2, figsize=(13, 4.4), gridspec_kw={"width_ratios": [1.6, 1]})
-bars = [k for k in BAR_SHIFTS if k <= 0]
+fig, axes = plt.subplots(1, 2, figsize=(13, 4.4), gridspec_kw={"width_ratios": [1.7, 1]})
+x_star = BAR_SHIFTS[-1] + 2
 for tag in MODEL_ORDER:
     lw = 1.8 if tag == "blk2" else 1.0
-    axes[0].plot(bars, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in bars], marker="o", ms=3, lw=lw, label=LABEL[tag])
+    axes[0].plot(BAR_SHIFTS, [shift_tab.loc[LABEL[tag], f"bar{k:+d}"] for k in BAR_SHIFTS], marker="o", ms=3, lw=lw, label=LABEL[tag])
     axes[1].plot(DAY_SHIFTS, [shift_tab.loc[LABEL[tag], f"day{k:+d}"] for k in DAY_SHIFTS], marker="o", ms=3, lw=lw)
+pf = float(shift_tab["realized"].mean())
+axes[0].plot([x_star], [pf], marker="*", ms=11, lw=0, color="k")
+axes[0].annotate(f"{pf:.1f} (all seven forecasts)", (x_star, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
 for ax in axes:
     ax.axvline(0.0, color="k", lw=0.8)
     ax.axhline(sharpe_as, color="0.5", lw=0.9, ls="--")
     ax.axhline(0.0, color="k", lw=0.4)
     ax.set_ylabel("annualized Sharpe of sign(s)")
-pf = float(shift_tab["realized"].mean())
-axes[0].plot([2.0], [pf], marker="*", ms=11, lw=0, color="k")
-axes[0].annotate(f"{pf:.1f} (all seven forecasts)", (2.0, pf), xytext=(-6, 0), textcoords="offset points", ha="right", va="center", fontsize=8)
-axes[0].set_xticks(bars + [2.0])
-axes[0].set_xticklabels([str(k) for k in bars] + ["realized\nvariance"], fontsize=8)
-axes[0].set_xlabel("forecast row, in half-hour bars from the 16:00 row (0 = the trade); star = the traded bar's realized variance")
+axes[0].set_xticks(BAR_SHIFTS + [x_star])
+axes[0].set_xticklabels([str(k) for k in BAR_SHIFTS] + ["realized\nvariance"], fontsize=8)
+axes[0].set_xlabel("forecast row, in half-hour bars from the 16:00 row (0 = the trade; k>0 on the traded bar's scale)")
 axes[0].set_title("bar shifts on the same day", fontsize=10)
-axes[0].text(-11, sharpe_as, " always short", fontsize=8, color="0.4", va="bottom")
+axes[0].text(BAR_SHIFTS[0], sharpe_as, " always short", fontsize=8, color="0.4", va="bottom")
 axes[0].legend(fontsize=7, loc="upper left", frameon=False)
 axes[1].set_xlabel("forecast from day $t+k$ (0 = the trade)")
 axes[1].set_title("day shifts, same 16:00 row", fontsize=10)
