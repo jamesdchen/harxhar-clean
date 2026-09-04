@@ -60,7 +60,8 @@ intraday trade near 6. It scores 1.92.
 | 05 | short-only sign(s): short when s<0, flat otherwise | 2.69 | same mean as always short, worst day -6.0 vs -11.4, placebo 99.9th; Sharpe gain not resolved at 95%; ~9 crossings/day | a risk filter, unlikely to survive costs |
 | 06 one trade per day | entry-clock ladder, first-fire, sell-the-session-from-the-open | 15:30 entry 1.83 is the 99.8th pct of entry clocks; first-fire -0.39 / 0.32; sell-from-open -0.27 | every early entry loses; the session premium is the close, and there it is the sign not the short | reject |
 | 06 | flat at the close on FOMC / month-end days (83 of 864) | 1.83 -> 2.30 | t 4.4; dSharpe CI [+0.02, +0.87]; placebo 99.9th; gain in the daily-0DTE era; flags found in-sample on the parked event filter | needs a forward test |
-| 07 remaining-session recalibration | causal level calibration of the multi-bar forecast against the realized remainder (in flight) | - | - | pending |
+| 07 remaining-session recalibration | causal level calibration of the multi-bar forecast against the realized remainder (mean, median, pooled maps) | best pre-close clock 1.1-1.4 mid, <= 1.0 crossed | the median map lands level and buy rate on the oracle's, yet no clock before 15:00 is significant, no interval excludes zero, family-wise best-of-ten at the 16th-64th pct; the pooled map breaks the close | reject |
+| 07a audit | independent rebuild of 07 | matches | fit uses prior days only (0/10 perturbation violations); mid-day signs flip across admissible variants and windows; the miss is the forecast's day-by-day ranking, not its level | reject |
 
 ## Recommendation
 
@@ -70,8 +71,11 @@ intraday trade near 6. It scores 1.92.
 - At realistic fills the intraday legs are a cost, not an edge: every bar before
   15:30 is negative for every rule once the spread is paid. The trade that
   survives costs is the close trade of the RV-IV notebook.
-- The remaining-session implied IS a price and it is rich at every clock (04a);
-  the intraday miss is the forecast's level, not the pairing - a causal
-  recalibration of the multi-bar forecast against the realized remainder is
-  the one lever left (07). The calendar filter at the close (06) is the one
-  candidate that improves the surviving trade, pending a forward test.
+- The remaining-session implied IS a price and it is rich at every clock (04a),
+  and recalibrating the forecast's level to the realized remainder does not
+  help (07/07a): before the last hour the forecast lacks day-by-day sign
+  information, which no rescaling of a one-bar forecast can supply. Only a
+  genuinely multi-step remainder forecast (the main repository's direct
+  per-bar horizons, not in this repo) could reopen the question.
+- The calendar filter at the close (06) is the one candidate that improves the
+  surviving trade, pending a forward test.
