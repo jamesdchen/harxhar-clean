@@ -54,6 +54,13 @@ intraday trade near 6. It scores 1.92.
 | 03 | equal-contract sizing | 1.80 (sign(s)), 2.49 (always short) | CIs include 0 | state the convention, no claim |
 | 03 | **crossed-spread costs** | **-3.1 sign(s), -3.5 always short, -2.1 hybrid** | 21-23 crossings/day cost 0.40-0.47 premium units vs mean 0.15-0.27 (t 18-21); break-even half-spread < 1.2% vs median 1.7% | **the intraday re-pick does not survive costs; only the settlement leg does (1.82 -> 1.40)** |
 | 03 | hold through unchanged signs | 1.35 mid, -0.56 crossed | worse mid, still negative crossed | reject |
+| 04 remaining session | forecast of the variance left to the close vs the remaining-session implied, hold to close, per entry clock | 0.19 (10:00) ... 1.29 (15:00), 1.89 (15:30) | same SIGN as the bar signal by algebra (s_rem = s_bar / w); entries before 15:00 at the 11th-63rd pct of random entry clocks; first-fire rules significantly worse | reject as an intraday generalization |
+| 04a audit | independent rebuild of 04 | matches | F_t-measurable; IV_rem is a price (pricing ratio 1.0000 every clock); the remaining implied is RICH at every clock (realized/implied 0.76-0.84) - the miss is the forecast's level (F_rem overshoots the realized remainder by 15-50%) | honest; the lever is the forecast's level calibration (07) |
+| 05 other causal rules | realized persistence, implied-variance change, forecast revision, forecast-error sign | 1.67 / 0.93 / 0.46 / 1.44 | all below always short (1.90) and sign(s) (1.92) | reject |
+| 05 | short-only sign(s): short when s<0, flat otherwise | 2.69 | same mean as always short, worst day -6.0 vs -11.4, placebo 99.9th; Sharpe gain not resolved at 95%; ~9 crossings/day | a risk filter, unlikely to survive costs |
+| 06 one trade per day | entry-clock ladder, first-fire, sell-the-session-from-the-open | 15:30 entry 1.83 is the 99.8th pct of entry clocks; first-fire -0.39 / 0.32; sell-from-open -0.27 | every early entry loses; the session premium is the close, and there it is the sign not the short | reject |
+| 06 | flat at the close on FOMC / month-end days (83 of 864) | 1.83 -> 2.30 | t 4.4; dSharpe CI [+0.02, +0.87]; placebo 99.9th; gain in the daily-0DTE era; flags found in-sample on the parked event filter | needs a forward test |
+| 07 remaining-session recalibration | causal level calibration of the multi-bar forecast against the realized remainder (in flight) | - | - | pending |
 
 ## Recommendation
 
@@ -63,6 +70,8 @@ intraday trade near 6. It scores 1.92.
 - At realistic fills the intraday legs are a cost, not an edge: every bar before
   15:30 is negative for every rule once the spread is paid. The trade that
   survives costs is the close trade of the RV-IV notebook.
-- What would change this: an intraday implied term that is a price rather than
-  a share-weighted slice (the diagnosis' item 3) - the only lever the data
-  point at, and one no candidate here supplies.
+- The remaining-session implied IS a price and it is rich at every clock (04a);
+  the intraday miss is the forecast's level, not the pairing - a causal
+  recalibration of the multi-bar forecast against the realized remainder is
+  the one lever left (07). The calendar filter at the close (06) is the one
+  candidate that improves the surviving trade, pending a forward test.
