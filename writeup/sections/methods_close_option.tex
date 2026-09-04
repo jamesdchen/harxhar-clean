@@ -31,11 +31,17 @@ $R = \Pi_{\mathrm{long}}/P_{15:30}$; a short earns $-R$. By
 construction $R \ge -1$, with equality on the days the close settles
 strictly between $K_p$ and $K_c$ and both legs expire worthless. The
 16:00 chain underlying is retained only as a check on the settlement
-print. Half sessions without a close are dropped.
+print. Early-close sessions are dropped. The session ends at 13:00 on those
+days, so the 15:30 chain row is stamped after the close and carries stale
+quotes: the settlement is already known there and the short is a certain
+$+1$. The test is a non-positive time to expiry on the 15:30 row --- the
+vendor's \texttt{early\_close} column is true on every row of this file and
+is not used. Twelve such sessions appear in the chain, and the five
+that fall inside the forecast window leave the scored frame.
 
 \paragraph{Forecast remaining variance.} Seven of the paper's per-bar
 forecasts enter the same rules on the same contracts: the baseline (HAR + calendar OLS) forecast
-(Section~\ref{sec:dp_benchmark}), the block-diag ridge
+(Section~\ref{sec:dp_benchmark}), the block-diagonal ridge
 (HAR versus exogenous block, separate penalties;
 Section~\ref{sec:block_tikhonov}), LightGBM and XGBoost on the wide
 all-features design (Section~\ref{sec:tree_edge}, frozen expert menu),
@@ -50,7 +56,7 @@ to raw thirty-minute variance by the causal second-order back-transform
 of
 Section~\ref{sec:smearing_contract}: a Mincer--Zarnowitz map
 $m=a+b\,\widehat{y}$ and a residual second moment $\hat\sigma^2$, both
-fit on the previous 250 days only, then
+fit on the previous 250 trading sessions only, then
 $\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
 15:30--16:00 bar. Forecast files end on 30~April~2024, so later
 expiration days are not scored.
@@ -66,14 +72,15 @@ $1/\max(\widehat{y}_u,\,q_{10})^{2}$, where $q_{10}$ is the tenth
 percentile of $\widehat{y}$ within the same trailing window, and the
 fit window is restricted to regular-session bars. The weighting
 addresses a level effect --- an unweighted fit is dominated by the
-largest bars --- and was adopted on the forecast-accuracy referee
-(QLIKE improves for all seven models), not on any portfolio outcome. A median-targeting map (the same line fitted by weighted least
+largest bars --- and was adopted on a forecast-accuracy criterion, not on
+any portfolio outcome. A median-targeting map (the same line fitted by weighted least
 absolute deviations, $\widehat{RV}=m^2 B$) was tested and not adopted:
 it is right about the sign more often but earns less, because the
 straddle's payoff is carried by the right tail of realized variance
 that a median discards, and it cuts the $\mathrm{sign}(s)$ portfolio's
-Sharpe ratio for six of the seven forecasts (block-diagonal ridge 1.63
-to 0.70).
+Sharpe ratio for all seven forecasts (block-diagonal ridge 1.42 to
+0.50), though no one of those differences is resolved at 95\% by a
+circular-block bootstrap.
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package
@@ -87,12 +94,22 @@ quote is rescaled before it is compared with anything,
     \label{eq:close_opt_ivscale}
 \end{equation}
 and $\mathrm{IV}_{30,t}^{2}$ is the implied variance of the remaining
-bar --- the same window, and the same units, as $\widehat{RV}_t$. No
-separate inversion from the mid is applied; as a check, inverting the
-Black--Scholes--Merton price of the package mid over the remaining
-half hour reproduces the vendor quote to quote precision, so
-``quoted'' and ``inverted'' implied volatility coincide on this
-panel.
+bar --- the same window, and the same units, as $\widehat{RV}_t$. The
+vendor field is not always a quote: it is the output of a bisection on
+$[0.0005,\,0.025]$ that returns a bracket node when it fails to converge, so
+the two bounds and the first interior nodes of that bisection are censored
+values rather than prices, and they are masked here. On the five scored
+days where a nearest leg carries one, the implied volatility is recovered
+instead by inverting the Black--76 price of the package --- call plus put at
+zero rate on the 15:30 index level, the vendor's own convention, over the
+remaining half hour --- for the total volatility that reproduces the 15:30
+midpoint. On uncensored legs that same inversion
+reproduces the quoted midpoint to quote precision (median model-to-quote
+price ratio 1.0000, 5th to 95th percentile 0.9969 to 1.0062),
+so ``quoted'' and ``inverted'' implied volatility coincide there. Dropping
+the censored days outright instead of recovering them moves no
+$\mathrm{sign}(s)$ Sharpe ratio in Section~\ref{sec:close_option_results} by
+more than 0.06.
 
 \paragraph{Signal.} The two measurements are compared in variance
 space,
@@ -176,44 +193,20 @@ the questions asked of it are its price and the width and fraction to
 choose under it, not whether the wings improve the portfolio.
 \fi
 
-\paragraph{Compounding at a fraction of wealth.} The tables above
+\paragraph{Compounding at a fixed fraction of wealth.} The tables above
 price one unit of premium per day and add P\&L up. A reinvesting
-trader bets a fraction $f_t$ of current wealth instead, so wealth
-compounds as $W_T=\prod_t(1+f_t\,q_t R_t)$ and the natural objective
-is the annualized mean of $\log(1+f_t R'_t)$. Ruin is one bad day:
+trader bets a fraction $f$ of current wealth instead, so wealth
+compounds as $W_T=\prod_t(1+f\,q_t R_t)$ and the natural objective
+is the annualized mean of $\log(1+f R'_t)$. Ruin is one bad day:
 any $f \ge 1/|\min_t R'_t|$ puts wealth at or below zero on the worst
 day, so the unhedged short portfolio, with a worst day near $-10$ premium
 units, can only ever bet a small fraction of wealth no matter how
-good its mean. A defined-risk variant, which would bound the worst day
-by construction, is parked and not reported here. The
-fraction is estimated causally from the portfolio's own past returns,
-\begin{equation}
-    \hat f_t \;=\;
-    \min\!\left(
-        \frac{\hat\mu_{t-1}}{\widehat{E[R'^2]}_{t-1}},
-        \, \frac{1}{|\min_{u\le t-1} R'_u|}
-    \right)_{\!+},
-    \label{eq:close_opt_kelly}
-\end{equation}
-the quadratic growth rule under a running ruin cap, expanding with a
-minimum of 63 sessions and lagged one day. The half-fraction path
-$\hat f_t/2$ is scored alongside, and every realized wealth factor is
-asserted positive.
-
-``A fraction of wealth'' needs a unit before any growth number can be
-read, and two frames are used. In the \emph{per-premium} frame ---
-the frame for the plain portfolio --- $f_t$ is the share of wealth
-deployed as body premium; a bought straddle's premium is also its
-capital at risk, while the uncapped short side's capital at risk is
-unbounded, which is exactly why the ruin bound above governs the
-admissible fraction. A true \emph{capital-at-risk} frame --- $f_t$
-posted as max-loss collateral, the day's return on that capital
-bounded below by $-1$ by construction --- exists only once the worst
-day is bounded; it applies to a defined-risk variant that is parked and
-not reported here. One unit
-of wealth posted as collateral controls several times less premium
-exposure than one unit deployed as premium, and the ratio varies day
-to day, so growth rates compare only within a frame, never across.
+good its mean. The fraction is fixed at $f = 0.03$ --- three percent of
+wealth per day, a chosen round number, the same on every day and for both
+rules; nothing is estimated --- and every realized wealth factor is
+asserted positive. Here $f$ is a share of wealth deployed as body premium,
+the unit of the tables above. A defined-risk variant, which would bound the
+worst day by construction, is parked and not reported here.
 
 \paragraph{Scoring and control.} The unit of account is the expiration
 day. For a portfolio of $n$ daily returns,
@@ -229,12 +222,11 @@ predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
 Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
-forecast on about 61\% of days, so the portfolio leans short more often
+forecast on 57 to 68\% of days depending on the forecast
+(60\% for the headline), so the portfolio leans short more often
 than long. What the forecast contributes at this hour is the
 \emph{sign} of the day --- which side of the quoted premium to stand
 on. Sizing beyond the sign is tested rather than assumed:
 Section~\ref{sec:close_option_results} reports the magnitude
-experiments, none of which is retained; the only graduation of
-exposure kept is the causal fraction-of-wealth rule of
-Equation~\eqref{eq:close_opt_kelly}, which reads the portfolio's own past
-returns, not the signal.
+experiments, none of which is retained; the compounding exercise there
+bets a fixed fraction of wealth and reads nothing from the signal.

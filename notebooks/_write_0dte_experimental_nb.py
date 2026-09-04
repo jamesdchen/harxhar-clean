@@ -36,7 +36,7 @@ Same instrument, clocks, smear, and signal as
    PCA structure diagnostics (§5d)
 2. vol-space maps $\hat y\sqrt{B}$, $m\sqrt{B}$ (stand-in if
    `atm_straddle_volmap.ipynb` is not in the tree)
-3. extra weighting rules (rank, inv-vol, dead-zone, Kelly-ish)
+3. extra weighting rules (rank of $|s|$, inverse expanding vol of $R$)
 4. an iron condor lab (§8–§12): width ladder, wing-cost / tail / IR
    diagnostics, strangle bodies with per-side attribution, the §5
    ensembles on the defined-risk instrument, and quoted-spread fill
@@ -56,7 +56,9 @@ Same instrument, clocks, smear, and signal as
    estimated-fraction wealth rule (parked in the main notebook); the
    strangle body stays
 
-$R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`.
+$R \sim a + b\,s$ lives in `atm_straddle_rv_iv.ipynb`. Sections are
+numbered to mirror the main notebook's; §2–§4 have no counterpart here,
+so the numbering runs 1, 5, 5b–5d, 6, … .
 
 Published mid-fill rule tables stay in the RV–IV notebook. Intraday
 bars stay in `atm_straddle_intraday.ipynb`.
@@ -93,13 +95,37 @@ pd.set_option("display.max_columns", 24)
 pd.set_option("display.float_format", lambda x: f"{x: .6f}")
 """
     ),
-    md("## 1. Chain, nearest-OTM package, $R$, forecasts, signal"),
+    md(
+        r"""
+## 1. Chain, nearest-OTM package, $R$, forecasts, signal
+
+Same construction as the RV-IV deck, and the same two data rules. Twelve
+days in the file are half sessions (a 13:00 close, with the 13:00
+quotes carried forward to a full grid, so the "15:30" row sits after expiry):
+they are dropped by the shared library filter and listed below, five of
+them inside the scored range. The nearest-OTM pick is guarded against
+vendor outages — a stamp with almost no live contracts, or a nearest
+strike more than ten points from the index level, is not a package —
+and a leg quoted `bid == ask == 0` carries no price, so its mid is
+missing rather than zero. The vendor's implied-volatility field is a
+bisection on a bracket that reports a bracket node when it does not
+converge; those legs are censored and the day's implied variance is
+recovered by inverting the package midpoint through Black-Scholes-Merton
+over the remaining half hour, as in the deck's §8 — the five COVID cap
+days are kept, not dropped. The common frame is the intersection of the
+seven forecast tables' scored days, and a gate checks that it is the
+deck's scored frame day for day; every table in this notebook is scored
+on it.
+"""
+    ),
     code(
         """
 path = REPO / "data" / "spxw_chain.parquet"
-COLS = ["expiration", "timestamp", "strike", "cp", "bid", "ask", "mid", "underlying_price", "impl_volatility"]
+COLS = ["expiration", "timestamp", "strike", "cp", "bid", "ask", "mid", "underlying_price",
+        "impl_volatility", "hours_to_expiration"]
 _st = os.stat(path)
-_ck = CACHE / f"chain_15301600_{_st.st_size}_{_st.st_mtime_ns}.parquet"
+# same cache name and column list as the RV-IV deck, so the two notebooks share one cached slice
+_ck = CACHE / f"chain_15301600v2_{_st.st_size}_{_st.st_mtime_ns}.parquet"
 if _ck.exists():
     chain = pd.read_parquet(_ck)
 else:
@@ -110,6 +136,8 @@ else:
     chain["timestamp"] = pd.to_datetime(chain["timestamp"], utc=True)
     chain["expiration"] = pd.to_datetime(chain["expiration"])
     chain["cp"] = chain["cp"].astype(str).str.upper().str[0]
+    for _old in CACHE.glob("chain_15301600*.parquet"):
+        _old.unlink()
     chain.to_parquet(_ck)
 codes, uts = pd.factorize(chain["timestamp"])
 uet = pd.DatetimeIndex(uts).tz_convert("America/New_York")
@@ -125,9 +153,22 @@ chain["is_0dte"] = chain["et_date"] == chain["exp_date"]
 book_chain = chain[chain["is_0dte"] & chain["hhmm"].isin(["15:30", "16:00"])].copy()
 del chain
 e = book_chain[book_chain["hhmm"] == "15:30"].copy()
-live = e[np.isfinite(e["mid"]) & (e["mid"] > 0)].copy()
+# Half sessions: the market closed at 13:00 and the vendor carried the 13:00 quotes forward to a
+# full grid, so the "15:30" row is a post-close placeholder and the chain's own hours-to-expiration
+# is <= 0 there. The shared library rule drops the whole day; every notebook applies it.
+half_days = asl.early_close_days(e)
+print("half sessions in the file:", len(half_days), [str(d.date()) for d in half_days])
+e = e[~pd.to_datetime(e["expiration"]).dt.normalize().isin(half_days)].copy()
+live = e[np.isfinite(e["mid"]) & (e["mid"] > 0)].copy()   # bid == ask == 0 is a no-quote sentinel: mid == 0 is excluded here
 spot = live.dropna(subset=["underlying_price"]).groupby("expiration")["underlying_price"].first()
-atm = asl.pick_nearest_otm(live, spot)
+# guarded nearest-OTM pick: a stamp with too few live contracts, or a nearest strike more than
+# ATM_MAX_STRIKE_GAP points away (more than one strike missing), is a vendor outage, not a package
+atm, atm_dropped = asl.pick_nearest_otm_guarded(live, spot)
+print(f"nearest-OTM cells dropped by the outage guards: {len(atm_dropped)}")
+if len(atm_dropped):
+    _d = atm_dropped.copy()
+    _d["date"] = pd.to_datetime(_d["expiration"]).dt.date
+    print(_d[["date", "S", "K_c", "K_p", "gap", "n_live", "reason"]].to_string(index=False))
 atm["day"] = atm["et_c"].dt.tz_convert("America/New_York").dt.normalize().dt.tz_localize(None)
 
 def load_gspc_close(days):
@@ -162,7 +203,34 @@ atm["exit"] = atm["pay_c"] + atm["pay_p"]
 atm = atm[np.isfinite(atm["entry"]) & np.isfinite(atm["exit"]) & (atm["entry"] > 0)].copy()
 atm["R"] = atm["exit"] / atm["entry"] - 1.0
 atm = atm.set_index("day").sort_index()
+# Implied variance, built exactly as the RV-IV deck builds it. The vendor's implied-volatility
+# field is a bisection on a bracket and reports a bracket NODE when it does not converge, so a leg
+# sitting on a node carries no information: censor_vendor_iv sets those legs to NaN, and on the
+# affected days the package midpoint is inverted through Black-Scholes-Merton over the remaining
+# half hour instead of being dropped. Dropping them instead would lose the five COVID cap days.
+# The node test is an EXACT hit (asl.IV_NODE_RTOL = 1e-5, float32 rounding): the middle node sits
+# at 0.0035 per hour, an ordinary implied volatility, so a wider band censors genuine quotes.
 atm = asl.attach_iv_hourly_as_30min(atm)
+
+
+def _on_node(v):
+    v = pd.to_numeric(v, errors="coerce")
+    return v.notna() & asl.censor_vendor_iv(v).isna()   # library default rtol = asl.IV_NODE_RTOL
+
+
+iv_capped = (_on_node(atm["impl_volatility_c"]) | _on_node(atm["impl_volatility_p"])) & (atm["entry"] > 0)
+_inv30 = pd.Series(
+    [asl.bsm_invert_package_vol(S_, Kc_, Kp_, m_, hours_remaining=0.5)
+     for S_, Kc_, Kp_, m_ in zip(atm.loc[iv_capped, "S"], atm.loc[iv_capped, "K_c"],
+                                 atm.loc[iv_capped, "K_p"], atm.loc[iv_capped, "entry"])],
+    index=atm.index[iv_capped], dtype=float)
+atm.loc[iv_capped, "iv_hourly"] = _inv30.map(asl.hourly_iv_from_total_vol)
+atm["iv_30"] = atm["iv_hourly"] / np.sqrt(2.0)
+atm["iv_var"] = atm["iv_30"] ** 2
+print(f"days with a censored implied-volatility leg (exact node hits, rtol {asl.IV_NODE_RTOL:g}): "
+      f"{int(iv_capped.sum())} {[str(d.date()) for d in atm.index[iv_capped]]}")
+print(f"  recovered by inverting the package midpoint: {int(np.isfinite(atm.loc[iv_capped, 'iv_hourly']).sum())}; "
+      f"days still without a usable implied volatility: {int(atm['iv_hourly'].isna().sum())}")
 
 from concurrent.futures import ThreadPoolExecutor
 YHATS = asl.yhat_paths(REPO)
@@ -187,6 +255,28 @@ for tag in MODEL_ORDER:
     common = books[tag].index if common is None else common.intersection(books[tag].index)
 common = common.sort_values()
 print("common days", len(common), pd.Timestamp(common.min()), "->", pd.Timestamp(common.max()))
+# the half sessions that sit inside the scored range are the ones the frame loses to this rule
+inside = [str(d.date()) for d in half_days if pd.Timestamp(common.min()) <= d <= pd.Timestamp(common.max())]
+print(f"half sessions inside the scored range: {len(inside)}", inside)
+print("  five of them were scored days before this filter; 2021-11-26 never was — the tape stopped "
+      "at 14:00 that day, so it has no 16:00 forecast row")
+assert inside == ["2020-11-27", "2020-12-24", "2021-11-26", "2022-11-25",
+                  "2023-07-03", "2023-11-24"], inside
+# frame gate: this notebook benchmarks the RV-IV deck, so it must score the deck's days exactly
+deck_daily = pd.read_parquet(OUT / "daily_blk2.parquet")
+print("deck daily_blk2 days", len(deck_daily), "| common days", len(common))
+assert set(common) == set(deck_daily.index), sorted(
+    str(d.date()) for d in set(common) ^ set(deck_daily.index))
+# The two builds are the same package on the same days, but they read the leg midpoint from
+# different places: the library helper rebuilds it as (bid + ask) / 2 through quote_mid, so that a
+# bid == ask == 0 leg has no price, while the deck reads the vendor's own mid column. The two agree
+# to quote rounding, which is the tolerance every cross-check against the deck uses below.
+deck_ref = (deck_daily["pos"] * deck_daily["R"]).loc[common]
+_dR = float((books["blk2"].loc[common, "R"] - deck_daily.loc[common, "R"]).abs().max())
+_dq = int((books["blk2"].loc[common, "pos"] != deck_daily.loc[common, "pos"]).sum())
+print(f"frame gate: the common frame is the deck's scored frame, day for day; "
+      f"positions differ on {_dq} days, max |R - deck R| {_dR:.2e} (quote rounding)")
+assert _dq == 0 and _dR < 1e-5
 """
     ),
     md(
@@ -201,17 +291,31 @@ equal-weight mix of the two paper rules on blk2.
 
 **Spectral / PCR.** Let $X_t\in\mathbb{R}^7$ be the vector of model
 signals $s=\widehat{RV}-\mathrm{IV}_{30}^{2}$ on day $t$. On days
-$u<t$ (min 63) center $X$, take the SVD, and read day $t$ onto the
+$u<t$ (min 63) standardise each signal by its own past mean and
+standard deviation — a correlation PCA, so that a model's dispersion
+does not decide its loading — take the SVD, and read day $t$ onto the
 leading $k$ right singular vectors. Two portfolios:
 
 - *spectral PC1:* $s^{\mathrm{pc1}}_t$ is the PC1 score; sign is
   flipped so PC1 co-moves with the cross-sectional mean $s$. Position
-  is $\mathrm{sign}(s^{\mathrm{pc1}})$.
+  is $\mathrm{sign}(s^{\mathrm{pc1}})$. The score is centred on its
+  trailing mean, so the position asks whether today's consensus sits
+  above its own past average, not whether the consensus gap is
+  positive. For the first 63 days, before the SVD is fitted, the same
+  demeaned rule is applied with the equal-weight direction in place of
+  the eigenvector.
 - *PCR $k=1,2$:* regress $R_u$ on the lagged PC scores, apply the
   coefficients to day $t$. Position is $\mathrm{sign}(\hat R_t)$.
 
 The SVD and the PCR fit use only $u<t$. Full-sample eigenvalues are
-printed as a diagnostic, not used to trade.
+printed as a diagnostic, not used to trade. The seven signals are far
+from seven votes: the block-diagonal ridge and the fixed-penalty lasso
+are near-duplicates (correlation 0.99), the two tree models sit at
+0.96, and the participation ratio of the correlation eigenvalues puts
+the effective count at about two — the cell prints it, and the vote and
+mean rows should be read with it.
+Every table carries the mean absolute position, so rows with different
+gross exposure are not compared as if they were the same size.
 """
     ),
     code(
@@ -220,13 +324,19 @@ sig = pd.DataFrame({tag: books[tag]["signal"].loc[common] for tag in MODEL_ORDER
 pos = np.sign(sig).replace(0.0, -1.0)
 R = books["blk2"]["R"].loc[common]
 
-ens = {}
-ens["mean-s then sign"] = np.sign(sig.mean(axis=1)).replace(0.0, -1.0) * R
-ens["majority vote"] = np.sign(pos.sum(axis=1)).replace(0.0, -1.0) * R
-ens["EW sign(s) q"] = pos.mean(axis=1) * R
+ens, ens_q = {}, {}   # daily returns, and the position series that produced them
+
+
+def _add(name, q):
+    ens_q[name] = pd.Series(q, index=sig.index).astype(float)
+    ens[name] = ens_q[name] * R
+
+
+_add("mean-s then sign", np.sign(sig.mean(axis=1)).replace(0.0, -1.0))
+_add("majority vote", np.sign(pos.sum(axis=1)).replace(0.0, -1.0))
+_add("EW sign(s) q", pos.mean(axis=1))
 
 def trailing_w(q: pd.DataFrame, kind: str) -> pd.Series:
-    w_hist = []
     idx = q.index
     out = pd.Series(0.0, index=idx)
     for i, t in enumerate(idx):
@@ -249,31 +359,47 @@ def trailing_w(q: pd.DataFrame, kind: str) -> pd.Series:
         out.iloc[i] = float((q.iloc[i] * w).sum())
     return out
 
-ens["trail-Sharpe sign(s) q"] = trailing_w(pos, "sharpe") * R
-ens["trail-IR sign(s) q"] = trailing_w(pos, "ir") * R
+_add("trail-Sharpe sign(s) q", trailing_w(pos, "sharpe"))
+_add("trail-IR sign(s) q", trailing_w(pos, "ir"))
 blk_sizes = asl.rule_sizes(books["blk2"])
-ens["blk2 0.5 AS + 0.5 sign(s)"] = (blk_sizes["always short"] + blk_sizes["sign(s)"]).loc[common] / 2.0 * R
-ens["blk2 sign(s)"] = blk_sizes["sign(s)"].loc[common] * R
-ens["always short"] = blk_sizes["always short"].loc[common] * R
+_add("blk2 0.5 AS + 0.5 sign(s)", (blk_sizes["always short"] + blk_sizes["sign(s)"]).loc[common] / 2.0)
+_add("blk2 sign(s)", blk_sizes["sign(s)"].loc[common])
+_add("always short", blk_sizes["always short"].loc[common])
 
 # Causal spectral / PCR ensemble of the 7-vector of signals.
-# Day t sees only X[:t] (strict). Min 63 days; earlier days sit at EW sign.
+# Day t sees only X[:t] (strict). Min 63 days; earlier days use the same demeaned
+# rule with the equal-weight direction in place of the eigenvector.
 X = sig.to_numpy(float)
 r = R.to_numpy(float)
 n, p = X.shape
+
+
+def _past_scale(past):
+    # correlation PCA: each column centred and scaled by its own past mean and standard deviation
+    mu = past.mean(axis=0)
+    sd = past.std(axis=0, ddof=1) if len(past) > 1 else np.ones(past.shape[1])
+    return mu, np.where(sd > 0, sd, 1.0)
+
+
+def _warmup_score(Xm, t):
+    # demeaned consensus: today's vector minus the mean of the past days, averaged across models
+    mu0 = Xm[:t].mean(axis=0) if t > 0 else Xm[t]
+    return float((Xm[t] - mu0).mean())
+
+
 s_pc1 = np.full(n, np.nan)
 rhat_k1 = np.full(n, np.nan)
 rhat_k2 = np.full(n, np.nan)
 loadings_last = None
 for t in range(n):
     if t < 63:
-        s_pc1[t] = float(X[t].mean())
+        s_pc1[t] = _warmup_score(X, t)
         rhat_k1[t] = s_pc1[t]
         rhat_k2[t] = s_pc1[t]
         continue
     past = X[:t]
-    mu = past.mean(axis=0)
-    Xc = past - mu
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     # economy SVD on T x 7
     _, S_sing, Vt = np.linalg.svd(Xc, full_matrices=False)
     v1 = Vt[0]
@@ -281,7 +407,7 @@ for t in range(n):
         v1 = -v1
         Vt = Vt.copy()
         Vt[0] = v1
-    xt = X[t] - mu
+    xt = (X[t] - mu) / sd
     z1 = float(xt @ Vt[0])
     z2 = float(xt @ Vt[1])
     s_pc1[t] = z1
@@ -303,12 +429,12 @@ rhat_k2 = pd.Series(rhat_k2, index=sig.index)
 q_pc1 = np.sign(s_pc1).replace(0.0, -1.0)
 q_pcr1 = np.sign(rhat_k1).replace(0.0, -1.0)
 q_pcr2 = np.sign(rhat_k2).replace(0.0, -1.0)
-ens["spectral PC1 sign"] = q_pc1 * R
-ens["PCR k=1 sign"] = q_pcr1 * R
-ens["PCR k=2 sign"] = q_pcr2 * R
+_add("spectral PC1 sign", q_pc1)
+_add("PCR k=1 sign", q_pcr1)
+_add("PCR k=2 sign", q_pcr2)
 
-# Full-sample SVD diagnostic only (not a trading input).
-Xc_all = X - X.mean(axis=0)
+# Full-sample SVD diagnostic only (not a trading input); correlation scale as above.
+Xc_all = (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 _, S_all, Vt_all = np.linalg.svd(Xc_all, full_matrices=False)
 share = S_all**2 / (S_all**2).sum()
 load_tab = pd.DataFrame(Vt_all[:2].T, index=[LABEL[t] for t in MODEL_ORDER], columns=["PC1", "PC2"])
@@ -333,8 +459,17 @@ fig.savefig(OUT / "ensemble_spectral_pca.png", dpi=120, bbox_inches="tight")
 display(fig)
 plt.close(fig)
 
-ens_tab = pd.DataFrame({k: asl.rule_row(v, np.sign(v).replace(0, -1)) for k, v in ens.items()}).T
+ens_tab = pd.DataFrame({k: asl.rule_row(v, ens_q[k]) for k, v in ens.items()}).T
+ens_tab["mean_abs_q"] = pd.Series({k: float(q.abs().mean()) for k, q in ens_q.items()})
 print(ens_tab.to_string())
+# effective breadth of the seven signals: participation ratio of the correlation eigenvalues
+_corr = sig.corr()
+_ev = np.linalg.eigvalsh(_corr.to_numpy())
+_n_eff = float(_ev.sum() ** 2 / (_ev**2).sum())
+_dups = [(LABEL[a], LABEL[b], round(float(_corr.loc[a, b]), 3))
+         for i, a in enumerate(MODEL_ORDER) for b in list(MODEL_ORDER)[i + 1:] if float(_corr.loc[a, b]) > 0.98]
+print(f"effective number of independent signals (participation ratio): {_n_eff:.2f} of {p}")
+print("near-duplicate pairs (correlation > 0.98):", _dups)
 ens_tab.to_csv(OUT / "ensemble_summary.csv")
 pd.DataFrame(ens).to_csv(OUT / "ensemble_daily.csv")
 print("saved ensemble_*.csv")
@@ -345,8 +480,9 @@ print("saved ensemble_*.csv")
 ## 5b. Causal PCA/PCR portfolios — where the ensemble information lives
 
 Extensions of the §5 spectral machinery, same protocol throughout: day
-$t$ uses the SVD of the centered signal matrix on days $u<t$ only
-(min 63; earlier days sit at the EW mean-signal fallback), and PC1's
+$t$ uses the SVD of the signal matrix on days $u<t$ only, each signal
+standardised by its own past mean and standard deviation (min 63;
+earlier days use the same demeaned-consensus rule as §5), and PC1's
 sign co-moves with the cross-sectional mean $s$. Nothing here is a
 search for a better rule — the table maps where the ensemble
 information lives.
@@ -378,19 +514,19 @@ bsign = np.ones((n, p))
 rhat_k = {k: np.full(n, np.nan) for k in range(1, p + 1)}
 for t in range(n):
     if t < 63:
-        ew = float(X[t].mean())
+        ew = _warmup_score(X, t)
         scores[t, :] = ew
         for k in rhat_k:
             rhat_k[k][t] = ew
         continue
     past = X[:t]
-    mu = past.mean(axis=0)
-    Xc = past - mu
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     _, _, Vt = np.linalg.svd(Xc, full_matrices=False)
     if np.dot(Vt[0], np.ones(p)) < 0:
         Vt = Vt.copy()
         Vt[0] = -Vt[0]
-    xt = X[t] - mu
+    xt = (X[t] - mu) / sd
     z = xt @ Vt.T
     Z = Xc @ Vt.T
     scores[t] = z
@@ -412,41 +548,48 @@ def _sgn(x):
     return np.sign(x).replace(0.0, -1.0)
 
 
-pca_books = {}
-q1 = _sgn(s_pc1x)
-pca_books["spectral PC1 sign"] = q1 * R
+pca_books, pca_q = {}, {}
+
+
+def _add_pca(name, q):
+    pca_q[name] = pd.Series(q, index=idx).astype(float)
+    pca_books[name] = pca_q[name] * R
+
+
+_add_pca("spectral PC1 sign", _sgn(s_pc1x))
 for k in range(1, p + 1):
-    pca_books[f"PCR k={k} sign"] = _sgn(rhat[k]) * R
+    _add_pca(f"PCR k={k} sign", _sgn(rhat[k]))
 for j in (1, 2):
     zj = pd.Series(scores[:, j] * bsign[:, j], index=idx)
-    pca_books[f"PC{j+1} sign (beta-aligned)"] = _sgn(zj) * R
+    _add_pca(f"PC{j+1} sign (beta-aligned)", _sgn(zj))
 
-# Causal PC1 on the 7-vector of signed positions q = sign(s).
+# Causal PC1 on the 7-vector of signed positions q = sign(s), same standardisation and warm-up rule.
 Xq = pos.to_numpy(float)
 s_q1 = np.full(n, np.nan)
 for t in range(n):
     if t < 63:
-        s_q1[t] = float(Xq[t].mean())
+        s_q1[t] = _warmup_score(Xq, t)
         continue
     past = Xq[:t]
-    mu = past.mean(axis=0)
-    Xc = past - mu
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     _, _, Vt = np.linalg.svd(Xc, full_matrices=False)
     v1 = Vt[0] if np.dot(Vt[0], np.ones(p)) >= 0 else -Vt[0]
-    s_q1[t] = float((Xq[t] - mu) @ v1)
+    s_q1[t] = float(((Xq[t] - mu) / sd) @ v1)
 s_q1 = pd.Series(s_q1, index=idx)
-pca_books["PC1-of-q sign"] = _sgn(s_q1) * R
+_add_pca("PC1-of-q sign", _sgn(s_q1))
 
-pca_books["EW sign(s) q"] = ens["EW sign(s) q"]
-pca_books["blk2 sign(s)"] = ens["blk2 sign(s)"]
-pca_books["always short"] = ens["always short"]
+for k_ in ("EW sign(s) q", "blk2 sign(s)", "always short"):
+    pca_q[k_] = ens_q[k_]
+    pca_books[k_] = ens[k_]
 
 chk = max(
     float((pca_books[k_] - ens[k_]).abs().max())
     for k_ in ("spectral PC1 sign", "PCR k=1 sign", "PCR k=2 sign")
 )
 print("max |R' diff| vs the §5 portfolios:", chk)
-pca_tab = pd.DataFrame({k: asl.rule_row(v, _sgn(v)) for k, v in pca_books.items()}).T
+pca_tab = pd.DataFrame({k: asl.rule_row(v, pca_q[k]) for k, v in pca_books.items()}).T
+pca_tab["mean_abs_q"] = pd.Series({k: float(q.abs().mean()) for k, q in pca_q.items()})
 print(pca_tab.to_string())
 pca_tab.to_csv(OUT / "pca_lab_books.csv")
 print("saved", OUT / "pca_lab_books.csv")
@@ -459,12 +602,12 @@ print("saved", OUT / "pca_lab_books.csv")
 Section 5's PC1/PCR portfolios are unsupervised: the direction is chosen by
 the variance of the seven signals, and $R$ enters only through the PCR
 coefficients. Here the *direction itself* is supervised, with the same
-strict causality as §5 (day $t$ uses $X_{u<t}$, $R_{u<t}$ only; min 63;
-earlier days sit at the EW-mean score). Nothing here is a search for a
-better rule — it maps whether supervision adds anything over PC1. The
-lab's standing result is that ensembles do not beat the block-diagonal
-ridge $\mathrm{sign}(s)$ portfolio,
-so a null is the expected answer.
+strict causality as §5 (day $t$ uses $X_{u<t}$, $R_{u<t}$ only, each
+signal standardised on that past; min 63; earlier days use the §5
+warm-up rule). Nothing here is a search for a better rule — it maps
+whether supervision adds anything over PC1. The lab's standing result is
+that no ensemble beats the block-diagonal ridge $\mathrm{sign}(s)$
+portfolio *significantly* (§13), so a null is the expected answer.
 
 - *PLS1:* $w\propto X_c^{\top}R_c$ (the covariance-with-target
   direction), $\|w\|=1$; score $z_t=(x_t-\mu)^{\top}w$. Portfolio:
@@ -500,18 +643,18 @@ def _ols_apply(Z, y, znew):
 
 for t in range(n):
     if t < 63:
-        ew = float(X[t].mean())
+        ew = _warmup_score(X, t)
         z_pls1[t] = ew
         rhat_pls2[t] = ew
         for a in PLS_ALPHAS:
             z_pcovr[a][t] = ew
         continue
     past = X[:t]
-    mu = past.mean(axis=0)
-    Xc = past - mu
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     y = r[:t]
     yc = y - y.mean()
-    xt = X[t] - mu
+    xt = (X[t] - mu) / sd
 
     # PLS1: covariance-with-target direction, unit norm.
     w1 = Xc.T @ yc
@@ -552,18 +695,27 @@ for t in range(n):
 z_pls1 = pd.Series(z_pls1, index=sig.index)
 rhat_pls2 = pd.Series(rhat_pls2, index=sig.index)
 
-sup = {}
+sup, sup_q = {}, {}
+
+
+def _add_sup(name, q):
+    sup_q[name] = pd.Series(q, index=sig.index).astype(float)
+    sup[name] = sup_q[name] * R
+
+
 q_pls1 = np.sign(z_pls1).replace(0.0, -1.0)
-sup["PLS1 sign"] = q_pls1 * R
-sup["PLS2 rhat sign"] = np.sign(rhat_pls2).replace(0.0, -1.0) * R
+_add_sup("PLS1 sign", q_pls1)
+_add_sup("PLS2 rhat sign", np.sign(rhat_pls2).replace(0.0, -1.0))
 for a in PLS_ALPHAS:
     za = pd.Series(z_pcovr[a], index=sig.index)
-    sup[f"PCovR a={a} sign"] = np.sign(za).replace(0.0, -1.0) * R
+    _add_sup(f"PCovR a={a} sign", np.sign(za).replace(0.0, -1.0))
 for k in ("PCR k=1 sign", "spectral PC1 sign", "EW sign(s) q",
           "blk2 sign(s)", "always short"):
+    sup_q[k] = ens_q[k]
     sup[k] = ens[k]
 
-pls_tab = pd.DataFrame({k: asl.rule_row(v, np.sign(v).replace(0, -1)) for k, v in sup.items()}).T
+pls_tab = pd.DataFrame({k: asl.rule_row(v, sup_q[k]) for k, v in sup.items()}).T
+pls_tab["mean_abs_q"] = pd.Series({k: float(q.abs().mean()) for k, q in sup_q.items()})
 print(pls_tab.to_string())
 pls_tab.to_csv(OUT / "pca_lab_pls.csv")
 n_flip = int((np.sign(pd.Series(z_pcovr[0.25], index=sig.index))
@@ -584,8 +736,9 @@ here is a trading input.** Six views:
   $s$ vectors and pairwise sign-agreement %. Answers: how far from
   one signal are the seven models?
 - *Expanding causal PC1 share.* At each $t\ge 63$, PC1 variance share
-  of the SVD of $X_{u<t}$ — the factor strength a day-$t$ trader
-  would have seen. Answers: does the one-factor structure
+  of the SVD of $X_{u<t}$ on the correlation scale (each signal
+  standardised by its past mean and standard deviation, as in §5) —
+  the factor strength a day-$t$ trader would have seen. Answers: does the one-factor structure
   strengthen or decay?
 - *Loading stability.* PC1 loadings at expanding cutoffs
   (every 21 days). Answers: does any model rotate in or out of the
@@ -607,9 +760,8 @@ n, p = X.shape
 names = [LABEL[t] for t in MODEL_ORDER]
 
 corr = sig.corr()
-pos_d = np.sign(sig).replace(0.0, -1.0)
 agree = pd.DataFrame(
-    {ci: {cj: float((pos_d[ci] == pos_d[cj]).mean() * 100.0) for cj in MODEL_ORDER} for ci in MODEL_ORDER}
+    {ci: {cj: float((pos[ci] == pos[cj]).mean() * 100.0) for cj in MODEL_ORDER} for ci in MODEL_ORDER}
 ).T.loc[MODEL_ORDER, MODEL_ORDER]
 print("Pearson correlation of daily signals s (diagnostic)")
 print(corr.to_string())
@@ -622,7 +774,8 @@ agree.to_csv(OUT / "pca_lab_sign_agree.csv")
 share_ts = np.full(n, np.nan)
 for t in range(63, n):
     past = X[:t]
-    Xc = past - past.mean(axis=0)
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     s_sing = np.linalg.svd(Xc, compute_uv=False)
     share_ts[t] = float(s_sing[0] ** 2 / (s_sing**2).sum())
 share_ts = pd.Series(share_ts, index=sig.index, name="pc1_share")
@@ -634,7 +787,8 @@ share_ts.to_csv(OUT / "pca_lab_pc1_share_ts.csv")
 traj_rows = {}
 for c in range(63, n + 1, 21):
     past = X[:c]
-    Xc = past - past.mean(axis=0)
+    mu, sd = _past_scale(past)
+    Xc = (past - mu) / sd
     _, _, Vt = np.linalg.svd(Xc, full_matrices=False)
     v1 = Vt[0] if np.dot(Vt[0], np.ones(p)) >= 0 else -Vt[0]
     traj_rows[sig.index[c - 1]] = v1
@@ -653,8 +807,8 @@ print("risk-space PCA variance share (7 sign(s)-portfolio daily returns, diagnos
 print(share_risk.to_string())
 share_risk.to_csv(OUT / "pca_lab_riskspace_share.csv")
 
-# full-sample PC1 vs mean s, and the R^2 ladder
-Xc_f = X - X.mean(axis=0)
+# full-sample PC1 vs mean s, and the R^2 ladder (correlation scale)
+Xc_f = (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 _, S_f, Vt_f = np.linalg.svd(Xc_f, full_matrices=False)
 if np.dot(Vt_f[0], np.ones(p)) < 0:
     Vt_f = Vt_f.copy()
@@ -758,10 +912,15 @@ plt.close(fig)
         r"""
 ## 7. Other well-motivated weighting strategies
 
-Rank of $|s|$, inverse expanding vol of $R$, dead-zone at half the
-expanding median, and a Kelly-ish
-$q=\mathrm{clip}(s/\widehat{\mathrm{Var}}(R),-3,3)$. Scored on the
-common days. blk2 shown; CSVs for every model.
+Two magnitude-based sizes remain: the expanding percentile rank of
+$|s|$ (size $1+4(\text{rank}-\tfrac12)$, clipped to $[0,3]$) and the
+inverse of the expanding volatility of $R$, normalised by the lagged
+expanding median of that volatility and capped at 3. The dead-zone rule
+(a threshold on the expanding median of $|s|$) and the Kelly-style
+$s/\widehat{\mathrm{Var}}(R)$ were removed: the first is the banned
+median scaling, the second divides a variance-unit signal by a
+return-unit variance and sizes nothing. Scored on the common days;
+block-diagonal ridge shown; CSVs for every model.
 """
     ),
     code(
@@ -794,8 +953,8 @@ Defined-risk long-package return is
 $R_{\mathrm{long,ic}}=(\mathrm{exit}_{ic}-\mathrm{entry}_{ic})/\mathrm{width}$,
 so the paper's $q$ rules apply unchanged; the two rules use the blk2
 signal. Credit-denominator $R$ stays a warning only
-(`frac_entry_ic_le0` is the fraction of days with net credit
-$\le 0$).
+(`frac_entry_ic_le0` is the fraction of the scored common days with net
+credit $\le 0$).
 
 Two width families:
 
@@ -808,9 +967,9 @@ Two width families:
   scored day. The realized width snaps up to the strike grid;
   `med_eff_width` reports the median realized width.
 
-Coverage at these widths is full (both wings live on all 1291 body
-days; nothing dropped), so every row is scored on the same blk2
-`common` days. A wider ladder would start dropping exactly the
+Coverage at these widths is full — the per-width line printed by the
+cell reports zero body days without both wings — so every row is scored
+on the same blk2 `common` days. A wider ladder would start dropping exactly the
 high-vol days — re-check coverage before extending it.
 
 Columns: `n` days scored; `mean`/`std` of $R'=q\,R_{\mathrm{long,ic}}$;
@@ -886,7 +1045,7 @@ for label, ic in ladder.items():
             "t_mean": rr["t_mean"], "Sharpe_ann": rr["Sharpe_ann"], "pct_buy": rr["pct_buy"],
             "med_eff_width": float(joined.loc[common_ic, "width"].median()),
             "med_credit": float(joined.loc[common_ic, "entry_ic"].median()),
-            "frac_entry_ic_le0": float((ic["entry_ic"] <= 0).mean()),
+            "frac_entry_ic_le0": float((ic.loc[common_ic, "entry_ic"] <= 0).mean()),
         })
         grid[label][name] = rr["Sharpe_ann"]
 
@@ -942,8 +1101,13 @@ Four diagnostics, all on blk2 common days:
 2. **Coverage**: days with both wings vs body days.
 3. **Tail tables**: worst 10 days by straddle $\mathrm{sign}(s)$ $R'$ with the
    condor $\mathrm{sign}(s)$ $R'$ beside them, and the reverse. The condor
-   loss is capped at $(\mathrm{width}-\mathrm{entry}_{ic})/\mathrm{width}$
-   per unit — better tails are **mechanical** (defined risk), not alpha.
+   loss is capped by construction, but the cap is not one expression:
+   the denominator is $\mathrm{width}=\min(\mathrm{gap}_c,\mathrm{gap}_p)$
+   while the seller's worst case runs to the larger actual gap, so a sold
+   condor is floored at
+   $-(\mathrm{gap}_{\max}-\mathrm{entry}_{ic})/\mathrm{width}$ and a
+   bought one at $-\mathrm{entry}_{ic}/\mathrm{width}$, the debit paid.
+   Either way better tails are **mechanical** (defined risk), not alpha.
 4. **IR** of condor $\mathrm{sign}(s)$ against the straddle always-short and
    straddle $\mathrm{sign}(s)$ portfolios: active $R^a=R^{ic}-R^{\mathrm{bench}}$,
    `te_daily` $=\mathrm{sd}(R^a)$, $\mathrm{IR}_{ann}=\bar R^a/\mathrm{sd}\times\sqrt{252}$,
@@ -972,9 +1136,12 @@ def build_condor(width: float) -> pd.DataFrame:
     return ic
 
 ics = {w: build_condor(w) for w in (25.0, 50.0)}
+# every diagnostic below runs on the scored (common) days, not on the whole wing frame
+ics_c = {w: ic.loc[ic.index.intersection(common)] for w, ic in ics.items()}
 
 cov = pd.DataFrame({
-    f"w{int(w)}": {"days_with_wings": len(ic), "body_days": len(body), "dropped": len(body) - len(ic)}
+    f"w{int(w)}": {"days_with_wings": len(ic), "body_days": len(body), "dropped": len(body) - len(ic),
+                   "common_days": len(common), "common_days_with_wings": len(ics_c[w])}
     for w, ic in ics.items()
 }).T
 print("coverage")
@@ -982,13 +1149,13 @@ print(cov.to_string())
 cov.to_csv(OUT / "condor_lab_diag_coverage.csv")
 
 share_tabs = {}
-for w, ic in ics.items():
+for w, ic in ics_c.items():
     by_year = ic["wing_share"].groupby(ic.index.year).median()
     q5 = pd.qcut(ic["iv_30"], 5, labels=[f"Q{i}" for i in range(1, 6)])
     by_iv = ic["wing_share"].groupby(q5, observed=True).median()
     share_tabs[f"w{int(w)}_year"] = by_year
     share_tabs[f"w{int(w)}_iv30q"] = by_iv
-    print(f"wing-cost share entry_wings/entry_body, width {int(w)}: median {float(ic['wing_share'].median()):.4f}")
+    print(f"wing-cost share entry_wings/entry_body, width {int(w)}: median {float(ic['wing_share'].median()):.4f} ({len(ic)} common days)")
     print("by year"); print(by_year.to_string())
     print("by IV30 quintile"); print(by_iv.to_string())
 pd.DataFrame(share_tabs).to_csv(OUT / "condor_lab_diag_wingshare.csv")
@@ -1033,13 +1200,13 @@ worst_ic25.to_csv(OUT / "condor_lab_diag_tails_ic25.csv")
     code(
         r"""
 fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
-for w, ic in ics.items():
+for w, ic in ics_c.items():
     axes[0].scatter(ic["iv_30"], ic["wing_share"], s=6, alpha=0.3, label=f"w={int(w)}")
 axes[0].set_xlabel(r"$\mathrm{IV}_{30}$")
 axes[0].set_ylabel("entry_wings / entry_body")
 axes[0].set_title("wing-cost share vs $\\mathrm{IV}_{30}$")
 axes[0].legend(fontsize=8)
-for w, ic in ics.items():
+for w, ic in ics_c.items():
     by_year = ic["wing_share"].groupby(ic.index.year).median()
     axes[1].plot(by_year.index, by_year.values, marker="o", label=f"w={int(w)}")
 axes[1].set_title("median wing-cost share by year")
@@ -1082,7 +1249,9 @@ same for the put side, so
 $R_{\mathrm{call}}+R_{\mathrm{put}}=R_{\mathrm{long,ic}}$ exactly
 (same denominator). $R'_{\mathrm{side}}=q\,R_{\mathrm{side}}$ answers
 two questions: which spread earns the short-portfolio mean, and which
-spread bleeds on the worst-decile days.
+spread bleeds on the worst-decile days. The worst-decile rows are
+descriptive — the subsample is selected on the outcome — so no $t$ is
+reported for them.
 """
     ),
     code(
@@ -1164,12 +1333,13 @@ for label in ("straddle", "strangle"):
     for side in ("R_call", "R_put"):
         rp = q * j[side]
         side_cum[(label, side)] = rp.cumsum()
-        for scope, mask in (("all", rp_tot.notna()), ("worst-decile", worst)):
+        for scope, mask in (("all", rp_tot.notna()), ("worst-decile (descriptive)", worst)):
             x = rp[mask]
             mu, sd, n = float(x.mean()), float(x.std(ddof=1)), int(len(x))
+            # the worst-decile rows select the subsample on the outcome, so no t is reported there
             side_rows[(label, side.replace("R_", ""), scope)] = {
                 "n": n, "mean": mu,
-                "t": mu / sd * np.sqrt(n) if sd > 0 else np.nan,
+                "t": (mu / sd * np.sqrt(n) if sd > 0 else np.nan) if scope == "all" else np.nan,
                 "share_of_total": mu / float(rp_tot[mask].mean()),
             }
 side_tab = pd.DataFrame(side_rows).T
@@ -1252,7 +1422,7 @@ for w in (25.0, 50.0):
     D = ic.index.intersection(common)
     print(f"width {int(w)}: both wings {n_wings} / {len(body)} body days; "
           f"scored D = common & coverage = {len(D)} / {len(common)} common")
-    print(f"width {int(w)} frac entry_ic<=0 = {float((ic['entry_ic'] <= 0).mean()):.2%}")
+    print(f"width {int(w)} frac entry_ic<=0 on the scored days = {float((ic.loc[D, 'entry_ic'] <= 0).mean()):.2%}")
     tabs[(int(w), "condor")] = bridge_table(ic["R_long_ic"], D)
     tabs[(int(w), "straddle same days")] = bridge_table(R, D)
     print(f"--- ensembles on iron condor w={int(w)}, defined-risk R ---")
@@ -1287,12 +1457,15 @@ the sum of the four half-spreads.
 
 Quote hygiene: sold legs require $\mathrm{bid}>0$; bought wing legs
 allow a zero bid (a legitimate deep-OTM quote state — the buy fills at
-the ask side). Zero-bid wings are the norm, not the exception (w=50
-call wing: bid $\le 0$ on 783 of 871 days), which is exactly why wing
-spreads are proportionally enormous while body spreads are tight. The
-scored set is the quoted subset of the common days (867 of 871); the
-$\lambda=0$ rows therefore differ slightly from the §5/§7 tables — the
-four dropped days were profitable shorts.
+the ask side). Zero-bid wings are the norm, not the exception — the
+hygiene lines below count them at every width — which is exactly why
+wing spreads are proportionally enormous while body spreads are tight.
+The scored set is the quoted subset of the common days; the cell prints
+both counts. Once the half sessions are out of the frame the body's
+two-sided quote is usable on every common day, so the $\lambda=0$
+straddle rows reproduce the §5/§7 tables exactly (the days this gate
+used to drop were the frozen half sessions, whose "quotes" were the
+13:00 grid carried forward).
 
 $\lambda=1$ is a worst-case quoted fill, not a market-impact model;
 real fills on a four-leg package sit between the marks.
@@ -1323,7 +1496,9 @@ TC_LAMS = [0.0, 0.5, 1.0]
 ok_c = _tc_hygiene(px, "bid_c", "ask_c", "body call", sold=True)
 ok_p = _tc_hygiene(px, "bid_p", "ask_p", "body put", sold=True)
 idx_s = common.intersection(px.index[ok_c & ok_p])
-print(f"straddle: common={len(common)} scored={len(idx_s)}")
+print(f"straddle: common={len(common)} scored={len(idx_s)} "
+      f"dropped by quote hygiene={len(common) - len(idx_s)}"
+      + (" (the lambda=0 rows are the published mid-fill rows)" if len(idx_s) == len(common) else ""))
 h_strad = (px["ask_c"] - px["bid_c"]) / 2.0 + (px["ask_p"] - px["bid_p"]) / 2.0
 tc_spreads = {
     "body call": float(((px["ask_c"] - px["bid_c"]) / px["mid_c"]).loc[idx_s].median()),
@@ -1412,72 +1587,116 @@ that matter are *differences*: does portfolio $A$ beat portfolio $B$ on the same
 days? Let $d_t = R'^{A}_t - R'^{B}_t$ on the common days of the pair.
 Two tests, both stated once and applied to every pair:
 
-- **Newey–West:** $t = \bar d / \widehat{\mathrm{se}}_{NW}(\bar d)$
-  with Bartlett kernel and lag $L=\lfloor 1.5\,n^{1/3}\rfloor$.
+- **HAC $t$:** $t = \bar d / \widehat{\mathrm{se}}(\bar d)$ with a
+  heteroskedasticity- and autocorrelation-consistent standard error
+  (Bartlett kernel, truncation lag $L=\lfloor 1.5\,n^{1/3}\rfloor$),
+  reported as `HAC_t` with the lag beside it.
 - **Circular moving-block bootstrap:** block length
   $b=\lceil n^{1/3}\rceil$, $B=2000$, seed $0$, resampling the pair
-  jointly. 95% percentile CI on $\bar d$ and on
+  jointly. 95% percentile interval on $\bar d$ and on
   $\Delta\mathrm{Sharpe}_{ann}$ (both portfolios' Sharpes recomputed per
-  resample, then differenced).
+  resample, then differenced), with the basic (reflected) interval
+  $[2\hat\theta-\mathrm{hi},\,2\hat\theta-\mathrm{lo}]$ beside it; the
+  two agree when the bootstrap distribution is symmetric about the
+  estimate. Every pair draws the same block indices
+  from the same seed (common random numbers), so the rows' intervals
+  are not independent of one another; the same helper serves §15 and
+  §16.
+
+Before differencing, each leg is scaled to unit mean gross exposure
+(its daily return divided by its mean $|q|$), so `mean_delta_bp` is a
+difference per unit of exposure and a smaller portfolio is not read as
+a worse one; $\Delta$Sharpe is unaffected by the scaling. The columns
+`gross_a` and `gross_b` report the two legs' mean $|q|$.
 
 Pairs: (a) condor $w{=}25$ $\mathrm{sign}(s)$ vs straddle
 $\mathrm{sign}(s)$, same blk2 $q_t$ both legs (the published straddle
 positions restricted to condor days); (b) spectral PC1 sign vs blk2
 $\mathrm{sign}(s)$; (c) EW $\mathrm{sign}(s)$ $q$ vs blk2
-$\mathrm{sign}(s)$; (d) blk2 $\mathrm{sign}(s)$ vs always short.
+$\mathrm{sign}(s)$; (d) blk2 $\mathrm{sign}(s)$ vs always short;
+(e) PC1-of-$q$ sign vs blk2 $\mathrm{sign}(s)$; (f) trailing-Sharpe
+$\mathrm{sign}(s)$ $q$ vs blk2 $\mathrm{sign}(s)$ — the two ensemble
+rows that sit above the benchmark in the tables.
 
 Caveats. In (a) the two returns sit on different denominators
 (straddle entry vs condor width), so $\bar d$ is a bookkeeping
 comparison of the published portfolio definitions; $\Delta$Sharpe is the
 scale-free column. A null here is the expected outcome — nothing in
-this lab has beaten the block-diagonal ridge $\mathrm{sign}(s)$ portfolio — these rows say whether the
-*gaps* in the ensemble table are distinguishable from noise at all.
-`mean_delta_bp` is $\bar d\times 10^4$ per day; `sig_*` flags are 5%
-two-sided.
+this lab has beaten the block-diagonal ridge $\mathrm{sign}(s)$
+portfolio significantly — these rows say whether the *gaps* in the
+ensemble table are distinguishable from noise at all. `mean_delta_bp`
+is $\bar d\times 10^4$ per day per unit of exposure; `sig_HAC` is 5%
+two-sided. The `verdict_*` columns read the percentile interval in
+words: *excludes 0*, *includes 0*, or *knife-edge* when the bound nearer
+zero sits within 5% of the interval's width of it — a bare boolean would
+overstate such a case either way.
 """
     ),
     code(
         r"""
-def _nw_t(d):
-    n_ = len(d)
-    L = int(np.floor(1.5 * n_ ** (1.0 / 3.0)))
-    dc = d - d.mean()
-    v = float(dc @ dc) / n_
-    for lag in range(1, L + 1):
-        v += 2.0 * (1.0 - lag / (L + 1.0)) * float(dc[lag:] @ dc[:-lag]) / n_
-    return float(d.mean() / np.sqrt(v / n_)), L
+def hac_t(d):
+    # HAC t of the mean of a daily series: Bartlett kernel, lag floor(1.5 n^(1/3)), statsmodels
+    d = np.asarray(d, float)
+    L = int(np.floor(1.5 * len(d) ** (1.0 / 3.0)))
+    f = sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": L})
+    return float(f.tvalues[0]), L
 
 def _cmb_idx(n_, B, rng):
-    b = int(np.ceil(n_ ** (1.0 / 3.0)))
-    nb = int(np.ceil(n_ / b))
-    starts = rng.integers(0, n_, size=(B, nb))
-    return ((starts[:, :, None] + np.arange(b)[None, None, :]) % n_).reshape(B, nb * b)[:, :n_]
+    # the library's circular moving-block bootstrap, block length ceil(n^(1/3)); the one helper
+    # behind every interval in this notebook (sections 13, 15 and 16) and shared with the deck
+    return asl.circular_block_bootstrap_idx(rng, n_, int(np.ceil(n_ ** (1.0 / 3.0))), B)
+
+def _basic(theta, lo, hi):
+    # basic (reflected) bootstrap interval from the percentile bounds
+    return 2.0 * theta - hi, 2.0 * theta - lo
+
+def _verdict(lo, hi, frac=0.05):
+    # 'excludes 0' / 'includes 0'; 'knife-edge' when the bound nearer zero sits within frac of the width of it
+    width = hi - lo
+    if not width > 0:
+        return "degenerate"
+    if min(abs(lo), abs(hi)) / width < frac:
+        return "knife-edge"
+    return "excludes 0" if (lo > 0 or hi < 0) else "includes 0"
 
 def _sharpe(a, axis=None):
     return a.mean(axis=axis) / a.std(axis=axis, ddof=1) * np.sqrt(252.0)
 
-def pair_row(name, rp, rb, B=2000):
+def _unit_gross(rp, q):
+    # scale a portfolio's daily return to unit mean gross exposure
+    g = float(pd.Series(q).abs().mean()) if q is not None else 1.0
+    return (rp / g if g > 0 else rp), g
+
+
+def pair_row(name, rp, rb, B=2000, qa=None, qb=None):
+    rp, ga = _unit_gross(rp, qa)
+    rb, gb = _unit_gross(rb, qb)
     a = rp.align(rb, join="inner")
-    x = a[0].dropna()
-    y = a[1].reindex(x.index)
-    x, y = x.to_numpy(float), y.to_numpy(float)
+    m = a[0].notna() & a[1].notna()
+    x, y = a[0][m].to_numpy(float), a[1][m].to_numpy(float)
     d = x - y
     n_ = len(d)
-    t_nw, L = _nw_t(d)
+    t_nw, L = hac_t(d)
     idx = _cmb_idx(n_, B, np.random.default_rng(0))
     dm = d[idx].mean(axis=1)
     lo_m, hi_m = np.percentile(dm, [2.5, 97.5])
+    blo_m, bhi_m = _basic(float(d.mean()), lo_m, hi_m)
     ds = _sharpe(x[idx], axis=1) - _sharpe(y[idx], axis=1)
     lo_s, hi_s = np.percentile(ds, [2.5, 97.5])
+    dS = float(_sharpe(x) - _sharpe(y))
+    blo_s, bhi_s = _basic(dS, lo_s, hi_s)
     return {
-        "pair": name, "n": n_, "nw_lag": L,
+        "pair": name, "n": n_, "hac_lag": L,
         "block_len": int(np.ceil(n_ ** (1.0 / 3.0))),
-        "mean_delta_bp": d.mean() * 1e4, "NW_t": t_nw,
+        "gross_a": ga, "gross_b": gb,
+        "mean_delta_bp": d.mean() * 1e4, "HAC_t": t_nw,
         "boot_lo_bp": lo_m * 1e4, "boot_hi_bp": hi_m * 1e4,
-        "dSharpe_ann": _sharpe(x) - _sharpe(y), "dS_lo": lo_s, "dS_hi": hi_s,
-        "sig_NW": abs(t_nw) > 1.96,
-        "sig_boot_mean": (lo_m > 0) or (hi_m < 0),
-        "sig_boot_dS": (lo_s > 0) or (hi_s < 0),
+        "basic_lo_bp": blo_m * 1e4, "basic_hi_bp": bhi_m * 1e4,
+        "dSharpe_ann": dS, "dS_lo": lo_s, "dS_hi": hi_s,
+        "dS_basic_lo": blo_s, "dS_basic_hi": bhi_s,
+        "sig_HAC": abs(t_nw) > 1.96,
+        "verdict_mean": _verdict(lo_m, hi_m),
+        "verdict_dS": _verdict(lo_s, hi_s),
     }
 
 # condor w=25, credit-vertical wing conventions (asl.pick_wings); blk2 sign(s) positions on both legs
@@ -1494,11 +1713,20 @@ q_blk2 = blk_sizes["sign(s)"]
 r_ic_sg = q_blk2.loc[common_ic] * ic25["R_long_ic"].loc[common_ic]
 print("condor w25 coverage on common days", len(common_ic), "/", len(common))
 
+_bq = ens_q["blk2 sign(s)"]
 sig_tab = pd.DataFrame([
-    pair_row("condor25 sign(s) - straddle sign(s) (blk2)", r_ic_sg, ens["blk2 sign(s)"].loc[common_ic]),
-    pair_row("PC1 sign - blk2 sign(s)", ens["spectral PC1 sign"], ens["blk2 sign(s)"]),
-    pair_row("EW sign(s) q - blk2 sign(s)", ens["EW sign(s) q"], ens["blk2 sign(s)"]),
-    pair_row("blk2 sign(s) - always short", ens["blk2 sign(s)"], ens["always short"]),
+    pair_row("condor25 sign(s) - straddle sign(s) (blk2)", r_ic_sg, ens["blk2 sign(s)"].loc[common_ic],
+             qa=q_blk2.loc[common_ic], qb=_bq.loc[common_ic]),
+    pair_row("PC1 sign - blk2 sign(s)", ens["spectral PC1 sign"], ens["blk2 sign(s)"],
+             qa=ens_q["spectral PC1 sign"], qb=_bq),
+    pair_row("EW sign(s) q - blk2 sign(s)", ens["EW sign(s) q"], ens["blk2 sign(s)"],
+             qa=ens_q["EW sign(s) q"], qb=_bq),
+    pair_row("blk2 sign(s) - always short", ens["blk2 sign(s)"], ens["always short"],
+             qa=_bq, qb=ens_q["always short"]),
+    pair_row("PC1-of-q sign - blk2 sign(s)", pca_books["PC1-of-q sign"], ens["blk2 sign(s)"],
+             qa=pca_q["PC1-of-q sign"], qb=_bq),
+    pair_row("trail-Sharpe sign(s) q - blk2 sign(s)", ens["trail-Sharpe sign(s) q"], ens["blk2 sign(s)"],
+             qa=ens_q["trail-Sharpe sign(s) q"], qb=_bq),
 ]).set_index("pair")
 print(sig_tab.to_string(float_format=lambda v: f"{v: .3f}"))
 sig_tab.to_csv(OUT / "significance_pairs.csv")
@@ -1515,12 +1743,15 @@ short straddle into two credit spreads — and keeps it as a venue
 constraint, the defined-risk structure a retail margin account
 requires on cash-settled SPX or XSP, not as an improvement. Per dollar
 of body premium the wings do not help: the $\mathrm{sign}(s)$
-portfolio loses Sharpe (1.42 with wings 25 points out and 1.54 at 50 points,
-against 1.62 without wings on the same days), the always-short control
+portfolio loses Sharpe (1.24 with wings 25 points out and 1.36 at 50 points,
+against 1.42 without wings on the same days), the always-short control
 loses what little edge it had, and compounded wealth suffers in
 proportion. The only frame in which the wings look free is index
-points per package, where they cost 0.007 points a day on average with
-a paired $t$-statistic of essentially zero. This section asks why, so
+points per package, and even there the sign runs the other way: over
+the whole sample the wings returned about 0.007 points a day *more*
+than they cost, with a paired $t$-statistic of essentially zero.
+(`drag_both` is wing premium paid minus wing settlement received, so
+its negative mean is a small net gain, not a cost.) This section asks why, so
 that the construction can be revisited with the right question rather
 than dropped.
 
@@ -1566,21 +1797,29 @@ for themselves over the whole sample. It is concentration. Essentially
 all of the payback arrived in 2020 — at 25 points, 249 of the 398
 points ever returned beyond a wing, and a net gain of 152 points that
 year against a net cost in every year since — so the "free insurance"
-is one crash quarter's payouts spread over four years of premium, and
-that quarter sits inside the first 64 sessions that the main deck's
-other slides exclude as their estimation window. On the days that
+is one crash year's payouts spread over four years of premium, and its
+worst weeks sit inside the first 63 sessions that the deck's other
+slides exclude as their estimation window. On the days that
 matter for the $\mathrm{sign}(s)$ portfolio the settlement rarely travels far: on
 selling days the median settlement sits a sixth of the way from the
-body strike to a 25-point wing, and reaches the wing on 4.3% of them
-(1.1% at 50 points). The wing that protects is the expensive one: the
-put wing alone costs almost as much Sharpe as both wings and is the
-only one that shortens the worst day, while the call wing is nearly
-free and protects nothing. No width on the ladder beats the plain portfolio
-— the best is 50 points, 0.08 of Sharpe behind with a paired $t$ of
-$-2.2$ — and the gap is negative for all seven forecasts. At the 20-
-and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ portfolio gives up 0.26 and
-0.15 of Sharpe (paired $t$ of $-2.8$ and $-2.1$) and the settlement
-reaches a wing on 7.3% and 2.4% of selling days. Paying the quoted
+body strike to a 25-point wing, and reaches the wing on 4.6% of them
+(1.3% at 50 points). The expensive wing is the put wing: alone it
+costs almost as much Sharpe as both wings, while the call wing is
+nearly free. Neither, though, shortens the $\mathrm{sign}(s)$
+portfolio's worst day. That day's settlement runs *up*, so the put wing
+only adds its premium to the loss and makes the worst day worse at
+every width; the call wing at $w=20$ is the one configuration that
+shortens it at all. The put wing does cap the always-short control's
+worst day — that control is short on the crash day, when the put wing
+pays — which is where the reading that the put wing is the protective
+one comes from; for the traded rule it does not hold. The
+`worst_hedged` and `worst_plain` columns of the one-sided table print
+both, at every width. No width on the ladder beats the plain portfolio
+— the best is 50 points, 0.06 of Sharpe behind with a paired $t$ of
+$-1.8$ — and the gap is negative for all seven forecasts. At the 20-
+and 30-point wings the parked section reported, the $\mathrm{sign}(s)$ portfolio gives up 0.23 and
+0.13 of Sharpe (paired $t$ of $-2.5$ and $-1.8$) and the settlement
+reaches a wing on 7.9% and 2.7% of selling days. Paying the quoted
 spread makes it worse: with the wings bought at the ask, which is
 quoted at 1.2 to 2 times their midpoint, they cost 0.09 points a
 day and the $\mathrm{sign}(s)$ portfolio gives up 0.3 of Sharpe at 25 points
@@ -1589,8 +1828,8 @@ against the plain portfolio filled the same way.
 **What the construction still owes**, as questions rather than claims.
 Would wings placed by delta, or by the forecast itself — wider when
 the forecast is calm, tighter when it is not — change the ratio of
-cost to coverage, given that the cap is reached on one selling day in
-twenty-five? Would hedging conditionally, only on days some measure
+cost to coverage, given that the cap is reached on about one selling
+day in twenty? Would hedging conditionally, only on days some measure
 flags elevated risk, buy the protection where it is cheap relative to
 the payoff? (§15 tries the lagged signal's rank as that measure and
 finds it points at the wrong tail.) And is the crash-year payoff a property of the instrument or
@@ -1646,11 +1885,14 @@ def vl_rows(vs, px, cfg="both"):
         ("always short", hedged, -j["R"], pd.Series(True, index=j.index)),
         ("sign(s)", hedged.where(j["pos"] < 0, j["R"]), j["pos"] * j["R"], j["pos"] < 0),
     ):
-        t_nw, _ = _nw_t((h - plain).to_numpy(float))
+        _d = (h - plain).to_numpy(float)
+        # cfg="none" is the plain portfolio: there is no difference to test, and a HAC t on a
+        # series of float noise around zero is not a number worth printing
+        t_nw = float("nan") if np.abs(_d).max() < 1e-12 else hac_t(_d)[0]
         out[name] = pd.Series({
             "n": len(j),
             "Sharpe_hedged": _sharpe(h), "Sharpe_plain": _sharpe(plain), "dSharpe": _sharpe(h) - _sharpe(plain),
-            "NW_t_diff": t_nw,
+            "HAC_t_diff": t_nw,
             "worst_hedged": float(h.min()), "worst_plain": float(plain.min()),
             "wing_cost_pts_per_sell_day": float(j.loc[sell, f"drag_{cfg}"].mean()),
             "pct_sell_days_beyond_wing": 100.0 * float(j.loc[sell, f"beyond_{cfg}"].mean()),
@@ -1662,12 +1904,31 @@ vl = {w: vl_book(width=w) for w in (25.0, 50.0)}
 # the wing widths the parked iron-fly section of the main notebook reports, for the fills and one-sided tables
 vl_wide = {w: (vl[w] if w in vl else vl_book(width=w)) for w in (20.0, 25.0, 30.0, 50.0)}
 
-# --- gate: reproduce the parked iron-fly section's headline before extending ---
+# --- gate: the rebuilt portfolio must satisfy its own accounting identity and its plain leg must
+#     be the deck's sign(s) portfolio on the same days. Both sides are recomputed on the current
+#     frame; no headline number from an earlier frame is asserted. ---
 rows25, j25 = vl_rows(vl[25.0], px_b)
-print("gate: w=25 sign(s) per premium, hedged Sharpe", f"{rows25.loc['sign(s)', 'Sharpe_hedged']:.4f}",
-      "(parked iron-fly section at w=25: 1.417); wing cost all days", f"{float(j25['drag_both'].mean()):+.4f} pts/day (parked iron-fly section: -0.007)")
-assert abs(rows25.loc["sign(s)", "Sharpe_hedged"] - 1.417) < 0.005
-assert abs(float(j25["drag_both"].mean()) - (-0.007)) < 0.002
+_resid = float((j25["pnl_both"] - (j25["pnl_none"] - j25["drag_both"])).abs().max())
+print(f"gate: wings-minus-none accounting identity, max residual {_resid:.2e} points")
+assert _resid < 1e-9
+_plain25 = j25["pos"] * j25["R"]
+_dev25 = float((_plain25 - deck_ref.loc[j25.index]).abs().max())
+print(f"gate: plain leg vs the deck's sign(s) portfolio, max |difference| {_dev25:.2e} (quote rounding)")
+assert _dev25 < 1e-5
+_rt25 = pd.read_csv(OUT / "rule_table_blk2.csv", index_col=0)
+print(f"gate: w=25 scored days {len(j25)} of {len(common)} common days "
+      f"({len(common) - len(j25)} dropped by the credit>0 filter)")
+if len(j25) == len(common):
+    _dsh25 = abs(_sharpe(_plain25) - float(_rt25.loc["sign(s)", "Sharpe_ann"]))
+    print(f"gate: the plain leg reproduces the deck's rule table sign(s) Sharpe to {_dsh25:.2e}")
+    assert _dsh25 < 1e-6
+print(f"gate: w=25 sign(s) per premium, hedged Sharpe {rows25.loc['sign(s)', 'Sharpe_hedged']:.4f} "
+      f"against plain {rows25.loc['sign(s)', 'Sharpe_plain']:.4f}; "
+      f"wing drag all days {float(j25['drag_both'].mean()):+.4f} pts/day "
+      "(positive = the wings cost money)")
+# kept for the cross-gate check in section 15 (j25 is rebuilt later in this cell)
+gate14_days = j25.index.copy()
+gate14_plain_sharpe = float(rows25.loc["sign(s)", "Sharpe_plain"])
 print("gate passed")
 
 # (a) where the wing cost comes from: premium paid vs settlement received, by year
@@ -1718,10 +1979,10 @@ for w, vs in vl_wide.items():
         fill_rows.append({"w": int(w), "fill": label, "days": len(j),
                           "Sharpe_always_short": _sharpe(as_), "Sharpe_sign_s": _sharpe(ls),
                           "worst_sign_s": float(ls.min())})
-    t_mid, _ = _nw_t(j["drag_both"].to_numpy(float))
-    t_x, _ = _nw_t(drag_x.to_numpy(float))
-    print(f"w={int(w)}: wing cost at mid {float(j['drag_both'].mean()):+.3f} pts/day (NW t {t_mid:+.2f}); "
-          f"wings at the ask {float(drag_x.mean()):+.3f} pts/day (NW t {t_x:+.2f}); "
+    t_mid, _ = hac_t(j["drag_both"].to_numpy(float))
+    t_x, _ = hac_t(drag_x.to_numpy(float))
+    print(f"w={int(w)}: wing cost at mid {float(j['drag_both'].mean()):+.3f} pts/day (HAC t {t_mid:+.2f}); "
+          f"wings at the ask {float(drag_x.mean()):+.3f} pts/day (HAC t {t_x:+.2f}); "
           f"median wing ask/mid {float((wings_ask / j['entry_wings']).median()):.2f}")
 vl_fill = pd.DataFrame(fill_rows).set_index(["w", "fill"])
 print(vl_fill.to_string(float_format=lambda v: f"{v: .3f}"))
@@ -1736,7 +1997,7 @@ for w, vs in vl_wide.items():
         for name, row in r.iterrows():
             side_rows.append({"w": int(w), "wings": cfg, "rule": name, **row.to_dict()})
 vl_side = pd.DataFrame(side_rows).set_index(["w", "wings", "rule"])
-print(vl_side[["Sharpe_hedged", "Sharpe_plain", "NW_t_diff", "worst_hedged", "wing_cost_pts_per_sell_day",
+print(vl_side[["Sharpe_hedged", "Sharpe_plain", "HAC_t_diff", "worst_hedged", "wing_cost_pts_per_sell_day",
                "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
 vl_side.to_csv(OUT / "vert_lab_one_sided_blk2.csv")
 
@@ -1752,7 +2013,7 @@ for label, vs in lad_books.items():
     for name, row in r.iterrows():
         lad_rows.append({"width": label, "rule": name, "med_gap": float(j["gap_max"].median()), **row.to_dict()})
 vl_lad = pd.DataFrame(lad_rows).set_index(["width", "rule"])
-print(vl_lad[["n", "med_gap", "Sharpe_hedged", "Sharpe_plain", "dSharpe", "NW_t_diff", "worst_hedged", "worst_plain",
+print(vl_lad[["n", "med_gap", "Sharpe_hedged", "Sharpe_plain", "dSharpe", "HAC_t_diff", "worst_hedged", "worst_plain",
               "wing_cost_pts_per_sell_day", "pct_sell_days_beyond_wing"]].to_string(float_format=lambda v: f"{v: .3f}"))
 vl_lad.to_csv(OUT / "vert_lab_width_ladder_blk2.csv")
 best = vl_lad.xs("sign(s)", level="rule")["dSharpe"]
@@ -1808,7 +2069,7 @@ for tag in MODEL_ORDER:
         r, _ = vl_rows(vs, books[tag])
         row = r.loc["sign(s)"]
         mod_rows.append({"model": LABEL[tag], "w": int(w), "Sharpe_hedged": row["Sharpe_hedged"],
-                         "Sharpe_plain": row["Sharpe_plain"], "dSharpe": row["dSharpe"], "NW_t_diff": row["NW_t_diff"],
+                         "Sharpe_plain": row["Sharpe_plain"], "dSharpe": row["dSharpe"], "HAC_t_diff": row["HAC_t_diff"],
                          "worst_hedged": row["worst_hedged"], "worst_plain": row["worst_plain"]})
 vl_mod = pd.DataFrame(mod_rows).set_index(["model", "w"])
 print(vl_mod.to_string(float_format=lambda v: f"{v: .3f}"))
@@ -1869,16 +2130,39 @@ flat on every flagged day; rule B is flat on a flagged day only when
 the same-day rule would sell, since a bought package already risks no
 more than its premium. Rule A is also applied to the always-short
 control. Days before the rank exists are traded as usual in both the
-flagged and the reference portfolio, so every comparison is on the same 871
-days. The criterion is the tail — worst day, maximum drawdown, annual
-volatility, excess kurtosis, and the worst day of each calendar year —
-with mean and Sharpe reported beside it. Each rule is tested against
-the reference with Newey–West standard errors on the daily difference
-and a block bootstrap on the Sharpe change, and against a placebo:
-2,000 random sets of flagged days of the same size, so that a flag
-which helps only by trading fewer days sits at the placebo median. The
+flagged and the reference portfolio, so every comparison is on the same
+common days; the count is printed by the cell. The criterion is the
+tail — worst day, maximum drawdown, annual volatility, excess kurtosis,
+and the worst day of each calendar year — with mean and Sharpe reported
+beside it. Each rule is tested against the reference with a
+heteroskedasticity- and autocorrelation-consistent $t$ on the daily
+difference (Bartlett kernel, lag $\lfloor 1.5\,n^{1/3}\rfloor$) and a
+circular block bootstrap on the Sharpe change (the §13 helper,
+percentile and basic intervals), and against a placebo: every circular
+shift of the real flag *within the days on which the flag can be
+evaluated*, which keeps the number of flagged days, their run lengths
+and the warm-up gap exactly, so that a flag which helps only by trading
+fewer days sits at the placebo median. Restricting the shift matters:
+the rank needs 63 days of history plus a one-day lag, so the flag is
+structurally false over the opening stretch, and an unrestricted
+placebo would put flagged days where the real flag could never be.
+Percentiles are mid-ranks (a tie counts half), and the share of shifts
+that leave a statistic exactly unchanged is printed beside them — a
+worst day that no placebo touches is a tie, not a win. A count-matched
+random draw from the same eligible days is kept as a second line. The
+maximum drawdown percentile is reported with its tie share and has to
+be read that way: the reference drawdown opens before the flag's first
+eligible day, so a placebo that puts no flagged day inside the drawdown
+window leaves the drawdown exactly unchanged, and those ties carry most
+of the distribution. The cell prints the peak and trough dates, where
+they sit relative to the warm-up, and the tie share beside the
+percentile. The
 cell first checks that the flag reads nothing after $t-1$ and that the
-reference row reproduces the deck. It then shows where the sell-side
+reference row reproduces the deck's regenerated `daily_blk2.parquet`
+and `rule_table_blk2.csv` day for day, and that the three places this
+notebook scores the plain $\mathrm{sign}(s)$ portfolio (§12 at
+$\lambda=0$, §14's plain leg, §15's reference) are the same portfolio on
+the same days. It then shows where the sell-side
 losses actually sit — selling days split by tercile of the lagged rank
 — and what the flag sacrifices against what it protects: the share of
 the reference return earned on flagged days against the share of the
@@ -1889,7 +2173,7 @@ the latter.
 tail. Under every flag and both rules, for all seven forecasts, the
 worst day ($-5.42$) and the maximum drawdown are unchanged; neither
 portfolio's worst day is flagged. The primary rule cuts the Sharpe ratio
-from 1.63 to 1.33 and roughly doubles the excess kurtosis, because it
+from 1.42 to 1.22 and roughly doubles the excess kurtosis, because it
 inserts zeros on ordinary days and leaves the extremes in place. The
 reason is that the flag points at the wrong tail. Yesterday's forecast
 sitting far above implied variance persists into today's sign, so the
@@ -1897,12 +2181,12 @@ top tercile of the lagged rank is only about 45 percent selling days
 (the bottom tercile is about 81 percent): the flag mostly removes
 *buying* days, whose large settlement moves are the portfolio's profit, not
 its loss — a bought package cannot lose more than its premium. The
-selling days that hurt sit in the *middle* tercile (198 selling days,
+selling days that hurt sit in the *middle* tercile (189 selling days,
 worst $-5.42$, ten days below $-2$), against four such days in the
-top tercile and three in the bottom. Flagged days carry about 32
+top tercile and three in the bottom. Flagged days carry about 28
 percent of the reference return but only about 11 percent of the ten
-worst days' losses, and random flags of the same size cover more of
-the worst days than this one on roughly 89 percent of draws. A
+worst days' losses, and shifted flags cover more of the worst days'
+losses than this one on about 93 percent of shifts. A
 no-forecast comparator — the top tercile of yesterday's realized
 $|R|$ — separates large from small moves better than the lagged signal
 does.
@@ -1922,11 +2206,20 @@ the 15:30 information set is the open question.
 def rank_lag(s):
     return s.astype(float).expanding(min_periods=63).rank(pct=True).shift(1)
 
+
+def tercile_flag(rk, side):
+    # The rank needs 63 days of history plus the one-day lag, so it does not exist over the opening
+    # stretch. Keep that as NaN rather than folding it into False: the flag is traded as False
+    # there, but the placebo pool has to know which days the flag could ever have fired on.
+    out = (rk > 2 / 3) if side == "top" else (rk < 1 / 3)
+    return out.astype("boolean").where(rk.notna())   # nullable boolean: False is traded, NA is not eligible
+
+
 # declared before any result is read; the first entry is the primary flag
 FLAGS = {
-    "top tercile of rank(s_{t-1}) [primary]": lambda px: rank_lag(px["signal"]) > 2 / 3,
-    "bottom tercile of rank(s_{t-1})": lambda px: rank_lag(px["signal"]) < 1 / 3,
-    "top tercile of rank(|s_{t-1}|)": lambda px: rank_lag(px["signal"].abs()) > 2 / 3,
+    "top tercile of rank(s_{t-1}) [primary]": lambda px: tercile_flag(rank_lag(px["signal"]), "top"),
+    "bottom tercile of rank(s_{t-1})": lambda px: tercile_flag(rank_lag(px["signal"]), "bottom"),
+    "top tercile of rank(|s_{t-1}|)": lambda px: tercile_flag(rank_lag(px["signal"].abs()), "top"),
 }
 
 def scoreboard(r):
@@ -1937,29 +2230,23 @@ def scoreboard(r):
         "Sharpe_ann": float(r.mean() / r.std(ddof=1) * np.sqrt(252)),
         "vol_ann": float(r.std(ddof=1) * np.sqrt(252)),
         "worst_day": float(r.min()),
-        "maxDD": float((cum - cum.cummax()).min()),
+        "maxDD_pts": float((cum - cum.cummax()).min()),   # cumulative-sum drawdown, return points
         "ex_kurt": float(r.kurt()),
     })
-
-def nw_t(d):
-    d = np.asarray(d, float)
-    lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
-    f = sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag})
-    return float(f.tvalues[0]), lag
 
 def sharpe(a):
     a = np.asarray(a, float)
     return float(a.mean() / a.std(ddof=1) * np.sqrt(252))
 
 def boot_dsharpe(a, b, B=2000):
-    rng = np.random.default_rng(0)
-    n = len(a); blen = int(np.ceil(n ** (1 / 3))); nblk = int(np.ceil(n / blen))
-    a = np.asarray(a, float); b = np.asarray(b, float); out = np.empty(B)
-    for i in range(B):
-        starts = rng.integers(0, n - blen + 1, nblk)
-        idx = np.concatenate([np.arange(s, s + blen) for s in starts])[:n]
-        out[i] = sharpe(a[idx]) - sharpe(b[idx])
-    return np.percentile(out, [2.5, 97.5])
+    # circular moving-block bootstrap, paired on the same indices (the §13 helper);
+    # returns the percentile interval and the basic interval on the Sharpe change
+    a = np.asarray(a, float); b = np.asarray(b, float)
+    idx = _cmb_idx(len(a), B, np.random.default_rng(0))
+    out = _sharpe(a[idx], axis=1) - _sharpe(b[idx], axis=1)
+    lo, hi = np.percentile(out, [2.5, 97.5])
+    blo, bhi = _basic(float(_sharpe(a) - _sharpe(b)), lo, hi)
+    return lo, hi, blo, bhi
 
 def apply_rules(px, flag):
     ref = px["pos"] * px["R"]
@@ -1972,19 +2259,40 @@ def apply_rules(px, flag):
         "A on always-short": (-px["R"]).where(~flag, 0.0),
     }
 
-def placebo(px, flag, B=2000):
-    # random flag sets with the same number of flagged days; rule A and rule B analogues
-    rng = np.random.default_rng(0)
-    n = len(px); k = int(flag.sum())
+def placebo_flags(flag, elig, mode, B=2000, seed=0):
+    # The flag is structurally False before the rank exists (63 days of history plus the one-day
+    # lag), so a placebo drawn from all days can put flagged days where the real flag could never
+    # be. Both placebo families are therefore drawn from the eligible days only.
+    #   'shift': every circular shift of the flag WITHIN the eligible block (count-, run-length-
+    #            and warm-up-exact);
+    #   'subset': count-matched random subsets of the eligible days (the looser draw, second line)
+    f0 = np.asarray(flag, bool); el = np.asarray(elig, bool); n = len(f0)
+    assert not f0[~el].any(), "the flag is True on a day it cannot be evaluated on"
+    e_idx = np.flatnonzero(el); m = len(e_idx); k = int(f0.sum())
+    fe = f0[e_idx]
+    if mode == "shift":
+        out = []
+        for s in range(1, m):
+            f = np.zeros(n, bool); f[e_idx] = np.roll(fe, s); out.append(f)
+        return out
+    rng = np.random.default_rng(seed)
+    out = []
+    for _ in range(B):
+        f = np.zeros(n, bool); f[rng.choice(e_idx, k, replace=False)] = True
+        out.append(f)
+    return out
+
+def placebo(px, flag, elig, mode="shift", B=2000):
+    # placebo flags of the chosen kind; rule A and rule B analogues of (worst day, maxDD_pts, Sharpe) changes
     R = px["R"].to_numpy(float); pos = px["pos"].to_numpy(float); ref = pos * R
     sell = pos < 0
     def stats(r):
         cum = np.cumsum(r)
         return r.min(), (cum - np.maximum.accumulate(cum)).min(), sharpe(r)
     ref_w, ref_dd, ref_sh = stats(ref)
-    rows = {"A": np.empty((B, 3)), "B": np.empty((B, 3))}
-    for i in range(B):
-        f = np.zeros(n, bool); f[rng.choice(n, k, replace=False)] = True
+    flags = placebo_flags(flag, elig, mode, B)
+    rows = {"A": np.empty((len(flags), 3)), "B": np.empty((len(flags), 3))}
+    for i, f in enumerate(flags):
         ra = np.where(f, 0.0, ref); rb = np.where(f & sell, 0.0, ref)
         for key, r in (("A", ra), ("B", rb)):
             w, dd, sh = stats(r)
@@ -1992,24 +2300,71 @@ def placebo(px, flag, B=2000):
     return rows, (ref_w, ref_dd, ref_sh)
 
 def pct_rank(sample, x):
-    return 100.0 * float((sample <= x).mean())
+    # mid-rank percentile: ties count half, so a change that no placebo touches does not read as a win
+    sample = np.asarray(sample, float)
+    return 50.0 * (float((sample < x).mean()) + float((sample <= x).mean()))
+
+def tie_share(sample, x):
+    return 100.0 * float((np.asarray(sample, float) == x).mean())
 
 # ---- causality gate (flags read only s up to t-1; R never enters the flag) ----
 px0 = books["blk2"].loc[common]
 prim = list(FLAGS)[0]
 rng_g = np.random.default_rng(0)
 for t in rng_g.choice(np.arange(70, len(px0) - 1), 10, replace=False):
-    base = FLAGS[prim](px0).to_numpy()
+    base = FLAGS[prim](px0).fillna(False).astype(bool).to_numpy()
     p1 = px0.copy(); p1.loc[p1.index[t:], "R"] *= 3.0
     p2 = px0.copy(); p2.loc[p2.index[t:], "signal"] *= 3.0
-    f1 = FLAGS[prim](p1).to_numpy(); f2 = FLAGS[prim](p2).to_numpy()
+    f1 = FLAGS[prim](p1).fillna(False).astype(bool).to_numpy()
+    f2 = FLAGS[prim](p2).fillna(False).astype(bool).to_numpy()
     assert (f1[: t + 1] == base[: t + 1]).all() and (f2[: t + 1] == base[: t + 1]).all()
 print("causality: flags for days <= t unchanged by perturbing R or s on days >= t (10 draws)")
 
-# ---- reference gate ----
+# ---- reference gate: against the deck's regenerated outputs on the current frame, never a literal ----
 ref0 = px0["pos"] * px0["R"]
 print(f"reference sign(s), block-diagonal ridge: n {len(ref0)} mean {ref0.mean():.4f} Sharpe {sharpe(ref0):.3f}")
-assert len(ref0) == 871 and abs(ref0.mean() - 0.1152) < 5e-4 and abs(sharpe(ref0) - 1.631) < 5e-3
+_dev15 = float((deck_ref.reindex(ref0.index) - ref0).abs().max())
+assert deck_ref.reindex(ref0.index).notna().all(), "a common day is missing from daily_blk2.parquet"
+_rt15 = pd.read_csv(OUT / "rule_table_blk2.csv", index_col=0)
+_dm15 = abs(float(ref0.mean()) - float(_rt15.loc["sign(s)", "mean"]))
+_ds15 = abs(sharpe(ref0) - float(_rt15.loc["sign(s)", "Sharpe_ann"]))
+print(f"gate: against the deck's regenerated outputs, max |daily difference| {_dev15:.2e}, "
+      f"|mean difference| {_dm15:.2e}, |Sharpe difference| {_ds15:.2e} (quote rounding)")
+assert len(ref0) == int(_rt15.loc["sign(s)", "n"])
+assert _dev15 < 1e-5 and _dm15 < 1e-7 and _ds15 < 1e-6
+
+# ---- the three 'plain sign(s)' references in this notebook must be the same portfolio ----
+_gates = {
+    "S12 lambda=0, quoted subset": set(idx_s),
+    "S14 plain leg, credit>0 days": set(gate14_days),
+    "S15 reference, all common days": set(px0.index),
+}
+_sh = {
+    "S12 lambda=0, quoted subset": float(tc_tabs["straddle"].loc[("lam=0.0", "sign(s)"), "Sharpe_ann"]),
+    "S14 plain leg, credit>0 days": gate14_plain_sharpe,
+    "S15 reference, all common days": sharpe(ref0),
+}
+print("plain sign(s), the three gates in this notebook:")
+for _k in _gates:
+    print(f"  {_k:34s} n={len(_gates[_k]):4d}  Sharpe {_sh[_k]:.4f}")
+_base = _gates["S15 reference, all common days"]
+for _k, _v in _gates.items():
+    assert _v == _base, (_k, sorted(str(d.date()) for d in _base ^ _v))
+assert max(_sh.values()) - min(_sh.values()) < 1e-8, _sh
+print("  the three gates score the same days and agree to 1e-8")
+
+# ---- where the reference drawdown sits ----
+_cum0 = ref0.cumsum(); _dd0 = _cum0 - _cum0.cummax()
+_tr0 = _dd0.idxmin(); _pk0 = _cum0.loc[:_tr0].idxmax()
+_elig0 = FLAGS[prim](px0).notna()
+_pre0 = int((~_elig0).sum())
+print(f"reference maximum drawdown {float(_dd0.min()):+.3f} points, peak {_pk0.date()} trough {_tr0.date()}; "
+      f"the flag is undefined on the first {_pre0} sessions (the rank needs 63 days of history plus the "
+      f"one-day lag), so every placebo below is drawn from the {int(_elig0.sum())} eligible days only.")
+print(f"  the drawdown opens on day {int(px0.index.get_loc(_pk0)) + 1} of {len(px0)} and closes on day "
+      f"{int(px0.index.get_loc(_tr0)) + 1}, so it overlaps that ineligible span: read placebo_pct_maxDD_pts "
+      "beside tie_pct_maxDD_pts, because a placebo that puts no flagged day inside the drawdown window "
+      "leaves the drawdown exactly unchanged and those ties carry most of the distribution.")
 
 # ---- scoreboards, all models, all flags ----
 rows = {}
@@ -2032,8 +2387,10 @@ print("saved riskflag_summary_<model>.csv in", OUT)
 px = books["blk2"].loc[common]
 MAIN = ("reference sign(s)", "A: flat on flagged days", "B: flat on flagged days only when selling")
 for fname in FLAGS:
-    flag = FLAGS[fname](px).fillna(False).astype(bool)
-    print(f"\n=== flag: {fname} --- block-diagonal ridge, {len(px)} days ===")
+    raw = FLAGS[fname](px)
+    flag = raw.fillna(False).astype(bool)
+    elig = raw.notna().to_numpy()
+    print(f"\n=== flag: {fname} --- block-diagonal ridge, {len(px)} days, {int(elig.sum())} eligible ===")
     sub = tab.xs(fname, level="flag").xs("blk2", level="model")
     print(sub.to_string(float_format=lambda x: f"{x:+.4f}"))
     rr = px["pos"] * px["R"]
@@ -2046,20 +2403,32 @@ for fname in FLAGS:
     print("per-year worst day:")
     print(per_year.to_string(float_format=lambda x: f"{x:+.3f}"))
     ref = rules[MAIN[0]]
-    plc, (rw, rdd, rsh) = placebo(px, flag)
+    plc, (rw, rdd, rsh) = placebo(px, flag, elig, "shift")
+    plc_sub, _ = placebo(px, flag, elig, "subset")
+    n_shift = plc["A"].shape[0]
     pair_rows = []
     for key, rname in (("A", MAIN[1]), ("B", MAIN[2])):
         r = rules[rname]; d = r - ref
-        t, lag = nw_t(d); lo, hi = boot_dsharpe(r, ref)
+        t, lag = hac_t(d); lo, hi, blo, bhi = boot_dsharpe(r, ref)
         real = (float(r.min() - rw), float((r.cumsum() - r.cumsum().cummax()).min() - rdd), sharpe(r) - rsh)
         pcts = [pct_rank(plc[key][:, j], real[j]) for j in range(3)]
-        pair_rows.append({"rule": rname, "mean_delta": float(d.mean()), "NW_t": t, "nw_lag": lag,
-                          "dSharpe": real[2], "boot_lo": lo, "boot_hi": hi,
-                          "worst_day_change": real[0], "maxDD_change": real[1],
-                          "placebo_pct_worst": pcts[0], "placebo_pct_maxDD": pcts[1], "placebo_pct_dSharpe": pcts[2]})
+        ties = [tie_share(plc[key][:, j], real[j]) for j in range(3)]
+        pcts_sub = [pct_rank(plc_sub[key][:, j], real[j]) for j in range(3)]
+        pair_rows.append({"rule": rname, "mean_delta": float(d.mean()), "HAC_t": t, "hac_lag": lag,
+                          "dSharpe": real[2], "boot_lo": lo, "boot_hi": hi, "boot_basic_lo": blo, "boot_basic_hi": bhi,
+                          "verdict_dSharpe": _verdict(lo, hi),
+                          "worst_day_change": real[0], "maxDD_pts_change": real[1],
+                          # the drawdown percentile is a tie-heavy read: most placebos leave the
+                          # drawdown untouched, so it is reported with its tie share, never alone
+                          "placebo_pct_worst": pcts[0], "placebo_pct_maxDD_pts": pcts[1],
+                          "placebo_pct_dSharpe": pcts[2],
+                          "tie_pct_worst": ties[0], "tie_pct_maxDD_pts": ties[1], "tie_pct_dSharpe": ties[2],
+                          "subset_pct_worst": pcts_sub[0], "subset_pct_maxDD_pts": pcts_sub[1],
+                          "subset_pct_dSharpe": pcts_sub[2]})
     pr = pd.DataFrame(pair_rows).set_index("rule")
-    print("paired against the reference (Newey-West t on the daily difference; block-bootstrap 95% interval on the Sharpe change)")
-    print("and placebo percentiles: where the realized change sits among 2000 random flag sets of the same size (higher = better than chance):")
+    print("paired against the reference (HAC t on the daily difference, Bartlett kernel; circular block-bootstrap 95% percentile and basic intervals on the Sharpe change)")
+    print(f"placebo percentiles (mid-rank, ties count half): where the realized change sits among all {n_shift} circular shifts of the real flag within the eligible days;")
+    print("tie_pct_* is the share of shifts that leave the statistic exactly unchanged; subset_pct_* repeats the read against 2000 count-matched random draws from the eligible days:")
     print(pr.to_string(float_format=lambda x: f"{x:+.3f}"))
     if fname == prim:
         pr.to_csv(OUT / "riskflag_paired_blk2.csv")
@@ -2086,18 +2455,14 @@ tterc.to_csv(OUT / "riskflag_sell_terciles_blk2.csv")
 worst10 = ref.nsmallest(10)
 share_ret = float(ref[flag].sum() / ref.sum())
 share_loss = float(worst10[flag.reindex(worst10.index)].sum() / worst10.sum())
-rng_p = np.random.default_rng(0)
-n, k = len(ref), int(flag.sum())
 w10_mask = ref.index.isin(worst10.index)
-plc_share = np.empty(2000)
-for i in range(2000):
-    f = np.zeros(n, bool)
-    f[rng_p.choice(n, k, replace=False)] = True
-    plc_share[i] = ref.to_numpy()[f & w10_mask].sum() / worst10.sum()
+plc_flags = placebo_flags(flag.to_numpy(), FLAGS[prim](px).notna().to_numpy(), "shift")
+plc_share = np.array([ref.to_numpy()[f & w10_mask].sum() / worst10.sum() for f in plc_flags])
 print(f"sacrifice versus protection: flagged days carry {100 * share_ret:.1f}% of the reference return "
       f"but only {100 * share_loss:.1f}% of the ten worst days' losses; "
-      f"placebo percentile of that loss share {pct_rank(plc_share, share_loss):.0f} "
-      f"(random flags of the same size cover more of the worst days than this flag on {100 - pct_rank(plc_share, share_loss):.0f}% of draws)")
+      f"placebo mid-rank percentile of that loss share {pct_rank(plc_share, share_loss):.0f} among all {len(plc_flags)} circular shifts of the flag within the eligible days "
+      f"(tie share {tie_share(plc_share, share_loss):.0f}%; shifted flags cover more of the worst days' losses than this flag on "
+      f"{100 * float((plc_share > share_loss).mean()):.0f}% of shifts)")
 print(f"worst day flagged: sign(s) {bool(flag.loc[ref.idxmin()])}, always-short {bool(flag.loc[(-px['R']).idxmin()])}")
 absflag = (rank_lag(px["R"].abs()) > 2 / 3).fillna(False).astype(bool)
 print("a no-forecast comparator, the top tercile of yesterday's realized |R|: mean |R| on flagged days "
@@ -2156,10 +2521,14 @@ value, so its per-premium and per-time-value figures coincide. A
 comparison across bodies is like-for-like only in the time-value frame
 or in points.
 
-Also reported: where the index sits on the strike grid (the offset
-$|S-K^*|$ lies between 0 and 2.5 points) and both bodies' $\mathrm{sign}(s)$
+Also reported: where the index sits on the strike grid — the offset
+$|S-K^*|$ is at most half the five-point strike spacing whenever the
+nearest strike is quoted on both legs, and larger on the rare day when
+it is not, so the bound is a property of the grid rather than a
+guarantee; the cell prints the median, the maximum, and the share of
+days inside 2.5 points — and both bodies' $\mathrm{sign}(s)$
 results by tercile of that offset; the five-point vertical on its own —
-its mean, its Newey–West $t$, and its share of the straddle's daily
+its mean, its HAC $t$, and its share of the straddle's daily
 variance — which decides whether the extra premium is edge or fairly
 priced risk; crossed-spread fills (sell at the bid, buy at the ask, on every
 leg, with the in-the-money leg's relative spread printed against the
@@ -2169,55 +2538,61 @@ minimum 63 days, lagged one day) on the $\mathrm{sign}(s)$ portfolio in the
 two return frames.
 
 **What the numbers say.** In dollars the two $\mathrm{sign}(s)$ portfolios are the
-same portfolio: about 0.34 index points per package-day each, a paired
-difference of about −0.01 points per day with a $t$ near zero, and the
-same worst day (the crash day, about −80 points). The extra premium
-the straddle collects — a median 7.67 points against 5.35, of which
-about 1.41 is intrinsic and 6.36 time value — is the five-point
-vertical, and the vertical is fairly priced risk rather than edge: sold
-on its own it earns about 0.11 points per day with a $t$ of about 1.5,
-carries about 7% of the straddle's daily variance, is essentially
-uncorrelated with the strangle, and the $\mathrm{sign}(s)$ rule has nothing
-to say about it (about −0.01 points per day, $t$ near zero). It is a
+same portfolio: about 0.24 index points per package-day each, a
+difference under half a hundredth of a point a day, and the same worst
+day to within the strike gap (−78.4 points for the strangle against
+−80.0 for the straddle). The extra premium the straddle collects — a
+median 7.68 points against 5.39, of which about 1.41 is intrinsic and
+6.39 time value — is the five-point vertical, and the vertical is
+fairly priced risk rather than edge: sold on its own it earns about
+0.11 points per day with a $t$ of about 1.4, carries about 7% of the
+straddle's daily variance, is essentially uncorrelated with the
+strangle ($-0.05$), and the $\mathrm{sign}(s)$ rule has nothing to say
+about it (about $+0.004$ points per day, $t$ near zero). It is a
 small directional bet on which side of the strike the index closes;
 the variance forecast does not inform it.
 
 The frames then re-scale that one dollar P&L in three ways, and the
 choice of denominator produces every apparent difference. Per dollar
 of premium the straddle looks worse on the $\mathrm{sign}(s)$ rule — Sharpe
-about 1.50 against 1.63, a mean lower by about 0.04 per day with a
-Newey–West $t$ near −2.5, lower for all seven forecasts — and its
-worst day looks halved (about −3.2 against −5.4). Both are the
-intrinsic value in the denominator: the same dollar loss divided by a
-larger, partly riskless premium. Per dollar of time value, the
-like-for-like frame, the two bodies are indistinguishable — Sharpe
-about 1.72 against 1.63 for the block-diagonal ridge, a paired $t$
-near −0.4, the sign of the difference varying across the seven
-forecasts — and the worst day is about −4.1 against −5.4, a smaller
-gap that again reflects the denominator (the straddle's time value
-exceeds the strangle's premium by about a point on a typical day). The
-always-short control gains in every frame (about 0.44–0.50 against
-0.28), but that gain is the vertical's 0.11 points per day, which is
-not significant.
+about 1.32 against 1.42, a mean lower by about 0.03 per day with a
+HAC $t$ near −2.3 — and its worst day looks shorter (about −3.2
+against −5.4). Both are the intrinsic value in the denominator: the
+same dollar loss divided by a larger, partly riskless premium; and the
+sign of the Sharpe change is not even uniform across the seven
+forecasts (four gain, three lose, none by as much as a tenth), which is
+itself the signature of a denominator effect rather than an edge. Per
+dollar of time value, the like-for-like frame, the two bodies are
+indistinguishable — Sharpe about 1.49 against 1.42 for the
+block-diagonal ridge, a paired $t$ near −0.3, and a gain of 0.06 to
+0.15 for every one of the seven forecasts — and the worst day is about
+−4.1 against −5.4, a smaller gap that again reflects the denominator
+(the straddle's time value exceeds the strangle's premium by about a
+point on a typical day). The always-short control gains in every frame
+(0.50 and 0.35 against 0.20 per premium and per time value, 0.25
+against 0.04 in points), but that gain is the vertical's 0.11 points
+per day, which is not significant.
 
 The estimated-fraction rule sees the same thing: its fraction is
-about 0.063 for either body in either frame. Because the
+about 0.053 to 0.056 for either body in either frame. Because the
 fraction is applied to the scaled return, each frame is a different
 position-sizing rule on the same instrument — the per-time-value
 straddle path holds more packages on days when time value is small —
-and the terminal-wealth differences (about ×37 for the strangle, ×17
-for the straddle per premium, ×61 per time value) are those sizing
+and the terminal-wealth differences (about ×12 for the strangle, ×7
+for the straddle per premium, ×18 per time value) are those sizing
 rules, not a difference in edge. Where the index sits on the strike
-grid does not separate the bodies either: both earn essentially nothing
-in the third of days on which the index sits closest to a listed
-strike and about the same as each other in the other two thirds — a
-property of those days, not of either body. Crossed-spread fills favour the
-strangle: the straddle's legs are not wider in relative terms (about
-5.1% and 5.5% of mid against 5.9%), but its package spread is larger
-in points and its per-premium returns smaller, so after paying the
-spread the $\mathrm{sign}(s)$ portfolio scores about 0.90 against 1.10 per
-premium (about 1.04 against 1.09 per time value), and always-short is
-negative for both.
+grid does not separate the bodies either: both lose a little in the
+third of days on which the index sits closest to a listed strike
+(Sharpe about −0.4 for each) and both earn about the same as each other
+in the other two thirds — a property of those days, not of either body.
+Crossed-spread fills favour the strangle: the straddle's legs are not
+wider in relative terms (about 5.1% and 5.5% of mid against 5.9%), but
+its package spread is larger in points and its per-premium returns
+smaller, so after crossing the spread on every leg the
+$\mathrm{sign}(s)$ portfolio scores about 0.73 against 0.95 per premium
+(about 0.90 against 0.95 per time value, where the crossed-spread
+return is measured against the *filled* time value, not the midpoint one), and
+always-short is negative for both.
 
 **Verdict.** The same-strike straddle is not a tail fix. The halved
 per-premium worst day is intrinsic value in the denominator, the dollar
@@ -2259,6 +2634,14 @@ strad = strad[np.isfinite(strad["entry"]) & (strad["entry"] > 0) & np.isfinite(s
 strad["R"] = strad["exit"] / strad["entry"] - 1.0
 strad["offset"] = strad["dist"]                       # |S - K*|, the intrinsic value at entry
 strad["time_value"] = strad["entry"] - strad["offset"]
+# a package cannot be worth less than its intrinsic value: a non-positive time value is a stale or
+# frozen quote, and dividing by it would flip the sign of the return
+_tv_bad = strad.index[~(strad["time_value"] > 0)]
+print(f"time value <= 0 on {len(_tv_bad)} day(s), dropped:", [str(d.date()) for d in _tv_bad])
+strad = strad[strad["time_value"] > 0].copy()
+print(f"offset |S - K*|: median {float(strad['offset'].median()):.2f}, max {float(strad['offset'].max()):.2f} points "
+      f"(half the 5-point strike spacing on {float((strad['offset'] <= 2.5 + 1e-9).mean()):.2%} of days; "
+      "a larger offset means the nearest strike had no two-sided quote on both legs)")
 strad["itm_leg"] = np.where(strad["S"] >= strad["K"], "call", "put")
 # the 5-point vertical that turns the strangle into the straddle:
 #   K* = K_p -> long call spread K_p/K_c ; K* = K_c -> long put spread K_c/K_p
@@ -2286,7 +2669,7 @@ def bl_sharpe(a):
     return float(a.mean() / a.std(ddof=1) * np.sqrt(252))
 
 
-def bl_nw(d):
+def bl_hac(d):
     d = np.asarray(d, float)
     lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
     f = sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag})
@@ -2294,15 +2677,13 @@ def bl_nw(d):
 
 
 def bl_boot(a, b, B=2000):
-    rng = np.random.default_rng(0)
+    # circular moving-block bootstrap, paired on the same indices (the §13 helper): percentile and basic intervals
     a = np.asarray(a, float); b = np.asarray(b, float)
-    n = len(a); blen = int(np.ceil(n ** (1 / 3))); nblk = int(np.ceil(n / blen))
-    out = np.empty(B)
-    for i in range(B):
-        starts = rng.integers(0, n - blen + 1, nblk)
-        idx = np.concatenate([np.arange(s, s + blen) for s in starts])[:n]
-        out[i] = bl_sharpe(a[idx]) - bl_sharpe(b[idx])
-    return np.percentile(out, [2.5, 97.5])
+    idx = _cmb_idx(len(a), B, np.random.default_rng(0))
+    out = _sharpe(a[idx], axis=1) - _sharpe(b[idx], axis=1)
+    lo, hi = np.percentile(out, [2.5, 97.5])
+    blo, bhi = _basic(float(_sharpe(a) - _sharpe(b)), lo, hi)
+    return lo, hi, blo, bhi
 
 
 def bl_kelly(rs):
@@ -2317,13 +2698,14 @@ def bl_wealth(f, r):
     assert (fac > 0).all()
     w = np.cumprod(fac)
     return {"g_ann": 252.0 * float(np.mean(np.log(fac))), "terminal": float(w[-1]),
-            "maxDD": float((w / np.maximum.accumulate(w) - 1.0).min()), "worst_day_factor": float(fac.min())}
+            "maxDD_frac": float((w / np.maximum.accumulate(w) - 1.0).min()),   # wealth, fraction of peak
+            "worst_day_factor": float(fac.min())}
 
 
 def bl_row(rp):
     cum = rp.cumsum()
     return {"mean": float(rp.mean()), "Sharpe": bl_sharpe(rp), "worst_day": float(rp.min()),
-            "maxDD": float((cum - cum.cummax()).min())}
+            "maxDD_pts": float((cum - cum.cummax()).min())}   # cumulative-sum drawdown, return points
 
 
 # gate: the strangle rows must reproduce the published rule table before anything is compared
@@ -2360,10 +2742,12 @@ for tag in MODEL_ORDER:
     for rule in RULES:
         for fr in ("per premium", "per time value"):
             a, b_ = rp[(BODIES[1], rule, fr)], rp[(BODIES[0], rule, fr)]
-            m, t, lag = bl_nw(a - b_)
-            lo, hi = bl_boot(a, b_)
-            paired[(LABEL[tag], rule, fr)] = {"mean_diff": m, "NW_t": t, "lag": lag,
-                                              "dSharpe": bl_sharpe(a) - bl_sharpe(b_), "dSharpe_lo": lo, "dSharpe_hi": hi}
+            m, t, lag = bl_hac(a - b_)
+            lo, hi, blo, bhi = bl_boot(a, b_)
+            paired[(LABEL[tag], rule, fr)] = {"mean_diff": m, "HAC_t": t, "lag": lag,
+                                              "dSharpe": bl_sharpe(a) - bl_sharpe(b_), "dSharpe_lo": lo, "dSharpe_hi": hi,
+                                              "dSharpe_basic_lo": blo, "dSharpe_basic_hi": bhi,
+                                              "verdict_dSharpe": _verdict(lo, hi)}
     for b in BODIES:
         for fr in ("per premium", "per time value"):
             r = rp[(b, "sign(s)", fr)]
@@ -2393,7 +2777,7 @@ print(f"the strangle expires worthless on {float((px['R'] <= -0.999).mean()):.1%
       f"the straddle settles within 1 point of its strike on {float((st['exit'] < 1.0).mean()):.1%}")
 for fr in FRAMES:
     print(f"[{fr}]")
-    print(score_tab.xs((LABEL["blk2"], fr), level=("model", "frame"))[["mean", "Sharpe", "worst_day", "maxDD"]]
+    print(score_tab.xs((LABEL["blk2"], fr), level=("model", "frame"))[["mean", "Sharpe", "worst_day", "maxDD_pts"]]
           .to_string(float_format=lambda x: f"{x:+.4f}"))
 print("--- paired daily difference, straddle minus strangle, block-diagonal ridge ---")
 print(paired_tab.xs(LABEL["blk2"], level="model").to_string(float_format=lambda x: f"{x:+.3f}"))
@@ -2432,15 +2816,18 @@ vert_short = (st["vert_entry"] - st["vert_exit"])[grid]
 resid = float((strad_short - sg_short - vert_short).abs().max())
 print(f"--- decomposition on {int(grid.sum())} days where the straddle strike is one of the strangle's strikes; "
       f"max identity residual {resid:.2e} points ---")
-m_v, t_v, lag_v = bl_nw(vert_short)
-print(f"short 5-point vertical alone: mean {m_v:+.3f} points/day (Newey-West t {t_v:+.2f}, lag {lag_v}); "
-      f"premium collected median {float(st.loc[grid, 'vert_entry'].median()):.2f} of a 5-point maximum loss")
+m_v, t_v, lag_v = bl_hac(vert_short)
+_vgap = (st.loc[grid, "K_c"] - st.loc[grid, "K_p"]).abs()
+print(f"short vertical alone: mean {m_v:+.3f} points/day (HAC t {t_v:+.2f}, lag {lag_v}); "
+      f"premium collected median {float(st.loc[grid, 'vert_entry'].median()):.2f} against a maximum loss equal to "
+      f"the gap between the two strikes (median {float(_vgap.median()):.1f} points; "
+      f"{float((_vgap != 5.0).mean()):.2%} of these days are not five points)")
 print(f"variance shares of the short straddle: strangle {float(np.cov(sg_short, strad_short)[0, 1] / strad_short.var(ddof=1)):.3f}, "
       f"vertical {float(np.cov(vert_short, strad_short)[0, 1] / strad_short.var(ddof=1)):.3f}; "
       f"var(vertical)/var(straddle) {float(vert_short.var(ddof=1) / strad_short.var(ddof=1)):.3f}; "
       f"corr(vertical, strangle) {float(np.corrcoef(vert_short, sg_short)[0, 1]):+.3f}")
 ls_v = (px["pos"].astype(float) * (st["vert_exit"] - st["vert_entry"]))[grid]
-m_lv, t_lv, _ = bl_nw(ls_v)
+m_lv, t_lv, _ = bl_hac(ls_v)
 print(f"the vertical under the sign(s) rule: mean {m_lv:+.3f} points/day (t {t_lv:+.2f})")
 pd.DataFrame({"straddle_short_pts": strad_short, "strangle_short_pts": sg_short, "vertical_short_pts": vert_short}).to_csv(
     OUT / "body_lab_decomposition_blk2.csv")
@@ -2456,7 +2843,7 @@ def _leg_ok(bid, ask, sold):
     return base & (b > 0) if sold else base & (a > 0)
 
 
-pos = px["pos"].astype(float)
+q_sign = px["pos"].astype(float)
 ok = pd.Series(True, index=days)
 for fr_ in (px, st):
     for bcol, acol in (("bid_c", "ask_c"), ("bid_p", "ask_p")):
@@ -2467,17 +2854,26 @@ fills, spreads = {}, {}
 for b, fr_ in ((BODIES[0], px), (BODIES[1], st)):
     bid_sum = fr_["bid_c"] + fr_["bid_p"]; ask_sum = fr_["ask_c"] + fr_["ask_p"]
     half = ((fr_["ask_c"] - fr_["bid_c"]) + (fr_["ask_p"] - fr_["bid_p"])) / 2.0
-    for rule, qq in (("always short", pd.Series(-1.0, index=days)), ("sign(s)", pos)):
+    for rule, qq in (("always short", pd.Series(-1.0, index=days)), ("sign(s)", q_sign)):
         entry_fill = bid_sum.where(qq < 0, ask_sum)
         rpf = (qq * (fr_["exit"] / entry_fill - 1.0))[ok]
         rpm = (qq * fr_["R"])[ok]
-        tv = fr_["time_value"] if b == BODIES[1] else fr_["entry"]
-        rpf_tv = (qq * (fr_["exit"] - entry_fill) / tv)[ok]
-        rpm_tv = (qq * (fr_["exit"] - fr_["entry"]) / tv)[ok]
-        fills[(b, rule)] = {"n": int(ok.sum()), "Sharpe_mid": bl_sharpe(rpm), "Sharpe_crossed_spread": bl_sharpe(rpf),
+        # the crossed-spread numerator is a fill-based P&L, so its denominator has to be the
+        # fill-based time value: entry_fill minus the intrinsic value, which is known at entry and
+        # does not move with the fill. The strangle's premium is all time value.
+        tv_mid = fr_["time_value"] if b == BODIES[1] else fr_["entry"]
+        tv_fill = (entry_fill - fr_["offset"]) if b == BODIES[1] else entry_fill
+        ok_tv = ok & (tv_mid > 0) & (tv_fill > 0)
+        rpf_tv = (qq * (fr_["exit"] - entry_fill) / tv_fill)[ok_tv]
+        rpm_tv = (qq * (fr_["exit"] - fr_["entry"]) / tv_mid)[ok_tv]
+        fills[(b, rule)] = {"n": int(ok.sum()), "n_tv": int(ok_tv.sum()),
+                            "Sharpe_mid": bl_sharpe(rpm), "Sharpe_crossed_spread": bl_sharpe(rpf),
                             "Sharpe_mid_tv": bl_sharpe(rpm_tv), "Sharpe_crossed_spread_tv": bl_sharpe(rpf_tv),
                             "mean_mid": float(rpm.mean()), "mean_crossed_spread": float(rpf.mean()),
                             "half_spread_over_premium_median": float((half / fr_["entry"])[ok].median())}
+        if int(ok_tv.sum()) != int(ok.sum()):
+            print(f"  {b} / {rule}: {int(ok.sum()) - int(ok_tv.sum())} day(s) dropped from the "
+                  "per-time-value column (the crossed fill is below the package's intrinsic value)")
     rel_c = ((fr_["ask_c"] - fr_["bid_c"]) / fr_["mid_c"])[ok]; rel_p = ((fr_["ask_p"] - fr_["bid_p"]) / fr_["mid_p"])[ok]
     if b == BODIES[1]:
         itm_call = (fr_["itm_leg"] == "call")[ok]

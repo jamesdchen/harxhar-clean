@@ -23,7 +23,7 @@ ARMS: list[tuple[str, str]] = [
     ("a_bucket_all_features", r"all features (OLS)"),
     ("b1_ridge", r"ridge (joint)"),
     ("b2_lasso", r"lasso"),
-    ("blk2_user", r"block-diag ridge"),
+    ("blk2_user", r"block-diagonal ridge"),
 ]
 
 

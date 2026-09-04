@@ -1,5 +1,5 @@
 ,rel_spread
-strangle call,0.058823540806770325
-strangle put,0.058823540806770325
-"straddle, in-the-money leg",0.05128203704953194
+strangle call,0.058823543848875996
+strangle put,0.058823543848875996
+"straddle, in-the-money leg",0.05085107684135437
 "straddle, out-of-the-money leg",0.05504582077264786

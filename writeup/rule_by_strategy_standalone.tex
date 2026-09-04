@@ -8,7 +8,7 @@
 \pagestyle{empty}
 \begin{document}
 \begin{center}
-\textbf{0DTE 15:30--16:00 nearest-OTM package: per-rule return summary, models compared on the same 871 days}\\[1.5ex]
+\textbf{0DTE 15:30--16:00 nearest-OTM package: per-rule return summary, models compared on the same 866 days}\\[1.5ex]
 \input{generated/table_rule_by_strategy}
 \end{center}
 \vspace{1ex}
@@ -18,8 +18,9 @@
 (returns inside their 1st--99th percentile window; the mass at $-1$ is the days the package expires worthless).
 \end{center}
 \vspace{1ex}
-\noindent\small One expiration day = one return; mid fill. $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$.
-``ex.\ kurt'' is Fisher excess kurtosis (fourth standardized moment minus 3; Gaussian $=0$).
+\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain
+$t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction.
+``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$).
 $n_{\mathrm{buy}}$/\%buy count days the rule is net long ($q_t>0$).
 The short-volatility rule takes no forecast, so it is one row for all models.
 Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
