@@ -1,0 +1,3 @@
+variant,real Sharpe crossed,placebo mean,placebo p95,percentile of the real variant,draws
+V2 market-implied,-1.964488676109344,-1.9582898672693938,-1.6151955602881047,49.0,200
+V3 same-day-conditioned,-2.3583122852978677,-1.9786298088776233,-1.6202419997033901,2.5,200

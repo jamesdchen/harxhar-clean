@@ -1,0 +1,4 @@
+source,finest spacing (minutes),stamps per session
+data/spxw_chain.parquet (quotes),30,14.0
+data/core_stats.parquet (realized moments),30,30.0
+data/spxw_spot.parquet (underlying),30,

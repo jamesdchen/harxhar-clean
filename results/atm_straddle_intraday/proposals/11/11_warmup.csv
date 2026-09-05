@@ -1,0 +1,5 @@
+variant,warm-up bars (no share),warm-up dates,bars with no signal,days with a signal
+V0 unconditional,756,64,757,803
+V1 event-conditional,756,64,757,803
+V2 market-implied,815,68,816,798
+V3 same-day-conditioned,1572,132,1572,735
