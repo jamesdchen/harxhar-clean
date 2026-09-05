@@ -1,0 +1,2 @@
+mean in-window residual variance s2,Gaussian factor exp(s2/2),smearing factor mean exp(residual),pi^2/2 (variance of log of a squared standard normal),mean f3 / mean r2,mean f3_smeared / mean r2,QLIKE f3 (pre-registered),QLIKE f3 smeared (diagnostic),"pct long, f3","pct long, f3 smeared","Sharpe smeared, mid","Sharpe smeared, crossed"
+4.654761626485148,10.288701633343974,4.014019781348195,4.934802200544679,5.530608076266612,2.3376578360227103,1.8753449736373582,1.4356019752163933,100.0,64.91862567811934,1.8236939006101007,1.485317330822132
