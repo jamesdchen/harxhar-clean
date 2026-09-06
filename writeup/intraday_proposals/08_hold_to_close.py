@@ -539,7 +539,7 @@ def main() -> None:
         f"{len(STAMP_MIN)} stamps 10:00-15:30"
     )
     size = asl.rule_sizes(deck)
-    for name in asl.RULE_ORDER:
+    for name in ["always short", "sign(s)"]:   # the deck's two standing rules
         row = asl.rule_row(size[name] * deck["R"], size[name])
         print(
             f"  deck {name:<13s} Sharpe {row['Sharpe_ann']:.4f}  t {row['t_mean']:.4f}  "

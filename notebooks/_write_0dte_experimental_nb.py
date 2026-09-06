@@ -1102,6 +1102,8 @@ for cmult in (1.0, 2.0, 4.0):
         pick_wings_perday(live, body, cmult * body["entry"].to_numpy(float)), f"c{int(cmult)}xentry"
     )
 
+LADDER_RULES = ["always short", "sign(s)"]   # this lab scores the two standing rules only
+
 rows = []
 grid = {}
 for label, ic in ladder.items():
@@ -1109,7 +1111,7 @@ for label, ic in ladder.items():
     sizes = asl.rule_sizes(joined)
     common_ic = joined.index.intersection(common)
     grid[label] = {}
-    for name in asl.RULE_ORDER:
+    for name in LADDER_RULES:
         rr = asl.rule_row((sizes[name] * joined["R_long_ic"]).loc[common_ic], sizes[name].loc[common_ic])
         rows.append({
             "width": label, "rule": name, "n": rr["n"], "mean": rr["mean"], "std": rr["std"],
@@ -1121,7 +1123,7 @@ for label, ic in ladder.items():
         grid[label][name] = rr["Sharpe_ann"]
 
 lad_tab = pd.DataFrame(rows).set_index(["width", "rule"])
-grid_tab = pd.DataFrame(grid).T[asl.RULE_ORDER]
+grid_tab = pd.DataFrame(grid).T[LADDER_RULES]
 print("--- condor width ladder, defined-risk R, blk2, common days ---")
 print(lad_tab.to_string())
 print("--- Sharpe_ann grid ---")
@@ -1135,11 +1137,11 @@ grid_tab.to_csv(OUT / "condor_lab_sharpe_grid_blk2.csv")
 fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.4))
 fixed = [lb for lb in grid_tab.index if lb.startswith("w")]
 xs = [float(lb[1:]) for lb in fixed]
-for name in asl.RULE_ORDER:
+for name in LADDER_RULES:
     axes[0].plot(xs, [grid_tab.loc[lb, name] for lb in fixed], marker="o", label=name)
 for lb in [x for x in grid_tab.index if x.startswith("c")]:
     mw = lad_tab.xs(lb, level="width")["med_eff_width"].iloc[0]
-    axes[0].scatter([mw] * len(asl.RULE_ORDER), grid_tab.loc[lb].to_numpy(), marker="x", s=40)
+    axes[0].scatter([mw] * len(LADDER_RULES), grid_tab.loc[lb].to_numpy(), marker="x", s=40)
     axes[0].annotate(lb, (mw, float(grid_tab.loc[lb].max())), fontsize=7)
 axes[0].set_xlabel("wing width (pts; x = vol-scaled at median eff. width)")
 axes[0].set_ylabel("Sharpe_ann")

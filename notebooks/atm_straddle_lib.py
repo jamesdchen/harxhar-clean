@@ -39,7 +39,12 @@ YHAT_LABEL = {
 # (a run on the FOMC panel is pending). results/spxw_pnl/MANIFEST.md records the
 # panel, chunk tree and code provenance of every table.
 MODEL_ORDER = ["a0", "blk2", "blk2_inc", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
-RULE_ORDER = ["always short", "sign(s)"]
+RULE_ORDER = [
+    "always short",
+    "sign(s)",
+    "heaviside(s): long only",
+    "heaviside(s): short only",
+]
 
 PERIODS_PER_YEAR = 252.0
 """Annualization convention: per TRADE-DAY scaling, not calendar time.
@@ -882,12 +887,27 @@ def load_yhat_panel_mz(path: Path, method: str = "mean") -> pd.DataFrame:
 
 
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
-    pos = pd.Series(
-        np.where(px["signal"].to_numpy(float) > 0, 1.0, -1.0), index=px.index
-    )
+    """Position series of the standing rules, keyed by RULE_ORDER name.
+
+    The two heaviside legs are the one-sided halves of sign(s): long only
+    holds +1 on the days s > 0 and 0 otherwise, short only holds -1 on the
+    days s <= 0 and 0 otherwise (s == 0 is short, the deck's convention).
+    They partition the days, so day by day their positions - and therefore
+    their daily returns - sum to sign(s) exactly. Flat days stay in the
+    series as zeros rather than being dropped.
+    """
+    s = px["signal"].to_numpy(float)
+    long_day = s > 0
+    pos = pd.Series(np.where(long_day, 1.0, -1.0), index=px.index)
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "sign(s)": pos,
+        "heaviside(s): long only": pd.Series(
+            np.where(long_day, 1.0, 0.0), index=px.index
+        ),
+        "heaviside(s): short only": pd.Series(
+            np.where(long_day, 0.0, -1.0), index=px.index
+        ),
     }
 
 

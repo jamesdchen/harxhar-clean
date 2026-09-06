@@ -46,7 +46,7 @@ half hour, both in variance units:
 $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
 $\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
 the realized scale by a recalibration estimated from past data only
-(§7). Two position rules are scored on the same 866 days. The headline
+(§7). The position rules are scored on the same 866 days. The headline
 is the **$\mathrm{sign}(s)$** portfolio, which sells the package when the market's
 quoted variance exceeds the forecast and buys it when the forecast
 exceeds the price: on the
@@ -58,8 +58,9 @@ forecast, is the control, at a Sharpe ratio of 0.20.
 The notebook runs as follows. Sections 1–6 build the instrument and its
 return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
-the position; §10 tabulates the two rules across the eight forecast
-tables and tests each portfolio against the control day by day;
+the position; §10 tabulates the rules across the eight forecast
+tables, splits $\mathrm{sign}(s)$ into its two one-sided legs, and tests each
+portfolio against the control day by day;
 §11 regresses the settlement return on the 15:30 signal; §12 adds up
 the profit and loss; §13 reports information ratios against the
 always-short portfolio; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
@@ -1101,6 +1102,16 @@ Each rule is scored on the same days and on the same long-package return $R$ (mi
 - **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s_t)$ with
   $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the package when the
   forecast exceeds implied variance, short otherwise.
+- **heaviside$(s)$: long only:** $q_t=1$ if $s_t>0$ and $q_t=0$ otherwise —
+  the long half of $\mathrm{sign}(s)$, flat on the days the rule would sell.
+- **heaviside$(s)$: short only:** $q_t=-1$ if $s_t\le 0$ and $q_t=0$
+  otherwise — the short half, flat on the days the rule would buy.
+
+The two heaviside rules are the one-sided legs of $\mathrm{sign}(s)$: they
+partition the days, so day by day their positions, and therefore their daily
+returns, add up to $\mathrm{sign}(s)$ exactly. Flat days stay in the daily
+series as zeros rather than being dropped, so all four rules are scored on the
+same $n$ days.
 
 The columns are the usual summary statistics (count, mean, standard deviation, minimum, quartiles, maximum), skewness, excess kurtosis, the $t$-statistic of the mean, $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and the count and share of buy days (days with $q_t>0$). The $t$-statistic uses the raw daily mean and standard deviation, not the annualized Sharpe ratio.
 
@@ -1114,9 +1125,14 @@ Only the scoring is restricted to the common days; each portfolio itself is buil
     code(
         r"""
 def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
+    long_day = px["signal"].to_numpy(float) > 0   # s == 0 is a short day, as in section 9
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "sign(s)": px["pos"],
+        # the one-sided legs of sign(s): they partition the days, so
+        # long only + short only = sign(s) day by day (asserted below)
+        "heaviside(s): long only": pd.Series(np.where(long_day, 1.0, 0.0), index=px.index),
+        "heaviside(s): short only": pd.Series(np.where(long_day, 0.0, -1.0), index=px.index),
     }
 
 
@@ -1150,6 +1166,8 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
 order = [
     "always short",
     "sign(s)",
+    "heaviside(s): long only",
+    "heaviside(s): short only",
 ]
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
         "skew", "ex_kurt", "t_mean", "Sharpe_ann", "n_buy", "pct_buy"]
@@ -1189,7 +1207,10 @@ for name in order:
     print(name)
     print(tab.to_string())
     print("---")
-    safe = "".join(ch if ch.isalnum() else "_" for ch in name).rstrip("_")
+    # slug: runs of non-alphanumerics collapse to one underscore
+    # ("always short" -> always_short, "sign(s)" -> sign_s,
+    #  "heaviside(s): long only" -> heaviside_s_long_only)
+    safe = "_".join("".join(ch if ch.isalnum() else " " for ch in name).split())
     tab.to_csv(OUT / f"rule_by_strategy_{safe}.csv")
 print("saved per-model rule_table_*.csv and per-rule rule_by_strategy_*.csv in", OUT)
 
@@ -1211,6 +1232,93 @@ fig.savefig(OUT / "rule_hists_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "rule_hists_blk2.png")
 display(fig)
 plt.close(fig)
+"""
+    ),
+    md(
+        r"""### Is the edge only the short leg?
+
+A standing suspicion about the $\mathrm{sign}(s)$ portfolio is that it is
+nothing more than selling the package and holding it to the close: the short
+days do all the work and the days the rule turns long add nothing. The two
+heaviside rules test that directly, because they are the two halves of
+$\mathrm{sign}(s)$ — long only holds $+1$ on the days $s_t>0$ and is flat
+otherwise, short only holds $-1$ on the days $s_t\le 0$ and is flat otherwise,
+and day by day their returns add up to the $\mathrm{sign}(s)$ return. If the
+edge were only overselling, the long-only leg would earn nothing and the
+short-only leg would match the always-short control.
+
+The cell prints, for every forecast, each leg's mean daily return, its
+annualized Sharpe ratio and its $t$-statistic, the number of days each leg is
+in the market, and the $\mathrm{sign}(s)$ row itself; the always-short control
+is printed on the same days for comparison. Every figure is computed on all
+common days with the flat days entering as a zero return, so the two legs'
+means add to the $\mathrm{sign}(s)$ mean, and the cell asserts that identity in
+code to $10^{-12}$ for all eight forecasts. It is one half of the answer; the
+paired test below — each $\mathrm{sign}(s)$ portfolio minus the always-short
+control — is the other half, since that difference is exactly what the long
+days are worth.
+"""
+    ),
+    code(
+        r"""
+LEGS = ["heaviside(s): long only", "heaviside(s): short only", "sign(s)"]
+SHORTNAME = {"heaviside(s): long only": "long", "heaviside(s): short only": "short",
+             "sign(s)": "sign(s)"}
+
+leg_rows, max_gap = {}, 0.0
+for tag in MODEL_ORDER:
+    px = books[tag]
+    sizes = rule_sizes(px)
+    rr = {name: (sizes[name] * px["R"]).loc[common].astype(float) for name in order}
+    qq = {name: sizes[name].loc[common].astype(float) for name in order}
+    # the legs partition the days: long only + short only = sign(s), day by day
+    gap = float((rr["heaviside(s): long only"] + rr["heaviside(s): short only"]
+                 - rr["sign(s)"]).abs().max())
+    assert gap < 1e-12, (tag, gap)
+    max_gap = max(max_gap, gap)
+    row = {}
+    for name in LEGS:
+        st = rule_row(rr[name], qq[name])
+        k = SHORTNAME[name]
+        row[f"{k}: n_active"] = int((qq[name] != 0).sum())
+        row[f"{k}: mean"] = float(st["mean"])
+        row[f"{k}: Sharpe_ann"] = float(st["Sharpe_ann"])
+        row[f"{k}: t_mean"] = float(st["t_mean"])
+    leg_rows[LABEL[tag]] = row
+
+leg_tab = pd.DataFrame(leg_rows).T
+for c in [c for c in leg_tab.columns if c.endswith("n_active")]:
+    leg_tab[c] = leg_tab[c].astype(int)
+print(f"the one-sided legs of sign(s) on the {len(common)} common days "
+      "(a flat day is a zero return, not a dropped day)")
+print(leg_tab.to_string())
+leg_tab.to_csv(OUT / "heaviside_legs.csv")
+
+_asq = rule_sizes(books["blk2"])["always short"].loc[common]
+_as = rule_row((_asq * books["blk2"]["R"]).loc[common], _asq)
+print(f"always short (no forecast, same {len(common)} days): mean {float(_as['mean']):+.4f}  "
+      f"Sharpe_ann {float(_as['Sharpe_ann']):.3f}  t {float(_as['t_mean']):.2f}")
+print(f"long only + short only = sign(s) day by day: max |difference| over the "
+      f"{len(MODEL_ORDER)} forecasts = {max_gap:.2e}")
+print("saved", OUT / "heaviside_legs.csv")
+"""
+    ),
+    md(
+        r"""The suspicion does not survive the split. On the block-diagonal ridge the
+long-only leg earns $+0.040$ a day (annualized Sharpe ratio $0.76$, $t=1.42$)
+over its 346 active days — 42% of the $\mathrm{sign}(s)$ mean of $0.095$ — and
+the short-only leg earns $+0.055$ (Sharpe ratio $1.14$, $t=2.12$) against the
+always-short control's $+0.014$ (Sharpe ratio $0.20$, $t=0.38$) on the same 866
+days; every one of the eight forecasts shows the same ordering, with long-only
+means from $+0.027$ (baseline, HAR + calendar OLS) to $+0.046$ (the fixed
+lasso).
+
+Those two readings are one reading: short only minus always short is exactly
+the long-only leg, day by day — both are $+R_t$ on the days the forecast says
+buy and zero on the rest — so the paired test below, $\mathrm{sign}(s)$ minus
+always short, is that same leg at twice the position and carries its
+$t$-statistic of $1.42$ for the ridge. What the rule sells is not the edge;
+which days it declines to sell is.
 """
     ),
     md(
@@ -1840,7 +1948,8 @@ plt.close(fig)
 
 Same contracts and positions as the rule table; every series is a daily
 quantity, **summed, not compounded**. Notation for one day: position
-$q\in\{-1,+1\}$, entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
+$q\in\{-1,0,+1\}$ (the heaviside legs are flat on their inactive days, and a
+flat day contributes zero to every column), entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
 and ask sums $P_b$, $P_a$, half-spread $h=\tfrac12(P_a-P_b)$, settlement
 payout $X$, contract multiplier $M=100$.
 
@@ -1893,7 +2002,7 @@ def add_variant(series, q, rule, variant, unit):
     st = asl.rule_row(series, q)
     rows.append({"rule": rule, "variant": variant, "unit": unit, **st.to_dict()})
 
-for name in ("always short", "sign(s)"):
+for name in order:
     q = sizes[name].loc[common]
     mid = (q * px["R"])
     add_variant(mid, q, name, "mid premium R", "return")
@@ -1956,6 +2065,17 @@ The table's columns are:
 - the **annualized information ratio** (`IR_ann`), $\overline{R^a}/\mathrm{std}(R^a)\times\sqrt{252}$, which equals $252$ times the mean active return over the annualized tracking error — the Sharpe ratio of the *active* series, not of $R^p$;
 - the **$t$-statistic of the active return** (`t_active`), the test that the mean active return is zero, with heteroskedasticity- and autocorrelation-robust standard errors (the active series is zero on short days and $2R_t$ on buy days, so its variance is heteroskedastic by construction); the information ratio and this $t$ move together, but $t$ is not annualized;
 - the **correlation to the benchmark** (`corr_to_bench`), $\mathrm{corr}(R^p,R^{\mathrm{AS}})$.
+
+The table carries the two one-sided legs of $\mathrm{sign}(s)$ (§10) as active
+portfolios as well, against the same always-short benchmark. The short-only
+row is the direct test of *overselling with selection* against plain
+*overselling*: that leg holds the benchmark's own position on the days it is
+active, so its active return is zero there and $+R_t$ on the days the forecast
+says buy — the row prices the act of standing aside on those days, nothing
+else. The long-only row is a different comparison: that leg is flat on the
+days the benchmark is short, so its active return is $+R_t$ on those days and
+$2R_t$ on the buy days, and the row measures the whole distance from the
+control to a long-only book rather than the value of the long days alone.
 """
     ),
     code(
@@ -1965,7 +2085,7 @@ for tag in MODEL_ORDER:
     px = books[tag]
     sizes = rule_sizes(px)
     bench = (sizes["always short"] * px["R"]).loc[common]
-    for name in ("sign(s)",):
+    for name in ("sign(s)", "heaviside(s): long only", "heaviside(s): short only"):
         port = (sizes[name] * px["R"]).loc[common]
         st = asl.information_ratio(port, bench)
         ir_rows.append({"model": LABEL[tag], "rule": name, **st.to_dict()})
@@ -1978,6 +2098,22 @@ ir_tab = (
 print(ir_tab.to_string())
 ir_tab.to_csv(OUT / "information_ratio_vs_always_short.csv")
 print("IR = active return / tracking error; benchmark is always-short.")
+"""
+    ),
+    md(
+        r"""The short-only row is the one this table is read for. On the block-diagonal
+ridge it runs an information ratio of $0.76$ against the always-short control,
+on a mean active return of $+0.040$ a day: standing aside on the days the
+forecast says buy, and changing nothing else, is what beats plain overselling.
+Its active series is the long-only leg's return exactly, and the
+$\mathrm{sign}(s)$ active series is twice that, so those two rows carry the
+identical information ratio in every row of the table.
+
+The long-only row is not a comparable number. That leg is flat on the days the
+benchmark is short, so its active return there is the benchmark's own $R_t$ and
+most of its tracking error is the control's risk rather than the rule's
+(correlation to the benchmark $-0.74$ for the ridge); its $0.22$ measures the
+distance from the control to a long-only book, not the value of the long days.
 """
     ),
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
@@ -2121,7 +2257,7 @@ print("IR = active return / tracking error; benchmark is always-short.")
 
 Every table so far adds up one unit of premium per day. Here each rule
 reinvests: a **fixed** share $f$ of current wealth is deployed as
-package premium every day, the same number on every day and for both rules,
+package premium every day, the same number on every day and for every rule,
 
 $$
 f = 0.03, \qquad
@@ -2188,7 +2324,7 @@ print(f"block-diagonal ridge - fixed fraction f = {F_FIXED:.2f} of wealth per da
 print(ff_tab.xs("blk2", level="model").T.to_string())
 print("saved fixedfrac_summary_<model>.csv in", OUT)
 print("---")
-print("terminal wealth across models, both rules")
+print("terminal wealth across models, every rule")
 print(ff_tab["terminal"].unstack("rule").rename(index=LABEL).to_string(float_format=lambda x: f"{x:.2f}"))
 
 px = books["blk2"]

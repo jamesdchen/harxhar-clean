@@ -496,7 +496,7 @@ def main() -> None:
     gate_tab = pd.DataFrame(
         {
             name: asl.rule_row(sizes[name] * px["R"], sizes[name])
-            for name in asl.RULE_ORDER
+            for name in ["always short", "sign(s)"]   # the deck's two standing rules
         }
     ).T
     print(gate_tab.to_string())
