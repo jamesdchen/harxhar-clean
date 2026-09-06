@@ -2075,7 +2075,7 @@ says buy — the row prices the act of standing aside on those days, nothing
 else. The long-only row is a different comparison: that leg is flat on the
 days the benchmark is short, so its active return is $+R_t$ on those days and
 $2R_t$ on the buy days, and the row measures the whole distance from the
-control to a long-only book rather than the value of the long days alone.
+control to a long-only portfolio rather than the value of the long days alone.
 """
     ),
     code(
@@ -2113,7 +2113,7 @@ The long-only row is not a comparable number. That leg is flat on the days the
 benchmark is short, so its active return there is the benchmark's own $R_t$ and
 most of its tracking error is the control's risk rather than the rule's
 (correlation to the benchmark $-0.74$ for the ridge); its $0.22$ measures the
-distance from the control to a long-only book, not the value of the long days.
+distance from the control to a long-only portfolio, not the value of the long days.
 """
     ),
     # SECTION PARKED 2026-09-02 (user order): vol-target overlay held out of the deck.
