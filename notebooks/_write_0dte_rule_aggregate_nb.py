@@ -218,18 +218,40 @@ appears anywhere in the notebook:
 | knob | declared default | why |
 |---|---|---|
 | threshold $c$ | $c=0$, i.e. plain $\mathrm{sign}(s)$ | the published rule; $s=0$ counts as a selling day |
-| conservative $c$ | $c=\tfrac12\,\widehat{\mathrm{sd}}_{t-1}(s)$ | one alternative, fixed in advance, in units of the signal's own past dispersion |
+| conservative $c$, **first** declaration | $c=\tfrac12\,\widehat{\mathrm{sd}}_{t-1}(s)$ | fixed in advance, in units of the signal's own past dispersion |
+| conservative $c$, **second** declaration | $c=0.05\,\mathrm{IV}^2_{\mathrm{30min},t}$ | fixed in advance, in units of the day's own quoted implied variance |
 | $m_{\text{long}}$ | $2$ | the asymmetry the family exists to test |
 | $m_{\text{short}}$ | $1$ | the selling side is left alone |
 | implied-variance tilt | **off** | reported as a declared variant, never searched |
 | wings | **off** | the plain package is the headline; wings are family C |
 | fill | midpoint quote at 15:30 | the published convention |
 
-The two threshold values, the two multiplier values and the tilt were
+The three threshold values, the two multiplier values and the tilt were
 fixed before the grids in §3 and §4 were run. Those grids are printed as
 **sensitivity**: they say how fast the answer moves when a knob moves,
 not which knob setting to adopt. Nothing in this notebook is selected on
 its own Sharpe ratio.
+
+**Two units for the conservative threshold, and why there are two.** The
+first declaration measured $c$ in the signal's own past dispersion. On a
+right-skewed signal half a past standard deviation sits far above zero,
+so that rule stops buying almost entirely — it holds the long position
+on about a twentieth of the days rather than on the two-fifths
+$\mathrm{sign}(s)$ holds — and it is destructive on every forecast. That
+first declaration is **kept and reported**, not withdrawn: §3 and the
+scoreboard carry its rows exactly as before. A **second** unit was then
+declared, after the first proved destructive, and it is declared here in
+the same way: $c$ as a fixed multiple of the day's own quoted implied
+variance,
+
+$$q_t=+1\iff s_t>c\;\mathrm{IV}^2_{\mathrm{30min},t},$$
+
+with $c=0.05$ the conservative default and $c\in\{0.05,0.10,0.20\}$ the
+sensitivity grid. $c$ is a fixed constant — not a percentile, a quantile,
+or any other cutoff read off the sample — and
+$\mathrm{IV}^2_{\mathrm{30min},t}$ is the 15:30 quote already inside
+$s_t$, so the rule is causal by construction and needs neither a window
+nor a minimum history.
 
 Two further standing choices, also declared here rather than tuned:
 
@@ -249,18 +271,26 @@ Two further standing choices, also declared here rather than tuned:
         """
 MIN_HIST = 63          # sessions of history before any causal statistic is used
 DEFAULT_KAPPA = 0.0    # threshold c = kappa * past sd(s); kappa = 0 is exactly sign(s)
-CONSERVATIVE_KAPPA = 0.5
+CONSERVATIVE_KAPPA = 0.5     # first declaration: c in units of the signal's own past dispersion
+CONSERVATIVE_C_IV = 0.05     # second declaration: c in units of the day's quoted implied variance
+C_IV_GRID = (0.05, 0.10, 0.20)
+IV_KEYS = tuple(f"long_short_hysteresis_iv{int(round(100 * c)):02d}" for c in C_IV_GRID)
 DEFAULT_M_LONG = 2.0
 DEFAULT_M_SHORT = 1.0
 DEFAULT_TILT = False
 DEFAULT_WINGS = None
 TILT_CLIP = (0.5, 2.0)
 WING_WIDTHS = (25.0, 50.0)
-HEADLINE_KEYS = ("long_short_sign", "long_short_sign_m2")
+HEADLINE_KEYS = ("long_short_sign", "long_short_sign_m2", *IV_KEYS)
 
 declared = pd.DataFrame(
     [
-        {"knob": "threshold c", "declared default": "c = 0 (plain sign(s))", "variant kept": f"c = {CONSERVATIVE_KAPPA} x past sd(s)"},
+        {"knob": "threshold c", "declared default": "c = 0 (plain sign(s))",
+         "variant kept": f"c = {CONSERVATIVE_KAPPA:g} x past sd(s); c = {CONSERVATIVE_C_IV:g} x implied variance"},
+        {"knob": "conservative c, unit 1 (declared first)", "declared default": f"c = {CONSERVATIVE_KAPPA:g} x past sd(s)",
+         "variant kept": "kappa = 0.25, 1 (sensitivity only)"},
+        {"knob": "conservative c, unit 2 (declared second)", "declared default": f"c = {CONSERVATIVE_C_IV:g} x iv_var_t",
+         "variant kept": f"c = {', '.join(f'{c:g}' for c in C_IV_GRID)} (sensitivity only)"},
         {"knob": "m_long", "declared default": f"{DEFAULT_M_LONG:g}", "variant kept": "1, 1.5, 3 (sensitivity only)"},
         {"knob": "m_short", "declared default": f"{DEFAULT_M_SHORT:g}", "variant kept": "0.5"},
         {"knob": "implied-variance tilt", "declared default": "off", "variant kept": f"clip(median_past(iv_var)/iv_var_t, {TILT_CLIP[0]}, {TILT_CLIP[1]}) on buying days"},
@@ -274,6 +304,9 @@ print("declared BEFORE any grid is printed:")
 print(declared.to_string(index=False))
 declared.to_csv(OUT / "rule_aggregate_declared_defaults.csv", index=False)
 print("saved", OUT / "rule_aggregate_declared_defaults.csv")
+print(f"the conservative threshold carries two declared units. c = {CONSERVATIVE_KAPPA:g} x past sd(s) was declared "
+      f"FIRST; c = {CONSERVATIVE_C_IV:g} x the day's quoted implied variance was declared SECOND, after the first "
+      "unit proved destructive. Both are kept and both are reported; neither was read off a table.")
 """
     ),
     md(
@@ -288,19 +321,27 @@ never touched on a buying day.
 | `always_short` | always short | $q=-1$ |
 | `long_short_sign` | $\mathrm{sign}(s)$ | $q=+1$ if $s>0$, else $-1$ |
 | `long_short_hysteresis` | $\mathrm{sign}(s)$, threshold $c$ | $q=+1$ iff $s>c$, else $-1$ |
+| `long_short_hysteresis_iv05/10/20` | $\mathrm{sign}(s)$, threshold $c\,\mathrm{IV}^2$ | $q=+1$ iff $s>c\,\mathrm{IV}^2_{\mathrm{30min},t}$, else $-1$ |
 | `long_only` | heaviside$(s)$: long only | $q=\mathbf 1\{s>0\}$ — **diagnostic row only** |
 
 The long-only row is carried because it makes the mean decomposition
 readable, not because it is a candidate: it is never tuned, never sized,
 and never a headline.
 
-Two threshold grids are printed as sensitivity. The **absolute** grid
+Three threshold grids are printed as sensitivity. The **absolute** grid
 sets $c=\kappa\,\widehat{\mathrm{sd}}_{t-1}(s)$, so $\kappa$ is
 dimensionless and $\kappa=0$ reproduces $\mathrm{sign}(s)$ exactly (the
-cell asserts it). The **rank** grid sets $q=+1$ iff the expanding
-percentile of $s_t$ among days $\le t$ exceeds $p$; $s_t$ is known at
-15:30, so including today in its own rank is causal, and before 63
-sessions of history the rule falls back to $\mathrm{sign}(s)$.
+cell asserts it); this is the unit declared first, and the grid is where
+its cost shows. The **implied-relative** grid sets
+$c=c_0\,\mathrm{IV}^2_{\mathrm{30min},t}$ with
+$c_0\in\{0.05,0.10,0.20\}$ — the unit declared second. $c_0$ is a fixed
+constant and the implied variance is the 15:30 quote, so nothing is
+estimated from the sample: there is no window, no minimum history, and
+$c_0=0$ again reproduces $\mathrm{sign}(s)$ exactly (the cell asserts
+that too). The **rank** grid sets $q=+1$ iff the expanding percentile of
+$s_t$ among days $\le t$ exceeds $p$; $s_t$ is known at 15:30, so
+including today in its own rank is causal, and before 63 sessions of
+history the rule falls back to $\mathrm{sign}(s)$.
 
 A threshold can only ever move days from the buying side to the selling
 side. It raises the mean only if the days it moves had a worse
@@ -330,6 +371,15 @@ def pos_hysteresis(px: pd.DataFrame, kappa: float) -> pd.Series:
     return pd.Series(np.where(s > c, 1.0, -1.0), index=px.index)
 
 
+def pos_hysteresis_iv(px: pd.DataFrame, c: float) -> pd.Series:
+    # threshold in units of the day's own quoted implied variance. c is a fixed
+    # constant and iv_var is the 15:30 quote, so nothing is estimated from the
+    # sample and the rule is causal by construction - no window, no MIN_HIST.
+    s = px["signal"].astype(float).to_numpy()
+    thr = float(c) * px["iv_var"].astype(float).to_numpy()
+    return pd.Series(np.where(s > thr, 1.0, -1.0), index=px.index)
+
+
 def pos_rank(px: pd.DataFrame, p: float) -> pd.Series:
     s = px["signal"].astype(float)
     rk = s.expanding(min_periods=MIN_HIST).rank(pct=True)            # rank of s_t among days <= t; s_t is known at 15:30
@@ -353,6 +403,13 @@ for _name, _mine in (("always short", pos_always_short(books["blk2"])),
 _d0 = float((pos_hysteresis(books["blk2"], 0.0) - pos_sign(books["blk2"])).abs().max())
 print(f"threshold rule at c = 0 reproduces sign(s): max |diff| = {_d0:.1e}")
 assert _d0 == 0.0
+_d1 = float((pos_hysteresis_iv(books["blk2"], 0.0) - pos_sign(books["blk2"])).abs().max())
+print(f"implied-relative threshold at c = 0 reproduces sign(s): max |diff| = {_d1:.1e}")
+assert _d1 == 0.0
+_iv = books["blk2"]["iv_var"].astype(float)
+print(f"iv_var is the 15:30 quote and is strictly positive every day: min {_iv.min():.6f}, "
+      f"non-positive days {int((_iv <= 0).sum())}")
+assert float(_iv.min()) > 0.0
 
 KAPPA_GRID = (0.0, 0.25, 0.5, 1.0)
 RANK_GRID = (0.50, 0.60, 0.70, 0.80)
@@ -371,6 +428,9 @@ rows = {}
 for k in KAPPA_GRID:
     rows[f"c = {k:g} x past sd(s)"] = {LABEL[t]: sharpe_of(pos_hysteresis(books[t], k), books[t]) for t in MODEL_ORDER}
     rows[f"c = {k:g} x past sd(s)"]["pct_buy (ridge)"] = pct_buy_of(pos_hysteresis(books["blk2"], k))
+for c in C_IV_GRID:
+    rows[f"c = {c:g} x implied variance"] = {LABEL[t]: sharpe_of(pos_hysteresis_iv(books[t], c), books[t]) for t in MODEL_ORDER}
+    rows[f"c = {c:g} x implied variance"]["pct_buy (ridge)"] = pct_buy_of(pos_hysteresis_iv(books["blk2"], c))
 for p in RANK_GRID:
     rows[f"rank(s) > {p:.2f}"] = {LABEL[t]: sharpe_of(pos_rank(books[t], p), books[t]) for t in MODEL_ORDER}
     rows[f"rank(s) > {p:.2f}"]["pct_buy (ridge)"] = pct_buy_of(pos_rank(books["blk2"], p))
@@ -380,8 +440,12 @@ print("SENSITIVITY, not selection - annualized Sharpe ratio by threshold, "
 print(thr_grid.to_string())
 thr_grid.to_csv(OUT / "rule_aggregate_threshold_grid.csv")
 print("saved", OUT / "rule_aggregate_threshold_grid.csv")
-print(f"the declared default is c = {DEFAULT_KAPPA:g} (= sign(s)); the declared conservative value is "
-      f"c = {CONSERVATIVE_KAPPA:g} x past sd(s). Neither was chosen from this table.")
+print(f"the declared default is c = {DEFAULT_KAPPA:g} (= sign(s)); the two declared conservative values are "
+      f"c = {CONSERVATIVE_KAPPA:g} x past sd(s), declared first, and c = {CONSERVATIVE_C_IV:g} x implied variance, "
+      "declared second. None of the three was chosen from this table.")
+print(f"buying share on the block-diagonal ridge: {pct_buy_of(pos_sign(books['blk2'])):.2f}% at c = 0, "
+      f"{pct_buy_of(pos_hysteresis(books['blk2'], CONSERVATIVE_KAPPA)):.2f}% at c = {CONSERVATIVE_KAPPA:g} x past sd(s), "
+      f"{pct_buy_of(pos_hysteresis_iv(books['blk2'], CONSERVATIVE_C_IV)):.2f}% at c = {CONSERVATIVE_C_IV:g} x implied variance")
 """
     ),
     md(
@@ -601,6 +665,9 @@ tables carry.
 | `always_short` | always short |
 | `long_short_sign` | $\mathrm{sign}(s)$ |
 | `long_short_hysteresis` | $\mathrm{sign}(s)$, threshold $c$ |
+| `long_short_hysteresis_iv05` | $\mathrm{sign}(s)$, threshold $c=0.05\,\mathrm{IV}^2$ |
+| `long_short_hysteresis_iv10` | $\mathrm{sign}(s)$, threshold $c=0.1\,\mathrm{IV}^2$ |
+| `long_short_hysteresis_iv20` | $\mathrm{sign}(s)$, threshold $c=0.2\,\mathrm{IV}^2$ |
 | `long_only` | heaviside$(s)$: long only |
 | `long_short_sign_m2` | $\mathrm{sign}(s)$, long side doubled |
 | `long_short_sign_m2_half` | $\mathrm{sign}(s)$, long side doubled, short side halved |
@@ -627,6 +694,8 @@ RULES = [
     ("long_short_sign", "sign(s)", dict(base="sign")),
     ("long_short_hysteresis", f"sign(s), threshold c = {CONSERVATIVE_KAPPA:g} x past sd(s)",
      dict(base="hyst", kappa=CONSERVATIVE_KAPPA)),
+    *[(k, f"sign(s), threshold c = {c:g} x implied variance", dict(base="hyst_iv", c_iv=c))
+      for c, k in zip(C_IV_GRID, IV_KEYS)],
     ("long_only", "heaviside(s): long only [diagnostic]", dict(base="long")),
     ("long_short_sign_m2", "sign(s), long side doubled", dict(base="sign", m_long=DEFAULT_M_LONG)),
     ("long_short_sign_m2_half", "sign(s), long side doubled, short side halved",
@@ -652,6 +721,8 @@ def base_position(px: pd.DataFrame, spec: dict) -> pd.Series:
         return pos_sign(px)
     if b == "hyst":
         return pos_hysteresis(px, spec["kappa"])
+    if b == "hyst_iv":
+        return pos_hysteresis_iv(px, spec["c_iv"])
     if b == "long":
         return pos_long_only(px)
     raise KeyError(b)
@@ -847,12 +918,14 @@ of the body, index points per package, dollars at $\$100$ a point, and
 the return on the exchange's strategy-based margin for a short straddle,
 posted every day whichever way the position points.
 
-The second is the fill table, and it is deliberately small: only the two
-headline rows — $\mathrm{sign}(s)$ and $\mathrm{sign}(s)$ with the long
-side doubled — are re-priced away from the midpoint, at the crossed
-spread (buy the ask, sell the bid) and at a half-spread transaction
-cost. Explosion of the fill grid across every rule would say nothing the
-two headline rows do not.
+The second is the fill table, and it stays small: only the headline rows
+— $\mathrm{sign}(s)$, $\mathrm{sign}(s)$ with the long side doubled, and
+the three implied-relative threshold rules — are re-priced away from the
+midpoint, at the crossed spread (buy the ask, sell the bid) and at a
+half-spread transaction cost. Explosion of the fill grid across every
+rule would say nothing these rows do not. The threshold rules are in the
+table because the crossed spread, not the midpoint, is the fill at which
+the standing rule decides whether a row is adopted.
 """
     ),
     code(
@@ -914,7 +987,191 @@ print(fills[fills["forecast"] == LABEL["blk2"]].to_string(index=False))
     ),
     md(
         r"""
-## 10. Wings against no wings, on the days both exist
+## 10. The implied-relative threshold against sign(s), at the crossed spread
+
+§3 printed the threshold in two declared units. This section takes the
+second one — $c$ as a fixed multiple of the day's own quoted implied
+variance,
+
+$$q_t=+1\iff s_t>c\;\mathrm{IV}^2_{\mathrm{30min},t},\qquad
+c\in\{0.05,0.10,0.20\},$$
+
+— to the fill at which the standing rule actually decides. $c$ is a
+fixed constant, not a percentile, a quantile, or any other cutoff read
+off the sample, and $\mathrm{IV}^2_{\mathrm{30min},t}$ is the 15:30
+quote already inside $s_t$, so the rule is causal by construction and
+carries neither a window nor a minimum history.
+
+Each threshold portfolio is compared with $\mathrm{sign}(s)$ on the
+**same days**, on each of the seven forecasts, with the entry paying the
+**crossed spread** — a long buys the ask, a short sells the bid —
+because that is the fill the standing rule adopts on, not the midpoint.
+The interval on the Sharpe-ratio difference is a circular moving-block
+bootstrap: blocks of 21 trading days, 2000 draws, seed 0, with one set
+of resampled day sets drawn once and shared by the threshold portfolio
+and by its $\mathrm{sign}(s)$ baseline, so the two are resampled on the
+same days draw by draw. The percentile interval is what is reported.
+`t_diff` is an autocorrelation-robust $t$ of the mean daily difference
+at the Bartlett lag $\lfloor 1.5n^{1/3}\rfloor$.
+
+The two legs are carried in the same table: the buying share,
+$E[R\mid\text{buy}]$, $E[-R\mid\text{sell}]$, the days the threshold
+moves from the buying leg to the selling leg and their mean settlement
+return, and the change in each leg's contribution to the daily mean.
+"""
+    ),
+    code(
+        """
+# --- the implied-relative threshold against sign(s), paired on the same days
+PAIR_BLOCK = 21     # circular block length, in trading days
+PAIR_B = 2000       # bootstrap draws
+PAIR_SEED = 0
+# ONE set of resampled day indices, drawn once and shared by every portfolio, so a
+# threshold rule and its sign(s) baseline are resampled on the same days draw by draw
+PAIR_IDX = asl.circular_block_bootstrap_idx(
+    np.random.default_rng(PAIR_SEED), len(common), PAIR_BLOCK, PAIR_B)
+
+
+def sharpe_ann(x) -> float:
+    x = np.asarray(x, float)
+    return float(x.mean() / x.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
+
+
+def boot_sharpe(x) -> np.ndarray:
+    x = np.asarray(x, float)
+    assert len(x) == PAIR_IDX.shape[1], "bootstrap indices and series disagree in length"
+    d = x[PAIR_IDX]
+    return d.mean(axis=1) / d.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
+
+
+def crossed_of(q: pd.Series) -> pd.Series:
+    # the entry pays the crossed spread: a long buys the ask, a short sells the bid
+    return asl.crossed_premium_return(q.loc[common], px0["exit"], px0["bid_entry"], px0["ask_entry"])
+
+
+n_days = len(common)
+sign_ref, iv_rows = [], []
+for tag in MODEL_ORDER:
+    Rr = books[tag].loc[common, "R"].astype(float).to_numpy()
+    q0 = pos_sign(books[tag]).loc[common]
+    b0 = (q0 > 0).to_numpy()
+    x0 = crossed_of(q0).to_numpy(float)
+    cb0, cs0 = Rr[b0].sum() / n_days, (-Rr[~b0]).sum() / n_days
+    sign_ref.append({"forecast": LABEL[tag], "n": n_days,
+                     "untradeable": asl.crossed_untradeable_count(q0, px0["bid_entry"], px0["ask_entry"]),
+                     "pct_buy": 100.0 * float(b0.mean()),
+                     "E_R_given_buy": float(Rr[b0].mean()),
+                     "E_negR_given_sell": float((-Rr[~b0]).mean()),
+                     "Sharpe_crossed": sharpe_ann(x0)})
+    for c in C_IV_GRID:
+        q = pos_hysteresis_iv(books[tag], c).loc[common]
+        buy = (q > 0).to_numpy()
+        x = crossed_of(q).to_numpy(float)
+        assert np.isfinite(x).all() and np.isfinite(x0).all(), "an untradeable row entered the bootstrap"
+        boot = boot_sharpe(x) - boot_sharpe(x0)
+        lo, hi = (float(v) for v in np.percentile(boot, [2.5, 97.5]))
+        t_diff, lag = asl.newey_west_t(x - x0)
+        moved = b0 & ~buy
+        cb, cs = Rr[buy].sum() / n_days, (-Rr[~buy]).sum() / n_days
+        iv_rows.append({
+            "c": c, "forecast": LABEL[tag], "n": n_days,
+            "untradeable": asl.crossed_untradeable_count(q, px0["bid_entry"], px0["ask_entry"]),
+            "pct_buy": 100.0 * float(buy.mean()),
+            "n_moved": int(moved.sum()),
+            "mean_R_moved": float(Rr[moved].mean()) if moved.any() else np.nan,
+            "E_R_given_buy": float(Rr[buy].mean()) if buy.any() else np.nan,
+            "E_negR_given_sell": float((-Rr[~buy]).mean()) if (~buy).any() else np.nan,
+            "d_contrib_buy": float(cb - cb0), "d_contrib_sell": float(cs - cs0),
+            "identity_gap": float((cb - cb0) - (cs - cs0)),
+            "Sharpe_crossed_sign": sharpe_ann(x0), "Sharpe_crossed": sharpe_ann(x),
+            "dSharpe_crossed": sharpe_ann(x) - sharpe_ann(x0),
+            "pct_lo": lo, "pct_hi": hi,
+            "interval": "excludes zero" if (lo > 0 or hi < 0) else "includes zero",
+            "t_diff": float(t_diff), "t_lag": int(lag),
+        })
+sign_ref = pd.DataFrame(sign_ref)
+iv_thr = pd.DataFrame(iv_rows)
+
+print(f"sign(s) at the crossed spread, {n_days} common days - the baseline every row below is paired against:")
+print(sign_ref.to_string(index=False))
+print("---")
+print("implied-relative threshold, crossed spread, paired against sign(s) on the same days "
+      f"(block {PAIR_BLOCK}, B {PAIR_B}, seed {PAIR_SEED}, percentile interval)")
+print(iv_thr.to_string(index=False))
+iv_thr.to_csv(OUT / "rule_aggregate_iv_threshold_crossed.csv", index=False)
+sign_ref.to_csv(OUT / "rule_aggregate_iv_threshold_sign_baseline.csv", index=False)
+print("saved", OUT / "rule_aggregate_iv_threshold_crossed.csv")
+print("---")
+for c in C_IV_GRID:
+    g = iv_thr[iv_thr["c"] == c]
+    print(f"c = {c:g} x implied variance: {int((g['dSharpe_crossed'] > 0).sum())} of {len(g)} forecasts rise, "
+          f"{int((g['dSharpe_crossed'] < 0).sum())} fall; average change {g['dSharpe_crossed'].mean():+.4f}; "
+          f"intervals excluding zero {int((g['interval'] == 'excludes zero').sum())} of {len(g)}; "
+          f"buying share {g['pct_buy'].min():.2f}% to {g['pct_buy'].max():.2f}%")
+gap = float(iv_thr["identity_gap"].abs().max())
+print(f"symmetry - a threshold only moves days from the buying leg to the selling leg, where they enter with "
+      f"the sign flipped, so the two legs' contributions to the daily mean move by the same amount: "
+      f"largest gap {gap:.1e}")
+assert gap < 1e-12
+print(f"the standing rule adopts a crossed-spread improvement whose interval excludes zero: "
+      f"{int((iv_thr['interval'] == 'excludes zero').sum())} of {len(iv_thr)} rows qualify.")
+"""
+    ),
+    md(
+        r"""
+### Reading
+
+**The buying share survives.** At $c=0.05$ the block-diagonal ridge
+holds the long position on 33.83% of days against 39.95% for
+$\mathrm{sign}(s)$, and across the seven forecasts the share moves from
+a 32.2–41.3% band to 26.3–35.3%. That is the whole reason the second
+unit was declared: half a past standard deviation of the signal left the
+ridge buying on 4.85% of days, and a rule that has stopped trading one
+side cannot be read as a position rule at all.
+
+**The crossed-spread change against $\mathrm{sign}(s)$, at $c=0.05$**,
+forecast by forecast, with the paired percentile interval: baseline
+$-0.28$ ($-0.77$ to $+0.16$); block-diagonal ridge $+0.11$ ($-0.39$ to
+$+0.60$); LightGBM $-0.12$ ($-0.71$ to $+0.41$); XGBoost $+0.11$
+($-0.30$ to $+0.48$); causally tuned lasso $+0.16$ ($-0.27$ to $+0.54$);
+fixed lasso $+0.03$ ($-0.57$ to $+0.62$); elastic net $+0.27$ ($-0.20$
+to $+0.68$). **Five of seven rise and two fall, every one of the seven
+intervals covers zero, and the average change is about $+0.04$.** On the
+ridge that is a crossed-spread Sharpe ratio of 0.979 against 0.870.
+
+**The grid does not hold.** At $c=0.10$ four rise and three fall and the
+average change turns negative, $-0.05$ (ridge $+0.15$, $-0.56$ to
+$+0.83$). At $c=0.20$ every one of the seven falls, by $-0.51$ on
+average, as the buying share drops to 13.2–20.2%. No interval at any
+$c$ excludes zero.
+
+**The legs, and why the mechanism is symmetric.** On the ridge at
+$c=0.05$, $E[R\mid\text{buy}]$ rises from $+0.100$ to $+0.131$ while
+$E[-R\mid\text{sell}]$ falls from $+0.091$ to $+0.089$; across the seven
+forecasts the buying leg's mean rises on six and the selling leg's falls
+on four. This is arithmetic, not information. A threshold can only move
+days out of the buying leg and into the selling leg, where they enter
+with the sign flipped, so the two legs' contributions to the daily mean
+change by **exactly** the same amount — the cell checks that identity and
+finds it holds to $10^{-17}$ — and the whole change in the mean is twice
+the moved days' mean settlement return with the sign reversed. On the
+ridge at $c=0.05$ the 53 days that move had a mean settlement return of
+$-0.066$: the buying leg looks better only because it gave up days that
+were worse than the ones it kept, and the selling leg takes in exactly
+those days. The buying leg's mean rises one for one with the selling
+leg's fall because it is the same days on both sides of the trade.
+
+**Verdict: unresolved, not adopted.** The standing rule adopts a change
+only on a crossed-spread improvement whose interval excludes zero. Here
+no interval excludes zero at any $c$, the sign of the average change
+flips between $c=0.05$ and $c=0.10$, and by $c=0.20$ the portfolio is
+worse on every forecast. Both conservative units stay on the page as
+declared variants and neither replaces $\mathrm{sign}(s)$.
+"""
+    ),
+    md(
+        r"""
+## 11. Wings against no wings, on the days both exist
 
 The winged rows lose days to unquoted deep strikes, so the comparison
 that matters pairs them with the **same rule on the plain package,
@@ -960,7 +1217,7 @@ for w in WING_WIDTHS:
     ),
     md(
         r"""
-## 11. Compounding, and the portfolios that may not compound
+## 12. Compounding, and the portfolios that may not compound
 
 A fraction of wealth is only meaningful when the worst day is bounded.
 The rule applied here is mechanical, not editorial:
@@ -1044,7 +1301,7 @@ print("saved", OUT / "rule_aggregate_ruin_caps_blk2.csv")
     ),
     md(
         r"""
-## 12. Year by year, block-diagonal ridge only
+## 13. Year by year, block-diagonal ridge only
 
 The mean and the annualized Sharpe ratio of each declared rule, by
 calendar year, on the ridge alone. Five years is five observations of a
@@ -1076,7 +1333,7 @@ print("saved", OUT / "rule_aggregate_per_year_blk2.csv")
     ),
     md(
         r"""
-## 13. Two figures
+## 14. Two figures
 
 The first is the annualized information ratio of every rule against the
 always-short control, on the block-diagonal ridge, in premium units of
@@ -1095,7 +1352,7 @@ estimand appears in this notebook that would change it.
         """
 ir_blk2 = ir.xs(LABEL["blk2"], level="forecast")["IR_ann"].reindex(
     [lab for k, lab, _ in RULES if k != "always_short"])
-fig, ax = plt.subplots(figsize=(9.5, 4.4))
+fig, ax = plt.subplots(figsize=(9.5, 5.6))
 colors = ["C0" if "wings" not in lab else "C2" for lab in ir_blk2.index]
 ax.barh(range(len(ir_blk2)), ir_blk2.to_numpy(), color=colors)
 ax.set_yticks(range(len(ir_blk2)))
@@ -1140,7 +1397,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 14. What this does not show
+## 15. What this does not show
 
 Extra notional on the buying side is a pure scale on that side: it
 multiplies the $+0.12$ days and the many $-1$ days by exactly the same

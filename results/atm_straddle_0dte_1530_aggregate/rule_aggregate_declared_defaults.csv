@@ -1,5 +1,7 @@
 knob,declared default,variant kept
-threshold c,c = 0 (plain sign(s)),c = 0.5 x past sd(s)
+threshold c,c = 0 (plain sign(s)),c = 0.5 x past sd(s); c = 0.05 x implied variance
+"conservative c, unit 1 (declared first)",c = 0.5 x past sd(s),"kappa = 0.25, 1 (sensitivity only)"
+"conservative c, unit 2 (declared second)",c = 0.05 x iv_var_t,"c = 0.05, 0.1, 0.2 (sensitivity only)"
 m_long,2,"1, 1.5, 3 (sensitivity only)"
 m_short,1,0.5
 implied-variance tilt,off,"clip(median_past(iv_var)/iv_var_t, 0.5, 2.0) on buying days"

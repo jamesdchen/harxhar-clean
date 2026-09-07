@@ -2,6 +2,9 @@ rule,worst_day,ruin_cap_f,compounded
 always short,-10.31604850795286,0.09693634139361391,refused - the short side is naked
 sign(s),-5.422480279928936,0.18441745260032655,refused - the short side is naked
 "sign(s), threshold c = 0.5 x past sd(s)",-10.31604850795286,0.09693634139361391,refused - the short side is naked
+"sign(s), threshold c = 0.05 x implied variance",-5.422480279928936,0.18441745260032655,refused - the short side is naked
+"sign(s), threshold c = 0.1 x implied variance",-5.422480279928936,0.18441745260032655,refused - the short side is naked
+"sign(s), threshold c = 0.2 x implied variance",-10.31604850795286,0.09693634139361391,refused - the short side is naked
 "sign(s), long side doubled",-5.422480279928936,0.18441745260032655,refused - the short side is naked
 "sign(s), long side doubled, short side halved",-2.711240139964468,0.3688349052006531,refused - the short side is naked
 "sign(s), long side doubled, implied-variance tilt",-5.422480279928936,0.18441745260032655,refused - the short side is naked
