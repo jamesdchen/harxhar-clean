@@ -1,0 +1,9 @@
+knob,declared default,variant kept
+threshold c,c = 0 (plain sign(s)),c = 0.5 x past sd(s)
+m_long,2,"1, 1.5, 3 (sensitivity only)"
+m_short,1,0.5
+implied-variance tilt,off,"clip(median_past(iv_var)/iv_var_t, 0.5, 2.0) on buying days"
+wings,off,"widths 25, 50 on selling days"
+fill,midpoint quote at 15:30,"crossed spread, half-spread cost"
+causal window,"expanding, shift(1), min 63 sessions",none
+unit,premium units of the body,"index points, dollars, margin-scaled, per max loss"
