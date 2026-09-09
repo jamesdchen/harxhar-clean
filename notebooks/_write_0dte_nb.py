@@ -59,12 +59,10 @@ The notebook runs as follows. Sections 1–6 build the instrument and its
 return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the rules across the eight forecast
-tables, splits $\mathrm{sign}(s)$ into its two one-sided legs, scores the
-calendar rule that stands aside on FOMC and month-end sessions, and tests each
-portfolio against the control day by day;
+tables and tests each portfolio against the control day by day;
 §11 regresses the settlement return on the 15:30 signal; §12 adds up
 the profit and loss; §13 is parked, its always-short comparison carried
-by §10; §14 compounds each rule at a fixed 3% of wealth per day; §15 reads the buy days — how often the signal is right, what the market was quoting on each side, and where the forecasts agree; §16 checks one row by hand. A
+by §10; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
 defined-risk variant (wings on the days the portfolio sells) is parked and
 explored in the experimental notebook.
 
@@ -1103,21 +1101,13 @@ Each rule is scored on the same days and on the same long-package return $R$ (mi
 - **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s_t)$ with
   $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the package when the
   forecast exceeds implied variance, short otherwise.
-- **heaviside$(s)$: long only:** $q_t=1$ if $s_t>0$ and $q_t=0$ otherwise —
-  the long half of $\mathrm{sign}(s)$, flat on the days the rule would sell.
-- **heaviside$(s)$: short only:** $q_t=-1$ if $s_t\le 0$ and $q_t=0$
-  otherwise — the short half, flat on the days the rule would buy.
 - **$\mathrm{sign}(s)$, flat on event days:** $q_t=0$ on FOMC statement days
-  and on month-end sessions, $q_t=\mathrm{sign}(s_t)$ on every other day.
-  Both flags are the exchange calendar — statement days are scheduled a year
-  ahead, a month end is the last session of the calendar month — so the
-  position is known before the 15:30 entry. The subsection below scores it.
+  and on month-end sessions, $q_t=\mathrm{sign}(s_t)$ on every other day —
+  both flags are the exchange calendar, so the position is known before the
+  15:30 entry.
 
-The two heaviside rules are the one-sided legs of $\mathrm{sign}(s)$: they
-partition the days, so day by day their positions, and therefore their daily
-returns, add up to $\mathrm{sign}(s)$ exactly. Flat days stay in the daily
-series as zeros rather than being dropped, so all five rules are scored on the
-same $n$ days.
+Flat days stay in the daily series as zeros rather than being dropped, so
+all three rules are scored on the same $n$ days.
 
 The columns are the usual summary statistics (count, mean, standard deviation, minimum, quartiles, maximum), skewness, excess kurtosis, the $t$-statistic of the mean, $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and the count and share of buy days (days with $q_t>0$). The $t$-statistic uses the raw daily mean and standard deviation, not the annualized Sharpe ratio.
 
@@ -1138,7 +1128,8 @@ def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
         "always short": pd.Series(-1.0, index=px.index),
         "sign(s)": px["pos"],
         # the one-sided legs of sign(s): they partition the days, so
-        # long only + short only = sign(s) day by day (asserted below)
+        # long only + short only = sign(s) day by day; parked from the tables
+        # below, kept here because the library carries them
         "heaviside(s): long only": pd.Series(np.where(long_day, 1.0, 0.0), index=px.index),
         "heaviside(s): short only": pd.Series(np.where(long_day, 0.0, -1.0), index=px.index),
         "sign(s), flat on event days": pd.Series(
@@ -1176,8 +1167,6 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
 order = [
     "always short",
     "sign(s)",
-    "heaviside(s): long only",
-    "heaviside(s): short only",
     "sign(s), flat on event days",
 ]
 assert order == list(asl.RULE_ORDER), "the deck's rule order and the library's disagree"
@@ -1198,12 +1187,14 @@ print("common days:", len(common),
 for _tag in MODEL_ORDER:
     _lib = asl.rule_sizes(books[_tag], REPO)
     _mine = rule_sizes(books[_tag])
-    for _name in order:
+    assert set(_mine) == set(_lib), set(_mine) ^ set(_lib)
+    for _name in _lib:
         _d = float((_mine[_name] - _lib[_name]).abs().max())
         assert _d == 0.0, (_tag, _name, _d)
 _ev = asl.event_day_mask(common, REPO)
-print(f"rule_sizes matches atm_straddle_lib.rule_sizes on all {len(order)} rules and "
-      f"{len(MODEL_ORDER)} forecasts; event days flagged on the common frame: {int(_ev.sum())}")
+print(f"rule_sizes matches atm_straddle_lib.rule_sizes on all {len(_lib)} rules and "
+      f"{len(MODEL_ORDER)} forecasts; {len(order)} of them are tabulated; "
+      f"event days flagged on the common frame: {int(_ev.sum())}")
 
 rule_tabs = {}
 for tag in MODEL_ORDER:
@@ -1232,24 +1223,40 @@ for name in order:
     print("---")
     # slug: runs of non-alphanumerics collapse to one underscore
     # ("always short" -> always_short, "sign(s)" -> sign_s,
-    #  "heaviside(s): long only" -> heaviside_s_long_only)
+    #  "sign(s), flat on event days" -> sign_s_flat_on_event_days)
     safe = "_".join("".join(ch if ch.isalnum() else " " for ch in name).split())
     tab.to_csv(OUT / f"rule_by_strategy_{safe}.csv")
 print("saved per-model rule_table_*.csv and per-rule rule_by_strategy_*.csv in", OUT)
 
-fig, axes = plt.subplots(1, len(order), figsize=(17, 3.6), sharex=True, sharey=True)
+fig, axes = plt.subplots(1, len(order), figsize=(12, 3.6), sharex=True, sharey=True)
 px = books["blk2"]
 sizes = rule_sizes(px)
 pooled = pd.concat([sizes[name] * px["R"] for name in order], axis=0).dropna()
 lo, hi = float(pooled.quantile(0.01)), float(pooled.quantile(0.99))
-bins = np.linspace(lo, hi, 41)
+# 40 bins of the 1st-99th percentile width, but laid on multiples of the width
+# so that an edge falls exactly on 0.0: a zero return is then never pooled with
+# an ordinary day of small |R'|. The zero returns are drawn separately.
+w = (hi - lo) / 40.0
+bins = np.arange(np.floor(lo / w), np.ceil(hi / w) + 1) * w
+n_flat = {name: int(((sizes[name] == 0.0) & px["R"].notna()).sum()) for name in order}
+n_zero = {name: int(((sizes[name] * px["R"]).dropna() == 0.0).sum()) for name in order}
+print("flat days (q = 0) per rule, block-diagonal ridge, on its own",
+      int(px["R"].notna().sum()), "days:", n_flat)
+print("days with R' exactly 0, which is what the bar at zero counts (the flat days "
+      "plus any day the package itself returned exactly nothing):", n_zero)
 for ax, name in zip(axes.ravel(), order):
     x = (sizes[name] * px["R"]).dropna()
-    ax.hist(x.clip(lo, hi), bins=bins, color="C0", edgecolor="none")
+    nz = x[x != 0.0]
+    ax.hist(nz.clip(bins[0], bins[-1]), bins=bins, color="C0", edgecolor="none")
+    if n_zero[name]:
+        ax.bar([0.0], [n_zero[name]], width=0.35 * w, color="C3", edgecolor="none", zorder=3)
+        ax.annotate(f"{n_zero[name]} at $R'=0$", xy=(0.0, n_zero[name]),
+                    xytext=(4, 2), textcoords="offset points", fontsize=7, color="C3")
     ax.axvline(0.0, color="k", lw=0.6)
     ax.set_title(name, fontsize=8)
     ax.set_xlabel(r"$R'$")
-fig.suptitle("block-diagonal ridge, midpoint fills: daily return of the position, 1st-99th percentile window")
+fig.suptitle("block-diagonal ridge, midpoint fills: daily return of the position, 1st-99th percentile window "
+             r"(bars: the days with $R'\neq 0$; the red bar at 0 is the rest)")
 fig.tight_layout()
 fig.savefig(OUT / "rule_hists_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "rule_hists_blk2.png")
@@ -1257,351 +1264,94 @@ display(fig)
 plt.close(fig)
 """
     ),
-    md(
-        r"""### Is the edge only the short leg?
-
-A standing suspicion about the $\mathrm{sign}(s)$ portfolio is that it is
-nothing more than selling the package and holding it to the close: the short
-days do all the work and the days the rule turns long add nothing. The two
-heaviside rules test that directly, because they are the two halves of
-$\mathrm{sign}(s)$ — long only holds $+1$ on the days $s_t>0$ and is flat
-otherwise, short only holds $-1$ on the days $s_t\le 0$ and is flat otherwise,
-and day by day their returns add up to the $\mathrm{sign}(s)$ return. If the
-edge were only overselling, the long-only leg would earn nothing and the
-short-only leg would match the always-short control.
-
-The cell prints, for every forecast, each leg's mean daily return, its
-annualized Sharpe ratio and its $t$-statistic, the number of days each leg is
-in the market, and the $\mathrm{sign}(s)$ row itself; the always-short control
-is printed on the same days for comparison. Every figure is computed on all
-common days with the flat days entering as a zero return, so the two legs'
-means add to the $\mathrm{sign}(s)$ mean, and the cell asserts that identity in
-code to $10^{-12}$ for all eight forecasts. It is one half of the answer; the
-paired test below — each $\mathrm{sign}(s)$ portfolio minus the always-short
-control — is the other half, since that difference is exactly what the long
-days are worth.
-"""
-    ),
-    code(
-        r"""
-LEGS = ["heaviside(s): long only", "heaviside(s): short only", "sign(s)"]
-SHORTNAME = {"heaviside(s): long only": "long", "heaviside(s): short only": "short",
-             "sign(s)": "sign(s)"}
-
-leg_rows, max_gap = {}, 0.0
-for tag in MODEL_ORDER:
-    px = books[tag]
-    sizes = rule_sizes(px)
-    rr = {name: (sizes[name] * px["R"]).loc[common].astype(float) for name in order}
-    qq = {name: sizes[name].loc[common].astype(float) for name in order}
-    # the legs partition the days: long only + short only = sign(s), day by day
-    gap = float((rr["heaviside(s): long only"] + rr["heaviside(s): short only"]
-                 - rr["sign(s)"]).abs().max())
-    assert gap < 1e-12, (tag, gap)
-    max_gap = max(max_gap, gap)
-    row = {}
-    for name in LEGS:
-        st = rule_row(rr[name], qq[name])
-        k = SHORTNAME[name]
-        row[f"{k}: n_active"] = int((qq[name] != 0).sum())
-        row[f"{k}: mean"] = float(st["mean"])
-        row[f"{k}: Sharpe_ann"] = float(st["Sharpe_ann"])
-        row[f"{k}: t_mean"] = float(st["t_mean"])
-    leg_rows[LABEL[tag]] = row
-
-leg_tab = pd.DataFrame(leg_rows).T
-for c in [c for c in leg_tab.columns if c.endswith("n_active")]:
-    leg_tab[c] = leg_tab[c].astype(int)
-print(f"the one-sided legs of sign(s) on the {len(common)} common days "
-      "(a flat day is a zero return, not a dropped day)")
-print(leg_tab.to_string())
-leg_tab.to_csv(OUT / "heaviside_legs.csv")
-
-_asq = rule_sizes(books["blk2"])["always short"].loc[common]
-_as = rule_row((_asq * books["blk2"]["R"]).loc[common], _asq)
-print(f"always short (no forecast, same {len(common)} days): mean {float(_as['mean']):+.4f}  "
-      f"Sharpe_ann {float(_as['Sharpe_ann']):.3f}  t {float(_as['t_mean']):.2f}")
-print(f"long only + short only = sign(s) day by day: max |difference| over the "
-      f"{len(MODEL_ORDER)} forecasts = {max_gap:.2e}")
-print("saved", OUT / "heaviside_legs.csv")
-"""
-    ),
-    md(
-        r"""The suspicion does not survive the split. On the block-diagonal ridge the
-long-only leg earns $+0.040$ a day (annualized Sharpe ratio $0.76$, $t=1.42$)
-over its 346 active days — 42% of the $\mathrm{sign}(s)$ mean of $0.095$ — and
-the short-only leg earns $+0.055$ (Sharpe ratio $1.14$, $t=2.12$) against the
-always-short control's $+0.014$ (Sharpe ratio $0.20$, $t=0.38$) on the same 866
-days; every one of the eight forecasts shows the same ordering, with long-only
-means from $+0.027$ (baseline, HAR + calendar OLS) to $+0.046$ (the fixed
-lasso).
-
-Those two readings are one reading: short only minus always short is exactly
-the long-only leg, day by day — both are $+R_t$ on the days the forecast says
-buy and zero on the rest — so the paired test below, $\mathrm{sign}(s)$ minus
-always short, is that same leg at twice the position and carries its
-$t$-statistic of $1.42$ for the ridge. What the rule sells is not the edge;
-which days it declines to sell is.
-"""
-    ),
-    md(
-        r"""### Flat on FOMC and month-end sessions: a day-selection rule, not a better signal
-
-The last rule in the table stands aside on two kinds of day: FOMC statement
-days and the last session of each calendar month. Both flags come from
-`atm_straddle_lib.event_day_mask`, which is the exchange calendar and nothing
-else — statement days are published a year ahead, month ends are the exchange's
-own last sessions — so the position is fixed before the 15:30 entry and no
-price enters the flag. The rule was declared in the intraday notebook's
-proposal 06 and audited in
-`writeup/intraday_proposals/18_event_day_flat.md`; this cell is the deck-level
-scoring, and it prints what the audit found against the rule as well as for it.
-
-The cell prints five things on the common days:
-
-- each forecast's $\mathrm{sign}(s)$ portfolio against the same portfolio flat
-  on the event days, at the midpoint and at the crossed spread, with the
-  paired Sharpe difference and its 95% percentile interval from the same
-  circular block bootstrap used above (blocks of 21 days, 2,000 draws, one
-  seed);
-- a placebo: 2,000 random flats of the same number of days, and where the
-  real flags sit in that distribution;
-- the concentration curve — the rule's gain over $\mathrm{sign}(s)$ after its
-  own $k$ best days are removed, printed beside $\mathrm{sign}(s)$'s gain over
-  the always-short control after *its* $k$ best days are removed, with the
-  overlap of the two sets and the count of event days the rule gives up;
-- the buy/sell split of the mean, which says which leg the rule removes;
-- the mechanism: how large the traded close bar is on month-ends against the
-  15:00–15:30 bar the forecast reads, and where $\widehat{RV}_t/\mathrm{IV}^2_{30,t}$
-  sits on those days.
-"""
-    ),
-    code(
-        r"""
-EV_BLOCK, EV_B, EV_SEED = 21, 2000, 0     # the same bootstrap as the paired tests below
-EV_KS = (0, 1, 3, 5, 9)                   # the k values the audit reports
-
-ev_flags = asl.fomc_and_monthend(common, REPO)
-IS_FOMC = ev_flags["is_fomc"].fillna(False).to_numpy(bool)
-IS_ME = ev_flags["is_me"].to_numpy(bool)
-IS_EV = IS_FOMC | IS_ME
-print(f"{len(common)} common days, {pd.Timestamp(common.min()).date()} .. {pd.Timestamp(common.max()).date()}; "
-      f"FOMC statement days {int(IS_FOMC.sum())}, month-end sessions {int(IS_ME.sum())}, "
-      f"overlap {int((IS_FOMC & IS_ME).sum())}, event days {int(IS_EV.sum())}")
-print(f"FOMC knowledge horizon {pd.Timestamp(ev_flags.attrs['fomc_known_until']).date()}, frame ends "
-      f"{pd.Timestamp(common.max()).date()}: no scored day sits past the horizon")
-
-
-def ev_fills(tag):
-    # (midpoint, crossed) return functions for one forecast, on the common days
-    p = books[tag].loc[common]
-    bid = (p["bid_c"] + p["bid_p"]).astype(float)
-    ask = (p["ask_c"] + p["ask_p"]).astype(float)
-    ex, rr = p["exit"].astype(float), p["R"].astype(float)
-
-    def _mid(q):
-        return np.asarray(q, float) * rr.to_numpy(float)
-
-    def _crossed(q):
-        qs = pd.Series(np.asarray(q, float), index=common)
-        signq = np.sign(qs.replace(0.0, -1.0))
-        return (asl.crossed_premium_return(signq, ex, bid, ask) * qs.abs()).to_numpy(float)
-
-    return _mid, _crossed
-
-
-EV_IDX = asl.circular_block_bootstrap_idx(
-    np.random.default_rng(EV_SEED), len(common), EV_BLOCK, EV_B
-)
-
-
-def ev_sharpe(v):
-    v = np.asarray(v, float)
-    sd = v.std(ddof=1)
-    return float(v.mean() / sd * np.sqrt(asl.PERIODS_PER_YEAR)) if sd > 0 else float("nan")
-
-
-def ev_paired(a, b):
-    a, b = np.asarray(a, float), np.asarray(b, float)
-    d = (lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
-    dd = d(a[EV_IDX]) - d(b[EV_IDX])
-    hat = ev_sharpe(a) - ev_sharpe(b)
-    lo, hi = (float(v) for v in np.percentile(dd, [2.5, 97.5]))
-    return hat, lo, hi
-
-
-ev_rows = []
-for tag in MODEL_ORDER:
-    q = rule_sizes(books[tag])["sign(s)"].loc[common].to_numpy(float)
-    qf = rule_sizes(books[tag])["sign(s), flat on event days"].loc[common].to_numpy(float)
-    assert np.array_equal(qf == 0.0, IS_EV), tag        # the flat days are exactly the flagged days
-    rec = {"forecast": LABEL[tag]}
-    for lab, fill in zip(("mid", "crossed"), ev_fills(tag)):
-        a, b = fill(qf), fill(q)
-        hat, lo, hi = ev_paired(a, b)
-        rec[f"sign(s) {lab}"] = ev_sharpe(b)
-        rec[f"flat {lab}"] = ev_sharpe(a)
-        rec[f"change {lab}"] = hat
-        rec[f"95% {lab}"] = f"[{lo:+.3f}, {hi:+.3f}]"
-        rec[f"reading {lab}"] = _interval_reading(lo, hi)
-    ev_rows.append(rec)
-ev_tab = pd.DataFrame(ev_rows).set_index("forecast")
-print()
-print("annualized Sharpe ratio of sign(s) and of sign(s) flat on the event days, both fills;")
-print(f"the change is paired day by day, with a 95% percentile interval from a circular block bootstrap "
-      f"(blocks of {EV_BLOCK} days, {EV_B} draws, one seed)")
-print(ev_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-ev_tab.to_csv(OUT / "event_day_rule.csv")
-print("saved", OUT / "event_day_rule.csv")
-_ex = [i for i in ev_tab.index if ev_tab.loc[i, "reading crossed"].endswith("excludes zero")]
-print(f"percentile intervals excluding zero at the crossed spread: {len(_ex)} of {len(ev_tab)} - {'; '.join(_ex)}")
-
-# --- the placebo: random flats of the same size, block-diagonal ridge
-mid_b, crossed_b = ev_fills("blk2")
-q_sign = rule_sizes(books["blk2"])["sign(s)"].loc[common].to_numpy(float)
-q_flat = rule_sizes(books["blk2"])["sign(s), flat on event days"].loc[common].to_numpy(float)
-_rng = np.random.default_rng(EV_SEED)
-_draws = np.array([_rng.choice(len(common), size=int(IS_EV.sum()), replace=False) for _ in range(EV_B)])
-print()
-for lab, fill in (("mid", mid_b), ("crossed", crossed_b)):
-    base = ev_sharpe(fill(q_sign))
-    g = np.empty(EV_B)
-    for j in range(EV_B):
-        qq = q_sign.copy()
-        qq[_draws[j]] = 0.0
-        g[j] = ev_sharpe(fill(qq)) - base
-    real = ev_sharpe(fill(q_flat)) - base
-    print(f"placebo, {EV_B} random {int(IS_EV.sum())}-day flats, block-diagonal ridge, {lab}: "
-          f"median {np.median(g):+.4f}, 95th percentile {np.percentile(g, 95):+.4f}, max {g.max():+.4f}; "
-          f"the calendar flags sit at the {100 * float((g < real).mean()):.2f}th percentile (gain {real:+.4f})")
-
-# --- concentration: each rule's gain after its own k best days are removed
-Xs, Xf = crossed_b(q_sign), crossed_b(q_flat)
-Xa = crossed_b(-np.ones(len(common)))
-gain_ev = ev_sharpe(Xf) - ev_sharpe(Xs)
-gain_sg = ev_sharpe(Xs) - ev_sharpe(Xa)
-ev_pos = np.where(IS_EV)[0]
-rank_ev = ev_pos[np.argsort(Xs[ev_pos])]        # the rule gains most where sign(s) lost most
-rank_sg = np.argsort(-(Xs - Xa))                # sign(s) gains most where its active return is largest
-conc = []
-for k in EV_KS:
-    keep_e = np.ones(len(common), bool); keep_e[rank_ev[:k]] = False
-    keep_s = np.ones(len(common), bool); keep_s[rank_sg[:k]] = False
-    ge = ev_sharpe(Xf[keep_e]) - ev_sharpe(Xs[keep_e])
-    gs = ev_sharpe(Xs[keep_s]) - ev_sharpe(Xa[keep_s])
-    conc.append({"k": k,
-                 "flat rule: gain over sign(s)": ge, "flat rule: share of the gain left": ge / gain_ev,
-                 "sign(s): gain over always short": gs, "sign(s): share of the gain left": gs / gain_sg})
-conc_tab = pd.DataFrame(conc).set_index("k")
-print()
-print("crossed spread, block-diagonal ridge: each rule's gain after ITS OWN k best days are removed")
-print(conc_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-conc_tab.to_csv(OUT / "event_day_concentration.csv")
-print("saved", OUT / "event_day_concentration.csv")
-_kmax = max(EV_KS)
-print(f"the flat rule's {_kmax} best days carry {100 * (gain_ev - conc_tab.loc[_kmax, 'flat rule: gain over sign(s)']) / gain_ev:.0f}% "
-      f"of its gain; sign(s)'s own {_kmax} best days carry "
-      f"{100 * (gain_sg - conc_tab.loc[_kmax, 'sign(s): gain over always short']) / gain_sg:.0f}% of its gain over the control; "
-      f"the two sets of {_kmax} overlap on {len(set(rank_ev[:_kmax]) & set(rank_sg[:_kmax]))} days")
-print(f"the flat rule's {_kmax} days: {', '.join(str(common[i].date()) for i in sorted(rank_ev[:_kmax]))}")
-print(f"sign(s)'s {_kmax} days:      {', '.join(str(common[i].date()) for i in sorted(rank_sg[:_kmax]))}")
-_e = Xs[IS_EV]
-print(f"of the {int(IS_EV.sum())} event days the rule gives up, {int((_e > 0).sum())} would have paid "
-      f"(+{_e[_e > 0].sum():.1f} premium units) against {int((_e < 0).sum())} that would have lost "
-      f"({_e[_e < 0].sum():.1f}); net {_e.sum():+.1f} premium units at the crossed spread")
-
-# --- which leg the rule removes: the buy/sell split of the mean
-buy = q_sign > 0
-split = []
-for lab, m in (("all days", np.ones(len(common), bool)), ("days kept", ~IS_EV), ("days made flat", IS_EV)):
-    x, b = Xs[m], buy[m]
-    split.append({"days": lab, "n": int(m.sum()), "buy share": float(b.mean()),
-                  "mean per buy day": float(x[b].mean()), "contribution of the buys": float(np.where(b, x, 0.0).mean()),
-                  "mean per sell day": float(x[~b].mean()), "contribution of the sells": float(np.where(~b, x, 0.0).mean()),
-                  "mean": float(x.mean())})
-split_tab = pd.DataFrame(split).set_index("days")
-print()
-print("block-diagonal ridge, crossed spread: where the mean comes from, on the days kept and the days made flat")
-print(split_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-
-# --- mechanism: the traded close bar against the bar the forecast reads
-_pan = asl.load_yhat_panel_mz(YHATS["a0"])
-_pan["date"] = pd.to_datetime(_pan["date"])
-_last = _pan[_pan["mins"] == 15 * 60 + 30].drop_duplicates("date").set_index("date")["rv_raw"]
-_close = _pan[_pan["mins"] == 16 * 60].drop_duplicates("date").set_index("date")["rv_raw"]
-mech = (books["blk2"].loc[common, ["iv_var", "rv_hat"]]
-        .join(_last.rename("rv_last_bar")).join(_close.rename("rv_close_bar")))
-assert mech.notna().all().all(), "the 15:30 and 16:00 panel rows do not cover the common days"
-mech_rows = []
-for lab, m in (("non-event", ~IS_EV), ("event", IS_EV), ("month-end", IS_ME), ("FOMC", IS_FOMC)):
-    g = mech[m]
-    mech_rows.append({"days": lab, "n": int(m.sum()),
-                      "median rv, 15:00-15:30 bar (1e-6)": 1e6 * float(g["rv_last_bar"].median()),
-                      "median rv, close bar (1e-6)": 1e6 * float(g["rv_close_bar"].median()),
-                      "median implied, close bar (1e-6)": 1e6 * float(g["iv_var"].median()),
-                      "median rv_hat (1e-6)": 1e6 * float(g["rv_hat"].median()),
-                      "median rv_hat / implied": float((g["rv_hat"] / g["iv_var"]).median())})
-mech_tab = pd.DataFrame(mech_rows).set_index("days")
-print()
-print("what the forecast sees and what the traded bar does (medians, 30-minute variance)")
-print(mech_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-_ne, _me = mech[~IS_EV], mech[IS_ME]
-print(f"month-end against non-event medians: close bar {float(_me['rv_close_bar'].median() / _ne['rv_close_bar'].median()):.2f}x, "
-      f"15:00-15:30 bar {float(_me['rv_last_bar'].median() / _ne['rv_last_bar'].median()):.2f}x, "
-      f"implied {float(_me['iv_var'].median() / _ne['iv_var'].median()):.2f}x, "
-      f"forecast {float(_me['rv_hat'].median() / _ne['rv_hat'].median()):.2f}x")
-"""
-    ),
-    md(
-        r"""**What the numbers say.** At the crossed spread the rule raises the
-block-diagonal ridge from an annualized Sharpe ratio of 0.87 to 1.35, a change
-of $+0.48$ with a percentile interval of $[+0.12,+0.91]$. Three of the seven
-scored forecasts clear the standing gate — an interval excluding zero — at that
-fill: the baseline $[+0.16,+0.88]$, the ridge, and the causally tuned lasso at
-$[+0.011,+0.83]$, which is a knife edge. LightGBM, the fixed lasso and the
-elastic net do not clear it, and XGBoost misses by the same margin the lasso
-clears by, at $[-0.018,+0.73]$; the audit found that XGBoost changes sides with
-the bootstrap seed, so the honest count is three, not four. The diagnostic ridge
-without the FOMC columns also clears it, which is a check that the gain is not
-the FOMC channels already in the panel. The flags are not an accident of how
-many days they cover: of 2,000 random flats of 84 days, only two beat them, so
-the real flags sit at the 99.9th percentile.
-
-**The gain is carried by nine days.** Removing the nine days on which the rule
-gains most takes its $+0.48$ to $-0.005$; three days already halve it. That is
-the audit's worst finding and it should be quoted wherever the 1.35 is. It is
-also, on its own, weaker evidence against the rule than it looks: the same
-count applied to $\mathrm{sign}(s)$'s own edge over the always-short control
-takes $+1.14$ to $-0.27$, so $\mathrm{sign}(s)$'s nine best days carry more of
-its gain (123%) than the rule's nine carry of the rule's (101%). Concentration
-of this kind is the nature of the payoff on this trade, not a property of the
-calendar flags. The two sets of nine days do not overlap at all.
-
-**It is a filter on the trade, not a better forecast.** The split of the mean
-says which leg the rule removes. On the 84 days it makes flat, the sell days
-lose $-0.42$ each while the buy days earn $+0.16$; on the days it keeps, the
-sell days earn $+0.13$ and the buy days $+0.06$. Per active day the buy leg is
-essentially unchanged by the rule — $+0.06$ either way — and the whole
-improvement is in the sell leg. Nothing has been added to $s_t$: the same
-forecast is read the same way on every day the portfolio still trades, and 41
-of the 84 days given up would have paid, for $+23$ premium units surrendered
-against $47$ saved.
-
-**The mechanism is a blind spot in the forecast, not an edge in the flag.** On
-month-ends the traded close bar realizes 1.97 times its usual size while the
-15:00–15:30 bar the forecast reads moves only 1.36 times, so the forecast rises
-by 1.10 times against an implied variance that rises 1.65 times, and
-$\widehat{RV}_t/\mathrm{IV}^2_{30,t}$ falls to 0.68 against 0.94 elsewhere: the
-rule turns most short into the one bar it should be least short into. The flag
-does not repair that; it declines to trade it.
-
-**What would settle it.** The forecast panels stop 2024-04-30, so every number
-here is scored on the same days proposal 06 first looked at. The gate that
-matters is the forward test: score the panels past the end of the sample and
-run the rule on months nobody has seen. Until then $\mathrm{sign}(s)$ is the
-headline and this row is a risk filter reported beside it.
-"""
-    ),
+    # SECTION PARKED 2026-09-09 (user order): the one-sided legs of sign(s) are held out of the deck; the rule table now carries always short, sign(s) and the event-day rule only.
+    # md(
+    # r"""### Is the edge only the short leg?
+    #
+    # A standing suspicion about the $\mathrm{sign}(s)$ portfolio is that it is
+    # nothing more than selling the package and holding it to the close: the short
+    # days do all the work and the days the rule turns long add nothing. The two
+    # heaviside rules test that directly, because they are the two halves of
+    # $\mathrm{sign}(s)$ — long only holds $+1$ on the days $s_t>0$ and is flat
+    # otherwise, short only holds $-1$ on the days $s_t\le 0$ and is flat otherwise,
+    # and day by day their returns add up to the $\mathrm{sign}(s)$ return. If the
+    # edge were only overselling, the long-only leg would earn nothing and the
+    # short-only leg would match the always-short control.
+    #
+    # The cell prints, for every forecast, each leg's mean daily return, its
+    # annualized Sharpe ratio and its $t$-statistic, the number of days each leg is
+    # in the market, and the $\mathrm{sign}(s)$ row itself; the always-short control
+    # is printed on the same days for comparison. Every figure is computed on all
+    # common days with the flat days entering as a zero return, so the two legs'
+    # means add to the $\mathrm{sign}(s)$ mean, and the cell asserts that identity in
+    # code to $10^{-12}$ for all eight forecasts. It is one half of the answer; the
+    # paired test below — each $\mathrm{sign}(s)$ portfolio minus the always-short
+    # control — is the other half, since that difference is exactly what the long
+    # days are worth.
+    # """
+    # ),
+    # code(
+    # r"""
+    # LEGS = ["heaviside(s): long only", "heaviside(s): short only", "sign(s)"]
+    # SHORTNAME = {"heaviside(s): long only": "long", "heaviside(s): short only": "short",
+    #              "sign(s)": "sign(s)"}
+    #
+    # leg_rows, max_gap = {}, 0.0
+    # for tag in MODEL_ORDER:
+    #     px = books[tag]
+    #     sizes = rule_sizes(px)
+    #     rr = {name: (sizes[name] * px["R"]).loc[common].astype(float) for name in order}
+    #     qq = {name: sizes[name].loc[common].astype(float) for name in order}
+    #     # the legs partition the days: long only + short only = sign(s), day by day
+    #     gap = float((rr["heaviside(s): long only"] + rr["heaviside(s): short only"]
+    #                  - rr["sign(s)"]).abs().max())
+    #     assert gap < 1e-12, (tag, gap)
+    #     max_gap = max(max_gap, gap)
+    #     row = {}
+    #     for name in LEGS:
+    #         st = rule_row(rr[name], qq[name])
+    #         k = SHORTNAME[name]
+    #         row[f"{k}: n_active"] = int((qq[name] != 0).sum())
+    #         row[f"{k}: mean"] = float(st["mean"])
+    #         row[f"{k}: Sharpe_ann"] = float(st["Sharpe_ann"])
+    #         row[f"{k}: t_mean"] = float(st["t_mean"])
+    #     leg_rows[LABEL[tag]] = row
+    #
+    # leg_tab = pd.DataFrame(leg_rows).T
+    # for c in [c for c in leg_tab.columns if c.endswith("n_active")]:
+    #     leg_tab[c] = leg_tab[c].astype(int)
+    # print(f"the one-sided legs of sign(s) on the {len(common)} common days "
+    #       "(a flat day is a zero return, not a dropped day)")
+    # print(leg_tab.to_string())
+    # leg_tab.to_csv(OUT / "heaviside_legs.csv")
+    #
+    # _asq = rule_sizes(books["blk2"])["always short"].loc[common]
+    # _as = rule_row((_asq * books["blk2"]["R"]).loc[common], _asq)
+    # print(f"always short (no forecast, same {len(common)} days): mean {float(_as['mean']):+.4f}  "
+    #       f"Sharpe_ann {float(_as['Sharpe_ann']):.3f}  t {float(_as['t_mean']):.2f}")
+    # print(f"long only + short only = sign(s) day by day: max |difference| over the "
+    #       f"{len(MODEL_ORDER)} forecasts = {max_gap:.2e}")
+    # print("saved", OUT / "heaviside_legs.csv")
+    # """
+    # ),
+    # md(
+    # r"""The suspicion does not survive the split. On the block-diagonal ridge the
+    # long-only leg earns $+0.040$ a day (annualized Sharpe ratio $0.76$, $t=1.42$)
+    # over its 346 active days — 42% of the $\mathrm{sign}(s)$ mean of $0.095$ — and
+    # the short-only leg earns $+0.055$ (Sharpe ratio $1.14$, $t=2.12$) against the
+    # always-short control's $+0.014$ (Sharpe ratio $0.20$, $t=0.38$) on the same 866
+    # days; every one of the eight forecasts shows the same ordering, with long-only
+    # means from $+0.027$ (baseline, HAR + calendar OLS) to $+0.046$ (the fixed
+    # lasso).
+    #
+    # Those two readings are one reading: short only minus always short is exactly
+    # the long-only leg, day by day — both are $+R_t$ on the days the forecast says
+    # buy and zero on the rest — so the paired test below, $\mathrm{sign}(s)$ minus
+    # always short, is that same leg at twice the position and carries its
+    # $t$-statistic of $1.42$ for the ridge. What the rule sells is not the edge;
+    # which days it declines to sell is.
+    # """
+    # ),
     md(
         r"""### Beating the control, and telling the forecasts apart
 
@@ -2229,7 +1979,7 @@ plt.close(fig)
 
 Same contracts and positions as the rule table; every series is a daily
 quantity, **summed, not compounded**. Notation for one day: position
-$q\in\{-1,0,+1\}$ (the heaviside legs are flat on their inactive days, and a
+$q\in\{-1,0,+1\}$ (the event-day rule is flat on its flagged days, and a
 flat day contributes zero to every column), entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
 and ask sums $P_b$, $P_a$, half-spread $h=\tfrac12(P_a-P_b)$, settlement
 payout $X$, contract multiplier $M=100$.
@@ -2603,8 +2353,9 @@ def wealth_axis(ax):
 ff_rows = {}
 for tag in MODEL_ORDER:
     px = books[tag]
-    for name, q in rule_sizes(px).items():
-        rs = (q * px["R"]).loc[common].astype(float)
+    sizes = rule_sizes(px)
+    for name in order:
+        rs = (sizes[name] * px["R"]).loc[common].astype(float)
         ff_rows[(name, tag)] = wealth_stats(F_FIXED, rs.to_numpy())
 ff_tab = pd.DataFrame(ff_rows).T
 ff_tab.index = pd.MultiIndex.from_tuples(ff_tab.index, names=["rule", "model"])
@@ -2809,190 +2560,7 @@ plt.close(fig)
 ## 15. When does each forecast say buy?
 
 A buy day is one with $q_t>0$. The always-short rule never buys. The
-forecasts are compared on the days they share. Three readings follow: how
-often the buy signal is right and by how much, what the market was quoting
-on each side of it, and which days the eight forecasts agree on.
-
-### How often the buy signal is right, and by how much
-
-The regression of §11 says the two sides differ in mean. It does not say
-*how*. Two readings are possible and they have different consequences: the
-rule could be picking days on which the package is more often profitable to
-own, or days on which it is profitable by more when it is profitable at all.
-The first table separates them. For every forecast it prints, on the buy days
-($s_t>0$) and on the sell days ($s_t\le 0$), the count, the hit rate on that
-side (the share of days with $R_t>0$ on the buy side, $R_t<0$ on the sell
-side), the mean $R_t$, and the average of $R_t$ over the days it is positive
-and over the days it is negative — set against the unconditional
-long-straddle hit rate, the share of days the package expires worthless
-($R_t=-1$, the index settling between the two strikes), and the
-unconditional mean.
-"""
-    ),
-    code(
-        r"""
-# --- side by side: is the buy signal picking wins, or picking bigger wins?
-bs_rows = []
-for tag in MODEL_ORDER:
-    p = books[tag].loc[common]
-    s = p["signal"].astype(float).to_numpy()
-    r = p["R"].astype(float).to_numpy()
-    is_buy = s > 0
-    for side, m_, won in (("buy (s > 0)", is_buy, r > 0), ("sell (s <= 0)", ~is_buy, r < 0)):
-        rr = r[m_]
-        up, dn = rr[rr > 0], rr[rr < 0]
-        bs_rows.append({
-            "forecast": LABEL[tag], "side": side, "n": int(m_.sum()),
-            "hit rate": float(won[m_].mean()),
-            "mean R": float(rr.mean()),
-            "mean R | R > 0": float(up.mean()) if len(up) else float("nan"),
-            "mean R | R < 0": float(dn.mean()) if len(dn) else float("nan"),
-            "share R = -1": float((rr == -1.0).mean()),
-            "mean position return": float(rr.mean()) if side.startswith("buy") else float(-rr.mean()),
-        })
-bs_tab = pd.DataFrame(bs_rows).set_index(["forecast", "side"])
-_Rall = books["blk2"].loc[common, "R"].astype(float).to_numpy()
-print(f"unconditional, all {len(common)} days: long-straddle hit rate P(R > 0) = {float((_Rall > 0).mean()):.4f}, "
-      f"P(R < 0) = {float((_Rall < 0).mean()):.4f}, share expiring worthless P(R = -1) = "
-      f"{float((_Rall == -1.0).mean()):.4f}, mean R = {float(_Rall.mean()):+.4f}")
-print("by the side of the signal (hit rate = P(R > 0) on the buy side, P(R < 0) on the sell side):")
-print(bs_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-bs_tab.to_csv(OUT / "buy_signal_reading.csv")
-print("saved", OUT / "buy_signal_reading.csv")
-"""
-    ),
-    md(
-        r"""**The hit rates are the base rates.** On the block-diagonal ridge the buy
-days win 0.41 of the time against an unconditional long-straddle hit rate of
-0.38, and the sell days win 0.63 against an unconditional 0.62. The share of
-days the package expires worthless is 0.23 on the buy days and 0.22 on the sell
-days — the same. Every one of the eight forecasts sits in that band, buy-side
-hit rates from 0.39 to 0.41 and sell-side from 0.62 to 0.63. The rule is not
-selecting days that pay more often.
-
-**The edge is the size of the moves.** On the ridge's buy days the average
-$R_t$ over the days it is positive is $+1.28$; on the sell days it is $+0.91$.
-The losing days are the same on both sides ($-0.71$ against $-0.67$). So the
-buy days are days on which the index, when it moves, moves further — and the
-whole of the difference in mean, $+0.10$ against $-0.09$, comes from that upper
-tail, not from a higher chance of being right.
-"""
-    ),
-    md(
-        r"""### What the market was quoting on each side
-
-The second table asks what the market was quoting when the signal took each
-side. Working from the intraday chain cache, it takes the 15:00 and 15:30
-quotes for the block-diagonal ridge's days and prints three geometric means by
-side: the realized variance of the 15:00–15:30 bar over the implied variance
-quoted at 15:00 for that half hour, the change in the quoted 30-minute implied
-variance from 15:00 to 15:30, and the traded close bar's realized variance over
-the implied variance quoted at 15:30. A last line regresses the log change in
-the implied on the log of the last bar's surprise, across all days, which is
-the market's reaction coefficient in one number. Implied variance is the
-$\mathrm{IV}^2_{30,t}$ of §8 throughout — the same denominator the signal
-uses — and the cell asserts that the cache's 15:30 quote is the deck's own,
-day by day.
-"""
-    ),
-    code(
-        r"""
-# --- what the market was quoting on each side, from the intraday chain cache
-_cands = sorted((REPO / "results" / "atm_straddle_intraday" / "cache").glob("trade_*.parquet"),
-                key=lambda q: q.stat().st_mtime)
-assert _cands, "no intraday trade cache: run atm_straddle_intraday.ipynb first"
-_trade_path = _cands[-1]
-_tr = pd.read_parquet(_trade_path, columns=["date", "hhmm", "iv_var"])
-_tr["date"] = pd.to_datetime(_tr["date"])
-_iv15 = _tr[_tr["hhmm"] == "15:00"].drop_duplicates("date").set_index("date")["iv_var"].astype(float)
-_iv30 = _tr[_tr["hhmm"] == "15:30"].drop_duplicates("date").set_index("date")["iv_var"].astype(float)
-_pan_b = asl.load_yhat_panel_mz(YHATS["a0"])
-_pan_b["date"] = pd.to_datetime(_pan_b["date"])
-_rv_last = _pan_b[_pan_b["mins"] == 15 * 60 + 30].drop_duplicates("date").set_index("date")["rv_raw"].astype(float)
-_rv_close = _pan_b[_pan_b["mins"] == 16 * 60].drop_duplicates("date").set_index("date")["rv_raw"].astype(float)
-
-ir_side = pd.DataFrame({
-    "iv_1500": _iv15.reindex(common), "iv_1530": _iv30.reindex(common),
-    "rv_last_bar": _rv_last.reindex(common), "rv_close_bar": _rv_close.reindex(common),
-    "iv_deck": books["blk2"].loc[common, "iv_var"].astype(float),
-    "signal": books["blk2"].loc[common, "signal"].astype(float),
-})
-_have30 = ir_side["iv_1530"].notna()
-_gap = float((ir_side.loc[_have30, "iv_1530"] - ir_side.loc[_have30, "iv_deck"]).abs().max())
-assert _gap == 0.0, ("the cache's 15:30 implied is not the deck's", _gap)
-print(f"intraday chain cache: {_trade_path.name}; its 15:30 implied variance equals the deck's on all "
-      f"{int(_have30.sum())} days it covers (max |difference| {_gap:.1e})")
-_keep = ir_side.notna().all(axis=1) & (ir_side[["iv_1500", "iv_1530", "rv_last_bar", "rv_close_bar"]] > 0).all(axis=1)
-print(f"days with a 15:00 quote, a 15:30 quote and both bars: {int(_keep.sum())} of {len(common)}; "
-      f"dropped {', '.join(str(d.date()) for d in common[~_keep])}")
-ir_side = ir_side[_keep]
-ir_side["last bar rv / implied at 15:00"] = ir_side["rv_last_bar"] / ir_side["iv_1500"]
-ir_side["implied 15:30 / implied 15:00"] = ir_side["iv_1530"] / ir_side["iv_1500"]
-ir_side["close bar rv / implied at 15:30"] = ir_side["rv_close_bar"] / ir_side["iv_1530"]
-
-
-def _geo(x):
-    return float(np.exp(np.log(np.asarray(x, float)).mean()))
-
-
-_cols = ["last bar rv / implied at 15:00", "implied 15:30 / implied 15:00", "close bar rv / implied at 15:30"]
-react = []
-for side, m_ in (("buy (s > 0)", ir_side["signal"] > 0), ("sell (s <= 0)", ir_side["signal"] <= 0),
-                 ("all days", ir_side["signal"] == ir_side["signal"])):
-    g = ir_side[m_]
-    rec = {"days": side, "n": int(m_.sum())}
-    for c in _cols:
-        rec[c] = _geo(g[c])
-    rec["implied change, %"] = 100.0 * (rec["implied 15:30 / implied 15:00"] - 1.0)
-    react.append(rec)
-react_tab = pd.DataFrame(react).set_index("days")
-print()
-print("block-diagonal ridge - geometric means, 30-minute variance units throughout")
-print(react_tab.to_string(float_format=lambda x: f"{x: .4f}"))
-react_tab.to_csv(OUT / "implied_reaction_by_side.csv")
-print("saved", OUT / "implied_reaction_by_side.csv")
-_fit = ls_fit(np.log(ir_side["implied 15:30 / implied 15:00"].to_numpy()),
-              np.log(ir_side["last bar rv / implied at 15:00"].to_numpy()))
-print(f"reaction of the quote to the half hour before it, all {int(_fit.nobs)} days: "
-      f"slope of log(implied 15:30 / implied 15:00) on log(last bar rv / implied at 15:00) = "
-      f"{_fit.params[1]:+.4f} (t {_fit.tvalues[1]:+.2f}, R^2 {_fit.rsquared:.4f})")
-"""
-    ),
-    md(
-        r"""**The quote barely reacts to the half hour before it.** On the ridge's buy
-days the 15:00–15:30 bar realizes 0.69 of the implied variance quoted at 15:00
-for it; on the sell days it realizes 0.56. That difference is what the forecast
-is reading. The market's response is small: the quoted 30-minute implied
-variance rises 14% from 15:00 to 15:30 on the buy days and 23% on the sell
-days, and the slope of the log change in the quote on the log of the last bar's
-surprise is $+0.07$ across all days — the price of the last half hour moves
-about seven hundredths of a percent for every percent of surprise in the half
-hour before it. The consequence is the third column: on the buy days the close
-bar goes on to realize 0.89 of what was quoted for it, against 0.71 on the sell
-days. After a relatively volatile half hour the quote is close to fair and the
-rule buys; after a quiet one the quote is about a quarter rich and the rule
-sells.
-
-**The buy days are stale quotes, not oversold ones.** Nothing here identifies
-who is on the other side, and nothing in this notebook can: the chain carries
-quotes only, so a signed-trade tape or exchange open–close volume by customer
-type would be needed to say who bought and who sold. The usual mechanism
-offered for a persistently rich short-dated option — a premium for carrying
-risk overnight — does not apply to a package that is opened and cash-settled
-inside the same session. And the retail-demand literature
-(`writeup/literature_notes_retail_options_schwarz.md`) points the other way,
-to net *buying* of short-dated index options rather than overselling. What the
-table supports is narrower and enough for the rule: the 15:30 quote is slow to
-follow the half hour that just happened, and $s_t$ is a measurement of that
-staleness.
-"""
-    ),
-    md(
-        r"""### Which days the forecasts agree on
-
-The last cell counts the buy days per forecast, prints the mean settlement
-return on each side, and reports the pairwise Jaccard overlap of the eight
-buy-day sets, with the calendar of buy days beneath it.
+forecasts are compared on the days they share.
 """
     ),
     code(
@@ -3042,6 +2610,132 @@ fig.autofmt_xdate()
 fig.tight_layout()
 fig.savefig(OUT / "buy_signal_diag_blk2.png", dpi=120, bbox_inches="tight")
 print("saved", OUT / "buy_signal_diag_blk2.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""### How often the buy signal is right, and by how much
+
+A **hit** is a day the position makes money: $R_t>0$ on a buy day ($s_t>0$),
+$R_t<0$ on a sell day ($s_t\le 0$). The **average win** and the **average
+loss** are the means of the position's own return — $R_t$ on a buy day,
+$-R_t$ on a sell day — over the days that return is positive and over the days
+it is not. The **base rates** are those same three quantities over all the
+common days for a long held every day and for a short held every day, with no
+forecast used at all. The figure states the claim: on every forecast the hit
+rates sit on the base rates, and what the signal moves is the size of the win
+on the days it buys.
+"""
+    ),
+    code(
+        r"""
+# --- side by side: is the buy signal picking wins, or picking bigger wins?
+# A hit is a day the position makes money: R > 0 on a buy day, R < 0 on a sell
+# day. Every column below is the position's own return u -- u = R on a buy day,
+# u = -R on a sell day -- so a hit is u > 0 on both sides, the average win is
+# the mean of u over the days it is positive, and the average loss the mean of
+# u over the days it is not.
+def side_stats(u):
+    u = np.asarray(u, float)
+    win, loss = u[u > 0.0], u[u <= 0.0]
+    return {
+        "n": int(u.size),
+        "hit rate": float((u > 0.0).mean()),
+        "avg win": float(win.mean()) if win.size else float("nan"),
+        "avg loss": float(loss.mean()) if loss.size else float("nan"),
+        "mean per active day": float(u.mean()),
+    }
+
+
+_Rall = books["blk2"].loc[common, "R"].astype(float).to_numpy()
+REF = {"unconditional long": side_stats(_Rall), "unconditional short": side_stats(-_Rall)}
+ref_tab = pd.DataFrame(REF).T
+print(f"base rates, all {len(common)} common days, no forecast used "
+      f"(days with R exactly 0: {int((_Rall == 0.0).sum())}; "
+      f"share expiring worthless, R = -1: {float((_Rall == -1.0).mean()):.4f}):")
+print(ref_tab.to_string(float_format=lambda x: f"{x: .4f}"))
+
+bs_rows = []
+for tag in MODEL_ORDER:
+    pxc = books[tag].loc[common]
+    s = pxc["signal"].astype(float).to_numpy()
+    r = pxc["R"].astype(float).to_numpy()
+    is_buy = s > 0
+    for side, m_, u in (("buy (s > 0)", is_buy, r), ("sell (s <= 0)", ~is_buy, -r)):
+        rr = r[m_]
+        bs_rows.append({"forecast": LABEL[tag], "side": side, **side_stats(u[m_]),
+                        "mean R": float(rr.mean()), "share R = -1": float((rr == -1.0).mean())})
+bs_tab = pd.DataFrame(bs_rows).set_index(["forecast", "side"])
+print()
+print("by the side of the signal, in the position's own return (R on a buy day, -R on a sell day):")
+print(bs_tab.to_string(float_format=lambda x: f"{x: .4f}"))
+bs_tab.to_csv(OUT / "buy_signal_reading.csv")
+print("saved", OUT / "buy_signal_reading.csv")
+
+names = [LABEL[t] for t in MODEL_ORDER]
+ys = np.arange(len(names))
+fig, (axA, axB, axC) = plt.subplots(
+    1, 3, figsize=(14, 5.0), sharey=True, gridspec_kw={"width_ratios": [3, 4, 2]})
+
+
+def _col(side, col):
+    return [float(bs_tab.loc[(n, side), col]) for n in names]
+
+
+def _dress(ax, title, xlab):
+    ax.set_title(title, fontsize=9)
+    ax.set_xlabel(xlab, fontsize=8)
+    ax.legend(fontsize=6.5, loc="lower right", framealpha=0.9)
+    ax.grid(axis="x", alpha=0.3)
+
+
+axA.barh(ys - 0.19, _col("buy (s > 0)", "hit rate"), 0.38, color="C0", label="buy days: P(R > 0 | s > 0)")
+axA.barh(ys + 0.19, _col("sell (s <= 0)", "hit rate"), 0.38, color="C1", label="sell days: P(R < 0 | s <= 0)")
+axA.axvline(REF["unconditional long"]["hit rate"], color="C0", ls="--", lw=1.0)
+axA.axvline(REF["unconditional short"]["hit rate"], color="C1", ls="--", lw=1.0)
+axA.set_yticks(ys)
+axA.set_yticklabels(names, fontsize=8)
+axA.set_ylim(len(names) + 1.1, -0.6)          # room under the last row for the legend
+axA.set_xlim(0.0, 0.8)
+_dress(axA, "A. how often the position is right\n(dashed: the base rate of the same side)", "hit rate")
+
+
+def _pad_x(ax, vals):
+    lo, hi = min(vals), max(vals)
+    pad = 0.08 * (hi - lo)
+    ax.set_xlim(lo - pad, hi + pad)
+
+
+SERIES_B = (("buy (s > 0)", "avg win", "C0", 1.0, "buy days: average win"),
+            ("buy (s > 0)", "avg loss", "C0", 0.45, "buy days: average loss"),
+            ("sell (s <= 0)", "avg win", "C1", 1.0, "sell days: average win"),
+            ("sell (s <= 0)", "avg loss", "C1", 0.45, "sell days: average loss"))
+for k, (side, col, c, a, lab) in enumerate(SERIES_B):
+    axB.barh(ys + (k - 1.5) * 0.2, _col(side, col), 0.2, color=c, alpha=a, label=lab)
+for ref, c in (("unconditional long", "C0"), ("unconditional short", "C1")):
+    axB.axvline(REF[ref]["avg win"], color=c, ls="--", lw=1.0)
+    axB.axvline(REF[ref]["avg loss"], color=c, ls=":", lw=1.0)
+axB.axvline(0.0, color="k", lw=0.6)
+_pad_x(axB, [v for side, col, *_ in SERIES_B for v in _col(side, col)]
+       + [REF[r][c] for r in REF for c in ("avg win", "avg loss")])
+_dress(axB, "B. how much it wins and how much it loses\n(dashed: base-rate win, dotted: base-rate loss)",
+       "average return per day of that kind")
+
+axC.barh(ys - 0.19, _col("buy (s > 0)", "mean per active day"), 0.38, color="C0", label="buy days")
+axC.barh(ys + 0.19, _col("sell (s <= 0)", "mean per active day"), 0.38, color="C1", label="sell days")
+axC.axvline(REF["unconditional long"]["mean per active day"], color="C0", ls="--", lw=1.0)
+axC.axvline(REF["unconditional short"]["mean per active day"], color="C1", ls="--", lw=1.0)
+axC.axvline(0.0, color="k", lw=0.6)
+_pad_x(axC, _col("buy (s > 0)", "mean per active day") + _col("sell (s <= 0)", "mean per active day")
+       + [REF[r]["mean per active day"] for r in REF] + [0.0])
+_dress(axC, "C. mean per active day\n(dashed: the base rate of the same side)", "mean return")
+
+fig.suptitle("the buy signal and the base rates, "
+             f"{len(common)} common days, midpoint fills", fontsize=10)
+fig.tight_layout()
+fig.savefig(OUT / "buy_signal_hitrate.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "buy_signal_hitrate.png")
 display(fig)
 plt.close(fig)
 """

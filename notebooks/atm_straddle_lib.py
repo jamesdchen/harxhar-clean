@@ -42,8 +42,6 @@ MODEL_ORDER = ["a0", "blk2", "blk2_inc", "lgbm", "xgb", "lasso_t", "lasso_f", "e
 RULE_ORDER = [
     "always short",
     "sign(s)",
-    "heaviside(s): long only",
-    "heaviside(s): short only",
     "sign(s), flat on event days",
 ]
 
@@ -890,7 +888,11 @@ def load_yhat_panel_mz(path: Path, method: str = "mean") -> pd.DataFrame:
 def rule_sizes(
     px: pd.DataFrame, repo: Path | None = None, sessions=None
 ) -> dict[str, pd.Series]:
-    """Position series of the standing rules, keyed by RULE_ORDER name.
+    """Position series of the standing rules.
+
+    RULE_ORDER names the rules the deck tabulates; the two heaviside legs
+    are kept here as well, because the rule-aggregate notebook reads the
+    long-only leg as a diagnostic.
 
     The two heaviside legs are the one-sided halves of sign(s): long only
     holds +1 on the days s > 0 and 0 otherwise, short only holds -1 on the
