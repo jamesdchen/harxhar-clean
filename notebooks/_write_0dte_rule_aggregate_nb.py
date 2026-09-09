@@ -189,7 +189,7 @@ print("always short takes no forecast, so one row stands for all seven:")
 print(asl.rule_row(-R, q_short).to_string())
 
 print("---")
-sz0 = asl.rule_sizes(books["blk2"])
+sz0 = asl.rule_sizes(books["blk2"], REPO)
 sign_row = asl.rule_row((sz0["sign(s)"] * books["blk2"]["R"]).loc[common], sz0["sign(s)"].loc[common])
 print("sign(s) on the block-diagonal ridge, midpoint fill:")
 print(sign_row.to_string())
@@ -281,7 +281,7 @@ DEFAULT_TILT = False
 DEFAULT_WINGS = None
 TILT_CLIP = (0.5, 2.0)
 WING_WIDTHS = (25.0, 50.0)
-HEADLINE_KEYS = ("long_short_sign", "long_short_sign_m2", *IV_KEYS)
+HEADLINE_KEYS = ("long_short_sign", "long_short_sign_m2", *IV_KEYS, "long_short_event_flat")
 
 declared = pd.DataFrame(
     [
@@ -307,6 +307,9 @@ print("saved", OUT / "rule_aggregate_declared_defaults.csv")
 print(f"the conservative threshold carries two declared units. c = {CONSERVATIVE_KAPPA:g} x past sd(s) was declared "
       f"FIRST; c = {CONSERVATIVE_C_IV:g} x the day's quoted implied variance was declared SECOND, after the first "
       "unit proved destructive. Both are kept and both are reported; neither was read off a table.")
+print("one family A row - sign(s) flat on FOMC statement days and month-end sessions - was NOT pre-declared in "
+      "this notebook: it was added after the audit in writeup/intraday_proposals/18_event_day_flat.md and is "
+      "carried as a variant, not as a default, wherever it appears below.")
 """
     ),
     md(
@@ -323,10 +326,22 @@ never touched on a buying day.
 | `long_short_hysteresis` | $\mathrm{sign}(s)$, threshold $c$ | $q=+1$ iff $s>c$, else $-1$ |
 | `long_short_hysteresis_iv05/10/20` | $\mathrm{sign}(s)$, threshold $c\,\mathrm{IV}^2$ | $q=+1$ iff $s>c\,\mathrm{IV}^2_{\mathrm{30min},t}$, else $-1$ |
 | `long_only` | heaviside$(s)$: long only | $q=\mathbf 1\{s>0\}$ — **diagnostic row only** |
+| `long_short_event_flat` | $\mathrm{sign}(s)$, flat on event days | $q=0$ on FOMC statement days and month-end sessions, else $\mathrm{sign}(s)$ — **variant, not pre-declared** |
 
 The long-only row is carried because it makes the mean decomposition
 readable, not because it is a candidate: it is never tuned, never sized,
 and never a headline.
+
+The event-day row is a **variant added after the fact**. It was not among
+the knobs declared in §2: it was proposed in the intraday notebook and
+audited in `writeup/intraday_proposals/18_event_day_flat.md`, and it is
+carried here so that the scoreboard, the information ratios and the fill
+table price it in the same unit as everything else. Its flags are the
+exchange calendar alone — FOMC statement days are scheduled a year ahead,
+a month end is the last session of the calendar month — so the position is
+known before the 15:30 entry, and the position series is the library's
+(`atm_straddle_lib.rule_sizes`, asserted below). Like the long-only row it
+is never sized and never winged.
 
 Three threshold grids are printed as sensitivity. The **absolute** grid
 sets $c=\kappa\,\widehat{\mathrm{sd}}_{t-1}(s)$, so $\kappa$ is
@@ -392,14 +407,27 @@ def pos_long_only(px: pd.DataFrame) -> pd.Series:
     return pd.Series(np.where(s > 0.0, 1.0, 0.0), index=px.index)
 
 
-# the three standing positions must be the library's, to the bit
-_lib = asl.rule_sizes(books["blk2"])
+def pos_sign_event_flat(px: pd.DataFrame) -> pd.Series:
+    # sign(s) with q = 0 on FOMC statement days and month-end sessions. Both
+    # flags are the exchange calendar (statement days scheduled a year ahead,
+    # month end = the last session of the month), so the position is known
+    # before the 15:30 entry; nothing is estimated from the sample.
+    is_event = asl.event_day_mask(px.index, REPO).to_numpy(bool)
+    return pd.Series(np.where(is_event, 0.0, pos_sign(px).to_numpy(float)), index=px.index)
+
+
+# the four standing positions must be the library's, to the bit
+_lib = asl.rule_sizes(books["blk2"], REPO)
 for _name, _mine in (("always short", pos_always_short(books["blk2"])),
                      ("sign(s)", pos_sign(books["blk2"])),
-                     ("heaviside(s): long only", pos_long_only(books["blk2"]))):
+                     ("heaviside(s): long only", pos_long_only(books["blk2"])),
+                     ("sign(s), flat on event days", pos_sign_event_flat(books["blk2"]))):
     _d = float((_mine - _lib[_name]).abs().max())
     print(f"{_name:26s} matches atm_straddle_lib.rule_sizes: max |diff| = {_d:.1e}")
     assert _d == 0.0
+_evq = pos_sign_event_flat(books["blk2"]).loc[common]
+print(f"the event-day row stands aside on {int((_evq == 0).sum())} of the {len(common)} common days and holds "
+      f"sign(s) on the other {int((_evq != 0).sum())}; the flags are calendar only")
 _d0 = float((pos_hysteresis(books["blk2"], 0.0) - pos_sign(books["blk2"])).abs().max())
 print(f"threshold rule at c = 0 reproduces sign(s): max |diff| = {_d0:.1e}")
 assert _d0 == 0.0
@@ -669,6 +697,7 @@ tables carry.
 | `long_short_hysteresis_iv10` | $\mathrm{sign}(s)$, threshold $c=0.1\,\mathrm{IV}^2$ |
 | `long_short_hysteresis_iv20` | $\mathrm{sign}(s)$, threshold $c=0.2\,\mathrm{IV}^2$ |
 | `long_only` | heaviside$(s)$: long only |
+| `long_short_event_flat` | $\mathrm{sign}(s)$, flat on event days |
 | `long_short_sign_m2` | $\mathrm{sign}(s)$, long side doubled |
 | `long_short_sign_m2_half` | $\mathrm{sign}(s)$, long side doubled, short side halved |
 | `long_short_sign_m2_ivtilt` | $\mathrm{sign}(s)$, long side doubled, implied-variance tilt |
@@ -697,6 +726,7 @@ RULES = [
     *[(k, f"sign(s), threshold c = {c:g} x implied variance", dict(base="hyst_iv", c_iv=c))
       for c, k in zip(C_IV_GRID, IV_KEYS)],
     ("long_only", "heaviside(s): long only [diagnostic]", dict(base="long")),
+    ("long_short_event_flat", "sign(s), flat on event days [variant]", dict(base="event_flat")),
     ("long_short_sign_m2", "sign(s), long side doubled", dict(base="sign", m_long=DEFAULT_M_LONG)),
     ("long_short_sign_m2_half", "sign(s), long side doubled, short side halved",
      dict(base="sign", m_long=DEFAULT_M_LONG, m_short=0.5)),
@@ -725,19 +755,22 @@ def base_position(px: pd.DataFrame, spec: dict) -> pd.Series:
         return pos_hysteresis_iv(px, spec["c_iv"])
     if b == "long":
         return pos_long_only(px)
+    if b == "event_flat":
+        return pos_sign_event_flat(px)
     raise KeyError(b)
 
 
 def build(tag: str, spec: dict) -> dict:
     \"\"\"One portfolio: premium return, index-point P&L, signed notional, day index.
 
-    The long-only row is a diagnostic and is never sized or winged.
-    On a winged rule the selling days hold the fly (whose return already
-    carries the short direction) and the buying days hold the plain body.
+    The long-only diagnostic and the event-day variant are never sized or
+    winged. On a winged rule the selling days hold the fly (whose return
+    already carries the short direction) and the buying days hold the plain
+    body.
     \"\"\"
     px = books[tag]
     q = base_position(px, spec)
-    if spec.get("base") == "long":
+    if spec.get("base") in ("long", "event_flat"):
         m_long = m_short = 1.0
         tilt = False
     else:
@@ -919,13 +952,15 @@ the return on the exchange's strategy-based margin for a short straddle,
 posted every day whichever way the position points.
 
 The second is the fill table, and it stays small: only the headline rows
-— $\mathrm{sign}(s)$, $\mathrm{sign}(s)$ with the long side doubled, and
-the three implied-relative threshold rules — are re-priced away from the
-midpoint, at the crossed spread (buy the ask, sell the bid) and at a
-half-spread transaction cost. Explosion of the fill grid across every
-rule would say nothing these rows do not. The threshold rules are in the
-table because the crossed spread, not the midpoint, is the fill at which
-the standing rule decides whether a row is adopted.
+— $\mathrm{sign}(s)$, $\mathrm{sign}(s)$ with the long side doubled, the
+three implied-relative threshold rules and the event-day variant — are
+re-priced away from the midpoint, at the crossed spread (buy the ask,
+sell the bid) and at a half-spread transaction cost. Explosion of the
+fill grid across every rule would say nothing these rows do not. The
+threshold rules and the event-day row are in the table because the
+crossed spread, not the midpoint, is the fill at which the standing rule
+decides whether a row is adopted; a day the event-day row sits out pays
+no spread at all, which is part of what it is being scored for.
 """
     ),
     code(
@@ -965,7 +1000,9 @@ for key in HEADLINE_KEYS:
     for tag in MODEL_ORDER:
         b = build(tag, RULE_SPEC[key])
         size = b["size"]
-        signq = pd.Series(np.where(size.to_numpy() >= 0, 1.0, -1.0), index=common)
+        # a flat day keeps a zero here, so it pays no spread and is not counted
+        # untradeable; every rule without flat days is unchanged by this
+        signq = pd.Series(np.sign(size.to_numpy(float)), index=common)
         n_bad = asl.crossed_untradeable_count(signq, px["bid_entry"], px["ask_entry"])
         crossed = asl.crossed_premium_return(signq, px["exit"], px["bid_entry"], px["ask_entry"]) * size.abs()
         trade = px["entry"].astype(float) + signq * hs
@@ -977,7 +1014,7 @@ for key in HEADLINE_KEYS:
                               "std": float(st["std"]), "t_mean": float(st["t_mean"]),
                               "Sharpe_ann": float(st["Sharpe_ann"])})
 fills = pd.DataFrame(fill_rows)
-print("fill variants, the two headline rows only")
+print(f"fill variants, the {len(HEADLINE_KEYS)} headline rows only")
 print(fills.to_string(index=False))
 fills.to_csv(OUT / "rule_aggregate_fills.csv", index=False)
 print("saved", OUT / "rule_aggregate_fills.csv")

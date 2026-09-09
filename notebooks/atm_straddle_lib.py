@@ -44,6 +44,7 @@ RULE_ORDER = [
     "sign(s)",
     "heaviside(s): long only",
     "heaviside(s): short only",
+    "sign(s), flat on event days",
 ]
 
 PERIODS_PER_YEAR = 252.0
@@ -886,7 +887,9 @@ def load_yhat_panel_mz(path: Path, method: str = "mean") -> pd.DataFrame:
     return df
 
 
-def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
+def rule_sizes(
+    px: pd.DataFrame, repo: Path | None = None, sessions=None
+) -> dict[str, pd.Series]:
     """Position series of the standing rules, keyed by RULE_ORDER name.
 
     The two heaviside legs are the one-sided halves of sign(s): long only
@@ -895,10 +898,22 @@ def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
     They partition the days, so day by day their positions - and therefore
     their daily returns - sum to sign(s) exactly. Flat days stay in the
     series as zeros rather than being dropped.
+
+    "sign(s), flat on event days" is sign(s) with q = 0 on FOMC statement
+    days and on month-end sessions, from event_day_mask(px.index, repo).
+    Both flags are the exchange calendar and nothing else: FOMC statement
+    days are scheduled a year ahead, and a month end is the last session
+    of the calendar month, so the position is known before the 15:30
+    entry. `repo` and `sessions` are handed to event_day_mask; `repo`
+    defaults to find_repo() and `sessions` must be given whenever
+    px.index is a subset of the traded frame. The rule was declared in
+    the intraday notebook's proposal 06 and audited in proposal 18
+    (writeup/intraday_proposals/18_event_day_flat.md).
     """
     s = px["signal"].to_numpy(float)
     long_day = s > 0
     pos = pd.Series(np.where(long_day, 1.0, -1.0), index=px.index)
+    is_event = event_day_mask(px.index, repo, sessions=sessions).to_numpy(bool)
     return {
         "always short": pd.Series(-1.0, index=px.index),
         "sign(s)": pos,
@@ -907,6 +922,9 @@ def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
         ),
         "heaviside(s): short only": pd.Series(
             np.where(long_day, 0.0, -1.0), index=px.index
+        ),
+        "sign(s), flat on event days": pd.Series(
+            np.where(is_event, 0.0, pos.to_numpy(float)), index=px.index
         ),
     }
 
@@ -1605,3 +1623,39 @@ def fomc_and_monthend(
         )
     flags.index = index
     return flags
+
+
+_EVENT_MASK_CACHE: dict[tuple, pd.Series] = {}
+
+
+def event_day_mask(
+    index: pd.DatetimeIndex, repo: Path | None = None, sessions=None
+) -> pd.Series:
+    """Boolean Series: True on FOMC statement days and month-end sessions.
+
+    is_event from fomc_and_monthend with is_fomc = NA read as False, so a
+    date past the FOMC knowledge horizon is NOT flagged (the warning that
+    call raises still fires). `repo` defaults to find_repo(); `sessions`
+    is passed through, so it must be the full trading-day list whenever
+    `index` is a subset (see fomc_and_monthend). Results are cached on
+    (repo, index values, sessions values) because the flags come from a
+    file read and the rule tables ask for them once per forecast.
+    """
+    repo = find_repo() if repo is None else Path(repo)
+    idx = pd.DatetimeIndex(index)
+    sess = None if sessions is None else pd.DatetimeIndex(sessions)
+    key = (
+        str(repo),
+        idx.asi8.tobytes(),
+        None if sess is None else sess.asi8.tobytes(),
+    )
+    hit = _EVENT_MASK_CACHE.get(key)
+    if hit is None:
+        flags = fomc_and_monthend(idx, repo, sessions=sess)
+        hit = (
+            (flags["is_me"] | flags["is_fomc"].fillna(False))
+            .astype(bool)
+            .rename("is_event")
+        )
+        _EVENT_MASK_CACHE[key] = hit
+    return pd.Series(hit.to_numpy(bool), index=index, name="is_event")
