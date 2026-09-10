@@ -2030,22 +2030,20 @@ print(var_tab.to_string(index=False))
 var_tab.to_csv(OUT / "pnl_variants_blk2.csv", index=False)
 
 fig, ax = plt.subplots(figsize=(11, 3.4))
+BP = 1e4  # basis points of the entry premium
 for name, ls in (("always short", "-"), ("sign(s)", "--")):
     q = sizes[name].loc[common]
-    ax.plot(
-        px.index,
-        asl.points_pnl(q, px["exit"], px["entry"]).cumsum() * asl.SPX_MULTIPLIER,
-        ls, lw=1.2, label=f"{name} mid",
-    )
-    signq = np.sign(q.replace(0, -1.0))
-    crossed_usd = pd.Series(np.where(signq >= 0, px["exit"] - px["ask_entry"], px["bid_entry"] - px["exit"]), index=px.index) * q.abs() * asl.SPX_MULTIPLIER   # dollars at the fill
-    ax.plot(px.index, crossed_usd.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name} crossed spread")
-ax.set_title("block-diagonal ridge — cumulative dollar P&L (summed, not compounded)")
-ax.set_ylabel("USD")
+    mid_bp = q * px["R"] * BP
+    crossed_bp = asl.crossed_premium_return(q, px["exit"], px["bid_entry"], px["ask_entry"]) * BP
+    ax.plot(px.index, mid_bp.cumsum(), ls, lw=1.2, label=f"{name}, mid: {mid_bp.mean():+.0f} bp/day on average")
+    ax.plot(px.index, crossed_bp.cumsum(), ls, lw=1.0, alpha=0.7, label=f"{name}, crossed spread: {crossed_bp.mean():+.0f} bp/day")
+ax.axhline(0.0, color="k", lw=0.5)
+ax.set_title("block-diagonal ridge — cumulative return of the position, one unit of premium per day (summed, not compounded)")
+ax.set_ylabel("cumulative return, basis points of premium")
 ax.legend(fontsize=8)
 fig.tight_layout()
-fig.savefig(OUT / "pnl_cum_usd_blk2.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "pnl_cum_usd_blk2.png")
+fig.savefig(OUT / "pnl_cum_return_blk2.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "pnl_cum_return_blk2.png")
 display(fig)
 plt.close(fig)
 """
