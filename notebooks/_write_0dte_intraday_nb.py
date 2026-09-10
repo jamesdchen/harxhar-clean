@@ -650,43 +650,11 @@ print("bars after join", len(work), "clock times", sorted(work["hhmm"].unique())
         r"""
 ## 5b. Window-matched signal and forecast calibration
 
-One construction plus one verification, both causal, feeding extra
-rows of the §6 table.
+The signal at clock $t$ compares the next bar's forecast with the implied variance of that same bar:
 
-**Forecast calibration (the fit-set fix).** The smear previously fit
-its MZ regression on every 30-min bar of the day, overnight included;
-off-session bars are mispredicted by orders of magnitude and pulled
-the calibration off the session bars it is actually used on.
-The fix lives in the lib: `second_order_raw` fits only the scored
-session bars (10:00–15:30) on the trailing window of 250 sessions.
-The cell below prints the mean ratio $\widehat{RV}/RV$ on the scored
-bars by year and pooled; the pooled ratio of means is dominated by
-2020's variance, so the per-year view is the one to read. No debias
-layer sits on top — the cell only verifies calibration.
+$$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t,$$
 
-**Resliced implied (window-matched signal).** One option prices only
-the integral of variance to the close; the vendor hourly IV is that
-integral per hour. To compare against a *next-30-min* forecast,
-reslice: $\mathrm{IV}^{2}_{\mathrm{hr}}\times h_t$ is the remaining
-implied variance ($h_t$ = hours to close), and the next bar's share
-is $w_t$ = this clock's fraction of remaining realized variance,
-estimated from the **expanding per-clock mean** of realized bar
-variance on prior sessions only. That profile is built on the
-forecast panel's own history — every session bar it carries, back to
-2001 — not on this frame, so the 63-session minimum is met more than
-eighteen years before the first scored day and the frame carries no
-warm-up. Then
-
-$$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t.$$
-
-At 15:30, $w=1$, $h=\tfrac12$: the matched implied collapses to the
-paper's $\mathrm{IV}^2/2$ exactly (checked in-cell, along with $w=1$
-on every day and a slice on every scored bar). The only rows that
-carry no matched signal are the bars whose vendor implied volatility
-was censored (§3); they sit flat, $q=0$, in the $\mathrm{sign}(s)$
-rules, and those zeros stay in the daily sums. The cell also checks
-the 15:30 leg against the deck's close trade: the positions agree on
-every shared day but the censored ones.
+where $h_t$ is hours to the close and $w_t$ is that period's fraction of the remaining realized variance, estimated from the expanding per-period mean of per-period $RV$ on prior sessions only (the forecast panel's history back to 2001, so no bar in the frame is without a slice). At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
 """
     ),
     code(
