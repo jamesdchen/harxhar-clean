@@ -1539,7 +1539,7 @@ _pad_x(axC, np.concatenate([hrt[c].to_numpy(float) for c in
 _dress_clock(axC, "C. mean per active bar\n(bars: the signal's bars; dashed: every bar)",
              "mean return")
 
-fig.suptitle("the matched signal's bars against the base rates (the same statistic with the package held every day, "
+fig.suptitle("the window-matched signal's bars against the base rates (the same statistic with the package held every day, "
              f"no forecast), {int(work['date'].nunique())} days, midpoint fills", fontsize=10)
 fig.tight_layout()
 fig.savefig(OUT / "hitrate_by_entry_hhmm.png", dpi=120, bbox_inches="tight")
@@ -1553,10 +1553,11 @@ print("saved", OUT / "hitrate_by_entry_hhmm.png")
 ## 9. Buy-signal fingerprint (day $\times$ clock)
 
 Each column is one expiration day, each row one 30-min clock. Blue:
-the matched signal says **buy** the straddle
-($s^{\mathrm{m}}_t>0$ — forecast above the implied slice); red:
-short; grey: no signal, so the rule sits flat — a censored implied
-volatility, the only such case. The §8 tables average this grid down
+the window-matched signal says **buy** the straddle
+($s^{\mathrm{m}}_t>0$: the forecast of the next 30 minutes is above the implied
+variance of those same 30 minutes, the remaining implied sliced by the
+profile); red: short; grey: no implied quote (a censored solver node), so the
+rule sits flat — the only such case. The §8 tables average this grid down
 each row; the fingerprint shows the day-resolved structure — whether
 buys cluster in episodes (vol spikes), drift across regimes, and how
 the buy share thins from the morning rows to the settlement row.
@@ -1580,7 +1581,7 @@ ticks = [int(np.argmax(yrs == y)) for y in sorted(set(yrs))]
 ax.set_xticks(ticks, sorted(set(yrs)), fontsize=8)
 ax.set_xlabel("expiration day")
 ax.set_ylabel("clock (ET)")
-ax.set_title("buy (blue) / short (red) / flat, censored implied volatility (grey) — matched signal")
+ax.set_title("window-matched signal, block-diagonal ridge: buy (blue) / short (red) / no implied quote, censored solver node (grey)")
 fig.tight_layout()
 fig.savefig(OUT / "buy_fingerprint_day_clock.png", dpi=120, bbox_inches="tight")
 display(fig)
