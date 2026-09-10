@@ -25,22 +25,23 @@ hybrid `always short, sign(s) close` 2.97 (t 5.51). Source:
 
 ## The question
 
-The close trade (RV-IV notebook) scores sign(s) at Sharpe 1.42. A naive
+The close trade (RV-IV notebook) scores sign(s) at Sharpe 1.34. A naive
 projection - twelve independent half-hour legs at that edge - would put the
-intraday trade near 5. It scores 1.84.
+intraday trade near 5. It scores 2.01 (notebook, 2026-09-10).
 
 ## The answer (00_diagnosis_sharpe_gap.md)
 
 1. **Reconciliation is exact.** The intraday 15:30 leg is the RV-IV portfolio:
    identical strikes, entries, exits, returns and forecasts on all 866 shared
    days; the matched signal equals the close signal to 1e-11. Its settlement
-   leg scores 1.67 against the close notebook's 1.42 because the matched signal
-   sits flat on the first 64 dates, which drops the COVID quarter (the close
-   notebook on the same 802 post-warm-up days scores 1.69).
+   leg scores 1.37 against the close notebook's 1.34; the gap is the five
+   censored-implied days on which the notebook sits flat and the deck
+   re-inverts. (Until 2026-09-10 the notebook's profile warm-up also zeroed the
+   first 63 sessions, the COVID quarter, and the leg printed 1.58-1.67.)
 2. **Independence is not the problem; the edge is.** Cross-bar correlation is
    about zero (effective independent legs 5.8 of 12 by variance share). The
    eleven intraday legs together add a fraction of a point of Sharpe to the
-   close leg's 1.67; the close leg holds the great majority of the P&L. Per-bar
+   close leg's 1.37; the close leg holds the great majority of the P&L. Per-bar
    Sharpe is an order of magnitude larger at 15:30 than at any other clock
    (pre-fix study numbers: 0.115 against 0.00-0.07).
 3. **The intraday implied slice is the wrong price.** The forecast is as
