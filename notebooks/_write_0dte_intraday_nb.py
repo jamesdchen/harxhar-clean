@@ -1541,7 +1541,7 @@ ticks = [int(np.argmax(yrs == y)) for y in sorted(set(yrs))]
 ax.set_xticks(ticks, sorted(set(yrs)), fontsize=8)
 ax.set_xlabel("expiration day")
 ax.set_ylabel("clock (ET)")
-ax.set_title("position by expiration day and clock, window-matched signal, block-diagonal ridge")
+ax.set_title("position by expiration day and clock, block-diagonal ridge")
 from matplotlib.patches import Patch
 ax.legend(
     handles=[Patch(color="#4c72b0", label="buy: s > 0"), Patch(color="#c44e52", label="short: s <= 0"),
