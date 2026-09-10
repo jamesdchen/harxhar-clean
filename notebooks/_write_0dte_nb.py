@@ -60,9 +60,9 @@ return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the rules across the eight forecast
 tables and tests each portfolio against the control day by day;
-§11 regresses the settlement return on the 15:30 signal; §12 adds up
-the profit and loss; §13 is parked, its always-short comparison carried
-by §10; §14 compounds each rule at a fixed 3% of wealth per day; §15 diagnoses the buy days; §16 checks one row by hand. A
+§11 shifts the forecast in time to show the look-ahead cliff; §12 regresses the settlement return on the 15:30 signal; §13 adds up
+the profit and loss; §14 is parked, its always-short comparison carried
+by §10; §15 compounds each rule at a fixed 3% of wealth per day; §16 diagnoses the buy days; §17 checks one row by hand. A
 defined-risk variant (wings on the days the portfolio sells) is parked and
 explored in the experimental notebook.
 
@@ -479,24 +479,9 @@ recalibration fitted on the trailing 250 days only:
   when they were included, pushed the forecast-to-realized ratio from
   1.08 to 1.14.
 
-**Mean, not median.** One could argue that a rule that bets on the
-*sign* of forecast minus price should be built on the median of
-realized variance — "more likely above than below" is a statement
-about the median — and that the mean, which sits above the median on a
-right-skewed target, says "above" too often. That alternative was
-built on 2026-09-04 (the same line fitted by weighted median
-regression, $\widehat{RV}=m^2B$ with no variance term, because the
-median commutes with the square) and is compared with the mean map
-immediately below. It is not adopted: the trade is scored on what the
-position earns, not on how often its sign is right, and the expected
-payoff of a long package is driven by the right tail of realized variance
-that the median ignores.
+**Mean, not median.** The map targets the mean of realized variance: the trade is scored on what the position earns, and a long package is paid by the right tail.
 
-Housekeeping: the fit is solved in closed form one day at a time, in a
-routine shared with the intraday notebook; each model's table is cached
-and keyed to its inputs and to the fitting method, so unchanged inputs
-skip the computation and any change forces it; the eight tables load in
-parallel.
+Housekeeping: closed-form fit shared with the intraday notebook; per-model tables cached on their inputs.
 """
     ),
     code(
@@ -510,8 +495,7 @@ YHATS = {tag: _PATHS[tag] for tag in asl.MODEL_ORDER}
 # The recalibration lives in atm_straddle_lib: flat 250-day window, fit
 # restricted to the scored session bars (rows labelled 10:30-16:00 ET) so off-session
 # dynamics cannot pollute the calibration. Delegate rather than duplicate.
-# method="mean" is this notebook's map; method="median" is the alternative
-# tested in the next cell (its tables are cached under their own key).
+# method="mean" is this notebook's map.
 second_order_raw = asl.second_order_raw
 load_yhat_1530 = asl.load_yhat_1530
 
@@ -555,70 +539,15 @@ for tag, rv in models.items():
 """
     ),
     md(
-        r"""### Panels, provenance, and what this frame leaves out
+        r"""### Panels, provenance and exclusions
 
-**The panel of record is the FOMC panel.** The block-diagonal ridge and
-the fixed-penalty lasso are fitted on it. The tuned lasso, the elastic
-net and the two tree models are still on the earlier panel and are
-labelled as such in the provenance table below; a re-run on the FOMC
-panel is pending, so those rows are read as comparators, not as a
-ranking. The baseline carries no exogenous columns, so its forecast is
-the same on either panel. The row "block-diagonal ridge, without the
-FOMC columns" is that same ridge on the earlier panel: the gap between
-the two ridge rows is what the calendar channels are worth on this
-trade, and §10 tests it.
-
-**Fit mask.** The recalibration is fitted on session dates only, on the
-stamps labelled 10:30 to 16:00. A date counts as a session when it
-carries a 16:00 stamp. The 13:00 early closes of 2001–2025 are excluded,
-and so are the exchange holidays, whose rows in this panel are
-futures-only bars ending at 13:00 or 11:30 and whose realized variance
-is a fraction of a session bar's. The cell below prints how many
-in-window rows that removes.
-
-**The profile is not yet clean.** The scale $B$ that each forecast is
-divided by is a trailing twenty-day mean per time of day, built upstream
-from a series that still contains the post-close bars of early-close
-days. Those bars sit far below the slot's usual level, so $B$ is a few
-per cent low for twenty sessions after each of them; the cell below
-prints how many scored days sit inside such a window. The forecast-side
-audit of 2026-09-05 bounded the effect on this trade at 0.06 in
-annualized Sharpe ratio on the block-diagonal ridge, moving 5 to 8
-positions, every one of them from short to long. That bound is the
-audit's measurement, not a number this notebook recomputes. The fix is
-upstream of this notebook and is pending; the disclosure stands in the
-meantime.
-
-**What `rv_raw` is.** The realized-variance column is computed on
-24-hour index futures. The row labelled 16:00 is therefore the futures
-bar from 15:30 to 16:00, not the cash settlement window; the option
-itself settles against the official cash close (§5).
-
-**Annualization.** Every Sharpe ratio and information ratio in this
-notebook scales the daily series by $\sqrt{252}$. That is a
-per-trade-day convention: one unit of premium on each day the trade is
-taken. This frame does not trade 252 days a year — same-day-expiry SPX
-listings were Monday, Wednesday and Friday before June 2022 and every
-session after — so the days-per-year count printed below rises from 158
-in 2020 to 248 in 2023. A calendar-time convention, filling the untraded
-sessions with zero, would multiply every Sharpe ratio here by the scale
-factor printed below. Relative comparisons are unaffected either way.
-
-**The last twenty months are unscored.** The option chain runs to
-2025-12-31, but the forecast panel ends 2024-04-30, so every expiration
-day after that carries no forecast row and leaves the frame. The count
-and the date range are printed below. Those days are the most recent
-tape in the sample, not a scattered remainder.
-
-**Model provenance.** The cell prints, per model, the file, the panel,
-the fitting window, the refit contract and where the hyperparameters
-came from. Three entries are weak and are printed as such: the two tree
-models were run at two different refit cadences on two clusters and
-neither the tables nor their metadata record which chunk came from
-which; the frozen twenty-arm hyperparameter menu the two tree arms were
-picked from is on neither disk nor git history, so their settings cannot
-be recovered; and the FOMC-panel tables are identified by a file
-fingerprint and a cluster run id rather than by a commit.
+- Panel of record: the FOMC panel (block-diagonal ridge, fixed lasso). Tuned lasso, elastic net and both trees: earlier panel, re-run pending. "Block-diagonal ridge, without the FOMC columns" = the same ridge on the earlier panel.
+- Fit mask: session dates only (a 16:00 stamp exists), stamps 10:30–16:00; early closes 2001–2025 and holiday futures-only bars excluded. Row counts printed below.
+- Profile $B$: trailing twenty-day per-slot mean, built upstream, still contains post-close bars of early-close days; bound on this trade 0.06 Sharpe (audit of 2026-09-05), fix pending upstream.
+- `rv_raw`: 24-hour futures realized variance; the 16:00 row is the 15:30–16:00 futures bar.
+- Annualization: $\sqrt{252}$ per trade day; days traded per year printed below.
+- Expiration days after 2024-04-30 carry no forecast row and leave the frame.
+- Provenance per model is printed below; the tree settings and refit cadence are not recoverable.
 """
     ),
     code(
@@ -752,170 +681,171 @@ prov.to_csv(OUT / "model_provenance.csv", index=False)
 print("saved", OUT / "model_provenance.csv")
 """
     ),
-    md(
-        r"""
-### A median map, tested and not adopted
-
-The alternative is fitted on the same inputs — the same trailing 250
-days, the same session bars, the same weights — by weighted median
-regression, and its forecast is $m^2 B$ with no variance term. The two
-maps are compared on identical days: the sign(s) row for every forecast
-under each map; the paired daily difference with its $t$-statistic and
-two block-bootstrap intervals on the Sharpe difference (percentile and
-basic, from circular blocks of the daily series); the share of buy
-days and the hit rate (the share of days the position earns a positive
-return); the calibration of each map by year — the share of days on
-which realized variance exceeds the forecast, one half for a median —
-and the days on which the two maps disagree, with the return the trade
-would have earned on them. Always short is identical under both maps by
-construction. The implied variance is the one §8 constructs — the two
-vendor legs, censored of the solver's bracket nodes, with a censored
-day's package midpoint re-inverted — built here by the same routine, so
-this comparison and the rule table price the trade the same way.
-
-**Verdict, from the numbers below.** The median map is calibrated as
-intended — realized variance exceeds its forecast on $0.51$ to $0.58$ of
-the days in every year, against $0.30$ to $0.42$ for the mean map — and
-it is right more often (hit rate $0.58$–$0.61$ against $0.54$–$0.55$).
-Yet it earns less for every one of the eight forecasts (block-diagonal
-ridge Sharpe $1.34 \to 0.49$), with no Sharpe
-difference resolved at the $95\%$ level. The two maps disagree on 178
-to 210 days per forecast — days the mean map buys and the median map
-sells — and the long package pays on those days on average
-(block-diagonal ridge $+0.13$ per unit of premium). What the trade
-earns is the expected payoff minus the price; the expected payoff of a
-long package is driven by the right tail of realized variance, which
-the median ignores by construction. A median-calibrated forecast maximizes
-how often the sign is right; the mean-calibrated forecast maximizes what
-the sign earns, and that is the quantity the rule is scored on. The mean
-map stays.
-"""
-    ),
-    code(
-        r"""
-# the median map, cached under its own key, on the same inputs and days
-with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
-    futs_med = {tag: pool.submit(load_yhat_1530_cached, tag, path, need_dates, "median") for tag, path in YHATS.items()}
-    models_median = {tag: futs_med[tag].result() for tag in YHATS}
-
-# The implied variance section 8 builds, defined here because this comparison needs it first
-# and both must read the same price: the two vendor legs, censored of the bisection's bracket
-# nodes; on a censored day the package midpoint is re-inverted for the volatility instead.
-# A non-converged bisection returns the node EXACTLY, so the library censors on an exact hit
-# (asl.IV_NODE_RTOL = 1e-5); a wider band would censor ordinary quotes sitting near the middle
-# node, which is itself a typical implied-volatility level.
-
-
-def on_vendor_node(v: pd.Series) -> np.ndarray:
-    # True where the vendor reported a bracket node rather than a solved volatility
-    return (asl.censor_vendor_iv(v).isna() & v.notna()).to_numpy()
-
-
-def iv_hourly_15_30(frame: pd.DataFrame) -> pd.DataFrame:
-    # hourly implied volatility of the package at 15:30: the mean of the two quoted legs,
-    # replaced on a censored day by the volatility that reproduces the package midpoint
-    out = pd.DataFrame(index=frame.index)
-    out["iv_c"] = pd.to_numeric(frame["impl_volatility_c"], errors="coerce").astype(float)
-    out["iv_p"] = pd.to_numeric(frame["impl_volatility_p"], errors="coerce").astype(float)
-    out["iv_capped"] = on_vendor_node(out["iv_c"]) | on_vendor_node(out["iv_p"])
-    out["iv_hourly_quoted"] = out[["iv_c", "iv_p"]].mean(axis=1)
-    cap = out["iv_capped"] & (frame["entry"] > 0)
-    out["inv30"] = np.nan
-    out.loc[cap, "inv30"] = [
-        asl.bsm_invert_package_vol(S, Kc, Kp, m, hours_remaining=0.5)
-        for S, Kc, Kp, m in zip(frame.loc[cap, "S"], frame.loc[cap, "K_c"], frame.loc[cap, "K_p"], frame.loc[cap, "entry"])
-    ]
-    out["iv_hourly"] = out["iv_hourly_quoted"]
-    out.loc[cap, "iv_hourly"] = out.loc[cap, "inv30"].map(asl.hourly_iv_from_total_vol)   # total vol over 0.5 h -> the vendor's hourly convention
-    return out
-
-
-_iv_var = (iv_hourly_15_30(atm)["iv_hourly"] / np.sqrt(2.0)) ** 2   # section 8's units: hourly SD -> 30-minute variance
-_common = atm.index
-for _t in YHATS:
-    assert models[_t].index.equals(models_median[_t].index), _t   # same fit gate, same days
-    _common = _common.intersection(models[_t].index)
-_R = atm.loc[_common, "R"].astype(float)
-_ivv = _iv_var.loc[_common].astype(float)
-
-
-def _nw_t(d):
-    d = np.asarray(d, float)
-    lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
-    return float(sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag}).tvalues[0])
-
-
-def _boot_dsharpe(a, b, B=2000, seed=0):
-    # circular moving-block bootstrap of the annualized Sharpe difference (a minus b): percentile and basic intervals
-    rng = np.random.default_rng(seed)
-    a, b = np.asarray(a, float), np.asarray(b, float)
-    n = len(a); blen = int(np.ceil(n ** (1 / 3)))
-    idx = asl.circular_block_bootstrap_idx(rng, n, blen, B)
-    sh = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
-    d = sh(a[idx]) - sh(b[idx])
-    lo, hi = (float(v) for v in np.percentile(d, [2.5, 97.5]))
-    hat = float(a.mean() / a.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR) - b.mean() / b.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
-    return {"pct_lo": lo, "pct_hi": hi, "basic_lo": 2 * hat - hi, "basic_hi": 2 * hat - lo}
-
-
-def _interval_reading(lo, hi):
-    # a bound within 5% of the interval's width from zero is a knife edge, whichever side of zero it falls
-    width = hi - lo
-    edge = min(abs(lo), abs(hi)) < 0.05 * width
-    if lo > 0 or hi < 0:
-        return "knife-edge, excludes zero" if edge else "excludes zero"
-    return "knife-edge, includes zero" if edge else "includes zero"
-
-
-_rows, _cal = [], []
-for _t in YHATS:
-    _rec = {"model": LABEL[_t]}
-    _ser = {}
-    for _name, _tab in (("mean", models[_t]), ("median", models_median[_t])):
-        _rv = _tab.loc[_common]
-        _pos = pd.Series(np.where(_rv["rv_hat"] - _ivv > 0, 1.0, -1.0), index=_common)
-        _rp = _pos * _R
-        _ser[_name] = (_rp, _pos)
-        _rr = asl.rule_row(_rp, _pos)
-        _rec[f"Sharpe_{_name}"] = float(_rr["Sharpe_ann"]); _rec[f"t_{_name}"] = float(_rr["t_mean"])
-        _rec[f"mean_{_name}"] = float(_rr["mean"]); _rec[f"buy_share_{_name}"] = float((_pos > 0).mean())
-        _rec[f"hit_rate_{_name}"] = float((_rp > 0).mean())
-        _ratio = _rv["rv_raw"] / _rv["rv_hat"]
-        for _yr, _g in _ratio.groupby(_ratio.index.year):
-            _cal.append({"model": LABEL[_t], "map": _name, "year": int(_yr),
-                         "share_realized_above": float((_g > 1).mean()), "median_realized_over_forecast": float(_g.median())})
-    _d = _ser["median"][0] - _ser["mean"][0]
-    _rec["diff_per_day"] = float(_d.mean()); _rec["diff_t"] = _nw_t(_d)
-    _bi = _boot_dsharpe(_ser["median"][0], _ser["mean"][0])
-    _rec["dSharpe_lo"], _rec["dSharpe_hi"] = _bi["pct_lo"], _bi["pct_hi"]
-    _rec["dSharpe_basic_lo"], _rec["dSharpe_basic_hi"] = _bi["basic_lo"], _bi["basic_hi"]
-    _rec["percentile_interval"] = _interval_reading(_bi["pct_lo"], _bi["pct_hi"])
-    _rec["basic_interval"] = _interval_reading(_bi["basic_lo"], _bi["basic_hi"])
-    _swing = (_ser["mean"][1] > 0) & (_ser["median"][1] < 0)
-    _rec["days_mean_buys_median_sells"] = int(_swing.sum()); _rec["their_mean_R"] = float(_R[_swing].mean())
-    _rec["same_position_share"] = float((_ser["median"][1] == _ser["mean"][1]).mean())
-    _rows.append(_rec)
-_as = asl.rule_row(-_R, pd.Series(-1.0, index=_common))
-swap_tab = pd.DataFrame(_rows).set_index("model")
-cal_tab = pd.DataFrame(_cal)
-print(f"days common to all {len(YHATS)} forecasts under both maps: {len(_common)}; always short Sharpe {float(_as['Sharpe_ann']):.3f} under either map")
-print("sign(s) under the two maps:")
-print(swap_tab[["Sharpe_mean", "t_mean", "Sharpe_median", "t_median", "diff_per_day", "diff_t"]].round(3).to_string())
-print("---")
-print("95% intervals for the Sharpe difference (median minus mean), circular block bootstrap: percentile and basic")
-print(swap_tab[["dSharpe_lo", "dSharpe_hi", "percentile_interval", "dSharpe_basic_lo", "dSharpe_basic_hi", "basic_interval"]].round(3).to_string())
-print("---")
-print(swap_tab[["buy_share_mean", "buy_share_median", "hit_rate_mean", "hit_rate_median", "same_position_share",
-                "days_mean_buys_median_sells", "their_mean_R"]].round(3).to_string())
-print("---")
-print("calibration by year, block-diagonal ridge (share of days realized > forecast; median realized / forecast):")
-print(cal_tab[cal_tab["model"] == LABEL["blk2"]].pivot(index="year", columns="map",
-      values=["share_realized_above", "median_realized_over_forecast"]).round(3).to_string())
-swap_tab.to_csv(OUT / "recalibration_mean_vs_median.csv")
-cal_tab.to_csv(OUT / "recalibration_calibration_by_year.csv", index=False)
-print("saved recalibration_mean_vs_median.csv, recalibration_calibration_by_year.csv in", OUT)
-"""
-    ),
+    # SECTION PARKED 2026-09-09 (user order): the median-map comparison is held out of the deck.
+    #     md(
+    #         r"""
+    # ### A median map, tested and not adopted
+    #
+    # The alternative is fitted on the same inputs — the same trailing 250
+    # days, the same session bars, the same weights — by weighted median
+    # regression, and its forecast is $m^2 B$ with no variance term. The two
+    # maps are compared on identical days: the sign(s) row for every forecast
+    # under each map; the paired daily difference with its $t$-statistic and
+    # two block-bootstrap intervals on the Sharpe difference (percentile and
+    # basic, from circular blocks of the daily series); the share of buy
+    # days and the hit rate (the share of days the position earns a positive
+    # return); the calibration of each map by year — the share of days on
+    # which realized variance exceeds the forecast, one half for a median —
+    # and the days on which the two maps disagree, with the return the trade
+    # would have earned on them. Always short is identical under both maps by
+    # construction. The implied variance is the one §8 constructs — the two
+    # vendor legs, censored of the solver's bracket nodes, with a censored
+    # day's package midpoint re-inverted — built here by the same routine, so
+    # this comparison and the rule table price the trade the same way.
+    #
+    # **Verdict, from the numbers below.** The median map is calibrated as
+    # intended — realized variance exceeds its forecast on $0.51$ to $0.58$ of
+    # the days in every year, against $0.30$ to $0.42$ for the mean map — and
+    # it is right more often (hit rate $0.58$–$0.61$ against $0.54$–$0.55$).
+    # Yet it earns less for every one of the eight forecasts (block-diagonal
+    # ridge Sharpe $1.34 \to 0.49$), with no Sharpe
+    # difference resolved at the $95\%$ level. The two maps disagree on 178
+    # to 210 days per forecast — days the mean map buys and the median map
+    # sells — and the long package pays on those days on average
+    # (block-diagonal ridge $+0.13$ per unit of premium). What the trade
+    # earns is the expected payoff minus the price; the expected payoff of a
+    # long package is driven by the right tail of realized variance, which
+    # the median ignores by construction. A median-calibrated forecast maximizes
+    # how often the sign is right; the mean-calibrated forecast maximizes what
+    # the sign earns, and that is the quantity the rule is scored on. The mean
+    # map stays.
+    # """
+    #     ),
+    #     code(
+    #         r"""
+    # # the median map, cached under its own key, on the same inputs and days
+    # with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
+    #     futs_med = {tag: pool.submit(load_yhat_1530_cached, tag, path, need_dates, "median") for tag, path in YHATS.items()}
+    #     models_median = {tag: futs_med[tag].result() for tag in YHATS}
+    #
+    # # The implied variance section 8 builds, defined here because this comparison needs it first
+    # # and both must read the same price: the two vendor legs, censored of the bisection's bracket
+    # # nodes; on a censored day the package midpoint is re-inverted for the volatility instead.
+    # # A non-converged bisection returns the node EXACTLY, so the library censors on an exact hit
+    # # (asl.IV_NODE_RTOL = 1e-5); a wider band would censor ordinary quotes sitting near the middle
+    # # node, which is itself a typical implied-volatility level.
+    #
+    #
+    # def on_vendor_node(v: pd.Series) -> np.ndarray:
+    #     # True where the vendor reported a bracket node rather than a solved volatility
+    #     return (asl.censor_vendor_iv(v).isna() & v.notna()).to_numpy()
+    #
+    #
+    # def iv_hourly_15_30(frame: pd.DataFrame) -> pd.DataFrame:
+    #     # hourly implied volatility of the package at 15:30: the mean of the two quoted legs,
+    #     # replaced on a censored day by the volatility that reproduces the package midpoint
+    #     out = pd.DataFrame(index=frame.index)
+    #     out["iv_c"] = pd.to_numeric(frame["impl_volatility_c"], errors="coerce").astype(float)
+    #     out["iv_p"] = pd.to_numeric(frame["impl_volatility_p"], errors="coerce").astype(float)
+    #     out["iv_capped"] = on_vendor_node(out["iv_c"]) | on_vendor_node(out["iv_p"])
+    #     out["iv_hourly_quoted"] = out[["iv_c", "iv_p"]].mean(axis=1)
+    #     cap = out["iv_capped"] & (frame["entry"] > 0)
+    #     out["inv30"] = np.nan
+    #     out.loc[cap, "inv30"] = [
+    #         asl.bsm_invert_package_vol(S, Kc, Kp, m, hours_remaining=0.5)
+    #         for S, Kc, Kp, m in zip(frame.loc[cap, "S"], frame.loc[cap, "K_c"], frame.loc[cap, "K_p"], frame.loc[cap, "entry"])
+    #     ]
+    #     out["iv_hourly"] = out["iv_hourly_quoted"]
+    #     out.loc[cap, "iv_hourly"] = out.loc[cap, "inv30"].map(asl.hourly_iv_from_total_vol)   # total vol over 0.5 h -> the vendor's hourly convention
+    #     return out
+    #
+    #
+    # _iv_var = (iv_hourly_15_30(atm)["iv_hourly"] / np.sqrt(2.0)) ** 2   # section 8's units: hourly SD -> 30-minute variance
+    # _common = atm.index
+    # for _t in YHATS:
+    #     assert models[_t].index.equals(models_median[_t].index), _t   # same fit gate, same days
+    #     _common = _common.intersection(models[_t].index)
+    # _R = atm.loc[_common, "R"].astype(float)
+    # _ivv = _iv_var.loc[_common].astype(float)
+    #
+    #
+    # def _nw_t(d):
+    #     d = np.asarray(d, float)
+    #     lag = int(np.floor(1.5 * len(d) ** (1 / 3)))
+    #     return float(sm.OLS(d, np.ones((len(d), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": lag}).tvalues[0])
+    #
+    #
+    # def _boot_dsharpe(a, b, B=2000, seed=0):
+    #     # circular moving-block bootstrap of the annualized Sharpe difference (a minus b): percentile and basic intervals
+    #     rng = np.random.default_rng(seed)
+    #     a, b = np.asarray(a, float), np.asarray(b, float)
+    #     n = len(a); blen = int(np.ceil(n ** (1 / 3)))
+    #     idx = asl.circular_block_bootstrap_idx(rng, n, blen, B)
+    #     sh = lambda x: x.mean(axis=1) / x.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
+    #     d = sh(a[idx]) - sh(b[idx])
+    #     lo, hi = (float(v) for v in np.percentile(d, [2.5, 97.5]))
+    #     hat = float(a.mean() / a.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR) - b.mean() / b.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
+    #     return {"pct_lo": lo, "pct_hi": hi, "basic_lo": 2 * hat - hi, "basic_hi": 2 * hat - lo}
+    #
+    #
+    # def _interval_reading(lo, hi):
+    #     # a bound within 5% of the interval's width from zero is a knife edge, whichever side of zero it falls
+    #     width = hi - lo
+    #     edge = min(abs(lo), abs(hi)) < 0.05 * width
+    #     if lo > 0 or hi < 0:
+    #         return "knife-edge, excludes zero" if edge else "excludes zero"
+    #     return "knife-edge, includes zero" if edge else "includes zero"
+    #
+    #
+    # _rows, _cal = [], []
+    # for _t in YHATS:
+    #     _rec = {"model": LABEL[_t]}
+    #     _ser = {}
+    #     for _name, _tab in (("mean", models[_t]), ("median", models_median[_t])):
+    #         _rv = _tab.loc[_common]
+    #         _pos = pd.Series(np.where(_rv["rv_hat"] - _ivv > 0, 1.0, -1.0), index=_common)
+    #         _rp = _pos * _R
+    #         _ser[_name] = (_rp, _pos)
+    #         _rr = asl.rule_row(_rp, _pos)
+    #         _rec[f"Sharpe_{_name}"] = float(_rr["Sharpe_ann"]); _rec[f"t_{_name}"] = float(_rr["t_mean"])
+    #         _rec[f"mean_{_name}"] = float(_rr["mean"]); _rec[f"buy_share_{_name}"] = float((_pos > 0).mean())
+    #         _rec[f"hit_rate_{_name}"] = float((_rp > 0).mean())
+    #         _ratio = _rv["rv_raw"] / _rv["rv_hat"]
+    #         for _yr, _g in _ratio.groupby(_ratio.index.year):
+    #             _cal.append({"model": LABEL[_t], "map": _name, "year": int(_yr),
+    #                          "share_realized_above": float((_g > 1).mean()), "median_realized_over_forecast": float(_g.median())})
+    #     _d = _ser["median"][0] - _ser["mean"][0]
+    #     _rec["diff_per_day"] = float(_d.mean()); _rec["diff_t"] = _nw_t(_d)
+    #     _bi = _boot_dsharpe(_ser["median"][0], _ser["mean"][0])
+    #     _rec["dSharpe_lo"], _rec["dSharpe_hi"] = _bi["pct_lo"], _bi["pct_hi"]
+    #     _rec["dSharpe_basic_lo"], _rec["dSharpe_basic_hi"] = _bi["basic_lo"], _bi["basic_hi"]
+    #     _rec["percentile_interval"] = _interval_reading(_bi["pct_lo"], _bi["pct_hi"])
+    #     _rec["basic_interval"] = _interval_reading(_bi["basic_lo"], _bi["basic_hi"])
+    #     _swing = (_ser["mean"][1] > 0) & (_ser["median"][1] < 0)
+    #     _rec["days_mean_buys_median_sells"] = int(_swing.sum()); _rec["their_mean_R"] = float(_R[_swing].mean())
+    #     _rec["same_position_share"] = float((_ser["median"][1] == _ser["mean"][1]).mean())
+    #     _rows.append(_rec)
+    # _as = asl.rule_row(-_R, pd.Series(-1.0, index=_common))
+    # swap_tab = pd.DataFrame(_rows).set_index("model")
+    # cal_tab = pd.DataFrame(_cal)
+    # print(f"days common to all {len(YHATS)} forecasts under both maps: {len(_common)}; always short Sharpe {float(_as['Sharpe_ann']):.3f} under either map")
+    # print("sign(s) under the two maps:")
+    # print(swap_tab[["Sharpe_mean", "t_mean", "Sharpe_median", "t_median", "diff_per_day", "diff_t"]].round(3).to_string())
+    # print("---")
+    # print("95% intervals for the Sharpe difference (median minus mean), circular block bootstrap: percentile and basic")
+    # print(swap_tab[["dSharpe_lo", "dSharpe_hi", "percentile_interval", "dSharpe_basic_lo", "dSharpe_basic_hi", "basic_interval"]].round(3).to_string())
+    # print("---")
+    # print(swap_tab[["buy_share_mean", "buy_share_median", "hit_rate_mean", "hit_rate_median", "same_position_share",
+    #                 "days_mean_buys_median_sells", "their_mean_R"]].round(3).to_string())
+    # print("---")
+    # print("calibration by year, block-diagonal ridge (share of days realized > forecast; median realized / forecast):")
+    # print(cal_tab[cal_tab["model"] == LABEL["blk2"]].pivot(index="year", columns="map",
+    #       values=["share_realized_above", "median_realized_over_forecast"]).round(3).to_string())
+    # swap_tab.to_csv(OUT / "recalibration_mean_vs_median.csv")
+    # cal_tab.to_csv(OUT / "recalibration_calibration_by_year.csv", index=False)
+    # print("saved recalibration_mean_vs_median.csv, recalibration_calibration_by_year.csv in", OUT)
+    # """
+    #     ),
     md(
         r"""
 ## 8. Putting implied volatility on the same footing as realized variance
@@ -973,12 +903,42 @@ variance of the rest of the session.
         """
 from scipy.stats import norm
 
-# iv_hourly_15_30 is the routine the median-map check in section 7 already used, so that
-# comparison and the rule table below read the same implied variance; IV_NODES holds the
+# IV_NODES holds the
 # bisection's bracket nodes (the bounds, their geometric mean, and the nodes below it),
 # and a leg counts as censored only when it sits on one EXACTLY (asl.IV_NODE_RTOL).
 IV_LO, IV_HI = asl.IV_VENDOR_BOUNDS   # the vendor field's bracket
 IV_NODES = np.array(asl.IV_VENDOR_NODES)
+
+# The implied variance: the two vendor legs, censored of the bisection's bracket nodes; on a
+# censored day the package midpoint is re-inverted for the volatility instead.
+# A non-converged bisection returns the node EXACTLY, so the library censors on an exact hit
+# (asl.IV_NODE_RTOL = 1e-5); a wider band would censor ordinary quotes sitting near the middle
+# node, which is itself a typical implied-volatility level.
+
+
+def on_vendor_node(v: pd.Series) -> np.ndarray:
+    # True where the vendor reported a bracket node rather than a solved volatility
+    return (asl.censor_vendor_iv(v).isna() & v.notna()).to_numpy()
+
+
+def iv_hourly_15_30(frame: pd.DataFrame) -> pd.DataFrame:
+    # hourly implied volatility of the package at 15:30: the mean of the two quoted legs,
+    # replaced on a censored day by the volatility that reproduces the package midpoint
+    out = pd.DataFrame(index=frame.index)
+    out["iv_c"] = pd.to_numeric(frame["impl_volatility_c"], errors="coerce").astype(float)
+    out["iv_p"] = pd.to_numeric(frame["impl_volatility_p"], errors="coerce").astype(float)
+    out["iv_capped"] = on_vendor_node(out["iv_c"]) | on_vendor_node(out["iv_p"])
+    out["iv_hourly_quoted"] = out[["iv_c", "iv_p"]].mean(axis=1)
+    cap = out["iv_capped"] & (frame["entry"] > 0)
+    out["inv30"] = np.nan
+    out.loc[cap, "inv30"] = [
+        asl.bsm_invert_package_vol(S, Kc, Kp, m, hours_remaining=0.5)
+        for S, Kc, Kp, m in zip(frame.loc[cap, "S"], frame.loc[cap, "K_c"], frame.loc[cap, "K_p"], frame.loc[cap, "entry"])
+    ]
+    out["iv_hourly"] = out["iv_hourly_quoted"]
+    out.loc[cap, "iv_hourly"] = out.loc[cap, "inv30"].map(asl.hourly_iv_from_total_vol)   # total vol over 0.5 h -> the vendor's hourly convention
+    return out
+
 _iv_tab = iv_hourly_15_30(atm)
 for _c in ("iv_c", "iv_p", "iv_capped", "iv_hourly_quoted", "iv_hourly"):
     atm[_c] = _iv_tab[_c]
@@ -1407,6 +1367,15 @@ ridge of record and not in place of it.
     ),
     code(
         r"""# --- paired tests: every portfolio against the control, and against the baseline
+def _interval_reading(lo, hi):
+    # a bound within 5% of the interval's width from zero is a knife edge, whichever side of zero it falls
+    width = hi - lo
+    edge = min(abs(lo), abs(hi)) < 0.05 * width
+    if lo > 0 or hi < 0:
+        return "knife-edge, excludes zero" if edge else "excludes zero"
+    return "knife-edge, includes zero" if edge else "includes zero"
+
+
 PAIR_BLOCK = 21     # circular block length, in trading days
 PAIR_B = 2000       # bootstrap draws
 PAIR_SEED = 0
@@ -1504,7 +1473,7 @@ print("saved", OUT / "paired_tests.csv")
     ),
     md(
         r"""
-### Shifting the forecast in time: the look-ahead cliff
+## 11. Shifting the forecast in time: the look-ahead cliff
 
 The forecast rows are labelled by the bar they end, and the trade reads
 the row labelled 16:00 — issued at 15:30 for the bar it trades (§7).
@@ -1613,7 +1582,7 @@ plt.close(fig)
     # Event-filter (FOMC+ME flat) cells omitted from generation.
     md(
         r"""
-## 11. Regressing the settlement return on the 15:30 signal
+## 12. Regressing the settlement return on the 15:30 signal
 
 The signal is fixed at 15:30 and the package settles at 16:00 the same
 day, so the test pairs $s_t$ with $R_t$; nothing observed after the
@@ -1975,7 +1944,7 @@ plt.close(fig)
     # ),
     md(
         r"""
-## 12. Profit and loss, without compounding
+## 13. Profit and loss, without compounding
 
 Same contracts and positions as the rule table; every series is a daily
 quantity, **summed, not compounded**. Notation for one day: position
@@ -2083,7 +2052,7 @@ plt.close(fig)
     ),
     md(
         r"""
-## 13. Information ratio against always-short
+## 14. Information ratio against always-short
 
 **Parked.** The always-short comparison is carried by the paired tests in
 §10, which score it day by day on every forecast; the information-ratio
@@ -2294,7 +2263,7 @@ table is held out of the deck.
     # ),
     md(
         r"""
-## 14. Betting a fixed fraction of wealth
+## 15. Betting a fixed fraction of wealth
 
 Every table so far adds up one unit of premium per day. Here each rule
 reinvests: a **fixed** share $f$ of current wealth is deployed as
@@ -2315,7 +2284,7 @@ worst day, a realized draw rather than a ceiling on what the trade can
 lose; and the per-year growth annualizes each calendar year from the
 days it traded (83 to 248). The drawdown column, `maxDD_frac`, is the
 largest fall of wealth from its running peak as a fraction of that
-peak, a different unit from the summed-return drawdowns of §12.
+peak, a different unit from the summed-return drawdowns of §13.
 """
     ),
     code(
@@ -2557,7 +2526,7 @@ plt.close(fig)
     # ),
     md(
         r"""
-## 15. When does each forecast say buy?
+## 16. When does each forecast say buy?
 
 A buy day is one with $q_t>0$. The always-short rule never buys. The
 forecasts are compared on the days they share.
@@ -2692,13 +2661,15 @@ def _dress(ax, title, xlab):
 
 axA.barh(ys - 0.19, _col("buy (s > 0)", "hit rate"), 0.38, color="C0", label="buy days: P(R > 0 | s > 0)")
 axA.barh(ys + 0.19, _col("sell (s <= 0)", "hit rate"), 0.38, color="C1", label="sell days: P(R < 0 | s <= 0)")
-axA.axvline(REF["unconditional long"]["hit rate"], color="C0", ls="--", lw=1.0)
-axA.axvline(REF["unconditional short"]["hit rate"], color="C1", ls="--", lw=1.0)
+axA.axvline(REF["unconditional long"]["hit rate"], color="C0", ls="--", lw=1.0,
+            label=f"base rate, long the package every day: P(R > 0) = {REF['unconditional long']['hit rate']:.2f}")
+axA.axvline(REF["unconditional short"]["hit rate"], color="C1", ls="--", lw=1.0,
+            label=f"base rate, short every day: P(R < 0) = {REF['unconditional short']['hit rate']:.2f}")
 axA.set_yticks(ys)
 axA.set_yticklabels(names, fontsize=8)
 axA.set_ylim(len(names) + 1.1, -0.6)          # room under the last row for the legend
 axA.set_xlim(0.0, 0.8)
-_dress(axA, "A. how often the position is right\n(dashed: the base rate of the same side)", "hit rate")
+_dress(axA, "A. how often the position is right\n(bars: on the signal's days; dashed: every day, no forecast)", "hit rate")
 
 
 def _pad_x(ax, vals):
@@ -2713,25 +2684,27 @@ SERIES_B = (("buy (s > 0)", "avg win", "C0", 1.0, "buy days: average win"),
             ("sell (s <= 0)", "avg loss", "C1", 0.45, "sell days: average loss"))
 for k, (side, col, c, a, lab) in enumerate(SERIES_B):
     axB.barh(ys + (k - 1.5) * 0.2, _col(side, col), 0.2, color=c, alpha=a, label=lab)
-for ref, c in (("unconditional long", "C0"), ("unconditional short", "C1")):
-    axB.axvline(REF[ref]["avg win"], color=c, ls="--", lw=1.0)
-    axB.axvline(REF[ref]["avg loss"], color=c, ls=":", lw=1.0)
+for ref, c, who in (("unconditional long", "C0", "long every day"), ("unconditional short", "C1", "short every day")):
+    axB.axvline(REF[ref]["avg win"], color=c, ls="--", lw=1.0, label=f"base rate, {who}: average win {REF[ref]['avg win']:+.2f}")
+    axB.axvline(REF[ref]["avg loss"], color=c, ls=":", lw=1.0, label=f"base rate, {who}: average loss {REF[ref]['avg loss']:+.2f}")
 axB.axvline(0.0, color="k", lw=0.6)
 _pad_x(axB, [v for side, col, *_ in SERIES_B for v in _col(side, col)]
        + [REF[r][c] for r in REF for c in ("avg win", "avg loss")])
-_dress(axB, "B. how much it wins and how much it loses\n(dashed: base-rate win, dotted: base-rate loss)",
+_dress(axB, "B. how much it wins and how much it loses\n(bars: on the signal's days; lines: every day, no forecast)",
        "average return per day of that kind")
 
 axC.barh(ys - 0.19, _col("buy (s > 0)", "mean per active day"), 0.38, color="C0", label="buy days")
 axC.barh(ys + 0.19, _col("sell (s <= 0)", "mean per active day"), 0.38, color="C1", label="sell days")
-axC.axvline(REF["unconditional long"]["mean per active day"], color="C0", ls="--", lw=1.0)
-axC.axvline(REF["unconditional short"]["mean per active day"], color="C1", ls="--", lw=1.0)
+axC.axvline(REF["unconditional long"]["mean per active day"], color="C0", ls="--", lw=1.0,
+            label=f"base rate, long every day: {REF['unconditional long']['mean per active day']:+.3f}")
+axC.axvline(REF["unconditional short"]["mean per active day"], color="C1", ls="--", lw=1.0,
+            label=f"base rate, short every day: {REF['unconditional short']['mean per active day']:+.3f}")
 axC.axvline(0.0, color="k", lw=0.6)
 _pad_x(axC, _col("buy (s > 0)", "mean per active day") + _col("sell (s <= 0)", "mean per active day")
        + [REF[r]["mean per active day"] for r in REF] + [0.0])
-_dress(axC, "C. mean per active day\n(dashed: the base rate of the same side)", "mean return")
+_dress(axC, "C. mean per active day\n(bars: on the signal's days; dashed: every day, no forecast)", "mean return")
 
-fig.suptitle("the buy signal and the base rates, "
+fig.suptitle("the signal's days against the base rates (the same statistic with the package held every day, no forecast), "
              f"{len(common)} common days, midpoint fills", fontsize=10)
 fig.tight_layout()
 fig.savefig(OUT / "buy_signal_hitrate.png", dpi=120, bbox_inches="tight")
@@ -2770,7 +2743,7 @@ plt.close(fig)
     # nearest listed wing can sit farther out than the nominal width — and
     # with that denominator the return on capital at risk is bounded below
     # by exactly $-1$, which the cell asserts. Returns are reported in the
-    # two frames of §14. Per body premium is the primary frame,
+    # two frames of §15. Per body premium is the primary frame,
     #
     # $$R' = \frac{C - \text{settlement payout}}{P_{\mathrm{body}}},$$
     #
@@ -2782,7 +2755,7 @@ plt.close(fig)
     # reported second because its denominator is smallest on the days with
     # the richest credit — the high-volatility days — so it overweights
     # exactly those days and reads cheap tail insurance as a losing trade,
-    # an artifact of the unit. The fraction-of-wealth estimator of §14 is
+    # an artifact of the unit. The fraction-of-wealth estimator of §15 is
     # applied unchanged in both frames; the plain portfolio is compared only in
     # the per-premium frame, the unit the two share.
     #
@@ -2808,7 +2781,7 @@ plt.close(fig)
     # $\mathrm{sign}(s)$ rule.
     #
     # **How much of wealth to bet.** In the per-premium frame the estimator
-    # of §14 lands on almost the same fraction with wings as without — about
+    # of §15 lands on almost the same fraction with wings as without — about
     # 0.054 to 0.062 of wealth deployed as premium, against 0.063 for the
     # plain package — because it is the estimate of the mean and second
     # moment, not the ruin bound, that sets the fraction. Wealth compounds
@@ -3034,7 +3007,7 @@ plt.close(fig)
     # ),
     md(
         r"""
-## 16. Checking one row by hand
+## 17. Checking one row by hand
 
 The columns of a single row map onto the construction as follows.
 
