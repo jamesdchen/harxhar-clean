@@ -588,13 +588,14 @@ attribution by one row. The loader marks every row it actually fit
 them, which is the alignment check in one line.
 
 **When there is no signal.** A bar keeps its return whenever the
-forecast panel has a row for it. Two things can still leave it
-without a *signal*: the vendor's implied volatility on either leg is
-a censored solver node (§3), or the diurnal profile is still in its
-warm-up (§5b). Such bars sit flat ($q=0$) in the rules that use the
-forecast and are unaffected in the rules that do not, so every rule
-in §6 is scored on the same bars. Only bars with no forecast row at
-all are dropped.
+forecast panel has a row for it. One thing can still leave it without
+a *signal*: the vendor's implied volatility on either leg is a
+censored solver node (§3). That is the only $q=0$ case — the diurnal
+profile of §5b is seeded from the panel's own history and is warm
+before the first scored day. Such bars sit flat in the rules that use
+the forecast and are unaffected in the rules that do not, so every
+rule in §6 is scored on the same bars. Only bars with no forecast row
+at all are dropped.
 """
     ),
     code(
@@ -670,16 +671,22 @@ reslice: $\mathrm{IV}^{2}_{\mathrm{hr}}\times h_t$ is the remaining
 implied variance ($h_t$ = hours to close), and the next bar's share
 is $w_t$ = this clock's fraction of remaining realized variance,
 estimated from the **expanding per-clock mean** of realized bar
-variance on prior days only. Then
+variance on prior sessions only. That profile is built on the
+forecast panel's own history — every session bar it carries, back to
+2001 — not on this frame, so the 63-session minimum is met more than
+eighteen years before the first scored day and the frame carries no
+warm-up. Then
 
 $$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t.$$
 
 At 15:30, $w=1$, $h=\tfrac12$: the matched implied collapses to the
-paper's $\mathrm{IV}^2/2$ exactly (checked in-cell). Warm-up rows —
-the profile needs 63 prior sessions, and the cell prints how many
-dates that covers — carry no matched signal and sit flat, $q=0$, in
-the $\mathrm{sign}(s)$ rules, as do the bars whose vendor implied
-volatility was censored (§3). Those zeros stay in the daily sums.
+paper's $\mathrm{IV}^2/2$ exactly (checked in-cell, along with $w=1$
+on every day and a slice on every scored bar). The only rows that
+carry no matched signal are the bars whose vendor implied volatility
+was censored (§3); they sit flat, $q=0$, in the $\mathrm{sign}(s)$
+rules, and those zeros stay in the daily sums. The cell also checks
+the 15:30 leg against the deck's close trade: the positions agree on
+every shared day but the censored ones.
 """
     ),
     code(
@@ -697,14 +704,31 @@ print("pooled", round(float(work.loc[ok, "rv_hat"].mean() / work.loc[ok, "rv_raw
       "- the pooled ratio of means is dominated by 2020, so read the per-year view")
 
 # Causal diurnal profile: expanding per-clock mean of realized bar variance,
-# prior days only; w = this clock's share of the remaining-session sum.
-prof = work.pivot_table(index="date", columns="hhmm", values="rv_raw", aggfunc="mean").sort_index()
+# prior sessions only. It is seeded from the FORECAST PANEL's own history --
+# every session bar back to 2001 -- and not from this frame, so the 63-session
+# minimum is met more than eighteen years before the first scored day and the
+# scored frame carries no warm-up. Panel stamps are bar-end labelled, so the
+# stamps 10:30..16:00 are the trade clocks 10:00..15:30.
+_pf = panels["blk2"].reset_index()
+_pf = _pf[_pf["in_fit"].to_numpy(dtype=bool)].copy()
+_pf["clock"] = (pd.to_datetime(_pf["t"], utc=True).dt.tz_convert("America/New_York")
+                - pd.Timedelta(minutes=30))
+_pf["pdate"] = _pf["clock"].dt.normalize().dt.tz_localize(None)
+_pf["phhmm"] = _pf["clock"].dt.strftime("%H:%M")
+prof = _pf.pivot_table(index="pdate", columns="phhmm", values="rv_raw", aggfunc="mean").sort_index()
 prof_exp = prof.expanding(min_periods=63).mean().shift(1)
 clocks = sorted(work["hhmm"].unique())
 rem_sum = prof_exp[clocks[::-1]].cumsum(axis=1)[clocks]
 w_slice = prof_exp / rem_sum
 mi = pd.MultiIndex.from_arrays([work["date"], work["hhmm"]])
 work["w_slice"] = w_slice.stack().reindex(mi).to_numpy()
+print("diurnal profile fit on", int(prof.index.size), "panel sessions,",
+      prof.index.min().date(), "->", prof.index.max().date(),
+      "| first scored day", work["date"].min().date())
+assert bool(np.isclose(w_slice["15:30"].dropna().to_numpy(), 1.0).all()), "w must be 1 at 15:30"
+assert bool(np.isfinite(work["w_slice"]).all()), "a scored bar has no diurnal slice"
+print("w_slice at 15:30 equals 1 on every day; bars flat for a profile warm-up:",
+      int((~np.isfinite(work["w_slice"])).sum()))
 n_rem = {c: len(clocks) - i for i, c in enumerate(clocks)}
 work["h_rem"] = work["hhmm"].map(n_rem).astype(float) * 0.5
 work["iv_next30_matched"] = work["iv_var_raw"] * work["h_rem"] * work["w_slice"]
@@ -715,11 +739,31 @@ print("15:30 collapse check: median |matched/chris - 1| =",
       float((chk["iv_next30_matched"] / chk["iv_var_chris"] - 1.0).abs().median()))
 mvalid = work[np.isfinite(work["s_matched"])]
 _no_sig = work.loc[~np.isfinite(work["s_matched"])]
-_warm = _no_sig.loc[~np.isfinite(_no_sig["w_slice"]), "date"].nunique()
-_cens = int((np.isfinite(_no_sig["w_slice"]) & ~np.isfinite(_no_sig["iv_var_raw"])).sum())
+_cens = int((~np.isfinite(_no_sig["iv_var_raw"])).sum())
 print("matched-signal rows", len(mvalid), "/", len(work),
-      "| flat for warm-up:", int((~np.isfinite(work["w_slice"])).sum()), "bars on", _warm, "dates",
-      "| flat for a censored implied volatility:", _cens, "bars")
+      "| the only bars without one are the", _cens,
+      "whose vendor implied volatility is a censored solver node (section 3);",
+      "no bar is flat for a profile warm-up")
+
+# The 15:30 leg IS the deck's close trade: same strikes, same entry, same
+# forecast, and w = 1 there. Its positions must equal the deck's on every
+# shared day except the ones whose vendor implied volatility was censored,
+# where this notebook sits flat and the deck does not.
+_deck_p = REPO / "results" / "atm_straddle_0dte_1530" / "daily_blk2.parquet"
+if _deck_p.exists():
+    _deck = pd.read_parquet(_deck_p)
+    _deck.index = pd.to_datetime(_deck.index)
+    _c = work.loc[work["hhmm"] == "15:30"].copy()
+    _c["pos_nb"] = np.where(_c["s_matched"] > 0, 1.0,
+                            np.where(np.isfinite(_c["s_matched"]), -1.0, 0.0))
+    _c = _c.set_index("date").join(_deck[["pos"]], how="inner")
+    _dis = _c.index[_c["pos_nb"].to_numpy() != _c["pos"].to_numpy(dtype=float)]
+    assert bool(_c.loc[_dis, "iv_hourly"].isna().all()), \
+        "the 15:30 leg disagrees with the deck away from the censored-implied days"
+    print("15:30 leg against the deck:", len(_c), "shared days | positions differing:", len(_dis),
+          "| every one a censored-implied day:", ", ".join(str(d.date()) for d in _dis) or "none")
+else:
+    print("no deck daily table beside this repo: the 15:30 position check is skipped")
 print("pct s_matched>0 by clock")
 print(mvalid.groupby("hhmm")["s_matched"].apply(lambda x: 100.0 * float((x > 0).mean())).round(1).to_string())
 
@@ -757,10 +801,10 @@ from 15:30 it detected the diurnal profile, not mispricing (§5b).
   the forecast-free control the hybrid has to clear.
 - **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ —
   long the straddle when the matched forecast exceeds the matched
-  implied slice, short otherwise; bars with no signal — warm-up, or a
-  censored implied volatility — sit flat ($q=0$), and those zeros
-  stay in the daily sums, so the row's Sharpe is over all days, not
-  over active days only.
+  implied slice, short otherwise; the bars with no signal — a
+  censored implied volatility, the only such case — sit flat ($q=0$),
+  and those zeros stay in the daily sums, so the row's Sharpe is over
+  all days, not over active days only.
 - **always short, $\mathrm{sign}(s)$ close:** $q_t=-1$ on every bar
   before 15:30 and $q_t=\mathrm{sign}(s^{\mathrm{m}}_t)$ on the 15:30
   bar — always short on every intraday bar, with the settlement leg
@@ -901,10 +945,11 @@ $5.39$ index points against $19.82$ at 10:00), so the settlement leg
 carries $3.68$ times the contracts the opening one does. The
 cell prints the median entry premium by clock and, beside the table's
 Sharpes, the one-contract alternative: sum the index-point P&L, one
-straddle per bar. That reads $2.485$ for always short, $1.747$ for
-$\mathrm{sign}(s)$ and $3.369$ for the hybrid, against $1.902$,
-$1.721$ and $3.171$ per unit of premium. The ordering of the rules is
-the same under both conventions; the levels are not.
+straddle per bar. That reads $2.485$ for always short, $1.889$ for
+$\mathrm{sign}(s)$ and $3.048$ for the hybrid, against $1.902$,
+$2.013$ and $2.972$ per unit of premium. The hybrid leads under both
+conventions; $\mathrm{sign}(s)$ and always short change places between
+them. The levels are convention-bound; the hybrid's lead is not.
 
 **Coverage.** A bar is scored only when the forecast panel has a row
 for it, and the panel ends before the chain does. Of the $1{,}279$
@@ -966,13 +1011,13 @@ the quoted spread. The forecast-free control — always short, flat at
 it.
 
 Conventions shared by the four blocks. $\mathrm{sign}(s)$ and the
-hybrid sit flat wherever the matched signal is missing — the diurnal
-profile's warm-up, and any bar whose vendor implied volatility was
-censored, both counted in §5b — so the first block also prints the
-four rules on the days after that warm-up. Two frames appear: the
-rule table runs on every expiration day, and the calendar test on the
-days that have all twelve bars (the §6 cell names the days that lack
-a bar). Bootstrap
+hybrid sit flat wherever the matched signal is missing — the bars
+whose vendor implied volatility was censored, counted in §5b, and
+nothing else, since the diurnal profile is warm before the frame
+starts — so every rule is scored on every day of the frame. Two
+frames appear: the rule table runs on every expiration day, and the
+calendar test on the days that have all twelve bars (the §6 cell
+names the days that lack a bar). Bootstrap
 intervals are percentile intervals of the Sharpe difference under
 circular block resampling, every row sharing one seed; the basic
 interval $[2\hat\theta-\mathrm{hi},\,2\hat\theta-\mathrm{lo}]$ is
@@ -996,18 +1041,18 @@ rule the hybrid has to clear, and the two fills disagree about
 whether it does.
 
 - **At the midpoint** the control scores *above* the hybrid: 3.430
-  against 3.171, a difference of $+0.259$. The reason is in §8 — the
+  against 2.972, a difference of $+0.458$. The reason is in §8 — the
   15:30 bar is the loosest of the day for a plain short (the lowest
   by-clock Sharpe of the twelve) while carrying most of the day's
   variance, so at mid the cheapest thing to do with the settlement leg
   is not to trade it. It is a *variance* argument, not a return one:
-  the control earns $0.1459$ a day against the hybrid's $0.2520$, and
-  the $t$ on that daily mean difference is $-2.93$. The Sharpe
+  the control earns $0.1459$ a day against the hybrid's $0.2427$, and
+  the $t$ on that daily mean difference is $-2.54$. The Sharpe
   difference is **not
-  resolved** — percentile $[-0.90, +1.51]$, basic $[-1.00, +1.42]$,
+  resolved** — percentile $[-0.74, +1.74]$, basic $[-0.82, +1.65]$,
   both covering zero — so this is not a claim that the control wins.
 - **At the crossed spread** the ordering reverses and the hybrid is
-  well ahead: $-0.969$ against $-3.621$. The mechanism is not subtle:
+  well ahead: $-1.096$ against $-3.621$. The mechanism is not subtle:
   the settlement leg is the only leg of the day that pays **no exit
   spread**, because it cash-settles instead of being sold back.
   Dropping it removes the one cheap trade and keeps eleven expensive
@@ -1052,8 +1097,8 @@ block prices it both ways: the same table is recomputed with a round
 trip charged at **every** re-pick boundary, and the two are printed
 side by side. The gap is what the exemption is worth, and it is not
 small. For the hybrid, charging every re-pick raises the crossings
-from $16.615$ to $22.916$ a day and takes the crossed-spread Sharpe
-from $-0.969$ to $-2.587$.
+from $16.673$ to $22.983$ a day and takes the crossed-spread Sharpe
+from $-1.096$ to $-2.673$.
 """
     ),
     code(
@@ -1116,7 +1161,7 @@ def _ci_str(ci):
 # Recorded at the last regeneration on the frame this notebook prints. They are
 # change-detectors: if the construction moves, the assert fails and the number here is
 # re-derived from the new run — never loosened to accommodate it.
-RECORDED = {"hybrid": 3.1714, "flat_close": 3.4300, "close_sign_s": 1.5819, "close_sign_s_flat": 2.0369}
+RECORDED = {"hybrid": 2.9723, "flat_close": 3.4300, "close_sign_s": 1.3943, "close_sign_s_flat": 1.8325}
 
 # --- 1. the hybrid with the settlement leg sized by sign, and its forecast-free control
 print("1. rule table rows (daily-sum Sharpe, this frame:", int(tab.loc["always short", "n_days"]), "days)")
@@ -1135,11 +1180,11 @@ print(f"at the midpoint, flat at 15:30 minus the hybrid: {_sh(_d_flat) - _sh(_d_
       f"dSharpe 95% {_ci_str(_ci)}")
 print("   dropping the settlement leg is ahead at the midpoint and the difference is unresolved;",
       "block 3 reverses the ordering at the crossed spread")
-_warm_dates = set(work.loc[~np.isfinite(work["w_slice"]), "date"].unique())
-_post = ~work["date"].isin(_warm_dates)
-print("after the profile warm-up:", int(work.loc[_post, "date"].nunique()), "days (the",
-      len(_warm_dates), "warm-up dates carry q = 0 in the sign(s) rules) -",
-      ", ".join(f"{_n} {_sh(_daily((_s * work['R'])[_post])):.3f}" for _n, _s in q.items()))
+print("no profile warm-up on this frame:", int(work["date"].nunique()),
+      "days scored on every rule; the only q = 0 bars in the sign(s) rules are the",
+      int((~np.isfinite(work["s_matched"])).sum()),
+      "with a censored vendor implied volatility -",
+      ", ".join(f"{_n} {_sh(_daily(_s * work['R'])):.3f}" for _n, _s in q.items()))
 
 # --- 2. the settlement leg on non-event days (forward test registered 2026-09-04)
 _flags = asl.fomc_and_monthend(pd.DatetimeIndex(pd.to_datetime(work["date"].unique())), REPO)
@@ -1347,13 +1392,171 @@ print("saved CSVs in", OUT)
     ),
     md(
         r"""
+## 8b. Hit rate, win size and the base rates, clock by clock
+
+A **hit** is a bar the position makes money: $R_t>0$ on a bar the
+matched signal buys ($s^{\mathrm{m}}_t>0$), $R_t<0$ on a bar it sells
+($s^{\mathrm{m}}_t\le 0$). The **average win** and the **average
+loss** are the means of the position's own return — $R_t$ on a buy
+bar, $-R_t$ on a sell bar — over the bars where that return is
+positive and over the bars where it is not, and the **mean per active
+bar** is its mean over all of them. The **base rates** are those same
+statistics over *every* bar at that clock, for the package held long
+every day and for it held short every day, with no forecast used at
+all.
+
+The figure reads at every clock the way the deck's reads at 15:30:
+the hit rates sit on the base rates (the buy side is $-0.001$ to
+$+0.026$ of its base rate, the sell side $+0.001$ to $+0.053$), while
+the average win on the bars the signal buys runs $1.01$–$1.20$ times
+the base-rate win and the average loss on the bars it sells $0.72$–
+$0.99$ of the base-rate loss — the signal is picking bigger wins, not
+more of them — and the mean per active bar clears its base rate by a
+few thousandths at every clock before 15:30 and by $+0.114$ long and
+$+0.075$ short on the settlement bar.
+"""
+    ),
+    code(
+        r"""
+# The deck's hit-rate reading at every entry clock. Every column is the position's
+# OWN return u -- u = R on a buy bar, u = -R on a sell bar -- so a hit is u > 0 on
+# both sides, the average win is the mean of u over the bars where it is positive
+# and the average loss the mean over the bars where it is not. The base-rate
+# columns are the same three statistics over every bar at that clock, long every
+# day and short every day, with no forecast used at all. The last two columns are
+# the median quoted half-spread at that clock in percent of midpoint premium and
+# the round trip it implies: two crossings at every clock but 15:30, which
+# cash-settles and so pays one.
+def side_stats(u):
+    u = np.asarray(u, float)
+    win, loss = u[u > 0.0], u[u <= 0.0]
+    return {
+        "n": int(u.size),
+        "hit rate": float((u > 0.0).mean()) if u.size else float("nan"),
+        "avg win": float(win.mean()) if win.size else float("nan"),
+        "avg loss": float(loss.mean()) if loss.size else float("nan"),
+        "mean per active day": float(u.mean()) if u.size else float("nan"),
+    }
+
+
+_half_pct = 100.0 * (
+    0.5 * ((work["ask_c"] + work["ask_p"]) - (work["bid_c"] + work["bid_p"])) / work["entry"]
+)
+_hr_rows = []
+for _hhmm, _g in work.groupby("hhmm", sort=True):
+    _r = _g["R"].astype(float).to_numpy()
+    _isbuy = (_g["s_matched"] > 0).to_numpy(dtype=bool)
+    _b, _s = side_stats(_r[_isbuy]), side_stats(-_r[~_isbuy])
+    _bl, _bs = side_stats(_r), side_stats(-_r)
+    _hs = float(_half_pct.loc[_g.index].median())
+    _hr_rows.append({
+        "hhmm": _hhmm, "n": int(len(_g)), "buy share": float(_isbuy.mean()),
+        "hit buy": _b["hit rate"], "base hit long": _bl["hit rate"],
+        "hit sell": _s["hit rate"], "base hit short": _bs["hit rate"],
+        "win buy": _b["avg win"], "base win long": _bl["avg win"],
+        "loss buy": _b["avg loss"], "base loss long": _bl["avg loss"],
+        "win sell": _s["avg win"], "base win short": _bs["avg win"],
+        "loss sell": _s["avg loss"], "base loss short": _bs["avg loss"],
+        "mean buy": _b["mean per active day"], "base mean long": _bl["mean per active day"],
+        "mean sell": _s["mean per active day"], "base mean short": _bs["mean per active day"],
+        "half-spread % prem": _hs,
+        "round trip % prem": _hs * (1.0 if _hhmm == "15:30" else 2.0),
+    })
+hrt = pd.DataFrame(_hr_rows).set_index("hhmm")
+print("matched sign(s) on the block-diagonal ridge, by entry clock;",
+      "the base-rate columns use no forecast at all")
+print(hrt.to_string(float_format=lambda x: f"{x: .4f}"))
+hrt.to_csv(OUT / "rule_by_entry_hhmm_hitrate.csv")
+print("saved", OUT / "rule_by_entry_hhmm_hitrate.csv")
+
+_ck = list(hrt.index)
+_ys = np.arange(len(_ck))
+fig, (axA, axB, axC) = plt.subplots(
+    1, 3, figsize=(14.5, 5.6), sharey=True, gridspec_kw={"width_ratios": [3, 4, 2]})
+
+
+def _rng(col, fmt="{:.2f}"):
+    v = hrt[col].to_numpy(float)
+    return fmt.format(np.nanmin(v)) + " to " + fmt.format(np.nanmax(v))
+
+
+def _dress_clock(ax, title, xlab, ncol=1):
+    # legends sit below the axes so they never cover a bar
+    ax.set_title(title, fontsize=9)
+    ax.set_xlabel(xlab, fontsize=8)
+    ax.legend(fontsize=6.5, loc="upper center", bbox_to_anchor=(0.5, -0.11), ncol=ncol, framealpha=0.9)
+    ax.grid(axis="x", alpha=0.3)
+
+
+def _pad_x(ax, vals):
+    lo, hi = float(np.nanmin(vals)), float(np.nanmax(vals))
+    pad = 0.08 * (hi - lo)
+    ax.set_xlim(lo - pad, hi + pad)
+
+
+axA.barh(_ys - 0.19, hrt["hit buy"], 0.38, color="C0", label="buy bars: P(R > 0 | s > 0)")
+axA.barh(_ys + 0.19, hrt["hit sell"], 0.38, color="C1", label="sell bars: P(R < 0 | s <= 0)")
+axA.plot(hrt["base hit long"], _ys - 0.19, ls="--", lw=1.0, color="C0", marker="|", ms=7,
+         label="base rate, long every bar at that clock: P(R > 0) = " + _rng("base hit long"))
+axA.plot(hrt["base hit short"], _ys + 0.19, ls="--", lw=1.0, color="C1", marker="|", ms=7,
+         label="base rate, short every bar at that clock: P(R < 0) = " + _rng("base hit short"))
+axA.set_yticks(_ys)
+axA.set_yticklabels(_ck, fontsize=8)
+axA.set_ylim(len(_ck) - 0.4, -0.6)
+axA.set_xlim(0.0, 0.85)
+axA.set_ylabel("entry clock (ET)", fontsize=8)
+_dress_clock(axA, "A. how often the position is right\n(bars: the signal's bars; dashed: every bar at that clock)",
+             "hit rate")
+
+_SB = (("win buy", "C0", 1.0, "buy bars: average win"),
+       ("loss buy", "C0", 0.45, "buy bars: average loss"),
+       ("win sell", "C1", 1.0, "sell bars: average win"),
+       ("loss sell", "C1", 0.45, "sell bars: average loss"))
+for _k, (_col, _c, _a, _lab) in enumerate(_SB):
+    axB.barh(_ys + (_k - 1.5) * 0.2, hrt[_col], 0.2, color=_c, alpha=_a, label=_lab)
+for _col, _c, _ls, _who in (("base win long", "C0", "--", "long every bar: average win"),
+                            ("base loss long", "C0", ":", "long every bar: average loss"),
+                            ("base win short", "C1", "--", "short every bar: average win"),
+                            ("base loss short", "C1", ":", "short every bar: average loss")):
+    axB.plot(hrt[_col], _ys, ls=_ls, lw=1.0, color=_c, marker="|", ms=6,
+             label="base rate, " + _who + " " + _rng(_col))
+axB.axvline(0.0, color="k", lw=0.6)
+_pad_x(axB, np.concatenate([hrt[c].to_numpy(float) for c, *_ in _SB]
+                           + [hrt[c].to_numpy(float) for c in
+                              ("base win long", "base loss long", "base win short", "base loss short")]))
+_dress_clock(axB, "B. how much it wins and how much it loses\n(bars: the signal's bars; dashed and dotted: every bar at that clock)",
+             "average return per bar of that kind", ncol=2)
+
+axC.barh(_ys - 0.19, hrt["mean buy"], 0.38, color="C0", label="buy bars")
+axC.barh(_ys + 0.19, hrt["mean sell"], 0.38, color="C1", label="sell bars")
+axC.plot(hrt["base mean long"], _ys - 0.19, ls="--", lw=1.0, color="C0", marker="|", ms=7,
+         label="base rate, long every bar: " + _rng("base mean long", "{:+.3f}"))
+axC.plot(hrt["base mean short"], _ys + 0.19, ls="--", lw=1.0, color="C1", marker="|", ms=7,
+         label="base rate, short every bar: " + _rng("base mean short", "{:+.3f}"))
+axC.axvline(0.0, color="k", lw=0.6)
+_pad_x(axC, np.concatenate([hrt[c].to_numpy(float) for c in
+                            ("mean buy", "mean sell", "base mean long", "base mean short")] + [np.zeros(1)]))
+_dress_clock(axC, "C. mean per active bar\n(bars: the signal's bars; dashed: every bar)",
+             "mean return")
+
+fig.suptitle("the matched signal's bars against the base rates (the same statistic with the package held every day, "
+             f"no forecast), {int(work['date'].nunique())} days, midpoint fills", fontsize=10)
+fig.tight_layout()
+fig.savefig(OUT / "hitrate_by_entry_hhmm.png", dpi=120, bbox_inches="tight")
+display(fig)
+plt.close(fig)
+print("saved", OUT / "hitrate_by_entry_hhmm.png")
+"""
+    ),
+    md(
+        r"""
 ## 9. Buy-signal fingerprint (day $\times$ clock)
 
 Each column is one expiration day, each row one 30-min clock. Blue:
 the matched signal says **buy** the straddle
 ($s^{\mathrm{m}}_t>0$ — forecast above the implied slice); red:
-short; grey: no signal, so the rule sits flat — the profile's warm-up
-or a censored implied volatility. The §8 tables average this grid down
+short; grey: no signal, so the rule sits flat — a censored implied
+volatility, the only such case. The §8 tables average this grid down
 each row; the fingerprint shows the day-resolved structure — whether
 buys cluster in episodes (vol spikes), drift across regimes, and how
 the buy share thins from the morning rows to the settlement row.
@@ -1377,7 +1580,7 @@ ticks = [int(np.argmax(yrs == y)) for y in sorted(set(yrs))]
 ax.set_xticks(ticks, sorted(set(yrs)), fontsize=8)
 ax.set_xlabel("expiration day")
 ax.set_ylabel("clock (ET)")
-ax.set_title("buy (blue) / short (red) / flat, no signal (grey) — matched signal")
+ax.set_title("buy (blue) / short (red) / flat, censored implied volatility (grey) — matched signal")
 fig.tight_layout()
 fig.savefig(OUT / "buy_fingerprint_day_clock.png", dpi=120, bbox_inches="tight")
 display(fig)

@@ -1,15 +1,15 @@
 # Intraday Sharpe: diagnosis and proposals (2026-09-04)
 
-> Provenance note (2026-09-05): rows marked (notebook) quote the intraday notebook run of 2026-09-04. The notebook was re-executed on 2026-09-05 after the library fix wave (session-date fit mask, 2001-2025 early-close calendar): pooled always short 1.90, sign(s) 1.72, hybrid 3.17 at the midpoint; -1.92 / -2.24 / -0.97 at the crossed spread; the close leg's calendar test 1.58 -> 2.04. Refresh of the table rows pending.
+> Provenance note (2026-09-05, updated 2026-09-10): rows marked (notebook) quote the intraday notebook run of 2026-09-10. The notebook was re-executed on 2026-09-05 after the library fix wave (session-date fit mask, 2001-2025 early-close calendar), and on 2026-09-10 the diurnal profile's warm-up was removed: the per-clock profile is now seeded from the forecast panel's own sessions back to 2001, so no bar in the frame is flat for a warm-up and every rule is scored on all 866 days. Current values: pooled always short 1.90, sign(s) 2.01, hybrid 2.97 at the midpoint; -1.92 / -2.30 / -1.10 at the crossed spread; the close leg's calendar test 1.39 -> 1.83. The rows marked (notebook) below carry them.
 
 Read-only studies of the intraday trade (`notebooks/atm_straddle_intraday.ipynb`).
 Nothing here is wired into the notebook; every study rebuilds the trade from the
 cached rows and reproduces the notebook's rule table before changing anything.
 Scripts and logs live in the session scratchpad.
 
-**The notebook's rule table (re-executed 2026-09-04, block-diagonal ridge,
-866 days / 10,387 bars):** always short 1.90 (t 3.53), sign(s) 1.84 (t 3.41),
-hybrid `always short, sign(s) close` 3.23 (t 5.98). Source:
+**The notebook's rule table (re-executed 2026-09-10, block-diagonal ridge,
+866 days / 10,387 bars):** always short 1.90 (t 3.53), sign(s) 2.01 (t 3.73),
+hybrid `always short, sign(s) close` 2.97 (t 5.51). Source:
 `results/atm_straddle_intraday/rule_table_intraday_blk2.csv`.
 
 > **Provenance.** Every number below that is sourced to the notebook or to
@@ -64,7 +64,7 @@ intraday trade near 5. It scores 1.84.
 |---|---|---|---|---|
 | 01 clock selection | trailing-edge clock filter | 1.92 -> 1.60 | t -2.7, placebo 32nd pct | reject |
 | 01 | causally chosen late start | 1.80 | t -2.4, placebo 37-61st | reject |
-| 01 | **always short before 15:30, sign(s) at 15:30** | **3.23** (notebook) | dSharpe vs all-bars always short positive, CI excludes zero; positive every year | **adopt (mid fills)** |
+| 01 | **always short before 15:30, sign(s) at 15:30** | **2.97** (notebook) | dSharpe vs all-bars always short positive, CI excludes zero; positive every year | **adopt (mid fills)** |
 | 01 | per-clock sign(s)/always-short switch | 2.81 | placebo 99.4th, but dominated by the row above | reject |
 | 02 signal & exit | bar-matched implied by BSM pricing | 1.83 (profile share); 2.26 (flat share) | vendor IV already = BSM implied (ratio 1.0000); flat share CI includes 0, placebo 70th | reject |
 | 02 | per-clock recalibration | 1.54 | t -1.2, placebo 19th | reject |
@@ -72,14 +72,14 @@ intraday trade near 5. It scores 1.84.
 | 02 | sign(s) vs unit-median by clock | 3.23 vs 3.05 (pre-fix) | one construction fewer; best-per-clock composite does not transfer split-half; the notebook now carries only the sign(s) hybrid | adopt the simplification |
 | 03 aggregation | daily-sum vs per-bar Sharpe | 1.92 vs 1.93 | bars uncorrelated; no correlation penalty | report the daily sum |
 | 03 | equal-contract sizing | 1.80 (sign(s)), 2.49 (always short) | CIs include 0 | state the convention, no claim |
-| 03 | **crossed-spread costs** (notebook) | **-2.13 sign(s), -1.92 always short, -0.89 hybrid** | 16.4-17.0 crossings/day (the re-pick holds the same strikes on 29.9% of holds and is booked at mid); break-even half-spread 0.86-1.55% of premium vs a median half-spread of 1.69% | **the intraday re-pick does not survive costs; at the crossed spread only the settlement leg does, and only when sized by sign (sign(s) +1.32, hybrid +1.31, always short -0.12)** |
+| 03 | **crossed-spread costs** (notebook) | **-2.30 sign(s), -1.92 always short, -1.10 hybrid** | 16.0-18.2 crossings/day (the re-pick holds the same strikes on 29.9% of holds and is booked at mid); break-even half-spread 0.91-1.46% of premium vs a median half-spread of 1.69% | **the intraday re-pick does not survive costs; at the crossed spread only the settlement leg does, and only when sized by sign (sign(s) +1.00, hybrid +0.98, always short -0.12)** |
 | 03 | hold through unchanged signs | 1.35 mid, -0.56 crossed | worse mid, still negative crossed | reject |
 | 04 remaining session | forecast of the variance left to the close vs the remaining-session implied, hold to close, per entry clock | 0.19 (10:00) ... 1.29 (15:00), 1.89 (15:30) | same SIGN as the bar signal by algebra (s_rem = s_bar / w); entries before 15:00 at the 11th-63rd pct of random entry clocks; first-fire rules significantly worse | reject as an intraday generalization |
 | 04a audit | independent rebuild of 04 | matches | F_t-measurable; IV_rem is a price (pricing ratio 1.0000 every clock); the remaining implied is RICH at every clock (realized/implied 0.76-0.84) - the miss is the forecast's level (F_rem overshoots the realized remainder by 15-50%) | honest; the lever is the forecast's level calibration (07) |
 | 05 other causal rules | realized persistence, implied-variance change, forecast revision, forecast-error sign | 1.67 / 0.93 / 0.46 / 1.44 (pre-fix) | all below always short (1.90) and sign(s) (1.84) | reject |
 | 05 | short-only sign(s): short when s<0, flat otherwise | 2.69 (pre-fix) | same mean as always short, worst day -6.0 vs -11.4, placebo 99.9th; Sharpe gain not resolved at 95%; ~9 crossings/day | a risk filter, unlikely to survive costs |
 | 06 one trade per day | entry-clock ladder, first-fire, sell-the-session-from-the-open | 15:30 entry 1.83 is the 99.8th pct of entry clocks; first-fire -0.39 / 0.32; sell-from-open -0.27 | every early entry loses; the session premium is the close, and there it is the sign not the short | reject |
-| 06 | flat at the close on FOMC / month-end days (84 of 864) (notebook) | sign(s) 1.67 -> 2.13; always short 0.19 -> 0.70; hybrid 3.23 -> 3.68 | sign(s): t of the daily difference 1.73, dSharpe 95% percentile [+0.07, +0.92] but basic [+0.00, +0.85], a knife edge; always short: t 2.75, both intervals exclude zero; flags found in-sample on the parked event filter | needs a forward test |
+| 06 | flat at the close on FOMC / month-end days (84 of 864) (notebook) | sign(s) 1.39 -> 1.83; always short 0.19 -> 0.70; hybrid 2.97 -> 3.42 | sign(s): t of the daily difference 1.80, dSharpe 95% percentile [+0.07, +0.85] but basic [+0.03, +0.80], a knife edge; always short: t 2.75, both intervals exclude zero; flags found in-sample on the parked event filter | needs a forward test |
 | 07 remaining-session recalibration | causal level calibration of the multi-bar forecast against the realized remainder (mean, median, pooled maps) | best pre-close clock 1.1-1.4 mid, <= 1.0 crossed | the median map lands level and buy rate on the oracle's, yet no clock before 15:00 is significant, no interval excludes zero, family-wise best-of-ten at the 16th-64th pct; the pooled map breaks the close | reject |
 | 07a audit | independent rebuild of 07 | matches | fit uses prior days only (0/10 perturbation violations); mid-day signs flip across admissible variants and windows; the miss is the forecast's day-by-day ranking, not its level | reject |
 | 08 hold to close | short one nearest-OTM straddle at E in {10:00..15:00}, hold the same strikes to 15:30, then sign(s): short days hold to settlement with no 15:30 transaction (1 crossing), long days buy back and stay flat or flip (2-3 crossings) (study, 866 days) | before 15:00: -0.4 to +0.8 at the midpoint, negative at the crossed spread; 15:00: 1.8-1.9 mid / 1.0-1.1 crossed vs the close trade alone 1.34 / 0.87 | REJECTED before 15:00: a held straddle is not the sum of re-picked one-bar shorts (drift cost t -2.4 to -3.0; a 10:00 straddle is 23 pts, 4.6 strikes, off the money by 15:30 on the median day). 15:00 is the close trade plus one bar of always-short carry (identity on long days): placebo 99th percentile but the gain over the close trade has intervals including zero at both fills, best of 24 cells - unresolved, not adopted. Files 08_hold_to_close.{py,md}, results/atm_straddle_intraday/proposals/08/. |
@@ -97,13 +97,13 @@ intraday trade near 5. It scores 1.84.
 ## Recommendation
 
 - At midpoint fills the best intraday construction is always short on every
-  bar before the close plus sign(s) at 15:30 (3.23 on 866 days, t 5.98),
+  bar before the close plus sign(s) at 15:30 (2.97 on 866 days, t 5.51),
   replacing the unit-median hybrid with one construction fewer.
 - At realistic fills the intraday legs are a cost, not an edge: every rule is
   negative across the day once the spread is paid (always short -1.92,
-  sign(s) -2.13, hybrid -0.89). The trade that survives costs is the close
+  sign(s) -2.30, hybrid -1.10). The trade that survives costs is the close
   trade of the RV-IV notebook: at the crossed spread the settlement leg alone
-  scores +1.32 for sign(s) and +1.31 for the hybrid, against -0.12 for always
+  scores +1.00 for sign(s) and +0.98 for the hybrid, against -0.12 for always
   short --- the settlement leg survives the spread only when it is sized by
   the sign.
 - The remaining-session implied IS a price and it is rich at every clock (04a),
