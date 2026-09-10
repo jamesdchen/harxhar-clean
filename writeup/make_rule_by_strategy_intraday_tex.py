@@ -42,15 +42,21 @@ Writes
 
 from __future__ import annotations
 
+import concurrent.futures as cf
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-import pandas as pd
-from pypdf import PdfReader
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from pypdf import PdfReader  # noqa: E402
 
 ROOT = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, str(ROOT / "notebooks"))
@@ -61,6 +67,7 @@ WRITEUP = ROOT / "writeup"
 GEN = WRITEUP / "generated_intraday"
 OUT = ROOT / "results" / "atm_straddle_intraday" / "rule_by_strategy"
 DECK = ROOT / "results" / "atm_straddle_0dte_1530"
+WORKERS = min(7, (os.cpu_count() or 4))
 
 # Deck numbers of record for the 15:30 window (results/atm_straddle_0dte_1530/
 # rule_by_strategy_*.csv).  The gate is on these, never on a loosened tolerance.
@@ -105,6 +112,7 @@ PREAMBLE = r"""\documentclass{article}
 \usepackage[landscape,margin=0.5in]{geometry}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \pagestyle{empty}
 """
 
@@ -346,10 +354,14 @@ def crossed_points(work: pd.DataFrame, q: np.ndarray) -> pd.Series:
 
 
 # ----------------------------------------------------------------- rows ----
-def summary_row(
+def daily_series(
     work: pd.DataFrame, q: np.ndarray, mask: np.ndarray, pooled: bool
-) -> pd.Series:
-    """One rule-table row for the bars in `mask`, at the midpoint and crossed."""
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """(return, position, crossed-spread return) per expiration day.
+
+    One row per day: the window's own bar, or -- pooled -- the day's sum over
+    the twelve windows.  The table rows and the histograms read the same series.
+    """
     date = work["date"]
     days = pd.DatetimeIndex(sorted(date[mask].unique()))
     qm = np.where(mask, q, 0.0)
@@ -359,14 +371,24 @@ def summary_row(
         index=work.index,
     )
     if pooled:
-        r = rp.groupby(date).sum().reindex(days)
-        size = pd.Series(qm, index=work.index).groupby(date).sum().reindex(days)
-        rc = cross.groupby(date).sum().reindex(days)
-    else:
-        idx = np.flatnonzero(mask)
-        r = pd.Series(rp.to_numpy()[idx], index=days)
-        size = pd.Series(qm[idx], index=days)
-        rc = pd.Series(cross.to_numpy()[idx], index=days)
+        return (
+            rp.groupby(date).sum().reindex(days),
+            pd.Series(qm, index=work.index).groupby(date).sum().reindex(days),
+            cross.groupby(date).sum().reindex(days),
+        )
+    idx = np.flatnonzero(mask)
+    return (
+        pd.Series(rp.to_numpy()[idx], index=days),
+        pd.Series(qm[idx], index=days),
+        pd.Series(cross.to_numpy()[idx], index=days),
+    )
+
+
+def summary_row(
+    work: pd.DataFrame, q: np.ndarray, mask: np.ndarray, pooled: bool
+) -> pd.Series:
+    """One rule-table row for the bars in `mask`, at the midpoint and crossed."""
+    r, size, rc = daily_series(work, q, mask, pooled)
     row = asl.rule_row(r, size)
     x = rc.dropna()
     sd = float(x.std(ddof=1)) if len(x) >= 2 else float("nan")
@@ -377,6 +399,121 @@ def summary_row(
     )
     row["n_crossed"] = float(len(x))
     return row
+
+
+def window_mask(work: pd.DataFrame, key: str) -> np.ndarray:
+    if key == "pooled":
+        return np.ones(len(work), bool)
+    return (work["hhmm"].to_numpy() == f"{key[:2]}:{key[2:]}").astype(bool)
+
+
+# ------------------------------------------------------------- histogram ----
+HIST_RULES = ("always short", r"sign($s$)")
+
+
+def hist_payload(work: pd.DataFrame, key: str) -> dict[str, np.ndarray]:
+    """The two daily return series a window's histogram draws (parent side)."""
+    pooled = key == "pooled"
+    mask = window_mask(work, key)
+    q = {
+        "always short": -np.ones(len(work)),
+        r"sign($s$)": positions(work, "blk2"),
+    }
+    return {
+        n: daily_series(work, v, mask, pooled)[0].dropna().to_numpy(float)
+        for n, v in q.items()
+    }
+
+
+def render_hist(
+    job: tuple[str, dict[str, np.ndarray]],
+) -> tuple[str, str, dict[str, int]]:
+    """The deck's rule_hists_blk2.png, for one entry window (worker side).
+
+    Block-diagonal ridge, midpoint fills, one panel per rule.  40 bins across
+    the pooled 1st--99th percentile window, laid on multiples of the bin width
+    so an edge falls exactly on zero (the deck's construction); the range is
+    widened when the series carries mass at exactly -1 -- the 15:30 leg's days
+    on which the package expires worthless -- so that mass is drawn, not
+    swept into the clipping bin.
+    """
+    key, arrays = job
+    pooled = key == "pooled"
+    ser = {n: pd.Series(v) for n, v in arrays.items()}
+    allv = pd.concat(list(ser.values()))
+    lo, hi = float(allv.quantile(0.01)), float(allv.quantile(0.99))
+    at_m1 = {n: int((np.abs(s.to_numpy() + 1.0) < 1e-9).sum()) for n, s in ser.items()}
+    if sum(at_m1.values()) and lo > -1.0:
+        lo = -1.0
+    w = (hi - lo) / 40.0
+    bins = np.arange(np.floor(lo / w) - 1, np.ceil(hi / w) + 1) * w
+
+    fig, axes = plt.subplots(1, len(ser), figsize=(9.5, 3.1), sharex=True, sharey=True)
+    for ax, name in zip(np.ravel(axes), HIST_RULES):
+        x = ser[name]
+        nz = x[x != 0.0]
+        ax.hist(nz.clip(bins[0], bins[-1]), bins=bins, color="C0", edgecolor="none")
+        n_zero = int((x == 0.0).sum())
+        if n_zero:
+            ax.bar(
+                [0.0], [n_zero], width=0.35 * w, color="C3", edgecolor="none", zorder=3
+            )
+            ax.annotate(
+                f"{n_zero} at $R'=0$",
+                xy=(0.0, n_zero),
+                xytext=(4, 2),
+                textcoords="offset points",
+                fontsize=7,
+                color="C3",
+            )
+        if at_m1[name]:
+            ax.axvline(-1.0, color="C3", lw=0.8, ls="--", zorder=4)
+            ax.annotate(
+                f"{at_m1[name]} at $R'=-1$",
+                xy=(-1.0, ax.get_ylim()[1]),
+                xytext=(3, -10),
+                textcoords="offset points",
+                fontsize=7,
+                color="C3",
+            )
+        ax.axvline(0.0, color="k", lw=0.6)
+        ax.set_title(name, fontsize=8)
+        ax.set_xlabel(r"$R'$")
+    where = (
+        "daily sum over the twelve entry windows 10:00-15:30 ET"
+        if pooled
+        else f"entry {key[:2]}:{key[2:]} ET"
+        + (", cash-settled at the close" if key == "1530" else ", one-bar hold")
+    )
+    fig.suptitle(
+        f"block-diagonal ridge, midpoint fills: {where}; return of the position, "
+        r"1st-99th percentile window (bars: the days with $R'\neq 0$)",
+        fontsize=9,
+    )
+    fig.tight_layout()
+    dst = OUT / key / f"rule_hists_blk2_{key}.png"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(dst, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+    return key, str(dst.relative_to(ROOT).as_posix()), at_m1
+
+
+def hist_caption(key: str, at_1530: bool) -> str:
+    what = (
+        "the daily sum over the twelve entry windows"
+        if key == "pooled"
+        else f"the position taken at {key[:2]}:{key[2:]} ET"
+    )
+    tail = (
+        r"; the mass at $-1$ is the days the package expires worthless"
+        if at_1530
+        else ""
+    )
+    return (
+        r"\small Distribution of the return of %s, block-diagonal ridge forecast, "
+        r"one panel per rule (returns inside their 1st--99th percentile window%s)."
+        % (what, tail)
+    )
 
 
 def build_tables(
@@ -485,23 +622,45 @@ LOG_BAD = ("Undefined", "not found")
 AUX_SUFFIXES = (".aux", ".log", ".out")
 
 
-def compile_tex(stem: str) -> None:
-    """One pdflatex pass; the log is scanned, then the aux files are removed."""
-    r = subprocess.run(
-        ["pdflatex", "-interaction=nonstopmode", stem + ".tex"],
-        cwd=WRITEUP,
-        capture_output=True,
-        text=True,
-    )
-    pdf = WRITEUP / (stem + ".pdf")
-    log = WRITEUP / (stem + ".log")
-    text = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
-    bad = [ln for ln in text.splitlines() if any(b in ln for b in LOG_BAD)]
-    assert r.returncode == 0 and pdf.exists(), f"{stem}: pdflatex rc={r.returncode}"
-    assert not bad, f"{stem}: log carries {LOG_BAD}:\n" + "\n".join(bad[:5])
+FIG_WIDTHS = (0.68, 0.60, 0.52, 0.45, 0.38, 0.32, 0.27)
+
+
+def compile_tex(job: tuple[str, str, int]) -> tuple[str, int, float, int]:
+    """Write one standalone and compile it, shrinking the figure to fit.
+
+    `template` carries the placeholder @FIGW@ for the \\includegraphics width;
+    the widths are tried in order until the document fits `max_pages`, so a
+    table plus a figure stays on one landscape page instead of spilling.
+    pdflatex is given a distinct jobname per stem, so the fourteen compiles
+    are independent and run in parallel.  The log is scanned for
+    LOG_BAD (a missing graphic reports "not found" there) and the aux files
+    are removed, leaving only the .tex and the .pdf.
+    """
+    stem, template, max_pages = job
+    pages, used = -1, float("nan")
+    for width in FIG_WIDTHS:
+        body = template.replace("@FIGW@", f"{width:.2f}")
+        with open(WRITEUP / (stem + ".tex"), "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(body)
+        r = subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", stem + ".tex"],
+            cwd=WRITEUP,
+            capture_output=True,
+            text=True,
+        )
+        pdf = WRITEUP / (stem + ".pdf")
+        log = WRITEUP / (stem + ".log")
+        text = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
+        bad = [ln for ln in text.splitlines() if any(b in ln for b in LOG_BAD)]
+        assert r.returncode == 0 and pdf.exists(), f"{stem}: pdflatex rc={r.returncode}"
+        assert not bad, f"{stem}: log carries {LOG_BAD}:\n" + "\n".join(bad[:5])
+        pages, used = len(PdfReader(str(pdf)).pages), width
+        if "@FIGW@" not in template or pages <= max_pages:
+            break
     for suf in AUX_SUFFIXES:  # keep only the .tex and the .pdf beside the standalone
         (WRITEUP / (stem + suf)).unlink(missing_ok=True)
-    print(f"  pdflatex {stem}: rc=0, pdf written, log clean, aux files removed")
+    n_fig = template.count(r"\includegraphics")
+    return stem, pages, used, n_fig
 
 
 def _pdf_text(path: Path) -> str:
@@ -587,12 +746,43 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
         print(f"GATE 15:30 {stem} panel vs the deck's CSV: max |diff| {dev:.3g}")
 
 
+def figure_block(key: str, at_1530: bool) -> list[str]:
+    """The window's histogram, plus -- pooled only -- the two per-clock figures."""
+    rel = f"../results/atm_straddle_intraday/rule_by_strategy/{key}"
+    out = [
+        r"\begin{center}",
+        r"\includegraphics[width=@FIGW@\textwidth]{%s/rule_hists_blk2_%s.png}\par\smallskip"
+        % (rel, key),
+        hist_caption(key, at_1530),
+        r"\end{center}",
+    ]
+    if key == "pooled":
+        base = "../results/atm_straddle_intraday"
+        out += [
+            r"\begin{center}",
+            r"\includegraphics[width=@FIGW@\textwidth]{%s/mean_by_entry_hhmm_as.png}"
+            r"\par\smallskip" % base,
+            r"\small Mean $R'$ by entry time, the four rules of the intraday notebook: "
+            r"next-mid 30-minute holds 10:00--15:00, the 15:30 leg cash-settling at the "
+            r"official close.",
+            r"\end{center}",
+            r"\begin{center}",
+            r"\includegraphics[width=@FIGW@\textwidth]{%s/hitrate_by_entry_hhmm.png}"
+            r"\par\smallskip" % base,
+            r"\small The matched signal's bars against the base rates --- the same "
+            r"statistic with the package held every day, no forecast --- by entry time, "
+            r"866 days, midpoint fills.",
+            r"\end{center}",
+        ]
+    return out
+
+
 def main() -> None:
     work, clocks, deck = build_work()
     tables = build_tables(work, clocks)
     gate(work, deck, tables)
-
     keys = [c.replace(":", "") for c in clocks] + ["pooled"]
+
     for key in keys:
         for stem, _ in PANELS:
             dst = OUT / key / f"rule_by_strategy_{stem}.csv"
@@ -606,6 +796,23 @@ def main() -> None:
             GEN / f"table_rule_by_strategy_intraday_{key}.tex",
             "\n".join(render(tables[key], src)),
         )
+
+    # --- the thirteen histograms, in parallel (Agg, one figure per worker) ---
+    jobs = [(key, hist_payload(work, key)) for key in keys]
+    t0 = time.perf_counter()
+    with cf.ProcessPoolExecutor(max_workers=WORKERS) as pool:
+        figs = dict((k, (p, m)) for k, p, m in pool.map(render_hist, jobs))
+    for key in keys:
+        print(f"  {figs[key][0]}  mass at -1: {figs[key][1]}")
+        assert (ROOT / figs[key][0]).exists(), figs[key][0]
+    for extra in ("mean_by_entry_hhmm_as.png", "hitrate_by_entry_hhmm.png"):
+        p = ROOT / "results" / "atm_straddle_intraday" / extra
+        assert p.exists(), f"the pooled section's figure is missing: {p}"
+    print(f"13 histograms rendered in {time.perf_counter() - t0:.1f}s")
+
+    # --- the fourteen documents, written as templates and compiled in parallel ---
+    compile_jobs = []
+    for key in keys:
         n_days = int(tables[key]["always_short"].loc["all models", "n"])
         body = "\n".join(
             [
@@ -620,6 +827,8 @@ def main() -> None:
                 r"\input{generated_intraday/table_rule_by_strategy_intraday_%s}" % key,
                 r"\end{center}",
                 r"\vspace{1ex}",
+                *figure_block(key, key == "1530"),
+                r"\vspace{1ex}",
                 data_note(key, n_days),
                 r"\vspace{1ex}",
                 FOOTNOTE,
@@ -627,10 +836,11 @@ def main() -> None:
                 "",
             ]
         )
-        write(WRITEUP / f"rule_by_strategy_intraday_{key}.tex", body)
-        compile_tex(f"rule_by_strategy_intraday_{key}")
+        compile_jobs.append(
+            (f"rule_by_strategy_intraday_{key}", body, 2 if key == "pooled" else 1)
+        )
 
-    # The bundle: the same thirteen generated tabulars, in order, one section
+    # The bundle: the same thirteen tabulars and figures, in order, one section
     # each with its own data note; the shared footnote once, at the end.
     idx = [
         "% AUTO-GENERATED by writeup/make_rule_by_strategy_intraday_tex.py.",
@@ -647,19 +857,28 @@ def main() -> None:
             r"\begin{center}",
             r"\input{generated_intraday/table_rule_by_strategy_intraday_%s}" % key,
             r"\end{center}",
+            *figure_block(key, key == "1530"),
             data_note(key, n_days),
             r"\clearpage",
         ]
-    idx += [
-        r"\section*{Notes}",
-        FOOTNOTE,
-        r"\end{document}",
-        "",
-    ]
-    write(WRITEUP / "rule_by_strategy_intraday_index.tex", "\n".join(idx))
-    compile_tex("rule_by_strategy_intraday_index")
-    pages = len(PdfReader(str(WRITEUP / "rule_by_strategy_intraday_index.pdf")).pages)
-    print(f"  bundle rule_by_strategy_intraday_index.pdf: {pages} pages")
+    idx += [r"\section*{Notes}", FOOTNOTE, r"\end{document}", ""]
+    compile_jobs.append(("rule_by_strategy_intraday_index", "\n".join(idx), 99))
+
+    t0 = time.perf_counter()
+    with cf.ProcessPoolExecutor(max_workers=WORKERS) as pool:
+        built = list(pool.map(compile_tex, compile_jobs))
+    for stem, pages, width, n_fig in built:
+        print(
+            f"  {stem}: {pages} page(s), {n_fig} figure(s) at "
+            f"{width:.2f}\\textwidth, log clean, aux removed"
+        )
+    for stem, pages, _, _ in built[:-1]:
+        cap = 2 if stem.endswith("pooled") else 1
+        assert pages <= cap, f"{stem} spilled to {pages} pages (cap {cap})"
+    print(f"14 documents compiled in {time.perf_counter() - t0:.1f}s")
+
+    pages = built[-1][1]
+    print(f"BUNDLE rule_by_strategy_intraday_index.pdf: {pages} pages")
     check_bundle_matches_standalones(keys)
 
     print()

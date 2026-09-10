@@ -4,12 +4,18 @@
 \usepackage[landscape,margin=0.5in]{geometry}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \pagestyle{empty}
 
 \begin{document}
 \begin{center}
 \textbf{0DTE nearest-OTM package: per-rule return summary, entry 11:30 ET, one-bar hold, models compared on the same 866 days}\\[1.5ex]
 \input{generated_intraday/table_rule_by_strategy_intraday_1130}
+\end{center}
+\vspace{1ex}
+\begin{center}
+\includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday/rule_by_strategy/1130/rule_hists_blk2_1130.png}\par\smallskip
+\small Distribution of the return of the position taken at 11:30 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
 \vspace{1ex}
 \noindent\small One trade a day: enter the nearest-OTM package at 11:30 ET and exit thirty minutes later at the next stamp, in the same two strikes. 865 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule filled at the crossed spread: entry at the touch (the ask when long, the bid when short) and exit at the touch of the next stamp; the 15:30 leg cash-settles and pays no exit spread, and a re-pick that lands on the same two strikes with the same sign is a hold, not a round trip, so it is not charged.
