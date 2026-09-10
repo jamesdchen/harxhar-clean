@@ -1520,15 +1520,7 @@ print("saved", OUT / "hitrate_by_entry_hhmm.png")
         r"""
 ## 9. Buy-signal fingerprint (day $\times$ clock)
 
-Each column is one expiration day, each row one 30-min clock. Blue:
-the window-matched signal says **buy** the straddle
-($s^{\mathrm{m}}_t>0$: the forecast of the next 30 minutes is above the implied
-variance of those same 30 minutes, the remaining implied sliced by the
-profile); red: short; grey: no implied quote (a censored solver node), so the
-rule sits flat — the only such case. The §8 tables average this grid down
-each row; the fingerprint shows the day-resolved structure — whether
-buys cluster in episodes (vol spikes), drift across regimes, and how
-the buy share thins from the morning rows to the settlement row.
+Each column is one expiration day, each row one 30-min clock. The colour is the position the window-matched signal takes for that bar: blue buy ($s^{\mathrm{m}}_t>0$), red short ($s^{\mathrm{m}}_t\le 0$), grey flat (no implied quote: the solver's bracket node was censored). The §8 tables average this grid along each row.
 """
     ),
     code(
@@ -1549,7 +1541,13 @@ ticks = [int(np.argmax(yrs == y)) for y in sorted(set(yrs))]
 ax.set_xticks(ticks, sorted(set(yrs)), fontsize=8)
 ax.set_xlabel("expiration day")
 ax.set_ylabel("clock (ET)")
-ax.set_title("window-matched signal, block-diagonal ridge: buy (blue) / short (red) / no implied quote, censored solver node (grey)")
+ax.set_title("position by expiration day and clock, window-matched signal, block-diagonal ridge")
+from matplotlib.patches import Patch
+ax.legend(
+    handles=[Patch(color="#4c72b0", label="buy: s > 0"), Patch(color="#c44e52", label="short: s <= 0"),
+             Patch(color="#e8e8e8", label="flat: no implied quote (censored solver node)")],
+    fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3, framealpha=0.9,
+)
 fig.tight_layout()
 fig.savefig(OUT / "buy_fingerprint_day_clock.png", dpi=120, bbox_inches="tight")
 display(fig)
