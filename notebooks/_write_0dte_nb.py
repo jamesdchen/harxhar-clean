@@ -2653,9 +2653,10 @@ def _col(side, col):
 
 
 def _dress(ax, title, xlab):
+    # legends sit below the axes so they never cover a bar
     ax.set_title(title, fontsize=9)
     ax.set_xlabel(xlab, fontsize=8)
-    ax.legend(fontsize=6.5, loc="lower right", framealpha=0.9)
+    ax.legend(fontsize=6.5, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, framealpha=0.9)
     ax.grid(axis="x", alpha=0.3)
 
 
@@ -2667,7 +2668,7 @@ axA.axvline(REF["unconditional short"]["hit rate"], color="C1", ls="--", lw=1.0,
             label=f"base rate, short every day: P(R < 0) = {REF['unconditional short']['hit rate']:.2f}")
 axA.set_yticks(ys)
 axA.set_yticklabels(names, fontsize=8)
-axA.set_ylim(len(names) + 1.1, -0.6)          # room under the last row for the legend
+axA.set_ylim(len(names) - 0.4, -0.6)
 axA.set_xlim(0.0, 0.8)
 _dress(axA, "A. how often the position is right\n(bars: on the signal's days; dashed: every day, no forecast)", "hit rate")
 

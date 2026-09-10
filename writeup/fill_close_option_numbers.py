@@ -93,7 +93,6 @@ ss = pd.read_csv(RES / "rule_by_strategy_sign_s.csv", index_col=0)
 asr = pd.read_csv(RES / "rule_by_strategy_always_short.csv", index_col=0).iloc[0]
 reg = pd.read_csv(RES / "regression_R_on_signal.csv").set_index("model")
 spl = pd.read_csv(RES / "sameday_sign_split.csv").set_index("model")
-rec = pd.read_csv(RES / "recalibration_mean_vs_median.csv").set_index("model")
 pair = pd.read_csv(RES / "paired_tests.csv")
 wside = pd.read_csv(RES / "within_side_slope.csv").set_index("model")
 variants = pd.read_csv(RES / "pnl_variants_blk2.csv")
@@ -361,16 +360,6 @@ else:
     V["YEAREXC"] = (
         " (" + ", ".join("%d is $%.2f$" % (y, v) for y, v in sorted(neg.items())) + ")"
     )
-
-# --- median map ----------------------------------------------------------
-assert (rec["Sharpe_median"] < rec["Sharpe_mean"]).all(), (
-    "the median map no longer loses on all eight"
-)
-assert (rec["percentile_interval"] == "includes zero").all(), (
-    "a median-map interval now excludes zero"
-)
-V["MEDMAP_FROM"] = "%.2f" % rec.loc[B2, "Sharpe_mean"]
-V["MEDMAP_TO"] = "%.2f" % rec.loc[B2, "Sharpe_median"]
 
 # --- early-close sessions ------------------------------------------------
 V["NEARLY"] = WORDS[
