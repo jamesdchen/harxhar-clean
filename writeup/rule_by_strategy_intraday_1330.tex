@@ -1,0 +1,37 @@
+% Standalone render of generated_intraday/table_rule_by_strategy_intraday_1330.tex
+% Build: pdflatex -interaction=nonstopmode rule_by_strategy_intraday_1330.tex
+\documentclass{article}
+\usepackage[landscape,margin=0.5in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\pagestyle{empty}
+
+\begin{document}
+\begin{center}
+\textbf{0DTE nearest-OTM package: per-rule return summary, entry 13:30 ET, one-bar hold, models compared on the same 866 days}\\[1.5ex]
+\input{generated_intraday/table_rule_by_strategy_intraday_1330}
+\end{center}
+\vspace{1ex}
+\noindent\small One trade a day: enter the nearest-OTM package at 13:30 ET and exit thirty minutes later at the next stamp, in the same two strikes. 866 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule filled at the crossed spread: entry at the touch (the ask when long, the bid when short) and exit at the touch of the next stamp; the 15:30 leg cash-settles and pays no exit spread, and a re-pick that lands on the same two strikes with the same sign is a hold, not a round trip, so it is not charged.
+\vspace{1ex}
+\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain
+$t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction.
+``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$).
+The short-volatility rule takes no forecast, so it is one row for all models.
+Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
+The one column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same
+rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other
+column is the deck's.
+
+\smallskip
+\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties)
+on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row;
+LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
+elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the
+panel of record is pending.
+The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the
+implied variance of the same window. On the bars whose vendor implied volatility is a censored
+solver node the deck's treatment is used here too --- the volatility that reproduces the package
+midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a
+signal and no bar sits flat.
+\end{document}
