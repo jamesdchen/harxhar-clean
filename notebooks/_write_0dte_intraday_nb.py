@@ -654,7 +654,12 @@ The signal at clock $t$ compares the next bar's forecast with the implied varian
 
 $$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t,$$
 
-where $h_t$ is hours to the close and $w_t=\hat m_t/\sum_{s\ge t}\hat m_s$ is that period's fraction of the remaining realized variance, with $\hat m_t$ the expanding mean of the period's $RV$ over prior sessions only (the forecast panel's history back to 2001, so no bar in the frame is without a slice). At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
+where $h_t$ is hours to the close and $w_t$ is that period's fraction of the remaining realized variance,
+
+$$w_{d,t}=\frac{\hat m_{d,t}}{\sum_{s\ge t}\hat m_{d,s}},\qquad
+\hat m_{d,t}=\frac{1}{|\{d'<d\}|}\sum_{d'<d} RV_{d',t},$$
+
+the expanding mean of period $t$'s realized variance over the sessions $d'$ before day $d$ (the forecast panel's history back to 2001, so no bar in the frame is without a slice); the sum in the denominator runs over the periods from $t$ to the close. At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
 """
     ),
     code(
