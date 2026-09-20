@@ -1,0 +1,7 @@
+,0
+UM |G| Sharpe mid,2.3445166193880085
+placebo mean,1.489713744509339
+placebo p95,1.9396768940818863
+percentile of the real UM-|G|,100.0
+draws,2000
+clears 95th,True

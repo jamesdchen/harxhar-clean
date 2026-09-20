@@ -19,11 +19,10 @@ Construction (mirrors notebooks/_write_0dte_intraday_nb.py):
     tags in asl.MODEL_ORDER, joined on timestamp + 30 min (the panel is
     bar-end labelled);
   * implied slice = iv_hourly^2 * hours_to_close * w_slice, with w_slice the
-    expanding per-clock mean of the panel's own realized bar variance over
-    PRIOR sessions (in-fit rows back to 2001, shift(1), min 63 sessions),
-    divided by its reverse cumulative sum over the remaining clocks.  At 15:30
-    w_slice = 1 and the slice is iv_hourly^2 / 2 exactly, equal to the deck's
-    iv_var on all 866 days (both asserted);
+    expanding mean of each prior day's remaining share
+    RV_c / sum_{s>=c} RV_s (in-fit panel rows back to 2001, shift(1), min 63
+    sessions).  At 15:30 w_slice = 1 and the slice is iv_hourly^2 / 2 exactly,
+    equal to the deck's iv_var on all 866 days (both asserted);
   * censored implied: the bars whose vendor implied volatility sits on a
     solver bracket node do NOT sit flat.  They take the deck's treatment
     (iv_hourly_15_30 in §8 of notebooks/_write_0dte_nb.py): the volatility
@@ -63,9 +62,34 @@ sys.path.insert(0, str(ROOT / "notebooks"))
 
 import atm_straddle_lib as asl  # noqa: E402
 
+DH_HOLDCLOSE = "--dh-holdclose" in sys.argv
 WRITEUP = ROOT / "writeup"
-GEN = WRITEUP / "generated_intraday"
-OUT = ROOT / "results" / "atm_straddle_intraday" / "rule_by_strategy"
+GEN = WRITEUP / ("generated_intraday_dh" if DH_HOLDCLOSE else "generated_intraday")
+OUT = (
+    ROOT
+    / "results"
+    / (
+        "atm_straddle_intraday_holdclose/rule_by_strategy_dh"
+        if DH_HOLDCLOSE
+        else "atm_straddle_intraday/rule_by_strategy"
+    )
+)
+TRADE_CACHE = (
+    ROOT
+    / "results"
+    / (
+        "atm_straddle_intraday_holdclose/cache"
+        if DH_HOLDCLOSE
+        else "atm_straddle_intraday/cache"
+    )
+)
+FIG_DIR = (
+    ROOT
+    / "results"
+    / ("atm_straddle_intraday_holdclose" if DH_HOLDCLOSE else "atm_straddle_intraday")
+)
+DOC = "rule_by_strategy_dh_holdclose" if DH_HOLDCLOSE else "rule_by_strategy_intraday"
+GEN_REL = GEN.name
 DECK = ROOT / "results" / "atm_straddle_0dte_1530"
 WORKERS = min(7, (os.cpu_count() or 4))
 
@@ -105,8 +129,27 @@ COLS: list[tuple[str, str, str]] = [
     ("ex_kurt", "{:.2f}", r"ex.\ kurt"),
     ("t_mean", "{:.2f}", r"$t$"),
     ("Sharpe_ann", "{:.2f}", r"Sharpe$_{\mathrm{ann}}$"),
+    ("n_buy", "{:.0f}", r"$n_{\mathrm{buy}}$"),
+    ("pct_buy", "{:.1f}", r"\%buy"),
     ("Sharpe_crossed", "{:.2f}", r"Sharpe$^{\times}_{\mathrm{ann}}$"),
 ]
+
+
+def cols_for(pooled: bool) -> list[tuple[str, str, str]]:
+    """Pooled page keeps Sharpe_ann; single-clock pages use Sharpe_clk."""
+    out = []
+    for c, fmt, h in COLS:
+        if c == "Sharpe_ann":
+            h = r"Sharpe$_{\mathrm{ann}}$" if pooled else r"Sharpe$_{\mathrm{clk}}$"
+        elif c == "Sharpe_crossed":
+            h = (
+                r"Sharpe$^{\times}_{\mathrm{ann}}$"
+                if pooled
+                else r"Sharpe$^{\times}_{\mathrm{clk}}$"
+            )
+        out.append((c, fmt, h))
+    return out
+
 
 PREAMBLE = r"""\documentclass{article}
 \usepackage[landscape,margin=0.5in]{geometry}
@@ -116,26 +159,84 @@ PREAMBLE = r"""\documentclass{article}
 \pagestyle{empty}
 """
 
-FOOTNOTE = r"""\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain
-$t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction.
-``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$).
-The short-volatility rule takes no forecast, so it is one row for all models.
-Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
-The one column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same
-rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other
-column is the deck's.
 
-\smallskip
-\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties)
-on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row;
-LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
-elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the
-panel of record is pending.
-The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the
-implied variance of the same window. On the bars whose vendor implied volatility is a censored
-solver node the deck's treatment is used here too --- the volatility that reproduces the package
-midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a
-signal and no bar sits flat."""
+def footnote() -> str:
+    if DH_HOLDCLOSE:
+        clk = (
+            r"of that clock's series: one remaining-session short per expiration day "
+            r"(enter at this clock, hold those strikes to the close, delta-hedge every "
+            r"30 minutes). It answers ``if I only entered at this clock, what is my "
+            r"annual Sharpe?'' It is \emph{not} the book's Sharpe$_{\mathrm{ann}}$."
+        )
+        pooled = (
+            r"of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve overlapping "
+            r"remaining-session books. That reserved name is the book's daily P\&L after "
+            r"pooling the session. The twelve books overlap; they are not twelve "
+            r"successive 30-minute holds."
+        )
+    else:
+        clk = (
+            r"of that clock's series: one 30-minute hold per expiration day. It answers ``if I "
+            r"only entered at this clock, what is my annual Sharpe?'' It is \emph{not} the "
+            r"book's Sharpe$_{\mathrm{ann}}$."
+        )
+        pooled = (
+            r"of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve holds. That reserved "
+            r"name is the book's daily P\&L after pooling the session. At 15:30 the two "
+            r"coincide (one trade that day); they do not on 10:00--15:00 or on the pooled page."
+        )
+    return (
+        r"\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain "
+        r"$t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction. "
+        r"``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$). "
+        r"The short-volatility rule takes no forecast, so it is one row for all models. "
+        r"\textbf{Two Sharpes.} Both multiply by $\sqrt{252}$ because an expiration day is "
+        r"the unit of time (same year-length as the paper). They are not the same object. "
+        r"On a \emph{single-clock} page, Sharpe$_{\mathrm{clk}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ "
+        + clk
+        + r" On the \emph{pooled} page, Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ "
+        + pooled
+        + r" Sharpe$^{\times}$ is the same convention at the crossed spread. Every other column is daily. "
+        r"$n_{\mathrm{buy}}$ is the number of expiration days with position $>0$ (always-short is 0; "
+        r"on the pooled page it is days the sum of the twelve positions is positive); "
+        r"\%buy is $100\cdot n_{\mathrm{buy}}/n$, the notebook's column. "
+        r"The other column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same "
+        r"rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other "
+        r"column is the deck's."
+        "\n\n"
+        r"\smallskip"
+        "\n"
+        r"\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties) "
+        r"on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row; "
+        r"LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$; "
+        r"elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the "
+        r"panel of record is pending. "
+        r"The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the "
+        r"implied variance of the same window. $w_t$ is the expanding mean of each prior day's "
+        r"remaining-session share of realized variance, $\mathrm{RV}_t/\sum_{s\ge t}\mathrm{RV}_s$ "
+        r"(in-fit panel history back to 2001), not the ratio of trailing clock-means. "
+        r"On the bars whose vendor implied volatility is a censored "
+        r"solver node the deck's treatment is used here too --- the volatility that reproduces the package "
+        r"midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a "
+        r"signal and no bar sits flat."
+    )
+
+
+def load_panel_for_tag(tag: str) -> tuple[str, pd.DataFrame]:
+    """Worker: one MZ panel. Module-level so ProcessPoolExecutor can pickle it."""
+    return tag, asl.load_yhat_panel_mz(asl.yhat_paths(ROOT)[tag])
+
+
+def load_panels_parallel() -> dict[str, pd.DataFrame]:
+    t0 = time.perf_counter()
+    n = min(WORKERS, len(asl.MODEL_ORDER))
+    with cf.ProcessPoolExecutor(max_workers=n) as pool:
+        loaded = dict(pool.map(load_panel_for_tag, asl.MODEL_ORDER))
+    print(
+        f"loaded {len(loaded)} forecast panels in {time.perf_counter() - t0:.1f}s "
+        f"({n} workers)"
+    )
+    return loaded
 
 
 # -------------------------------------------------------------- implied ----
@@ -212,10 +313,73 @@ def iv_hourly_reinverted(work: pd.DataFrame) -> pd.Series:
     return iv
 
 
+def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
+    """Replace R with long-package delta-hedged t→T return (q = +1).
+
+    Δ rebalanced every 30 minutes on vendor S; remaining vol = stamp IV × √h.
+    Hedge P&L stored in hedge_long (index points) for the crossed column.
+    """
+    from scipy.special import erf
+
+    def cdf(z):
+        return 0.5 * (1.0 + erf(z / np.sqrt(2.0)))
+
+    clocks = sorted(work["hhmm"].unique())
+    n_rem = {c: len(clocks) - i for i, c in enumerate(clocks)}
+    S_grid = work.pivot_table(index="date", columns="hhmm", values="S", aggfunc="first")
+    S_grid = S_grid.reindex(columns=clocks)
+    ivcol = "iv_hourly_used" if "iv_hourly_used" in work.columns else "iv_hourly"
+    IV_grid = work.pivot_table(
+        index="date", columns="hhmm", values=ivcol, aggfunc="first"
+    )
+    IV_grid = IV_grid.reindex(columns=clocks)
+    h_row = np.array([n_rem[c] * 0.5 for c in clocks])
+    dates = work["date"].to_numpy()
+    t_idx = pd.Index(clocks).get_indexer(work["hhmm"].to_numpy())
+    Sg = S_grid.loc[dates].to_numpy(float)
+    IVg = IV_grid.loc[dates].to_numpy(float)
+    ST = work["S_close"].to_numpy(float)
+    Kc = work["K_c"].to_numpy(float)[:, None]
+    Kp = work["K_p"].to_numpy(float)[:, None]
+    n, m = Sg.shape
+    col = np.arange(m)[None, :]
+    active = col >= t_idx[:, None]
+    nxt = np.full_like(Sg, np.nan)
+    nxt[:, :-1] = Sg[:, 1:]
+    last = np.where(active, col, -1).max(axis=1)
+    for j in range(m):
+        nxt[last == j, j] = ST[last == j]
+    tot = np.where((IVg > 0) & active, IVg * np.sqrt(h_row[None, :]), np.nan)
+    F = Sg
+    s = tot
+    dlt = np.zeros_like(Sg)
+    pos = (s > 0) & np.isfinite(s) & (F > 0) & np.isfinite(F)
+    if pos.any():
+        ss, FF = s[pos], F[pos]
+        kc = np.broadcast_to(Kc, Sg.shape)[pos]
+        kp = np.broadcast_to(Kp, Sg.shape)[pos]
+        d1c = (np.log(FF / kc) + 0.5 * ss * ss) / ss
+        d1p = (np.log(FF / kp) + 0.5 * ss * ss) / ss
+        dlt[pos] = cdf(d1c) + cdf(d1p) - 1.0
+    dlt = np.where(active & np.isfinite(Sg), dlt, 0.0)
+    dS = np.where(active & np.isfinite(Sg) & np.isfinite(nxt), nxt - Sg, 0.0)
+    hedge = ((-dlt) * dS).sum(axis=1)
+    entry = work["entry"].to_numpy(float)
+    opt = work["exit"].to_numpy(float) - entry
+    work = work.copy()
+    work["hedge_long"] = hedge
+    work["R"] = (opt + hedge) / entry
+    print(
+        f"DH t→T attached: median |Δ| {float(np.median(np.abs(dlt[active]))):.3f}; "
+        f"mean hedge {float(np.nanmean(hedge)):.3f} pts"
+    )
+    return work
+
+
 # ---------------------------------------------------------------- frame ----
 def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     """Trade bars on the deck's 866 days, with the slice and the eight rv_hat."""
-    cache = ROOT / "results" / "atm_straddle_intraday" / "cache"
+    cache = TRADE_CACHE
     trade = max(cache.glob("trade_*.parquet"), key=lambda p: p.stat().st_mtime)
     print("trade cache:", trade.name)
     pkg = pd.read_parquet(trade)
@@ -231,9 +395,11 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     clocks = sorted(work["hhmm"].unique())
     print("bars", len(work), "days", work["date"].nunique(), "clocks", clocks)
 
-    # Causal diurnal profile, seeded from the forecast panel's own history
-    # (every in-fit session bar back to 2001), so the frame carries no warm-up.
-    pan = asl.load_yhat_panel_mz(asl.yhat_paths(ROOT)["blk2"])
+    # Causal remaining share: each prior day's RV_c / remaining-to-close sum,
+    # then expanding mean. Panel in-fit history back to 2001; no warm-up.
+    # Eight MZ panels load in parallel; blk2 is reused for w and for rv_hat.
+    loaded = load_panels_parallel()
+    pan = loaded["blk2"]
     pf = pan[pan["in_fit"].to_numpy(dtype=bool)].copy()
     clock = pf["et"] - pd.Timedelta(minutes=30)
     pf["pdate"] = clock.dt.normalize().dt.tz_localize(None)
@@ -241,9 +407,11 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     prof = pf.pivot_table(
         index="pdate", columns="phhmm", values="rv_raw", aggfunc="mean"
     ).sort_index()
-    prof_exp = prof.expanding(min_periods=63).mean().shift(1)
-    rem_sum = prof_exp[clocks[::-1]].cumsum(axis=1)[clocks]
-    w_slice = prof_exp / rem_sum
+    _pi = pd.DataFrame(index=prof.index, columns=clocks, dtype=float)
+    for _i, _c in enumerate(clocks):
+        _rem = prof[clocks[_i:]].sum(axis=1)
+        _pi[_c] = prof[_c] / _rem.replace(0.0, np.nan)
+    w_slice = _pi.expanding(min_periods=63).mean().shift(1)
     assert bool(np.isclose(w_slice["15:30"].dropna().to_numpy(), 1.0).all()), (
         "w must be 1 at 15:30"
     )
@@ -288,9 +456,8 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
         f"15:30 slice equals the deck's iv_var on all 866 days (max rel diff {rel:.3g})"
     )
 
-    paths = asl.yhat_paths(ROOT)
     for tag in asl.MODEL_ORDER:
-        d = asl.load_yhat_panel_mz(paths[tag])[["t", "rv_hat"]].copy()
+        d = loaded[tag][["t", "rv_hat"]].copy()
         d["t"] = pd.to_datetime(d["t"], utc=True) - pd.Timedelta(minutes=30)
         joined = work[["t"]].merge(d, on="t", how="left")["rv_hat"].to_numpy()
         work["rv_hat_" + tag] = joined
@@ -350,6 +517,8 @@ def crossed_points(work: pd.DataFrame, q: np.ndarray) -> pd.Series:
     )
     untradeable = ~held_in & ((long & ~(ask_e > 0)) | (short & ~(bid_e > 0)))
     pts = np.where(untradeable, np.nan, q * (exit_px - entry_px))
+    if DH_HOLDCLOSE and "hedge_long" in work.columns:
+        pts = pts + np.asarray(q, float) * work["hedge_long"].to_numpy(float)
     return pd.Series(pts, index=work.index)
 
 
@@ -482,8 +651,7 @@ def render_hist(
     where = (
         "daily sum over the twelve entry windows 10:00-15:30 ET"
         if pooled
-        else f"entry {key[:2]}:{key[2:]} ET"
-        + (", cash-settled at the close" if key == "1530" else ", one-bar hold")
+        else f"entry {key[:2]}:{key[2:]} ET, {hold_kind(key)}"
     )
     fig.suptitle(
         f"block-diagonal ridge, midpoint fills: {where}; return of the position, "
@@ -496,6 +664,49 @@ def render_hist(
     fig.savefig(dst, dpi=120, bbox_inches="tight")
     plt.close(fig)
     return key, str(dst.relative_to(ROOT).as_posix()), at_m1
+
+
+def render_confusion(work: pd.DataFrame) -> Path:
+    """12 clocks: 2x2 of sign(s) vs sign(R) of the long package (mid)."""
+    clocks = sorted(work["hhmm"].unique())
+    fig, axes = plt.subplots(3, 4, figsize=(10.8, 7.2))
+    s = work["rv_hat_blk2"].to_numpy(float) - work["slice"].to_numpy(float)
+    r = work["R"].to_numpy(float)
+    hh = work["hhmm"].to_numpy()
+    pred_long = np.where(np.isfinite(s), s > 0, False)
+    act_up = np.isfinite(r) & (r > 0)
+    for ax, c in zip(axes.ravel(), clocks):
+        m = hh == c
+        tp = int((m & pred_long & act_up).sum())
+        fp = int((m & pred_long & ~act_up).sum())
+        fn = int((m & ~pred_long & act_up).sum())
+        tn = int((m & ~pred_long & ~act_up).sum())
+        mat = np.array([[tp, fp], [fn, tn]], float)
+        n = mat.sum()
+        ax.imshow(mat, cmap="Blues", vmin=0, vmax=max(n / 2, 1))
+        for (i, j), v in np.ndenumerate(mat):
+            ax.text(
+                j,
+                i,
+                f"{int(v)}\n({100 * v / n:.0f}%)" if n else "0",
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="white" if v > n / 3 else "black",
+            )
+        acc = (tp + tn) / n if n else float("nan")
+        ax.set_title(f"{c}  acc {acc:.2f}", fontsize=9)
+        ax.set_xticks([0, 1], labels=["R>0", "R≤0"], fontsize=7)
+        ax.set_yticks([0, 1], labels=["s>0 buy", "s≤0 short"], fontsize=7)
+    fig.suptitle(
+        r"$\mathrm{sign}(s)$ vs sign of long-package $R$ (mid), block-diagonal ridge, 866 days",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    dst = FIG_DIR / "confusion_by_clock.png"
+    fig.savefig(dst, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+    return dst
 
 
 def hist_caption(key: str, at_1530: bool) -> str:
@@ -539,16 +750,17 @@ def build_tables(
 
 
 # ------------------------------------------------------------------ tex ----
-def render(tabs: dict[str, pd.DataFrame], source: str) -> list[str]:
-    ncol = len(COLS) + 1
+def render(tabs: dict[str, pd.DataFrame], source: str, *, pooled: bool) -> list[str]:
+    cols = cols_for(pooled)
+    ncol = len(cols) + 1
     lines = [
         "% AUTO-GENERATED by writeup/make_rule_by_strategy_intraday_tex.py"
         " -- do not edit.",
         f"% Source: {source}",
-        r"\begingroup\small\setlength{\tabcolsep}{4.5pt}",
-        r"\begin{tabular}{l" + "r" * len(COLS) + "}",
+        r"\begingroup\small\setlength{\tabcolsep}{3.6pt}",
+        r"\begin{tabular}{l" + "r" * len(cols) + "}",
         r"\toprule",
-        "& " + " & ".join(h for _, _, h in COLS) + r" \\",
+        "& " + " & ".join(h for _, _, h in cols) + r" \\",
     ]
     for stem, label in PANELS:
         df = tabs[stem]
@@ -556,34 +768,68 @@ def render(tabs: dict[str, pd.DataFrame], source: str) -> list[str]:
         lines.append(r"\multicolumn{%d}{l}{\emph{%s}} \\" % (ncol, label))
         for name, row in df.iterrows():
             cells = [MODEL_TEX.get(str(name), str(name))]
-            for col, fmt, _ in COLS:
+            for col, fmt, _ in cols:
                 cells.append(fmt.format(float(row[col])))
             lines.append(" & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\endgroup", ""]
     return lines
 
 
+def hold_kind(key: str) -> str:
+    if DH_HOLDCLOSE:
+        return "held to cash-settle"
+    if key == "1530":
+        return "cash-settled at the close"
+    return "one-bar hold"
+
+
 def window_title(key: str) -> str:
+    inst = "straddle" if DH_HOLDCLOSE else "package"
     if key == "pooled":
-        return (
-            r"0DTE nearest-OTM package: per-rule return summary, pooled over the twelve "
-            r"entry windows 10:00--15:30 ET (daily sums), models compared on the same 866 days"
+        extra = (
+            r" (overlapping remaining-session books)"
+            if DH_HOLDCLOSE
+            else r" (daily sums)"
         )
-    tail = "cash-settled at the close" if key == "1530" else "one-bar hold"
+        return (
+            rf"0DTE nearest-OTM {inst}: per-rule return summary, pooled over the twelve "
+            rf"entry windows 10:00--15:30 ET{extra}, models compared on the same 866 days"
+        )
     return (
-        r"0DTE nearest-OTM package: per-rule return summary, entry %s:%s ET, %s, "
-        r"models compared on the same 866 days" % (key[:2], key[2:], tail)
+        rf"0DTE nearest-OTM {inst}: per-rule return summary, entry {key[:2]}:{key[2:]} ET, "
+        rf"{hold_kind(key)}, models compared on the same 866 days"
     )
 
 
 def short_title(key: str) -> str:
     if key == "pooled":
         return "Rule table by strategy --- pooled over the twelve entry windows"
-    tail = "cash-settled at the close" if key == "1530" else "one-bar hold"
-    return f"Rule table by strategy --- entry {key[:2]}:{key[2:]} ET, {tail}"
+    return f"Rule table by strategy --- entry {key[:2]}:{key[2:]} ET, {hold_kind(key)}"
 
 
 def data_note(key: str, n_days: int) -> str:
+    inst = "straddle" if DH_HOLDCLOSE else "package"
+    if DH_HOLDCLOSE:
+        if key == "pooled":
+            held = (
+                r"Each row is the daily sum of the twelve overlapping remaining-session "
+                r"books: enter at each clock 10:00--15:30 ET, hold those strikes to the "
+                r"official close, delta-hedge every 30 minutes."
+            )
+        else:
+            held = (
+                rf"One trade a day: enter the nearest-OTM {inst} at {key[:2]}:{key[2:]} ET, "
+                r"hold those strikes to the official close, and delta-hedge every 30 minutes."
+            )
+        crossed = (
+            r"Fills are at the quoted midpoint everywhere except the last column, which is "
+            r"the same rule at the crossed spread: entry at the touch (the ask when long, "
+            r"the bid when short) and cash-settle at the official close (no exit spread)."
+        )
+        return (
+            r"\noindent\small %s %d expiration days, 2020-01-03 to 2024-04-30 "
+            r"(the deck's frame). %s" % (held, n_days, crossed)
+        )
     if key == "pooled":
         held = (
             r"Each row is the daily sum over the twelve entry windows 10:00--15:30 ET: "
@@ -672,9 +918,7 @@ def _pdf_text(path: Path) -> str:
 
 def _row_numbers(key: str) -> list[str]:
     """The numeric cells of each data row of one generated tabular, in order."""
-    src = (GEN / f"table_rule_by_strategy_intraday_{key}.tex").read_text(
-        encoding="utf-8"
-    )
+    src = (GEN / f"table_{DOC}_{key}.tex").read_text(encoding="utf-8")
     rows = []
     for line in src.splitlines():
         line = line.strip()
@@ -687,9 +931,9 @@ def _row_numbers(key: str) -> list[str]:
 
 def check_bundle_matches_standalones(keys: list[str]) -> None:
     """Every window's table in the bundle is the one in its own standalone."""
-    bundle = _pdf_text(WRITEUP / "rule_by_strategy_intraday_index.pdf")
+    bundle = _pdf_text(WRITEUP / f"{DOC}_index.pdf")
     for key in keys:
-        alone = _pdf_text(WRITEUP / f"rule_by_strategy_intraday_{key}.pdf")
+        alone = _pdf_text(WRITEUP / f"{DOC}_{key}.pdf")
         rows = _row_numbers(key)
         assert len(rows) == 9, (key, len(rows))
         for row in rows:
@@ -722,6 +966,9 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
     )
     print(f"GATE positions: equal to the deck's on all {len(j)} days, none differing")
 
+    if DH_HOLDCLOSE:
+        print("DH t→T: skip 15:30 Sharpe-vs-deck gate (payoff is hedged)")
+        return
     got = float(tables["1530"]["always_short"].loc["all models", "Sharpe_ann"])
     assert abs(got - DECK_ALWAYS_SHORT_SHARPE) < 1e-6, (got, DECK_ALWAYS_SHORT_SHARPE)
     print(
@@ -748,7 +995,7 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
 
 def figure_block(key: str, at_1530: bool) -> list[str]:
     """The window's histogram, plus -- pooled only -- the two per-clock figures."""
-    rel = f"../results/atm_straddle_intraday/rule_by_strategy/{key}"
+    rel = f"../{OUT.relative_to(ROOT).as_posix()}/{key}"
     out = [
         r"\begin{center}",
         r"\includegraphics[width=@FIGW@\textwidth]{%s/rule_hists_blk2_%s.png}\par\smallskip"
@@ -757,28 +1004,88 @@ def figure_block(key: str, at_1530: bool) -> list[str]:
         r"\end{center}",
     ]
     if key == "pooled":
-        base = "../results/atm_straddle_intraday"
+        base = f"../{FIG_DIR.relative_to(ROOT).as_posix()}"
         out += [
             r"\begin{center}",
             r"\includegraphics[width=@FIGW@\textwidth]{%s/mean_by_entry_hhmm_as.png}"
             r"\par\smallskip" % base,
-            r"\small Mean $R'$ by entry time, the four rules of the intraday notebook: "
-            r"next-mid 30-minute holds 10:00--15:00, the 15:30 leg cash-settling at the "
-            r"official close.",
+            r"\small Mean $R'$ and Sharpe$_{\mathrm{clk}}$ by entry clock (grouped bars). "
+            r"Sharpe$_{\mathrm{clk}}$ is that clock's daily series $\times\sqrt{252}$, not "
+            r"the pooled Sharpe$_{\mathrm{ann}}$. "
+            + (
+                r"Delta-hedged $t\to T$: hold entry $K$ to official close, "
+                r"rebalance $\Delta$ every 30 minutes."
+                if DH_HOLDCLOSE
+                else r"Next-mid 30-minute holds 10:00--15:00; 15:30 cash-settles at the official close."
+            ),
             r"\end{center}",
             r"\begin{center}",
-            r"\includegraphics[width=@FIGW@\textwidth]{%s/hitrate_by_entry_hhmm.png}"
+            r"\includegraphics[width=@FIGW@\textwidth]{%s/confusion_by_clock.png}"
             r"\par\smallskip" % base,
-            r"\small The matched signal's bars against the base rates --- the same "
-            r"statistic with the package held every day, no forecast --- by entry time, "
-            r"866 days, midpoint fills.",
+            r"\small Confusion matrix per entry clock: $\mathrm{sign}(s)$ (buy if $s>0$) "
+            r"against the sign of the long-package midpoint return. 15:30 is the paper trade.",
             r"\end{center}",
         ]
     return out
 
 
+def render_mean_bars(work: pd.DataFrame) -> Path:
+    """Grouped bars of mean R' and Sharpe_clk for always-short and sign(s) ridge."""
+    clocks = sorted(work["hhmm"].unique())
+    q_as = -np.ones(len(work))
+    q_sg = positions(work, "blk2")
+    rows = []
+    for name, q in (("always short", q_as), ("sign(s)", q_sg)):
+        rp = q * work["R"].to_numpy(float)
+        for c in clocks:
+            m = work["hhmm"].to_numpy() == c
+            x = rp[m]
+            x = x[np.isfinite(x)]
+            sh = (
+                float(x.mean() / x.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR))
+                if len(x) > 1
+                else np.nan
+            )
+            rows.append(
+                {"hhmm": c, "rule": name, "mean": float(np.mean(x)), "Sharpe_clk": sh}
+            )
+    stab = pd.DataFrame(rows)
+    hh = clocks
+    x = np.arange(len(hh))
+    w = 0.35
+    fig, axes = plt.subplots(2, 1, figsize=(10.5, 6.4), sharex=True)
+    for i, rule in enumerate(("always short", "sign(s)")):
+        sub = stab[stab["rule"] == rule].set_index("hhmm").reindex(hh)
+        axes[0].bar(x + (i - 0.5) * w, sub["mean"].to_numpy(float), w, label=rule)
+        axes[1].bar(x + (i - 0.5) * w, sub["Sharpe_clk"].to_numpy(float), w, label=rule)
+    for ax, ylab in ((axes[0], "mean $R'$"), (axes[1], r"Sharpe$_{\mathrm{clk}}$")):
+        ax.axhline(0, color="k", lw=0.6)
+        ax.set_ylabel(ylab)
+        ax.grid(axis="y", alpha=0.3)
+    axes[0].legend(fontsize=8, loc="upper left")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(hh, rotation=45, ha="right")
+    title = (
+        r"delta-hedged $t\to T$"
+        if DH_HOLDCLOSE
+        else "next-mid 30-min holds; 15:30 cash-settles"
+    )
+    axes[0].set_title(title)
+    fig.tight_layout()
+    dst = FIG_DIR / "mean_by_entry_hhmm_as.png"
+    fig.savefig(dst, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+    return dst
+
+
 def main() -> None:
+    GEN.mkdir(parents=True, exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
     work, clocks, deck = build_work()
+    if DH_HOLDCLOSE:
+        work = attach_long_dh(work)
+        render_mean_bars(work)
     tables = build_tables(work, clocks)
     gate(work, deck, tables)
     keys = [c.replace(":", "") for c in clocks] + ["pooled"]
@@ -793,8 +1100,8 @@ def main() -> None:
             f"rule_by_strategy_*.csv"
         )
         write(
-            GEN / f"table_rule_by_strategy_intraday_{key}.tex",
-            "\n".join(render(tables[key], src)),
+            GEN / f"table_{DOC}_{key}.tex",
+            "\n".join(render(tables[key], src, pooled=(key == "pooled"))),
         )
 
     # --- the thirteen histograms, in parallel (Agg, one figure per worker) ---
@@ -805,8 +1112,9 @@ def main() -> None:
     for key in keys:
         print(f"  {figs[key][0]}  mass at -1: {figs[key][1]}")
         assert (ROOT / figs[key][0]).exists(), figs[key][0]
-    for extra in ("mean_by_entry_hhmm_as.png", "hitrate_by_entry_hhmm.png"):
-        p = ROOT / "results" / "atm_straddle_intraday" / extra
+    render_confusion(work)
+    for extra in ("mean_by_entry_hhmm_as.png", "confusion_by_clock.png"):
+        p = FIG_DIR / extra
         assert p.exists(), f"the pooled section's figure is missing: {p}"
     print(f"13 histograms rendered in {time.perf_counter() - t0:.1f}s")
 
@@ -816,53 +1124,52 @@ def main() -> None:
         n_days = int(tables[key]["always_short"].loc["all models", "n"])
         body = "\n".join(
             [
-                f"% Standalone render of generated_intraday/"
-                f"table_rule_by_strategy_intraday_{key}.tex",
-                f"% Build: pdflatex -interaction=nonstopmode "
-                f"rule_by_strategy_intraday_{key}.tex",
+                f"% Standalone render of {GEN_REL}/table_{DOC}_{key}.tex",
+                f"% Build: pdflatex -interaction=nonstopmode {DOC}_{key}.tex",
                 PREAMBLE,
                 r"\begin{document}",
                 r"\begin{center}",
                 r"\textbf{%s}\\[1.5ex]" % window_title(key),
-                r"\input{generated_intraday/table_rule_by_strategy_intraday_%s}" % key,
+                r"\input{%s/table_%s_%s}" % (GEN_REL, DOC, key),
                 r"\end{center}",
                 r"\vspace{1ex}",
                 *figure_block(key, key == "1530"),
                 r"\vspace{1ex}",
                 data_note(key, n_days),
                 r"\vspace{1ex}",
-                FOOTNOTE,
+                footnote(),
                 r"\end{document}",
                 "",
             ]
         )
-        compile_jobs.append(
-            (f"rule_by_strategy_intraday_{key}", body, 2 if key == "pooled" else 1)
-        )
+        compile_jobs.append((f"{DOC}_{key}", body, 2 if key == "pooled" else 1))
 
     # The bundle: the same thirteen tabulars and figures, in order, one section
     # each with its own data note; the shared footnote once, at the end.
     idx = [
         "% AUTO-GENERATED by writeup/make_rule_by_strategy_intraday_tex.py.",
-        "% Build: pdflatex -interaction=nonstopmode rule_by_strategy_intraday_index.tex",
+        f"% Build: pdflatex -interaction=nonstopmode {DOC}_index.tex",
         PREAMBLE,
         r"\begin{document}",
-        r"\begin{center}\textbf{\large 0DTE nearest-OTM package: rule table by strategy,",
-        r"every intraday entry window}\end{center}",
+        r"\begin{center}\textbf{\large 0DTE nearest-OTM "
+        + ("straddle" if DH_HOLDCLOSE else "package")
+        + r": rule table by strategy, every intraday entry window"
+        + (r" --- delta-hedged, held to cash-settle}" if DH_HOLDCLOSE else r"}")
+        + r"\end{center}",
     ]
     for key in keys:
         n_days = int(tables[key]["always_short"].loc["all models", "n"])
         idx += [
             r"\section*{%s}" % short_title(key),
             r"\begin{center}",
-            r"\input{generated_intraday/table_rule_by_strategy_intraday_%s}" % key,
+            r"\input{%s/table_%s_%s}" % (GEN_REL, DOC, key),
             r"\end{center}",
             *figure_block(key, key == "1530"),
             data_note(key, n_days),
             r"\clearpage",
         ]
-    idx += [r"\section*{Notes}", FOOTNOTE, r"\end{document}", ""]
-    compile_jobs.append(("rule_by_strategy_intraday_index", "\n".join(idx), 99))
+    idx += [r"\section*{Notes}", footnote(), r"\end{document}", ""]
+    compile_jobs.append((f"{DOC}_index", "\n".join(idx), 99))
 
     t0 = time.perf_counter()
     with cf.ProcessPoolExecutor(max_workers=WORKERS) as pool:
@@ -878,7 +1185,7 @@ def main() -> None:
     print(f"14 documents compiled in {time.perf_counter() - t0:.1f}s")
 
     pages = built[-1][1]
-    print(f"BUNDLE rule_by_strategy_intraday_index.pdf: {pages} pages")
+    print(f"BUNDLE {DOC}_index.pdf: {pages} pages")
     check_bundle_matches_standalones(keys)
 
     print()

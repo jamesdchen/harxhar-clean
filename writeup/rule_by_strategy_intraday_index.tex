@@ -140,11 +140,11 @@ every intraday entry window}\end{center}
 \end{center}
 \begin{center}
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday/mean_by_entry_hhmm_as.png}\par\smallskip
-\small Mean $R'$ by entry time, the four rules of the intraday notebook: next-mid 30-minute holds 10:00--15:00, the 15:30 leg cash-settling at the official close.
+\small Mean $R'$ and Sharpe$_{\mathrm{clk}}$ by entry clock (grouped bars). Sharpe$_{\mathrm{clk}}$ is that clock's daily series $\times\sqrt{252}$, not the pooled Sharpe$_{\mathrm{ann}}$. Next-mid 30-minute holds 10:00--15:00; 15:30 cash-settles at the official close.
 \end{center}
 \begin{center}
-\includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday/hitrate_by_entry_hhmm.png}\par\smallskip
-\small The matched signal's bars against the base rates --- the same statistic with the package held every day, no forecast --- by entry time, 866 days, midpoint fills.
+\includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday/confusion_by_clock.png}\par\smallskip
+\small Confusion matrix per entry clock: $\mathrm{sign}(s)$ (buy if $s>0$) against the sign of the long-package midpoint return. 15:30 is the paper trade.
 \end{center}
 \noindent\small Each row is the daily sum over the twelve entry windows 10:00--15:30 ET: one number per expiration day, then the usual statistics on that daily series. 866 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule filled at the crossed spread: entry at the touch (the ask when long, the bid when short) and exit at the touch of the next stamp; the 15:30 leg cash-settles and pays no exit spread, and a re-pick that lands on the same two strikes with the same sign is a hold, not a round trip, so it is not charged.
 \clearpage
@@ -153,8 +153,21 @@ every intraday entry window}\end{center}
 $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction.
 ``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$).
 The short-volatility rule takes no forecast, so it is one row for all models.
-Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$; every other column is daily.
-The one column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same
+\textbf{Two Sharpes.} Both multiply by $\sqrt{252}$ because an expiration day is
+the unit of time (same year-length as the paper). They are not the same object.
+On a \emph{single-clock} page, Sharpe$_{\mathrm{clk}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$
+of that clock's series: one 30-minute hold per expiration day. It answers ``if I
+only entered at this clock, what is my annual Sharpe?'' It is \emph{not} the
+book's Sharpe$_{\mathrm{ann}}$.
+On the \emph{pooled} page, Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$
+of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve holds. That reserved
+name is the book's daily P\&L after pooling the session. At 15:30 the two
+coincide (one trade that day); they do not on 10:00--15:00 or on the pooled page.
+Sharpe$^{\times}$ is the same convention at the crossed spread. Every other column is daily.
+$n_{\mathrm{buy}}$ is the number of expiration days with position $>0$ (always-short is 0;
+on the pooled page it is days the sum of the twelve positions is positive);
+\%buy is $100\cdot n_{\mathrm{buy}}/n$, the notebook's column.
+The other column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same
 rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other
 column is the deck's.
 
@@ -165,7 +178,10 @@ LightGBM and XGBoost on the all-features design; lasso on the same design, causa
 elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the
 panel of record is pending.
 The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the
-implied variance of the same window. On the bars whose vendor implied volatility is a censored
+implied variance of the same window. $w_t$ is the expanding mean of each prior day's
+remaining-session share of realized variance, $\mathrm{RV}_t/\sum_{s\ge t}\mathrm{RV}_s$
+(in-fit panel history back to 2001), not the ratio of trailing clock-means.
+On the bars whose vendor implied volatility is a censored
 solver node the deck's treatment is used here too --- the volatility that reproduces the package
 midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a
 signal and no bar sits flat.

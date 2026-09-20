@@ -1,0 +1,9 @@
+,0
+dSharpe,-0.012056319793044334
+pct_lo,-0.42280088912279745
+pct_hi,0.3782002716722845
+basic_lo,-0.40231291125837315
+basic_hi,0.3986882495367088
+NW t of daily difference,2.8068075822679797
+NW lag,14
+CI excludes 0 (pct and basic),False

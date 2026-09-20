@@ -102,14 +102,28 @@ on the two contracts, same as the close trade.
 
 ## Choice 3 — 9:30
 
-The cash session opens at 9:30. This tape has the 9:30 bar and **no**
-vendor `underlying_price` (0% finite). `^GSPC` Open **is** the 9:30
-cash print and can be $S_{9:30}$. Live mids at 9:30 exist on only
-~40% of days (the §3 cell prints the 9:30 stamps with no live quote
-at all), so a GSPC-Open ATM straddle would be a **sparse** extra bar,
-not a full panel. The scored trade therefore starts at 10:00, where
-the vendor $S$ is live, and the Open path is not built here:
-`yfinance` enters only for settlement.
+The cash open is 9:30. This notebook's first bar is 10:00. That is a
+**tape defect**, not a choice to skip the open.
+
+To pick a nearest-OTM straddle at a stamp the tape must supply **both**:
+
+1. a spot $S$ (the picker takes $K_c\ge S$, $K_p\le S$),
+2. live option mids on those strikes.
+
+| 9:30 on this file | |
+|---|---|
+| rows exist | yes — 9:30 is a clock in the chain |
+| vendor `underlying_price` | **never** (0% finite) — no $S$, so the picker cannot choose $K$ |
+| live option mids | ~40% of expiration days; the rest have no live quote at all (§3 prints the hole) |
+
+`^GSPC` Open **is** the 9:30 cash print and could fill the $S$ hole.
+It cannot fill the quote hole. With Open as $S$ you would still have
+no straddle on ~60% of days: a sparse extra bar, not a thirteenth
+clock. That path is not built.
+
+**10:00** is the first stamp where vendor $S$ is live **and** mids
+exist on every scored day. `yfinance` is used only for **settlement**
+(the official close of the 15:30 straddle), never as a 9:30 spot.
 """
     ),
     code(
@@ -654,12 +668,24 @@ The signal at clock $t$ compares the next bar's forecast with the implied varian
 
 $$s^{\mathrm{m}}_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}\,h_t\,w_t,$$
 
-where $h_t$ is hours to the close and $w_t$ is that period's fraction of the remaining realized variance,
+where $h_t$ is hours to the close and $w_t$ is the trailing mean of that period's **share of remaining realized variance that day**,
 
-$$w_{d,t}=\frac{\hat m_{d,t}}{\sum_{s\ge t}\hat m_{d,s}},\qquad
-\hat m_{d,t}=\frac{1}{|\{d'<d\}|}\sum_{d'<d} RV_{d',t},$$
+$$\pi_{d',t}=\frac{RV_{d',t}}{\sum_{s\ge t}RV_{d',s}},\qquad
+w_{d,t}=\frac{1}{|\{d'<d\}|}\sum_{d'<d}\pi_{d',t},$$
 
-the expanding mean of period $t$'s realized variance over the sessions $d'$ before day $d$ (the forecast panel's history back to 2001, so no bar in the frame is without a slice); the sum in the denominator runs over the periods from $t$ to the close. At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
+over the forecast panel's sessions $d'$ before day $d$ (back to 2001, so no bar in the frame is without a slice). The denominator of $\pi$ is that day's remaining-to-close sum, not a trailing mean of buckets. At 15:30, $\pi=1$ on every day so $w=1$.
+
+The same objects write the expected-gain identity for a hold from $t$ to the next bar $u$ when $\mu=r-q$ and the market curve is held fixed:
+
+$$V_{M,t}=\mathrm{IV}^{2}_{\mathrm{hr},t}\,h_t,\qquad
+V_{H,t}=\widehat{RV}_t+(1-w_t)V_{M,t},$$
+
+$$s^{\mathrm{m}}_t=V_{H,t}-V_{M,t},\qquad
+G_t=C^{\mathrm{BS}}(S_t,K_c,K_p;\sqrt{V_{H,t}})-C^{\mathrm{BS}}(S_t,K_c,K_p;\sqrt{V_{M,t}}).$$
+
+$s^{\mathrm{m}}$ is the variance gap on the next bar; $G$ is the expected change in the package mid, in index points (Black-76, $r=0$). Rules in §6 still use $\mathrm{sign}(s^{\mathrm{m}})$.
+
+At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
 """
     ),
     code(
@@ -676,12 +702,12 @@ print(_cal.round(3).to_string())
 print("pooled", round(float(work.loc[ok, "rv_hat"].mean() / work.loc[ok, "rv_raw"].mean()), 3),
       "- the pooled ratio of means is dominated by 2020, so read the per-year view")
 
-# Causal diurnal profile: expanding per-clock mean of realized bar variance,
-# prior sessions only. It is seeded from the FORECAST PANEL's own history --
-# every session bar back to 2001 -- and not from this frame, so the 63-session
-# minimum is met more than eighteen years before the first scored day and the
-# scored frame carries no warm-up. Panel stamps are bar-end labelled, so the
-# stamps 10:30..16:00 are the trade clocks 10:00..15:30.
+# Causal remaining share: on each prior day, this bar's RV over that day's
+# remaining-to-close sum; then the expanding mean of those shares. Seeded from
+# the FORECAST PANEL (in-fit session bars back to 2001), not this frame, so
+# the 63-session minimum is met years before the first scored day. Panel
+# stamps are bar-end labelled: 10:30..16:00 are trade clocks 10:00..15:30.
+# (Ratio-of-trailing-clock-means is the wrong estimator for a share.)
 _pf = panels["blk2"].reset_index()
 _pf = _pf[_pf["in_fit"].to_numpy(dtype=bool)].copy()
 _pf["clock"] = (pd.to_datetime(_pf["t"], utc=True).dt.tz_convert("America/New_York")
@@ -689,13 +715,15 @@ _pf["clock"] = (pd.to_datetime(_pf["t"], utc=True).dt.tz_convert("America/New_Yo
 _pf["pdate"] = _pf["clock"].dt.normalize().dt.tz_localize(None)
 _pf["phhmm"] = _pf["clock"].dt.strftime("%H:%M")
 prof = _pf.pivot_table(index="pdate", columns="phhmm", values="rv_raw", aggfunc="mean").sort_index()
-prof_exp = prof.expanding(min_periods=63).mean().shift(1)
 clocks = sorted(work["hhmm"].unique())
-rem_sum = prof_exp[clocks[::-1]].cumsum(axis=1)[clocks]
-w_slice = prof_exp / rem_sum
+_pi = pd.DataFrame(index=prof.index, columns=clocks, dtype=float)
+for _i, _c in enumerate(clocks):
+    _rem = prof[clocks[_i:]].sum(axis=1)
+    _pi[_c] = prof[_c] / _rem.replace(0.0, np.nan)
+w_slice = _pi.expanding(min_periods=63).mean().shift(1)
 mi = pd.MultiIndex.from_arrays([work["date"], work["hhmm"]])
 work["w_slice"] = w_slice.stack().reindex(mi).to_numpy()
-print("diurnal profile fit on", int(prof.index.size), "panel sessions,",
+print("remaining-share profile fit on", int(prof.index.size), "panel sessions,",
       prof.index.min().date(), "->", prof.index.max().date(),
       "| first scored day", work["date"].min().date())
 assert bool(np.isclose(w_slice["15:30"].dropna().to_numpy(), 1.0).all()), "w must be 1 at 15:30"
@@ -798,8 +826,11 @@ have fewer than twelve bars.
    (`n_days`).
 3. $\mathrm{Sharpe}_{ann}=\overline{R}^{day}/\mathrm{sd}(R^{day})\times\sqrt{252}$.
 
-Not $\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$ on the stacked
-bars (that treats each 30-min row as a full trading day). Not that
+That name is reserved for this daily sum. A single clock's
+$\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$ is $\mathrm{Sharpe}_{\mathrm{clk}}$
+in §8 (one hold per expiration day at that stamp). Not
+$\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$ on the stacked bars
+(that treats each 30-min row as a full trading day). Not that
 quantity times $\sqrt{12}$ (the twelve bars on one day are not
 twelve independent days). Daily collapse is the conversion that
 respects same-day dependence. $\sqrt{252}$ is then the same
@@ -890,47 +921,15 @@ tab.to_csv(OUT / "rule_table_intraday_blk2.csv")
     ),
     md(
         r"""
-## 6b. Annualization, sizing, and what the frame covers
+## 6b. Annualization, sizing, coverage
 
-Three conventions the table above rests on. Each is printed by the
-cell below rather than asserted here.
+The cell prints the three conventions under the §6 table.
 
-**Annualization.** `Sharpe_ann` is the mean of the daily sums over
-their standard deviation, times $\sqrt{252}$. That is a
-**per-trade-day** convention: one scored expiration day is one unit of
-time. This frame does not trade every session — SPXW listed
-Monday/Wednesday/Friday expirations before June 2022 and every session
-after — so the cell prints the trades per year the frame actually
-delivers (`asl.trades_per_year`) and the day count per calendar year.
-Read $\sqrt{252}$ as *per 252 trades*. This frame delivers $200.3$ of
-them a year — $158$ scored days in 2020, $158$ in 2021, $219$ in 2022,
-$248$ in 2023, $83$ in the partial 2024 — so the calendar-time
-equivalent (one number per NYSE session, zero on the sessions with no
-0DTE expiration) scales every whole-sample figure by
-$\sqrt{200.3/252}=0.892$. The shortfall is entirely the early years,
-and relative comparisons between the rules are unaffected.
+**Annualization.** $\mathrm{Sharpe}_{ann}$ is the mean of the daily sums over their sd, times $\sqrt{252}$. One scored expiration is one unit of time. The cell prints trades per year on this frame and the calendar-time factor $\sqrt{N_{\mathrm{yr}}/252}$. Relative comparisons are invariant to that factor.
 
-**Sizing.** Every $R_t$ is a return **per unit of midpoint premium**,
-and the daily sum adds twelve of them. That is one dollar of premium
-at each bar, which in contracts is more size where the straddle is
-cheap — and the 15:30 straddle is the cheapest of the day (median
-$5.39$ index points against $19.82$ at 10:00), so the settlement leg
-carries $3.68$ times the contracts the opening one does. The
-cell prints the median entry premium by clock and, beside the table's
-Sharpes, the one-contract alternative: sum the index-point P&L, one
-straddle per bar. That reads $2.485$ for always short, $1.889$ for
-$\mathrm{sign}(s)$ and $3.048$ for the hybrid, against $1.902$,
-$2.013$ and $2.972$ per unit of premium. The hybrid leads under both
-conventions; $\mathrm{sign}(s)$ and always short change places between
-them. The levels are convention-bound; the hybrid's lead is not.
+**Sizing.** $R_t$ is per unit of midpoint premium; the daily sum is one dollar of premium at each bar, so more contracts where the straddle is cheap. The cell prints median entry by clock and the one-contract alternative (index-point P&L, one straddle per bar).
 
-**Coverage.** A bar is scored only when the forecast panel has a row
-for it, and the panel ends before the chain does. Of the $1{,}279$
-expiration days that carry a trade, $866$ are scored and $413$ are
-not, and those $413$ are one contiguous stretch at the **end** of the
-tape: **2024-05-01 to 2025-12-31**, the most recent twenty months, the
-panel stopping on 2024-04-30. They are unscored here, not evidence of
-anything; extending the panel would turn them into a genuine holdout.
+**Coverage.** A bar is scored only if the forecast panel has a row. The panel ends 2024-04-30; later expiration days on the chain are unscored, not a result.
 """
     ),
     code(
@@ -975,103 +974,17 @@ print("   unscored:", _unscored.min().date(), "->", _unscored.max().date(),
     ),
     md(
         r"""
-## 7. Two constructions, their forecast-free control, and what fills do to them
+## 7. Hybrid, control, fills
 
-Two constructions from the study of this trade survive their gates
-and belong next to the rule table; a third block prices every rule at
-the quoted spread. The forecast-free control — always short, flat at
-15:30 — runs through all three, and the two fills do not agree about
-it.
+$\mathrm{sign}(s)$ and the hybrid sit flat only where the matched signal is missing (censored IV, §5b). Bootstrap intervals on a Sharpe difference are percentile and basic, one seed; the cell flags a sign disagreement or a knife edge (a bound within $1/20$ of the interval width of zero). $\mathrm{maxDD}_{prem}$ is peak-to-trough of the cumulative daily sum, in units of premium.
 
-Conventions shared by the four blocks. $\mathrm{sign}(s)$ and the
-hybrid sit flat wherever the matched signal is missing — the bars
-whose vendor implied volatility was censored, counted in §5b, and
-nothing else, since the diurnal profile is warm before the frame
-starts — so every rule is scored on every day of the frame. Two
-frames appear: the rule table runs on every expiration day, and the
-calendar test on the days that have all twelve bars (the §6 cell
-names the days that lack a bar). Bootstrap
-intervals are percentile intervals of the Sharpe difference under
-circular block resampling, every row sharing one seed; the basic
-interval $[2\hat\theta-\mathrm{hi},\,2\hat\theta-\mathrm{lo}]$ is
-printed beside it. A row whose two intervals disagree on the sign is
-called out in words, and so is one whose interval clears zero by less
-than a twentieth of its own width — a knife edge, not a result.
-`maxDD_prem` is the largest
-peak-to-trough fall of the cumulative sum of daily returns, in units
-of premium (non-compounded).
+**Hybrid.** $q_t=-1$ before $15{:}30$, $\mathrm{sign}(s^{\mathrm{m}}_t)$ at $15{:}30$. The cell asserts the daily-sum Sharpe against the last regeneration.
 
-**The hybrid with the settlement leg sized by sign.**
-$$q_t=\begin{cases}-1, & t<15{:}30\\ \mathrm{sign}(s^{\mathrm{m}}_t), & t=15{:}30\end{cases}$$
-Always short collects the decay on every intraday bar; the forecast's
-information is the sign on the settlement leg. The cell asserts its
-daily-sum Sharpe against the value recorded at the last regeneration,
-so a silent change in the construction fails loudly.
+**Control.** Always short, flat at $15{:}30$. No forecast. The two fills need not agree on whether the hybrid clears it; both are printed.
 
-**The control: drop the settlement leg.** Always short, flat at 15:30
-uses no forecast and simply does not trade the last bar. It is the
-rule the hybrid has to clear, and the two fills disagree about
-whether it does.
+**Settlement leg, event days as weight 0.** On FOMC-statement days and month-ends (library flags, including 2020-03-16) the $15{:}30$ position is $q=0$: the day stays in the daily series with return 0. Dropping those days before Sharpe is a different, smaller sample. The cell prints both. Flags were found in-sample on an earlier version of this trade; forward test registered 2026-09-04, not an adopted rule.
 
-- **At the midpoint** the control scores *above* the hybrid: 3.430
-  against 2.972, a difference of $+0.458$. The reason is in §8 — the
-  15:30 bar is the loosest of the day for a plain short (the lowest
-  by-clock Sharpe of the twelve) while carrying most of the day's
-  variance, so at mid the cheapest thing to do with the settlement leg
-  is not to trade it. It is a *variance* argument, not a return one:
-  the control earns $0.1459$ a day against the hybrid's $0.2427$, and
-  the $t$ on that daily mean difference is $-2.54$. The Sharpe
-  difference is **not
-  resolved** — percentile $[-0.74, +1.74]$, basic $[-0.82, +1.65]$,
-  both covering zero — so this is not a claim that the control wins.
-- **At the crossed spread** the ordering reverses and the hybrid is
-  well ahead: $-1.096$ against $-3.621$. The mechanism is not subtle:
-  the settlement leg is the only leg of the day that pays **no exit
-  spread**, because it cash-settles instead of being sold back.
-  Dropping it removes the one cheap trade and keeps eleven expensive
-  ones.
-
-So "worth keeping" is established **at the spread, not at the
-midpoint**. Both readings are printed; neither is dropped.
-
-**The settlement leg on non-event days — a forward test, not a rule.**
-The 15:30 leg is scored with the position set flat on FOMC-statement
-days and month-ends, against the same leg unfiltered, on the days
-with all twelve bars. The paired daily difference carries a
-$t$-statistic and a block-bootstrap interval on the Sharpe
-difference. The FOMC flag is the statement day (ET dates) from the
-library's list, which also marks 2020-03-16, the Monday after the
-Sunday emergency cut; the flags are known through the list's last
-date, and the cell asserts that no traded day in the test frame
-carries an unknown flag. Caveat, stated plainly: the two calendar
-flags were identified in-sample on an earlier version of this trade,
-so the result below is a forward test registered on 2026-09-04, not
-an adopted rule.
-
-**At the crossed spread.** Each entry is filled at the bid when
-selling and at the ask when buying, leg by leg; a one-bar hold exits
-the same way at the next bar; the 15:30 leg settles in cash. A
-re-pick that lands on the same two strikes with the same position is
-a hold, not a round trip: it pays no spread at that boundary. Every
-other bar crosses on entry and, for the one-bar holds, on exit. A
-side whose fill price is zero is not a quote — selling at a bid of
-zero is not a trade — so those bars are excluded from the sums and
-counted in the table. For each rule the block reports the daily-sum
-Sharpe at those fills, the crossings per day, and the break-even
-half-spread $\bar\Pi/\bar n_{\times}$ — the mean daily profit per
-unit of midpoint premium divided by the mean crossings per day, the
-largest half-spread the rule could pay and still break even. Both
-the mid and crossed-spread P&L are divided by the same midpoint
-entry premium, so the two columns are comparable and neither is a
-return on a fill price.
-
-The hold-through exemption is a modelling choice with a size, so the
-block prices it both ways: the same table is recomputed with a round
-trip charged at **every** re-pick boundary, and the two are printed
-side by side. The gap is what the exemption is worth, and it is not
-small. For the hybrid, charging every re-pick raises the crossings
-from $16.673$ to $22.983$ a day and takes the crossed-spread Sharpe
-from $-1.096$ to $-2.673$.
+**Crossed spread.** Bid when selling, ask when buying; $15{:}30$ cash-settles. Same strikes and same position into the next bar is a hold. P\&L is still divided by midpoint entry. Break-even half-spread is mean daily mid profit per unit premium over mean crossings per day. The cell also charges a round trip at every re-pick.
 """
     ),
     code(
@@ -1289,32 +1202,25 @@ assert bool((_ht["crossings/day charged"] >= _ht["crossings/day exempt"]).all())
         r"""
 ## 8. Always-short by 30-min bar (a clock hour is two bars mashed)
 
-`rule_row` reports
-$\mathrm{Sharpe}_{ann}=\overline{R'}/\mathrm{sd}(R')\times\sqrt{252}$.
-$\sqrt{252}$ is the year-length for a **daily** series: 252 trading
-days, one return per day. It is the same conversion the paper uses
-on the 15:30 trade. It is *not* a free "make it annual" button; it
-is only right when each row is one day's return.
+The reserved name $\mathrm{Sharpe}_{ann}$ is the **pooled daily sum** in §6:
+$R^{day}_d=\sum_t R'_{d,t}$, then $\overline{R}^{day}/\mathrm{sd}(R^{day})\times\sqrt{252}$.
+Do not read a single-clock row as that number.
 
-**Table by clock time / the plot (use these Sharpes).**
-Keep one clock time, throw the rest away. Example: only 11:30. The
-scored trade has one 11:30 bar per expiration day, so the series
-is $\sim 866$ numbers — one per day, same shape as the paper's
-15:30 trade. Question answered: *"if I only ever entered at
-11:30, what is my annual Sharpe?"* $\sqrt{252}$ is the right
-conversion because you have one return per day. Same question
-at 10:00, 14:30, \ldots; each clock time is its own daily portfolio.
-The $n$ in that row is the number of expiration days with that
-clock time, not a count of 30-min bars.
+**Clock Sharpe** (this section, the plot). Keep one clock $t$, drop the rest.
+There is one $R'_t$ per expiration day, so
 
-The plot is the by-clock-time slice, not the pooled mean: each
-dot is the average of *that clock time's* daily series, for
-the four §6 rules. The 15:30 column is where they separate: the
-control sits at zero there by construction, and the always-short dot
-is the leg the hybrid re-signs.
-Bars 10:00–15:00 are
-next-mid 30-min holds; the **15:30 bar cash-settles at the official
-close**, so its row is the paper's trade.
+$$\mathrm{Sharpe}_{\mathrm{clk}}(t)=\frac{\overline{R'}_t}{\mathrm{sd}(R'_t)}\sqrt{252}.$$
+
+$\sqrt{252}$ is still the right year-length: one return per expiration day, same
+as the paper's 15:30 trade. The question is *"if I only ever entered at 11:30,
+what is my annual Sharpe?"* --- a one-clock book, not the twelve-clock book.
+At 15:30 the two names coincide (the day has one trade). They do not at
+10:00--15:00, and they do not on the pooled §6 table.
+
+The $n$ in a clock row is expiration days with that stamp, not a count of 30-min
+bars mashed into one day. The figure is grouped bars: mean $R'$ and
+$\mathrm{Sharpe}_{\mathrm{clk}}$, four §6 rules. 10:00--15:00 are next-mid
+30-min holds; **15:30 cash-settles at the official close** (the paper trade).
 """
     ),
     code(
@@ -1327,13 +1233,16 @@ for hhmm, g in work.groupby("hhmm", sort=True):
         clock_rows.append({"hhmm": hhmm, "rule": name, **st.to_dict()})
 stab = pd.DataFrame(clock_rows)
 stab.to_csv(OUT / "rule_by_entry_hhmm.csv", index=False)
+print("Sharpe_clk = mean/std of this clock's R' * sqrt(252); one hold per expiration day")
+print("Sharpe_ann is reserved for the daily sum of all twelve clocks (section 6)")
+_clk = stab.rename(columns={"Sharpe_ann": "Sharpe_clk"})
 print("always short by clock time")
-print(stab[stab["rule"] == "always short"][
-    ["hhmm", "n", "mean", "t_mean", "Sharpe_ann"]
+print(_clk[_clk["rule"] == "always short"][
+    ["hhmm", "n", "mean", "t_mean", "Sharpe_clk"]
 ].to_string(index=False))
 print("sign(s) by clock time (window-matched signal)")
-print(stab[stab["rule"] == "sign(s)"][
-    ["hhmm", "n", "mean", "t_mean", "Sharpe_ann", "pct_buy"]
+print(_clk[_clk["rule"] == "sign(s)"][
+    ["hhmm", "n", "mean", "t_mean", "Sharpe_clk", "pct_buy"]
 ].to_string(index=False))
 
 hour_rows = []
@@ -1345,22 +1254,94 @@ for hr, g in work.groupby("hour"):
 htab = pd.DataFrame(hour_rows)
 htab.to_csv(OUT / "rule_by_entry_hour.csv", index=False)
 
-fig, ax = plt.subplots(figsize=(9, 3.4))
-for rule, marker in (("always short", "o"), ("always short, flat at 15:30", "d"),
-                     ("sign(s)", "^"), ("always short, sign(s) close", "s")):
-    sub = stab[stab["rule"] == rule]
-    ax.plot(sub["hhmm"], sub["mean"], marker=marker, label=rule)
-ax.axhline(0, color="k", lw=0.6)
-ax.set_xlabel("entry time (ET)")
-ax.set_ylabel("mean R'")
-ax.set_title("next-mid 30-min holds 10:00-15:00; 15:30 cash-settles at the official close")
-ax.tick_params(axis="x", rotation=45)
-ax.legend(fontsize=8)
+_rules = ["always short", "always short, flat at 15:30", "sign(s)", "always short, sign(s) close"]
+_hh = list(stab["hhmm"].drop_duplicates())
+_x = np.arange(len(_hh))
+_w = 0.2
+fig, axes = plt.subplots(2, 1, figsize=(10.5, 6.4), sharex=True)
+for i, rule in enumerate(_rules):
+    sub = stab[stab["rule"] == rule].set_index("hhmm").reindex(_hh)
+    axes[0].bar(_x + (i - 1.5) * _w, sub["mean"].to_numpy(float), _w, label=rule)
+    axes[1].bar(_x + (i - 1.5) * _w, sub["Sharpe_ann"].to_numpy(float), _w, label=rule)
+for ax, ylab in ((axes[0], "mean $R'$"), (axes[1], r"Sharpe$_{\mathrm{clk}}$")):
+    ax.axhline(0, color="k", lw=0.6)
+    ax.set_ylabel(ylab)
+    ax.grid(axis="y", alpha=0.3)
+axes[0].set_title("next-mid 30-min holds 10:00–15:00; 15:30 cash-settles at the official close")
+axes[1].set_xticks(_x)
+axes[1].set_xticklabels(_hh, rotation=45, ha="right")
+axes[1].set_xlabel("entry time (ET)")
+axes[0].legend(fontsize=8, loc="upper left")
 fig.tight_layout()
 fig.savefig(OUT / "mean_by_entry_hhmm_as.png", dpi=120, bbox_inches="tight")
 display(fig)
 plt.close(fig)
 print("saved CSVs in", OUT)
+"""
+    ),
+    md(
+        r"""
+## 8c. Forecast QLIKE on this sample (2020--2024)
+
+The book uses the block-diagonal ridge's $\widehat{RV}$ against next-bar
+realized variance. QLIKE is $y/f-\log(y/f)-1$ (Patton; lower is better).
+The cell scores it on the scored bars only, clock by clock, against two
+$F_t$ comparators: the lagged expanding per-clock mean of $RV$ (the same
+history that builds $w$), and the implied slice $w_t\mathrm{IV}^{2}_{\mathrm{hr}}h_t$.
+A forecast that is fine on QLIKE and still loses on $\mathrm{sign}(s)$ is
+not why the daytime Sharpes are small; the slice is.
+"""
+    ),
+    code(
+        r"""
+def _qlike_mean(y, f):
+    y = np.asarray(y, float)
+    f = np.asarray(f, float)
+    m = np.isfinite(y) & np.isfinite(f) & (y > 0) & (f > 0)
+    if int(m.sum()) < 2:
+        return float("nan"), 0
+    r = y[m] / f[m]
+    return float(np.mean(r - np.log(r) - 1.0)), int(m.sum())
+
+
+# lagged per-clock mean of RV, same panel history as w (already in `prof`)
+_naive = prof[clocks].expanding(min_periods=63).mean().shift(1)
+_mi = pd.MultiIndex.from_arrays([work["date"], work["hhmm"]])
+work = work.copy()
+work["rv_naive"] = _naive.stack().reindex(_mi).to_numpy()
+work["slice"] = work["iv_next30_matched"]
+
+_ql_rows = []
+for _hh, _g in work.groupby("hhmm", sort=True):
+    _y = _g["rv_raw"]
+    for _name, _f in (("ridge", _g["rv_hat"]), ("naive clock mean", _g["rv_naive"]),
+                      ("implied slice", _g["slice"])):
+        _q, _n = _qlike_mean(_y, _f)
+        _ok = np.isfinite(_y) & np.isfinite(_f) & (_y > 0) & (_f > 0)
+        _corr = float(pd.Series(_y[_ok]).corr(_f[_ok])) if int(_ok.sum()) > 2 else float("nan")
+        _ratio = float(_y[_ok].mean() / _f[_ok].mean()) if int(_ok.sum()) else float("nan")
+        _ql_rows.append({"hhmm": _hh, "forecast": _name, "n": _n, "QLIKE": _q,
+                         "corr": _corr, "mean RV / mean f": _ratio})
+_ql = pd.DataFrame(_ql_rows)
+print("QLIKE on scored 2020-2024 bars (block-diagonal ridge vs two F_t comparators)")
+print(_ql.pivot(index="hhmm", columns="forecast", values="QLIKE").to_string(float_format=lambda x: f"{x:.4f}"))
+print("corr(RV, f)")
+print(_ql.pivot(index="hhmm", columns="forecast", values="corr").to_string(float_format=lambda x: f"{x:.3f}"))
+print("mean RV / mean f (1 = calibrated)")
+print(_ql.pivot(index="hhmm", columns="forecast", values="mean RV / mean f").to_string(float_format=lambda x: f"{x:.3f}"))
+for _name in ("ridge", "naive clock mean", "implied slice"):
+    _sub = work
+    _q, _n = _qlike_mean(_sub["rv_raw"], _sub[{"ridge": "rv_hat", "naive clock mean": "rv_naive",
+                                               "implied slice": "slice"}[_name]])
+    print(f"pooled {_name:18s} QLIKE {_q:.4f}  n={_n}")
+_ql.to_csv(OUT / "forecast_qlike_by_clock_blk2.csv", index=False)
+
+_day = work["hhmm"] != "15:30"
+_close = work["hhmm"] == "15:30"
+print("ridge QLIKE 10:00-15:00", _qlike_mean(work.loc[_day, "rv_raw"], work.loc[_day, "rv_hat"])[0])
+print("ridge QLIKE 15:30      ", _qlike_mean(work.loc[_close, "rv_raw"], work.loc[_close, "rv_hat"])[0])
+print("naive QLIKE 10:00-15:00", _qlike_mean(work.loc[_day, "rv_raw"], work.loc[_day, "rv_naive"])[0])
+print("naive QLIKE 15:30      ", _qlike_mean(work.loc[_close, "rv_raw"], work.loc[_close, "rv_naive"])[0])
 """
     ),
     md(
@@ -1568,6 +1549,17 @@ runs = (
     .apply(lambda s: (s != s.shift()).cumsum().value_counts().mean())
 )
 print("mean same-stance run length within a day (bars):", round(float(runs.mean()), 2))
+"""
+    ),
+    md(
+        r"""
+## 10. The 30-minute implied is allocated, not quoted
+
+The vendor IV at clock $t$ is a price for variance **from $t$ to the close**. This notebook holds 30 minutes, so §5b manufactures a 30-minute implied as $w_t$ times that remaining variance. $w_t$ is the expanding diurnal share of prior days; it is not a bid or an ask.
+
+A quoted window would be a second expiration at the same stamp. 0DTE remaining variance and 1DTE remaining variance are two prices; the calendar (long one, short the other) is then a traded claim on their difference, not a $w$-slice of a single expiry. That calendar is still not a 30-minute option — listed SPX does not expire every half hour — but it would replace the homemade share with something the market posts.
+
+This chain has only 0DTE: every row of `data/spxw_chain.parquet` is zero days to expiration, so there is no 1DTE quote at 10:00 and no calendar to price. Until a second expiry is on disk, the daytime comparison in §5b is forecast versus a constructed slice.
 """
     ),
 ]

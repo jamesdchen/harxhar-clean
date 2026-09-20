@@ -1,0 +1,10 @@
+,0
+always short unhedged,1.9020388792233835
+always short DH 0bp,2.0026039363245816
+sign(s) unhedged,2.012747679651259
+sign(s) DH 0bp,2.0176710087926444
+hybrid unhedged,2.9722952533758056
+hybrid DH 0bp,3.013356222102235
+sign(s) DH minus always short DH dSharpe,0.015067072468062825
+sign(s) DH placebo percentile,99.95
+adopt DH as the notebook P&L,False
