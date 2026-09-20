@@ -29,6 +29,11 @@ Implementation on disk data:
     bid/ask, underlying charged 0.5 bp per rebalance (documented).
   * Controls: always-short, always-long. Swap test: identical
     machinery with a0 replacing blk2, paired daily difference t.
+  * Half sessions (13:00 close) are dropped whole (the vendor's
+    hours_to_expiration disagrees with the 16:00 clock on every row of
+    such a day; the chain carries frozen post-close rows there).
+  * hit_mid is the fraction of positive DAYS (the day is the unit of
+    account); hit_contract_mid keeps the per-contract fraction.
 
 Outputs results/spxw_pnl/dh_legs_{summary,by_hour}.csv and the ledger
 dh_legs_ledger.parquet.
@@ -170,6 +175,13 @@ def main() -> None:
     eb = pd.read_parquet(os.path.join(OUT, "everybar_mtm_trades.parquet"))
     eb = eb.sort_values(["day", "et"]).reset_index(drop=True)
     g = eb.groupby("day", sort=False)
+    # Convention contract with spxw_mfiv_everybar (post alignment fix):
+    # rows are bar-START labelled — the row at stamp t carries the bar
+    # [t, t+30] (rv is that bar's own realized; pa/pb are forecasts
+    # issued at t). The INCLUSIVE reverse-cumsum is therefore exact:
+    # remaining at an entry t = rows t..15:30 = the window [t, close],
+    # matching tau (t to settle) with no pre-entry bar. Verified
+    # empirically: eb.rv at stamp t == panel rv_raw at stamp t+30.
     eb["rv_rem"] = g["rv"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
     eb["b2_rem"] = g["pb"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
     eb["a0_rem"] = g["pa"].transform(lambda s: s.iloc[::-1].cumsum().iloc[::-1])
@@ -216,11 +228,37 @@ def main() -> None:
             "ask",
             "mid",
             "underlying_price",
+            "hours_to_expiration",
         ],
     )
     ch = ch[(ch["bid"] > 0) & (ch["mid"] > 0) & np.isfinite(ch["underlying_price"])]
     ch = ch.rename(columns={"timestamp": "t"})
     ch["expiration"] = pd.to_datetime(ch["expiration"])
+    # Half sessions (13:00 close) are dropped WHOLE: on such a day the vendor's
+    # hours_to_expiration disagrees with the 16:00 clock on every row, and the
+    # chain carries frozen post-close rows 13:30..16:00 that would otherwise
+    # enter as trades hedged with three hours of tau that did not exist. Same
+    # rule as spxw_quote_costs.py.
+    _t_naive = pd.to_datetime(ch["t"], utc=True).dt.tz_convert(None)
+    _exp_u = pd.DatetimeIndex(ch["expiration"].unique())
+    _settle_u = pd.DatetimeIndex([_settle_utc(d, d) for d in _exp_u]).tz_convert(None)
+    _settle = _settle_u.to_numpy(dtype="datetime64[ns]")[
+        _exp_u.get_indexer(ch["expiration"])
+    ]
+    _hrs = (_settle - _t_naive.to_numpy(dtype="datetime64[ns]")) / np.timedelta64(
+        1, "h"
+    )
+    _agree = (
+        np.abs(_hrs.astype(float) - ch["hours_to_expiration"].to_numpy(float)) < 1e-3
+    )
+    _full_days = pd.Index(ch.loc[_agree, "expiration"].unique())
+    _n_all = int(ch["expiration"].nunique())
+    ch = ch[ch["expiration"].isin(_full_days)].drop(columns=["hours_to_expiration"])
+    print(
+        f"full-session days: {len(_full_days)} of {_n_all} "
+        f"(half sessions dropped whole)",
+        flush=True,
+    )
     path = ch.groupby(["expiration", "t"])["underlying_price"].first().reset_index()
     tr = pd.read_parquet(
         os.path.join(OUT, "mfiv_toclose_trades.parquet"), columns=["expiration", "S_T"]
@@ -385,7 +423,12 @@ def main() -> None:
                             "mean_per_trade_mid": float(np.nanmean(pnl_mid[traded]))
                             if traded.any()
                             else float("nan"),
-                            "hit_mid": float((pnl_mid[traded] > 0).mean())
+                            # the day is the unit of account: hit = the
+                            # fraction of positive days, not of contracts
+                            "hit_mid": float((dm > 0).mean())
+                            if dm.size
+                            else float("nan"),
+                            "hit_contract_mid": float((pnl_mid[traded] > 0).mean())
                             if traded.any()
                             else float("nan"),
                         }
@@ -409,6 +452,7 @@ def main() -> None:
                         "sh_daily_crossed": float("nan"),
                         "mean_per_trade_mid": float(np.nanmean(pb - pa)),
                         "hit_mid": float("nan"),
+                        "hit_contract_mid": float("nan"),
                     }
                 )
             for name, sgn in (("always_short", -1.0), ("always_long", 1.0)):
@@ -427,7 +471,8 @@ def main() -> None:
                         "sh_daily_mid": _sh(dm) * ANN,
                         "sh_daily_crossed": float("nan"),
                         "mean_per_trade_mid": float(np.mean(pnl)),
-                        "hit_mid": float((pnl > 0).mean()),
+                        "hit_mid": float((dm > 0).mean()),
+                        "hit_contract_mid": float((pnl > 0).mean()),
                     }
                 )
         for hh, gh in sub.groupby("hhmm"):

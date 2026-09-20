@@ -225,7 +225,7 @@ def main() -> None:
     )
 
     # ---------------- final composed book ----------------
-    fb = pd.read_csv(os.path.join(RES, "dh_book_final.csv"))
+    fb = pd.read_csv(os.path.join(RES, f"dh_book_final{sfx}.csv"))
     f10 = fb[
         (fb.model == "b2")
         & (fb.leg == "both")
@@ -280,17 +280,17 @@ def main() -> None:
     ].iloc[0]
     macros["optFinalDailyShMid"] = _f(fd["sh_mid"], 2)
     macros["optFinalDailyShX"] = _f(fd["sh_crossed"], 2)
-    sw = pd.read_csv(os.path.join(RES, "dh_book_final_swap.csv"))
+    sw = pd.read_csv(os.path.join(RES, f"dh_book_final{sfx}_swap.csv"))
     for _, r in sw.iterrows():
         macros[f"optFinalSwapT{_ROMAN[round(float(r['theta']), 2)]}"] = _f(
             r["t_b2_minus_a0"], 2, sign=True
         )
-    cov = pd.read_csv(os.path.join(RES, "dh_book_final_coverage.csv")).iloc[0]
+    cov = pd.read_csv(os.path.join(RES, f"dh_book_final{sfx}_coverage.csv")).iloc[0]
     macros["optFomcDays"] = _int(cov["fomc_days_excluded"])
     macros["optFomcUnknownDays"] = _int(cov["fomc_flag_unknown_days_kept"])
 
     # ---------------- regime: FOMC and exit rules ----------------
-    fo = pd.read_csv(os.path.join(RES, "dh_regime_fomc.csv"))
+    fo = pd.read_csv(os.path.join(RES, f"dh_regime_fomc{sfx}.csv"))
     fo10 = fo[(fo.model == "b2") & np.isclose(fo.theta, 0.10)]
     fr = fo10[fo10.bucket == "fomc"].iloc[0]
     nf = fo10[fo10.bucket == "no_fomc"].iloc[0]
@@ -307,7 +307,7 @@ def main() -> None:
     macros["optFomcFracShort"] = _pct(1.0 - float(fr["frac_long"]))
     macros["optNoFomcShMid"] = _f(_pick(nf, "sh_mid", "sh_daily_mid"), 2)
     macros["optNoFomcShX"] = _f(_pick(nf, "sh_crossed", "sh_daily_crossed"), 2)
-    ex = pd.read_csv(os.path.join(RES, "dh_exit_rules.csv"))
+    ex = pd.read_csv(os.path.join(RES, f"dh_exit_rules{sfx}.csv"))
     exa = ex[ex.entry_hour == "ALL"]
     for rule, tag in (
         ("hold", "Hold"),
@@ -321,10 +321,10 @@ def main() -> None:
     macros["optExitCrossEarly"] = _pct(
         exa[exa.rule == "sigcross"]["frac_exit_early"].iloc[0]
     )
-    rf = pd.read_csv(os.path.join(RES, "dh_exit_realized_fraction.csv"))
+    rf = pd.read_csv(os.path.join(RES, f"dh_exit_realized_fraction{sfx}.csv"))
     rfa = rf[rf.entry_hour == "ALL"] if "entry_hour" in rf else rf
-    for k, tag in ((1, "One"), (4, "Four"), (9, "Nine")):
-        v = rfa[rfa.k_bars == k]
+    for kb, tag in ((1, "One"), (4, "Four"), (9, "Nine")):
+        v = rfa[rfa.k_bars == kb]
         macros[f"optRealizedK{tag}"] = (
             _pct(float(v["realized_fraction"].iloc[0])) if len(v) else "---"
         )
@@ -392,7 +392,9 @@ def main() -> None:
     inc = a[a.book.str.startswith("QLIKE increment")].iloc[0]
     macros["optTocloseIncrSh"] = _f(inc["sharpe_ann"], 1)
     hess = pd.read_csv(os.path.join(RES, "mfiv_toclose.csv"))
-    hh_ = hess[hess.book.str.startswith("paper hess")].iloc[0]
+    # "ft paper hess": the F_t-measurable (at-entry F_rem) book; the
+    # unprefixed "paper hess" row is the p*_rem ex-post record.
+    hh_ = hess[hess.book.str.startswith("ft paper hess")].iloc[0]
     macros["optTocloseHessSh"] = _f(hh_["sharpe_ann"], 1)
     macros["optTocloseHessHit"] = _pct(hh_["hit"])
     vrp = a[a.book.str.startswith("always short smile")].iloc[0]
@@ -419,6 +421,16 @@ def main() -> None:
         "% Options-section macros: the delta-hedged 0DTE leg book, its cost floor,",
         "% regime/exit rules, and the time-till-close forecast structure.",
     ]
+    if ft:
+        lines += [
+            "% MODE: --ft. Every macro in this file is F_t-measurable: the",
+            "% dh-family macros quote the strictly-at-entry ledger, and the",
+            "% toclose/encompassing macros quote the at-entry remaining",
+            "% forecast F_rem (experiments/ft_remaining.py). The *_rem sums",
+            "% (forecasts issued during the trade window) survive only as",
+            "% labelled ex-post decomposition rows in the CSVs ('pRem ...' /",
+            "% unprefixed 'paper ...' rows) and feed no macro.",
+        ]
     for k in sorted(macros):
         lines.append(f"\\newcommand{{\\{_cs(k)}}}{{{macros[k]}}}")
     with open(

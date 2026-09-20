@@ -1,0 +1,7 @@
+claim,a0,blk2,note
+QLIKE remaining 10:00-16:00 (lower better),0.06710,0.06258,primary score; dQL=+0.00452
+QLIKE increment Sharpe (ann),,1.08,scoring-rule book
+increment swap (blk2-a0)*(RV-a0) D10 Sharpe,,1.06,same swap struck at incumbent
+sign(f-mu)*(RV-mu) Sharpe,8.11,8.19,common causal mean; 98% agree; hides edge
+weekly ATM sign Sharpe/trade h=1,0.060,0.057,same contract; 98% agree; hides edge
+always-short smile Sharpe,11.73,11.73,not a model comparison
