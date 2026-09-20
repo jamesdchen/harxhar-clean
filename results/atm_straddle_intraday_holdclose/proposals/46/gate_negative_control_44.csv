@@ -1,0 +1,5 @@
+estimator,lookback,n_non_warmup,n_at_15:00,frac_argmax_is_15:00
+44 mean of logs,expanding,1216,1216,1.0
+44 mean of logs,rolling 126,1216,1216,1.0
+44 mean of logs,rolling 252,1216,1216,1.0
+44 mean of logs,ewma hl 63,1216,1216,1.0

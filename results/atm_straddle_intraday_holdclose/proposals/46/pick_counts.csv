@@ -1,0 +1,13 @@
+,E1 ratio of sums | expanding,E1 ratio of sums | rolling 126,E1 ratio of sums | rolling 252,E1 ratio of sums | ewma hl 63,E2 relative ratio of sums | rolling 126,E2 relative ratio of sums | rolling 252,E2 relative ratio of sums | ewma hl 63,43 P&L-Sharpe | rolling 252
+10:00,1215,250,281,416,74,200,0,5
+10:30,1,71,122,70,60,1,22,504
+11:00,0,78,37,6,5,0,0,348
+11:30,0,11,0,0,1,1,0,160
+12:00,0,9,0,0,0,0,6,0
+12:30,0,16,0,0,0,0,0,29
+13:00,0,116,54,83,124,108,83,41
+13:30,0,82,134,25,24,32,5,46
+14:00,0,282,426,403,75,3,91,12
+14:30,0,100,75,85,389,524,718,25
+15:00,0,201,87,128,464,347,291,46
+flat (warm-up),63,63,63,63,63,63,63,63

@@ -1,0 +1,13 @@
+,expanding | unconditional,expanding | thresholded,rolling 126 | unconditional,rolling 126 | thresholded,rolling 252 | unconditional,rolling 252 | thresholded,ewma hl 63 | unconditional,ewma hl 63 | thresholded
+10:00,0,0,0,0,0,0,0,0
+10:30,0,0,0,0,0,0,0,0
+11:00,0,0,0,0,0,0,0,0
+11:30,0,0,0,0,0,0,0,0
+12:00,0,0,0,0,0,0,0,0
+12:30,0,0,0,0,0,0,0,0
+13:00,0,0,0,0,0,0,0,0
+13:30,0,0,0,0,0,0,0,0
+14:00,0,0,0,0,0,0,0,0
+14:30,0,0,0,0,0,0,0,0
+15:00,1216,1216,1216,1216,1216,1216,1216,1216
+flat,63,63,63,63,63,63,63,63

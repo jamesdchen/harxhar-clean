@@ -1,0 +1,13 @@
+rule,estimator,window,n_non_warmup,n_distinct_clocks,modal_clock,modal_fraction,DEGENERATE_gt_95pct
+E1 ratio of sums | expanding,E1 ratio of sums,expanding,1216,2,10:00,0.9991776315789473,True
+E1 ratio of sums | rolling 126,E1 ratio of sums,rolling 126,1216,11,14:00,0.23190789473684212,False
+E1 ratio of sums | rolling 252,E1 ratio of sums,rolling 252,1216,8,14:00,0.3503289473684211,False
+E1 ratio of sums | ewma hl 63,E1 ratio of sums,ewma hl 63,1216,8,10:00,0.34210526315789475,False
+E2 relative ratio of sums | rolling 126,E2 relative ratio of sums,rolling 126,1216,9,15:00,0.3815789473684211,False
+E2 relative ratio of sums | rolling 252,E2 relative ratio of sums,rolling 252,1216,8,14:30,0.4309210526315789,False
+E2 relative ratio of sums | ewma hl 63,E2 relative ratio of sums,ewma hl 63,1216,7,14:30,0.5904605263157895,False
+43 P&L-Sharpe | rolling 252,43 P&L Sharpe,rolling 252,1216,10,10:30,0.4144736842105263,False
+44 mean of logs | expanding,44 mean of logs,expanding,1216,1,15:00,1.0,True
+44 mean of logs | rolling 126,44 mean of logs,rolling 126,1216,1,15:00,1.0,True
+44 mean of logs | rolling 252,44 mean of logs,rolling 252,1216,1,15:00,1.0,True
+44 mean of logs | ewma hl 63,44 mean of logs,ewma hl 63,1216,1,15:00,1.0,True

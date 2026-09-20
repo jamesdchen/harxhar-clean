@@ -1,0 +1,21 @@
+variant,book,sample,unit,n,dSharpe_vs_D9,boot_lo,boot_hi,pct_draws_positive,cell_positive_excludes_zero,verdict
+D0_book,1100_exit_crossed,daily_era,index points per contract,489,-0.08462571300409875,-0.23392050445959137,0.038542133193078566,9.049999999999999,False,no evidence
+D0_book,1330_hold,unseen,index points per contract,413,0.001343904220085978,-0.04425389614424406,0.0400855864564598,53.05,False,no evidence
+D1_leg_vol,1100_exit_crossed,daily_era,index points per contract,489,-0.3004715554285861,-0.5333043325693725,-0.11330596080651766,0.0,False,no evidence
+D1_leg_vol,1330_hold,unseen,index points per contract,413,0.03276857241335762,-0.13061564552343083,0.19460966668754848,65.7,False,no evidence
+D1v_vendor_delta,1100_exit_crossed,daily_era,index points per contract,489,-0.30092867503670623,-0.533384527810517,-0.11371729945976064,0.0,False,no evidence
+D1v_vendor_delta,1330_hold,unseen,index points per contract,413,0.052340885506021846,-0.11004844544367125,0.20107192014148803,73.9,False,no evidence
+D2_skew_sticky_delta,1100_exit_crossed,daily_era,index points per contract,489,-0.2326482860966995,-0.49335801815175245,-0.02067704472546027,1.6500000000000001,False,no evidence
+D2_skew_sticky_delta,1330_hold,unseen,index points per contract,413,0.19465765584387795,-0.1906263554149723,0.5975357833006724,76.64999999999999,False,no evidence
+D3_charm_half,1100_exit_crossed,daily_era,index points per contract,489,-0.0157179387471396,-0.046823143367582476,0.018471587524437724,17.549999999999997,False,no evidence
+D3_charm_half,1330_hold,unseen,index points per contract,413,0.06944154714520095,-0.1880263494842011,0.35879987781916267,70.15,False,no evidence
+D3_charm_full,1100_exit_crossed,daily_era,index points per contract,489,0.005627086114272759,-0.18186304069053255,0.22882491420641804,56.00000000000001,False,no evidence
+D3_charm_full,1330_hold,unseen,index points per contract,413,0.19355765955477228,-1.3132979538135923,1.5409849736808197,60.550000000000004,False,no evidence
+D4_D9_D1,1100_exit_crossed,daily_era,index points per contract,489,-0.17658172039234718,-0.2960168785498261,-0.07527454822249988,0.0,False,no evidence
+D4_D9_D1,1330_hold,unseen,index points per contract,413,0.0310867955395571,-0.10652118677433425,0.17594995488661208,66.64999999999999,False,no evidence
+D4_D9_D3,1100_exit_crossed,daily_era,index points per contract,489,0.040850511338534165,-0.09046676157499782,0.20037129735301354,74.25,False,no evidence
+D4_D9_D3,1330_hold,unseen,index points per contract,413,0.0639734780399217,-0.20079489281468257,0.36098178864185937,68.0,False,no evidence
+D4_D9_D1_D3,1100_exit_crossed,daily_era,index points per contract,489,-0.09415946935224312,-0.23812122262068866,0.07694560778640638,14.7,False,no evidence
+D4_D9_D1_D3,1330_hold,unseen,index points per contract,413,0.07827963507735443,-0.18878178292603529,0.3950378466571768,70.8,False,no evidence
+D4_D9_D2_D3,1100_exit_crossed,daily_era,index points per contract,489,-0.058554306674588164,-0.3284665086446162,0.21432781787430602,36.1,False,no evidence
+D4_D9_D2_D3,1330_hold,unseen,index points per contract,413,0.240539445565055,-0.13788547744639396,0.6252937867615864,85.25,False,no evidence
