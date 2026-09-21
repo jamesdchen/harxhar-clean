@@ -1,0 +1,113 @@
+entry,layer,rule,year,Sharpe
+11:00,plain,R0 book alone,2021,3.172778034739106
+11:00,plain,R0 book alone,2022,2.4929346404942896
+11:00,plain,R0 book alone,2023,3.145183031297943
+11:00,plain,R0 book alone,2024,2.940022928787691
+11:00,plain,R1 Sharpe-proportional share,2021,3.190551943265636
+11:00,plain,R1 Sharpe-proportional share,2022,2.427422523974414
+11:00,plain,R1 Sharpe-proportional share,2023,3.3387228403104836
+11:00,plain,R1 Sharpe-proportional share,2024,3.3937148469695284
+11:00,plain,R2 tangency share,2021,3.0439052842738272
+11:00,plain,R2 tangency share,2022,2.515070339090433
+11:00,plain,R2 tangency share,2023,3.1978934195733664
+11:00,plain,R2 tangency share,2024,3.225458128465008
+11:00,plain,R3 fixed 10% share,2021,3.418239054637776
+11:00,plain,R3 fixed 10% share,2022,2.4373166162040865
+11:00,plain,R3 fixed 10% share,2023,3.33867430897865
+11:00,plain,R3 fixed 10% share,2024,3.2431744689043387
+11:00,plain,R3 fixed 20% share,2021,3.5917570703229846
+11:00,plain,R3 fixed 20% share,2022,2.3585775151866484
+11:00,plain,R3 fixed 20% share,2023,3.4879719716988986
+11:00,plain,R3 fixed 20% share,2024,3.5231775315167995
+11:00,plain,R3 fixed 30% share,2021,3.627094468359467
+11:00,plain,R3 fixed 30% share,2022,2.246348647548361
+11:00,plain,R3 fixed 30% share,2023,3.5514708629648
+11:00,plain,R3 fixed 30% share,2024,3.7016350051433093
+11:00,plain,R3 fixed 50% share,2021,3.2120184834363865
+11:00,plain,R3 fixed 50% share,2022,1.8599338100810725
+11:00,plain,R3 fixed 50% share,2023,3.315893354650331
+11:00,plain,R3 fixed 50% share,2024,3.4821587603364264
+11:00,with month-end,R0 book alone,2021,4.981924645499711
+11:00,with month-end,R0 book alone,2022,2.829849272524195
+11:00,with month-end,R0 book alone,2023,3.5510042888903857
+11:00,with month-end,R0 book alone,2024,3.2640446960779874
+11:00,with month-end,R1 Sharpe-proportional share,2021,5.373776157422954
+11:00,with month-end,R1 Sharpe-proportional share,2022,2.772502812069256
+11:00,with month-end,R1 Sharpe-proportional share,2023,4.114591092746322
+11:00,with month-end,R1 Sharpe-proportional share,2024,4.353694629593059
+11:00,with month-end,R2 tangency share,2021,4.901499705215624
+11:00,with month-end,R2 tangency share,2022,2.8193274615583803
+11:00,with month-end,R2 tangency share,2023,3.9185368804924545
+11:00,with month-end,R2 tangency share,2024,4.165775101011447
+11:00,with month-end,R3 fixed 10% share,2021,5.395539773279182
+11:00,with month-end,R3 fixed 10% share,2022,2.828798860599672
+11:00,with month-end,R3 fixed 10% share,2023,3.856810872980794
+11:00,with month-end,R3 fixed 10% share,2024,3.712903017142681
+11:00,with month-end,R3 fixed 20% share,2021,5.692810387263474
+11:00,with month-end,R3 fixed 20% share,2022,2.8137701719284856
+11:00,with month-end,R3 fixed 20% share,2023,4.122521733169629
+11:00,with month-end,R3 fixed 20% share,2024,4.159696373746391
+11:00,with month-end,R3 fixed 30% share,2021,5.7586535326132955
+11:00,with month-end,R3 fixed 30% share,2022,2.775594939649031
+11:00,with month-end,R3 fixed 30% share,2023,4.294530424395485
+11:00,with month-end,R3 fixed 30% share,2024,4.516727235040128
+11:00,with month-end,R3 fixed 50% share,2021,5.079433688374195
+11:00,with month-end,R3 fixed 50% share,2022,2.5682502639680647
+11:00,with month-end,R3 fixed 50% share,2023,4.203249346721183
+11:00,with month-end,R3 fixed 50% share,2024,4.601270194807406
+13:30,plain,R0 book alone,2021,0.3286768590357004
+13:30,plain,R0 book alone,2022,3.041457455818846
+13:30,plain,R0 book alone,2023,3.094815377502139
+13:30,plain,R0 book alone,2024,1.1886557649012606
+13:30,plain,R1 Sharpe-proportional share,2021,1.230700549400139
+13:30,plain,R1 Sharpe-proportional share,2022,2.243621083133505
+13:30,plain,R1 Sharpe-proportional share,2023,3.3225694392232317
+13:30,plain,R1 Sharpe-proportional share,2024,1.8706009928153344
+13:30,plain,R2 tangency share,2021,1.0338643713754991
+13:30,plain,R2 tangency share,2022,2.3135592739563196
+13:30,plain,R2 tangency share,2023,3.2395774985283805
+13:30,plain,R2 tangency share,2024,1.8177615913972458
+13:30,plain,R3 fixed 10% share,2021,0.6500427482853885
+13:30,plain,R3 fixed 10% share,2022,2.9116789405002965
+13:30,plain,R3 fixed 10% share,2023,3.3536376796731173
+13:30,plain,R3 fixed 10% share,2024,1.4537334376411581
+13:30,plain,R3 fixed 20% share,2021,1.0896808438292176
+13:30,plain,R3 fixed 20% share,2022,2.7384724760011525
+13:30,plain,R3 fixed 20% share,2023,3.548219713752598
+13:30,plain,R3 fixed 20% share,2024,1.7301449710105195
+13:30,plain,R3 fixed 30% share,2021,1.615840179531139
+13:30,plain,R3 fixed 30% share,2022,2.5112782325392624
+13:30,plain,R3 fixed 30% share,2023,3.616815187254309
+13:30,plain,R3 fixed 30% share,2024,1.9773324511260928
+13:30,plain,R3 fixed 50% share,2021,2.202206887765349
+13:30,plain,R3 fixed 50% share,2022,1.8647403810986878
+13:30,plain,R3 fixed 50% share,2023,3.2943344754522217
+13:30,plain,R3 fixed 50% share,2024,2.211787728668528
+13:30,with month-end,R0 book alone,2021,1.4180934023733607
+13:30,with month-end,R0 book alone,2022,3.718960960142872
+13:30,with month-end,R0 book alone,2023,3.3373282994451654
+13:30,with month-end,R0 book alone,2024,1.7155056551225754
+13:30,with month-end,R1 Sharpe-proportional share,2021,3.725631969243032
+13:30,with month-end,R1 Sharpe-proportional share,2022,3.222081817467924
+13:30,with month-end,R1 Sharpe-proportional share,2023,4.058025629320364
+13:30,with month-end,R1 Sharpe-proportional share,2024,3.176938933858578
+13:30,with month-end,R2 tangency share,2021,3.392701821759454
+13:30,with month-end,R2 tangency share,2022,3.2824084277315624
+13:30,with month-end,R2 tangency share,2023,4.008596972739028
+13:30,with month-end,R2 tangency share,2024,3.123655525077908
+13:30,with month-end,R3 fixed 10% share,2021,1.9847293733794311
+13:30,with month-end,R3 fixed 10% share,2022,3.649204180123646
+13:30,with month-end,R3 fixed 10% share,2023,3.695889403515608
+13:30,with month-end,R3 fixed 10% share,2024,2.1286732409888063
+13:30,with month-end,R3 fixed 20% share,2021,2.724242871765372
+13:30,with month-end,R3 fixed 20% share,2022,3.5402218334455755
+13:30,with month-end,R3 fixed 20% share,2023,3.999571938053702
+13:30,with month-end,R3 fixed 20% share,2024,2.5616326190990453
+13:30,with month-end,R3 fixed 30% share,2021,3.543728474455108
+13:30,with month-end,R3 fixed 30% share,2022,3.3793937648131314
+13:30,with month-end,R3 fixed 30% share,2023,4.1823181055061465
+13:30,with month-end,R3 fixed 30% share,2024,2.9593141023405742
+13:30,with month-end,R3 fixed 50% share,2021,4.151932037869378
+13:30,with month-end,R3 fixed 50% share,2022,2.8555285904167853
+13:30,with month-end,R3 fixed 50% share,2023,4.060330293694363
+13:30,with month-end,R3 fixed 50% share,2024,3.4066178398278497
