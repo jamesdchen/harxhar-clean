@@ -49,6 +49,11 @@ g is evaluated on:
      is below 1.  What it costs: a 5% jump on a third Friday then takes the
      multiplier x 10% of capital; reported with B's paths re-run with it.
 
+  D  (added after the operator chose 1.5 for the live book) whole contracts on
+     $1M in the runner's order of operations, third-Friday multipliers 1.0,
+     1.1, 1.5, 1.8: contracts sold, the realized book, the stress-jump cost on
+     a third Friday.  Descriptive.
+
 GATES  study 65's realized series (its own gates: gross +0.919, deck net
        +0.4679) and its live-book return at 10% (9.4863% a year, 2020-2025);
        study 58's 72 third-Friday sessions and its 13:30 hold book on them
@@ -74,6 +79,8 @@ for _p in (ROOT, ROOT / "notebooks", ROOT / "writeup"):
         sys.path.insert(0, str(_p))
 
 import atm_straddle_lib as asl  # noqa: E402
+from live.ibkr.config import Config  # noqa: E402
+from live.ibkr.sizing import scaled_contracts  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 OUT = ROOT / "results" / "atm_straddle_intraday_holdclose" / "proposals" / "66"
@@ -85,6 +92,13 @@ N_PATHS = 10_000
 BLOCK = 21
 B, SEED = 2000, 0
 MULT_STEP = 0.1  # the live multiplier is rounded down to this step
+WHOLE_CAPITAL = 1_000_000.0  # part D: the account the runner's examples use
+WHOLE_MULTIPLIERS = (
+    1.0,
+    1.1,
+    1.5,
+    1.8,
+)  # none, the rule, the operator's choice, the point ratio
 EDGE = 1e-12  # keeps the root search strictly inside 1 + f r > 0
 GATE_ANN_LIVE = 0.094863
 GATE_TF = {"n": 72, "gross_pts": 2.999404}
@@ -413,6 +427,54 @@ def main() -> None:  # noqa: PLR0915
             }
         ]
     ).to_csv(OUT / "c_multiplier.csv", index=False)
+
+    # ------------------------------------- D whole contracts at the live size --
+    # Added 2026-09-21 after the operator set the live multiplier to 1.5 (between
+    # the rule's 1.1 and the point ratio): A-C use fractional contracts; the
+    # runner sells whole ones.  The live order of operations on WHOLE_CAPITAL:
+    # the stress table floored and capped, the brake floored, the third-Friday
+    # multiplier floored (decimal) and capped; the month-end long in the table's
+    # count.  Descriptive: the day type was found on these sessions.
+    n_table = np.minimum(
+        np.floor(p65.FRACTION * WHOLE_CAPITAL / stress), Config.max_straddles
+    )
+    n_brake = np.floor(n_table * real["m"].to_numpy())
+    rows_d = []
+    for t in WHOLE_MULTIPLIERS:
+        n_tf = np.array(
+            [min(scaled_contracts(int(v), t), Config.max_straddles) for v in n_brake]
+        )
+        n_short = np.where(tf, n_tf, n_brake)
+        dollars = p65.SPX_INDEX_MULTIPLIER * np.where(
+            me,
+            n_table * c54["pts_ask"].to_numpy(float),
+            n_short * real["net_pts"].to_numpy(),
+        )
+        x = dollars / WHOLE_CAPITAL
+        at_risk = n_short * stress / WHOLE_CAPITAL
+        for pname, mask in (("all", np.ones(len(days), bool)), ("HOLDOUT", hold)):
+            rows_d.append(
+                {
+                    "third_friday_multiplier": t,
+                    "sample": pname,
+                    "third_friday_contracts_mean": float(n_short[tf & mask].mean()),
+                    "other_day_contracts_mean": float(n_short[~tf & ~me & mask].mean()),
+                    "third_fridays_with_more_contracts": int(
+                        (n_tf[tf & mask] > n_brake[tf & mask]).sum()
+                    ),
+                    "stress_jump_cost_max_third_friday": float(
+                        at_risk[tf & mask].max()
+                    ),
+                    **p65.evaluate(x[mask], days[mask]),
+                }
+            )
+    dt = pd.DataFrame(rows_d)
+    dt.to_csv(OUT / "d_whole_contracts.csv", index=False)
+    print(
+        f"\nD  WHOLE contracts on ${WHOLE_CAPITAL:,.0f} in the runner's order of operations (cap "
+        f"{Config.max_straddles}); fractions of capital"
+    )
+    print(dt.round(4).to_string(index=False))
 
 
 if __name__ == "__main__":

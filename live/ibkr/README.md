@@ -47,8 +47,10 @@ Two honesty notes that belong at the top, not in a footnote:
 * The **selector is a defensible causal rule, not a demonstrated improvement.**
   Proposal 46 adopted 0 of 14 cells: the selector tracks the migration about a
   quarter late, beats neither fixed 11:00 nor fixed 13:30 with an interval
-  excluding zero. `--entry-mode fixed --entry-clock 13:30` is an equally
-  defensible configuration and is one flag away.
+  excluding zero. **The default is therefore the fixed 13:30 clock**
+  (`entry_mode="fixed"`, pinned 2026-09-21: every costed number for this book,
+  studies 64-67, is the fixed 13:30 entry); `--entry-mode selector` restores
+  the selector and is one flag away.
 * Everything in the research is measured **gross of the hedge cost**. At 0.5 bp
   the exit book nets about Sharpe 1.20; restate any headline you quote.
 
@@ -79,6 +81,9 @@ journals `ledger {ok: false, used: "seed"}`. A stale live ledger is a stale
 selector, and the runner says so rather than pretending.
 
 ### 1.2 The selector — `selector.py` (proposal 46, estimator E2)
+
+OFF by default since 2026-09-21 (the entry is pinned to the fixed 13:30 clock);
+`--entry-mode selector` turns it on.
 
     score_c(today) = ratio_of_sums(c, today, 252) / ratio_of_sums(c, today, None)
 
@@ -297,7 +302,7 @@ sign(s) trade long on month-ends: +0.67 crossed Sharpe, interval [+0.15, +1.21],
 both placebos p ≤ 0.001, on all eight forecasts.
 
 **How it is sized** (`month_end_long_size="match_short"`, the only value
-offered). At the clock the selector picked, the runner quotes the straddle the
+offered). At the entry clock (the fixed 13:30 by default), the runner quotes the straddle the
 short program would have sold and runs the short program's own stress table —
 capital × fraction over the stress loss per contract, capped at
 `--max-straddles`, `--n` overriding it — and buys that many at 15:30. The
@@ -426,7 +431,7 @@ month, or the session before it when that Friday is a holiday (Good Friday
 
 | flag | effect |
 | --- | --- |
-| `--third-friday-multiplier t` | the multiplier `t` (default **1.1**, `config.THIRD_FRIDAY_SIZE_MULTIPLIER`) |
+| `--third-friday-multiplier t` | the multiplier `t` (default **1.5**, `config.THIRD_FRIDAY_SIZE_MULTIPLIER`) |
 | `--no-third-friday` | `t = 1`: the ordinary size every session |
 
 * **The month-end calendar is read first** (§1.6). `t` scales a SHORT day only:
@@ -443,13 +448,11 @@ month, or the session before it when that Friday is a holiday (Good Friday
   (`sizing.scaled_contracts`: in binary, 25 × 1.16 floors to 28).
 * The ES/MES split is recomputed from the new count at every rebalance.
 
-**Floored, 1.1 changes nothing below ten straddles** — `floor(n × 1.1) = n` for
-`n ≤ 9` — and at the default `--max-straddles 10` the cap takes an 11 back to 10.
-So at the default cap the default multiplier never changes a count; it acts only
-with `--max-straddles` above 10 and a table count of 10 or more (at 10 % and a
-≈ $29k stress loss, about $2.9m of capital). Study 66 measured it as a continuous
-fraction of capital (+0.17 %/yr on the 2020–25 live book, 9.49 % → 9.66 %);
-whole contracts deliver that only at size.
+**Floored, 1.5 adds a contract at every count the table gives at $1m** (2 → 3,
+3 → 4, 4 → 6, 5 → 7, 6 → 9), and the `--max-straddles` cap still binds after it.
+(1.1, study 66's cautious number, changes nothing below ten straddles:
+`floor(n × 1.1) = n` for `n ≤ 9`.) What it costs: on a third Friday a 5 % jump
+takes up to 15 % of capital instead of 10 % at the default fraction.
 
 **The evidence** (`writeup/intraday_proposals/58_third_friday_short.py`, 72
 expiration sessions of the 1279 in the ledger; index points per contract, or
@@ -469,13 +472,16 @@ Wednesday −0.16 — the expiration, not the Friday (the holdout's first Friday
 +0.51 on 19 sessions, are the one exception). The lead met all four criteria
 written before 58 ran.
 
-**Where 1.1 comes from** (`writeup/intraday_proposals/66_kelly_sizing.py`,
+**Where 1.5 comes from** (`writeup/intraday_proposals/66_kelly_sizing.py`,
 `results/atm_straddle_intraday_holdclose/proposals/66/c_multiplier.csv`). Log
 growth adds across days and the day type is known in advance, so the Kelly
 fraction can be set per day type. The ratio of Kelly fractions, third Friday
 over other sessions, with the pre-2020 replay tail, is **1.86** at the point
 estimate; the rule written before 66 ran takes the **lower 2.5 % end** of its
 bootstrap interval (1.15), rounded down to a tenth, floored at 1: **1.1**.
+**1.5 is the operator's choice (2026-09-21) between the two**: the smallest
+multiplier that adds a contract at every $1m count, below the point estimate.
+It is not the pre-registered number; `--third-friday-multiplier 1.1` is.
 
 **Its limits.**
 
@@ -509,17 +515,19 @@ the rule and 58 flag the same 336 sessions.
 ```
 $ python -m live.ibkr.run_day --date 2025-06-20 --capital 1000000
   third-Friday size: 2025-06-20 is the monthly-expiration session -- the short
-  program's contract count is multiplied by 1.1
-  straddles                                 3     (3 x 1.1 = 3.3, floored)
-  day P&L ($)                         +750.94     (the §5 replay, unchanged)
+  program's contract count is multiplied by 1.5
+  third Friday x1.5: 3 straddle(s) become 4
+  entry clock                           13:30
+  straddles                                 4     (fraction_implied 12.0 %)
+  day P&L ($)                        +2645.46     (+0.3654 units)
 
-$ ...  --third-friday-multiplier 2
-  straddles                                 6     (fraction_implied 17.3 %)
-  day P&L ($)                        +1479.87     (+0.2183 units)
+$ ...  --no-third-friday
+  straddles                                 3     (fraction_implied 9.0 %)
+  day P&L ($)                        +1948.43     (+0.3588 units)
 
 $ ...  --capital 4000000 --max-straddles 20      # 13 in the table
-  straddles                                14     (13 x 1.1 = 14.3)
-  day P&L ($)                        +3473.83     (--no-third-friday: 13, +3270.24)
+  straddles                                19     (13 x 1.5 = 19.5; 14.3 % of capital)
+  day P&L ($)                       +12333.12     (--no-third-friday: 13, +8452.90)
 ```
 
 The `calendar` record carries `third_friday`, `third_friday_multiplier` (the
@@ -648,7 +656,7 @@ python -m live.ibkr.run_day --mode paper --capital 1000000
 HARXHAR_LIVE=I_UNDERSTAND python -m live.ibkr.run_day --mode live --capital 1000000
 ```
 
-Decision-layer flags: `--entry-mode selector|fixed`, `--entry-clock HH:MM`,
+Decision-layer flags: `--entry-mode fixed|selector` (default `fixed`), `--entry-clock HH:MM` (default `13:30`),
 `--candidates afternoon|all`, `--selector-window`, `--selector-min-sessions`,
 `--ledger`, `--ledger-live`, `--no-delta-correction`, `--no-delever`,
 `--month-end-mode override|sit_out|off` (`--no-calendar-guard` = `off`),

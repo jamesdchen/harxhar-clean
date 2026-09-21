@@ -1725,3 +1725,24 @@ def test_the_third_friday_flags():
     for bad in (0.5, 0.0, -2.0, float("nan"), float("inf")):
         with pytest.raises(ValueError, match="third_friday_size_multiplier"):
             Config(third_friday_size_multiplier=bad)
+
+
+def test_the_operator_defaults_third_friday_and_the_pinned_clock():
+    # 2026-09-21: third Fridays x1.5 and the entry pinned to the fixed 13:30
+    # clock; the selector stays one flag away.
+    assert THIRD_FRIDAY_SIZE_MULTIPLIER == 1.5
+    for cfg in (Config(), Config.from_args([])):
+        assert cfg.entry_mode == "fixed" and cfg.fixed_entry_clock == "13:30"
+    assert Config.from_args(["--entry-mode", "selector"]).entry_mode == "selector"
+    # 1.5 adds a contract at every count the stress table gives at $1M
+    from live.ibkr.sizing import scaled_contracts
+
+    assert [
+        scaled_contracts(n, THIRD_FRIDAY_SIZE_MULTIPLIER) for n in (2, 3, 4, 5, 6)
+    ] == [
+        3,
+        4,
+        6,
+        7,
+        9,
+    ]

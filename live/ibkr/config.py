@@ -4,9 +4,9 @@ The book this executes is the **afternoon hold** book (audit 2026-09-18,
 sections 4-7): the morning premium is gone on the 2024-25 sessions and the
 afternoon/settlement premium is what remains, so the runner
 
-* enters in the AFTERNOON, at the clock a *causal* premium selector chooses
-  from the ledger each session (``entry_mode="selector"``) or at a fixed
-  afternoon clock (``entry_mode="fixed"``, default ``13:30``);
+* enters in the AFTERNOON, at a fixed clock (``entry_mode="fixed"``, the
+  default, ``13:30``) or at the clock a *causal* premium selector chooses from
+  the ledger each session (``entry_mode="selector"``);
 * delta-hedges every 30 minutes through 15:30 with ES for the bulk and MES
   for the remainder, from the implied volatility corrected by the trailing
   per-clock realized-over-implied factor;
@@ -70,12 +70,16 @@ MONTH_END_LONG_SIZES: tuple[str, ...] = ("match_short",)
 #: session before it when that Friday is a holiday) the short program's contract
 #: count -- the stress table's, after the deleveraging multiplier -- is multiplied
 #: by this, floored to whole contracts and capped at ``max_straddles``.  1.0 is
-#: NO CHANGE.  Floored, 1.1 adds a contract only from ten straddles up.
-# study 66: pre-registered lower end of the Kelly ratio (third Friday / other
-# sessions); point ratio 1.86
+#: NO CHANGE.
+# 1.5 is the OPERATOR'S CHOICE (2026-09-21), between study 66's two numbers: the
+# pre-registered lower end of the Kelly ratio (third Friday / other sessions),
+# 1.1, which floored changes no count below ten straddles, and the point ratio,
+# 1.86.  1.5 is the smallest multiplier that adds a contract at every count the
+# stress table gives at $1M (2 -> 3, 3 -> 4, 4 -> 6, 5 -> 7, 6 -> 9); a 5 % jump
+# on a third Friday then costs up to 15 % of capital at the default fraction
 # (writeup/intraday_proposals/66_kelly_sizing.py, results/
 # atm_straddle_intraday_holdclose/proposals/66/c_multiplier.csv).
-THIRD_FRIDAY_SIZE_MULTIPLIER = 1.1
+THIRD_FRIDAY_SIZE_MULTIPLIER = 1.5
 
 #: Every 30-minute stamp the research tape carries.  16:00 is a settlement
 #: print, never a quote, so it is not in here.
@@ -179,7 +183,10 @@ class Config:
     account: str | None = None
 
     # -- the decision layer ---------------------------------------------
-    entry_mode: EntryMode = "selector"
+    #: PINNED to the fixed clock (operator's choice, 2026-09-21): every costed
+    #: number for this book (studies 64-67) is the fixed 13:30 entry; proposal 46
+    #: adopted the selector in 0 of 14 cells.  ``--entry-mode selector`` restores it.
+    entry_mode: EntryMode = "fixed"
     fixed_entry_clock: str = "13:30"
     selector_window: int = 252
     selector_min_sessions: int = 63
@@ -565,7 +572,7 @@ class Config:
         p.add_argument(
             "--entry-mode",
             choices=("selector", "fixed"),
-            default="selector",
+            default="fixed",
             dest="entry_mode",
         )
         p.add_argument(
