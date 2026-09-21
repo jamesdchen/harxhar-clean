@@ -1,0 +1,4 @@
+rule,sessions,first,worst_day,worst_day_date,worst_20,days_losing_over_fraction
+"R_stress (live, at its median fraction of the index)",6593,1998-01-05,-0.07046863594098302,2022-09-21,-0.19955811896605585,0
+"R_worst (history, at the brake's size)",6341,1999-01-07,-0.1661521537450862,2008-09-16,-0.46330934104283195,4
+"R_q (history, 1-in-1000)",5593,2002-01-10,-0.1879734826491806,2022-09-21,-0.5477647381113466,9
