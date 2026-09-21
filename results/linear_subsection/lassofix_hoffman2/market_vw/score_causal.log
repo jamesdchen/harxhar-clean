@@ -1,0 +1,30 @@
+bucket market_vw: 208 cells, 0 blown
+                                              mean_pct  better  worse  bars
+sample      train_win estimator comparison                                 
+common      500       reclasso  as scored        -4.51       8      0    13
+                                calibration      -2.03       9      0    13
+                                coefficients     -3.50       4      0    13
+                                package          -5.52      11      0    13
+            2000      reclasso  as scored        -6.61      12      0    13
+                                calibration      -3.10      10      0    13
+                                coefficients     -5.88      11      1    13
+                                package          -8.87      12      0    13
+deck period 500       reclasso  as scored        -3.07       2      0    13
+                                calibration      -2.39       7      0    13
+                                coefficients     -2.09       2      0    13
+                                package          -4.48       5      0    13
+            2000      reclasso  as scored        -7.01      11      0    13
+                                calibration      -3.35      10      0    13
+                                coefficients     -6.13      11      0    13
+                                package          -9.33      11      0    13
+segment estimator  train_win back_transform  deck_days  pct_buy  Sharpe_mid  Sharpe_crossed  ridge_Sharpe_mid_same_days
+bar1600  reclasso        500          clock        866   38.222       1.355           0.889                       1.338
+bar1600  reclasso        500            raw        866   38.799       1.306           0.839                       1.338
+bar1600  reclasso       2000          clock        866   36.721       1.590           1.122                       1.338
+bar1600  reclasso       2000            raw        866   37.182       1.751           1.284                       1.338
+   none  reclasso        500          clock        866   27.829       0.919           0.439                       1.338
+   none  reclasso        500         pooled        866   35.219       1.126           0.656                       1.338
+   none  reclasso        500            raw        866   32.564       1.273           0.800                       1.338
+   none  reclasso       2000          clock        866   34.411       1.366           0.893                       1.338
+   none  reclasso       2000         pooled        866   42.494       1.149           0.681                       1.338
+   none  reclasso       2000            raw        866   39.723       1.469           1.000                       1.338
