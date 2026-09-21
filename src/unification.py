@@ -2384,6 +2384,34 @@ def _exog_all_cols(names: list[str]) -> np.ndarray:
     return _cols(names, {"value", "indicator"})
 
 
+# Bar-END minute-of-day labels of the 13 regular-hours bars (10:00 .. 16:00), the
+# same labels src.backtest.segmentation's one-bar segments bar1000..bar1600 use.
+RTH_CLOCK_MINUTES = tuple(
+    h * 60 + m for h in range(10, 17) for m in (0, 30) if (h, m) <= (16, 0)
+)
+
+
+def _har_x_clock_design(p: _Panel) -> np.ndarray:
+    """Per-clock DEVIATIONS from the pooled HAR ladder, 13 regular-hours bars.
+
+    Row r is stamped with the bar-end label of the bar it forecasts (naive ET), so
+    the clock dummy is known at forecast time and the HAR rungs it multiplies are
+    already lagged. For each clock: the dummy and dummy x every HAR(target) rung.
+    The pooled rungs stay in the backbone, so these columns are deltas: under the
+    block's own penalty a large alpha shrinks every clock to the pooled fit and the
+    backbone's alpha gives each clock its own ladder. Overnight rows are all zero.
+    """
+    t = pd.DatetimeIndex(p.t)
+    mins = np.asarray(t.hour * 60 + t.minute)
+    har = p.X[:, _cols(p.names, {"har"})]
+    parts = []
+    for c in RTH_CLOCK_MINUTES:
+        d = (mins == c).astype(np.float64)[:, None]
+        parts.append(d)
+        parts.append(har * d)
+    return np.hstack(parts)
+
+
 def _bucket_cols(names: list[str], bucket: str) -> np.ndarray:
     """One canonical bucket's value + indicator columns (stems from SUBGROUPS)."""
     return _cols(names, {"value", "indicator"}, stems=set(SUBGROUPS[bucket]))
@@ -4573,6 +4601,22 @@ ARMS: dict[str, ArmSpec] = {
         None,
         "2-block ridge: backbone@1 + exog@100, args.window",
     ),
+    # blk2 + a third block of per-clock HAR deltas, at the ladder's own three
+    # penalty levels: the backbone's (each clock its own rungs), the exog's, the
+    # product's (close to pooled).
+    **{
+        f"blk2_clockhar_a{tag}": _blk(
+            [
+                ("backbone", "backbone"),
+                ("exog_all", "exog"),
+                ("har_x_clock", "clock"),
+            ],
+            {**USER_ALPHAS, "clock": USER_ALPHAS[level]},
+            None,
+            f"blk2 + per-clock HAR deltas (13 regular-hours bars) @{tag}",
+        )
+        for tag, level in (("1", "backbone"), ("100", "exog"), ("1000", "product"))
+    },
     "blk3_user": _blk(
         [("backbone", "backbone"), ("exog_all", "exog"), ("product", "product")],
         USER_ALPHAS,
@@ -6180,6 +6224,8 @@ def _build_block(p: _Panel, block: str, window: int, arm: str = "") -> np.ndarra
         return p.X[:, _backbone_cols(p.names)]
     if block == "exog_all":
         return p.X[:, _exog_all_cols(p.names)]
+    if block == "har_x_clock":  # per-clock deltas on the HAR ladder
+        return _har_x_clock_design(p)
     if block == "exog_rot":  # frozen-eigenframe rotation (generalized Tikhonov)
         return _exog_tilt_design(p, window)
     if (
