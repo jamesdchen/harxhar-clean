@@ -1,0 +1,82 @@
+bucket fomc: 624 cells, 0 blown
+                                                 mean_pct  better  worse  bars
+sample      train_win estimator    comparison                                 
+common      500       reclasso     as scored        -5.07       8      0    13
+                                   calibration      -2.08       9      0    13
+                                   coefficients     -3.89       5      1    13
+                                   package          -5.97      10      0    13
+                      reclasticnet as scored        -5.37       9      0    13
+                                   calibration      -2.08       9      0    13
+                                   coefficients     -4.24       5      0    13
+                                   package          -6.30      10      0    13
+                      ridge        as scored        -3.43       4      0    13
+                                   calibration      -2.03       9      1    13
+                                   coefficients     -2.31       4      1    13
+                                   package          -4.38       5      0    13
+            2000      reclasso     as scored        -5.58       9      0    13
+                                   calibration      -3.14      10      0    13
+                                   coefficients     -4.99       7      1    13
+                                   package          -8.06       9      0    13
+                      reclasticnet as scored        -5.68       8      0    13
+                                   calibration      -3.20      10      0    13
+                                   coefficients     -4.96       8      1    13
+                                   package          -8.09      11      0    13
+                      ridge        as scored        -4.04       8      1    13
+                                   calibration      -3.13      10      0    13
+                                   coefficients     -3.44       8      1    13
+                                   package          -6.56       8      0    13
+deck period 500       reclasso     as scored        -3.82       5      0    13
+                                   calibration      -2.20       7      0    13
+                                   coefficients     -2.74       4      2    13
+                                   package          -4.95       7      0    13
+                      reclasticnet as scored        -4.32       5      0    13
+                                   calibration      -2.17       7      0    13
+                                   coefficients     -3.34       4      1    13
+                                   package          -5.51       7      0    13
+                      ridge        as scored        -2.34       2      1    13
+                                   calibration      -2.19       7      0    13
+                                   coefficients     -1.42       3      3    13
+                                   package          -3.66       4      2    13
+            2000      reclasso     as scored        -5.45       8      0    13
+                                   calibration      -3.34      10      0    13
+                                   coefficients     -4.72       7      1    13
+                                   package          -8.00       8      0    13
+                      reclasticnet as scored        -5.42       7      0    13
+                                   calibration      -3.39      10      0    13
+                                   coefficients     -4.54       8      1    13
+                                   package          -7.87       7      0    13
+                      ridge        as scored        -3.67       6      1    13
+                                   calibration      -3.33      11      0    13
+                                   coefficients     -2.86       6      2    13
+                                   package          -6.22       7      0    13
+segment    estimator  train_win back_transform  deck_days  pct_buy  Sharpe_mid  Sharpe_crossed  ridge_Sharpe_mid_same_days
+bar1600     reclasso        500          clock        866   36.836       0.837           0.363                       1.338
+bar1600     reclasso        500            raw        866   36.952       0.593           0.119                       1.338
+bar1600     reclasso       2000          clock        866   37.182       1.144           0.670                       1.338
+bar1600     reclasso       2000            raw        866   37.760       1.532           1.059                       1.338
+bar1600 reclasticnet        500          clock        866   35.219       0.915           0.441                       1.338
+bar1600 reclasticnet        500            raw        866   35.450       0.748           0.273                       1.338
+bar1600 reclasticnet       2000          clock        866   37.991       1.086           0.610                       1.338
+bar1600 reclasticnet       2000            raw        866   38.684       1.117           0.642                       1.338
+bar1600        ridge        500          clock        866   36.952       0.707           0.235                       1.338
+bar1600        ridge        500            raw        866   37.875       0.814           0.342                       1.338
+bar1600        ridge       2000          clock        866   37.991       1.303           0.830                       1.338
+bar1600        ridge       2000            raw        866   38.568       1.511           1.038                       1.338
+   none     reclasso        500          clock        866   26.328       0.544           0.066                       1.338
+   none     reclasso        500         pooled        866   34.758       0.762           0.289                       1.338
+   none     reclasso        500            raw        866   31.986       0.926           0.451                       1.338
+   none     reclasso       2000          clock        866   35.450       0.898           0.425                       1.338
+   none     reclasso       2000         pooled        866   42.494       1.195           0.728                       1.338
+   none     reclasso       2000            raw        866   40.762       1.099           0.630                       1.338
+   none reclasticnet        500          clock        866   26.328       0.386          -0.090                       1.338
+   none reclasticnet        500         pooled        866   34.758       0.795           0.322                       1.338
+   none reclasticnet        500            raw        866   31.871       0.982           0.507                       1.338
+   none reclasticnet       2000          clock        866   34.988       0.822           0.349                       1.338
+   none reclasticnet       2000         pooled        866   43.187       1.244           0.778                       1.338
+   none reclasticnet       2000            raw        866   40.762       1.088           0.618                       1.338
+   none        ridge        500          clock        866   26.674       0.436          -0.040                       1.338
+   none        ridge        500         pooled        866   34.642       0.777           0.305                       1.338
+   none        ridge        500            raw        866   32.102       0.992           0.517                       1.338
+   none        ridge       2000          clock        866   35.566       0.938           0.465                       1.338
+   none        ridge       2000         pooled        866   43.418       1.103           0.636                       1.338
+   none        ridge       2000            raw        866   40.878       1.107           0.638                       1.338
