@@ -1,0 +1,41 @@
+features,weighting,year,n,Sharpe_crossed
+-,(s) plain sign(s),2021,64,1.6021545021287433
+-,(s) plain sign(s),2022,219,-0.3321432976319781
+-,(s) plain sign(s),2023,248,1.8559736864309555
+-,(s) plain sign(s),2024,83,1.8022210294896517
+F1 ridge,(u) unweighted 1{y > slice},2021,64,-1.7225921611627188
+F1 ridge,(u) unweighted 1{y > slice},2022,219,1.4453864270333467
+F1 ridge,(u) unweighted 1{y > slice},2023,248,0.4644216028619204
+F1 ridge,(u) unweighted 1{y > slice},2024,83,-1.027803193044693
+F1 ridge,(e) ES-weighted 1{y > slice},2021,64,-1.7225921611627188
+F1 ridge,(e) ES-weighted 1{y > slice},2022,219,1.3089828539647066
+F1 ridge,(e) ES-weighted 1{y > slice},2023,248,0.4828078932287839
+F1 ridge,(e) ES-weighted 1{y > slice},2024,83,-0.6130578699601852
+F1 ridge,(p) payoff-weighted 1{R > 0},2021,64,0.7981160990296772
+F1 ridge,(p) payoff-weighted 1{R > 0},2022,219,-1.1262530480560684
+F1 ridge,(p) payoff-weighted 1{R > 0},2023,248,0.7217474359639211
+F1 ridge,(p) payoff-weighted 1{R > 0},2024,83,2.4254244430436915
+F2 four families,(u) unweighted 1{y > slice},2021,64,-1.7225921611627188
+F2 four families,(u) unweighted 1{y > slice},2022,219,1.806268793553002
+F2 four families,(u) unweighted 1{y > slice},2023,248,0.37609064348030063
+F2 four families,(u) unweighted 1{y > slice},2024,83,-0.04468079287744472
+F2 four families,(e) ES-weighted 1{y > slice},2021,64,-2.177724151686043
+F2 four families,(e) ES-weighted 1{y > slice},2022,219,2.105507756501349
+F2 four families,(e) ES-weighted 1{y > slice},2023,248,0.5318488308091551
+F2 four families,(e) ES-weighted 1{y > slice},2024,83,0.08050210864846995
+F2 four families,(p) payoff-weighted 1{R > 0},2021,64,2.124942512733206
+F2 four families,(p) payoff-weighted 1{R > 0},2022,219,-1.0040415519387298
+F2 four families,(p) payoff-weighted 1{R > 0},2023,248,-0.5817418367126207
+F2 four families,(p) payoff-weighted 1{R > 0},2024,83,2.393898042067819
+"F3 four families + month-end, third Friday",(u) unweighted 1{y > slice},2021,64,-1.292585587531098
+"F3 four families + month-end, third Friday",(u) unweighted 1{y > slice},2022,219,1.806268793553002
+"F3 four families + month-end, third Friday",(u) unweighted 1{y > slice},2023,248,0.5997031057285875
+"F3 four families + month-end, third Friday",(u) unweighted 1{y > slice},2024,83,0.7454194399171807
+"F3 four families + month-end, third Friday",(e) ES-weighted 1{y > slice},2021,64,-1.5519071213509834
+"F3 four families + month-end, third Friday",(e) ES-weighted 1{y > slice},2022,219,2.5361850038551537
+"F3 four families + month-end, third Friday",(e) ES-weighted 1{y > slice},2023,248,1.3187459780176707
+"F3 four families + month-end, third Friday",(e) ES-weighted 1{y > slice},2024,83,1.1759733280873752
+"F3 four families + month-end, third Friday",(p) payoff-weighted 1{R > 0},2021,64,2.1443076423183287
+"F3 four families + month-end, third Friday",(p) payoff-weighted 1{R > 0},2022,219,-0.3449121853466685
+"F3 four families + month-end, third Friday",(p) payoff-weighted 1{R > 0},2023,248,1.5670287963401415
+"F3 four families + month-end, third Friday",(p) payoff-weighted 1{R > 0},2024,83,2.4055975480963494

@@ -1,0 +1,13 @@
+set,k,loss,spearman_with_crossed_Sharpe,ci_lo,ci_hi
+(i) the eight forecasts,8,QLIKE,0.11904761904761905,-0.6904761904761905,0.7624999999999967
+(i) the eight forecasts,8,ES_at_slice,0.4047619047619048,-0.6190476190476191,0.9047619047619048
+(i) the eight forecasts,8,miss_vs_variance,0.07142857142857144,-0.7785753778789479,0.8296105187894297
+(i) the eight forecasts,8,economic_loss,1.0,0.9761904761904762,1.0
+(ii) ridge + its 15 ladder rungs,16,QLIKE,1.0,0.8175735294117646,1.0
+(ii) ridge + its 15 ladder rungs,16,ES_at_slice,1.0,0.8175735294117646,1.0
+(ii) ridge + its 15 ladder rungs,16,miss_vs_variance,1.0,0.8175735294117646,1.0
+(ii) ridge + its 15 ladder rungs,16,economic_loss,1.0,0.996985294117647,1.0
+(iii) union,23,QLIKE,0.9545454545454547,0.8517786561264822,0.983201581027668
+(iii) union,23,ES_at_slice,0.9673913043478262,0.8567193675889329,0.9891304347826086
+(iii) union,23,miss_vs_variance,0.950592885375494,0.8487895256916996,0.98492713656686
+(iii) union,23,economic_loss,1.0,0.9980237154150198,1.0

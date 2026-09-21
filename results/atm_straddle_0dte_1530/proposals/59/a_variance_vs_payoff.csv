@@ -1,0 +1,3 @@
+oracle,agrees_with_sign_R,Sharpe_mid,Sharpe_crossed,long_on_top10,long_on_top20,long_on_top50
+sign(realized variance - slice),0.6293302540415704,4.530901886580046,4.071734092423975,10.0,18.0,41.0
+sign(R),1.0,17.352113841912665,17.27604998994711,10.0,20.0,50.0
