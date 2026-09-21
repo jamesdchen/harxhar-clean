@@ -1,0 +1,376 @@
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/u/home/j/jamesdc1/.conda/envs/hpc-pi/lib/python3.11/site-packages/pandas/core/arraylike.py:399: RuntimeWarning: divide by zero encountered in log
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+    segment estimator  train_win  pooled_train_win  bar_end      sample     n      first  QLIKE_subsection  QLIKE_pooled     diff       pct    ci_lo    ci_hi   dm_stat  improves
+    bar1000  reclasso        500               500 all bars      common  3119 2012-03-23           0.11859       0.11862 -0.00003  -0.02615 -0.00303  0.00299  -0.02126     False
+    bar1000  reclasso        500               500 all bars deck period  1116 2020-01-03           0.12099       0.11608  0.00492   4.23518 -0.00040  0.01103   1.97671     False
+    bar1000  reclasso        500               500    10:00      common  3119 2012-03-23           0.11859       0.11862 -0.00003  -0.02615 -0.00303  0.00299  -0.02126     False
+    bar1000  reclasso        500               500    10:00 deck period  1116 2020-01-03           0.12099       0.11608  0.00492   4.23518 -0.00040  0.01103   1.97671     False
+    bar1000  reclasso       2000               500 all bars      common  1619 2018-01-19           0.12608       0.12478  0.00130   1.04547 -0.00435  0.00703   0.51196     False
+    bar1000  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.12464       0.11608  0.00856   7.37569  0.00259  0.01531   2.89761     False
+    bar1000  reclasso       2000               500    10:00      common  1619 2018-01-19           0.12608       0.12478  0.00130   1.04547 -0.00435  0.00703   0.51196     False
+    bar1000  reclasso       2000               500    10:00 deck period  1116 2020-01-03           0.12464       0.11608  0.00856   7.37569  0.00259  0.01531   2.89761     False
+    bar1000  reclasso       2000              2000 all bars      common  1619 2018-01-19           0.12608       0.12578  0.00030   0.23988 -0.00368  0.00466   0.15961     False
+    bar1000  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.12464       0.12083  0.00381   3.15222 -0.00054  0.00896   1.72401     False
+    bar1000  reclasso       2000              2000    10:00      common  1619 2018-01-19           0.12608       0.12578  0.00030   0.23988 -0.00368  0.00466   0.15961     False
+    bar1000  reclasso       2000              2000    10:00 deck period  1116 2020-01-03           0.12464       0.12083  0.00381   3.15222 -0.00054  0.00896   1.72401     False
+    bar1030  reclasso        500               500 all bars      common  3119 2012-03-23           0.14695       0.15220 -0.00525  -3.44698 -0.00817 -0.00259  -3.95312      True
+    bar1030  reclasso        500               500 all bars deck period  1116 2020-01-03           0.15707       0.15859 -0.00152  -0.95967 -0.00514  0.00192  -0.83757     False
+    bar1030  reclasso        500               500    10:30      common  3119 2012-03-23           0.14695       0.15220 -0.00525  -3.44698 -0.00817 -0.00259  -3.95312      True
+    bar1030  reclasso        500               500    10:30 deck period  1116 2020-01-03           0.15707       0.15859 -0.00152  -0.95967 -0.00514  0.00192  -0.83757     False
+    bar1030  reclasso       2000               500 all bars      common  1619 2018-01-19           0.15604       0.16452 -0.00848  -5.15688 -0.01352 -0.00343  -3.35294      True
+    bar1030  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.15247       0.15859 -0.00612  -3.86138 -0.01275  0.00026  -1.88199     False
+    bar1030  reclasso       2000               500    10:30      common  1619 2018-01-19           0.15604       0.16452 -0.00848  -5.15688 -0.01352 -0.00343  -3.35294      True
+    bar1030  reclasso       2000               500    10:30 deck period  1116 2020-01-03           0.15247       0.15859 -0.00612  -3.86138 -0.01275  0.00026  -1.88199     False
+    bar1030  reclasso       2000              2000 all bars      common  1619 2018-01-19           0.15604       0.16570 -0.00966  -5.82809 -0.01407 -0.00530  -4.29201      True
+    bar1030  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.15247       0.16109 -0.00862  -5.35326 -0.01398 -0.00322  -3.06182      True
+    bar1030  reclasso       2000              2000    10:30      common  1619 2018-01-19           0.15604       0.16570 -0.00966  -5.82809 -0.01407 -0.00530  -4.29201      True
+    bar1030  reclasso       2000              2000    10:30 deck period  1116 2020-01-03           0.15247       0.16109 -0.00862  -5.35326 -0.01398 -0.00322  -3.06182      True
+    bar1100  reclasso        500               500 all bars      common  3119 2012-03-23           0.13014       0.13342 -0.00328  -2.45592 -0.00610 -0.00033  -2.39585      True
+    bar1100  reclasso        500               500 all bars deck period  1116 2020-01-03           0.14980       0.14696  0.00284   1.93438 -0.00307  0.00920   1.00629     False
+    bar1100  reclasso        500               500    11:00      common  3119 2012-03-23           0.13014       0.13342 -0.00328  -2.45592 -0.00610 -0.00033  -2.39585      True
+    bar1100  reclasso        500               500    11:00 deck period  1116 2020-01-03           0.14980       0.14696  0.00284   1.93438 -0.00307  0.00920   1.00629     False
+    bar1100  reclasso       2000               500 all bars      common  1619 2018-01-19           0.14516       0.14077  0.00438   3.11430 -0.00130  0.01075   1.71090     False
+    bar1100  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.15493       0.14696  0.00797   5.42279  0.00207  0.01481   3.11289     False
+    bar1100  reclasso       2000               500    11:00      common  1619 2018-01-19           0.14516       0.14077  0.00438   3.11430 -0.00130  0.01075   1.71090     False
+    bar1100  reclasso       2000               500    11:00 deck period  1116 2020-01-03           0.15493       0.14696  0.00797   5.42279  0.00207  0.01481   3.11289     False
+    bar1100  reclasso       2000              2000 all bars      common  1619 2018-01-19           0.14516       0.14537 -0.00021  -0.14787 -0.00465  0.00498  -0.10062     False
+    bar1100  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.15493       0.15410  0.00082   0.53357 -0.00391  0.00620   0.37028     False
+    bar1100  reclasso       2000              2000    11:00      common  1619 2018-01-19           0.14516       0.14537 -0.00021  -0.14787 -0.00465  0.00498  -0.10062     False
+    bar1100  reclasso       2000              2000    11:00 deck period  1116 2020-01-03           0.15493       0.15410  0.00082   0.53357 -0.00391  0.00620   0.37028     False
+    bar1130  reclasso        500               500 all bars      common  3121 2012-03-21           0.13083       0.13557 -0.00474  -3.49609 -0.00790 -0.00158  -3.34711      True
+    bar1130  reclasso        500               500 all bars deck period  1116 2020-01-03           0.13798       0.14355 -0.00557  -3.87798 -0.00978 -0.00116  -2.68895      True
+    bar1130  reclasso        500               500    11:30      common  3121 2012-03-21           0.13083       0.13557 -0.00474  -3.49609 -0.00790 -0.00158  -3.34711      True
+    bar1130  reclasso        500               500    11:30 deck period  1116 2020-01-03           0.13798       0.14355 -0.00557  -3.87798 -0.00978 -0.00116  -2.68895      True
+    bar1130  reclasso       2000               500 all bars      common  1621 2018-01-17           0.13282       0.13847 -0.00565  -4.08207 -0.01061 -0.00115  -2.56735      True
+    bar1130  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.13911       0.14355 -0.00444  -3.09527 -0.01030  0.00111  -1.70444     False
+    bar1130  reclasso       2000               500    11:30      common  1621 2018-01-17           0.13282       0.13847 -0.00565  -4.08207 -0.01061 -0.00115  -2.56735      True
+    bar1130  reclasso       2000               500    11:30 deck period  1116 2020-01-03           0.13911       0.14355 -0.00444  -3.09527 -0.01030  0.00111  -1.70444     False
+    bar1130  reclasso       2000              2000 all bars      common  1621 2018-01-17           0.13282       0.14317 -0.01035  -7.22985 -0.01467 -0.00614  -5.21084      True
+    bar1130  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.13911       0.15240 -0.01329  -8.72266 -0.01844 -0.00829  -5.83596      True
+    bar1130  reclasso       2000              2000    11:30      common  1621 2018-01-17           0.13282       0.14317 -0.01035  -7.22985 -0.01467 -0.00614  -5.21084      True
+    bar1130  reclasso       2000              2000    11:30 deck period  1116 2020-01-03           0.13911       0.15240 -0.01329  -8.72266 -0.01844 -0.00829  -5.83596      True
+    bar1200  reclasso        500               500 all bars      common  3060 2012-05-31           0.13511       0.13967 -0.00457  -3.26851 -0.00714 -0.00189  -3.58006      True
+    bar1200  reclasso        500               500 all bars deck period  1116 2020-01-03           0.13103       0.13769 -0.00666  -4.83539 -0.01173 -0.00149  -2.55407      True
+    bar1200  reclasso        500               500    12:00      common  3060 2012-05-31           0.13511       0.13967 -0.00457  -3.26851 -0.00714 -0.00189  -3.58006      True
+    bar1200  reclasso        500               500    12:00 deck period  1116 2020-01-03           0.13103       0.13769 -0.00666  -4.83539 -0.01173 -0.00149  -2.55407      True
+    bar1200  reclasso       2000               500 all bars      common  1560 2018-04-13           0.15150       0.15408 -0.00259  -1.67799 -0.00593  0.00097  -1.41865     False
+    bar1200  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.13577       0.13769 -0.00192  -1.39576 -0.00539  0.00162  -1.20204     False
+    bar1200  reclasso       2000               500    12:00      common  1560 2018-04-13           0.15150       0.15408 -0.00259  -1.67799 -0.00593  0.00097  -1.41865     False
+    bar1200  reclasso       2000               500    12:00 deck period  1116 2020-01-03           0.13577       0.13769 -0.00192  -1.39576 -0.00539  0.00162  -1.20204     False
+    bar1200  reclasso       2000              2000 all bars      common  1560 2018-04-13           0.15150       0.16121 -0.00971  -6.02343 -0.01271 -0.00684  -6.21792      True
+    bar1200  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.13577       0.14780 -0.01204  -8.14400 -0.01507 -0.00931  -7.76937      True
+    bar1200  reclasso       2000              2000    12:00      common  1560 2018-04-13           0.15150       0.16121 -0.00971  -6.02343 -0.01271 -0.00684  -6.21792      True
+    bar1200  reclasso       2000              2000    12:00 deck period  1116 2020-01-03           0.13577       0.14780 -0.01204  -8.14400 -0.01507 -0.00931  -7.76937      True
+    bar1230  reclasso        500               500 all bars      common  3060 2012-05-31           0.14206       0.14653 -0.00447  -3.04942 -0.00798 -0.00085  -2.81423      True
+    bar1230  reclasso        500               500 all bars deck period  1116 2020-01-03           0.14594       0.14888 -0.00294  -1.97360 -0.01033  0.00568  -0.84950     False
+    bar1230  reclasso        500               500    12:30      common  3060 2012-05-31           0.14206       0.14653 -0.00447  -3.04942 -0.00798 -0.00085  -2.81423      True
+    bar1230  reclasso        500               500    12:30 deck period  1116 2020-01-03           0.14594       0.14888 -0.00294  -1.97360 -0.01033  0.00568  -0.84950     False
+    bar1230  reclasso       2000               500 all bars      common  1560 2018-04-13           0.16077       0.15853  0.00224   1.41038 -0.00199  0.00632   1.16810     False
+    bar1230  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.15632       0.14888  0.00744   4.99448  0.00350  0.01183   3.67346     False
+    bar1230  reclasso       2000               500    12:30      common  1560 2018-04-13           0.16077       0.15853  0.00224   1.41038 -0.00199  0.00632   1.16810     False
+    bar1230  reclasso       2000               500    12:30 deck period  1116 2020-01-03           0.15632       0.14888  0.00744   4.99448  0.00350  0.01183   3.67346     False
+    bar1230  reclasso       2000              2000 all bars      common  1560 2018-04-13           0.16077       0.16638 -0.00562  -3.37612 -0.00900 -0.00261  -3.55871      True
+    bar1230  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.15632       0.16007 -0.00375  -2.34115 -0.00720 -0.00047  -2.43126      True
+    bar1230  reclasso       2000              2000    12:30      common  1560 2018-04-13           0.16077       0.16638 -0.00562  -3.37612 -0.00900 -0.00261  -3.55871      True
+    bar1230  reclasso       2000              2000    12:30 deck period  1116 2020-01-03           0.15632       0.16007 -0.00375  -2.34115 -0.00720 -0.00047  -2.43126      True
+    bar1300  reclasso        500               500 all bars      common  3060 2012-05-31           0.15804       0.16083 -0.00280  -1.73839 -0.00578  0.00012  -2.02267     False
+    bar1300  reclasso        500               500 all bars deck period  1116 2020-01-03           0.15971       0.16556 -0.00586  -3.53657 -0.01258  0.00074  -1.98115     False
+    bar1300  reclasso        500               500    13:00      common  3060 2012-05-31           0.15804       0.16083 -0.00280  -1.73839 -0.00578  0.00012  -2.02267     False
+    bar1300  reclasso        500               500    13:00 deck period  1116 2020-01-03           0.15971       0.16556 -0.00586  -3.53657 -0.01258  0.00074  -1.98115     False
+    bar1300  reclasso       2000               500 all bars      common  1560 2018-04-13           0.17493       0.17901 -0.00408  -2.28131 -0.00831  0.00041  -1.84079     False
+    bar1300  reclasso       2000               500 all bars deck period  1116 2020-01-03           0.16440       0.16556 -0.00116  -0.70005 -0.00635  0.00452  -0.42167     False
+    bar1300  reclasso       2000               500    13:00      common  1560 2018-04-13           0.17493       0.17901 -0.00408  -2.28131 -0.00831  0.00041  -1.84079     False
+    bar1300  reclasso       2000               500    13:00 deck period  1116 2020-01-03           0.16440       0.16556 -0.00116  -0.70005 -0.00635  0.00452  -0.42167     False
+    bar1300  reclasso       2000              2000 all bars      common  1560 2018-04-13           0.17493       0.18385 -0.00892  -4.85175 -0.01334 -0.00314  -3.44674      True
+    bar1300  reclasso       2000              2000 all bars deck period  1116 2020-01-03           0.16440       0.17241 -0.00801  -4.64577 -0.01409 -0.00041  -2.34548      True
+    bar1300  reclasso       2000              2000    13:00      common  1560 2018-04-13           0.17493       0.18385 -0.00892  -4.85175 -0.01334 -0.00314  -3.44674      True
+    bar1300  reclasso       2000              2000    13:00 deck period  1116 2020-01-03           0.16440       0.17241 -0.00801  -4.64577 -0.01409 -0.00041  -2.34548      True
+    bar1330  reclasso        500               500 all bars      common  2999 2012-05-31           0.16772       0.16944 -0.00172  -1.01221 -0.00504  0.00188  -0.93246     False
+    bar1330  reclasso        500               500 all bars deck period  1088 2020-01-03           0.17336       0.17235  0.00102   0.58905 -0.00619  0.00849   0.26744     False
+    bar1330  reclasso        500               500    13:30      common  2999 2012-05-31           0.16772       0.16944 -0.00172  -1.01221 -0.00504  0.00188  -0.93246     False
+    bar1330  reclasso        500               500    13:30 deck period  1088 2020-01-03           0.17336       0.17235  0.00102   0.58905 -0.00619  0.00849   0.26744     False
+    bar1330  reclasso       2000               500 all bars      common  1499 2018-05-17           0.17563       0.18193 -0.00630  -3.46522 -0.01107 -0.00140  -2.59621      True
+    bar1330  reclasso       2000               500 all bars deck period  1088 2020-01-03           0.16895       0.17235 -0.00340  -1.97075 -0.00807  0.00156  -1.55724     False
+    bar1330  reclasso       2000               500    13:30      common  1499 2018-05-17           0.17563       0.18193 -0.00630  -3.46522 -0.01107 -0.00140  -2.59621      True
+    bar1330  reclasso       2000               500    13:30 deck period  1088 2020-01-03           0.16895       0.17235 -0.00340  -1.97075 -0.00807  0.00156  -1.55724     False
+    bar1330  reclasso       2000              2000 all bars      common  1499 2018-05-17           0.17563       0.18199 -0.00636  -3.49529 -0.01131 -0.00112  -2.43911      True
+    bar1330  reclasso       2000              2000 all bars deck period  1088 2020-01-03           0.16895       0.17338 -0.00443  -2.55443 -0.01039  0.00121  -1.72459     False
+    bar1330  reclasso       2000              2000    13:30      common  1499 2018-05-17           0.17563       0.18199 -0.00636  -3.49529 -0.01131 -0.00112  -2.43911      True
+    bar1330  reclasso       2000              2000    13:30 deck period  1088 2020-01-03           0.16895       0.17338 -0.00443  -2.55443 -0.01039  0.00121  -1.72459     False
+    bar1400  reclasso        500               500 all bars      common  2987 2012-06-13           0.15947       0.15694  0.00253   1.61433 -0.00115  0.00680   1.23123     False
+    bar1400  reclasso        500               500 all bars deck period  1088 2020-01-03           0.18054       0.17172  0.00882   5.13463  0.00031  0.01830   1.81740     False
+    bar1400  reclasso        500               500    14:00      common  2987 2012-06-13           0.15947       0.15694  0.00253   1.61433 -0.00115  0.00680   1.23123     False
+    bar1400  reclasso        500               500    14:00 deck period  1088 2020-01-03           0.18054       0.17172  0.00882   5.13463  0.00031  0.01830   1.81740     False
+    bar1400  reclasso       2000               500 all bars      common  1487 2018-06-01           0.18564       0.17979  0.00585   3.25543  0.00025  0.01249   1.80544     False
+    bar1400  reclasso       2000               500 all bars deck period  1088 2020-01-03           0.18269       0.17172  0.01097   6.38797  0.00454  0.01864   2.79235     False
+    bar1400  reclasso       2000               500    14:00      common  1487 2018-06-01           0.18564       0.17979  0.00585   3.25543  0.00025  0.01249   1.80544     False
+    bar1400  reclasso       2000               500    14:00 deck period  1088 2020-01-03           0.18269       0.17172  0.01097   6.38797  0.00454  0.01864   2.79235     False
+    bar1400  reclasso       2000              2000 all bars      common  1487 2018-06-01           0.18564       0.18536  0.00028   0.15099 -0.00389  0.00495   0.12656     False
+    bar1400  reclasso       2000              2000 all bars deck period  1088 2020-01-03           0.18269       0.18126  0.00143   0.79111 -0.00384  0.00735   0.52103     False
+    bar1400  reclasso       2000              2000    14:00      common  1487 2018-06-01           0.18564       0.18536  0.00028   0.15099 -0.00389  0.00495   0.12656     False
+    bar1400  reclasso       2000              2000    14:00 deck period  1088 2020-01-03           0.18269       0.18126  0.00143   0.79111 -0.00384  0.00735   0.52103     False
+    bar1430  reclasso        500               500 all bars      common  2979 2012-06-20           0.25442       0.30484 -0.05042 -16.53930 -0.06630 -0.03665  -6.51186      True
+    bar1430  reclasso        500               500 all bars deck period  1087 2020-01-03           0.26853       0.34237 -0.07384 -21.56704 -0.11284 -0.04211  -3.86353      True
+    bar1430  reclasso        500               500    14:30      common  2979 2012-06-20           0.25442       0.30484 -0.05042 -16.53930 -0.06630 -0.03665  -6.51186      True
+    bar1430  reclasso        500               500    14:30 deck period  1087 2020-01-03           0.26853       0.34237 -0.07384 -21.56704 -0.11284 -0.04211  -3.86353      True
+    bar1430  reclasso       2000               500 all bars      common  1479 2018-06-11           0.26478       0.32499 -0.06021 -18.52529 -0.08559 -0.03783  -4.80225      True
+    bar1430  reclasso       2000               500 all bars deck period  1087 2020-01-03           0.27565       0.34237 -0.06671 -19.48647 -0.09996 -0.03859  -4.06250      True
+    bar1430  reclasso       2000               500    14:30      common  1479 2018-06-11           0.26478       0.32499 -0.06021 -18.52529 -0.08559 -0.03783  -4.80225      True
+    bar1430  reclasso       2000               500    14:30 deck period  1087 2020-01-03           0.27565       0.34237 -0.06671 -19.48647 -0.09996 -0.03859  -4.06250      True
+    bar1430  reclasso       2000              2000 all bars      common  1479 2018-06-11           0.26478       0.31957 -0.05478 -17.14216 -0.07483 -0.03598  -5.63780      True
+    bar1430  reclasso       2000              2000 all bars deck period  1087 2020-01-03           0.27565       0.33659 -0.06094 -18.10435 -0.08709 -0.03841  -4.96216      True
+    bar1430  reclasso       2000              2000    14:30      common  1479 2018-06-11           0.26478       0.31957 -0.05478 -17.14216 -0.07483 -0.03598  -5.63780      True
+    bar1430  reclasso       2000              2000    14:30 deck period  1087 2020-01-03           0.27565       0.33659 -0.06094 -18.10435 -0.08709 -0.03841  -4.96216      True
+    bar1500  reclasso        500               500 all bars      common  2977 2012-06-21           0.16683       0.17640 -0.00958  -5.42964 -0.01438 -0.00464  -4.02444      True
+    bar1500  reclasso        500               500 all bars deck period  1087 2020-01-03           0.19040       0.20308 -0.01268  -6.24591 -0.02363 -0.00195  -2.32030      True
+    bar1500  reclasso        500               500    15:00      common  2977 2012-06-21           0.16683       0.17640 -0.00958  -5.42964 -0.01438 -0.00464  -4.02444      True
+    bar1500  reclasso        500               500    15:00 deck period  1087 2020-01-03           0.19040       0.20308 -0.01268  -6.24591 -0.02363 -0.00195  -2.32030      True
+    bar1500  reclasso       2000               500 all bars      common  1477 2018-06-13           0.21732       0.22133 -0.00401  -1.81369 -0.01000  0.00235  -1.29581     False
+    bar1500  reclasso       2000               500 all bars deck period  1087 2020-01-03           0.20042       0.20308 -0.00266  -1.31079 -0.00990  0.00460  -0.72143     False
+    bar1500  reclasso       2000               500    15:00      common  1477 2018-06-13           0.21732       0.22133 -0.00401  -1.81369 -0.01000  0.00235  -1.29581     False
+    bar1500  reclasso       2000               500    15:00 deck period  1087 2020-01-03           0.20042       0.20308 -0.00266  -1.31079 -0.00990  0.00460  -0.72143     False
+    bar1500  reclasso       2000              2000 all bars      common  1477 2018-06-13           0.21732       0.22955 -0.01223  -5.32832 -0.01775 -0.00650  -4.25440      True
+    bar1500  reclasso       2000              2000 all bars deck period  1087 2020-01-03           0.20042       0.21553 -0.01511  -7.01272 -0.02169 -0.00857  -4.43195      True
+    bar1500  reclasso       2000              2000    15:00      common  1477 2018-06-13           0.21732       0.22955 -0.01223  -5.32832 -0.01775 -0.00650  -4.25440      True
+    bar1500  reclasso       2000              2000    15:00 deck period  1087 2020-01-03           0.20042       0.21553 -0.01511  -7.01272 -0.02169 -0.00857  -4.43195      True
+    bar1530  reclasso        500               500 all bars      common  2975 2012-06-25           0.13023       0.13190 -0.00166  -1.26094 -0.00498  0.00181  -1.03419     False
+    bar1530  reclasso        500               500 all bars deck period  1087 2020-01-03           0.13712       0.13222  0.00490   3.70226 -0.00029  0.01078   1.83423     False
+    bar1530  reclasso        500               500    15:30      common  2975 2012-06-25           0.13023       0.13190 -0.00166  -1.26094 -0.00498  0.00181  -1.03419     False
+    bar1530  reclasso        500               500    15:30 deck period  1087 2020-01-03           0.13712       0.13222  0.00490   3.70226 -0.00029  0.01078   1.83423     False
+    bar1530  reclasso       2000               500 all bars      common  1475 2018-06-15           0.13830       0.14054 -0.00224  -1.59705 -0.00765  0.00287  -0.90410     False
+    bar1530  reclasso       2000               500 all bars deck period  1087 2020-01-03           0.13307       0.13222  0.00085   0.64425 -0.00385  0.00608   0.31910     False
+    bar1530  reclasso       2000               500    15:30      common  1475 2018-06-15           0.13830       0.14054 -0.00224  -1.59705 -0.00765  0.00287  -0.90410     False
+    bar1530  reclasso       2000               500    15:30 deck period  1087 2020-01-03           0.13307       0.13222  0.00085   0.64425 -0.00385  0.00608   0.31910     False
+    bar1530  reclasso       2000              2000 all bars      common  1475 2018-06-15           0.13830       0.14318 -0.00488  -3.40987 -0.00876 -0.00063  -2.38919      True
+    bar1530  reclasso       2000              2000 all bars deck period  1087 2020-01-03           0.13307       0.13846 -0.00538  -3.88859 -0.00964 -0.00091  -2.43383      True
+    bar1530  reclasso       2000              2000    15:30      common  1475 2018-06-15           0.13830       0.14318 -0.00488  -3.40987 -0.00876 -0.00063  -2.38919      True
+    bar1530  reclasso       2000              2000    15:30 deck period  1087 2020-01-03           0.13307       0.13846 -0.00538  -3.88859 -0.00964 -0.00091  -2.43383      True
+    bar1600  reclasso        500               500 all bars      common  2969 2012-07-03           0.12313       0.12786 -0.00473  -3.69559 -0.00844 -0.00096  -2.63089      True
+    bar1600  reclasso        500               500 all bars deck period  1087 2020-01-03           0.11276       0.11342 -0.00066  -0.58081 -0.00645  0.00495  -0.22631     False
+    bar1600  reclasso        500               500    16:00      common  2969 2012-07-03           0.12313       0.12786 -0.00473  -3.69559 -0.00844 -0.00096  -2.63089      True
+    bar1600  reclasso        500               500    16:00 deck period  1087 2020-01-03           0.11276       0.11342 -0.00066  -0.58081 -0.00645  0.00495  -0.22631     False
+    bar1600  reclasso       2000               500 all bars      common  1469 2018-06-25           0.11719       0.12943 -0.01223  -9.45280 -0.01831 -0.00689  -4.55911      True
+    bar1600  reclasso       2000               500 all bars deck period  1087 2020-01-03           0.10289       0.11342 -0.01052  -9.27882 -0.01603 -0.00568  -3.83402      True
+    bar1600  reclasso       2000               500    16:00      common  1469 2018-06-25           0.11719       0.12943 -0.01223  -9.45280 -0.01831 -0.00689  -4.55911      True
+    bar1600  reclasso       2000               500    16:00 deck period  1087 2020-01-03           0.10289       0.11342 -0.01052  -9.27882 -0.01603 -0.00568  -3.83402      True
+    bar1600  reclasso       2000              2000 all bars      common  1469 2018-06-25           0.11719       0.13084 -0.01364 -10.42856 -0.01947 -0.00867  -5.44372      True
+    bar1600  reclasso       2000              2000 all bars deck period  1087 2020-01-03           0.10289       0.11719 -0.01430 -12.19865 -0.01870 -0.00991  -5.97150      True
+    bar1600  reclasso       2000              2000    16:00      common  1469 2018-06-25           0.11719       0.13084 -0.01364 -10.42856 -0.01947 -0.00867  -5.44372      True
+    bar1600  reclasso       2000              2000    16:00 deck period  1087 2020-01-03           0.10289       0.11719 -0.01430 -12.19865 -0.01870 -0.00991  -5.97150      True
+  blk_close  reclasso        500               500 all bars      common  9069 2006-04-10           0.12195       0.12654 -0.00460  -3.63164 -0.00669 -0.00247  -4.69601      True
+  blk_close  reclasso        500               500 all bars deck period  2174 2020-01-03           0.12384       0.12282  0.00102   0.83299 -0.00251  0.00524   0.59556     False
+  blk_close  reclasso        500               500    15:30      common  4535 2006-04-10           0.12785       0.12964 -0.00180  -1.38626 -0.00413  0.00070  -1.44714     False
+  blk_close  reclasso        500               500    15:30 deck period  1087 2020-01-03           0.13681       0.13222  0.00458   3.46635 -0.00040  0.01059   1.66119     False
+  blk_close  reclasso        500               500    16:00      common  4534 2006-04-10           0.11605       0.12344 -0.00739  -5.99041 -0.01045 -0.00465  -5.33476      True
+  blk_close  reclasso        500               500    16:00 deck period  1087 2020-01-03           0.11088       0.11342 -0.00254  -2.23704 -0.00641  0.00165  -1.13878     False
+  blk_close  reclasso       2000               500 all bars      common  6069 2012-03-29           0.12131       0.12982 -0.00851  -6.55412 -0.01095 -0.00595  -7.59837      True
+  blk_close  reclasso       2000               500 all bars deck period  2174 2020-01-03           0.11836       0.12282 -0.00446  -3.63228 -0.00738 -0.00158  -2.74677      True
+  blk_close  reclasso       2000               500    15:30      common  3034 2012-03-30           0.12634       0.13247 -0.00613  -4.62637 -0.00896 -0.00304  -4.19485      True
+  blk_close  reclasso       2000               500    15:30 deck period  1087 2020-01-03           0.13174       0.13222 -0.00048  -0.36468 -0.00492  0.00418  -0.19507     False
+  blk_close  reclasso       2000               500    16:00      common  3035 2012-03-29           0.11628       0.12716 -0.01089  -8.56170 -0.01411 -0.00747  -6.62561      True
+  blk_close  reclasso       2000               500    16:00 deck period  1087 2020-01-03           0.10498       0.11342 -0.00844  -7.44172 -0.01333 -0.00399  -3.40029      True
+  blk_close  reclasso       2000              2000 all bars      common  6069 2012-03-29           0.12131       0.13041 -0.00910  -6.98089 -0.01119 -0.00704  -8.79732      True
+  blk_close  reclasso       2000              2000 all bars deck period  2174 2020-01-03           0.11836       0.12782 -0.00946  -7.40471 -0.01249 -0.00602  -5.90253      True
+  blk_close  reclasso       2000              2000    15:30      common  3034 2012-03-30           0.12634       0.13378 -0.00743  -5.55503 -0.01001 -0.00470  -5.75012      True
+  blk_close  reclasso       2000              2000    15:30 deck period  1087 2020-01-03           0.13174       0.13846 -0.00672  -4.85208 -0.01164 -0.00153  -2.86371      True
+  blk_close  reclasso       2000              2000    16:00      common  3035 2012-03-29           0.11628       0.12705 -0.01078  -8.48171 -0.01373 -0.00786  -7.17911      True
+  blk_close  reclasso       2000              2000    16:00 deck period  1087 2020-01-03           0.10498       0.11719 -0.01221 -10.42068 -0.01590 -0.00857  -5.62117      True
+   blk_core  reclasso        500               500 all bars      common 40156 2001-10-11           0.13105       0.13666 -0.00562  -4.10995 -0.00786 -0.00547 -12.43515      True
+   blk_core  reclasso        500               500 all bars deck period  7756 2020-01-03           0.15039       0.15512 -0.00473  -3.04813 -0.01016 -0.00247  -3.07039      True
+   blk_core  reclasso        500               500    11:00      common  5797 2001-10-11           0.11525       0.12052 -0.00527  -4.37200 -0.00702 -0.00350  -5.97645      True
+   blk_core  reclasso        500               500    11:00 deck period  1116 2020-01-03           0.14219       0.14696 -0.00477  -3.24499 -0.01073  0.00105  -1.68663     False
+   blk_core  reclasso        500               500    11:30      common  5799 2001-10-11           0.11860       0.12568 -0.00708  -5.63414 -0.00883 -0.00543  -8.54257      True
+   blk_core  reclasso        500               500    11:30 deck period  1116 2020-01-03           0.13258       0.14355 -0.01097  -7.64208 -0.01605 -0.00652  -4.65835      True
+   blk_core  reclasso        500               500    12:00      common  5738 2001-10-11           0.12301       0.12925 -0.00623  -4.82119 -0.00783 -0.00464  -7.76453      True
+   blk_core  reclasso        500               500    12:00 deck period  1116 2020-01-03           0.12830       0.13769 -0.00939  -6.82044 -0.01415 -0.00443  -3.77318      True
+   blk_core  reclasso        500               500    12:30      common  5738 2001-10-11           0.13832       0.14501 -0.00669  -4.61258 -0.00868 -0.00482  -7.19542      True
+   blk_core  reclasso        500               500    12:30 deck period  1116 2020-01-03           0.13978       0.14888 -0.00910  -6.11166 -0.01438 -0.00396  -3.67307      True
+   blk_core  reclasso        500               500    13:00      common  5738 2001-10-11           0.13987       0.14459 -0.00472  -3.26227 -0.00677 -0.00253  -4.61161      True
+   blk_core  reclasso        500               500    13:00 deck period  1116 2020-01-03           0.16302       0.16556 -0.00254  -1.53690 -0.00902  0.00401  -0.82772     False
+   blk_core  reclasso        500               500    13:30      common  5677 2001-10-11           0.14533       0.15066 -0.00533  -3.54080 -0.00741 -0.00320  -5.07742      True
+   blk_core  reclasso        500               500    13:30 deck period  1088 2020-01-03           0.17400       0.17235  0.00165   0.95915 -0.00516  0.00989   0.44204     False
+   blk_core  reclasso        500               500    14:00      common  5669 2001-10-11           0.13747       0.14143 -0.00396  -2.80096 -0.00631 -0.00099  -3.02823      True
+   blk_core  reclasso        500               500    14:00 deck period  1088 2020-01-03           0.17408       0.17172  0.00236   1.37439 -0.00602  0.01443   0.42770     False
+   blk_core  reclasso       2000               500 all bars      common 29656 2007-09-19           0.13737       0.14132 -0.00395  -2.79607 -0.00605 -0.00298  -7.98364      True
+   blk_core  reclasso       2000               500 all bars deck period  7756 2020-01-03           0.15536       0.15512  0.00024   0.15258 -0.00332  0.00264   0.22787     False
+   blk_core  reclasso       2000               500    11:00      common  4282 2007-09-20           0.12117       0.12589 -0.00472  -3.74864 -0.00663 -0.00272  -4.92430      True
+   blk_core  reclasso       2000               500    11:00 deck period  1116 2020-01-03           0.14573       0.14696 -0.00122  -0.83210 -0.00561  0.00305  -0.61223     False
+   blk_core  reclasso       2000               500    11:30      common  4282 2007-09-20           0.12518       0.13094 -0.00576  -4.40259 -0.00769 -0.00375  -6.08520      True
+   blk_core  reclasso       2000               500    11:30 deck period  1116 2020-01-03           0.13997       0.14355 -0.00358  -2.49177 -0.00773  0.00050  -1.83311     False
+   blk_core  reclasso       2000               500    12:00      common  4243 2007-09-20           0.12831       0.13198 -0.00367  -2.78264 -0.00565 -0.00179  -3.97419      True
+   blk_core  reclasso       2000               500    12:00 deck period  1116 2020-01-03           0.13435       0.13769 -0.00334  -2.42296 -0.00731  0.00058  -1.85987     False
+   blk_core  reclasso       2000               500    12:30      common  4244 2007-09-19           0.13860       0.14179 -0.00320  -2.25388 -0.00537 -0.00108  -3.09869      True
+   blk_core  reclasso       2000               500    12:30 deck period  1116 2020-01-03           0.15106       0.14888  0.00218   1.46416 -0.00140  0.00590   1.19670     False
+   blk_core  reclasso       2000               500    13:00      common  4244 2007-09-19           0.15049       0.15415 -0.00366  -2.37277 -0.00576 -0.00163  -3.55121      True
+   blk_core  reclasso       2000               500    13:00 deck period  1116 2020-01-03           0.16648       0.16556  0.00092   0.55556 -0.00304  0.00469   0.45447     False
+   blk_core  reclasso       2000               500    13:30      common  4183 2007-09-19           0.15401       0.15782 -0.00382  -2.41824 -0.00591 -0.00157  -3.65369      True
+   blk_core  reclasso       2000               500    13:30 deck period  1088 2020-01-03           0.17259       0.17235  0.00024   0.14091 -0.00337  0.00408   0.12686     False
+   blk_core  reclasso       2000               500    14:00      common  4178 2007-09-19           0.14444       0.14723 -0.00279  -1.89525 -0.00546  0.00010  -1.98465     False
+   blk_core  reclasso       2000               500    14:00 deck period  1088 2020-01-03           0.17833       0.17172  0.00661   3.84939 -0.00013  0.01541   1.59915     False
+   blk_core  reclasso       2000              2000 all bars      common 29195 2007-12-21           0.13777       0.14344 -0.00568  -3.95825 -0.00761 -0.00529 -12.56654      True
+   blk_core  reclasso       2000              2000 all bars deck period  7756 2020-01-03           0.15536       0.16296 -0.00760  -4.66253 -0.01172 -0.00633  -6.80092      True
+   blk_core  reclasso       2000              2000    11:00      common  4216 2007-12-21           0.12159       0.12695 -0.00537  -4.22798 -0.00691 -0.00380  -6.87494      True
+   blk_core  reclasso       2000              2000    11:00 deck period  1116 2020-01-03           0.14573       0.15410 -0.00837  -5.43124 -0.01226 -0.00431  -4.28168      True
+   blk_core  reclasso       2000              2000    11:30      common  4216 2007-12-21           0.12523       0.13258 -0.00735  -5.54442 -0.00911 -0.00557  -8.74974      True
+   blk_core  reclasso       2000              2000    11:30 deck period  1116 2020-01-03           0.13997       0.15240 -0.01243  -8.15421 -0.01660 -0.00860  -6.44686      True
+   blk_core  reclasso       2000              2000    12:00      common  4178 2007-12-21           0.12868       0.13563 -0.00695  -5.12187 -0.00862 -0.00531  -8.46563      True
+   blk_core  reclasso       2000              2000    12:00 deck period  1116 2020-01-03           0.13435       0.14780 -0.01345  -9.10089 -0.01700 -0.01016  -7.36594      True
+   blk_core  reclasso       2000              2000    12:30      common  4178 2007-12-21           0.13931       0.14541 -0.00611  -4.19905 -0.00801 -0.00434  -6.97673      True
+   blk_core  reclasso       2000              2000    12:30 deck period  1116 2020-01-03           0.15106       0.16007 -0.00900  -5.62482 -0.01263 -0.00527  -4.90075      True
+   blk_core  reclasso       2000              2000    13:00      common  4178 2007-12-21           0.15046       0.15597 -0.00551  -3.53336 -0.00738 -0.00359  -5.79452      True
+   blk_core  reclasso       2000              2000    13:00 deck period  1116 2020-01-03           0.16648       0.17241 -0.00593  -3.44005 -0.01045 -0.00106  -2.45210      True
+   blk_core  reclasso       2000              2000    13:30      common  4117 2007-12-21           0.15425       0.15753 -0.00328  -2.08004 -0.00536 -0.00107  -3.11953      True
+   blk_core  reclasso       2000              2000    13:30 deck period  1088 2020-01-03           0.17259       0.17338 -0.00079  -0.45534 -0.00475  0.00335  -0.39000     False
+   blk_core  reclasso       2000              2000    14:00      common  4112 2007-12-21           0.14547       0.15060 -0.00513  -3.40655 -0.00734 -0.00278  -4.61471      True
+   blk_core  reclasso       2000              2000    14:00 deck period  1088 2020-01-03           0.17833       0.18126 -0.00293  -1.61392 -0.00779  0.00380  -1.00925     False
+   blk_open  reclasso        500               500 all bars      common  9363 2006-03-02           0.13050       0.13168 -0.00118  -0.89542 -0.00266  0.00030  -1.57671     False
+   blk_open  reclasso        500               500 all bars deck period  2232 2020-01-03           0.13866       0.13733  0.00133   0.96886 -0.00156  0.00422   0.91906     False
+   blk_open  reclasso        500               500    10:00      common  4681 2006-03-03           0.11026       0.11344 -0.00318  -2.79898 -0.00512 -0.00121  -3.25824      True
+   blk_open  reclasso        500               500    10:00 deck period  1116 2020-01-03           0.11733       0.11608  0.00125   1.07848 -0.00262  0.00548   0.68965     False
+   blk_open  reclasso        500               500    10:30      common  4682 2006-03-02           0.15074       0.14992  0.00082   0.54460 -0.00122  0.00279   0.82708     False
+   blk_open  reclasso        500               500    10:30 deck period  1116 2020-01-03           0.16000       0.15859  0.00141   0.88862 -0.00252  0.00529   0.66971     False
+   blk_open  reclasso       2000               500 all bars      common  6363 2011-12-23           0.13403       0.13464 -0.00061  -0.45143 -0.00323  0.00219  -0.45847     False
+   blk_open  reclasso       2000               500 all bars deck period  2232 2020-01-03           0.14124       0.13733  0.00390   2.84128 -0.00057  0.00816   1.75959     False
+   blk_open  reclasso       2000               500    10:00      common  3181 2011-12-27           0.11522       0.11742 -0.00219  -1.86598 -0.00540  0.00130  -1.23395     False
+   blk_open  reclasso       2000               500    10:00 deck period  1116 2020-01-03           0.12104       0.11608  0.00497   4.27942 -0.00035  0.01070   1.75847     False
+   blk_open  reclasso       2000               500    10:30      common  3182 2011-12-23           0.15283       0.15186  0.00097   0.64197 -0.00248  0.00466   0.53734     False
+   blk_open  reclasso       2000               500    10:30 deck period  1116 2020-01-03           0.16143       0.15859  0.00284   1.78866 -0.00359  0.00846   0.92062     False
+   blk_open  reclasso       2000              2000 all bars      common  6363 2011-12-23           0.13403       0.13335  0.00068   0.51142 -0.00140  0.00292   0.62320     False
+   blk_open  reclasso       2000              2000 all bars deck period  2232 2020-01-03           0.14124       0.14096  0.00028   0.19566 -0.00265  0.00319   0.18101     False
+   blk_open  reclasso       2000              2000    10:00      common  3181 2011-12-27           0.11522       0.11621 -0.00099  -0.84878 -0.00373  0.00212  -0.63190     False
+   blk_open  reclasso       2000              2000    10:00 deck period  1116 2020-01-03           0.12104       0.12083  0.00021   0.17773 -0.00385  0.00480   0.09334     False
+   blk_open  reclasso       2000              2000    10:30      common  3182 2011-12-23           0.15283       0.15048  0.00235   1.56152 -0.00032  0.00568   1.58517     False
+   blk_open  reclasso       2000              2000    10:30 deck period  1116 2020-01-03           0.16143       0.16109  0.00034   0.20911 -0.00329  0.00385   0.18258     False
+blk_release  reclasso        500               500 all bars      common  9081 2006-04-04           0.21281       0.22617 -0.01335  -5.90444 -0.01849 -0.00897  -5.41154      True
+blk_release  reclasso        500               500 all bars deck period  2174 2020-01-03           0.24226       0.27272 -0.03047 -11.17104 -0.04743 -0.01593  -3.71107      True
+blk_release  reclasso        500               500    14:30      common  4541 2006-04-05           0.25350       0.28548 -0.03198 -11.20376 -0.04081 -0.02418  -7.93196      True
+blk_release  reclasso        500               500    14:30 deck period  1087 2020-01-03           0.27929       0.34237 -0.06308 -18.42369 -0.09182 -0.03987  -4.72619      True
+blk_release  reclasso        500               500    15:00      common  4540 2006-04-04           0.17212       0.16684  0.00528   3.16500  0.00141  0.00917   2.61536     False
+blk_release  reclasso        500               500    15:00 deck period  1087 2020-01-03           0.20522       0.20308  0.00214   1.05598 -0.00813  0.01298   0.36870     False
+blk_release  reclasso       2000               500 all bars      common  6081 2012-03-22           0.22667       0.23867 -0.01199  -5.02499 -0.01675 -0.00718  -4.62209      True
+blk_release  reclasso       2000               500 all bars deck period  2174 2020-01-03           0.25458       0.27272 -0.01815  -6.65352 -0.02992 -0.00799  -2.95886      True
+blk_release  reclasso       2000               500    14:30      common  3041 2012-03-22           0.26642       0.30227 -0.03585 -11.85927 -0.04404 -0.02863  -8.66478      True
+blk_release  reclasso       2000               500    14:30 deck period  1087 2020-01-03           0.28845       0.34237 -0.05391 -15.74776 -0.07408 -0.03761  -5.33787      True
+blk_release  reclasso       2000               500    15:00      common  3040 2012-03-22           0.18691       0.17504  0.01187   6.78038  0.00776  0.01645   5.45017     False
+blk_release  reclasso       2000               500    15:00 deck period  1087 2020-01-03           0.22070       0.20308  0.01762   8.67818  0.00838  0.02769   4.01703     False
+blk_release  reclasso       2000              2000 all bars      common  6081 2012-03-22           0.22667       0.23894 -0.01227  -5.13363 -0.01627 -0.00816  -6.22729      True
+blk_release  reclasso       2000              2000 all bars deck period  2174 2020-01-03           0.25458       0.27606 -0.02148  -7.78201 -0.03028 -0.01329  -5.09864      True
+blk_release  reclasso       2000              2000    14:30      common  3041 2012-03-22           0.26642       0.29978 -0.03336 -11.12675 -0.03953 -0.02760 -11.12704      True
+blk_release  reclasso       2000              2000    14:30 deck period  1087 2020-01-03           0.28845       0.33659 -0.04814 -14.30146 -0.06144 -0.03665  -7.46496      True
+blk_release  reclasso       2000              2000    15:00      common  3040 2012-03-22           0.18691       0.17808  0.00883   4.95822  0.00514  0.01265   4.62333     False
+blk_release  reclasso       2000              2000    15:00 deck period  1087 2020-01-03           0.22070       0.21553  0.00517   2.39912 -0.00198  0.01340   1.41819     False
+
+wrote /u/scratch/j/jamesdc1/harxhar-subsection/results/linear_subsection_lassofix/vol_demand/subsection_vs_pooled.csv
+
+15:30 sign(s) trade with each arm's forecast (deck ridge: 1.338 mid / 0.870 crossed)
+  segment estimator  train_win  deck_days  pct_buy  Sharpe_mid  Sharpe_crossed  ridge_Sharpe_mid_same_days
+  bar1600  reclasso        500        866  35.6813      0.7429          0.2688                      1.3383
+  bar1600  reclasso       2000        866  35.3349      1.4204          0.9465                      1.3383
+blk_close  reclasso        500        866  35.6813      1.3098          0.8359                      1.3383
+blk_close  reclasso       2000        866  36.1432      1.4186          0.9470                      1.3383
+     none  reclasso        500        866  33.2564      1.2778          0.8013                      1.3383
+     none  reclasso       2000        866  38.2217      0.8325          0.3590                      1.3383
