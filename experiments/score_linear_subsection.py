@@ -10,6 +10,7 @@ over the deck period.  For the 15:30-16:00 bar it also scores the deck's
 sign(s) straddle trade with each arm's forecast in place of the ridge's.
 
 Usage:  python experiments/score_linear_subsection.py [--bucket baseline]
+            [--root results/linear_subsection]
 """
 
 from __future__ import annotations
@@ -85,7 +86,11 @@ def trade_1530(pred: pd.Series) -> dict[str, float]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--bucket", default="baseline")
+    ap.add_argument("--root", default=None, help="results root (default: BASE)")
     a = ap.parse_args()
+    if a.root is not None:
+        global BASE
+        BASE = ROOT / a.root
     pd.set_option("display.width", 250)
     pd.set_option("display.max_columns", 40)
     root = BASE / a.bucket

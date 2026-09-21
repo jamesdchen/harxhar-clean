@@ -32,7 +32,7 @@ read -r BUCKET EST TW SEGS <<< "$LINE"
 echo "task $SGE_TASK_ID on $(hostname): $BUCKET $EST tw$TW [$SEGS]  $(date)"
 FAIL=0
 for SEG in ${SEGS//,/ }; do
-  OUT="results/linear_subsection/$BUCKET/$SEG/$EST/tw$TW"
+  OUT="${RESULTS_ROOT:-results/linear_subsection}/$BUCKET/$SEG/$EST/tw$TW"
   [ -f "$OUT/DONE" ] && continue
   mkdir -p "$OUT"
   if HPC_KW_SEGMENT="$SEG" HPC_KW_LAG_SCOPE=global HPC_KW_ESTIMATOR="$EST" \

@@ -1,0 +1,2 @@
+all_features reclasso 500 none
+all_features reclasso 2000 none

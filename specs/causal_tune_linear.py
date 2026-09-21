@@ -247,12 +247,31 @@ class RollingTunedLinear:
     set), so prediction is unaffected except through conditioning; the
     duplicate-step block that makes the lam2=0 active-set subproblem
     singular can no longer form.
+
+    BETWEEN TUNES (lam2=0 arms only): the tune-boundary mask is a snapshot,
+    and the window keeps sliding for TUNE_PER solves after it. A live column
+    whose last differing row rolls OUT of the window becomes constant (or an
+    exact copy of an earlier column) while it still carries a coefficient,
+    and the pure-lasso active-set Gram is singular from that bar on: the warm
+    homotopy then rides arbitrary +/-1e6..1e10 offsetting coefficients (87 of
+    87 absurd one-bar forecasts in the subsection wave sat on such rows, all
+    availability-indicator MAs). Two run-length trackers, updated in O(p^2)
+    per entering row, say exactly when that happens: the number of most
+    recent rows on which a column has kept its value, and on which a pair of
+    columns has been equal. When a live column's run reaches the window
+    length it is added to the mask and the warm state is cold-reseeded on the
+    masked window, at the alpha in force. Exact equality only, so
+    threshold-free and scale-free like the tune-boundary mask; columns are
+    only ever ADDED between tunes (un-masking stays a tune-boundary event),
+    so an arm in which no live column degenerates is bit-identical. The
+    ridge and elastic-net arms (lam2>0, Gram never singular) skip all of it.
     """
 
     reinit_every = 0  # drift handled by the cold reseed at every tuning
     grid: list = []   # the active arm's (kind, alpha, l1) log-scale grid
     trace: list = []  # class-level record of selections (evidence)
     mask_trace: list = []  # class-level record of masked-column counts (evidence)
+    reseed_trace: list = []  # solve indices of between-tune mask additions (evidence)
 
     def init_window(self, X_win, y_win):
         X = np.asarray(X_win, dtype=np.float64)
@@ -263,8 +282,45 @@ class RollingTunedLinear:
         self._locked = np.zeros(self._X.shape[1], dtype=bool)
         self._locked[-1] = True  # intercept: unpenalized, never exits the active set
         self._maskout = np.zeros(self._X.shape[1], dtype=bool)
+        # lam2=0 somewhere in the arm's grid <=> the singular-Gram hazard exists
+        self._track = any(k != "ridge" and l1 == 1.0 for k, _, l1 in self.grid)
+        if self._track:
+            self._init_runs()
         self._tune()
         return self
+
+    def _init_runs(self):
+        """Trailing run lengths on the initial window, capped at its length:
+        rows since column j last changed value, and rows since columns j and
+        k last differed."""
+        Xw = self._X
+        n, p = Xw.shape
+        self._run_const = np.empty(p, dtype=np.int64)
+        self._run_eq = np.empty((p, p), dtype=np.int64)
+
+        def trailing(ok):  # ok: (n, m) bool -> length of the trailing all-True run
+            bad = ~ok[::-1]
+            first_bad = bad.argmax(axis=0)
+            return np.where(bad.any(axis=0), first_bad, n)
+
+        self._run_const[:] = trailing(Xw == Xw[-1])
+        for j in range(p):
+            self._run_eq[j] = trailing(Xw == Xw[:, j : j + 1])
+
+    def _degenerate_live(self, ua, prev):
+        """Advance the run trackers by the entering RAW row; return the live
+        columns that are now constant in the window or equal, on every row
+        of it, to an earlier column."""
+        n = len(self._y)
+        self._run_const = np.where(
+            ua == prev, np.minimum(self._run_const + 1, n), 1
+        )
+        self._run_eq = np.where(
+            ua[:, None] == ua[None, :], np.minimum(self._run_eq + 1, n), 0
+        )
+        const = self._run_const >= n
+        dup = np.tril(self._run_eq >= n, -1).any(axis=1)
+        return (const | dup) & ~self._locked & ~self._maskout
 
     def _window(self):
         k = self._ptr
@@ -326,9 +382,19 @@ class RollingTunedLinear:
     def roll(self, x_in, y_in, x_out, y_out):
         ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
         ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
+        prev = self._X[self._ptr - 1].copy()  # newest row in the ring (RAW)
         self._X[self._ptr] = ua  # ring stores RAW rows; the mask re-derives from raw
         self._y[self._ptr] = float(y_in)
         self._ptr = (self._ptr + 1) % len(self._y)
+        if self._track:
+            gone = self._degenerate_live(ua, prev)
+            if gone.any() and self.kind_ != "ridge" and self.l1_ == 1.0:
+                # a live column lost identification between tunes: mask it and
+                # re-anchor on the new window (the ring already holds it)
+                self._maskout = self._maskout | gone
+                RollingTunedLinear.reseed_trace.append(self._n_solve)
+                self._seed()
+                return
         if self._maskout.any():  # masked columns stay zero in the update rows
             ua = ua.copy()
             ur = ur.copy()
@@ -393,6 +459,7 @@ def fit_predict_lin_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
     the wrapper exposes and takes its incremental fast path."""
     RollingTunedLinear.trace = []
     RollingTunedLinear.mask_trace = []
+    RollingTunedLinear.reseed_trace = []
     backtest = MultiStageBacktest(
         residualizer=IdentityResidualizer(),
         regressor_factory=RollingTunedLinear,
@@ -452,7 +519,8 @@ for estimator in ESTIMATORS:
               f"{len(arm_results[(estimator, bucket)]['results'])} OOS rows; "
               f"{len(alphas)} tunings, alpha path "
               f"min={min(alphas):.2e} max={max(alphas):.2e}; "
-              f"masked cols per tune min={min(masked)} max={max(masked)}")
+              f"masked cols per tune min={min(masked)} max={max(masked)}; "
+              f"between-tune mask additions {len(RollingTunedLinear.reseed_trace)}")
 
 # %%
 # hpc-audit-section: baseline
