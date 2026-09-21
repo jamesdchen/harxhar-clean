@@ -71,6 +71,7 @@ __all__ = [
     "PARITY_TOL",
     "SESSION_CLOCKS",
     "ParityError",
+    "month_end_override_parity",
     "parity_report",
     "replay_day",
     "require_inputs",
@@ -1925,12 +1926,172 @@ def seed_premium_ledger(
     }
 
 
+# ------------------------------------------------- the month-end override ----
+#: Proposal 54's day file: one row per chain session, with the 15:30 long
+#: straddle's at-the-ask return in premium units (``R_ask``) and index points
+#: per contract (``pts_ask``), and the month-end flag.
+P54_DAILY = "results/atm_straddle_0dte_1530/proposals/54/c_daily.csv"
+#: The research's settlement: the official SPX close (``PARITY_INPUTS``).
+SETTLEMENT_TAPE = "results/atm_straddle_intraday_holdclose/cache/gspc_ohlc.parquet"
+#: The capital the override replay is run at: the README's worked example.  At
+#: ``--n 1`` only the loss-budget check reads it, and one straddle's premium is
+#: a small fraction of its tenth.
+PARITY_CAPITAL = 1_000_000.0
+
+
+def _month_end_one(job: tuple[str, str, str, str, float]) -> dict[str, Any]:
+    """Replay one month-end through the RUNNER in override mode and reconcile.
+
+    One long straddle (``--n 1``) is bought at 15:30 through ``FakeBroker``
+    (``--fill cross``: at the package ask) and held; the provisional P&L is
+    read at the tape's 16:00 print, the final one after ``--reconcile`` at the
+    official close the research settles at.
+    """
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+
+    from .broker import FakeBroker, load_replay_day  # noqa: PLC0415
+    from .config import Config  # noqa: PLC0415
+    from .journal import DaySummary, Journal  # noqa: PLC0415
+    from .run_day import Abort, DayRunner, reconcile_day  # noqa: PLC0415
+
+    day, chain, seed, tmp_root, official = job
+    jdir = os.path.join(tmp_root, day)
+    os.makedirs(jdir, exist_ok=True)
+    cfg = Config(
+        replay_date=day,
+        journal_dir=jdir,
+        ledger_path=seed,
+        ledger_live_path=os.path.join(jdir, "live_ledger.parquet"),
+        replay_cache_dir=os.path.join(jdir, "cache"),
+        n_override=1,
+        capital=PARITY_CAPITAL,
+        month_end_mode="override",
+    )
+    out: dict[str, Any] = {"date": day}
+    sink = io.StringIO()
+    with contextlib.redirect_stdout(sink):
+        broker = FakeBroker(
+            cfg, day, frame=load_replay_day(day, chain_path=chain, cache_dir=None)
+        )
+        broker.connect()
+        jr = Journal(os.path.join(jdir, day + ".jsonl"), echo=False)
+        try:
+            DayRunner(cfg, broker, jr).run()
+        except Abort as exc:
+            out["refused"] = str(exc)
+        finally:
+            jr.close()
+        prov = DaySummary.from_journal(jr.path)
+        out.update(
+            side=prov.side,
+            n=prov.n_straddles,
+            K_c=prov.K_c,
+            K_p=prov.K_p,
+            fill=prov.entry_premium,
+            payoff_provisional=prov.exit_price,
+            pts_provisional=prov.option_pnl_points,
+            flat_reason=prov.flat_reason,
+        )
+        cfg.settlement = float(official)
+        out["reconcile_rc"] = reconcile_day(cfg, broker)
+    final = DaySummary.from_journal(jr.path)
+    out.update(
+        payoff_official=final.exit_price,
+        pts_official=final.option_pnl_points,
+        units_official=final.pnl_units,
+        provisional_after_reconcile=final.provisional,
+    )
+    return out
+
+
+def month_end_override_parity(
+    root: Path | None = None,
+    dates: Sequence[str] | None = None,
+    workers: int | None = None,
+    tol: float = PARITY_TOL,
+) -> dict[str, Any]:
+    """The runner's month-end override against proposal 54's long straddle.
+
+    Every month-end in proposal 54's day file (or ``dates``) is replayed
+    through ``DayRunner`` + ``FakeBroker`` in override mode and reconciled at
+    the official close; the per-contract P&L must equal 54's ``pts_ask`` and
+    the premium-unit return its ``R_ask``, within ``tol``, on every day the
+    runner traded.  A day the runner ends flat is reported, not dropped.
+    Raises :class:`ParityError` on any day outside the bar.
+    """
+    import tempfile  # noqa: PLC0415
+
+    root = repo_root() if root is None else Path(root)
+    daily = pd.read_csv(root / P54_DAILY, index_col=0, parse_dates=True)
+    me = daily[daily["month_end"].astype(bool)]
+    days = [str(d.date()) for d in me.index] if dates is None else list(dates)
+    close = pd.read_parquet(root / SETTLEMENT_TAPE)["close"]
+    close.index = pd.to_datetime(close.index).normalize()
+    chain = str(root / "data" / "spxw_chain.parquet")
+    seed = str(root / LIVE_SEED)
+    with tempfile.TemporaryDirectory() as tmp:
+        jobs = [(d, chain, seed, tmp, float(close.loc[pd.Timestamp(d)])) for d in days]
+        n_workers = min(len(jobs), workers or (os.cpu_count() or 1))
+        if n_workers > 1:
+            with ProcessPoolExecutor(max_workers=n_workers) as pool:
+                rows = list(pool.map(_month_end_one, jobs))
+        else:
+            rows = [_month_end_one(j) for j in jobs]
+    tab = pd.DataFrame(rows).set_index("date")
+    tab.index = pd.to_datetime(tab.index)
+    tab["pts_research"] = me["pts_ask"].reindex(tab.index)
+    tab["units_research"] = me["R_ask"].reindex(tab.index)
+    tab["pts_diff"] = tab["pts_official"] - tab["pts_research"]
+    tab["units_diff"] = tab["units_official"] - tab["units_research"]
+    tab["settle_source_pts"] = tab["pts_provisional"] - tab["pts_official"]
+    traded = tab[tab["side"] == "long"]
+    worst = float(traded[["pts_diff", "units_diff"]].abs().max().max())
+    if len(traded):
+        _require_close(
+            "month-end override, per-contract P&L at the official close",
+            worst,
+            0.0,
+            tol,
+        )
+    return {
+        "n_days": int(len(tab)),
+        "n_traded": int(len(traded)),
+        "flat": {
+            str(d.date()): str(r["flat_reason"] or r.get("refused", ""))
+            for d, r in tab[tab["side"] != "long"].iterrows()
+        },
+        "max_abs_pts_diff": float(traded["pts_diff"].abs().max()),
+        "max_abs_units_diff": float(traded["units_diff"].abs().max()),
+        "settle_source_pts_mean_abs": float(traded["settle_source_pts"].abs().mean()),
+        "mean_pts": float(traded["pts_official"].mean()),
+        "mean_units": float(traded["units_official"].mean()),
+        "table": tab,
+    }
+
+
 def main(argv: Sequence[str] | None = None) -> None:
-    """``--seed`` rebuilds and re-gates the premium ledger; otherwise the report."""
+    """``--seed`` rebuilds and re-gates the premium ledger; ``--month-end``
+    replays the month-end override against proposal 54; otherwise the report."""
     import time  # noqa: PLC0415
 
     args = list(sys.argv[1:] if argv is None else argv)
     t0 = time.time()
+    if "--month-end" in args:
+        me = month_end_override_parity()
+        print(
+            f"month-end override: {me['n_traded']} of {me['n_days']} month-ends "
+            f"traded through the runner; per-contract P&L vs proposal 54 max "
+            f"|diff| {me['max_abs_pts_diff']:.3e} pts, premium units "
+            f"{me['max_abs_units_diff']:.3e} (bar {PARITY_TOL:.0e}); mean "
+            f"{me['mean_pts']:+.4f} pts / {me['mean_units']:+.4f} units; "
+            f"settlement print vs official close moves the day by "
+            f"{me['settle_source_pts_mean_abs']:.4f} pts on average"
+        )
+        for day, why in me["flat"].items():
+            print(f"  flat {day}: {why}")
+        print(f"done in {time.time() - t0:.1f} s")
+        return
     if "--seed" in args:
         res = seed_premium_ledger()
         print(

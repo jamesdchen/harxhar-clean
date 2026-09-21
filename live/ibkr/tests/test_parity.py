@@ -21,11 +21,15 @@ if str(_ROOT) not in sys.path:
 from live.ibkr.parity import (  # noqa: E402
     ENTRY_CLOCK,
     EXIT_CLOCK,
+    LIVE_SEED,
+    P54_DAILY,
     PARITY_TOL,
+    SETTLEMENT_TAPE,
     ParityError,
     _argv_flag,
     _require_close,
     latest_trade_cache,
+    month_end_override_parity,
     parity_report,
     replay_day,
     repo_root,
@@ -93,6 +97,39 @@ def test_replay_day_hedges_the_short_with_long_futures() -> None:
     for st in res["stamps"]:
         assert -1.0 <= st["delta_pkg"] <= 1.0
         assert st["target_futures"] * st["delta_pkg"] >= 0
+
+
+# ------------------------------------------------- the month-end override ----
+#: Proposal 54's per-contract long-straddle P&L at the ask, printed to six
+#: decimals in proposals/54/c_daily.csv: two winners, a big one, and a loser.
+P54_MONTH_ENDS = {
+    "2023-11-30": 19.149805,
+    "2024-05-31": 35.359766,
+    "2025-04-30": 33.960058,
+    "2025-05-30": -20.489942,
+}
+_HAVE_MONTH_END = all(
+    (_ROOT_REPO / rel).exists()
+    for rel in (P54_DAILY, SETTLEMENT_TAPE, LIVE_SEED, "data/spxw_chain.parquet")
+)
+
+
+@pytest.mark.skipif(not _HAVE_MONTH_END, reason="proposal 54's inputs not present")
+def test_the_month_end_override_reproduces_proposal_54() -> None:
+    """The RUNNER's override, reconciled at the official close, is 54's long.
+
+    ``python -m live.ibkr.parity --month-end`` runs all 70 month-ends.
+    """
+    res = month_end_override_parity(dates=list(P54_MONTH_ENDS), workers=1)
+    assert res["n_traded"] == res["n_days"] == len(P54_MONTH_ENDS)
+    assert res["flat"] == {}
+    assert res["max_abs_pts_diff"] <= PARITY_TOL
+    assert res["max_abs_units_diff"] <= PARITY_TOL
+    tab = res["table"]
+    for day, pts in P54_MONTH_ENDS.items():
+        assert tab.loc[day, "pts_official"] == pytest.approx(pts, abs=1e-6)
+        assert tab.loc[day, "side"] == "long" and tab.loc[day, "n"] == 1
+        assert tab.loc[day, "reconcile_rc"] == 0
 
 
 # -------------------------------------------- the gate, and the refusals -----

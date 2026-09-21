@@ -16,6 +16,14 @@ points and ``hedge_pnl_points`` is the futures P&L expressed in index points
 of one straddle (dollars / (n * index_multiplier)).  In the ``hold`` book
 ``exit_fill`` is the cash-settlement payoff instead of a buy-back fill.
 
+The month-end override BUYS the body (``calendar_guard``), and its sign comes
+from the entry fill's own ``action`` -- a ``body_entry`` fill that is a BUY is
+a long day -- never from a flag the runner could forget to write:
+
+    pnl_units = (exit_fill - entry_fill + hedge_pnl_points) / entry_fill
+
+which with no hedge is the research's long return, ``payoff / ask - 1``.
+
 Four things this file refuses to do, each of which produced a confident wrong
 number in the 2026-09-18 code audit (L-11 .. L-14):
 
@@ -204,6 +212,9 @@ class DaySummary:
     mes_multiplier: float = NAN
 
     entered: bool = False
+    #: "short" (the book) or "long" (the month-end override), off the entry
+    #: fill's action; "" until a body_entry fill is seen.
+    side: str = ""
     entry_clock: str = ""
     entry_premium: float = NAN
     K_c: float = NAN
@@ -299,6 +310,8 @@ class DaySummary:
                 if what == "body_entry":
                     entry_fill = float(price)
                     entry_qty += abs(filled)
+                    action = str(p.get("action", "") or "").upper()
+                    s.side = "long" if action == "BUY" else "short"
                 elif what == "body_exit":
                     exit_fill = float(price)
                     exit_qty += abs(filled)
@@ -406,8 +419,10 @@ class DaySummary:
         )
         if computable:
             assert entry_fill is not None and exit_fill is not None
-            s.option_pnl_points = entry_fill - exit_fill
-            s.pnl_dollars = denom * (entry_fill - exit_fill) + cash
+            # A short earns entry - exit; the month-end long earns exit - entry.
+            sign = -1.0 if s.side == "long" else 1.0
+            s.option_pnl_points = sign * (entry_fill - exit_fill)
+            s.pnl_dollars = denom * s.option_pnl_points + cash
             s.pnl_units = (
                 s.pnl_dollars / (denom * entry_fill) if entry_fill > 0 else NAN
             )
@@ -451,6 +466,8 @@ class DaySummary:
             lines.append("  FLAT: " + (self.flat_reason or "never entered"))
             lines.append("=" * 72)
             return "\n".join(lines)
+        if self.side == "long":
+            lines.append(fmt.format("side", "LONG (month-end)"))
         lines.append(fmt.format("entry clock", self.entry_clock or "-"))
         lines.append(fmt.format("straddles", str(self.n_straddles)))
         lines.append(fmt.format("strikes (Kc/Kp)", f"{self.K_c:.0f}/{self.K_p:.0f}"))

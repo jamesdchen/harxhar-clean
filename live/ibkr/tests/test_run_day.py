@@ -21,7 +21,11 @@ from live.ibkr.broker import FakeBroker, FakeFaults, load_replay_day
 from live.ibkr.config import AFTERNOON_CLOCKS, Config, LiveModeRefused
 from live.ibkr.journal import DaySummary, Journal, read_journal
 from live.ibkr.premium_ledger import ClockRecord, PremiumLedger
-from live.ibkr.calendar_guard import CALENDAR_FLAT_REASON
+from live.ibkr.calendar_guard import (
+    CALENDAR_FLAT_REASON,
+    CALENDAR_OVERRIDE_REASON,
+    is_last_session_of_month,
+)
 from live.ibkr.run_day import (
     DELEVER_FLAT_REASON,
     Abort,
@@ -57,10 +61,14 @@ def make_cfg(tmp_path, date, **kw):
     kw.setdefault("ledger_path", str(tmp_path / "seed.parquet"))
     kw.setdefault("ledger_live_path", str(tmp_path / "live.parquet"))
     kw.setdefault("replay_cache_dir", str(tmp_path / "cache"))
-    # WORST is the last trading session of November 2023, so the calendar
-    # guard would end it flat before an order is built.  These tests are about
-    # the execution path; the guard's own tests turn it back on.
-    kw.setdefault("calendar_guard", False)
+    # WORST is the last trading session of November 2023: in the default
+    # override mode the runner would BUY the 15:30 straddle there instead of
+    # running the short book.  These tests are about the SHORT book, so on a
+    # month-end the calendar is off unless the test asks for a mode.  On every
+    # other date the default mode stands, so the short-book tests on RECENT
+    # and DELEVER_ZERO also prove the override is inert off a month-end.
+    if is_last_session_of_month(dt.date.fromisoformat(date)):
+        kw.setdefault("month_end_mode", "off")
     return Config(replay_date=date, journal_dir=str(tmp_path), **kw)
 
 
@@ -746,7 +754,8 @@ def test_main_runs_a_replay_and_writes_the_summary(tmp_path, frames):
             str(tmp_path / "absent.parquet"),
             "--ledger-live",
             str(tmp_path / "absent_live.parquet"),
-            "--no-calendar-guard",  # WORST is a month-end session
+            "--month-end-mode",
+            "off",  # WORST is a month-end session: run the short book
         ]
     )
     assert rc == 0
@@ -789,7 +798,7 @@ def test_main_returns_non_zero_with_a_position_open(tmp_path, frames, monkeypatc
             str(tmp_path),
             "--ledger",
             str(tmp_path / "absent.parquet"),
-            "--no-calendar-guard",  # WORST is a month-end session
+            "--no-calendar-guard",  # the alias of --month-end-mode off
         ]
     )
     assert rc == 3
@@ -1071,12 +1080,261 @@ def test_the_delever_flags_and_their_bounds():
         Config(delever_min_sessions=0)
 
 
-# ------------------------------ the calendar guard (proposal 54) ------------
+# ------------------ the month-end modes (proposals 54 and 55) ------------
+
+#: Proposal 54's 15:30 long straddle on WORST, bought at the quoted ask and
+#: settled at the official close (proposals/54/c_daily.csv, pts_ask / R_ask).
+WORST_LONG_ASK = 3.65
+WORST_LONG_PTS = 19.149805
+WORST_LONG_UNITS = 5.246522
+SETTLEMENT_TAPE = os.path.join(
+    "results", "atm_straddle_intraday_holdclose", "cache", "gspc_ohlc.parquet"
+)
+needs_settlement_tape = pytest.mark.skipif(
+    not os.path.exists(SETTLEMENT_TAPE), reason="needs the official-close tape"
+)
+#: The README's worked capital; a tenth of it is the long's loss budget.
+CAPITAL = 1_000_000.0
+#: The clock the short program is sized at in these replays (fixed, no ledger).
+SIZE_CLOCK = "13:30"
 
 
-def test_a_month_end_session_ends_the_day_flat_in_preflight(tmp_path, frames):
-    """2023-11-30, the hold book's worst day, is November's last session."""
-    cfg = make_cfg(tmp_path, WORST, calendar_guard=True, terminal="hold")
+def run_override(tmp_path, frames, faults=None, **kw):
+    """WORST in the default mode: no short, a long 15:30 straddle."""
+    cfg_kw = dict(
+        month_end_mode="override",
+        fixed_entry_clock=SIZE_CLOCK,
+        n_override=None,
+        capital=CAPITAL,
+        terminal="hold",
+    )
+    cfg_kw.update(kw)
+    return run_replay(tmp_path, frames, WORST, faults=faults, **cfg_kw)
+
+
+def official_close(day):
+    import pandas as pd
+
+    close = pd.read_parquet(SETTLEMENT_TAPE)["close"]
+    close.index = pd.to_datetime(close.index).normalize()
+    return float(close.loc[pd.Timestamp(day)])
+
+
+def test_the_override_buys_the_15_30_straddle_and_holds_it(tmp_path, frames):
+    cfg, _b, _r, path, s = run_override(tmp_path, frames)
+
+    c = kinds_of(path, "calendar")[0]
+    assert (c["mode"], c["decision"], c["override"], c["flat"]) == (
+        "override",
+        "override",
+        True,
+        False,
+    )
+    assert c["hits"] == ["month_end"] and c["long_size"] == "match_short"
+    assert c["reason"].startswith(CALENDAR_OVERRIDE_REASON)
+    assert "bad_kind" not in c
+    pre = kinds_of(path, "preflight")[0]
+    assert pre["ok"] is True and pre["checks"]["calendar"]["override"] is True
+    assert pre["checks"]["delever_applied"] is False
+
+    # sized like the short program, at the short program's clock
+    sz = kinds_of(path, "sizing")[0]
+    assert (sz["side"], sz["clock"], sz["rule"]) == ("long", SIZE_CLOCK, "match_short")
+    assert sz["n"] == min(sz["n_from_table"], cfg.max_straddles) >= 1
+    assert sz["multiplier"] == 1.0 and "short_loss_total" in sz
+    assert "loss_total" not in sz  # the short's stress loss is not the long's risk
+
+    # ONE order: a BUY at the quoted ask that may not cross
+    orders = kinds_of(path, "order")
+    assert len(orders) == 1
+    o = orders[0]
+    assert (o["what"], o["action"], o["side"], o["max_cross_ticks"]) == (
+        "body_entry",
+        "BUY",
+        "long",
+        0,
+    )
+    entry = [e for e in kinds_of(path, "entry") if e["entered"]]
+    assert len(entry) == 1 and entry[0]["clock"] == "15:30"
+    assert entry[0]["side"] == "long" and entry[0]["size_clock"] == SIZE_CLOCK
+    assert o["limit"] == pytest.approx(entry[0]["pkg_ask"])
+    assert entry[0]["outlay_dollars"] <= entry[0]["loss_budget_dollars"]
+
+    # no hedge at all
+    fut = [f for f in kinds_of(path, "fill") if str(f["what"]).startswith("fut")]
+    assert not fut
+    assert s.n_rebalances == 0 and s.n_futures_fills == 0 and not s.futures_open
+
+    # the summary books a LONG: payoff minus premium
+    assert s.side == "long" and s.entered and s.exit_kind == "settlement"
+    assert s.entry_clock == "15:30" and s.n_straddles == sz["n"]
+    assert s.entry_premium == pytest.approx(WORST_LONG_ASK, abs=1e-6)  # float32 tape
+    assert s.option_pnl_points == pytest.approx(s.exit_price - s.entry_premium)
+    assert s.pnl_units == pytest.approx(s.exit_price / s.entry_premium - 1.0)
+    assert s.pnl_dollars == pytest.approx(
+        s.n_straddles * cfg.index_multiplier * (s.exit_price - s.entry_premium)
+    )
+    assert s.is_flat and "LONG" in s.render()
+    assert kinds_of(path, "settle")[0]["side"] == "long"
+
+    # the ledger keeps its rows: the short program's clock through 15:30
+    pending = json.loads(
+        (tmp_path / "pending_settlement.json").read_text(encoding="utf-8")
+    )
+    assert (pending["side"], pending["decision"]) == ("long", "override")
+    assert (pending["entry_clock"], pending["size_clock"]) == ("15:30", SIZE_CLOCK)
+    assert [r["clock"] for r in pending["observed"]] == [
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:00",
+        "15:30",
+    ]
+
+
+@needs_settlement_tape
+def test_the_override_reproduces_proposal_54_after_reconcile(tmp_path, frames):
+    """At the official close the long is 54's long, to the printed digit."""
+    cfg, _b, _r, path, s = run_override(tmp_path, frames, n_override=1)
+    assert s.provisional is True
+    cfg.settlement = official_close(WORST)
+    assert reconcile_day(cfg) == 0
+    final = DaySummary.from_journal(path)
+    assert final.provisional is False and final.side == "long"
+    assert final.option_pnl_points == pytest.approx(WORST_LONG_PTS, abs=1e-6)
+    assert final.pnl_units == pytest.approx(WORST_LONG_UNITS, abs=1e-6)
+    led = PremiumLedger.load(cfg.ledger_live_path)
+    assert led.sessions() == [dt.date.fromisoformat(WORST)]
+
+
+def test_the_long_is_sized_without_the_deleveraging_multiplier(tmp_path, frames):
+    """Half regime: the short would be halved; the long is the short's FULL count."""
+    seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2023-11-29", 1.94e-5)
+    kw = dict(ledger_path=seed, **HALF_KW)
+    _c, _b, _r, p_long, s_long = run_override(tmp_path / "long", frames, **kw)
+    _c2, _b2, _r2, p_short, _s2 = run_replay(
+        tmp_path / "short",
+        frames,
+        WORST,
+        month_end_mode="off",
+        fixed_entry_clock=SIZE_CLOCK,
+        n_override=None,
+        capital=CAPITAL,
+        terminal="hold",
+        **kw,
+    )
+    assert kinds_of(p_long, "regime")[0]["multiplier"] == 0.5
+    sz_long = kinds_of(p_long, "sizing")[0]
+    sz_short = kinds_of(p_short, "sizing")[0]
+    assert sz_short["multiplier"] == 0.5 and sz_short["n_stress"] >= 2
+    assert sz_short["n"] == sz_short["n_stress"] // 2
+    assert sz_long["n"] == sz_short["n_stress"]  # the short program's count, whole
+    assert (sz_long["multiplier"], sz_long["multiplier_not_applied"]) == (1.0, 0.5)
+    assert s_long.side == "long" and s_long.n_straddles == sz_short["n_stress"]
+
+
+def test_a_zero_regime_does_not_refuse_an_override_day(tmp_path, frames):
+    """The brake is for short-tail risk: it refuses a short day, not the long."""
+    seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2023-11-29", 1.0e-3)
+    kw = dict(ledger_path=seed, **HALF_KW)
+    _c, _b, _r, path, s = run_override(tmp_path / "long", frames, **kw)
+    assert kinds_of(path, "regime")[0]["state"] == "zero"
+    pre = kinds_of(path, "preflight")[0]
+    assert pre["ok"] is True and pre["checks"]["delever_applied"] is False
+    assert s.side == "long" and s.entered
+
+    cfg = make_cfg(
+        tmp_path / "short",
+        WORST,
+        month_end_mode="off",
+        fixed_entry_clock=SIZE_CLOCK,
+        n_override=None,
+        capital=CAPITAL,
+        **kw,
+    )
+    broker = FakeBroker(cfg, WORST, frame=frames[WORST])
+    broker.connect()
+    jr = Journal(os.path.join(str(tmp_path), "short.jsonl"), echo=False)
+    with pytest.raises(Abort) as exc:
+        DayRunner(cfg, broker, jr).run()
+    jr.close()
+    assert DELEVER_FLAT_REASON in str(exc.value)
+
+
+def test_an_outlay_above_the_loss_budget_is_refused(tmp_path, frames):
+    capital = 5_000.0  # a tenth of it is $500: less than three straddles' premium
+    cfg, _b, _r, path, s = run_override(tmp_path, frames, n_override=3, capital=capital)
+    e = kinds_of(path, "entry")[-1]
+    assert e["entered"] is False
+    assert e["reason"] == "month_end_long_outlay_exceeds_the_loss_budget"
+    assert e["loss_budget_dollars"] == pytest.approx(capital * cfg.stress_fraction)
+    assert e["outlay_dollars"] == pytest.approx(
+        3 * WORST_LONG_ASK * cfg.index_multiplier
+    )
+    assert e["outlay_dollars"] > e["loss_budget_dollars"]
+    assert not kinds_of(path, "order") and not s.entered and s.is_flat
+    assert s.flat_reason == "month_end_long_outlay_exceeds_the_loss_budget"
+
+    # the flat day still hands the morning its rows, and reconciles them
+    pending = json.loads(
+        (tmp_path / "pending_settlement.json").read_text(encoding="utf-8")
+    )
+    assert (pending["side"], pending["K_c"], pending["n_straddles"]) == (
+        "flat",
+        None,
+        0,
+    )
+    assert [r["clock"] for r in pending["observed"]][-1] == "15:30"
+    cfg.settlement = float(kinds_of(path, "quote")[-1]["S"])
+    assert reconcile_day(cfg) == 0
+    assert kinds_of(path, "reconcile")[0]["payoff"] is None
+    assert PremiumLedger.load(cfg.ledger_live_path).sessions() == [
+        dt.date.fromisoformat(WORST)
+    ]
+
+
+def test_no_capital_means_no_loss_budget_and_no_long(tmp_path, frames):
+    _c, _b, _r, path, s = run_override(tmp_path, frames, n_override=1, capital=0.0)
+    e = kinds_of(path, "entry")[-1]
+    assert e["entered"] is False
+    assert e["reason"].startswith("month_end_long_no_loss_budget")
+    assert not kinds_of(path, "order") and not s.entered and s.is_flat
+
+
+def test_no_quote_at_15_30_ends_the_override_flat(tmp_path, frames):
+    faults = FakeFaults(stale_at=frozenset({"15:30"}))
+    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults)
+    e = kinds_of(path, "entry")[-1]
+    assert e["entered"] is False and e["reason"].startswith("stale_or_halted_quotes")
+    assert not kinds_of(path, "order") and not s.entered and s.is_flat
+    assert not kinds_of(path, "settle")
+
+
+def test_no_fill_ends_the_override_flat_and_never_chases(tmp_path, frames):
+    faults = FakeFaults(refuse=frozenset({"body_entry"}))
+    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults)
+    orders = kinds_of(path, "order")
+    assert len(orders) == 1 and orders[0]["max_cross_ticks"] == 0  # one try only
+    fill = kinds_of(path, "fill")[0]
+    assert fill["quantity"] == 0 and fill["status"] == "Cancelled"
+    assert "month_end_long_unfilled" in errors_of(path)
+    e = kinds_of(path, "entry")[-1]
+    assert e["entered"] is False and e["reason"] == "month_end_long_unfilled"
+    assert not kinds_of(path, "settle") and not s.entered and s.is_flat
+
+
+def test_a_partial_long_is_held_to_settlement(tmp_path, frames):
+    faults = FakeFaults(partial={"body_entry": 1})
+    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults, n_override=3)
+    assert "entry_partial" in errors_of(path)
+    assert s.side == "long" and s.n_straddles == 1
+    assert s.exit_kind == "settlement" and s.is_flat
+    assert kinds_of(path, "settle")[0]["n_settled"] == 1
+
+
+def test_sit_out_ends_a_month_end_flat_in_preflight(tmp_path, frames):
+    """The old guard, kept as a mode."""
+    cfg = make_cfg(tmp_path, WORST, month_end_mode="sit_out", terminal="hold")
     broker = FakeBroker(cfg, WORST, frame=frames[WORST])
     broker.connect()
     jr = Journal(os.path.join(str(tmp_path), WORST + ".jsonl"), echo=False)
@@ -1086,49 +1344,46 @@ def test_a_month_end_session_ends_the_day_flat_in_preflight(tmp_path, frames):
     assert str(exc.value).startswith(CALENDAR_FLAT_REASON)
     assert "last trading session of the month" in str(exc.value)
 
-    cal = kinds_of(jr.path, "calendar")
-    assert len(cal) == 1
-    c = cal[0]
-    assert (c["enabled"], c["flat"], c["hits"]) == (True, True, ["month_end"])
+    c = kinds_of(jr.path, "calendar")[0]
+    assert (c["mode"], c["decision"], c["flat"]) == ("sit_out", "sit_out", True)
     assert c["session"] == WORST and c["calendars"] == ["month_end"]
-    assert "proposal 54" in c["evidence"][0]
-    assert "bad_kind" not in c  # "calendar" is a whitelisted journal kind
-
     pre = kinds_of(jr.path, "preflight")[0]
-    assert pre["ok"] is False and pre["checks"]["calendar_guard"]["flat"] is True
+    assert pre["ok"] is False and pre["checks"]["calendar"]["flat"] is True
     # the refusal comes BEFORE the ledger is read: no regime record at all
     assert not kinds_of(jr.path, "regime") and not kinds_of(jr.path, "ledger")
 
     s = DaySummary.from_journal(jr.path)
     assert not s.entered and s.is_flat
     assert s.flat_reason.startswith(CALENDAR_FLAT_REASON)
-    assert not kinds_of(jr.path, "order")  # nothing was sent
-    assert "FLAT" in s.render()
+    assert not kinds_of(jr.path, "order")
 
 
-def test_no_calendar_guard_puts_the_month_end_back_on(tmp_path, frames):
-    """``--no-calendar-guard`` trades the session, and books its loss."""
+def test_off_puts_the_short_book_back_on_a_month_end(tmp_path, frames):
     _cfg, _b, _r, path, s = run_replay(
-        tmp_path, frames, WORST, calendar_guard=False, terminal="hold"
+        tmp_path, frames, WORST, month_end_mode="off", terminal="hold"
     )
     c = kinds_of(path, "calendar")[0]
-    assert (c["enabled"], c["flat"], c["hits"]) == (False, False, [])
-    assert s.entered and s.n_straddles == 1
+    assert (c["enabled"], c["decision"], c["hits"]) == (False, "short", [])
+    assert s.side == "short" and s.entered and s.n_straddles == 1
     assert s.pnl_units == pytest.approx(-2.4805, abs=5e-4)  # as the worst-day test
 
 
-def test_an_ordinary_session_passes_the_guard_untouched(tmp_path, frames):
-    _cfg, _b, _r, path, s = run_replay(
-        tmp_path, frames, RECENT, calendar_guard=True, terminal="hold"
-    )
-    c = kinds_of(path, "calendar")[0]
-    assert (c["enabled"], c["flat"], c["hits"]) == (True, False, [])
-    assert s.entered
+def test_an_ordinary_session_is_the_same_in_every_mode(tmp_path, frames):
+    seen = {}
+    for mode in ("override", "sit_out", "off"):
+        _c, _b, _r, path, s = run_replay(
+            tmp_path / mode, frames, RECENT, month_end_mode=mode, terminal="hold"
+        )
+        c = kinds_of(path, "calendar")[0]
+        assert (c["mode"], c["decision"], c["hits"]) == (mode, "short", [])
+        seen[mode] = (s.side, s.entry_clock, s.n_straddles, s.pnl_units)
+    assert seen["override"] == seen["sit_out"] == seen["off"]
+    assert seen["off"][0] == "short"
 
 
-def test_an_open_position_outranks_the_calendar_guard(tmp_path, frames):
+def test_an_open_position_outranks_the_calendar(tmp_path, frames):
     """A leg left on from a crash is the louder alarm, month-end or not."""
-    cfg = make_cfg(tmp_path, WORST, calendar_guard=True)
+    cfg = make_cfg(tmp_path, WORST, month_end_mode="override", capital=CAPITAL)
     broker = FakeBroker(cfg, WORST, frame=frames[WORST])
     broker.connect()
     broker._futures_qty = {"ES": 2}
@@ -1140,35 +1395,52 @@ def test_an_open_position_outranks_the_calendar_guard(tmp_path, frames):
     assert not kinds_of(jr.path, "calendar")
 
 
-def test_main_ends_a_month_end_flat_by_default(tmp_path, frames):
-    argv = [
+def test_main_overrides_a_month_end_by_default(tmp_path, frames):
+    base = [
         "--date",
         WORST,
         "--entry-mode",
         "fixed",
         "--entry-clock",
-        FIXED,
-        "--n",
-        "1",
-        "--journal-dir",
-        str(tmp_path),
+        SIZE_CLOCK,
+        "--capital",
+        str(CAPITAL),
         "--ledger",
         str(tmp_path / "absent.parquet"),
         "--ledger-live",
         str(tmp_path / "absent_live.parquet"),
     ]
+    over = tmp_path / "override"
+    assert main(base + ["--journal-dir", str(over)]) == 0
+    path = os.path.join(str(over), WORST + "_summary.json")
+    with open(path, encoding="utf-8") as fh:
+        blob = json.load(fh)
+    assert blob["side"] == "long" and blob["exit_kind"] == "settlement"
+
+    sit = tmp_path / "sit_out"
+    argv = base + ["--journal-dir", str(sit), "--month-end-mode", "sit_out"]
     assert main(argv) == 2  # a preflight refusal, not a crash and not a leg on
-    with open(
-        os.path.join(str(tmp_path), WORST + "_summary.json"), encoding="utf-8"
-    ) as fh:
+    path = os.path.join(str(sit), WORST + "_summary.json")
+    with open(path, encoding="utf-8") as fh:
         blob = json.load(fh)
     assert blob["flat_reason"].startswith(CALENDAR_FLAT_REASON)
 
 
-def test_the_calendar_guard_flag_and_its_names():
-    assert Config.from_args([]).calendar_guard is True
-    cfg = Config.from_args(["--no-calendar-guard"])
-    assert cfg.calendar_guard is False
+def test_the_month_end_flags():
+    assert Config.from_args([]).month_end_mode == "override"
+    sit = Config.from_args(["--month-end-mode", "sit_out"])
+    assert sit.month_end_mode == "sit_out"
+    assert Config.from_args(["--no-calendar-guard"]).month_end_mode == "off"
+    both = ["--no-calendar-guard", "--month-end-mode", "off"]
+    assert Config.from_args(both).month_end_mode == "off"
+    with pytest.raises(SystemExit):
+        Config.from_args(["--no-calendar-guard", "--month-end-mode", "override"])
+    cfg = Config()
     assert cfg.no_short_calendars == ("month_end",)
+    assert cfg.month_end_long_size == "match_short"
     with pytest.raises(ValueError, match="no_short_calendars"):
         Config(no_short_calendars=("month_end", "full_moon"))
+    with pytest.raises(ValueError, match="month_end_mode"):
+        Config(month_end_mode="guard")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="not enabled"):
+        Config(month_end_long_size="loss_budget")

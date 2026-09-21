@@ -195,6 +195,29 @@ def test_combo_fills_crossed_and_at_the_mid(tmp_path, frame):
     assert mid.price == pytest.approx(ENTRY_MID, abs=1e-6)
 
 
+def test_a_limit_that_may_not_cross_fills_only_when_marketable(tmp_path, frame):
+    """``max_cross_ticks=0``: the month-end long's limit at the ask, never chased."""
+    b = make_broker(tmp_path, frame)
+    b.advance_to("11:00")
+    legs = [
+        (b.contract_for(4555.0, "C"), 1, "BUY"),
+        (b.contract_for(4550.0, "P"), 1, "BUY"),
+    ]
+    at_ask = b.place_combo(
+        legs, 2, ENTRY_ASK, action="BUY", what="body_entry", max_cross_ticks=0
+    )
+    assert at_ask.ok and at_ask.quantity == 2
+    assert at_ask.price == pytest.approx(ENTRY_ASK, abs=1e-6)
+    below = b.place_combo(
+        legs, 2, ENTRY_MID, action="BUY", what="body_entry", max_cross_ticks=0
+    )
+    assert not below.ok and below.quantity == 0 and below.status == "Cancelled"
+    assert "not marketable" in below.note
+    # the default still crosses: the book's own orders are unchanged
+    crossed = b.place_combo(legs, 1, ENTRY_MID, action="BUY", what="body_exit")
+    assert crossed.ok and crossed.price == pytest.approx(ENTRY_ASK, abs=1e-6)
+
+
 def test_combo_with_an_unquoted_leg_does_not_fill(tmp_path, frame):
     b = make_broker(tmp_path, frame)
     b.advance_to("11:00")

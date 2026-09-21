@@ -182,6 +182,7 @@ class Broker(Protocol):
         passive_wait_s: float | None = None,
         spread: float | None = None,
         what: str = "",
+        max_cross_ticks: int | None = None,
     ) -> Fill: ...
     def place_futures(
         self,
@@ -657,8 +658,14 @@ class IBBroker:
         passive_wait_s: float | None = None,
         spread: float | None = None,
         what: str = "combo",
+        max_cross_ticks: int | None = None,
     ) -> Fill:
-        """``legs`` define the LONG package; ``action`` trades the bag."""
+        """``legs`` define the LONG package; ``action`` trades the bag.
+
+        ``max_cross_ticks`` caps the repricing for this one order; ``0`` rests
+        at the limit for ``passive_wait_s`` and then cancels -- a limit that
+        must not chase (the month-end override's buy at the quoted ask).
+        """
         cfg = self.config
         bag = Contract(
             secType="BAG",
@@ -684,7 +691,9 @@ class IBBroker:
             limit_price,
             tick,
             cfg.passive_wait_s if passive_wait_s is None else passive_wait_s,
-            cfg.cross_ticks_for(NAN if spread is None else spread, tick),
+            cfg.cross_ticks_for(NAN if spread is None else spread, tick)
+            if max_cross_ticks is None
+            else max(0, int(max_cross_ticks)),
             what,
             symbol="SPXW",
             multiplier=cfg.index_multiplier,
@@ -1281,8 +1290,14 @@ class FakeBroker:
         passive_wait_s: float | None = None,
         spread: float | None = None,
         what: str = "combo",
+        max_cross_ticks: int | None = None,
     ) -> Fill:
-        """Fill at the package touch (``cross``) or at the limit (``mid``)."""
+        """Fill at the package touch (``cross``) or at the limit (``mid``).
+
+        With ``max_cross_ticks=0`` an order that is not marketable at the
+        stamp's touch rests and is cancelled, as ``IBBroker`` would cancel it:
+        the replay does not fill a limit the live order could not reach.
+        """
         oid = self._next_id()
         pkg_bid = 0.0
         pkg_ask = 0.0
@@ -1317,6 +1332,26 @@ class FakeBroker:
             tick = self.config.option_tick_for(price)
             crossed = int(round(abs(price - float(limit_price)) / max(tick, 1e-9)))
         fault = self._fault(what, quantity)
+        touch = pkg_ask if action.upper() == "BUY" else pkg_bid
+        unreachable = (
+            max_cross_ticks is not None
+            and int(max_cross_ticks) <= 0
+            and (
+                float(limit_price) < touch
+                if action.upper() == "BUY"
+                else float(limit_price) > touch
+            )
+        )
+        if fault is None and unreachable:
+            fault = (
+                "Cancelled",
+                0,
+                "replay: limit "
+                + format(float(limit_price), ".4f")
+                + " is not marketable at the touch "
+                + format(touch, ".4f")
+                + " and crossing is off; cancelled",
+            )
         status, filled, note = (
             fault
             if fault is not None

@@ -1,4 +1,4 @@
-"""The no-short calendars: NYSE sessions by rule, and the month-end guard.
+"""The no-short calendars: NYSE sessions by rule, and the month-end modes.
 
 The hand-checked dates come from the exchange's published holiday schedules.
 The two parity checks tie the rule to data it never saw being written: the
@@ -15,6 +15,8 @@ import pytest
 
 from live.ibkr.calendar_guard import (
     CALENDAR_FLAT_REASON,
+    CALENDAR_OVERRIDE_REASON,
+    MONTH_END_MODES,
     NO_SHORT_CALENDARS,
     SPECIAL_CLOSURES,
     evaluate,
@@ -112,30 +114,44 @@ def test_the_observance_rules():
     assert all(not is_session(d) for d in SPECIAL_CLOSURES)
 
 
-# --------------------------------------------------------------- the guard --
+# --------------------------------------------------------------- the modes --
 
 
-def test_evaluate_on_a_month_end_and_on_an_ordinary_day():
+def test_the_default_mode_overrides_a_month_end():
     hit = evaluate(D(2023, 11, 30), ("month_end",))
-    assert hit["flat"] and hit["hits"] == ["month_end"]
+    assert MONTH_END_MODES == ("override", "sit_out", "off")
+    assert (hit["mode"], hit["decision"]) == ("override", "override")
+    assert hit["override"] and not hit["flat"] and hit["hits"] == ["month_end"]
+    assert hit["reason"].startswith(CALENDAR_OVERRIDE_REASON)
+    assert "2023-11-30" in hit["reason"] and "BUYS the 15:30 straddle" in hit["reason"]
+    assert "proposal 54" in hit["evidence"][0] and "+0.43" in hit["evidence"][0]
+
+
+def test_sit_out_ends_a_month_end_flat():
+    hit = evaluate(D(2023, 11, 30), ("month_end",), mode="sit_out")
+    assert hit["decision"] == "sit_out" and hit["flat"] and not hit["override"]
     assert hit["reason"].startswith(CALENDAR_FLAT_REASON)
-    assert "2023-11-30" in hit["reason"] and "FLAT" in hit["reason"]
-    assert "proposal 54" in hit["evidence"][0]
+    assert "FLAT" in hit["reason"]
 
-    miss = evaluate(D(2025, 6, 20), ("month_end",))
-    assert not miss["flat"] and miss["hits"] == [] and miss["reason"] == ""
 
-    off = evaluate(D(2023, 11, 30), ("month_end",), enabled=False)
-    assert not off["flat"] and off["enabled"] is False
-
+def test_off_and_ordinary_days_trade_the_short_book():
+    off = evaluate(D(2023, 11, 30), ("month_end",), mode="off")
+    assert off["decision"] == "short" and off["enabled"] is False
+    assert not off["flat"] and not off["override"] and off["hits"] == []
+    for mode in MONTH_END_MODES:
+        miss = evaluate(D(2025, 6, 20), ("month_end",), mode=mode)
+        assert miss["decision"] == "short" and miss["hits"] == []
+        assert miss["reason"] == "" and not miss["flat"] and not miss["override"]
     none = evaluate(D(2023, 11, 30), ())
-    assert not none["flat"] and none["calendars"] == []
+    assert none["decision"] == "short" and none["calendars"] == []
 
 
 def test_only_month_end_is_registered_and_unknown_names_are_refused():
     assert sorted(NO_SHORT_CALENDARS) == ["month_end"]
     with pytest.raises(ValueError, match="unknown no-short calendar"):
         evaluate(D(2025, 6, 20), ("fomc",))
+    with pytest.raises(ValueError, match="month_end_mode"):
+        evaluate(D(2025, 6, 20), ("month_end",), mode="guard")
 
 
 # ---------------------------------------------------------------- parity ----

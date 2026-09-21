@@ -19,9 +19,12 @@ afternoon/settlement premium is what remains, so the runner
   while the trailing realized variance sits at or below its own expanding
   lagged 90th percentile, half above it, flat above the 97.5th
   (``delever``, off with ``--no-delever``);
-* sits out the sessions on the no-short calendars -- today the last trading
-  session of a month, where proposal 54 measured the short book losing into
-  the month-end close (``calendar_guard``, off with ``--no-calendar-guard``).
+* on the no-short calendars -- today the last trading session of a month,
+  where proposal 54 measured the short book losing into the month-end close
+  -- does not sell; by default (``month_end_mode="override"``) it BUYS the
+  15:30 nearest-OTM straddle instead, one per straddle the short program
+  would have sold, and holds it to cash settlement (``--month-end-mode
+  override|sit_out|off``; ``--no-calendar-guard`` is ``off``).
 
 ``terminal="flatten"`` keeps the old exit-at-15:30 variant; it is the
 optional variant now, not the book of record.
@@ -40,11 +43,22 @@ from dataclasses import dataclass, field
 from datetime import time as dtime
 from typing import Literal, TextIO
 
-from live.ibkr.calendar_guard import NO_SHORT_CALENDARS
+from live.ibkr.calendar_guard import MONTH_END_MODES, NO_SHORT_CALENDARS
 
 Mode = Literal["dry", "paper", "live"]
 EntryMode = Literal["selector", "fixed"]
 Terminal = Literal["hold", "flatten"]
+MonthEndMode = Literal["override", "sit_out", "off"]
+
+#: How the month-end long is sized.  ``match_short``: one long straddle per
+#: straddle the short program would have sold that session (the stress table at
+#: the configured capital and fraction, at the clock the selector picked,
+#: WITHOUT the deleveraging multiplier).  That is the variant the evidence was
+#: measured for.  Sizing the long to the same loss budget as the short -- a
+#: median 28x more contracts on the 70 month-ends, since the long can lose only
+#: its premium -- is described in the README and deliberately NOT offered: its
+#: liquidity is untested.
+MONTH_END_LONG_SIZES: tuple[str, ...] = ("match_short",)
 
 #: Every 30-minute stamp the research tape carries.  16:00 is a settlement
 #: print, never a quote, so it is not in here.
@@ -65,6 +79,13 @@ SESSION_STAMPS: tuple[str, ...] = (
 
 #: The last stamp the book hedges on (hold variant).
 LAST_HEDGE_CLOCK = "15:30"
+
+#: The stamp the month-end override buys its straddle at: the research's
+#: 15:30 stamp, the last one the tape quotes before the settlement print.
+MONTH_END_LONG_CLOCK = LAST_HEDGE_CLOCK
+
+#: The bell: the hold book flattens its futures here and the options settle.
+SETTLEMENT_CLOCK = "16:00:00"
 
 #: Clocks the selector may enter at: proposal 43's ENTRIES (10:00..15:00).
 ENTRY_CLOCKS: tuple[str, ...] = SESSION_STAMPS[:-1]
@@ -166,11 +187,14 @@ class Config:
     delever_zero_pct: float = 0.975
     delever_min_sessions: int = 252
 
-    # -- the calendar guard (proposal 54) ---------------------------------
-    #: End the day flat, before any entry, on a session that falls on one of
-    #: the named no-short calendars (``live.ibkr.calendar_guard``).  Only
-    #: ``month_end`` has evidence behind it today.
-    calendar_guard: bool = True
+    # -- the month-end override (proposals 54 and 55) --------------------
+    #: What a session on one of the named no-short calendars
+    #: (``live.ibkr.calendar_guard``) does: ``override`` buys the 15:30
+    #: straddle instead of selling, ``sit_out`` ends the day flat in
+    #: preflight, ``off`` trades the short book.  Only ``month_end`` has
+    #: evidence behind it today.
+    month_end_mode: MonthEndMode = "override"
+    month_end_long_size: str = "match_short"
     no_short_calendars: tuple[str, ...] = ("month_end",)
 
     # -- the book --------------------------------------------------------
@@ -364,6 +388,23 @@ class Config:
                 + "; registered: "
                 + repr(sorted(NO_SHORT_CALENDARS))
             )
+        if self.month_end_mode not in MONTH_END_MODES:
+            raise ValueError(
+                "month_end_mode must be one of "
+                + repr(MONTH_END_MODES)
+                + ", got "
+                + repr(self.month_end_mode)
+            )
+        if self.month_end_long_size not in MONTH_END_LONG_SIZES:
+            raise ValueError(
+                "month_end_long_size must be one of "
+                + repr(MONTH_END_LONG_SIZES)
+                + ", got "
+                + repr(self.month_end_long_size)
+                + " (sizing the long to the loss budget is documented in the "
+                "README and not enabled: a median 28x the contracts, untested for "
+                "liquidity)"
+            )
 
         if self.rebalance_clocks is not None:
             self.rebalance_clocks = tuple(self.rebalance_clocks)
@@ -399,7 +440,7 @@ class Config:
     @property
     def flatten_clock(self) -> str:
         """When the FUTURES leg dies.  Hold: the bell.  Flatten: the exit."""
-        return "16:00:00" if self.hold_to_settle else self.exit_clock + ":00"
+        return SETTLEMENT_CLOCK if self.hold_to_settle else self.exit_clock + ":00"
 
     def multiplier(self, symbol: str) -> float:
         sym = str(symbol).upper()
@@ -541,13 +582,22 @@ class Config:
             "the 97.5th)",
         )
         p.add_argument(
+            "--month-end-mode",
+            choices=MONTH_END_MODES,
+            default=None,
+            dest="month_end_mode",
+            help="the last trading session of a month: 'override' (default) "
+            "sells nothing and BUYS the 15:30 straddle, one per straddle the "
+            "short program would have sold, held to settlement; 'sit_out' ends "
+            "the day flat in preflight; 'off' trades the short book (proposals "
+            "54 and 55)",
+        )
+        p.add_argument(
             "--no-calendar-guard",
-            action="store_false",
-            dest="calendar_guard",
-            default=True,
-            help="trade every session: turn OFF the calendar guard that ends "
-            "the day flat on the last trading session of a month (proposal "
-            "54: the short book loses into the month-end close)",
+            action="store_true",
+            dest="no_calendar_guard",
+            default=False,
+            help="alias of --month-end-mode off: trade the short book every session",
         )
         p.add_argument(
             "--terminal",
@@ -611,7 +661,16 @@ class Config:
     def from_args(cls, argv: list[str] | None = None) -> Config:
         """Build from ``argv``; ``None`` means ``sys.argv[1:]`` (L-29)."""
         argv = list(argv) if argv is not None else list(sys.argv[1:])
-        ns = cls.build_parser().parse_args(argv)
+        parser = cls.build_parser()
+        ns = parser.parse_args(argv)
+        month_end_mode: MonthEndMode = ns.month_end_mode or "override"
+        if ns.no_calendar_guard:
+            if ns.month_end_mode not in (None, "off"):
+                parser.error(
+                    "--no-calendar-guard is --month-end-mode off; it contradicts "
+                    "--month-end-mode " + str(ns.month_end_mode)
+                )
+            month_end_mode = "off"
         # The equals form is a passed flag too (L-17).
         passed_mode = any(a == "--mode" or a.startswith("--mode=") for a in argv)
         live_ack = ns.mode == "live" and passed_mode
@@ -629,7 +688,7 @@ class Config:
             else AFTERNOON_CLOCKS,
             delta_correction=ns.delta_correction,
             delever=ns.delever,
-            calendar_guard=ns.calendar_guard,
+            month_end_mode=month_end_mode,
             terminal=ns.terminal,
             exit_clock=ns.exit_clock,
             wings_pct=ns.wings_pct,

@@ -6,10 +6,11 @@ each session from a causal premium ledger; delta-hedge every 30 minutes through
 **corrected** by that clock's trailing realized-over-implied factor; **hold the
 body to cash settlement**; flatten the futures at 16:00:00 ET; reconcile the
 official settlement the next morning. Size by a stress table, never by margin.
-Sit out the last trading session of the month (§1.6).
+On the last trading session of the month, sell nothing and **buy** the 15:30
+straddle instead, held to settlement (§1.6).
 
 ```
-preflight   calendar guard (§1.6)  →  ledger  →  regime (size multiplier) and
+preflight   calendar (§1.6)  →  ledger  →  regime (size multiplier) and
             entry clock                            (§1.5; selector, or the fixed clock)
 13:30 ET    SELL the body, size = stress x m   (combo first, then the futures hedge)
 14:00 ..    re-quote, re-invert, CORRECT,     (ES bulk + MES remainder)
@@ -248,35 +249,105 @@ minimum are `Config.delever_window`, `delever_half_pct`, `delever_zero_pct` and
 `p_half`, `p_zero`, `n_prior`, `state` (`full` / `half` / `zero` / `warmup` /
 `disabled` / `no_ledger`) and `multiplier` — whether or not the rule bites.
 
-### 1.6 The calendar guard — `calendar_guard.py` (proposal 54)
+### 1.6 The month-end override — `calendar_guard.py` (proposals 54 and 55)
 
-**The rule.** On the **last trading session of a calendar month** the runner
-ends the day FLAT in preflight, before the ledger is read and before any order
-is built — the same shape as a zero deleveraging multiplier. It is on by
-default; `--no-calendar-guard` turns it off.
+**The rule.** On the **last trading session of a calendar month** the short
+program does not sell. In the default mode it **buys** instead:
 
-**The evidence** (`writeup/intraday_proposals/54_month_end_close.py`, 70
-month-end sessions of the 1279 in the ledger, index points per contract):
+| `--month-end-mode` | on a month-end |
+| --- | --- |
+| **`override`** (default) | no short, no futures. At 15:30 BUY the nearest-OTM straddle at the quoted ask, one per straddle the short program would have sold that session, and hold it unhedged to cash settlement |
+| `sit_out` | the day ends FLAT in preflight, before the ledger is read and before any order is built (the old guard) |
+| `off` | the calendar is not consulted; the short book trades as on any other day |
 
-| short straddle | month-end sessions | every other session |
+`--no-calendar-guard` is kept as an alias of `--month-end-mode off`. On every
+other session the three modes are the same run, and a test holds them to it.
+
+**The evidence** (`writeup/intraday_proposals/54_month_end_close.py` and
+`55_calendar_overrides_1530.py`; 70 month-end sessions of the 1279 in the
+ledger, index points per contract):
+
+| on the last session of the month | month-end sessions | every other session |
 | --- | --- | --- |
-| sold 11:00, held to settlement | −1.8 | +1.4 (t 5.7) |
-| sold 13:30, held to settlement | −1.8 | +1.1 (t 4.7) |
-| sold 14:30, held to settlement | −2.3 | +0.8 (t 3.5) |
-| sold 13:30, bought back at 15:30 | −0.7 | +0.5 (t 3.0) |
+| short straddle sold 11:00, held to settlement | −1.8 | +1.4 (t 5.7) |
+| short straddle sold 13:30, held to settlement | −1.8 | +1.1 (t 4.7) |
+| short straddle sold 14:30, held to settlement | −2.3 | +0.8 (t 3.5) |
+| short straddle sold 13:30, bought back at 15:30 | −0.7 | +0.5 (t 3.0) |
+| **long 15:30 straddle bought at the ask, held** | **+2.9** (+0.43 premium units, t 2.7) | −0.05 units at the mid |
+
+The 13:30 hold book with each treatment, index points per contract per day
+(the insurance-book check, same tape):
+
+| 13:30 hold book | all 1279 sessions: mean / Sharpe | holdout 2024-05 .. 2025-12: Sharpe |
+| --- | --- | --- |
+| as is (short on month-ends too) | +0.92 / 1.81 | 2.06 |
+| sit out month-ends | +1.02 / 2.07 | 2.49 |
+| **override: sit out and buy the 15:30 straddle** | **+1.18 / 2.26** | **2.55** |
 
 Month-end rebalancing is executed at the closing auction: since 1998 the last
 half hour's variance is 1.5× the bar before it on month-ends against 1.1×
-otherwise (t 7.9, 264 month-ends before any option in the study). Buying the
-straddle back at 15:30 still loses, so the guard is **sit out**, not "exit
-early". 54 was found by inspecting the book's worst days, and the book's single
-worst day, 2023-11-30, is a month-end; its test on data that played no part in
-that (the underlying before 2020; 18 held-out month-ends from 2024-05) held.
-The month-end intervals are wide (n = 70): this is a guard against a measured
-loss, not a claim about its exact size.
+otherwise (t 7.9, 264 month-ends before any option in the study), and the
+option market does not price it — the long straddle is cheap on exactly the
+day the short is expensive. On the 866-day deck proposal 55 forced the 15:30
+sign(s) trade long on month-ends: +0.67 crossed Sharpe, interval [+0.15, +1.21],
+both placebos p ≤ 0.001, on all eight forecasts.
+
+**How it is sized** (`month_end_long_size="match_short"`, the only value
+offered). At the clock the selector picked, the runner quotes the straddle the
+short program would have sold and runs the short program's own stress table —
+capital × fraction over the stress loss per contract, capped at
+`--max-straddles`, `--n` overriding it — and buys that many at 15:30. The
+**deleveraging multiplier is NOT applied**: it is a brake on short-tail risk and
+the long can lose only its premium; the regime is still journaled, a zero
+multiplier does not refuse an override day, and the sizing record carries
+`multiplier_not_applied`. A hard check refuses the buy if the premium outlay
+(`n × ask × 100`) exceeds the loss budget (`capital × stress_fraction`); with no
+`--capital` there is no budget and no long.
+
+At $1m and 10 % on the 70 replayed month-ends (seed ledger, selector clock)
+this buys 2–9 straddles, mean 4.3; the premium outlay is at most 26 % of the
+$100k loss budget, so the check never binds at the default fraction.
+
+**The untested alternative, not enabled.** Sizing the long to the same loss
+budget as the short — the long's worst case is its premium, $250–$2,910 per
+straddle on those days, against the short's stress loss of $10–36k (median
+$22k) per contract — would buy a **median 28×** as many straddles (mean 31×,
+range 4–96×). Nothing here says the 15:30 book is that deep, so it is
+described, not offered.
+
+**The order.** One limit at the quoted **ask**, placed with
+`max_cross_ticks=0`: it rests for `passive_wait_s` and is cancelled if it has
+not filled. It never chases. No valid two-sided quote at 15:30, or no fill,
+ends the day FLAT with the reason journaled; a partial fill is a real position
+and is held to settlement. The long settles through the same provisional-settle
+→ `--reconcile` path as the book; the summary takes its sign from the entry
+fill's action (a `body_entry` BUY), so the P&L is `payoff − ask`.
+
+**The ledger does not get a hole.** From the clock the selector picked through
+15:30 the override quotes and inverts the nearest-OTM straddle at every stamp,
+without an order, and hands those rows to the morning in
+`pending_settlement.json` exactly as the book does — even on a day it ends
+flat. (A `sit_out` day, like any preflight refusal, leaves no rows.)
+
+**Parity.** `python -m live.ibkr.parity --month-end` replays every month-end
+through `DayRunner` + `FakeBroker` in override mode at `--n 1`, reconciles it at
+the official close the research settles at, and gates it against proposal 54:
+**70 of 70** month-ends traded, per-contract P&L max |difference| 3.6e-15
+points, premium units 4.4e-16; mean +2.9306 points / +0.4301 units. The replay's
+provisional settlement (the tape's 16:00 print) differs from the official close
+by 0.90 points a day on average — that is what `--reconcile` is for.
+
+**Its limits.** Month-end was **found by inspecting the sample** (the book's
+single worst day, 2023-11-30, is one), so the deck-period numbers were not a
+test. The data that played no part in finding it agree: the underlying before
+2020, and the **18 held-out month-ends** from 2024-05, whose long-straddle mean
+at the ask is the same +0.43 (t 1.2 on 18 days — the same mean, not a
+significant one). 2025's month-ends are flat (−0.02). Every `IBBroker` path is
+untested (§11), and **buying at 15:30 is a new order path for this package**:
+walk it on paper before trusting it.
 
 **The calendar.** Live trading needs the answer for a *future* date, so the
-guard reads no ledger: `is_last_session_of_month` computes the NYSE session
+calendar reads no ledger: `is_last_session_of_month` computes the NYSE session
 calendar from the exchange's holiday rules (Rule 7.2 observance, Good Friday
 from `dateutil.easter`). Neither `exchange_calendars` nor
 `pandas_market_calendars` is installed in the `285J` environment and none is
@@ -291,34 +362,51 @@ needed — `dateutil` already ships with pandas. Two parity checks pin it
   the rule calls a holiday has a 16:00 bar, and every day it calls a session
   without one is a 13:00 early close.
 
-**Its limits.** A *special* closure announced at short notice (a day of
-mourning, a storm) cannot be computed. The ones on record are listed in
+**The calendar's limits.** A *special* closure announced at short notice (a
+day of mourning, a storm) cannot be computed. The ones on record are listed in
 `SPECIAL_CLOSURES`; a new one has to be added by hand. The failure is
-one-sided: a special closure on a month's last weekday would make the guard
+one-sided: a special closure on a month's last weekday would make the calendar
 miss the true last session, the day before. A half session that is also a
 month's last session is refused earlier, by the liquid-hours check, so it ends
-flat either way. A position found open in preflight outranks the guard — that
-is the louder alarm.
+flat in every mode — the override is never tried on a 13:00 close. A position
+found open in preflight outranks the calendar — that is the louder alarm.
 
 **The shape.** `NO_SHORT_CALENDARS` is a registry of *named* calendars and
-`Config.no_short_calendars` picks from it (`("month_end",)` today), so an
-FOMC-day or quarter-end guard is a registry entry plus its evidence, not a new
-code path. None is registered: only month-end has been measured for this book.
+`Config.no_short_calendars` picks from it (`("month_end",)` today). Another
+class of days is a registry entry plus its evidence — for **both** halves of
+the override: that the short loses into that close and that the long is paid
+for it. Proposal 55 tested FOMC days and found the second half missing (the
+long earns +0.10 premium at the ask, t 0.6), so none is registered.
 
 ```
 $ python -m live.ibkr.run_day --date 2023-11-30 --capital 1000000
+  *** month-end override: 2023-11-30 is the last trading session of the
+      month -- no short into this close; the runner BUYS the 15:30 straddle
+      and holds it to cash settlement ***
+  side                         LONG (month-end)
+  entry clock                           15:30
+  straddles                                 4   (the short's stress count at 14:30)
+  entry premium (pts)                  3.6500
+  exit (settlement, provisional) pts   23.7900
+  day P&L ($)                        +8056.02
+  day P&L (premium units)             +5.5178
+  # reconciled at the official close 4567.80: +19.1498 pts per straddle,
+  # +5.2465 units -- proposal 54's number
+
+$ ...  --month-end-mode sit_out
   PREFLIGHT ABORT: calendar guard: 2023-11-30 is the last trading session of
                    the month -- the short book does not hold into this close:
                    the day is FLAT                                    [exit 2]
 
-$ ...  --no-calendar-guard               # the same session, traded
+$ ...  --month-end-mode off              # the short book, as on any day
   entry clock                           14:30
   straddles                                 4
   day P&L (premium units)             -4.7275          (-$10,778.81)
 ```
 
-Every session journals one `calendar` record — `session`, `calendars`, `hits`,
-`flat`, `reason`, `evidence`, `enabled` — whether or not the guard bites.
+Every session journals one `calendar` record — `mode`, `session`,
+`calendars`, `hits`, `decision` (`short` / `sit_out` / `override`), `flat`,
+`override`, `reason`, `evidence`, `long_size` — whether or not it bites.
 
 ---
 
@@ -421,8 +509,10 @@ is what it is.
 
 ```bash
 # 1. replay a recorded session (no network, simulated clock) — the smoke test
-#    (2023-11-30 is a month-end session: without --no-calendar-guard it ends FLAT, §1.6)
-python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1 --no-calendar-guard
+#    (2023-11-30 is a month-end session: by default it is the month-end
+#    override, a long 15:30 straddle; --month-end-mode off replays the short book, §1.6)
+python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1 --month-end-mode off
+python -m live.ibkr.run_day --date 2023-11-30 --capital 1000000
 python -m live.ibkr.run_day --date 2025-06-20 --capital 1000000
 
 # 2. connected, but no orders: read-only socket, every order logged and a
@@ -440,7 +530,7 @@ HARXHAR_LIVE=I_UNDERSTAND python -m live.ibkr.run_day --mode live --capital 1000
 Decision-layer flags: `--entry-mode selector|fixed`, `--entry-clock HH:MM`,
 `--candidates afternoon|all`, `--selector-window`, `--selector-min-sessions`,
 `--ledger`, `--ledger-live`, `--no-delta-correction`, `--no-delever`,
-`--no-calendar-guard`.
+`--month-end-mode override|sit_out|off` (`--no-calendar-guard` = `off`).
 Book flags: `--terminal hold|flatten`, `--exit-clock`, `--wings`.
 Sizing flags: `--capital`, `--stress-fraction`, `--stress-jump`, `--n`,
 `--max-straddles`.
@@ -454,8 +544,10 @@ the environment and `--mode live` (or `--mode=live`) typed on the command line;
 at an interactive terminal it also asks for a typed confirmation. In paper mode
 preflight asserts the account id is a `DU*`.
 
-Exit codes: `0` flat and done · `1` fatal · `2` preflight refused (a half
-session, an open position, no size — or the deleveraging rule, §1.5; or nothing to
+Exit codes: `0` flat and done (a month-end override that settled, or that
+refused its buy and stayed flat, is a `0`) · `1` fatal · `2` preflight refused (a
+half session, an open position, no size — or the deleveraging rule, §1.5; or a
+`sit_out` month-end, §1.6; or nothing to
 reconcile) · **`3` a position or a futures leg is still open** — a supervisor
 must treat 3 as "go and look".
 
@@ -492,7 +584,7 @@ Two replays, `--fill cross` (sell the package at its bid, buy it at its ask),
 against the shipped seed ledger:
 
 ```
-$ python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed       --entry-clock 11:00 --n 1 --no-calendar-guard
+$ python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed       --entry-clock 11:00 --n 1 --month-end-mode off
 
 day summary  2023-11-30   book=afternoon-hold-to-cash-settlement  mode=dry
   entry clock                           11:00
@@ -538,7 +630,8 @@ the same session flattened at 15:30 ends at **−0.3381** premium units instead 
 than by conviction. (With `--no-delta-correction` the same hold replay is
 −2.4805: the V9 factor moves the hedge, and only the hedge.) It is also the
 last trading session of November 2023, which is why the replay above needs
-`--no-calendar-guard`: by default the runner now sits this day out (§1.6).
+`--month-end-mode off`: by default the runner now sells nothing that day and
+buys the 15:30 straddle instead (§1.6), which made +5.52 premium units.
 
 ---
 
@@ -573,10 +666,12 @@ Do these in order. Each one closes a specific guess in §12; do not skip to the
 next until the previous one printed what it should.
 
 1. **Replay.** `--date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1
-   --no-calendar-guard` and `--date 2025-06-20 --capital 1000000`. Both must end
-   flat, both must write a summary and a `pending_settlement.json`. Then the
-   first one again WITHOUT `--no-calendar-guard`: it must refuse in preflight
-   with the month-end reason and exit 2.
+   --month-end-mode off` and `--date 2025-06-20 --capital 1000000`. Both must end
+   flat, both must write a summary and a `pending_settlement.json`. Then
+   `--date 2023-11-30 --capital 1000000` with no mode flag: it must sell
+   nothing, buy 4 straddles at 15:30 at 3.65 and settle them, `side LONG`; and
+   with `--month-end-mode sit_out` it must refuse in preflight with the
+   month-end reason and exit 2.
 2. **Reconcile the replay.** `--date 2025-06-20 --reconcile` (the fake serves the
    16:00 print as the "statement"). The summary must lose `provisional` and the
    live ledger must gain that session's rows.
@@ -590,7 +685,9 @@ next until the previous one printed what it should.
    directions IB reports, the **sign of `avgFillPrice`**, and whether a limit at
    an odd nickel above $3.00 is rejected. Guesses #2, #3, #4 — and #4 is the one
    that matters, because a rejected *exit* is the failure mode this whole package
-   is built around.
+   is built around. Then **one paper bag BUY at the ask with no crossing** — the
+   month-end override's order: it must rest, fill or cancel after
+   `passive_wait_s`, and never be repriced.
 6. **A full paper session, `--terminal hold`.** Let it run to 16:00:00 and
    reconcile it the next morning against the real statement. Compare
    `<date>_summary.json` against IB's activity statement line by line.
@@ -696,8 +793,10 @@ Everything that needs a socket, which is all of `IBBroker`:
 * the whole `--wings` iron-fly path end to end: the replay serves a ±0.75 % band,
   so a 1.5 % wing is never quotable and the four-leg bag is never built. The
   refusal is clean and tested; the fly itself is not.
+* the month-end override's BUY at the ask with `max_cross_ticks=0`: a bag BUY
+  that rests and cancels without repricing has never been sent to IB.
 
-The 207 green tests exercise the replay, the journal, the summary arithmetic, the
+The 220 green tests exercise the replay, the journal, the summary arithmetic, the
 config gates and the decision layer. They say nothing about IB.
 
 ---
@@ -727,13 +826,13 @@ config gates and the decision layer. They say nothing about IB.
 | `config.py` | `Config` + the CLI; the live gate (mode **and** port), the tick-by-price rule, the spread-sized crossing cap, the rebalance ladder, the deleveraging knobs |
 | `broker.py` | `Broker` protocol, `IBBroker`, `FakeBroker` + `FakeFaults`, `Fill`, `QuoteHealth`, `load_replay_day` |
 | `journal.py` | `Journal` (JSONL, flushed and fsynced, rolls on re-run) + `DaySummary.from_journal` |
-| `run_day.py` | `DayRunner` (preflight → calendar guard → ledger → regime → selector → sizing → entry → hedge → settle) , `reconcile_day`, `main` |
-| `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, and the registry of named no-short calendars (proposal 54) |
+| `run_day.py` | `DayRunner` (preflight → calendar → ledger → regime → selector → sizing → entry → hedge → settle; or on a month-end, observe → size → buy at 15:30 → settle) , `reconcile_day`, `main` |
+| `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, the registry of named no-short calendars, and the month-end modes (proposals 54 and 55) |
 | `premium_ledger.py` | the `(session, clock)` tape, its two causal estimators and the deleveraging multiplier |
 | `selector.py` | proposal 46's E2 entry-clock selector |
 | `sizing.py` | the stress table and `contracts_for` |
 | `pricing.py` | Black-76 package price, delta, volatility inversion, the V9 correction |
 | `strikes.py` | nearest-OTM selection, the no-quote sentinel, the outage guards |
 | `hedge.py` | `target_lots` (ES bulk + MES remainder), `rebalance_lots`, `residual_delta_lots` |
-| `parity.py` | the engine-against-research parity harness |
-| `tests/` | 207 tests, all replay-only, no network |
+| `parity.py` | the engine-against-research parity harness; `--month-end` gates the override against proposal 54 |
+| `tests/` | 220 tests, all replay-only, no network |

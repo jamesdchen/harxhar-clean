@@ -2,15 +2,17 @@
 
 The book (audit 2026-09-18, sections 4-7):
 
-    preflight   the CALENDAR GUARD refuses the sessions the short book does
-                not hold through (proposal 54: the last trading session of a
-                month ends flat).  Then load the premium ledger (seed + live),
-                read TODAY's regime off it -- proposal 50's DELEVERAGING
-                CANDIDATE, full / half / flat against the expanding lagged
-                percentiles of the trailing realized variance -- and pick
-                TODAY's entry clock from it causally, or fall back to the
-                fixed afternoon clock while the selector warms up.  A zero
-                multiplier refuses the day here.
+    preflight   the CALENDAR reads the session against the no-short
+                calendars (proposal 54: the last trading session of a month).
+                A hit in ``sit_out`` mode ends the day flat here; a hit in
+                ``override`` mode (the default) turns the day into the
+                MONTH-END OVERRIDE below.  Then load the premium ledger (seed
+                + live), read TODAY's regime off it -- proposal 50's
+                DELEVERAGING CANDIDATE, full / half / flat against the
+                expanding lagged percentiles of the trailing realized
+                variance -- and pick TODAY's entry clock from it causally, or
+                fall back to the fixed afternoon clock while the selector
+                warms up.  A zero multiplier refuses a SHORT day here.
     entry       sell the nearest-OTM SPXW 0DTE straddle (the *body*) at that
                 clock, sized by the STRESS table -- capital x fraction over
                 the dollar loss of one hedged straddle in a 5 % last-bar
@@ -30,6 +32,17 @@ The book (audit 2026-09-18, sections 4-7):
 ``--terminal flatten`` keeps the old variant: buy the body back at
 ``--exit-clock`` and flatten the futures in the same minute.  It is the
 optional variant now.
+
+The MONTH-END OVERRIDE (proposals 54 and 55) sells nothing.  From the clock
+the selector picked through 15:30 it observes the nearest-OTM straddle at every
+stamp, so the premium ledger keeps its rows; at the selector's clock it sizes
+the day exactly as the short program would have (the stress table, NOT the
+deleveraging multiplier: that brake is for short-tail risk and the long can
+lose only its premium); at 15:30 it BUYS that many straddles with a limit at
+the quoted ask that rests and cancels rather than chasing, refuses a premium
+outlay above ``capital x stress_fraction``, holds the body unhedged to the
+cash settlement and writes the same ``pending_settlement.json`` the book does.
+No quote or no fill ends the day flat, and says why.
 
 ``--date YYYY-MM-DD`` replays a recorded session through ``FakeBroker`` with
 a simulated clock and no network at all; that is the smoke test.
@@ -54,8 +67,19 @@ from live.ibkr.broker import (
     IBBroker,
     QuoteHealth,
 )
-from live.ibkr.calendar_guard import CALENDAR_FLAT_REASON, evaluate as evaluate_calendar
-from live.ibkr.config import Config, parse_clock, typed_live_ack
+from live.ibkr.calendar_guard import (
+    CALENDAR_FLAT_REASON,
+    CALENDAR_OVERRIDE_REASON,
+    evaluate as evaluate_calendar,
+)
+from live.ibkr.config import (
+    MONTH_END_LONG_CLOCK,
+    SESSION_STAMPS,
+    SETTLEMENT_CLOCK,
+    Config,
+    parse_clock,
+    typed_live_ack,
+)
 from live.ibkr.hedge import rebalance_lots, residual_delta_lots, target_lots
 from live.ibkr import journal as journal_module
 from live.ibkr.journal import DaySummary, Journal
@@ -81,8 +105,8 @@ PENDING_NAME = "pending_settlement.json"
 #: The journal kind the deleveraging rule writes: the regime it read, the
 #: thresholds it read it against, and the multiplier it returned.
 REGIME_KIND = "regime"
-#: The journal kind the calendar guard writes: the session, the no-short
-#: calendars it was checked against, and the ones it hit.
+#: The journal kind the calendar writes: the session, the mode, the no-short
+#: calendars it was checked against, the ones it hit, and the decision.
 CALENDAR_KIND = "calendar"
 # The journal owns the whitelist of kinds.  An unknown kind is rewritten to an
 # alert-level "error" record, so a kind missing from it fails loudly here.
@@ -116,8 +140,22 @@ class PackageQuote:
 
 
 @dataclass
+class Observation:
+    """One stamp of the month-end override: the straddle it would trade."""
+
+    clock: str
+    now: datetime
+    spot: float
+    body: Body | None
+    pq: PackageQuote
+    why: str = ""
+
+
+@dataclass
 class DayState:
     entry_clock: str = ""
+    #: "short" (the book) or "long" (the month-end override)
+    side: str = "short"
     body: Body | None = None
     wings: tuple[float, float] | None = None
     n_entry: int = 0  # straddles actually sold
@@ -238,8 +276,15 @@ class DayRunner:
         #: proposal 50's deleveraging multiplier and the dict behind it.
         self.multiplier: float = 1.0
         self.delever: dict[str, Any] = {"state": "not_computed", "multiplier": 1.0}
-        #: the calendar guard's verdict for the session (proposal 54).
-        self.calendar: dict[str, Any] = {"enabled": False, "hits": [], "flat": False}
+        #: the calendar's verdict for the session (proposals 54 and 55).
+        self.calendar: dict[str, Any] = {
+            "mode": "off",
+            "enabled": False,
+            "hits": [],
+            "decision": "short",
+            "flat": False,
+            "override": False,
+        }
 
     # -- helpers ---------------------------------------------------------
     def _now(self) -> datetime:
@@ -494,7 +539,7 @@ class DayRunner:
             # Date-only, so it costs nothing -- but it runs AFTER the position
             # check: a leg left on from a crash is the louder alarm.
             self._calendar_guard()
-            checks["calendar_guard"] = dict(self.calendar)
+            checks["calendar"] = dict(self.calendar)
             if self.calendar["flat"]:
                 reason = str(self.calendar["reason"])
 
@@ -505,7 +550,11 @@ class DayRunner:
             self._load_ledger()
             self._regime()
             checks["delever"] = dict(self.delever)
-            if self.multiplier <= 0.0:
+            # The brake exists for SHORT-tail risk.  An override day sells
+            # nothing and the long can lose only its premium, so the regime is
+            # journaled but neither refuses the day nor scales its size.
+            checks["delever_applied"] = not self.override_today
+            if self.multiplier <= 0.0 and not self.override_today:
                 reason = self._delever_flat_reason()
 
         checks["book"] = cfg.book_name
@@ -573,28 +622,39 @@ class DayRunner:
             **{k: v for k, v in info.items() if k != "last_session"},
         )
 
-    # -- the calendar guard (proposal 54) ---------------------------------
+    # -- the calendar (proposals 54 and 55) --------------------------------
+    @property
+    def override_today(self) -> bool:
+        """True when the month-end override replaces the short book today."""
+        return bool(self.calendar.get("override", False))
+
     def _calendar_guard(self) -> None:
         """Check the session against the no-short calendars and journal it.
 
         Proposal 54: the short straddle held into the close loses on the last
         trading session of a month (-1.8 index points per contract sold 13:30,
         +1.1 on other sessions) and buying it back at 15:30 does not rescue
-        the day, so a hit refuses the entry.  ``--no-calendar-guard`` turns it
-        off.
+        the day; the 15:30 straddle BOUGHT at the ask earns +0.43 premium
+        units on the same days.  ``month_end_mode`` says what a hit does:
+        ``override`` buys, ``sit_out`` refuses the day, ``off`` ignores it.
         """
         cfg = self.cfg
         self.calendar = evaluate_calendar(
-            self._session_date(), cfg.no_short_calendars, enabled=cfg.calendar_guard
+            self._session_date(), cfg.no_short_calendars, mode=cfg.month_end_mode
         )
         self.jr.event(
             CALENDAR_KIND,
             ts_et=self._now(),
-            rule="proposal 54: no short straddle into these closes",
+            rule="proposals 54 and 55: no short straddle into these closes; "
+            "override buys the 15:30 straddle and holds it to settlement",
+            long_size=cfg.month_end_long_size,
             **self.calendar,
         )
         if self.calendar["flat"]:
             assert str(self.calendar["reason"]).startswith(CALENDAR_FLAT_REASON)
+            print("\n*** " + str(self.calendar["reason"]) + " ***\n", flush=True)
+        elif self.override_today:
+            assert str(self.calendar["reason"]).startswith(CALENDAR_OVERRIDE_REASON)
             print("\n*** " + str(self.calendar["reason"]) + " ***\n", flush=True)
 
     # -- the deleveraging candidate (proposal 50, part B2) ---------------
@@ -1002,6 +1062,345 @@ class DayRunner:
         # a fill far from the quoted mid is a bad print, so fall back to it.
         self.hedge_to_target(clock, now, spot, pq, source="entry_fill")
         return True
+
+    # -- the month-end override (proposals 54 and 55) -------------------
+    def _observe(self, clock: str) -> Observation:
+        """Reach ``clock``, pick the nearest-OTM straddle, quote it, record it.
+
+        The override trades only at 15:30, but the premium ledger needs the
+        rows the short book would have left -- one per stamp from its entry
+        clock through 15:30 -- so every stamp is quoted, inverted and appended
+        to ``state.observed`` without an order.  The straddle is re-picked at
+        every stamp, as the seed ledger was built.
+        """
+        now = self._at_clock(clock)
+        spot = self.broker.spx_spot()
+        self.chain = self.broker.spxw_0dte_contracts(self._expiry()) or self.chain
+        band = self._band(self.chain, spot)
+        quotes = self.broker.quotes(band)
+        health = self.broker.quote_health()
+        body, why = pick_nearest_otm_reason(quotes, spot)
+        if not health.ok:
+            body, why = None, "stale_or_halted_quotes: " + health.detail
+        pq = PackageQuote(health=health)
+        tv = NAN
+        h = self._hours(now)
+        if body is not None:
+            self.state.body = body
+            self.state.wings = None  # the override buys the straddle alone
+            pq = self._package_quote()
+            if pq.tradeable:
+                tv = invert_total_vol(spot, body.Kc, body.Kp, pq.mid)
+                self.state.observed.append(
+                    {
+                        "clock": clock,
+                        "S": spot,
+                        "total_vol": tv if math.isfinite(tv) else NAN,
+                        "premium_mid": pq.mid,
+                        "kc": body.Kc,
+                        "kp": body.Kp,
+                        "hours_to_close": h,
+                    }
+                )
+            else:
+                why = (
+                    "package_not_quoted"
+                    if not pq.ok
+                    else "unhealthy_quotes: " + pq.health.detail
+                )
+        self.jr.event(
+            "quote",
+            ts_et=now,
+            clock=clock,
+            S=spot,
+            pkg_bid=pq.bid,
+            pkg_ask=pq.ask,
+            pkg_mid=pq.mid,
+            ok=pq.ok,
+            health=pq.health.as_payload(),
+            K_c=None if body is None else body.Kc,
+            K_p=None if body is None else body.Kp,
+            total_vol=tv,
+            hours_to_close=h,
+            observe_only=True,
+            reason=why or None,
+        )
+        return Observation(clock=clock, now=now, spot=spot, body=body, pq=pq, why=why)
+
+    def _size_month_end_long(self, obs: Observation) -> int | None:
+        """What the short program would have sold at its own clock.
+
+        The stress table at the configured capital and fraction, off the
+        straddle and the corrected delta at the clock the selector picked --
+        exactly ``_size``'s arithmetic -- with ``--n`` overriding it as it
+        does for the short, and WITHOUT the deleveraging multiplier: that
+        brake is for short-tail risk, and the long can lose only its premium.
+        ``None`` when the clock had no tradeable straddle to size off.
+        """
+        cfg = self.cfg
+        body, pq = obs.body, obs.pq
+        if body is None or not pq.tradeable:
+            self.jr.event(
+                "sizing",
+                ts_et=obs.now,
+                clock=obs.clock,
+                side="long",
+                rule=cfg.month_end_long_size,
+                n=None,
+                note="month-end override: no tradeable straddle at the short "
+                "program's clock, so its size is unknown: " + obs.why,
+            )
+            return None
+        tv = invert_total_vol(obs.spot, body.Kc, body.Kp, pq.mid)
+        factor = self._factor(obs.clock)
+        delta = (
+            package_delta(corrected_total_vol(tv, factor), obs.spot, body.Kc, body.Kp)
+            if math.isfinite(tv)
+            else NAN
+        )
+        stress = stress_loss_per_contract(
+            obs.spot, body.Kc, body.Kp, pq.mid, delta, jump=cfg.stress_jump
+        )
+        loss = float(stress.get("total", NAN))
+        sized = contracts_for(cfg.capital, cfg.stress_fraction, loss)
+        if cfg.n_override is not None:
+            n = int(cfg.n_override)
+            note = "--n override"
+        else:
+            n = min(int(sized), int(cfg.max_straddles))
+            note = "stress table" + (
+                ", capped at max_straddles" if sized > cfg.max_straddles else ""
+            )
+        note += (
+            "; month-end override: the short program's count at "
+            + obs.clock
+            + ", deleveraging NOT applied (x"
+            + f"{self.multiplier:g}"
+            + " would have scaled a short)"
+        )
+        self.jr.event(
+            "sizing",
+            ts_et=obs.now,
+            clock=obs.clock,
+            side="long",
+            rule=cfg.month_end_long_size,
+            n=n,
+            n_stress=n,
+            n_from_table=int(sized),
+            n_override=cfg.n_override,
+            max_straddles=cfg.max_straddles,
+            multiplier=1.0,
+            multiplier_not_applied=float(self.multiplier),
+            delever_state=str(self.delever.get("state", "")),
+            capital=cfg.capital,
+            stress_fraction=cfg.stress_fraction,
+            stress_jump=cfg.stress_jump,
+            short_loss_option=float(stress.get("option", NAN)),
+            short_loss_hedge=float(stress.get("hedge", NAN)),
+            short_loss_total=loss,
+            short_loss_side=str(stress.get("side", "")),
+            delta_pkg=delta,
+            premium_mid=pq.mid,
+            note=note,
+        )
+        return n
+
+    def _buy_month_end_long(
+        self, obs: Observation, n: int | None, size_clock: str
+    ) -> bool:
+        """Buy ``n`` straddles at the quoted ask, resting and never chasing.
+
+        Every refusal ends the day flat and journals why: no size, no
+        tradeable straddle, no loss budget, an outlay above it, or no fill.
+        """
+        cfg = self.cfg
+
+        def refuse(reason: str, **extra: Any) -> bool:
+            self.jr.event(
+                "entry",
+                ts_et=self._now(),
+                clock=obs.clock,
+                S=obs.spot,
+                side="long",
+                entered=False,
+                reason=reason,
+                size_clock=size_clock,
+                **extra,
+            )
+            print(
+                "  no month-end long: " + reason + " -- the day ends flat", flush=True
+            )
+            return False
+
+        if n is None:
+            return refuse(
+                "month_end_long_unsized: no tradeable straddle at the short "
+                "program's clock " + size_clock
+            )
+        if n < 1:
+            return refuse("stress_sizing_is_zero_contracts")
+        body, pq = obs.body, obs.pq
+        if body is None:
+            return refuse(obs.why)
+        if not pq.tradeable:
+            return refuse(
+                obs.why or "package_not_quoted",
+                K_c=body.Kc,
+                K_p=body.Kp,
+                health=pq.health.as_payload(),
+            )
+        limit = float(pq.ask)
+        outlay = n * limit * cfg.index_multiplier
+        budget = cfg.capital * cfg.stress_fraction
+        money: dict[str, Any] = {
+            "n_straddles": n,
+            "pkg_ask": limit,
+            "outlay_dollars": outlay,
+            "loss_budget_dollars": budget,
+            "K_c": body.Kc,
+            "K_p": body.Kp,
+        }
+        if not budget > 0.0:
+            return refuse(
+                "month_end_long_no_loss_budget: no --capital, so the premium "
+                "outlay cannot be checked against capital x stress_fraction",
+                **money,
+            )
+        if outlay > budget:
+            return refuse("month_end_long_outlay_exceeds_the_loss_budget", **money)
+
+        self.state.body = body
+        self.state.wings = None
+        self.jr.event(
+            "order",
+            ts_et=self._now(),
+            clock=obs.clock,
+            what="body_entry",
+            action="BUY",
+            side="long",
+            quantity=n,
+            limit=limit,
+            spread=pq.spread,
+            max_cross_ticks=0,
+            note="month-end override: a limit at the quoted ask that rests "
+            "and cancels; it never chases",
+        )
+        fill = self.broker.place_combo(
+            self._package_legs(),
+            n,
+            limit,
+            action="BUY",
+            spread=pq.spread,
+            what="body_entry",
+            max_cross_ticks=0,
+        )
+        self.jr.event("fill", ts_et=self._now(), clock=obs.clock, **fill.as_payload())
+        filled = abs(int(fill.quantity))
+        if filled == 0 or not math.isfinite(fill.price) or fill.price <= 0:
+            self.jr.event(
+                "error",
+                ts_et=self._now(),
+                what="month_end_long_unfilled",
+                level="warn",
+                detail=(fill.note or "no fill")
+                + " [status "
+                + fill.status
+                + "] -- the limit at the ask is not chased",
+                clock=obs.clock,
+            )
+            return refuse("month_end_long_unfilled", status=fill.status, **money)
+        if filled < n:
+            msg = (
+                "PARTIAL month-end long: "
+                + str(filled)
+                + " of "
+                + str(n)
+                + " straddles filled -- holding what we have to settlement"
+            )
+            print("\n*** " + msg + " ***\n", flush=True)
+            self.jr.event(
+                "error",
+                ts_et=self._now(),
+                what="entry_partial",
+                detail=msg,
+                level="alert",
+                clock=obs.clock,
+                requested=n,
+                filled=filled,
+            )
+        self.state.entry_fill = float(fill.price)
+        self.state.entry_quoted_mid = pq.mid
+        self.state.n_entry = filled
+        self.state.n_open = filled
+        self.state.entered = True
+        self.state.side = "long"
+        paid = filled * float(fill.price) * cfg.index_multiplier
+        self.jr.event(
+            "entry",
+            ts_et=self._now(),
+            clock=obs.clock,
+            S=obs.spot,
+            side="long",
+            entered=True,
+            what="month_end_override",
+            K_c=body.Kc,
+            K_p=body.Kp,
+            same_strike=body.same_strike,
+            pkg_bid=pq.bid,
+            pkg_ask=pq.ask,
+            pkg_mid=pq.mid,
+            n_straddles=filled,
+            n_requested=n,
+            outlay_dollars=paid,
+            loss_budget_dollars=budget,
+            outlay_fraction=paid / cfg.capital,
+            hours_to_close=self._hours(obs.now),
+            size_clock=size_clock,
+            reason=None,
+        )
+        return True
+
+    def month_end_override(self) -> None:
+        """The day proposals 54 and 55 replace: no short, a long 15:30 straddle."""
+        size_clock = self.state.entry_clock
+        watch = [c for c in SESSION_STAMPS if size_clock <= c <= MONTH_END_LONG_CLOCK]
+        n_long: int | None = None
+        try:
+            last: Observation | None = None
+            for clock in watch:
+                last = self._observe(clock)
+                if clock == size_clock:
+                    n_long = self._size_month_end_long(last)
+            bought = (
+                last is not None
+                and last.clock == MONTH_END_LONG_CLOCK
+                and self._buy_month_end_long(last, n_long, size_clock)
+            )
+            if bought:
+                # Nothing to flatten: the override never holds a futures leg.
+                provisional = self.settle(self._at_clock(SETTLEMENT_CLOCK))
+            else:
+                provisional = {"S_close": NAN, "payoff": NAN}
+            # A flat override day still hands the morning its observed rows,
+            # so the premium ledger has no hole on month-ends.
+            self.write_pending(provisional)
+        finally:
+            self.mark(self._now())
+            if self.state.n_open > 0:
+                print(
+                    "\n*** MANUAL CHECK REQUIRED: "
+                    + str(self.state.n_open)
+                    + " LONG straddle(s) are open and were not settled ***\n",
+                    flush=True,
+                )
+                self.jr.event(
+                    "error",
+                    what="manual_flatten_required",
+                    level="fatal",
+                    detail="the month-end override ended with "
+                    + str(self.state.n_open)
+                    + " long straddle(s) open",
+                )
 
     # -- hedging ---------------------------------------------------------
     def hedge_to_target(
@@ -1417,6 +1816,7 @@ class DayRunner:
             S_close=s,
             payoff=payoff,
             provisional=True,
+            side=self.state.side,
             n_settled=self.state.n_open,
             note="provisional: SPXW is PM-settled, so the official settlement "
             "is the official 16:00 SPX close; --reconcile finalises it next "
@@ -1428,19 +1828,30 @@ class DayRunner:
         return {"S_close": s, "payoff": payoff}
 
     def write_pending(self, provisional: dict[str, Any]) -> str:
-        """The handover file ``--reconcile`` reads the next morning."""
-        body = self.state.body
-        assert body is not None
+        """The handover file ``--reconcile`` reads the next morning.
+
+        A month-end override that ended flat writes one too, with no strikes
+        and no straddles: the morning still appends its observed rows.
+        """
+        traded = self.state.n_entry > 0
+        body = self.state.body if traded else None
+        if traded:
+            assert body is not None
+        long_day = traded and self.state.side == "long"
         path = os.path.join(self.cfg.journal_dir, PENDING_NAME)
         blob = {
             "date": self.broker.session_date(),
             "journal": self.jr.path,
             "book": self.cfg.book_name,
-            "entry_clock": self.state.entry_clock,
+            "side": self.state.side if traded else "flat",
+            "month_end_mode": self.cfg.month_end_mode,
+            "decision": self.calendar.get("decision"),
+            "entry_clock": MONTH_END_LONG_CLOCK if long_day else self.state.entry_clock,
+            "size_clock": self.state.entry_clock,
             "n_straddles": self.state.n_entry,
-            "K_c": body.Kc,
-            "K_p": body.Kp,
-            "wings": list(self.state.wings) if self.state.wings else None,
+            "K_c": None if body is None else body.Kc,
+            "K_p": None if body is None else body.Kp,
+            "wings": list(self.state.wings) if (traded and self.state.wings) else None,
             "entry_fill": self.state.entry_fill,
             "provisional_settlement": provisional.get("S_close", NAN),
             "provisional_payoff": provisional.get("payoff", NAN),
@@ -1480,7 +1891,8 @@ class DayRunner:
             delever_half_pct=cfg.delever_half_pct,
             delever_zero_pct=cfg.delever_zero_pct,
             delever_min_sessions=cfg.delever_min_sessions,
-            calendar_guard=cfg.calendar_guard,
+            month_end_mode=cfg.month_end_mode,
+            month_end_long_size=cfg.month_end_long_size,
             no_short_calendars=list(cfg.no_short_calendars),
             candidate_clocks=list(cfg.candidate_clocks),
             fixed_entry_clock=cfg.fixed_entry_clock,
@@ -1488,6 +1900,9 @@ class DayRunner:
             replay=cfg.is_replay,
         )
         self.preflight()
+        if self.override_today:
+            self.month_end_override()
+            return
         if not self.enter():
             return
         # Everything past the entry is wrapped: a crash must not end the
@@ -1593,7 +2008,11 @@ class DayRunner:
 def settlement_payoff(
     s: float, kc: float, kp: float, wings: Sequence[float] | None = None
 ) -> float:
-    """Cash settlement of the SHORT body (plus long wings), in index points."""
+    """Cash settlement of the body (less the wings), in index points.
+
+    The same number whichever side holds it: the short book pays it and the
+    month-end long receives it; the sign is the journal's (``DaySummary``).
+    """
     if not math.isfinite(s):
         return NAN
     payoff = max(s - float(kc), 0.0) + max(float(kp) - s, 0.0)
@@ -1698,8 +2117,21 @@ def reconcile_day(cfg: Config, broker: Broker | None = None) -> int:
         )
         return 2
 
-    payoff = settlement_payoff(
-        settlement, float(pending["K_c"]), float(pending["K_p"]), pending.get("wings")
+    traded = (
+        pending.get("K_c") is not None
+        and pending.get("K_p") is not None
+        and int(pending.get("n_straddles") or 0) > 0
+    )
+    # A flat month-end override has no body to settle, only rows to append.
+    payoff = (
+        settlement_payoff(
+            settlement,
+            float(pending["K_c"]),
+            float(pending["K_p"]),
+            pending.get("wings"),
+        )
+        if traded
+        else NAN
     )
     jr = Journal(journal_path, tz=cfg.tz, echo=False, roll=False)
     try:

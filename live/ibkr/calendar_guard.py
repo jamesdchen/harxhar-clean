@@ -1,4 +1,4 @@
-"""No-short calendars: sessions the afternoon short book sits out.
+"""No-short calendars: sessions the afternoon short book does not sell into.
 
 The afternoon hold book sells a straddle and carries it into the cash
 settlement.  Proposal 54 (``writeup/intraday_proposals/54_month_end_close.py``)
@@ -6,13 +6,24 @@ measured the one class of sessions on which that loses: the LAST TRADING
 SESSION OF A CALENDAR MONTH, when month-end rebalancing is executed at the
 closing auction.  Sold 13:30 and held, the short straddle loses 1.8 index
 points per contract on those 70 sessions against +1.1 on every other session
-(t 4.7); bought back at 15:30 it still loses 0.6.  So the guard is SIT OUT, not
-"exit early": the day ends flat before any entry, exactly as the deleveraging
-rule's zero multiplier does.
+(t 4.7); bought back at 15:30 it still loses 0.6.  The same close is cheap to
+BUY: the 15:30 nearest-OTM straddle bought at the quoted ask and held to cash
+settlement earns +0.43 premium units (+2.9 index points per contract) on those
+70 sessions, and the same +0.43 on the 18 held-out month-ends from 2024-05
+(proposals 54 and 55).
 
-The guard is a LIST of named calendars (``NO_SHORT_CALENDARS``), so another
-class of days -- FOMC days, quarter-ends -- can be added by configuration once
-it has its own evidence.  Only ``month_end`` is registered today.
+What a hit does is the MODE (``MONTH_END_MODES``):
+
+* ``override`` (the default) -- the short program does not enter; at 15:30
+  the runner BUYS the nearest-OTM straddle and holds it to settlement;
+* ``sit_out`` -- the day ends flat in preflight, before any entry, exactly as
+  the deleveraging rule's zero multiplier does;
+* ``off`` -- the calendar is not consulted and the short book trades.
+
+The calendars are a LIST of named entries (``NO_SHORT_CALENDARS``), so another
+class of days can be added by configuration once it has its own evidence --
+for BOTH halves of the override: that the short loses into its close and that
+the long is paid for it.  Only ``month_end`` is registered today.
 
 Live trading needs the answer for a FUTURE date, so nothing here reads a
 ledger: the NYSE holiday schedule is computed from the exchange's own rules
@@ -27,7 +38,8 @@ before it.
 A scheduled 13:00 early close (the day after Thanksgiving, Christmas Eve) is
 still a session here, so it can be a month's last one -- 2024-11-29 and
 2025-11-28 are.  The runner refuses a half session off the broker's liquid
-hours before it ever reaches this guard, so such a day ends flat either way.
+hours before it ever reaches this calendar, so such a day ends flat in every
+mode: the override is never tried on a close that is not 16:00.
 
 Nothing in this module talks to a socket.
 """
@@ -149,18 +161,31 @@ NO_SHORT_CALENDARS: dict[str, NoShortCalendar] = {
         evidence=(
             "proposal 54: sold 13:30 and held, the short straddle loses 1.8 "
             "index points per contract on month-ends against +1.1 on other "
-            "sessions; the loss is the closing half hour"
+            "sessions; the loss is the closing half hour. Proposals 54/55: the "
+            "15:30 straddle bought at the ask and held earns +0.43 premium "
+            "units (+2.9 index points per contract) on the 70 month-ends, and "
+            "+0.43 on the 18 held out from 2024-05"
         ),
     ),
 }
 
-#: The head of the refusal, so a supervisor grepping the journal or the
+#: What a hit on a no-short calendar does (see the module docstring).
+MONTH_END_MODES: tuple[str, ...] = ("override", "sit_out", "off")
+
+#: The head of the sit-out refusal, so a supervisor grepping the journal or the
 #: summary matches one string.
 CALENDAR_FLAT_REASON = "calendar guard: "
+#: The head of the override's announcement, for the same reason.
+CALENDAR_OVERRIDE_REASON = "month-end override: "
 
 
-def evaluate(d: date, names: Iterable[str], enabled: bool = True) -> dict[str, Any]:
-    """The guard's verdict for one session, as the journal records it."""
+def evaluate(d: date, names: Iterable[str], mode: str = "override") -> dict[str, Any]:
+    """The calendar's verdict for one session, as the journal records it.
+
+    ``decision`` is ``"short"`` (no hit, or the mode is ``off``), ``"sit_out"``
+    or ``"override"``; ``flat`` is True only for a sit-out and ``override`` only
+    for an override, so a caller can branch on either without re-deriving it.
+    """
     names = tuple(names)
     unknown = [n for n in names if n not in NO_SHORT_CALENDARS]
     if unknown:
@@ -170,22 +195,44 @@ def evaluate(d: date, names: Iterable[str], enabled: bool = True) -> dict[str, A
             + "; registered: "
             + repr(sorted(NO_SHORT_CALENDARS))
         )
+    if mode not in MONTH_END_MODES:
+        raise ValueError(
+            "month_end_mode must be one of "
+            + repr(MONTH_END_MODES)
+            + ", got "
+            + repr(mode)
+        )
+    enabled = mode != "off"
     hits = [n for n in names if NO_SHORT_CALENDARS[n].applies(d)] if enabled else []
+    decision = "short" if not hits else mode
+    labels = " and ".join(NO_SHORT_CALENDARS[n].label for n in hits)
     reason = ""
-    if hits:
+    if decision == "sit_out":
         reason = (
             CALENDAR_FLAT_REASON
             + d.isoformat()
             + " is "
-            + " and ".join(NO_SHORT_CALENDARS[n].label for n in hits)
+            + labels
             + " -- the short book does not hold into this close: the day is FLAT"
         )
+    elif decision == "override":
+        reason = (
+            CALENDAR_OVERRIDE_REASON
+            + d.isoformat()
+            + " is "
+            + labels
+            + " -- no short into this close; the runner BUYS the 15:30 straddle "
+            "and holds it to cash settlement"
+        )
     return {
-        "enabled": bool(enabled),
+        "mode": mode,
+        "enabled": enabled,
         "session": d.isoformat(),
         "calendars": list(names),
         "hits": hits,
-        "flat": bool(hits),
+        "decision": decision,
+        "flat": decision == "sit_out",
+        "override": decision == "override",
         "reason": reason,
         "evidence": [NO_SHORT_CALENDARS[n].evidence for n in hits],
     }
