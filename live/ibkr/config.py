@@ -18,7 +18,10 @@ afternoon/settlement premium is what remains, so the runner
   then scales that size by proposal 50's DELEVERAGING CANDIDATE: full size
   while the trailing realized variance sits at or below its own expanding
   lagged 90th percentile, half above it, flat above the 97.5th
-  (``delever``, off with ``--no-delever``).
+  (``delever``, off with ``--no-delever``);
+* sits out the sessions on the no-short calendars -- today the last trading
+  session of a month, where proposal 54 measured the short book losing into
+  the month-end close (``calendar_guard``, off with ``--no-calendar-guard``).
 
 ``terminal="flatten"`` keeps the old exit-at-15:30 variant; it is the
 optional variant now, not the book of record.
@@ -36,6 +39,8 @@ import sys
 from dataclasses import dataclass, field
 from datetime import time as dtime
 from typing import Literal, TextIO
+
+from live.ibkr.calendar_guard import NO_SHORT_CALENDARS
 
 Mode = Literal["dry", "paper", "live"]
 EntryMode = Literal["selector", "fixed"]
@@ -160,6 +165,13 @@ class Config:
     delever_half_pct: float = 0.90
     delever_zero_pct: float = 0.975
     delever_min_sessions: int = 252
+
+    # -- the calendar guard (proposal 54) ---------------------------------
+    #: End the day flat, before any entry, on a session that falls on one of
+    #: the named no-short calendars (``live.ibkr.calendar_guard``).  Only
+    #: ``month_end`` has evidence behind it today.
+    calendar_guard: bool = True
+    no_short_calendars: tuple[str, ...] = ("month_end",)
 
     # -- the book --------------------------------------------------------
     terminal: Terminal = "hold"
@@ -343,6 +355,16 @@ class Config:
         if self.delever_min_sessions < 1:
             raise ValueError("delever_min_sessions must be >= 1")
 
+        self.no_short_calendars = tuple(self.no_short_calendars)
+        unknown = [n for n in self.no_short_calendars if n not in NO_SHORT_CALENDARS]
+        if unknown:
+            raise ValueError(
+                "unknown no_short_calendars "
+                + repr(unknown)
+                + "; registered: "
+                + repr(sorted(NO_SHORT_CALENDARS))
+            )
+
         if self.rebalance_clocks is not None:
             self.rebalance_clocks = tuple(self.rebalance_clocks)
             for c in self.rebalance_clocks:
@@ -519,6 +541,15 @@ class Config:
             "the 97.5th)",
         )
         p.add_argument(
+            "--no-calendar-guard",
+            action="store_false",
+            dest="calendar_guard",
+            default=True,
+            help="trade every session: turn OFF the calendar guard that ends "
+            "the day flat on the last trading session of a month (proposal "
+            "54: the short book loses into the month-end close)",
+        )
+        p.add_argument(
             "--terminal",
             choices=("hold", "flatten"),
             default="hold",
@@ -598,6 +629,7 @@ class Config:
             else AFTERNOON_CLOCKS,
             delta_correction=ns.delta_correction,
             delever=ns.delever,
+            calendar_guard=ns.calendar_guard,
             terminal=ns.terminal,
             exit_clock=ns.exit_clock,
             wings_pct=ns.wings_pct,

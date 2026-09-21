@@ -47,7 +47,9 @@ NAN = float("nan")
 EVENT_KINDS = (
     "config",
     "preflight",
+    "calendar",
     "ledger",
+    "regime",
     "selector",
     "sizing",
     "entry",

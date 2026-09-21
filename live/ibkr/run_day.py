@@ -2,12 +2,15 @@
 
 The book (audit 2026-09-18, sections 4-7):
 
-    preflight   load the premium ledger (seed + live), read TODAY's regime
-                off it -- proposal 50's DELEVERAGING CANDIDATE, full / half /
-                flat against the expanding lagged percentiles of the trailing
-                realized variance -- and pick TODAY's entry clock from it
-                causally, or fall back to the fixed afternoon clock while the
-                selector warms up.  A zero multiplier refuses the day here.
+    preflight   the CALENDAR GUARD refuses the sessions the short book does
+                not hold through (proposal 54: the last trading session of a
+                month ends flat).  Then load the premium ledger (seed + live),
+                read TODAY's regime off it -- proposal 50's DELEVERAGING
+                CANDIDATE, full / half / flat against the expanding lagged
+                percentiles of the trailing realized variance -- and pick
+                TODAY's entry clock from it causally, or fall back to the
+                fixed afternoon clock while the selector warms up.  A zero
+                multiplier refuses the day here.
     entry       sell the nearest-OTM SPXW 0DTE straddle (the *body*) at that
                 clock, sized by the STRESS table -- capital x fraction over
                 the dollar loss of one hedged straddle in a 5 % last-bar
@@ -51,6 +54,7 @@ from live.ibkr.broker import (
     IBBroker,
     QuoteHealth,
 )
+from live.ibkr.calendar_guard import CALENDAR_FLAT_REASON, evaluate as evaluate_calendar
 from live.ibkr.config import Config, parse_clock, typed_live_ack
 from live.ibkr.hedge import rebalance_lots, residual_delta_lots, target_lots
 from live.ibkr import journal as journal_module
@@ -75,12 +79,14 @@ LATE_ALERT_S = 60.0
 PENDING_NAME = "pending_settlement.json"
 
 #: The journal kind the deleveraging rule writes: the regime it read, the
-#: thresholds it read it against, and the multiplier it returned.  The
-#: journal owns the whitelist of kinds; this registers one more against it
-#: rather than editing that whitelist from two places.
+#: thresholds it read it against, and the multiplier it returned.
 REGIME_KIND = "regime"
-if REGIME_KIND not in journal_module.EVENT_KINDS:
-    journal_module.EVENT_KINDS = tuple(journal_module.EVENT_KINDS) + (REGIME_KIND,)  # type: ignore[assignment]
+#: The journal kind the calendar guard writes: the session, the no-short
+#: calendars it was checked against, and the ones it hit.
+CALENDAR_KIND = "calendar"
+# The journal owns the whitelist of kinds.  An unknown kind is rewritten to an
+# alert-level "error" record, so a kind missing from it fails loudly here.
+assert {REGIME_KIND, CALENDAR_KIND} <= set(journal_module.EVENT_KINDS)
 
 #: The head of the refusal a zero multiplier raises, so a supervisor grepping
 #: the journal or the summary matches one string.
@@ -232,6 +238,8 @@ class DayRunner:
         #: proposal 50's deleveraging multiplier and the dict behind it.
         self.multiplier: float = 1.0
         self.delever: dict[str, Any] = {"state": "not_computed", "multiplier": 1.0}
+        #: the calendar guard's verdict for the session (proposal 54).
+        self.calendar: dict[str, Any] = {"enabled": False, "hits": [], "flat": False}
 
     # -- helpers ---------------------------------------------------------
     def _now(self) -> datetime:
@@ -483,6 +491,14 @@ class DayRunner:
             )
 
         if not reason:
+            # Date-only, so it costs nothing -- but it runs AFTER the position
+            # check: a leg left on from a crash is the louder alarm.
+            self._calendar_guard()
+            checks["calendar_guard"] = dict(self.calendar)
+            if self.calendar["flat"]:
+                reason = str(self.calendar["reason"])
+
+        if not reason:
             # The ledger is read INSIDE preflight, because the deleveraging
             # rule is read off it and a zero multiplier is a preflight
             # refusal: the day never reaches an entry clock.
@@ -556,6 +572,30 @@ class DayRunner:
             expected_last=str(want),
             **{k: v for k, v in info.items() if k != "last_session"},
         )
+
+    # -- the calendar guard (proposal 54) ---------------------------------
+    def _calendar_guard(self) -> None:
+        """Check the session against the no-short calendars and journal it.
+
+        Proposal 54: the short straddle held into the close loses on the last
+        trading session of a month (-1.8 index points per contract sold 13:30,
+        +1.1 on other sessions) and buying it back at 15:30 does not rescue
+        the day, so a hit refuses the entry.  ``--no-calendar-guard`` turns it
+        off.
+        """
+        cfg = self.cfg
+        self.calendar = evaluate_calendar(
+            self._session_date(), cfg.no_short_calendars, enabled=cfg.calendar_guard
+        )
+        self.jr.event(
+            CALENDAR_KIND,
+            ts_et=self._now(),
+            rule="proposal 54: no short straddle into these closes",
+            **self.calendar,
+        )
+        if self.calendar["flat"]:
+            assert str(self.calendar["reason"]).startswith(CALENDAR_FLAT_REASON)
+            print("\n*** " + str(self.calendar["reason"]) + " ***\n", flush=True)
 
     # -- the deleveraging candidate (proposal 50, part B2) ---------------
     def _regime(self) -> None:
@@ -1440,6 +1480,8 @@ class DayRunner:
             delever_half_pct=cfg.delever_half_pct,
             delever_zero_pct=cfg.delever_zero_pct,
             delever_min_sessions=cfg.delever_min_sessions,
+            calendar_guard=cfg.calendar_guard,
+            no_short_calendars=list(cfg.no_short_calendars),
             candidate_clocks=list(cfg.candidate_clocks),
             fixed_entry_clock=cfg.fixed_entry_clock,
             exit_clock=cfg.exit_clock,

@@ -6,10 +6,11 @@ each session from a causal premium ledger; delta-hedge every 30 minutes through
 **corrected** by that clock's trailing realized-over-implied factor; **hold the
 body to cash settlement**; flatten the futures at 16:00:00 ET; reconcile the
 official settlement the next morning. Size by a stress table, never by margin.
+Sit out the last trading session of the month (§1.6).
 
 ```
-preflight   ledger  →  regime (size multiplier) and entry clock
-                                                   (§1.5; selector, or the fixed clock)
+preflight   calendar guard (§1.6)  →  ledger  →  regime (size multiplier) and
+            entry clock                            (§1.5; selector, or the fixed clock)
 13:30 ET    SELL the body, size = stress x m   (combo first, then the futures hedge)
 14:00 ..    re-quote, re-invert, CORRECT,     (ES bulk + MES remainder)
 15:30       re-hedge, journal the residual
@@ -247,6 +248,78 @@ minimum are `Config.delever_window`, `delever_half_pct`, `delever_zero_pct` and
 `p_half`, `p_zero`, `n_prior`, `state` (`full` / `half` / `zero` / `warmup` /
 `disabled` / `no_ledger`) and `multiplier` — whether or not the rule bites.
 
+### 1.6 The calendar guard — `calendar_guard.py` (proposal 54)
+
+**The rule.** On the **last trading session of a calendar month** the runner
+ends the day FLAT in preflight, before the ledger is read and before any order
+is built — the same shape as a zero deleveraging multiplier. It is on by
+default; `--no-calendar-guard` turns it off.
+
+**The evidence** (`writeup/intraday_proposals/54_month_end_close.py`, 70
+month-end sessions of the 1279 in the ledger, index points per contract):
+
+| short straddle | month-end sessions | every other session |
+| --- | --- | --- |
+| sold 11:00, held to settlement | −1.8 | +1.4 (t 5.7) |
+| sold 13:30, held to settlement | −1.8 | +1.1 (t 4.7) |
+| sold 14:30, held to settlement | −2.3 | +0.8 (t 3.5) |
+| sold 13:30, bought back at 15:30 | −0.7 | +0.5 (t 3.0) |
+
+Month-end rebalancing is executed at the closing auction: since 1998 the last
+half hour's variance is 1.5× the bar before it on month-ends against 1.1×
+otherwise (t 7.9, 264 month-ends before any option in the study). Buying the
+straddle back at 15:30 still loses, so the guard is **sit out**, not "exit
+early". 54 was found by inspecting the book's worst days, and the book's single
+worst day, 2023-11-30, is a month-end; its test on data that played no part in
+that (the underlying before 2020; 18 held-out month-ends from 2024-05) held.
+The month-end intervals are wide (n = 70): this is a guard against a measured
+loss, not a claim about its exact size.
+
+**The calendar.** Live trading needs the answer for a *future* date, so the
+guard reads no ledger: `is_last_session_of_month` computes the NYSE session
+calendar from the exchange's holiday rules (Rule 7.2 observance, Good Friday
+from `dateutil.easter`). Neither `exchange_calendars` nor
+`pandas_market_calendars` is installed in the `285J` environment and none is
+needed — `dateutil` already ships with pandas. Two parity checks pin it
+(`tests/test_calendar_guard.py`):
+
+* on the seed ledger's 1279 sessions the rule flags **70** month-ends, exactly
+  proposal 54's empirical 70, with **0** disagreements. The ledger spans 72
+  months; the two missing month-ends are 2024-11-29 and 2025-11-28, 13:00
+  half sessions the ledger never carried;
+* against 26 years of the 30-minute panel (1998-01-05 .. 2024-04-30): no day
+  the rule calls a holiday has a 16:00 bar, and every day it calls a session
+  without one is a 13:00 early close.
+
+**Its limits.** A *special* closure announced at short notice (a day of
+mourning, a storm) cannot be computed. The ones on record are listed in
+`SPECIAL_CLOSURES`; a new one has to be added by hand. The failure is
+one-sided: a special closure on a month's last weekday would make the guard
+miss the true last session, the day before. A half session that is also a
+month's last session is refused earlier, by the liquid-hours check, so it ends
+flat either way. A position found open in preflight outranks the guard — that
+is the louder alarm.
+
+**The shape.** `NO_SHORT_CALENDARS` is a registry of *named* calendars and
+`Config.no_short_calendars` picks from it (`("month_end",)` today), so an
+FOMC-day or quarter-end guard is a registry entry plus its evidence, not a new
+code path. None is registered: only month-end has been measured for this book.
+
+```
+$ python -m live.ibkr.run_day --date 2023-11-30 --capital 1000000
+  PREFLIGHT ABORT: calendar guard: 2023-11-30 is the last trading session of
+                   the month -- the short book does not hold into this close:
+                   the day is FLAT                                    [exit 2]
+
+$ ...  --no-calendar-guard               # the same session, traded
+  entry clock                           14:30
+  straddles                                 4
+  day P&L (premium units)             -4.7275          (-$10,778.81)
+```
+
+Every session journals one `calendar` record — `session`, `calendars`, `hits`,
+`flat`, `reason`, `evidence`, `enabled` — whether or not the guard bites.
+
 ---
 
 ## 2. The daily cycle
@@ -348,7 +421,8 @@ is what it is.
 
 ```bash
 # 1. replay a recorded session (no network, simulated clock) — the smoke test
-python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1
+#    (2023-11-30 is a month-end session: without --no-calendar-guard it ends FLAT, §1.6)
+python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1 --no-calendar-guard
 python -m live.ibkr.run_day --date 2025-06-20 --capital 1000000
 
 # 2. connected, but no orders: read-only socket, every order logged and a
@@ -365,7 +439,8 @@ HARXHAR_LIVE=I_UNDERSTAND python -m live.ibkr.run_day --mode live --capital 1000
 
 Decision-layer flags: `--entry-mode selector|fixed`, `--entry-clock HH:MM`,
 `--candidates afternoon|all`, `--selector-window`, `--selector-min-sessions`,
-`--ledger`, `--ledger-live`, `--no-delta-correction`, `--no-delever`.
+`--ledger`, `--ledger-live`, `--no-delta-correction`, `--no-delever`,
+`--no-calendar-guard`.
 Book flags: `--terminal hold|flatten`, `--exit-clock`, `--wings`.
 Sizing flags: `--capital`, `--stress-fraction`, `--stress-jump`, `--n`,
 `--max-straddles`.
@@ -417,7 +492,7 @@ Two replays, `--fill cross` (sell the package at its bid, buy it at its ask),
 against the shipped seed ledger:
 
 ```
-$ python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed       --entry-clock 11:00 --n 1
+$ python -m live.ibkr.run_day --date 2023-11-30 --entry-mode fixed       --entry-clock 11:00 --n 1 --no-calendar-guard
 
 day summary  2023-11-30   book=afternoon-hold-to-cash-settlement  mode=dry
   entry clock                           11:00
@@ -461,7 +536,9 @@ the hedge ran to 15:30 in ES + MES, and the body cash-settled.
 the same session flattened at 15:30 ends at **−0.3381** premium units instead of
 −2.53. It is also the reason the hold book is sized by the stress table rather
 than by conviction. (With `--no-delta-correction` the same hold replay is
-−2.4805: the V9 factor moves the hedge, and only the hedge.)
+−2.4805: the V9 factor moves the hedge, and only the hedge.) It is also the
+last trading session of November 2023, which is why the replay above needs
+`--no-calendar-guard`: by default the runner now sits this day out (§1.6).
 
 ---
 
@@ -495,9 +572,11 @@ half of the claim was right. The lot rule above is the fix.
 Do these in order. Each one closes a specific guess in §12; do not skip to the
 next until the previous one printed what it should.
 
-1. **Replay.** `--date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1`
-   and `--date 2025-06-20 --capital 1000000`. Both must end flat, both must write
-   a summary and a `pending_settlement.json`.
+1. **Replay.** `--date 2023-11-30 --entry-mode fixed --entry-clock 11:00 --n 1
+   --no-calendar-guard` and `--date 2025-06-20 --capital 1000000`. Both must end
+   flat, both must write a summary and a `pending_settlement.json`. Then the
+   first one again WITHOUT `--no-calendar-guard`: it must refuse in preflight
+   with the month-end reason and exit 2.
 2. **Reconcile the replay.** `--date 2025-06-20 --reconcile` (the fake serves the
    16:00 print as the "statement"). The summary must lose `provisional` and the
    live ledger must gain that session's rows.
@@ -618,7 +697,7 @@ Everything that needs a socket, which is all of `IBBroker`:
   so a 1.5 % wing is never quotable and the four-leg bag is never built. The
   refusal is clean and tested; the fly itself is not.
 
-The 177 green tests exercise the replay, the journal, the summary arithmetic, the
+The 207 green tests exercise the replay, the journal, the summary arithmetic, the
 config gates and the decision layer. They say nothing about IB.
 
 ---
@@ -648,7 +727,8 @@ config gates and the decision layer. They say nothing about IB.
 | `config.py` | `Config` + the CLI; the live gate (mode **and** port), the tick-by-price rule, the spread-sized crossing cap, the rebalance ladder, the deleveraging knobs |
 | `broker.py` | `Broker` protocol, `IBBroker`, `FakeBroker` + `FakeFaults`, `Fill`, `QuoteHealth`, `load_replay_day` |
 | `journal.py` | `Journal` (JSONL, flushed and fsynced, rolls on re-run) + `DaySummary.from_journal` |
-| `run_day.py` | `DayRunner` (preflight → ledger → regime → selector → sizing → entry → hedge → settle) , `reconcile_day`, `main` |
+| `run_day.py` | `DayRunner` (preflight → calendar guard → ledger → regime → selector → sizing → entry → hedge → settle) , `reconcile_day`, `main` |
+| `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, and the registry of named no-short calendars (proposal 54) |
 | `premium_ledger.py` | the `(session, clock)` tape, its two causal estimators and the deleveraging multiplier |
 | `selector.py` | proposal 46's E2 entry-clock selector |
 | `sizing.py` | the stress table and `contracts_for` |
@@ -656,4 +736,4 @@ config gates and the decision layer. They say nothing about IB.
 | `strikes.py` | nearest-OTM selection, the no-quote sentinel, the outage guards |
 | `hedge.py` | `target_lots` (ES bulk + MES remainder), `rebalance_lots`, `residual_delta_lots` |
 | `parity.py` | the engine-against-research parity harness |
-| `tests/` | 177 tests, all replay-only, no network |
+| `tests/` | 207 tests, all replay-only, no network |

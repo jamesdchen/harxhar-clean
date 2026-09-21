@@ -21,6 +21,7 @@ from live.ibkr.broker import FakeBroker, FakeFaults, load_replay_day
 from live.ibkr.config import AFTERNOON_CLOCKS, Config, LiveModeRefused
 from live.ibkr.journal import DaySummary, Journal, read_journal
 from live.ibkr.premium_ledger import ClockRecord, PremiumLedger
+from live.ibkr.calendar_guard import CALENDAR_FLAT_REASON
 from live.ibkr.run_day import (
     DELEVER_FLAT_REASON,
     Abort,
@@ -56,6 +57,10 @@ def make_cfg(tmp_path, date, **kw):
     kw.setdefault("ledger_path", str(tmp_path / "seed.parquet"))
     kw.setdefault("ledger_live_path", str(tmp_path / "live.parquet"))
     kw.setdefault("replay_cache_dir", str(tmp_path / "cache"))
+    # WORST is the last trading session of November 2023, so the calendar
+    # guard would end it flat before an order is built.  These tests are about
+    # the execution path; the guard's own tests turn it back on.
+    kw.setdefault("calendar_guard", False)
     return Config(replay_date=date, journal_dir=str(tmp_path), **kw)
 
 
@@ -741,6 +746,7 @@ def test_main_runs_a_replay_and_writes_the_summary(tmp_path, frames):
             str(tmp_path / "absent.parquet"),
             "--ledger-live",
             str(tmp_path / "absent_live.parquet"),
+            "--no-calendar-guard",  # WORST is a month-end session
         ]
     )
     assert rc == 0
@@ -783,6 +789,7 @@ def test_main_returns_non_zero_with_a_position_open(tmp_path, frames, monkeypatc
             str(tmp_path),
             "--ledger",
             str(tmp_path / "absent.parquet"),
+            "--no-calendar-guard",  # WORST is a month-end session
         ]
     )
     assert rc == 3
@@ -1062,3 +1069,106 @@ def test_the_delever_flags_and_their_bounds():
         Config(delever_window=0)
     with pytest.raises(ValueError, match="delever_min_sessions"):
         Config(delever_min_sessions=0)
+
+
+# ------------------------------ the calendar guard (proposal 54) ------------
+
+
+def test_a_month_end_session_ends_the_day_flat_in_preflight(tmp_path, frames):
+    """2023-11-30, the hold book's worst day, is November's last session."""
+    cfg = make_cfg(tmp_path, WORST, calendar_guard=True, terminal="hold")
+    broker = FakeBroker(cfg, WORST, frame=frames[WORST])
+    broker.connect()
+    jr = Journal(os.path.join(str(tmp_path), WORST + ".jsonl"), echo=False)
+    with pytest.raises(Abort) as exc:
+        DayRunner(cfg, broker, jr).run()
+    jr.close()
+    assert str(exc.value).startswith(CALENDAR_FLAT_REASON)
+    assert "last trading session of the month" in str(exc.value)
+
+    cal = kinds_of(jr.path, "calendar")
+    assert len(cal) == 1
+    c = cal[0]
+    assert (c["enabled"], c["flat"], c["hits"]) == (True, True, ["month_end"])
+    assert c["session"] == WORST and c["calendars"] == ["month_end"]
+    assert "proposal 54" in c["evidence"][0]
+    assert "bad_kind" not in c  # "calendar" is a whitelisted journal kind
+
+    pre = kinds_of(jr.path, "preflight")[0]
+    assert pre["ok"] is False and pre["checks"]["calendar_guard"]["flat"] is True
+    # the refusal comes BEFORE the ledger is read: no regime record at all
+    assert not kinds_of(jr.path, "regime") and not kinds_of(jr.path, "ledger")
+
+    s = DaySummary.from_journal(jr.path)
+    assert not s.entered and s.is_flat
+    assert s.flat_reason.startswith(CALENDAR_FLAT_REASON)
+    assert not kinds_of(jr.path, "order")  # nothing was sent
+    assert "FLAT" in s.render()
+
+
+def test_no_calendar_guard_puts_the_month_end_back_on(tmp_path, frames):
+    """``--no-calendar-guard`` trades the session, and books its loss."""
+    _cfg, _b, _r, path, s = run_replay(
+        tmp_path, frames, WORST, calendar_guard=False, terminal="hold"
+    )
+    c = kinds_of(path, "calendar")[0]
+    assert (c["enabled"], c["flat"], c["hits"]) == (False, False, [])
+    assert s.entered and s.n_straddles == 1
+    assert s.pnl_units == pytest.approx(-2.4805, abs=5e-4)  # as the worst-day test
+
+
+def test_an_ordinary_session_passes_the_guard_untouched(tmp_path, frames):
+    _cfg, _b, _r, path, s = run_replay(
+        tmp_path, frames, RECENT, calendar_guard=True, terminal="hold"
+    )
+    c = kinds_of(path, "calendar")[0]
+    assert (c["enabled"], c["flat"], c["hits"]) == (True, False, [])
+    assert s.entered
+
+
+def test_an_open_position_outranks_the_calendar_guard(tmp_path, frames):
+    """A leg left on from a crash is the louder alarm, month-end or not."""
+    cfg = make_cfg(tmp_path, WORST, calendar_guard=True)
+    broker = FakeBroker(cfg, WORST, frame=frames[WORST])
+    broker.connect()
+    broker._futures_qty = {"ES": 2}
+    jr = Journal(os.path.join(str(tmp_path), "open_me.jsonl"), echo=False)
+    with pytest.raises(Abort) as exc:
+        DayRunner(cfg, broker, jr).run()
+    jr.close()
+    assert "reconcile manually" in str(exc.value)
+    assert not kinds_of(jr.path, "calendar")
+
+
+def test_main_ends_a_month_end_flat_by_default(tmp_path, frames):
+    argv = [
+        "--date",
+        WORST,
+        "--entry-mode",
+        "fixed",
+        "--entry-clock",
+        FIXED,
+        "--n",
+        "1",
+        "--journal-dir",
+        str(tmp_path),
+        "--ledger",
+        str(tmp_path / "absent.parquet"),
+        "--ledger-live",
+        str(tmp_path / "absent_live.parquet"),
+    ]
+    assert main(argv) == 2  # a preflight refusal, not a crash and not a leg on
+    with open(
+        os.path.join(str(tmp_path), WORST + "_summary.json"), encoding="utf-8"
+    ) as fh:
+        blob = json.load(fh)
+    assert blob["flat_reason"].startswith(CALENDAR_FLAT_REASON)
+
+
+def test_the_calendar_guard_flag_and_its_names():
+    assert Config.from_args([]).calendar_guard is True
+    cfg = Config.from_args(["--no-calendar-guard"])
+    assert cfg.calendar_guard is False
+    assert cfg.no_short_calendars == ("month_end",)
+    with pytest.raises(ValueError, match="no_short_calendars"):
+        Config(no_short_calendars=("month_end", "full_moon"))
