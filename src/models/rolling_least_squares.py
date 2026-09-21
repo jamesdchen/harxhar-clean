@@ -106,7 +106,11 @@ class RollingLeastSquares:
             gram = self._Sxx
             rhs = self._Sxy
         a = gram + self.alpha * np.eye(self.p)
-        self._coef = np.linalg.solve(a, rhs)
+        try:
+            self._coef = np.linalg.solve(a, rhs)
+        except np.linalg.LinAlgError:
+            # Rank-deficient window (constant calendar on a 1-slot/day slice).
+            self._coef = np.linalg.lstsq(a, rhs, rcond=None)[0]
         if self.fit_intercept:
             self._intercept = self._sy / n - float(self._sx @ self._coef) / n
         else:

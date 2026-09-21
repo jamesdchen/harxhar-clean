@@ -187,6 +187,14 @@ ESTIMATOR = _env("ESTIMATOR", "")
 START = int(_env("START", "0"))
 END = int(_env("END", "-1"))
 HALO = int(_env("HALO", "0"))
+# TOD filter: rth (09:30-16:00) or last30 (15:30-16:00). Empty = full series.
+# lag_scope=intra rebuilds HAR on the sliced bars so overnight is not in lags.
+SEGMENT = _env("SEGMENT", "") or None
+if SEGMENT == "none":  # a task axis cannot carry an empty string
+    SEGMENT = None
+LAG_SCOPE = _env("LAG_SCOPE", "intra" if SEGMENT else "global")
+# Subsection arms fit 1-4 bars a day, so the window is an axis (in DAYS).
+TRAIN_WIN = int(_env("TRAIN_WIN", str(TRAIN_WIN)))
 BUCKETS = [EXOG_BUCKET] if EXOG_BUCKET else list(SUBGROUPS)  # all 9, incl. the
 # empty-exog `baseline` (no-buckets) arm and `all_features`
 ESTIMATORS = [ESTIMATOR] if ESTIMATOR else list(ESTIMATOR_GRIDS)
@@ -398,6 +406,11 @@ for estimator in ESTIMATORS:
     RollingTunedLinear.grid = ESTIMATOR_GRIDS[estimator]
     for bucket in BUCKETS:
         out_csv = os.path.join(RESULTS_ROOT, estimator, bucket, "results.csv")
+        if SEGMENT:
+            _stem, _ext = os.path.splitext(out_csv)
+            out_read = f"{_stem}_{SEGMENT}{_ext}"
+        else:
+            out_read = out_csv
         # the run_executor invocation of src.models.ridge.run with ONE
         # user-ruled deviation: impute_indicate=True + dropna_with_exog=False
         # — exog NaN are ffilled with availability-INDICATOR features instead
@@ -418,8 +431,8 @@ for estimator in ESTIMATORS:
             end=END,
             halo=HALO,
             exog_cols=get_bucket(bucket),
-            segment=None,
-            lag_scope="global",
+            segment=SEGMENT,
+            lag_scope=LAG_SCOPE,
             add_calendar=True,
             target_use_diurnal=True,
             target_winsor_window=240,
@@ -431,7 +444,7 @@ for estimator in ESTIMATORS:
             seed=SEED,
         )
         arm_results[(estimator, bucket)] = dict(
-            results=pd.read_csv(out_csv), trace=list(RollingTunedLinear.trace)
+            results=pd.read_csv(out_read), trace=list(RollingTunedLinear.trace)
         )
         alphas = [a for _, a, _ in arm_results[(estimator, bucket)]["trace"]]
         masked = RollingTunedLinear.mask_trace
@@ -475,6 +488,11 @@ BASELINE_HP = dict(alpha=0.0, _refit_frequency=1, _incremental=True)
 INCUMBENT_BUCKET = "baseline"  # the empty-exog no-bucket arm (HAR + calendar)
 
 incumbent_csv = os.path.join(RESULTS_ROOT, "incumbent_ols", "results.csv")
+if SEGMENT:
+    _s, _e = os.path.splitext(incumbent_csv)
+    incumbent_read = f"{_s}_{SEGMENT}{_e}"
+else:
+    incumbent_read = incumbent_csv
 run_executor(
     method_name="ols_incumbent",
     fit_predict=fit_predict_ridge,
@@ -487,8 +505,8 @@ run_executor(
     end=END,
     halo=HALO,
     exog_cols=get_bucket(INCUMBENT_BUCKET),
-    segment=None,
-    lag_scope="global",
+    segment=SEGMENT,
+    lag_scope=LAG_SCOPE,
     add_calendar=True,
     target_use_diurnal=True,
     target_winsor_window=240,
@@ -499,7 +517,7 @@ run_executor(
     prescale=True,
     seed=SEED,
 )
-incumbent = pd.read_csv(incumbent_csv)
+incumbent = pd.read_csv(incumbent_read)
 p_i = incumbent["pred_raw"].values
 
 rows = []

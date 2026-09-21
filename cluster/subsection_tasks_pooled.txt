@@ -1,0 +1,6 @@
+none ridge 500
+none ridge 2000
+none reclasso 500
+none reclasso 2000
+none reclasticnet 500
+none reclasticnet 2000
