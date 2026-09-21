@@ -7,12 +7,14 @@ each session from a causal premium ledger; delta-hedge every 30 minutes through
 body to cash settlement**; flatten the futures at 16:00:00 ET; reconcile the
 official settlement the next morning. Size by a stress table, never by margin.
 On the last trading session of the month, sell nothing and **buy** the 15:30
-straddle instead, held to settlement (§1.6).
+straddle instead, held to settlement (§1.6). On the monthly-expiration session
+(the third Friday), sell more (§1.7).
 
 ```
-preflight   calendar (§1.6)  →  ledger  →  regime (size multiplier) and
+preflight   calendar (§1.6, §1.7)  →  ledger  →  regime (size multiplier) and
             entry clock                            (§1.5; selector, or the fixed clock)
-13:30 ET    SELL the body, size = stress x m   (combo first, then the futures hedge)
+13:30 ET    SELL the body, size = stress x m (x t on a third Friday, §1.7)
+            (combo first, then the futures hedge)
 14:00 ..    re-quote, re-invert, CORRECT,     (ES bulk + MES remainder)
 15:30       re-hedge, journal the residual
 16:00:00    flatten ES + MES, let the body    (passive 5 s, then cross)
@@ -135,7 +137,9 @@ silently a different risk budget.
 
 `--max-straddles` is a hard cap on top. With no `--capital` and no `--n`,
 preflight **aborts**: this runner does not guess a size. Whatever number comes
-out of this table, §1.5's regime multiplier is applied to it last.
+out of this table, §1.5's regime multiplier is applied to it, then on the
+monthly-expiration session §1.7's multiplier, and `--max-straddles` caps the
+result again.
 
 ### 1.4 The corrected delta — proposal 36's V9
 
@@ -406,7 +410,124 @@ $ ...  --month-end-mode off              # the short book, as on any day
 
 Every session journals one `calendar` record — `mode`, `session`,
 `calendars`, `hits`, `decision` (`short` / `sit_out` / `override`), `flat`,
-`override`, `reason`, `evidence`, `long_size` — whether or not it bites.
+`override`, `reason`, `evidence`, `long_size`, and the third-Friday fields of
+§1.7 — whether or not it bites.
+
+### 1.7 The third-Friday size — `calendar_guard.py` (proposal 58; multiplier from study 66)
+
+**The rule.** On the **monthly-expiration session** — the third Friday of the
+month, or the session before it when that Friday is a holiday (Good Friday
+2025-04-18 → Thursday 2025-04-17; Juneteenth 2026-06-19 → Thursday 2026-06-18)
+— the short program sells more. In the order the sizing record journals it:
+
+    n_stress  = min( stress table, --max-straddles )    (or --n)          §1.3
+    n_d       = floor( n_stress × m_d )                 the brake         §1.5   n_before_third_friday
+    n         = min( floor( n_d × t ), --max-straddles )                         n
+
+| flag | effect |
+| --- | --- |
+| `--third-friday-multiplier t` | the multiplier `t` (default **1.1**, `config.THIRD_FRIDAY_SIZE_MULTIPLIER`) |
+| `--no-third-friday` | `t = 1`: the ordinary size every session |
+
+* **The month-end calendar is read first** (§1.6). `t` scales a SHORT day only:
+  an override or sit-out day is never scaled. No real session is both — the
+  expiration session falls on the 14th–21st — and a test with a stand-in
+  calendar holds the order anyway.
+* **`--n` is never multiplied.** A hand-set count is the count (it is still
+  braked, §1.5); the calendar record says `--n sets the size`.
+* **`--max-straddles` caps after the multiplier**, so `t` can never lift a day
+  above it.
+* **The brake still wins.** A zero regime ends the day flat in preflight; a count
+  the brake floors to zero stays zero (`0 × t = 0`).
+* `t` must be a finite number ≥ 1; the product is floored in decimal arithmetic
+  (`sizing.scaled_contracts`: in binary, 25 × 1.16 floors to 28).
+* The ES/MES split is recomputed from the new count at every rebalance.
+
+**Floored, 1.1 changes nothing below ten straddles** — `floor(n × 1.1) = n` for
+`n ≤ 9` — and at the default `--max-straddles 10` the cap takes an 11 back to 10.
+So at the default cap the default multiplier never changes a count; it acts only
+with `--max-straddles` above 10 and a table count of 10 or more (at 10 % and a
+≈ $29k stress loss, about $2.9m of capital). Study 66 measured it as a continuous
+fraction of capital (+0.17 %/yr on the 2020–25 live book, 9.49 % → 9.66 %);
+whole contracts deliver that only at size.
+
+**The evidence** (`writeup/intraday_proposals/58_third_friday_short.py`, 72
+expiration sessions of the 1279 in the ledger; index points per contract, or
+premium units at the quoted bid):
+
+| | third Friday | every other session |
+| --- | --- | --- |
+| short straddle sold 13:30, held to settlement | **+3.00** (t 5.3) | +0.80 (t 3.4) |
+| short straddle sold 11:00, held | +2.97 (t 3.4) | +1.10 (t 4.4) |
+| 15:30 straddle sold at the bid, held | **+0.33 units** (t 3.9) | — |
+| … deck 2020-01 .. 2024-04 / holdout 2024-05 .. 2025-12 | +0.25 (52) / +0.55 (20) | |
+
+By year (15:30 at the bid, 12 sessions each, 2020 → 2025): −0.08, +0.26, +0.32,
++0.43, +0.64, +0.43. The sharp placebo does not carry it on all sessions: the
+other Fridays of the month +0.04 (t 0.5), the third Thursday +0.05, the third
+Wednesday −0.16 — the expiration, not the Friday (the holdout's first Fridays,
++0.51 on 19 sessions, are the one exception). The lead met all four criteria
+written before 58 ran.
+
+**Where 1.1 comes from** (`writeup/intraday_proposals/66_kelly_sizing.py`,
+`results/atm_straddle_intraday_holdclose/proposals/66/c_multiplier.csv`). Log
+growth adds across days and the day type is known in advance, so the Kelly
+fraction can be set per day type. The ratio of Kelly fractions, third Friday
+over other sessions, with the pre-2020 replay tail, is **1.86** at the point
+estimate; the rule written before 66 ran takes the **lower 2.5 % end** of its
+bootstrap interval (1.15), rounded down to a tenth, floored at 1: **1.1**.
+
+**Its limits.**
+
+* **Both samples had been seen** before 58's criteria were written: proposal 56
+  had printed the third-Friday rows of the deck *and* the holdout (on the long
+  side, where they failed in the opposite direction). 58 is a test of a lead
+  found in the data, not an out-of-sample confirmation. The next truly new
+  evidence is 2026.
+* **The close is not calmer on third Fridays.** 58's mechanism check: over
+  2020–2024 the last half hour's realized variance was 1.25× its own trailing
+  median on third Fridays against 1.02× on the other Fridays (t 1.2; before 2020,
+  0.91 against 1.03). The tail per contract is **not** smaller on those days, so a
+  larger count is a proportionally larger stress loss: at `t` the day's stress
+  budget is `t × --stress-fraction` of capital (the sizing record's
+  `fraction_implied` shows it).
+* 58 and 66 measured the **hold** book. `--terminal flatten` gets the same
+  multiplier with no evidence of its own for the exit variant.
+* Every `IBBroker` path is untested (§11); this rule adds no new order path —
+  it changes a count.
+
+**The calendar.** `is_third_friday_session` walks back from the third Friday to
+the first session on or before it, on the same rule-based NYSE calendar as §1.6
+(no ledger is read). Parity (`tests/test_calendar_guard.py`): on the seed
+ledger's 1279 sessions it flags **72**, exactly 58's, 12 in each year 2020–2025,
+**0** disagreements with 58's own `nth_weekday_sessions` imported by path; two
+of them are Thursdays (2022-04-14 and 2025-04-17, Good Friday weeks). Checked
+once by hand, not in the suite: on 58's full empirical calendar (the panel's
+16:00 days joined with the chain's, 1998-01-05 .. 2025-12-31, 7,024 sessions)
+the rule and 58 flag the same 336 sessions.
+
+```
+$ python -m live.ibkr.run_day --date 2025-06-20 --capital 1000000
+  third-Friday size: 2025-06-20 is the monthly-expiration session -- the short
+  program's contract count is multiplied by 1.1
+  straddles                                 3     (3 x 1.1 = 3.3, floored)
+  day P&L ($)                         +750.94     (the §5 replay, unchanged)
+
+$ ...  --third-friday-multiplier 2
+  straddles                                 6     (fraction_implied 17.3 %)
+  day P&L ($)                        +1479.87     (+0.2183 units)
+
+$ ...  --capital 4000000 --max-straddles 20      # 13 in the table
+  straddles                                14     (13 x 1.1 = 14.3)
+  day P&L ($)                        +3473.83     (--no-third-friday: 13, +3270.24)
+```
+
+The `calendar` record carries `third_friday`, `third_friday_multiplier` (the
+configured `t`), `third_friday_applied` (the `t` used: 1 off an expiration, on a
+non-short day, or under `--n`), `third_friday_reason` and
+`third_friday_evidence`; the `sizing` record carries `n_stress`, `multiplier`
+(the brake), `n_before_third_friday`, `third_friday_multiplier`,
+`third_friday_capped` and `n`.
 
 ---
 
@@ -530,7 +651,8 @@ HARXHAR_LIVE=I_UNDERSTAND python -m live.ibkr.run_day --mode live --capital 1000
 Decision-layer flags: `--entry-mode selector|fixed`, `--entry-clock HH:MM`,
 `--candidates afternoon|all`, `--selector-window`, `--selector-min-sessions`,
 `--ledger`, `--ledger-live`, `--no-delta-correction`, `--no-delever`,
-`--month-end-mode override|sit_out|off` (`--no-calendar-guard` = `off`).
+`--month-end-mode override|sit_out|off` (`--no-calendar-guard` = `off`),
+`--third-friday-multiplier t` (`--no-third-friday` = 1).
 Book flags: `--terminal hold|flatten`, `--exit-clock`, `--wings`.
 Sizing flags: `--capital`, `--stress-fraction`, `--stress-jump`, `--n`,
 `--max-straddles`.
@@ -827,10 +949,10 @@ config gates and the decision layer. They say nothing about IB.
 | `broker.py` | `Broker` protocol, `IBBroker`, `FakeBroker` + `FakeFaults`, `Fill`, `QuoteHealth`, `load_replay_day` |
 | `journal.py` | `Journal` (JSONL, flushed and fsynced, rolls on re-run) + `DaySummary.from_journal` |
 | `run_day.py` | `DayRunner` (preflight → calendar → ledger → regime → selector → sizing → entry → hedge → settle; or on a month-end, observe → size → buy at 15:30 → settle) , `reconcile_day`, `main` |
-| `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, the registry of named no-short calendars, and the month-end modes (proposals 54 and 55) |
+| `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, the registry of named no-short calendars, and the month-end modes (proposals 54 and 55); `is_third_friday_session` and the third-Friday multiplier's verdict (proposal 58) |
 | `premium_ledger.py` | the `(session, clock)` tape, its two causal estimators and the deleveraging multiplier |
 | `selector.py` | proposal 46's E2 entry-clock selector |
-| `sizing.py` | the stress table and `contracts_for` |
+| `sizing.py` | the stress table, `contracts_for`, and `scaled_contracts` (the third-Friday floor) |
 | `pricing.py` | Black-76 package price, delta, volatility inversion, the V9 correction |
 | `strikes.py` | nearest-OTM selection, the no-quote sentinel, the outage guards |
 | `hedge.py` | `target_lots` (ES bulk + MES remainder), `rebalance_lots`, `residual_delta_lots` |

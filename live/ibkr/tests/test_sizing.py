@@ -16,6 +16,7 @@ from live.ibkr.sizing import (  # noqa: E402
     SPX_INDEX_MULTIPLIER,
     STRESS_JUMP,
     contracts_for,
+    scaled_contracts,
     stress_loss_per_contract,
 )
 
@@ -100,3 +101,24 @@ def test_the_whole_rule_end_to_end() -> None:
     assert contracts_for(1_000_000.0, 0.05, float(stress["total"])) == 1
     assert contracts_for(1_000_000.0, 0.20, float(stress["total"])) == 6
     assert contracts_for(100_000.0, 0.05, float(stress["total"])) == 0
+
+
+def test_scaled_contracts_floors_in_the_multiplier_s_decimals() -> None:
+    """The third-Friday size: floor(n x multiplier), never one short from binary."""
+    assert 25 * 1.16 < 29.0 and 45 * 1.4 < 63.0  # binary floors one short ...
+    assert scaled_contracts(25, 1.16) == 29  # ... the decimal product does not
+    assert scaled_contracts(45, 1.4) == 63
+    assert scaled_contracts(3, 2.0) == 6
+    assert scaled_contracts(3, 1.5) == 4  # 4.5 floored
+    assert scaled_contracts(3, 1.0) == 3
+    # study 66's 1.1 adds a contract only from ten straddles up
+    assert [scaled_contracts(n, 1.1) for n in range(1, 13)] == [
+        *range(1, 10),
+        11,
+        12,
+        13,
+    ]
+    assert scaled_contracts(0, 2.0) == 0  # a count the brake took to zero stays zero
+    for bad in (float("nan"), float("inf"), -1.0):
+        with pytest.raises(ValueError, match="size multiplier"):
+            scaled_contracts(3, bad)

@@ -29,12 +29,14 @@ replaces -- see ``hedge.target_lots``).
 
 from __future__ import annotations
 
+from decimal import ROUND_FLOOR, Decimal
 from math import floor, isfinite
 
 __all__ = [
     "SPX_INDEX_MULTIPLIER",
     "STRESS_JUMP",
     "contracts_for",
+    "scaled_contracts",
     "stress_loss_per_contract",
 ]
 
@@ -119,3 +121,18 @@ def contracts_for(capital: float, fraction: float, loss_per_contract: float) -> 
     if loss <= 0.0 or cap <= 0.0 or frac <= 0.0:
         return 0
     return max(0, int(floor(cap * frac / loss)))
+
+
+def scaled_contracts(n: int, multiplier: float) -> int:
+    """``floor(n * multiplier)`` whole contracts, in the multiplier's decimals.
+
+    The multiplier is a decimal an operator typed, so the product is taken in
+    decimal arithmetic: in binary floating point 25 x 1.16 is 28.999...96 and
+    would floor one contract short.  A non-finite or negative multiplier is
+    refused, not rounded.
+    """
+    mult = float(multiplier)
+    if not isfinite(mult) or mult < 0.0:
+        raise ValueError("a size multiplier must be finite and >= 0, got " + repr(mult))
+    product = Decimal(int(n)) * Decimal(repr(mult))
+    return max(0, int(product.to_integral_value(rounding=ROUND_FLOOR)))

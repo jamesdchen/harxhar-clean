@@ -24,7 +24,13 @@ afternoon/settlement premium is what remains, so the runner
   -- does not sell; by default (``month_end_mode="override"``) it BUYS the
   15:30 nearest-OTM straddle instead, one per straddle the short program
   would have sold, and holds it to cash settlement (``--month-end-mode
-  override|sit_out|off``; ``--no-calendar-guard`` is ``off``).
+  override|sit_out|off``; ``--no-calendar-guard`` is ``off``);
+* on the monthly-expiration session -- the third Friday, or the session
+  before it when that Friday is a holiday -- multiplies the short program's
+  contract count by ``third_friday_size_multiplier`` (proposal 58), after the
+  deleveraging multiplier and under ``max_straddles``
+  (``--third-friday-multiplier``; ``--no-third-friday`` is 1.0).  The default,
+  1.1, is study 66's pre-registered lower end of the Kelly ratio.
 
 ``terminal="flatten"`` keeps the old exit-at-15:30 variant; it is the
 optional variant now, not the book of record.
@@ -59,6 +65,17 @@ MonthEndMode = Literal["override", "sit_out", "off"]
 #: its premium -- is described in the README and deliberately NOT offered: its
 #: liquidity is untested.
 MONTH_END_LONG_SIZES: tuple[str, ...] = ("match_short",)
+
+#: Proposal 58: on the monthly-expiration session (the third Friday, or the
+#: session before it when that Friday is a holiday) the short program's contract
+#: count -- the stress table's, after the deleveraging multiplier -- is multiplied
+#: by this, floored to whole contracts and capped at ``max_straddles``.  1.0 is
+#: NO CHANGE.  Floored, 1.1 adds a contract only from ten straddles up.
+# study 66: pre-registered lower end of the Kelly ratio (third Friday / other
+# sessions); point ratio 1.86
+# (writeup/intraday_proposals/66_kelly_sizing.py, results/
+# atm_straddle_intraday_holdclose/proposals/66/c_multiplier.csv).
+THIRD_FRIDAY_SIZE_MULTIPLIER = 1.1
 
 #: Every 30-minute stamp the research tape carries.  16:00 is a settlement
 #: print, never a quote, so it is not in here.
@@ -196,6 +213,11 @@ class Config:
     month_end_mode: MonthEndMode = "override"
     month_end_long_size: str = "match_short"
     no_short_calendars: tuple[str, ...] = ("month_end",)
+
+    # -- the third-Friday size (proposal 58) ------------------------------
+    #: Multiplies the short program's contract count on the monthly-expiration
+    #: session; read after the month-end calendar, which it never overrides.
+    third_friday_size_multiplier: float = THIRD_FRIDAY_SIZE_MULTIPLIER
 
     # -- the book --------------------------------------------------------
     terminal: Terminal = "hold"
@@ -405,6 +427,14 @@ class Config:
                 "README and not enabled: a median 28x the contracts, untested for "
                 "liquidity)"
             )
+        tf = float(self.third_friday_size_multiplier)
+        if not (math.isfinite(tf) and tf >= 1.0):
+            raise ValueError(
+                "third_friday_size_multiplier must be a finite number >= 1 (1 is "
+                "no change; the rule sells MORE on the monthly-expiration "
+                "session), got " + repr(self.third_friday_size_multiplier)
+            )
+        self.third_friday_size_multiplier = tf
 
         if self.rebalance_clocks is not None:
             self.rebalance_clocks = tuple(self.rebalance_clocks)
@@ -600,6 +630,27 @@ class Config:
             help="alias of --month-end-mode off: trade the short book every session",
         )
         p.add_argument(
+            "--third-friday-multiplier",
+            type=float,
+            default=None,
+            dest="third_friday_multiplier",
+            help="on the monthly-expiration session (the third Friday, or the "
+            "session before it when that Friday is a holiday) multiply the short "
+            "program's contract count by this, after the deleveraging multiplier, "
+            "floored, and capped at --max-straddles; --n is never multiplied "
+            "(proposal 58; default "
+            + f"{THIRD_FRIDAY_SIZE_MULTIPLIER:g}"
+            + ", study 66's pre-registered lower end of the Kelly ratio)",
+        )
+        p.add_argument(
+            "--no-third-friday",
+            action="store_true",
+            dest="no_third_friday",
+            default=False,
+            help="alias of --third-friday-multiplier 1: the ordinary size every "
+            "session",
+        )
+        p.add_argument(
             "--terminal",
             choices=("hold", "flatten"),
             default="hold",
@@ -671,6 +722,19 @@ class Config:
                     "--month-end-mode " + str(ns.month_end_mode)
                 )
             month_end_mode = "off"
+        third_friday = (
+            THIRD_FRIDAY_SIZE_MULTIPLIER
+            if ns.third_friday_multiplier is None
+            else float(ns.third_friday_multiplier)
+        )
+        if ns.no_third_friday:
+            if ns.third_friday_multiplier not in (None, 1.0):
+                parser.error(
+                    "--no-third-friday is --third-friday-multiplier 1; it "
+                    "contradicts --third-friday-multiplier "
+                    + f"{ns.third_friday_multiplier:g}"
+                )
+            third_friday = 1.0
         # The equals form is a passed flag too (L-17).
         passed_mode = any(a == "--mode" or a.startswith("--mode=") for a in argv)
         live_ack = ns.mode == "live" and passed_mode
@@ -689,6 +753,7 @@ class Config:
             delta_correction=ns.delta_correction,
             delever=ns.delever,
             month_end_mode=month_end_mode,
+            third_friday_size_multiplier=third_friday,
             terminal=ns.terminal,
             exit_clock=ns.exit_clock,
             wings_pct=ns.wings_pct,

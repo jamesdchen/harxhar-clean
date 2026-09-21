@@ -16,8 +16,11 @@ The book (audit 2026-09-18, sections 4-7):
     entry       sell the nearest-OTM SPXW 0DTE straddle (the *body*) at that
                 clock, sized by the STRESS table -- capital x fraction over
                 the dollar loss of one hedged straddle in a 5 % last-bar
-                jump, never by margin -- then hedge its package delta with
-                ES for the bulk and MES for the remainder
+                jump, never by margin -- times the deleveraging multiplier,
+                times the THIRD-FRIDAY multiplier on the monthly-expiration
+                session (proposal 58), capped at --max-straddles; then hedge
+                its package delta with ES for the bulk and MES for the
+                remainder
     :30 ..      re-quote the body, re-invert the total volatility from the
     15:30       package mid, CORRECT it by the trailing per-clock
                 realized-over-implied factor, recompute the delta, move the
@@ -70,6 +73,7 @@ from live.ibkr.broker import (
 from live.ibkr.calendar_guard import (
     CALENDAR_FLAT_REASON,
     CALENDAR_OVERRIDE_REASON,
+    THIRD_FRIDAY_REASON,
     evaluate as evaluate_calendar,
 )
 from live.ibkr.config import (
@@ -91,7 +95,7 @@ from live.ibkr.pricing import (
     package_delta,
 )
 from live.ibkr.selector import pick_entry_clock
-from live.ibkr.sizing import contracts_for, stress_loss_per_contract
+from live.ibkr.sizing import contracts_for, scaled_contracts, stress_loss_per_contract
 from live.ibkr.strikes import Body, Quote, pick_nearest_otm_reason, pick_wings
 
 NAN = float("nan")
@@ -284,6 +288,8 @@ class DayRunner:
             "decision": "short",
             "flat": False,
             "override": False,
+            "third_friday": False,
+            "third_friday_applied": 1.0,
         }
 
     # -- helpers ---------------------------------------------------------
@@ -639,14 +645,22 @@ class DayRunner:
         ``override`` buys, ``sit_out`` refuses the day, ``off`` ignores it.
         """
         cfg = self.cfg
+        # The month-end calendar is read first; the third-Friday multiplier is
+        # read off its decision and scales a SHORT day only (proposal 58).
         self.calendar = evaluate_calendar(
-            self._session_date(), cfg.no_short_calendars, mode=cfg.month_end_mode
+            self._session_date(),
+            cfg.no_short_calendars,
+            mode=cfg.month_end_mode,
+            third_friday_multiplier=cfg.third_friday_size_multiplier,
+            size_override=cfg.n_override is not None,
         )
         self.jr.event(
             CALENDAR_KIND,
             ts_et=self._now(),
             rule="proposals 54 and 55: no short straddle into these closes; "
-            "override buys the 15:30 straddle and holds it to settlement",
+            "override buys the 15:30 straddle and holds it to settlement. "
+            "Proposal 58: on a short day that is the monthly-expiration session "
+            "the short program's count is multiplied by third_friday_applied",
             long_size=cfg.month_end_long_size,
             **self.calendar,
         )
@@ -656,6 +670,10 @@ class DayRunner:
         elif self.override_today:
             assert str(self.calendar["reason"]).startswith(CALENDAR_OVERRIDE_REASON)
             print("\n*** " + str(self.calendar["reason"]) + " ***\n", flush=True)
+        if self.calendar["third_friday"]:
+            tf_reason = str(self.calendar["third_friday_reason"])
+            assert tf_reason.startswith(THIRD_FRIDAY_REASON)
+            print("  " + tf_reason, flush=True)
 
     # -- the deleveraging candidate (proposal 50, part B2) ---------------
     def _regime(self) -> None:
@@ -789,7 +807,13 @@ class DayRunner:
 
     # -- sizing ----------------------------------------------------------
     def _size(self, spot: float, body: Body, pq: PackageQuote, delta: float) -> int:
-        """Contracts from the STRESS table; ``--n`` overrides it, loudly."""
+        """Contracts from the STRESS table; ``--n`` overrides it, loudly.
+
+        The order: the table (or ``--n``), capped at ``max_straddles``; the
+        deleveraging multiplier, floored; on the monthly-expiration session the
+        third-Friday multiplier, floored and capped at ``max_straddles`` again
+        (the calendar never applies it to ``--n``).
+        """
         cfg = self.cfg
         stress = stress_loss_per_contract(
             spot,
@@ -813,9 +837,25 @@ class DayRunner:
         # way that intent was formed: an explicit --n is a full-size intent,
         # not an exemption from the regime filter.
         mult = float(self.multiplier)
-        n = int(math.floor(n_stress * mult)) if math.isfinite(mult) else n_stress
+        n_delevered = (
+            int(math.floor(n_stress * mult)) if math.isfinite(mult) else n_stress
+        )
         if mult < 1.0:
             note += ", deleveraged x" + f"{mult:g}"
+        # Proposal 58: the count the day would otherwise sell, scaled on the
+        # monthly-expiration session.  The cap binds AFTER the multiplier, so
+        # it can never lift a day above --max-straddles; a count the brake
+        # took to zero stays zero.
+        tf = float(self.calendar.get("third_friday_applied", 1.0))
+        n = n_delevered
+        tf_capped = False
+        if tf != 1.0:
+            scaled = scaled_contracts(n_delevered, tf)
+            n = min(scaled, int(cfg.max_straddles))
+            tf_capped = scaled > n
+            note += ", third Friday x" + f"{tf:g}"
+            if tf_capped:
+                note += " capped at max_straddles"
         scale = 1.0 / cfg.capital if cfg.capital > 0 and math.isfinite(loss) else NAN
         implied = n * loss * scale
         implied_stress = n_stress * loss * scale
@@ -827,6 +867,10 @@ class DayRunner:
             n_stress=n_stress,
             multiplier=mult,
             delever_state=str(self.delever.get("state", "")),
+            n_before_third_friday=n_delevered,
+            third_friday=bool(self.calendar.get("third_friday", False)),
+            third_friday_multiplier=tf,
+            third_friday_capped=tf_capped,
             n_from_table=int(sized),
             n_override=cfg.n_override,
             max_straddles=cfg.max_straddles,
@@ -863,7 +907,18 @@ class DayRunner:
                 + ": "
                 + str(n_stress)
                 + " straddle(s) at full size become "
-                + str(n),
+                + str(n_delevered),
+                flush=True,
+            )
+        if tf != 1.0:
+            print(
+                "  third Friday x"
+                + f"{tf:g}"
+                + ": "
+                + str(n_delevered)
+                + " straddle(s) become "
+                + str(n)
+                + (" (capped at --max-straddles)" if tf_capped else ""),
                 flush=True,
             )
         return n
@@ -1894,6 +1949,7 @@ class DayRunner:
             month_end_mode=cfg.month_end_mode,
             month_end_long_size=cfg.month_end_long_size,
             no_short_calendars=list(cfg.no_short_calendars),
+            third_friday_size_multiplier=cfg.third_friday_size_multiplier,
             candidate_clocks=list(cfg.candidate_clocks),
             fixed_entry_clock=cfg.fixed_entry_clock,
             exit_clock=cfg.exit_clock,

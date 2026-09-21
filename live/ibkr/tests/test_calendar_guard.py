@@ -1,9 +1,11 @@
-"""The no-short calendars: NYSE sessions by rule, and the month-end modes.
+"""The no-short calendars: NYSE sessions by rule, the month-end modes, and the
+third-Friday (monthly-expiration) session.
 
 The hand-checked dates come from the exchange's published holiday schedules.
-The two parity checks tie the rule to data it never saw being written: the
-seed ledger's sessions against proposal 54's empirical month-end flags, and 26
-years of the 30-minute panel's 16:00 bars against the holiday rules.
+The three parity checks tie the rule to data it never saw being written: the
+seed ledger's sessions against proposal 54's empirical month-end flags and
+against proposal 58's third-Friday flags, and 26 years of the 30-minute panel's
+16:00 bars against the holiday rules.
 """
 
 from __future__ import annotations
@@ -19,10 +21,14 @@ from live.ibkr.calendar_guard import (
     MONTH_END_MODES,
     NO_SHORT_CALENDARS,
     SPECIAL_CLOSURES,
+    THIRD_FRIDAY_REASON,
+    NoShortCalendar,
     evaluate,
     is_last_session_of_month,
     is_session,
+    is_third_friday_session,
     ledger_month_end_parity,
+    monthly_expiration_session,
     nyse_holidays,
 )
 
@@ -32,6 +38,14 @@ SEED = os.path.join("results", "live_seed", "premium_ledger.parquet")
 P54 = os.path.join(
     "results", "atm_straddle_0dte_1530", "proposals", "54", "c_daily.csv"
 )
+P58_PATH = os.path.join("writeup", "intraday_proposals", "58_third_friday_short.py")
+P58_BY_YEAR = os.path.join(
+    "results", "atm_straddle_0dte_1530", "proposals", "58", "e_by_year.csv"
+)
+#: what proposal 58 counted on the 1279 scored sessions (12 a year, 2020-2025)
+P58_THIRD_FRIDAYS = 72
+#: the two in the ledger that are not Fridays: Good Friday was the third Friday
+P58_MOVED_TO_THURSDAY = [D(2022, 4, 14), D(2025, 4, 17)]
 PANEL = os.path.join("data", "core_stats.parquet")
 #: what proposal 54 counted on the 1279 scored sessions
 P54_MONTH_ENDS = 70
@@ -60,7 +74,7 @@ PANEL_START, PANEL_END = D(1998, 1, 5), D(2024, 4, 30)
         (D(2023, 2, 28), True, "ordinary February"),
         (D(2024, 2, 28), False, "the 29th follows in a leap year"),
         (D(2023, 11, 30), True, "the hold book's worst day"),
-        (D(2025, 6, 20), False, "an ordinary mid-month Friday"),
+        (D(2025, 6, 20), False, "a mid-month Friday (the third: an expiration)"),
         (D(2025, 5, 30), True, "Saturday 2025-05-31 is not a session"),
         (D(2025, 5, 31), False, "a Saturday"),
         (D(2021, 12, 31), True, "1 January 2022 is a Saturday: not observed Friday"),
@@ -112,6 +126,94 @@ def test_the_observance_rules():
     assert D(1997, 1, 20) not in nyse_holidays(1997)  # nor King's birthday
     assert not is_session(D(2025, 6, 21)) and is_session(D(2025, 6, 20))
     assert all(not is_session(d) for d in SPECIAL_CLOSURES)
+
+
+# ----------------------------------------------- the third Friday (58) -----
+
+
+@pytest.mark.parametrize(
+    "day, expected, why",
+    [
+        (D(2025, 4, 17), True, "Good Friday 2025-04-18 was the third Friday"),
+        (D(2025, 4, 18), False, "Good Friday is not a session"),
+        (D(2025, 4, 11), False, "the second Friday"),
+        (D(2022, 4, 14), True, "Good Friday 2022-04-15 was the third Friday too"),
+        (D(2024, 6, 21), True, "June 2024 starts on a Saturday"),
+        (D(2025, 12, 19), True, "December 2025"),
+        (D(2023, 11, 17), True, "November 2023"),
+        (D(2025, 6, 20), True, "the README's replay session"),
+        (D(2025, 6, 13), False, "an ordinary (second) Friday"),
+        (D(2025, 5, 30), False, "a fifth Friday"),
+        (D(2025, 6, 19), False, "Juneteenth 2025, a Thursday holiday"),
+        (D(2025, 6, 21), False, "a Saturday"),
+        (D(2026, 6, 18), True, "a future date: Juneteenth 2026 is the third Friday"),
+        (D(2026, 6, 19), False, "... and not a session"),
+    ],
+)
+def test_is_third_friday_session(day, expected, why):
+    assert is_third_friday_session(day) is expected, why
+
+
+def test_every_monthly_expiration_is_a_session_in_its_own_month():
+    for year in range(1998, 2031):
+        for month in range(1, 13):
+            d = monthly_expiration_session(year, month)
+            assert (d.year, d.month) == (year, month) and is_session(d)
+            # the Friday itself, or the Thursday before a holiday Friday
+            assert d.weekday() in (3, 4) and 14 <= d.day <= 21
+            assert is_third_friday_session(d)
+            assert not is_third_friday_session(d - dt.timedelta(days=7))
+
+
+def test_the_calendar_record_carries_the_third_friday():
+    tf = evaluate(D(2025, 6, 20), ("month_end",), third_friday_multiplier=2.0)
+    assert tf["decision"] == "short" and tf["third_friday"] is True
+    assert (tf["third_friday_multiplier"], tf["third_friday_applied"]) == (2.0, 2.0)
+    assert tf["third_friday_reason"].startswith(THIRD_FRIDAY_REASON)
+    assert "multiplied by 2" in tf["third_friday_reason"]
+    assert "proposal 58" in tf["third_friday_evidence"]
+    # --n sets the size by hand: flagged, not applied
+    by_hand = evaluate(
+        D(2025, 6, 20), ("month_end",), third_friday_multiplier=2.0, size_override=True
+    )
+    assert by_hand["third_friday"] is True and by_hand["third_friday_applied"] == 1.0
+    assert "--n sets the size" in by_hand["third_friday_reason"]
+    # an ordinary session: nothing flagged, nothing applied
+    plain = evaluate(D(2025, 6, 13), ("month_end",), third_friday_multiplier=2.0)
+    assert plain["third_friday"] is False and plain["third_friday_applied"] == 1.0
+    assert plain["third_friday_reason"] == "" and plain["third_friday_evidence"] == ""
+    # a month-end is never a third Friday, and is not scaled
+    me = evaluate(D(2023, 11, 30), ("month_end",), third_friday_multiplier=2.0)
+    assert me["decision"] == "override" and me["third_friday_applied"] == 1.0
+
+
+def test_the_month_end_calendar_is_read_before_the_third_friday(monkeypatch):
+    """No real session is both, so a registry entry that hits on third Fridays
+    stands in for one: a day that is not a short day is never scaled."""
+    monkeypatch.setitem(
+        NO_SHORT_CALENDARS,
+        "expiration_probe",
+        NoShortCalendar(
+            name="expiration_probe",
+            applies=is_third_friday_session,
+            label="a test probe",
+            evidence="none",
+        ),
+    )
+    for mode in ("override", "sit_out"):
+        hit = evaluate(
+            D(2025, 6, 20),
+            ("expiration_probe",),
+            mode=mode,
+            third_friday_multiplier=3.0,
+        )
+        assert hit["decision"] == mode and hit["third_friday"] is True
+        assert hit["third_friday_applied"] == 1.0
+        assert "not a short day" in hit["third_friday_reason"]
+    off = evaluate(
+        D(2025, 6, 20), ("expiration_probe",), mode="off", third_friday_multiplier=3.0
+    )
+    assert off["decision"] == "short" and off["third_friday_applied"] == 3.0
 
 
 # --------------------------------------------------------------- the modes --
@@ -189,6 +291,56 @@ def test_parity_with_proposal_54_on_the_seed_ledger():
         f"{len(sessions)} sessions: rule {res['n_rule']} month-ends = proposal "
         f"54's {res['n_reference']}, 0 disagreements; absent half-session "
         f"month-ends {absent}"
+    )
+
+
+@pytest.mark.skipif(
+    not (
+        os.path.exists(SEED)
+        and os.path.exists(P58_PATH)
+        and os.path.exists(P58_BY_YEAR)
+    ),
+    reason="needs the seed premium ledger and proposal 58",
+)
+def test_parity_with_proposal_58_on_the_seed_ledger(monkeypatch):
+    """The rule against 58's own ``nth_weekday_sessions``, imported by path.
+
+    58 flagged the sessions of an empirical calendar (the panel's 16:00 days
+    joined with the chain's); on the ledger's sessions, which are that
+    calendar's from 2020 on, the two must name the same 72 days, and 58's
+    by-year table must count them.
+    """
+    import importlib.util
+    import sys
+
+    import pandas as pd
+
+    from live.ibkr.premium_ledger import PremiumLedger
+
+    # 58's body puts its own directories on sys.path; keep that to this test
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    spec = importlib.util.spec_from_file_location("p58_for_third_friday", P58_PATH)
+    assert spec is not None and spec.loader is not None
+    p58 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(p58)
+
+    sessions = PremiumLedger.load(SEED).sessions()
+    cal = pd.DatetimeIndex(pd.to_datetime(sessions))
+    ref = p58.nth_weekday_sessions(cal, 4, 3)
+    rule = [is_third_friday_session(d) for d in sessions]
+    assert [d for d, a, b in zip(sessions, rule, ref) if a != bool(b)] == []
+    flagged = [d for d, a in zip(sessions, rule) if a]
+    assert len(flagged) == P58_THIRD_FRIDAYS
+    assert [d for d in flagged if d.weekday() != 4] == P58_MOVED_TO_THURSDAY
+
+    by_year = pd.read_csv(P58_BY_YEAR).set_index("year")["n"].to_dict()
+    mine: dict[int, int] = {}
+    for d in flagged:
+        mine[d.year] = mine.get(d.year, 0) + 1
+    assert mine == {int(k): int(v) for k, v in by_year.items()}
+    print(
+        f"{len(sessions)} sessions: rule {len(flagged)} third Fridays = proposal "
+        f"58's {int(sum(ref))}, 0 disagreements; by year {mine}"
     )
 
 

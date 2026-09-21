@@ -25,6 +25,16 @@ class of days can be added by configuration once it has its own evidence --
 for BOTH halves of the override: that the short loses into its close and that
 the long is paid for it.  Only ``month_end`` is registered today.
 
+One class of sessions goes the other way: the MONTHLY-EXPIRATION session, the
+third Friday of the month (the session before it when that Friday is not one).
+Proposal 58 measured the short 13:30 hold book there at +3.0 index points per
+contract (t 5.3, 72 sessions) against +0.8 on every other session, and the
+15:30 straddle sold at the bid at +0.33 premium units (t 3.9).  On those
+sessions the short program's contract count is multiplied by
+``third_friday_multiplier`` (``Config.third_friday_size_multiplier``).  The
+no-short calendars are read FIRST: the multiplier scales the short program only,
+so a session that is not a short day (an override or a sit-out) is never scaled.
+
 Live trading needs the answer for a FUTURE date, so nothing here reads a
 ledger: the NYSE holiday schedule is computed from the exchange's own rules
 (Rule 7.2) with ``dateutil.easter`` for Good Friday.  ``dateutil`` already
@@ -53,7 +63,10 @@ from typing import Any
 
 from dateutil.easter import easter  # type: ignore[import-untyped]
 
-MONDAY, THURSDAY, SATURDAY, SUNDAY = 0, 3, 5, 6
+MONDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY = 0, 3, 4, 5, 6
+
+#: Standard monthly SPX options expire on this occurrence of ``FRIDAY``.
+MONTHLY_EXPIRATION_WEEK = 3
 
 #: The first year the exchange observed each holiday that has a start date.
 MLK_FIRST_YEAR = 1998
@@ -143,6 +156,23 @@ def is_last_session_of_month(d: date) -> bool:
     return True
 
 
+def monthly_expiration_session(year: int, month: int) -> date:
+    """The session on or before the month's third Friday.
+
+    That Friday is the 15th at the earliest, so walking back over a holiday
+    (Good Friday 2025-04-18 gives Thursday 2025-04-17) never leaves the month.
+    """
+    d = _nth_weekday(year, month, FRIDAY, MONTHLY_EXPIRATION_WEEK)
+    while not is_session(d):
+        d -= timedelta(days=1)
+    return d
+
+
+def is_third_friday_session(d: date) -> bool:
+    """True when ``d`` is its month's monthly-expiration session (proposal 58)."""
+    return is_session(d) and d == monthly_expiration_session(d.year, d.month)
+
+
 @dataclass(frozen=True)
 class NoShortCalendar:
     """One named class of sessions the short book does not hold through."""
@@ -177,14 +207,36 @@ MONTH_END_MODES: tuple[str, ...] = ("override", "sit_out", "off")
 CALENDAR_FLAT_REASON = "calendar guard: "
 #: The head of the override's announcement, for the same reason.
 CALENDAR_OVERRIDE_REASON = "month-end override: "
+#: The head of the third-Friday size note, for the same reason.
+THIRD_FRIDAY_REASON = "third-Friday size: "
+
+THIRD_FRIDAY_EVIDENCE = (
+    "proposal 58: on the monthly-expiration session the short 13:30 hold book "
+    "earns +3.00 index points per contract (t 5.3, 72 sessions) against +0.80 on "
+    "other sessions, and the 15:30 straddle sold at the bid earns +0.33 premium "
+    "units (t 3.9); both samples had been seen before its criteria were written, "
+    "and the close is not calmer on those days"
+)
 
 
-def evaluate(d: date, names: Iterable[str], mode: str = "override") -> dict[str, Any]:
+def evaluate(
+    d: date,
+    names: Iterable[str],
+    mode: str = "override",
+    third_friday_multiplier: float = 1.0,
+    size_override: bool = False,
+) -> dict[str, Any]:
     """The calendar's verdict for one session, as the journal records it.
 
     ``decision`` is ``"short"`` (no hit, or the mode is ``off``), ``"sit_out"``
     or ``"override"``; ``flat`` is True only for a sit-out and ``override`` only
     for an override, so a caller can branch on either without re-deriving it.
+
+    The third-Friday multiplier is read AFTER the decision: it scales the short
+    program's contract count, so ``third_friday_applied`` is the configured
+    multiplier only on a monthly-expiration session whose decision is
+    ``"short"`` and whose size comes from the stress table, and 1.0 otherwise
+    (``size_override`` is ``--n``, which sets the count by hand).
     """
     names = tuple(names)
     unknown = [n for n in names if n not in NO_SHORT_CALENDARS]
@@ -224,6 +276,25 @@ def evaluate(d: date, names: Iterable[str], mode: str = "override") -> dict[str,
             + " -- no short into this close; the runner BUYS the 15:30 straddle "
             "and holds it to cash settlement"
         )
+
+    third = is_third_friday_session(d)
+    tf_mult = float(third_friday_multiplier)
+    applied = tf_mult if (third and decision == "short" and not size_override) else 1.0
+    tf_reason = ""
+    if third:
+        head = (
+            THIRD_FRIDAY_REASON + d.isoformat() + " is the monthly-expiration session"
+        )
+        if decision != "short":
+            tf_reason = head + " -- not a short day: the multiplier is not applied"
+        elif size_override:
+            tf_reason = head + " -- --n sets the size: the multiplier is not applied"
+        else:
+            tf_reason = (
+                head
+                + " -- the short program's contract count is multiplied by "
+                + f"{applied:g}"
+            )
     return {
         "mode": mode,
         "enabled": enabled,
@@ -235,6 +306,11 @@ def evaluate(d: date, names: Iterable[str], mode: str = "override") -> dict[str,
         "override": decision == "override",
         "reason": reason,
         "evidence": [NO_SHORT_CALENDARS[n].evidence for n in hits],
+        "third_friday": third,
+        "third_friday_multiplier": tf_mult,
+        "third_friday_applied": applied,
+        "third_friday_reason": tf_reason,
+        "third_friday_evidence": THIRD_FRIDAY_EVIDENCE if third else "",
     }
 
 

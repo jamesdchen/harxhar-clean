@@ -18,13 +18,21 @@ import os
 import pytest
 
 from live.ibkr.broker import FakeBroker, FakeFaults, load_replay_day
-from live.ibkr.config import AFTERNOON_CLOCKS, Config, LiveModeRefused
+from live.ibkr.config import (
+    AFTERNOON_CLOCKS,
+    THIRD_FRIDAY_SIZE_MULTIPLIER,
+    Config,
+    LiveModeRefused,
+)
+from live.ibkr.hedge import target_lots
 from live.ibkr.journal import DaySummary, Journal, read_journal
 from live.ibkr.premium_ledger import ClockRecord, PremiumLedger
 from live.ibkr.calendar_guard import (
     CALENDAR_FLAT_REASON,
     CALENDAR_OVERRIDE_REASON,
+    THIRD_FRIDAY_REASON,
     is_last_session_of_month,
+    is_third_friday_session,
 )
 from live.ibkr.run_day import (
     DELEVER_FLAT_REASON,
@@ -69,6 +77,12 @@ def make_cfg(tmp_path, date, **kw):
     # and DELEVER_ZERO also prove the override is inert off a month-end.
     if is_last_session_of_month(dt.date.fromisoformat(date)):
         kw.setdefault("month_end_mode", "off")
+    # RECENT is a monthly-expiration session (the third Friday of June 2025).
+    # These tests are about the ordinary-size book, so there the third-Friday
+    # multiplier is pinned to 1.0 unless a test asks for one, so they do not move
+    # with the default (study 66's).  The third-Friday tests pass their own.
+    if is_third_friday_session(dt.date.fromisoformat(date)):
+        kw.setdefault("third_friday_size_multiplier", 1.0)
     return Config(replay_date=date, journal_dir=str(tmp_path), **kw)
 
 
@@ -1444,3 +1458,270 @@ def test_the_month_end_flags():
         Config(month_end_mode="guard")  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="not enabled"):
         Config(month_end_long_size="loss_budget")
+
+
+# ------------------------- the third-Friday size (proposal 58) ------------
+
+#: RECENT at $1m on the seed ledger: the selector's 14:30, three straddles at
+#: the ordinary size (the README's worked replay).
+RECENT_TABLE_N = 3
+
+
+def run_third_friday(tmp_path, frames, multiplier, **kw):
+    """RECENT, the monthly-expiration session, sized by the stress table."""
+    cfg_kw = dict(
+        entry_mode="selector",
+        ledger_path=SEED,
+        n_override=None,
+        capital=CAPITAL,
+        terminal="hold",
+        third_friday_size_multiplier=multiplier,
+    )
+    cfg_kw.update(kw)
+    return run_replay(tmp_path, frames, RECENT, **cfg_kw)
+
+
+@needs_seed
+def test_the_third_friday_multiplier_scales_the_short_and_its_hedge(tmp_path, frames):
+    """x2 on 2025-06-20: three straddles become six, and the lots follow them."""
+    _c1, _b1, _r1, p1, s1 = run_third_friday(tmp_path / "x1", frames, 1.0)
+    _c2, _b2, _r2, p2, s2 = run_third_friday(tmp_path / "x2", frames, 2.0)
+
+    # the calendar record: flagged both times, applied only when asked
+    c1, c2 = kinds_of(p1, "calendar")[0], kinds_of(p2, "calendar")[0]
+    assert c1["third_friday"] is True and c2["third_friday"] is True
+    assert (c1["third_friday_multiplier"], c1["third_friday_applied"]) == (1.0, 1.0)
+    assert (c2["third_friday_multiplier"], c2["third_friday_applied"]) == (2.0, 2.0)
+    assert c2["decision"] == "short"
+    assert c2["third_friday_reason"].startswith(THIRD_FRIDAY_REASON)
+    assert kinds_of(p2, "config")[0]["third_friday_size_multiplier"] == 2.0
+
+    # the sizing record: the count before and after
+    z1, z2 = kinds_of(p1, "sizing")[0], kinds_of(p2, "sizing")[0]
+    assert (z1["n_before_third_friday"], z1["n"]) == (RECENT_TABLE_N, RECENT_TABLE_N)
+    assert (z2["n_before_third_friday"], z2["n"]) == (
+        RECENT_TABLE_N,
+        2 * RECENT_TABLE_N,
+    )
+    assert (z2["n_stress"], z2["multiplier"]) == (RECENT_TABLE_N, 1.0)
+    assert z2["third_friday"] is True and z2["third_friday_multiplier"] == 2.0
+    assert z2["third_friday_capped"] is False and "third Friday x2" in z2["note"]
+    assert z2["loss_total"] == z1["loss_total"]  # the same straddle, the same table
+    assert z2["fraction_implied"] == pytest.approx(2.0 * z1["fraction_implied"])
+    assert s1.entry_clock == s2.entry_clock == "14:30"
+    assert (s1.n_straddles, s2.n_straddles) == (RECENT_TABLE_N, 2 * RECENT_TABLE_N)
+
+    # the ES/MES split is recomputed from the new count at every rebalance
+    rebal = kinds_of(p2, "rebalance")
+    assert rebal
+    for r in rebal:
+        want = target_lots(r["delta_pkg"], 2 * RECENT_TABLE_N)
+        assert (r["target_es"], r["target_mes"]) == want
+
+
+@needs_seed
+def test_a_fractional_multiplier_is_floored(tmp_path, frames):
+    _c, _b, _r, path, s = run_third_friday(tmp_path, frames, 1.5)
+    sz = kinds_of(path, "sizing")[0]
+    assert (sz["n_before_third_friday"], sz["n"]) == (RECENT_TABLE_N, 4)  # 4.5 -> 4
+    assert s.n_straddles == 4
+
+
+@needs_seed
+def test_study_66_s_multiplier_floors_and_stays_under_the_cap(tmp_path, frames):
+    """1.1, floored: no change below ten straddles, and the cap still binds."""
+    four_m = 4.0 * CAPITAL  # 13 straddles in the table at 14:30
+    cases = {
+        "1m": (dict(), RECENT_TABLE_N, RECENT_TABLE_N, False),  # 3.3 -> 3
+        "4m_room": (dict(capital=four_m, max_straddles=20), 13, 14, False),  # 14.3
+        "4m_cap": (dict(capital=four_m), 10, 10, True),  # 10 x 1.1 = 11 -> 10
+    }
+    for name, (kw, before, after, capped) in cases.items():
+        _c, _b, _r, path, s = run_third_friday(tmp_path / name, frames, 1.1, **kw)
+        sz = kinds_of(path, "sizing")[0]
+        assert kinds_of(path, "calendar")[0]["third_friday_applied"] == 1.1
+        got = (sz["n_before_third_friday"], sz["n"], sz["third_friday_capped"])
+        assert got == (before, after, capped), name
+        assert s.n_straddles == after
+
+
+@needs_seed
+def test_max_straddles_caps_the_count_after_the_multiplier(tmp_path, frames):
+    _c, _b, _r, path, s = run_third_friday(tmp_path, frames, 2.0, max_straddles=5)
+    sz = kinds_of(path, "sizing")[0]
+    assert (sz["n_before_third_friday"], sz["n"]) == (RECENT_TABLE_N, 5)
+    assert sz["third_friday_capped"] is True and "capped" in sz["note"]
+    assert s.n_straddles == 5
+
+
+def test_an_explicit_n_is_never_multiplied(tmp_path, frames):
+    """--n sets the count by hand: the calendar flags the day and applies 1."""
+    _c, _b, _r, path, s = run_replay(
+        tmp_path,
+        frames,
+        RECENT,
+        fixed_entry_clock="13:30",
+        n_override=2,
+        capital=CAPITAL,
+        terminal="hold",
+        third_friday_size_multiplier=2.0,
+    )
+    c = kinds_of(path, "calendar")[0]
+    assert c["third_friday"] is True and c["third_friday_applied"] == 1.0
+    assert "--n sets the size" in c["third_friday_reason"]
+    sz = kinds_of(path, "sizing")[0]
+    assert (sz["n"], sz["third_friday_multiplier"], sz["note"]) == (
+        2,
+        1.0,
+        "--n override",
+    )
+    assert s.n_straddles == 2
+
+
+def test_the_multiplier_scales_the_deleveraged_count(tmp_path, frames):
+    """Half regime: 3 at full size, 1 after the brake, 2 after the multiplier."""
+    seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2025-06-19", 1.94e-5)
+    _c, _b, _r, path, s = run_replay(
+        tmp_path,
+        frames,
+        RECENT,
+        fixed_entry_clock="13:30",
+        n_override=None,
+        capital=CAPITAL,
+        terminal="hold",
+        ledger_path=seed,
+        third_friday_size_multiplier=2.0,
+        **HALF_KW,
+    )
+    sz = kinds_of(path, "sizing")[0]
+    assert sz["multiplier"] == 0.5 and sz["n_stress"] == RECENT_TABLE_N
+    assert (sz["n_before_third_friday"], sz["n"]) == (1, 2)
+    assert "deleveraged x0.5" in sz["note"] and "third Friday x2" in sz["note"]
+    assert s.n_straddles == 2
+
+
+def test_the_brake_at_zero_still_ends_a_third_friday_flat(tmp_path, frames):
+    """A zero regime refuses the day in preflight, whatever the multiplier."""
+    seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2025-06-19", 1.0e-3)
+    cfg = make_cfg(
+        tmp_path,
+        RECENT,
+        fixed_entry_clock="13:30",
+        n_override=None,
+        capital=CAPITAL,
+        terminal="hold",
+        ledger_path=seed,
+        third_friday_size_multiplier=2.0,
+        **HALF_KW,
+    )
+    broker = FakeBroker(cfg, RECENT, frame=frames[RECENT])
+    broker.connect()
+    jr = Journal(os.path.join(str(tmp_path), "tf_zero.jsonl"), echo=False)
+    with pytest.raises(Abort) as exc:
+        DayRunner(cfg, broker, jr).run()
+    jr.close()
+    assert DELEVER_FLAT_REASON in str(exc.value)
+    assert kinds_of(jr.path, "calendar")[0]["third_friday_applied"] == 2.0
+    assert kinds_of(jr.path, "regime")[0]["multiplier"] == 0.0
+    assert not kinds_of(jr.path, "sizing") and not kinds_of(jr.path, "order")
+
+
+def test_a_count_the_brake_took_to_zero_stays_zero(tmp_path, frames):
+    """floor(1 x 0.5) = 0, and 0 x 2 = 0: flat, and the reason names the brake."""
+    seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2025-06-19", 1.94e-5)
+    _c, _b, _r, path, s = run_replay(
+        tmp_path,
+        frames,
+        RECENT,
+        fixed_entry_clock="13:30",
+        n_override=None,
+        capital=400_000.0,  # one straddle at a ~$30k stress loss
+        terminal="hold",
+        ledger_path=seed,
+        third_friday_size_multiplier=2.0,
+        **HALF_KW,
+    )
+    sz = kinds_of(path, "sizing")[0]
+    assert (sz["n_stress"], sz["n_before_third_friday"], sz["n"]) == (1, 0, 0)
+    entry = kinds_of(path, "entry")[0]
+    assert entry["reason"] == "deleveraging_took_the_size_to_zero_contracts"
+    assert not s.entered and not kinds_of(path, "order")
+
+
+def test_an_ordinary_session_is_not_scaled(tmp_path, frames):
+    """2025-04-09 is not an expiration: x2 and x1 are the same run."""
+    seen = {}
+    for mult in (1.0, 2.0):
+        _c, _b, _r, path, s = run_replay(
+            tmp_path / str(mult),
+            frames,
+            DELEVER_ZERO,
+            fixed_entry_clock="13:30",
+            n_override=None,
+            capital=CAPITAL,
+            terminal="hold",
+            third_friday_size_multiplier=mult,
+        )
+        c = kinds_of(path, "calendar")[0]
+        assert c["third_friday"] is False and c["third_friday_applied"] == 1.0
+        sz = kinds_of(path, "sizing")[0]
+        assert sz["n_before_third_friday"] == sz["n"] and sz["third_friday"] is False
+        seen[mult] = (sz["n"], sz["note"], s.n_straddles, s.pnl_units, s.pnl_dollars)
+    assert seen[1.0] == seen[2.0] and seen[1.0][0] >= 1
+
+
+def test_the_month_end_long_is_not_scaled(tmp_path, frames):
+    """A month-end is never an expiration, and the override is read first."""
+    _c1, _b1, _r1, p1, s1 = run_override(tmp_path / "x1", frames)
+    _c2, _b2, _r2, p2, s2 = run_override(
+        tmp_path / "x2", frames, third_friday_size_multiplier=3.0
+    )
+    c2 = kinds_of(p2, "calendar")[0]
+    assert c2["decision"] == "override" and c2["third_friday"] is False
+    assert c2["third_friday_applied"] == 1.0
+    assert kinds_of(p1, "sizing")[0]["n"] == kinds_of(p2, "sizing")[0]["n"]
+    assert s1.n_straddles == s2.n_straddles and s2.side == "long"
+
+
+@needs_seed
+def test_main_takes_the_third_friday_multiplier_from_the_command_line(tmp_path, frames):
+    argv = [
+        "--date",
+        RECENT,
+        "--capital",
+        str(CAPITAL),
+        "--ledger",
+        SEED,
+        "--ledger-live",
+        str(tmp_path / "absent_live.parquet"),
+        "--third-friday-multiplier",
+        "2",
+        "--journal-dir",
+        str(tmp_path),
+    ]
+    assert main(argv) == 0
+    with open(
+        os.path.join(str(tmp_path), RECENT + "_summary.json"), encoding="utf-8"
+    ) as fh:
+        blob = json.load(fh)
+    assert blob["n_straddles"] == 2 * RECENT_TABLE_N and blob["side"] == "short"
+
+
+def test_the_third_friday_flags():
+    assert Config().third_friday_size_multiplier == THIRD_FRIDAY_SIZE_MULTIPLIER
+    assert (
+        Config.from_args([]).third_friday_size_multiplier
+        == THIRD_FRIDAY_SIZE_MULTIPLIER
+    )
+    two = Config.from_args(["--third-friday-multiplier", "2"])
+    assert two.third_friday_size_multiplier == 2.0
+    half = Config.from_args(["--third-friday-multiplier=1.5"])
+    assert half.third_friday_size_multiplier == 1.5
+    assert Config.from_args(["--no-third-friday"]).third_friday_size_multiplier == 1.0
+    both = ["--no-third-friday", "--third-friday-multiplier", "1"]
+    assert Config.from_args(both).third_friday_size_multiplier == 1.0
+    with pytest.raises(SystemExit):
+        Config.from_args(["--no-third-friday", "--third-friday-multiplier", "2"])
+    for bad in (0.5, 0.0, -2.0, float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="third_friday_size_multiplier"):
+            Config(third_friday_size_multiplier=bad)
