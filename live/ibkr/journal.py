@@ -58,6 +58,7 @@ EVENT_KINDS = (
     "calendar",
     "ledger",
     "regime",
+    "sp_leg",
     "selector",
     "sizing",
     "entry",

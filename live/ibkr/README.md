@@ -11,8 +11,8 @@ straddle instead, held to settlement (§1.6). On the monthly-expiration session
 (the third Friday), sell more (§1.7).
 
 ```
-preflight   calendar (§1.6, §1.7)  →  ledger  →  regime (size multiplier) and
-            entry clock                            (§1.5; selector, or the fixed clock)
+preflight   calendar (§1.6, §1.7)  →  ledger  →  regime (size multiplier),
+            S&P-leg report (§1.8) and entry clock  (§1.5; the fixed clock, or the selector)
 13:30 ET    SELL the body, size = stress x m (x t on a third Friday, §1.7)
             (combo first, then the futures hedge)
 14:00 ..    re-quote, re-invert, CORRECT,     (ES bulk + MES remainder)
@@ -537,6 +537,59 @@ non-short day, or under `--n`), `third_friday_reason` and
 (the brake), `n_before_third_friday`, `third_friday_multiplier`,
 `third_friday_capped` and `n`.
 
+### 1.8 The S&P-leg report — `sp_leg.py` (studies 67 and 68)
+
+An account that holds the S&P 500 beside this book loses on both legs in a
+crash, and that is when margin is called. Studies 67 and 68 asked what the
+runner's own information can do about it. **A report, never an order:** the
+runner journals and prints the weight the S&P leg should carry today; the
+operator trades it. The flat-book checks never see the S&P leg.
+
+| flag | effect |
+| --- | --- |
+| `--sp-leg vol_managed` | **default.** weight = min(1, median forecast vol / today's forecast vol) |
+| `--sp-leg brake` | the insurance book's own deleveraging multiplier (1 / ½ / 0) as the weight |
+| `--sp-leg off` | no report |
+| `--sp-leg-notional D` | the S&P leg at full weight, in dollars: the report adds the target in dollars and in ES + MES (both floored) |
+
+**The rule.** Today's forecast volatility is an expanding-OLS HAR regression of
+the ledger's log session variance (10:00 remaining-window realized variance,
+§1.1) on its previous value, its 5-session mean and its 22-session mean, fitted
+on pairs strictly before today; the median is over the forecasts made for
+earlier sessions. Nothing about today enters. Both the regression and the
+median wait for 252 sessions (`state="warmup"`, weight 1). Never above 1.
+
+**What it does** (study 67, index closes 1998–2024, price only, cash at zero;
+weight on from the prior close): buy-and-hold grows 6.5 %/yr with a −57 % worst
+drawdown and a −31 % worst 20-session run; volatility-managed 6.0 %, −49 %,
+−15 %. On the tape 2020-01..2024-04 the joint book (S&P + this book at 10 %)
+goes from 19.0 %/yr, Sharpe 0.87, worst 20 sessions −31 % to 16.6 %, 1.09, −14 %.
+The **size** of a crash is what the rule sees (68–89 % of the index's worst-1 %
+days fall in the top fifth of a prior-close volatility signal); its first hit
+out of a calm market and its direction are not forecast, and the rule does not
+help a slow bear market (2000–02: −48 % against −49 %).
+
+**Why not the brake** (study 68). The runner learns session t−1's variance when
+the operator reconciles it on the morning of t, so the S&P leg is resized
+during t, not at the prior close. Bracketing that timing (weight on from the
+prior close; a full session late), the brake a session late no longer lowers
+the maximum drawdown in 1998–2011 and fails the written criterion; the
+volatility-managed rule passes at both timings, and on the runner's OWN ledger
+numbers (2022-12..2025-12, computed by `sp_leg.py`) it cuts the 2024-05..2025-12
+holdout's worst drawdown from −19 % to −13 % and its worst 20-session run from
+−12 % to −8 %, the joint book's from −18 % / −12 % to −14 % / −8 %, at Sharpe
+1.77 against 1.64. The brake did nothing on that holdout (it fired on 3 % of
+days, the volatility rule on 23 %).
+
+```
+$ python -m live.ibkr.run_day --date 2025-04-07 --capital 1000000 --sp-leg-notional 1000000
+  S&P leg (vol_managed): weight 0.44, target $437,540 = 1 ES + 7 MES
+```
+
+The `sp_leg` journal record carries `rule`, `weight`, `state`, `forecast_vol`,
+`median_forecast_vol`, `n_sessions`, `n_forecasts` and, with a notional,
+`target_dollars`, `target_es`, `target_mes`.
+
 ---
 
 ## 2. The daily cycle
@@ -956,11 +1009,12 @@ config gates and the decision layer. They say nothing about IB.
 | `config.py` | `Config` + the CLI; the live gate (mode **and** port), the tick-by-price rule, the spread-sized crossing cap, the rebalance ladder, the deleveraging knobs |
 | `broker.py` | `Broker` protocol, `IBBroker`, `FakeBroker` + `FakeFaults`, `Fill`, `QuoteHealth`, `load_replay_day` |
 | `journal.py` | `Journal` (JSONL, flushed and fsynced, rolls on re-run) + `DaySummary.from_journal` |
-| `run_day.py` | `DayRunner` (preflight → calendar → ledger → regime → selector → sizing → entry → hedge → settle; or on a month-end, observe → size → buy at 15:30 → settle) , `reconcile_day`, `main` |
+| `run_day.py` | `DayRunner` (preflight → calendar → ledger → regime → S&P-leg report → selector → sizing → entry → hedge → settle; or on a month-end, observe → size → buy at 15:30 → settle) , `reconcile_day`, `main` |
 | `calendar_guard.py` | the NYSE session calendar by rule, `is_last_session_of_month`, the registry of named no-short calendars, and the month-end modes (proposals 54 and 55); `is_third_friday_session` and the third-Friday multiplier's verdict (proposal 58) |
 | `premium_ledger.py` | the `(session, clock)` tape, its two causal estimators and the deleveraging multiplier |
 | `selector.py` | proposal 46's E2 entry-clock selector |
 | `sizing.py` | the stress table, `contracts_for`, and `scaled_contracts` (the third-Friday floor) |
+| `sp_leg.py` | the S&P-leg report of a joint account (studies 67–68): the volatility-managed weight, the brake as a weight, dollars and ES/MES |
 | `pricing.py` | Black-76 package price, delta, volatility inversion, the V9 correction |
 | `strikes.py` | nearest-OTM selection, the no-quote sentinel, the outage guards |
 | `hedge.py` | `target_lots` (ES bulk + MES remainder), `rebalance_lots`, `residual_delta_lots` |

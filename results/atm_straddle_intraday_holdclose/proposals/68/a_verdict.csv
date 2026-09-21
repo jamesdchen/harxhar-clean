@@ -1,0 +1,7 @@
+rule,smaller_drawdowns_both_halves,Sharpe_not_worse,PASSES
+BRK L0 (from the prior close),True,True,True
+BRK L1 (a session late),False,True,False
+VM L0 (from the prior close),True,True,True
+VM L1 (a session late),True,True,True
+MA200 L0 (from the prior close),True,True,True
+MA200 L1 (a session late),True,True,True

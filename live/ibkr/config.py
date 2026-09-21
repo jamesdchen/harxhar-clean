@@ -53,6 +53,7 @@ from live.ibkr.calendar_guard import MONTH_END_MODES, NO_SHORT_CALENDARS
 
 Mode = Literal["dry", "paper", "live"]
 EntryMode = Literal["selector", "fixed"]
+SpLegRule = Literal["vol_managed", "brake", "off"]
 Terminal = Literal["hold", "flatten"]
 MonthEndMode = Literal["override", "sit_out", "off"]
 
@@ -225,6 +226,13 @@ class Config:
     #: Multiplies the short program's contract count on the monthly-expiration
     #: session; read after the month-end calendar, which it never overrides.
     third_friday_size_multiplier: float = THIRD_FRIDAY_SIZE_MULTIPLIER
+    #: The S&P-leg REPORT of a joint account (studies 67-68, ``sp_leg.py``):
+    #: ``"vol_managed"`` (default; the one rule that met the written criterion
+    #: at the timing the runner can deliver), ``"brake"`` (the insurance book's
+    #: own multiplier; offered), or ``"off"``.  A report, never an order.
+    sp_leg_rule: SpLegRule = "vol_managed"
+    #: The S&P leg at FULL weight, in dollars; 0 reports the weight alone.
+    sp_leg_notional: float = 0.0
 
     # -- the book --------------------------------------------------------
     terminal: Terminal = "hold"
@@ -442,6 +450,19 @@ class Config:
                 "session), got " + repr(self.third_friday_size_multiplier)
             )
         self.third_friday_size_multiplier = tf
+        if self.sp_leg_rule not in ("vol_managed", "brake", "off"):
+            raise ValueError(
+                "sp_leg_rule must be vol_managed|brake|off, got "
+                + repr(self.sp_leg_rule)
+            )
+        notional = float(self.sp_leg_notional)
+        if not (math.isfinite(notional) and notional >= 0.0):
+            raise ValueError(
+                "sp_leg_notional must be a finite number >= 0 (dollars of the "
+                "S&P leg at full weight; 0 reports the weight alone), got "
+                + repr(self.sp_leg_notional)
+            )
+        self.sp_leg_notional = notional
 
         if self.rebalance_clocks is not None:
             self.rebalance_clocks = tuple(self.rebalance_clocks)
@@ -658,6 +679,22 @@ class Config:
             "session",
         )
         p.add_argument(
+            "--sp-leg",
+            choices=("vol_managed", "brake", "off"),
+            default="vol_managed",
+            dest="sp_leg_rule",
+            help="the S&P-leg target the runner REPORTS for a joint account "
+            "(studies 67-68): vol_managed (default), brake, or off",
+        )
+        p.add_argument(
+            "--sp-leg-notional",
+            type=float,
+            default=0.0,
+            dest="sp_leg_notional",
+            help="dollars of the S&P leg at full weight; the report then states "
+            "the target in dollars and in ES / MES (0: the weight alone)",
+        )
+        p.add_argument(
             "--terminal",
             choices=("hold", "flatten"),
             default="hold",
@@ -761,6 +798,8 @@ class Config:
             delever=ns.delever,
             month_end_mode=month_end_mode,
             third_friday_size_multiplier=third_friday,
+            sp_leg_rule=ns.sp_leg_rule,
+            sp_leg_notional=ns.sp_leg_notional,
             terminal=ns.terminal,
             exit_clock=ns.exit_clock,
             wings_pct=ns.wings_pct,

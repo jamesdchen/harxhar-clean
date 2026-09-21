@@ -96,6 +96,7 @@ from live.ibkr.pricing import (
 )
 from live.ibkr.selector import pick_entry_clock
 from live.ibkr.sizing import contracts_for, scaled_contracts, stress_loss_per_contract
+from live.ibkr.sp_leg import sp_leg_target
 from live.ibkr.strikes import Body, Quote, pick_nearest_otm_reason, pick_wings
 
 NAN = float("nan")
@@ -109,6 +110,7 @@ PENDING_NAME = "pending_settlement.json"
 #: The journal kind the deleveraging rule writes: the regime it read, the
 #: thresholds it read it against, and the multiplier it returned.
 REGIME_KIND = "regime"
+SP_LEG_KIND = "sp_leg"
 #: The journal kind the calendar writes: the session, the mode, the no-short
 #: calendars it was checked against, the ones it hit, and the decision.
 CALENDAR_KIND = "calendar"
@@ -280,6 +282,7 @@ class DayRunner:
         #: proposal 50's deleveraging multiplier and the dict behind it.
         self.multiplier: float = 1.0
         self.delever: dict[str, Any] = {"state": "not_computed", "multiplier": 1.0}
+        self.sp_leg: dict[str, Any] = {"state": "not_computed", "weight": 1.0}
         #: the calendar's verdict for the session (proposals 54 and 55).
         self.calendar: dict[str, Any] = {
             "mode": "off",
@@ -556,6 +559,9 @@ class DayRunner:
             self._load_ledger()
             self._regime()
             checks["delever"] = dict(self.delever)
+            # The S&P-leg REPORT (studies 67-68): what a joint account's index
+            # exposure should be today.  Journaled and printed; never traded.
+            self._sp_leg_report(float(checks.get("spot", NAN)))
             # The brake exists for SHORT-tail risk.  An override day sells
             # nothing and the long can lose only its premium, so the regime is
             # journaled but neither refuses the day nor scales its size.
@@ -733,6 +739,69 @@ class DayRunner:
                 + "th percentile -- HALF size today",
                 flush=True,
             )
+
+    # -- the S&P-leg report (studies 67-68) --------------------------------
+    def _sp_leg_report(self, spot: float) -> None:
+        """Journal and print today's S&P-leg weight for a joint account.
+
+        ``vol_managed``: min(1, median forecast vol / today's forecast vol) off
+        the ledger's session variance; ``brake``: the insurance book's own
+        multiplier.  A report for the operator, who trades the S&P leg; the
+        runner places no order for it.
+        """
+        cfg = self.cfg
+        if cfg.sp_leg_rule == "off":
+            self.sp_leg = {"rule": "off", "weight": 1.0, "state": "disabled"}
+        elif self.ledger is None:
+            self.sp_leg = {"rule": cfg.sp_leg_rule, "weight": 1.0, "state": "no_ledger"}
+        else:
+            self.sp_leg = sp_leg_target(
+                self.ledger,
+                self._session_date(),
+                cfg.sp_leg_rule,
+                notional=cfg.sp_leg_notional,
+                spot=spot,
+                es_multiplier=cfg.es_multiplier,
+                mes_multiplier=cfg.mes_multiplier,
+                delever_kwargs={
+                    "window": cfg.delever_window,
+                    "p_half": cfg.delever_half_pct,
+                    "p_zero": cfg.delever_zero_pct,
+                    "min_sessions": cfg.delever_min_sessions,
+                },
+            )
+        self.jr.event(
+            SP_LEG_KIND,
+            ts_et=self._now(),
+            rule_source="studies 67-68: a REPORT of the S&P-leg weight for a "
+            "joint account; the runner trades nothing on it",
+            **self.sp_leg,
+        )
+        if cfg.sp_leg_rule == "off":
+            return
+        w = float(self.sp_leg.get("weight", 1.0))
+        line = (
+            "  S&P leg ("
+            + str(cfg.sp_leg_rule)
+            + "): weight "
+            + f"{w:.2f}"
+            + (
+                " -- " + str(self.sp_leg.get("state"))
+                if self.sp_leg.get("state") in ("warmup", "no_ledger")
+                else ""
+            )
+        )
+        if "target_dollars" in self.sp_leg:
+            line += ", target $" + f"{float(self.sp_leg['target_dollars']):,.0f}"
+            if "target_es" in self.sp_leg:
+                line += (
+                    " = "
+                    + str(self.sp_leg["target_es"])
+                    + " ES + "
+                    + str(self.sp_leg["target_mes"])
+                    + " MES"
+                )
+        print(line, flush=True)
 
     def _delever_flat_reason(self) -> str:
         cfg = self.cfg
@@ -1950,6 +2019,8 @@ class DayRunner:
             month_end_long_size=cfg.month_end_long_size,
             no_short_calendars=list(cfg.no_short_calendars),
             third_friday_size_multiplier=cfg.third_friday_size_multiplier,
+            sp_leg_rule=cfg.sp_leg_rule,
+            sp_leg_notional=cfg.sp_leg_notional,
             candidate_clocks=list(cfg.candidate_clocks),
             fixed_entry_clock=cfg.fixed_entry_clock,
             exit_clock=cfg.exit_clock,
