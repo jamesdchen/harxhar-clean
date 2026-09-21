@@ -1,0 +1,3 @@
+sample,month_ends,other_days,last_bar_RV_over_prior_bar_month_end,last_bar_RV_over_prior_bar_other,t_log_ratio,median_net_move_sq_over_prior_RV_month_end,median_net_move_sq_over_prior_RV_other
+1998-2019 (before any option in the study),264,5239,1.534331258375078,1.1090653741961385,7.916349896243872,1.1351950077558282,0.5340816060167575
+2020-2024,52,1036,2.155525264133308,1.5520542866871003,3.4882289290984505,2.1507509985297335,0.7054595257549887
