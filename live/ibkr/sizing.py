@@ -69,6 +69,16 @@ def stress_loss_per_contract(
     futures leg is charged ``abs(delta_pkg) * jump * S`` index points, the
     magnitude it loses on whichever side is adverse for it.
 
+    Units.  Everything is in the OPTION'S OWN index points -- SPX points for
+    SPXW, XSP points (one tenth) for XSP -- times ``index_multiplier``
+    dollars a point, so the same call sizes either instrument.  The futures
+    leg needs no separate scale: the hedge is laid in S&P 500 futures at
+    ``delta * index_multiplier * index_scale`` dollars per S&P point, and a
+    ``jump`` moves the S&P by ``jump * S / index_scale`` points, so its loss
+    is ``delta * index_multiplier * jump * S`` dollars whatever the scale --
+    the ``index_scale`` cancels.  One XSP straddle at 650 therefore stresses
+    to one tenth of one SPX straddle at 6,500, to the dollar.
+
     Returns ``{"option", "hedge", "total", "side"}`` -- the three dollar
     figures and the sign of the jump that gives the worse option side
     (``"+"`` or ``"-"``).  A non-finite input gives NaN losses and an empty

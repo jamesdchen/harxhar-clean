@@ -590,6 +590,98 @@ The `sp_leg` journal record carries `rule`, `weight`, `state`, `forecast_vol`,
 `median_forecast_vol`, `n_sessions`, `n_forecasts` and, with a notional,
 `target_dollars`, `target_es`, `target_mes`.
 
+### 1.9 Instruments: SPXW and XSP — `--instrument`, `--hedge-ladder`
+
+The book of record is written on SPX Weeklys (`SPXW`, $100 a point on the
+S&P 500 itself). The same runner can write it on **Cboe Mini-SPX options
+(`XSP`)**: one tenth of the S&P 500 (the XSP index is SPX / 10), $100
+multiplier, European, cash-settled at the close to one tenth of the official
+SPX close, daily expirations, a $0.01 tick on every series, and — like SPXW —
+the expiring weekly stops trading at 16:00 ET. One XSP straddle is one tenth
+of one SPX straddle in every dollar figure.
+
+**Why.** The stress rule (§1.3) commits 10 % of capital to the 5 %-jump loss
+of one hedged straddle, about $22k on SPXW (study 65's median). A $60k
+account therefore sizes at **zero** SPXW straddles and needs ~$250k for the
+first one; the same account sizes at **two** XSP straddles (~$2.2k each), and
+Reg-T margin on a naked XSP straddle is roughly $10–13k against ~$100k+ for
+SPXW. XSP is how the book runs at that size — the process, the code and the
+track record are the SPXW ones; only the contract changes.
+
+| flag | effect |
+| --- | --- |
+| `--instrument spxw` | the default: SPXW on SPX, hedged in ES then MES |
+| `--instrument xsp` | Mini-SPX: `Option(symbol="XSP", tradingClass="XSP")` on the `XSP` CBOE index, hedged in MES then NES |
+| `--hedge-ladder ES,MES,NES` | the futures the hedge is laid in, largest first; any subset of ES / MES / NES in decreasing size |
+
+**The hedge ladder** (`hedge.ladder_lots`). Every future is on the S&P 500
+itself, so the dollars of delta per S&P point are `delta × 100 × index_scale
+× n` (`index_scale` 1 for SPXW, 0.1 for XSP). Each rung but the last takes
+the whole contracts it can toward zero; the last rung rounds the remainder.
+The two-rung ES/MES case is the old `target_lots`, bit for bit (a test walks
+24,000 deltas). CME's **E-nano S&P 500 (`NES`, $0.50 a point, one tenth of a
+Micro)** listed on 2026-08-24 and is the third rung: two XSP straddles at
+delta 0.3 carry $6 of delta per S&P point — one MES plus two NES, residual
+zero; in MES alone the residual is a quarter of the position. The XSP
+default ladder is therefore MES then NES. Journal records carry
+`target_lots` / `current_lots` / `qty_lots` dicts for any ladder, plus the
+per-rung keys (`target_es`, `target_mes`, … `target_nes`).
+
+**What stays in S&P units.** The premium ledger (§1.1). An XSP observation
+has its spot, premium and strikes divided by `index_scale` before it is
+recorded, so XSP and SPXW sessions share one ledger and the selector, the
+brake (RV21), the V9 factor and the S&P-leg report — all ratios — are
+unchanged. The pending-settlement file carries `instrument` and
+`index_scale` so `--reconcile` scales the morning's rows the same way. The
+stress table needs no scale: in the option's own points the futures leg's
+loss is `delta × 100 × jump × S` dollars whatever the scale (the algebra is
+in `sizing.stress_loss_per_contract`), and one XSP straddle at 650 stresses
+to one tenth of one SPX straddle at 6,500 to the dollar.
+
+**What is worse on XSP, and unmeasured.**
+
+* **The strike grid is $1 = 10 SPX points**, twice SPXW's 5-point spacing in
+  relative terms, so the nearest-OTM straddle sits a little further from the
+  spot than the book was measured on.
+* **The relative spread.** An ATM 0DTE XSP quote is typically ~$0.05 wide on
+  a ~$1.40 premium — 5 to 10 times SPXW's relative crossing cost (0.05–0.10
+  on ~14). The book's edge is 3–6 % of the premium (studies 64–65), so a
+  1.8–3.6 % half-spread is not a rounding error; it can take half the edge.
+* **There is no XSP history in this repository.** Every number in this README
+  and in the studies is SPXW. The XSP book cannot be validated the way the
+  SPXW book was (parity, the 1,279-session tape); its expected return is an
+  inference — SPXW / 10, less the spread — until it has its own paper record.
+
+**The synthetic replay.** `FakeBroker` has only the SPXW tape. Under
+`--instrument xsp` it serves that tape rescaled by 0.1 (strikes on the
+whole-dollar grid kept — every second 5-point strike — and prices, strikes
+and the underlying divided by ten, quotes snapped to $0.01). This exercises
+the code path — sizing, the ladder, the ledger scaling, settlement — and says
+nothing about how XSP quotes. The runner prints a `SYNTHETIC XSP REPLAY`
+banner and journals `synthetic_xsp_from_spxw: true` on the `config` record.
+
+```
+$ python -m live.ibkr.run_day --date 2025-06-13 --instrument xsp --capital 60000
+  *** SYNTHETIC XSP REPLAY: the recorded tape is SPXW, rescaled by 0.1 ... ***
+  entry clock                           13:30
+  straddles                                 2      (stress $2,914 each, 9.7 % of capital)
+  target 13:30  {MES: 0, NES: -1}   ...   15:30  {MES: -3, NES: -6}
+  flatten 16:00 {MES: 0, NES: 0}
+  day P&L ($)                         -133.28
+
+$ python -m live.ibkr.run_day --date 2025-04-07 --instrument xsp --capital 60000
+  straddles                                 3      (stress $1,655 each, 8.3 %)
+  target 14:00  {MES: 1, NES: 6}    ...   15:30  {MES: -3, NES: -7}
+  day P&L ($)                        +1504.82
+```
+
+Live, on IB, XSP needs the same first-paper-session canaries as SPXW (§11,
+§12) plus three of its own: that IB lists the Mini-SPX weeklys as
+`Option(symbol="XSP", tradingClass="XSP")` with `XSP` as a CBOE index (the
+runner falls back to SPX × 0.1 for the spot and logs it), that the NES
+contract qualifies as `Future(symbol="NES", exchange="CME")`, and that the
+XSP $0.01 tick is accepted on the SMART bag.
+
 ---
 
 ## 2. The daily cycle
@@ -999,6 +1091,7 @@ config gates and the decision layer. They say nothing about IB.
 | 9 | **`ib.positions(account or "")`** | verified correct: the signature is `positions(self, account: str = '')` and `''` is the all-accounts default | §7 step 3 |
 | 10 | **`Ticker.time` / `.halted`** for the freshness check | if `time` is absent the age check silently never fires (the halt and crossed checks still do) | §7 step 3 — print one `Ticker` |
 | 11 | **`reqHistoricalData` daily bar = the official settlement** | `--reconcile` falls back to `--settlement`, loudly, and finalises nothing without one | §7 step 6 |
+| 12 | **XSP contract definitions** (`--instrument xsp` only) — `Option(symbol="XSP", tradingClass="XSP")`, `Index("XSP", "CBOE")` for the spot, `Future(symbol="NES", exchange="CME")` for the E-nano | the chain comes back empty ("not an expiry"), the spot falls back to SPX × 0.1 (logged), or the NES leg raises "no expiry"; nothing trades on a guess | first XSP paper session: print the chain, the index ticker and the qualified NES contract |
 
 ---
 
@@ -1015,6 +1108,7 @@ config gates and the decision layer. They say nothing about IB.
 | `selector.py` | proposal 46's E2 entry-clock selector |
 | `sizing.py` | the stress table, `contracts_for`, and `scaled_contracts` (the third-Friday floor) |
 | `sp_leg.py` | the S&P-leg report of a joint account (studies 67–68): the volatility-managed weight, the brake as a weight, dollars and ES/MES |
+| `config.INSTRUMENTS`, `hedge.ladder_lots` | the instrument axis (§1.9): SPXW / XSP contract specs, `index_scale`, the hedge ladder over ES / MES / NES |
 | `pricing.py` | Black-76 package price, delta, volatility inversion, the V9 correction |
 | `strikes.py` | nearest-OTM selection, the no-quote sentinel, the outage guards |
 | `hedge.py` | `target_lots` (ES bulk + MES remainder), `rebalance_lots`, `residual_delta_lots` |

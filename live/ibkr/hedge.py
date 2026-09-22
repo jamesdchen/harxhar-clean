@@ -20,16 +20,30 @@ therefore ``0.0625`` of residual delta, **2.5 times coarser** than MES at
 ``n = 10``.  The fee half of the trade-off is the real one -- at ``n = 4``,
 4 ES tickets cost about $3.40 against $10.00 for 40 MES.  ``target_lots``
 below buys both: ES for the bulk, MES for the remainder.
+
+The ladder.  ``ladder_lots`` is the same allocation for ANY ordered list of
+futures, largest first: every rung but the last takes the whole contracts it
+can toward zero, the last rung rounds the remainder.  ``target_lots`` is the
+two-rung ES/MES case of it, bit for bit.  With the E-nano (NES, $0.50 a
+point) a third rung exists, and the Mini-SPX book (XSP, one tenth of an SPX
+straddle: ``index_scale`` 0.1) hedges in MES then NES.  The futures are all
+on the S&P 500 index, so the dollars of delta per S&P point are
+``delta_pkg * index_multiplier * index_scale * n``.
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from math import isfinite
 
 __all__ = [
     "ES_MULTIPLIER",
     "MES_MULTIPLIER",
+    "NES_MULTIPLIER",
     "SPX_INDEX_MULTIPLIER",
+    "ladder_lots",
+    "ladder_rebalance",
+    "ladder_residual",
     "rebalance_lots",
     "rebalance_qty",
     "residual_delta",
@@ -42,6 +56,67 @@ __all__ = [
 SPX_INDEX_MULTIPLIER = 100.0
 ES_MULTIPLIER = 50.0
 MES_MULTIPLIER = 5.0
+NES_MULTIPLIER = 0.5  # the E-nano S&P 500 (CME, from 2026-08-24)
+
+
+def ladder_lots(
+    delta_pkg: float,
+    n_straddles: int,
+    multipliers: Sequence[float],
+    index_multiplier: float = SPX_INDEX_MULTIPLIER,
+    index_scale: float = 1.0,
+) -> tuple[int, ...]:
+    """Lots per rung against ``n_straddles`` short straddles, largest rung first.
+
+    The package carries ``delta_pkg * index_multiplier * index_scale *
+    n_straddles`` dollars of delta per S&P 500 point (``index_scale`` is the
+    option's index per S&P point: 1 for SPX, 0.1 for XSP).  Every rung but the
+    last takes the whole contracts it can TOWARD ZERO, so a big contract never
+    overshoots; the last rung rounds what is left to the nearest contract.
+    Signed: positive is LONG futures.  A non-finite delta hedges nothing.
+    """
+    mults = [float(m) for m in multipliers]
+    if not mults:
+        raise ValueError("the hedge ladder is empty")
+    d = float(delta_pkg)
+    if not isfinite(d):
+        return tuple(0 for _ in mults)
+    dollars = d * float(index_multiplier) * float(index_scale) * int(n_straddles)
+    out: list[int] = []
+    for m in mults[:-1]:
+        lots = int(dollars / m)  # truncation toward zero
+        out.append(lots)
+        dollars = dollars - lots * m
+    out.append(int(round(dollars / mults[-1])))
+    return tuple(out)
+
+
+def ladder_rebalance(target: Sequence[int], current: Sequence[int]) -> tuple[int, ...]:
+    """Lots to trade on each rung to move from ``current`` to ``target``."""
+    if len(target) != len(current):
+        raise ValueError("ladder lengths differ")
+    return tuple(int(t) - int(c) for t, c in zip(target, current))
+
+
+def ladder_residual(
+    delta_pkg: float,
+    n_straddles: int,
+    lots: Sequence[int],
+    multipliers: Sequence[float],
+    index_multiplier: float = SPX_INDEX_MULTIPLIER,
+    index_scale: float = 1.0,
+) -> float:
+    """Unhedged package delta left by ``lots`` on the ladder, per straddle.
+
+    In the index-delta units of ONE straddle (of the option's own index), so
+    it is directly comparable with ``package_delta``; positive means the
+    futures legs are short of the delta the straddles carry.
+    """
+    if len(lots) != len(multipliers):
+        raise ValueError("ladder lengths differ")
+    dollars = sum(int(q) * float(m) for q, m in zip(lots, multipliers))
+    hedged = dollars / (int(n_straddles) * float(index_multiplier) * float(index_scale))
+    return float(delta_pkg) - hedged
 
 
 def target_futures(
@@ -116,14 +191,12 @@ def target_lots(
     A non-finite delta hedges nothing: ``(0, 0)``, and the caller's residual
     alarm sees the whole package delta unhedged rather than a silent zero.
     """
-    d = float(delta_pkg)
-    if not isfinite(d):
-        return 0, 0
-    n = int(n_straddles)
-    dollars = d * float(index_multiplier) * n
-    es = int(dollars / float(es_multiplier))  # truncation toward zero
-    remainder = dollars - es * float(es_multiplier)
-    mes = int(round(remainder / float(mes_multiplier)))
+    es, mes = ladder_lots(
+        delta_pkg,
+        n_straddles,
+        (float(es_multiplier), float(mes_multiplier)),
+        index_multiplier=index_multiplier,
+    )
     return es, mes
 
 

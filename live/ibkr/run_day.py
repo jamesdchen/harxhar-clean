@@ -84,7 +84,7 @@ from live.ibkr.config import (
     parse_clock,
     typed_live_ack,
 )
-from live.ibkr.hedge import rebalance_lots, residual_delta_lots, target_lots
+from live.ibkr.hedge import ladder_lots, ladder_rebalance, ladder_residual
 from live.ibkr import journal as journal_module
 from live.ibkr.journal import DaySummary, Journal
 from live.ibkr.premium_ledger import ClockRecord, PremiumLedger
@@ -171,6 +171,7 @@ class DayState:
     total_vol: float = NAN
     hours_prev: float = NAN
     last_delta: float = NAN
+    #: open futures per rung of the hedge ladder (``Config.hedge_ladder``)
     lots: dict[str, int] = field(default_factory=lambda: {"ES": 0, "MES": 0})
     futures_cash: float = 0.0  # dollars; negative = paid out
     entered: bool = False
@@ -275,6 +276,7 @@ class DayRunner:
         self.broker = broker
         self.jr = journal
         self.state = DayState()
+        self.state.lots = {sym: 0 for sym in config.hedge_ladder}
         self.futures: dict[str, Any] = {}
         self.chain: list[Any] = []
         self.ledger: Any = None
@@ -343,7 +345,7 @@ class DayRunner:
     def _futures_ref(self) -> float:
         """The FUTURES price the open hedge is marked at -- never the index."""
         try:
-            return float(self.broker.futures_reference("ES"))
+            return float(self.broker.futures_reference(self.cfg.hedge_ladder[0]))
         except Exception as exc:  # pragma: no cover - defensive
             self.jr.event(
                 "error",
@@ -508,7 +510,7 @@ class DayRunner:
                 reason = "SPX spot is not finite (no live index print)"
 
         if not reason:
-            for sym in ("ES", "MES"):
+            for sym in cfg.hedge_ladder:
                 try:
                     self.futures[sym] = self.broker.futures_contract(sym)
                     checks["futures_" + sym] = str(
@@ -760,7 +762,7 @@ class DayRunner:
                 self._session_date(),
                 cfg.sp_leg_rule,
                 notional=cfg.sp_leg_notional,
-                spot=spot,
+                spot=spot / cfg.index_scale,  # the S&P 500 itself, for ES / MES
                 es_multiplier=cfg.es_multiplier,
                 mes_multiplier=cfg.mes_multiplier,
                 delever_kwargs={
@@ -932,6 +934,7 @@ class DayRunner:
             "sizing",
             ts_et=self._now(),
             clock=self.state.entry_clock,
+            instrument=cfg.instrument,
             n=n,
             n_stress=n_stress,
             multiplier=mult,
@@ -1111,6 +1114,7 @@ class DayRunner:
             "entry",
             ts_et=now,
             clock=clock,
+            instrument=self.cfg.instrument,
             S=spot,
             entered=True,
             K_c=body.Kc,
@@ -1268,6 +1272,7 @@ class DayRunner:
                 "sizing",
                 ts_et=obs.now,
                 clock=obs.clock,
+                instrument=self.cfg.instrument,
                 side="long",
                 rule=cfg.month_end_long_size,
                 n=None,
@@ -1635,43 +1640,40 @@ class DayRunner:
             # Nothing computable and nothing to carry: leave the hedge alone.
             return
 
-        target = target_lots(
+        ladder = cfg.hedge_ladder
+        target = ladder_lots(
             delta,
             self.state.n_open,
+            cfg.ladder_multipliers,
             index_multiplier=cfg.index_multiplier,
-            es_multiplier=cfg.es_multiplier,
-            mes_multiplier=cfg.mes_multiplier,
+            index_scale=cfg.index_scale,
         )
-        move = rebalance_lots(target, self._lots_tuple())
+        move = ladder_rebalance(target, self._lots_tuple())
         self.jr.event(
             "target",
             ts_et=now,
             clock=clock,
-            target_es=int(target[0]),
-            target_mes=int(target[1]),
-            current_es=self.state.lots["ES"],
-            current_mes=self.state.lots["MES"],
-            qty_es=int(move[0]),
-            qty_mes=int(move[1]),
+            **self._lot_fields("target", target),
+            **self._lot_fields("current", self._lots_tuple()),
+            **self._lot_fields("qty", move),
         )
-        for sym, qty in (("ES", int(move[0])), ("MES", int(move[1]))):
+        for sym, qty in zip(ladder, move):
             if qty:
-                self._trade_futures(sym, qty, clock, what="futures")
+                self._trade_futures(sym, int(qty), clock, what="futures")
         resid = self._residual(delta)
         self.jr.event(
             "rebalance",
             ts_et=now,
             clock=clock,
-            target_es=int(target[0]),
-            target_mes=int(target[1]),
-            current_es=self.state.lots["ES"],
-            current_mes=self.state.lots["MES"],
+            **self._lot_fields("target", target),
+            **self._lot_fields("current", self._lots_tuple()),
             residual_delta=resid,
             delta_pkg=delta,
         )
         if abs(resid) > cfg.max_residual_delta:
-            one_mes = cfg.mes_multiplier / (
-                max(self.state.n_open, 1) * cfg.index_multiplier
+            last = ladder[-1]
+            one_last = cfg.multiplier(last) / (
+                max(self.state.n_open, 1) * cfg.index_multiplier * cfg.index_scale
             )
             msg = (
                 "residual delta "
@@ -1680,8 +1682,10 @@ class DayRunner:
                 + f"{cfg.max_residual_delta:.2f}"
                 + " at "
                 + clock
-                + " (one MES is "
-                + f"{one_mes:.3f}"
+                + " (one "
+                + last
+                + " is "
+                + f"{one_last:.3f}"
                 + " straddle deltas)"
             )
             print("\n*** " + msg + " ***\n", flush=True)
@@ -1695,20 +1699,32 @@ class DayRunner:
                 residual_delta=resid,
             )
 
-    def _lots_tuple(self) -> tuple[int, int]:
-        return (int(self.state.lots["ES"]), int(self.state.lots["MES"]))
+    def _lots_tuple(self) -> tuple[int, ...]:
+        return tuple(int(self.state.lots.get(sym, 0)) for sym in self.cfg.hedge_ladder)
+
+    def _lot_fields(self, prefix: str, lots: Any) -> dict[str, Any]:
+        """``{prefix}_{sym}`` per rung (``target_es``, ``target_mes``, ...) plus the dict.
+
+        The per-rung keys keep the journal's ES/MES field names on the default
+        ladder; the ``{prefix}_lots`` dict carries any ladder.
+        """
+        ladder = self.cfg.hedge_ladder
+        out: dict[str, Any] = {
+            prefix + "_" + sym.lower(): int(q) for sym, q in zip(ladder, lots)
+        }
+        out[prefix + "_lots"] = {sym: int(q) for sym, q in zip(ladder, lots)}
+        return out
 
     def _residual(self, delta: float) -> float:
-        """Unhedged package delta left by the current ES + MES lots."""
+        """Unhedged package delta left by the current lots on the ladder."""
         cfg = self.cfg
-        return residual_delta_lots(
+        return ladder_residual(
             delta,
             max(int(self.state.n_open), 1),
-            int(self.state.lots["ES"]),
-            int(self.state.lots["MES"]),
+            self._lots_tuple(),
+            cfg.ladder_multipliers,
             index_multiplier=cfg.index_multiplier,
-            es_multiplier=cfg.es_multiplier,
-            mes_multiplier=cfg.mes_multiplier,
+            index_scale=cfg.index_scale,
         )
 
     def _trade_futures(
@@ -1890,8 +1906,8 @@ class DayRunner:
         if not any(self.state.lots.values()):
             self.jr.event("flatten", ts_et=now, clock=clock, qty=0, note="already flat")
             return
-        for sym in ("ES", "MES"):
-            qty = -int(self.state.lots[sym])
+        for sym in self.cfg.hedge_ladder:
+            qty = -int(self.state.lots.get(sym, 0))
             if qty:
                 self._trade_futures(
                     sym, qty, clock, what="futures_flatten", passive_wait_s=5.0
@@ -1900,8 +1916,7 @@ class DayRunner:
             "flatten",
             ts_et=self._now(),
             clock=clock,
-            residual_es=self.state.lots["ES"],
-            residual_mes=self.state.lots["MES"],
+            **self._lot_fields("residual", self._lots_tuple()),
         )
 
     # -- terminal --------------------------------------------------------
@@ -1912,8 +1927,8 @@ class DayRunner:
             "mark",
             ts_et=now,
             futures_ref=ref,
-            es=self.state.lots["ES"],
-            mes=self.state.lots["MES"],
+            **{sym.lower(): int(q) for sym, q in self.state.lots.items()},
+            lots=dict(self.state.lots),
             n_open=self.state.n_open,
             hedge_cash=self.state.futures_cash,
         )
@@ -1942,9 +1957,16 @@ class DayRunner:
             provisional=True,
             side=self.state.side,
             n_settled=self.state.n_open,
-            note="provisional: SPXW is PM-settled, so the official settlement "
-            "is the official 16:00 SPX close; --reconcile finalises it next "
-            "morning",
+            note="provisional: "
+            + self.cfg.spec.trading_class
+            + " is PM-settled, so the official settlement is the official "
+            "16:00 SPX close"
+            + (
+                " x " + repr(self.cfg.index_scale)
+                if self.cfg.index_scale != 1.0
+                else ""
+            )
+            + "; --reconcile finalises it next morning",
         )
         # Cash settlement closes the body: nothing is left to flatten.
         self.state.n_open = 0
@@ -1967,6 +1989,8 @@ class DayRunner:
             "date": self.broker.session_date(),
             "journal": self.jr.path,
             "book": self.cfg.book_name,
+            "instrument": self.cfg.instrument,
+            "index_scale": self.cfg.index_scale,
             "side": self.state.side if traded else "flat",
             "month_end_mode": self.cfg.month_end_mode,
             "decision": self.calendar.get("decision"),
@@ -2000,10 +2024,16 @@ class DayRunner:
             mode=cfg.mode,
             entry_mode=cfg.entry_mode,
             terminal=cfg.terminal,
-            hedge_symbols=["ES", "MES"],
+            instrument=cfg.instrument,
+            instrument_label=cfg.spec.label,
+            index_scale=cfg.index_scale,
+            hedge_symbols=list(cfg.hedge_ladder),
+            hedge_multipliers={s: cfg.multiplier(s) for s in cfg.hedge_ladder},
             index_multiplier=cfg.index_multiplier,
             es_multiplier=cfg.es_multiplier,
             mes_multiplier=cfg.mes_multiplier,
+            nes_multiplier=cfg.nes_multiplier,
+            synthetic_xsp_from_spxw=bool(getattr(self.broker, "synthetic", False)),
             n_override=cfg.n_override,
             capital=cfg.capital,
             stress_fraction=cfg.stress_fraction,
@@ -2026,6 +2056,17 @@ class DayRunner:
             exit_clock=cfg.exit_clock,
             replay=cfg.is_replay,
         )
+        if getattr(self.broker, "synthetic", False):
+            print(
+                "\n*** SYNTHETIC "
+                + cfg.spec.trading_class
+                + " REPLAY: the recorded tape is SPXW, rescaled by "
+                + repr(cfg.index_scale)
+                + " -- a code-path check, not evidence about "
+                + cfg.spec.trading_class
+                + " ***\n",
+                flush=True,
+            )
         self.preflight()
         if self.override_today:
             self.month_end_override()
@@ -2115,8 +2156,7 @@ class DayRunner:
                     detail="the session ended with "
                     + str(self.state.n_open)
                     + " straddle(s) open; the futures hedge was NOT removed",
-                    es=self.state.lots["ES"],
-                    mes=self.state.lots["MES"],
+                    lots=dict(self.state.lots),
                 )
             elif any(self.state.lots.values()) and not cfg.hold_to_settle:
                 self.jr.event(
@@ -2149,7 +2189,10 @@ def settlement_payoff(
 
 
 def clock_records(
-    session: date, observed: Sequence[Mapping[str, Any]], settlement: float
+    session: date,
+    observed: Sequence[Mapping[str, Any]],
+    settlement: float,
+    index_scale: float = 1.0,
 ) -> list[ClockRecord]:
     """Implied and realized remaining variance at every clock we observed.
 
@@ -2157,7 +2200,13 @@ def clock_records(
     stamp's package mid; realized is the sum of squared log returns of the
     observed spot path from that clock through the settlement print -- the
     same two objects proposals 44 and 46 build off the tape.
+
+    The ledger is kept in S&P 500 UNITS whatever the instrument: an XSP
+    observation (``index_scale`` 0.1) has its spot, premium and strikes
+    divided by the scale before it is recorded, so XSP and SPXW sessions
+    share one ledger.  The two variances are ratios and need no scaling.
     """
+    k_scale = 1.0 / float(index_scale)
     rows = [r for r in observed if math.isfinite(float(r.get("S", NAN)))]
     if not rows:
         return []
@@ -2179,10 +2228,10 @@ def clock_records(
                 str(r["clock"]),
                 iv,
                 rv,
-                float(r["S"]),
-                float(r.get("premium_mid", NAN)),
-                float(r.get("kc", NAN)),
-                float(r.get("kp", NAN)),
+                float(r["S"]) * k_scale,
+                float(r.get("premium_mid", NAN)) * k_scale,
+                float(r.get("kc", NAN)) * k_scale,
+                float(r.get("kp", NAN)) * k_scale,
             )
         )
     return out
@@ -2272,7 +2321,10 @@ def reconcile_day(cfg: Config, broker: Broker | None = None) -> int:
             date=session,
         )
         records = clock_records(
-            date.fromisoformat(session), pending.get("observed", []), settlement
+            date.fromisoformat(session),
+            pending.get("observed", []),
+            settlement,
+            index_scale=float(pending.get("index_scale", 1.0)),
         )
         n = append_live_ledger(cfg.ledger_live_path, records)
         jr.event(

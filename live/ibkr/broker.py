@@ -55,7 +55,7 @@ from ib_async import (
     TagValue,
 )
 
-from live.ibkr.config import Config, parse_clock
+from live.ibkr.config import FUTURES_MULTIPLIER, Config, parse_clock
 from live.ibkr.strikes import Quote
 
 NAN = float("nan")
@@ -213,7 +213,7 @@ class IBBroker:
         self._futures: dict[str, Any] = {}
         self._futures_qty: dict[str, int] = {}
         self._contract_cache: dict[tuple[float, str], Any] = {}
-        self._spx: Any | None = None
+        self._indices: dict[str, Any] = {}
         self._health = QuoteHealth()
         self._log: list[str] = []
 
@@ -321,21 +321,20 @@ class IBBroker:
                 + " contracts"
             ) from exc
 
-    def _spx_index(self) -> Any:
-        if self._spx is None:
-            idx = Index("SPX", "CBOE", "USD")
+    def _index_contract(self, symbol: str) -> Any:
+        """A qualified CBOE index (``SPX``, or ``XSP`` for the Mini-SPX book)."""
+        if symbol not in self._indices:
+            idx = Index(symbol, "CBOE", "USD")
             self.ib.qualifyContracts(idx)
-            self._spx = idx
-        return self._spx
+            self._indices[symbol] = idx
+        return self._indices[symbol]
 
-    def spx_spot(self) -> float:
-        """The live index print.  Never yesterday's close (L-23).
+    def _spx_index(self) -> Any:
+        """The instrument's own index contract (kept under its old name)."""
+        return self._index_contract(self.config.spec.index_symbol)
 
-        ``close`` is the previous session's settle; strike selection and the
-        volatility inversion key off this number, so serving a stale close
-        during RTH would pick the wrong strikes and invert the wrong vol.
-        """
-        tickers = self._req_tickers([self._spx_index()])
+    def _live_print(self, contract: Any) -> float:
+        tickers = self._req_tickers([contract])
         if not tickers:
             return NAN
         t = tickers[0]
@@ -348,40 +347,82 @@ class IBBroker:
                     v = None
             if isinstance(v, (int, float)) and math.isfinite(v) and v > 0:
                 return float(v)
-        self._log.append("spx_spot: no live last/markPrice (refused to use close)")
         return NAN
 
+    def index_spot(self) -> float:
+        """The live print of the INSTRUMENT'S index.  Never yesterday's close (L-23).
+
+        ``close`` is the previous session's settle; strike selection and the
+        volatility inversion key off this number, so serving a stale close
+        during RTH would pick the wrong strikes and invert the wrong vol.
+
+        For XSP the print is the XSP index itself (one tenth of the S&P 500);
+        if IB serves no XSP print, the SPX print scaled by ``index_scale`` is
+        used and the fallback is logged (GUESS: IB lists ``XSP`` as a CBOE
+        index; unverified without a socket).
+        """
+        spec = self.config.spec
+        v = self._live_print(self._index_contract(spec.index_symbol))
+        if math.isfinite(v):
+            return v
+        if spec.index_symbol != "SPX":
+            spx = self._live_print(self._index_contract("SPX"))
+            if math.isfinite(spx):
+                self._log.append(
+                    "index_spot: no live "
+                    + spec.index_symbol
+                    + " print; using SPX x "
+                    + repr(spec.index_scale)
+                )
+                return spx * float(spec.index_scale)
+        self._log.append("index_spot: no live last/markPrice (refused to use close)")
+        return NAN
+
+    def spx_spot(self) -> float:
+        """Alias of :meth:`index_spot` (the Protocol's name)."""
+        return self.index_spot()
+
     def spxw_0dte_contracts(self, expiry_yyyymmdd: str) -> list[Any]:
-        """Every listed SPXW contract for ``expiry_yyyymmdd`` (YYYYMMDD)."""
+        """Every listed contract of the instrument for ``expiry_yyyymmdd`` (YYYYMMDD).
+
+        SPXW by default; XSP under ``--instrument xsp`` (GUESS: IB lists the
+        Mini-SPX weeklys as ``Option(symbol="XSP", tradingClass="XSP")`` on
+        the ``XSP`` CBOE index; unverified without a socket).
+        """
+        spec = self.config.spec
         idx = self._spx_index()
-        # Confirms the expiry is a listed SPXW expiration (preflight check).
+        # Confirms the expiry is a listed expiration (preflight check).
         try:
-            params = self.ib.reqSecDefOptParams("SPX", "", "IND", idx.conId)
+            params = self.ib.reqSecDefOptParams(
+                spec.option_symbol, "", "IND", idx.conId
+            )
             listed = set()
             for p in params:
-                if getattr(p, "tradingClass", "") == "SPXW":
+                if getattr(p, "tradingClass", "") == spec.trading_class:
                     listed |= set(p.expirations)
             if listed and expiry_yyyymmdd not in listed:
                 return []
         except Exception as exc:  # pragma: no cover - needs a socket
             self._log.append("reqSecDefOptParams failed: " + repr(exc))
-        # GUESS: exchange="SMART" routes SPXW.  If SMART comes back empty the
-        # fault is routing, not the calendar, so try CBOE before reporting
+        # GUESS: exchange="SMART" routes the chain.  If SMART comes back empty
+        # the fault is routing, not the calendar, so try CBOE before reporting
         # "not an expiry" (the mis-diagnosis ranked #4 in the audit).
         out: list[Any] = []
         for exch in ("SMART", "CBOE"):
             tmpl = Option(
-                symbol="SPX",
+                symbol=spec.option_symbol,
                 lastTradeDateOrContractMonth=expiry_yyyymmdd,
                 exchange=exch,
                 currency="USD",
-                tradingClass="SPXW",
+                tradingClass=spec.trading_class,
             )
             details = self.ib.reqContractDetails(tmpl)
             out = [d.contract for d in details if d.contract is not None]
             if out:
                 if exch != "SMART":
-                    self._log.append("SPXW chain came from " + exch + ", not SMART")
+                    self._log.append(
+                        spec.trading_class + " chain came from " + exch + ", not SMART"
+                    )
                 break
         for c in out:
             self._contract_cache[(float(c.strike), str(c.right)[:1])] = c
@@ -669,7 +710,7 @@ class IBBroker:
         cfg = self.config
         bag = Contract(
             secType="BAG",
-            symbol="SPX",
+            symbol=cfg.spec.option_symbol,
             exchange="SMART",
             currency="USD",
             comboLegs=[
@@ -695,7 +736,7 @@ class IBBroker:
             if max_cross_ticks is None
             else max(0, int(max_cross_ticks)),
             what,
-            symbol="SPXW",
+            symbol=cfg.spec.trading_class,
             multiplier=cfg.index_multiplier,
         )
 
@@ -765,9 +806,9 @@ class IBBroker:
                     "position": float(p.position),
                 }
             )
-            if c.secType == "OPT" and c.symbol == "SPX":
+            if c.secType == "OPT" and c.symbol == self.config.spec.option_symbol:
                 opts[int(c.conId)] = float(p.position)
-            elif c.secType == "FUT" and str(c.symbol).upper() in ("ES", "MES"):
+            elif c.secType == "FUT" and str(c.symbol).upper() in FUTURES_MULTIPLIER:
                 sym = str(c.symbol).upper()
                 fut[sym] = fut.get(sym, 0) + int(p.position)
         return {
@@ -839,17 +880,19 @@ class IBBroker:
         return self.spx_spot()
 
     def official_settlement(self, date: str) -> float:
-        """The official SPX close for ``date`` (YYYY-MM-DD), or NaN.
+        """The official settlement for ``date`` (YYYY-MM-DD), or NaN.
 
-        SPXW is PM-settled: the settlement is the official 16:00 close, which
-        IB publishes as the daily bar's close.  Anything unexpected returns
-        NaN so that ``--reconcile`` falls back to the manual value rather
-        than finalising a day on a guess.
+        SPXW and XSP are PM-settled: the settlement is the official 16:00 SPX
+        close (times ``index_scale`` for XSP -- Cboe settles XSP to one tenth
+        of the SPX close, so the SPX bar is the source for both).  IB
+        publishes the close as the daily bar's close.  Anything unexpected
+        returns NaN so that ``--reconcile`` falls back to the manual value
+        rather than finalising a day on a guess.
         """
         end = date.replace("-", "") + " 23:59:59 " + self.config.tz
         try:
             bars = self.ib.reqHistoricalData(
-                self._spx_index(),
+                self._index_contract("SPX"),
                 endDateTime=end,
                 durationStr="2 D",
                 barSizeSetting="1 day",
@@ -862,7 +905,11 @@ class IBBroker:
         for b in reversed(list(bars or [])):
             if str(getattr(b, "date", ""))[:10] == date:
                 v = float(getattr(b, "close", NAN))
-                return v if math.isfinite(v) and v > 0 else NAN
+                return (
+                    v * float(self.config.index_scale)
+                    if math.isfinite(v) and v > 0
+                    else NAN
+                )
         return NAN
 
 
@@ -882,6 +929,38 @@ class FakeOption:
     symbol: str = "SPX"
     secType: str = "OPT"
     tradingClass: str = "SPXW"
+
+
+#: Fixed conIds the replay hands each hedge future.
+FAKE_FUTURE_CONID: dict[str, int] = {"ES": 900001, "MES": 900002, "NES": 900003}
+
+
+def synthetic_xsp_frame(frame: Any, index_scale: float) -> Any:
+    """A SYNTHETIC Mini-SPX tape from the recorded SPXW day: scale by ``index_scale``.
+
+    XSP has no tape in this repository.  To exercise the XSP code path the
+    replay takes the SPXW session, keeps the strikes that land on XSP's
+    whole-dollar grid (every second 5-point SPX strike: 6,500 -> 650.0,
+    6,510 -> 651.0), and divides strikes, quotes and the underlying by ten.
+    Quotes are then snapped to XSP's $0.01 tick.  This is a stand-in for the
+    CODE PATH -- sizing, the ladder, the ledger scaling, settlement -- and
+    says nothing about how XSP actually quotes (its relative spread is
+    several times SPXW's); the runner journals ``synthetic_xsp_from_spxw``
+    on every such replay.
+    """
+    scale = float(index_scale)
+    step = round(1.0 / scale, 6)  # SPX points per whole instrument point
+    df = frame.copy()
+    strikes = df["strike"].astype(float)
+    on_grid = (strikes / step - (strikes / step).round()).abs() < 1e-9
+    df = df[on_grid].copy()
+    df["strike"] = (df["strike"].astype(float) * scale).round(6)
+    for col in ("bid", "ask"):
+        v = df[col].astype(float) * scale
+        df[col] = (v / 0.01).round() * 0.01
+    df["underlying_price"] = df["underlying_price"].astype(float) * scale
+    df.attrs["synthetic_xsp_from_spxw"] = True
+    return df.sort_values(["et", "strike", "cp"]).reset_index(drop=True)
 
 
 @dataclass(frozen=True)
@@ -1051,6 +1130,18 @@ class FakeBroker:
                 self.date, chain_path, config.replay_cache_dir, tz=config.tz
             )
         )
+        #: The recorded tape is SPXW.  Any other instrument is served as a
+        #: SYNTHETIC rescaling of it (see ``synthetic_xsp_frame``).
+        self.synthetic: bool = False
+        if config.spec.key != "spxw" and not bool(
+            getattr(self.frame, "attrs", {}).get("synthetic_xsp_from_spxw", False)
+        ):
+            self.frame = synthetic_xsp_frame(self.frame, config.index_scale)
+            self.synthetic = True
+        elif bool(
+            getattr(self.frame, "attrs", {}).get("synthetic_xsp_from_spxw", False)
+        ):
+            self.synthetic = True
         self.clocks: list[str] = sorted(set(self.frame["hhmm"].tolist()))
         self._listed: set[tuple[float, str]] = {
             (float(k), str(r)[:1])
@@ -1181,6 +1272,8 @@ class FakeBroker:
                     right=right,
                     conId=self._conid_for(k, right),
                     lastTradeDateOrContractMonth=expiry_yyyymmdd,
+                    symbol=self.config.spec.option_symbol,
+                    tradingClass=self.config.spec.trading_class,
                 )
             )
         return out
@@ -1195,6 +1288,8 @@ class FakeBroker:
             right=key[1],
             conId=self._conid_for(key[0], key[1]),
             lastTradeDateOrContractMonth=self.date.replace("-", ""),
+            symbol=self.config.spec.option_symbol,
+            tradingClass=self.config.spec.trading_class,
         )
 
     def quotes(self, contracts: Sequence[Any]) -> list[Quote]:
@@ -1230,13 +1325,19 @@ class FakeBroker:
     # -- futures ---------------------------------------------------------
     def futures_contract(self, symbol: str = "ES") -> Any:
         sym = str(symbol).upper()
-        self.config.multiplier(sym)  # rejects anything but ES/MES
-        return FakeFuture(symbol=sym, conId=900001 if sym == "ES" else 900002)
+        self.config.multiplier(sym)  # rejects anything but ES/MES/NES
+        return FakeFuture(symbol=sym, conId=FAKE_FUTURE_CONID[sym])
 
     def futures_reference(self, symbol: str = "ES") -> float:
-        """The FUTURES price: the index plus a basis, never the index (L-5)."""
+        """The FUTURES price: the S&P 500 index plus a basis, never the index (L-5).
+
+        The futures are on the S&P 500 itself, so the instrument's spot is
+        taken back to S&P points (``/ index_scale``) before the basis.
+        """
         s = self.spx_spot()
-        return s + self.futures_basis_pts if math.isfinite(s) else NAN
+        if not math.isfinite(s):
+            return NAN
+        return s / float(self.config.index_scale) + self.futures_basis_pts
 
     # -- orders ----------------------------------------------------------
     def package_quote(
@@ -1315,7 +1416,7 @@ class FakeBroker:
                     note="leg " + str(q.strike) + q.right + " has no quote",
                     order_id=oid,
                     status="NoQuote",
-                    symbol="SPXW",
+                    symbol=self.config.spec.trading_class,
                     multiplier=self.config.index_multiplier,
                 )
             if sgn > 0:
@@ -1378,7 +1479,7 @@ class FakeBroker:
             note=note,
             order_id=oid,
             status=status,
-            symbol="SPXW",
+            symbol=self.config.spec.trading_class,
             multiplier=self.config.index_multiplier,
         )
 

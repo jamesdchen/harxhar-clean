@@ -31,6 +31,9 @@ afternoon/settlement premium is what remains, so the runner
   deleveraging multiplier and under ``max_straddles``
   (``--third-friday-multiplier``; ``--no-third-friday`` is 1.0).  The default,
   1.1, is study 66's pre-registered lower end of the Kelly ratio.
+* writes the book on SPX Weeklys (``instrument="spxw"``) or, one tenth the
+  size for a small account, on Cboe Mini-SPX options (``--instrument xsp``,
+  hedged in MES then the E-nano NES); see ``INSTRUMENTS`` and README 1.9.
 
 ``terminal="flatten"`` keeps the old exit-at-15:30 variant; it is the
 optional variant now, not the book of record.
@@ -52,6 +55,7 @@ from typing import Literal, TextIO
 from live.ibkr.calendar_guard import MONTH_END_MODES, NO_SHORT_CALENDARS
 
 Mode = Literal["dry", "paper", "live"]
+Instrument = Literal["spxw", "xsp"]
 EntryMode = Literal["selector", "fixed"]
 SpLegRule = Literal["vol_managed", "brake", "off"]
 Terminal = Literal["hold", "flatten"]
@@ -130,8 +134,68 @@ ALLOWED_EXIT_CLOCKS: tuple[str, ...] = ("15:30", "15:40", "15:50")
 #: Exit clocks the FakeBroker replay can serve (the tape is 30-minute).
 REPLAYABLE_EXIT_CLOCKS: tuple[str, ...] = ("15:30",)
 
-#: Dollars per index point, by hedge instrument.
-FUTURES_MULTIPLIER: dict[str, float] = {"ES": 50.0, "MES": 5.0}
+#: Dollars per S&P 500 INDEX point, by hedge instrument: the E-mini (ES),
+#: the Micro E-mini (MES) and the E-nano (NES, CME, listed 2026-08-24, one
+#: tenth of a Micro).  Every future is on the S&P 500 index itself, whatever
+#: option instrument the book trades.
+FUTURES_MULTIPLIER: dict[str, float] = {"ES": 50.0, "MES": 5.0, "NES": 0.5}
+
+
+@dataclass(frozen=True)
+class InstrumentSpec:
+    """The option contract the book is written on.
+
+    ``index_scale`` is the instrument's index per S&P 500 point (1 for SPX,
+    0.1 for XSP, whose index is one tenth of the S&P 500 and whose settlement
+    is one tenth of the official SPX close).  Prices, strikes, spot and the
+    stress table are all in the instrument's own points; only the futures
+    hedge and the premium ledger, both kept in S&P 500 units, need the scale.
+    """
+
+    key: str
+    label: str
+    option_symbol: str  #: the IB ``Option.symbol`` / ``BAG`` symbol
+    trading_class: str  #: the IB ``tradingClass`` (SPXW for the weeklys; XSP)
+    index_symbol: str  #: the IB ``Index`` whose print is the spot
+    index_scale: float
+    option_tick_lo: float
+    option_tick_hi: float
+    option_tick_break: float
+    default_hedge_symbols: tuple[str, ...]
+
+
+INSTRUMENTS: dict[str, InstrumentSpec] = {
+    # SPXW: $0.05 below $3.00 and $0.10 at/above it (L-8).
+    "spxw": InstrumentSpec(
+        key="spxw",
+        label="SPX Weeklys (SPXW)",
+        option_symbol="SPX",
+        trading_class="SPXW",
+        index_symbol="SPX",
+        index_scale=1.0,
+        option_tick_lo=0.05,
+        option_tick_hi=0.10,
+        option_tick_break=3.00,
+        default_hedge_symbols=("ES", "MES"),
+    ),
+    # XSP (Cboe Mini-SPX, 1/10 of the S&P 500, $100 multiplier): the minimum
+    # tick is $0.01 for every series; PM-settled to one tenth of the official
+    # SPX close; expiring weeklys stop trading at 16:00 ET like SPXW.  One
+    # XSP straddle is a tenth of an SPX straddle, so the ladder is MES then
+    # NES.
+    "xsp": InstrumentSpec(
+        key="xsp",
+        label="Mini-SPX (XSP)",
+        option_symbol="XSP",
+        trading_class="XSP",
+        index_symbol="XSP",
+        index_scale=0.1,
+        option_tick_lo=0.01,
+        option_tick_hi=0.01,
+        option_tick_break=3.00,
+        default_hedge_symbols=("MES", "NES"),
+    ),
+}
 
 DEFAULT_PORT: dict[str, int] = {"dry": 7497, "paper": 7497, "live": 7496}
 
@@ -149,8 +213,9 @@ BANNER = """
 ################################################################################
 #  L I V E   M O D E  --  REAL ORDERS GO TO A REAL IB ACCOUNT                  #
 #                                                                              #
-#  Short SPXW 0DTE straddle held to CASH SETTLEMENT, delta-hedged with ES+MES.
-#  Loss is not bounded by the premium received and the last bar is unhedged.
+#  Short {instrument} 0DTE straddle held to CASH SETTLEMENT, delta-hedged
+#  with {ladder}.  Loss is not bounded by the premium received and the last
+#  bar is unhedged.
 #  n={n}  entry={entry} ET  terminal={terminal}  kill={kill} premium units
 #  port={port} ({portkind})
 ################################################################################
@@ -248,9 +313,19 @@ class Config:
     #: ``--n``: overrides the stress table.  ``None`` = size from the table.
     n_override: int | None = None
 
-    # -- hedge instruments ----------------------------------------------
+    # -- the option instrument and the hedge ladder ----------------------
+    #: ``spxw`` (the book of record) or ``xsp`` (Mini-SPX, one tenth the
+    #: size: the instrument a ~$60k account can run two straddles of under
+    #: the 10 % stress rule).  See ``INSTRUMENTS`` and README 1.9.
+    instrument: Instrument = "spxw"
+    #: The futures the hedge is laid in, largest first; each rung takes the
+    #: whole contracts it can (toward zero) and the last rung rounds the rest.
+    #: ``None`` = the instrument's default (SPXW: ES then MES; XSP: MES then
+    #: NES).  ``--hedge-ladder ES,MES,NES``.
+    hedge_symbols: tuple[str, ...] | None = None
     es_multiplier: float = FUTURES_MULTIPLIER["ES"]
     mes_multiplier: float = FUTURES_MULTIPLIER["MES"]
+    nes_multiplier: float = FUTURES_MULTIPLIER["NES"]
     index_multiplier: float = 100.0
 
     # -- order handling --------------------------------------------------
@@ -258,10 +333,11 @@ class Config:
     #: The CEILING on crossing.  The working cap is sized off the live
     #: spread: ``ceil(spread / tick) + 1``, capped here (see L-2).
     max_cross_ticks: int = 12
-    #: SPXW quotes in $0.05 below $3.00 and $0.10 at/above it (L-8).
-    option_tick_lo: float = 0.05
-    option_tick_hi: float = 0.10
-    option_tick_break: float = 3.00
+    #: The option tick rule.  ``None`` = the instrument's (SPXW: $0.05 below
+    #: $3.00 and $0.10 at/above it, L-8; XSP: $0.01 for every series).
+    option_tick_lo: float | None = None
+    option_tick_hi: float | None = None
+    option_tick_break: float | None = None
     futures_tick: float = 0.25
     #: A snapshot older than this, halted, or crossed, is not tradeable.
     max_quote_age_s: float = 10.0
@@ -347,11 +423,64 @@ class Config:
         for name, mult in (
             ("es_multiplier", self.es_multiplier),
             ("mes", self.mes_multiplier),
+            ("nes_multiplier", self.nes_multiplier),
         ):
             if not (math.isfinite(mult) and mult > 0):
                 raise ValueError(name + " must be a positive number of dollars/point")
         if self.es_multiplier < self.mes_multiplier:
             raise ValueError("es_multiplier must be the larger of the two")
+        if self.mes_multiplier < self.nes_multiplier:
+            raise ValueError("mes_multiplier must be larger than nes_multiplier")
+
+        if self.instrument not in INSTRUMENTS:
+            raise ValueError(
+                "instrument must be one of "
+                + repr(tuple(INSTRUMENTS))
+                + ", got "
+                + repr(self.instrument)
+            )
+        spec = INSTRUMENTS[self.instrument]
+        # The option tick rule follows the instrument unless the caller set it.
+        if self.option_tick_lo is None:
+            self.option_tick_lo = spec.option_tick_lo
+        if self.option_tick_hi is None:
+            self.option_tick_hi = spec.option_tick_hi
+        if self.option_tick_break is None:
+            self.option_tick_break = spec.option_tick_break
+        for name, tick in (
+            ("option_tick_lo", self.option_tick_lo),
+            ("option_tick_hi", self.option_tick_hi),
+            ("option_tick_break", self.option_tick_break),
+        ):
+            if not (math.isfinite(float(tick)) and float(tick) > 0):
+                raise ValueError(name + " must be a positive number")
+        ladder = tuple(
+            str(s).upper()
+            for s in (
+                spec.default_hedge_symbols
+                if self.hedge_symbols is None
+                else self.hedge_symbols
+            )
+        )
+        if not ladder:
+            raise ValueError("hedge_symbols is empty")
+        for sym in ladder:
+            if sym not in FUTURES_MULTIPLIER:
+                raise ValueError(
+                    "unknown hedge instrument "
+                    + repr(sym)
+                    + "; the ladder takes "
+                    + repr(tuple(FUTURES_MULTIPLIER))
+                )
+        if len(set(ladder)) != len(ladder):
+            raise ValueError("hedge_symbols repeats a symbol: " + repr(ladder))
+        mults = [self.multiplier(s) for s in ladder]
+        if any(a <= b for a, b in zip(mults[:-1], mults[1:])):
+            raise ValueError(
+                "hedge_symbols must run from the largest contract to the "
+                "smallest, got " + repr(ladder)
+            )
+        self.hedge_symbols = ladder
 
         parse_clock(self.fixed_entry_clock)
         self.candidate_clocks = tuple(self.candidate_clocks)
@@ -506,18 +635,37 @@ class Config:
             return float(self.es_multiplier)
         if sym == "MES":
             return float(self.mes_multiplier)
+        if sym == "NES":
+            return float(self.nes_multiplier)
         raise ValueError("unknown hedge instrument " + repr(symbol))
 
+    @property
+    def spec(self) -> InstrumentSpec:
+        return INSTRUMENTS[self.instrument]
+
+    @property
+    def index_scale(self) -> float:
+        """The instrument's index per S&P 500 point (1 for SPX, 0.1 for XSP)."""
+        return float(self.spec.index_scale)
+
+    @property
+    def hedge_ladder(self) -> tuple[str, ...]:
+        """The hedge futures, largest first (resolved in ``__post_init__``)."""
+        assert self.hedge_symbols is not None
+        return tuple(self.hedge_symbols)
+
+    @property
+    def ladder_multipliers(self) -> tuple[float, ...]:
+        return tuple(self.multiplier(s) for s in self.hedge_ladder)
+
     def option_tick_for(self, price: float) -> float:
-        """SPXW ticks $0.05 below $3.00 and $0.10 at/above it."""
+        """The instrument's tick: SPXW $0.05 / $0.10 either side of $3.00, XSP $0.01."""
+        lo, hi, brk = self.option_tick_lo, self.option_tick_hi, self.option_tick_break
+        assert lo is not None and hi is not None and brk is not None
         p = abs(float(price))
         if not math.isfinite(p):
-            return float(self.option_tick_hi)
-        return (
-            float(self.option_tick_lo)
-            if p < float(self.option_tick_break)
-            else float(self.option_tick_hi)
-        )
+            return float(hi)
+        return float(lo) if p < float(brk) else float(hi)
 
     def cross_ticks_for(self, spread: float, tick: float) -> int:
         """Crossing allowance sized off the LIVE spread, capped by the ceiling.
@@ -554,6 +702,8 @@ class Config:
     def banner(self) -> str:
         port = int(self.port or 0)
         return BANNER.format(
+            instrument=self.spec.trading_class,
+            ladder="+".join(self.hedge_ladder),
             n=self.n_override if self.n_override is not None else "sized by stress",
             entry=self.fixed_entry_clock
             if self.entry_mode == "fixed"
@@ -576,6 +726,21 @@ class Config:
             ),
         )
         p.add_argument("--mode", choices=("dry", "paper", "live"), default="dry")
+        p.add_argument(
+            "--instrument",
+            choices=tuple(INSTRUMENTS),
+            default="spxw",
+            dest="instrument",
+            help="the option contract the book is written on: spxw (default) or "
+            "xsp (Mini-SPX, one tenth the size; README 1.9)",
+        )
+        p.add_argument(
+            "--hedge-ladder",
+            default=None,
+            dest="hedge_ladder",
+            help="comma-separated futures for the hedge, largest first, e.g. "
+            "ES,MES or MES,NES (default: the instrument's; NES is the E-nano)",
+        )
         p.add_argument(
             "--n",
             type=int,
@@ -782,8 +947,17 @@ class Config:
         # The equals form is a passed flag too (L-17).
         passed_mode = any(a == "--mode" or a.startswith("--mode=") for a in argv)
         live_ack = ns.mode == "live" and passed_mode
+        ladder = (
+            None
+            if ns.hedge_ladder is None
+            else tuple(
+                x.strip().upper() for x in str(ns.hedge_ladder).split(",") if x.strip()
+            )
+        )
         cfg = cls(
             mode=ns.mode,
+            instrument=ns.instrument,
+            hedge_symbols=ladder,
             port=ns.port,
             client_id=ns.client_id,
             account=ns.account,
