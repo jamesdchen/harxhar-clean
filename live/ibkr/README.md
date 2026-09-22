@@ -586,6 +586,17 @@ $ python -m live.ibkr.run_day --date 2025-04-07 --capital 1000000 --sp-leg-notio
   S&P leg (vol_managed): weight 0.44, target $437,540 = 1 ES + 7 MES
 ```
 
+**Without the runner (an IRA at another broker):** `python -m live.ira_weight
+--holding 47000 --cap 0.6667 --fund-leverage 3` computes the same weight from
+the S&P 500's daily bars alone (Parkinson range variance into the same HAR
+regression, `live/ira_weight.py`). Validated against the panel's weight on
+6,065 sessions 2000–2024: correlation 0.93 (forecast vols 0.96), mean absolute
+difference 0.03, the two agree on whether to cut on 91.5 % of sessions, and a
+3× daily-reset fund under either weight comes out the same (growth 7.9 % vs
+7.8 %, covid −45 % vs −42 %, 2008 −80 % vs −79 %; held: 3.4 %, −77 %, −96 %).
+`--cap 0.6667` holds a 3× fund at lifecycle investing's 2:1 ceiling; the
+weight for the next session is known after the close.
+
 The `sp_leg` journal record carries `rule`, `weight`, `state`, `forecast_vol`,
 `median_forecast_vol`, `n_sessions`, `n_forecasts` and, with a notional,
 `target_dollars`, `target_es`, `target_mes`.
