@@ -59,11 +59,11 @@ SUBSAMPLE_LABEL = {
     "pool_enet": "pooled elastic net (all features), same spec",
 }
 SUBSAMPLE_ORDER = ["sub_base", "sub_ridge", "sub_lasso", "sub_enet"]
-#: per-bar tag -> its pooled twin; None while the twin's arm is still running
+#: per-bar tag -> its pooled twin (None would mark a twin whose arm has not run)
 SUBSAMPLE_TWIN: dict[str, str | None] = {
     "sub_base": "pool_base",
     "sub_ridge": "pool_ridge",
-    "sub_lasso": None,  # the all_features pooled lasso (Hoffman2 job 14840615)
+    "sub_lasso": "pool_lasso",
     "sub_enet": "pool_enet",
 }
 YHAT_LABEL.update(SUBSAMPLE_LABEL)
