@@ -461,7 +461,16 @@ pipeline:
 - LightGBM and XGBoost on the wide all-features design, frozen settings;
 - the lasso on that design with its penalty chosen from past data only,
   and the lasso at a fixed penalty of $10^{-4}$;
-- the elastic net, penalties chosen from past data only.
+- the elastic net, penalties chosen from past data only;
+- **the per-bar forecasts** (Hoffman2, 2026-09-20/21): the same linear
+  pipeline with its coefficients fitted on ONE regular-hours bar at a
+  time instead of one vector over all 48 bars — ridge on HAR + calendar
+  only, and ridge, the fixed lasso and the elastic net on all features,
+  each on a 2000-session window. The forecast of the 15:30–16:00 bar
+  comes from the bar's own regression. Each has a pooled *twin* — the
+  identical specification with one coefficient vector — which enters one
+  paired table below and nothing else, so the difference is the
+  coefficients alone.
 
 **From stored forecast to a variance.** Forecasts are stored on the
 fitted scale $y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized.
@@ -491,7 +500,11 @@ from concurrent.futures import ThreadPoolExecutor
 # the model set, its labels and its files all come from the library, so the
 # notebook, the intraday deck and the paper's tables can never drift apart
 _PATHS = asl.yhat_paths(REPO)
-YHATS = {tag: _PATHS[tag] for tag in asl.MODEL_ORDER}
+# the paper's eight forecasts, then the per-bar forecasts; their pooled twins
+# are loaded too (one paired table reads them) but are not tabulated
+TABLED = list(asl.MODEL_ORDER) + list(asl.SUBSAMPLE_ORDER)
+TWINS = {t: w for t, w in asl.SUBSAMPLE_TWIN.items() if w is not None and _PATHS[w].exists()}
+YHATS = {tag: _PATHS[tag] for tag in TABLED + list(TWINS.values())}
 # The recalibration lives in atm_straddle_lib: flat 250-day window, fit
 # restricted to the scored session bars (rows labelled 10:30-16:00 ET) so off-session
 # dynamics cannot pollute the calibration. Delegate rather than duplicate.
@@ -513,7 +526,7 @@ with ThreadPoolExecutor(max_workers=len(YHATS)) as pool:
     }
     models = {tag: futs[tag].result() for tag in YHATS}
 
-LABEL = {tag: asl.YHAT_LABEL[tag] for tag in asl.MODEL_ORDER}
+LABEL = {tag: asl.YHAT_LABEL[tag] for tag in YHATS}
 print("models:", len(YHATS))
 for _tg in YHATS:
     print(f"  {_tg:<9} {LABEL[_tg]:<48} {YHATS[_tg].name}")
@@ -541,13 +554,11 @@ for tag, rv in models.items():
     md(
         r"""### Panels, provenance and exclusions
 
-- Panel of record: the FOMC panel (block-diagonal ridge, fixed lasso). Tuned lasso, elastic net and both trees: earlier panel, re-run pending. "Block-diagonal ridge, without the FOMC columns" = the same ridge on the earlier panel.
-- Fit mask: session dates only (a 16:00 stamp exists), stamps 10:30–16:00; early closes 2001–2025 and holiday futures-only bars excluded. Row counts printed below.
-- Profile $B$: trailing twenty-day per-slot mean, built upstream, still contains post-close bars of early-close days; bound on this trade 0.06 Sharpe (audit of 2026-09-05), fix pending upstream.
-- `rv_raw`: 24-hour futures realized variance; the 16:00 row is the 15:30–16:00 futures bar.
-- Annualization: $\sqrt{252}$ per trade day; days traded per year printed below.
-- Expiration days after 2024-04-30 carry no forecast row and leave the frame.
-- Provenance per model is printed below; the tree settings and refit cadence are not recoverable.
+- Panel of record: the FOMC panel (block ridge, fixed lasso, per-bar forecasts); trees, tuned lasso and elastic net are on the earlier panel.
+- Fit mask: session bars 10:30–16:00; early closes and holiday futures-only bars out.
+- Profile $B$ still carries post-close bars of early-close days (bound 0.06 Sharpe).
+- Sharpe annualized by $\sqrt{252}$ per trade day; the frame ends 2024-04-30 with the forecasts.
+- Per-model provenance printed below; tree settings unrecoverable.
 """
     ),
     code(
@@ -667,10 +678,30 @@ PROVENANCE = {
         "hyperparameters": "penalties chosen from past data only, same validation tail as the tuned lasso",
         "code provenance": "no campaign record"},
 }
+_SUB_WINDOW = "2000 sessions of the bar's own rows, refit every session"
+_POOL_WINDOW = "2000 sessions x 48 bars, one coefficient vector, refit every session"
+_SUB_CODE = ("Hoffman2 subsection campaign 2026-09-20/21 (specs/causal_tune_linear.py, SEGMENT = one bar, "
+             "LAG_SCOPE = global); arms in results/linear_subsection/arms_hoffman2, stacked by "
+             "experiments/build_subsection_yhat.py; rv_raw carried from the production table")
+for _t, _bucket, _est, _pool in (
+    ("sub_base", "HAR + calendar (no exogenous columns)", "ridge", False),
+    ("sub_ridge", "all features", "ridge", False),
+    ("sub_lasso", "all features", "recursive lasso, identifiability fix e4e9358", False),
+    ("sub_enet", "all features", "elastic net", False),
+    ("pool_base", "HAR + calendar (no exogenous columns)", "ridge", True),
+    ("pool_ridge", "all features", "ridge", True),
+    ("pool_lasso", "all features", "recursive lasso, identifiability fix e4e9358", True),
+    ("pool_enet", "all features", "elastic net", True),
+):
+    PROVENANCE[_t] = {
+        "panel": "FOMC panel (the panel of record), " + _bucket,
+        "window": _POOL_WINDOW if _pool else _SUB_WINDOW, "refit": "every session",
+        "hyperparameters": _est + ", penalty tuned from past data every 250 solves (the spec's TUNE_PER)",
+        "code provenance": _SUB_CODE}
 prov = pd.DataFrame([
     {"model": LABEL[t], "file": YHATS[t].name,
      "rows": int(len(pd.read_parquet(YHATS[t], columns=["t"]))), **PROVENANCE[t]}
-    for t in asl.MODEL_ORDER
+    for t in YHATS
 ])
 for _r in prov.to_dict("records"):
     print(_r["model"])
@@ -1132,7 +1163,7 @@ order = [
 assert order == list(asl.RULE_ORDER), "the deck's rule order and the library's disagree"
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
         "skew", "ex_kurt", "t_mean", "Sharpe_ann", "n_buy", "pct_buy"]
-MODEL_ORDER = list(asl.MODEL_ORDER)
+MODEL_ORDER = list(TABLED)  # the paper's eight forecasts, then the per-bar forecasts
 
 common = None
 for tag in MODEL_ORDER:
@@ -1437,6 +1468,19 @@ pair_rows.append({"comparison": "FOMC panel minus earlier panel, same ridge",
                   "model": LABEL["blk2"] + " minus " + LABEL["blk2_inc"],
                   **_paired(_rp["blk2"], _rp["blk2_inc"]),
                   "same_position_as_baseline": float((_pos["blk2"] == _pos["blk2_inc"]).mean())})
+# the per-bar forecasts against their pooled twins: the same specification,
+# the same window, the same days; only the coefficients differ (one vector per
+# bar against one vector over all 48 bars)
+for _t, _w in TWINS.items():
+    _a = (rule_sizes(books[_t])["sign(s)"] * books[_t]["R"]).loc[common].astype(float)
+    _b = (rule_sizes(books[_w])["sign(s)"] * books[_w]["R"]).loc[common].astype(float)
+    pair_rows.append({"comparison": "per-bar coefficients minus pooled, same spec",
+                      "model": LABEL[_t] + " minus " + LABEL[_w],
+                      **_paired(_a, _b),
+                      "same_position_as_baseline": float((books[_t].loc[common, "pos"] == books[_w].loc[common, "pos"]).mean())})
+for _t, _w in asl.SUBSAMPLE_TWIN.items():
+    if _w is None or _w not in TWINS.values():
+        print(f"no pooled twin yet for {LABEL[_t]} (its pooled arm is still running on Hoffman2)")
 # the Sharpe ratio itself, with the sampling spread of the SAME resampled days
 level_rows = []
 for tag in MODEL_ORDER + ["always short"]:
@@ -1466,7 +1510,8 @@ for _cmp, _g in diff_tab.groupby("comparison", sort=False):
 print("share of days each portfolio takes the same position as the baseline:")
 print(diff_tab[diff_tab["comparison"] == "sign(s) minus always short"]
       .set_index("model")["same_position_as_baseline"].to_string(float_format=lambda x: f"{x:.3f}"))
-print("the last row of the second block compares the two ridge rows, not a portfolio with the baseline")
+print("the last row of the second block compares the two ridge rows, not a portfolio with the baseline; "
+      "the per-bar block compares each per-bar forecast with its own pooled twin")
 pair_tab.to_csv(OUT / "paired_tests.csv", index=False)
 print("saved", OUT / "paired_tests.csv")
 """

@@ -39,6 +39,34 @@ YHAT_LABEL = {
 # (a run on the FOMC panel is pending). results/spxw_pnl/MANIFEST.md records the
 # panel, chunk tree and code provenance of every table.
 MODEL_ORDER = ["a0", "blk2", "blk2_inc", "lgbm", "xgb", "lasso_t", "lasso_f", "enet"]
+
+# The per-bar forecasts (Hoffman2 subsection campaign, 2026-09-20/21): the same
+# linear pipeline with its coefficients fitted on ONE regular-hours bar at a
+# time (SEGMENT = bar, LAG_SCOPE = global, 2000-session window), the thirteen
+# one-bar arms stacked into one table by experiments/build_subsection_yhat.py.
+# Each has a pooled TWIN: the identical spec with one coefficient vector over all
+# 48 bars, so the difference is the coefficients alone.  MODEL_ORDER is left as
+# it is (the paper's tables are eight columns); the 15:30 notebook appends
+# SUBSAMPLE_ORDER and reads the twins through SUBSAMPLE_TWIN.
+SUBSAMPLE_LABEL = {
+    "sub_base": "per-bar ridge (HAR + calendar)",
+    "sub_ridge": "per-bar ridge (all features)",
+    "sub_lasso": "per-bar lasso (all features)",
+    "sub_enet": "per-bar elastic net (all features)",
+    "pool_base": "pooled ridge (HAR + calendar), same spec",
+    "pool_ridge": "pooled ridge (all features), same spec",
+    "pool_lasso": "pooled lasso (all features), same spec",
+    "pool_enet": "pooled elastic net (all features), same spec",
+}
+SUBSAMPLE_ORDER = ["sub_base", "sub_ridge", "sub_lasso", "sub_enet"]
+#: per-bar tag -> its pooled twin; None while the twin's arm is still running
+SUBSAMPLE_TWIN: dict[str, str | None] = {
+    "sub_base": "pool_base",
+    "sub_ridge": "pool_ridge",
+    "sub_lasso": None,  # the all_features pooled lasso (Hoffman2 job 14840615)
+    "sub_enet": "pool_enet",
+}
+YHAT_LABEL.update(SUBSAMPLE_LABEL)
 RULE_ORDER = [
     "always short",
     "sign(s)",
@@ -76,7 +104,7 @@ def find_repo(start: Path | None = None) -> Path:
 
 
 def yhat_paths(repo: Path) -> dict[str, Path]:
-    """Tag -> forecast table. Keys and order match MODEL_ORDER.
+    """Tag -> forecast table: MODEL_ORDER first, then the per-bar tags and their twins.
 
     yhat_b2lasso.parquet (the fixed lasso on the earlier panel) is still on
     disk but no tag points at it: the fixed lasso is reported on the panel of
@@ -92,6 +120,15 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
         "lasso_t": root / "yhat_b2lasso_tuned.parquet",
         "lasso_f": root / "yhat_b2lasso_fomc1.parquet",
         "enet": root / "yhat_b3enet_tuned.parquet",
+        # the per-bar forecasts and their pooled twins (see SUBSAMPLE_ORDER)
+        "sub_base": root / "yhat_sub_ridge_baseline.parquet",
+        "sub_ridge": root / "yhat_sub_ridge_all_features.parquet",
+        "sub_lasso": root / "yhat_sub_lasso_all_features.parquet",
+        "sub_enet": root / "yhat_sub_enet_all_features.parquet",
+        "pool_base": root / "yhat_pool_ridge_baseline.parquet",
+        "pool_ridge": root / "yhat_pool_ridge_all_features.parquet",
+        "pool_lasso": root / "yhat_pool_lasso_all_features.parquet",
+        "pool_enet": root / "yhat_pool_enet_all_features.parquet",
     }
 
 
