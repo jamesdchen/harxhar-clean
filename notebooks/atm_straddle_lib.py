@@ -82,8 +82,8 @@ SUBSAMPLE_TWIN: dict[str, str | None] = {
     "sub_lasso": "pool_lasso",
     "sub_enet": "pool_enet",
     "sub_live_ridge": "pool_live_ridge",
-    "sub_live_lasso": None,  # the pooled lasso of the live set (CARC job 12271758_4)
-    "sub_live_enet": None,  # the pooled elastic net of the live set (CARC job 12271757_8)
+    "sub_live_lasso": "pool_live_lasso",
+    "sub_live_enet": "pool_live_enet",
 }
 YHAT_LABEL.update(SUBSAMPLE_LABEL)
 RULE_ORDER = [

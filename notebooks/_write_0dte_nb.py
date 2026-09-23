@@ -1490,7 +1490,7 @@ for _t, _w in TWINS.items():
                       "same_position_as_baseline": float((books[_t].loc[common, "pos"] == books[_w].loc[common, "pos"]).mean())})
 for _t, _w in asl.SUBSAMPLE_TWIN.items():
     if _w is None or _w not in TWINS.values():
-        print(f"no pooled twin yet for {LABEL[_t]} (its pooled arm is still running on Hoffman2)")
+        print(f"no pooled twin yet for {LABEL[_t]} (its pooled arm has not finished on the cluster)")
 # the Sharpe ratio itself, with the sampling spread of the SAME resampled days
 level_rows = []
 for tag in MODEL_ORDER + ["always short"]:
