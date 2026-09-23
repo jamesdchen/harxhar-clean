@@ -335,6 +335,29 @@ journaled, a zero multiplier does not refuse an override day, and the sizing
 record carries `multiplier_not_applied`. At $1m and 10 % `match_short` buys
 2–9 straddles, mean 4.3, an outlay of at most 26 % of the $100k budget.
 
+**How it is filled** (since 2026-09-23). The research number assumes a full
+fill at the 15:30 quoted ask, and the deck says paying up costs little against
+missing the day: on the 52 deck month-ends the long earns mean R **+0.43 at
+the quoted ask**, +0.39 at ask + 2 ticks, +0.36 at ask + 5 %, +0.30 at ask +
+10 %, and breaks even about 33 ticks up (one tick, $0.10 above $3, is 1.3 % of
+the median 7.7-point month-end straddle); an unfilled order forfeits the whole
++0.43. So the order is a limit at the quoted ask that **steps one tick at a
+time** (the short book's own stepping, `passive_wait_s` between steps), never
+a market order, bounded by the smallest of: the tick allowance
+(`--month-end-long-max-cross-ticks`; default the short book's spread-based
+working cap `ceil(spread/tick) + 1` capped at `--max-cross-ticks`; `0` = rest
+and cancel, the old behaviour), a ceiling in premium units
+(`--month-end-long-max-chase-pct`, default 5 % of the quoted ask), the loss
+budget (no step may push `n × price` past it — the premium size is taken off
+`ask × (1 + pct)` so the budget has room for the chase), and a clock deadline
+(`--month-end-long-deadline`, default 15:35, after which the unfilled
+remainder is cancelled and the position is what filled). The entry record
+carries `quoted_ask_1530`, `avg_fill`, `chase_ticks_used`, `chase_cap_ticks`,
+`chase_cap_source` (`spread` / `pct` / `explicit` / `outlay` / `none`),
+`slippage_pts`, `slippage_premium_units` and `deadline_hit`, so the live
+ledger measures the realised chase cost against the +0.43 the research
+assumed — that number decides whether the chase stays.
+
 **The order.** One limit at the quoted **ask**, placed with
 `max_cross_ticks=0`: it rests for `passive_wait_s` and is cancelled if it has
 not filled. It never chases. No valid two-sided quote at 15:30, or no fill,

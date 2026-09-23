@@ -104,6 +104,9 @@ class Fill:
     status: str = ""
     symbol: str = ""
     multiplier: float = NAN
+    #: The stepping stopped because the caller's deadline passed (the month-end
+    #: long's ``deadline_s``), not because the tick allowance ran out.
+    deadline_hit: bool = False
 
     def as_payload(self) -> dict[str, Any]:
         return {
@@ -120,6 +123,7 @@ class Fill:
             "status": self.status,
             "symbol": self.symbol,
             "multiplier": self.multiplier,
+            "deadline_hit": self.deadline_hit,
         }
 
 
@@ -183,6 +187,7 @@ class Broker(Protocol):
         spread: float | None = None,
         what: str = "",
         max_cross_ticks: int | None = None,
+        deadline_s: float | None = None,
     ) -> Fill: ...
     def place_futures(
         self,
@@ -596,14 +601,24 @@ class IBBroker:
         what: str,
         symbol: str = "",
         multiplier: float = NAN,
+        deadline_s: float | None = None,
     ) -> Fill:
-        """Rest at the limit, then reprice one tick at a time through it."""
+        """Rest at the limit, then reprice one tick at a time through it.
+
+        ``deadline_s`` (seconds from now) stops the stepping when it passes --
+        the month-end long's clock deadline; the unfilled remainder is then
+        cancelled and ``Fill.deadline_hit`` says so.  ``None`` = no deadline
+        beyond the tick allowance.
+        """
         limit = round_to_tick(limit, tick)
         if self.config.mode == "dry":
             return self._synthetic(action, quantity, limit, what, symbol, multiplier)
         if not self.ensure_connected():
             raise BrokerError("disconnected while placing " + what)
 
+        deadline_at = (
+            None if deadline_s is None else time.time() + max(float(deadline_s), 0.0)
+        )
         cross_sign = -1.0 if action.upper() == "SELL" else 1.0
         order = LimitOrder(action.upper(), abs(int(quantity)), limit)
         order.tif = "DAY"
@@ -618,17 +633,28 @@ class IBBroker:
 
         def _wait(seconds: float) -> None:
             end = time.time() + max(seconds, 0.0)
+            if deadline_at is not None:
+                end = min(end, deadline_at)
             while time.time() < end and not trade.isDone():
                 self.ib.sleep(0.25)
 
+        def _past_deadline() -> bool:
+            return deadline_at is not None and time.time() >= deadline_at
+
         _wait(passive_wait_s)
         crossed = 0
+        deadline_hit = False
         step = max(1.0, passive_wait_s / max(1, max_cross_ticks))
         while crossed < max_cross_ticks and not trade.isDone():
+            if _past_deadline():
+                deadline_hit = True
+                break
             crossed += 1
             order.lmtPrice = round_to_tick(limit + cross_sign * crossed * tick, tick)
             self.ib.placeOrder(contract, order)
             _wait(step)
+        if not trade.isDone() and _past_deadline():
+            deadline_hit = True
 
         status = str(getattr(trade.orderStatus, "status", "") or "")
         filled = int(getattr(trade.orderStatus, "filled", 0) or 0)
@@ -655,6 +681,7 @@ class IBBroker:
                 note=last_log,
                 symbol=symbol,
                 multiplier=multiplier,
+                deadline_hit=deadline_hit,
             )
         try:
             self.ib.cancelOrder(order)
@@ -684,10 +711,12 @@ class IBBroker:
                 + " after "
                 + str(crossed)
                 + " ticks through; cancelled"
+                + ("; deadline passed" if deadline_hit else "")
                 + (" | " + last_log if last_log else "")
             ),
             symbol=symbol,
             multiplier=multiplier,
+            deadline_hit=deadline_hit,
         )
 
     def place_combo(
@@ -700,12 +729,14 @@ class IBBroker:
         spread: float | None = None,
         what: str = "combo",
         max_cross_ticks: int | None = None,
+        deadline_s: float | None = None,
     ) -> Fill:
         """``legs`` define the LONG package; ``action`` trades the bag.
 
         ``max_cross_ticks`` caps the repricing for this one order; ``0`` rests
-        at the limit for ``passive_wait_s`` and then cancels -- a limit that
-        must not chase (the month-end override's buy at the quoted ask).
+        at the limit for ``passive_wait_s`` and then cancels.  ``deadline_s``
+        stops the stepping after that many seconds (the month-end long's
+        clock deadline); ``None`` = the tick allowance alone bounds it.
         """
         cfg = self.config
         bag = Contract(
@@ -738,6 +769,7 @@ class IBBroker:
             what,
             symbol=cfg.spec.trading_class,
             multiplier=cfg.index_multiplier,
+            deadline_s=deadline_s,
         )
 
     def place_futures(
@@ -1074,6 +1106,10 @@ class FakeFaults:
     stale_at: frozenset[str] = frozenset()
     #: seconds the simulated clock advances while reconnecting
     reconnect_delay_s: float = 0.0
+    #: the order fills only after this many ticks through the limit (at
+    #: limit + ticks x tick); fewer allowed -- by the cap or by the deadline --
+    #: and it rests unfilled and is cancelled (the chase tests)
+    needs_ticks: Mapping[str, int] = field(default_factory=dict)
 
 
 class FakeBroker:
@@ -1392,12 +1428,16 @@ class FakeBroker:
         spread: float | None = None,
         what: str = "combo",
         max_cross_ticks: int | None = None,
+        deadline_s: float | None = None,
     ) -> Fill:
         """Fill at the package touch (``cross``) or at the limit (``mid``).
 
         With ``max_cross_ticks=0`` an order that is not marketable at the
         stamp's touch rests and is cancelled, as ``IBBroker`` would cancel it:
         the replay does not fill a limit the live order could not reach.
+        ``FakeFaults.needs_ticks`` makes the fill cost that many ticks through
+        the limit and refuses it when the allowance -- the cap, or the
+        deadline at ``IBBroker``'s own step timing -- is smaller.
         """
         oid = self._next_id()
         pkg_bid = 0.0
@@ -1426,13 +1466,53 @@ class FakeBroker:
                 pkg_bid -= ratio * q.ask
                 pkg_ask -= ratio * q.bid
         if self.fill_mode == "mid":
-            price = float(limit_price)
+            price: float = float(limit_price)
             crossed = 0
         else:
-            price = pkg_bid if action.upper() == "SELL" else pkg_ask
+            price = float(pkg_bid if action.upper() == "SELL" else pkg_ask)
             tick = self.config.option_tick_for(price)
             crossed = int(round(abs(price - float(limit_price)) / max(tick, 1e-9)))
         fault = self._fault(what, quantity)
+        deadline_hit = False
+        need = int(self.faults.needs_ticks.get(what, 0))
+        if fault is None and need > 0:
+            tick = self.config.option_tick_for(float(limit_price))
+            allowed = (
+                self.config.cross_ticks_for(NAN if spread is None else spread, tick)
+                if max_cross_ticks is None
+                else max(0, int(max_cross_ticks))
+            )
+            wait = (
+                self.config.passive_wait_s
+                if passive_wait_s is None
+                else float(passive_wait_s)
+            )
+            if deadline_s is not None and allowed > 0:
+                # IBBroker's own timing: rest passive_wait_s, then one step per
+                # max(1, passive_wait_s / allowed) seconds until the deadline.
+                step = max(1.0, wait / max(1, allowed))
+                by_deadline = int(max(float(deadline_s) - wait, 0.0) // step)
+                if by_deadline < allowed:
+                    allowed, deadline_hit = by_deadline, True
+            if allowed >= need:
+                # exactly limit + need ticks: the accounting identity the runner's
+                # slippage fields assume (IBBroker aligns each step to the tick)
+                chase_sign = 1.0 if action.upper() == "BUY" else -1.0
+                price = float(limit_price) + chase_sign * float(need) * tick
+                crossed = need
+                deadline_hit = False
+            else:
+                fault = (
+                    "Cancelled",
+                    0,
+                    "replay: the fill needs "
+                    + str(need)
+                    + " ticks through the limit, "
+                    + str(allowed)
+                    + " allowed"
+                    + ("; deadline passed" if deadline_hit else "")
+                    + "; cancelled",
+                )
         touch = pkg_ask if action.upper() == "BUY" else pkg_bid
         unreachable = (
             max_cross_ticks is not None
@@ -1478,6 +1558,7 @@ class FakeBroker:
             crossed_ticks=crossed,
             note=note,
             order_id=oid,
+            deadline_hit=deadline_hit,
             status=status,
             symbol=self.config.spec.trading_class,
             multiplier=self.config.index_multiplier,

@@ -1159,18 +1159,127 @@ def test_the_default_long_is_sized_by_premium_at_the_15_30_ask(tmp_path, frames)
     budget = CAPITAL * cfg.stress_fraction
     assert prem["long_fraction"] == cfg.stress_fraction
     assert prem["loss_budget_dollars"] == pytest.approx(budget)
-    n_expected = math.floor(budget / (prem["pkg_ask"] * cfg.index_multiplier))
+    # the size is taken off ask x (1 + chase pct) so the budget has room for the chase
+    assert prem["size_price"] == pytest.approx(
+        prem["pkg_ask"] * (1.0 + cfg.month_end_long_max_chase_pct)
+    )
+    n_expected = math.floor(budget / (prem["size_price"] * cfg.index_multiplier))
     assert prem["n"] == prem["n_from_outlay"] == n_expected > ref["n"]
-    assert prem["outlay_dollars"] <= budget
-    assert prem["outlay_dollars"] + prem["pkg_ask"] * cfg.index_multiplier > budget
+    assert n_expected * prem["size_price"] * cfg.index_multiplier <= budget
+    assert (n_expected + 1) * prem["size_price"] * cfg.index_multiplier > budget
 
     entry = [e for e in kinds_of(path, "entry") if e["entered"]]
     assert len(entry) == 1 and entry[0]["side"] == "long"
     assert entry[0]["outlay_dollars"] <= entry[0]["loss_budget_dollars"]
     orders = kinds_of(path, "order")
     assert len(orders) == 1 and orders[0]["action"] == "BUY"
-    assert orders[0]["n"] == n_expected if "n" in orders[0] else True
+    assert orders[0]["quantity"] == n_expected
     assert s.n_rebalances == 0 and s.n_futures_fills == 0
+
+
+def test_the_default_long_chases_a_bounded_number_of_ticks(tmp_path, frames):
+    """A limit at the quoted ask that steps one tick at a time, measured in the journal."""
+    faults = FakeFaults(needs_ticks={"body_entry": 1})
+    cfg, _b, _r, path, s = run_override(tmp_path, frames, faults=faults)
+    o = kinds_of(path, "order")[0]
+    assert o["max_cross_ticks"] >= 1
+    assert o["chase_cap_source"] in ("spread", "pct", "outlay")
+    assert o["deadline"] == "15:35" and 0.0 < o["deadline_s"] <= 300.0
+    fill = kinds_of(path, "fill")[0]
+    assert fill["quantity"] >= 1 and fill["crossed_ticks"] == 1
+    assert fill["deadline_hit"] is False
+    e = [x for x in kinds_of(path, "entry") if x["entered"]][0]
+    tick = o["tick"]
+    assert e["chase_ticks_used"] == 1 and e["chase_cap_ticks"] == o["max_cross_ticks"]
+    assert e["avg_fill"] == pytest.approx(e["quoted_ask_1530"] + tick)
+    assert e["slippage_pts"] == pytest.approx(tick)
+    assert e["slippage_premium_units"] == pytest.approx(tick / e["quoted_ask_1530"])
+    assert e["n_filled"] == e["n_intended"] and e["deadline_hit"] is False
+    assert (
+        e["outlay_dollars"] <= e["loss_budget_dollars"]
+    )  # the reserve absorbed the tick
+    assert s.side == "long" and s.entered
+
+
+def test_the_pct_ceiling_binds_before_the_spread_cap(tmp_path, frames):
+    faults = FakeFaults(needs_ticks={"body_entry": 2})
+    _c, _b, _r, path, s = run_override(
+        tmp_path, frames, faults=faults, month_end_long_max_chase_pct=0.03
+    )
+    o = kinds_of(path, "order")[0]
+    # WORST's ask is 3.65 -> tick 0.10 -> floor(0.03 x 3.65 / 0.10) = 1 tick
+    assert o["chase_cap_source"] == "pct" and o["max_cross_ticks"] == 1
+    assert "month_end_long_unfilled" in errors_of(path) and not s.entered
+
+
+def test_explicit_zero_ticks_restores_rest_and_cancel(tmp_path, frames):
+    faults = FakeFaults(needs_ticks={"body_entry": 1})
+    _c, _b, _r, path, s = run_override(
+        tmp_path, frames, faults=faults, month_end_long_max_cross_ticks=0
+    )
+    o = kinds_of(path, "order")[0]
+    assert o["max_cross_ticks"] == 0 and o["chase_cap_source"] == "none"
+    sz = [z for z in kinds_of(path, "sizing") if z["clock"] == "15:30"][0]
+    assert sz["chase_pct_reserved"] == 0.0  # no chase, no reserve in the size
+    assert "month_end_long_unfilled" in errors_of(path) and not s.entered
+
+
+def test_the_deadline_stops_the_chase(tmp_path, frames):
+    """Rest 50 s with the deadline 60 s away: no step fits before it."""
+    faults = FakeFaults(needs_ticks={"body_entry": 1})
+    _c, _b, _r, path, s = run_override(
+        tmp_path,
+        frames,
+        faults=faults,
+        passive_wait_s=50.0,
+        month_end_long_deadline="15:31",
+    )
+    fill = kinds_of(path, "fill")[0]
+    assert fill["quantity"] == 0 and fill["deadline_hit"] is True
+    err = [
+        x for x in kinds_of(path, "error") if x["what"] == "month_end_long_unfilled"
+    ][0]
+    assert "deadline passed" in err["detail"] and not s.entered
+
+
+def test_the_outlay_bound_stops_the_chase(tmp_path, frames):
+    """--n at the budget's edge (273 x 3.65 x 100 = $99,645 of $100k): no room for a tick."""
+    faults = FakeFaults(needs_ticks={"body_entry": 1})
+    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults, n_override=273)
+    o = kinds_of(path, "order")[0]
+    assert o["chase_cap_source"] == "outlay" and o["max_cross_ticks"] == 0
+    assert "month_end_long_unfilled" in errors_of(path) and not s.entered
+
+
+def test_chase_config_is_validated():
+    cfg = Config()
+    assert (
+        cfg.month_end_long_max_cross_ticks,
+        cfg.month_end_long_max_chase_pct,
+        cfg.month_end_long_deadline,
+    ) == (None, 0.05, "15:35")
+    with pytest.raises(ValueError, match="month_end_long_max_cross_ticks"):
+        Config(month_end_long_max_cross_ticks=-1)
+    with pytest.raises(ValueError, match="month_end_long_max_chase_pct"):
+        Config(month_end_long_max_chase_pct=1.5)
+    for bad in ("15:30", "16:00", "noon", "9:35"):
+        with pytest.raises(ValueError, match="month_end_long_deadline"):
+            Config(month_end_long_deadline=bad)
+    ns = Config.from_args(
+        [
+            "--month-end-long-max-cross-ticks",
+            "3",
+            "--month-end-long-max-chase-pct",
+            "0.02",
+            "--month-end-long-deadline",
+            "15:40",
+        ]
+    )
+    assert (
+        ns.month_end_long_max_cross_ticks,
+        ns.month_end_long_max_chase_pct,
+        ns.month_end_long_deadline,
+    ) == (3, 0.02, "15:40")
 
 
 def test_max_long_straddles_caps_the_premium_size(tmp_path, frames):
@@ -1211,11 +1320,15 @@ def test_the_override_buys_the_15_30_straddle_and_holds_it(tmp_path, frames):
     orders = kinds_of(path, "order")
     assert len(orders) == 1
     o = orders[0]
-    assert (o["what"], o["action"], o["side"], o["max_cross_ticks"]) == (
-        "body_entry",
-        "BUY",
-        "long",
-        0,
+    assert (o["what"], o["action"], o["side"]) == ("body_entry", "BUY", "long")
+    # the bounded chase applies to match_short too: a limit at the ask that may
+    # step a capped number of ticks, never a market order
+    assert o["max_cross_ticks"] >= 0 and o["chase_cap_source"] in (
+        "spread",
+        "pct",
+        "explicit",
+        "outlay",
+        "none",
     )
     entry = [e for e in kinds_of(path, "entry") if e["entered"]]
     assert len(entry) == 1 and entry[0]["clock"] == "15:30"
@@ -1376,8 +1489,11 @@ def test_no_quote_at_15_30_ends_the_override_flat(tmp_path, frames):
 
 
 def test_no_fill_ends_the_override_flat_and_never_chases(tmp_path, frames):
+    """With the chase switched off (ticks 0) the old rest-and-cancel behaviour holds."""
     faults = FakeFaults(refuse=frozenset({"body_entry"}))
-    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults)
+    _c, _b, _r, path, s = run_override(
+        tmp_path, frames, faults=faults, month_end_long_max_cross_ticks=0
+    )
     orders = kinds_of(path, "order")
     assert len(orders) == 1 and orders[0]["max_cross_ticks"] == 0  # one try only
     fill = kinds_of(path, "fill")[0]

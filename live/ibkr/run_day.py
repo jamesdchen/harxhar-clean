@@ -1394,13 +1394,36 @@ class DayRunner:
             if cfg.month_end_long_fraction is None
             else float(cfg.month_end_long_fraction)
         )
+        # The chase (2026-09-23): a limit at the quoted ask that steps one tick
+        # at a time, bounded by the smaller of the tick allowance (the short
+        # book's spread-based working cap, or an explicit count) and a ceiling
+        # in premium units, and by a clock deadline.  The tick allowance and
+        # the ceiling are known now; the outlay bound needs n and comes later.
+        tick = float(cfg.option_tick_for(limit))
+        if cfg.month_end_long_max_cross_ticks is None:
+            cap_ticks = int(cfg.cross_ticks_for(float(pq.spread), tick))
+            cap_source = "spread"
+        else:
+            cap_ticks = max(0, int(cfg.month_end_long_max_cross_ticks))
+            cap_source = "explicit"
+        chase_pct = float(cfg.month_end_long_max_chase_pct)
+        pct_ticks = int(math.floor(chase_pct * limit / tick)) if tick > 0 else 0
+        if pct_ticks < cap_ticks:
+            cap_ticks, cap_source = pct_ticks, "pct"
+        # the premium size is taken off the worst price the chase may pay, so
+        # the budget can absorb the steps
+        size_price = limit * (1.0 + (chase_pct if cap_ticks > 0 else 0.0))
+        now_et = self._now()
+        dh, dm = (int(x) for x in str(cfg.month_end_long_deadline).split(":"))
+        deadline_dt = now_et.replace(hour=dh, minute=dm, second=0, microsecond=0)
+        deadline_s = max((deadline_dt - now_et).total_seconds(), 0.0)
         if premium_sized:
             # The research book's premium units: the count whose outlay at the
             # ask the order will pay fits the long's loss budget.  Sized HERE,
             # at 15:30, off the price actually paid; the short program's stress
             # count at the size clock is journaled beside it as the reference.
             sized = contracts_for_outlay(
-                cfg.capital, long_fraction, limit, cfg.index_multiplier
+                cfg.capital, long_fraction, size_price, cfg.index_multiplier
             )
             n_ref = n
             if cfg.n_override is not None:
@@ -1427,6 +1450,8 @@ class DayRunner:
                 capital=cfg.capital,
                 long_fraction=long_fraction,
                 pkg_ask=limit,
+                size_price=size_price,
+                chase_pct_reserved=chase_pct if cap_ticks > 0 else 0.0,
                 outlay_dollars=n * limit * cfg.index_multiplier,
                 loss_budget_dollars=cfg.capital * long_fraction,
                 note=note,
@@ -1459,6 +1484,20 @@ class DayRunner:
         if outlay > budget:
             return refuse("month_end_long_outlay_exceeds_the_loss_budget", **money)
 
+        # The outlay bound on the chase: no step may push n x price past the
+        # budget, so the allowance is also capped at the ticks the budget has
+        # room for above the quoted ask.
+        if tick > 0 and n > 0:
+            room = budget / (n * cfg.index_multiplier) - limit
+            outlay_ticks = max(0, int(math.floor(room / tick + 1e-9)))
+            if outlay_ticks < cap_ticks:
+                cap_ticks, cap_source = outlay_ticks, "outlay"
+        if cap_ticks <= 0:
+            cap_ticks = 0
+            if cap_source in ("spread", "explicit"):
+                cap_source = (
+                    "none" if cfg.month_end_long_max_cross_ticks == 0 else cap_source
+                )
         self.state.body = body
         self.state.wings = None
         self.jr.event(
@@ -1471,9 +1510,25 @@ class DayRunner:
             quantity=n,
             limit=limit,
             spread=pq.spread,
-            max_cross_ticks=0,
-            note="month-end override: a limit at the quoted ask that rests "
-            "and cancels; it never chases",
+            tick=tick,
+            max_cross_ticks=cap_ticks,
+            chase_cap_source=cap_source,
+            chase_pct_cap=chase_pct,
+            deadline=cfg.month_end_long_deadline,
+            deadline_s=deadline_s,
+            note=(
+                "month-end override: a limit at the quoted ask that steps one tick "
+                "at a time, at most "
+                + str(cap_ticks)
+                + " ticks ("
+                + cap_source
+                + " bound), until "
+                + str(cfg.month_end_long_deadline)
+                + "; never a market order"
+                if cap_ticks > 0
+                else "month-end override: a limit at the quoted ask that rests and "
+                "cancels (chase allowance 0, " + cap_source + " bound)"
+            ),
         )
         fill = self.broker.place_combo(
             self._package_legs(),
@@ -1482,7 +1537,8 @@ class DayRunner:
             action="BUY",
             spread=pq.spread,
             what="body_entry",
-            max_cross_ticks=0,
+            max_cross_ticks=cap_ticks,
+            deadline_s=deadline_s,
         )
         self.jr.event("fill", ts_et=self._now(), clock=obs.clock, **fill.as_payload())
         filled = abs(int(fill.quantity))
@@ -1495,7 +1551,12 @@ class DayRunner:
                 detail=(fill.note or "no fill")
                 + " [status "
                 + fill.status
-                + "] -- the limit at the ask is not chased",
+                + "] -- chase allowance "
+                + str(cap_ticks)
+                + " ticks ("
+                + cap_source
+                + " bound)"
+                + ("; the deadline passed" if fill.deadline_hit else ""),
                 clock=obs.clock,
             )
             return refuse("month_end_long_unfilled", status=fill.status, **money)
@@ -1546,6 +1607,20 @@ class DayRunner:
             outlay_fraction=paid / cfg.capital,
             hours_to_close=self._hours(obs.now),
             size_clock=size_clock,
+            # the chase, measured: what the research assumed (the quoted ask)
+            # against what was paid
+            n_intended=n,
+            n_filled=filled,
+            quoted_ask_1530=limit,
+            avg_fill=float(fill.price),
+            chase_ticks_used=int(fill.crossed_ticks),
+            chase_cap_ticks=cap_ticks,
+            chase_cap_source=cap_source,
+            slippage_pts=float(fill.price) - limit,
+            slippage_premium_units=(float(fill.price) - limit) / limit
+            if limit > 0
+            else NAN,
+            deadline_hit=bool(fill.deadline_hit),
             reason=None,
         )
         return True

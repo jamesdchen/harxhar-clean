@@ -300,6 +300,22 @@ class Config:
     #: A ceiling on the long's contract count under ``premium`` sizing (the
     #: budget is the only bound otherwise).  ``None`` = no ceiling.
     max_long_straddles: int | None = None
+    #: How the month-end long is FILLED (2026-09-23).  The order is a limit at
+    #: the 15:30 quoted ask that steps one tick at a time through it, never a
+    #: market order.  Ticks allowed: ``None`` = the short book's own working cap,
+    #: ceil(spread / tick) + 1 capped at ``max_cross_ticks``; ``0`` = rest and
+    #: cancel (the old behaviour); an explicit count otherwise.  On the deck the
+    #: month-end long keeps mean R +0.39 at ask + 2 ticks and +0.36 at ask + 5 %
+    #: against +0.43 at the quoted ask, and breaks even about 33 ticks up, while
+    #: an unfilled order forfeits the whole +0.43.
+    month_end_long_max_cross_ticks: int | None = None
+    #: Ceiling on the chase as a fraction of the 15:30 quoted ask; the smaller of
+    #: this and the tick allowance binds.  The premium size is taken off
+    #: ask x (1 + this) so the budget can absorb the chase.
+    month_end_long_max_chase_pct: float = 0.05
+    #: ET clock after which no further step is placed; the unfilled remainder
+    #: is cancelled and the position is what filled.  (15:30, 15:59].
+    month_end_long_deadline: str = "15:35"
     no_short_calendars: tuple[str, ...] = ("month_end",)
 
     # -- the third-Friday size (proposal 58) ------------------------------
@@ -595,6 +611,30 @@ class Config:
                 )
         if self.max_long_straddles is not None and int(self.max_long_straddles) < 1:
             raise ValueError("max_long_straddles must be >= 1 or None (no ceiling)")
+        if (
+            self.month_end_long_max_cross_ticks is not None
+            and int(self.month_end_long_max_cross_ticks) < 0
+        ):
+            raise ValueError(
+                "month_end_long_max_cross_ticks must be >= 0 or None (the spread cap)"
+            )
+        cp = float(self.month_end_long_max_chase_pct)
+        if not (math.isfinite(cp) and 0.0 <= cp <= 1.0):
+            raise ValueError(
+                "month_end_long_max_chase_pct must be in [0, 1], got "
+                + repr(self.month_end_long_max_chase_pct)
+            )
+        dl = str(self.month_end_long_deadline)
+        try:
+            dh, dm = (int(x) for x in dl.split(":"))
+            ok_dl = 0 <= dh < 24 and 0 <= dm < 60
+        except ValueError:
+            ok_dl = False
+        if not ok_dl or not ("15:30" < f"{dh:02d}:{dm:02d}" <= "15:59"):
+            raise ValueError(
+                "month_end_long_deadline must be an ET clock HH:MM after 15:30 and "
+                "no later than 15:59, got " + repr(self.month_end_long_deadline)
+            )
         tf = float(self.third_friday_size_multiplier)
         if not (math.isfinite(tf) and tf >= 1.0):
             raise ValueError(
@@ -803,6 +843,27 @@ class Config:
             dest="max_long_straddles",
             help="ceiling on the month-end long's count under premium sizing "
             "(default: none beyond the budget)",
+        )
+        p.add_argument(
+            "--month-end-long-max-cross-ticks",
+            type=int,
+            default=None,
+            dest="month_end_long_max_cross_ticks",
+            help="ticks the month-end long may step through the 15:30 ask "
+            "(default: the spread-based working cap; 0 = rest and cancel)",
+        )
+        p.add_argument(
+            "--month-end-long-max-chase-pct",
+            type=float,
+            default=0.05,
+            dest="month_end_long_max_chase_pct",
+            help="ceiling on the chase as a fraction of the quoted ask (default 0.05)",
+        )
+        p.add_argument(
+            "--month-end-long-deadline",
+            default="15:35",
+            dest="month_end_long_deadline",
+            help="ET clock after which the month-end long stops stepping (default 15:35)",
         )
         p.add_argument(
             "--entry-mode",
@@ -1023,6 +1084,9 @@ class Config:
             month_end_long_size=ns.month_end_long_size,
             month_end_long_fraction=ns.month_end_long_fraction,
             max_long_straddles=ns.max_long_straddles,
+            month_end_long_max_cross_ticks=ns.month_end_long_max_cross_ticks,
+            month_end_long_max_chase_pct=ns.month_end_long_max_chase_pct,
+            month_end_long_deadline=ns.month_end_long_deadline,
             third_friday_size_multiplier=third_friday,
             sp_leg_rule=ns.sp_leg_rule,
             sp_leg_notional=ns.sp_leg_notional,
