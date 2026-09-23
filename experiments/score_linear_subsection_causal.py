@@ -100,8 +100,8 @@ def main() -> None:
     pooled: dict[tuple[str, int], pd.DataFrame] = {}
     rows, trades = [], []
     for seg, est, tw in arms:
-        if seg != "none" and not seg.startswith("bar"):
-            continue  # blocks are a bias-variance variant; the question is per bar
+        if seg != "none" and not seg.startswith("bar") and seg != "rth":
+            continue  # blocks are a bias-variance variant; the question is per bar (and the whole session, "rth")
         raw = load_adj(root, a.bucket, seg, est, tw)
         if raw is None:
             continue

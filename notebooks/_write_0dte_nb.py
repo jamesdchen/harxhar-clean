@@ -2635,9 +2635,15 @@ loss** are the means of the position's own return — $R_t$ on a buy day,
 $-R_t$ on a sell day — over the days that return is positive and over the days
 it is not. The **base rates** are those same three quantities over all the
 common days for a long held every day and for a short held every day, with no
-forecast used at all. The figure states the claim: on every forecast the hit
-rates sit on the base rates, and what the signal moves is the size of the win
-on the days it buys.
+forecast used at all.
+
+The figure is one confusion matrix per forecast: the rows are what the signal
+said ($s>0$ buy, $s\le 0$ short), the columns what the package did ($R>0$,
+$R\le 0$), each cell carrying its day count, its share of all days and the mean
+$R$ on those days. The diagonal is the hits. The two right-hand cells of every
+matrix read the same on every forecast — the short days are the base rate —
+and what the signal moves is the top-left cell: the buy days it is right on
+are the days with the large positive $R$.
 """
     ),
     code(
@@ -2685,76 +2691,57 @@ print(bs_tab.to_string(float_format=lambda x: f"{x: .4f}"))
 bs_tab.to_csv(OUT / "buy_signal_reading.csv")
 print("saved", OUT / "buy_signal_reading.csv")
 
-names = [LABEL[t] for t in MODEL_ORDER]
-ys = np.arange(len(names))
-fig, (axA, axB, axC) = plt.subplots(
-    1, 3, figsize=(14, 5.0), sharey=True, gridspec_kw={"width_ratios": [3, 4, 2]})
-
-
-def _col(side, col):
-    return [float(bs_tab.loc[(n, side), col]) for n in names]
-
-
-def _dress(ax, title, xlab):
-    # legends sit below the axes so they never cover a bar
-    ax.set_title(title, fontsize=9)
-    ax.set_xlabel(xlab, fontsize=8)
-    ax.legend(fontsize=6.5, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, framealpha=0.9)
-    ax.grid(axis="x", alpha=0.3)
-
-
-axA.barh(ys - 0.19, _col("buy (s > 0)", "hit rate"), 0.38, color="C0", label="buy days: P(R > 0 | s > 0)")
-axA.barh(ys + 0.19, _col("sell (s <= 0)", "hit rate"), 0.38, color="C1", label="sell days: P(R < 0 | s <= 0)")
-axA.axvline(REF["unconditional long"]["hit rate"], color="C0", ls="--", lw=1.0,
-            label=f"base rate, long the package every day: P(R > 0) = {REF['unconditional long']['hit rate']:.2f}")
-axA.axvline(REF["unconditional short"]["hit rate"], color="C1", ls="--", lw=1.0,
-            label=f"base rate, short every day: P(R < 0) = {REF['unconditional short']['hit rate']:.2f}")
-axA.set_yticks(ys)
-axA.set_yticklabels(names, fontsize=8)
-axA.set_ylim(len(names) - 0.4, -0.6)
-axA.set_xlim(0.0, 0.8)
-_dress(axA, "A. how often the position is right\n(bars: on the signal's days; dashed: every day, no forecast)", "hit rate")
-
-
-def _pad_x(ax, vals):
-    lo, hi = min(vals), max(vals)
-    pad = 0.08 * (hi - lo)
-    ax.set_xlim(lo - pad, hi + pad)
-
-
-SERIES_B = (("buy (s > 0)", "avg win", "C0", 1.0, "buy days: average win"),
-            ("buy (s > 0)", "avg loss", "C0", 0.45, "buy days: average loss"),
-            ("sell (s <= 0)", "avg win", "C1", 1.0, "sell days: average win"),
-            ("sell (s <= 0)", "avg loss", "C1", 0.45, "sell days: average loss"))
-for k, (side, col, c, a, lab) in enumerate(SERIES_B):
-    axB.barh(ys + (k - 1.5) * 0.2, _col(side, col), 0.2, color=c, alpha=a, label=lab)
-for ref, c, who in (("unconditional long", "C0", "long every day"), ("unconditional short", "C1", "short every day")):
-    axB.axvline(REF[ref]["avg win"], color=c, ls="--", lw=1.0, label=f"base rate, {who}: average win {REF[ref]['avg win']:+.2f}")
-    axB.axvline(REF[ref]["avg loss"], color=c, ls=":", lw=1.0, label=f"base rate, {who}: average loss {REF[ref]['avg loss']:+.2f}")
-axB.axvline(0.0, color="k", lw=0.6)
-_pad_x(axB, [v for side, col, *_ in SERIES_B for v in _col(side, col)]
-       + [REF[r][c] for r in REF for c in ("avg win", "avg loss")])
-_dress(axB, "B. how much it wins and how much it loses\n(bars: on the signal's days; lines: every day, no forecast)",
-       "average return per day of that kind")
-
-axC.barh(ys - 0.19, _col("buy (s > 0)", "mean per active day"), 0.38, color="C0", label="buy days")
-axC.barh(ys + 0.19, _col("sell (s <= 0)", "mean per active day"), 0.38, color="C1", label="sell days")
-axC.axvline(REF["unconditional long"]["mean per active day"], color="C0", ls="--", lw=1.0,
-            label=f"base rate, long every day: {REF['unconditional long']['mean per active day']:+.3f}")
-axC.axvline(REF["unconditional short"]["mean per active day"], color="C1", ls="--", lw=1.0,
-            label=f"base rate, short every day: {REF['unconditional short']['mean per active day']:+.3f}")
-axC.axvline(0.0, color="k", lw=0.6)
-_pad_x(axC, _col("buy (s > 0)", "mean per active day") + _col("sell (s <= 0)", "mean per active day")
-       + [REF[r]["mean per active day"] for r in REF] + [0.0])
-_dress(axC, "C. mean per active day\n(bars: on the signal's days; dashed: every day, no forecast)", "mean return")
-
-fig.suptitle("the signal's days against the base rates (the same statistic with the package held every day, no forecast), "
-             f"{len(common)} common days, midpoint fills", fontsize=10)
+# --- confusion matrices: one per forecast, sign(s) against the sign of R
+# rows: the signal (s > 0 buy, s <= 0 short); columns: the package (R > 0, R <= 0).
+# Each cell: the day count, its share of all common days, and the mean R on
+# those days -- how often, and by how much, in one picture.
+_base_up = float((_Rall > 0.0).mean())
+conf_rows = []
+n_cols = 4
+n_rows = int(np.ceil(len(MODEL_ORDER) / n_cols))
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.2 * n_cols, 2.9 * n_rows))
+for ax, tag in zip(axes.ravel(), MODEL_ORDER):
+    pxc = books[tag].loc[common]
+    s = pxc["signal"].astype(float).to_numpy()
+    r = pxc["R"].astype(float).to_numpy()
+    pred_long = s > 0.0
+    act_up = r > 0.0
+    cells = {
+        (0, 0): pred_long & act_up,       # buy, R > 0   : hit
+        (0, 1): pred_long & ~act_up,      # buy, R <= 0  : miss
+        (1, 0): ~pred_long & act_up,      # short, R > 0 : miss
+        (1, 1): ~pred_long & ~act_up,     # short, R <= 0: hit
+    }
+    mat = np.array([[cells[(0, 0)].sum(), cells[(0, 1)].sum()],
+                    [cells[(1, 0)].sum(), cells[(1, 1)].sum()]], float)
+    n = mat.sum()
+    ax.imshow(mat, cmap="Blues", vmin=0, vmax=max(n / 2, 1))
+    for (i, j), m_ in cells.items():
+        v = int(m_.sum())
+        mean_r = float(r[m_].mean()) if v else float("nan")
+        ax.text(j, i, f"{v}\n{100 * v / n:.0f}%\nmean R {mean_r:+.2f}", ha="center", va="center",
+                fontsize=7.5, color="white" if v > n / 3 else "black")
+        conf_rows.append({"forecast": LABEL[tag], "signal": "buy (s > 0)" if i == 0 else "short (s <= 0)",
+                          "package": "R > 0" if j == 0 else "R <= 0", "days": v, "share": v / n, "mean_R": mean_r})
+    acc = (mat[0, 0] + mat[1, 1]) / n
+    ax.set_title(f"{LABEL[tag]}\naccuracy {acc:.2f}", fontsize=8)
+    ax.set_xticks([0, 1], labels=["R > 0", "R <= 0"], fontsize=7)
+    ax.set_yticks([0, 1], labels=["s > 0 buy", "s <= 0 short"], fontsize=7)
+for ax in axes.ravel()[len(MODEL_ORDER):]:
+    ax.axis("off")
+fig.suptitle(f"sign(s) against the sign of the package return R at the midpoint, {len(common)} common days; "
+             f"base rate P(R > 0) = {_base_up:.2f}, so a coin that always said short would score {1 - _base_up:.2f}",
+             fontsize=9.5)
 fig.tight_layout()
-fig.savefig(OUT / "buy_signal_hitrate.png", dpi=120, bbox_inches="tight")
-print("saved", OUT / "buy_signal_hitrate.png")
+fig.savefig(OUT / "buy_signal_confusion.png", dpi=130, bbox_inches="tight")
+print("saved", OUT / "buy_signal_confusion.png")
 display(fig)
 plt.close(fig)
+conf_tab = pd.DataFrame(conf_rows)
+conf_tab.to_csv(OUT / "buy_signal_confusion.csv", index=False)
+print("the four cells per forecast (days, share of all days, mean R):")
+print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], values=["days", "mean_R"], aggfunc="first")
+      .reindex([LABEL[t] for t in MODEL_ORDER]).round(3).to_string())
 """
     ),
     # SECTION PARKED 2026-09-03 (user order): iron flies do not pay — cost at every width, fraction of wealth unchanged; see the experimental notebook's lab.
@@ -3051,7 +3038,169 @@ plt.close(fig)
     # ),
     md(
         r"""
-## 17. Checking one row by hand
+## 17. Portfolio weights: the trade beside the S&P
+
+The trade is stated per unit of premium, so a weight has to say how many
+dollars of straddle premium to run beside each dollar of the index. The
+question this section answers is the one an allocator asks of any new
+return stream: given the S&P held on the same days, how much of the 15:30
+trade should sit beside it, and what does adding it do to the portfolio?
+
+Two ingredients decide that. The trade's Sharpe ratio on its own, and its
+correlation with the index: a stream that is uncorrelated with the market
+raises the portfolio's Sharpe ratio to $\sqrt{SR_{S\&P}^2 + SR_{trade}^2}$
+however small it is, and its optimal weight is the mean–variance
+(tangency) weight $\Sigma^{-1}\mu$. Both are computed here on the common
+days, at the midpoint and crossed, for every forecast, and stated three
+ways: the tangency ratio in **dollars of premium per \$100 of index**, the
+**risk share** of the trade in that portfolio, and the **Kelly fraction**
+of the trade alone (the fraction of wealth in premium that maximizes
+expected log growth; half of it is the usual working number).
+
+Whole-sample tangency weights are optimistic — they are fitted on the
+same days they are scored on. So the second table sets the weight from
+**past days only**: an expanding tangency estimate over the sessions
+strictly before each day, a minimum of 252 sessions, on streams scaled
+by their own trailing standard deviation so that the weight is a risk
+share; the day's return is scored at that weight, and the combination's
+Sharpe ratio is compared with the S&P's alone on the same days with the
+paired block bootstrap of §10.
+
+The S&P's return on a deck day is its close-to-close return from the
+official closes — the same series the settlement uses. Cash earns
+nothing; that flatters neither side.
+"""
+    ),
+    code(
+        r"""# --- the S&P on the deck days, from the closes the settlement uses
+_gspc = pd.read_parquet(REPO / "results" / "atm_straddle_intraday_holdclose" / "proposals" / "67" / "gspc_close.parquet")["close"]
+_gspc.index = pd.to_datetime(_gspc.index)
+spx_r = _gspc.pct_change().reindex(pd.DatetimeIndex(common))
+assert spx_r.notna().all(), "an S&P close is missing on a deck day"
+_dev = float(np.max(np.abs(_gspc.reindex(pd.DatetimeIndex(common)).to_numpy() / books["blk2"].loc[common, "S_close"].to_numpy() - 1.0)))
+assert _dev < 1e-9, _dev
+print(f"S&P closes equal the deck's settlement closes on all {len(common)} days (max rel diff {_dev:.1e}); "
+      f"S&P on these days: Sharpe {_sharpe_ann(spx_r):.2f}, vol {float(spx_r.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)):.1%}")
+
+
+def _crossed_u(pxc):
+    # the sign(s) position at the quotes: bought at the ask, sold at the bid
+    q = np.where(pxc["signal"].astype(float).to_numpy() > 0.0, 1.0, -1.0)
+    ask = (pxc["ask_c"] + pxc["ask_p"]).to_numpy(float)
+    bid = (pxc["bid_c"] + pxc["bid_p"]).to_numpy(float)
+    ex = pxc["exit"].to_numpy(float)
+    return np.where(q > 0.0, ex / ask - 1.0, -(ex / bid - 1.0))
+
+
+def _kelly(u, grid=np.linspace(0.0, 3.0, 3001)):
+    # argmax_f mean log(1 + f u), on a grid; -inf where a day would ruin
+    x = 1.0 + np.outer(grid, u)
+    g = np.where((x > 0).all(axis=1), np.log(np.where(x > 0, x, 1.0)).mean(axis=1), -np.inf)
+    return float(grid[int(np.argmax(g))])
+
+
+def _tangency(t, m):
+    # unconstrained mean-variance weights on (trade, S&P), cash at zero
+    mu = np.array([t.mean(), m.mean()])
+    C = np.cov(np.vstack([t, m]), ddof=1)
+    w = np.linalg.solve(C, mu)
+    var_p = float(w @ C @ w)
+    return w, float(w @ mu / np.sqrt(var_p) * np.sqrt(asl.PERIODS_PER_YEAR)), float(w[0] ** 2 * C[0, 0] / var_p)
+
+
+_m = spx_r.to_numpy(float)
+_sr_m = _sharpe_ann(_m)
+pw_rows = []
+for basis in ("midpoint", "crossed"):
+    for tag in MODEL_ORDER:
+        pxc = books[tag].loc[common]
+        u = (pxc["pos"].astype(float) * pxc["R"].astype(float)).to_numpy() if basis == "midpoint" else _crossed_u(pxc)
+        rho = float(np.corrcoef(u, _m)[0, 1])
+        sr_t = _sharpe_ann(u)
+        w, sr_p, risk_share = _tangency(u, _m)
+        ir = (sr_t - rho * _sr_m) / np.sqrt(1.0 - rho ** 2)
+        fk = _kelly(u)
+        pw_rows.append({"basis": basis, "forecast": LABEL[tag],
+                        "Sharpe trade": sr_t, "Sharpe S&P": _sr_m, "correlation": rho,
+                        "premium $ per $100 S&P": 100.0 * w[0] / w[1] if w[1] > 0 else float("nan"),
+                        "risk share of trade": risk_share,
+                        "Sharpe tangency": sr_p, "Sharpe gain over S&P": sr_p - _sr_m,
+                        "gain formula sqrt(SR^2+IR^2)": float(np.sqrt(_sr_m ** 2 + ir ** 2) - _sr_m),
+                        "Kelly f (premium units)": fk, "half Kelly": fk / 2})
+pw_tab = pd.DataFrame(pw_rows).set_index(["basis", "forecast"])
+pw_tab.to_csv(OUT / "portfolio_weights.csv")
+print("whole-sample tangency weights of the sign(s) trade beside the S&P, same days, cash at zero (optimistic: fitted where scored)")
+print(pw_tab.round(3).to_string())
+print("saved", OUT / "portfolio_weights.csv")
+"""
+    ),
+    code(
+        r"""# --- the weight from past days only: expanding tangency on risk-scaled streams
+PW_WARMUP = 252
+
+
+def _causal_combo(u, m):
+    t = pd.Series(u, index=pd.DatetimeIndex(common))
+    s_ = pd.Series(m, index=pd.DatetimeIndex(common))
+    sd_t = t.expanding(min_periods=PW_WARMUP).std().shift(1)
+    sd_m = s_.expanding(min_periods=PW_WARMUP).std().shift(1)
+    zt, zm = t / sd_t, s_ / sd_m  # one unit of trailing risk each
+    # tangency on the standardized streams from strictly prior days: weights
+    # proportional to R^-1 SR, long-only (a negative trailing Sharpe gets no risk)
+    sr_t = (t.expanding(min_periods=PW_WARMUP).mean() / sd_t).shift(1).clip(lower=0.0)
+    sr_m = (s_.expanding(min_periods=PW_WARMUP).mean() / sd_m).shift(1).clip(lower=0.0)
+    rho = t.expanding(min_periods=PW_WARMUP).corr(s_).shift(1)
+    wt = ((sr_t - rho * sr_m) / (1.0 - rho ** 2)).clip(lower=0.0)
+    wm = ((sr_m - rho * sr_t) / (1.0 - rho ** 2)).clip(lower=0.0)
+    share = (wt / (wt + wm)).where((wt + wm) > 0.0, 0.0)
+    combo = (1.0 - share) * zm + share * zt
+    ok = combo.notna() & zm.notna()
+    return combo[ok], zm[ok], share[ok]
+
+
+pwc_rows, _combo_paths = [], {}
+for tag in MODEL_ORDER:
+    pxc = books[tag].loc[common]
+    u = (pxc["pos"].astype(float) * pxc["R"].astype(float)).to_numpy()
+    combo, alone, share = _causal_combo(u, _m)
+    n_c = len(combo)
+    idx_c = asl.circular_block_bootstrap_idx(np.random.default_rng([PAIR_SEED, n_c]), n_c, PAIR_BLOCK, PAIR_B)
+    dc, da = combo.to_numpy()[idx_c], alone.to_numpy()[idx_c]
+    d_sr = (dc.mean(axis=1) / dc.std(axis=1, ddof=1) - da.mean(axis=1) / da.std(axis=1, ddof=1)) * np.sqrt(asl.PERIODS_PER_YEAR)
+    pwc_rows.append({"forecast": LABEL[tag], "scored days": n_c, "first day": str(combo.index[0].date()),
+                     "mean risk share of trade": float(share.mean()), "last risk share": float(share.iloc[-1]),
+                     "Sharpe S&P alone": _sharpe_ann(alone), "Sharpe combination": _sharpe_ann(combo),
+                     "dSharpe": _sharpe_ann(combo) - _sharpe_ann(alone),
+                     "ci_lo": float(np.percentile(d_sr, 2.5)), "ci_hi": float(np.percentile(d_sr, 97.5))})
+    _combo_paths[tag] = (combo, alone)
+pwc_tab = pd.DataFrame(pwc_rows).set_index("forecast")
+pwc_tab.to_csv(OUT / "portfolio_weights_causal.csv")
+print(f"the weight from past days only (expanding tangency, {PW_WARMUP}-session warm-up, risk-scaled, long-only), midpoint fills;")
+print(f"Sharpe of the combination against the S&P alone on the same scored days, paired block bootstrap (blocks {PAIR_BLOCK}, {PAIR_B} draws)")
+print(pwc_tab.round(3).to_string())
+print("saved", OUT / "portfolio_weights_causal.csv")
+
+fig, ax = plt.subplots(figsize=(10, 4.2))
+_c0, _a0 = _combo_paths["blk2"]
+ax.plot(_a0.index, _a0.cumsum(), color="k", lw=1.2, label="S&P alone (one unit of trailing risk)")
+for tag, c in (("blk2", "C0"), ("sub_ridge", "C2"), ("lasso_f", "C1")):
+    if tag in _combo_paths:
+        _c, _ = _combo_paths[tag]
+        ax.plot(_c.index, _c.cumsum(), color=c, lw=1.0, label=f"S&P + {LABEL[tag]} at the causal weight")
+ax.set_ylabel("cumulative return, risk units")
+ax.set_title("the S&P alone against the S&P with the 15:30 trade at the weight past days would have set", fontsize=10)
+ax.legend(fontsize=8)
+ax.grid(alpha=0.3)
+fig.tight_layout()
+fig.savefig(OUT / "portfolio_weights_causal.png", dpi=120, bbox_inches="tight")
+print("saved", OUT / "portfolio_weights_causal.png")
+display(fig)
+plt.close(fig)
+"""
+    ),
+    md(
+        r"""
+## 18. Checking one row by hand
 
 The columns of a single row map onto the construction as follows.
 
