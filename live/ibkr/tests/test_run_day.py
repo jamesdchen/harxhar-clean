@@ -1134,8 +1134,57 @@ def official_close(day):
     return float(close.loc[pd.Timestamp(day)])
 
 
-def test_the_override_buys_the_15_30_straddle_and_holds_it(tmp_path, frames):
+def test_the_default_long_is_sized_by_premium_at_the_15_30_ask(tmp_path, frames):
+    """Premium units: contracts = capital x fraction / (ask x 100), sized at 15:30.
+
+    The short program's stress count at the size clock is journaled as a
+    reference only; the premium size saturates the loss budget to within one
+    contract and never exceeds it.
+    """
+    import math
+
     cfg, _b, _r, path, s = run_override(tmp_path, frames)
+    assert cfg.month_end_long_size == "premium"
+    c = kinds_of(path, "calendar")[0]
+    assert c["long_size"] == "premium" and c["override"] is True
+
+    sizing = kinds_of(path, "sizing")
+    assert [(z["side"], z["clock"], z["rule"]) for z in sizing] == [
+        ("long", SIZE_CLOCK, "premium"),
+        ("long", "15:30", "premium"),
+    ]
+    ref, prem = sizing
+    assert ref["reference_only"] is True and "reference_only" not in prem
+    assert prem["n_short_reference"] == ref["n"] >= 1
+    budget = CAPITAL * cfg.stress_fraction
+    assert prem["long_fraction"] == cfg.stress_fraction
+    assert prem["loss_budget_dollars"] == pytest.approx(budget)
+    n_expected = math.floor(budget / (prem["pkg_ask"] * cfg.index_multiplier))
+    assert prem["n"] == prem["n_from_outlay"] == n_expected > ref["n"]
+    assert prem["outlay_dollars"] <= budget
+    assert prem["outlay_dollars"] + prem["pkg_ask"] * cfg.index_multiplier > budget
+
+    entry = [e for e in kinds_of(path, "entry") if e["entered"]]
+    assert len(entry) == 1 and entry[0]["side"] == "long"
+    assert entry[0]["outlay_dollars"] <= entry[0]["loss_budget_dollars"]
+    orders = kinds_of(path, "order")
+    assert len(orders) == 1 and orders[0]["action"] == "BUY"
+    assert orders[0]["n"] == n_expected if "n" in orders[0] else True
+    assert s.n_rebalances == 0 and s.n_futures_fills == 0
+
+
+def test_max_long_straddles_caps_the_premium_size(tmp_path, frames):
+    cfg, _b, _r, path, _s = run_override(tmp_path, frames, max_long_straddles=5)
+    prem = [z for z in kinds_of(path, "sizing") if z["clock"] == "15:30"][0]
+    assert prem["n"] == 5 < prem["n_from_outlay"]
+    assert "capped at max_long_straddles" in prem["note"]
+
+
+def test_the_override_buys_the_15_30_straddle_and_holds_it(tmp_path, frames):
+    """The match_short variant: proposal 55's evidence was measured for it."""
+    cfg, _b, _r, path, s = run_override(
+        tmp_path, frames, month_end_long_size="match_short"
+    )
 
     c = kinds_of(path, "calendar")[0]
     assert (c["mode"], c["decision"], c["override"], c["flat"]) == (
@@ -1222,10 +1271,12 @@ def test_the_override_reproduces_proposal_54_after_reconcile(tmp_path, frames):
 
 
 def test_the_long_is_sized_without_the_deleveraging_multiplier(tmp_path, frames):
-    """Half regime: the short would be halved; the long is the short's FULL count."""
+    """Half regime: the short would be halved; the match_short long is the short's FULL count."""
     seed = quiet_rv_ledger(tmp_path / "seed.parquet", "2023-11-29", 1.94e-5)
     kw = dict(ledger_path=seed, **HALF_KW)
-    _c, _b, _r, p_long, s_long = run_override(tmp_path / "long", frames, **kw)
+    _c, _b, _r, p_long, s_long = run_override(
+        tmp_path / "long", frames, month_end_long_size="match_short", **kw
+    )
     _c2, _b2, _r2, p_short, _s2 = run_replay(
         tmp_path / "short",
         frames,
@@ -1451,13 +1502,36 @@ def test_the_month_end_flags():
         Config.from_args(["--no-calendar-guard", "--month-end-mode", "override"])
     cfg = Config()
     assert cfg.no_short_calendars == ("month_end",)
-    assert cfg.month_end_long_size == "match_short"
+    assert cfg.month_end_long_size == "premium"
+    assert cfg.month_end_long_fraction is None and cfg.max_long_straddles is None
+    assert (
+        Config(month_end_long_size="match_short").month_end_long_size == "match_short"
+    )
     with pytest.raises(ValueError, match="no_short_calendars"):
         Config(no_short_calendars=("month_end", "full_moon"))
     with pytest.raises(ValueError, match="month_end_mode"):
         Config(month_end_mode="guard")  # type: ignore[arg-type]
-    with pytest.raises(ValueError, match="not enabled"):
+    with pytest.raises(ValueError, match="month_end_long_size"):
         Config(month_end_long_size="loss_budget")
+    with pytest.raises(ValueError, match="month_end_long_fraction"):
+        Config(month_end_long_fraction=1.5)
+    with pytest.raises(ValueError, match="max_long_straddles"):
+        Config(max_long_straddles=0)
+    ns = Config.from_args(
+        [
+            "--month-end-long-size",
+            "match_short",
+            "--month-end-long-fraction",
+            "0.05",
+            "--max-long-straddles",
+            "40",
+        ]
+    )
+    assert (
+        ns.month_end_long_size,
+        ns.month_end_long_fraction,
+        ns.max_long_straddles,
+    ) == ("match_short", 0.05, 40)
 
 
 # ------------------------- the third-Friday size (proposal 58) ------------

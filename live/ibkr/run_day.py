@@ -95,7 +95,12 @@ from live.ibkr.pricing import (
     package_delta,
 )
 from live.ibkr.selector import pick_entry_clock
-from live.ibkr.sizing import contracts_for, scaled_contracts, stress_loss_per_contract
+from live.ibkr.sizing import (
+    contracts_for,
+    contracts_for_outlay,
+    scaled_contracts,
+    stress_loss_per_contract,
+)
 from live.ibkr.sp_leg import sp_leg_target
 from live.ibkr.strikes import Body, Quote, pick_nearest_otm_reason, pick_wings
 
@@ -1307,12 +1312,16 @@ class DayRunner:
             + f"{self.multiplier:g}"
             + " would have scaled a short)"
         )
+        reference_only = cfg.month_end_long_size != "match_short"
+        if reference_only:
+            note += "; REFERENCE ONLY: the long is sized by premium at 15:30"
         self.jr.event(
             "sizing",
             ts_et=obs.now,
             clock=obs.clock,
             side="long",
             rule=cfg.month_end_long_size,
+            reference_only=reference_only,
             n=n,
             n_stress=n,
             n_from_table=int(sized),
@@ -1361,12 +1370,13 @@ class DayRunner:
             )
             return False
 
-        if n is None:
+        premium_sized = cfg.month_end_long_size == "premium"
+        if n is None and not premium_sized:
             return refuse(
                 "month_end_long_unsized: no tradeable straddle at the short "
                 "program's clock " + size_clock
             )
-        if n < 1:
+        if n is not None and n < 1 and not premium_sized:
             return refuse("stress_sizing_is_zero_contracts")
         body, pq = obs.body, obs.pq
         if body is None:
@@ -1379,20 +1389,71 @@ class DayRunner:
                 health=pq.health.as_payload(),
             )
         limit = float(pq.ask)
+        long_fraction = (
+            float(cfg.stress_fraction)
+            if cfg.month_end_long_fraction is None
+            else float(cfg.month_end_long_fraction)
+        )
+        if premium_sized:
+            # The research book's premium units: the count whose outlay at the
+            # ask the order will pay fits the long's loss budget.  Sized HERE,
+            # at 15:30, off the price actually paid; the short program's stress
+            # count at the size clock is journaled beside it as the reference.
+            sized = contracts_for_outlay(
+                cfg.capital, long_fraction, limit, cfg.index_multiplier
+            )
+            n_ref = n
+            if cfg.n_override is not None:
+                n = int(cfg.n_override)
+                note = "--n override"
+            else:
+                n = int(sized)
+                note = "premium: capital x fraction / (ask x multiplier)"
+                if cfg.max_long_straddles is not None and n > cfg.max_long_straddles:
+                    n = int(cfg.max_long_straddles)
+                    note += ", capped at max_long_straddles"
+            self.jr.event(
+                "sizing",
+                ts_et=self._now(),
+                clock=obs.clock,
+                instrument=cfg.instrument,
+                side="long",
+                rule="premium",
+                n=n,
+                n_from_outlay=int(sized),
+                n_short_reference=n_ref,
+                n_override=cfg.n_override,
+                max_long_straddles=cfg.max_long_straddles,
+                capital=cfg.capital,
+                long_fraction=long_fraction,
+                pkg_ask=limit,
+                outlay_dollars=n * limit * cfg.index_multiplier,
+                loss_budget_dollars=cfg.capital * long_fraction,
+                note=note,
+            )
+            if n < 1:
+                return refuse(
+                    "premium_sizing_is_zero_contracts",
+                    pkg_ask=limit,
+                    long_fraction=long_fraction,
+                    capital=cfg.capital,
+                )
+        assert n is not None
         outlay = n * limit * cfg.index_multiplier
-        budget = cfg.capital * cfg.stress_fraction
+        budget = cfg.capital * (long_fraction if premium_sized else cfg.stress_fraction)
         money: dict[str, Any] = {
             "n_straddles": n,
             "pkg_ask": limit,
             "outlay_dollars": outlay,
             "loss_budget_dollars": budget,
+            "long_size_rule": cfg.month_end_long_size,
             "K_c": body.Kc,
             "K_p": body.Kp,
         }
         if not budget > 0.0:
             return refuse(
                 "month_end_long_no_loss_budget: no --capital, so the premium "
-                "outlay cannot be checked against capital x stress_fraction",
+                "outlay cannot be checked against its budget",
                 **money,
             )
         if outlay > budget:

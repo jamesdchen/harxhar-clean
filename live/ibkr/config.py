@@ -61,15 +61,22 @@ SpLegRule = Literal["vol_managed", "brake", "off"]
 Terminal = Literal["hold", "flatten"]
 MonthEndMode = Literal["override", "sit_out", "off"]
 
-#: How the month-end long is sized.  ``match_short``: one long straddle per
-#: straddle the short program would have sold that session (the stress table at
-#: the configured capital and fraction, at the clock the selector picked,
-#: WITHOUT the deleveraging multiplier).  That is the variant the evidence was
-#: measured for.  Sizing the long to the same loss budget as the short -- a
-#: median 28x more contracts on the 70 month-ends, since the long can lose only
-#: its premium -- is described in the README and deliberately NOT offered: its
-#: liquidity is untested.
-MONTH_END_LONG_SIZES: tuple[str, ...] = ("match_short",)
+#: How the month-end long is sized.  ``premium`` (the default since 2026-09-23,
+#: the operator's call after study 73): contracts = capital x
+#: ``month_end_long_fraction`` / (the 15:30 ask x the index multiplier) -- the
+#: research book's PREMIUM UNITS (one premium dollar a day; its Sharpe is that of
+#: a size that moves inversely with the premium), and at once the count whose
+#: worst case, the premium, is the same loss budget the short program's stress
+#: table protects.  ``match_short``: one long straddle per straddle the short
+#: program would have sold that session (the stress table at the configured
+#: capital and fraction, at the clock the selector picked, WITHOUT the
+#: deleveraging multiplier) -- the variant proposal 55's evidence was measured
+#: for; a median 28x fewer contracts than ``premium`` on the 70 replayed
+#: month-ends.  Liquidity of the larger size is untested on the research tape;
+#: the order is a limit at the quoted ask that rests and cancels rather than
+#: chasing, so an unfilled remainder is a smaller position, never a chase, and
+#: ``max_long_straddles`` caps the count when the operator wants a ceiling.
+MONTH_END_LONG_SIZES: tuple[str, ...] = ("premium", "match_short")
 
 #: Proposal 58: on the monthly-expiration session (the third Friday, or the
 #: session before it when that Friday is a holiday) the short program's contract
@@ -284,7 +291,15 @@ class Config:
     #: preflight, ``off`` trades the short book.  Only ``month_end`` has
     #: evidence behind it today.
     month_end_mode: MonthEndMode = "override"
-    month_end_long_size: str = "match_short"
+    month_end_long_size: str = "premium"
+    #: The premium outlay of the month-end long as a fraction of capital under
+    #: ``premium`` sizing.  ``None`` = the stress fraction: the long's worst
+    #: case (its premium) then equals the loss budget the short program's
+    #: stress table protects.
+    month_end_long_fraction: float | None = None
+    #: A ceiling on the long's contract count under ``premium`` sizing (the
+    #: budget is the only bound otherwise).  ``None`` = no ceiling.
+    max_long_straddles: int | None = None
     no_short_calendars: tuple[str, ...] = ("month_end",)
 
     # -- the third-Friday size (proposal 58) ------------------------------
@@ -567,10 +582,19 @@ class Config:
                 + repr(MONTH_END_LONG_SIZES)
                 + ", got "
                 + repr(self.month_end_long_size)
-                + " (sizing the long to the loss budget is documented in the "
-                "README and not enabled: a median 28x the contracts, untested for "
-                "liquidity)"
+                + " (premium = the research book's premium units, the long's "
+                "outlay capped at capital x month_end_long_fraction; match_short = "
+                "the short program's stress count, the variant proposal 55 measured)"
             )
+        if self.month_end_long_fraction is not None:
+            lf = float(self.month_end_long_fraction)
+            if not (math.isfinite(lf) and 0.0 < lf <= 1.0):
+                raise ValueError(
+                    "month_end_long_fraction must be in (0, 1] or None (= the stress "
+                    "fraction), got " + repr(self.month_end_long_fraction)
+                )
+        if self.max_long_straddles is not None and int(self.max_long_straddles) < 1:
+            raise ValueError("max_long_straddles must be >= 1 or None (no ceiling)")
         tf = float(self.third_friday_size_multiplier)
         if not (math.isfinite(tf) and tf >= 1.0):
             raise ValueError(
@@ -755,6 +779,31 @@ class Config:
         )
         p.add_argument("--stress-jump", type=float, default=0.05, dest="stress_jump")
         p.add_argument("--max-straddles", type=int, default=10, dest="max_straddles")
+        p.add_argument(
+            "--month-end-long-size",
+            choices=MONTH_END_LONG_SIZES,
+            default="premium",
+            dest="month_end_long_size",
+            help="how the month-end long is sized: premium (default; contracts = "
+            "capital x fraction / the 15:30 ask, the research book's premium units) "
+            "or match_short (the short program's stress count)",
+        )
+        p.add_argument(
+            "--month-end-long-fraction",
+            type=float,
+            default=None,
+            dest="month_end_long_fraction",
+            help="premium outlay of the month-end long as a fraction of capital "
+            "(default: the stress fraction, the same loss budget as the short)",
+        )
+        p.add_argument(
+            "--max-long-straddles",
+            type=int,
+            default=None,
+            dest="max_long_straddles",
+            help="ceiling on the month-end long's count under premium sizing "
+            "(default: none beyond the budget)",
+        )
         p.add_argument(
             "--entry-mode",
             choices=("selector", "fixed"),
@@ -971,6 +1020,9 @@ class Config:
             delta_correction=ns.delta_correction,
             delever=ns.delever,
             month_end_mode=month_end_mode,
+            month_end_long_size=ns.month_end_long_size,
+            month_end_long_fraction=ns.month_end_long_fraction,
+            max_long_straddles=ns.max_long_straddles,
             third_friday_size_multiplier=third_friday,
             sp_leg_rule=ns.sp_leg_rule,
             sp_leg_notional=ns.sp_leg_notional,

@@ -301,28 +301,39 @@ day the short is expensive. On the 866-day deck proposal 55 forced the 15:30
 sign(s) trade long on month-ends: +0.67 crossed Sharpe, interval [+0.15, +1.21],
 both placebos p ≤ 0.001, on all eight forecasts.
 
-**How it is sized** (`month_end_long_size="match_short"`, the only value
-offered). At the entry clock (the fixed 13:30 by default), the runner quotes the straddle the
-short program would have sold and runs the short program's own stress table —
-capital × fraction over the stress loss per contract, capped at
-`--max-straddles`, `--n` overriding it — and buys that many at 15:30. The
-**deleveraging multiplier is NOT applied**: it is a brake on short-tail risk and
-the long can lose only its premium; the regime is still journaled, a zero
-multiplier does not refuse an override day, and the sizing record carries
-`multiplier_not_applied`. A hard check refuses the buy if the premium outlay
-(`n × ask × 100`) exceeds the loss budget (`capital × stress_fraction`); with no
-`--capital` there is no budget and no long.
+**How it is sized** (`--month-end-long-size`, default **`premium`** since
+2026-09-23). The research deck is kept in **premium units** — one premium
+dollar a day, so its Sharpe (1.68 / 1.22 mid / crossed on 866 days) is that of a
+size that moves inversely with the premium; study 73 showed the same positions
+at constant notional are 0.66 / 0.20. To trade the number that was measured,
+the long is sized by premium: at 15:30, off the ask the order will pay,
 
-At $1m and 10 % on the 70 replayed month-ends (seed ledger, selector clock)
-this buys 2–9 straddles, mean 4.3; the premium outlay is at most 26 % of the
-$100k loss budget, so the check never binds at the default fraction.
+    contracts = floor( capital × month_end_long_fraction / (ask × 100) ),
 
-**The untested alternative, not enabled.** Sizing the long to the same loss
-budget as the short — the long's worst case is its premium, $250–$2,910 per
-straddle on those days, against the short's stress loss of $10–36k (median
-$22k) per contract — would buy a **median 28×** as many straddles (mean 31×,
-range 4–96×). Nothing here says the 15:30 book is that deep, so it is
-described, not offered.
+`--n` overriding it and `--max-long-straddles` capping it when the operator
+wants a ceiling. `--month-end-long-fraction` defaults to the stress fraction,
+so the long's worst case (its premium) is the same loss budget the short
+program's stress table protects — the outlay never exceeds
+`capital × fraction` by construction, and the hard check on it stays. With no
+`--capital` there is no budget and no long. The short program's own count at
+the entry clock is still journaled (`reference_only=True`) so the two sizes
+can be compared session by session.
+
+At $1m and 10 % this is a **median 28×** the `match_short` count on the 70
+replayed month-ends (mean 31×, range 4–96×): the long's premium is $250–$2,910
+per straddle on those days against the short's stress loss of $10–36k. The
+research tape carries no depth, so the liquidity of the larger size is
+untested; the order is a limit at the quoted ask that rests and cancels rather
+than chasing, so an unfilled remainder is a smaller position, never a chase.
+
+**`match_short`** (offered; the variant proposal 55's evidence was measured
+for): one long straddle per straddle the short program would have sold — the
+stress table at the entry clock, capped at `--max-straddles` — bought at 15:30.
+The **deleveraging multiplier is NOT applied** in either mode: it is a brake on
+short-tail risk and the long can lose only its premium; the regime is still
+journaled, a zero multiplier does not refuse an override day, and the sizing
+record carries `multiplier_not_applied`. At $1m and 10 % `match_short` buys
+2–9 straddles, mean 4.3, an outlay of at most 26 % of the $100k budget.
 
 **The order.** One limit at the quoted **ask**, placed with
 `max_cross_ticks=0`: it rests for `passive_wait_s` and is cancelled if it has

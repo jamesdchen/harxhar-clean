@@ -36,6 +36,7 @@ __all__ = [
     "SPX_INDEX_MULTIPLIER",
     "STRESS_JUMP",
     "contracts_for",
+    "contracts_for_outlay",
     "scaled_contracts",
     "stress_loss_per_contract",
 ]
@@ -131,6 +132,37 @@ def contracts_for(capital: float, fraction: float, loss_per_contract: float) -> 
     if loss <= 0.0 or cap <= 0.0 or frac <= 0.0:
         return 0
     return max(0, int(floor(cap * frac / loss)))
+
+
+def contracts_for_outlay(
+    capital: float,
+    fraction: float,
+    premium_points: float,
+    index_multiplier: float = SPX_INDEX_MULTIPLIER,
+) -> int:
+    """Long straddles whose premium outlay fits inside ``capital * fraction``.
+
+    The research book is kept in PREMIUM UNITS -- one premium dollar a day --
+    so its Sharpe is that of a position whose size moves inversely with the
+    premium (study 73: the same positions at constant notional are 0.66 / 0.20
+    against 1.68 / 1.22).  A LONG straddle's worst case is its premium, so
+    ``floor(capital * fraction / (premium_points * index_multiplier))`` is at
+    once the premium-unit size and the count whose loss bound is the same
+    budget the short program's stress table protects.  ``premium_points`` is
+    the price the order will pay (the quoted ask) in the instrument's own
+    points.  Returns 0 when any input is non-finite or not strictly positive;
+    never negative.  It does not apply to a SHORT straddle, whose loss is not
+    bounded by its premium -- that side keeps the stress table.
+    """
+    cap = float(capital)
+    frac = float(fraction)
+    prem = float(premium_points)
+    mult = float(index_multiplier)
+    if not all(isfinite(v) for v in (cap, frac, prem, mult)):
+        return 0
+    if cap <= 0.0 or frac <= 0.0 or prem <= 0.0 or mult <= 0.0:
+        return 0
+    return max(0, int(floor(cap * frac / (prem * mult))))
 
 
 def scaled_contracts(n: int, multiplier: float) -> int:

@@ -16,9 +16,28 @@ from live.ibkr.sizing import (  # noqa: E402
     SPX_INDEX_MULTIPLIER,
     STRESS_JUMP,
     contracts_for,
+    contracts_for_outlay,
     scaled_contracts,
     stress_loss_per_contract,
 )
+
+
+def test_contracts_for_outlay_is_the_premium_unit_size() -> None:
+    """$1m at 10 %: $100k of premium buys 50 straddles at a 20-point ask, 273 at 3.65."""
+    assert contracts_for_outlay(1_000_000.0, 0.10, 20.0) == 50
+    assert contracts_for_outlay(1_000_000.0, 0.10, 3.65) == 273  # 273.97 floors
+    # XSP: a tenth of the points at the same $100 multiplier costs a tenth
+    assert contracts_for_outlay(60_000.0, 0.10, 2.0) == 30
+
+
+def test_contracts_for_outlay_refuses_rather_than_sizing_off_nothing() -> None:
+    assert contracts_for_outlay(1_000_000.0, 0.10, 0.0) == 0
+    assert contracts_for_outlay(1_000_000.0, 0.10, -1.0) == 0
+    assert contracts_for_outlay(0.0, 0.10, 20.0) == 0
+    assert contracts_for_outlay(1_000_000.0, 0.0, 20.0) == 0
+    assert contracts_for_outlay(float("nan"), 0.10, 20.0) == 0
+    assert contracts_for_outlay(1_000_000.0, 0.10, float("inf")) == 0
+
 
 SPOT = 5000.0
 KC = 5005.0
