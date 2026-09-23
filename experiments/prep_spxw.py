@@ -1,6 +1,7 @@
 """SPXW.csv -> compact parquet. Parallel byte-range convert.
 
-Keeps every chain row, including 0-delta / 0-IV / missing-greek prints.
+Keeps every distinct chain row (exact key repeats dropped, see _dedupe_exact),
+including 0-delta / 0-IV / missing-greek prints.
 Those neighboring bars are the exit marks for PnL: a contract that went
 deep ITM/OTM often prints delta=0 (or 1) with a live mid. Filtering them
 at ingest makes the exit unjoinable. Entry filters (need a mid) live in
@@ -94,7 +95,9 @@ def _cast_table(table: pa.Table) -> pa.Table:
     return pa.Table.from_pandas(df, preserve_index=False)
 
 
-def _convert_slice(path: str, start: int, end: int, header: bytes, out_part: str) -> int:
+def _convert_slice(
+    path: str, start: int, end: int, header: bytes, out_part: str
+) -> int:
     if end <= start:
         return 0
     with open(path, "rb") as f:
@@ -143,6 +146,26 @@ def _combine(parts: list[str], out_path: str) -> int:
     return n
 
 
+def _dedupe_exact(chain_path: str) -> int:
+    """Keep the first row per (timestamp, expiration, strike, cp); drop the rest.
+
+    The 2026-09-18 vendor file carries every row exactly twice (8,198,778 keys,
+    16,397,556 rows; the copies agree in every column).  A repeated key doubles
+    every merge downstream -- the intraday notebook's next-bar exit join failed
+    on exactly that -- so the copies are dropped here, at ingest.  Runs on the
+    combined parquet in one process; returns the number of rows dropped.
+    """
+    import pandas as pd  # noqa: F401  (pyarrow -> pandas for the key mask)
+
+    t = pq.read_table(chain_path)
+    keys = t.select(["timestamp", "expiration", "strike", "cp"]).to_pandas()
+    dup = keys.duplicated(keep="first").to_numpy()
+    n = int(dup.sum())
+    if n:
+        pq.write_table(t.filter(pa.array(~dup)), chain_path, compression="zstd")
+    return n
+
+
 def _spot_from_chain(chain_path: str, out_spot: str) -> int:
 
     t = pq.read_table(chain_path, columns=["timestamp", "underlying_price"])
@@ -166,7 +189,9 @@ def _run_polars(csv_path: str, out_chain: str, out_spot: str) -> tuple[int, int]
         .select(KEEP)
         .rename(RENAME)
         .with_columns(
-            pl.col("timestamp").str.to_datetime("%Y-%m-%d %H:%M:%S%z").dt.convert_time_zone("UTC"),
+            pl.col("timestamp")
+            .str.to_datetime("%Y-%m-%d %H:%M:%S%z")
+            .dt.convert_time_zone("UTC"),
             pl.col("expiration").str.to_date("%Y-%m-%d"),
             pl.col("cp").str.to_uppercase().str.slice(0, 1),
             pl.col("early_close").cast(pl.Boolean),
@@ -187,7 +212,9 @@ def _run_polars(csv_path: str, out_chain: str, out_spot: str) -> tuple[int, int]
     return int(n_chain), int(n_spot)
 
 
-def _run_parallel(csv_path: str, out_chain: str, out_spot: str, workers: int) -> tuple[int, int]:
+def _run_parallel(
+    csv_path: str, out_chain: str, out_spot: str, workers: int
+) -> tuple[int, int]:
     with open(csv_path, "rb") as f:
         header = f.readline()
     cuts = _line_offsets(csv_path, workers)
@@ -242,20 +269,33 @@ def main() -> None:
     engine = a.engine
     if engine == "auto":
         engine = "polars" if have_polars else "pyarrow"
-    print(f"engine={engine}  csv={os.path.getsize(csv_path)/1e6:.0f} MB", flush=True)
+    print(f"engine={engine}  csv={os.path.getsize(csv_path) / 1e6:.0f} MB", flush=True)
 
     if engine == "polars":
         n_chain, n_spot = _run_polars(csv_path, out_chain, out_spot)
     else:
-        n_chain, n_spot = _run_parallel(csv_path, out_chain, out_spot, max(2, a.workers))
+        n_chain, n_spot = _run_parallel(
+            csv_path, out_chain, out_spot, max(2, a.workers)
+        )
+    n_dup = _dedupe_exact(out_chain)
+    if n_dup:
+        n_chain -= n_dup
+        n_spot = _spot_from_chain(out_chain, out_spot)
+    print(
+        f"duplicate (timestamp, expiration, strike, cp) rows dropped: {n_dup:,}",
+        flush=True,
+    )
 
     # spot min/max without loading the chain
     spot_t = pq.read_table(out_spot, columns=["timestamp"])
-    tmin, tmax = pc.min(spot_t["timestamp"]).as_py(), pc.max(spot_t["timestamp"]).as_py()
+    tmin, tmax = (
+        pc.min(spot_t["timestamp"]).as_py(),
+        pc.max(spot_t["timestamp"]).as_py(),
+    )
     print(
-        f"chain: {n_chain:,} rows -> {out_chain} ({os.path.getsize(out_chain)/1e6:.0f} MB); "
+        f"chain: {n_chain:,} rows -> {out_chain} ({os.path.getsize(out_chain) / 1e6:.0f} MB); "
         f"spot: {n_spot:,} stamps {tmin} .. {tmax} -> {out_spot} "
-        f"({os.path.getsize(out_spot)/1e6:.1f} MB)"
+        f"({os.path.getsize(out_spot) / 1e6:.1f} MB)"
     )
 
 
