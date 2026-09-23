@@ -15,26 +15,29 @@ half-session days dropped (15:30 stamp already expired): 12
 settlement source: GSPC official close via load_gspc_ohlc (cached)
 
 ===== cell 9 =====
-trade cache hit trade_77439812_1786671584951439500_f24191ffee_9d76153205.parquet straddles 15343 days 1279
+trade cache hit trade_80630573_1790200965970312800_02f6fb20af_9d76153205.parquet straddles 16619 days 1279
   expiration                 timestamp            S          K_c          K_p      entry
-0 2020-01-03 2020-01-03 15:00:00+00:00  3237.649902  3240.000000  3235.000000  10.750000
-1 2020-01-03 2020-01-03 15:30:00+00:00  3237.679932  3240.000000  3235.000000   8.650000
-2 2020-01-03 2020-01-03 16:00:00+00:00  3234.679932  3235.000000  3230.000000   8.900000
-3 2020-01-03 2020-01-03 16:30:00+00:00  3236.000000  3240.000000  3235.000000   7.100000
-4 2020-01-03 2020-01-03 17:00:00+00:00  3241.270020  3245.000000  3240.000000   5.625000
-no-quote rows held out of the live frame (bid == ask == 0)    297768
-stamps with live quotes                                        17145
-of which with a vendor spot (the rest are 9:30)                16626
-stamps with no live quote at all                                 761
-of them at 9:30 (sparse by construction)                         760
-straddles with a censored vendor implied volatility             1292
-cells refused by the outage guards or with no live quote: 5
+0 2020-01-03 2020-01-03 14:35:00+00:00  3235.780029  3240.000000  3235.000000  11.150000
+1 2020-01-03 2020-01-03 15:00:00+00:00  3237.649902  3240.000000  3235.000000  10.750000
+2 2020-01-03 2020-01-03 15:30:00+00:00  3237.679932  3240.000000  3235.000000   8.650000
+3 2020-01-03 2020-01-03 16:00:00+00:00  3234.679932  3235.000000  3230.000000   8.900000
+4 2020-01-03 2020-01-03 16:30:00+00:00  3236.000000  3240.000000  3235.000000   7.100000
+no-quote rows held out of the live frame (bid == ask == 0)      449
+stamps with live quotes                                       17903
+of which with a vendor spot                                   17903
+stamps with no live quote at all                                  3
+of them at the open (9:35)                                        2
+straddles with a censored vendor implied volatility            1292
+cells refused by the outage guards or with no live quote: 8
 reason
-no_put           3
-no_live_quote    1
+no_put           4
+no_live_quote    3
 strike_gap       1
                        et        reason            S          K_c          K_p         gap  n_live
+2020-03-16 09:35:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
+2020-05-01 09:35:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
 2020-05-01 10:00:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
+2022-02-22 09:35:00-05:00        no_put  4316.709961  4355.000000          NaN   38.290039       4
 2022-02-22 10:00:00-05:00        no_put  4349.700195  4355.000000          NaN    5.299805       4
 2022-02-22 10:30:00-05:00        no_put  4361.939941  4370.000000          NaN    8.060059       4
 2022-02-22 11:00:00-05:00        no_put  4325.790039  4355.000000          NaN   29.209961       4
@@ -42,19 +45,20 @@ strike_gap       1
 
 ===== cell 11 =====
 trade cache: skip exit rebuild
-straddles before exit filter 15343
+straddles before exit filter 16619
 last bar = 15:30 (cash-settle vs official close) 1279
-non-last (next-mid path) 14064
+non-last (next-mid path) 15340
 non-last missing next CALL mid 0
 non-last missing next PUT mid 0
 non-last missing either leg (row would drop) 0 (0.00% of non-last)
 last-bar missing GSPC settle 0
 bad entry (nonfinite or <=0) 0
-dropped at exit filter 0 kept 15343
-bars with a return 15343 last-bar fraction 0.08336049012579026
-always-short R by clock time (no model; long R is the negative)
+dropped at exit filter 0 kept 16619
+bars with a return 16619 last-bar fraction 0.07696010590288224
+always-short R by clock time (no model; long R is the negative); 09:35 is a 25-minute hold to the 10:00 mid
        count      mean       std    median         t  Sharpe_ann
 hhmm                                                            
+09:35   1276  0.012950  0.112341  0.036585  4.117775    1.829943
 10:00   1277  0.007205  0.151417  0.048701  1.700493    0.755405
 10:30   1278  0.007297  0.148263  0.045593  1.759407    0.781270
 11:00   1278  0.001557  0.135726  0.037640  0.410215    0.182157
@@ -69,19 +73,19 @@ hhmm
 15:30   1279  0.024562  1.126012  0.332361  0.780110    0.346275
 
 ===== cell 13 =====
-median vendor IV 0.0025142739759758115 median straddle mid 13.350000143051147
-chris_hourly median var 3.160786829816149e-06
-annualized_om median var 1.929662289265048e-09
-already_window median var 6.321573659632298e-06
+median vendor IV 0.0025254557258449495 median straddle mid 14.049999952316284
+chris_hourly median var 3.1889633127489603e-06
+annualized_om median var 1.9468640492972895e-09
+already_window median var 6.3779266254979206e-06
 30-min pairing: iv_var = (IV_hr)^2 * 0.5  [used]
 remaining-session pairing would need hours_left * (IV_hr)^2 and remaining RV [not used]
 
 ===== cell 15 =====
 block-diagonal ridge panel: bars 276317 | in the MZ fit 68215 | rows on early-close dates (no forecast issued) 1684
 median rv_hat 3.3418130670513306e-06
-median iv_var chris / om / raw 3.160786829816149e-06 1.929662289265048e-09 6.321573659632298e-06
+median iv_var chris / om / raw 3.1889633127489603e-06 1.9468640492972895e-09 6.3779266254979206e-06
 the 30-min pairing above is a units check; every rule uses the window-matched signal of the next section
-dropped at forecast join (no forecast row for the bar) 4956 kept 10387
+dropped at forecast join (no forecast row for the bar; the 9:35 bars by construction, the rest outside the forecast panel) 6232 kept 10387
 every joined bar is inside the smear's session fit mask (in_fit)
 bars kept with no vendor implied volatility (censored solver node -> flat in the sign(s) rules): 13
 last scored bar is 15:30, cash-settled at the official close (paper payoff); no 16:00 quotes anywhere

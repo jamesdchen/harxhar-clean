@@ -100,30 +100,22 @@ remaining-session VRP.
 Hourly IV of the two legs is $(\mathrm{IV}_c+\mathrm{IV}_p)/2$ — equal-weight
 on the two contracts, same as the close trade.
 
-## Choice 3 — 9:30
+## Choice 3 — the open
 
-The cash open is 9:30. This notebook's first bar is 10:00. That is a
-**tape defect**, not a choice to skip the open.
+The cash open is 9:30. The vendor file of 2026-09-18 replaces the old
+9:30 clock — which carried no `underlying_price` at all and live mids on
+only ~40% of days — with a **9:35** stamp that has a vendor spot and
+live mids on all but two of the 1,279 sessions (§3 prints the count). So
+the tape now offers a first straddle at 9:35.
 
-To pick a nearest-OTM straddle at a stamp the tape must supply **both**:
-
-1. a spot $S$ (the picker takes $K_c\ge S$, $K_p\le S$),
-2. live option mids on those strikes.
-
-| 9:30 on this file | |
-|---|---|
-| rows exist | yes — 9:30 is a clock in the chain |
-| vendor `underlying_price` | **never** (0% finite) — no $S$, so the picker cannot choose $K$ |
-| live option mids | ~40% of expiration days; the rest have no live quote at all (§3 prints the hole) |
-
-`^GSPC` Open **is** the 9:30 cash print and could fill the $S$ hole.
-It cannot fill the quote hole. With Open as $S$ you would still have
-no straddle on ~60% of days: a sparse extra bar, not a thirteenth
-clock. That path is not built.
-
-**10:00** is the first stamp where vendor $S$ is live **and** mids
-exist on every scored day. `yfinance` is used only for **settlement**
-(the official close of the 15:30 straddle), never as a 9:30 spot.
+That straddle is in the **quote-only** tables of this notebook (the
+always-short return by clock in §4: a 25-minute hold to the 10:00 mid).
+It is **not** in the forecast-scored trade (§5 onward): the forecast
+lives on 30-minute bar-end stamps, and the 9:35 bar has no matching
+row — a bar from 9:35 to 10:05 does not exist in the panel. The scored
+trade therefore still starts at 10:00, now by construction of the
+forecast grid rather than by a tape defect. `yfinance` is used only for
+**settlement** (the official close of the 15:30 straddle).
 """
     ),
     code(
@@ -266,13 +258,14 @@ else:
     ),
     md(
         r"""
-## 2b. The scored trade starts at 10:00, not 9:30
+## 2b. The first stamp is 9:35; the scored trade still starts at 10:00
 
-Vendor `underlying_price` at 9:30 is **all NaN** — the picker has no
-$S$ to choose $K_c\ge S$, $K_p\le S$, so no 9:30 straddle can be
-formed. Quotes bind too: live 9:30 mids exist on only ~40% of
-expiration days. The first bar with both a vendor spot and live mids
-on every day is 10:00. `yfinance` is used only for **settlement**
+The 2026-09-18 vendor file carries a **9:35** stamp with a vendor spot and
+live mids on all but two of the 1,279 sessions (the old 9:30 clock had
+neither), so a straddle can be picked at the open. It appears in the quote-only tables (§4, a
+25-minute hold to the 10:00 mid). The forecast-scored trade (§5 onward)
+starts at 10:00 because the forecast lives on 30-minute bar-end stamps
+and no panel bar ends at 10:05. `yfinance` is used only for **settlement**
 (the official close).
 """
     ),
@@ -349,11 +342,13 @@ else:
     live = live[np.isfinite(live["mid"]) & (live["mid"] > 0)].copy()
     spot = asl.stamp_spot(live, ["expiration", "timestamp"])
     # A stamp with no live quote at all cannot even be offered to the guards: it forms no
-    # straddle and simply leaves a hole in that day's grid. 9:30 is sparse by construction.
+    # straddle and simply leaves a hole in that day's grid. (The old file's 9:30 clock was
+    # sparse by construction and was exempted here; the 2026-09-18 file's 9:35 stamp is
+    # live on every session, so every dead stamp is now listed.)
     _dead = (pd.MultiIndex.from_frame(chain[["expiration", "timestamp"]].drop_duplicates())
              .difference(pd.MultiIndex.from_frame(live[["expiration", "timestamp"]].drop_duplicates())))
     _dead_et = pd.to_datetime(_dead.get_level_values(1), utc=True).tz_convert("America/New_York")
-    _dead_rth = _dead_et[~((_dead_et.hour == 9) & (_dead_et.minute == 30))]
+    _dead_rth = _dead_et
     pkg, dropped = asl.pick_nearest_otm_guarded(
         live[["expiration", "timestamp", "strike", "cp", "bid", "ask", "mid", "impl_volatility"]],
         spot, keys=("expiration", "timestamp"))
@@ -367,9 +362,9 @@ else:
     pd.Series({
         "no-quote rows held out of the live frame (bid == ask == 0)": n_sentinel,
         "stamps with live quotes": int(live.groupby(["expiration", "timestamp"]).ngroups),
-        "of which with a vendor spot (the rest are 9:30)": len(spot),
+        "of which with a vendor spot": len(spot),
         "stamps with no live quote at all": len(_dead_et),
-        "of them at 9:30 (sparse by construction)": len(_dead_et) - len(_dead_rth),
+        "of them at the open (9:35)": int(((_dead_et.hour == 9) & (_dead_et.minute == 35)).sum()),
         "straddles with a censored vendor implied volatility": n_iv_cens,
     }, name="count").to_csv(_diag_csv)
     pkg = pkg.sort_values(["expiration", "timestamp"]).reset_index(drop=True)
@@ -391,8 +386,9 @@ else:
 
 Re-pick 30-min hold: $R_t = \mathrm{exit}_{t+1}/P_t - 1$ with
 $\mathrm{exit}_{t+1}$ = next mid of **those** $K$, for bars
-10:00–15:00. If a leg is missing at $t+1$, the row is dropped —
-counts printed below.
+10:00–15:00; the 9:35 straddle is the same rule over a 25-minute hold
+to the 10:00 mid (quote-only tables). If a leg is missing at $t+1$, the
+row is dropped — counts printed below.
 
 **15:30 / last bar** cash-settles vs `^GSPC` close — the paper
 payoff on the 15:30 straddle.
@@ -476,7 +472,7 @@ if not _trade_ck.exists():
     pkg.to_parquet(_trade_ck)
     print("wrote trade cache", _trade_ck.name)
 print("bars with a return", len(pkg), "last-bar fraction", float(pkg["is_last"].mean()))
-print("always-short R by clock time (no model; long R is the negative)")
+print("always-short R by clock time (no model; long R is the negative); 09:35 is a 25-minute hold to the 10:00 mid")
 as_raw = pkg.groupby("hhmm")["R_as"].agg(["count", "mean", "std", "median"])
 as_raw["t"] = as_raw["mean"] / as_raw["std"] * np.sqrt(as_raw["count"])
 as_raw["Sharpe_ann"] = as_raw["mean"] / as_raw["std"] * np.sqrt(asl.PERIODS_PER_YEAR)
@@ -649,7 +645,7 @@ print("the 30-min pairing above is a units check; every rule uses the window-mat
 n_pre = len(work)
 work["signal"] = work["rv_hat"] - work["iv_var_chris"]
 work = work.dropna(subset=["R", "rv_hat"])
-print("dropped at forecast join (no forecast row for the bar)", n_pre - len(work), "kept", len(work))
+print("dropped at forecast join (no forecast row for the bar; the 9:35 bars by construction, the rest outside the forecast panel)", n_pre - len(work), "kept", len(work))
 # Alignment check in one line: the trade bars 10:00-15:30 join stamps 10:30-16:00, which is
 # exactly the loader's session fit mask, so every joined row must be one the smear was fit on.
 assert bool(work["in_fit"].all()), "a joined trade bar is outside the smear's fit mask"
