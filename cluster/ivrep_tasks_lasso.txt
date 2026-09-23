@@ -1,0 +1,6 @@
+ivrep_target_scale reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600
+ivrep_term reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600
+ivrep_innovations reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600
+ivrep_vrp reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600
+ivrep_all reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600
+ivrep_slice_slope reclasso 500 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600

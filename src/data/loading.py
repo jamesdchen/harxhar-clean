@@ -295,6 +295,51 @@ SUBGROUPS["live_feasible_ivslice"] = [
     f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["implied_vol"]
 ] + IVSLICE_FEATURES
 SUBGROUPS["live_feasible_plus_ivslice"] = SUBGROUPS["live_feasible"] + IVSLICE_FEATURES
+# Representations of the VIX family (experiments/build_vix_representations.py ->
+# data/vix_representations.parquet).  R0 is live_feasible itself: the three Cboe
+# prints as log levels, exempt from the diurnal division, six rolling means each.
+# Every bucket below keeps the live base (moments + liquidity + FOMC, the 13
+# columns without the three prints) and swaps in one representation:
+#   ivrep_target_scale   VIX as per-bar implied variance in the target's units
+#                        (sqrt + diurnal: linear in what the model forecasts), vvix
+#                        and vix3m as levels
+#   ivrep_term           the level plus explicit term slope and vol-of-vol ratio
+#   ivrep_innovations    the levels plus log changes over 1 bar / 1 day / 5 days
+#   ivrep_vrp            implied over trailing realized at 1 / 5 / 22 sessions, no
+#                        levels
+#   ivrep_slice_slope    the 0DTE ATM slice and its slope to the 30-day VIX
+#                        (2020-01 on; tw 500 only)
+#   ivrep_all            R1-R4 together; the lasso chooses
+# Outside ALL_FEATURES like the blocks above.
+_LIVE_NO_IV = [
+    f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["implied_vol"]
+]
+SUBGROUPS["ivrep_target_scale"] = _LIVE_NO_IV + ["impl30_perbar_rv", "vvix", "vix3m"]
+SUBGROUPS["ivrep_term"] = _LIVE_NO_IV + ["vix", "vix_slope_3m", "vvix_over_vix"]
+SUBGROUPS["ivrep_innovations"] = _LIVE_NO_IV + [
+    "vix",
+    "vvix",
+    "vix3m",
+    "vix_chg_1bar",
+    "vix_chg_1d",
+    "vix_chg_5d",
+]
+SUBGROUPS["ivrep_vrp"] = _LIVE_NO_IV + ["vix_vrp_1d", "vix_vrp_5d", "vix_vrp_22d"]
+SUBGROUPS["ivrep_slice_slope"] = _LIVE_NO_IV + IVSLICE_FEATURES + ["ivslice_over_vix"]
+SUBGROUPS["ivrep_all"] = _LIVE_NO_IV + [
+    "impl30_perbar_rv",
+    "vix",
+    "vvix",
+    "vix3m",
+    "vix_slope_3m",
+    "vvix_over_vix",
+    "vix_chg_1bar",
+    "vix_chg_1d",
+    "vix_chg_5d",
+    "vix_vrp_1d",
+    "vix_vrp_5d",
+    "vix_vrp_22d",
+]
 
 
 def get_bucket(name: str) -> list[str]:
