@@ -11,3 +11,6 @@ per-bar ridge (HAR + calendar),,,,,,,,,,,,,,,,,,,,0.0,1.249539978390838
 per-bar ridge (all features),,,,,,,,,,,,,,,,,,,,0.0,1.7744147315112255
 per-bar lasso (all features),,,,,,,,,,,,,,,,,,,,0.0,1.440345125075105
 per-bar elastic net (all features),,,,,,,,,,,,,,,,,,,,0.0,1.5773110362736835
+per-bar ridge (live-feasible set),,,,,,,,,,,,,,,,,,,,0.0,1.6833709583179248
+per-bar lasso (live-feasible set),,,,,,,,,,,,,,,,,,,,0.0,1.5761911666801667
+per-bar elastic net (live-feasible set),,,,,,,,,,,,,,,,,,,,0.0,1.699033465775391

@@ -47,3 +47,15 @@ per-bar elastic net (all features),buy (s > 0),R > 0,139,0.1605080831408776,1.28
 per-bar elastic net (all features),buy (s > 0),R <= 0,197,0.22748267898383373,-0.6944655521466022
 per-bar elastic net (all features),short (s <= 0),R > 0,191,0.22055427251732102,0.9166173935622257
 per-bar elastic net (all features),short (s <= 0),R <= 0,339,0.39145496535796764,-0.6773492662328247
+per-bar ridge (live-feasible set),buy (s > 0),R > 0,143,0.1651270207852194,1.3120613510187629
+per-bar ridge (live-feasible set),buy (s > 0),R <= 0,205,0.23672055427251731,-0.6946405493263311
+per-bar ridge (live-feasible set),short (s <= 0),R > 0,187,0.21593533487297922,0.8891495074650034
+per-bar ridge (live-feasible set),short (s <= 0),R <= 0,331,0.38221709006928406,-0.6768271976251067
+per-bar lasso (live-feasible set),buy (s > 0),R > 0,138,0.15935334872979215,1.3054800323635012
+per-bar lasso (live-feasible set),buy (s > 0),R <= 0,194,0.22401847575057737,-0.7122582071130694
+per-bar lasso (live-feasible set),short (s <= 0),R > 0,192,0.22170900692840648,0.9048931595076853
+per-bar lasso (live-feasible set),short (s <= 0),R <= 0,342,0.394919168591224,-0.6674064995493353
+per-bar elastic net (live-feasible set),buy (s > 0),R > 0,140,0.16166281755196305,1.3015237097416268
+per-bar elastic net (live-feasible set),buy (s > 0),R <= 0,193,0.2228637413394919,-0.7073377173963622
+per-bar elastic net (live-feasible set),short (s <= 0),R > 0,190,0.21939953810623555,0.9035916406726895
+per-bar elastic net (live-feasible set),short (s <= 0),R <= 0,343,0.3960739030023095,-0.6703059346014877

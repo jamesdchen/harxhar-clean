@@ -124,52 +124,62 @@ def main() -> None:
                     | base.trade_1530(f)
                 )
     for seg, est, tw in arms:
-        if not seg.startswith("bar"):
+        if not (seg.startswith("bar") or seg == "rth"):
             continue
         ref = pooled.get((est, tw))
         raw = load_adj(root, a.bucket, seg, est, tw)
         if ref is None or raw is None:
             continue
         mine = causal_forecasts(raw)
-        j = mine.join(
+        jj = mine.join(
             ref[["pred_clock", "pred_pooled", "pred_raw"]], how="inner", rsuffix="_P"
         )
-        j = j.dropna(subset=["pred_clock", "pred_clock_P", "pred_pooled_P"])
-        assert j["hhmm"].nunique() == 1, seg
-        deck = (j.index >= base.DECK_START) & (j.index <= base.DECK_END + " 23:59")
-        y = j["true_raw"]
-        pairs = {
-            "coefficients": (qlike(y, j["pred_clock"]), qlike(y, j["pred_clock_P"])),
-            "package": (qlike(y, j["pred_clock"]), qlike(y, j["pred_pooled_P"])),
-            "calibration": (qlike(y, j["pred_clock_P"]), qlike(y, j["pred_pooled_P"])),
-            "as scored": (qlike(y, j["pred_raw"]), qlike(y, j["pred_raw_P"])),
-        }
-        for smp, m in (("common", np.ones(len(j), bool)), ("deck period", deck)):
-            if m.sum() < 100:
-                continue
-            for name, (la, lb) in pairs.items():
-                d = (la - lb)[m]
-                lo, hi = base.day_block_ci(d)
-                rows.append(
-                    {
-                        "segment": seg,
-                        "bar_end": j["hhmm"].iloc[0],
-                        "estimator": est,
-                        "train_win": tw,
-                        "sample": smp,
-                        "comparison": name,
-                        "n": int(m.sum()),
-                        "QLIKE_a": float(la[m].mean()),
-                        "QLIKE_b": float(lb[m].mean()),
-                        "diff": float(d.mean()),
-                        "pct": float(100 * d.mean() / lb[m].mean()),
-                        "ci_lo": lo,
-                        "ci_hi": hi,
-                        "improves": bool(hi < 0.0),
-                        "worse": bool(lo > 0.0),
-                        "blown": bool(la[m].mean() > BLOWN or lb[m].mean() > BLOWN),
-                    }
-                )
+        jj = jj.dropna(subset=["pred_clock", "pred_clock_P", "pred_pooled_P"])
+        if seg != "rth":
+            assert jj["hhmm"].nunique() == 1, seg
+        # a one-bar arm is one label; the whole-session arm ("rth") is scored
+        # bar by bar so that its rows sit beside the one-bar arms' in the table
+        for _label, j in jj.groupby("hhmm", sort=True):
+            deck = (j.index >= base.DECK_START) & (j.index <= base.DECK_END + " 23:59")
+            y = j["true_raw"]
+            pairs = {
+                "coefficients": (
+                    qlike(y, j["pred_clock"]),
+                    qlike(y, j["pred_clock_P"]),
+                ),
+                "package": (qlike(y, j["pred_clock"]), qlike(y, j["pred_pooled_P"])),
+                "calibration": (
+                    qlike(y, j["pred_clock_P"]),
+                    qlike(y, j["pred_pooled_P"]),
+                ),
+                "as scored": (qlike(y, j["pred_raw"]), qlike(y, j["pred_raw_P"])),
+            }
+            for smp, m in (("common", np.ones(len(j), bool)), ("deck period", deck)):
+                if m.sum() < 100:
+                    continue
+                for name, (la, lb) in pairs.items():
+                    d = (la - lb)[m]
+                    lo, hi = base.day_block_ci(d)
+                    rows.append(
+                        {
+                            "segment": seg,
+                            "bar_end": j["hhmm"].iloc[0],
+                            "estimator": est,
+                            "train_win": tw,
+                            "sample": smp,
+                            "comparison": name,
+                            "n": int(m.sum()),
+                            "QLIKE_a": float(la[m].mean()),
+                            "QLIKE_b": float(lb[m].mean()),
+                            "diff": float(d.mean()),
+                            "pct": float(100 * d.mean() / lb[m].mean()),
+                            "ci_lo": lo,
+                            "ci_hi": hi,
+                            "improves": bool(hi < 0.0),
+                            "worse": bool(lo > 0.0),
+                            "blown": bool(la[m].mean() > BLOWN or lb[m].mean() > BLOWN),
+                        }
+                    )
     tab = pd.DataFrame(rows)
     tab.to_csv(root / a.bucket / "subsection_vs_pooled_causal.csv", index=False)
     pd.DataFrame(trades).to_csv(root / a.bucket / "trade_1530_causal.csv", index=False)

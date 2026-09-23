@@ -57,14 +57,33 @@ SUBSAMPLE_LABEL = {
     "pool_ridge": "pooled ridge (all features), same spec",
     "pool_lasso": "pooled lasso (all features), same spec",
     "pool_enet": "pooled elastic net (all features), same spec",
+    # the LIVE-FEASIBLE set: the 16 columns a 15:30 forecaster can rebuild from
+    # ES minute bars, the Cboe volatility indices and the release calendar
+    "sub_live_ridge": "per-bar ridge (live-feasible set)",
+    "sub_live_lasso": "per-bar lasso (live-feasible set)",
+    "sub_live_enet": "per-bar elastic net (live-feasible set)",
+    "pool_live_ridge": "pooled ridge (live-feasible set), same spec",
+    "pool_live_lasso": "pooled lasso (live-feasible set), same spec",
+    "pool_live_enet": "pooled elastic net (live-feasible set), same spec",
 }
-SUBSAMPLE_ORDER = ["sub_base", "sub_ridge", "sub_lasso", "sub_enet"]
+SUBSAMPLE_ORDER = [
+    "sub_base",
+    "sub_ridge",
+    "sub_lasso",
+    "sub_enet",
+    "sub_live_ridge",
+    "sub_live_lasso",
+    "sub_live_enet",
+]
 #: per-bar tag -> its pooled twin (None would mark a twin whose arm has not run)
 SUBSAMPLE_TWIN: dict[str, str | None] = {
     "sub_base": "pool_base",
     "sub_ridge": "pool_ridge",
     "sub_lasso": "pool_lasso",
     "sub_enet": "pool_enet",
+    "sub_live_ridge": "pool_live_ridge",
+    "sub_live_lasso": None,  # the pooled lasso of the live set (CARC job 12271758_4)
+    "sub_live_enet": None,  # the pooled elastic net of the live set (CARC job 12271757_8)
 }
 YHAT_LABEL.update(SUBSAMPLE_LABEL)
 RULE_ORDER = [
@@ -129,6 +148,12 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
         "pool_ridge": root / "yhat_pool_ridge_all_features.parquet",
         "pool_lasso": root / "yhat_pool_lasso_all_features.parquet",
         "pool_enet": root / "yhat_pool_enet_all_features.parquet",
+        "sub_live_ridge": root / "yhat_sub_ridge_live_feasible.parquet",
+        "sub_live_lasso": root / "yhat_sub_lasso_live_feasible.parquet",
+        "sub_live_enet": root / "yhat_sub_enet_live_feasible.parquet",
+        "pool_live_ridge": root / "yhat_pool_ridge_live_feasible.parquet",
+        "pool_live_lasso": root / "yhat_pool_lasso_live_feasible.parquet",
+        "pool_live_enet": root / "yhat_pool_enet_live_feasible.parquet",
     }
 
 

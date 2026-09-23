@@ -470,7 +470,11 @@ pipeline:
   comes from the bar's own regression. Each has a pooled *twin* — the
   identical specification with one coefficient vector — which enters one
   paired table below and nothing else, so the difference is the
-  coefficients alone.
+  coefficients alone. The three **live-feasible** rows are the same
+  per-bar fits on the 16 columns a 15:30 forecaster can rebuild in real
+  time (ES return moments and liquidity from minute bars, the Cboe
+  volatility indices, the release calendar) — no constituent
+  cross-section, no message-board sentiment, no option-volume series.
 
 **From stored forecast to a variance.** Forecasts are stored on the
 fitted scale $y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized.
@@ -692,6 +696,12 @@ for _t, _bucket, _est, _pool in (
     ("pool_ridge", "all features", "ridge", True),
     ("pool_lasso", "all features", "recursive lasso, identifiability fix e4e9358", True),
     ("pool_enet", "all features", "elastic net", True),
+    ("sub_live_ridge", "live-feasible set (ES moments and liquidity, VIX family, FOMC calendar; 16 columns)", "ridge", False),
+    ("sub_live_lasso", "live-feasible set (16 columns)", "recursive lasso, identifiability fix e4e9358", False),
+    ("sub_live_enet", "live-feasible set (16 columns)", "elastic net", False),
+    ("pool_live_ridge", "live-feasible set (16 columns)", "ridge", True),
+    ("pool_live_lasso", "live-feasible set (16 columns)", "recursive lasso, identifiability fix e4e9358", True),
+    ("pool_live_enet", "live-feasible set (16 columns)", "elastic net", True),
 ):
     PROVENANCE[_t] = {
         "panel": "FOMC panel (the panel of record), " + _bucket,
