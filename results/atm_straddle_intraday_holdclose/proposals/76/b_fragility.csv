@@ -1,0 +1,15 @@
+deck,variant,n,kelly_f,share_of_f
+sub_live_ridge,all buys,348,0.06556141941365846,1.0
+sub_live_ridge,top 5 R days removed,343,0.009057767824590385,0.1381569817370881
+sub_live_ridge,top 10 R days removed,338,0.0,0.0
+sub_live_ridge,top 20 R days removed,328,0.0,0.0
+sub_live_ridge,worthless expiries injected at 1x the observed rate (0.216),348,0.0,0.0
+sub_live_ridge,worthless expiries injected at 2x the observed rate (0.216),348,0.0,0.0
+sub_live_ridge,d f* / d(mean R) (per unit of mean R),348,0.8240791748909256,
+blk2,all buys,346,0.04406958879238895,1.0
+blk2,top 5 R days removed,341,0.0,0.0
+blk2,top 10 R days removed,336,0.0,0.0
+blk2,top 20 R days removed,326,0.0,0.0
+blk2,worthless expiries injected at 1x the observed rate (0.228),346,0.0,0.0
+blk2,worthless expiries injected at 2x the observed rate (0.228),346,0.0,0.0
+blk2,d f* / d(mean R) (per unit of mean R),346,0.7504718059850842,
