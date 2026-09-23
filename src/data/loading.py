@@ -253,6 +253,23 @@ SUBGROUPS: dict[str, list[str]] = {
     "options": list(OPTIONS_FEATURES),
     "all_features": ALL_FEATURES,
 }
+# The columns a LIVE forecaster can rebuild at 15:30 from feeds a retail account
+# has: ES one-minute bars (the return moments and the liquidity measures), the
+# Cboe volatility indices at 30 minutes, and the release calendar.  Left out:
+# the constituent cross-section (market_ew / market_vw), StockTwits and the
+# Cboe volume series, none of which is available intraday at retail cost.
+# Order preserved as in ALL_FEATURES so the design's column order is stable.
+_LIVE_FEASIBLE_PARTS = {
+    *SUBGROUPS["moments"],
+    *SUBGROUPS["liquidity"],
+    *SUBGROUPS["implied_vol"],
+    *SUBGROUPS["fomc"],
+}
+# ``liquidity`` also carries the constituents' turnover / spread / order-flow
+# columns; those come from the cross-section too and are dropped by name.
+SUBGROUPS["live_feasible"] = [
+    f for f in ALL_FEATURES if f in _LIVE_FEASIBLE_PARTS and "stock" not in f
+]
 
 
 def get_bucket(name: str) -> list[str]:
