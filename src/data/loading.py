@@ -283,6 +283,18 @@ SUBGROUPS["live_feasible_mfiv"] = [
     f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["implied_vol"]
 ] + MFIV_FEATURES
 SUBGROUPS["live_feasible_plus_mfiv"] = SUBGROUPS["live_feasible"] + MFIV_FEATURES
+# The deck's own object at every clock (experiments/build_spxw_ivslice_panel.py ->
+# data/spxw_ivslice.parquet): the nearest-OTM straddle's package midpoint
+# bisected for the Black-76 total volatility over the remaining session -- the
+# implied slice the 15:30 trade is measured against, re-picked at 10:00..15:30.
+# The strip above is 9x this at 15:30 (zero-bid strikes at the minimum tick);
+# this is the clean version.  Same three-column shape as the MFIV bucket.
+IVSLICE_FEATURES: list[str] = ["ivslice_annvol", "ivslice_perbar_rv", "ivslice_vvix"]
+SUBGROUPS["ivslice_only"] = list(IVSLICE_FEATURES)
+SUBGROUPS["live_feasible_ivslice"] = [
+    f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["implied_vol"]
+] + IVSLICE_FEATURES
+SUBGROUPS["live_feasible_plus_ivslice"] = SUBGROUPS["live_feasible"] + IVSLICE_FEATURES
 
 
 def get_bucket(name: str) -> list[str]:
