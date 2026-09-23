@@ -1,0 +1,45 @@
+tag,rule,days,dSharpe,ci_half_width_sharpe,min_detectable_dSharpe_95,days_to_certify_target
+sub_live_ridge,"PRIMARY regime MZ sign(s_reg) [qlike_box63, expanding]",522,0.1809049878121387,0.40483504731389197,0.40483504731389197,1618
+sub_live_ridge,"PRIMARY regime MZ sign(s_reg) [qlike_box63, expanding], exposure-matched",522,0.17672166937161204,0.4276623403532917,0.4276623403532917,1805
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_box63, trailing252]",522,0.4776938356797853,0.6095229350141069,0.6095229350141069,3667
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm21, expanding]",522,0.3767614741491436,0.8283916871022645,0.8283916871022645,6772
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm21, trailing252]",522,0.5960110135343284,0.37364832299365347,0.37364832299365347,1378
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm42, expanding]",522,0.22271250808446852,0.7984902392248497,0.7984902392248497,6292
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm42, trailing252]",522,0.209262005532731,0.432330240116946,0.432330240116946,1845
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm63, expanding]",522,0.07472045116399872,0.72992590128036,0.72992590128036,5258
+sub_live_ridge,"regime MZ sign(s_reg) [qlike_ewm63, trailing252]",522,-0.15498711487525707,0.5073681407190989,0.5073681407190989,2541
+sub_live_ridge,regime factor on rv_hat: sign(rv_hat x e^mean_T log(rv/rv_hat) - iv_var),522,-0.14011224863068272,1.4846417074076048,1.4846417074076048,21750
+sub_live_ridge,regime factor on raw: sign(raw x e^mean_T log(rv/raw) - iv_var),522,-0.33162978431369916,1.5230325781795,1.5230325781795,22890
+sub_live_ridge,"reference: sign(raw - iv_var), no recalibration",522,0.40885686709451297,0.8578188741716914,0.8578188741716914,7262
+sub_live_ridge,"two-sided (a) long only in top tercile, short always, natural exposure",522,0.13768050974915447,0.8611891564940001,0.8611891564940001,7319
+sub_live_ridge,"two-sided (a) long only in top tercile, short always, exposure-matched",522,0.22638316964961613,1.3625577737475987,1.3625577737475987,18320
+sub_live_ridge,"two-sided (b) long always, short only outside top tercile, natural exposure",522,0.11893751716470646,0.43791203790889094,0.43791203790889094,1893
+sub_live_ridge,"two-sided (b) long always, short only outside top tercile, exposure-matched",522,0.15166781926197004,0.4854455254834055,0.4854455254834055,2326
+sub_live_ridge,"two-sided (c) both restrictions, natural exposure",522,0.3619679322040623,0.9431120757523246,0.9431120757523246,8777
+sub_live_ridge,"two-sided (c) both restrictions, exposure-matched",522,0.3365671385196296,1.18797910671057,1.18797910671057,13927
+sub_live_ridge,"two-sided (d) size 2/1/0.5 long, 0.5/1/2 short by tercile, natural exposure",522,0.42440829417342574,0.701137958437636,0.701137958437636,4851
+sub_live_ridge,"two-sided (d) size 2/1/0.5 long, 0.5/1/2 short by tercile, exposure-matched",522,0.43785473023567256,0.5305623705659517,0.5305623705659517,2778
+sub_live_ridge,"joint: skip Q1/Q5-of-s buys in the calm tercile, natural exposure",522,0.5475207813819671,0.35590889493299693,0.35590889493299693,1250
+sub_live_ridge,"joint: skip Q1/Q5-of-s buys in the calm tercile, exposure-matched",522,0.5915450703596887,0.44430471060227833,0.44430471060227833,1948
+blk2,"PRIMARY regime MZ sign(s_reg) [qlike_box63, expanding]",507,0.0003775616359107392,0.28875344828603094,0.28875344828603094,800
+blk2,"PRIMARY regime MZ sign(s_reg) [qlike_box63, expanding], exposure-matched",507,-0.0016272298543991148,0.2863295987272835,0.2863295987272835,786
+blk2,"regime MZ sign(s_reg) [qlike_box63, trailing252]",507,0.3210319570469624,0.6316635497540944,0.6316635497540944,3825
+blk2,"regime MZ sign(s_reg) [qlike_ewm21, expanding]",507,0.0742511542136719,0.5744637741844822,0.5744637741844822,3163
+blk2,"regime MZ sign(s_reg) [qlike_ewm21, trailing252]",507,0.2941058058499082,0.6458362902450819,0.6458362902450819,3998
+blk2,"regime MZ sign(s_reg) [qlike_ewm42, expanding]",507,0.056227309089095234,0.635568801611198,0.635568801611198,3872
+blk2,"regime MZ sign(s_reg) [qlike_ewm42, trailing252]",507,0.2538620880345659,0.602087033533943,0.602087033533943,3475
+blk2,"regime MZ sign(s_reg) [qlike_ewm63, expanding]",507,-0.16618984826603667,0.7140435497991853,0.7140435497991853,4887
+blk2,"regime MZ sign(s_reg) [qlike_ewm63, trailing252]",507,-0.05530091380120883,0.6409876568080756,0.6409876568080756,3938
+blk2,regime factor on rv_hat: sign(rv_hat x e^mean_T log(rv/rv_hat) - iv_var),507,-0.022354900209849093,0.8779219049444824,0.8779219049444824,7387
+blk2,regime factor on raw: sign(raw x e^mean_T log(rv/raw) - iv_var),507,-0.3662712563878556,0.7769028391431296,0.7769028391431296,5785
+blk2,"reference: sign(raw - iv_var), no recalibration",507,-0.42670406406563366,0.7833512224258984,0.7833512224258984,5882
+blk2,"two-sided (a) long only in top tercile, short always, natural exposure",507,0.05524189455387196,0.8950150396070898,0.8950150396070898,7678
+blk2,"two-sided (a) long only in top tercile, short always, exposure-matched",507,-0.017755472878274947,1.490248476645705,1.490248476645705,21285
+blk2,"two-sided (b) long always, short only outside top tercile, natural exposure",507,0.06518211947475017,0.27033783284125545,0.27033783284125545,701
+blk2,"two-sided (b) long always, short only outside top tercile, exposure-matched",507,0.0916908851831788,0.2914291795465238,0.2914291795465238,814
+blk2,"two-sided (c) both restrictions, natural exposure",507,0.1835184715329885,0.9277876407209541,0.9277876407209541,8250
+blk2,"two-sided (c) both restrictions, exposure-matched",507,0.046951419595700594,1.4038718187724644,1.4038718187724644,18889
+blk2,"two-sided (d) size 2/1/0.5 long, 0.5/1/2 short by tercile, natural exposure",507,0.3462840989687146,0.7852860096663028,0.7852860096663028,5911
+blk2,"two-sided (d) size 2/1/0.5 long, 0.5/1/2 short by tercile, exposure-matched",507,0.31500301062898983,0.5636514957862536,0.5636514957862536,3045
+blk2,"joint: skip Q1/Q5-of-s buys in the calm tercile, natural exposure",507,0.019065244154377714,0.35021717970627264,0.35021717970627264,1176
+blk2,"joint: skip Q1/Q5-of-s buys in the calm tercile, exposure-matched",507,-0.009780623531518318,0.41084319666610725,0.41084319666610725,1618
