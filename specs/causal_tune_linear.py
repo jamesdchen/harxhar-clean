@@ -151,6 +151,7 @@ from src.models.reclasso_har import enet_coef, enet_online, forward_window_split
 from src.backtest.executor import run_executor
 from src.backtest.multi_stage import MultiStageBacktest
 from src.data.loading import SUBGROUPS, get_bucket
+from src.features.extractors.har import resolve_har_lags
 from src.features.transforms.residualizer import IdentityResidualizer
 
 HORIZON = 1
@@ -193,6 +194,22 @@ SEGMENT = _env("SEGMENT", "") or None
 if SEGMENT == "none":  # a task axis cannot carry an empty string
     SEGMENT = None
 LAG_SCOPE = _env("LAG_SCOPE", "intra" if SEGMENT else "global")
+# HAR ladder axis (2026-09-23): HAR_LAGS="1,2,4,..." names the rungs, or HAR_BASE=2
+# builds the geometric ladder with that base (cap 3125, as production); empty =
+# the production powers-of-5 ladder [1, 5, 25, 125, 625, 3125].  The ladder is
+# applied to the target and to every exog column alike.  EMBARGO=25 still covers
+# the rungs <= 25; longer rungs stay un-embargoed slow levels, as before.
+_HAR_LAGS_ENV = _env("HAR_LAGS", "")
+_HAR_BASE_ENV = _env("HAR_BASE", "")
+if _HAR_LAGS_ENV:
+    HAR_LAGS: list[int] | None = sorted(
+        {int(v) for v in _HAR_LAGS_ENV.replace(";", ",").split(",") if v.strip()}
+    )
+elif _HAR_BASE_ENV:
+    HAR_LAGS = resolve_har_lags(base=int(_HAR_BASE_ENV))
+else:
+    HAR_LAGS = None
+print(f"HAR ladder: {HAR_LAGS if HAR_LAGS is not None else 'production [1, 5, 25, 125, 625, 3125]'}")
 # Subsection arms fit 1-4 bars a day, so the window is an axis (in DAYS).
 TRAIN_WIN = int(_env("TRAIN_WIN", str(TRAIN_WIN)))
 BUCKETS = [EXOG_BUCKET] if EXOG_BUCKET else list(SUBGROUPS)  # all 9, incl. the
@@ -500,6 +517,7 @@ for estimator in ESTIMATORS:
             exog_cols=get_bucket(bucket),
             segment=SEGMENT,
             lag_scope=LAG_SCOPE,
+            har_lags=HAR_LAGS,
             add_calendar=True,
             target_use_diurnal=True,
             target_winsor_window=240,
@@ -575,6 +593,7 @@ run_executor(
     exog_cols=get_bucket(INCUMBENT_BUCKET),
     segment=SEGMENT,
     lag_scope=LAG_SCOPE,
+    har_lags=HAR_LAGS,
     add_calendar=True,
     target_use_diurnal=True,
     target_winsor_window=240,

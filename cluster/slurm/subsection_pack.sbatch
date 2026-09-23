@@ -5,7 +5,10 @@
 # line per task; the arms of a line run one after another.  The pooled arm is the
 # pack "none".  An arm that already wrote DONE is skipped, so a resubmitted task
 # resumes.  Exported at submit time: TASKFILE, RESULTS_ROOT (default
-# results/linear_subsection), CANARY_FLAG (a DONE file the fleet requires).
+# results/linear_subsection), CANARY_FLAG (a DONE file the fleet requires),
+# and the optional axes HAR_BASE (HAR ladder base; empty = production base-5)
+# and LAG_SCOPE (global | intra; default global) -- both empty = the arms as
+# run before 2026-09-23, bit for bit.
 #SBATCH --job-name=subsec
 #SBATCH --account=pollok_1603
 #SBATCH --partition=main
@@ -39,7 +42,8 @@ for SEG in ${SEGS//,/ }; do
   OUT="${RESULTS_ROOT:-results/linear_subsection}/$BUCKET/$SEG/$EST/tw$TW"
   [ -f "$OUT/DONE" ] && continue
   mkdir -p "$OUT"
-  if HPC_KW_SEGMENT="$SEG" HPC_KW_LAG_SCOPE=global HPC_KW_ESTIMATOR="$EST" \
+  if HPC_KW_SEGMENT="$SEG" HPC_KW_LAG_SCOPE="${LAG_SCOPE:-global}" HPC_KW_ESTIMATOR="$EST" \
+     HPC_KW_HAR_BASE="${HAR_BASE:-}" \
      HPC_KW_EXOG_BUCKET="$BUCKET" HPC_KW_TRAIN_WIN="$TW" HPC_RESULT_DIR="$OUT" \
      python -u specs/causal_tune_linear.py > "$OUT/run.log" 2>&1; then
     touch "$OUT/DONE"

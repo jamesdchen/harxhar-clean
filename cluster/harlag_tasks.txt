@@ -1,0 +1,6 @@
+live_feasible ridge 500 bar1430,bar1600
+live_feasible ridge 2000 bar1430,bar1600
+live_feasible reclasticnet 500 bar1430,bar1600
+live_feasible reclasticnet 2000 bar1430,bar1600
+live_feasible reclasso 500 bar1430,bar1600
+live_feasible reclasso 2000 bar1430,bar1600

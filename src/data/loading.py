@@ -270,6 +270,19 @@ _LIVE_FEASIBLE_PARTS = {
 SUBGROUPS["live_feasible"] = [
     f for f in ALL_FEATURES if f in _LIVE_FEASIBLE_PARTS and "stock" not in f
 ]
+# The 0DTE chain's own implied variance (experiments/build_spxw_mfiv_panel.py ->
+# data/spxw_mfiv.parquet): the VIX calculation on the same-day strip at every
+# 30-minute stamp, horizon-matched to the target.  Outside ALL_FEATURES like
+# OPTIONS_FEATURES (the frozen campaign panel keeps its column set); reachable
+# only through these buckets.  Present from 2020-01 on; earlier rows carry the
+# late-start indicator + neutral fill like the VIX family before 2006.
+MFIV_FEATURES: list[str] = ["mfiv0_annvol", "mfiv0_perbar_rv", "mfiv0_vvix"]
+SUBGROUPS["mfiv_only"] = list(MFIV_FEATURES)
+# live_feasible with the Cboe prints swapped for the chain's own numbers, and with both.
+SUBGROUPS["live_feasible_mfiv"] = [
+    f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["implied_vol"]
+] + MFIV_FEATURES
+SUBGROUPS["live_feasible_plus_mfiv"] = SUBGROUPS["live_feasible"] + MFIV_FEATURES
 
 
 def get_bucket(name: str) -> list[str]:
