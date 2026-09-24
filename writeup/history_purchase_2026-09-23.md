@@ -1,5 +1,15 @@
 # One-time intraday history purchase for the close-signal service (priced 2026-09-23)
 
+**Update, later the same day -- line 2 is NOT needed.** Two results removed it: (i) the CARC arms showed VVIX and
+VIX3M add nothing at the per-bar model (live_vix_only vs live_feasible: QLIKE -0.04 / +0.14 / +0.10 % at the close,
+trade unchanged), so the model needs the VIX alone; (ii) Yahoo's FREE history covers the VIX gap: hourly ^VIX bars
+reach back 730 days (to 2023-12-07 as of today; the bar OPEN is the print at the hour) and daily bars to 1990. On the
+vendor panel, feeding the model the 15:00 print in place of the 15:30 print costs R^2 0.8211 -> 0.8200 for the next
+bar's log RV (the previous day's close 0.8125; RV_prev alone 0.7693), so hourly prints on the gap rows lose nothing
+measurable. The hourly and daily series (VIX, VVIX, VIX3M) were snapshotted to data/free_feed/ before the 730-day
+window rolls past the gap. The purchase list is therefore **Databento ES 1-min inside the signup credit -- $0**;
+FirstRate / Cboe DataShop are optional cross-checks only.
+
 Purpose: fill the research panel's gap (ES 1-minute bars 2024-04 -> today; Cboe VIX / VVIX / VIX3M intraday
 2024-02 -> today), after which the free daily feeds append one session at a time and the per-bar ridge updates
 incrementally. Priced by a subagent from the vendors' own pages (V = verified on the page; I = inferred / behind a
