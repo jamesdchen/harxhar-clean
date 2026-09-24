@@ -76,12 +76,18 @@ DECISION_STAMP = "15:30"  # the last stamp whose data the forecast may use
 SESSION_OPEN = "09:30"
 
 #: Index option contract facts (Cboe).  XSP is one tenth of SPX, settles to
-#: SPX / 10 at the official close, $100 a point, $0.01 ticks.  The XSP strike
-#: step near the money is taken as 1 point (verify on the broker's chain the
-#: first live day; SPX lists 5-point strikes near the money).
+#: SPX / 10 at the official close, $100 a point, $0.01 ticks.  Listed grids
+#: near the money (study 79, OPRA definitions, 873 sessions 2023-03-28 ..
+#: 2026-09-22): SPX 5 points on every chain day; XSP 1 point on 839 days, and
+#: on 34 non-monthly Fridays (never a month-end, never another weekday) XSP
+#: also lists the half strikes at SPX's 25 / 75 strikes -- x2.5 and x7.5 --
+#: which were in the nearest-OTM pair on 5 of the 873 days.
 INDEX_MULTIPLIER = 100.0
 SPX_STRIKE_STEP = 5.0
 XSP_STRIKE_STEP = 1.0
+#: XSP half strikes, when listed: 2.5 + 5n (XSP points).
+XSP_HALF_STRIKE_OFFSET = 2.5
+XSP_HALF_STRIKE_PERIOD = 5.0
 XSP_SCALE = 0.1
 
 

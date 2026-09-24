@@ -6,13 +6,27 @@ deck's iv_var IS that re-inversion).  Since the package price is strictly
 increasing in the total volatility, ``rv_hat > iv_var`` is the same statement
 as ``ask < P*`` where ``P* = package_price(sqrt(rv_hat), S, Kc, Kp)``: the
 straddle price the forecast says the last bar is worth.  The operator reads
-the quote on the screen and buys if the ask is at or below P*.
+the SPX quote on the screen and buys if the ask is at or below P*.
 
 Black-76 is homogeneous of degree one in (F, K), so at the SAME relative
 strikes the XSP price is the SPX price divided by ten.  The listed grids
 differ, though: XSP's 1-point step is 10 SPX points, coarser than SPX's 5, so
 each break-even is computed on its own listed nearest-OTM strikes and the two
-differ slightly.  The operator compares each against its own quote.
+differ slightly.  The operator compares each against its own quote.  On a
+Friday XSP may also list half strikes (x2.5 / x7.5, study 79); when one sits
+between the spot and the 1-point strike on its side, the card adds that
+pair's P* for the operator to use if the strike is on the screen.
+
+Venue (study 79, 2023-03-28 .. 2025-12-31 same-day books): the SPX line's
+15:30 straddle spread is 4.1 % of mid against XSP's 18.2 %, and the XSP touch
+held the month-end size on 1 of 42 month-ends (touch median 20 straddles vs
+N median 145).  On the 32 month-ends with both books the long at the ask
+returned +0.589 on SPX vs +0.494 on XSP.  The general leg fares no better on
+XSP: its 3.3 % size fits the touch on 22-28 % of days since 2024, and the
+unconditional long at the ask returns -0.110 there vs -0.051 on SPX.  Both
+legs are therefore bought on the SPX line (N median 12 at the 15 % month-end
+budget); XSP, with its own break-even, only when the budget is below one SPX
+straddle.
 """
 
 from __future__ import annotations
@@ -24,6 +38,8 @@ from datetime import date
 from live.close_signal.common import (
     INDEX_MULTIPLIER,
     SPX_STRIKE_STEP,
+    XSP_HALF_STRIKE_OFFSET,
+    XSP_HALF_STRIKE_PERIOD,
     XSP_SCALE,
     XSP_STRIKE_STEP,
 )
@@ -48,6 +64,23 @@ def nearest_otm_strikes(spot: float, step: float) -> tuple[float, float]:
     kc = math.ceil(spot / step - 1e-12) * step
     kp = math.floor(spot / step + 1e-12) * step
     return float(kc), float(kp)
+
+
+def half_strike_pair(spot: float, kc: float, kp: float) -> tuple[float, float]:
+    """The nearest-OTM XSP pair if the Friday half strikes (2.5 + 5n) are listed.
+
+    Each side takes the half strike when it lies between the spot and that
+    side's 1-point strike; (nan, nan) when neither does -- the pair is then
+    the 1-point pair whatever is listed.
+    """
+    off, per = XSP_HALF_STRIKE_OFFSET, XSP_HALF_STRIKE_PERIOD
+    hc = math.ceil((spot - off) / per - 1e-12) * per + off  # first half strike >= spot
+    hp = math.floor((spot - off) / per + 1e-12) * per + off  # last half strike <= spot
+    kc_h = hc if spot <= hc < kc else kc
+    kp_h = hp if kp < hp <= spot else kp
+    if (kc_h, kp_h) == (kc, kp):
+        return float("nan"), float("nan")
+    return float(kc_h), float(kp_h)
 
 
 def break_even_price(rv_hat: float, spot: float, kc: float, kp: float) -> float:
@@ -76,6 +109,9 @@ class Instruction:
     kc_xsp: float
     kp_xsp: float
     p_star_xsp: float
+    kc_xsp_half: float  # the Friday half-strike pair (nan when it is the 1-point pair)
+    kp_xsp_half: float
+    p_star_xsp_half: float
     month_end: bool
     third_friday: bool
     capital: float
@@ -111,6 +147,16 @@ def build_instruction(
     p_spx = break_even_price(rv_hat, spot, kc, kp)
     kc_x, kp_x = nearest_otm_strikes(spot * XSP_SCALE, XSP_STRIKE_STEP)
     p_xsp = break_even_price(rv_hat, spot * XSP_SCALE, kc_x, kp_x)
+    kc_h, kp_h = (
+        half_strike_pair(spot * XSP_SCALE, kc_x, kp_x)
+        if session.weekday() == 4
+        else (float("nan"), float("nan"))
+    )
+    p_half = (
+        break_even_price(rv_hat, spot * XSP_SCALE, kc_h, kp_h)
+        if math.isfinite(kc_h)
+        else float("nan")
+    )
     frac = month_end_fraction if flags.get("month_end") else long_fraction
     n_xsp = contracts_for_outlay(capital, frac, p_xsp, INDEX_MULTIPLIER)
     n_spx = contracts_for_outlay(capital, frac, p_spx, INDEX_MULTIPLIER)
@@ -132,6 +178,9 @@ def build_instruction(
         kc_xsp=kc_x,
         kp_xsp=kp_x,
         p_star_xsp=p_xsp,
+        kc_xsp_half=kc_h,
+        kp_xsp_half=kp_h,
+        p_star_xsp_half=p_half,
         month_end=bool(flags.get("month_end", False)),
         third_friday=bool(flags.get("third_friday", False)),
         capital=float(capital),
@@ -158,19 +207,26 @@ def render_card(i: Instruction) -> str:
     if i.decision == "BUY_MONTH_END":
         lines += [
             "MONTH-END CLOSE: BUY the 15:30 straddle regardless of the forecast (proposal 55).",
-            f"  XSP  buy {i.n_xsp_at_pstar} straddles  {i.kc_xsp:g}C / {i.kp_xsp:g}P  "
+            f"  SPX  buy {i.n_spx_at_pstar} straddles  {i.kc_spx:g}C / {i.kp_spx:g}P  "
             f"limit at the ask, chase up to +{CHASE_PCT:.0%}; N = floor(${budget:,.0f} / (ask x 100))",
-            f"  SPX  equivalent: {i.n_spx_at_pstar} straddles  {i.kc_spx:g}C / {i.kp_spx:g}P",
+            f"  XSP  only if N on SPX is 0: {i.n_xsp_at_pstar} straddles  {i.kc_xsp:g}C / {i.kp_xsp:g}P "
+            "(its touch is ~20 straddles and its spread ~4x SPX's)",
             f"  Budget {frac:.0%} of ${i.capital:,.0f} = ${budget:,.0f} of premium (the long's worst case).",
         ]
     elif i.decision == "BUY_IF_ASK_LE_PSTAR":
         lines += [
-            f"BUY ONLY IF the XSP {i.kc_xsp:g}C / {i.kp_xsp:g}P straddle ASK <= {i.p_star_xsp:.2f}",
-            f"  then buy N = floor(${budget:,.0f} / (ask x 100)) straddles ({i.n_xsp_at_pstar} at the break-even),",
+            f"BUY ONLY IF the SPX {i.kc_spx:g}C / {i.kp_spx:g}P straddle ASK <= {i.p_star_spx:.2f}",
+            f"  then buy N = floor(${budget:,.0f} / (ask x 100)) straddles ({i.n_spx_at_pstar} at the break-even),",
             f"  limit at the ask, chase up to +{CHASE_PCT:.0%}, hold to cash settlement.",
-            f"  SPX equivalent: {i.kc_spx:g}C / {i.kp_spx:g}P, ask <= {i.p_star_spx:.2f}, N = {i.n_spx_at_pstar}.",
             "  If the ask is above the break-even: NO TRADE (the short side is not traded).",
+            f"  XSP only if N on SPX is 0: {i.kc_xsp:g}C / {i.kp_xsp:g}P, ask <= {i.p_star_xsp:.2f}, "
+            f"N = {i.n_xsp_at_pstar}.",
         ]
+        if math.isfinite(i.p_star_xsp_half):
+            lines += [
+                f"  (XSP, Friday: if {i.kc_xsp_half:g}C / {i.kp_xsp_half:g}P is listed, that is the nearest pair: "
+                f"ask <= {i.p_star_xsp_half:.2f}.)",
+            ]
     else:
         lines += ["NO TRADE: the forecast did not produce a break-even price today."]
     lines += [
@@ -191,6 +247,7 @@ __all__ = [
     "Instruction",
     "break_even_price",
     "build_instruction",
+    "half_strike_pair",
     "implied_variance_at",
     "nearest_otm_strikes",
     "render_card",

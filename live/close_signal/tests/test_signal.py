@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import sys
+from typing import Any
 from datetime import date
 from pathlib import Path
 
@@ -16,6 +17,7 @@ if str(_ROOT) not in sys.path:
 from live.close_signal.signal import (  # noqa: E402
     break_even_price,
     build_instruction,
+    half_strike_pair,
     implied_variance_at,
     nearest_otm_strikes,
     render_card,
@@ -26,6 +28,15 @@ def test_nearest_otm_strikes_on_both_grids() -> None:
     assert nearest_otm_strikes(6532.4, 5.0) == (6535.0, 6530.0)
     assert nearest_otm_strikes(6535.0, 5.0) == (6535.0, 6535.0)
     assert nearest_otm_strikes(653.24, 1.0) == (654.0, 653.0)
+
+
+def test_half_strike_pair_matches_the_listed_days() -> None:
+    # study 79's nearest-OTM pairs on the days XSP listed x2.5 / x7.5
+    assert half_strike_pair(757.585, 758.0, 757.0) == (758.0, 757.5)  # 2026-07-10
+    assert half_strike_pair(432.101, 433.0, 432.0) == (432.5, 432.0)  # 2023-10-06
+    assert half_strike_pair(562.428, 563.0, 562.0) == (562.5, 562.0)  # 2024-09-13
+    # 2023-05-05: spot 414.144, no half strike between the spot and 415 / 414
+    assert all(math.isnan(k) for k in half_strike_pair(414.144, 415.0, 414.0))
 
 
 def test_break_even_price_round_trips_through_the_inverter() -> None:
@@ -41,7 +52,7 @@ def test_break_even_price_round_trips_through_the_inverter() -> None:
 
 
 def test_instruction_sizes_by_premium_and_switches_on_month_end() -> None:
-    kw = dict(
+    kw: dict[str, Any] = dict(
         session=date(2026, 9, 30),
         spot=6532.4,
         rv_hat=(0.0025) ** 2,
@@ -65,7 +76,7 @@ def test_instruction_sizes_by_premium_and_switches_on_month_end() -> None:
 
 
 def test_card_says_what_to_do_in_each_state() -> None:
-    kw = dict(
+    kw: dict[str, Any] = dict(
         session=date(2026, 9, 23),
         spot=6532.4,
         rv_hat=(0.0025) ** 2,
@@ -76,11 +87,16 @@ def test_card_says_what_to_do_in_each_state() -> None:
         build_instruction(flags={"month_end": False, "third_friday": True}, **kw)
     )
     assert "BUY ONLY IF" in plain and "NO TRADE" in plain and "third Friday" in plain
+    # the general leg is bought on the SPX line too; XSP only below one SPX straddle
+    assert "BUY ONLY IF the SPX 6535C / 6530P straddle ASK <=" in plain
+    assert plain.index("BUY ONLY IF the SPX") < plain.index("XSP only if N on SPX is 0")
     assert "hold to cash settlement" in plain
     me = render_card(
         build_instruction(flags={"month_end": True, "third_friday": False}, **kw)
     )
     assert "MONTH-END CLOSE: BUY" in me and "regardless of the forecast" in me
+    # the SPX line is the month-end venue; XSP only below one SPX straddle
+    assert me.index("  SPX  buy") < me.index("  XSP  only if N on SPX is 0")
     late = render_card(
         build_instruction(flags={"month_end": False}, late=True, notes=("x",), **kw)
     )
@@ -89,3 +105,20 @@ def test_card_says_what_to_do_in_each_state() -> None:
         build_instruction(flags={"month_end": False}, **{**kw, "rv_hat": float("nan")})
     )
     assert "NO TRADE: the forecast" in none
+
+
+def test_friday_half_strike_line_only_on_fridays() -> None:
+    kw: dict[str, Any] = dict(
+        spot=7575.85,  # XSP 757.585 -> the 758C / 757.5P pair if listed
+        rv_hat=(0.0025) ** 2,
+        flags={"month_end": False},
+        capital=70_000.0,
+        input_mode="free_substitute",
+    )
+    fri = build_instruction(session=date(2026, 7, 10), **kw)
+    thu = build_instruction(session=date(2026, 7, 9), **kw)
+    assert (fri.kc_xsp_half, fri.kp_xsp_half) == (758.0, 757.5)
+    # the half-strike pair is nearer the spot, so its break-even is dearer
+    assert fri.p_star_xsp_half > fri.p_star_xsp
+    assert "(XSP, Friday: if 758C / 757.5P is listed" in render_card(fri)
+    assert math.isnan(thu.p_star_xsp_half) and "Friday:" not in render_card(thu)
