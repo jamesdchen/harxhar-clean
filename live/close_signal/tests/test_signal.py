@@ -92,6 +92,8 @@ def test_card_says_what_to_do_in_each_state() -> None:
     )
     assert "Hold to the 16:00 close" in plain and "Third Friday" in plain
     assert "XSP" not in plain  # the budget buys SPX pairs: no XSP line
+    # Robinhood's straddle list is one strike; this pair is two (a strangle)
+    assert "Robinhood: Long Strangle (not Straddle), call 6535 / put 6530" in plain
     assert "Why" not in plain  # instructions only
     assert (
         headline(i)

@@ -195,8 +195,8 @@ def build_instruction(
     )
 
 
-def _legs(i: Instruction) -> list[tuple[str, str, float]]:
-    """(title pair, card pair, limit) to trade, in order of preference.
+def _legs(i: Instruction) -> list[tuple[str, str, float, float, float]]:
+    """(title pair, card pair, limit, call strike, put strike), in order of preference.
 
     SPX is the venue; XSP replaces it only when the budget buys no SPX pair
     at the limit (study 79: XSP's spread is ~4x SPX's).  On a Friday the XSP
@@ -208,6 +208,8 @@ def _legs(i: Instruction) -> list[tuple[str, str, float]]:
                 f"SPX {i.kc_spx:g}C + {i.kp_spx:g}P",
                 f"SPX {i.kc_spx:g} call + SPX {i.kp_spx:g} put",
                 i.p_star_spx,
+                i.kc_spx,
+                i.kp_spx,
             )
         ]
     out = []
@@ -217,6 +219,8 @@ def _legs(i: Instruction) -> list[tuple[str, str, float]]:
                 f"XSP {i.kc_xsp_half:g}C + {i.kp_xsp_half:g}P",
                 f"XSP {i.kc_xsp_half:g} call + XSP {i.kp_xsp_half:g} put",
                 i.p_star_xsp_half,
+                i.kc_xsp_half,
+                i.kp_xsp_half,
             )
         )
     out.append(
@@ -224,6 +228,8 @@ def _legs(i: Instruction) -> list[tuple[str, str, float]]:
             f"XSP {i.kc_xsp:g}C + {i.kp_xsp:g}P",
             f"XSP {i.kc_xsp:g} call + XSP {i.kp_xsp:g} put",
             i.p_star_xsp,
+            i.kc_xsp,
+            i.kp_xsp,
         )
     )
     return out
@@ -231,7 +237,7 @@ def _legs(i: Instruction) -> list[tuple[str, str, float]]:
 
 def headline(i: Instruction) -> str:
     """The Calendar event title: the whole instruction when it fits on a phone line."""
-    title_pair, _, limit = _legs(i)[0]
+    title_pair, _, limit, _, _ = _legs(i)[0]
     if i.decision == "BUY_MONTH_END":
         return f"Close trade: MONTH-END BUY {title_pair} at 15:30"
     if i.decision == "BUY_IF_ASK_LE_PSTAR":
@@ -250,18 +256,26 @@ def render_card(i: Instruction) -> str:
         f"Limit = the ask; if not filled, raise it at most {CHASE_PCT:.0%}.",
         "Hold to the 16:00 close (cash settled, no exit order).",
     ]
+    kc, kp = legs[0][3], legs[0][4]
+    # Robinhood's "Long Straddle" list pairs a call and a put at ONE strike;
+    # this pair is two strikes when the spot sits between them (a strangle)
+    robinhood = (
+        f"Robinhood: Long Strangle (not Straddle), call {kc:g} / put {kp:g}; its ask is the total."
+        if kc != kp
+        else f"Robinhood: Long Straddle at {kc:g}; its ask is the total."
+    )
     lines: list[str] = []
     if i.late:
         lines += ["LATE: made after 15:30; the limit is for a 15:30 buy.", ""]
     if i.decision == "BUY_MONTH_END":
         lines += [f"{day}: MONTH-END, BUY at 15:30 ET at any price", ""]
-        lines += [f"{legs[0][1]}, expiring today"]
+        lines += [f"{legs[0][1]}, expiring today", robinhood]
         if len(legs) > 1:
             lines += [f"(not listed? {legs[1][1]})"]
         lines += ["", *how]
     elif i.decision == "BUY_IF_ASK_LE_PSTAR":
         lines += [f"{day}: at 15:30 ET", ""]
-        lines += [f"{legs[0][1]}, expiring today"]
+        lines += [f"{legs[0][1]}, expiring today", robinhood]
         lines += [f"Asks add up to {legs[0][2]:.2f} or less: BUY. Otherwise: no trade."]
         if len(legs) > 1:
             lines += [f"(not listed? {legs[1][1]}: BUY at {legs[1][2]:.2f} or less.)"]
