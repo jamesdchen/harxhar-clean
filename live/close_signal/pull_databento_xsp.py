@@ -1,7 +1,15 @@
-"""XSP 0DTE quotes at the close from Databento OPRA (streaming API), estimate first.
+"""XSP (or SPXW) 0DTE quotes at the close from Databento OPRA (streaming API), estimate first.
 
     python live/close_signal/pull_databento_xsp.py --estimate            # sample days, extrapolated cost
     python live/close_signal/pull_databento_xsp.py --pull [--max-usd 100] # every session day
+
+    # the SPX line's depth (study 79 has its spread from the chain, not its sizes):
+    python live/close_signal/pull_databento_xsp.py --root SPXW --month-ends --estimate
+    python live/close_signal/pull_databento_xsp.py --root SPXW --month-ends --pull --max-usd 40
+
+``--root SPXW`` reads the ``SPXW.OPT`` parent at SPX scale into
+data/archive/spxw_opra/ (same file names); ``--month-ends`` keeps the last
+session of each month only.
 
 What it fetches, per session day D from 2023-03-28 (OPRA.PILLAR's first day):
 
@@ -42,6 +50,11 @@ SPOT_PATH = REPO / "data" / "spxw_spot.parquet"
 ES_PATH = REPO / "data" / "archive" / "es_v0_ohlcv1m_databento.csv"
 DATASET = "OPRA.PILLAR"
 PARENT = "XSP.OPT"
+#: root -> (Databento parent, strike scale vs SPX, output folder under data/archive)
+ROOTS: dict[str, tuple[str, float, str]] = {
+    "XSP": ("XSP.OPT", 0.1, "xsp_opra"),
+    "SPXW": ("SPXW.OPT", 1.0, "spxw_opra"),
+}
 OPRA_START = pd.Timestamp("2023-03-28")
 ET = "America/New_York"
 WINDOW = ("15:20", "16:16")
@@ -50,8 +63,8 @@ BAND_ES = 0.03
 XSP_SCALE = 0.1
 
 
-def session_days(today: pd.Timestamp) -> pd.DataFrame:
-    """Session days with a spot proxy: ``day``, ``spot_xsp`` (SPX / 10 scale), ``band``, ``source``."""
+def session_days(today: pd.Timestamp, scale: float = XSP_SCALE) -> pd.DataFrame:
+    """Session days with a spot proxy: ``day``, ``spot_xsp`` (SPX x ``scale``), ``band``, ``source``."""
     rows: list[dict[str, object]] = []
     if SPOT_PATH.exists():
         s = pd.read_parquet(SPOT_PATH)
@@ -69,7 +82,7 @@ def session_days(today: pd.Timestamp) -> pd.DataFrame:
                 rows.append(
                     {
                         "day": d,
-                        "spot_xsp": spot * XSP_SCALE,
+                        "spot_xsp": spot * scale,
                         "band": BAND_CHAIN,
                         "source": "chain",
                     }
@@ -89,7 +102,7 @@ def session_days(today: pd.Timestamp) -> pd.DataFrame:
                 rows.append(
                     {
                         "day": d,
-                        "spot_xsp": px * XSP_SCALE,
+                        "spot_xsp": px * scale,
                         "band": BAND_ES,
                         "source": "es",
                     }
@@ -137,7 +150,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--sample", type=int, default=6, help="days priced in --estimate")
     ap.add_argument("--max-usd", type=float, default=100.0)
-    ap.add_argument("--out-dir", default=str(OUT_DIR))
+    ap.add_argument("--root", choices=sorted(ROOTS), default="XSP")
+    ap.add_argument(
+        "--month-ends", action="store_true", help="the last session of each month only"
+    )
+    ap.add_argument("--out-dir", default=None, help="default data/archive/<root>_opra")
     ap.add_argument("--start", default=str(OPRA_START.date()))
     # OPRA.PILLAR after 13:30 UTC of the current day needs a live licence
     # (403 license_not_found_unauthorized, 2026-09-23): yesterday is the default end
@@ -150,10 +167,18 @@ def main(argv: list[str] | None = None) -> int:
     except ImportError:
         print("pip install databento first", file=sys.stderr)
         return 2
-    out_dir = Path(a.out_dir)
+    parent, scale, folder = ROOTS[a.root]
+    out_dir = Path(a.out_dir) if a.out_dir else REPO / "data" / "archive" / folder
     out_dir.mkdir(parents=True, exist_ok=True)
-    days = session_days(pd.Timestamp(a.end))
+    days = session_days(pd.Timestamp(a.end), scale)
     days = days[days["day"] >= pd.Timestamp(a.start)].reset_index(drop=True)
+    if a.month_ends:
+        if str(REPO) not in sys.path:  # run as a script: the repo is not on the path
+            sys.path.insert(0, str(REPO))
+        from live.ibkr.calendar_guard import is_last_session_of_month
+
+        keep = [is_last_session_of_month(d.date()) for d in days["day"]]
+        days = days[keep].reset_index(drop=True)
     if days.empty:
         print("no session days with a spot proxy in the range", file=sys.stderr)
         return 3
@@ -197,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
         kw_def = dict(
             dataset=DATASET,
             schema="definition",
-            symbols=[PARENT],
+            symbols=[parent],
             stype_in="parent",
             start=d0,
             end=d0 + pd.Timedelta(days=1),
@@ -225,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         z = zero_dte(defs, day) if "expiration" in defs.columns else defs
         if z.empty:
             print(
-                f"{tag}: no XSP contract expiring that day (holiday / no daily listing); skipped"
+                f"{tag}: no {a.root} contract expiring that day (holiday / no daily listing); skipped"
             )
             continue
         lo_k, hi_k = r["spot_xsp"] * (1 - r["band"]), r["spot_xsp"] * (1 + r["band"])
