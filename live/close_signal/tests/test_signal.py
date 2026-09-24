@@ -87,15 +87,13 @@ def test_card_says_what_to_do_in_each_state() -> None:
     i = build_instruction(flags={"month_end": False, "third_friday": True}, **kw)
     plain = render_card(i)
     # one limit order at the break-even, a fixed count, the strangle named for Robinhood
-    assert (
-        f"Buy {i.n_spx_at_pstar} SPX 6535 call + 6530 put (Robinhood: Long Strangle)"
-        in plain
-    )
+    assert f"Buy {i.n_spx_at_pstar} SPX 6530 put + 6535 call, expiring today." in plain
+    assert "Robinhood: Long Strangle, width 5, date (0d), row 6,530 / 6,535." in plain
     assert f"Limit price {i.p_star_spx:.2f}. Not filled by 15:31? Cancel" in plain
     assert "Hold to the 16:00 close" in plain and "Third Friday" in plain
     assert "XSP" not in plain and "Why" not in plain
     assert headline(i) == (
-        f"Close trade: buy {i.n_spx_at_pstar} SPX 6535C/6530P at 15:30, "
+        f"Close trade: buy {i.n_spx_at_pstar} SPX 6530P/6535C at 15:30, "
         f"limit {i.p_star_spx:.2f}"
     )
     me = render_card(
@@ -131,11 +129,10 @@ def test_small_budget_switches_the_card_and_title_to_xsp() -> None:
     # the half-strike pair is nearer the spot, so its break-even is dearer
     assert fri.p_star_xsp_half > fri.p_star_xsp
     card = render_card(fri)
-    assert (
-        "XSP 758 call + 757.5 put (Robinhood: Long Strangle), expiring today." in card
-    )
-    assert f"(put not listed? buy {fri.n_xsp_at_pstar} XSP 758 call + 757 put" in card
+    assert "XSP 757.5 put + 758 call, expiring today." in card
+    assert "Robinhood: Long Strangle, width 0.5, date (0d), row 757.5 / 758." in card
+    assert f"(no 757.5 put? buy {fri.n_xsp_at_pstar} XSP 757 put + 758 call" in card
     assert headline(fri).startswith("Close trade: buy ")
-    assert "XSP 758C/757.5P" in headline(fri)
+    assert "XSP 757.5P/758C" in headline(fri)
     assert math.isnan(thu.p_star_xsp_half)
-    assert "not listed?" not in render_card(thu) and "SPX" not in render_card(thu)
+    assert "no 757" not in render_card(thu) and "SPX" not in render_card(thu)

@@ -203,19 +203,27 @@ class _Leg:
     limit: float  # the break-even: the most the pair is worth today
     n: int  # pairs the budget buys at that price
 
+    # put first throughout: Robinhood's strangle rows read "put / call"
+
     @property
     def short(self) -> str:
-        return f"{self.root} {self.kc:g}C/{self.kp:g}P"
+        return f"{self.root} {self.kp:g}P/{self.kc:g}C"
+
+    @property
+    def pair(self) -> str:
+        return f"{self.root} {self.kp:g} put + {self.kc:g} call"
 
     @property
     def robinhood(self) -> str:
         # Robinhood's "Long Straddle" list pairs a call and a put at ONE strike;
-        # this pair is two strikes when the spot sits between them (a strangle)
+        # this pair is two strikes when the spot sits between them: its
+        # "Long Strangle" list, at the pair's width, date "(0d)", row put / call
         if self.kc != self.kp:
-            return f"{self.root} {self.kc:g} call + {self.kp:g} put (Robinhood: Long Strangle)"
-        return (
-            f"{self.root} {self.kc:g} call + {self.kp:g} put (Robinhood: Long Straddle)"
-        )
+            return (
+                f"Robinhood: Long Strangle, width {self.kc - self.kp:g}, date (0d), "
+                f"row {self.kp:,g} / {self.kc:,g}."
+            )
+        return f"Robinhood: Long Straddle, date (0d), row {self.kc:,g}."
 
 
 def _legs(i: Instruction) -> list[_Leg]:
@@ -271,26 +279,30 @@ def render_card(i: Instruction) -> str:
         lines += [
             f"{day}: MONTH-END, buy at 15:30 ET at any price",
             "",
-            f"Buy {leg.robinhood}, expiring today.",
+            f"Buy {leg.pair}, expiring today.",
+            leg.robinhood,
             f"Limit price: the ask + {CHASE_PCT:.0%}.",
             f"Quantity: ${budget:,.0f} / (limit price x 100), rounded down.",
             hold,
         ]
         if len(legs) > 1:
-            lines += [f"(put not listed? use {legs[1].robinhood})"]
+            alt = legs[1]
+            lines += [f"(no {leg.kp:g} put? use {alt.pair}: {alt.robinhood})"]
     else:
         leg = legs[0]
         lines += [
             f"{day}: at 15:30 ET",
             "",
-            f"Buy {leg.n} {leg.robinhood}, expiring today.",
+            f"Buy {leg.n} {leg.pair}, expiring today.",
+            leg.robinhood,
             f"Limit price {leg.limit:.2f}. Not filled by 15:31? Cancel: no trade today.",
             hold,
         ]
         if len(legs) > 1:
             alt = legs[1]
             lines += [
-                f"(put not listed? buy {alt.n} {alt.robinhood}, limit {alt.limit:.2f})"
+                f"(no {leg.kp:g} put? buy {alt.n} {alt.pair}, limit {alt.limit:.2f}: "
+                f"{alt.robinhood})"
             ]
     if i.third_friday:
         lines += ["", "Third Friday (monthly expiry)."]
