@@ -43,6 +43,7 @@ LATENCY_COLS: tuple[str, ...] = (
 SOURCES: tuple[str, ...] = (
     "databento_es",
     "firstrate",
+    "yahoo_cboe_hourly",
     "yahoo_es",
     "yahoo_spx_substitute",
     "placeholder",
@@ -132,8 +133,12 @@ class StateStore:
             index=idx,
         )
         out = vals.copy()
+        # An empty store reindexed to the new stamps carries object-dtype NaN;
+        # the data columns are floats by contract (the spec reads them as such).
+        for c in data_cols:
+            out[c] = pd.to_numeric(out[c], errors="coerce").astype(float)
         out["source"] = source
-        out["placeholder"] = ph
+        out["placeholder"] = ph.astype(bool)
         out = out.reset_index().rename(columns={"index": "endbartime"})
         return out[list(PANEL_COLS)].sort_values("endbartime").reset_index(drop=True)
 

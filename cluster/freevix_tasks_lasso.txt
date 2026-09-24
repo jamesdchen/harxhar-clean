@@ -1,0 +1,1 @@
+free_vix_only reclasso 2000 bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600

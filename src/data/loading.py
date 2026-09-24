@@ -374,6 +374,13 @@ VIX_RVOL_FEATURES: list[str] = ["vix_volofvol_5d", "vix_volofvol_22d"]
 SUBGROUPS["free_feasible_vol"] = [
     f for f in SUBGROUPS["live_feasible"] if f != "numobs"
 ]
+# The bucket the close-signal service will forecast with if it holds: the free
+# feed's 15 columns without vvix and vix3m (the 2026-09-23 vixonly campaign
+# found neither adds anything at the per-bar arm; the live feed then needs the
+# VIX alone).  13 columns: the 8 ES moments incl. sumvolume, vix, 4 FOMC.
+SUBGROUPS["free_vix_only"] = [
+    f for f in SUBGROUPS["free_feasible_vol"] if f not in ("vvix", "vix3m")
+]
 SUBGROUPS["vix_only"] = ["vix"]
 SUBGROUPS["vix_rvol"] = ["vix", *VIX_RVOL_FEATURES]
 SUBGROUPS["live_vix_only"] = [

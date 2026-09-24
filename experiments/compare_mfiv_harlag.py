@@ -117,7 +117,11 @@ FAMILIES: dict[str, dict] = {
     # columns and numobs): what the close-signal service forecasts with.
     "free": {
         "pulled": "free_carc",
-        "tw": {"free_feasible": 2000, "free_feasible_vol": 2000},
+        "tw": {
+            "free_feasible": 2000,
+            "free_feasible_vol": 2000,
+            "free_vix_only": 2000,
+        },
         "windows": {"*": [("all", None, None), ("deck", DECK_START, DECK_END)]},
         "har": False,
     },
