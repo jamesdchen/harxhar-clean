@@ -60,6 +60,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument(
         "--wait-until", default=None, help="ET clock to sleep to, e.g. 15:30:30"
     )
+    ap.add_argument(
+        "--max-wait-min",
+        type=float,
+        default=None,
+        help="refuse (exit 2, no card) a --wait-until sleep longer than this",
+    )
     ap.add_argument("--input-mode", choices=INPUT_MODES, default="free_substitute")
     ap.add_argument(
         "--delayed-deadline",
@@ -154,13 +160,28 @@ def main(argv: list[str] | None = None) -> int:
     session = pd.Timestamp(a.session) if a.session else pd.Timestamp(now.date())
     if not a.skip_guard:
         ok, why = schedule.should_run(datetime.now(schedule.ET_TZ))
+        if ok and schedule.already_journaled(store.load_journal(), session.date()):
+            ok, why = False, f"session {session.date()} already has a journal row"
         print(("run: " if ok else "skip: ") + why, flush=True)
         if not ok:
             return 0
     if a.wait_until:
-        s = schedule.seconds_until(a.wait_until)
-        print(f"sleeping {s:.0f}s to {a.wait_until} ET", flush=True)
-        time.sleep(s)
+        plan, s = schedule.wait_plan(
+            session.date(), datetime.now(schedule.ET_TZ), a.wait_until, a.max_wait_min
+        )
+        if plan == "refuse":
+            print(
+                f"not waiting {s / 3600:.1f} h to {a.wait_until} ET (--max-wait-min "
+                f"{a.max_wait_min:g}): dispatch inside the day, or pass --session "
+                "YYYY-MM-DD to replay a past session",
+                flush=True,
+            )
+            return 2
+        if plan == "sleep":
+            print(f"sleeping {s:.0f}s to {a.wait_until} ET", flush=True)
+            time.sleep(s)
+        else:
+            print(f"replaying {session.date()}: no wait", flush=True)
     flags = schedule.calendar_flags(session.date())
     t1530 = stamp(session, DECISION)
     run_at = feeds.now_et()
@@ -251,18 +272,25 @@ def main(argv: list[str] | None = None) -> int:
         body = render_card(instr)
         eid = _push(a, session.date(), instr.decision, body, late)
         print(f"posted calendar event {eid or '(dry run)'}", flush=True)
-        if not a.dry_run:
-            store.append_journal(
-                {
-                    "run_at": run_at,
-                    "session": session,
-                    **instr.as_record(),
-                    **{f"fc_{k}": v for k, v in fc.items()},
-                    "event_id": eid,
-                    "status": "ok",
-                }
-            )
         print(body, flush=True)
+        if not a.dry_run:
+            # the card is posted: a journal failure from here on must not
+            # replace it with NO SIGNAL (it did on 2026-09-24)
+            try:
+                store.append_journal(
+                    {
+                        "run_at": run_at,
+                        "session": session,
+                        **instr.as_record(),
+                        **{f"fc_{k}": v for k, v in fc.items()},
+                        "event_id": eid,
+                        "status": "ok",
+                    }
+                )
+            except Exception:  # noqa: BLE001
+                print("card posted, journal write FAILED:", flush=True)
+                traceback.print_exc()
+                return 3
         return 0
     except Exception as e:  # noqa: BLE001 -- every failure must become a NO SIGNAL card
         # (the 2026-09-23 dispatch died on a pytz NonExistentTimeError outside

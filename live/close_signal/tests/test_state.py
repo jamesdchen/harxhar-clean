@@ -109,3 +109,26 @@ def test_latency_and_journal_append(tmp_path) -> None:
     st.append_journal({"session": T2, "status": "no_signal", "error": "x"})
     j = st.load_journal()
     assert len(j) == 2 and j["status"].tolist() == ["ok", "no_signal"]
+
+
+def test_journal_takes_a_card_row_after_a_no_signal_row(tmp_path) -> None:
+    # 2026-09-24: the first real card's row carried datetime.date (session,
+    # expiry) after Timestamp NO SIGNAL rows; pyarrow refused the mixed column
+    from datetime import date
+
+    st = StateStore(tmp_path)
+    st.append_journal(
+        {"session": pd.Timestamp("2026-09-24"), "status": "no_signal", "error": "x"}
+    )
+    st.append_journal(
+        {
+            "session": date(2026, 9, 24),
+            "expiry": date(2026, 9, 24),
+            "status": "ok",
+            "p_star_spx": 4.68,
+        }
+    )
+    j = st.load_journal()
+    assert list(j["status"]) == ["no_signal", "ok"]
+    assert str(j["session"].dtype).startswith("datetime64")
+    assert j["expiry"].iloc[1] == pd.Timestamp("2026-09-24")

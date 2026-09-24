@@ -1,4 +1,4 @@
-"""The Actions guard: which UTC firing is 15:00 ET, sessions, early closes."""
+"""The Actions guard: the firing window, one card per session, sessions, early closes."""
 
 from __future__ import annotations
 
@@ -12,31 +12,41 @@ if str(_ROOT) not in sys.path:
 if str(_ROOT / "notebooks") not in sys.path:
     sys.path.insert(0, str(_ROOT / "notebooks"))
 
+import pandas as pd  # noqa: E402
+
 from live.close_signal.schedule import (  # noqa: E402
+    already_journaled,
     calendar_flags,
     is_early_close,
     seconds_until,
     should_run,
+    wait_plan,
 )
 
 
-def test_daylight_time_takes_the_19_utc_firing_and_standard_time_the_20_utc_one() -> (
-    None
-):
-    # 2026-09-23 (EDT): 19:00 UTC = 15:00 ET
-    assert should_run(datetime(2026, 9, 23, 19, 2, tzinfo=timezone.utc))[0] is True
-    assert should_run(datetime(2026, 9, 23, 20, 2, tzinfo=timezone.utc))[0] is False
-    # 2026-12-02 (EST): 20:00 UTC = 15:00 ET
-    assert should_run(datetime(2026, 12, 2, 20, 2, tzinfo=timezone.utc))[0] is True
-    assert should_run(datetime(2026, 12, 2, 19, 2, tzinfo=timezone.utc))[0] is False
+def test_the_three_off_hour_firings_map_into_the_window() -> None:
+    # 2026-09-23 (EDT): 16:17 / 17:17 / 18:17 UTC = 12:17 / 13:17 / 14:17 ET, all accepted
+    for h in (16, 17, 18):
+        assert should_run(datetime(2026, 9, 23, h, 17, tzinfo=timezone.utc))[0] is True
+    # 2026-12-02 (EST): 11:17 ET is before the window, 12:17 / 13:17 ET are in it
+    assert should_run(datetime(2026, 12, 2, 16, 17, tzinfo=timezone.utc))[0] is False
+    assert should_run(datetime(2026, 12, 2, 17, 17, tzinfo=timezone.utc))[0] is True
+    assert should_run(datetime(2026, 12, 2, 18, 17, tzinfo=timezone.utc))[0] is True
 
 
-def test_jitter_inside_the_window_is_accepted_and_late_is_not() -> None:
+def test_a_delayed_firing_is_accepted_until_1525_and_late_is_not() -> None:
     assert (
         should_run(datetime(2026, 9, 23, 19, 20, tzinfo=timezone.utc))[0] is True
     )  # 15:20 ET
     ok, why = should_run(datetime(2026, 9, 23, 19, 40, tzinfo=timezone.utc))  # 15:40 ET
     assert ok is False and "outside" in why
+
+
+def test_a_session_with_a_journal_row_is_not_run_again() -> None:
+    j = pd.DataFrame({"session": [pd.Timestamp("2026-09-23")], "status": ["no_signal"]})
+    assert already_journaled(j, date(2026, 9, 23)) is True
+    assert already_journaled(j, date(2026, 9, 24)) is False
+    assert already_journaled(pd.DataFrame(), date(2026, 9, 24)) is False
 
 
 def test_non_sessions_and_early_closes_are_skipped() -> None:
@@ -71,3 +81,17 @@ def test_flags_and_sleep() -> None:
     now = datetime(2026, 9, 23, 15, 0, 0, tzinfo=ET_TZ)
     assert seconds_until("15:30:30", now) == 1830.0
     assert seconds_until("14:00:00", now) == 0.0
+
+
+def test_wait_plan_replays_past_sessions_and_refuses_an_overlong_sleep() -> None:
+    from live.close_signal.schedule import ET_TZ
+
+    at_0225 = datetime(2026, 9, 24, 2, 25, tzinfo=ET_TZ)  # run 35964417416
+    plan, s = wait_plan(date(2026, 9, 24), at_0225, "15:30:30", 220)
+    assert plan == "refuse" and s > 13 * 3600
+    assert wait_plan(date(2026, 9, 23), at_0225, "15:30:30", 220) == ("replay", 0.0)
+    at_1217 = datetime(2026, 9, 24, 16, 17, tzinfo=timezone.utc)  # 12:17 ET firing
+    plan, s = wait_plan(date(2026, 9, 24), at_1217, "15:30:30", 220)
+    assert plan == "sleep" and s == 3 * 3600 + 13 * 60 + 30
+    at_1531 = datetime(2026, 9, 24, 15, 31, tzinfo=ET_TZ)
+    assert wait_plan(date(2026, 9, 24), at_1531, "15:30:30", 220) == ("sleep", 0.0)

@@ -15,6 +15,7 @@ a silent NaN.
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -165,7 +166,18 @@ class StateStore:
 
     # -------------------------------------------------------------- journal --
     def append_journal(self, record: dict[str, Any]) -> None:
-        row = pd.DataFrame([record])
+        # dates become Timestamps: ``Instruction.as_record`` carries
+        # ``datetime.date`` (session, expiry) and a column mixing those with the
+        # NO SIGNAL rows' Timestamps is an object column pyarrow refuses -- the
+        # 2026-09-24 run posted its card, failed here, and the catch-all then
+        # overwrote the card with NO SIGNAL.
+        rec = {
+            k: pd.Timestamp(v)
+            if isinstance(v, date) and not isinstance(v, datetime)
+            else v
+            for k, v in record.items()
+        }
+        row = pd.DataFrame([rec])
         if self.journal_path.exists():
             old = pd.read_parquet(self.journal_path)
             row = pd.concat([old, row], ignore_index=True)
