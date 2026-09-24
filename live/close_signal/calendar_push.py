@@ -88,13 +88,14 @@ def push_event(
     return str(out.get("id", ""))
 
 
-def summary_for(decision: str, late: bool) -> str:
-    base = {
-        "BUY_MONTH_END": "CLOSE TRADE: BUY month-end straddle",
-        "BUY_IF_ASK_LE_PSTAR": "CLOSE TRADE: buy if ask <= break-even",
-        "NO_TRADE_FLAG": "CLOSE TRADE: no trade",
-        "NO_SIGNAL": "CLOSE TRADE: NO SIGNAL (feed failure)",
-    }.get(decision, "CLOSE TRADE")
+def summary_for(decision: str, late: bool, headline: str = "") -> str:
+    """The event title: the card's own headline when it has one."""
+    base = headline or {
+        "BUY_MONTH_END": "Close trade: MONTH-END BUY at 15:30",
+        "BUY_IF_ASK_LE_PSTAR": "Close trade: buy if the ask is at or below the limit",
+        "NO_TRADE_FLAG": "Close trade: NO TRADE today",
+        "NO_SIGNAL": "Close trade: NO SIGNAL (the job failed, do not trade)",
+    }.get(decision, "Close trade")
     return base + (" [LATE]" if late else "")
 
 

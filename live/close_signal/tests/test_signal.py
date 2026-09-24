@@ -18,6 +18,7 @@ from live.close_signal.signal import (  # noqa: E402
     break_even_price,
     build_instruction,
     half_strike_pair,
+    headline,
     implied_variance_at,
     nearest_otm_strikes,
     render_card,
@@ -86,25 +87,29 @@ def test_card_says_what_to_do_in_each_state() -> None:
     plain = render_card(
         build_instruction(flags={"month_end": False, "third_friday": True}, **kw)
     )
-    assert "BUY ONLY IF" in plain and "NO TRADE" in plain and "third Friday" in plain
+    assert "->  BUY" in plain and "NO TRADE today" in plain and "Third Friday" in plain
     # the general leg is bought on the SPX line too; XSP only below one SPX straddle
-    assert "BUY ONLY IF the SPX 6535C / 6530P straddle ASK <=" in plain
-    assert plain.index("BUY ONLY IF the SPX") < plain.index("XSP only if N on SPX is 0")
-    assert "hold to cash settlement" in plain
+    assert "SPX 6535 call + SPX 6530 put" in plain
+    assert plain.index("SPX 6535 call") < plain.index("Use XSP instead")
+    assert "settle in cash at the 16:00 close" in plain
     me = render_card(
         build_instruction(flags={"month_end": True, "third_friday": False}, **kw)
     )
-    assert "MONTH-END CLOSE: BUY" in me and "regardless of the forecast" in me
+    assert "MONTH-END close trade" in me and "whatever the price" in me
     # the SPX line is the month-end venue; XSP only below one SPX straddle
-    assert me.index("  SPX  buy") < me.index("  XSP  only if N on SPX is 0")
+    assert me.index("SPX 6535 call") < me.index("Buy XSP 654 call")
     late = render_card(
         build_instruction(flags={"month_end": False}, late=True, notes=("x",), **kw)
     )
-    assert "[LATE" in late and "Notes: x" in late
+    assert late.startswith("LATE:") and "Data notes: x" in late
     none = render_card(
         build_instruction(flags={"month_end": False}, **{**kw, "rv_hat": float("nan")})
     )
-    assert "NO TRADE: the forecast" in none
+    assert "NO TRADE today" in none and "no forecast" in none
+    title = headline(
+        build_instruction(flags={"month_end": False, "third_friday": False}, **kw)
+    )
+    assert title.startswith("Close trade: buy SPX 6535C + 6530P if ask <= ")
 
 
 def test_friday_half_strike_line_only_on_fridays() -> None:
@@ -120,5 +125,5 @@ def test_friday_half_strike_line_only_on_fridays() -> None:
     assert (fri.kc_xsp_half, fri.kp_xsp_half) == (758.0, 757.5)
     # the half-strike pair is nearer the spot, so its break-even is dearer
     assert fri.p_star_xsp_half > fri.p_star_xsp
-    assert "(XSP, Friday: if 758C / 757.5P is listed" in render_card(fri)
+    assert "(Friday: if XSP lists the 758 call / 757.5 put" in render_card(fri)
     assert math.isnan(thu.p_star_xsp_half) and "Friday:" not in render_card(thu)

@@ -77,6 +77,12 @@ def test_insert_when_absent_and_update_when_present() -> None:
 
 
 def test_summaries() -> None:
-    assert summary_for("BUY_MONTH_END", False).startswith("CLOSE TRADE: BUY month-end")
+    assert summary_for("BUY_MONTH_END", False).startswith("Close trade: MONTH-END BUY")
     assert summary_for("NO_SIGNAL", True).endswith("[LATE]")
-    assert "no trade" in summary_for("NO_TRADE_FLAG", False)
+    assert "do not trade" in summary_for("NO_SIGNAL", False)
+    assert "NO TRADE" in summary_for("NO_TRADE_FLAG", False)
+    # the card's own headline wins when given
+    assert (
+        summary_for("BUY_IF_ASK_LE_PSTAR", False, "Close trade: buy X")
+        == "Close trade: buy X"
+    )

@@ -41,6 +41,7 @@ from live.close_signal.signal import (
     DEFAULT_LONG_FRACTION,
     DEFAULT_MONTH_END_FRACTION,
     build_instruction,
+    headline,
     render_card,
 )
 from live.close_signal.state import StateStore
@@ -129,13 +130,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return ap.parse_args(argv)
 
 
-def _push(a: argparse.Namespace, session, decision: str, body: str, late: bool) -> str:
+def _push(
+    a: argparse.Namespace,
+    session,
+    decision: str,
+    body: str,
+    late: bool,
+    headline: str = "",
+) -> str:
     if a.no_push or a.dry_run:
         print(body, flush=True)
         return ""
     service = calendar_push.make_service()
     ev = calendar_push.build_event(
-        session, calendar_push.summary_for(decision, late), body
+        session, calendar_push.summary_for(decision, late, headline), body
     )
     return calendar_push.push_event(service, a.calendar_id, ev, session)
 
@@ -270,7 +278,7 @@ def main(argv: list[str] | None = None) -> int:
             notes=tuple(notes),
         )
         body = render_card(instr)
-        eid = _push(a, session.date(), instr.decision, body, late)
+        eid = _push(a, session.date(), instr.decision, body, late, headline(instr))
         print(f"posted calendar event {eid or '(dry run)'}", flush=True)
         print(body, flush=True)
         if not a.dry_run:
@@ -295,7 +303,11 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:  # noqa: BLE001 -- every failure must become a NO SIGNAL card
         # (the 2026-09-23 dispatch died on a pytz NonExistentTimeError outside
         # the earlier tuple: rc 1, no card, the operator none the wiser)
-        msg = f"NO SIGNAL for {session.date()}: {type(e).__name__}: {e}"
+        msg = (
+            f"NO SIGNAL, {session.date():%a %d %b %Y}: the job failed, so there is no "
+            "forecast.\nDo not trade the close on this model today.\n\n"
+            f"For the log: {type(e).__name__}: {e}"
+        )
         print(msg, flush=True)
         traceback.print_exc()
         try:
