@@ -371,7 +371,9 @@ VIX_RVOL_FEATURES: list[str] = ["vix_volofvol_5d", "vix_volofvol_22d"]
 # (numobs): Yahoo's ES=F 1-minute bars carry volume.  free_feasible (above) also
 # dropped sumvolume as a "liquidity" column; this bucket keeps it.  The fair
 # comparison of the two against live_feasible prices the tick count alone.
-SUBGROUPS["free_feasible_vol"] = [f for f in SUBGROUPS["live_feasible"] if f != "numobs"]
+SUBGROUPS["free_feasible_vol"] = [
+    f for f in SUBGROUPS["live_feasible"] if f != "numobs"
+]
 SUBGROUPS["vix_only"] = ["vix"]
 SUBGROUPS["vix_rvol"] = ["vix", *VIX_RVOL_FEATURES]
 SUBGROUPS["live_vix_only"] = [
