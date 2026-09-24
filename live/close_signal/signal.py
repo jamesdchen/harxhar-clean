@@ -195,93 +195,103 @@ def build_instruction(
     )
 
 
-def _legs(i: Instruction) -> list[tuple[str, str, float, float, float]]:
-    """(title pair, card pair, limit, call strike, put strike), in order of preference.
+@dataclass(frozen=True)
+class _Leg:
+    root: str
+    kc: float
+    kp: float
+    limit: float  # the break-even: the most the pair is worth today
+    n: int  # pairs the budget buys at that price
+
+    @property
+    def short(self) -> str:
+        return f"{self.root} {self.kc:g}C/{self.kp:g}P"
+
+    @property
+    def robinhood(self) -> str:
+        # Robinhood's "Long Straddle" list pairs a call and a put at ONE strike;
+        # this pair is two strikes when the spot sits between them (a strangle)
+        if self.kc != self.kp:
+            return f"{self.root} {self.kc:g} call + {self.kp:g} put (Robinhood: Long Strangle)"
+        return (
+            f"{self.root} {self.kc:g} call + {self.kp:g} put (Robinhood: Long Straddle)"
+        )
+
+
+def _legs(i: Instruction) -> list[_Leg]:
+    """The pairs to trade, in order of preference; empty if the budget buys none.
 
     SPX is the venue; XSP replaces it only when the budget buys no SPX pair
-    at the limit (study 79: XSP's spread is ~4x SPX's).  On a Friday the XSP
-    half-strike pair comes first, with the 1-point pair as its fallback.
+    at the break-even (study 79: XSP's spread is ~4x SPX's).  On a Friday the
+    XSP half-strike pair comes first, with the 1-point pair as its fallback.
     """
-    if i.n_spx_at_pstar > 0 or not math.isfinite(i.p_star_xsp):
-        return [
-            (
-                f"SPX {i.kc_spx:g}C + {i.kp_spx:g}P",
-                f"SPX {i.kc_spx:g} call + SPX {i.kp_spx:g} put",
-                i.p_star_spx,
-                i.kc_spx,
-                i.kp_spx,
-            )
-        ]
+    frac = i.month_end_fraction if i.month_end else i.long_fraction
+    if i.n_spx_at_pstar > 0:
+        return [_Leg("SPX", i.kc_spx, i.kp_spx, i.p_star_spx, i.n_spx_at_pstar)]
     out = []
     if math.isfinite(i.p_star_xsp_half):
-        out.append(
-            (
-                f"XSP {i.kc_xsp_half:g}C + {i.kp_xsp_half:g}P",
-                f"XSP {i.kc_xsp_half:g} call + XSP {i.kp_xsp_half:g} put",
-                i.p_star_xsp_half,
-                i.kc_xsp_half,
-                i.kp_xsp_half,
-            )
-        )
-    out.append(
-        (
-            f"XSP {i.kc_xsp:g}C + {i.kp_xsp:g}P",
-            f"XSP {i.kc_xsp:g} call + XSP {i.kp_xsp:g} put",
-            i.p_star_xsp,
-            i.kc_xsp,
-            i.kp_xsp,
-        )
-    )
-    return out
+        n = contracts_for_outlay(i.capital, frac, i.p_star_xsp_half, INDEX_MULTIPLIER)
+        out.append(_Leg("XSP", i.kc_xsp_half, i.kp_xsp_half, i.p_star_xsp_half, n))
+    out.append(_Leg("XSP", i.kc_xsp, i.kp_xsp, i.p_star_xsp, i.n_xsp_at_pstar))
+    return [leg for leg in out if leg.n > 0]
 
 
 def headline(i: Instruction) -> str:
     """The Calendar event title: the whole instruction when it fits on a phone line."""
-    title_pair, _, limit, _, _ = _legs(i)[0]
+    legs = _legs(i)
+    if not legs or i.decision == "NO_TRADE_FLAG":
+        return "Close trade: NO TRADE today"
+    leg = legs[0]
     if i.decision == "BUY_MONTH_END":
-        return f"Close trade: MONTH-END BUY {title_pair} at 15:30"
-    if i.decision == "BUY_IF_ASK_LE_PSTAR":
-        return f"Close trade: buy {title_pair} if ask <= {limit:.2f}"
-    return "Close trade: NO TRADE today"
+        return f"Close trade: MONTH-END buy {leg.short} at 15:30"
+    return f"Close trade: buy {leg.n} {leg.short} at 15:30, limit {leg.limit:.2f}"
 
 
 def render_card(i: Instruction) -> str:
-    """The Calendar event body: instructions only, readable on a phone."""
+    """The Calendar event body: instructions only, readable on a phone.
+
+    The general leg is one limit order AT the break-even: it fills (at the
+    ask or better) exactly when the research rule says buy, and does not fill
+    otherwise -- so the operator compares nothing and the count is fixed.
+    """
     frac = i.month_end_fraction if i.month_end else i.long_fraction
     budget = i.capital * frac
     day = i.session.strftime("%a %d %b %Y")
     legs = _legs(i)
-    how = [
-        f"Quantity: as many as ${budget:,.0f} buys (one pair = total ask x $100).",
-        f"Limit = the ask; if not filled, raise it at most {CHASE_PCT:.0%}.",
-        "Hold to the 16:00 close (cash settled, no exit order).",
-    ]
-    kc, kp = legs[0][3], legs[0][4]
-    # Robinhood's "Long Straddle" list pairs a call and a put at ONE strike;
-    # this pair is two strikes when the spot sits between them (a strangle)
-    robinhood = (
-        f"Robinhood: Long Strangle (not Straddle), call {kc:g} / put {kp:g}; its ask is the total."
-        if kc != kp
-        else f"Robinhood: Long Straddle at {kc:g}; its ask is the total."
-    )
+    hold = "Hold to the 16:00 close (cash settled, no exit order)."
     lines: list[str] = []
     if i.late:
-        lines += ["LATE: made after 15:30; the limit is for a 15:30 buy.", ""]
-    if i.decision == "BUY_MONTH_END":
-        lines += [f"{day}: MONTH-END, BUY at 15:30 ET at any price", ""]
-        lines += [f"{legs[0][1]}, expiring today", robinhood]
-        if len(legs) > 1:
-            lines += [f"(not listed? {legs[1][1]})"]
-        lines += ["", *how]
-    elif i.decision == "BUY_IF_ASK_LE_PSTAR":
-        lines += [f"{day}: at 15:30 ET", ""]
-        lines += [f"{legs[0][1]}, expiring today", robinhood]
-        lines += [f"Asks add up to {legs[0][2]:.2f} or less: BUY. Otherwise: no trade."]
-        if len(legs) > 1:
-            lines += [f"(not listed? {legs[1][1]}: BUY at {legs[1][2]:.2f} or less.)"]
-        lines += ["", *how]
-    else:
+        lines += ["LATE: made after 15:30; the order below is for 15:30.", ""]
+    if i.decision == "NO_TRADE_FLAG":
         lines += [f"{day}: NO TRADE today (no forecast)."]
+    elif not legs:
+        lines += [f"{day}: NO TRADE today (${budget:,.0f} buys less than one pair)."]
+    elif i.decision == "BUY_MONTH_END":
+        leg = legs[0]
+        lines += [
+            f"{day}: MONTH-END, buy at 15:30 ET at any price",
+            "",
+            f"Buy {leg.robinhood}, expiring today.",
+            f"Limit price: the ask + {CHASE_PCT:.0%}.",
+            f"Quantity: ${budget:,.0f} / (limit price x 100), rounded down.",
+            hold,
+        ]
+        if len(legs) > 1:
+            lines += [f"(put not listed? use {legs[1].robinhood})"]
+    else:
+        leg = legs[0]
+        lines += [
+            f"{day}: at 15:30 ET",
+            "",
+            f"Buy {leg.n} {leg.robinhood}, expiring today.",
+            f"Limit price {leg.limit:.2f}. Not filled by 15:31? Cancel: no trade today.",
+            hold,
+        ]
+        if len(legs) > 1:
+            alt = legs[1]
+            lines += [
+                f"(put not listed? buy {alt.n} {alt.robinhood}, limit {alt.limit:.2f})"
+            ]
     if i.third_friday:
         lines += ["", "Third Friday (monthly expiry)."]
     if i.notes:
