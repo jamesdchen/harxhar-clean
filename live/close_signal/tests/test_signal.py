@@ -101,6 +101,8 @@ def test_card_says_what_to_do_in_each_state() -> None:
     )
     assert "MONTH-END, buy at 15:30 ET at any price" in me
     assert "Limit price: the ask + 5%." in me and "$10,500 / (limit price x 100)" in me
+    # the ask can exceed a small budget: the XSP pair is named as the fallback
+    assert "Rounds to 0? Buy XSP 653 put + 654 call instead, same rule" in me
     late = render_card(
         build_instruction(flags={"month_end": False}, late=True, notes=("x",), **kw)
     )

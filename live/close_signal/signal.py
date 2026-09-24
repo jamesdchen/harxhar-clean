@@ -288,6 +288,11 @@ def render_card(i: Instruction) -> str:
         if len(legs) > 1:
             alt = legs[1]
             lines += [f"(no {leg.kp:g} put? use {alt.pair}: {alt.robinhood})"]
+        if leg.root == "SPX":
+            # the month-end ask is not known in advance: on a small budget one
+            # SPX pair can cost more than it (study 81: 19 of 40 month-ends at $5.5k)
+            x = _Leg("XSP", i.kc_xsp, i.kp_xsp, i.p_star_xsp, i.n_xsp_at_pstar)
+            lines += [f"Rounds to 0? Buy {x.pair} instead, same rule: {x.robinhood}"]
     else:
         leg = legs[0]
         lines += [
