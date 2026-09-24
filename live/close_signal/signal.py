@@ -195,99 +195,83 @@ def build_instruction(
     )
 
 
-def _count_rule(budget: float, example_price: float) -> str:
-    n = math.floor(budget / (example_price * 100)) if example_price > 0 else 0
-    return (
-        f"  How many: ${budget:,.0f} / (total ask x 100), rounded down "
-        f"({n} at {example_price:.2f})"
+def _legs(i: Instruction) -> list[tuple[str, str, float]]:
+    """(title pair, card pair, limit) to trade, in order of preference.
+
+    SPX is the venue; XSP replaces it only when the budget buys no SPX pair
+    at the limit (study 79: XSP's spread is ~4x SPX's).  On a Friday the XSP
+    half-strike pair comes first, with the 1-point pair as its fallback.
+    """
+    if i.n_spx_at_pstar > 0 or not math.isfinite(i.p_star_xsp):
+        return [
+            (
+                f"SPX {i.kc_spx:g}C + {i.kp_spx:g}P",
+                f"SPX {i.kc_spx:g} call + SPX {i.kp_spx:g} put",
+                i.p_star_spx,
+            )
+        ]
+    out = []
+    if math.isfinite(i.p_star_xsp_half):
+        out.append(
+            (
+                f"XSP {i.kc_xsp_half:g}C + {i.kp_xsp_half:g}P",
+                f"XSP {i.kc_xsp_half:g} call + XSP {i.kp_xsp_half:g} put",
+                i.p_star_xsp_half,
+            )
+        )
+    out.append(
+        (
+            f"XSP {i.kc_xsp:g}C + {i.kp_xsp:g}P",
+            f"XSP {i.kc_xsp:g} call + XSP {i.kp_xsp:g} put",
+            i.p_star_xsp,
+        )
     )
+    return out
 
 
 def headline(i: Instruction) -> str:
     """The Calendar event title: the whole instruction when it fits on a phone line."""
+    title_pair, _, limit = _legs(i)[0]
     if i.decision == "BUY_MONTH_END":
-        return f"Close trade: MONTH-END BUY SPX {i.kc_spx:g}C + {i.kp_spx:g}P at 15:30"
+        return f"Close trade: MONTH-END BUY {title_pair} at 15:30"
     if i.decision == "BUY_IF_ASK_LE_PSTAR":
-        return f"Close trade: buy SPX {i.kc_spx:g}C + {i.kp_spx:g}P if ask <= {i.p_star_spx:.2f}"
+        return f"Close trade: buy {title_pair} if ask <= {limit:.2f}"
     return "Close trade: NO TRADE today"
 
 
 def render_card(i: Instruction) -> str:
-    """The Calendar event body.  Plain text, readable on a phone."""
+    """The Calendar event body: instructions only, readable on a phone."""
     frac = i.month_end_fraction if i.month_end else i.long_fraction
     budget = i.capital * frac
     day = i.session.strftime("%a %d %b %Y")
-    pair_spx = f"SPX {i.kc_spx:g} call + SPX {i.kp_spx:g} put"
-    pair_xsp = f"XSP {i.kc_xsp:g} call + XSP {i.kp_xsp:g} put"
-    order = [
-        f"  Order: limit at the ask; if it does not fill, raise it by up to {CHASE_PCT:.0%}",
-        "  Then hold. Both settle in cash at the 16:00 close; no exit order.",
-        f"  Budget ${budget:,.0f} ({frac:.1%} of ${i.capital:,.0f}) is the most you can lose.",
+    legs = _legs(i)
+    how = [
+        f"Quantity: as many as ${budget:,.0f} buys (one pair = total ask x $100).",
+        f"Limit = the ask; if not filled, raise it at most {CHASE_PCT:.0%}.",
+        "Hold to the 16:00 close (cash settled, no exit order).",
     ]
     lines: list[str] = []
     if i.late:
-        lines += [
-            "LATE: made after 15:30 from data that arrived late; the limit below is for a 15:30 buy.",
-            "",
-        ]
+        lines += ["LATE: made after 15:30; the limit is for a 15:30 buy.", ""]
     if i.decision == "BUY_MONTH_END":
-        lines += [
-            f"MONTH-END close trade, {day}: BUY at 15:30 ET, whatever the price",
-            "",
-            "Buy this pair (both expire today):",
-            f"  {pair_spx}",
-            _count_rule(budget, i.p_star_spx),
-            *order,
-            "",
-            f"Budget too small for one SPX pair? Buy {pair_xsp} instead, same count rule.",
-            "",
-            "Why: on the last trading day of the month this pair has paid off on average",
-            "(+59% of the price paid, at the ask, over 32 month-ends), so today's forecast",
-            "is not used.",
-        ]
+        lines += [f"{day}: MONTH-END, BUY at 15:30 ET at any price", ""]
+        lines += [f"{legs[0][1]}, expiring today"]
+        if len(legs) > 1:
+            lines += [f"(not listed? {legs[1][1]})"]
+        lines += ["", *how]
     elif i.decision == "BUY_IF_ASK_LE_PSTAR":
-        lines += [
-            f"Close trade, {day}: decide at 15:30 ET",
-            "",
-            "At 15:30, add up the two asks on this pair (both expire today):",
-            f"  {pair_spx}",
-            "",
-            f"  {'Total ' + format(i.p_star_spx, '.2f') + ' or less':<20}->  BUY",
-            f"  {'More than ' + format(i.p_star_spx, '.2f'):<20}->  NO TRADE today",
-            "",
-            "If you buy:",
-            _count_rule(budget, i.p_star_spx),
-            *order,
-            "",
-            "Budget too small for one SPX pair? Use XSP instead:",
-            f"  {pair_xsp}, buy only if the asks add up to {i.p_star_xsp:.2f} or less.",
-        ]
-        if math.isfinite(i.p_star_xsp_half):
-            lines += [
-                f"  (Friday: if XSP lists the {i.kc_xsp_half:g} call / {i.kp_xsp_half:g} put, "
-                f"use that pair, limit {i.p_star_xsp_half:.2f}.)",
-            ]
-        lines += [
-            "",
-            f"Why {i.p_star_spx:.2f}: the model expects the S&P 500 to move about "
-            f"{i.break_even_vol_pct:.2f}% between 15:30 and 16:00 (spot {i.spot:,.2f}).",
-            f"At that move the pair is worth {i.p_star_spx:.2f}; a lower ask is a bargain, a higher one is not.",
-        ]
+        lines += [f"{day}: at 15:30 ET", ""]
+        lines += [f"{legs[0][1]}, expiring today"]
+        lines += [f"Asks add up to {legs[0][2]:.2f} or less: BUY. Otherwise: no trade."]
+        if len(legs) > 1:
+            lines += [f"(not listed? {legs[1][1]}: BUY at {legs[1][2]:.2f} or less.)"]
+        lines += ["", *how]
     else:
-        lines += [
-            f"Close trade, {day}: NO TRADE today",
-            "",
-            "The model produced no forecast today, so there is no price to compare against.",
-        ]
+        lines += [f"{day}: NO TRADE today (no forecast)."]
     if i.third_friday:
-        lines += ["", "Third Friday (monthly options expiry)."]
-    lines += [
-        "",
-        f"For the log: input mode {i.input_mode}; rv_hat {i.rv_hat:.3e}; "
-        f"XSP limit {i.p_star_xsp:.2f}.",
-    ]
+        lines += ["", "Third Friday (monthly expiry)."]
     if i.notes:
-        lines += ["Data notes: " + "; ".join(i.notes)]
+        lines += ["", "Data: " + "; ".join(i.notes)]
     return "\n".join(lines)
 
 

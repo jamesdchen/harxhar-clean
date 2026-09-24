@@ -84,46 +84,54 @@ def test_card_says_what_to_do_in_each_state() -> None:
         capital=70_000.0,
         input_mode="free_substitute",
     )
-    plain = render_card(
-        build_instruction(flags={"month_end": False, "third_friday": True}, **kw)
+    i = build_instruction(flags={"month_end": False, "third_friday": True}, **kw)
+    plain = render_card(i)
+    assert "SPX 6535 call + SPX 6530 put, expiring today" in plain
+    assert (
+        f"Asks add up to {i.p_star_spx:.2f} or less: BUY. Otherwise: no trade." in plain
     )
-    assert "->  BUY" in plain and "NO TRADE today" in plain and "Third Friday" in plain
-    # the general leg is bought on the SPX line too; XSP only below one SPX straddle
-    assert "SPX 6535 call + SPX 6530 put" in plain
-    assert plain.index("SPX 6535 call") < plain.index("Use XSP instead")
-    assert "settle in cash at the 16:00 close" in plain
+    assert "Hold to the 16:00 close" in plain and "Third Friday" in plain
+    assert "XSP" not in plain  # the budget buys SPX pairs: no XSP line
+    assert "Why" not in plain  # instructions only
+    assert (
+        headline(i)
+        == f"Close trade: buy SPX 6535C + 6530P if ask <= {i.p_star_spx:.2f}"
+    )
     me = render_card(
         build_instruction(flags={"month_end": True, "third_friday": False}, **kw)
     )
-    assert "MONTH-END close trade" in me and "whatever the price" in me
-    # the SPX line is the month-end venue; XSP only below one SPX straddle
-    assert me.index("SPX 6535 call") < me.index("Buy XSP 654 call")
+    assert "MONTH-END, BUY at 15:30 ET at any price" in me
+    assert "SPX 6535 call + SPX 6530 put" in me and "$10,500" in me
     late = render_card(
         build_instruction(flags={"month_end": False}, late=True, notes=("x",), **kw)
     )
-    assert late.startswith("LATE:") and "Data notes: x" in late
+    assert late.startswith("LATE:") and "Data: x" in late
     none = render_card(
         build_instruction(flags={"month_end": False}, **{**kw, "rv_hat": float("nan")})
     )
-    assert "NO TRADE today" in none and "no forecast" in none
-    title = headline(
-        build_instruction(flags={"month_end": False, "third_friday": False}, **kw)
-    )
-    assert title.startswith("Close trade: buy SPX 6535C + 6530P if ask <= ")
+    assert "NO TRADE today (no forecast)" in none
 
 
-def test_friday_half_strike_line_only_on_fridays() -> None:
+def test_small_budget_switches_the_card_and_title_to_xsp() -> None:
     kw: dict[str, Any] = dict(
         spot=7575.85,  # XSP 757.585 -> the 758C / 757.5P pair if listed
         rv_hat=(0.0025) ** 2,
         flags={"month_end": False},
-        capital=70_000.0,
+        capital=5_000.0,  # 3.3 % = $165: less than one SPX pair
         input_mode="free_substitute",
     )
     fri = build_instruction(session=date(2026, 7, 10), **kw)
     thu = build_instruction(session=date(2026, 7, 9), **kw)
+    assert fri.n_spx_at_pstar == 0
     assert (fri.kc_xsp_half, fri.kp_xsp_half) == (758.0, 757.5)
     # the half-strike pair is nearer the spot, so its break-even is dearer
     assert fri.p_star_xsp_half > fri.p_star_xsp
-    assert "(Friday: if XSP lists the 758 call / 757.5 put" in render_card(fri)
-    assert math.isnan(thu.p_star_xsp_half) and "Friday:" not in render_card(thu)
+    card = render_card(fri)
+    assert "XSP 758 call + XSP 757.5 put, expiring today" in card
+    assert (
+        f"(not listed? XSP 758 call + XSP 757 put: BUY at {fri.p_star_xsp:.2f} or less.)"
+        in card
+    )
+    assert headline(fri).startswith("Close trade: buy XSP 758C + 757.5P if ask <= ")
+    assert math.isnan(thu.p_star_xsp_half)
+    assert "not listed?" not in render_card(thu) and "SPX" not in render_card(thu)
