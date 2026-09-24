@@ -119,7 +119,15 @@ def read_databento_ohlcv_1m(path: Path, symbol: str | None = None) -> pd.DataFra
     out[keep] = out[keep].astype(float)
     if _is_fixed_point(out["close"]):
         out[["open", "high", "low", "close"]] /= FIXED_POINT_SCALE
-    return out[~out.index.duplicated(keep="last")].sort_index()
+    # one row per minute AND instrument: a parent file has every contract on
+    # the same minute, and the front-month selection needs all of them
+    if "instrument_id" in out.columns:
+        dup = pd.MultiIndex.from_arrays([out.index, out["instrument_id"]]).duplicated(
+            keep="last"
+        )
+    else:
+        dup = out.index.duplicated(keep="last")
+    return out[~dup].sort_index(kind="stable")
 
 
 #: Databento's fixed-point price unit.
@@ -431,18 +439,58 @@ def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
     return rep
 
 
+def select_front_by_volume(bars: pd.DataFrame) -> pd.DataFrame:
+    """A parent-symbology file (every ES contract) -> the front month's minutes.
+
+    Databento's ``.v`` rule, applied here because the portal's request builder
+    sells the whole product and has no continuous symbology: the front
+    contract of an ET calendar day is the OUTRIGHT instrument (a symbol
+    without ``-``: no calendar spreads) with the highest total volume on the
+    previous day that traded; the file's first day takes its own leader.  The
+    ET calendar day stands in for the CME session (18:00 to 17:00) -- around a
+    roll the two differ by the evening bars of one day, which is immaterial to
+    which contract leads.  ``instrument_id`` is then the roll key.
+    """
+    if "instrument_id" not in bars.columns:
+        raise ValueError("a per-contract file needs the instrument_id column")
+    f = bars
+    if "symbol" in f.columns:
+        f = f[~f["symbol"].astype(str).str.contains("-", regex=False)]
+    if f.empty:
+        return f
+    day = pd.DatetimeIndex(f.index).normalize()
+    inst = f["instrument_id"].astype(str)
+    vol = f["volume"].astype(float).groupby([day, inst.to_numpy()]).sum()
+    leader = vol.groupby(level=0).idxmax().map(lambda t: t[1])
+    front = leader.shift(1)
+    front.iloc[0] = leader.iloc[0]
+    want = front.reindex(day).to_numpy()
+    return f[inst.to_numpy() == want]
+
+
 def ingest_es(
     store: StateStore, path: Path, *, continuous_symbol: str = "ES.v.0"
 ) -> dict[str, object]:
     """Databento ES 1-minute -> the panel's ES moments, appended as ``databento_es``.
 
-    Returns the row count, the span, the roll stamps found and the seam report.
+    A continuous file (``symbol`` = ``ES.v.0``) is taken as is; a parent file
+    (every contract) goes through ``select_front_by_volume``.  Returns the row
+    count, the span, the selection mode, the roll stamps and the seam report.
     """
     raw = read_databento_ohlcv_1m(path, symbol=None)
-    if "symbol" in raw.columns:
-        sym = raw["symbol"].astype(str)
-        if (sym == continuous_symbol).any():
-            raw = raw[sym == continuous_symbol]
+    mode = "single_instrument"
+    n_inst = (
+        int(raw["instrument_id"].nunique()) if "instrument_id" in raw.columns else 1
+    )
+    if (
+        "symbol" in raw.columns
+        and (raw["symbol"].astype(str) == continuous_symbol).any()
+    ):
+        raw = raw[raw["symbol"].astype(str) == continuous_symbol]
+        mode = "continuous"
+    elif n_inst > 1:
+        raw = select_front_by_volume(raw)
+        mode = "front_by_volume"
     key = roll_key(raw)
     mom = moments_by_contract(raw, key)
     if mom.empty:
@@ -453,6 +501,8 @@ def ingest_es(
         "rows": int(n),
         "first": str(mom["endbartime"].min()),
         "last": str(mom["endbartime"].max()),
+        "selection": mode,
+        "instruments_in_file": n_inst,
         "roll_key": None if key is None else key.name,
         "rolls": [str(t) for t in mom.attrs.get("rolls", [])],
         **report,
@@ -541,6 +591,7 @@ __all__ = [
     "ingest_es",
     "moments_by_contract",
     "roll_key",
+    "select_front_by_volume",
     "read_databento_ohlcv_1m",
     "read_firstrate_1m",
     "read_yahoo_daily",

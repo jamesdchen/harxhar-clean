@@ -310,3 +310,63 @@ def test_databento_es_ingest_builds_moments_per_contract_and_reports_the_seam(
     # the 10:00 bar (first contract only) is untouched by the roll
     t0 = pd.Timestamp("2024-06-13 10:00")
     assert np.isclose(panel.loc[t0, "sumret2"], naive.loc[t0, "sumret2"])
+
+
+def test_parent_file_takes_the_previous_days_volume_leader_and_drops_spreads(
+    tmp_path,
+) -> None:
+    """The portal sells every ES contract: the front month is the prior day's volume leader."""
+    from live.close_signal.ingest import ingest_es, select_front_by_volume
+
+    rng = np.random.default_rng(3)
+    rows = []
+    # three ET days; ESM4 leads on day 1, ESU4 on days 2 and 3 -> the FRONT is
+    # ESM4 on days 1 and 2 (day 1 takes its own leader), ESU4 on day 3
+    lead = {"2024-06-12": "ESM4", "2024-06-13": "ESU4", "2024-06-14": "ESU4"}
+    for d, leader in lead.items():
+        ts = pd.date_range(f"{d} 09:30", periods=60, freq="1min", tz=ET)
+        for sym, iid, base in (("ESM4", 1001, 5000.0), ("ESU4", 1002, 5020.0)):
+            close = base * np.exp(np.cumsum(rng.normal(0, 3e-4, size=60)))
+            vol = 300 if sym == leader else 100
+            for t, c in zip(ts, close):
+                rows.append((t, iid, c, vol, sym))
+        # a calendar spread, never a candidate
+        for t in ts[:5]:
+            rows.append((t, 2001, -20.0, 5000, "ESM4-ESU4"))
+    df = pd.DataFrame(
+        rows, columns=["ts", "instrument_id", "close", "volume", "symbol"]
+    )
+    df = df.sort_values(["ts", "instrument_id"])
+    csv = tmp_path / "es_parent.csv"
+    pd.DataFrame(
+        {
+            "ts_event": df["ts"]
+            .dt.tz_convert("UTC")
+            .dt.strftime("%Y-%m-%dT%H:%M:%S.000000000Z"),
+            "rtype": 32,
+            "publisher_id": 1,
+            "instrument_id": df["instrument_id"],
+            "open": df["close"],
+            "high": df["close"],
+            "low": df["close"],
+            "close": df["close"],
+            "volume": df["volume"],
+            "symbol": df["symbol"],
+        }
+    ).to_csv(csv, index=False)
+    from live.close_signal.ingest import read_databento_ohlcv_1m
+
+    raw = read_databento_ohlcv_1m(csv)
+    assert len(raw) == len(df)  # one row per minute AND instrument, nothing collapsed
+    front = select_front_by_volume(raw)
+    by_day = front.groupby(front.index.normalize())["symbol"].unique()
+    assert list(by_day.loc["2024-06-12"]) == ["ESM4"]
+    assert list(by_day.loc["2024-06-13"]) == ["ESM4"]  # yesterday's leader, not today's
+    assert list(by_day.loc["2024-06-14"]) == ["ESU4"]
+    assert not front["symbol"].str.contains("-").any()
+    assert len(front) == 3 * 60
+    store = StateStore(tmp_path / "state")
+    info = ingest_es(store, csv)
+    assert info["selection"] == "front_by_volume" and info["instruments_in_file"] == 3
+    assert info["roll_key"] == "instrument_id"
+    assert info["rolls"] == [str(pd.Timestamp("2024-06-14 09:30"))]

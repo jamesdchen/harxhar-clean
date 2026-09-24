@@ -97,7 +97,12 @@ stale bar as the 15:30 stamp without saying so.
    is read off `instrument_id`; the moments are built per contract segment and
    summed by stamp, so only the one cross-contract minute is lost.  The ingest
    prints the seam report (log ratios vs the free feed's rows on the stamps
-   both carry) before the purchased rows overwrite them.
+   both carry) before the purchased rows overwrite them.  The portal's
+   request builder has no continuous symbology -- it sells the whole `ES`
+   product (every contract, ~79 MB / $5 for the span): such a file is
+   accepted too, `ingest.select_front_by_volume` applying Databento's own `.v`
+   rule (the outright with the highest volume on the previous trading day;
+   spreads excluded) before the same per-contract build.
    `ingest_cboe` (FirstRate 1-minute CSVs) stays as an optional cross-check.
    * **Row rule** (`forecast._extend`): a panel row exists iff the bar had ES
      prints -- the vendor's own convention (no Saturday, Sunday from 18:30,
