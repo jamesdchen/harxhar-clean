@@ -300,7 +300,7 @@ def render_card(i: Instruction) -> str:
             "",
             f"Buy {leg.n} {leg.pair}, expiring today.",
             leg.robinhood,
-            f"Limit price {leg.limit:.2f}. Not filled by 15:31? Cancel: no trade today.",
+            f"Limit price {leg.limit:.2f}. Not filled within 1 minute? Cancel: no trade today.",
             hold,
         ]
         if len(legs) > 1:
@@ -309,11 +309,72 @@ def render_card(i: Instruction) -> str:
                 f"(no {leg.kp:g} put? buy {alt.n} {alt.pair}, limit {alt.limit:.2f}: "
                 f"{alt.robinhood})"
             ]
-    if i.third_friday:
-        lines += ["", "Third Friday (monthly expiry)."]
     if i.notes:
         lines += ["", "Data: " + "; ".join(i.notes)]
     return "\n".join(lines)
+
+
+#: Below this budget the prep also shows the XSP row: the card names XSP when
+#: the budget buys no SPX pair at the limit, and the 15:30 SPX strangle's ask
+#: is at or below 12.70 on 9 in 10 of the 866 deck days (p99 28.33).
+XSP_HINT_BUDGET = 1270.0
+
+
+def render_prep(
+    *,
+    session: date,
+    spot: float,
+    flags: dict[str, bool],
+    capital: float,
+    long_fraction: float = DEFAULT_LONG_FRACTION,
+    month_end_fraction: float = DEFAULT_MONTH_END_FRACTION,
+    card_at: str = "15:31",
+) -> tuple[str, str]:
+    """(title, body) of the 15:00 prep event: what is known half an hour ahead.
+
+    Known at 15:00: the day's flags, the budget, and the index -- so the
+    strangle row the card will most likely name (it is re-read at 15:30).
+    Not known: the limit price and the count, which need the 15:30 forecast.
+    """
+    month_end = bool(flags.get("month_end"))
+    frac = month_end_fraction if month_end else long_fraction
+    budget = capital * frac
+    day = session.strftime("%a %d %b %Y")
+    kc, kp = nearest_otm_strikes(spot, SPX_STRIKE_STEP)
+    kc_x, kp_x = nearest_otm_strikes(spot * XSP_SCALE, XSP_STRIKE_STEP)
+    row = f"{kp:,g} / {kc:,g}"
+    if month_end:
+        title = f"Prepare: MONTH-END close trade at 15:30 (row near {row}, budget ${budget:,.0f})"
+        lines = [
+            f"{day}: MONTH-END close trade at 15:30 ET, bought at any price",
+            "",
+            "Get ready now:",
+            "1. Robinhood: SPX options, Long Strangle, width 5, date (0d).",
+            f"2. SPX is {spot:,.0f} now: the row will be near {row} (it moves with the index).",
+            f"3. Budget ${budget:,.0f}: have the cash available.",
+            "",
+            f"At 15:30: tap the row, limit price = the ask + {CHASE_PCT:.0%}, "
+            f"quantity = ${budget:,.0f} / (limit price x 100), rounded down.",
+        ]
+    else:
+        title = f"Prepare: close trade card at about {card_at} (row near {row})"
+        lines = [
+            f"{day}: the close trade card comes at about {card_at} ET",
+            "",
+            "Get ready now:",
+            "1. Robinhood: SPX options, Long Strangle, width 5, date (0d).",
+            f"2. SPX is {spot:,.0f} now: the row will be near {row} (it moves with the index).",
+            f"3. Budget ${budget:,.0f}. The card gives the count and the limit price.",
+            "",
+            "When the card comes: tap its row, enter its count and limit price, submit.",
+            "Not filled within 1 minute? Cancel: no trade today.",
+        ]
+    if budget < XSP_HINT_BUDGET:
+        lines += [
+            "",
+            f"(If the card names XSP instead: width 1, row near {kp_x:g} / {kc_x:g}.)",
+        ]
+    return title, "\n".join(lines)
 
 
 __all__ = [
@@ -328,4 +389,6 @@ __all__ = [
     "implied_variance_at",
     "nearest_otm_strikes",
     "render_card",
+    "render_prep",
+    "XSP_HINT_BUDGET",
 ]

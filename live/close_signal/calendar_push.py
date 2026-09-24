@@ -1,9 +1,12 @@
 """Post the instruction as a Google Calendar event.
 
-The event sits at 15:30 ET for 30 minutes with a popup reminder at the event
-time, so the phone pings the moment the card exists.  Idempotent per session:
-the event carries a private extended property ``close_signal_key=<date>`` and
-a rerun updates it instead of adding a second one.  The Google libraries are
+The card sits at 15:30 ET for 30 minutes with a popup reminder at the event
+time, so the phone pings the moment the card exists; the PREP event sits at
+15:00 for 30 minutes (what can be known half an hour ahead).  Idempotent per
+session and kind: the card carries the private extended property
+``close_signal_key=<date>``, the prep ``close_signal_key=<date>/prep``, and a
+rerun updates its own event instead of adding a second one -- the prep can
+never overwrite the card.  The Google libraries are
 imported lazily so the package and its tests run without them.
 """
 
@@ -39,12 +42,23 @@ def make_service(
     return build("calendar", "v3", credentials=creds, cache_discovery=False)
 
 
-def event_key(session: date) -> str:
-    return f"{KEY_PROP}={session.isoformat()}"
+KEYS = {"card": "", "prep": "/prep"}
+
+
+def key_value(session: date, kind: str = "card") -> str:
+    return session.isoformat() + KEYS[kind]
+
+
+def event_key(session: date, kind: str = "card") -> str:
+    return f"{KEY_PROP}={key_value(session, kind)}"
 
 
 def build_event(
-    session: date, summary: str, body: str, start_hhmm: str = "15:30"
+    session: date,
+    summary: str,
+    body: str,
+    start_hhmm: str = "15:30",
+    kind: str = "card",
 ) -> dict[str, Any]:
     h, m = (int(x) for x in start_hhmm.split(":"))
     start = datetime(session.year, session.month, session.day, h, m, tzinfo=ET)
@@ -58,19 +72,23 @@ def build_event(
             "useDefault": False,
             "overrides": [{"method": "popup", "minutes": 0}],
         },
-        "extendedProperties": {"private": {KEY_PROP: session.isoformat()}},
+        "extendedProperties": {"private": {KEY_PROP: key_value(session, kind)}},
     }
 
 
 def push_event(
-    service: Any, calendar_id: str, event: dict[str, Any], session: date
+    service: Any,
+    calendar_id: str,
+    event: dict[str, Any],
+    session: date,
+    kind: str = "card",
 ) -> str:
-    """Insert or update the session's event; returns the event id."""
+    """Insert or update the session's event of this kind; returns the event id."""
     found = (
         service.events()
         .list(
             calendarId=calendar_id,
-            privateExtendedProperty=event_key(session),
+            privateExtendedProperty=event_key(session, kind),
             maxResults=5,
         )
         .execute()
@@ -100,10 +118,12 @@ def summary_for(decision: str, late: bool, headline: str = "") -> str:
 
 
 __all__ = [
+    "KEYS",
     "KEY_PROP",
     "SCOPES",
     "build_event",
     "event_key",
+    "key_value",
     "make_service",
     "push_event",
     "summary_for",

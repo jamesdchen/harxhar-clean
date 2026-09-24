@@ -22,6 +22,7 @@ from live.close_signal.signal import (  # noqa: E402
     implied_variance_at,
     nearest_otm_strikes,
     render_card,
+    render_prep,
 )
 
 
@@ -89,8 +90,11 @@ def test_card_says_what_to_do_in_each_state() -> None:
     # one limit order at the break-even, a fixed count, the strangle named for Robinhood
     assert f"Buy {i.n_spx_at_pstar} SPX 6530 put + 6535 call, expiring today." in plain
     assert "Robinhood: Long Strangle, width 5, date (0d), row 6,530 / 6,535." in plain
-    assert f"Limit price {i.p_star_spx:.2f}. Not filled by 15:31? Cancel" in plain
-    assert "Hold to the 16:00 close" in plain and "Third Friday" in plain
+    assert (
+        f"Limit price {i.p_star_spx:.2f}. Not filled within 1 minute? Cancel" in plain
+    )
+    # the third-Friday rule belonged to the short book: the long card ignores it
+    assert "Hold to the 16:00 close" in plain and "Third Friday" not in plain
     assert "XSP" not in plain and "Why" not in plain
     assert headline(i) == (
         f"Close trade: buy {i.n_spx_at_pstar} SPX 6530P/6535C at 15:30, "
@@ -138,3 +142,43 @@ def test_small_budget_switches_the_card_and_title_to_xsp() -> None:
     assert "XSP 757.5P/758C" in headline(fri)
     assert math.isnan(thu.p_star_xsp_half)
     assert "no 757" not in render_card(thu) and "SPX" not in render_card(thu)
+
+
+def test_prep_event_says_what_is_known_at_1500() -> None:
+    title, body = render_prep(
+        session=date(2026, 9, 25),
+        spot=7704.13,
+        flags={"month_end": False, "third_friday": False},
+        capital=70_000.0,
+    )
+    assert title == "Prepare: close trade card at about 15:31 (row near 7,700 / 7,705)"
+    assert "Long Strangle, width 5, date (0d)" in body
+    assert "SPX is 7,704 now: the row will be near 7,700 / 7,705" in body
+    assert "Budget $2,310" in body and "Not filled within 1 minute? Cancel" in body
+    assert "XSP" not in body  # $2,310 buys SPX pairs
+    title, body = render_prep(
+        session=date(2026, 9, 30),
+        spot=7704.13,
+        flags={"month_end": True},
+        capital=70_000.0,
+    )
+    assert title.startswith("Prepare: MONTH-END close trade at 15:30")
+    assert "Budget $10,500: have the cash available." in body
+    _, small = render_prep(
+        session=date(2026, 9, 25),
+        spot=7704.13,
+        flags={"month_end": False},
+        capital=5_528.0,
+    )
+    assert "(If the card names XSP instead: width 1, row near 770 / 771.)" in small
+
+
+def test_prep_and_card_events_never_share_a_key() -> None:
+    from live.close_signal.calendar_push import build_event, event_key
+
+    d = date(2026, 9, 25)
+    assert event_key(d) != event_key(d, "prep")
+    card = build_event(d, "s", "b")
+    prep = build_event(d, "s", "b", start_hhmm="15:00", kind="prep")
+    assert card["extendedProperties"] != prep["extendedProperties"]
+    assert prep["start"]["dateTime"].startswith("2026-09-25T15:00")
