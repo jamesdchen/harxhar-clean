@@ -9,14 +9,44 @@ the card).  **The short side of sign(s) is not traded**: the book is the
 Heaviside part 1{s > 0} plus the month-end long.
 
 ```
-15:00 ET   Actions fires (19:00 or 20:00 UTC; the guard keeps the right one)
-15:30:30   fetch feeds, measure delays, build today's 48 panel rows
-           forecast = specs/causal_tune_linear.py (bar1600, ridge, tw 2000,
-           free_vix_only) run in FULL on the extended panel
+12:17 ET   Actions fires (16:17 / 17:17 / 18:17 UTC; the guard keeps the first)
+15:00      PREP event (its own calendar key): the day, the budget, the row
+           near the index -- what is known half an hour ahead
+15:15      PRECOMPUTE: the 15:00 panel (the free ES delay is ~10 min), the
+           warm arm server (arms_shared --serve), a canary pass through
+           the whole forecast; nothing it computes is reused (below)
+15:30:30   fetch the five feeds at once, measure delays, build today's rows
+           forecast = specs/causal_tune_linear.py (13 bars, ridge, tw 2000,
+           free_vix_only) in FULL on the extended panel, one shared pass
            + the causal MZ map                                     -> rv_hat
            P* = Black-76 straddle price at sqrt(rv_hat)                -> the card
-15:31      Calendar event at 15:30 with a popup; state committed back
+~15:31     Calendar event at 15:30 with a popup; state committed back
 ```
+
+**Why the forecast itself cannot start before 15:30.**  The 15:30 row moves
+full-sample statistics inside the spec's transform -- the diurnal std floor of
+the signed moments (a median over every row), the median fills of unobserved
+cells -- so appending it changes 28 of the 232 transformed columns over the
+whole history (adj_sumret3 on 29,837 rows, the HAR means of adj_sumret to the
+last row) and with them every arm's past forecasts: on 2026-09-23 all 27,940
+prior-session rows moved, by up to 6.3e-6 relative, and the MZ map is fitted
+on those rows.  A 15:15 forecast is a different number.  What moves ahead of
+the stamp is everything around the arithmetic: the interpreter and imports,
+the spawned workers, the numba kernels, the code copy, the vendor files.
+
+**The shared pass** (`arms_shared.py`).  With `LAG_SCOPE=global` the 13 arms
+load, transform and HAR the SAME panel; the path of record does it 13 times
+(plus the spec's incumbent OLS run and metrics table, which the card never
+reads).  The shared pass runs the spec's own `run_executor` once, over the 13
+bar segments, with the spec's own definitions and keywords read from its
+source, and hands the 13 slices to the SAME `_backtest_and_save` in 4 spawned
+workers; the per-column `robust_transform` calls and the expiry extractor run
+in those workers too, each on exactly the inputs it reads.  The gate,
+`python -m live.close_signal.fastpath_check --check`, requires the 13 results
+CSVs to be bit-identical to the 13-process path's, rv_hat to be equal, and the
+card (P\*, strikes, counts, decision) to be equal, on 2026-09-23, 2026-09-24
+and the 2026-08-31 month-end.  `run.py --full-arms` still forecasts through
+the path of record.
 
 ## The rule, in the operator's units
 
@@ -138,9 +168,9 @@ regression never has to be re-validated against the true data.**  Concretely:
   availability masks, the impute medians, the diurnal baseline, the 21-session
   refits) sees exactly the rows it saw on the cluster.  There is no chunking,
   no incremental update and no frozen coefficient: today's rv_hat is the
-  research forecast on a longer panel.  One bar's rows for ~6,600 sessions fit
-  and score in about a minute; three bars run at a time (`--workers`), about
-  6-8 minutes wall clock.
+  research forecast on a longer panel.  One spec process per bar is the path
+  of record (`--full-arms`, about 5 minutes); the card uses the shared pass
+  above, the same 13 results files from one load and transform.
 * **The table and the loader are the research's.**  The 13 arms' rows are
   stacked into the notebook's yhat table exactly as
   `experiments/build_subsection_yhat.py` builds the research tables (`t` = the
@@ -226,8 +256,11 @@ day means the workflow did not run -- check the Actions log.
 * Yahoo is unofficial: rate limits, occasional empty days, delayed Cboe and
   CME data.  The measured-delay log is the record; `free_delayed` is the mode
   that reproduces the research inputs.
-* Actions cron jitter (5-20 min) is absorbed by firing at 15:00 and sleeping
-  to 15:30:30 in the job; a firing later than 15:25 ET is skipped.
+* Actions cron jitter (5-20 min) is absorbed by firing hours early and
+  sleeping to 15:30:30 in the job; a firing later than 15:25 ET is skipped.  A
+  firing after 15:00 posts the prep at once, after 15:25 none; closer than two
+  minutes to the stamp the precompute is skipped and the card path starts its
+  server cold (slower: worker start-up, numba compilation, transforms inline).
 * The forecast needs a continuous panel: 65 sessions for the HAR ladder,
   2,000 for the training window.  Until the gap is ingested the arm cannot run.
 * `numobs` in the vendor panel is a tick count; from 1-minute bars it is 30, so
@@ -245,5 +278,9 @@ day means the workflow did not run -- check the Actions log.
 `feeds.py` Yahoo adapters + delays; `features.py` the 30-minute moments and
 prints, `assert_parity`; `ingest.py` Databento / Yahoo-hourly Cboe gap / FirstRate (cross-check); `state.py` the
 committed parquets; `forecast.py` the spec arm on the extended panel + MZ;
+`arms_shared.py` the 13 arms in one shared pass (+ the warm server);
+`fastpath_check.py` its gate against the path of record;
 `signal.py` P\*, sizing, the card; `calendar_push.py`, `auth_once.py`;
-`schedule.py` the guard; `run.py` the entry point; `tests/`.
+`schedule.py` the guard and the prep / precompute timing; `run.py` the entry
+point; `close_signal.workflow.proposed.yml` the workflow proposed for main;
+`tests/`.

@@ -37,8 +37,11 @@ Requirements before a forecast is live: the panel must be continuous from the
 vendor's last row (2024-04-30) to today -- the HAR ladder reaches 3,125 bars
 (65 sessions) and the training window 2,000 sessions -- so the purchased gap
 rows must be ingested first.  Cost per run: 13 spec processes, each loading
-the ~350k-row panel and transforming it (about a minute) then fitting ~6,600
-rows (seconds); three at a time on the runner, about 6-8 minutes wall clock.
+the ~330k-row panel and transforming it, then backtesting its ~2,100 rows;
+three at a time, ~2 minutes on the runner, ~4-5 locally.  The card uses
+``forecast_session_fast`` instead: the same 13 results files from ONE load
+and transform (``arms_shared``), bit-identical (``fastpath_check.py``), in
+~20-25 s locally.
 """
 
 from __future__ import annotations
@@ -50,6 +53,7 @@ import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -245,11 +249,40 @@ def build_ext_root(
     """Scratch root with src/, the spec and data/ = vendor panel + this package's rows."""
     ext_root = Path(ext_root)
     _copy_code(repo, ext_root)
+    return write_ext_data(repo, store, ext_root, fomc_csv)
+
+
+def load_vendor(repo: Path) -> dict[str, pd.DataFrame]:
+    """The four vendor files as ``write_ext_data`` reads them (kept for a later write)."""
+    return {f: pd.read_parquet(Path(repo) / "data" / f) for f in VENDOR_FILES}
+
+
+def write_ext_data(
+    repo: Path,
+    store: StateStore,
+    ext_root: Path,
+    fomc_csv: Path,
+    vendor: dict[str, pd.DataFrame] | None = None,
+) -> Path:
+    """data/ of an ext root = vendor panel + this package's rows (the code is not touched).
+
+    ``vendor`` is ``load_vendor(repo)`` read earlier (the precompute phase); the
+    frames are copied, never modified, so the files written are those a fresh
+    read gives.
+    """
+    ext_root = Path(ext_root)
+    (ext_root / "data").mkdir(parents=True, exist_ok=True)
+
+    def vendor_file(f: str) -> pd.DataFrame:
+        if vendor is None:
+            return pd.read_parquet(Path(repo) / "data" / f)
+        return vendor[f].copy()
+
     panel = store.load_panel()
-    core = pd.read_parquet(repo / "data" / "core_stats.parquet")
+    core = vendor_file("core_stats.parquet")
     core_ext = _extend(core, panel, list(CORE_COLS))
     core_ext.to_parquet(ext_root / "data" / "core_stats.parquet", index=False)
-    vix = pd.read_parquet(repo / "data" / "vix_and_voldemand.parquet")
+    vix = vendor_file("vix_and_voldemand.parquet")
     vix_ext = _extend(vix, panel, list(CBOE_COLS))
     vix_ext.to_parquet(ext_root / "data" / "vix_and_voldemand.parquet", index=False)
     if not core_ext["endbartime"].equals(vix_ext["endbartime"]):
@@ -273,12 +306,12 @@ def build_ext_root(
     (ext_root / "data" / "extension.json").write_text(json.dumps(info, indent=1))
     print("extended panel:", info, flush=True)
     new_stamps = pd.DatetimeIndex(core_ext["endbartime"])
-    rel = pd.read_parquet(repo / "data" / "releases.parquet")
+    rel = vendor_file("releases.parquet")
     rel["endbartime"] = pd.to_datetime(rel["endbartime"])
     fomc = fomc_release_rows(fomc_csv, new_stamps[~new_stamps.isin(rel["endbartime"])])
     rel_ext = pd.concat([rel, fomc], ignore_index=True).sort_values("endbartime")
     rel_ext.to_parquet(ext_root / "data" / "releases.parquet", index=False)
-    tc = pd.read_parquet(repo / "data" / "time_categories.parquet")
+    tc = vendor_file("time_categories.parquet")
     tc["endbartime"] = pd.to_datetime(tc["endbartime"])
     extra = new_stamps[~new_stamps.isin(tc["endbartime"])]
     tc_ext = pd.concat(
@@ -534,14 +567,26 @@ def forecast_session(
     python: str = sys.executable,
     workers: int = WORKERS,
 ) -> dict[str, float]:
-    """End to end for one session: placeholder row, extended root, 13 arms, table, MZ."""
+    """End to end for one session: placeholder row, extended root, 13 arms, table, MZ.
+
+    The path of record: one spec process per bar.  ``forecast_session_fast``
+    is the same forecast from one shared pass (``arms_shared``).
+    """
     store.append_panel(
         placeholder_row(store, session), source="placeholder", placeholder=True
     )
     ext = build_ext_root(repo, store, Path(scratch) / "ext_root", fomc_csv)
-    info = json.loads((ext / "data" / "extension.json").read_text())
+    check_extension(ext, session)
+    csvs = run_arms(ext, Path(scratch) / "arms", python, workers=workers)
+    table = assemble_yhat_table(csvs, ext)
+    return rv_hat_for(session, table, repo, Path(scratch))
+
+
+def check_extension(ext: Path, session: pd.Timestamp) -> dict[str, object]:
+    """The history-continuity guard on an ext root's written core_stats."""
+    info = json.loads((Path(ext) / "data" / "extension.json").read_text())
     core_ext = pd.read_parquet(
-        ext / "data" / "core_stats.parquet", columns=["endbartime", ROW_COL]
+        Path(ext) / "data" / "core_stats.parquet", columns=["endbartime", ROW_COL]
     )
     # from a month before the vendor's last ES day: the seam is inside the check
     since = pd.Timestamp(info["vendor_last_es_stamp"]).normalize() - pd.Timedelta(
@@ -549,9 +594,174 @@ def forecast_session(
     )
     cont = assert_history_continuous(core_ext, session, since=since)
     print("history continuous:", cont, flush=True)
-    csvs = run_arms(ext, Path(scratch) / "arms", python, workers=workers)
-    table = assemble_yhat_table(csvs, ext)
-    return rv_hat_for(session, table, repo, Path(scratch))
+    return cont
+
+
+# ---------------------------------------------------------------- fast path --
+#: Backtest worker processes of the shared pass (the runner has 4 vCPUs).
+FAST_WORKERS = max(1, min(4, os.cpu_count() or 1))
+#: A shared pass takes ~0.5 min; one still running after this is abandoned
+#: (the card becomes NO SIGNAL rather than arriving long after the stamp).
+ARMS_TIMEOUT_S = 300.0
+
+
+class FastContext:
+    """What the precompute phase leaves for the 15:30:30 pass.
+
+    ``root`` is an ext root whose code was copied by THIS process (so it is the
+    repository's code of this run, never a stale copy); ``vendor`` the four
+    vendor files already read; ``server`` a warm ``arms_shared --serve``
+    process rooted at ``root`` (None: started on first use).  Only ``data/``
+    is rewritten afterwards.
+    """
+
+    def __init__(
+        self,
+        repo: Path,
+        scratch: Path,
+        workers: int = FAST_WORKERS,
+        bucket: str = BUCKET,
+        python: str = sys.executable,
+        start_server: bool = True,
+    ) -> None:
+        from live.close_signal import arms_shared
+
+        self.repo = Path(repo).resolve()
+        # absolute: the server's working directory is the ext root
+        self.scratch = Path(scratch).resolve()
+        self.workers = int(workers)
+        self.bucket = bucket
+        self.python = python
+        self.root = self.scratch / "fast_root"
+        _copy_code(self.repo, self.root)
+        self.vendor = load_vendor(self.repo)
+        self._env = arms_shared.arm_env(
+            bucket, ESTIMATOR, TRAIN_WIN, self.scratch / "fast_arms"
+        )
+        self.server: arms_shared.ArmServer | None = None
+        if start_server:
+            self.start_server()
+
+    def start_server(self, ready_timeout: float = 300.0) -> None:
+        from live.close_signal import arms_shared
+
+        self.server = arms_shared.ArmServer(
+            self.root,
+            self._env,
+            self.scratch / "fast_arms" / "server.log",
+            workers=self.workers,
+            python=self.python,
+            ready_timeout=ready_timeout,
+        )
+        print(f"arm server ready in {self.server.ready_seconds:.1f}s", flush=True)
+
+    def healthy(self) -> bool:
+        """A live server that is not in the middle of a pass it was abandoned in."""
+        return self.server is not None and self.server.alive() and not self._stuck
+
+    _stuck = False
+
+    def run_arms(
+        self, tag: str, timeout: float = ARMS_TIMEOUT_S
+    ) -> tuple[dict[str, Path], dict[str, Any]]:
+        """The 13 arms on the root's current data/ into fast_arms/<tag>."""
+        out_dir = self.scratch / "fast_arms" / tag
+        if out_dir.exists():
+            shutil.rmtree(out_dir)  # never read a CSV an earlier pass left
+        if not self.healthy():
+            self.close(kill=True)
+            self._stuck = False
+            self.start_server()
+        assert self.server is not None
+        try:
+            out = self.server.run(out_dir, timeout=timeout)
+        except TimeoutError:
+            self._stuck = True
+            raise
+        csvs = {b: Path(p) for b, p in out["csvs"].items()}
+        want = out_dir / "causal_tune_linear" / ESTIMATOR / self.bucket
+        for b in BARS:
+            if (
+                b not in csvs
+                or csvs[b].resolve() != (want / f"results_{b}.csv").resolve()
+            ):
+                raise RuntimeError(f"the shared pass did not write {b} under {want}")
+            if not csvs[b].exists():
+                raise RuntimeError(f"the shared pass wrote no {csvs[b]}")
+        return {b: csvs[b] for b in BARS}, out
+
+    def close(self, kill: bool = False) -> None:
+        if self.server is not None:
+            if kill or self._stuck:
+                self.server.kill()
+            else:
+                self.server.close()
+            self.server = None
+
+
+def canary(
+    ctx: FastContext,
+    store: StateStore,
+    session: pd.Timestamp,
+    fomc_csv: Path,
+    timeout: float = ARMS_TIMEOUT_S,
+) -> dict[str, Any]:
+    """The whole fast path on the panel as it stands (no 15:30 row yet); discarded.
+
+    Nothing it computes is reused: the 15:30 row moves full-sample statistics
+    of the transform (the diurnal std floor of the signed moments, the median
+    fills), so every arm's history changes with it (fastpath_check.py
+    measures it: ``dependence`` in its report).  What the canary leaves is a warm server --
+    imports, the spec's definitions, the numba kernels, the pyc files of the
+    copied code -- and an early failure if the history or an arm is broken.
+    """
+    write_ext_data(ctx.repo, store, ctx.root, fomc_csv, vendor=ctx.vendor)
+    cont = check_extension(ctx.root, session)
+    csvs, out = ctx.run_arms("canary", timeout=timeout)
+    table = assemble_yhat_table(csvs, ctx.root)
+    last = pd.DatetimeIndex(table["t"].dt.tz_convert(ET).dt.tz_localize(None))
+    days = last.normalize().unique()
+    recalibrate(table, [days[-2]], ctx.repo, ctx.scratch / "canary", tag="canary")
+    return {"history": cont, **{k: v for k, v in out.items() if k != "csvs"}}
+
+
+def forecast_session_fast(
+    repo: Path,
+    store: StateStore,
+    session: pd.Timestamp,
+    scratch: Path,
+    fomc_csv: Path,
+    ctx: FastContext | None = None,
+    workers: int = FAST_WORKERS,
+    python: str = sys.executable,
+) -> dict[str, float]:
+    """``forecast_session`` from one shared spec pass: the same rv_hat, faster.
+
+    Same placeholder, same data files, same history guard, the same 13
+    results CSVs (``arms_shared``), the same table and loader.  ``ctx`` is the
+    precompute phase's warm context; without one a cold context is made and
+    closed here.
+    """
+    own = ctx is None
+    if ctx is None:
+        ctx = FastContext(repo, scratch, workers=workers, python=python)
+    try:
+        store.append_panel(
+            placeholder_row(store, session), source="placeholder", placeholder=True
+        )
+        write_ext_data(repo, store, ctx.root, fomc_csv, vendor=ctx.vendor)
+        check_extension(ctx.root, session)
+        csvs, out = ctx.run_arms("card")
+        print(
+            "shared arm pass: matrix {seconds_matrix:.1f}s, 13 backtests "
+            "{seconds_backtests:.1f}s, total {seconds_total:.1f}s".format(**out),
+            flush=True,
+        )
+        table = assemble_yhat_table(csvs, ctx.root)
+        return rv_hat_for(session, table, repo, Path(scratch))
+    finally:
+        if own:
+            ctx.close()
 
 
 def table_deviation(
@@ -749,6 +959,8 @@ __all__ = [
     "DECK_BUCKET",
     "DECK_TAG",
     "ESTIMATOR",
+    "FAST_WORKERS",
+    "FastContext",
     "SEGMENT",
     "TRAIN_WIN",
     "WORKERS",
@@ -756,8 +968,12 @@ __all__ = [
     "assert_placeholder_invariance",
     "assert_reproduces_deck",
     "build_ext_root",
+    "canary",
+    "check_extension",
     "fomc_release_rows",
     "forecast_session",
+    "forecast_session_fast",
+    "load_vendor",
     "panel_rv",
     "placeholder_row",
     "read_arm",
@@ -768,4 +984,5 @@ __all__ = [
     "table_deviation",
     "vendor_root",
     "with_panel_rv",
+    "write_ext_data",
 ]
