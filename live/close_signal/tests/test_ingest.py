@@ -288,7 +288,7 @@ def test_databento_es_ingest_builds_moments_per_contract_and_reports_the_seam(
     store = StateStore(tmp_path / "state")
     free = thirty_minute_moments(bars[bars.index < roll_minute])
     store.append_panel(free, source="yahoo_es")
-    info = ingest_es(store, csv)
+    info = ingest_es(store, csv, vendor_path=None)
     assert info["roll_key"] == "instrument_id" and info["rolls"] == [str(roll_minute)]
     assert info["overlap_stamps"] == 1 and info["sumret2_n"] == 1
     # fixed-point prices are rounded to 1e-9: the two builds agree to ~1e-10 in log
@@ -366,7 +366,33 @@ def test_parent_file_takes_the_previous_days_volume_leader_and_drops_spreads(
     assert not front["symbol"].str.contains("-").any()
     assert len(front) == 3 * 60
     store = StateStore(tmp_path / "state")
-    info = ingest_es(store, csv)
+    # a vendor file sharing the first day's 10:00 bar exactly, plus a stamp the
+    # new build lacks (the vendor's 17:30 print) -- the gate reports both
+    from live.close_signal.features import thirty_minute_moments
+    from live.close_signal.ingest import read_databento_ohlcv_1m
+
+    m4 = raw[raw["symbol"] == "ESM4"]
+    day1 = thirty_minute_moments(m4[m4.index < "2024-06-13"])
+    vendor = pd.concat(
+        [
+            day1,
+            pd.DataFrame(
+                {
+                    "endbartime": [pd.Timestamp("2024-06-12 17:30")],
+                    **{c: [1.0] for c in day1.columns if c != "endbartime"},
+                }
+            ),
+        ],
+        ignore_index=True,
+    )
+    vendor_path = tmp_path / "core_stats.parquet"
+    vendor.to_parquet(vendor_path, index=False)
+    info = ingest_es(store, csv, vendor_path=vendor_path)
+    assert info["vendor_overlap_stamps"] == 2  # 10:00 and 10:30 of day 1
+    assert info["vendor_stamps_only_in_vendor"] == 1  # the 17:30 print
+    assert info["vendor_stamps_only_in_new"] == 0  # inside the overlap day span
+    assert abs(info["vendor_sumret2_logratio_median"]) < 1e-12
+    assert info["vendor_numobs_abslogratio_max"] < 1e-12
     assert info["selection"] == "front_by_volume" and info["instruments_in_file"] == 3
     assert info["roll_key"] == "instrument_id"
     assert info["rolls"] == [str(pd.Timestamp("2024-06-14 09:30"))]

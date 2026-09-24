@@ -402,19 +402,19 @@ def moments_by_contract(bars: pd.DataFrame, key: pd.Series | None) -> pd.DataFra
     return out
 
 
-def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
-    """The two builds of the same stamps: the store's realized ES rows vs the new moments.
+GATE_COLS: tuple[str, ...] = ("sumret2", "sumabsret", "sumvolume", "numobs")
 
-    Log ratios new / old of ``sumret2``, ``sumabsret`` and ``sumvolume`` on
-    the stamps both carry with finite, positive values, plus the stamps each
-    side has that the other lacks inside the overlap's day span.  Printed
-    before the purchased rows overwrite the free feed's; a large ratio is the
-    free feed's defect to write down, not the purchase's.
+
+def compare_moments(
+    old: pd.DataFrame, new: pd.DataFrame, other: str = "store"
+) -> dict[str, object]:
+    """Two builds of the same stamps, ``old`` and ``new`` indexed by ``endbartime``.
+
+    Log ratios new / old of the gate columns on the stamps both carry with
+    finite, positive values, plus the stamps each side has that the other lacks
+    inside the overlap's day span (the vendor's 17:30 / 18:00 and Friday-evening
+    rows will show up there: prints the free feeds do not have).
     """
-    old = store.load_panel()
-    old = old[(old["source"] != "placeholder") & old["sumret2"].notna()]
-    old = old.set_index("endbartime")
-    new = mom.set_index("endbartime")
     both = old.index.intersection(new.index)
     rep: dict[str, object] = {"overlap_stamps": int(len(both))}
     if len(both) == 0:
@@ -423,9 +423,11 @@ def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
     o_span = old.index[(old.index >= lo) & (old.index < hi)]
     n_span = new.index[(new.index >= lo) & (new.index < hi)]
     rep["overlap_days"] = f"{lo.date()} .. {(hi - pd.Timedelta(days=1)).date()}"
-    rep["stamps_only_in_store"] = int((~o_span.isin(n_span)).sum())
+    rep[f"stamps_only_in_{other}"] = int((~o_span.isin(n_span)).sum())
     rep["stamps_only_in_new"] = int((~n_span.isin(o_span)).sum())
-    for c in ("sumret2", "sumabsret", "sumvolume"):
+    for c in GATE_COLS:
+        if c not in old.columns or c not in new.columns:
+            continue
         a = old.loc[both, c].to_numpy(float)
         b = new.loc[both, c].to_numpy(float)
         ok = np.isfinite(a) & np.isfinite(b) & (a > 0) & (b > 0)
@@ -437,6 +439,37 @@ def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
         rep[f"{c}_abslogratio_p95"] = float(np.quantile(np.abs(r), 0.95))
         rep[f"{c}_abslogratio_max"] = float(np.abs(r).max())
     return rep
+
+
+def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
+    """The store's realized ES rows (the free feed's build) vs the new moments.
+
+    Printed before the purchased rows overwrite the free feed's; a large ratio
+    is the free feed's defect to write down, not the purchase's.
+    """
+    old = store.load_panel()
+    old = old[(old["source"] != "placeholder") & old["sumret2"].notna()]
+    return compare_moments(old.set_index("endbartime"), mom.set_index("endbartime"))
+
+
+def es_vendor_gate(
+    mom: pd.DataFrame, vendor_path: Path = REPO / "data" / "core_stats.parquet"
+) -> dict[str, object]:
+    """The purchased build vs the VENDOR's ES rows on the month they share (2024-04).
+
+    The one parity check the whole rank-1 update rests on: the same bars,
+    built from Databento's minutes by ``thirty_minute_moments``, against the
+    panel of record.  A level bias in ``sumret2`` here would be a bias in every
+    forecast after 2024-04-30.
+    """
+    p = Path(vendor_path)
+    if not p.exists():
+        return {"vendor_gate": "vendor file absent"}
+    v = pd.read_parquet(p, columns=["endbartime", *GATE_COLS])
+    v["endbartime"] = pd.to_datetime(v["endbartime"])
+    v = v[v["sumret2"].notna()].set_index("endbartime")
+    rep = compare_moments(v, mom.set_index("endbartime"), other="vendor")
+    return {f"vendor_{k}": val for k, val in rep.items()}
 
 
 def select_front_by_volume(bars: pd.DataFrame) -> pd.DataFrame:
@@ -469,13 +502,19 @@ def select_front_by_volume(bars: pd.DataFrame) -> pd.DataFrame:
 
 
 def ingest_es(
-    store: StateStore, path: Path, *, continuous_symbol: str = "ES.v.0"
+    store: StateStore,
+    path: Path,
+    *,
+    continuous_symbol: str = "ES.v.0",
+    vendor_path: Path | None = REPO / "data" / "core_stats.parquet",
 ) -> dict[str, object]:
     """Databento ES 1-minute -> the panel's ES moments, appended as ``databento_es``.
 
     A continuous file (``symbol`` = ``ES.v.0``) is taken as is; a parent file
     (every contract) goes through ``select_front_by_volume``.  Returns the row
-    count, the span, the selection mode, the roll stamps and the seam report.
+    count, the span, the selection mode, the roll stamps, the vendor gate
+    (``vendor_*``: the 2024-04 overlap with the panel of record) and the seam
+    report against the store's free-feed rows.
     """
     raw = read_databento_ohlcv_1m(path, symbol=None)
     mode = "single_instrument"
@@ -496,6 +535,7 @@ def ingest_es(
     if mom.empty:
         raise ValueError(f"{path}: no 1-minute bars to build moments from")
     report = es_seam_report(store, mom)
+    gate = es_vendor_gate(mom, vendor_path) if vendor_path is not None else {}
     n = store.append_panel(mom, source="databento_es")
     return {
         "rows": int(n),
@@ -503,6 +543,7 @@ def ingest_es(
         "last": str(mom["endbartime"].max()),
         "selection": mode,
         "instruments_in_file": n_inst,
+        **gate,
         "roll_key": None if key is None else key.name,
         "rolls": [str(t) for t in mom.attrs.get("rolls", [])],
         **report,
@@ -585,7 +626,9 @@ __all__ = [
     "GAP_START",
     "YAHOO_HOURLY_SOURCE",
     "cboe_rows_from_yahoo",
+    "compare_moments",
     "es_seam_report",
+    "es_vendor_gate",
     "ingest_cboe",
     "ingest_cboe_yahoo",
     "ingest_es",
