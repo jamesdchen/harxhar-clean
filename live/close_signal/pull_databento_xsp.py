@@ -102,15 +102,23 @@ def et_window(day: pd.Timestamp) -> tuple[pd.Timestamp, pd.Timestamp]:
     return lo, hi
 
 
-def zero_dte(defs: pd.DataFrame, day: pd.Timestamp) -> pd.DataFrame:
-    """The contracts expiring on ``day``: options only, with a strike."""
-    d = defs.copy()
-    exp = (
-        pd.to_datetime(d["expiration"], utc=True)
-        .dt.tz_convert(ET)
-        .dt.normalize()
-        .dt.tz_localize(None)
+def occ_expiry(raw_symbol: pd.Series) -> pd.Series:
+    """The expiry DATE encoded in an OCC symbol: ``XSP   230331P00400000`` -> 2023-03-31."""
+    return pd.to_datetime(
+        raw_symbol.astype(str).str.slice(6, 12), format="%y%m%d", errors="coerce"
     )
+
+
+def zero_dte(defs: pd.DataFrame, day: pd.Timestamp) -> pd.DataFrame:
+    """The contracts expiring on ``day``: options only, with a strike.
+
+    The expiry day is read off the OCC symbol.  Databento's ``expiration``
+    field is the expiry DATE stamped at 00:00 UTC; converted to ET it lands on
+    the previous evening, and the first pull (2026-09-23, 41 days) took every
+    day's next-day contracts and nothing on Fridays.
+    """
+    d = defs.copy()
+    exp = occ_expiry(d["raw_symbol"])
     d = d[(exp == day.normalize()) & d["instrument_class"].isin(["C", "P"])]
     d = d[np.isfinite(d["strike_price"].astype(float))]
     return d.drop_duplicates("raw_symbol")
@@ -169,7 +177,19 @@ def main(argv: list[str] | None = None) -> int:
         tag = day.strftime("%Y-%m-%d")
         f_defs = out_dir / f"defs_{tag}.parquet"
         f_cbbo = out_dir / f"cbbo1m_{tag}.parquet"
-        if a.pull and f_cbbo.exists():
+        # a saved definition set is good only if every symbol expires on the day
+        # (the first pull saved the next day's contracts -- those are refetched)
+        defs_ok = False
+        if f_defs.exists():
+            saved = pd.read_parquet(f_defs)
+            defs_ok = bool(len(saved)) and bool(
+                (occ_expiry(saved["raw_symbol"]) == day.normalize()).all()
+            )
+            if not defs_ok:
+                f_defs.unlink()
+                if f_cbbo.exists():
+                    f_cbbo.unlink()
+        if a.pull and f_cbbo.exists() and defs_ok:
             continue
         d0 = pd.Timestamp(day.date(), tz="UTC")
         kw_def = dict(
