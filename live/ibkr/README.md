@@ -311,9 +311,12 @@ the long is sized by premium: at 15:30, off the ask the order will pay,
     contracts = floor( capital × month_end_long_fraction / (ask × 100) ),
 
 `--n` overriding it and `--max-long-straddles` capping it when the operator
-wants a ceiling. `--month-end-long-fraction` defaults to the stress fraction,
-so the long's worst case (its premium) is the same loss budget the short
-program's stress table protects — the outlay never exceeds
+wants a ceiling. `--month-end-long-fraction` defaults to **0.15** — the
+operator's choice (2026-09-23) after studies 76 and 77: the month-end long's
+Kelly fraction is 0.44 on the 52 deck month-ends and 0.22 with the mean shrunk
+one standard error; 0.15 keeps P(75 % drawdown) below 0.07 in every version of
+the mean while growing at +80 %/yr on the observed one; 0.22 is the ceiling,
+earned when the live ledger's month-end mean holds. The outlay never exceeds
 `capital × fraction` by construction, and the hard check on it stays. With no
 `--capital` there is no budget and no long. The short program's own count at
 the entry clock is still journaled (`reference_only=True`) so the two sizes

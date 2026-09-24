@@ -33,7 +33,12 @@ from live.ibkr.sizing import contracts_for_outlay
 #: Study 76 (Kelly of the long leg): general long leg half-Kelly 0.033;
 #: month-end long 0.10 to start, 0.22 (half-Kelly) once fills are measured.
 DEFAULT_LONG_FRACTION = 0.033
-DEFAULT_MONTH_END_FRACTION = 0.10
+#: 0.15 is the OPERATOR'S CHOICE (2026-09-23) after study 77's block bootstrap:
+#: half-Kelly on the observed month-end mean is 0.22, full Kelly one standard
+#: error below it; 0.15 keeps P(75 % drawdown) <= 0.07 in every version of the
+#: mean at +80 %/yr on the observed one.  0.22 is the ceiling, earned when the
+#: live ledger's month-end mean holds.
+DEFAULT_MONTH_END_FRACTION = 0.15
 #: The chase the runner uses for the month-end long (live/ibkr): up to 5 % of the ask.
 CHASE_PCT = 0.05
 

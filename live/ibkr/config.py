@@ -296,7 +296,14 @@ class Config:
     #: ``premium`` sizing.  ``None`` = the stress fraction: the long's worst
     #: case (its premium) then equals the loss budget the short program's
     #: stress table protects.
-    month_end_long_fraction: float | None = None
+    #: 0.15 is the OPERATOR'S CHOICE (2026-09-23) after studies 76 and 77: the
+    #: month-end long's Kelly fraction is 0.44 on the 52 deck month-ends and
+    #: 0.22 with the mean shrunk one standard error; 0.15 keeps P(75% drawdown)
+    #: below 0.07 in every version of the mean while growing at +80%/yr on the
+    #: observed one; 0.22 is the ceiling, earned when the live ledger's month-end
+    #: mean holds.  ``None`` = the stress fraction (the long's worst case then
+    #: equals the short program's budget).
+    month_end_long_fraction: float | None = 0.15
     #: A ceiling on the long's contract count under ``premium`` sizing (the
     #: budget is the only bound otherwise).  ``None`` = no ceiling.
     max_long_straddles: int | None = None
@@ -831,10 +838,11 @@ class Config:
         p.add_argument(
             "--month-end-long-fraction",
             type=float,
-            default=None,
+            default=0.15,
             dest="month_end_long_fraction",
             help="premium outlay of the month-end long as a fraction of capital "
-            "(default: the stress fraction, the same loss budget as the short)",
+            "(default 0.15, the operator's choice after studies 76-77; 0.22 is the "
+            "ceiling)",
         )
         p.add_argument(
             "--max-long-straddles",

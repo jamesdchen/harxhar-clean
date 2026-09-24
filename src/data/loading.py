@@ -352,6 +352,33 @@ SUBGROUPS["free_feasible"] = [
     f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["liquidity"]
 ]
 
+# Does the VIX bucket need VVIX and VIX3M, and can the VIX's own path replace
+# them?  (2026-09-23; experiments/build_vix_rvol.py -> data/vix_rvol.parquet.)
+# On the 15:30 stamps with all three prints, VIX3M is 95 % the VIX level and
+# VVIX 48 %; together they add +0.0064 of R^2 to the next bar beside log VIX and
+# the last bar, and the realized vol-of-VIX from the VIX's own 30-minute path
+# (5- and 22-session windows) recovers about half of that.  Four buckets:
+#   vix_only        HAR + calendar + the VIX level alone
+#   vix_rvol        ... + the two realized vol-of-VIX columns
+#   live_vix_only   live_feasible without vvix and vix3m (what a VIX-only feed
+#                   carries)
+#   live_vix_rvol   live_vix_only + the two realized vol-of-VIX columns
+# References: implied_vol (the trio) and live_feasible (the trio in the live
+# base).  Outside ALL_FEATURES like the blocks above.
+# "volofvol", not "rvol": the "rv" stem would make the library square-root it.
+VIX_RVOL_FEATURES: list[str] = ["vix_volofvol_5d", "vix_volofvol_22d"]
+# The free feed reproduces everything in live_feasible except the ES tick count
+# (numobs): Yahoo's ES=F 1-minute bars carry volume.  free_feasible (above) also
+# dropped sumvolume as a "liquidity" column; this bucket keeps it.  The fair
+# comparison of the two against live_feasible prices the tick count alone.
+SUBGROUPS["free_feasible_vol"] = [f for f in SUBGROUPS["live_feasible"] if f != "numobs"]
+SUBGROUPS["vix_only"] = ["vix"]
+SUBGROUPS["vix_rvol"] = ["vix", *VIX_RVOL_FEATURES]
+SUBGROUPS["live_vix_only"] = [
+    f for f in SUBGROUPS["live_feasible"] if f not in ("vvix", "vix3m")
+]
+SUBGROUPS["live_vix_rvol"] = SUBGROUPS["live_vix_only"] + VIX_RVOL_FEATURES
+
 
 def get_bucket(name: str) -> list[str]:
     if name not in SUBGROUPS:

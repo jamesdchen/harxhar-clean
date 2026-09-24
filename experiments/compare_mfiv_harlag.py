@@ -15,6 +15,10 @@ information, everything else the live_feasible base:
            ivrep_innovations, ivrep_vrp, ivrep_all at tw 2000 on all common
            rows AND on the deck period 2020-01-03 .. 2024-04-30 side by side;
            ivrep_slice_slope at tw 500 on 2022-01-03 .. 2024-04-30).
+  vixonly  does the VIX bucket need VVIX and VIX3M (vix_only, vix_rvol,
+           live_vix_only, live_vix_rvol at tw 2000 on all common rows and on the
+           deck period; vix_rvol = the realized vol-of-VIX from the VIX's own
+           path in place of the two indices).
 
 Every forecast is put through the same causal back-transform as the campaign
 scorer (``causal_forecasts`` of score_linear_subsection_causal.py: per-clock
@@ -96,6 +100,25 @@ FAMILIES: dict[str, dict] = {
             "*": [("all", None, None), ("deck", DECK_START, DECK_END)],
             "ivrep_slice_slope": [("chain", CHAIN_START, DECK_END)],
         },
+        "har": False,
+    },
+    "vixonly": {
+        "pulled": "vixonly_carc",
+        "tw": {
+            "vix_only": 2000,
+            "vix_rvol": 2000,
+            "live_vix_only": 2000,
+            "live_vix_rvol": 2000,
+        },
+        "windows": {"*": [("all", None, None), ("deck", DECK_START, DECK_END)]},
+        "har": False,
+    },
+    # The bucket the free feed can build (live_feasible minus the ES liquidity
+    # columns and numobs): what the close-signal service forecasts with.
+    "free": {
+        "pulled": "free_carc",
+        "tw": {"free_feasible": 2000, "free_feasible_vol": 2000},
+        "windows": {"*": [("all", None, None), ("deck", DECK_START, DECK_END)]},
         "har": False,
     },
 }

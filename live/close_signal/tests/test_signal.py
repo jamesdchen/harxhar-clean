@@ -54,7 +54,7 @@ def test_instruction_sizes_by_premium_and_switches_on_month_end() -> None:
     # N = floor(capital x f / (P* x 100)) on each grid
     assert plain.n_xsp_at_pstar == math.floor(70_000 * 0.033 / (plain.p_star_xsp * 100))
     assert plain.n_spx_at_pstar == math.floor(70_000 * 0.033 / (plain.p_star_spx * 100))
-    assert me.n_xsp_at_pstar == math.floor(70_000 * 0.10 / (me.p_star_xsp * 100))
+    assert me.n_xsp_at_pstar == math.floor(70_000 * 0.15 / (me.p_star_xsp * 100))
     assert me.n_xsp_at_pstar > plain.n_xsp_at_pstar
     # each grid has its own nearest-OTM strikes; the XSP break-even is near, not equal to, SPX/10
     assert plain.p_star_xsp == pytest.approx(plain.p_star_spx / 10, rel=0.35)

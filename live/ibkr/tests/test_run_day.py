@@ -1156,8 +1156,8 @@ def test_the_default_long_is_sized_by_premium_at_the_15_30_ask(tmp_path, frames)
     ref, prem = sizing
     assert ref["reference_only"] is True and "reference_only" not in prem
     assert prem["n_short_reference"] == ref["n"] >= 1
-    budget = CAPITAL * cfg.stress_fraction
-    assert prem["long_fraction"] == cfg.stress_fraction
+    budget = CAPITAL * cfg.month_end_long_fraction
+    assert prem["long_fraction"] == cfg.month_end_long_fraction == 0.15
     assert prem["loss_budget_dollars"] == pytest.approx(budget)
     # the size is taken off ask x (1 + chase pct) so the budget has room for the chase
     assert prem["size_price"] == pytest.approx(
@@ -1243,9 +1243,13 @@ def test_the_deadline_stops_the_chase(tmp_path, frames):
 
 
 def test_the_outlay_bound_stops_the_chase(tmp_path, frames):
-    """--n at the budget's edge (273 x 3.65 x 100 = $99,645 of $100k): no room for a tick."""
+    """--n at the budget's edge (273 x 3.65 x 100 = $99,645 of a $100k budget at
+    fraction 0.10): no room for a tick.  The fraction is set explicitly so the
+    test pins the bound, not the default."""
     faults = FakeFaults(needs_ticks={"body_entry": 1})
-    _c, _b, _r, path, s = run_override(tmp_path, frames, faults=faults, n_override=273)
+    _c, _b, _r, path, s = run_override(
+        tmp_path, frames, faults=faults, n_override=273, month_end_long_fraction=0.10
+    )
     o = kinds_of(path, "order")[0]
     assert o["chase_cap_source"] == "outlay" and o["max_cross_ticks"] == 0
     assert "month_end_long_unfilled" in errors_of(path) and not s.entered
@@ -1440,12 +1444,14 @@ def test_a_zero_regime_does_not_refuse_an_override_day(tmp_path, frames):
 
 
 def test_an_outlay_above_the_loss_budget_is_refused(tmp_path, frames):
-    capital = 5_000.0  # a tenth of it is $500: less than three straddles' premium
+    capital = 5_000.0  # 15 % of it is $750: less than three straddles' premium
     cfg, _b, _r, path, s = run_override(tmp_path, frames, n_override=3, capital=capital)
     e = kinds_of(path, "entry")[-1]
     assert e["entered"] is False
     assert e["reason"] == "month_end_long_outlay_exceeds_the_loss_budget"
-    assert e["loss_budget_dollars"] == pytest.approx(capital * cfg.stress_fraction)
+    assert e["loss_budget_dollars"] == pytest.approx(
+        capital * cfg.month_end_long_fraction
+    )
     assert e["outlay_dollars"] == pytest.approx(
         3 * WORST_LONG_ASK * cfg.index_multiplier
     )
@@ -1619,7 +1625,8 @@ def test_the_month_end_flags():
     cfg = Config()
     assert cfg.no_short_calendars == ("month_end",)
     assert cfg.month_end_long_size == "premium"
-    assert cfg.month_end_long_fraction is None and cfg.max_long_straddles is None
+    assert cfg.month_end_long_fraction == 0.15 and cfg.max_long_straddles is None
+    assert Config(month_end_long_fraction=None).month_end_long_fraction is None
     assert (
         Config(month_end_long_size="match_short").month_end_long_size == "match_short"
     )

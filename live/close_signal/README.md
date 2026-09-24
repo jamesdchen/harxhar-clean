@@ -51,7 +51,7 @@ third-Friday buys losing on 11 days -- too few to act on).
 | leg | fraction of capital as premium | note |
 |---|---|---|
 | general long leg (days with s > 0) | **0.033** (half-Kelly; f\* = 0.066 rests on five days) | `--long-fraction` |
-| month-end long | **0.10** to start, **0.22** (half-Kelly, = the 1-SE pessimistic f\*) once the live ledger shows fills at the ask | `--month-end-fraction` |
+| month-end long | **0.15** (the operator's choice after study 77: half-Kelly on the observed mean is 0.22, full Kelly one SE below it; 0.15 keeps P(75 % drawdown) ≤ 0.07 in every version of the mean at +80 %/yr); **0.22** is the ceiling, earned when the live ledger's month-end mean holds | `--month-end-fraction` |
 
 `N = floor(capital x fraction / (ask x 100))` -- the card prints the count at
 P\*; the operator recomputes at the actual ask.  Capital comes from the
