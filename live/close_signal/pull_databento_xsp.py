@@ -129,7 +129,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-usd", type=float, default=100.0)
     ap.add_argument("--out-dir", default=str(OUT_DIR))
     ap.add_argument("--start", default=str(OPRA_START.date()))
-    ap.add_argument("--end", default=str(pd.Timestamp.today().date()))
+    # OPRA.PILLAR after 13:30 UTC of the current day needs a live licence
+    # (403 license_not_found_unauthorized, 2026-09-23): yesterday is the default end
+    ap.add_argument(
+        "--end", default=str((pd.Timestamp.today() - pd.Timedelta(days=1)).date())
+    )
     a = ap.parse_args(argv)
     try:
         import databento as db
@@ -159,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
         pick = days
     spent = 0.0
     priced = 0
+    failed: list[str] = []
     for _, r in pick.iterrows():
         day = pd.Timestamp(r["day"])
         tag = day.strftime("%Y-%m-%d")
@@ -179,11 +184,18 @@ def main(argv: list[str] | None = None) -> int:
         if f_defs.exists():
             defs = pd.read_parquet(f_defs)
         else:
-            defs = (
-                client.timeseries.get_range(**kw_def)
-                .to_df(price_type="float", pretty_ts=True, map_symbols=True)
-                .reset_index()
-            )
+            try:
+                defs = (
+                    client.timeseries.get_range(**kw_def)
+                    .to_df(price_type="float", pretty_ts=True, map_symbols=True)
+                    .reset_index()
+                )
+            except Exception as e:  # noqa: BLE001 -- one day's refusal must not end the run
+                print(
+                    f"{tag}: definitions refused ({type(e).__name__}: {str(e)[:120]}); skipped"
+                )
+                failed.append(tag)
+                continue
             spent += c_def
             z = zero_dte(defs, day)
             z.to_parquet(f_defs, index=False)
@@ -229,11 +241,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             break
         if syms:
-            q = (
-                client.timeseries.get_range(**kw_q)
-                .to_df(price_type="float", pretty_ts=True, map_symbols=True)
-                .reset_index()
-            )
+            try:
+                q = (
+                    client.timeseries.get_range(**kw_q)
+                    .to_df(price_type="float", pretty_ts=True, map_symbols=True)
+                    .reset_index()
+                )
+            except Exception as e:  # noqa: BLE001
+                print(
+                    f"{tag}: quotes refused ({type(e).__name__}: {str(e)[:120]}); skipped"
+                )
+                failed.append(tag)
+                continue
             q.to_parquet(f_cbbo, index=False)
             spent += c_q
     if a.estimate:
@@ -244,6 +263,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     else:
         print(f"\nPULL: spent USD {spent:.2f}; files in {out_dir}")
+    if failed:
+        print(f"skipped days ({len(failed)}): {', '.join(failed)}")
     return 0
 
 
