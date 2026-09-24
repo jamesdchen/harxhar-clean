@@ -1,0 +1,7 @@
+# FOMC statement dates (YYYY-MM-DD), one per line, maintained by the operator from
+# https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm -- the statement
+# day of each scheduled meeting (the second day).  The vendor's releases feed ends
+# 2023-11-01; from there this file feeds the fomc_* features (fomc release = 1 at
+# the 14:30 stamp).  An empty list is honest (the features take the late-start
+# indicator), a wrong date is not: copy from the Fed's page, do not type from memory.
+date

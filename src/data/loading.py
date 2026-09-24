@@ -342,6 +342,17 @@ SUBGROUPS["ivrep_all"] = _LIVE_NO_IV + [
 ]
 
 
+# The FREE-FEED bucket (2026-09-23, live/close_signal): live_feasible without
+# the liquidity columns.  A retail account rebuilding the panel from free
+# 1-minute bars has the ES return moments and the Cboe prints but no ES book
+# data: sumvolume from a continuous-contract feed is not the vendor's and the
+# vendor's numobs is a tick count, not a minute count.  R0 = live_feasible;
+# the bucket table already ranked liquidity last at the close.
+SUBGROUPS["free_feasible"] = [
+    f for f in SUBGROUPS["live_feasible"] if f not in SUBGROUPS["liquidity"]
+]
+
+
 def get_bucket(name: str) -> list[str]:
     if name not in SUBGROUPS:
         raise KeyError(f"Unknown subgroup '{name}'. Valid: {sorted(SUBGROUPS.keys())}")

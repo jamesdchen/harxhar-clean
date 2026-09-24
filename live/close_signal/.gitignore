@@ -1,0 +1,2 @@
+# scratch roots the daily run builds (a copy of src/ + the extended data/ + arm results)
+.scratch/

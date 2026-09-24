@@ -1,0 +1,8 @@
+# On top of the repository's requirements.txt (numpy, pandas, pyarrow, scipy,
+# scikit-learn, numba -- what specs/causal_tune_linear.py imports).
+yfinance>=0.2.60
+google-api-python-client>=2.140
+google-auth>=2.30
+google-auth-oauthlib>=1.2
+# optional: reading Databento DBN files directly (CSV exports need nothing)
+# databento>=0.40
