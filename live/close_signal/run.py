@@ -100,6 +100,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="YYYY-MM-DD: run the placeholder-invariance gate and exit",
     )
+    ap.add_argument(
+        "--gate-deck",
+        action="store_true",
+        help="run the 13 research arms on the vendor panel alone and require the "
+        "assembled table and the loader's rv_hat to equal the research table and "
+        "the deck (the fidelity gate); exit",
+    )
+    ap.add_argument(
+        "--workers",
+        type=int,
+        default=forecast.WORKERS,
+        help="spec processes run at a time (one per bar)",
+    )
+    ap.add_argument(
+        "--reuse-arms",
+        action="store_true",
+        dest="reuse_arms",
+        help="with --gate-deck: reuse the arm CSVs already in --scratch (the "
+        "assembly, loader or tolerances changed, not the arms)",
+    )
     return ap.parse_args(argv)
 
 
@@ -117,10 +137,16 @@ def _push(a: argparse.Namespace, session, decision: str, body: str, late: bool) 
 def main(argv: list[str] | None = None) -> int:
     a = parse_args(argv)
     store = StateStore(Path(a.state_dir))
+    if a.gate_deck:
+        out = forecast.assert_reproduces_deck(
+            REPO, Path(a.scratch), workers=a.workers, reuse_arms=a.reuse_arms
+        )
+        print("deck reproduction OK:", out)
+        return 0
     if a.self_test:
         day = pd.Timestamp(a.self_test)
         out = forecast.assert_placeholder_invariance(
-            REPO, store, day, Path(a.scratch), FOMC_CSV
+            REPO, store, day, Path(a.scratch), FOMC_CSV, workers=a.workers
         )
         print("placeholder invariance OK:", out)
         return 0
@@ -203,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
             fc_store = StateStore(copy_dir)
             fc_store.append_panel(rows, source="yahoo_es")
         fc = forecast.forecast_session(
-            REPO, fc_store, session, Path(a.scratch), FOMC_CSV
+            REPO, fc_store, session, Path(a.scratch), FOMC_CSV, workers=a.workers
         )
         spot_bars = bars.get("spx") or feeds.spx_minute_bars(session)
         spot_series = spot_bars.frame["close"]
@@ -224,6 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         body = render_card(instr)
         eid = _push(a, session.date(), instr.decision, body, late)
+        print(f"posted calendar event {eid or '(dry run)'}", flush=True)
         if not a.dry_run:
             store.append_journal(
                 {
@@ -242,7 +269,8 @@ def main(argv: list[str] | None = None) -> int:
         print(msg, flush=True)
         traceback.print_exc()
         try:
-            _push(a, session.date(), "NO_SIGNAL", msg, late)
+            eid = _push(a, session.date(), "NO_SIGNAL", msg, late)
+            print(f"posted calendar event {eid or '(dry run)'}", flush=True)
         finally:
             if not a.dry_run:
                 store.append_journal(

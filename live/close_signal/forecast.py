@@ -1,14 +1,26 @@
-"""The daily forecast: the research arm itself, run on the extended panel.
+"""The daily forecast: the research arms themselves, run on the extended panel.
 
 Parity by construction.  Rather than exporting coefficients, the run copies
 ``src/`` and ``specs/causal_tune_linear.py`` into a scratch root whose
 ``data/`` holds the vendor panel EXTENDED by this package's rows (the
 purchased gap + the free daily appends), and runs the spec there with the
-research arm's environment (SEGMENT=bar1600, LAG_SCOPE=global, TRAIN_WIN=2000,
-the free_feasible bucket, ridge) restricted to the last rows with the
-training-window halo.  The arm's ``pred_adj`` for today's 16:00 row goes
-through the notebook library's causal MZ map (``asl.load_yhat_panel_mz``, the
-deck's own loader) to ``rv_hat``.
+research arm's environment (LAG_SCOPE=global, TRAIN_WIN=2000, the
+free_vix_only bucket, ridge) for EVERY one of the 13 regular-hours bars
+(SEGMENT bar1000 .. bar1600), in FULL -- START 0, END -1, no halo -- exactly
+as the CARC campaign did.  The 13 arms' rows are stacked into the notebook's
+yhat table exactly as ``experiments/build_subsection_yhat.py`` builds the
+research tables (t = the ET stamp in UTC at microsecond resolution, yhat =
+pred_adj, baseline = true_raw / true_adj^2, rv_raw = the PANEL's realized
+variance at the stamp -- never the arm's winsorized true_raw), and today's
+16:00 row goes through the deck's own loader, ``asl.load_yhat_1530_mz_cached``
+(the causal second-order MZ map fitted on the session's regular-hours rows), to
+``rv_hat``.
+
+Why all 13 bars when only the 16:00 row is traded: the deck's recalibration is
+fitted on the whole session's rows, not the close alone.  Measured 2026-09-23:
+with the 16:00 rows alone the map is 4-5 % off the deck's rv_hat and disagrees
+with sign(s) on 89 of 866 days; with the 13-bar table it reproduces the deck to
+0.00 on 866/866 days (``assert_reproduces_deck`` is that gate, kept runnable).
 
 The 16:00 row of today does not exist at 15:30 -- its target has not
 happened.  The executor drops rows with no target, so the run appends a
@@ -17,14 +29,16 @@ variance as a dummy target.  Nothing the row predicts depends on that value:
 the HAR features are ``shift(1)`` of earlier rows, the diurnal baseline is a
 ``shift(1)`` rolling statistic of the slot, and the MZ coefficients of a
 session use strictly prior sessions.  ``assert_placeholder_invariance`` is the
-test of exactly that claim on a past day: the arm run with the true target and
-with a placeholder must give the same ``pred_adj`` and baseline.
+test of exactly that claim on a past day: the arms run with the true target
+and with a placeholder must give the same ``pred_adj`` and baseline on every
+row up to and including that session.
 
 Requirements before a forecast is live: the panel must be continuous from the
 vendor's last row (2024-04-30) to today -- the HAR ladder reaches 3,125 bars
 (65 sessions) and the training window 2,000 sessions -- so the purchased gap
-rows must be ingested first.  Cost per run: the spec loads the ~350k-row panel
-and transforms it (about a minute), then fits ~2,400 rows (seconds).
+rows must be ingested first.  Cost per run: 13 spec processes, each loading
+the ~350k-row panel and transforming it (about a minute) then fitting ~6,600
+rows (seconds); three at a time on the runner, about 6-8 minutes wall clock.
 """
 
 from __future__ import annotations
@@ -33,6 +47,7 @@ import os
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -47,17 +62,30 @@ VENDOR_FILES: tuple[str, ...] = (
     "releases.parquet",
     "time_categories.parquet",
 )
-BUCKET = "free_feasible"
+#: The bucket the free feed builds: 8 ES moments incl. sumvolume, vix, 4 FOMC
+#: (no numobs -- a tick count Yahoo lacks; no vvix / vix3m -- worth nothing at
+#: the per-bar arm, CARC 2026-09-23: within noise of the 16-column research
+#: bucket on every cell).  The live feed is ES=F 1-minute bars and ^VIX.
+BUCKET = "free_vix_only"
 ESTIMATOR = "ridge"
+#: The traded row's segment: the 15:30-16:00 bar, forecast at 15:30.
 SEGMENT = "bar1600"
+#: Every regular-hours bar: the recalibration is fitted on all of them.
+BARS: tuple[str, ...] = tuple(
+    f"bar{h:02d}{m:02d}" for h in range(10, 17) for m in (0, 30) if (h, m) <= (16, 0)
+)
 TRAIN_WIN = 2000
 #: The spec's own constants (VAL_TAIL 125, EMBARGO 25, TUNE_PER 250) sit inside
 #: the training window; the halo replays the window plus slack so the first
-#: emitted row has a fully warmed estimator.
+#: emitted row has a fully warmed estimator (the diagnostic chunked variant only).
 HALO_SLACK = 400
-#: Emit the last K segment rows (today's is the last); K > 1 so a miscount of
-#: one or two sessions cannot leave today's row outside the emit range.
+#: Emit the last K segment rows in the chunked variant (diagnostics only).
 EMIT_LAST = 30
+#: Arms run concurrently: each is a spec process holding the transformed panel.
+WORKERS = 3
+#: The research tables the gate compares against.
+DECK_TAG = "sub_live_ridge"
+DECK_BUCKET = "live_feasible"
 
 
 def _extend(vendor: pd.DataFrame, ext: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
@@ -93,24 +121,42 @@ def fomc_release_rows(csv_path: Path, stamps: pd.DatetimeIndex) -> pd.DataFrame:
     return pd.DataFrame({"endbartime": st, "fomc release": val})
 
 
+def _copy_code(repo: Path, root: Path) -> None:
+    root = Path(root)
+    if root.exists():
+        shutil.rmtree(root)
+    (root / "specs").mkdir(parents=True)
+    (root / "data").mkdir()
+    shutil.copytree(
+        repo / "src",
+        root / "src",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
+    shutil.copy2(
+        repo / "specs" / "causal_tune_linear.py",
+        root / "specs" / "causal_tune_linear.py",
+    )
+
+
+def vendor_root(repo: Path, root: Path) -> Path:
+    """Scratch root with src/, the spec and the vendor panel AS IS (no extension).
+
+    The deck-reproduction gate runs here: only the four vendor files, so the
+    arms see exactly the rows the CARC campaign saw.
+    """
+    root = Path(root)
+    _copy_code(repo, root)
+    for f in VENDOR_FILES:
+        shutil.copy2(repo / "data" / f, root / "data" / f)
+    return root
+
+
 def build_ext_root(
     repo: Path, store: StateStore, ext_root: Path, fomc_csv: Path
 ) -> Path:
     """Scratch root with src/, the spec and data/ = vendor panel + this package's rows."""
     ext_root = Path(ext_root)
-    if ext_root.exists():
-        shutil.rmtree(ext_root)
-    (ext_root / "specs").mkdir(parents=True)
-    (ext_root / "data").mkdir()
-    shutil.copytree(
-        repo / "src",
-        ext_root / "src",
-        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
-    )
-    shutil.copy2(
-        repo / "specs" / "causal_tune_linear.py",
-        ext_root / "specs" / "causal_tune_linear.py",
-    )
+    _copy_code(repo, ext_root)
     panel = store.load_panel()
     core = pd.read_parquet(repo / "data" / "core_stats.parquet")
     core_ext = _extend(core, panel, list(CORE_COLS))
@@ -153,40 +199,68 @@ def placeholder_row(store: StateStore, session: pd.Timestamp) -> pd.DataFrame:
     return pd.DataFrame([{"endbartime": t1600, **row}])
 
 
-def n_segment_rows(ext_root: Path) -> int:
-    """Rows the bar1600 segment will hold: 16:00 stamps with a positive target."""
+def n_segment_rows(ext_root: Path, segment: str = SEGMENT) -> int:
+    """Rows the segment will hold: its stamps with a positive target."""
     core = pd.read_parquet(
         ext_root / "data" / "core_stats.parquet", columns=["endbartime", "sumret2"]
     )
     t = pd.to_datetime(core["endbartime"])
-    ok = (t.dt.hour == 16) & (t.dt.minute == 0) & (core["sumret2"] > 0)
+    hh, mm = int(segment[3:5]), int(segment[5:7])
+    ok = (t.dt.hour == hh) & (t.dt.minute == mm) & (core["sumret2"] > 0)
     return int(ok.sum())
 
 
-def run_arm(ext_root: Path, result_dir: Path, python: str = sys.executable) -> Path:
-    """Run the spec's bar1600 arm on the extended panel; return the results CSV path."""
-    n = n_segment_rows(ext_root)
+def run_arm(
+    ext_root: Path,
+    result_dir: Path,
+    python: str = sys.executable,
+    full: bool = True,
+    segment: str = SEGMENT,
+    bucket: str = BUCKET,
+) -> Path:
+    """Run the spec's arm for one bar on the extended panel; return the results CSV path.
+
+    ``full=True`` (the default, the operator's fidelity rule of 2026-09-23) runs
+    the arm over the WHOLE extended panel exactly as the research campaign did
+    -- START 0, END -1, no halo -- so every rolling object (the robust scaler,
+    the availability masks, the impute medians, the diurnal baseline, the
+    21-session refits) sees the same rows it saw on CARC and the forecast for
+    today is the research forecast on a longer panel, with no chunk seam and no
+    incremental algebra.  One bar's rows for 6,600 sessions fit and score in
+    about a minute; there is nothing to save.  ``full=False`` keeps the
+    chunked variant (the last EMIT_LAST rows with a training-window halo) for
+    diagnostics only; it is not the path of record.
+    """
     env = dict(os.environ)
     env.update(
         {
-            "HPC_KW_SEGMENT": SEGMENT,
+            "HPC_KW_SEGMENT": segment,
             "HPC_KW_LAG_SCOPE": "global",
             "HPC_KW_ESTIMATOR": ESTIMATOR,
-            "HPC_KW_EXOG_BUCKET": BUCKET,
+            "HPC_KW_EXOG_BUCKET": bucket,
             "HPC_KW_TRAIN_WIN": str(TRAIN_WIN),
-            "HPC_KW_START": str(max(0, n - EMIT_LAST)),
-            "HPC_KW_END": "-1",
-            "HPC_KW_HALO": str(TRAIN_WIN + HALO_SLACK),
             "HPC_RESULT_DIR": str(result_dir),
             "PYTHONUNBUFFERED": "1",
             "OMP_NUM_THREADS": "1",
         }
     )
+    if full:
+        env.update({"HPC_KW_START": "0", "HPC_KW_END": "-1", "HPC_KW_HALO": "0"})
+    else:
+        n = n_segment_rows(ext_root, segment)
+        env.update(
+            {
+                "HPC_KW_START": str(max(0, n - EMIT_LAST)),
+                "HPC_KW_END": "-1",
+                "HPC_KW_HALO": str(TRAIN_WIN + HALO_SLACK),
+            }
+        )
+    result_dir = Path(result_dir)
     result_dir.mkdir(parents=True, exist_ok=True)
     log = result_dir / "run.log"
     with open(log, "w", encoding="utf-8") as fh:
         rc = subprocess.call(
-            [python, str(ext_root / "specs" / "causal_tune_linear.py")],
+            [python, str(Path(ext_root) / "specs" / "causal_tune_linear.py")],
             cwd=str(ext_root),
             env=env,
             stdout=fh,
@@ -194,21 +268,48 @@ def run_arm(ext_root: Path, result_dir: Path, python: str = sys.executable) -> P
         )
     if rc != 0:
         tail = log.read_text(encoding="utf-8", errors="replace")[-2000:]
-        raise RuntimeError(f"the spec arm failed (rc {rc}); log tail:\n{tail}")
+        raise RuntimeError(f"the {segment} arm failed (rc {rc}); log tail:\n{tail}")
     csv = (
         result_dir
         / "causal_tune_linear"
         / ESTIMATOR
-        / BUCKET
-        / f"results_{SEGMENT}.csv"
+        / bucket
+        / f"results_{segment}.csv"
     )
     if not csv.exists():
         raise RuntimeError(f"the arm wrote no {csv}")
     return csv
 
 
-def yhat_table(results_csv: Path) -> pd.DataFrame:
-    """The arm's rows as the notebook's yhat table (t UTC, yhat, baseline, rv_raw)."""
+def run_arms(
+    ext_root: Path,
+    results_root: Path,
+    python: str = sys.executable,
+    bars: tuple[str, ...] = BARS,
+    bucket: str = BUCKET,
+    workers: int = WORKERS,
+) -> dict[str, Path]:
+    """The 13 per-bar arms, ``workers`` spec processes at a time; bar -> results CSV."""
+    results_root = Path(results_root)
+
+    def one(bar: str) -> tuple[str, Path]:
+        return bar, run_arm(
+            ext_root, results_root / bar, python, full=True, segment=bar, bucket=bucket
+        )
+
+    with ThreadPoolExecutor(max_workers=max(1, int(workers))) as ex:
+        out = dict(ex.map(one, bars))
+    return {b: out[b] for b in bars}
+
+
+def read_arm(results_csv: Path) -> pd.DataFrame:
+    """One arm's rows as the notebook's yhat table -- build_subsection_yhat.read_arm.
+
+    Rows with a positive target and a finite forecast; ``t`` is the naive-ET
+    bar-end stamp in UTC at MICROSECOND resolution (a nanosecond index makes the
+    notebook's day frames "not identically labelled"); ``rv_raw`` here is still
+    the arm's ``true_raw`` -- ``with_panel_rv`` replaces it.
+    """
     r = pd.read_csv(results_csv, parse_dates=["date"])
     ok = (r["true_adj"] > 0) & (r["true_raw"] > 0) & np.isfinite(r["pred_adj"])
     r = r[ok]
@@ -223,28 +324,90 @@ def yhat_table(results_csv: Path) -> pd.DataFrame:
     )
 
 
+def panel_rv(ext_root: Path) -> pd.Series:
+    """The panel's realized variance by stamp (t UTC, microseconds)."""
+    core = pd.read_parquet(
+        Path(ext_root) / "data" / "core_stats.parquet",
+        columns=["endbartime", "sumret2"],
+    )
+    et = pd.DatetimeIndex(pd.to_datetime(core["endbartime"])).tz_localize(ET)
+    return pd.Series(
+        core["sumret2"].to_numpy(float), index=et.tz_convert("UTC").as_unit("us")
+    )
+
+
+def with_panel_rv(tab: pd.DataFrame, rv: pd.Series) -> pd.DataFrame:
+    """Carry the PANEL's realized variance as ``rv_raw`` -- build_subsection_yhat's rule.
+
+    The spec's ``true_raw`` is the winsorized target on a few percent of rows;
+    the research tables carry the production panel's rv_raw instead, and the
+    deck's recalibration was fitted on that.  Every row must find its stamp.
+    """
+    x = rv.reindex(tab["t"])
+    if x.isna().any():
+        missing = tab["t"][x.isna().to_numpy()]
+        raise RuntimeError(
+            f"{int(x.isna().sum())} arm rows have no panel realized variance, first {missing.iloc[0]}"
+        )
+    out = tab.copy()
+    out["rv_raw"] = x.to_numpy(float)
+    return out
+
+
+def assemble_yhat_table(csvs: dict[str, Path], ext_root: Path) -> pd.DataFrame:
+    """The 13 arms stacked and sorted by ``t`` with the panel's rv_raw: the research table."""
+    rv = panel_rv(ext_root)
+    parts = [with_panel_rv(read_arm(csvs[b]), rv) for b in BARS if b in csvs]
+    tab = pd.concat(parts, ignore_index=True).sort_values("t").reset_index(drop=True)
+    if tab["t"].duplicated().any():
+        raise RuntimeError("the assembled yhat table has duplicate stamps")
+    return tab
+
+
+def _asl(repo: Path):  # type: ignore[no-untyped-def]
+    if str(Path(repo) / "notebooks") not in sys.path:
+        sys.path.insert(0, str(Path(repo) / "notebooks"))
+    import atm_straddle_lib as asl  # type: ignore
+
+    return asl
+
+
+def recalibrate(
+    table: pd.DataFrame,
+    need_dates,
+    repo: Path,
+    scratch: Path,
+    tag: str = "close_signal",
+) -> pd.DataFrame:
+    """The deck's loader on the assembled table: rv_hat, m, s2 per requested session date.
+
+    ``asl.load_yhat_1530_mz_cached`` -- the causal second-order MZ map fitted
+    on the regular-hours rows of prior sessions, the 15:30 book's own loader --
+    returns a frame indexed by session date with yhat, baseline, rv_raw, rv_hat,
+    m, s2, yhat_vol, m_vol for the 16:00 rows of the requested dates.
+    """
+    asl = _asl(repo)
+    scratch = Path(scratch)
+    cache = scratch / "mz_cache"
+    cache.mkdir(parents=True, exist_ok=True)
+    p = scratch / f"yhat_{tag}.parquet"
+    table.to_parquet(p, index=False)
+    out = asl.load_yhat_1530_mz_cached(tag, p, need_dates, cache, method="mean")
+    idx = pd.DatetimeIndex(pd.to_datetime(out.index))
+    out = out.copy()
+    out.index = idx.tz_localize(None) if idx.tz is not None else idx
+    return out
+
+
 def rv_hat_for(
     session: pd.Timestamp, table: pd.DataFrame, repo: Path, scratch: Path
 ) -> dict[str, float]:
-    """The deck's causal MZ map on the yhat table; today's 16:00 row's rv_hat and pieces."""
-    if str(repo / "notebooks") not in sys.path:
-        sys.path.insert(0, str(repo / "notebooks"))
-    import atm_straddle_lib as asl  # type: ignore
-
-    p = Path(scratch) / "yhat_close_signal.parquet"
-    table.to_parquet(p, index=False)
-    px = asl.load_yhat_panel_mz(p)
-    t = stamp(session, "16:00")
-    et = pd.DatetimeIndex(px["et"]) if "et" in px else None
-    if et is None:
-        raise RuntimeError("load_yhat_panel_mz returned no et column")
-    et_naive = et.tz_localize(None) if et.tz is not None else et
-    m = et_naive == t
-    if not m.any():
-        raise RuntimeError(
-            f"no 16:00 row for {session.date()} in the recalibrated table"
-        )
-    row = px[m].iloc[-1]
+    """Today's 16:00 row through the deck's loader: rv_hat and its pieces."""
+    day = pd.Timestamp(session).normalize()
+    px = recalibrate(table, [day], repo, scratch)
+    if day not in px.index:
+        raise RuntimeError(f"no 16:00 row for {day.date()} in the recalibrated table")
+    row = px.loc[day]
     return {
         "rv_hat": float(row["rv_hat"]),
         "yhat": float(row["yhat"]),
@@ -261,14 +424,45 @@ def forecast_session(
     scratch: Path,
     fomc_csv: Path,
     python: str = sys.executable,
+    workers: int = WORKERS,
 ) -> dict[str, float]:
-    """End to end for one session: placeholder row, extended root, arm, MZ."""
+    """End to end for one session: placeholder row, extended root, 13 arms, table, MZ."""
     store.append_panel(
         placeholder_row(store, session), source="placeholder", placeholder=True
     )
     ext = build_ext_root(repo, store, Path(scratch) / "ext_root", fomc_csv)
-    csv = run_arm(ext, Path(scratch) / "arm", python)
-    return rv_hat_for(session, yhat_table(csv), repo, Path(scratch))
+    csvs = run_arms(ext, Path(scratch) / "arms", python, workers=workers)
+    table = assemble_yhat_table(csvs, ext)
+    return rv_hat_for(session, table, repo, Path(scratch))
+
+
+def table_deviation(
+    a: pd.DataFrame, b: pd.DataFrame, upto: pd.Timestamp | None = None
+) -> dict[str, float]:
+    """Max relative deviation of yhat and baseline between two yhat tables on common stamps."""
+    x = a.set_index("t")[["yhat", "baseline"]]
+    y = b.set_index("t")[["yhat", "baseline"]]
+    if upto is not None:
+        cut = pd.Timestamp(upto, tz=ET).tz_convert("UTC").as_unit("us")
+        x = x[x.index <= cut]
+        y = y[y.index <= cut]
+    j = x.join(y, how="inner", rsuffix="_b")
+    if j.empty:
+        raise ValueError("the two tables share no stamps")
+    dy = (
+        np.abs(j["yhat"] - j["yhat_b"]) / np.maximum(np.abs(j["yhat_b"]), 1e-300)
+    ).max()
+    db = (
+        np.abs(j["baseline"] - j["baseline_b"])
+        / np.maximum(np.abs(j["baseline_b"]), 1e-300)
+    ).max()
+    return {
+        "rows": int(len(j)),
+        "rows_only_a": int(len(x) - len(j)),
+        "rows_only_b": int(len(y) - len(j)),
+        "max_rel_yhat": float(dy),
+        "max_rel_baseline": float(db),
+    }
 
 
 def assert_placeholder_invariance(
@@ -279,15 +473,19 @@ def assert_placeholder_invariance(
     fomc_csv: Path,
     python: str = sys.executable,
     rel_tol: float = 1e-9,
+    workers: int = WORKERS,
 ) -> dict[str, float]:
     """The claim the whole design rests on, tested on a session whose target is known.
 
-    Run the arm on the panel as is, then with that session's 16:00 target
-    replaced by a placeholder; ``pred_adj`` and the baseline of the 16:00 row
-    must agree to ``rel_tol``.  Returns the two predictions and the deviation.
+    Run the 13 arms on the panel as is, then with that session's 16:00 target
+    replaced by a placeholder; every row of the assembled table up to and
+    including that session -- ``pred_adj`` and the baseline -- must agree to
+    ``rel_tol``.  Returns the 16:00 predictions and the deviations.
     """
     ext = build_ext_root(repo, store, Path(scratch) / "inv_true", fomc_csv)
-    a = yhat_table(run_arm(ext, Path(scratch) / "inv_true_arm", python))
+    a = assemble_yhat_table(
+        run_arms(ext, Path(scratch) / "inv_true_arms", python, workers=workers), ext
+    )
     core_p = ext / "data" / "core_stats.parquet"
     core = pd.read_parquet(core_p)
     t = stamp(past_session, "16:00")
@@ -304,39 +502,152 @@ def assert_placeholder_invariance(
         shutil.rmtree(ext2)
     shutil.copytree(ext, ext2)
     core.to_parquet(ext2 / "data" / "core_stats.parquet", index=False)
-    b = yhat_table(run_arm(ext2, Path(scratch) / "inv_dummy_arm", python))
+    b = assemble_yhat_table(
+        run_arms(ext2, Path(scratch) / "inv_dummy_arms", python, workers=workers), ext2
+    )
+    dev = table_deviation(a, b, upto=t)
     tu = pd.Timestamp(t, tz=ET).tz_convert("UTC").as_unit("us")
     ya = a.set_index("t").loc[tu]
     yb = b.set_index("t").loc[tu]
-    dev = max(
-        abs(float(ya["yhat"]) - float(yb["yhat"]))
-        / max(abs(float(ya["yhat"])), 1e-300),
-        abs(float(ya["baseline"]) - float(yb["baseline"]))
-        / max(abs(float(ya["baseline"])), 1e-300),
-    )
-    if dev > rel_tol:
+    worst = max(dev["max_rel_yhat"], dev["max_rel_baseline"])
+    if worst > rel_tol:
         raise AssertionError(
-            f"placeholder invariance FAILED on {past_session.date()}: yhat {ya['yhat']} vs "
-            f"{yb['yhat']}, baseline {ya['baseline']} vs {yb['baseline']} (rel dev {dev:.2e})"
+            f"placeholder invariance FAILED on {past_session.date()}: max rel dev "
+            f"yhat {dev['max_rel_yhat']:.2e}, baseline {dev['max_rel_baseline']:.2e} on "
+            f"{dev['rows']} rows up to the session; 16:00 yhat {ya['yhat']} vs {yb['yhat']}"
         )
     return {
         "yhat_true": float(ya["yhat"]),
         "yhat_dummy": float(yb["yhat"]),
-        "rel_dev": float(dev),
+        "rel_dev": float(worst),
+        "rows_compared": float(dev["rows"]),
     }
 
 
+def assert_reproduces_deck(
+    repo: Path,
+    scratch: Path,
+    python: str = sys.executable,
+    workers: int = WORKERS,
+    yhat_rel_tol: float = 1e-6,
+    rv_hat_rel_tol: float = 1e-7,
+    reuse_arms: bool = False,
+) -> dict[str, float]:
+    """The live path on the vendor panel alone must BE the research: table and deck.
+
+    Runs the 13 arms with the research bucket (``live_feasible``) on the vendor
+    files as they are, assembles the table, and requires (1) equality with the
+    research table ``results/spxw_pnl/yhat_sub_ridge_live_feasible.parquet`` on
+    every row -- every stamp present on both sides, baseline and rv_raw EXACTLY,
+    yhat to ``yhat_rel_tol`` -- and (2) equality of the loader's rv_hat with the
+    deck ``daily_sub_live_ridge.parquet`` on every deck day to ``rv_hat_rel_tol``
+    with EVERY sign(s) agreeing.
+
+    Tolerances, and why they are not zero.  The research arms ran on CARC
+    (Linux, its BLAS); this gate runs them on the operator's machine.  Same
+    code, same rows, bit-identical inputs -- and the ridge solves differ at the
+    float-path level in the ill-conditioned windows (the repository's known
+    cross-machine mechanism, 2026-07-15).  Measured 2026-09-23 on Windows:
+    20,044 of 20,044 rows matched; baseline and rv_raw 0.0; yhat max relative
+    deviation 5.5e-7 (bar1530; the 16:00 bar 7.3e-12, five bars below 1e-9);
+    rv_hat on 866/866 deck days max relative 9.6e-9; signs 866/866.  The
+    tolerances are set one decade above those numbers; the deterministic
+    columns and the signs are exact.  About 13 x 1-2 minutes; ``reuse_arms``
+    skips the arm runs when their CSVs already sit in ``scratch`` (only the
+    assembly, the loader or the tolerances changed).
+    """
+    repo = Path(repo)
+    scratch = Path(scratch)
+    root = scratch / "vendor_root"
+    csvs: dict[str, Path] = {
+        b: scratch
+        / "vendor_arms"
+        / b
+        / "causal_tune_linear"
+        / ESTIMATOR
+        / DECK_BUCKET
+        / f"results_{b}.csv"
+        for b in BARS
+    }
+    if not (reuse_arms and root.exists() and all(p.exists() for p in csvs.values())):
+        root = vendor_root(repo, root)
+        csvs = run_arms(
+            root, scratch / "vendor_arms", python, bucket=DECK_BUCKET, workers=workers
+        )
+    tab = assemble_yhat_table(csvs, root)
+    ref = (
+        pd.read_parquet(
+            repo / "results" / "spxw_pnl" / f"yhat_sub_ridge_{DECK_BUCKET}.parquet"
+        )
+        .sort_values("t")
+        .reset_index(drop=True)
+    )
+    j = ref.merge(tab, on="t", how="outer", suffixes=("_ref", ""), indicator=True)
+    n_only = int((j["_merge"] != "both").sum())
+    both = j[j["_merge"] == "both"]
+    rel_y = (
+        np.abs(both["yhat"] - both["yhat_ref"])
+        / np.maximum(np.abs(both["yhat_ref"]), 1e-300)
+    ).max()
+    d_base = np.abs(both["baseline"] - both["baseline_ref"]).max()
+    d_rv = np.abs(both["rv_raw"] - both["rv_raw_ref"]).max()
+    deck = pd.read_parquet(
+        repo / "results" / "atm_straddle_0dte_1530" / f"daily_{DECK_TAG}.parquet"
+    ).sort_index()
+    deck.index = pd.DatetimeIndex(pd.to_datetime(deck.index)).normalize()
+    px = recalibrate(tab, deck.index, repo, scratch, tag="gate_deck")
+    x = px["rv_hat"].reindex(deck.index)
+    rel_rv = (np.abs(x - deck["rv_hat"]) / deck["rv_hat"]).to_numpy(float)
+    matched = int(np.isfinite(rel_rv).sum())
+    signs = int((((x - deck["iv_var"]) > 0) == (deck["signal"] > 0)).sum())
+    out = {
+        "table_rows": int(len(tab)),
+        "table_rows_unmatched": n_only,
+        "table_max_rel_yhat": float(rel_y),
+        "table_max_abs_baseline": float(d_base),
+        "table_max_abs_rv_raw": float(d_rv),
+        "deck_days": int(len(deck)),
+        "deck_days_matched": matched,
+        "deck_max_rel_rv_hat": float(np.nanmax(rel_rv)),
+        "deck_signs_agree": signs,
+    }
+    ok = (
+        n_only == 0
+        and rel_y <= yhat_rel_tol
+        and d_base == 0.0
+        and d_rv == 0.0
+        and matched == len(deck)
+        and float(np.nanmax(rel_rv)) <= rv_hat_rel_tol
+        and signs == len(deck)
+    )
+    if not ok:
+        raise AssertionError(f"the live path does NOT reproduce the deck: {out}")
+    return out
+
+
 __all__ = [
+    "BARS",
     "BUCKET",
+    "DECK_BUCKET",
+    "DECK_TAG",
     "ESTIMATOR",
     "SEGMENT",
     "TRAIN_WIN",
+    "WORKERS",
+    "assemble_yhat_table",
     "assert_placeholder_invariance",
+    "assert_reproduces_deck",
     "build_ext_root",
     "fomc_release_rows",
     "forecast_session",
+    "panel_rv",
     "placeholder_row",
+    "read_arm",
+    "recalibrate",
     "run_arm",
+    "run_arms",
     "rv_hat_for",
-    "yhat_table",
+    "table_deviation",
+    "vendor_root",
+    "with_panel_rv",
 ]

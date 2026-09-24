@@ -12,7 +12,8 @@ Heaviside part 1{s > 0} plus the month-end long.
 15:00 ET   Actions fires (19:00 or 20:00 UTC; the guard keeps the right one)
 15:30:30   fetch feeds, measure delays, build today's 48 panel rows
            forecast = specs/causal_tune_linear.py (bar1600, ridge, tw 2000,
-           free_feasible) on the extended panel + the causal MZ map  -> rv_hat
+           free_vix_only) run in FULL on the extended panel
+           + the causal MZ map                                     -> rv_hat
            P* = Black-76 straddle price at sqrt(rv_hat)                -> the card
 15:31      Calendar event at 15:30 with a popup; state committed back
 ```
@@ -79,19 +80,89 @@ stale bar as the 15:30 stamp without saying so.
    paste the printed token into the repository secrets `GCAL_REFRESH_TOKEN`,
    plus `GCAL_CLIENT_ID`, `GCAL_CLIENT_SECRET`, `GCAL_CALENDAR_ID` (`primary`
    for the main calendar) and `CLOSE_SIGNAL_CAPITAL` (dollars).
-2. **History once** (the purchased files; pricing by the parent's pricing agent):
-   * Databento `GLBX.MDP3` `ohlcv-1m`, symbols `ES.FUT` (all months) and `ES.v.0`
-     (volume-ranked continuous), 2024-04-01 .. today, CSV export (UTC ns
-     bar-START `ts_event`):
-     `python -c "from live.close_signal.ingest import *; from live.close_signal.state import StateStore; from pathlib import Path; ingest_es(StateStore(Path('live/close_signal/state')), Path('<es.csv>'))"`
-   * FirstRate Data 1-minute CSVs (US/Eastern bar-START) for VIX, VVIX, VIX3M
-     (SPX optional), 2024-02-01 .. today:
-     `... ingest_cboe(store, {'vix': Path('VIX.csv'), 'vvix': Path('VVIX.csv'), 'vix3m': Path('VIX3M.csv')})`
-   Both shift to the panel's bar-END naive ET before joining.  Roll days of the
-   continuous ES symbol are dropped (the stitched jump is not a return).
+2. **History once.**
+   * The Cboe gap (2024-02-13 .. today) is **already ingested** from the free
+     Yahoo snapshots in `data/free_feed/` (`state/cboe_gap_yahoo.parquet`, 45,792
+     grid rows, and the same three columns in `state/panel_free.parquet` under
+     source `yahoo_cboe_hourly`).  To redo it:
+     `python -m live.close_signal.ingest cboe-yahoo`; the overlap gate:
+     `python -m live.close_signal.ingest gate-yahoo`.  No FirstRate purchase.
+   * The ES gap needs the one purchased file: Databento `GLBX.MDP3` `ohlcv-1m`,
+     symbols `ES.FUT` (all months) and `ES.v.0` (volume-ranked continuous),
+     2024-04-01 .. today, CSV export (UTC ns bar-START `ts_event`) -- inside the
+     signup credit:
+     `python -m live.close_signal.ingest es-databento <es.csv>`
+   Everything shifts to the panel's bar-END naive ET before joining.  Roll days
+   of the continuous ES symbol are dropped (the stitched jump is not a return).
+   `ingest_cboe` (FirstRate 1-minute CSVs) stays as an optional cross-check.
 3. **FOMC dates**: fill `state/fomc_statement_dates.csv` from the Fed's calendar
    (the vendor's releases feed ends 2023-11-01).
 4. **Commit the state directory** and enable the workflow.
+
+## History and refits -- the fidelity rule
+
+The operator's rule (2026-09-23): **the highest-fidelity computation, so the
+regression never has to be re-validated against the true data.**  Concretely:
+
+* **The daily forecast runs the FULL research arms -- all 13 of them.**
+  `forecast.run_arms` calls `specs/causal_tune_linear.py` once per regular-hours
+  bar (`bar1000 .. bar1600`) on the whole extended panel -- START 0, END -1,
+  no halo, the same `ridge / tw 2000 / free_vix_only` settings the CARC
+  campaign measured -- so every rolling object (the robust scaler, the
+  availability masks, the impute medians, the diurnal baseline, the 21-session
+  refits) sees exactly the rows it saw on the cluster.  There is no chunking,
+  no incremental update and no frozen coefficient: today's rv_hat is the
+  research forecast on a longer panel.  One bar's rows for ~6,600 sessions fit
+  and score in about a minute; three bars run at a time (`--workers`), about
+  6-8 minutes wall clock.
+* **The table and the loader are the research's.**  The 13 arms' rows are
+  stacked into the notebook's yhat table exactly as
+  `experiments/build_subsection_yhat.py` builds the research tables (`t` = the
+  ET stamp in UTC at microsecond resolution, `yhat` = pred_adj, `baseline` =
+  true_raw / true_adj^2, `rv_raw` = the PANEL's realized variance at the stamp,
+  never the arm's winsorized `true_raw`), and today's 16:00 row goes through
+  the deck's own loader `asl.load_yhat_1530_mz_cached` -- the causal
+  second-order MZ map fitted on the session's regular-hours rows -- to
+  `rv_hat`.  Why every bar when only the close is traded: the recalibration is
+  fitted on the whole session.  Measured 2026-09-23: on the 16:00 rows alone
+  the map is 4-5 % off the deck's rv_hat and disagrees with sign(s) on 89 of
+  866 days; on the 13-bar table it reproduces the deck exactly.
+* **The gate that proves it** -- `python -m live.close_signal.run --gate-deck`
+  (`forecast.assert_reproduces_deck`): the 13 arms with the research bucket
+  (`live_feasible`) on the vendor files alone must equal the research table
+  `results/spxw_pnl/yhat_sub_ridge_live_feasible.parquet` on every one of its
+  20,044 rows (yhat to 1e-9 relative, baseline and rv_raw exactly) and the
+  loader's rv_hat must equal `daily_sub_live_ridge.parquet` on 866/866 deck
+  days with every sign(s) agreeing.  **Result on 2026-09-23** (13 arms, two at
+  a time on the operator's Windows machine, 15 minutes): 20,044 of 20,044 rows
+  matched; baseline and rv_raw exactly equal; yhat max relative deviation
+  5.5e-7 (bar1530; the traded 16:00 bar 7.3e-12; five bars below 1e-9);
+  rv_hat on 866/866 deck days, max relative deviation 9.6e-9; **signs 866/866**.
+  The yhat deviations are the known cross-machine float-path effect of the
+  ridge solves (CARC's BLAS vs the local one, same rows, bit-identical inputs);
+  the gate's tolerances sit one decade above the measured numbers (yhat 1e-6,
+  rv_hat 1e-7) and the deterministic columns and the signs must be exact.
+  `--reuse-arms` re-checks the assembly and the loader without re-running the
+  arms.
+* **History once, then daily appends.**  The vendor panel ends 2024-04-30 (its
+  Cboe feed 2024-02-12).  The gap is filled once: ES 1-minute bars from
+  Databento (the one purchased file, inside the signup credit) and the Cboe
+  prints from the free Yahoo hourly snapshots.  After that the job appends each
+  session's rows from the free feeds and the full arm re-runs on them.
+* **The Yahoo-hourly Cboe gap, measured.**  On the vendor overlap 2023-12-07 ..
+  2024-02-12 the vendor's value at stamp T is the print standing just before T,
+  and the Yahoo hourly bar that ENDS at T closes at exactly that print: log
+  error MAD 0.0000 on 629 / 270 / 315 stamps (VIX / VVIX / VIX3M; VIX max
+  0.0039, VIX3M p95 0.0026).  The other half-hour stamps carry the last print
+  of the day: MAD 0.31 / 0.39 / 0.27 %, p95 1.4 / 1.6 / 1.3 %.  Stamps before
+  the day's first print and days without hourly bars take the previous
+  session's daily close (never the same day's): MAD 1.9 / 1.4 / 0.9 % on the
+  few overlap rows that needed it.  The vendor-panel study puts the forecast
+  cost of a 30-minute-stale VIX at R^2 0.8211 -> 0.8200.  Provenance per row
+  in `state/cboe_gap_yahoo.parquet` (`<col>_source`).
+* **FirstRate is not needed.**  VVIX and VIX3M add nothing at the per-bar arm
+  (the 2026-09-23 vixonly campaign), and the VIX gap is covered above; the
+  FirstRate reader stays only as an optional cross-check.
 
 ## Validation before anything is trusted (30 days)
 
@@ -106,10 +177,14 @@ stale bar as the 15:30 stamp without saying so.
 3. **Yahoo vs purchased** on the 30-day overlap Yahoo's 1-minute history allows:
    the same gate between the two sources.
 4. **Placeholder invariance**: `python -m live.close_signal.run --self-test 2024-04-29`
-   runs the arm with the true 16:00 target and with the placeholder and
-   requires identical `pred_adj` and baseline -- the claim the daily design
-   rests on (the features are shift(1), the diurnal baseline is shift(1), the
-   MZ map uses prior sessions).
+   runs the 13 arms with the true 16:00 target and with the placeholder and
+   requires identical `pred_adj` and baseline on every row of the assembled
+   table up to and including that session -- the claim the daily design rests
+   on (the features are shift(1), the diurnal baseline is shift(1), the MZ map
+   uses prior sessions).
+4b. **Deck reproduction**: `python -m live.close_signal.run --gate-deck` (above);
+   run it after any change to the spec, the panel files or this package's
+   assembly.
 5. `free_substitute` degradation study (above) before that mode is the default
    in anger; until then `free_delayed` is the honest mode.
 
@@ -129,16 +204,20 @@ day means the workflow did not run -- check the Actions log.
   to 15:30:30 in the job; a firing later than 15:25 ET is skipped.
 * The forecast needs a continuous panel: 65 sessions for the HAR ladder,
   2,000 for the training window.  Until the gap is ingested the arm cannot run.
-* `numobs` in the vendor panel is a tick count; from 1-minute bars it is 30.
-  The free bucket therefore drops the two liquidity columns (`free_feasible`,
-  14 columns; CARC campaign staged in `cluster/slurm/submit_free.sh`).
+* `numobs` in the vendor panel is a tick count; from 1-minute bars it is 30, so
+  the free bucket drops it.  `sumvolume` IS reproducible (Yahoo's ES=F bars
+  carry volume) and it mattered: `free_feasible` (both dropped, 14 cols) cost
+  ~2 % QLIKE at the close, `free_feasible_vol` (numobs only, 15 cols) is within
+  0.5 % of `live_feasible` with the trade unchanged -- the service forecasts with
+  `free_feasible_vol`.  `free_vix_only` (13 cols: also without vvix / vix3m) is
+  staged in `cluster/slurm/submit_freevix.sh` and replaces it if it holds.
 * XSP strike spacing near the money is taken as 1 point; verify on the chain
   the first live day.
 
 ## Files
 
 `feeds.py` Yahoo adapters + delays; `features.py` the 30-minute moments and
-prints, `assert_parity`; `ingest.py` Databento / FirstRate; `state.py` the
+prints, `assert_parity`; `ingest.py` Databento / Yahoo-hourly Cboe gap / FirstRate (cross-check); `state.py` the
 committed parquets; `forecast.py` the spec arm on the extended panel + MZ;
 `signal.py` P\*, sizing, the card; `calendar_push.py`, `auth_once.py`;
 `schedule.py` the guard; `run.py` the entry point; `tests/`.
