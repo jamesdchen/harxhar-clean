@@ -1,11 +1,18 @@
 name: close-signal
 
-# The long-only 15:30 close signal (live/close_signal).  Cron is UTC and jitters
-# by 5-20 minutes on shared runners, so the job fires at 19:00 AND 20:00 UTC
-# (15:00 ET in daylight time / standard time respectively); the guard step keeps
-# the one that is 15:00 ET today and exits at once on the other, on non-sessions
-# and on 13:00 early closes.  The run then sleeps to 15:30:30 ET inside the job,
-# so the start jitter never touches the decision stamp.
+# The long-only 15:30 close signal (live/close_signal).  Cron is UTC and
+# best-effort: firings are delayed (the top of the hour worst) and some are
+# dropped -- on 2026-09-24 the 19:00 UTC firing had not started by 15:29 ET and
+# the session had no card.  So the job fires three times off the hour (16:17,
+# 17:17, 18:17 UTC = 12:17 / 13:17 / 14:17 ET in daylight time, an hour earlier
+# in standard time); the guard accepts a firing between 12:00 and 15:25 ET on a
+# session with a 16:00 close, the first through sleeps to 15:30:30 ET, and a
+# later firing sees that run's journal row (the concurrency group queues it
+# behind the first) and exits.  The start delay never touches the decision stamp.
+#
+# Manual dispatch: skip_guard=true runs outside the window (it still waits for
+# 15:30:30 on the same day, up to --max-wait-min); session=YYYY-MM-DD replays a
+# past session at once, which is how to test off-hours.
 #
 # GitHub runs scheduled and dispatched workflows only from the DEFAULT branch,
 # so this file is committed on main and checks out the branch that carries the
@@ -13,8 +20,9 @@ name: close-signal
 # pushed back to that branch.  When the branch is merged, set the default to main.
 on:
   schedule:
-    - cron: "0 19 * * 1-5"
-    - cron: "0 20 * * 1-5"
+    - cron: "17 16 * * 1-5"
+    - cron: "17 17 * * 1-5"
+    - cron: "17 18 * * 1-5"
   workflow_dispatch:
     inputs:
       input_mode:
@@ -23,6 +31,9 @@ on:
       skip_guard:
         description: "run outside the firing window"
         default: "false"
+      session:
+        description: "YYYY-MM-DD to replay a past session (empty: today)"
+        default: ""
       code_ref:
         description: "branch that carries live/close_signal"
         default: "insurance-selling-2026-09-19"
@@ -37,7 +48,8 @@ concurrency:
 jobs:
   signal:
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    # the 12:17 ET firing sleeps ~3 h 15 min to 15:30:30; the forecast takes ~10
+    timeout-minutes: 240
     env:
       GCAL_CLIENT_ID: ${{ secrets.GCAL_CLIENT_ID }}
       GCAL_CLIENT_SECRET: ${{ secrets.GCAL_CLIENT_SECRET }}
@@ -64,25 +76,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r live/close_signal/requirements.txt
 
-      - name: Guard (which firing is 15:00 ET; is today a session with a 16:00 close)
+      - name: Guard (inside the firing window; a session with a 16:00 close; no card yet today)
         id: guard
         run: |
           python - <<'EOF' >> "$GITHUB_OUTPUT"
           from datetime import datetime, timezone
-          from live.close_signal.schedule import should_run
-          ok, why = should_run(datetime.now(timezone.utc))
+          from pathlib import Path
+          from live.close_signal.schedule import ET_TZ, already_journaled, should_run
+          from live.close_signal.state import StateStore
+          now = datetime.now(timezone.utc)
+          ok, why = should_run(now)
+          today = now.astimezone(ET_TZ).date()
+          journal = StateStore(Path("live/close_signal/state")).load_journal()
+          if ok and already_journaled(journal, today):
+              ok, why = False, f"session {today} already has a journal row"
           print(f"run={'true' if ok else 'false'}")
           print(f"why={why}")
           EOF
-          echo "guard: ${{ steps.guard.outputs.why }}"
+
+      - name: Guard verdict
+        run: echo "guard ${{ steps.guard.outputs.run }} -- ${{ steps.guard.outputs.why }}"
 
       - name: Run the close signal
         if: steps.guard.outputs.run == 'true' || github.event.inputs.skip_guard == 'true'
         run: |
           EXTRA=""
           if [ "${{ github.event.inputs.skip_guard }}" = "true" ]; then EXTRA="--skip-guard"; fi
+          if [ -n "${{ github.event.inputs.session }}" ]; then EXTRA="$EXTRA --session ${{ github.event.inputs.session }}"; fi
           python -m live.close_signal.run \
             --wait-until 15:30:30 \
+            --max-wait-min 220 \
             --input-mode "${{ github.event.inputs.input_mode || 'free_substitute' }}" \
             $EXTRA
 
@@ -96,5 +119,7 @@ jobs:
             echo "no state change"
           else
             git commit -m "[skip ci] close-signal state $(date -u +%Y-%m-%d)"
+            # the branch may have moved while the job slept (research commits)
+            git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)"
             git push
           fi
