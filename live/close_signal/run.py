@@ -264,7 +264,9 @@ def main(argv: list[str] | None = None) -> int:
             )
         print(body, flush=True)
         return 0
-    except (feeds.FeedError, RuntimeError, ValueError, AssertionError) as e:
+    except Exception as e:  # noqa: BLE001 -- every failure must become a NO SIGNAL card
+        # (the 2026-09-23 dispatch died on a pytz NonExistentTimeError outside
+        # the earlier tuple: rc 1, no card, the operator none the wiser)
         msg = f"NO SIGNAL for {session.date()}: {type(e).__name__}: {e}"
         print(msg, flush=True)
         traceback.print_exc()

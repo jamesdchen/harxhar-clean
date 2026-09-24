@@ -88,13 +88,27 @@ stale bar as the 15:30 stamp without saying so.
      `python -m live.close_signal.ingest cboe-yahoo`; the overlap gate:
      `python -m live.close_signal.ingest gate-yahoo`.  No FirstRate purchase.
    * The ES gap needs the one purchased file: Databento `GLBX.MDP3` `ohlcv-1m`,
-     symbols `ES.FUT` (all months) and `ES.v.0` (volume-ranked continuous),
-     2024-04-01 .. today, CSV export (UTC ns bar-START `ts_event`) -- inside the
-     signup credit:
+     symbol `ES.v.0` (volume-ranked continuous, `stype_in="continuous"`),
+     2024-04-01 .. today (`end` exclusive), one CSV (UTC ns bar-START
+     `ts_event`, decimal or fixed-point prices) -- cents inside the signup
+     credit (`client.metadata.get_cost` first):
      `python -m live.close_signal.ingest es-databento <es.csv>`
-   Everything shifts to the panel's bar-END naive ET before joining.  Roll days
-   of the continuous ES symbol are dropped (the stitched jump is not a return).
+   Everything shifts to the panel's bar-END naive ET before joining.  The roll
+   is read off `instrument_id`; the moments are built per contract segment and
+   summed by stamp, so only the one cross-contract minute is lost.  The ingest
+   prints the seam report (log ratios vs the free feed's rows on the stamps
+   both carry) before the purchased rows overwrite them.
    `ingest_cboe` (FirstRate 1-minute CSVs) stays as an optional cross-check.
+   * **Row rule** (`forecast._extend`): a panel row exists iff the bar had ES
+     prints -- the vendor's own convention (no Saturday, Sunday from 18:30,
+     holiday sessions end with the prints, never the spring-forward 02:00).
+     The store holds the Cboe carry on every calendar stamp; only stamps with
+     a realized `sumret2` become rows.  A vendor VIX cell that is NaN at a
+     stamp the store has a print for is filled (2024-02-13 .. 04-30), a finite
+     vendor cell never overwritten.  Before the arms run, the ES history from a
+     month before the vendor's last day to the session must have no gap wider
+     than 5 calendar days (the vendor's widest closure since 2010 is 4) --
+     otherwise a NO SIGNAL card names the hole.
 3. **FOMC dates**: fill `state/fomc_statement_dates.csv` from the Fed's calendar
    (the vendor's releases feed ends 2023-11-01).
 4. **Commit the state directory** and enable the workflow.

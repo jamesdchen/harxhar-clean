@@ -56,8 +56,10 @@ close).
    also bar-start (I). The panel is naive-ET bar-END labelled: shift +1 minute, strip the zone, then join (the
    2026-08-17 misjoin rule).
 2. ES continuous: Databento continuous series are unadjusted; `.c` rolls at expiry, `.v` by volume, `.n` by open
-   interest -- `.v` matches a live front month; or take `ES.FUT` and roll by the panel's own rule. FirstRate's roll
-   rule is not stated; its absolute / ratio "adjusted" files alter levels -- use only unadjusted per-contract files.
+   interest -- `.v` matches a live front month. One file, `ES.v.0` alone (`ES.FUT` is not needed: the roll shows in
+   `instrument_id`, and `ingest.moments_by_contract` builds the moments per contract segment, losing only the one
+   cross-contract minute). FirstRate's roll rule is not stated; its absolute / ratio "adjusted" files alter levels
+   -- use only unadjusted per-contract files.
 3. Sessions: Databento ohlcv-1m emits a bar only for minutes with trades (gaps, not zeros, in back months and the
    17:00-18:00 ET halt). VIX has a 03:15-09:15 ET extended session; VVIX / VIX3M are RTH-only prints -- confirm the
    FirstRate files' session coverage and the 16:00-16:15 tail.

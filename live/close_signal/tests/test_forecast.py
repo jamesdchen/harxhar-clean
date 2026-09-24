@@ -283,3 +283,37 @@ def test_bars_and_the_run_arm_environment(tmp_path, monkeypatch):
         "0",
     )
     assert seen["HPC_KW_LAG_SCOPE"] == "global" and seen["HPC_KW_TRAIN_WIN"] == "2000"
+
+
+def _core(days: list[str]) -> pd.DataFrame:
+    stamps = []
+    for d in days:
+        stamps += [pd.Timestamp(d) + pd.Timedelta(hours=h) for h in (10, 15, 16)]
+    return pd.DataFrame({"endbartime": stamps, "sumret2": 1e-6})
+
+
+def test_history_guard_accepts_closures_and_names_a_hole():
+    # Thu 2024-03-28 -> Mon 2024-04-01 (Good Friday, 4 days) passes at the vendor's widest
+    ok = _core(["2024-03-26", "2024-03-27", "2024-03-28", "2024-04-01", "2024-04-02"])
+    out = forecast.assert_history_continuous(ok, pd.Timestamp("2024-04-02"))
+    assert out["session_days"] == 5 and out["max_gap_days"] == 4
+    # a hole of a week is named
+    hole = _core(["2024-04-02", "2024-04-09"])
+    with pytest.raises(
+        RuntimeError, match="history gap.*2024-04-02.*2024-04-09.*7 days"
+    ):
+        forecast.assert_history_continuous(hole, pd.Timestamp("2024-04-09"))
+    # the session's own day must be the last one present
+    with pytest.raises(RuntimeError, match="last ES session day"):
+        forecast.assert_history_continuous(ok, pd.Timestamp("2024-04-03"))
+    # `since` cuts the check: a hole before it is not this package's
+    early = _core(["2024-01-02", "2024-03-01", "2024-03-04"])
+    out = forecast.assert_history_continuous(
+        early, pd.Timestamp("2024-03-04"), since=pd.Timestamp("2024-02-15")
+    )
+    assert out["first"] == "2024-03-01"
+    # stamps without realized variance are not rows
+    nan_rows = _core(["2024-04-02", "2024-04-03"])
+    nan_rows.loc[nan_rows["endbartime"] >= "2024-04-03", "sumret2"] = np.nan
+    with pytest.raises(RuntimeError, match="last ES session day"):
+        forecast.assert_history_continuous(nan_rows, pd.Timestamp("2024-04-03"))

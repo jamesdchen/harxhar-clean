@@ -1,9 +1,15 @@
 """Shared constants and conventions of the close-signal package.
 
 Panel clock: naive US/Eastern, bar-END labelled -- the row at stamp ``tau``
-carries the bar ``(tau - 30 min, tau]``.  The vendor grid is every 30 minutes
-of every calendar day (48 stamps, ``00:00 .. 23:30``), minus the closed
-periods the loader drops (Friday after 20:00, Saturday, Sunday before 18:30).
+carries the bar ``(tau - 30 min, tau]``.  The grid is the 30-minute clock of
+the calendar day (48 stamps, ``00:00 .. 23:30``) and a ROW EXISTS IFF THE BAR
+HAD ES PRINTS -- read off the vendor panel: no Saturday, Sunday from 18:30,
+Friday to 20:00 (the vendor's ES has prints past the 17:00 CME close and
+through the 17:00-18:00 maintenance hour; the free feeds do not, so a free
+weekday has 46 rows to the vendor's 48 and a Friday 35 to 41), holiday
+sessions end where the prints end (13:00 on a Monday holiday), and never a
+row at the spring-forward 02:00.  The arms lag by row, so the extension must
+keep to this rule (``forecast._extend``), never a full calendar grid.
 """
 
 from __future__ import annotations

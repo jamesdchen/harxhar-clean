@@ -43,6 +43,7 @@ rows (seconds); three at a time on the runner, about 6-8 minutes wall clock.
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -88,18 +89,102 @@ DECK_TAG = "sub_live_ridge"
 DECK_BUCKET = "live_feasible"
 
 
-def _extend(vendor: pd.DataFrame, ext: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
-    """Vendor rows, then the extension's rows for stamps the vendor lacks."""
+#: A panel row exists iff the bar had ES prints: the vendor's rule, read off the
+#: panel (no Saturday, Sunday from 18:30, holiday sessions end where the prints
+#: end, never a row at the spring-forward 02:00).  The state store carries the
+#: Cboe carry on every calendar stamp; the extension takes only the stamps whose
+#: realized variance is there.
+ROW_COL = "sumret2"
+#: Largest calendar-day gap between consecutive ES session days the vendor panel
+#: shows since 2010 is 4 (3 since 2018): a Friday to a Tuesday across a Monday
+#: holiday.  Anything wider is a hole in the history, not a closure.
+MAX_DAY_GAP = 5
+
+
+def _extend(
+    vendor: pd.DataFrame,
+    ext: pd.DataFrame,
+    cols: list[str],
+    require: str | None = ROW_COL,
+) -> pd.DataFrame:
+    """Vendor rows, then the extension's rows for stamps the vendor lacks.
+
+    A new stamp is added only where the extension carries a finite ``require``
+    column (the panel's row rule; ``None`` adds every stamp).  At a stamp the
+    vendor already has, a vendor cell that is NaN takes the extension's finite
+    value (the vendor's Cboe feed ends 2024-02-12 with its ES rows running to
+    2024-04-30: those VIX cells are real prints the free feed carries); a
+    finite vendor value is never overwritten.
+    """
     v = vendor.copy()
     v["endbartime"] = pd.to_datetime(v["endbartime"])
-    e = ext[["endbartime", *cols]].copy()
+    e = ext.copy()
     e["endbartime"] = pd.to_datetime(e["endbartime"])
-    e = e[~e["endbartime"].isin(v["endbartime"])]
+    e = e[~e["endbartime"].duplicated(keep="last")]
     for c in cols:
         if c not in v.columns:
             v[c] = np.nan
-    out = pd.concat([v, e[["endbartime", *cols]]], ignore_index=True)
+        if c not in e.columns:
+            e[c] = np.nan
+    have = e["endbartime"].isin(v["endbartime"])
+    fill = e[have].set_index("endbartime")[cols]
+    if not fill.empty:
+        vi = v.set_index("endbartime")
+        sub = vi.loc[fill.index, cols]
+        take = sub.isna() & fill.notna()
+        vi.loc[fill.index, cols] = sub.where(~take, fill)
+        v = vi.reset_index()
+    new = e[~have]
+    if require is not None:
+        new = new[new[require].notna()]
+    out = pd.concat([v, new[["endbartime", *cols]]], ignore_index=True)
     return out.sort_values("endbartime").reset_index(drop=True)
+
+
+def assert_history_continuous(
+    core: pd.DataFrame,
+    session: pd.Timestamp,
+    since: pd.Timestamp | None = None,
+    max_gap_days: int = MAX_DAY_GAP,
+) -> dict[str, object]:
+    """No hole in the ES rows from ``since`` to the session.
+
+    The arms lag by ROW (HAR rolling means over 5 .. 3125 rows) and refit on the
+    trailing 2000 rows; the recalibration is fitted on every emitted row.  A
+    panel that jumps from the vendor's last day to today would make yesterday of
+    a day two years back and forecast anyway.  Raises RuntimeError (a NO SIGNAL
+    card) naming the first gap wider than ``max_gap_days`` calendar days.
+    """
+    st = pd.DatetimeIndex(pd.to_datetime(core["endbartime"]))
+    fin = core[ROW_COL].notna().to_numpy()
+    st = st[fin]
+    if since is not None:
+        st = st[st >= pd.Timestamp(since)]
+    end = pd.Timestamp(session).normalize()
+    st = st[st < end + pd.Timedelta(days=1)]
+    if len(st) == 0:
+        raise RuntimeError(f"no ES rows between {since} and {end.date()}")
+    days = pd.DatetimeIndex(st.normalize().unique()).sort_values()
+    if days[-1] != end:
+        raise RuntimeError(
+            f"the last ES session day in the panel is {days[-1].date()}, not {end.date()}"
+        )
+    gaps = np.diff(days.values).astype("timedelta64[D]").astype(int)
+    bad = np.flatnonzero(gaps > max_gap_days)
+    if len(bad):
+        i = int(bad[0])
+        raise RuntimeError(
+            f"history gap: no ES rows between {days[i].date()} and "
+            f"{days[i + 1].date()} ({int(gaps[i])} days; the widest closure the "
+            f"vendor panel shows is {max_gap_days - 1}) -- ingest the Databento "
+            "ES history (README, 'History and refits')"
+        )
+    return {
+        "session_days": int(len(days)),
+        "first": str(days[0].date()),
+        "last": str(days[-1].date()),
+        "max_gap_days": int(gaps.max()) if len(gaps) else 0,
+    }
 
 
 def fomc_release_rows(csv_path: Path, stamps: pd.DatetimeIndex) -> pd.DataFrame:
@@ -167,6 +252,26 @@ def build_ext_root(
     vix = pd.read_parquet(repo / "data" / "vix_and_voldemand.parquet")
     vix_ext = _extend(vix, panel, list(CBOE_COLS))
     vix_ext.to_parquet(ext_root / "data" / "vix_and_voldemand.parquet", index=False)
+    if not core_ext["endbartime"].equals(vix_ext["endbartime"]):
+        raise RuntimeError(
+            "core_stats and vix_and_voldemand extensions disagree on stamps"
+        )
+    core_last = pd.to_datetime(core["endbartime"])[core[ROW_COL].notna()].max()
+    info = {
+        "vendor_rows": int(len(core)),
+        "vendor_last_es_stamp": str(core_last),
+        "rows_added": int(len(core_ext) - len(core)),
+        "store_rows_without_es": int(panel[ROW_COL].isna().sum()),
+        "vix_cells_filled": int(
+            vix_ext.set_index("endbartime")
+            .loc[pd.to_datetime(vix["endbartime"]), "vix"]
+            .notna()
+            .sum()
+            - vix["vix"].notna().sum()
+        ),
+    }
+    (ext_root / "data" / "extension.json").write_text(json.dumps(info, indent=1))
+    print("extended panel:", info, flush=True)
     new_stamps = pd.DatetimeIndex(core_ext["endbartime"])
     rel = pd.read_parquet(repo / "data" / "releases.parquet")
     rel["endbartime"] = pd.to_datetime(rel["endbartime"])
@@ -434,6 +539,16 @@ def forecast_session(
         placeholder_row(store, session), source="placeholder", placeholder=True
     )
     ext = build_ext_root(repo, store, Path(scratch) / "ext_root", fomc_csv)
+    info = json.loads((ext / "data" / "extension.json").read_text())
+    core_ext = pd.read_parquet(
+        ext / "data" / "core_stats.parquet", columns=["endbartime", ROW_COL]
+    )
+    # from a month before the vendor's last ES day: the seam is inside the check
+    since = pd.Timestamp(info["vendor_last_es_stamp"]).normalize() - pd.Timedelta(
+        days=30
+    )
+    cont = assert_history_continuous(core_ext, session, since=since)
+    print("history continuous:", cont, flush=True)
     csvs = run_arms(ext, Path(scratch) / "arms", python, workers=workers)
     table = assemble_yhat_table(csvs, ext)
     return rv_hat_for(session, table, repo, Path(scratch))

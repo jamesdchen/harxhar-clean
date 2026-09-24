@@ -4,12 +4,18 @@ the Cboe feed 2024-02-12) and the first free-feed day.
 Three file families, all shifted to the panel's bar-END naive-ET convention
 before anything is joined:
 
-* Databento ``GLBX.MDP3`` ``ohlcv-1m`` for ``ES.FUT`` (all months) and the
-  volume-ranked continuous ``ES.v.0`` -- CSV (or DBN through the ``databento``
-  package if installed).  Timestamps ``ts_event`` are UTC nanoseconds at the
-  bar START.  The continuous symbol is what the moments are built from; the
-  per-month file is kept for the roll check (the day the ``v.0`` symbol changes
-  the returns across the roll are dropped, as a stitched series must).
+* Databento ``GLBX.MDP3`` ``ohlcv-1m`` for the volume-ranked continuous
+  ``ES.v.0`` (``stype_in="continuous"``), one file, CSV (or DBN through the
+  ``databento`` package if installed).  Timestamps ``ts_event`` are UTC
+  nanoseconds at the bar START; prices decimal or Databento's fixed-point
+  int64 (1e-9), both read.  The roll is read off ``instrument_id`` (the
+  underlying contract's id changes when ``v.0`` rolls; ``symbol`` is the
+  fallback): the moments are built PER CONTRACT SEGMENT and summed by stamp,
+  so the one minute whose return would span two contracts is the only thing
+  dropped -- a stitched series' jump is not a return, and a whole day is not
+  what it costs.  On stamps the store already carries (the free feed's own
+  days), the ingest prints the seam report -- log ratios of the two builds'
+  sumret2 / sumabsret / sumvolume -- then the purchased rows overwrite.
 * Yahoo Finance HOURLY bars of ^VIX / ^VVIX / ^VIX3M (``data/free_feed/
   <col>_1h_yahoo.parquet``, snapshotted 2026-09-23; Yahoo keeps 730 days) plus
   the DAILY files as the fallback.  This is the path of record for the Cboe
@@ -51,7 +57,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from live.close_signal.common import CBOE_COLS, ET, session_grid
+from live.close_signal.common import CBOE_COLS, CORE_COLS, ET, session_grid
 from live.close_signal.features import cboe_stamp_values, thirty_minute_moments
 from live.close_signal.state import StateStore
 
@@ -80,10 +86,12 @@ def yahoo_daily_paths(feed_dir: Path = FREE_FEED_DIR) -> dict[str, Path]:
 def read_databento_ohlcv_1m(path: Path, symbol: str | None = None) -> pd.DataFrame:
     """Databento ohlcv-1m -> 1-minute bars indexed by naive-ET bar START.
 
-    CSV columns: ``ts_event`` (UTC ns), ``open``, ``high``, ``low``, ``close``,
-    ``volume``, ``symbol`` (plus rtype/publisher_id/instrument_id).  A ``.dbn``
-    or ``.dbn.zst`` file is read with the ``databento`` package.  ``symbol``
-    keeps one instrument (``ES.v.0`` for the continuous series).
+    CSV columns: ``ts_event`` (UTC ns or ISO), ``open``, ``high``, ``low``,
+    ``close``, ``volume``, ``symbol``, ``instrument_id`` (plus rtype /
+    publisher_id).  A ``.dbn`` or ``.dbn.zst`` file is read with the
+    ``databento`` package.  ``symbol`` keeps one instrument.  Fixed-point
+    prices (int64, 1e-9 units) are scaled to decimals.  ``instrument_id`` and
+    ``symbol`` ride along when present (the roll key).
     """
     p = Path(path)
     if p.suffix in (".dbn", ".zst"):
@@ -105,10 +113,25 @@ def read_databento_ohlcv_1m(path: Path, symbol: str | None = None) -> pd.DataFra
     for c in ("open", "high", "low", "close", "volume"):
         if c not in df.columns:
             raise ValueError(f"{p}: column {c} missing")
-    out = df.set_index("ts_start")[["open", "high", "low", "close", "volume"]].astype(
-        float
-    )
+    keep = ["open", "high", "low", "close", "volume"]
+    extra = [c for c in ("instrument_id", "symbol") if c in df.columns]
+    out = df.set_index("ts_start")[keep + extra].copy()
+    out[keep] = out[keep].astype(float)
+    if _is_fixed_point(out["close"]):
+        out[["open", "high", "low", "close"]] /= FIXED_POINT_SCALE
     return out[~out.index.duplicated(keep="last")].sort_index()
+
+
+#: Databento's fixed-point price unit.
+FIXED_POINT_SCALE = 1e9
+
+
+def _is_fixed_point(close: pd.Series) -> bool:
+    """Databento's undecoded prices are integers in 1e-9 units: ES ~ 5e12, never a decimal ES print."""
+    c = close.dropna()
+    if c.empty:
+        return False
+    return bool((c == np.round(c)).all() and c.median() > 1e8)
 
 
 def read_firstrate_1m(path: Path) -> pd.DataFrame:
@@ -320,45 +343,120 @@ def ingest_cboe_yahoo(
     }
 
 
-def drop_roll_days(bars: pd.DataFrame, symbol_series: pd.Series | None) -> pd.DataFrame:
-    """Drop the minutes of the days on which the continuous symbol rolled.
+PRICE_COLS: tuple[str, ...] = ("open", "high", "low", "close", "volume")
 
-    A stitched series has a price jump at the roll that is not a return; the
-    panel's own vendor handled its ES series somehow we cannot see, so the
-    honest choice is to drop those days' rows (they become NaN in the panel
-    and take the availability indicator) and to record how many.
+
+def roll_key(bars: pd.DataFrame) -> pd.Series | None:
+    """The column that names the underlying contract: ``instrument_id``, else ``symbol``, else None.
+
+    A continuous request maps ``symbol`` to the requested name (``ES.v.0`` on
+    every row), so the contract change shows only in ``instrument_id``; a
+    per-contract request shows it in both.  A column that never changes
+    carries no roll and is skipped.
     """
-    if symbol_series is None or symbol_series.empty:
-        return bars
-    sym = symbol_series.reindex(bars.index).ffill()
-    roll = sym != sym.shift(1)
-    roll.iloc[0] = False
-    roll_days = pd.DatetimeIndex(bars.index[roll.to_numpy()]).normalize().unique()
-    keep = ~pd.DatetimeIndex(bars.index).normalize().isin(roll_days)
-    return bars[keep]
+    for c in ("instrument_id", "symbol"):
+        if c in bars.columns and bars[c].nunique(dropna=True) > 1:
+            return bars[c].astype(str)
+    return None
+
+
+def moments_by_contract(bars: pd.DataFrame, key: pd.Series | None) -> pd.DataFrame:
+    """CORE_COLS per stamp with the returns built WITHIN each contract segment.
+
+    ``thirty_minute_moments`` differences ``close`` across the whole frame;
+    across a roll that difference is the stitched jump, not a return.  Each run
+    of one contract is built on its own and the moments (all sums) are added by
+    stamp, so the bar containing the roll loses exactly the one cross-contract
+    minute.  Returns the moments and the roll stamps (``attrs['rolls']``).
+    """
+    f = bars.sort_index()
+    if key is None:
+        out = thirty_minute_moments(f[list(PRICE_COLS)])
+        out.attrs["rolls"] = []
+        return out
+    k = key.reindex(f.index).ffill()
+    seg = (k != k.shift(1)).cumsum()
+    rolls = [pd.Timestamp(t) for t in f.index[(seg != seg.shift(1)).to_numpy()][1:]]
+    parts = [thirty_minute_moments(g[list(PRICE_COLS)]) for _, g in f.groupby(seg)]
+    parts = [p for p in parts if not p.empty]
+    if not parts:
+        out = pd.DataFrame(columns=["endbartime", *CORE_COLS])
+        out.attrs["rolls"] = rolls
+        return out
+    out = (
+        pd.concat(parts, ignore_index=True)
+        .groupby("endbartime", as_index=False)[list(CORE_COLS)]
+        .sum(min_count=1)
+        .sort_values("endbartime")
+        .reset_index(drop=True)
+    )
+    out.attrs["rolls"] = rolls
+    return out
+
+
+def es_seam_report(store: StateStore, mom: pd.DataFrame) -> dict[str, object]:
+    """The two builds of the same stamps: the store's realized ES rows vs the new moments.
+
+    Log ratios new / old of ``sumret2``, ``sumabsret`` and ``sumvolume`` on
+    the stamps both carry with finite, positive values, plus the stamps each
+    side has that the other lacks inside the overlap's day span.  Printed
+    before the purchased rows overwrite the free feed's; a large ratio is the
+    free feed's defect to write down, not the purchase's.
+    """
+    old = store.load_panel()
+    old = old[(old["source"] != "placeholder") & old["sumret2"].notna()]
+    old = old.set_index("endbartime")
+    new = mom.set_index("endbartime")
+    both = old.index.intersection(new.index)
+    rep: dict[str, object] = {"overlap_stamps": int(len(both))}
+    if len(both) == 0:
+        return rep
+    lo, hi = both.min().normalize(), both.max().normalize() + pd.Timedelta(days=1)
+    o_span = old.index[(old.index >= lo) & (old.index < hi)]
+    n_span = new.index[(new.index >= lo) & (new.index < hi)]
+    rep["overlap_days"] = f"{lo.date()} .. {(hi - pd.Timedelta(days=1)).date()}"
+    rep["stamps_only_in_store"] = int((~o_span.isin(n_span)).sum())
+    rep["stamps_only_in_new"] = int((~n_span.isin(o_span)).sum())
+    for c in ("sumret2", "sumabsret", "sumvolume"):
+        a = old.loc[both, c].to_numpy(float)
+        b = new.loc[both, c].to_numpy(float)
+        ok = np.isfinite(a) & np.isfinite(b) & (a > 0) & (b > 0)
+        if ok.sum() == 0:
+            continue
+        r = np.log(b[ok] / a[ok])
+        rep[f"{c}_n"] = int(ok.sum())
+        rep[f"{c}_logratio_median"] = float(np.median(r))
+        rep[f"{c}_abslogratio_p95"] = float(np.quantile(np.abs(r), 0.95))
+        rep[f"{c}_abslogratio_max"] = float(np.abs(r).max())
+    return rep
 
 
 def ingest_es(
     store: StateStore, path: Path, *, continuous_symbol: str = "ES.v.0"
-) -> int:
-    """Databento ES 1-minute -> the panel's ES moments, appended as ``databento_es``."""
+) -> dict[str, object]:
+    """Databento ES 1-minute -> the panel's ES moments, appended as ``databento_es``.
+
+    Returns the row count, the span, the roll stamps found and the seam report.
+    """
     raw = read_databento_ohlcv_1m(path, symbol=None)
-    df = pd.read_csv(path) if Path(path).suffix == ".csv" else None
-    sym = None
-    if df is not None and "symbol" in df.columns:
-        ts = (
-            pd.to_datetime(df["ts_event"], utc=True)
-            .dt.tz_convert(ET)
-            .dt.tz_localize(None)
-        )
-        s = pd.Series(df["symbol"].astype(str).to_numpy(), index=ts)
-        s = s[~s.index.duplicated(keep="last")].sort_index()
-        want = s[s == continuous_symbol]
-        raw = raw.loc[raw.index.isin(want.index)]
-        sym = s
-    bars = drop_roll_days(raw, sym)
-    mom = thirty_minute_moments(bars)
-    return store.append_panel(mom, source="databento_es")
+    if "symbol" in raw.columns:
+        sym = raw["symbol"].astype(str)
+        if (sym == continuous_symbol).any():
+            raw = raw[sym == continuous_symbol]
+    key = roll_key(raw)
+    mom = moments_by_contract(raw, key)
+    if mom.empty:
+        raise ValueError(f"{path}: no 1-minute bars to build moments from")
+    report = es_seam_report(store, mom)
+    n = store.append_panel(mom, source="databento_es")
+    return {
+        "rows": int(n),
+        "first": str(mom["endbartime"].min()),
+        "last": str(mom["endbartime"].max()),
+        "roll_key": None if key is None else key.name,
+        "rolls": [str(t) for t in mom.attrs.get("rolls", [])],
+        **report,
+    }
 
 
 def ingest_cboe(store: StateStore, paths: dict[str, Path]) -> int:
@@ -427,8 +525,9 @@ def main(argv: list[str] | None = None) -> int:
         for k, v in info.items():
             print(f"{k}: {v}")
         return 0
-    n = ingest_es(store, Path(a.path), continuous_symbol=a.symbol)
-    print(f"databento_es rows appended: {n}")
+    info = ingest_es(store, Path(a.path), continuous_symbol=a.symbol)
+    for k, v in info.items():
+        print(f"{k}: {v}")
     return 0
 
 
@@ -436,10 +535,12 @@ __all__ = [
     "GAP_START",
     "YAHOO_HOURLY_SOURCE",
     "cboe_rows_from_yahoo",
-    "drop_roll_days",
+    "es_seam_report",
     "ingest_cboe",
     "ingest_cboe_yahoo",
     "ingest_es",
+    "moments_by_contract",
+    "roll_key",
     "read_databento_ohlcv_1m",
     "read_firstrate_1m",
     "read_yahoo_daily",

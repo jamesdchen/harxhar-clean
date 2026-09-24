@@ -182,8 +182,131 @@ def test_the_vendor_s_own_stamps_are_never_overwritten_by_the_extension() -> Non
             "vix3m": [np.nan, 16.0],
         }
     )
-    out = _extend(vendor, ext, ["vix", "vvix", "vix3m"]).set_index("endbartime")
+    out = _extend(vendor, ext, ["vix", "vvix", "vix3m"], require=None).set_index(
+        "endbartime"
+    )
     assert out.loc[pd.Timestamp("2024-02-12 16:00"), "vix"] == 14.1  # vendor wins
     assert (
         out.loc[pd.Timestamp("2024-02-13 15:30"), "vix"] == 15.5
     )  # the gap row is added
+
+
+def test_extension_adds_rows_only_where_es_prints_exist_and_fills_vendor_nan_cells() -> (
+    None
+):
+    """The vendor's row rule, and the vendor's NaN VIX cells taking the free feed's prints."""
+    vendor = pd.DataFrame(
+        {
+            "endbartime": pd.to_datetime(
+                ["2024-04-30 15:30", "2024-04-30 16:00", "2024-04-30 16:30"]
+            ),
+            "sumret2": [1e-6, 2e-6, 3e-6],
+            "vix": [np.nan, 14.1, np.nan],
+        }
+    )
+    ext = pd.DataFrame(
+        {
+            "endbartime": pd.to_datetime(
+                [
+                    "2024-04-30 15:30",  # vendor stamp, vendor vix NaN -> filled
+                    "2024-04-30 16:00",  # vendor stamp, vendor vix finite -> kept
+                    "2024-05-01 10:00",  # new stamp with ES -> added
+                    "2024-05-04 10:00",  # Saturday: Cboe carry, no ES -> NOT a row
+                    "2025-03-09 02:00",  # spring-forward stamp, no ES -> NOT a row
+                ]
+            ),
+            "sumret2": [np.nan, np.nan, 4e-6, np.nan, np.nan],
+            "vix": [15.0, 99.0, 15.5, 15.6, 15.7],
+        }
+    )
+    core = _extend(vendor, ext, ["sumret2"]).set_index("endbartime")
+    vix = _extend(vendor[["endbartime", "vix", "sumret2"]], ext, ["vix"]).set_index(
+        "endbartime"
+    )
+    assert list(core.index) == list(vix.index)  # the four files share one grid
+    assert len(core) == 4 and pd.Timestamp("2024-05-01 10:00") in core.index
+    assert pd.Timestamp("2024-05-04 10:00") not in core.index
+    assert pd.Timestamp("2025-03-09 02:00") not in core.index
+    assert vix.loc[pd.Timestamp("2024-04-30 15:30"), "vix"] == 15.0  # NaN filled
+    assert vix.loc[pd.Timestamp("2024-04-30 16:00"), "vix"] == 14.1  # finite kept
+    assert core.loc[pd.Timestamp("2024-04-30 15:30"), "sumret2"] == 1e-6
+    # the extended grid localizes: no non-existent stamp survived
+    pd.DatetimeIndex(core.index).tz_localize(ET)
+
+
+def _databento_csv(path: Path, fixed_point: bool) -> tuple[pd.DataFrame, pd.Timestamp]:
+    """Two contracts, the roll at 10:00 ET; the price level jumps 20 points at the roll."""
+    rng = np.random.default_rng(7)
+    start = pd.Timestamp("2024-06-13 09:30", tz=ET)
+    n = 90
+    ts = pd.date_range(start, periods=n, freq="1min")
+    r = rng.normal(0, 3e-4, size=n)
+    close = 5000.0 * np.exp(np.cumsum(r))
+    inst = np.where(np.arange(n) < 30, 1001, 1002)
+    close = np.where(inst == 1002, close + 20.0, close)  # the stitched jump
+    px = close * 1e9 if fixed_point else close
+    df = pd.DataFrame(
+        {
+            "ts_event": ts.tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%S.000000000Z"),
+            "rtype": 32,
+            "publisher_id": 1,
+            "instrument_id": inst,
+            "open": px,
+            "high": px,
+            "low": px,
+            "close": px,
+            "volume": 100,
+            "symbol": "ES.v.0",
+        }
+    )
+    if fixed_point:
+        for c in ("open", "high", "low", "close"):
+            df[c] = np.round(df[c]).astype("int64")
+    df.to_csv(path, index=False)
+    bars = pd.DataFrame(
+        {"open": close, "high": close, "low": close, "close": close, "volume": 100.0},
+        index=ts.tz_convert(ET).tz_localize(None),
+    )
+    return bars, ts[30].tz_convert(ET).tz_localize(None)
+
+
+@pytest.mark.parametrize("fixed_point", [False, True])
+def test_databento_es_ingest_builds_moments_per_contract_and_reports_the_seam(
+    tmp_path, fixed_point
+) -> None:
+    from live.close_signal.features import thirty_minute_moments
+    from live.close_signal.ingest import ingest_es, read_databento_ohlcv_1m
+
+    csv = tmp_path / "es.csv"
+    bars, roll_minute = _databento_csv(csv, fixed_point)
+    raw = read_databento_ohlcv_1m(csv)
+    assert np.allclose(raw["close"].to_numpy(), bars["close"].to_numpy())  # scaled
+    assert raw.index[0] == pd.Timestamp("2024-06-13 09:30")  # UTC -> naive ET
+    assert "instrument_id" in raw.columns
+    # the store already has the free feed's build of the 10:00 bar (from the SAME
+    # 1-minute closes, so the seam report is exact on that stamp) ...
+    store = StateStore(tmp_path / "state")
+    free = thirty_minute_moments(bars[bars.index < roll_minute])
+    store.append_panel(free, source="yahoo_es")
+    info = ingest_es(store, csv)
+    assert info["roll_key"] == "instrument_id" and info["rolls"] == [str(roll_minute)]
+    assert info["overlap_stamps"] == 1 and info["sumret2_n"] == 1
+    # fixed-point prices are rounded to 1e-9: the two builds agree to ~1e-10 in log
+    assert abs(info["sumret2_logratio_median"]) < (1e-8 if fixed_point else 1e-12)
+    panel = store.load_panel().set_index("endbartime")
+    assert (panel["source"] == "databento_es").all()  # the purchase overwrote
+    # ... and the bar containing the roll carries no stitched jump: its moments
+    # equal the two contract pieces built apart, and the 20-point jump is absent
+    a = thirty_minute_moments(bars[bars.index < roll_minute]).set_index("endbartime")
+    b = thirty_minute_moments(bars[bars.index >= roll_minute]).set_index("endbartime")
+    t = pd.Timestamp("2024-06-13 10:30")
+    assert np.isclose(
+        panel.loc[t, "sumret2"],
+        a.get("sumret2", pd.Series(dtype=float)).get(t, 0.0) + b.loc[t, "sumret2"],
+    )
+    naive = thirty_minute_moments(bars).set_index("endbartime")
+    assert panel.loc[t, "sumret2"] < naive.loc[t, "sumret2"] * 0.5  # jump gone
+    assert panel.loc[t, "numobs"] == naive.loc[t, "numobs"] - 1  # one minute lost
+    # the 10:00 bar (first contract only) is untouched by the roll
+    t0 = pd.Timestamp("2024-06-13 10:00")
+    assert np.isclose(panel.loc[t0, "sumret2"], naive.loc[t0, "sumret2"])
