@@ -1,0 +1,100 @@
+name: close-signal
+
+# The long-only 15:30 close signal (live/close_signal).  Cron is UTC and jitters
+# by 5-20 minutes on shared runners, so the job fires at 19:00 AND 20:00 UTC
+# (15:00 ET in daylight time / standard time respectively); the guard step keeps
+# the one that is 15:00 ET today and exits at once on the other, on non-sessions
+# and on 13:00 early closes.  The run then sleeps to 15:30:30 ET inside the job,
+# so the start jitter never touches the decision stamp.
+#
+# GitHub runs scheduled and dispatched workflows only from the DEFAULT branch,
+# so this file is committed on main and checks out the branch that carries the
+# package (``code_ref``, default the research branch); the state commit is
+# pushed back to that branch.  When the branch is merged, set the default to main.
+on:
+  schedule:
+    - cron: "0 19 * * 1-5"
+    - cron: "0 20 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      input_mode:
+        description: "ibkr | free_substitute | free_delayed"
+        default: "free_substitute"
+      skip_guard:
+        description: "run outside the firing window"
+        default: "false"
+      code_ref:
+        description: "branch that carries live/close_signal"
+        default: "insurance-selling-2026-09-19"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: close-signal
+  cancel-in-progress: false
+
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      GCAL_CLIENT_ID: ${{ secrets.GCAL_CLIENT_ID }}
+      GCAL_CLIENT_SECRET: ${{ secrets.GCAL_CLIENT_SECRET }}
+      GCAL_REFRESH_TOKEN: ${{ secrets.GCAL_REFRESH_TOKEN }}
+      GCAL_CALENDAR_ID: ${{ secrets.GCAL_CALENDAR_ID }}
+      CLOSE_SIGNAL_CAPITAL: ${{ secrets.CLOSE_SIGNAL_CAPITAL }}
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.code_ref || 'insurance-selling-2026-09-19' }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            live/close_signal/requirements.txt
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r live/close_signal/requirements.txt
+
+      - name: Guard (which firing is 15:00 ET; is today a session with a 16:00 close)
+        id: guard
+        run: |
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          from datetime import datetime, timezone
+          from live.close_signal.schedule import should_run
+          ok, why = should_run(datetime.now(timezone.utc))
+          print(f"run={'true' if ok else 'false'}")
+          print(f"why={why}")
+          EOF
+          echo "guard: ${{ steps.guard.outputs.why }}"
+
+      - name: Run the close signal
+        if: steps.guard.outputs.run == 'true' || github.event.inputs.skip_guard == 'true'
+        run: |
+          EXTRA=""
+          if [ "${{ github.event.inputs.skip_guard }}" = "true" ]; then EXTRA="--skip-guard"; fi
+          python -m live.close_signal.run \
+            --wait-until 15:30:30 \
+            --input-mode "${{ github.event.inputs.input_mode || 'free_substitute' }}" \
+            $EXTRA
+
+      - name: Commit the state
+        if: always() && (steps.guard.outputs.run == 'true' || github.event.inputs.skip_guard == 'true')
+        run: |
+          git config user.name "close-signal bot"
+          git config user.email "close-signal@users.noreply.github.com"
+          git add live/close_signal/state/*.parquet || true
+          if git diff --cached --quiet; then
+            echo "no state change"
+          else
+            git commit -m "[skip ci] close-signal state $(date -u +%Y-%m-%d)"
+            git push
+          fi
