@@ -13,6 +13,7 @@ if str(_ROOT) not in sys.path:
 
 from live.close_signal.pull_databento_xsp import (  # noqa: E402
     et_window,
+    quote_file,
     occ_expiry,
     zero_dte,
 )
@@ -71,3 +72,12 @@ def test_quote_window_is_1520_to_1616_et_in_utc():
         "2024-01-10 20:20:00+00:00",
         "2024-01-10 21:16:00+00:00",
     )
+
+
+def test_a_custom_window_gets_its_own_file_outside_the_default_glob(tmp_path) -> None:
+    assert quote_file(tmp_path, "2024-01-10").name == "cbbo1m_2024-01-10.parquet"
+    f = quote_file(tmp_path, "2024-01-10", ("15:00", "15:21"))
+    assert f.name == "cbbo1m-1500-1521_2024-01-10.parquet"
+    assert not f.match("cbbo1m_*.parquet")
+    lo, hi = et_window(pd.Timestamp("2024-01-10"), ("15:00", "15:21"))  # EST
+    assert (lo.hour, lo.minute, hi.hour, hi.minute) == (20, 0, 20, 21)

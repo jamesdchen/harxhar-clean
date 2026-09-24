@@ -3,6 +3,9 @@
     python live/close_signal/pull_databento_xsp.py --estimate            # sample days, extrapolated cost
     python live/close_signal/pull_databento_xsp.py --pull [--max-usd 100] # every session day
 
+    # an earlier quote window, e.g. to score decisions at 15:00-15:20:
+    python live/close_signal/pull_databento_xsp.py --window 15:00-15:21 --pull
+
     # the SPX line's depth (study 79 has its spread from the chain, not its sizes):
     python live/close_signal/pull_databento_xsp.py --root SPXW --month-ends --estimate
     python live/close_signal/pull_databento_xsp.py --root SPXW --month-ends --pull --max-usd 40
@@ -111,10 +114,23 @@ def session_days(today: pd.Timestamp, scale: float = XSP_SCALE) -> pd.DataFrame:
     return out[out["day"] <= today.normalize()]
 
 
-def et_window(day: pd.Timestamp) -> tuple[pd.Timestamp, pd.Timestamp]:
-    lo = pd.Timestamp(f"{day.date()} {WINDOW[0]}", tz=ET).tz_convert("UTC")
-    hi = pd.Timestamp(f"{day.date()} {WINDOW[1]}", tz=ET).tz_convert("UTC")
+def et_window(
+    day: pd.Timestamp, window: tuple[str, str] = WINDOW
+) -> tuple[pd.Timestamp, pd.Timestamp]:
+    lo = pd.Timestamp(f"{day.date()} {window[0]}", tz=ET).tz_convert("UTC")
+    hi = pd.Timestamp(f"{day.date()} {window[1]}", tz=ET).tz_convert("UTC")
     return lo, hi
+
+
+def quote_file(out_dir: Path, tag: str, window: tuple[str, str] = WINDOW) -> Path:
+    """``cbbo1m_<day>`` for the default window; ``cbbo1m-HHMM-HHMM_<day>`` otherwise.
+
+    The dash keeps a custom window out of the studies' ``cbbo1m_*`` globs.
+    """
+    if tuple(window) == WINDOW:
+        return out_dir / f"cbbo1m_{tag}.parquet"
+    lo, hi = (w.replace(":", "") for w in window)
+    return out_dir / f"cbbo1m-{lo}-{hi}_{tag}.parquet"
 
 
 def occ_expiry(raw_symbol: pd.Series) -> pd.Series:
@@ -152,6 +168,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-usd", type=float, default=100.0)
     ap.add_argument("--root", choices=sorted(ROOTS), default="XSP")
     ap.add_argument(
+        "--window",
+        default="-".join(WINDOW),
+        help="ET quote window HH:MM-HH:MM (default 15:20-16:16); another window "
+        "is saved as cbbo1m-HHMM-HHMM_<day>.parquet next to the default files, "
+        "reusing their definitions",
+    )
+    ap.add_argument(
         "--month-ends", action="store_true", help="the last session of each month only"
     )
     ap.add_argument("--out-dir", default=None, help="default data/archive/<root>_opra")
@@ -168,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
         print("pip install databento first", file=sys.stderr)
         return 2
     parent, scale, folder = ROOTS[a.root]
+    w0, w1 = a.window.split("-")
+    window = (w0, w1)
     out_dir = Path(a.out_dir) if a.out_dir else REPO / "data" / "archive" / folder
     out_dir.mkdir(parents=True, exist_ok=True)
     days = session_days(pd.Timestamp(a.end), scale)
@@ -203,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
         day = pd.Timestamp(r["day"])
         tag = day.strftime("%Y-%m-%d")
         f_defs = out_dir / f"defs_{tag}.parquet"
-        f_cbbo = out_dir / f"cbbo1m_{tag}.parquet"
+        f_cbbo = quote_file(out_dir, tag, window)
         # a saved definition set is good only if every symbol expires on the day
         # (the first pull saved the next day's contracts -- those are refetched)
         defs_ok = False
@@ -259,7 +284,7 @@ def main(argv: list[str] | None = None) -> int:
             & (z["strike_price"].astype(float) <= hi_k)
         ]
         syms = sorted(near["raw_symbol"].astype(str).unique().tolist())
-        lo, hi = et_window(day)
+        lo, hi = et_window(day, window)
         kw_q = dict(
             dataset=DATASET,
             schema="cbbo-1m",
