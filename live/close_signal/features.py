@@ -46,21 +46,34 @@ from live.close_signal.common import (
 #: Moments that the free ^GSPC substitute cannot supply (index volume is not
 #: futures volume; the minute count is not the tick count the vendor meant).
 SUBSTITUTE_UNAVAILABLE: tuple[str, ...] = ("sumvolume", "numobs")
+#: Consecutive 1-minute bars this far apart or more sit on either side of a
+#: session break -- the CME maintenance hour (17:00-18:00 ET) or the weekend --
+#: and no return is taken across them.  Overnight no-trade gaps in ES run to a
+#: few minutes, never an hour.
+SESSION_BREAK = pd.Timedelta(minutes=60)
 
 
 def thirty_minute_moments(bars_1m: pd.DataFrame) -> pd.DataFrame:
     """CORE_COLS per 30-minute bar END from 1-minute bars indexed by bar START.
 
     Requires ``close`` (and ``volume``; missing volume gives NaN sumvolume).
-    The first bar of the span has no ``p_0`` and is dropped.  Bars with no
-    minutes (closed periods) are simply absent.
+    The first bar of the span has no ``p_0`` and is dropped, and so is the
+    first minute after a SESSION_BREAK: the vendor panel starts each session
+    fresh (its Sunday 18:30 bar carries 29 returns), and a return spanning the
+    break put the whole gap's move into one squared term (vendor gate
+    2026-09-23: the 18:30 stamps 2-8x the vendor's before this rule, in line
+    with the neighbouring clocks after).  Bars with no minutes (closed periods)
+    are simply absent.
     """
     if bars_1m.empty:
         return pd.DataFrame(columns=["endbartime", *CORE_COLS])
     f = bars_1m.sort_index()
     close = f["close"].astype(float)
     ret = np.log(close).diff()  # r_i uses the previous minute's close, across bar edges
-    end = bar_end_of(pd.DatetimeIndex(f.index))
+    idx = pd.DatetimeIndex(f.index)
+    gap = pd.Series(idx, index=idx).diff()
+    ret = ret.mask((gap >= SESSION_BREAK).to_numpy())
+    end = bar_end_of(idx)
     g = pd.DataFrame(
         {
             "endbartime": end,

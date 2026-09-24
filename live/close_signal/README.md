@@ -104,6 +104,13 @@ stale bar as the 15:30 stamp without saying so.
    rule (the outright with the highest volume on the previous trading day;
    spreads excluded) before the same per-contract build.
    `ingest_cboe` (FirstRate 1-minute CSVs) stays as an optional cross-check.
+   * **Done 2026-09-23** through `pull_databento_es.py` (streaming API; the
+     batch queue never moved): 29,338 rows 2024-03-31 .. 2026-09-23 in the
+     store.  Vendor gate on 2024-04: overnight stamps identical to machine
+     precision on half the month, RTH sumret2 +1.2 % / sumvolume -7 % level
+     shifts (written down in the audit ledger, absorbed by the rolling scaler);
+     `features.SESSION_BREAK` (no return across the maintenance hour or the
+     weekend) came out of that gate.
    * **Row rule** (`forecast._extend`): a panel row exists iff the bar had ES
      prints -- the vendor's own convention (no Saturday, Sunday from 18:30,
      holiday sessions end with the prints, never the spring-forward 02:00).

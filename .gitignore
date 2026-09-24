@@ -75,3 +75,6 @@ writeup/overleaf_*.zip
 
 # derived-input caches (hash-keyed, rebuilt on demand)
 results/**/cache/
+
+# purchased / archived raw data (Databento ES minutes, old chains): never committed
+data/archive/

@@ -75,6 +75,23 @@ def test_lag_products_do_not_cross_the_bar_edge() -> None:
     )
 
 
+def test_no_return_across_the_session_break_but_across_a_short_gap() -> None:
+    """Friday 16:59 -> Sunday 18:00 is a break (no return); a 5-minute no-trade gap is not."""
+    fri = _bars("2026-09-18 16:30", 30, seed=5)  # minutes 16:30..16:59 -> bar 17:00
+    sun = _bars("2026-09-20 18:00", 30, seed=6, base=fri["close"].iloc[-1] * 1.02)
+    sun = sun.drop(sun.index[10:15])  # five minutes without a trade inside the bar
+    out = thirty_minute_moments(pd.concat([fri, sun])).set_index("endbartime")
+    row = out.loc[pd.Timestamp("2026-09-20 18:30")]
+    r = np.diff(np.log(sun["close"].to_numpy()))  # within Sunday only: 24 returns
+    assert row["numobs"] == 24  # 25 minutes, the first without a prior
+    assert row["sumret2"] == pytest.approx((r**2).sum())  # the +2 % gap jump is absent
+    assert row["sumret2"] < 1e-4  # ... it would have been ~4e-4 on its own
+    # the 5-minute gap's return (minute 9 -> minute 15) IS in the sum
+    assert (np.abs(r) > 0).all()
+    # the Friday bar is untouched
+    assert out.loc[pd.Timestamp("2026-09-18 17:00"), "numobs"] == 29
+
+
 def test_cboe_print_is_the_last_close_inside_the_bar() -> None:
     idx = pd.date_range("2026-09-23 15:00", periods=45, freq="1min")
     fr = pd.DataFrame({"close": np.arange(45, dtype=float)}, index=idx)
