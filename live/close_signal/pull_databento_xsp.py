@@ -57,9 +57,11 @@ def session_days(today: pd.Timestamp) -> pd.DataFrame:
         s = pd.read_parquet(SPOT_PATH)
         t = pd.to_datetime(s["timestamp"])
         if getattr(t.dt, "tz", None) is not None:
-            t = t.dt.tz_localize(
-                None
-            )  # the chain's stamps are naive ET carrying a fake UTC
+            # spxw_spot.parquet is stamped in TRUE UTC (first bar 14:35 in
+            # January, 13:35 in July = 09:35 ET; the deck's S is its true-ET
+            # 15:30).  Before 2026-09-24 this dropped the zone, so "15:30" was
+            # 11:30 ET (10:30 in winter) and the band sat on the midday spot.
+            t = t.dt.tz_convert(ET).dt.tz_localize(None)
         s = s.assign(t=t)
         s = s[s["t"].dt.strftime("%H:%M") == "15:30"]
         for d, spot in zip(s["t"].dt.normalize(), s["spot"].astype(float)):
