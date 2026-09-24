@@ -4,4 +4,36 @@
 # 2023-11-01; from there this file feeds the fomc_* features (fomc release = 1 at
 # the 14:30 stamp).  An empty list is honest (the features take the late-start
 # indicator), a wrong date is not: copy from the Fed's page, do not type from memory.
+#
+# Filled 2026-09-23 from the Fed's page as fetched that day (meetings 2023-12 through
+# 2026-12; the second day of each two-day meeting).  The 2025-08-22 notation vote is
+# not a scheduled meeting and is not listed.  The Fed marks every date tentative
+# until the preceding meeting confirms it; 2027 (Jan 26-27, Mar 16-17, Apr 27-28,
+# Jun 8-9, Jul 27-28, Sep 14-15, Oct 26-27, Dec 7-8) is to be added after the
+# December 2026 meeting confirms the January date, and each later one in turn.
 date
+2023-12-13
+2024-01-31
+2024-03-20
+2024-05-01
+2024-06-12
+2024-07-31
+2024-09-18
+2024-11-07
+2024-12-18
+2025-01-29
+2025-03-19
+2025-05-07
+2025-06-18
+2025-07-30
+2025-09-17
+2025-10-29
+2025-12-10
+2026-01-28
+2026-03-18
+2026-04-29
+2026-06-17
+2026-07-29
+2026-09-16
+2026-10-28
+2026-12-09

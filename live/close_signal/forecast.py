@@ -110,14 +110,17 @@ def fomc_release_rows(csv_path: Path, stamps: pd.DatetimeIndex) -> pd.DataFrame:
     in the file are 0 on their 14:30 stamp; every other stamp NaN, as the
     vendor file has them.
     """
-    days = set()
+    days = pd.DatetimeIndex([])
     if Path(csv_path).exists():
         s = pd.read_csv(csv_path, comment="#")
         col = s.columns[0]
-        days = set(pd.to_datetime(s[col]).dt.normalize())
+        days = pd.DatetimeIndex(pd.to_datetime(s[col])).normalize()
     st = pd.DatetimeIndex(stamps)
     is_1430 = (st.hour == 14) & (st.minute == 30)
-    val = np.where(is_1430, np.isin(st.normalize(), list(days)).astype(float), np.nan)
+    # Index.isin, not np.isin: the latter compares datetime64 against Timestamp
+    # objects and matched nothing (the first fill of the file flagged no day).
+    on_day = st.normalize().isin(days)
+    val = np.where(is_1430, on_day.astype(float), np.nan)
     return pd.DataFrame({"endbartime": st, "fomc release": val})
 
 
