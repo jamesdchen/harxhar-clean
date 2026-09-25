@@ -110,8 +110,44 @@ def session_days(today: pd.Timestamp, scale: float = XSP_SCALE) -> pd.DataFrame:
                         "source": "es",
                     }
                 )
+    rows += _yahoo_days({r["day"] for r in rows}, today, scale)
     out = pd.DataFrame(rows).sort_values("day").reset_index(drop=True)
     return out[out["day"] <= today.normalize()]
+
+
+def _yahoo_days(
+    have: set, today: pd.Timestamp, scale: float
+) -> list[dict[str, object]]:
+    """Sessions after the chain and the ES file (e.g. yesterday): the ^GSPC daily close +-3 %.
+
+    Without it a day newer than data/archive/es_v0_ohlcv1m_databento.csv has
+    no spot proxy and is silently skipped (2026-09-25).  The close is within
+    ~1 % of the 15:30 index on all but extreme days, so the +-3 % band still
+    holds the 15:30 strangle.
+    """
+    last = max(have) if have else OPRA_START
+    if last >= today.normalize():
+        return []
+    try:
+        import yfinance as yf
+
+        h = yf.Ticker("^GSPC").history(
+            start=(last + pd.Timedelta(days=1)).strftime("%Y-%m-%d"),
+            end=(today.normalize() + pd.Timedelta(days=1)).strftime("%Y-%m-%d"),
+            interval="1d",
+            auto_adjust=False,
+        )
+    except Exception as e:  # noqa: BLE001 -- no fallback, the days stay skipped
+        print(f"no ^GSPC fallback for days after {last.date()}: {e}", file=sys.stderr)
+        return []
+    out: list[dict[str, object]] = []
+    for ts, px in zip(h.index, h["Close"].to_numpy(dtype=float)):
+        d = pd.Timestamp(ts).tz_localize(None).normalize()
+        if d > last and np.isfinite(px):
+            out.append(
+                {"day": d, "spot_xsp": px * scale, "band": BAND_ES, "source": "yahoo"}
+            )
+    return out
 
 
 def et_window(
