@@ -1,0 +1,105 @@
+column,date,event,why,nearest_candidate,candidate_date,sessions_from_candidate,std_weight_after
+adj_vix_ma_1,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,0.15481188269865137
+adj_vix_ma_25,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,0.003691639506268819
+adj_vix_ma_25,2021-11-17,leaves,warm update (data),penalty 100 to 1000,2021-06-21,105,0.0
+adj_vix_ma_25,2021-11-29,enters,warm update (data),every-day expirations,2022-04-26,-102,0.0006533228226687241
+adj_vix_ma_25,2021-12-01,leaves,warm update (data),every-day expirations,2022-04-26,-100,0.0
+adj_vix_ma_25,2022-03-15,enters,warm update (data),every-day expirations,2022-04-26,-29,0.000866803268326266
+adj_vix_ma_25,2022-03-22,leaves,warm update (data),every-day expirations,2022-04-26,-24,0.0
+adj_vix_ma_25,2022-07-13,enters,warm update (data),every-day expirations,2022-04-26,53,0.0011263571562395726
+adj_vix_ma_25,2022-10-10,leaves,warm update (data),every-day expirations,2022-04-26,115,0.0
+adj_vix_ma_25,2022-10-13,enters,warm update (data),every-day expirations,2022-04-26,118,0.0007782334688937523
+adj_vix_ma_25,2022-11-21,leaves,warm update (data),every-day expirations,2022-04-26,145,0.0
+adj_vix_ma_25,2022-11-22,enters,warm update (data),every-day expirations,2022-04-26,146,0.00013455490657918263
+adj_vix_ma_25,2022-11-25,leaves,warm update (data),every-day expirations,2022-04-26,148,0.0
+adj_vix_ma_25,2023-04-18,enters,warm update (data),every-day expirations,2022-04-26,245,0.00020486330107626782
+adj_vix_ma_25,2023-05-01,leaves,warm update (data),every-day expirations,2022-04-26,254,0.0
+adj_vix_ma_25,2023-05-03,enters,warm update (data),every-day expirations,2022-04-26,256,0.0006825201039232621
+adj_vix_ma_25,2023-05-04,leaves,warm update (data),every-day expirations,2022-04-26,257,0.0
+adj_vix_ma_25,2023-08-15,enters,warm update (data),every-day expirations,2022-04-26,327,0.005163893763346166
+adj_vix_ma_25,2023-08-17,leaves,warm update (data),every-day expirations,2022-04-26,329,0.0
+adj_vix_ma_125,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,-0.010770916281613845
+adj_vix_ma_625,2023-08-24,enters,warm update (data),every-day expirations,2022-04-26,334,-0.0013823426396316473
+adj_vix_ma_625,2023-08-25,leaves,warm update (data),every-day expirations,2022-04-26,335,0.0
+adj_vix_ma_625,2023-08-29,enters,warm update (data),every-day expirations,2022-04-26,337,-0.00015921079687093018
+adj_vix_ma_3125,2020-05-07,enters,warm update (data),COVID crash end,2020-05-01,4,-4.4564552508606605e-06
+adj_vix_ma_3125,2021-09-17,leaves,warm update (data),penalty 100 to 1000,2021-06-21,62,0.0
+adj_vix_ma_3125,2021-09-24,enters,warm update (data),penalty 100 to 1000,2021-06-21,67,-0.00015558780782712206
+adj_vix_ma_3125,2021-11-30,leaves,warm update (data),every-day expirations,2022-04-26,-101,0.0
+adj_vix_ma_3125,2021-12-17,enters,warm update (data),every-day expirations,2022-04-26,-88,-6.034459196487471e-05
+adj_vix_ma_3125,2021-12-21,leaves,warm update (data),every-day expirations,2022-04-26,-86,0.0
+adj_vix_ma_3125,2021-12-22,enters,warm update (data),every-day expirations,2022-04-26,-85,-0.00016602422701044212
+adj_vix_ma_3125,2021-12-23,leaves,warm update (data),every-day expirations,2022-04-26,-84,0.0
+adj_vix_ma_3125,2021-12-27,enters,warm update (data),every-day expirations,2022-04-26,-83,-0.000585009228353218
+adj_vix_ma_3125,2021-12-28,leaves,warm update (data),every-day expirations,2022-04-26,-82,0.0
+adj_vix_ma_3125,2021-12-29,enters,warm update (data),every-day expirations,2022-04-26,-81,-0.00011487984754552586
+adj_vix_ma_3125,2022-01-20,leaves,warm update (data),every-day expirations,2022-04-26,-66,0.0
+adj_vix_ma_3125,2023-08-15,enters,warm update (data),every-day expirations,2022-04-26,327,-0.0030208446650426494
+adj_vix_ma_3125,2023-08-21,leaves,warm update (data),every-day expirations,2022-04-26,331,0.0
+adj_vix_ma_3125,2023-09-18,enters,warm update (data),every-day expirations,2022-04-26,350,-3.8552848777597156e-05
+adj_vvix_ma_1,2019-12-27,enters,warm update (data),COVID crash start,2020-02-20,-36,0.00011898228019840921
+adj_vvix_ma_1,2020-01-31,leaves,warm update (data),COVID crash start,2020-02-20,-13,0.0
+adj_vvix_ma_1,2020-02-03,enters,warm update (data),COVID crash start,2020-02-20,-12,6.49974038466105e-05
+adj_vvix_ma_1,2020-02-04,leaves,warm update (data),COVID crash start,2020-02-20,-11,0.0
+adj_vvix_ma_1,2020-03-20,enters,warm update (data),COVID crash start,2020-02-20,21,0.00026022366540903334
+adj_vvix_ma_1,2020-04-27,leaves,warm update (data),COVID crash end,2020-05-01,-4,0.0
+adj_vvix_ma_1,2020-11-04,enters,warm update (data),penalty 1000 to 100,2020-06-23,94,0.00011527528454268778
+adj_vvix_ma_1,2020-11-06,leaves,warm update (data),penalty 1000 to 100,2020-06-23,96,0.0
+adj_vvix_ma_1,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,0.012085487712425982
+adj_vvix_ma_1,2023-08-15,leaves,warm update (data),every-day expirations,2022-04-26,327,0.0
+adj_vvix_ma_1,2023-08-18,enters,warm update (data),every-day expirations,2022-04-26,330,0.0056131660067498
+adj_vvix_ma_25,2023-08-16,enters,warm update (data),every-day expirations,2022-04-26,328,-0.001210507395506776
+adj_vvix_ma_25,2023-08-17,leaves,warm update (data),every-day expirations,2022-04-26,329,0.0
+adj_vvix_ma_125,2023-08-15,enters,warm update (data),every-day expirations,2022-04-26,327,0.017680457882863754
+adj_vvix_ma_125,2023-08-24,leaves,warm update (data),every-day expirations,2022-04-26,334,0.0
+adj_vvix_ma_125,2023-08-25,enters,warm update (data),every-day expirations,2022-04-26,335,0.00038132105791580014
+adj_vvix_ma_125,2023-08-29,leaves,warm update (data),every-day expirations,2022-04-26,337,0.0
+adj_vvix_ma_625,2022-03-02,enters,warm update (data),every-day expirations,2022-04-26,-38,-0.0009525227539532919
+adj_vvix_ma_625,2022-03-08,leaves,warm update (data),every-day expirations,2022-04-26,-34,0.0
+adj_vvix_ma_625,2022-03-14,enters,warm update (data),every-day expirations,2022-04-26,-30,-0.0006812106253179857
+adj_vvix_ma_625,2022-04-01,leaves,warm update (data),every-day expirations,2022-04-26,-16,0.0
+adj_vvix_ma_625,2022-04-04,enters,warm update (data),every-day expirations,2022-04-26,-15,-8.435167275688653e-05
+adj_vvix_ma_625,2022-12-30,leaves,warm update (data),every-day expirations,2022-04-26,172,0.0
+adj_vvix_ma_3125,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,0.015284281433466917
+adj_vvix_ma_3125,2022-02-28,leaves,warm update (data),every-day expirations,2022-04-26,-40,0.0
+adj_vvix_ma_3125,2022-09-02,enters,warm update (data),every-day expirations,2022-04-26,90,-0.00031188881677600736
+adj_vvix_ma_3125,2022-09-07,leaves,warm update (data),every-day expirations,2022-04-26,92,0.0
+adj_vvix_ma_3125,2022-10-06,enters,warm update (data),every-day expirations,2022-04-26,113,-0.00027030522924051907
+adj_vvix_ma_3125,2022-10-13,leaves,warm update (data),every-day expirations,2022-04-26,118,0.0
+adj_vvix_ma_3125,2022-10-14,enters,warm update (data),every-day expirations,2022-04-26,119,-0.0004414211540784989
+adj_vvix_ma_3125,2022-10-18,leaves,warm update (data),every-day expirations,2022-04-26,121,0.0
+adj_vvix_ma_3125,2023-02-02,enters,warm update (data),every-day expirations,2022-04-26,194,-2.3466374181861418e-05
+adj_vvix_ma_3125,2023-02-06,leaves,warm update (data),every-day expirations,2022-04-26,196,0.0
+adj_vvix_ma_3125,2023-02-10,enters,warm update (data),every-day expirations,2022-04-26,200,-0.00011295628656550221
+adj_vvix_ma_3125,2023-02-13,leaves,warm update (data),every-day expirations,2022-04-26,201,0.0
+adj_vvix_ma_3125,2023-03-03,enters,warm update (data),every-day expirations,2022-04-26,214,-0.0001973178497185763
+adj_vvix_ma_3125,2023-03-14,leaves,warm update (data),every-day expirations,2022-04-26,221,0.0
+adj_vvix_ma_3125,2023-03-17,enters,warm update (data),every-day expirations,2022-04-26,224,-0.00015991093666934582
+adj_vvix_ma_3125,2023-06-21,leaves,warm update (data),every-day expirations,2022-04-26,289,0.0
+adj_vvix_ma_3125,2023-06-27,enters,warm update (data),every-day expirations,2022-04-26,293,-1.716791492608196e-05
+adj_vvix_ma_3125,2023-06-29,leaves,warm update (data),every-day expirations,2022-04-26,295,0.0
+adj_vvix_ma_3125,2023-07-03,enters,warm update (data),every-day expirations,2022-04-26,297,-5.617444657584809e-05
+adj_vvix_ma_3125,2023-07-05,leaves,warm update (data),every-day expirations,2022-04-26,298,0.0
+adj_vvix_ma_3125,2023-07-24,enters,warm update (data),every-day expirations,2022-04-26,311,-0.00041095735718253826
+adj_vvix_ma_3125,2023-08-15,leaves,warm update (data),every-day expirations,2022-04-26,327,0.0
+adj_vvix_ma_3125,2023-09-19,enters,warm update (data),every-day expirations,2022-04-26,351,-3.100834800757619e-05
+adj_vvix_ma_3125,2023-09-20,leaves,warm update (data),every-day expirations,2022-04-26,352,0.0
+adj_vvix_ma_3125,2023-10-26,enters,warm update (data),every-day expirations,2022-04-26,378,-0.00015362605285586245
+adj_vvix_ma_3125,2023-12-20,leaves,warm update (data),every-day expirations,2022-04-26,416,0.0
+adj_vvix_ma_3125,2023-12-21,enters,warm update (data),every-day expirations,2022-04-26,417,-0.0005174173949911115
+adj_vvix_ma_3125,2023-12-27,leaves,warm update (data),every-day expirations,2022-04-26,420,0.0
+adj_vvix_ma_3125,2024-01-04,enters,warm update (data),every-day expirations,2022-04-26,425,-9.023527319939702e-05
+adj_vvix_ma_3125,2024-03-12,leaves,warm update (data),every-day expirations,2022-04-26,471,0.0
+adj_vvix_ma_3125,2024-04-17,enters,warm update (data),every-day expirations,2022-04-26,496,-8.39623325271901e-06
+adj_vvix_ma_3125,2024-04-19,leaves,warm update (data),every-day expirations,2022-04-26,498,0.0
+adj_vix3m_ma_125,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,-0.04916208100601496
+adj_vix3m_ma_125,2023-08-24,leaves,warm update (data),every-day expirations,2022-04-26,334,0.0
+adj_vix3m_ma_125,2023-08-30,enters,warm update (data),every-day expirations,2022-04-26,338,-0.0005750338043935814
+adj_vix3m_ma_125,2024-01-03,leaves,warm update (data),every-day expirations,2022-04-26,424,0.0
+adj_vix3m_ma_125,2024-01-09,enters,warm update (data),every-day expirations,2022-04-26,428,-0.0016713656075538867
+adj_vix3m_ma_125,2024-01-10,leaves,warm update (data),every-day expirations,2022-04-26,429,0.0
+adj_vix3m_ma_625,2021-06-21,enters,penalty re-chosen,penalty 100 to 1000,2021-06-21,0,-0.07534095678010692
+vix_avail_ma_25,2022-08-10,enters,warm update (data),every-day expirations,2022-04-26,73,-0.00010064501828327163
+vix_avail_ma_25,2022-08-12,leaves,warm update (data),every-day expirations,2022-04-26,75,0.0
+vix_avail_ma_25,2022-08-15,enters,warm update (data),every-day expirations,2022-04-26,76,-1.2534295274247536e-05
+vix_avail_ma_25,2022-08-18,leaves,warm update (data),every-day expirations,2022-04-26,79,0.0

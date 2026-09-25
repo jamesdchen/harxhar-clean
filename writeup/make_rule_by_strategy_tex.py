@@ -88,8 +88,15 @@ PAPER_DROP = {"25%", "50%", "75%", "n_buy", "pct_buy"}
 PAPER_COLS = [c for c in COLS if c[0] not in PAPER_DROP]
 
 
-def render(panels, cols, sources: str, tabcolsep: str) -> list[str]:
-    """One tabular: `panels` is a list of (csv stem, panel label)."""
+def render(
+    panels, cols, sources: str, tabcolsep: str, per_bar: bool = False
+) -> list[str]:
+    """One tabular: `panels` is a list of (csv stem, panel label).
+
+    per_bar=False keeps the paper's eight forecast rows only; True adds the
+    per-bar rows (one regression for the 15:30-16:00 bar) under their own
+    subheading.
+    """
     ncol = len(cols) + 1
     header = "& " + " & ".join(h for _, _, h in cols) + r" \\"
     lines = [
@@ -104,7 +111,17 @@ def render(panels, cols, sources: str, tabcolsep: str) -> list[str]:
         df = pd.read_csv(os.path.join(SRC, f"{stem}.csv"), index_col=0)
         lines.append(r"\midrule")
         lines.append(r"\multicolumn{%d}{l}{\emph{%s}} \\" % (ncol, label))
+        in_per_bar = False
         for name, row in df.iterrows():
+            if str(name).startswith("per-bar"):
+                if not per_bar:
+                    continue
+                if not in_per_bar:
+                    lines.append(
+                        r"\multicolumn{%d}{l}{\quad\emph{per-bar forecasts: one "
+                        r"regression for the 15:30--16:00 bar alone}} \\" % ncol
+                    )
+                    in_per_bar = True
             cells = [MODEL_TEX.get(str(name), str(name))]
             for col, fmt, _ in cols:
                 cells.append(fmt.format(float(row[col])))
@@ -125,7 +142,7 @@ def main() -> None:
     by_strategy_src = "results/atm_straddle_0dte_1530/rule_by_strategy_*.csv"
     write(
         "table_rule_by_strategy.tex",
-        render(PANELS, COLS, by_strategy_src, "3.5pt"),
+        render(PANELS, COLS, by_strategy_src, "3.5pt", per_bar=True),
     )
     write(
         "table_rule_by_strategy_paper.tex",

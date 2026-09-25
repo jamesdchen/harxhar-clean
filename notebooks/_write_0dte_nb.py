@@ -27,15 +27,15 @@ nb.cells = [
         r"""
 # Same-day-expiry nearest-out-of-the-money call and put, 15:30 → 16:00
 
-One trade per expiration day. At 15:30 ET the "at-the-money" package is
-defined as the **nearest out-of-the-money** legs:
+One trade per expiration day. At 15:30 ET the **straddle** is the pair of
+**nearest out-of-the-money** legs, bought or sold together as one position:
 
 - call: the smallest listed strike $K_c \ge S$ with a live midpoint quote
 - put: the largest listed strike $K_p \le S$ with a live midpoint quote
 
-When the index sits exactly on a strike the two legs share it and the
-package is a straddle; otherwise it is a strangle one strike wide. The
-package is held to the close and settled in cash against the official
+When the index sits exactly on a strike the two legs share it (a true
+straddle); otherwise the pair is one strike wide (strictly, a strangle).
+The straddle is held to the close and settled in cash against the official
 S&P 500 close (yfinance `^GSPC`): the call pays
 $\max(S_{\mathrm{close}}-K_c,0)$ and the put pays
 $\max(K_p-S_{\mathrm{close}},0)$.
@@ -47,7 +47,7 @@ $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
 $\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
 the realized scale by a recalibration estimated from past data only
 (§7). The position rules are scored on the same 866 days. The headline
-is the **$\mathrm{sign}(s)$** portfolio, which sells the package when the market's
+is the **$\mathrm{sign}(s)$** portfolio, which sells the straddle when the market's
 quoted variance exceeds the forecast and buys it when the forecast
 exceeds the price: on the
 block-diagonal ridge forecast — the ridge fitted on the FOMC panel, this
@@ -59,10 +59,14 @@ The notebook runs as follows. Sections 1–6 build the instrument and its
 return; §7 loads the variance forecasts and recalibrates them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the rules across the eight forecast
-tables and tests each portfolio against the control day by day;
+tables and tests each portfolio against the control day by day, then
+compares the per-bar forecasts with their pooled twins as variance
+forecasts and scores positions sized by the forecast gap instead of
+$\pm1$;
 §11 shifts the forecast in time to show the look-ahead cliff; §12 regresses the settlement return on the 15:30 signal; §13 adds up
 the profit and loss; §14 is parked, its always-short comparison carried
-by §10; §15 compounds each rule at a fixed 3% of wealth per day; §16 diagnoses the buy days; §17 checks one row by hand. A
+by §10; §15 compounds each rule at a fixed 3% of wealth per day; §16 diagnoses the buy days; §17 asks whether the forecast needs more than the VIX;
+§18 sets the trade's weight beside the S&P and shows what the trade's daily return moves with; §19 checks one row by hand. A
 defined-risk variant (wings on the days the portfolio sells) is parked and
 explored in the experimental notebook.
 
@@ -334,7 +338,7 @@ fingerprint of a frozen tape. After the half sessions are dropped one
 day is left, 2023-02-03, where the vendor repeats the 15:30 index print
 at 16:00 although the option quotes move on; nothing in the trade reads
 that field, which serves only this check. Printed too is the number of days on
-which the close and the tape disagree about whether the package
+which the close and the tape disagree about whether the straddle
 expires worthless — the strikes are close to the spot, so a small gap
 flips that status on 51 of the 1279 option days.
 """
@@ -421,7 +425,7 @@ atm = atm[np.isfinite(atm["entry"]) & np.isfinite(atm["exit"]) & (atm["entry"] >
         r"""
 ## 6. Return $R = \mathrm{exit}/P_{15:30} - 1$
 
-The package costs its entry price at 15:30 and pays the two legs'
+The straddle costs its entry price at 15:30 and pays the two legs'
 settlement values in cash at the close; $R$ is that payout divided by
 the entry price, minus one.
 """
@@ -462,19 +466,58 @@ pipeline:
 - the lasso on that design with its penalty chosen from past data only,
   and the lasso at a fixed penalty of $10^{-4}$;
 - the elastic net, penalties chosen from past data only;
-- **the per-bar forecasts** (Hoffman2, 2026-09-20/21): the same linear
-  pipeline with its coefficients fitted on ONE regular-hours bar at a
-  time instead of one vector over all 48 bars — ridge on HAR + calendar
-  only, and ridge, the fixed lasso and the elastic net on all features,
-  each on a 2000-session window. The forecast of the 15:30–16:00 bar
-  comes from the bar's own regression. Each has a pooled *twin* — the
-  identical specification with one coefficient vector — which enters one
-  paired table below and nothing else, so the difference is the
-  coefficients alone. The three **live-feasible** rows are the same
-  per-bar fits on the 16 columns a 15:30 forecaster can rebuild in real
-  time (ES return moments and liquidity from minute bars, the Cboe
-  volatility indices, the release calendar) — no constituent
-  cross-section, no message-board sentiment, no option-volume series.
+- **the per-bar forecasts** (2026-09-20/21): one regression per
+  half-hour bar instead of one for the whole day, defined in full just
+  below — ridge on HAR + calendar only; ridge, the fixed lasso and the
+  elastic net on all features; and the same three on the 16-column
+  live-feasible set.
+
+### What "per-bar ridge" means
+
+The paper's models fit **one** coefficient vector to all 48 half-hour
+bars of the day. A per-bar model fits a **separate regression for each
+regular-hours bar**. The one this trade uses is the model of the
+**15:30–16:00 bar**:
+
+1. **Rows.** Only 15:30–16:00 bars. On each day the model is trained on
+   that half hour of the previous 2,000 sessions (about eight years) and
+   on nothing else, so its coefficients belong to the last half hour
+   alone. The twelve other regular-hours bars have models of their own;
+   here they are used only by the recalibration of §7.
+2. **Target.** The bar's realized variance over its time-of-day
+   baseline, square-rooted and winsorized, $y=\sqrt{RV/B}$ — the same
+   target as every model in this notebook.
+3. **Inputs**, all known at 15:30. For the target and for each
+   exogenous series: its mean over the last 1, 5, 25, 125, 625 and 3,125
+   half-hour bars of the full 24-hour series (so "the last 5 bars" is
+   the 2½ hours before 15:30, overnight bars included, not the same half
+   hour on five earlier days); an is-present flag per series; calendar
+   dummies (day of the week, option-expiry day and week, month- and
+   quarter-end, and so on). The exogenous series depend on the row:
+   none (**HAR + calendar**), the full wide design (**all features**),
+   or the 16 series a 15:30 forecaster can rebuild in real time
+   (**live-feasible**: ES return moments, volume and trade count from
+   minute bars, the VIX, VVIX and VIX3M, the FOMC calendar — no
+   constituent cross-section, no message-board sentiment, no
+   option-volume series).
+4. **Estimator.** Ridge: least squares with an L2 penalty on every
+   coefficient except the intercept. The penalty is chosen from
+   $\{0.01, 0.1, 1, 10, 100, 1000\}$ using past data only: every 250
+   sessions, each value is fitted on the earlier part of the
+   2,000-session window and scored by squared error on its last 125
+   sessions (after a 25-session gap); the best holds until the next
+   choice. The coefficients themselves are re-solved every session.
+5. **Output.** The 15:30 prediction of $y$ for the 15:30–16:00 bar,
+   turned into a variance by the recalibration of §7. That is the
+   $\widehat{RV}$ that $\mathrm{sign}(s)$ compares with the implied
+   variance.
+
+Each per-bar model has a **pooled twin**: the identical specification
+fitted on all 48 bars of the same 2,000 sessions with one coefficient
+vector. The twin enters one paired table below and nothing else, so the
+difference there is the coefficients alone. The per-bar lasso and
+elastic net differ from the per-bar ridge only in the penalty (L1, or
+half L1 and half L2).
 
 **From stored forecast to a variance.** Forecasts are stored on the
 fitted scale $y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized.
@@ -492,7 +535,7 @@ recalibration fitted on the trailing 250 days only:
   when they were included, pushed the forecast-to-realized ratio from
   1.08 to 1.14.
 
-**Mean, not median.** The map targets the mean of realized variance: the trade is scored on what the position earns, and a long package is paid by the right tail.
+**Mean, not median.** The map targets the mean of realized variance: the trade is scored on what the position earns, and a long straddle is paid by the right tail.
 
 Housekeeping: closed-form fit shared with the intraday notebook; per-model tables cached on their inputs.
 """
@@ -741,7 +784,7 @@ print("saved", OUT / "model_provenance.csv")
     # would have earned on them. Always short is identical under both maps by
     # construction. The implied variance is the one §8 constructs — the two
     # vendor legs, censored of the solver's bracket nodes, with a censored
-    # day's package midpoint re-inverted — built here by the same routine, so
+    # day's straddle midpoint re-inverted — built here by the same routine, so
     # this comparison and the rule table price the trade the same way.
     #
     # **Verdict, from the numbers below.** The median map is calibrated as
@@ -752,10 +795,10 @@ print("saved", OUT / "model_provenance.csv")
     # ridge Sharpe $1.34 \to 0.49$), with no Sharpe
     # difference resolved at the $95\%$ level. The two maps disagree on 178
     # to 210 days per forecast — days the mean map buys and the median map
-    # sells — and the long package pays on those days on average
+    # sells — and the long straddle pays on those days on average
     # (block-diagonal ridge $+0.13$ per unit of premium). What the trade
     # earns is the expected payoff minus the price; the expected payoff of a
-    # long package is driven by the right tail of realized variance, which
+    # long straddle is driven by the right tail of realized variance, which
     # the median ignores by construction. A median-calibrated forecast maximizes
     # how often the sign is right; the mean-calibrated forecast maximizes what
     # the sign earns, and that is the quantity the rule is scored on. The mean
@@ -771,7 +814,7 @@ print("saved", OUT / "model_provenance.csv")
     #
     # # The implied variance section 8 builds, defined here because this comparison needs it first
     # # and both must read the same price: the two vendor legs, censored of the bisection's bracket
-    # # nodes; on a censored day the package midpoint is re-inverted for the volatility instead.
+    # # nodes; on a censored day the straddle midpoint is re-inverted for the volatility instead.
     # # A non-converged bisection returns the node EXACTLY, so the library censors on an exact hit
     # # (asl.IV_NODE_RTOL = 1e-5); a wider band would censor ordinary quotes sitting near the middle
     # # node, which is itself a typical implied-volatility level.
@@ -783,8 +826,8 @@ print("saved", OUT / "model_provenance.csv")
     #
     #
     # def iv_hourly_15_30(frame: pd.DataFrame) -> pd.DataFrame:
-    #     # hourly implied volatility of the package at 15:30: the mean of the two quoted legs,
-    #     # replaced on a censored day by the volatility that reproduces the package midpoint
+    #     # hourly implied volatility of the straddle at 15:30: the mean of the two quoted legs,
+    #     # replaced on a censored day by the volatility that reproduces the straddle midpoint
     #     out = pd.DataFrame(index=frame.index)
     #     out["iv_c"] = pd.to_numeric(frame["impl_volatility_c"], errors="coerce").astype(float)
     #     out["iv_p"] = pd.to_numeric(frame["impl_volatility_p"], errors="coerce").astype(float)
@@ -915,14 +958,14 @@ rests on two sources.
   are the ten on the five high-volatility days of March 2020, which sit
   on the upper bound.
 - **A check against the market's own prices.** Pricing the 15:30
-  package with the Black–Scholes–Merton formula (Black and Scholes,
+  straddle with the Black–Scholes–Merton formula (Black and Scholes,
   1973; Merton, 1973) over the remaining half hour, with the one-hour
   figure scaled to thirty minutes, reproduces the quoted midpoint to
   quote precision, while the other candidate readings — a thirty-minute,
   a daily, or an annualized standard deviation — miss by large factors.
   The check is run below on the days where both legs sit inside the
   bounds, and on the days where a leg sits on the cap the implied
-  volatility is recovered by inverting the package midpoint with the
+  volatility is recovered by inverting the straddle midpoint with the
   same formula on the index level, matching the vendor's convention, so
   no censored value enters the signal.
 
@@ -951,7 +994,7 @@ IV_LO, IV_HI = asl.IV_VENDOR_BOUNDS   # the vendor field's bracket
 IV_NODES = np.array(asl.IV_VENDOR_NODES)
 
 # The implied variance: the two vendor legs, censored of the bisection's bracket nodes; on a
-# censored day the package midpoint is re-inverted for the volatility instead.
+# censored day the straddle midpoint is re-inverted for the volatility instead.
 # A non-converged bisection returns the node EXACTLY, so the library censors on an exact hit
 # (asl.IV_NODE_RTOL = 1e-5); a wider band would censor ordinary quotes sitting near the middle
 # node, which is itself a typical implied-volatility level.
@@ -963,8 +1006,8 @@ def on_vendor_node(v: pd.Series) -> np.ndarray:
 
 
 def iv_hourly_15_30(frame: pd.DataFrame) -> pd.DataFrame:
-    # hourly implied volatility of the package at 15:30: the mean of the two quoted legs,
-    # replaced on a censored day by the volatility that reproduces the package midpoint
+    # hourly implied volatility of the straddle at 15:30: the mean of the two quoted legs,
+    # replaced on a censored day by the volatility that reproduces the straddle midpoint
     out = pd.DataFrame(index=frame.index)
     out["iv_c"] = pd.to_numeric(frame["impl_volatility_c"], errors="coerce").astype(float)
     out["iv_p"] = pd.to_numeric(frame["impl_volatility_p"], errors="coerce").astype(float)
@@ -993,7 +1036,7 @@ def package_price(s30, S, Kc, Kp):
     return (S * norm.cdf(d1c) - Kc * norm.cdf(d1c - s30)) + (Kp * norm.cdf(-(d1p - s30)) - S * norm.cdf(-d1p))
 
 
-# the check: on days with both legs inside the bounds, the quoted field prices the package
+# the check: on days with both legs inside the bounds, the quoted field prices the straddle
 ok_q = ~atm["iv_capped"] & np.isfinite(atm["iv_hourly_quoted"]) & (atm["entry"] > 0)
 model_px = package_price(atm.loc[ok_q, "iv_hourly_quoted"] / np.sqrt(2.0), atm.loc[ok_q, "S"], atm.loc[ok_q, "K_c"], atm.loc[ok_q, "K_p"])
 ratio = model_px / atm.loc[ok_q, "entry"]
@@ -1027,10 +1070,10 @@ print("days without a usable implied volatility (dropped in section 9)", int(atm
 
 Both quantities are now in variance units. The signal is the gap between the forecast and the implied variance,
 $s_t=\widehat{RV}_t-\bigl(\mathrm{IV}_{\mathrm{hourly},t}/\sqrt{2}\bigr)^{2}$.
-The position is long the package when the signal is positive and short otherwise: $q_t=+1$ if $s_t>0$ and $q_t=-1$ if not. The position's return is $q_t R_t$.
+The position is long the straddle when the signal is positive and short otherwise: $q_t=+1$ if $s_t>0$ and $q_t=-1$ if not. The position's return is $q_t R_t$.
 
 The cell also scores the other treatment of the censored implied
-volatilities: drop those days instead of re-inverting the package
+volatilities: drop those days instead of re-inverting the straddle
 midpoint (§8). Five of the 866 scored days carry a censored leg — the
 March 2020 days on the vendor's upper bound; on the remaining 861 the
 block-diagonal ridge portfolio earns an annualized Sharpe ratio of
@@ -1094,21 +1137,16 @@ print(books["a0"][["entry", "exit", "R", "rv_hat", "iv_hourly", "iv_30", "iv_var
         r"""
 ## 10. Rule table, grouped by strategy
 
-Each rule is scored on the same days and on the same long-package return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the eight forecast tables as rows**, scored on the days common to all eight portfolios. Fills are at the midpoint quote. The always-short rule uses no forecast, so its eight rows are identical and it is shown as a single row.
+Each rule is scored on the same days and on the same long-straddle return $R$ (midpoint quote at 15:30 to cash settlement); only the position $q_t$ differs. There is one block per rule, with **the eight forecast tables as rows**, scored on the days common to all eight portfolios. Fills are at the midpoint quote. The always-short rule uses no forecast, so its eight rows are identical and it is shown as a single row.
 
 **The rules** (each returns $R'_t = q_t R_t$):
 
 - **always short:** $q_t=-1$ every day; no forecast is used.
 - **$\mathrm{sign}(s)$:** $q_t=\mathrm{sign}(s_t)$ with
-  $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the package when the
+  $s_t=\widehat{RV}_t-\mathrm{IV}_{30,t}^{2}$ — long the straddle when the
   forecast exceeds implied variance, short otherwise.
-- **$\mathrm{sign}(s)$, flat on event days:** $q_t=0$ on FOMC statement days
-  and on month-end sessions, $q_t=\mathrm{sign}(s_t)$ on every other day —
-  both flags are the exchange calendar, so the position is known before the
-  15:30 entry.
 
-Flat days stay in the daily series as zeros rather than being dropped, so
-all three rules are scored on the same $n$ days.
+Both rules are scored on the same $n$ days.
 
 The columns are the usual summary statistics (count, mean, standard deviation, minimum, quartiles, maximum), skewness, excess kurtosis, the $t$-statistic of the mean, $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, and the count and share of buy days (days with $q_t>0$). The $t$-statistic uses the raw daily mean and standard deviation, not the annualized Sharpe ratio.
 
@@ -1133,6 +1171,7 @@ def rule_sizes(px: pd.DataFrame) -> dict[str, pd.Series]:
         # below, kept here because the library carries them
         "heaviside(s): long only": pd.Series(np.where(long_day, 1.0, 0.0), index=px.index),
         "heaviside(s): short only": pd.Series(np.where(long_day, 0.0, -1.0), index=px.index),
+        # parked from the tables (2026-09-24), kept here because the library carries it
         "sign(s), flat on event days": pd.Series(
             np.where(is_event, 0.0, px["pos"].to_numpy(float)), index=px.index),
     }
@@ -1168,7 +1207,6 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
 order = [
     "always short",
     "sign(s)",
-    "sign(s), flat on event days",
 ]
 assert order == list(asl.RULE_ORDER), "the deck's rule order and the library's disagree"
 cols = ["n", "mean", "std", "min", "25%", "50%", "75%", "max",
@@ -1192,10 +1230,8 @@ for _tag in MODEL_ORDER:
     for _name in _lib:
         _d = float((_mine[_name] - _lib[_name]).abs().max())
         assert _d == 0.0, (_tag, _name, _d)
-_ev = asl.event_day_mask(common, REPO)
 print(f"rule_sizes matches atm_straddle_lib.rule_sizes on all {len(_lib)} rules and "
-      f"{len(MODEL_ORDER)} forecasts; {len(order)} of them are tabulated; "
-      f"event days flagged on the common frame: {int(_ev.sum())}")
+      f"{len(MODEL_ORDER)} forecasts; {len(order)} of them are tabulated")
 
 rule_tabs = {}
 for tag in MODEL_ORDER:
@@ -1223,8 +1259,7 @@ for name in order:
     print(tab.to_string())
     print("---")
     # slug: runs of non-alphanumerics collapse to one underscore
-    # ("always short" -> always_short, "sign(s)" -> sign_s,
-    #  "sign(s), flat on event days" -> sign_s_flat_on_event_days)
+    # ("always short" -> always_short, "sign(s)" -> sign_s)
     safe = "_".join("".join(ch if ch.isalnum() else " " for ch in name).split())
     tab.to_csv(OUT / f"rule_by_strategy_{safe}.csv")
 print("saved per-model rule_table_*.csv and per-rule rule_by_strategy_*.csv in", OUT)
@@ -1244,7 +1279,7 @@ n_zero = {name: int(((sizes[name] * px["R"]).dropna() == 0.0).sum()) for name in
 print("flat days (q = 0) per rule, block-diagonal ridge, on its own",
       int(px["R"].notna().sum()), "days:", n_flat)
 print("days with R' exactly 0, which is what the bar at zero counts (the flat days "
-      "plus any day the package itself returned exactly nothing):", n_zero)
+      "plus any day the straddle itself returned exactly nothing):", n_zero)
 for ax, name in zip(axes.ravel(), order):
     x = (sizes[name] * px["R"]).dropna()
     nz = x[x != 0.0]
@@ -1270,7 +1305,7 @@ plt.close(fig)
     # r"""### Is the edge only the short leg?
     #
     # A standing suspicion about the $\mathrm{sign}(s)$ portfolio is that it is
-    # nothing more than selling the package and holding it to the close: the short
+    # nothing more than selling the straddle and holding it to the close: the short
     # days do all the work and the days the rule turns long add nothing. The two
     # heaviside rules test that directly, because they are the two halves of
     # $\mathrm{sign}(s)$ — long only holds $+1$ on the days $s_t>0$ and is flat
@@ -1527,6 +1562,430 @@ print("saved", OUT / "paired_tests.csv")
 """
     ),
     md(
+        r"""### Per-bar against pooled: which is the better variance forecast?
+
+The last block of the paired table compares each per-bar forecast with its
+pooled twin on what the trade earns. This subsection compares them as
+forecasts. The loss is QLIKE, $y/f-\log(y/f)-1$, for the forecast $f$ of a
+bar's realized variance $y$; it is zero for a perfect forecast and
+penalizes a forecast that is too low more than one that is too high. It is
+computed bar by bar for the 13 regular-hours bars (bar ends 10:00 to
+16:00), on the same 866 days as §10.
+
+- **The same map on both sides.** Each table goes through the §7
+  recalibration, fitted on its own forecasts, so the 16:00 column is
+  exactly the forecast §9 trades. The 10:00 bar (09:30–10:00) lies outside
+  the map's fit window; its forecast uses the map fitted on the other
+  bars.
+- **Session mean**: each day's mean loss over the 13 bars, so every test
+  runs on one number per day.
+- **% difference**: $100\,(\overline{\mathrm{QLIKE}}_{\text{per-bar}}/\overline{\mathrm{QLIKE}}_{\text{pooled}}-1)$.
+  Negative means the per-bar forecast has the lower loss.
+- **Interval**: 95% circular block bootstrap of days on the % difference
+  (blocks of 21 days, 2,000 draws, the resampled days of the paired tests
+  above).
+- **DM t**: the Diebold–Mariano statistic, the
+  heteroskedasticity- and autocorrelation-robust $t$ of the mean daily
+  loss difference (Bartlett kernel, lag $\lfloor 1.5\,n^{1/3}\rfloor$).
+
+The cell opens with three gates. It reproduces, from the stored arm
+files, the comparison saved with the per-bar runs (the same forecasts,
+each bar recalibrated on its own, all 1,087 sessions from 2020-01-03 to
+2024-04-30). It checks that the notebook's per-bar and pooled tables hold
+exactly those forecasts. It checks that every table's 16:00 column is
+the forecast §9 trades.
+"""
+    ),
+    code(
+        r"""# --- per-bar against pooled: forecast loss (QLIKE) bar by bar, through the §7 map, on the §10 days
+if str(REPO / "experiments") not in sys.path:
+    sys.path.insert(0, str(REPO / "experiments"))
+import score_linear_subsection as _sls
+import score_linear_subsection_causal as _slc
+from compare_mfiv_harlag import _prep as _arm_prep   # the research scorer's own reader and back-transform
+
+QL_BARS = [f"{_h:02d}:{_mm:02d}" for _h in range(10, 17) for _mm in (0, 30) if (_h, _mm) <= (16, 0)]
+QL_ARMS = REPO / "results" / "linear_subsection" / "arms_hoffman2"
+QL_GATE = ("all_features", "ridge", "sub_ridge", "pool_ridge")   # bucket, estimator, per-bar tag, pooled tag
+
+# GATE 1: the stored research comparison (per-bar minus pooled, each bar recalibrated on its own: the
+# "coefficients" rows) reproduced from the arm files, every bar, both of its samples
+_bk, _est, _tsub, _tpool = QL_GATE
+_stored = pd.read_csv(REPO / "results" / "linear_subsection" / "causal_rescore_hoffman2" / _bk / "subsection_vs_pooled_causal.csv")
+_stored = _stored[(_stored["estimator"] == _est) & (_stored["train_win"] == 2000) & (_stored["comparison"] == "coefficients")]
+_ref = _arm_prep(QL_ARMS / _bk / _est / "tw2000" / "results_none_rth.csv")
+_n_chk, _gate16, _arm_bars = 0, {}, []
+for _hh in QL_BARS:
+    _seg = "bar" + _hh.replace(":", "")
+    _mine = _arm_prep(QL_ARMS / _bk / _est / "tw2000" / f"results_{_seg}.csv")
+    _arm_bars.append(_mine)
+    _jj = _mine.join(_ref[["pred_clock", "pred_pooled", "pred_raw"]], how="inner", rsuffix="_P").dropna(
+        subset=["pred_clock", "pred_clock_P", "pred_pooled_P"])
+    _deck = (_jj.index >= _sls.DECK_START) & (_jj.index <= _sls.DECK_END + " 23:59")
+    for _smp, _mk in (("common", np.ones(len(_jj), bool)), ("deck period", _deck)):
+        _la = _slc.qlike(_jj["true_raw"], _jj["pred_clock"])[_mk]
+        _lb = _slc.qlike(_jj["true_raw"], _jj["pred_clock_P"])[_mk]
+        _lo, _hi = _sls.day_block_ci(_la - _lb)
+        _s = _stored[(_stored["segment"] == _seg) & (_stored["sample"] == _smp)].iloc[0]
+        for _mine_v, _theirs in ((int(_mk.sum()), "n"), (_la.mean(), "QLIKE_a"), (_lb.mean(), "QLIKE_b"),
+                                 (_lo, "ci_lo"), (_hi, "ci_hi")):
+            assert np.isclose(_mine_v, _s[_theirs], rtol=1e-9, atol=1e-12), (_seg, _smp, _theirs, _mine_v, _s[_theirs])
+            _n_chk += 1
+        if _hh == "16:00" and _smp == "deck period":
+            _gate16 = {"n": int(_mk.sum()), "a": float(_la.mean()), "b": float(_lb.mean()), "lo": _lo, "hi": _hi}
+print(f"GATE 1  {_n_chk} numbers of the stored per-bar vs pooled comparison ({_bk}, {_est}, 2000-session window, "
+      f"subsection_vs_pooled_causal.csv) reproduced from the arm files to 1e-9: 13 bars x 2 samples x "
+      f"(rows, QLIKE per-bar, QLIKE pooled, interval low, interval high)")
+print(f"        its 16:00 bar on all {_gate16['n']} sessions 2020-01-03..2024-04-30, each bar recalibrated on its own: "
+      f"QLIKE {_gate16['a']:.4f} per-bar vs {_gate16['b']:.4f} pooled ({100 * (_gate16['a'] / _gate16['b'] - 1):+.1f}%; "
+      f"interval on the mean daily difference {_gate16['lo']:+.4f} to {_gate16['hi']:+.4f})")
+
+# GATE 2: the notebook's per-bar and pooled tables carry exactly the arms' forecasts
+_arm_all = pd.concat(_arm_bars)
+for _t, _src in ((_tsub, _arm_all), (_tpool, _ref)):
+    _tb = pd.read_parquet(YHATS[_t], columns=["t", "yhat"])
+    _tb["date"] = pd.to_datetime(_tb["t"], utc=True).dt.tz_convert("America/New_York").dt.tz_localize(None)
+    _j = _tb.set_index("date")[["yhat"]].join(_src[["pred_adj"]], how="inner")
+    assert len(_j) == len(_tb), (_t, len(_j), len(_tb))
+    assert float((_j["yhat"] - _j["pred_adj"]).abs().max()) == 0.0, _t
+    print(f"GATE 2  {YHATS[_t].name} holds the arm's forecast exactly on all {len(_tb):,} stamps")
+
+
+# the §7 map on every stamp of each table (load_yhat_panel: the 15:30 loader's fit, every stamp)
+def _ql_frame(tag):
+    p = asl.load_yhat_panel(YHATS[tag], method="mean")
+    p["hhmm"] = p["et"].dt.strftime("%H:%M")
+    p = p[p["date"].isin(common) & p["hhmm"].isin(QL_BARS)]
+    y = p.pivot(index="date", columns="hhmm", values="rv_raw").reindex(index=common, columns=QL_BARS)
+    f = p.pivot(index="date", columns="hhmm", values="rv_hat").reindex(index=common, columns=QL_BARS)
+    assert y.notna().all().all() and f.notna().all().all() and (y > 0).all().all() and (f > 0).all().all(), tag
+    # GATE 3: the 16:00 column is the forecast §9 trades, to the bit
+    assert (f["16:00"] == models[tag].loc[common, "rv_hat"]).all(), tag
+    return y, f
+
+
+from concurrent.futures import ThreadPoolExecutor
+_ql_tags = list(TWINS) + list(TWINS.values())
+with ThreadPoolExecutor(max_workers=len(_ql_tags)) as _pool:
+    _fr = dict(zip(_ql_tags, _pool.map(_ql_frame, _ql_tags)))
+QL_Y = {_t: _fr[_t][0] for _t in _ql_tags}
+QL_F = {_t: _fr[_t][1] for _t in _ql_tags}
+for _t, _w in TWINS.items():
+    assert (QL_Y[_t] == QL_Y[_w]).all().all(), (_t, _w)   # the same realized variance on both sides
+print(f"GATE 3  all {2 * len(TWINS)} tables give a forecast and a positive realized variance for all {len(QL_BARS)} bars "
+      f"on all {len(common)} days; each 16:00 column equals the forecast §9 trades")
+
+
+def _qlike(y, f):
+    r = y / f
+    return r - np.log(r) - 1.0
+
+
+def _ql_pair(qa, qb):
+    qa, qb = np.asarray(qa, float), np.asarray(qb, float)
+    t_dm, lag = asl.newey_west_t(qa - qb)
+    bpct = 100.0 * (qa[PAIR_IDX].mean(axis=1) / qb[PAIR_IDX].mean(axis=1) - 1.0)
+    lo, hi = (float(v) for v in np.percentile(bpct, [2.5, 97.5]))
+    return {"days": len(qa), "QLIKE per-bar": float(qa.mean()), "QLIKE pooled": float(qb.mean()),
+            "difference (%)": float(100.0 * (qa.mean() / qb.mean() - 1.0)), "ci_lo (%)": lo, "ci_hi (%)": hi,
+            "DM t": t_dm, "lag": lag}
+
+
+QL_NAME = {_t: LABEL[_t].replace("per-bar ", "") for _t in TWINS}
+ql_rows = []
+for _t, _w in TWINS.items():
+    _qa, _qb = _qlike(QL_Y[_t], QL_F[_t]), _qlike(QL_Y[_w], QL_F[_w])
+    for _hh in QL_BARS:
+        ql_rows.append({"forecast": QL_NAME[_t], "bar end": _hh, **_ql_pair(_qa[_hh], _qb[_hh])})
+    # the session: each day's mean over the 13 bars, so the test runs on one number per day
+    ql_rows.append({"forecast": QL_NAME[_t], "bar end": "session mean", **_ql_pair(_qa.mean(axis=1), _qb.mean(axis=1))})
+ql_tab = pd.DataFrame(ql_rows)
+ql_tab.to_csv(OUT / "perbar_vs_pooled_qlike.csv", index=False)
+_ord = list(QL_NAME.values())
+print(f"per-bar forecast minus its pooled twin, QLIKE through the §7 map, on the {len(common)} days of §10.")
+print(f"DM t = HAC t of the mean daily loss difference (Bartlett, lag {int(ql_tab['lag'].iloc[0])}); interval = 95% "
+      f"circular block bootstrap of days on the % difference (blocks {PAIR_BLOCK}, {PAIR_B} draws, the resampled days "
+      "of the paired tests above)")
+print("session mean over the 13 bars:")
+print(ql_tab[ql_tab["bar end"] == "session mean"].drop(columns=["bar end", "lag"]).set_index("forecast").to_string(
+    float_format=lambda x: f"{x:.4f}"))
+print("---")
+_wide = ql_tab.assign(cell=[f"{p:+6.1f} [{lo:+6.1f},{hi:+6.1f}]" for p, lo, hi in
+                            zip(ql_tab["difference (%)"], ql_tab["ci_lo (%)"], ql_tab["ci_hi (%)"])])
+with pd.option_context("display.width", 250, "display.max_columns", 20, "display.max_colwidth", 30):
+    print("% difference, per-bar vs pooled twin [95% interval], by bar end (negative: the per-bar forecast has the lower loss)")
+    print(_wide.pivot(index="bar end", columns="forecast", values="cell")
+          .reindex(index=QL_BARS + ["session mean"], columns=_ord).to_string())
+    print("---")
+    print("DM t by bar end")
+    print(ql_tab.pivot(index="bar end", columns="forecast", values="DM t")
+          .reindex(index=QL_BARS + ["session mean"], columns=_ord).to_string(float_format=lambda x: f"{x:+.2f}"))
+print("---")
+_b = ql_tab[ql_tab["bar end"] != "session mean"]
+print("bars (of 13) whose interval lies wholly below zero (per-bar better) and wholly above zero (pooled better):")
+print(pd.DataFrame({_n: {"per-bar better": int((_g["ci_hi (%)"] < 0).sum()), "pooled better": int((_g["ci_lo (%)"] > 0).sum())}
+                    for _n, _g in _b.groupby("forecast", sort=False)}).T.to_string())
+print("---")
+# the 14:00-14:30 bar holds the FOMC statement (14:00): split its row by statement days
+_fomc = asl.fomc_and_monthend(pd.DatetimeIndex(common), REPO)["is_fomc"].fillna(False).to_numpy(bool)
+_split = {}
+for _t, _w in TWINS.items():
+    _qa, _qb = _qlike(QL_Y[_t]["14:30"], QL_F[_t]["14:30"]), _qlike(QL_Y[_w]["14:30"], QL_F[_w]["14:30"])
+    _split[QL_NAME[_t]] = {f"FOMC statement days ({int(_fomc.sum())})": 100.0 * (_qa[_fomc].mean() / _qb[_fomc].mean() - 1.0),
+                           f"other days ({int((~_fomc).sum())})": 100.0 * (_qa[~_fomc].mean() / _qb[~_fomc].mean() - 1.0),
+                           "share of the pooled loss on statement days": float(_qb[_fomc].sum() / _qb.sum())}
+print("the 14:30 bar (14:00-14:30) split by FOMC statement days: % difference per-bar vs pooled")
+print(pd.DataFrame(_split).T.to_string(float_format=lambda x: f"{x:.3f}"))
+print("saved", OUT / "perbar_vs_pooled_qlike.csv")
+"""
+    ),
+    md(
+        r"""
+**Reading (every number from the cell above).**
+
+- Over the whole session every per-bar forecast has the lower loss than
+  its pooled twin, by 3.3% to 9.0%. The interval clears zero for three
+  of the seven: ridge on HAR + calendar (−8.5%, interval −11.0% to
+  −6.0%, DM $t$ −5.9), and the lasso (−8.8%) and elastic net (−9.0%) on
+  all features. For the two ridges on the wider sets (all features
+  −4.1%, live-feasible −3.8%) and the two live-feasible penalized fits
+  the interval includes zero.
+- That session gain comes from two bars. At the 14:00–14:30 bar every
+  per-bar forecast is 30% to 39% better (DM $t$ −3.5 to −6.3), and at
+  15:00 8% to 15% better. The 14:00–14:30 bar is the one that holds the
+  FOMC statement (14:00). On the 33 statement days in the frame the
+  per-bar loss at that bar is 43% to 78% lower, and those days carry
+  45% to 54% of the pooled forecasts' loss at that bar; on the other
+  833 days the per-bar gain there is 5% to 16%. The gain at that bar is
+  mostly the statement afternoon, which a coefficient vector of its own
+  for that half hour can fit and one vector for all 48 bars averages
+  over.
+- Elsewhere the per-bar fits are often worse. On the wide column sets
+  the pooled twin wins several late-morning and midday bars (11:00,
+  12:30, 13:00): the per-bar loss is up to 21% higher, with the interval
+  above zero on five of the 13 bars for the ridge on all features and
+  six for the live-feasible ridge. A per-bar model has one thirteenth of
+  the pooled model's rows for the same number of columns.
+- On the traded bar (16:00) only the ridge on HAR + calendar resolves a
+  gain (−6.3%, interval −10.4% to −1.9%). The ridge on all features is
+  −2.6% and the live-feasible ridge +1.6%, both intervals including
+  zero. The per-bar forecasts' edge in the paired P&L table is
+  therefore not a visibly better forecast of the traded half hour's
+  variance on this loss.
+- The research comparison reproduced in the first gate recalibrates
+  each bar on its own and scores all 1,087 sessions; it gives the same
+  picture on the 16:00 bar (−2.9% for the ridge on all features,
+  interval on the daily difference including zero).
+"""
+    ),
+    md(
+        r"""
+### Sizing by the size of the forecast gap
+
+$\mathrm{sign}(s)$ bets the same amount every day. The alternative bets
+in proportion to the forecast gap $s$ (the variance risk premium with
+its sign turned round, $\mathrm{VRP}=-s$), so that the position is large
+when the forecast and the price disagree by a lot. Three sizes, each set
+from **earlier deck days only**:
+
+- **(a) proportional**: $q_d=s_d/\mathrm{rms}_d$, with $\mathrm{rms}_d$
+  the root mean square of $s$ over the deck days before $d$. Unbounded.
+- **(b) rank, sign kept**: $q_d=\mathrm{sign}(s_d)\,\hat F_d(|s_d|)$,
+  where $\hat F_d(x)$ is the share of earlier deck days whose $|s|$ is at
+  most $x$. Between $-1$ and $1$ by construction; it always takes the
+  side of $\mathrm{sign}(s)$, and is flat on a day whose $|s|$ is below
+  every earlier one.
+- **(c) centred rank**: $q_d=2\hat F_d(s_d)-1$, where $\hat F_d(x)$ is the
+  share of earlier deck days whose $s$ is at most $x$. Between $-1$ and
+  $1$; it can take the side opposite to $\mathrm{sign}(s)$, because a day
+  with a slightly negative $s$ can still rank above the median.
+
+Fills are at the midpoint ($q_dR_d$) and crossed (a buy pays the ask, a
+sale receives the bid). The gap $s$ starts with the option chain on
+2020-01-03, so a size needs a history. The first block scores the 614
+days after one year (252 deck days) of history, the warm-up §18's
+weights use. The second scores every day from the second (865 days),
+with whatever history exists; the first day has none. $\mathrm{sign}(s)$
+is rescored on the same days. The test is the annualized Sharpe ratio of
+the sized rule minus that of $\mathrm{sign}(s)$, with a 95% percentile
+interval from the circular block bootstrap of days (blocks of 21 days,
+2,000 draws). A Sharpe ratio does not depend on the scale of the
+position, so rules with different average sizes compare directly.
+
+**What earlier work found.** An earlier sizing study on the
+block-diagonal ridge tried about thirteen graduated sizes. None beat
+$\pm1$, and the centred rank (c) did worse than chance. A later study
+sized only the buy days by conviction (the rank of $s$, its top
+quintile, Kelly by quintile, doubling at month-end) on the same 614 days
+at crossed fills, and no rule was supported. Both concluded that the
+sign of $s$ carries the day-scale information and its size adds no
+return.
+"""
+    ),
+    code(
+        r"""# --- sizing by the size of the forecast gap: position proportional to s, against sign(s)
+# Each size uses PRIOR deck days only (strictly before d); s = rv_hat - iv_var is known at 15:30.
+#   (a) proportional    q = s / rms,            rms = root mean square of s over prior days (unbounded)
+#   (b) rank, sign kept q = sign(s) * F(|s|),   F = share of prior days with |s| <= today's |s|, in [-1, 1]
+#   (c) centred rank    q = 2 F(s) - 1,         F = share of prior days with s <= today's s, in [-1, 1]
+# Fills: midpoint, q * R; crossed, buy at the ask (q > 0) or sell at the bid (q < 0).
+VS_WARMUP = int(asl.PERIODS_PER_YEAR)  # one year of prior deck days, as the causal weights use
+VS_RULES = ["(a) proportional s/rms", "(b) rank of |s|, sign kept", "(c) centred rank 2F(s)-1"]
+VS_BLOCKS = {f"after {VS_WARMUP}-day warm-up": VS_WARMUP, "from the second day": 1}
+
+
+def _vs_sizes(s: np.ndarray) -> dict:
+    n = len(s)
+    k = np.arange(n)
+    prior = k[None, :] < k[:, None]  # prior[i, j]: day j is strictly before day i
+    n_prior = np.where(k > 0, k, np.nan)  # day 0 has no history
+    rms = np.sqrt(np.concatenate([[np.nan], np.cumsum(s ** 2)[:-1]]) / n_prior)
+    a = np.abs(s)
+    F_abs = ((a[None, :] <= a[:, None]) & prior).sum(axis=1) / n_prior
+    F_s = ((s[None, :] <= s[:, None]) & prior).sum(axis=1) / n_prior
+    sgn = np.where(s > 0, 1.0, -1.0)  # the deck's pos: s == 0 is short
+    return {"sign(s)": sgn, VS_RULES[0]: s / rms, VS_RULES[1]: sgn * F_abs, VS_RULES[2]: 2.0 * F_s - 1.0}
+
+
+def _vs_crossed(q, ex, bid, ask) -> np.ndarray:
+    return np.where(q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0))
+
+
+def _vs_boot_sharpe(x, idx) -> np.ndarray:
+    d = np.asarray(x, float)[idx]
+    return d.mean(axis=1) / d.std(axis=1, ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)
+
+
+# one set of resampled day indices per block length, reused by every forecast and rule (as the causal weights do)
+_vs_idx = {b: asl.circular_block_bootstrap_idx(np.random.default_rng([PAIR_SEED, len(common) - st]),
+                                               len(common) - st, PAIR_BLOCK, PAIR_B)
+           for b, st in VS_BLOCKS.items()}
+
+
+def _vs_score(tag: str):
+    px = books[tag].loc[common]
+    s, R = px["signal"].to_numpy(float), px["R"].to_numpy(float)
+    ex, entry = px["exit"].to_numpy(float), px["entry"].to_numpy(float)
+    bid = (px["bid_c"] + px["bid_p"]).to_numpy(float)
+    ask = (px["ask_c"] + px["ask_p"]).to_numpy(float)
+    assert (s == (px["rv_hat"] - px["iv_var"]).to_numpy(float)).all(), tag
+    assert np.allclose(R, ex / entry - 1.0, rtol=0, atol=1e-12), tag
+    assert (bid > 0).all() and (bid <= entry).all() and (entry <= ask).all(), tag
+    Q = _vs_sizes(s)
+    # gate: this cell's sign(s) is the deck's sign(s) position, and its returns are the deck's, day by day
+    ref_pos = rule_sizes(books[tag])["sign(s)"].loc[common].to_numpy(float)
+    ref = (rule_sizes(books[tag])["sign(s)"] * books[tag]["R"]).loc[common].to_numpy(float)
+    assert np.array_equal(Q["sign(s)"], ref_pos) and np.array_equal(Q["sign(s)"] * R, ref), tag
+    xs = asl.crossed_premium_return(pd.Series(Q["sign(s)"], index=px.index), px["exit"],
+                                    pd.Series(bid, index=px.index), pd.Series(ask, index=px.index)).to_numpy(float)
+    assert np.allclose(_vs_crossed(Q["sign(s)"], ex, bid, ask), xs, rtol=0, atol=1e-12), tag
+    rows = []
+    for b, st in VS_BLOCKS.items():
+        idx, sl = _vs_idx[b], slice(st, None)
+        assert np.array_equal((Q["sign(s)"] * R)[sl], ref[sl]), tag  # the sign(s) rows: the same series, restricted
+        base = {"mid": (Q["sign(s)"] * R)[sl], "crossed": _vs_crossed(Q["sign(s)"], ex, bid, ask)[sl]}
+        base_boot = {f: _vs_boot_sharpe(x, idx) for f, x in base.items()}
+        for rule, q_all in Q.items():
+            q = q_all[sl]
+            assert np.isfinite(q).all(), (tag, rule, b)
+            if rule in VS_RULES[1:]:
+                assert (np.abs(q) <= 1.0).all(), (tag, rule, b)  # bounded by construction
+            rec = {"tag": tag, "forecast": LABEL[tag], "rule": rule, "block": b, "days": len(q),
+                   "mean |q|": float(np.abs(q).mean()), "max |q|": float(np.abs(q).max()),
+                   "same sign": float((q * Q["sign(s)"][sl] > 0).mean()),
+                   "opposite sign": float((q * Q["sign(s)"][sl] < 0).mean())}
+            for f, x in (("mid", q * R[sl]), ("crossed", _vs_crossed(q, ex[sl], bid[sl], ask[sl]))):
+                rec[f"Sharpe {f}"] = _sharpe_ann(x)
+                if rule == "sign(s)":
+                    rec.update({f"dSharpe {f}": np.nan, f"lo {f}": np.nan, f"hi {f}": np.nan,
+                                f"basic lo {f}": np.nan, f"basic hi {f}": np.nan, f"reading {f}": ""})
+                    continue
+                hat = _sharpe_ann(x) - _sharpe_ann(base[f])
+                lo, hi = (float(v) for v in np.percentile(_vs_boot_sharpe(x, idx) - base_boot[f], [2.5, 97.5]))
+                rec.update({f"dSharpe {f}": hat, f"lo {f}": lo, f"hi {f}": hi,
+                            f"basic lo {f}": 2 * hat - hi, f"basic hi {f}": 2 * hat - lo,
+                            f"reading {f}": _interval_reading(lo, hi)})
+            rows.append(rec)
+    return rows, _sharpe_ann(Q["sign(s)"] * R), _sharpe_ann(ref)
+
+
+_vs_rows, _vs_gate = [], {}
+for _tag in MODEL_ORDER:
+    _r, _mine, _ref = _vs_score(_tag)
+    assert abs(_mine - _ref) < 1e-12, _tag
+    _vs_rows += _r
+    _vs_gate[_tag] = _mine
+vs_tab = pd.DataFrame(_vs_rows)
+vs_tab.to_csv(OUT / "vrp_sized_rules.csv", index=False)
+
+print(f"gate: this cell's sign(s) is the deck's sign(s) position on every forecast; its midpoint Sharpe on the {len(common)} days "
+      "equals the deck's rule:")
+print("  " + "; ".join(f"{LABEL[t]} {v:.3f}" for t, v in _vs_gate.items()))
+print(f"gate: bid > 0 and bid <= entry <= ask on all {len(common)} days; crossed sign(s) equals asl.crossed_premium_return; "
+      f"the sign(s) rows on each block are the {len(common)}-day series restricted")
+print(f"blocks: {VS_WARMUP} prior deck days before the first scored day ({len(common) - VS_WARMUP} days), and every day "
+      f"from the second ({len(common) - 1} days): the first day has no prior s to scale by, so {len(common) - 1} days is as "
+      f"close to the {len(common)} as a causal size gets")
+print(f"paired block bootstrap of days (blocks {PAIR_BLOCK}, {PAIR_B} draws), sized rule minus sign(s) on the same days, "
+      "percentile interval\n")
+
+_cols = ["rule", "block", "days", "mean |q|", "max |q|", "same sign", "opposite sign",
+         "Sharpe mid", "dSharpe mid", "lo mid", "hi mid", "Sharpe crossed", "dSharpe crossed", "lo crossed", "hi crossed",
+         "reading mid", "reading crossed"]
+with pd.option_context("display.width", 300, "display.max_columns", 30, "display.float_format", lambda v: f"{v: .3f}"):
+    for _tag in ("blk2", "sub_live_ridge"):
+        print(LABEL[_tag])
+        print(vs_tab.loc[vs_tab["tag"] == _tag, _cols].to_string(index=False))
+        print()
+
+    # summary across the forecasts, per rule and block
+    _sum = []
+    for (_rule, _b), _g in vs_tab[vs_tab["rule"] != "sign(s)"].groupby(["rule", "block"], sort=False):
+        _rec = {"rule": _rule, "block": _b, "forecasts": len(_g)}
+        for _f in ("mid", "crossed"):
+            _d = _g[f"dSharpe {_f}"]
+            _rec.update({f"{_f}: dS>0": int((_d > 0).sum()), f"{_f}: CI>0": int((_g[f"lo {_f}"] > 0).sum()),
+                         f"{_f}: CI<0": int((_g[f"hi {_f}"] < 0).sum()), f"{_f}: min": _d.min(),
+                         f"{_f}: median": _d.median(), f"{_f}: max": _d.max()})
+        _sum.append(_rec)
+    vs_sum = pd.DataFrame(_sum)
+    print(f"across the {len(MODEL_ORDER)} forecasts: count with dSharpe > 0, count whose percentile interval lies above / "
+          "below zero, and the spread of dSharpe")
+    print(vs_sum.to_string(index=False))
+print("\nsaved", OUT / "vrp_sized_rules.csv")
+"""
+    ),
+    md(
+        r"""
+**Reading (every number from the cell above).**
+
+- **Proportional sizing (a) loses to $\mathrm{sign}(s)$ for all 15
+  forecasts**, at both fills and in both blocks. After the warm-up the
+  Sharpe difference runs from −1.01 to −0.27 at the midpoint
+  (block-diagonal ridge 0.76 against 1.54, interval −2.09 to +0.62). The
+  position is concentrated: for the block-diagonal ridge its mean size
+  is 0.11 and its largest 2.40, so a few days carry the book. From the
+  second day, when the first sizes rest on a history of only a few days
+  and reach 29 for the block-diagonal ridge, the loss is resolved for
+  11 of the 15 forecasts at the midpoint and 10 crossed.
+- **The rank with the sign kept (b) ties $\mathrm{sign}(s)$.** After the
+  warm-up 8 of 15 forecasts are above it, median +0.03 at the midpoint
+  (+0.04 crossed), range −0.26 to +0.43, and no interval excludes zero:
+  block-diagonal ridge +0.05 (−0.73 to +0.86), per-bar live-feasible
+  ridge −0.11. From the second day 2 of 15 are above, median −0.13.
+- **The centred rank (c) is below $\mathrm{sign}(s)$ for all 15
+  forecasts in both blocks** (median −0.38 at the midpoint after the
+  warm-up). It takes the side opposite to $\mathrm{sign}(s)$ on 17% of
+  the days for the block-diagonal ridge.
+- **No sized rule has an interval above zero anywhere**: every rule,
+  forecast, block and fill. The only intervals that exclude zero are on
+  the losing side.
+- **This agrees with the earlier work.** The sign of $s$ is what earns;
+  sizing by its magnitude adds nothing measurable, and proportional
+  sizing, whose sizes pile onto a few days, costs Sharpe.
+"""
+    ),
+    md(
         r"""
 ## 11. Shifting the forecast in time: the look-ahead cliff
 
@@ -1639,7 +2098,7 @@ plt.close(fig)
         r"""
 ## 12. Regressing the settlement return on the 15:30 signal
 
-The signal is fixed at 15:30 and the package settles at 16:00 the same
+The signal is fixed at 15:30 and the straddle settles at 16:00 the same
 day, so the test pairs $s_t$ with $R_t$; nothing observed after the
 decision enters the signal. Per forecast, the least-squares fit
 
@@ -1799,7 +2258,7 @@ plt.close(fig)
     # r"""
     # ## 13. Does the 15:30 signal predict the settlement return?
     #
-    # The signal is fixed at 15:30 and the package settles at 16:00 the same
+    # The signal is fixed at 15:30 and the straddle settles at 16:00 the same
     # day, so the test pairs $s_t$ with $R_t$ directly; nothing observed after
     # the decision enters the signal. Every check uses Newey–West standard
     # errors (six lags) and no tuning parameters; the percentile rank of $s_t$
@@ -1828,7 +2287,7 @@ plt.close(fig)
     # top-third-versus-bottom-third split gives the same spread and $t$.
     # - **A straight line misses it.** The raw least-squares slope is null
     # ($t \approx -0.5$), because $R$ has a point mass at exactly $-1$ on
-    # the 22.7% of days the package expires worthless and a long right
+    # the 22.7% of days the straddle expires worthless and a long right
     # tail. The relation lives in the means of two groups, not in a
     # monotone ordering: the sign split is the right instrument and a slope
     # is the wrong one. (The rank regression, which ranks the signal first,
@@ -2003,8 +2462,7 @@ plt.close(fig)
 
 Same contracts and positions as the rule table; every series is a daily
 quantity, **summed, not compounded**. Notation for one day: position
-$q\in\{-1,0,+1\}$ (the event-day rule is flat on its flagged days, and a
-flat day contributes zero to every column), entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
+$q\in\{-1,+1\}$, entry midpoint $P=\mathrm{mid}_c+\mathrm{mid}_p$, bid
 and ask sums $P_b$, $P_a$, half-spread $h=\tfrac12(P_a-P_b)$, settlement
 payout $X$, contract multiplier $M=100$.
 
@@ -2117,7 +2575,7 @@ table is held out of the deck.
     # r"""
     # ## 13. Information ratio against always-short
     #
-    # The benchmark is the always-short portfolio, $R^{\mathrm{AS}}_t=-R_t$: one short package every day. The active portfolio is the $\mathrm{sign}(s)$ portfolio, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
+    # The benchmark is the always-short portfolio, $R^{\mathrm{AS}}_t=-R_t$: one short straddle every day. The active portfolio is the $\mathrm{sign}(s)$ portfolio, $R^p_t=q_t R_t$ with $q_t=\mathrm{sign}(s_t)$.
     #
     # The **active return** is the daily difference $R^a_t=R^p_t-R^{\mathrm{AS}}_t$. On short days $q_t=-1$ and the two portfolios coincide, so $R^a_t=0$. On buy days the position has flipped from short to long, so $R^a_t=q_tR_t-(-R_t)=(q_t+1)R_t$, which equals $2R_t$ for a $\pm1$ position. The series is those daily differences on the 866 common days.
     #
@@ -2320,7 +2778,7 @@ table is held out of the deck.
 
 Every table so far adds up one unit of premium per day. Here each rule
 reinvests: a **fixed** share $f$ of current wealth is deployed as
-package premium every day, the same number on every day and for every rule,
+straddle premium every day, the same number on every day and for every rule,
 
 $$
 f = 0.03, \qquad
@@ -2342,7 +2800,7 @@ peak, a different unit from the summed-return drawdowns of §13.
     ),
     code(
         r"""
-F_FIXED = 0.03  # share of wealth deployed as package premium, every day
+F_FIXED = 0.03  # share of wealth deployed as straddle premium, every day
 
 
 def wealth_stats(f, r):
@@ -2648,7 +3106,7 @@ common days for a long held every day and for a short held every day, with no
 forecast used at all.
 
 The figure is one confusion matrix per forecast: the rows are what the signal
-said ($s>0$ buy, $s\le 0$ short), the columns what the package did ($R>0$,
+said ($s>0$ buy, $s\le 0$ short), the columns what the straddle did ($R>0$,
 $R\le 0$), each cell carrying its day count, its share of all days and the mean
 $R$ on those days. The diagonal is the hits. The two right-hand cells of every
 matrix read the same on every forecast — the short days are the base rate —
@@ -2702,7 +3160,7 @@ bs_tab.to_csv(OUT / "buy_signal_reading.csv")
 print("saved", OUT / "buy_signal_reading.csv")
 
 # --- confusion matrices: one per forecast, sign(s) against the sign of R
-# rows: the signal (s > 0 buy, s <= 0 short); columns: the package (R > 0, R <= 0).
+# rows: the signal (s > 0 buy, s <= 0 short); columns: the straddle (R > 0, R <= 0).
 # Each cell: the day count, its share of all common days, and the mean R on
 # those days -- how often, and by how much, in one picture.
 _base_up = float((_Rall > 0.0).mean())
@@ -2732,14 +3190,14 @@ for ax, tag in zip(axes.ravel(), MODEL_ORDER):
         ax.text(j, i, f"{v}\n{100 * v / n:.0f}%\nmean R {mean_r:+.2f}", ha="center", va="center",
                 fontsize=7.5, color="white" if v > n / 3 else "black")
         conf_rows.append({"forecast": LABEL[tag], "signal": "buy (s > 0)" if i == 0 else "short (s <= 0)",
-                          "package": "R > 0" if j == 0 else "R <= 0", "days": v, "share": v / n, "mean_R": mean_r})
+                          "straddle": "R > 0" if j == 0 else "R <= 0", "days": v, "share": v / n, "mean_R": mean_r})
     acc = (mat[0, 0] + mat[1, 1]) / n
     ax.set_title(f"{LABEL[tag]}\naccuracy {acc:.2f}", fontsize=8)
     ax.set_xticks([0, 1], labels=["R > 0", "R <= 0"], fontsize=7)
     ax.set_yticks([0, 1], labels=["s > 0 buy", "s <= 0 short"], fontsize=7)
 for ax in axes.ravel()[len(MODEL_ORDER):]:
     ax.axis("off")
-fig.suptitle(f"sign(s) against the sign of the package return R at the midpoint, {len(common)} common days; "
+fig.suptitle(f"sign(s) against the sign of the straddle return R at the midpoint, {len(common)} common days; "
              f"base rate P(R > 0) = {_base_up:.2f}, so a coin that always said short would score {1 - _base_up:.2f}",
              fontsize=9.5)
 fig.tight_layout()
@@ -2750,7 +3208,7 @@ plt.close(fig)
 conf_tab = pd.DataFrame(conf_rows)
 conf_tab.to_csv(OUT / "buy_signal_confusion.csv", index=False)
 print("the four cells per forecast (days, share of all days, mean R):")
-print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], values=["days", "mean_R"], aggfunc="first")
+print(conf_tab.pivot_table(index="forecast", columns=["signal", "straddle"], values=["days", "mean_R"], aggfunc="first")
       .reindex([LABEL[t] for t in MODEL_ORDER]).round(3).to_string())
 """
     ),
@@ -2759,14 +3217,14 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # r"""
     # ## 16. Iron flies — defined risk on the days the portfolio sells
     #
-    # Everything above holds the plain package of §4. On a selling day the
+    # Everything above holds the plain straddle of §4. On a selling day the
     # portfolio is short a call and a put with nothing behind them, and its loss
     # is unbounded. A retail account trading the cash-settled index options
     # (SPX or XSP) under defined-risk margin cannot hold that position: on a
     # selling day it must buy a wing on each side — the nearest strike with
     # a live 15:30 midpoint quote at least $w$ points further out of the
     # money — so that the short body sits inside two long options, an iron
-    # fly. On a buying day it holds the plain package, whose loss is already
+    # fly. On a buying day it holds the plain straddle, whose loss is already
     # capped at the premium paid; wings there would cap the very payoff the
     # long position exists to own. This section treats the wings as what
     # they are for such an account: a **constraint, not a choice**. The
@@ -2804,7 +3262,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # premium the fly costs the $\mathrm{sign}(s)$ portfolio at every width, and the cost
     # falls as the wings move out: an annualized Sharpe ratio of about 1.36
     # at 20 points, 1.42 at 25, 1.47 at 30 and 1.54 at 50, against about
-    # 1.62 for the plain package on the same 870 days. The wings are touched
+    # 1.62 for the plain straddle on the same 870 days. The wings are touched
     # on about 7% of fly days at 20 points and 1% at 50. Only the narrowest
     # fly changes the $\mathrm{sign}(s)$ portfolio's worst day in this unit (about $-4.7$
     # against $-5.4$); from 25 points out the worst day is where it was,
@@ -2824,10 +3282,10 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # **How much of wealth to bet.** In the per-premium frame the estimator
     # of §15 lands on almost the same fraction with wings as without — about
     # 0.054 to 0.062 of wealth deployed as premium, against 0.063 for the
-    # plain package — because it is the estimate of the mean and second
+    # plain straddle — because it is the estimate of the mean and second
     # moment, not the ruin bound, that sets the fraction. Wealth compounds
     # to about 10 times at 20 points, 12 at 25, 15 at 30 and 22 at 50,
-    # against about 34 for the plain package; at the half fraction, about 5
+    # against about 34 for the plain straddle; at the half fraction, about 5
     # to 9 times. The narrowest fly is again the only one that changes the
     # worst single day of wealth (a factor of about 0.64 against 0.51). In
     # the capital-at-risk frame — the collateral a margin account posts —
@@ -2845,7 +3303,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     #
     # The figure at the end of the cell shows, for the block-diagonal ridge
     # forecast, the cumulative per-premium return of the $\mathrm{sign}(s)$ portfolio
-    # with the plain package and with flies at each width, and the
+    # with the plain straddle and with flies at each width, and the
     # compounded wealth under the causal fraction with and without wings.
     # """
     # ),
@@ -2875,7 +3333,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # bad = ~((fl["credit"] > 0) & (fl["credit"] < fl["gap_max"]))
     # fl = fl[~bad].copy()
     # fl["max_loss"] = fl["gap_max"] - fl["credit"]
-    # fl["pnl"] = fl["credit"] - fl["exit_ic"]           # index points per package
+    # fl["pnl"] = fl["credit"] - fl["exit_ic"]           # index points per straddle
     # fl["R_prem"] = fl["pnl"] / fl["entry_body"]        # primary frame: per body premium
     # fl["R_risk"] = fl["pnl"] / fl["max_loss"]          # second frame: per capital at risk
     # n_floor = int((fl["R_risk"] < -1.0 - 1e-12).sum())
@@ -2912,7 +3370,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # safe = f"ironfly_w{int(w)}_rule_by_strategy_" + "".join(ch if ch.isalnum() else "_" for ch in tag).rstrip("_")
     # tab.to_csv(OUT / f"{safe}.csv")
     # plain = {"always short": -j["R"], "sign(s)": j["pos"] * j["R"]}
-    # naked = (j["entry_body"] - j["exit"]).astype(float)   # the short body alone, index points per package
+    # naked = (j["entry_body"] - j["exit"]).astype(float)   # the short body alone, index points per straddle
     # hedged = j["pnl"].astype(float)
     # drag = naked - hedged                                 # what the wings cost (or return) each day
     # for name in ("always short", "sign(s)"):
@@ -2929,7 +3387,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # if tag != "blk2":
     # continue
     # print(f"=== width {int(w)}, block-diagonal ridge: {len(j)} days = wing days & common; "
-    # f"{int(sell.sum())} selling days hold the fly, {int((~sell).sum())} buying days hold the plain package ===")
+    # f"{int(sell.sum())} selling days hold the fly, {int((~sell).sum())} buying days hold the plain straddle ===")
     # for name in ("always short", "sign(s)"):
     # rr, sz = series[(name, "per premium")]
     # print(f"{name}, per body premium:")
@@ -2938,7 +3396,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # for name in ("always short", "sign(s)"):
     # rr, _ = series[(name, "capital at risk")]
     # print(f"  {name}: mean {float(rr.mean()):+.5f} Sharpe {sharpe(rr):+.3f} min {float(rr.min()):+.3f} max {float(rr.max()):+.3f}")
-    # print("fly vs plain package, same days, per body premium:")
+    # print("fly vs plain straddle, same days, per body premium:")
     # for name in ("always short", "sign(s)"):
     # rr, _ = series[(name, "per premium")]
     # pl = plain[name]
@@ -2948,7 +3406,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # t_all = sm.OLS(drag.to_numpy(), np.ones((len(drag), 1))).fit(cov_type="HAC", cov_kwds={"maxlags": 6})
     # jb = j["cap_binds"]
     # worst10 = naked.nsmallest(10).index
-    # print(f"the insurance in index points per package, short body every day, {len(j)} days:")
+    # print(f"the insurance in index points per straddle, short body every day, {len(j)} days:")
     # print(f"  wing cost {float(drag.mean()):+.3f}/day (paired Newey-West t {float(t_all.tvalues[0]):+.2f}); "
     # f"worst day naked {float(naked.min()):+.1f} vs fly {float(hedged.min()):+.1f}; "
     # f"maxDD naked {maxdd(naked):+.1f} vs fly {maxdd(hedged):+.1f}")
@@ -3010,7 +3468,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # px = books["blk2"]
     # fig, ax = plt.subplots(figsize=(11, 3.6))
     # rp = (px["pos"] * px["R"]).loc[common]
-    # ax.plot(rp.index, rp.cumsum().values, color="k", lw=1.3, label=f"plain package (Sharpe {sharpe(rp):.2f})")
+    # ax.plot(rp.index, rp.cumsum().values, color="k", lw=1.3, label=f"plain straddle (Sharpe {sharpe(rp):.2f})")
     # for (w, fl), c in zip(flies.items(), ("C3", "C1", "C2", "C0")):
     # j = fl.join(px[["pos", "R"]], how="inner", rsuffix="_body")
     # j = j.loc[j.index.intersection(common)]
@@ -3018,7 +3476,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # ax.plot(ls.index, ls.cumsum().values, color=c, lw=1.0, label=f"fly on selling days, w = {int(w)} (Sharpe {sharpe(ls):.2f})")
     # ax.axhline(0.0, color="k", lw=0.5)
     # ax.set_ylabel("cumulative return per body premium")
-    # ax.set_title("sign(s), block-diagonal ridge: the plain package against iron flies of four widths")
+    # ax.set_title("sign(s), block-diagonal ridge: the plain straddle against iron flies of four widths")
     # ax.legend(fontsize=8)
     # fig.tight_layout()
     # fig.savefig(OUT / "ironfly_cum_blk2.png", dpi=120, bbox_inches="tight")
@@ -3029,7 +3487,7 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # fig, ax = plt.subplots(figsize=(11, 3.6))
     # rp = (px["pos"] * px["R"]).loc[common].astype(float)
     # fk = causal_kelly(rp).to_numpy()
-    # ax.plot(rp.index, np.cumprod(1.0 + fk * rp.to_numpy()), color="k", lw=1.3, label="plain package")
+    # ax.plot(rp.index, np.cumprod(1.0 + fk * rp.to_numpy()), color="k", lw=1.3, label="plain straddle")
     # for w, c in ((20.0, "C3"), (30.0, "C2")):
     # j = flies[w].join(px[["pos", "R"]], how="inner", rsuffix="_body")
     # j = j.loc[j.index.intersection(common)]
@@ -3048,37 +3506,239 @@ print(conf_tab.pivot_table(index="forecast", columns=["signal", "package"], valu
     # ),
     md(
         r"""
-## 17. Portfolio weights: the trade beside the S&P
+## 17. The VIX bucket alone: does the forecast need more than the VIX?
 
-The trade is stated per unit of premium, so a weight has to say how many
-dollars of straddle premium to run beside each dollar of the index. The
-question this section answers is the one an allocator asks of any new
-return stream: given the S&P held on the same days, how much of the 15:30
-trade should sit beside it, and what does adding it do to the portfolio?
+The live-feasible forecasts of §7 use 16 columns: ES return moments and
+liquidity from minute bars, three Cboe indices (VIX, VVIX, VIX3M) and the
+FOMC calendar. A live forecaster has to fetch every one of them each
+afternoon. This section asks which of them the forecast needs.
 
-Two ingredients decide that. The trade's Sharpe ratio on its own, and its
-correlation with the index: a stream that is uncorrelated with the market
-raises the portfolio's Sharpe ratio to $\sqrt{SR_{S\&P}^2 + SR_{trade}^2}$
-however small it is, and its optimal weight is the mean–variance
-(tangency) weight $\Sigma^{-1}\mu$. Both are computed here on the common
-days, at the midpoint and crossed, for every forecast, and stated three
-ways: the tangency ratio in **dollars of premium per \$100 of index**, the
-**risk share** of the trade in that portfolio, and the **Kelly fraction**
-of the trade alone (the fraction of wealth in premium that maximizes
-expected log growth; half of it is the usual working number).
+Four column sets, each fitted the same way as the live-feasible rows: one
+regression per 30-minute bar, refitted on a 2000-session rolling window,
+by ridge, lasso and elastic net.
 
-Whole-sample tangency weights are optimistic — they are fitted on the
-same days they are scored on. So the second table sets the weight from
-**past days only**: an expanding tangency estimate over the sessions
-strictly before each day, a minimum of 252 sessions, on streams scaled
-by their own trailing standard deviation so that the weight is a risk
-share; the day's return is scored at that weight, and the combination's
-Sharpe ratio is compared with the S&P's alone on the same days with the
-paired block bootstrap of §10.
+- **HAR + calendar + VIX only**: the realized-variance lags, the calendar
+  and the VIX level. No ES moments, no VVIX, no VIX3M.
+- **live-feasible minus VVIX and VIX3M**: 14 columns.
+- **live-feasible (16 columns)**: the rows already in §10.
+- **free feed**: ES 1-minute bar moments (volume included, tick count
+  left out), the VIX and the FOMC calendar; 13 columns, all free to pull.
 
-The S&P's return on a deck day is its close-to-close return from the
-official closes — the same series the settlement uses. Cash earns
-nothing; that flatters neither side.
+The first cell is a gate. It re-scores the stored forecasts the way the
+research comparison scored them, and asserts that every number matches
+the stored comparison. That scorer recalibrates each bar on its own and
+trades the 16:00-bar forecast. The second cell puts the same forecasts
+through this notebook's recalibration (§7) and sign(s) trade (§9), on
+the same days as §10. It first checks that its live-feasible rows equal
+the §10 rows exactly.
+
+Table columns:
+
+- **16:00 QLIKE vs live-feasible (%)**: forecast loss on the 15:30–16:00
+  bar, relative to the live-feasible forecast on the same rows. Negative
+  is better.
+- **13-bar mean QLIKE vs live-feasible (%)**: the same, averaged over the
+  13 bars from 10:00 to 16:00.
+- **Sharpe mid / crossed (research scorer)**: the sign(s) trade at the
+  midpoint and at the quotes (buy at the ask, sell at the bid),
+  annualized.
+- **Sharpe mid / crossed (this notebook)**: the same trade through this
+  notebook's recalibration; comparable with §10.
+- **n days**: days traded.
+
+These forecasts are not added to the eight columns of the other tables.
+"""
+    ),
+    code(
+        r"""# --- GATE: the research comparison, re-scored from the stored per-bar fits
+if str(REPO / "experiments") not in sys.path:
+    sys.path.insert(0, str(REPO / "experiments"))
+import compare_mfiv_harlag as _cmh
+
+VX_PULLED = {"vix_only": "vixonly_carc", "live_vix_only": "vixonly_carc", "free_vix_only": "free_carc"}
+VX_EST = {"ridge": "ridge", "lasso": "reclasso", "enet": "reclasticnet"}
+VX_TW = 2000  # the rolling window, in sessions, of every forecast in this section
+_cmp = pd.concat([pd.read_csv(REPO / "results" / "linear_subsection" / f"{_f}_carc" / f"compare_{_f}.csv")
+                  for _f in ("vixonly", "free")])
+_cmp = _cmp[_cmp["arm"] == "bar1600"].drop_duplicates(["bucket", "estimator"]).set_index(["bucket", "estimator"])
+vx_research = {}
+for _e, _est in VX_EST.items():
+    _root = "linear_subsection_lassofix" if _est == "reclasso" else "linear_subsection"
+    _ref = {_s: _cmh.incumbent(_est, VX_TW, _s) for _s in _cmh.BARS}
+    _t = _cmh.trade(_ref["bar1600"], None)
+    vx_research[("live_feasible", _e)] = {"q16": 0.0, "q13": 0.0, "mid": _t["Sharpe_mid"], "crossed": _t["Sharpe_crossed"],
+                                           "n": _t["deck_days"], "key": "live_feasible (incumbent)"}
+    for _b, _pulled in VX_PULLED.items():
+        _arms = {_s: _cmh.pulled(_pulled, _root, _b, _s, _est, VX_TW) for _s in _cmh.BARS}
+        _per = [_cmh.paired_qlike(_arms[_s], _ref[_s], None, None)["pct_vs_ref"] for _s in _cmh.BARS]
+        _pq = _cmh.paired_qlike(_arms["bar1600"], _ref["bar1600"], None, None)
+        _t = _cmh.trade(_arms["bar1600"], None)
+        vx_research[(_b, _e)] = {"q16": _pq["pct_vs_ref"], "q13": float(np.mean(_per)), "mid": _t["Sharpe_mid"],
+                                 "crossed": _t["Sharpe_crossed"], "n": _t["deck_days"], "key": _b}
+_n_chk = 0
+for (_b, _e), _x in vx_research.items():
+    _c = _cmp.loc[(_x["key"], _e)]
+    for _mine, _theirs in (("q16", "qlike_pct_vs_incumbent_16"), ("q13", "qlike_pct_mean_13_bars"),
+                           ("mid", "trade_Sharpe_mid"), ("crossed", "trade_Sharpe_crossed"), ("n", "trade_deck_days")):
+        assert np.isclose(_x[_mine], _c[_theirs], rtol=1e-9, atol=1e-12), (_b, _e, _mine, _x[_mine], _c[_theirs])
+        _n_chk += 1
+print(f"GATE  {_n_chk} numbers of the stored comparison (compare_vixonly.csv, compare_free.csv) reproduced from the "
+      f"per-bar fits to 1e-9: 4 column sets x 3 estimators x (16:00 QLIKE, 13-bar QLIKE, Sharpe mid, Sharpe crossed, days)")
+_r = vx_research[("vix_only", "ridge")]
+_l = vx_research[("live_feasible", "ridge")]
+print(f"      ridge, HAR + calendar + VIX only: 16:00 QLIKE {_r['q16']:+.2f}% vs live-feasible, 13-bar mean {_r['q13']:+.2f}%, "
+      f"Sharpe mid / crossed {_r['mid']:.2f} / {_r['crossed']:.2f} against {_l['mid']:.2f} / {_l['crossed']:.2f}")
+"""
+    ),
+    code(
+        r"""# --- the same forecasts through this notebook's recalibration and trade, on the §10 days
+VX_PATHS = asl.vixonly_yhat_paths(REPO)
+vx_rows = []
+for (_b, _e), _path in VX_PATHS.items():
+    _rv = load_yhat_1530_cached(f"vx_{_e}_{_b}", _path, need_dates, "mean")
+    _px, _ = make_book(_rv)
+    assert common.difference(_px.index).empty, (_b, _e, len(common.difference(_px.index)))
+    _pxc = _px.loc[common]
+    _q = _pxc["pos"].to_numpy(float)
+    _mid = _q * _pxc["R"].to_numpy(float)
+    if _b == "live_feasible":
+        # like with like: the same forecast, position and Sharpe as the §10 live-feasible row
+        _deck = books[f"sub_live_{_e}"].loc[common]
+        assert (_pxc["rv_hat"] == _deck["rv_hat"]).all() and (_pxc["pos"] == _deck["pos"]).all(), _e
+        _r10 = float(rule_tabs[f"sub_live_{_e}"].loc["sign(s)", "Sharpe_ann"])
+        assert np.isclose(_sharpe_ann(_mid), _r10, rtol=1e-12), (_e, _sharpe_ann(_mid), _r10)
+    _ask = (_pxc["ask_c"] + _pxc["ask_p"]).to_numpy(float)
+    _bid = (_pxc["bid_c"] + _pxc["bid_p"]).to_numpy(float)
+    _ex = _pxc["exit"].to_numpy(float)
+    _crs = np.where(_q > 0.0, _ex / _ask - 1.0, -(_ex / _bid - 1.0))
+    _x = vx_research[(_b, _e)]
+    vx_rows.append({"estimator": _e, "column set": asl.VIXONLY_BUCKET_LABEL[_b],
+                    "16:00 QLIKE vs live-feasible (%)": _x["q16"], "13-bar mean QLIKE vs live-feasible (%)": _x["q13"],
+                    "Sharpe mid (research scorer)": _x["mid"], "Sharpe crossed (research scorer)": _x["crossed"],
+                    "Sharpe mid (this notebook)": _sharpe_ann(_mid), "Sharpe crossed (this notebook)": _sharpe_ann(_crs),
+                    "n days": len(common)})
+vx_tab = pd.DataFrame(vx_rows).set_index(["estimator", "column set"])
+vx_tab.to_csv(OUT / "vix_bucket.csv")
+print("GATE  the live-feasible rows equal the §10 sign(s) rows (forecast, position, Sharpe) for all three estimators")
+print(f"per-bar forecasts, {VX_TW}-session rolling window; QLIKE and the research-scorer Sharpe ratios from the gate above; "
+      f"'this notebook' = §7 recalibration and §9 sign(s) on the {len(common)} common days")
+with pd.option_context("display.width", 250, "display.max_columns", 20):
+    print(vx_tab.to_string(float_format=lambda v: f"{v:.2f}"))
+print("saved", OUT / "vix_bucket.csv")
+"""
+    ),
+    md(
+        r"""
+**Reading (ridge; every number from the two cells above).**
+
+- The VIX alone, with HAR and the calendar, gives the best 16:00
+  forecast: QLIKE 5.9% below the live-feasible set. Over the 13 bars it
+  is 3.3% worse. It also trades worse: Sharpe 1.48 at the midpoint and
+  1.00 crossed, against 1.90 and 1.44 (research scorer). The ES minute-bar
+  moments are what the trade uses.
+- Dropping VVIX and VIX3M changes nothing measurable: 16:00 QLIKE
+  −0.04%, 13-bar mean −0.4%, Sharpe 1.86 / 1.39. The live feed needs
+  only the VIX.
+- The free feed (ES 1-minute bars, the VIX, the calendar) is within
+  noise of the full set: 16:00 QLIKE −0.43%, 13-bar mean −0.01%, Sharpe
+  1.83 / 1.36.
+- Through this notebook's recalibration the order is the same. Ridge,
+  midpoint / crossed: VIX only 1.38 / 0.91, live-feasible 1.68 / 1.22,
+  minus VVIX and VIX3M 1.85 / 1.38, free feed 1.89 / 1.42. For all three
+  estimators the VIX-only set trades below the live-feasible set, and the
+  two sets without VVIX and VIX3M trade above it. No interval is computed
+  for these differences.
+- The live-feasible ridge earns 1.68 here and 1.90 in the research
+  scorer. The research scorer recalibrates the 16:00 bar on its own; this
+  notebook fits one map on all 13 bars of the session (§7). The forecasts
+  are the same; only the map differs.
+"""
+    ),
+    md(
+        r"""
+## 18. Portfolio weights: the trade beside the S&P
+
+**The question.** An investor already holds the S&P 500. How much of the
+15:30 sign(s) trade should sit beside it, and does adding it raise the
+portfolio's Sharpe ratio? The weight is set each day from **past days
+only**, so every number below could have been known at the time. One
+table and one figure.
+
+**The two daily returns**, on the days both exist:
+
+- the trade, $u_d = q_d R_d$: the sign(s) position ($q_d=\pm1$) times
+  the return per dollar of premium, $R_d=\mathrm{exit}/\mathrm{premium}-1$,
+  at the midpoint;
+- the S&P, $m_d$: its close-to-close return, from the official closes
+  the settlement uses.
+
+Cash earns nothing, which flatters neither side.
+
+**Which S&P return.** The weight is set against the close-to-close
+return $m_d$, because that is what an S&P holder earns. The trade,
+though, lives in the last half hour only, so the table also correlates
+it with the S&P over the **same window**, 15:30 to the close,
+$S_{\mathrm{close}}/S_{15:30}-1$ (the spot at entry and the settlement
+close of §4–§5), and with the **size** of each move, $|\cdot|$, since a
+straddle is paid by the size of the move rather than its direction.
+
+**How the weight is set on day $d$.** Every estimate uses only the days
+before $d$.
+
+1. **Warm-up.** No weight until 252 earlier days exist. After that the
+   history expands: all earlier days are used.
+2. **Risk scaling.** Each stream is divided by its own standard
+   deviation over the earlier days, $\hat\sigma_u$ and $\hat\sigma_m$:
+   $z^u_d = u_d/\hat\sigma_u$ and $z^m_d = m_d/\hat\sigma_m$. Each scaled
+   stream carries one unit of risk.
+3. **Estimates.** From the same earlier days: each stream's daily Sharpe
+   ratio, $\widehat{SR}_u$ and $\widehat{SR}_m$ (mean over standard
+   deviation, set to 0 if negative), and their correlation $\hat\rho$.
+4. **Maximum-Sharpe mix.** For two unit-risk streams, the mix with the
+   highest Sharpe ratio puts
+   $w_u = (\widehat{SR}_u-\hat\rho\,\widehat{SR}_m)/(1-\hat\rho^{2})$ on
+   the trade and
+   $w_m = (\widehat{SR}_m-\hat\rho\,\widehat{SR}_u)/(1-\hat\rho^{2})$ on
+   the S&P. A negative weight is set to 0: neither stream is ever sold
+   short.
+5. **Risk share.** The trade's share of the risk budget is
+   $s_d = w_u/(w_u+w_m)$, or 0 when both weights are 0.
+6. **The day's return.** The portfolio earns
+   $(1-s_d)\,z^m_d + s_d\,z^u_d$. It is compared with the S&P alone at
+   one unit of risk, $z^m_d$, on the same days.
+
+**In dollars.** A risk share $s_d$ means holding $s_d/\hat\sigma_u$
+dollars of straddle premium for every $(1-s_d)/\hat\sigma_m$ dollars of
+index: $100\,s_d\,\hat\sigma_m/\big((1-s_d)\,\hat\sigma_u\big)$ dollars of
+premium per \$100 of S&P.
+
+**Columns of the table** (one row per forecast):
+
+- `scored days`, `first day`: the days with a weight, after the warm-up.
+- `correlation with S&P, 15:30→close`: the daily correlation of the
+  trade $u_d$ with the S&P's return over the trade's own window, 15:30
+  to the close, over the scored days.
+- `correlation with |S&P, 15:30→close|`: the same with the size of that
+  move, its absolute value.
+- `correlation with S&P, close-to-close`: the daily correlation of the
+  trade with $m_d$, the return the weight is set against.
+- `correlation with |S&P, close-to-close|`: the same with the size of
+  the close-to-close move.
+- `trailing correlation (mean)`: $\hat\rho$ as used in step 4, averaged
+  over the scored days.
+- `mean risk share`, `last risk share`: $s_d$ averaged over the scored
+  days, and on the last day.
+- `premium $ per $100 S&P (median)`, `(last)`: the same weight in
+  dollars, as the median over the scored days and on the last day.
+- `Sharpe S&P alone`, `Sharpe combination`: annualized, over the scored
+  days.
+- `dSharpe`, `ci_lo`, `ci_hi`: the combination's Sharpe ratio minus the
+  S&P's, and its 95% interval from the paired block bootstrap of §10
+  (both series resampled on the same days).
+
+**The figure** plots, as cumulative sums in units of risk, the S&P
+alone ($z^m_d$), the block-diagonal ridge trade alone ($z^u_d$, dashed)
+and three combinations.
 """
     ),
     code(
@@ -3093,55 +3753,60 @@ print(f"S&P closes equal the deck's settlement closes on all {len(common)} days 
       f"S&P on these days: Sharpe {_sharpe_ann(spx_r):.2f}, vol {float(spx_r.std(ddof=1) * np.sqrt(asl.PERIODS_PER_YEAR)):.1%}")
 
 
-def _crossed_u(pxc):
-    # the sign(s) position at the quotes: bought at the ask, sold at the bid
-    q = np.where(pxc["signal"].astype(float).to_numpy() > 0.0, 1.0, -1.0)
-    ask = (pxc["ask_c"] + pxc["ask_p"]).to_numpy(float)
-    bid = (pxc["bid_c"] + pxc["bid_p"]).to_numpy(float)
-    ex = pxc["exit"].to_numpy(float)
-    return np.where(q > 0.0, ex / ask - 1.0, -(ex / bid - 1.0))
-
-
-def _kelly(u, grid=np.linspace(0.0, 3.0, 3001)):
-    # argmax_f mean log(1 + f u), on a grid; -inf where a day would ruin
-    x = 1.0 + np.outer(grid, u)
-    g = np.where((x > 0).all(axis=1), np.log(np.where(x > 0, x, 1.0)).mean(axis=1), -np.inf)
-    return float(grid[int(np.argmax(g))])
-
-
-def _tangency(t, m):
-    # unconstrained mean-variance weights on (trade, S&P), cash at zero
-    mu = np.array([t.mean(), m.mean()])
-    C = np.cov(np.vstack([t, m]), ddof=1)
-    w = np.linalg.solve(C, mu)
-    var_p = float(w @ C @ w)
-    return w, float(w @ mu / np.sqrt(var_p) * np.sqrt(asl.PERIODS_PER_YEAR)), float(w[0] ** 2 * C[0, 0] / var_p)
-
-
 _m = spx_r.to_numpy(float)
-_sr_m = _sharpe_ann(_m)
-pw_rows = []
-for basis in ("midpoint", "crossed"):
-    for tag in MODEL_ORDER:
-        pxc = books[tag].loc[common]
-        u = (pxc["pos"].astype(float) * pxc["R"].astype(float)).to_numpy() if basis == "midpoint" else _crossed_u(pxc)
-        rho = float(np.corrcoef(u, _m)[0, 1])
-        sr_t = _sharpe_ann(u)
-        w, sr_p, risk_share = _tangency(u, _m)
-        ir = (sr_t - rho * _sr_m) / np.sqrt(1.0 - rho ** 2)
-        fk = _kelly(u)
-        pw_rows.append({"basis": basis, "forecast": LABEL[tag],
-                        "Sharpe trade": sr_t, "Sharpe S&P": _sr_m, "correlation": rho,
-                        "premium $ per $100 S&P": 100.0 * w[0] / w[1] if w[1] > 0 else float("nan"),
-                        "risk share of trade": risk_share,
-                        "Sharpe tangency": sr_p, "Sharpe gain over S&P": sr_p - _sr_m,
-                        "gain formula sqrt(SR^2+IR^2)": float(np.sqrt(_sr_m ** 2 + ir ** 2) - _sr_m),
-                        "Kelly f (premium units)": fk, "half Kelly": fk / 2})
-pw_tab = pd.DataFrame(pw_rows).set_index(["basis", "forecast"])
-pw_tab.to_csv(OUT / "portfolio_weights.csv")
-print("whole-sample tangency weights of the sign(s) trade beside the S&P, same days, cash at zero (optimistic: fitted where scored)")
-print(pw_tab.round(3).to_string())
-print("saved", OUT / "portfolio_weights.csv")
+
+# The whole-sample table (tangency weights fitted on the days they are scored on, the crossed-fill
+# version and the Kelly fraction) is commented out 2026-09-24: the weight from past days only, in the
+# next cell, is the table of record.
+# def _crossed_u(pxc):
+#     # the sign(s) position at the quotes: bought at the ask, sold at the bid
+#     q = np.where(pxc["signal"].astype(float).to_numpy() > 0.0, 1.0, -1.0)
+#     ask = (pxc["ask_c"] + pxc["ask_p"]).to_numpy(float)
+#     bid = (pxc["bid_c"] + pxc["bid_p"]).to_numpy(float)
+#     ex = pxc["exit"].to_numpy(float)
+#     return np.where(q > 0.0, ex / ask - 1.0, -(ex / bid - 1.0))
+#
+#
+# def _kelly(u, grid=np.linspace(0.0, 3.0, 3001)):
+#     # argmax_f mean log(1 + f u), on a grid; -inf where a day would ruin
+#     x = 1.0 + np.outer(grid, u)
+#     g = np.where((x > 0).all(axis=1), np.log(np.where(x > 0, x, 1.0)).mean(axis=1), -np.inf)
+#     return float(grid[int(np.argmax(g))])
+#
+#
+# def _tangency(t, m):
+#     # unconstrained mean-variance weights on (trade, S&P), cash at zero
+#     mu = np.array([t.mean(), m.mean()])
+#     C = np.cov(np.vstack([t, m]), ddof=1)
+#     w = np.linalg.solve(C, mu)
+#     var_p = float(w @ C @ w)
+#     return w, float(w @ mu / np.sqrt(var_p) * np.sqrt(asl.PERIODS_PER_YEAR)), float(w[0] ** 2 * C[0, 0] / var_p)
+#
+#
+# _m = spx_r.to_numpy(float)
+# _sr_m = _sharpe_ann(_m)
+# pw_rows = []
+# for basis in ("midpoint", "crossed"):
+#     for tag in MODEL_ORDER:
+#         pxc = books[tag].loc[common]
+#         u = (pxc["pos"].astype(float) * pxc["R"].astype(float)).to_numpy() if basis == "midpoint" else _crossed_u(pxc)
+#         rho = float(np.corrcoef(u, _m)[0, 1])
+#         sr_t = _sharpe_ann(u)
+#         w, sr_p, risk_share = _tangency(u, _m)
+#         ir = (sr_t - rho * _sr_m) / np.sqrt(1.0 - rho ** 2)
+#         fk = _kelly(u)
+#         pw_rows.append({"basis": basis, "forecast": LABEL[tag],
+#                         "Sharpe trade": sr_t, "Sharpe S&P": _sr_m, "correlation": rho,
+#                         "premium $ per $100 S&P": 100.0 * w[0] / w[1] if w[1] > 0 else float("nan"),
+#                         "risk share of trade": risk_share,
+#                         "Sharpe tangency": sr_p, "Sharpe gain over S&P": sr_p - _sr_m,
+#                         "gain formula sqrt(SR^2+IR^2)": float(np.sqrt(_sr_m ** 2 + ir ** 2) - _sr_m),
+#                         "Kelly f (premium units)": fk, "half Kelly": fk / 2})
+# pw_tab = pd.DataFrame(pw_rows).set_index(["basis", "forecast"])
+# pw_tab.to_csv(OUT / "portfolio_weights.csv")
+# print("whole-sample tangency weights of the sign(s) trade beside the S&P, same days, cash at zero (optimistic: fitted where scored)")
+# print(pw_tab.round(3).to_string())
+# print("saved", OUT / "portfolio_weights.csv")
 """
     ),
     code(
@@ -3165,37 +3830,53 @@ def _causal_combo(u, m):
     share = (wt / (wt + wm)).where((wt + wm) > 0.0, 0.0)
     combo = (1.0 - share) * zm + share * zt
     ok = combo.notna() & zm.notna()
-    return combo[ok], zm[ok], share[ok]
+    # the same weight in dollars: premium per $100 of index (undefined when the trade takes all the risk)
+    usd = (100.0 * share * sd_m / ((1.0 - share) * sd_t)).where(share < 1.0)
+    return combo[ok], zm[ok], share[ok], rho[ok], usd[ok], t[ok], s_[ok], zt[ok]
 
 
 pwc_rows, _combo_paths = [], {}
 for tag in MODEL_ORDER:
     pxc = books[tag].loc[common]
     u = (pxc["pos"].astype(float) * pxc["R"].astype(float)).to_numpy()
-    combo, alone, share = _causal_combo(u, _m)
+    combo, alone, share, rho_tr, usd, u_sc, m_sc, trade_alone = _causal_combo(u, _m)
     n_c = len(combo)
     idx_c = asl.circular_block_bootstrap_idx(np.random.default_rng([PAIR_SEED, n_c]), n_c, PAIR_BLOCK, PAIR_B)
     dc, da = combo.to_numpy()[idx_c], alone.to_numpy()[idx_c]
     d_sr = (dc.mean(axis=1) / dc.std(axis=1, ddof=1) - da.mean(axis=1) / da.std(axis=1, ddof=1)) * np.sqrt(asl.PERIODS_PER_YEAR)
+    # the S&P over the trade's own window, 15:30 to the close, on the same scored days
+    _wd = pd.DatetimeIndex(u_sc.index)
+    _same = (pxc.loc[_wd, "S_close"].astype(float) / pxc.loc[_wd, "S"].astype(float) - 1.0).to_numpy()
+    _uu, _mm = u_sc.to_numpy(), m_sc.to_numpy()
     pwc_rows.append({"forecast": LABEL[tag], "scored days": n_c, "first day": str(combo.index[0].date()),
-                     "mean risk share of trade": float(share.mean()), "last risk share": float(share.iloc[-1]),
+                     "correlation with S&P, 15:30→close": float(np.corrcoef(_uu, _same)[0, 1]),
+                     "correlation with |S&P, 15:30→close|": float(np.corrcoef(_uu, np.abs(_same))[0, 1]),
+                     "correlation with S&P, close-to-close": float(np.corrcoef(_uu, _mm)[0, 1]),
+                     "correlation with |S&P, close-to-close|": float(np.corrcoef(_uu, np.abs(_mm))[0, 1]),
+                     "trailing correlation (mean)": float(rho_tr.mean()),
+                     "mean risk share": float(share.mean()), "last risk share": float(share.iloc[-1]),
+                     "premium $ per $100 S&P (median)": float(usd.median()),
+                     "premium $ per $100 S&P (last)": float(usd.iloc[-1]),
                      "Sharpe S&P alone": _sharpe_ann(alone), "Sharpe combination": _sharpe_ann(combo),
                      "dSharpe": _sharpe_ann(combo) - _sharpe_ann(alone),
                      "ci_lo": float(np.percentile(d_sr, 2.5)), "ci_hi": float(np.percentile(d_sr, 97.5))})
-    _combo_paths[tag] = (combo, alone)
+    _combo_paths[tag] = (combo, alone, trade_alone)
 pwc_tab = pd.DataFrame(pwc_rows).set_index("forecast")
 pwc_tab.to_csv(OUT / "portfolio_weights_causal.csv")
 print(f"the weight from past days only (expanding tangency, {PW_WARMUP}-session warm-up, risk-scaled, long-only), midpoint fills;")
 print(f"Sharpe of the combination against the S&P alone on the same scored days, paired block bootstrap (blocks {PAIR_BLOCK}, {PAIR_B} draws)")
-print(pwc_tab.round(3).to_string())
+with pd.option_context("display.width", 250, "display.max_columns", 20):
+    print(pwc_tab.round(3).to_string())
 print("saved", OUT / "portfolio_weights_causal.csv")
 
 fig, ax = plt.subplots(figsize=(10, 4.2))
-_c0, _a0 = _combo_paths["blk2"]
+_c0, _a0, _t0 = _combo_paths["blk2"]
 ax.plot(_a0.index, _a0.cumsum(), color="k", lw=1.2, label="S&P alone (one unit of trailing risk)")
+ax.plot(_t0.index, _t0.cumsum(), color="C0", lw=1.0, ls="--",
+        label=f"{LABEL['blk2']} trade alone (one unit of trailing risk)")
 for tag, c in (("blk2", "C0"), ("sub_ridge", "C2"), ("lasso_f", "C1")):
     if tag in _combo_paths:
-        _c, _ = _combo_paths[tag]
+        _c, _, _ = _combo_paths[tag]
         ax.plot(_c.index, _c.cumsum(), color=c, lw=1.0, label=f"S&P + {LABEL[tag]} at the causal weight")
 ax.set_ylabel("cumulative return, risk units")
 ax.set_title("the S&P alone against the S&P with the 15:30 trade at the weight past days would have set", fontsize=10)
@@ -3210,13 +3891,283 @@ plt.close(fig)
     ),
     md(
         r"""
-## 18. Checking one row by hand
+**Reading (every number from the table above).**
+
+- The trade barely moves with the index's direction. Over the 614
+  scored days its daily correlation with the S&P's close-to-close
+  return is between −0.04 and +0.03 for every forecast, and the
+  trailing correlation the weight uses averages between −0.01 and
+  +0.05. Almost all of the trade's risk is new risk to an S&P holder.
+- That correlation is with the full day, not the last half hour. Over
+  the trade's own window, 15:30 to the close, it is between −0.11 and
+  +0.08 (block-diagonal ridge −0.04): the direction of the last half
+  hour does not drive the trade either.
+- The size of the last half hour's move does. The correlation with
+  $|$S&P, 15:30→close$|$ is negative for every forecast, from −0.23 to
+  −0.08 (block-diagonal ridge −0.14): the rule sells the straddle on
+  most days, and a sold straddle loses when the index travels far in
+  the last half hour. The size of the full-day move barely registers
+  (−0.04 to +0.03).
+- Past days put most of the risk budget in the trade: the mean risk
+  share is 0.63 to 0.81 across forecasts. For the block-diagonal ridge
+  it is 0.73 (0.72 on the last day). In dollars that is a median of
+  \$4.32 of straddle premium per \$100 of S&P (\$3.08 on the last day).
+- Block-diagonal ridge: over the 614 days from 2021-08-11 the S&P alone
+  has Sharpe 0.40; with the trade at the past-days weight, 1.44. The
+  gain is 1.04, with a 95% interval of −0.46 to +2.55.
+- Every forecast's interval includes zero; the highest lower bound is
+  −0.11 (per-bar elastic net, live-feasible set). The gain is large but
+  not yet distinguishable from none on 614 days.
+"""
+    ),
+    md(
+        r"""
+### What the trade's return moves with
+
+Is the trade a bet on something else in disguise? The cell below
+correlates the trade's daily return $u_d=q_dR_d$ (midpoint), for the
+block-diagonal ridge and for the per-bar ridge on the live-feasible set,
+with same-day moves of other markets, on the 866 days of §10 wherever
+both exist:
+
+- the S&P over the trade's own window (15:30 to the close) and
+  close-to-close, and the size of each move, as in the table above but
+  over all 866 days rather than the 614 scored ones;
+- the VIX: its close-to-close change, and its change over the last half
+  hour (15:30 to 16:00, from the panel's 30-minute VIX prints);
+- the Nasdaq-100, the Russell 2000, the 10-year Treasury yield (its
+  change, in points of the quoted yield), long Treasuries (TLT, total
+  return), high-yield credit (HYG, total return) and the dollar index,
+  all close-to-close from Yahoo daily closes, fetched once and cached
+  with the pull date;
+- the realized minus the implied variance of the traded half hour, the
+  quantity the forecast gap $s$ tries to anticipate.
+
+Each correlation carries a 95% interval from the circular block
+bootstrap of days (blocks of 21 days, 2,000 draws). A change of exactly
+zero cannot be told apart from a feed that did not update, so such a day
+is dropped for that series; the cell prints how many.
+"""
+    ),
+    code(
+        r"""XS_TICKERS = {"^VIX": "VIX", "^NDX": "Nasdaq-100", "^RUT": "Russell 2000", "^TNX": "10-year Treasury yield",
+              "TLT": "long Treasuries (TLT)", "HYG": "high-yield credit (HYG)", "DX-Y.NYB": "dollar index"}
+XS_START, XS_END = "2019-12-01", "2024-05-31"
+XS_CACHE = OUT / "cross_asset_daily_closes.parquet"
+if XS_CACHE.exists():
+    xs_raw = pd.read_parquet(XS_CACHE)
+    print("read", XS_CACHE.name, "pulled", xs_raw["pulled_utc"].iloc[0])
+else:
+    import yfinance as yf
+    _rows = []
+    _pulled = pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%dT%H:%MZ")
+    for _tk in XS_TICKERS:
+        _h = yf.download(_tk, start=XS_START, end=XS_END, auto_adjust=False, progress=False, multi_level_index=False)
+        assert len(_h), _tk
+        _rows.append(pd.DataFrame({"date": pd.DatetimeIndex(_h.index).tz_localize(None).normalize(), "ticker": _tk,
+                                   "close": _h["Close"].to_numpy(float), "adj_close": _h["Adj Close"].to_numpy(float)}))
+    xs_raw = pd.concat(_rows, ignore_index=True)
+    xs_raw["pulled_utc"] = _pulled
+    xs_raw.to_parquet(XS_CACHE, index=False)
+    print("downloaded", len(XS_TICKERS), "tickers; saved", XS_CACHE.name, "pulled", _pulled)
+
+_days = pd.DatetimeIndex(common)
+_CM_TAGS = ("blk2", "sub_live_ridge")
+
+
+def _own(tk, col):
+    # one ticker's own Yahoo calendar, in date order
+    _s = xs_raw.loc[xs_raw["ticker"] == tk].set_index("date")[col].sort_index()
+    assert _s.index.is_unique and _s.notna().all(), tk
+    return _s
+
+
+# gate 1: the cached VIX close is the same number as the daily VIX feed the deck already holds
+_v1d = pd.read_parquet(REPO / "data" / "free_feed" / "vix_1d_yahoo.parquet")
+_v1d = pd.Series(_v1d["close"].to_numpy(float), index=pd.DatetimeIndex(_v1d["t"]).normalize())
+assert _v1d.index.is_unique
+_vx = _own("^VIX", "close")
+_sh = _vx.index.intersection(_v1d.index)
+_dv = float((_vx.loc[_sh] - _v1d.loc[_sh]).abs().max())
+assert _dv == 0.0, _dv
+print(f"gate: cached VIX close equals the daily VIX feed on all {len(_sh)} shared dates (max |difference| {_dv})")
+
+# gate 2: the trade's daily return u = sign(s) position x R (midpoint entry to cash settlement)
+_u = {}
+for _t in _CM_TAGS:
+    _b = books[_t].reindex(_days)
+    _u[_t] = _b["pos"] * _b["R"]
+    _ref = (rule_sizes(books[_t])["sign(s)"] * books[_t]["R"]).reindex(_days)
+    assert _u[_t].notna().all() and np.array_equal(_u[_t].to_numpy(float), _ref.to_numpy(float)), _t
+    # the signal is rv_hat - iv_var, so realized and implied variance are in the same units
+    assert np.array_equal(_b["signal"].to_numpy(float), (_b["rv_hat"] - _b["iv_var"]).to_numpy(float)), _t
+print(f"gate: u = sign(s) position x R on all {len(_days)} deck days for {' and '.join(LABEL[t] for t in _CM_TAGS)}")
+_same_side = int((books[_CM_TAGS[0]]["pos"].reindex(_days) == books[_CM_TAGS[1]]["pos"].reindex(_days)).sum())
+print(f"the two forecasts take the same side on {_same_side} of {len(_days)} days")
+
+# the same-day series, each on the deck days
+for _col in ("S", "S_close", "iv_var"):
+    assert np.array_equal(books[_CM_TAGS[0]][_col].reindex(_days).to_numpy(float),
+                          books[_CM_TAGS[1]][_col].reindex(_days).to_numpy(float)), _col
+_rv = [models[_t]["rv_raw"].reindex(_days) for _t in _CM_TAGS]
+assert np.array_equal(_rv[0].to_numpy(float), _rv[1].to_numpy(float)) and _rv[0].notna().all()
+print("gate: S, S_close, iv_var and rv_raw are the same numbers in both forecasts' tables")
+_bk = books[_CM_TAGS[0]].reindex(_days)
+_r1530 = _bk["S_close"] / _bk["S"] - 1.0
+
+# VIX 15:30 -> 16:00 from the panel's 30-minute Cboe prints (stamps naive ET, bar-end labelled)
+_pan = pd.read_parquet(REPO / "data" / "vix_and_voldemand.parquet", columns=["endbartime", "vix"]).dropna(subset=["vix"])
+_et = pd.DatetimeIndex(pd.to_datetime(_pan["endbartime"]))
+assert _et.tz is None
+
+
+def _panel_at(h, m):
+    _k = (_et.hour == h) & (_et.minute == m)
+    _s = pd.Series(_pan["vix"].to_numpy(float)[_k], index=_et[_k].normalize())
+    assert _s.index.is_unique, (h, m)
+    return _s
+
+
+_vix_hh = (_panel_at(16, 0) - _panel_at(15, 30)).reindex(_days)
+
+
+def _chg(tk, col):
+    _s = _own(tk, col)
+    return (_s - _s.shift(1)).reindex(_days)
+
+
+def _ret(tk, col):
+    _s = _own(tk, col)
+    return (_s / _s.shift(1) - 1.0).reindex(_days)
+
+
+# (label, series, stale check applies, size of row) ; the close-to-close changes are taken against the
+# previous row of each ticker's own calendar, then read on the deck days
+_rows_cm = [
+    ("S&P 500 return, 15:30->close", _r1530, True, None),
+    ("S&P 500 |return|, 15:30->close", None, None, 0),
+    ("S&P 500 return, close-to-close", spx_r.reindex(_days), True, None),
+    ("S&P 500 |return|, close-to-close", None, None, 2),
+    ("VIX change, close-to-close (points)", _chg("^VIX", "close"), True, None),
+    ("VIX change, 15:30->16:00 (panel)", _vix_hh, True, None),
+    (f"{XS_TICKERS['^NDX']} return, close-to-close", _ret("^NDX", "close"), True, None),
+    (f"{XS_TICKERS['^RUT']} return, close-to-close", _ret("^RUT", "close"), True, None),
+    (f"{XS_TICKERS['^TNX']} change, close-to-close (points)", _chg("^TNX", "close"), True, None),
+    (f"{XS_TICKERS['TLT']} total return, close-to-close", _ret("TLT", "adj_close"), True, None),
+    (f"{XS_TICKERS['HYG']} total return, close-to-close", _ret("HYG", "adj_close"), True, None),
+    (f"{XS_TICKERS['DX-Y.NYB']} return, close-to-close", _ret("DX-Y.NYB", "close"), True, None),
+    ("realized minus implied variance, 15:30->16:00", _rv[0] - _bk["iv_var"], False, None),
+]
+
+# a change of exactly zero means the print repeated the previous one; a feed that did not update
+# cannot be told from a market that did not move, so those days are dropped (never filled)
+print("\ncoverage on the deck days (a repeated print = a change of exactly zero; repeated prints are DROPPED):")
+_ser = []
+for _lab, _s, _chk, _parent in _rows_cm:
+    if _parent is not None:
+        _s = _ser[_parent].abs()
+        _ser.append(_s)
+        continue
+    _have = int(_s.notna().sum())
+    _rep = _s.index[_s.eq(0.0)] if _chk else pd.DatetimeIndex([])
+    _s = _s.mask(_s.eq(0.0)) if _chk else _s
+    _ser.append(_s)
+    _dates = ", ".join(str(d.date()) for d in _rep)
+    print(f"  {_lab:<55s} print on {_have:3d} of {len(_days)}; repeated {len(_rep):2d}; used {int(_s.notna().sum()):3d}"
+          + (f"  [{_dates}]" if len(_rep) else ""))
+
+
+def _boot_corr(x, y, idx):
+    _X = x[idx]
+    _Y = y[idx]
+    _X = _X - _X.mean(axis=1, keepdims=True)
+    _Y = _Y - _Y.mean(axis=1, keepdims=True)
+    return (_X * _Y).sum(axis=1) / np.sqrt((_X * _X).sum(axis=1) * (_Y * _Y).sum(axis=1))
+
+
+_out = []
+for _row, _s in zip(_rows_cm, _ser):
+    _lab = _row[0]
+    _ok = _s.notna().to_numpy()
+    _n = int(_ok.sum())
+    _x = _s.to_numpy(float)[_ok]
+    _idx = asl.circular_block_bootstrap_idx(np.random.default_rng([PAIR_SEED, _n]), _n, PAIR_BLOCK, PAIR_B)
+    _rec = {"series": _lab, "days": _n}
+    for _t in _CM_TAGS:
+        _y = _u[_t].to_numpy(float)[_ok]
+        _lo, _hi = np.percentile(_boot_corr(_x, _y, _idx), [2.5, 97.5])
+        _rec[f"{LABEL[_t]}: corr"] = float(np.corrcoef(_x, _y)[0, 1])
+        _rec[f"{LABEL[_t]}: lo"] = float(_lo)
+        _rec[f"{LABEL[_t]}: hi"] = float(_hi)
+    _out.append(_rec)
+cm_tab = pd.DataFrame(_out).set_index("series")
+cm_tab.to_csv(OUT / "trade_return_comoves.csv")
+
+print(f"\ncorrelation of the trade's daily return (sign(s), midpoint) with same-day moves; "
+      f"95% circular block bootstrap ({PAIR_BLOCK}-day blocks, {PAIR_B} draws) in [lo, hi]:")
+print(cm_tab.set_axis(pd.MultiIndex.from_tuples([("", "days")] + [(LABEL[_t], _k) for _t in _CM_TAGS for _k in ("corr", "lo", "hi")]),
+                      axis=1).to_string(float_format=lambda v: f"{v:.3f}"))
+print("saved", (OUT / "trade_return_comoves.csv").name)
+for _t in _CM_TAGS:
+    _ex = []
+    for _lab in cm_tab.index:
+        _rd = _interval_reading(cm_tab.at[_lab, f"{LABEL[_t]}: lo"], cm_tab.at[_lab, f"{LABEL[_t]}: hi"])
+        if "excludes zero" in _rd:
+            _ex.append(f"{_lab} ({_rd})")
+    print(f"{LABEL[_t]}: interval excludes zero for {len(_ex)} of {len(cm_tab)} series" + (": " + "; ".join(_ex) if _ex else ""))
+
+# the trade carries a side: on a long day a large move adds to u, on a short day it subtracts, so the
+# unsigned payoff series can only show through u once they are multiplied by the side taken
+_R = books[_CM_TAGS[0]]["R"].reindex(_days)
+assert np.array_equal(_R.to_numpy(float), books[_CM_TAGS[1]]["R"].reindex(_days).to_numpy(float))
+print(f"\ncheck on the two payoff rows (point correlations, all {len(_days)} days):")
+for _t in _CM_TAGS:
+    print(f"  {LABEL[_t]}: long on {int((books[_t]['pos'].reindex(_days) > 0).sum())} of {len(_days)} days")
+for _k in (1, 12):
+    _s = _ser[_k]
+    _line = f"  {_rows_cm[_k][0]}: with the long straddle's own return R {np.corrcoef(_s, _R)[0, 1]:.3f}"
+    for _t in _CM_TAGS:
+        _p = books[_t]["pos"].reindex(_days)
+        _line += f"; side x series with u, {LABEL[_t]} {np.corrcoef(_p * _s, _u[_t])[0, 1]:.3f}"
+    print(_line)
+"""
+    ),
+    md(
+        r"""
+**Reading (every number from the cell above).**
+
+- **Almost nothing registers.** For the block-diagonal ridge the only
+  interval that excludes zero is the size of the S&P's 15:30-to-close
+  move, −0.11 (−0.21 to −0.001, a knife edge). For the per-bar ridge
+  none of the 13 does.
+- **No hidden market bet.** Every close-to-close series — the S&P, the
+  Nasdaq-100, the Russell 2000, the VIX, the 10-year yield, TLT, HYG and
+  the dollar — correlates with the trade between −0.05 and +0.03, every
+  interval including zero. These are full-day moves while the trade
+  lives in the last half hour, which would dilute a link; the two
+  same-window rows are larger but still include zero (S&P 15:30 to the
+  close −0.06 and −0.07; VIX 15:30 to 16:00 +0.06 and +0.04).
+- **The payoff rows are small because the trade carries a side.** The
+  long straddle's own return correlates 0.49 with the size of the last
+  half hour's move. The trade is long on 346 (per-bar ridge: 348) of the
+  866 days and short on the rest, so a large move adds on some days and
+  subtracts on others. Multiplied by the side taken, the size of the
+  move correlates 0.41 with the trade's return. The realized minus the
+  implied variance of the half hour tracks the straddle's own return
+  only weakly on this measure (0.10).
+- The two columns are not independent evidence: the two forecasts take
+  the same side on 720 of the 866 days.
+"""
+    ),
+    md(
+        r"""
+## 19. Checking one row by hand
 
 The columns of a single row map onto the construction as follows.
 
 - `K_c >= S` and `K_p <= S` at 15:30: the call strike sits at or
   above the spot and the put strike at or below it.
-- `entry` is the 15:30 midpoint quote of the package, `mid_c + mid_p`.
+- `entry` is the 15:30 midpoint quote of the straddle, `mid_c + mid_p`.
 - `exit` is the cash settlement,
   `max(S_close - K_c, 0) + max(K_p - S_close, 0)`, with `S_close`
   the official close from yfinance `^GSPC`.

@@ -1,10 +1,13 @@
-"""Rule-by-strategy tables for the twelve intraday entry windows, plus pooled.
+"""Rule-by-strategy tables for every intraday entry window, plus pooled.
 
 The deck's standalone (writeup/rule_by_strategy_standalone.tex, built from
 writeup/make_rule_by_strategy_tex.py) is one booktabs tabular with a panel per
 rule -- "Short volatility (always short)" and sign(s) -- and the eight forecasts
 down the rows.  This script builds the same object for every intraday entry
-window 10:00, 10:30, ..., 15:30 of the intraday notebook's frame, and one for
+window 09:35, 10:00, 10:30, ..., 15:30 of the intraday notebook's frame (the
+2026-09-18 vendor chain's first stamp is 09:35; it is scored with the forecast
+issued at 09:30 for the 09:30--10:00 bar, that bar's diurnal share, and the
+chain's hours to the close -- see build_work), and one for
 the pooled daily sums, with ONE added column: the annualized Sharpe at the
 crossed spread (entry at the touch, exit at the touch of the next stamp; the
 15:30 window cash-settles and pays no exit spread; a re-pick that lands on the
@@ -26,7 +29,7 @@ Construction (mirrors notebooks/_write_0dte_intraday_nb.py):
   * censored implied: the bars whose vendor implied volatility sits on a
     solver bracket node do NOT sit flat.  They take the deck's treatment
     (iv_hourly_15_30 in §8 of notebooks/_write_0dte_nb.py): the volatility
-    that reproduces the package midpoint, recovered by bisection over the
+    that reproduces the straddle midpoint, recovered by bisection over the
     stamp's hours_to_expiration.  With that in place the 15:30 window IS the
     deck's close trade, and gate() asserts the whole ridge row reproduces it.
 
@@ -74,15 +77,42 @@ OUT = (
         else "atm_straddle_intraday/rule_by_strategy"
     )
 )
-TRADE_CACHE = (
-    ROOT
-    / "results"
-    / (
-        "atm_straddle_intraday_holdclose/cache"
-        if DH_HOLDCLOSE
-        else "atm_straddle_intraday/cache"
-    )
-)
+# Both bundles read the intraday trade frame built from the 2026-09-18 vendor
+# chain (it carries the 09:35 opening stamp).  The hold-to-close bundle turns
+# it into the hold-to-close frame with to_hold_close() -- the exit the
+# holdclose notebook (notebooks/_write_0dte_intraday_T_nb.py) defines -- and
+# gates it against that notebook's own cache on every bar the two share.
+TRADE_CACHE = ROOT / "results" / "atm_straddle_intraday" / "cache"
+HOLDCLOSE_CACHE = ROOT / "results" / "atm_straddle_intraday_holdclose" / "cache"
+
+# Filled in the parent process by build_work(); the page text reads them.
+CLOCKS: list[str] = []
+H_REM: dict[str, float] = {}
+N_DECK_DAYS = 0
+NUM_WORDS = {12: "twelve", 13: "thirteen"}
+
+
+def n_win() -> str:
+    """The number of entry windows, in words."""
+    return NUM_WORDS[len(CLOCKS)]
+
+
+def span() -> str:
+    return f"{CLOCKS[0]}--{CLOCKS[-1]}"
+
+
+def bar_start(c: str) -> str:
+    """Start of the 30-minute panel bar that holds clock c (09:35 -> 09:30)."""
+    h, m = c.split(":")
+    return f"{h}:{int(m) // 30 * 30:02d}"
+
+
+def hours_text(h: float) -> str:
+    hh = int(h)
+    mm = int(round((h - hh) * 60))
+    return f"{h:.2f} hours ({hh} h {mm:02d} min)"
+
+
 FIG_DIR = (
     ROOT
     / "results"
@@ -161,6 +191,7 @@ PREAMBLE = r"""\documentclass{article}
 
 
 def footnote() -> str:
+    nw = n_win()
     if DH_HOLDCLOSE:
         clk = (
             r"of that clock's series: one remaining-session short per expiration day "
@@ -169,24 +200,33 @@ def footnote() -> str:
             r"annual Sharpe?'' It is \emph{not} the book's Sharpe$_{\mathrm{ann}}$."
         )
         pooled = (
-            r"of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve overlapping "
+            rf"of $R^{{day}}_d=\sum_t R'_{{d,t}}$, the sum of the day's {nw} overlapping "
             r"remaining-session books. That reserved name is the book's daily P\&L after "
-            r"pooling the session. The twelve books overlap; they are not twelve "
-            r"successive 30-minute holds."
+            rf"pooling the session. The {nw} books overlap; they are not {nw} "
+            r"successive holds."
         )
     else:
+        hold = (
+            r"one hold per expiration day, to the next stamp (25 minutes from 09:35, "
+            r"30 minutes from every later clock)"
+            if "09:35" in CLOCKS
+            else r"one 30-minute hold per expiration day"
+        )
         clk = (
-            r"of that clock's series: one 30-minute hold per expiration day. It answers ``if I "
+            rf"of that clock's series: {hold}. It answers ``if I "
             r"only entered at this clock, what is my annual Sharpe?'' It is \emph{not} the "
             r"book's Sharpe$_{\mathrm{ann}}$."
         )
         pooled = (
-            r"of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve holds. That reserved "
+            rf"of $R^{{day}}_d=\sum_t R'_{{d,t}}$, the sum of the day's {nw} holds. That reserved "
             r"name is the book's daily P\&L after pooling the session. At 15:30 the two "
-            r"coincide (one trade that day); they do not on 10:00--15:00 or on the pooled page."
+            rf"coincide (one trade that day); they do not on {CLOCKS[0]}--{CLOCKS[-2]} or on "
+            r"the pooled page."
         )
     return (
-        r"\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain "
+        r"\noindent\small \textbf{Straddle} here means the nearest out-of-the-money call plus the nearest "
+        r"out-of-the-money put, same-day expiry, bought or sold as one position. "
+        r"One expiration day = one return; mid fill. Every $t$ here is the plain "
         r"$t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction. "
         r"``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$). "
         r"The short-volatility rule takes no forecast, so it is one row for all models. "
@@ -198,7 +238,7 @@ def footnote() -> str:
         + pooled
         + r" Sharpe$^{\times}$ is the same convention at the crossed spread. Every other column is daily. "
         r"$n_{\mathrm{buy}}$ is the number of expiration days with position $>0$ (always-short is 0; "
-        r"on the pooled page it is days the sum of the twelve positions is positive); "
+        rf"on the pooled page it is days the sum of the {nw} positions is positive); "
         r"\%buy is $100\cdot n_{\mathrm{buy}}/n$, the notebook's column. "
         r"The other column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same "
         r"rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other "
@@ -216,9 +256,15 @@ def footnote() -> str:
         r"remaining-session share of realized variance, $\mathrm{RV}_t/\sum_{s\ge t}\mathrm{RV}_s$ "
         r"(in-fit panel history back to 2001), not the ratio of trailing clock-means. "
         r"On the bars whose vendor implied volatility is a censored "
-        r"solver node the deck's treatment is used here too --- the volatility that reproduces the package "
+        r"solver node the deck's treatment is used here too --- the volatility that reproduces the straddle "
         r"midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a "
         r"signal and no bar sits flat."
+        + (
+            r" At the 09:35 entry the forecast is the one issued at 09:30 for the 09:30--10:00 "
+            r"bar, $w_t$ is that bar's share, and $h_t$ is the chain's hours to the close."
+            if "09:35" in CLOCKS
+            else ""
+        )
     )
 
 
@@ -251,10 +297,10 @@ def iv_hourly_reinverted(work: pd.DataFrame) -> pd.Series:
 
     The deck's treatment (notebooks/_write_0dte_nb.py, iv_hourly_15_30 in §8):
     a bar whose call or put leg sits on a solver bracket node carries no
-    volatility, so recover the one that reproduces the package MIDPOINT by
+    volatility, so recover the one that reproduces the straddle MIDPOINT by
     bisection and read it back in the vendor's hourly convention.  The deck
-    trades only 15:30, where the package covers the last half hour; at an
-    intraday clock the package still covers the remaining session, so
+    trades only 15:30, where the straddle covers the last half hour; at an
+    intraday clock the straddle still covers the remaining session, so
     hours_remaining is that stamp's hours_to_expiration -- which the frame
     already carries as h_rem (asserted against data/spxw_chain.parquet).
     """
@@ -305,7 +351,7 @@ def iv_hourly_reinverted(work: pd.DataFrame) -> pd.Series:
     print(
         f"censored vendor implied on {len(idx)} bars "
         f"({int((work['hhmm'].to_numpy()[idx] == '15:30').sum())} of them at 15:30); "
-        f"re-inverted from the package midpoint on {int(np.isfinite(rec).sum())} of them"
+        f"re-inverted from the straddle midpoint on {int(np.isfinite(rec).sum())} of them"
     )
     assert bool(np.isfinite(iv.to_numpy()).all()), (
         "a bar is still without an implied volatility after the re-inversion"
@@ -314,7 +360,7 @@ def iv_hourly_reinverted(work: pd.DataFrame) -> pd.Series:
 
 
 def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
-    """Replace R with long-package delta-hedged t→T return (q = +1).
+    """Replace R with long-straddle delta-hedged t→T return (q = +1).
 
     Δ rebalanced every 30 minutes on vendor S; remaining vol = stamp IV × √h.
     Hedge P&L stored in hedge_long (index points) for the crossed column.
@@ -333,11 +379,23 @@ def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
         index="date", columns="hhmm", values=ivcol, aggfunc="first"
     )
     IV_grid = IV_grid.reindex(columns=clocks)
-    h_row = np.array([n_rem[c] * 0.5 for c in clocks])
+    # Hours to the close at each stamp: the frame's h_rem, which build_work
+    # reads from the chain (6 h 25 min at 09:35; n_rem / 2 on the half-hour grid).
+    H_grid = work.pivot_table(
+        index="date", columns="hhmm", values="h_rem", aggfunc="first"
+    )
+    H_grid = H_grid.reindex(columns=clocks)
+    grid = np.array([n_rem[c] * 0.5 for c in clocks])
+    on_grid = np.array([bar_start(c) == c for c in clocks])
+    Hv = H_grid.to_numpy(float)[:, on_grid]
+    assert bool(
+        (np.isnan(Hv) | (Hv == np.broadcast_to(grid[on_grid], Hv.shape))).all()
+    ), "chain hours to the close differ from the half-hour grid"
     dates = work["date"].to_numpy()
     t_idx = pd.Index(clocks).get_indexer(work["hhmm"].to_numpy())
     Sg = S_grid.loc[dates].to_numpy(float)
     IVg = IV_grid.loc[dates].to_numpy(float)
+    Hg = H_grid.loc[dates].to_numpy(float)
     ST = work["S_close"].to_numpy(float)
     Kc = work["K_c"].to_numpy(float)[:, None]
     Kp = work["K_p"].to_numpy(float)[:, None]
@@ -349,7 +407,7 @@ def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
     last = np.where(active, col, -1).max(axis=1)
     for j in range(m):
         nxt[last == j, j] = ST[last == j]
-    tot = np.where((IVg > 0) & active, IVg * np.sqrt(h_row[None, :]), np.nan)
+    tot = np.where((IVg > 0) & active, IVg * np.sqrt(Hg), np.nan)
     F = Sg
     s = tot
     dlt = np.zeros_like(Sg)
@@ -370,7 +428,7 @@ def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
     work["hedge_long"] = hedge
     work["R"] = (opt + hedge) / entry
     print(
-        f"DH t→T attached: median |Δ| {float(np.median(np.abs(dlt[active]))):.3f}; "
+        f"DH t->T attached: median |delta| {float(np.median(np.abs(dlt[active]))):.3f}; "
         f"mean hedge {float(np.nanmean(hedge)):.3f} pts"
     )
     return work
@@ -379,20 +437,41 @@ def attach_long_dh(work: pd.DataFrame) -> pd.DataFrame:
 # ---------------------------------------------------------------- frame ----
 def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     """Trade bars on the deck's 866 days, with the slice and the eight rv_hat."""
-    cache = TRADE_CACHE
-    trade = max(cache.glob("trade_*.parquet"), key=lambda p: p.stat().st_mtime)
-    print("trade cache:", trade.name)
-    pkg = pd.read_parquet(trade)
-
     deck = pd.read_parquet(DECK / "daily_blk2.parquet")
     deck.index = pd.to_datetime(deck.index)
     days = pd.DatetimeIndex(deck.index)
     print("deck days", len(days), days.min().date(), "->", days.max().date())
 
+    trade = max(TRADE_CACHE.glob("trade_*.parquet"), key=lambda p: p.stat().st_mtime)
+    pkg = pd.read_parquet(trade)
+    print("trade cache:", trade.name)
+    if DH_HOLDCLOSE:
+        # The holdclose notebook's newest cache if it carries the 09:35 stamp;
+        # otherwise the same frame built here from the intraday cache.  Every
+        # other hold-to-close frame on disk is gated against the one used.
+        frames = {
+            p.name: pd.read_parquet(p)
+            for p in sorted(
+                HOLDCLOSE_CACHE.glob("trade_*.parquet"), key=lambda p: p.stat().st_mtime
+            )
+        }
+        frames["intraday cache, hold-to-close exit"] = to_hold_close(pkg)
+        newest = list(frames)[-2]
+        use = newest if "09:35" in set(frames[newest]["hhmm"]) else list(frames)[-1]
+        print("hold-to-close frame used:", use)
+        pkg = frames.pop(use)
+        for name, ref in frames.items():
+            gate_hold_close(
+                pkg[pkg["date"].isin(days)], ref[ref["date"].isin(days)], name
+            )
+
     work = pkg[pkg["date"].isin(days)].copy()
     work["t"] = pd.to_datetime(work["timestamp"], utc=True)
     work = work.sort_values("t").reset_index(drop=True)
     clocks = sorted(work["hhmm"].unique())
+    CLOCKS[:] = clocks
+    global N_DECK_DAYS
+    N_DECK_DAYS = len(days)
     print("bars", len(work), "days", work["date"].nunique(), "clocks", clocks)
 
     # Causal remaining share: each prior day's RV_c / remaining-to-close sum,
@@ -407,10 +486,38 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     prof = pf.pivot_table(
         index="pdate", columns="phhmm", values="rv_raw", aggfunc="mean"
     ).sort_index()
+    # A clock off the half-hour grid (09:35) takes the share of the panel bar
+    # that holds it (09:30--10:00, stamped 10:00).  That bar sits outside the
+    # model's fit mask (stamps 10:30--16:00), so its realized variance is read
+    # from the same panel's session-date rows, on the same days as the profile;
+    # the other columns, and so every other clock's share, are untouched.
+    bstart = [bar_start(c) for c in clocks]
+    for b in sorted(set(bstart) - set(prof.columns)):
+        ok = (
+            pan["session_date"].to_numpy(dtype=bool)
+            & ~pan["early_close"].to_numpy(dtype=bool)
+            & np.isfinite(pan["rv_raw"].to_numpy(float))
+        )
+        extra = pan[ok].copy()
+        eclock = extra["et"] - pd.Timedelta(minutes=30)
+        extra = extra[eclock.dt.strftime("%H:%M").to_numpy() == b]
+        edate = (
+            (extra["et"] - pd.Timedelta(minutes=30)).dt.normalize().dt.tz_localize(None)
+        )
+        prof[b] = (
+            pd.Series(extra["rv_raw"].to_numpy(float), index=edate.to_numpy())
+            .groupby(level=0)
+            .mean()
+            .reindex(prof.index)
+        )
+        print(
+            f"diurnal profile: bar {b} added from {int(prof[b].notna().sum())} "
+            f"of {len(prof)} panel sessions"
+        )
     _pi = pd.DataFrame(index=prof.index, columns=clocks, dtype=float)
     for _i, _c in enumerate(clocks):
-        _rem = prof[clocks[_i:]].sum(axis=1)
-        _pi[_c] = prof[_c] / _rem.replace(0.0, np.nan)
+        _rem = prof[bstart[_i:]].sum(axis=1)
+        _pi[_c] = prof[bstart[_i]] / _rem.replace(0.0, np.nan)
     w_slice = _pi.expanding(min_periods=63).mean().shift(1)
     assert bool(np.isclose(w_slice["15:30"].dropna().to_numpy(), 1.0).all()), (
         "w must be 1 at 15:30"
@@ -427,8 +534,26 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
         prof.index.max().date(),
     )
 
+    # Hours to the close: the chain's hours_to_expiration of the call leg at
+    # each stamp.  On the half-hour grid it must equal n_rem / 2 (asserted), and
+    # that value is kept there so the 15:30 leg is bit-for-bit the deck's; at
+    # 09:35 it is the real 6 h 25 min, not 6.5 h.
     n_rem = {c: len(clocks) - i for i, c in enumerate(clocks)}
-    work["h_rem"] = work["hhmm"].map(n_rem).astype(float) * 0.5
+    grid_h = work["hhmm"].map(n_rem).astype(float).to_numpy() * 0.5
+    on_grid = np.array([bar_start(c) == c for c in work["hhmm"]])
+    h_chain = hours_to_close(work)
+    assert bool(np.isfinite(h_chain).all()), (
+        "a bar has no hours to the close in the chain"
+    )
+    assert bool(np.allclose(h_chain[on_grid], grid_h[on_grid])), (
+        "chain hours to the close differ from the half-hour grid"
+    )
+    work["h_rem"] = np.where(on_grid, grid_h, h_chain)
+    for c in clocks:
+        hv = work.loc[work["hhmm"] == c, "h_rem"].to_numpy(float)
+        assert float(hv.max() - hv.min()) == 0.0, (c, hv.min(), hv.max())
+        H_REM[c] = float(hv[0])
+    print("hours to the close by clock:", {c: round(h, 4) for c, h in H_REM.items()})
     work["iv_hourly_used"] = iv_hourly_reinverted(work).to_numpy()
     iv2 = work["iv_hourly_used"].astype(float) ** 2
     work["slice"] = iv2 * work["h_rem"] * work["w_slice"]
@@ -442,7 +567,7 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
     assert dev == 0.0, f"15:30 slice is not iv_hourly^2/2 (max deviation {dev})"
     print("15:30 slice equals iv_hourly^2/2 exactly on all", len(chk), "days")
     # Against the deck's own iv_var: exact on the quoted days, and on the three
-    # re-inverted ones down to the float32 rounding of the package midpoint the
+    # re-inverted ones down to the float32 rounding of the straddle midpoint the
     # two frames store (entry 31.150001 against 31.150000, and so on).
     rel = float(
         (chk.set_index("date")["slice"] / deck["iv_var"].astype(float) - 1.0)
@@ -456,21 +581,135 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
         f"15:30 slice equals the deck's iv_var on all 866 days (max rel diff {rel:.3g})"
     )
 
+    # The forecast of a bar is the panel row that ENDS the 30-minute bar holding
+    # the entry stamp (the panel is bar-end labelled; its t is true UTC).  On
+    # the half-hour grid that is t + 30 min (entry 10:00 -> row 10:30), as
+    # before.  At 09:35 it is the row stamped 10:00: the forecast issued at
+    # 09:30 for 09:30--10:00, known five minutes before the entry.
+    work["fc_t"] = (
+        (work["t"] + pd.Timedelta(minutes=30))
+        .dt.floor("30min")
+        .astype("datetime64[ns, UTC]")
+    )
+    off = ~np.array([bar_start(c) == c for c in work["hhmm"]])
     for tag in asl.MODEL_ORDER:
-        d = loaded[tag][["t", "rv_hat"]].copy()
-        d["t"] = pd.to_datetime(d["t"], utc=True) - pd.Timedelta(minutes=30)
-        joined = work[["t"]].merge(d, on="t", how="left")["rv_hat"].to_numpy()
-        work["rv_hat_" + tag] = joined
+        d = loaded[tag][["t", "et", "rv_hat"]].rename(
+            columns={"t": "fc_t", "et": "fc_et"}
+        )
+        d["fc_t"] = pd.to_datetime(d["fc_t"], utc=True).astype("datetime64[ns, UTC]")
+        j = work[["fc_t"]].merge(d, on="fc_t", how="left")
+        assert len(j) == len(work), (tag, len(j), len(work))
+        work["rv_hat_" + tag] = j["rv_hat"].to_numpy()
         miss = int((~np.isfinite(work["rv_hat_" + tag])).sum())
         print(f"  {tag:9s} joined; bars with no forecast: {miss}")
+        if off.any():
+            jo = j[off]
+            stamp = jo["fc_et"].dt.strftime("%H:%M").to_numpy()
+            same_day = (
+                jo["fc_et"].dt.normalize().dt.tz_localize(None).to_numpy()
+                == work.loc[off, "date"].to_numpy()
+            )
+            n_off = int(off.sum())
+            n_miss = int((~np.isfinite(jo["rv_hat"].to_numpy(float))).sum())
+            assert bool((stamp == "10:00").all()) and bool(same_day.all()), (
+                f"{tag}: a 09:35 bar did not join its day's panel row stamped 10:00"
+            )
+            assert n_miss == 0, (
+                f"{tag}: {n_miss} of {n_off} 09:35 bars have no forecast"
+            )
+            print(
+                f"  {tag:9s} GATE 09:35: all {n_off} bars joined the same day's panel row "
+                f"stamped 10:00 ET (the 09:30--10:00 bar); missing forecasts: {n_miss}"
+            )
     return work, clocks, deck
+
+
+def hours_to_close(work: pd.DataFrame) -> np.ndarray:
+    """The chain's hours_to_expiration of each bar's call leg (true UTC stamps)."""
+    chain = pd.read_parquet(
+        ROOT / "data" / "spxw_chain.parquet",
+        columns=["expiration", "timestamp", "strike", "cp", "hours_to_expiration"],
+        filters=[("cp", "==", "C")],
+    )
+    got = work[["expiration", "timestamp", "K_c"]].merge(
+        chain.drop(columns="cp"),
+        left_on=["expiration", "timestamp", "K_c"],
+        right_on=["expiration", "timestamp", "strike"],
+        how="left",
+    )
+    assert len(got) == len(work), "the chain carries a duplicate call row"
+    return got["hours_to_expiration"].to_numpy(float)
+
+
+def to_hold_close(pkg: pd.DataFrame) -> pd.DataFrame:
+    """The hold-to-close frame: every bar cash-settles its entry strikes.
+
+    The exit the holdclose notebook defines (notebooks/_write_0dte_intraday_T_nb.py,
+    [cache:exit]): exit = exit_settle, the entry strikes' payoff against the
+    official close; R = exit / entry - 1; every bar is the last of its trade.
+    """
+    out = pkg.copy()
+    out["exit"] = out["exit_settle"]
+    out["is_last"] = True
+    out["R"] = out["exit"] / out["entry"] - 1.0
+    out["R_as"] = -out["R"]
+    assert bool(np.isfinite(out["R"]).all()), "a hold-to-close bar has no return"
+    return out
+
+
+def gate_hold_close(work: pd.DataFrame, ref: pd.DataFrame, ref_name: str) -> None:
+    """The hold-to-close frame used against another one on disk.
+
+    On every (day, clock) the two share -- the old-chain notebook cache has
+    10:00..15:30 only -- they must hold the same bars with the same strikes,
+    quotes, spot, implied and exit, so the pages of those clocks reproduce.
+    """
+    key = ["date", "hhmm"]
+    m = ref.merge(work, on=key, how="left", suffixes=("_ref", ""), indicator=True)
+    assert bool((m["_merge"] == "both").all()), (
+        "a holdclose bar is missing from the frame"
+    )
+    extra = work[work["hhmm"].isin(ref["hhmm"].unique())].merge(
+        ref[key], on=key, how="left", indicator=True
+    )
+    assert bool((extra["_merge"] == "both").all()), (
+        "the frame has a bar the holdclose cache lacks"
+    )
+    cols = [
+        "K_c",
+        "K_p",
+        "S",
+        "entry",
+        "bid_c",
+        "ask_c",
+        "bid_p",
+        "ask_p",
+        "iv_hourly",
+        "impl_volatility_c",
+        "impl_volatility_p",
+        "S_close",
+        "exit",
+        "R",
+    ]
+    for c in cols:
+        a, b = m[c + "_ref"].to_numpy(float), m[c].to_numpy(float)
+        same = (a == b) | (np.isnan(a) & np.isnan(b))
+        assert bool(same.all()), (
+            f"{c} differs from the holdclose cache on {int((~same).sum())} bars"
+        )
+    rc = sorted(ref["hhmm"].unique())
+    print(
+        f"GATE hold-to-close frame vs {ref_name}: all {len(m)} bars on clocks "
+        f"{rc[0]}..{rc[-1]} identical in {len(cols)} columns; clocks only in the frame used: "
+        f"{sorted(set(work['hhmm']) - set(rc))}"
+    )
 
 
 def positions(work: pd.DataFrame, tag: str) -> np.ndarray:
     """sign(s) over the whole frame.
 
     The q = 0 branch is the guard for a bar with no signal at all; with the
-    censored implied re-inverted from the package midpoint and every forecast
+    censored implied re-inverted from the straddle midpoint and every forecast
     joined, it does not fire on this frame (build_work asserts both).
     """
     s = work["rv_hat_" + tag].to_numpy(float) - work["slice"].to_numpy(float)
@@ -595,7 +834,7 @@ def hist_payload(work: pd.DataFrame, key: str) -> dict[str, np.ndarray]:
 
 
 def render_hist(
-    job: tuple[str, dict[str, np.ndarray]],
+    job: tuple[str, dict[str, np.ndarray], str],
 ) -> tuple[str, str, dict[str, int]]:
     """The deck's rule_hists_blk2.png, for one entry window (worker side).
 
@@ -603,11 +842,10 @@ def render_hist(
     the pooled 1st--99th percentile window, laid on multiples of the bin width
     so an edge falls exactly on zero (the deck's construction); the range is
     widened when the series carries mass at exactly -1 -- the 15:30 leg's days
-    on which the package expires worthless -- so that mass is drawn, not
+    on which the straddle expires worthless -- so that mass is drawn, not
     swept into the clipping bin.
     """
-    key, arrays = job
-    pooled = key == "pooled"
+    key, arrays, where = job
     ser = {n: pd.Series(v) for n, v in arrays.items()}
     allv = pd.concat(list(ser.values()))
     lo, hi = float(allv.quantile(0.01)), float(allv.quantile(0.99))
@@ -648,11 +886,6 @@ def render_hist(
         ax.axvline(0.0, color="k", lw=0.6)
         ax.set_title(name, fontsize=8)
         ax.set_xlabel(r"$R'$")
-    where = (
-        "daily sum over the twelve entry windows 10:00-15:30 ET"
-        if pooled
-        else f"entry {key[:2]}:{key[2:]} ET, {hold_kind(key)}"
-    )
     fig.suptitle(
         f"block-diagonal ridge, midpoint fills: {where}; return of the position, "
         r"1st-99th percentile window (bars: the days with $R'\neq 0$)",
@@ -667,9 +900,13 @@ def render_hist(
 
 
 def render_confusion(work: pd.DataFrame) -> Path:
-    """12 clocks: 2x2 of sign(s) vs sign(R) of the long package (mid)."""
+    """One 2x2 of sign(s) vs sign(R) of the long straddle (mid) per clock."""
     clocks = sorted(work["hhmm"].unique())
-    fig, axes = plt.subplots(3, 4, figsize=(10.8, 7.2))
+    ncol = 5 if len(clocks) > 12 else 4
+    nrow = -(-len(clocks) // ncol)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(2.7 * ncol, 2.4 * nrow))
+    for ax in axes.ravel()[len(clocks) :]:
+        ax.set_visible(False)
     s = work["rv_hat_blk2"].to_numpy(float) - work["slice"].to_numpy(float)
     r = work["R"].to_numpy(float)
     hh = work["hhmm"].to_numpy()
@@ -699,7 +936,7 @@ def render_confusion(work: pd.DataFrame) -> Path:
         ax.set_xticks([0, 1], labels=["R>0", "R≤0"], fontsize=7)
         ax.set_yticks([0, 1], labels=["s>0 buy", "s≤0 short"], fontsize=7)
     fig.suptitle(
-        r"$\mathrm{sign}(s)$ vs sign of long-package $R$ (mid), block-diagonal ridge, 866 days",
+        r"$\mathrm{sign}(s)$ vs sign of long-straddle $R$ (mid), block-diagonal ridge, 866 days",
         fontsize=10,
     )
     fig.tight_layout()
@@ -711,12 +948,12 @@ def render_confusion(work: pd.DataFrame) -> Path:
 
 def hist_caption(key: str, at_1530: bool) -> str:
     what = (
-        "the daily sum over the twelve entry windows"
+        f"the daily sum over the {n_win()} entry windows"
         if key == "pooled"
         else f"the position taken at {key[:2]}:{key[2:]} ET"
     )
     tail = (
-        r"; the mass at $-1$ is the days the package expires worthless"
+        r"; the mass at $-1$ is the days the straddle expires worthless"
         if at_1530
         else ""
     )
@@ -780,11 +1017,20 @@ def hold_kind(key: str) -> str:
         return "held to cash-settle"
     if key == "1530":
         return "cash-settled at the close"
+    if key == "0935":
+        return "held 25 minutes to the 10:00 midpoint"
     return "one-bar hold"
 
 
+def hist_where(key: str) -> str:
+    """The histogram's subtitle (built in the parent: workers do not see CLOCKS)."""
+    if key == "pooled":
+        return f"daily sum over the {n_win()} entry windows {CLOCKS[0]}-{CLOCKS[-1]} ET"
+    return f"entry {key[:2]}:{key[2:]} ET, {hold_kind(key)}"
+
+
 def window_title(key: str) -> str:
-    inst = "straddle" if DH_HOLDCLOSE else "package"
+    inst = "straddle"
     if key == "pooled":
         extra = (
             r" (overlapping remaining-session books)"
@@ -792,29 +1038,69 @@ def window_title(key: str) -> str:
             else r" (daily sums)"
         )
         return (
-            rf"0DTE nearest-OTM {inst}: per-rule return summary, pooled over the twelve "
-            rf"entry windows 10:00--15:30 ET{extra}, models compared on the same 866 days"
+            rf"0DTE nearest-OTM {inst}: per-rule return summary, pooled over the {n_win()} "
+            rf"entry windows {span()} ET{extra}, models compared on the same {N_DECK_DAYS} days"
         )
     return (
         rf"0DTE nearest-OTM {inst}: per-rule return summary, entry {key[:2]}:{key[2:]} ET, "
-        rf"{hold_kind(key)}, models compared on the same 866 days"
+        rf"{hold_kind(key)}, models compared on the same {N_DECK_DAYS} days"
     )
 
 
 def short_title(key: str) -> str:
     if key == "pooled":
-        return "Rule table by strategy --- pooled over the twelve entry windows"
+        return f"Rule table by strategy --- pooled over the {n_win()} entry windows"
     return f"Rule table by strategy --- entry {key[:2]}:{key[2:]} ET, {hold_kind(key)}"
 
 
+def opening_note(key: str) -> str:
+    """The 09:35 page's pre-registered design, in plain words ("" elsewhere)."""
+    if key != "0935":
+        return ""
+    held = (
+        r"the straddle is entered at 09:35"
+        if DH_HOLDCLOSE
+        else r"the straddle is held 09:35--10:00"
+    )
+    return (
+        r" \textbf{The 09:35 entry.} The first stamp of the session is 09:35, and no "
+        r"forecast bar starts there: the forecasts are for half-hour bars 09:30--10:00, "
+        r"10:00--10:30, and so on. The forecast used at 09:35 is therefore the one issued "
+        r"at 09:30 for the 09:30--10:00 bar, which is known five minutes before the entry. "
+        rf"It covers 09:30--10:00 while {held}; it is used as issued, with no rescaling "
+        r"for the five minutes. The implied side is priced the same way: its diurnal "
+        r"share is the 09:30--10:00 bar's share of the rest of the session, averaged over "
+        r"prior days only (the same expanding mean as at every other clock), and the "
+        rf"hours to the close are the chain's, {hours_text(H_REM['09:35'])}. This design "
+        r"was fixed before the 09:35 numbers were computed."
+    )
+
+
+def missing_note(n_days: int) -> str:
+    k = N_DECK_DAYS - n_days
+    if k <= 0:
+        return ""
+    return (
+        rf" (the other {k} of the deck's {N_DECK_DAYS} days have no quoted "
+        r"straddle at this stamp)"
+    )
+
+
 def data_note(key: str, n_days: int) -> str:
-    inst = "straddle" if DH_HOLDCLOSE else "package"
+    inst = "straddle"
     if DH_HOLDCLOSE:
         if key == "pooled":
             held = (
-                r"Each row is the daily sum of the twelve overlapping remaining-session "
-                r"books: enter at each clock 10:00--15:30 ET, hold those strikes to the "
-                r"official close, delta-hedge every 30 minutes."
+                rf"Each row is the daily sum of the {n_win()} overlapping remaining-session "
+                rf"books: enter at each clock {span()} ET, hold those strikes to the "
+                r"official close, delta-hedge every 30 minutes (from 09:35 the first "
+                r"re-hedge is at 10:00)."
+            )
+        elif key == "0935":
+            held = (
+                rf"One trade a day: enter the nearest-OTM {inst} at 09:35 ET, hold those "
+                r"strikes to the official close, and delta-hedge at 10:00 and then every "
+                r"30 minutes."
             )
         else:
             held = (
@@ -827,33 +1113,40 @@ def data_note(key: str, n_days: int) -> str:
             r"the bid when short) and cash-settle at the official close (no exit spread)."
         )
         return (
-            r"\noindent\small %s %d expiration days, 2020-01-03 to 2024-04-30 "
-            r"(the deck's frame). %s" % (held, n_days, crossed)
+            r"\noindent\small %s %d expiration days%s, 2020-01-03 to 2024-04-30 "
+            r"(the deck's frame). %s%s"
+            % (held, n_days, missing_note(n_days), crossed, opening_note(key))
         )
     if key == "pooled":
         held = (
-            r"Each row is the daily sum over the twelve entry windows 10:00--15:30 ET: "
+            rf"Each row is the daily sum over the {n_win()} entry windows {span()} ET: "
             r"one number per expiration day, then the usual statistics on that daily series."
+        )
+    elif key == "0935":
+        held = (
+            r"One trade a day: enter the nearest-OTM straddle at 09:35 ET and exit 25 "
+            r"minutes later at the 10:00 midpoint, in the same two strikes."
         )
     elif key == "1530":
         held = (
-            r"One trade a day: enter the nearest-OTM package at 15:30 ET and let it "
+            r"One trade a day: enter the nearest-OTM straddle at 15:30 ET and let it "
             r"cash-settle at the official close."
         )
     else:
         held = (
-            r"One trade a day: enter the nearest-OTM package at %s:%s ET and exit thirty "
+            r"One trade a day: enter the nearest-OTM straddle at %s:%s ET and exit thirty "
             r"minutes later at the next stamp, in the same two strikes."
             % (key[:2], key[2:])
         )
     return (
         r"\noindent\small %s "
-        r"%d expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). "
+        r"%d expiration days%s, 2020-01-03 to 2024-04-30 (the deck's frame). "
         r"Fills are at the quoted midpoint everywhere except the last column, which is the "
         r"same rule filled at the crossed spread: entry at the touch (the ask when long, the "
         r"bid when short) and exit at the touch of the next stamp; the 15:30 leg cash-settles "
         r"and pays no exit spread, and a re-pick that lands on the same two strikes with the "
-        r"same sign is a hold, not a round trip, so it is not charged." % (held, n_days)
+        r"same sign is a hold, not a round trip, so it is not charged.%s"
+        % (held, n_days, missing_note(n_days), opening_note(key))
     )
 
 
@@ -967,7 +1260,7 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
     print(f"GATE positions: equal to the deck's on all {len(j)} days, none differing")
 
     if DH_HOLDCLOSE:
-        print("DH t→T: skip 15:30 Sharpe-vs-deck gate (payoff is hedged)")
+        print("DH t->T: skip 15:30 Sharpe-vs-deck gate (payoff is hedged)")
         return
     got = float(tables["1530"]["always_short"].loc["all models", "Sharpe_ann"])
     assert abs(got - DECK_ALWAYS_SHORT_SHARPE) < 1e-6, (got, DECK_ALWAYS_SHORT_SHARPE)
@@ -1014,16 +1307,17 @@ def figure_block(key: str, at_1530: bool) -> list[str]:
             r"the pooled Sharpe$_{\mathrm{ann}}$. "
             + (
                 r"Delta-hedged $t\to T$: hold entry $K$ to official close, "
-                r"rebalance $\Delta$ every 30 minutes."
+                r"rebalance $\Delta$ every 30 minutes (from 09:35 the first rebalance is at 10:00)."
                 if DH_HOLDCLOSE
-                else r"Next-mid 30-minute holds 10:00--15:00; 15:30 cash-settles at the official close."
+                else rf"Next-mid holds {CLOCKS[0]}--{CLOCKS[-2]} (25 minutes from 09:35, 30 "
+                r"minutes from every later clock); 15:30 cash-settles at the official close."
             ),
             r"\end{center}",
             r"\begin{center}",
             r"\includegraphics[width=@FIGW@\textwidth]{%s/confusion_by_clock.png}"
             r"\par\smallskip" % base,
             r"\small Confusion matrix per entry clock: $\mathrm{sign}(s)$ (buy if $s>0$) "
-            r"against the sign of the long-package midpoint return. 15:30 is the paper trade.",
+            r"against the sign of the long-straddle midpoint return. 15:30 is the last-30-min trade.",
             r"\end{center}",
         ]
     return out
@@ -1105,7 +1399,7 @@ def main() -> None:
         )
 
     # --- the thirteen histograms, in parallel (Agg, one figure per worker) ---
-    jobs = [(key, hist_payload(work, key)) for key in keys]
+    jobs = [(key, hist_payload(work, key), hist_where(key)) for key in keys]
     t0 = time.perf_counter()
     with cf.ProcessPoolExecutor(max_workers=WORKERS) as pool:
         figs = dict((k, (p, m)) for k, p, m in pool.map(render_hist, jobs))
@@ -1116,7 +1410,7 @@ def main() -> None:
     for extra in ("mean_by_entry_hhmm_as.png", "confusion_by_clock.png"):
         p = FIG_DIR / extra
         assert p.exists(), f"the pooled section's figure is missing: {p}"
-    print(f"13 histograms rendered in {time.perf_counter() - t0:.1f}s")
+    print(f"{len(keys)} histograms rendered in {time.perf_counter() - t0:.1f}s")
 
     # --- the fourteen documents, written as templates and compiled in parallel ---
     compile_jobs = []
@@ -1152,7 +1446,7 @@ def main() -> None:
         PREAMBLE,
         r"\begin{document}",
         r"\begin{center}\textbf{\large 0DTE nearest-OTM "
-        + ("straddle" if DH_HOLDCLOSE else "package")
+        + "straddle"
         + r": rule table by strategy, every intraday entry window"
         + (r" --- delta-hedged, held to cash-settle}" if DH_HOLDCLOSE else r"}")
         + r"\end{center}",
@@ -1182,16 +1476,20 @@ def main() -> None:
     for stem, pages, _, _ in built[:-1]:
         cap = 2 if stem.endswith("pooled") else 1
         assert pages <= cap, f"{stem} spilled to {pages} pages (cap {cap})"
-    print(f"14 documents compiled in {time.perf_counter() - t0:.1f}s")
+    print(f"{len(built)} documents compiled in {time.perf_counter() - t0:.1f}s")
 
     pages = built[-1][1]
     print(f"BUNDLE {DOC}_index.pdf: {pages} pages")
     check_bundle_matches_standalones(keys)
 
     print()
-    print("sign(s) Sharpe by forecast -- 15:30 and pooled, mid and crossed")
+    print("sign(s) Sharpe by forecast -- 09:35, 15:30 and pooled, mid and crossed")
+    first = keys[0]
     rep = pd.DataFrame(
         {
+            f"{first} mid": tables[first]["sign_s"]["Sharpe_ann"],
+            f"{first} crossed": tables[first]["sign_s"]["Sharpe_crossed"],
+            f"{first} n": tables[first]["sign_s"]["n"],
             "15:30 mid": tables["1530"]["sign_s"]["Sharpe_ann"],
             "15:30 crossed": tables["1530"]["sign_s"]["Sharpe_crossed"],
             "pooled mid": tables["pooled"]["sign_s"]["Sharpe_ann"],
@@ -1203,6 +1501,7 @@ def main() -> None:
     print("always short, Sharpe mid / crossed")
     ash = pd.DataFrame(
         {
+            first: tables[first]["always_short"].loc["all models"],
             "15:30": tables["1530"]["always_short"].loc["all models"],
             "pooled": tables["pooled"]["always_short"].loc["all models"],
         }

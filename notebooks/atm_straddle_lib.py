@@ -86,10 +86,24 @@ SUBSAMPLE_TWIN: dict[str, str | None] = {
     "sub_live_enet": "pool_live_enet",
 }
 YHAT_LABEL.update(SUBSAMPLE_LABEL)
+
+# The VIX-bucket study (2026-09-23): the same per-bar linear pipeline, 2000-session
+# window, on three smaller column sets, stacked by experiments/build_vixonly_yhat.py.
+# Kept OUT of MODEL_ORDER, SUBSAMPLE_ORDER, YHAT_LABEL and yhat_paths so no
+# existing table changes; the 15:30 notebook reads them in its own section through
+# vixonly_yhat_paths.  Keys are (bucket, estimator).
+VIXONLY_BUCKET_LABEL = {
+    "vix_only": "HAR + calendar + VIX only",
+    "live_vix_only": "live-feasible minus VVIX and VIX3M",
+    "live_feasible": "live-feasible (16 columns)",
+    "free_vix_only": "free feed (ES 1-min bars + VIX + FOMC calendar)",
+}
+VIXONLY_ESTIMATORS = ("ridge", "lasso", "enet")
 RULE_ORDER = [
     "always short",
     "sign(s)",
-    "sign(s), flat on event days",
+    # "sign(s), flat on event days" is parked from the deck's tables (2026-09-24);
+    # rule_sizes still computes it, as it does the two heaviside legs
 ]
 
 PERIODS_PER_YEAR = 252.0
@@ -154,6 +168,20 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
         "pool_live_ridge": root / "yhat_pool_ridge_live_feasible.parquet",
         "pool_live_lasso": root / "yhat_pool_lasso_live_feasible.parquet",
         "pool_live_enet": root / "yhat_pool_enet_live_feasible.parquet",
+    }
+
+
+def vixonly_yhat_paths(repo: Path) -> dict[tuple[str, str], Path]:
+    """(bucket, estimator) -> per-bar forecast table for the VIX-bucket study.
+
+    live_feasible points at the tables yhat_paths already carries
+    (sub_live_*), so the study compares like with like.
+    """
+    root = repo / "results" / "spxw_pnl"
+    return {
+        (b, e): root / f"yhat_sub_{e}_{b}.parquet"
+        for b in VIXONLY_BUCKET_LABEL
+        for e in VIXONLY_ESTIMATORS
     }
 
 

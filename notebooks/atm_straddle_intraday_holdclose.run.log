@@ -15,26 +15,29 @@ half-session days dropped (15:30 stamp already expired): 12
 settlement source: GSPC official close via load_gspc_ohlc (cached)
 
 ===== cell 9 =====
-trade cache hit trade_77439812_1786671584951439500_d4dd8708f6_9d76153205.parquet straddles 15343 days 1279
+trade cache hit trade_80630573_1790200965970312800_ce662dc764_9d76153205.parquet straddles 16619 days 1279
   expiration                 timestamp            S          K_c          K_p      entry
-0 2020-01-03 2020-01-03 15:00:00+00:00  3237.649902  3240.000000  3235.000000  10.750000
-1 2020-01-03 2020-01-03 15:30:00+00:00  3237.679932  3240.000000  3235.000000   8.650000
-2 2020-01-03 2020-01-03 16:00:00+00:00  3234.679932  3235.000000  3230.000000   8.900000
-3 2020-01-03 2020-01-03 16:30:00+00:00  3236.000000  3240.000000  3235.000000   7.100000
-4 2020-01-03 2020-01-03 17:00:00+00:00  3241.270020  3245.000000  3240.000000   5.625000
-no-quote rows held out of the live frame (bid == ask == 0)    297768
-stamps with live quotes                                        17145
-of which with a vendor spot (the rest are 9:30)                16626
-stamps with no live quote at all                                 761
-of them at 9:30 (sparse by construction)                         760
-straddles with a censored vendor implied volatility             1292
-cells refused by the outage guards or with no live quote: 5
+0 2020-01-03 2020-01-03 14:35:00+00:00  3235.780029  3240.000000  3235.000000  11.150000
+1 2020-01-03 2020-01-03 15:00:00+00:00  3237.649902  3240.000000  3235.000000  10.750000
+2 2020-01-03 2020-01-03 15:30:00+00:00  3237.679932  3240.000000  3235.000000   8.650000
+3 2020-01-03 2020-01-03 16:00:00+00:00  3234.679932  3235.000000  3230.000000   8.900000
+4 2020-01-03 2020-01-03 16:30:00+00:00  3236.000000  3240.000000  3235.000000   7.100000
+no-quote rows held out of the live frame (bid == ask == 0)      449
+stamps with live quotes                                       17903
+of which with a vendor spot                                   17903
+stamps with no live quote at all                                  3
+of them at the open (9:35)                                        2
+straddles with a censored vendor implied volatility            1292
+cells refused by the outage guards or with no live quote: 8
 reason
-no_put           3
-no_live_quote    1
+no_put           4
+no_live_quote    3
 strike_gap       1
                        et        reason            S          K_c          K_p         gap  n_live
+2020-03-16 09:35:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
+2020-05-01 09:35:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
 2020-05-01 10:00:00-04:00 no_live_quote          NaN          NaN          NaN         NaN       0
+2022-02-22 09:35:00-05:00        no_put  4316.709961  4355.000000          NaN   38.290039       4
 2022-02-22 10:00:00-05:00        no_put  4349.700195  4355.000000          NaN    5.299805       4
 2022-02-22 10:30:00-05:00        no_put  4361.939941  4370.000000          NaN    8.060059       4
 2022-02-22 11:00:00-05:00        no_put  4325.790039  4355.000000          NaN   29.209961       4
@@ -42,15 +45,16 @@ strike_gap       1
 
 ===== cell 11 =====
 trade cache: skip exit rebuild
-straddles before exit filter 15343
+straddles before exit filter 16619
 t->T: every bar cash-settles vs official close
 missing GSPC settle 0
 bad entry (nonfinite or <=0) 0
-dropped at exit filter 0 kept 15343
-bars with a return 15343 last-bar fraction 1.0
-always-short R by clock time (no model; long R is the negative)
+dropped at exit filter 0 kept 16619
+bars with a return 16619 last-bar fraction 1.0
+UNHEDGED always-short R by clock time (no model; long R is the negative); 09:35 is held from the open stamp to the official close
        count      mean       std    median         t  Sharpe_ann
 hhmm                                                            
+09:35   1276 -0.006876  0.910639  0.187801 -0.269727   -0.119867
 10:00   1277 -0.013919  0.959518  0.194399 -0.518371   -0.230274
 10:30   1278  0.003712  1.004486  0.226850  0.132105    0.058661
 11:00   1278  0.008108  1.002015  0.226451  0.289255    0.128444
@@ -65,25 +69,46 @@ hhmm
 15:30   1279  0.024562  1.126012  0.332361  0.780110    0.346275
 
 ===== cell 13 =====
-median vendor IV 0.0025142739759758115 median straddle mid 13.350000143051147
-chris_hourly median var 3.160786829816149e-06
-annualized_om median var 1.929662289265048e-09
-already_window median var 6.321573659632298e-06
+censored vendor implied on 13 bars (5 of them at 15:30); re-inverted from the straddle midpoint on 13 of them
+DH t->T attached: median |delta| 0.335; mean hedge -0.773 pts
+hedge stamps without a spot: 8; without a usable implied volatility: 8; of 16627 day x clock cells
+GATE the hedged always-short Sharpe equals the delta-hedged PDF at all 13 clocks (max |diff| 8.9e-16)
+       days (all)  always-short Sharpe, hedged  always-short Sharpe, unhedged  mean hedge P&L of the long (index pts)  866-day hedged Sharpe (= PDF)
+clock                                                                                                                                               
+09:35        1276                     2.720000                      -0.120000                               -1.578000                       3.113000
+10:00        1277                     2.727000                      -0.230000                               -1.399000                       3.319000
+10:30        1278                     3.500000                       0.059000                               -1.269000                       4.177000
+11:00        1278                     3.419000                       0.128000                               -1.241000                       4.201000
+11:30        1278                     3.453000                       0.386000                               -0.999000                       3.953000
+12:00        1279                     3.008000                       0.451000                               -0.637000                       3.169000
+12:30        1279                     3.109000                       0.244000                               -0.852000                       3.304000
+13:00        1279                     2.863000                       0.262000                               -0.658000                       2.658000
+13:30        1279                     2.620000                       0.502000                               -0.389000                       2.510000
+14:00        1279                     2.200000                       0.584000                               -0.244000                       2.036000
+14:30        1279                     2.085000                       0.706000                               -0.445000                       2.003000
+15:00        1279                     1.763000                       0.782000                               -0.369000                       1.935000
+15:30        1279                     0.232000                       0.346000                                0.033000                       0.236000
+
+===== cell 15 =====
+median vendor IV 0.0025254557258449495 median straddle mid 14.049999952316284
+chris_hourly median var 3.1889633127489603e-06
+annualized_om median var 1.9468640492972895e-09
+already_window median var 6.3779266254979206e-06
 30-min pairing: iv_var = (IV_hr)^2 * 0.5  [used]
 remaining-session pairing would need hours_left * (IV_hr)^2 and remaining RV [not used]
 
-===== cell 15 =====
+===== cell 17 =====
 block-diagonal ridge panel: bars 276317 | in the MZ fit 68215 | rows on early-close dates (no forecast issued) 1684
 median rv_hat 3.3418130670513306e-06
-median iv_var chris / om / raw 3.160786829816149e-06 1.929662289265048e-09 6.321573659632298e-06
+median iv_var chris / om / raw 3.1889633127489603e-06 1.9468640492972895e-09 6.3779266254979206e-06
 the 30-min pairing above is a units check; every rule uses the window-matched signal of the next section
-dropped at forecast join (no forecast row for the bar) 4956 kept 10387
+dropped at forecast join (no forecast row for the bar; the 9:35 bars by construction, the rest outside the forecast panel) 6232 kept 10387
 every joined bar is inside the smear's session fit mask (in_fit)
 bars kept with no vendor implied volatility (censored solver node -> flat in the sign(s) rules): 13
-last scored bar is 15:30, cash-settled at the official close (paper payoff); no 16:00 quotes anywhere
+last scored bar is 15:30, cash-settled at the official close (the last-30-min trade); no 16:00 quotes anywhere
 bars after join 10387 clock times ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30']
 
-===== cell 17 =====
+===== cell 19 =====
 mean rv_hat/rv_raw by year, session-fit smear:
 date
 2020    1.243000
@@ -111,21 +136,20 @@ hhmm
 14:30    39.400000
 15:00    21.500000
 15:30    40.000000
+sign(RVhat/w - IV^2 h) equals sign(s_matched) on all 10374 bars with a signal
 
-===== cell 19 =====
+===== cell 21 =====
 expiration days: 866 | days with fewer than 12 bars: 2020-05-01 (11 bars), 2022-02-22 (8 bars)
 pooled, 10:00-15:30; 15:30 leg cash-settles at the official close (no 16:00 quotes)
 Sharpe_bar = mean/std of 30-min R' (no sqrt)
 Sharpe_ann = mean/std of (sum of R' that calendar day) * sqrt(252)
 t_mean = mean_daily / sd_daily * sqrt(n_days)
-                                        n      n_days      mean  mean_daily       std        min       25%       50%       75%        max      skew    ex_kurt  Sharpe_bar    t_mean  Sharpe_ann        n_buy    pct_buy
-rule                                                                                                                                                                                                                    
-always short                 10387.000000  866.000000  0.003126    0.037489  1.068151 -11.848755 -0.437056  0.258612  0.771680   1.000000 -2.773330  16.353934    0.002926  0.109184    0.058898     0.000000   0.000000
-always short, flat at 15:30  10387.000000  866.000000  0.001919    0.023014  1.017368 -11.848755 -0.355460  0.146789  0.716959   1.000000 -2.947991  18.778825    0.001886  0.070069    0.037798     0.000000   0.000000
-sign(s)                      10387.000000  866.000000  0.025341    0.303947  1.067145 -11.848755 -0.610996  0.075750  0.703631  11.166651 -0.857076  16.469008    0.023747  1.313710    0.708665  4023.000000  38.731106
-always short, sign(s) close  10387.000000  866.000000  0.009989    0.119816  1.067916 -11.848755 -0.449535  0.243645  0.763013  10.316049 -2.458158  16.429163    0.009354  0.362215    0.195392   344.000000   3.311832
+                         n      n_days      mean  mean_daily       std       min       25%       50%       75%       max      skew    ex_kurt  Sharpe_bar    t_mean  Sharpe_ann        n_buy    pct_buy
+rule                                                                                                                                                                                                   
+always short  10387.000000  866.000000  0.084573    1.014389  0.599080 -9.379789 -0.138999  0.151371  0.431376  1.075864 -3.037611  24.546686    0.141172  5.440379    2.934746     0.000000   0.000000
+sign(s)       10387.000000  866.000000  0.046936    0.562957  0.602531 -6.455815 -0.263964  0.055310  0.365981  9.379789  0.587936  22.130347    0.077897  4.455125    2.403263  4023.000000  38.731106
 
-===== cell 21 =====
+===== cell 23 =====
 scored expiration days 866 | 2020-01-03 -> 2024-04-30
 trades per year on the scored frame: 200.3 | annualization constant is sqrt(PERIODS_PER_YEAR), PERIODS_PER_YEAR = 252.0
 scored days per calendar year: 2020 158, 2021 158, 2022 219, 2023 248, 2024 83
@@ -146,106 +170,87 @@ hhmm
 15:00     7.700000
 15:30     5.390000
    one unit of premium at 15:30 is 3.68 times the contracts it buys at 10:00
-                             Sharpe_ann unit premium  Sharpe_ann one contract  mean/day index points
-rule                                                                                                
-always short                                  +0.059                   +0.133                 +1.257
-always short, flat at 15:30                   +0.038                   +0.133                 +1.237
-sign(s)                                       +0.709                   +0.608                 +4.032
-always short, sign(s) close                   +0.195                   +0.166                 +1.548
+              Sharpe_ann unit premium  Sharpe_ann one contract  mean/day index points
+rule                                                                                 
+always short                   +2.935                   +3.049                +14.127
+sign(s)                        +2.403                   +2.015                 +6.378
 
 expiration days with a trade: 1279 | scored: 866 | with a trade and no forecast row: 413
    unscored: 2024-05-01 -> 2025-12-31 | all of them after the last scored day: True
 
-===== cell 23 =====
+===== cell 25 =====
 1. rule table rows (daily-sum Sharpe, this frame: 866 days)
-                                 n_days  mean_daily    t_mean  Sharpe_ann    pct_buy
-rule                                                                                
-always short                 866.000000    0.037489  0.109184    0.058898   0.000000
-always short, flat at 15:30  866.000000    0.023014  0.070069    0.037798   0.000000
-sign(s)                      866.000000    0.303947  1.313710    0.708665  38.731106
-always short, sign(s) close  866.000000    0.119816  0.362215    0.195392   3.311832
-at the midpoint, flat at 15:30 minus the hybrid: -0.158 Sharpe (0.038 against 0.195) on mean/day +0.0230 against +0.1198 - the control gives up return and more than its share of variance; t-stat of the daily MEAN difference -2.54; dSharpe 95% percentile [-0.28, -0.05] basic [-0.27, -0.03] (excludes zero)
-   dropping the settlement leg is ahead at the midpoint and the difference is unresolved; block 3 reverses the ordering at the crossed spread
-no profile warm-up on this frame: 866 days scored on every rule; the only q = 0 bars in the sign(s) rules are the 13 with a censored vendor implied volatility - always short 0.059, always short, flat at 15:30 0.038, sign(s) 0.709, always short, sign(s) close 0.195
+                  n_days  mean_daily    t_mean  Sharpe_ann    pct_buy
+rule                                                                 
+always short  866.000000    1.014389  5.440379    2.934746   0.000000
+sign(s)       866.000000    0.562957  4.455125    2.403263  38.731106
+no profile warm-up on this frame: 866 days scored on every rule; the only q = 0 bars in the sign(s) rules are the 13 with a censored vendor implied volatility - always short 2.935, sign(s) 2.403
 
 2. settlement leg, days with all bars: 864 | flat days (FOMC statement or month-end): 84
-15:30 sign(s) unfiltered / weight-0: 1.3943097356242078 1.832517489447773
+15:30 sign(s) unfiltered / weight-0: 1.3513787417587804 1.7403966414758032
 rule at 15:30                                  sign(s)   always short
-Sharpe unfiltered                             1.394310       0.192880
-Sharpe flat on event days                     1.832517       0.699580
-worst unfiltered                             -5.422480     -10.316049
-worst filtered                               -4.626674     -10.316049
-mean diff/day                                 0.022920       0.033014
-t-stat of diff                                1.804250       2.753582
-dSharpe pct lo                                0.074003       0.171792
-dSharpe pct hi                                0.845457       0.876511
-dSharpe basic lo                              0.030958       0.136889
-dSharpe basic hi                              0.802413       0.841608
+Sharpe unfiltered                             1.351379       0.223728
+Sharpe flat on event days                     1.740397       0.644311
+worst unfiltered                             -6.368287      -9.379789
+worst filtered                               -6.368287      -9.379789
+mean diff/day                                 0.020776       0.027252
+t-stat of diff                                1.793656       2.498137
+dSharpe pct lo                                0.051428       0.118161
+dSharpe pct hi                                0.776987       0.770620
+dSharpe basic lo                              0.001049       0.070547
+dSharpe basic hi                              0.726608       0.723006
 interval reading             knife-edge, excludes zero  excludes zero
-event-day mean (unfiltered)                  -0.235752      -0.339571
-other-day mean                                0.134543       0.051756
-hybrid (always short, sign(s) close): Sharpe 0.20 -> 0.23 with the close leg flat on event days; t-stat of the daily difference +1.81; dSharpe 95% percentile [+0.00, +0.08] basic [-0.01, +0.08] (percentile and basic disagree on the sign)
+event-day mean (unfiltered)                  -0.213694      -0.280305
+other-day mean                                0.127690       0.047613
 
 3. crossed spread: bid/ask coverage at entry 1.000, at the next-bar exit nan, median half-spread 0.200 pts = 1.69% of midpoint premium
 next bar re-picks the same strikes on nan% of the one-bar holds
-                             Sharpe mid  Sharpe crossed-spread  mean/day mid  mean/day crossed-spread  crossings/day  break-even half-spread % prem  settlement leg Sharpe crossed-spread  worst day crossed-spread  maxDD_prem crossed-spread  bars with no tradeable fill
-rule                                                                                                                                                                                                                                                                       
-always short                     +0.059                 -0.332        +0.037                   -0.211        +11.994                         +0.313                                -0.262                   -87.763                   -325.117                            0
-always short, flat at 15:30      +0.038                 -0.316        +0.023                   -0.193        +10.994                         +0.209                                   NaN                   -88.124                   -308.334                            0
-sign(s)                          +0.709                 +0.131        +0.304                   +0.056        +11.979                         +2.537                                +0.911                   -74.179                   -220.952                            0
-always short, sign(s) close      +0.195                 -0.209        +0.120                   -0.128        +11.988                         +0.999                                +0.911                   -87.763                   -284.143                            0
+              Sharpe mid  Sharpe crossed-spread  mean/day mid  mean/day crossed-spread  crossings/day  break-even half-spread % prem  settlement leg Sharpe crossed-spread  worst day crossed-spread  maxDD_prem crossed-spread  bars with no tradeable fill
+rule                                                                                                                                                                                                                                                        
+always short      +2.935                 +2.215        +1.014                   +0.766        +11.994                         +8.457                                -0.235                   -55.037                    -91.873                            0
+sign(s)           +2.403                 +1.348        +0.563                   +0.315        +11.979                         +4.699                                +0.865                   -20.703                    -61.860                            0
 t->T crossed: one entry spread, cash-settle (no exit spread)
-every rule is negative at the crossed spread across the day; the settlement leg survives it only when sized by sign: sign(s), always short, sign(s) close (the flat-at-close control has no settlement leg, so its column is blank)
-the ordering at the crossed spread is the reverse of the midpoint: flat at 15:30 -0.316 against the hybrid -0.209 - the settlement leg cash-settles, so it is the only leg that pays no exit spread
-
-4. the hold-through exemption priced: every re-pick charged a round trip
-                             crossings/day exempt  crossings/day charged  Sharpe crossed-spread exempt  Sharpe crossed-spread charged
-rule                                                                                                                                 
-always short                              +11.994                +11.994                        -0.332                         -0.332
-always short, flat at 15:30               +10.994                +10.994                        -0.316                         -0.316
-sign(s)                                   +11.979                +11.979                        +0.131                         +0.131
-always short, sign(s) close               +11.988                +11.988                        -0.209                         -0.209
-C:\Users\james\AppData\Local\Temp\ipykernel_25232\269258507.py:125: RuntimeWarning: Mean of empty slice.
+C:\Users\james\AppData\Local\Temp\ipykernel_36468\3361490040.py:126: RuntimeWarning: Mean of empty slice.
   "at the next-bar exit", f"{float(np.isfinite(_bid_x.to_numpy()[~_is_last]).mean()):.3f},",
 c:\Users\james\miniconda3\envs\285J\Lib\site-packages\numpy\_core\_methods.py:145: RuntimeWarning: invalid value encountered in scalar divide
   ret = ret.dtype.type(ret / rcount)
-C:\Users\james\AppData\Local\Temp\ipykernel_25232\269258507.py:132: RuntimeWarning: Mean of empty slice.
+C:\Users\james\AppData\Local\Temp\ipykernel_36468\3361490040.py:133: RuntimeWarning: Mean of empty slice.
   print("next bar re-picks the same strikes on", f"{float(_same_k[~_is_last].mean()):.1%}", "of the one-bar holds")
 c:\Users\james\miniconda3\envs\285J\Lib\site-packages\numpy\_core\_methods.py:145: RuntimeWarning: invalid value encountered in scalar divide
   ret = ret.dtype.type(ret / rcount)
 
-===== cell 25 =====
+===== cell 27 =====
 always short by clock time
  hhmm           n      mean    t_mean  Sharpe_ann
-10:00  864.000000 -0.016056 -0.497608   -0.268739
-10:30  865.000000 -0.000861 -0.025868   -0.013962
-11:00  865.000000 -0.011708 -0.331764   -0.179069
-11:30  865.000000  0.001900  0.053920    0.029103
-12:00  866.000000  0.004990  0.140805    0.075956
-12:30  866.000000 -0.003134 -0.082787   -0.044658
-13:00  866.000000 -0.027181 -0.696477   -0.375706
-13:30  866.000000 -0.012909 -0.330986   -0.178546
-14:00  866.000000  0.002100  0.055952    0.030183
-14:30  866.000000  0.034929  0.993126    0.535730
-15:00  866.000000  0.050897  1.388494    0.749006
-15:30  866.000000  0.014475  0.377762    0.203779
+10:00  864.000000  0.077641  6.145877    3.319153
+10:30  865.000000  0.096372  7.739163    4.177209
+11:00  865.000000  0.102802  7.782638    4.200674
+11:30  865.000000  0.101237  7.324085    3.953171
+12:00  866.000000  0.086702  5.875177    3.169292
+12:30  866.000000  0.096918  6.124718    3.303904
+13:00  866.000000  0.083322  4.927761    2.658220
+13:30  866.000000  0.088038  4.652693    2.509838
+14:00  866.000000  0.079916  3.774242    2.035969
+14:30  866.000000  0.090559  3.713111    2.002992
+15:00  866.000000  0.094817  3.586210    1.934537
+15:30  866.000000  0.016592  0.437717    0.236121
 sign(s) by clock time (window-matched signal)
  hhmm           n      mean    t_mean  Sharpe_ann    pct_buy
-10:00  864.000000  0.005170  0.160213    0.086525  35.069444
-10:30  865.000000  0.012273  0.368923    0.199126  34.797688
-11:00  865.000000  0.023230  0.658379    0.355360  42.196532
-11:30  865.000000  0.052415  1.493760    0.806256  38.728324
-12:00  866.000000  0.003320  0.093687    0.050538  42.378753
-12:30  866.000000 -0.007262 -0.191798   -0.103463  42.609700
-13:00  866.000000  0.029077  0.745077    0.401923  48.267898
-13:30  866.000000  0.020583  0.527801    0.284716  31.177829
-14:00  866.000000  0.004166  0.111054    0.059907  49.076212
-14:30  866.000000  0.004930  0.140158    0.075606  39.376443
-15:00  866.000000  0.059356  1.623461    0.875756  21.362587
-15:30  866.000000  0.096802  2.540435    1.370407  39.722864
+10:00  864.000000  0.039340  3.064624    1.655086  35.069444
+10:30  865.000000  0.045530  3.561638    1.922392  34.797688
+11:00  865.000000  0.033492  2.459630    1.327584  42.196532
+11:30  865.000000  0.051067  3.613767    1.950529  38.728324
+12:00  866.000000  0.033368  2.223641    1.199516  42.378753
+12:30  866.000000  0.027347  1.694716    0.914194  42.609700
+13:00  866.000000  0.043503  2.546921    1.373905  48.267898
+13:30  866.000000  0.057532  3.018955    1.628538  31.177829
+14:00  866.000000  0.041125  1.934032    1.043290  49.076212
+14:30  866.000000  0.029655  1.208438    0.651877  39.376443
+15:00  866.000000  0.068344  2.580226    1.391871  21.362587
+15:30  866.000000  0.092894  2.463989    1.329169  39.722864
 saved CSVs in C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose
 
-===== cell 27 =====
+===== cell 29 =====
 QLIKE on scored 2020-2024 bars (block-diagonal ridge vs two F_t comparators)
 forecast  implied slice  naive clock mean  ridge
 hhmm                                            
@@ -299,26 +304,151 @@ ridge QLIKE 15:30       0.10999130240054672
 naive QLIKE 10:00-15:00 0.7823217111293648
 naive QLIKE 15:30       0.9011274756957888
 
-===== cell 29 =====
-matched sign(s) on the block-diagonal ridge, by entry clock; the base-rate columns use no forecast at all
-         n  buy share  hit buy  base hit long  hit sell  base hit short  win buy  base win long  loss buy  base loss long  win sell  base win short  loss sell  base loss short  mean buy  base mean long  mean sell  base mean short  half-spread % prem  round trip % prem
-hhmm                                                                                                                                                                                                                                                                        
-10:00  864     0.3507   0.4158         0.4120    0.5900          0.5880   0.9260         0.8806   -0.6074         -0.5898    0.5805          0.5898    -0.8558          -0.8806    0.0303          0.0161    -0.0084          -0.0161              1.5760             3.1521
-10:30  865     0.3480   0.4053         0.3942    0.6117          0.6058   0.9541         0.9053   -0.6185         -0.5877    0.5717          0.5877    -0.8782          -0.9053    0.0189          0.0009     0.0088          -0.0009              1.2195             2.4390
-11:00  865     0.4220   0.4110         0.4150    0.5820          0.5850   1.0099         0.9198   -0.6343         -0.6326    0.6313          0.6326    -0.8551          -0.9198    0.0414          0.0117     0.0100          -0.0117              1.2658             2.5316
-11:30  865     0.3873   0.4209         0.3977    0.6170          0.6023   0.9842         0.9283   -0.6085         -0.6161    0.6206          0.6161    -0.8895          -0.9283    0.0619         -0.0019     0.0422           0.0019              1.3493             2.6986
-12:00  866     0.4238   0.3978         0.3915    0.6132          0.6085   0.9069         0.9175   -0.6024         -0.5984    0.5955          0.5984    -0.9255          -0.9175   -0.0020         -0.0050     0.0072           0.0050              1.3784             2.7567
-12:30  866     0.4261   0.4038         0.4030    0.5976          0.5970   0.9429         0.9627   -0.6467         -0.6446    0.6430          0.6446    -0.9774          -0.9627   -0.0048          0.0031    -0.0091          -0.0031              1.4599             2.9197
-13:00  866     0.4827   0.4187         0.4042    0.6094          0.5958   1.0128         0.9860   -0.6292         -0.6232    0.6179          0.6232    -0.9592          -0.9860    0.0583          0.0272     0.0018          -0.0272              1.5385             3.0769
-13:30  866     0.3118   0.4259         0.4065    0.6023          0.5935   1.0183         0.9721   -0.6620         -0.6440    0.6362          0.6440    -0.9497          -0.9721    0.0537          0.0129     0.0056          -0.0129              1.6593             3.3186
-14:00  866     0.4908   0.3906         0.3903    0.6100          0.6097   0.9902         0.9802   -0.6300         -0.6309    0.6318          0.6309    -0.9705          -0.9802    0.0028         -0.0021     0.0069           0.0021              1.8610             3.7221
-14:30  866     0.3938   0.3930         0.3845    0.6210          0.6155   0.9132         0.9437   -0.6562         -0.6463    0.6401          0.6463    -0.9643          -0.9437   -0.0395         -0.0349     0.0320           0.0349              1.9685             3.9371
-15:00  866     0.2136   0.3405         0.3637    0.6300          0.6363   1.3452         1.0315   -0.6717         -0.6697    0.6691          0.6697    -0.9530          -1.0315    0.0151         -0.0509     0.0688           0.0509              2.2901             4.5801
-15:30  866     0.3972   0.4070         0.3811    0.6341          0.6178   1.2884         1.0724   -0.7169         -0.6836    0.6652          0.6849    -0.9085          -1.0692    0.0992         -0.0145     0.0894           0.0145              2.8986             2.8986
-saved C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose\rule_by_entry_hhmm_hitrate.csv
-saved C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose\hitrate_by_entry_hhmm.png
-
 ===== cell 31 =====
+bars without a signal, left out: 13 of 10387
+matched sign(s), block-diagonal ridge, hedged R (mid); counts are days
+         n  buy, R>0  buy, R<=0  sell, R>0  sell, R<=0  accuracy  buy share  base rate P(R>0)  P(R>0 | buy)  P(R<=0 | sell)
+hhmm                                                                                                                       
+10:00  864       114        189        180         381     0.573      0.351             0.340         0.376           0.679
+10:30  865        99        202        173         391     0.566      0.348             0.314         0.329           0.693
+11:00  865       116        249        162         338     0.525      0.422             0.321         0.318           0.676
+11:30  864       120        215        161         368     0.565      0.388             0.325         0.358           0.696
+12:00  866       144        223        176         323     0.539      0.424             0.370         0.392           0.647
+12:30  866       138        231        167         330     0.540      0.426             0.352         0.374           0.664
+13:00  866       167        251        143         305     0.545      0.483             0.358         0.400           0.681
+13:30  866       108        162        197         399     0.585      0.312             0.352         0.400           0.669
+14:00  864       162        263        154         285     0.517      0.492             0.366         0.381           0.649
+14:30  865       131        210        207         317     0.518      0.394             0.391         0.384           0.605
+15:00  862        70        115        259         418     0.566      0.215             0.382         0.378           0.617
+15:30  861       139        205        182         335     0.551      0.400             0.373         0.404           0.648
+saved C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose\confusion_matrix_by_clock.csv
+saved C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose\confusion_matrix_by_clock.png
+
+===== cell 33 =====
+rest-of-day forecasts: ttc_close_fomc1_forecasts.parquet | 5708 panel days 2001-07-16 -> 2024-04-30 | entry clocks 10:00 .. 15:30
+GATE the file's target equals the panel's realized variance from t to the 16:00 close on all 68196 shared day x clock cells (max relative diff 5.6e-16)
+the default-grid file (ttc_forecasts.parquet) omits exactly the 15:30-16:00 bar; median share of the rest of the day it misses at 10:00 / 13:00 / 15:00: 9.4% / 21.5% / 54.6%
+frame: 9521 bars, 866 days, clocks 10:00 .. 15:00 | every bar has all three rest-of-day forecasts
+GATE units: median over days, relative to the median realized rest of the day (1 = same size); every entry within a factor 40 of 1, the annualized reading would sit 1638x off
+       implied IV^2 h  RVhat/w (in s^m)  F_rem M1  F_rem M2  F_rem M3
+hhmm                                                                 
+10:00        1.159000          0.980000  1.083000  1.068000  1.055000
+10:30        1.190000          0.995000  1.046000  1.044000  1.077000
+11:00        1.251000          1.048000  1.093000  1.089000  1.102000
+11:30        1.285000          1.068000  1.080000  1.079000  1.088000
+12:00        1.256000          1.102000  1.178000  1.158000  1.153000
+12:30        1.272000          1.100000  1.170000  1.167000  1.151000
+13:00        1.224000          1.199000  1.295000  1.232000  1.228000
+13:30        1.269000          1.020000  1.188000  1.190000  1.195000
+14:00        1.250000          1.169000  1.231000  1.199000  1.194000
+14:30        1.305000          1.114000  1.201000  1.145000  1.143000
+15:00        1.330000          0.933000  1.054000  1.058000  1.067000
+15:30, one bar left: median F_rem M1 / RVhat 0.944; sign(F_rem M1 - IV^2/2) = sign(s^m) on 90.4% of days. The 15:30 bar is left out below: there the rest-of-day signal and s^m compare the same one-bar forecast with the same implied
+QLIKE of the rest-of-day forecast against the realized rest of the day (lower is better)
+        RVhat/w (in s^m)  F_rem M1  F_rem M2  F_rem M3
+hhmm                                                  
+10:00             0.1628    0.1647    0.1651    0.1467
+10:30             0.1797    0.1830    0.1823    0.1667
+11:00             0.1794    0.1877    0.1922    0.1760
+11:30             0.1830    0.1926    0.2015    0.1878
+12:00             0.2128    0.2164    0.2283    0.2143
+12:30             0.2297    0.2332    0.2454    0.2315
+13:00             0.2302    0.2385    0.2552    0.2428
+13:30             0.2798    0.2925    0.2900    0.2780
+14:00             0.2767    0.3077    0.3179    0.3040
+14:30             0.1490    0.1511    0.1471    0.1458
+15:00             0.1370    0.1345    0.1196    0.1163
+pooled            0.2018    0.2093    0.2132    0.2009
+bars with no signal (censored implied, flat in every sign rule): 8
+
+pooled, entry clocks 10:00-15:00 (15:30 left out, see above); daily sums, block-diagonal ridge
+                   n  n_days  mean_daily  t_mean  Sharpe_ann  Sharpe crossed-spread  mean/day crossed-spread  pct_buy
+rule                                                                                                                 
+always short    9521     866       0.998   6.270       3.382                  2.651                    0.782    0.000
+sign(s^m)       9521     866       0.470   4.262       2.299                  1.249                    0.255   38.641
+sign(s^rem) M1  9521     866       0.357   3.147       1.698                  0.676                    0.142   46.592
+sign(s^rem) M2  9521     866       0.265   2.135       1.152                  0.217                    0.050   48.314
+sign(s^rem) M3  9521     866       0.199   1.593       0.859                 -0.069                   -0.016   48.367
+
+sign(s^rem) minus sign(s^m): share of bars whose sign differs, and the Sharpe difference with its 95% moving-block bootstrap interval (percentile and basic)
+                disagree % of bars  dSharpe  pct lo  pct hi  basic lo  basic hi        reading
+signal fill                                                                                   
+M1     mid                 +10.438   -0.601  -1.109  -0.107    -1.096    -0.094  excludes zero
+       crossed             +10.438   -0.573  -1.060  -0.090    -1.055    -0.085  excludes zero
+M2     mid                 +15.884   -1.147  -1.817  -0.590    -1.704    -0.477  excludes zero
+       crossed             +15.884   -1.032  -1.674  -0.467    -1.597    -0.390  excludes zero
+M3     mid                 +17.324   -1.440  -2.141  -0.851    -2.029    -0.739  excludes zero
+       crossed             +17.324   -1.318  -1.994  -0.741    -1.895    -0.641  excludes zero
+
+the bars where the signs differ, by direction: the hedged long straddle's mean return there (the side that bought earns it, the side that sold earns minus it)
+                              bars  mean R of the long  share with R > 0
+signal where they differ                                                
+M1     s^rem buys, s^m sells   875              -0.080            +0.338
+       s^rem sells, s^m buys   118              -0.180            +0.271
+M2     s^rem buys, s^m sells  1216              -0.102            +0.348
+       s^rem sells, s^m buys   295              -0.118            +0.308
+M3     s^rem buys, s^m sells  1287              -0.118            +0.336
+       s^rem sells, s^m buys   361              -0.095            +0.341
+
+GATE sign(s^m) and always short per clock equal section 8's Sharpes and section 8c's accuracy at every clock
+Sharpe_ann by entry clock, midpoint
+       short    s^m     M1     M2     M3
+hhmm                                    
+10:00 +3.319 +1.655 +0.815 +1.242 +0.923
+10:30 +4.177 +1.922 +1.245 +1.507 +1.366
+11:00 +4.201 +1.328 +1.363 +1.439 +0.749
+11:30 +3.953 +1.951 +1.905 +1.796 +1.358
+12:00 +3.169 +1.200 +0.519 +0.588 +0.660
+12:30 +3.304 +0.914 +0.719 -0.058 +0.097
+13:00 +2.658 +1.374 +1.215 +0.474 +0.406
+13:30 +2.510 +1.629 +0.748 +0.412 +0.376
+14:00 +2.036 +1.043 +0.760 +0.647 +0.134
+14:30 +2.003 +0.652 +0.648 +0.591 +0.644
+15:00 +1.935 +1.392 +1.290 +0.396 +0.164
+Sharpe_ann by entry clock, crossed spread
+       short    s^m     M1     M2     M3
+hhmm                                    
+10:00 +2.292 +0.651 -0.185 +0.240 -0.077
+10:30 +3.505 +1.272 +0.597 +0.858 +0.717
+11:00 +3.582 +0.727 +0.763 +0.838 +0.150
+11:30 +3.332 +1.344 +1.300 +1.190 +0.753
+12:00 +2.579 +0.619 -0.061 +0.008 +0.080
+12:30 +2.722 +0.343 +0.148 -0.629 -0.474
+13:00 +2.087 +0.812 +0.654 -0.087 -0.156
+13:30 +1.969 +1.094 +0.215 -0.121 -0.157
+14:00 +1.364 +0.379 +0.097 -0.015 -0.528
+14:30 +1.497 +0.149 +0.145 +0.089 +0.142
+15:00 +1.398 +0.864 +0.763 -0.130 -0.361
+accuracy (position right about the sign of the hedged long R) and buy share, by entry clock
+       acc s^m  acc M1  acc M2  acc M3  buy% s^m  buy% M1  buy% M2  buy% M3
+hhmm                                                                       
+10:00    0.573   0.535   0.544   0.534      35.1     47.5     46.8     46.9
+10:30    0.566   0.547   0.548   0.535      34.8     42.5     45.2     45.5
+11:00    0.525   0.516   0.526   0.514      42.2     44.7     46.5     46.0
+11:30    0.565   0.560   0.550   0.545      38.8     40.6     43.1     44.2
+12:00    0.539   0.510   0.517   0.516      42.4     52.9     54.5     54.2
+12:30    0.540   0.517   0.507   0.505      42.6     50.9     51.3     52.4
+13:00    0.545   0.517   0.501   0.502      48.3     55.2     55.0     55.1
+13:30    0.585   0.521   0.518   0.515      31.2     50.1     53.1     52.8
+14:00    0.517   0.503   0.497   0.479      49.2     51.5     55.4     56.0
+14:30    0.518   0.499   0.516   0.520      39.4     45.0     46.4     45.7
+15:00    0.566   0.550   0.520   0.521      21.5     31.9     34.7     33.6
+sign(s^rem) against sign(s^m) by entry clock: % of days the sign differs, Sharpe difference at the midpoint, 95% percentile interval
+       disagree % M1  dSharpe M1 dSharpe M1 95% pct  disagree % M2  dSharpe M2 dSharpe M2 95% pct  disagree % M3  dSharpe M3 dSharpe M3 95% pct
+hhmm                                                                                                                                           
+10:00         +13.08       -0.84     [-1.54, -0.16]         +14.24       -0.41     [-1.15, +0.39]         +19.44       -0.73     [-1.56, +0.13]
+10:30          +9.36       -0.68     [-1.29, -0.12]         +13.87       -0.42     [-1.19, +0.33]         +17.46       -0.56     [-1.41, +0.26]
+11:00          +8.79       +0.04     [-0.60, +0.66]         +14.68       +0.11     [-0.58, +0.86]         +15.61       -0.58     [-1.38, +0.21]
+11:30          +6.25       -0.05     [-0.55, +0.52]         +10.53       -0.15     [-0.84, +0.55]         +13.31       -0.59     [-1.37, +0.17]
+12:00         +13.05       -0.68     [-1.35, -0.02]         +16.74       -0.61     [-1.30, +0.08]         +17.32       -0.54     [-1.26, +0.22]
+12:30         +10.62       -0.20     [-0.86, +0.54]         +13.97       -0.97     [-1.73, -0.23]         +16.51       -0.82     [-1.66, +0.00]
+13:00          +8.55       -0.16     [-0.89, +0.62]         +13.63       -0.90     [-1.75, -0.10]         +14.20       -0.97     [-1.87, -0.03]
+13:30         +19.40       -0.88     [-1.79, +0.01]         +22.86       -1.22     [-2.18, -0.28]         +22.52       -1.25     [-2.18, -0.34]
+14:00          +5.56       -0.28     [-0.78, +0.28]         +16.44       -0.40     [-1.25, +0.38]         +16.09       -0.91     [-1.80, -0.11]
+14:30          +7.86       -0.00     [-0.55, +0.59]         +19.42       -0.06     [-0.81, +0.70]         +19.65       -0.01     [-0.76, +0.75]
+15:00         +12.30       -0.10     [-0.80, +0.61]         +18.33       -1.00     [-1.88, -0.14]         +18.45       -1.23     [-2.13, -0.35]
+
+===== cell 36 =====
 buy share by year (%)
 date
 2020    27.100000
@@ -327,39 +457,3 @@ date
 2023    50.300000
 2024    45.500000
 mean same-stance run length within a day (bars): 4.13
-
-===== cell 34 =====
-trade cache read by the standalone: trade_77439812_1786671584951439500_d4dd8708f6_9d76153205.parquet
-censored vendor implied on 13 bars (5 of them at 15:30); re-inverted from the package midpoint on 13 of them
-DH t→T attached: median |Δ| 0.308; mean hedge -1.073 pts
-always short, here:      n=865  mean=0.102801590  Sharpe_ann(mid)=4.200674442  Sharpe_ann(crossed)=3.582391273
-always short, persisted: n=865  mean=0.102801590  Sharpe_ann(mid)=4.200674442  Sharpe_ann(crossed)=3.582391243
-GATE: the 11:00 always-short series here is the standalone's series (1e-6)
-
-                                                       rule   n    mean     std  Sharpe_ann  Sharpe_crossed  n_exit
-                    always short (hold through cash-settle) 865  0.1028  0.3885      4.2007          3.5824       0
-                 exit if s>0: baseline (HAR + calendar OLS) 865  0.1019  0.3766      4.2961          3.6576     285
-                          exit if s>0: block-diagonal ridge 865  0.1040  0.3648      4.5258          3.8673     344
-exit if s>0: block-diagonal ridge, without the FOMC columns 865  0.1064  0.3569      4.7330          4.0609     353
-                                      exit if s>0: LightGBM 865  0.1090  0.3701      4.6755          4.0265     286
-                                       exit if s>0: XGBoost 865  0.1082  0.3701      4.6432          3.9941     274
-                        exit if s>0: lasso (causally tuned) 865  0.1077  0.3657      4.6767          4.0203     320
-                            exit if s>0: lasso (fixed 1e-4) 865  0.1036  0.3644      4.5113          3.8518     356
-                  exit if s>0: elastic net (causally tuned) 865  0.1048  0.3670      4.5316          3.8770     305
-
-===== cell 35 =====
-saved C:\Users\james\CC Allowed\harxhar-0dte-professor\results\atm_straddle_intraday_holdclose\dh_1100_cum_return.png
-always short, mid                                   cumulative    889,234 bp | worst peak-to-trough   -34,757 bp  peak 2022-03-09 -> trough 2022-04-26
-always short, crossed spread                        cumulative    758,168 bp | worst peak-to-trough   -38,029 bp  peak 2021-10-25 -> trough 2022-04-26
-exit if s>0 (block-diagonal ridge), mid             cumulative    899,725 bp | worst peak-to-trough   -38,426 bp  peak 2022-03-09 -> trough 2022-05-20
-exit if s>0 (block-diagonal ridge), crossed spread  cumulative    768,659 bp | worst peak-to-trough   -42,474 bp  peak 2022-03-09 -> trough 2022-05-20
-
-sum of daily returns by year (bp of premium, mid)
-      always short  exit if s>0 (blk2)  difference
-date                                              
-2020       221,346             209,649     -11,697
-2021       218,302             224,494       6,192
-2022       164,697             135,794     -28,904
-2023       229,232             255,036      25,804
-2024        55,657              74,753      19,096
-all        889,234             899,725      10,491

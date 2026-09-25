@@ -1,0 +1,71 @@
+reg,label,sample,penalty,date,candidate,kind,n,p,wald,pval,n_after,test
+A0_actual,target on forecast,refits,actual,2019-06-26,penalty 100 to 1000,penalty,1469,2,0.6765927482295695,0.7129839465957555,1219,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2020-02-20,COVID crash start,data,1469,2,0.2856880695458629,0.8668892629331673,1055,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2020-05-01,COVID crash end,data,1469,2,3.309163851408977,0.19117196308447817,1005,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2020-06-23,penalty 1000 to 100,penalty,1469,2,4.248948254867043,0.11949579130527263,969,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2021-06-21,penalty 100 to 1000,penalty,1469,2,6.747256925398871,0.034265081936104974,719,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2022-04-26,every-day expirations,data,1469,2,6.461783103021753,0.039522246957334084,506,Chow (HAC Wald)
+A0_actual,target on forecast,refits,actual,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,2,3.4319545960724525,3.69789531068046e-14,50,"Chow predictive F(50, 1417)"
+A1_actual,target on series contributions,refits,actual,2019-06-26,penalty 100 to 1000,penalty,1469,8,24.19274115757952,0.002127282439842947,1219,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2020-02-20,COVID crash start,data,1469,8,11.83937828956844,0.15851559548026725,1055,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2020-05-01,COVID crash end,data,1469,8,12.79757482879318,0.11900681720344926,1005,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2020-06-23,penalty 1000 to 100,penalty,1469,8,15.692368828722016,0.047000971991788515,969,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2021-06-21,penalty 100 to 1000,penalty,1469,8,10.496092824590066,0.23191707863237102,719,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2022-04-26,every-day expirations,data,1469,8,17.87881863455349,0.022153578096858237,506,Chow (HAC Wald)
+A1_actual,target on series contributions,refits,actual,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,8,2.998393509416884,3.614308555607752e-11,50,"Chow predictive F(50, 1411)"
+A0_100.0,target on forecast,refits,100.0,2019-06-26,penalty 100 to 1000,penalty,1469,2,0.7950694083126073,0.6719746219306169,1219,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2020-02-20,COVID crash start,data,1469,2,0.6459283528580706,0.7239997901612175,1055,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2020-05-01,COVID crash end,data,1469,2,0.9457565927827016,0.6232059129709944,1005,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2020-06-23,penalty 1000 to 100,penalty,1469,2,1.6657308715237953,0.4348016035336978,969,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2021-06-21,penalty 100 to 1000,penalty,1469,2,1.0263835544839195,0.5985819861951492,719,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2022-04-26,every-day expirations,data,1469,2,1.0589465145273893,0.5889150947415782,506,Chow (HAC Wald)
+A0_100.0,target on forecast,refits,100.0,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,2,2.790348991706178,8.691908814851536e-10,50,"Chow predictive F(50, 1417)"
+A1_100.0,target on series contributions,refits,100.0,2019-06-26,penalty 100 to 1000,penalty,1469,8,17.777477911728425,0.022958061268651346,1219,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2020-02-20,COVID crash start,data,1469,8,11.39030656033898,0.1805491935770169,1055,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2020-05-01,COVID crash end,data,1469,8,13.26468423240285,0.1030613502164877,1005,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2020-06-23,penalty 1000 to 100,penalty,1469,8,12.05144220978029,0.14892337467196298,969,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2021-06-21,penalty 100 to 1000,penalty,1469,8,11.214024697654672,0.1898646695019534,719,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2022-04-26,every-day expirations,data,1469,8,9.794218867411324,0.2797672110723381,506,Chow (HAC Wald)
+A1_100.0,target on series contributions,refits,100.0,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,8,2.423145917955774,1.8971115408903653e-07,50,"Chow predictive F(50, 1411)"
+A0_1000.0,target on forecast,refits,1000.0,2019-06-26,penalty 100 to 1000,penalty,1469,2,0.6383360277735336,0.7267534343788926,1219,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2020-02-20,COVID crash start,data,1469,2,0.051267225681124844,0.9746921388797113,1055,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2020-05-01,COVID crash end,data,1469,2,3.283904956397205,0.19360166998939138,1005,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2020-06-23,penalty 1000 to 100,penalty,1469,2,4.503154066123061,0.10523313749688885,969,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2021-06-21,penalty 100 to 1000,penalty,1469,2,3.1198284657593374,0.21015409473937183,719,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2022-04-26,every-day expirations,data,1469,2,3.177016029689283,0.20423009280385454,506,Chow (HAC Wald)
+A0_1000.0,target on forecast,refits,1000.0,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,2,3.591897409856439,2.7426908020550263e-15,50,"Chow predictive F(50, 1417)"
+A1_1000.0,target on series contributions,refits,1000.0,2019-06-26,penalty 100 to 1000,penalty,1469,8,7.695013409206197,0.46381472462459106,1219,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2020-02-20,COVID crash start,data,1469,8,5.9924419832929,0.6480785439727598,1055,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2020-05-01,COVID crash end,data,1469,8,21.516285882327054,0.005895335820486273,1005,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2020-06-23,penalty 1000 to 100,penalty,1469,8,17.985612461865955,0.021334610803577722,969,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2021-06-21,penalty 100 to 1000,penalty,1469,8,14.240408659755555,0.07571048617452947,719,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2022-04-26,every-day expirations,data,1469,8,20.849181091363462,0.007559041502995451,506,Chow (HAC Wald)
+A1_1000.0,target on series contributions,refits,1000.0,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,1469,8,2.8360573226152055,4.3730894751885747e-10,50,"Chow predictive F(50, 1411)"
+B0_mid,mean return per premium (mid),deck,actual,2019-06-26,penalty 100 to 1000,penalty,866,1,,,0,before the sample
+B0_mid,mean return per premium (mid),deck,actual,2020-02-20,COVID crash start,data,866,1,,,845,one side < 15% of the sample
+B0_mid,mean return per premium (mid),deck,actual,2020-05-01,COVID crash end,data,866,1,,,813,one side < 15% of the sample
+B0_mid,mean return per premium (mid),deck,actual,2020-06-23,penalty 1000 to 100,penalty,866,1,,,790,one side < 15% of the sample
+B0_mid,mean return per premium (mid),deck,actual,2021-06-21,penalty 100 to 1000,penalty,866,1,0.07028008849465035,0.7909294074890013,636,Chow (HAC Wald)
+B0_mid,mean return per premium (mid),deck,actual,2022-04-26,every-day expirations,data,866,1,0.07854234136800732,0.7792825893848463,500,Chow (HAC Wald)
+B0_mid,mean return per premium (mid),deck,actual,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,866,1,0.8071885232695931,0.7683201110862015,32,"Chow predictive F(32, 833)"
+B0_crossed,mean return per premium (crossed),deck,actual,2019-06-26,penalty 100 to 1000,penalty,866,1,,,0,before the sample
+B0_crossed,mean return per premium (crossed),deck,actual,2020-02-20,COVID crash start,data,866,1,,,845,one side < 15% of the sample
+B0_crossed,mean return per premium (crossed),deck,actual,2020-05-01,COVID crash end,data,866,1,,,813,one side < 15% of the sample
+B0_crossed,mean return per premium (crossed),deck,actual,2020-06-23,penalty 1000 to 100,penalty,866,1,,,790,one side < 15% of the sample
+B0_crossed,mean return per premium (crossed),deck,actual,2021-06-21,penalty 100 to 1000,penalty,866,1,0.002232624735360879,0.9623134528797614,636,Chow (HAC Wald)
+B0_crossed,mean return per premium (crossed),deck,actual,2022-04-26,every-day expirations,data,866,1,0.32374802611555314,0.5693638768933142,500,Chow (HAC Wald)
+B0_crossed,mean return per premium (crossed),deck,actual,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,866,1,0.8678481409981854,0.6788627647709704,32,"Chow predictive F(32, 833)"
+B1_actual,return (mid) on series contributions,deck,actual,2019-06-26,penalty 100 to 1000,penalty,866,8,,,0,before the sample
+B1_actual,return (mid) on series contributions,deck,actual,2020-02-20,COVID crash start,data,866,8,,,845,one side < 15% of the sample
+B1_actual,return (mid) on series contributions,deck,actual,2020-05-01,COVID crash end,data,866,8,,,813,one side < 15% of the sample
+B1_actual,return (mid) on series contributions,deck,actual,2020-06-23,penalty 1000 to 100,penalty,866,8,,,790,one side < 15% of the sample
+B1_actual,return (mid) on series contributions,deck,actual,2021-06-21,penalty 100 to 1000,penalty,866,8,19.835653651215363,0.01097603524892983,636,Chow (HAC Wald)
+B1_actual,return (mid) on series contributions,deck,actual,2022-04-26,every-day expirations,data,866,8,23.273523363380203,0.0030302627865720346,500,Chow (HAC Wald)
+B1_actual,return (mid) on series contributions,deck,actual,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,866,8,0.9174063503095264,0.600426853750367,32,"Chow predictive F(32, 826)"
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2019-06-26,penalty 100 to 1000,penalty,866,8,,,0,before the sample
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2020-02-20,COVID crash start,data,866,8,,,845,one side < 15% of the sample
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2020-05-01,COVID crash end,data,866,8,,,813,one side < 15% of the sample
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2020-06-23,penalty 1000 to 100,penalty,866,8,,,790,one side < 15% of the sample
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2021-06-21,penalty 100 to 1000,penalty,866,8,21.178273104201708,0.0066886407421502874,636,Chow (HAC Wald)
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2022-04-26,every-day expirations,data,866,8,22.65065391408396,0.0038429492692854056,500,Chow (HAC Wald)
+B1_1000.0,return (mid) on series contributions,deck,1000.0,2020-02-20..2020-04-30,COVID episode (inside vs outside),data,866,8,0.9567320486774195,0.537179296465939,32,"Chow predictive F(32, 826)"

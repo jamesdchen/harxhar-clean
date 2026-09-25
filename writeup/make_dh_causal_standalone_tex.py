@@ -171,6 +171,10 @@ def deck_frame(pkg: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     p = pkg.copy()
     p["date"] = pd.to_datetime(p["date"])
     p = p[p["date"].isin(days)].copy()
+    # The half-hour grid only: the 2026-09-18 chain's 09:35 opening stamp is off
+    # it (its hours to the close are 6 h 25 min, not n_rem / 2), and the 11:00
+    # series and its 15:30 exit never read it.
+    p = p[p["hhmm"].str[3:].isin(["00", "30"])].copy()
     clocks = sorted(p["hhmm"].unique())
     if ENTRY not in clocks or CLOSE not in clocks:
         raise SystemExit(f"need {ENTRY} and {CLOSE} in {clocks}")

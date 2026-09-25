@@ -8,17 +8,19 @@
 \pagestyle{empty}
 \begin{document}
 \begin{center}
-\textbf{0DTE 15:30--16:00 nearest-OTM package: per-rule return summary, models compared on the same 866 days}\\[1.5ex]
+\textbf{0DTE 15:30--16:00 nearest-OTM straddle: per-rule return summary, models compared on the same 866 days}\\[1.5ex]
 \input{generated/table_rule_by_strategy}
 \end{center}
 \vspace{1ex}
 \begin{center}
 \includegraphics[width=0.85\textwidth]{../results/atm_straddle_0dte_1530/rule_hists_blk2.png}\par\smallskip
 \small Distribution of the daily return of the position taken, block-diagonal ridge forecast, one panel per rule
-(returns inside their 1st--99th percentile window; the mass at $-1$ is the days the package expires worthless).
+(returns inside their 1st--99th percentile window; the mass at $-1$ is the days the straddle expires worthless).
 \end{center}
 \vspace{1ex}
-\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain
+\noindent\small \textbf{Straddle} here means the nearest out-of-the-money call plus the nearest
+out-of-the-money put, same-day expiry, bought or sold as one position.
+One expiration day = one return; mid fill. Every $t$ here is the plain
 $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction.
 ``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$).
 $n_{\mathrm{buy}}$/\%buy count days the rule is net long ($q_t>0$).
@@ -31,4 +33,15 @@ on the design carrying the FOMC calendar block, and the same ridge on the earlie
 LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$;
 elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the
 panel of record is pending.
+
+\smallskip
+\noindent\small \textbf{Per-bar forecasts} (the rows under their own subheading): a separate regression for the 15:30--16:00
+bar alone. Each day it is trained on that half hour of the previous 2,000 sessions and nothing else; the target is the
+bar's realized variance over its time-of-day baseline, square-rooted; the inputs, all known at 15:30, are each series'
+means over the last 1, 5, 25, 125, 625 and 3,125 half-hour bars of the full 24-hour series, is-present flags and calendar
+dummies. Ridge penalty chosen from $\{0.01,\ldots,1000\}$ every 250 sessions from past data only (fit on the earlier part
+of the window, scored on its last 125 sessions); coefficients re-solved every session; the lasso and elastic net differ
+only in the penalty. Column sets: HAR + calendar only; all features; the live-feasible set (16 series a 15:30 forecaster
+can rebuild: ES return moments, volume and trade count, VIX, VVIX, VIX3M, the FOMC calendar). The prediction is turned
+into a variance by the same recalibration as every other row.
 \end{document}

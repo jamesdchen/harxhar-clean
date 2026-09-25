@@ -9,6 +9,16 @@
 
 \begin{document}
 \begin{center}\textbf{\large 0DTE nearest-OTM straddle: rule table by strategy, every intraday entry window --- delta-hedged, held to cash-settle}\end{center}
+\section*{Rule table by strategy --- entry 09:35 ET, held to cash-settle}
+\begin{center}
+\input{generated_intraday_dh/table_rule_by_strategy_dh_holdclose_0935}
+\end{center}
+\begin{center}
+\includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/0935/rule_hists_blk2_0935.png}\par\smallskip
+\small Distribution of the return of the position taken at 09:35 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
+\end{center}
+\noindent\small One trade a day: enter the nearest-OTM straddle at 09:35 ET, hold those strikes to the official close, and delta-hedge at 10:00 and then every 30 minutes. 863 expiration days (the other 3 of the deck's 866 days have no quoted straddle at this stamp), 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread). \textbf{The 09:35 entry.} The first stamp of the session is 09:35, and no forecast bar starts there: the forecasts are for half-hour bars 09:30--10:00, 10:00--10:30, and so on. The forecast used at 09:35 is therefore the one issued at 09:30 for the 09:30--10:00 bar, which is known five minutes before the entry. It covers 09:30--10:00 while the straddle is entered at 09:35; it is used as issued, with no rescaling for the five minutes. The implied side is priced the same way: its diurnal share is the 09:30--10:00 bar's share of the rest of the session, averaged over prior days only (the same expanding mean as at every other clock), and the hours to the close are the chain's, 6.42 hours (6 h 25 min). This design was fixed before the 09:35 numbers were computed.
+\clearpage
 \section*{Rule table by strategy --- entry 10:00 ET, held to cash-settle}
 \begin{center}
 \input{generated_intraday_dh/table_rule_by_strategy_dh_holdclose_1000}
@@ -17,7 +27,7 @@
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/1000/rule_hists_blk2_1000.png}\par\smallskip
 \small Distribution of the return of the position taken at 10:00 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
-\noindent\small One trade a day: enter the nearest-OTM straddle at 10:00 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 864 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
+\noindent\small One trade a day: enter the nearest-OTM straddle at 10:00 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 864 expiration days (the other 2 of the deck's 866 days have no quoted straddle at this stamp), 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
 \section*{Rule table by strategy --- entry 10:30 ET, held to cash-settle}
 \begin{center}
@@ -27,7 +37,7 @@
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/1030/rule_hists_blk2_1030.png}\par\smallskip
 \small Distribution of the return of the position taken at 10:30 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
-\noindent\small One trade a day: enter the nearest-OTM straddle at 10:30 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
+\noindent\small One trade a day: enter the nearest-OTM straddle at 10:30 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days (the other 1 of the deck's 866 days have no quoted straddle at this stamp), 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
 \section*{Rule table by strategy --- entry 11:00 ET, held to cash-settle}
 \begin{center}
@@ -37,7 +47,7 @@
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/1100/rule_hists_blk2_1100.png}\par\smallskip
 \small Distribution of the return of the position taken at 11:00 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
-\noindent\small One trade a day: enter the nearest-OTM straddle at 11:00 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
+\noindent\small One trade a day: enter the nearest-OTM straddle at 11:00 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days (the other 1 of the deck's 866 days have no quoted straddle at this stamp), 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
 \section*{Rule table by strategy --- entry 11:30 ET, held to cash-settle}
 \begin{center}
@@ -47,7 +57,7 @@
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/1130/rule_hists_blk2_1130.png}\par\smallskip
 \small Distribution of the return of the position taken at 11:30 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
-\noindent\small One trade a day: enter the nearest-OTM straddle at 11:30 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
+\noindent\small One trade a day: enter the nearest-OTM straddle at 11:30 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 865 expiration days (the other 1 of the deck's 866 days have no quoted straddle at this stamp), 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
 \section*{Rule table by strategy --- entry 12:00 ET, held to cash-settle}
 \begin{center}
@@ -125,31 +135,31 @@
 \end{center}
 \begin{center}
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/1530/rule_hists_blk2_1530.png}\par\smallskip
-\small Distribution of the return of the position taken at 15:30 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window; the mass at $-1$ is the days the package expires worthless).
+\small Distribution of the return of the position taken at 15:30 ET, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window; the mass at $-1$ is the days the straddle expires worthless).
 \end{center}
 \noindent\small One trade a day: enter the nearest-OTM straddle at 15:30 ET, hold those strikes to the official close, and delta-hedge every 30 minutes. 866 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
-\section*{Rule table by strategy --- pooled over the twelve entry windows}
+\section*{Rule table by strategy --- pooled over the thirteen entry windows}
 \begin{center}
 \input{generated_intraday_dh/table_rule_by_strategy_dh_holdclose_pooled}
 \end{center}
 \begin{center}
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/pooled/rule_hists_blk2_pooled.png}\par\smallskip
-\small Distribution of the return of the daily sum over the twelve entry windows, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
+\small Distribution of the return of the daily sum over the thirteen entry windows, block-diagonal ridge forecast, one panel per rule (returns inside their 1st--99th percentile window).
 \end{center}
 \begin{center}
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/mean_by_entry_hhmm_as.png}\par\smallskip
-\small Mean $R'$ and Sharpe$_{\mathrm{clk}}$ by entry clock (grouped bars). Sharpe$_{\mathrm{clk}}$ is that clock's daily series $\times\sqrt{252}$, not the pooled Sharpe$_{\mathrm{ann}}$. Delta-hedged $t\to T$: hold entry $K$ to official close, rebalance $\Delta$ every 30 minutes.
+\small Mean $R'$ and Sharpe$_{\mathrm{clk}}$ by entry clock (grouped bars). Sharpe$_{\mathrm{clk}}$ is that clock's daily series $\times\sqrt{252}$, not the pooled Sharpe$_{\mathrm{ann}}$. Delta-hedged $t\to T$: hold entry $K$ to official close, rebalance $\Delta$ every 30 minutes (from 09:35 the first rebalance is at 10:00).
 \end{center}
 \begin{center}
 \includegraphics[width=0.68\textwidth]{../results/atm_straddle_intraday_holdclose/confusion_by_clock.png}\par\smallskip
-\small Confusion matrix per entry clock: $\mathrm{sign}(s)$ (buy if $s>0$) against the sign of the long-package midpoint return. 15:30 is the paper trade.
+\small Confusion matrix per entry clock: $\mathrm{sign}(s)$ (buy if $s>0$) against the sign of the long-straddle midpoint return. 15:30 is the last-30-min trade.
 \end{center}
-\noindent\small Each row is the daily sum of the twelve overlapping remaining-session books: enter at each clock 10:00--15:30 ET, hold those strikes to the official close, delta-hedge every 30 minutes. 866 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
+\noindent\small Each row is the daily sum of the thirteen overlapping remaining-session books: enter at each clock 09:35--15:30 ET, hold those strikes to the official close, delta-hedge every 30 minutes (from 09:35 the first re-hedge is at 10:00). 866 expiration days, 2020-01-03 to 2024-04-30 (the deck's frame). Fills are at the quoted midpoint everywhere except the last column, which is the same rule at the crossed spread: entry at the touch (the ask when long, the bid when short) and cash-settle at the official close (no exit spread).
 \clearpage
 \section*{Notes}
-\noindent\small One expiration day = one return; mid fill. Every $t$ here is the plain $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction. ``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$). The short-volatility rule takes no forecast, so it is one row for all models. \textbf{Two Sharpes.} Both multiply by $\sqrt{252}$ because an expiration day is the unit of time (same year-length as the paper). They are not the same object. On a \emph{single-clock} page, Sharpe$_{\mathrm{clk}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ of that clock's series: one remaining-session short per expiration day (enter at this clock, hold those strikes to the close, delta-hedge every 30 minutes). It answers ``if I only entered at this clock, what is my annual Sharpe?'' It is \emph{not} the book's Sharpe$_{\mathrm{ann}}$. On the \emph{pooled} page, Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's twelve overlapping remaining-session books. That reserved name is the book's daily P\&L after pooling the session. The twelve books overlap; they are not twelve successive 30-minute holds. Sharpe$^{\times}$ is the same convention at the crossed spread. Every other column is daily. $n_{\mathrm{buy}}$ is the number of expiration days with position $>0$ (always-short is 0; on the pooled page it is days the sum of the twelve positions is positive); \%buy is $100\cdot n_{\mathrm{buy}}/n$, the notebook's column. The other column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other column is the deck's.
+\noindent\small \textbf{Straddle} here means the nearest out-of-the-money call plus the nearest out-of-the-money put, same-day expiry, bought or sold as one position. One expiration day = one return; mid fill. Every $t$ here is the plain $t=\sqrt{n}\cdot\mathrm{mean}/\mathrm{std}$, with no autocorrelation correction. ``ex.\ kurt'' is the bias-corrected sample excess kurtosis (Gaussian $=0$). The short-volatility rule takes no forecast, so it is one row for all models. \textbf{Two Sharpes.} Both multiply by $\sqrt{252}$ because an expiration day is the unit of time (same year-length as the paper). They are not the same object. On a \emph{single-clock} page, Sharpe$_{\mathrm{clk}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ of that clock's series: one remaining-session short per expiration day (enter at this clock, hold those strikes to the close, delta-hedge every 30 minutes). It answers ``if I only entered at this clock, what is my annual Sharpe?'' It is \emph{not} the book's Sharpe$_{\mathrm{ann}}$. On the \emph{pooled} page, Sharpe$_{\mathrm{ann}}=(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ of $R^{day}_d=\sum_t R'_{d,t}$, the sum of the day's thirteen overlapping remaining-session books. That reserved name is the book's daily P\&L after pooling the session. The thirteen books overlap; they are not thirteen successive holds. Sharpe$^{\times}$ is the same convention at the crossed spread. Every other column is daily. $n_{\mathrm{buy}}$ is the number of expiration days with position $>0$ (always-short is 0; on the pooled page it is days the sum of the thirteen positions is positive); \%buy is $100\cdot n_{\mathrm{buy}}/n$, the notebook's column. The other column this table adds to the deck's is Sharpe$^{\times}_{\mathrm{ann}}$, the same rule's annualized Sharpe at the \emph{crossed spread} instead of the midpoint; every other column is the deck's.
 
 \smallskip
-\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties) on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row; LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$; elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the panel of record is pending. The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the implied variance of the same window. $w_t$ is the expanding mean of each prior day's remaining-session share of realized variance, $\mathrm{RV}_t/\sum_{s\ge t}\mathrm{RV}_s$ (in-fit panel history back to 2001), not the ratio of trailing clock-means. On the bars whose vendor implied volatility is a censored solver node the deck's treatment is used here too --- the volatility that reproduces the package midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a signal and no bar sits flat.
+\noindent\small Forecasts: baseline (HAR + calendar OLS); block-diagonal ridge (HAR block and exogenous block, separate penalties) on the design carrying the FOMC calendar block, and the same ridge on the earlier design without those columns, as a diagnostic row; LightGBM and XGBoost on the all-features design; lasso on the same design, causally tuned vs.\ fixed $\alpha=10^{-4}$; elastic net (causally tuned). $\dagger$ marks a column still fitted on the earlier design panel; a run of those four on the panel of record is pending. The signal is $s_t=\widehat{RV}_t-\mathrm{IV}^{2}_{\mathrm{hr}}h_t w_t$: the forecast against the implied variance of the same window. $w_t$ is the expanding mean of each prior day's remaining-session share of realized variance, $\mathrm{RV}_t/\sum_{s\ge t}\mathrm{RV}_s$ (in-fit panel history back to 2001), not the ratio of trailing clock-means. On the bars whose vendor implied volatility is a censored solver node the deck's treatment is used here too --- the volatility that reproduces the straddle midpoint, recovered by bisection over the remaining $h_t$ hours --- so every bar carries a signal and no bar sits flat. At the 09:35 entry the forecast is the one issued at 09:30 for the 09:30--10:00 bar, $w_t$ is that bar's share, and $h_t$ is the chain's hours to the close.
 \end{document}

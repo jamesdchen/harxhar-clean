@@ -1,0 +1,258 @@
+GATE ridge: stored 16:00 rows 1469, captured 1469, common 1469; max rel diff 7.3e-12; coef.x + intercept vs prediction 2.1e-15
+GATE lasso: stored 16:00 rows 1469, captured 1469, common 1469; max rel diff 5.3e-13; coef.x + intercept vs prediction 5.0e-16
+GATE fixed penalty 100: equals the arm of record on its 500 sessions at that penalty to 2.6e-12; differs elsewhere (max rel 1.30)
+GATE fixed penalty 1000: equals the arm of record on its 969 sessions at that penalty to 9.6e-14; differs elsewhere (max rel 0.47)
+candidate dates: penalty 100 to 1000 2019-06-26; COVID crash start 2020-02-20; COVID crash end 2020-05-01; penalty 1000 to 100 2020-06-23; penalty 100 to 1000 2021-06-21; every-day expirations 2022-04-26
+COVID episode: 2020-02-20 .. 2020-04-30 (S&P high on the deck 2020-02-19); first Tuesday/Thursday deck day 2020-01-21 (a holiday-shifted expiry); every Tuesday session is a deck day from 2022-04-26, every Thursday from 2022-05-19
+series by contribution sd on all refits: har_ma_* 0.206, adj_sumabsret_ma_* 0.121, adj_sumret4_ma_* 0.070, adj_sumret_ma_* 0.068, adj_sumvolume_ma_* 0.042, adj_vix_ma_* 0.038, adj_vix3m_ma_* 0.036, adj_sumbipow_ma_* 0.033, adj_sumpret2_ma_* 0.030, adj_sumautocov_ma_* 0.028, calendar dummies (DOW_*, is_*, hour, days_to_opex) 0.019, adj_sumret3_ma_* 0.017, adj_fomc_day_ma_* 0.013, adj_vvix_ma_* 0.012, adj_fomc_until_inv_ma_* 0.009, adj_fomc_since_inv_ma_* 0.007, adj_numobs_ma_* 0.004, adj_fomc_release_ma_* 0.002
+(1a) 2019-06-26 penalty 100 to 1000: all-weight step |dZ| 0.0932 = penalty 0.0930 (+ one day of data 0.0010); largest step on any other day 0.0199, median 0.00062
+(1a) 2020-06-23 penalty 1000 to 100: all-weight step |dZ| 0.1177 = penalty 0.1177 (+ one day of data 0.0008); largest step on any other day 0.0199, median 0.00062
+(1a) 2021-06-21 penalty 100 to 1000: all-weight step |dZ| 0.1232 = penalty 0.1235 (+ one day of data 0.0022); largest step on any other day 0.0199, median 0.00062
+sup-Wald limiting distribution, p=1, trim 0.15: 90/95/99% 7.19/8.73/12.10 (20000 draws, 2000-step grid)
+sup-Wald limiting distribution, p=2, trim 0.15: 90/95/99% 9.93/11.73/15.54 (20000 draws, 2000-step grid)
+sup-Wald limiting distribution, p=8, trim 0.15: 90/95/99% 21.45/23.65/28.34 (20000 draws, 2000-step grid)
+  (published p=1, 15% trim, 5%: 8.58 Bai-Perron 2003, 8.85 Andrews 2003)
+HAC lags (Newey-West 1994 rule): refits 7, deck days 6
+(1) sup-Wald A0_actual    target on forecast                       n=1469 p=2:    7.43 at 2021-06-02 (5% crit 11.73, p 0.262); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald A1_actual    target on series contributions           n=1469 p=8:   29.14 at 2022-10-11 (5% crit 23.65, p 0.007); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald A0_100.0     target on forecast                       n=1469 p=2:    2.61 at 2020-09-29 (5% crit 11.73, p 0.931); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald A1_100.0     target on series contributions           n=1469 p=8:   28.86 at 2020-04-09 (5% crit 23.65, p 0.008); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald A0_1000.0    target on forecast                       n=1469 p=2:    5.37 at 2020-07-14 (5% crit 11.73, p 0.515); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald A1_1000.0    target on series contributions           n=1469 p=8:   40.01 at 2022-10-11 (5% crit 23.65, p 0.000); dates tested 2019-05-15..2023-06-14
+(1) sup-Wald B0_mid       mean return per premium (mid)            n=866 p=1:    2.19 at 2023-01-04 (5% crit 8.73, p 0.752); dates tested 2020-10-26..2023-10-23
+(1) sup-Wald B0_crossed   mean return per premium (crossed)        n=866 p=1:    2.79 at 2023-01-04 (5% crit 8.73, p 0.615); dates tested 2020-10-26..2023-10-23
+(1) sup-Wald B1_actual    return (mid) on series contributions     n=866 p=8:   25.42 at 2021-06-09 (5% crit 23.65, p 0.028); dates tested 2020-10-26..2023-10-23
+(1) sup-Wald B1_1000.0    return (mid) on series contributions     n=866 p=8:   26.97 at 2021-02-12 (5% crit 23.65, p 0.017); dates tested 2020-10-26..2023-10-23
+(1) A0_actual    penalty 100 to 1000                2019-06-26            : stat=   0.68 p=0.713  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    COVID crash start                  2020-02-20            : stat=   0.29 p=0.867  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    COVID crash end                    2020-05-01            : stat=   3.31 p=0.191  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    penalty 1000 to 100                2020-06-23            : stat=   4.25 p=0.119  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    penalty 100 to 1000                2021-06-21            : stat=   6.75 p=0.0343  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    every-day expirations              2022-04-26            : stat=   6.46 p=0.0395  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_actual    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   3.43 p=3.7e-14  [Chow predictive F(50, 1417); n=1469, p=2]
+(1) A1_actual    penalty 100 to 1000                2019-06-26            : stat=  24.19 p=0.00213  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    COVID crash start                  2020-02-20            : stat=  11.84 p=0.159  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    COVID crash end                    2020-05-01            : stat=  12.80 p=0.119  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    penalty 1000 to 100                2020-06-23            : stat=  15.69 p=0.047  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    penalty 100 to 1000                2021-06-21            : stat=  10.50 p=0.232  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    every-day expirations              2022-04-26            : stat=  17.88 p=0.0222  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_actual    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   3.00 p=3.61e-11  [Chow predictive F(50, 1411); n=1469, p=8]
+(1) A0_100.0     penalty 100 to 1000                2019-06-26            : stat=   0.80 p=0.672  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     COVID crash start                  2020-02-20            : stat=   0.65 p=0.724  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     COVID crash end                    2020-05-01            : stat=   0.95 p=0.623  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     penalty 1000 to 100                2020-06-23            : stat=   1.67 p=0.435  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     penalty 100 to 1000                2021-06-21            : stat=   1.03 p=0.599  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     every-day expirations              2022-04-26            : stat=   1.06 p=0.589  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_100.0     COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   2.79 p=8.69e-10  [Chow predictive F(50, 1417); n=1469, p=2]
+(1) A1_100.0     penalty 100 to 1000                2019-06-26            : stat=  17.78 p=0.023  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     COVID crash start                  2020-02-20            : stat=  11.39 p=0.181  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     COVID crash end                    2020-05-01            : stat=  13.26 p=0.103  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     penalty 1000 to 100                2020-06-23            : stat=  12.05 p=0.149  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     penalty 100 to 1000                2021-06-21            : stat=  11.21 p=0.19  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     every-day expirations              2022-04-26            : stat=   9.79 p=0.28  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_100.0     COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   2.42 p=1.9e-07  [Chow predictive F(50, 1411); n=1469, p=8]
+(1) A0_1000.0    penalty 100 to 1000                2019-06-26            : stat=   0.64 p=0.727  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    COVID crash start                  2020-02-20            : stat=   0.05 p=0.975  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    COVID crash end                    2020-05-01            : stat=   3.28 p=0.194  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    penalty 1000 to 100                2020-06-23            : stat=   4.50 p=0.105  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    penalty 100 to 1000                2021-06-21            : stat=   3.12 p=0.21  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    every-day expirations              2022-04-26            : stat=   3.18 p=0.204  [Chow (HAC Wald); n=1469, p=2]
+(1) A0_1000.0    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   3.59 p=2.74e-15  [Chow predictive F(50, 1417); n=1469, p=2]
+(1) A1_1000.0    penalty 100 to 1000                2019-06-26            : stat=   7.70 p=0.464  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    COVID crash start                  2020-02-20            : stat=   5.99 p=0.648  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    COVID crash end                    2020-05-01            : stat=  21.52 p=0.0059  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    penalty 1000 to 100                2020-06-23            : stat=  17.99 p=0.0213  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    penalty 100 to 1000                2021-06-21            : stat=  14.24 p=0.0757  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    every-day expirations              2022-04-26            : stat=  20.85 p=0.00756  [Chow (HAC Wald); n=1469, p=8]
+(1) A1_1000.0    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   2.84 p=4.37e-10  [Chow predictive F(50, 1411); n=1469, p=8]
+(1) B0_mid       penalty 100 to 1000                2019-06-26            : stat=    nan p=nan  [before the sample; n=866, p=1]
+(1) B0_mid       COVID crash start                  2020-02-20            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_mid       COVID crash end                    2020-05-01            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_mid       penalty 1000 to 100                2020-06-23            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_mid       penalty 100 to 1000                2021-06-21            : stat=   0.07 p=0.791  [Chow (HAC Wald); n=866, p=1]
+(1) B0_mid       every-day expirations              2022-04-26            : stat=   0.08 p=0.779  [Chow (HAC Wald); n=866, p=1]
+(1) B0_mid       COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   0.81 p=0.768  [Chow predictive F(32, 833); n=866, p=1]
+(1) B0_crossed   penalty 100 to 1000                2019-06-26            : stat=    nan p=nan  [before the sample; n=866, p=1]
+(1) B0_crossed   COVID crash start                  2020-02-20            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_crossed   COVID crash end                    2020-05-01            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_crossed   penalty 1000 to 100                2020-06-23            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=1]
+(1) B0_crossed   penalty 100 to 1000                2021-06-21            : stat=   0.00 p=0.962  [Chow (HAC Wald); n=866, p=1]
+(1) B0_crossed   every-day expirations              2022-04-26            : stat=   0.32 p=0.569  [Chow (HAC Wald); n=866, p=1]
+(1) B0_crossed   COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   0.87 p=0.679  [Chow predictive F(32, 833); n=866, p=1]
+(1) B1_actual    penalty 100 to 1000                2019-06-26            : stat=    nan p=nan  [before the sample; n=866, p=8]
+(1) B1_actual    COVID crash start                  2020-02-20            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_actual    COVID crash end                    2020-05-01            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_actual    penalty 1000 to 100                2020-06-23            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_actual    penalty 100 to 1000                2021-06-21            : stat=  19.84 p=0.011  [Chow (HAC Wald); n=866, p=8]
+(1) B1_actual    every-day expirations              2022-04-26            : stat=  23.27 p=0.00303  [Chow (HAC Wald); n=866, p=8]
+(1) B1_actual    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   0.92 p=0.6  [Chow predictive F(32, 826); n=866, p=8]
+(1) B1_1000.0    penalty 100 to 1000                2019-06-26            : stat=    nan p=nan  [before the sample; n=866, p=8]
+(1) B1_1000.0    COVID crash start                  2020-02-20            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_1000.0    COVID crash end                    2020-05-01            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_1000.0    penalty 1000 to 100                2020-06-23            : stat=    nan p=nan  [one side < 15% of the sample; n=866, p=8]
+(1) B1_1000.0    penalty 100 to 1000                2021-06-21            : stat=  21.18 p=0.00669  [Chow (HAC Wald); n=866, p=8]
+(1) B1_1000.0    every-day expirations              2022-04-26            : stat=  22.65 p=0.00384  [Chow (HAC Wald); n=866, p=8]
+(1) B1_1000.0    COVID episode (inside vs outside)  2020-02-20..2020-04-30: stat=   0.96 p=0.537  [Chow predictive F(32, 826); n=866, p=8]
+   reg                          candidate                    date  p_actual  p_fixed100  p_fixed1000                                   verdict
+0   A0                penalty 100 to 1000              2019-06-26    0.7130      0.6720       0.7268                                      none
+1   A0                  COVID crash start              2020-02-20    0.8669      0.7240       0.9747                                      none
+2   A0                    COVID crash end              2020-05-01    0.1912      0.6232       0.1936                                      none
+3   A0                penalty 1000 to 100              2020-06-23    0.1195      0.4348       0.1052                                      none
+4   A0                penalty 100 to 1000              2021-06-21    0.0343      0.5986       0.2102  penalty (only the arm of record rejects)
+5   A0              every-day expirations              2022-04-26    0.0395      0.5889       0.2042  penalty (only the arm of record rejects)
+6   A0  COVID episode (inside vs outside)  2020-02-20..2020-04-30    0.0000      0.0000       0.0000         data (both held penalties reject)
+7   A1                penalty 100 to 1000              2019-06-26    0.0021      0.0230       0.4638               depends on the penalty held
+8   A1                  COVID crash start              2020-02-20    0.1585      0.1805       0.6481                                      none
+9   A1                    COVID crash end              2020-05-01    0.1190      0.1031       0.0059               depends on the penalty held
+10  A1                penalty 1000 to 100              2020-06-23    0.0470      0.1489       0.0213               depends on the penalty held
+11  A1                penalty 100 to 1000              2021-06-21    0.2319      0.1899       0.0757                                      none
+12  A1              every-day expirations              2022-04-26    0.0222      0.2798       0.0076               depends on the penalty held
+13  A1  COVID episode (inside vs outside)  2020-02-20..2020-04-30    0.0000      0.0000       0.0000         data (both held penalties reject)
+(2) SHAP check on 8 refits: max |shap - beta (x - window mean)| 0.0e+00; shap sum + baseline vs forecast 1.6e-16 (relative)
+(2) rolling 63: dominant series share of sessions: har_ma_* 95%, adj_sumabsret_ma_* 4%, adj_sumret4_ma_* 0%
+(2) rolling 126: dominant series share of sessions: har_ma_* 95%, adj_sumabsret_ma_* 5%
+(2) the 63- and 126-session windows name the same dominant series on 98.6% of 1344 sessions
+        start         end  sessions  deck_days penalty                top1  share1                top2  share2              top3  share3
+0  2018-06-25  2019-06-25       250          0     100            har_ma_*   0.347  adj_sumabsret_ma_*   0.134   adj_sumret_ma_*   0.089
+1  2019-06-26  2020-02-19       164         21    1000            har_ma_*   0.305  adj_sumabsret_ma_*   0.182   adj_sumret_ma_*   0.096
+2  2020-02-20  2020-04-30        50         32    1000  adj_sumabsret_ma_*   0.247            har_ma_*   0.191  adj_sumret4_ma_*   0.176
+3  2020-05-01  2020-06-22        36         23    1000            har_ma_*   0.295  adj_sumabsret_ma_*   0.159   adj_sumret_ma_*   0.094
+4  2020-06-23  2021-06-18       250        154     100            har_ma_*   0.281      adj_vix3m_ma_*   0.136      adj_vix_ma_*   0.115
+5  2021-06-21  2022-04-25       213        136    1000            har_ma_*   0.329  adj_sumabsret_ma_*   0.176   adj_sumret_ma_*   0.115
+6  2022-04-26  2024-04-30       506        500    1000            har_ma_*   0.288  adj_sumabsret_ma_*   0.156   adj_sumret_ma_*   0.143
+(2) penalty held at 1000:         start       held1000_top1  held1000_share1       held1000_top2  held1000_share2     held1000_top3  held1000_share3
+0  2018-06-25            har_ma_*            0.338  adj_sumabsret_ma_*            0.173   adj_sumret_ma_*            0.102
+1  2019-06-26            har_ma_*            0.305  adj_sumabsret_ma_*            0.182   adj_sumret_ma_*            0.096
+2  2020-02-20  adj_sumabsret_ma_*            0.247            har_ma_*            0.191  adj_sumret4_ma_*            0.176
+3  2020-05-01            har_ma_*            0.295  adj_sumabsret_ma_*            0.159   adj_sumret_ma_*            0.094
+4  2020-06-23            har_ma_*            0.312  adj_sumabsret_ma_*            0.178   adj_sumret_ma_*            0.097
+5  2021-06-21            har_ma_*            0.329  adj_sumabsret_ma_*            0.176   adj_sumret_ma_*            0.115
+6  2022-04-26            har_ma_*            0.288  adj_sumabsret_ma_*            0.156   adj_sumret_ma_*            0.143
+(3) lasso penalty: 0.01 from 2018-06-25, 0.001 from 2021-06-21; between-tune re-anchors on 2021-12-30, 2022-05-02; nonzero weights per refit min 12, median 16, max 56
+GATE lasso with the penalty held at 0.001: equals the lasso of record on its 719 sessions at that penalty to 0.0e+00
+              column  sessions_nonzero  deck_days_nonzero  frac_positive_when_nonzero  mean_std_weight_when_nonzero  max_abs_std_weight first_nonzero last_nonzero  n_events  ridge_mean_std_weight_deck  held_sessions_nonzero_before_switch held_first_nonzero  held_mean_std_weight_before_switch
+0       adj_vix_ma_1               719                636                      1.0000                        0.1388              0.1581    2021-06-21   2024-04-30         1                      0.0173                                  750         2018-06-25                              0.0923
+2      adj_vix_ma_25               215                174                      1.0000                        0.0052              0.0212    2021-06-21   2023-08-16        18                      0.0131                                  100         2021-01-14                              0.0030
+3     adj_vix_ma_125               719                636                      0.0000                       -0.0143              0.0227    2021-06-21   2024-04-30         1                     -0.0044                                  414         2019-10-28                             -0.0109
+4     adj_vix_ma_625               170                169                      0.0000                       -0.0245              0.0362    2023-08-24   2024-04-30         3                     -0.0133                                  197         2018-06-26                             -0.0022
+5    adj_vix_ma_3125               568                415                      0.0000                       -0.0046              0.0112    2020-05-07   2024-04-30        15                     -0.0078                                  741         2018-06-25                             -0.0057
+6      adj_vvix_ma_1               767                664                      1.0000                        0.0155              0.0258    2019-12-27   2024-04-30        11                      0.0098                                  750         2018-06-25                              0.0092
+8     adj_vvix_ma_25                 1                  1                      0.0000                       -0.0012              0.0012    2023-08-16   2023-08-16         2                      0.0037                                    0         2023-08-16                                 NaN
+9    adj_vvix_ma_125                 9                  9                      1.0000                        0.0089              0.0193    2023-08-15   2023-08-28         4                     -0.0029                                    0         2023-08-15                                 NaN
+10   adj_vvix_ma_625               205                190                      0.0000                       -0.0035              0.0090    2022-03-02   2022-12-29         6                     -0.0057                                   15         2019-10-03                             -0.0005
+11  adj_vvix_ma_3125               366                301                      0.4727                        0.0043              0.0160    2021-06-21   2024-04-18        32                     -0.0024                                  698         2018-07-26                              0.0089
+15  adj_vix3m_ma_125               634                551                      0.0000                       -0.0376              0.0590    2021-06-21   2024-01-09         6                     -0.0099                                  750         2018-06-25                             -0.0309
+16  adj_vix3m_ma_625               719                636                      0.0000                       -0.0714              0.0966    2021-06-21   2024-04-30         1                     -0.0107                                  750         2018-06-25                             -0.0302
+20   vix_avail_ma_25                 5                  5                      0.0000                       -0.0001              0.0001    2022-08-10   2022-08-17         4                     -0.0007                                    0         2022-08-10                                 NaN
+24   vvix_avail_ma_1                 0                  0                         NaN                           NaN              0.0000                                    0                      0.0002                                  416         2018-06-25                              0.0061
+               column        date   event                 why      nearest_candidate candidate_date  sessions_from_candidate  std_weight_after
+0        adj_vix_ma_1  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0            0.1548
+1       adj_vix_ma_25  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0            0.0037
+2       adj_vix_ma_25  2021-11-17  leaves  warm update (data)    penalty 100 to 1000     2021-06-21                      105            0.0000
+3       adj_vix_ma_25  2021-11-29  enters  warm update (data)  every-day expirations     2022-04-26                     -102            0.0007
+4       adj_vix_ma_25  2021-12-01  leaves  warm update (data)  every-day expirations     2022-04-26                     -100            0.0000
+5       adj_vix_ma_25  2022-03-15  enters  warm update (data)  every-day expirations     2022-04-26                      -29            0.0009
+6       adj_vix_ma_25  2022-03-22  leaves  warm update (data)  every-day expirations     2022-04-26                      -24            0.0000
+7       adj_vix_ma_25  2022-07-13  enters  warm update (data)  every-day expirations     2022-04-26                       53            0.0011
+8       adj_vix_ma_25  2022-10-10  leaves  warm update (data)  every-day expirations     2022-04-26                      115            0.0000
+9       adj_vix_ma_25  2022-10-13  enters  warm update (data)  every-day expirations     2022-04-26                      118            0.0008
+10      adj_vix_ma_25  2022-11-21  leaves  warm update (data)  every-day expirations     2022-04-26                      145            0.0000
+11      adj_vix_ma_25  2022-11-22  enters  warm update (data)  every-day expirations     2022-04-26                      146            0.0001
+12      adj_vix_ma_25  2022-11-25  leaves  warm update (data)  every-day expirations     2022-04-26                      148            0.0000
+13      adj_vix_ma_25  2023-04-18  enters  warm update (data)  every-day expirations     2022-04-26                      245            0.0002
+14      adj_vix_ma_25  2023-05-01  leaves  warm update (data)  every-day expirations     2022-04-26                      254            0.0000
+15      adj_vix_ma_25  2023-05-03  enters  warm update (data)  every-day expirations     2022-04-26                      256            0.0007
+16      adj_vix_ma_25  2023-05-04  leaves  warm update (data)  every-day expirations     2022-04-26                      257            0.0000
+17      adj_vix_ma_25  2023-08-15  enters  warm update (data)  every-day expirations     2022-04-26                      327            0.0052
+18      adj_vix_ma_25  2023-08-17  leaves  warm update (data)  every-day expirations     2022-04-26                      329            0.0000
+19     adj_vix_ma_125  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0           -0.0108
+20     adj_vix_ma_625  2023-08-24  enters  warm update (data)  every-day expirations     2022-04-26                      334           -0.0014
+21     adj_vix_ma_625  2023-08-25  leaves  warm update (data)  every-day expirations     2022-04-26                      335            0.0000
+22     adj_vix_ma_625  2023-08-29  enters  warm update (data)  every-day expirations     2022-04-26                      337           -0.0002
+23    adj_vix_ma_3125  2020-05-07  enters  warm update (data)        COVID crash end     2020-05-01                        4           -0.0000
+24    adj_vix_ma_3125  2021-09-17  leaves  warm update (data)    penalty 100 to 1000     2021-06-21                       62            0.0000
+25    adj_vix_ma_3125  2021-09-24  enters  warm update (data)    penalty 100 to 1000     2021-06-21                       67           -0.0002
+26    adj_vix_ma_3125  2021-11-30  leaves  warm update (data)  every-day expirations     2022-04-26                     -101            0.0000
+27    adj_vix_ma_3125  2021-12-17  enters  warm update (data)  every-day expirations     2022-04-26                      -88           -0.0001
+28    adj_vix_ma_3125  2021-12-21  leaves  warm update (data)  every-day expirations     2022-04-26                      -86            0.0000
+29    adj_vix_ma_3125  2021-12-22  enters  warm update (data)  every-day expirations     2022-04-26                      -85           -0.0002
+30    adj_vix_ma_3125  2021-12-23  leaves  warm update (data)  every-day expirations     2022-04-26                      -84            0.0000
+31    adj_vix_ma_3125  2021-12-27  enters  warm update (data)  every-day expirations     2022-04-26                      -83           -0.0006
+32    adj_vix_ma_3125  2021-12-28  leaves  warm update (data)  every-day expirations     2022-04-26                      -82            0.0000
+33    adj_vix_ma_3125  2021-12-29  enters  warm update (data)  every-day expirations     2022-04-26                      -81           -0.0001
+34    adj_vix_ma_3125  2022-01-20  leaves  warm update (data)  every-day expirations     2022-04-26                      -66            0.0000
+35    adj_vix_ma_3125  2023-08-15  enters  warm update (data)  every-day expirations     2022-04-26                      327           -0.0030
+36    adj_vix_ma_3125  2023-08-21  leaves  warm update (data)  every-day expirations     2022-04-26                      331            0.0000
+37    adj_vix_ma_3125  2023-09-18  enters  warm update (data)  every-day expirations     2022-04-26                      350           -0.0000
+38      adj_vvix_ma_1  2019-12-27  enters  warm update (data)      COVID crash start     2020-02-20                      -36            0.0001
+39      adj_vvix_ma_1  2020-01-31  leaves  warm update (data)      COVID crash start     2020-02-20                      -13            0.0000
+40      adj_vvix_ma_1  2020-02-03  enters  warm update (data)      COVID crash start     2020-02-20                      -12            0.0001
+41      adj_vvix_ma_1  2020-02-04  leaves  warm update (data)      COVID crash start     2020-02-20                      -11            0.0000
+42      adj_vvix_ma_1  2020-03-20  enters  warm update (data)      COVID crash start     2020-02-20                       21            0.0003
+43      adj_vvix_ma_1  2020-04-27  leaves  warm update (data)        COVID crash end     2020-05-01                       -4            0.0000
+44      adj_vvix_ma_1  2020-11-04  enters  warm update (data)    penalty 1000 to 100     2020-06-23                       94            0.0001
+45      adj_vvix_ma_1  2020-11-06  leaves  warm update (data)    penalty 1000 to 100     2020-06-23                       96            0.0000
+46      adj_vvix_ma_1  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0            0.0121
+47      adj_vvix_ma_1  2023-08-15  leaves  warm update (data)  every-day expirations     2022-04-26                      327            0.0000
+48      adj_vvix_ma_1  2023-08-18  enters  warm update (data)  every-day expirations     2022-04-26                      330            0.0056
+49     adj_vvix_ma_25  2023-08-16  enters  warm update (data)  every-day expirations     2022-04-26                      328           -0.0012
+50     adj_vvix_ma_25  2023-08-17  leaves  warm update (data)  every-day expirations     2022-04-26                      329            0.0000
+51    adj_vvix_ma_125  2023-08-15  enters  warm update (data)  every-day expirations     2022-04-26                      327            0.0177
+52    adj_vvix_ma_125  2023-08-24  leaves  warm update (data)  every-day expirations     2022-04-26                      334            0.0000
+53    adj_vvix_ma_125  2023-08-25  enters  warm update (data)  every-day expirations     2022-04-26                      335            0.0004
+54    adj_vvix_ma_125  2023-08-29  leaves  warm update (data)  every-day expirations     2022-04-26                      337            0.0000
+55    adj_vvix_ma_625  2022-03-02  enters  warm update (data)  every-day expirations     2022-04-26                      -38           -0.0010
+56    adj_vvix_ma_625  2022-03-08  leaves  warm update (data)  every-day expirations     2022-04-26                      -34            0.0000
+57    adj_vvix_ma_625  2022-03-14  enters  warm update (data)  every-day expirations     2022-04-26                      -30           -0.0007
+58    adj_vvix_ma_625  2022-04-01  leaves  warm update (data)  every-day expirations     2022-04-26                      -16            0.0000
+59    adj_vvix_ma_625  2022-04-04  enters  warm update (data)  every-day expirations     2022-04-26                      -15           -0.0001
+60    adj_vvix_ma_625  2022-12-30  leaves  warm update (data)  every-day expirations     2022-04-26                      172            0.0000
+61   adj_vvix_ma_3125  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0            0.0153
+62   adj_vvix_ma_3125  2022-02-28  leaves  warm update (data)  every-day expirations     2022-04-26                      -40            0.0000
+63   adj_vvix_ma_3125  2022-09-02  enters  warm update (data)  every-day expirations     2022-04-26                       90           -0.0003
+64   adj_vvix_ma_3125  2022-09-07  leaves  warm update (data)  every-day expirations     2022-04-26                       92            0.0000
+65   adj_vvix_ma_3125  2022-10-06  enters  warm update (data)  every-day expirations     2022-04-26                      113           -0.0003
+66   adj_vvix_ma_3125  2022-10-13  leaves  warm update (data)  every-day expirations     2022-04-26                      118            0.0000
+67   adj_vvix_ma_3125  2022-10-14  enters  warm update (data)  every-day expirations     2022-04-26                      119           -0.0004
+68   adj_vvix_ma_3125  2022-10-18  leaves  warm update (data)  every-day expirations     2022-04-26                      121            0.0000
+69   adj_vvix_ma_3125  2023-02-02  enters  warm update (data)  every-day expirations     2022-04-26                      194           -0.0000
+70   adj_vvix_ma_3125  2023-02-06  leaves  warm update (data)  every-day expirations     2022-04-26                      196            0.0000
+71   adj_vvix_ma_3125  2023-02-10  enters  warm update (data)  every-day expirations     2022-04-26                      200           -0.0001
+72   adj_vvix_ma_3125  2023-02-13  leaves  warm update (data)  every-day expirations     2022-04-26                      201            0.0000
+73   adj_vvix_ma_3125  2023-03-03  enters  warm update (data)  every-day expirations     2022-04-26                      214           -0.0002
+74   adj_vvix_ma_3125  2023-03-14  leaves  warm update (data)  every-day expirations     2022-04-26                      221            0.0000
+75   adj_vvix_ma_3125  2023-03-17  enters  warm update (data)  every-day expirations     2022-04-26                      224           -0.0002
+76   adj_vvix_ma_3125  2023-06-21  leaves  warm update (data)  every-day expirations     2022-04-26                      289            0.0000
+77   adj_vvix_ma_3125  2023-06-27  enters  warm update (data)  every-day expirations     2022-04-26                      293           -0.0000
+78   adj_vvix_ma_3125  2023-06-29  leaves  warm update (data)  every-day expirations     2022-04-26                      295            0.0000
+79   adj_vvix_ma_3125  2023-07-03  enters  warm update (data)  every-day expirations     2022-04-26                      297           -0.0001
+80   adj_vvix_ma_3125  2023-07-05  leaves  warm update (data)  every-day expirations     2022-04-26                      298            0.0000
+81   adj_vvix_ma_3125  2023-07-24  enters  warm update (data)  every-day expirations     2022-04-26                      311           -0.0004
+82   adj_vvix_ma_3125  2023-08-15  leaves  warm update (data)  every-day expirations     2022-04-26                      327            0.0000
+83   adj_vvix_ma_3125  2023-09-19  enters  warm update (data)  every-day expirations     2022-04-26                      351           -0.0000
+84   adj_vvix_ma_3125  2023-09-20  leaves  warm update (data)  every-day expirations     2022-04-26                      352            0.0000
+85   adj_vvix_ma_3125  2023-10-26  enters  warm update (data)  every-day expirations     2022-04-26                      378           -0.0002
+86   adj_vvix_ma_3125  2023-12-20  leaves  warm update (data)  every-day expirations     2022-04-26                      416            0.0000
+87   adj_vvix_ma_3125  2023-12-21  enters  warm update (data)  every-day expirations     2022-04-26                      417           -0.0005
+88   adj_vvix_ma_3125  2023-12-27  leaves  warm update (data)  every-day expirations     2022-04-26                      420            0.0000
+89   adj_vvix_ma_3125  2024-01-04  enters  warm update (data)  every-day expirations     2022-04-26                      425           -0.0001
+90   adj_vvix_ma_3125  2024-03-12  leaves  warm update (data)  every-day expirations     2022-04-26                      471            0.0000
+91   adj_vvix_ma_3125  2024-04-17  enters  warm update (data)  every-day expirations     2022-04-26                      496           -0.0000
+92   adj_vvix_ma_3125  2024-04-19  leaves  warm update (data)  every-day expirations     2022-04-26                      498            0.0000
+93   adj_vix3m_ma_125  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0           -0.0492
+94   adj_vix3m_ma_125  2023-08-24  leaves  warm update (data)  every-day expirations     2022-04-26                      334            0.0000
+95   adj_vix3m_ma_125  2023-08-30  enters  warm update (data)  every-day expirations     2022-04-26                      338           -0.0006
+96   adj_vix3m_ma_125  2024-01-03  leaves  warm update (data)  every-day expirations     2022-04-26                      424            0.0000
+97   adj_vix3m_ma_125  2024-01-09  enters  warm update (data)  every-day expirations     2022-04-26                      428           -0.0017
+98   adj_vix3m_ma_125  2024-01-10  leaves  warm update (data)  every-day expirations     2022-04-26                      429            0.0000
+99   adj_vix3m_ma_625  2021-06-21  enters   penalty re-chosen    penalty 100 to 1000     2021-06-21                        0           -0.0753
+100   vix_avail_ma_25  2022-08-10  enters  warm update (data)  every-day expirations     2022-04-26                       73           -0.0001
+101   vix_avail_ma_25  2022-08-12  leaves  warm update (data)  every-day expirations     2022-04-26                       75            0.0000
+102   vix_avail_ma_25  2022-08-15  enters  warm update (data)  every-day expirations     2022-04-26                       76           -0.0000
+103   vix_avail_ma_25  2022-08-18  leaves  warm update (data)  every-day expirations     2022-04-26                       79            0.0000
+(3) VIX-family entries/exits by cause: penalty re-chosen 7, warm update (data) 97
+(3) before 2021-06-21 the largest |std weight| of any VIX-family column in the lasso of record: 0.0076; after a warm-path entry at most 0.0177
+(3) VIX-family columns ever nonzero: 13 of 36; sessions with at least one nonzero: 1050 of 1469
+(3) lasso mean |SHAP| share on deck days: har_ma_* 44.1%, adj_vix_ma_* 9.8%, adj_sumret_ma_* 9.5%, adj_vix3m_ma_* 8.8%, adj_sumabsret_ma_* 5.6%, adj_sumret4_ma_* 4.8%, calendar dummies (DOW_*, is_*, hour, days_to_opex) 4.0%, adj_sumautocov_ma_* 3.4%
+(3) ridge mean |SHAP| share on deck days: har_ma_* 28.2%, adj_sumabsret_ma_* 15.7%, adj_sumret_ma_* 10.9%, adj_sumret4_ma_* 7.6%, adj_sumvolume_ma_* 5.9%, adj_vix3m_ma_* 5.1%, adj_vix_ma_* 4.8%, adj_sumbipow_ma_* 4.0%
+(3) corr(lasso forecast, ridge forecast) on all refits 0.986

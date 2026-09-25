@@ -1,0 +1,18 @@
+GATE 1: stored 16:00 rows 1469, captured 1469, common 1469; max rel diff 7.3e-12; vs the arm's own pred_adj 4.4e-16
+GATE 2: max rel |coef.x + intercept - prediction| 2.1e-15; level + sum of contributions 1.2e-15; level vs window-mean target 4.9e-13
+JOIN: deck days 866, found in the capture 866; month-ends 52; crossed untradeable 0
+JOIN check: rank corr(arm yhat, deck rv_hat) on deck days 0.390
+P&L per premium, sum over deck days: mid +102.98 (month-ends -10.67, other +113.65); crossed +74.15 (month-ends -12.94, other +87.09); buy days 348 (month-ends 10 of 52)
+features: 244 in the design, 138 carry a nonzero weight on the deck days (the rest are constant or duplicated inside the window and are masked to weight 0)
+ridge penalty in force on deck days: 100 (154 days), 1000 (712 days)
+sd on deck days (forecast units): forecast 0.357, level 0.003; realized variance (target) 0.170; absolute return 0.111; 4th-power returns (tails) 0.066; signed return 0.065; VIX 0.038; VIX3M 0.037; ES volume 0.032; bipower variation 0.031; upside squared returns 0.028; return autocovariance 0.024; calendar flags 0.019; FOMC day flag 0.014; VVIX 0.013; cubed returns (skew) 0.013; 1 / days to next FOMC 0.007; 1 / days since last FOMC 0.005; ES prints per bar 0.003; FOMC statement flag 0.002
+bootstrap: circular moving blocks, block length ceil(n^(1/3)), B=2000, seed 20260924
+(b) all       pnl_mid    : intervals excluding 0 -- std weight 1/138, contribution 14/138 (chance ~7)
+(b) all       pnl_crossed: intervals excluding 0 -- std weight 0/138, contribution 16/138 (chance ~7)
+(b) month_end pnl_mid    : intervals excluding 0 -- std weight 4/138, contribution 13/138 (chance ~7)
+(b) month_end pnl_crossed: intervals excluding 0 -- std weight 4/138, contribution 16/138 (chance ~7)
+(b) other     pnl_mid    : intervals excluding 0 -- std weight 0/138, contribution 5/138 (chance ~7)
+(b) other     pnl_crossed: intervals excluding 0 -- std weight 0/138, contribution 7/138 (chance ~7)
+(d) var log(rv_hat/iv_var) 0.101 = var log rv_hat 0.967 + var log iv_var 1.086 - 2 cov 1.952; corr(log rv_hat, log iv_var) 0.952
+(d) log rv_hat = log baseline + rest: var 0.967 = 0.813 + 0.365 + 2 cov -0.211; rank corr(rest, arm yhat) 0.991
+(d) the decision changes on 330 of 865 consecutive deck-day pairs; on those, the forecast moved more than the implied on 134; var of the daily change: forecast 0.269, implied 0.348
