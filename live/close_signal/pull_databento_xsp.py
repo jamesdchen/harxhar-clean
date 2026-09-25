@@ -252,6 +252,17 @@ def main(argv: list[str] | None = None) -> int:
         "Databento API key (hidden): "
     )
     client = db.Historical(key)
+    # the dataset's available end: a request past it is a 422
+    # (data_end_after_available_end -- the same day before midnight UTC, 2026-09-25)
+    try:
+        avail_end = pd.Timestamp(
+            client.metadata.get_dataset_range(dataset=DATASET)["end"]
+        )
+        if avail_end.tzinfo is None:
+            avail_end = avail_end.tz_localize("UTC")
+    except Exception as e:  # noqa: BLE001 -- unknown: requests are not clipped
+        print(f"dataset range unavailable ({type(e).__name__}); requests not clipped")
+        avail_end = None
 
     if a.estimate:
         pick = days.iloc[np.linspace(0, len(days) - 1, a.sample).round().astype(int)]
@@ -286,9 +297,18 @@ def main(argv: list[str] | None = None) -> int:
             symbols=[parent],
             stype_in="parent",
             start=d0,
-            end=d0 + pd.Timedelta(days=1),
+            end=d0 + pd.Timedelta(days=1)
+            if avail_end is None
+            else min(d0 + pd.Timedelta(days=1), avail_end),
         )
-        c_def = float(client.metadata.get_cost(**kw_def))
+        try:
+            c_def = float(client.metadata.get_cost(**kw_def))
+        except Exception as e:  # noqa: BLE001 -- one day's refusal must not end the run
+            print(
+                f"{tag}: definitions cost refused ({type(e).__name__}: {str(e)[:120]}); skipped"
+            )
+            failed.append(tag)
+            continue
         if f_defs.exists():
             defs = pd.read_parquet(f_defs)
         else:
@@ -329,7 +349,20 @@ def main(argv: list[str] | None = None) -> int:
             start=lo,
             end=hi,
         )
-        c_q = float(client.metadata.get_cost(**kw_q)) if syms else 0.0
+        if avail_end is not None and hi > avail_end:
+            print(
+                f"{tag}: the quote window ends after the available data ({avail_end}); skipped"
+            )
+            failed.append(tag)
+            continue
+        try:
+            c_q = float(client.metadata.get_cost(**kw_q)) if syms else 0.0
+        except Exception as e:  # noqa: BLE001
+            print(
+                f"{tag}: quotes cost refused ({type(e).__name__}: {str(e)[:120]}); skipped"
+            )
+            failed.append(tag)
+            continue
         step = (
             float(np.min(np.diff(np.unique(near["strike_price"].astype(float)))))
             if len(near) > 2
