@@ -14,11 +14,21 @@ name: close-signal
 # 15:30:30 on the same day, up to --max-wait-min); session=YYYY-MM-DD replays a
 # past session at once, which is how to test off-hours.
 #
+# The dependable start: a claude.ai cloud routine sends a `close-signal`
+# repository_dispatch event at 12:30 / 13:30 / 14:30 ET (16:30 / 17:30 / 18:30
+# UTC) -- on 2026-09-25 none of the three crons below fired before 16:00 ET.
+# The routine's GitHub App token may not dispatch a workflow (403 on
+# workflow_dispatch, no Actions: write) but may send a repository dispatch
+# (Contents: write).  Such a run has no inputs, so it takes the defaults and
+# the guard, exactly like a scheduled one; the crons stay as a backup.
+#
 # GitHub runs scheduled and dispatched workflows only from the DEFAULT branch,
 # so this file is committed on main and checks out the branch that carries the
 # package (``code_ref``, default the research branch); the state commit is
 # pushed back to that branch.  When the branch is merged, set the default to main.
 on:
+  repository_dispatch:
+    types: [close-signal]
   schedule:
     - cron: "17 16 * * 1-5"
     - cron: "17 17 * * 1-5"
