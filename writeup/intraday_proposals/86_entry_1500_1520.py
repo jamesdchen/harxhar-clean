@@ -57,18 +57,51 @@ MULTIPLE TESTING.  tau - 15:30 per-day P&L: block-bootstrap one-sided p
 normal p; Holm over the 10 taus != 15:30 within each (model, price) family.
 Month-ends: one-sided paired-t p (df = n - 1), Holm over the 10 taus.
 
-SPX (SPXW, spread ~4x tighter) at 15:00 .. 15:20 is PENDING the SPXW
-15:00-15:21 pull: SPXW rows here are study 82's 15:25 .. 15:50 month-ends only.
+SPX (SPXW).  The SPXW 0DTE quotes are on disk for both windows
+(data/archive/spxw_opra/cbbo1m_<day>.parquet 15:20-16:16 and
+cbbo1m-1500-1521_<day>.parquet 15:00-15:21, 875-876 sessions 2023-03-28 ..
+2026-09-23, defs_<day>.parquet; SPX scale, OCC 'SPXW  YYMMDD...').  The SPXW
+book at every tau is built by the same books_for_day (nearest-OTM pair on the
+defs strikes around the SPXW book's parity spot); the card rule is the same
+card_rule with the SPXW book in place of the XSP one: the SAME forecasts (the
+variance forecast is scale-free), P* = package_price(sqrt(f), SPXW parity spot,
+kc, kp), payoff on the SPX close x 1, and the SAME sessions as the XSP run (the
+XSP run's day set; an SPXW day lacking a tau or a leg is reported, and the
+venue comparison then runs on the days both venues hold).  Month-ends on SPX:
+the unconditional long by tau on the XSP run's month-ends (and, for reference,
+on every SPXW month-end holding all 11 taus).  SPX - XSP per-day P&L by tau
+(same days; block bootstrap) says how the venues differ.
+
+SPX GATES (hard):
+  GS1520  the SPXW 15:20 book from the two windows: the raw 15:20:00 records
+          of every symbol both files hold carry the same BBO and sizes, and
+          the same pair on > 95 % of days (GB's criteria on SPXW).
+  GSC     the SPXW book clock (GC's criterion on SPXW).
+  GSX     the SPXW 15:30 ask vs data/spxw_chain.parquet (TRUE UTC -> ET;
+          study 84's chain_1530 read) on the overlap to 2025-12: the OPRA
+          15:30 package ask at the chain's pair equals the chain's to half a
+          cent on >= 99 % of days with a 15:30 book (study 84: 679 / 685) and
+          equals study 84's OPRA-at-chain-pair asks on every day study 84
+          holds (days pulled after study 84 are listed); where this
+          study's (defs, parity-spot) pair is the chain's pair, the book's
+          package ask equals the chain's on >= 99 % of them.
+  GX      the XSP rows reproduce the committed study 86 run (8bce3bc) exactly:
+          every XSP CSV byte-identical to ref_xsp_8bce3bc/, the forecasts /
+          per-day P&L parquet equal, the XSP rows of books_tau.parquet equal.
 
 OUTPUTS (results/atm_straddle_intraday_holdclose/proposals/86/):
   gate.json, gate_book_1520.csv, gate_records_1520.csv, leak_test.csv,
   gate_reproduction_82.csv (incl. forecasts_tau / per_day_pnl_tau parquet)
-  forecasts_tau.parquet, qlike_tau.csv, books_tau.parquet
+  forecasts_tau.parquet, qlike_tau.csv, books_tau.parquet (XSP + SPXW)
   per_day_pnl_tau.parquet/.csv, summary_tau.csv, bootstrap_tau.csv,
   month_end_tau.csv, spx_close_yf.csv (copy of study 82's cache), summary.txt
+  SPX: spx_summary_tau.csv, spx_bootstrap_tau.csv, spx_month_end_tau.csv,
+  spx_month_end_tau_all.csv, spx_per_day_pnl_tau.parquet, spx_minus_xsp_tau.csv,
+  spx_gate_book_1520.csv, spx_gate_records_1520.csv, spx_gate_chain_1530.csv,
+  gate_xsp_vs_committed.csv; ref_xsp_8bce3bc/ = the committed XSP outputs (GX)
 
     C:/Users/james/miniconda3/envs/285J/python.exe writeup/intraday_proposals/86_entry_1500_1520.py
-    (about 2 minutes; the option books run in a process pool, --workers 4)
+    (about 6 minutes; the option books run in a process pool, --workers 4)
 """
 
 from __future__ import annotations
@@ -105,6 +138,15 @@ def _load_s82():
 
 s82 = _load_s82()
 
+
+def _load_s84():
+    """Study 84's module (its chain_1530 read), loaded in the main process only."""
+    spec = importlib.util.spec_from_file_location("s84_limit_order_window", S84_SRC)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # type: ignore[union-attr]
+    return mod
+
+
 OUT = REPO / "results" / "atm_straddle_intraday_holdclose" / "proposals" / "86"
 OUT82 = REPO / "results" / "atm_straddle_intraday_holdclose" / "proposals" / "82"
 XSP_DIR = s82.XSP_DIR
@@ -118,6 +160,11 @@ REF_TAU = s82.REF_TAU
 RTH0, RTH1 = s82.RTH0, s82.RTH1
 BASE, FINE = s82.BASE, s82.FINE
 BOOK_COLS = ["S_book", "kc", "kp", "bid", "ask", "mid", "ask_size", "n_strikes_quoted"]
+S84_SRC = REPO / "writeup" / "intraday_proposals" / "84_limit_order_window.py"
+OUT84 = REPO / "results" / "atm_straddle_intraday_holdclose" / "proposals" / "84"
+REF_DIR = OUT / "ref_xsp_8bce3bc"  # the committed XSP run's outputs (gate GX)
+CHAIN_LAST = pd.Timestamp("2025-12-31")  # data/spxw_chain.parquet ends here
+HALF_CENT = 0.005
 
 _LOG: list[str] = []
 
@@ -203,6 +250,153 @@ def records_1520(args: tuple[str, str, str]) -> dict:
     }
 
 
+def chain_pair_1530(args: tuple[str, str, float, float]) -> dict:
+    """The OPRA 15:30 book's quotes on the SPXW chain's 15:30 pair (gate GSX; study 84's read)."""
+    qpath, day_s, ckc, ckp = args
+    s79 = s82._s79()
+    q = s79.load_quotes(Path(qpath))
+    b = s79.book_at(q, pd.Timestamp(day_s), f"{REF_TAU}:00")
+    stamp = b["t"].max() if len(b) else pd.NaT
+    ac = s79.quote(b, ckc, "C")[1] if len(b) else np.nan
+    ap = s79.quote(b, ckp, "P")[1] if len(b) else np.nan
+    return {
+        "day": pd.Timestamp(day_s),
+        "stamp_1530": bool(stamp == pd.Timestamp(f"{day_s} {REF_TAU}:00")),
+        "opra_ask_c_at_chain_pair": ac,
+        "opra_ask_p_at_chain_pair": ap,
+    }
+
+
+def book_gate_rows(
+    allb: pd.DataFrame, venue: str
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """GB's per-day table: one venue's 15:20 book from the old and the new window."""
+    sel = (allb.venue == venue) & (allb.tau == GATE_TAU)
+    o20 = allb[sel & (allb.src == "w1520")].set_index("day")
+    n20 = allb[sel & (allb.src == "w1500")].set_index("day")
+    both = o20.index.intersection(n20.index)
+    gb_rows = pd.DataFrame(index=both)
+    for c in BOOK_COLS:
+        x, y = o20.loc[both, c].astype(float), n20.loc[both, c].astype(float)
+        gb_rows[f"{c}_old"] = x
+        gb_rows[f"{c}_new"] = y
+        gb_rows[f"{c}_same"] = (x == y) | (x.isna() & y.isna())
+    gb_rows["all_same"] = gb_rows[[f"{c}_same" for c in BOOK_COLS]].all(1)
+    gb_rows.index.name = "day"
+    return o20, n20, gb_rows
+
+
+def book_gate_summary(
+    rec: pd.DataFrame, o20: pd.DataFrame, n20: pd.DataFrame, gb_rows: pd.DataFrame
+) -> dict[str, Any]:
+    """GB's summary of book_gate_rows and the 15:20:00 record comparison."""
+    pair_same = gb_rows["kc_same"] & gb_rows["kp_same"]
+    ask_diff = (gb_rows["ask_new"] - gb_rows["ask_old"]).abs()
+    gb: dict[str, Any] = {
+        "records_1520": {
+            "days": int(len(rec)),
+            "symbols_both_total": int(rec["symbols_both"].sum()),
+            "symbols_both_quote_differs_total": int(
+                rec["symbols_both_quote_differs"].sum()
+            ),
+            "days_symbol_set_differs": int(
+                (
+                    (rec["symbols_both"] != rec["symbols_old"])
+                    | (rec["symbols_both"] != rec["symbols_new"])
+                ).sum()
+            ),
+            "days_file_symbol_count_differs": int(
+                (rec["symbols_file_old"] != rec["symbols_file_new"]).sum()
+            ),
+        },
+        "days_old_1520": int(len(o20)),
+        "days_new_1520": int(len(n20)),
+        "days_both": int(len(gb_rows)),
+        "days_only_new": [str(d.date()) for d in n20.index.difference(o20.index)],
+        "days_only_old": [str(d.date()) for d in o20.index.difference(n20.index)],
+        "days_all_fields_identical": int(gb_rows["all_same"].sum()),
+        "days_same_pair": int(pair_same.sum()),
+        "days_same_bid_ask": int((gb_rows["bid_same"] & gb_rows["ask_same"]).sum()),
+        "max_abs_ask_diff_same_pair": float(ask_diff[pair_same].max()),
+        "max_rel_spot_diff": float(
+            (gb_rows["S_book_new"] / gb_rows["S_book_old"] - 1).abs().max()
+        ),
+        "fields_differing_count": {
+            c: int((~gb_rows[f"{c}_same"]).sum()) for c in BOOK_COLS
+        },
+    }
+    bad = ~gb_rows[["S_book_same", "kc_same", "kp_same", "bid_same", "ask_same"]].all(1)
+    gb["book_differs_days"] = (
+        gb_rows.loc[
+            bad,
+            [
+                "S_book_old",
+                "S_book_new",
+                "kc_old",
+                "kc_new",
+                "kp_old",
+                "kp_new",
+                "ask_old",
+                "ask_new",
+            ],
+        ]
+        .reset_index()
+        .astype(str)
+        .to_dict("records")
+    )
+    gb["pair_same_share"] = float(pair_same.mean())
+    return gb
+
+
+def clock_gate(books: pd.DataFrame, Rm: pd.DataFrame, venue: str) -> dict[str, Any]:
+    """GC: the new window's parity-spot move tau -> 15:30 vs the ES move, shifts -2 .. +2."""
+    xs = books[books.venue == venue].pivot(index="day", columns="tau", values="S_book")
+    gc_rows: list[dict[str, Any]] = []
+    for tau in TAUS_NEW:
+        m = minute(tau)
+        lo_, hi_ = sorted((930, m))
+        bk_move = np.log(xs[tau] / xs[REF_TAU])
+        med: dict[int, float] = {}
+        z0: pd.DataFrame | None = None
+        for sh in (-2, -1, 0, 1, 2):
+            es_s = Rm.loc[:, lo_ + sh : hi_ - 1 + sh].sum(1) * (1 if m > 930 else -1)
+            z = pd.concat([es_s, bk_move], axis=1, join="inner").dropna()
+            z.columns = ["es", "book"]
+            med[sh] = float((z.es - z.book).abs().median() * 1e4)
+            if sh == 0:
+                z0 = z
+        assert z0 is not None  # the shift-0 frame
+        best = min(med, key=lambda k_: med[k_])
+        gc_rows.append(
+            {
+                "tau": tau,
+                "days": len(z0),
+                "pearson": float(z0.corr().iloc[0, 1]),
+                "spearman": float(z0.corr("spearman").iloc[0, 1]),
+                "median_abs_diff_bp_by_shift": med,
+                "best_shift": best,
+            }
+        )
+    return {
+        "rows": gc_rows,
+        "passed": bool(
+            all(r["best_shift"] == 0 for r in gc_rows)
+            and max(r["median_abs_diff_bp_by_shift"][0] for r in gc_rows) < 1.0
+        ),
+    }
+
+
+def same_bytes(a: Path, b: Path) -> bool:
+    return a.exists() and b.exists() and a.read_bytes() == b.read_bytes()
+
+
+def frame_equal(mine: pd.DataFrame, ref: pd.DataFrame, keys: list[str]) -> bool:
+    """Exact equality (values, NaN pattern, dtypes) after sorting on the keys."""
+    m = mine.sort_values(keys).reset_index(drop=True)
+    r = ref.sort_values(keys).reset_index(drop=True)
+    return bool(list(m.columns) == list(r.columns) and m.equals(r))
+
+
 def spx_closes() -> pd.Series:
     """Study 82's ^GSPC cache, read only (copied into this study's folder)."""
     c = pd.read_csv(OUT82 / "spx_close_yf.csv", index_col=0, parse_dates=True)["close"]
@@ -236,8 +430,16 @@ def card_rule(
     closes: pd.Series,
     taus: tuple[str, ...],
     venues: tuple[str, ...],
+    rule_venue: str = "XSP",
+    day_set: pd.DatetimeIndex | None = None,
+    me_day_set: pd.DatetimeIndex | None = None,
 ) -> dict[str, pd.DataFrame]:
-    """study 82's (b) trading block with taus / month-end venues as arguments."""
+    """study 82's (b) trading block with taus / month-end venues as arguments.
+
+    ``rule_venue`` is the book the card trades (XSP as in study 82; SPXW for the
+    SPX section); ``day_set`` / ``me_day_set`` restrict the rule's days / the
+    month-ends to a given set (the XSP run's, so SPX runs on the same sessions).
+    """
     books = books_in.copy()
     books["close"] = closes.reindex(books["day"]).to_numpy()
     sc = np.where(books["venue"] == "XSP", s82.XSP_SCALE, 1.0)
@@ -248,7 +450,7 @@ def card_rule(
     books["R_mid"] = books["payoff"] / books["mid"] - 1
     books["rel_spread"] = (books["ask"] - books["bid"]) / books["mid"]
     books["month_end"] = [is_last_session_of_month(d.date()) for d in books["day"]]
-    xb = books[books.venue == "XSP"]
+    xb = books[books.venue == rule_venue]
     pnl = ftab.merge(xb, on=["day", "tau"], how="inner").dropna(
         subset=["f", "ask", "payoff"]
     )
@@ -265,6 +467,8 @@ def card_rule(
     full = cnt.index[cnt == 2 * len(taus)]
     dropped_days = int(len(cnt) - len(full))
     pnl = pnl[pnl.day.isin(full)]
+    if day_set is not None:
+        pnl = pnl[pnl.day.isin(day_set)]
     nm = pnl[~pnl.month_end]
     sb = []
     for (mdl, tau), g in nm.groupby(["model", "tau"]):
@@ -325,11 +529,15 @@ def card_rule(
             for _, idx in bb.groupby(["model", "stat"]).groups.items():
                 bb.loc[idx, c.replace("p_", "holm_")] = holm(bb.loc[idx, c].to_numpy())
     me_rows = []
+    me_long = []
     for venue in venues:
         g = books[(books.venue == venue) & books.month_end].dropna(subset=["R_ask"])
         g = g[g.ask > 0]
         cnt_ = g.groupby("day").size()
         g = g[g.day.isin(cnt_.index[cnt_ == len(taus)])]
+        if me_day_set is not None:
+            g = g[g.day.isin(me_day_set)]
+        me_long.append(g[["day", "venue", "tau", "R_ask", "R_mid", "rel_spread"]])
         wR = g.pivot(index="day", columns="tau", values="R_ask")
         for tau, h in g.groupby("tau"):
             s_ = s82.stats(h["R_ask"])
@@ -369,6 +577,7 @@ def card_rule(
         "bb": bb,
         "me": me_t,
         "n_days_nm": pd.DataFrame({"n": [nm.day.nunique()], "dropped": [dropped_days]}),
+        "me_long": pd.concat(me_long, ignore_index=True) if me_long else pd.DataFrame(),
     }
 
 
@@ -630,119 +839,101 @@ def main(argv: list[str] | None = None) -> int:
     log("\nQLIKE of the tau->16:00 RV forecast, T0 vs T1 (+FINE):")
     log(qb.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
 
-    # ---- option books: old window (study 82's taus + 15:20), new window (15:00 .. 15:20)
+    # ---- option books: old window (study 82's taus + 15:20), new window (15:00 .. 15:20),
+    # both venues; the SPXW chain's 15:30 pair (gate GSX) read first, in the main process
+    s84 = _load_s84()
+    spx_days = pd.DatetimeIndex(
+        sorted(
+            pd.Timestamp(qp.stem.split("_")[1])
+            for qp in SPXW_DIR.glob("cbbo1m_*.parquet")
+        )
+    )
+    t_c = time.time()
+    ch = s84.chain_1530(spx_days.min(), min(spx_days.max(), CHAIN_LAST))
+    ch = ch[ch.index.isin(spx_days)]
+    log(
+        f"SPXW chain 15:30 pairs (study 84's chain_1530, TRUE UTC -> ET): {len(ch)} days "
+        f"{ch.index.min().date()} .. {ch.index.max().date()} in {time.time() - t_c:.0f}s"
+    )
     jobs = []
     for venue, d_ in (("XSP", XSP_DIR), ("SPXW", SPXW_DIR)):
         for qp in sorted(d_.glob("cbbo1m_*.parquet")):
             ds = qp.stem.split("_")[1]
             dp = d_ / f"defs_{ds}.parquet"
             if dp.exists():
-                taus_old = ((GATE_TAU,) if venue == "XSP" else ()) + TAUS82
-                jobs.append((str(qp), str(dp), ds, venue, "w1520", taus_old))
+                jobs.append(
+                    (str(qp), str(dp), ds, venue, "w1520", (GATE_TAU,) + TAUS82)
+                )
     n_old = len(jobs)
-    for qp in sorted(XSP_DIR.glob(f"{NEW_PREFIX}*.parquet")):
-        ds = qp.stem[len(NEW_PREFIX) :]
-        dp = XSP_DIR / f"defs_{ds}.parquet"
-        if dp.exists():
-            jobs.append((str(qp), str(dp), ds, "XSP", "w1500", TAUS_NEW))
+    for venue, d_ in (("XSP", XSP_DIR), ("SPXW", SPXW_DIR)):
+        for qp in sorted(d_.glob(f"{NEW_PREFIX}*.parquet")):
+            ds = qp.stem[len(NEW_PREFIX) :]
+            dp = d_ / f"defs_{ds}.parquet"
+            if dp.exists():
+                jobs.append((str(qp), str(dp), ds, venue, "w1500", TAUS_NEW))
     t_b = time.time()
-    rec_jobs = []
-    for qp in sorted(XSP_DIR.glob("cbbo1m_*.parquet")):
-        ds = qp.stem.split("_")[1]
-        npth = XSP_DIR / f"{NEW_PREFIX}{ds}.parquet"
-        if npth.exists():
-            rec_jobs.append((str(qp), str(npth), ds))
+    rec_jobs: dict[str, list[tuple[str, str, str]]] = {"XSP": [], "SPXW": []}
+    for venue, d_ in (("XSP", XSP_DIR), ("SPXW", SPXW_DIR)):
+        for qp in sorted(d_.glob("cbbo1m_*.parquet")):
+            ds = qp.stem.split("_")[1]
+            npth = d_ / f"{NEW_PREFIX}{ds}.parquet"
+            if npth.exists():
+                rec_jobs[venue].append((str(qp), str(npth), ds))
+    ch_jobs = [
+        (
+            str(SPXW_DIR / f"cbbo1m_{d:%Y-%m-%d}.parquet"),
+            f"{d:%Y-%m-%d}",
+            float(r.chain_kc),
+            float(r.chain_kp),
+        )
+        for d, r in ch.iterrows()
+    ]
     with ProcessPoolExecutor(max_workers=a.workers) as ex:
         res = list(ex.map(books_for_day, jobs, chunksize=8))
-        rec = pd.DataFrame(list(ex.map(records_1520, rec_jobs, chunksize=8)))
+        rec = pd.DataFrame(list(ex.map(records_1520, rec_jobs["XSP"], chunksize=8)))
+        rec_s = pd.DataFrame(list(ex.map(records_1520, rec_jobs["SPXW"], chunksize=8)))
+        chq = pd.DataFrame(list(ex.map(chain_pair_1530, ch_jobs, chunksize=8)))
     rec.to_csv(OUT / "gate_records_1520.csv", index=False)
+    rec_s.to_csv(OUT / "spx_gate_records_1520.csv", index=False)
     allb = pd.DataFrame([r for rr in res for r in rr])
     del res
+    by_vw = allb.groupby(["venue", "src"]).day.nunique()
     log(
         f"books: {n_old} old-window + {len(jobs) - n_old} new-window day files -> "
         f"{len(allb)} (day, tau) rows in {time.time() - t_b:.0f}s; book lag > 0 s on "
-        f"{int((allb.book_lag_s > 0).sum())} rows"
+        f"{int((allb.book_lag_s > 0).sum())} rows; days by venue/window "
+        + json.dumps({f"{v}/{w}": int(n) for (v, w), n in by_vw.items()})
     )
 
     # ---- GB: 15:20 in both windows; the old window's books == study 82's
-    o20 = allb[(allb.src == "w1520") & (allb.tau == GATE_TAU)].set_index("day")
-    n20 = allb[(allb.src == "w1500") & (allb.tau == GATE_TAU)].set_index("day")
-    both = o20.index.intersection(n20.index)
-    cmpc = ["S_book", "kc", "kp", "bid", "ask", "mid", "ask_size", "n_strikes_quoted"]
-    gb_rows = pd.DataFrame(index=both)
-    for c in cmpc:
-        x, y = o20.loc[both, c].astype(float), n20.loc[both, c].astype(float)
-        gb_rows[f"{c}_old"] = x
-        gb_rows[f"{c}_new"] = y
-        gb_rows[f"{c}_same"] = (x == y) | (x.isna() & y.isna())
-    gb_rows["all_same"] = gb_rows[[f"{c}_same" for c in cmpc]].all(1)
-    gb_rows.index.name = "day"
+    o20, n20, gb_rows = book_gate_rows(allb, "XSP")
     gb_rows.to_csv(OUT / "gate_book_1520.csv", float_format="%.10g")
-    pair_same = gb_rows["kc_same"] & gb_rows["kp_same"]
-    ask_diff = (gb_rows["ask_new"] - gb_rows["ask_old"]).abs()
     b82 = pd.read_parquet(OUT82 / "books_tau.parquet")
     mine82 = allb[(allb.src == "w1520") & allb.tau.isin(TAUS82)].drop(columns="src")
     rep82 = compare(mine82, b82, ["day", "venue", "tau"], "books_tau_82")
-    gb: dict[str, Any] = {
-        "records_1520": {
-            "days": int(len(rec)),
-            "symbols_both_total": int(rec["symbols_both"].sum()),
-            "symbols_both_quote_differs_total": int(
-                rec["symbols_both_quote_differs"].sum()
-            ),
-            "days_symbol_set_differs": int(
-                (
-                    (rec["symbols_both"] != rec["symbols_old"])
-                    | (rec["symbols_both"] != rec["symbols_new"])
-                ).sum()
-            ),
-            "days_file_symbol_count_differs": int(
-                (rec["symbols_file_old"] != rec["symbols_file_new"]).sum()
-            ),
-        },
-        "days_old_1520": int(len(o20)),
-        "days_new_1520": int(len(n20)),
-        "days_both": int(len(both)),
-        "days_only_new": [str(d.date()) for d in n20.index.difference(o20.index)],
-        "days_only_old": [str(d.date()) for d in o20.index.difference(n20.index)],
-        "days_all_fields_identical": int(gb_rows["all_same"].sum()),
-        "days_same_pair": int(pair_same.sum()),
-        "days_same_bid_ask": int((gb_rows["bid_same"] & gb_rows["ask_same"]).sum()),
-        "max_abs_ask_diff_same_pair": float(ask_diff[pair_same].max()),
-        "max_rel_spot_diff": float(
-            (gb_rows["S_book_new"] / gb_rows["S_book_old"] - 1).abs().max()
-        ),
-        "fields_differing_count": {c: int((~gb_rows[f"{c}_same"]).sum()) for c in cmpc},
-        "old_window_books_vs_study82": rep82,
-    }
-    bad = ~gb_rows[["S_book_same", "kc_same", "kp_same", "bid_same", "ask_same"]].all(1)
-    gb["book_differs_days"] = (
-        gb_rows.loc[
-            bad,
-            [
-                "S_book_old",
-                "S_book_new",
-                "kc_old",
-                "kc_new",
-                "kp_old",
-                "kp_new",
-                "ask_old",
-                "ask_new",
-            ],
-        ]
-        .reset_index()
-        .astype(str)
-        .to_dict("records")
-    )
+    gb = book_gate_summary(rec, o20, n20, gb_rows)
+    gb["old_window_books_vs_study82"] = rep82
     gb["passed"] = bool(
         rep82["exact"]
         and gb["records_1520"]["symbols_both_quote_differs_total"] == 0
-        and pair_same.mean() > 0.95
+        and gb["pair_same_share"] > 0.95
     )
     gate["GB_books"] = gb
     log("GB " + json.dumps(gb, default=str))
     if not gb["passed"]:
         return stop("GB")
+    # ---- GS1520: the same on SPXW
+    o20s, n20s, gb_rows_s = book_gate_rows(allb, "SPXW")
+    gb_rows_s.to_csv(OUT / "spx_gate_book_1520.csv", float_format="%.10g")
+    gbs = book_gate_summary(rec_s, o20s, n20s, gb_rows_s)
+    gbs["passed"] = bool(
+        gbs["records_1520"]["symbols_both_quote_differs_total"] == 0
+        and gbs["pair_same_share"] > 0.95
+    )
+    gate["GS1520_spxw_books"] = gbs
+    log("GS1520 (SPXW) " + json.dumps(gbs, default=str))
+    if not gbs["passed"]:
+        return stop("GS1520")
     books = pd.concat(
         [
             allb[allb.src == "w1500"],
@@ -754,48 +945,102 @@ def main(argv: list[str] | None = None) -> int:
     del allb
     closes = spx_closes()
 
-    # ---- GC: the new books' clock (study 82's G5 criterion, tau < 15:30)
-    xs = books[books.venue == "XSP"].pivot(index="day", columns="tau", values="S_book")
+    # ---- GC: the new books' clock (study 82's G5 criterion, tau < 15:30); GSC on SPXW
     Rm = pd.DataFrame(
         np.nan_to_num(mm["R"]), index=mm["days"], columns=np.arange(RTH0, RTH1)
     )
-    gc_rows: list[dict[str, Any]] = []
-    for tau in TAUS_NEW:
-        m = minute(tau)
-        lo_, hi_ = sorted((930, m))
-        bk_move = np.log(xs[tau] / xs[REF_TAU])
-        med: dict[int, float] = {}
-        z0: pd.DataFrame | None = None
-        for sh in (-2, -1, 0, 1, 2):
-            es_s = Rm.loc[:, lo_ + sh : hi_ - 1 + sh].sum(1) * (1 if m > 930 else -1)
-            z = pd.concat([es_s, bk_move], axis=1, join="inner").dropna()
-            z.columns = ["es", "book"]
-            med[sh] = float((z.es - z.book).abs().median() * 1e4)
-            if sh == 0:
-                z0 = z
-        assert z0 is not None  # the shift-0 frame
-        best = min(med, key=lambda k_: med[k_])
-        gc_rows.append(
-            {
-                "tau": tau,
-                "days": len(z0),
-                "pearson": float(z0.corr().iloc[0, 1]),
-                "spearman": float(z0.corr("spearman").iloc[0, 1]),
-                "median_abs_diff_bp_by_shift": med,
-                "best_shift": best,
-            }
-        )
-    gate["GC_new_book_clock"] = {
-        "rows": gc_rows,
-        "passed": bool(
-            all(r["best_shift"] == 0 for r in gc_rows)
-            and max(r["median_abs_diff_bp_by_shift"][0] for r in gc_rows) < 1.0
-        ),
-    }
+    gate["GC_new_book_clock"] = clock_gate(books, Rm, "XSP")
     log("GC " + json.dumps(gate["GC_new_book_clock"], default=str))
     if not gate["GC_new_book_clock"]["passed"]:
         return stop("GC")
+    gate["GSC_spxw_book_clock"] = clock_gate(books, Rm, "SPXW")
+    log("GSC (SPXW) " + json.dumps(gate["GSC_spxw_book_clock"], default=str))
+    if not gate["GSC_spxw_book_clock"]["passed"]:
+        return stop("GSC")
     del Rm, mm
+
+    # ---- GSX: the SPXW 15:30 ask vs data/spxw_chain.parquet on the overlap to 2025-12
+    s30 = books[(books.venue == "SPXW") & (books.tau == REF_TAU)].set_index("day")
+    z = ch.join(chq.set_index("day"), how="left").join(
+        s30[["S_book", "kc", "kp", "bid", "ask", "book_lag_s"]], how="left"
+    )
+    z["chain_ask"] = z.chain_ask_c + z.chain_ask_p
+    z["opra_ask_at_chain_pair"] = (
+        z.opra_ask_c_at_chain_pair + z.opra_ask_p_at_chain_pair
+    )
+    z["pkg_diff"] = (z.opra_ask_at_chain_pair - z.chain_ask).abs()
+    z["legs_equal"] = (
+        (z.opra_ask_c_at_chain_pair - z.chain_ask_c).abs() <= HALF_CENT
+    ) & ((z.opra_ask_p_at_chain_pair - z.chain_ask_p).abs() <= HALF_CENT)
+    z["has_book"] = z.stamp_1530.eq(True) & z.ask.notna()
+    z["pair_same"] = (z.kc == z.chain_kc) & (z.kp == z.chain_kp)
+    z["book_ask_diff"] = (z.ask - z.chain_ask).abs()
+    z.index.name = "day"
+    z.to_csv(OUT / "spx_gate_chain_1530.csv", float_format="%.10g")
+    zb = z[z.has_book]
+    zp = zb[zb.pair_same]
+    d84 = pd.read_csv(OUT84 / "spx_depth_1530.csv", index_col=0, parse_dates=True)
+    j84 = zb.join(
+        d84[["opra_ask_c_at_chain_pair", "opra_ask_p_at_chain_pair"]],
+        rsuffix="_84",
+        how="inner",
+    )
+    d84_have = d84.index[
+        d84.opra_ask_c_at_chain_pair.notna() & d84.opra_ask_p_at_chain_pair.notna()
+    ]
+    d84_diff = float(
+        np.nanmax(
+            np.abs(
+                np.r_[
+                    j84.opra_ask_c_at_chain_pair - j84.opra_ask_c_at_chain_pair_84,
+                    j84.opra_ask_p_at_chain_pair - j84.opra_ask_p_at_chain_pair_84,
+                ]
+            )
+        )
+    )
+    gsx: dict[str, Any] = {
+        "overlap_days_chain": int(len(z)),
+        "first": str(z.index.min().date()),
+        "last": str(z.index.max().date()),
+        "days_with_opra_1530_book": int(len(zb)),
+        "days_without_book": [str(d.date()) for d in z.index[~z.has_book]],
+        "pkg_ask_at_chain_pair_equal_half_cent": int((zb.pkg_diff <= HALF_CENT).sum()),
+        "pkg_ask_at_chain_pair_equal_share": float((zb.pkg_diff <= HALF_CENT).mean()),
+        "both_legs_equal": int(zb.legs_equal.sum()),
+        "pkg_rel_diff_median": float(np.nanmedian(zb.pkg_diff / zb.chain_ask)),
+        "pkg_rel_diff_max": float(np.nanmax(zb.pkg_diff / zb.chain_ask)),
+        "mismatch_days": [
+            f"{d.date()} (OPRA {r.opra_ask_c_at_chain_pair:.2f}+"
+            f"{r.opra_ask_p_at_chain_pair:.2f} vs chain {r.chain_ask_c:.2f}+"
+            f"{r.chain_ask_p:.2f})"
+            for d, r in zb[zb.pkg_diff > HALF_CENT].iterrows()
+        ],
+        "vs_study84_days": int(len(j84)),
+        "study84_days_not_reproduced": [
+            str(d.date()) for d in d84_have.difference(zb.index)
+        ],
+        "days_not_in_study84": [str(d.date()) for d in zb.index.difference(d84.index)],
+        "vs_study84_max_abs_leg_diff": d84_diff,
+        "book_pair_is_chain_pair": int(len(zp)),
+        "book_pkg_ask_equal_on_chain_pair_days": int(
+            (zp.book_ask_diff <= HALF_CENT).sum()
+        ),
+        "book_pkg_ask_equal_share": float((zp.book_ask_diff <= HALF_CENT).mean()),
+        "parity_spot_vs_chain_spot_median_rel": float(
+            np.nanmedian(np.abs(zb.S_book / zb.chain_S - 1))
+        ),
+    }
+    gsx["passed"] = bool(
+        gsx["pkg_ask_at_chain_pair_equal_share"] >= 0.99
+        and gsx["book_pkg_ask_equal_share"] >= 0.99
+        and len(d84_have.difference(zb.index)) == 0
+        and d84_diff <= 1e-9
+    )
+    gate["GSX_spxw_1530_vs_chain"] = gsx
+    log("GSX (SPXW 15:30 vs data/spxw_chain.parquet) " + json.dumps(gsx, default=str))
+    if not gsx["passed"]:
+        return stop("GSX")
+    del ch, chq, z
 
     # ---- GR: reproduction of study 82 (its taus, its books, its venues)
     rr = card_rule(
@@ -933,7 +1178,246 @@ def main(argv: list[str] | None = None) -> int:
         "month_end_min_holm_paired_1s": float(me_t["holm_paired_1s"].min()),
     }
     log("holm " + json.dumps(gate["holm"]))
-    gate["spxw_new_taus"] = "PENDING: no SPXW 15:00-15:21 quotes on disk"
+    # ---- GX: the XSP rows == the committed study 86 run (ref_xsp_8bce3bc/)
+    gx_rows: list[dict[str, Any]] = []
+    for name in (
+        "summary_tau.csv",
+        "bootstrap_tau.csv",
+        "month_end_tau.csv",
+        "qlike_tau.csv",
+        "leak_test.csv",
+        "gate_book_1520.csv",
+        "gate_records_1520.csv",
+        "gate_reproduction_82.csv",
+    ):
+        gx_rows.append(
+            {
+                "file": name,
+                "check": "bytes",
+                "exact": same_bytes(OUT / name, REF_DIR / name),
+            }
+        )
+    for name, keys in (
+        ("forecasts_tau.parquet", ["day", "tau", "model"]),
+        ("per_day_pnl_tau.parquet", ["day", "tau", "model"]),
+    ):
+        ok_ = (REF_DIR / name).exists() and frame_equal(
+            pd.read_parquet(OUT / name), pd.read_parquet(REF_DIR / name), keys
+        )
+        gx_rows.append({"file": name, "check": "frame", "exact": bool(ok_)})
+    bk_ref = pd.read_parquet(REF_DIR / "books_tau.parquet")
+    bkeys = ["day", "venue", "tau"]
+    gx_rows.append(
+        {
+            "file": "books_tau.parquet [XSP rows]",
+            "check": "frame",
+            "exact": frame_equal(
+                books[books.venue == "XSP"], bk_ref[bk_ref.venue == "XSP"], bkeys
+            ),
+        }
+    )
+    # info: the committed run's SPXW rows (15:25 .. 15:50, the files on disk then)
+    rs = bk_ref[bk_ref.venue == "SPXW"].merge(
+        books[books.venue == "SPXW"], on=bkeys, how="left", suffixes=("_ref", "")
+    )
+    same_s = np.ones(len(rs), bool)
+    for c in BOOK_COLS:
+        x_, y_ = rs[f"{c}_ref"].astype(float), rs[c].astype(float)
+        same_s &= ((x_ == y_) | (x_.isna() & y_.isna())).to_numpy()
+    gx = pd.DataFrame(gx_rows)
+    gx.to_csv(OUT / "gate_xsp_vs_committed.csv", index=False)
+    gate["GX_xsp_vs_committed"] = {
+        "tables": gx_rows,
+        "committed_spxw_rows_1525_1550": int(len(rs)),
+        "committed_spxw_rows_reproduced": int(same_s.sum()),
+        "passed": bool(gx["exact"].all()),
+    }
+    log(
+        "\nGX the XSP rows vs the committed run (ref_xsp_8bce3bc/):\n"
+        + gx.to_string(index=False)
+    )
+    log(
+        f"  (info) the committed run's SPXW book rows at 15:25 .. 15:50: {len(rs)}, "
+        f"reproduced {int(same_s.sum())}"
+    )
+    if not gate["GX_xsp_vs_committed"]["passed"]:
+        return stop("GX")
+
+    # ---- SPX (SPXW): the card rule on the SPXW book, the same forecasts, the XSP run's days
+    xsp_days = pd.DatetimeIndex(pnl.day.unique()).sort_values()
+    xsp_me_days = pd.DatetimeIndex(ex_["me_long"].day.unique()).sort_values()
+    sp_own = card_rule(ftab, books, closes, TAUS, ("SPXW",), rule_venue="SPXW")
+    sp = card_rule(
+        ftab,
+        books,
+        closes,
+        TAUS,
+        ("SPXW",),
+        rule_venue="SPXW",
+        day_set=xsp_days,
+        me_day_set=xsp_me_days,
+    )
+    spnl = sp["pnl"]
+    x_nm = pd.DatetimeIndex(nm.day.unique())
+    s_nm = pd.DatetimeIndex(spnl.loc[~spnl.month_end, "day"].unique())
+    own_nm = pd.DatetimeIndex(
+        sp_own["pnl"].loc[~sp_own["pnl"].month_end, "day"].unique()
+    )
+    s_me = pd.DatetimeIndex(sp["me_long"].day.unique())
+    dayset = {
+        "xsp_nonmonthend_days": int(len(x_nm)),
+        "spx_nonmonthend_days_on_xsp_set": int(len(s_nm)),
+        "xsp_days_missing_on_spx": [str(d.date()) for d in x_nm.difference(s_nm)],
+        "spx_own_full_nonmonthend_days": int(len(own_nm)),
+        "spx_own_days_dropped_missing_a_tau": int(
+            sp_own["n_days_nm"]["dropped"].iloc[0]
+        ),
+        "spx_own_days_not_in_xsp_set": int(len(own_nm.difference(x_nm))),
+        "xsp_month_ends": int(len(xsp_me_days)),
+        "spx_month_ends_on_xsp_set": int(len(s_me)),
+        "spx_month_ends_all_11_taus": int(sp_own["me_long"].day.nunique()),
+    }
+    gate["SPX_day_set"] = dayset
+    log("\nSPX day set " + json.dumps(dayset))
+    # the XSP comparison book on the days both venues hold (== the XSP run when SPX has them all)
+    if len(s_nm) == len(x_nm) and len(s_me) == len(xsp_me_days):
+        xl = ex_
+    else:
+        xl = card_rule(
+            ftab,
+            books,
+            closes,
+            TAUS,
+            ("XSP",),
+            day_set=pd.DatetimeIndex(spnl.day.unique()),
+            me_day_set=s_me,
+        )
+        xl["sb"].to_csv(OUT / "xsp_on_spx_days_summary_tau.csv", index=False)
+    spnl.to_parquet(OUT / "spx_per_day_pnl_tau.parquet", index=False)
+    ssb = sp["sb"].merge(qb[["tau", "qlike_T0", "qlike_T1"]], on="tau", how="left")
+    ssb.to_csv(OUT / "spx_summary_tau.csv", index=False)
+    sbb = sp["bb"]
+    sbb.to_csv(OUT / "spx_bootstrap_tau.csv", index=False)
+    # month-ends on SPX, with SPX - XSP on the same month-ends
+    sme = sp["me"].copy()
+    wS = sp["me_long"].pivot(index="day", columns="tau", values="R_ask")
+    wX = xl["me_long"].pivot(index="day", columns="tau", values="R_ask")
+    vx = []
+    for tau in sme["tau"]:
+        dv = (wS[tau] - wX[tau].reindex(wS.index)).dropna()
+        tv = float(dv.mean() / (dv.std(ddof=1) / np.sqrt(len(dv))))
+        vx.append(
+            {
+                "tau": tau,
+                "xsp_mean_R_ask": float(wX[tau].reindex(dv.index).mean()),
+                "spx_minus_xsp_R_ask": float(dv.mean()),
+                "spx_minus_xsp_paired_t": tv,
+            }
+        )
+    sme = sme.merge(pd.DataFrame(vx), on="tau", how="left")
+    sme.to_csv(OUT / "spx_month_end_tau.csv", index=False)
+    sp_own["me"].to_csv(OUT / "spx_month_end_tau_all.csv", index=False)
+    # SPX - XSP per-day P&L by tau, non-month-end, same days (block bootstrap 20 sessions)
+    xp = xl["pnl"][~xl["pnl"].month_end]
+    sq = spnl[~spnl.month_end]
+    vd = []
+    for (mdl, tau), gx_ in xp.groupby(["model", "tau"]):
+        xg = gx_.set_index("day").sort_index()
+        sg = sq[(sq.model == mdl) & (sq.tau == tau)].set_index("day").reindex(xg.index)
+        for col, tr in (("pnl_ask", "trade_ask"), ("pnl_mid", "trade_mid")):
+            d = (sg[col] - xg[col]).to_numpy(float)
+            lo, hi, _ = s82.boot_ci(d)
+            t_nw = s82.nw_t(d)
+            vd.append(
+                {
+                    "model": mdl,
+                    "tau": tau,
+                    "stat": col,
+                    "days": int(len(d)),
+                    "spx": float(sg[col].mean()),
+                    "xsp": float(xg[col].mean()),
+                    "spx_minus_xsp": float(d.mean()),
+                    "ci_lo": lo,
+                    "ci_hi": hi,
+                    "t_nw5": t_nw,
+                    "p_nw_2s": float(2 * sst.norm.sf(abs(t_nw))),
+                    "traded_spx": int(sg[tr].sum()),
+                    "traded_xsp": int(xg[tr].sum()),
+                    "traded_both": int(
+                        (sg[tr].astype(bool) & xg[tr].astype(bool)).sum()
+                    ),
+                    "rel_spread_median_spx": float(sg["rel_spread"].median()),
+                    "rel_spread_median_xsp": float(xg["rel_spread"].median()),
+                }
+            )
+    vd = pd.DataFrame(vd)
+    vd.to_csv(OUT / "spx_minus_xsp_tau.csv", index=False)
+    log(
+        f"\ncard rule on SPX (SPXW book, the same forecasts), non-month-end, {len(s_nm)} sessions "
+        f"({s_nm.min().date()} .. {s_nm.max().date()}), same days at every tau:"
+    )
+    log(
+        ssb[
+            [
+                "model",
+                "tau",
+                "days",
+                "traded_ask",
+                "pnl_per_day_ask",
+                "t_pnl_day_ask",
+                "t_ask",
+                "traded_mid",
+                "pnl_per_day_mid",
+                "t_pnl_day_mid",
+                "t_mid",
+                "rel_spread_median",
+            ]
+        ].to_string(index=False, float_format=lambda v: f"{v:.4f}")
+    )
+    log(
+        "\nSPX per-day P&L difference tau - 15:30 (block bootstrap 20 sessions; Holm over 10 taus):"
+    )
+    log(sbb.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    log(
+        f"\nmonth-ends: unconditional long by tau on SPX ({len(s_me)} month-ends, the XSP run's; "
+        "SPX - XSP paired on the same month-ends):"
+    )
+    log(sme.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    log(
+        f"\n(reference) month-ends on every SPXW month-end holding all 11 taus "
+        f"({dayset['spx_month_ends_all_11_taus']}):"
+    )
+    log(sp_own["me"].to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    log(
+        "\nSPX - XSP per-day P&L by tau, non-month-end, same days (block bootstrap 20 sessions):"
+    )
+    log(vd.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    best_s = sbb.sort_values("holm_boot_1s").head(4)
+    log(
+        "\nSPX smallest Holm-adjusted one-sided p (tau beats 15:30):\n"
+        + best_s[
+            [
+                "model",
+                "tau_minus_1530",
+                "stat",
+                "point",
+                "p_boot_1s",
+                "holm_boot_1s",
+                "p_nw_1s",
+                "holm_nw_1s",
+            ]
+        ].to_string(index=False, float_format=lambda v: f"{v:.4f}")
+    )
+    gate["holm_SPX"] = {
+        "min_p_boot_1s": float(sbb["p_boot_1s"].min()),
+        "min_holm_boot_1s": float(sbb["holm_boot_1s"].min()),
+        "min_holm_nw_1s": float(sbb["holm_nw_1s"].min()),
+        "any_tau_beats_1530_holm_5pct": bool(
+            (sbb["holm_boot_1s"] < 0.05).any() or (sbb["holm_nw_1s"] < 0.05).any()
+        ),
+        "month_end_min_holm_paired_1s": float(sme["holm_paired_1s"].min()),
+    }
+    log("holm SPX " + json.dumps(gate["holm_SPX"]))
     gate["wall_s"] = round(time.time() - T0, 1)
     (OUT / "gate.json").write_text(json.dumps(gate, indent=1, default=str))
     log(f"\nwall clock {gate['wall_s']} s")
