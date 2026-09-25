@@ -202,19 +202,17 @@ def _sleep_until(hhmmss: str, cap: str | None = None) -> None:
         time.sleep(s)
 
 
-def prep_spot(session: pd.Timestamp) -> tuple[float, str]:
-    """The index now: ^GSPC's last complete minute, else ES's (a small basis)."""
-    errors = []
-    for name, fetch in (
-        ("^GSPC", feeds.spx_minute_bars),
-        ("ES=F", feeds.es_minute_bars),
-    ):
-        try:
-            b = fetch(session)
-            return feeds.last_complete_close(b), name
-        except Exception as e:  # noqa: BLE001 -- try the next feed
-            errors.append(f"{name}: {type(e).__name__}: {e}")
-    raise feeds.FeedError("no spot for the prep: " + "; ".join(errors))
+def prep_spot(session: pd.Timestamp) -> tuple[float | None, str]:
+    """The index now: ^GSPC's last complete minute, or (None, why).
+
+    No ES fallback: ES trades at a basis over SPX (49 points on 2026-09-24,
+    about 10 strikes), so an ES-based row would send the operator to the
+    wrong strangle; without ^GSPC the prep leaves the row to the card.
+    """
+    try:
+        return feeds.last_complete_close(feeds.spx_minute_bars(session)), "^GSPC"
+    except Exception as e:  # noqa: BLE001 -- the prep goes out without a row
+        return None, f"^GSPC unavailable ({type(e).__name__}: {e})"
 
 
 def post_prep(a: argparse.Namespace, session: pd.Timestamp) -> None:
@@ -244,7 +242,7 @@ def post_prep(a: argparse.Namespace, session: pd.Timestamp) -> None:
         eid = calendar_push.push_event(
             service, a.calendar_id, ev, session.date(), kind="prep"
         )
-        print(f"posted prep event {eid} (spot {spot:,.2f} from {src})", flush=True)
+        print(f"posted prep event {eid} (spot {spot} from {src})", flush=True)
     except Exception:  # noqa: BLE001 -- the prep must never block or delay the card
         print("prep event FAILED (the card is unaffected):", flush=True)
         traceback.print_exc()
@@ -298,7 +296,9 @@ def precompute(
     except Exception:  # noqa: BLE001 -- the card path starts cold instead
         print("precompute FAILED (the card path starts cold):", flush=True)
         traceback.print_exc()
-        if ctx is not None and not ctx.healthy():
+        # a failed canary can leave the server alive but its worker pool broken
+        # (a killed worker -> BrokenProcessPool on every later pass): never reuse it
+        if ctx is not None:
             ctx.close(kill=True)
             ctx = None
     return ctx
@@ -438,7 +438,13 @@ def _card(
         rows = panel_rows(es.frame, {k: v.frame for k, v in cboe.items()}, session)
         if a.input_mode == "free_substitute":
             if not es.stamp_complete(t1530):
-                spx = feeds.take(got, "spx")
+                try:
+                    spx = feeds.take(got, "spx")
+                except feeds.FeedError as e:  # one retry: a transient Yahoo error
+                    notes.append(f"^GSPC prefetch failed ({e}); fetched again")
+                    spx = feeds.spx_minute_bars(session)
+                if not spx.stamp_complete(t1530):  # lagging: fetch once more
+                    spx = feeds.spx_minute_bars(session)
                 bars["spx"] = spx
                 if not spx.stamp_complete(t1530):
                     raise feeds.FeedError(
@@ -499,6 +505,12 @@ def _card(
             if isinstance(spx_now, feeds.Bars1m)
             else feeds.spx_minute_bars(session)
         )
+        if not spot_bars.stamp_complete(t1530):  # the 15:29 minute must be in
+            spot_bars = feeds.spx_minute_bars(session)
+            if not spot_bars.stamp_complete(t1530):
+                raise feeds.FeedError(
+                    f"^GSPC 15:29 bar missing for the spot (last {spot_bars.last_bar_start})"
+                )
         spot_series = spot_bars.frame["close"]
         spot = float(
             spot_series[spot_series.index <= t1530 - pd.Timedelta(minutes=1)].iloc[-1]

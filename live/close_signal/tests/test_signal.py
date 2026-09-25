@@ -182,3 +182,57 @@ def test_prep_and_card_events_never_share_a_key() -> None:
     prep = build_event(d, "s", "b", start_hhmm="15:00", kind="prep")
     assert card["extendedProperties"] != prep["extendedProperties"]
     assert prep["start"]["dateTime"].startswith("2026-09-25T15:00")
+
+
+def test_month_end_always_says_buy_even_without_a_forecast() -> None:
+    # review 2026-09-24: _legs sized the month-end at P*, so a NaN forecast (or a
+    # P* above budget / 100) printed NO TRADE on the month-end
+    for rv in (float("nan"), (0.02) ** 2):
+        i = build_instruction(
+            session=date(2026, 9, 30),
+            spot=6532.4,
+            rv_hat=rv,
+            flags={"month_end": True},
+            capital=70_000.0,
+            input_mode="free_substitute",
+        )
+        assert i.decision == "BUY_MONTH_END"
+        card = render_card(i)
+        assert "MONTH-END, buy at 15:30 ET at any price" in card
+        assert "NO TRADE" not in card and "NO TRADE" not in headline(i)
+        assert "SPX 6530 put + 6535 call" in card
+
+
+def test_half_strike_fallback_names_the_half_strike_leg() -> None:
+    # XSP 772.4 on a Friday: the half strike is the CALL (772.5), not the put
+    i = build_instruction(
+        session=date(2026, 7, 10),
+        spot=7724.0,
+        rv_hat=(0.0025) ** 2,
+        flags={"month_end": False},
+        capital=5_000.0,
+        input_mode="free_substitute",
+    )
+    assert (i.kc_xsp_half, i.kp_xsp_half) == (772.5, 772.0)
+    card = render_card(i)
+    assert "XSP 772 put + 772.5 call, expiring today." in card
+    assert "(no 772.5 call? buy" in card and "no 772 put?" not in card
+
+
+def test_prep_without_the_index_leaves_the_row_to_the_card() -> None:
+    # ES sat 49 points over SPX on 2026-09-24 (~10 strikes): no ES-based row
+    title, body = render_prep(
+        session=date(2026, 9, 25),
+        spot=None,
+        flags={"month_end": False},
+        capital=5_000.0,
+    )
+    assert title == "Prepare: close trade card at about 15:31"
+    assert "the card names the row" in body and "row near" not in body
+    title, _ = render_prep(
+        session=date(2026, 9, 30),
+        spot=None,
+        flags={"month_end": True},
+        capital=70_000.0,
+    )
+    assert title == "Prepare: MONTH-END close trade at 15:30 (budget $10,500)"

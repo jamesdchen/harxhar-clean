@@ -234,6 +234,11 @@ def _legs(i: Instruction) -> list[_Leg]:
     XSP half-strike pair comes first, with the 1-point pair as its fallback.
     """
     frac = i.month_end_fraction if i.month_end else i.long_fraction
+    if i.month_end:
+        # the month-end leg buys at any price: its pair never depends on P* (a
+        # NaN or dear forecast must not turn it into NO TRADE); the card adds
+        # the XSP pair for a budget that buys no SPX pair at the actual ask
+        return [_Leg("SPX", i.kc_spx, i.kp_spx, i.p_star_spx, i.n_spx_at_pstar)]
     if i.n_spx_at_pstar > 0:
         return [_Leg("SPX", i.kc_spx, i.kp_spx, i.p_star_spx, i.n_spx_at_pstar)]
     out = []
@@ -242,6 +247,13 @@ def _legs(i: Instruction) -> list[_Leg]:
         out.append(_Leg("XSP", i.kc_xsp_half, i.kp_xsp_half, i.p_star_xsp_half, n))
     out.append(_Leg("XSP", i.kc_xsp, i.kp_xsp, i.p_star_xsp, i.n_xsp_at_pstar))
     return [leg for leg in out if leg.n > 0]
+
+
+def _missing(leg: _Leg, alt: _Leg) -> str:
+    """'no 757.5 put?' / 'no 772.5 call?': the half strike the fallback avoids."""
+    if leg.kp != alt.kp:
+        return f"no {leg.kp:g} put?"
+    return f"no {leg.kc:g} call?"
 
 
 def headline(i: Instruction) -> str:
@@ -287,7 +299,7 @@ def render_card(i: Instruction) -> str:
         ]
         if len(legs) > 1:
             alt = legs[1]
-            lines += [f"(no {leg.kp:g} put? use {alt.pair}: {alt.robinhood})"]
+            lines += [f"({_missing(leg, alt)} use {alt.pair}: {alt.robinhood})"]
         if leg.root == "SPX":
             # the month-end ask is not known in advance: on a small budget one
             # SPX pair can cost more than it (study 81: 19 of 40 month-ends at $5.5k)
@@ -306,7 +318,7 @@ def render_card(i: Instruction) -> str:
         if len(legs) > 1:
             alt = legs[1]
             lines += [
-                f"(no {leg.kp:g} put? buy {alt.n} {alt.pair}, limit {alt.limit:.2f}: "
+                f"({_missing(leg, alt)} buy {alt.n} {alt.pair}, limit {alt.limit:.2f}: "
                 f"{alt.robinhood})"
             ]
     if i.notes:
@@ -323,7 +335,7 @@ XSP_HINT_BUDGET = 1270.0
 def render_prep(
     *,
     session: date,
-    spot: float,
+    spot: float | None,
     flags: dict[str, bool],
     capital: float,
     long_fraction: float = DEFAULT_LONG_FRACTION,
@@ -335,41 +347,50 @@ def render_prep(
     Known at 15:00: the day's flags, the budget, and the index -- so the
     strangle row the card will most likely name (it is re-read at 15:30).
     Not known: the limit price and the count, which need the 15:30 forecast.
+    ``spot=None`` (the index unavailable) leaves the row to the card.
     """
     month_end = bool(flags.get("month_end"))
     frac = month_end_fraction if month_end else long_fraction
     budget = capital * frac
     day = session.strftime("%a %d %b %Y")
-    kc, kp = nearest_otm_strikes(spot, SPX_STRIKE_STEP)
-    kc_x, kp_x = nearest_otm_strikes(spot * XSP_SCALE, XSP_STRIKE_STEP)
-    row = f"{kp:,g} / {kc:,g}"
+    if spot is not None and math.isfinite(spot):
+        kc, kp = nearest_otm_strikes(spot, SPX_STRIKE_STEP)
+        kc_x, kp_x = nearest_otm_strikes(spot * XSP_SCALE, XSP_STRIKE_STEP)
+        row: str | None = f"{kp:,g} / {kc:,g}"
+        where = f"2. SPX is {spot:,.0f} now: the row will be near {row} (it moves with the index)."
+    else:
+        row = None
+        where = "2. The index level is unavailable right now: the card names the row."
+    near = f"row near {row}, " if row else ""
     if month_end:
-        title = f"Prepare: MONTH-END close trade at 15:30 (row near {row}, budget ${budget:,.0f})"
+        title = f"Prepare: MONTH-END close trade at 15:30 ({near}budget ${budget:,.0f})"
         lines = [
             f"{day}: MONTH-END close trade at 15:30 ET, bought at any price",
             "",
             "Get ready now:",
             "1. Robinhood: SPX options, Long Strangle, width 5, date (0d).",
-            f"2. SPX is {spot:,.0f} now: the row will be near {row} (it moves with the index).",
+            where,
             f"3. Budget ${budget:,.0f}: have the cash available.",
             "",
             f"At 15:30: tap the row, limit price = the ask + {CHASE_PCT:.0%}, "
             f"quantity = ${budget:,.0f} / (limit price x 100), rounded down.",
         ]
     else:
-        title = f"Prepare: close trade card at about {card_at} (row near {row})"
+        title = f"Prepare: close trade card at about {card_at}" + (
+            f" (row near {row})" if row else ""
+        )
         lines = [
             f"{day}: the close trade card comes at about {card_at} ET",
             "",
             "Get ready now:",
             "1. Robinhood: SPX options, Long Strangle, width 5, date (0d).",
-            f"2. SPX is {spot:,.0f} now: the row will be near {row} (it moves with the index).",
+            where,
             f"3. Budget ${budget:,.0f}. The card gives the count and the limit price.",
             "",
             "When the card comes: tap its row, enter its count and limit price, submit.",
             "Not filled within 1 minute? Cancel: no trade today.",
         ]
-    if budget < XSP_HINT_BUDGET:
+    if budget < XSP_HINT_BUDGET and row:
         lines += [
             "",
             f"(If the card names XSP instead: width 1, row near {kp_x:g} / {kc_x:g}.)",
