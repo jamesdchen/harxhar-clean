@@ -91,7 +91,8 @@ def test_card_says_what_to_do_in_each_state() -> None:
     assert f"Buy {i.n_spx_at_pstar} SPX 6530 put + 6535 call, expiring today." in plain
     assert "Robinhood: Long Strangle, width 5, date (0d), row 6,530 / 6,535." in plain
     assert (
-        f"Limit price {i.p_star_spx:.2f}. Not filled within 1 minute? Cancel" in plain
+        f"Limit price {i.p_star_spx:.2f}. Not filled at once? Cancel it right away"
+        in plain
     )
     # the third-Friday rule belonged to the short book: the long card ignores it
     assert "Hold to the 16:00 close" in plain and "Third Friday" not in plain
@@ -154,7 +155,9 @@ def test_prep_event_says_what_is_known_at_1500() -> None:
     assert title == "Prepare: close trade card at about 15:31 (row near 7,700 / 7,705)"
     assert "Long Strangle, width 5, date (0d)" in body
     assert "SPX is 7,704 now: the row will be near 7,700 / 7,705" in body
-    assert "Budget $2,310" in body and "Not filled within 1 minute? Cancel" in body
+    assert (
+        "Budget $2,310" in body and "Not filled at once? Cancel it right away" in body
+    )
     assert "XSP" not in body  # $2,310 buys SPX pairs
     title, body = render_prep(
         session=date(2026, 9, 30),

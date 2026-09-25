@@ -41,9 +41,21 @@ SENSITIVITIES (labelled, not of record).
     (fill at that proxy ask) and the resting test (fill at P*).  A proxy for
     an SPX book, NOT an SPX book: the XSP strikes and XSP mid path are kept.
   * SPX (real): if SPXW cbbo-1m files for NON-month-end deck days are on disk
-    (``data/archive/spxw_opra/``), the conservative model is run on them with
-    the SPXW pair / P* / payoff of study 79.  The 42 files there at the time of
-    writing are month-ends only.
+    (``data/archive/spxw_opra/``, 875 sessions 2023-03-28 .. 2026-09-22 after
+    the full pull), the conservative, touch-at-ask and mid models are run on
+    them with the SPXW pair / P* / payoff of study 79 (the chain's 15:30 pair,
+    P* on the chain's 15:30 spot, the SPX close).  SPX GATE: the OPRA 15:30
+    package ask at the chain's pair equals the chain's 15:30 ask
+    (``data/spxw_chain.parquet``, TRUE UTC stamps -> ET) -- match rate to half a
+    cent, on the study days and on every day both sources cover.
+
+SPX DEPTH (all SPXW files, not only month-ends as study 81).  Per day the
+nearest-OTM pair around the parity spot of the SPXW 15:30 book (study 81's
+method), the displayed size at the ask (min of the two legs) against the
+general-leg order ``contracts_for_outlay($70,000, 3.3 %, P*, 100)``; P* =
+``package_price`` on the deck's rv_hat where the deck has one (to 2024-04-30),
+else the 15:30 ask as the price.  Share of days the order fits the touch, by
+year.
 
 GATES.  (1) P* recomputed here equals study 79's ``p_star_xsp``; (2) the
 package ask at the 15:30 sample rebuilt from the minute series equals study
@@ -71,6 +83,7 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from live.ibkr.pricing import package_price  # noqa: E402
+from live.ibkr.sizing import contracts_for_outlay  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location(
     "s79_xsp_close_book",
@@ -125,6 +138,97 @@ def minute_book(path: str, day: str, kc: float, kp: float) -> dict[str, np.ndarr
 def _job(args: tuple[str, str, float, float]) -> tuple[str, dict[str, np.ndarray]]:
     path, day, kc, kp = args
     return day, minute_book(path, day, kc, kp)
+
+
+def spx_book1530(
+    args: tuple[str, str, float, float],
+) -> tuple[str, dict[str, float]]:
+    """The SPXW 15:30 book of one day: parity spot, the nearest-OTM pair around it, its ask and
+    touch size (study 81's one_day); and the ask on the chain's pair (``ckc``, ``ckp``) for the gate."""
+    path, day, ckc, ckp = args
+    q = s79.load_quotes(Path(path))
+    d = pd.Timestamp(day)
+    b = s79.book_at(q, d, "15:30:00")
+    stamp = b["t"].max() if len(b) else pd.NaT
+    spot = s79.parity_spot(b)
+    strikes = np.sort(b.index.get_level_values(0).unique().to_numpy(dtype=float))
+    kc, kp = s79.nearest_otm(strikes, spot)
+    bc, ac, bsc, asc = s79.quote(b, kc, "C")
+    bp, ap, bsp, asp = s79.quote(b, kp, "P")
+    out = {
+        "stamp_1530": bool(stamp == pd.Timestamp(f"{d.date()} 15:30:00")),
+        "spot": spot,
+        "kc": kc,
+        "kp": kp,
+        "bid": bc + bp,
+        "ask": ac + ap,
+        "ask_c": ac,
+        "ask_p": ap,
+        "ask_size_c": asc,
+        "ask_size_p": asp,
+        "ask_size": min(asc, asp),
+        "chain_kc": ckc,
+        "chain_kp": ckp,
+        "opra_ask_c_at_chain_pair": np.nan,
+        "opra_ask_p_at_chain_pair": np.nan,
+    }
+    if np.isfinite(ckc) and np.isfinite(ckp):
+        out["opra_ask_c_at_chain_pair"] = s79.quote(b, ckc, "C")[1]
+        out["opra_ask_p_at_chain_pair"] = s79.quote(b, ckp, "P")[1]
+    return day, out
+
+
+def chain_1530(lo: pd.Timestamp, hi: pd.Timestamp) -> pd.DataFrame:
+    """The SPXW chain's 15:30 ET same-day-expiry pair per day (study 79's spxw_book, leg asks kept).
+
+    The chain is stamped in TRUE UTC: rows are pre-filtered in arrow to the two UTC clocks
+    15:30 ET can be (19:30 EDT, 20:30 EST), then converted to ET and kept at 15:30 ET exactly.
+    """
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    t = pq.read_table(
+        s79.CHAIN,
+        columns=[
+            "expiration",
+            "strike",
+            "cp",
+            "timestamp",
+            "bid",
+            "ask",
+            "underlying_price",
+        ],
+        filters=[("expiration", ">=", lo), ("expiration", "<=", hi)],
+    )
+    ms = t.column("timestamp").cast(pa.int64()).to_numpy()
+    mod = (ms // 60000) % 1440
+    t = t.filter(pa.array((mod == 19 * 60 + 30) | (mod == 20 * 60 + 30)))
+    c = t.to_pandas()
+    del t
+    et = pd.to_datetime(c["timestamp"]).dt.tz_convert(s79.ET).dt.tz_localize(None)
+    c = c[(et.dt.strftime("%H:%M") == "15:30") & (et.dt.normalize() == c["expiration"])]
+    c = c[c["ask"] > 0]
+    rows = []
+    for day, g in c.groupby("expiration"):
+        s = float(g["underlying_price"].median())
+        g = g.set_index(["strike", "cp"]).sort_index()
+        ks = np.sort(g.index.get_level_values(0).unique().to_numpy(dtype=float))
+        kc, kp = s79.nearest_otm(ks, s)
+        try:
+            ac, ap = float(g.at[(kc, "C"), "ask"]), float(g.at[(kp, "P"), "ask"])
+        except KeyError:
+            continue
+        rows.append(
+            {
+                "day": day,
+                "chain_S": s,
+                "chain_kc": kc,
+                "chain_kp": kp,
+                "chain_ask_c": ac,
+                "chain_ask_p": ap,
+            }
+        )
+    return pd.DataFrame(rows).set_index("day")
 
 
 def fills(
@@ -439,17 +543,21 @@ def main() -> int:
             sbooks = dict(ex.map(_job, sjobs, chunksize=8))
         oa = np.array([sbooks[f"{day:%Y-%m-%d}"]["ask"][0] for day in sd.index])
         rel = np.abs(oa / sd.spx_ask.to_numpy() - 1)
+        cent = np.abs(oa - sd.spx_ask.to_numpy()) <= 0.005
         smiss = sum(int(np.isnan(v["ask"]).sum()) for v in sbooks.values())
+        g_pass = int(np.sum(oa <= sd.pstar.to_numpy()))
         lines.append(
-            f"SPX GATE SPXW OPRA 15:30 package ask vs the chain's 15:30 ask (study 79) on "
-            f"{int(np.isfinite(rel).sum())} days: median |rel diff| {np.nanmedian(rel):.1%}, "
-            f"p90 {np.nanquantile(rel, 0.9):.1%}; 15:30 ask <= P* OPRA {int(np.sum(oa <= sd.pstar.to_numpy()))} "
+            f"SPX GATE (study days) SPXW OPRA 15:30 package ask vs the chain's 15:30 ask (study 79) on "
+            f"{int(np.isfinite(rel).sum())} days: equal to half a cent on {int(cent.sum())} "
+            f"({cent.mean():.1%}); median |rel diff| {np.nanmedian(rel):.1%}, "
+            f"p90 {np.nanquantile(rel, 0.9):.1%}, max {np.nanmax(rel):.1%}; 15:30 ask <= P* OPRA {g_pass} "
             f"vs chain {int(sd.card_long_spx.sum())}; minute samples without a two-sided quote "
             f"{smiss} of {len(sd) * len(MINUTES)}"
         )
         smodels = {
-            "conservative": "ask <= P* (SPXW)",
-            "mid": "mid <= P* (SPXW, sensitivity)",
+            "conservative": "ask <= P*, resting fill at P* (SPXW)",
+            "touch_at_ask": "ask <= P*, resting fill at that minute's ask (SPXW, sensitivity)",
+            "mid": "mid <= P*, resting fill at P* (SPXW, sensitivity)",
         }
         sev = events(sd, sbooks, smodels)
         sev.to_csv(OUT / "spx_fill_events.csv", index=False, float_format="%.6g")
@@ -472,18 +580,156 @@ def main() -> int:
                     f"{best.mean_per_day:+.4f} (t {best.t:.2f}); cancel at once {tt.iloc[0].mean_per_day:+.4f} "
                     f"(t {tt.iloc[0].t:.2f}); to 15:59 {tt.iloc[-1].mean_per_day:+.4f} (t {tt.iloc[-1].t:.2f})"
                 )
-                if t0 in ("15:30", "15:31"):
+                if model == "conservative" or t0 == "15:31":
                     lines.extend(fmt_cancel(t, t0, show))
+            lines.append(
+                f"SPX adverse-selection curve (fills by delay after t0, cancel 15:59), {model}:"
+            )
             for r in sc[sc.model == model].itertuples():
                 lines.append(
                     f"  t0 {r.t0} delay {r.delay_min:<14} n {r.n:>3}  mean R {r.mean_R:+.3f}  "
                     f"median {r.median_R:+.3f}  t {r.t:5.2f}  hit {r.hit:.0%}  sum R {r.sum_R:+.2f}  "
                     f"fill/mid1530 {r.fill_over_mid1530:.3f}"
                 )
+        e = sev[(sev.model == "conservative") & (sev.t0 == "15:31") & sev.delay.notna()]
+        cut = sd.index[len(sd) // 2]
+        lines.append(
+            f"SPX split halves (conservative, t0 15:31, cancel 15:59; second half from {cut.date()}):"
+        )
+        for lab, h in (("first", e[e.day < cut]), ("second", e[e.day >= cut])):
+            im, lt = h[h.delay == 0].R, h[h.delay > 0].R
+            lines.append(
+                f"  {lab} half: immediate n {len(im)} mean R {im.mean():+.3f} (t {tstat(im.to_numpy()):.2f}); "
+                f"late n {len(lt)} mean R {lt.mean():+.3f} (t {tstat(lt.to_numpy()):.2f}), "
+                f"expired worthless {(lt <= -0.999).mean():.0%} vs immediate {(im <= -0.999).mean():.0%}"
+            )
     else:
         lines.append(
             "  none: the SPX answer needs SPXW 1-minute quotes on the non-month-end days "
             "(live/close_signal/pull_databento_xsp.py --root SPXW --pull; files land in data/archive/spxw_opra/)"
+        )
+
+    # SPX depth on every SPXW file (study 81's method, all days) + the chain gate on every overlap day
+    if spx_files:
+        fdays = pd.DatetimeIndex(sorted(pd.Timestamp(k) for k in spx_files))
+        ch = chain_1530(fdays.min(), fdays.max())
+        ch = ch[ch.index.isin(fdays)]
+        # the lean chain read reproduces study 79's pair where study 79 has it
+        both79 = ch.join(x[["spx_kc", "spx_kp", "spx_ask"]], how="inner").dropna()
+        same_pair = (both79.chain_kc == both79.spx_kc) & (
+            both79.chain_kp == both79.spx_kp
+        )
+        same_ask = (
+            np.abs(both79.chain_ask_c + both79.chain_ask_p - both79.spx_ask) <= 0.005
+        )
+        djobs = [
+            (
+                spx_files[f"{day:%Y-%m-%d}"],
+                f"{day:%Y-%m-%d}",
+                float(ch.at[day, "chain_kc"]) if day in ch.index else np.nan,
+                float(ch.at[day, "chain_kp"]) if day in ch.index else np.nan,
+            )
+            for day in fdays
+        ]
+        with ProcessPoolExecutor(max_workers=min(6, os.cpu_count() or 1)) as ex:
+            dep = dict(ex.map(spx_book1530, djobs, chunksize=16))
+        z = pd.DataFrame.from_dict(dep, orient="index")
+        z.index = pd.DatetimeIndex(z.index)
+        z = z.sort_index().join(
+            ch[["chain_S", "chain_ask_c", "chain_ask_p"]], how="left"
+        )
+        z["month_end"] = [s79.is_last_session_of_month(t.date()) for t in z.index]
+        z["rv_hat"] = deck["rv_hat"].reindex(z.index).astype(float)
+        z["pstar"] = [
+            package_price(np.sqrt(r.rv_hat), r.spot, r.kc, r.kp)
+            if np.isfinite(r.rv_hat) and np.isfinite(r.spot)
+            else np.nan
+            for r in z.itertuples()
+        ]
+        z["price"] = z.pstar.where(z.pstar.notna(), z.ask)
+        z["price_src"] = np.where(z.pstar.notna(), "P*", "ask")
+        z["n_general"] = [
+            contracts_for_outlay(70000.0, 0.033, p, 100.0) for p in z.price
+        ]
+        z["fits"] = z.n_general <= z.ask_size
+        z.to_csv(OUT / "spx_depth_1530.csv", float_format="%.6g")
+
+        ov = z[z.chain_ask_c.notna()]
+        pk = np.abs(
+            ov.opra_ask_c_at_chain_pair
+            + ov.opra_ask_p_at_chain_pair
+            - ov.chain_ask_c
+            - ov.chain_ask_p
+        )
+        rp = pk / (ov.chain_ask_c + ov.chain_ask_p)
+        legs_ok = (np.abs(ov.opra_ask_c_at_chain_pair - ov.chain_ask_c) <= 0.005) & (
+            np.abs(ov.opra_ask_p_at_chain_pair - ov.chain_ask_p) <= 0.005
+        )
+        pair_ok = (ov.kc == ov.chain_kc) & (ov.kp == ov.chain_kp)
+        full = ov.stamp_1530.astype(bool)
+        lines.append("")
+        lines.append(
+            f"SPX GATE (all overlap days) the lean chain read vs study 79's chain pair/ask on "
+            f"{len(both79)} days: same pair {int(same_pair.sum())}, same package ask to half a cent "
+            f"{int(same_ask.sum())}"
+        )
+        lines.append(
+            f"SPX GATE (all overlap days) OPRA 15:30 ask at the chain's 15:30 pair vs data/spxw_chain.parquet "
+            f"(TRUE UTC -> ET) on {len(ov)} days ({ov.index.min().date()} .. {ov.index.max().date()}): "
+            f"package equal to half a cent on {int((pk <= 0.005).sum())} ({(pk <= 0.005).mean():.1%}); "
+            f"on the {int(full.sum())} full sessions (an OPRA 15:30:00 sample) package on "
+            f"{int((pk[full] <= 0.005).sum())} ({(pk[full] <= 0.005).mean():.1%}), both legs on "
+            f"{int(legs_ok[full].sum())} ({legs_ok[full].mean():.1%}), package median |rel diff| "
+            f"{np.nanmedian(rp[full]):.1%}, p99 {np.nanquantile(rp[full], 0.99):.1%}, max {np.nanmax(rp[full]):.1%}; "
+            f"the other {int((~full).sum())} are early-close sessions (no OPRA book at 15:30, the chain row "
+            f"frozen); the OPRA parity-spot pair = the chain pair on {int(pair_ok.sum())} days"
+        )
+        bad = ov[full & (pk > 0.005)]
+        if len(bad):
+            lines.append(
+                "  full-session mismatches: "
+                + ", ".join(
+                    f"{t.date()} (OPRA {r.opra_ask_c_at_chain_pair:.2f}+{r.opra_ask_p_at_chain_pair:.2f} vs "
+                    f"chain {r.chain_ask_c:.2f}+{r.chain_ask_p:.2f})"
+                    for t, r in bad.iterrows()
+                )
+            )
+        zf = z[z.stamp_1530.astype(bool) & z.ask_size.notna()]
+        lines.append(
+            f"SPX DEPTH: {len(z)} SPXW files ({z.index.min().date()} .. {z.index.max().date()}); "
+            f"{len(zf)} with a quoted 15:30:00 pair (the other {len(z) - len(zf)}: early closes "
+            f"{', '.join(str(t.date()) for t in z.index.difference(zf.index))}); parity spot vs chain spot "
+            f"median |rel err| {np.nanmedian(np.abs(z.spot / z.chain_S - 1)):.1e}; price = P* (deck rv_hat) on "
+            f"{int((zf.price_src == 'P*').sum())} days, the 15:30 ask elsewhere"
+        )
+        lines.append(
+            "  general-leg N = contracts_for_outlay($70,000, 3.3 %, price, 100) vs the 15:30 touch at the ask "
+            "(min of the two legs), nearest-OTM pair around the parity spot"
+        )
+        lines.append(
+            "  year  days  touch med  p10  p25  min   price med  N med  N max  N=0  fits (N<=touch)      "
+            "fits | N>0"
+        )
+
+        def _row(lab: str, g: pd.DataFrame) -> str:
+            n = g[g.n_general > 0]
+            return (
+                f"  {lab:<5} {len(g):>4}  {g.ask_size.median():>8.0f}  {g.ask_size.quantile(0.1):>4.0f}  "
+                f"{g.ask_size.quantile(0.25):>3.0f}  {g.ask_size.min():>3.0f}   {g.price.median():>8.2f}  "
+                f"{g.n_general.median():>5.0f}  {g.n_general.max():>5.0f}  {int((g.n_general == 0).sum()):>3}  "
+                f"{int(g.fits.sum()):>3} of {len(g):>3} ({g.fits.mean():.1%})  "
+                f"{int(n.fits.sum()):>3} of {len(n):>3} ({n.fits.mean():.1%})"
+            )
+
+        for yr, g in zf.groupby(zf.index.year):
+            lines.append(_row(str(yr), g))
+        lines.append(_row("all", zf))
+        lines.append(_row("!ME", zf[~zf.month_end.astype(bool)]))
+        lines.append(_row("P*", zf[zf.price_src == "P*"]))
+        big = zf[~zf.fits.astype(bool)]
+        lines.append(
+            f"  days the order exceeds the touch: {len(big)}; shortfall N - touch median "
+            f"{(big.n_general - big.ask_size).median():.0f}, max {(big.n_general - big.ask_size).max():.0f}"
         )
 
     txt = "\n".join(lines)

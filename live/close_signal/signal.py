@@ -312,7 +312,7 @@ def render_card(i: Instruction) -> str:
             "",
             f"Buy {leg.n} {leg.pair}, expiring today.",
             leg.robinhood,
-            f"Limit price {leg.limit:.2f}. Not filled within 1 minute? Cancel: no trade today.",
+            f"Limit price {leg.limit:.2f}. Not filled at once? Cancel it right away: no trade today.",
             hold,
         ]
         if len(legs) > 1:
@@ -388,7 +388,7 @@ def render_prep(
             f"3. Budget ${budget:,.0f}. The card gives the count and the limit price.",
             "",
             "When the card comes: tap its row, enter its count and limit price, submit.",
-            "Not filled within 1 minute? Cancel: no trade today.",
+            "Not filled at once? Cancel it right away: no trade today.",
         ]
     if budget < XSP_HINT_BUDGET and row:
         lines += [
