@@ -1,0 +1,211 @@
+series,fill,stat,lag,value,band_95,outside_band
+sign(s): per-bar ridge (live-feasible),mid,acf,1,-0.00871517,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,2,-0.0159797,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,3,0.043212,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,4,0.0205064,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,5,0.0101736,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,6,-0.0502884,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,7,0.0594003,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,8,-0.0686679,0.0666035,True
+sign(s): per-bar ridge (live-feasible),mid,acf,9,0.0270723,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,10,0.0419456,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,5,0.795687,,False
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,10,0.173513,,False
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,21,0.630083,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,2,0.986772,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,2,-0.412574,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,5,0.985005,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,5,-0.213146,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,10,1.01198,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,10,0.109807,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,21,1.05645,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,21,0.342826,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,1,-0.007152,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,2,-0.0158154,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,3,0.0439112,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,4,0.0222435,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,5,0.0107523,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,6,-0.0467746,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,7,0.0574451,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,8,-0.0718301,0.0666035,True
+sign(s): per-bar ridge (live-feasible),crossed,acf,9,0.0278581,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,10,0.0412621,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,5,0.780414,,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,10,0.174364,,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,21,0.636542,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,2,0.988353,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,2,-0.359017,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,5,0.990237,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,5,-0.137126,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,10,1.02154,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,10,0.195035,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,21,1.06789,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,21,0.408322,1.96,False
+sign(s): per-bar ridge (all features),mid,acf,1,-0.0395149,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,2,-0.0373923,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,3,0.0179147,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,4,-0.0179654,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,5,0.0213787,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,6,-0.0316368,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,7,-0.0361761,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,8,-0.0270504,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,9,0.00587988,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,10,0.00814207,0.0666035,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,5,0.61835,,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,10,0.790955,,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,21,0.847865,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,2,0.955908,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,2,-1.36015,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,5,0.873553,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,5,-1.78709,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,10,0.823359,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,10,-1.61821,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,21,0.781389,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,21,-1.32863,1.96,False
+sign(s): per-bar ridge (all features),crossed,acf,1,-0.0387411,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,2,-0.0374787,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,3,0.0171011,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,4,-0.0186617,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,5,0.0217761,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,6,-0.0273564,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,7,-0.0381174,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,8,-0.0274435,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,9,0.00733722,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,10,0.00611779,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,5,0.623578,,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,10,0.801285,,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,21,0.826751,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,2,0.956694,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,2,-1.332,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,5,0.874977,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,5,-1.75368,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,10,0.827723,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,10,-1.56643,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,21,0.784882,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,21,-1.29986,1.96,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,1,0.00245144,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,2,-0.0488951,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,3,0.0504281,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,4,0.0264608,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,5,-0.0346164,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,6,-0.050061,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,7,0.0326937,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,8,-0.0403782,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,9,0.00423756,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,acf,10,0.0579479,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),mid,ljung_box_p,5,0.310435,,False
+sign(s): block-diagonal ridge (paper headline),mid,ljung_box_p,10,0.198282,,False
+sign(s): block-diagonal ridge (paper headline),mid,ljung_box_p,21,0.676091,,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio,2,0.99727,,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio_z_robust,2,-0.0844492,1.96,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio,5,0.991251,,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio_z_robust,5,-0.123979,1.96,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio,10,0.966486,,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio_z_robust,10,-0.307453,1.96,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio,21,1.0879,,False
+sign(s): block-diagonal ridge (paper headline),mid,variance_ratio_z_robust,21,0.534844,1.96,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,1,0.00652816,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,2,-0.0466066,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,3,0.0510833,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,4,0.0279005,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,5,-0.0344598,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,6,-0.0458046,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,7,0.0330804,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,8,-0.041657,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,9,0.00524866,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,acf,10,0.0598949,0.0666035,False
+sign(s): block-diagonal ridge (paper headline),crossed,ljung_box_p,5,0.314547,,False
+sign(s): block-diagonal ridge (paper headline),crossed,ljung_box_p,10,0.202085,,False
+sign(s): block-diagonal ridge (paper headline),crossed,ljung_box_p,21,0.669672,,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio,2,1.00128,,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio_z_robust,2,0.0393039,1.96,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio,5,1.00259,,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio_z_robust,5,0.0362658,1.96,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio,10,0.985284,,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio_z_robust,10,-0.133354,1.96,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio,21,1.12307,,False
+sign(s): block-diagonal ridge (paper headline),crossed,variance_ratio_z_robust,21,0.742075,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,1,0.0007778,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,2,-0.0384643,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,3,-0.00587987,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,4,-0.0167353,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,5,-0.1052,0.0666035,True
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,6,-0.00404105,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,7,-0.024947,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,8,-0.0420148,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,9,0.0118824,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,acf,10,0.0169394,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),mid,ljung_box_p,5,0.0471154,,True
+sign(s): HAR + calendar OLS (paper baseline),mid,ljung_box_p,10,0.186868,,False
+sign(s): HAR + calendar OLS (paper baseline),mid,ljung_box_p,21,0.319202,,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio,2,0.995735,,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio_z_robust,2,-0.132639,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio,5,0.932616,,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio_z_robust,5,-0.959054,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio,10,0.759599,,True
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio_z_robust,10,-2.21301,1.96,True
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio,21,0.678756,,False
+sign(s): HAR + calendar OLS (paper baseline),mid,variance_ratio_z_robust,21,-1.95754,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,1,0.00458515,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,2,-0.0348749,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,3,-0.00543957,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,4,-0.0163319,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,5,-0.106536,0.0666035,True
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,6,-0.00169831,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,7,-0.0242908,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,8,-0.043044,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,9,0.0126322,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,acf,10,0.0154797,0.0666035,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,ljung_box_p,5,0.0467544,,True
+sign(s): HAR + calendar OLS (paper baseline),crossed,ljung_box_p,10,0.185364,,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,ljung_box_p,21,0.322768,,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio,2,0.999596,,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio_z_robust,2,-0.0124143,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio,5,0.944702,,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio_z_robust,5,-0.777437,1.96,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio,10,0.776393,,True
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio_z_robust,10,-2.0347,1.96,True
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio,21,0.705663,,False
+sign(s): HAR + calendar OLS (paper baseline),crossed,variance_ratio_z_robust,21,-1.77886,1.96,False
+always short,mid,acf,1,-0.0643135,0.0666035,False
+always short,mid,acf,2,0.0360071,0.0666035,False
+always short,mid,acf,3,-0.0587571,0.0666035,False
+always short,mid,acf,4,-0.0222084,0.0666035,False
+always short,mid,acf,5,-0.0268713,0.0666035,False
+always short,mid,acf,6,-0.0225058,0.0666035,False
+always short,mid,acf,7,-0.0176642,0.0666035,False
+always short,mid,acf,8,0.0223502,0.0666035,False
+always short,mid,acf,9,0.0117272,0.0666035,False
+always short,mid,acf,10,0.036543,0.0666035,False
+always short,mid,ljung_box_p,5,0.117741,,False
+always short,mid,ljung_box_p,10,0.339381,,False
+always short,mid,ljung_box_p,21,0.225368,,False
+always short,mid,variance_ratio,2,0.930783,,True
+always short,mid,variance_ratio_z_robust,2,-2.17771,1.96,True
+always short,mid,variance_ratio,5,0.858404,,True
+always short,mid,variance_ratio_z_robust,5,-2.02946,1.96,True
+always short,mid,variance_ratio,10,0.754554,,True
+always short,mid,variance_ratio_z_robust,10,-2.26559,1.96,True
+always short,mid,variance_ratio,21,0.628776,,True
+always short,mid,variance_ratio_z_robust,21,-2.26378,1.96,True
+always short,crossed,acf,1,-0.0626107,0.0666035,False
+always short,crossed,acf,2,0.0377322,0.0666035,False
+always short,crossed,acf,3,-0.0577083,0.0666035,False
+always short,crossed,acf,4,-0.0217849,0.0666035,False
+always short,crossed,acf,5,-0.0239932,0.0666035,False
+always short,crossed,acf,6,-0.0224175,0.0666035,False
+always short,crossed,acf,7,-0.0172839,0.0666035,False
+always short,crossed,acf,8,0.0232413,0.0666035,False
+always short,crossed,acf,9,0.012802,0.0666035,False
+always short,crossed,acf,10,0.0338202,0.0666035,False
+always short,crossed,ljung_box_p,5,0.132528,,False
+always short,crossed,ljung_box_p,10,0.374558,,False
+always short,crossed,ljung_box_p,21,0.260559,,False
+always short,crossed,variance_ratio,2,0.932936,,True
+always short,crossed,variance_ratio_z_robust,2,-2.10862,1.96,True
+always short,crossed,variance_ratio,5,0.865204,,False
+always short,crossed,variance_ratio_z_robust,5,-1.92904,1.96,False
+always short,crossed,variance_ratio,10,0.765263,,True
+always short,crossed,variance_ratio_z_robust,10,-2.16453,1.96,True
+always short,crossed,variance_ratio,21,0.64092,,True
+always short,crossed,variance_ratio_z_robust,21,-2.1918,1.96,True

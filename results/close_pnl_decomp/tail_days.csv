@@ -1,0 +1,201 @@
+series,side,rank,date,pnl_mid,pnl_crossed,position,R,entry_premium_pts,spx_move_1530_close_pct,month_end,fomc,dow,vix_prev,vix_tercile,rv_tercile
+sign(s): per-bar ridge (live-feasible),top,1,2021-11-22,10.316,9.74205,1,10.316,3.275,-0.822568,False,False,Mon,17.91,mid,low
+sign(s): per-bar ridge (live-feasible),top,2,2020-01-08,6.83603,6.46872,1,6.83603,1.525,-0.41267,False,False,Wed,13.79,low,low
+sign(s): per-bar ridge (live-feasible),top,3,2021-03-26,4.62667,4.37092,1,4.62667,5.25,0.795556,False,False,Fri,19.81,mid,high
+sign(s): per-bar ridge (live-feasible),top,4,2023-07-07,4.17736,4.01556,1,4.17736,3.1,-0.408644,False,False,Fri,15.44,mid,low
+sign(s): per-bar ridge (live-feasible),top,5,2024-04-30,3.81387,3.76668,1,3.81387,5.05,-0.527615,True,False,Tue,14.67,low,mid
+sign(s): per-bar ridge (live-feasible),top,6,2023-08-09,3.737,3.61068,1,3.737,3.65,-0.469389,False,False,Wed,15.99,mid,low
+sign(s): per-bar ridge (live-feasible),top,7,2024-03-26,3.52963,3.37865,1,3.52963,3.625,-0.348535,False,False,Tue,13.19,low,low
+sign(s): per-bar ridge (live-feasible),top,8,2021-03-15,3.39053,3.22422,1,3.39053,3.175,0.476691,False,False,Mon,20.69,mid,high
+sign(s): per-bar ridge (live-feasible),top,9,2023-09-22,3.33477,3.24254,1,3.33477,4.6,-0.514458,False,False,Fri,17.54,mid,mid
+sign(s): per-bar ridge (live-feasible),top,10,2023-04-11,3.25387,3.17361,1,3.25387,2.6,-0.324088,False,False,Tue,18.97,mid,mid
+sign(s): per-bar ridge (live-feasible),top,11,2023-03-14,3.05799,2.98721,1,3.05799,8.45,0.888599,False,False,Tue,26.52,high,mid
+sign(s): per-bar ridge (live-feasible),top,12,2023-05-16,3.04004,2.88465,1,3.04004,2.5,-0.358821,False,False,Tue,17.12,mid,mid
+sign(s): per-bar ridge (live-feasible),top,13,2023-06-26,2.99292,2.92287,1,2.99292,2.8,-0.313427,False,False,Mon,13.44,low,mid
+sign(s): per-bar ridge (live-feasible),top,14,2024-03-05,2.98928,2.9263,1,2.98928,4.675,0.414612,False,False,Tue,13.49,low,mid
+sign(s): per-bar ridge (live-feasible),top,15,2020-11-18,2.93097,2.7644,1,2.93097,5.65,-0.741144,False,False,Wed,22.71,high,high
+sign(s): per-bar ridge (live-feasible),top,16,2020-03-02,2.76996,2.54038,1,2.76996,14.65,1.87582,False,False,Mon,40.11,high,high
+sign(s): per-bar ridge (live-feasible),top,17,2024-01-02,2.71886,2.61411,1,2.71886,3.45,0.340193,False,False,Tue,12.45,low,low
+sign(s): per-bar ridge (live-feasible),top,18,2024-01-17,2.6909,2.59746,1,2.6909,3.85,0.306254,False,False,Wed,13.84,low,low
+sign(s): per-bar ridge (live-feasible),top,19,2020-11-09,2.41584,2.28571,1,2.41584,10.1,-1.04487,False,False,Mon,24.86,high,high
+sign(s): per-bar ridge (live-feasible),top,20,2020-07-31,2.32374,2.16081,1,2.32374,4.85,0.556409,True,False,Fri,24.76,high,mid
+sign(s): per-bar ridge (live-feasible),bottom,1,2023-11-30,-5.42248,-5.60864,-1,5.42248,3.55,0.509604,True,False,Thu,12.98,low,mid
+sign(s): per-bar ridge (live-feasible),bottom,2,2024-02-21,-4.25486,-4.4141,-1,4.25486,5.1,0.564608,False,False,Wed,15.42,mid,mid
+sign(s): per-bar ridge (live-feasible),bottom,3,2024-02-13,-3.85234,-3.92977,-1,3.85234,4.775,0.545641,False,False,Tue,13.93,low,mid
+sign(s): per-bar ridge (live-feasible),bottom,4,2021-06-14,-3.83329,-4.20508,-1,3.83329,2.1,0.355656,False,False,Mon,15.65,mid,low
+sign(s): per-bar ridge (live-feasible),bottom,5,2023-03-22,-3.5509,-3.63456,-1,3.5509,13.85,-1.68734,False,True,Wed,21.38,high,high
+sign(s): per-bar ridge (live-feasible),bottom,6,2022-11-14,-3.26923,-3.37008,-1,3.26923,6.5,-0.721524,False,False,Mon,22.52,high,high
+sign(s): per-bar ridge (live-feasible),bottom,7,2023-01-31,-3.22224,-3.32522,-1,3.22224,6.3,0.662509,True,False,Tue,19.94,mid,high
+sign(s): per-bar ridge (live-feasible),bottom,8,2022-12-09,-3.02344,-3.12402,-1,3.02344,5.125,-0.542998,False,False,Fri,22.29,high,high
+sign(s): per-bar ridge (live-feasible),bottom,9,2021-08-18,-2.68785,-2.79423,-1,2.68785,5.35,-0.538192,False,False,Wed,17.91,mid,low
+sign(s): per-bar ridge (live-feasible),bottom,10,2024-03-27,-2.67965,-2.7354,-1,2.67965,5.025,0.398459,False,False,Wed,13.24,low,low
+sign(s): per-bar ridge (live-feasible),bottom,11,2023-05-18,-2.5033,-2.57529,-1,2.5033,3.725,0.347076,False,False,Thu,16.87,mid,mid
+sign(s): per-bar ridge (live-feasible),bottom,12,2021-06-23,-2.33068,-2.62674,-1,2.33068,2.45,-0.2678,False,False,Wed,16.66,mid,low
+sign(s): per-bar ridge (live-feasible),bottom,13,2022-08-25,-2.32238,-2.40244,-1,2.32238,4.25,0.455495,False,False,Thu,22.82,high,high
+sign(s): per-bar ridge (live-feasible),bottom,14,2022-11-30,-2.29674,-2.40849,-1,2.29674,6.1,0.556498,True,False,Wed,21.89,high,high
+sign(s): per-bar ridge (live-feasible),bottom,15,2021-06-11,-2.2703,-2.46044,-1,2.2703,2.275,0.186339,False,False,Fri,16.1,mid,mid
+sign(s): per-bar ridge (live-feasible),bottom,16,2022-11-03,-2.26994,-2.40849,-1,2.26994,6.15,-0.570935,False,False,Thu,25.86,high,high
+sign(s): per-bar ridge (live-feasible),bottom,17,2023-09-20,-2.16664,-2.21124,-1,2.16664,7.2,-0.52267,False,True,Wed,14.11,low,mid
+sign(s): per-bar ridge (live-feasible),bottom,18,2021-09-20,-2.04725,-2.11573,-1,2.04725,9.1,0.741852,False,False,Mon,20.81,mid,low
+sign(s): per-bar ridge (live-feasible),bottom,19,2020-05-26,-2.04137,-2.22682,-1,2.04137,4.35,-0.542208,False,False,Tue,28.16,high,high
+sign(s): per-bar ridge (live-feasible),bottom,20,2020-06-08,-1.86472,-1.94997,-1,1.86472,4.325,0.449044,False,False,Mon,24.52,high,high
+sign(s): per-bar ridge (all features),top,1,2021-11-22,10.316,9.74205,1,10.316,3.275,-0.822568,False,False,Mon,17.91,mid,low
+sign(s): per-bar ridge (all features),top,2,2020-01-08,6.83603,6.46872,1,6.83603,1.525,-0.41267,False,False,Wed,13.79,low,low
+sign(s): per-bar ridge (all features),top,3,2021-03-26,4.62667,4.37092,1,4.62667,5.25,0.795556,False,False,Fri,19.81,mid,high
+sign(s): per-bar ridge (all features),top,4,2024-02-21,4.25486,4.10472,1,4.25486,5.1,0.564608,False,False,Wed,15.42,mid,mid
+sign(s): per-bar ridge (all features),top,5,2023-07-07,4.17736,4.01556,1,4.17736,3.1,-0.408644,False,False,Fri,15.44,mid,low
+sign(s): per-bar ridge (all features),top,6,2024-02-13,3.85234,3.7773,1,3.85234,4.775,0.545641,False,False,Tue,13.93,low,mid
+sign(s): per-bar ridge (all features),top,7,2021-06-14,3.83329,3.51107,1,3.83329,2.1,0.355656,False,False,Mon,15.65,mid,low
+sign(s): per-bar ridge (all features),top,8,2024-04-30,3.81387,3.76668,1,3.81387,5.05,-0.527615,True,False,Tue,14.67,low,mid
+sign(s): per-bar ridge (all features),top,9,2023-08-09,3.737,3.61068,1,3.737,3.65,-0.469389,False,False,Wed,15.99,mid,low
+sign(s): per-bar ridge (all features),top,10,2021-03-15,3.39053,3.22422,1,3.39053,3.175,0.476691,False,False,Mon,20.69,mid,high
+sign(s): per-bar ridge (all features),top,11,2023-09-22,3.33477,3.24254,1,3.33477,4.6,-0.514458,False,False,Fri,17.54,mid,mid
+sign(s): per-bar ridge (all features),top,12,2023-04-11,3.25387,3.17361,1,3.25387,2.6,-0.324088,False,False,Tue,18.97,mid,mid
+sign(s): per-bar ridge (all features),top,13,2023-05-16,3.04004,2.88465,1,3.04004,2.5,-0.358821,False,False,Tue,17.12,mid,mid
+sign(s): per-bar ridge (all features),top,14,2023-06-26,2.99292,2.92287,1,2.99292,2.8,-0.313427,False,False,Mon,13.44,low,mid
+sign(s): per-bar ridge (all features),top,15,2024-03-05,2.98928,2.9263,1,2.98928,4.675,0.414612,False,False,Tue,13.49,low,mid
+sign(s): per-bar ridge (all features),top,16,2020-11-18,2.93097,2.7644,1,2.93097,5.65,-0.741144,False,False,Wed,22.71,high,high
+sign(s): per-bar ridge (all features),top,17,2020-03-02,2.76996,2.54038,1,2.76996,14.65,1.87582,False,False,Mon,40.11,high,high
+sign(s): per-bar ridge (all features),top,18,2024-01-02,2.71886,2.61411,1,2.71886,3.45,0.340193,False,False,Tue,12.45,low,low
+sign(s): per-bar ridge (all features),top,19,2024-01-17,2.6909,2.59746,1,2.6909,3.85,0.306254,False,False,Wed,13.84,low,low
+sign(s): per-bar ridge (all features),top,20,2020-07-31,2.32374,2.16081,1,2.32374,4.85,0.556409,True,False,Fri,24.76,high,mid
+sign(s): per-bar ridge (all features),bottom,1,2023-11-30,-5.42248,-5.60864,-1,5.42248,3.55,0.509604,True,False,Thu,12.98,low,mid
+sign(s): per-bar ridge (all features),bottom,2,2023-03-22,-3.5509,-3.63456,-1,3.5509,13.85,-1.68734,False,True,Wed,21.38,high,high
+sign(s): per-bar ridge (all features),bottom,3,2024-03-26,-3.52963,-3.69141,-1,3.52963,3.625,-0.348535,False,False,Tue,13.19,low,low
+sign(s): per-bar ridge (all features),bottom,4,2022-11-14,-3.26923,-3.37008,-1,3.26923,6.5,-0.721524,False,False,Mon,22.52,high,high
+sign(s): per-bar ridge (all features),bottom,5,2023-01-31,-3.22224,-3.32522,-1,3.22224,6.3,0.662509,True,False,Tue,19.94,mid,high
+sign(s): per-bar ridge (all features),bottom,6,2023-03-14,-3.05799,-3.13133,-1,3.05799,8.45,0.888599,False,False,Tue,26.52,high,mid
+sign(s): per-bar ridge (all features),bottom,7,2022-12-09,-3.02344,-3.12402,-1,3.02344,5.125,-0.542998,False,False,Fri,22.29,high,high
+sign(s): per-bar ridge (all features),bottom,8,2021-08-18,-2.68785,-2.79423,-1,2.68785,5.35,-0.538192,False,False,Wed,17.91,mid,low
+sign(s): per-bar ridge (all features),bottom,9,2024-03-27,-2.67965,-2.7354,-1,2.67965,5.025,0.398459,False,False,Wed,13.24,low,low
+sign(s): per-bar ridge (all features),bottom,10,2023-05-18,-2.5033,-2.57529,-1,2.5033,3.725,0.347076,False,False,Thu,16.87,mid,mid
+sign(s): per-bar ridge (all features),bottom,11,2020-11-09,-2.41584,-2.5567,-1,2.41584,10.1,-1.04487,False,False,Mon,24.86,high,high
+sign(s): per-bar ridge (all features),bottom,12,2021-06-23,-2.33068,-2.62674,-1,2.33068,2.45,-0.2678,False,False,Wed,16.66,mid,low
+sign(s): per-bar ridge (all features),bottom,13,2022-08-25,-2.32238,-2.40244,-1,2.32238,4.25,0.455495,False,False,Thu,22.82,high,high
+sign(s): per-bar ridge (all features),bottom,14,2021-06-11,-2.2703,-2.46044,-1,2.2703,2.275,0.186339,False,False,Fri,16.1,mid,mid
+sign(s): per-bar ridge (all features),bottom,15,2022-11-03,-2.26994,-2.40849,-1,2.26994,6.15,-0.570935,False,False,Thu,25.86,high,high
+sign(s): per-bar ridge (all features),bottom,16,2023-01-19,-2.22998,-2.2959,-1,2.22998,5,-0.415569,False,False,Thu,20.34,mid,high
+sign(s): per-bar ridge (all features),bottom,17,2023-09-20,-2.16664,-2.21124,-1,2.16664,7.2,-0.52267,False,True,Wed,14.11,low,mid
+sign(s): per-bar ridge (all features),bottom,18,2021-09-20,-2.04725,-2.11573,-1,2.04725,9.1,0.741852,False,False,Mon,20.81,mid,low
+sign(s): per-bar ridge (all features),bottom,19,2020-05-26,-2.04137,-2.22682,-1,2.04137,4.35,-0.542208,False,False,Tue,28.16,high,high
+sign(s): per-bar ridge (all features),bottom,20,2023-11-14,-1.99994,-2.09993,-1,1.99994,3.1,-0.245183,False,False,Tue,14.76,low,mid
+sign(s): block-diagonal ridge (paper headline),top,1,2021-11-22,10.316,9.74205,1,10.316,3.275,-0.822568,False,False,Mon,17.91,mid,low
+sign(s): block-diagonal ridge (paper headline),top,2,2020-01-08,6.83603,6.46872,1,6.83603,1.525,-0.41267,False,False,Wed,13.79,low,low
+sign(s): block-diagonal ridge (paper headline),top,3,2024-02-21,4.25486,4.10472,1,4.25486,5.1,0.564608,False,False,Wed,15.42,mid,mid
+sign(s): block-diagonal ridge (paper headline),top,4,2023-07-07,4.17736,4.01556,1,4.17736,3.1,-0.408644,False,False,Fri,15.44,mid,low
+sign(s): block-diagonal ridge (paper headline),top,5,2023-08-09,3.737,3.61068,1,3.737,3.65,-0.469389,False,False,Wed,15.99,mid,low
+sign(s): block-diagonal ridge (paper headline),top,6,2024-03-26,3.52963,3.37865,1,3.52963,3.625,-0.348535,False,False,Tue,13.19,low,low
+sign(s): block-diagonal ridge (paper headline),top,7,2021-03-15,3.39053,3.22422,1,3.39053,3.175,0.476691,False,False,Mon,20.69,mid,high
+sign(s): block-diagonal ridge (paper headline),top,8,2023-09-22,3.33477,3.24254,1,3.33477,4.6,-0.514458,False,False,Fri,17.54,mid,mid
+sign(s): block-diagonal ridge (paper headline),top,9,2023-04-11,3.25387,3.17361,1,3.25387,2.6,-0.324088,False,False,Tue,18.97,mid,mid
+sign(s): block-diagonal ridge (paper headline),top,10,2023-03-14,3.05799,2.98721,1,3.05799,8.45,0.888599,False,False,Tue,26.52,high,mid
+sign(s): block-diagonal ridge (paper headline),top,11,2023-05-16,3.04004,2.88465,1,3.04004,2.5,-0.358821,False,False,Tue,17.12,mid,mid
+sign(s): block-diagonal ridge (paper headline),top,12,2023-06-26,2.99292,2.92287,1,2.99292,2.8,-0.313427,False,False,Mon,13.44,low,mid
+sign(s): block-diagonal ridge (paper headline),top,13,2024-03-05,2.98928,2.9263,1,2.98928,4.675,0.414612,False,False,Tue,13.49,low,mid
+sign(s): block-diagonal ridge (paper headline),top,14,2020-11-18,2.93097,2.7644,1,2.93097,5.65,-0.741144,False,False,Wed,22.71,high,high
+sign(s): block-diagonal ridge (paper headline),top,15,2020-03-02,2.76996,2.54038,1,2.76996,14.65,1.87582,False,False,Mon,40.11,high,high
+sign(s): block-diagonal ridge (paper headline),top,16,2024-01-02,2.71886,2.61411,1,2.71886,3.45,0.340193,False,False,Tue,12.45,low,low
+sign(s): block-diagonal ridge (paper headline),top,17,2024-01-17,2.6909,2.59746,1,2.6909,3.85,0.306254,False,False,Wed,13.84,low,low
+sign(s): block-diagonal ridge (paper headline),top,18,2020-11-09,2.41584,2.28571,1,2.41584,10.1,-1.04487,False,False,Mon,24.86,high,high
+sign(s): block-diagonal ridge (paper headline),top,19,2020-07-31,2.32374,2.16081,1,2.32374,4.85,0.556409,True,False,Fri,24.76,high,mid
+sign(s): block-diagonal ridge (paper headline),top,20,2023-11-20,2.31309,2.2426,1,2.31309,2.3,-0.195557,False,False,Mon,13.8,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,1,2023-11-30,-5.42248,-5.60864,-1,5.42248,3.55,0.509604,True,False,Thu,12.98,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,2,2021-03-26,-4.62667,-4.90801,-1,4.62667,5.25,0.795556,False,False,Fri,19.81,mid,high
+sign(s): block-diagonal ridge (paper headline),bottom,3,2024-02-13,-3.85234,-3.92977,-1,3.85234,4.775,0.545641,False,False,Tue,13.93,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,4,2021-06-14,-3.83329,-4.20508,-1,3.83329,2.1,0.355656,False,False,Mon,15.65,mid,low
+sign(s): block-diagonal ridge (paper headline),bottom,5,2024-04-30,-3.81387,-3.86201,-1,3.81387,5.05,-0.527615,True,False,Tue,14.67,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,6,2023-03-22,-3.5509,-3.63456,-1,3.5509,13.85,-1.68734,False,True,Wed,21.38,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,7,2022-11-14,-3.26923,-3.37008,-1,3.26923,6.5,-0.721524,False,False,Mon,22.52,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,8,2023-01-31,-3.22224,-3.32522,-1,3.22224,6.3,0.662509,True,False,Tue,19.94,mid,high
+sign(s): block-diagonal ridge (paper headline),bottom,9,2022-12-09,-3.02344,-3.12402,-1,3.02344,5.125,-0.542998,False,False,Fri,22.29,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,10,2021-08-18,-2.68785,-2.79423,-1,2.68785,5.35,-0.538192,False,False,Wed,17.91,mid,low
+sign(s): block-diagonal ridge (paper headline),bottom,11,2024-03-27,-2.67965,-2.7354,-1,2.67965,5.025,0.398459,False,False,Wed,13.24,low,low
+sign(s): block-diagonal ridge (paper headline),bottom,12,2023-05-18,-2.5033,-2.57529,-1,2.5033,3.725,0.347076,False,False,Thu,16.87,mid,mid
+sign(s): block-diagonal ridge (paper headline),bottom,13,2021-06-23,-2.33068,-2.62674,-1,2.33068,2.45,-0.2678,False,False,Wed,16.66,mid,low
+sign(s): block-diagonal ridge (paper headline),bottom,14,2022-08-25,-2.32238,-2.40244,-1,2.32238,4.25,0.455495,False,False,Thu,22.82,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,15,2022-11-30,-2.29674,-2.40849,-1,2.29674,6.1,0.556498,True,False,Wed,21.89,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,16,2021-06-11,-2.2703,-2.46044,-1,2.2703,2.275,0.186339,False,False,Fri,16.1,mid,mid
+sign(s): block-diagonal ridge (paper headline),bottom,17,2022-11-03,-2.26994,-2.40849,-1,2.26994,6.15,-0.570935,False,False,Thu,25.86,high,high
+sign(s): block-diagonal ridge (paper headline),bottom,18,2023-09-20,-2.16664,-2.21124,-1,2.16664,7.2,-0.52267,False,True,Wed,14.11,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,19,2023-11-14,-1.99994,-2.09993,-1,1.99994,3.1,-0.245183,False,False,Tue,14.76,low,mid
+sign(s): block-diagonal ridge (paper headline),bottom,20,2020-06-08,-1.86472,-1.94997,-1,1.86472,4.325,0.449044,False,False,Mon,24.52,high,high
+sign(s): HAR + calendar OLS (paper baseline),top,1,2021-11-22,10.316,9.74205,1,10.316,3.275,-0.822568,False,False,Mon,17.91,mid,low
+sign(s): HAR + calendar OLS (paper baseline),top,2,2020-01-08,6.83603,6.46872,1,6.83603,1.525,-0.41267,False,False,Wed,13.79,low,low
+sign(s): HAR + calendar OLS (paper baseline),top,3,2024-02-21,4.25486,4.10472,1,4.25486,5.1,0.564608,False,False,Wed,15.42,mid,mid
+sign(s): HAR + calendar OLS (paper baseline),top,4,2021-03-15,3.39053,3.22422,1,3.39053,3.175,0.476691,False,False,Mon,20.69,mid,high
+sign(s): HAR + calendar OLS (paper baseline),top,5,2023-09-22,3.33477,3.24254,1,3.33477,4.6,-0.514458,False,False,Fri,17.54,mid,mid
+sign(s): HAR + calendar OLS (paper baseline),top,6,2023-04-11,3.25387,3.17361,1,3.25387,2.6,-0.324088,False,False,Tue,18.97,mid,mid
+sign(s): HAR + calendar OLS (paper baseline),top,7,2023-03-14,3.05799,2.98721,1,3.05799,8.45,0.888599,False,False,Tue,26.52,high,mid
+sign(s): HAR + calendar OLS (paper baseline),top,8,2023-06-26,2.99292,2.92287,1,2.99292,2.8,-0.313427,False,False,Mon,13.44,low,mid
+sign(s): HAR + calendar OLS (paper baseline),top,9,2024-03-05,2.98928,2.9263,1,2.98928,4.675,0.414612,False,False,Tue,13.49,low,mid
+sign(s): HAR + calendar OLS (paper baseline),top,10,2020-11-18,2.93097,2.7644,1,2.93097,5.65,-0.741144,False,False,Wed,22.71,high,high
+sign(s): HAR + calendar OLS (paper baseline),top,11,2020-03-02,2.76996,2.54038,1,2.76996,14.65,1.87582,False,False,Mon,40.11,high,high
+sign(s): HAR + calendar OLS (paper baseline),top,12,2024-01-02,2.71886,2.61411,1,2.71886,3.45,0.340193,False,False,Tue,12.45,low,low
+sign(s): HAR + calendar OLS (paper baseline),top,13,2024-01-17,2.6909,2.59746,1,2.6909,3.85,0.306254,False,False,Wed,13.84,low,low
+sign(s): HAR + calendar OLS (paper baseline),top,14,2020-11-09,2.41584,2.28571,1,2.41584,10.1,-1.04487,False,False,Mon,24.86,high,high
+sign(s): HAR + calendar OLS (paper baseline),top,15,2020-07-31,2.32374,2.16081,1,2.32374,4.85,0.556409,True,False,Fri,24.76,high,mid
+sign(s): HAR + calendar OLS (paper baseline),top,16,2023-01-19,2.22998,2.16665,1,2.22998,5,-0.415569,False,False,Thu,20.34,mid,high
+sign(s): HAR + calendar OLS (paper baseline),top,17,2024-03-04,2.17537,2.12062,1,2.17537,2.85,-0.234684,False,False,Mon,13.11,low,mid
+sign(s): HAR + calendar OLS (paper baseline),top,18,2023-08-14,2.16105,2.08578,1,2.16105,3.075,0.257247,False,False,Mon,14.84,low,low
+sign(s): HAR + calendar OLS (paper baseline),top,19,2020-08-24,2.14001,1.99049,1,2.14001,2,0.272654,False,False,Mon,22.54,high,low
+sign(s): HAR + calendar OLS (paper baseline),top,20,2023-07-31,2.11651,2.03727,1,2.11651,2.875,0.207886,True,False,Mon,13.33,low,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,1,2023-11-30,-5.42248,-5.60864,-1,5.42248,3.55,0.509604,True,False,Thu,12.98,low,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,2,2021-03-26,-4.62667,-4.90801,-1,4.62667,5.25,0.795556,False,False,Fri,19.81,mid,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,3,2023-07-07,-4.17736,-4.34993,-1,4.17736,3.1,-0.408644,False,False,Fri,15.44,mid,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,4,2024-02-13,-3.85234,-3.92977,-1,3.85234,4.775,0.545641,False,False,Tue,13.93,low,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,5,2021-06-14,-3.83329,-4.20508,-1,3.83329,2.1,0.355656,False,False,Mon,15.65,mid,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,6,2024-04-30,-3.81387,-3.86201,-1,3.81387,5.05,-0.527615,True,False,Tue,14.67,low,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,7,2023-08-09,-3.737,-3.87043,-1,3.737,3.65,-0.469389,False,False,Wed,15.99,mid,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,8,2023-03-22,-3.5509,-3.63456,-1,3.5509,13.85,-1.68734,False,True,Wed,21.38,high,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,9,2024-03-26,-3.52963,-3.69141,-1,3.52963,3.625,-0.348535,False,False,Tue,13.19,low,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,10,2022-11-14,-3.26923,-3.37008,-1,3.26923,6.5,-0.721524,False,False,Mon,22.52,high,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,11,2023-01-31,-3.22224,-3.32522,-1,3.22224,6.3,0.662509,True,False,Tue,19.94,mid,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,12,2023-05-16,-3.04004,-3.20837,-1,3.04004,2.5,-0.358821,False,False,Tue,17.12,mid,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,13,2022-12-09,-3.02344,-3.12402,-1,3.02344,5.125,-0.542998,False,False,Fri,22.29,high,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,14,2021-08-18,-2.68785,-2.79423,-1,2.68785,5.35,-0.538192,False,False,Wed,17.91,mid,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,15,2024-03-27,-2.67965,-2.7354,-1,2.67965,5.025,0.398459,False,False,Wed,13.24,low,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,16,2023-05-18,-2.5033,-2.57529,-1,2.5033,3.725,0.347076,False,False,Thu,16.87,mid,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,17,2021-06-23,-2.33068,-2.62674,-1,2.33068,2.45,-0.2678,False,False,Wed,16.66,mid,low
+sign(s): HAR + calendar OLS (paper baseline),bottom,18,2022-08-25,-2.32238,-2.40244,-1,2.32238,4.25,0.455495,False,False,Thu,22.82,high,high
+sign(s): HAR + calendar OLS (paper baseline),bottom,19,2023-11-20,-2.31309,-2.38672,-1,2.31309,2.3,-0.195557,False,False,Mon,13.8,low,mid
+sign(s): HAR + calendar OLS (paper baseline),bottom,20,2022-11-30,-2.29674,-2.40849,-1,2.29674,6.1,0.556498,True,False,Wed,21.89,high,high
+always short,top,1,2020-01-10,1,1,-1,-1,2.45,-0.0679395,False,False,Fri,12.54,low,low
+always short,top,2,2020-01-21,1,1,-1,-1,1.55,-0.095065,False,False,Tue,12.1,low,low
+always short,top,3,2020-01-22,1,1,-1,-1,2.3,0.00120538,False,False,Wed,12.85,low,low
+always short,top,4,2020-01-24,1,1,-1,-1,3.925,-0.053075,False,False,Fri,12.98,low,low
+always short,top,5,2020-02-05,1,1,-1,-1,2.8,-0.00809663,False,False,Wed,16.05,mid,mid
+always short,top,6,2020-02-07,1,1,-1,-1,2.975,-0.0120232,False,False,Fri,14.96,mid,mid
+always short,top,7,2020-02-12,1,1,-1,-1,1.575,0.0645472,False,False,Wed,15.18,mid,mid
+always short,top,8,2020-02-18,1,1,-1,-1,1.725,-0.0545603,False,False,Tue,13.68,low,mid
+always short,top,9,2020-02-19,1,1,-1,-1,1.675,-0.0955921,False,False,Wed,14.83,mid,mid
+always short,top,10,2020-04-08,1,1,-1,-1,14.8,0.174854,False,False,Wed,46.7,high,high
+always short,top,11,2020-04-09,1,1,-1,-1,19.5,0.0459032,False,False,Thu,43.35,high,high
+always short,top,12,2020-04-24,1,1,-1,-1,8.05,0.0553783,False,False,Fri,41.38,high,high
+always short,top,13,2020-04-30,1,1,-1,-1,9.95,0.0243829,True,False,Thu,31.23,high,high
+always short,top,14,2020-05-01,1,1,-1,-1,8.45,-0.0857681,False,False,Fri,34.15,high,high
+always short,top,15,2020-05-20,1,1,-1,-1,5.5,-0.046414,False,False,Wed,30.53,high,high
+always short,top,16,2020-06-01,1,1,-1,-1,4.825,-0.0899139,False,False,Mon,27.51,high,high
+always short,top,17,2020-07-08,1,1,-1,-1,5.5,0.155764,False,False,Wed,29.43,high,high
+always short,top,18,2020-07-20,1,1,-1,-1,4.175,-0.0427235,False,False,Mon,25.68,high,high
+always short,top,19,2020-07-27,1,1,-1,-1,3.4,-0.00802581,False,False,Mon,25.84,high,high
+always short,top,20,2020-07-29,1,1,-1,-1,5.2,-0.0401889,False,True,Wed,25.44,high,mid
+always short,bottom,1,2021-11-22,-10.316,-10.9549,-1,10.316,3.275,-0.822568,False,False,Mon,17.91,mid,low
+always short,bottom,2,2020-01-08,-6.83603,-7.24135,-1,6.83603,1.525,-0.41267,False,False,Wed,13.79,low,low
+always short,bottom,3,2023-11-30,-5.42248,-5.60864,-1,5.42248,3.55,0.509604,True,False,Thu,12.98,low,mid
+always short,bottom,4,2021-03-26,-4.62667,-4.90801,-1,4.62667,5.25,0.795556,False,False,Fri,19.81,mid,high
+always short,bottom,5,2024-02-21,-4.25486,-4.4141,-1,4.25486,5.1,0.564608,False,False,Wed,15.42,mid,mid
+always short,bottom,6,2023-07-07,-4.17736,-4.34993,-1,4.17736,3.1,-0.408644,False,False,Fri,15.44,mid,low
+always short,bottom,7,2024-02-13,-3.85234,-3.92977,-1,3.85234,4.775,0.545641,False,False,Tue,13.93,low,mid
+always short,bottom,8,2021-06-14,-3.83329,-4.20508,-1,3.83329,2.1,0.355656,False,False,Mon,15.65,mid,low
+always short,bottom,9,2024-04-30,-3.81387,-3.86201,-1,3.81387,5.05,-0.527615,True,False,Tue,14.67,low,mid
+always short,bottom,10,2023-08-09,-3.737,-3.87043,-1,3.737,3.65,-0.469389,False,False,Wed,15.99,mid,low
+always short,bottom,11,2023-03-22,-3.5509,-3.63456,-1,3.5509,13.85,-1.68734,False,True,Wed,21.38,high,high
+always short,bottom,12,2024-03-26,-3.52963,-3.69141,-1,3.52963,3.625,-0.348535,False,False,Tue,13.19,low,low
+always short,bottom,13,2021-03-15,-3.39053,-3.57047,-1,3.39053,3.175,0.476691,False,False,Mon,20.69,mid,high
+always short,bottom,14,2023-09-22,-3.33477,-3.4311,-1,3.33477,4.6,-0.514458,False,False,Fri,17.54,mid,mid
+always short,bottom,15,2022-11-14,-3.26923,-3.37008,-1,3.26923,6.5,-0.721524,False,False,Mon,22.52,high,high
+always short,bottom,16,2023-04-11,-3.25387,-3.33728,-1,3.25387,2.6,-0.324088,False,False,Tue,18.97,mid,mid
+always short,bottom,17,2023-01-31,-3.22224,-3.32522,-1,3.22224,6.3,0.662509,True,False,Tue,19.94,mid,high
+always short,bottom,18,2023-03-14,-3.05799,-3.13133,-1,3.05799,8.45,0.888599,False,False,Tue,26.52,high,mid
+always short,bottom,19,2023-05-16,-3.04004,-3.20837,-1,3.04004,2.5,-0.358821,False,False,Tue,17.12,mid,mid
+always short,bottom,20,2022-12-09,-3.02344,-3.12402,-1,3.02344,5.125,-0.542998,False,False,Fri,22.29,high,high
