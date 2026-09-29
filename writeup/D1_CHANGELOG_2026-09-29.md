@@ -119,3 +119,43 @@ not touched here), no undefined references.
   which clashed with Appendix D and the master table, where "straddle" is the pair.
 - **Before / after numbers.** None.
 - **Build.** 68 pages, 12 overfull boxes (unchanged), 0 undefined references.
+
+### Change 3 — (a) One scorer in Section 5.4: the table and the prose that reads it
+
+- **What.** New `writeup/make_table_close_main.py` selects rows of
+  `results/close_master_table/master_table.csv` (no number typed) and writes
+  `generated/table_close_main.tex` (Table 7, 28 forecasts + always short, four panels:
+  A the paper's eight 48-bar forecasts, B the pooled ridge twins, C the per-bar linear
+  family on `baseline` / `all_features` / `live_feasible`, D the untuned per-bar trees
+  on `live_feasible` / `all_features`; columns QLIKE, % and DM vs R, Sharpe mid and
+  crossed, ΔSharpe vs R and vs always short with paired intervals, buy share) and
+  `generated/close_main_numbers.tex` (`\cm...` macros for every number of the new prose;
+  each qualitative claim asserted in the script). In `results_close_option.tex` the
+  table and the four paragraphs that read it are rewritten on Table 7; the deck-scorer
+  table and those paragraphs are **parked verbatim** (commented, dated) right below the
+  new block; the deck crossed-spread paragraph is parked in place and re-read on
+  Table 7. A boundary paragraph states that everything after it (sample splits, pins,
+  Murphy diagram, same-day regression, shift test, compounding) is still the
+  session-bar recalibration on the block-diagonal ridge, not comparable with Table 7.
+  The label `tab:close_option_rules` moves to the new table (Appendix D's references
+  to its 866 days and its $\sqrt{252}$ convention stay true).
+- **Why.** Two scorers were mixed: nothing computed since 2026-09-20 (per-bar models,
+  trees, master table) could be set beside the paper's table. The headline is
+  deliberately **not** changed here (next change), so this commit moves one thing: the
+  scorer.
+- **Before → after** (sources: parked deck text / `master_table.csv`,
+  `research_scorer/hit_payoff.csv`):
+
+  | quantity | before (session-bar map) | after (16:00-bar recalibration) |
+  |---|---|---|
+  | forecasts in the table | 8 (mid only) | 28 + always short (mid and crossed) |
+  | always short, Sharpe mid / crossed | 0.20 / −0.27 | 0.20 [−0.63, 1.14] / −0.27 [−1.10, 0.63] (forecast-free: unchanged) |
+  | block-diagonal ridge, Sharpe mid / crossed | 1.34 / 0.87 | 1.00 / 0.53 |
+  | paper's eight, Sharpe mid | 0.97 – 1.51 | 1.00 – 1.54 |
+  | paper's eight vs always short | +0.76 – +1.31; 1 of 8 interval above 0 (XGBoost, lower bound 0.017) | +0.80 – +1.33; 1 of 8 above 0 (LightGBM, +1.27 [+0.05, +2.41]) |
+  | FOMC columns | ridge with them higher by +0.07 [−0.49, 0.63] | ridge without them higher by +0.12 [−0.35, +0.63] |
+  | best paper column | fixed lasso 1.51, "ordering not asserted" | fixed lasso 1.54, above the block-diagonal ridge by +0.54 [+0.07, +1.06] |
+  | per-bar linear / untuned per-bar trees | not in the paper | 1.22 – 1.90 / 1.26 – 1.70 |
+  | intervals vs the block-diagonal ridge above zero | — | 3 of 26 tabled forecasts; 9 of 99 in the master table |
+  | Sharpe lost to the crossed spread | 0.47 (block-diagonal ridge) | 0.46 – 0.48 (every tabled forecast) |
+- **Build.** 68 pages, 12 overfull boxes (unchanged), 0 undefined references.

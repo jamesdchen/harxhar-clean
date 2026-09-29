@@ -1,105 +1,219 @@
 \subsection{A Last-Bar Same-Day Option Reading}
 \label{sec:close_option_results}
 
+% D1 2026-09-29 (change 3): ONE scorer.  Every number in the prose of this block is a \cm...
+% macro written by writeup/make_table_close_main.py from
+% results/close_master_table/master_table.csv (the 16:00-bar recalibration,
+% eq:close_opt_recal1600); the table is generated/table_close_main.tex from the same file.
+% The deck-scorer table and the prose that read it are parked, verbatim, right below.
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts of
 realized variance. This subsection reads them against the last thirty
 minutes of the expiration-day chain, under the rules of
-Section~\ref{sec:close_option_methods}: the nearest out-of-the-money
-call and put taken at the 15:30~ET mid, cash-settled at the close, with
-the position fixed by the sign of
-$s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to
-the eight forecast columns leaves 866 expiration days common to all
-eight (3~January~2020 to 30~April~2024). The 413 expiration days
-after that date --- the most recent twenty months of chain --- carry no
-forecast row and appear nowhere below.
-Table~\ref{tab:close_option_rules} crosses every rule with every forecast
-on the days that remain.
+Section~\ref{sec:close_option_methods}: the straddle bought or sold at
+15:30~ET and cash-settled at the close, with the position fixed by the sign of
+$s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to the
+forecasts leaves \cmNdays{} expiration days common to every forecast % master_table.csv n_days
+(3~January~2020 to 30~April~2024). The 413 expiration days after that date
+--- the most recent twenty months of chain --- carry no forecast row and are
+not scored here; the trade's live form on them is reported in
+Appendix~\ref{sec:app_run_post2024}. Every forecast is turned into a variance
+by one rule, the 16:00-bar recalibration of
+Equation~\eqref{eq:close_opt_recal1600}, so every row of
+Table~\ref{tab:close_option_rules} is scored the same way on the same days:
+the paper's eight forecasts, fitted on all 48 bars of the day (panel~A); the
+pooled twins of the per-bar forecasts (panel~B); and the per-bar forecasts
+fitted for the 16:00 bar alone, linear (panel~C) and trees (panel~D).
 
 \begin{table}[H]
 \centering
-\caption{Last-bar same-day option trade by position rule, 15:30~ET to
-the close (Section~\ref{sec:close_option_methods}). One panel per rule;
-rows are the eight forecast columns. One return per expiration day, on the
-866 days common to all eight (3~January~2020 to 30~April~2024),
-filled at the 15:30 mid. $t=\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ is
-computed on the daily $R'$ and is not annualized;
-$\mathrm{Sharpe}_{\mathrm{ann}}=
-(\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ is the only annualized
-column, and it scales one \emph{trade} day to a year. The 0DTE frame
-trades about 200.3 days a year over this sample rather than $252$ --- SPXW
-listed Monday, Wednesday and Friday expirations before June 2022 and every
-session after --- so a calendar-time annualization multiplies that column
-by 0.892 throughout and changes no comparison inside it.
-\emph{ex.\ kurt} is the bias-corrected sample excess kurtosis
-(a Gaussian scores 0). Every $t$ in this subsection is the plain
-$\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ of a daily series unless it is
-named heteroskedasticity-robust or paired. The
-always-short rule takes no forecast, so its eight model rows are
-identical and it is shown as a single row. $\dagger$ marks the four
-columns still fitted on the earlier design panel, for which a run on the
-panel of record is pending
-(Section~\ref{sec:close_option_methods}).
+\caption{The last-30-min trade under one scorer: $\mathrm{sign}(s)$ on the
+straddle, 15:30~ET to the close, on the \cmNdays{} expiration days common to
+every row (3~January~2020 to 30~April~2024). Every forecast is turned into a
+variance by the 16:00-bar recalibration
+(Equation~\eqref{eq:close_opt_recal1600}). QLIKE: the recalibrated forecast's
+mean QLIKE at the $16{:}00$ bar; vs R: its percent difference from the
+reference R, the block-diagonal ridge (negative: more accurate), and the
+Diebold--Mariano statistic of that difference. Sharpe$_{\mathrm{ann}}$: the
+portfolio's Sharpe ratio annualized by $\sqrt{252}$ per trade day, at the 15:30
+midpoint and at the crossed spread (bought at the ask, sold at the bid, at
+entry only; the position settles in cash). $\Delta$Sharpe: the midpoint Sharpe
+ratio minus that of R and of always short on the same days, with a 95\%
+paired interval (circular block bootstrap of the days, blocks of 21 days).
+Buys: the share of days the rule is long. Inputs: the input set of
+Section~\ref{sec:close_option_methods} by its design name; panel~A reads the
+paper's full design. $^{\dagger}$: the four columns still fitted on the
+earlier design panel (Section~\ref{sec:close_option_methods}). The rows are
+selected from the closing-strategy master table, which scores \cmMasterN{}
+forecasts the same way on the same days.
 \label{tab:close_option_rules}}
-\resizebox{\textwidth}{!}{\input{generated/table_rule_by_strategy_paper}}
+\resizebox{\textwidth}{!}{\input{generated/table_close_main}}
 \end{table}
 
-Read the control first. Selling the straddle every day earns a mean
-0.014 per expiration day at a standard deviation of 1.128
-($t=0.38$, annualized Sharpe 0.20): a positive premium, at a size that
-866 days cannot separate from zero. Putting the forecast in charge of
-\emph{direction} is what pays, and it pays in the same direction in every
-column: the rule $q=\mathrm{sign}(s)$ earns between 0.069 and
-0.107 per day across the eight, and every one of the eight improves
-on the control.
+Read the control first. Selling the straddle every day earns a mean of
+\cmShortMean{} premium units per day, an annualized Sharpe ratio of % master_table.csv always_short mean_mid
+\cmShortShMid{} \cmShortShCiMid{} at the midpoint and \cmShortShX{} % master_table.csv always_short; intervals research_scorer/hit_payoff.csv
+\cmShortShCiX{} at the crossed spread: a
+premium that \cmNdays{} days cannot separate from zero at the midpoint and that the
+spread consumes.
 
-How \emph{strong} that evidence is is a different question from how
-consistent it is, and the honest answer is that it is not strong. The two
-rules trade the same contracts on the same days, so the statistic that
-carries the comparison is the paired one --- the daily difference between
-the two portfolios --- and not each portfolio's own $t$ against zero.
-Paired against the control, the eight improvements run from 0.76 to
-1.31 in annualized Sharpe at an autocorrelation-robust $t$ between
-1.18 and 1.90 (plain paired $t$ 1.06 to
-1.70), and seven of the eight bootstrap percentile intervals on
-that difference include zero. The exception is XGBoost, whose interval
-clears zero by a knife edge --- a lower bound of 0.017 on an
-interval 2.46 wide. For the column the rest of the paper argues for
-the difference is 1.13 at an autocorrelation-robust paired $t$ of
-1.57. Two
-statistics that would read as significance are worth naming so they are not
-mistaken for it: each portfolio's own $t$ against zero clears $1.96$ for
-six of the eight, and the active-return $t$ against the control
-clears it for none of them. Eight columns pointing the same way is worth
-more than any one of them --- though not eight times more, since they are
-close to one bet (below) --- but on this sample only one of them separates
-itself from the always-short control, and that marginally. What the panel
-establishes is the rule, at that strength, and not any model.
+\paragraph{The paper's forecasts under one scorer.} Putting the paper's
+forecasts in charge of \emph{direction} lifts every one of them above the
+control: the eight $\mathrm{sign}(s)$ portfolios trade at Sharpe
+\cmPaperShMin{} to \cmPaperShMax{} at the midpoint and \cmPaperXMin{} to % master_table.csv rows a0..enet
+\cmPaperXMax{} at the crossed spread. The trade turns on the paired comparison
+--- both rules trade the same contracts on the same days --- and paired against
+always short the eight improvements run from \cmPaperVsShortMin{} to
+\cmPaperVsShortMax{}, with \cmPaperVsShortAboveN{} of the eight intervals above % dSharpe_mid_vs_short(_lo/_hi)
+zero (\cmPaperVsShortAboveWho, \cmPaperVsShortAboveCi). The paper's forecast
+of record, the block-diagonal ridge, trades at \cmRefShMid{} (\cmRefShX{} % blk2 Sharpe_mid / _crossed
+crossed), \cmRefVsShort{} above always short. Under this recalibration a % blk2 dSharpe_mid_vs_short
+forecast fitted on all 48 bars keeps its own level at the 16:00 bar
+(Section~\ref{sec:close_option_methods}), and the same estimator without the
+FOMC calendar columns trades higher by \cmFomcD{}, an interval that includes % blk2_inc dSharpe_mid_vs_ref
+zero: the calendar channels are not resolved on this trade. The eight columns
+take the same side as the block-diagonal ridge on \cmPaperSameMin{} to % same_position_as_ref, 7 others
+\cmPaperSameMax{} percent of days. One of them separates from it: the fixed
+lasso, on the same design panel, trades at \cmLassoFShMid{}, above the % lasso_f Sharpe_mid
+block-diagonal ridge by \cmLassoFVsRef{}, while taking its side on % lasso_f dSharpe_mid_vs_ref
+\cmLassoFSame{} percent of days.
 
-The headline column is the block-diagonal ridge fitted on the design that
-carries the FOMC calendar block, the panel of record of
-Section~\ref{sec:close_option_methods}. It earns a mean of 0.095,
-$t=2.48$, and an annualized Sharpe of 1.34 --- with a bootstrap
-standard error of 0.55 and a 95\% percentile interval from
-0.27 to 2.42, which is the width an 866-day Sharpe ratio
-has and the reason no ordering below is asserted. Directly beneath it sits
-the same estimator on the earlier design, which has no calendar block, and
-the gap between those two rows is what the calendar channels are worth on
-this trade: +0.07 of annualized Sharpe at a paired $t$ of 0.26, on
-an interval from $-0.49$ to $0.63$ --- one-signed, small, and not
-resolved. It is reported because the headline column and four of its
-comparators do not sit on the same design, and a reader is entitled to see
-the size of that.
+\paragraph{The forecasts built for the traded bar.} Panels B to D hold the
+forecasts of Section~\ref{sec:close_option_methods} that read the 16:00 bar on
+their own design: the pooled twins trade at \cmPoolShMin{} to \cmPoolShMax{}, % Sharpe_mid, pool_ridge_*
+the per-bar linear forecasts at \cmSubShMin{} to \cmSubShMax{}, and the % Sharpe_mid, sub_* (panel C)
+untuned per-bar trees at \cmTreeShMin{} to \cmTreeShMax{}. Against the % Sharpe_mid, subtree_* (panel D)
+block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other forecasts
+in the table have a Sharpe-difference interval wholly above zero and
+\cmTabVsRefBelow{} wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
+the master table the count above zero is \cmMasterVsRefAbove{}. A table of % table A, check rows excluded
+this many forecasts on \cmNdays{} days is a search, and its intervals are read as
+such.
 
-The ridge does not lead the panel: the fixed lasso (1.51), XGBoost (1.50), LightGBM (1.46) and the causally tuned lasso (1.41) all score higher. The paper does not read
-that ordering as a ranking of forecasts. The eight columns take the same
-side of the trade on 82 to 87 percent of days, which is
-far too little separation for 866 days to order them by; the spread
-down the column is smaller than the paired intervals just quoted, and the
-ordering is left unresolved. The forecast sits above the quoted implied
-variance --- a long-volatility day --- on 32 to 41 percent of
-days depending on the column.
+\paragraph{At the crossed spread.} Every Sharpe ratio of
+Table~\ref{tab:close_option_rules} is given at both fills. Charging the
+spread at entry --- both legs bought at the ask when the rule is long, both
+sold at the bid when it is short, with nothing charged at the exit because
+the position settles in cash --- costs every forecast's portfolio between
+\cmXLossMin{} and \cmXLossMax{} of annualized Sharpe and takes always short % Sharpe_mid - Sharpe_crossed, tabled rows
+from \cmShortShMid{} to \cmShortShX{}. It is one crossing per day at the
+quoted touch, with no size, no queue and no model of impact --- a bound on
+the fill rather than a fill model --- but it is the crossing the venue
+charges.
 
-The qualifications matter as much as the point estimates.
+% D1 2026-09-29 (change 3): boundary of the one-scorer block.  The paragraphs below were
+% computed under the session-bar recalibration (the deck's map); they stay until they are
+% parked into Appendix D (change "park the deck-scorer diagnostics").
+\paragraph{Diagnostics on the paper's forecast under the session-bar
+recalibration.} The paragraphs from here to the end of this subsection were
+computed on the block-diagonal ridge, and where stated on the paper's eight
+forecasts, under the session-bar recalibration of
+Section~\ref{sec:close_option_methods}. Their numbers are not comparable with
+Table~\ref{tab:close_option_rules}, and none is set beside it.
+
+% PARKED 2026-09-29 (D1 change 3): the deck-scorer table (session-bar
+% recalibration, the paper's eight forecasts, midpoint only) and the prose that read it,
+% replaced by the one-scorer block above.  Verbatim:
+% The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts of
+% realized variance. This subsection reads them against the last thirty
+% minutes of the expiration-day chain, under the rules of
+% Section~\ref{sec:close_option_methods}: the nearest out-of-the-money
+% call and put taken at the 15:30~ET mid, cash-settled at the close, with
+% the position fixed by the sign of
+% $s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to
+% the eight forecast columns leaves 866 expiration days common to all
+% eight (3~January~2020 to 30~April~2024). The 413 expiration days
+% after that date --- the most recent twenty months of chain --- carry no
+% forecast row and appear nowhere below.
+% Table~\ref{tab:close_option_rules} crosses every rule with every forecast
+% on the days that remain.
+%
+% \begin{table}[H]
+% \centering
+% \caption{Last-bar same-day option trade by position rule, 15:30~ET to
+% the close (Section~\ref{sec:close_option_methods}). One panel per rule;
+% rows are the eight forecast columns. One return per expiration day, on the
+% 866 days common to all eight (3~January~2020 to 30~April~2024),
+% filled at the 15:30 mid. $t=\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ is
+% computed on the daily $R'$ and is not annualized;
+% $\mathrm{Sharpe}_{\mathrm{ann}}=
+% (\mathrm{mean}/\mathrm{std})\times\sqrt{252}$ is the only annualized
+% column, and it scales one \emph{trade} day to a year. The 0DTE frame
+% trades about 200.3 days a year over this sample rather than $252$ --- SPXW
+% listed Monday, Wednesday and Friday expirations before June 2022 and every
+% session after --- so a calendar-time annualization multiplies that column
+% by 0.892 throughout and changes no comparison inside it.
+% \emph{ex.\ kurt} is the bias-corrected sample excess kurtosis
+% (a Gaussian scores 0). Every $t$ in this subsection is the plain
+% $\sqrt{n}\,\mathrm{mean}/\mathrm{std}$ of a daily series unless it is
+% named heteroskedasticity-robust or paired. The
+% always-short rule takes no forecast, so its eight model rows are
+% identical and it is shown as a single row. $\dagger$ marks the four
+% columns still fitted on the earlier design panel, for which a run on the
+% panel of record is pending
+% (Section~\ref{sec:close_option_methods}).
+% \label{tab:close_option_rules}}
+% \resizebox{\textwidth}{!}{\input{generated/table_rule_by_strategy_paper}}
+% \end{table}
+%
+% Read the control first. Selling the straddle every day earns a mean
+% 0.014 per expiration day at a standard deviation of 1.128
+% ($t=0.38$, annualized Sharpe 0.20): a positive premium, at a size that
+% 866 days cannot separate from zero. Putting the forecast in charge of
+% \emph{direction} is what pays, and it pays in the same direction in every
+% column: the rule $q=\mathrm{sign}(s)$ earns between 0.069 and
+% 0.107 per day across the eight, and every one of the eight improves
+% on the control.
+%
+% How \emph{strong} that evidence is is a different question from how
+% consistent it is, and the honest answer is that it is not strong. The two
+% rules trade the same contracts on the same days, so the statistic that
+% carries the comparison is the paired one --- the daily difference between
+% the two portfolios --- and not each portfolio's own $t$ against zero.
+% Paired against the control, the eight improvements run from 0.76 to
+% 1.31 in annualized Sharpe at an autocorrelation-robust $t$ between
+% 1.18 and 1.90 (plain paired $t$ 1.06 to
+% 1.70), and seven of the eight bootstrap percentile intervals on
+% that difference include zero. The exception is XGBoost, whose interval
+% clears zero by a knife edge --- a lower bound of 0.017 on an
+% interval 2.46 wide. For the column the rest of the paper argues for
+% the difference is 1.13 at an autocorrelation-robust paired $t$ of
+% 1.57. Two
+% statistics that would read as significance are worth naming so they are not
+% mistaken for it: each portfolio's own $t$ against zero clears $1.96$ for
+% six of the eight, and the active-return $t$ against the control
+% clears it for none of them. Eight columns pointing the same way is worth
+% more than any one of them --- though not eight times more, since they are
+% close to one bet (below) --- but on this sample only one of them separates
+% itself from the always-short control, and that marginally. What the panel
+% establishes is the rule, at that strength, and not any model.
+%
+% The headline column is the block-diagonal ridge fitted on the design that
+% carries the FOMC calendar block, the panel of record of
+% Section~\ref{sec:close_option_methods}. It earns a mean of 0.095,
+% $t=2.48$, and an annualized Sharpe of 1.34 --- with a bootstrap
+% standard error of 0.55 and a 95\% percentile interval from
+% 0.27 to 2.42, which is the width an 866-day Sharpe ratio
+% has and the reason no ordering below is asserted. Directly beneath it sits
+% the same estimator on the earlier design, which has no calendar block, and
+% the gap between those two rows is what the calendar channels are worth on
+% this trade: +0.07 of annualized Sharpe at a paired $t$ of 0.26, on
+% an interval from $-0.49$ to $0.63$ --- one-signed, small, and not
+% resolved. It is reported because the headline column and four of its
+% comparators do not sit on the same design, and a reader is entitled to see
+% the size of that.
+%
+% The ridge does not lead the panel: the fixed lasso (1.51), XGBoost (1.50), LightGBM (1.46) and the causally tuned lasso (1.41) all score higher. The paper does not read
+% that ordering as a ranking of forecasts. The eight columns take the same
+% side of the trade on 82 to 87 percent of days, which is
+% far too little separation for 866 days to order them by; the spread
+% down the column is smaller than the paired intervals just quoted, and the
+% ordering is left unresolved. The forecast sits above the quoted implied
+% variance --- a long-volatility day --- on 32 to 41 percent of
+% days depending on the column.
+%
+% The qualifications matter as much as the point estimates.
+
 
 \paragraph{Where the level comes from.} Two sample splits qualify the
 level rather than the sign. Dropping the 39 expiration days through
@@ -330,19 +444,21 @@ stands on.}
 \label{fig:close_option_sameday}
 \end{figure}
 
-\paragraph{At the crossed spread the edge survives and the control does
-not.} Every figure above is a midpoint figure. Charging the spread at
-entry --- both legs bought at the ask when the rule is long, both sold at
-the bid when it is short, with nothing charged at the exit because the
-position settles in cash --- takes the block-diagonal ridge
-$\mathrm{sign}(s)$ portfolio from an annualized Sharpe of 1.34 to
-0.87 ($t=1.61$) and the always-short control from 0.20 to
-$-0.27$. That is the comparison the trade turns on: the direction rule
-pays for its own spread and the always-short control does not. It is one
-crossing per day at the quoted touch, with no size, no queue and no model
-of impact --- a bound on the fill rather than a fill model --- but it is
-the crossing the venue charges, and the sign of the answer does not depend
-on where inside the spread a real fill would land.
+% PARKED 2026-09-29 (D1 change 3): the deck-scorer crossed-spread paragraph, re-read on
+% Table 7 in the one-scorer block above.  Verbatim:
+% \paragraph{At the crossed spread the edge survives and the control does
+% not.} Every figure above is a midpoint figure. Charging the spread at
+% entry --- both legs bought at the ask when the rule is long, both sold at
+% the bid when it is short, with nothing charged at the exit because the
+% position settles in cash --- takes the block-diagonal ridge
+% $\mathrm{sign}(s)$ portfolio from an annualized Sharpe of 1.34 to
+% 0.87 ($t=1.61$) and the always-short control from 0.20 to
+% $-0.27$. That is the comparison the trade turns on: the direction rule
+% pays for its own spread and the always-short control does not. It is one
+% crossing per day at the quoted touch, with no size, no queue and no model
+% of impact --- a bound on the fill rather than a fill model --- but it is
+% the crossing the venue charges, and the sign of the answer does not depend
+% on where inside the spread a real fill would land.
 
 \paragraph{The forecast is dated where it claims to be.} A same-day trade
 driven by a same-day forecast invites the obvious suspicion, so the shift
