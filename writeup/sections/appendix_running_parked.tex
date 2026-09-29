@@ -1,0 +1,382 @@
+% ============================================================================
+% PARKED 2026-09-29 (D1 change 9): the session-bar diagnostics of Section 5.4.
+% When Section 5.4 moved to one scorer (the 16:00-bar recalibration of Table 7), the
+% paragraphs below -- computed on the block-diagonal ridge, and where stated on the
+% paper's eight forecasts, under the session-bar recalibration (the deck's map) -- no
+% longer belonged in the main text.  They are kept VERBATIM as they stood on 2026-09-29
+% (sections/results_close_option.tex before commit "D1 change 9"), except that five
+% references to the parked deck-scorer table now name the eight forecasts or Section 5.4.
+% Input from main.tex after sections/appendix_close_pnl, so this continues Appendix D.
+% ============================================================================
+\subsection{Parked from Section 5.4: The Paper's Forecast under the Session-Bar Recalibration}
+\label{sec:app_run_parked}
+
+\paragraph{Why it is parked.} Until 29~September~2026, Section~\ref{sec:close_option_results}
+read the paper's eight forecasts under the session-bar recalibration of
+Section~\ref{sec:close_option_methods} and qualified the block-diagonal ridge's
+$\mathrm{sign}(s)$ portfolio with the paragraphs below. Section~\ref{sec:close_option_results}
+now scores every forecast under the 16:00-bar recalibration of
+Table~\ref{tab:close_option_rules}. These paragraphs belong to the other recalibration and
+to the paper's forecast rather than the headline; none of their numbers is comparable with
+Table~\ref{tab:close_option_rules} or set beside it. They are kept as they stood, because
+three of them answer questions a reader will ask of any same-day trade --- whether the
+forecast is dated where it claims to be (the shift test), how much of the trade's sign a
+variance forecast can reach at all, and why QLIKE and the trade rank forecasts differently
+--- and they have not been re-run under the 16:00-bar recalibration.
+
+\paragraph{Where the level comes from.} Two sample splits qualify the
+level rather than the sign. Dropping the 39 expiration days through
+31~March~2020 --- the February--March 2020 spike --- \emph{raises} the
+block-diagonal ridge portfolio to Sharpe 1.51 ($t=2.73$ on the
+remaining 827 days): the full-sample figure is dragged, not
+flattered, by that quarter. Splitting instead at
+16~May~2022, when SPXW listings became daily --- a market-structure date, not a
+threshold chosen on the portfolio --- the same portfolio scores Sharpe 0.98
+($t=1.20$) on the 377 days before and 1.63 ($t=2.27$) on the
+489 after: the direction edge is positive on both tapes but earns its
+significance on the daily-0DTE era. The split is not uniform across columns
+--- the two tree forecasts score higher before the date than after --- which is
+one more reason to read the panel as one rule rather than as eight results.
+
+\paragraph{Settlement pins carry a disproportionate share.} The
+straddle expires worthless --- $R=-1$ exactly --- on 193 of the 866
+days, 22.3 percent, whenever the close settles inside the one-strike
+window. The always-short control collects $+1$ on those days against
+$-0.27$ on all others; the $\mathrm{sign}(s)$ portfolio averages
+$+0.18$ on them against $+0.07$ elsewhere, so pin days supply
+43 percent of its total return from 22.3 percent of the
+days. The portfolio monetizes a direction
+call and the pin premium together, and its P\&L remains tilted toward
+days the index settles inside the strikes.
+
+\paragraph{Eight rows are one or two bets.} The eight daily $\mathrm{sign}(s)$
+portfolios are correlated (mean pairwise correlation 0.70, from
+0.58 to 0.93; their buy-day sets overlap at a mean pairwise Jaccard
+index of 0.70), an effective count of 1.8 independent portfolios by the
+participation ratio $(\sum_i \lambda_i)^2 / \sum_i \lambda_i^2$ of their
+correlation matrix. Agreement down the eight
+columns is evidence that the rule is insensitive to
+which forecast drives it --- not eight independent confirmations of the rule.
+
+% Decision-aligned scoring of the 15:30 forecasts. Every number below is a
+% macro written by writeup/make_murphy_1530_tex.py from the CSVs of
+% writeup/intraday_proposals/59_trade_aligned_loss.py; the generator also
+% asserts each qualitative claim made about the figure.
+\ifdefined\murOracleAgree\else\input{generated/murphy_1530_numbers}\fi
+\paragraph{What the forecasts are scored on, and what the trade uses.} The
+eight columns cannot be ordered by the trade,
+and the paper's accuracy measure does not order them on it either. The reason
+is structural. QLIKE (Equation~\eqref{eq:dp_qlike}) is consistent for the
+conditional mean of the variance \citep{Patton2011}, and every consistent
+scoring function for a mean can be taken apart by threshold. For a threshold
+$\theta > 0$ let
+\begin{equation}
+    S_\theta(f, y) \;=\; |y - \theta|\;
+    \mathbf{1}\{\min(f, y) \le \theta < \max(f, y)\},
+    \label{eq:elementary_score}
+\end{equation}
+the loss of someone who uses the forecast $f$ to decide whether the outcome
+$y$ will exceed $\theta$: nothing when $f$ and $y$ fall on the same side of
+$\theta$, and the distance by which $y$ landed from $\theta$ when they do not.
+Every consistent scoring function for the mean is, up to a term that does not
+involve the forecast, a mixture of these elementary scores over $\theta$ with
+a nonnegative weight \citep{Ehm2016}; for a Bregman loss generated by a convex
+function $\phi$ the weight is $\phi''(\theta)\,d\theta$ in the normalization of
+Equation~\eqref{eq:elementary_score}. QLIKE is the Bregman loss of
+$\phi(u) = -\log u$, so for every forecast and outcome
+\begin{equation}
+    \frac{RV}{\widehat{RV}} - \log\frac{RV}{\widehat{RV}} - 1
+    \;=\; \int_0^\infty S_\theta\bigl(\widehat{RV},\,RV\bigr)\,
+    \theta^{-2}\,d\theta .
+    \label{eq:qlike_mixture}
+\end{equation}
+The identity is a two-line calculation --- when $RV > \widehat{RV}$ the
+integral is $\int_{\widehat{RV}}^{RV}(RV-\theta)\,\theta^{-2}\,d\theta =
+RV/\widehat{RV} - 1 - \log(RV/\widehat{RV})$, and the other case is its mirror
+image --- and it was also checked numerically, day by day, for the
+block-diagonal ridge on the scored days. QLIKE is therefore an average of
+threshold decisions, weighted by $\theta^{-2}$ toward small thresholds.
+
+The $\mathrm{sign}(s)$ rule takes one of those decisions and no other: it is
+long exactly when $\widehat{RV}_t > \mathrm{IV}^2_{30,t}$, the decision at
+$\theta = \mathrm{IV}^2_{30,t}$. With the threshold measured in units of the
+day's implied variance, $\theta = c\,\mathrm{IV}^2_{30,t}$, the right-hand side
+of Equation~\eqref{eq:qlike_mixture} becomes $\int_0^\infty e_t(c)\,c^{-2}\,dc$,
+where $e_t(c)$ is the elementary score of $\widehat{RV}_t/\mathrm{IV}^2_{30,t}$
+against $RV_t/\mathrm{IV}^2_{30,t}$ at the threshold $c$; the trade reads that
+score at $c = 1$ only,
+\begin{equation}
+    e_t(1) \;=\; \left|\frac{RV_t}{\mathrm{IV}^2_{30,t}} - 1\right|
+    \mathbf{1}\bigl\{\widehat{RV}_t \text{ and } RV_t
+    \text{ fall on opposite sides of } \mathrm{IV}^2_{30,t}\bigr\}.
+    \label{eq:score_at_threshold}
+\end{equation}
+A single elementary score is itself consistent for the mean, though not
+strictly, so it ranks variance forecasts in the same sense QLIKE does; it
+spends all of its weight at the threshold the trade uses.
+Table~\ref{tab:close_option_scoring} reports it beside QLIKE. QLIKE remains
+the paper's measure of accuracy everywhere else.
+
+\begin{table}[H]
+\centering
+\caption{The 15:30 forecasts scored two ways, on the 866 expiration days of
+Section~\ref{sec:close_option_results}. QLIKE is Equation~\eqref{eq:dp_qlike}
+applied to the $16{:}00$ row; the score at the threshold is
+Equation~\eqref{eq:score_at_threshold}, averaged over days (lower is better
+for both). ``Same side as $RV$'' is the percentage of days on which
+$\widehat{RV}_t$ and $RV_t$ fall on the same side of
+$\mathrm{IV}^2_{30,t}$; ``same side as $R$'' the percentage on which the
+$\mathrm{sign}(s)$ position has the sign of the settlement return. The last
+column is the annualized Sharpe ratio of the $\mathrm{sign}(s)$ portfolio at
+the crossed spread. The last row is a rule told $RV_t$ in advance. $\dagger$:
+the four columns still fitted on the earlier design panel
+(Section~\ref{sec:close_option_methods}).
+\label{tab:close_option_scoring}}
+\resizebox{\textwidth}{!}{\input{generated/table_murphy_1530}}
+\end{table}
+
+\paragraph{The Murphy diagram.} Averaging $e_t(c)$ over the scored days and
+plotting it against $c$, one line per forecast, gives the Murphy diagram of
+\citet{Ehm2016} (Figure~\ref{fig:close_option_murphy}). QLIKE is the area
+under each line weighted by $c^{-2}$; the trade reads each line at $c = 1$.
+The lines cross within a factor of two of the implied variance. At every
+threshold on the grid up to \murLinUpper{} times it the lowest score belongs
+to a penalized linear forecast --- the block-diagonal ridge, one of the two
+lassos or the elastic net. From \murTreeLower{} to \murTreeUpper{} times it
+the two tree forecasts lead, \murBestSlice{} at $c = 1$ itself with a score
+of \murBestSliceScore{}. Between \murBaseLower{} and \murBaseUpper{} times it
+the baseline leads at \murBaseLeadN{} of the \murBaseRegionN{} thresholds, and
+from \murTieLower{} times upward the best score is shared exactly by
+forecasts of different families, because few forecasts ever reach so high a
+threshold and those that do not are scored identically. At the trade's own
+threshold the block-diagonal ridge ranks \murRidgeRank{} of the eight, with
+\murRidgeSliceScore{}, and the same estimator without the FOMC columns ranks
+\murRidgeNoFomcRank{}, with \murRidgeNoFomcScore{}.
+
+\begin{figure}[H]
+\centering
+\treefigorpending{\textwidth}{figures/murphy_1530.pdf}
+\caption{Murphy diagram of the eight 15:30 forecasts on the 866 expiration
+days. The horizontal axis is the threshold $\theta$ in units of the day's
+implied variance of the last half hour, $\mathrm{IV}^2_{30,t}$, on a
+logarithmic scale from \murGridMin{} to \murGridMax{}; the dotted vertical
+line at 1 is the threshold the $\mathrm{sign}(s)$ rule uses. (a) The mean of
+the elementary score $e_t(c)$ (lower is better); QLIKE is the area under each
+line weighted by $c^{-2}$. (b) Each line minus the mean of the eight at the
+same threshold, which makes the crossings visible.}
+\label{fig:close_option_murphy}
+\end{figure}
+
+\paragraph{What a variance forecast can reach.} Even the right threshold
+decision does not settle the trade. The straddle's settlement value depends on
+where the index closes relative to the two strikes --- on the net move of the
+last half hour --- and not on its realized variance, which counts every swing
+whether or not it is undone before the close. A rule told $RV_t$ in advance and
+trading $\mathrm{sign}(RV_t - \mathrm{IV}^2_{30,t})$ takes the side of the
+payoff's sign on only \murOracleAgree{} percent of days, for an annualized
+Sharpe ratio of \murOracleShMid{} at the mid and \murOracleShX{} across the
+spread, against \murPayoffOracleShX{} across the spread for a rule told the
+sign of the payoff itself. On \murOracleMiss{} percent of days --- about a
+third --- the trade's sign is therefore beyond any variance forecast, however
+accurate. The eight forecasts take the side of the payoff's sign on
+\murAgreePayMin{} to \murAgreePayMax{} percent of days, and the side of
+$RV_t - \mathrm{IV}^2_{30,t}$ on \murHitVarMin{} to \murHitVarMax{} percent.
+
+\paragraph{Neither score orders the forecasts on this trade.} The fixed lasso
+ranks \murLassoFixedQLIKERank{} of the eight on QLIKE and
+\murLassoFixedSliceRank{} at the trade's threshold, and has the highest
+crossed-spread Sharpe ratio of the eight (\murLassoFixedShX{}). Across the
+eight columns the rank correlation between the crossed-spread Sharpe ratio and
+minus the loss is \murRhoQLIKE{} for QLIKE (95\% interval from a day-block
+bootstrap \murRhoQLIKELo{} to \murRhoQLIKEHi{}) and \murRhoES{} for the score
+at the threshold (\murRhoESLo{} to \murRhoESHi{}); both intervals contain zero.
+Adding \murNLadder{} deliberately improved and degraded copies of the ridge
+forecast --- blends toward the realized value, and multiplicative noise ---
+lifts both correlations, to \murRhoUnionQLIKE{} and \murRhoUnionES{}, but that
+says only that a much better or much worse forecast trades better or worse:
+every loss orders those copies perfectly, so they cannot choose between losses.
+The score at the threshold is reported because it isolates the one decision
+the trade takes, not because it ranks the eight columns here; with
+\murNForecasts{} forecasts that take the same side on most days, and a payoff
+whose sign a variance forecast can reach only in part, no variance score does.
+
+\paragraph{The signal's content is a same-day sign, and the right test
+is the same-day one.} The signal is fixed at 15:30 and the return
+settles at 16:00 on the same expiration day, so pairing $s_t$ with
+$R_t$ involves nothing observed after the decision. On that pairing
+the content is a shift in the conditional mean by sign: when the
+forecast exceeds the implied variance the straddle returns $+0.10$ on
+average, and $-0.09$ when it does not (difference $0.19$,
+heteroskedasticity-robust $t=2.32$ for the block-diagonal ridge; $t$
+between 1.63 and 2.61 across
+the eight columns). That is the block-diagonal ridge's $\mathrm{sign}(s)$ portfolio under the
+session-bar recalibration, read as a regression, and
+Figure~\ref{fig:close_option_sameday} shows it. A straight
+line is the wrong instrument for the same relation: fitted by least squares
+the slope of $R_t$ on the raw signal comes out \emph{negative} for every one
+of the eight columns (heteroskedasticity-robust $t$ from $-3.9$ to
+$-0.2$) --- the opposite sign to the step the split finds --- because
+$R$ has a point mass at $-1$ on 22.3 percent of days and a fat right
+tail that a few extreme values of $s_t$ can lever. The effect lives in the
+conditional means of the two sides, which a sign split sees and a slope does
+not.
+
+\paragraph{Magnitude carries information; sizing on it does not.} Within
+either side of the split the binned means of the figure show no trend in
+the level of the signal, but a line fitted \emph{inside} a side does find
+one, and it runs the wrong way for a trader. Restricted to the sell side
+the heteroskedasticity-robust slope of $R_t$ on $s_t$ is negative and
+resolved for all eight columns ($|t|$ from 2.2 to 5.7;
+$5.4$ for the block-diagonal ridge): the further below zero the
+signal, the larger the settlement return, so the short earns \emph{less}
+on precisely the days its signal is most extreme. On the buy side the
+slope is negative too, but resolved for only two of the eight. The
+precise claim is therefore narrower than ``magnitude adds nothing to the
+sign'': the conditional mean does vary with $|s|$ inside a side. What does
+not follow is a sizing rule, and none is retained --- scaling the position
+by the rank of $|s_t|$ raised no column's Sharpe ratio, and that overlay is
+parked (Section~\ref{sec:close_option_methods}). Only the sign is used.
+
+\begin{figure}[H]
+\centering
+\treefigorpending{\textwidth}{../results/atm_straddle_0dte_1530/regression_R_on_signal_blk2.png}
+\caption{The 15:30 signal against the 16:00 settlement return, block-diagonal
+ridge forecast, 866 expiration days. Left: the settled return $R_t$ against
+the raw signal $s_t$ with the least-squares line. Middle: the mean of $R_t$ on
+days with $s_t \le 0$ and $s_t > 0$ (means only, no error bars) beside the
+always-short portfolio's mean over all days (grey bar), the benchmark throughout.
+Right: the mean of $R_t$ in ten equal-count bins of the signal's level, each
+labelled by its median value of $s_t$ in units of $10^{-6}$ (thirty-minute
+variance); the dashed line is the always-short mean. The relation is a step at
+the sign, and the binned means inside either half show no trend in the level:
+what the signal carries is which side of the quoted variance the forecast
+stands on.}
+\label{fig:close_option_sameday}
+\end{figure}
+
+% PARKED 2026-09-29 (D1 change 3): the deck-scorer crossed-spread paragraph, re-read on
+% Table 7 in the one-scorer block above.  Verbatim:
+% \paragraph{At the crossed spread the edge survives and the control does
+% not.} Every figure above is a midpoint figure. Charging the spread at
+% entry --- both legs bought at the ask when the rule is long, both sold at
+% the bid when it is short, with nothing charged at the exit because the
+% position settles in cash --- takes the block-diagonal ridge
+% $\mathrm{sign}(s)$ portfolio from an annualized Sharpe of 1.34 to
+% 0.87 ($t=1.61$) and the always-short control from 0.20 to
+% $-0.27$. That is the comparison the trade turns on: the direction rule
+% pays for its own spread and the always-short control does not. It is one
+% crossing per day at the quoted touch, with no size, no queue and no model
+% of impact --- a bound on the fill rather than a fill model --- but it is
+% the crossing the venue charges, and the sign of the answer does not depend
+% on where inside the spread a real fill would land.
+
+\paragraph{The forecast is dated where it claims to be.} A same-day trade
+driven by a same-day forecast invites the obvious suspicion, so the shift
+test is reported rather than asserted. Re-running the whole portfolio on
+the forecast row stamped $k$ bars away from the one the rule uses gives an
+annualized Sharpe of 0.48 at $k=-1$ (a forecast issued one bar early,
+for a window that has already closed), 1.34 at $k=0$ (the row actually
+used), and 3.11 at $k=+1$ --- one bar of genuine look-ahead ---
+against a ceiling of 4.53 for a portfolio told the last half hour's realized
+variance in
+advance. The profile is a step exactly at $k=0$: flat to its left and far
+higher to its right. A leak would have lifted the bars left of $k=0$ or
+flattened the step, and it does neither. One column is worth flagging: the
+elastic net's best stale shift, at $k=-2$, is 1.04 against its own
+1.02 at $k=0$, so that one forecast is not separated from its own stale
+copies by this test. Every other column's best stale shift sits below its
+trade.
+
+% VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
+\iffalse
+\paragraph{Sizing by trailing portfolio volatility standardizes risk without
+touching the edge.} Scaling the daily position by the ratio of the
+expanding median of the portfolio's own trailing 63-day volatility to its
+current lagged value --- self-normalizing, no free target parameter, a
+cap of 3 that never binds --- leaves mean and Sharpe statistically
+unchanged (block-diagonal ridge $\mathrm{sign}(s)$ 1.94 to 1.98 on the 807
+post-warm-up days) while cutting the variability of the portfolio's rolling
+volatility by 15 to 21 percent for every forecast and rule and roughly
+halving the spread of its per-year volatility (cross-year coefficient
+of variation 0.196 to 0.104). This is a standardization of risk, not a
+forecast claim, and its structural limit is stated plainly: a trailing
+estimator cannot see the first day of a regime change, so single worst
+days keep their size (excess kurtosis rises from 10.6 to 12.8) and the
+COVID transition itself falls inside the estimator's warm-up.
+\fi
+
+% IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
+\iffalse
+\paragraph{The price of the defined-risk constraint.} Per dollar of
+body premium the wings cost the $\mathrm{sign}(s)$ portfolio at every width, and
+the cost falls with distance: annualized Sharpe 1.36, 1.42, 1.47 and
+1.54 at $w = 20, 25, 30, 50$ against 1.62 for the plain portfolio on the
+same 870 days (paired daily difference $-221$, $-164$, $-120$ and $-62$
+basis points; Newey--West $t$ between $-2.4$ and $-3.0$ for the
+block-diagonal ridge, and a lower Sharpe ratio for every one of the seven
+forecasts at every width). The always-short control does not survive the constraint at
+any width below 50 ($-0.15$, $-0.06$, $0.00$ and $+0.10$ against
+$+0.27$). What the constraint buys is the dollar tail on the days the
+$\mathrm{sign}(s)$ portfolio sells:
+the worst settlement falls from $-78$ points per package to $-17$,
+$-20$, $-25$ and $-37$, with the settlement landing beyond a wing on
+7.3, 4.3, 2.5 and 1.1 percent of selling days. Per premium the
+$\mathrm{sign}(s)$ portfolio's worst day barely moves ($-4.7$ at $w=20$; unchanged
+at $-5.4$ for any wider wing), because its worst days are moderate
+moves on low-premium days that no wing reaches. At midpoint quotes the
+wings roughly pay for themselves in points --- premium paid against
+settlement received on selling days is within a few points at every
+width, $t$ near zero --- but that is one quarter's doing: the first
+quarter of 2020, inside the estimation warm-up, returned 50 to 83
+percent of everything the wings ever paid back, and in 2021 and 2024
+they paid nothing at any width of 25 or more. At realistic fills ---
+the body sold at the bid, the wings bought at the ask, whose median
+sits 20 to 100 percent above the midpoint --- the price is higher: the
+$\mathrm{sign}(s)$ portfolio's crossed-spread Sharpe is 0.69, 0.77, 0.83 and 0.92 against
+1.11 for the plain portfolio at the crossed spread.
+\fi
+
+\paragraph{Compounded at a fixed three percent of wealth, the $\mathrm{sign}(s)$
+portfolio grows; the control does not.} Betting the fixed fraction
+$f=0.03$ of Section~\ref{sec:close_option_methods}, the block-diagonal ridge
+$\mathrm{sign}(s)$ portfolio turns one unit of wealth into $7.2$ over the
+sample (annualized log-growth $+0.57$), with a maximum wealth drawdown
+of 42 percent and a worst single day that removes 16 percent of
+wealth; the ruin bound $1/|\min_t R'_t|$ is 0.18 for this portfolio and
+0.10 for the control, so three percent sits well inside both. All eight
+$\mathrm{sign}(s)$ portfolios compound positively under the same fraction (terminal
+wealth $3.6$ to $9.9$), and the headline portfolio's annualized
+log-growth is positive in four of the five calendar years (2022 is $-0.04$). The
+always-short control ends at $0.86$ --- its premium does not compound. A defined-risk variant is
+parked and not reported here.
+
+% IRON-FLIES PARKED 2026-09-03: cost at every width, fraction of wealth unchanged; deck section parked, lab remains in the experimental notebook.
+\iffalse
+\paragraph{Under the constraint the fraction of wealth barely moves,
+and the frame decides the number.} The bounded worst day is exactly
+what would loosen the ruin bound on the fraction, but in this sample
+the bound was never the binding term: the causal fraction of the parked estimated-fraction rule sits well below it
+on every day for
+the plain portfolio (mean 0.063, maximum 0.106) and stays there under the
+wings (mean 0.054 to 0.062 per premium across the four widths; the
+running cap binds on no day in any portfolio). The fraction is set by the
+estimate of mean over second moment, not by the worst day, so capping
+the worst day does not let the trader bet more. In the per-premium
+frame the defined-risk portfolio compounds to 10.3, 12.3, 14.8 and 21.9
+times initial wealth at $w = 20, 25, 30, 50$ against 33.9 for the plain
+portfolio on the same days --- the wing cost compounds into a real growth
+cost, smallest at the widest wing --- while the worst single-day wealth
+factor improves only from 0.51 to between 0.53 and 0.64. In the
+capital-at-risk frame, well defined here because no fraction below one
+can be ruined, the same portfolio is a fully collateralized floor: a mean
+fraction of 0.03 to 0.04 of wealth posted as collateral, terminal
+wealth 2.3 to 2.7, worst single day $-7$ percent of wealth. The two
+frames are different units and compare only within themselves. Taken
+together the numbers support the widest wing the margin rule allows:
+at $w=50$ the constraint costs 0.08 of Sharpe and a third of compounded
+growth while halving the worst selling day in points, and every
+narrower wing buys a smaller dollar tail at two to three times that
+cost. The width is a choice of the dollar worst day the account can
+carry, not a growth decision --- and every figure here is a midpoint
+figure that worsens at the ask.
+\fi

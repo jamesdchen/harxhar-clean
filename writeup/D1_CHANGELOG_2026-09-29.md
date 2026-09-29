@@ -285,3 +285,42 @@ not touched here), no undefined references.
   of an iron butterfly's.
 - **Depends on** change 4 (headline).
 - **Build.** 72 pages, 12 overfull boxes, 0 undefined references.
+
+### Change 9 — (f) Park the session-bar diagnostics into Appendix D.15; closing summary re-read
+
+- **What.** Everything in Section 5.4 after the one-scorer block that was computed under
+  the session-bar recalibration moves, **verbatim**, to a new file
+  `sections/appendix_running_parked.tex` (input from `main.tex` after
+  `appendix_close_pnl`, so it is Appendix D.15 "Parked from Section 5.4: The Paper's
+  Forecast under the Session-Bar Recalibration", with a dated "why it is parked"
+  paragraph): the two sample splits, settlement pins, "eight rows are one or two
+  bets", the threshold decomposition of QLIKE + Table (Murphy scores) + Murphy figure,
+  "what a variance forecast can reach", "neither score orders the forecasts", the
+  same-day regression + its figure, "magnitude carries information", the shift
+  (dating) test, compounding at 3 % of wealth, and the already-parked `\iffalse`
+  vol-target / iron-fly blocks that sat among them. Only five cross-references change
+  in the moved text (they pointed to the deck-scorer table, now parked: they now name
+  "the eight columns", Section 5.4, or the earlier design panel). In Section 5.4 the
+  boundary paragraph becomes a pointer paragraph ("Diagnostics parked in Appendix D",
+  listing what moved and pointing to D.11 for sizing), and the closing summary is
+  rewritten on the one-scorer results; the session-bar closing summary is kept
+  commented (dated) below it.
+- **Why.** One scorer throughout the close-option results; the moved paragraphs are
+  about the paper's forecast under the other recalibration and cannot sit beside
+  Table 7. They are parked, not deleted, because three of them (the shift test, what a
+  variance forecast can reach, why QLIKE and the trade rank differently) answer
+  questions a reader will ask; they have **not** been re-run under the 16:00-bar
+  recalibration (proposal for the user, see the report).
+- **Before → after (closing summary).** Before (session-bar): "implied variance above
+  the forecast on 59 to 68 % of days (60 for the headline) … improves on always short in
+  every one of the eight columns and survives a crossed spread … only one column's
+  improvement clears zero, by a knife edge … sizing does not improve on the sign".
+  After (16:00-bar, macros): headline 1.90 (1.44 crossed), +0.90 [+0.19, +1.66] vs the
+  paper's forecast, +1.70 [+0.09, +3.11] vs always short; accuracy gain not significant
+  (DM −1.42, p 0.156); no single step resolved alone, the largest fitting the traded bar
+  alone; not separated from the lasso (−0.08 [−0.89, +0.79]); tail trade (20 best days
+  68 %, all buys; +6.0 [−59.8, +72.7] vs always short without the 10 best days); sample
+  ends April 2024, no edge after it (Appendix D.5).
+- **Depends on** changes 3–8.
+- **Build.** 73 pages (+1: the parked text is now in the appendix with its own header),
+  12 overfull boxes, 0 undefined references.
