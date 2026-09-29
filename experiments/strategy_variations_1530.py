@@ -1062,7 +1062,8 @@ def _results_table(
 ) -> list[str]:
     h = head[head["rule"] == rule]
     out = [
-        r"\begingroup\footnotesize\setlength{\tabcolsep}{3pt}",
+        # 9 columns at 3pt of padding overran the text width by 27.8pt; 1pt fits
+        r"\begingroup\footnotesize\setlength{\tabcolsep}{1pt}",
         r"\begin{longtable}{lrrlrrlrr}",
         # caption + label only in the first head: a head under \endhead is
         # repeated on every page the table spans, which redefines the label
