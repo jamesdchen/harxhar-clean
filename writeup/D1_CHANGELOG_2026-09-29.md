@@ -373,3 +373,20 @@ not touched here), no undefined references.
   days carry 68 % of its P&L; no edge after April 2024".
 - **Depends on** changes 4–9 (the macros and the appendix sections it points to).
 - **Build.** 74 pages (+1), 12 overfull boxes, 0 undefined references.
+
+### Change 12 — Related works: an error corrected (the forecast adds direction, not size)
+
+- **What.** `related_works.tex`, "The clock of the variance risk premium": the sentence
+  "what the forecast adds is size on that short rather than a directional flip" is
+  replaced by what Section 5.4 shows: under the headline forecast implied variance exceeds
+  the forecast on 60 % of days (so the reading is mostly a short), sizing on the gap does
+  not improve on its sign (Appendix D.11), and the rule differs from always short only on
+  the days it buys, which are worth +103.7 [+10.7, +200.1] premium units to it.
+- **Why.** The old sentence contradicted the paper's own results (only the sign is used;
+  sizing does not help) — an error, fixed as its own change with the evidence.
+- **Evidence.** `master_table.csv` (`pct_buy` 40.2 → sells 60 %);
+  `results/close_pnl_decomp/research_scorer/diff_attribution.csv` ("buy days" = "all
+  days" = +103.7 [+10.7, +200.1], asserted); Appendix D.11 /
+  `results/atm_straddle_0dte_1530/vrp_sized_rules.csv` (no sized rule with an interval
+  above zero).
+- **Build.** 74 pages, 12 overfull boxes, 0 undefined references.

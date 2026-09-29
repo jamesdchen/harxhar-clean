@@ -101,10 +101,20 @@ gone by midday. Variance prices respond with a delay, consistent with
 underreaction and slow-moving beliefs about volatility. This paper's last-bar option
 reading (Section~\ref{sec:close_option_methods}) is the 15:30 end of
 the same clock. If the morning is when the early bird gets the vol,
-15:30 is when that bird has already flown: quoted implied variance
-already exceeds the remaining-variance forecast on the bulk of
-expiration days, so a two-sided reading of the forecast is mostly a
-short, and what the forecast adds is size on that short rather than a
-directional flip. We do not restage their next-day VVIX regression;
+% D1 2026-09-29 (change 12): corrected.  The sentence said "what the forecast adds is size
+% on that short rather than a directional flip"; Section 5.4 finds the opposite -- sizing
+% on the gap does not improve on its sign (Appendix D.11), and all of the rule's advantage
+% over always short is earned on the days it buys.  Macros: close_main_numbers.tex
+% (master_table.csv pct_buy; close_pnl_decomp/research_scorer/diff_attribution.csv).
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+15:30 is when that bird has already flown: under the headline forecast of
+Section~\ref{sec:close_option_results} quoted implied variance exceeds the
+forecast on \cmSellHead\% of expiration days, so a two-sided reading of the % 100 - pct_buy, headline
+forecast is mostly a short. What the forecast adds is not size on that
+short --- sizing on the gap does not improve on its sign
+(Appendix~\ref{sec:app_run_sizing}) --- but the direction of the other days:
+the rule differs from always short only on the days it buys, and those days % diff_attribution.csv buy days = all days
+are worth \cmPnlDiff{} premium units to it over the sample. We do not restage
+their next-day VVIX regression;
 the object here is same-day remaining variance against the
 expiration-day chain.

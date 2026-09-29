@@ -910,6 +910,11 @@ def pnl_macros(d: pd.DataFrame) -> dict[str, str]:
     )
     dall = _diff(f["diff"], "all days")
     dx = _diff(f["diff"], "all days", "crossed")
+    buy = _diff(f["diff"], "buy days")
+    m["cmPnlDiffBuyShare"] = f"{buy['share_of_total_pct']:.0f}"
+    assert abs(buy["sum"] - dall["sum"]) < CSV_TOL, (
+        "claim: all of the difference is on buy days"
+    )
     m["cmPnlDiff"] = _sum_ci(dall)
     m["cmPnlDiffX"] = _sum_ci(dx)
     assert dall["sum_lo"] > 0, (
