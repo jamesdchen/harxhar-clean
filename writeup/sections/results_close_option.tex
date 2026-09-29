@@ -228,6 +228,27 @@ quoted touch, with no size, no queue and no model of impact --- a bound on
 the fill rather than a fill model --- but it is the crossing the venue
 charges.
 
+% D1 2026-09-29 (change 8): strategy variations.  Macros \cmSv... from
+% results/strategy_variations/{headline_per_straddle_premium,paired_vs_straddle,cost_line}.csv
+% (experiments/strategy_variations_1530.py; the headline's rows, per straddle premium), whose
+% straddle row is gated against Table 7's headline row by the maker.
+\paragraph{Other structures.} The straddle is one choice of instrument for
+$\mathrm{sign}(s)$. Appendix~\ref{sec:app_strategy_variations} writes down
+\cmSvN{} alternatives --- strangles at several distances from the index, iron % paired_vs_straddle.csv, headline rule
+butterflies and iron condors at three wing widths, put and call verticals, call
+and put butterflies, $1\times 2$ ratio spreads, and the straddle with a wing
+hedge on the days the rule sells --- and scores them under the headline forecast
+on the same days, per unit of straddle premium. None beats the straddle:
+\cmSvAbove{} of the paired Sharpe-difference intervals lie above zero at either % dSharpe_lo > 0, mid and crossed
+fill. The closest at the midpoint, the iron butterfly with the widest wings
+(\cmSvBestMidSh), is \cmSvBestMid{} above it, and at the crossed spread the % iron butterfly, w50, mid
+straddle ranks first. Wings cost at every width once the spread is paid:
+\cmSvWingX{} of the \cmSvWingN{} iron-butterfly and wing-hedge rows lie below % iron butterfly + wing hedge rows, crossed
+the straddle with an interval that excludes zero at crossed fills, against
+\cmSvWingMid{} at the midpoint; the median entry cost of crossing is % mid
+\cmSvCostStraddle\% of the straddle's own premium and \cmSvCostIbfMin\% to % cost_line.csv, buy/sell average
+\cmSvCostIbfMax\% of an iron butterfly's.
+
 % D1 2026-09-29 (change 3): boundary of the one-scorer block.  The paragraphs below were
 % computed under the session-bar recalibration (the deck's map); they stay until they are
 % parked into Appendix D (change "park the deck-scorer diagnostics").

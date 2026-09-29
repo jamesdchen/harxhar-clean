@@ -264,3 +264,24 @@ not touched here), no undefined references.
 - **Depends on** change 4 (headline).
 - **Build.** 72 pages (+2), 12 overfull boxes (the new table is resized to the text
   width), 0 undefined references.
+
+### Change 8 — (e) Strategy variations: one paragraph, pointing to Appendix D.13
+
+- **What.** Paragraph "Other structures" in Section 5.4 (before the boundary paragraph),
+  pointing to `sec:app_strategy_variations` (W10's table, hooked into Appendix D by W7).
+  Script: `sv_macros()` reads `results/strategy_variations/{headline_per_straddle_premium,
+  paired_vs_straddle,cost_line}.csv`, rows of the headline rule (per-bar ridge
+  `live_feasible`, research scorer), per straddle premium; gate: the straddle row equals
+  Table 7's headline row (mid to 1e-9; crossed to 1e-6 — F1 prices the crossed fill leg
+  by leg, the master table from summed quotes; they differ by 7e-9).
+- **Why.** The professor asked for the variations (strangles, butterflies, iron condors,
+  …); the answer belongs in the main text as one paragraph: none beats the straddle,
+  and wings cost at every width once the spread is paid.
+- **Numbers.** 31 alternatives; 0 paired intervals above zero at either fill (asserted);
+  closest at mid iron butterfly w50 1.94, +0.04 [−0.04, +0.14]; at crossed fills the
+  straddle ranks first (asserted: every crossed difference negative); wing rows (iron
+  butterfly + wing hedge) below the straddle with interval excluding zero 6 of 6 crossed,
+  2 of 6 mid; median entry cost of crossing 2.9 % of the straddle's premium vs 4.0–6.1 %
+  of an iron butterfly's.
+- **Depends on** change 4 (headline).
+- **Build.** 72 pages, 12 overfull boxes, 0 undefined references.
