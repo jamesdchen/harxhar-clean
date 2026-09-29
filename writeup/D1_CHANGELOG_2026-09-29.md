@@ -347,3 +347,29 @@ not touched here), no undefined references.
   `results/atm_straddle_0dte_1530/vrp_sized_rules.csv`.
 - **Build.** 73 pages, 12 overfull boxes (a mid-paragraph `\input` that first produced a
   164 pt box was moved outside the paragraph), 0 undefined references.
+
+### Change 11 — (g) Introduction, conclusion (and a proposed abstract sentence) reconciled
+
+- **What.** Introduction, end of the fourth finding: the close-option promise rewritten on
+  Section 5.4 as it now stands (macros); the old passage kept commented and dated.
+  Roadmap: one clause on Appendix D (side analyses, P&L by cell, parked diagnostics).
+  Conclusion: the close-option paragraph rewritten (no numbers); old one kept commented.
+  Abstract: **not changed in the rendered paper** — the authors held the option reading
+  out of the abstract on 2026-08-18; a proposed sentence sits in `main.tex` inside
+  `\iffalse` ("PROPOSED 2026-09-29"), to render by flipping it to `\iftrue`.
+- **Why.** The front matter promised the session-bar reading (eight columns all improving
+  on always short, "exactly one resolved, marginally", block-diagonal ridge as headline).
+  No over-claiming: the new text says the accuracy gain is not significant (p 0.156),
+  the trade gain's interval excludes zero vs the paper's forecast and vs always short, no
+  single step is resolved alone, the headline is not separated from the lasso and was
+  chosen for feasibility "not as the best of the table", the edge is a tail trade, and the
+  trade's live form has shown no edge after April 2024.
+- **Before → after.** Intro: "disagree on 32 to 41 % of days … improves on always short for
+  every one of the eight … exactly one resolved at 95 %, marginally … headline column is
+  the block-diagonal ridge" → "every one of the paper's forecasts improves … in point
+  estimate, one of the eight with an interval above zero; headline per-bar ridge on the 16
+  live-feasible inputs: 1.90 (1.44 crossed), +0.90 [+0.19, +1.66] vs the paper's forecast,
+  +1.70 [+0.09, +3.11] vs always short; not significantly more accurate (p = 0.156); 20 best
+  days carry 68 % of its P&L; no edge after April 2024".
+- **Depends on** changes 4–9 (the macros and the appendix sections it points to).
+- **Build.** 74 pages (+1), 12 overfull boxes, 0 undefined references.

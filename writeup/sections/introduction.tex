@@ -79,21 +79,48 @@ That structure is a specification statement, not yet an estimator: the
 paper's linear ladder ends at the block-diagonal ridge --- one solver, two
 fixed penalties, refit exactly at every bar --- which scores
 \unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
-benchmark's \unifAzeroQLIKE{}. The paper closes by reading the
-one-bar forecast against the last thirty minutes of the
-expiration-day chain --- a last-bar same-day option trade whose
-position is fixed at 15:30~ET from the forecast of remaining variance
-against quoted implied --- and shows that the sign of that gap is the
-tradable content: the two disagree on a large minority of days
-(32 to 41 percent, depending on the column), and a $\pm 1$
-portfolio on $\mathrm{sign}(s)$ improves on the always-short control for
-every one of the eight forecast columns, at a strength the sample supports
-as a rule and not as a ranking --- the paired improvements are unanimous in
-point estimate, and exactly one of the eight is resolved at 95\%, marginally. Sizing on the
-magnitude of the gap does not improve on its sign. The headline column is
-the block-diagonal ridge fitted on the design that carries the FOMC
-calendar block; four of its comparators are still on the earlier design and
-are marked as such (Section~\ref{sec:close_option_results}).
+benchmark's \unifAzeroQLIKE{}.
+% D1 2026-09-29 (change 11): the close-option promise re-read on Section 5.4 as it now
+% stands (one recalibration; headline = per-bar ridge on live_feasible).  Numbers are the
+% \cm... macros of writeup/generated/close_main_numbers.tex (make_table_close_main.py, from
+% results/close_master_table/ and results/close_pnl_decomp/research_scorer/); the previous
+% (session-bar) version of this passage is kept, commented, below.
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+The paper closes by reading the forecasts against the last thirty minutes of
+the expiration-day chain. The last-30-min trade buys or sells one straddle
+at 15:30~ET on the sign of the gap between the forecast of the half hour's
+variance and the variance the straddle's quotes imply, and holds it to the
+cash settlement (Section~\ref{sec:close_option_results}). Scored under one
+recalibration on the same \cmNdays{} days, every one of the paper's forecasts
+improves on selling the straddle every day in point estimate, one of the eight
+with an interval above zero. The section's headline forecast is not the
+paper's block-diagonal ridge but a ridge fitted for the traded bar alone, on
+the 16 inputs a forecaster can rebuild at 15:30, chosen for that feasibility
+and not as the best of the table: a Sharpe ratio of \cmHShMid{} % master_table.csv headline row
+(\cmHShX{} at the crossed spread), above the paper's forecast by
+\cmHVsRefMid{} and above always short by \cmHVsShortMid. Its forecast is not
+significantly more accurate than the paper's ($p=\cmHDMp$), no single change % dm_p_vs_ref
+from the paper's forecast to it is resolved on its own, and it is not
+separated from the lasso on the same inputs. The edge is a tail trade --- its
+20 best days, all of them buys, carry \cmPnlTopTwentyShare\% of its P\&L --- % research_scorer/tail_concentration.csv
+and the trade has shown no edge after the sample ends in April 2024. Sizing on
+the magnitude of the gap does not improve on its sign.
+% PARKED 2026-09-29 (D1 change 11): the session-bar version of this passage.  Verbatim:
+% The paper closes by reading the
+% one-bar forecast against the last thirty minutes of the
+% expiration-day chain --- a last-bar same-day option trade whose
+% position is fixed at 15:30~ET from the forecast of remaining variance
+% against quoted implied --- and shows that the sign of that gap is the
+% tradable content: the two disagree on a large minority of days
+% (32 to 41 percent, depending on the column), and a $\pm 1$
+% portfolio on $\mathrm{sign}(s)$ improves on the always-short control for
+% every one of the eight forecast columns, at a strength the sample supports
+% as a rule and not as a ranking --- the paired improvements are unanimous in
+% point estimate, and exactly one of the eight is resolved at 95\%, marginally. Sizing on the
+% magnitude of the gap does not improve on its sign. The headline column is
+% the block-diagonal ridge fitted on the design that carries the FOMC
+% calendar block; four of its comparators are still on the earlier design and
+% are marked as such (Section~\ref{sec:close_option_results}).
 % OPTIONS PARKED 2026-08-18: option-market reading held out of the rendered paper.
 \iffalse
 The paper closes by reading the
@@ -122,4 +149,6 @@ and then the methods: the estimators and
 the block constructions. Section~\ref{sec:results} reports the
 results in the order summarized above.
 Section~\ref{sec:conclusion} concludes. The appendix carries the full
-arm-level master table and the protocol notes.
+arm-level master table and the protocol notes; Appendix~\ref{sec:appendix_running}
+collects side analyses of the last-30-min trade, its P\&L by cell, and the
+diagnostics parked from Section~\ref{sec:close_option_results}.
