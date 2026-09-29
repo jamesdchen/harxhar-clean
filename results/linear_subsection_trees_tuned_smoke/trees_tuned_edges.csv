@@ -1,0 +1,11 @@
+model,bucket,rule,axis,bars,n_tuning_points,n_lo,share_lo,lo_edge_natural,n_hi,share_hi,hi_edge_natural,n_grid_choice_edge,edge_is_grid_choice_pick_share
+lgbm,live_feasible,mse,feature_fraction,1,2,1,0.5,False,1,0.5,True,1,0.5
+lgbm,live_feasible,mse,lambda_l2,1,2,1,0.5,True,1,0.5,False,1,0.5
+lgbm,live_feasible,mse,min_child_samples,1,2,1,0.5,True,0,0.0,False,0,0.0
+lgbm,live_feasible,mse,num_leaves,1,2,0,0.0,False,0,0.0,False,0,0.0
+lgbm,live_feasible,mse,rounds_cap,1,2,0,0.0,,0,0.0,,0,0.0
+lgbm,live_feasible,qlike,feature_fraction,1,2,1,0.5,False,1,0.5,True,1,0.5
+lgbm,live_feasible,qlike,lambda_l2,1,2,1,0.5,True,1,0.5,False,1,0.5
+lgbm,live_feasible,qlike,min_child_samples,1,2,1,0.5,True,0,0.0,False,0,0.0
+lgbm,live_feasible,qlike,num_leaves,1,2,0,0.0,False,0,0.0,False,0,0.0
+lgbm,live_feasible,qlike,rounds_cap,1,2,0,0.0,,0,0.0,,0,0.0

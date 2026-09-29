@@ -1,0 +1,21 @@
+bucket,sample,a,b,n_series,spearman,pval,top5_overlap,same_leader
+all_features,all rows,ridge,lasso,49,0.8326530612244898,1.193112072688282e-13,3,True
+all_features,all rows,ridge,lgbm,49,0.40979591836734686,0.0034541750925773038,2,True
+all_features,all rows,ridge,xgb,49,0.3849999999999999,0.006302785878050623,3,True
+all_features,all rows,ridge,rf,49,0.255,0.07701386828295353,3,True
+all_features,all rows,lasso,lgbm,49,0.5058163265306121,0.00020929091038136326,2,True
+all_features,all rows,lasso,xgb,49,0.42826530612244895,0.0021415633984726255,2,True
+all_features,all rows,lasso,rf,49,0.3810204081632652,0.006912940567245462,2,True
+all_features,all rows,lgbm,xgb,49,0.8839795918367347,3.9404094521819845e-17,4,True
+all_features,all rows,lgbm,rf,49,0.8301020408163264,1.652441808772144e-13,4,True
+all_features,all rows,xgb,rf,49,0.8141836734693877,1.1244459146576816e-12,5,True
+all_features,deck days,ridge,lasso,49,0.8726530612244896,3.090169117554569e-16,3,True
+all_features,deck days,ridge,lgbm,49,0.45030612244897955,0.001167846377447752,3,True
+all_features,deck days,ridge,xgb,49,0.4304081632653061,0.0020224973614824527,3,True
+all_features,deck days,ridge,rf,49,0.3142857142857142,0.02785900223335395,4,True
+all_features,deck days,lasso,lgbm,49,0.44530612244897955,0.001344834094275348,2,True
+all_features,deck days,lasso,xgb,49,0.4194897959183673,0.0026965877275011035,2,True
+all_features,deck days,lasso,rf,49,0.3831632653061224,0.006578307471365567,3,True
+all_features,deck days,lgbm,xgb,49,0.9039795918367346,5.795194556203679e-19,4,True
+all_features,deck days,lgbm,rf,49,0.8835714285714285,4.2595340758290554e-17,4,True
+all_features,deck days,xgb,rf,49,0.8371428571428571,6.635784212671949e-14,4,True

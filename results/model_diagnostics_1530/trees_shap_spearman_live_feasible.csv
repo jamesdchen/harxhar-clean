@@ -1,0 +1,21 @@
+bucket,sample,a,b,n_series,spearman,pval,top5_overlap,same_leader
+live_feasible,all rows,ridge,lasso,18,0.890608875128999,7.277473705445721e-07,3,True
+live_feasible,all rows,ridge,lgbm,18,0.7069143446852425,0.001036757704756384,3,True
+live_feasible,all rows,ridge,xgb,18,0.7234262125902993,0.0006909021305997825,4,True
+live_feasible,all rows,ridge,rf,18,0.6429308565531475,0.004002006540262521,4,True
+live_feasible,all rows,lasso,lgbm,18,0.6842105263157895,0.001737546156850738,2,True
+live_feasible,all rows,lasso,xgb,18,0.6862745098039216,0.0016609135348996636,3,True
+live_feasible,all rows,lasso,rf,18,0.5562435500515995,0.016518403054404888,3,True
+live_feasible,all rows,lgbm,xgb,18,0.9380804953560371,8.9374943982642e-09,4,True
+live_feasible,all rows,lgbm,rf,18,0.9463364293085655,2.9205055771851396e-09,4,True
+live_feasible,all rows,xgb,rf,18,0.894736842105263,5.422110534660314e-07,5,True
+live_feasible,deck days,ridge,lasso,18,0.8431372549019607,1.1129003812786908e-05,3,True
+live_feasible,deck days,ridge,lgbm,18,0.7069143446852425,0.001036757704756384,4,True
+live_feasible,deck days,ridge,xgb,18,0.7192982456140351,0.0007666636665897179,4,True
+live_feasible,deck days,ridge,rf,18,0.5686274509803922,0.013800437611725471,4,True
+live_feasible,deck days,lasso,lgbm,18,0.6738906088751291,0.0021659578599511273,3,True
+live_feasible,deck days,lasso,xgb,18,0.6800825593395253,0.0018996026438905026,3,True
+live_feasible,deck days,lasso,rf,18,0.4633642930856553,0.05278586195356671,3,True
+live_feasible,deck days,lgbm,xgb,18,0.9401444788441692,6.859458095524686e-09,5,True
+live_feasible,deck days,lgbm,rf,18,0.8968008255933952,4.658861480045656e-07,5,True
+live_feasible,deck days,xgb,rf,18,0.8369453044375645,1.4859874205555088e-05,5,True

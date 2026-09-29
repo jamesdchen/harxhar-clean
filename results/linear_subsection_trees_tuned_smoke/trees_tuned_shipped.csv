@@ -1,0 +1,3 @@
+bucket,model,train_win,segment,bar_end,rule,n_tuning_points,n_candidates_mean,share_shipped_chosen,mean_rank_shipped_val_mse,in_selection_gain_mse_optimistic,mean_rank_shipped_val_qlike,in_selection_gain_qlike_optimistic,tune_sec_mean
+live_feasible,lgbm,2000,bar1600,16:00,mse,2,32.0,0.0,22.5,0.108406127496679,22.5,0.1061314347430834,73.97814679145813
+live_feasible,lgbm,2000,bar1600,16:00,qlike,2,32.0,0.0,22.5,0.108406127496679,22.5,0.1061314347430834,73.97814679145813

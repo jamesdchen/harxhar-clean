@@ -1,0 +1,15 @@
+bucket,model,train_win,segment,check,n,max_rel,ok,detail,estimator,bar_end,linear_source,n_a,n_b,comparison,rule,untuned_source
+live_feasible,lgbm_qsel,2000,bar1600,"qsel csv vs mse csv (dates, true_raw, true_adj)",270,0.0,True,,,,,,,,,
+live_feasible,lgbm_qsel,2000,bar1600,"npz pred_adj_qsel vs qsel csv (dates, pred_adj)",270,2.220446049250313e-16,True,,,,,,,,,
+live_feasible,lgbm_qsel,2000,bar1600,true_raw a vs b,270,2.220446049250313e-16,True,,reclasso,16:00,arms_carc (flattened),270.0,1469.0,,,
+live_feasible,lgbm_qsel,2000,bar1600,true_raw a vs b,270,2.220446049250313e-16,True,,reclasticnet,16:00,arms_carc (flattened),270.0,1469.0,,,
+live_feasible,lgbm_qsel,2000,bar1600,true_raw a vs b,270,2.220446049250313e-16,True,,ridge,16:00,arms_carc (flattened),270.0,1469.0,,,
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,0.0,True,,,16:00,,270.0,270.0,qsel vs mse,,
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,2.220446049250313e-16,True,,,16:00,,270.0,1469.0,tuned vs untuned,mse,live_feasible/bar1600/lgbm/tw2000/causal_tune_trees/lgbm/live_feasible/results_bar1600.csv
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,2.220446049250313e-16,True,,,16:00,,270.0,1469.0,tuned vs untuned,qlike,live_feasible/bar1600/lgbm/tw2000/causal_tune_trees/lgbm/live_feasible/results_bar1600.csv
+live_feasible,lgbm,2000,bar1600,tune files' keys vs arm path,4,,True,,,,,,,,,
+live_feasible,lgbm,2000,bar1600,trace forecast_date = results date[tune_row] (naive ET),4,,True,,,,,,,,,
+live_feasible,lgbm,2000,bar1600,"trace vs npz (tune_row, chosen)",4,,True,,,,,,,,,
+live_feasible,lgbm,2000,bar1600,trace vs candidates,2,,True,,,,,,,,mse,
+live_feasible,lgbm,2000,bar1600,trace vs candidates,2,,True,,,,,,,,qlike,
+live_feasible,lgbm,2000,bar1600,edge labels vs grid file,16,,True,,,,,,,,,

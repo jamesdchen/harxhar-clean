@@ -1,0 +1,7 @@
+bucket,model,train_win,forecast,stamps,tuned_stamps,same_stamps,deck_days,pct_buy,Sharpe_mid,Sharpe_crossed,ridge_Sharpe_mid_same_days
+live_feasible,lgbm,2000,tuned lgbm,"tuned lgbm's, every forecast present",207,207,205,35.12195121951219,1.73432092303748,1.3762154893003504,1.4928063867502819
+live_feasible,lgbm,2000,tuned lgbm qsel,"tuned lgbm's, every forecast present",207,207,205,35.12195121951219,1.73432092303748,1.3762154893003504,1.4928063867502819
+live_feasible,lgbm,2000,untuned lgbm,"tuned lgbm's, every forecast present",207,207,205,36.09756097560975,2.03295876922708,1.6729415786995128,1.4928063867502819
+live_feasible,lgbm,2000,linear reclasso,"tuned lgbm's, every forecast present",207,207,205,34.146341463414636,1.9066268485798286,1.5515053738053275,1.4928063867502819
+live_feasible,lgbm,2000,linear reclasticnet,"tuned lgbm's, every forecast present",207,207,205,31.21951219512195,1.3058572440404428,0.9458988403141956,1.4928063867502819
+live_feasible,lgbm,2000,linear ridge,"tuned lgbm's, every forecast present",207,207,205,38.53658536585366,1.564414424660236,1.2133264379915458,1.4928063867502819

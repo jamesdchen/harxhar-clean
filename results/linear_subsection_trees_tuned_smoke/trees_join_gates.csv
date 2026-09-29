@@ -1,0 +1,5 @@
+bucket,model,train_win,segment,check,n_a,n_b,n,max_rel,ok,estimator,bar_end,linear_source
+live_feasible,lgbm,2000,bar1600,"npz vs csv (dates, pred_adj)",270,270,270,0.0,True,,,
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,1469,270,2.220446049250313e-16,True,reclasso,16:00,arms_carc (flattened)
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,1469,270,2.220446049250313e-16,True,reclasticnet,16:00,arms_carc (flattened)
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,270,1469,270,2.220446049250313e-16,True,ridge,16:00,arms_carc (flattened)

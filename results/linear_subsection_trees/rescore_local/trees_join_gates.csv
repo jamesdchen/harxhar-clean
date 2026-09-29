@@ -1,0 +1,553 @@
+bucket,model,train_win,segment,check,n_a,n_b,n,max_rel,ok,estimator,bar_end,linear_source
+all_features,lgbm,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,lgbm,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,lgbm,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,lgbm,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+all_features,lgbm,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,lgbm,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,lgbm,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,lgbm,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+all_features,lgbm,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+all_features,lgbm,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+all_features,lgbm,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+all_features,lgbm,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+all_features,lgbm,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+all_features,rf,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,rf,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,rf,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,rf,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+all_features,rf,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,rf,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,rf,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,rf,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+all_features,rf,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+all_features,rf,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+all_features,rf,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+all_features,rf,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+all_features,rf,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+all_features,xgb,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,xgb,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,xgb,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+all_features,xgb,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+all_features,xgb,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,xgb,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,xgb,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+all_features,xgb,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+all_features,xgb,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+all_features,xgb,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+all_features,xgb,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+all_features,xgb,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+all_features,xgb,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+baseline,lgbm,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,lgbm,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,lgbm,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,lgbm,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+baseline,lgbm,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,lgbm,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,lgbm,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,lgbm,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+baseline,lgbm,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+baseline,lgbm,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+baseline,lgbm,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+baseline,lgbm,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+baseline,lgbm,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+baseline,rf,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,rf,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,rf,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,rf,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+baseline,rf,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,rf,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,rf,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,rf,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+baseline,rf,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+baseline,rf,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+baseline,rf,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+baseline,rf,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+baseline,rf,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+baseline,xgb,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,xgb,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,xgb,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+baseline,xgb,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+baseline,xgb,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,xgb,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,xgb,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+baseline,xgb,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+baseline,xgb,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+baseline,xgb,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+baseline,xgb,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+baseline,xgb,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+baseline,xgb,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+live_feasible,lgbm,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,lgbm,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,lgbm,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,lgbm,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+live_feasible,lgbm,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,lgbm,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,lgbm,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,lgbm,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+live_feasible,lgbm,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+live_feasible,lgbm,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+live_feasible,lgbm,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+live_feasible,lgbm,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+live_feasible,lgbm,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+live_feasible,rf,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,rf,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,rf,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,rf,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+live_feasible,rf,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,rf,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,rf,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,rf,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+live_feasible,rf,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+live_feasible,rf,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+live_feasible,rf,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+live_feasible,rf,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+live_feasible,rf,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+live_feasible,xgb,2000,bar1000,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,xgb,2000,bar1030,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,xgb,2000,bar1100,"npz vs csv (dates, pred_adj)",1619,1619,1619,0.0,True,,,
+live_feasible,xgb,2000,bar1130,"npz vs csv (dates, pred_adj)",1621,1621,1621,0.0,True,,,
+live_feasible,xgb,2000,bar1200,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,xgb,2000,bar1230,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,xgb,2000,bar1300,"npz vs csv (dates, pred_adj)",1560,1560,1560,0.0,True,,,
+live_feasible,xgb,2000,bar1330,"npz vs csv (dates, pred_adj)",1499,1499,1499,0.0,True,,,
+live_feasible,xgb,2000,bar1400,"npz vs csv (dates, pred_adj)",1487,1487,1487,0.0,True,,,
+live_feasible,xgb,2000,bar1430,"npz vs csv (dates, pred_adj)",1479,1479,1479,0.0,True,,,
+live_feasible,xgb,2000,bar1500,"npz vs csv (dates, pred_adj)",1477,1477,1477,0.0,True,,,
+live_feasible,xgb,2000,bar1530,"npz vs csv (dates, pred_adj)",1475,1475,1475,0.0,True,,,
+live_feasible,xgb,2000,bar1600,"npz vs csv (dates, pred_adj)",1469,1469,1469,0.0,True,,,
+all_features,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+all_features,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+all_features,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ols,15:30,linear_subsection (incumbent_ols)
+baseline,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ols,16:00,linear_subsection (incumbent_ols)
+baseline,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+baseline,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ols,15:30,linear_subsection (incumbent_ols)
+baseline,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ols,16:00,linear_subsection (incumbent_ols)
+baseline,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+baseline,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ols,15:30,linear_subsection (incumbent_ols)
+baseline,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ols,16:00,linear_subsection (incumbent_ols)
+baseline,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+baseline,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+live_feasible,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,10:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,10:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,ridge,10:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasso,11:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,reclasticnet,11:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,ridge,11:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasso,11:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,reclasticnet,11:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,ridge,11:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,12:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,12:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,ridge,12:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasso,13:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,reclasticnet,13:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,ridge,13:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasso,13:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,reclasticnet,13:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,ridge,13:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasso,14:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,reclasticnet,14:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,ridge,14:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasso,14:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,reclasticnet,14:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,ridge,14:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasso,15:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,reclasticnet,15:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,ridge,15:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasso,15:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,reclasticnet,15:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,ridge,15:30,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasso,16:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,reclasticnet,16:00,arms_hoffman2 (flattened)
+live_feasible,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,ridge,16:00,arms_hoffman2 (flattened)
+all_features,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+all_features,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+all_features,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+all_features,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+all_features,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+all_features,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+all_features,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+all_features,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+all_features,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+all_features,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+all_features,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+all_features,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+all_features,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,
+all_features,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+all_features,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+all_features,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+all_features,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+all_features,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+all_features,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+all_features,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+all_features,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+all_features,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+all_features,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+all_features,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+all_features,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+all_features,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,
+all_features,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+all_features,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+all_features,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+all_features,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+all_features,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+all_features,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+all_features,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+all_features,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+all_features,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+all_features,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+all_features,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+all_features,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+all_features,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,
+live_feasible,lgbm,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+live_feasible,lgbm,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+live_feasible,lgbm,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+live_feasible,lgbm,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+live_feasible,lgbm,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+live_feasible,lgbm,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+live_feasible,lgbm,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+live_feasible,lgbm,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+live_feasible,lgbm,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+live_feasible,lgbm,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+live_feasible,lgbm,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+live_feasible,lgbm,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+live_feasible,lgbm,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,
+live_feasible,rf,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+live_feasible,rf,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+live_feasible,rf,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+live_feasible,rf,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+live_feasible,rf,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+live_feasible,rf,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+live_feasible,rf,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+live_feasible,rf,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+live_feasible,rf,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+live_feasible,rf,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+live_feasible,rf,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+live_feasible,rf,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+live_feasible,rf,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,
+live_feasible,xgb,2000,bar1000,true_raw a vs b,1619,1619,1619,0.0,True,,10:00,
+live_feasible,xgb,2000,bar1030,true_raw a vs b,1619,1619,1619,0.0,True,,10:30,
+live_feasible,xgb,2000,bar1100,true_raw a vs b,1619,1619,1619,0.0,True,,11:00,
+live_feasible,xgb,2000,bar1130,true_raw a vs b,1621,1621,1621,0.0,True,,11:30,
+live_feasible,xgb,2000,bar1200,true_raw a vs b,1560,1560,1560,0.0,True,,12:00,
+live_feasible,xgb,2000,bar1230,true_raw a vs b,1560,1560,1560,0.0,True,,12:30,
+live_feasible,xgb,2000,bar1300,true_raw a vs b,1560,1560,1560,0.0,True,,13:00,
+live_feasible,xgb,2000,bar1330,true_raw a vs b,1499,1499,1499,0.0,True,,13:30,
+live_feasible,xgb,2000,bar1400,true_raw a vs b,1487,1487,1487,0.0,True,,14:00,
+live_feasible,xgb,2000,bar1430,true_raw a vs b,1479,1479,1479,0.0,True,,14:30,
+live_feasible,xgb,2000,bar1500,true_raw a vs b,1477,1477,1477,0.0,True,,15:00,
+live_feasible,xgb,2000,bar1530,true_raw a vs b,1475,1475,1475,0.0,True,,15:30,
+live_feasible,xgb,2000,bar1600,true_raw a vs b,1469,1469,1469,0.0,True,,16:00,

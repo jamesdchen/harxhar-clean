@@ -1,0 +1,5 @@
+bucket,model,train_win,segment,bar_end,comparison,back_transform,sample,n,first,last,QLIKE_qsel,QLIKE_mse,diff,pct,ci_lo,ci_hi,dm_stat,improves,worse,blown
+live_feasible,lgbm,2000,bar1600,16:00,qsel vs mse,clock,common,207,2022-09-19,2023-07-17,0.08495494551561665,0.08495494551561665,0.0,0.0,0.0,0.0,0.0,False,False,False
+live_feasible,lgbm,2000,bar1600,16:00,qsel vs mse,clock,deck period,207,2022-09-19,2023-07-17,0.08495494551561665,0.08495494551561665,0.0,0.0,0.0,0.0,0.0,False,False,False
+live_feasible,lgbm,2000,bar1600,16:00,qsel vs mse,as scored,common,270,2022-06-17,2023-07-17,0.08090475557568266,0.08090475557568266,0.0,0.0,0.0,0.0,0.0,False,False,False
+live_feasible,lgbm,2000,bar1600,16:00,qsel vs mse,as scored,deck period,270,2022-06-17,2023-07-17,0.08090475557568266,0.08090475557568266,0.0,0.0,0.0,0.0,0.0,False,False,False

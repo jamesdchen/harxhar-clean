@@ -1,0 +1,2 @@
+bucket,model,train_win,forecast,stamps,deck_days,pct_buy,Sharpe_mid,Sharpe_crossed,ridge_Sharpe_mid_same_days
+live_feasible,lgbm_qsel,2000,tree lgbm_qsel,own,205,35.12195121951219,1.73432092303748,1.3762154893003504,1.4928063867502819

@@ -491,6 +491,433 @@ Files: \texttt{experiments/model\_diagnostics\_1530\_regimes.py}; outputs \textt
     )
 
 
+def trees_tex() -> str:
+    """Last pages: feature importance, trees vs linear (experiments/model_diagnostics_1530_trees.py)."""
+    import json
+
+    J = json.loads((OUT / "trees_shap.json").read_text(encoding="utf-8"))
+    TR = R / "results" / "linear_subsection_trees" / "rescore_local"
+    VL = pd.read_csv(TR / "trees_vs_linear.csv")
+    TT = pd.read_csv(TR / "trees_trade_1530.csv")
+    LAB = {
+        "ridge": "ridge",
+        "lasso": "lasso",
+        "lgbm": "LightGBM",
+        "xgb": "XGBoost",
+        "rf": "random forest",
+    }
+    HEAD = {
+        "ridge": "ridge",
+        "lasso": "lasso",
+        "lgbm": "LGBM",
+        "xgb": "XGB",
+        "rf": "RF",
+    }
+    TREES = ("lgbm", "xgb", "rf")
+    G = J["gates"]
+    lf = J["buckets"]["live_feasible"]
+    af = J["buckets"].get("all_features")
+    keys = lf["models"]
+
+    def sh(b, smp, m, s):
+        return b["share_all" if smp == "all" else "share_deck"][LAB[m]][s]
+
+    def pct(x):
+        return f"{100 * x:.1f}"
+
+    def e(x):
+        if x == 0:
+            return "0"
+        m, ex = f"{x:.1e}".split("e")
+        return f"{m}\\times10^{{{int(ex)}}}"
+
+    def tt(s):
+        return f"\\texttt{{{esc(s)}}}" if not s.startswith("calendar") else esc(s)
+
+    # table 1: every live_feasible series, all forecasts and deck days
+    t1 = []
+    for s in lf["order"]:
+        cells = [pct(sh(lf, "all", m, s)) for m in keys] + [
+            pct(sh(lf, "deck", m, s)) for m in keys
+        ]
+        t1.append(f"{tt(s)} & " + " & ".join(cells) + " \\\\")
+    sz = lf["size_share"]
+    t1.append("\\midrule")
+    t1.append(
+        "return-size series summed$^{\\dagger}$ & "
+        + " & ".join(pct(sz[LAB[m]]["all rows"]) for m in keys)
+        + " & "
+        + " & ".join(pct(sz[LAB[m]]["deck days"]) for m in keys)
+        + " \\\\"
+    )
+
+    # table 2: rank agreement
+    SPl = pd.DataFrame(lf["spearman"])
+    t2 = []
+    for i, a in enumerate(keys):
+        for b in keys[i + 1 :]:
+            ra = SPl[(SPl.a == a) & (SPl.b == b) & (SPl["sample"] == "all rows")].iloc[
+                0
+            ]
+            rd = SPl[(SPl.a == a) & (SPl.b == b) & (SPl["sample"] == "deck days")].iloc[
+                0
+            ]
+            t2.append(
+                f"{LAB[a]} -- {LAB[b]} & {ra.spearman:.2f} & {rd.spearman:.2f} & "
+                f"{int(ra.top5_overlap)} & {int(rd.top5_overlap)} \\\\"
+            )
+
+    def sp(b, a, c, smp="all rows"):
+        S_ = pd.DataFrame(b["spearman"])
+        return float(
+            S_[(S_.a == a) & (S_.b == c) & (S_["sample"] == smp)].iloc[0].spearman
+        )
+
+    lin = [m for m in ("ridge", "lasso") if m in keys]
+    tr_ = [m for m in TREES if m in keys]
+    tree_tree = [sp(lf, a, c) for i, a in enumerate(tr_) for c in tr_[i + 1 :]]
+    tree_lin = [sp(lf, a, c) for a in lin for c in tr_]
+
+    # table 3: all_features (top series)
+    t3, akeys, af_note = [], [], ""
+    if af is not None:
+        akeys = af["models"]
+        top = af["order"][:12]
+        for s in top:
+            t3.append(
+                f"{tt(s)} & "
+                + " & ".join(pct(sh(af, "all", m, s)) for m in akeys)
+                + " \\\\"
+            )
+        rest = af["order"][12:]
+        t3.append(
+            f"other {len(rest)} series & "
+            + " & ".join(pct(sum(sh(af, "all", m, s) for s in rest)) for m in akeys)
+            + " \\\\"
+        )
+        SPa = pd.DataFrame(af["spearman"])
+        SPa = SPa[SPa["sample"] == "all rows"]
+        kinds: dict[str, list[float]] = {}
+        for r in SPa.itertuples():
+            k_ = "--".join(
+                sorted("tree" if m in TREES else "linear" for m in (r.a, r.b))
+            )
+            kinds.setdefault(k_, []).append(float(r.spearman))
+        kname = {
+            "tree--tree": "tree--tree",
+            "linear--linear": "ridge--lasso",
+            "linear--tree": "tree--linear",
+        }
+        af_note = "; ".join(
+            f"{kname[k_]} {min(v):.2f}" + (f"--{max(v):.2f}" if len(v) > 1 else "")
+            for k_, v in sorted(kinds.items(), key=lambda kv: -max(kv[1]))
+        )
+
+    # accuracy context on this bar (the scorer's own tables)
+    v = VL[
+        (VL.bucket == "live_feasible")
+        & (VL.segment == "bar1600")
+        & (VL.back_transform == "clock")
+        & (VL["sample"] == "common")
+        & (VL.estimator == "ridge")
+    ].set_index("model")
+    acc = ", ".join(
+        f"{LAB[m]} {v.loc[m, 'pct']:+.1f}\\% [{100 * v.loc[m, 'ci_lo'] / v.loc[m, 'QLIKE_linear']:+.1f}, "
+        f"{100 * v.loc[m, 'ci_hi'] / v.loc[m, 'QLIKE_linear']:+.1f}]"
+        for m in TREES
+    )
+    tr = TT[(TT.bucket == "live_feasible")].copy()
+    own = tr[tr.stamps == "own"].set_index("model")
+    rdg = tr[tr.forecast == "linear ridge"].iloc[0]
+    trade = ", ".join(
+        f"{LAB[m]} {own.loc[m, 'Sharpe_mid']:.2f} ({own.loc[m, 'Sharpe_crossed']:.2f})"
+        for m in TREES
+    )
+    n_rows_q = int(v["n"].iloc[0])
+
+    g = G["live_feasible"]
+    gl = ", ".join(f"{LAB[m]} ${e(g[m]['max_rel'])}$" for m in keys)
+    gaf = (
+        ", ".join(f"{LAB[m]} ${e(G['all_features'][m]['max_rel'])}$" for m in akeys)
+        if af is not None
+        else ""
+    )
+    har = "har_ma_*"
+    rng = lf["rolling_har_range"]
+    lead = lf["rolling_leader"]
+
+    def lead_pct(m):
+        d = lead[m]
+        return 100 * d.get(har, 0) / sum(d.values())
+
+    nat = lf["native"]
+    out = (
+        r"""
+\clearpage
+\begin{center}{\large\bf Feature importance: tree models against the linear models}\\[2pt]
+{\small same 16:00 bar, same """
+        + f"{lf['n_columns']}"
+        + r""" design columns (live-feasible), same """
+        + f"{lf['n']:,}"
+        + r""" forecasts (2018-06-25 .. 2024-04-30), of which """
+        + f"{lf['deck_n']}"
+        + r""" are deck days}\end{center}
+
+\textbf{Question.} Which input series carry the tree forecasts (LightGBM, XGBoost, random forest), and are they the series that carry the per-bar ridge and lasso?
+
+\textbf{The models.} Each tree model is fit on exactly the per-bar linear design (same columns, same target, same 2000-session window) and refit every 10 sessions; LightGBM and XGBoost keep the hyperparameters of an earlier tuning on the pooled design (minimum leaf size scaled to the 2000-row window), the random forest uses the library defaults (100 trees). On this bar their QLIKE against the ridge's, on the same """
+        + f"{n_rows_q:,}"
+        + r""" forecasts (difference in \%, day-block 95\% interval): """
+        + acc
+        + (
+            r""" -- every interval covers zero."""
+            if all((v.loc[m, "ci_lo"] < 0 < v.loc[m, "ci_hi"]) for m in TREES)
+            else "."
+        )
+        + r""" The 15:30 sign(s) trade on their forecasts: Sharpe mid (crossed) """
+        + trade
+        + r"""; on the ridge's forecast """
+        + f"{rdg.Sharpe_mid:.2f} ({rdg.Sharpe_crossed:.2f})"
+        + r""", same """
+        + f"{int(rdg.deck_days)}"
+        + r""" days.
+
+\textbf{Importance = share of mean $|$SHAP$|$.} For every forecast, the SHAP value of an input is its part of (forecast $-$ base value); a series' SHAP value is the sum over its columns (all lags, the is-present / is-nonzero flags, the HAR ladder's open/close interactions), and its share is its mean $|$SHAP$|$ divided by the sum over the """
+        + f"{lf['n_series']}"
+        + r""" series -- the measure of Section 2. Linear models: $\beta_j(x_j-\bar x_j)$ with the window mean as baseline (checked against the \texttt{shap} library in Section 2). Trees: the \texttt{shap} library's TreeExplainer on the model in force for that forecast; base value = the explainer's expected value (the mean prediction over the training window). Both are in the forecast's units, so the shares are comparable across models.
+
+\emph{Gate.} Every model's SHAP values plus its base value equal its forecast on all """
+        + f"{lf['n']:,}"
+        + r""" rows (max relative difference: """
+        + gl
+        + r"""; the trees' values are stored in single precision). The trees' forecasts in the SHAP files equal their scored forecasts exactly, all five models cover the same stamps and columns, and the ridge and lasso shares reproduce Sections 2--3 exactly.
+
+\begin{center}\scriptsize
+\captionof{table}{Share of mean $|$SHAP$|$ by input series (\%), 16:00 bar, live-feasible design. Series named by the design's columns (key under Figure 1). $^{\dagger}$ """
+        + ", ".join(tt(s) for s in lf["size_family"])
+        + r""" (the series that measure the size of recent returns) summed before taking $|\cdot|$: their joint share.}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l"""
+        + "r" * len(keys)
+        + "r" * len(keys)
+        + r"""}\toprule
+ & \multicolumn{"""
+        + str(len(keys))
+        + r"""}{c}{all """
+        + f"{lf['n']:,}"
+        + r""" forecasts} & \multicolumn{"""
+        + str(len(keys))
+        + r"""}{c}{"""
+        + f"{lf['deck_n']}"
+        + r""" deck days}\\
+series & """
+        + " & ".join(HEAD[m] for m in keys)
+        + " & "
+        + " & ".join(HEAD[m] for m in keys)
+        + r""" \\\midrule
+"""
+        + "\n".join(t1)
+        + r"""
+\bottomrule\end{tabular}\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../results/model_diagnostics_1530/trees_shap_share.png}
+\captionof{figure}{Share of mean $|$SHAP$|$ by series, one bar per model (all forecasts of the 16:00 bar). Top: live-feasible design (Table above). Bottom: the all-features design ("""
+        + (f"{af['n_columns']} columns, {af['n_series']} series" if af else "")
+        + r"""), the 12 largest series and the rest summed. LGBM = LightGBM, XGB = XGBoost, RF = random forest.}
+\end{center}
+
+\begin{center}\small
+\captionof{table}{Rank agreement between models: Spearman correlation of the """
+        + f"{lf['n_series']}"
+        + r"""-series share vectors, and how many of each model's five largest series the other shares.}
+\begin{tabular}{lrrrr}\toprule
+ & \multicolumn{2}{c}{Spearman} & \multicolumn{2}{c}{top-5 shared}\\
+models & all & deck days & all & deck days\\\midrule
+"""
+        + "\n".join(t2)
+        + r"""
+\bottomrule\end{tabular}\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../results/model_diagnostics_1530/trees_shap_rolling.png}
+\captionof{figure}{Share of mean $|$SHAP$|$ over a trailing """
+        + f"{J['roll']}"
+        + r"""-session window for the four largest series, every model (the trees' SHAP values are per forecast, so the share can be followed over time like the ridge's in Section 2). Grey = the deck period.}
+\end{center}
+"""
+    )
+    if af is not None:
+        out += (
+            r"""
+\begin{center}\small
+\captionof{table}{All-features design ("""
+            + f"{af['n_columns']} columns, {af['n_series']} series; adds equal- and value-weighted constituent-stock return moments, turnover, spreads and order-flow imbalance, StockTwits message counts and sentiment, and Cboe option volume demand to the live-feasible series"
+            + r"""): share of mean $|$SHAP$|$ (\%), all """
+            + f"{af['n']:,}"
+            + r""" forecasts of the 16:00 bar. Gate: SHAP plus base value equal the forecast to """
+            + gaf
+            + r""" (relative)"""
+            + (
+                "; the ridge and lasso coefficient re-runs equal their stored forecasts to "
+                + " / ".join(
+                    f"${e(G['all_features'][m]['stored_rel'])}$"
+                    for m in ("ridge", "lasso")
+                )
+                if all(
+                    G["all_features"].get(m, {}).get("stored_rel") is not None
+                    for m in ("ridge", "lasso")
+                )
+                else ""
+            )
+            + r""". Spearman over the """
+            + f"{af['n_series']}"
+            + r""" series: """
+            + af_note
+            + r""".}
+\begin{tabular}{l"""
+            + "r" * len(akeys)
+            + r"""}\toprule
+series & """
+            + " & ".join(HEAD[m] for m in akeys)
+            + r""" \\\midrule
+"""
+            + "\n".join(t3)
+            + r"""
+\bottomrule\end{tabular}\end{center}
+"""
+        )
+    tr_min = min(sh(lf, "all", m, har) for m in tr_)
+    tr_max = max(sh(lf, "all", m, har) for m in tr_)
+    vix = "adj_vix_ma_*"
+    vix3 = "adj_vix3m_ma_*"
+    absr = "adj_sumabsret_ma_*"
+    r4 = "adj_sumret4_ma_*"
+    sret = "adj_sumret_ma_*"
+    closed = [
+        100
+        * (
+            1
+            - (sz[LAB[m]]["all rows"] - sz["ridge"]["all rows"])
+            / (sh(lf, "all", m, har) - sh(lf, "all", "ridge", har))
+        )
+        for m in tr_
+    ]
+
+    def rank_of(m, s):
+        d = lf["share_all"][LAB[m]]
+        return 1 + sum(v > d[s] for v in d.values())
+
+    out += (
+        r"""
+\textbf{Reading.}
+\begin{itemize}\itemsep1pt
+\item \emph{Realized variance leads for every model; the trees lean on it far more.} \texttt{har\_ma\_*} carries """
+        + f"{pct(sh(lf, 'all', 'ridge', har))}\\%"
+        + r""" of the ridge's mean $|$SHAP$|$, """
+        + f"{pct(sh(lf, 'all', 'lasso', har))}\\%"
+        + r""" of the lasso's and """
+        + f"{pct(tr_min)}--{pct(tr_max)}\\%"
+        + r""" of the trees'. It is the leading series on """
+        + ", ".join(f"{lead_pct(m):.0f}\\%" for m in keys)
+        + r""" of the trailing-"""
+        + f"{J['roll']}"
+        + r""" windows ("""
+        + ", ".join(LAB[m] for m in keys)
+        + r"""). Over time the ridge's share stays between """
+        + f"{pct(rng['ridge'][0])} and {pct(rng['ridge'][1])}\\%"
+        + r""", the trees' between """
+        + f"{pct(min(rng[LAB[m]][0] for m in tr_))} and {pct(max(rng[LAB[m]][1] for m in tr_))}\\%"
+        + r"""; the lasso's share is """
+        + f"{pct(lf['lasso_split']['before'])}\\% before its penalty re-choice ({lf['lasso_split']['switch']}, Section 3) and {pct(lf['lasso_split']['after'])}\\% after."
+        + r"""
+\item \emph{The ridge spreads the size of recent returns over several correlated series} (each return-size column correlates """
+        + f"{lf['size_corr'][0]:.2f}--{lf['size_corr'][1]:.2f}"
+        + r""" with realized variance at the same lag on these forecasts). Absolute return has """
+        + f"{pct(sh(lf, 'all', 'ridge', absr))}\\%"
+        + r""" in the ridge against """
+        + f"{pct(min(sh(lf, 'all', m, absr) for m in tr_))}--{pct(max(sh(lf, 'all', m, absr) for m in tr_))}\\%"
+        + r""" in the trees, 4th-power returns """
+        + f"{pct(sh(lf, 'all', 'ridge', r4))}\\%"
+        + r""" against """
+        + f"{pct(min(sh(lf, 'all', m, r4) for m in tr_))}--{pct(max(sh(lf, 'all', m, r4) for m in tr_))}\\%"
+        + r""". Summed into one series with realized variance, bipower and upside squared returns, the return-size family carries """
+        + f"{pct(sz['ridge']['all rows'])}\\%"
+        + r""" of the ridge and """
+        + f"{pct(min(sz[LAB[m]]['all rows'] for m in tr_))}--{pct(max(sz[LAB[m]]['all rows'] for m in tr_))}\\%"
+        + r""" of the trees. Counting the family as one series closes """
+        + f"{min(closed):.0f}--{max(closed):.0f}\\%"
+        + r""" of the tree--ridge gap in realized variance: that part is the ridge splitting one signal across correlated columns (some with negative weights, Figure 1); the rest is the trees using the size of returns more.
+\item \emph{The VIX matters to the linear models, hardly to the trees.} VIX / VIX3M shares: ridge """
+        + f"{pct(sh(lf, 'all', 'ridge', vix))} / {pct(sh(lf, 'all', 'ridge', vix3))}\\%"
+        + r""", lasso """
+        + f"{pct(sh(lf, 'all', 'lasso', vix))} / {pct(sh(lf, 'all', 'lasso', vix3))}\\%"
+        + r""", trees at most """
+        + f"{pct(max(sh(lf, 'all', m, vix) for m in tr_))} / {pct(max(sh(lf, 'all', m, vix3) for m in tr_))}\\%"
+        + r""" (the linear models weigh the VIX against the 3-month index with opposite signs, Section 3). Signed return ranks """
+        + ", ".join(f"{rank_of(m, sret)}" for m in keys)
+        + r""" ("""
+        + ", ".join(LAB[m] for m in keys)
+        + r""").
+\item \emph{Rank agreement.} The three trees agree with one another (Spearman """
+        + f"{min(tree_tree):.2f}--{max(tree_tree):.2f}"
+        + r"""), ridge and lasso with each other ("""
+        + f"{sp(lf, 'ridge', 'lasso'):.2f}"
+        + r"""), trees with the linear models less ("""
+        + f"{min(tree_lin):.2f}--{max(tree_lin):.2f}"
+        + r"""); all five name the same leading series. The trees' own split-gain / impurity importance ranks the series like their SHAP (Spearman """
+        + ", ".join(f"{nat[LAB[m]]['spearman']:.2f}" for m in tr_)
+        + r""") and also puts realized variance first ("""
+        + ", ".join(f"{pct(nat[LAB[m]]['leader_share'])}\\%" for m in tr_)
+        + r""").
+"""
+    )
+    if af is not None:
+
+        def added_top(m):
+            return max(
+                (x for x in af["order"] if x not in lf["order"]),
+                key=lambda x: sh(af, "all", m, x),
+            )
+
+        out += (
+            r"""\item \emph{All features.} With """
+            + f"{af['n_columns']}"
+            + r""" columns the trees still put """
+            + f"{pct(min(sh(af, 'all', m, har) for m in TREES))}--{pct(max(sh(af, 'all', m, har) for m in TREES))}\\%"
+            + r""" on realized variance; no added series exceeds """
+            + f"{pct(max(sh(af, 'all', m, s) for m in TREES for s in af['order'] if s not in lf['order']))}\\%"
+            + r""" in any tree."""
+            + (
+                r""" The linear models spread further: realized variance """
+                + f"{pct(sh(af, 'all', 'ridge', har))}\\% (ridge) and {pct(sh(af, 'all', 'lasso', har))}\\% (lasso), the return-size family "
+                + f"{pct(af['size_share']['ridge']['all rows'])}\\% and {pct(af['size_share']['lasso']['all rows'])}\\% (trees "
+                + f"{pct(min(af['size_share'][LAB[m]]['all rows'] for m in TREES))}--{pct(max(af['size_share'][LAB[m]]['all rows'] for m in TREES))}\\%); "
+                + (
+                    f"their largest added series is {tt(added_top('ridge'))} "
+                    f"({pct(sh(af, 'all', 'ridge', added_top('ridge')))}\\% ridge, "
+                    f"{pct(sh(af, 'all', 'lasso', added_top('lasso')))}\\% lasso)"
+                    if added_top("ridge") == added_top("lasso")
+                    else "their largest added series are "
+                    + " and ".join(
+                        f"{tt(added_top(m))} ({pct(sh(af, 'all', m, added_top(m)))}\\%, {LAB[m]})"
+                        for m in ("ridge", "lasso")
+                    )
+                )
+                + ". Tree and linear rankings agree less than on the live-feasible design (Spearman "
+                + f"{min(sp(af, a, c) for a in ('ridge', 'lasso') for c in TREES):.2f}--{max(sp(af, a, c) for a in ('ridge', 'lasso') for c in TREES):.2f}"
+                + "); every model still leads with realized variance."
+                if "ridge" in akeys and "lasso" in akeys
+                else ""
+            )
+            + "\n"
+        )
+    out += r"""\end{itemize}
+Files: \texttt{experiments/model\_diagnostics\_1530\_trees.py}; outputs \texttt{results/model\_diagnostics\_1530/trees\_shap*}.
+"""
+    return out
+
+
 summary = (OUT / "summary.txt").read_text(encoding="utf-8")
 print(summary)
 
@@ -578,6 +1005,7 @@ split & mid P\&L & crossed P\&L & buy decision\\\midrule
 Files: \texttt{experiments/model\_diagnostics\_1530.py} (capture, then analyze); outputs in \texttt{results/model\_diagnostics\_1530/}.
 """
     + regimes_tex()
+    + trees_tex()
     + r"""
 \end{document}
 """

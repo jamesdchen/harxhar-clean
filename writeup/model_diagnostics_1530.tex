@@ -229,4 +229,100 @@ column & refits & deck days & positive & mean std.\ weight & first & entries/exi
 \end{itemize}
 Files: \texttt{experiments/model\_diagnostics\_1530\_regimes.py}; outputs \texttt{results/model\_diagnostics\_1530/regimes\_*}.
 
+\clearpage
+\begin{center}{\large\bf Feature importance: tree models against the linear models}\\[2pt]
+{\small same 16:00 bar, same 244 design columns (live-feasible), same 1,469 forecasts (2018-06-25 .. 2024-04-30), of which 866 are deck days}\end{center}
+
+\textbf{Question.} Which input series carry the tree forecasts (LightGBM, XGBoost, random forest), and are they the series that carry the per-bar ridge and lasso?
+
+\textbf{The models.} Each tree model is fit on exactly the per-bar linear design (same columns, same target, same 2000-session window) and refit every 10 sessions; LightGBM and XGBoost keep the hyperparameters of an earlier tuning on the pooled design (minimum leaf size scaled to the 2000-row window), the random forest uses the library defaults (100 trees). On this bar their QLIKE against the ridge's, on the same 1,406 forecasts (difference in \%, day-block 95\% interval): LightGBM -1.0\% [-8.3, +5.5], XGBoost +0.8\% [-6.9, +7.8], random forest -0.2\% [-8.1, +6.6] -- every interval covers zero. The 15:30 sign(s) trade on their forecasts: Sharpe mid (crossed) LightGBM 1.69 (1.22), XGBoost 1.70 (1.23), random forest 1.58 (1.11); on the ridge's forecast 1.90 (1.44), same 866 days.
+
+\textbf{Importance = share of mean $|$SHAP$|$.} For every forecast, the SHAP value of an input is its part of (forecast $-$ base value); a series' SHAP value is the sum over its columns (all lags, the is-present / is-nonzero flags, the HAR ladder's open/close interactions), and its share is its mean $|$SHAP$|$ divided by the sum over the 18 series -- the measure of Section 2. Linear models: $\beta_j(x_j-\bar x_j)$ with the window mean as baseline (checked against the \texttt{shap} library in Section 2). Trees: the \texttt{shap} library's TreeExplainer on the model in force for that forecast; base value = the explainer's expected value (the mean prediction over the training window). Both are in the forecast's units, so the shares are comparable across models.
+
+\emph{Gate.} Every model's SHAP values plus its base value equal its forecast on all 1,469 rows (max relative difference: ridge $1.2\times10^{-15}$, lasso $5.5\times10^{-16}$, LightGBM $7.9\times10^{-8}$, XGBoost $1.6\times10^{-6}$, random forest $7.6\times10^{-8}$; the trees' values are stored in single precision). The trees' forecasts in the SHAP files equal their scored forecasts exactly, all five models cover the same stamps and columns, and the ridge and lasso shares reproduce Sections 2--3 exactly.
+
+\begin{center}\scriptsize
+\captionof{table}{Share of mean $|$SHAP$|$ by input series (\%), 16:00 bar, live-feasible design. Series named by the design's columns (key under Figure 1). $^{\dagger}$ \texttt{har\_ma\_*}, \texttt{adj\_sumabsret\_ma\_*}, \texttt{adj\_sumret4\_ma\_*}, \texttt{adj\_sumbipow\_ma\_*}, \texttt{adj\_sumpret2\_ma\_*} (the series that measure the size of recent returns) summed before taking $|\cdot|$: their joint share.}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrrrrrrrrrr}\toprule
+ & \multicolumn{5}{c}{all 1,469 forecasts} & \multicolumn{5}{c}{866 deck days}\\
+series & ridge & lasso & LGBM & XGB & RF & ridge & lasso & LGBM & XGB & RF \\\midrule
+\texttt{har\_ma\_*} & 29.6 & 50.6 & 57.2 & 64.1 & 66.1 & 28.2 & 44.1 & 56.2 & 62.7 & 64.0 \\
+\texttt{adj\_sumret\_ma\_*} & 9.9 & 10.4 & 9.9 & 9.6 & 6.7 & 10.9 & 9.5 & 10.2 & 9.7 & 7.0 \\
+\texttt{adj\_sumabsret\_ma\_*} & 15.4 & 6.6 & 3.1 & 4.8 & 6.4 & 15.7 & 5.6 & 3.2 & 5.0 & 7.3 \\
+\texttt{adj\_sumvolume\_ma\_*} & 5.4 & 3.4 & 5.7 & 6.6 & 4.6 & 5.9 & 3.0 & 6.9 & 8.0 & 5.6 \\
+\texttt{adj\_sumret4\_ma\_*} & 7.9 & 4.3 & 2.6 & 1.5 & 1.3 & 7.6 & 4.8 & 2.3 & 1.4 & 1.2 \\
+\texttt{adj\_vix\_ma\_*} & 4.8 & 7.1 & 2.1 & 1.1 & 1.1 & 4.8 & 9.8 & 1.8 & 1.0 & 1.1 \\
+\texttt{adj\_sumautocov\_ma\_*} & 4.1 & 3.5 & 3.3 & 2.3 & 1.9 & 3.9 & 3.4 & 3.0 & 2.1 & 1.8 \\
+calendar (DOW\_*, is\_*, hour, days\_to\_opex) & 2.6 & 2.7 & 3.9 & 2.9 & 2.2 & 2.8 & 4.0 & 4.4 & 3.2 & 2.4 \\
+\texttt{adj\_vix3m\_ma\_*} & 4.5 & 6.5 & 1.0 & 0.6 & 0.8 & 5.1 & 8.8 & 1.0 & 0.6 & 0.8 \\
+\texttt{adj\_sumret3\_ma\_*} & 2.2 & 1.0 & 2.2 & 1.5 & 1.8 & 1.9 & 1.4 & 2.3 & 1.5 & 1.8 \\
+\texttt{adj\_sumbipow\_ma\_*} & 4.0 & 0.8 & 1.2 & 1.0 & 0.9 & 4.0 & 1.0 & 1.2 & 1.0 & 0.9 \\
+\texttt{adj\_sumpret2\_ma\_*} & 3.5 & 0.2 & 1.5 & 0.7 & 1.4 & 3.3 & 0.3 & 1.4 & 0.6 & 1.3 \\
+\texttt{adj\_vvix\_ma\_*} & 2.1 & 1.6 & 1.7 & 0.8 & 1.1 & 2.3 & 2.3 & 1.7 & 0.8 & 1.2 \\
+\texttt{adj\_fomc\_since\_inv\_ma\_*} & 1.0 & 0.3 & 1.4 & 0.8 & 1.0 & 0.9 & 0.4 & 1.4 & 0.7 & 1.1 \\
+\texttt{adj\_fomc\_until\_inv\_ma\_*} & 1.2 & 0.2 & 1.2 & 0.7 & 1.1 & 0.9 & 0.3 & 1.2 & 0.7 & 1.1 \\
+\texttt{adj\_numobs\_ma\_*} & 0.3 & 0.1 & 1.4 & 0.8 & 1.3 & 0.3 & 0.1 & 1.1 & 0.7 & 1.2 \\
+\texttt{adj\_fomc\_day\_ma\_*} & 1.3 & 0.8 & 0.4 & 0.3 & 0.2 & 1.4 & 1.2 & 0.5 & 0.2 & 0.2 \\
+\texttt{adj\_fomc\_release\_ma\_*} & 0.1 & 0.0 & 0.1 & 0.1 & 0.1 & 0.2 & 0.0 & 0.1 & 0.1 & 0.1 \\
+\midrule
+return-size series summed$^{\dagger}$ & 52.7 & 59.4 & 63.1 & 70.8 & 74.3 & 52.1 & 51.6 & 61.8 & 69.3 & 72.7 \\
+\bottomrule\end{tabular}\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../results/model_diagnostics_1530/trees_shap_share.png}
+\captionof{figure}{Share of mean $|$SHAP$|$ by series, one bar per model (all forecasts of the 16:00 bar). Top: live-feasible design (Table above). Bottom: the all-features design (640 columns, 49 series), the 12 largest series and the rest summed. LGBM = LightGBM, XGB = XGBoost, RF = random forest.}
+\end{center}
+
+\begin{center}\small
+\captionof{table}{Rank agreement between models: Spearman correlation of the 18-series share vectors, and how many of each model's five largest series the other shares.}
+\begin{tabular}{lrrrr}\toprule
+ & \multicolumn{2}{c}{Spearman} & \multicolumn{2}{c}{top-5 shared}\\
+models & all & deck days & all & deck days\\\midrule
+ridge -- lasso & 0.89 & 0.84 & 3 & 3 \\
+ridge -- LightGBM & 0.71 & 0.71 & 3 & 4 \\
+ridge -- XGBoost & 0.72 & 0.72 & 4 & 4 \\
+ridge -- random forest & 0.64 & 0.57 & 4 & 4 \\
+lasso -- LightGBM & 0.68 & 0.67 & 2 & 3 \\
+lasso -- XGBoost & 0.69 & 0.68 & 3 & 3 \\
+lasso -- random forest & 0.56 & 0.46 & 3 & 3 \\
+LightGBM -- XGBoost & 0.94 & 0.94 & 4 & 5 \\
+LightGBM -- random forest & 0.95 & 0.90 & 4 & 5 \\
+XGBoost -- random forest & 0.89 & 0.84 & 5 & 5 \\
+\bottomrule\end{tabular}\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../results/model_diagnostics_1530/trees_shap_rolling.png}
+\captionof{figure}{Share of mean $|$SHAP$|$ over a trailing 63-session window for the four largest series, every model (the trees' SHAP values are per forecast, so the share can be followed over time like the ridge's in Section 2). Grey = the deck period.}
+\end{center}
+
+\begin{center}\small
+\captionof{table}{All-features design (640 columns, 49 series; adds equal- and value-weighted constituent-stock return moments, turnover, spreads and order-flow imbalance, StockTwits message counts and sentiment, and Cboe option volume demand to the live-feasible series): share of mean $|$SHAP$|$ (\%), all 1,469 forecasts of the 16:00 bar. Gate: SHAP plus base value equal the forecast to ridge $7.1\times10^{-14}$, lasso $6.9\times10^{-16}$, LightGBM $8.2\times10^{-8}$, XGBoost $1.8\times10^{-6}$, random forest $7.5\times10^{-8}$ (relative); the ridge and lasso coefficient re-runs equal their stored forecasts to $3.5\times10^{-11}$ / $2.4\times10^{-13}$. Spearman over the 49 series: tree--tree 0.81--0.88; ridge--lasso 0.83; tree--linear 0.26--0.51.}
+\begin{tabular}{lrrrrr}\toprule
+series & ridge & lasso & LGBM & XGB & RF \\\midrule
+\texttt{har\_ma\_*} & 15.4 & 37.4 & 48.2 & 56.4 & 59.5 \\
+\texttt{adj\_sumret\_ma\_*} & 4.5 & 7.5 & 6.3 & 7.0 & 3.7 \\
+\texttt{adj\_sumabsret\_vwstock\_ma\_*} & 5.7 & 8.7 & 1.8 & 2.1 & 2.3 \\
+\texttt{adj\_sumabsret\_ma\_*} & 6.3 & 1.9 & 2.5 & 3.4 & 5.4 \\
+\texttt{adj\_sumvolume\_ma\_*} & 1.6 & 0.8 & 3.7 & 4.5 & 2.4 \\
+\texttt{adj\_sumabsret\_ewstock\_ma\_*} & 2.5 & 1.3 & 2.8 & 3.2 & 2.4 \\
+\texttt{adj\_ofi\_ewstock\_ma\_*} & 2.7 & 2.7 & 1.7 & 1.4 & 1.2 \\
+\texttt{adj\_sumret4\_ma\_*} & 4.7 & 3.0 & 0.9 & 0.6 & 0.4 \\
+calendar (DOW\_*, is\_*, hour, days\_to\_opex) & 2.0 & 1.6 & 2.6 & 2.1 & 1.2 \\
+\texttt{adj\_vix\_ma\_*} & 3.3 & 3.8 & 0.7 & 0.5 & 0.5 \\
+\texttt{adj\_ofi\_vwstock\_ma\_*} & 2.9 & 3.4 & 0.7 & 0.4 & 0.7 \\
+\texttt{adj\_sellturnover\_vwstock\_ma\_*} & 1.2 & 2.8 & 1.4 & 1.6 & 0.9 \\
+other 37 series & 47.2 & 25.3 & 26.6 & 16.7 & 19.5 \\
+\bottomrule\end{tabular}\end{center}
+
+\textbf{Reading.}
+\begin{itemize}\itemsep1pt
+\item \emph{Realized variance leads for every model; the trees lean on it far more.} \texttt{har\_ma\_*} carries 29.6\% of the ridge's mean $|$SHAP$|$, 50.6\% of the lasso's and 57.2--66.1\% of the trees'. It is the leading series on 95\%, 100\%, 100\%, 100\%, 100\% of the trailing-63 windows (ridge, lasso, LightGBM, XGBoost, random forest). Over time the ridge's share stays between 17.3 and 40.3\%, the trees' between 44.5 and 75.3\%; the lasso's share is 66.9\% before its penalty re-choice (2021-06-21, Section 3) and 37.5\% after.
+\item \emph{The ridge spreads the size of recent returns over several correlated series} (each return-size column correlates 0.44--0.86 with realized variance at the same lag on these forecasts). Absolute return has 15.4\% in the ridge against 3.1--6.4\% in the trees, 4th-power returns 7.9\% against 1.3--2.6\%. Summed into one series with realized variance, bipower and upside squared returns, the return-size family carries 52.7\% of the ridge and 63.1--74.3\% of the trees. Counting the family as one series closes 41--63\% of the tree--ridge gap in realized variance: that part is the ridge splitting one signal across correlated columns (some with negative weights, Figure 1); the rest is the trees using the size of returns more.
+\item \emph{The VIX matters to the linear models, hardly to the trees.} VIX / VIX3M shares: ridge 4.8 / 4.5\%, lasso 7.1 / 6.5\%, trees at most 2.1 / 1.0\% (the linear models weigh the VIX against the 3-month index with opposite signs, Section 3). Signed return ranks 3, 2, 2, 2, 2 (ridge, lasso, LightGBM, XGBoost, random forest).
+\item \emph{Rank agreement.} The three trees agree with one another (Spearman 0.89--0.95), ridge and lasso with each other (0.89), trees with the linear models less (0.56--0.72); all five name the same leading series. The trees' own split-gain / impurity importance ranks the series like their SHAP (Spearman 0.89, 0.97, 0.86) and also puts realized variance first (61.7\%, 73.6\%, 67.1\%).
+\item \emph{All features.} With 640 columns the trees still put 48.2--59.5\% on realized variance; no added series exceeds 3.2\% in any tree. The linear models spread further: realized variance 15.4\% (ridge) and 37.4\% (lasso), the return-size family 21.5\% and 39.6\% (trees 51.3--64.9\%); their largest added series is \texttt{adj\_sumabsret\_vwstock\_ma\_*} (5.7\% ridge, 8.7\% lasso). Tree and linear rankings agree less than on the live-feasible design (Spearman 0.26--0.51); every model still leads with realized variance.
+\end{itemize}
+Files: \texttt{experiments/model\_diagnostics\_1530\_trees.py}; outputs \texttt{results/model\_diagnostics\_1530/trees\_shap*}.
+
 \end{document}

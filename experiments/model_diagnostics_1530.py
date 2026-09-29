@@ -42,6 +42,19 @@ VENDOR_FILES = (
     "releases.parquet",
     "time_categories.parquet",
 )
+# capture on another design (env MD_BUCKET=all_features): the four vendor files plus
+# the ones carrying that design's raw columns -- the constituent cross-section
+# (ewstock/vwstock_stats: moments, turnover, spreads; the ofi ratios are derived from
+# their buy/sell turnover) and StockTwits (spy_and_sentiment); the Cboe volume series
+# are already in vix_and_voldemand.  _check_vendor_cover asserts the cover.
+BUCKET_VENDOR_FILES = {
+    "all_features": VENDOR_FILES
+    + (
+        "ewstock_stats.parquet",
+        "vwstock_stats.parquet",
+        "spy_and_sentiment.parquet",
+    ),
+}
 SEGMENT = "bar1600"
 BUCKET = "live_feasible"
 ESTIMATOR = "ridge"
@@ -50,7 +63,7 @@ ET = "America/New_York"
 
 
 # --------------------------------------------------------------------------- capture
-def _spec_namespace(estimator: str = ESTIMATOR) -> dict:
+def _spec_namespace(estimator: str = ESTIMATOR, bucket: str = BUCKET) -> dict:
     """Execute the spec's estimator section (imports, constants, the class) only.
 
     The section runs from the feature-construction cell's first import to just
@@ -60,7 +73,7 @@ def _spec_namespace(estimator: str = ESTIMATOR) -> dict:
         "HPC_KW_SEGMENT": SEGMENT,
         "HPC_KW_LAG_SCOPE": "global",
         "HPC_KW_ESTIMATOR": estimator,
-        "HPC_KW_EXOG_BUCKET": BUCKET,
+        "HPC_KW_EXOG_BUCKET": bucket,
         "HPC_KW_TRAIN_WIN": str(TRAIN_WIN),
         "HPC_KW_START": "0",
         "HPC_KW_END": "-1",
@@ -77,28 +90,58 @@ def _spec_namespace(estimator: str = ESTIMATOR) -> dict:
     return ns
 
 
-def capture_path(estimator: str = ESTIMATOR, alpha: float | None = None) -> Path:
-    """capture_bar1600.npz is the arm of record (ridge, tuned penalty); other arms get a tag."""
+def capture_path(
+    estimator: str = ESTIMATOR, alpha: float | None = None, bucket: str = BUCKET
+) -> Path:
+    """capture_bar1600.npz is the arm of record (ridge, tuned penalty); other arms get a tag.
+    Another bucket's captures carry its name: capture_bar1600_<bucket>[_<tag>].npz."""
+    base = "capture_bar1600" if bucket == BUCKET else f"capture_bar1600_{bucket}"
     if estimator == ESTIMATOR and alpha is None:
-        return OUT / "capture_bar1600.npz"
+        return OUT / f"{base}.npz"
     tag = estimator if alpha is None else f"{estimator}_fixed{alpha:g}"
-    return OUT / f"capture_bar1600_{tag}.npz"
+    return OUT / f"{base}_{tag}.npz"
 
 
-def capture(estimator: str = ESTIMATOR, alpha: float | None = None) -> None:
+def _check_vendor_cover(bucket: str, data: Path, exog_cols: list[str]) -> None:
+    """Every raw column of the bucket is in a copied file (derived: ofi_*, fomc_*)."""
+    import pyarrow.parquet as pq
+
+    have: set[str] = set()
+    for f in data.glob("*.parquet"):
+        have.update(pq.read_schema(f).names)
+    derived = (
+        {"fomc release"} if any(c.startswith("fomc_") for c in exog_cols) else set()
+    )
+    raw = [c for c in exog_cols if not c.startswith(("ofi_", "fomc_"))]
+    raw += [
+        leg
+        for c in exog_cols
+        if c.startswith("ofi_")
+        for leg in (f"buyturnover_{c[4:]}", f"sellturnover_{c[4:]}")
+    ]
+    missing = sorted((set(raw) | derived) - have)
+    assert not missing, (bucket, missing)
+
+
+def capture(
+    estimator: str = ESTIMATOR, alpha: float | None = None, bucket: str = BUCKET
+) -> None:
     """Record every prediction's coefficients.  estimator: the spec's arm (ridge / reclasso);
     alpha: hold the penalty at this one grid value (the counterfactual that separates
-    penalty switches from changes in the data) instead of re-choosing it every 250 refits."""
+    penalty switches from changes in the data) instead of re-choosing it every 250 refits;
+    bucket: the exogenous design (default live_feasible; its own data dir under SCRATCH)."""
     OUT.mkdir(parents=True, exist_ok=True)
-    data = SCRATCH / "data"
+    data = SCRATCH / "data" if bucket == BUCKET else SCRATCH / f"data_{bucket}"
     data.mkdir(parents=True, exist_ok=True)
-    for f in VENDOR_FILES:
+    for f in VENDOR_FILES if bucket == BUCKET else BUCKET_VENDOR_FILES[bucket]:
         if not (data / f).exists():
             shutil.copy2(REPO / "data" / f, data / f)
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
     os.chdir(REPO)
-    ns = _spec_namespace(estimator)
+    ns = _spec_namespace(estimator, bucket)
+    if bucket != BUCKET:
+        _check_vendor_cover(bucket, data, ns["get_bucket"](bucket))
     Base = ns["RollingTunedLinear"]
     MultiStageBacktest = ns["MultiStageBacktest"]
     IdentityResidualizer = ns["IdentityResidualizer"]
@@ -157,8 +200,8 @@ def capture(estimator: str = ESTIMATOR, alpha: float | None = None) -> None:
 
     arm_dir = (
         "arm"
-        if (estimator == ESTIMATOR and alpha is None)
-        else f"arm_{capture_path(estimator, alpha).stem}"
+        if (estimator == ESTIMATOR and alpha is None and bucket == BUCKET)
+        else f"arm_{capture_path(estimator, alpha, bucket).stem}"
     )
     out_csv = SCRATCH / arm_dir / "results.csv"
     run_executor(
@@ -172,7 +215,7 @@ def capture(estimator: str = ESTIMATOR, alpha: float | None = None) -> None:
         start=0,
         end=-1,
         halo=0,
-        exog_cols=ns["get_bucket"](BUCKET),
+        exog_cols=ns["get_bucket"](bucket),
         segment=SEGMENT,
         lag_scope="global",
         har_lags=ns["HAR_LAGS"],
@@ -192,7 +235,7 @@ def capture(estimator: str = ESTIMATOR, alpha: float | None = None) -> None:
     n = len(rec["pred"])
     assert n == len(res), (n, len(res))
     np.savez_compressed(
-        capture_path(estimator, alpha),
+        capture_path(estimator, alpha, bucket),
         th=np.array(rec["th"]),
         x=np.array(rec["x"]),
         mu=np.array(rec["mu"]),
@@ -819,8 +862,13 @@ def analyze() -> None:  # noqa: C901 - one linear report
 if __name__ == "__main__":
     stage = sys.argv[1] if len(sys.argv) > 1 else "analyze"
     if stage == "capture":
-        # capture [ridge|reclasso] [fixed penalty]; no arguments = the arm of record
+        # capture [ridge|reclasso] [fixed penalty]; no arguments = the arm of record;
+        # env MD_BUCKET picks the design (default live_feasible)
         est = sys.argv[2] if len(sys.argv) > 2 else ESTIMATOR
-        capture(est, float(sys.argv[3]) if len(sys.argv) > 3 else None)
+        capture(
+            est,
+            float(sys.argv[3]) if len(sys.argv) > 3 else None,
+            os.environ.get("MD_BUCKET", BUCKET),
+        )
     else:
         analyze()
