@@ -1,0 +1,85 @@
+% ============================================================================
+% 2026-09-29: the Murphy / threshold analysis and the sample splits parked from
+% Section 5.4 (Section~\ref{sec:app_run_parked}: the paper's eight forecasts under
+% the session-bar recalibration), re-run for the HEADLINE forecast under the
+% 16:00-bar recalibration of Table~\ref{tab:close_option_rules}.  Every number
+% below is a macro from generated/appendix_close_murphy_splits.tex, written by
+% experiments/close_murphy_splits_headline.py from results/close_murphy_splits/*.csv;
+% nothing is typed by hand.  The two recalibrations are never set side by side.
+% Input from main.tex after sections/appendix_close_shift_test, so this continues
+% Appendix D.
+% ============================================================================
+\input{generated/appendix_close_murphy_splits}
+\subsection{The Headline Forecast Scored at the Trade's Threshold, and Its Sample Splits}
+\label{sec:app_murphy_splits_headline}
+
+\paragraph{The score at the threshold.} Section~\ref{sec:app_run_parked} takes QLIKE
+apart by threshold (Equations~\eqref{eq:elementary_score}--\eqref{eq:score_at_threshold})
+and reads the trade at the one threshold it uses, the day's implied variance of the last
+half hour. Table~\ref{tab:app_murphy_headline} repeats that scoring under the 16:00-bar
+recalibration for a comparison set of \hmurNSet{} forecasts --- the headline, the paper's
+block-diagonal ridge scored the same way, the HAR $+$ calendar least squares, the
+headline's lasso twin, the all-features ridge, an untuned and a tuned tree, and the
+LSTM --- and \texttt{scores\_by\_forecast.csv} carries all \hmurNAll{} forecasts of the
+master table. QLIKE is against the scorer's target; the identity between QLIKE and the
+$\theta^{-2}$ mixture of elementary scores is checked day by day for the headline, and
+the identity $\overline{qR}=\overline{|R|}-2\,\overline{EL}$ for every forecast. The
+headline scores \hmurHQLIKE{} on QLIKE and \hmurHES{} at the threshold, ranking
+\hmurHQLIKERankSet{} and \hmurHESRankSet{} of \hmurNSet{} in the set (\hmurHQLIKERankAll{}
+and \hmurHESRankAll{} of \hmurNAll{} overall; its crossed-spread Sharpe ratio ranks
+\hmurHSharpeRankAll{} of \hmurNAll{}). It falls on the realized variance's side of the
+threshold on \hmurHHitVar{}\,\% of days and on the payoff's side on \hmurHHitPay{}\,\%,
+and it is long on \hmurHTop{} of the 20 best long-straddle days.
+
+\paragraph{The Murphy diagram.} Figure~\ref{fig:app_murphy_headline} plots the mean
+elementary score against the threshold, in units of the implied variance, from
+\hmurGridMin{} to \hmurGridMax{} on a logarithmic grid of \hmurNGrid{} points. The headline
+has the lowest score of the set at \hmurNLeadH{} of the \hmurNGrid{} thresholds and a
+linear forecast at \hmurNLeadLin{}; at the trade's threshold the leader is
+\hmurLeaderAtOne{} and the headline ranks \hmurHRankAtOne{} of \hmurNSet{}.
+
+\paragraph{What a variance forecast can reach.} A rule told the realized variance in
+advance takes the payoff's side on \hmurOracleAgree{}\,\% of days (Sharpe
+\hmurOracleShMid{} at the midpoint, \hmurOracleShX{} across the spread), against
+\hmurPayoffOracleShX{} across the spread for a rule told the payoff's sign; on
+\hmurOracleMiss{}\,\% of days the trade's sign is beyond any variance forecast.
+
+\paragraph{Which score orders the forecasts on the trade.} Across the comparison set
+the rank correlation of minus the loss with the crossed-spread Sharpe ratio is
+\hmurRhoQSet{} for QLIKE (day-block bootstrap 95\,\% interval \hmurRhoQSetLo{} to
+\hmurRhoQSetHi{}) and \hmurRhoESSet{} for the score at the threshold (\hmurRhoESSetLo{} to
+\hmurRhoESSetHi{}); across all \hmurNAll{} forecasts of the master table it is
+\hmurRhoQAll{} (\hmurRhoQAllLo{} to \hmurRhoQAllHi{}) and \hmurRhoESAll{} (\hmurRhoESAllLo{}
+to \hmurRhoESAllHi{}). The economic loss is affine in the midpoint P\&L and correlates
+perfectly by construction; it is reported as the ceiling.
+
+\paragraph{Sample splits.} Table~\ref{tab:app_splits_headline} repeats the splits of
+Section~\ref{sec:app_run_parked} for the headline's $\mathrm{sign}(s)$ return, beside
+the paper's forecast scored the same way and always short. Over all 866 days the
+headline's annualized Sharpe ratio is \hsplHAllSh{} ($t=\hsplHAllT$). Dropping the
+\hsplNCovid{} expiration days through 31~March~2020 leaves \hsplHPostCovidSh{}
+($t=\hsplHPostCovidT$, interval \hsplHPostCovidLo{} to \hsplHPostCovidHi{}) on the
+remaining \hsplHPostCovidN{} days. Split at 16~May~2022, when SPXW listings became
+daily, it is \hsplHPreSh{} ($t=\hsplHPreT$, \hsplHPreLo{} to \hsplHPreHi{}) on the
+\hsplHPreN{} days before and \hsplHPostSh{} ($t=\hsplHPostT$, \hsplHPostLo{} to
+\hsplHPostHi{}) on the \hsplHPostN{} days after; the paper's forecast scored the same way
+reads \hsplRPreSh{} and \hsplRPostSh{}. The straddle expires worthless on \hsplNPin{} of
+the days (\hsplPinPct{}\,\%): always short collects \hsplASPinMean{} on them against
+\hsplASOffPinMean{} elsewhere, and the headline averages \hsplHPinMean{} on them against
+\hsplHOffPinMean{} off them, so pin days supply \hsplHPinShare{}\,\% of its total return.
+Read as a same-day sign split, the settlement return averages \hsplSignBuyMean{} on the
+\hsplSignNBuy{} days the headline buys and \hsplSignSellMean{} on the \hsplSignNSell{}
+days it sells (difference \hsplSignDiff{}, heteroskedasticity-robust $t=\hsplSignT$).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../results/close_murphy_splits/murphy_headline.png}
+\caption{Murphy diagram of the comparison set on the 866 deck days under the 16:00-bar
+recalibration. The horizontal axis is the threshold in units of the day's implied
+variance of the last half hour, on a logarithmic scale from \hmurGridMin{} to
+\hmurGridMax{}; the dotted line at 1 is the threshold the $\mathrm{sign}(s)$ rule uses.
+(a) The mean elementary score (lower is better); QLIKE is the area under each line
+weighted by $c^{-2}$. (b) Each line minus the mean of the set at the same threshold
+(source: \texttt{results/close\_murphy\_splits/murphy\_grid.csv}).}
+\label{fig:app_murphy_headline}
+\end{figure}

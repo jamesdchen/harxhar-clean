@@ -1,0 +1,468 @@
+gate,value,bound,n,ok
+target shared (a0),0.0,1e-09,866,True
+target shared (b2lasso),0.0,1e-09,866,True
+target shared (lasso_f),0.0,1e-09,866,True
+target shared (lasso_t),0.0,1e-09,866,True
+target shared (enet),0.0,1e-09,866,True
+target shared (blk2_inc),0.0,1e-09,866,True
+target shared (blk2),0.0,1e-09,866,True
+target shared (lstm_all_features),0.0,1e-09,866,True
+target shared (lstm_baseline),0.0,1e-09,866,True
+target shared (lstm_live_feasible),0.0,1e-09,866,True
+target shared (lstm_qsel_all_features),0.0,1e-09,866,True
+target shared (lstm_qsel_baseline),0.0,1e-09,866,True
+target shared (lstm_qsel_live_feasible),0.0,1e-09,866,True
+target shared (pool_enet_all_features),0.0,1e-09,866,True
+target shared (pool_enet_baseline),0.0,1e-09,866,True
+target shared (pool_enet_live_feasible),0.0,1e-09,866,True
+target shared (pool_lasso_all_features),0.0,1e-09,866,True
+target shared (pool_lasso_baseline),0.0,1e-09,866,True
+target shared (pool_lasso_live_feasible),0.0,1e-09,866,True
+target shared (pool_ridge_all_features),0.0,1e-09,866,True
+target shared (pool_ridge_baseline),0.0,1e-09,866,True
+target shared (pool_ridge_live_feasible),0.0,1e-09,866,True
+target shared (restofday_enet_all_features),0.0,1e-09,866,True
+target shared (restofday_enet_baseline),0.0,1e-09,866,True
+target shared (restofday_enet_live_feasible),0.0,1e-09,866,True
+target shared (restofday_lasso_all_features),0.0,1e-09,866,True
+target shared (restofday_lasso_baseline),0.0,1e-09,866,True
+target shared (restofday_lasso_live_feasible),0.0,1e-09,866,True
+target shared (restofday_ridge_all_features),0.0,1e-09,866,True
+target shared (restofday_ridge_baseline),0.0,1e-09,866,True
+target shared (restofday_ridge_live_feasible),0.0,1e-09,866,True
+target shared (sub_enet_all_features),0.0,1e-09,866,True
+target shared (sub_enet_baseline),0.0,1e-09,866,True
+target shared (sub_enet_free_vix_only),0.0,1e-09,866,True
+target shared (sub_enet_live_feasible),0.0,1e-09,866,True
+target shared (sub_enet_live_vix_only),0.0,1e-09,866,True
+target shared (sub_enet_vix_only),0.0,1e-09,866,True
+target shared (sub_lasso_all_features),0.0,1e-09,866,True
+target shared (sub_lasso_baseline),0.0,1e-09,866,True
+target shared (sub_lasso_free_vix_only),0.0,1e-09,866,True
+target shared (sub_lasso_live_feasible),0.0,1e-09,866,True
+target shared (sub_lasso_live_vix_only),0.0,1e-09,866,True
+target shared (sub_lasso_vix_only),0.0,1e-09,866,True
+target shared (sub_ridge_all_features),0.0,1e-09,866,True
+target shared (sub_ridge_baseline),0.0,1e-09,866,True
+target shared (sub_ridge_free_vix_only),0.0,1e-09,866,True
+target shared (sub_ridge_live_feasible),0.0,1e-09,866,True
+target shared (sub_ridge_live_vix_only),0.0,1e-09,866,True
+target shared (sub_ridge_vix_only),0.0,1e-09,866,True
+target shared (subtree_lgbm_all_features),0.0,1e-09,866,True
+target shared (subtree_lgbm_baseline),0.0,1e-09,866,True
+target shared (subtree_lgbm_live_feasible),0.0,1e-09,866,True
+target shared (subtree_rf_all_features),0.0,1e-09,866,True
+target shared (subtree_rf_baseline),0.0,1e-09,866,True
+target shared (subtree_rf_live_feasible),0.0,1e-09,866,True
+target shared (subtree_tuned_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_tuned_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tuned_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_xgb_all_features),0.0,1e-09,866,True
+target shared (subtree_xgb_baseline),0.0,1e-09,866,True
+target shared (subtree_xgb_live_feasible),0.0,1e-09,866,True
+target shared (lgbm),0.0,1e-09,866,True
+target shared (xgb),0.0,1e-09,866,True
+target shared (sub_ols_baseline),0.0,1e-09,866,True
+target shared (sub_ridge_ivrep_target_scale),0.0,1e-09,866,True
+target shared (sub_lasso_ivrep_target_scale),0.0,1e-09,866,True
+target shared (sub_enet_ivrep_target_scale),0.0,1e-09,866,True
+target shared (sub_ridge_ivrep_term),0.0,1e-09,866,True
+target shared (sub_lasso_ivrep_term),0.0,1e-09,866,True
+target shared (sub_enet_ivrep_term),0.0,1e-09,866,True
+target shared (sub_ridge_ivrep_innovations),0.0,1e-09,866,True
+target shared (sub_lasso_ivrep_innovations),0.0,1e-09,866,True
+target shared (sub_enet_ivrep_innovations),0.0,1e-09,866,True
+target shared (sub_ridge_ivrep_vrp),0.0,1e-09,866,True
+target shared (sub_lasso_ivrep_vrp),0.0,1e-09,866,True
+target shared (sub_enet_ivrep_vrp),0.0,1e-09,866,True
+target shared (sub_ridge_ivrep_all),0.0,1e-09,866,True
+target shared (sub_lasso_ivrep_all),0.0,1e-09,866,True
+target shared (sub_enet_ivrep_all),0.0,1e-09,866,True
+target shared (sub_ridge_vix_rvol),0.0,1e-09,866,True
+target shared (sub_lasso_vix_rvol),0.0,1e-09,866,True
+target shared (sub_enet_vix_rvol),0.0,1e-09,866,True
+target shared (sub_ridge_live_vix_rvol),0.0,1e-09,866,True
+target shared (sub_lasso_live_vix_rvol),0.0,1e-09,866,True
+target shared (sub_enet_live_vix_rvol),0.0,1e-09,866,True
+target shared (sub_ridge_free_feasible),0.0,1e-09,866,True
+target shared (sub_lasso_free_feasible),0.0,1e-09,866,True
+target shared (sub_enet_free_feasible),0.0,1e-09,866,True
+target shared (sub_ridge_free_feasible_vol),0.0,1e-09,866,True
+target shared (sub_lasso_free_feasible_vol),0.0,1e-09,866,True
+target shared (sub_enet_free_feasible_vol),0.0,1e-09,866,True
+target shared (sub_ridge_live_feasible_har_base2),0.0,1e-09,866,True
+target shared (sub_lasso_live_feasible_har_base2),0.0,1e-09,866,True
+target shared (sub_enet_live_feasible_har_base2),0.0,1e-09,866,True
+target shared (sub_ridge_live_feasible_har_base3),0.0,1e-09,866,True
+target shared (sub_lasso_live_feasible_har_base3),0.0,1e-09,866,True
+target shared (sub_enet_live_feasible_har_base3),0.0,1e-09,866,True
+target shared (sub_ridge_live_feasible_har_intra),0.0,1e-09,866,True
+target shared (sub_lasso_live_feasible_har_intra),0.0,1e-09,866,True
+target shared (sub_enet_live_feasible_har_intra),0.0,1e-09,866,True
+slice = the deck's iv_var,0.0,1e-09,866,True
+q = master table (a0),0.0,0.0,866,True
+ret_mid = master table (a0),0.0,1e-10,866,True
+ret_crossed = master table (a0),0.0,1e-10,866,True
+q = master table (b2lasso),0.0,0.0,866,True
+ret_mid = master table (b2lasso),0.0,1e-10,866,True
+ret_crossed = master table (b2lasso),0.0,1e-10,866,True
+q = master table (lasso_f),0.0,0.0,866,True
+ret_mid = master table (lasso_f),0.0,1e-10,866,True
+ret_crossed = master table (lasso_f),0.0,1e-10,866,True
+q = master table (lasso_t),0.0,0.0,866,True
+ret_mid = master table (lasso_t),0.0,1e-10,866,True
+ret_crossed = master table (lasso_t),0.0,1e-10,866,True
+q = master table (enet),0.0,0.0,866,True
+ret_mid = master table (enet),0.0,1e-10,866,True
+ret_crossed = master table (enet),0.0,1e-10,866,True
+q = master table (blk2_inc),0.0,0.0,866,True
+ret_mid = master table (blk2_inc),0.0,1e-10,866,True
+ret_crossed = master table (blk2_inc),0.0,1e-10,866,True
+q = master table (blk2),0.0,0.0,866,True
+ret_mid = master table (blk2),0.0,1e-10,866,True
+ret_crossed = master table (blk2),0.0,1e-10,866,True
+q = master table (lstm_all_features),0.0,0.0,866,True
+ret_mid = master table (lstm_all_features),0.0,1e-10,866,True
+ret_crossed = master table (lstm_all_features),0.0,1e-10,866,True
+q = master table (lstm_baseline),0.0,0.0,866,True
+ret_mid = master table (lstm_baseline),0.0,1e-10,866,True
+ret_crossed = master table (lstm_baseline),0.0,1e-10,866,True
+q = master table (lstm_live_feasible),0.0,0.0,866,True
+ret_mid = master table (lstm_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (lstm_live_feasible),0.0,1e-10,866,True
+q = master table (lstm_qsel_all_features),0.0,0.0,866,True
+ret_mid = master table (lstm_qsel_all_features),0.0,1e-10,866,True
+ret_crossed = master table (lstm_qsel_all_features),0.0,1e-10,866,True
+q = master table (lstm_qsel_baseline),0.0,0.0,866,True
+ret_mid = master table (lstm_qsel_baseline),0.0,1e-10,866,True
+ret_crossed = master table (lstm_qsel_baseline),0.0,1e-10,866,True
+q = master table (lstm_qsel_live_feasible),0.0,0.0,866,True
+ret_mid = master table (lstm_qsel_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (lstm_qsel_live_feasible),0.0,1e-10,866,True
+q = master table (pool_enet_all_features),0.0,0.0,866,True
+ret_mid = master table (pool_enet_all_features),0.0,1e-10,866,True
+ret_crossed = master table (pool_enet_all_features),0.0,1e-10,866,True
+q = master table (pool_enet_baseline),0.0,0.0,866,True
+ret_mid = master table (pool_enet_baseline),0.0,1e-10,866,True
+ret_crossed = master table (pool_enet_baseline),0.0,1e-10,866,True
+q = master table (pool_enet_live_feasible),0.0,0.0,866,True
+ret_mid = master table (pool_enet_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (pool_enet_live_feasible),0.0,1e-10,866,True
+q = master table (pool_lasso_all_features),0.0,0.0,866,True
+ret_mid = master table (pool_lasso_all_features),0.0,1e-10,866,True
+ret_crossed = master table (pool_lasso_all_features),0.0,1e-10,866,True
+q = master table (pool_lasso_baseline),0.0,0.0,866,True
+ret_mid = master table (pool_lasso_baseline),0.0,1e-10,866,True
+ret_crossed = master table (pool_lasso_baseline),0.0,1e-10,866,True
+q = master table (pool_lasso_live_feasible),0.0,0.0,866,True
+ret_mid = master table (pool_lasso_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (pool_lasso_live_feasible),0.0,1e-10,866,True
+q = master table (pool_ridge_all_features),0.0,0.0,866,True
+ret_mid = master table (pool_ridge_all_features),0.0,1e-10,866,True
+ret_crossed = master table (pool_ridge_all_features),0.0,1e-10,866,True
+q = master table (pool_ridge_baseline),0.0,0.0,866,True
+ret_mid = master table (pool_ridge_baseline),0.0,1e-10,866,True
+ret_crossed = master table (pool_ridge_baseline),0.0,1e-10,866,True
+q = master table (pool_ridge_live_feasible),0.0,0.0,866,True
+ret_mid = master table (pool_ridge_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (pool_ridge_live_feasible),0.0,1e-10,866,True
+q = master table (restofday_enet_all_features),0.0,0.0,866,True
+ret_mid = master table (restofday_enet_all_features),0.0,1e-10,866,True
+ret_crossed = master table (restofday_enet_all_features),0.0,1e-10,866,True
+q = master table (restofday_enet_baseline),0.0,0.0,866,True
+ret_mid = master table (restofday_enet_baseline),0.0,1e-10,866,True
+ret_crossed = master table (restofday_enet_baseline),0.0,1e-10,866,True
+q = master table (restofday_enet_live_feasible),0.0,0.0,866,True
+ret_mid = master table (restofday_enet_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (restofday_enet_live_feasible),0.0,1e-10,866,True
+q = master table (restofday_lasso_all_features),0.0,0.0,866,True
+ret_mid = master table (restofday_lasso_all_features),0.0,1e-10,866,True
+ret_crossed = master table (restofday_lasso_all_features),0.0,1e-10,866,True
+q = master table (restofday_lasso_baseline),0.0,0.0,866,True
+ret_mid = master table (restofday_lasso_baseline),0.0,1e-10,866,True
+ret_crossed = master table (restofday_lasso_baseline),0.0,1e-10,866,True
+q = master table (restofday_lasso_live_feasible),0.0,0.0,866,True
+ret_mid = master table (restofday_lasso_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (restofday_lasso_live_feasible),0.0,1e-10,866,True
+q = master table (restofday_ridge_all_features),0.0,0.0,866,True
+ret_mid = master table (restofday_ridge_all_features),0.0,1e-10,866,True
+ret_crossed = master table (restofday_ridge_all_features),0.0,1e-10,866,True
+q = master table (restofday_ridge_baseline),0.0,0.0,866,True
+ret_mid = master table (restofday_ridge_baseline),0.0,1e-10,866,True
+ret_crossed = master table (restofday_ridge_baseline),0.0,1e-10,866,True
+q = master table (restofday_ridge_live_feasible),0.0,0.0,866,True
+ret_mid = master table (restofday_ridge_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (restofday_ridge_live_feasible),0.0,1e-10,866,True
+q = master table (sub_enet_all_features),0.0,0.0,866,True
+ret_mid = master table (sub_enet_all_features),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_all_features),0.0,1e-10,866,True
+q = master table (sub_enet_baseline),0.0,0.0,866,True
+ret_mid = master table (sub_enet_baseline),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_baseline),0.0,1e-10,866,True
+q = master table (sub_enet_free_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_enet_free_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_free_vix_only),0.0,1e-10,866,True
+q = master table (sub_enet_live_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_feasible),0.0,1e-10,866,True
+q = master table (sub_enet_live_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_vix_only),0.0,1e-10,866,True
+q = master table (sub_enet_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_enet_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_vix_only),0.0,1e-10,866,True
+q = master table (sub_lasso_all_features),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_all_features),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_all_features),0.0,1e-10,866,True
+q = master table (sub_lasso_baseline),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_baseline),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_baseline),0.0,1e-10,866,True
+q = master table (sub_lasso_free_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_free_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_free_vix_only),0.0,1e-10,866,True
+q = master table (sub_lasso_live_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_feasible),0.0,1e-10,866,True
+q = master table (sub_lasso_live_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_vix_only),0.0,1e-10,866,True
+q = master table (sub_lasso_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_vix_only),0.0,1e-10,866,True
+q = master table (sub_ridge_all_features),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_all_features),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_all_features),0.0,1e-10,866,True
+q = master table (sub_ridge_baseline),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_baseline),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_baseline),0.0,1e-10,866,True
+q = master table (sub_ridge_free_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_free_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_free_vix_only),0.0,1e-10,866,True
+q = master table (sub_ridge_live_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_feasible),0.0,1e-10,866,True
+q = master table (sub_ridge_live_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_vix_only),0.0,1e-10,866,True
+q = master table (sub_ridge_vix_only),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_vix_only),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_vix_only),0.0,1e-10,866,True
+q = master table (subtree_lgbm_all_features),0.0,0.0,866,True
+ret_mid = master table (subtree_lgbm_all_features),0.0,1e-10,866,True
+ret_crossed = master table (subtree_lgbm_all_features),0.0,1e-10,866,True
+q = master table (subtree_lgbm_baseline),0.0,0.0,866,True
+ret_mid = master table (subtree_lgbm_baseline),0.0,1e-10,866,True
+ret_crossed = master table (subtree_lgbm_baseline),0.0,1e-10,866,True
+q = master table (subtree_lgbm_live_feasible),0.0,0.0,866,True
+ret_mid = master table (subtree_lgbm_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (subtree_lgbm_live_feasible),0.0,1e-10,866,True
+q = master table (subtree_rf_all_features),0.0,0.0,866,True
+ret_mid = master table (subtree_rf_all_features),0.0,1e-10,866,True
+ret_crossed = master table (subtree_rf_all_features),0.0,1e-10,866,True
+q = master table (subtree_rf_baseline),0.0,0.0,866,True
+ret_mid = master table (subtree_rf_baseline),0.0,1e-10,866,True
+ret_crossed = master table (subtree_rf_baseline),0.0,1e-10,866,True
+q = master table (subtree_rf_live_feasible),0.0,0.0,866,True
+ret_mid = master table (subtree_rf_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (subtree_rf_live_feasible),0.0,1e-10,866,True
+q = master table (subtree_tuned_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_tuned_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tuned_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_xgb_all_features),0.0,0.0,866,True
+ret_mid = master table (subtree_xgb_all_features),0.0,1e-10,866,True
+ret_crossed = master table (subtree_xgb_all_features),0.0,1e-10,866,True
+q = master table (subtree_xgb_baseline),0.0,0.0,866,True
+ret_mid = master table (subtree_xgb_baseline),0.0,1e-10,866,True
+ret_crossed = master table (subtree_xgb_baseline),0.0,1e-10,866,True
+q = master table (subtree_xgb_live_feasible),0.0,0.0,866,True
+ret_mid = master table (subtree_xgb_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (subtree_xgb_live_feasible),0.0,1e-10,866,True
+q = master table (lgbm),0.0,0.0,866,True
+ret_mid = master table (lgbm),0.0,1e-10,866,True
+ret_crossed = master table (lgbm),0.0,1e-10,866,True
+q = master table (xgb),0.0,0.0,866,True
+ret_mid = master table (xgb),0.0,1e-10,866,True
+ret_crossed = master table (xgb),0.0,1e-10,866,True
+q = master table (sub_ols_baseline),0.0,0.0,866,True
+ret_mid = master table (sub_ols_baseline),0.0,1e-10,866,True
+ret_crossed = master table (sub_ols_baseline),0.0,1e-10,866,True
+q = master table (sub_ridge_ivrep_target_scale),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_ivrep_target_scale),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_ivrep_target_scale),0.0,1e-10,866,True
+q = master table (sub_lasso_ivrep_target_scale),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_ivrep_target_scale),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_ivrep_target_scale),0.0,1e-10,866,True
+q = master table (sub_enet_ivrep_target_scale),0.0,0.0,866,True
+ret_mid = master table (sub_enet_ivrep_target_scale),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_ivrep_target_scale),0.0,1e-10,866,True
+q = master table (sub_ridge_ivrep_term),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_ivrep_term),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_ivrep_term),0.0,1e-10,866,True
+q = master table (sub_lasso_ivrep_term),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_ivrep_term),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_ivrep_term),0.0,1e-10,866,True
+q = master table (sub_enet_ivrep_term),0.0,0.0,866,True
+ret_mid = master table (sub_enet_ivrep_term),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_ivrep_term),0.0,1e-10,866,True
+q = master table (sub_ridge_ivrep_innovations),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_ivrep_innovations),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_ivrep_innovations),0.0,1e-10,866,True
+q = master table (sub_lasso_ivrep_innovations),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_ivrep_innovations),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_ivrep_innovations),0.0,1e-10,866,True
+q = master table (sub_enet_ivrep_innovations),0.0,0.0,866,True
+ret_mid = master table (sub_enet_ivrep_innovations),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_ivrep_innovations),0.0,1e-10,866,True
+q = master table (sub_ridge_ivrep_vrp),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_ivrep_vrp),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_ivrep_vrp),0.0,1e-10,866,True
+q = master table (sub_lasso_ivrep_vrp),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_ivrep_vrp),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_ivrep_vrp),0.0,1e-10,866,True
+q = master table (sub_enet_ivrep_vrp),0.0,0.0,866,True
+ret_mid = master table (sub_enet_ivrep_vrp),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_ivrep_vrp),0.0,1e-10,866,True
+q = master table (sub_ridge_ivrep_all),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_ivrep_all),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_ivrep_all),0.0,1e-10,866,True
+q = master table (sub_lasso_ivrep_all),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_ivrep_all),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_ivrep_all),0.0,1e-10,866,True
+q = master table (sub_enet_ivrep_all),0.0,0.0,866,True
+ret_mid = master table (sub_enet_ivrep_all),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_ivrep_all),0.0,1e-10,866,True
+q = master table (sub_ridge_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_lasso_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_enet_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_enet_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_ridge_live_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_lasso_live_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_enet_live_vix_rvol),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_vix_rvol),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_vix_rvol),0.0,1e-10,866,True
+q = master table (sub_ridge_free_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_free_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_free_feasible),0.0,1e-10,866,True
+q = master table (sub_lasso_free_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_free_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_free_feasible),0.0,1e-10,866,True
+q = master table (sub_enet_free_feasible),0.0,0.0,866,True
+ret_mid = master table (sub_enet_free_feasible),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_free_feasible),0.0,1e-10,866,True
+q = master table (sub_ridge_free_feasible_vol),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_free_feasible_vol),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_free_feasible_vol),0.0,1e-10,866,True
+q = master table (sub_lasso_free_feasible_vol),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_free_feasible_vol),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_free_feasible_vol),0.0,1e-10,866,True
+q = master table (sub_enet_free_feasible_vol),0.0,0.0,866,True
+ret_mid = master table (sub_enet_free_feasible_vol),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_free_feasible_vol),0.0,1e-10,866,True
+q = master table (sub_ridge_live_feasible_har_base2),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_feasible_har_base2),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_feasible_har_base2),0.0,1e-10,866,True
+q = master table (sub_lasso_live_feasible_har_base2),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_feasible_har_base2),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_feasible_har_base2),0.0,1e-10,866,True
+q = master table (sub_enet_live_feasible_har_base2),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_feasible_har_base2),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_feasible_har_base2),0.0,1e-10,866,True
+q = master table (sub_ridge_live_feasible_har_base3),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_feasible_har_base3),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_feasible_har_base3),0.0,1e-10,866,True
+q = master table (sub_lasso_live_feasible_har_base3),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_feasible_har_base3),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_feasible_har_base3),0.0,1e-10,866,True
+q = master table (sub_enet_live_feasible_har_base3),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_feasible_har_base3),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_feasible_har_base3),0.0,1e-10,866,True
+q = master table (sub_ridge_live_feasible_har_intra),0.0,0.0,866,True
+ret_mid = master table (sub_ridge_live_feasible_har_intra),0.0,1e-10,866,True
+ret_crossed = master table (sub_ridge_live_feasible_har_intra),0.0,1e-10,866,True
+q = master table (sub_lasso_live_feasible_har_intra),0.0,0.0,866,True
+ret_mid = master table (sub_lasso_live_feasible_har_intra),0.0,1e-10,866,True
+ret_crossed = master table (sub_lasso_live_feasible_har_intra),0.0,1e-10,866,True
+q = master table (sub_enet_live_feasible_har_intra),0.0,0.0,866,True
+ret_mid = master table (sub_enet_live_feasible_har_intra),0.0,1e-10,866,True
+ret_crossed = master table (sub_enet_live_feasible_har_intra),0.0,1e-10,866,True
+headline Sharpe mid = master_table.csv,0.0,1e-09,866,True
+headline Sharpe crossed = master_table.csv,0.0,1e-09,866,True
+headline QLIKE (recal) = master_table.csv,0.0,1e-09,866,True
+"mean(qR) = mean|R| - 2 mean(EL), every forecast",2.3592239273284576e-16,1e-12,115,True
+"QLIKE = integral ES_c c^-2 dc, day by day (headline)",2.0268559319802648e-07,1e-06,866,True
+always short collects +1 on pin days,0.0,1e-09,193,True
