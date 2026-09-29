@@ -1,0 +1,33 @@
+variation,family,width,kind,days,example_legs_plus,example_legs_minus
+straddle,straddle,,premium,866,+1C5065;+1P5060,+1C5065;+1P5060
+"strangle, one strike wide",strangle,1 strike,premium,866,+1C5070;+1P5055,+1C5070;+1P5055
+strangle 0.5% OTM,strangle,0.5%,premium,866,+1C5090;+1P5035,+1C5090;+1P5035
+strangle 1% OTM,strangle,1%,premium,866,+1C5115;+1P5010,+1C5115;+1P5010
+strangle 2% OTM,strangle,2%,premium,866,+1C5165;+1P4960,+1C5165;+1P4960
+"iron butterfly, w10",iron butterfly,w10,defined,866,+1C5065;+1P5060;-1C5075;-1P5050,+1C5065;+1P5060;-1C5075;-1P5050
+"iron butterfly, w25",iron butterfly,w25,defined,866,+1C5065;+1P5060;-1C5090;-1P5035,+1C5065;+1P5060;-1C5090;-1P5035
+"iron butterfly, w50",iron butterfly,w50,defined,866,+1C5065;+1P5060;-1C5115;-1P5010,+1C5065;+1P5060;-1C5115;-1P5010
+"iron condor, w10",iron condor,w10,defined,866,+1C5070;+1P5055;-1C5080;-1P5045,+1C5070;+1P5055;-1C5080;-1P5045
+"iron condor, w25",iron condor,w25,defined,866,+1C5070;+1P5055;-1C5095;-1P5030,+1C5070;+1P5055;-1C5095;-1P5030
+"iron condor, w50",iron condor,w50,defined,866,+1C5070;+1P5055;-1C5120;-1P5005,+1C5070;+1P5055;-1C5120;-1P5005
+"put vertical, w10",put vertical,w10,defined,866,+1P5060;-1P5050,+1P5060;-1P5050
+"put vertical, w25",put vertical,w25,defined,866,+1P5060;-1P5035,+1P5060;-1P5035
+"put vertical, w50",put vertical,w50,defined,866,+1P5060;-1P5010,+1P5060;-1P5010
+"call vertical, w10",call vertical,w10,defined,866,+1C5065;-1C5075,+1C5065;-1C5075
+"call vertical, w25",call vertical,w25,defined,866,+1C5065;-1C5090,+1C5065;-1C5090
+"call vertical, w50",call vertical,w50,defined,866,+1C5065;-1C5115,+1C5065;-1C5115
+"call butterfly, w10",call butterfly,w10,defined,866,-1C5050;+2C5060;-1C5070,-1C5050;+2C5060;-1C5070
+"call butterfly, w25",call butterfly,w25,defined,861,-1C5035;+2C5060;-1C5085,-1C5035;+2C5060;-1C5085
+"call butterfly, w50",call butterfly,w50,defined,861,-1C5010;+2C5060;-1C5110,-1C5010;+2C5060;-1C5110
+"put butterfly, w10",put butterfly,w10,defined,866,-1P5050;+2P5060;-1P5070,-1P5050;+2P5060;-1P5070
+"put butterfly, w25",put butterfly,w25,defined,861,-1P5035;+2P5060;-1P5085,-1P5035;+2P5060;-1P5085
+"put butterfly, w50",put butterfly,w50,defined,861,-1P5010;+2P5060;-1P5110,-1P5010;+2P5060;-1P5110
+"put ratio 1x2, w10",put ratio 1x2,w10,ratio,866,-1P5060;+2P5050,-1P5060;+2P5050
+"put ratio 1x2, w25",put ratio 1x2,w25,ratio,866,-1P5060;+2P5035,-1P5060;+2P5035
+"put ratio 1x2, w50",put ratio 1x2,w50,ratio,866,-1P5060;+2P5010,-1P5060;+2P5010
+"call ratio 1x2, w10",call ratio 1x2,w10,ratio,866,-1C5065;+2C5075,-1C5065;+2C5075
+"call ratio 1x2, w25",call ratio 1x2,w25,ratio,866,-1C5065;+2C5090,-1C5065;+2C5090
+"call ratio 1x2, w50",call ratio 1x2,w50,ratio,866,-1C5065;+2C5115,-1C5065;+2C5115
+"straddle + wing hedge, w10",straddle + wing hedge,w10,combo,866,+1C5065;+1P5060,+1C5065;+1P5060;-1C5075;-1P5050
+"straddle + wing hedge, w25",straddle + wing hedge,w25,combo,866,+1C5065;+1P5060,+1C5065;+1P5060;-1C5090;-1P5035
+"straddle + wing hedge, w50",straddle + wing hedge,w50,combo,866,+1C5065;+1P5060,+1C5065;+1P5060;-1C5115;-1P5010
