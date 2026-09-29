@@ -1,0 +1,24 @@
+bucket,check,n,max_rel,rows_above_1e6,first_bad,last_bad
+live_feasible,full ridge refit vs stored research forecast,1469,6.057598866959779e-12,0.0,-1.0,-1.0
+live_feasible,full lasso refit vs stored research forecast,1469,5.044853423896711e-13,0.0,-1.0,-1.0
+live_feasible,full elastic net refit vs stored research forecast,1469,1.2523315717771766e-13,0.0,-1.0,-1.0
+live_feasible,full LightGBM refit vs stored research forecast,1469,0.05610214039206296,1469.0,0.0,1468.0
+live_feasible,ridge contributions sum to the forecast,1469,8.010745448761183e-16,,,
+live_feasible,lasso contributions sum to the forecast,1469,1.1082468415773305e-15,,,
+live_feasible,elastic net contributions sum to the forecast,1469,8.078734339661789e-16,,,
+live_feasible,LightGBM contributions sum to the forecast,1469,7.854885211702708e-08,,,
+live_feasible,XGBoost contributions sum to the forecast,1469,1.628722082705687e-06,,,
+live_feasible,random forest contributions sum to the forecast,1469,7.560654577992503e-08,,,
+live_feasible,"per-day trade vs trade_1530 (Sharpe mid), every run",41,3.552713678800501e-15,,,
+all_features,full ridge refit vs stored research forecast,1469,3.275602011854062e-11,0.0,-1.0,-1.0
+all_features,full lasso refit vs stored research forecast,1469,1.6209256159527285e-13,0.0,-1.0,-1.0
+all_features,full elastic net refit vs stored research forecast,1469,0.009162793492987653,242.0,1007.0,1249.0
+all_features,spec continuous run of elastic net vs stored,1469,0.008631045016225691,242.0,-1.0,-1.0
+all_features,full LightGBM refit vs stored research forecast,1469,0.07921991093829184,1469.0,0.0,1468.0
+all_features,ridge contributions sum to the forecast,1469,2.358893790112873e-14,,,
+all_features,lasso contributions sum to the forecast,1469,6.866956654793689e-16,,,
+all_features,elastic net contributions sum to the forecast,1469,9.959969240827563e-16,,,
+all_features,LightGBM contributions sum to the forecast,1469,8.209883941859738e-08,,,
+all_features,XGBoost contributions sum to the forecast,1469,1.7709012370294098e-06,,,
+all_features,random forest contributions sum to the forecast,1469,7.540188317685335e-08,,,
+all_features,"per-day trade vs trade_1530 (Sharpe mid), every run",41,4.218847493575595e-15,,,

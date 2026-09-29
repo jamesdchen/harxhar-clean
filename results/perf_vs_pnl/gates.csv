@@ -1,0 +1,9 @@
+check,max_abs
+q = sign(pred_clock - iv_var) as trade_1530,0.0
+straddle return identical across forecasts,0.0
+iv_var identical across forecasts,0.0
+target identical across forecasts (rel),0.0
+per-day QLIKE = master qlike_recal,0.0
+Sharpe mid = master table,4.884981308350689e-15
+Sharpe crossed = master table,3.9968028886505635e-15
+QLIKE = master qlike_recal,2.498001805406602e-16

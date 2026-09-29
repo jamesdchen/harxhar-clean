@@ -1,0 +1,49 @@
+bucket,k,block,first_forecast,columns
+live_feasible,1,0,2018-06-25,har_ma_1
+live_feasible,1,1,2019-06-26,har_ma_1
+live_feasible,1,2,2020-06-23,har_ma_1
+live_feasible,1,3,2021-06-21,har_ma_1
+live_feasible,1,4,2022-06-17,har_ma_1
+live_feasible,1,5,2023-06-16,har_ma_1
+live_feasible,2,0,2018-06-25,har_ma_1 har_ma_5
+live_feasible,2,1,2019-06-26,har_ma_1 har_ma_5
+live_feasible,2,2,2020-06-23,har_ma_1 har_ma_5
+live_feasible,2,3,2021-06-21,har_ma_1 har_ma_5
+live_feasible,2,4,2022-06-17,har_ma_1 har_ma_5
+live_feasible,2,5,2023-06-16,har_ma_1 har_ma_5
+live_feasible,4,0,2018-06-25,har_ma_1 har_ma_5 adj_sumabsret_ma_1 adj_sumabsret_ma_5
+live_feasible,4,1,2019-06-26,har_ma_1 har_ma_5 adj_sumabsret_ma_1 adj_sumabsret_ma_5
+live_feasible,4,2,2020-06-23,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+live_feasible,4,3,2021-06-21,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+live_feasible,4,4,2022-06-17,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+live_feasible,4,5,2023-06-16,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+live_feasible,8,0,2018-06-25,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumbipow_ma_1 adj_sumbipow_ma_5
+live_feasible,8,1,2019-06-26,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumbipow_ma_1 adj_sumbipow_ma_5
+live_feasible,8,2,2020-06-23,har_ma_1 har_ma_5 har_ma_25 har_ma_125 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumbipow_ma_1
+live_feasible,8,3,2021-06-21,har_ma_1 har_ma_5 har_ma_25 har_ma_125 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumbipow_ma_1
+live_feasible,8,4,2022-06-17,har_ma_1 har_ma_5 har_ma_25 har_ma_125 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumbipow_ma_1
+live_feasible,8,5,2023-06-16,har_ma_1 har_ma_5 har_ma_25 har_ma_125 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ma_25 adj_sumvolume_ma_5
+all_features,1,0,2018-06-25,har_ma_1
+all_features,1,1,2019-06-26,har_ma_1
+all_features,1,2,2020-06-23,har_ma_1
+all_features,1,3,2021-06-21,har_ma_1
+all_features,1,4,2022-06-17,har_ma_1
+all_features,1,5,2023-06-16,har_ma_1
+all_features,2,0,2018-06-25,har_ma_1 har_ma_5
+all_features,2,1,2019-06-26,har_ma_1 har_ma_5
+all_features,2,2,2020-06-23,har_ma_1 har_ma_5
+all_features,2,3,2021-06-21,har_ma_1 har_ma_5
+all_features,2,4,2022-06-17,har_ma_1 har_ma_5
+all_features,2,5,2023-06-16,har_ma_1 har_ma_5
+all_features,4,0,2018-06-25,har_ma_1 har_ma_5 adj_sumabsret_ma_1 adj_sumabsret_ma_5
+all_features,4,1,2019-06-26,har_ma_1 har_ma_5 adj_sumabsret_ma_1 adj_sumabsret_ma_5
+all_features,4,2,2020-06-23,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+all_features,4,3,2021-06-21,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+all_features,4,4,2022-06-17,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+all_features,4,5,2023-06-16,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1
+all_features,8,0,2018-06-25,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_ewstock_ma_5 adj_sumabsret_vwstock_ma_5
+all_features,8,1,2019-06-26,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_ewstock_ma_5 adj_sumabsret_vwstock_ma_5
+all_features,8,2,2020-06-23,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_vwstock_ma_1 adj_sumabsret_vwstock_ma_5
+all_features,8,3,2021-06-21,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_vwstock_ma_1 adj_sumabsret_vwstock_ma_5
+all_features,8,4,2022-06-17,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_vwstock_ma_1 adj_sumabsret_vwstock_ma_5
+all_features,8,5,2023-06-16,har_ma_1 har_ma_5 har_ma_25 adj_sumabsret_ma_1 adj_sumabsret_ma_5 adj_sumabsret_ewstock_ma_1 adj_sumabsret_vwstock_ma_1 adj_sumabsret_vwstock_ma_5
