@@ -236,3 +236,31 @@ not touched here), no undefined references.
   [−0.85, +0.63] vs the headline.
 - **Depends on** change 5 (Table 8).
 - **Build.** 70 pages, 12 overfull boxes, 0 undefined references.
+
+### Change 7 — (d) Where the P&L comes from: a tail trade (+ Appendix D.14)
+
+- **What.** Paragraph "Where the P&L comes from: a tail trade" in Section 5.4, and a new
+  subsection D.14 "Where the Headline's P&L Comes From" (`sections/appendix_close_pnl.tex`,
+  input from `main.tex` right after `appendix_running`, so it continues Appendix D) with
+  Table 33 (`generated/table_close_pnl.tex`: the headline, always short and their
+  difference by cell — all days, month-end T / T−1 / T+1, more than one session from a
+  month-end, FOMC days, VIX terciles, years). Script: `pnl_macros()` and
+  `write_pnl_table()` read `results/close_pnl_decomp/research_scorer/*.csv` — the B1
+  decomposition re-run under the **same** 16:00-bar recalibration as Table 7 (gate: its
+  headline Sharpe mid / crossed and buy count equal Table 7's row). The notebook-scorer
+  version (`results/close_pnl_decomp/SUMMARY.md`, e.g. best 20 days = 73 %,
+  difference +90.4 [−1.5, +184.6]) is deliberately **not** quoted: it is the other scorer.
+- **Why.** The three facts that change the story's reading: the edge is a tail trade;
+  month-ends are not its source; the difference to always short and its interval.
+- **Numbers (16:00-bar recalibration, midpoint).** Total +116.2 premium units (87.4
+  crossed); best 10 days 42 %, best 20 days 68 % (86 % crossed), all 20 buys, all 20
+  worst sells; without the best 20 +37.6 (Sharpe 0.76); 40 days (4.6 %) make the whole
+  total; bought 14 of the straddle's 20 biggest payoffs vs 8.0 expected (p 0.006);
+  month-ends (52) −6.0 [−26.1, +12.7] with always short −24.5 [−43.5, −7.3] there;
+  735 days away from month-ends +116.9 [+59.8, +174.1]; difference to always short
+  +103.7 [+10.7, +200.1] (crossed +104.9 [+12.1, +201.8]), without its 10 best days
+  +6.0 [−59.8, +72.7]; high-VIX tercile difference +2.3 [−39.0, +48.3]. Each claim
+  asserted in the script.
+- **Depends on** change 4 (headline).
+- **Build.** 72 pages (+2), 12 overfull boxes (the new table is resized to the text
+  width), 0 undefined references.

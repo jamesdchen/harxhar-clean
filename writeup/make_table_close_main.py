@@ -7,6 +7,7 @@ Reads the closing-strategy master table (experiments/master_table_close.py; ONE 
   writeup/generated/close_main_numbers.tex   \\cm... macros for every number in Section 5.4's prose
   writeup/generated/table_close_ladder.tex   Table 8: one change at a time (paired steps)
   writeup/generated/close_main_ladder.csv    the executed pairs behind Table 8
+  writeup/generated/table_close_pnl.tex      Appendix D: where the headline's P&L comes from
 
 Nothing is typed by hand: every cell and every macro is read from the CSVs named below, and
 every qualitative claim the prose makes about them is asserted here, so a re-run after the
@@ -43,6 +44,7 @@ TABLE_OUT = GEN / "table_close_main.tex"
 NUMBERS_OUT = GEN / "close_main_numbers.tex"
 LADDER_OUT = GEN / "table_close_ladder.tex"
 A2B = ROOT / "results" / "linear_subsection_trees_tuned" / "a2b"  # tuned trees (A2b)
+PNL_OUT = GEN / "table_close_pnl.tex"  # Appendix D: where the P&L comes from
 LADDER_CSV = GEN / "close_main_ladder.csv"  # the executed pairs behind LADDER_OUT
 GATE_TOL = 1e-9  # a recomputed pair must equal the master table's stored pair
 
@@ -799,6 +801,180 @@ def tuned_macros(d: pd.DataFrame) -> dict[str, str]:
     return m
 
 
+# --------------------------------------------------------------------------- where the P&L comes from
+HEAD_SERIES = "sign(s): per-bar ridge (live-feasible)"  # the headline in the B1 CSVs
+SHORT_SERIES = "always short"
+PNL_CELLS = [  # (csv, cell label in the CSV, label in the table)
+    ("calendar", "month-end (last session)", "month-end, last session"),
+    ("calendar", "month-end T-1", "month-end, the session before"),
+    ("calendar", "month-end T+1", "month-end, the session after"),
+    (
+        "calendar",
+        "not within one session of a month-end",
+        "more than one session from a month-end",
+    ),
+    ("calendar", "FOMC statement day", "FOMC statement day"),
+    ("regime", "VIX tercile: low", "previous VIX close: low tercile"),
+    ("regime", "VIX tercile: mid", "previous VIX close: middle tercile"),
+    ("regime", "VIX tercile: high", "previous VIX close: high tercile"),
+    ("calendar", "year 2020", "2020"),
+    ("calendar", "year 2021", "2021"),
+    ("calendar", "year 2022", "2022"),
+    ("calendar", "year 2023", "2023"),
+    ("calendar", "year 2024", "2024 (to 30 April)"),
+]
+
+
+def _pnl_frames() -> dict[str, pd.DataFrame]:
+    return {
+        "calendar": pd.read_csv(PNL_RS / "calendar_cells.csv"),
+        "regime": pd.read_csv(PNL_RS / "regime_cells.csv"),
+        "diff": pd.read_csv(PNL_RS / "diff_attribution.csv"),
+        "tail": pd.read_csv(PNL_RS / "tail_concentration.csv"),
+        "hit": pd.read_csv(PNL_RS / "hit_payoff.csv"),
+    }
+
+
+def _cell(df: pd.DataFrame, series: str, cell: str, fill: str = "mid") -> pd.Series:
+    x = df[(df["series"] == series) & (df["fill"] == fill) & (df["cell"] == cell)]
+    assert len(x) == 1, (series, cell, fill, len(x))
+    return x.iloc[0]
+
+
+def _diff(df: pd.DataFrame, cell: str, fill: str = "mid") -> pd.Series:
+    x = df[
+        (df["sign_s_series"] == HEAD_SERIES)
+        & (df["minus"] == SHORT_SERIES)
+        & (df["fill"] == fill)
+        & (df["cell"] == cell)
+    ]
+    assert len(x) == 1, (cell, fill, len(x))
+    return x.iloc[0]
+
+
+def _sum_ci(r: pd.Series, nd: int = 1) -> str:
+    return ci_(r["sum"], r["sum_lo"], r["sum_hi"], nd)
+
+
+def pnl_macros(d: pd.DataFrame) -> dict[str, str]:
+    """The headline's P&L decomposition under the same 16:00-bar recalibration (B1, research_scorer/)."""
+    f = _pnl_frames()
+    m: dict[str, str] = {}
+    # gate: the decomposition's headline series is Table 7's headline row
+    h = d.loc[HEADLINE]
+    for fill, col in (("mid", "Sharpe_mid"), ("crossed", "Sharpe_crossed")):
+        a = _cell(f["hit"], HEAD_SERIES, "all days", fill)
+        assert abs(a["Sharpe_ann"] - h[col]) < CSV_TOL and int(a["n_buy"]) == int(
+            h["n_buy"]
+        ), fill
+    t = f["tail"]
+    tm = t[(t["series"] == HEAD_SERIES) & (t["fill"] == "mid")].set_index("k")
+    tx = t[(t["series"] == HEAD_SERIES) & (t["fill"] == "crossed")].set_index("k")
+    m["cmPnlTotal"] = f_(tm.loc[20, "total"], 1)
+    m["cmPnlTotalX"] = f_(tx.loc[20, "total"], 1)
+    m["cmPnlTopTenShare"] = f"{tm.loc[10, 'top_k_share_pct']:.0f}"
+    m["cmPnlTopTwentyShare"] = f"{tm.loc[20, 'top_k_share_pct']:.0f}"
+    m["cmPnlTopTwentyShareX"] = f"{tx.loc[20, 'top_k_share_pct']:.0f}"
+    assert (
+        int(tm.loc[20, "top_k_n_buy"]) == 20 and int(tm.loc[20, "bottom_k_n_buy"]) == 0
+    ), "claim: the 20 best days are all buys and the 20 worst all sells"
+    m["cmPnlExTwenty"] = s_(tm.loc[20, "total_ex_top_k"], 1)
+    m["cmPnlExTwentySh"] = f_(tm.loc[20, "Sharpe_ex_top_k"])
+    m["cmPnlMktTwenty"] = str(int(tm.loc[20, "mkt_top_k_bought"]))
+    m["cmPnlMktTwentyExp"] = f_(tm.loc[20, "mkt_top_k_bought_expected"], 1)
+    m["cmPnlMktTwentyP"] = f"{tm.loc[20, 'mkt_top_k_bought_p_hypergeom']:.3f}"
+    hall = _cell(f["hit"], HEAD_SERIES, "all days")
+    m["cmPnlDaysAll"] = str(int(hall["days_for_100pct_of_pnl"]))
+    m["cmPnlDaysAllPct"] = f_(hall["pct_days_for_100pct_of_pnl"], 1)
+    me = _cell(f["calendar"], HEAD_SERIES, "month-end (last session)")
+    me_s = _cell(f["calendar"], SHORT_SERIES, "month-end (last session)")
+    far = _cell(f["calendar"], HEAD_SERIES, "not within one session of a month-end")
+    m["cmPnlMEn"] = str(int(me["n"]))
+    m["cmPnlMEbuys"] = str(int(me["n_buy"]))
+    m["cmPnlME"] = _sum_ci(me)
+    m["cmPnlMEShort"] = _sum_ci(me_s)
+    m["cmPnlNotMEn"] = str(int(far["n"]))
+    m["cmPnlNotME"] = _sum_ci(far)
+    assert me["sum_lo"] < 0 < me["sum_hi"] and far["sum_lo"] > 0, (
+        "claim: month-ends not the source"
+    )
+    assert me_s["sum_hi"] < 0, (
+        "claim: the long straddle pays on month-ends (always short loses)"
+    )
+    dall = _diff(f["diff"], "all days")
+    dx = _diff(f["diff"], "all days", "crossed")
+    m["cmPnlDiff"] = _sum_ci(dall)
+    m["cmPnlDiffX"] = _sum_ci(dx)
+    assert dall["sum_lo"] > 0, (
+        "claim: the difference to always short excludes zero (mid)"
+    )
+    ten = _diff(f["diff"], "top 10 days of the difference")
+    m["cmPnlDiffExTen"] = ci_(
+        ten["total_ex_cell"], ten["total_ex_cell_lo"], ten["total_ex_cell_hi"], 1
+    )
+    assert ten["total_ex_cell_lo"] < 0 < ten["total_ex_cell_hi"], (
+        "claim: without 10 days, unresolved"
+    )
+    hv = _diff(f["diff"], "VIX tercile: high")
+    m["cmPnlDiffHighVix"] = _sum_ci(hv)
+    m["cmPnlHighVixN"] = str(int(hv["n"]))
+    return m
+
+
+def write_pnl_table() -> None:
+    f = _pnl_frames()
+    lines = [
+        "% AUTO-GENERATED by writeup/make_table_close_main.py -- do not edit.",
+        "% Source: results/close_pnl_decomp/research_scorer/{calendar_cells,regime_cells,",
+        "% diff_attribution,tail_concentration}.csv (experiments/close_pnl_decomposition.py, the",
+        "% 16:00-bar recalibration; midpoint fills).",
+        r"\begingroup\small\setlength{\tabcolsep}{4pt}",
+        r"\begin{tabular}{lrrccc}",
+        r"\toprule",
+        r"cell & days & buys & $\mathrm{sign}(s)$, headline & always short & difference \\",
+        r"\midrule",
+    ]
+    head = _cell(f["hit"], HEAD_SERIES, "all days")
+    short = _cell(f["hit"], SHORT_SERIES, "all days")
+    dall = _diff(f["diff"], "all days")
+    lines.append(
+        " & ".join(
+            [
+                "all days",
+                str(int(head["n"])),
+                str(int(head["n_buy"])),
+                _sum_ci(head),
+                _sum_ci(short),
+                _sum_ci(dall),
+            ]
+        )
+        + r" \\"
+    )
+    lines.append(r"\addlinespace")
+    for src, cell, label in PNL_CELLS:
+        a = _cell(f[src], HEAD_SERIES, cell)
+        b = _cell(f[src], SHORT_SERIES, cell)
+        c = _diff(f["diff"], cell)
+        assert int(a["n"]) == int(b["n"]) == int(c["n"]), cell
+        lines.append(
+            " & ".join(
+                [
+                    label,
+                    str(int(a["n"])),
+                    str(int(a["n_buy"])),
+                    _sum_ci(a),
+                    _sum_ci(b),
+                    _sum_ci(c),
+                ]
+            )
+            + r" \\"
+        )
+        if cell in ("FOMC statement day", "VIX tercile: high"):
+            lines.append(r"\addlinespace")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\endgroup", ""]
+    PNL_OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
 def write_numbers(m: dict[str, str]) -> None:
     lines = [
         "% AUTO-GENERATED by writeup/make_table_close_main.py -- do not edit.",
@@ -823,6 +999,8 @@ def main() -> None:
     write_ladder_table(lad, d)
     m.update(ladder_macros(lad))
     m.update(tuned_macros(d))
+    m.update(pnl_macros(d))
+    write_pnl_table()
     write_numbers(m)
     print(
         f"wrote {TABLE_OUT.relative_to(ROOT)} and {NUMBERS_OUT.relative_to(ROOT)} ({len(m)} macros)"

@@ -1,0 +1,56 @@
+% ============================================================================
+% D1 2026-09-29 (change 7): where the headline's P&L comes from.  A subsection that
+% continues Appendix D (input from main.tex right after sections/appendix_running).
+% Every number is a \cm... macro and the table is generated/table_close_pnl.tex, both
+% written by writeup/make_table_close_main.py from
+% results/close_pnl_decomp/research_scorer/*.csv (experiments/close_pnl_decomposition.py
+% re-run under the 16:00-bar recalibration of Table 7).  The same decomposition under the
+% session-bar recalibration is results/close_pnl_decomp/SUMMARY.md; it is not quoted here.
+% ============================================================================
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+\subsection{Where the Headline's P\&L Comes From}
+\label{sec:app_close_pnl}
+
+\paragraph{Question.} Which days carry the P\&L of the last-30-min trade under
+the headline forecast of Section~\ref{sec:close_option_results}, and does the
+rule's advantage over always short come from a calendar effect? The series are
+the headline's $\mathrm{sign}(s)$ portfolio and always short, under the 16:00-bar
+recalibration of Table~\ref{tab:close_option_rules}, on its \cmNdays{} days at
+the midpoint. P\&L is in premium units: one unit of premium staked every day,
+daily returns summed and never compounded. Intervals are 95\% circular block
+bootstrap intervals (blocks of 21 days, $2{,}000$ draws) on the same resampled
+days for every series, a cell's sum recomputed on the resampled days that fall
+in it. The VIX terciles place the previous session's VIX close against the
+terciles of every close since 1990 up to that session.
+
+\begin{table}[H]
+\centering
+\caption{The headline's $\mathrm{sign}(s)$ P\&L by cell, in premium units at
+the midpoint, against always short on the same days; the difference is the
+headline minus always short, zero on every day the rule sells. Buys: the days
+the rule is long.}
+\label{tab:app_close_pnl}
+\resizebox{\textwidth}{!}{\input{generated/table_close_pnl}}
+\end{table}
+
+\paragraph{Finding.} The P\&L sits in a few long days. The headline makes
+\cmPnlTotal{} premium units at the midpoint (\cmPnlTotalX{} crossed); its 10 % research_scorer/tail_concentration.csv
+best days carry \cmPnlTopTenShare\% of that and its 20 best
+\cmPnlTopTwentyShare\% (\cmPnlTopTwentyShareX\% crossed). All 20 best days are
+buys and all 20 worst are sells; without the 20 best days the other days make
+\cmPnlExTwenty{} (Sharpe \cmPnlExTwentySh), and \cmPnlDaysAll{} days --- % hit_payoff.csv days_for_100pct_of_pnl
+\cmPnlDaysAllPct\% of the sample --- add up to the whole total. The rule owns
+more of the straddle's largest payoffs than its buy rate gives: of the 20 days
+the straddle paid most it bought \cmPnlMktTwenty{}, against % tail_concentration.csv mkt_top_k_bought
+\cmPnlMktTwentyExp{} expected (hypergeometric $p=\cmPnlMktTwentyP$). Month-ends
+are not the source: the long straddle pays on them on average (always short
+makes \cmPnlMEShort{} on the \cmPnlMEn{} last sessions of a month), the rule % calendar_cells.csv
+buys \cmPnlMEbuys{} of them and makes \cmPnlME{} there, against \cmPnlNotME{}
+on the \cmPnlNotMEn{} days more than one session away. The difference to always
+short, \cmPnlDiff{}, falls to \cmPnlDiffExTen{} without its 10 best days, and % diff_attribution.csv
+in the high-VIX tercile the two make the same (\cmPnlDiffHighVix{} over % VIX tercile: high
+\cmPnlHighVixN{} days).
+
+\paragraph{Why it is not in the main text.} The main text keeps the three facts
+that change its reading --- a tail trade, month-ends not the source, the
+difference to always short and its interval; the cells are here.

@@ -196,6 +196,27 @@ best of the \cmTtN{} tuned trees, LightGBM on all features (\cmTtBestSh), is % m
 \cmTtBestVsH{} against the headline. No tree, tuned or not, is resolved above % master_table_vs_headline.csv
 the per-bar ridge on either count.
 
+% D1 2026-09-29 (change 7): where the P&L comes from.  Macros \cmPnl... from
+% results/close_pnl_decomp/research_scorer/*.csv (the P&L decomposition under the same
+% 16:00-bar recalibration), gated against Table 7's headline row by the maker.
+\paragraph{Where the P\&L comes from: a tail trade.} Summed without
+compounding, the headline's portfolio makes \cmPnlTotal{} premium units at the % research_scorer/tail_concentration.csv
+midpoint over the \cmNdays{} days (\cmPnlTotalX{} crossed). Its 20 best days
+carry \cmPnlTopTwentyShare\% of that (\cmPnlTopTwentyShareX\% crossed); all 20
+are buys, all 20 worst days are sells, and \cmPnlDaysAll{} days add up to the % hit_payoff.csv days_for_100pct_of_pnl
+whole total. What the rule contributes is which of the tail days it owns: of
+the 20 days on which the straddle paid most it bought \cmPnlMktTwenty{}, against % tail_concentration.csv mkt_top_k_bought
+\cmPnlMktTwentyExp{} expected at its buy rate ($p=\cmPnlMktTwentyP$). Month-ends
+are not the source: on the \cmPnlMEn{} last sessions of a month, where the long % calendar_cells.csv
+straddle pays on average, the rule makes \cmPnlME{}, against \cmPnlNotME{} on the
+\cmPnlNotMEn{} days more than one session away. Against always short the
+difference is \cmPnlDiff{} premium units, all of it earned on the days the rule % diff_attribution.csv all days
+buys --- an interval that excludes zero, and that of the Sharpe difference in
+Table~\ref{tab:close_option_rules} does too --- but without the difference's 10
+best days it is \cmPnlDiffExTen. The edge is a tail trade: a handful of long % diff_attribution.csv top 10 days
+days carries it, and \cmNdays{} days hold few of them.
+Appendix~\ref{sec:app_close_pnl} gives the decomposition by cell.
+
 \paragraph{At the crossed spread.} Every Sharpe ratio of
 Table~\ref{tab:close_option_rules} is given at both fills. Charging the
 spread at entry --- both legs bought at the ask when the rule is long, both
