@@ -390,3 +390,13 @@ not touched here), no undefined references.
   `results/atm_straddle_0dte_1530/vrp_sized_rules.csv` (no sized rule with an interval
   above zero).
 - **Build.** 74 pages, 12 overfull boxes, 0 undefined references.
+
+### Change 13 — Polish: small counts as words; the three path steps named
+
+- **What.** `make_table_close_main.py` writes four prose counts as words ("none", "one")
+  instead of digits; `results_close_option.tex` names the three steps of Table 8 whose sum
+  is the headline's lead (they are rows 1, 3 and 5 of the table, not "the first three",
+  as change 5/6 said — a wording error), and two sentences are re-worded for the words.
+- **Why.** Readability, and one factual slip in my own earlier text (the path steps).
+- **Numbers.** None change.
+- **Build.** 74 pages, 12 overfull boxes, 0 undefined references.

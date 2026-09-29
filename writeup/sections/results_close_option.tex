@@ -86,7 +86,7 @@ the per-bar linear forecasts at \cmSubShMin{} to \cmSubShMax{}, and the % Sharpe
 untuned per-bar trees at \cmTreeShMin{} to \cmTreeShMax{}. Against the % Sharpe_mid, subtree_* (panel D)
 block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other forecasts
 in the table have a Sharpe-difference interval wholly above zero and
-\cmTabVsRefBelow{} wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
+\cmTabVsRefBelow{} has one wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
 the master table the count above zero is \cmMasterVsRefAbove{}. A table of % table A, check rows excluded
 this many forecasts on \cmNdays{} days is a search, and its intervals are read as
 such.
@@ -152,9 +152,11 @@ changing only the estimator to another penalty or to an untuned tree moves % H -
 the Sharpe ratio by between \cmLdEstMax{} (the lasso) and \cmLdEstMin{} (the
 elastic net). Of the \cmLdN{} steps, \cmLdResolved{} has a Sharpe interval % steps with an interval excluding zero
 that excludes zero: the causally tuned LightGBM, below the headline. The
-headline's resolved lead over the block-diagonal ridge is the sum of the first
-three steps, none of which is resolved alone; the largest is fitting the
-traded bar on its own.
+headline's resolved lead over the block-diagonal ridge is exactly the sum of
+three steps of the table --- the specification step, fitting the 16:00 bar
+alone on \texttt{all\_features}, and restricting those inputs to % asserted by make_table_close_main.py
+\texttt{live\_feasible} --- none of which is resolved alone; the largest is
+fitting the traded bar on its own.
 
 \begin{table}[H]
 \centering
@@ -239,8 +241,8 @@ butterflies and iron condors at three wing widths, put and call verticals, call
 and put butterflies, $1\times 2$ ratio spreads, and the straddle with a wing
 hedge on the days the rule sells --- and scores them under the headline forecast
 on the same days, per unit of straddle premium. None beats the straddle:
-\cmSvAbove{} of the paired Sharpe-difference intervals lie above zero at either % dSharpe_lo > 0, mid and crossed
-fill. The closest at the midpoint, the iron butterfly with the widest wings
+\cmSvAbove{} of their paired Sharpe-difference intervals lies above zero at % dSharpe_lo > 0, mid and crossed
+either fill. The closest at the midpoint, the iron butterfly with the widest wings
 (\cmSvBestMidSh), is \cmSvBestMid{} above it, and at the crossed spread the % iron butterfly, w50, mid
 straddle ranks first. Wings cost at every width once the spread is paid:
 \cmSvWingX{} of the \cmSvWingN{} iron-butterfly and wing-hedge rows lie below % iron butterfly + wing hedge rows, crossed

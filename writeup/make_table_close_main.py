@@ -128,6 +128,11 @@ def ci_(v: float, lo: float, hi: float, nd: int = 2) -> str:
     return f"{s_(v, nd)} [{s_(lo, nd)}, {s_(hi, nd)}]"
 
 
+def word(n: int) -> str:
+    """A small count as a word, for prose ("none", "one", ...); larger counts stay digits."""
+    return ("none", "one", "two", "three", "four", "five")[n] if 0 <= n <= 5 else str(n)
+
+
 def tt(name: str) -> str:
     return r"\texttt{" + name.replace("_", r"\_") + "}" if name else ""
 
@@ -346,7 +351,7 @@ def macros(d: pd.DataFrame) -> dict[str, str]:
     tab = d.loc[[k for k in keys if k not in (REFERENCE, SHORT)]]
     m["cmTabVsRefN"] = str(len(tab))
     m["cmTabVsRefAbove"] = str(int((tab["dSharpe_mid_vs_ref_lo"] > 0).sum()))
-    m["cmTabVsRefBelow"] = str(int((tab["dSharpe_mid_vs_ref_hi"] < 0).sum()))
+    m["cmTabVsRefBelow"] = word(int((tab["dSharpe_mid_vs_ref_hi"] < 0).sum()))
     # the same count over every forecast of the master table's table A (check rows excluded)
     a_all = d[(d["table"] == "A") & (d["family"] != CHECK_FAMILY) & (d.index != SHORT)]
     a_oth = a_all.drop(index=REFERENCE)
@@ -423,9 +428,9 @@ def headline_macros(d: pd.DataFrame, a_all: pd.DataFrame) -> dict[str, str]:
     oth = v[v.index.isin(a_all.index) & (v.index != HEADLINE)]
     assert len(oth) == len(a_all) - 1, (len(oth), len(a_all))
     m["cmVsHN"] = str(len(oth))
-    m["cmVsHAbove"] = str(int((oth["dSharpe_mid_vs_headline_lo"] > 0).sum()))
+    m["cmVsHAbove"] = word(int((oth["dSharpe_mid_vs_headline_lo"] > 0).sum()))
     m["cmVsHBelow"] = str(int((oth["dSharpe_mid_vs_headline_hi"] < 0).sum()))
-    assert m["cmVsHAbove"] == "0", (
+    assert m["cmVsHAbove"] == "none", (
         "claim: no forecast trades above the headline, interval > 0"
     )
     return m
@@ -677,7 +682,7 @@ def ladder_macros(lad: pd.DataFrame) -> dict[str, str]:
     m["cmLdEstMax"] = s_(est["dSharpe_mid"].max())
     m["cmLdN"] = str(len(lad))
     res = lad[(lad["dSharpe_mid_lo"] > 0) | (lad["dSharpe_mid_hi"] < 0)]
-    m["cmLdResolved"] = str(len(res))
+    m["cmLdResolved"] = word(len(res))
     assert list(res["to"]) == ["subtree_tuned_live_feasible_lgbm"], (
         "claim: the only resolved step is the tuned LightGBM, below the headline"
     )
@@ -1013,7 +1018,7 @@ def sv_macros(d: pd.DataFrame) -> dict[str, str]:
     p = p[(p["rule"] == SV_RULE) & (p["frame"] == SV_FRAME)]
     m["cmSvN"] = str(p["variation"].nunique())
     above = int((p["dSharpe_lo"] > 0).sum())
-    m["cmSvAbove"] = str(above)
+    m["cmSvAbove"] = word(above)
     assert above == 0, (
         "claim: no variation beats the straddle with an interval above zero"
     )
