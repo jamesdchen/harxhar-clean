@@ -1,7 +1,17 @@
-\begin{tabular}{lrrr}%
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{longtable}{p{0.44\textwidth}rrr}
+\caption{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}\label{tab:smear_sensitivity_full}\\
 \toprule
 Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\
 \midrule
+\endfirsthead
+\caption[]{(continued)}\\
+\toprule
+Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
 OLS on HAR + calendar (benchmark) & 0.24097 (96) & 0.23165 (132) & 0.22521 (106) \\
 HAR + moments bucket (OLS) & 0.24041 (87) & 0.22729 (102) & 0.22761 (131) \\
 HAR + liquidity bucket (OLS) & 0.28789 (134) & 0.23152 (131) & 0.22934 (140) \\
@@ -157,5 +167,5 @@ HAR + transmission block only (stated) & 0.22874 (48) & 0.21997 (79) & 0.21639 (
 HAR + transmission block only (documented) & 0.23898 (81) & 0.22929 (112) & 0.22489 (103) \\
 HAR + transmission block only (tuned) & 0.22861 (45) & 0.21997 (80) & 0.21647 (77) \\
 HAR + transmission block only (trailing) & 0.23255 (71) & 0.21996 (78) & 0.21596 (71) \\
-\bottomrule
-\end{tabular}%
+\end{longtable}
+\endgroup

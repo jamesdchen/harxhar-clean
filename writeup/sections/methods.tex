@@ -179,6 +179,7 @@ Kendall $\tau$ of each alternative ranking against the second-order-adjustment r
 over all arms: none $\unifSmearTauNone$, traditional Duan
 $\unifSmearTauDuan$.}
 \label{tab:smear_sensitivity}
+\small\setlength{\tabcolsep}{3pt}% four columns at 12pt overran the text width by 39pt
 \begin{tabular}{@{}lccc@{}}
 \toprule
  & No correction & Classical Duan & Second-order adjustment \\
@@ -198,6 +199,10 @@ old one.
 \subsection{Estimators and Causal Tuning}
 \label{sec:estimators}
 
+% 2026-09-29: the heading plus "The unpenalized estimator is" cannot be set
+% within the default tolerance without running 13pt into the margin (no
+% feasible break in the first line); this paragraph alone gets a looser one.
+\begingroup\tolerance=500\emergencystretch=1em
 \paragraph{Minimum-norm least squares.} The unpenalized estimator is
 \emph{minimum-norm least squares}: among all coefficient vectors that
 minimize the training-window sum of squares, the unique one of minimal
@@ -223,7 +228,7 @@ its results are archived. Because the pseudoinverse is defined at any
 rank, the estimator requires no rank guards; the only design
 intervention retained is the go-live participation rule of
 Section~\ref{sec:dp_prep}, which is a statement about data existence,
-not numerics.
+not numerics.\par\endgroup
 
 \paragraph{Estimators.}
 The design matrix $X$ has one row per bar in the current training window
@@ -394,8 +399,10 @@ last. The $B$-block problem
 \alpha_1 < \alpha_2 < \cdots < \alpha_B,
 \]
 reduces to ordinary unit-penalty ridge by column scaling. With
-$\tilde X = \bigl[\, X_1/\sqrt{\alpha_1} \;\cdots\; X_B/\sqrt{\alpha_B} \,\bigr]$
-and $\gamma_b = \sqrt{\alpha_b}\,\beta_b$,
+\[
+\tilde X = \bigl[\, X_1/\sqrt{\alpha_1} \;\cdots\; X_B/\sqrt{\alpha_B} \,\bigr]
+\quad\mbox{and}\quad \gamma_b = \sqrt{\alpha_b}\,\beta_b,
+\]
 \[
 \Bigl\lVert y - \sum_b X_b \beta_b \Bigr\rVert_2^2
 + \sum_b \alpha_b \lVert \beta_b \rVert_2^2

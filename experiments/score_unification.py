@@ -2345,14 +2345,30 @@ def _smear_sensitivity(
         if r.qlike is None or r.qlike_none is None or r.qlike_duan is None:
             continue
         rows.append((arm, r.qlike_none, r.qlike_duan, r.qlike))
-    # Self-contained tabular: \input-ing bare booktabs rows inside a tabular
-    # breaks (trailing \par -> "Misplaced \noalign"), so the fragment carries
-    # its own environment and the section \input's it directly.
-    lines = [
-        r"\begin{tabular}{lrrr}%",
+    # Self-contained environment: \input-ing bare booktabs rows inside a
+    # tabular breaks (trailing \par -> "Misplaced \noalign"), so the fragment
+    # carries its own environment and the section \input's it directly.  It is
+    # a longtable (150+ arms do not fit one page) with a wrapping first column
+    # (arm names run to 160 characters); the caption and label live in the
+    # first head only -- a head under \endhead repeats on every page and would
+    # redefine the label.
+    head = [
         r"\toprule",
         r"Arm & QLIKE (none) & QLIKE (Duan) & QLIKE (contract) \\",
         r"\midrule",
+    ]
+    lines = [
+        r"\begingroup\footnotesize\setlength{\tabcolsep}{4pt}",
+        r"\begin{longtable}{p{0.44\textwidth}rrr}",
+        r"\caption{Pooled QLIKE per arm under the three back-transform conventions "
+        r"(within-convention rank in parentheses).}\label{tab:smear_sensitivity_full}\\",
+        *head,
+        r"\endfirsthead",
+        r"\caption[]{(continued)}\\",
+        *head,
+        r"\endhead",
+        r"\bottomrule",
+        r"\endlastfoot",
     ]
     tau_none: float | None = None
     tau_duan: float | None = None
@@ -2375,8 +2391,8 @@ def _smear_sensitivity(
             )
         tau_none = _kendall_tau(qc, qn)
         tau_duan = _kendall_tau(qc, qd)
-    lines.append(r"\bottomrule")
-    lines.append(r"\end{tabular}%")
+    lines.append(r"\end{longtable}")
+    lines.append(r"\endgroup")
     return lines, tau_none, tau_duan
 
 
