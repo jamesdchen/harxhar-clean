@@ -45,8 +45,8 @@ re-running.
 
 GRIDS (named choices below; each is centred on the shipped configuration on a
 log scale where the parameter is a scale, and stops at a parameter bound where
-the shipped value sits on one).  The full products are 420 (LightGBM), 1260
-(XGBoost) and 84 (RF) configurations; a FIXED subset of N_CANDIDATES = 32 --
+the shipped value sits on one).  The full products are 700 (LightGBM), 2800
+(XGBoost) and 112 (RF) configurations; a FIXED subset of N_CANDIDATES = 32 --
 the shipped configuration plus 31 drawn once with GRID_SEED -- is used at every
 tuning point of every arm.  TUNE_IDENTITY=1 reduces the grid to the shipped
 configuration with early stopping off (rounds = the shipped n_estimators): the
@@ -171,22 +171,30 @@ QSEL = _env("QSEL", "1") == "1"
 # per-bar optimum may sit far from it) and x1/4 .. x4 for leaf counts / depth.
 LADDER_ROWS = tuple(2.0**k for k in range(-3, 4))  # x1/8 .. x8 around the shipped rows-per-leaf
 LADDER_LEAVES = tuple(2.0**k for k in range(-2, 3))  # x1/4 .. x4 around the shipped leaf count
-# Sampling fractions: half the shipped fraction, the shipped fraction, and the
-# bound 1.0 (no subsampling) -- a fraction cannot exceed 1.
-FRACTION_STEPS = (0.5, 1.0)
+# Sampling fractions: a quarter and half of the shipped fraction, the shipped
+# fraction, and the bound 1.0 (no subsampling) -- a fraction cannot exceed 1.
+# WIDENED 2026-09-29 (user decision): the local smoke picked the half-fraction
+# low edge for LightGBM feature_fraction and XGBoost colsample_bytree; the
+# quarter step extends the axis toward more regularization, the direction a
+# 12x smaller window than the shipped config was tuned on implies a priori.
+FRACTION_STEPS = (0.25, 0.5, 1.0)
 FRACTION_BOUND = 1.0
 # L2 on leaf values is in hessian units = rows under squared error (leaf value =
 # G / (H + lambda)); the shipped values (0.016 LightGBM, 0.0004 XGBoost) are ~0
 # rows, so the axis runs from the shipped value up by decades: lambda = 1, 10,
 # 100 rows shrinks a 10-100-row leaf by roughly 1-90 %.  Its low end (the shipped
 # ~0) is flagged as the no-penalty bound in the edge table, not a grid choice.
-L2_ROWS = (1.0, 10.0, 100.0)
+# WIDENED 2026-09-29 (user decision): one more decade, 1000 rows, after the
+# smoke picked the 100-row top edge for LightGBM (same a-priori direction).
+L2_ROWS = (1.0, 10.0, 100.0, 1000.0)
 # RF: max_features steps x1/3 down from the shipped 1.0 (bagged trees): 1/3 is
 # Breiman's regression default (p/3), 1/9 one step further; max_depth halves from
 # unbounded (the shipped) to 16 / 8 / 4 levels; min_samples_leaf climbs the row
 # ladder from the shipped bound 1.
 # (every axis list is ascending; None = unbounded depth sorts last)
-RF_MAX_FEATURES = (1.0 / 9.0, 1.0 / 3.0, 1.0)
+# WIDENED 2026-09-29 (user decision): one more x1/3 step, 1/27, after the smoke
+# picked 1/9 at both tuning points (sklearn keeps at least one feature per split).
+RF_MAX_FEATURES = (1.0 / 27.0, 1.0 / 9.0, 1.0 / 3.0, 1.0)
 RF_MAX_DEPTH = (4, 8, 16, None)
 RF_MIN_LEAF = (1, 2, 4, 8, 16, 32, 64)
 # Candidate subset: the argmin is taken over 125 validation rows, so more
@@ -196,7 +204,7 @@ RF_MIN_LEAF = (1, 2, 4, 8, 16, 32, 64)
 # candidates cost ~400 process-seconds, a third of the 25 refits of its tuning
 # period under the chosen configuration -- the grid is not the cost driver.
 N_CANDIDATES = 32
-GRID_SEED = 20260924  # the day the subset was drawn; fixed for every arm
+GRID_SEED = 20260929  # the day the (widened) subset was drawn; fixed for every arm
 # Boosting rounds: early stopping on the validation tail with patience = the
 # number of rounds whose shrunken steps add up to one full step (ceil(1 / lr));
 # cap = ROUNDS_CAP_MULT x the shipped rounds (the shipped count was tuned on a
