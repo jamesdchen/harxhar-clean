@@ -1,0 +1,589 @@
+gate,forecast,n,value,bound,ok
+baseline equals the target's B,a0,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,b2lasso,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,lasso_f,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,lasso_t,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,enet,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,blk2_inc,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,blk2,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,pool_enet_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,pool_enet_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,pool_enet_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,pool_lasso_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,pool_lasso_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,pool_lasso_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,pool_ridge_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,pool_ridge_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,pool_ridge_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,restofday_enet_all_features,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_enet_baseline,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_enet_live_feasible,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_lasso_all_features,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_lasso_baseline,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_lasso_live_feasible,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_ridge_all_features,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_ridge_baseline,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,restofday_ridge_live_feasible,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,sub_enet_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,sub_enet_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,sub_enet_free_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_enet_free_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_enet_free_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,sub_enet_live_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_enet_live_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_enet_live_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_enet_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_enet_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,sub_lasso_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,sub_lasso_free_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_lasso_free_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_lasso_free_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,sub_lasso_live_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_lasso_live_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_lasso_live_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_lasso_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_lasso_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,sub_ridge_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,sub_ridge_free_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_ridge_free_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_ridge_free_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,sub_ridge_live_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_ridge_live_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_ridge_live_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_vix_only,1469,0.0,1e-09,True
+"table equals its arm file (pred_adj, abs)",sub_ridge_vix_only,1469,0.0,0.0,True
+table pred_clock equals the research reader on its arm file,sub_ridge_vix_only,866,0.0,1e-12,True
+baseline equals the target's B,subtree_lgbm_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_lgbm_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_lgbm_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_rf_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_rf_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_rf_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_tuned_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tuned_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_tunedq_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,subtree_xgb_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_xgb_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,subtree_xgb_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,lgbm,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,xgb,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,sub_ols_baseline,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ols_baseline,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ols_baseline,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_mfiv_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_mfiv_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_mfiv_only_tw500,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_mfiv_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_mfiv_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_mfiv_only_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_enet_mfiv_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_mfiv_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_mfiv_only_tw500,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_mfiv_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_mfiv_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_mfiv_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_plus_mfiv_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_plus_mfiv_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_plus_mfiv_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_plus_mfiv_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_ridge_ivslice_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivslice_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivslice_only_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_lasso_ivslice_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivslice_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivslice_only_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_enet_ivslice_only_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivslice_only_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivslice_only_tw500,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_ivslice_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_ivslice_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_ivslice_tw500,866,3.3306690738754696e-16,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_plus_ivslice_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_plus_ivslice_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_plus_ivslice_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_plus_ivslice_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_target_scale,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_target_scale,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_target_scale,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_target_scale,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_target_scale,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_target_scale,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_target_scale,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_target_scale,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_target_scale,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_term,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_term,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_term,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_term,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_term,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_term,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_term,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_term,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_term,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_innovations,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_innovations,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_innovations,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_innovations,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_innovations,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_innovations,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_innovations,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_innovations,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_innovations,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_vrp,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_vrp,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_vrp,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_vrp,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_vrp,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_vrp,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_vrp,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_vrp,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_vrp,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_all,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_all,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_all,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_all,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_all,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_all,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_all,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_all,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_all,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_ivrep_slice_slope_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_lasso_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_ivrep_slice_slope_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_enet_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_ivrep_slice_slope_tw500,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_ivrep_slice_slope_tw500,866,2.220446049250313e-16,1e-12,True
+baseline equals the target's B,sub_ridge_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_live_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_live_vix_rvol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_vix_rvol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_vix_rvol,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_free_feasible,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_free_feasible,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_free_feasible,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_free_feasible,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_free_feasible,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_free_feasible,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_free_feasible,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_free_feasible,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_free_feasible,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_free_feasible_vol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_free_feasible_vol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_free_feasible_vol,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_free_feasible_vol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_free_feasible_vol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_free_feasible_vol,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_free_feasible_vol,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_free_feasible_vol,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_free_feasible_vol,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_har_base2,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_har_base2,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_har_base2,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_har_base2,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_har_base2,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_har_base2,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_har_base2,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_har_base2,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_har_base2,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_har_base3,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_har_base3,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_har_base3,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_har_base3,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_har_base3,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_har_base3,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_har_base3,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_har_base3,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_har_base3,866,0.0,1e-12,True
+baseline equals the target's B,sub_ridge_live_feasible_har_intra,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_ridge_live_feasible_har_intra,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_ridge_live_feasible_har_intra,866,0.0,1e-12,True
+baseline equals the target's B,sub_lasso_live_feasible_har_intra,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_lasso_live_feasible_har_intra,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_lasso_live_feasible_har_intra,866,0.0,1e-12,True
+baseline equals the target's B,sub_enet_live_feasible_har_intra,1469,0.0,1e-09,True
+arm target equals TARGET_ARM,sub_enet_live_feasible_har_intra,1469,0.0,1e-09,True
+pred_clock equals the research reader's (trade days),sub_enet_live_feasible_har_intra,866,0.0,1e-12,True
+trade aggregates equal trade_1530,a0,866,0.0,1e-12,True
+trade aggregates equal trade_1530,b2lasso,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lasso_f,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lasso_t,866,0.0,1e-12,True
+trade aggregates equal trade_1530,enet,866,0.0,1e-12,True
+trade aggregates equal trade_1530,blk2_inc,866,0.0,1e-12,True
+trade aggregates equal trade_1530,blk2,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_enet_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_enet_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_enet_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_lasso_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_lasso_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_lasso_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_ridge_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_ridge_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,pool_ridge_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_enet_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_enet_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_enet_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_lasso_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_lasso_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_lasso_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_ridge_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_ridge_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,restofday_ridge_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_free_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_free_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_free_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_vix_only,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_lgbm_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_lgbm_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_lgbm_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_rf_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_rf_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_rf_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_all_features_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_all_features_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_all_features_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_baseline_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_baseline_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_baseline_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_live_feasible_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_live_feasible_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tuned_live_feasible_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_all_features_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_all_features_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_all_features_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_baseline_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_baseline_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_baseline_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_live_feasible_lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_live_feasible_rf,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_tunedq_live_feasible_xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_xgb_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_xgb_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,subtree_xgb_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lgbm,866,0.0,1e-12,True
+trade aggregates equal trade_1530,xgb,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ols_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_mfiv_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_mfiv_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_mfiv_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_plus_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_plus_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_plus_mfiv_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivslice_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivslice_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivslice_only_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_plus_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_plus_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_plus_ivslice_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_target_scale,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_target_scale,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_target_scale,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_term,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_term,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_term,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_innovations,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_innovations,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_innovations,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_vrp,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_vrp,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_vrp,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_all,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_all,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_all,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_ivrep_slice_slope_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_ivrep_slice_slope_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_ivrep_slice_slope_tw500,550,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_vix_rvol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_free_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_free_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_free_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_free_feasible_vol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_free_feasible_vol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_free_feasible_vol,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_har_base2,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_har_base2,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_har_base2,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_har_base3,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_har_base3,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_har_base3,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_ridge_live_feasible_har_intra,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_lasso_live_feasible_har_intra,866,0.0,1e-12,True
+trade aggregates equal trade_1530,sub_enet_live_feasible_har_intra,866,0.0,1e-12,True
+trees_trade_1530.csv Sharpe_mid,subtree_lgbm_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_lgbm_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_all_features,866,1.1102230246251565e-16,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_rf_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_rf_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_all_features,866,1.1102230246251565e-16,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_xgb_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_xgb_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_all_features,866,1.1102230246251565e-16,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_all_features,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_lgbm_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_lgbm_baseline,866,5.551115123125783e-17,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_rf_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_rf_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_xgb_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_xgb_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ols_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_baseline,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_lgbm_live_feasible,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_lgbm_live_feasible,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_live_feasible,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_rf_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_rf_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_live_feasible,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,subtree_xgb_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,subtree_xgb_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_lasso_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_enet_live_feasible,866,2.220446049250313e-16,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_enet_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_mid,sub_ridge_live_feasible,866,0.0,1e-09,True
+trees_trade_1530.csv Sharpe_crossed,sub_ridge_live_feasible,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_ridge_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_ridge_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_ridge_vix_rvol,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_ridge_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_ridge_live_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_ridge_live_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_ridge_live_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_ridge_live_vix_rvol,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_enet_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_enet_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_enet_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_enet_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_enet_live_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_enet_live_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_enet_live_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_enet_live_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_lasso_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_lasso_vix_only,866,1.1102230246251565e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_lasso_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_lasso_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_lasso_live_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_lasso_live_vix_only,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_mid,sub_lasso_live_vix_rvol,866,0.0,1e-09,True
+compare_vixonly.csv trade_Sharpe_crossed,sub_lasso_live_vix_rvol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_ridge_free_feasible,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_ridge_free_feasible,866,2.220446049250313e-16,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_ridge_free_feasible_vol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_ridge_free_feasible_vol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_ridge_free_vix_only,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_ridge_free_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_enet_free_feasible,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_enet_free_feasible,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_enet_free_feasible_vol,866,2.220446049250313e-16,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_enet_free_feasible_vol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_enet_free_vix_only,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_enet_free_vix_only,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_lasso_free_feasible,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_lasso_free_feasible,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_lasso_free_feasible_vol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_lasso_free_feasible_vol,866,0.0,1e-09,True
+compare_free.csv trade_Sharpe_mid,sub_lasso_free_vix_only,866,2.220446049250313e-16,1e-09,True
+compare_free.csv trade_Sharpe_crossed,sub_lasso_free_vix_only,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_target_scale,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_target_scale,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_innovations,866,1.1102230246251565e-16,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_innovations,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_ridge_ivrep_slice_slope_tw500,550,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_ridge_ivrep_slice_slope_tw500,550,2.220446049250313e-16,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_target_scale,866,2.220446049250313e-16,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_target_scale,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_innovations,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_innovations,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_enet_ivrep_slice_slope_tw500,550,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_enet_ivrep_slice_slope_tw500,550,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_target_scale,866,2.220446049250313e-16,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_target_scale,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_term,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_innovations,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_innovations,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_vrp,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_all,866,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_mid,sub_lasso_ivrep_slice_slope_tw500,550,0.0,1e-09,True
+compare_ivrep.csv trade_Sharpe_crossed,sub_lasso_ivrep_slice_slope_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_ridge_mfiv_only_tw500,550,5.551115123125783e-17,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_ridge_mfiv_only_tw500,550,3.469446951953614e-17,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_ridge_live_feasible_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_ridge_live_feasible_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_ridge_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_ridge_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_enet_mfiv_only_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_enet_mfiv_only_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_enet_live_feasible_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_enet_live_feasible_mfiv_tw500,550,2.220446049250313e-16,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_enet_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_enet_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_lasso_mfiv_only_tw500,550,1.1102230246251565e-16,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_lasso_mfiv_only_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_lasso_live_feasible_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_lasso_live_feasible_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_mid,sub_lasso_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_mfiv.csv trade_Sharpe_crossed,sub_lasso_live_feasible_plus_mfiv_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_ridge_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_ridge_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_ridge_live_feasible_ivslice_tw500,550,2.220446049250313e-16,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_ridge_live_feasible_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_ridge_live_feasible_plus_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_ridge_live_feasible_plus_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_enet_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_enet_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_enet_live_feasible_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_enet_live_feasible_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_enet_live_feasible_plus_ivslice_tw500,550,2.220446049250313e-16,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_enet_live_feasible_plus_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_lasso_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_lasso_ivslice_only_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_lasso_live_feasible_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_lasso_live_feasible_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_mid,sub_lasso_live_feasible_plus_ivslice_tw500,550,0.0,1e-09,True
+compare_ivslice.csv trade_Sharpe_crossed,sub_lasso_live_feasible_plus_ivslice_tw500,550,0.0,1e-09,True
+paper always-short Sharpe (rule_by_strategy_always_short.csv),always_short,866,0.0,1e-09,True
+paper always-short mean,always_short,866,1.3877787807814457e-17,1e-09,True
