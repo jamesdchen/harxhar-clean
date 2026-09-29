@@ -1064,7 +1064,16 @@ def _results_table(
     out = [
         r"\begingroup\footnotesize\setlength{\tabcolsep}{3pt}",
         r"\begin{longtable}{lrrlrrlrr}",
+        # caption + label only in the first head: a head under \endhead is
+        # repeated on every page the table spans, which redefines the label
         r"\caption{" + caption + r"}\label{" + label + r"}\\",
+        r"\toprule",
+        r"& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\",
+        r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+        r"variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\",
+        r"\midrule",
+        r"\endfirsthead",
+        r"\caption[]{(continued)}\\",
         r"\toprule",
         r"& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
@@ -1160,6 +1169,11 @@ def make_tex(head: pd.DataFrame, cost: pd.DataFrame) -> None:
         r"\caption{The strategy variations. $C(K)$, $P(K)$: a call, a put at strike $K$; $+$ bought,",
         r"$-$ sold in the buy-side form $L$. $K_c^{+}$, $K_p^{-}$: the next live strike beyond $K_c$,",
         r"$K_p$.}\label{tab:app_strategy_variations_defs}\\",
+        r"\toprule",
+        r"variation & bought when $s>0$ ($L$) & sold when $s<0$ ($-L$) & own notional & purpose \\",
+        r"\midrule",
+        r"\endfirsthead",
+        r"\caption[]{(continued)}\\",
         r"\toprule",
         r"variation & bought when $s>0$ ($L$) & sold when $s<0$ ($-L$) & own notional & purpose \\",
         r"\midrule",

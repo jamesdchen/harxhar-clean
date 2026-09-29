@@ -30,6 +30,11 @@ $K_p$.}\label{tab:app_strategy_variations_defs}\\
 \toprule
 variation & bought when $s>0$ ($L$) & sold when $s<0$ ($-L$) & own notional & purpose \\
 \midrule
+\endfirsthead
+\caption[]{(continued)}\\
+\toprule
+variation & bought when $s>0$ ($L$) & sold when $s<0$ ($-L$) & own notional & purpose \\
+\midrule
 \endhead
 straddle (baseline) & $+C(K_c)+P(K_p)$ & short straddle & premium & convexity both ways at the money \\
 strangle, one strike wide & $+C(K_c^{+})+P(K_p^{-})$ & short strangle & premium & all time value; cheaper, less gamma at the money \\
@@ -61,6 +66,13 @@ premium against 2.9\% for the straddle itself.
 \begingroup\footnotesize\setlength{\tabcolsep}{3pt}
 \begin{longtable}{lrrlrrlrr}
 \caption{Strategy variations under $\mathrm{sign}(s)$ with the per-bar ridge on the live-feasible set (16:00-bar recalibration), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios annualized by $\sqrt{252}$ per trade day, return per straddle premium; $\Delta$Sharpe: the variation minus the straddle, paired. Worst day: mid fill, in straddle premiums. Cost share: the median crossed-minus-mid entry cost over the structure's own absolute midpoint premium, averaged over the buying and the selling side.}\label{tab:app_strategy_variations_res}\\
+\toprule
+& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\
+\midrule
+\endfirsthead
+\caption[]{(continued)}\\
 \toprule
 & \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
@@ -121,6 +133,13 @@ straddle + wing hedge, w50 & 1.85 & $-$0.05 & [$-$0.12, 0.06] & 1.30 & $-$0.14 &
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
 variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\
 \midrule
+\endfirsthead
+\caption[]{(continued)}\\
+\toprule
+& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\
+\midrule
 \endhead
 straddle & 1.34 & --- &  & 0.87 & --- &  & $-$5.42 & 0.03 \\
 \addlinespace[2pt]
@@ -171,6 +190,13 @@ straddle + wing hedge, w50 & 1.28 & $-$0.06 & [$-$0.13, 0.04] & 0.72 & $-$0.15 &
 \begingroup\footnotesize\setlength{\tabcolsep}{3pt}
 \begin{longtable}{lrrlrrlrr}
 \caption{As Table~\ref{tab:app_strategy_variations_res}, always short (no forecast): every structure sold every day.}\label{tab:app_strategy_variations_res_short}\\
+\toprule
+& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\
+\midrule
+\endfirsthead
+\caption[]{(continued)}\\
 \toprule
 & \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
