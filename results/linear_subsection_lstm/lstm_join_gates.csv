@@ -1,0 +1,134 @@
+bucket,check,n,max_rel,ok,lstm,comparator,segment,train_win,n_a,n_b
+all_features,avg_lstm_ridge: true_raw lstm vs ridge,1469,0.0,True,,,,,,
+all_features,true_raw a vs b,1469,0.0,True,lstm,avg_lstm_ridge,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lstm_qsel,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,lasso,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,enet,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,ridge,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,lgbm,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,xgb,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm,rf,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,rf_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lasso,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,enet,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,ridge,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lgbm,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,xgb,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,rf,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm_qsel,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm_qsel,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,lstm_qsel,rf_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lasso,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,enet,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,ridge,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lgbm,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,xgb,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,rf,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,rf_tuned,bar1600,2000.0,1469.0,1469.0
+all_features,trade rebuild vs trade_1530 (avg_lstm_ridge),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (lstm),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (lstm_qsel),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (lasso),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (enet),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (ridge),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (lgbm),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (xgb),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (rf),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (lgbm_tuned),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (xgb_tuned),866,0.0,True,,,,,,
+all_features,trade rebuild vs trade_1530 (rf_tuned),866,0.0,True,,,,,,
+all_features,every trade row on the same deck days,866,0.0,True,,,,,,
+baseline,avg_lstm_ridge: true_raw lstm vs ridge,1469,0.0,True,,,,,,
+baseline,true_raw a vs b,1469,0.0,True,lstm,avg_lstm_ridge,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lstm_qsel,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,ols,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,lasso,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,enet,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,ridge,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,lgbm,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,xgb,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm,rf,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,rf_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,ols,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lasso,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,enet,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,ridge,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lgbm,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,xgb,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,rf,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm_qsel,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm_qsel,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,lstm_qsel,rf_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,ols,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lasso,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,enet,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,ridge,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lgbm,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,xgb,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,rf,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,rf_tuned,bar1600,2000.0,1469.0,1469.0
+baseline,trade rebuild vs trade_1530 (avg_lstm_ridge),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (lstm),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (lstm_qsel),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (ols),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (lasso),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (enet),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (ridge),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (lgbm),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (xgb),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (rf),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (lgbm_tuned),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (xgb_tuned),866,0.0,True,,,,,,
+baseline,trade rebuild vs trade_1530 (rf_tuned),866,0.0,True,,,,,,
+baseline,every trade row on the same deck days,866,0.0,True,,,,,,
+live_feasible,avg_lstm_ridge: true_raw lstm vs ridge,1469,0.0,True,,,,,,
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,avg_lstm_ridge,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lstm_qsel,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,lasso,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,enet,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,ridge,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,lgbm,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,xgb,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm,rf,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm,rf_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lasso,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,enet,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,ridge,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,lgbm,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,xgb,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,lstm_qsel,rf,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm_qsel,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm_qsel,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,lstm_qsel,rf_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lasso,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,enet,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,ridge,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,lgbm,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,xgb,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,0.0,True,avg_lstm_ridge,rf,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,lgbm_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,xgb_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,true_raw a vs b,1469,2.220446049250313e-16,True,avg_lstm_ridge,rf_tuned,bar1600,2000.0,1469.0,1469.0
+live_feasible,trade rebuild vs trade_1530 (avg_lstm_ridge),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (lstm),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (lstm_qsel),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (lasso),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (enet),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (ridge),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (lgbm),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (xgb),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (rf),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (lgbm_tuned),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (xgb_tuned),866,0.0,True,,,,,,
+live_feasible,trade rebuild vs trade_1530 (rf_tuned),866,0.0,True,,,,,,
+live_feasible,every trade row on the same deck days,866,0.0,True,,,,,,
