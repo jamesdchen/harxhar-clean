@@ -294,6 +294,10 @@ def macros(d: pd.DataFrame) -> dict[str, str]:
         )
     others = paper.drop(index=REFERENCE)
     m["cmPaperSameMin"] = f"{100 * others['same_position_as_ref'].min():.0f}"
+    # the share of days the rule sells (implied variance above the forecast), quoted in 4.5
+    m["cmSellPaperMin"] = f"{100 - paper['pct_buy'].max():.0f}"
+    m["cmSellPaperMax"] = f"{100 - paper['pct_buy'].min():.0f}"
+    m["cmSellHead"] = f"{100 - d.loc[HEADLINE, 'pct_buy']:.0f}"
     m["cmPaperSameMax"] = f"{100 * others['same_position_as_ref'].max():.0f}"
 
     r = d.loc[REFERENCE]

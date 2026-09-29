@@ -324,3 +324,26 @@ not touched here), no undefined references.
 - **Depends on** changes 3–8.
 - **Build.** 73 pages (+1: the parked text is now in the appendix with its own header),
   12 overfull boxes, 0 undefined references.
+
+### Change 10 — Methods: stale session-bar statements re-pointed (one scorer)
+
+- **What.** `methods_close_option.tex`: (i) after the session-bar map's description, one
+  sentence saying where that map is still used (the parked diagnostics, D.15) and that
+  every table of Section 5.4 uses the 16:00-bar recalibration; (ii) "the 413 days after
+  April 2024 … are not scored anywhere below" → not scored in Section 5.4, with a pointer
+  to Appendix D.5, where the trade's live form on them **is** reported (the old sentence
+  had become false); (iii) the compounding paragraph says the exercise ran under the
+  session-bar map and is in D.15; (iv) the sell shares re-read under the 16:00-bar
+  recalibration (macros `\cmSellPaperMin/Max`, `\cmSellHead` from `master_table.csv`
+  `pct_buy`); (v) "scaling … raised no portfolio's Sharpe ratio" corrected to "… with an
+  interval above zero", with the session-bar qualifier and a pointer to D.11 — Appendix
+  D.11 reports the rank rule *tying* sign(s) with some point estimates above it, so the
+  old wording over-stated the negative result.
+- **Why.** The methods carried results computed under the other scorer and two
+  statements the new appendix made false or too strong.
+- **Before → after.** Sell share, paper's eight: 59–68 % (session-bar) → 62–73 %
+  (16:00-bar); headline: 60 % (block-diagonal ridge, session-bar) → 60 % (per-bar ridge,
+  16:00-bar). Sources: `master_table.csv` (`pct_buy`); `appendix_running.tex` D.11 /
+  `results/atm_straddle_0dte_1530/vrp_sized_rules.csv`.
+- **Build.** 73 pages, 12 overfull boxes (a mid-paragraph `\input` that first produced a
+  164 pt box was moved outside the paragraph), 0 undefined references.

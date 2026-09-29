@@ -83,10 +83,17 @@ variance held fixed across it. The differences are what a daily exercise
 can refit --- this section scores 866 daily observations, not a quarter
 million bars --- but they mean no number in this section is produced by the
 map that produced the QLIKE tables, and none is carried between the two.
+% D1 2026-09-29 (change 10): where this map is still used.
+This \emph{session-bar recalibration} is the one of the diagnostics parked in
+Appendix~\ref{sec:app_run_parked}; every table of
+Section~\ref{sec:close_option_results} uses the 16:00-bar recalibration defined
+below (Equation~\eqref{eq:close_opt_recal1600}).
 Forecast files end on 30~April~2024. The chain itself runs to
 31~December~2025, so the 413 expiration days from 1~May~2024
 onward --- the most recent twenty months of contiguous tape --- carry no
-forecast row and are not scored anywhere below.
+forecast row and are not scored in Section~\ref{sec:close_option_results};
+the trade's live form on them is reported in
+Appendix~\ref{sec:app_run_post2024}.
 
 Two conventions matter for honesty. \emph{Alignment}: forecast rows
 are labelled by the end of the bar they predict, so the row read at
@@ -414,7 +421,9 @@ wealth per day, a chosen round number, the same on every day and for both
 rules; nothing is estimated --- and every realized wealth factor is
 asserted positive. Here $f$ is a share of wealth deployed as body premium,
 the unit of the tables above. A defined-risk variant, which would bound the
-worst day by construction, is parked and not reported here.
+worst day by construction, is parked and not reported here. The exercise was
+run on the block-diagonal ridge under the session-bar recalibration and is
+reported in Appendix~\ref{sec:app_run_parked}.
 
 \paragraph{Scoring and control.} The unit of account is the expiration
 day. For a portfolio of $n$ daily returns,
@@ -442,19 +451,25 @@ Section~\ref{sec:close_option_results} rather than replacing it, because
 the midpoint figure is the one every other number in this section is
 computed at.
 
+% D1 2026-09-29 (change 10): the numbers of the next paragraph (outside the paragraph).
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 The always-short control is the 15:30 end of the clock in
 Section~\ref{sec:related}: \citet{HizmeriBevilacqua2025} locate the
 predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
 over remaining realized variance. On the scaled comparison of
-Equation~\eqref{eq:close_opt_ivscale}, implied variance exceeds the
-forecast on 59 to 68\% of days depending on the column
-(60\% for the headline), so the portfolio leans short more often
-than long. What the forecast contributes at this hour is the
-\emph{sign} of the day --- which side of the quoted premium to stand
-on. Sizing beyond the sign was tested rather than assumed, and it is not
-retained: scaling the position by the rank of $|s_t|$ within its own
-trailing distribution raised no portfolio's Sharpe ratio, and that overlay
-is parked rather than reported. The compounding exercise of
-Section~\ref{sec:close_option_results} bets a fixed fraction of wealth and
-reads nothing from the signal.
+% D1 2026-09-29 (change 10): the sell shares re-read under the 16:00-bar recalibration
+% (macros from results/close_master_table/master_table.csv pct_buy, via
+% writeup/make_table_close_main.py); the session-bar figures were 59 to 68% and 60%.
+Equation~\eqref{eq:close_opt_ivscale} and under the 16:00-bar recalibration,
+implied variance exceeds the forecast on \cmSellPaperMin{} to % 100 - pct_buy, paper's eight
+\cmSellPaperMax\% of days for the paper's eight forecasts and on
+\cmSellHead\% for the headline forecast of Section~\ref{sec:close_option_results}, % 100 - pct_buy, headline
+so the portfolio leans short more often than long. What the forecast
+contributes at this hour is the \emph{sign} of the day --- which side of the
+quoted premium to stand on. Sizing beyond the sign was tested rather than
+assumed, under the session-bar recalibration, and it is not retained: scaling
+the position by the size or the rank of $|s_t|$ raised no portfolio's Sharpe
+ratio with an interval above zero (Appendix~\ref{sec:app_run_sizing}). The
+compounding exercise above bets a fixed fraction of wealth and reads nothing
+from the signal.
