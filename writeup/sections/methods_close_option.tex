@@ -197,6 +197,93 @@ half hour of the same index and the comparison is the intended one; the fit
 mask above exists precisely to keep the sessions on which they are not
 aligned out of both the calibration and the trade.
 
+% D1 2026-09-29 (change 1): definitions of the forecasts fitted for the 16:00 bar
+% alone and of the 16:00-bar recalibration, so the results can use one scorer.
+% Sources: specs/causal_tune_linear.py (ESTIMATOR_GRIDS, TUNE_PER, VAL_TAIL, EMBARGO,
+% production HAR ladder), src/data/loading.py (SUBGROUPS["live_feasible"]),
+% specs/causal_tune_trees.py and specs/causal_tune_trees_tuned.py (tree settings,
+% refit cadence, 32 candidates), notebooks/_write_0dte_nb.py ("What per-bar ridge
+% means"), experiments/score_linear_subsection_causal.py (causal_forecasts:
+% SMEAR_W = 250, SMEAR_MIN = 63) and experiments/master_table_close.py (scorer, DM
+% lag, bootstrap constants).
+\paragraph{Forecasts fitted for the 16:00 bar alone.} The eight columns above
+fit one coefficient vector to all 48 half-hour bars of the day. The trade reads
+one bar, so a second family of forecasts is fitted for that bar alone --- the
+\emph{per-bar} forecasts. Their rows are the $15{:}30$--$16{:}00$ bars (stamp
+$16{:}00$) of the previous $2{,}000$ sessions, about eight years; the target is
+the paper's $y=\sqrt{RV/B}$, winsorized as for every other arm; and the
+regression is re-solved every session. Every input is known at 15:30: for the
+target and for each exogenous series, its mean over the last
+$k\in\{1,5,25,125,625,3125\}$ half-hour bars of the near-24-hour series,
+overnight bars included; an is-present flag per series; and calendar dummies
+(day of the week, option-expiry day and week, month and quarter end). In the design these means are the columns
+\texttt{har\_ma\_}$k$ (the target's own ladder) and
+\texttt{adj\_}$x$\texttt{\_ma\_}$k$ (the ladder of series $x$ after the diurnal
+adjustment of Section~\ref{sec:dp_prep}). Three input sets are used, each named
+in the tables by its design name:
+\begin{itemize}\sloppy
+\itemsep2pt
+\item \texttt{baseline} (HAR + calendar): no exogenous series;
+\item \texttt{all\_features}: every exogenous series of the paper's design,
+      the FOMC calendar channels included;
+\item \texttt{live\_feasible}: the 16 series a 15:30 forecaster can rebuild in
+      real time from feeds a retail account has --- from one-minute index-futures
+      bars the seven return moments \texttt{sumret}, \texttt{sumabsret},
+      \texttt{sumret3}, \texttt{sumret4}, \texttt{sumpret2}, \texttt{sumbipow},
+      \texttt{sumautocov} and the activity counts \texttt{sumvolume},
+      \texttt{numobs}; the Cboe indices \texttt{vix}, \texttt{vvix},
+      \texttt{vix3m}; and the four FOMC calendar channels
+      \texttt{fomc\_release}, \texttt{fomc\_day}, \texttt{fomc\_until\_inv},
+      \texttt{fomc\_since\_inv}. It leaves out the constituent cross-section,
+      the message-board sentiment and the option-volume series, none of which a
+      retail feed delivers during the session.
+\end{itemize}
+The linear estimators are OLS, ridge, lasso, and an elastic net with equal
+$\ell_1$ and $\ell_2$ weight. Each penalized one re-selects its penalty every
+250 sessions from a fixed log-scale grid (ridge $10^{-2}$ to $10^{3}$, lasso and
+elastic net $10^{-6}$ to $10^{-2}$, one value per decade) by squared error on the
+last 125 sessions of the current window after a 25-session embargo --- the causal
+tuning rule of Section~\ref{sec:estimators}, counted in sessions. The per-bar
+trees --- LightGBM, XGBoost and a random forest --- are fitted on the same rows,
+inputs and window and refit every ten sessions. \emph{Untuned}, LightGBM and
+XGBoost take the settings of the paper's two tree columns (read from their stored
+chunk metadata, leaf minimums scaled to the $2{,}000$-row window) and the random
+forest the library defaults. \emph{Tuned}, each re-selects its settings every 250
+sessions on the same validation tail, from 32 fixed candidates of a grid centred on
+the untuned settings, by validation squared error. Each per-bar linear forecast has
+a \emph{pooled twin}: the identical specification fitted on all 48 bars of the same
+$2{,}000$ sessions with one coefficient vector, so that the difference between the
+two is the per-bar fit alone.
+
+\paragraph{Two recalibrations.} A forecast $f_t$ on the fitting scale becomes a
+variance forecast in one of two ways. The \emph{session-bar recalibration} is the
+map of the paragraph ``Forecast remaining variance'' above: a weighted
+Mincer--Zarnowitz fit of level and slope, with its residual second moment, over the
+regular-session bars of the previous 250 sessions. The \emph{16:00-bar
+recalibration} keeps the forecast's own level and adds only a second-moment term,
+estimated on the bar the trade reads,
+\begin{equation}
+    \widehat{RV}_t \;=\; \bigl(f_t^{2} + \bar{e}_t\bigr)\,B_t,
+    \qquad
+    \bar{e}_t \;=\; \frac{1}{|D_t|}\sum_{u\in D_t}\bigl(y_u - f_u\bigr)^{2},
+    \label{eq:close_opt_recal1600}
+\end{equation}
+where $D_t$ holds the $16{:}00$ bars of the previous 250 sessions (at least 63),
+ending the session before $t$. It is the second-moment correction of the
+evaluation protocol (Section~\ref{sec:smearing_contract}) made causal and specific
+to the traded bar. Because it has no level map, a forecast fitted on all 48 bars
+keeps whatever level bias it carries at $16{:}00$, which the session-bar map would
+partly remove; the two recalibrations therefore give one forecast two different
+trades, and no number computed under one is set beside a number computed under
+the other. Under the 16:00-bar recalibration QLIKE is scored against the per-bar
+specification's $16{:}00$ target, the same target for every forecast, and two
+forecasts are compared on the same days: the Diebold--Mariano statistic of the
+daily QLIKE difference \citep{DieboldMariano1995}, with a Newey--West variance
+(Bartlett kernel; lag 6 on 866 days) and the correction of \citet{HarveyLeybourneNewbold1997},
+and, for QLIKE and Sharpe-ratio differences, a 95\% interval from a circular block
+bootstrap of the days (blocks of 21 days, $2{,}000$ draws, the same resampled days
+for every interval).
+
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the package
 quote is the mean of those two. The vendor quote is an \emph{hourly}

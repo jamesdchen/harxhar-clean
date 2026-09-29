@@ -79,3 +79,28 @@ not touched here), no undefined references.
 ---
 
 ## 2. Changes
+
+### Change 1 — Methods: define the per-bar forecasts and the 16:00-bar recalibration
+
+- **What.** `sections/methods_close_option.tex` gains two paragraphs after "What the
+  16:00 target is": *Forecasts fitted for the 16:00 bar alone* (rows, window, target,
+  inputs with the design column names `har_ma_k`, `adj_x_ma_k` and the key of the three
+  input sets `baseline` / `all_features` / `live_feasible` with the 16 live-feasible
+  series named; OLS / ridge / lasso / elastic net and their causal penalty grids; per-bar
+  LightGBM / XGBoost / random forest, untuned and causally tuned; the pooled twin) and
+  *Two recalibrations* (the session-bar map already in the paper vs the 16:00-bar
+  recalibration $(f^2+\bar e)B$, new Equation `eq:close_opt_recal1600`; the paired DM
+  and block-bootstrap intervals).
+- **Why.** The results cannot use one scorer, or show the 15:30-specific models, until
+  both are defined; nothing in the results changes in this commit.
+- **Before / after numbers.** None (definitions only). Constants quoted are the code's:
+  grids `ESTIMATOR_GRIDS`, `TUNE_PER = 250`, `VAL_TAIL = 125`, `EMBARGO = 25`
+  (`specs/causal_tune_linear.py`); the 16 live-feasible series
+  (`src/data/loading.py`, `SUBGROUPS["live_feasible"]`); refit every 10 sessions, 32
+  candidates (`specs/causal_tune_trees.py`, `specs/causal_tune_trees_tuned.py`);
+  `SMEAR_W = 250`, `SMEAR_MIN = 63` (`experiments/score_linear_subsection_causal.py`);
+  DM lag 6 on 866 days, blocks of 21 days, 2,000 draws
+  (`results/close_master_table/master_table.csv` column `dm_hac_lag`,
+  `experiments/master_table_close.py`).
+- **Build.** 68 pages (+1), 12 overfull boxes (unchanged; the new list is set
+  `\sloppy`), 0 undefined references.
