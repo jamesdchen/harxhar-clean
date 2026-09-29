@@ -1,0 +1,19 @@
+estimator,bucket,variant,scorer identity_pass,max rel |F_direct/F_current - 1| at 15:30,15:30 days whose position differs
+ridge,live_feasible,plain,True,8.077982727172639e-13,0
+ridge,live_feasible,recal,True,8.075762281123389e-13,0
+lasso,live_feasible,plain,True,8.077982727172639e-13,0
+lasso,live_feasible,recal,True,8.077982727172639e-13,0
+enet,live_feasible,plain,True,8.075762281123389e-13,0
+enet,live_feasible,recal,True,8.077982727172639e-13,0
+ridge,all_features,plain,True,9.803491352045057e-12,0
+ridge,all_features,recal,True,7.625344800032963e-12,0
+lasso,all_features,plain,False,0.0022609882633948253,0
+lasso,all_features,recal,False,0.002177767384873075,0
+enet,all_features,plain,False,0.018409543771126913,0
+enet,all_features,recal,False,0.01890619522778958,1
+ridge,baseline,plain,True,7.937150936498938e-11,0
+ridge,baseline,recal,True,7.006528690567393e-11,0
+lasso,baseline,plain,True,8.080203173221889e-13,0
+lasso,baseline,recal,True,8.071321389024888e-13,0
+enet,baseline,plain,True,8.124612094206896e-13,0
+enet,baseline,recal,True,8.133493878403897e-13,0

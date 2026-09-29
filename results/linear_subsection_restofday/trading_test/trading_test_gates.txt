@@ -1,0 +1,11 @@
+GATE join: the direct tables' realized rest of day equals the per-bar tables' bars summed from the entry time to the close on every bar of all 9 models (max rel 9.6e-13); the realized target is the same in every direct table
+bars without every forecast (dropped from every rule): 0 of 11250
+frame: 11,250 bars, 866 days; days per entry time {'09:35': 863, '10:00': 864, '10:30': 865, '11:00': 865, '11:30': 865, '12:00': 866, '12:30': 866, '13:00': 866, '13:30': 866, '14:00': 866, '14:30': 866, '15:00': 866, '15:30': 866}
+bars with a censored vendor implied volatility (flat in every sign rule): 13
+GATE 15:30: direct F = one-step F (rel <= 1e-09, same position) on all 866 days wherever the scorer's identity self-check passes; where it fails:
+estimator       bucket variant  scorer identity_pass  max rel |F_direct/F_current - 1| at 15:30  15:30 days whose position differs
+    lasso all_features   plain                 False                                   0.002261                                  0
+    lasso all_features   recal                 False                                   0.002178                                  0
+     enet all_features   plain                 False                                   0.018410                                  0
+     enet all_features   recal                 False                                   0.018906                                  1
+GATE the notebook's always short and block-diagonal ridge sign(s), recomputed on this frame (10,387 bars 10:00-15:30), equal its pooled mid / crossed and per-entry-time Sharpe (max |diff| 4.4e-16)
