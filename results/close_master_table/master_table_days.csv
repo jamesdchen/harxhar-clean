@@ -6,6 +6,12 @@ lasso_t,lasso (causally tuned),paper,results/spxw_pnl/yhat_b2lasso_tuned.parquet
 enet,elastic net (causally tuned),paper,results/spxw_pnl/yhat_b3enet_tuned.parquet,5713.0,2001-07-13,2024-04-30,,,4244.0,2018-09-24,866.0,866.0,0.0,,A
 blk2_inc,"block-diagonal ridge, without the FOMC columns",paper,results/spxw_pnl/yhat_blk2.parquet,5713.0,2001-07-13,2024-04-30,,,4244.0,2018-09-24,866.0,866.0,0.0,,A
 blk2,block-diagonal ridge,paper,results/spxw_pnl/yhat_blk2_fomc1.parquet,5713.0,2001-07-13,2024-04-30,,,4244.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_all_features,LSTM all features,LSTM,results/spxw_pnl/yhat_lstm_all_features.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_baseline,LSTM baseline,LSTM,results/spxw_pnl/yhat_lstm_baseline.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_live_feasible,LSTM live feasible,LSTM,results/spxw_pnl/yhat_lstm_live_feasible.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_qsel_all_features,LSTM qsel all features,LSTM,results/spxw_pnl/yhat_lstm_qsel_all_features.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_qsel_baseline,LSTM qsel baseline,LSTM,results/spxw_pnl/yhat_lstm_qsel_baseline.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
+lstm_qsel_live_feasible,LSTM qsel live feasible,LSTM,results/spxw_pnl/yhat_lstm_qsel_live_feasible.parquet,1469.0,2018-06-25,2024-04-30,,,0.0,2018-09-24,866.0,866.0,0.0,,A
 pool_enet_all_features,"pooled elastic net [all_features], same spec",pooled twin,results/spxw_pnl/yhat_pool_enet_all_features.parquet,4106.0,2007-12-21,2024-04-30,,,2637.0,2018-09-24,866.0,866.0,0.0,,A
 pool_enet_baseline,"pooled elastic net [baseline], same spec",pooled twin,results/spxw_pnl/yhat_pool_enet_baseline.parquet,4106.0,2007-12-21,2024-04-30,,,2637.0,2018-09-24,866.0,866.0,0.0,,A
 pool_enet_live_feasible,"pooled elastic net [live_feasible], same spec",pooled twin,results/spxw_pnl/yhat_pool_enet_live_feasible.parquet,4106.0,2007-12-21,2024-04-30,,,2637.0,2018-09-24,866.0,866.0,0.0,,A

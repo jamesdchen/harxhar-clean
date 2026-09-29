@@ -1,12 +1,12 @@
 set,n_forecasts,qlike,sharpe,spearman,ci_lo,ci_hi
-all table-A forecasts,100,recal,mid,-0.6416801680168017,-0.7313912391239124,-0.1072151215121513
-all table-A forecasts,100,recal,crossed,-0.6405040504050405,-0.7314386438643864,-0.10596789678967918
-all table-A forecasts,100,raw,mid,-0.34737473747374736,-0.6697683768376838,0.04403090309030832
-all table-A forecasts,100,raw,crossed,-0.35143114311431145,-0.6697317731773178,0.045618061806180416
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",82,recal,mid,-0.5205102251825731,-0.7381700242705238,-0.00565622925305566
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",82,recal,crossed,-0.5149377999804094,-0.7357413393411043,-0.002097278000892477
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",82,raw,mid,-0.27168837953439773,-0.6832800034827657,0.13552910830313114
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",82,raw,crossed,-0.26911983979277543,-0.6827973139169143,0.13675732741263152
+all table-A forecasts,106,recal,mid,-0.6924200821220747,-0.7596208781520014,-0.17393077562536233
+all table-A forecasts,106,recal,crossed,-0.6914930599289619,-0.7591880998564123,-0.17358944000806129
+all table-A forecasts,106,raw,mid,-0.4191299090611381,-0.7000025190820466,-0.027635589591153035
+all table-A forecasts,106,raw,crossed,-0.42305967705368164,-0.7019205481522532,-0.02944655767438352
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",88,recal,mid,-0.6068296291078159,-0.770756577788736,-0.11637446726075193
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",88,recal,crossed,-0.6024268254024162,-0.767941865379874,-0.1126188757000458
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",88,raw,mid,-0.3783241167975767,-0.7202066676059314,0.02360915430946421
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",88,raw,crossed,-0.37665105138952487,-0.7192376105103729,0.024379204677538433
 per-bar linear + VIX-only family,31,recal,mid,0.17903225806451614,-0.7016532258064516,0.6353024193548376
 per-bar linear + VIX-only family,31,recal,crossed,0.1875,-0.6988608870967742,0.6423487903225806
 per-bar linear + VIX-only family,31,raw,mid,0.25725806451612904,-0.7044657258064516,0.7157258064516129

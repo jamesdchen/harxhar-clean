@@ -6,6 +6,12 @@ baseline equals the target's B,lasso_t,1469,9.603429163007604e-13,1e-09,True
 baseline equals the target's B,enet,1469,9.603429163007604e-13,1e-09,True
 baseline equals the target's B,blk2_inc,1469,9.603429163007604e-13,1e-09,True
 baseline equals the target's B,blk2,1469,9.603429163007604e-13,1e-09,True
+baseline equals the target's B,lstm_all_features,1469,0.0,1e-09,True
+baseline equals the target's B,lstm_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,lstm_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,lstm_qsel_all_features,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,lstm_qsel_baseline,1469,6.661338147750939e-16,1e-09,True
+baseline equals the target's B,lstm_qsel_live_feasible,1469,6.661338147750939e-16,1e-09,True
 baseline equals the target's B,pool_enet_all_features,1469,0.0,1e-09,True
 baseline equals the target's B,pool_enet_baseline,1469,0.0,1e-09,True
 baseline equals the target's B,pool_enet_live_feasible,1469,0.0,1e-09,True
@@ -270,6 +276,12 @@ trade aggregates equal trade_1530,lasso_t,866,0.0,1e-12,True
 trade aggregates equal trade_1530,enet,866,0.0,1e-12,True
 trade aggregates equal trade_1530,blk2_inc,866,0.0,1e-12,True
 trade aggregates equal trade_1530,blk2,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_live_feasible,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_qsel_all_features,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_qsel_baseline,866,0.0,1e-12,True
+trade aggregates equal trade_1530,lstm_qsel_live_feasible,866,0.0,1e-12,True
 trade aggregates equal trade_1530,pool_enet_all_features,866,0.0,1e-12,True
 trade aggregates equal trade_1530,pool_enet_baseline,866,0.0,1e-12,True
 trade aggregates equal trade_1530,pool_enet_live_feasible,866,0.0,1e-12,True

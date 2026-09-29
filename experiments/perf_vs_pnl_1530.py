@@ -909,8 +909,12 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     assert rk("MSE")["agreement"] < 0 and not _sig(
         rk("MSE")["agreement_lo"], rk("MSE")["agreement_hi"]
     )
-    assert not _sig(rk("sign_acc")["agreement_lo"], rk("sign_acc")["agreement_hi"])
+    # all-day sign accuracy may or may not rank the forecasts (with the 100-forecast
+    # table it did not; the six LSTM rows, weak on both counts, pull the interval
+    # just past zero) -- the claim the verdict rests on is that the tail-day sign
+    # accuracy ranks them, and more strongly than the all-day one
     assert rk(f"sign_acc_top{k1}")["agreement_lo"] > 0
+    assert rk(f"sign_acc_top{k1}")["agreement"] > rk("sign_acc")["agreement"]
     assert not _sig(
         rk(f"sign_acc_rest{k1}")["agreement_lo"],
         rk(f"sign_acc_rest{k1}")["agreement_hi"],
@@ -996,11 +1000,16 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     )
     rng_s = N["range"]["sign_acc"]
     pl_t = fr(PL, f"sign_acc_top{k1}")
+    all_day_ranks = _sig(ra["agreement_lo"], ra["agreement_hi"])
+    all_day_clause = (
+        f"ranks them only weakly (agreement {ra['agreement']:+.2f} {_iv(ra['agreement_lo'], ra['agreement_hi'])})"
+        if all_day_ranks
+        else f"does not rank them (agreement {ra['agreement']:+.2f} {_iv(ra['agreement_lo'], ra['agreement_hi'])})"
+    )
     a(
         f"3. **What does track the trade is calling the side right on the few days the straddle moves most.** Sign "
         f"accuracy over all days hardly separates the forecasts ({100 * rng_s[0]:.0f}–{100 * rng_s[2]:.0f} %, median "
-        f"{100 * rng_s[1]:.0f} %) and does not rank them (agreement {ra['agreement']:+.2f} "
-        f"{_iv(ra['agreement_lo'], ra['agreement_hi'])}). On the {k1} largest-|return| days it does "
+        f"{100 * rng_s[1]:.0f} %) and {all_day_clause}. On the {k1} largest-|return| days it does, and more strongly "
         f"({rt1['agreement']:+.2f} {_iv(rt1['agreement_lo'], rt1['agreement_hi'])}; {k2} days {rt2['agreement']:+.2f} "
         f"{_iv(rt2['agreement_lo'], rt2['agreement_hi'])}), and on the other {nd - k1} days it does not "
         f"({rr1['agreement']:+.2f} {_iv(rr1['agreement_lo'], rr1['agreement_hi'])}). Within the per-bar linear class, "
