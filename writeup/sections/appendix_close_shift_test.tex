@@ -1,0 +1,62 @@
+% ============================================================================
+% 2026-09-29: the shift (dating) test re-run for the HEADLINE forecast under the
+% 16:00-bar recalibration of Table~\ref{tab:close_option_rules}.  Every number
+% below is a macro from generated/appendix_close_shift_test.tex, written by
+% experiments/close_shift_test_headline.py from
+% results/close_shift_test/shift_test_headline.csv; nothing is typed by hand.
+% The notebook's own shift test (Section~\ref{sec:app_run_parked}, the paper's
+% eight forecasts under the session-bar recalibration) is a different scorer and
+% is not set beside this one.  Input from main.tex after
+% sections/appendix_running_parked, so this continues Appendix D.
+% ============================================================================
+\input{generated/appendix_close_shift_test}
+\subsection{The Shift (Dating) Test of the Headline Forecast}
+\label{sec:app_shift_test_headline}
+
+\paragraph{What is tested.} The last-30-min trade reads the per-bar ridge's row
+labelled 16:00 --- the forecast of the 15:30--16:00 bar, issued at 15:30. The test
+re-scores the $\mathrm{sign}(s)$ rule with the forecast \emph{row} shifted by $k$
+half-hour bars and everything else unchanged. For $k<0$ the rule reads the same
+session's earlier row (the 15:30 row at $k=-1$, down to the 10:00 row at $k=-12$): a
+stale forecast, still free of look-ahead. For $k>0$ the headline, a per-bar model with
+session rows only, has no row after the close; the rule reads the \emph{next}
+session's row (10:00 at $k=+1$, to 12:30 at $k=+6$), the first rows whose lag ladder
+contains the traded bar. Because another row forecasts another bar, every shifted row
+is placed on the traded bar's own scale, $(\hat y_k^2+\hat s_{16{:}00})\,B_{16{:}00}$,
+with the smear $\hat s$ and profile $B$ the trade itself uses, so the only thing that
+changes with $k$ is what the model had seen; at $k=0$ this is the trade's forecast
+(gated). The star is the traded bar's realized variance in place of the forecast.
+Scorer, trade, fills and intervals are those of Table~\ref{tab:close_option_rules};
+the \shiftNDays{} deck days for which every shifted row exists are scored (the last
+deck day has no next session, and two sessions lack the 10:00--11:00 rows), and at
+$k=0$ on all 866 days the rule reproduces Table~\ref{tab:close_option_rules}
+(\shiftBarZeroAllMid{} mid, \shiftBarZeroAllCrossed{} crossed).
+
+\paragraph{Reading.} Table~\ref{tab:app_shift_test_headline} gives every row.
+One bar stale, the rule falls from \shiftBarZeroMid{} to \shiftMinusOneMid{}
+($\Delta$ \shiftMinusOneDelta{} [\shiftMinusOneLo{}, \shiftMinusOneHi{}]); its
+position agrees with the trade's on \shiftMinusOneAgree{}\,\% of days. Of the twelve
+stale rows, \shiftNStaleAbove{} sit above $k=0$ in point estimate,
+\shiftNStaleIntervalBelow{} have an interval below zero and
+\shiftNStaleIntervalAbove{} an interval above; the best stale row is
+$k=\shiftBestStaleRow$ at \shiftBestStaleMid{} ($\Delta$ \shiftBestStaleDelta{}
+[\shiftBestStaleLo{}, \shiftBestStaleHi{}]). The next session's rows, placed on the
+traded bar's scale, score \shiftNextMinMid{} to \shiftNextMaxMid{} at the midpoint
+(\shiftNNextIntervalAbove{} of six intervals above zero; $k=+1$: \shiftPlusOneMid{}
+mid, \shiftPlusOneCrossed{} crossed, $\Delta$ \shiftPlusOneDelta{}
+[\shiftPlusOneLo{}, \shiftPlusOneHi{}], agreement \shiftPlusOneAgree{}\,\%), and
+the realized variance itself scores \shiftStarMid{} mid, \shiftStarCrossed{}
+crossed, against always short at \shiftAlwaysShortMid{} on the same days. The
+next-session rows are a different probe from the notebook's after-hours rows
+(Section~\ref{sec:app_run_parked}): each is a separate regression for its own bar,
+so the traded bar enters through that regression's own lag weights rather than
+through the traded row's, and the two tests are not compared.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../results/close_shift_test/shift_test_headline.png}
+\caption{The headline forecast's $\mathrm{sign}(s)$ Sharpe as the forecast row is
+shifted, on the same \shiftNDays{} days (source:
+\texttt{results/close\_shift\_test/shift\_test\_headline.csv}).}
+\label{fig:app_shift_test_headline}
+\end{figure}
