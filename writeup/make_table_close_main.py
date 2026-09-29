@@ -535,6 +535,13 @@ def ladder() -> pd.DataFrame:
     """
     import sys
 
+    if not DAILY.exists():
+        # the per-day frame (3.4 MB) is not committed; fall back to the committed executed
+        # pairs, which the last run with the frame present wrote and gated
+        print(
+            f"note: {DAILY.relative_to(ROOT)} absent -- Table 8 from {LADDER_CSV.name}"
+        )
+        return pd.read_csv(LADDER_CSV)
     for sub in ("experiments", "notebooks", ""):
         pth = str(ROOT / sub) if sub else str(ROOT)
         if pth not in sys.path:

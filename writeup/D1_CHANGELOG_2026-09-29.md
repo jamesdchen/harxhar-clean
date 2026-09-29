@@ -400,3 +400,88 @@ not touched here), no undefined references.
 - **Why.** Readability, and one factual slip in my own earlier text (the path steps).
 - **Numbers.** None change.
 - **Build.** 74 pages, 12 overfull boxes, 0 undefined references.
+
+### Change 14 — Re-runnability: Table 8 falls back to its committed pairs
+
+- **What.** `make_table_close_main.py` `ladder()`: when
+  `results/close_master_table/master_table_daily.parquet` (3.4 MB, written by
+  `experiments/master_table_close.py`, **not committed**) is absent, Table 8 is rebuilt from
+  the committed `writeup/generated/close_main_ladder.csv` (written and gated by the last
+  run that had the frame). Generated files unchanged.
+- **Why.** So the script runs on a clean checkout; the recomputation and its gates run
+  whenever the frame is present.
+
+---
+
+## 3. The story as it now reads (three sentences)
+
+Under one recalibration and on the same 866 days, every forecast improves on selling the
+straddle every day in point estimate, and the headline — a ridge fitted for the 15:30–16:00
+bar alone on the 16 inputs a forecaster can rebuild at 15:30, chosen for that feasibility and
+not as the table's maximum — is resolved above both always short (+1.70 [+0.09, +3.11]) and
+the paper's own block-diagonal ridge (+0.90 [+0.19, +1.66]), at Sharpe 1.90 mid / 1.44
+crossed. The accuracy gain behind it is not significant (QLIKE −5.0 %, DM −1.42, p 0.156), no
+single change on the way from the paper's forecast is resolved alone (the largest is fitting
+the traded bar on its own), and it is not separated from the lasso on the same inputs or
+from any tree, tuned or untuned. The edge is a tail trade — 68 % of the P&L on 20 buy days,
+month-ends not the source, +6.0 [−59.8, +72.7] over always short without its 10 best days —
+no alternative structure beats the straddle, wings cost at every width once the spread is
+paid, and the trade's live form has shown no edge after April 2024.
+
+## 4. Commits (each revertible; later ones depend on earlier ones as marked above)
+
+| # | commit | change |
+|---|---|---|
+| 0 | `0e8fb86` | this changelog, section 1 (the map) |
+| 1 | `4b4afbe` | methods: per-bar forecasts and the 16:00-bar recalibration defined |
+| 2 | `d8b04be` | wording: straddle defined once, "package" retired |
+| 3 | `c8a9dd3` | (a) one scorer: Table 7 from the master table; deck table parked |
+| 4 | `80af1ff` | (b) headline = per-bar ridge `live_feasible`, and why |
+| 5 | `aee75a8` | one change at a time: Table 8 |
+| 6 | `38c6682` | (c) causally tuned trees |
+| 7 | `fa30b25` | (d) P&L decomposition: a tail trade; Appendix D.14 |
+| 8 | `412e3a5` | (e) strategy variations paragraph → Appendix D.13 |
+| 9 | `728f15e` | (f) session-bar diagnostics parked → Appendix D.15; closing summary |
+| 10 | `2a2b56c` | methods: stale session-bar statements re-pointed |
+| 11 | `a926fcd` | (g) introduction / conclusion reconciled; abstract sentence proposed (not rendered) |
+| 12 | `daf4b31` | related works: "size, not direction" corrected |
+| 13 | `64d9c83` | polish: counts as words; path steps named |
+| 14 | this commit | Table 8 re-runnable without the uncommitted daily frame |
+
+## 5. Not changed — for the user to decide
+
+1. **Abstract.** A proposed sentence is in `main.tex` inside `\iffalse` (the authors held the
+   option reading out of the abstract on 2026-08-18). Flip to `\iftrue` to render.
+2. **Thesis vs headline.** The paper's thesis model is the block-diagonal ridge; the trade's
+   headline is a per-bar ridge. The title/abstract do not say the paper has a second
+   contribution; whether Section 5.4 stays a "reading" of the paper's forecast or becomes a
+   result of its own is an authors' call.
+3. **The size of the lead depends on the recalibration.** The 16:00-bar recalibration has no
+   level map, so a 48-bar forecast keeps its 16:00 level bias (the block-diagonal ridge reads
+   1.00 here, 1.34 under the session-bar map); Table 8's first step (−0.01) and the pooled
+   twins suggest the bias is not the whole story, but a robustness row with a 16:00-bar
+   Mincer–Zarnowitz map for every forecast (a third recalibration, in the master table) would
+   settle it. Not run (new analysis).
+4. **Parked diagnostics not re-run.** The shift (dating) test, the threshold/Murphy analysis,
+   "what a variance forecast can reach", the same-day regression, pins, sample splits and
+   compounding (Appendix D.15) are on the block-diagonal ridge under the session-bar map. The
+   dating test at least should be re-run for the headline before submission.
+5. **Appendix D conventions (W7's file, not edited).** Its conventions paragraph names the
+   block-diagonal ridge and points to Table 7 for the days and the √252 convention (both still
+   true) but does not name its recalibration; most of D.1–D.12 use the session-bar map.
+   Proposed sentence for `sections/appendix_running.tex`: "Unless a subsection says
+   otherwise, a recalibrated forecast in this appendix uses the session-bar recalibration of
+   Section 4.5, and no number here is set beside Table 7."
+6. **Kelly-type sizing (A3)** is not in the paper (session-bar scorer, `results/close_kelly/`);
+   D.11 covers proportional and rank sizing only.
+7. **Pre-existing:** multiply-defined label `tab:app_strategy_variations_res_short` in
+   `generated/strategy_variations.tex` (W10's generator); 12 overfull boxes outside Section 5.4.
+
+## 6. Re-running
+
+After the master table is re-run (H2, with the LSTM rows):
+`python writeup/make_table_close_main.py` (needs `master_table_daily.parquet` for Table 8's
+recomputation; without it Table 8 is read from its committed pairs), then pdflatex → bibtex →
+pdflatex ×2. Every qualitative claim in the new prose is asserted in the script: if a claim
+flips (e.g. a new forecast trades above the headline with an interval above zero), the script
+stops instead of writing numbers that contradict the text.
