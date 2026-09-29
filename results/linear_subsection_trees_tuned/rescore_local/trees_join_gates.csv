@@ -1,0 +1,436 @@
+bucket,model,estimator,train_win,segment,bar_end,linear_source,check,n_a,n_b,n,max_rel,ok
+all_features,lgbm,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,lgbm,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,lgbm,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,lgbm,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,rf,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,rf,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,rf,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+all_features,xgb,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,xgb,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,xgb,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,lgbm,ols,2000,bar1530,15:30,linear_subsection (incumbent_ols),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,lgbm,ols,2000,bar1600,16:00,linear_subsection (incumbent_ols),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,lgbm,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,lgbm,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,lgbm,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,rf,ols,2000,bar1530,15:30,linear_subsection (incumbent_ols),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,rf,ols,2000,bar1600,16:00,linear_subsection (incumbent_ols),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,rf,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,rf,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,rf,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+baseline,xgb,ols,2000,bar1530,15:30,linear_subsection (incumbent_ols),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+baseline,xgb,ols,2000,bar1600,16:00,linear_subsection (incumbent_ols),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,xgb,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,xgb,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+baseline,xgb,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,lgbm,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,lgbm,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,lgbm,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,rf,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,rf,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,rf,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1000,10:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1030,10:30,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1100,11:00,arms_hoffman2 (flattened),true_raw a vs b,1619,1619,1619,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1130,11:30,arms_hoffman2 (flattened),true_raw a vs b,1621,1621,1621,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1200,12:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1230,12:30,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1300,13:00,arms_hoffman2 (flattened),true_raw a vs b,1560,1560,1560,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1330,13:30,arms_hoffman2 (flattened),true_raw a vs b,1499,1499,1499,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1400,14:00,arms_hoffman2 (flattened),true_raw a vs b,1487,1487,1487,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1430,14:30,arms_hoffman2 (flattened),true_raw a vs b,1479,1479,1479,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1500,15:00,arms_hoffman2 (flattened),true_raw a vs b,1477,1477,1477,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1530,15:30,arms_hoffman2 (flattened),true_raw a vs b,1475,1475,1475,2.220446049250313e-16,True
+live_feasible,xgb,reclasso,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,xgb,reclasticnet,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+live_feasible,xgb,ridge,2000,bar1600,16:00,arms_hoffman2 (flattened),true_raw a vs b,1469,1469,1469,2.220446049250313e-16,True
+all_features,lgbm,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,lgbm,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,lgbm,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,lgbm,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+all_features,lgbm,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,lgbm,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,lgbm,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,lgbm,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+all_features,lgbm,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+all_features,lgbm,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+all_features,lgbm,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+all_features,lgbm,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+all_features,lgbm,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
+all_features,rf,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,rf,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,rf,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,rf,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+all_features,rf,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,rf,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,rf,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,rf,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+all_features,rf,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+all_features,rf,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+all_features,rf,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+all_features,rf,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+all_features,rf,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
+all_features,xgb,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,xgb,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,xgb,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+all_features,xgb,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+all_features,xgb,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,xgb,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,xgb,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+all_features,xgb,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+all_features,xgb,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+all_features,xgb,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+all_features,xgb,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+all_features,xgb,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+all_features,xgb,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
+live_feasible,lgbm,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,lgbm,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,lgbm,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,lgbm,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+live_feasible,lgbm,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,lgbm,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,lgbm,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,lgbm,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+live_feasible,lgbm,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+live_feasible,lgbm,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+live_feasible,lgbm,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+live_feasible,lgbm,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+live_feasible,lgbm,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
+live_feasible,rf,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,rf,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,rf,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,rf,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+live_feasible,rf,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,rf,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,rf,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,rf,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+live_feasible,rf,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+live_feasible,rf,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+live_feasible,rf,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+live_feasible,rf,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+live_feasible,rf,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
+live_feasible,xgb,,2000,bar1000,10:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,xgb,,2000,bar1030,10:30,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,xgb,,2000,bar1100,11:00,,true_raw a vs b,1619,1619,1619,0.0,True
+live_feasible,xgb,,2000,bar1130,11:30,,true_raw a vs b,1621,1621,1621,0.0,True
+live_feasible,xgb,,2000,bar1200,12:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,xgb,,2000,bar1230,12:30,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,xgb,,2000,bar1300,13:00,,true_raw a vs b,1560,1560,1560,0.0,True
+live_feasible,xgb,,2000,bar1330,13:30,,true_raw a vs b,1499,1499,1499,0.0,True
+live_feasible,xgb,,2000,bar1400,14:00,,true_raw a vs b,1487,1487,1487,0.0,True
+live_feasible,xgb,,2000,bar1430,14:30,,true_raw a vs b,1479,1479,1479,0.0,True
+live_feasible,xgb,,2000,bar1500,15:00,,true_raw a vs b,1477,1477,1477,0.0,True
+live_feasible,xgb,,2000,bar1530,15:30,,true_raw a vs b,1475,1475,1475,0.0,True
+live_feasible,xgb,,2000,bar1600,16:00,,true_raw a vs b,1469,1469,1469,0.0,True
