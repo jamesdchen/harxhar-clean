@@ -1,0 +1,51 @@
+% ============================================================================
+% 2026-09-29: the compounding exercise parked from Section 5.4
+% (Section~\ref{sec:app_run_parked}: the paper's block-diagonal ridge under the
+% session-bar recalibration), re-run for the HEADLINE forecast under the
+% 16:00-bar recalibration of Table~\ref{tab:close_option_rules}.  Every number
+% below is a macro from generated/appendix_close_compounding.tex, written by
+% experiments/close_compounding_headline.py from results/close_compounding/*.csv;
+% nothing is typed by hand.  The two recalibrations are never set side by side.
+% Input from main.tex after sections/appendix_close_murphy_splits, so this
+% continues Appendix D.
+% ============================================================================
+\input{generated/appendix_close_compounding}
+\subsection{The Headline Forecast Compounded at a Fixed Fraction of Wealth}
+\label{sec:app_compounding_headline}
+
+\paragraph{What is computed.} The fixed-fraction exercise of
+Section~\ref{sec:close_option_methods} --- a share $f=\cmpF$ of current wealth deployed
+as straddle premium every day, the same on every day and for every rule, wealth
+$W_T=\prod_t(1+f\,q_tR_t)$, the annualized mean of $\log(1+fR'_t)$ as the growth rate,
+every wealth factor asserted positive --- repeated for the headline's $\mathrm{sign}(s)$
+positions under the 16:00-bar recalibration, on the 866 days and at both fills, beside the
+paper's block-diagonal ridge scored the same way and always short
+(Table~\ref{tab:app_compounding_headline}, Figure~\ref{fig:app_compounding_headline}).
+The midpoint frame is the one Section~\ref{sec:app_run_parked} reports for the paper's
+forecast under the other recalibration; the crossed frame pays the ask and hits the bid on
+every day.
+
+\paragraph{Reading.} At the midpoint the headline turns one unit of wealth into \cmpHW{}
+over the sample (annualized log-growth \cmpHG{}), with a maximum wealth drawdown of
+\cmpHDD{} percent and a worst single day that removes \cmpHWorst{} percent of wealth; the
+ruin bound $1/|\min_t R'_t|$ is \cmpHRuin{} for the headline and \cmpARuin{} for always
+short, so \cmpF{} sits inside both. Across the spread it ends at \cmpHWX{}
+(log-growth \cmpHGX{}, drawdown \cmpHDDX{} percent). The paper's forecast scored the same
+way ends at \cmpRW{} at the midpoint (\cmpRG{}) and \cmpRWX{} across the spread; always
+short ends at \cmpAW{} (\cmpAG{}) and \cmpAWX{}. Of the \cmpNAll{} forecasts of the master
+table, \cmpNPosMid{} compound above one unit at the midpoint (terminal wealth \cmpWLoMid{}
+to \cmpWHiMid{}; the headline ranks \cmpHRankMid{}) and \cmpNPosX{} across the spread
+(\cmpWLoX{} to \cmpWHiX{}; the headline ranks \cmpHRankX{}). By calendar year, annualized
+from the days traded in each, the headline's midpoint log-growth is positive in
+\cmpNPosYears{} of \cmpNYears{} years (\cmpYearsMid{}) and across the spread in
+\cmpNPosYearsX{} (\cmpYearsX{}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../results/close_compounding/wealth_headline.png}
+\caption{Wealth at a fixed \cmpF{} of wealth per day, 866 days, under the 16:00-bar
+recalibration: the headline's $\mathrm{sign}(s)$, the paper's block-diagonal ridge scored the
+same way, and always short; midpoint fill (left) and crossed spread (right), log scale
+(source: \texttt{results/close\_compounding/fixedfrac\_headline.csv}).}
+\label{fig:app_compounding_headline}
+\end{figure}
