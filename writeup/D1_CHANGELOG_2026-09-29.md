@@ -186,3 +186,30 @@ not touched here), no undefined references.
   above, 14 of 99 below. All from `master_table.csv` / `master_table_vs_headline.csv`.
 - **Depends on** change 3 (Table 7 and the macros file).
 - **Build.** 69 pages (+1), 12 overfull boxes, 0 undefined references.
+
+### Change 5 — One change at a time: Table 8 (paired steps from the paper's forecast to the headline)
+
+- **What.** New Table 8 (`generated/table_close_ladder.tex`, label `tab:close_option_ladder`)
+  and a paragraph "One change at a time" in Section 5.4. Eleven paired steps, each
+  "to minus from" on the same 866 days: the paper's block-diagonal ridge → the per-bar
+  specification pooled on all 48 bars; pooled twin → per-bar on each input set; inputs
+  of the per-bar ridge; estimator on `live_feasible` (lasso, elastic net, three untuned
+  trees). QLIKE % with day-block interval and DM, ΔSharpe mid and crossed with paired
+  intervals, share of days on the same side. Computed by `make_table_close_main.py`
+  (`ladder()`) from `results/close_master_table/master_table_daily.parquet` with the
+  master table's own functions (`paired_sharpe`, `day_block_ci`, `dm_test`); the pairs
+  are written to `writeup/generated/close_main_ladder.csv`. **Gate:** 8 of the 11 steps are
+  pairs the master table already stores (vs the reference or vs the headline) and are
+  reproduced to 1e-9; the 3 pooled → per-bar steps are new pairs.
+- **Why.** The professor's "apples-to-apples, moving one thing at a time": the headline
+  differs from the paper's forecast in several things at once; this shows which step
+  carries the difference.
+- **Numbers (new).** Specification step −0.01 [−0.73, +0.76]; per-bar step +0.68
+  [−0.12, +1.45] (`all_features`), +0.78 [−0.08, +1.52] (`live_feasible`), −0.03
+  [−0.66, +0.64] on `baseline` where QLIKE gains a resolved −11.2 % [−15.7, −6.9]
+  (DM −4.59); inputs all → live +0.24 [−0.54, +1.07], baseline → live +0.69
+  [−0.23, +1.70]; estimator from the headline −0.08 (lasso) to −0.49 (elastic net).
+  **No step's interval excludes zero** (asserted); the three steps from the paper's
+  forecast to the headline add up exactly to its resolved +0.90 lead.
+- **Depends on** changes 3 and 4.
+- **Build.** 70 pages (+1), 12 overfull boxes, 0 undefined references.

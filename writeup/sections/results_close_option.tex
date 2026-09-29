@@ -132,6 +132,46 @@ forecast of record, not a winner: Table~\ref{tab:close_option_rules} resolves
 that it trades above the paper's forecast and above the control, and it does
 not resolve an order among the per-bar forecasts.
 
+% D1 2026-09-29 (change 5): one change at a time.  Table 8 and the \cmLd... macros are written
+% by writeup/make_table_close_main.py (ladder()) from
+% results/close_master_table/master_table_daily.parquet with the master table's own paired
+% statistics; the executed pairs are writeup/generated/close_main_ladder.csv.
+\paragraph{One change at a time.} Table~\ref{tab:close_option_ladder} walks
+from the paper's forecast to the headline one change at a time, every step
+paired on the same days. Replacing the block-diagonal ridge by the per-bar
+specification's ridge fitted on all 48 bars --- design, window and penalty
+change together --- moves nothing on the trade (\cmLdSpec). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
+16:00 bar alone is the largest step: \cmLdPerBarAll{} on \texttt{all\_features} % pool_ridge_all_features -> sub_ridge_all_features
+and \cmLdPerBarLive{} on \texttt{live\_feasible}. On HAR + calendar the same % pool_ridge_live_feasible -> sub_ridge_live_feasible
+step changes QLIKE by \cmLdPerBarBaseQ{} percent, a resolved gain (DM \cmLdPerBarBaseDM), and % pool_ridge_baseline -> sub_ridge_baseline
+leaves the trade where it was (\cmLdPerBarBase): a better forecast of the bar's variance
+is not by itself a better trade. Restricting the per-bar ridge from all
+features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
+and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
+changing only the estimator moves the Sharpe ratio by between \cmLdEstMax{} (the lasso) and % H -> five estimators
+\cmLdEstMin{} (the elastic net). None of the \cmLdN{} steps has a Sharpe
+interval that excludes zero. The headline's resolved lead over the
+block-diagonal ridge is the sum of the first three steps, none of which is
+resolved alone; the largest is fitting the traded bar on its own.
+
+\begin{table}[H]
+\centering
+\caption{One change at a time: paired differences between two forecasts of
+Table~\ref{tab:close_option_rules} that differ in one thing (the step's
+``to'' forecast minus its ``from'' forecast), on the same \cmNdays{} days under
+the 16:00-bar recalibration. QLIKE: percent difference in mean QLIKE at the
+$16{:}00$ bar with a 95\% day-block interval (negative: the ``to'' forecast is
+more accurate), and its Diebold--Mariano statistic. $\Delta$Sharpe: difference
+in the $\mathrm{sign}(s)$ portfolio's annualized Sharpe ratio at the midpoint
+and at the crossed spread, with 95\% paired intervals on the resampled days of
+Table~\ref{tab:close_option_rules}. Same side: the share of days the two
+forecasts take the same position. The first step changes the design, the
+training window and the penalty together; every other step changes one thing.
+Steps the master table also stores are reproduced by it exactly.
+\label{tab:close_option_ladder}}
+\resizebox{\textwidth}{!}{\input{generated/table_close_ladder}}
+\end{table}
+
 \paragraph{At the crossed spread.} Every Sharpe ratio of
 Table~\ref{tab:close_option_rules} is given at both fills. Charging the
 spread at entry --- both legs bought at the ask when the rule is long, both

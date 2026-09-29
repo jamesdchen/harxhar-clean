@@ -5,6 +5,8 @@ Reads the closing-strategy master table (experiments/master_table_close.py; ONE 
 
   writeup/generated/table_close_main.tex     Table 7 of the paper: selected master-table rows
   writeup/generated/close_main_numbers.tex   \\cm... macros for every number in Section 5.4's prose
+  writeup/generated/table_close_ladder.tex   Table 8: one change at a time (paired steps)
+  writeup/generated/close_main_ladder.csv    the executed pairs behind Table 8
 
 Nothing is typed by hand: every cell and every macro is read from the CSVs named below, and
 every qualitative claim the prose makes about them is asserted here, so a re-run after the
@@ -14,6 +16,7 @@ Sources
   results/close_master_table/master_table.csv          one row per forecast (table A: 866 days)
   results/spxw_pnl/MANIFEST.md                         design panel of each of the paper's tables
   results/close_pnl_decomp/research_scorer/*.csv       the P&L decomposition under the same scorer
+  results/close_master_table/master_table_daily.parquet  per-day series (paired steps)
 
 Usage:  python writeup/make_table_close_main.py
 """
@@ -29,6 +32,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 MASTER = ROOT / "results" / "close_master_table" / "master_table.csv"
 VS_HEADLINE = ROOT / "results" / "close_master_table" / "master_table_vs_headline.csv"
+DAILY = ROOT / "results" / "close_master_table" / "master_table_daily.parquet"
 MANIFEST = ROOT / "results" / "spxw_pnl" / "MANIFEST.md"
 # the P&L decomposition re-run under the same 16:00-bar recalibration (checklist B1)
 PNL_RS = ROOT / "results" / "close_pnl_decomp" / "research_scorer"
@@ -36,6 +40,9 @@ CSV_TOL = 5e-6  # the P&L decomposition writes six significant digits; agreement
 GEN = ROOT / "writeup" / "generated"
 TABLE_OUT = GEN / "table_close_main.tex"
 NUMBERS_OUT = GEN / "close_main_numbers.tex"
+LADDER_OUT = GEN / "table_close_ladder.tex"
+LADDER_CSV = GEN / "close_main_ladder.csv"  # the executed pairs behind LADDER_OUT
+GATE_TOL = 1e-9  # a recomputed pair must equal the master table's stored pair
 
 REFERENCE = "blk2"  # the paper's forecast of record (master table's fixed reference)
 HEADLINE = (
@@ -413,6 +420,250 @@ def headline_macros(d: pd.DataFrame, a_all: pd.DataFrame) -> dict[str, str]:
     return m
 
 
+# --------------------------------------------------------------------------- one change at a time
+# (block, from key, to key, what changes). Every row is "to minus from" on the same 866 days.
+LADDER = [
+    (
+        "From the paper's forecast to the per-bar specification",
+        REFERENCE,
+        "pool_ridge_all_features",
+        r"block-diagonal ridge $\to$ pooled ridge, \texttt{all\_features}",
+    ),
+    (
+        "Fit the 16:00 bar alone: pooled twin $\\to$ per-bar ridge",
+        "pool_ridge_baseline",
+        "sub_ridge_baseline",
+        r"\texttt{baseline}",
+    ),
+    (
+        "Fit the 16:00 bar alone: pooled twin $\\to$ per-bar ridge",
+        "pool_ridge_all_features",
+        "sub_ridge_all_features",
+        r"\texttt{all\_features}",
+    ),
+    (
+        "Fit the 16:00 bar alone: pooled twin $\\to$ per-bar ridge",
+        "pool_ridge_live_feasible",
+        HEADLINE,
+        r"\texttt{live\_feasible}",
+    ),
+    (
+        "Inputs of the per-bar ridge: other set $\\to$ \\texttt{live\\_feasible}",
+        "sub_ridge_all_features",
+        HEADLINE,
+        r"\texttt{all\_features} $\to$ \texttt{live\_feasible}",
+    ),
+    (
+        "Inputs of the per-bar ridge: other set $\\to$ \\texttt{live\\_feasible}",
+        "sub_ridge_baseline",
+        HEADLINE,
+        r"\texttt{baseline} $\to$ \texttt{live\_feasible}",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "sub_lasso_live_feasible",
+        "lasso",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "sub_enet_live_feasible",
+        "elastic net",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_lgbm_live_feasible",
+        "LightGBM, untuned",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_xgb_live_feasible",
+        "XGBoost, untuned",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_rf_live_feasible",
+        "random forest, untuned",
+    ),
+]
+
+
+def ladder() -> pd.DataFrame:
+    """Paired step differences from the master table's own daily series and functions.
+
+    The daily frame (master_table_daily.parquet) and the paired statistics (paired_sharpe,
+    day_block_ci, dm_test) are the master table's; a step whose pair the master table
+    already stores (vs the reference, vs the headline) is gated against it.
+    """
+    import sys
+
+    for sub in ("experiments", "notebooks", ""):
+        pth = str(ROOT / sub) if sub else str(ROOT)
+        if pth not in sys.path:
+            sys.path.insert(0, pth)
+    import master_table_close as mtc  # the master table's paired Sharpe (same resampled days)
+    import score_linear_subsection as base  # its day-block interval
+    from src.evaluation.diebold_mariano import dm_test
+
+    daily = pd.read_parquet(DAILY)
+    frames = {k: g.set_index("day").sort_index() for k, g in daily.groupby("key")}
+    master = pd.read_csv(MASTER).set_index("key")
+    vs_h = pd.read_csv(VS_HEADLINE).set_index("key")
+    rows = []
+    for block, frm, to, what in LADDER:
+        a, b = frames[to], frames[frm]
+        assert len(a) == len(b) == N_DAYS and (a.index == b.index).all(), (frm, to)
+        dq = a["qlike_recal"] - b["qlike_recal"]
+        base_q = float(b["qlike_recal"].mean())
+        lo, hi = base.day_block_ci(dq)
+        dm = dm_test(a["qlike_recal"].to_numpy(), b["qlike_recal"].to_numpy())
+        r = {
+            "block": block,
+            "from": frm,
+            "to": to,
+            "what": what,
+            "qlike_pct": 100.0 * float(dq.mean()) / base_q,
+            "qlike_pct_lo": 100.0 * lo / base_q,
+            "qlike_pct_hi": 100.0 * hi / base_q,
+            "dm": float(dm["dm"]),
+            "dm_p": float(dm["p"]),
+            "same_position": float((a["q"] == b["q"]).mean()),
+        }
+        for fill in ("mid", "crossed"):
+            dh, slo, shi = mtc.paired_sharpe(
+                a[f"ret_{fill}"].to_numpy(), b[f"ret_{fill}"].to_numpy()
+            )
+            r |= {
+                f"dSharpe_{fill}": dh,
+                f"dSharpe_{fill}_lo": slo,
+                f"dSharpe_{fill}_hi": shi,
+            }
+        # gates: reproduce the master table's stored pairs where it has them
+        if frm == REFERENCE:
+            s = master.loc[to]
+            stored = (
+                s["dSharpe_mid_vs_ref"],
+                s["dSharpe_mid_vs_ref_lo"],
+                s["dm_vs_ref"],
+            )
+        elif frm == HEADLINE:
+            s = vs_h.loc[to]
+            stored = (
+                s["dSharpe_mid_vs_headline"],
+                s["dSharpe_mid_vs_headline_lo"],
+                s["dm_vs_headline"],
+            )
+        elif to == HEADLINE:
+            s = vs_h.loc[
+                frm
+            ]  # stored the other way round: negate the point and swap bounds
+            stored = (
+                -s["dSharpe_mid_vs_headline"],
+                -s["dSharpe_mid_vs_headline_hi"],
+                -s["dm_vs_headline"],
+            )
+        else:
+            stored = None
+        if stored is not None:
+            mine = (r["dSharpe_mid"], r["dSharpe_mid_lo"], r["dm"])
+            assert all(abs(x - y) < GATE_TOL for x, y in zip(mine, stored)), (
+                frm,
+                to,
+                mine,
+                stored,
+            )
+            r["gate"] = "reproduces the master table"
+        else:
+            r["gate"] = "new pair (no stored comparator)"
+        rows.append(r)
+    out = pd.DataFrame(rows)
+    out.to_csv(LADDER_CSV, index=False)
+    return out
+
+
+def write_ladder_table(lad: pd.DataFrame, d: pd.DataFrame) -> None:
+    lines = [
+        "% AUTO-GENERATED by writeup/make_table_close_main.py -- do not edit.",
+        "% Source: writeup/generated/close_main_ladder.csv, computed from",
+        "% results/close_master_table/master_table_daily.parquet with the master table's paired",
+        "% statistics (experiments/master_table_close.py paired_sharpe, day_block_ci, dm_test).",
+        r"\begingroup\small\setlength{\tabcolsep}{3.5pt}",
+        r"\begin{tabular}{lcrccr}",
+        r"\toprule",
+        r"step (to minus from) & QLIKE, \% [95\%] & DM & $\Delta$Sharpe, mid [95\%]"
+        r" & $\Delta$Sharpe, crossed [95\%] & same side, \% \\",
+        r"\midrule",
+    ]
+    block = None
+    for _, r in lad.iterrows():
+        if r["block"] != block:
+            if block is not None:
+                lines.append(r"\addlinespace")
+            block = r["block"]
+            lines.append(rf"\multicolumn{{6}}{{l}}{{\emph{{{block}}}}} \\")
+        cells = [
+            r"\quad " + r["what"],
+            ci_(r["qlike_pct"], r["qlike_pct_lo"], r["qlike_pct_hi"], 1),
+            s_(r["dm"], 2),
+            ci_(r["dSharpe_mid"], r["dSharpe_mid_lo"], r["dSharpe_mid_hi"]),
+            ci_(r["dSharpe_crossed"], r["dSharpe_crossed_lo"], r["dSharpe_crossed_hi"]),
+            f"{100 * r['same_position']:.0f}",
+        ]
+        lines.append(" & ".join(cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\endgroup", ""]
+    LADDER_OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
+def ladder_macros(lad: pd.DataFrame) -> dict[str, str]:
+    m: dict[str, str] = {}
+    key = {(r["from"], r["to"]): r for _, r in lad.iterrows()}
+
+    def one(tag: str, frm: str, to: str) -> None:
+        r = key[(frm, to)]
+        m[f"cmLd{tag}"] = ci_(
+            r["dSharpe_mid"], r["dSharpe_mid_lo"], r["dSharpe_mid_hi"]
+        )
+        m[f"cmLd{tag}Q"] = ci_(r["qlike_pct"], r["qlike_pct_lo"], r["qlike_pct_hi"], 1)
+        m[f"cmLd{tag}DM"] = s_(r["dm"], 2)
+
+    one("Spec", REFERENCE, "pool_ridge_all_features")
+    one("PerBarBase", "pool_ridge_baseline", "sub_ridge_baseline")
+    one("PerBarAll", "pool_ridge_all_features", "sub_ridge_all_features")
+    one("PerBarLive", "pool_ridge_live_feasible", HEADLINE)
+    one("InAll", "sub_ridge_all_features", HEADLINE)
+    one("InBase", "sub_ridge_baseline", HEADLINE)
+    est = lad[lad["from"] == HEADLINE]
+    assert est.loc[est["dSharpe_mid"].idxmax(), "to"] == "sub_lasso_live_feasible", (
+        "prose: lasso"
+    )
+    assert est.loc[est["dSharpe_mid"].idxmin(), "to"] == "sub_enet_live_feasible", (
+        "prose: enet"
+    )
+    assert (est["dSharpe_mid"] < 0).all(), "claim: changing the estimator costs"
+    m["cmLdEstMin"] = s_(est["dSharpe_mid"].min())
+    m["cmLdEstMax"] = s_(est["dSharpe_mid"].max())
+    m["cmLdN"] = str(len(lad))
+    resolved = ((lad["dSharpe_mid_lo"] > 0) | (lad["dSharpe_mid_hi"] < 0)).sum()
+    m["cmLdResolved"] = str(int(resolved))
+    assert resolved == 0, "claim: no single step's Sharpe interval excludes zero"
+    top = lad.loc[lad["dSharpe_mid"].idxmax()]
+    assert top["block"].startswith("Fit the 16:00 bar alone"), (
+        "claim: the largest step is per-bar"
+    )
+    pb = key[("pool_ridge_baseline", "sub_ridge_baseline")]
+    assert pb["qlike_pct_hi"] < 0, (
+        "claim: per-bar beats pooled on QLIKE on HAR + calendar"
+    )
+    assert pb["dSharpe_mid_lo"] < 0 < pb["dSharpe_mid_hi"], (
+        "claim: ... but not on the trade"
+    )
+    return m
+
+
 def write_numbers(m: dict[str, str]) -> None:
     lines = [
         "% AUTO-GENERATED by writeup/make_table_close_main.py -- do not edit.",
@@ -433,6 +684,9 @@ def main() -> None:
     d = load()
     write_table(d)
     m = macros(d)
+    lad = ladder()
+    write_ladder_table(lad, d)
+    m.update(ladder_macros(lad))
     write_numbers(m)
     print(
         f"wrote {TABLE_OUT.relative_to(ROOT)} and {NUMBERS_OUT.relative_to(ROOT)} ({len(m)} macros)"
