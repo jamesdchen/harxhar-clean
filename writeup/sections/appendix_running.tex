@@ -1,0 +1,772 @@
+% ============================================================================
+% RUNNING APPENDIX (progress checklist item E1, assembled 2026-09-29).
+% Side and tangent analyses kept outside the paper's main line.  Every number in
+% the prose below is a \runapp... macro, and every table a
+% generated/appendix_running_<item>.tex, written by
+%     python writeup/make_appendix_running_tex.py
+% from the committed CSV, study summary or executed-notebook output named in the
+% comment above each table.  Nothing here is typed in by hand; rerun the maker
+% after any source changes, then rebuild the paper.
+% ============================================================================
+\input{generated/appendix_running_numbers}
+
+% Shrink a table to the text width only when it is wider; never enlarge it.
+\newsavebox{\runappbox}
+\newcommand{\runappfit}[1]{%
+  \sbox{\runappbox}{#1}%
+  \ifdim\wd\runappbox>\textwidth
+    \resizebox{\textwidth}{!}{\usebox{\runappbox}}%
+  \else
+    \usebox{\runappbox}%
+  \fi}
+
+\section{Running Appendix: Side Analyses}
+\label{sec:appendix_running}
+
+This appendix collects analyses run alongside the paper that are not part of
+its argument: other entry clocks and holding periods for the same-day option
+trade, other forecast targets, the trade after the forecast panel ends, and
+several checks on the last-30-min trade itself. Each subsection states the
+question, gives the table, states the finding, and says why it is kept out of
+the main text.
+
+\paragraph{Conventions.} Unless a subsection says otherwise: the instrument is
+the straddle of Section~\ref{sec:close_option_methods} (the nearest
+out-of-the-money call and put of the same-day expiry, one position); $R$ is the
+return of the long straddle per unit of midpoint premium and a short earns
+$-R$; Sharpe ratios are annualized with $\sqrt{252}$ per trade day, as in
+Table~\ref{tab:close_option_rules}; a crossed fill buys at the ask and sells at
+the bid at entry, and a position that settles in cash pays no exit spread; the
+forecast is the block-diagonal ridge; and the scored frame is the
+\runappHcNdays{} expiration days of Table~\ref{tab:close_option_rules}. The
+last-30-min trade is the trade of Section~\ref{sec:close_option_results}: entry
+at 15:30, cash settlement at the close. Panel stamps are bar-end labelled, so
+the forecast used at a clock $t$ is the one issued at $t$ for the bar
+$[t, t+30]$.
+
+% ----------------------------------------------------------------------------
+\subsection{Every Thirty Minutes: A Re-Picked Straddle}
+\label{sec:app_run_repick}
+
+\paragraph{Question.} Does the forecast trade at every thirty-minute bar of the
+session, not only the last? At each clock $t$ from 10:00 to 15:00 the nearest
+out-of-the-money straddle is bought or sold at its midpoint and closed at the
+next stamp's midpoint of the same strikes, a thirty-minute hold; the 15:30
+straddle is held to settlement, so that leg is the last-30-min trade. The
+strikes are picked afresh at every clock. The chain carries only the same-day
+expiry, so no thirty-minute implied variance is quoted. It is built from the
+quoted variance to the close, $\mathrm{IV}^2_{\mathrm{hr},t}h_t$ (the vendor's
+hourly implied volatility squared, times the hours left), multiplied by $w_t$,
+the bar's average share of the rest of the day's realized variance on earlier
+days. The signal is
+$s^{\mathrm m}_t=\widehat{RV}_t-\mathrm{IV}^2_{\mathrm{hr},t}\,h_t\,w_t$, and a
+day's return is the sum of its twelve legs.
+Table~\ref{tab:app_run_repick} scores four rules: always short; always short
+with the 15:30 leg left flat; $\mathrm{sign}(s^{\mathrm m})$ at every clock;
+and always short before 15:30 with $\mathrm{sign}(s^{\mathrm m})$ on the 15:30
+leg.
+
+% Source: results/atm_straddle_intraday/rule_table_intraday_blk2.csv and
+%   rule_table_intraday_crossed_blk2.csv (notebooks/atm_straddle_intraday.executed.ipynb,
+%   sections 6-7), panel (b) results/atm_straddle_intraday/rule_by_strategy/pooled/
+%   rule_by_strategy_sign_s.csv (writeup/make_rule_by_strategy_intraday_tex.py, the bundle
+%   writeup/rule_by_strategy_intraday_index.pdf).  That bundle was not rebuilt with the
+%   2026-09-18 chain's 09:35 stamp; the re-pick's scored frame starts at 10:00 either way.
+\begin{table}[H]
+\centering
+\caption{The re-picked straddle, pooled over the twelve clocks 10:00--15:30 on
+the \runappRpNdays{} expiration days. mean/day and $t$ belong to the daily sum
+of the twelve legs, and the Sharpe ratio is that sum's mean over its standard
+deviation times $\sqrt{252}$. Crossings per day count the trades that cross
+the spread (a re-pick onto the same strikes with the same sign is a hold); the
+break-even half-spread is the mean daily midpoint profit over the mean
+crossings per day, in percent of premium. Panel (a) leaves flat the
+\runappRpCensored{} bars whose vendor implied volatility is a censored solver
+value; panel (b) re-inverts it from the straddle midpoint, as the main text
+does, which moves the block-diagonal ridge from \runappRpSignMid{} to
+\runappRpRidgeReinv{}.}
+\label{tab:app_run_repick}
+\runappfit{\small\input{generated/appendix_running_repick}}
+\end{table}
+
+\paragraph{Finding.} At the midpoint every rule earns (Sharpe
+\runappRpMidMin{} to \runappRpMidMax{}) and $\mathrm{sign}(s^{\mathrm m})$ is
+ahead of always short (\runappRpSignMid{} against \runappRpAsMid{}; the eight
+forecasts \runappRpEightMidLo{} to \runappRpEightMidHi{}). At the crossed
+spread every rule loses (\runappRpXMin{} to \runappRpXMax{}; the eight
+forecasts \runappRpEightXLo{} to \runappRpEightXHi{}). The book crosses the
+spread \runappRpXingLo{} to \runappRpXingHi{} times a day, and the median
+half-spread, \runappRpHalfSpread{}\% of premium, is above every rule's
+break-even half-spread (\runappRpBeLo{}\% to \runappRpBeHi{}\%). The least
+negative rule at the crossed spread is the one that uses the forecast only on
+the settling 15:30 leg (\runappRpHybX{}).
+
+\paragraph{Why it is not in the main text.} No rule survives the spread, and
+the implied side of the daytime signal is a construction --- a profile share of
+a quote for the rest of the day --- not a price.
+
+% ----------------------------------------------------------------------------
+\subsection{Time to the Close: Holding from Every Clock, Delta-Hedged}
+\label{sec:app_run_holdclose}
+
+\paragraph{Question.} Enter at any clock and hold to the close: does a
+forecast of the rest of the day, read against the quoted variance for the rest
+of the day, pick the side? At each clock $t$ from 10:00 to 15:30 the nearest
+out-of-the-money straddle is bought or sold at its midpoint and held to cash
+settlement, twelve overlapping trades a day. Every position is delta-hedged in
+the index: at the entry stamp and at every later thirty-minute stamp to 15:30,
+the straddle's Black--Scholes delta (entry strikes, that stamp's spot, and that
+stamp's implied volatility over the hours left) is offset by index units held
+to the next stamp, the last from 15:30 to the official close. The hedge trades
+at the vendor spot at no cost, and $R_t$ adds its profit to the settlement
+value. The signal stretches the forecast to the rest of the day,
+$s_t=\widehat{RV}_t/w_t-\mathrm{IV}^2_{\mathrm{hr},t}h_t$, which has the sign
+of $s^{\mathrm m}_t$ above; at 15:30, $w_t=1$ and $h_t=\tfrac12$, and $s_t$ is
+the signal of the last-30-min trade.
+
+% Source: results/atm_straddle_intraday_holdclose/rule_table_intraday_blk2.csv and
+%   rule_table_intraday_crossed_blk2.csv (notebooks/atm_straddle_intraday_holdclose.executed.ipynb,
+%   sections 4b, 6 and 7; the hedge is attach_long_dh of
+%   writeup/make_rule_by_strategy_intraday_tex.py, gated in section 4b).
+\begin{table}[H]
+\centering
+\caption{Holding to the close from every clock, delta-hedged, pooled over the
+twelve entry clocks 10:00--15:30 (\runappHcNbars{} trades); columns as in
+Table~\ref{tab:app_run_repick}. Each trade crosses the spread once, at entry.
+The 15:30 leg column scores that leg alone at the crossed spread.}
+\label{tab:app_run_holdclose}
+\runappfit{\small\input{generated/appendix_running_holdclose}}
+\end{table}
+
+% Source: results/atm_straddle_intraday_holdclose/confusion_matrix_by_clock.csv
+%   (holdclose notebook, section 8c).
+\begin{table}[H]
+\centering
+\caption{The position against the outcome, by entry clock (midpoint, hedged
+$R$). Accuracy is the share of days on which the position had the sign of
+$R$: a buy with $R>0$ or a sale with $R\le 0$. The accuracy of always short is
+$1-P(R>0)$. The bars with a censored implied volatility are left out.}
+\label{tab:app_run_confusion}
+\runappfit{\small\input{generated/appendix_running_confusion}}
+\end{table}
+
+\paragraph{A forecast fitted on the rest of the day.} The stretch
+$\widehat{RV}_t/w_t$ reaches the rest of the day from a one-bar forecast. Three
+maps fitted on the rest-of-day variance itself replace it, one regression per
+entry clock for $\log RV^{\mathrm{rem}}_t$ on sessions strictly before the day:
+M1 on the log of the next-bar forecast, M2 adding the realized variance from
+the open to $t$, and M3 adding the previous session's rest-of-day variance
+(the constructions of Section~\ref{sec:app_run_multihorizon}). The 15:30 clock
+is left out because there the rest of the day is one bar.
+
+% Source: results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv and
+%   srem_vs_sm_dsharpe.csv; the QLIKE column from the saved output of the holdclose
+%   notebook, section 8d (pooled line of its rest-of-day QLIKE table).
+\begin{table}[H]
+\centering
+\caption{Rest-of-day signals on the eleven entry clocks 10:00--15:00
+(\runappMapNbars{} trades, the \runappHcNdays{} days). QLIKE scores each
+forecast against the realized variance from $t$ to the close.
+$\mathrm{sign}(s^{\mathrm{rem}})$ trades $F^{\mathrm{rem}}_t-
+\mathrm{IV}^2_{\mathrm{hr},t}h_t$ with the fitted map in place of the stretch.
+$\Delta$Sharpe is the paired difference from the profile-stretch row at the
+midpoint, with a 95\% moving-block bootstrap percentile interval.}
+\label{tab:app_run_maps}
+\runappfit{\small\input{generated/appendix_running_restofday_maps}}
+\end{table}
+
+\paragraph{Finding.} Held to the close and hedged, both rules pay their spread
+(Table~\ref{tab:app_run_holdclose}): always short \runappHcAsMid{} at the
+midpoint and \runappHcAsX{} crossed, $\mathrm{sign}(s)$ \runappHcSignMid{} and
+\runappHcSignX{}. The forecast-free control is ahead at both fills. The
+direction rule is right on \runappCmAccLo{} to \runappCmAccHi{} of days at each
+clock; always selling is right on \runappCmShortLo{} to \runappCmShortHi{}, more
+often at \runappCmBelow{} of the \runappCmClocks{} clocks
+(Table~\ref{tab:app_run_confusion}). Where it buys, the straddle wins more
+often than on an average day at \runappCmBuyBeats{} of the \runappCmClocks{}
+clocks. The fitted rest-of-day maps forecast the rest of the day no better than
+the stretch (pooled QLIKE \runappMapQOne{}, \runappMapQTwo{} and
+\runappMapQThree{} against \runappMapQStretch{}), buy more often
+(\runappMapOneBuy{}\% of bars for M1 against \runappMapSmBuy{}\%), and trade
+worse: Sharpe \runappMapOneMid{}, \runappMapTwoMid{} and \runappMapThreeMid{}
+against \runappMapSmMid{} at the midpoint, with all \runappMapExcl{} of
+\runappMapIntervals{} paired intervals (two fills, three maps) below zero; M1's
+difference is \runappMapOneDs{} \runappMapOneCi{}.
+
+\paragraph{Why it is not in the main text.} Before 15:30 the forecast does not
+improve on the forecast-free control, the daytime trades rest on a
+frictionless hedge the main text does not model, and the twelve trades of a day
+overlap.
+
+% ----------------------------------------------------------------------------
+\subsection{The Sharpe Ratio Through the Day}
+\label{sec:app_run_perclock}
+
+\paragraph{Question.} How does the Sharpe ratio of each rule change with the
+clock at which the position is taken? Table~\ref{tab:app_run_perclock} keeps
+one clock at a time, one trade per expiration day, for the two books above:
+the thirty-minute re-pick (unhedged) and the delta-hedged hold to the close.
+The 09:35 row is the first stamp of the chain; it is scored with the forecast
+issued at 09:30 for the 09:30--10:00 bar, and only in the hold-to-close book.
+
+% Source: results/atm_straddle_intraday/rule_by_strategy/<hhmm>/rule_by_strategy_{always_short,sign_s}.csv
+%   and results/atm_straddle_intraday_holdclose/rule_by_strategy_dh/<hhmm>/rule_by_strategy_{always_short,sign_s}.csv
+%   (writeup/make_rule_by_strategy_intraday_tex.py [--dh-holdclose]; the bundles
+%   writeup/rule_by_strategy_intraday_index.pdf and writeup/rule_by_strategy_dh_holdclose_index.pdf,
+%   the latter current, the former not rebuilt with 09:35).  These re-invert the censored
+%   implied volatility as the main text does; the notebooks' own per-clock tables leave those
+%   bars flat (caption).
+\begin{table}[H]
+\centering
+\caption{Annualized Sharpe ratio by entry clock, one trade per expiration day.
+Re-pick: the thirty-minute hold of Section~\ref{sec:app_run_repick} (its 15:30
+row is the last-30-min trade). To close: the delta-hedged hold of
+Section~\ref{sec:app_run_holdclose}. $\mathrm{sign}(s)$ is the block-diagonal
+ridge; the last column is the range over the eight forecasts of
+Table~\ref{tab:close_option_rules}. Midpoint fills unless marked crossed. The
+censored implied volatility is re-inverted as in the main text; the
+hold-to-close notebook, which leaves those bars flat, differs from the
+$\mathrm{sign}(s)$ column by at most \runappPcNbDiff{} (15:30:
+\runappPcNbLast{}).}
+\label{tab:app_run_perclock}
+\runappfit{\small\input{generated/appendix_running_perclock}}
+\end{table}
+
+% Source: results/atm_straddle_intraday_holdclose/mean_by_entry_hhmm_as.png
+%   (holdclose notebook, section 8; censored-implied bars flat).
+\begin{figure}[H]
+\centering
+\treefigorpending{0.9\textwidth}{../results/atm_straddle_intraday_holdclose/mean_by_entry_hhmm_as.png}
+\caption{Delta-hedged hold to the close by entry clock, block-diagonal ridge:
+mean return (top) and annualized Sharpe ratio (bottom) of always short and
+$\mathrm{sign}(s)$ (holdclose notebook, where the bars with a censored implied
+volatility sit flat).}
+\label{fig:app_run_perclock}
+\end{figure}
+
+\paragraph{Finding.} Hedged and held to the close, always short is strongest
+in the late morning (\runappPcAsPeak{} at \runappPcAsPeakClock{},
+\runappPcAsSecond{} at \runappPcAsSecondClock{}) and falls through the
+afternoon to \runappPcAsFifteen{} at 15:00 and \runappPcAsLast{} at 15:30
+(\runappPcAsLastX{} crossed). At \runappPcAsBeatsAll{} of the
+\runappPcDayClocks{} clocks from 09:35 to 15:00 it is ahead of the
+$\mathrm{sign}(s)$ rule of every one of the eight forecasts at the midpoint;
+at the crossed spread it is ahead of the ridge's at \runappPcAsBeatsAllX{} of
+them. The order reverses only at 15:30: $\mathrm{sign}(s)$ \runappPcSgLast{}
+(\runappPcSgLastLo{} to \runappPcSgLastHi{} across the eight), \runappPcSgLastX{}
+crossed. At the 09:35 open always short earns \runappPcAsFirst{}
+(\runappPcAsFirstX{} crossed) and the ridge's $\mathrm{sign}(s)$
+\runappPcSgFirst{} (\runappPcSgFirstX{}). In the unhedged re-pick the
+always-short Sharpe ratio moves between \runappPcRpAsLo{} and \runappPcRpAsHi{}
+from clock to clock, and $\mathrm{sign}(s)$ is ahead at \runappPcRpSgBeats{}
+of \runappPcRpClocks{} clocks, all before the spread.
+
+\paragraph{Why it is not in the main text.} What varies through the day is the
+premium earned by the forecast-free control, a different object from the
+one-bar forecast the paper studies; the forecast is ahead of that control only
+at the last bar, which is the main text's trade.
+
+% ----------------------------------------------------------------------------
+\subsection{A Forecast Built for the Rest of the Day}
+\label{sec:app_run_restofday}
+
+\paragraph{Question.} The rest-of-day signals above reach the close from a
+one-bar forecast. Does a model fitted directly on the rest of the day forecast
+it better? For every entry clock $c$ from 09:30 to 15:30 the per-bar linear
+estimators (ridge, lasso, elastic net; 2000-session rolling window, causal
+penalty tuning) are fitted with the realized variance from $c$ to the 16:00
+close as the target, on the three column sets of the per-bar models. Each is
+compared on identical rows with the one-step construction of the same
+estimator and column set: the forecast of the bar starting at $c$ divided by
+that bar's prior-days share of the rest of the day. The direct forecast is
+back-transformed plainly --- the squared prediction times the arm's causal
+per-clock profile of the rest-of-day variance --- with no second-moment
+correction.
+
+% Source: results/linear_subsection_restofday/score_rest_of_day.csv, the "plain" columns
+%   (qlike_plain, pct_plain_vs_onestep, p_plain_vs_onestep); experiments/score_rest_of_day.py,
+%   campaign specs/causal_tune_rest_of_day.py.  The scorer's "causal" column adds a
+%   correction to the direct side only and is not used.
+\begin{table}[H]
+\centering
+\caption{Direct rest-of-day forecasts against the one-step construction,
+\runappRdNlo{}--\runappRdNhi{} sessions from \runappRdFirst{} to
+\runappRdLast{}. $\Delta$QLIKE is $100\,(\mathrm{QLIKE}_{\text{direct}}/
+\mathrm{QLIKE}_{\text{one-step}}-1)$ at one entry clock; the median is over
+the twelve clocks 09:30--15:00. Clocks better (worse) count the clocks at
+which the direct forecast's loss is lower (higher) with a Diebold--Mariano
+$p$ below \runappRdAlpha{}; clocks higher counts point estimates above zero.
+At 15:30 the two constructions are the same forecast.}
+\label{tab:app_run_restofday}
+\runappfit{\small\input{generated/appendix_running_restofday}}
+\end{table}
+
+\paragraph{Finding.} The direct forecast has the lower loss at the median
+clock for every estimator and column set: \runappRdBaseLo{}\% to
+\runappRdBaseHi{}\% on HAR + calendar, \runappRdLiveLo{}\% to
+\runappRdLiveHi{}\% on the live-feasible set and \runappRdAllLo{}\% to
+\runappRdAllHi{}\% on all features. It is significantly better at
+\runappRdBetterLo{} to \runappRdBetterHi{} of the twelve clocks and never
+significantly worse; at 15:30 the two agree to \runappRdLastMax{}\%. The plain
+back-transform has rare extreme values: \runappRdExtremeN{} of the
+\runappRdCells{} clock cells carry a QLIKE above 1 on one side or the other,
+the largest the \runappRdExtremeCell{} at \runappRdExtremeClock{}
+(\runappRdExtremeQ{} against \runappRdExtremeOne{} for the one-step
+construction), and the same kind of value gives the all-features ridge a plain
+QLIKE of \runappRdAllRidgeLast{} at 15:30. None of those cells is a significant
+comparison, which is why the table reports the median clock and per-clock tests
+rather than a pooled mean.
+
+% The trading test of the direct forecast (checklist item E2) belongs to another workstream:
+% experiments/restofday_trading_test.py -> results/linear_subsection_restofday/trading_test/
+% (SUMMARY.md, trading_test_*.csv) and its table generated/appendix_running_restofday_trading.tex.
+% It landed at 02:34 on 2026-09-29, while this appendix was being assembled; the prose numbers
+% below are read from its trading_test_pooled.csv by make_appendix_running_tex.py into
+% generated/appendix_running_restofday_trade_numbers.tex.  Both hooks vanish if the outputs do.
+\IfFileExists{generated/appendix_running_restofday_trading.tex}{%
+\IfFileExists{generated/appendix_running_restofday_trade_numbers.tex}{%
+\input{generated/appendix_running_restofday_trade_numbers}%
+\paragraph{Trading test.} The direct forecast replaces the stretch in the
+delta-hedged hold-to-close signal of Section~\ref{sec:app_run_holdclose},
+$s_t=F^{\mathrm{rem}}_t-\mathrm{IV}^2_{\mathrm{hr},t}h_t$, on the same days,
+bars, fills and hedge (Table~\ref{tab:app_run_restofday_trade}; per-bar ridge,
+plain back-transform). Pooled over the entry clocks 10:00--15:30 it trades
+better by a point estimate: on the live-feasible set from \runappTtLfCur{} to
+\runappTtLfDir{} at the midpoint (\runappTtLfD{} \runappTtLfCi{}) and from
+\runappTtLfCurX{} to \runappTtLfDirX{} crossed (\runappTtLfDX{}
+\runappTtLfCiX{}); on all features \runappTtAfD{} \runappTtAfCi{}; on HAR +
+calendar \runappTtBaD{} \runappTtBaCi{}. Of these \runappTtRidgeIntervals{}
+intervals (three column sets, two fills), \runappTtRidgeZero{} include zero.
+Over all \runappTtCombos{}
+estimator, column-set and back-transform combinations at the midpoint the
+direct forecast is ahead in \runappTtAhead{}, with \runappTtExclFor{} intervals
+excluding zero in its favour and \runappTtExclAgainst{} against. It buys less
+often (\runappTtLfBuyDir{}\% of bars against \runappTtLfBuyCur{}\% on the
+live-feasible set), the mirror image of the fitted maps of
+Table~\ref{tab:app_run_maps}, although it changes the QLIKE on these bars by
+\runappTtLfQ{}\%; both signals stay below always short (direct minus always
+short \runappTtLfVsShort{} \runappTtLfVsShortCi{}, live-feasible, midpoint).
+The trading gain, where there is one, is inside its sampling error.
+}{}%
+\begin{table}[H]
+\centering
+\caption{Trading test of the direct rest-of-day forecast in the delta-hedged
+hold-to-close book, per-bar ridge, on the \runappHcNdays{} days (another
+workstream's table, read as generated). Top: pooled over the entry clocks
+10:00--15:30 (daily sums), Sharpe ratios of the current signal
+($\widehat{RV}_t/w_t$) and the direct one ($F^{\mathrm{rem}}_t$) and their
+paired difference, for the plain back-transform and a recalibration per entry
+clock. Bottom: by entry clock, plain, midpoint. Intervals: paired circular
+block bootstrap, 95\% percentile; $^{*}$: the percentile and basic intervals
+both exclude zero.}
+\label{tab:app_run_restofday_trade}
+% The generated file holds two tabulars separated by vertical space, and its first is
+% wider than the text (2026-09-29 build: by 62.8pt).  A minipage 15% wider than the text
+% holds both; the whole is then scaled back to the text width.
+\resizebox{\textwidth}{!}{\begin{minipage}{1.15\textwidth}\centering
+\input{generated/appendix_running_restofday_trading}
+\end{minipage}}
+\end{table}}{}
+
+\paragraph{Why it is not in the main text.} The paper's target is the one-bar
+variance and its rest-of-session sections are parked. A better rest-of-day
+loss has also not been shown to be a better trade: the fitted maps of
+Table~\ref{tab:app_run_maps} forecast about as well as the stretch and trade
+worse.
+
+% ----------------------------------------------------------------------------
+\subsection{After the Research Sample: May 2024 to September 2026}
+\label{sec:app_run_post2024}
+
+\paragraph{Question.} The main text's scored frame ends with the forecast
+panel on 30~April~2024. What did the trade do afterwards? It has been run
+forward in the long-only form used live (``the card''): at 15:30 buy the
+straddle at the ask when the ask is at or below $P^{*}$, the Black--76 value of
+the straddle at the forecast's total volatility $\sqrt{\widehat{RV}_t}$, and
+hold it to the close; month-ends are bought at any price and are left to
+Section~\ref{sec:app_run_monthend}. With the implied variance read at the ask,
+this is the buy side of $\mathrm{sign}(s)$. The forecast is the per-bar ridge
+on the free-feed column set of Section~\ref{sec:app_run_vix}, refitted on the
+panel extended with the post-2024 feeds (index-futures minute bars from a second
+vendor, hourly VIX prints). P\&L per day counts $R$ at the ask on the days
+bought and zero on the others. Studies 85 to 90 ask whether the loss after
+2024 comes from the inputs (study 87), the buy threshold (88), the training
+window or the target (89), or the regime (90).
+
+% Sources: results/atm_straddle_intraday_holdclose/proposals/{85,87,88,89,90}/ (summary.txt,
+%   summary.csv, forecast_diagnostics.csv); scripts writeup/intraday_proposals/85_earliest_limit.py,
+%   87_daily_edge_inputs.py, 88_walkforward_threshold.py, 89_recent_and_ratio_models.py,
+%   90_regime_filter.py.  Study 88 at its N = 250 window; study 89 at the official close.
+\begin{table}[H]
+\centering
+\caption{The card after the research sample, month-ends excluded. Panel (a):
+research years 2021-09 to 2024-04 (\runappPoResDays{} days; the first 250
+eligible days from 2020-01 are the walk-forward warm-up), after 2024-05
+\runappPoPostDays{} days; each walk-forward variant is set from the 250
+eligible days before each decision. Panel (b): research years 2020-01 to 2024-04
+(\runappPoEightyNineResDays{} days; the target models start later, once their
+windows fill), after 2024-05 the same \runappPoPostDays{} days. Panel (c): the
+research years only (\runappPoEightySevenDays{} days) with the post-2024 input
+changes applied. The last column is the paired difference from the card on the
+same days --- after 2024-05 in panels (a) and (b), on the research years in
+panel (c) --- with a 95\% circular block-bootstrap interval.}
+\label{tab:app_run_post2024}
+\runappfit{\small\input{generated/appendix_running_post2024}}
+\end{table}
+
+\paragraph{Finding.} The card has no edge after the research sample. On the
+SPX book from May 2024 to December 2025 it makes \runappPoSpxPnl{} per day
+($t=\runappPoSpxT{}$, \runappPoSpxBuys{} buys on \runappPoSpxDays{} days). In
+the walk-forward frame it makes \runappPoResPnl{} per day
+($t=\runappPoResT{}$) in the research years, buying on \runappPoResShare{}\%
+of days, and \runappPoPostPnl{} ($t=\runappPoPostT{}$, interval
+\runappPoPostCi{}) after April 2024, buying on \runappPoPostShare{}\%. The
+post-2024 inputs do not explain the loss: applied together to the research
+years they leave \runappPoAllPnl{} per day against \runappPoDeckPnl{}
+(difference \runappPoAllD{}, interval \runappPoAllCi{}), and each alone moves
+the P\&L per day by at most \runappPoAloneMax{}. No walk-forward repair
+restores a material edge without giving up the research years: the
+trailing-optimal multiplier on $P^{*}$ makes \runappPoFOnePost{} per day after
+2024 ($t=\runappPoFOneT{}$, interval \runappPoFOneCi{}), above the card by
+\runappPoFOneD{} \runappPoFOneDCi{} (Holm $p=\runappPoFOneHolm{}$), but costs
+\runappPoFOneResD{} \runappPoFOneResDCi{} per day in the research years;
+every regime filter's post-2024 interval includes zero, the best being the
+card's own recent form (\runappPoCFourPost{}, difference interval
+\runappPoCFourCi{}); shorter training windows lose \runappPoTwHi{} to
+\runappPoTwLo{} per day after 2024; and models of the trade-aligned targets
+buy on \runappPoRatioShareLo{}\% to \runappPoRatioShareHi{}\% of days and make
+\runappPoRatioPnlLo{} to \runappPoRatioPnlHi{}. After 2024 the variance implied
+at the ask forecasts the 15:30--16:00 realized variance better than the model
+does (QLIKE \runappPoQAsk{} against \runappPoQModelLo{} to
+\runappPoQModelHi{} across the training windows); in the research years the
+order was the reverse (\runappPoQCardRes{} against \runappPoQAskRes{}).
+
+\paragraph{Why it is not in the main text.} It tests the live, long-only form
+of the trade on a rebuilt panel and on days the forecast panel of the main
+text does not cover. It is the trade's only record after April 2024.
+
+% ----------------------------------------------------------------------------
+\subsection{The Month-End Long Straddle}
+\label{sec:app_run_monthend}
+
+\paragraph{Question.} On the last session of each month the card buys the
+straddle at any price, with no forecast. Is 15:30 the right clock for that
+purchase? Study 83 buys, at each clock, the straddle nearest the spot at the
+ask and settles it at the close.
+
+% Source: results/atm_straddle_intraday_holdclose/proposals/83/summary.txt, gated in the maker
+%   against 83/month_end_by_clock.csv (mean R per clock); script
+%   writeup/intraday_proposals/83_month_end_entry_clock.py.
+\begin{table}[H]
+\centering
+\caption{The month-end long straddle by entry clock, \runappMeN{} month-ends
+from \runappMeFirst{} to \runappMeLast{}, bought at the ask. The spread is the
+median relative spread at entry; minus 15:30 is the paired difference in mean
+$R$, with its paired $t$ and the Holm-adjusted $p$ over the twelve earlier
+clocks.}
+\label{tab:app_run_monthend}
+\runappfit{\small\input{generated/appendix_running_monthend}}
+\end{table}
+
+\paragraph{Finding.} The purchase pays at every clock and most at 15:30 (mean
+$R$ \runappMeR{}, $t=\runappMeT{}$); the earlier clocks earn \runappMeEarlyLo{}
+to \runappMeEarlyHi{}, and no difference from 15:30 survives the Holm
+adjustment (smallest $p$ \runappMeHolmMin{}). The 15:30 return is
+\runappMeFirstHalf{} over the first half of the month-ends and
+\runappMeSecondHalf{} over the second, from \runappMeSplit{}. On the
+\runappDsMonthEnds{} SPX month-ends from December 2024 of
+Table~\ref{tab:app_run_decision86} the 15:30 purchase earns
+\runappDsMeLast{} at the ask ($t=\runappDsMeLastT{}$), and entries from 15:40
+to 15:50 are \runappDsMeLaterLo{} to \runappDsMeLaterHi{} higher, with Holm
+$p$ of \runappDsMeHolmMin{}.
+
+\paragraph{Why it is not in the main text.} It is a calendar trade that reads
+no forecast.
+
+% ----------------------------------------------------------------------------
+\subsection{Is 15:30 the Right Decision Time?}
+\label{sec:app_run_decision}
+
+\paragraph{Question.} Two studies move the decision. Study 80 reruns the
+per-bar ridge with every regressor lagged $h$ bars, so that the forecast of
+the 15:30--16:00 bar uses information through 15:30 ($h=1$, the forecast the
+card uses), 15:00 ($h=2$) and so on, and trades the card rule at the 15:30 ask
+on the \runappDtDays{} days. Study 86 moves decision and entry together to
+$\tau$ between 15:00 and 15:50 on the SPX book of \runappDsDays{} sessions
+from \runappDsFirst{} to \runappDsLast{}: a session-by-session regression on
+the thirty-minute design moved to $\tau$ forecasts the variance from $\tau$ to
+the close, and the card buys at $\tau$ at the ask when the ask is at or below
+$P^{*}$.
+
+% Source: results/atm_straddle_intraday_holdclose/proposals/80/summary_by_horizon.csv and
+%   bootstrap_diff.csv (scope all_days); script writeup/intraday_proposals/80_earliest_decision_clock.py.
+\begin{table}[H]
+\centering
+\caption{The decision clock on the \runappDtDays{} days (study 80): the card
+rule at the SPXW 15:30 ask with the forecast built from information through
+the last input. QLIKE is that forecast's loss on the 16:00 bar. The last
+column is the paired difference in P\&L per day from $h=1$, with a 95\% block
+bootstrap interval (blocks of 20 days).}
+\label{tab:app_run_decision80}
+\runappfit{\small\input{generated/appendix_running_decision80}}
+\end{table}
+
+% Source: results/atm_straddle_intraday_holdclose/proposals/86/spx_summary_tau.csv (model T0),
+%   spx_bootstrap_tau.csv (T0, pnl_ask) and spx_month_end_tau.csv; the session range from
+%   86/summary.txt; script writeup/intraday_proposals/86_entry_1500_1520.py.
+\begin{table}[H]
+\centering
+\caption{Decision and entry at $\tau$ on the SPX book (study 86), month-ends
+excluded, at the ask. The difference from 15:30 is paired, with a 95\% block
+bootstrap interval (blocks of 20 sessions) and the Holm-adjusted one-sided $p$
+over the ten other clocks. The month-end columns buy every one of the
+\runappDsMonthEnds{} month-ends at $\tau$.}
+\label{tab:app_run_decision86}
+\runappfit{\small\input{generated/appendix_running_decision86}}
+\end{table}
+
+\paragraph{Finding.} Only the 15:30 forecast trades. On the \runappDtDays{}
+days the card's buys return \runappDtOneR{} ($t=\runappDtOneT{}$,
+\runappDtOneN{} buys) with the 15:30 forecast and \runappDtTwoR{}
+($t=\runappDtTwoT{}$) with the 15:00 one; every earlier forecast earns less per
+day with the interval below zero ($h=2$: \runappDtTwoD{} \runappDtTwoCi{}). On
+SPX after 2024 no $\tau$ is distinguishable from 15:30 (smallest Holm $p$
+\runappDsHolmMin{} over both forecast designs and both fills) and no $\tau$'s
+P\&L per day has $|t|$ above \runappDsTmax{}; the SPX spread is
+\runappDsSpreadLo{}\% to \runappDsSpreadHi{}\% of premium across the clocks,
+against \runappDsXspSpreadLo{}\% to \runappDsXspSpreadHi{}\% for the
+one-tenth-size XSP contract. Two further checks sit here. Adding one-minute
+index-futures features to the 15:30 forecast (study 82, \runappDgDays{}
+out-of-sample sessions) changes its QLIKE by \runappDgFineLo{}\% to
+\runappDgFineHi{}\% with $|t|\le\runappDgFineDm{}$. On \runappLoDays{} days
+with minute quotes, a limit order at $P^{*}$ cancelled at once earns
+\runappLoOnce{} per day ($t=\runappLoOnceT{}$), and leaving it working one
+minute longer costs \runappLoOneMin{} per day ($t=\runappLoOneMinT{}$), because
+the fills that come late are the ones that lose (study 84).
+
+\paragraph{Why it is not in the main text.} These confirm the timing the main
+text uses and settle execution details of the live form.
+
+% ----------------------------------------------------------------------------
+\subsection{The VIX Alone}
+\label{sec:app_run_vix}
+
+\paragraph{Question.} A live forecaster must fetch every input each afternoon.
+Which columns does the forecast need? Four column sets are fitted the way the
+per-bar models are (one regression per bar, 2000-session rolling window;
+ridge, lasso and elastic net), each on the HAR lags and calendar columns plus:
+the live-feasible set, the sixteen design columns \runappKeyLive{}; that set
+without \texttt{vvix} and \texttt{vix3m}; the free feed, the live-feasible
+set without \runappKeyFreeDrop{} (thirteen columns, all available from free
+sources); and \texttt{vix} alone.
+
+% Source: results/atm_straddle_0dte_1530/vix_bucket.csv (notebooks/atm_straddle_rv_iv.executed.ipynb,
+%   section 17), research-scorer columns; the key from src/data/loading.py SUBGROUPS
+%   (live_feasible, live_vix_only, free_vix_only, vix_only).
+\begin{table}[H]
+\centering
+\caption{Column sets for the 15:30 forecast, on the \runappVxDays{} days.
+QLIKE is relative to the live-feasible set on the same rows, on the 16:00 bar
+and averaged over the 13 bars of the session; negative is better. The Sharpe
+ratios are those of $\mathrm{sign}(s)$ under the research scorer, which
+recalibrates the 16:00 bar on its own; the notebook's all-bar recalibration is
+quoted in the text.}
+\label{tab:app_run_vix}
+\runappfit{\small\input{generated/appendix_running_vixonly}}
+\end{table}
+
+\paragraph{Finding.} The VIX alone gives the best 16:00 forecast (QLIKE
+\runappVxQ{}\% for the ridge) but is \runappVxQThirteen{}\% worse over the 13
+bars, and it trades worse: \runappVxMid{} at the midpoint and \runappVxX{}
+crossed against \runappVxLfMid{} and \runappVxLfX{}. Under the notebook's
+all-bar recalibration the order is the same (\runappVxNbMid{} against
+\runappVxNbLfMid{}). Dropping \texttt{vvix} and \texttt{vix3m} changes the
+16:00 QLIKE by \runappVxMinusQ{}\%, and the free feed by \runappVxFreeQ{}\%
+(Sharpe \runappVxFreeMid{}): the index-futures moments are what the trade uses,
+and of the Cboe indices only the VIX is needed.
+
+\paragraph{Why it is not in the main text.} It is an implementation question
+for the live forecast. It is also one more case of the loss and the trade
+disagreeing.
+
+% ----------------------------------------------------------------------------
+\subsection{Per-Bar Against Pooled Forecasts}
+\label{sec:app_run_perbar}
+
+\paragraph{Question.} A per-bar forecast fits one regression for each
+thirty-minute bar; its pooled twin fits one regression for all bars. Which is
+the better variance forecast? QLIKE is computed bar by bar for the 13 session
+bars on the \runappPbDays{} days, both tables through the same recalibration.
+
+% Source: results/atm_straddle_0dte_1530/perbar_vs_pooled_qlike.csv (rv_iv notebook, section 10,
+%   "Per-bar against pooled"); the FOMC split of the 14:30 bar from that cell's saved output.
+\begin{table}[H]
+\centering
+\caption{Per-bar forecast against its pooled twin: the percent difference in
+mean QLIKE (negative: the per-bar forecast is better), with a 95\% circular
+block-bootstrap interval (blocks of 21 days), over the session and on three
+bars labelled by bar end. DM $t$ is the Diebold--Mariano statistic of the
+session mean. Bars better (worse) count the bars whose interval lies wholly
+below (above) zero.}
+\label{tab:app_run_perbar}
+\runappfit{\small\input{generated/appendix_running_perbar_pooled}}
+\end{table}
+
+\paragraph{Finding.} Over the session every per-bar forecast has the lower
+loss (\runappPbSessLo{}\% to \runappPbSessHi{}\%), with the interval below zero
+for \runappPbSessCi{} of the \runappPbN{}. The gain sits mostly in one bar,
+14:00--14:30 (\runappPbFomcBarLo{}\% to \runappPbFomcBarHi{}\%), the bar that
+holds the FOMC statement: on the \runappPbFomcDays{} statement days the
+difference there is \runappPbFomcLo{}\% to \runappPbFomcHi{}\%, those days
+carry \runappPbShareLo{} to \runappPbShareHi{} of the pooled forecasts' loss at
+that bar, and on the other \runappPbOtherDays{} days it is \runappPbOtherLo{}\%
+to \runappPbOtherHi{}\%. On the traded 16:00 bar only the
+\runappPbSixteenWho{} resolves a gain (\runappPbSixteen{}\%,
+\runappPbSixteenCi{}).
+
+\paragraph{Why it is not in the main text.} The per-bar gain is mostly a
+calendar effect at a bar the trade does not use.
+
+% ----------------------------------------------------------------------------
+\subsection{Remaining-Variance Forecasts Across the Session}
+\label{sec:app_run_multihorizon}
+
+\paragraph{Question.} How well does each one-bar model extend to the variance
+remaining until the close, at every entry clock, using only what is known at
+the clock? Three regressions for the log of the remaining variance, M1 to M3
+of Table~\ref{tab:app_run_multihorizon}, are fitted per entry clock on
+strictly earlier days (at least 63) and rescaled by the running mean of
+realized over forecast; M0 uses no model. Each is built for the HAR OLS
+baseline and for the block-diagonal ridge, on the full panel: \runappMhDays{}
+days from \runappMhFirst{} to \runappMhLast{}.
+
+% Source: results/multihorizon/ttc_close_fomc1_pooled.csv and ttc_close_fomc1_byhour.csv, the
+%   FIXED variant (experiments/multihorizon_ttc.py --through-close --blk2-file yhat_blk2_fomc1.parquet
+%   --tag _close_fomc1), day ranges from ttc_close_fomc1_forecasts.parquet.
+% The plain variant (results/multihorizon/ttc_{pooled,byhour}.csv, and the tables that
+%   experiments/multihorizon_tex.py builds from it) has two defects and is not used: (1) its
+%   rest-of-day target stops at the bar ending 15:30 and so omits the 15:30-16:00 bar (a median
+%   9.4% of the rest of the day at 10:00 and 54.6% at 15:00, saved output of the holdclose
+%   notebook, section 8d; also the macros runappMhMissTen / runappMhMissFifteen); (2) its "blk2"
+%   is the ridge fitted without the FOMC calendar columns, not the panel of record.
+\begin{table}[H]
+\centering
+\caption{QLIKE of the rest-of-day forecasts, pooled over the entry clocks
+10:00--15:30 (the target runs to the 16:00 close), on all
+\runappMhDays{} days and on the \runappMhPostDays{} days from 2016. DM $t$
+compares the block-diagonal ridge with the HAR OLS baseline in the same
+construction (negative: the ridge is better).}
+\label{tab:app_run_multihorizon}
+\runappfit{\small\input{generated/appendix_running_multihorizon}}
+\end{table}
+
+\paragraph{Finding.} The block-diagonal ridge beats the baseline in every
+construction and era ($|t|$ from \runappMhDmLo{} to \runappMhDmHi{}); M1
+already has \runappMhBOne{} against \runappMhAOne{}, and M3 is the best,
+\runappMhBThree{}, against \runappMhNaive{} for the model-free clock mean. The
+loss drops between the 14:00 and 14:30 entries (M1, block ridge:
+\runappMhFourteen{} to \runappMhFourteenThirty{}) because the 14:00--14:30
+bar, the FOMC statement bar, leaves the window. On the option days the same
+maps do not trade better (Table~\ref{tab:app_run_maps}): M3, the best here,
+trades worst there.
+
+\paragraph{Why it is not in the main text.} The paper's rest-of-session
+sections are parked.
+
+% ----------------------------------------------------------------------------
+\subsection{Sizing by the Size of the Forecast Gap}
+\label{sec:app_run_sizing}
+
+\paragraph{Question.} $\mathrm{sign}(s)$ bets the same amount every day. Does
+a position that grows with the gap do better? Three sizes, each set from
+earlier days only: (a) $s_d$ over the root mean square of $s$ on earlier days
+(unbounded); (b) $\mathrm{sign}(s_d)$ times the share of earlier days with a
+smaller $|s|$; (c) twice the share of earlier days with a smaller $s$, minus
+one, which can take the side opposite to $\mathrm{sign}(s)$. The first block
+scores the days after a year of history, the second every day from the
+second.
+
+% Source: results/atm_straddle_0dte_1530/vrp_sized_rules.csv (rv_iv notebook, section 10,
+%   "Sizing by the size of the forecast gap").
+\begin{table}[H]
+\centering
+\caption{Sized rules against $\mathrm{sign}(s)$ on the same days. The ridge
+columns give the block-diagonal ridge's sized Sharpe ratio and its difference
+from $\mathrm{sign}(s)$ with a 95\% circular block-bootstrap interval (blocks
+of 21 days). The count columns report, over the \runappSzForecasts{}
+forecasts, how many differences are positive, and how many intervals lie
+wholly above and wholly below zero.}
+\label{tab:app_run_sizing}
+\runappfit{\small\input{generated/appendix_running_sizing}}
+\end{table}
+
+\paragraph{Finding.} After a year of history, proportional sizing loses to
+$\mathrm{sign}(s)$ for all \runappSzForecasts{} forecasts (block-diagonal
+ridge \runappSzSignMid{} for $\mathrm{sign}(s)$ on those \runappSzDays{}
+days); the rank with the sign kept ties it (\runappSzRankAbove{} of
+\runappSzForecasts{} above, median \runappSzRankMed{}); the centred rank is
+below it for all \runappSzForecasts{}. No sized rule has an interval above
+zero for any forecast, block or fill.
+
+\paragraph{Why it is not in the main text.} It is a negative result; the main
+text states only that the position uses the sign.
+
+% ----------------------------------------------------------------------------
+\subsection{The Trade Beside the S\&P~500 and Other Markets}
+\label{sec:app_run_portfolio}
+
+\paragraph{Question.} An investor already holds the S\&P~500. How much of the
+$\mathrm{sign}(s)$ trade belongs beside it, and is the trade a disguised bet
+on another market? The weight is the maximum-Sharpe mix of the two
+risk-scaled daily returns, re-estimated every day from earlier days only
+(252-day warm-up, then expanding; no short positions), at the midpoint.
+
+% Source: results/atm_straddle_0dte_1530/portfolio_weights_causal.csv (rv_iv notebook,
+%   section 18).
+\begin{table}[H]
+\centering
+\caption{The trade beside the S\&P~500, \runappPwDays{} days from
+\runappPwFirst{}. Correlations are those of the trade's daily return with the
+S\&P~500 over the trade's own window (15:30 to the close), with the size of
+that move, and close to close. The risk share is the trade's share of the risk
+budget; the dollar column is the median premium held per \$100 of index. The
+last column is the combination's Sharpe ratio minus that of the S\&P~500 alone
+(\runappPwSpx{}), with a 95\% paired block-bootstrap interval.}
+\label{tab:app_run_portfolio}
+\runappfit{\small\input{generated/appendix_running_portfolio}}
+\end{table}
+
+% Source: results/atm_straddle_0dte_1530/trade_return_comoves.csv (rv_iv notebook, section 18,
+%   "What the trade's return moves with"); a change of exactly zero is a repeated print and
+%   is dropped for that series.
+\begin{table}[H]
+\centering
+\caption{Correlation of the trade's daily return (midpoint) with same-day
+moves of other markets, on the \runappHcNdays{} days wherever both exist, with
+a 95\% circular block-bootstrap interval (blocks of 21 days).}
+\label{tab:app_run_comoves}
+\runappfit{\small\input{generated/appendix_running_comoves}}
+\end{table}
+
+\paragraph{Finding.} The trade barely moves with the index's direction
+(close-to-close correlation \runappPwCorrLo{} to \runappPwCorrHi{} across the
+\runappPwForecasts{} forecasts) and moves against the size of the last half
+hour's move (\runappPwAbsLo{} to \runappPwAbsHi{}), since the rule sells on
+most days. Earlier days put most of the risk budget in it: for the
+block-diagonal ridge a mean risk share of \runappPwShare{}, a median
+\$\runappPwDollar{} of premium per \$100 of index, and a combined Sharpe ratio
+of \runappPwComb{} against \runappPwSpx{} --- a gain of \runappPwGain{}
+\runappPwGainCi{}. Every forecast's interval includes zero (highest lower
+bound \runappPwBestLo{}). Across the \runappCoSeries{} same-day series only
+\runappCoExA{} interval excludes zero for the block-diagonal ridge, the size
+of the S\&P~500's move from 15:30 to the close (\runappCoOne{},
+\runappCoOneCi{}), and \runappCoExB{} for the per-bar ridge.
+
+\paragraph{Why it is not in the main text.} The paper is about the forecast,
+not portfolio construction, and on this sample the gain is not distinguishable
+from none.
+
+% ----------------------------------------------------------------------------
+% Strategy variations (checklist item F1, another workstream): that workstream writes
+% generated/strategy_variations.tex, which must carry its own \subsection heading.
+\IfFileExists{generated/strategy_variations.tex}{\input{generated/strategy_variations.tex}}{}
