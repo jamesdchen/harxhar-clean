@@ -1,0 +1,7 @@
+what,value
+"val_mse rank correlation (16 configs, row 0)",0.9558823529411765
+"config chosen, local",15.0
+"config chosen, cluster",3.0
+"forecast correlation, rows 0-249",0.9754266766590549
+"fit-space MSE local, rows 0-249",0.07180262973633425
+"fit-space MSE cluster, rows 0-249",0.07374029710461172
