@@ -148,11 +148,13 @@ leaves the trade where it was (\cmLdPerBarBase): a better forecast of the bar's 
 is not by itself a better trade. Restricting the per-bar ridge from all
 features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
 and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
-changing only the estimator moves the Sharpe ratio by between \cmLdEstMax{} (the lasso) and % H -> five estimators
-\cmLdEstMin{} (the elastic net). None of the \cmLdN{} steps has a Sharpe
-interval that excludes zero. The headline's resolved lead over the
-block-diagonal ridge is the sum of the first three steps, none of which is
-resolved alone; the largest is fitting the traded bar on its own.
+changing only the estimator to another penalty or to an untuned tree moves % H -> five estimators
+the Sharpe ratio by between \cmLdEstMax{} (the lasso) and \cmLdEstMin{} (the
+elastic net). Of the \cmLdN{} steps, \cmLdResolved{} has a Sharpe interval % steps with an interval excluding zero
+that excludes zero: the causally tuned LightGBM, below the headline. The
+headline's resolved lead over the block-diagonal ridge is the sum of the first
+three steps, none of which is resolved alone; the largest is fitting the
+traded bar on its own.
 
 \begin{table}[H]
 \centering
@@ -171,6 +173,28 @@ Steps the master table also stores are reproduced by it exactly.
 \label{tab:close_option_ladder}}
 \resizebox{\textwidth}{!}{\input{generated/table_close_ladder}}
 \end{table}
+
+% D1 2026-09-29 (change 6): the causally tuned per-bar trees.  Macros \cmTt... from
+% results/linear_subsection_trees_tuned/a2b/{qlike_1600_paired,trade_1600_paired}.csv (the 866
+% deck days, 16:00-bar recalibration), gated against master_table.csv by the maker.
+\paragraph{Trees, untuned and causally tuned.} The per-bar trees of
+Table~\ref{tab:close_option_rules} take the settings of the paper's tree
+columns. Re-selecting those settings causally on the per-bar design
+(Section~\ref{sec:close_option_methods}) does not help. At the 16:00 bar no
+tuned tree is more accurate than the per-bar ridge on the same inputs:
+\cmTtVsRidgeBetter{} of \cmTtVsRidgeN{} intervals (three trees, three input % qlike_1600_paired.csv, tuned* vs ridge
+sets, two selection rules) lie below zero and \cmTtVsRidgeWorse{} above, the
+closest being LightGBM on all features (\cmTtLgbmAllQ\%). Tuning never makes a % tuned lgbm vs ridge, all_features
+tree more accurate than its untuned self either: \cmTtVsUntunedMseBetter{} of
+nine intervals below zero and \cmTtVsUntunedMseWorse{} above, LightGBM on % tuned * vs untuned *, MSE rule
+\texttt{live\_feasible} worst (\cmTtLgbmLiveVsUntuned\%). On the trade the % tuned lgbm vs untuned lgbm, live_feasible
+tuned LightGBM on \texttt{live\_feasible} trades at \cmTtLgbmLiveSh{} against % trade_1600_paired.csv
+the ridge's \cmTtLgbmLiveRidgeSh{}, \cmTtLgbmLiveVsRidge{} --- the one step of
+Table~\ref{tab:close_option_ladder} whose interval excludes zero --- and the
+best of the \cmTtN{} tuned trees, LightGBM on all features (\cmTtBestSh), is % master_table.csv family "per-bar tree (tuned)"
+\cmTtLgbmAllVsRidge{} against the per-bar ridge on the same inputs and % trade_1600_paired.csv, all_features
+\cmTtBestVsH{} against the headline. No tree, tuned or not, is resolved above % master_table_vs_headline.csv
+the per-bar ridge on either count.
 
 \paragraph{At the crossed spread.} Every Sharpe ratio of
 Table~\ref{tab:close_option_rules} is given at both fills. Charging the

@@ -17,6 +17,7 @@ Sources
   results/spxw_pnl/MANIFEST.md                         design panel of each of the paper's tables
   results/close_pnl_decomp/research_scorer/*.csv       the P&L decomposition under the same scorer
   results/close_master_table/master_table_daily.parquet  per-day series (paired steps)
+  results/linear_subsection_trees_tuned/a2b/*.csv      causally tuned per-bar trees (A2b)
 
 Usage:  python writeup/make_table_close_main.py
 """
@@ -41,6 +42,7 @@ GEN = ROOT / "writeup" / "generated"
 TABLE_OUT = GEN / "table_close_main.tex"
 NUMBERS_OUT = GEN / "close_main_numbers.tex"
 LADDER_OUT = GEN / "table_close_ladder.tex"
+A2B = ROOT / "results" / "linear_subsection_trees_tuned" / "a2b"  # tuned trees (A2b)
 LADDER_CSV = GEN / "close_main_ladder.csv"  # the executed pairs behind LADDER_OUT
 GATE_TOL = 1e-9  # a recomputed pair must equal the master table's stored pair
 
@@ -489,6 +491,24 @@ LADDER = [
         "subtree_rf_live_feasible",
         "random forest, untuned",
     ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_tuned_live_feasible_lgbm",
+        "LightGBM, causally tuned",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_tuned_live_feasible_xgb",
+        "XGBoost, causally tuned",
+    ),
+    (
+        "Estimator on \\texttt{live\\_feasible}: headline ridge $\\to$ alternative",
+        HEADLINE,
+        "subtree_tuned_live_feasible_rf",
+        "random forest, causally tuned",
+    ),
 ]
 
 
@@ -636,7 +656,7 @@ def ladder_macros(lad: pd.DataFrame) -> dict[str, str]:
     one("PerBarLive", "pool_ridge_live_feasible", HEADLINE)
     one("InAll", "sub_ridge_all_features", HEADLINE)
     one("InBase", "sub_ridge_baseline", HEADLINE)
-    est = lad[lad["from"] == HEADLINE]
+    est = lad[(lad["from"] == HEADLINE) & ~lad["to"].str.contains("tuned")]
     assert est.loc[est["dSharpe_mid"].idxmax(), "to"] == "sub_lasso_live_feasible", (
         "prose: lasso"
     )
@@ -647,9 +667,22 @@ def ladder_macros(lad: pd.DataFrame) -> dict[str, str]:
     m["cmLdEstMin"] = s_(est["dSharpe_mid"].min())
     m["cmLdEstMax"] = s_(est["dSharpe_mid"].max())
     m["cmLdN"] = str(len(lad))
-    resolved = ((lad["dSharpe_mid_lo"] > 0) | (lad["dSharpe_mid_hi"] < 0)).sum()
-    m["cmLdResolved"] = str(int(resolved))
-    assert resolved == 0, "claim: no single step's Sharpe interval excludes zero"
+    res = lad[(lad["dSharpe_mid_lo"] > 0) | (lad["dSharpe_mid_hi"] < 0)]
+    m["cmLdResolved"] = str(len(res))
+    assert list(res["to"]) == ["subtree_tuned_live_feasible_lgbm"], (
+        "claim: the only resolved step is the tuned LightGBM, below the headline"
+    )
+    assert (res["dSharpe_mid_hi"] < 0).all()
+    path = [
+        (REFERENCE, "pool_ridge_all_features"),
+        ("pool_ridge_all_features", "sub_ridge_all_features"),
+        ("sub_ridge_all_features", HEADLINE),
+    ]
+    total = sum(key[p]["dSharpe_mid"] for p in path)
+    master = pd.read_csv(MASTER).set_index("key")
+    assert abs(total - master.loc[HEADLINE, "dSharpe_mid_vs_ref"]) < GATE_TOL, (
+        "claim: the three path steps add up to the headline's lead over R"
+    )
     top = lad.loc[lad["dSharpe_mid"].idxmax()]
     assert top["block"].startswith("Fit the 16:00 bar alone"), (
         "claim: the largest step is per-bar"
@@ -661,6 +694,108 @@ def ladder_macros(lad: pd.DataFrame) -> dict[str, str]:
     assert pb["dSharpe_mid_lo"] < 0 < pb["dSharpe_mid_hi"], (
         "claim: ... but not on the trade"
     )
+    return m
+
+
+# --------------------------------------------------------------------------- tuned trees (A2b)
+def tuned_macros(d: pd.DataFrame) -> dict[str, str]:
+    """Causally tuned per-bar trees at 16:00 (results/linear_subsection_trees_tuned/a2b/).
+
+    a2b scores the 866 deck days ('deck' sample) with the same 16:00-bar recalibration; its
+    trade Sharpe ratios are gated against the master table's rows for the same tables.
+    """
+    m: dict[str, str] = {}
+    q = pd.read_csv(A2B / "qlike_1600_paired.csv")
+    q = q[q["sample"] == "deck"]
+    t = pd.read_csv(A2B / "trade_1600_paired.csv")
+    models = {"lgbm": "LightGBM", "xgb": "XGBoost", "rf": "random forest"}
+    buckets = ("baseline", "all_features", "live_feasible")
+    # gate: a2b's tuned-tree Sharpe ratios = the master table's (same tables, same scorer)
+    for b in buckets:
+        for mod in models:
+            row = t[
+                (t["bucket"] == b)
+                & (t["forecast"] == f"tuned {mod}")
+                & (t["reference"] == "ridge")
+            ]
+            key = f"subtree_tuned_{b}_{mod}"
+            assert (
+                len(row) == 1
+                and abs(row["Sharpe_mid_forecast"].iloc[0] - d.loc[key, "Sharpe_mid"])
+                < GATE_TOL
+            ), key
+    # accuracy against the per-bar ridge on the same inputs: both selection rules, 3 x 3
+    vs_r = q[q["forecast"].str.startswith("tuned") & (q["reference"] == "ridge")]
+    assert len(vs_r) == 18, len(vs_r)
+    m["cmTtVsRidgeN"] = str(len(vs_r))
+    m["cmTtVsRidgeBetter"] = str(int(vs_r["better"].sum()))
+    m["cmTtVsRidgeWorse"] = str(int(vs_r["worse"].sum()))
+    assert m["cmTtVsRidgeBetter"] == "0", (
+        "claim: no tuned tree is more accurate than the ridge"
+    )
+    af = vs_r[
+        (vs_r["bucket"] == "all_features") & (vs_r["forecast"] == "tuned lgbm")
+    ].iloc[0]
+    m["cmTtLgbmAllQ"] = ci_(af["pct"], af["pct_ci_lo"], af["pct_ci_hi"], 1)
+    # tuned against untuned (the MSE rule = the arm of record; the QLIKE rule recorded beside it)
+    for rule, tag in (("", "Mse"), (" qsel", "Qsel")):
+        vs_u = q[
+            q["forecast"].isin([f"tuned {mod}{rule}" for mod in models])
+            & q["reference"].str.startswith("untuned")
+        ]
+        vs_u = vs_u[
+            vs_u["forecast"].str.split().str[1] == vs_u["reference"].str.split().str[1]
+        ]
+        assert len(vs_u) == 9, (rule, len(vs_u))
+        m[f"cmTtVsUntuned{tag}Better"] = str(int(vs_u["better"].sum()))
+        m[f"cmTtVsUntuned{tag}Worse"] = str(int(vs_u["worse"].sum()))
+        assert vs_u["better"].sum() == 0, (
+            "claim: tuning never makes a tree more accurate"
+        )
+    lf = q[
+        (q["bucket"] == "live_feasible")
+        & (q["forecast"] == "tuned lgbm")
+        & (q["reference"] == "untuned lgbm")
+    ].iloc[0]
+    m["cmTtLgbmLiveVsUntuned"] = ci_(lf["pct"], lf["pct_ci_lo"], lf["pct_ci_hi"], 1)
+    # the trade, against the per-bar ridge on the same inputs
+    for b, tag in (("live_feasible", "Live"), ("all_features", "All")):
+        r = t[
+            (t["bucket"] == b)
+            & (t["forecast"] == "tuned lgbm")
+            & (t["reference"] == "ridge")
+        ].iloc[0]
+        m[f"cmTtLgbm{tag}Sh"] = f_(r["Sharpe_mid_forecast"])
+        m[f"cmTtLgbm{tag}RidgeSh"] = f_(r["Sharpe_mid_reference"])
+        m[f"cmTtLgbm{tag}VsRidge"] = ci_(r["diff_mid"], r["ci_lo_mid"], r["ci_hi_mid"])
+    rl = t[
+        (t["bucket"] == "live_feasible")
+        & (t["forecast"] == "tuned lgbm")
+        & (t["reference"] == "ridge")
+    ].iloc[0]
+    assert rl["ci_hi_mid"] < 0, (
+        "claim: tuned LightGBM on live_feasible trades below the ridge"
+    )
+    ra = t[
+        (t["bucket"] == "all_features")
+        & (t["forecast"] == "tuned lgbm")
+        & (t["reference"] == "ridge")
+    ].iloc[0]
+    assert ra["ci_lo_mid"] < 0 < ra["ci_hi_mid"], (
+        "claim: tuned LightGBM on all_features unresolved"
+    )
+    # the best tuned tree on the trade, against the headline (master_table_vs_headline.csv)
+    tuned = d[d["family"] == "per-bar tree (tuned)"]
+    best = tuned["Sharpe_mid"].idxmax()
+    assert best == "subtree_tuned_all_features_lgbm", best
+    v = pd.read_csv(VS_HEADLINE).set_index("key").loc[best]
+    m["cmTtBestSh"] = f_(d.loc[best, "Sharpe_mid"])
+    m["cmTtBestVsH"] = ci_(
+        v["dSharpe_mid_vs_headline"],
+        v["dSharpe_mid_vs_headline_lo"],
+        v["dSharpe_mid_vs_headline_hi"],
+    )
+    m["cmTtN"] = str(len(tuned))
     return m
 
 
@@ -687,6 +822,7 @@ def main() -> None:
     lad = ladder()
     write_ladder_table(lad, d)
     m.update(ladder_macros(lad))
+    m.update(tuned_macros(d))
     write_numbers(m)
     print(
         f"wrote {TABLE_OUT.relative_to(ROOT)} and {NUMBERS_OUT.relative_to(ROOT)} ({len(m)} macros)"

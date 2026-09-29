@@ -213,3 +213,26 @@ not touched here), no undefined references.
   forecast to the headline add up exactly to its resolved +0.90 lead.
 - **Depends on** changes 3 and 4.
 - **Build.** 70 pages (+1), 12 overfull boxes, 0 undefined references.
+
+### Change 6 — (c) The causally tuned per-bar trees
+
+- **What.** Paragraph "Trees, untuned and causally tuned" in Section 5.4, and three
+  rows in Table 8 (tuned LightGBM / XGBoost / random forest on `live_feasible`, MSE
+  selection = the arm of record). Script: `tuned_macros()` reads
+  `results/linear_subsection_trees_tuned/a2b/qlike_1600_paired.csv` and
+  `trade_1600_paired.csv` (866 deck days, same 16:00-bar recalibration) and gates all
+  nine tuned-tree Sharpe ratios against `master_table.csv` (1e-9); the new Table 8 rows
+  are gated against `master_table_vs_headline.csv`. The ladder's claim is updated and
+  asserted: the only step whose interval excludes zero is the tuned LightGBM, below the
+  headline; the three path steps sum to the headline's lead over R (asserted to 1e-9).
+- **Why.** Checklist A2b finished tonight; the trees paragraph must say whether tuning
+  rescues the trees (it does not).
+- **Numbers.** Tuned vs the per-bar ridge on the same inputs, 16:00 QLIKE: 0 of 18
+  intervals below zero, 6 above; closest LightGBM `all_features` +0.7 % [−5.4, +7.4].
+  Tuned vs untuned (MSE rule): 0 of 9 below zero, 4 above; LightGBM `live_feasible`
+  +7.3 % [+2.1, +12.6] (QLIKE rule: 0 below, 2 above). Trade: tuned LightGBM
+  `live_feasible` 1.14 vs the ridge 1.90, −0.76 [−1.26, −0.24]; best tuned tree
+  (LightGBM `all_features`, 1.81) +0.15 [−0.60, +0.90] vs its ridge, −0.09
+  [−0.85, +0.63] vs the headline.
+- **Depends on** change 5 (Table 8).
+- **Build.** 70 pages, 12 overfull boxes, 0 undefined references.
