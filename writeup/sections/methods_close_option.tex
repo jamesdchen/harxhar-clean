@@ -10,11 +10,14 @@ control; constants were set before the portfolio was scored.
 to expiry, cash-settled on the day's official close. The panel is the
 expiration-day chain at 15:30~ET (bid, ask, mid, underlying, quoted
 implied volatility), 2020 through 2025. At 15:30 the trade is the
-nearest out-of-the-money pair: the smallest listed strike
-$K_c \ge S$ with a live mid and the largest listed strike
-$K_p \le S$ with a live mid, where $S$ is the 15:30 underlying print.
-When $S$ sits on a listed strike the two coincide (a straddle);
-otherwise the package is a one-strike-wide strangle. Entry
+% D1 2026-09-29 (wording): "straddle" defined once, here; "package" retired.
+\emph{straddle}: the nearest out-of-the-money call and the nearest
+out-of-the-money put of the same-day expiry, held as one position --- the
+call at the smallest listed strike $K_c \ge S$ with a live mid and the put at
+the largest listed strike $K_p \le S$ with a live mid, where $S$ is the 15:30
+underlying print. When $S$ sits on a listed strike the two strikes coincide;
+otherwise they are one strike apart. Holding the straddle from 15:30 to the
+close is the \emph{last-30-min trade}. Entry
 $P_{15:30}$ is the sum of the two mids. The position is held to the
 close and settled at intrinsic against the official S\&P~500 close
 $S_{\mathrm{cl}}$,
@@ -285,7 +288,7 @@ bootstrap of the days (blocks of 21 days, $2{,}000$ draws, the same resampled da
 for every interval).
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
-chain's quoted value on each of the two legs at 15:30; the package
+chain's quoted value on each of the two legs at 15:30; the straddle's
 quote is the mean of those two. The vendor quote is an \emph{hourly}
 volatility while the window that remains is thirty minutes, so the
 quote is rescaled before it is compared with anything,
@@ -302,7 +305,7 @@ $[0.0005,\,0.025]$ that returns a bracket node when it fails to converge, so
 the two bounds and the first interior nodes of that bisection are censored
 values rather than prices, and they are masked here. On the five scored
 days where a nearest leg carries one, the implied volatility is recovered
-instead by inverting the Black--76 price of the package --- call plus put at
+instead by inverting the Black--76 price of the straddle --- call plus put at
 zero rate on the 15:30 index level, the vendor's own convention, over the
 remaining half hour --- for the total volatility that reproduces the 15:30
 midpoint. On uncensored legs that same inversion
@@ -337,7 +340,7 @@ the same days; only $q_t$ changes.
       always-short control throughout, and it is one row of every table
       because it is the same portfolio whichever forecast sits beside it.
 \item \emph{$\mathrm{sign}(s)$}: $q_t = +1$ when $s_t > 0$ and
-      $q_t = -1$ otherwise --- long the package when the forecast exceeds
+      $q_t = -1$ otherwise --- long the straddle when the forecast exceeds
       implied variance, short when it does not, with the tie at $s_t = 0$
       resolved short so that the position is never flat. Direction only, at
       unit size. This is the headline rule.

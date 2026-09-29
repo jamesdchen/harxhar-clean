@@ -104,3 +104,18 @@ not touched here), no undefined references.
   `experiments/master_table_close.py`).
 - **Build.** 68 pages (+1), 12 overfull boxes (unchanged; the new list is set
   `\sloppy`), 0 undefined references.
+
+### Change 2 — Wording: the straddle, defined once; "package" retired
+
+- **What.** `methods_close_option.tex`, paragraph *Instrument*: the trade is now the
+  **straddle** — the nearest out-of-the-money call plus the nearest out-of-the-money
+  put, same-day expiry, one position — defined once there (the two strikes coincide
+  when the index sits on a strike, otherwise they are one strike apart), and holding
+  it from 15:30 to the close is named the **last-30-min trade**. Every rendered
+  "package" in `methods_close_option.tex` and `results_close_option.tex` (7) becomes
+  "straddle". Parked (`\iffalse`) text is untouched.
+- **Why.** The wording rule of the professor-facing write-up (straddle, never
+  package); the methods previously called only the coincident-strike case a straddle,
+  which clashed with Appendix D and the master table, where "straddle" is the pair.
+- **Before / after numbers.** None.
+- **Build.** 68 pages, 12 overfull boxes (unchanged), 0 undefined references.
