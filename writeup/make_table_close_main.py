@@ -28,6 +28,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 MASTER = ROOT / "results" / "close_master_table" / "master_table.csv"
+VS_HEADLINE = ROOT / "results" / "close_master_table" / "master_table_vs_headline.csv"
 MANIFEST = ROOT / "results" / "spxw_pnl" / "MANIFEST.md"
 # the P&L decomposition re-run under the same 16:00-bar recalibration (checklist B1)
 PNL_RS = ROOT / "results" / "close_pnl_decomp" / "research_scorer"
@@ -37,6 +38,9 @@ TABLE_OUT = GEN / "table_close_main.tex"
 NUMBERS_OUT = GEN / "close_main_numbers.tex"
 
 REFERENCE = "blk2"  # the paper's forecast of record (master table's fixed reference)
+HEADLINE = (
+    "sub_ridge_live_feasible"  # the section's headline forecast (master table's H)
+)
 SHORT = "always_short"
 N_DAYS = 866  # the trade frame every row of table A shares (asserted, not assumed)
 # the paper's columns fitted on the earlier design panel (dagger); checked against MANIFEST.md
@@ -141,6 +145,9 @@ def row_cells(d: pd.DataFrame, key: str, label: str, inputs: str) -> str:
         mark = r"$^{\mathrm{R}}$"
     if key in DAGGER:
         mark = r"$^{\dagger}$"
+    if key == HEADLINE:
+        mark = r"$^{\mathrm{H}}$"
+        label = r"\textbf{" + label + "}"
     is_ref = key == REFERENCE
     cells = [
         label + mark,
@@ -329,11 +336,80 @@ def macros(d: pd.DataFrame) -> dict[str, str]:
     m["cmMasterVsRefN"] = str(len(a_oth))
     m["cmMasterVsRefAbove"] = str(int((a_oth["dSharpe_mid_vs_ref_lo"] > 0).sum()))
 
+    m.update(headline_macros(d, a_all))
+
     # the crossed spread: how much each tabled forecast gives up
     fc = d.loc[[k for k in keys if k != SHORT]]
     loss = fc["Sharpe_mid"] - fc["Sharpe_crossed"]
     m["cmXLossMin"] = f_(loss.min())
     m["cmXLossMax"] = f_(loss.max())
+    return m
+
+
+def headline_macros(d: pd.DataFrame, a_all: pd.DataFrame) -> dict[str, str]:
+    """The headline forecast (change 4 of D1): its numbers and its nearest alternatives."""
+    m: dict[str, str] = {}
+    assert bool(d.loc[HEADLINE, "is_headline"]), (
+        "the master table must name the same headline"
+    )
+    h = d.loc[HEADLINE]
+    m["cmHQ"] = f"{h['qlike_recal']:.4f}"
+    m["cmHQPct"] = s_(h["qlike_pct_vs_ref"], 1)
+    m["cmHQCi"] = f"[{s_(h['qlike_diff_ci_lo'], 4)}, {s_(h['qlike_diff_ci_hi'], 4)}]"
+    m["cmHDM"] = s_(h["dm_vs_ref"], 2)
+    m["cmHDMp"] = f"{h['dm_p_vs_ref']:.3f}"
+    assert (
+        h["dm_p_vs_ref"] > 0.05 and h["qlike_diff_ci_lo"] < 0 < h["qlike_diff_ci_hi"]
+    ), "claim: the accuracy gain over R is not significant"
+    m["cmHShMid"] = f_(h["Sharpe_mid"])
+    m["cmHShX"] = f_(h["Sharpe_crossed"])
+    m["cmHMean"] = f_(h["mean_mid"], 3)
+    m["cmHHit"] = f"{100 * h['hit_rate_mid']:.1f}"
+    m["cmHBuy"] = f"{h['pct_buy']:.1f}"
+    for fill, tag in (("mid", "Mid"), ("crossed", "X")):
+        for vs, vtag in (("ref", "Ref"), ("short", "Short")):
+            c = f"dSharpe_{fill}_vs_{vs}"
+            m[f"cmHVs{vtag}{tag}"] = ci_(h[c], h[c + "_lo"], h[c + "_hi"])
+            assert h[c + "_lo"] > 0, (
+                f"claim: the headline's {fill} interval vs {vs} is above zero"
+            )
+    # rank among the master table's table-A forecasts (check rows excluded)
+    m["cmHRankSh"] = str(int(a_all["Sharpe_mid"].rank(ascending=False)[HEADLINE]))
+    m["cmHRankQ"] = str(int(a_all["qlike_recal"].rank(ascending=True)[HEADLINE]))
+    top = a_all["Sharpe_mid"].idxmax()
+    assert top != HEADLINE, "prose says the headline is not the table's maximum Sharpe"
+    m["cmTopShLabel"] = a_all.loc[top, "label"].split(" [")[0]
+    m["cmTopShInputs"] = tt(a_all.loc[top, "label"].split("[")[1].rstrip("]"))
+    m["cmTopShMid"] = f_(a_all.loc[top, "Sharpe_mid"])
+    # paired against the headline itself (master_table_vs_headline.csv)
+    v = pd.read_csv(VS_HEADLINE).set_index("key")
+    for key, tag in (
+        ("sub_lasso_live_feasible", "Lasso"),
+        ("sub_enet_live_feasible", "Enet"),
+        ("sub_ridge_all_features", "RidgeAll"),
+        (top, "Top"),
+    ):
+        r = v.loc[key]
+        m[f"cmVsH{tag}"] = ci_(
+            r["dSharpe_mid_vs_headline"],
+            r["dSharpe_mid_vs_headline_lo"],
+            r["dSharpe_mid_vs_headline_hi"],
+        )
+        assert r["dSharpe_mid_vs_headline_lo"] < 0 < r["dSharpe_mid_vs_headline_hi"], (
+            f"claim: {key} is indistinguishable from the headline on the trade"
+        )
+        m[f"cmVsH{tag}Same"] = f"{100 * r['same_position_as_headline']:.0f}"
+        m[f"cmVsH{tag}QPct"] = s_(r["qlike_pct_vs_headline"], 1)
+        m[f"cmVsH{tag}DM"] = s_(r["dm_vs_headline"], 2)
+    m["cmVsHLassoSh"] = f_(d.loc["sub_lasso_live_feasible", "Sharpe_mid"])
+    oth = v[v.index.isin(a_all.index) & (v.index != HEADLINE)]
+    assert len(oth) == len(a_all) - 1, (len(oth), len(a_all))
+    m["cmVsHN"] = str(len(oth))
+    m["cmVsHAbove"] = str(int((oth["dSharpe_mid_vs_headline_lo"] > 0).sum()))
+    m["cmVsHBelow"] = str(int((oth["dSharpe_mid_vs_headline_hi"] < 0).sum()))
+    assert m["cmVsHAbove"] == "0", (
+        "claim: no forecast trades above the headline, interval > 0"
+    )
     return m
 
 

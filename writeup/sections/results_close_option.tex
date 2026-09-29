@@ -43,7 +43,8 @@ paired interval (circular block bootstrap of the days, blocks of 21 days).
 Buys: the share of days the rule is long. Inputs: the input set of
 Section~\ref{sec:close_option_methods} by its design name; panel~A reads the
 paper's full design. $^{\dagger}$: the four columns still fitted on the
-earlier design panel (Section~\ref{sec:close_option_methods}). The rows are
+earlier design panel (Section~\ref{sec:close_option_methods}); H: the
+headline forecast (bold). The rows are
 selected from the closing-strategy master table, which scores \cmMasterN{}
 forecasts the same way on the same days.
 \label{tab:close_option_rules}}
@@ -89,6 +90,47 @@ in the table have a Sharpe-difference interval wholly above zero and
 the master table the count above zero is \cmMasterVsRefAbove{}. A table of % table A, check rows excluded
 this many forecasts on \cmNdays{} days is a search, and its intervals are read as
 such.
+
+% D1 2026-09-29 (change 4): the headline forecast and why.  Macros from
+% results/close_master_table/master_table.csv (row sub_ridge_live_feasible, is_headline) and
+% master_table_vs_headline.csv, written by writeup/make_table_close_main.py.
+\paragraph{The headline forecast, and why this one.} The headline forecast of
+this section is the per-bar ridge on the \texttt{live\_feasible} inputs (H in
+Table~\ref{tab:close_option_rules}). It is chosen for two reasons, neither of % reasons: results/close_master_table/SUMMARY.md (a)
+them its Sharpe ratio. It reads only the 16 series a forecaster can rebuild at
+15:30 from a retail feed, so the trade it scores is one that can be run; and it
+is the 15:30 study's forecast of record, the per-bar estimator that study
+defined first, not the maximum of the table: over the master table's
+\cmMasterN{} forecasts the highest Sharpe ratio belongs to the \cmTopShLabel{} % master_table.csv table A, argmax Sharpe_mid
+on \cmTopShInputs{} (\cmTopShMid{}), and taking the maximum of that many
+Sharpe ratios would select on the trade's own noise. The headline ranks
+\cmHRankSh{} of \cmMasterN{} on the Sharpe ratio and \cmHRankQ{} of % rank of sub_ridge_live_feasible in table A
+\cmMasterN{} on QLIKE.
+
+Its forecast is more accurate than the paper's, but not significantly: QLIKE
+\cmHQ{}, \cmHQPct\% against the block-diagonal ridge, Diebold--Mariano % qlike_recal, qlike_pct_vs_ref
+\cmHDM{} ($p=\cmHDMp$), with a day-block interval on the daily loss difference % dm_vs_ref, dm_p_vs_ref
+of \cmHQCi. Its trade is resolved against both references. The
+$\mathrm{sign}(s)$ portfolio has a Sharpe ratio of \cmHShMid{} at the % Sharpe_mid / Sharpe_crossed
+midpoint and \cmHShX{} at the crossed spread, earns \cmHMean{} premium units a % mean_mid
+day, is right on \cmHHit\% of days and long on \cmHBuy\%. Paired on the same % hit_rate_mid, pct_buy
+days it trades above the block-diagonal ridge by \cmHVsRefMid{} at the % dSharpe_mid_vs_ref
+midpoint (\cmHVsRefX{} crossed) and above always short by % dSharpe_crossed_vs_ref
+\cmHVsShortMid{} (\cmHVsShortX{} crossed); the second interval clears zero % dSharpe_{mid,crossed}_vs_short
+narrowly.
+
+What it is \emph{not} separated from matters as much. The lasso on the same
+inputs --- the same rows, target and window, only the penalty changed ---
+trades at \cmVsHLassoSh{}, \cmVsHLasso{} against the headline, takes its side on % master_table_vs_headline.csv
+\cmVsHLassoSame{} percent of days, and forecasts better on QLIKE % sub_lasso_live_feasible
+(\cmVsHLassoQPct\%, DM \cmVsHLassoDM). The elastic net on the same inputs is at
+\cmVsHEnet{}, the ridge on all features at \cmVsHRidgeAll{}, and the % sub_enet_live_feasible, sub_ridge_all_features
+table's top Sharpe ratio at \cmVsHTop. Over the master table's \cmVsHN{} other % the argmax forecast
+forecasts, \cmVsHAbove{} trades above the headline with an interval above zero % vs-headline counts, table A
+and \cmVsHBelow{} trade below it with an interval below zero. The headline is a
+forecast of record, not a winner: Table~\ref{tab:close_option_rules} resolves
+that it trades above the paper's forecast and above the control, and it does
+not resolve an order among the per-bar forecasts.
 
 \paragraph{At the crossed spread.} Every Sharpe ratio of
 Table~\ref{tab:close_option_rules} is given at both fills. Charging the

@@ -159,3 +159,30 @@ not touched here), no undefined references.
   | intervals vs the block-diagonal ridge above zero | — | 3 of 26 tabled forecasts; 9 of 99 in the master table |
   | Sharpe lost to the crossed spread | 0.47 (block-diagonal ridge) | 0.46 – 0.48 (every tabled forecast) |
 - **Build.** 68 pages, 12 overfull boxes (unchanged), 0 undefined references.
+
+### Change 4 — (b) The headline forecast: per-bar ridge on `live_feasible`, and why
+
+- **What.** A new paragraph block in Section 5.4 ("The headline forecast, and why this
+  one") after the table reading; the headline row is marked H (bold) in Table 7; the
+  script gains `headline_macros()` (reads `master_table.csv` row
+  `sub_ridge_live_feasible`, gated on the master table's own `is_headline`, and
+  `master_table_vs_headline.csv`). Claims asserted in the script: the QLIKE gain is not
+  significant; both Sharpe intervals (vs R, vs always short, mid and crossed) are above
+  zero; the lasso, the elastic net, the all-features ridge and the table's top Sharpe
+  forecast are all indistinguishable from the headline; none of the 99 others trades
+  above it with an interval above zero.
+- **Why.** The master table's recommendation (`results/close_master_table/SUMMARY.md`
+  (a)): live-feasible at 15:30, the 15:30 study's forecast of record, chosen on
+  feasibility and not as the maximum of 100 Sharpe ratios (the maximum is the per-bar
+  lasso on `free_vix_only`, 1.91).
+- **Before → after.** Headline: block-diagonal ridge (deck 1.34) → per-bar ridge
+  `live_feasible`: QLIKE 0.1005 (−5.0 % vs R, DM −1.42, p 0.156, daily-difference
+  interval [−0.0113, +0.0005]); Sharpe 1.90 mid / 1.44 crossed; mean 0.134; hit 54.6 %;
+  long 40.2 %; vs R +0.90 [+0.19, +1.66] mid, +0.91 [+0.19, +1.67] crossed; vs always
+  short +1.70 [+0.09, +3.11] mid, +1.71 [+0.12, +3.12] crossed; rank 2 / 100 on Sharpe,
+  55 / 100 on QLIKE. Not separated from: lasso same inputs −0.08 [−0.89, +0.79] (89 %
+  same side, QLIKE −4.1 %, DM −1.20); elastic net −0.49 [−1.08, +0.14]; ridge
+  all features −0.24 [−1.07, +0.54]; top-Sharpe forecast +0.01 [−0.75, +0.79]. 0 of 99
+  above, 14 of 99 below. All from `master_table.csv` / `master_table_vs_headline.csv`.
+- **Depends on** change 3 (Table 7 and the macros file).
+- **Build.** 69 pages (+1), 12 overfull boxes, 0 undefined references.
