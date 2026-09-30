@@ -6,31 +6,31 @@ display_class,n,metric,description,agreement_with_sharpe_mid,lo,hi
 48-bar (paper + pooled twins),18,sign_acc_rest20,"sign accuracy, other 846 days",0.153529036093837,-0.5594732274261819,0.709712842502599
 48-bar (paper + pooled twins),18,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.09352584369459607,-0.24750655767036683,0.8230414359054313
 48-bar (paper + pooled twins),18,sign_acc_top50,"sign accuracy, 50 largest-|return| days",-0.16580672054918905,-0.5213487431084594,0.71650861229896
-per-bar linear,46,QLIKE,QLIKE,-0.061856305889608394,-0.45558433549182853,0.6230241453515672
-per-bar linear,46,MSE,MSE (variance units),-0.3237126117792168,-0.607407190622377,0.4776415561042837
-per-bar linear,46,sign_acc,"sign accuracy, all days",-0.023285286534822935,-0.2827190022551036,0.5422789026191939
-per-bar linear,46,QLIKE_top20,"QLIKE, 20 largest-|return| days",0.5160037002775207,-0.2706294745757986,0.688400283584112
-per-bar linear,46,sign_acc_rest20,"sign accuracy, other 846 days",-0.12134133952100014,-0.3482251522979008,0.48379218344267544
-per-bar linear,46,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.7023889178586304,-0.01801194453487276,0.8602985894413676
-per-bar linear,46,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.6026876139250941,-0.13640310386286886,0.8291561176139621
+per-bar linear,46,QLIKE,QLIKE,-0.08294788775824853,-0.45841813135985193,0.617036694418748
+per-bar linear,46,MSE,MSE (variance units),-0.33925377736663587,-0.6081549558462904,0.4765544845497067
+per-bar linear,46,sign_acc,"sign accuracy, all days",-0.027851566493812832,-0.28510632201885433,0.5465040707103662
+per-bar linear,46,QLIKE_top20,"QLIKE, 20 largest-|return| days",0.5178538390379278,-0.2706263910111979,0.6889330866481651
+per-bar linear,46,sign_acc_rest20,"sign accuracy, other 846 days",-0.1209895354550505,-0.3537222283305194,0.48470764345848005
+per-bar linear,46,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.7187846106617498,-0.011611894411939308,0.8622002745789545
+per-bar linear,46,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.6209092729917878,-0.13355932272168355,0.8342341610593876
 "per-bar linear, HAR-ladder variants",9,QLIKE,QLIKE,0.7999999999999999,0.4666666666666666,0.9500000000000001
 "per-bar linear, HAR-ladder variants",9,MSE,MSE (variance units),-0.65,-0.8499999999999999,0.8833333333333333
-"per-bar linear, HAR-ladder variants",9,sign_acc,"sign accuracy, all days",0.5882560647712126,0.3008394534476824,0.8954053273686235
+"per-bar linear, HAR-ladder variants",9,sign_acc,"sign accuracy, all days",0.6108840083916779,0.33291666666666675,0.9
 "per-bar linear, HAR-ladder variants",9,QLIKE_top20,"QLIKE, 20 largest-|return| days",0.9333333333333332,0.3,0.9500000000000001
-"per-bar linear, HAR-ladder variants",9,sign_acc_rest20,"sign accuracy, other 846 days",0.5941474602165634,0.27573463118501074,0.8824078280612315
+"per-bar linear, HAR-ladder variants",9,sign_acc_rest20,"sign accuracy, other 846 days",0.6166666666666666,0.2833333333333333,0.8833333333333333
 "per-bar linear, HAR-ladder variants",9,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.8635317796716713,-0.5046175637137951,0.9492889050691345
-"per-bar linear, HAR-ladder variants",9,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.8853067919890986,-0.5364827694108418,0.9660917830792958
-per-bar trees,27,QLIKE,QLIKE,0.6727716727716728,0.005463980463980465,0.8235958485958484
-per-bar trees,27,MSE,MSE (variance units),-0.6587301587301586,-0.7784188034188034,0.5836538461538461
-per-bar trees,27,sign_acc,"sign accuracy, all days",0.5255606107213173,-0.16026022618845007,0.7887200666230599
-per-bar trees,27,QLIKE_top20,"QLIKE, 20 largest-|return| days",0.3119658119658119,-0.20277777777777778,0.7601037851037848
-per-bar trees,27,sign_acc_rest20,"sign accuracy, other 846 days",0.48492475095594656,-0.20879505488997838,0.774030622379625
-per-bar trees,27,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.26565743086514737,-0.24723488315727468,0.8022679606863177
-per-bar trees,27,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.05759595186837683,-0.3448169833009775,0.7697550489788675
-other,6,QLIKE,QLIKE,0.6,-0.7714285714285715,0.942857142857143
-other,6,MSE,MSE (variance units),0.6,-0.7714285714285715,0.942857142857143
-other,6,sign_acc,"sign accuracy, all days",0.6667366910003157,-0.6571428571428573,0.942857142857143
-other,6,QLIKE_top20,"QLIKE, 20 largest-|return| days",0.6571428571428573,-0.7714285714285715,0.942857142857143
-other,6,sign_acc_rest20,"sign accuracy, other 846 days",0.6179143806533246,-0.7247137945655605,0.942857142857143
-other,6,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.50709255283711,-0.6172133998483676,0.956182887467515
-other,6,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.23904572186687875,-0.6377481392176932,0.942857142857143
+"per-bar linear, HAR-ladder variants",9,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.8853067919890986,-0.5364827694108418,0.9621086267629732
+per-bar trees,135,QLIKE,QLIKE,0.3700712125646279,-0.15924787825577996,0.6455556560332678
+per-bar trees,135,MSE,MSE (variance units),-0.5709784411276949,-0.6679155692127597,0.3898932540370585
+per-bar trees,135,sign_acc,"sign accuracy, all days",0.5676415902488819,0.0011543509852840255,0.7314249521765109
+per-bar trees,135,QLIKE_top20,"QLIKE, 20 largest-|return| days",-0.08532338308457714,-0.3707426104770267,0.654719769168777
+per-bar trees,135,sign_acc_rest20,"sign accuracy, other 846 days",0.5140026744458892,-0.12012127628857946,0.6991784694668499
+per-bar trees,135,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.40421354093272366,0.03474786620163906,0.7909233943810476
+per-bar trees,135,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.28474533613224506,-0.0906559896529535,0.7172780652033689
+LSTM (per-bar and intraday sequence),12,QLIKE,QLIKE,-0.35664335664335667,-0.6993006993006995,0.7202797202797203
+LSTM (per-bar and intraday sequence),12,MSE,MSE (variance units),-0.5944055944055945,-0.8041958041958043,0.5734265734265735
+LSTM (per-bar and intraday sequence),12,sign_acc,"sign accuracy, all days",0.2937062937062937,-0.34965034965034975,0.795097541564023
+LSTM (per-bar and intraday sequence),12,QLIKE_top20,"QLIKE, 20 largest-|return| days",-0.1258741258741259,-0.6083916083916086,0.8111888111888113
+LSTM (per-bar and intraday sequence),12,sign_acc_rest20,"sign accuracy, other 846 days",0.21678321678321683,-0.42674825174825176,0.7579536976847739
+LSTM (per-bar and intraday sequence),12,sign_acc_top20,"sign accuracy, 20 largest-|return| days",0.757905036861314,0.03901762119274065,0.8846880294171316
+LSTM (per-bar and intraday sequence),12,sign_acc_top50,"sign accuracy, 50 largest-|return| days",0.7711458826483787,-0.06026443322196539,0.8956523240268454

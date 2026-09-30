@@ -35,18 +35,34 @@ Parts
   B3  per day, per forecast: the trade return on the forecast's log error and on its
       sign correctness, HAC (Newey-West) standard errors; R^2 = the share of the
       day-to-day P&L variance explained.
+  B4  within each model family of the master table (the 16:00 ladder's tree rungs T10,
+      T1, RS10, RS1 and the Optuna rungs; the per-bar and intraday-sequence LSTM; the
+      per-bar linear families; the 48-bar ones), the rank agreement of QLIKE and of the
+      tail-day sign accuracy with the Sharpe, with the same day-block intervals, and
+      their mean over the families; paired differences of agreements (same draws).
+
+The summary's qualitative claims are evaluated as checks on the numbers (asserted ones
+stop the summary; the others choose the prose), on this run and on the committed
+outputs of the 106-forecast run (PREV_COMMIT), and the two are set side by side.
 
 Outputs (results/perf_vs_pnl/): forecast_metrics.csv, rank_vs_sharpe.csv,
-rank_vs_sharpe_by_family.csv, per_day_regressions.csv, gates.csv, qlike_vs_sharpe.png,
-rank_vs_sharpe.png, numbers.json (every number the SUMMARY quotes), run_output.txt.
+rank_vs_sharpe_by_family.csv, rank_vs_sharpe_by_model_family.csv,
+rank_vs_sharpe_differences.csv, per_day_regressions.csv, gates.csv, qlike_vs_sharpe.png,
+rank_vs_sharpe.png, rank_vs_sharpe_by_model_family.png, claims.csv, numbers.json (every
+number the SUMMARY quotes), run_output.txt.
 
 Run:  python experiments/perf_vs_pnl_1530.py
 """
 
 from __future__ import annotations
 
+import io
 import json
+import re
+import subprocess
 import sys
+import warnings
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
@@ -72,6 +88,16 @@ B = 2000
 SEED = 20260929
 BLOCK = base.BOOT_BLOCK  # 21 sessions, the research scorer's block
 ANN = base.ANN
+# the smallest set of forecasts a within-set rank correlation is reported for (the
+# classes' threshold since the first run; the smallest master-table family has 6)
+MIN_SET = 5
+# per-day regressions: a count of forecasts with p < 0.05 up to this share of them is
+# read as chance (twice the test size, the allowance the first run's check used)
+CHANCE_SHARE = 0.10
+# the committed run whose claims this run re-checks: the 106-forecast master table
+# (H2, before the 16:00 campaign); its outputs are read from git, never from disk
+PREV_COMMIT = "6177b74"
+PREV_DIR = "results/perf_vs_pnl"
 
 
 def nw_lag(n: int) -> int:
@@ -88,7 +114,9 @@ KEY = {
     "blk2": "block ridge (paper reference)",
     "sub_enet_live_feasible_har_base3": "per-bar elastic net, base-3 HAR (best QLIKE)",
 }
-# display classes for the scatter (the master table's families, grouped to 5 slots)
+# display classes for the scatter (the master table's families, grouped to 6 slots)
+TREES = "per-bar trees"
+LSTM_CLASS = "LSTM (per-bar and intraday sequence)"
 CLASS_OF = {
     "paper": "48-bar (paper + pooled twins)",
     "pooled twin": "48-bar (paper + pooled twins)",
@@ -96,31 +124,99 @@ CLASS_OF = {
     "VIX-only family": "per-bar linear",
     "implied-vol representations": "per-bar linear",
     "HAR-ladder variants": "per-bar linear, HAR-ladder variants",
-    "per-bar tree (untuned)": "per-bar trees",
-    "per-bar tree (tuned)": "per-bar trees",
-    "other table": "per-bar trees",
+    "LSTM": LSTM_CLASS,
+    "LSTM (intraday sequence)": LSTM_CLASS,
+    "other table": TREES,
 }
 CLASS_ORDER = (
     "48-bar (paper + pooled twins)",
     "per-bar linear",
     "per-bar linear, HAR-ladder variants",
-    "per-bar trees",
+    TREES,
+    LSTM_CLASS,
     "other",
 )
-# validated categorical slots (the palette of model_diagnostics_1530_trees.py)
+# validated categorical slots (the palette of model_diagnostics_1530_trees.py; the
+# LSTM rows keep the slot they had as 'other' in the 106-forecast run; magenta = the
+# reference palette's slot 5 for anything unmapped); marker shape is the second code
 CLASS_COLOR = dict(
-    zip(CLASS_ORDER, ("#2a78d6", "#4a3aa7", "#1baf7a", "#eb6834", "#eda100"))
+    zip(
+        CLASS_ORDER,
+        ("#2a78d6", "#4a3aa7", "#1baf7a", "#eb6834", "#eda100", "#e87ba4"),
+    )
 )
-CLASS_MARK = dict(zip(CLASS_ORDER, ("s", "o", "D", "^", "v")))
+CLASS_MARK = dict(zip(CLASS_ORDER, ("s", "o", "D", "^", "v", "P")))
 QLIKE_XMAX = 0.125  # the scatter's x range; forecasts beyond it are drawn at the edge
+
+# the 16:00 ladder's tree rungs (writeup/CAMPAIGN_16H_2026-09-29.md) by master-table family
+TREE_RUNG = {
+    "per-bar tree (untuned)": "T10",
+    "per-bar tree (untuned, daily refit)": "T1",
+    "per-bar tree (tuned)": "RS10",
+    "per-bar tree (random search, daily)": "RS1",
+}
+OPTUNA_FAM = re.compile(r"per-bar tree \(Optuna, TUNE_PER=(\d+), best-of-(\d+)\)")
+# order of the master-table families in the within-family table (unlisted ones last)
+FAMILY_ORDER = (
+    "per-bar linear",
+    "VIX-only family",
+    "implied-vol representations",
+    "HAR-ladder variants",
+    *TREE_RUNG,
+    "LSTM",
+    "LSTM (intraday sequence)",
+    "paper",
+    "pooled twin",
+)
 
 
 def classify(fam: str, key: str) -> str:
     if fam in CLASS_OF:
         return CLASS_OF[fam]
-    if key.startswith("subtree_"):
-        return "per-bar trees"
+    if fam.startswith("per-bar tree") or key.startswith("subtree_"):
+        return TREES
     return "other"
+
+
+def rung(fam: str) -> str:
+    """The ladder rung of a tree family (T10 / T1 / RS10 / RS1 / OP_tp<N>_k<k>), else ''."""
+    if fam in TREE_RUNG:
+        return TREE_RUNG[fam]
+    m = OPTUNA_FAM.fullmatch(fam)
+    return f"OP_tp{m[1]}_k{m[2]}" if m else ""
+
+
+def _family_key(fam: str) -> tuple[int, int, int, int]:
+    rs1 = FAMILY_ORDER.index("per-bar tree (random search, daily)")
+    if fam in FAMILY_ORDER:
+        return (FAMILY_ORDER.index(fam), 0, 0, 0)
+    m = OPTUNA_FAM.fullmatch(fam)
+    if m:  # after the shipped / random-search rungs: best-of-50 first, then TUNE_PER
+        return (rs1, 1, -int(m[2]), int(m[1]))
+    return (len(FAMILY_ORDER), 0, 0, 0)
+
+
+def model_family_sets(fam: np.ndarray, cls: np.ndarray) -> list[dict]:
+    """The within-family sets of B4: every master-table family with >= MIN_SET forecasts,
+    plus the pooled sets (each display class of more than one family; every Optuna rung)."""
+    out: list[dict] = []
+    for c in CLASS_ORDER:
+        fams = sorted(dict.fromkeys(fam[cls == c]), key=_family_key)
+        for f in fams:
+            if (fam == f).sum() >= MIN_SET:
+                out.append(dict(set=f, kind="family", rung=rung(f), sel=fam == f))
+        if c == TREES:
+            op = np.array([bool(OPTUNA_FAM.fullmatch(f)) for f in fam])
+            if sum(bool(OPTUNA_FAM.fullmatch(f)) for f in fams) > 1:
+                out.append(
+                    dict(set="every Optuna rung", kind="pooled", rung="OP", sel=op)
+                )
+        if len(fams) > 1 and (cls == c).sum() >= MIN_SET:
+            # named apart from a family of the same name (the class "per-bar linear")
+            out.append(
+                dict(set=f"{c}, all families", kind="class", rung="", sel=cls == c)
+            )
+    return out
 
 
 # ---------------------------------------------------------------------------- panels
@@ -552,20 +648,33 @@ def main() -> None:  # noqa: C901 - one linear report
         f"sign_acc_top{TAIL_K[0]}",
         f"sign_acc_top{TAIL_K[1]}",
     )
-    big = [c for c in CLASS_ORDER if (cls == c).sum() >= 5]
+    big = [c for c in CLASS_ORDER if (cls == c).sum() >= MIN_SET]
     cdraws = {(c, m): np.empty(B) for c in big for m in CLASS_METS}
-    for b in range(B):
-        w = np.bincount(idx[b], minlength=n_days).astype(float)
-        Mb = metrics(P, w, tails)
-        for m in mets:
-            for s in shs:
-                draws[(m, s)][b] = spearman(Mb[m], Mb[s])
-        for c in big:
-            sel = cls == c
-            for m in CLASS_METS:
-                cdraws[(c, m)][b] = DIRECTION[m] * spearman(
-                    Mb[m][sel], Mb["Sharpe_mid"][sel]
-                )
+    # B4: within each model family (and the pooled sets), the same draws
+    fam_arr = info["family"].astype(str).to_numpy()
+    sets = model_family_sets(fam_arr, cls)
+    FAM_METS = ("QLIKE", f"sign_acc_top{TAIL_K[0]}", f"sign_acc_top{TAIL_K[1]}")
+    sdraws = {(i, m): np.empty(B) for i in range(len(sets)) for m in FAM_METS}
+    with warnings.catch_warnings():
+        # a small family can tie on a tail-day sign accuracy in a draw (-> nan, dropped)
+        warnings.simplefilter("ignore", stats.ConstantInputWarning)
+        for b in range(B):
+            w = np.bincount(idx[b], minlength=n_days).astype(float)
+            Mb = metrics(P, w, tails)
+            for m in mets:
+                for s in shs:
+                    draws[(m, s)][b] = spearman(Mb[m], Mb[s])
+            for c in big:
+                sel = cls == c
+                for m in CLASS_METS:
+                    cdraws[(c, m)][b] = DIRECTION[m] * spearman(
+                        Mb[m][sel], Mb["Sharpe_mid"][sel]
+                    )
+            for i, st in enumerate(sets):
+                for m in FAM_METS:
+                    sdraws[(i, m)][b] = DIRECTION[m] * spearman(
+                        Mb[m][st["sel"]], Mb["Sharpe_mid"][st["sel"]]
+                    )
     rows = []
     for m in mets:
         for s in shs:
@@ -622,6 +731,147 @@ def main() -> None:  # noqa: C901 - one linear report
     FR = pd.DataFrame(fam_rows)
     FR.to_csv(OUT / "rank_vs_sharpe_by_family.csv", index=False)
     say(FR.round(3).to_string(index=False))
+
+    # ---- B4: within each model family, the mean over families, paired differences
+    def pt_agr(m: str, sel: np.ndarray) -> float:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", stats.ConstantInputWarning)
+            return DIRECTION[m] * spearman(Mt[m][sel], Mt["Sharpe_mid"][sel])
+
+    def pct(d: np.ndarray) -> tuple[float, float]:
+        lo_, hi_ = np.nanpercentile(d, [2.5, 97.5])
+        return float(lo_), float(hi_)
+
+    mf_rows, pts = [], {}
+    for i, st in enumerate(sets):
+        sel = st["sel"]
+        for m in FAM_METS:
+            pts[(i, m)] = pt_agr(m, sel)
+            lo, hi = pct(sdraws[(i, m)])
+            mf_rows.append(
+                dict(
+                    set=st["set"],
+                    kind=st["kind"],
+                    rung=st["rung"],
+                    n=int(sel.sum()),
+                    n_families=int(len(set(fam_arr[sel]))),
+                    metric=m,
+                    description=descr(m, n_days),
+                    agreement_with_sharpe_mid=pts[(i, m)],
+                    lo=lo,
+                    hi=hi,
+                    n_draws=int(np.isfinite(sdraws[(i, m)]).sum()),
+                    qlike_min=float(Mt["QLIKE"][sel].min()),
+                    qlike_max=float(Mt["QLIKE"][sel].max()),
+                    sharpe_min=float(Mt["Sharpe_mid"][sel].min()),
+                    sharpe_max=float(Mt["Sharpe_mid"][sel].max()),
+                )
+            )
+    fam_idx = [i for i, st in enumerate(sets) if st["kind"] == "family"]
+    tree_idx = [i for i in fam_idx if sets[i]["rung"]]
+    mean_sets = [
+        (f"mean over the {len(fam_idx)} model families", fam_idx),
+        (f"mean over the {len(tree_idx)} tree rungs", tree_idx),
+    ]
+    mdraws, mpts = {}, {}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # a draw with every family nan
+        for name, ii in mean_sets:
+            sel = np.any([sets[i]["sel"] for i in ii], axis=0)
+            for m in FAM_METS:
+                mdraws[(name, m)] = np.nanmean(
+                    np.column_stack([sdraws[(i, m)] for i in ii]), axis=1
+                )
+                mpts[(name, m)] = float(np.nanmean([pts[(i, m)] for i in ii]))
+                lo, hi = pct(mdraws[(name, m)])
+                mf_rows.append(
+                    dict(
+                        set=name,
+                        kind="mean",
+                        rung="",
+                        n=int(sel.sum()),
+                        n_families=len(ii),
+                        metric=m,
+                        description=descr(m, n_days),
+                        agreement_with_sharpe_mid=mpts[(name, m)],
+                        lo=lo,
+                        hi=hi,
+                        n_draws=int(np.isfinite(mdraws[(name, m)]).sum()),
+                        qlike_min=float(Mt["QLIKE"][sel].min()),
+                        qlike_max=float(Mt["QLIKE"][sel].max()),
+                        sharpe_min=float(Mt["Sharpe_mid"][sel].min()),
+                        sharpe_max=float(Mt["Sharpe_mid"][sel].max()),
+                    )
+                )
+    MF = pd.DataFrame(mf_rows)
+    assert not MF.duplicated(["set", "metric"]).any(), "set names must be unique"
+    MF.to_csv(OUT / "rank_vs_sharpe_by_model_family.csv", index=False)
+    say(
+        f"B4 within each model family (agreement with the Sharpe, mid; {len(fam_idx)} families "
+        f"with >= {MIN_SET} forecasts, pooled sets, means over families):"
+    )
+    say(
+        MF.pivot_table(
+            index=["set", "n"],
+            columns="metric",
+            values="agreement_with_sharpe_mid",
+            sort=False,
+        )
+        .round(3)
+        .to_string()
+    )
+
+    # paired differences of two agreements (the same draws: a positive difference = the
+    # first metric orders the forecasts more like the Sharpe than the second)
+    k1_ = TAIL_K[0]
+    diff_rows = []
+    for a_, b_ in (
+        (f"sign_acc_top{k1_}", "sign_acc"),
+        (f"sign_acc_top{k1_}", f"sign_acc_rest{k1_}"),
+        (f"sign_acc_top{k1_}", "QLIKE"),
+        ("QLIKE", "MSE_log"),
+    ):
+        d = (
+            DIRECTION[a_] * draws[(a_, "Sharpe_mid")]
+            - DIRECTION[b_] * draws[(b_, "Sharpe_mid")]
+        )
+        pt = DIRECTION[a_] * spearman(Mt[a_], Mt["Sharpe_mid"]) - DIRECTION[
+            b_
+        ] * spearman(Mt[b_], Mt["Sharpe_mid"])
+        diff_rows.append(
+            dict(set="all forecasts", n=M, metric_a=a_, metric_b=b_, diff=pt)
+            | dict(zip(("lo", "hi"), pct(d)), n_draws=int(np.isfinite(d).sum()))
+        )
+    a_, b_ = f"sign_acc_top{k1_}", "QLIKE"
+    for i, st in enumerate(sets):
+        if st["kind"] in ("class", "pooled"):
+            d = sdraws[(i, a_)] - sdraws[(i, b_)]
+            diff_rows.append(
+                dict(
+                    set=st["set"],
+                    n=int(st["sel"].sum()),
+                    metric_a=a_,
+                    metric_b=b_,
+                    diff=pts[(i, a_)] - pts[(i, b_)],
+                )
+                | dict(zip(("lo", "hi"), pct(d)), n_draws=int(np.isfinite(d).sum()))
+            )
+    for name, ii in mean_sets:
+        d = mdraws[(name, a_)] - mdraws[(name, b_)]
+        diff_rows.append(
+            dict(
+                set=name,
+                n=len(ii),
+                metric_a=a_,
+                metric_b=b_,
+                diff=mpts[(name, a_)] - mpts[(name, b_)],
+            )
+            | dict(zip(("lo", "hi"), pct(d)), n_draws=int(np.isfinite(d).sum()))
+        )
+    RD = pd.DataFrame(diff_rows)
+    RD.to_csv(OUT / "rank_vs_sharpe_differences.csv", index=False)
+    say("paired differences of agreement with the Sharpe (mid):")
+    say(RD.round(3).to_string(index=False))
 
     # ---- B3: per-day regressions, HAC
     reg = []
@@ -694,6 +944,9 @@ def main() -> None:  # noqa: C901 - one linear report
         gates=gates,
         rank=RK.to_dict("records"),
         by_class=FR.to_dict("records"),
+        by_model_family=MF.to_dict("records"),
+        differences=RD.to_dict("records"),
+        families={f: int((fam_arr == f).sum()) for f in dict.fromkeys(fam_arr)},
         regressions_summary=summ.reset_index().to_dict("records"),
         key=T.loc[[k for k in KEY if k in T.index]].reset_index().to_dict("records"),
         range={
@@ -850,6 +1103,62 @@ def main() -> None:  # noqa: C901 - one linear report
     fig.savefig(OUT / "rank_vs_sharpe.png", dpi=160)
     plt.close(fig)
 
+    # B4 forest plot: within each model family, QLIKE and the tail-day sign accuracy
+    ymets = ("QLIKE", f"sign_acc_top{TAIL_K[0]}")
+    rows_ = list(dict.fromkeys(zip(MF["set"], MF["kind"], MF["rung"], MF["n"])))
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 0.2 * len(rows_) + 1.1), sharey=True)
+    yy = np.arange(len(rows_))
+    for ax, m in zip(axes, ymets):
+        for y, (s_, kind, rg, n_) in zip(yy, rows_):
+            r = MF[(MF["set"] == s_) & (MF["kind"] == kind) & (MF["metric"] == m)].iloc[
+                0
+            ]
+            if kind == "family":
+                c = CLASS_COLOR[classify(s_, "")]
+                mk = CLASS_MARK[classify(s_, "")]
+            else:
+                c, mk = "0.25", "D"
+            ax.errorbar(
+                r["agreement_with_sharpe_mid"],
+                y,
+                xerr=[
+                    [r["agreement_with_sharpe_mid"] - r["lo"]],
+                    [r["hi"] - r["agreement_with_sharpe_mid"]],
+                ],
+                fmt=mk,
+                ms=4.5 if kind == "family" else 5,
+                color=c,
+                ecolor=c,
+                lw=1.2,
+                capsize=0,
+            )
+        ax.axvline(0, color="0.5", lw=0.8)
+        ax.set_xlim(-1, 1)
+        ax.set_title(descr(m, n_days), fontsize=7.5)
+        ax.tick_params(axis="x", labelsize=7)
+        ax.grid(axis="x", color="0.9", lw=0.6)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    axes[0].set_yticks(yy)
+    axes[0].set_yticklabels(
+        [
+            (f"{rg}  ({n_})" if rg and kind == "family" else f"{s_}  ({n_})")
+            if kind != "mean"
+            else s_
+            for s_, kind, rg, n_ in rows_
+        ],
+        fontsize=6.3,
+    )
+    axes[0].invert_yaxis()
+    fig.supxlabel(
+        "rank agreement with the sign(s) Sharpe within the set (Spearman, signed: +1 = same order); "
+        f"95 % day-block interval, B {B}",
+        fontsize=7,
+    )
+    fig.tight_layout()
+    fig.savefig(OUT / "rank_vs_sharpe_by_model_family.png", dpi=160)
+    plt.close(fig)
+
     (OUT / "numbers.json").write_text(
         json.dumps(NUM, indent=1, default=float), encoding="utf-8"
     )
@@ -870,16 +1179,458 @@ def esc(text: str) -> str:
     return str(text).replace("|", r"\|")
 
 
-def write_summary() -> None:  # noqa: C901 - one linear report
-    """SUMMARY.md from this folder's own outputs; the claims the verdict rests on are
-    asserted against the numbers first."""
-    RK = pd.read_csv(OUT / "rank_vs_sharpe.csv")
-    FR = pd.read_csv(OUT / "rank_vs_sharpe_by_family.csv")
-    RG = pd.read_csv(OUT / "per_day_regressions.csv")
-    T = pd.read_csv(OUT / "forecast_metrics.csv", index_col=0)
-    N = json.loads((OUT / "numbers.json").read_text(encoding="utf-8"))
+def _reg_summary(RG: pd.DataFrame) -> pd.DataFrame:
+    return RG.groupby("regressor").agg(
+        r2_med=("r2", "median"),
+        r2_min=("r2", "min"),
+        r2_max=("r2", "max"),
+        t_min=("t_hac", "min"),
+        t_max=("t_hac", "max"),
+        t_med=("t_hac", "median"),
+        n_sig=("p_hac", lambda p: int((p < 0.05).sum())),
+        n=("p_hac", "size"),
+        slope_med=("slope", "median"),
+    )
+
+
+def _git_text(rel: str) -> str | None:
+    """A file as committed at PREV_COMMIT (None when git or the file is unavailable)."""
+    try:
+        r = subprocess.run(
+            ["git", "show", f"{PREV_COMMIT}:{rel}"],
+            cwd=REPO,
+            capture_output=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return r.stdout.decode("utf-8")
+
+
+def load_outputs(read: Callable[[str], str | None]) -> dict | None:
+    """One run's outputs as the summary reads them; None if a core file is missing.
+    The B4 files (model families, paired differences) are optional: older runs lack them."""
+    core = (
+        "rank_vs_sharpe.csv",
+        "rank_vs_sharpe_by_family.csv",
+        "per_day_regressions.csv",
+        "forecast_metrics.csv",
+        "numbers.json",
+    )
+    got = {n: read(n) for n in core}
+    txt = {n: v for n, v in got.items() if v is not None}
+    if len(txt) < len(core):
+        return None
+
+    def csv(name: str, **kw) -> pd.DataFrame:
+        return pd.read_csv(io.StringIO(txt[name]), **kw)
+
+    RG = csv("per_day_regressions.csv")
+    out = dict(
+        RK=csv("rank_vs_sharpe.csv"),
+        FR=csv("rank_vs_sharpe_by_family.csv"),
+        RG=RG,
+        reg=_reg_summary(RG),
+        T=csv("forecast_metrics.csv", index_col=0),
+        N=json.loads(txt["numbers.json"]),
+    )
+    for key, name in (
+        ("RD", "rank_vs_sharpe_differences.csv"),
+        ("MF", "rank_vs_sharpe_by_model_family.csv"),
+    ):
+        t = read(name)
+        out[key] = None if t is None else pd.read_csv(io.StringIO(t))
+    return out
+
+
+def check_claims(o: dict) -> dict[str, dict]:
+    """Every qualitative claim of the prose, evaluated on one run's outputs.
+    holds = the check's outcome (None: not computable from that run's outputs);
+    statement = the clause the prose prints for that outcome; asserted = the summary
+    refuses to be written when it fails; asserted_prev = asserted by the script of
+    PREV_COMMIT (so a claim with asserted_prev and not holds is an assertion that fired)."""
+    RK, FR, reg, T, N, RD, MF = (
+        o[k] for k in ("RK", "FR", "reg", "T", "N", "RD", "MF")
+    )
     M, nd = N["n_forecasts"], N["n_days"]
     k1, k2 = TAIL_K
+    PL = "per-bar linear"
+    top1, rest1 = f"sign_acc_top{k1}", f"sign_acc_rest{k1}"
+
+    def rk(m: str) -> pd.Series:
+        return RK[(RK.metric == m) & (RK.sharpe == "Sharpe_mid")].iloc[0]
+
+    def agr(m: str) -> str:
+        r = rk(m)
+        return f"{r['agreement']:+.2f} {_iv(r['agreement_lo'], r['agreement_hi'])}"
+
+    def sig(m: str) -> bool:
+        return _sig(rk(m)["agreement_lo"], rk(m)["agreement_hi"])
+
+    def fr(c: str, m: str) -> pd.Series:
+        return FR[(FR.display_class == c) & (FR.metric == m)].iloc[0]
+
+    def fagr(c: str, m: str) -> str:
+        r = fr(c, m)
+        return f"{r['agreement_with_sharpe_mid']:+.2f} {_iv(r['lo'], r['hi'])}"
+
+    def rd(s: str, a: str, b: str) -> pd.Series | None:
+        if RD is None:
+            return None
+        x = RD[(RD["set"] == s) & (RD.metric_a == a) & (RD.metric_b == b)]
+        return None if x.empty else x.iloc[0]
+
+    def dtxt(d: pd.Series | None) -> str:
+        return (
+            "not computed" if d is None else f"{d['diff']:+.2f} {_iv(d['lo'], d['hi'])}"
+        )
+
+    C: dict[str, dict] = {}
+
+    def claim(cid, text, rule, asserted, asserted_prev, holds, value, statement):
+        C[cid] = dict(
+            id=cid,
+            claim=text,
+            rule=rule,
+            asserted=asserted,
+            asserted_prev=asserted_prev,
+            holds=None if holds is None else bool(holds),
+            value=value,
+            statement=statement,
+        )
+
+    q = rk("QLIKE")
+    h = q["agreement_lo"] > 0
+    claim(
+        "qlike_all",
+        "across all forecasts a lower QLIKE goes with a higher Sharpe",
+        "QLIKE agreement interval above 0",
+        True,
+        True,
+        h,
+        f"Spearman {q['spearman']:+.2f} {_iv(q['ci_lo'], q['ci_hi'])}",
+        f"Across all {M} forecasts a lower QLIKE goes with a higher Sharpe (Spearman {q['spearman']:+.2f}, "
+        f"interval {_iv(q['ci_lo'], q['ci_hi'])})"
+        if h
+        else f"Across all {M} forecasts QLIKE does not order the Sharpe (Spearman {q['spearman']:+.2f}, "
+        f"interval {_iv(q['ci_lo'], q['ci_hi'])})",
+    )
+    r = fr(PL, "QLIKE")
+    h = not _sig(r["lo"], r["hi"])
+    claim(
+        "qlike_linear",
+        "but not among forecasts of similar accuracy (the per-bar linear class)",
+        "per-bar linear class: QLIKE agreement interval covers 0",
+        True,
+        True,
+        h,
+        f"{int(r['n'])} forecasts: {fagr(PL, 'QLIKE')}",
+        "but not among forecasts of similar accuracy"
+        if h
+        else "and among forecasts of similar accuracy too",
+    )
+    h = rk("MSE")["agreement"] < 0 and not sig("MSE")
+    claim(
+        "mse",
+        "MSE in variance units orders the forecasts the wrong way round",
+        "MSE agreement < 0, interval covers 0",
+        True,
+        True,
+        h,
+        agr("MSE"),
+        f"MSE in variance units orders the forecasts the wrong way round (agreement {agr('MSE')})",
+    )
+    h = max(rk("MSE_log")["agreement"], rk("calib_err")["agreement"]) <= q["agreement"]
+    claim(
+        "other_losses",
+        "the other accuracy losses do no better than QLIKE",
+        "agreement of squared log error and calibration error <= QLIKE's (point)",
+        False,
+        False,
+        h,
+        f"QLIKE {agr('QLIKE')}; squared log error {agr('MSE_log')}; calibration {agr('calib_err')}; "
+        f"QLIKE minus squared log error, paired {dtxt(rd('all forecasts', 'QLIKE', 'MSE_log'))}",
+        "The other accuracy losses do no better."
+        if h
+        else "Another accuracy loss ranks the forecasts at least as well as QLIKE.",
+    )
+    d_all = rd("all forecasts", top1, "sign_acc")
+    h = sig("sign_acc")
+    claim(
+        "all_day_sign",
+        "the all-day sign accuracy ranks the forecasts",
+        "all-day sign-accuracy agreement interval excludes 0",
+        False,
+        False,
+        h,
+        agr("sign_acc"),
+        f"does not rank them (agreement {agr('sign_acc')})"
+        if not h
+        else (
+            f"ranks them only weakly (agreement {agr('sign_acc')})"
+            if d_all is None or d_all["lo"] > 0
+            else f"ranks them (agreement {agr('sign_acc')})"
+        ),
+    )
+    h = rk(top1)["agreement_lo"] > 0
+    claim(
+        "tail_sign",
+        f"the {k1}-day tail sign accuracy ranks the forecasts",
+        f"{k1}-day sign-accuracy agreement interval above 0",
+        True,
+        True,
+        h,
+        agr(top1),
+        "it does" if h else "it does not",
+    )
+    h = rk(top1)["agreement"] > rk("sign_acc")["agreement"]
+    claim(
+        "tail_stronger",
+        f"the {k1}-day sign accuracy ranks them more strongly than the all-day one",
+        f"{k1}-day agreement > all-day agreement (point)",
+        True,
+        True,
+        h,
+        f"{rk(top1)['agreement']:+.2f} vs {rk('sign_acc')['agreement']:+.2f}",
+        ("and more strongly" if h else "but less strongly")
+        if d_all is None or d_all["lo"] > 0 or not h
+        else "and more strongly in the point estimate",
+    )
+    claim(
+        "tail_stronger_paired",
+        f"... and the paired difference ({k1}-day minus all-day agreement) excludes 0",
+        "paired-difference interval above 0 (same draws)",
+        False,
+        False,
+        None if d_all is None else d_all["lo"] > 0,
+        dtxt(d_all),
+        ""
+        if d_all is None
+        else f"; the paired difference from the all-day agreement is {dtxt(d_all)}"
+        + ("" if d_all["lo"] > 0 else ", an interval that covers zero"),
+    )
+    d_rest = rd("all forecasts", top1, rest1)
+    h = rk(top1)["agreement"] > rk(rest1)["agreement"]
+    claim(
+        "tail_over_rest",
+        f"the {k1}-day sign accuracy ranks them more strongly than the other days' one",
+        f"{k1}-day agreement > other-days agreement (point)",
+        True,
+        False,
+        h,
+        f"{rk(top1)['agreement']:+.2f} vs {rk(rest1)['agreement']:+.2f}; paired {dtxt(d_rest)}",
+        "",
+    )
+    h = not sig(rest1)
+    claim(
+        "rest_sign",
+        f"on the other {nd - k1} days the sign accuracy does not rank the forecasts",
+        "other-days sign-accuracy agreement interval covers 0",
+        False,
+        True,
+        h,
+        agr(rest1),
+        f"on the other {nd - k1} days it does not ({agr(rest1)})"
+        if h
+        else f"on the other {nd - k1} days it does as well, less strongly in the point estimate ({agr(rest1)}; "
+        f"paired difference of the {k1}-day agreement over it {dtxt(d_rest)})",
+    )
+    paired_ok = d_all is None or d_all["lo"] > 0
+    h = C["rest_sign"]["holds"] and paired_ok
+    claim(
+        "tail_story",
+        "what tracks the trade is calling the side right on the few largest-move days (and not on the others)",
+        "rest_sign holds and tail_stronger_paired holds (or was not computed)",
+        False,
+        False,
+        h,
+        f"other days {agr(rest1)}; {k1}-day minus all-day {dtxt(d_all)}",
+        "What does track the trade is calling the side right on the few days the straddle moves most."
+        if h
+        else (
+            "What tracks the trade is calling the side right: the few days the straddle moves most rank the "
+            "forecasts, the other days do not."
+            if C["rest_sign"]["holds"]
+            else f"Calling the side right tracks the trade: on the few days the straddle moves most and, across "
+            f"these {M} forecasts, on the other days as well."
+        ),
+    )
+    r = fr(PL, top1)
+    pt, lo, hi = r["agreement_with_sharpe_mid"], r["lo"], r["hi"]
+    h = pt > 0 and not _sig(lo, hi)
+    claim(
+        "linear_tail",
+        f"within the per-bar linear class the {k1}-day sign accuracy is suggestive, its interval reaching zero",
+        f"per-bar linear class: {k1}-day agreement > 0, interval covers 0",
+        False,
+        False,
+        h,
+        f"{int(r['n'])} forecasts: {fagr(PL, top1)}",
+        "suggestive, with an interval that reaches zero"
+        if h
+        else ("and its interval excludes zero" if lo > 0 else "no sign of it either"),
+    )
+    rs, rl = reg.loc["sign_right"], reg.loc["log_error"]
+    h = rs["n_sig"] == M and rl["n_sig"] <= CHANCE_SHARE * M
+    claim(
+        "sign_right_all",
+        "per day, a right sign explains the P&L for every forecast; the log error only at the chance rate",
+        f"sign indicator p < 0.05 for all {M}; log error p < 0.05 for <= {CHANCE_SHARE:.0%} of them",
+        True,
+        True,
+        h,
+        f"sign {int(rs['n_sig'])} of {M}; log error {int(rl['n_sig'])} of {M}",
+        "every forecast significant",
+    )
+    h = rl["r2_max"] < rs["r2_min"]
+    claim(
+        "r2_order",
+        "the log error explains less of the P&L than the sign for every forecast",
+        "max R² (log error) < min R² (sign indicator)",
+        True,
+        True,
+        h,
+        f"{100 * rl['r2_max']:.2f} % < {100 * rs['r2_min']:.2f} %",
+        "",
+    )
+    ra_ = reg.loc["abs_log_error"]
+    h = ra_["slope_med"] < 0
+    claim(
+        "abs_cost",
+        "larger misses cost a little",
+        "median slope on the absolute log error < 0",
+        False,
+        False,
+        h,
+        f"median slope {ra_['slope_med']:+.2f}, {int(ra_['n_sig'])} of {M} with p < 0.05",
+        "larger misses cost a little" if h else "larger misses cost nothing on average",
+    )
+    rj = reg.loc["log_error + sign_right"]
+    h = rj["n_sig"] <= CHANCE_SHARE * M
+    claim(
+        "joint_nothing",
+        "adding the log error to the sign indicator adds nothing",
+        f"log error p < 0.05 in the joint regression for <= {CHANCE_SHARE:.0%} of the forecasts",
+        False,
+        False,
+        h,
+        f"{int(rj['n_sig'])} of {M}; median R² {100 * rj['r2_med']:.2f} % vs {100 * rs['r2_med']:.2f} %",
+        "adds nothing"
+        if h
+        else f"adds something for {int(rj['n_sig'])} of {M} forecasts",
+    )
+    r = fr(TREES, "QLIKE")
+    pt = r["agreement_with_sharpe_mid"]
+    h = pt > 0 and _sig(r["lo"], r["hi"])
+    claim(
+        "trees_qlike",
+        "among the per-bar trees the QLIKE ordering holds",
+        "per-bar tree class: QLIKE agreement interval above 0",
+        False,
+        False,
+        h,
+        f"{int(r['n'])} forecasts: {fagr(TREES, 'QLIKE')}",
+        "holds as well"
+        if h
+        else ("points the same way" if pt > 0 else "does not hold"),
+    )
+    is48 = T["display_class"] == "48-bar (paper + pooled twins)"
+    mq = T.groupby(is48)["QLIKE"].median()
+    ms = T.groupby(is48)["Sharpe_mid"].median()
+    h = mq[True] > mq[False] and ms[True] < ms[False]
+    claim(
+        "bar48_worse",
+        "the 48-bar forecasts forecast worse and trade worse than the per-bar ones",
+        "48-bar median QLIKE > per-bar median and 48-bar median Sharpe < per-bar median",
+        False,
+        False,
+        h,
+        f"median QLIKE {mq[True]:.4f} vs {mq[False]:.4f}; median Sharpe {ms[True]:.2f} vs {ms[False]:.2f}",
+        f"the 48-bar forecasts ({int(is48.sum())}) "
+        + ("forecast worse" if mq[True] > mq[False] else "forecast no worse")
+        + f" (median QLIKE {mq[True]:.4f} against {mq[False]:.4f}) and "
+        + ("trade worse" if ms[True] < ms[False] else "trade no worse")
+        + f" (median Sharpe {ms[True]:.2f} against {ms[False]:.2f}) than the per-bar ones ({int((~is48).sum())})",
+    )
+    hk, vx = N["headline_split"]["forecast"], "sub_ridge_vix_only"
+    h = (
+        vx in T.index
+        and T.loc[vx, "QLIKE"] < T.loc[hk, "QLIKE"]
+        and T.loc[vx, "Sharpe_mid"] < T.loc[hk, "Sharpe_mid"]
+    )
+    claim(
+        "vx_example",
+        "example: the VIX-only ridge forecasts better and trades worse than the headline",
+        "QLIKE below the headline's and Sharpe below the headline's",
+        False,
+        False,
+        h,
+        f"QLIKE {T.loc[vx, 'QLIKE']:.4f} vs {T.loc[hk, 'QLIKE']:.4f}; Sharpe {T.loc[vx, 'Sharpe_mid']:.2f} vs "
+        f"{T.loc[hk, 'Sharpe_mid']:.2f}"
+        if vx in T.index
+        else "not in the table",
+        f" (e.g. the per-bar ridge on the VIX-only bucket: QLIKE {T.loc[vx, 'QLIKE']:.4f} against the headline's "
+        f"{T.loc[hk, 'QLIKE']:.4f}, Sharpe {T.loc[vx, 'Sharpe_mid']:.2f} against {T.loc[hk, 'Sharpe_mid']:.2f})"
+        if h
+        else "",
+    )
+    # B4 (runs that have the model-family table)
+    for m, cid, what in (
+        ("QLIKE", "fam_qlike", "QLIKE"),
+        (top1, "fam_tail", f"the {k1}-day sign accuracy"),
+    ):
+        if MF is None:
+            claim(
+                cid,
+                f"within the model families, on average, {what} orders the trade",
+                "",
+                False,
+                False,
+                None,
+                "not computed",
+                "",
+            )
+            continue
+        mr = MF[(MF.kind == "mean") & (MF.metric == m)].iloc[0]
+        h = mr["lo"] > 0
+        claim(
+            cid,
+            f"within the model families, on average, {what} orders the trade",
+            "mean over the families of the within-family agreement: interval above 0",
+            False,
+            False,
+            h,
+            f"{mr['agreement_with_sharpe_mid']:+.2f} {_iv(mr['lo'], mr['hi'])}",
+            f"{what} " + ("orders the trade" if h else "does not order the trade"),
+        )
+    return C
+
+
+def write_summary() -> None:  # noqa: C901 - one linear report
+    """SUMMARY.md from this folder's own outputs; the claims the verdict rests on are
+    asserted against the numbers first, the others choose the prose, and the same checks
+    on the 106-forecast run's committed outputs are set beside them."""
+
+    def read_here(name: str) -> str | None:
+        p = OUT / name
+        return p.read_text(encoding="utf-8") if p.is_file() else None
+
+    o = load_outputs(read_here)
+    assert o is not None, "run main() first"
+    RK, FR, RG, reg, T, N, RD, MF = (
+        o[k] for k in ("RK", "FR", "RG", "reg", "T", "N", "RD", "MF")
+    )
+    M, nd = N["n_forecasts"], N["n_days"]
+    k1, k2 = TAIL_K
+    C = check_claims(o)
+    for c in C.values():
+        assert c["holds"] or not c["asserted"], c
+    prev = load_outputs(lambda n: _git_text(f"{PREV_DIR}/{n}"))
+    CP = check_claims(prev) if prev is not None else {}
+    M_prev = prev["N"]["n_forecasts"] if prev is not None else None
+
+    def S(cid: str) -> str:
+        return C[cid]["statement"]
 
     def rk(m: str, s: str = "Sharpe_mid") -> pd.Series:
         return RK[(RK.metric == m) & (RK.sharpe == s)].iloc[0]
@@ -891,44 +1642,34 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         r = rk(m, s)
         return f"{r['agreement']:+.2f} {_iv(r['agreement_lo'], r['agreement_hi'])}"
 
-    reg = RG.groupby("regressor").agg(
-        r2_med=("r2", "median"),
-        r2_min=("r2", "min"),
-        r2_max=("r2", "max"),
-        t_min=("t_hac", "min"),
-        t_max=("t_hac", "max"),
-        t_med=("t_hac", "median"),
-        n_sig=("p_hac", lambda p: int((p < 0.05).sum())),
-        n=("p_hac", "size"),
-        slope_med=("slope", "median"),
-    )
     PL = "per-bar linear"
-    # ---- the claims, checked
-    q = rk("QLIKE")
-    assert q["agreement_lo"] > 0, "QLIKE ranks like the Sharpe across all forecasts"
-    assert rk("MSE")["agreement"] < 0 and not _sig(
-        rk("MSE")["agreement_lo"], rk("MSE")["agreement_hi"]
-    )
-    # all-day sign accuracy may or may not rank the forecasts (with the 100-forecast
-    # table it did not; the six LSTM rows, weak on both counts, pull the interval
-    # just past zero) -- the claim the verdict rests on is that the tail-day sign
-    # accuracy ranks them, and more strongly than the all-day one
-    assert rk(f"sign_acc_top{k1}")["agreement_lo"] > 0
-    assert rk(f"sign_acc_top{k1}")["agreement"] > rk("sign_acc")["agreement"]
-    assert not _sig(
-        rk(f"sign_acc_rest{k1}")["agreement_lo"],
-        rk(f"sign_acc_rest{k1}")["agreement_hi"],
-    )
-    assert not _sig(fr(PL, "QLIKE")["lo"], fr(PL, "QLIKE")["hi"])
-    assert (
-        reg.loc["sign_right", "n_sig"] == M and reg.loc["log_error", "n_sig"] <= 0.1 * M
-    )
-    assert reg.loc["log_error", "r2_max"] < reg.loc["sign_right", "r2_min"]
     hs = N["headline_split"]
     hk = hs["forecast"]
     h = T.loc[hk]
     bq, bs = N["best_qlike"], N["best_sharpe"]
     lab = T["label"].to_dict()
+
+    # ---- claims.csv: both runs side by side
+    rows = []
+    for cid, c in C.items():
+        p = CP.get(cid, {})
+        rows.append(
+            dict(
+                id=cid,
+                claim=c["claim"],
+                rule=c["rule"],
+                asserted_now=c["asserted"],
+                asserted_in_prev_script=c["asserted_prev"],
+                holds_prev=p.get("holds"),
+                value_prev=p.get("value", "not computed"),
+                statement_prev=p.get("statement", ""),
+                holds_this=c["holds"],
+                value_this=c["value"],
+                statement_this=c["statement"],
+            )
+        )
+    CL = pd.DataFrame(rows)
+    CL.to_csv(OUT / "claims.csv", index=False)
 
     L: list[str] = []
     a = L.append
@@ -936,8 +1677,10 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a("")
     a(
         "Written by `experiments/perf_vs_pnl_1530.py` from its own outputs in this folder (`forecast_metrics.csv`, "
-        "`rank_vs_sharpe.csv`, `rank_vs_sharpe_by_family.csv`, `per_day_regressions.csv`, `numbers.json`); the claims the "
-        "verdict rests on are asserted against those numbers before this file is written."
+        "`rank_vs_sharpe.csv`, `rank_vs_sharpe_by_family.csv`, `rank_vs_sharpe_by_model_family.csv`, "
+        "`rank_vs_sharpe_differences.csv`, `per_day_regressions.csv`, `numbers.json`); every qualitative claim is a "
+        "check on those numbers (`claims.csv`): the asserted ones are verified before this file is written, the others "
+        "choose the wording."
     )
     a("")
     src = (
@@ -946,11 +1689,16 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         if N["source"] == "master"
         else "every forecast table on disk (`results/spxw_pnl/yhat_*.parquet`)"
     )
+    fams = N.get("families", {})
     a(
-        f"**Universe:** {M} forecasts of the bar ending 16:00: {src}. By class: "
+        f"**Universe:** {M} forecasts of the bar ending 16:00: {src}"
+        + (f", in {len(fams)} model families" if fams else "")
+        + ". By display class: "
         + ", ".join(f"{c} {n}" for c, n in N["classes"].items() if n)
         + f". Same {nd} trade days for every forecast "
-        f"({N['first_day']} .. {N['last_day']})."
+        f"({N['first_day']} .. {N['last_day']}). The master table is the one rebuilt after the 16:00 campaign "
+        "(de-duplicated per-bar design; every tree and LSTM fit with the per-window mask; tree rungs T10, T1, RS10, RS1 "
+        "and the Optuna rungs; the per-bar and the intraday-sequence LSTM)."
     )
     a("")
     a(
@@ -972,15 +1720,15 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"{N['median_absR']:.2f}; the same days for every forecast). **Rank agreement** = Spearman correlation across "
         "the forecasts between a metric and the Sharpe, signed so that +1 means the metric orders the forecasts exactly "
         f"as the Sharpe does; 95 % intervals from a circular block bootstrap over days (block {N['boot']['block']} "
-        f"sessions, {N['boot']['B']:,} draws; the whole panel of forecasts resampled together)."
+        f"sessions, {N['boot']['B']:,} draws; the whole panel of forecasts resampled together); a **paired difference** "
+        "of two agreements is computed on the same draws."
     )
     a("")
     a("## Answer in brief")
     a("")
-    pl_q, tr_q = fr(PL, "QLIKE"), fr("per-bar trees", "QLIKE")
+    pl_q, tr_q = fr(PL, "QLIKE"), fr(TREES, "QLIKE")
     a(
-        f"1. **Across all {M} forecasts a lower QLIKE goes with a higher Sharpe** (Spearman {q['spearman']:+.2f}, "
-        f"interval {_iv(q['ci_lo'], q['ci_hi'])}), **but not among forecasts of similar accuracy.** Within the "
+        f"1. **{S('qlike_all')}, {S('qlike_linear')}.** Within the "
         f"{int(pl_q['n'])} per-bar linear forecasts (all buckets, the VIX-only and implied-vol families) the rank "
         f"agreement of QLIKE with the Sharpe is {pl_q['agreement_with_sharpe_mid']:+.2f} {_iv(pl_q['lo'], pl_q['hi'])}; "
         f"within the {int(tr_q['n'])} per-bar trees {tr_q['agreement_with_sharpe_mid']:+.2f} {_iv(tr_q['lo'], tr_q['hi'])}. "
@@ -989,74 +1737,124 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"{bs['Sharpe_mid']:.2f}) ranks {N['qlike_rank_of_best_sharpe']} of {M} on QLIKE."
     )
     a(
-        f"2. **The other accuracy losses do no better.** MSE in variance units orders the forecasts the wrong way round "
-        f"(agreement {agr('MSE')}); the squared log error {agr('MSE_log')}; the calibration error {agr('calib_err')}."
+        f"2. **{S('other_losses')}** {S('mse')}; the squared log error {agr('MSE_log')}; the calibration error "
+        f"{agr('calib_err')}."
     )
-    ra, rt1, rt2, rr1 = (
-        rk("sign_acc"),
-        rk(f"sign_acc_top{k1}"),
-        rk(f"sign_acc_top{k2}"),
-        rk(f"sign_acc_rest{k1}"),
-    )
+    rt1, rt2 = rk(f"sign_acc_top{k1}"), rk(f"sign_acc_top{k2}")
     rng_s = N["range"]["sign_acc"]
     pl_t = fr(PL, f"sign_acc_top{k1}")
-    all_day_ranks = _sig(ra["agreement_lo"], ra["agreement_hi"])
-    all_day_clause = (
-        f"ranks them only weakly (agreement {ra['agreement']:+.2f} {_iv(ra['agreement_lo'], ra['agreement_hi'])})"
-        if all_day_ranks
-        else f"does not rank them (agreement {ra['agreement']:+.2f} {_iv(ra['agreement_lo'], ra['agreement_hi'])})"
-    )
     a(
-        f"3. **What does track the trade is calling the side right on the few days the straddle moves most.** Sign "
-        f"accuracy over all days hardly separates the forecasts ({100 * rng_s[0]:.0f}–{100 * rng_s[2]:.0f} %, median "
-        f"{100 * rng_s[1]:.0f} %) and {all_day_clause}. On the {k1} largest-|return| days it does, and more strongly "
-        f"({rt1['agreement']:+.2f} {_iv(rt1['agreement_lo'], rt1['agreement_hi'])}; {k2} days {rt2['agreement']:+.2f} "
-        f"{_iv(rt2['agreement_lo'], rt2['agreement_hi'])}), and on the other {nd - k1} days it does not "
-        f"({rr1['agreement']:+.2f} {_iv(rr1['agreement_lo'], rr1['agreement_hi'])}). Within the per-bar linear class, "
-        f"where QLIKE says nothing, the {k1}-day sign accuracy has agreement {pl_t['agreement_with_sharpe_mid']:+.2f} "
-        f"{_iv(pl_t['lo'], pl_t['hi'])}: suggestive, with an interval that reaches zero."
+        f"3. **{S('tail_story')}** Sign accuracy over all days hardly separates the forecasts ({100 * rng_s[0]:.0f}–"
+        f"{100 * rng_s[2]:.0f} %, median {100 * rng_s[1]:.0f} %) and {S('all_day_sign')}. On the {k1} largest-|return| "
+        f"days {S('tail_sign')}, {S('tail_stronger')} ({rt1['agreement']:+.2f} "
+        f"{_iv(rt1['agreement_lo'], rt1['agreement_hi'])}; {k2} days {rt2['agreement']:+.2f} "
+        f"{_iv(rt2['agreement_lo'], rt2['agreement_hi'])}){S('tail_stronger_paired')}; and {S('rest_sign')}. "
+        f"Within the per-bar linear class, where QLIKE says nothing, the {k1}-day sign accuracy has agreement "
+        f"{pl_t['agreement_with_sharpe_mid']:+.2f} {_iv(pl_t['lo'], pl_t['hi'])}: {S('linear_tail')}."
     )
     rs, rl, ra_ = reg.loc["sign_right"], reg.loc["log_error"], reg.loc["abs_log_error"]
     a(
         f"4. **Per day, being on the right side explains the P&L; the size of the forecast error does not.** Regressing "
         f"the day's trade return on an indicator of a right sign gives R² {100 * rs['r2_med']:.1f} % (median; "
         f"{100 * rs['r2_min']:.1f}–{100 * rs['r2_max']:.1f} % across the {M} forecasts; HAC t {rs['t_min']:.1f} to "
-        f"{rs['t_max']:.1f}, every forecast significant). On the forecast's log error it gives R² "
+        f"{rs['t_max']:.1f}, {S('sign_right_all')}). On the forecast's log error it gives R² "
         f"{100 * rl['r2_med']:.2f} % (median; {int(rl['n_sig'])} of {M} with p < 0.05, the rate chance gives); on its "
         f"absolute log error {100 * ra_['r2_med']:.2f} % (median slope {ra_['slope_med']:+.2f}, {int(ra_['n_sig'])} of {M} "
-        f"with p < 0.05: larger misses cost a little). Adding the log error to the sign indicator adds nothing (median "
+        f"with p < 0.05: {S('abs_cost')}). Adding the log error to the sign indicator {S('joint_nothing')} (median "
         f"R² {100 * reg.loc['log_error + sign_right', 'r2_med']:.1f} %). For the headline per-bar ridge "
         f"(`{hk}`) the sign is right on {hs['n_right']} of {nd} days (mean return {hs['mean_pnl_right']:+.2f} per unit "
         f"premium) and wrong on {hs['n_wrong']} ({hs['mean_pnl_wrong']:+.2f}); its {k1} tail days carry "
         f"{100 * hs['sum_pnl_top20'] / hs['sum_pnl']:.0f} % of its total P&L ({k2} days "
         f"{100 * hs['sum_pnl_top50'] / hs['sum_pnl']:.0f} %)."
     )
+    if MF is not None:
+        fam = MF[MF.kind == "family"]
+        nF = fam["set"].nunique()
+
+        def members(m: str, side: str) -> pd.DataFrame:
+            x = fam[fam.metric == m]
+            return x[x.lo > 0] if side == "above" else x[x.hi < 0]
+
+        def fam_name(r: pd.Series) -> str:
+            return r["rung"] if isinstance(r["rung"], str) and r["rung"] else r["set"]
+
+        def listing(x: pd.DataFrame) -> str:
+            if x.empty:
+                return ""
+            return (
+                " ("
+                + "; ".join(
+                    f"{fam_name(r)} {r['agreement_with_sharpe_mid']:+.2f} {_iv(r['lo'], r['hi'])}"
+                    for _, r in x.iterrows()
+                )
+                + ")"
+            )
+
+        def mean_row(m: str, which: str) -> pd.Series:
+            x = MF[(MF.kind == "mean") & (MF.metric == m)]
+            return x[x["set"].str.contains(which)].iloc[0]
+
+        def mtxt(m: str, which: str) -> str:
+            r = mean_row(m, which)
+            return f"{r['agreement_with_sharpe_mid']:+.2f} {_iv(r['lo'], r['hi'])}"
+
+        def rdlohi(which: str) -> tuple[float, float]:
+            x = RD[
+                RD["set"].str.contains(which) & RD["set"].str.startswith("mean")
+            ].iloc[0]
+            return float(x["lo"]), float(x["hi"])
+
+        def rdtxt(which: str) -> str:
+            x = RD[
+                RD["set"].str.contains(which) & RD["set"].str.startswith("mean")
+            ].iloc[0]
+            return f"{x['diff']:+.2f} {_iv(x['lo'], x['hi'])}"
+
+        nt = int(mean_row("QLIKE", "tree rungs")["n_families"])
+        parts = []
+        for m, what in (
+            ("QLIKE", "QLIKE's agreement with the Sharpe"),
+            (f"sign_acc_top{k1}", f"the {k1}-day sign accuracy's agreement"),
+        ):
+            ab, be = members(m, "above"), members(m, "below")
+            parts.append(
+                f"{what} has an interval wholly above zero in {len(ab)} of the {nF} families{listing(ab)} and wholly "
+                f"below zero in {len(be)}{listing(be)}; its mean over the {nF} families is {mtxt(m, 'model families')}, "
+                f"over the {nt} tree rungs {mtxt(m, 'tree rungs')}"
+            )
+        a(
+            "5. **Within the model families** (`rank_vs_sharpe_by_model_family.csv`, figure "
+            "`rank_vs_sharpe_by_model_family.png`; a family = the forecasts of one model class on one rung of the ladder, "
+            "differing in input set, estimator or selection rule): "
+            + "; ".join(parts)
+            + f". Within a family, on average, {S('fam_qlike')} and {S('fam_tail')}; paired, the {k1}-day sign "
+            f"accuracy's agreement minus QLIKE's is {rdtxt('model families')} over the families and "
+            f"{rdtxt('tree rungs')} over the tree rungs"
+            + (
+                ", intervals that cover zero: on these days the two are not told apart."
+                if not any(_sig(*rdlohi(w)) for w in ("model families", "tree rungs"))
+                else "."
+            )
+        )
     a("")
-    vx = "sub_ridge_vix_only"
-    trees_holds = _sig(tr_q["lo"], tr_q["hi"])
-    vx_txt = (
-        f" (e.g. the per-bar ridge on the VIX-only bucket: QLIKE {T.loc[vx, 'QLIKE']:.4f} against the headline's "
-        f"{h['QLIKE']:.4f}, Sharpe {T.loc[vx, 'Sharpe_mid']:.2f} against {h['Sharpe_mid']:.2f})"
-        if vx in T.index
-        and T.loc[vx, "QLIKE"] < h["QLIKE"]
-        and T.loc[vx, "Sharpe_mid"] < h["Sharpe_mid"]
-        else ""
-    )
     a(
         "**Verdict.** QLIKE is the right loss for forecasting the 15:30–16:00 variance, and across model families a "
-        "better QLIKE comes with a better trade: the 48-bar forecasts forecast worse and trade worse than the per-bar "
-        "ones, and among the per-bar trees the ordering "
-        + ("holds as well" if trees_holds else "points the same way")
-        + f" ({tr_q['agreement_with_sharpe_mid']:+.2f} {_iv(tr_q['lo'], tr_q['hi'])}). Among the {int(pl_q['n'])} "
-        f"per-bar linear forecasts, the candidates for the headline, it does not ({pl_q['agreement_with_sharpe_mid']:+.2f} "
-        f"{_iv(pl_q['lo'], pl_q['hi'])}): there a QLIKE gain does not imply a trade gain{vx_txt}. The trade is decided by "
-        f"the sign of forecast minus implied on a handful of large-move days (the {k1} largest carry "
-        f"{100 * N['range'][f'pnl_share_top{k1}'][1]:.0f} % of total P&L for the median forecast), and QLIKE, an average "
-        f"over all {nd} days of how far the forecast misses, gives them little weight (they make up "
-        f"{100 * float((k1 * T[f'QLIKE_top{k1}'] / (nd * T['QLIKE'])).median()):.0f} % of the median forecast's summed "
-        f"QLIKE). The trade's own measure (sign "
-        f"accuracy weighted by the size of the move, i.e. the P&L) is the relevant one for choosing among comparable "
-        f"forecasts, and on {nd} days it is too noisy to rank them reliably."
+        f"better QLIKE comes with a better trade: {S('bar48_worse')}, and among the per-bar trees the ordering "
+        f"{S('trees_qlike')} ({tr_q['agreement_with_sharpe_mid']:+.2f} {_iv(tr_q['lo'], tr_q['hi'])}). Among the "
+        f"{int(pl_q['n'])} per-bar linear forecasts, the candidates for the headline, it does not "
+        f"({pl_q['agreement_with_sharpe_mid']:+.2f} {_iv(pl_q['lo'], pl_q['hi'])}): there a QLIKE gain does not imply a "
+        f"trade gain{S('vx_example')}. The trade is decided by the sign of forecast minus implied"
+        + (
+            " on a handful of large-move days"
+            if C["tail_story"]["holds"]
+            else ", with a large share of the P&L on a handful of large-move days"
+        )
+        + f" (the {k1} largest carry {100 * N['range'][f'pnl_share_top{k1}'][1]:.0f} % of total P&L for the median "
+        f"forecast), and QLIKE, an average over all {nd} days of how far the forecast misses, gives them little weight "
+        f"(they make up {100 * float((k1 * T[f'QLIKE_top{k1}'] / (nd * T['QLIKE'])).median()):.0f} % of the median "
+        "forecast's summed QLIKE). The trade's own measure (sign accuracy weighted by the size of the move, i.e. the "
+        f"P&L) is the relevant one for choosing among comparable forecasts, and on {nd} days it is too noisy to rank "
+        "them reliably."
     )
     a("")
     a("## Rank agreement with the Sharpe, all forecasts")
@@ -1094,6 +1892,22 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"wins or loses at least that many premiums), so its agreement is partly mechanical; the tail-day sign accuracy "
         "is the forecast-side version of the same quantity."
     )
+    if RD is not None:
+        a("")
+        a(
+            "Paired differences of agreement with the Sharpe (mid), same draws (`rank_vs_sharpe_differences.csv`; "
+            "positive = the first metric orders the forecasts more like the Sharpe):"
+        )
+        a("")
+        a("| set | n | first metric | minus | difference [95 %] |")
+        a("|---|---:|---|---|---|")
+        for _, r in RD.iterrows():
+            a(
+                f"| {esc(r['set'])} | {int(r['n'])} | {esc(descr(r['metric_a'], nd))} | {esc(descr(r['metric_b'], nd))} | "
+                f"{r['diff']:+.2f} {_iv(r['lo'], r['hi'])} |"
+            )
+        a("")
+        a("(For the mean rows n is the number of families averaged.)")
     a("")
     a("## Within classes of forecasts (figure `qlike_vs_sharpe.png` shows the classes)")
     a("")
@@ -1113,6 +1927,53 @@ def write_summary() -> None:  # noqa: C901 - one linear report
                 f"{r['agreement_with_sharpe_mid']:+.2f} {_iv(r['lo'], r['hi'])}"
             )
         a(f"| {c} | {int(fr(c, mets[0])['n'])} | " + " | ".join(cells) + " |")
+    if MF is not None:
+        a("")
+        a(
+            "## Within each model family (B4; figure `rank_vs_sharpe_by_model_family.png`)"
+        )
+        a("")
+        a(
+            f"Every master-table family with at least {MIN_SET} forecasts, the pooled sets (a display class of several "
+            "families; every Optuna rung together) and the mean of the within-family agreement over the families (its "
+            "interval from the same draws). Rungs: T10 / T1 = the shipped tree configuration refit every 10 sessions / "
+            "every session; RS10 / RS1 = random search (32 candidates, every 250 sessions) refit every 10 / every "
+            "session; OP_tp<N>_k<k> = Optuna TPE tuned every N sessions, best of the first k of 50 trials, refit every "
+            "session. Agreement with the Sharpe (mid), 95 % day-block interval."
+        )
+        a("")
+        mm = ("QLIKE", f"sign_acc_top{k1}", f"sign_acc_top{k2}")
+        a(
+            "| set | rung | n | QLIKE range | Sharpe (mid) range | "
+            + " | ".join(esc(descr(m, nd)) for m in mm)
+            + " |"
+        )
+        a("|---|---|---:|---|---|" + "---|" * len(mm))
+        for s_ in dict.fromkeys(MF["set"]):
+            x = MF[MF["set"] == s_].set_index("metric")
+            r0 = x.iloc[0]
+            rg = r0["rung"] if isinstance(r0["rung"], str) else ""
+            n_txt = (
+                f"{int(r0['n_families'])} families"
+                if r0["kind"] == "mean"
+                else f"{int(r0['n'])}"
+            )
+            a(
+                f"| {esc(s_)} | {rg} | {n_txt} | {r0['qlike_min']:.4f} – {r0['qlike_max']:.4f} | "
+                f"{r0['sharpe_min']:.2f} – {r0['sharpe_max']:.2f} | "
+                + " | ".join(
+                    f"{x.loc[m, 'agreement_with_sharpe_mid']:+.2f} {_iv(x.loc[m, 'lo'], x.loc[m, 'hi'])}"
+                    if np.isfinite(x.loc[m, "agreement_with_sharpe_mid"])
+                    else "n/a (tie)"
+                    for m in mm
+                )
+                + " |"
+            )
+        a("")
+        a(
+            "A family of 6–9 forecasts gives a rank correlation an interval of about ±0.7 on these days; the mean over "
+            "the families pools them."
+        )
     a("")
     a("## Named forecasts")
     a("")
@@ -1152,6 +2013,92 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a("")
     a("(For the joint regression the slope and t are the log error's.)")
     a("")
+    a(
+        f"## The claims re-checked against the {M_prev}-forecast run (commit {PREV_COMMIT})"
+    )
+    a("")
+    if prev is None:
+        a(
+            f"The outputs of commit {PREV_COMMIT} could not be read from git; nothing to compare."
+        )
+    else:
+        fired = [c for c in C.values() if c["asserted_prev"] and not c["holds"]]
+        a(
+            f"Every claim above is a check on the numbers (`claims.csv`). The same checks run on the committed outputs of "
+            f"the {M_prev}-forecast run (commit {PREV_COMMIT}, read with `git show`; that run had no model-family table "
+            "and no paired differences, so those checks read 'not computed' there). 'asserted' = this script stops if "
+            f"the check fails; 'asserted at {PREV_COMMIT}' = the script of that commit did."
+        )
+        a("")
+        a(
+            "**Assertions of the "
+            f"{PREV_COMMIT} script that fire on this table:** "
+            + (
+                "; ".join(
+                    f"{c['claim']} ({c['rule']}: {c['value']}) — the prose now follows the check"
+                    for c in fired
+                )
+                if fired
+                else "none"
+            )
+            + "."
+        )
+        a("")
+        a(
+            f"| claim | check | asserted (now / at {PREV_COMMIT}) | {M_prev} forecasts | {M} forecasts (this run) |"
+        )
+        a("|---|---|---|---|---|")
+
+        def cell(c: dict | None) -> str:
+            if not c or c.get("holds") is None:
+                return "not computed"
+            return (
+                "holds" if c["holds"] else "**does not hold**"
+            ) + f": {esc(c['value'])}"
+
+        for cid, c in C.items():
+            a(
+                f"| {esc(c['claim'])} | {esc(c['rule'])} | {'yes' if c['asserted'] else 'no'} / "
+                f"{'yes' if c['asserted_prev'] else 'no'} | {cell(CP.get(cid))} | {cell(c)} |"
+            )
+        a("")
+
+        def shape(text: str) -> str:  # a statement's wording with its numbers masked
+            return re.sub(r"[+\-−]?\d[\d.,]*", "#", text)
+
+        changed = [
+            cid
+            for cid, c in C.items()
+            if cid in CP
+            and CP[cid]["holds"] is not None
+            and c["holds"] is not None
+            and (
+                CP[cid]["holds"] != c["holds"]
+                or shape(CP[cid]["statement"]) != shape(c["statement"])
+            )
+        ]
+        a(
+            "**Statements that changed** (the check's outcome or the wording that follows from the numbers; old "
+            "statement → new statement, each rendered by this script from its run's numbers; for the "
+            f"{M_prev}-forecast run these are the statements of its committed SUMMARY.md):"
+        )
+        a("")
+        if not changed:
+            a("- none")
+        for cid in changed:
+            a(
+                f"- *{C[cid]['claim']}*: {M_prev} forecasts: “{CP[cid]['statement'].strip(' ;.')}” → {M} forecasts: "
+                f"“{C[cid]['statement'].strip(' ;.')}”."
+            )
+        pc = prev["N"]["classes"]
+        a(
+            f"- *display classes*: {M_prev} forecasts: "
+            + ", ".join(f"{c} {n}" for c, n in pc.items() if n)
+            + f" → {M} forecasts: "
+            + ", ".join(f"{c} {n}" for c, n in N["classes"].items() if n)
+            + " (the LSTM rows, 'other' before, are a class of their own; every new tree rung joins the per-bar trees)."
+        )
+    a("")
     a("## Notes")
     a("")
     a(
@@ -1174,7 +2121,8 @@ def write_summary() -> None:  # noqa: C901 - one linear report
             if len(intra)
             else ""
         )
-        + "; per-bar trees = untuned and tuned LightGBM / XGBoost / random forest."
+        + "; per-bar trees = LightGBM / XGBoost / random forest on every rung of the 16:00 ladder (T10, T1, RS10, RS1, "
+        "the Optuna rungs); LSTM = the per-bar LSTM and the intraday-sequence LSTM."
     )
     (OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"wrote {OUT / 'SUMMARY.md'} ({len(L)} lines)")

@@ -4,6 +4,6 @@ straddle return identical across forecasts,0.0
 iv_var identical across forecasts,0.0
 target identical across forecasts (rel),0.0
 per-day QLIKE = master qlike_recal,0.0
-Sharpe mid = master table,4.884981308350689e-15
+Sharpe mid = master table,5.329070518200751e-15
 Sharpe crossed = master table,3.9968028886505635e-15
-QLIKE = master qlike_recal,2.498001805406602e-16
+QLIKE = master qlike_recal,2.7755575615628914e-16
