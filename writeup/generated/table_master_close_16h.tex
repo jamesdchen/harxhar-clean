@@ -266,7 +266,7 @@ per-bar ridge [\texttt{mfiv\_only}], 500 sessions & 0.0996 & 0.0952 & 0.0972 & +
 \endgroup
 
 \begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}
-\begin{longtable}{lrrrrrrcccc}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.26\linewidth}rrrrrrcccc}
 \caption{The last-30-min trade: $\mathrm{sign}(s)$ on the straddle (nearest out-of-the-money call and put, same-day expiry, one position), entered at 15:30, held to the close; buy when the recalibrated 16:00 forecast exceeds the 15:30 implied variance, sell otherwise. Returns per unit of premium; Sharpe annualized by $\sqrt{252}$ per trade day; $^{\times}$: the entry pays the spread (buy at the ask, sell at the bid); hit: share of days with a positive midpoint return; buys: days the rule buys. $\Delta$Sharpe: the row minus the reference R (or minus always short) on the same days, with the 95\% percentile interval of a paired circular block bootstrap (blocks of 21 days, 2{,}000 draws, one set of resampled days for every row).}\label{tab:master_close_trade}\\
 \toprule
 Forecast & Sharpe & Sharpe$^{\times}$ & mean & mean$^{\times}$ & hit \% & buys & $\Delta$Sharpe vs R & $\Delta$Sharpe$^{\times}$ vs R & $\Delta$Sharpe vs short & $\Delta$Sharpe$^{\times}$ vs short \\

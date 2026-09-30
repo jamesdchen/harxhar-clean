@@ -310,7 +310,12 @@ def trade_table(tab: pd.DataFrame) -> list[str]:
         [tab[tab["key"] == "always_short"], tab[tab["key"] != "always_short"]]
     )
     return longtable(
-        t, cols, cells, cap, "tab:master_close_trade", "l" + "r" * 6 + "c" * 4
+        t,
+        cols,
+        cells,
+        cap,
+        "tab:master_close_trade",
+        r">{\raggedright\arraybackslash}p{0.26\linewidth}" + "r" * 6 + "c" * 4,
     )
 
 
@@ -410,6 +415,7 @@ PREAMBLE = r"""\documentclass[10pt]{article}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[landscape,margin=0.5in]{geometry}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{amsmath}
