@@ -13,9 +13,9 @@ Written by `experiments/close_compounding_headline.py` from `fixedfrac_headline.
 | always short | mid | 0.86 | -0.043 | 55 % | 0.691 | 0.10 |
 | always short | crossed | 0.33 | -0.319 | 74 % | 0.671 | 0.09 |
 
-## Every table-A forecast (n = 115; `fixedfrac_all_forecasts.csv`)
-- Midpoint: 113 of 115 sign(s) portfolios end above 1 (terminal wealth 0.58 to 20.50); the headline's 20.18 ranks 2.
-- Crossed: 108 of 115 end above 1 (0.24 to 8.66); the headline's 8.55 ranks 2.
+## Every table-A forecast (`fixedfrac_all_forecasts.csv`: 229 forecasts; counted over the master table's rank set of 220, `in_rank_set`: check rows, exact duplicates and always short left out)
+- Midpoint: 218 of 220 sign(s) portfolios end above 1 (terminal wealth 0.58 to 20.42); the headline's 20.18 ranks 2.
+- Crossed: 208 of 220 end above 1 (0.24 to 8.63); the headline's 8.55 ranks 2.
 
 ## Per calendar year, headline sign(s) (annualized from the days traded that year; `peryear_growth.csv`)
 
@@ -31,3 +31,6 @@ Written by `experiments/close_compounding_headline.py` from `fixedfrac_headline.
 - headline Sharpe mid = master_table.csv: 0 ≤ 1e-09 on n = 866 — PASS
 - headline Sharpe crossed = master_table.csv: 0 ≤ 1e-09 on n = 866 — PASS
 - headline ret_mid = q R: 0 ≤ 1e-12 on n = 866 — PASS
+- fixedfrac_headline.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|): 0 ≤ 1e-09 on n = 42 — PASS
+- peryear_growth.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|): 0 ≤ 1e-09 on n = 60 — PASS
+- fixedfrac_all_forecasts.csv = the committed copy (HEAD = e4b83a0), the headline's and the reference's rows, max |new - old| / max(1, |old|): 0 ≤ 1e-09 on n = 32 — PASS

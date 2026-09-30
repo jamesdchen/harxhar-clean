@@ -23,7 +23,11 @@ mirrored):
   Murphy     mean ES_c on the grid c = 2^(k/8), k = -16..16, one line per forecast.
   oracles    a rule told y (q = sign(y - slice)) and a rule told sign(R).
   ranks      Spearman of minus each loss with the crossed Sharpe over the comparison set
-             and over every table-A forecast, with the day-block bootstrap interval.
+             and over every table-A forecast of the master table's rank set (table A
+             without the rest-of-day check rows, exact duplicates and always short: 220
+             after the 16:00 campaign), with the day-block bootstrap interval.  The
+             "overall" ranks of a forecast are over the same rank set (competition ranks,
+             ties share the lowest); the two oracle rules are never ranked.
 
 PART 2 -- sample splits of the headline's sign(s) return (writeup/fill_close_option_numbers.py
 and the notebook's sign split, mirrored), beside the reference (blk2 under THIS scorer)
@@ -35,12 +39,30 @@ and always short:
   Sharpes carry the day-block bootstrap 95 % interval of the master table (block 21,
   2000 draws, seed [0, n]); the difference between two disjoint periods is not paired.
 
+Comparison set (I4c, 2026-09-30): the eight forecasts of the first run plus one canonical
+row per family the 16:00 campaign added -- the untuned LightGBM refit every session (T1),
+the LightGBM tuned by Optuna at every session, best of 50 trials (tp1), and the
+intraday-sequence LSTM -- each on the live-feasible inputs and MSE-selected; its tree and
+LSTM tables are the campaign's masked runs (the per-bar LSTM refit every session).
+
+Committed-output gate (I4c): the headline's forecast and positions are unchanged by the
+campaign and the reference, always short and the oracles are untouched, so splits.csv,
+sign_split.csv, the headline's, the reference's and the oracles' rows of
+scores_by_forecast.csv (every column but the ranks) and the headline's and the reference's
+rows of murphy_grid.csv must equal their committed copies (git show PREV_REV:<path>;
+PREV_REV = HEAD unless the environment variable CLOSE_PREV_REV names another revision),
+cell by cell, to |new - old| <= 1e-9 max(1, |old|).  Every other forecast present in both
+is compared for the record in before_after_committed.csv (not asserted).
+
 Outputs: results/close_murphy_splits/*.csv, murphy_headline.png, SUMMARY.md (from the CSVs),
 writeup/generated/appendix_close_murphy_splits.tex (tables + number macros).
 """
 
 from __future__ import annotations
 
+import io
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,7 +85,10 @@ MASTER = mtc.OUT / "master_table.csv"
 HEADLINE = mtc.HEADLINE
 REFERENCE = mtc.REFERENCE
 # the comparison set: the headline, the reference, the incumbent OLS, the headline's
-# lasso twin, the all-features ridge, an untuned and a tuned tree, the LSTM
+# lasso twin, the all-features ridge, an untuned and a tuned tree, the LSTM (the first
+# eight), and one canonical row per family the 16:00 campaign added (live-feasible,
+# MSE-selected): the untuned LightGBM refit every session (T1), the LightGBM tuned by
+# Optuna at every session (tp1, best of 50 trials), the intraday-sequence LSTM
 COMPARE = [
     HEADLINE,
     REFERENCE,
@@ -73,7 +98,22 @@ COMPARE = [
     "subtree_lgbm_live_feasible",
     "subtree_tuned_all_features_lgbm",
     "lstm_live_feasible",
+    "subtree_daily_live_feasible_lgbm",
+    "subtree_optuna_tp1_live_feasible_lgbm",
+    "lstm_intraday_live_feasible",
 ]
+CHECK_FAMILY = "direct rest-of-day at 15:30 (check)"  # the master table's check rows
+ORACLES = ["oracle: told RV (sign(RV - slice))", "oracle: told the payoff's sign"]
+RANK_COLS = [
+    "QLIKE_rank_all",
+    "ES_rank_all",
+    "Sharpe_crossed_rank_all",
+    "QLIKE_rank_set",
+    "ES_rank_set",
+]
+# the committed outputs the headline rows are gated against (the headline is unchanged by the campaign)
+PREV_REV = os.environ.get("CLOSE_PREV_REV", "HEAD")
+COMMITTED_TOL = 1e-9  # |new - old| <= COMMITTED_TOL * max(1, |old|), cell by cell
 MURPHY_C = np.array([2.0 ** (k / 8.0) for k in range(-16, 17)])  # 1/4 .. 4, c = 1 on it
 TOP_K = (10, 20, 50)
 COVID_END = pd.Timestamp("2020-03-31")
@@ -81,6 +121,49 @@ ERA_CUT = pd.Timestamp("2022-05-16")
 G3_GRID = 4001
 GATE_REL = 1e-9
 GATE_ABS = 1e-10
+
+
+def rank_set(mt: pd.DataFrame) -> set[str]:
+    """The master table's rank set: table A, no check rows, no exact duplicates, no always short."""
+    dup = mt["duplicate_of"].fillna("").astype(str)
+    keep = (
+        (mt["table"] == "A")
+        & (mt["family"] != CHECK_FAMILY)
+        & (dup == "")
+        & (mt.index != mtc.ALWAYS_SHORT)
+    )
+    return set(mt.index[keep])
+
+
+def committed_csv(path: Path, **kw) -> tuple[pd.DataFrame, str]:
+    """The committed copy of an output CSV (git show PREV_REV:<path>) and the revision's short sha."""
+    rel = path.relative_to(ROOT).as_posix()
+    sha = subprocess.check_output(
+        ["git", "rev-parse", "--short", PREV_REV], cwd=ROOT, text=True
+    ).strip()
+    raw = subprocess.check_output(["git", "show", f"{PREV_REV}:{rel}"], cwd=ROOT)
+    return pd.read_csv(io.BytesIO(raw), **kw), sha
+
+
+def committed_diff(new: pd.DataFrame, old: pd.DataFrame) -> float:
+    """Largest |new - old| / max(1, |old|) over the committed frame's cells (NaN = NaN);
+    inf when a committed row or column is missing or a text cell differs."""
+    if not (old.index.isin(new.index).all() and old.columns.isin(new.columns).all()):
+        return float("inf")
+    n = new.loc[old.index, old.columns]
+    worst = 0.0
+    for c in old.columns:
+        a, b = n[c], old[c]
+        if pd.api.types.is_numeric_dtype(a) and pd.api.types.is_numeric_dtype(b):
+            a_, b_ = a.to_numpy(float), b.to_numpy(float)
+            same_nan = np.isnan(a_) & np.isnan(b_)
+            d = np.where(same_nan, 0.0, np.abs(a_ - b_) / np.maximum(1.0, np.abs(b_)))
+            if np.isnan(d).any():
+                return float("inf")
+            worst = max(worst, float(d.max(initial=0.0)))
+        elif not (a.astype(str) == b.astype(str)).all():
+            return float("inf")
+    return worst
 
 
 def qlike(y: np.ndarray, f: np.ndarray) -> np.ndarray:
@@ -188,6 +271,10 @@ def main() -> None:
     ]
     frames = {k: D[D["key"] == k].set_index("day").reindex(days) for k in keys}
     assert all(f["pred_clock"].notna().all() for f in frames.values())
+    in_set = rank_set(mt)
+    assert in_set <= set(keys), sorted(in_set - set(keys))
+    assert set(COMPARE) <= in_set, sorted(set(COMPARE) - in_set)
+    iset = [i for i, k in enumerate(keys) if k in in_set]
     F = np.vstack([frames[k]["pred_clock"].to_numpy(float) for k in keys])
     y = frames[HEADLINE]["target"].to_numpy(float)
     yu = frames[HEADLINE]["rv_unclipped"].to_numpy(float)
@@ -289,6 +376,7 @@ def main() -> None:
                 "key": k,
                 "label": mt.loc[k, "label"],
                 "in_comparison_set": k in COMPARE,
+                "in_rank_set": k in in_set,
                 "QLIKE": QL[i].mean(),
                 "ES_at_threshold": ES1[i].mean(),
                 "ES_at_threshold_unclipped": elementary(F[i] / s, yu / s, 1.0).mean(),
@@ -317,6 +405,7 @@ def main() -> None:
                 "key": name,
                 "label": name,
                 "in_comparison_set": True,
+                "in_rank_set": False,
                 "QLIKE": np.nan,
                 "ES_at_threshold": np.nan,
                 "ES_at_threshold_unclipped": np.nan,
@@ -330,14 +419,20 @@ def main() -> None:
             }
         )
     scores = pd.DataFrame(rows).set_index("key")
-    scores["QLIKE_rank_all"] = scores["QLIKE"].rank()
-    scores["ES_rank_all"] = scores["ES_at_threshold"].rank()
-    scores["Sharpe_crossed_rank_all"] = (-scores["Sharpe_crossed"]).rank()
+    # "overall" ranks over the rank set only (the oracles, check rows and duplicates are not ranked)
+    rs = scores[scores["in_rank_set"]]
+    for col, v in (
+        ("QLIKE_rank_all", rs["QLIKE"]),
+        ("ES_rank_all", rs["ES_at_threshold"]),
+        ("Sharpe_crossed_rank_all", -rs["Sharpe_crossed"]),
+    ):
+        scores[col] = np.nan
+        scores.loc[rs.index, col] = v.rank(method="min")
     sub = scores.loc[COMPARE]
     scores["QLIKE_rank_set"] = np.nan
-    scores.loc[COMPARE, "QLIKE_rank_set"] = sub["QLIKE"].rank()
+    scores.loc[COMPARE, "QLIKE_rank_set"] = sub["QLIKE"].rank(method="min")
     scores["ES_rank_set"] = np.nan
-    scores.loc[COMPARE, "ES_rank_set"] = sub["ES_at_threshold"].rank()
+    scores.loc[COMPARE, "ES_rank_set"] = sub["ES_at_threshold"].rank(method="min")
     scores.to_csv(OUT / "scores_by_forecast.csv")
 
     # the Murphy diagram: mean ES_c, one row per forecast in the comparison set, and the headline/reference on the unclipped y
@@ -370,7 +465,7 @@ def main() -> None:
     rk_rows = []
     for setname, idxs in (
         ("comparison set", ic),
-        ("all table-A forecasts", list(range(len(keys)))),
+        ("all table-A forecasts", iset),
     ):
         for lname, L in (
             ("QLIKE", QL),
@@ -463,6 +558,66 @@ def main() -> None:
         )
     signsplit = pd.DataFrame(sg_rows)
     signsplit.to_csv(OUT / "sign_split.csv", index=False)
+
+    # ---- the committed copies: the headline, the reference, always short and the oracles are unchanged
+    hl, rl = mt.loc[HEADLINE, "label"], mt.loc[REFERENCE, "label"]
+    for fname, idx, keep in (
+        ("splits.csv", ["series", "split"], None),
+        ("sign_split.csv", ["forecast"], None),
+        ("scores_by_forecast.csv", ["key"], [HEADLINE, REFERENCE, *ORACLES]),
+        ("murphy_grid.csv", ["forecast"], [hl, rl]),
+    ):
+        old, sha = committed_csv(OUT / fname)
+        new = pd.read_csv(OUT / fname)
+        old, new = old.set_index(idx), new.set_index(idx)
+        if keep is not None:
+            old = old.loc[
+                old.index.isin(keep), [c for c in old.columns if c not in RANK_COLS]
+            ]
+        rows_ = "every row" if keep is None else f"{len(old)} rows"
+        if fname == "scores_by_forecast.csv":
+            rows_ += ", ranks left out"
+        gate(
+            f"{fname} = the committed copy ({PREV_REV} = {sha}), {rows_}, "
+            "max |new - old| / max(1, |old|)",
+            committed_diff(new, old),
+            COMMITTED_TOL,
+            int(old.size),
+        )
+    # every other forecast present in both runs, compared for the record (not asserted)
+    old_sc, prev_sha = committed_csv(OUT / "scores_by_forecast.csv", index_col=0)
+    num = [
+        c
+        for c in old_sc.columns
+        if c not in RANK_COLS and pd.api.types.is_numeric_dtype(old_sc[c])
+    ]
+    ba_rows = []
+    for k in scores.index:
+        if k not in old_sc.index:
+            ba_rows.append({"key": k, "label": scores.loc[k, "label"], "status": "new"})
+            continue
+        o, n_ = old_sc.loc[k, num].astype(float), scores.loc[k, num].astype(float)
+        rel = (n_ - o).abs() / np.maximum(1.0, o.abs())
+        ba_rows.append(
+            {
+                "key": k,
+                "label": scores.loc[k, "label"],
+                "status": "in both",
+                "gated": k in (HEADLINE, REFERENCE, *ORACLES),
+                "in_comparison_set_before": bool(old_sc.loc[k, "in_comparison_set"]),
+                "in_comparison_set_after": bool(scores.loc[k, "in_comparison_set"]),
+                **{f"{c}_before": o[c] for c in ("QLIKE", "ES_at_threshold", "EL")},
+                **{f"{c}_after": n_[c] for c in ("QLIKE", "ES_at_threshold", "EL")},
+                "Sharpe_crossed_before": o["Sharpe_crossed"],
+                "Sharpe_crossed_after": n_["Sharpe_crossed"],
+                "max_rel_diff": float(rel.fillna(0.0).max()),
+            }
+        )
+    for k in old_sc.index.difference(scores.index):
+        ba_rows.append({"key": k, "label": old_sc.loc[k, "label"], "status": "dropped"})
+    before_after = pd.DataFrame(ba_rows)
+    before_after.to_csv(OUT / "before_after_committed.csv", index=False)
+    old_rk, _ = committed_csv(OUT / "rank_vs_sharpe.csv")
     pd.DataFrame(gates).to_csv(OUT / "gates.csv", index=False)
     assert all(g["ok"] for g in gates), [g for g in gates if not g["ok"]]
 
@@ -472,12 +627,23 @@ def main() -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
-    for lab, row in grid.iterrows():
-        lw = 2.2 if lab == hl else 1.0
-        axes[0].plot(MURPHY_C, row.to_numpy(), lw=lw, label=lab)
+    # eleven lines: the headline black and thick, the other ten one tab10 colour each;
+    # line style by model class (linear solid, tree dashed, LSTM dash-dot); legend below
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5.6))
+    colours = iter(f"C{i}" for i in range(10))  # the tab10 colours
+    for k, (lab, row) in zip(COMPARE, grid.iterrows()):
+        head = k == HEADLINE
+        style = {
+            "color": "k" if head else next(colours),
+            "lw": 2.4 if head else 1.1,
+            "ls": "-"
+            if (k.startswith("sub_") or k in (REFERENCE, "a0"))
+            else ("--" if k.startswith("subtree_") else "-."),
+            "zorder": 3 if head else 2,
+        }
+        axes[0].plot(MURPHY_C, row.to_numpy(), label=lab, **style)
         axes[1].plot(
-            MURPHY_C, row.to_numpy() - grid.mean(axis=0).to_numpy(), lw=lw, label=lab
+            MURPHY_C, row.to_numpy() - grid.mean(axis=0).to_numpy(), label=lab, **style
         )
     for ax in axes:
         ax.set_xscale("log", base=2)
@@ -489,8 +655,17 @@ def main() -> None:
         "(a) Murphy diagram, 866 deck days, 16:00-bar recalibration", fontsize=9
     )
     axes[1].set_title("(b) each line minus the mean of the set", fontsize=9)
-    axes[1].legend(fontsize=6.5, loc="upper right")
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        ncol=3,
+        fontsize=7.5,
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.0),
+    )
+    fig.tight_layout(rect=(0.0, 0.17, 1.0, 1.0))
     fig.savefig(OUT / "murphy_headline.png", dpi=130, bbox_inches="tight")
 
     # ---------------------------------------------------------------- tex: tables + macros
@@ -531,7 +706,7 @@ def main() -> None:
         ql_ = "--" if np.isnan(r_["QLIKE"]) else t3(r_["QLIKE"])
         es_ = "--" if np.isnan(r_["ES_at_threshold"]) else t3(r_["ES_at_threshold"])
         L.append(
-            f"{lab} & {ql_} & {es_} & {t3(r_['EL'])} & {r_['hit_var_pct']:.1f} & {r_['hit_pay_pct']:.1f} & "
+            f"\\raggedright {lab} & {ql_} & {es_} & {t3(r_['EL'])} & {r_['hit_var_pct']:.1f} & {r_['hit_pay_pct']:.1f} & "
             f"{r_['Sharpe_mid']:.2f} & {r_['Sharpe_crossed']:.2f} \\\\"
         )
     L += [r"\end{longtable}", r"\endgroup", ""]
@@ -613,7 +788,7 @@ def main() -> None:
         "hmurHQLIKERankAll": f"{int(h['QLIKE_rank_all'])}",
         "hmurHESRankAll": f"{int(h['ES_rank_all'])}",
         "hmurHSharpeRankAll": f"{int(h['Sharpe_crossed_rank_all'])}",
-        "hmurNAll": f"{len(keys)}",
+        "hmurNAll": f"{len(iset)}",
         "hmurNSet": f"{len(COMPARE)}",
         "hmurHHitVar": f"{h['hit_var_pct']:.0f}",
         "hmurHHitPay": f"{h['hit_pay_pct']:.0f}",
@@ -690,7 +865,8 @@ def main() -> None:
         "and returns are gated against `master_table.csv`. Scorer: pred_clock = (f² + s)·B with the causal 250-session smear of the 16:00 clock; the deck's 15:30 sign(s) "
         "straddle trade; 866 days 2020-01-03 .. 2024-04-30. The parked versions of these diagnostics (Appendix D.15) are on the deck's session-bar recalibration and are not set beside these.",
         "",
-        f"## Part 1 — decision-aligned scores (comparison set of {len(COMPARE)}; all {len(keys)} table-A forecasts in `scores_by_forecast.csv`)",
+        f"## Part 1 — decision-aligned scores (comparison set of {len(COMPARE)}; all {len(keys)} table-A forecasts in `scores_by_forecast.csv`, "
+        f"ranked over the master table's rank set of {len(iset)}: check rows, exact duplicates and always short left out, `in_rank_set`)",
         "",
         "| forecast | QLIKE | ES(c=1) | EL | same side as RV % | same side as R % | long on top 10/20/50 | buy % | Sharpe mid | Sharpe crossed |",
         "|---|---|---|---|---|---|---|---|---|---|",
@@ -706,8 +882,8 @@ def main() -> None:
         )
     S += [
         "",
-        f"- Headline ranks: QLIKE {int(h['QLIKE_rank_set'])} of {len(COMPARE)} in the set ({int(h['QLIKE_rank_all'])} of {len(keys)} overall); ES at the threshold "
-        f"{int(h['ES_rank_set'])} of {len(COMPARE)} ({int(h['ES_rank_all'])} overall); crossed Sharpe {int(h['Sharpe_crossed_rank_all'])} of {len(keys)} overall.",
+        f"- Headline ranks: QLIKE {int(h['QLIKE_rank_set'])} of {len(COMPARE)} in the set ({int(h['QLIKE_rank_all'])} of {len(iset)} overall); ES at the threshold "
+        f"{int(h['ES_rank_set'])} of {len(COMPARE)} ({int(h['ES_rank_all'])} overall); crossed Sharpe {int(h['Sharpe_crossed_rank_all'])} of {len(iset)} overall.",
         f"- Murphy diagram (`murphy_grid.csv`, c = 2^(k/8) from {MURPHY_C.min():.2f} to {MURPHY_C.max():.0f}): the headline has the lowest score of the set at {n_lead_h} of {len(MURPHY_C)} thresholds; "
         f"a linear forecast leads at {n_lead_lin}; at c = 1 the leader is {lead_at_1['leader']} and the headline ranks {int(lead_at_1['headline_rank_of_set'])} of {len(COMPARE)}.",
         f"- Oracles: a rule told RV takes the payoff's side on {ov['hit_pay_pct']:.1f} % of days (Sharpe {ov['Sharpe_mid']:.2f} mid / {ov['Sharpe_crossed']:.2f} crossed); "
@@ -717,6 +893,46 @@ def main() -> None:
     for _, r_ in ranks.iterrows():
         S.append(
             f"  - {r_['set']} (n = {int(r_['n_forecasts'])}), {r_['loss']}: {r_['spearman_minus_loss_vs_crossed_sharpe']:+.2f} [{r_['lo']:+.2f}, {r_['hi']:+.2f}]"
+        )
+    S += [
+        "",
+        f"## Before / after: this run against the committed outputs ({PREV_REV} = {prev_sha})",
+        "",
+        f"- Comparison set: {len(old_sc[old_sc['in_comparison_set'].astype(bool) & ~old_sc.index.isin(ORACLES)])} -> {len(COMPARE)} forecasts; "
+        "added: "
+        + "; ".join(
+            str(mt.loc[k, "label"])
+            for k in COMPARE
+            if k not in old_sc.index or not bool(old_sc.loc[k, "in_comparison_set"])
+        )
+        + ".",
+        f"- Forecasts in `scores_by_forecast.csv`: {int((~old_sc.index.isin(ORACLES)).sum())} -> {len(keys)} "
+        f"({int((before_after['status'] == 'new').sum())} new, {int((before_after['status'] == 'dropped').sum())} dropped); "
+        f"the 'overall' ranks and rank correlations are now over the rank set of {len(iset)} (the first run ranked every table-A row, "
+        "the check rows included, and the two oracle rules in the crossed-Sharpe rank).",
+        "- Asserted unchanged (headline, reference, oracles; `gates.csv`): max relative difference "
+        + f"{before_after.loc[before_after['gated'].eq(True), 'max_rel_diff'].max():.2g}.",
+        "- Comparison-set members whose forecasts changed (not asserted; `before_after_committed.csv`):",
+    ]
+    ba = before_after[before_after["status"] == "in both"].set_index("key")
+    for k in COMPARE:
+        if k in ba.index and not bool(ba.loc[k, "gated"]):
+            b_ = ba.loc[k]
+            S.append(
+                f"  - {b_['label']}: QLIKE {b_['QLIKE_before']:.4f} -> {b_['QLIKE_after']:.4f}, ES(c=1) {b_['ES_at_threshold_before']:.4f} -> "
+                f"{b_['ES_at_threshold_after']:.4f}, Sharpe crossed {b_['Sharpe_crossed_before']:.2f} -> {b_['Sharpe_crossed_after']:.2f} "
+                f"(max relative difference {b_['max_rel_diff']:.2g})"
+            )
+    S += [
+        "- Rank agreement, before -> after (Spearman [95 %]):",
+    ]
+    ork = old_rk.set_index(["set", "loss"])
+    for _, r_ in ranks.iterrows():
+        o_ = ork.loc[(r_["set"], r_["loss"])]
+        S.append(
+            f"  - {r_['set']}, {r_['loss']}: n {int(o_['n_forecasts'])} -> {int(r_['n_forecasts'])}; "
+            f"{o_['spearman_minus_loss_vs_crossed_sharpe']:+.2f} [{o_['lo']:+.2f}, {o_['hi']:+.2f}] -> "
+            f"{r_['spearman_minus_loss_vs_crossed_sharpe']:+.2f} [{r_['lo']:+.2f}, {r_['hi']:+.2f}]"
         )
     S += [
         "",

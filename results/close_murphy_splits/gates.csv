@@ -8,6 +8,12 @@ target shared (blk2_inc),0.0,1e-09,866,True
 target shared (blk2),0.0,1e-09,866,True
 target shared (lstm_all_features),0.0,1e-09,866,True
 target shared (lstm_baseline),0.0,1e-09,866,True
+target shared (lstm_intraday_all_features),0.0,1e-09,866,True
+target shared (lstm_intraday_baseline),0.0,1e-09,866,True
+target shared (lstm_intraday_live_feasible),0.0,1e-09,866,True
+target shared (lstm_intraday_qsel_all_features),0.0,1e-09,866,True
+target shared (lstm_intraday_qsel_baseline),0.0,1e-09,866,True
+target shared (lstm_intraday_qsel_live_feasible),0.0,1e-09,866,True
 target shared (lstm_live_feasible),0.0,1e-09,866,True
 target shared (lstm_qsel_all_features),0.0,1e-09,866,True
 target shared (lstm_qsel_baseline),0.0,1e-09,866,True
@@ -48,9 +54,99 @@ target shared (sub_ridge_free_vix_only),0.0,1e-09,866,True
 target shared (sub_ridge_live_feasible),0.0,1e-09,866,True
 target shared (sub_ridge_live_vix_only),0.0,1e-09,866,True
 target shared (sub_ridge_vix_only),0.0,1e-09,866,True
+target shared (subtree_daily_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_daily_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_daily_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_daily_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_daily_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_daily_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_daily_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_daily_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_daily_live_feasible_xgb),0.0,1e-09,866,True
 target shared (subtree_lgbm_all_features),0.0,1e-09,866,True
 target shared (subtree_lgbm_baseline),0.0,1e-09,866,True
 target shared (subtree_lgbm_live_feasible),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k10_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_k25_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp1_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp250_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k10_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_k25_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp25_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optuna_tp5_live_feasible_xgb),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_optunaq_tp25_live_feasible_xgb),0.0,1e-09,866,True
 target shared (subtree_rf_all_features),0.0,1e-09,866,True
 target shared (subtree_rf_baseline),0.0,1e-09,866,True
 target shared (subtree_rf_live_feasible),0.0,1e-09,866,True
@@ -60,6 +156,15 @@ target shared (subtree_tuned_all_features_xgb),0.0,1e-09,866,True
 target shared (subtree_tuned_baseline_lgbm),0.0,1e-09,866,True
 target shared (subtree_tuned_baseline_rf),0.0,1e-09,866,True
 target shared (subtree_tuned_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_tuned_daily_live_feasible_xgb),0.0,1e-09,866,True
 target shared (subtree_tuned_live_feasible_lgbm),0.0,1e-09,866,True
 target shared (subtree_tuned_live_feasible_rf),0.0,1e-09,866,True
 target shared (subtree_tuned_live_feasible_xgb),0.0,1e-09,866,True
@@ -69,6 +174,15 @@ target shared (subtree_tunedq_all_features_xgb),0.0,1e-09,866,True
 target shared (subtree_tunedq_baseline_lgbm),0.0,1e-09,866,True
 target shared (subtree_tunedq_baseline_rf),0.0,1e-09,866,True
 target shared (subtree_tunedq_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_all_features_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_all_features_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_all_features_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_baseline_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_baseline_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_baseline_xgb),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_live_feasible_lgbm),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_live_feasible_rf),0.0,1e-09,866,True
+target shared (subtree_tunedq_daily_live_feasible_xgb),0.0,1e-09,866,True
 target shared (subtree_tunedq_live_feasible_lgbm),0.0,1e-09,866,True
 target shared (subtree_tunedq_live_feasible_rf),0.0,1e-09,866,True
 target shared (subtree_tunedq_live_feasible_xgb),0.0,1e-09,866,True
@@ -142,6 +256,24 @@ ret_crossed = master table (lstm_all_features),0.0,1e-10,866,True
 q = master table (lstm_baseline),0.0,0.0,866,True
 ret_mid = master table (lstm_baseline),0.0,1e-10,866,True
 ret_crossed = master table (lstm_baseline),0.0,1e-10,866,True
+q = master table (lstm_intraday_all_features),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_all_features),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_all_features),0.0,1e-10,866,True
+q = master table (lstm_intraday_baseline),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_baseline),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_baseline),0.0,1e-10,866,True
+q = master table (lstm_intraday_live_feasible),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_live_feasible),0.0,1e-10,866,True
+q = master table (lstm_intraday_qsel_all_features),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_qsel_all_features),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_qsel_all_features),0.0,1e-10,866,True
+q = master table (lstm_intraday_qsel_baseline),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_qsel_baseline),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_qsel_baseline),0.0,1e-10,866,True
+q = master table (lstm_intraday_qsel_live_feasible),0.0,0.0,866,True
+ret_mid = master table (lstm_intraday_qsel_live_feasible),0.0,1e-10,866,True
+ret_crossed = master table (lstm_intraday_qsel_live_feasible),0.0,1e-10,866,True
 q = master table (lstm_live_feasible),0.0,0.0,866,True
 ret_mid = master table (lstm_live_feasible),0.0,1e-10,866,True
 ret_crossed = master table (lstm_live_feasible),0.0,1e-10,866,True
@@ -262,6 +394,33 @@ ret_crossed = master table (sub_ridge_live_vix_only),0.0,1e-10,866,True
 q = master table (sub_ridge_vix_only),0.0,0.0,866,True
 ret_mid = master table (sub_ridge_vix_only),0.0,1e-10,866,True
 ret_crossed = master table (sub_ridge_vix_only),0.0,1e-10,866,True
+q = master table (subtree_daily_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_daily_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_daily_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_daily_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_daily_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_daily_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_daily_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_daily_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_daily_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_daily_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_daily_live_feasible_xgb),0.0,1e-10,866,True
 q = master table (subtree_lgbm_all_features),0.0,0.0,866,True
 ret_mid = master table (subtree_lgbm_all_features),0.0,1e-10,866,True
 ret_crossed = master table (subtree_lgbm_all_features),0.0,1e-10,866,True
@@ -271,6 +430,249 @@ ret_crossed = master table (subtree_lgbm_baseline),0.0,1e-10,866,True
 q = master table (subtree_lgbm_live_feasible),0.0,0.0,866,True
 ret_mid = master table (subtree_lgbm_live_feasible),0.0,1e-10,866,True
 ret_crossed = master table (subtree_lgbm_live_feasible),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k10_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k10_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k10_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_k25_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_k25_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_k25_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp1_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp1_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp1_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp250_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp250_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp250_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k10_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k10_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k10_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_k25_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_k25_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_k25_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp25_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp25_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp25_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optuna_tp5_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optuna_tp5_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optuna_tp5_live_feasible_xgb),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_optunaq_tp25_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_optunaq_tp25_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_optunaq_tp25_live_feasible_xgb),0.0,1e-10,866,True
 q = master table (subtree_rf_all_features),0.0,0.0,866,True
 ret_mid = master table (subtree_rf_all_features),0.0,1e-10,866,True
 ret_crossed = master table (subtree_rf_all_features),0.0,1e-10,866,True
@@ -298,6 +700,33 @@ ret_crossed = master table (subtree_tuned_baseline_rf),0.0,1e-10,866,True
 q = master table (subtree_tuned_baseline_xgb),0.0,0.0,866,True
 ret_mid = master table (subtree_tuned_baseline_xgb),0.0,1e-10,866,True
 ret_crossed = master table (subtree_tuned_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_tuned_daily_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tuned_daily_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tuned_daily_live_feasible_xgb),0.0,1e-10,866,True
 q = master table (subtree_tuned_live_feasible_lgbm),0.0,0.0,866,True
 ret_mid = master table (subtree_tuned_live_feasible_lgbm),0.0,1e-10,866,True
 ret_crossed = master table (subtree_tuned_live_feasible_lgbm),0.0,1e-10,866,True
@@ -325,6 +754,33 @@ ret_crossed = master table (subtree_tunedq_baseline_rf),0.0,1e-10,866,True
 q = master table (subtree_tunedq_baseline_xgb),0.0,0.0,866,True
 ret_mid = master table (subtree_tunedq_baseline_xgb),0.0,1e-10,866,True
 ret_crossed = master table (subtree_tunedq_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_all_features_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_all_features_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_all_features_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_all_features_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_all_features_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_all_features_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_all_features_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_all_features_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_all_features_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_baseline_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_baseline_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_baseline_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_baseline_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_baseline_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_baseline_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_baseline_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_baseline_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_baseline_xgb),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_live_feasible_lgbm),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_live_feasible_lgbm),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_live_feasible_lgbm),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_live_feasible_rf),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_live_feasible_rf),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_live_feasible_rf),0.0,1e-10,866,True
+q = master table (subtree_tunedq_daily_live_feasible_xgb),0.0,0.0,866,True
+ret_mid = master table (subtree_tunedq_daily_live_feasible_xgb),0.0,1e-10,866,True
+ret_crossed = master table (subtree_tunedq_daily_live_feasible_xgb),0.0,1e-10,866,True
 q = master table (subtree_tunedq_live_feasible_lgbm),0.0,0.0,866,True
 ret_mid = master table (subtree_tunedq_live_feasible_lgbm),0.0,1e-10,866,True
 ret_crossed = master table (subtree_tunedq_live_feasible_lgbm),0.0,1e-10,866,True
@@ -462,7 +918,11 @@ ret_mid = master table (sub_enet_live_feasible_har_intra),0.0,1e-10,866,True
 ret_crossed = master table (sub_enet_live_feasible_har_intra),0.0,1e-10,866,True
 headline Sharpe mid = master_table.csv,0.0,1e-09,866,True
 headline Sharpe crossed = master_table.csv,0.0,1e-09,866,True
-headline QLIKE (recal) = master_table.csv,0.0,1e-09,866,True
-"mean(qR) = mean|R| - 2 mean(EL), every forecast",2.3592239273284576e-16,1e-12,115,True
-"QLIKE = integral ES_c c^-2 dc, day by day (headline)",2.0268559319802648e-07,1e-06,866,True
+headline QLIKE (recal) = master_table.csv,2.220446049250313e-16,1e-09,866,True
+"mean(qR) = mean|R| - 2 mean(EL), every forecast",2.3592239273284576e-16,1e-12,229,True
+"QLIKE = integral ES_c c^-2 dc, day by day (headline)",2.026855936421157e-07,1e-06,866,True
 always short collects +1 on pin days,0.0,1e-09,193,True
+"splits.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|)",0.0,1e-09,210,True
+"sign_split.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|)",0.0,1e-09,12,True
+"scores_by_forecast.csv = the committed copy (HEAD = e4b83a0), 4 rows, ranks left out, max |new - old| / max(1, |old|)",6.203371150093062e-15,1e-09,56,True
+"murphy_grid.csv = the committed copy (HEAD = e4b83a0), 2 rows, max |new - old| / max(1, |old|)",0.0,1e-09,66,True

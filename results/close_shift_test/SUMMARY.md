@@ -45,8 +45,9 @@ Written by `experiments/close_shift_test_headline.py` from `shift_test_headline.
 
 ## Gates
 - baseline equals the target's B: 0 ≤ 1e-09 on n = 1469 — PASS
-- recovered s16 equals the causal smear: 1.51e-14 ≤ 1e-09 on n = 1406 — PASS
+- recovered s16 equals the causal smear: 1.35e-14 ≤ 1e-09 on n = 1406 — PASS
 - k = 0 days = the master table's: 0 ≤ 0 on n = 866 — PASS
 - k = 0 Sharpe mid = the master table's: 0 ≤ 1e-09 on n = 866 — PASS
 - k = 0 Sharpe crossed = the master table's: 0 ≤ 1e-09 on n = 866 — PASS
 - bar+0 placed equals pred_clock: 0 ≤ 1e-09 on n = 866 — PASS
+- shift_test_headline.csv = the committed copy (HEAD = e4b83a0), every cell, max |new - old| / max(1, |old|): 0 ≤ 1e-09 on n = 396 — PASS

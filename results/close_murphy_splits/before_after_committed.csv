@@ -1,0 +1,232 @@
+key,label,status,gated,in_comparison_set_before,in_comparison_set_after,QLIKE_before,ES_at_threshold_before,EL_before,QLIKE_after,ES_at_threshold_after,EL_after,Sharpe_crossed_before,Sharpe_crossed_after,max_rel_diff
+a0,baseline (HAR + calendar OLS),in both,False,True,True,0.1172195168709034,0.0990015312179674,0.3744516308822985,0.11721951687090343,0.09900153121796741,0.37445163088229855,0.692623562128798,0.692623562128798,8.326672684688674e-17
+b2lasso,"lasso (fixed 1e-4), earlier panel [on disk, unused by the paper]",in both,False,False,False,0.1048582517829065,0.0996860819088473,0.3635597101309079,0.10485825178290654,0.09968608190884733,0.36355971013090793,1.0112703249590262,1.0112703249590262,8.326672684688674e-17
+lasso_f,lasso (fixed 1e-4),in both,False,False,False,0.106701515118456,0.0984539427367143,0.3615124055723949,0.10670151511845606,0.09845394273671436,0.36151240557239495,1.0674563215611488,1.0674563215611488,5.551115123125783e-17
+lasso_t,lasso (causally tuned),in both,False,False,False,0.1023770805395,0.1005078948918556,0.3718533025540776,0.10237708053950006,0.10050789489185563,0.37185330255407767,0.7602362913954668,0.7602362913954668,1.1523033879555185e-16
+enet,elastic net (causally tuned),in both,False,False,False,0.1034639310456118,0.100702139611714,0.3764027770673432,0.10346393104561183,0.100702139611714,0.37640277706734326,0.6324553450348368,0.6324553450348368,1.2065294297416603e-16
+blk2_inc,"block-diagonal ridge, without the FOMC columns",in both,False,False,False,0.1049665755396028,0.1007445394618376,0.3760788992794724,0.10496657553960287,0.10074453946183769,0.3760788992794724,0.6526820045770884,0.6526820045770884,1.9759751401314388e-16
+blk2,block-diagonal ridge,in both,True,True,True,0.1058117018923815,0.1003641512853677,0.3803737966344961,0.10581170189238152,0.10036415128536778,0.38037379663449616,0.5295655392458037,0.5295655392458037,8.326672684688674e-17
+lstm_all_features,per-bar LSTM [all_features],in both,False,False,False,0.1558094419589477,0.1296617417675533,0.3970443648842326,0.1305254790079908,0.12034870145920391,0.36870675990886514,0.0585646318150037,0.8523257286538052,0.8021906649275632
+lstm_baseline,per-bar LSTM [baseline],in both,False,False,False,0.1067245347595536,0.1149844979022074,0.3941471556443404,0.1049340211683856,0.10725539271502105,0.3713100177542724,0.1405816450843852,0.788385272914004,0.6478036278296188
+lstm_intraday_all_features,intraday-sequence LSTM [all_features],new,,,,,,,,,,,,
+lstm_intraday_baseline,intraday-sequence LSTM [baseline],new,,,,,,,,,,,,
+lstm_intraday_live_feasible,intraday-sequence LSTM [live_feasible],new,,,,,,,,,,,,
+lstm_intraday_qsel_all_features,"intraday-sequence LSTM, QLIKE-selected [all_features]",new,,,,,,,,,,,,
+lstm_intraday_qsel_baseline,"intraday-sequence LSTM, QLIKE-selected [baseline]",new,,,,,,,,,,,,
+lstm_intraday_qsel_live_feasible,"intraday-sequence LSTM, QLIKE-selected [live_feasible]",new,,,,,,,,,,,,
+lstm_live_feasible,per-bar LSTM [live_feasible],in both,False,True,True,0.1249638846008572,0.1095386482212367,0.3799971519457311,0.1192670166952756,0.11269526101728265,0.3837778719628592,0.5379011756407319,0.43294904625719366,0.1724137931034483
+lstm_qsel_all_features,"per-bar LSTM, QLIKE-selected [all_features]",in both,False,False,False,0.1579595988886453,0.1321238002051856,0.4026352426766957,0.13038219360980938,0.11988025314883947,0.3774109518141926,-0.0975309045544121,0.609022494195095,0.7125865399347042
+lstm_qsel_baseline,"per-bar LSTM, QLIKE-selected [baseline]",in both,False,False,False,0.1059022192884616,0.1140810893124924,0.3830654004302485,0.10308417535979734,0.11199650748158366,0.3886364215238458,0.4539235307581995,0.296608573102562,0.1575173494408869
+lstm_qsel_live_feasible,"per-bar LSTM, QLIKE-selected [live_feasible]",in both,False,False,False,0.1233893392225889,0.1130873366718911,0.3845761418367038,0.11816142082344855,0.12185415162674698,0.3793366881026422,0.4110362719058738,0.5575777946504774,0.2
+pool_enet_all_features,"pooled elastic net [all_features], same spec",in both,False,False,False,0.100825409474417,0.1015966163576441,0.3738194251027632,0.10082540947441707,0.10159661635764412,0.3738194251027632,0.7094162000104413,0.7094162000104413,1.869312200941135e-16
+pool_enet_baseline,"pooled elastic net [baseline], same spec",in both,False,False,False,0.1098578442033197,0.1083123267535403,0.3792738713022051,0.10985784420331973,0.10831232675354031,0.3792738713022051,0.5606927565852245,0.5606927565852245,2.1492059968612612e-16
+pool_enet_live_feasible,"pooled elastic net [live_feasible], same spec",in both,False,False,False,0.1019583109326858,0.1046057271470432,0.3691714874496052,0.10195831093268583,0.10460572714704326,0.36917148744960526,0.8404100615325183,0.8404100615325183,1.6822497925188306e-16
+pool_lasso_all_features,"pooled lasso [all_features], same spec",in both,False,False,False,0.1036389514283204,0.10302902392289,0.372834440879979,0.10363895142832046,0.10302902392289,0.372834440879979,0.7385683591099258,0.7385683591099258,5.551115123125783e-17
+pool_lasso_baseline,"pooled lasso [baseline], same spec",in both,False,False,False,0.1097151277647945,0.1071488132120622,0.3790676305702231,0.10971512776479457,0.10714881321206222,0.3790676305702231,0.566742697933202,0.566742697933202,8.326672684688674e-17
+pool_lasso_live_feasible,"pooled lasso [live_feasible], same spec",in both,False,False,False,0.1025636836717915,0.1052053649904436,0.3713590565753366,0.10256368367179158,0.10520536499044368,0.37135905657533663,0.7778592228444018,0.7778592228444018,8.326672684688674e-17
+pool_ridge_all_features,"pooled ridge [all_features], same spec",in both,False,False,False,0.1041778731527336,0.1050470854983283,0.3808934582771169,0.1041778731527336,0.10504708549832834,0.3808934582771169,0.5115894501604024,0.5115894501604024,1.1102230246251565e-16
+pool_ridge_baseline,"pooled ridge [baseline], same spec",in both,False,False,False,0.1105954002240751,0.1102827804634954,0.3719254879298985,0.11059540022407512,0.11028278046349549,0.37192548792989855,0.7698734767757743,0.7698734767757743,8.326672684688674e-17
+pool_ridge_live_feasible,"pooled ridge [live_feasible], same spec",in both,False,False,False,0.1034450123196333,0.1024799524487733,0.3760590539709701,0.10344501231963338,0.10247995244877335,0.3760590539709701,0.6437958052243239,0.6437958052243239,1.9749857700939472e-16
+restofday_enet_all_features,"direct rest-of-day elastic net [all_features], 15:30 clock",in both,False,False,False,0.0994097204832256,0.1010323897365355,0.3683967840132062,0.09941294876656377,0.10129416924639326,0.3688586957406298,0.8758723455760777,0.8627179919145364,0.013154353661541385
+restofday_enet_baseline,"direct rest-of-day elastic net [baseline], 15:30 clock",in both,False,False,False,0.0969363545233347,0.1052796648176112,0.3702292674831581,0.09693635452333467,0.10527966481761121,0.3702292674831581,0.8172095731430514,0.8172095731430514,2.7755575615628914e-17
+restofday_enet_live_feasible,"direct rest-of-day elastic net [live_feasible], 15:30 clock",in both,False,False,False,0.0967749845602259,0.1037836436665584,0.365980387952431,0.09677498456022593,0.10378364366655846,0.365980387952431,0.9427859527964674,0.9427859527964674,1.573927464430835e-16
+restofday_lasso_all_features,"direct rest-of-day lasso [all_features], 15:30 clock",in both,False,False,False,0.0997550854262464,0.0996682761530911,0.3647292643201092,0.09975481092459866,0.09966827615309116,0.36472926432010927,0.9809207695701496,0.9809207695701495,2.74501647745673e-07
+restofday_lasso_baseline,"direct rest-of-day lasso [baseline], 15:30 clock",in both,False,False,False,0.0971963361918948,0.1042544055333705,0.3626125381982577,0.0971963361918948,0.10425440553337051,0.36261253819825773,1.0353623463629438,1.0353623463629438,1.4736265234120108e-16
+restofday_lasso_live_feasible,"direct rest-of-day lasso [live_feasible], 15:30 clock",in both,False,False,False,0.096449858129974,0.096331219193735,0.3514519262863499,0.09644897865400145,0.09633121919373507,0.3514519262863499,1.3631530115787844,1.3631530115787844,8.794759725483381e-07
+restofday_ridge_all_features,"direct rest-of-day ridge [all_features], 15:30 clock",in both,False,False,False,0.1003874746569559,0.094625155968473,0.3570787071078572,0.10038747465694516,0.09462515596847303,0.3570787071078572,1.1981095562842927,1.1981095562842927,1.074140776324839e-14
+restofday_ridge_baseline,"direct rest-of-day ridge [baseline], 15:30 clock",in both,False,False,False,0.0982333759008057,0.1064270159599498,0.3728071316207653,0.0982333759009112,0.10642701595994984,0.37280713162076534,0.7439998534412559,0.7439998534412559,1.054989429150055e-13
+restofday_ridge_live_feasible,"direct rest-of-day ridge [live_feasible], 15:30 clock",in both,False,False,False,0.1005421037680526,0.1003341593681714,0.3487992426913414,0.10054210376805882,0.10033415936817147,0.3487992426913414,1.439631199377035,1.439631199377035,6.217248937900877e-15
+sub_enet_all_features,per-bar elastic net [all_features],in both,False,False,False,0.0993670473567095,0.1012941692463932,0.3688586957406298,0.09941294876656377,0.10129416924639326,0.3688586957406298,0.8627179919145364,0.8627179919145364,4.590140985427649e-05
+sub_enet_baseline,per-bar elastic net [baseline],in both,False,False,False,0.0969363545233346,0.1052796648176112,0.3702292674831581,0.09693635452333467,0.10527966481761121,0.3702292674831581,0.8172095731430514,0.8172095731430514,6.938893903907228e-17
+sub_enet_free_vix_only,per-bar elastic net [free_vix_only],in both,False,False,False,0.0966356057628319,0.1017568633160822,0.3518827621126809,0.09663560576283241,0.10175686331608223,0.3518827621126809,1.3490276824123086,1.3490276824123086,5.134781488891349e-16
+sub_enet_live_feasible,per-bar elastic net [live_feasible],in both,False,False,False,0.0967749845602259,0.1037836436665584,0.365980387952431,0.09677498456022593,0.10378364366655846,0.365980387952431,0.9427859527964674,0.9427859527964674,1.573927464430835e-16
+sub_enet_live_vix_only,per-bar elastic net [live_vix_only],in both,False,False,False,0.0967430649890051,0.1025921322113861,0.3489516621731784,0.09675334902063865,0.10259213221138613,0.34895166217317847,1.4332680348235312,1.4332680348235312,1.0284031633542301e-05
+sub_enet_vix_only,per-bar elastic net [vix_only],in both,False,False,False,0.0960746958373845,0.0938683481019821,0.3686143629104311,0.09607575647961435,0.09386834810198214,0.36861436291043115,0.8616162926911823,0.8616162926911823,1.0606422298498064e-06
+sub_lasso_all_features,per-bar lasso [all_features],in both,False,False,False,0.0997563981861966,0.0996682761530911,0.3647292643201092,0.09975481092459866,0.09966827615309116,0.36472926432010927,0.9809207695701496,0.9809207695701495,1.5872615979350968e-06
+sub_lasso_baseline,per-bar lasso [baseline],in both,False,False,False,0.0971963361918948,0.1042544055333705,0.3626125381982577,0.0971963361918948,0.10425440553337051,0.36261253819825773,1.0353623463629438,1.0353623463629438,1.4736265234120108e-16
+sub_lasso_free_vix_only,per-bar lasso [free_vix_only],in both,False,False,False,0.097220038474523,0.0972734882780119,0.3484730116050662,0.0973035602124614,0.097865959281137,0.34948241264736446,1.445977153060977,1.416987109776237,0.020048756111651765
+sub_lasso_live_feasible,per-bar lasso [live_feasible],in both,False,True,True,0.096449858129974,0.096331219193735,0.3514519262863499,0.09644897865400145,0.09633121919373507,0.3514519262863499,1.3631530115787844,1.3631530115787844,8.794759725483381e-07
+sub_lasso_live_vix_only,per-bar lasso [live_vix_only],in both,False,False,False,0.0969684803463642,0.0976698175016689,0.3506225078942281,0.09692693160652545,0.09709361079139388,0.3485440026605014,1.3841413468604933,1.4438168674780316,0.043113747561182414
+sub_lasso_vix_only,per-bar lasso [vix_only],in both,False,False,False,0.0957211492777513,0.0959241245308416,0.3656625004843744,0.0957211492777511,0.0959241245308416,0.36566250048437443,0.9428413063617104,0.9428413063617105,1.942890293094024e-16
+sub_ridge_all_features,per-bar ridge [all_features],in both,False,True,True,0.1003874746569465,0.094625155968473,0.3570787071078572,0.10038747465694516,0.09462515596847303,0.3570787071078572,1.1981095562842927,1.1981095562842927,1.3461454173580023e-15
+sub_ridge_baseline,per-bar ridge [baseline],in both,False,False,False,0.0982333759009541,0.1064270159599498,0.3728071316207653,0.0982333759009112,0.10642701595994984,0.37280713162076534,0.7439998534412559,0.7439998534412559,4.2896242113954486e-14
+sub_ridge_free_vix_only,per-bar ridge [free_vix_only],in both,False,False,False,0.0999414424147443,0.1032703220772755,0.351394276266436,0.09994144241473761,0.10327032207727552,0.351394276266436,1.361231647586466,1.3612316475864659,6.689093723366568e-15
+sub_ridge_live_feasible,per-bar ridge [live_feasible],in both,True,True,True,0.1005421037680526,0.1003341593681714,0.3487992426913414,0.10054210376805882,0.10033415936817147,0.3487992426913414,1.439631199377035,1.439631199377035,6.217248937900877e-15
+sub_ridge_live_vix_only,per-bar ridge [live_vix_only],in both,False,False,False,0.1004951183937866,0.104718884422166,0.350258637944889,0.10049511839383442,0.10471888442216601,0.35025863794488904,1.3939874642438448,1.3939874642438448,4.782285678572862e-14
+sub_ridge_vix_only,per-bar ridge [vix_only],in both,False,False,False,0.095891957819431,0.0924100594105308,0.3636017965557399,0.09589195781926076,0.09241005941053088,0.36360179655573993,1.0045646873703833,1.0045646873703833,1.7023882303845994e-13
+subtree_daily_all_features_lgbm,"per-bar LightGBM, daily refit [all_features]",new,,,,,,,,,,,,
+subtree_daily_all_features_rf,"per-bar random forest, daily refit [all_features]",new,,,,,,,,,,,,
+subtree_daily_all_features_xgb,"per-bar XGBoost, daily refit [all_features]",new,,,,,,,,,,,,
+subtree_daily_baseline_lgbm,"per-bar LightGBM, daily refit [baseline]",new,,,,,,,,,,,,
+subtree_daily_baseline_rf,"per-bar random forest, daily refit [baseline]",new,,,,,,,,,,,,
+subtree_daily_baseline_xgb,"per-bar XGBoost, daily refit [baseline]",new,,,,,,,,,,,,
+subtree_daily_live_feasible_lgbm,"per-bar LightGBM, daily refit [live_feasible]",new,,,,,,,,,,,,
+subtree_daily_live_feasible_rf,"per-bar random forest, daily refit [live_feasible]",new,,,,,,,,,,,,
+subtree_daily_live_feasible_xgb,"per-bar XGBoost, daily refit [live_feasible]",new,,,,,,,,,,,,
+subtree_lgbm_all_features,per-bar LightGBM [all_features],in both,False,False,False,0.1002334537934462,0.1067997960055058,0.3682525187340413,0.10066964470315287,0.10029446123915377,0.3510155853575096,0.8730713771590767,1.3714653781237978,0.4983940009647211
+subtree_lgbm_baseline,per-bar LightGBM [baseline],in both,False,False,False,0.1039269191814141,0.1144818232544706,0.3842465077694001,0.10488160987232335,0.11083416489949881,0.38691735055682414,0.4228818285069221,0.34621488484682145,0.07666694366010063
+subtree_lgbm_live_feasible,per-bar LightGBM [live_feasible],in both,False,True,True,0.0981939089006236,0.1051819276423631,0.356148376087372,0.09911051540364507,0.1117939167352143,0.35966634219502003,1.2248375993708285,1.1233103389113137,0.14285714285714285
+subtree_optuna_tp1_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_all_features_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_baseline_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_all_features_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_baseline_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k10_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_all_features_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_baseline_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_k25_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 1, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 1, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp1_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 1, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp250_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 250, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp250_all_features_rf,"Optuna per-bar random forest, TUNE_PER 250, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp250_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 250, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp250_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 250, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp250_baseline_rf,"Optuna per-bar random forest, TUNE_PER 250, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp250_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 250, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp250_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 250, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp250_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 250, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp250_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 250, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_all_features_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_baseline_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_all_features_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 10 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_baseline_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 10 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k10_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 10 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_all_features_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 25 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_baseline_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 25 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_k25_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 25 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp25_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp5_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 5, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp5_all_features_rf,"Optuna per-bar random forest, TUNE_PER 5, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp5_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 5, best of 50 [all_features]",new,,,,,,,,,,,,
+subtree_optuna_tp5_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 5, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp5_baseline_rf,"Optuna per-bar random forest, TUNE_PER 5, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp5_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 5, best of 50 [baseline]",new,,,,,,,,,,,,
+subtree_optuna_tp5_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 5, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp5_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 5, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optuna_tp5_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 5, best of 50 [live_feasible]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_all_features_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50, QLIKE-selected [all_features]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_all_features_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50, QLIKE-selected [all_features]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_all_features_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [all_features]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_baseline_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50, QLIKE-selected [baseline]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_baseline_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50, QLIKE-selected [baseline]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_baseline_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [baseline]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_live_feasible_lgbm,"Optuna per-bar LightGBM, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_live_feasible_rf,"Optuna per-bar random forest, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible]",new,,,,,,,,,,,,
+subtree_optunaq_tp25_live_feasible_xgb,"Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible]",new,,,,,,,,,,,,
+subtree_rf_all_features,per-bar random forest [all_features],in both,False,False,False,0.1053520040610987,0.1137591100067591,0.368944710850897,0.10601312740177085,0.1145638746235895,0.380374232069328,0.8597393845614062,0.5337454726171839,0.32599391194422234
+subtree_rf_baseline,per-bar random forest [baseline],in both,False,False,False,0.1043721075058013,0.1091428641336667,0.374252133122376,0.10498676187047669,0.11386609051294957,0.3841531663533572,0.6980102426443268,0.41964854064626855,0.2783617019980582
+subtree_rf_live_feasible,per-bar random forest [live_feasible],in both,False,False,False,0.1008571275925156,0.1093561707777215,0.35999340392882,0.10183310643553427,0.10722624084190888,0.35619493053863843,1.1141506583004457,1.2219072716044455,0.14285714285714285
+subtree_tuned_all_features_lgbm,"tuned per-bar LightGBM [all_features], MSE-selected",in both,False,True,True,0.1011087768482005,0.1068957126588989,0.3519011567452808,0.10345972203016171,0.10572614526070463,0.3569435722488472,1.348659562990874,1.2034635507827716,0.10765949850687775
+subtree_tuned_all_features_rf,"tuned per-bar random forest [all_features], MSE-selected",in both,False,False,False,0.1060954415573522,0.1146927278286142,0.366081246379967,0.11954716732285339,0.11693972532372855,0.36144219466802435,0.9414249517123118,1.0785396193980943,0.18181818181818182
+subtree_tuned_all_features_xgb,"tuned per-bar XGBoost [all_features], MSE-selected",in both,False,False,False,0.1049259824201622,0.0999092024076147,0.364495946571031,0.11169256147634113,0.11502768142974609,0.37408396529679494,0.9867363147681194,0.7137408375226038,0.27299547724551565
+subtree_tuned_baseline_lgbm,"tuned per-bar LightGBM [baseline], MSE-selected",in both,False,False,False,0.1084548375190872,0.114637123966778,0.3800031955956381,0.11145700086507469,0.11380989283998616,0.3805230909733474,0.544446852092395,0.5291680155521663,0.015278836540228657
+subtree_tuned_baseline_rf,"tuned per-bar random forest [baseline], MSE-selected",in both,False,False,False,0.1120383408383356,0.1138202570706702,0.3952807555960519,0.10928467053298024,0.11126832465175217,0.3784602739726544,0.1076634330351387,0.5859954330737508,0.4783320000386121
+subtree_tuned_baseline_xgb,"tuned per-bar XGBoost [baseline], MSE-selected",in both,False,False,False,0.1109009086322983,0.1183313085382727,0.3893244053287465,0.10957157983350992,0.11794929842198751,0.3763256898201345,0.2780244953208996,0.6483462043854504,0.3703217090645508
+subtree_tuned_daily_all_features_lgbm,"tuned per-bar LightGBM, daily refit [all_features], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_all_features_rf,"tuned per-bar random forest, daily refit [all_features], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_all_features_xgb,"tuned per-bar XGBoost, daily refit [all_features], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_baseline_lgbm,"tuned per-bar LightGBM, daily refit [baseline], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_baseline_rf,"tuned per-bar random forest, daily refit [baseline], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_baseline_xgb,"tuned per-bar XGBoost, daily refit [baseline], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_live_feasible_lgbm,"tuned per-bar LightGBM, daily refit [live_feasible], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_live_feasible_rf,"tuned per-bar random forest, daily refit [live_feasible], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_daily_live_feasible_xgb,"tuned per-bar XGBoost, daily refit [live_feasible], MSE-selected",new,,,,,,,,,,,,
+subtree_tuned_live_feasible_lgbm,"tuned per-bar LightGBM [live_feasible], MSE-selected",in both,False,False,False,0.1053153701500274,0.1111233952449295,0.3754449228631145,0.0992206356733984,0.10703662193361535,0.36393733664417094,0.676732925799803,1.0011338879627898,0.375
+subtree_tuned_live_feasible_rf,"tuned per-bar random forest [live_feasible], MSE-selected",in both,False,False,False,0.1024960406816931,0.1087601748707744,0.3607980006277322,0.11903846408990189,0.11156541040390848,0.36545000540786626,1.0919432651371277,0.9598012004809403,0.12101550407895305
+subtree_tuned_live_feasible_xgb,"tuned per-bar XGBoost [live_feasible], MSE-selected",in both,False,False,False,0.1030570544206076,0.1109306707115142,0.3643334702537132,0.1070369970504212,0.1076444285436739,0.3641095444400541,0.9934215525945478,0.9995423766897077,0.010544815465729234
+subtree_tunedq_all_features_lgbm,"tuned per-bar LightGBM [all_features], QLIKE-selected",in both,False,False,False,0.099167413405437,0.1070856716235187,0.354050716951608,0.10302890446133389,0.10092149542050517,0.36020381360517223,1.287767067149205,1.1104343365660438,0.13770559529506493
+subtree_tunedq_all_features_rf,"tuned per-bar random forest [all_features], QLIKE-selected",in both,False,False,False,0.1068586037861024,0.1135092561306254,0.3678334351859637,0.10630714377427437,0.11228116731665462,0.3617244391312166,0.8924019829881662,1.0676736040816368,0.1752716210934706
+subtree_tunedq_all_features_xgb,"tuned per-bar XGBoost [all_features], QLIKE-selected",in both,False,False,False,0.1035076059791687,0.1048089954939648,0.3757154921373188,0.10468506074166546,0.10957914516957536,0.37138161996730407,0.6622589347900569,0.7858510452489202,0.12359211045886331
+subtree_tunedq_baseline_lgbm,"tuned per-bar LightGBM [baseline], QLIKE-selected",in both,False,False,False,0.1061431781044576,0.1086639173483054,0.3754138735214331,0.1059291091125963,0.11351369866794035,0.36453668857443644,0.6739472647891883,0.9847887110542822,0.3108414462650939
+subtree_tunedq_baseline_rf,"tuned per-bar random forest [baseline], QLIKE-selected",in both,False,False,False,0.1052697481113023,0.110515870419948,0.3818629946731885,0.10220338489476738,0.10977776821337365,0.3845910942715285,0.4857778611126484,0.41220878383955784,0.16666666666666666
+subtree_tunedq_baseline_xgb,"tuned per-bar XGBoost [baseline], QLIKE-selected",in both,False,False,False,0.1116169456401233,0.1161828227737805,0.3804572431517921,0.11245288808355317,0.11833542978603458,0.3800458102793158,0.5299015954585364,0.5414577277426463,0.09090909090909091
+subtree_tunedq_daily_all_features_lgbm,"tuned per-bar LightGBM, daily refit [all_features], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_all_features_rf,"tuned per-bar random forest, daily refit [all_features], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_all_features_xgb,"tuned per-bar XGBoost, daily refit [all_features], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_baseline_lgbm,"tuned per-bar LightGBM, daily refit [baseline], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_baseline_rf,"tuned per-bar random forest, daily refit [baseline], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_baseline_xgb,"tuned per-bar XGBoost, daily refit [baseline], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_live_feasible_lgbm,"tuned per-bar LightGBM, daily refit [live_feasible], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_live_feasible_rf,"tuned per-bar random forest, daily refit [live_feasible], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_daily_live_feasible_xgb,"tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected",new,,,,,,,,,,,,
+subtree_tunedq_live_feasible_lgbm,"tuned per-bar LightGBM [live_feasible], QLIKE-selected",in both,False,False,False,0.1018114991945155,0.1068566187689996,0.3703945735480922,0.1014712468844378,0.10668877410968629,0.37386713484730233,0.8175350256466962,0.7181688138190457,0.09936621182765049
+subtree_tunedq_live_feasible_rf,"tuned per-bar random forest [live_feasible], QLIKE-selected",in both,False,False,False,0.1019763462736973,0.1084120524268039,0.3599939583185614,0.10395277167230708,0.1079345603486135,0.3488654932216909,1.1142529511666606,1.4359344210247167,0.28869698709009
+subtree_tunedq_live_feasible_xgb,"tuned per-bar XGBoost [live_feasible], QLIKE-selected",in both,False,False,False,0.106798363538554,0.1145849644424324,0.3655951414362427,0.10672847160166658,0.10944487177312913,0.357038798367766,0.958200860091554,1.203039866190313,0.24483900609875897
+subtree_xgb_all_features,per-bar XGBoost [all_features],in both,False,False,False,0.1004328243648819,0.1094992726952305,0.371338840071185,0.10207576739969157,0.11110695077869394,0.3742292575495007,0.7908667971947674,0.7054508341790066,0.14285714285714285
+subtree_xgb_baseline,per-bar XGBoost [baseline],in both,False,False,False,0.103909341865494,0.1083672032209699,0.3761468525725528,0.10417924524757785,0.1132032630975162,0.38341249348793965,0.6511745450980388,0.44487470865276235,0.2062998364452765
+subtree_xgb_live_feasible,per-bar XGBoost [live_feasible],in both,False,False,False,0.0988457966365759,0.106983235418343,0.3559832582505546,0.09947090643611406,0.11009604626314168,0.3709787275513917,1.2292506006251778,0.7979548489008274,0.35086072075539365
+lgbm,LightGBM,in both,False,False,False,0.1006059891136299,0.0906760233236994,0.3636709108484796,0.10060598911362992,0.09067602332369946,0.36367091084847963,0.9927967394215566,0.9927967394215566,6.938893903907228e-17
+xgb,XGBoost,in both,False,False,False,0.1029869673858789,0.0965518310930133,0.3686012389211144,0.10298696738587894,0.0965518310930133,0.3686012389211144,0.8549441830421809,0.8549441830421809,1.2306600183364934e-16
+sub_ols_baseline,per-bar OLS [baseline],in both,False,False,False,0.0975168432697906,0.1050636420305856,0.3689471905627073,0.09751684326979064,0.10506364203058564,0.36894719056270736,0.8530070298075825,0.8530070298075825,5.551115123125783e-17
+sub_ridge_ivrep_target_scale,per-bar ridge [ivrep_target_scale],in both,False,False,False,0.0982804916986087,0.097949795178063,0.3579264510730151,0.09828049169860552,0.09794979517806307,0.3579264510730151,1.1695354216932796,1.1695354216932796,3.1780134079895106e-15
+sub_lasso_ivrep_target_scale,per-bar lasso [ivrep_target_scale],in both,False,False,False,0.0960190308512237,0.0959060334123403,0.3499229298512238,0.09601903085122397,0.09590603341234037,0.34992292985122386,1.4095972348222776,1.4095972348222776,2.7755575615628914e-16
+sub_enet_ivrep_target_scale,per-bar elastic net [ivrep_target_scale],in both,False,False,False,0.0965365925542326,0.0964649835415465,0.3612661491881124,0.09653677734789175,0.09646498354154653,0.3612661491881124,1.0755329276249883,1.0755329276249883,1.8479365915258228e-07
+sub_ridge_ivrep_term,per-bar ridge [ivrep_term],in both,False,False,False,0.0998920672691088,0.0971852249536995,0.3542010522393247,0.09989206726911747,0.09718522495369959,0.35420105223932474,1.2814570464151398,1.2814570464151398,8.659739592076221e-15
+sub_lasso_ivrep_term,per-bar lasso [ivrep_term],in both,False,False,False,0.0963424049929727,0.0978471615218795,0.3542796642187587,0.09634240499297318,0.09784716152187951,0.3542796642187587,1.2790439188694191,1.2790439188694191,4.85722573273506e-16
+sub_enet_ivrep_term,per-bar elastic net [ivrep_term],in both,False,False,False,0.0962850436298866,0.1031173126344831,0.3542584384589231,0.09634019706764774,0.10311731263448319,0.3542584384589231,1.2780057668704228,1.2780057668704228,5.515343776113513e-05
+sub_ridge_ivrep_innovations,per-bar ridge [ivrep_innovations],in both,False,False,False,0.0989223221225944,0.1032156754083936,0.3814697458621539,0.09892232212259498,0.10321567540839367,0.38146974586215393,0.4988268871153481,0.4988268871153481,5.828670879282072e-16
+sub_lasso_ivrep_innovations,per-bar lasso [ivrep_innovations],in both,False,False,False,0.0984160648008604,0.0984162676144083,0.3594358171012233,0.0984160648008606,0.09841626761440839,0.35943581710122335,1.13012827986999,1.13012827986999,1.942890293094024e-16
+sub_enet_ivrep_innovations,per-bar elastic net [ivrep_innovations],in both,False,False,False,0.0949631751038199,0.0934657480661303,0.3589712770789223,0.09496317510381987,0.09346574806613032,0.35897127707892235,1.141372165338291,1.141372165338291,6.938893903907228e-17
+sub_ridge_ivrep_vrp,per-bar ridge [ivrep_vrp],in both,False,False,False,0.0986408951992711,0.1022188043300507,0.3576178751445941,0.09864089519927373,0.10221880433005075,0.3576178751445941,1.1856076687306567,1.1856076687306567,2.6229018956769323e-15
+sub_lasso_ivrep_vrp,per-bar lasso [ivrep_vrp],in both,False,False,False,0.0967424294318047,0.0963105709905423,0.3717541628354611,0.09674242943180535,0.09631057099054231,0.3717541628354611,0.7796054413463352,0.7796054413463352,6.522560269672795e-16
+sub_enet_ivrep_vrp,per-bar elastic net [ivrep_vrp],in both,False,False,False,0.0960389805218287,0.0993420189141836,0.3642655325416536,0.09603898052182917,0.09934201891418369,0.36426553254165367,0.9936354797245018,0.9936354797245018,4.718447854656915e-16
+sub_ridge_ivrep_all,per-bar ridge [ivrep_all],in both,False,False,False,0.1000849131638039,0.1052014421129258,0.3750186657000404,0.1000849131638033,0.10520144211292581,0.37501866570004044,0.6865335843660377,0.6865335843660377,5.967448757360216e-16
+sub_lasso_ivrep_all,per-bar lasso [ivrep_all],in both,False,False,False,0.0997261002943759,0.0985678549673668,0.3562913783838095,0.09972610029437602,0.09856785496736685,0.3562913783838095,1.2230462458808606,1.2230462458808606,1.249000902703301e-16
+sub_enet_ivrep_all,per-bar elastic net [ivrep_all],in both,False,False,False,0.0950693080286049,0.0925622997873917,0.3562762741826262,0.09506930802860514,0.09256229978739171,0.3562762741826262,1.2204230375975236,1.2204230375975236,2.3592239273284576e-16
+sub_ridge_vix_rvol,per-bar ridge [vix_rvol],in both,False,False,False,0.0953604285344664,0.0963391587694919,0.3687631707890465,0.09536042853498947,0.09633915876949192,0.3687631707890465,0.8564568308819562,0.8564568308819562,5.230677002643347e-13
+sub_lasso_vix_rvol,per-bar lasso [vix_rvol],in both,False,False,False,0.0953532662159335,0.0947083348263863,0.3565331144473119,0.09535647830793344,0.09473486361303475,0.3583939831163336,1.206839475614202,1.1533630916140556,0.04431109943012965
+sub_enet_vix_rvol,per-bar elastic net [vix_rvol],in both,False,False,False,0.0956260663660335,0.0942004161653135,0.3712066694572563,0.09562606636603468,0.09420041616531358,0.37120666945725633,0.786068695065864,0.786068695065864,1.1796119636642288e-15
+sub_ridge_live_vix_rvol,per-bar ridge [live_vix_rvol],in both,False,False,False,0.1002253865232942,0.1026277398922512,0.3556585928769655,0.10022538652329477,0.10262773989225128,0.35565859287696555,1.2395543234992097,1.2395543234992095,5.689893001203927e-16
+sub_lasso_live_vix_rvol,per-bar lasso [live_vix_rvol],in both,False,False,False,0.0990853206653409,0.1003367396738621,0.3579847428427872,0.09908532066534258,0.10033673967386211,0.35798474284278725,1.1733562845986758,1.1733562845986758,1.6792123247455493e-15
+sub_enet_live_vix_rvol,per-bar elastic net [live_vix_rvol],in both,False,False,False,0.095873890511072,0.1030454171429345,0.3500467779546976,0.09584297109636247,0.10264948533755916,0.3512701580472485,1.3999190621628803,1.3646391032541496,0.025201427612695716
+sub_ridge_free_feasible,per-bar ridge [free_feasible],in both,False,False,False,0.1016479354714672,0.1032010876891341,0.3592392902264342,0.1016479354714679,0.10320108768913415,0.35923929022643425,1.133336311091636,1.1333363110916361,7.077671781985373e-16
+sub_lasso_free_feasible,per-bar lasso [free_feasible],in both,False,False,False,0.0972694871024483,0.0982634246125874,0.3620699700773028,0.09726948710244927,0.0982634246125874,0.3620699700773028,1.0560589208043434,1.0560589208043434,9.71445146547012e-16
+sub_enet_free_feasible,per-bar elastic net [free_feasible],in both,False,False,False,0.0970827341706254,0.0973883007877813,0.3570019304006255,0.09708273417062557,0.09738830078778137,0.35700193040062556,1.2003181397030342,1.2003181397030342,1.6653345369377348e-16
+sub_ridge_free_feasible_vol,per-bar ridge [free_feasible_vol],in both,False,False,False,0.100075907061005,0.100403929811418,0.3524234502947502,0.1000759070610119,0.10040392981141805,0.3524234502947502,1.331320067146255,1.331320067146255,6.897260540483785e-15
+sub_lasso_free_feasible_vol,per-bar lasso [free_feasible_vol],in both,False,False,False,0.0963364257721715,0.0959514730576834,0.3505281554637086,0.09633642577217175,0.09595147305768341,0.3505281554637086,1.389712595086798,1.389712595086798,2.498001805406602e-16
+sub_enet_free_feasible_vol,per-bar elastic net [free_feasible_vol],in both,False,False,False,0.097202883431374,0.1029213402585693,0.363911315773759,0.09720288343137362,0.10292134025856935,0.363911315773759,1.0033751883981916,1.0033751883981916,3.7470027081099033e-16
+sub_ridge_live_feasible_har_base2,"per-bar ridge [live_feasible], HAR ladder base2",in both,False,False,False,0.1013748474238849,0.0990325960458303,0.3683582963030655,0.10137484742388783,0.09903259604583034,0.36835829630306555,0.8717723441510603,0.8717723441510603,2.9282132274488504e-15
+sub_lasso_live_feasible_har_base2,"per-bar lasso [live_feasible], HAR ladder base2",in both,False,False,False,0.0947700383775853,0.0946456501871623,0.3526850378069737,0.09475861523361608,0.09432526610442017,0.3528244646795371,1.324563279186583,1.3205272987438592,0.0031152647975078817
+sub_enet_live_feasible_har_base2,"per-bar elastic net [live_feasible], HAR ladder base2",in both,False,False,False,0.0944091280269129,0.0927420655568486,0.3539839870298968,0.09439835208395861,0.09274206555684869,0.35398398702989686,1.2857733609541109,1.2857733609541109,1.0775942954288631e-05
+sub_ridge_live_feasible_har_base3,"per-bar ridge [live_feasible], HAR ladder base3",in both,False,False,False,0.0997968425489329,0.0986523397848776,0.3556603753818534,0.0997968425489311,0.09865233978487764,0.35566037538185347,1.240766320339825,1.240766320339825,1.790234627208065e-15
+sub_lasso_live_feasible_har_base3,"per-bar lasso [live_feasible], HAR ladder base3",in both,False,False,False,0.0951860812810216,0.0963306172672416,0.3591881062801454,0.09518608128102166,0.09633061726724167,0.35918810628014547,1.1364740218608418,1.1364740218608418,9.71445146547012e-17
+sub_enet_live_feasible_har_base3,"per-bar elastic net [live_feasible], HAR ladder base3",in both,False,False,False,0.0933993916162894,0.0966087801384126,0.3602834200204601,0.09340912601311419,0.09660878013841269,0.36028342002046015,1.1053789918875792,1.1053789918875792,9.734396824778724e-06
+sub_ridge_live_feasible_har_intra,"per-bar ridge [live_feasible], HAR ladder intra",in both,False,False,False,0.2184140023439866,0.1736483535983228,0.4164996963386934,0.2184140023439416,0.17364835359832284,0.4164996963386934,-0.4836898819754883,-0.4836898819754883,4.50195436485501e-14
+sub_lasso_live_feasible_har_intra,"per-bar lasso [live_feasible], HAR ladder intra",in both,False,False,False,0.2177793381188445,0.1718765609970266,0.4092374685801231,0.21777933811884564,0.1718765609970266,0.40923746858012316,-0.2813814171776174,-0.2813814171776174,1.1379786002407855e-15
+sub_enet_live_feasible_har_intra,"per-bar elastic net [live_feasible], HAR ladder intra",in both,False,False,False,0.2137052695077261,0.1755020339767304,0.4030755080313295,0.21370526950772797,0.17550203397673045,0.4030755080313295,-0.105995661807901,-0.10599566180790101,1.887379141862766e-15
+oracle: told RV (sign(RV - slice)),oracle: told RV (sign(RV - slice)),in both,True,True,True,,,0.2615364800817542,,,0.26153648008175423,4.059316099802785,4.059316099802785,5.551115123125783e-17
+oracle: told the payoff's sign,oracle: told the payoff's sign,in both,True,True,True,,,0.0,,,0.0,17.27604998994711,17.27604998994711,0.0

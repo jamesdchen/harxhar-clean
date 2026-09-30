@@ -1,7 +1,8 @@
 gate,value,bound,n,ok
 baseline equals the target's B,0.0,1e-09,1469,True
-recovered s16 equals the causal smear,1.5142031326141913e-14,1e-09,1406,True
+recovered s16 equals the causal smear,1.3519670826912551e-14,1e-09,1406,True
 k = 0 days = the master table's,0.0,0.0,866,True
 k = 0 Sharpe mid = the master table's,0.0,1e-09,866,True
 k = 0 Sharpe crossed = the master table's,0.0,1e-09,866,True
 bar+0 placed equals pred_clock,0.0,1e-09,866,True
+"shift_test_headline.csv = the committed copy (HEAD = e4b83a0), every cell, max |new - old| / max(1, |old|)",0.0,1e-09,396,True

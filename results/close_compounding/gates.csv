@@ -2,3 +2,6 @@ gate,value,bound,n,ok
 headline Sharpe mid = master_table.csv,0.0,1e-09,866,True
 headline Sharpe crossed = master_table.csv,0.0,1e-09,866,True
 headline ret_mid = q R,0.0,1e-12,866,True
+"fixedfrac_headline.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|)",0.0,1e-09,42,True
+"peryear_growth.csv = the committed copy (HEAD = e4b83a0), every row, max |new - old| / max(1, |old|)",0.0,1e-09,60,True
+"fixedfrac_all_forecasts.csv = the committed copy (HEAD = e4b83a0), the headline's and the reference's rows, max |new - old| / max(1, |old|)",0.0,1e-09,32,True

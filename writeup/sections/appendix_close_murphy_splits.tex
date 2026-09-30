@@ -19,9 +19,14 @@ and reads the trade at the one threshold it uses, the day's implied variance of 
 half hour. Table~\ref{tab:app_murphy_headline} repeats that scoring under the 16:00-bar
 recalibration for a comparison set of \hmurNSet{} forecasts --- the headline, the paper's
 block-diagonal ridge scored the same way, the HAR $+$ calendar least squares, the
-headline's lasso twin, the all-features ridge, an untuned and a tuned tree, and the
-LSTM --- and \texttt{scores\_by\_forecast.csv} carries all \hmurNAll{} forecasts of the
-master table. QLIKE is against the scorer's target; the identity between QLIKE and the
+headline's lasso twin, the all-features ridge, an untuned LightGBM refit every tenth
+session and the same model refit every session, a LightGBM tuned by random search and one
+tuned by Optuna at every session, the per-bar LSTM and the intraday-sequence LSTM, each
+tree and LSTM forecast being the one the master table scores --- and
+\texttt{scores\_by\_forecast.csv} carries every table-A forecast of the master table. The
+overall ranks and rank correlations below are over its \hmurNAll{} distinct forecasts (the
+rest-of-day check rows, exact copies of their per-bar twins, are left out).
+QLIKE is against the scorer's target; the identity between QLIKE and the
 $\theta^{-2}$ mixture of elementary scores is checked day by day for the headline, and
 the identity $\overline{qR}=\overline{|R|}-2\,\overline{EL}$ for every forecast. The
 headline scores \hmurHQLIKE{} on QLIKE and \hmurHES{} at the threshold, ranking
@@ -48,7 +53,7 @@ advance takes the payoff's side on \hmurOracleAgree{}\,\% of days (Sharpe
 the rank correlation of minus the loss with the crossed-spread Sharpe ratio is
 \hmurRhoQSet{} for QLIKE (day-block bootstrap 95\,\% interval \hmurRhoQSetLo{} to
 \hmurRhoQSetHi{}) and \hmurRhoESSet{} for the score at the threshold (\hmurRhoESSetLo{} to
-\hmurRhoESSetHi{}); across all \hmurNAll{} forecasts of the master table it is
+\hmurRhoESSetHi{}); across all \hmurNAll{} distinct forecasts of the master table it is
 \hmurRhoQAll{} (\hmurRhoQAllLo{} to \hmurRhoQAllHi{}) and \hmurRhoESAll{} (\hmurRhoESAllLo{}
 to \hmurRhoESAllHi{}). The economic loss is affine in the midpoint P\&L and correlates
 perfectly by construction; it is reported as the ceiling.

@@ -33,6 +33,14 @@ k = 0.  Every shift is scored on the deck days for which EVERY shifted row exist
 (the last deck day has no next session; the 10:00-11:00 rows are missing on two
 sessions); k = 0 is also scored on all 866 days as the gate.
 
+Committed-output gate (I4c, 2026-09-30): every row of this test is the headline's (or
+always short), and the 16:00 campaign did not change the headline's forecast or its
+positions, so shift_test_headline.csv must equal the committed copy
+(git show PREV_REV:results/close_shift_test/shift_test_headline.csv; PREV_REV = HEAD
+unless the environment variable CLOSE_PREV_REV names another revision) cell by cell, to
+|new - old| <= 1e-9 max(1, |old|).  A failure stops the script after the CSV is written
+and before the figure, the tex and SUMMARY.md are.
+
 Outputs (results/close_shift_test/): shift_test_headline.csv, shift_test_gates.csv,
 shift_test_headline.png, SUMMARY.md (written from the CSV); the appendix table and
 number macros writeup/generated/appendix_close_shift_test.tex.
@@ -40,6 +48,9 @@ number macros writeup/generated/appendix_close_shift_test.tex.
 
 from __future__ import annotations
 
+import io
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -65,6 +76,40 @@ SESSION_BARS = [f"{h:02d}:{m:02d}" for h in range(10, 17) for m in (0, 30)][:13]
 SAME_SHIFTS = list(range(-12, 1))  # -12 = the 10:00 row ... 0 = the 16:00 row
 NEXT_SHIFTS = list(range(1, 7))  # +1 .. +6 = the next session's 10:00 .. 12:30 rows
 ALL_SHIFTS = SAME_SHIFTS + NEXT_SHIFTS
+# the committed outputs the rows are gated against (the headline is unchanged by the campaign)
+PREV_REV = os.environ.get("CLOSE_PREV_REV", "HEAD")
+COMMITTED_TOL = 1e-9  # |new - old| <= COMMITTED_TOL * max(1, |old|), cell by cell
+
+
+def committed_csv(path: Path, **kw) -> tuple[pd.DataFrame, str]:
+    """The committed copy of an output CSV (git show PREV_REV:<path>) and the revision's short sha."""
+    rel = path.relative_to(ROOT).as_posix()
+    sha = subprocess.check_output(
+        ["git", "rev-parse", "--short", PREV_REV], cwd=ROOT, text=True
+    ).strip()
+    raw = subprocess.check_output(["git", "show", f"{PREV_REV}:{rel}"], cwd=ROOT)
+    return pd.read_csv(io.BytesIO(raw), **kw), sha
+
+
+def committed_diff(new: pd.DataFrame, old: pd.DataFrame) -> float:
+    """Largest |new - old| / max(1, |old|) over the committed frame's cells (NaN = NaN);
+    inf when a committed row or column is missing or a text cell differs."""
+    if not (old.index.isin(new.index).all() and old.columns.isin(new.columns).all()):
+        return float("inf")
+    n = new.loc[old.index, old.columns]
+    worst = 0.0
+    for c in old.columns:
+        a, b = n[c], old[c]
+        if pd.api.types.is_numeric_dtype(a) and pd.api.types.is_numeric_dtype(b):
+            a_, b_ = a.to_numpy(float), b.to_numpy(float)
+            same_nan = np.isnan(a_) & np.isnan(b_)
+            d = np.where(same_nan, 0.0, np.abs(a_ - b_) / np.maximum(1.0, np.abs(b_)))
+            if np.isnan(d).any():
+                return float("inf")
+            worst = max(worst, float(d.max(initial=0.0)))
+        elif not (a.astype(str) == b.astype(str)).all():
+            return float("inf")
+    return worst
 
 
 def bar_of(k: int) -> tuple[str, str]:
@@ -270,6 +315,16 @@ def main() -> None:
     tab["bar0_all_days_Sharpe_crossed"] = mtc.sharpe(t0["crossed"].to_numpy())
     tab["bar0_all_days_n"] = len(t0)
     tab.to_csv(OUT / "shift_test_headline.csv")
+    # the committed copy: every row is the headline's (or always short), unchanged by the campaign
+    old, sha = committed_csv(OUT / "shift_test_headline.csv", index_col=0)
+    new = pd.read_csv(OUT / "shift_test_headline.csv", index_col=0)
+    gate(
+        f"shift_test_headline.csv = the committed copy ({PREV_REV} = {sha}), every cell, "
+        "max |new - old| / max(1, |old|)",
+        committed_diff(new, old),
+        COMMITTED_TOL,
+        int(old.size),
+    )
     pd.DataFrame(gates).to_csv(OUT / "shift_test_gates.csv", index=False)
     assert all(g["ok"] for g in gates), [g for g in gates if not g["ok"]]
 

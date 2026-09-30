@@ -18,6 +18,20 @@ ret_mid = q R at the midpoint and ret_crossed at the crossed spread for every ta
 the 866 deck days (the headline's Sharpe is gated against master_table.csv).  The midpoint frame
 is the parked exercise's; the crossed frame is added beside it.  Always short is q = -1 every day.
 
+Which forecasts count (I4c, 2026-09-30): fixedfrac_all_forecasts.csv carries every table-A
+forecast of the per-day frame, flagged in_rank_set; the counts, range and ranks over "the
+forecasts of the master table" use the master table's own rank set (table A without the
+rest-of-day check rows, without exact duplicates and without always short: 220 after the 16:00
+campaign), so the check rows, now bit-for-bit copies of their per-bar twins, are not counted
+twice.
+
+Committed-output gate (I4c): the headline's forecast and positions are unchanged by the 16:00
+campaign and the reference and always short are untouched, so fixedfrac_headline.csv,
+peryear_growth.csv and the headline's and the reference's rows of fixedfrac_all_forecasts.csv
+must equal their committed copies (git show PREV_REV:<path>; PREV_REV = HEAD unless the
+environment variable CLOSE_PREV_REV names another revision), cell by cell, to
+|new - old| <= 1e-9 max(1, |old|).
+
 Outputs (results/close_compounding/): fixedfrac_headline.csv (the headline, the reference scored
 this way, always short, both fills), fixedfrac_all_forecasts.csv (every table-A forecast, both
 fills), peryear_growth.csv, wealth_headline.png, gates.csv, SUMMARY.md (from the CSVs);
@@ -26,6 +40,9 @@ writeup/generated/appendix_close_compounding.tex (table + number macros).
 
 from __future__ import annotations
 
+import io
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -50,6 +67,53 @@ REFERENCE = mtc.REFERENCE
 F_FIXED = 0.03  # share of wealth deployed as straddle premium, every day (the notebook's constant)
 PPY = float(asl.PERIODS_PER_YEAR)
 GATE_REL = 1e-9
+CHECK_FAMILY = "direct rest-of-day at 15:30 (check)"  # the master table's check rows
+# the committed outputs the headline rows are gated against (the headline is unchanged by the campaign)
+PREV_REV = os.environ.get("CLOSE_PREV_REV", "HEAD")
+COMMITTED_TOL = 1e-9  # |new - old| <= COMMITTED_TOL * max(1, |old|), cell by cell
+
+
+def rank_set(mt: pd.DataFrame) -> set[str]:
+    """The master table's rank set: table A, no check rows, no exact duplicates, no always short."""
+    dup = mt["duplicate_of"].fillna("").astype(str)
+    keep = (
+        (mt["table"] == "A")
+        & (mt["family"] != CHECK_FAMILY)
+        & (dup == "")
+        & (mt.index != mtc.ALWAYS_SHORT)
+    )
+    return set(mt.index[keep])
+
+
+def committed_csv(path: Path, **kw) -> tuple[pd.DataFrame, str]:
+    """The committed copy of an output CSV (git show PREV_REV:<path>) and the revision's short sha."""
+    rel = path.relative_to(ROOT).as_posix()
+    sha = subprocess.check_output(
+        ["git", "rev-parse", "--short", PREV_REV], cwd=ROOT, text=True
+    ).strip()
+    raw = subprocess.check_output(["git", "show", f"{PREV_REV}:{rel}"], cwd=ROOT)
+    return pd.read_csv(io.BytesIO(raw), **kw), sha
+
+
+def committed_diff(new: pd.DataFrame, old: pd.DataFrame) -> float:
+    """Largest |new - old| / max(1, |old|) over the committed frame's cells (NaN = NaN);
+    inf when a committed row or column is missing or a text cell differs."""
+    if not (old.index.isin(new.index).all() and old.columns.isin(new.columns).all()):
+        return float("inf")
+    n = new.loc[old.index, old.columns]
+    worst = 0.0
+    for c in old.columns:
+        a, b = n[c], old[c]
+        if pd.api.types.is_numeric_dtype(a) and pd.api.types.is_numeric_dtype(b):
+            a_, b_ = a.to_numpy(float), b.to_numpy(float)
+            same_nan = np.isnan(a_) & np.isnan(b_)
+            d = np.where(same_nan, 0.0, np.abs(a_ - b_) / np.maximum(1.0, np.abs(b_)))
+            if np.isnan(d).any():
+                return float("inf")
+            worst = max(worst, float(d.max(initial=0.0)))
+        elif not (a.astype(str) == b.astype(str)).all():
+            return float("inf")
+    return worst
 
 
 def wealth_stats(f: float, r: np.ndarray) -> dict[str, float]:
@@ -100,6 +164,8 @@ def main() -> None:
         if (D["key"] == k).sum() == len(days) and k in mt.index
     ]
     frames = {k: D[D["key"] == k].set_index("day").reindex(days) for k in keys}
+    in_set = rank_set(mt)
+    assert in_set <= set(keys), sorted(in_set - set(keys))
     R = deck["R"].to_numpy(float)
     ex = deck["exit"].to_numpy(float)
     bid = (deck["bid_c"] + deck["bid_p"]).to_numpy(float)
@@ -160,6 +226,7 @@ def main() -> None:
                     "label": mt.loc[k, "label"],
                     "fill": fill,
                     **wealth_stats(F_FIXED, frames[k][f"ret_{fill}"].to_numpy(float)),
+                    "in_rank_set": k in in_set,
                 }
             )
     fa = pd.DataFrame(rows)
@@ -184,6 +251,28 @@ def main() -> None:
                 )
     py = pd.DataFrame(py_rows)
     py.to_csv(OUT / "peryear_growth.csv", index=False)
+
+    # ---- the committed copies: the headline's, the reference's and always short's rows are unchanged
+    for fname, idx, keep in (
+        ("fixedfrac_headline.csv", ["series", "fill"], None),
+        ("peryear_growth.csv", ["series", "fill", "year"], None),
+        ("fixedfrac_all_forecasts.csv", ["key", "fill"], [HEADLINE, REFERENCE]),
+    ):
+        old, sha = committed_csv(OUT / fname)
+        new = pd.read_csv(OUT / fname)
+        if keep is not None:
+            old, new = old[old["key"].isin(keep)], new[new["key"].isin(keep)]
+        old, new = old.set_index(idx), new.set_index(idx)
+        rows_ = (
+            "every row" if keep is None else "the headline's and the reference's rows"
+        )
+        gate(
+            f"{fname} = the committed copy ({PREV_REV} = {sha}), {rows_}, "
+            "max |new - old| / max(1, |old|)",
+            committed_diff(new, old),
+            COMMITTED_TOL,
+            int(old.size),
+        )
     pd.DataFrame(gates).to_csv(OUT / "gates.csv", index=False)
     assert all(g["ok"] for g in gates), [g for g in gates if not g["ok"]]
 
@@ -273,8 +362,9 @@ def main() -> None:
         row("reference sign(s) (this scorer)", "crossed"),
     )
     am, ac = row("always short", "mid"), row("always short", "crossed")
-    fam = fa[fa["fill"] == "mid"]
-    fac = fa[fa["fill"] == "crossed"]
+    fam = fa[(fa["fill"] == "mid") & fa["in_rank_set"]]
+    fac = fa[(fa["fill"] == "crossed") & fa["in_rank_set"]]
+    n_set = len(fam)
     pyh = py[(py["series"] == "headline sign(s)") & (py["fill"] == "mid")].set_index(
         "year"
     )["g_ann"]
@@ -300,7 +390,7 @@ def main() -> None:
         "cmpAG": f"{am['g_ann']:+.2f}",
         "cmpARuin": f"{am['ruin_bound_f']:.2f}",
         "cmpAWX": f"{ac['terminal']:.2f}",
-        "cmpNAll": f"{len(keys)}",
+        "cmpNAll": f"{n_set}",
         "cmpNPosMid": f"{int((fam['terminal'] > 1).sum())}",
         "cmpNPosX": f"{int((fac['terminal'] > 1).sum())}",
         "cmpWLoMid": f"{fam['terminal'].min():.1f}",
@@ -346,10 +436,11 @@ def main() -> None:
         )
     S += [
         "",
-        f"## Every table-A forecast (n = {len(keys)}; `fixedfrac_all_forecasts.csv`)",
-        f"- Midpoint: {int((fam['terminal'] > 1).sum())} of {len(keys)} sign(s) portfolios end above 1 (terminal wealth {fam['terminal'].min():.2f} to {fam['terminal'].max():.2f}); "
+        f"## Every table-A forecast (`fixedfrac_all_forecasts.csv`: {len(keys)} forecasts; counted over the master table's rank set of {n_set}, "
+        "`in_rank_set`: check rows, exact duplicates and always short left out)",
+        f"- Midpoint: {int((fam['terminal'] > 1).sum())} of {n_set} sign(s) portfolios end above 1 (terminal wealth {fam['terminal'].min():.2f} to {fam['terminal'].max():.2f}); "
         f"the headline's {hm['terminal']:.2f} ranks {int((fam['terminal'] > hm['terminal']).sum() + 1)}.",
-        f"- Crossed: {int((fac['terminal'] > 1).sum())} of {len(keys)} end above 1 ({fac['terminal'].min():.2f} to {fac['terminal'].max():.2f}); the headline's {hc['terminal']:.2f} ranks "
+        f"- Crossed: {int((fac['terminal'] > 1).sum())} of {n_set} end above 1 ({fac['terminal'].min():.2f} to {fac['terminal'].max():.2f}); the headline's {hc['terminal']:.2f} ranks "
         f"{int((fac['terminal'] > hc['terminal']).sum() + 1)}.",
         "",
         "## Per calendar year, headline sign(s) (annualized from the days traded that year; `peryear_growth.csv`)",
@@ -376,7 +467,7 @@ def main() -> None:
         .to_string()
     )
     print(
-        f"table-A forecasts ending above 1: mid {int((fam['terminal'] > 1).sum())} / crossed {int((fac['terminal'] > 1).sum())} of {len(keys)}"
+        f"table-A forecasts ending above 1: mid {int((fam['terminal'] > 1).sum())} / crossed {int((fac['terminal'] > 1).sum())} of {n_set}"
     )
     print("gates:", sum(g["ok"] for g in gates), "of", len(gates), "pass")
     print("wrote", OUT, "and", TEX)

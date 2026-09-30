@@ -13,16 +13,19 @@ forecast & QLIKE & ES($c{=}1$) & EL & side of $RV$ \% & side of $R$ \% & Sharpe 
 \endhead
 \bottomrule
 \endlastfoot
-\textbf{per-bar ridge [live\_feasible]} & 0.101 & 0.100 & 0.349 & 67.4 & 54.7 & 1.90 & 1.44 \\
-block-diagonal ridge & 0.106 & 0.100 & 0.380 & 67.2 & 55.0 & 1.00 & 0.53 \\
-baseline (HAR + calendar OLS) & 0.117 & 0.099 & 0.374 & 69.7 & 56.6 & 1.17 & 0.69 \\
-per-bar lasso [live\_feasible] & 0.096 & 0.096 & 0.351 & 67.8 & 55.1 & 1.83 & 1.36 \\
-per-bar ridge [all\_features] & 0.100 & 0.095 & 0.357 & 68.5 & 54.8 & 1.66 & 1.20 \\
-per-bar LightGBM [live\_feasible] & 0.098 & 0.105 & 0.356 & 66.2 & 54.6 & 1.69 & 1.22 \\
-tuned per-bar LightGBM [all\_features], MSE-selected & 0.101 & 0.107 & 0.352 & 66.4 & 54.6 & 1.81 & 1.35 \\
-LSTM live feasible & 0.125 & 0.110 & 0.380 & 63.3 & 53.1 & 1.01 & 0.54 \\
-oracle: told RV (sign(RV - slice)) & -- & -- & 0.262 & 100.0 & 62.8 & 4.52 & 4.06 \\
-oracle: told the payoff's sign & -- & -- & 0.000 & 62.8 & 100.0 & 17.35 & 17.28 \\
+\raggedright \textbf{per-bar ridge [live\_feasible]} & 0.101 & 0.100 & 0.349 & 67.4 & 54.7 & 1.90 & 1.44 \\
+\raggedright block-diagonal ridge & 0.106 & 0.100 & 0.380 & 67.2 & 55.0 & 1.00 & 0.53 \\
+\raggedright baseline (HAR + calendar OLS) & 0.117 & 0.099 & 0.374 & 69.7 & 56.6 & 1.17 & 0.69 \\
+\raggedright per-bar lasso [live\_feasible] & 0.096 & 0.096 & 0.351 & 67.8 & 55.1 & 1.83 & 1.36 \\
+\raggedright per-bar ridge [all\_features] & 0.100 & 0.095 & 0.357 & 68.5 & 54.8 & 1.66 & 1.20 \\
+\raggedright per-bar LightGBM [live\_feasible] & 0.099 & 0.112 & 0.360 & 65.0 & 54.6 & 1.59 & 1.12 \\
+\raggedright tuned per-bar LightGBM [all\_features], MSE-selected & 0.103 & 0.106 & 0.357 & 66.4 & 55.1 & 1.67 & 1.20 \\
+\raggedright per-bar LSTM [live\_feasible] & 0.119 & 0.113 & 0.384 & 63.9 & 54.2 & 0.91 & 0.43 \\
+\raggedright per-bar LightGBM, daily refit [live\_feasible] & 0.096 & 0.106 & 0.366 & 67.1 & 55.5 & 1.42 & 0.95 \\
+\raggedright Optuna per-bar LightGBM, TUNE\_PER 1, best of 50 [live\_feasible] & 0.103 & 0.113 & 0.385 & 65.9 & 54.4 & 0.87 & 0.40 \\
+\raggedright intraday-sequence LSTM [live\_feasible] & 0.110 & 0.099 & 0.362 & 67.8 & 55.1 & 1.53 & 1.06 \\
+\raggedright oracle: told RV (sign(RV - slice)) & -- & -- & 0.262 & 100.0 & 62.8 & 4.52 & 4.06 \\
+\raggedright oracle: told the payoff's sign & -- & -- & 0.000 & 62.8 & 100.0 & 17.35 & 17.28 \\
 \end{longtable}
 \endgroup
 
@@ -66,13 +69,13 @@ always short & off pins & 673 & -0.268 & -6.15 & -3.77 [-4.64, -2.85] & -1440 \\
 
 \newcommand{\hmurHQLIKE}{0.101}
 \newcommand{\hmurHES}{0.100}
-\newcommand{\hmurHQLIKERankSet}{4}
-\newcommand{\hmurHESRankSet}{4}
+\newcommand{\hmurHQLIKERankSet}{5}
+\newcommand{\hmurHESRankSet}{5}
 \newcommand{\hmurHQLIKERankAll}{63}
-\newcommand{\hmurHESRankAll}{41}
-\newcommand{\hmurHSharpeRankAll}{4}
-\newcommand{\hmurNAll}{115}
-\newcommand{\hmurNSet}{8}
+\newcommand{\hmurHESRankAll}{40}
+\newcommand{\hmurHSharpeRankAll}{2}
+\newcommand{\hmurNAll}{220}
+\newcommand{\hmurNSet}{11}
 \newcommand{\hmurHHitVar}{67}
 \newcommand{\hmurHHitPay}{55}
 \newcommand{\hmurHTop}{14}
@@ -82,24 +85,24 @@ always short & off pins & 673 & -0.268 & -6.15 & -3.77 [-4.64, -2.85] & -1440 \\
 \newcommand{\hmurOracleShX}{4.06}
 \newcommand{\hmurPayoffOracleShX}{17.28}
 \newcommand{\hmurLeaderAtOne}{per-bar ridge [all\_features]}
-\newcommand{\hmurHRankAtOne}{4}
+\newcommand{\hmurHRankAtOne}{5}
 \newcommand{\hmurNGrid}{33}
-\newcommand{\hmurNLeadH}{13}
-\newcommand{\hmurNLeadLin}{25}
+\newcommand{\hmurNLeadH}{11}
+\newcommand{\hmurNLeadLin}{20}
 \newcommand{\hmurGridMin}{0.25}
 \newcommand{\hmurGridMax}{4}
-\newcommand{\hmurRhoQSet}{+0.67}
-\newcommand{\hmurRhoQSetLo}{+0.07}
-\newcommand{\hmurRhoQSetHi}{+0.90}
-\newcommand{\hmurRhoESSet}{+0.24}
-\newcommand{\hmurRhoESSetLo}{-0.52}
-\newcommand{\hmurRhoESSetHi}{+0.76}
-\newcommand{\hmurRhoQAll}{+0.65}
-\newcommand{\hmurRhoQAllLo}{+0.13}
-\newcommand{\hmurRhoQAllHi}{+0.74}
-\newcommand{\hmurRhoESAll}{+0.58}
-\newcommand{\hmurRhoESAllLo}{+0.15}
-\newcommand{\hmurRhoESAllHi}{+0.77}
+\newcommand{\hmurRhoQSet}{+0.49}
+\newcommand{\hmurRhoQSetLo}{-0.10}
+\newcommand{\hmurRhoQSetHi}{+0.81}
+\newcommand{\hmurRhoESSet}{+0.56}
+\newcommand{\hmurRhoESSetLo}{-0.23}
+\newcommand{\hmurRhoESSetHi}{+0.83}
+\newcommand{\hmurRhoQAll}{+0.56}
+\newcommand{\hmurRhoQAllLo}{+0.07}
+\newcommand{\hmurRhoQAllHi}{+0.65}
+\newcommand{\hmurRhoESAll}{+0.63}
+\newcommand{\hmurRhoESAllLo}{+0.20}
+\newcommand{\hmurRhoESAllHi}{+0.75}
 \newcommand{\hsplHAllSh}{1.90}
 \newcommand{\hsplHAllT}{3.53}
 \newcommand{\hsplNCovid}{39}
