@@ -1,0 +1,913 @@
+gate,forecast,value,bound,ok,kind,note
+arm finished (DONE),ridge_all_features_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_0930,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_0930,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_0930,12.0,12.0,True,report,"max: 12; old 284..306, new 272..294"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_0930,7.805911472757998e-11,,True,report,median 1.654e-14; rows > 1e-08: 0 of 1467; max |d pred_adj| 7.031e-11
+arm finished (DONE),ridge_all_features_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1000,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1000,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1000,12.0,12.0,True,report,"max: 12; old 264..280, new 252..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1000,7.313080141457817e-10,,True,report,median 2.068e-13; rows > 1e-08: 0 of 1467; max |d pred_adj| 4.567e-10
+arm finished (DONE),ridge_all_features_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1030,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1030,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1030,12.0,12.0,True,report,"max: 12; old 264..282, new 252..270"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1030,2.1142310124844244e-11,,True,report,median 5.351e-14; rows > 1e-08: 0 of 1467; max |d pred_adj| 1.891e-11
+arm finished (DONE),ridge_all_features_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1100,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1100,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1100,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1100,8.738121337614757e-11,,True,report,median 3.689e-13; rows > 1e-08: 0 of 1468; max |d pred_adj| 5.431e-11
+arm finished (DONE),ridge_all_features_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1130,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1130,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1130,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1130,5.198497188274587e-11,,True,report,median 2.170e-13; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.147e-11
+arm finished (DONE),ridge_all_features_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1200,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1200,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1200,12.0,12.0,True,report,"max: 12; old 268..290, new 256..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1200,6.02859984155657e-11,,True,report,median 1.773e-13; rows > 1e-08: 0 of 1468; max |d pred_adj| 4.165e-11
+arm finished (DONE),ridge_all_features_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1230,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1230,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1230,12.0,12.0,True,report,"max: 12; old 268..291, new 256..279"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1230,2.560683887153914e-10,,True,report,median 2.745e-13; rows > 1e-08: 0 of 1468; max |d pred_adj| 1.379e-10
+arm finished (DONE),ridge_all_features_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1300,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1300,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1300,12.0,12.0,True,report,"max: 12; old 271..290, new 259..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1300,3.8546499325775585e-11,,True,report,median 2.287e-14; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.691e-11
+arm finished (DONE),ridge_all_features_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1330,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1330,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1330,12.0,12.0,True,report,"max: 12; old 267..285, new 255..273"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1330,1.3103040874540284e-10,,True,report,median 2.072e-13; rows > 1e-08: 0 of 1468; max |d pred_adj| 7.762e-11
+arm finished (DONE),ridge_all_features_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1400,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1400,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1400,12.0,12.0,True,report,"max: 12; old 261..281, new 249..269"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1400,2.017728228942417e-08,,True,report,median 4.818e-13; rows > 1e-08: 1 of 1469; max |d pred_adj| 1.835e-10
+arm finished (DONE),ridge_all_features_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1430,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1430,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1430,12.0,12.0,True,report,"max: 12; old 260..277, new 248..265"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1430,4.774047823730143e-11,,True,report,median 2.215e-13; rows > 1e-08: 0 of 1469; max |d pred_adj| 3.822e-12
+arm finished (DONE),ridge_all_features_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1500,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1500,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1500,12.0,12.0,True,report,"max: 12; old 259..278, new 247..266"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1500,5.631939359318494e-12,,True,report,median 7.450e-14; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.943e-12
+arm finished (DONE),ridge_all_features_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_all_features_1530,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_all_features_1530,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_all_features_1530,12.0,12.0,True,report,"max: 12; old 262..280, new 250..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_all_features_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_all_features_1530,6.012124131871133e-11,,True,report,median 2.400e-13; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.644e-12
+(d) ran on the twin's CPU architecture,ridge_all_features_1530,1.0,1.0,True,assert,n7405 intel-gold-6140 vs twin n7638 intel-gold-6140
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,ridge_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),ridge_all_features_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),lasso_all_features_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_0930,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_0930,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_0930,12.0,12.0,True,report,"max: 12; old 284..306, new 272..294"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_0930,2.3314683517128287e-14,,True,report,median 8.882e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 5.063e-14
+arm finished (DONE),lasso_all_features_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1000,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1000,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1000,12.0,12.0,True,report,"max: 12; old 264..280, new 252..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1000,0.000576308455784047,,True,report,median 1.221e-15; rows > 1e-08: 76 of 1467; max |d pred_adj| 6.121e-04
+arm finished (DONE),lasso_all_features_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1030,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1030,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1030,12.0,12.0,True,report,"max: 12; old 264..282, new 252..270"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1030,0.006731173948052893,,True,report,median 3.331e-15; rows > 1e-08: 147 of 1467; max |d pred_adj| 6.260e-03
+arm finished (DONE),lasso_all_features_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1100,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1100,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1100,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1100,0.015535969624682844,,True,report,median 1.332e-15; rows > 1e-08: 181 of 1468; max |d pred_adj| 7.614e-03
+arm finished (DONE),lasso_all_features_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1130,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1130,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1130,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1130,0.002121885844602378,,True,report,median 1.554e-15; rows > 1e-08: 61 of 1468; max |d pred_adj| 1.847e-03
+arm finished (DONE),lasso_all_features_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1200,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1200,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1200,12.0,12.0,True,report,"max: 12; old 268..290, new 256..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1200,0.013335694827839917,,True,report,median 1.887e-15; rows > 1e-08: 261 of 1468; max |d pred_adj| 1.269e-02
+arm finished (DONE),lasso_all_features_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1230,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1230,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1230,12.0,12.0,True,report,"max: 12; old 268..291, new 256..279"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1230,0.010144253245199186,,True,report,median 2.220e-15; rows > 1e-08: 79 of 1468; max |d pred_adj| 8.770e-03
+arm finished (DONE),lasso_all_features_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1300,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1300,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1300,12.0,12.0,True,report,"max: 12; old 271..290, new 259..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1300,0.020958440455273397,,True,report,median 2.331e-15; rows > 1e-08: 142 of 1468; max |d pred_adj| 1.570e-02
+arm finished (DONE),lasso_all_features_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1330,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1330,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1330,12.0,12.0,True,report,"max: 12; old 267..285, new 255..273"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1330,0.011223654186481635,,True,report,median 5.995e-15; rows > 1e-08: 363 of 1468; max |d pred_adj| 7.672e-03
+arm finished (DONE),lasso_all_features_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1400,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1400,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1400,12.0,12.0,True,report,"max: 12; old 261..281, new 249..269"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1400,0.004529830513730793,,True,report,median 6.550e-15; rows > 1e-08: 120 of 1469; max |d pred_adj| 6.589e-03
+arm finished (DONE),lasso_all_features_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1430,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1430,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1430,12.0,12.0,True,report,"max: 12; old 260..277, new 248..265"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1430,1.1968204205459188e-13,,True,report,median 2.331e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.879e-14
+arm finished (DONE),lasso_all_features_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1500,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1500,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1500,12.0,12.0,True,report,"max: 12; old 259..278, new 247..266"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1500,6.59472476627343e-14,,True,report,median 1.776e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.707e-14
+arm finished (DONE),lasso_all_features_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_all_features_1530,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_all_features_1530,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_all_features_1530,12.0,12.0,True,report,"max: 12; old 262..280, new 250..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_all_features_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_all_features_1530,0.0003966054730206725,,True,report,median 4.219e-15; rows > 1e-08: 33 of 1469; max |d pred_adj| 1.072e-03
+(d) ran on the twin's CPU architecture,lasso_all_features_1530,1.0,1.0,True,assert,n6125 intel-E5-2670 vs twin n6125 intel-E5-2670
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,lasso_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),lasso_all_features_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),enet_all_features_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_0930,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_0930,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_0930,12.0,12.0,True,report,"max: 12; old 284..306, new 272..294"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_0930,5.928590951498336e-14,,True,report,median 3.331e-15; rows > 1e-08: 0 of 1467; max |d pred_adj| 3.930e-14
+arm finished (DONE),enet_all_features_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1000,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1000,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1000,12.0,12.0,True,report,"max: 12; old 264..280, new 252..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1000,0.014897305351506018,,True,report,median 4.219e-15; rows > 1e-08: 216 of 1467; max |d pred_adj| 1.134e-02
+arm finished (DONE),enet_all_features_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1030,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1030,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1030,12.0,12.0,True,report,"max: 12; old 264..282, new 252..270"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1030,0.0039538733463228,,True,report,median 4.441e-15; rows > 1e-08: 183 of 1467; max |d pred_adj| 2.642e-03
+arm finished (DONE),enet_all_features_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1100,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1100,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1100,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1100,6.106226635438361e-14,,True,report,median 3.109e-15; rows > 1e-08: 0 of 1468; max |d pred_adj| 8.504e-14
+arm finished (DONE),enet_all_features_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1130,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1130,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1130,12.0,12.0,True,report,"max: 12; old 265..283, new 253..271"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1130,0.007447522913527127,,True,report,median 5.329e-15; rows > 1e-08: 219 of 1468; max |d pred_adj| 4.926e-03
+arm finished (DONE),enet_all_features_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1200,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1200,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1200,12.0,12.0,True,report,"max: 12; old 268..290, new 256..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1200,0.0015838468814642903,,True,report,median 5.329e-15; rows > 1e-08: 178 of 1468; max |d pred_adj| 1.481e-03
+arm finished (DONE),enet_all_features_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1230,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1230,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1230,12.0,12.0,True,report,"max: 12; old 268..291, new 256..279"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1230,0.014396278412847074,,True,report,median 6.439e-15; rows > 1e-08: 439 of 1468; max |d pred_adj| 1.300e-02
+arm finished (DONE),enet_all_features_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1300,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1300,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1300,12.0,12.0,True,report,"max: 12; old 271..290, new 259..278"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1300,0.0015378175695188734,,True,report,median 4.219e-15; rows > 1e-08: 160 of 1468; max |d pred_adj| 9.795e-04
+arm finished (DONE),enet_all_features_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1330,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1330,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1330,12.0,12.0,True,report,"max: 12; old 267..285, new 255..273"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1330,0.0012287280587149896,,True,report,median 6.439e-15; rows > 1e-08: 146 of 1468; max |d pred_adj| 7.713e-04
+arm finished (DONE),enet_all_features_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1400,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1400,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1400,12.0,12.0,True,report,"max: 12; old 261..281, new 249..269"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1400,0.3785121511134817,,True,report,median 1.688e-14; rows > 1e-08: 586 of 1469; max |d pred_adj| 3.342e-02
+arm finished (DONE),enet_all_features_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1430,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1430,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1430,12.0,12.0,True,report,"max: 12; old 260..277, new 248..265"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1430,1.9317880628477724e-13,,True,report,median 4.441e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 9.526e-14
+arm finished (DONE),enet_all_features_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1500,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1500,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1500,12.0,12.0,True,report,"max: 12; old 259..278, new 247..266"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1500,0.04714549009722979,,True,report,median 7.661e-15; rows > 1e-08: 199 of 1469; max |d pred_adj| 8.543e-03
+arm finished (DONE),enet_all_features_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_all_features_1530,628.0,628.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_all_features_1530,12.0,12.0,True,assert,old p 640
+"(a) masked cols per tune, old minus new (min; max in note)",enet_all_features_1530,12.0,12.0,True,report,"max: 12; old 262..280, new 250..268"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_all_features_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_all_features_1530,0.006424522123210763,,True,report,median 7.327e-15; rows > 1e-08: 132 of 1469; max |d pred_adj| 5.402e-03
+(d) ran on the twin's CPU architecture,enet_all_features_1530,1.0,1.0,True,assert,n1078 intel-gold-6342 vs twin n1077 intel-gold-6342
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,enet_all_features_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),enet_all_features_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),ridge_baseline_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_0930,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_0930,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_0930,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_0930,7.578937477603631e-11,,True,report,median 1.554e-15; rows > 1e-08: 0 of 1467; max |d pred_adj| 5.139e-11
+arm finished (DONE),ridge_baseline_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1000,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1000,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1000,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1000,1.259755633142845e-10,,True,report,median 2.887e-15; rows > 1e-08: 0 of 1467; max |d pred_adj| 9.797e-11
+arm finished (DONE),ridge_baseline_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1030,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1030,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1030,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1030,3.097433420862217e-11,,True,report,median 8.882e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 2.276e-11
+arm finished (DONE),ridge_baseline_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1100,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1100,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1100,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1100,6.759992565719131e-11,,True,report,median 7.772e-15; rows > 1e-08: 0 of 1468; max |d pred_adj| 4.453e-11
+arm finished (DONE),ridge_baseline_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1130,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1130,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1130,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1130,4.418687638008123e-14,,True,report,median 8.882e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.397e-14
+arm finished (DONE),ridge_baseline_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1200,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1200,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1200,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1200,6.23071594318958e-11,,True,report,median 5.718e-15; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.034e-11
+arm finished (DONE),ridge_baseline_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1230,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1230,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1230,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1230,6.278644271162648e-11,,True,report,median 5.490e-14; rows > 1e-08: 0 of 1468; max |d pred_adj| 2.956e-11
+arm finished (DONE),ridge_baseline_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1300,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1300,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1300,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1300,6.306066779870889e-14,,True,report,median 1.221e-15; rows > 1e-08: 0 of 1468; max |d pred_adj| 4.408e-14
+arm finished (DONE),ridge_baseline_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1330,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1330,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1330,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1330,4.526468089238733e-11,,True,report,median 1.776e-15; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.691e-11
+arm finished (DONE),ridge_baseline_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1400,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1400,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1400,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1400,3.618028099339199e-11,,True,report,median 2.442e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 3.012e-11
+arm finished (DONE),ridge_baseline_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1430,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1430,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1430,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1430,9.592326932761353e-11,,True,report,median 2.442e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.239e-11
+arm finished (DONE),ridge_baseline_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1500,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1500,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1500,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1500,7.227585197000508e-11,,True,report,median 1.765e-14; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.176e-11
+arm finished (DONE),ridge_baseline_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_baseline_1530,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_baseline_1530,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_baseline_1530,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_baseline_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_baseline_1530,5.47835110609185e-11,,True,report,median 1.199e-14; rows > 1e-08: 0 of 1469; max |d pred_adj| 2.971e-11
+(d) ran on the twin's CPU architecture,ridge_baseline_1530,1.0,1.0,True,assert,n7107 intel-E5-2670 vs twin n6131 intel-E5-2670
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,ridge_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),ridge_baseline_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),lasso_baseline_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_0930,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_0930,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_0930,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_0930,1.199040866595169e-14,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 1.465e-14
+arm finished (DONE),lasso_baseline_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1000,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1000,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1000,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1000,4.440892098500626e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 4.441e-15
+arm finished (DONE),lasso_baseline_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1030,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1030,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1030,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1030,5.329070518200751e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 9.104e-15
+arm finished (DONE),lasso_baseline_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1100,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1100,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1100,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1100,3.552713678800501e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 2.665e-15
+arm finished (DONE),lasso_baseline_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1130,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1130,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1130,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1130,6.994405055138486e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 5.773e-15
+arm finished (DONE),lasso_baseline_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1200,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1200,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1200,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1200,4.440892098500626e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.553e-15
+arm finished (DONE),lasso_baseline_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1230,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1230,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1230,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1230,1.3988810110276972e-14,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 8.327e-15
+arm finished (DONE),lasso_baseline_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1300,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1300,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1300,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1300,5.329070518200751e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 4.219e-15
+arm finished (DONE),lasso_baseline_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1330,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1330,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1330,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1330,1.0880185641326534e-14,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 1.510e-14
+arm finished (DONE),lasso_baseline_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1400,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1400,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1400,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1400,1.0547118733938987e-14,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.329e-15
+arm finished (DONE),lasso_baseline_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1430,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1430,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1430,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1430,5.440092820663267e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 8.438e-15
+arm finished (DONE),lasso_baseline_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1500,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1500,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1500,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1500,6.8833827526759706e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 8.882e-15
+arm finished (DONE),lasso_baseline_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_baseline_1530,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_baseline_1530,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_baseline_1530,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_baseline_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_baseline_1530,9.103828801926284e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 9.770e-15
+(d) ran on the twin's CPU architecture,lasso_baseline_1530,1.0,1.0,True,assert,n7637 intel-gold-6140 vs twin n6408 intel-gold-6140
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,lasso_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),lasso_baseline_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),enet_baseline_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_0930,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_0930,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_0930,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_0930,7.438494264988549e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 6.883e-15
+arm finished (DONE),enet_baseline_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1000,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1000,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1000,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1000,4.773959005888173e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 4.441e-15
+arm finished (DONE),enet_baseline_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1030,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1030,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1030,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1030,7.105427357601002e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1467; max |d pred_adj| 5.995e-15
+arm finished (DONE),enet_baseline_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1100,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1100,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1100,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1100,3.9968028886505635e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.997e-15
+arm finished (DONE),enet_baseline_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1130,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1130,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1130,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1130,3.552713678800501e-15,,True,report,median 1.110e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 3.997e-15
+arm finished (DONE),enet_baseline_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1200,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1200,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1200,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1200,7.216449660063518e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 8.882e-15
+arm finished (DONE),enet_baseline_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1230,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1230,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1230,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1230,5.551115123125783e-15,,True,report,median 3.331e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 4.219e-15
+arm finished (DONE),enet_baseline_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1300,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1300,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1300,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1300,8.215650382226158e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 1.288e-14
+arm finished (DONE),enet_baseline_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1330,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1330,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1330,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1330,7.549516567451064e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1468; max |d pred_adj| 7.994e-15
+arm finished (DONE),enet_baseline_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1400,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1400,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1400,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1400,6.994405055138486e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 6.217e-15
+arm finished (DONE),enet_baseline_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1430,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1430,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1430,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1430,7.105427357601002e-15,,True,report,median 2.220e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 5.773e-15
+arm finished (DONE),enet_baseline_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1500,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1500,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1500,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1500,7.549516567451064e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 7.105e-15
+arm finished (DONE),enet_baseline_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_baseline_1530,22.0,22.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_baseline_1530,12.0,12.0,True,assert,old p 34
+"(a) masked cols per tune, old minus new (min; max in note)",enet_baseline_1530,12.0,12.0,True,report,"max: 12; old 17..17, new 5..5"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_baseline_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_baseline_1530,9.325873406851315e-15,,True,report,median 4.441e-16; rows > 1e-08: 0 of 1469; max |d pred_adj| 1.599e-14
+(d) ran on the twin's CPU architecture,enet_baseline_1530,1.0,1.0,True,assert,n6444 intel-gold-6140 vs twin n7439 intel-gold-6140
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,enet_baseline_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),enet_baseline_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),ridge_live_feasible_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_0930,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_0930,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_0930,12.0,12.0,True,report,"max: 12; old 116..120, new 104..108"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_0930,1.7673085217495554e-11,,True,report,median 1.865e-14; rows > 1e-08: 0 of 1467; max |d pred_adj| 5.894e-12
+arm finished (DONE),ridge_live_feasible_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1000,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1000,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1000,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1000,5.5286886180283545e-12,,True,report,median 1.346e-13; rows > 1e-08: 0 of 1467; max |d pred_adj| 9.188e-12
+arm finished (DONE),ridge_live_feasible_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1030,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1030,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1030,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1030,5.904476907403478e-11,,True,report,median 8.160e-14; rows > 1e-08: 0 of 1467; max |d pred_adj| 7.737e-11
+arm finished (DONE),ridge_live_feasible_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1100,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1100,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1100,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1100,1.2731504739349475e-09,,True,report,median 7.366e-14; rows > 1e-08: 0 of 1468; max |d pred_adj| 9.805e-10
+arm finished (DONE),ridge_live_feasible_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1130,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1130,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1130,12.0,12.0,True,report,"max: 12; old 108..112, new 96..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1130,1.5763050276174084e-07,,True,report,median 8.182e-14; rows > 1e-08: 105 of 1468; max |d pred_adj| 8.382e-08
+arm finished (DONE),ridge_live_feasible_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1200,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1200,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1200,12.0,12.0,True,report,"max: 12; old 109..114, new 97..102"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1200,4.163371425391915e-09,,True,report,median 6.062e-14; rows > 1e-08: 0 of 1468; max |d pred_adj| 2.716e-09
+arm finished (DONE),ridge_live_feasible_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1230,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1230,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1230,12.0,12.0,True,report,"max: 12; old 109..115, new 97..103"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1230,1.2187730824564369e-09,,True,report,median 2.803e-14; rows > 1e-08: 0 of 1468; max |d pred_adj| 5.271e-11
+arm finished (DONE),ridge_live_feasible_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1300,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1300,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1300,12.0,12.0,True,report,"max: 12; old 109..113, new 97..101"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1300,1.0296765724504553e-06,,True,report,median 7.144e-14; rows > 1e-08: 261 of 1468; max |d pred_adj| 1.458e-07
+arm finished (DONE),ridge_live_feasible_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1330,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1330,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1330,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1330,7.466288298729751e-07,,True,report,median 4.458e-14; rows > 1e-08: 199 of 1468; max |d pred_adj| 4.676e-07
+arm finished (DONE),ridge_live_feasible_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1400,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1400,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1400,12.0,12.0,True,report,"max: 12; old 108..109, new 96..97"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1400,3.5050347058085407e-07,,True,report,median 8.160e-14; rows > 1e-08: 123 of 1469; max |d pred_adj| 1.692e-07
+arm finished (DONE),ridge_live_feasible_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1430,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1430,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1430,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1430,1.9267402151523783e-07,,True,report,median 1.635e-13; rows > 1e-08: 107 of 1469; max |d pred_adj| 8.179e-08
+arm finished (DONE),ridge_live_feasible_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1500,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1500,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1500,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1500,2.256326467886538e-07,,True,report,median 7.194e-14; rows > 1e-08: 95 of 1469; max |d pred_adj| 4.261e-08
+arm finished (DONE),ridge_live_feasible_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",ridge_live_feasible_1530,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,ridge_live_feasible_1530,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",ridge_live_feasible_1530,12.0,12.0,True,report,"max: 12; old 106..108, new 94..96"
+"(b) target: same stamps, true_adj and true_raw bitwise",ridge_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",ridge_live_feasible_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),ridge_live_feasible_1530,6.5776273316942024e-12,,True,report,median 8.216e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 6.092e-13
+(d) ran on the twin's CPU architecture,ridge_live_feasible_1530,1.0,1.0,True,assert,n7637 intel-gold-6140 vs twin n6442 intel-gold-6140
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,ridge_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),ridge_live_feasible_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),lasso_live_feasible_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_0930,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_0930,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_0930,12.0,12.0,True,report,"max: 12; old 116..120, new 104..108"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_0930,0.024704997789253502,,True,report,median 1.554e-15; rows > 1e-08: 240 of 1467; max |d pred_adj| 1.957e-02
+arm finished (DONE),lasso_live_feasible_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1000,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1000,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1000,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1000,0.004051565330146389,,True,report,median 4.663e-15; rows > 1e-08: 170 of 1467; max |d pred_adj| 2.747e-03
+arm finished (DONE),lasso_live_feasible_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1030,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1030,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1030,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1030,0.041527883686827916,,True,report,median 6.461e-14; rows > 1e-08: 618 of 1467; max |d pred_adj| 5.435e-02
+arm finished (DONE),lasso_live_feasible_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1100,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1100,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1100,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1100,0.02722752209195134,,True,report,median 8.715e-15; rows > 1e-08: 212 of 1468; max |d pred_adj| 2.742e-02
+arm finished (DONE),lasso_live_feasible_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1130,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1130,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1130,12.0,12.0,True,report,"max: 12; old 108..112, new 96..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1130,0.08485444603388337,,True,report,median 1.332e-15; rows > 1e-08: 399 of 1468; max |d pred_adj| 1.435e-01
+arm finished (DONE),lasso_live_feasible_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1200,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1200,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1200,12.0,12.0,True,report,"max: 12; old 109..114, new 97..102"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1200,0.011677873089448676,,True,report,median 2.665e-15; rows > 1e-08: 290 of 1468; max |d pred_adj| 1.028e-02
+arm finished (DONE),lasso_live_feasible_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1230,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1230,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1230,12.0,12.0,True,report,"max: 12; old 109..115, new 97..103"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1230,0.2680122097488222,,True,report,median 9.326e-15; rows > 1e-08: 552 of 1468; max |d pred_adj| 2.042e-01
+arm finished (DONE),lasso_live_feasible_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1300,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1300,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1300,12.0,12.0,True,report,"max: 12; old 109..113, new 97..101"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1300,1.3785634178921573,,True,report,median 8.660e-15; rows > 1e-08: 442 of 1468; max |d pred_adj| 3.552e+00
+arm finished (DONE),lasso_live_feasible_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1330,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1330,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1330,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1330,2.909662850981579,,True,report,median 2.043e-14; rows > 1e-08: 449 of 1468; max |d pred_adj| 1.830e-01
+arm finished (DONE),lasso_live_feasible_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1400,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1400,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1400,12.0,12.0,True,report,"max: 12; old 108..109, new 96..97"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1400,0.04838068429134723,,True,report,median 1.177e-14; rows > 1e-08: 479 of 1469; max |d pred_adj| 6.949e-02
+arm finished (DONE),lasso_live_feasible_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1430,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1430,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1430,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1430,0.06596629408095445,,True,report,median 1.144e-14; rows > 1e-08: 437 of 1469; max |d pred_adj| 8.936e-02
+arm finished (DONE),lasso_live_feasible_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1500,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1500,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1500,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1500,0.2205137005640958,,True,report,median 2.220e-15; rows > 1e-08: 212 of 1469; max |d pred_adj| 6.626e-01
+arm finished (DONE),lasso_live_feasible_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",lasso_live_feasible_1530,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,lasso_live_feasible_1530,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",lasso_live_feasible_1530,12.0,12.0,True,report,"max: 12; old 106..108, new 94..96"
+"(b) target: same stamps, true_adj and true_raw bitwise",lasso_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",lasso_live_feasible_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),lasso_live_feasible_1530,0.0017170222274160984,,True,report,median 3.775e-15; rows > 1e-08: 247 of 1469; max |d pred_adj| 1.078e-03
+(d) ran on the twin's CPU architecture,lasso_live_feasible_1530,1.0,1.0,True,assert,n6125 intel-E5-2670 vs twin n6107 intel-E5-2670
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,lasso_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),lasso_live_feasible_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+arm finished (DONE),enet_live_feasible_0930,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_0930,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_0930,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_0930,12.0,12.0,True,report,"max: 12; old 116..120, new 104..108"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_0930,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_0930,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_0930,4.063416270128073e-13,,True,report,median 2.220e-15; rows > 1e-08: 0 of 1467; max |d pred_adj| 5.076e-13
+arm finished (DONE),enet_live_feasible_1000,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1000,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1000,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1000,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1000,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1000,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1000,0.004264656115446019,,True,report,median 6.883e-15; rows > 1e-08: 163 of 1467; max |d pred_adj| 5.730e-03
+arm finished (DONE),enet_live_feasible_1030,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1030,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1030,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1030,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1030,0.0,0.0,True,assert,rows 1467 vs 1467
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1030,0.0,0.0,True,assert,rows 6744 vs 6744
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1030,0.5234315647391201,,True,report,median 1.799e-14; rows > 1e-08: 621 of 1467; max |d pred_adj| 7.988e-01
+arm finished (DONE),enet_live_feasible_1100,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1100,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1100,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1100,12.0,12.0,True,report,"max: 12; old 107..112, new 95..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1100,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1100,0.0,0.0,True,assert,rows 6746 vs 6746
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1100,0.08594976681111555,,True,report,median 3.109e-15; rows > 1e-08: 438 of 1468; max |d pred_adj| 6.250e-02
+arm finished (DONE),enet_live_feasible_1130,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1130,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1130,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1130,12.0,12.0,True,report,"max: 12; old 108..112, new 96..100"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1130,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1130,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1130,0.14112601752916087,,True,report,median 0.000e+00; rows > 1e-08: 360 of 1468; max |d pred_adj| 1.397e-01
+arm finished (DONE),enet_live_feasible_1200,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1200,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1200,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1200,12.0,12.0,True,report,"max: 12; old 109..114, new 97..102"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1200,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1200,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1200,0.0006616800053506067,,True,report,median 0.000e+00; rows > 1e-08: 155 of 1468; max |d pred_adj| 7.394e-04
+arm finished (DONE),enet_live_feasible_1230,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1230,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1230,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1230,12.0,12.0,True,report,"max: 12; old 109..115, new 97..103"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1230,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1230,0.0,0.0,True,assert,rows 6685 vs 6685
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1230,0.3875212079415359,,True,report,median 0.000e+00; rows > 1e-08: 348 of 1468; max |d pred_adj| 8.667e-01
+arm finished (DONE),enet_live_feasible_1300,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1300,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1300,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1300,12.0,12.0,True,report,"max: 12; old 109..113, new 97..101"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1300,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1300,0.0,0.0,True,assert,rows 6624 vs 6624
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1300,0.27632618127973485,,True,report,median 1.232e-14; rows > 1e-08: 457 of 1468; max |d pred_adj| 1.686e-01
+arm finished (DONE),enet_live_feasible_1330,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1330,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1330,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1330,12.0,12.0,True,report,"max: 12; old 107..110, new 95..98"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1330,0.0,0.0,True,assert,rows 1468 vs 1468
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1330,0.0,0.0,True,assert,rows 6612 vs 6612
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1330,0.9141274621209878,,True,report,median 1.016e-14; rows > 1e-08: 418 of 1468; max |d pred_adj| 4.333e-01
+arm finished (DONE),enet_live_feasible_1400,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1400,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1400,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1400,12.0,12.0,True,report,"max: 12; old 108..109, new 96..97"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1400,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1400,0.0,0.0,True,assert,rows 6604 vs 6604
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1400,0.04166384743417484,,True,report,median 0.000e+00; rows > 1e-08: 200 of 1469; max |d pred_adj| 2.876e-02
+arm finished (DONE),enet_live_feasible_1430,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1430,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1430,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1430,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1430,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1430,0.0,0.0,True,assert,rows 6602 vs 6602
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1430,0.06860575179339934,,True,report,median 0.000e+00; rows > 1e-08: 703 of 1469; max |d pred_adj| 9.469e-02
+arm finished (DONE),enet_live_feasible_1500,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1500,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1500,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1500,12.0,12.0,True,report,"max: 12; old 106..107, new 94..95"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1500,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1500,0.0,0.0,True,assert,rows 6600 vs 6600
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1500,0.04036280778705015,,True,report,median 4.219e-15; rows > 1e-08: 204 of 1469; max |d pred_adj| 1.949e-02
+arm finished (DONE),enet_live_feasible_1530,1.0,1.0,True,assert,
+"(a) design: p on the de-dup design, no session-edge column",enet_live_feasible_1530,232.0,232.0,True,assert,
+(a) old design minus new = the session-edge columns,enet_live_feasible_1530,12.0,12.0,True,assert,old p 244
+"(a) masked cols per tune, old minus new (min; max in note)",enet_live_feasible_1530,12.0,12.0,True,report,"max: 12; old 106..108, new 94..96"
+"(b) target: same stamps, true_adj and true_raw bitwise",enet_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+"(b) target sidecar (RV_rem, its transform, baseline_rem) bitwise",enet_live_feasible_1530,0.0,0.0,True,assert,rows 6594 vs 6594
+(c) forecast change vs the pre-dedup arm (max rel; median in note),enet_live_feasible_1530,4.085620730620576e-14,,True,report,median 2.665e-15; rows > 1e-08: 0 of 1469; max |d pred_adj| 7.283e-14
+(d) ran on the twin's CPU architecture,enet_live_feasible_1530,1.0,1.0,True,assert,n7107 intel-E5-2670 vs twin n6131 intel-E5-2670
+(d) 15:30 vs the per-bar 16:00 twin: same stamps and target bitwise,enet_live_feasible_1530,0.0,0.0,True,assert,rows 1469 vs 1469
+(d) 15:30 vs the per-bar 16:00 twin: pred_adj (max rel),enet_live_feasible_1530,0.0,1e-09,True,report,rows not bit-identical 0 of 1469
+(e) before: deck days covered by the check row and its twin,restofday_ridge_all_features,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_ridge_all_features,866.0,866.0,True,report,max rel recalibrated forecast 7.221e-12
+(e) before: deck days covered by the check row and its twin,restofday_lasso_all_features,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_lasso_all_features,866.0,866.0,True,report,max rel recalibrated forecast 2.212e-03
+(e) before: deck days covered by the check row and its twin,restofday_enet_all_features,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_enet_all_features,865.0,866.0,True,report,max rel recalibrated forecast 1.704e-02
+(e) before: deck days covered by the check row and its twin,restofday_ridge_baseline,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_ridge_baseline,866.0,866.0,True,report,max rel recalibrated forecast 7.251e-11
+(e) before: deck days covered by the check row and its twin,restofday_lasso_baseline,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_lasso_baseline,866.0,866.0,True,report,max rel recalibrated forecast 1.132e-14
+(e) before: deck days covered by the check row and its twin,restofday_enet_baseline,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_enet_baseline,866.0,866.0,True,report,max rel recalibrated forecast 1.554e-14
+(e) before: deck days covered by the check row and its twin,restofday_ridge_live_feasible,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_ridge_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) before: deck days covered by the check row and its twin,restofday_lasso_live_feasible,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_lasso_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) before: deck days covered by the check row and its twin,restofday_enet_live_feasible,866.0,866.0,True,assert,
+(e) before: same 15:30 position as the per-bar twin (days),restofday_enet_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_ridge_all_features,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_ridge_all_features,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_lasso_all_features,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_lasso_all_features,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_enet_all_features,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_enet_all_features,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_ridge_baseline,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_ridge_baseline,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_lasso_baseline,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_lasso_baseline,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_enet_baseline,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_enet_baseline,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_ridge_live_feasible,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_ridge_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_lasso_live_feasible,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_lasso_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+(e) after: deck days covered by the check row and its twin,restofday_enet_live_feasible,866.0,866.0,True,assert,
+(e) after: same 15:30 position as the per-bar twin (days),restofday_enet_live_feasible,866.0,866.0,True,report,max rel recalibrated forecast 0.000e+00
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_ridge_all_features.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_ridge_all_features.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_lasso_all_features.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_lasso_all_features.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_enet_all_features.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_enet_all_features.parquet,1.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_ridge_baseline.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_ridge_baseline.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_lasso_baseline.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_lasso_baseline.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_enet_baseline.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_enet_baseline.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_ridge_live_feasible.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_ridge_live_feasible.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_lasso_live_feasible.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_lasso_live_feasible.parquet,0.0,,True,report,of 866 deck days
+"(f) rebuilt table: same stamps, baseline and rv_raw bitwise",yhat_restofday_enet_live_feasible.parquet,0.0,0.0,True,assert,rows 19085 vs 19085
+(f) 15:30 position changed vs the pre-dedup table (days),yhat_restofday_enet_live_feasible.parquet,0.0,,True,report,of 866 deck days
+(g) control ran on the new arm's CPU architecture,lasso_all_features_1300,1.0,1.0,True,assert,n1077 intel-gold-6342 vs n1078 intel-gold-6342
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",lasso_all_features_1300,499.0,0.0,True,report,max rel 1.117e-02; control vs old max rel 2.066e-02
+(g) control ran on the new arm's CPU architecture,enet_all_features_1400,1.0,1.0,True,assert,n1154 intel-6736p vs n1171 intel-6736p
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",enet_all_features_1400,883.0,0.0,True,report,max rel 1.931e-02; control vs old max rel 3.785e-01
+(g) control ran on the new arm's CPU architecture,ridge_all_features_1400,1.0,1.0,True,assert,n6444 intel-gold-6140 vs n6440 intel-gold-6140
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",ridge_all_features_1400,1465.0,0.0,True,report,max rel 2.554e-08; control vs old max rel 5.365e-09
+(g) control ran on the new arm's CPU architecture,ridge_live_feasible_1300,1.0,1.0,True,assert,n7638 intel-gold-6140 vs n7643 intel-gold-6140
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",ridge_live_feasible_1300,1458.0,0.0,True,report,max rel 3.345e-06; control vs old max rel 3.644e-06
+(g) control ran on the new arm's CPU architecture,lasso_live_feasible_1330,1.0,1.0,True,assert,n7440 intel-gold-6140 vs n7403 intel-gold-6140
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",lasso_live_feasible_1330,1000.0,0.0,True,report,max rel 1.366e-01; control vs old max rel 3.444e+00
+(g) control ran on the new arm's CPU architecture,enet_live_feasible_1330,1.0,1.0,True,assert,n7440 intel-gold-6140 vs n6439 intel-gold-6140
+"(g) control (pre-dedup executor, same architecture) vs new: rows not bit-identical",enet_live_feasible_1330,965.0,0.0,True,report,max rel 4.776e-01; control vs old max rel 0.000e+00
