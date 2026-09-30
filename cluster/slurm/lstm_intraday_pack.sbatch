@@ -54,6 +54,7 @@ else
      HPC_KW_REQUIRE_CACHE="$([ "$STAGE" = tune ] && echo 0 || echo "${REQUIRE_CACHE:-1}")" \
      HPC_RESULT_DIR="$OUT" python -u specs/causal_tune_lstm_intraday.py > "$OUT/run.log" 2>&1; then
     touch "$OUT/DONE"
+    echo "$(hostname) $(lscpu | grep -m1 'Model name' | sed 's/.*: *//') $(date)" > "$OUT/NODE"
     echo "  $STAGE c$CHUNK done $(date): $(tail -1 "$OUT/run.log" | cut -c1-400)"
   else
     echo "  $STAGE c$CHUNK FAILED: $(tail -3 "$OUT/run.log" | cut -c1-400)"

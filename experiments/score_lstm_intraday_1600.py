@@ -666,8 +666,53 @@ def write_summary(out, lv, pr, sd, hp, kp, gt, use) -> None:
         "## Gates",
         "",
         f"{len(gt)} scorer gates, {len(bad)} failed (`lstmi_gates.csv`). The spec's own gates (target identity, "
-        "causality x2, determinism, chunk = unchunked, pool = serial, mask) are in `../gates/`.",
+        "causality x2, determinism, chunk = unchunked, pool = serial, mask) are in `../gates/`:",
         "",
+    ]
+    spec_gates = []
+    for f in sorted((out.parent / "gates").glob("gate_lstm_intraday_*.csv")):
+        g = pd.read_csv(f)
+        where = "local" if "local" in f.parts else "cluster"
+        spec_gates += [(where, r.gate, r.bucket, bool(r.ok)) for r in g.itertuples()]
+    for f in sorted((out.parent / "gates" / "local").glob("gate_lstm_intraday_*.csv")):
+        g = pd.read_csv(f)
+        spec_gates += [("local", r.gate, r.bucket, bool(r.ok)) for r in g.itertuples()]
+    if spec_gates:
+        sg = pd.DataFrame(spec_gates, columns=["where", "gate", "bucket", "ok"])
+        L += ["| where | gate | input set | pass |", "|---|---|---|---|"]
+        L += [
+            f"| {x.where} | {x.gate} | {x.bucket} | {'yes' if x.ok else 'NO'} |"
+            for x in sg.itertuples()
+        ]
+        L += [""]
+    cc = out.parent / "gates" / "cross_class_mixed_vs_pinned.csv"
+    if cc.is_file():
+        c = pd.read_csv(cc)
+        tp, ch = c[c["what"] == "tuning point"], c[c["what"] == "refit chunk"]
+        L += [
+            "CPU class. The campaign ran pinned to one CPU class (epyc-7513). A first attempt on mixed nodes was "
+            "stopped by the tuning cache's fingerprint: the executor's bar-level inputs differ in their last bits "
+            "between Intel and AMD nodes. `../gates/cross_class_mixed_vs_pinned.csv` compares it with the pinned "
+            f"run: tuning points bit-identical {int(tp['bit_identical'].sum())} of {len(tp)} (the rest: "
+            + "; ".join(
+                f"`{x.bucket}` row {x.row} on {x.cpu_mixed}, same picks {x.same_picks}, max |validation MSE diff| {x.max_abs_diff:.2e}"
+                for x in tp[~tp["bit_identical"]].itertuples()
+            )
+            + f"); refit chunks bit-identical {int(ch['bit_identical'].sum())} of {len(ch)} finished"
+            + (
+                " (not identical: "
+                + "; ".join(
+                    f"`{x.bucket}` chunk {x.row} on {x.cpu_mixed}, max |diff| {x.max_abs_diff:.2e}"
+                    for x in ch[~ch["bit_identical"]].itertuples()
+                )
+                + ")"
+                if (~ch["bit_identical"]).any()
+                else ""
+            )
+            + ".",
+            "",
+        ]
+    L += [
         "Wording: sign(s) = the rule above; QLIKE differences are losses (negative = a lower loss); nothing here is a recommendation.",
     ]
     (out / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")

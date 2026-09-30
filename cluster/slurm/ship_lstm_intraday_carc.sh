@@ -39,6 +39,7 @@ WORKTREE=(
   cluster/slurm/submit_lstm_intraday.sh
   cluster/slurm/submit_lstm_intraday_stage2.sh
   cluster/lstm_intraday_make_stage2.py
+  cluster/lstm_intraday_cross_class.py
   cluster/lstm_intraday_tasks_canary.txt
   cluster/lstm_intraday_tasks_tune.txt
 )

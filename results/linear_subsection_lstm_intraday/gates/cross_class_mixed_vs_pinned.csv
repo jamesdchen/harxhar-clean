@@ -1,0 +1,39 @@
+what,bucket,row,cpu_mixed,cpu_pinned,same_bar_inputs_sha,same_target_sha,same_picks,same_epochs,max_abs_diff,bit_identical,n_rows,first,last,median_abs_diff
+tuning point,all_features,0,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,all_features,250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,all_features,500,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,all_features,750,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,all_features,1000,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,all_features,1250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,0,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,500,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,750,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,1000,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,baseline,1250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,live_feasible,0,Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz,AMD EPYC 7513 32-Core Processor,False,True,True,False,0.005862440845299799,False,,,,
+tuning point,live_feasible,250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,live_feasible,500,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,live_feasible,750,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,live_feasible,1000,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+tuning point,live_feasible,1250,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,True,True,True,True,0.0,True,,,,
+refit chunk,live_feasible,2,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2019-06-26 16:00:00,2020-06-22 16:00:00,0.0
+refit chunk,live_feasible,4,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2021-06-21 16:00:00,2022-06-16 16:00:00,0.0
+refit chunk,live_feasible,5,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2022-06-17 16:00:00,2023-06-15 16:00:00,0.0
+refit chunk,all_features,0,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,127.0,2018-06-25 16:00:00,2018-12-27 16:00:00,0.0
+refit chunk,all_features,1,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,123.0,2018-12-28 16:00:00,2019-06-25 16:00:00,0.0
+refit chunk,all_features,2,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2019-06-26 16:00:00,2020-06-22 16:00:00,0.0
+refit chunk,all_features,3,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2020-06-23 16:00:00,2021-06-18 16:00:00,0.0
+refit chunk,all_features,4,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2021-06-21 16:00:00,2022-06-16 16:00:00,0.0
+refit chunk,all_features,5,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2022-06-17 16:00:00,2023-06-15 16:00:00,0.0
+refit chunk,baseline,0,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2018-06-25 16:00:00,2019-06-25 16:00:00,0.0
+refit chunk,baseline,1,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2019-06-26 16:00:00,2020-06-22 16:00:00,0.0
+refit chunk,baseline,10,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,219.0,2023-06-16 16:00:00,2024-04-30 16:00:00,0.0
+refit chunk,baseline,2,AMD EPYC 7542 32-Core Processor,epyc-7513 class,,,,,0.0,True,61.0,2020-06-23 16:00:00,2020-09-17 16:00:00,0.0
+refit chunk,baseline,3,Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz,epyc-7513 class,,,,,0.04502405158525924,False,61.0,2020-09-18 16:00:00,2020-12-14 16:00:00,0.004532987955260803
+refit chunk,baseline,4,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,61.0,2020-12-15 16:00:00,2021-03-15 16:00:00,0.0
+refit chunk,baseline,5,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,61.0,2021-03-16 16:00:00,2021-06-10 16:00:00,0.0
+refit chunk,baseline,6,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,6.0,2021-06-11 16:00:00,2021-06-18 16:00:00,0.0
+refit chunk,baseline,7,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,184.0,2021-06-21 16:00:00,2022-03-14 16:00:00,0.0
+refit chunk,baseline,8,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,66.0,2022-03-15 16:00:00,2022-06-16 16:00:00,0.0
+refit chunk,baseline,9,AMD EPYC 7513 32-Core Processor,epyc-7513 class,,,,,0.0,True,250.0,2022-06-17 16:00:00,2023-06-15 16:00:00,0.0

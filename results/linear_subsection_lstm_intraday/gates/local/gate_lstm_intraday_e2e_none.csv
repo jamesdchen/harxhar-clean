@@ -1,0 +1,2 @@
+gate,bucket,ok,why,W,rows,chunks,chunk0_read_cache,sec,budget
+e2e_chunk,live_feasible,True,,2000,6,3,True,407,"{'N_SEEDS': '2', 'MAX_EPOCHS': '3', 'PATIENCE': '1'}"

@@ -1,0 +1,16 @@
+bucket,what,p,n,min,median,max
+live_feasible,refit (mse rule),54,1469,37,40.0,41
+live_feasible,refit (qlike rule),54,1469,37,40.0,41
+live_feasible,"tuning point, N = 13",54,6,37,37.0,37
+live_feasible,"tuning point, N = 48",54,6,40,40.0,40
+live_feasible,"tuning point, N = 96",54,6,40,40.0,40
+all_features,refit (mse rule),120,1469,74,80.0,82
+all_features,refit (qlike rule),120,1469,74,76.0,82
+all_features,"tuning point, N = 13",120,6,74,74.5,76
+all_features,"tuning point, N = 48",120,6,79,81.0,82
+all_features,"tuning point, N = 96",120,6,79,81.0,82
+baseline,refit (mse rule),19,1469,16,19.0,19
+baseline,refit (qlike rule),19,1469,16,19.0,19
+baseline,"tuning point, N = 13",19,6,16,16.0,16
+baseline,"tuning point, N = 48",19,6,19,19.0,19
+baseline,"tuning point, N = 96",19,6,19,19.0,19

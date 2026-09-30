@@ -45,7 +45,31 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "experiments") not in sys.path:
     sys.path.insert(0, str(ROOT / "experiments"))
 
-from reduce_lstm_chunks import backed_out_baseline, expected_arms  # noqa: E402
+from reduce_lstm_chunks import backed_out_baseline  # noqa: E402
+
+
+def expected_arms(
+    task_files: list[Path],
+) -> dict[tuple, list[tuple[int, int, int, int]]]:
+    """{(bucket, seg, model, tw): [(chunk, start, end, halo), ...]} from the refit task lines
+    (the per-bar reducer's parser, plus the ninth field of this campaign's lines, the stage:
+    STAGE=tune lines write no rows and are skipped)."""
+    arms: dict[tuple, list] = {}
+    for tf in task_files:
+        for line in tf.read_text(encoding="utf-8").splitlines():
+            parts = line.split()
+            if not parts:
+                continue
+            if len(parts) == 9:
+                if parts[8] != "all":
+                    continue
+                parts = parts[:8]
+            bucket, model, tw, seg, chunk, start, end, halo = parts
+            arms.setdefault((bucket, seg, model, int(tw)), []).append(
+                (int(chunk), int(start), int(end), int(halo))
+            )
+    return {k: sorted(set(v)) for k, v in arms.items()}
+
 
 SPEC_DIR = "causal_tune_lstm_intraday"
 MODEL = "lstm_intraday"
