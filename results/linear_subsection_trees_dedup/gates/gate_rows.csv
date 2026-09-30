@@ -1,0 +1,22 @@
+model,gate,n_features,want,session_edge_cols,rows,all_16_00,first,ok,preds_bit_identical,csv_pred_adj_identical,refit_rows_identical,recorded_refits,importance_rows_finite_exactly_at_recorded,importance_equal_at_recorded,shap_equal_at_recorded,shap_nan_elsewhere,ie1_all_recorded,reducer_ok,reducer_why,csv_identical_but_pred_raw,importance_identical_incl_nan_rows,shap_identical,pred_raw_max_rel,tuned_refit_every,tuned_workers,qsel_csv_preds_bit_identical,npz_qsel_vs_pred_adj_max_abs,importance_bit_identical,shap_bit_identical,refits,concurrent_cpus_when_run,alone_cpus_when_run,untuned_threads_all_1,candidates,qsel_preds_bit_identical,candidate_records_identical,cand_val_mse_bit_identical,workers,refit_every
+lgbm,g0_design,232.0,232.0,0.0,24.0,True,2022-06-17 16:00:00,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+lgbm,g1_importance_every,,,,,,,True,True,True,True,3.0,True,True,True,True,True,,,,,,,,,,,,,,,,,,,,,,
+lgbm,g2_chunks_t1,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,2.220446049250313e-16,,,,,,,,,,,,,,,,
+lgbm,g2b_chunks_t10,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,2.220446049250313e-16,,,,,,,,,,,,,,,,
+lgbm,g3_tuned_identity,,,,,,,True,True,,,,,,,,,,,,,,,1.0,4.0,True,1.1102230246251565e-16,True,True,24.0,,,,,,,,,
+lgbm,g4a_process_count,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,True,,7.0,1.0,True,,,,,,
+lgbm,g4b_tuned_pool,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,,,,,,32.0,True,True,True,"[1, 4]",1.0
+xgb,g0_design,232.0,232.0,0.0,24.0,True,2022-06-17 16:00:00,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+xgb,g1_importance_every,,,,,,,True,True,True,True,3.0,True,True,True,True,True,,,,,,,,,,,,,,,,,,,,,,
+xgb,g2_chunks_t1,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,2.220446049250313e-16,,,,,,,,,,,,,,,,
+xgb,g2b_chunks_t10,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,4.440892098500626e-16,,,,,,,,,,,,,,,,
+xgb,g3_tuned_identity,,,,,,,True,True,,,,,,,,,,,,,,,1.0,4.0,True,1.1102230246251565e-16,True,True,24.0,,,,,,,,,
+xgb,g4a_process_count,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,True,,11.0,1.0,True,,,,,,
+xgb,g4b_tuned_pool,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,,,,,,32.0,True,True,True,"[1, 4]",1.0
+rf,g0_design,232.0,232.0,0.0,24.0,True,2022-06-17 16:00:00,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+rf,g1_importance_every,,,,,,,True,True,True,True,3.0,True,True,True,True,True,,,,,,,,,,,,,,,,,,,,,,
+rf,g2_chunks_t1,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,2.220446049250313e-16,,,,,,,,,,,,,,,,
+rf,g2b_chunks_t10,,,,,,,True,True,,True,3.0,,,,,,True,,True,True,True,3.3306690738754696e-16,,,,,,,,,,,,,,,,
+rf,g3_tuned_identity,,,,,,,True,True,,,,,,,,,,,,,,,1.0,4.0,True,1.1102230246251565e-16,True,True,24.0,,,,,,,,,
+rf,g4a_process_count,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,True,,16.0,1.0,True,,,,,,
+rf,g4b_tuned_pool,,,,,,,True,True,,,,,,,,,,,,,,,,,,,True,,,,,,32.0,True,True,True,"[1, 4]",1.0
