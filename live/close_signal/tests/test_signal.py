@@ -101,13 +101,25 @@ def test_card_says_what_to_do_in_each_state() -> None:
         f"Close trade: buy {i.n_spx_at_pstar} SPX 6530P/6535C at 15:30, "
         f"limit {i.p_star_spx:.2f}"
     )
-    me = render_card(
-        build_instruction(flags={"month_end": True, "third_friday": False}, **kw)
+    me_i = build_instruction(
+        flags={"month_end": True, "third_friday": False},
+        me_rv_day=2.2e-05,
+        me_score_cutoff=18.0,
+        **kw,
     )
-    assert "MONTH-END, buy at 15:30 ET at any price" in me
-    assert "Limit price: the ask + 5%." in me and "$10,500 / (limit price x 100)" in me
+    me = render_card(me_i)
+    lim = me_i.me_ask_max_1530
+    assert "MONTH-END, buy at 15:30 ET only if the option is cheap" in me
+    assert f"only if its ask is {lim:.2f} or less." in me
+    assert f"Ask above {lim:.2f}: NO TRADE today." in me
+    assert "limit price = the ask + 5%" in me and "$10,500 / (limit price x 100)" in me
+    assert (
+        f"(Buying at 15:45 instead: only if the ask is {me_i.me_ask_max_1545:.2f}" in me
+    )
+    assert me_i.me_ask_max_1545 < lim  # less time left: a cheaper pair qualifies
     # the ask can exceed a small budget: the XSP pair is named as the fallback
-    assert "Rounds to 0? Buy XSP 653 put + 654 call instead, same rule" in me
+    assert "Rounds to 0? Buy XSP 653 put + 654 call instead, only if its ask is" in me
+    assert headline(me_i).endswith(f"only if ask <= {lim:.2f}")
     late = render_card(
         build_instruction(flags={"month_end": False}, late=True, notes=("x",), **kw)
     )
@@ -187,9 +199,10 @@ def test_prep_and_card_events_never_share_a_key() -> None:
     assert prep["start"]["dateTime"].startswith("2026-09-25T15:00")
 
 
-def test_month_end_always_says_buy_even_without_a_forecast() -> None:
+def test_month_end_does_not_depend_on_the_forecast() -> None:
     # review 2026-09-24: _legs sized the month-end at P*, so a NaN forecast (or a
-    # P* above budget / 100) printed NO TRADE on the month-end
+    # P* above budget / 100) printed NO TRADE on the month-end; the month-end
+    # rule is the day-vs-price filter, not the forecast
     for rv in (float("nan"), (0.02) ** 2):
         i = build_instruction(
             session=date(2026, 9, 30),
@@ -198,12 +211,51 @@ def test_month_end_always_says_buy_even_without_a_forecast() -> None:
             flags={"month_end": True},
             capital=70_000.0,
             input_mode="free_substitute",
+            me_rv_day=2.2e-05,
+            me_score_cutoff=18.0,
         )
         assert i.decision == "BUY_MONTH_END"
         card = render_card(i)
-        assert "MONTH-END, buy at 15:30 ET at any price" in card
-        assert "NO TRADE" not in card and "NO TRADE" not in headline(i)
-        assert "SPX 6530 put + 6535 call" in card
+        assert (
+            "only if the option is cheap" in card and "SPX 6530 put + 6535 call" in card
+        )
+        assert "filter unavailable" not in headline(i)
+
+
+def test_month_end_without_the_filter_is_no_trade_with_the_reason() -> None:
+    i = build_instruction(
+        session=date(2026, 9, 30),
+        spot=6532.4,
+        rv_hat=(0.0025) ** 2,
+        flags={"month_end": True},
+        capital=70_000.0,
+        input_mode="free_substitute",
+        me_rv_day=2.2e-05,
+        me_filter_reason="no month-end cutoff file",
+    )
+    card = render_card(i)
+    assert "MONTH-END, NO TRADE today" in card and "no month-end cutoff file" in card
+    assert headline(i) == "Close trade: MONTH-END NO TRADE (filter unavailable)"
+
+
+def test_month_end_filter_price_and_day_rv() -> None:
+    import pandas as pd
+
+    from live.close_signal.month_end_filter import RV_STAMPS, ask_max, day_rv
+
+    # a higher cutoff demands a cheaper option; half the time left, a cheaper pair
+    a18 = ask_max(2.2e-05, 18.0, 7692.0, 7695.0, 7690.0)
+    a22 = ask_max(2.2e-05, 22.0, 7692.0, 7695.0, 7690.0)
+    a18_45 = ask_max(2.2e-05, 18.0, 7692.0, 7695.0, 7690.0, 15.0)
+    assert a22 < a18 and a18_45 < a18
+    assert math.isnan(ask_max(float("nan"), 18.0, 7692.0, 7695.0, 7690.0))
+    stamps = [f"2026-09-30 {s}" for s in RV_STAMPS] + [
+        "2026-09-30 16:00",
+        "2026-09-29 15:30",
+    ]
+    rows = pd.DataFrame({"endbartime": pd.to_datetime(stamps), "sumret2": 1e-6})
+    assert day_rv(rows, pd.Timestamp("2026-09-30")) == pytest.approx(12e-6)
+    assert math.isnan(day_rv(rows.iloc[1:], pd.Timestamp("2026-09-30")))
 
 
 def test_half_strike_fallback_names_the_half_strike_leg() -> None:

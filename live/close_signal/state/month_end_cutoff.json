@@ -1,0 +1,9 @@
+{
+ "score_cutoff": 18.03750323459583,
+ "percentile": 0.8,
+ "window": 250,
+ "n": 250,
+ "first": "2025-09-09",
+ "asof": "2026-09-24",
+ "definition": "score = RV(09:30-15:30, panel sumret2) / Black-76 variance of the 15:30 ask, nearest-OTM SPXW pair; buy the month-end iff score >= cutoff"
+}

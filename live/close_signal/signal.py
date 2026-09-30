@@ -123,6 +123,13 @@ class Instruction:
     input_mode: str
     late: bool
     notes: tuple[str, ...] = ()
+    # the month-end filter (month_end_filter.py): the most the pair may cost
+    me_rv_day: float = float("nan")
+    me_score_cutoff: float = float("nan")
+    me_ask_max_1530: float = float("nan")
+    me_ask_max_1545: float = float("nan")
+    me_ask_max_xsp: float = float("nan")
+    me_filter_reason: str = ""
 
     def as_record(self) -> dict[str, object]:
         d = asdict(self)
@@ -142,6 +149,9 @@ def build_instruction(
     input_mode: str,
     late: bool = False,
     notes: tuple[str, ...] = (),
+    me_rv_day: float = float("nan"),
+    me_score_cutoff: float = float("nan"),
+    me_filter_reason: str = "",
 ) -> Instruction:
     kc, kp = nearest_otm_strikes(spot, SPX_STRIKE_STEP)
     p_spx = break_even_price(rv_hat, spot, kc, kp)
@@ -157,6 +167,13 @@ def build_instruction(
         if math.isfinite(kc_h)
         else float("nan")
     )
+    from live.close_signal.month_end_filter import ask_max
+
+    me_1530 = ask_max(me_rv_day, me_score_cutoff, spot, kc, kp, 30.0)
+    me_1545 = ask_max(me_rv_day, me_score_cutoff, spot, kc, kp, 15.0)
+    me_xsp = ask_max(me_rv_day, me_score_cutoff, spot * XSP_SCALE, kc_x, kp_x, 30.0)
+    if flags.get("month_end") and not math.isfinite(me_1530) and not me_filter_reason:
+        me_filter_reason = "the day's realized variance or the cutoff is missing"
     frac = month_end_fraction if flags.get("month_end") else long_fraction
     n_xsp = contracts_for_outlay(capital, frac, p_xsp, INDEX_MULTIPLIER)
     n_spx = contracts_for_outlay(capital, frac, p_spx, INDEX_MULTIPLIER)
@@ -192,6 +209,12 @@ def build_instruction(
         input_mode=input_mode,
         late=bool(late),
         notes=tuple(notes),
+        me_rv_day=float(me_rv_day),
+        me_score_cutoff=float(me_score_cutoff),
+        me_ask_max_1530=me_1530,
+        me_ask_max_1545=me_1545,
+        me_ask_max_xsp=me_xsp,
+        me_filter_reason=me_filter_reason,
     )
 
 
@@ -263,7 +286,12 @@ def headline(i: Instruction) -> str:
         return "Close trade: NO TRADE today"
     leg = legs[0]
     if i.decision == "BUY_MONTH_END":
-        return f"Close trade: MONTH-END buy {leg.short} at 15:30"
+        if not math.isfinite(i.me_ask_max_1530):
+            return "Close trade: MONTH-END NO TRADE (filter unavailable)"
+        return (
+            f"Close trade: MONTH-END buy {leg.short} at 15:30 only if ask <= "
+            f"{i.me_ask_max_1530:.2f}"
+        )
     return f"Close trade: buy {leg.n} {leg.short} at 15:30, limit {leg.limit:.2f}"
 
 
@@ -286,15 +314,24 @@ def render_card(i: Instruction) -> str:
         lines += [f"{day}: NO TRADE today (no forecast)."]
     elif not legs:
         lines += [f"{day}: NO TRADE today (${budget:,.0f} buys less than one pair)."]
+    elif i.decision == "BUY_MONTH_END" and not math.isfinite(i.me_ask_max_1530):
+        lines += [
+            f"{day}: MONTH-END, NO TRADE today",
+            "",
+            f"The month-end filter could not be applied ({i.me_filter_reason}).",
+            "The rule is 'buy only if the option is cheap against the day', so no buy.",
+        ]
     elif i.decision == "BUY_MONTH_END":
         leg = legs[0]
         lines += [
-            f"{day}: MONTH-END, buy at 15:30 ET at any price",
+            f"{day}: MONTH-END, buy at 15:30 ET only if the option is cheap",
             "",
-            f"Buy {leg.pair}, expiring today.",
+            f"Buy {leg.pair}, expiring today, only if its ask is {i.me_ask_max_1530:.2f} or less.",
             leg.robinhood,
-            f"Limit price: the ask + {CHASE_PCT:.0%}.",
-            f"Quantity: ${budget:,.0f} / (limit price x 100), rounded down.",
+            f"Ask above {i.me_ask_max_1530:.2f}: NO TRADE today.",
+            f"If buying: limit price = the ask + {CHASE_PCT:.0%}; "
+            f"quantity = ${budget:,.0f} / (limit price x 100), rounded down.",
+            f"(Buying at 15:45 instead: only if the ask is {i.me_ask_max_1545:.2f} or less.)",
             hold,
         ]
         if len(legs) > 1:
@@ -304,7 +341,10 @@ def render_card(i: Instruction) -> str:
             # the month-end ask is not known in advance: on a small budget one
             # SPX pair can cost more than it (study 81: 19 of 40 month-ends at $5.5k)
             x = _Leg("XSP", i.kc_xsp, i.kp_xsp, i.p_star_xsp, i.n_xsp_at_pstar)
-            lines += [f"Rounds to 0? Buy {x.pair} instead, same rule: {x.robinhood}"]
+            lines += [
+                f"Rounds to 0? Buy {x.pair} instead, only if its ask is "
+                f"{i.me_ask_max_xsp:.2f} or less: {x.robinhood}"
+            ]
     else:
         leg = legs[0]
         lines += [
@@ -365,14 +405,15 @@ def render_prep(
     if month_end:
         title = f"Prepare: MONTH-END close trade at 15:30 ({near}budget ${budget:,.0f})"
         lines = [
-            f"{day}: MONTH-END close trade at 15:30 ET, bought at any price",
+            f"{day}: MONTH-END close trade at 15:30 ET, only if the option is cheap",
             "",
             "Get ready now:",
             "1. Robinhood: SPX options, Long Strangle, width 5, date (0d).",
             where,
             f"3. Budget ${budget:,.0f}: have the cash available.",
             "",
-            f"At 15:30: tap the row, limit price = the ask + {CHASE_PCT:.0%}, "
+            "The card at about 15:31 gives the most the pair may cost; above it, no trade.",
+            f"If buying: limit price = the ask + {CHASE_PCT:.0%}, "
             f"quantity = ${budget:,.0f} / (limit price x 100), rounded down.",
         ]
     else:

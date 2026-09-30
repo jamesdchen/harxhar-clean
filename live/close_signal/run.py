@@ -215,6 +215,48 @@ def prep_spot(session: pd.Timestamp) -> tuple[float | None, str]:
         return None, f"^GSPC unavailable ({type(e).__name__}: {e})"
 
 
+#: Yahoo serves 1-minute bars for about the last week; an older hole stays a NO SIGNAL
+BACKFILL_DAYS = 7
+
+
+def backfill_sessions(
+    store: StateStore, session: pd.Timestamp, days: int = BACKFILL_DAYS
+) -> list[str]:
+    """Append the rows of recent sessions the store has no ES rows for; returns the days filled.
+
+    A session whose run skipped (the late GitHub crons of 2026-09-25..29) leaves
+    a hole; the continuity guard then fails every later card (2026-09-30: 'no ES
+    rows between 2026-09-24 and 2026-09-30').  Each missing session of the last
+    ``days`` calendar days before ``session`` is fetched from the same free
+    1-minute feeds the card uses and appended as source yahoo_es.  Never raises.
+    """
+    from live.ibkr.calendar_guard import is_session
+
+    try:
+        p = store.load_panel()
+        t = pd.to_datetime(p["endbartime"])
+        have = set(t[p["source"].isin(["databento_es", "yahoo_es"])].dt.normalize())
+    except Exception:  # noqa: BLE001
+        traceback.print_exc()
+        return []
+    filled: list[str] = []
+    s0 = pd.Timestamp(session).normalize()
+    for k in range(days, 0, -1):
+        d = s0 - pd.Timedelta(days=k)
+        if d in have or not is_session(d.date()):
+            continue
+        try:
+            es = feeds.es_minute_bars(d)
+            cboe = feeds.cboe_prints(d)
+            rows = panel_rows(es.frame, {c: v.frame for c, v in cboe.items()}, d)
+            n = store.append_panel(rows, source="yahoo_es")
+            filled.append(str(d.date()))
+            print(f"backfill: {d.date()} -> {n} rows from the free feeds", flush=True)
+        except Exception as e:  # noqa: BLE001 -- the guard reports what is left
+            print(f"backfill: {d.date()} FAILED ({type(e).__name__}: {e})", flush=True)
+    return filled
+
+
 def post_prep(a: argparse.Namespace, session: pd.Timestamp) -> None:
     """The 15:00 prep event.  Never raises: a failure is printed and the day goes on.
 
@@ -363,6 +405,8 @@ def main(argv: list[str] | None = None) -> int:
         print(("run: " if ok else "skip: ") + why, flush=True)
         if not ok:
             return 0
+    if not a.dry_run:  # a dry run fills its own state copy (_card)
+        backfill_sessions(store, session)
     ctx: forecast.FastContext | None = None
     if a.wait_until:
         plan, s = schedule.wait_plan(
@@ -476,6 +520,7 @@ def _card(
                 shutil.rmtree(copy_dir)
             shutil.copytree(store.root, copy_dir)
             fc_store = StateStore(copy_dir)
+            backfill_sessions(fc_store, session)
             fc_store.append_panel(rows, source="yahoo_es")
         _log(t0, "panel rows appended")
         if a.full_arms:
@@ -515,6 +560,16 @@ def _card(
         spot = float(
             spot_series[spot_series.index <= t1530 - pd.Timedelta(minutes=1)].iloc[-1]
         )
+        me_kw: dict[str, object] = {}
+        if flags.get("month_end"):
+            from live.close_signal import month_end_filter as mef
+
+            cut, why = mef.load_cutoff(today=session.date())
+            me_kw = {
+                "me_rv_day": mef.day_rv(rows, session),
+                "me_score_cutoff": cut,
+                "me_filter_reason": why,
+            }
         instr = build_instruction(
             session=session.date(),
             spot=spot,
@@ -526,6 +581,7 @@ def _card(
             input_mode=a.input_mode,
             late=late,
             notes=tuple(notes),
+            **me_kw,  # type: ignore[arg-type]
         )
         body = render_card(instr)
         eid = _push(a, session.date(), instr.decision, body, late, headline(instr))
