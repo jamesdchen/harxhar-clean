@@ -1,10 +1,10 @@
 bucket,model,table,table_vs_unmasked_t10_max_abs,table_equals_unmasked_t10,table_mtime,refit_mask_vs_table_max_abs,refit_mask_vs_table_mean_abs,refit_mask_vs_table_corr,refit_nomask_vs_table_max_abs,refit_nomask_vs_table_mean_abs,refit_nomask_vs_table_corr
-baseline,lgbm,results\spxw_pnl\yhat_subtree_lgbm_baseline.parquet,4.44e-16,True,2026-09-30 04:02,0.138,0.0141,0.999,6.66e-16,1.99e-17,1
-baseline,xgb,results\spxw_pnl\yhat_subtree_xgb_baseline.parquet,2.22e-16,True,2026-09-30 04:02,0.199,0.00853,0.999,6.66e-16,2.18e-17,1
-baseline,rf,results\spxw_pnl\yhat_subtree_rf_baseline.parquet,4.44e-16,True,2026-09-30 04:02,0.234,0.00956,0.999,6.66e-16,2.25e-17,1
-live_feasible,lgbm,results\spxw_pnl\yhat_subtree_lgbm_live_feasible.parquet,4.44e-16,True,2026-09-30 04:02,0.107,0.0189,0.998,0.0564,0.00939,1
-live_feasible,xgb,results\spxw_pnl\yhat_subtree_xgb_live_feasible.parquet,4.44e-16,True,2026-09-30 04:02,0.196,0.0112,0.999,6.66e-16,1.93e-17,1
-live_feasible,rf,results\spxw_pnl\yhat_subtree_rf_live_feasible.parquet,4.44e-16,True,2026-09-30 04:02,0.309,0.0122,0.999,8.88e-16,2.48e-17,1
-all_features,lgbm,results\spxw_pnl\yhat_subtree_lgbm_all_features.parquet,4.44e-16,True,2026-09-30 04:02,0.135,0.0212,0.997,0.0544,0.00949,1
-all_features,xgb,results\spxw_pnl\yhat_subtree_xgb_all_features.parquet,4.44e-16,True,2026-09-30 04:02,0.172,0.0132,0.999,8.88e-16,1.85e-17,1
-all_features,rf,results\spxw_pnl\yhat_subtree_rf_all_features.parquet,4.44e-16,True,2026-09-30 04:02,0.338,0.0132,0.999,8.88e-16,1.85e-17,1
+baseline,lgbm,results\spxw_pnl\yhat_subtree_lgbm_baseline.parquet,0.138,False,2026-09-30 07:32,8.88e-16,2.31e-17,1,0.138,0.0141,0.999
+baseline,xgb,results\spxw_pnl\yhat_subtree_xgb_baseline.parquet,0.199,False,2026-09-30 07:32,8.88e-16,2.18e-17,1,0.199,0.00853,0.999
+baseline,rf,results\spxw_pnl\yhat_subtree_rf_baseline.parquet,0.234,False,2026-09-30 07:32,4.44e-16,1.83e-17,1,0.234,0.00956,0.999
+live_feasible,lgbm,results\spxw_pnl\yhat_subtree_lgbm_live_feasible.parquet,0.112,False,2026-09-30 07:32,0.0639,0.00918,1,0.123,0.0187,0.998
+live_feasible,xgb,results\spxw_pnl\yhat_subtree_xgb_live_feasible.parquet,0.196,False,2026-09-30 07:32,8.88e-16,1.92e-17,1,0.196,0.0112,0.999
+live_feasible,rf,results\spxw_pnl\yhat_subtree_rf_live_feasible.parquet,0.309,False,2026-09-30 07:32,8.88e-16,2.13e-17,1,0.309,0.0122,0.999
+all_features,lgbm,results\spxw_pnl\yhat_subtree_lgbm_all_features.parquet,0.129,False,2026-09-30 07:32,0.0503,0.00929,1,0.133,0.0222,0.997
+all_features,xgb,results\spxw_pnl\yhat_subtree_xgb_all_features.parquet,0.172,False,2026-09-30 07:32,4.44e-16,1.74e-17,1,0.172,0.0132,0.999
+all_features,rf,results\spxw_pnl\yhat_subtree_rf_all_features.parquet,0.338,False,2026-09-30 07:32,0.00228,4.46e-06,1,0.338,0.0132,0.999
