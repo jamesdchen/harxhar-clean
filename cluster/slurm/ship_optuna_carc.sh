@@ -36,6 +36,9 @@ FILES=(
   cluster/slurm/submit_optuna_finish.sh
   cluster/slurm/submit_optuna_xclass.sh
   cluster/optuna_tasks_xclass.txt
+  cluster/slurm/submit_optuna_resume.sh
+  cluster/optuna_tasks_s1_resume.txt
+  cluster/optuna_tasks_s2_resume.txt
 )
 for f in "${FILES[@]}"; do
   [ -f "$f" ] || { echo "missing locally: $f"; exit 1; }

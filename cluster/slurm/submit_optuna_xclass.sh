@@ -13,9 +13,10 @@ cd "$(dirname "$0")/../.."
 mkdir -p logs
 R=${RESULTS_ROOT:-results/linear_subsection_trees_optuna_mask}
 CLASS=${CLASS:-xeon-4116}
+XROOT=${XROOT:-$R/xclass}  # e.g. XROOT=$R/xclass_epyc CLASS=epyc-7513 for the other class
 TF=cluster/optuna_tasks_xclass.txt
 [ -f "$TF" ] || { echo "$TF missing: ship first"; exit 1; }
 J=$(sbatch --parsable -J op_xclass --constraint="$CLASS" --array=1-"$(wc -l < "$TF")" --cpus-per-task=20 --mem=16G \
-      --time=1:00:00 "--export=ALL,TASKFILE=$TF,STAGE=tune,RESULTS_ROOT=$R/xclass,WINDOW_MASK=1,CANARY_CHECKS=1,REPEAT_CPUS=20" \
+      --time=1:00:00 "--export=ALL,TASKFILE=$TF,STAGE=tune,RESULTS_ROOT=$XROOT,WINDOW_MASK=1,CANARY_CHECKS=1,REPEAT_CPUS=20" \
       cluster/slurm/optuna_pack.sbatch)
-echo "xclass=$J class=$CLASS root=$R/xclass" | tee -a logs/submitted_optuna_carc.txt
+echo "xclass=$J class=$CLASS root=$XROOT" | tee -a logs/submitted_optuna_carc.txt

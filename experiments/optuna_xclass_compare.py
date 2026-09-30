@@ -71,9 +71,10 @@ def host_of(root: Path, model: str) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/linear_subsection_trees_optuna_mask")
+    ap.add_argument("--xdir", default="xclass", help="the re-run's root under --root")
     a = ap.parse_args()
     root = ROOT / a.root
-    x = root / "xclass"
+    x = root / a.xdir
     rows = []
     for model in ("lgbm", "xgb", "rf"):
         inner = Path("causal_tune_trees") / model / BUCKET / f"trials_{SEG}.npz"

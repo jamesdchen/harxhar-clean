@@ -1,0 +1,79 @@
+stage,bucket,model,chunk,mixed_class,why
+1,live_feasible,lgbm,0,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,1,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,2,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,3,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,4,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,5,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,6,xeon-4116,not on epyc-7513
+1,live_feasible,lgbm,7,xeon-2640v4,not on epyc-7513
+1,live_feasible,lgbm,8,xeon-2640v4,not on epyc-7513
+1,live_feasible,lgbm,9,xeon-2640v4,not on epyc-7513
+1,live_feasible,xgb,0,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,1,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,2,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,3,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,4,xeon-2640v4,not on epyc-7513
+1,live_feasible,xgb,5,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,6,xeon-4116,not on epyc-7513
+1,live_feasible,xgb,7,xeon-4116,not on epyc-7513
+1,live_feasible,rf,0,xeon-4116,not on epyc-7513
+1,live_feasible,rf,2,epyc-7542,not on epyc-7513
+1,live_feasible,rf,5,xeon-2640v4,not on epyc-7513
+1,all_features,lgbm,2,epyc-7542,not on epyc-7513
+1,all_features,lgbm,6,xeon-2640v4,not on epyc-7513
+1,all_features,lgbm,7,xeon-2640v4,not on epyc-7513
+1,all_features,lgbm,9,xeon-4116,not on epyc-7513
+1,all_features,lgbm,10,xeon-4116,not on epyc-7513
+1,all_features,lgbm,11,epyc-7542,not on epyc-7513
+1,all_features,lgbm,21,epyc-7542,not on epyc-7513
+1,all_features,xgb,9,epyc-7542,not on epyc-7513
+1,all_features,xgb,27,epyc-7542,not on epyc-7513
+1,all_features,xgb,28,epyc-7542,not on epyc-7513
+1,all_features,rf,18,epyc-7542,not on epyc-7513
+1,all_features,rf,32,xeon-4116,not on epyc-7513
+1,baseline,rf,1,xeon-4116,not on epyc-7513
+1,baseline,rf,2,xeon-4116,not on epyc-7513
+2,all_features,lgbm,1,epyc-7513,45 rows use a re-run tuning point
+2,all_features,lgbm,3,epyc-7513,80 rows use a re-run tuning point
+2,all_features,lgbm,4,epyc-7513,80 rows use a re-run tuning point
+2,all_features,lgbm,5,epyc-7513,80 rows use a re-run tuning point
+2,all_features,lgbm,6,epyc-7513,20 rows use a re-run tuning point
+2,all_features,lgbm,8,epyc-7542,not on epyc-7513
+2,all_features,lgbm,9,epyc-7542,not on epyc-7513
+2,all_features,lgbm,10,epyc-7542,not on epyc-7513; 40 rows use a re-run tuning point
+2,all_features,lgbm,11,epyc-7542,not on epyc-7513; 20 rows use a re-run tuning point
+2,all_features,lgbm,12,epyc-7542,not on epyc-7513
+2,all_features,lgbm,14,xeon-4116,not on epyc-7513
+2,all_features,lgbm,15,xeon-4116,not on epyc-7513
+2,all_features,lgbm,16,xeon-4116,not on epyc-7513
+2,all_features,lgbm,17,xeon-4116,not on epyc-7513
+2,all_features,rf,2,xeon-4116,not on epyc-7513
+2,all_features,rf,3,xeon-4116,not on epyc-7513
+2,all_features,rf,4,xeon-4116,not on epyc-7513
+2,all_features,rf,6,epyc-7542,not on epyc-7513
+2,all_features,rf,9,epyc-7542,not on epyc-7513; 80 rows use a re-run tuning point
+2,all_features,rf,10,epyc-7542,not on epyc-7513; 80 rows use a re-run tuning point
+2,all_features,rf,11,epyc-7542,not on epyc-7513; 80 rows use a re-run tuning point
+2,all_features,rf,12,epyc-7513,40 rows use a re-run tuning point
+2,all_features,rf,16,epyc-7513,45 rows use a re-run tuning point
+2,all_features,xgb,0,xeon-4116,not on epyc-7513
+2,all_features,xgb,1,xeon-4116,not on epyc-7513
+2,all_features,xgb,2,xeon-4116,not on epyc-7513
+2,all_features,xgb,3,xeon-2640v4,not on epyc-7513; 40 rows use a re-run tuning point
+2,all_features,xgb,4,xeon-2640v4,not on epyc-7513
+2,all_features,xgb,5,xeon-2640v4,not on epyc-7513
+2,all_features,xgb,9,epyc-7542,not on epyc-7513; 95 rows use a re-run tuning point
+2,baseline,rf,0,epyc-7513,1449 rows use a re-run tuning point
+2,live_feasible,lgbm,0,epyc-7513,320 rows use a re-run tuning point
+2,live_feasible,lgbm,1,epyc-7513,320 rows use a re-run tuning point
+2,live_feasible,lgbm,2,epyc-7513,320 rows use a re-run tuning point
+2,live_feasible,lgbm,3,epyc-7513,320 rows use a re-run tuning point
+2,live_feasible,lgbm,4,epyc-7513,189 rows use a re-run tuning point
+2,live_feasible,rf,0,epyc-7513,250 rows use a re-run tuning point
+2,live_feasible,rf,1,epyc-7513,280 rows use a re-run tuning point
+2,live_feasible,rf,2,epyc-7513,170 rows use a re-run tuning point
+2,live_feasible,rf,3,epyc-7513,290 rows use a re-run tuning point
+2,live_feasible,xgb,0,epyc-7513,500 rows use a re-run tuning point
+2,live_feasible,xgb,1,epyc-7513,500 rows use a re-run tuning point
+2,live_feasible,xgb,2,epyc-7513,250 rows use a re-run tuning point

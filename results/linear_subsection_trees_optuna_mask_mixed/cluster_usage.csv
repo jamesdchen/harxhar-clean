@@ -1,0 +1,14 @@
+item,value
+"allocated CPU-hours, all jobs",1090.2
+peak concurrent CPUs (this campaign),900
+"wall-clock, first start to last end",0 days 02:45:47
+first start / last end,2026-09-29 22:07:03 / 2026-09-30 00:52:50
+op_canary: tasks / CPU-hours / states,3 / 6.0 / {'COMPLETED': 3}
+op_m1: tasks / CPU-hours / states,1 / 0.0 / {'COMPLETED': 1}
+op_m1r: tasks / CPU-hours / states,1 / 0.1 / {'COMPLETED': 1}
+op_m2: tasks / CPU-hours / states,1 / 0.0 / {'COMPLETED': 1}
+op_m2r: tasks / CPU-hours / states,1 / 0.0 / {'COMPLETED': 1}
+op_s1: tasks / CPU-hours / states,150 / 955.9 / {'COMPLETED': 150}
+op_s1r: tasks / CPU-hours / states,1 / 0.0 / {'COMPLETED': 1}
+op_s2: tasks / CPU-hours / states,"64 / 125.5 / {'COMPLETED': 62, 'FAILED': 2}"
+op_s2r: tasks / CPU-hours / states,18 / 2.8 / {'COMPLETED': 18}

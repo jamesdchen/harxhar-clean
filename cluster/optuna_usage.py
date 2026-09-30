@@ -36,6 +36,7 @@ COLS = [
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sacct", default=str(OPT / "sacct.txt"))
+    ap.add_argument("--out", default=str(OPT / "cluster_usage.csv"))
     a = ap.parse_args()
     d = pd.read_csv(a.sacct, sep="|", header=None, names=COLS, dtype=str)
     d = d[d["Start"].notna() & (d["Start"] != "Unknown") & (d["Start"] != "None")]
@@ -75,7 +76,7 @@ def main() -> None:
                 "value": f"{len(g)} / {g['cpu_sec'].sum() / 3600:.1f} / {states}",
             }
         )
-    out = OPT / "cluster_usage.csv"
+    out = Path(a.out)
     pd.DataFrame(rows).to_csv(out, index=False)
     print(pd.DataFrame(rows).to_string(index=False))
     print(f"wrote {out}")

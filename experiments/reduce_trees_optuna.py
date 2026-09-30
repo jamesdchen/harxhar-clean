@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -136,6 +137,16 @@ def arm_top(root: Path, stage: int, bucket: str, seg: str, model: str, tw: int) 
     return root / f"stage{stage}" / bucket / seg / model / f"tw{tw}"
 
 
+def savez_atomic(path: Path, **arrays) -> None:
+    """np.savez_compressed to a temporary file, then os.replace: a reader never sees a
+    partial file.  (2026-09-30: a re-merge rewrote an arm's trials npz in place while a
+    stage-2 task of the first submission read it -- EOFError -- and the flag was deleted
+    for the length of the re-merge, so another task refused; both chunks were re-run.)"""
+    tmp = path.with_name(path.name + ".tmp.npz")
+    np.savez_compressed(tmp, **arrays)
+    os.replace(tmp, path)
+
+
 def load_npz(p: Path) -> dict:
     with np.load(p, allow_pickle=False) as z:
         return {k: z[k] for k in z.files}
@@ -167,14 +178,16 @@ def merge_stage1(root: Path, key: tuple, chunks: list) -> dict:
         "train_win": tw,
         "chunks": len(chunks),
     }
-    flag = top / "STAGE1_COMPLETE"
-    flag.unlink(missing_ok=True)
+    flag = (
+        top / "STAGE1_COMPLETE"
+    )  # removed only when this merge fails (below), never mid-merge
     dirs = [top / "chunks" / f"c{c}" for c, *_ in chunks]
     missing = [
         f"c{c}" for (c, *_), d in zip(chunks, dirs) if not (d / "DONE").is_file()
     ]
     if missing:
         print(f"NOT MERGED stage 1 {key}: chunks without DONE: {', '.join(missing)}")
+        flag.unlink(missing_ok=True)
         return gate | {
             "ok": False,
             "why": f"missing {len(missing)} chunks: {' '.join(missing[:20])}",
@@ -217,6 +230,7 @@ def merge_stage1(root: Path, key: tuple, chunks: list) -> dict:
     out["best_qlike_k50"] = best_of(out["val_qlike"], 50)
     if why:
         print(f"GATE FAIL stage 1 {key}: " + "; ".join(why))
+        flag.unlink(missing_ok=True)
         return gate | {"ok": False, "why": "; ".join(why), "rows": n}
     meta = dict(metas[0])
     meta["oos_offset"] = 0
@@ -226,9 +240,7 @@ def merge_stage1(root: Path, key: tuple, chunks: list) -> dict:
         {"chunk": c, "start": s, "end": e, "halo": h, "rows": len(z["row"])}
         for (c, s, e, h), z in zip(chunks, parts)
     ]
-    np.savez_compressed(
-        top / f"trials_{seg}.npz", oos_offset=0, meta=json.dumps(meta), **out
-    )
+    savez_atomic(top / f"trials_{seg}.npz", oos_offset=0, meta=json.dumps(meta), **out)
     flag.write_text(json.dumps({"rows": n, "chunks": len(chunks)}), encoding="utf-8")
     print(
         f"merged stage 1 {key}: {len(chunks)} chunks, {n} tuning points x {out['val_mse'].shape[1]} trials"
@@ -389,7 +401,7 @@ def merge_stage2(root: Path, key: tuple, chunks: list) -> list[dict]:
             for (c, s, e, h), r in zip(chunks, csvs)
         ]
         out["meta"] = json.dumps(meta)
-        np.savez_compressed(dst / f"trees_{seg}.npz", **out)
+        savez_atomic(dst / f"trees_{seg}.npz", **out)
         assert np.array_equal(out["pred_adj"], res["pred_adj"].to_numpy(float))
         (dst / "MERGED").write_text(json.dumps(meta["chunks"]), encoding="utf-8")
         print(f"merged stage 2 {key} {path}: {len(chunks)} chunks, {len(res)} rows")
