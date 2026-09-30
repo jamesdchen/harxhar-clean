@@ -1,0 +1,19 @@
+variant,bucket,model,t1_refit_every,t1_importance_every,refits,t1_importance_rows_finite,t1_vs_t10_forecast_max_abs,t1_vs_t10_importance_max_abs,t1_vs_refit_forecast_max_abs,t1_vs_refit_importance_max_abs,t1_vs_refit_importance_rel,note
+nomask,baseline,lgbm,1,10,147,147,0,0,2.22e-16,0,0,
+nomask,baseline,xgb,1,10,147,147,0,0,2.22e-16,0,0,
+nomask,baseline,rf,1,10,147,147,0,0,2.22e-16,0,0,
+nomask,live_feasible,lgbm,1,10,147,147,0,0,0.0344,30.2,0.00852,
+nomask,live_feasible,xgb,1,10,147,147,0,0,2.22e-16,0,0,
+nomask,live_feasible,rf,1,10,147,147,0,0,2.22e-16,5.09e-07,9.82e-07,
+nomask,all_features,lgbm,1,10,147,147,0,0,0.0414,21.3,0.00637,
+nomask,all_features,xgb,1,10,147,147,0,0,4.44e-16,0,0,
+nomask,all_features,rf,1,10,147,147,0,0,2.22e-16,0,0,
+mask,baseline,lgbm,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\baseline\bar1600\lgbm\tw2000\causal_tune_trees\lgbm\baseline)
+mask,baseline,xgb,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\baseline\bar1600\xgb\tw2000\causal_tune_trees\xgb\baseline)
+mask,baseline,rf,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\baseline\bar1600\rf\tw2000\causal_tune_trees\rf\baseline)
+mask,live_feasible,lgbm,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\live_feasible\bar1600\lgbm\tw2000\causal_tune_trees\lgbm\live_feasible)
+mask,live_feasible,xgb,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\live_feasible\bar1600\xgb\tw2000\causal_tune_trees\xgb\live_feasible)
+mask,live_feasible,rf,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\live_feasible\bar1600\rf\tw2000\causal_tune_trees\rf\live_feasible)
+mask,all_features,lgbm,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\all_features\bar1600\lgbm\tw2000\causal_tune_trees\lgbm\all_features)
+mask,all_features,xgb,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\all_features\bar1600\xgb\tw2000\causal_tune_trees\xgb\all_features)
+mask,all_features,rf,,,,,,,,,,every-session run not present (results\feature_importance_1530_dedup\_work\stored\t1_mask\all_features\bar1600\rf\tw2000\causal_tune_trees\rf\all_features)

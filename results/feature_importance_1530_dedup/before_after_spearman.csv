@@ -1,0 +1,334 @@
+bucket,model,measure,level,n_eligible_old,n_eligible_new,n_common,n_old_only,spearman_old_new,leader_old,leader_new,median_abs_rank_change,top5_overlap,spearman_old_nomask,spearman_nomask_new
+baseline,ridge,bsd,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,bsd,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,bsd,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,perm_p1_qlike,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,perm_p1_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,perm_p1_qlike,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,perm_p2_qlike,column,24,18,18,12,0.9752,har_ma_1,har_ma_1,0.5000,5,,
+baseline,ridge,perm_p2_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,perm_p2_qlike,cluster,15,15,15,6,0.9643,har_ma_1 +1,har_ma_1 +1,1.0000,5,,
+baseline,ridge,perm_p1_mse,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,perm_p1_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,perm_p1_mse,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,perm_p2_mse,column,24,18,18,12,0.9979,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,perm_p2_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,perm_p2_mse,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,drop_qlike,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,drop_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,drop_qlike,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,drop_mse,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,drop_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,drop_mse,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,ridge,shap,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,ridge,shap,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,ridge,shap,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,bsd,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,bsd,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,bsd,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,perm_p1_qlike,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,perm_p1_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,perm_p1_qlike,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,perm_p2_qlike,column,24,18,18,12,0.9773,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,perm_p2_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,perm_p2_qlike,cluster,15,15,15,6,0.9643,har_ma_1 +1,har_ma_1 +1,1.0000,4,,
+baseline,lasso,perm_p1_mse,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,perm_p1_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,perm_p1_mse,cluster,15,15,15,6,0.9964,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,perm_p2_mse,column,24,18,18,12,0.9938,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,perm_p2_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,perm_p2_mse,cluster,15,15,15,6,0.9893,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,drop_qlike,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,drop_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,drop_qlike,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,drop_mse,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,drop_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,drop_mse,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lasso,shap,column,24,18,18,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+baseline,lasso,shap,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lasso,shap,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+baseline,lgbm,mdi,column,24,18,18,12,0.9897,har_ma_1,har_ma_1,0.0000,5,0.9959,0.9959
+baseline,lgbm,mdi,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,mdi,cluster,15,15,15,6,0.9857,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9964,0.9929
+baseline,lgbm,split,column,24,18,18,12,0.9959,har_ma_1,har_ma_1,0.0000,5,0.9938,0.9979
+baseline,lgbm,split,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,split,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9929,1.0000
+baseline,lgbm,perm_p1_qlike,column,24,18,18,12,0.9381,har_ma_1,har_ma_1,1.0000,5,0.9525,0.9278
+baseline,lgbm,perm_p1_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,perm_p1_qlike,cluster,15,15,15,6,0.9286,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9214,0.9000
+baseline,lgbm,perm_p2_qlike,column,24,18,18,12,0.9051,har_ma_1,har_ma_1,1.0000,5,0.8947,0.8989
+baseline,lgbm,perm_p2_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,perm_p2_qlike,cluster,15,15,15,6,0.8929,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.8393,0.8571
+baseline,lgbm,perm_p1_mse,column,24,18,18,12,0.9711,har_ma_1,har_ma_1,1.0000,5,0.9814,0.9876
+baseline,lgbm,perm_p1_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,perm_p1_mse,cluster,15,15,15,6,0.9714,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9750,0.9929
+baseline,lgbm,perm_p2_mse,column,24,18,18,12,0.8947,har_ma_1,har_ma_1,1.5000,5,0.8122,0.9401
+baseline,lgbm,perm_p2_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,perm_p2_mse,cluster,15,15,15,6,0.8821,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.8821,0.9429
+baseline,lgbm,shap,column,24,18,18,12,0.9938,har_ma_1,har_ma_1,0.0000,4,0.9959,0.9979
+baseline,lgbm,shap,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,lgbm,shap,cluster,15,15,15,6,0.9964,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9964,1.0000
+baseline,xgb,mdi,column,24,18,18,12,0.9938,har_ma_1,har_ma_1,0.0000,5,0.9959,0.9979
+baseline,xgb,mdi,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,mdi,cluster,15,15,15,6,0.9893,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9893,0.9893
+baseline,xgb,split,column,24,18,18,12,0.9959,har_ma_1,har_ma_1,0.0000,5,0.9979,0.9979
+baseline,xgb,split,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,split,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,1.0000,0.9929
+baseline,xgb,perm_p1_qlike,column,24,18,18,12,0.9835,har_ma_1,har_ma_1,0.0000,5,0.9009,0.9030
+baseline,xgb,perm_p1_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,perm_p1_qlike,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.8929,0.8929
+baseline,xgb,perm_p2_qlike,column,24,18,18,12,0.9752,har_ma_1,har_ma_1,1.0000,5,0.9773,0.9773
+baseline,xgb,perm_p2_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,perm_p2_qlike,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9821,0.9821
+baseline,xgb,perm_p1_mse,column,24,18,18,12,0.9752,har_ma_1,har_ma_1,1.0000,5,0.9856,0.9794
+baseline,xgb,perm_p1_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,perm_p1_mse,cluster,15,15,15,6,0.9214,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9179,0.9893
+baseline,xgb,perm_p2_mse,column,24,18,18,12,0.9381,har_ma_1,har_ma_1,1.0000,5,0.9752,0.9835
+baseline,xgb,perm_p2_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,perm_p2_mse,cluster,15,15,15,6,0.9107,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.9607,0.9821
+baseline,xgb,shap,column,24,18,18,12,0.9959,har_ma_1,har_ma_1,0.0000,5,0.9979,0.9979
+baseline,xgb,shap,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,xgb,shap,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9964,0.9964
+baseline,rf,mdi,column,24,18,18,12,0.9917,har_ma_1,har_ma_1,0.0000,4,0.9917,0.9938
+baseline,rf,mdi,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,mdi,cluster,15,15,15,6,0.9964,har_ma_1 +1,har_ma_1 +1,0.0000,5,1.0000,0.9964
+baseline,rf,split,column,24,18,18,12,0.9732,har_ma_1,har_ma_1,1.0000,4,0.9752,0.9917
+baseline,rf,split,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,split,cluster,15,15,15,6,0.9929,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9964,0.9964
+baseline,rf,perm_p1_qlike,column,24,18,18,12,0.7503,har_ma_1,har_ma_1,2.0000,3,0.8246,0.9195
+baseline,rf,perm_p1_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,perm_p1_qlike,cluster,15,15,15,6,0.9036,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.9714,0.9036
+baseline,rf,perm_p2_qlike,column,24,18,18,12,0.9216,har_ma_1,har_ma_1,1.0000,5,0.9505,0.9071
+baseline,rf,perm_p2_qlike,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,perm_p2_qlike,cluster,15,15,15,6,0.9536,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9679,0.9714
+baseline,rf,perm_p1_mse,column,24,18,18,12,0.9278,har_ma_1,har_ma_1,1.0000,4,0.9711,0.9690
+baseline,rf,perm_p1_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,perm_p1_mse,cluster,15,15,15,6,0.9679,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9929,0.9750
+baseline,rf,perm_p2_mse,column,24,18,18,12,0.8803,har_ma_1,har_ma_1,1.0000,5,0.8824,0.9711
+baseline,rf,perm_p2_mse,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,perm_p2_mse,cluster,15,15,15,6,0.8821,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.8786,0.9929
+baseline,rf,shap,column,24,18,18,12,0.9628,har_ma_1,har_ma_1,0.5000,4,0.9938,0.9690
+baseline,rf,shap,series,2,2,2,0,,har_ma,har_ma,0.0000,2,,
+baseline,rf,shap,cluster,15,15,15,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,1.0000,1.0000
+live_feasible,ridge,bsd,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,ridge,bsd,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,ridge,bsd,cluster,71,71,71,6,1.0000,adj_sumabsret_ma_1 +7,adj_sumabsret_ma_1 +7,0.0000,5,,
+live_feasible,ridge,perm_p1_qlike,column,174,168,168,12,1.0000,adj_sumvolume_ma_25,adj_sumvolume_ma_25,0.0000,5,,
+live_feasible,ridge,perm_p1_qlike,series,18,18,18,0,0.9814,sumret4,sumabsret,1.0000,5,,
+live_feasible,ridge,perm_p1_qlike,cluster,71,71,71,6,0.9769,adj_sumvolume_ma_25,adj_sumvolume_ma_25,1.0000,5,,
+live_feasible,ridge,perm_p2_qlike,column,174,168,168,12,0.8604,adj_sumvolume_ma_25,adj_sumvolume_ma_25,3.0000,3,,
+live_feasible,ridge,perm_p2_qlike,series,18,18,18,0,0.9401,sumabsret,sumabsret,0.0000,4,,
+live_feasible,ridge,perm_p2_qlike,cluster,71,71,71,6,0.9393,adj_sumvolume_ma_25,adj_sumvolume_ma_25,2.0000,4,,
+live_feasible,ridge,perm_p1_mse,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,ridge,perm_p1_mse,series,18,18,18,0,0.9814,har_ma,har_ma,0.0000,5,,
+live_feasible,ridge,perm_p1_mse,cluster,71,71,71,6,0.9844,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,ridge,perm_p2_mse,column,174,168,168,12,0.9738,har_ma_1,har_ma_1,1.0000,5,,
+live_feasible,ridge,perm_p2_mse,series,18,18,18,0,0.9979,har_ma,har_ma,0.0000,5,,
+live_feasible,ridge,perm_p2_mse,cluster,71,71,71,6,0.9808,har_ma_1 +1,har_ma_1 +1,1.0000,5,,
+live_feasible,ridge,drop_qlike,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,ridge,drop_qlike,series,18,18,18,0,1.0000,sumabsret,sumabsret,0.0000,5,,
+live_feasible,ridge,drop_qlike,cluster,71,71,71,6,1.0000,har_ma_125 +1,har_ma_125 +1,0.0000,5,,
+live_feasible,ridge,drop_mse,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,ridge,drop_mse,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,ridge,drop_mse,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,ridge,shap,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,ridge,shap,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,ridge,shap,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,lasso,bsd,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,lasso,bsd,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,bsd,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,lasso,perm_p1_qlike,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,lasso,perm_p1_qlike,series,18,18,18,0,0.9587,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,perm_p1_qlike,cluster,71,71,71,6,0.9526,har_ma_1 +1,har_ma_1 +1,1.0000,5,,
+live_feasible,lasso,perm_p2_qlike,column,174,168,168,12,0.8949,adj_vix3m_ma_625,har_ma_1,5.0000,4,,
+live_feasible,lasso,perm_p2_qlike,series,18,18,18,0,0.9835,har_ma,vix3m,1.0000,5,,
+live_feasible,lasso,perm_p2_qlike,cluster,71,71,71,6,0.9332,har_ma_1 +1,har_ma_1 +1,1.0000,4,,
+live_feasible,lasso,perm_p1_mse,column,174,168,168,12,0.9897,har_ma_1,har_ma_1,1.0000,5,,
+live_feasible,lasso,perm_p1_mse,series,18,18,18,0,0.9876,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,perm_p1_mse,cluster,71,71,71,6,0.9549,har_ma_1 +1,har_ma_1 +1,1.0000,5,,
+live_feasible,lasso,perm_p2_mse,column,174,168,168,12,0.8519,har_ma_1,har_ma_1,7.0000,5,,
+live_feasible,lasso,perm_p2_mse,series,18,18,18,0,0.9814,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,perm_p2_mse,cluster,71,71,71,6,0.8781,har_ma_1 +1,har_ma_1 +1,4.0000,5,,
+live_feasible,lasso,drop_qlike,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,lasso,drop_qlike,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,drop_qlike,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,lasso,drop_mse,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,lasso,drop_mse,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,drop_mse,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,lasso,shap,column,174,168,168,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+live_feasible,lasso,shap,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,,
+live_feasible,lasso,shap,cluster,71,71,71,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+live_feasible,lgbm,mdi,column,174,168,168,12,0.9948,har_ma_1,har_ma_1,1.5000,5,0.9977,0.9960
+live_feasible,lgbm,mdi,series,18,18,18,0,0.9897,har_ma,har_ma,0.0000,5,0.9897,1.0000
+live_feasible,lgbm,mdi,cluster,71,71,71,6,0.9974,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9982,0.9988
+live_feasible,lgbm,split,column,174,168,168,12,0.9946,har_ma_1,har_ma_1,2.0000,5,0.9978,0.9962
+live_feasible,lgbm,split,series,18,18,18,0,1.0000,har_ma,har_ma,0.0000,5,0.9979,0.9979
+live_feasible,lgbm,split,cluster,71,71,71,6,0.9962,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9966,0.9989
+live_feasible,lgbm,perm_p1_qlike,column,174,168,168,12,0.6301,har_ma_1,har_ma_1,9.0000,4,0.5901,0.5574
+live_feasible,lgbm,perm_p1_qlike,series,18,18,18,0,0.8658,har_ma,har_ma,1.0000,4,0.8927,0.9587
+live_feasible,lgbm,perm_p1_qlike,cluster,71,71,71,6,0.7063,har_ma_1 +1,har_ma_1 +1,5.0000,4,0.6943,0.6674
+live_feasible,lgbm,perm_p2_qlike,column,174,168,168,12,0.6301,har_ma_1,har_ma_1,12.0000,5,0.6712,0.7097
+live_feasible,lgbm,perm_p2_qlike,series,18,18,18,0,0.8555,har_ma,har_ma,1.0000,4,0.7853,0.9092
+live_feasible,lgbm,perm_p2_qlike,cluster,71,71,71,6,0.7244,har_ma_1 +1,har_ma_1 +1,5.0000,5,0.7710,0.8403
+live_feasible,lgbm,perm_p1_mse,column,174,168,168,12,0.6029,har_ma_1,har_ma_1,7.0000,5,0.5437,0.5405
+live_feasible,lgbm,perm_p1_mse,series,18,18,18,0,0.6574,har_ma,har_ma,1.5000,4,0.6615,0.9133
+live_feasible,lgbm,perm_p1_mse,cluster,71,71,71,6,0.6003,har_ma_1 +1,har_ma_1 +1,7.0000,5,0.6263,0.7374
+live_feasible,lgbm,perm_p2_mse,column,174,168,168,12,0.7555,har_ma_1,har_ma_1,8.0000,5,0.7003,0.6912
+live_feasible,lgbm,perm_p2_mse,series,18,18,18,0,0.8122,har_ma,har_ma,1.5000,4,0.8308,0.9732
+live_feasible,lgbm,perm_p2_mse,cluster,71,71,71,6,0.7268,har_ma_1 +1,har_ma_1 +1,7.0000,4,0.7171,0.8281
+live_feasible,lgbm,shap,column,174,168,168,12,0.9928,har_ma_1,har_ma_1,2.0000,5,0.9952,0.9960
+live_feasible,lgbm,shap,series,18,18,18,0,0.9917,har_ma,har_ma,0.0000,4,0.9917,0.9959
+live_feasible,lgbm,shap,cluster,71,71,71,6,0.9955,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.9925,0.9979
+live_feasible,xgb,mdi,column,174,168,168,12,0.9943,har_ma_1,har_ma_1,2.0000,4,0.9984,0.9954
+live_feasible,xgb,mdi,series,18,18,18,0,0.9856,har_ma,har_ma,0.0000,5,0.9897,0.9979
+live_feasible,xgb,mdi,cluster,71,71,71,6,0.9979,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9984,0.9987
+live_feasible,xgb,split,column,174,168,168,12,0.9942,har_ma_1,har_ma_1,2.0000,5,0.9977,0.9957
+live_feasible,xgb,split,series,18,18,18,0,0.9917,har_ma,har_ma,0.0000,4,0.9938,0.9979
+live_feasible,xgb,split,cluster,71,71,71,6,0.9970,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9964,0.9986
+live_feasible,xgb,perm_p1_qlike,column,174,168,168,12,0.6463,har_ma_5,har_ma_1,8.0000,5,0.6159,0.6057
+live_feasible,xgb,perm_p1_qlike,series,18,18,18,0,0.8308,har_ma,har_ma,1.0000,5,0.8431,0.8762
+live_feasible,xgb,perm_p1_qlike,cluster,71,71,71,6,0.7892,har_ma_1 +1,har_ma_1 +1,3.0000,5,0.7961,0.8143
+live_feasible,xgb,perm_p2_qlike,column,174,168,168,12,0.6726,har_ma_1,har_ma_1,4.0000,5,0.6714,0.7126
+live_feasible,xgb,perm_p2_qlike,series,18,18,18,0,0.9690,har_ma,har_ma,1.0000,5,0.9319,0.9711
+live_feasible,xgb,perm_p2_qlike,cluster,71,71,71,6,0.8408,har_ma_1 +1,har_ma_1 +1,2.0000,5,0.8387,0.9023
+live_feasible,xgb,perm_p1_mse,column,174,168,168,12,0.6872,har_ma_1,har_ma_1,12.0000,5,0.6626,0.6676
+live_feasible,xgb,perm_p1_mse,series,18,18,18,0,0.9690,har_ma,har_ma,0.0000,5,0.9525,0.9484
+live_feasible,xgb,perm_p1_mse,cluster,71,71,71,6,0.8268,har_ma_1 +1,har_ma_1 +1,3.0000,5,0.8585,0.8077
+live_feasible,xgb,perm_p2_mse,column,174,168,168,12,0.5988,har_ma_1,har_ma_1,7.0000,5,0.6879,0.6216
+live_feasible,xgb,perm_p2_mse,series,18,18,18,0,0.8369,har_ma,har_ma,1.0000,5,0.9154,0.9298
+live_feasible,xgb,perm_p2_mse,cluster,71,71,71,6,0.8085,har_ma_1 +1,har_ma_1 +1,3.0000,5,0.8531,0.8047
+live_feasible,xgb,shap,column,174,168,168,12,0.9942,har_ma_1,har_ma_1,2.0000,4,0.9973,0.9959
+live_feasible,xgb,shap,series,18,18,18,0,0.9917,har_ma,har_ma,0.0000,5,0.9959,0.9979
+live_feasible,xgb,shap,cluster,71,71,71,6,0.9963,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9965,0.9984
+live_feasible,rf,mdi,column,174,168,168,12,0.9920,har_ma_1,har_ma_1,1.0000,5,0.9955,0.9938
+live_feasible,rf,mdi,series,18,18,18,0,0.9938,har_ma,har_ma,0.0000,5,0.9938,1.0000
+live_feasible,rf,mdi,cluster,71,71,71,6,0.9994,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9997,0.9997
+live_feasible,rf,split,column,174,168,168,12,0.9901,adj_sumret_ma_1,har_ma_1,2.0000,3,0.9949,0.9938
+live_feasible,rf,split,series,18,18,18,0,0.9917,har_ma,numobs,0.0000,5,0.9917,1.0000
+live_feasible,rf,split,cluster,71,71,71,6,0.9815,adj_sumabsret_ma_1 +7,adj_sumabsret_ma_1 +7,1.0000,3,0.9821,0.9992
+live_feasible,rf,perm_p1_qlike,column,174,168,168,12,0.7288,har_ma_1,har_ma_1,8.5000,4,0.8387,0.8181
+live_feasible,rf,perm_p1_qlike,series,18,18,18,0,0.9752,har_ma,har_ma,0.0000,5,0.9608,0.9711
+live_feasible,rf,perm_p1_qlike,cluster,71,71,71,6,0.8763,har_ma_1 +1,har_ma_1 +1,2.0000,5,0.9031,0.9636
+live_feasible,rf,perm_p2_qlike,column,174,168,168,12,0.8283,har_ma_1,har_ma_1,9.0000,3,0.8269,0.7537
+live_feasible,rf,perm_p2_qlike,series,18,18,18,0,0.8947,har_ma,har_ma,1.5000,5,0.8885,0.9009
+live_feasible,rf,perm_p2_qlike,cluster,71,71,71,6,0.8791,har_ma_1 +1,har_ma_1 +1,3.0000,5,0.8935,0.8739
+live_feasible,rf,perm_p1_mse,column,174,168,168,12,0.6503,har_ma_1,har_ma_1,11.0000,3,0.7268,0.7485
+live_feasible,rf,perm_p1_mse,series,18,18,18,0,0.9071,har_ma,har_ma,1.0000,5,0.9773,0.9381
+live_feasible,rf,perm_p1_mse,cluster,71,71,71,6,0.8085,har_ma_1 +1,har_ma_1 +1,4.0000,5,0.8145,0.8657
+live_feasible,rf,perm_p2_mse,column,174,168,168,12,0.6814,har_ma_1,har_ma_1,14.0000,4,0.7457,0.6770
+live_feasible,rf,perm_p2_mse,series,18,18,18,0,0.7028,har_ma,har_ma,2.0000,5,0.8906,0.8019
+live_feasible,rf,perm_p2_mse,cluster,71,71,71,6,0.7360,har_ma_1 +1,har_ma_1 +1,5.0000,5,0.8003,0.7718
+live_feasible,rf,shap,column,174,168,168,12,0.9904,har_ma_1,har_ma_1,2.0000,4,0.9970,0.9913
+live_feasible,rf,shap,series,18,18,18,0,0.9959,har_ma,har_ma,0.0000,5,0.9979,0.9979
+live_feasible,rf,shap,cluster,71,71,71,6,0.9993,har_ma_1 +1,har_ma_1 +1,0.0000,5,0.9993,0.9994
+all_features,ridge,bsd,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,ridge,bsd,series,49,49,49,0,1.0000,har_ma,har_ma,0.0000,5,,
+all_features,ridge,bsd,cluster,166,166,166,6,1.0000,adj_sumabsret_ma_1 +7,adj_sumabsret_ma_1 +7,0.0000,5,,
+all_features,ridge,perm_p1_qlike,column,570,564,564,12,0.9988,adj_sumret4_ma_25,adj_sumret4_ma_25,0.0000,5,,
+all_features,ridge,perm_p1_qlike,series,49,49,49,0,0.8910,sumret4_ewstock,sumautocov,2.0000,2,,
+all_features,ridge,perm_p1_qlike,cluster,166,166,166,6,0.9204,adj_sumabsret_ewstock_ma_625 +7,adj_sumabsret_ewstock_ma_625 +7,2.0000,4,,
+all_features,ridge,perm_p2_qlike,column,570,564,564,12,0.8147,adj_sumret4_ma_25,adj_voldemand_spx_open_only_ma_125,3.0000,0,,
+all_features,ridge,perm_p2_qlike,series,49,49,49,0,0.8719,sumautocov,voldemand_spx_open_only,3.0000,1,,
+all_features,ridge,perm_p2_qlike,cluster,166,166,166,6,0.7678,adj_sumret3_ewstock_ma_1 +1,adj_voldemand_all_open_only_ma_25 +1,4.0000,2,,
+all_features,ridge,perm_p1_mse,column,570,564,564,12,0.9914,har_ma_1,har_ma_1,0.0000,5,,
+all_features,ridge,perm_p1_mse,series,49,49,49,0,0.9572,har_ma,har_ma,1.0000,5,,
+all_features,ridge,perm_p1_mse,cluster,166,166,166,6,0.9748,har_ma_1 +1,har_ma_1 +1,2.0000,5,,
+all_features,ridge,perm_p2_mse,column,570,564,564,12,0.8950,har_ma_1,har_ma_1,4.0000,4,,
+all_features,ridge,perm_p2_mse,series,49,49,49,0,0.9865,har_ma,har_ma,1.0000,5,,
+all_features,ridge,perm_p2_mse,cluster,166,166,166,6,0.9349,har_ma_1 +1,har_ma_1 +1,4.0000,5,,
+all_features,ridge,drop_qlike,column,570,564,564,12,1.0000,adj_sumret_ma_5,adj_sumret_ma_5,0.0000,5,,
+all_features,ridge,drop_qlike,series,49,49,49,0,1.0000,sumabsret,sumabsret,0.0000,5,,
+all_features,ridge,drop_qlike,cluster,166,166,166,6,1.0000,adj_effspread_ewstock_ma_1 +1,adj_effspread_ewstock_ma_1 +1,0.0000,5,,
+all_features,ridge,drop_mse,column,570,564,564,12,1.0000,har_ma_25,har_ma_25,0.0000,5,,
+all_features,ridge,drop_mse,series,49,49,49,0,1.0000,har_ma,har_ma,0.0000,5,,
+all_features,ridge,drop_mse,cluster,166,166,166,6,1.0000,har_ma_125 +1,har_ma_125 +1,0.0000,5,,
+all_features,ridge,shap,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,ridge,shap,series,49,49,49,0,1.0000,har_ma,har_ma,0.0000,5,,
+all_features,ridge,shap,cluster,166,166,166,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+all_features,lasso,bsd,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,lasso,bsd,series,49,49,49,0,0.9993,har_ma,har_ma,0.0000,5,,
+all_features,lasso,bsd,cluster,166,166,166,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+all_features,lasso,perm_p1_qlike,column,570,564,564,12,0.9838,har_ma_1,har_ma_1,0.0000,5,,
+all_features,lasso,perm_p1_qlike,series,49,49,49,0,0.9861,har_ma,har_ma,1.0000,4,,
+all_features,lasso,perm_p1_qlike,cluster,166,166,166,6,0.9275,har_ma_1 +1,har_ma_1 +1,1.0000,5,,
+all_features,lasso,perm_p2_qlike,column,570,564,564,12,0.7853,adj_sumret4_ma_5,adj_sumret4_ma_5,8.0000,5,,
+all_features,lasso,perm_p2_qlike,series,49,49,49,0,0.9650,har_ma,effspread_vwstock,1.0000,2,,
+all_features,lasso,perm_p2_qlike,cluster,166,166,166,6,0.8943,adj_sumbipow_ewstock_ma_5 +5,adj_effspread_vwstock_ma_1 +1,4.0000,5,,
+all_features,lasso,perm_p1_mse,column,570,564,564,12,0.9938,har_ma_1,har_ma_1,1.0000,5,,
+all_features,lasso,perm_p1_mse,series,49,49,49,0,0.9776,har_ma,har_ma,1.0000,5,,
+all_features,lasso,perm_p1_mse,cluster,166,166,166,6,0.9430,har_ma_1 +1,har_ma_1 +1,2.0000,5,,
+all_features,lasso,perm_p2_mse,column,570,564,564,12,0.8413,har_ma_1,har_ma_1,8.0000,5,,
+all_features,lasso,perm_p2_mse,series,49,49,49,0,0.9877,har_ma,har_ma,1.0000,5,,
+all_features,lasso,perm_p2_mse,cluster,166,166,166,6,0.9337,har_ma_1 +1,har_ma_1 +1,3.0000,5,,
+all_features,lasso,drop_qlike,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,lasso,drop_qlike,series,49,49,49,0,1.0000,har_ma,har_ma,0.0000,5,,
+all_features,lasso,drop_qlike,cluster,166,166,166,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+all_features,lasso,drop_mse,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,lasso,drop_mse,series,49,49,49,0,1.0000,har_ma,har_ma,0.0000,5,,
+all_features,lasso,drop_mse,cluster,166,166,166,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+all_features,lasso,shap,column,570,564,564,12,1.0000,har_ma_1,har_ma_1,0.0000,5,,
+all_features,lasso,shap,series,49,49,49,0,0.9993,har_ma,har_ma,0.0000,5,,
+all_features,lasso,shap,cluster,166,166,166,6,1.0000,har_ma_1 +1,har_ma_1 +1,0.0000,5,,
+all_features,lgbm,mdi,column,570,564,564,12,0.9794,har_ma_1,har_ma_1,10.0000,4,0.9947,0.9762
+all_features,lgbm,mdi,series,49,49,49,0,0.9971,har_ma,har_ma,0.0000,5,0.9976,0.9987
+all_features,lgbm,mdi,cluster,166,166,166,6,0.9981,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.9986,0.9990
+all_features,lgbm,split,column,570,564,564,12,0.9798,har_ma_1,har_ma_1,8.0000,5,0.9950,0.9764
+all_features,lgbm,split,series,49,49,49,0,0.9921,har_ma,har_ma,0.0000,5,0.9936,0.9972
+all_features,lgbm,split,cluster,166,166,166,6,0.9982,har_ma_1 +1,har_ma_1 +1,1.0000,4,0.9986,0.9992
+all_features,lgbm,perm_p1_qlike,column,570,564,564,12,0.3831,har_ma_1,har_ma_1,22.0000,5,0.4172,0.4041
+all_features,lgbm,perm_p1_qlike,series,49,49,49,0,0.7150,har_ma,har_ma,6.0000,5,0.7707,0.7358
+all_features,lgbm,perm_p1_qlike,cluster,166,166,166,6,0.6002,har_ma_1 +1,har_ma_1 +1,14.5000,4,0.7411,0.6403
+all_features,lgbm,perm_p2_qlike,column,570,564,564,12,0.4333,har_ma_1,har_ma_1,19.0000,5,0.4748,0.5065
+all_features,lgbm,perm_p2_qlike,series,49,49,49,0,0.6809,har_ma,har_ma,6.0000,4,0.7549,0.7563
+all_features,lgbm,perm_p2_qlike,cluster,166,166,166,6,0.6834,har_ma_1 +1,har_ma_1 +1,14.0000,5,0.6768,0.6847
+all_features,lgbm,perm_p1_mse,column,570,564,564,12,0.4315,har_ma_1,har_ma_1,15.0000,5,0.4866,0.4920
+all_features,lgbm,perm_p1_mse,series,49,49,49,0,0.7584,har_ma,har_ma,5.0000,4,0.7764,0.8877
+all_features,lgbm,perm_p1_mse,cluster,166,166,166,6,0.6031,har_ma_1 +1,har_ma_1 +1,11.0000,4,0.6462,0.6471
+all_features,lgbm,perm_p2_mse,column,570,564,564,12,0.4827,har_ma_1,har_ma_1,21.0000,5,0.4606,0.4343
+all_features,lgbm,perm_p2_mse,series,49,49,49,0,0.8539,har_ma,har_ma,4.0000,4,0.8726,0.9342
+all_features,lgbm,perm_p2_mse,cluster,166,166,166,6,0.7141,har_ma_1 +1,har_ma_1 +1,13.0000,4,0.6784,0.7373
+all_features,lgbm,shap,column,570,564,564,12,0.9789,har_ma_1,har_ma_1,14.0000,5,0.9921,0.9751
+all_features,lgbm,shap,series,49,49,49,0,0.9904,har_ma,har_ma,1.0000,4,0.9906,0.9930
+all_features,lgbm,shap,cluster,166,166,166,6,0.9960,har_ma_1 +1,har_ma_1 +1,2.0000,4,0.9968,0.9974
+all_features,xgb,mdi,column,570,564,564,12,0.9812,har_ma_1,har_ma_1,13.0000,5,0.9934,0.9819
+all_features,xgb,mdi,series,49,49,49,0,0.9947,har_ma,har_ma,1.0000,5,0.9958,0.9945
+all_features,xgb,mdi,cluster,166,166,166,6,0.9963,har_ma_1 +1,har_ma_1 +1,1.5000,4,0.9975,0.9976
+all_features,xgb,split,column,570,564,564,12,0.9817,har_ma_1,har_ma_1,13.0000,5,0.9935,0.9823
+all_features,xgb,split,series,49,49,49,0,0.9938,har_ma,har_ma,1.0000,4,0.9951,0.9943
+all_features,xgb,split,cluster,166,166,166,6,0.9953,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9952,0.9979
+all_features,xgb,perm_p1_qlike,column,570,564,564,12,0.5207,har_ma_1,har_ma_1,21.0000,5,0.4162,0.4328
+all_features,xgb,perm_p1_qlike,series,49,49,49,0,0.8098,har_ma,har_ma,4.0000,4,0.5735,0.6595
+all_features,xgb,perm_p1_qlike,cluster,166,166,166,6,0.6641,har_ma_1 +1,har_ma_1 +1,13.0000,5,0.5610,0.6528
+all_features,xgb,perm_p2_qlike,column,570,564,564,12,0.4767,har_ma_1,har_ma_1,19.0000,5,0.4339,0.4501
+all_features,xgb,perm_p2_qlike,series,49,49,49,0,0.8637,har_ma,har_ma,2.0000,4,0.7771,0.8765
+all_features,xgb,perm_p2_qlike,cluster,166,166,166,6,0.7504,har_ma_1 +1,har_ma_1 +1,14.0000,4,0.6536,0.6212
+all_features,xgb,perm_p1_mse,column,570,564,564,12,0.4188,har_ma_1,har_ma_1,32.0000,5,0.4594,0.3982
+all_features,xgb,perm_p1_mse,series,49,49,49,0,0.8492,har_ma,har_ma,4.0000,4,0.8374,0.8246
+all_features,xgb,perm_p1_mse,cluster,166,166,166,6,0.5860,har_ma_1 +1,har_ma_1 +1,13.0000,4,0.5707,0.6854
+all_features,xgb,perm_p2_mse,column,570,564,564,12,0.4712,har_ma_1,har_ma_1,27.0000,5,0.4566,0.5165
+all_features,xgb,perm_p2_mse,series,49,49,49,0,0.8832,har_ma,har_ma,3.0000,5,0.8349,0.8124
+all_features,xgb,perm_p2_mse,cluster,166,166,166,6,0.6548,har_ma_1 +1,har_ma_1 +1,13.0000,5,0.5712,0.6609
+all_features,xgb,shap,column,570,564,564,12,0.9799,har_ma_1,har_ma_1,15.0000,5,0.9928,0.9808
+all_features,xgb,shap,series,49,49,49,0,0.9931,har_ma,har_ma,1.0000,5,0.9864,0.9870
+all_features,xgb,shap,cluster,166,166,166,6,0.9964,har_ma_1 +1,har_ma_1 +1,2.0000,4,0.9963,0.9977
+all_features,rf,mdi,column,570,564,564,12,0.9363,har_ma_1_x_close,har_ma_1,7.0000,5,0.9979,0.9372
+all_features,rf,mdi,series,49,49,49,0,0.9941,har_ma,har_ma,1.0000,5,0.9991,0.9939
+all_features,rf,mdi,cluster,166,166,166,6,0.9862,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9994,0.9861
+all_features,rf,split,column,570,564,564,12,0.9188,har_ma_1_x_close,har_ma_1,10.0000,4,0.9981,0.9198
+all_features,rf,split,series,49,49,49,0,0.7689,har_ma,voldemand_spx_open_and_close,8.0000,4,0.9991,0.7742
+all_features,rf,split,cluster,166,166,166,6,0.9251,buyturnover_ewstock_avail_ma_3125 +21,adj_sumabsret_ma_1 +7,5.0000,3,0.9945,0.9283
+all_features,rf,perm_p1_qlike,column,570,564,564,12,0.6328,har_ma_1_x_close,har_ma_1,52.5000,3,0.6091,0.5997
+all_features,rf,perm_p1_qlike,series,49,49,49,0,0.7155,har_ma,har_ma,5.0000,4,0.7658,0.8173
+all_features,rf,perm_p1_qlike,cluster,166,166,166,6,0.7894,har_ma_1 +1,har_ma_1 +1,11.0000,5,0.7528,0.8093
+all_features,rf,perm_p2_qlike,column,570,564,564,12,0.6265,har_ma_1_x_close,har_ma_1,66.0000,3,0.6041,0.6754
+all_features,rf,perm_p2_qlike,series,49,49,49,0,0.8581,har_ma,har_ma,4.0000,5,0.9020,0.8192
+all_features,rf,perm_p2_qlike,cluster,166,166,166,6,0.8127,har_ma_1 +1,har_ma_1 +1,10.0000,5,0.7989,0.8017
+all_features,rf,perm_p1_mse,column,570,564,564,12,0.5189,har_ma_1_x_close,har_ma_1,57.5000,5,0.4960,0.4639
+all_features,rf,perm_p1_mse,series,49,49,49,0,0.8152,har_ma,har_ma,4.0000,4,0.8295,0.8639
+all_features,rf,perm_p1_mse,cluster,166,166,166,6,0.6939,har_ma_1 +1,har_ma_1 +1,13.0000,5,0.7850,0.7553
+all_features,rf,perm_p2_mse,column,570,564,564,12,0.4992,har_ma_1_x_close,har_ma_1,78.0000,4,0.5172,0.5064
+all_features,rf,perm_p2_mse,series,49,49,49,0,0.8315,har_ma,har_ma,3.0000,4,0.8055,0.8747
+all_features,rf,perm_p2_mse,cluster,166,166,166,6,0.6732,har_ma_1 +1,har_ma_1 +1,12.0000,4,0.6948,0.6684
+all_features,rf,shap,column,570,564,564,12,0.9373,har_ma_1_x_close,har_ma_1,11.0000,4,0.9968,0.9387
+all_features,rf,shap,series,49,49,49,0,0.9954,har_ma,har_ma,0.0000,5,0.9958,0.9961
+all_features,rf,shap,cluster,166,166,166,6,0.9983,har_ma_1 +1,har_ma_1 +1,1.0000,5,0.9994,0.9986

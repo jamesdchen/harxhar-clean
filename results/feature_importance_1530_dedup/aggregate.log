@@ -1,0 +1,3 @@
+[baseline] 147 refits, 22 columns, 2 series, 3 clusters of 6 columns
+[live_feasible] 147 refits, 232 columns, 18 series, 25 clusters of 122 columns
+[all_features] 147 refits, 628 columns, 49 series, 100 clusters of 498 columns

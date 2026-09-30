@@ -1,0 +1,883 @@
+bucket,column,series,unique_full_series,unique_window_median,unique_window_min,unique_window_max,windows_constant,cardinality_class
+baseline,har_ma_1,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,har_ma_5,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,har_ma_25,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,har_ma_125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,har_ma_625,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,har_ma_3125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+baseline,DOW_0,calendar,2,2.0,2,2,0,binary
+baseline,DOW_1,calendar,2,2.0,2,2,0,binary
+baseline,DOW_2,calendar,2,2.0,2,2,0,binary
+baseline,DOW_3,calendar,2,2.0,2,2,0,binary
+baseline,DOW_4,calendar,2,2.0,2,2,0,binary
+baseline,hour,calendar,1,1.0,1,1,147,constant
+baseline,is_overnight,calendar,1,1.0,1,1,147,constant
+baseline,is_open,calendar,1,1.0,1,1,147,constant
+baseline,is_close,calendar,1,1.0,1,1,147,constant
+baseline,is_opex,calendar,2,2.0,2,2,0,binary
+baseline,is_opex_week,calendar,2,2.0,2,2,0,binary
+baseline,is_quad_witch,calendar,2,2.0,2,2,0,binary
+baseline,is_rebalance_close,calendar,2,2.0,2,2,0,binary
+baseline,is_month_end,calendar,2,2.0,2,2,0,binary
+baseline,is_quarter_end,calendar,2,2.0,2,2,0,binary
+baseline,days_to_opex,calendar,34,34.0,20,34,0,26-500 values
+live_feasible,har_ma_1,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,har_ma_5,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,har_ma_25,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,har_ma_125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,har_ma_625,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,har_ma_3125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret_ma_1,sumret,3457,1992.0,1988,1999,0,> 500 values
+live_feasible,adj_sumret_ma_5,sumret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret_ma_25,sumret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret_ma_125,sumret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret_ma_625,sumret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret_ma_3125,sumret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_1,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_5,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_25,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_125,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_625,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumabsret_ma_3125,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_1,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_5,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_25,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_125,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_625,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret3_ma_3125,sumret3,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_1,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_5,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_25,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_125,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_625,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumret4_ma_3125,sumret4,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_1,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_5,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_25,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_125,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_625,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumpret2_ma_3125,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_1,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_5,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_25,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_125,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_625,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumbipow_ma_3125,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_1,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_5,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_25,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_125,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_625,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumautocov_ma_3125,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_1,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_5,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_25,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_125,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_625,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_sumvolume_ma_3125,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_numobs_ma_1,numobs,39,26.0,15,30,0,26-500 values
+live_feasible,adj_numobs_ma_5,numobs,202,147.0,92,166,0,26-500 values
+live_feasible,adj_numobs_ma_25,numobs,1991,1245.0,1024,1324,0,> 500 values
+live_feasible,adj_numobs_ma_125,numobs,3426,2000.0,1957,2000,0,> 500 values
+live_feasible,adj_numobs_ma_625,numobs,3467,2000.0,1998,2000,0,> 500 values
+live_feasible,adj_numobs_ma_3125,numobs,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_vix_ma_1,vix,2904,1628.0,1460,1887,0,> 500 values
+live_feasible,adj_vix_ma_5,vix,3454,2000.0,1988,2000,0,> 500 values
+live_feasible,adj_vix_ma_25,vix,3453,2000.0,1985,2000,0,> 500 values
+live_feasible,adj_vix_ma_125,vix,3450,2000.0,1986,2000,0,> 500 values
+live_feasible,adj_vix_ma_625,vix,3455,2000.0,1994,2000,0,> 500 values
+live_feasible,adj_vix_ma_3125,vix,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_vvix_ma_1,vvix,2933,1936.0,1490,1974,0,> 500 values
+live_feasible,adj_vvix_ma_5,vvix,2990,1981.0,1547,1999,0,> 500 values
+live_feasible,adj_vvix_ma_25,vvix,2979,1987.0,1556,2000,0,> 500 values
+live_feasible,adj_vvix_ma_125,vvix,2987,2000.0,1569,2000,0,> 500 values
+live_feasible,adj_vvix_ma_625,vvix,3036,2000.0,1570,2000,0,> 500 values
+live_feasible,adj_vvix_ma_3125,vvix,3039,2000.0,1570,2000,0,> 500 values
+live_feasible,adj_vix3m_ma_1,vix3m,3106,1798.0,1702,1895,0,> 500 values
+live_feasible,adj_vix3m_ma_5,vix3m,3421,1998.0,1964,1998,0,> 500 values
+live_feasible,adj_vix3m_ma_25,vix3m,3425,1998.0,1966,1998,0,> 500 values
+live_feasible,adj_vix3m_ma_125,vix3m,3427,2000.0,1967,2000,0,> 500 values
+live_feasible,adj_vix3m_ma_625,vix3m,3449,2000.0,1989,2000,0,> 500 values
+live_feasible,adj_vix3m_ma_3125,vix3m,3469,2000.0,2000,2000,0,> 500 values
+live_feasible,adj_fomc_release_ma_1,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_release_ma_5,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_release_ma_25,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_release_ma_125,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_release_ma_625,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_release_ma_3125,fomc_release,1,1.0,1,1,147,constant
+live_feasible,adj_fomc_day_ma_1,fomc_day,2,2.0,2,2,0,binary
+live_feasible,adj_fomc_day_ma_5,fomc_day,3,2.0,2,3,0,binary
+live_feasible,adj_fomc_day_ma_25,fomc_day,3,2.0,2,3,0,binary
+live_feasible,adj_fomc_day_ma_125,fomc_day,11,6.0,6,10,0,3-25 values
+live_feasible,adj_fomc_day_ma_625,fomc_day,23,17.0,12,20,0,3-25 values
+live_feasible,adj_fomc_day_ma_3125,fomc_day,66,45.0,40,49,0,26-500 values
+live_feasible,adj_fomc_until_inv_ma_1,fomc_until_inv,349,181.0,70,332,0,26-500 values
+live_feasible,adj_fomc_until_inv_ma_5,fomc_until_inv,417,218.0,95,387,0,26-500 values
+live_feasible,adj_fomc_until_inv_ma_25,fomc_until_inv,538,268.0,130,506,0,26-500 values
+live_feasible,adj_fomc_until_inv_ma_125,fomc_until_inv,804,475.0,272,664,0,26-500 values
+live_feasible,adj_fomc_until_inv_ma_625,fomc_until_inv,2267,1357.0,1011,1545,0,> 500 values
+live_feasible,adj_fomc_until_inv_ma_3125,fomc_until_inv,3432,1975.0,1967,1978,0,> 500 values
+live_feasible,adj_fomc_since_inv_ma_1,fomc_since_inv,203,175.0,63,191,0,26-500 values
+live_feasible,adj_fomc_since_inv_ma_5,fomc_since_inv,298,252.0,135,268,0,26-500 values
+live_feasible,adj_fomc_since_inv_ma_25,fomc_since_inv,487,341.0,286,393,0,26-500 values
+live_feasible,adj_fomc_since_inv_ma_125,fomc_since_inv,775,487.0,249,650,0,26-500 values
+live_feasible,adj_fomc_since_inv_ma_625,fomc_since_inv,2256,1360.0,1013,1579,0,> 500 values
+live_feasible,adj_fomc_since_inv_ma_3125,fomc_since_inv,3347,1940.0,1923,1970,0,> 500 values
+live_feasible,sumret_avail_ma_1,sumret,1,1.0,1,1,147,constant
+live_feasible,sumret_avail_ma_5,sumret,1,1.0,1,1,147,constant
+live_feasible,sumret_avail_ma_25,sumret,1,1.0,1,1,147,constant
+live_feasible,sumret_avail_ma_125,sumret,1,1.0,1,1,147,constant
+live_feasible,sumret_avail_ma_625,sumret,1,1.0,1,1,147,constant
+live_feasible,sumret_avail_ma_3125,sumret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_1,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_5,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_25,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_125,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_625,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumabsret_avail_ma_3125,sumabsret,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_1,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_5,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_25,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_125,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_625,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret3_avail_ma_3125,sumret3,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_1,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_5,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_25,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_125,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_625,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumret4_avail_ma_3125,sumret4,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_1,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_5,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_25,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_125,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_625,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumpret2_avail_ma_3125,sumpret2,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_1,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_5,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_25,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_125,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_625,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumbipow_avail_ma_3125,sumbipow,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_1,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_5,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_25,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_125,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_625,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumautocov_avail_ma_3125,sumautocov,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_1,sumvolume,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_5,sumvolume,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_25,sumvolume,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_125,sumvolume,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_625,sumvolume,1,1.0,1,1,147,constant
+live_feasible,sumvolume_avail_ma_3125,sumvolume,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_1,numobs,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_5,numobs,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_25,numobs,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_125,numobs,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_625,numobs,1,1.0,1,1,147,constant
+live_feasible,numobs_avail_ma_3125,numobs,1,1.0,1,1,147,constant
+live_feasible,vix_avail_ma_1,vix,2,2.0,2,2,0,binary
+live_feasible,vix_avail_ma_5,vix,3,2.0,2,3,0,binary
+live_feasible,vix_avail_ma_25,vix,10,7.0,6,8,0,3-25 values
+live_feasible,vix_avail_ma_125,vix,39,24.0,21,28,0,3-25 values
+live_feasible,vix_avail_ma_625,vix,88,56.0,50,68,0,26-500 values
+live_feasible,vix_avail_ma_3125,vix,282,168.0,156,199,0,26-500 values
+live_feasible,vvix_avail_ma_1,vvix,2,2.0,2,2,0,binary
+live_feasible,vvix_avail_ma_5,vvix,4,4.0,2,4,0,3-25 values
+live_feasible,vvix_avail_ma_25,vvix,8,7.0,2,8,0,3-25 values
+live_feasible,vvix_avail_ma_125,vvix,23,18.0,6,23,0,3-25 values
+live_feasible,vvix_avail_ma_625,vvix,65,37.0,16,53,0,26-500 values
+live_feasible,vvix_avail_ma_3125,vvix,176,59.0,19,125,0,26-500 values
+live_feasible,vix3m_avail_ma_1,vix3m,2,2.0,2,2,0,binary
+live_feasible,vix3m_avail_ma_5,vix3m,3,3.0,3,3,0,3-25 values
+live_feasible,vix3m_avail_ma_25,vix3m,5,3.0,3,5,0,3-25 values
+live_feasible,vix3m_avail_ma_125,vix3m,19,13.0,13,19,0,3-25 values
+live_feasible,vix3m_avail_ma_625,vix3m,49,26.0,22,38,0,26-500 values
+live_feasible,vix3m_avail_ma_3125,vix3m,126,33.0,31,75,0,26-500 values
+live_feasible,fomc_release_avail_ma_1,fomc_release,2,1.0,1,2,135,constant
+live_feasible,fomc_release_avail_ma_5,fomc_release,3,1.0,1,3,135,constant
+live_feasible,fomc_release_avail_ma_25,fomc_release,3,1.0,1,3,135,constant
+live_feasible,fomc_release_avail_ma_125,fomc_release,5,1.0,1,5,135,constant
+live_feasible,fomc_release_avail_ma_625,fomc_release,15,1.0,1,15,135,constant
+live_feasible,fomc_release_avail_ma_3125,fomc_release,65,1.0,1,65,135,constant
+live_feasible,fomc_day_avail_ma_1,fomc_day,2,1.0,1,2,135,constant
+live_feasible,fomc_day_avail_ma_5,fomc_day,3,1.0,1,3,135,constant
+live_feasible,fomc_day_avail_ma_25,fomc_day,3,1.0,1,3,135,constant
+live_feasible,fomc_day_avail_ma_125,fomc_day,5,1.0,1,5,135,constant
+live_feasible,fomc_day_avail_ma_625,fomc_day,15,1.0,1,15,135,constant
+live_feasible,fomc_day_avail_ma_3125,fomc_day,65,1.0,1,65,135,constant
+live_feasible,fomc_until_inv_avail_ma_1,fomc_until_inv,2,1.0,1,2,135,constant
+live_feasible,fomc_until_inv_avail_ma_5,fomc_until_inv,3,1.0,1,3,135,constant
+live_feasible,fomc_until_inv_avail_ma_25,fomc_until_inv,3,1.0,1,3,135,constant
+live_feasible,fomc_until_inv_avail_ma_125,fomc_until_inv,5,1.0,1,5,135,constant
+live_feasible,fomc_until_inv_avail_ma_625,fomc_until_inv,15,1.0,1,15,135,constant
+live_feasible,fomc_until_inv_avail_ma_3125,fomc_until_inv,65,1.0,1,65,135,constant
+live_feasible,fomc_since_inv_avail_ma_1,fomc_since_inv,2,1.0,1,2,135,constant
+live_feasible,fomc_since_inv_avail_ma_5,fomc_since_inv,3,1.0,1,3,135,constant
+live_feasible,fomc_since_inv_avail_ma_25,fomc_since_inv,3,1.0,1,3,135,constant
+live_feasible,fomc_since_inv_avail_ma_125,fomc_since_inv,5,1.0,1,5,135,constant
+live_feasible,fomc_since_inv_avail_ma_625,fomc_since_inv,15,1.0,1,15,135,constant
+live_feasible,fomc_since_inv_avail_ma_3125,fomc_since_inv,65,1.0,1,65,135,constant
+live_feasible,numobs_active_ma_1,numobs,2,2.0,2,2,0,binary
+live_feasible,numobs_active_ma_5,numobs,5,5.0,4,5,0,3-25 values
+live_feasible,numobs_active_ma_25,numobs,13,13.0,8,13,0,3-25 values
+live_feasible,numobs_active_ma_125,numobs,60,59.0,46,60,0,26-500 values
+live_feasible,numobs_active_ma_625,numobs,226,201.0,178,220,0,26-500 values
+live_feasible,numobs_active_ma_3125,numobs,772,638.0,529,681,0,> 500 values
+live_feasible,fomc_release_active_ma_1,fomc_release,2,1.0,1,2,135,constant
+live_feasible,fomc_release_active_ma_5,fomc_release,4,2.0,2,4,0,binary
+live_feasible,fomc_release_active_ma_25,fomc_release,4,2.0,2,4,0,binary
+live_feasible,fomc_release_active_ma_125,fomc_release,6,2.0,2,6,0,binary
+live_feasible,fomc_release_active_ma_625,fomc_release,16,2.0,2,16,0,binary
+live_feasible,fomc_release_active_ma_3125,fomc_release,67,3.0,3,67,0,3-25 values
+live_feasible,fomc_day_active_ma_1,fomc_day,2,2.0,2,2,0,binary
+live_feasible,fomc_day_active_ma_5,fomc_day,2,2.0,2,2,0,binary
+live_feasible,fomc_day_active_ma_25,fomc_day,2,2.0,2,2,0,binary
+live_feasible,fomc_day_active_ma_125,fomc_day,7,5.0,5,7,0,3-25 values
+live_feasible,fomc_day_active_ma_625,fomc_day,34,16.0,10,24,0,3-25 values
+live_feasible,fomc_day_active_ma_3125,fomc_day,111,40.0,35,97,0,26-500 values
+live_feasible,DOW_0,calendar,2,2.0,2,2,0,binary
+live_feasible,DOW_1,calendar,2,2.0,2,2,0,binary
+live_feasible,DOW_2,calendar,2,2.0,2,2,0,binary
+live_feasible,DOW_3,calendar,2,2.0,2,2,0,binary
+live_feasible,DOW_4,calendar,2,2.0,2,2,0,binary
+live_feasible,hour,calendar,1,1.0,1,1,147,constant
+live_feasible,is_overnight,calendar,1,1.0,1,1,147,constant
+live_feasible,is_open,calendar,1,1.0,1,1,147,constant
+live_feasible,is_close,calendar,1,1.0,1,1,147,constant
+live_feasible,is_opex,calendar,2,2.0,2,2,0,binary
+live_feasible,is_opex_week,calendar,2,2.0,2,2,0,binary
+live_feasible,is_quad_witch,calendar,2,2.0,2,2,0,binary
+live_feasible,is_rebalance_close,calendar,2,2.0,2,2,0,binary
+live_feasible,is_month_end,calendar,2,2.0,2,2,0,binary
+live_feasible,is_quarter_end,calendar,2,2.0,2,2,0,binary
+live_feasible,days_to_opex,calendar,34,34.0,20,34,0,26-500 values
+all_features,har_ma_1,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,har_ma_5,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,har_ma_25,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,har_ma_125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,har_ma_625,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,har_ma_3125,har_ma,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret_ma_1,sumret,3457,1992.0,1988,1999,0,> 500 values
+all_features,adj_sumret_ma_5,sumret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret_ma_25,sumret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret_ma_125,sumret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret_ma_625,sumret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret_ma_3125,sumret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_1,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_5,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_25,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_125,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_625,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ma_3125,sumabsret,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_1,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_5,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_25,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_125,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_625,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ma_3125,sumret3,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_1,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_5,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_25,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_125,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_625,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ma_3125,sumret4,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_1,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_5,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_25,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_125,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_625,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ma_3125,sumpret2,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_1,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_5,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_25,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_125,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_625,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ma_3125,sumbipow,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_1,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_5,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_25,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_125,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_625,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumautocov_ma_3125,sumautocov,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_1,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_5,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_25,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_125,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_625,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumvolume_ma_3125,sumvolume,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_numobs_ma_1,numobs,39,26.0,15,30,0,26-500 values
+all_features,adj_numobs_ma_5,numobs,202,147.0,92,166,0,26-500 values
+all_features,adj_numobs_ma_25,numobs,1991,1245.0,1024,1324,0,> 500 values
+all_features,adj_numobs_ma_125,numobs,3426,2000.0,1957,2000,0,> 500 values
+all_features,adj_numobs_ma_625,numobs,3467,2000.0,1998,2000,0,> 500 values
+all_features,adj_numobs_ma_3125,numobs,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_1,sumret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_5,sumret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_25,sumret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_125,sumret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_625,sumret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_ewstock_ma_3125,sumret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_1,sumret3_ewstock,3467,1999.0,1998,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_5,sumret3_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_25,sumret3_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_125,sumret3_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_625,sumret3_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_ewstock_ma_3125,sumret3_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_1,sumret4_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_5,sumret4_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_25,sumret4_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_125,sumret4_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_625,sumret4_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_ewstock_ma_3125,sumret4_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_1,sumabsret_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_5,sumabsret_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_25,sumabsret_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_125,sumabsret_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_625,sumabsret_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_ewstock_ma_3125,sumabsret_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_1,sumbipow_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_5,sumbipow_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_25,sumbipow_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_125,sumbipow_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_625,sumbipow_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_ewstock_ma_3125,sumbipow_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_1,sumpret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_5,sumpret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_25,sumpret2_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_125,sumpret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_625,sumpret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_ewstock_ma_3125,sumpret2_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_1,turnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_5,turnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_25,turnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_125,turnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_625,turnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_ewstock_ma_3125,turnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_1,buyturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_5,buyturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_25,buyturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_125,buyturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_625,buyturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_ewstock_ma_3125,buyturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_1,sellturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_5,sellturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_25,sellturnover_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_125,sellturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_625,sellturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_ewstock_ma_3125,sellturnover_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_1,effspread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_5,effspread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_25,effspread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_125,effspread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_625,effspread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_ewstock_ma_3125,effspread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_1,spread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_5,spread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_25,spread_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_125,spread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_625,spread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_ewstock_ma_3125,spread_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_1,sumret2_vwstock,3467,1999.0,1998,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_5,sumret2_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_25,sumret2_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_125,sumret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_625,sumret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret2_vwstock_ma_3125,sumret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_1,sumret3_vwstock,3467,1999.0,1998,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_5,sumret3_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_25,sumret3_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_125,sumret3_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_625,sumret3_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret3_vwstock_ma_3125,sumret3_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_1,sumret4_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_5,sumret4_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_25,sumret4_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_125,sumret4_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_625,sumret4_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumret4_vwstock_ma_3125,sumret4_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_1,sumabsret_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_5,sumabsret_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_25,sumabsret_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_125,sumabsret_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_625,sumabsret_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumabsret_vwstock_ma_3125,sumabsret_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_1,sumbipow_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_5,sumbipow_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_25,sumbipow_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_125,sumbipow_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_625,sumbipow_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumbipow_vwstock_ma_3125,sumbipow_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_1,sumpret2_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_5,sumpret2_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_25,sumpret2_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_125,sumpret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_625,sumpret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sumpret2_vwstock_ma_3125,sumpret2_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_1,turnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_5,turnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_25,turnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_125,turnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_625,turnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_turnover_vwstock_ma_3125,turnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_1,buyturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_5,buyturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_25,buyturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_125,buyturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_625,buyturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_buyturnover_vwstock_ma_3125,buyturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_1,sellturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_5,sellturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_25,sellturnover_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_125,sellturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_625,sellturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_sellturnover_vwstock_ma_3125,sellturnover_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_1,effspread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_5,effspread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_25,effspread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_125,effspread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_625,effspread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_effspread_vwstock_ma_3125,effspread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_1,spread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_5,spread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_25,spread_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_125,spread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_625,spread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_spread_vwstock_ma_3125,spread_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_1,stocktwits_attention,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_5,stocktwits_attention,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_25,stocktwits_attention,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_125,stocktwits_attention,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_625,stocktwits_attention,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_attention_ma_3125,stocktwits_attention,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_1,stocktwits_sentiment,2859,1967.0,1390,1998,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_5,stocktwits_sentiment,3393,2000.0,1924,2000,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_25,stocktwits_sentiment,3456,2000.0,1987,2000,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_125,stocktwits_sentiment,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_625,stocktwits_sentiment,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_stocktwits_sentiment_ma_3125,stocktwits_sentiment,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_1,stocktwits_sentcount,3249,1997.0,1780,1998,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_5,stocktwits_sentcount,3462,2000.0,1993,2000,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_25,stocktwits_sentcount,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_125,stocktwits_sentcount,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_625,stocktwits_sentcount,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_stocktwits_sentcount_ma_3125,stocktwits_sentcount,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_vix_ma_1,vix,2904,1628.0,1460,1887,0,> 500 values
+all_features,adj_vix_ma_5,vix,3454,2000.0,1988,2000,0,> 500 values
+all_features,adj_vix_ma_25,vix,3453,2000.0,1985,2000,0,> 500 values
+all_features,adj_vix_ma_125,vix,3450,2000.0,1986,2000,0,> 500 values
+all_features,adj_vix_ma_625,vix,3455,2000.0,1994,2000,0,> 500 values
+all_features,adj_vix_ma_3125,vix,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_vvix_ma_1,vvix,2933,1936.0,1490,1974,0,> 500 values
+all_features,adj_vvix_ma_5,vvix,2990,1981.0,1547,1999,0,> 500 values
+all_features,adj_vvix_ma_25,vvix,2979,1987.0,1556,2000,0,> 500 values
+all_features,adj_vvix_ma_125,vvix,2987,2000.0,1569,2000,0,> 500 values
+all_features,adj_vvix_ma_625,vvix,3036,2000.0,1570,2000,0,> 500 values
+all_features,adj_vvix_ma_3125,vvix,3039,2000.0,1570,2000,0,> 500 values
+all_features,adj_vix3m_ma_1,vix3m,3106,1798.0,1702,1895,0,> 500 values
+all_features,adj_vix3m_ma_5,vix3m,3421,1998.0,1964,1998,0,> 500 values
+all_features,adj_vix3m_ma_25,vix3m,3425,1998.0,1966,1998,0,> 500 values
+all_features,adj_vix3m_ma_125,vix3m,3427,2000.0,1967,2000,0,> 500 values
+all_features,adj_vix3m_ma_625,vix3m,3449,2000.0,1989,2000,0,> 500 values
+all_features,adj_vix3m_ma_3125,vix3m,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_1,voldemand_spx_open_and_close,3261,1992.0,1868,1999,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_5,voldemand_spx_open_and_close,3265,2000.0,1878,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_25,voldemand_spx_open_and_close,3287,2000.0,1878,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_125,voldemand_spx_open_and_close,3279,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_625,voldemand_spx_open_and_close,3323,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_and_close_ma_3125,voldemand_spx_open_and_close,3348,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_1,voldemand_spx_open_only,3216,1991.0,1868,1997,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_5,voldemand_spx_open_only,3212,2000.0,1870,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_25,voldemand_spx_open_only,3197,2000.0,1858,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_125,voldemand_spx_open_only,3190,2000.0,1851,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_625,voldemand_spx_open_only,3195,2000.0,1856,2000,0,> 500 values
+all_features,adj_voldemand_spx_open_only_ma_3125,voldemand_spx_open_only,3244,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_1,voldemand_all_open_and_close,3280,1993.0,1869,1999,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_5,voldemand_all_open_and_close,3286,2000.0,1878,2000,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_25,voldemand_all_open_and_close,3283,2000.0,1878,2000,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_125,voldemand_all_open_and_close,3320,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_625,voldemand_all_open_and_close,3347,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_all_open_and_close_ma_3125,voldemand_all_open_and_close,3348,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_1,voldemand_all_open_only,3233,1992.0,1869,1999,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_5,voldemand_all_open_only,3218,2000.0,1876,2000,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_25,voldemand_all_open_only,3209,2000.0,1868,2000,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_125,voldemand_all_open_only,3193,2000.0,1852,2000,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_625,voldemand_all_open_only,3261,2000.0,1879,2000,0,> 500 values
+all_features,adj_voldemand_all_open_only_ma_3125,voldemand_all_open_only,3245,2000.0,1879,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_1,ofi_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_5,ofi_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_25,ofi_ewstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_125,ofi_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_625,ofi_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_ofi_ewstock_ma_3125,ofi_ewstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_1,ofi_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_5,ofi_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_25,ofi_vwstock,3468,2000.0,1999,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_125,ofi_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_625,ofi_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_ofi_vwstock_ma_3125,ofi_vwstock,3469,2000.0,2000,2000,0,> 500 values
+all_features,adj_fomc_release_ma_1,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_release_ma_5,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_release_ma_25,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_release_ma_125,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_release_ma_625,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_release_ma_3125,fomc_release,1,1.0,1,1,147,constant
+all_features,adj_fomc_day_ma_1,fomc_day,2,2.0,2,2,0,binary
+all_features,adj_fomc_day_ma_5,fomc_day,3,2.0,2,3,0,binary
+all_features,adj_fomc_day_ma_25,fomc_day,3,2.0,2,3,0,binary
+all_features,adj_fomc_day_ma_125,fomc_day,11,6.0,6,10,0,3-25 values
+all_features,adj_fomc_day_ma_625,fomc_day,23,17.0,12,20,0,3-25 values
+all_features,adj_fomc_day_ma_3125,fomc_day,66,45.0,40,49,0,26-500 values
+all_features,adj_fomc_until_inv_ma_1,fomc_until_inv,349,181.0,70,332,0,26-500 values
+all_features,adj_fomc_until_inv_ma_5,fomc_until_inv,417,218.0,95,387,0,26-500 values
+all_features,adj_fomc_until_inv_ma_25,fomc_until_inv,538,268.0,130,506,0,26-500 values
+all_features,adj_fomc_until_inv_ma_125,fomc_until_inv,804,475.0,272,664,0,26-500 values
+all_features,adj_fomc_until_inv_ma_625,fomc_until_inv,2267,1357.0,1011,1545,0,> 500 values
+all_features,adj_fomc_until_inv_ma_3125,fomc_until_inv,3432,1975.0,1967,1978,0,> 500 values
+all_features,adj_fomc_since_inv_ma_1,fomc_since_inv,203,175.0,63,191,0,26-500 values
+all_features,adj_fomc_since_inv_ma_5,fomc_since_inv,298,252.0,135,268,0,26-500 values
+all_features,adj_fomc_since_inv_ma_25,fomc_since_inv,487,341.0,286,393,0,26-500 values
+all_features,adj_fomc_since_inv_ma_125,fomc_since_inv,775,487.0,249,650,0,26-500 values
+all_features,adj_fomc_since_inv_ma_625,fomc_since_inv,2256,1360.0,1013,1579,0,> 500 values
+all_features,adj_fomc_since_inv_ma_3125,fomc_since_inv,3347,1940.0,1923,1970,0,> 500 values
+all_features,sumret_avail_ma_1,sumret,1,1.0,1,1,147,constant
+all_features,sumret_avail_ma_5,sumret,1,1.0,1,1,147,constant
+all_features,sumret_avail_ma_25,sumret,1,1.0,1,1,147,constant
+all_features,sumret_avail_ma_125,sumret,1,1.0,1,1,147,constant
+all_features,sumret_avail_ma_625,sumret,1,1.0,1,1,147,constant
+all_features,sumret_avail_ma_3125,sumret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_1,sumabsret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_5,sumabsret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_25,sumabsret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_125,sumabsret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_625,sumabsret,1,1.0,1,1,147,constant
+all_features,sumabsret_avail_ma_3125,sumabsret,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_1,sumret3,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_5,sumret3,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_25,sumret3,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_125,sumret3,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_625,sumret3,1,1.0,1,1,147,constant
+all_features,sumret3_avail_ma_3125,sumret3,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_1,sumret4,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_5,sumret4,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_25,sumret4,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_125,sumret4,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_625,sumret4,1,1.0,1,1,147,constant
+all_features,sumret4_avail_ma_3125,sumret4,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_1,sumpret2,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_5,sumpret2,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_25,sumpret2,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_125,sumpret2,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_625,sumpret2,1,1.0,1,1,147,constant
+all_features,sumpret2_avail_ma_3125,sumpret2,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_1,sumbipow,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_5,sumbipow,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_25,sumbipow,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_125,sumbipow,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_625,sumbipow,1,1.0,1,1,147,constant
+all_features,sumbipow_avail_ma_3125,sumbipow,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_1,sumautocov,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_5,sumautocov,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_25,sumautocov,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_125,sumautocov,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_625,sumautocov,1,1.0,1,1,147,constant
+all_features,sumautocov_avail_ma_3125,sumautocov,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_1,sumvolume,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_5,sumvolume,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_25,sumvolume,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_125,sumvolume,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_625,sumvolume,1,1.0,1,1,147,constant
+all_features,sumvolume_avail_ma_3125,sumvolume,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_1,numobs,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_5,numobs,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_25,numobs,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_125,numobs,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_625,numobs,1,1.0,1,1,147,constant
+all_features,numobs_avail_ma_3125,numobs,1,1.0,1,1,147,constant
+all_features,sumret2_ewstock_avail_ma_1,sumret2_ewstock,2,1.0,1,2,137,constant
+all_features,sumret2_ewstock_avail_ma_5,sumret2_ewstock,2,1.0,1,2,137,constant
+all_features,sumret2_ewstock_avail_ma_25,sumret2_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sumret2_ewstock_avail_ma_125,sumret2_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sumret2_ewstock_avail_ma_625,sumret2_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sumret2_ewstock_avail_ma_3125,sumret2_ewstock,142,117.0,62,131,0,26-500 values
+all_features,sumret3_ewstock_avail_ma_1,sumret3_ewstock,2,1.0,1,2,137,constant
+all_features,sumret3_ewstock_avail_ma_5,sumret3_ewstock,2,1.0,1,2,137,constant
+all_features,sumret3_ewstock_avail_ma_25,sumret3_ewstock,11,7.0,2,11,0,3-25 values
+all_features,sumret3_ewstock_avail_ma_125,sumret3_ewstock,31,22.0,13,31,0,3-25 values
+all_features,sumret3_ewstock_avail_ma_625,sumret3_ewstock,72,48.0,32,72,0,26-500 values
+all_features,sumret3_ewstock_avail_ma_3125,sumret3_ewstock,156,86.0,62,150,0,26-500 values
+all_features,sumret4_ewstock_avail_ma_1,sumret4_ewstock,2,1.0,1,2,137,constant
+all_features,sumret4_ewstock_avail_ma_5,sumret4_ewstock,2,1.0,1,2,137,constant
+all_features,sumret4_ewstock_avail_ma_25,sumret4_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sumret4_ewstock_avail_ma_125,sumret4_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sumret4_ewstock_avail_ma_625,sumret4_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sumret4_ewstock_avail_ma_3125,sumret4_ewstock,142,117.0,62,131,0,26-500 values
+all_features,sumabsret_ewstock_avail_ma_1,sumabsret_ewstock,2,1.0,1,2,137,constant
+all_features,sumabsret_ewstock_avail_ma_5,sumabsret_ewstock,2,1.0,1,2,137,constant
+all_features,sumabsret_ewstock_avail_ma_25,sumabsret_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sumabsret_ewstock_avail_ma_125,sumabsret_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sumabsret_ewstock_avail_ma_625,sumabsret_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sumabsret_ewstock_avail_ma_3125,sumabsret_ewstock,142,117.0,62,131,0,26-500 values
+all_features,sumbipow_ewstock_avail_ma_1,sumbipow_ewstock,2,1.0,1,2,137,constant
+all_features,sumbipow_ewstock_avail_ma_5,sumbipow_ewstock,2,1.0,1,2,137,constant
+all_features,sumbipow_ewstock_avail_ma_25,sumbipow_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sumbipow_ewstock_avail_ma_125,sumbipow_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sumbipow_ewstock_avail_ma_625,sumbipow_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sumbipow_ewstock_avail_ma_3125,sumbipow_ewstock,142,117.0,62,131,0,26-500 values
+all_features,sumpret2_ewstock_avail_ma_1,sumpret2_ewstock,2,1.0,1,2,137,constant
+all_features,sumpret2_ewstock_avail_ma_5,sumpret2_ewstock,2,1.0,1,2,137,constant
+all_features,sumpret2_ewstock_avail_ma_25,sumpret2_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sumpret2_ewstock_avail_ma_125,sumpret2_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sumpret2_ewstock_avail_ma_625,sumpret2_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sumpret2_ewstock_avail_ma_3125,sumpret2_ewstock,142,117.0,62,131,0,26-500 values
+all_features,turnover_ewstock_avail_ma_1,turnover_ewstock,2,1.0,1,2,137,constant
+all_features,turnover_ewstock_avail_ma_5,turnover_ewstock,2,1.0,1,2,137,constant
+all_features,turnover_ewstock_avail_ma_25,turnover_ewstock,8,5.0,2,8,0,3-25 values
+all_features,turnover_ewstock_avail_ma_125,turnover_ewstock,32,23.0,13,30,0,3-25 values
+all_features,turnover_ewstock_avail_ma_625,turnover_ewstock,71,51.0,32,68,0,26-500 values
+all_features,turnover_ewstock_avail_ma_3125,turnover_ewstock,142,117.0,62,131,0,26-500 values
+all_features,buyturnover_ewstock_avail_ma_1,buyturnover_ewstock,2,1.0,1,2,137,constant
+all_features,buyturnover_ewstock_avail_ma_5,buyturnover_ewstock,2,1.0,1,2,137,constant
+all_features,buyturnover_ewstock_avail_ma_25,buyturnover_ewstock,8,5.0,2,8,0,3-25 values
+all_features,buyturnover_ewstock_avail_ma_125,buyturnover_ewstock,32,23.0,13,30,0,3-25 values
+all_features,buyturnover_ewstock_avail_ma_625,buyturnover_ewstock,71,51.0,32,68,0,26-500 values
+all_features,buyturnover_ewstock_avail_ma_3125,buyturnover_ewstock,142,117.0,62,131,0,26-500 values
+all_features,sellturnover_ewstock_avail_ma_1,sellturnover_ewstock,2,1.0,1,2,137,constant
+all_features,sellturnover_ewstock_avail_ma_5,sellturnover_ewstock,2,1.0,1,2,137,constant
+all_features,sellturnover_ewstock_avail_ma_25,sellturnover_ewstock,8,5.0,2,8,0,3-25 values
+all_features,sellturnover_ewstock_avail_ma_125,sellturnover_ewstock,32,23.0,13,30,0,3-25 values
+all_features,sellturnover_ewstock_avail_ma_625,sellturnover_ewstock,71,51.0,32,68,0,26-500 values
+all_features,sellturnover_ewstock_avail_ma_3125,sellturnover_ewstock,142,117.0,62,131,0,26-500 values
+all_features,effspread_ewstock_avail_ma_1,effspread_ewstock,2,1.0,1,2,137,constant
+all_features,effspread_ewstock_avail_ma_5,effspread_ewstock,2,1.0,1,2,137,constant
+all_features,effspread_ewstock_avail_ma_25,effspread_ewstock,8,5.0,2,8,0,3-25 values
+all_features,effspread_ewstock_avail_ma_125,effspread_ewstock,32,23.0,13,30,0,3-25 values
+all_features,effspread_ewstock_avail_ma_625,effspread_ewstock,71,51.0,32,68,0,26-500 values
+all_features,effspread_ewstock_avail_ma_3125,effspread_ewstock,142,117.0,62,131,0,26-500 values
+all_features,spread_ewstock_avail_ma_1,spread_ewstock,2,1.0,1,2,137,constant
+all_features,spread_ewstock_avail_ma_5,spread_ewstock,2,1.0,1,2,137,constant
+all_features,spread_ewstock_avail_ma_25,spread_ewstock,8,5.0,2,8,0,3-25 values
+all_features,spread_ewstock_avail_ma_125,spread_ewstock,32,23.0,13,30,0,3-25 values
+all_features,spread_ewstock_avail_ma_625,spread_ewstock,70,51.0,32,67,0,26-500 values
+all_features,spread_ewstock_avail_ma_3125,spread_ewstock,141,117.0,62,132,0,26-500 values
+all_features,sumret2_vwstock_avail_ma_1,sumret2_vwstock,2,1.0,1,2,137,constant
+all_features,sumret2_vwstock_avail_ma_5,sumret2_vwstock,2,1.0,1,2,137,constant
+all_features,sumret2_vwstock_avail_ma_25,sumret2_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sumret2_vwstock_avail_ma_125,sumret2_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sumret2_vwstock_avail_ma_625,sumret2_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sumret2_vwstock_avail_ma_3125,sumret2_vwstock,142,117.0,62,131,0,26-500 values
+all_features,sumret3_vwstock_avail_ma_1,sumret3_vwstock,2,1.0,1,2,137,constant
+all_features,sumret3_vwstock_avail_ma_5,sumret3_vwstock,2,1.0,1,2,137,constant
+all_features,sumret3_vwstock_avail_ma_25,sumret3_vwstock,11,7.0,2,11,0,3-25 values
+all_features,sumret3_vwstock_avail_ma_125,sumret3_vwstock,31,22.0,13,31,0,3-25 values
+all_features,sumret3_vwstock_avail_ma_625,sumret3_vwstock,72,48.0,32,72,0,26-500 values
+all_features,sumret3_vwstock_avail_ma_3125,sumret3_vwstock,156,86.0,62,150,0,26-500 values
+all_features,sumret4_vwstock_avail_ma_1,sumret4_vwstock,2,1.0,1,2,137,constant
+all_features,sumret4_vwstock_avail_ma_5,sumret4_vwstock,2,1.0,1,2,137,constant
+all_features,sumret4_vwstock_avail_ma_25,sumret4_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sumret4_vwstock_avail_ma_125,sumret4_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sumret4_vwstock_avail_ma_625,sumret4_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sumret4_vwstock_avail_ma_3125,sumret4_vwstock,142,117.0,62,131,0,26-500 values
+all_features,sumabsret_vwstock_avail_ma_1,sumabsret_vwstock,2,1.0,1,2,137,constant
+all_features,sumabsret_vwstock_avail_ma_5,sumabsret_vwstock,2,1.0,1,2,137,constant
+all_features,sumabsret_vwstock_avail_ma_25,sumabsret_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sumabsret_vwstock_avail_ma_125,sumabsret_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sumabsret_vwstock_avail_ma_625,sumabsret_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sumabsret_vwstock_avail_ma_3125,sumabsret_vwstock,142,117.0,62,131,0,26-500 values
+all_features,sumbipow_vwstock_avail_ma_1,sumbipow_vwstock,2,1.0,1,2,137,constant
+all_features,sumbipow_vwstock_avail_ma_5,sumbipow_vwstock,2,1.0,1,2,137,constant
+all_features,sumbipow_vwstock_avail_ma_25,sumbipow_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sumbipow_vwstock_avail_ma_125,sumbipow_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sumbipow_vwstock_avail_ma_625,sumbipow_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sumbipow_vwstock_avail_ma_3125,sumbipow_vwstock,142,117.0,62,131,0,26-500 values
+all_features,sumpret2_vwstock_avail_ma_1,sumpret2_vwstock,2,1.0,1,2,137,constant
+all_features,sumpret2_vwstock_avail_ma_5,sumpret2_vwstock,2,1.0,1,2,137,constant
+all_features,sumpret2_vwstock_avail_ma_25,sumpret2_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sumpret2_vwstock_avail_ma_125,sumpret2_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sumpret2_vwstock_avail_ma_625,sumpret2_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sumpret2_vwstock_avail_ma_3125,sumpret2_vwstock,142,117.0,62,131,0,26-500 values
+all_features,turnover_vwstock_avail_ma_1,turnover_vwstock,2,1.0,1,2,137,constant
+all_features,turnover_vwstock_avail_ma_5,turnover_vwstock,2,1.0,1,2,137,constant
+all_features,turnover_vwstock_avail_ma_25,turnover_vwstock,8,5.0,2,8,0,3-25 values
+all_features,turnover_vwstock_avail_ma_125,turnover_vwstock,32,23.0,13,30,0,3-25 values
+all_features,turnover_vwstock_avail_ma_625,turnover_vwstock,71,51.0,32,68,0,26-500 values
+all_features,turnover_vwstock_avail_ma_3125,turnover_vwstock,142,117.0,62,131,0,26-500 values
+all_features,buyturnover_vwstock_avail_ma_1,buyturnover_vwstock,2,1.0,1,2,137,constant
+all_features,buyturnover_vwstock_avail_ma_5,buyturnover_vwstock,2,1.0,1,2,137,constant
+all_features,buyturnover_vwstock_avail_ma_25,buyturnover_vwstock,8,5.0,2,8,0,3-25 values
+all_features,buyturnover_vwstock_avail_ma_125,buyturnover_vwstock,32,23.0,13,30,0,3-25 values
+all_features,buyturnover_vwstock_avail_ma_625,buyturnover_vwstock,71,51.0,32,68,0,26-500 values
+all_features,buyturnover_vwstock_avail_ma_3125,buyturnover_vwstock,142,117.0,62,131,0,26-500 values
+all_features,sellturnover_vwstock_avail_ma_1,sellturnover_vwstock,2,1.0,1,2,137,constant
+all_features,sellturnover_vwstock_avail_ma_5,sellturnover_vwstock,2,1.0,1,2,137,constant
+all_features,sellturnover_vwstock_avail_ma_25,sellturnover_vwstock,8,5.0,2,8,0,3-25 values
+all_features,sellturnover_vwstock_avail_ma_125,sellturnover_vwstock,32,23.0,13,30,0,3-25 values
+all_features,sellturnover_vwstock_avail_ma_625,sellturnover_vwstock,71,51.0,32,68,0,26-500 values
+all_features,sellturnover_vwstock_avail_ma_3125,sellturnover_vwstock,142,117.0,62,131,0,26-500 values
+all_features,effspread_vwstock_avail_ma_1,effspread_vwstock,2,1.0,1,2,137,constant
+all_features,effspread_vwstock_avail_ma_5,effspread_vwstock,2,1.0,1,2,137,constant
+all_features,effspread_vwstock_avail_ma_25,effspread_vwstock,8,5.0,2,8,0,3-25 values
+all_features,effspread_vwstock_avail_ma_125,effspread_vwstock,32,23.0,13,30,0,3-25 values
+all_features,effspread_vwstock_avail_ma_625,effspread_vwstock,71,51.0,32,68,0,26-500 values
+all_features,effspread_vwstock_avail_ma_3125,effspread_vwstock,142,117.0,62,131,0,26-500 values
+all_features,spread_vwstock_avail_ma_1,spread_vwstock,2,1.0,1,2,137,constant
+all_features,spread_vwstock_avail_ma_5,spread_vwstock,2,1.0,1,2,137,constant
+all_features,spread_vwstock_avail_ma_25,spread_vwstock,8,5.0,2,8,0,3-25 values
+all_features,spread_vwstock_avail_ma_125,spread_vwstock,32,23.0,13,30,0,3-25 values
+all_features,spread_vwstock_avail_ma_625,spread_vwstock,70,51.0,32,67,0,26-500 values
+all_features,spread_vwstock_avail_ma_3125,spread_vwstock,141,117.0,62,132,0,26-500 values
+all_features,stocktwits_attention_avail_ma_1,stocktwits_attention,2,2.0,2,2,0,binary
+all_features,stocktwits_attention_avail_ma_5,stocktwits_attention,2,2.0,2,2,0,binary
+all_features,stocktwits_attention_avail_ma_25,stocktwits_attention,6,5.0,4,6,0,3-25 values
+all_features,stocktwits_attention_avail_ma_125,stocktwits_attention,12,8.0,8,12,0,3-25 values
+all_features,stocktwits_attention_avail_ma_625,stocktwits_attention,29,8.0,8,29,0,3-25 values
+all_features,stocktwits_attention_avail_ma_3125,stocktwits_attention,66,11.0,10,66,0,3-25 values
+all_features,stocktwits_sentiment_avail_ma_1,stocktwits_sentiment,2,2.0,2,2,0,binary
+all_features,stocktwits_sentiment_avail_ma_5,stocktwits_sentiment,6,2.0,2,6,0,binary
+all_features,stocktwits_sentiment_avail_ma_25,stocktwits_sentiment,24,5.0,3,24,0,3-25 values
+all_features,stocktwits_sentiment_avail_ma_125,stocktwits_sentiment,90,13.0,7,90,0,3-25 values
+all_features,stocktwits_sentiment_avail_ma_625,stocktwits_sentiment,258,26.0,8,258,0,26-500 values
+all_features,stocktwits_sentiment_avail_ma_3125,stocktwits_sentiment,532,61.0,9,532,0,26-500 values
+all_features,stocktwits_sentcount_avail_ma_1,stocktwits_sentcount,2,2.0,2,2,0,binary
+all_features,stocktwits_sentcount_avail_ma_5,stocktwits_sentcount,6,2.0,2,6,0,binary
+all_features,stocktwits_sentcount_avail_ma_25,stocktwits_sentcount,24,5.0,3,24,0,3-25 values
+all_features,stocktwits_sentcount_avail_ma_125,stocktwits_sentcount,90,13.0,7,90,0,3-25 values
+all_features,stocktwits_sentcount_avail_ma_625,stocktwits_sentcount,258,26.0,8,258,0,26-500 values
+all_features,stocktwits_sentcount_avail_ma_3125,stocktwits_sentcount,532,61.0,9,532,0,26-500 values
+all_features,vix_avail_ma_1,vix,2,2.0,2,2,0,binary
+all_features,vix_avail_ma_5,vix,3,2.0,2,3,0,binary
+all_features,vix_avail_ma_25,vix,10,7.0,6,8,0,3-25 values
+all_features,vix_avail_ma_125,vix,39,24.0,21,28,0,3-25 values
+all_features,vix_avail_ma_625,vix,88,56.0,50,68,0,26-500 values
+all_features,vix_avail_ma_3125,vix,282,168.0,156,199,0,26-500 values
+all_features,vvix_avail_ma_1,vvix,2,2.0,2,2,0,binary
+all_features,vvix_avail_ma_5,vvix,4,4.0,2,4,0,3-25 values
+all_features,vvix_avail_ma_25,vvix,8,7.0,2,8,0,3-25 values
+all_features,vvix_avail_ma_125,vvix,23,18.0,6,23,0,3-25 values
+all_features,vvix_avail_ma_625,vvix,65,37.0,16,53,0,26-500 values
+all_features,vvix_avail_ma_3125,vvix,176,59.0,19,125,0,26-500 values
+all_features,vix3m_avail_ma_1,vix3m,2,2.0,2,2,0,binary
+all_features,vix3m_avail_ma_5,vix3m,3,3.0,3,3,0,3-25 values
+all_features,vix3m_avail_ma_25,vix3m,5,3.0,3,5,0,3-25 values
+all_features,vix3m_avail_ma_125,vix3m,19,13.0,13,19,0,3-25 values
+all_features,vix3m_avail_ma_625,vix3m,49,26.0,22,38,0,26-500 values
+all_features,vix3m_avail_ma_3125,vix3m,126,33.0,31,75,0,26-500 values
+all_features,voldemand_spx_open_and_close_avail_ma_1,voldemand_spx_open_and_close,2,2.0,2,2,0,binary
+all_features,voldemand_spx_open_and_close_avail_ma_5,voldemand_spx_open_and_close,3,3.0,2,3,0,3-25 values
+all_features,voldemand_spx_open_and_close_avail_ma_25,voldemand_spx_open_and_close,7,4.0,3,6,0,3-25 values
+all_features,voldemand_spx_open_and_close_avail_ma_125,voldemand_spx_open_and_close,26,20.0,18,22,0,3-25 values
+all_features,voldemand_spx_open_and_close_avail_ma_625,voldemand_spx_open_and_close,54,26.0,23,39,0,26-500 values
+all_features,voldemand_spx_open_and_close_avail_ma_3125,voldemand_spx_open_and_close,167,38.0,35,98,0,26-500 values
+all_features,voldemand_spx_open_only_avail_ma_1,voldemand_spx_open_only,2,2.0,2,2,0,binary
+all_features,voldemand_spx_open_only_avail_ma_5,voldemand_spx_open_only,3,3.0,2,3,0,3-25 values
+all_features,voldemand_spx_open_only_avail_ma_25,voldemand_spx_open_only,7,4.0,3,6,0,3-25 values
+all_features,voldemand_spx_open_only_avail_ma_125,voldemand_spx_open_only,26,20.0,18,22,0,3-25 values
+all_features,voldemand_spx_open_only_avail_ma_625,voldemand_spx_open_only,54,26.0,23,39,0,26-500 values
+all_features,voldemand_spx_open_only_avail_ma_3125,voldemand_spx_open_only,167,38.0,35,98,0,26-500 values
+all_features,voldemand_all_open_and_close_avail_ma_1,voldemand_all_open_and_close,2,2.0,2,2,0,binary
+all_features,voldemand_all_open_and_close_avail_ma_5,voldemand_all_open_and_close,3,3.0,2,3,0,3-25 values
+all_features,voldemand_all_open_and_close_avail_ma_25,voldemand_all_open_and_close,7,4.0,3,6,0,3-25 values
+all_features,voldemand_all_open_and_close_avail_ma_125,voldemand_all_open_and_close,26,20.0,18,22,0,3-25 values
+all_features,voldemand_all_open_and_close_avail_ma_625,voldemand_all_open_and_close,54,26.0,23,39,0,26-500 values
+all_features,voldemand_all_open_and_close_avail_ma_3125,voldemand_all_open_and_close,167,38.0,35,98,0,26-500 values
+all_features,voldemand_all_open_only_avail_ma_1,voldemand_all_open_only,2,2.0,2,2,0,binary
+all_features,voldemand_all_open_only_avail_ma_5,voldemand_all_open_only,3,3.0,2,3,0,3-25 values
+all_features,voldemand_all_open_only_avail_ma_25,voldemand_all_open_only,7,4.0,3,6,0,3-25 values
+all_features,voldemand_all_open_only_avail_ma_125,voldemand_all_open_only,26,20.0,18,22,0,3-25 values
+all_features,voldemand_all_open_only_avail_ma_625,voldemand_all_open_only,54,26.0,23,39,0,26-500 values
+all_features,voldemand_all_open_only_avail_ma_3125,voldemand_all_open_only,167,38.0,35,98,0,26-500 values
+all_features,ofi_ewstock_avail_ma_1,ofi_ewstock,2,1.0,1,2,137,constant
+all_features,ofi_ewstock_avail_ma_5,ofi_ewstock,2,1.0,1,2,137,constant
+all_features,ofi_ewstock_avail_ma_25,ofi_ewstock,8,5.0,2,8,0,3-25 values
+all_features,ofi_ewstock_avail_ma_125,ofi_ewstock,32,23.0,13,30,0,3-25 values
+all_features,ofi_ewstock_avail_ma_625,ofi_ewstock,71,51.0,32,68,0,26-500 values
+all_features,ofi_ewstock_avail_ma_3125,ofi_ewstock,142,117.0,62,131,0,26-500 values
+all_features,ofi_vwstock_avail_ma_1,ofi_vwstock,2,1.0,1,2,137,constant
+all_features,ofi_vwstock_avail_ma_5,ofi_vwstock,2,1.0,1,2,137,constant
+all_features,ofi_vwstock_avail_ma_25,ofi_vwstock,8,5.0,2,8,0,3-25 values
+all_features,ofi_vwstock_avail_ma_125,ofi_vwstock,32,23.0,13,30,0,3-25 values
+all_features,ofi_vwstock_avail_ma_625,ofi_vwstock,71,51.0,32,68,0,26-500 values
+all_features,ofi_vwstock_avail_ma_3125,ofi_vwstock,142,117.0,62,131,0,26-500 values
+all_features,fomc_release_avail_ma_1,fomc_release,2,1.0,1,2,135,constant
+all_features,fomc_release_avail_ma_5,fomc_release,3,1.0,1,3,135,constant
+all_features,fomc_release_avail_ma_25,fomc_release,3,1.0,1,3,135,constant
+all_features,fomc_release_avail_ma_125,fomc_release,5,1.0,1,5,135,constant
+all_features,fomc_release_avail_ma_625,fomc_release,15,1.0,1,15,135,constant
+all_features,fomc_release_avail_ma_3125,fomc_release,65,1.0,1,65,135,constant
+all_features,fomc_day_avail_ma_1,fomc_day,2,1.0,1,2,135,constant
+all_features,fomc_day_avail_ma_5,fomc_day,3,1.0,1,3,135,constant
+all_features,fomc_day_avail_ma_25,fomc_day,3,1.0,1,3,135,constant
+all_features,fomc_day_avail_ma_125,fomc_day,5,1.0,1,5,135,constant
+all_features,fomc_day_avail_ma_625,fomc_day,15,1.0,1,15,135,constant
+all_features,fomc_day_avail_ma_3125,fomc_day,65,1.0,1,65,135,constant
+all_features,fomc_until_inv_avail_ma_1,fomc_until_inv,2,1.0,1,2,135,constant
+all_features,fomc_until_inv_avail_ma_5,fomc_until_inv,3,1.0,1,3,135,constant
+all_features,fomc_until_inv_avail_ma_25,fomc_until_inv,3,1.0,1,3,135,constant
+all_features,fomc_until_inv_avail_ma_125,fomc_until_inv,5,1.0,1,5,135,constant
+all_features,fomc_until_inv_avail_ma_625,fomc_until_inv,15,1.0,1,15,135,constant
+all_features,fomc_until_inv_avail_ma_3125,fomc_until_inv,65,1.0,1,65,135,constant
+all_features,fomc_since_inv_avail_ma_1,fomc_since_inv,2,1.0,1,2,135,constant
+all_features,fomc_since_inv_avail_ma_5,fomc_since_inv,3,1.0,1,3,135,constant
+all_features,fomc_since_inv_avail_ma_25,fomc_since_inv,3,1.0,1,3,135,constant
+all_features,fomc_since_inv_avail_ma_125,fomc_since_inv,5,1.0,1,5,135,constant
+all_features,fomc_since_inv_avail_ma_625,fomc_since_inv,15,1.0,1,15,135,constant
+all_features,fomc_since_inv_avail_ma_3125,fomc_since_inv,65,1.0,1,65,135,constant
+all_features,numobs_active_ma_1,numobs,2,2.0,2,2,0,binary
+all_features,numobs_active_ma_5,numobs,5,5.0,4,5,0,3-25 values
+all_features,numobs_active_ma_25,numobs,13,13.0,8,13,0,3-25 values
+all_features,numobs_active_ma_125,numobs,60,59.0,46,60,0,26-500 values
+all_features,numobs_active_ma_625,numobs,226,201.0,178,220,0,26-500 values
+all_features,numobs_active_ma_3125,numobs,772,638.0,529,681,0,> 500 values
+all_features,voldemand_spx_open_and_close_active_ma_1,voldemand_spx_open_and_close,2,2.0,2,2,0,binary
+all_features,voldemand_spx_open_and_close_active_ma_5,voldemand_spx_open_and_close,5,5.0,3,5,0,3-25 values
+all_features,voldemand_spx_open_and_close_active_ma_25,voldemand_spx_open_and_close,8,6.0,4,8,0,3-25 values
+all_features,voldemand_spx_open_and_close_active_ma_125,voldemand_spx_open_and_close,55,36.0,26,46,0,26-500 values
+all_features,voldemand_spx_open_and_close_active_ma_625,voldemand_spx_open_and_close,203,100.0,54,189,0,26-500 values
+all_features,voldemand_spx_open_and_close_active_ma_3125,voldemand_spx_open_and_close,501,186.0,84,428,0,26-500 values
+all_features,voldemand_spx_open_only_active_ma_1,voldemand_spx_open_only,2,2.0,2,2,0,binary
+all_features,voldemand_spx_open_only_active_ma_5,voldemand_spx_open_only,4,4.0,3,4,0,3-25 values
+all_features,voldemand_spx_open_only_active_ma_25,voldemand_spx_open_only,7,5.0,4,7,0,3-25 values
+all_features,voldemand_spx_open_only_active_ma_125,voldemand_spx_open_only,48,24.0,19,42,0,3-25 values
+all_features,voldemand_spx_open_only_active_ma_625,voldemand_spx_open_only,164,59.0,38,146,0,26-500 values
+all_features,voldemand_spx_open_only_active_ma_3125,voldemand_spx_open_only,416,115.0,57,347,0,26-500 values
+all_features,voldemand_all_open_and_close_active_ma_1,voldemand_all_open_and_close,2,2.0,2,2,0,binary
+all_features,voldemand_all_open_and_close_active_ma_5,voldemand_all_open_and_close,6,6.0,3,6,0,3-25 values
+all_features,voldemand_all_open_and_close_active_ma_25,voldemand_all_open_and_close,9,7.0,4,9,0,3-25 values
+all_features,voldemand_all_open_and_close_active_ma_125,voldemand_all_open_and_close,54,36.0,27,47,0,26-500 values
+all_features,voldemand_all_open_and_close_active_ma_625,voldemand_all_open_and_close,197,98.0,55,183,0,26-500 values
+all_features,voldemand_all_open_and_close_active_ma_3125,voldemand_all_open_and_close,524,213.0,83,458,0,26-500 values
+all_features,voldemand_all_open_only_active_ma_1,voldemand_all_open_only,2,2.0,2,2,0,binary
+all_features,voldemand_all_open_only_active_ma_5,voldemand_all_open_only,5,5.0,3,5,0,3-25 values
+all_features,voldemand_all_open_only_active_ma_25,voldemand_all_open_only,8,6.0,4,8,0,3-25 values
+all_features,voldemand_all_open_only_active_ma_125,voldemand_all_open_only,50,25.0,20,43,0,3-25 values
+all_features,voldemand_all_open_only_active_ma_625,voldemand_all_open_only,165,66.0,39,148,0,26-500 values
+all_features,voldemand_all_open_only_active_ma_3125,voldemand_all_open_only,425,125.0,66,356,0,26-500 values
+all_features,fomc_release_active_ma_1,fomc_release,2,1.0,1,2,135,constant
+all_features,fomc_release_active_ma_5,fomc_release,4,2.0,2,4,0,binary
+all_features,fomc_release_active_ma_25,fomc_release,4,2.0,2,4,0,binary
+all_features,fomc_release_active_ma_125,fomc_release,6,2.0,2,6,0,binary
+all_features,fomc_release_active_ma_625,fomc_release,16,2.0,2,16,0,binary
+all_features,fomc_release_active_ma_3125,fomc_release,67,3.0,3,67,0,3-25 values
+all_features,fomc_day_active_ma_1,fomc_day,2,2.0,2,2,0,binary
+all_features,fomc_day_active_ma_5,fomc_day,2,2.0,2,2,0,binary
+all_features,fomc_day_active_ma_25,fomc_day,2,2.0,2,2,0,binary
+all_features,fomc_day_active_ma_125,fomc_day,7,5.0,5,7,0,3-25 values
+all_features,fomc_day_active_ma_625,fomc_day,34,16.0,10,24,0,3-25 values
+all_features,fomc_day_active_ma_3125,fomc_day,111,40.0,35,97,0,26-500 values
+all_features,DOW_0,calendar,2,2.0,2,2,0,binary
+all_features,DOW_1,calendar,2,2.0,2,2,0,binary
+all_features,DOW_2,calendar,2,2.0,2,2,0,binary
+all_features,DOW_3,calendar,2,2.0,2,2,0,binary
+all_features,DOW_4,calendar,2,2.0,2,2,0,binary
+all_features,hour,calendar,1,1.0,1,1,147,constant
+all_features,is_overnight,calendar,1,1.0,1,1,147,constant
+all_features,is_open,calendar,1,1.0,1,1,147,constant
+all_features,is_close,calendar,1,1.0,1,1,147,constant
+all_features,is_opex,calendar,2,2.0,2,2,0,binary
+all_features,is_opex_week,calendar,2,2.0,2,2,0,binary
+all_features,is_quad_witch,calendar,2,2.0,2,2,0,binary
+all_features,is_rebalance_close,calendar,2,2.0,2,2,0,binary
+all_features,is_month_end,calendar,2,2.0,2,2,0,binary
+all_features,is_quarter_end,calendar,2,2.0,2,2,0,binary
+all_features,days_to_opex,calendar,34,34.0,20,34,0,26-500 values

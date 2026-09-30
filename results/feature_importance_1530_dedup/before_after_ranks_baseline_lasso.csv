@@ -1,0 +1,489 @@
+bucket,model,measure,level,key,unit_old,label_old,eligible_old,value_old,lo_old,hi_old,rank_old,unit_new,label_new,eligible_new,value_new,lo_new,hi_new,rank_new,status,rank_old_common,rank_new_common,rank_change,pct_of_loss_old,pct_of_loss_new
+baseline,lasso,bsd,column,DOW_0,DOW_0,DOW_0,True,0.0032611,0.0019725,0.0046771,15,DOW_0,DOW_0,True,0.0032611,0.0019725,0.0046771,15,common,15,15,0,,
+baseline,lasso,bsd,column,DOW_1,DOW_1,DOW_1,True,3.0509e-05,0,8.8807e-05,17,DOW_1,DOW_1,True,3.0509e-05,0,8.8807e-05,17,common,17,17,0,,
+baseline,lasso,bsd,column,DOW_2,DOW_2,DOW_2,True,0.020451,0.016516,0.024003,7,DOW_2,DOW_2,True,0.020451,0.016516,0.024003,7,common,7,7,0,,
+baseline,lasso,bsd,column,DOW_3,DOW_3,DOW_3,True,0.0056009,0.0036717,0.0076982,12,DOW_3,DOW_3,True,0.0056009,0.0036717,0.0076982,12,common,12,12,0,,
+baseline,lasso,bsd,column,DOW_4,DOW_4,DOW_4,True,0.013721,0.010742,0.016693,8,DOW_4,DOW_4,True,0.013721,0.010742,0.016693,8,common,8,8,0,,
+baseline,lasso,bsd,column,days_to_opex,days_to_opex,days_to_opex,True,0.010441,0.0083633,0.012307,9,days_to_opex,days_to_opex,True,0.010441,0.0083633,0.012307,9,common,9,9,0,,
+baseline,lasso,bsd,column,har_ma_1,har_ma_1,har_ma_1,True,0.45216,0.43274,0.47293,1,har_ma_1,har_ma_1,True,0.45216,0.43274,0.47293,1,common,1,1,0,,
+baseline,lasso,bsd,column,har_ma_125,har_ma_125,har_ma_125,True,0.08899,0.085155,0.093126,4,har_ma_125,har_ma_125,True,0.08899,0.085155,0.093126,4,common,4,4,0,,
+baseline,lasso,bsd,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_25,har_ma_25,har_ma_25,True,0.10745,0.098592,0.11657,3,har_ma_25,har_ma_25,True,0.10745,0.098592,0.11657,3,common,3,3,0,,
+baseline,lasso,bsd,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_3125,har_ma_3125,har_ma_3125,True,0.0022237,0.001349,0.0031504,16,har_ma_3125,har_ma_3125,True,0.0022237,0.001349,0.0031504,16,common,16,16,0,,
+baseline,lasso,bsd,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_5,har_ma_5,har_ma_5,True,0.18696,0.18123,0.19349,2,har_ma_5,har_ma_5,True,0.18696,0.18123,0.19349,2,common,2,2,0,,
+baseline,lasso,bsd,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_625,har_ma_625,har_ma_625,True,0.0042719,0.0022605,0.0066073,14,har_ma_625,har_ma_625,True,0.0042719,0.0022605,0.0066073,14,common,14,14,0,,
+baseline,lasso,bsd,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,column,is_month_end,is_month_end,is_month_end,True,0.059799,0.048781,0.069384,5,is_month_end,is_month_end,True,0.059799,0.048781,0.069384,5,common,5,5,0,,
+baseline,lasso,bsd,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,column,is_opex,is_opex,is_opex,True,0.0065791,0.003382,0.010158,11,is_opex,is_opex,True,0.0065791,0.003382,0.010158,11,common,11,11,0,,
+baseline,lasso,bsd,column,is_opex_week,is_opex_week,is_opex_week,True,0.0047066,0.0031082,0.0065353,13,is_opex_week,is_opex_week,True,0.0047066,0.0031082,0.0065353,13,common,13,13,0,,
+baseline,lasso,bsd,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.02292,0.017529,0.028449,6,is_quad_witch,is_quad_witch,True,0.02292,0.017529,0.028449,6,common,6,6,0,,
+baseline,lasso,bsd,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.010427,0.0066188,0.014568,10,is_quarter_end,is_quarter_end,True,0.010427,0.0066188,0.014568,10,common,10,10,0,,
+baseline,lasso,bsd,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,18,is_rebalance_close,is_rebalance_close,True,0,0,0,18,common,18,18,0,,
+baseline,lasso,bsd,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.15794,0.12648,0.18585,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.15794,0.12648,0.18585,2,common,2,2,0,,
+baseline,lasso,bsd,series,har_ma,har_ma,har_ma_*,True,0.84206,0.81415,0.87352,1,har_ma,har_ma_*,True,0.84206,0.81415,0.87352,1,common,1,1,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,bsd,cluster,DOW_0,DOW_0,DOW_0,True,0.0032611,0.0019725,0.0046771,13,DOW_0,DOW_0,True,0.0032611,0.0019725,0.0046771,13,common,13,13,0,,
+baseline,lasso,bsd,cluster,DOW_1,DOW_1,DOW_1,True,3.0509e-05,0,8.8807e-05,15,DOW_1,DOW_1,True,3.0509e-05,0,8.8807e-05,15,common,15,15,0,,
+baseline,lasso,bsd,cluster,DOW_2,DOW_2,DOW_2,True,0.020451,0.016516,0.024003,5,DOW_2,DOW_2,True,0.020451,0.016516,0.024003,5,common,5,5,0,,
+baseline,lasso,bsd,cluster,DOW_3,DOW_3,DOW_3,True,0.0056009,0.0036717,0.0076982,10,DOW_3,DOW_3,True,0.0056009,0.0036717,0.0076982,10,common,10,10,0,,
+baseline,lasso,bsd,cluster,DOW_4,DOW_4,DOW_4,True,0.013721,0.010742,0.016693,6,DOW_4,DOW_4,True,0.013721,0.010742,0.016693,6,common,6,6,0,,
+baseline,lasso,bsd,cluster,days_to_opex,days_to_opex,days_to_opex,True,0.010441,0.0083633,0.012307,7,days_to_opex,days_to_opex,True,0.010441,0.0083633,0.012307,7,common,7,7,0,,
+baseline,lasso,bsd,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.63912,0.6176,0.66344,1,C02,C02: har_ma_1 +1,True,0.63912,0.6176,0.66344,1,common,1,1,0,,
+baseline,lasso,bsd,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.19644,0.18598,0.20736,2,C03,C03: har_ma_25 +1,True,0.19644,0.18598,0.20736,2,common,2,2,0,,
+baseline,lasso,bsd,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,0.0022237,0.001349,0.0031504,14,har_ma_3125,har_ma_3125,True,0.0022237,0.001349,0.0031504,14,common,14,14,0,,
+baseline,lasso,bsd,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,0.0042719,0.0022605,0.0066073,12,har_ma_625,har_ma_625,True,0.0042719,0.0022605,0.0066073,12,common,12,12,0,,
+baseline,lasso,bsd,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,cluster,is_month_end,is_month_end,is_month_end,True,0.059799,0.048781,0.069384,3,is_month_end,is_month_end,True,0.059799,0.048781,0.069384,3,common,3,3,0,,
+baseline,lasso,bsd,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,cluster,is_opex,is_opex,is_opex,True,0.0065791,0.003382,0.010158,9,is_opex,is_opex,True,0.0065791,0.003382,0.010158,9,common,9,9,0,,
+baseline,lasso,bsd,cluster,is_opex_week,is_opex_week,is_opex_week,True,0.0047066,0.0031082,0.0065353,11,is_opex_week,is_opex_week,True,0.0047066,0.0031082,0.0065353,11,common,11,11,0,,
+baseline,lasso,bsd,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,bsd,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.02292,0.017529,0.028449,4,C01,C01: is_quad_witch +1,True,0.02292,0.017529,0.028449,4,common,4,4,0,,
+baseline,lasso,bsd,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.010427,0.0066188,0.014568,8,is_quarter_end,is_quarter_end,True,0.010427,0.0066188,0.014568,8,common,8,8,0,,
+baseline,lasso,perm_p1_qlike,column,DOW_0,DOW_0,DOW_0,True,-0.00011017,-0.00035387,0.00012314,20,DOW_0,DOW_0,True,-0.00011017,-0.00035387,0.00012314,14,common,14,14,0,-0.087228,-0.087228
+baseline,lasso,perm_p1_qlike,column,DOW_1,DOW_1,DOW_1,True,-1.4179e-06,-5.52e-06,1.2156e-06,18,DOW_1,DOW_1,True,-1.4179e-06,-5.52e-06,1.2156e-06,12,common,12,12,0,-0.0011227,-0.0011227
+baseline,lasso,perm_p1_qlike,column,DOW_2,DOW_2,DOW_2,True,0.00036917,-0.00091721,0.0014835,8,DOW_2,DOW_2,True,0.00036917,-0.00091721,0.0014835,8,common,8,8,0,0.2923,0.2923
+baseline,lasso,perm_p1_qlike,column,DOW_3,DOW_3,DOW_3,True,-0.00017622,-0.00060213,0.00018914,22,DOW_3,DOW_3,True,-0.00017622,-0.00060213,0.00018914,16,common,16,16,0,-0.13953,-0.13953
+baseline,lasso,perm_p1_qlike,column,DOW_4,DOW_4,DOW_4,True,-0.0009619,-0.0016944,-0.00032997,24,DOW_4,DOW_4,True,-0.0009619,-0.0016944,-0.00032997,18,common,18,18,0,-0.76161,-0.76161
+baseline,lasso,perm_p1_qlike,column,days_to_opex,days_to_opex,days_to_opex,True,-0.00012429,-0.00050382,0.00026635,21,days_to_opex,days_to_opex,True,-0.00012429,-0.00050382,0.00026635,15,common,15,15,0,-0.09841,-0.09841
+baseline,lasso,perm_p1_qlike,column,har_ma_1,har_ma_1,har_ma_1,True,0.097244,0.082114,0.11181,1,har_ma_1,har_ma_1,True,0.097244,0.082114,0.11181,1,common,1,1,0,76.996,76.996
+baseline,lasso,perm_p1_qlike,column,har_ma_125,har_ma_125,har_ma_125,True,0.0013962,-0.00085968,0.0040265,5,har_ma_125,har_ma_125,True,0.0013962,-0.00085968,0.0040265,5,common,5,5,0,1.1054,1.1054
+baseline,lasso,perm_p1_qlike,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_25,har_ma_25,har_ma_25,True,0.0040524,0.0013809,0.0069599,4,har_ma_25,har_ma_25,True,0.0040524,0.0013809,0.0069599,4,common,4,4,0,3.2086,3.2086
+baseline,lasso,perm_p1_qlike,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_3125,har_ma_3125,har_ma_3125,True,-2.0486e-05,-8.1357e-05,2.2879e-05,19,har_ma_3125,har_ma_3125,True,-2.0486e-05,-8.1357e-05,2.2879e-05,13,common,13,13,0,-0.016221,-0.016221
+baseline,lasso,perm_p1_qlike,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_5,har_ma_5,har_ma_5,True,0.017523,0.012286,0.022396,2,har_ma_5,har_ma_5,True,0.017523,0.012286,0.022396,2,common,2,2,0,13.874,13.874
+baseline,lasso,perm_p1_qlike,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_625,har_ma_625,har_ma_625,True,0.00014452,1.5002e-05,0.00031025,10,har_ma_625,har_ma_625,True,0.00014452,1.5002e-05,0.00031025,10,common,10,10,0,0.11443,0.11443
+baseline,lasso,perm_p1_qlike,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,column,is_month_end,is_month_end,is_month_end,True,0.0066984,0.0030807,0.011082,3,is_month_end,is_month_end,True,0.0066984,0.0030807,0.011082,3,common,3,3,0,5.3036,5.3036
+baseline,lasso,perm_p1_qlike,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,column,is_opex,is_opex,is_opex,True,0.00058215,9.8352e-05,0.0012324,7,is_opex,is_opex,True,0.00058215,9.8352e-05,0.0012324,7,common,7,7,0,0.46093,0.46093
+baseline,lasso,perm_p1_qlike,column,is_opex_week,is_opex_week,is_opex_week,True,-0.00018884,-0.00045751,6.2288e-05,23,is_opex_week,is_opex_week,True,-0.00018884,-0.00045751,6.2288e-05,17,common,17,17,0,-0.14952,-0.14952
+baseline,lasso,perm_p1_qlike,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.0011729,0.00040261,0.0020586,6,is_quad_witch,is_quad_witch,True,0.0011729,0.00040261,0.0020586,6,common,6,6,0,0.92871,0.92871
+baseline,lasso,perm_p1_qlike,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00025338,-0.00015281,0.00082379,9,is_quarter_end,is_quarter_end,True,0.00025338,-0.00015281,0.00082379,9,common,9,9,0,0.20062,0.20062
+baseline,lasso,perm_p1_qlike,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,11,is_rebalance_close,is_rebalance_close,True,0,0,0,11,common,11,11,0,0,0
+baseline,lasso,perm_p1_qlike,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.010554,0.0055216,0.016375,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.010022,0.0052531,0.015278,2,common,2,2,0,8.3565,7.9353
+baseline,lasso,perm_p1_qlike,series,har_ma,har_ma,har_ma_*,True,0.31876,0.26068,0.37988,1,har_ma,har_ma_*,True,0.32269,0.26253,0.38537,1,common,1,1,0,252.38,255.5
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_qlike,cluster,DOW_0,DOW_0,DOW_0,True,-0.00011017,-0.00035387,0.00012314,11,DOW_0,DOW_0,True,-0.00011017,-0.00035387,0.00012314,11,common,11,11,0,-0.087228,-0.087228
+baseline,lasso,perm_p1_qlike,cluster,DOW_1,DOW_1,DOW_1,True,-1.4179e-06,-5.52e-06,1.2156e-06,9,DOW_1,DOW_1,True,-1.4179e-06,-5.52e-06,1.2156e-06,9,common,9,9,0,-0.0011227,-0.0011227
+baseline,lasso,perm_p1_qlike,cluster,DOW_2,DOW_2,DOW_2,True,0.00036917,-0.00091721,0.0014835,6,DOW_2,DOW_2,True,0.00036917,-0.00091721,0.0014835,6,common,6,6,0,0.2923,0.2923
+baseline,lasso,perm_p1_qlike,cluster,DOW_3,DOW_3,DOW_3,True,-0.00017622,-0.00060213,0.00018914,13,DOW_3,DOW_3,True,-0.00017622,-0.00060213,0.00018914,13,common,13,13,0,-0.13953,-0.13953
+baseline,lasso,perm_p1_qlike,cluster,DOW_4,DOW_4,DOW_4,True,-0.0009619,-0.0016944,-0.00032997,15,DOW_4,DOW_4,True,-0.0009619,-0.0016944,-0.00032997,15,common,15,15,0,-0.76161,-0.76161
+baseline,lasso,perm_p1_qlike,cluster,days_to_opex,days_to_opex,days_to_opex,True,-0.00012429,-0.00050382,0.00026635,12,days_to_opex,days_to_opex,True,-0.00012429,-0.00050382,0.00026635,12,common,12,12,0,-0.09841,-0.09841
+baseline,lasso,perm_p1_qlike,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.21627,0.18538,0.24604,1,C02,C02: har_ma_1 +1,True,0.21465,0.18406,0.24453,1,common,1,1,0,171.24,169.95
+baseline,lasso,perm_p1_qlike,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.0095388,0.0048801,0.014336,2,C03,C03: har_ma_25 +1,True,0.010036,0.0042554,0.016207,2,common,2,2,0,7.5526,7.9462
+baseline,lasso,perm_p1_qlike,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,-1.1934e-05,-6.1414e-05,3.3134e-05,10,har_ma_3125,har_ma_3125,True,-2.0486e-05,-8.1357e-05,2.2879e-05,10,common,10,10,0,-0.0094494,-0.016221
+baseline,lasso,perm_p1_qlike,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,0.00016098,1.7529e-05,0.00035018,8,har_ma_625,har_ma_625,True,0.00014452,1.5002e-05,0.00031025,8,common,8,8,0,0.12746,0.11443
+baseline,lasso,perm_p1_qlike,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,cluster,is_month_end,is_month_end,is_month_end,True,0.0066984,0.0030807,0.011082,3,is_month_end,is_month_end,True,0.0066984,0.0030807,0.011082,3,common,3,3,0,5.3036,5.3036
+baseline,lasso,perm_p1_qlike,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,cluster,is_opex,is_opex,is_opex,True,0.00058215,9.8352e-05,0.0012324,5,is_opex,is_opex,True,0.00058215,9.8352e-05,0.0012324,5,common,5,5,0,0.46093,0.46093
+baseline,lasso,perm_p1_qlike,cluster,is_opex_week,is_opex_week,is_opex_week,True,-0.00018884,-0.00045751,6.2288e-05,14,is_opex_week,is_opex_week,True,-0.00018884,-0.00045751,6.2288e-05,14,common,14,14,0,-0.14952,-0.14952
+baseline,lasso,perm_p1_qlike,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_qlike,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.0010898,0.00031854,0.0020423,4,C01,C01: is_quad_witch +1,True,0.0010646,0.00037511,0.0019134,4,common,4,4,0,0.86286,0.84292
+baseline,lasso,perm_p1_qlike,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00025338,-0.00015281,0.00082379,7,is_quarter_end,is_quarter_end,True,0.00025338,-0.00015281,0.00082379,7,common,7,7,0,0.20062,0.20062
+baseline,lasso,perm_p2_qlike,column,DOW_0,DOW_0,DOW_0,True,1.8728e-05,-0.00011688,0.00018986,12,DOW_0,DOW_0,True,-0.00011365,-0.00024265,1.7659e-05,15,common,12,15,3,0.014828,-0.089983
+baseline,lasso,perm_p2_qlike,column,DOW_1,DOW_1,DOW_1,True,-1.2145e-06,-4.4058e-06,6.1645e-07,20,DOW_1,DOW_1,True,-1.3698e-06,-5.412e-06,1.2886e-06,13,common,14,13,-1,-0.00096158,-0.0010846
+baseline,lasso,perm_p2_qlike,column,DOW_2,DOW_2,DOW_2,True,0.00010041,-0.0014329,0.0013484,11,DOW_2,DOW_2,True,0.00034432,-0.0011645,0.0015872,9,common,11,9,-2,0.079506,0.27263
+baseline,lasso,perm_p2_qlike,column,DOW_3,DOW_3,DOW_3,True,-0.00020843,-0.00062082,0.00016523,23,DOW_3,DOW_3,True,-0.0003365,-0.00079793,7.1607e-05,17,common,17,17,0,-0.16503,-0.26643
+baseline,lasso,perm_p2_qlike,column,DOW_4,DOW_4,DOW_4,True,-0.00084562,-0.0014771,-0.00028672,24,DOW_4,DOW_4,True,-0.00091875,-0.0016155,-0.00029599,18,common,18,18,0,-0.66954,-0.72745
+baseline,lasso,perm_p2_qlike,column,days_to_opex,days_to_opex,days_to_opex,True,0.00033198,-0.00010442,0.00079089,9,days_to_opex,days_to_opex,True,0.0001867,-0.00016507,0.0005749,11,common,9,11,2,0.26286,0.14782
+baseline,lasso,perm_p2_qlike,column,har_ma_1,har_ma_1,har_ma_1,True,0.16262,0.14542,0.18169,1,har_ma_1,har_ma_1,True,0.15892,0.14147,0.17826,1,common,1,1,0,128.76,125.83
+baseline,lasso,perm_p2_qlike,column,har_ma_125,har_ma_125,har_ma_125,True,0.0069329,0.0025904,0.011589,5,har_ma_125,har_ma_125,True,0.0064518,0.0018824,0.011257,5,common,5,5,0,5.4893,5.1084
+baseline,lasso,perm_p2_qlike,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_25,har_ma_25,har_ma_25,True,0.0093261,0.0044205,0.014397,3,har_ma_25,har_ma_25,True,0.0099386,0.0047941,0.015457,3,common,3,3,0,7.3842,7.8692
+baseline,lasso,perm_p2_qlike,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_3125,har_ma_3125,har_ma_3125,True,-8.3192e-05,-0.00030782,0.00010383,21,har_ma_3125,har_ma_3125,True,-0.00010851,-0.00034331,8.8533e-05,14,common,15,14,-1,-0.06587,-0.085916
+baseline,lasso,perm_p2_qlike,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_5,har_ma_5,har_ma_5,True,0.02833,0.022728,0.034314,2,har_ma_5,har_ma_5,True,0.031215,0.0264,0.035792,2,common,2,2,0,22.431,24.715
+baseline,lasso,perm_p2_qlike,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_625,har_ma_625,har_ma_625,True,0.00049862,7.9777e-05,0.001111,7,har_ma_625,har_ma_625,True,0.00048077,1.8568e-05,0.0010992,8,common,7,8,1,0.3948,0.38066
+baseline,lasso,perm_p2_qlike,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,column,is_month_end,is_month_end,is_month_end,True,0.0077648,0.0038761,0.012576,4,is_month_end,is_month_end,True,0.007377,0.0033735,0.012211,4,common,4,4,0,6.148,5.841
+baseline,lasso,perm_p2_qlike,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,column,is_opex,is_opex,is_opex,True,0.00045608,0.00010582,0.00088403,8,is_opex,is_opex,True,0.00059887,0.00014554,0.0011467,7,common,8,7,-1,0.36111,0.47418
+baseline,lasso,perm_p2_qlike,column,is_opex_week,is_opex_week,is_opex_week,True,-9.4071e-05,-0.00038067,0.00018252,22,is_opex_week,is_opex_week,True,-0.00011578,-0.00041813,0.00017373,16,common,16,16,0,-0.074483,-0.091672
+baseline,lasso,perm_p2_qlike,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.0012501,0.00043689,0.0021159,6,is_quad_witch,is_quad_witch,True,0.0013588,0.00058214,0.0022623,6,common,6,6,0,0.98979,1.0759
+baseline,lasso,perm_p2_qlike,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00019164,-0.00040092,0.00094319,10,is_quarter_end,is_quarter_end,True,0.00019975,-0.00030968,0.00082502,10,common,10,10,0,0.15174,0.15815
+baseline,lasso,perm_p2_qlike,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,13,is_rebalance_close,is_rebalance_close,True,0,0,0,12,common,13,12,-1,0,0
+baseline,lasso,perm_p2_qlike,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.011897,0.0064669,0.018106,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.010814,0.0059804,0.016281,2,common,2,2,0,9.4199,8.5621
+baseline,lasso,perm_p2_qlike,series,har_ma,har_ma,har_ma_*,True,0.68115,0.56582,0.82135,1,har_ma,har_ma_*,True,0.68767,0.57709,0.81827,1,common,1,1,0,539.32,544.48
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_qlike,cluster,DOW_0,DOW_0,DOW_0,True,1.8728e-05,-0.00011688,0.00018986,10,DOW_0,DOW_0,True,-0.00011365,-0.00024265,1.7659e-05,12,common,10,12,2,0.014828,-0.089983
+baseline,lasso,perm_p2_qlike,cluster,DOW_1,DOW_1,DOW_1,True,-1.2145e-06,-4.4058e-06,6.1645e-07,11,DOW_1,DOW_1,True,-1.3698e-06,-5.412e-06,1.2886e-06,10,common,11,10,-1,-0.00096158,-0.0010846
+baseline,lasso,perm_p2_qlike,cluster,DOW_2,DOW_2,DOW_2,True,0.00010041,-0.0014329,0.0013484,9,DOW_2,DOW_2,True,0.00034432,-0.0011645,0.0015872,7,common,9,7,-2,0.079506,0.27263
+baseline,lasso,perm_p2_qlike,cluster,DOW_3,DOW_3,DOW_3,True,-0.00020843,-0.00062082,0.00016523,14,DOW_3,DOW_3,True,-0.0003365,-0.00079793,7.1607e-05,14,common,14,14,0,-0.16503,-0.26643
+baseline,lasso,perm_p2_qlike,cluster,DOW_4,DOW_4,DOW_4,True,-0.00084562,-0.0014771,-0.00028672,15,DOW_4,DOW_4,True,-0.00091875,-0.0016155,-0.00029599,15,common,15,15,0,-0.66954,-0.72745
+baseline,lasso,perm_p2_qlike,cluster,days_to_opex,days_to_opex,days_to_opex,True,0.00033198,-0.00010442,0.00079089,7,days_to_opex,days_to_opex,True,0.0001867,-0.00016507,0.0005749,9,common,7,9,2,0.26286,0.14782
+baseline,lasso,perm_p2_qlike,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.36751,0.32529,0.41268,1,C02,C02: har_ma_1 +1,True,0.36489,0.32309,0.41145,1,common,1,1,0,290.99,288.91
+baseline,lasso,perm_p2_qlike,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.030125,0.021479,0.039896,2,C03,C03: har_ma_25 +1,True,0.028679,0.019388,0.038941,2,common,2,2,0,23.852,22.708
+baseline,lasso,perm_p2_qlike,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,-0.0001256,-0.00039495,8.3756e-05,13,har_ma_3125,har_ma_3125,True,-0.00010851,-0.00034331,8.8533e-05,11,common,13,11,-2,-0.099444,-0.085916
+baseline,lasso,perm_p2_qlike,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,0.00062849,8.2355e-05,0.0013755,5,har_ma_625,har_ma_625,True,0.00048077,1.8568e-05,0.0010992,6,common,5,6,1,0.49763,0.38066
+baseline,lasso,perm_p2_qlike,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,cluster,is_month_end,is_month_end,is_month_end,True,0.0077648,0.0038761,0.012576,3,is_month_end,is_month_end,True,0.007377,0.0033735,0.012211,3,common,3,3,0,6.148,5.841
+baseline,lasso,perm_p2_qlike,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,cluster,is_opex,is_opex,is_opex,True,0.00045608,0.00010582,0.00088403,6,is_opex,is_opex,True,0.00059887,0.00014554,0.0011467,5,common,6,5,-1,0.36111,0.47418
+baseline,lasso,perm_p2_qlike,cluster,is_opex_week,is_opex_week,is_opex_week,True,-9.4071e-05,-0.00038067,0.00018252,12,is_opex_week,is_opex_week,True,-0.00011578,-0.00041813,0.00017373,13,common,12,13,1,-0.074483,-0.091672
+baseline,lasso,perm_p2_qlike,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_qlike,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.001284,0.00045915,0.002237,4,C01,C01: is_quad_witch +1,True,0.0014183,0.00065365,0.0022726,4,common,4,4,0,1.0167,1.123
+baseline,lasso,perm_p2_qlike,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00019164,-0.00040092,0.00094319,8,is_quarter_end,is_quarter_end,True,0.00019975,-0.00030968,0.00082502,8,common,8,8,0,0.15174,0.15815
+baseline,lasso,perm_p1_mse,column,DOW_0,DOW_0,DOW_0,True,-4.2938e-05,-0.00011077,1.9351e-05,22,DOW_0,DOW_0,True,-4.2938e-05,-0.00011077,1.9351e-05,16,common,16,16,0,-0.073078,-0.073078
+baseline,lasso,perm_p1_mse,column,DOW_1,DOW_1,DOW_1,True,-9.9381e-07,-3.525e-06,5.3681e-07,20,DOW_1,DOW_1,True,-9.9381e-07,-3.525e-06,5.3681e-07,14,common,14,14,0,-0.0016914,-0.0016914
+baseline,lasso,perm_p1_mse,column,DOW_2,DOW_2,DOW_2,True,0.00017465,-0.00013233,0.00048703,7,DOW_2,DOW_2,True,0.00017465,-0.00013233,0.00048703,7,common,7,7,0,0.29724,0.29724
+baseline,lasso,perm_p1_mse,column,DOW_3,DOW_3,DOW_3,True,-4.3069e-05,-0.00018615,9.5507e-05,23,DOW_3,DOW_3,True,-4.3069e-05,-0.00018615,9.5507e-05,17,common,17,17,0,-0.073301,-0.073301
+baseline,lasso,perm_p1_mse,column,DOW_4,DOW_4,DOW_4,True,-0.00012772,-0.00038218,0.00010014,24,DOW_4,DOW_4,True,-0.00012772,-0.00038218,0.00010014,18,common,18,18,0,-0.21737,-0.21737
+baseline,lasso,perm_p1_mse,column,days_to_opex,days_to_opex,days_to_opex,True,1.6071e-05,-9.008e-05,0.00012295,11,days_to_opex,days_to_opex,True,1.6071e-05,-9.008e-05,0.00012295,11,common,11,11,0,0.027352,0.027352
+baseline,lasso,perm_p1_mse,column,har_ma_1,har_ma_1,har_ma_1,True,0.063597,0.047813,0.079757,1,har_ma_1,har_ma_1,True,0.063597,0.047813,0.079757,1,common,1,1,0,108.24,108.24
+baseline,lasso,perm_p1_mse,column,har_ma_125,har_ma_125,har_ma_125,True,0.0010106,-2.334e-05,0.0023063,5,har_ma_125,har_ma_125,True,0.0010106,-2.334e-05,0.0023063,5,common,5,5,0,1.7199,1.7199
+baseline,lasso,perm_p1_mse,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_25,har_ma_25,har_ma_25,True,0.003332,0.0012143,0.0065081,3,har_ma_25,har_ma_25,True,0.003332,0.0012143,0.0065081,3,common,3,3,0,5.6708,5.6708
+baseline,lasso,perm_p1_mse,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_3125,har_ma_3125,har_ma_3125,True,1.6e-06,-9.5359e-06,1.3615e-05,12,har_ma_3125,har_ma_3125,True,1.6e-06,-9.5359e-06,1.3615e-05,12,common,12,12,0,0.0027231,0.0027231
+baseline,lasso,perm_p1_mse,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_5,har_ma_5,har_ma_5,True,0.010208,0.0068018,0.014145,2,har_ma_5,har_ma_5,True,0.010208,0.0068018,0.014145,2,common,2,2,0,17.373,17.373
+baseline,lasso,perm_p1_mse,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_625,har_ma_625,har_ma_625,True,3.0339e-05,-4.9572e-06,7.4344e-05,10,har_ma_625,har_ma_625,True,3.0339e-05,-4.9572e-06,7.4344e-05,10,common,10,10,0,0.051634,0.051634
+baseline,lasso,perm_p1_mse,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,column,is_month_end,is_month_end,is_month_end,True,0.0025102,0.0013987,0.0036211,4,is_month_end,is_month_end,True,0.0025102,0.0013987,0.0036211,4,common,4,4,0,4.2721,4.2721
+baseline,lasso,perm_p1_mse,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,column,is_opex,is_opex,is_opex,True,5.763e-05,-0.00010821,0.00021187,9,is_opex,is_opex,True,5.763e-05,-0.00010821,0.00021187,9,common,9,9,0,0.098082,0.098082
+baseline,lasso,perm_p1_mse,column,is_opex_week,is_opex_week,is_opex_week,True,-2.4239e-05,-0.00010426,4.9831e-05,21,is_opex_week,is_opex_week,True,-2.4239e-05,-0.00010426,4.9831e-05,15,common,15,15,0,-0.041253,-0.041253
+baseline,lasso,perm_p1_mse,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.00061264,0.00027806,0.0010039,6,is_quad_witch,is_quad_witch,True,0.00061264,0.00027806,0.0010039,6,common,6,6,0,1.0427,1.0427
+baseline,lasso,perm_p1_mse,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00010448,-8.7923e-05,0.00033447,8,is_quarter_end,is_quarter_end,True,0.00010448,-8.7923e-05,0.00033447,8,common,8,8,0,0.17781,0.17781
+baseline,lasso,perm_p1_mse,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,13,is_rebalance_close,is_rebalance_close,True,0,0,0,13,common,13,13,0,0,0
+baseline,lasso,perm_p1_mse,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.0040434,0.0025659,0.0055193,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.0040982,0.0024919,0.0056265,2,common,2,2,0,6.8816,6.9749
+baseline,lasso,perm_p1_mse,series,har_ma,har_ma,har_ma_*,True,0.16233,0.12404,0.20312,1,har_ma,har_ma_*,True,0.16661,0.12391,0.21288,1,common,1,1,0,276.28,283.56
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p1_mse,cluster,DOW_0,DOW_0,DOW_0,True,-4.2938e-05,-0.00011077,1.9351e-05,13,DOW_0,DOW_0,True,-4.2938e-05,-0.00011077,1.9351e-05,13,common,13,13,0,-0.073078,-0.073078
+baseline,lasso,perm_p1_mse,cluster,DOW_1,DOW_1,DOW_1,True,-9.9381e-07,-3.525e-06,5.3681e-07,10,DOW_1,DOW_1,True,-9.9381e-07,-3.525e-06,5.3681e-07,11,common,10,11,1,-0.0016914,-0.0016914
+baseline,lasso,perm_p1_mse,cluster,DOW_2,DOW_2,DOW_2,True,0.00017465,-0.00013233,0.00048703,5,DOW_2,DOW_2,True,0.00017465,-0.00013233,0.00048703,5,common,5,5,0,0.29724,0.29724
+baseline,lasso,perm_p1_mse,cluster,DOW_3,DOW_3,DOW_3,True,-4.3069e-05,-0.00018615,9.5507e-05,14,DOW_3,DOW_3,True,-4.3069e-05,-0.00018615,9.5507e-05,14,common,14,14,0,-0.073301,-0.073301
+baseline,lasso,perm_p1_mse,cluster,DOW_4,DOW_4,DOW_4,True,-0.00012772,-0.00038218,0.00010014,15,DOW_4,DOW_4,True,-0.00012772,-0.00038218,0.00010014,15,common,15,15,0,-0.21737,-0.21737
+baseline,lasso,perm_p1_mse,cluster,days_to_opex,days_to_opex,days_to_opex,True,1.6071e-05,-9.008e-05,0.00012295,9,days_to_opex,days_to_opex,True,1.6071e-05,-9.008e-05,0.00012295,9,common,9,9,0,0.027352,0.027352
+baseline,lasso,perm_p1_mse,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.12383,0.095312,0.15225,1,C02,C02: har_ma_1 +1,True,0.12221,0.09529,0.15002,1,common,1,1,0,210.75,207.99
+baseline,lasso,perm_p1_mse,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.0062597,0.0027619,0.011076,2,C03,C03: har_ma_25 +1,True,0.0069441,0.002967,0.012707,2,common,2,2,0,10.653,11.818
+baseline,lasso,perm_p1_mse,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,-3.1384e-06,-1.4326e-05,7.033e-06,11,har_ma_3125,har_ma_3125,True,1.6e-06,-9.5359e-06,1.3615e-05,10,common,11,10,-1,-0.0053413,0.0027231
+baseline,lasso,perm_p1_mse,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,3.3116e-05,-9.5216e-06,8.6446e-05,8,har_ma_625,har_ma_625,True,3.0339e-05,-4.9572e-06,7.4344e-05,8,common,8,8,0,0.056362,0.051634
+baseline,lasso,perm_p1_mse,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,cluster,is_month_end,is_month_end,is_month_end,True,0.0025102,0.0013987,0.0036211,3,is_month_end,is_month_end,True,0.0025102,0.0013987,0.0036211,3,common,3,3,0,4.2721,4.2721
+baseline,lasso,perm_p1_mse,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,cluster,is_opex,is_opex,is_opex,True,5.763e-05,-0.00010821,0.00021187,7,is_opex,is_opex,True,5.763e-05,-0.00010821,0.00021187,7,common,7,7,0,0.098082,0.098082
+baseline,lasso,perm_p1_mse,cluster,is_opex_week,is_opex_week,is_opex_week,True,-2.4239e-05,-0.00010426,4.9831e-05,12,is_opex_week,is_opex_week,True,-2.4239e-05,-0.00010426,4.9831e-05,12,common,12,12,0,-0.041253,-0.041253
+baseline,lasso,perm_p1_mse,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p1_mse,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.00054714,0.00020639,0.00096444,4,C01,C01: is_quad_witch +1,True,0.00056337,0.00023783,0.00094206,4,common,4,4,0,0.93119,0.95881
+baseline,lasso,perm_p1_mse,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00010448,-8.7923e-05,0.00033447,6,is_quarter_end,is_quarter_end,True,0.00010448,-8.7923e-05,0.00033447,6,common,6,6,0,0.17781,0.17781
+baseline,lasso,perm_p2_mse,column,DOW_0,DOW_0,DOW_0,True,-8.0323e-06,-6.3277e-05,4.9235e-05,21,DOW_0,DOW_0,True,-2.8001e-05,-8.3387e-05,2.784e-05,15,common,15,15,0,-0.01367,-0.047656
+baseline,lasso,perm_p2_mse,column,DOW_1,DOW_1,DOW_1,True,-7.5196e-07,-2.6068e-06,2.7861e-07,20,DOW_1,DOW_1,True,-8.7423e-07,-3.177e-06,5.4571e-07,13,common,14,13,-1,-0.0012798,-0.0014879
+baseline,lasso,perm_p2_mse,column,DOW_2,DOW_2,DOW_2,True,0.00015238,-0.00015644,0.00048125,7,DOW_2,DOW_2,True,0.00015684,-0.00017857,0.0004918,7,common,7,7,0,0.25933,0.26693
+baseline,lasso,perm_p2_mse,column,DOW_3,DOW_3,DOW_3,True,-6.3865e-05,-0.00020519,7.003e-05,23,DOW_3,DOW_3,True,-0.00010651,-0.00026479,3.9042e-05,17,common,17,17,0,-0.10869,-0.18127
+baseline,lasso,perm_p2_mse,column,DOW_4,DOW_4,DOW_4,True,-0.00010354,-0.00033282,9.6481e-05,24,DOW_4,DOW_4,True,-0.00014541,-0.0004163,8.6246e-05,18,common,18,18,0,-0.17622,-0.24747
+baseline,lasso,perm_p2_mse,column,days_to_opex,days_to_opex,days_to_opex,True,6.6936e-05,-8.8341e-05,0.00022626,9,days_to_opex,days_to_opex,True,7.6959e-05,-5.129e-05,0.00020722,9,common,9,9,0,0.11392,0.13098
+baseline,lasso,perm_p2_mse,column,har_ma_1,har_ma_1,har_ma_1,True,0.10232,0.087572,0.1217,1,har_ma_1,har_ma_1,True,0.09879,0.082974,0.11862,1,common,1,1,0,174.14,168.13
+baseline,lasso,perm_p2_mse,column,har_ma_125,har_ma_125,har_ma_125,True,0.0039729,0.0017507,0.0070542,4,har_ma_125,har_ma_125,True,0.0040133,0.0017294,0.0072156,4,common,4,4,0,6.7616,6.8304
+baseline,lasso,perm_p2_mse,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_25,har_ma_25,har_ma_25,True,0.0063802,0.0033162,0.011008,3,har_ma_25,har_ma_25,True,0.0068569,0.0034949,0.011968,3,common,3,3,0,10.859,11.67
+baseline,lasso,perm_p2_mse,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_3125,har_ma_3125,har_ma_3125,True,1.6352e-05,-2.29e-05,6.3651e-05,11,har_ma_3125,har_ma_3125,True,1.4075e-05,-2.4065e-05,6.1053e-05,11,common,11,11,0,0.02783,0.023954
+baseline,lasso,perm_p2_mse,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_5,har_ma_5,har_ma_5,True,0.016259,0.012112,0.021882,2,har_ma_5,har_ma_5,True,0.017281,0.013239,0.022546,2,common,2,2,0,27.672,29.41
+baseline,lasso,perm_p2_mse,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_625,har_ma_625,har_ma_625,True,1.1829e-05,-0.00010223,0.00011593,12,har_ma_625,har_ma_625,True,-2.6856e-05,-0.00015074,9.066e-05,14,common,12,14,2,0.020132,-0.045708
+baseline,lasso,perm_p2_mse,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,13,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,column,is_month_end,is_month_end,is_month_end,True,0.0026534,0.0013736,0.0038981,5,is_month_end,is_month_end,True,0.0025646,0.0013072,0.0038034,5,common,5,5,0,4.5159,4.3647
+baseline,lasso,perm_p2_mse,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,column,is_opex,is_opex,is_opex,True,2.6295e-05,-0.00012705,0.00016517,10,is_opex,is_opex,True,4.9911e-05,-0.00011778,0.00021015,10,common,10,10,0,0.044752,0.084944
+baseline,lasso,perm_p2_mse,column,is_opex_week,is_opex_week,is_opex_week,True,-3.5992e-05,-0.00013647,6.0767e-05,22,is_opex_week,is_opex_week,True,-5.3064e-05,-0.00014012,2.6989e-05,16,common,16,16,0,-0.061255,-0.090311
+baseline,lasso,perm_p2_mse,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.0006721,0.00029973,0.0010797,6,is_quad_witch,is_quad_witch,True,0.00075494,0.00036408,0.0011767,6,common,6,6,0,1.1439,1.2849
+baseline,lasso,perm_p2_mse,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00014885,-8.7303e-05,0.00041855,8,is_quarter_end,is_quarter_end,True,0.00012603,-8.3384e-05,0.00038007,8,common,8,8,0,0.25334,0.21449
+baseline,lasso,perm_p2_mse,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,13,is_rebalance_close,is_rebalance_close,True,0,0,0,12,common,13,12,-1,0,0
+baseline,lasso,perm_p2_mse,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.0044367,0.0027994,0.0060753,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.0043093,0.0027705,0.0058897,2,common,2,2,0,7.551,7.3341
+baseline,lasso,perm_p2_mse,series,har_ma,har_ma,har_ma_*,True,0.29102,0.25051,0.34359,1,har_ma,har_ma_*,True,0.29099,0.25139,0.34219,1,common,1,1,0,495.3,495.24
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,perm_p2_mse,cluster,DOW_0,DOW_0,DOW_0,True,-8.0323e-06,-6.3277e-05,4.9235e-05,12,DOW_0,DOW_0,True,-2.8001e-05,-8.3387e-05,2.784e-05,12,common,12,12,0,-0.01367,-0.047656
+baseline,lasso,perm_p2_mse,cluster,DOW_1,DOW_1,DOW_1,True,-7.5196e-07,-2.6068e-06,2.7861e-07,11,DOW_1,DOW_1,True,-8.7423e-07,-3.177e-06,5.4571e-07,10,common,11,10,-1,-0.0012798,-0.0014879
+baseline,lasso,perm_p2_mse,cluster,DOW_2,DOW_2,DOW_2,True,0.00015238,-0.00015644,0.00048125,5,DOW_2,DOW_2,True,0.00015684,-0.00017857,0.0004918,5,common,5,5,0,0.25933,0.26693
+baseline,lasso,perm_p2_mse,cluster,DOW_3,DOW_3,DOW_3,True,-6.3865e-05,-0.00020519,7.003e-05,14,DOW_3,DOW_3,True,-0.00010651,-0.00026479,3.9042e-05,14,common,14,14,0,-0.10869,-0.18127
+baseline,lasso,perm_p2_mse,cluster,DOW_4,DOW_4,DOW_4,True,-0.00010354,-0.00033282,9.6481e-05,15,DOW_4,DOW_4,True,-0.00014541,-0.0004163,8.6246e-05,15,common,15,15,0,-0.17622,-0.24747
+baseline,lasso,perm_p2_mse,cluster,days_to_opex,days_to_opex,days_to_opex,True,6.6936e-05,-8.8341e-05,0.00022626,7,days_to_opex,days_to_opex,True,7.6959e-05,-5.129e-05,0.00020722,7,common,7,7,0,0.11392,0.13098
+baseline,lasso,perm_p2_mse,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.19512,0.16823,0.22778,1,C02,C02: har_ma_1 +1,True,0.19897,0.17347,0.23073,1,common,1,1,0,332.08,338.63
+baseline,lasso,perm_p2_mse,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.018157,0.012221,0.026925,2,C03,C03: har_ma_25 +1,True,0.016897,0.010922,0.025512,2,common,2,2,0,30.902,28.758
+baseline,lasso,perm_p2_mse,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,7.2697e-06,-2.8341e-05,5.0739e-05,10,har_ma_3125,har_ma_3125,True,1.4075e-05,-2.4065e-05,6.1053e-05,9,common,10,9,-1,0.012373,0.023954
+baseline,lasso,perm_p2_mse,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,8.4584e-06,-0.00011247,0.00013297,9,har_ma_625,har_ma_625,True,-2.6856e-05,-0.00015074,9.066e-05,11,common,9,11,2,0.014396,-0.045708
+baseline,lasso,perm_p2_mse,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,cluster,is_month_end,is_month_end,is_month_end,True,0.0026534,0.0013736,0.0038981,3,is_month_end,is_month_end,True,0.0025646,0.0013072,0.0038034,3,common,3,3,0,4.5159,4.3647
+baseline,lasso,perm_p2_mse,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,cluster,is_opex,is_opex,is_opex,True,2.6295e-05,-0.00012705,0.00016517,8,is_opex,is_opex,True,4.9911e-05,-0.00011778,0.00021015,8,common,8,8,0,0.044752,0.084944
+baseline,lasso,perm_p2_mse,cluster,is_opex_week,is_opex_week,is_opex_week,True,-3.5992e-05,-0.00013647,6.0767e-05,13,is_opex_week,is_opex_week,True,-5.3064e-05,-0.00014012,2.6989e-05,13,common,13,13,0,-0.061255,-0.090311
+baseline,lasso,perm_p2_mse,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,perm_p2_mse,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.00061739,0.00024485,0.0010511,4,C01,C01: is_quad_witch +1,True,0.00073826,0.000347,0.0011859,4,common,4,4,0,1.0508,1.2565
+baseline,lasso,perm_p2_mse,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00014885,-8.7303e-05,0.00041855,6,is_quarter_end,is_quarter_end,True,0.00012603,-8.3384e-05,0.00038007,6,common,6,6,0,0.25334,0.21449
+baseline,lasso,drop_qlike,column,DOW_0,DOW_0,DOW_0,True,-1.5257e-05,-0.00010333,5.4101e-05,21,DOW_0,DOW_0,True,-1.5257e-05,-0.00010333,5.4101e-05,15,common,15,15,0,-0.012082,-0.012082
+baseline,lasso,drop_qlike,column,DOW_1,DOW_1,DOW_1,True,-3.6466e-06,-1.1093e-05,1.3413e-07,19,DOW_1,DOW_1,True,-3.6466e-06,-1.1093e-05,1.3413e-07,13,common,13,13,0,-0.0028879,-0.0028879
+baseline,lasso,drop_qlike,column,DOW_2,DOW_2,DOW_2,True,0.00014922,-0.00014503,0.00046795,9,DOW_2,DOW_2,True,0.00014922,-0.00014503,0.00046795,9,common,9,9,0,0.11817,0.11817
+baseline,lasso,drop_qlike,column,DOW_3,DOW_3,DOW_3,True,-9.3346e-06,-0.00018932,0.00015392,20,DOW_3,DOW_3,True,-9.3346e-06,-0.00018932,0.00015392,14,common,14,14,0,-0.0073925,-0.0073925
+baseline,lasso,drop_qlike,column,DOW_4,DOW_4,DOW_4,True,-0.00044121,-0.00080712,-0.00015525,24,DOW_4,DOW_4,True,-0.00044121,-0.00080712,-0.00015525,18,common,18,18,0,-0.34942,-0.34942
+baseline,lasso,drop_qlike,column,days_to_opex,days_to_opex,days_to_opex,True,0.0001303,-0.00023997,0.00050353,10,days_to_opex,days_to_opex,True,0.0001303,-0.00023997,0.00050353,10,common,10,10,0,0.10319,0.10319
+baseline,lasso,drop_qlike,column,har_ma_1,har_ma_1,har_ma_1,True,0.009862,0.0023657,0.015904,1,har_ma_1,har_ma_1,True,0.009862,0.0023657,0.015904,1,common,1,1,0,7.8102,7.8102
+baseline,lasso,drop_qlike,column,har_ma_125,har_ma_125,har_ma_125,True,0.0013508,-0.00051163,0.003566,4,har_ma_125,har_ma_125,True,0.0013508,-0.00051163,0.003566,4,common,4,4,0,1.0697,1.0697
+baseline,lasso,drop_qlike,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_25,har_ma_25,har_ma_25,True,0.0003333,-0.00089517,0.0016242,6,har_ma_25,har_ma_25,True,0.0003333,-0.00089517,0.0016242,6,common,6,6,0,0.26396,0.26396
+baseline,lasso,drop_qlike,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_3125,har_ma_3125,har_ma_3125,True,-0.0001108,-0.00031033,5.1323e-05,23,har_ma_3125,har_ma_3125,True,-0.0001108,-0.00031033,5.1323e-05,17,common,17,17,0,-0.087751,-0.087751
+baseline,lasso,drop_qlike,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_5,har_ma_5,har_ma_5,True,0.0034059,0.0018155,0.00526,3,har_ma_5,har_ma_5,True,0.0034059,0.0018155,0.00526,3,common,3,3,0,2.6973,2.6973
+baseline,lasso,drop_qlike,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_625,har_ma_625,har_ma_625,True,0.00018725,-1.6514e-05,0.00046004,8,har_ma_625,har_ma_625,True,0.00018725,-1.6514e-05,0.00046004,8,common,8,8,0,0.14829,0.14829
+baseline,lasso,drop_qlike,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,12,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,column,is_month_end,is_month_end,is_month_end,True,0.0034762,0.00040383,0.0075259,2,is_month_end,is_month_end,True,0.0034762,0.00040383,0.0075259,2,common,2,2,0,2.7529,2.7529
+baseline,lasso,drop_qlike,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,column,is_opex,is_opex,is_opex,True,3.8128e-05,-0.00019201,0.00025872,11,is_opex,is_opex,True,3.8128e-05,-0.00019201,0.00025872,11,common,11,11,0,0.030195,0.030195
+baseline,lasso,drop_qlike,column,is_opex_week,is_opex_week,is_opex_week,True,-3.688e-05,-0.00027885,0.00021627,22,is_opex_week,is_opex_week,True,-3.688e-05,-0.00027885,0.00021627,16,common,16,16,0,-0.029207,-0.029207
+baseline,lasso,drop_qlike,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.00081133,0.00015118,0.0015708,5,is_quad_witch,is_quad_witch,True,0.00081133,0.00015118,0.0015708,5,common,5,5,0,0.64253,0.64253
+baseline,lasso,drop_qlike,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00029344,-1.8909e-05,0.00070871,7,is_quarter_end,is_quarter_end,True,0.00029344,-1.8909e-05,0.00070871,7,common,7,7,0,0.23239,0.23239
+baseline,lasso,drop_qlike,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,12,is_rebalance_close,is_rebalance_close,True,0,0,0,12,common,12,12,0,0,0
+baseline,lasso,drop_qlike,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.0060649,0.0015382,0.011344,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.0060649,0.0015382,0.011344,2,common,2,2,0,4.8031,4.8031
+baseline,lasso,drop_qlike,series,har_ma,har_ma,har_ma_*,True,0.28803,0.21041,0.38698,1,har_ma,har_ma_*,True,0.28803,0.21041,0.38698,1,common,1,1,0,228.11,228.11
+baseline,lasso,drop_qlike,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_qlike,cluster,DOW_0,DOW_0,DOW_0,True,-1.5257e-05,-0.00010333,5.4101e-05,12,DOW_0,DOW_0,True,-1.5257e-05,-0.00010333,5.4101e-05,12,common,12,12,0,-0.012082,-0.012082
+baseline,lasso,drop_qlike,cluster,DOW_1,DOW_1,DOW_1,True,-3.6466e-06,-1.1093e-05,1.3413e-07,10,DOW_1,DOW_1,True,-3.6466e-06,-1.1093e-05,1.3413e-07,10,common,10,10,0,-0.0028879,-0.0028879
+baseline,lasso,drop_qlike,cluster,DOW_2,DOW_2,DOW_2,True,0.00014922,-0.00014503,0.00046795,7,DOW_2,DOW_2,True,0.00014922,-0.00014503,0.00046795,7,common,7,7,0,0.11817,0.11817
+baseline,lasso,drop_qlike,cluster,DOW_3,DOW_3,DOW_3,True,-9.3346e-06,-0.00018932,0.00015392,11,DOW_3,DOW_3,True,-9.3346e-06,-0.00018932,0.00015392,11,common,11,11,0,-0.0073925,-0.0073925
+baseline,lasso,drop_qlike,cluster,DOW_4,DOW_4,DOW_4,True,-0.00044121,-0.00080712,-0.00015525,15,DOW_4,DOW_4,True,-0.00044121,-0.00080712,-0.00015525,15,common,15,15,0,-0.34942,-0.34942
+baseline,lasso,drop_qlike,cluster,days_to_opex,days_to_opex,days_to_opex,True,0.0001303,-0.00023997,0.00050353,8,days_to_opex,days_to_opex,True,0.0001303,-0.00023997,0.00050353,8,common,8,8,0,0.10319,0.10319
+baseline,lasso,drop_qlike,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.061098,0.046907,0.075459,1,C02,C02: har_ma_1 +1,True,0.061098,0.046907,0.075459,1,common,1,1,0,48.387,48.387
+baseline,lasso,drop_qlike,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.0052701,0.0015584,0.00985,2,C03,C03: har_ma_25 +1,True,0.0052701,0.0015584,0.00985,2,common,2,2,0,4.1736,4.1736
+baseline,lasso,drop_qlike,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,-0.0001108,-0.00031033,5.1323e-05,14,har_ma_3125,har_ma_3125,True,-0.0001108,-0.00031033,5.1323e-05,14,common,14,14,0,-0.087751,-0.087751
+baseline,lasso,drop_qlike,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,0.00018725,-1.6514e-05,0.00046004,6,har_ma_625,har_ma_625,True,0.00018725,-1.6514e-05,0.00046004,6,common,6,6,0,0.14829,0.14829
+baseline,lasso,drop_qlike,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,cluster,is_month_end,is_month_end,is_month_end,True,0.0034762,0.00040383,0.0075259,3,is_month_end,is_month_end,True,0.0034762,0.00040383,0.0075259,3,common,3,3,0,2.7529,2.7529
+baseline,lasso,drop_qlike,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,cluster,is_opex,is_opex,is_opex,True,3.8128e-05,-0.00019201,0.00025872,9,is_opex,is_opex,True,3.8128e-05,-0.00019201,0.00025872,9,common,9,9,0,0.030195,0.030195
+baseline,lasso,drop_qlike,cluster,is_opex_week,is_opex_week,is_opex_week,True,-3.688e-05,-0.00027885,0.00021627,13,is_opex_week,is_opex_week,True,-3.688e-05,-0.00027885,0.00021627,13,common,13,13,0,-0.029207,-0.029207
+baseline,lasso,drop_qlike,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_qlike,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.00081133,0.00015118,0.0015708,4,C01,C01: is_quad_witch +1,True,0.00081133,0.00015118,0.0015708,4,common,4,4,0,0.64253,0.64253
+baseline,lasso,drop_qlike,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00029344,-1.8909e-05,0.00070871,5,is_quarter_end,is_quarter_end,True,0.00029344,-1.8909e-05,0.00070871,5,common,5,5,0,0.23239,0.23239
+baseline,lasso,drop_mse,column,DOW_0,DOW_0,DOW_0,True,9.5307e-07,-1.4675e-05,1.6873e-05,10,DOW_0,DOW_0,True,9.5307e-07,-1.4675e-05,1.6873e-05,10,common,10,10,0,0.0016225,0.0016225
+baseline,lasso,drop_mse,column,DOW_1,DOW_1,DOW_1,True,-2.3517e-06,-7.0686e-06,6.7799e-09,18,DOW_1,DOW_1,True,-2.3517e-06,-7.0686e-06,6.7799e-09,12,common,12,12,0,-0.0040035,-0.0040035
+baseline,lasso,drop_mse,column,DOW_2,DOW_2,DOW_2,True,2.5447e-05,-8.5719e-05,0.00015063,9,DOW_2,DOW_2,True,2.5447e-05,-8.5719e-05,0.00015063,9,common,9,9,0,0.04332,0.04332
+baseline,lasso,drop_mse,column,DOW_3,DOW_3,DOW_3,True,-1.0085e-05,-4.8747e-05,2.8759e-05,19,DOW_3,DOW_3,True,-1.0085e-05,-4.8747e-05,2.8759e-05,13,common,13,13,0,-0.017169,-0.017169
+baseline,lasso,drop_mse,column,DOW_4,DOW_4,DOW_4,True,-0.0001362,-0.00029368,-2.2804e-05,24,DOW_4,DOW_4,True,-0.0001362,-0.00029368,-2.2804e-05,18,common,18,18,0,-0.23187,-0.23187
+baseline,lasso,drop_mse,column,days_to_opex,days_to_opex,days_to_opex,True,2.9475e-05,-9.2951e-05,0.00015975,8,days_to_opex,days_to_opex,True,2.9475e-05,-9.2951e-05,0.00015975,8,common,8,8,0,0.050177,0.050177
+baseline,lasso,drop_mse,column,har_ma_1,har_ma_1,har_ma_1,True,0.0079861,0.004894,0.011191,1,har_ma_1,har_ma_1,True,0.0079861,0.004894,0.011191,1,common,1,1,0,13.595,13.595
+baseline,lasso,drop_mse,column,har_ma_125,har_ma_125,har_ma_125,True,0.00038531,-0.00025185,0.0010571,5,har_ma_125,har_ma_125,True,0.00038531,-0.00025185,0.0010571,5,common,5,5,0,0.65595,0.65595
+baseline,lasso,drop_mse,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_25,har_ma_25,har_ma_25,True,0.0008768,0.00021622,0.0015561,4,har_ma_25,har_ma_25,True,0.0008768,0.00021622,0.0015561,4,common,4,4,0,1.4927,1.4927
+baseline,lasso,drop_mse,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_3125,har_ma_3125,har_ma_3125,True,-1.437e-05,-5.4701e-05,1.6408e-05,20,har_ma_3125,har_ma_3125,True,-1.437e-05,-5.4701e-05,1.6408e-05,14,common,14,14,0,-0.024463,-0.024463
+baseline,lasso,drop_mse,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_5,har_ma_5,har_ma_5,True,0.0011555,0.00050109,0.0017456,2,har_ma_5,har_ma_5,True,0.0011555,0.00050109,0.0017456,2,common,2,2,0,1.9671,1.9671
+baseline,lasso,drop_mse,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_625,har_ma_625,har_ma_625,True,-3.5031e-05,-9.1054e-05,3.2978e-06,23,har_ma_625,har_ma_625,True,-3.5031e-05,-9.1054e-05,3.2978e-06,17,common,17,17,0,-0.059636,-0.059636
+baseline,lasso,drop_mse,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,11,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,column,is_month_end,is_month_end,is_month_end,True,0.00095417,9.9449e-05,0.0018758,3,is_month_end,is_month_end,True,0.00095417,9.9449e-05,0.0018758,3,common,3,3,0,1.6244,1.6244
+baseline,lasso,drop_mse,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,column,is_opex,is_opex,is_opex,True,-1.5075e-05,-0.00014753,9.7007e-05,21,is_opex,is_opex,True,-1.5075e-05,-0.00014753,9.7007e-05,15,common,15,15,0,-0.025663,-0.025663
+baseline,lasso,drop_mse,column,is_opex_week,is_opex_week,is_opex_week,True,-1.9047e-05,-9.0367e-05,4.8096e-05,22,is_opex_week,is_opex_week,True,-1.9047e-05,-9.0367e-05,4.8096e-05,16,common,16,16,0,-0.032426,-0.032426
+baseline,lasso,drop_mse,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.00036137,5.194e-05,0.00070489,6,is_quad_witch,is_quad_witch,True,0.00036137,5.194e-05,0.00070489,6,common,6,6,0,0.6152,0.6152
+baseline,lasso,drop_mse,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00013399,-6.0421e-05,0.00034674,7,is_quarter_end,is_quarter_end,True,0.00013399,-6.0421e-05,0.00034674,7,common,7,7,0,0.2281,0.2281
+baseline,lasso,drop_mse,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,11,is_rebalance_close,is_rebalance_close,True,0,0,0,11,common,11,11,0,0,0
+baseline,lasso,drop_mse,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.0022183,0.00081436,0.0035494,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.0022183,0.00081436,0.0035494,2,common,2,2,0,3.7764,3.7764
+baseline,lasso,drop_mse,series,har_ma,har_ma,har_ma_*,True,0.1431,0.10199,0.198,1,har_ma,har_ma_*,True,0.1431,0.10199,0.198,1,common,1,1,0,243.61,243.61
+baseline,lasso,drop_mse,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,0,
+baseline,lasso,drop_mse,cluster,DOW_0,DOW_0,DOW_0,True,9.5307e-07,-1.4675e-05,1.6873e-05,8,DOW_0,DOW_0,True,9.5307e-07,-1.4675e-05,1.6873e-05,8,common,8,8,0,0.0016225,0.0016225
+baseline,lasso,drop_mse,cluster,DOW_1,DOW_1,DOW_1,True,-2.3517e-06,-7.0686e-06,6.7799e-09,9,DOW_1,DOW_1,True,-2.3517e-06,-7.0686e-06,6.7799e-09,9,common,9,9,0,-0.0040035,-0.0040035
+baseline,lasso,drop_mse,cluster,DOW_2,DOW_2,DOW_2,True,2.5447e-05,-8.5719e-05,0.00015063,7,DOW_2,DOW_2,True,2.5447e-05,-8.5719e-05,0.00015063,7,common,7,7,0,0.04332,0.04332
+baseline,lasso,drop_mse,cluster,DOW_3,DOW_3,DOW_3,True,-1.0085e-05,-4.8747e-05,2.8759e-05,10,DOW_3,DOW_3,True,-1.0085e-05,-4.8747e-05,2.8759e-05,10,common,10,10,0,-0.017169,-0.017169
+baseline,lasso,drop_mse,cluster,DOW_4,DOW_4,DOW_4,True,-0.0001362,-0.00029368,-2.2804e-05,15,DOW_4,DOW_4,True,-0.0001362,-0.00029368,-2.2804e-05,15,common,15,15,0,-0.23187,-0.23187
+baseline,lasso,drop_mse,cluster,days_to_opex,days_to_opex,days_to_opex,True,2.9475e-05,-9.2951e-05,0.00015975,6,days_to_opex,days_to_opex,True,2.9475e-05,-9.2951e-05,0.00015975,6,common,6,6,0,0.050177,0.050177
+baseline,lasso,drop_mse,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.030377,0.023528,0.03776,1,C02,C02: har_ma_1 +1,True,0.030377,0.023528,0.03776,1,common,1,1,0,51.714,51.714
+baseline,lasso,drop_mse,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.0036889,0.00169,0.0061109,2,C03,C03: har_ma_25 +1,True,0.0036889,0.00169,0.0061109,2,common,2,2,0,6.28,6.28
+baseline,lasso,drop_mse,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,-1.437e-05,-5.4701e-05,1.6408e-05,11,har_ma_3125,har_ma_3125,True,-1.437e-05,-5.4701e-05,1.6408e-05,11,common,11,11,0,-0.024463,-0.024463
+baseline,lasso,drop_mse,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,-3.5031e-05,-9.1054e-05,3.2978e-06,14,har_ma_625,har_ma_625,True,-3.5031e-05,-9.1054e-05,3.2978e-06,14,common,14,14,0,-0.059636,-0.059636
+baseline,lasso,drop_mse,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,cluster,is_month_end,is_month_end,is_month_end,True,0.00095417,9.9449e-05,0.0018758,3,is_month_end,is_month_end,True,0.00095417,9.9449e-05,0.0018758,3,common,3,3,0,1.6244,1.6244
+baseline,lasso,drop_mse,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,cluster,is_opex,is_opex,is_opex,True,-1.5075e-05,-0.00014753,9.7007e-05,12,is_opex,is_opex,True,-1.5075e-05,-0.00014753,9.7007e-05,12,common,12,12,0,-0.025663,-0.025663
+baseline,lasso,drop_mse,cluster,is_opex_week,is_opex_week,is_opex_week,True,-1.9047e-05,-9.0367e-05,4.8096e-05,13,is_opex_week,is_opex_week,True,-1.9047e-05,-9.0367e-05,4.8096e-05,13,common,13,13,0,-0.032426,-0.032426
+baseline,lasso,drop_mse,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,0,0
+baseline,lasso,drop_mse,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.00036137,5.194e-05,0.00070489,4,C01,C01: is_quad_witch +1,True,0.00036137,5.194e-05,0.00070489,4,common,4,4,0,0.6152,0.6152
+baseline,lasso,drop_mse,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.00013399,-6.0421e-05,0.00034674,5,is_quarter_end,is_quarter_end,True,0.00013399,-6.0421e-05,0.00034674,5,common,5,5,0,0.2281,0.2281
+baseline,lasso,shap,column,DOW_0,DOW_0,DOW_0,True,0.0040147,0.0024759,0.0056406,14,DOW_0,DOW_0,True,0.0040147,0.0024759,0.0056406,14,common,14,14,0,,
+baseline,lasso,shap,column,DOW_1,DOW_1,DOW_1,True,2.4179e-05,0,7.1994e-05,17,DOW_1,DOW_1,True,2.4179e-05,0,7.1994e-05,17,common,17,17,0,,
+baseline,lasso,shap,column,DOW_2,DOW_2,DOW_2,True,0.028793,0.022974,0.034625,6,DOW_2,DOW_2,True,0.028793,0.022974,0.034625,6,common,6,6,0,,
+baseline,lasso,shap,column,DOW_3,DOW_3,DOW_3,True,0.007564,0.0050441,0.010352,10,DOW_3,DOW_3,True,0.007564,0.0050441,0.010352,10,common,10,10,0,,
+baseline,lasso,shap,column,DOW_4,DOW_4,DOW_4,True,0.018255,0.014461,0.021815,7,DOW_4,DOW_4,True,0.018255,0.014461,0.021815,7,common,7,7,0,,
+baseline,lasso,shap,column,days_to_opex,days_to_opex,days_to_opex,True,0.015772,0.012612,0.018805,8,days_to_opex,days_to_opex,True,0.015772,0.012612,0.018805,8,common,8,8,0,,
+baseline,lasso,shap,column,har_ma_1,har_ma_1,har_ma_1,True,0.47241,0.45463,0.49065,1,har_ma_1,har_ma_1,True,0.47241,0.45463,0.49065,1,common,1,1,0,,
+baseline,lasso,shap,column,har_ma_125,har_ma_125,har_ma_125,True,0.082745,0.075468,0.08959,4,har_ma_125,har_ma_125,True,0.082745,0.075468,0.08959,4,common,4,4,0,,
+baseline,lasso,shap,column,har_ma_125_x_close,har_ma_125_x_close,har_ma_125_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_1_x_close,har_ma_1_x_close,har_ma_1_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_25,har_ma_25,har_ma_25,True,0.10311,0.092543,0.11353,3,har_ma_25,har_ma_25,True,0.10311,0.092543,0.11353,3,common,3,3,0,,
+baseline,lasso,shap,column,har_ma_25_x_close,har_ma_25_x_close,har_ma_25_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_3125,har_ma_3125,har_ma_3125,True,0.0025859,0.0013473,0.004015,16,har_ma_3125,har_ma_3125,True,0.0025859,0.0013473,0.004015,16,common,16,16,0,,
+baseline,lasso,shap,column,har_ma_3125_x_close,har_ma_3125_x_close,har_ma_3125_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_5,har_ma_5,har_ma_5,True,0.19566,0.18767,0.20354,2,har_ma_5,har_ma_5,True,0.19566,0.18767,0.20354,2,common,2,2,0,,
+baseline,lasso,shap,column,har_ma_5_x_close,har_ma_5_x_close,har_ma_5_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_625,har_ma_625,har_ma_625,True,0.0047042,0.0022683,0.0074802,12,har_ma_625,har_ma_625,True,0.0047042,0.0022683,0.0074802,12,common,12,12,0,,
+baseline,lasso,shap,column,har_ma_625_x_close,har_ma_625_x_close,har_ma_625_x_close,True,0,0,0,18,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,column,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,column,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,column,is_month_end,is_month_end,is_month_end,True,0.040474,0.032616,0.04824,5,is_month_end,is_month_end,True,0.040474,0.032616,0.04824,5,common,5,5,0,,
+baseline,lasso,shap,column,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,column,is_opex,is_opex,is_opex,True,0.0043462,0.0022259,0.0067296,13,is_opex,is_opex,True,0.0043462,0.0022259,0.0067296,13,common,13,13,0,,
+baseline,lasso,shap,column,is_opex_week,is_opex_week,is_opex_week,True,0.0064785,0.0042837,0.0089185,11,is_opex_week,is_opex_week,True,0.0064785,0.0042837,0.0089185,11,common,11,11,0,,
+baseline,lasso,shap,column,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,column,is_quad_witch,is_quad_witch,is_quad_witch,True,0.0093269,0.0070553,0.011539,9,is_quad_witch,is_quad_witch,True,0.0093269,0.0070553,0.011539,9,common,9,9,0,,
+baseline,lasso,shap,column,is_quarter_end,is_quarter_end,is_quarter_end,True,0.0037363,0.0023572,0.00517,15,is_quarter_end,is_quarter_end,True,0.0037363,0.0023572,0.00517,15,common,15,15,0,,
+baseline,lasso,shap,column,is_rebalance_close,is_rebalance_close,is_rebalance_close,True,0,0,0,18,is_rebalance_close,is_rebalance_close,True,0,0,0,18,common,18,18,0,,
+baseline,lasso,shap,series,calendar,calendar,"calendar (DOW_*, is_*, ...)",True,0.088446,0.071793,0.10404,2,calendar,"calendar (DOW_*, is_*, ...)",True,0.088446,0.071793,0.10404,2,common,2,2,0,,
+baseline,lasso,shap,series,har_ma,har_ma,har_ma_*,True,0.91155,0.89596,0.92821,1,har_ma,har_ma_*,True,0.91155,0.89596,0.92821,1,common,1,1,0,,
+baseline,lasso,shap,cluster,(old) har_ma_125_x_open,har_ma_125_x_open,har_ma_125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,(old) har_ma_1_x_open,har_ma_1_x_open,har_ma_1_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,(old) har_ma_25_x_open,har_ma_25_x_open,har_ma_25_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,(old) har_ma_3125_x_open,har_ma_3125_x_open,har_ma_3125_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,(old) har_ma_5_x_open,har_ma_5_x_open,har_ma_5_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,(old) har_ma_625_x_open,har_ma_625_x_open,har_ma_625_x_open,False,0,0,0,0,,,,,,,,old only,0,0,0,,
+baseline,lasso,shap,cluster,DOW_0,DOW_0,DOW_0,True,0.004132,0.0025621,0.0058033,12,DOW_0,DOW_0,True,0.004132,0.0025621,0.0058033,12,common,12,12,0,,
+baseline,lasso,shap,cluster,DOW_1,DOW_1,DOW_1,True,2.4635e-05,0,7.3359e-05,15,DOW_1,DOW_1,True,2.4635e-05,0,7.3359e-05,15,common,15,15,0,,
+baseline,lasso,shap,cluster,DOW_2,DOW_2,DOW_2,True,0.029746,0.023678,0.035768,4,DOW_2,DOW_2,True,0.029746,0.023678,0.035768,4,common,4,4,0,,
+baseline,lasso,shap,cluster,DOW_3,DOW_3,DOW_3,True,0.0077841,0.0051877,0.010666,8,DOW_3,DOW_3,True,0.0077841,0.0051877,0.010666,8,common,8,8,0,,
+baseline,lasso,shap,cluster,DOW_4,DOW_4,DOW_4,True,0.018847,0.014937,0.022533,5,DOW_4,DOW_4,True,0.018847,0.014937,0.022533,5,common,5,5,0,,
+baseline,lasso,shap,cluster,days_to_opex,days_to_opex,days_to_opex,True,0.016298,0.01304,0.019447,6,days_to_opex,days_to_opex,True,0.016298,0.01304,0.019447,6,common,6,6,0,,
+baseline,lasso,shap,cluster,har_ma_1 +1,C02,C02: har_ma_1 +3,True,0.66664,0.64775,0.68645,1,C02,C02: har_ma_1 +1,True,0.66664,0.64775,0.68645,1,common,1,1,0,,
+baseline,lasso,shap,cluster,har_ma_125 +1,C03,C03: har_ma_25 +3,True,0.18272,0.16604,0.19912,2,C03,C03: har_ma_25 +1,True,0.18272,0.16604,0.19912,2,common,2,2,0,,
+baseline,lasso,shap,cluster,har_ma_3125,C05,C05: har_ma_3125 +1,True,0.0026621,0.0013854,0.0041415,14,har_ma_3125,har_ma_3125,True,0.0026621,0.0013854,0.0041415,14,common,14,14,0,,
+baseline,lasso,shap,cluster,har_ma_625,C04,C04: har_ma_625 +1,True,0.0048224,0.0023335,0.0076621,10,har_ma_625,har_ma_625,True,0.0048224,0.0023335,0.0076621,10,common,10,10,0,,
+baseline,lasso,shap,cluster,hour,hour,hour,False,0,0,0,0,hour,hour,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,cluster,is_close,is_close,is_close,False,0,0,0,0,is_close,is_close,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,cluster,is_month_end,is_month_end,is_month_end,True,0.0418,0.03359,0.04992,3,is_month_end,is_month_end,True,0.0418,0.03359,0.04992,3,common,3,3,0,,
+baseline,lasso,shap,cluster,is_open,is_open,is_open,False,0,0,0,0,is_open,is_open,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,cluster,is_opex,is_opex,is_opex,True,0.004444,0.0022699,0.0068709,11,is_opex,is_opex,True,0.004444,0.0022699,0.0068709,11,common,11,11,0,,
+baseline,lasso,shap,cluster,is_opex_week,is_opex_week,is_opex_week,True,0.0066607,0.0044171,0.009167,9,is_opex_week,is_opex_week,True,0.0066607,0.0044171,0.009167,9,common,9,9,0,,
+baseline,lasso,shap,cluster,is_overnight,is_overnight,is_overnight,False,0,0,0,0,is_overnight,is_overnight,False,0,0,0,0,ineligible,0,0,0,,
+baseline,lasso,shap,cluster,is_quad_witch +1,C01,C01: is_quad_witch +1,True,0.0095964,0.0072352,0.011868,7,C01,C01: is_quad_witch +1,True,0.0095964,0.0072352,0.011868,7,common,7,7,0,,
+baseline,lasso,shap,cluster,is_quarter_end,is_quarter_end,is_quarter_end,True,0.0038272,0.0024123,0.0053072,13,is_quarter_end,is_quarter_end,True,0.0038272,0.0024123,0.0053072,13,common,13,13,0,,

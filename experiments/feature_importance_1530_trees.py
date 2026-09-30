@@ -35,9 +35,27 @@ from pathlib import Path
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[1]
-OUT = REPO / "results" / "feature_importance_1530"
+
+
+def _root(env: str, default: str) -> Path:
+    """A result root: the env var if set (relative = to the repo), else the first pass's."""
+    q = Path(os.environ.get(env, default))
+    return q if q.is_absolute() else REPO / q
+
+
+# FEATIMP_OUT / FEATIMP_TREES re-point a re-run (the de-duplicated per-bar design:
+# experiments/feature_importance_1530_dedup.py) at its own root and stored tree runs;
+# unset, they are the first pass's.
+OUT = _root("FEATIMP_OUT", "results/feature_importance_1530")
 WORK = Path(os.environ.get("FEATIMP_WORK", str(OUT / "_work")))
-TREES = REPO / "results" / "linear_subsection_trees"
+TREES = _root("FEATIMP_TREES", "results/linear_subsection_trees")
+# FEATIMP_WINDOW_MASK=1: every tree refit (and probe fit) uses only the columns
+# src/models/window_mask.window_keep keeps on its own training window [t - W, t) -- the
+# per-bar linear arms' identifiability mask applied to the trees (user decision
+# 2026-09-29); MDI, split count and TreeSHAP of the kept columns are scattered back to all
+# p columns with 0 for a dropped column (the model never saw it), and permuting a dropped
+# column leaves the forecast unchanged (0, exactly).  Unset / 0 = the first pass (no mask).
+WINDOW_MASK = os.environ.get("FEATIMP_WINDOW_MASK", "0") == "1"
 SEG = "bar1600"
 TW = 2000  # sessions in every training window (the per-bar campaign's TRAIN_WIN)
 # sessions between tree refits (specs/causal_tune_trees.py REFIT_EVERY)
@@ -215,6 +233,33 @@ def tree_shap(model_name: str, m, X: np.ndarray) -> np.ndarray:
     return np.column_stack([sv, np.full(len(X), ev)])
 
 
+def window_cols(Xtr: np.ndarray) -> np.ndarray:
+    """The columns a refit on the window Xtr may use: all of them without the mask, else
+    src/models/window_mask.window_keep (constant columns and exact copies removed)."""
+    if not WINDOW_MASK:
+        return np.arange(Xtr.shape[1], dtype=np.int64)
+    sys.path.insert(0, str(REPO))
+    from src.models.window_mask import window_keep
+
+    return window_keep(Xtr)
+
+
+def sub(A: np.ndarray, keep: np.ndarray) -> np.ndarray:
+    """The kept columns of A (A itself when every column is kept: the first pass's arrays)."""
+    return A if len(keep) == A.shape[1] else A[:, keep]
+
+
+def spread(values: np.ndarray, keep: np.ndarray, p: int) -> np.ndarray:
+    """Per-kept-column values back on all p columns (0 for dropped ones; a trailing
+    expected-value column is carried over): src/models/window_mask.scatter."""
+    if len(keep) == p:
+        return np.asarray(values, dtype=np.float64)
+    sys.path.insert(0, str(REPO))
+    from src.models.window_mask import scatter
+
+    return scatter(values, keep, p)
+
+
 def perm_losses(
     predict,
     Xt: np.ndarray,
@@ -299,6 +344,8 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
                 "probe_dq",
                 "probe_dm",
                 "probe_q0",
+                "n_keep",
+                "kept",
             )
         }
         t_all = time.time()
@@ -306,20 +353,26 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
             i, t, kk = tail_rows(d, k)
             Xtr, ytr = X[t - W : t], y[t - W : t]
             Xt, yt = X[t : t + kk], y[t : t + kk]
+            keep = window_cols(Xtr)  # all p columns unless FEATIMP_WINDOW_MASK=1
+            kept = np.zeros(p, dtype=bool)
+            kept[keep] = True
+            rec["n_keep"].append(len(keep))
+            rec["kept"].append(kept)
             a = time.time()
             m = make_model(mdl, thr)
-            m.fit(Xtr, ytr)
+            m.fit(sub(Xtr, keep), ytr)
             rec["fit_sec"].append(time.time() - a)
-            pred = m.predict(Xt)
+            pred = m.predict(sub(Xt, keep))
             rec["pred"].append(pred)
             rec["pred_gap"].append(
                 float(np.max(np.abs(pred - d[f"stored_{mdl}"][i : i + kk])))
             )
-            gain, split = native(mdl, m, p)
+            gain, split = native(mdl, m, len(keep))
+            gain, split = spread(gain, keep, p), spread(split, keep, p)
             rec["mdi"].append(gain)
             rec["split"].append(split)
             a = time.time()
-            sh = tree_shap(mdl, m, Xt)
+            sh = spread(tree_shap(mdl, m, sub(Xt, keep)), keep, p)
             rec["shap_sec"].append(time.time() - a)
             rec["shap"].append(sh.astype(np.float32))
             rec["shap_gap"].append(float(np.max(np.abs(sh.sum(axis=1) - pred))))
@@ -335,7 +388,9 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
             )
             a = time.time()
             dq, dm, sq = perm_losses(
-                m.predict,
+                (lambda Z, m=m, keep=keep: m.predict(Z[:, keep]))
+                if len(keep) < p
+                else m.predict,
                 Xt,
                 Xtr,
                 units,
@@ -409,6 +464,8 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
             probe_dq=np.array(rec["probe_dq"]).reshape(-1, 2, len(PROBE_NAMES)),
             probe_dm=np.array(rec["probe_dm"]).reshape(-1, 2, len(PROBE_NAMES)),
             probe_q0=np.array(rec["probe_q0"]),
+            n_keep=np.array(rec["n_keep"], dtype=np.int64),
+            kept=np.array(rec["kept"], dtype=bool),
             meta=json.dumps(
                 dict(
                     bucket=bucket,
@@ -422,6 +479,7 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
                     probe_every=PROBE_EVERY,
                     probe_seed=PROBE_SEED,
                     probe_names=PROBE_NAMES,
+                    window_mask=WINDOW_MASK,
                     versions=versions,
                     wall_sec=time.time() - t_all,
                 )
@@ -448,11 +506,15 @@ def probe(rec, mdl, thr, k, Xtr, ytr, Xt, yt, rv, base, W) -> None:
     Ptr = np.hstack([Xtr, noise[: len(Xtr)]])
     Pt = np.hstack([Xt, noise[len(Xtr) :]])
     p = Ptr.shape[1]
+    keep = window_cols(
+        Ptr
+    )  # the probe fit's own window mask (the noise is always kept)
     m = make_model(mdl, thr)
-    m.fit(Ptr, ytr)
-    pred = m.predict(Pt)
-    gain, split = native(mdl, m, p)
-    sh = tree_shap(mdl, m, Pt)[:, :-1]
+    m.fit(sub(Ptr, keep), ytr)
+    pred = m.predict(sub(Pt, keep))
+    gain, split = native(mdl, m, len(keep))
+    gain, split = spread(gain, keep, p), spread(split, keep, p)
+    sh = spread(tree_shap(mdl, m, sub(Pt, keep)), keep, p)[:, :-1]
     shap_abs = np.abs(sh).mean(axis=0)
     q0 = float(qlike(rv, pred, base).mean())
     m0 = float(((yt - pred) ** 2).mean())
@@ -463,7 +525,18 @@ def probe(rec, mdl, thr, k, Xtr, ytr, Xt, yt, rv, base, W) -> None:
     p1 = np.argsort(r2.random((npb, N_REPEATS, kk)), axis=2, kind="stable")
     p2 = np.floor(r2.random((npb, N_REPEATS, kk)) * W).astype(np.int64)
     dq, dm, _ = perm_losses(
-        m.predict, Pt, Ptr, units, np.arange(npb), p1, p2, rv, base, yt, q0, m0
+        (lambda Z: m.predict(Z[:, keep])) if len(keep) < p else m.predict,
+        Pt,
+        Ptr,
+        units,
+        np.arange(npb),
+        p1,
+        p2,
+        rv,
+        base,
+        yt,
+        q0,
+        m0,
     )
 
     rec["probe_k"].append(k)

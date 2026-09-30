@@ -1,0 +1,6 @@
+_work/
+_scratch/
+# the no-mask rung: its per-measure tables and figures stay local; every tree unit's no-mask value
+# is in ../feature_importance_1530_dedup/before_after_ranks_<bucket>_<model>.csv
+by_measure/
+*.png

@@ -1,7 +1,13 @@
 """Write writeup/feature_importance_1530.tex (+ pdf) and results/feature_importance_1530/SUMMARY.md
 from the tables of experiments/feature_importance_1530.py (run its stages first: design, inputs,
 the tree fleet, capture_baseline, linear, aggregate).  Every number below is read from those
-tables; nothing is typed in."""
+tables; nothing is typed in.
+
+``--root <dir> --stem <name> --dedup``: the re-run on the de-duplicated per-bar design with the
+per-window tree mask (checklist I7; experiments/feature_importance_1530_dedup.py), read from its
+root, written to <root>/SUMMARY.md and writeup/<name>.tex (+ pdf), with its own gates and the
+before / after section (writeup/feature_importance_1530_dedup_sections.py).  Without flags the
+output is the first pass's, unchanged."""
 
 from __future__ import annotations
 
@@ -15,6 +21,9 @@ import pandas as pd
 R = Path(__file__).resolve().parent.parent
 OUT = R / "results" / "feature_importance_1530"
 BY = OUT / "by_measure"
+ROOT_REL = "results/feature_importance_1530"  # the figures' path from writeup/
+STEM = "feature_importance_1530"  # writeup/<STEM>.tex / .pdf
+DEDUP = False  # --dedup: the re-run on the de-duplicated per-bar design (checklist I7)
 TREES = ("lgbm", "xgb", "rf")
 LIN = ("ridge", "lasso")
 MODELS = LIN + TREES
@@ -88,7 +97,28 @@ def f2(x: float) -> str:
     return f"{x:.2f}"
 
 
-def main() -> None:  # noqa: C901 - one report
+def configure(argv: list[str] | None) -> None:
+    """The root / output stem / mode from the command line (defaults = the first pass)."""
+    import argparse
+
+    global OUT, BY, ROOT_REL, STEM, DEDUP
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--root", default=ROOT_REL)
+    ap.add_argument("--stem", default=STEM)
+    ap.add_argument("--dedup", action="store_true")
+    a = ap.parse_args(argv)
+    ROOT_REL, STEM, DEDUP = a.root.replace("\\", "/").rstrip("/"), a.stem, a.dedup
+    OUT = R / ROOT_REL
+    BY = OUT / "by_measure"
+
+
+def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
+    configure(argv)
+    if DEDUP:
+        import sys
+
+        sys.path.insert(0, str(R / "writeup"))
+        import feature_importance_1530_dedup_sections as DS
     S = json.loads((OUT / "aggregate_meta.json").read_text(encoding="utf-8"))
     G = pd.read_csv(OUT / "gates.csv")
     CW = pd.read_csv(OUT / "rank_corr_within_model.csv")
@@ -567,15 +597,32 @@ def main() -> None:  # noqa: C901 - one report
         "model"
     )
     md += [
-        "# Feature importance of the 15:30 forecast (16:00 bar) -- the professor's four measures",
+        "# Feature importance of the 15:30 forecast (16:00 bar) -- the professor's four measures"
+        + (
+            " -- re-run on the de-duplicated per-bar design, every tree fit window-masked"
+            if DEDUP
+            else ""
+        ),
         "",
+    ]
+    if DEDUP:
+        md += DS.intro_md(OUT, K)
+    md += [
         f"Models: per-bar ridge and lasso (every-session re-solve, causal penalty), untuned per-bar LightGBM, XGBoost and random forest (refit every {10} sessions) -- the shipped configurations. "
         f"Window: the 2000 sessions before each refit. Forecasts: {n:,} sessions {first} .. {last}; {K} refits; each refit's CAUSAL held-out tail = the <= 10 sessions its model forecasts, up to the next refit (never seen in its fit). "
-        "Buckets: live_feasible (the deck's), all_features, baseline = HAR + calendar. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`.",
+        + (
+            "Buckets: live_feasible (the deck's), all_features, baseline = HAR + calendar. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`."
+            if not DEDUP
+            else DS.buckets_md(ROOT_REL, STEM)
+        ),
         "",
         "## Key (design column names)",
-        "`har_ma_*` realized variance of the bar (the target's own HAR ladder; `*` = mean over the last 1, 5, 25, 125, 625, 3125 bars; `har_ma_*_x_close` = the same times the 16:00 close gate, identical at this bar); "
-        "`adj_sumabsret_ma_*` absolute return; `adj_sumret_ma_*` signed return; `adj_sumret3/4_ma_*` 3rd / 4th-power returns; `adj_sumpret2_ma_*` upside squared returns; `adj_sumbipow_ma_*` bipower variation; `adj_sumautocov_ma_*` return autocovariance; "
+        (
+            "`har_ma_*` realized variance of the bar (the target's own HAR ladder; `*` = mean over the last 1, 5, 25, 125, 625, 3125 bars; `har_ma_*_x_close` = the same times the 16:00 close gate, identical at this bar); "
+            if not DEDUP
+            else "`har_ma_*` realized variance of the bar (the target's own HAR ladder; `*` = mean over the last 1, 5, 25, 125, 625, 3125 bars; the per-bar design no longer carries the `har_ma_*_x_open` / `_x_close` session-edge interactions); "
+        )
+        + "`adj_sumabsret_ma_*` absolute return; `adj_sumret_ma_*` signed return; `adj_sumret3/4_ma_*` 3rd / 4th-power returns; `adj_sumpret2_ma_*` upside squared returns; `adj_sumbipow_ma_*` bipower variation; `adj_sumautocov_ma_*` return autocovariance; "
         "`adj_sumvolume_ma_*` ES volume; `adj_numobs_ma_*` ES prints per bar; `adj_vix_ma_*`, `adj_vvix_ma_*`, `adj_vix3m_ma_*` the Cboe indices; `adj_fomc_*` FOMC flags / distances; `*_avail_ma_*` / `*_active_ma_*` is-present / is-nonzero flags of a source; "
         "calendar = `DOW_*`, `is_*`, `hour`, `days_to_opex`. all_features adds the constituent cross-section (`*_ewstock`, `*_vwstock`: moments, turnover, spreads, order-flow imbalance `ofi_*`), Cboe volume (`adj_voldemand_*`) and StockTwits (`adj_stocktwits_*`). "
         "A SERIES = all columns of one input (lags, flags, gates); a CLUSTER = columns every pair of which correlates >= 0.8 in absolute value (complete linkage).",
@@ -625,7 +672,12 @@ def main() -> None:  # noqa: C901 - one report
             f"{100 * c_lf.loc[m, 'shap_real_columns_below_share']:.0f} %" for m in TREES
         )
         + " of used real columns): it splits the fitted trees, including their fits to noise.",
-        "- At the SERIES level the bias washes out of the headline: every tree measure puts `har_ma_*` first. It matters for everything below the leader.",
+        (
+            "- At the SERIES level the bias washes out of the headline: every tree measure puts `har_ma_*` first. It matters for everything below the leader."
+            if not DEDUP
+            else "- At the SERIES level: "
+            + DS.tree_leaders_md(lead, TREES, TREE_M, BUCKETS)
+        ),
         "- What permutation says instead (series in the top 5 by MDI or split count that permutation P2 ranks outside its top 10; permutation rank in brackets): "
         + "; ".join(
             f"{BNAME[b]} {LABEL[m]}: "
@@ -733,29 +785,36 @@ def main() -> None:  # noqa: C901 - one report
         "",
         "## Tuned trees",
         (
-            f"The causally tuned trees' own extracts (`results/linear_subsection_trees_tuned/importance/`: gain per refit, TreeSHAP rows at 16:00): `har_ma_*` leads both MDI and SHAP in {tuned_lead[0]} of {tuned_lead[1]} bucket x model arms; shares tuned vs untuned in `tuned_trees_series.csv` and PDF Table 13. Split count and permutation were not computed for the tuned trees (their per-refit chosen configurations would have to be refitted)."
-            if tuned_ok and tuned_lead is not None
+            DS.tuned_md(tuned_ok, tuned_lead)
+            if DEDUP
+            else f"The causally tuned trees' own extracts (`results/linear_subsection_trees_tuned/importance/`: gain per refit, TreeSHAP rows at 16:00): `har_ma_*` leads both MDI and SHAP in {tuned_lead[0]} of {tuned_lead[1]} bucket x model arms; shares tuned vs untuned in `tuned_trees_series.csv` and PDF Table 13. Split count and permutation were not computed for the tuned trees (their per-refit chosen configurations would have to be refitted)."
+            if DEDUP or (tuned_ok and tuned_lead is not None)
             else "Pending: the tuned-tree importance extracts were not present."
         ),
         "",
-        "## Gates",
-        f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 3 x 147; mean gap {xr_mean:.1e}); LightGBM reproduces them bit for bit on HAR + calendar (gap {lg_gap['baseline'][1]:.1e}) but not on live_feasible / all_features: mean |gap| {lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
-        "- The design: out-of-sample stamps, targets and column names equal the stored runs'; the linear coefficient captures equal the design rows exactly and the stored research forecasts to <= "
-        + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e} (relative).",
-        "- Drop-column anchors: the re-solve on the window before the tail reproduces the captured coefficients (ridge <= "
-        + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}; lasso <= {max(an[b]['lasso'] for b in BUCKETS):.0e}, above 1e-6 on "
-        + " / ".join(str(v) for v in anch_n["lasso"])
-        + " of 147 refits (HAR + calendar / live_feasible / all_features); the re-solve masks constant and duplicate columns of its own window, the walk keeps a between-tune mask). The all_features lasso refits 75..124 (penalty 0.001, 115-120 active columns) ran on the cluster (`cluster/slurm/submit_featimp_linear.sh`), the rest locally; the 53 parts partition the 147 refits (checked).",
-        "- Every model of a bucket saw the identical permutation draws (md5 per refit equal across the five models, 147/147).",
-        "- TreeSHAP additivity: sum of phi + expected value = forecast to <= "
-        + f"{max(float(gl.loc[(b, m), 'shap_additivity_max']) for b in BUCKETS for m in TREES):.0e}.",
-        "",
-        "## Files",
-        "- `by_measure/imp_<bucket>_<model>_<measure>.csv` (one per measure x model x bucket; rows = columns, series and clusters: value, 95 % interval over refits, rank, top-5 share, % of loss, median refit, largest single-refit share, by-year and by-VIX-tercile means, SHAP signed mean)",
-        "- `series_level_all.csv`, `rank_corr_within_model.csv`, `rank_corr_across_models.csv`, `top5_stability.csv`, `stability_by_stratum.csv`, `unique_values.csv`, `cardinality_vs_measure.csv`, `noise_probes.csv`, `clusters.csv`, `cluster_dilution.csv`, `tuned_trees_series.csv`, `gates.csv`",
-        "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), `fig_cardinality_live_feasible.png`, `fig_top5_stability_live_feasible.png`",
-        "- cluster twins: `cluster/slurm/{ship_featimp_carc.sh, submit_featimp.sh, featimp_pack.sbatch, featimp_collect.sbatch}`, `cluster/featimp_tasks*.txt` (tree refits); `cluster/slurm/{ship_featimp_linear_carc.sh, submit_featimp_linear.sh, featimp_linear.sbatch}`, `cluster/featimp_linear_tasks*.txt` (the slow lasso drop-column refits)",
     ]
+    if DEDUP:
+        md += DS.gates_md(OUT, G) + DS.before_after_md(OUT) + DS.files_md(ROOT_REL)
+    else:
+        md += [
+            "## Gates",
+            f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 3 x 147; mean gap {xr_mean:.1e}); LightGBM reproduces them bit for bit on HAR + calendar (gap {lg_gap['baseline'][1]:.1e}) but not on live_feasible / all_features: mean |gap| {lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
+            "- The design: out-of-sample stamps, targets and column names equal the stored runs'; the linear coefficient captures equal the design rows exactly and the stored research forecasts to <= "
+            + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e} (relative).",
+            "- Drop-column anchors: the re-solve on the window before the tail reproduces the captured coefficients (ridge <= "
+            + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}; lasso <= {max(an[b]['lasso'] for b in BUCKETS):.0e}, above 1e-6 on "
+            + " / ".join(str(v) for v in anch_n["lasso"])
+            + " of 147 refits (HAR + calendar / live_feasible / all_features); the re-solve masks constant and duplicate columns of its own window, the walk keeps a between-tune mask). The all_features lasso refits 75..124 (penalty 0.001, 115-120 active columns) ran on the cluster (`cluster/slurm/submit_featimp_linear.sh`), the rest locally; the 53 parts partition the 147 refits (checked).",
+            "- Every model of a bucket saw the identical permutation draws (md5 per refit equal across the five models, 147/147).",
+            "- TreeSHAP additivity: sum of phi + expected value = forecast to <= "
+            + f"{max(float(gl.loc[(b, m), 'shap_additivity_max']) for b in BUCKETS for m in TREES):.0e}.",
+            "",
+            "## Files",
+            "- `by_measure/imp_<bucket>_<model>_<measure>.csv` (one per measure x model x bucket; rows = columns, series and clusters: value, 95 % interval over refits, rank, top-5 share, % of loss, median refit, largest single-refit share, by-year and by-VIX-tercile means, SHAP signed mean)",
+            "- `series_level_all.csv`, `rank_corr_within_model.csv`, `rank_corr_across_models.csv`, `top5_stability.csv`, `stability_by_stratum.csv`, `unique_values.csv`, `cardinality_vs_measure.csv`, `noise_probes.csv`, `clusters.csv`, `cluster_dilution.csv`, `tuned_trees_series.csv`, `gates.csv`",
+            "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), `fig_cardinality_live_feasible.png`, `fig_top5_stability_live_feasible.png`",
+            "- cluster twins: `cluster/slurm/{ship_featimp_carc.sh, submit_featimp.sh, featimp_pack.sbatch, featimp_collect.sbatch}`, `cluster/featimp_tasks*.txt` (tree refits); `cluster/slurm/{ship_featimp_linear_carc.sh, submit_featimp_linear.sh, featimp_linear.sbatch}`, `cluster/featimp_linear_tasks*.txt` (the slow lasso drop-column refits)",
+        ]
     (OUT / "SUMMARY.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (OUT / "summary_numbers.json").write_text(
         json.dumps(N, indent=1, default=str), encoding="utf-8"
@@ -787,7 +846,9 @@ def main() -> None:  # noqa: C901 - one report
         return (
             "\\begin{figure}[H]\\centering\\includegraphics[width="
             + width
-            + "]{../results/feature_importance_1530/"
+            + "]{../"
+            + ROOT_REL
+            + "/"
             + path
             + "}\n\\caption{"
             + caption
@@ -795,8 +856,12 @@ def main() -> None:  # noqa: C901 - one report
         )
 
     key = (
-        "\\texttt{har\\_ma\\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; \\texttt{har\\_ma\\_*\\_x\\_close} = the same times the 16:00 close gate, identical at this bar); "
-        "\\texttt{adj\\_sumabsret\\_ma\\_*} absolute return; \\texttt{adj\\_sumret\\_ma\\_*} signed return; \\texttt{adj\\_sumret3/4\\_ma\\_*} 3rd/4th-power returns; \\texttt{adj\\_sumpret2\\_ma\\_*} upside squared returns; "
+        (
+            "\\texttt{har\\_ma\\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; \\texttt{har\\_ma\\_*\\_x\\_close} = the same times the 16:00 close gate, identical at this bar); "
+            if not DEDUP
+            else "\\texttt{har\\_ma\\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; the per-bar design no longer carries the session-edge interactions \\texttt{har\\_ma\\_*\\_x\\_open/close}); "
+        )
+        + "\\texttt{adj\\_sumabsret\\_ma\\_*} absolute return; \\texttt{adj\\_sumret\\_ma\\_*} signed return; \\texttt{adj\\_sumret3/4\\_ma\\_*} 3rd/4th-power returns; \\texttt{adj\\_sumpret2\\_ma\\_*} upside squared returns; "
         "\\texttt{adj\\_sumbipow\\_ma\\_*} bipower variation; \\texttt{adj\\_sumautocov\\_ma\\_*} return autocovariance; \\texttt{adj\\_sumvolume\\_ma\\_*} ES volume; \\texttt{adj\\_numobs\\_ma\\_*} ES prints per bar; "
         "\\texttt{adj\\_vix/vvix/vix3m\\_ma\\_*} the Cboe indices; \\texttt{adj\\_fomc\\_*} FOMC flags and distances; \\texttt{*\\_avail/active\\_ma\\_*} is-present / is-nonzero flags; calendar = \\texttt{DOW\\_*}, \\texttt{is\\_*}, \\texttt{hour}, \\texttt{days\\_to\\_opex}. "
         "all features adds the constituent cross-section (\\texttt{*\\_ewstock}, \\texttt{*\\_vwstock}), Cboe volume (\\texttt{adj\\_voldemand\\_*}) and StockTwits (\\texttt{adj\\_stocktwits\\_*})."
@@ -807,11 +872,15 @@ def main() -> None:  # noqa: C901 - one report
 \usepackage{graphicx,booktabs,amsmath,float}
 \usepackage[font=small]{caption}
 \begin{document}
-\begin{center}{\Large\bf Feature importance of the 15:30 forecast (16:00 bar)}\\[3pt]
+\begin{center}{\Large\bf Feature importance of the 15:30 forecast (16:00 bar)"""
+        + (r"\\ re-run on the de-duplicated per-bar design" if DEDUP else "")
+        + r"""}\\[3pt]
 {\small MDI, split count, permutation importance on the causal held-out tail, SHAP --- trees and the per-bar linear models; """
         + f"{n:,} forecasts {first} .. {last}, {K} refits"
         + r"""}\end{center}
-
+"""
+        + (DS.intro_tex(OUT, K) if DEDUP else "")
+        + r"""
 \textbf{Setup.} Models: per-bar ridge and lasso (coefficients re-solved every session, penalty re-chosen causally every 250 sessions) and the untuned per-bar LightGBM, XGBoost and random forest (refit every 10 sessions) --- the shipped configurations. Every fit uses the 2000 sessions before it. A refit's \emph{held-out tail} is the $\le 10$ sessions its model forecasts, up to the next refit: never in its fit, so a loss change measured there is out of sample and causal. Buckets: live-feasible (the deck's), all features, and HAR + calendar. Library: scikit-learn 1.9.0 (random forest), LightGBM 4.6.0, XGBoost 3.2.0, shap 0.51.0; the permutation and drop-column loops are written out, because a library permutation routine scores one fitted model on one test set, not """
         + str(K)
         + r""" walk-forward models on their own tails.
@@ -866,7 +935,14 @@ def main() -> None:  # noqa: C901 - one report
         + f"{rng_[('live_feasible', 'mdi')][0]:.2f}--{rng_[('live_feasible', 'shap')][1]:.2f}"
         + r""" with the number of distinct values, permutation """
         + f"{min(rng_[('live_feasible', 'perm_p1_qlike')][0], rng_[('live_feasible', 'perm_p2_qlike')][0]):.2f}--{max(rng_[('live_feasible', 'perm_p1_qlike')][1], rng_[('live_feasible', 'perm_p2_qlike')][1]):.2f}"
-        + r""". So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first. Series that MDI or split count puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): """
+        + r""". So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. """
+        + (
+            r"At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first."
+            if not DEDUP
+            else "At the series level: "
+            + DS.tree_leaders_tex(lead, TREES, TREE_M, BUCKETS)
+        )
+        + r""" Series that MDI or split count puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): """
         + "; ".join(
             f"{BNAME[b_]} {LABEL[m_]}: "
             + (", ".join(f"{tt(x)} ({r_})" for x, r_ in v) if v else "none")
@@ -1001,28 +1077,35 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
             else tuned_note
         )
         + r"""
-\section*{8. Gates}
+"""
+        + (DS.gates_tex(OUT, G) + DS.before_after_tex(OUT, ROOT_REL) if DEDUP else "")
+        + (
+            ""
+            if DEDUP
+            else r"""\section*{8. Gates}
 \begin{itemize}\itemsep1pt
 \item Design: out-of-sample stamps, targets and column names equal the stored tree runs'; the linear captures equal the design rows exactly and the stored research forecasts to $\le$ """
-        + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e}"
-        + r""" (relative).
+            + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e}"
+            + r""" (relative).
 \item Refits: XGBoost and random forest reproduce the stored forecasts (largest gap """
-        + f"{xr_gap:.1e}"
-        + r"""; above $10^{-9}$ on """
-        + f"{gap_n['xgb']}"
-        + r""" XGBoost and """
-        + f"{gap_n['rf']}"
-        + r""" forest refits of the $3	imes147$). LightGBM reproduces them exactly on HAR + calendar but not on the two larger designs: mean $|$gap$|$ """
-        + f"{lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f}"
-        + r""" (same version, parameters, seed and thread count; deterministic run to run on two machines; XGBoost reproduces on the same input). The LightGBM numbers are those of the refit.
+            + f"{xr_gap:.1e}"
+            + r"""; above $10^{-9}$ on """
+            + f"{gap_n['xgb']}"
+            + r""" XGBoost and """
+            + f"{gap_n['rf']}"
+            + r""" forest refits of the $3	imes147$). LightGBM reproduces them exactly on HAR + calendar but not on the two larger designs: mean $|$gap$|$ """
+            + f"{lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f}"
+            + r""" (same version, parameters, seed and thread count; deterministic run to run on two machines; XGBoost reproduces on the same input). The LightGBM numbers are those of the refit.
 \item Drop-column anchors reproduce the captured coefficients (ridge $\le$ """
-        + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}, lasso $\\le$ {max(an[b]['lasso'] for b in BUCKETS):.0e}"
-        + r"""). Every model of a bucket saw identical permutation draws (md5 per refit). TreeSHAP additivity $\le$ """
-        + f"{max(float(gl.loc[(b, m), 'shap_additivity_max']) for b in BUCKETS for m in TREES):.0e}."
-        + r"""
+            + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}, lasso $\\le$ {max(an[b]['lasso'] for b in BUCKETS):.0e}"
+            + r"""). Every model of a bucket saw identical permutation draws (md5 per refit). TreeSHAP additivity $\le$ """
+            + f"{max(float(gl.loc[(b, m), 'shap_additivity_max']) for b in BUCKETS for m in TREES):.0e}."
+            + r"""
 \end{itemize}
 \sloppy Files: \texttt{experiments/\allowbreak feature\_importance\_1530.py} (design, inputs, linear, aggregate); \texttt{experiments/\allowbreak feature\_importance\_1530\_trees.py} (the refits, run on the cluster through \texttt{cluster/\allowbreak slurm/\allowbreak submit\_featimp.sh}); tables and figures in \texttt{results/\allowbreak feature\_importance\_1530/}; summary \texttt{SUMMARY.md}.
-
+"""
+        )
+        + r"""
 \appendix
 \section*{Appendix: HAR + calendar design}
 """
@@ -1053,10 +1136,10 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
 """
     )
     W = R / "writeup"
-    (W / "feature_importance_1530.tex").write_text(tex, encoding="utf-8")
+    (W / f"{STEM}.tex").write_text(tex, encoding="utf-8")
     for _ in range(2):
         r = subprocess.run(
-            ["pdflatex", "-interaction=nonstopmode", "feature_importance_1530.tex"],
+            ["pdflatex", "-interaction=nonstopmode", f"{STEM}.tex"],
             cwd=W,
             capture_output=True,
             text=True,

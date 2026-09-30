@@ -46,6 +46,7 @@ arrays in results/feature_importance_1530/_work/ (npz, not committed).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import time
@@ -68,6 +69,7 @@ from feature_importance_1530_trees import (  # noqa: E402
     TREE_MODELS,
     TW,
     WORK,
+    _root,
     _tree_npz,
     draws,
     load_input,
@@ -77,7 +79,10 @@ from feature_importance_1530_trees import (  # noqa: E402
 )
 
 SCRATCH = OUT / "_scratch"
-MD_OUT = REPO / "results" / "model_diagnostics_1530"
+# the live_feasible / all_features coefficient captures (FEATIMP_CAPTURES_MD re-points a
+# re-run at its own captures, made by the `capture` stage; unset = the first pass's)
+MD_OUT = _root("FEATIMP_CAPTURES_MD", "results/model_diagnostics_1530")
+MD_OUT_FIRST_PASS = REPO / "results" / "model_diagnostics_1530"
 # the four vendor files (live/close_signal/forecast.py vendor_root rule) and, for
 # all_features, the constituent cross-section and StockTwits files
 # (experiments/model_diagnostics_1530.py BUCKET_VENDOR_FILES)
@@ -290,7 +295,7 @@ def build_inputs(bucket: str) -> Path:
 # ============================================================================ linear
 LIN_EST = {"ridge": "ridge", "lasso": "reclasso"}  # label -> the spec's estimator arm
 CAPTURES = WORK / "linear_captures"
-STORED_LIN = REPO / "results" / "linear_subsection" / "arms_hoffman2"
+STORED_LIN = _root("FEATIMP_STORED_LIN", "results/linear_subsection/arms_hoffman2")
 
 
 def capture_path(bucket: str, est: str) -> Path:
@@ -319,6 +324,25 @@ def capture_baseline(est: str) -> None:
     md.SCRATCH = SCRATCH / "md_capture"
     md.BUCKET_VENDOR_FILES["baseline"] = md.VENDOR_FILES  # type: ignore[assignment]
     md.capture(LIN_EST[est], None, "baseline")
+
+
+def capture_bucket(bucket: str, est: str) -> Path:
+    """The capture of any bucket into the directory capture_path() reads it from (a
+    re-run's own FEATIMP_CAPTURES_MD; never the first pass's model-diagnostics captures)."""
+    if bucket == "baseline":
+        capture_baseline(est)
+        return capture_path(bucket, est)
+    assert MD_OUT.resolve() != MD_OUT_FIRST_PASS.resolve(), (
+        "set FEATIMP_CAPTURES_MD: the first pass's captures are not overwritten"
+    )
+    sys.path.insert(0, str(REPO / "experiments"))
+    import model_diagnostics_1530 as md
+
+    MD_OUT.mkdir(parents=True, exist_ok=True)
+    md.OUT = MD_OUT
+    md.SCRATCH = SCRATCH / "md_capture"
+    md.capture(LIN_EST[est], None, bucket)
+    return capture_path(bucket, est)
 
 
 def _mask_window(Xw: np.ndarray) -> np.ndarray:
@@ -370,14 +394,20 @@ def run_linear(bucket: str, est: str, k0: int = 0, k1: int | None = None) -> Pat
         .reindex(d["date_oos"])
         .to_numpy(float)
     )
-    g_st = float(np.max(np.abs(pred - sv) / np.abs(sv)))
+    rel_st = np.abs(pred - sv) / np.abs(sv)
+    g_st = float(np.max(rel_st))
+    n_st = int((rel_st > 1e-9).sum())
     print(
         f"[{bucket} {est}] GATES: capture rows = design rows (max gap {g_x:.1e}); "
         f"coef.x + intercept = forecast (rel {g_pred:.1e}); capture = stored research forecast "
-        f"(rel {g_st:.1e}); penalties {sorted({float(v) for v in alpha})}",
+        f"(rel {g_st:.1e}, {n_st} rows > 1e-9); penalties {sorted({float(v) for v in alpha})}",
         flush=True,
     )
-    assert g_x == 0.0 and g_pred < 1e-9 and g_st < 1e-6, (g_x, g_pred, g_st)
+    assert g_x == 0.0 and g_pred < 1e-9, (g_x, g_pred)
+    # FEATIMP_LIN_STORED_GATE=report (a re-run whose stored arm ran on another machine: the
+    # lasso's warm-homotopy float path differs by CPU architecture) records the gap instead
+    if os.environ.get("FEATIMP_LIN_STORED_GATE", "assert") != "report":
+        assert g_st < 1e-6, g_st
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
     ns = md._spec_namespace(LIN_EST[est], bucket) if est == "lasso" else None
@@ -489,7 +519,7 @@ def run_linear(bucket: str, est: str, k0: int = 0, k1: int | None = None) -> Pat
         phi=phi.astype(np.float32),
         pred=pred,
         alpha=alpha,
-        gates=json.dumps(dict(rows=g_x, coef=g_pred, stored=g_st)),
+        gates=json.dumps(dict(rows=g_x, coef=g_pred, stored=g_st, stored_rows=n_st)),
         done=done,
     )
     print(
@@ -632,6 +662,9 @@ def _tree_chunks(bucket: str, model: str) -> dict:
         "probe_q0",
     ):
         out[key] = np.concatenate([z[key] for z in zs])
+    for key in ("n_keep", "kept"):  # the window-masked refits' kept columns
+        if all(key in z.files for z in zs):
+            out[key] = np.concatenate([z[key] for z in zs])
     out["meta"] = [json.loads(str(z["meta"])) for z in zs]
     return out
 
@@ -809,6 +842,7 @@ def _load_model(bucket: str, model: str, d: dict) -> dict:
             pred_gap=T["pred_gap"],
             shap_gap=T["shap_gap"],
             draw_md5=T["draw_md5"],
+            n_keep=T.get("n_keep"),
             raw=T,
         )
     z = np.load(WORK / "linear" / f"linear_{bucket}_{model}.npz", allow_pickle=True)
@@ -968,8 +1002,22 @@ def aggregate(buckets: tuple[str, ...] = BUCKETS) -> None:  # noqa: C901 - one r
                     capture_vs_stored_rel=R["gates"]["stored"]
                     if "gates" in R
                     else np.nan,
+                    **(
+                        dict(capture_vs_stored_rows_1e9=R["gates"]["stored_rows"])
+                        if "gates" in R and "stored_rows" in R["gates"]
+                        else {}
+                    ),
                     tail_qlike_mean=float(np.average(R["q0"], weights=kk)),
                     tail_mse_mean=float(np.average(R["m0"], weights=kk)),
+                    **(
+                        dict(
+                            kept_columns_min=int(R["n_keep"].min()),
+                            kept_columns_median=float(np.median(R["n_keep"])),
+                            kept_columns_max=int(R["n_keep"].max()),
+                        )
+                        if R.get("n_keep") is not None
+                        else {}
+                    ),
                 )
             )
             assert same == K, (bucket, model, same)
@@ -1319,7 +1367,7 @@ def aggregate(buckets: tuple[str, ...] = BUCKETS) -> None:  # noqa: C901 - one r
 def tuned_trees(mean_tabs: dict) -> None:
     """The causally tuned trees' own importance extracts (MDI / gain and TreeSHAP at the
     16:00 bar), series level, beside the untuned trees' -- if the tuned run saved them."""
-    T = REPO / "results" / "linear_subsection_trees_tuned" / "importance"
+    T = _root("FEATIMP_TUNED_IMP", "results/linear_subsection_trees_tuned/importance")
     rows = []
     if not T.is_dir():
         pd.DataFrame([dict(note="tuned-tree importance extracts not present")]).to_csv(
@@ -1643,6 +1691,8 @@ if __name__ == "__main__":
             build_inputs(b)
     elif stage == "capture_baseline":
         capture_baseline(sys.argv[2])
+    elif stage == "capture":  # capture <bucket> <est>
+        capture_bucket(sys.argv[2], sys.argv[3])
     elif stage == "aggregate":
         aggregate(tuple(sys.argv[2].split(",")) if len(sys.argv) > 2 else BUCKETS)
     elif stage == "figures":
