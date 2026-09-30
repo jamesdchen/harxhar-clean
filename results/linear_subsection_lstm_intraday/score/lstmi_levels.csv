@@ -1,40 +1,40 @@
 bucket,forecast,what,n_days,qlike,sharpe_mid,sharpe_crossed,pct_buy
 live_feasible,intraday,"intraday-sequence LSTM, MSE rule (of record)",866,0.11031230578071992,1.5303400573806027,1.0592520834615993,37.06697459584296
 live_feasible,intraday_qsel,"intraday-sequence LSTM, QLIKE rule (recorded)",866,0.10797202243941505,1.7064037657504076,1.233048230936464,35.21939953810623
-live_feasible,perbar_lstm,"per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1)",866,0.12202685231022911,1.1304096090183553,0.6595880066353969,39.838337182448036
+live_feasible,perbar_lstm,"per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_live_feasible.parquet; agent H's masked run)",866,0.1192670166952756,0.9056314884885001,0.43294904625719366,37.75981524249423
 live_feasible,ridge,per-bar ridge,866,0.10054210376805882,1.9024666283565088,1.439631199377035,40.184757505773675
 live_feasible,best_tree,"subtree_daily_live_feasible_lgbm (lowest QLIKE of 45 tree tables on these days, chosen ex post)",866,0.09550666091271001,1.4216144663361887,0.9476631013284718,37.29792147806005
 live_feasible,tree:yhat_subtree_daily_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.09550666091271001,1.4216144663361887,0.9476631013284718,37.29792147806005
 live_feasible,tree:yhat_subtree_daily_live_feasible_rf,tree rung (candidate for best_tree),866,0.09875080214076402,1.4952600221085879,1.0233472681357385,39.95381062355658
 live_feasible,tree:yhat_subtree_daily_live_feasible_xgb,tree rung (candidate for best_tree),866,0.09859143245041886,1.530517549754774,1.0579762795658285,37.75981524249423
 live_feasible,tree:yhat_subtree_lgbm_live_feasible,tree rung (candidate for best_tree),866,0.09911051540364507,1.5909251905468287,1.1233103389113137,39.838337182448036
-live_feasible,tree:yhat_subtree_optuna_tp1_k10_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10229842769728495,1.5051054659023733,1.0331892688737176,38.106235565819865
+live_feasible,tree:yhat_subtree_optuna_tp1_k10_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10220300917961748,1.5109511677786192,1.0384906922201327,37.644341801385686
 live_feasible,tree:yhat_subtree_optuna_tp1_k10_live_feasible_rf,tree rung (candidate for best_tree),866,0.1000791415757665,1.6614049009697573,1.189991931972017,38.91454965357968
-live_feasible,tree:yhat_subtree_optuna_tp1_k10_live_feasible_xgb,tree rung (candidate for best_tree),866,0.1022014522719005,1.3965882129752445,0.9227650328789174,38.799076212471135
-live_feasible,tree:yhat_subtree_optuna_tp1_k25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10298566940267592,0.9279433796600363,0.4526339175739433,39.03002309468822
+live_feasible,tree:yhat_subtree_optuna_tp1_k10_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10229533202390902,1.3965882129752445,0.9227650328789174,38.799076212471135
+live_feasible,tree:yhat_subtree_optuna_tp1_k25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10187314113754667,1.106368590720072,0.6317223106597185,38.91454965357968
 live_feasible,tree:yhat_subtree_optuna_tp1_k25_live_feasible_rf,tree rung (candidate for best_tree),866,0.10068197808305132,1.674301551456504,1.2029884708929126,39.95381062355658
-live_feasible,tree:yhat_subtree_optuna_tp1_k25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10165951564422065,0.9724216969827986,0.4917781903145067,37.644341801385686
-live_feasible,tree:yhat_subtree_optuna_tp1_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10197225672202846,0.9177816226968357,0.4418070476002382,37.87528868360277
+live_feasible,tree:yhat_subtree_optuna_tp1_k25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10158822960418216,0.9506791392116739,0.4703721836944466,37.644341801385686
+live_feasible,tree:yhat_subtree_optuna_tp1_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10260495289243897,0.8732974615891267,0.3987417318954369,38.68360277136259
 live_feasible,tree:yhat_subtree_optuna_tp1_live_feasible_rf,tree rung (candidate for best_tree),866,0.10023990457853539,1.4078526422780335,0.9360846974308935,39.14549653579677
-live_feasible,tree:yhat_subtree_optuna_tp1_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10042800060529812,0.9638472647046779,0.48609143486471734,38.799076212471135
-live_feasible,tree:yhat_subtree_optuna_tp250_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10576366250993281,1.1521616197358546,0.6779384107167751,39.4919168591224
+live_feasible,tree:yhat_subtree_optuna_tp1_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10071100975917237,0.9746389229916451,0.4966307492370232,38.4526558891455
+live_feasible,tree:yhat_subtree_optuna_tp250_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10554284377102319,1.4187488048960037,0.9540324531419697,40.415704387990765
 live_feasible,tree:yhat_subtree_optuna_tp250_live_feasible_rf,tree rung (candidate for best_tree),866,0.10831374722081052,1.4677315980728842,0.9961523956176707,40.531177829099306
-live_feasible,tree:yhat_subtree_optuna_tp250_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10191935882846831,1.6740060138733062,1.2120500955991906,40.7621247113164
-live_feasible,tree:yhat_subtree_optuna_tp25_k10_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.1051745809871642,1.2673012164733237,0.7942925484703389,39.4919168591224
+live_feasible,tree:yhat_subtree_optuna_tp250_live_feasible_xgb,tree rung (candidate for best_tree),866,0.1023654599119958,1.6428466133608859,1.1795643530492186,40.184757505773675
+live_feasible,tree:yhat_subtree_optuna_tp25_k10_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10359922655623643,1.2991020326982705,0.8254830193586316,39.14549653579677
 live_feasible,tree:yhat_subtree_optuna_tp25_k10_live_feasible_rf,tree rung (candidate for best_tree),866,0.1003120811234526,1.4122637079343325,0.9332022544773619,38.91454965357968
 live_feasible,tree:yhat_subtree_optuna_tp25_k10_live_feasible_xgb,tree rung (candidate for best_tree),866,0.1031767848781028,1.3214574779747161,0.8559491299072028,39.37644341801386
-live_feasible,tree:yhat_subtree_optuna_tp25_k25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10433833322922567,1.2321135433099863,0.7603930229899031,39.14549653579677
+live_feasible,tree:yhat_subtree_optuna_tp25_k25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10626228674261746,1.4320813152088625,0.9633668142831734,39.4919168591224
 live_feasible,tree:yhat_subtree_optuna_tp25_k25_live_feasible_rf,tree rung (candidate for best_tree),866,0.10385087179383201,0.9622463811985625,0.48559530334642476,38.91454965357968
-live_feasible,tree:yhat_subtree_optuna_tp25_k25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10318816223873113,1.0901449133094805,0.6084233365297417,37.52886836027714
-live_feasible,tree:yhat_subtree_optuna_tp25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10100656299583838,1.308459948845048,0.8350533020995897,37.52886836027714
+live_feasible,tree:yhat_subtree_optuna_tp25_k25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10297471413601925,1.1170153901575106,0.6348744685553489,37.41339491916859
+live_feasible,tree:yhat_subtree_optuna_tp25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10687159165520989,1.317001300086143,0.8468507911233232,38.106235565819865
 live_feasible,tree:yhat_subtree_optuna_tp25_live_feasible_rf,tree rung (candidate for best_tree),866,0.10316417864357631,0.8448152140945843,0.37028016346009796,38.91454965357968
-live_feasible,tree:yhat_subtree_optuna_tp25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10334664336721473,1.5788725149882583,1.102998506191159,37.87528868360277
-live_feasible,tree:yhat_subtree_optuna_tp5_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10045336259855749,1.3198341010981585,0.8479849513486568,37.52886836027714
+live_feasible,tree:yhat_subtree_optuna_tp25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10246046641037072,1.6027235645456683,1.12668776748816,37.75981524249423
+live_feasible,tree:yhat_subtree_optuna_tp5_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10190931457919523,1.289961845769041,0.8191673655907975,37.99076212471132
 live_feasible,tree:yhat_subtree_optuna_tp5_live_feasible_rf,tree rung (candidate for best_tree),866,0.10063223545816227,1.3173515581124065,0.8458357386612217,39.260969976905315
-live_feasible,tree:yhat_subtree_optuna_tp5_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10181871698596652,1.0369176341943025,0.5583009422492177,38.4526558891455
-live_feasible,tree:yhat_subtree_optunaq_tp25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.10506260613916506,1.136685817992856,0.6621551395020836,37.644341801385686
+live_feasible,tree:yhat_subtree_optuna_tp5_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10133858821409904,1.0253511560948598,0.5468079624649899,38.33718244803695
+live_feasible,tree:yhat_subtree_optunaq_tp25_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.1036938623184474,1.225075096275655,0.7519498883536195,37.1824480369515
 live_feasible,tree:yhat_subtree_optunaq_tp25_live_feasible_rf,tree rung (candidate for best_tree),866,0.09985187286147709,1.2312390629040784,0.7584694726493456,38.4526558891455
-live_feasible,tree:yhat_subtree_optunaq_tp25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10190198087771991,1.659025328537977,1.1821812070111388,36.83602771362587
+live_feasible,tree:yhat_subtree_optunaq_tp25_live_feasible_xgb,tree rung (candidate for best_tree),866,0.10218432898732213,1.648035773040464,1.171213364634652,36.489607390300236
 live_feasible,tree:yhat_subtree_rf_live_feasible,tree rung (candidate for best_tree),866,0.10183310643553427,1.690230175148412,1.2219072716044455,40.877598152424945
 live_feasible,tree:yhat_subtree_tuned_daily_live_feasible_lgbm,tree rung (candidate for best_tree),866,0.09937766948682913,1.6334185716099885,1.16667774933588,39.03002309468822
 live_feasible,tree:yhat_subtree_tuned_daily_live_feasible_rf,tree rung (candidate for best_tree),866,0.11645712498033624,1.5847413722597379,1.1159333578872754,39.14549653579677
@@ -51,40 +51,40 @@ live_feasible,tree:yhat_subtree_tunedq_live_feasible_xgb,tree rung (candidate fo
 live_feasible,tree:yhat_subtree_xgb_live_feasible,tree rung (candidate for best_tree),866,0.09947090643611406,1.2685373487650549,0.7979548489008274,38.4526558891455
 all_features,intraday,"intraday-sequence LSTM, MSE rule (of record)",866,0.11189594648128318,0.9653986848154158,0.4920322150253445,35.33487297921478
 all_features,intraday_qsel,"intraday-sequence LSTM, QLIKE rule (recorded)",866,0.11248775179268101,1.288958472130828,0.8160434439182336,36.25866050808314
-all_features,perbar_lstm,"per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1)",866,0.17531128357300393,0.972862376828569,0.4980509964706317,41.339491916859124
+all_features,perbar_lstm,"per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_all_features.parquet; agent H's masked run)",866,0.1305254790079908,1.3331476839774814,0.8523257286538052,39.37644341801386
 all_features,ridge,per-bar ridge,866,0.10038747465694516,1.6649302126865275,1.1981095562842927,36.1431870669746
 all_features,best_tree,"subtree_daily_all_features_lgbm (lowest QLIKE of 45 tree tables on these days, chosen ex post)",866,0.09819443555677186,1.6631038792727835,1.190511202869342,37.87528868360277
 all_features,tree:yhat_subtree_daily_all_features_lgbm,tree rung (candidate for best_tree),866,0.09819443555677186,1.6631038792727835,1.190511202869342,37.87528868360277
 all_features,tree:yhat_subtree_daily_all_features_rf,tree rung (candidate for best_tree),866,0.10394020450816238,1.2315487704778028,0.7607578412363224,40.993071593533486
 all_features,tree:yhat_subtree_daily_all_features_xgb,tree rung (candidate for best_tree),866,0.09907168080825657,1.6935100392867923,1.22498796343233,38.68360277136259
 all_features,tree:yhat_subtree_lgbm_all_features,tree rung (candidate for best_tree),866,0.10066964470315287,1.8387627819412566,1.3714653781237978,38.33718244803695
-all_features,tree:yhat_subtree_optuna_tp1_all_features_lgbm,tree rung (candidate for best_tree),866,0.10404232863267944,1.4127394414644157,0.9469652329865198,38.4526558891455
-all_features,tree:yhat_subtree_optuna_tp1_all_features_rf,tree rung (candidate for best_tree),866,0.1021619176598055,1.2366732332108406,0.7634433924220738,38.68360277136259
+all_features,tree:yhat_subtree_optuna_tp1_all_features_lgbm,tree rung (candidate for best_tree),866,0.10446786713061448,1.3665647079295442,0.8995942934892729,38.33718244803695
+all_features,tree:yhat_subtree_optuna_tp1_all_features_rf,tree rung (candidate for best_tree),866,0.10216082628525217,1.2366732332108406,0.7634433924220738,38.68360277136259
 all_features,tree:yhat_subtree_optuna_tp1_all_features_xgb,tree rung (candidate for best_tree),866,0.10536733433331097,1.1705875828340362,0.6922412221179546,38.56812933025404
-all_features,tree:yhat_subtree_optuna_tp1_k10_all_features_lgbm,tree rung (candidate for best_tree),866,0.1067375834830096,1.5486655532141913,1.0805760837095963,41.339491916859124
+all_features,tree:yhat_subtree_optuna_tp1_k10_all_features_lgbm,tree rung (candidate for best_tree),866,0.10605309225220211,1.6082392708584474,1.1401458984401909,41.454965357967666
 all_features,tree:yhat_subtree_optuna_tp1_k10_all_features_rf,tree rung (candidate for best_tree),866,0.10411568222356445,0.9076331576283583,0.4343368144571779,38.56812933025404
-all_features,tree:yhat_subtree_optuna_tp1_k10_all_features_xgb,tree rung (candidate for best_tree),866,0.10510536267761277,1.1179683952479782,0.6371896522049096,38.799076212471135
-all_features,tree:yhat_subtree_optuna_tp1_k25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10451787946027263,1.657489418428971,1.191516178667424,38.799076212471135
+all_features,tree:yhat_subtree_optuna_tp1_k10_all_features_xgb,tree rung (candidate for best_tree),866,0.10510536267761275,1.1179683952479782,0.6371896522049096,38.799076212471135
+all_features,tree:yhat_subtree_optuna_tp1_k25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10460412961081314,1.707458593729036,1.2413364738535624,38.68360277136259
 all_features,tree:yhat_subtree_optuna_tp1_k25_all_features_rf,tree rung (candidate for best_tree),866,0.10329440384458649,1.2534948093934795,0.7811235129770767,39.14549653579677
 all_features,tree:yhat_subtree_optuna_tp1_k25_all_features_xgb,tree rung (candidate for best_tree),866,0.10570046057105287,1.0582268645743318,0.5794658804979688,39.37644341801386
-all_features,tree:yhat_subtree_optuna_tp250_all_features_lgbm,tree rung (candidate for best_tree),866,0.10376628978148887,1.4491047945232394,0.9825035785279229,38.33718244803695
+all_features,tree:yhat_subtree_optuna_tp250_all_features_lgbm,tree rung (candidate for best_tree),866,0.10407008671974151,1.4982043277505657,1.0318930595693643,38.68360277136259
 all_features,tree:yhat_subtree_optuna_tp250_all_features_rf,tree rung (candidate for best_tree),866,0.1184363168726376,1.4521666152540353,0.986299750737847,39.4919168591224
 all_features,tree:yhat_subtree_optuna_tp250_all_features_xgb,tree rung (candidate for best_tree),866,0.10319597892398776,1.4850034913066905,1.0200046509535574,38.4526558891455
-all_features,tree:yhat_subtree_optuna_tp25_all_features_lgbm,tree rung (candidate for best_tree),866,0.11066768484578264,1.336273045508151,0.864727567287058,40.069284064665126
+all_features,tree:yhat_subtree_optuna_tp25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10970695977565148,1.552249805630367,1.0827910004001906,39.4919168591224
 all_features,tree:yhat_subtree_optuna_tp25_all_features_rf,tree rung (candidate for best_tree),866,0.10439064121733707,1.6068108557157044,1.1418880152667388,39.260969976905315
 all_features,tree:yhat_subtree_optuna_tp25_all_features_xgb,tree rung (candidate for best_tree),866,0.10559151791554308,1.0260027173497481,0.5522177095884062,38.91454965357968
-all_features,tree:yhat_subtree_optuna_tp25_k10_all_features_lgbm,tree rung (candidate for best_tree),866,0.10923603352288637,1.454349753318982,0.9838362745469976,40.877598152424945
+all_features,tree:yhat_subtree_optuna_tp25_k10_all_features_lgbm,tree rung (candidate for best_tree),866,0.10939184077844921,1.4549586804311592,0.9840499196476541,40.300230946882216
 all_features,tree:yhat_subtree_optuna_tp25_k10_all_features_rf,tree rung (candidate for best_tree),866,0.10310440442055778,1.3051554541680224,0.8325503805376204,39.14549653579677
 all_features,tree:yhat_subtree_optuna_tp25_k10_all_features_xgb,tree rung (candidate for best_tree),866,0.1030309191928227,1.665677160945202,1.2013753855166118,39.37644341801386
-all_features,tree:yhat_subtree_optuna_tp25_k25_all_features_lgbm,tree rung (candidate for best_tree),866,0.1066885963542104,0.7973121480190252,0.32388251551759345,39.4919168591224
+all_features,tree:yhat_subtree_optuna_tp25_k25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10726098039063464,0.9742578082416464,0.4991486560128234,39.37644341801386
 all_features,tree:yhat_subtree_optuna_tp25_k25_all_features_rf,tree rung (candidate for best_tree),866,0.10485316701659374,1.4905965206508867,1.0255458032232077,38.91454965357968
 all_features,tree:yhat_subtree_optuna_tp25_k25_all_features_xgb,tree rung (candidate for best_tree),866,0.10408995541901538,1.4090901462033174,0.9431136354957635,38.91454965357968
-all_features,tree:yhat_subtree_optuna_tp5_all_features_lgbm,tree rung (candidate for best_tree),866,0.10444673679115793,1.0564418390593338,0.582187604146509,39.14549653579677
+all_features,tree:yhat_subtree_optuna_tp5_all_features_lgbm,tree rung (candidate for best_tree),866,0.10376262097566172,1.1861127426085667,0.7106476886145351,38.68360277136259
 all_features,tree:yhat_subtree_optuna_tp5_all_features_rf,tree rung (candidate for best_tree),866,0.1022984300045751,1.412549489545063,0.9397618180841288,38.68360277136259
-all_features,tree:yhat_subtree_optuna_tp5_all_features_xgb,tree rung (candidate for best_tree),866,0.10303312308456107,1.5398527786813017,1.0680200026793143,38.22170900692841
-all_features,tree:yhat_subtree_optunaq_tp25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10553348553419106,1.046627823796786,0.5742766511885494,39.4919168591224
+all_features,tree:yhat_subtree_optuna_tp5_all_features_xgb,tree rung (candidate for best_tree),866,0.10303312308358574,1.5398527786813017,1.0680200026793143,38.22170900692841
+all_features,tree:yhat_subtree_optunaq_tp25_all_features_lgbm,tree rung (candidate for best_tree),866,0.10797243092048463,1.0226246733394289,0.5525153831618178,39.607390300230946
 all_features,tree:yhat_subtree_optunaq_tp25_all_features_rf,tree rung (candidate for best_tree),866,0.10167035983314152,1.2908132514309032,0.8182644094701684,38.56812933025404
-all_features,tree:yhat_subtree_optunaq_tp25_all_features_xgb,tree rung (candidate for best_tree),866,0.10642957322464436,1.0422870483006528,0.5655191250585031,39.14549653579677
+all_features,tree:yhat_subtree_optunaq_tp25_all_features_xgb,tree rung (candidate for best_tree),866,0.106429573211702,1.0422870483006528,0.5655191250585031,39.14549653579677
 all_features,tree:yhat_subtree_rf_all_features,tree rung (candidate for best_tree),866,0.10601312740177085,1.001976653865929,0.5337454726171839,41.570438799076214
 all_features,tree:yhat_subtree_tuned_all_features_lgbm,tree rung (candidate for best_tree),866,0.10345972203016171,1.6687979139668678,1.2034635507827716,39.14549653579677
 all_features,tree:yhat_subtree_tuned_all_features_rf,tree rung (candidate for best_tree),866,0.11954716732285339,1.540196439460617,1.0785396193980943,42.37875288683603
@@ -101,7 +101,7 @@ all_features,tree:yhat_subtree_tunedq_daily_all_features_xgb,tree rung (candidat
 all_features,tree:yhat_subtree_xgb_all_features,tree rung (candidate for best_tree),866,0.10207576739969157,1.1762067334247845,0.7054508341790066,38.799076212471135
 baseline,intraday,"intraday-sequence LSTM, MSE rule (of record)",866,0.10725364658272103,0.8090714900076145,0.3307647458366311,34.52655889145497
 baseline,intraday_qsel,"intraday-sequence LSTM, QLIKE rule (recorded)",866,0.10707370830752863,0.8667118610617803,0.38763144977599895,34.18013856812933
-baseline,perbar_lstm,"per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1)",866,0.10679435823398246,1.1986987610366628,0.727278069467473,39.14549653579677
+baseline,perbar_lstm,"per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_baseline.parquet; agent H's masked run)",866,0.1049340211683856,1.2591214123498466,0.788385272914004,39.4919168591224
 baseline,ridge,per-bar ridge,866,0.0982333759009112,1.216586751367266,0.7439998534412559,37.87528868360277
 baseline,best_tree,"subtree_tunedq_baseline_rf (lowest QLIKE of 45 tree tables on these days, chosen ex post)",866,0.10220338489476738,0.8826271725154715,0.41220878383955784,40.069284064665126
 baseline,tree:yhat_subtree_daily_baseline_lgbm,tree rung (candidate for best_tree),866,0.10406712826103362,0.9947348032641011,0.5246730346986269,41.339491916859124

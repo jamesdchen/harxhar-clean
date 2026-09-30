@@ -18,17 +18,17 @@ The research scorer (the 16:00 bar recalibrated on its own; the master table's l
 |---|---|---|---|---|---|---|---|
 | `live_feasible` | intraday | 0.1103 | 1.53 | 1.06 | 37.1 | 866 | intraday-sequence LSTM, MSE rule (of record) |
 | `live_feasible` | intraday_qsel | 0.1080 | 1.71 | 1.23 | 35.2 | 866 | intraday-sequence LSTM, QLIKE rule (recorded) |
-| `live_feasible` | perbar_lstm | 0.1220 | 1.13 | 0.66 | 39.8 | 866 | per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1) |
+| `live_feasible` | perbar_lstm | 0.1193 | 0.91 | 0.43 | 37.8 | 866 | per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_live_feasible.parquet; agent H's masked run) |
 | `live_feasible` | ridge | 0.1005 | 1.90 | 1.44 | 40.2 | 866 | per-bar ridge |
 | `live_feasible` | best_tree | 0.0955 | 1.42 | 0.95 | 37.3 | 866 | subtree_daily_live_feasible_lgbm (lowest QLIKE of 45 tree tables on these days, chosen ex post) |
 | `all_features` | intraday | 0.1119 | 0.97 | 0.49 | 35.3 | 866 | intraday-sequence LSTM, MSE rule (of record) |
 | `all_features` | intraday_qsel | 0.1125 | 1.29 | 0.82 | 36.3 | 866 | intraday-sequence LSTM, QLIKE rule (recorded) |
-| `all_features` | perbar_lstm | 0.1753 | 0.97 | 0.50 | 41.3 | 866 | per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1) |
+| `all_features` | perbar_lstm | 0.1305 | 1.33 | 0.85 | 39.4 | 866 | per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_all_features.parquet; agent H's masked run) |
 | `all_features` | ridge | 0.1004 | 1.66 | 1.20 | 36.1 | 866 | per-bar ridge |
 | `all_features` | best_tree | 0.0982 | 1.66 | 1.19 | 37.9 | 866 | subtree_daily_all_features_lgbm (lowest QLIKE of 45 tree tables on these days, chosen ex post) |
 | `baseline` | intraday | 0.1073 | 0.81 | 0.33 | 34.5 | 866 | intraday-sequence LSTM, MSE rule (of record) |
 | `baseline` | intraday_qsel | 0.1071 | 0.87 | 0.39 | 34.2 | 866 | intraday-sequence LSTM, QLIKE rule (recorded) |
-| `baseline` | perbar_lstm | 0.1068 | 1.20 | 0.73 | 39.1 | 866 | per-bar LSTM, de-dup design, no mask, refit every 10 sessions (agent A, I1) |
+| `baseline` | perbar_lstm | 0.1049 | 1.26 | 0.79 | 39.5 | 866 | per-bar LSTM, table rebuilt after the de-dup no-mask snapshot (yhat_lstm_baseline.parquet; agent H's masked run) |
 | `baseline` | ridge | 0.0982 | 1.22 | 0.74 | 37.9 | 866 | per-bar ridge |
 | `baseline` | best_tree | 0.1022 | 0.88 | 0.41 | 40.1 | 866 | subtree_tunedq_baseline_rf (lowest QLIKE of 45 tree tables on these days, chosen ex post) |
 
@@ -36,21 +36,21 @@ The research scorer (the 16:00 bar recalibrated on its own; the master table's l
 
 | input set | a - b | QLIKE diff (%) | QLIKE diff [interval] | DM t | Sharpe mid diff [interval] | Sharpe crossed diff [interval] | same side |
 |---|---|---|---|---|---|---|---|
-| `live_feasible` | intraday - perbar_lstm | -9.6 % | -0.0117 [-0.0262, +0.0040] | -1.71 | +0.40 [-0.51, +1.29] | +0.40 [-0.51, +1.29] | 79 % |
+| `live_feasible` | intraday - perbar_lstm | -7.5 % | -0.0090 [-0.0249, +0.0057] | -1.25 | +0.62 [-0.26, +1.54] | +0.63 [-0.25, +1.54] | 80 % |
 | `live_feasible` | intraday - ridge | +9.7 % | +0.0098 [+0.0001, +0.0201] | +1.99 | -0.37 [-1.33, +0.60] | -0.38 [-1.34, +0.60] | 81 % |
 | `live_feasible` | intraday - best_tree | +15.5 % | +0.0148 [+0.0048, +0.0268] | +3.00 | +0.11 [-0.73, +0.86] | +0.11 [-0.73, +0.86] | 82 % |
 | `live_feasible` | intraday_qsel - intraday | -2.1 % | -0.0023 [-0.0051, -0.0000] | -1.95 | +0.18 [-0.20, +0.52] | +0.17 [-0.20, +0.52] | 96 % |
-| `live_feasible` | perbar_lstm - ridge | +21.4 % | +0.0215 [+0.0075, +0.0366] | +3.41 | -0.77 [-1.91, +0.37] | -0.78 [-1.92, +0.37] | 77 % |
-| `all_features` | intraday - perbar_lstm | -36.2 % | -0.0634 [-0.0964, -0.0359] | -4.76 | -0.01 [-1.20, +1.21] | -0.01 [-1.20, +1.21] | 73 % |
+| `live_feasible` | perbar_lstm - ridge | +18.6 % | +0.0187 [+0.0058, +0.0338] | +3.16 | -1.00 [-2.14, +0.19] | -1.01 [-2.15, +0.18] | 77 % |
+| `all_features` | intraday - perbar_lstm | -14.3 % | -0.0186 [-0.0351, -0.0026] | -2.54 | -0.37 [-1.42, +0.76] | -0.36 [-1.42, +0.76] | 77 % |
 | `all_features` | intraday - ridge | +11.5 % | +0.0115 [+0.0022, +0.0226] | +2.32 | -0.70 [-1.74, +0.35] | -0.71 [-1.74, +0.34] | 80 % |
 | `all_features` | intraday - best_tree | +14.0 % | +0.0137 [+0.0050, +0.0244] | +2.95 | -0.70 [-1.68, +0.19] | -0.70 [-1.68, +0.19] | 81 % |
 | `all_features` | intraday_qsel - intraday | +0.5 % | +0.0006 [-0.0025, +0.0037] | +0.34 | +0.32 [-0.27, +0.99] | +0.32 [-0.27, +1.00] | 92 % |
-| `all_features` | perbar_lstm - ridge | +74.6 % | +0.0749 [+0.0490, +0.1080] | +5.54 | -0.69 [-2.04, +0.63] | -0.70 [-2.05, +0.62] | 72 % |
-| `baseline` | intraday - perbar_lstm | +0.4 % | +0.0005 [-0.0064, +0.0093] | +0.15 | -0.39 [-1.04, +0.26] | -0.40 [-1.04, +0.26] | 88 % |
+| `all_features` | perbar_lstm - ridge | +30.0 % | +0.0301 [+0.0167, +0.0454] | +4.38 | -0.33 [-1.69, +0.99] | -0.35 [-1.71, +0.98] | 75 % |
+| `baseline` | intraday - perbar_lstm | +2.2 % | +0.0023 [-0.0036, +0.0094] | +0.78 | -0.45 [-1.07, +0.20] | -0.46 [-1.07, +0.20] | 86 % |
 | `baseline` | intraday - ridge | +9.2 % | +0.0090 [+0.0024, +0.0169] | +2.94 | -0.41 [-1.18, +0.41] | -0.41 [-1.18, +0.41] | 88 % |
 | `baseline` | intraday - best_tree | +4.9 % | +0.0051 [-0.0015, +0.0129] | +1.60 | -0.07 [-0.79, +0.66] | -0.08 [-0.79, +0.65] | 85 % |
 | `baseline` | intraday_qsel - intraday | -0.2 % | -0.0002 [-0.0040, +0.0039] | -0.10 | +0.06 [-0.45, +0.56] | +0.06 [-0.45, +0.56] | 94 % |
-| `baseline` | perbar_lstm - ridge | +8.7 % | +0.0086 [+0.0036, +0.0134] | +3.79 | -0.02 [-0.65, +0.64] | -0.02 [-0.65, +0.64] | 89 % |
+| `baseline` | perbar_lstm - ridge | +6.8 % | +0.0067 [+0.0019, +0.0119] | +2.81 | +0.04 [-0.50, +0.63] | +0.04 [-0.50, +0.63] | 89 % |
 
 ## Chosen configuration over time (MSE rule of record / QLIKE rule)
 
