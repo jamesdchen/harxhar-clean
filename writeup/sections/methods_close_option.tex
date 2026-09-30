@@ -229,8 +229,15 @@ overnight bars included; an is-present flag per series; and calendar dummies
 (day of the week, option-expiry day and week, month and quarter end). In the design these means are the columns
 \texttt{har\_ma\_}$k$ (the target's own ladder) and
 \texttt{adj\_}$x$\texttt{\_ma\_}$k$ (the ladder of series $x$ after the diurnal
-adjustment of Section~\ref{sec:dp_prep}). Three input sets are used, each named
-in the tables by its design name:
+adjustment of Section~\ref{sec:dp_prep}).
+% I4b 2026-09-30 (16:00 re-run, writeup/CAMPAIGN_16H_2026-09-29.md decision 1): the
+% session-edge columns are no longer in the per-bar design.  Macros from
+% results/linear_subsection_dedup/gates.csv via writeup/make_table_close_main.py.
+The design of all 48 bars also interacts the target's ladder with open- and
+close-of-session indicators; in a series with one bar per session those
+\cmNDup{} columns are either zero or exact copies of \texttt{har\_ma\_}$k$, so the
+per-bar design leaves them out (the pooled twins below keep them). Three input
+sets are used, each named in the tables by its design name:
 \begin{itemize}\sloppy
 \itemsep2pt
 \item \texttt{baseline} (HAR + calendar): no exogenous series;
@@ -254,13 +261,44 @@ $\ell_1$ and $\ell_2$ weight. Each penalized one re-selects its penalty every
 elastic net $10^{-6}$ to $10^{-2}$, one value per decade) by squared error on the
 last 125 sessions of the current window after a 25-session embargo --- the causal
 tuning rule of Section~\ref{sec:estimators}, counted in sessions. The per-bar
+% I4b 2026-09-30: cadence, tuning, mask and LSTMs of the 16:00 re-run (specs/causal_tune_trees.py
+% REFIT_EVERY / WINDOW_MASK, specs/causal_tune_trees_tuned.py, specs/causal_tune_trees_optuna.py
+% N_TRIALS_DEFAULT, specs/causal_tune_lstm.py SEQ_LENS / HIDDEN / DROPOUTS / LEARNING_RATES /
+% N_SEEDS, specs/causal_tune_lstm_intraday.py SEQ_LENS, src/models/window_mask.py).  Before:
+% "refit every ten sessions" and "Tuned, each re-selects its settings every 250 sessions ...
+% from 32 fixed candidates"; no mask for trees; no LSTM.
 trees --- LightGBM, XGBoost and a random forest --- are fitted on the same rows,
-inputs and window and refit every ten sessions. \emph{Untuned}, LightGBM and
+inputs and window and refit either every ten sessions or every session; the two
+cadences are separate rungs. \emph{Untuned}, LightGBM and
 XGBoost take the settings of the paper's two tree columns (read from their stored
 chunk metadata, leaf minimums scaled to the $2{,}000$-row window) and the random
-forest the library defaults. \emph{Tuned}, each re-selects its settings every 250
-sessions on the same validation tail, from 32 fixed candidates of a grid centred on
-the untuned settings, by validation squared error. Each per-bar linear forecast has
+forest the library defaults (the \emph{shipped settings}). They are tuned in two
+ways, each on the same validation tail and by validation squared error. The
+\emph{random search} re-selects the settings every 250 sessions from 32 fixed
+candidates of a grid centred on the shipped settings. \emph{Optuna} runs 50 trials of
+a tree-structured Parzen estimator at each tuning point, the first trial being the
+shipped settings, and re-tunes every 1, 5, 25 or 250 sessions; the forecast, refit
+every session, uses the best of the first 10, 25 or all 50 trials of the latest
+tuning point. Each tuned path is also run with the settings chosen by validation
+QLIKE. Two LSTMs complete the per-bar family. The first reads as a sequence the
+design rows of the last $L\in\{5,20\}$ sessions at the 16:00 bar. The second reads
+the last $N\in\{13,48,96\}$ half-hour bars of the near-24-hour series, ending with
+the 15:30 bar, one step per bar, with bar-level inputs in place of the ladders
+(the bar's adjusted target and adjusted values of the input set's series, their
+availability and activity indicators, the calendar dummies and the half-hour
+clock), so that the
+network learns the aggregation the ladders impose. Both choose $L$ or $N$, a
+hidden size of 16 or 64, dropout of 0 or 0.2 and a learning rate of $10^{-3}$ or
+$10^{-2}$ every 250 sessions on the same validation tail by squared error, average
+five seeds, and are refit every session (the first also every ten sessions, as
+a rung). Every per-bar fit --- linear, tree or LSTM --- first drops the columns
+that are constant on its own training window and every exact copy of an earlier
+column, keeping first occurrences: the \emph{per-window mask}. The linear
+estimators apply it at every penalty tune, as their identifiability rule; the
+trees and LSTMs at every refit and tuning point. Tree and LSTM forecasts depend
+in their last bits on the processor's vector instruction class, and a tuning
+choice can flip on such a difference, so every tree and LSTM table is computed
+on one processor model. Each per-bar linear forecast has
 a \emph{pooled twin}: the identical specification fitted on all 48 bars of the same
 $2{,}000$ sessions with one coefficient vector, so that the difference between the
 two is the per-bar fit alone.

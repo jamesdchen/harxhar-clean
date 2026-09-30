@@ -2,7 +2,7 @@
 % Numbers quoted in the prose of writeup/sections/results_close_option.tex; each is read
 % from results/close_master_table/master_table.csv (16:00-bar recalibration).
 \newcommand{\cmNdays}{866}
-\newcommand{\cmNrows}{27}
+\newcommand{\cmNrows}{28}
 \newcommand{\cmShortMean}{0.014}
 \newcommand{\cmShortShMid}{0.20}
 \newcommand{\cmShortShX}{\ensuremath{-}0.27}
@@ -32,18 +32,20 @@
 \newcommand{\cmLassoFShMid}{1.54}
 \newcommand{\cmLassoFVsRef}{+0.54 [+0.07, +1.06]}
 \newcommand{\cmLassoFSame}{96}
+\newcommand{\cmNlFamN}{7}
+\newcommand{\cmNlMasterN}{147}
 \newcommand{\cmPoolShMin}{0.99}
 \newcommand{\cmPoolShMax}{1.24}
 \newcommand{\cmSubShMin}{1.22}
 \newcommand{\cmSubShMax}{1.90}
-\newcommand{\cmTreeShMin}{1.26}
-\newcommand{\cmTreeShMax}{1.70}
-\newcommand{\cmTabVsRefN}{26}
-\newcommand{\cmTabVsRefAbove}{3}
+\newcommand{\cmNlShMin}{0.87}
+\newcommand{\cmNlShMax}{1.63}
+\newcommand{\cmTabVsRefN}{27}
+\newcommand{\cmTabVsRefAbove}{2}
 \newcommand{\cmTabVsRefBelow}{none}
-\newcommand{\cmMasterN}{106}
-\newcommand{\cmMasterVsRefN}{105}
-\newcommand{\cmMasterVsRefAbove}{9}
+\newcommand{\cmMasterN}{220}
+\newcommand{\cmMasterVsRefN}{219}
+\newcommand{\cmMasterVsRefAbove}{10}
 \newcommand{\cmHQ}{0.1005}
 \newcommand{\cmHQPct}{\ensuremath{-}5.0}
 \newcommand{\cmHQCi}{[\ensuremath{-}0.0113, +0.0005]}
@@ -59,9 +61,9 @@
 \newcommand{\cmHVsRefX}{+0.91 [+0.19, +1.67]}
 \newcommand{\cmHVsShortX}{+1.71 [+0.12, +3.12]}
 \newcommand{\cmHRankSh}{2}
-\newcommand{\cmHRankQ}{55}
+\newcommand{\cmHRankQ}{63}
 \newcommand{\cmTopShLabel}{per-bar lasso}
-\newcommand{\cmTopShInputs}{\texttt{free\_vix\_only}}
+\newcommand{\cmTopShInputs}{\texttt{live\_vix\_only}}
 \newcommand{\cmTopShMid}{1.91}
 \newcommand{\cmVsHLasso}{\ensuremath{-}0.08 [\ensuremath{-}0.89, +0.79]}
 \newcommand{\cmVsHLassoSame}{89}
@@ -75,14 +77,14 @@
 \newcommand{\cmVsHRidgeAllSame}{86}
 \newcommand{\cmVsHRidgeAllQPct}{\ensuremath{-}0.2}
 \newcommand{\cmVsHRidgeAllDM}{\ensuremath{-}0.06}
-\newcommand{\cmVsHTop}{+0.01 [\ensuremath{-}0.75, +0.79]}
+\newcommand{\cmVsHTop}{+0.01 [\ensuremath{-}0.76, +0.81]}
 \newcommand{\cmVsHTopSame}{88}
-\newcommand{\cmVsHTopQPct}{\ensuremath{-}3.3}
-\newcommand{\cmVsHTopDM}{\ensuremath{-}0.95}
+\newcommand{\cmVsHTopQPct}{\ensuremath{-}3.6}
+\newcommand{\cmVsHTopDM}{\ensuremath{-}1.04}
 \newcommand{\cmVsHLassoSh}{1.83}
-\newcommand{\cmVsHN}{105}
+\newcommand{\cmVsHN}{219}
 \newcommand{\cmVsHAbove}{none}
-\newcommand{\cmVsHBelow}{18}
+\newcommand{\cmVsHBelow}{43}
 \newcommand{\cmXLossMin}{0.46}
 \newcommand{\cmXLossMax}{0.48}
 \newcommand{\cmLdSpec}{\ensuremath{-}0.01 [\ensuremath{-}0.73, +0.76]}
@@ -103,28 +105,104 @@
 \newcommand{\cmLdInBase}{+0.69 [\ensuremath{-}0.23, +1.70]}
 \newcommand{\cmLdInBaseQ}{+2.4 [\ensuremath{-}5.8, +12.3]}
 \newcommand{\cmLdInBaseDM}{+0.53}
-\newcommand{\cmLdEstMin}{\ensuremath{-}0.49}
+\newcommand{\cmLdEstMin}{\ensuremath{-}0.63}
 \newcommand{\cmLdEstMax}{\ensuremath{-}0.08}
-\newcommand{\cmLdN}{14}
-\newcommand{\cmLdResolved}{one}
-\newcommand{\cmTtVsRidgeN}{18}
-\newcommand{\cmTtVsRidgeBetter}{0}
-\newcommand{\cmTtVsRidgeWorse}{6}
-\newcommand{\cmTtLgbmAllQ}{+0.7 [\ensuremath{-}5.4, +7.4]}
-\newcommand{\cmTtVsUntunedMseBetter}{0}
-\newcommand{\cmTtVsUntunedMseWorse}{4}
-\newcommand{\cmTtVsUntunedQselBetter}{0}
-\newcommand{\cmTtVsUntunedQselWorse}{2}
-\newcommand{\cmTtLgbmLiveVsUntuned}{+7.3 [+2.1, +12.6]}
-\newcommand{\cmTtLgbmLiveSh}{1.14}
-\newcommand{\cmTtLgbmLiveRidgeSh}{1.90}
-\newcommand{\cmTtLgbmLiveVsRidge}{\ensuremath{-}0.76 [\ensuremath{-}1.26, \ensuremath{-}0.24]}
-\newcommand{\cmTtLgbmAllSh}{1.81}
-\newcommand{\cmTtLgbmAllRidgeSh}{1.66}
-\newcommand{\cmTtLgbmAllVsRidge}{+0.15 [\ensuremath{-}0.60, +0.90]}
-\newcommand{\cmTtBestSh}{1.81}
-\newcommand{\cmTtBestVsH}{\ensuremath{-}0.09 [\ensuremath{-}0.85, +0.63]}
-\newcommand{\cmTtN}{18}
+\newcommand{\cmLdN}{26}
+\newcommand{\cmLdNPath}{14}
+\newcommand{\cmLdNCampaign}{12}
+\newcommand{\cmLdResolved}{none}
+\newcommand{\cmLdCDedup}{+0.00 [+0.00, +0.00]}
+\newcommand{\cmLdCDedupQ}{+0.0 [+0.0, +0.0]}
+\newcommand{\cmLdCMaskTten}{\ensuremath{-}0.17 [\ensuremath{-}0.80, +0.39]}
+\newcommand{\cmLdCMaskTtenQ}{+1.0 [\ensuremath{-}0.4, +2.3]}
+\newcommand{\cmLdCMaskTtenDM}{+1.31}
+\newcommand{\cmLdCMaskTone}{\ensuremath{-}0.06 [\ensuremath{-}0.49, +0.37]}
+\newcommand{\cmLdCMaskToneQ}{\ensuremath{-}1.0 [\ensuremath{-}2.4, +0.3]}
+\newcommand{\cmLdCMaskToneDM}{\ensuremath{-}1.47}
+\newcommand{\cmLdCMaskRsten}{\ensuremath{-}0.12 [\ensuremath{-}0.67, +0.43]}
+\newcommand{\cmLdCMaskRstenQ}{\ensuremath{-}0.9 [\ensuremath{-}2.7, +0.8]}
+\newcommand{\cmLdCMaskRstenDM}{\ensuremath{-}0.93}
+\newcommand{\cmLdCMaskRsone}{+0.01 [\ensuremath{-}0.55, +0.58]}
+\newcommand{\cmLdCMaskRsoneQ}{\ensuremath{-}0.1 [\ensuremath{-}2.1, +1.8]}
+\newcommand{\cmLdCMaskRsoneDM}{\ensuremath{-}0.10}
+\newcommand{\cmLdCMaskLstm}{\ensuremath{-}0.05 [\ensuremath{-}0.69, +0.57]}
+\newcommand{\cmLdCMaskLstmQ}{+0.3 [\ensuremath{-}3.0, +3.4]}
+\newcommand{\cmLdCMaskLstmDM}{+0.15}
+\newcommand{\cmLdCCadLgbm}{\ensuremath{-}0.17 [\ensuremath{-}1.11, +0.59]}
+\newcommand{\cmLdCCadLgbmQ}{\ensuremath{-}3.6 [\ensuremath{-}7.4, \ensuremath{-}0.8]}
+\newcommand{\cmLdCCadLgbmDM}{\ensuremath{-}2.73}
+\newcommand{\cmLdCCadLstm}{\ensuremath{-}0.17 [\ensuremath{-}0.80, +0.48]}
+\newcommand{\cmLdCCadLstmQ}{\ensuremath{-}2.5 [\ensuremath{-}7.8, +3.2]}
+\newcommand{\cmLdCCadLstmDM}{\ensuremath{-}0.77}
+\newcommand{\cmLdCTuneRs}{+0.21 [\ensuremath{-}0.61, +1.07]}
+\newcommand{\cmLdCTuneRsQ}{+4.1 [\ensuremath{-}0.2, +8.9]}
+\newcommand{\cmLdCTuneRsDM}{+1.70}
+\newcommand{\cmLdCTuneOp}{\ensuremath{-}0.55 [\ensuremath{-}1.37, +0.24]}
+\newcommand{\cmLdCTuneOpQ}{+7.4 [+1.4, +16.3]}
+\newcommand{\cmLdCTuneOpDM}{+2.32}
+\newcommand{\cmLdCTuneOpPer}{\ensuremath{-}0.55 [\ensuremath{-}1.42, +0.30]}
+\newcommand{\cmLdCTuneOpPerQ}{\ensuremath{-}2.8 [\ensuremath{-}9.2, +2.9]}
+\newcommand{\cmLdCTuneOpPerDM}{\ensuremath{-}0.98}
+\newcommand{\cmLdCSeq}{+0.62 [\ensuremath{-}0.26, +1.54]}
+\newcommand{\cmLdCSeqQ}{\ensuremath{-}7.5 [\ensuremath{-}20.9, +4.7]}
+\newcommand{\cmLdCSeqDM}{\ensuremath{-}1.25}
+\newcommand{\cmPNewBase}{22}
+\newcommand{\cmPOldBase}{34}
+\newcommand{\cmPNewLive}{232}
+\newcommand{\cmPOldLive}{244}
+\newcommand{\cmPNewAll}{628}
+\newcommand{\cmPOldAll}{640}
+\newcommand{\cmNDup}{12}
+\newcommand{\cmDedupN}{55}
+\newcommand{\cmDedupQMax}{0.09}
+\newcommand{\cmDedupPosMax}{two}
+\newcommand{\cmKeptBase}{17}
+\newcommand{\cmKeptBaseMin}{17}
+\newcommand{\cmKeptBaseMax}{17}
+\newcommand{\cmKeptLive}{138}
+\newcommand{\cmKeptLiveMin}{136}
+\newcommand{\cmKeptLiveMax}{145}
+\newcommand{\cmKeptAll}{369}
+\newcommand{\cmKeptAllMin}{360}
+\newcommand{\cmKeptAllMax}{378}
+\newcommand{\cmMaskN}{36}
+\newcommand{\cmMaskQMed}{0.7}
+\newcommand{\cmMaskQAbove}{five}
+\newcommand{\cmMaskShBelow}{one}
+\newcommand{\cmTrVsRidgeN}{72}
+\newcommand{\cmTrVsRidgeQAbove}{32}
+\newcommand{\cmTrVsRidgeShBelow}{two}
+\newcommand{\cmCadN}{nine}
+\newcommand{\cmCadQBelow}{three}
+\newcommand{\cmCadShUp}{+0.52 [+0.10, +1.02]}
+\newcommand{\cmRsQAbove}{6}
+\newcommand{\cmRsN}{9}
+\newcommand{\cmOpN}{36}
+\newcommand{\cmOpQAbove}{19}
+\newcommand{\cmTpN}{27}
+\newcommand{\cmTpQBelow}{8}
+\newcommand{\cmBudN}{36}
+\newcommand{\cmBudQAbove}{one}
+\newcommand{\cmBudLastMin}{27}
+\newcommand{\cmBudLastMax}{40}
+\newcommand{\cmBudLastExch}{20}
+\newcommand{\cmLstmCadBase}{\ensuremath{-}1.9}
+\newcommand{\cmLstmCadLive}{\ensuremath{-}2.5}
+\newcommand{\cmLstmCadAll}{\ensuremath{-}10.1}
+\newcommand{\cmLstmCadBelow}{two}
+\newcommand{\cmLstmVsRidgeMin}{+6.8}
+\newcommand{\cmLstmVsRidgeMax}{+30.0}
+\newcommand{\cmIntraVsRidgeMin}{+9.2}
+\newcommand{\cmIntraVsRidgeMax}{+11.5}
+\newcommand{\cmIntraAllQ}{\ensuremath{-}14.3 [\ensuremath{-}26.9, \ensuremath{-}2.0]}
+\newcommand{\cmNlBestSh}{1.90}
+\newcommand{\cmNlBestVsH}{\ensuremath{-}0.00 [\ensuremath{-}0.56, +0.59]}
+\newcommand{\cmNlVsHAbove}{none}
+\newcommand{\cmClassChunks}{541}
+\newcommand{\cmClassPts}{20}
+\newcommand{\cmClassLgbmPick}{18}
+\newcommand{\cmClassMaxRelMin}{4.5}
+\newcommand{\cmClassMaxRelMax}{5.5}
 \newcommand{\cmPnlTotal}{116.2}
 \newcommand{\cmPnlTotalX}{87.4}
 \newcommand{\cmPnlTopTenShare}{42}

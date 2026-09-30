@@ -485,3 +485,137 @@ recomputation; without it Table 8 is read from its committed pairs), then pdflat
 pdflatex ×2. Every qualitative claim in the new prose is asserted in the script: if a claim
 flips (e.g. a new forecast trades above the headline with an interval above zero), the script
 stops instead of writing numbers that contradict the text.
+
+---
+
+## 7. 2026-09-30 (I4b, agent L1): Section 5.4 after the 16:00 campaign
+
+Input: the master table rebuilt on the de-duplicated per-bar design and the campaign's tables
+(commit `e4b83a0`, `results/close_master_table/`: 220 table-A forecasts in 20 families + 9 check
+rows; headline per-bar ridge `live_feasible` unchanged, QLIKE 0.1005, Sharpe 1.90 / 1.44; none of
+219 trades above it). Campaign plan: `writeup/CAMPAIGN_16H_2026-09-29.md`. One commit (below);
+files: `writeup/make_table_close_main.py`, `writeup/generated/{table_close_main,
+close_main_numbers,table_close_ladder}.tex`, `writeup/generated/close_main_ladder.csv`,
+`writeup/sections/{results,methods}_close_option.tex`, this changelog.
+`generated/table_close_pnl.tex` is rewritten by the same run and is byte-identical.
+
+### 7.1 Script (`make_table_close_main.py`)
+
+- **Table 7 row selection.** Panel D was the six untuned per-bar trees (three trees ×
+  `live_feasible` / `all_features`). It is now **one row per tree / LSTM family** of the
+  campaign, all on `live_feasible` and LightGBM for the trees, so consecutive rows differ in
+  one thing: T10 (`subtree_lgbm_live_feasible`), T1 (`subtree_daily_…`), RS10
+  (`subtree_tuned_…`), RS1 (`subtree_tuned_daily_…`), Optuna TUNE_PER = 1 best-of-50
+  (`subtree_optuna_tp1_…`), per-bar LSTM refit daily (`lstm_live_feasible`), intraday LSTM
+  (`lstm_intraday_live_feasible`). Asserted: each key's master-table family; one row per
+  family; each family's provenance (`master_table_provenance.csv`) says per-window mask and
+  CPU class epyc-7513; every tree / LSTM family of table A has its row except the Optuna
+  ablations (other TUNE_PER, best of 10 / 25), which Table 8 and the prose read. Panels A–C
+  unchanged (paper's eight, pooled twins, per-bar linear). Table 7: 27 → 28 forecasts.
+- **Table 8: five campaign blocks, 12 rows** (26 steps in all), LightGBM / LSTM on
+  `live_feasible`: design de-dup (headline, from `before_after.csv`); per-window mask,
+  masked − unmasked for T10, T1, RS10, RS1 and the LSTM refit every 10 (from agent H's
+  `results/trees_mask_1600/mask_pairs.csv`; the masked levels are gated against the master
+  table); refit cadence T1 − T10 (recomputed) and LSTM daily − every 10 (H's CSV); tuning
+  RS1 − T1, Optuna tp1 − T1, Optuna tp1 − tp250 (recomputed); intraday − per-bar LSTM
+  (recomputed). **Gate:** every recomputed campaign pair (QLIKE difference, DM, ΔSharpe and
+  its interval) reproduces the campaign CSV that first reported it (H `mask_pairs.csv`,
+  C `report/tuneper_oos.csv`, I `score/lstmi_pairs.csv`) to 5e-6 (their six-digit precision),
+  i.e. the same days, scorer and resampled days; the 14 earlier steps still reproduce the
+  master table's stored pairs to 1e-9.
+- **`tuned_macros` (A2b) replaced by `campaign_macros`.** The master table's `subtree_tuned_*`
+  rows are now H's masked, single-class RS10 re-run, so the first-pass gate "a2b's tuned-tree
+  Sharpe = the master table's" no longer holds (e.g. LightGBM `live_feasible` 1.14 → 1.47);
+  the trees paragraph now reads the campaign's CSVs (list in the script's docstring). New
+  macros: design counts (agent A `results/linear_subsection_dedup/gates.csv`), kept columns
+  (H `kept_counts.csv`), CPU class (H `results/linear_subsection_trees_mask/class/`, C
+  `xclass*/xclass_gate.csv`, `chunk_hosts.csv`), all counts of the trees / LSTM paragraph.
+  Every claim asserted (see 7.2).
+
+### 7.2 Assertions that fired, and what the prose now says (before → after)
+
+| # | assertion (script) | before | after | source | prose change |
+|---|---|---|---|---|---|
+| 1 | `ladder_macros`: lowest estimator step from the headline is the elastic net | elastic net −0.49 [−1.08, +0.14]; untuned XGBoost −0.21 [−0.82, +0.43] | untuned XGBoost (T10, masked, one CPU class) −0.63 [−1.51, +0.16]; elastic net unchanged −0.49 | `close_main_ladder.csv` (= `master_table_vs_headline.csv`) | "between −0.08 (the lasso) and −0.49 (the elastic net)" → "… −0.63 (XGBoost)"; "untuned tree" → "tree with the shipped settings". Assertion now: argmin = `subtree_xgb_live_feasible`. |
+| 2 | `ladder_macros`: the only step with a Sharpe interval excluding zero is the tuned LightGBM, below the headline | tuned LightGBM `live_feasible` − headline −0.76 [−1.26, −0.24] (first pass, old design, unmasked) | RS10 LightGBM −0.43 [−1.22, +0.35]; no step of the 26 excludes zero | `close_main_ladder.csv` | "Of the 14 steps, one has a Sharpe interval that excludes zero: the causally tuned LightGBM, below the headline" → "Of all 26 steps of the table, none has a Sharpe interval that excludes zero." Assertion now: `len(res) == 0`. |
+| 3 | `tuned_macros`: a2b tuned-tree Sharpe = master table (gate) | a2b = master table | master table = H's masked RS10 (LightGBM `live_feasible` 1.47, was 1.14) | `master_table.csv` vs `results/linear_subsection_trees_tuned/a2b/trade_1600_paired.csv` | Paragraph "Trees, untuned and causally tuned" replaced by "Trees and LSTMs, every rung" (7.3). |
+
+Claims that still hold on the new tables and stay asserted: headline accuracy gain not
+significant (DM −1.42, p 0.156); headline Sharpe intervals vs R and vs always short above
+zero; lasso / elastic net / ridge `all_features` / top-Sharpe forecast not separated from the
+headline; none of 219 trades above it; the three path steps sum to its +0.90 lead; the largest
+step is fitting the 16:00 bar alone; per-bar beats pooled on QLIKE on `baseline` (−11.2 %
+[−15.7, −6.9]) but not on the trade; estimator changes all cost (lasso −0.08 the smallest).
+
+Numbers that moved with no assertion firing (macros; prose unchanged): forecasts in the master
+table 106 → 220 (other 105 → 219); vs R intervals above zero 9 → 10 (master table), 3 of 26 → 2
+of 27 (Table 7); headline QLIKE rank 55 → 63 of 220 (Sharpe rank 2 unchanged); top-Sharpe
+forecast per-bar lasso `free_vix_only` → `live_vix_only` (1.91 both), vs headline +0.01
+[−0.75, +0.79] → +0.01 [−0.76, +0.81]; trading below the headline with an interval below zero
+18 of 105 → 43 of 219; panel D Sharpe range 1.26–1.70 (six untuned trees) → 0.87–1.63 (seven
+rungs). Headline, paper's eight, pooled twins, P&L decomposition, strategy variations:
+unchanged.
+
+### 7.3 Prose added or rewritten (all numbers `\cm…` macros)
+
+- **Results, new paragraph "The per-bar tables, rebuilt"** (before "The forecasts built for the
+  traded bar"): design 34 / 244 / 640 → 22 / 232 / 628 columns (12 session-edge columns zero or
+  copies of `har_ma_k` in a one-bar-per-session series); per-window mask on every tree / LSTM
+  fit, median kept 17 / 22, 138 / 232, 369 / 628; daily refits; Optuna beside the random search;
+  CPU class: across classes LightGBM's best-of-50 pick changed on 18 of 20 tuning points and a
+  LightGBM forecast by up to 5.5 %, on the same class 20 of 20 points bit-identical for all three
+  trees, all 541 chunks behind the tree and per-bar LSTM tables on one class; linear forecasts:
+  headline positions unchanged and QLIKE changed only at rounding (6e-12 %), 55 per-bar linear
+  forecasts ≤ 0.09 % QLIKE, ≤ two positions, no Sharpe interval excluding zero. Points to
+  Appendix `sec:app_campaign_16h` (L4's file; wrapped in `\IfFileExists`).
+- **Results, "One change at a time"**: a second paragraph reads the campaign blocks of Table 8:
+  mask on LightGBM T10 +1.0 [−0.4, +2.3] % QLIKE, −0.17 [−0.80, +0.39] Sharpe; daily refits
+  LightGBM −3.6 [−7.4, −0.8] % (DM −2.73), trade −0.17 [−1.11, +0.59]; LSTM −2.5 [−7.8, +3.2] %;
+  random search vs shipped +4.1 [−0.2, +8.9] %; Optuna tuned daily vs shipped +7.4 [+1.4, +16.3] %
+  (resolved loss); tuning every session vs every 250 −0.55 [−1.42, +0.30] Sharpe; intraday vs
+  per-bar LSTM −7.5 [−20.9, +4.7] % QLIKE, +0.62 [−0.26, +1.54] Sharpe. Asserted: among the
+  campaign steps only the daily-refit and Optuna-vs-shipped QLIKE intervals exclude zero.
+- **Results, "Trees and LSTMs, every rung"** (replaces "Trees, untuned and causally tuned";
+  before: 0 of 18 tuned trees below the ridge on QLIKE, 6 above, LightGBM `all_features` +0.7 %
+  [−5.4, +7.4]; tuned vs untuned 0 / 9 below, 4 above, LightGBM `live_feasible` +7.3 % [+2.1,
+  +12.6]; tuned LightGBM `live_feasible` 1.14 vs ridge 1.90, −0.76 [−1.26, −0.24]; best tuned
+  tree LightGBM `all_features` 1.81, +0.15 [−0.60, +0.90] vs its ridge, −0.09 [−0.85, +0.63] vs
+  the headline). After: trees vs the per-bar ridge 0 of 72 QLIKE intervals below zero, 32 above,
+  Sharpe 0 above, two below (H `masked - ridge` + C `vs ridge`); T1 − T10 lowers QLIKE for 9 / 9,
+  three below zero, one trade resolved (XGBoost `all_features` +0.52 [+0.10, +1.02]); RS1 − T1
+  6 / 9 above zero; Optuna − T1 19 / 36 above, 0 below; no tuned trade resolved; TUNE_PER 1/5/25
+  vs 250: 8 / 27 below, trade never resolved; best of 50 vs 10 / 25: 0 / 36 below, one above,
+  while the best validation trial falls in the last ten at 27–40 % of points (20 % if
+  exchangeable); mask: median |ΔQLIKE| 0.7 %, 5 / 36 above, 0 below, one Sharpe below; LSTM daily
+  − every 10: −1.9 / −2.5 / −10.1 %, two below zero; per-bar LSTM vs ridge +6.8 … +30.0 %;
+  intraday vs per-bar LSTM resolved only on `all_features` −14.3 [−26.9, −2.0] %, vs ridge +9.2 …
+  +11.5 %, all above zero; no LSTM trade resolved vs ridge; best tree / LSTM on the trade
+  (random-search RF `live_feasible`, QLIKE rule, refit every 10) 1.90, −0.00 [−0.56, +0.59] vs
+  the headline; none of 147 above the headline.
+- **Results, closing summary**: one sentence added — none of the 147 tree and LSTM forecasts
+  trades above the headline with an interval above zero.
+- **Table 7 caption**: panel D described; **Table 8 caption**: the campaign blocks, which rows
+  are read vs recomputed, "DM ---: not stored".
+- **Methods, "Forecasts fitted for the 16:00 bar alone"** (only where a fact changed): the
+  session-edge columns left out of the per-bar design (kept in the pooled twins); trees refit
+  every ten sessions *or every session* (was: every ten); tuning = the random search (unchanged
+  definition) *and* Optuna (50 TPE trials, first trial the shipped settings, TUNE_PER 1 / 5 / 25
+  / 250, best of 10 / 25 / 50, QLIKE-rule twins); the two LSTMs defined (sessions L ∈ {5, 20};
+  half-hour bars N ∈ {13, 48, 96} with bar-level inputs; shared grid, 250-session tuning, five
+  seeds, daily refits); the per-window mask for every per-bar fit; one processor model for every
+  tree and LSTM table. Constants from `specs/causal_tune_trees*.py`, `specs/causal_tune_lstm*.py`.
+
+### 7.4 Build and commit
+
+Build (pdflatex → bibtex → pdflatex ×2, with L4's `sections/appendix_campaign_16h.tex` present):
+99 pages, 0 undefined references, 0 multiply-defined labels, 1 overfull box (a 1.6 pt `\vbox`,
+not in Section 5.4). Commit: this commit (`I4b`).
+
+### 7.5 Not changed — for the user
+
+1. Panel D shows LightGBM for the trees; XGBoost and the random forest of every rung are only
+   counted in the prose (the master table has all 147 rows).
+2. The design row of Table 8 shows the headline only; the other 54 per-bar linear forecasts are
+   summarised in the prose (max 0.09 % QLIKE, ≤ two positions).
+3. The introduction and conclusion (not this agent's files) make no tree-specific claim and
+   need no change; their macros (`\cmH…`, `\cmPnl…`, `\cmNdays`, `\cmSellHead`) are unchanged.

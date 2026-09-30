@@ -23,7 +23,8 @@ Equation~\eqref{eq:close_opt_recal1600}, so every row of
 Table~\ref{tab:close_option_rules} is scored the same way on the same days:
 the paper's eight forecasts, fitted on all 48 bars of the day (panel~A); the
 pooled twins of the per-bar forecasts (panel~B); and the per-bar forecasts
-fitted for the 16:00 bar alone, linear (panel~C) and trees (panel~D).
+fitted for the 16:00 bar alone, linear (panel~C), and trees and LSTMs
+(panel~D, one row for each of their \cmNlFamN{} rungs). % I4b: master_table.csv families
 
 \begin{table}[H]
 \centering
@@ -42,7 +43,11 @@ ratio minus that of R and of always short on the same days, with a 95\%
 paired interval (circular block bootstrap of the days, blocks of 21 days).
 Buys: the share of days the rule is long. Inputs: the input set of
 Section~\ref{sec:close_option_methods} by its design name; panel~A reads the
-paper's full design. $^{\dagger}$: the four columns still fitted on the
+paper's full design. Panel~D holds one row per rung of the per-bar trees and
+LSTMs of Section~\ref{sec:close_option_methods}, each LightGBM or the LSTM on
+\texttt{live\_feasible}, so that consecutive rows differ in one thing; the
+other trees and input sets of every rung are counted in the text.
+$^{\dagger}$: the four columns still fitted on the
 earlier design panel (Section~\ref{sec:close_option_methods}); H: the
 headline forecast (bold). The rows are
 selected from the closing-strategy master table, which scores \cmMasterN{}
@@ -79,11 +84,45 @@ lasso, on the same design panel, trades at \cmLassoFShMid{}, above the % lasso_f
 block-diagonal ridge by \cmLassoFVsRef{}, while taking its side on % lasso_f dSharpe_mid_vs_ref
 \cmLassoFSame{} percent of days.
 
+% I4b 2026-09-30: what the 16:00 re-run changed.  Macros \cmP..., \cmKept..., \cmClass...,
+% \cmDedup... from results/linear_subsection_dedup/gates.csv (agent A),
+% results/trees_mask_1600/kept_counts.csv and results/linear_subsection_trees_mask/class/*.csv
+% (agent H), results/linear_subsection_trees_optuna_mask/{xclass,xclass_epyc}/xclass_gate.csv
+% and chunk_hosts.csv (agent C), results/close_master_table/before_after.csv; written and
+% asserted by writeup/make_table_close_main.py (campaign_macros).
+\paragraph{The per-bar tables, rebuilt.} Every per-bar row of
+Table~\ref{tab:close_option_rules} comes from one re-run of the 16:00 bar that
+changed four things, each defined in Section~\ref{sec:close_option_methods}%
+\IfFileExists{sections/appendix_campaign_16h.tex}{ and reported in full in
+Appendix~\ref{sec:app_campaign_16h}}{}. The per-bar design drops the
+\cmNDup{} session-edge columns that, in a series with one bar per session, are % gates.csv (a), 12 per arm
+either zero or exact copies of \texttt{har\_ma\_}$k$ (\cmPOldBase{},
+\cmPOldLive{} and \cmPOldAll{} columns become \cmPNewBase{}, \cmPNewLive{} and % baseline, live_feasible, all_features
+\cmPNewAll{} on \texttt{baseline}, \texttt{live\_feasible} and
+\texttt{all\_features}). Every tree and LSTM fit now drops, as every linear fit
+already did, the columns that are constant on its own training window or copy
+an earlier one; it keeps a median of \cmKeptBase{} of \cmPNewBase{}, % kept_counts.csv, median over refits
+\cmKeptLive{} of \cmPNewLive{} and \cmKeptAll{} of \cmPNewAll{} columns. Trees
+and LSTMs are refit every session as well as every ten, and the trees are
+tuned by Optuna as well as by the random search. Tree and LSTM forecasts
+depend on the processor's instruction class in their last bits and, through
+the tuning, beyond them: re-run on a second class, LightGBM's best-of-50 % xclass/xclass_gate.csv, lgbm
+choice changed on \cmClassLgbmPick{} of \cmClassPts{} tuning points and a
+LightGBM forecast moved by up to \cmClassMaxRelMax\% of its value, while % class_arms.csv max_rel (T10 / T1)
+re-run on the same class every one of those points was bit-identical for all % xclass_epyc/xclass_gate.csv
+three trees. Every one of the \cmClassChunks{} chunks behind the tree and % class_census.csv + chunk_hosts.csv
+per-bar LSTM tables was therefore computed on one processor class. The linear
+forecasts barely move: their identifiability mask had already removed the
+duplicated columns, so the headline keeps every position and its QLIKE moves % before_after.csv, headline row
+only at rounding, and over the master table's \cmDedupN{} per-bar linear % before_after.csv, table A, linear families
+forecasts QLIKE changes by at most \cmDedupQMax\% and at most \cmDedupPosMax{}
+positions, with no Sharpe difference resolved.
+
 \paragraph{The forecasts built for the traded bar.} Panels B to D hold the
 forecasts of Section~\ref{sec:close_option_methods} that read the 16:00 bar on
 their own design: the pooled twins trade at \cmPoolShMin{} to \cmPoolShMax{}, % Sharpe_mid, pool_ridge_*
 the per-bar linear forecasts at \cmSubShMin{} to \cmSubShMax{}, and the % Sharpe_mid, sub_* (panel C)
-untuned per-bar trees at \cmTreeShMin{} to \cmTreeShMax{}. Against the % Sharpe_mid, subtree_* (panel D)
+rungs of the trees and LSTMs at \cmNlShMin{} to \cmNlShMax{}. Against the % Sharpe_mid, panel D
 block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other forecasts
 in the table have a Sharpe-difference interval wholly above zero and
 \cmTabVsRefBelow{} has one wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
@@ -148,15 +187,35 @@ leaves the trade where it was (\cmLdPerBarBase): a better forecast of the bar's 
 is not by itself a better trade. Restricting the per-bar ridge from all
 features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
 and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
-changing only the estimator to another penalty or to an untuned tree moves % H -> five estimators
-the Sharpe ratio by between \cmLdEstMax{} (the lasso) and \cmLdEstMin{} (the
-elastic net). Of the \cmLdN{} steps, \cmLdResolved{} has a Sharpe interval % steps with an interval excluding zero
-that excludes zero: the causally tuned LightGBM, below the headline. The
+changing only the estimator to another penalty or to a tree with the shipped % H -> five estimators
+settings moves the Sharpe ratio by between \cmLdEstMax{} (the lasso) and
+\cmLdEstMin{} (XGBoost). The % I4b: was -0.49 (the elastic net) on the first-pass trees
 headline's resolved lead over the block-diagonal ridge is exactly the sum of
 three steps of the table --- the specification step, fitting the 16:00 bar
 alone on \texttt{all\_features}, and restricting those inputs to % asserted by make_table_close_main.py
 \texttt{live\_feasible} --- none of which is resolved alone; the largest is
 fitting the traded bar on its own.
+
+% I4b 2026-09-30: the campaign's rungs (the last five blocks of Table 8), \cmLdC... macros
+% from close_main_ladder.csv (recomputed and gated against results/trees_mask_1600/mask_pairs.csv,
+% results/linear_subsection_trees_optuna_mask/report/tuneper_oos.csv and
+% results/linear_subsection_lstm_intraday/score/lstmi_pairs.csv, or read from them).
+The last five blocks of Table~\ref{tab:close_option_ladder} walk the rungs of
+the 16:00 re-run the same way, for LightGBM and the LSTM on
+\texttt{live\_feasible}. Dropping the duplicated columns leaves the headline
+where it was. The per-window mask moves no rung's QLIKE or Sharpe ratio with an % masked - unmasked rows
+interval that excludes zero (LightGBM with the shipped settings refit every ten
+sessions: \cmLdCMaskTtenQ\% on QLIKE, \cmLdCMaskTten{} on the trade). % H: T10 masked - T10 unmasked
+Refitting every session instead of every ten makes LightGBM more accurate,
+\cmLdCCadLgbmQ\% (DM \cmLdCCadLgbmDM), without moving its trade % T1 - T10 (gated vs H)
+(\cmLdCCadLgbm); the LSTM's QLIKE changes by \cmLdCCadLstmQ\%, not resolved. % H: LSTM - LSTM10, masked
+Tuning does not help: against the shipped settings, both refit daily, the % RS1 - T1 (gated vs H)
+random search changes QLIKE by \cmLdCTuneRsQ\% and Optuna tuned every session % tp1 - T1 (gated vs C)
+by \cmLdCTuneOpQ\%, a resolved loss of accuracy, and tuning every session
+rather than every 250 moves Optuna's trade by \cmLdCTuneOpPer. Reading the % tp1 - tp250 (gated vs C)
+last half-hour bars instead of the last sessions moves the LSTM's QLIKE by
+\cmLdCSeqQ\% and its trade by \cmLdCSeq. Of all \cmLdN{} steps of the table, % intraday - per-bar LSTM (gated vs I)
+\cmLdResolved{} has a Sharpe interval that excludes zero. % I4b: was "one ... the causally tuned LightGBM"
 
 \begin{table}[H]
 \centering
@@ -171,32 +230,64 @@ and at the crossed spread, with 95\% paired intervals on the resampled days of
 Table~\ref{tab:close_option_rules}. Same side: the share of days the two
 forecasts take the same position. The first step changes the design, the
 training window and the penalty together; every other step changes one thing.
-Steps the master table also stores are reproduced by it exactly.
+Steps the master table also stores are reproduced by it exactly. The last five
+blocks are the rungs of the 16:00 re-run (Section~\ref{sec:close_option_methods})
+for LightGBM and the LSTM on \texttt{live\_feasible}: the design row pairs the
+headline with its table before the re-run; the mask rows and the LSTM refit
+every ten sessions, whose unmasked or ten-session tables are not rows of
+Table~\ref{tab:close_option_rules}, are read from the re-run's own paired
+comparisons (same days, same scorer and resampling); every other campaign step
+is recomputed here and reproduces the re-run's report. DM ---: not stored for
+that pair.
 \label{tab:close_option_ladder}}
 \resizebox{\textwidth}{!}{\input{generated/table_close_ladder}}
 \end{table}
 
-% D1 2026-09-29 (change 6): the causally tuned per-bar trees.  Macros \cmTt... from
-% results/linear_subsection_trees_tuned/a2b/{qlike_1600_paired,trade_1600_paired}.csv (the 866
-% deck days, 16:00-bar recalibration), gated against master_table.csv by the maker.
-\paragraph{Trees, untuned and causally tuned.} The per-bar trees of
-Table~\ref{tab:close_option_rules} take the settings of the paper's tree
-columns. Re-selecting those settings causally on the per-bar design
-(Section~\ref{sec:close_option_methods}) does not help. At the 16:00 bar no
-tuned tree is more accurate than the per-bar ridge on the same inputs:
-\cmTtVsRidgeBetter{} of \cmTtVsRidgeN{} intervals (three trees, three input % qlike_1600_paired.csv, tuned* vs ridge
-sets, two selection rules) lie below zero and \cmTtVsRidgeWorse{} above, the
-closest being LightGBM on all features (\cmTtLgbmAllQ\%). Tuning never makes a % tuned lgbm vs ridge, all_features
-tree more accurate than its untuned self either: \cmTtVsUntunedMseBetter{} of
-nine intervals below zero and \cmTtVsUntunedMseWorse{} above, LightGBM on % tuned * vs untuned *, MSE rule
-\texttt{live\_feasible} worst (\cmTtLgbmLiveVsUntuned\%). On the trade the % tuned lgbm vs untuned lgbm, live_feasible
-tuned LightGBM on \texttt{live\_feasible} trades at \cmTtLgbmLiveSh{} against % trade_1600_paired.csv
-the ridge's \cmTtLgbmLiveRidgeSh{}, \cmTtLgbmLiveVsRidge{} --- the one step of
-Table~\ref{tab:close_option_ladder} whose interval excludes zero --- and the
-best of the \cmTtN{} tuned trees, LightGBM on all features (\cmTtBestSh), is % master_table.csv family "per-bar tree (tuned)"
-\cmTtLgbmAllVsRidge{} against the per-bar ridge on the same inputs and % trade_1600_paired.csv, all_features
-\cmTtBestVsH{} against the headline. No tree, tuned or not, is resolved above % master_table_vs_headline.csv
-the per-bar ridge on either count.
+% I4b 2026-09-30: the trees and LSTMs of the 16:00 re-run, every model and input set.
+% Macros from results/trees_mask_1600/mask_pairs.csv (agent H: T10 / T1 / RS10 / RS1, LSTM),
+% results/linear_subsection_trees_optuna_mask/report/{tuneper_oos,budget_points}.csv (agent C:
+% Optuna) and results/linear_subsection_lstm_intraday/score/lstmi_pairs.csv (agent I), written
+% and asserted by writeup/make_table_close_main.py (campaign_macros).  The first-pass version
+% of this paragraph (causally tuned trees, results/linear_subsection_trees_tuned/a2b/) is
+% recorded with its numbers in writeup/D1_CHANGELOG_2026-09-29.md, section 7.
+\paragraph{Trees and LSTMs, every rung.} Over every tree, input set and rung
+of the re-run the reading of Table~\ref{tab:close_option_ladder} holds. No
+tree is more accurate than the per-bar ridge on the same inputs: of
+\cmTrVsRidgeN{} QLIKE intervals (three trees, three input sets, the four % masked - ridge (H) + vs ridge (C)
+rungs with the shipped settings or the random search and Optuna at four tuning
+cadences) none lies below zero and \cmTrVsRidgeQAbove{} lie above, and none
+trades above the ridge with an interval above zero (\cmTrVsRidgeShBelow{} below).
+Refitting every session lowers the QLIKE of all \cmCadN{} tree forecasts (three % H: T1 - T10, 9 pairs
+trees, three input sets) with the shipped settings, with
+\cmCadQBelow{} intervals below zero, and moves one trade with an interval
+that excludes zero, XGBoost on \texttt{all\_features} (\cmCadShUp). Tuning
+never makes a tree refit daily more accurate than the shipped settings refit
+daily: the random search is less accurate with an interval above zero in % H: RS1 - T1
+\cmRsQAbove{} of \cmRsN{} cases and Optuna in \cmOpQAbove{} of \cmOpN{}, and no % C: vs T1
+tuned tree's trade differs from the shipped one's with an interval that
+excludes zero. Tuning Optuna every session, every 5 or every 25 sessions
+rather than every 250 is more accurate with an interval below zero in % C: tune_per vs 250
+\cmTpQBelow{} of \cmTpN{} cases and never resolved on the trade. On the trial
+budget, the best validation score falls in the last ten of the 50 trials at % C: budget_points.csv
+\cmBudLastMin{} to \cmBudLastMax\% of tuning points, against \cmBudLastExch\% if
+the order did not matter, yet out of sample the best of 50 is more accurate % C: budget, best of 50 vs 10 / 25
+than the best of the first 10 or 25 in none of \cmBudN{} cases, and less
+accurate in \cmBudQAbove. The mask itself changes the trees little: a median
+of \cmMaskQMed\% in QLIKE, \cmMaskQAbove{} of \cmMaskN{} intervals above zero % H: masked - unmasked, trees
+and none below, and \cmMaskShBelow{} Sharpe interval below zero. The LSTM
+over sessions is more accurate with daily refits (\cmLstmCadBase, % H: LSTM - LSTM10, masked
+\cmLstmCadLive{} and \cmLstmCadAll\% on \texttt{baseline},
+\texttt{live\_feasible} and \texttt{all\_features}, \cmLstmCadBelow{} intervals
+below zero) but stays \cmLstmVsRidgeMin{} to \cmLstmVsRidgeMax\% above the % I: perbar_lstm - ridge
+ridge in QLIKE; the LSTM over half-hour bars is resolved more accurate than it
+only on \texttt{all\_features} (\cmIntraAllQ\%) and is \cmIntraVsRidgeMin{} to % I: intraday - perbar_lstm; intraday - ridge
+\cmIntraVsRidgeMax\% above the ridge, every interval above zero; neither LSTM's
+trade differs from the ridge's with an interval that excludes zero. On the
+trade the best of the master table's \cmNlMasterN{} tree and LSTM forecasts, % master_table.csv argmax Sharpe, tree / LSTM families
+the random forest on \texttt{live\_feasible} with the random search's settings
+chosen by QLIKE and refit every ten sessions (\cmNlBestSh), is \cmNlBestVsH{} % master_table_vs_headline.csv
+against the headline, and \cmNlVsHAbove{} of the \cmNlMasterN{} trades above the
+headline with an interval above zero.
 
 % D1 2026-09-29 (change 7): where the P&L comes from.  Macros \cmPnl... from
 % results/close_pnl_decomp/research_scorer/*.csv (the P&L decomposition under the same
@@ -383,7 +474,10 @@ ratio of \cmHShMid{} (\cmHShX{} crossed), above the paper's forecast by
 significantly more accurate than the paper's (DM \cmHDM, $p=\cmHDMp$); no single
 change on the way from the paper's forecast is resolved on its own, the largest % close_main_ladder.csv
 being to fit the traded bar alone; and it is not separated from the lasso on the
-same inputs (\cmVsHLasso). The edge is a tail trade: the 20 best days carry % master_table_vs_headline.csv
+same inputs (\cmVsHLasso). None of the \cmNlMasterN{} tree and LSTM forecasts of % master_table_vs_headline.csv
+the 16:00 re-run --- refit every session or every ten, with the shipped, % I4b: asserted (cmNlVsHAbove)
+searched or Optuna-tuned settings --- trades above it with an interval above
+zero. The edge is a tail trade: the 20 best days carry
 \cmPnlTopTwentyShare\% of its P\&L, all of them buys, and without its 10 best days % research_scorer/tail_concentration.csv
 the advantage over always short is \cmPnlDiffExTen. The sample ends with the % research_scorer/diff_attribution.csv
 forecast panel in April 2024; after it the trade's live form has shown no edge
