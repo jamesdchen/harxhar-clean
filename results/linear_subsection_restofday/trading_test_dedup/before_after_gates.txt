@@ -1,0 +1,5 @@
+GATE reproduction trading_test_pooled.csv: re-run on results/spxw_pnl/pre_dedup_2026-09-29 vs the committed CSV, 108 rows, max |diff| 0.0e+00, text columns equal True -> OK
+GATE reproduction trading_test_by_entry_time.csv: re-run on results/spxw_pnl/pre_dedup_2026-09-29 vs the committed CSV, 468 rows, max |diff| 0.0e+00, text columns equal True -> OK
+GATE per-day series (before): the series give back all 576 rows' Sharpe (max |diff| 4.4e-16) and day counts -> OK
+GATE per-day series (after): the series give back all 576 rows' Sharpe (max |diff| 4.4e-16) and day counts -> OK
+same days before / after: 576 of 576 rows

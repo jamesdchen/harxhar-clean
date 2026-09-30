@@ -1,0 +1,6 @@
+"rule (pooled 10:00-15:00, block-diagonal ridge)",source,n_days,Sharpe_ann,Sharpe crossed-spread,mean_daily,pct_buy
+always short,"executed notebook section 8d, results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv",866,3.3821739452584403,2.6509454861551824,0.9977976556109476,0.0
+sign(s^m),"executed notebook section 8d, results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv",866,2.2989272846671125,1.2485676143981976,0.4700624998584008,38.64089906522425
+sign(s^rem) M1,"executed notebook section 8d, results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv",866,1.697635656243959,0.6759113727489026,0.3570350607103381,46.59174456464657
+sign(s^rem) M2,"executed notebook section 8d, results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv",866,1.15194913915504,0.2165928609867129,0.2648829538461542,48.31425270454785
+sign(s^rem) M3,"executed notebook section 8d, results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv",866,0.8590583933426758,-0.069140803333075,0.1991896199113633,48.366768196618

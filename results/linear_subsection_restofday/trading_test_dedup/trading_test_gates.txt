@@ -1,0 +1,11 @@
+inputs: forecast tables results/spxw_pnl/yhat_{restofday,sub}_*; ledger results/linear_subsection_restofday/trading_test/dh_holdclose_ledger.parquet
+GATE join: the direct tables' realized rest of day equals the per-bar tables' bars summed from the entry time to the close on every bar of all 9 models (max rel 9.6e-13); the realized target is the same in every direct table
+bars without every forecast (dropped from every rule): 0 of 11250
+frame: 11,250 bars, 866 days; days per entry time {'09:35': 863, '10:00': 864, '10:30': 865, '11:00': 865, '11:30': 865, '12:00': 866, '12:30': 866, '13:00': 866, '13:30': 866, '14:00': 866, '14:30': 866, '15:00': 866, '15:30': 866}
+bars with a censored vendor implied volatility (flat in every sign rule): 13
+15:30 identity flags read from results/linear_subsection_restofday_dedup/score_rest_of_day.csv
+GATE 15:30: direct F = one-step F (rel <= 1e-09, same position) on all 866 days wherever the scorer's identity self-check passes; where it fails:
+Empty DataFrame
+Columns: [estimator, bucket, variant, scorer identity_pass, max rel |F_direct/F_current - 1| at 15:30, 15:30 days whose position differs]
+Index: []
+GATE the notebook's always short and block-diagonal ridge sign(s), recomputed on this frame (10,387 bars 10:00-15:30), equal its pooled mid / crossed and per-entry-time Sharpe (max |diff| 4.4e-16)

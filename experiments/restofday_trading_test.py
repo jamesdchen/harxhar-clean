@@ -69,6 +69,20 @@ Run:
         hedged return ledger <OUT>/dh_holdclose_ledger.parquet for reuse.
   python experiments/restofday_trading_test.py
         the test, from the ledger (not chain-sized).
+
+Options (defaults = the first run's paths, so a bare run writes where it always did):
+  --out DIR          outputs (CSVs, figures, SUMMARY.md, per-day series)
+  --yhat-dir DIR     the yhat_restofday_* / yhat_sub_* tables read
+  --ledger PATH      the return ledger read (and written by --build-ledger)
+  --score-csv PATH   the QLIKE scorer's CSV whose identity_pass flags the 15:30 gate reads
+  --tex PATH|none    the LaTeX table ('none' = not written)
+The de-duplicated design's re-run (checklist I6 rebuilt the direct tables):
+  python experiments/restofday_trading_test.py
+        --out results/linear_subsection_restofday/trading_test_dedup
+        --score-csv results/linear_subsection_restofday_dedup/score_rest_of_day.csv
+Every run also writes <out>/trading_test_daily.parquet (the per-day direct / current series
+of every row of the two CSVs; not committed), read by
+experiments/restofday_trading_test_before_after.py for paired intervals of a change.
 """
 
 from __future__ import annotations
@@ -92,11 +106,14 @@ from build_subsection_yhat import ESTIMATORS, GATE_REL  # noqa: E402
 
 OUT = ROOT / "results" / "linear_subsection_restofday" / "trading_test"
 LEDGER = OUT / "dh_holdclose_ledger.parquet"
+SCORE_CSV = ROOT / "results" / "linear_subsection_restofday" / "score_rest_of_day.csv"
 HC = ROOT / "results" / "atm_straddle_intraday_holdclose"
 HC_CACHE = HC / "cache"
 DECK_DAILY = ROOT / "results" / "atm_straddle_0dte_1530" / "daily_blk2.parquet"
 YHAT_DIR = ROOT / "results" / "spxw_pnl"
-TEX_OUT = ROOT / "writeup" / "generated" / "appendix_running_restofday_trading.tex"
+TEX_OUT: Path | None = (
+    ROOT / "writeup" / "generated" / "appendix_running_restofday_trading.tex"
+)
 ET = "America/New_York"
 
 SHORTS = ("ridge", "lasso", "enet")
@@ -127,6 +144,15 @@ GATES: list[str] = []  # the gate / count lines of the last run, echoed into SUM
 def gate(msg: str) -> None:
     print(msg)
     GATES.append(msg)
+
+
+def _rel(p: Path) -> str:
+    """A path as written into the outputs: repo-relative with forward slashes when inside it."""
+    p = Path(p).resolve()
+    try:
+        return p.relative_to(ROOT).as_posix()
+    except ValueError:
+        return p.as_posix()
 
 
 def fc_clock(entry: str) -> str:
@@ -385,6 +411,22 @@ def daily(values: np.ndarray, fr: pd.DataFrame, mask: np.ndarray) -> pd.Series:
     return v.groupby(fr["date"]).sum().reindex(pd.DatetimeIndex(sorted(days)))
 
 
+def _daily_frame(
+    tag: dict, scope: str, fill: str, dd_: pd.Series, dc_: pd.Series
+) -> pd.DataFrame:
+    """One row of the CSVs as its per-day series (direct, current) in long form."""
+    return pd.DataFrame(
+        {
+            **tag,
+            "scope": scope,
+            "fill": fill,
+            "date": dd_.index,
+            "direct": dd_.to_numpy(float),
+            "current": dc_.to_numpy(float),
+        }
+    )
+
+
 def qlike(F: np.ndarray, y: np.ndarray) -> float:
     r = np.asarray(y, float) / np.asarray(F, float)
     return float(np.mean(r - np.log(r) - 1.0))
@@ -440,6 +482,9 @@ def run() -> None:
     n_days0 = fr["date"].nunique()
     print(
         f"ledger {LEDGER.name}: {len(fr):,} bars on the deck's {n_days0} days ({led['source_cache'].iloc[0]})"
+    )
+    gate(
+        f"inputs: forecast tables {_rel(YHAT_DIR)}/yhat_{{restofday,sub}}_*; ledger {_rel(LEDGER)}"
     )
 
     # --- forecasts of every estimator x bucket, joined on (day, forecast clock)
@@ -506,9 +551,8 @@ def run() -> None:
     # bit-identical to the direct campaign's 15:30 arm); there the gap is reported,
     # everywhere else it is asserted.
     at15 = (fr["hhmm"] == "15:30").to_numpy()
-    sc = pd.read_csv(
-        ROOT / "results" / "linear_subsection_restofday" / "score_rest_of_day.csv"
-    )
+    sc = pd.read_csv(SCORE_CSV)
+    gate(f"15:30 identity flags read from {_rel(SCORE_CSV)}")
     sc = sc[sc["identity_pass"].notna()].assign(
         short=lambda t: t["estimator"].map(ESTIMATORS)
     )
@@ -580,6 +624,8 @@ def run() -> None:
 
     # --- the comparison
     rows_clk, rows_pool, rows_agr = [], [], []
+    # the per-day series behind every row of the two CSVs (for pairing across runs)
+    daily_frames: list[pd.DataFrame] = []
     ref_rows = []
     for cname in ENTRY_CLOCKS:
         mc = (fr["hhmm"] == cname).to_numpy()
@@ -639,6 +685,7 @@ def run() -> None:
                 for fill, vd, vc in (("mid", md, mcur), ("crossed", xd, xcur)):
                     dd_, dc_ = daily(vd, fr, mc), daily(vc, fr, mc)
                     pr = paired(dd_.to_numpy(), dc_.to_numpy())
+                    daily_frames.append(_daily_frame(tag, cname, fill, dd_, dc_))
                     rows_clk.append(
                         {
                             **base,
@@ -703,6 +750,7 @@ def run() -> None:
                     dd_, dc_ = daily(vd, fr, mp), daily(vc, fr, mp)
                     ds_ = daily(vs, fr, mp)
                     pr = paired(dd_.to_numpy(), dc_.to_numpy())
+                    daily_frames.append(_daily_frame(tag, pname, fill, dd_, dc_))
                     vs_short = {}
                     for side, d_ in (("direct", dd_), ("current", dc_)):
                         ps = paired(d_.to_numpy(), ds_.to_numpy())
@@ -801,6 +849,9 @@ def run() -> None:
     s8d_d.to_csv(OUT / "trading_test_context_8d_dsharpe.csv", index=False)
     pvr.to_csv(OUT / "trading_test_plain_vs_recal.csv", index=False)
     id_tab.to_csv(OUT / "trading_test_identity_1530.csv", index=False)
+    pd.concat(daily_frames, ignore_index=True).to_parquet(
+        OUT / "trading_test_daily.parquet", index=False
+    )
     (OUT / "trading_test_gates.txt").write_text(
         "\n".join(GATES) + "\n", encoding="utf-8"
     )
@@ -1009,8 +1060,8 @@ def make_tex(clk: pd.DataFrame, pool: pd.DataFrame, ref: pd.DataFrame) -> None:
     r0 = ref[ref["scope"] == "10:00-15:30"].set_index(["rule", "fill"])["Sharpe"]
     lines = [
         "% AUTO-GENERATED by experiments/restofday_trading_test.py -- do not edit.",
-        "% Source: results/linear_subsection_restofday/trading_test/"
-        "trading_test_{pooled,by_entry_time,reference_rules}.csv",
+        f"% Source: {_rel(OUT)}/trading_test_{{pooled,by_entry_time,reference_rules}}.csv "
+        f"(forecast tables {_rel(YHAT_DIR)}/yhat_{{restofday,sub}}_*)",
         f"% Table 1: pooled 10:00--15:30 (daily sums), per-bar {est}. Table 2: by entry time, {var} back-transform, "
         "midpoint.",
         r"\begingroup\small\setlength{\tabcolsep}{3pt}\noindent",
@@ -1087,6 +1138,9 @@ def make_tex(clk: pd.DataFrame, pool: pd.DataFrame, ref: pd.DataFrame) -> None:
         f"({int(c['n_days'].min())}--{int(c['n_days'].max())} days); intervals: paired circular block "
         "bootstrap, 95 % percentile; * = the percentile and basic intervals both exclude zero.",
     ]
+    if TEX_OUT is None:
+        print("LaTeX table not written (--tex none)")
+        return
     TEX_OUT.parent.mkdir(parents=True, exist_ok=True)
     TEX_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {TEX_OUT}")
@@ -1142,7 +1196,8 @@ def write_summary(
         "# Direct rest-of-day forecast: does it trade better? (checklist E2)",
         "",
         "*Generated by `experiments/restofday_trading_test.py`; every number below is read from the CSVs "
-        "in this folder.*",
+        f"in this folder. Inputs: forecast tables `{_rel(YHAT_DIR)}/yhat_{{restofday,sub}}_*`, return ledger "
+        f"`{_rel(LEDGER)}`, 15:30 identity flags `{_rel(SCORE_CSV)}`.*",
         "",
         "## Question",
         "",
@@ -1509,15 +1564,38 @@ def write_summary(
         "`trading_test_context_8d*.csv` (section 8d, copied from the executed notebook); "
         "`trading_test_plain_vs_recal.csv`; `trading_test_identity_1530.csv`; `trading_test_gates.txt`.",
         f"- Figures: `{figs[0].name}`, `{figs[1].name}`.",
-        f"- LaTeX: `writeup/generated/{TEX_OUT.name}`.",
-        "- Return ledger for reuse (not committed): `dh_holdclose_ledger.parquet` (per day x entry time: entry, "
+        f"- LaTeX: `{_rel(TEX_OUT)}`."
+        if TEX_OUT is not None
+        else "- LaTeX: not written.",
+        f"- Return ledger for reuse (not committed): `{_rel(LEDGER)}` (per day x entry time: entry, "
         "bid/ask, hedge P&L, hedged return, vendor and re-inverted implied volatility, hours to the close; all "
         "1,279 chain days, `in_deck` marks the 866).",
-        "- Direct forecast tables (not committed): `results/spxw_pnl/yhat_restofday_{ridge,lasso,enet}_"
+        f"- Direct forecast tables (not committed): `{_rel(YHAT_DIR)}/yhat_restofday_{{ridge,lasso,enet}}_"
         "{live_feasible,all_features,baseline}.parquet` (experiments/build_restofday_yhat.py).",
+        "- Per-day series behind every row (not committed): `trading_test_daily.parquet`.",
     ]
     (OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"wrote {OUT / 'SUMMARY.md'}")
+
+
+def configure(a: argparse.Namespace) -> None:
+    """Point the module's paths at the command line's (unset = the first run's defaults)."""
+    global OUT, LEDGER, YHAT_DIR, SCORE_CSV, TEX_OUT
+
+    def _p(v: str) -> Path:
+        q = Path(v)
+        return q if q.is_absolute() else ROOT / q
+
+    if a.out:
+        OUT = _p(a.out)
+    if a.yhat_dir:
+        YHAT_DIR = _p(a.yhat_dir)
+    if a.ledger:
+        LEDGER = _p(a.ledger)
+    if a.score_csv:
+        SCORE_CSV = _p(a.score_csv)
+    if a.tex:
+        TEX_OUT = None if a.tex.lower() == "none" else _p(a.tex)
 
 
 def main() -> None:
@@ -1532,7 +1610,25 @@ def main() -> None:
         action="store_true",
         help="figure, tex, SUMMARY.md from the CSVs",
     )
+    ap.add_argument("--out", default=None, help=f"output folder (default {_rel(OUT)})")
+    ap.add_argument(
+        "--yhat-dir", default=None, help=f"forecast tables (default {_rel(YHAT_DIR)})"
+    )
+    ap.add_argument(
+        "--ledger", default=None, help=f"return ledger (default {_rel(LEDGER)})"
+    )
+    ap.add_argument(
+        "--score-csv",
+        default=None,
+        help=f"QLIKE scorer CSV with identity_pass (default {_rel(SCORE_CSV)})",
+    )
+    ap.add_argument(
+        "--tex",
+        default=None,
+        help="LaTeX output or 'none' (default writeup/generated/appendix_running_restofday_trading.tex)",
+    )
     a = ap.parse_args()
+    configure(a)
     if a.build_ledger:
         build_ledger()
     elif a.report_only:
