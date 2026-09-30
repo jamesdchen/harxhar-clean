@@ -84,7 +84,11 @@ case "$MODE" in
     IDS=""
     for GS in $(echo "${2:-cadence,lstm,h_trees,h_lstm}" | tr ',' ' '); do
       rm -f "$G/FINISHED_$GS"
-      J=$($SUBMIT --parsable -J "tm_gates_$GS" --export=ALL,GATESET=$GS,OUT=$G cluster/slurm/trees_mask_gates.sbatch)
+      case "$GS" in  # the h suites take ~20 min: short limits backfill, debug takes them too
+        h_*) GOPT=(--partition="${GATES_PART_H:-main,debug}" --time="${GATES_TIME_H:-1:00:00}") ;;
+        *) GOPT=() ;;
+      esac
+      J=$($SUBMIT --parsable -J "tm_gates_$GS" "${GOPT[@]}" --export=ALL,GATESET=$GS,OUT=$G cluster/slurm/trees_mask_gates.sbatch)
       IDS="$IDS gates_$GS=$J"
     done
     echo "$(date +%F_%T)$IDS" | tee -a "$LOG"
