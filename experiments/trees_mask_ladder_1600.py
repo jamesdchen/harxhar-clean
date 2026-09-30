@@ -282,6 +282,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(OUT))
     ap.add_argument("--kept", default=str(KEPT))
+    ap.add_argument(
+        "--no-lstm",
+        action="store_true",
+        help="score the tree rungs only (the masked LSTM tables not stacked yet)",
+    )
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -294,6 +299,8 @@ def main() -> int:
     mtc._init(tgt, deck.index)
 
     specs = forecasts()
+    if a.no_lstm:
+        specs = [x for x in specs if x["model"] != "lstm"]
     gates: list[dict] = []
     frames: dict[tuple, pd.DataFrame] = {}
     for s in specs:
@@ -523,6 +530,8 @@ def main() -> int:
     kept = None
     if Path(a.kept).is_file():
         kept = pd.read_csv(a.kept)
+        if a.no_lstm:
+            kept = kept[~kept["rung"].astype(str).str.startswith("LSTM")]
         kept.to_csv(out / "kept_counts.csv", index=False)
         bad = (
             kept[~kept["complete"].astype(bool)]

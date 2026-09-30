@@ -1,0 +1,4 @@
+gate,bucket,ok,why,rows,sec,budget,sec_pooled,sec_serial,pool,chunks
+determinism,live_feasible,True,,280,"[340, 322]","{'N_SEEDS': '2', 'MAX_EPOCHS': '12', 'PATIENCE': '3'}",,,,
+pool,live_feasible,True,,280,,,340.0,1155.0,4.0,
+chunk,live_feasible,True,,280,1,"{'N_SEEDS': '2', 'MAX_EPOCHS': '12', 'PATIENCE': '3'}",,,,2.0

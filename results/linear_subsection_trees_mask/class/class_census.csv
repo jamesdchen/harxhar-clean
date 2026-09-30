@@ -1,0 +1,9 @@
+root,rung,class,chunks
+lstm,lstm,epyc-7513,18
+lstm10,lstm10,epyc-7513,18
+tuned,rs1,epyc-7513,54
+tuned,rs10,epyc-7513,54
+untuned,t1,epyc-7513,161
+untuned,t10,epyc-7513,22
+xeon,t1,xeon-4116,5
+xeon,t10,xeon-4116,1

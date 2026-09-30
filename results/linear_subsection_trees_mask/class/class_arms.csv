@@ -1,0 +1,3 @@
+rung,model,bucket,xeon_arm,fleet_arm,same_dates,rows,bit_identical,max_abs,max_rel,median_rel,class_alt_run,class_fleet
+T10,lgbm,live_feasible,True,True,True,1469,False,0.07120747351039824,0.04512748663558919,0.00836013850194306,xeon-4116,epyc-7513
+T1,lgbm,live_feasible,True,True,True,1469,False,0.05050727342912231,0.05522260474079921,0.00836006105506426,xeon-4116,epyc-7513

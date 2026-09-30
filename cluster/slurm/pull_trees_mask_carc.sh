@@ -29,8 +29,11 @@ LIST=$(q "cd $REMOTE && { find $U/t10 $U/t1 $T/rs10 $T/rs1 $L $L10 $X/t10 $X/t1 
 N=$(printf '%s\n' "$LIST" | grep -c . || true)
 echo "pulling $N files"
 [ "$N" -gt 0 ] || exit 1
-"$SSH" -o BatchMode=yes usc-discovery "cd $REMOTE && tar czf - $(printf '%s ' $LIST)" 2>/dev/null | tar xzf -
-REMOTE_SUMS=$(q "cd $REMOTE && md5sum $(printf '%s ' $LIST)" | awk '{p = $2; sub(/^\*/, "", p); print p, $1}')
+# the file list goes over stdin (a Windows command line holds at most 32767 characters)
+printf '%s
+' $LIST | "$SSH" -o BatchMode=yes usc-discovery "cd $REMOTE && tar czf - -T -" 2>/dev/null | tar xzf -
+REMOTE_SUMS=$(printf '%s
+' $LIST | "$SSH" -o BatchMode=yes usc-discovery "cd $REMOTE && xargs md5sum" 2>/dev/null | awk '{p = $2; sub(/^\*/, "", p); print p, $1}')
 LOCAL_SUMS=$(md5sum $LIST | awk '{p = $2; sub(/^\*/, "", p); print p, $1}')
 BAD=$(awk 'NR == FNR {r[$1] = $2; next} !($1 in r) || r[$1] != $2 {print $1}' <(printf '%s\n' "$REMOTE_SUMS") <(printf '%s\n' "$LOCAL_SUMS"))
 if [ -n "$BAD" ]; then

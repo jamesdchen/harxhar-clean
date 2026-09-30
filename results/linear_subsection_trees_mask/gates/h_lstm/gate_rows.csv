@@ -1,0 +1,8 @@
+model,gate,arrays_compared,arrays_differ,extra_keys_in_new,tables_differ,meta_differ,new_meta_window_mask,ok,K,n_features,kept_n_all_K,tune_kept_n,refits,run,kept_n_min,kept_n_max,p,kept_is_window_keep,kept_n_is_row_sum,tune_kept_is_window_keep,max_abs_pred_move_vs_mask0,preds,qsel_preds,seed_preds,refit_rows,cand_val_mse,cand_epochs,picks,kept,kept_n,tune_kept,tunings
+lstm,h1_pre_edit_lstm,19.0,[],[],[],[],0.0,True,,,,,,,,,,,,,,,,,,,,,,,,
+lstm,h1_pre_edit_lstm_re10_explicit,19.0,[],[],[],[],0.0,True,,,,,,,,,,,,,,,,,,,,,,,,
+lstm,h2_full_rank_lstm_re1,,[],,[],,,True,136.0,136.0,True,[136],30.0,,,,,,,,,,,,,,,,,,,
+lstm,h2_full_rank_lstm_re10,,[],,[],,,True,136.0,136.0,True,[136],3.0,,,,,,,,,,,,,,,,,,,
+lstm,h3_mask_lstm_re1,,,,,,,True,,,,,30.0,l_m1_re1,136.0,136.0,232.0,True,True,True,0.1216759404919936,,,,,,,,,,,
+lstm,h3_mask_lstm_re10,,,,,,,True,,,,,3.0,l_m1_re10,136.0,136.0,232.0,True,True,True,0.13731980408861943,,,,,,,,,,,
+lstm,h4_chunks_lstm_re1,,,,,,,True,,,,,260.0,,,,,,,,,True,True,True,True,True,True,True,True,True,True,2.0

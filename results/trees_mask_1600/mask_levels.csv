@@ -1,0 +1,132 @@
+variant,rung,model,bucket,table,what,rows_16h,n_days,qlike,sharpe_mid,sharpe_crossed,pct_buy
+mask,T10,lgbm,baseline,yhat_subtree_lgbm_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10488160987232335,0.8168525041354875,0.34621488484682145,41.224018475750576
+mask,T1,lgbm,baseline,yhat_subtree_daily_baseline_lgbm,"shipped configuration, refit every session",1469,866,0.10406712826103362,0.9947348032641011,0.5246730346986269,41.339491916859124
+mask,RS10,lgbm,baseline,yhat_subtree_tuned_baseline_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.11145700086507469,0.997760744968622,0.5291680155521663,41.685912240184756
+mask,RS1,lgbm,baseline,yhat_subtree_tuned_daily_baseline_lgbm,"random search, MSE rule, refit every session",1469,866,0.1115768528126163,0.7099052295907388,0.23994161820475016,42.032332563510394
+mask,RS10q,lgbm,baseline,yhat_subtree_tunedq_baseline_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.1059291091125963,1.451910342991048,0.9847887110542822,40.877598152424945
+mask,RS1q,lgbm,baseline,yhat_subtree_tunedq_daily_baseline_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.10579705253606063,1.2214869177568672,0.751772452270307,40.415704387990765
+mask,T10,xgb,baseline,yhat_subtree_xgb_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10417924524757785,0.9159691077625131,0.44487470865276235,39.722863741339495
+mask,T1,xgb,baseline,yhat_subtree_daily_baseline_xgb,"shipped configuration, refit every session",1469,866,0.10334429853446797,0.9500420642393733,0.4797321550334043,40.64665127020785
+mask,RS10,xgb,baseline,yhat_subtree_tuned_baseline_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.10957157983350992,1.1167215828870947,0.6483462043854504,41.570438799076214
+mask,RS1,xgb,baseline,yhat_subtree_tuned_daily_baseline_xgb,"random search, MSE rule, refit every session",1469,866,0.10870172625959099,1.216738152737597,0.7492298148848052,41.339491916859124
+mask,RS10q,xgb,baseline,yhat_subtree_tunedq_baseline_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.11245288808355317,1.0112788038635538,0.5414577277426463,41.570438799076214
+mask,RS1q,xgb,baseline,yhat_subtree_tunedq_daily_baseline_xgb,"random search, QLIKE rule, refit every session",1469,866,0.11148422292774246,1.1567858101375976,0.687724724551347,41.10854503464203
+mask,T10,rf,baseline,yhat_subtree_rf_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10498676187047669,0.8950145158517474,0.41964854064626855,42.37875288683603
+mask,T1,rf,baseline,yhat_subtree_daily_baseline_rf,"shipped configuration, refit every session",1469,866,0.10365957077238647,1.1608350181298057,0.6917423309206227,42.37875288683603
+mask,RS10,rf,baseline,yhat_subtree_tuned_baseline_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.10928467053298024,1.05620199033719,0.5859954330737508,41.801385681293304
+mask,RS1,rf,baseline,yhat_subtree_tuned_daily_baseline_rf,"random search, MSE rule, refit every session",1469,866,0.10847371866458907,1.242642594215011,0.7749246012106733,42.147806004618936
+mask,RS10q,rf,baseline,yhat_subtree_tunedq_baseline_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10220338489476738,0.8826271725154715,0.41220878383955784,40.069284064665126
+mask,RS1q,rf,baseline,yhat_subtree_tunedq_daily_baseline_rf,"random search, QLIKE rule, refit every session",1469,866,0.10255328522741511,0.8860940011413044,0.41655967266247623,40.877598152424945
+mask,LSTM,lstm,baseline,yhat_lstm_baseline,"LSTM, MSE rule, refit every session",1469,866,0.1049340211683856,1.2591214123498466,0.788385272914004,39.4919168591224
+mask,LSTMq,lstm,baseline,yhat_lstm_qsel_baseline,"LSTM, QLIKE rule, refit every session",1469,866,0.10308417535979734,0.7682731068520863,0.296608573102562,38.91454965357968
+mask,LSTM10,lstm,baseline,yhat_lstm_baseline,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.10699306056339682,1.1676345655992302,0.697290765580953,40.184757505773675
+mask,LSTM10q,lstm,baseline,yhat_lstm_qsel_baseline,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.10394380674455303,0.8375895587289864,0.3660296775224631,39.260969976905315
+nomask,T10,lgbm,baseline,yhat_subtree_lgbm_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10439551005410372,0.9960279633763571,0.5269738637165006,42.032332563510394
+nomask,T1,lgbm,baseline,yhat_subtree_daily_baseline_lgbm,"shipped configuration, refit every session",1469,866,0.1040828011887666,1.2432187358948295,0.7748796785699243,41.570438799076214
+nomask,RS10,lgbm,baseline,yhat_subtree_tuned_baseline_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.11171688377193115,0.9128049993553364,0.444012339320503,42.263279445727484
+nomask,RS1,lgbm,baseline,yhat_subtree_tuned_daily_baseline_lgbm,"random search, MSE rule, refit every session",1469,866,0.11184786816615958,0.7531242160137697,0.2835426816480664,42.37875288683603
+nomask,RS10q,lgbm,baseline,yhat_subtree_tunedq_baseline_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.1077104333209849,0.9683260278024051,0.49830314916726887,40.7621247113164
+nomask,RS1q,lgbm,baseline,yhat_subtree_tunedq_daily_baseline_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.10784069388988442,0.8522286795864887,0.381309314403241,40.7621247113164
+nomask,T10,xgb,baseline,yhat_subtree_xgb_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10381271826145944,0.9278778866085279,0.45699170251315796,40.415704387990765
+nomask,T1,xgb,baseline,yhat_subtree_daily_baseline_xgb,"shipped configuration, refit every session",1469,866,0.10304969456539664,1.0218209052388572,0.5512877617191142,40.184757505773675
+nomask,RS10,xgb,baseline,yhat_subtree_tuned_baseline_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.10984499581668354,1.1421396416397789,0.6730374354817337,41.10854503464203
+nomask,RS1,xgb,baseline,yhat_subtree_tuned_daily_baseline_xgb,"random search, MSE rule, refit every session",1469,866,0.10945102720366673,1.055386747937449,0.5869938293860191,41.454965357967666
+nomask,RS10q,xgb,baseline,yhat_subtree_tunedq_baseline_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.11181978342017496,1.079146397151709,0.6096880912821917,40.993071593533486
+nomask,RS1q,xgb,baseline,yhat_subtree_tunedq_daily_baseline_xgb,"random search, QLIKE rule, refit every session",1469,866,0.1114318257767027,0.9955611280165514,0.5257996279409909,41.224018475750576
+nomask,T10,rf,baseline,yhat_subtree_rf_baseline,"shipped configuration, refit every 10 sessions",1469,866,0.10455267345519229,0.895448098560689,0.4204699707421609,41.685912240184756
+nomask,T1,rf,baseline,yhat_subtree_daily_baseline_rf,"shipped configuration, refit every session",1469,866,0.10369360293932499,1.0959786044633157,0.625796007381089,41.454965357967666
+nomask,RS10,rf,baseline,yhat_subtree_tuned_baseline_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.10938888273252048,0.9008540909947758,0.429533706155652,42.032332563510394
+nomask,RS1,rf,baseline,yhat_subtree_tuned_daily_baseline_rf,"random search, MSE rule, refit every session",1469,866,0.10803227166205893,0.9217531910127952,0.4513437731735962,41.10854503464203
+nomask,RS10q,rf,baseline,yhat_subtree_tunedq_baseline_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.1019773997498407,0.9861911506408627,0.515106742977687,41.10854503464203
+nomask,RS1q,rf,baseline,yhat_subtree_tunedq_daily_baseline_rf,"random search, QLIKE rule, refit every session",1469,866,0.10095095526328317,1.01142117421745,0.5417682384494977,40.64665127020785
+nomask,LSTM10,lstm,baseline,yhat_lstm_baseline,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.10679435823398246,1.1986987610366628,0.727278069467473,39.14549653579677
+nomask,LSTM10q,lstm,baseline,yhat_lstm_qsel_baseline,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.10488415577616683,1.0151624767580092,0.5445285115576022,39.03002309468822
+ridge,ridge,-,baseline,yhat_sub_ridge_baseline,per-bar ridge,1469,866,0.0982333759009112,1.216586751367266,0.7439998534412559,37.87528868360277
+mask,T10,lgbm,live_feasible,yhat_subtree_lgbm_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.09911051540364507,1.5909251905468287,1.1233103389113137,39.838337182448036
+mask,T1,lgbm,live_feasible,yhat_subtree_daily_live_feasible_lgbm,"shipped configuration, refit every session",1469,866,0.09550666091271001,1.4216144663361887,0.9476631013284718,37.29792147806005
+mask,RS10,lgbm,live_feasible,yhat_subtree_tuned_live_feasible_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.0992206356733984,1.4689991999563456,1.0011338879627898,37.99076212471132
+mask,RS1,lgbm,live_feasible,yhat_subtree_tuned_daily_live_feasible_lgbm,"random search, MSE rule, refit every session",1469,866,0.09937766948682913,1.6334185716099885,1.16667774933588,39.03002309468822
+mask,RS10q,lgbm,live_feasible,yhat_subtree_tunedq_live_feasible_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.1014712468844378,1.1864867020752143,0.7181688138190457,39.260969976905315
+mask,RS1q,lgbm,live_feasible,yhat_subtree_tunedq_daily_live_feasible_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.10082754753333459,1.3656504128936295,0.8978097765357169,38.33718244803695
+mask,T10,xgb,live_feasible,yhat_subtree_xgb_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.09947090643611406,1.2685373487650549,0.7979548489008274,38.4526558891455
+mask,T1,xgb,live_feasible,yhat_subtree_daily_live_feasible_xgb,"shipped configuration, refit every session",1469,866,0.09859143245041886,1.530517549754774,1.0579762795658285,37.75981524249423
+mask,RS10,xgb,live_feasible,yhat_subtree_tuned_live_feasible_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.1070369970504212,1.464088656060592,0.9995423766897077,39.14549653579677
+mask,RS1,xgb,live_feasible,yhat_subtree_tuned_daily_live_feasible_xgb,"random search, MSE rule, refit every session",1469,866,0.105020048144181,1.338079342135896,0.8730210077420619,39.722863741339495
+mask,RS10q,xgb,live_feasible,yhat_subtree_tunedq_live_feasible_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10672847160166658,1.6660724120697927,1.203039866190313,39.4919168591224
+mask,RS1q,xgb,live_feasible,yhat_subtree_tunedq_daily_live_feasible_xgb,"random search, QLIKE rule, refit every session",1469,866,0.10517862989960931,1.5180641831710782,1.0534392854887151,39.14549653579677
+mask,T10,rf,live_feasible,yhat_subtree_rf_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.10183310643553427,1.690230175148412,1.2219072716044455,40.877598152424945
+mask,T1,rf,live_feasible,yhat_subtree_daily_live_feasible_rf,"shipped configuration, refit every session",1469,866,0.09875080214076402,1.4952600221085879,1.0233472681357385,39.95381062355658
+mask,RS10,rf,live_feasible,yhat_subtree_tuned_live_feasible_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.11903846408990189,1.4258792617733667,0.9598012004809403,41.10854503464203
+mask,RS1,rf,live_feasible,yhat_subtree_tuned_daily_live_feasible_rf,"random search, MSE rule, refit every session",1469,866,0.11645712498033624,1.5847413722597379,1.1159333578872754,39.14549653579677
+mask,RS10q,rf,live_feasible,yhat_subtree_tunedq_live_feasible_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10395277167230708,1.9005611028990999,1.4359344210247167,40.300230946882216
+mask,RS1q,rf,live_feasible,yhat_subtree_tunedq_daily_live_feasible_rf,"random search, QLIKE rule, refit every session",1469,866,0.10226763750542871,1.5685725078062118,1.0966719071073898,39.14549653579677
+mask,LSTM,lstm,live_feasible,yhat_lstm_live_feasible,"LSTM, MSE rule, refit every session",1469,866,0.1192670166952756,0.9056314884885001,0.43294904625719366,37.75981524249423
+mask,LSTMq,lstm,live_feasible,yhat_lstm_qsel_live_feasible,"LSTM, QLIKE rule, refit every session",1469,866,0.11816142082344855,1.0313673877655447,0.5575777946504774,38.799076212471135
+mask,LSTM10,lstm,live_feasible,yhat_lstm_live_feasible,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.12235453111490735,1.0758273893586305,0.601247329723801,38.33718244803695
+mask,LSTM10q,lstm,live_feasible,yhat_lstm_qsel_live_feasible,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.12346742229862677,1.1841945016821738,0.7116128742519982,39.722863741339495
+nomask,T10,lgbm,live_feasible,yhat_subtree_lgbm_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.09808359864857578,1.7579304642993032,1.2920322898123986,38.33718244803695
+nomask,T1,lgbm,live_feasible,yhat_subtree_daily_live_feasible_lgbm,"shipped configuration, refit every session",1469,866,0.09651093764428485,1.4778385912401648,1.0060427639830063,37.41339491916859
+nomask,RS10,lgbm,live_feasible,yhat_subtree_tuned_live_feasible_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.10012921728460777,1.5918971441940635,1.124670043538535,39.03002309468822
+nomask,RS1,lgbm,live_feasible,yhat_subtree_tuned_daily_live_feasible_lgbm,"random search, MSE rule, refit every session",1469,866,0.09946907914420748,1.624934231203263,1.1572174823524684,37.75981524249423
+nomask,RS10q,lgbm,live_feasible,yhat_subtree_tunedq_live_feasible_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10248664325269527,1.405418674017939,0.9369048712991966,39.14549653579677
+nomask,RS1q,lgbm,live_feasible,yhat_subtree_tunedq_daily_live_feasible_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.10149664263891245,1.5037865386554357,1.0362090791381202,38.33718244803695
+nomask,T10,xgb,live_feasible,yhat_subtree_xgb_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.09914855669694055,1.3215304324342543,0.8498780906732056,37.87528868360277
+nomask,T1,xgb,live_feasible,yhat_subtree_daily_live_feasible_xgb,"shipped configuration, refit every session",1469,866,0.09730662730047414,1.8943665440408497,1.4215247965829971,37.75981524249423
+nomask,RS10,xgb,live_feasible,yhat_subtree_tuned_live_feasible_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.1081935664476351,1.3018653627435088,0.835035569649558,37.87528868360277
+nomask,RS1,xgb,live_feasible,yhat_subtree_tuned_daily_live_feasible_xgb,"random search, MSE rule, refit every session",1469,866,0.10615432515335768,1.3523087381212666,0.8844293349849528,37.52886836027714
+nomask,RS10q,xgb,live_feasible,yhat_subtree_tunedq_live_feasible_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10757115812007544,1.4063924219404114,0.9405947719767473,39.03002309468822
+nomask,RS1q,xgb,live_feasible,yhat_subtree_tunedq_daily_live_feasible_xgb,"random search, QLIKE rule, refit every session",1469,866,0.10537985619236484,1.2539938122010155,0.7861091640524235,37.99076212471132
+nomask,T10,rf,live_feasible,yhat_subtree_rf_live_feasible,"shipped configuration, refit every 10 sessions",1469,866,0.10164796830964713,1.7655452280180575,1.2994703828492975,40.415704387990765
+nomask,T1,rf,live_feasible,yhat_subtree_daily_live_feasible_rf,"shipped configuration, refit every session",1469,866,0.09863401230492477,1.3940789595048988,0.9193073982911936,39.607390300230946
+nomask,RS10,rf,live_feasible,yhat_subtree_tuned_live_feasible_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.10552917797791708,1.0522133218260088,0.5762418241821039,39.838337182448036
+nomask,RS1,rf,live_feasible,yhat_subtree_tuned_daily_live_feasible_rf,"random search, MSE rule, refit every session",1469,866,0.10154812163251388,1.6785596002663932,1.2065026966607886,38.799076212471135
+nomask,RS10q,rf,live_feasible,yhat_subtree_tunedq_live_feasible_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10617971742670256,1.3459063259569504,0.8749537119394944,40.877598152424945
+nomask,RS1q,rf,live_feasible,yhat_subtree_tunedq_daily_live_feasible_rf,"random search, QLIKE rule, refit every session",1469,866,0.1026818842773786,1.5512055519852481,1.078121773546791,38.91454965357968
+nomask,LSTM10,lstm,live_feasible,yhat_lstm_live_feasible,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.12202685231022911,1.1304096090183553,0.6595880066353969,39.838337182448036
+nomask,LSTM10q,lstm,live_feasible,yhat_lstm_qsel_live_feasible,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.12152387711184393,0.9380342296014107,0.4643920407316782,38.799076212471135
+ridge,ridge,-,live_feasible,yhat_sub_ridge_live_feasible,per-bar ridge,1469,866,0.10054210376805882,1.9024666283565088,1.439631199377035,40.184757505773675
+mask,T10,lgbm,all_features,yhat_subtree_lgbm_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10066964470315287,1.8387627819412566,1.3714653781237978,38.33718244803695
+mask,T1,lgbm,all_features,yhat_subtree_daily_all_features_lgbm,"shipped configuration, refit every session",1469,866,0.09819443555677186,1.6631038792727835,1.190511202869342,37.87528868360277
+mask,RS10,lgbm,all_features,yhat_subtree_tuned_all_features_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.10345972203016171,1.6687979139668678,1.2034635507827716,39.14549653579677
+mask,RS1,lgbm,all_features,yhat_subtree_tuned_daily_all_features_lgbm,"random search, MSE rule, refit every session",1469,866,0.10175259897580304,1.4000851372322225,0.9336957472032035,39.37644341801386
+mask,RS10q,lgbm,all_features,yhat_subtree_tunedq_all_features_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10302890446133389,1.5755668286924234,1.1104343365660438,39.607390300230946
+mask,RS1q,lgbm,all_features,yhat_subtree_tunedq_daily_all_features_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.1010483432047478,1.3876084884511823,0.9171122356496653,39.03002309468822
+mask,T10,xgb,all_features,yhat_subtree_xgb_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10207576739969157,1.1762067334247845,0.7054508341790066,38.799076212471135
+mask,T1,xgb,all_features,yhat_subtree_daily_all_features_xgb,"shipped configuration, refit every session",1469,866,0.09907168080825657,1.6935100392867923,1.22498796343233,38.68360277136259
+mask,RS10,xgb,all_features,yhat_subtree_tuned_all_features_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.11169256147634113,1.1803311239873235,0.7137408375226038,38.91454965357968
+mask,RS1,xgb,all_features,yhat_subtree_tuned_daily_all_features_xgb,"random search, MSE rule, refit every session",1469,866,0.10965047625830604,1.223712545152204,0.7578620708069445,38.799076212471135
+mask,RS10q,xgb,all_features,yhat_subtree_tunedq_all_features_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10468506074166546,1.2570865069832557,0.7858510452489202,39.03002309468822
+mask,RS1q,xgb,all_features,yhat_subtree_tunedq_daily_all_features_xgb,"random search, QLIKE rule, refit every session",1469,866,0.10233911249082268,1.485897421900061,1.0145001392661295,38.56812933025404
+mask,T10,rf,all_features,yhat_subtree_rf_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10601312740177085,1.001976653865929,0.5337454726171839,41.570438799076214
+mask,T1,rf,all_features,yhat_subtree_daily_all_features_rf,"shipped configuration, refit every session",1469,866,0.10394020450816238,1.2315487704778028,0.7607578412363224,40.993071593533486
+mask,RS10,rf,all_features,yhat_subtree_tuned_all_features_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.11954716732285339,1.540196439460617,1.0785396193980943,42.37875288683603
+mask,RS1,rf,all_features,yhat_subtree_tuned_daily_all_features_rf,"random search, MSE rule, refit every session",1469,866,0.11707816446187756,1.4023801608225204,0.9370279637559965,39.95381062355658
+mask,RS10q,rf,all_features,yhat_subtree_tunedq_all_features_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10630714377427437,1.5321382312553085,1.0676736040816368,41.339491916859124
+mask,RS1q,rf,all_features,yhat_subtree_tunedq_daily_all_features_rf,"random search, QLIKE rule, refit every session",1469,866,0.1034033133759167,1.3453702064071056,0.8774541729433792,39.14549653579677
+mask,LSTM,lstm,all_features,yhat_lstm_all_features,"LSTM, MSE rule, refit every session",1469,866,0.1305254790079908,1.3331476839774814,0.8523257286538052,39.37644341801386
+mask,LSTMq,lstm,all_features,yhat_lstm_qsel_all_features,"LSTM, QLIKE rule, refit every session",1469,866,0.13038219360980938,1.0859464065494975,0.609022494195095,40.531177829099306
+mask,LSTM10,lstm,all_features,yhat_lstm_all_features,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.14526613209426104,0.958256049393363,0.4823000014080156,42.609699769053115
+mask,LSTM10q,lstm,all_features,yhat_lstm_qsel_all_features,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.1448904097529316,1.072484979369198,0.5944034348636987,40.7621247113164
+nomask,T10,lgbm,all_features,yhat_subtree_lgbm_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10133126719161804,1.7531677854434662,1.2880172364525588,40.415704387990765
+nomask,T1,lgbm,all_features,yhat_subtree_daily_all_features_lgbm,"shipped configuration, refit every session",1469,866,0.0967023217831747,1.8220157898758962,1.3543275106992518,37.75981524249423
+nomask,RS10,lgbm,all_features,yhat_subtree_tuned_all_features_lgbm,"random search, MSE rule, refit every 10 sessions",1469,866,0.10074297508261924,1.6109889371617463,1.1471981183416344,39.03002309468822
+nomask,RS1,lgbm,all_features,yhat_subtree_tuned_daily_all_features_lgbm,"random search, MSE rule, refit every session",1469,866,0.10104400391602045,1.6983029197624928,1.2331942697404303,38.68360277136259
+nomask,RS10q,lgbm,all_features,yhat_subtree_tunedq_all_features_lgbm,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10154298330611973,1.047433737337875,0.5778950910978972,39.14549653579677
+nomask,RS1q,lgbm,all_features,yhat_subtree_tunedq_daily_all_features_lgbm,"random search, QLIKE rule, refit every session",1469,866,0.09897045045359897,1.6103073579418234,1.1448440248257479,38.4526558891455
+nomask,T10,xgb,all_features,yhat_subtree_xgb_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10116580403827702,1.5380737558365452,1.072662350539823,39.260969976905315
+nomask,T1,xgb,all_features,yhat_subtree_daily_all_features_xgb,"shipped configuration, refit every session",1469,866,0.09900791600926666,1.3596592802773069,0.885957492475341,38.56812933025404
+nomask,RS10,xgb,all_features,yhat_subtree_tuned_all_features_xgb,"random search, MSE rule, refit every 10 sessions",1469,866,0.10488633244824837,1.617356685716327,1.1521322815003583,37.99076212471132
+nomask,RS1,xgb,all_features,yhat_subtree_tuned_daily_all_features_xgb,"random search, MSE rule, refit every session",1469,866,0.10322192571809793,1.583652805142159,1.117665245080048,37.87528868360277
+nomask,RS10q,xgb,all_features,yhat_subtree_tunedq_all_features_xgb,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10533965938484907,1.1838496731774657,0.7130802269891473,39.03002309468822
+nomask,RS1q,xgb,all_features,yhat_subtree_tunedq_daily_all_features_xgb,"random search, QLIKE rule, refit every session",1469,866,0.10312820772627487,1.4405818472970238,0.969776604334512,38.68360277136259
+nomask,T10,rf,all_features,yhat_subtree_rf_all_features,"shipped configuration, refit every 10 sessions",1469,866,0.10590773326111767,1.2689665185253571,0.8014388301251214,41.570438799076214
+nomask,T1,rf,all_features,yhat_subtree_daily_all_features_rf,"shipped configuration, refit every session",1469,866,0.10304324102120438,1.3977318801647083,0.9302940861868348,40.415704387990765
+nomask,RS10,rf,all_features,yhat_subtree_tuned_all_features_rf,"random search, MSE rule, refit every 10 sessions",1469,866,0.10926648360716505,1.2308411616711612,0.765563703990299,40.531177829099306
+nomask,RS1,rf,all_features,yhat_subtree_tuned_daily_all_features_rf,"random search, MSE rule, refit every session",1469,866,0.1063445311438256,1.2413729358469312,0.7715186103438989,40.415704387990765
+nomask,RS10q,rf,all_features,yhat_subtree_tunedq_all_features_rf,"random search, QLIKE rule, refit every 10 sessions",1469,866,0.10667798114942471,1.204091827804833,0.736572928343816,40.300230946882216
+nomask,RS1q,rf,all_features,yhat_subtree_tunedq_daily_all_features_rf,"random search, QLIKE rule, refit every session",1469,866,0.104362790195887,1.224885102424109,0.7525311348653159,39.37644341801386
+nomask,LSTM10,lstm,all_features,yhat_lstm_all_features,"LSTM, MSE rule, refit every 10 sessions",1469,866,0.17531128357300393,0.972862376828569,0.4980509964706317,41.339491916859124
+nomask,LSTM10q,lstm,all_features,yhat_lstm_qsel_all_features,"LSTM, QLIKE rule, refit every 10 sessions",1469,866,0.15607017230029827,0.6350711232938689,0.16105027766316116,37.52886836027714
+ridge,ridge,-,all_features,yhat_sub_ridge_all_features,per-bar ridge,1469,866,0.10038747465694516,1.6649302126865275,1.1981095562842927,36.1431870669746
+xeon,T10,lgbm,live_feasible,yhat_subtree_lgbm_live_feasible,"shipped configuration, refit every 10 sessions, run on xeon-4116 (the class gate)",1469,866,0.09924085164772986,1.8479326416602064,1.3861094445269133,40.531177829099306
+xeon,T1,lgbm,live_feasible,yhat_subtree_lgbm_live_feasible,"shipped configuration, refit every session, run on xeon-4116 (the class gate)",1469,866,0.09558104407673546,1.3557376994193273,0.8846654105740518,37.75981524249423
