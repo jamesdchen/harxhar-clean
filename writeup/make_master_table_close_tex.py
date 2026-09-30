@@ -55,9 +55,23 @@ GROUPS = {
     "per-bar nonlinear (trees, LSTM)": (
         "#1baf7a",
         "^",
-        ("per-bar tree (untuned)", "per-bar tree (tuned)", "LSTM"),
+        (
+            "per-bar tree",
+            "LSTM",
+        ),  # every tree rung (T10, T1, RS10, RS1, Optuna) and both LSTMs: by prefix
     ),
 }
+PREFIX_GROUPS = {
+    "per-bar nonlinear (trees, LSTM)"
+}  # families matched by prefix, not by name
+
+
+def in_group(fam: pd.Series, name: str, fams: tuple[str, ...]) -> pd.Series:
+    if name in PREFIX_GROUPS:
+        return fam.str.startswith(fams)
+    return fam.isin(fams)
+
+
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 
 
@@ -308,7 +322,7 @@ def figure(tab: pd.DataFrame) -> str:
     on = A[ql <= hi_edge]
     fig, ax = plt.subplots(figsize=(8.6, 4.9), dpi=200)
     for name, (col, mk, fams) in GROUPS.items():
-        g = on[on["family"].isin(fams)]
+        g = on[in_group(on["family"], name, fams)]
         if len(g):
             ax.scatter(
                 g["qlike_recal"],
