@@ -36,6 +36,13 @@ PAIRS (a - b, per model x input set):
   replaced table      masked daily LSTM - unmasked LSTM10 (the canonical yhat_lstm_* before
                       and after this run: mask and cadence together)
   vs ridge            masked T10, T1, RS10, RS1, LSTM, LSTM10 - ridge
+  CPU class           the pinned fleet (epyc-7513) - the class gate's re-run (xeon-4116) of the
+                      live_feasible LightGBM T10 and T1 arms (results/trees_mask_1600/stack/xeon_*)
+
+CPU CLASS: every masked chunk ran on one class (--constraint epyc-7513; NODE files ->
+results/linear_subsection_trees_mask/class/class_census.csv, pulled); the unmasked runs of I1 / I2
+ran unpinned (their classes are not recorded), so a masked - unmasked row can carry class noise
+for LightGBM (the class pair above bounds it).
 QLIKE: a negative difference = a has the lower loss; Sharpe: a positive difference = a trades
 better.
 
@@ -74,6 +81,9 @@ SPXW = ROOT / "results" / "spxw_pnl"
 NOMASK = SPXW / "dedup_nomask_2026-09-29"
 OUT = ROOT / "results" / "trees_mask_1600"
 KEPT = ROOT / "results" / "linear_subsection_trees_mask" / "kept" / "kept_counts.csv"
+CLASS_DIR = ROOT / "results" / "linear_subsection_trees_mask" / "class"
+XEON_ROOT = ROOT / "results" / "linear_subsection_trees_mask_xeon"
+STAGE = ROOT / "results" / "trees_mask_1600" / "stack"
 ARM_ROOTS = {
     "T10": ROOT / "results" / "linear_subsection_trees_mask" / "t10",
     "T1": ROOT / "results" / "linear_subsection_trees_mask" / "t1",
@@ -174,11 +184,37 @@ def forecasts() -> list[dict]:
                 "what": "per-bar ridge",
             }
         )
+    for r in ("T10", "T1"):  # the CPU-class gate (live_feasible LightGBM only)
+        out.append(
+            {
+                "variant": "xeon",
+                "rung": r,
+                "model": "lgbm",
+                "bucket": "live_feasible",
+                "table": "yhat_subtree_lgbm_live_feasible",
+                "path": STAGE / f"xeon_{r.lower()}",
+                "what": RUNGS[r][1] + ", run on xeon-4116 (the class gate)",
+            }
+        )
     return out
 
 
 def arm_csv(s: dict) -> Path | None:
     """The merged masked arm's results CSV behind a masked table (None for the rest)."""
+    if s["variant"] == "xeon":
+        r = s["rung"]
+        return (
+            XEON_ROOT
+            / r.lower()
+            / "live_feasible"
+            / "bar1600"
+            / "lgbm"
+            / "tw2000"
+            / "causal_tune_trees"
+            / "lgbm"
+            / "live_feasible"
+            / "results_bar1600.csv"
+        )
     if s["variant"] != "mask":
         return None
     q = s["rung"].endswith("q")
@@ -461,6 +497,16 @@ def main() -> int:
                     f"{r} masked",
                     "ridge",
                 )
+    for r in ("T10", "T1"):
+        add_pair(
+            "CPU class",
+            "lgbm",
+            "live_feasible",
+            ("mask", r, "lgbm", "live_feasible"),
+            ("xeon", r, "lgbm", "live_feasible"),
+            f"{r} masked, epyc-7513 (fleet)",
+            f"{r} masked, xeon-4116 (class gate)",
+        )
     pr = pd.DataFrame(pr_rows)
     pr.to_csv(out / "mask_pairs.csv", index=False)
 
@@ -633,6 +679,60 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
                 f"{x.kept_n_median:.0f} | {x.kept_n_min:.0f} | {x.kept_n_max:.0f} | {tk} |"
             )
         L.append("")
+    cc, ch, ca = (
+        CLASS_DIR / f
+        for f in ("class_census.csv", "class_chunks.csv", "class_arms.csv")
+    )
+    if cc.is_file():
+        c = pd.read_csv(cc)
+        L += [
+            "## CPU class of every chunk",
+            "",
+            "Forecasts are bit-reproducible only within a CPU vector class (the design moves at ~1e-11 between AVX-512 "
+            "xeon and AVX2 epyc nodes, and LightGBM's histogram bins with it), so every masked task was pinned to "
+            "epyc-7513 and every finished chunk records its node (`class_census.csv`). The unmasked runs this page "
+            "compares with ran unpinned (classes not recorded).",
+            "",
+            "| results root | rung | CPU class | chunks |",
+            "|---|---|---|---|",
+        ]
+        L += [
+            f"| {x.root} | {x.rung} | {x['class']} | {x.chunks} |"
+            for _, x in c.iterrows()
+        ]
+        L.append("")
+    if ch.is_file() and ch.stat().st_size > 1:
+        c = pd.read_csv(ch)
+        if len(c) and "results_max_rel" in c:
+            L += [
+                "Canary chunks that ran before the pinning, against the same chunk re-run on epyc-7513 "
+                "(`class_chunks.csv`; pred_adj on the chunk's rows):",
+                "",
+                "| chunk | canary class | fleet class | rows | bit-identical | max relative difference |",
+                "|---|---|---|---|---|---|",
+            ]
+            for _, x in c.iterrows():
+                L.append(
+                    f"| `{x.chunk_dir}` | {x.class_canary} | {x.class_fleet} | {x.get('results_rows', '')} | "
+                    f"{x.get('results_bit_identical', '')} | {x.get('results_max_rel', float('nan')):.2e} |"
+                )
+            L.append("")
+    if ca.is_file():
+        c = pd.read_csv(ca)
+        if len(c) and "max_rel" in c:
+            L += [
+                "Class gate (`class_arms.csv`): the live_feasible LightGBM arms run again on xeon-4116, against the "
+                "fleet's epyc-7513 arms (pred_adj over every forecast row; QLIKE and Sharpe differences in the "
+                "`CPU class` pairs below):",
+                "",
+                "| rung | rows | bit-identical | max relative difference | median relative difference |",
+                "|---|---|---|---|---|",
+            ]
+            for _, x in c.iterrows():
+                L.append(
+                    f"| {x.rung} | {x.rows:.0f} | {x.bit_identical} | {x.max_rel:.2e} | {x.median_rel:.2e} |"
+                )
+            L.append("")
     L += [
         "## Scorer and days",
         "",
@@ -700,6 +800,7 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
         "masked ladder",
         "replaced table",
         "masked - ridge",
+        "CPU class",
     ):
         g_all = pr[pr["family"] == fam] if len(pr) else pr
         if g_all.empty:
