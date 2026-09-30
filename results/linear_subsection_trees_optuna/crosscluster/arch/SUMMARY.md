@@ -9,6 +9,12 @@ Rule (campaign file, I5): a model qualifies for Hoffman2 only if its picks are i
 
 | side | host | cpu | bucket | window_mask | rows | p | n_kept_min | n_kept_max | X_sha | y_sha | kept_sets_sha |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| carc | a02-03 | AMD EPYC 7513 32-Core Processor | all_features | 0 | 20 | 628 | 378 | 378 | 694c3d81b2ed2974 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
+| carc | b22-08 | AMD EPYC 7542 32-Core Processor | all_features | 0 | 20 | 628 | 378 | 378 | 694c3d81b2ed2974 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
+| carc | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | all_features | 0 | 20 | 628 | 378 | 378 | b2db670a675463d2 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
+| carc | a02-03 | AMD EPYC 7513 32-Core Processor | live_feasible | 0 | 20 | 232 | 138 | 138 | d06bef2e52d32da6 | 6e0b36ebbd8cbcdb | 8d98cd8f3b2bb964 |
+| carc | b22-09 | AMD EPYC 7542 32-Core Processor | live_feasible | 0 | 20 | 232 | 138 | 138 | d06bef2e52d32da6 | 6e0b36ebbd8cbcdb | 8d98cd8f3b2bb964 |
+| carc | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | live_feasible | 0 | 20 | 232 | 138 | 138 | 6d8948ce72f6cfaf | 6e0b36ebbd8cbcdb | 8d98cd8f3b2bb964 |
 | h2 | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | all_features | 0 | 20 | 628 | 378 | 378 | b2db670a675463d2 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
 | h2 | n1171 | Intel(R) Xeon(R) 6736P | all_features | 0 | 20 | 628 | 378 | 378 | b2db670a675463d2 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
 | h2 | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | all_features | 0 | 20 | 628 | 378 | 378 | 694c3d81b2ed2974 | 6e0b36ebbd8cbcdb | 06a5f4c60a8b7869 |
@@ -22,12 +28,42 @@ Rule (campaign file, I5): a model qualifies for Hoffman2 only if its picks are i
 
 | bucket | host_a | cpu_a | host_b | cpu_b | identical | y_identical | cells_differ | cols_differ | cols | max_abs_diff | max_abs_diff_over_col_scale | median_rel_diff |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | b22-08 | AMD EPYC 7542 32-Core Processor | yes | yes | 0 | 0 | 628 | - | - | - |
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | n1171 | Intel(R) Xeon(R) 6736P | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | yes | yes | 0 | 0 | 628 | - | - | - |
+| all_features | a02-03 | AMD EPYC 7513 32-Core Processor | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | b22-08 | AMD EPYC 7542 32-Core Processor | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | b22-08 | AMD EPYC 7542 32-Core Processor | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | b22-08 | AMD EPYC 7542 32-Core Processor | n1171 | Intel(R) Xeon(R) 6736P | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | b22-08 | AMD EPYC 7542 32-Core Processor | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | yes | yes | 0 | 0 | 628 | - | - | - |
+| all_features | b22-08 | AMD EPYC 7542 32-Core Processor | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | yes | yes | 0 | 0 | 628 | - | - | - |
+| all_features | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n1171 | Intel(R) Xeon(R) 6736P | yes | yes | 0 | 0 | 628 | - | - | - |
+| all_features | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| all_features | d05-27 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | yes | yes | 0 | 0 | 628 | - | - | - |
 | all_features | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n1171 | Intel(R) Xeon(R) 6736P | yes | yes | 0 | 0 | 628 | - | - | - |
 | all_features | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
 | all_features | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | yes | yes | 0 | 0 | 628 | - | - | - |
 | all_features | n1171 | Intel(R) Xeon(R) 6736P | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
 | all_features | n1171 | Intel(R) Xeon(R) 6736P | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | yes | yes | 0 | 0 | 628 | - | - | - |
 | all_features | n7138 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | no | yes | 109138 | 94 | 628 | 2.63e-11 | 1.53e-13 | 9.2e-16 |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | b22-09 | AMD EPYC 7542 32-Core Processor | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | n1171 | Intel(R) Xeon(R) 6736P | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | a02-03 | AMD EPYC 7513 32-Core Processor | n7126 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | b22-09 | AMD EPYC 7542 32-Core Processor | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | b22-09 | AMD EPYC 7542 32-Core Processor | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | b22-09 | AMD EPYC 7542 32-Core Processor | n1171 | Intel(R) Xeon(R) 6736P | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | b22-09 | AMD EPYC 7542 32-Core Processor | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
+| live_feasible | b22-09 | AMD EPYC 7542 32-Core Processor | n7126 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n1171 | Intel(R) Xeon(R) 6736P | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | yes | yes | 0 | 0 | 232 | - | - | - |
+| live_feasible | d05-32 | Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz | n7126 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |
 | live_feasible | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n1171 | Intel(R) Xeon(R) 6736P | yes | yes | 0 | 0 | 232 | - | - | - |
 | live_feasible | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | yes | yes | 0 | 0 | 232 | - | - | - |
 | live_feasible | n1077 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | n7126 | Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz | no | yes | 29427 | 28 | 232 | 2.63e-11 | 1.53e-13 | 1.02e-15 |

@@ -1,0 +1,94 @@
+host,cpu,carc_features
+a01-11,,"epyc-7513,hdr200"
+a01-12,,"epyc-7513,hdr200"
+a01-16,,"epyc-7513,hdr200"
+a02-02,,"epyc-7513,hdr100"
+a02-03,AMD EPYC 7513 32-Core Processor,"epyc-7513,hdr100"
+a02-11,,"epyc-7513,hdr100"
+a02-12,,"epyc-7513,hdr100"
+a02-14,,"epyc-7513,hdr100"
+a02-16,,"epyc-7513,hdr100"
+a02-18,,"epyc-7513,hdr100"
+a02-19,,"epyc-7513,hdr100"
+a03-02,,"epyc-7513,hdr200"
+a03-04,,"epyc-7513,hdr200"
+a03-13,,"epyc-7513,hdr200"
+a03-19,,"epyc-7513,hdr200"
+a04-02,,"epyc-7513,hdr100"
+a04-04,,"epyc-7513,hdr100"
+a04-19,,"epyc-7513,hdr100"
+b01-08,,"epyc-7513,hdr200"
+b04-01,,"epyc-7513,hdr200"
+b04-02,,"epyc-7513,hdr200"
+b04-04,,"epyc-7513,hdr200"
+b04-06,,"epyc-7513,hdr200"
+b04-17,,"epyc-7513,hdr200"
+b04-20,,"epyc-7513,hdr200"
+b04-21,,"epyc-7513,hdr200"
+b05-04,,"epyc-7513,hdr200"
+b05-15,,"epyc-7513,hdr200"
+b05-16,,"epyc-7513,hdr200"
+b05-18,,"epyc-7513,hdr200"
+b05-20,,"epyc-7513,hdr200"
+b05-21,,"epyc-7513,hdr200"
+b09-01,,"epyc-7513,hdr200"
+b09-03,,"epyc-7513,hdr200"
+b09-19,,"epyc-7513,hdr200"
+b10-01,,"epyc-7513,hdr200"
+b10-03,,"epyc-7513,hdr200"
+b10-19,,"epyc-7513,hdr200"
+b10-20,,"epyc-7513,hdr200"
+b10-21,,"epyc-7513,hdr200"
+b22-03,,"epyc-7542,hdr200"
+b22-04,,"epyc-7542,hdr200"
+b22-05,,"epyc-7542,hdr200"
+b22-08,AMD EPYC 7542 32-Core Processor,"epyc-7542,hdr200"
+b22-09,AMD EPYC 7542 32-Core Processor,"epyc-7542,hdr200"
+b22-11,,"epyc-7542,hdr200"
+b22-18,,"epyc-7542,hdr200"
+b22-20,,"epyc-7542,hdr200"
+b22-26,,"epyc-7542,hdr200"
+b22-31,,"epyc-7542,hdr200"
+d05-08,,"xeon-4116,fdr56"
+d05-09,,"xeon-4116,fdr56"
+d05-10,,"xeon-4116,fdr56"
+d05-11,,"xeon-4116,fdr56"
+d05-12,,"xeon-4116,fdr56"
+d05-13,,"xeon-4116,fdr56"
+d05-27,Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz,"xeon-4116,fdr56"
+d05-32,Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz,"xeon-4116,fdr56"
+d05-35,,"xeon-4116,fdr56"
+d05-40,,"xeon-4116,fdr56"
+d05-41,,"xeon-4116,fdr56"
+d05-42,,"xeon-4116,fdr56"
+d06-22,,"xeon-4116,fdr56"
+d06-23,,"xeon-4116,fdr56"
+d11-11,,"xeon-4116,fdr56"
+d11-26,,"xeon-4116,fdr56"
+d11-36,,"xeon-4116,fdr56"
+d18-14,,"xeon-2640v4,fdr56"
+d18-16,,"xeon-2640v4,fdr56"
+d18-25,,"xeon-2640v4,fdr56"
+d18-26,,"xeon-2640v4,fdr56"
+d18-34,,"xeon-2640v4,fdr56"
+d18-35,,"xeon-2640v4,fdr56"
+n1077,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,
+n1078,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,
+n1144,Intel(R) Xeon(R) 6736P,
+n1153,Intel(R) Xeon(R) 6736P,
+n1171,Intel(R) Xeon(R) 6736P,
+n6439,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n6442,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n6443,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n6640,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n6665,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,
+n6679,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,
+n7043,Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz,
+n7107,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,
+n7108,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,
+n7126,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,
+n7138,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,
+n7405,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n7408,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n7440,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,
+n7678,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,
