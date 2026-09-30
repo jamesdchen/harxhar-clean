@@ -23,6 +23,10 @@
 # fleet requires), WRITE_FLAG (touched when every line succeeded and, if ALONE_CHECK is
 # set, the alone re-run matched), ALONE_CHECK ("<rung>:<bucket>:<model>:<chunk>": after
 # the pack, that chunk is run again ALONE into <its dir>_alone and compared bit for bit).
+# CPU CLASS (2026-09-29 late): forecasts are bit-reproducible only within a CPU vector class
+# (AVX-512 xeon vs AVX2 epyc move the design at ~1e-11 and LightGBM's bins with it), so the
+# submit script pins every task to one class (--constraint, default epyc-7513) and every finished
+# chunk records its node and CPU features in NODE beside DONE.
 #SBATCH --job-name=trees_mask
 #SBATCH --account=pollok_1603
 #SBATCH --partition=main
@@ -66,6 +70,11 @@ chunk_dir() {  # rung bucket seg model tw chunk -> the chunk's output dir
   echo "$ROOT/$1/$2/$3/$4/tw$5/chunks/c$6"
 }
 
+node_tag() {  # $1 = a finished chunk dir: the node it ran on and that node's CPU features (the class)
+  { echo "host $(hostname)"; scontrol show node "${SLURMD_NODENAME:-$(hostname -s)}" 2>/dev/null \
+      | grep -o "AvailableFeatures=[^ ]*"; } > "$1/NODE"
+}
+
 run_line() {  # "<line>" [out-dir override]
   local PK RUNG BUCKET MODEL TW SEG CHUNK START END HALO RE IE OUT
   read -r PK RUNG BUCKET MODEL TW SEG CHUNK START END HALO <<< "$1"
@@ -91,6 +100,7 @@ run_line() {  # "<line>" [out-dir override]
      python -u specs/causal_tune_trees.py > "$OUT/run.log" 2>&1 \
      && python -c "import json, sys, numpy as np; z = np.load(sys.argv[1]); sys.exit(0 if json.loads(str(z['meta'])).get('window_mask') == 1 and 'kept_n' in z.files else 1)" \
           "$OUT/causal_tune_trees/$MODEL/$BUCKET/trees_$SEG.npz"; then
+    node_tag "$OUT"
     touch "$OUT/DONE"
     echo "  done $RUNG $BUCKET $MODEL c$CHUNK [$START, $END) in $((SECONDS - T0))s  $(date +%T)"
   else

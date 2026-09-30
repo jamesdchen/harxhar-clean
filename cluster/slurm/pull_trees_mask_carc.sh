@@ -19,10 +19,12 @@ REMOTE=/scratch1/jc_905/harxhar-mask
 U=results/linear_subsection_trees_mask
 T=results/linear_subsection_trees_tuned_mask
 L=results/linear_subsection_lstm_mask
+L10=results/linear_subsection_lstm_mask_re10
+X=results/linear_subsection_trees_mask_xeon
 q() { "$SSH" -o BatchMode=yes usc-discovery "$1" 2>/dev/null | grep -v "reloaded with a version change\|python/3\|^$" || true; }
-LIST=$(q "cd $REMOTE && { find $U/t10 $U/t1 $T/rs10 $T/rs1 $L -path '*/chunks' -prune -o -type f \( -path '*/causal_tune_*' \( -name '*.csv' -o -name '*.json' -o -name MERGED \) \) -print 2>/dev/null;
-  find $U $T $L -maxdepth 2 -type f \( -name reduce_gates.csv -o -name reduce.log -o -name MERGE_SUMMARY.txt -o -name CANARY_OK -o -name MERGE_DONE -o -name MERGED_ALL -o -name kept.log \) -print 2>/dev/null;
-  find $U/kept -type f -name '*.csv' -print 2>/dev/null;
+LIST=$(q "cd $REMOTE && { find $U/t10 $U/t1 $T/rs10 $T/rs1 $L $L10 $X/t10 $X/t1 -path '*/chunks' -prune -o -type f \( -path '*/causal_tune_*' \( -name '*.csv' -o -name '*.json' -o -name MERGED \) \) -print 2>/dev/null;
+  find $U $T $L $L10 $X -maxdepth 2 -type f \( -name reduce_gates.csv -o -name reduce.log -o -name 'MERGE_SUMMARY*' -o -name CANARY_OK -o -name 'MERGE_DONE*' -o -name kept.log -o -name class.log \) -print 2>/dev/null;
+  find $U/kept $U/class -type f -name '*.csv' -print 2>/dev/null;
   find $U/gates -path '*/scratch' -prune -o -type f \( -name '*.csv' -o -name '*.log' -o -name GATES_OK -o -name 'FINISHED_*' \) -print 2>/dev/null; } | sort")
 N=$(printf '%s\n' "$LIST" | grep -c . || true)
 echo "pulling $N files"

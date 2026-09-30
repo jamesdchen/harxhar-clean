@@ -15,6 +15,10 @@
 # succeeded), REPEAT_CHECK (1 = run the chunk twice AT ONCE, each with half the task's CPUs as
 # its pool, and require byte-identical results tables: determinism on this hardware and pool
 # invariance in one step), QSEL (default 1).
+# CPU CLASS (2026-09-29 late): forecasts are bit-reproducible only within a CPU vector class
+# (AVX-512 xeon vs AVX2 epyc move the design at ~1e-11 and LightGBM's bins with it), so the
+# submit script pins every task to one class (--constraint, default epyc-7513) and every finished
+# chunk records its node and CPU features in NODE beside DONE.
 #SBATCH --job-name=lstm_mask
 #SBATCH --account=pollok_1603
 #SBATCH --partition=main
@@ -55,6 +59,11 @@ fi
 R="${RESULTS_ROOT:?RESULTS_ROOT must be set}"
 echo "task ${SLURM_ARRAY_TASK_ID:-1} on $(hostname), $NT cpus: $BUCKET tw$TW $SEG chunk $CHUNK rows [$START, $END) halo $HALO refit_every $LSTM_RE qsel=${QSEL:-1} repeat=${REPEAT_CHECK:-0} $(date)"
 
+node_tag() {  # $1 = a finished chunk dir: the node it ran on and that node's CPU features (the class)
+  { echo "host $(hostname)"; scontrol show node "${SLURMD_NODENAME:-$(hostname -s)}" 2>/dev/null \
+      | grep -o "AvailableFeatures=[^ ]*"; } > "$1/NODE"
+}
+
 run_chunk() {  # $1 = output dir, $2 = pool size
   SLURM_CPUS_PER_TASK="$2" \
   HPC_KW_EXOG_BUCKET="$BUCKET" HPC_KW_SEGMENT="$SEG" HPC_KW_TRAIN_WIN="$TW" \
@@ -93,12 +102,14 @@ elif [ "${REPEAT_CHECK:-0}" = "1" ]; then
     echo "  canary run FAILED: $(tail -3 "$OUT/run.log" | cut -c1-300) | $(tail -3 "$REP/run.log" | cut -c1-300)"
   fi
   if [ "$FAIL" -eq 0 ]; then
+    node_tag "$OUT"
     touch "$OUT/DONE"
     echo "  $SEG c$CHUNK done $(date): $(tail -1 "$OUT/run.log" | cut -c1-300)"
   fi
 else
   mkdir -p "$OUT"
   if run_chunk "$OUT" "$NT"; then
+    node_tag "$OUT"
     touch "$OUT/DONE"
     echo "  $SEG c$CHUNK done $(date): $(tail -1 "$OUT/run.log" | cut -c1-300)"
   else

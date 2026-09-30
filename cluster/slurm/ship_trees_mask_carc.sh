@@ -45,6 +45,7 @@ COMMITTED=(
   experiments/reduce_lstm_chunks.py
   experiments/gate_lstm.py
   experiments/trees_mask_kept_counts.py
+  experiments/trees_mask_class_gate.py
   cluster/slurm/trees_mask_gates.sbatch
   cluster/slurm/trees_mask_pack.sbatch
   cluster/slurm/treestuned_mask_pack.sbatch
@@ -55,6 +56,7 @@ COMMITTED=(
   cluster/trees_mask_tasks_rs10.txt
   cluster/trees_mask_tasks_rs1.txt
   cluster/trees_mask_tasks_rs_canary.txt
+  cluster/trees_mask_tasks_classgate.txt
   cluster/lstm_mask_tasks_canary.txt
   cluster/lstm_mask_tasks_fleet.txt
 )

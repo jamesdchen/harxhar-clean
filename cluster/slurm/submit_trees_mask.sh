@@ -29,6 +29,18 @@
 #        exist; the REFIT_EVERY 1 and 10 arrays (their canary chunks carry DONE and are skipped),
 #        the LSTM merge job held afterany on them
 #   bash cluster/slurm/submit_trees_mask.sh kept          the kept-column counts over every root
+#   bash cluster/slurm/submit_trees_mask.sh classgate     the CPU-class gate: the live_feasible
+#        LightGBM T10 and T1 arms again on CLASS_ALT (default xeon-4116, AVX-512) into
+#        results/linear_subsection_trees_mask_xeon, merged by the same reducer
+#
+# CPU CLASS (2026-09-29 late, orchestrator): forecasts are bit-reproducible only within a CPU
+# vector class (the design moves at ~1e-11 between AVX-512 xeon-4116 and AVX2 epyc nodes, and
+# LightGBM's histogram bins with it), so every canary and fleet task is pinned with
+# --constraint=$CLASS (default epyc-7513; main only: oneweek and debug hold no epyc-7513 node) and
+# every finished chunk records its node + CPU features in NODE.  The canaries that ran before
+# the pinning (tree canaries 12481648-50 on epyc-7313 / xeon-4116, the LSTM REFIT_EVERY 10 canary)
+# are tagged from sacct at fleet time and, when not on $CLASS, moved aside to c<k>_canary (kept:
+# chunk-level class evidence, experiments/trees_mask_class_gate.py) so the fleet re-runs them.
 # Every fleet task also refuses to run without its canary flag.
 #
 # SIZING (the campaign's rule: ~20-CPU tasks of single-threaded processes, so the 2000-CPU cap
@@ -61,8 +73,10 @@ LSTM_MEM=${LSTM_MEM:-32G}
 LSTM1_TIME=${LSTM1_TIME:-4:00:00}   # REFIT_EVERY 1: ~10x the refits of the I1 chunks (<= 10.5 min, 12479508); set from the canary
 LSTM10_TIME=${LSTM10_TIME:-1:00:00}
 LSTM1_CPUS=${LSTM1_CPUS:-$POOL_CPUS}  # the daily-refit fleet's pool (a chunk = one tuning period, the spec's minimum)
-PART_SMALL=${PART_SMALL:-main,oneweek}
-PART_ONE=${PART_ONE:-main,debug}  # single <= 1 h jobs (the canaries): debug takes 5 jobs / 48 CPUs per user
+PART_SMALL=${PART_SMALL:-main}  # oneweek holds no epyc-7513 node (xeon-4116 / 2640v4)
+PART_ONE=${PART_ONE:-main}      # debug neither (epyc-7313 / xeon)
+CLASS=${CLASS:-epyc-7513}       # the one CPU class of every canary / fleet task
+CLASS_ALT=${CLASS_ALT:-xeon-4116}
 for f in specs/causal_tune_trees.py specs/causal_tune_trees_tuned.py specs/causal_tune_trees_tuned_jobs.py \
          specs/causal_tune_linear.py specs/causal_tune_lstm.py specs/causal_tune_lstm_jobs.py src/models/window_mask.py \
          experiments/trees_mask_gates.py experiments/trees_cadence_gates.py experiments/gate_lstm.py \
@@ -71,13 +85,31 @@ for f in specs/causal_tune_trees.py specs/causal_tune_trees_tuned.py specs/causa
          cluster/slurm/trees_mask_gates.sbatch cluster/slurm/trees_mask_pack.sbatch \
          cluster/slurm/treestuned_mask_pack.sbatch cluster/slurm/lstm_mask_pack.sbatch \
          cluster/slurm/trees_mask_merge.sbatch "$UT" "$RS_CANARY" "$LC" "$LF" \
-         cluster/trees_mask_tasks_rs10.txt cluster/trees_mask_tasks_rs1.txt gates_ref/specs/causal_tune_trees.py; do
+         cluster/trees_mask_tasks_rs10.txt cluster/trees_mask_tasks_rs1.txt cluster/trees_mask_tasks_classgate.txt \
+         experiments/trees_mask_class_gate.py gates_ref/specs/causal_tune_trees.py; do
   [ -f "$f" ] || { echo "$f missing: run the ship script first (bash cluster/slurm/ship_trees_mask_carc.sh, locally)"; exit 1; }
 done
 [ -d pylib_trees/shap ] || { echo "pylib_trees/shap missing"; exit 1; }
 SUBMIT=sbatch
 LOG=logs/submitted_trees_mask_carc.txt
 need() { for f in "$@"; do [ -f "$f" ] || { echo "$f missing: not passed yet"; exit 1; }; done; }
+last_id() { grep -o "$1=[0-9]*" "$LOG" | tail -1 | cut -d= -f2; }
+tag_canary() {  # $1 = canary job id, $2.. = the chunk dirs it wrote: NODE from sacct, moved aside off $CLASS
+  local J="$1" N F D
+  shift
+  [ -n "$J" ] || return 0
+  N=$(sacct -X -n -P -j "$J" -o NodeList | head -1)
+  F=$(scontrol show node "$N" 2>/dev/null | grep -o "AvailableFeatures=[^ ]*" || true)
+  for D in "$@"; do
+    [ -d "$D" ] || continue
+    [ -f "$D/NODE" ] || printf 'host %s (from sacct of canary job %s)\n%s\n' "$N" "$J" "$F" > "$D/NODE"
+    if ! grep -q "AvailableFeatures=.*$CLASS" "$D/NODE"; then
+      rm -rf "${D}_canary"
+      mv "$D" "${D}_canary"
+      echo "  canary chunk off $CLASS ($(tail -1 "${D}_canary/NODE")): moved aside to ${D}_canary"
+    fi
+  done
+}
 
 case "$MODE" in
   gates)
@@ -98,13 +130,13 @@ case "$MODE" in
     need "$G/cadence/GATES_OK" "$G/h_trees/GATES_OK"
     mkdir -p "$U" "$T/rs10" "$T/rs1"
     rm -f "$U/CANARY_OK" "$T/rs10/CANARY_OK" "$T/rs1/CANARY_OK"
-    CU=$($SUBMIT --parsable -J tm_canary --partition="$PART_ONE" --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
+    CU=$($SUBMIT --parsable -J tm_canary --constraint="$CLASS" --partition="$PART_ONE" --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
          --export=ALL,TASKFILE=$UT,PACK=0,RESULTS_ROOT=$U,WRITE_FLAG=$U/CANARY_OK,ALONE_CHECK=t1:all_features:lgbm:0 \
          cluster/slurm/trees_mask_pack.sbatch)
-    C10=$($SUBMIT --parsable -J tm_rs10_canary --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    C10=$($SUBMIT --parsable -J tm_rs10_canary --constraint="$CLASS" --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
           --export=ALL,TASKFILE=$RS_CANARY,RUNG=rs10,RESULTS_ROOT=$T,WRITE_FLAG=$T/rs10/CANARY_OK \
           cluster/slurm/treestuned_mask_pack.sbatch)
-    C1=$($SUBMIT --parsable -J tm_rs1_canary --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    C1=$($SUBMIT --parsable -J tm_rs1_canary --constraint="$CLASS" --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
          --export=ALL,TASKFILE=$RS_CANARY,RUNG=rs1,RESULTS_ROOT=$T,WRITE_FLAG=$T/rs1/CANARY_OK \
          cluster/slurm/treestuned_mask_pack.sbatch)
     echo "$(date +%F_%T) canary_untuned=$CU canary_rs10=$C10 canary_rs1=$C1" | tee -a "$LOG"
@@ -112,30 +144,35 @@ case "$MODE" in
   fleet)
     need "$U/CANARY_OK" "$T/rs10/CANARY_OK" "$T/rs1/CANARY_OK"
     [ -f "$LOG.fleet" ] && { echo "tree fleet already submitted ($(cat "$LOG.fleet")); delete $LOG.fleet by hand to resubmit (DONE chunks are skipped)"; exit 1; }
+    mapfile -t CU_DIRS < <(awk '$1 == 0 {print "'"$U"'/" $2 "/" $3 "/" $6 "/" $4 "/tw" $5 "/chunks/c" $7}' "$UT")
+    tag_canary "$(last_id canary_untuned)" "${CU_DIRS[@]}"
+    for R in rs10 rs1; do
+      tag_canary "$(last_id canary_$R)" $T/$R/live_feasible/bar1600/{lgbm,xgb,rf}/tw2000/chunks/c0
+    done
     NP=$(awk 'NF {print $1}' "$UT" | sort -n | tail -1)
-    FU=$($SUBMIT --parsable -J tm_untuned --partition="$PART_SMALL" --array=1-"$NP" --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
+    FU=$($SUBMIT --parsable -J tm_untuned --constraint="$CLASS" --partition="$PART_SMALL" --array=0-"$NP" --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
          --export=ALL,TASKFILE=$UT,RESULTS_ROOT=$U,CANARY_FLAG=$U/CANARY_OK cluster/slurm/trees_mask_pack.sbatch)
     N10=$(grep -c . cluster/trees_mask_tasks_rs10.txt)
-    F10=$($SUBMIT --parsable -J tm_rs10 --array=1-"$N10" --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    F10=$($SUBMIT --parsable -J tm_rs10 --constraint="$CLASS" --array=1-"$N10" --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
           --export=ALL,TASKFILE=cluster/trees_mask_tasks_rs10.txt,RUNG=rs10,RESULTS_ROOT=$T,CANARY_FLAG=$T/rs10/CANARY_OK \
           cluster/slurm/treestuned_mask_pack.sbatch)
     N1=$(grep -c . cluster/trees_mask_tasks_rs1.txt)
-    F1=$($SUBMIT --parsable -J tm_rs1 --array=1-"$N1" --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    F1=$($SUBMIT --parsable -J tm_rs1 --constraint="$CLASS" --array=1-"$N1" --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
          --export=ALL,TASKFILE=cluster/trees_mask_tasks_rs1.txt,RUNG=rs1,RESULTS_ROOT=$T,CANARY_FLAG=$T/rs1/CANARY_OK \
          cluster/slurm/treestuned_mask_pack.sbatch)
     M=$($SUBMIT --parsable -J tm_merge --dependency=afterany:"$FU":"$F10":"$F1" \
         --export=ALL,PART=trees cluster/slurm/trees_mask_merge.sbatch)
-    echo "$(date +%F_%T) fleet_untuned=$FU (packs 1-$NP) fleet_rs10=$F10 ($N10) fleet_rs1=$F1 ($N1) merge_trees=$M" | tee -a "$LOG" > "$LOG.fleet"
+    echo "$(date +%F_%T) fleet_untuned=$FU (packs 0-$NP) fleet_rs10=$F10 ($N10) fleet_rs1=$F1 ($N1) merge_trees=$M" | tee -a "$LOG" > "$LOG.fleet"
     cat "$LOG.fleet"
     ;;
   lstm_canary)
     need "$G/lstm/GATES_OK" "$G/h_lstm/GATES_OK"
     mkdir -p "$L1" "$L10"
     rm -f "$L1/CANARY_OK" "$L10/CANARY_OK"
-    C1=$($SUBMIT --parsable -J lstm_mask_canary --cpus-per-task=$((2 * POOL_CPUS)) --mem=64G --time="$LSTM1_TIME" \
+    C1=$($SUBMIT --parsable -J lstm_mask_canary --constraint="$CLASS" --cpus-per-task=$((2 * POOL_CPUS)) --mem=64G --time="$LSTM1_TIME" \
          --export=ALL,TASKFILE=$LC,RESULTS_ROOT=$L1,LSTM_RE=1,WRITE_FLAG=$L1/CANARY_OK,REPEAT_CHECK=1 \
          cluster/slurm/lstm_mask_pack.sbatch)
-    C10=$($SUBMIT --parsable -J lstm_mask10_canary --partition="$PART_ONE" --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
+    C10=$($SUBMIT --parsable -J lstm_mask10_canary --constraint="$CLASS" --partition="$PART_ONE" --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
           --export=ALL,TASKFILE=$LC,RESULTS_ROOT=$L10,LSTM_RE=10,WRITE_FLAG=$L10/CANARY_OK \
           cluster/slurm/lstm_mask_pack.sbatch)
     echo "$(date +%F_%T) canary_lstm1=$C1 canary_lstm10=$C10" | tee -a "$LOG"
@@ -143,10 +180,12 @@ case "$MODE" in
   lstm_fleet)
     need "$L1/CANARY_OK" "$L10/CANARY_OK"
     [ -f "$LOG.lstm_fleet" ] && { echo "LSTM fleet already submitted ($(cat "$LOG.lstm_fleet")); delete $LOG.lstm_fleet by hand to resubmit (DONE chunks are skipped)"; exit 1; }
+    tag_canary "$(last_id canary_lstm1)" "$L1/live_feasible/bar1600/lstm/tw2000/chunks/c0"
+    tag_canary "$(last_id canary_lstm10)" "$L10/live_feasible/bar1600/lstm/tw2000/chunks/c0"
     NL=$(grep -c . "$LF")
-    F1=$($SUBMIT --parsable -J lstm_mask --partition="$PART_SMALL" --array=1-"$NL" --cpus-per-task="$LSTM1_CPUS" --mem="$LSTM_MEM" --time="$LSTM1_TIME" \
+    F1=$($SUBMIT --parsable -J lstm_mask --constraint="$CLASS" --partition="$PART_SMALL" --array=1-"$NL" --cpus-per-task="$LSTM1_CPUS" --mem="$LSTM_MEM" --time="$LSTM1_TIME" \
          --export=ALL,TASKFILE=$LF,RESULTS_ROOT=$L1,LSTM_RE=1,CANARY_FLAG=$L1/CANARY_OK cluster/slurm/lstm_mask_pack.sbatch)
-    F10=$($SUBMIT --parsable -J lstm_mask10 --partition="$PART_SMALL" --array=1-"$NL" --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
+    F10=$($SUBMIT --parsable -J lstm_mask10 --constraint="$CLASS" --partition="$PART_SMALL" --array=1-"$NL" --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
           --export=ALL,TASKFILE=$LF,RESULTS_ROOT=$L10,LSTM_RE=10,CANARY_FLAG=$L10/CANARY_OK cluster/slurm/lstm_mask_pack.sbatch)
     M=$($SUBMIT --parsable -J lm_merge --dependency=afterany:"$F1":"$F10" \
         --export=ALL,PART=lstm cluster/slurm/trees_mask_merge.sbatch)
@@ -157,8 +196,19 @@ case "$MODE" in
     K=$($SUBMIT --parsable -J tm_kept --export=ALL,PART=kept cluster/slurm/trees_mask_merge.sbatch)
     echo "$(date +%F_%T) kept=$K" | tee -a "$LOG"
     ;;
+  classgate)
+    need "$U/CANARY_OK"
+    X=results/linear_subsection_trees_mask_xeon
+    CG=cluster/trees_mask_tasks_classgate.txt
+    mkdir -p "$X"
+    XJ=$($SUBMIT --parsable -J tm_classgate --constraint="$CLASS_ALT" --partition=main,oneweek --cpus-per-task=8 --mem=24G --time=1:00:00 \
+         --export=ALL,TASKFILE=$CG,PACK=0,RESULTS_ROOT=$X,CANARY_FLAG=$U/CANARY_OK cluster/slurm/trees_mask_pack.sbatch)
+    XM=$($SUBMIT --parsable -J tm_classgate_merge --dependency=afterany:"$XJ" --export=ALL,PART=classgate \
+         cluster/slurm/trees_mask_merge.sbatch)
+    echo "$(date +%F_%T) classgate=$XJ ($CLASS_ALT) classgate_merge=$XM" | tee -a "$LOG"
+    ;;
   *)
-    echo "usage: bash cluster/slurm/submit_trees_mask.sh gates [suites]|canary|fleet|lstm_canary|lstm_fleet|kept"
+    echo "usage: bash cluster/slurm/submit_trees_mask.sh gates [suites]|canary|fleet|lstm_canary|lstm_fleet|kept|classgate"
     exit 1
     ;;
 esac
