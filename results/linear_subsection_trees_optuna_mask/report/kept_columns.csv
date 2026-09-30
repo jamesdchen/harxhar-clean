@@ -1,0 +1,10 @@
+model,bucket,window_mask,p,stage1_points,stage1_median,stage1_min,stage1_max,stage2_refits,stage2_median,stage2_min,stage2_max
+lgbm,live_feasible,True,232,1469,138.0,136,145,1469,138.0,136,145
+lgbm,all_features,True,628,1469,369.0,360,378,1469,369.0,360,378
+lgbm,baseline,True,22,1469,17.0,17,17,1469,17.0,17,17
+xgb,live_feasible,True,232,1469,138.0,136,145,1469,138.0,136,145
+xgb,all_features,True,628,1469,369.0,360,378,1469,369.0,360,378
+xgb,baseline,True,22,1469,17.0,17,17,1469,17.0,17,17
+rf,live_feasible,True,232,1469,138.0,136,145,1469,138.0,136,145
+rf,all_features,True,628,1469,369.0,360,378,1469,369.0,360,378
+rf,baseline,True,22,1469,17.0,17,17,1469,17.0,17,17

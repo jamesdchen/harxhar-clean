@@ -549,6 +549,15 @@ def write_summary(
         for _, r in usage.iterrows():
             L.append(f"- {r['item']}: {r['value']}")
         L.append("")
+        rr = OPT / "cluster_usage_single_class_rerun.csv"
+        if rr.is_file():
+            L.append(
+                "Of which the single-class re-run (s1e / m1e / s2e / m2e, epyc-7513):"
+            )
+            L.append("")
+            for _, r in pd.read_csv(rr).iterrows():
+                L.append(f"- {r['item']}: {r['value']}")
+            L.append("")
         un = OPT / "cluster_usage_unmasked_run.csv"
         if un.is_file():
             L.append(

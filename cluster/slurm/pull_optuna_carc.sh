@@ -23,7 +23,7 @@ if [ "${FORCE:-0}" != 1 ]; then
   "$SSH" -o BatchMode=yes usc-discovery "test -f $REMOTE/$R/STAGE2_MERGED" \
     || { echo "no $R/STAGE2_MERGED on CARC yet (FORCE=1 pulls what exists)"; exit 1; }
 fi
-LIST_CMD="cd $REMOTE && { find $R -maxdepth 1 -type f; find $R/xclass -maxdepth 1 -type f 2>/dev/null;
+LIST_CMD="cd $REMOTE && { find $R -maxdepth 1 -type f; find $R/xclass* -maxdepth 1 -type f 2>/dev/null;
   find $R/stage1 -mindepth 5 -maxdepth 5 -type f \\( -name 'trials_*.npz' -o -name 'STAGE1_COMPLETE' \\) 2>/dev/null;
   find $R/paths -mindepth 9 -maxdepth 9 -type f -path '$R/paths/*/*/*/*/tw$TW/causal_tune_trees/*/*/*' \
     \\( -name 'results_*.csv' -o -name 'trees_*.npz' -o -name 'MERGED' \\) 2>/dev/null; } | sort"

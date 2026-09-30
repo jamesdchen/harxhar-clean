@@ -1,0 +1,7 @@
+item,value
+"allocated CPU-hours, all jobs",928.3
+peak concurrent CPUs (this campaign),1260
+"wall-clock, first start to last end",0 days 02:12:46
+first start / last end,2026-09-29 20:15:29 / 2026-09-29 22:28:15
+op_canary: tasks / CPU-hours / states,3 / 20.7 / {'COMPLETED': 3}
+op_s1: tasks / CPU-hours / states,"121 / 907.6 / {'COMPLETED': 110, 'RESIZING': 11}"

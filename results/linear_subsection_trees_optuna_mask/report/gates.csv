@@ -1,0 +1,216 @@
+gate,item,value,ok
+stage-1 rows 0 .. n-1,live_feasible lgbm,1469.0,True
+stage-1 rows 0 .. n-1,all_features lgbm,1469.0,True
+stage-1 rows 0 .. n-1,baseline lgbm,1469.0,True
+stage-1 rows 0 .. n-1,live_feasible xgb,1469.0,True
+stage-1 rows 0 .. n-1,all_features xgb,1469.0,True
+stage-1 rows 0 .. n-1,baseline xgb,1469.0,True
+stage-1 rows 0 .. n-1,live_feasible rf,1469.0,True
+stage-1 rows 0 .. n-1,all_features rf,1469.0,True
+stage-1 rows 0 .. n-1,baseline rf,1469.0,True
+baseline equals the target's B,tp1|live_feasible|lgbm,0.0,True
+covers the deck days,tp1|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp5|live_feasible|lgbm,0.0,True
+covers the deck days,tp5|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp25|live_feasible|lgbm,0.0,True
+covers the deck days,tp25|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp250|live_feasible|lgbm,0.0,True
+covers the deck days,tp250|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp1_k10|live_feasible|lgbm,0.0,True
+covers the deck days,tp1_k10|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp1_k25|live_feasible|lgbm,0.0,True
+covers the deck days,tp1_k25|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp25_k10|live_feasible|lgbm,0.0,True
+covers the deck days,tp25_k10|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp25_k25|live_feasible|lgbm,0.0,True
+covers the deck days,tp25_k25|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp25_q|live_feasible|lgbm,0.0,True
+covers the deck days,tp25_q|live_feasible|lgbm,0.0,True
+baseline equals the target's B,T1|live_feasible|lgbm,6.661338147750939e-16,True
+covers the deck days,T1|live_feasible|lgbm,0.0,True
+baseline equals the target's B,RS1|live_feasible|lgbm,6.661338147750939e-16,True
+covers the deck days,RS1|live_feasible|lgbm,0.0,True
+baseline equals the target's B,tp1|all_features|lgbm,0.0,True
+covers the deck days,tp1|all_features|lgbm,0.0,True
+baseline equals the target's B,tp5|all_features|lgbm,0.0,True
+covers the deck days,tp5|all_features|lgbm,0.0,True
+baseline equals the target's B,tp25|all_features|lgbm,0.0,True
+covers the deck days,tp25|all_features|lgbm,0.0,True
+baseline equals the target's B,tp250|all_features|lgbm,0.0,True
+covers the deck days,tp250|all_features|lgbm,0.0,True
+baseline equals the target's B,tp1_k10|all_features|lgbm,0.0,True
+covers the deck days,tp1_k10|all_features|lgbm,0.0,True
+baseline equals the target's B,tp1_k25|all_features|lgbm,0.0,True
+covers the deck days,tp1_k25|all_features|lgbm,0.0,True
+baseline equals the target's B,tp25_k10|all_features|lgbm,0.0,True
+covers the deck days,tp25_k10|all_features|lgbm,0.0,True
+baseline equals the target's B,tp25_k25|all_features|lgbm,0.0,True
+covers the deck days,tp25_k25|all_features|lgbm,0.0,True
+baseline equals the target's B,tp25_q|all_features|lgbm,0.0,True
+covers the deck days,tp25_q|all_features|lgbm,0.0,True
+baseline equals the target's B,T1|all_features|lgbm,6.661338147750939e-16,True
+covers the deck days,T1|all_features|lgbm,0.0,True
+baseline equals the target's B,RS1|all_features|lgbm,6.661338147750939e-16,True
+covers the deck days,RS1|all_features|lgbm,0.0,True
+baseline equals the target's B,tp1|baseline|lgbm,0.0,True
+covers the deck days,tp1|baseline|lgbm,0.0,True
+baseline equals the target's B,tp5|baseline|lgbm,0.0,True
+covers the deck days,tp5|baseline|lgbm,0.0,True
+baseline equals the target's B,tp25|baseline|lgbm,0.0,True
+covers the deck days,tp25|baseline|lgbm,0.0,True
+baseline equals the target's B,tp250|baseline|lgbm,0.0,True
+covers the deck days,tp250|baseline|lgbm,0.0,True
+baseline equals the target's B,tp1_k10|baseline|lgbm,0.0,True
+covers the deck days,tp1_k10|baseline|lgbm,0.0,True
+baseline equals the target's B,tp1_k25|baseline|lgbm,0.0,True
+covers the deck days,tp1_k25|baseline|lgbm,0.0,True
+baseline equals the target's B,tp25_k10|baseline|lgbm,0.0,True
+covers the deck days,tp25_k10|baseline|lgbm,0.0,True
+baseline equals the target's B,tp25_k25|baseline|lgbm,0.0,True
+covers the deck days,tp25_k25|baseline|lgbm,0.0,True
+baseline equals the target's B,tp25_q|baseline|lgbm,0.0,True
+covers the deck days,tp25_q|baseline|lgbm,0.0,True
+baseline equals the target's B,T1|baseline|lgbm,6.661338147750939e-16,True
+covers the deck days,T1|baseline|lgbm,0.0,True
+baseline equals the target's B,RS1|baseline|lgbm,6.661338147750939e-16,True
+covers the deck days,RS1|baseline|lgbm,0.0,True
+baseline equals the target's B,tp1|live_feasible|xgb,0.0,True
+covers the deck days,tp1|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp5|live_feasible|xgb,0.0,True
+covers the deck days,tp5|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp25|live_feasible|xgb,0.0,True
+covers the deck days,tp25|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp250|live_feasible|xgb,0.0,True
+covers the deck days,tp250|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp1_k10|live_feasible|xgb,0.0,True
+covers the deck days,tp1_k10|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp1_k25|live_feasible|xgb,0.0,True
+covers the deck days,tp1_k25|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp25_k10|live_feasible|xgb,0.0,True
+covers the deck days,tp25_k10|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp25_k25|live_feasible|xgb,0.0,True
+covers the deck days,tp25_k25|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp25_q|live_feasible|xgb,0.0,True
+covers the deck days,tp25_q|live_feasible|xgb,0.0,True
+baseline equals the target's B,T1|live_feasible|xgb,6.661338147750939e-16,True
+covers the deck days,T1|live_feasible|xgb,0.0,True
+baseline equals the target's B,RS1|live_feasible|xgb,6.661338147750939e-16,True
+covers the deck days,RS1|live_feasible|xgb,0.0,True
+baseline equals the target's B,tp1|all_features|xgb,0.0,True
+covers the deck days,tp1|all_features|xgb,0.0,True
+baseline equals the target's B,tp5|all_features|xgb,0.0,True
+covers the deck days,tp5|all_features|xgb,0.0,True
+baseline equals the target's B,tp25|all_features|xgb,0.0,True
+covers the deck days,tp25|all_features|xgb,0.0,True
+baseline equals the target's B,tp250|all_features|xgb,0.0,True
+covers the deck days,tp250|all_features|xgb,0.0,True
+baseline equals the target's B,tp1_k10|all_features|xgb,0.0,True
+covers the deck days,tp1_k10|all_features|xgb,0.0,True
+baseline equals the target's B,tp1_k25|all_features|xgb,0.0,True
+covers the deck days,tp1_k25|all_features|xgb,0.0,True
+baseline equals the target's B,tp25_k10|all_features|xgb,0.0,True
+covers the deck days,tp25_k10|all_features|xgb,0.0,True
+baseline equals the target's B,tp25_k25|all_features|xgb,0.0,True
+covers the deck days,tp25_k25|all_features|xgb,0.0,True
+baseline equals the target's B,tp25_q|all_features|xgb,0.0,True
+covers the deck days,tp25_q|all_features|xgb,0.0,True
+baseline equals the target's B,T1|all_features|xgb,6.661338147750939e-16,True
+covers the deck days,T1|all_features|xgb,0.0,True
+baseline equals the target's B,RS1|all_features|xgb,6.661338147750939e-16,True
+covers the deck days,RS1|all_features|xgb,0.0,True
+baseline equals the target's B,tp1|baseline|xgb,0.0,True
+covers the deck days,tp1|baseline|xgb,0.0,True
+baseline equals the target's B,tp5|baseline|xgb,0.0,True
+covers the deck days,tp5|baseline|xgb,0.0,True
+baseline equals the target's B,tp25|baseline|xgb,0.0,True
+covers the deck days,tp25|baseline|xgb,0.0,True
+baseline equals the target's B,tp250|baseline|xgb,0.0,True
+covers the deck days,tp250|baseline|xgb,0.0,True
+baseline equals the target's B,tp1_k10|baseline|xgb,0.0,True
+covers the deck days,tp1_k10|baseline|xgb,0.0,True
+baseline equals the target's B,tp1_k25|baseline|xgb,0.0,True
+covers the deck days,tp1_k25|baseline|xgb,0.0,True
+baseline equals the target's B,tp25_k10|baseline|xgb,0.0,True
+covers the deck days,tp25_k10|baseline|xgb,0.0,True
+baseline equals the target's B,tp25_k25|baseline|xgb,0.0,True
+covers the deck days,tp25_k25|baseline|xgb,0.0,True
+baseline equals the target's B,tp25_q|baseline|xgb,0.0,True
+covers the deck days,tp25_q|baseline|xgb,0.0,True
+baseline equals the target's B,T1|baseline|xgb,6.661338147750939e-16,True
+covers the deck days,T1|baseline|xgb,0.0,True
+baseline equals the target's B,RS1|baseline|xgb,6.661338147750939e-16,True
+covers the deck days,RS1|baseline|xgb,0.0,True
+baseline equals the target's B,tp1|live_feasible|rf,0.0,True
+covers the deck days,tp1|live_feasible|rf,0.0,True
+baseline equals the target's B,tp5|live_feasible|rf,0.0,True
+covers the deck days,tp5|live_feasible|rf,0.0,True
+baseline equals the target's B,tp25|live_feasible|rf,0.0,True
+covers the deck days,tp25|live_feasible|rf,0.0,True
+baseline equals the target's B,tp250|live_feasible|rf,0.0,True
+covers the deck days,tp250|live_feasible|rf,0.0,True
+baseline equals the target's B,tp1_k10|live_feasible|rf,0.0,True
+covers the deck days,tp1_k10|live_feasible|rf,0.0,True
+baseline equals the target's B,tp1_k25|live_feasible|rf,0.0,True
+covers the deck days,tp1_k25|live_feasible|rf,0.0,True
+baseline equals the target's B,tp25_k10|live_feasible|rf,0.0,True
+covers the deck days,tp25_k10|live_feasible|rf,0.0,True
+baseline equals the target's B,tp25_k25|live_feasible|rf,0.0,True
+covers the deck days,tp25_k25|live_feasible|rf,0.0,True
+baseline equals the target's B,tp25_q|live_feasible|rf,0.0,True
+covers the deck days,tp25_q|live_feasible|rf,0.0,True
+baseline equals the target's B,T1|live_feasible|rf,6.661338147750939e-16,True
+covers the deck days,T1|live_feasible|rf,0.0,True
+baseline equals the target's B,RS1|live_feasible|rf,6.661338147750939e-16,True
+covers the deck days,RS1|live_feasible|rf,0.0,True
+baseline equals the target's B,tp1|all_features|rf,0.0,True
+covers the deck days,tp1|all_features|rf,0.0,True
+baseline equals the target's B,tp5|all_features|rf,0.0,True
+covers the deck days,tp5|all_features|rf,0.0,True
+baseline equals the target's B,tp25|all_features|rf,0.0,True
+covers the deck days,tp25|all_features|rf,0.0,True
+baseline equals the target's B,tp250|all_features|rf,0.0,True
+covers the deck days,tp250|all_features|rf,0.0,True
+baseline equals the target's B,tp1_k10|all_features|rf,0.0,True
+covers the deck days,tp1_k10|all_features|rf,0.0,True
+baseline equals the target's B,tp1_k25|all_features|rf,0.0,True
+covers the deck days,tp1_k25|all_features|rf,0.0,True
+baseline equals the target's B,tp25_k10|all_features|rf,0.0,True
+covers the deck days,tp25_k10|all_features|rf,0.0,True
+baseline equals the target's B,tp25_k25|all_features|rf,0.0,True
+covers the deck days,tp25_k25|all_features|rf,0.0,True
+baseline equals the target's B,tp25_q|all_features|rf,0.0,True
+covers the deck days,tp25_q|all_features|rf,0.0,True
+baseline equals the target's B,T1|all_features|rf,6.661338147750939e-16,True
+covers the deck days,T1|all_features|rf,0.0,True
+baseline equals the target's B,RS1|all_features|rf,6.661338147750939e-16,True
+covers the deck days,RS1|all_features|rf,0.0,True
+baseline equals the target's B,tp1|baseline|rf,0.0,True
+covers the deck days,tp1|baseline|rf,0.0,True
+baseline equals the target's B,tp5|baseline|rf,0.0,True
+covers the deck days,tp5|baseline|rf,0.0,True
+baseline equals the target's B,tp25|baseline|rf,0.0,True
+covers the deck days,tp25|baseline|rf,0.0,True
+baseline equals the target's B,tp250|baseline|rf,0.0,True
+covers the deck days,tp250|baseline|rf,0.0,True
+baseline equals the target's B,tp1_k10|baseline|rf,0.0,True
+covers the deck days,tp1_k10|baseline|rf,0.0,True
+baseline equals the target's B,tp1_k25|baseline|rf,0.0,True
+covers the deck days,tp1_k25|baseline|rf,0.0,True
+baseline equals the target's B,tp25_k10|baseline|rf,0.0,True
+covers the deck days,tp25_k10|baseline|rf,0.0,True
+baseline equals the target's B,tp25_k25|baseline|rf,0.0,True
+covers the deck days,tp25_k25|baseline|rf,0.0,True
+baseline equals the target's B,tp25_q|baseline|rf,0.0,True
+covers the deck days,tp25_q|baseline|rf,0.0,True
+baseline equals the target's B,T1|baseline|rf,6.661338147750939e-16,True
+covers the deck days,T1|baseline|rf,0.0,True
+baseline equals the target's B,RS1|baseline|rf,6.661338147750939e-16,True
+covers the deck days,RS1|baseline|rf,0.0,True
+baseline equals the target's B,ridge|live_feasible|-,0.0,True
+covers the deck days,ridge|live_feasible|-,0.0,True
+baseline equals the target's B,ridge|all_features|-,0.0,True
+covers the deck days,ridge|all_features|-,0.0,True
+baseline equals the target's B,ridge|baseline|-,0.0,True
+covers the deck days,ridge|baseline|-,0.0,True
+baseline equals the target's B,blk2|-|-,9.603429163007604e-13,True
+covers the deck days,blk2|-|-,0.0,True

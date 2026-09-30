@@ -1,0 +1,10 @@
+stage,bucket,segment,model,train_win,chunks,ok,why,rows,trials,trial_core_h
+1,all_features,bar1600,lgbm,2000,37,True,,1469,50,104.5285421422455
+1,all_features,bar1600,rf,2000,37,True,,1469,50,143.8584957440032
+1,all_features,bar1600,xgb,2000,37,True,,1469,50,170.18500822173223
+1,baseline,bar1600,lgbm,2000,4,True,,1469,50,3.469287033875783
+1,baseline,bar1600,rf,2000,3,True,,1469,50,5.535581311583519
+1,baseline,bar1600,xgb,2000,4,True,,1469,50,4.360906364520391
+1,live_feasible,bar1600,lgbm,2000,10,True,,1469,50,34.45384141895506
+1,live_feasible,bar1600,rf,2000,8,True,,1469,50,49.66310947424836
+1,live_feasible,bar1600,xgb,2000,10,True,,1469,50,51.46366999540064
