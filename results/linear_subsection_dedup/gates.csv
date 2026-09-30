@@ -1,0 +1,385 @@
+gate,forecast,value,bound,ok,note
+(a) design: no session-edge column,sub_enet_live_feasible_har_base2,448.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_har_base2,24.0,24,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_har_base2,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_har_base2,0.028090271532440703,,True,median 5.551e-15
+(a) design: no session-edge column,sub_enet_live_feasible_har_base3,304.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_har_base3,16.0,16,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_har_base3,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_har_base3,0.0042619031616948355,,True,median 3.553e-15
+(a) design: no session-edge column,sub_enet_live_feasible_har_intra,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_har_intra,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_har_intra,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_har_intra,2.76445533131664e-13,,True,median 3.775e-15
+(a) design: no session-edge column,sub_lasso_live_feasible_har_base2,448.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_har_base2,24.0,24,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_har_base2,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_har_base2,0.0033561924586896774,1e-08,False,
+(a) design: no session-edge column,sub_lasso_live_feasible_har_base3,304.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_har_base3,16.0,16,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_har_base3,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_har_base3,3.086420008457935e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_live_feasible_har_intra,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_har_intra,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_har_intra,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_har_intra,4.192202140984591e-13,1e-08,True,
+(a) design: no session-edge column,sub_ridge_live_feasible_har_base2,448.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_har_base2,24.0,24,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_har_base2,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_har_base2,2.1815882433884326e-12,,True,median 3.952e-14
+(a) design: no session-edge column,sub_ridge_live_feasible_har_base3,304.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_har_base3,16.0,16,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_har_base3,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_har_base3,1.885380740418441e-12,,True,median 1.288e-14
+(a) design: no session-edge column,sub_ridge_live_feasible_har_intra,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_har_intra,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_har_intra,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_har_intra,8.43503045189209e-12,,True,median 1.388e-13
+(a) design: no session-edge column,sub_enet_free_feasible,202.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_free_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_free_feasible,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_free_feasible,8.37108160567368e-14,,True,median 2.665e-15
+(a) design: no session-edge column,sub_enet_free_feasible_vol,214.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_free_feasible_vol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_free_feasible_vol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_free_feasible_vol,4.811706588725428e-13,,True,median 2.554e-15
+(a) design: no session-edge column,sub_enet_free_vix_only,190.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_free_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_free_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_free_vix_only,2.391420395042587e-13,,True,median 3.331e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_free_vix_only,0.5980939835309176,,True,13 bars; max of per-bar medians 4.823e-06
+(a) design: no session-edge column,sub_enet_live_vix_only,208.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_vix_only,0.008456256946710372,,True,median 3.553e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_live_vix_only,0.42141941214090606,,True,13 bars; max of per-bar medians 4.263e-14
+(a) design: no session-edge column,sub_enet_live_vix_rvol,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_vix_rvol,0.08126975527146896,,True,median 2.998e-15
+(a) design: no session-edge column,sub_enet_vix_only,34.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_vix_only,0.004342577253019786,,True,median 5.107e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_vix_only,0.009479144232142689,,True,13 bars; max of per-bar medians 5.274e-14
+(a) design: no session-edge column,sub_enet_vix_rvol,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_vix_rvol,4.0645569909791845e-07,,True,median 8.882e-15
+(a) design: no session-edge column,sub_lasso_free_feasible,202.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_free_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_free_feasible,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_free_feasible,5.018208071305708e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_free_feasible_vol,214.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_free_feasible_vol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_free_feasible_vol,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_free_feasible_vol,2.000621890374532e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_free_vix_only,190.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_free_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_free_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_free_vix_only,0.01444782959179558,1e-08,False,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_free_vix_only,8.696922536661383,1e-08,False,
+(a) design: no session-edge column,sub_lasso_live_vix_only,208.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_vix_only,0.007063837874158763,1e-08,False,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_live_vix_only,0.6148683192582218,1e-08,False,
+(a) design: no session-edge column,sub_lasso_live_vix_rvol,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_vix_rvol,6.994405055138486e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_vix_only,34.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_vix_only,1.6249224188413791e-12,1e-08,True,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_vix_only,0.06937307397380132,1e-08,False,
+(a) design: no session-edge column,sub_lasso_vix_rvol,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_vix_rvol,0.017488239738162603,1e-08,False,
+(a) design: no session-edge column,sub_ridge_free_feasible,202.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_free_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_free_feasible,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_free_feasible,4.907185768843192e-13,,True,median 1.277e-14
+(a) design: no session-edge column,sub_ridge_free_feasible_vol,214.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_free_feasible_vol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_free_feasible_vol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_free_feasible_vol,6.113776152005812e-12,,True,median 7.772e-15
+(a) design: no session-edge column,sub_ridge_free_vix_only,190.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_free_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_free_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_free_vix_only,2.8961277820371834e-12,,True,median 6.772e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_free_vix_only,1.4269469347238939e-06,,True,13 bars; max of per-bar medians 1.804e-12
+(a) design: no session-edge column,sub_ridge_live_vix_only,208.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_vix_only,5.1956439151013e-11,,True,median 8.216e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_live_vix_only,1.4726421196931128e-06,,True,13 bars; max of per-bar medians 6.197e-12
+(a) design: no session-edge column,sub_ridge_live_vix_rvol,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_vix_rvol,4.494071781380171e-12,,True,median 4.663e-15
+(a) design: no session-edge column,sub_ridge_vix_only,34.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_vix_only,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_vix_only,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_vix_only,3.902513867615198e-10,,True,median 2.447e-13
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_vix_only,2.833162171533843e-08,,True,13 bars; max of per-bar medians 4.594e-11
+(a) design: no session-edge column,sub_ridge_vix_rvol,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_vix_rvol,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_vix_rvol,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_vix_rvol,1.0705725195236937e-10,,True,median 2.274e-13
+(a) design: no session-edge column,sub_enet_ivrep_slice_slope_tw500,244.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_slice_slope_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_slice_slope_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_slice_slope_tw500,1.3367085216486885e-13,,True,median 2.998e-15
+(a) design: no session-edge column,sub_enet_ivslice_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivslice_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivslice_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivslice_only_tw500,1.1102230246251565e-14,,True,median 8.882e-16
+(a) design: no session-edge column,sub_enet_live_feasible_ivslice_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_ivslice_tw500,1.8407497748285095e-13,,True,median 3.331e-15
+(a) design: no session-edge column,sub_enet_live_feasible_mfiv_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_mfiv_tw500,1.3233858453531866e-13,,True,median 2.998e-15
+(a) design: no session-edge column,sub_enet_live_feasible_plus_ivslice_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_plus_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_plus_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_plus_ivslice_tw500,0.09489392811981134,,True,median 4.885e-15
+(a) design: no session-edge column,sub_enet_live_feasible_plus_mfiv_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible_plus_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible_plus_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible_plus_mfiv_tw500,7.291944825738028e-13,,True,median 5.329e-15
+(a) design: no session-edge column,sub_enet_mfiv_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_mfiv_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_mfiv_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_mfiv_only_tw500,3.7192471324942744e-14,,True,median 8.882e-16
+(a) design: no session-edge column,sub_lasso_ivrep_slice_slope_tw500,244.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_slice_slope_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_slice_slope_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_slice_slope_tw500,7.815970093361102e-14,1e-08,True,
+(a) design: no session-edge column,sub_lasso_ivslice_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivslice_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivslice_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivslice_only_tw500,2.531308496145357e-14,1e-08,True,
+(a) design: no session-edge column,sub_lasso_live_feasible_ivslice_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_ivslice_tw500,1.3922196728799463e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_live_feasible_mfiv_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_mfiv_tw500,7.815970093361102e-14,1e-08,True,
+(a) design: no session-edge column,sub_lasso_live_feasible_plus_ivslice_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_plus_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_plus_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_plus_ivslice_tw500,1.8682833058392134e-12,1e-08,True,
+(a) design: no session-edge column,sub_lasso_live_feasible_plus_mfiv_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible_plus_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible_plus_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible_plus_mfiv_tw500,0.09138670887215194,1e-08,False,
+(a) design: no session-edge column,sub_lasso_mfiv_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_mfiv_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_mfiv_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_mfiv_only_tw500,2.2870594307278225e-14,1e-08,True,
+(a) design: no session-edge column,sub_ridge_ivrep_slice_slope_tw500,244.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_slice_slope_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_slice_slope_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_slice_slope_tw500,2.6799673591426654e-12,,True,median 4.663e-15
+(a) design: no session-edge column,sub_ridge_ivslice_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivslice_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivslice_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivslice_only_tw500,3.22679660769154e-11,,True,median 3.553e-15
+(a) design: no session-edge column,sub_ridge_live_feasible_ivslice_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_ivslice_tw500,5.118350188126897e-12,,True,median 4.885e-15
+(a) design: no session-edge column,sub_ridge_live_feasible_mfiv_tw500,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_mfiv_tw500,3.1434854719236682e-12,,True,median 5.107e-15
+(a) design: no session-edge column,sub_ridge_live_feasible_plus_ivslice_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_plus_ivslice_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_plus_ivslice_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_plus_ivslice_tw500,4.33170832536689e-10,,True,median 1.199e-14
+(a) design: no session-edge column,sub_ridge_live_feasible_plus_mfiv_tw500,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible_plus_mfiv_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible_plus_mfiv_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible_plus_mfiv_tw500,4.33170832536689e-10,,True,median 1.144e-14
+(a) design: no session-edge column,sub_ridge_mfiv_only_tw500,58.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_mfiv_only_tw500,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_mfiv_only_tw500,0.0,0.0,True,rows 2969 vs 2969
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_mfiv_only_tw500,3.22679660769154e-11,,True,median 2.998e-15
+(a) design: no session-edge column,sub_enet_ivrep_all,340.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_all,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_all,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_all,7.638334409421077e-14,,True,median 2.331e-15
+(a) design: no session-edge column,sub_enet_ivrep_innovations,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_innovations,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_innovations,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_innovations,5.10702591327572e-14,,True,median 2.998e-15
+(a) design: no session-edge column,sub_enet_ivrep_target_scale,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_target_scale,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_target_scale,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_target_scale,8.51898121791983e-05,,True,median 1.998e-15
+(a) design: no session-edge column,sub_enet_ivrep_term,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_term,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_term,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_term,0.01126328231298701,,True,median 6.661e-15
+(a) design: no session-edge column,sub_enet_ivrep_vrp,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_ivrep_vrp,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_ivrep_vrp,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_ivrep_vrp,1.4277468096679513e-13,,True,median 2.665e-15
+(a) design: no session-edge column,sub_lasso_ivrep_all,340.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_all,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_all,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_all,3.1530333899354446e-14,1e-08,True,
+(a) design: no session-edge column,sub_lasso_ivrep_innovations,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_innovations,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_innovations,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_innovations,5.88418203051333e-14,1e-08,True,
+(a) design: no session-edge column,sub_lasso_ivrep_target_scale,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_target_scale,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_target_scale,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_target_scale,1.162403506782539e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_ivrep_term,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_term,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_term,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_term,4.574118861455645e-13,1e-08,True,
+(a) design: no session-edge column,sub_lasso_ivrep_vrp,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_ivrep_vrp,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_ivrep_vrp,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_ivrep_vrp,1.4654943925052066e-13,1e-08,True,
+(a) design: no session-edge column,sub_ridge_ivrep_all,340.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_all,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_all,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_all,4.798383912429927e-13,,True,median 1.277e-14
+(a) design: no session-edge column,sub_ridge_ivrep_innovations,268.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_innovations,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_innovations,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_innovations,5.7271964948313325e-12,,True,median 1.166e-14
+(a) design: no session-edge column,sub_ridge_ivrep_target_scale,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_target_scale,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_target_scale,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_target_scale,1.1073364447611311e-12,,True,median 1.144e-14
+(a) design: no session-edge column,sub_ridge_ivrep_term,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_term,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_term,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_term,4.898303984646191e-13,,True,median 1.155e-14
+(a) design: no session-edge column,sub_ridge_ivrep_vrp,232.0,,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_ivrep_vrp,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_ivrep_vrp,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_ivrep_vrp,8.673062268371723e-13,,True,median 7.772e-15
+"(a) design: no session-edge column, p = 628",sub_enet_all_features,628.0,628,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_all_features,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_all_features,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_all_features,0.01537757384700611,,True,median 9.104e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_all_features,0.30629440845792844,,True,13 bars; max of per-bar medians 2.198e-14
+"(a) design: no session-edge column, p = 22",sub_enet_baseline,22.0,22,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_baseline,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_baseline,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_baseline,1.0880185641326534e-14,,True,median 1.332e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_baseline,1.6653345369377348e-14,,True,13 bars; max of per-bar medians 1.332e-15
+"(a) design: no session-edge column, p = 232",sub_enet_live_feasible,232.0,232,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_enet_live_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_enet_live_feasible,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_enet_live_feasible,4.085620730620576e-14,,True,median 2.665e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_enet_live_feasible,0.3179959354564458,,True,13 bars; max of per-bar medians 1.015e-05
+"(a) design: no session-edge column, p = 628",sub_lasso_all_features,628.0,628,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_all_features,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_all_features,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_all_features,0.0011298558445931306,1e-08,False,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_all_features,0.152153775468707,1e-08,False,
+"(a) design: no session-edge column, p = 22",sub_lasso_baseline,22.0,22,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_baseline,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_baseline,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_baseline,5.551115123125783e-15,1e-08,True,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_baseline,1.2212453270876722e-14,1e-08,True,
+"(a) design: no session-edge column, p = 232",sub_lasso_live_feasible,232.0,232,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_lasso_live_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_lasso_live_feasible,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_lasso_live_feasible,0.0017170222274160984,1e-08,False,
+(c) lasso: forecast = pre-dedup at all 13 bars (max rel),sub_lasso_live_feasible,0.5414037430584349,1e-08,False,
+"(a) design: no session-edge column, p = 22",sub_ols_baseline,22.0,22,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ols_baseline,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ols_baseline,0.0,0.0,True,rows 1469 vs 1469
+(c) lasso / OLS: 16:00 forecast = pre-dedup (max rel),sub_ols_baseline,8.43769498715119e-15,1e-08,True,
+"(a) design: no session-edge column, p = 628",sub_ridge_all_features,628.0,628,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_all_features,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_all_features,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_all_features,1.0453637955265549e-11,,True,median 2.593e-13
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_all_features,1.422133544259907e-08,,True,13 bars; max of per-bar medians 1.604e-12
+"(a) design: no session-edge column, p = 22",sub_ridge_baseline,22.0,22,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_baseline,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_baseline,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_baseline,3.898681377734192e-11,,True,median 8.882e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_baseline,2.3887447575532406e-10,,True,13 bars; max of per-bar medians 9.583e-12
+"(a) design: no session-edge column, p = 232",sub_ridge_live_feasible,232.0,232,True,
+(a) old design minus new = the session-edge columns (2 per HAR rung; 12 production),sub_ridge_live_feasible,12.0,12,True,
+"(b) target: same stamps, true_adj and true_raw bitwise",sub_ridge_live_feasible,0.0,0.0,True,rows 1469 vs 1469
+(d) ridge / enet: 16:00 forecast change (max rel; median in note),sub_ridge_live_feasible,6.5776273316942024e-12,,True,median 8.216e-15
+(d) ridge / enet: change at all 13 bars (max rel),sub_ridge_live_feasible,1.052690159708547e-06,,True,13 bars; max of per-bar medians 6.713e-12
+"(e) LSTM identity: design = linear spec's (sha256), p, target and stamps = pre-dedup",lstm_live_feasible,232.0,232,True,"X [3469, 232] (pre-dedup [3469, 244]); sha_X 7baabdc641514f15 vs 857f087352e776c4; target/stamp hashes equal to pre-dedup True; stored linear true_adj max rel 0.0"
+"(e) LSTM identity: design = linear spec's (sha256), p, target and stamps = pre-dedup",lstm_all_features,628.0,628,True,"X [3469, 628] (pre-dedup [3469, 640]); sha_X 038979e618bcba94 vs abf08a0cc24e7004; target/stamp hashes equal to pre-dedup True; stored linear true_adj max rel 0.0"
+"(e) LSTM identity: design = linear spec's (sha256), p, target and stamps = pre-dedup",lstm_baseline,22.0,22,True,"X [3469, 22] (pre-dedup [3469, 34]); sha_X b001078ec76c1543 vs ecbe1cf02eb345b6; target/stamp hashes equal to pre-dedup True; stored linear true_adj max rel 0.0"
+"(e) LSTM determinism (local, reduced budget {'N_SEEDS': '2', 'MAX_EPOCHS': '12', 'PATIENCE': '3'})",lstm_live_feasible,280.0,,True,"seconds [348, 281]; "
+"(e) LSTM cluster canary: chunk 0 run twice, results tables byte-identical",lstm_live_feasible,2.0,2,True,lstm_dedup_canary.12479507.4294967294.out
+(e) LSTM chunk reducer gates,lstm_all_features,,,True,nan
+(e) LSTM chunk reducer gates,lstm_baseline,,,True,nan
+(e) LSTM chunk reducer gates,lstm_live_feasible,,,True,nan
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_baseline,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_baseline,0.24510207267867523,,True,median 2.508e-02
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_qsel_baseline,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_qsel_baseline,0.2795971922987124,,True,median 2.289e-02
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_live_feasible,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_live_feasible,2.6071069779337495,,True,median 3.895e-02
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_qsel_live_feasible,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_qsel_live_feasible,0.2891137805273052,,True,median 3.735e-02
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_all_features,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_all_features,1.6802248530785069,,True,median 7.585e-02
+"(b) LSTM target: same stamps, true_adj bitwise",lstm_qsel_all_features,0.0,0.0,True,
+(e) LSTM: 16:00 forecast change vs pre-dedup (max rel; median in note),lstm_qsel_all_features,1.6802248530785069,,True,median 7.127e-02
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_all_features,0.2650325200278112,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1200,bar1400,bar1430,bar1500,bar1600; new vs old 3.063e-01; control vs new 1.565e-01; old run on hoffman2"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_free_vix_only,0.6644962133019033,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1430,bar1500,bar1530; new vs old 5.981e-01; control vs new 4.730e-01; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_ivrep_target_scale,0.0071124580549264405,,True,bars bar1600; new vs old 8.519e-05; control vs new 7.112e-03; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_ivrep_term,0.012123544159890587,,True,bars bar1600; new vs old 1.126e-02; control vs new 7.339e-03; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_feasible,1.1412493642285486,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530; new vs old 3.180e-01; control vs new 1.156e+00; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_feasible_har_base2,0.028090271532440703,,True,bars bar1600; new vs old 2.809e-02; control vs new 7.219e-04; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_feasible_har_base3,2.546851618490109e-13,,True,bars bar1600; new vs old 4.262e-03; control vs new 4.244e-03; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_feasible_plus_ivslice_tw500,9.061640326990528e-13,,True,bars bar1600; new vs old 9.489e-02; control vs new 8.667e-02; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_vix_only,0.1999447925716521,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1230,bar1300,bar1330,bar1400,bar1430,bar1530,bar1600; new vs old 4.214e-01; control vs new 3.010e-01; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_live_vix_rvol,0.08126975527584401,,True,bars bar1600; new vs old 8.127e-02; control vs new 5.551e-04; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_vix_only,0.004343330097248854,,True,"bars bar1200,bar1230,bar1330,bar1400,bar1600; new vs old 9.479e-03; control vs new 9.570e-03; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_enet_vix_rvol,0.0039282034004277655,,True,bars bar1600; new vs old 4.065e-07; control vs new 3.928e-03; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_all_features,0.07017106735234702,,True,"bars bar1000,bar1030,bar1130,bar1200,bar1330,bar1400,bar1600; new vs old 1.522e-01; control vs new 1.321e-01; old run on hoffman2"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_free_vix_only,11.671092747346608,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1430,bar1500,bar1530,bar1600; new vs old 8.697e+00; control vs new 3.864e-01; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_live_feasible,0.5219632952398618,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500,bar1530,bar1600; new vs old 5.414e-01; control vs new 1.929e-01; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_live_feasible_har_base2,0.003356192458692342,,True,bars bar1600; new vs old 3.356e-03; control vs new 4.685e-14; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_live_feasible_plus_mfiv_tw500,1.8108847754660928e-12,,True,bars bar1600; new vs old 9.139e-02; control vs new 1.006e-01; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_live_vix_only,0.6148683192582218,,True,"bars bar1000,bar1030,bar1100,bar1130,bar1230,bar1300,bar1330,bar1430,bar1500,bar1530,bar1600; new vs old 6.149e-01; control vs new 2.626e-01; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_vix_only,0.06937307397384351,,True,"bars bar1030,bar1130,bar1200,bar1230,bar1300,bar1330,bar1400,bar1430,bar1500; new vs old 6.937e-02; control vs new 1.355e-02; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_lasso_vix_rvol,0.0016010348579256206,,True,bars bar1600; new vs old 1.749e-02; control vs new 1.780e-02; old run on carc
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_ridge_all_features,0.0,,True,"bars bar1030,bar1300; new vs old 1.422e-08; control vs new 1.422e-08; old run on hoffman2"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_ridge_free_vix_only,1.7030916666938012e-06,,True,"bars bar1030,bar1230,bar1330,bar1430,bar1530; new vs old 1.427e-06; control vs new 6.267e-07; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_ridge_live_feasible,1.382953667583564e-06,,True,"bars bar1030,bar1300,bar1500,bar1530; new vs old 1.053e-06; control vs new 3.800e-07; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_ridge_live_vix_only,1.2639316178120197e-06,,True,"bars bar1030,bar1230,bar1330,bar1530; new vs old 1.473e-06; control vs new 2.087e-07; old run on carc"
+"(c') attribution: pre-dedup executor, same cluster as the re-run, vs the stored pre-dedup arm (max rel over the bars that moved)",sub_ridge_vix_only,3.668958825642221e-08,,True,"bars bar1000,bar1430; new vs old 2.833e-08; control vs new 1.248e-08; old run on carc"
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_live_feasible_har_base2,0.0007213519032157611,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 2.809e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_live_feasible_har_base3,0.0042619031617445735,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 4.262e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_live_feasible_har_base2,4.6851411639181606e-14,1e-08,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 3.356e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_live_vix_only,0.010374025537619458,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 8.456e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_live_vix_rvol,0.000554821398000116,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 8.127e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_vix_only,0.0011676378872297333,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 4.343e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_vix_rvol,0.003912832996410653,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 4.065e-07
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_free_vix_only,0.014447829591899275,1e-08,False,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.445e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_live_vix_only,0.004070504294596988,1e-08,False,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 4.502e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_vix_rvol,0.017488239737797784,1e-08,False,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.749e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_live_feasible_plus_ivslice_tw500,9.11160036309866e-13,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 7.292e-13
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_live_feasible_plus_mfiv_tw500,5.152545057285352e-13,1e-08,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.868e-12
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_ivrep_target_scale,0.007163407490075491,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 8.519e-05
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_ivrep_term,0.007393259259506291,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.126e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_enet_all_features,0.006424522123396503,,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.538e-02
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_all_features,0.001129855844595573,1e-08,False,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 1.130e-03
+"(c'') same CPU architecture: de-dup vs pre-dedup executor, 16:00 (max rel)",sub_lasso_live_feasible,2.2359891715950653e-13,1e-08,True,same-arch repeat of the pre-dedup run vs its first run 0.000e+00; de-dup vs the stored arm 6.750e-14

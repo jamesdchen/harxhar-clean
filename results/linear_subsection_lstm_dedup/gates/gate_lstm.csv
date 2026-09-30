@@ -1,0 +1,5 @@
+gate,bucket,ok,kwargs_differ,X_shape,n_oos,stored_linear_same_stamps,stored_linear_true_adj_max_rel,first,last,sha_X,sha_y,sha_names,sha_dates,sha_true_adj,sec,why,rows,budget
+identity,live_feasible,True,[],"[3469, 232]",1469.0,True,0.0,2018-06-25 16:00:00,2024-04-30 16:00:00,7baabdc641514f15,3153c46b7d74a5eb,24a44976cc78f4a3,23481a2271d0d6c6,d67281bbc8cdaef5,133,,,
+identity,all_features,True,[],"[3469, 628]",1469.0,True,0.0,2018-06-25 16:00:00,2024-04-30 16:00:00,038979e618bcba94,3153c46b7d74a5eb,a070601ff1f48970,23481a2271d0d6c6,d67281bbc8cdaef5,244,,,
+identity,baseline,True,[],"[3469, 22]",1469.0,True,0.0,2018-06-25 16:00:00,2024-04-30 16:00:00,b001078ec76c1543,3153c46b7d74a5eb,1cb896d936437ac1,23481a2271d0d6c6,d67281bbc8cdaef5,46,,,
+determinism,live_feasible,True,,,,,,,,,,,,,"[348, 281]",,280.0,"{'N_SEEDS': '2', 'MAX_EPOCHS': '12', 'PATIENCE': '3'}"

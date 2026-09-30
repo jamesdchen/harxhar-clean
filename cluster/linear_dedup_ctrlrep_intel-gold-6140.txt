@@ -1,0 +1,9 @@
+results/linear_subsection_dedup_control_rep all_features reclasticnet 2000 - global bar1600
+results/linear_subsection_dedup_control_rep live_feasible reclasso 2000 - global bar1600
+results/linear_subsection_dedup_control_rep/mfiv_carc/linear_subsection_har/base2 live_feasible reclasso 2000 2 global bar1600
+results/linear_subsection_dedup_control_rep/mfiv_carc/linear_subsection_har/base2 live_feasible reclasticnet 2000 2 global bar1600
+results/linear_subsection_dedup_control_rep/mfiv_carc/linear_subsection_har/base3 live_feasible reclasticnet 2000 3 global bar1600
+results/linear_subsection_dedup_control_rep/vixonly_carc/linear_subsection live_vix_only reclasticnet 2000 - global bar1600
+results/linear_subsection_dedup_control_rep/vixonly_carc/linear_subsection live_vix_rvol reclasticnet 2000 - global bar1600
+results/linear_subsection_dedup_control_rep/vixonly_carc/linear_subsection vix_only reclasticnet 2000 - global bar1600
+results/linear_subsection_dedup_control_rep/vixonly_carc/linear_subsection vix_rvol reclasticnet 2000 - global bar1600

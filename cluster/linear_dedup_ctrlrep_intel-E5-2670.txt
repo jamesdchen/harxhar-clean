@@ -1,0 +1,3 @@
+results/linear_subsection_dedup_control_rep/free_carc/linear_subsection_lassofix free_vix_only reclasso 2000 - global bar1600
+results/linear_subsection_dedup_control_rep/ivslice_carc/linear_subsection live_feasible_plus_ivslice reclasticnet 500 - global bar1600
+results/linear_subsection_dedup_control_rep/vixonly_carc/linear_subsection_lassofix vix_rvol reclasso 2000 - global bar1600

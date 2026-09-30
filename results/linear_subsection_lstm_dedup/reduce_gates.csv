@@ -1,0 +1,4 @@
+bucket,segment,model,train_win,chunks,ok,why,rows,tunings
+all_features,bar1600,lstm,2000,6,True,,1469,6
+baseline,bar1600,lstm,2000,6,True,,1469,6
+live_feasible,bar1600,lstm,2000,6,True,,1469,6
