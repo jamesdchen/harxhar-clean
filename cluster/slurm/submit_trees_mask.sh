@@ -53,15 +53,16 @@ LC=cluster/lstm_mask_tasks_canary.txt
 LF=cluster/lstm_mask_tasks_fleet.txt
 PACK_CPUS=${PACK_CPUS:-20}
 PACK_MEM=${PACK_MEM:-80G}
-PACK_TIME=${PACK_TIME:-3:00:00}
+PACK_TIME=${PACK_TIME:-1:00:00}   # I2 packs: 13-14 min (sacct 12479888); short limits backfill
 POOL_CPUS=${POOL_CPUS:-20}
 TUNED_MEM=${TUNED_MEM:-32G}
-TUNED_TIME=${TUNED_TIME:-3:00:00}
+TUNED_TIME=${TUNED_TIME:-1:00:00} # I2 chunk-arms: <= 11.5 min (12479889-90)
 LSTM_MEM=${LSTM_MEM:-32G}
-LSTM1_TIME=${LSTM1_TIME:-8:00:00}   # REFIT_EVERY 1: ~10x the refits of the earlier 42 s - 13 min chunks
-LSTM10_TIME=${LSTM10_TIME:-2:00:00}
+LSTM1_TIME=${LSTM1_TIME:-4:00:00}   # REFIT_EVERY 1: ~10x the refits of the I1 chunks (<= 10.5 min, 12479508); set from the canary
+LSTM10_TIME=${LSTM10_TIME:-1:00:00}
 LSTM1_CPUS=${LSTM1_CPUS:-$POOL_CPUS}  # the daily-refit fleet's pool (a chunk = one tuning period, the spec's minimum)
 PART_SMALL=${PART_SMALL:-main,oneweek}
+PART_ONE=${PART_ONE:-main,debug}  # single <= 1 h jobs (the canaries): debug takes 5 jobs / 48 CPUs per user
 for f in specs/causal_tune_trees.py specs/causal_tune_trees_tuned.py specs/causal_tune_trees_tuned_jobs.py \
          specs/causal_tune_linear.py specs/causal_tune_lstm.py specs/causal_tune_lstm_jobs.py src/models/window_mask.py \
          experiments/trees_mask_gates.py experiments/trees_cadence_gates.py experiments/gate_lstm.py \
@@ -97,13 +98,13 @@ case "$MODE" in
     need "$G/cadence/GATES_OK" "$G/h_trees/GATES_OK"
     mkdir -p "$U" "$T/rs10" "$T/rs1"
     rm -f "$U/CANARY_OK" "$T/rs10/CANARY_OK" "$T/rs1/CANARY_OK"
-    CU=$($SUBMIT --parsable -J tm_canary --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
+    CU=$($SUBMIT --parsable -J tm_canary --partition="$PART_ONE" --cpus-per-task="$PACK_CPUS" --mem="$PACK_MEM" --time="$PACK_TIME" \
          --export=ALL,TASKFILE=$UT,PACK=0,RESULTS_ROOT=$U,WRITE_FLAG=$U/CANARY_OK,ALONE_CHECK=t1:all_features:lgbm:0 \
          cluster/slurm/trees_mask_pack.sbatch)
-    C10=$($SUBMIT --parsable -J tm_rs10_canary --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    C10=$($SUBMIT --parsable -J tm_rs10_canary --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
           --export=ALL,TASKFILE=$RS_CANARY,RUNG=rs10,RESULTS_ROOT=$T,WRITE_FLAG=$T/rs10/CANARY_OK \
           cluster/slurm/treestuned_mask_pack.sbatch)
-    C1=$($SUBMIT --parsable -J tm_rs1_canary --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
+    C1=$($SUBMIT --parsable -J tm_rs1_canary --partition="$PART_ONE" --array=1 --cpus-per-task="$POOL_CPUS" --mem="$TUNED_MEM" --time="$TUNED_TIME" \
          --export=ALL,TASKFILE=$RS_CANARY,RUNG=rs1,RESULTS_ROOT=$T,WRITE_FLAG=$T/rs1/CANARY_OK \
          cluster/slurm/treestuned_mask_pack.sbatch)
     echo "$(date +%F_%T) canary_untuned=$CU canary_rs10=$C10 canary_rs1=$C1" | tee -a "$LOG"
@@ -134,7 +135,7 @@ case "$MODE" in
     C1=$($SUBMIT --parsable -J lstm_mask_canary --cpus-per-task=$((2 * POOL_CPUS)) --mem=64G --time="$LSTM1_TIME" \
          --export=ALL,TASKFILE=$LC,RESULTS_ROOT=$L1,LSTM_RE=1,WRITE_FLAG=$L1/CANARY_OK,REPEAT_CHECK=1 \
          cluster/slurm/lstm_mask_pack.sbatch)
-    C10=$($SUBMIT --parsable -J lstm_mask10_canary --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
+    C10=$($SUBMIT --parsable -J lstm_mask10_canary --partition="$PART_ONE" --cpus-per-task="$POOL_CPUS" --mem="$LSTM_MEM" --time="$LSTM10_TIME" \
           --export=ALL,TASKFILE=$LC,RESULTS_ROOT=$L10,LSTM_RE=10,WRITE_FLAG=$L10/CANARY_OK \
           cluster/slurm/lstm_mask_pack.sbatch)
     echo "$(date +%F_%T) canary_lstm1=$C1 canary_lstm10=$C10" | tee -a "$LOG"
