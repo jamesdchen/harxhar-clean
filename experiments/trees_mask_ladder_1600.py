@@ -12,8 +12,11 @@ a byte-copy of an earlier kept column; the linear arms' identifiability rule):
   T1    shipped configuration, refit every session        yhat_subtree_daily_<bucket>_<model>
   RS10  random search, MSE rule, refit every 10           yhat_subtree_tuned_<bucket>_<model>
   RS1   random search, MSE rule, refit every session      yhat_subtree_tuned_daily_<bucket>_<model>
-  LSTM  the per-bar LSTM (MSE rule)                       yhat_lstm_<bucket>
-  (supplementary: RS10q / RS1q / LSTMq, the QLIKE-rule twins)
+  LSTM    the per-bar LSTM (MSE rule), refit every session (user decision 2026-09-29
+          evening: daily refit, as the trees)            yhat_lstm_<bucket>
+  LSTM10  the same, refit every 10 sessions (the earlier cadence; masked table staged in
+          results/trees_mask_1600/stack/lstm_re10/, the unmasked one is the snapshot)
+  (supplementary: RS10q / RS1q / LSTMq / LSTM10q, the QLIKE-rule twins)
 
 masked = the canonical tables in results/spxw_pnl/ (experiments/trees_mask_stack_1600.py);
 unmasked = the same names in results/spxw_pnl/dedup_nomask_2026-09-29/ (the I1 / I2 tables,
@@ -28,9 +31,11 @@ SAME DAYS for every number (the deck's trade days on which every forecast here h
 recalibrated 16:00 forecast: 866 when all are complete).
 
 PAIRS (a - b, per model x input set):
-  masked - unmasked   T10, T1, RS10, RS1, LSTM
-  masked ladder       T1 - T10, RS1 - RS10, RS1 - T1
-  vs ridge            masked T10, T1, RS10, RS1, LSTM - ridge
+  masked - unmasked   T10, T1, RS10, RS1, LSTM10 (the same rung, the mask alone)
+  masked ladder       T1 - T10, RS1 - RS10, RS1 - T1, LSTM - LSTM10 (the cadence, masked)
+  replaced table      masked daily LSTM - unmasked LSTM10 (the canonical yhat_lstm_* before
+                      and after this run: mask and cadence together)
+  vs ridge            masked T10, T1, RS10, RS1, LSTM, LSTM10 - ridge
 QLIKE: a negative difference = a has the lower loss; Sharpe: a positive difference = a trades
 better.
 
@@ -75,7 +80,9 @@ ARM_ROOTS = {
     "RS10": ROOT / "results" / "linear_subsection_trees_tuned_mask" / "rs10",
     "RS1": ROOT / "results" / "linear_subsection_trees_tuned_mask" / "rs1",
 }
-LSTM_ROOT = ROOT / "results" / "linear_subsection_lstm_mask"
+LSTM_ROOT = ROOT / "results" / "linear_subsection_lstm_mask"  # REFIT_EVERY 1
+LSTM10_ROOT = ROOT / "results" / "linear_subsection_lstm_mask_re10"  # REFIT_EVERY 10
+STAGE_L10 = ROOT / "results" / "trees_mask_1600" / "stack" / "lstm_re10"  # its tables
 MODELS = ("lgbm", "xgb", "rf")
 BUCKETS = ("baseline", "live_feasible", "all_features")
 MODEL_LONG = mtc.TREE_LONG | {"lstm": "LSTM", "-": "per-bar ridge"}
@@ -101,13 +108,28 @@ SUPPLEMENTARY = {
         "random search, QLIKE rule, refit every session",
     ),
 }
-LSTM = {
-    "LSTM": ("yhat_lstm_{b}", "LSTM, MSE rule"),
-    "LSTMq": ("yhat_lstm_qsel_{b}", "LSTM, QLIKE rule"),
+LSTM_MASK = {  # rung -> (table pattern, what, where)
+    "LSTM": ("yhat_lstm_{b}", "LSTM, MSE rule, refit every session", SPXW),
+    "LSTMq": ("yhat_lstm_qsel_{b}", "LSTM, QLIKE rule, refit every session", SPXW),
+    "LSTM10": ("yhat_lstm_{b}", "LSTM, MSE rule, refit every 10 sessions", STAGE_L10),
+    "LSTM10q": (
+        "yhat_lstm_qsel_{b}",
+        "LSTM, QLIKE rule, refit every 10 sessions",
+        STAGE_L10,
+    ),
+}
+LSTM_NOMASK = {  # the unmasked LSTM ran at the earlier cadence
+    "LSTM10": ("yhat_lstm_{b}", "LSTM, MSE rule, refit every 10 sessions", NOMASK),
+    "LSTM10q": (
+        "yhat_lstm_qsel_{b}",
+        "LSTM, QLIKE rule, refit every 10 sessions",
+        NOMASK,
+    ),
 }
 RIDGE = "yhat_sub_ridge_{b}"
-MAIN = ("T10", "T1", "RS10", "RS1", "LSTM")
+MAIN = ("T10", "T1", "RS10", "RS1", "LSTM", "LSTM10")
 LADDER = (("T1", "T10"), ("RS1", "RS10"), ("RS1", "T1"))
+LSTM_LADDER = (("LSTM", "LSTM10"),)
 
 
 def forecasts() -> list[dict]:
@@ -127,7 +149,9 @@ def forecasts() -> list[dict]:
                             "what": what,
                         }
                     )
-            for rung, (pat, what) in LSTM.items():
+            for rung, (pat, what, lwhere) in (
+                LSTM_MASK if variant == "mask" else LSTM_NOMASK
+            ).items():
                 out.append(
                     {
                         "variant": variant,
@@ -135,7 +159,7 @@ def forecasts() -> list[dict]:
                         "model": "lstm",
                         "bucket": b,
                         "table": pat.format(b=b),
-                        "path": where,
+                        "path": lwhere,
                         "what": what,
                     }
                 )
@@ -172,9 +196,9 @@ def arm_csv(s: dict) -> Path | None:
             / s["bucket"]
             / f"{stem}_bar1600.csv"
         )
-    if r == "LSTM":
+    if r in ("LSTM", "LSTM10"):
         return (
-            LSTM_ROOT
+            (LSTM_ROOT if r == "LSTM" else LSTM10_ROOT)
             / s["bucket"]
             / "bar1600"
             / "lstm"
@@ -378,59 +402,65 @@ def main() -> int:
     lv.to_csv(out / "mask_levels.csv", index=False)
 
     pr_rows = []
+
+    def add_pair(
+        fam: str, m: str, b: str, ka: tuple, kb: tuple, la: str, lb: str
+    ) -> None:
+        if ka in per_day and kb in per_day:
+            pr_rows.append(
+                pair_row(
+                    per_day[ka],
+                    per_day[kb],
+                    {"family": fam, "model": m, "bucket": b, "a": la, "b": lb},
+                )
+            )
+
     for b in BUCKETS:
         for m in (*MODELS, "lstm"):
-            rungs = ("LSTM",) if m == "lstm" else tuple(RUNGS)
-            for r in rungs:  # masked - unmasked
-                ka, kb = ("mask", r, m, b), ("nomask", r, m, b)
-                if ka in per_day and kb in per_day:
-                    pr_rows.append(
-                        pair_row(
-                            per_day[ka],
-                            per_day[kb],
-                            {
-                                "family": "masked - unmasked",
-                                "model": m,
-                                "bucket": b,
-                                "a": f"{r} masked",
-                                "b": f"{r} unmasked",
-                            },
-                        )
-                    )
-            for r in rungs:  # masked - ridge
-                ka, kb = ("mask", r, m, b), ("ridge", "ridge", "-", b)
-                if ka in per_day and kb in per_day:
-                    pr_rows.append(
-                        pair_row(
-                            per_day[ka],
-                            per_day[kb],
-                            {
-                                "family": "masked - ridge",
-                                "model": m,
-                                "bucket": b,
-                                "a": f"{r} masked",
-                                "b": "ridge",
-                            },
-                        )
-                    )
+            same = (
+                ("LSTM10",) if m == "lstm" else tuple(RUNGS)
+            )  # rungs with a masked and an unmasked run
+            for r in same:
+                add_pair(
+                    "masked - unmasked",
+                    m,
+                    b,
+                    ("mask", r, m, b),
+                    ("nomask", r, m, b),
+                    f"{r} masked",
+                    f"{r} unmasked",
+                )
+            ladder = LSTM_LADDER if m == "lstm" else LADDER
+            for ra, rb in ladder:
+                add_pair(
+                    "masked ladder",
+                    m,
+                    b,
+                    ("mask", ra, m, b),
+                    ("mask", rb, m, b),
+                    f"{ra} masked",
+                    f"{rb} masked",
+                )
             if m == "lstm":
-                continue
-            for ra, rb in LADDER:  # the masked ladder
-                ka, kb = ("mask", ra, m, b), ("mask", rb, m, b)
-                if ka in per_day and kb in per_day:
-                    pr_rows.append(
-                        pair_row(
-                            per_day[ka],
-                            per_day[kb],
-                            {
-                                "family": "masked ladder",
-                                "model": m,
-                                "bucket": b,
-                                "a": f"{ra} masked",
-                                "b": f"{rb} masked",
-                            },
-                        )
-                    )
+                add_pair(
+                    "replaced table",
+                    m,
+                    b,
+                    ("mask", "LSTM", m, b),
+                    ("nomask", "LSTM10", m, b),
+                    "LSTM masked (daily)",
+                    "LSTM10 unmasked",
+                )
+            for r in ("LSTM", "LSTM10") if m == "lstm" else tuple(RUNGS):
+                add_pair(
+                    "masked - ridge",
+                    m,
+                    b,
+                    ("mask", r, m, b),
+                    ("ridge", "ridge", "-", b),
+                    f"{r} masked",
+                    "ridge",
+                )
     pr = pd.DataFrame(pr_rows)
     pr.to_csv(out / "mask_pairs.csv", index=False)
 
@@ -561,7 +591,8 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
             f"| {r} | {cfg} | {refit} | `{pat.format(m='<model>', b='<bucket>')}` |"
         )
     L += [
-        "| LSTM | per-bar LSTM, 16 configurations x 5 seeds re-chosen every 250 sessions (MSE rule; LSTMq: QLIKE rule) | every 10 sessions | `yhat_lstm[_qsel]_<bucket>` |",
+        "| LSTM | per-bar LSTM, 16 configurations x 5 seeds re-chosen every 250 sessions (MSE rule; LSTMq: QLIKE rule) | every session (daily refit; the canonical table) | `yhat_lstm[_qsel]_<bucket>` |",
+        "| LSTM10 | the same LSTM (LSTM10q: QLIKE rule) | every 10 sessions (the earlier cadence; the unmasked LSTM ran at it) | `results/trees_mask_1600/stack/lstm_re10/yhat_lstm[_qsel]_<bucket>` (masked); the snapshot (unmasked) |",
         f"| ridge | per-bar ridge, penalty re-chosen every 250 sessions | every session | `{RIDGE.format(b='<bucket>')}` |",
         "",
         "Masked = the canonical tables in `results/spxw_pnl/`; unmasked = the same names in "
@@ -574,13 +605,15 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
             "## Kept columns (median / min / max over refits)",
             "",
             "The mask depends on the design window only, so every model of an input set keeps the same columns at the "
-            "same refit row; the rungs differ only in which rows they refit at (every session for T1 / RS1, every 10th "
-            "for T10 / RS10 / LSTM).",
+            "same refit row; the rungs differ only in which rows they refit at (every session for T1 / RS1 / LSTM, every "
+            "10th for T10 / RS10 / LSTM10).",
             "",
             "| input set | p | rung | model | refits | kept median | kept min | kept max | tuning points kept median [min, max] |",
             "|---|---|---|---|---|---|---|---|---|",
         ]
-        order = {r: i for i, r in enumerate(("T10", "T1", "RS10", "RS1", "LSTM"))}
+        order = {
+            r: i for i, r in enumerate(("T10", "T1", "RS10", "RS1", "LSTM", "LSTM10"))
+        }
         k2 = kept.assign(_o=kept["rung"].map(order)).sort_values(
             ["bucket", "_o", "model"]
         )
@@ -627,7 +660,7 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
             "|---|---|---|---|---|---|---|---|",
         ]
         for m in (*MODELS, "lstm"):
-            rungs = (*RUNGS, *SUPPLEMENTARY) if m != "lstm" else tuple(LSTM)
+            rungs = (*RUNGS, *SUPPLEMENTARY) if m != "lstm" else tuple(LSTM_MASK)
             for r in rungs:
                 xm = sub[
                     (sub["model"] == m)
@@ -646,8 +679,13 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
                 nq = f"{xn_.qlike:.4f}" if xn_ is not None else ""
                 ns = f"{xn_.sharpe_mid:.2f}" if xn_ is not None else ""
                 nc = f"{xn_.sharpe_crossed:.2f}" if xn_ is not None else ""
+                label = (
+                    f"{MODEL_LONG[m]} {r}"
+                    if m != "lstm"
+                    else f"{r} ({LSTM_MASK[r][1]})"
+                )
                 L.append(
-                    f"| {MODEL_LONG[m]} {r} | {xm_.qlike:.4f} | {nq} | {xm_.sharpe_mid:.2f} | {ns} | "
+                    f"| {label} | {xm_.qlike:.4f} | {nq} | {xm_.sharpe_mid:.2f} | {ns} | "
                     f"{xm_.sharpe_crossed:.2f} | {nc} | {xm_.pct_buy:.1f} |"
                 )
         x = sub[sub["rung"] == "ridge"]
@@ -657,7 +695,12 @@ def write_summary(out: Path, lv, pr, gt, days, kept, use) -> None:
                 f"| per-bar ridge | {x.qlike:.4f} | | {x.sharpe_mid:.2f} | | {x.sharpe_crossed:.2f} | | {x.pct_buy:.1f} |"
             )
         L.append("")
-    for fam in ("masked - unmasked", "masked ladder", "masked - ridge"):
+    for fam in (
+        "masked - unmasked",
+        "masked ladder",
+        "replaced table",
+        "masked - ridge",
+    ):
         g_all = pr[pr["family"] == fam] if len(pr) else pr
         if g_all.empty:
             continue

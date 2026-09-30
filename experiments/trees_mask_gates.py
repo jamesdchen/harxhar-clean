@@ -20,27 +20,33 @@ LightGBM / XGBoost / RF (+ the LSTM at the reduced FAST budget of gate_lstm.py):
   h1 pre-edit   WINDOW_MASK=0 = the spec BEFORE the edit (git f9a19b6, shipped to
                 --ref-root, run from there) bit for bit: untuned at REFIT 1 / IMPORTANCE 10
                 and REFIT 10 / IMPORTANCE 1, tuned (full grid, REFIT 1, TreeSHAP, pool),
-                LSTM -- every npz array but the timings, the npz key set, the meta but
-                timings, the results CSVs byte for byte, the tuning tables but timing
-                columns, the grid json
+                LSTM (REFIT_EVERY unset, and set to its default 10) -- every npz array
+                but the timings, the npz key set, the meta but timings, the results CSVs
+                byte for byte, the tuning tables but timing columns, the grid json
   h2 full rank  on the slice's design restricted to K = the columns kept on EVERY window
                 the runs use (so no column of the restricted design is constant or a copy
                 on any of them; a run_executor wrapper hands the spec X[:, K]):
                 WINDOW_MASK=1 = WINDOW_MASK=0 bit for bit, and kept_n = |K| at every
-                refit and tuning point
+                refit and tuning point (the LSTM at REFIT_EVERY 1 and 10)
   h3 the mask   WINDOW_MASK=1 on the slice: the kept set of every refit and tuning point =
                 window_keep(X[t - W : t]) recomputed here from the captured design (the
                 mask is its window's, nothing later); native importance and TreeSHAP are
                 exactly 0 on dropped columns at recorded refits; TreeSHAP adds up to the
-                forecast; kept_n < p; how far the masked forecasts move (recorded)
+                forecast; kept_n < p; how far the masked forecasts move (recorded); the
+                LSTM at REFIT_EVERY 1 and 10
   h4 chunks     WINDOW_MASK=1: untuned REFIT 1 in two chunks (seam at 7 rows) = the
                 unchunked run (forecasts, kept, kept_n); tuned REFIT 10 over two tuning
                 periods [OOS0, OOS0 + 250) + [OOS0 + 250, OOS0 + 260) merged by
                 experiments/reduce_trees_tuned_chunks.py = unchunked (forecasts of both
                 rules, refit rows, importance, candidate losses, picks), kept / tune_kept
-                concatenated = unchunked
+                concatenated = unchunked; the merged QLIKE-rule CSV (the reducer re-parses
+                the chunk CSVs) within MERGED_CSV_TOL of the unchunked one; the LSTM at
+                REFIT_EVERY 1 over the same two tuning periods: the chunks' forecasts (both
+                rules, every seed), tuning records and kept / tune_kept concatenated =
+                unchunked
 
-Outputs (--out): gate_rows.csv (one row per gate x model), gate_runs.csv (one row per run),
+--parts trees / lstm runs one half (the cluster runs them as two jobs, each with its own
+--out).  Outputs (--out): gate_rows.csv (one row per gate x model), gate_runs.csv (one row per run),
 design_census.csv (kept count of every window of the slice), GATES_OK when every gate
 passes.  Exit status 1 otherwise.
 
@@ -101,6 +107,14 @@ TIMING_META = {"walk_sec", "run_sec", "window_mask", "versions"}
 TIMING_COLS = {"fit_sec", "tune_sec"}
 MASK_KEYS = {"kept_n", "kept", "tune_kept_n", "tune_kept"}
 SHAP_ADD_TOL = 1e-4  # float32 TreeSHAP rows summed in float64 vs the float64 forecast
+# the tuned reducer re-reads the chunk CSVs with pandas' default float parser before writing the
+# merged CSV, so a merged value may sit one ulp off the unchunked run's text (the npz arrays and
+# the chunk CSVs themselves are compared bit for bit)
+MERGED_CSV_TOL = 1e-12
+LSTM_RE = (
+    1,
+    10,
+)  # the LSTM's REFIT_EVERY values gated (1 = the campaign's, 10 = the default)
 
 
 class _Captured(Exception):
@@ -304,6 +318,11 @@ def main() -> int:
     ap.add_argument("--capture", default=None)
     ap.add_argument("--models", default="lgbm,xgb,rf")
     ap.add_argument(
+        "--parts",
+        default="trees,lstm",
+        help="trees and / or lstm (two jobs can split them)",
+    )
+    ap.add_argument(
         "--procs", type=int, default=16, help="concurrent CPUs for the spec runs"
     )
     ap.add_argument("--pool", type=int, default=4)
@@ -327,7 +346,13 @@ def main() -> int:
         ref / "data"
     ).exists():  # the pre-edit specs read DATA_PATH "data" under their root
         os.symlink(ROOT / "data", ref / "data")
-    models = [m.strip() for m in a.models.split(",") if m.strip()]
+    parts = {x.strip() for x in a.parts.split(",") if x.strip()}
+    models = (
+        [m.strip() for m in a.models.split(",") if m.strip()]
+        if "trees" in parts
+        else []
+    )
+    do_lstm = "lstm" in parts
     s0 = W + OOS0
 
     # ---- phase 1: capture the slice's design (the untuned spec's own run_executor call)
@@ -519,55 +544,98 @@ def main() -> int:
             )
         )
 
-    dl = scratch / "lstm"
-    add(
-        Run(
-            "l_pre",
-            "lstm",
-            "lstm",
-            s0,
-            s0 + L_ROWS,
-            dl / "l_pre",
-            cpus=a.pool,
-            root=ref,
-        )
-    )
-    add(
-        Run(
-            "l_m0",
-            "lstm",
-            "lstm",
-            s0,
-            s0 + L_ROWS,
-            dl / "l_m0",
-            {"HPC_KW_WINDOW_MASK": "0"},
-            cpus=a.pool,
-        )
-    )
-    add(
-        Run(
-            "l_m1",
-            "lstm",
-            "lstm",
-            s0,
-            s0 + L_ROWS,
-            dl / "l_m1",
-            {"HPC_KW_WINDOW_MASK": "1"},
-            cpus=a.pool,
-        )
-    )
-    for mk in ("0", "1"):
+    if do_lstm:
+        dl = scratch / "lstm"
+        lm = "lstm"
         add(
             Run(
-                f"l_k{mk}",
+                "l_pre",
                 "lstm",
-                "lstm",
+                lm,
                 s0,
                 s0 + L_ROWS,
-                dl / f"l_k{mk}",
-                {"HPC_KW_WINDOW_MASK": mk},
+                dl / "l_pre",
                 cpus=a.pool,
-                keep_cols=kfile,
+                root=ref,
+            )
+        )
+        add(
+            Run(
+                "l_m0",
+                "lstm",
+                lm,
+                s0,
+                s0 + L_ROWS,
+                dl / "l_m0",
+                {"HPC_KW_WINDOW_MASK": "0"},
+                cpus=a.pool,
+            )
+        )
+        add(
+            Run(
+                "l_m0_re10x",
+                "lstm",
+                lm,
+                s0,
+                s0 + L_ROWS,
+                dl / "l_m0_re10x",
+                {"HPC_KW_WINDOW_MASK": "0", "HPC_KW_REFIT_EVERY": "10"},
+                cpus=a.pool,
+            )
+        )
+        for re_ in LSTM_RE:
+            r_env = {"HPC_KW_REFIT_EVERY": str(re_)}
+            add(
+                Run(
+                    f"l_m1_re{re_}",
+                    "lstm",
+                    lm,
+                    s0,
+                    s0 + L_ROWS,
+                    dl / f"l_m1_re{re_}",
+                    r_env | {"HPC_KW_WINDOW_MASK": "1"},
+                    cpus=a.pool,
+                )
+            )
+            add(
+                Run(
+                    f"l_m0_re{re_}",
+                    "lstm",
+                    lm,
+                    s0,
+                    s0 + L_ROWS,
+                    dl / f"l_m0_re{re_}",
+                    r_env | {"HPC_KW_WINDOW_MASK": "0"},
+                    cpus=a.pool,
+                )
+            )
+            for mk in ("0", "1"):
+                add(
+                    Run(
+                        f"l_k{mk}_re{re_}",
+                        "lstm",
+                        lm,
+                        s0,
+                        s0 + L_ROWS,
+                        dl / f"l_k{mk}_re{re_}",
+                        r_env | {"HPC_KW_WINDOW_MASK": mk},
+                        cpus=a.pool,
+                        keep_cols=kfile,
+                    )
+                )
+        lc = {"HPC_KW_REFIT_EVERY": "1", "HPC_KW_WINDOW_MASK": "1"}
+        add(Run("lc_U", "lstm", lm, s0, s0 + TC_ROWS, dl / "lc_U", lc, cpus=a.pool))
+        add(Run("lc_C1", "lstm", lm, s0, s0 + TUNE_PER, dl / "lc_C1", lc, cpus=a.pool))
+        add(
+            Run(
+                "lc_C2",
+                "lstm",
+                lm,
+                s0 + TUNE_PER,
+                s0 + TC_ROWS,
+                dl / "lc_C2",
+                lc,
+                cpus=a.pool,
             )
         )
 
@@ -633,7 +701,7 @@ def main() -> int:
             )
         return not bad
 
-    for m in [*models, "lstm"]:
+    for m in [*models, *(["lstm"] if do_lstm else [])]:
         kind_runs = (
             [
                 ("h1_pre_edit_re1", "u_pre_re1", "u_m0_re1"),
@@ -641,7 +709,10 @@ def main() -> int:
                 ("h1_pre_edit_tuned", "t_pre", "t_m0"),
             ]
             if m != "lstm"
-            else [("h1_pre_edit_lstm", "l_pre", "l_m0")]
+            else [
+                ("h1_pre_edit_lstm", "l_pre", "l_m0"),
+                ("h1_pre_edit_lstm_re10_explicit", "l_pre", "l_m0_re10x"),
+            ]
         )
         # h1: WINDOW_MASK=0 = pre-edit
         for gname, ra, rb in kind_runs:
@@ -679,7 +750,10 @@ def main() -> int:
                 ("h2_full_rank_tuned", "t_k0", "t_k1"),
             ]
             if m != "lstm"
-            else [("h2_full_rank_lstm", "l_k0", "l_k1")]
+            else [
+                (f"h2_full_rank_lstm_re{r}", f"l_k0_re{r}", f"l_k1_re{r}")
+                for r in LSTM_RE
+            ]
         )
         for gname, ra, rb in pairs:
             if not need(ra, rb, m=m):
@@ -711,8 +785,9 @@ def main() -> int:
                 }
             )
         # h3: the mask on the slice
-        rm = "u_m1_re1" if m != "lstm" else "l_m1"
-        cases = [rm] + (["t_m1"] if m != "lstm" else [])
+        cases = (
+            ["u_m1_re1", "t_m1"] if m != "lstm" else [f"l_m1_re{r}" for r in LSTM_RE]
+        )
         for rn in cases:
             if not need(rn, m=m):
                 continue
@@ -726,7 +801,8 @@ def main() -> int:
             kept = np.asarray(Z["kept"])
             row = {
                 "model": m,
-                "gate": f"h3_mask_{r.kind}",
+                "gate": f"h3_mask_{r.kind}"
+                + (f"_{rn.rsplit('_', 1)[1]}" if m == "lstm" else ""),
                 "run": rn,
                 "refits": len(refit),
                 "kept_n_min": int(Z["kept_n"].min()),
@@ -782,7 +858,9 @@ def main() -> int:
                     and row["shap_rows"] > 0
                 )
             # how far the mask moves the forecasts (recorded, not a pass criterion)
-            twin = {"u_m1_re1": None, "t_m1": "t_m0", "l_m1": "l_m0"}[rn]
+            twin = {"u_m1_re1": None, "t_m1": "t_m0"}.get(
+                rn, rn.replace("l_m1", "l_m0")
+            )
             if twin and runs[(m, twin)].res.get("rc") == 0:
                 Z0 = load(runs[(m, twin)])
                 row["max_abs_pred_move_vs_mask0"] = float(
@@ -791,6 +869,48 @@ def main() -> int:
             row["ok"] = bool(ok)
             emit(row)
         if m == "lstm":
+            # h4 (LSTM): REFIT_EVERY 1, two tuning periods as two chunks = one run
+            if need("lc_U", "lc_C1", "lc_C2", m=m):
+                U = load(runs[(m, "lc_U")])
+                C = [load(runs[(m, n)]) for n in ("lc_C1", "lc_C2")]
+
+                def cat(k: str) -> np.ndarray:
+                    return np.concatenate([np.asarray(c[k]) for c in C])
+
+                gl = {
+                    "preds": eq(cat("pred_adj"), U["pred_adj"]),
+                    "qsel_preds": eq(cat("pred_adj_qsel"), U["pred_adj_qsel"]),
+                    "seed_preds": eq(cat("pred_adj_seeds"), U["pred_adj_seeds"]),
+                    "refit_rows": eq(
+                        np.concatenate(
+                            [
+                                np.asarray(c["refit_row"]) + int(c["oos_offset"]) - OOS0
+                                for c in C
+                            ]
+                        ),
+                        U["refit_row"],
+                    ),
+                    "cand_val_mse": eq(cat("cand_val_mse"), U["cand_val_mse"]),
+                    "cand_epochs": eq(cat("cand_epochs"), U["cand_epochs"]),
+                    "picks": eq(cat("chosen_mse"), U["chosen_mse"])
+                    and eq(cat("chosen_qlike"), U["chosen_qlike"]),
+                    "kept": eq(np.vstack([c["kept"] for c in C]), U["kept"]),
+                    "kept_n": eq(cat("kept_n"), U["kept_n"]),
+                    "tune_kept": eq(
+                        np.vstack([c["tune_kept"] for c in C]), U["tune_kept"]
+                    ),
+                }
+                refits = int(len(U["refit_row"]))
+                emit(
+                    {"model": m, "gate": "h4_chunks_lstm_re1"}
+                    | gl
+                    | {"refits": refits, "tunings": int(len(U["tune_row"]))}
+                    | {
+                        "ok": all(gl.values())
+                        and refits == TC_ROWS
+                        and len(U["tune_row"]) == 2
+                    }
+                )
             continue
         # h4: chunks with the mask on
         if need("u_c1_re1", "u_c2_re1", "u_m1_re1", m=m):
@@ -833,10 +953,28 @@ def main() -> int:
                     float_precision=rt,
                 )
                 mc = pd.read_csv(mdir / f"results_qsel_{SEG}.csv", float_precision=rt)
+                ccat = pd.concat(
+                    [
+                        pd.read_csv(
+                            inner(runs[(m, n)]) / f"results_qsel_{SEG}.csv",
+                            float_precision=rt,
+                        )
+                        for n in ("tc_C1", "tc_C2")
+                    ],
+                    ignore_index=True,
+                )
+                row["merged_qsel_csv_max_abs_vs_unchunked"] = float(
+                    (mu["pred_adj"] - mc["pred_adj"]).abs().max()
+                )
                 gt: dict[str, bool | int] = {
                     "preds": eq(M["pred_adj"], U["pred_adj"]),
-                    "qsel_preds": eq(M["pred_adj_qsel"], U["pred_adj_qsel"])
-                    and mu["pred_adj"].equals(mc["pred_adj"]),
+                    "qsel_preds_npz": eq(M["pred_adj_qsel"], U["pred_adj_qsel"]),
+                    "qsel_chunk_csvs_eq_unchunked_csv": bool(
+                        mu["pred_adj"].equals(ccat["pred_adj"])
+                    ),
+                    "merged_qsel_csv_within_tol": bool(
+                        row["merged_qsel_csv_max_abs_vs_unchunked"] <= MERGED_CSV_TOL
+                    ),
                     "refit_rows": eq(M["refit_row"], U["refit_row"]),
                     "importance": eq(M["importance"], U["importance"]),
                     "cand_val_mse": eq(M["cand_val_mse"], U["cand_val_mse"]),

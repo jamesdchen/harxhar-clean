@@ -42,8 +42,11 @@ arms' criterion).  Between tuning points the chosen configuration is refitted
 every REFIT_EVERY = 10 rows on the full window [t - W, t), each seed for its own
 early-stopped epoch count, and forecasts its block of rows.  TUNE_PER, VAL_TAIL,
 EMBARGO, SEED, HORIZON and DATA_PATH are READ from specs/causal_tune_linear.py,
-REFIT_EVERY from specs/causal_tune_trees.py (ast literals), so the arms share
-one copy.  max(SEQ_LENS) - 1 <= EMBARGO (asserted): a validation sequence shares
+REFIT_EVERY's default from specs/causal_tune_trees.py (ast literals), so the arms
+share one copy.  REFIT CADENCE (env axis REFIT_EVERY, 2026-09-29 evening, user
+decision: the LSTM refits every session, as the trees and the linear arms do):
+default = that literal (10), so every run before the decision reproduces; the
+campaign sets REFIT_EVERY=1.  TUNE_PER % REFIT_EVERY == 0 (asserted).  max(SEQ_LENS) - 1 <= EMBARGO (asserted): a validation sequence shares
 no row with the fit block.
 
 SECOND RULE, RECORDED: every candidate's validation QLIKE (the tuned trees'
@@ -98,7 +101,8 @@ point.
 ENV AXES (HPC_KW_<name> or <name>): EXOG_BUCKET (live_feasible | all_features |
 baseline | ...), SEGMENT (default bar1600), TRAIN_WIN (default 2000), LAG_SCOPE
 (default global), HAR_LAGS / HAR_BASE, START / END / HALO, QSEL (0 | 1, default
-1), WINDOW_MASK (0 | 1, default 0); for the local gates only: N_SEEDS,
+1), WINDOW_MASK (0 | 1, default 0), REFIT_EVERY (default: the trees spec's
+literal, 10); for the local gates only: N_SEEDS,
 MAX_EPOCHS, PATIENCE (defaults = the campaign's values below) and DATA_PATH
 (default: the linear spec's).
 """
@@ -168,6 +172,13 @@ REFIT_EVERY: int = load_constants(TREE_SPEC, ("REFIT_EVERY",))["REFIT_EVERY"]  #
 
 def _env(name: str, default: str) -> str:
     return os.environ.get(f"HPC_KW_{name}", os.environ.get(name, default))
+
+
+# 2026-09-29 evening (user decision): the refit cadence is an env axis; its default is the
+# trees spec's literal above (the runs before the decision), the campaign sets 1 (every session).
+REFIT_EVERY = int(_env("REFIT_EVERY", str(REFIT_EVERY)))
+if REFIT_EVERY < 1:
+    raise SystemExit(f"REFIT_EVERY must be >= 1, got {REFIT_EVERY}")
 
 
 # The loader reads EVERY parquet of the data directory and then skips the ones

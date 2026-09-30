@@ -20,7 +20,8 @@ common refit rows) and records it in kept_counts.csv (column same_as_first_model
 Usage: python experiments/trees_mask_kept_counts.py
            [--untuned-root results/linear_subsection_trees_mask]
            [--tuned-root results/linear_subsection_trees_tuned_mask]
-           [--lstm-root results/linear_subsection_lstm_mask]
+           [--lstm-root results/linear_subsection_lstm_mask]  (REFIT_EVERY 1: rung LSTM)
+           [--lstm10-root results/linear_subsection_lstm_mask_re10]  (REFIT_EVERY 10: LSTM10)
            [--out results/linear_subsection_trees_mask/kept]
 """
 
@@ -105,6 +106,7 @@ def main() -> None:
         "--tuned-root", default="results/linear_subsection_trees_tuned_mask"
     )
     ap.add_argument("--lstm-root", default="results/linear_subsection_lstm_mask")
+    ap.add_argument("--lstm10-root", default="results/linear_subsection_lstm_mask_re10")
     ap.add_argument("--untuned-tasks", default="cluster/trees_mask_tasks_untuned.txt")
     ap.add_argument("--rs10-tasks", default="cluster/trees_mask_tasks_rs10.txt")
     ap.add_argument("--rs1-tasks", default="cluster/trees_mask_tasks_rs1.txt")
@@ -138,11 +140,12 @@ def main() -> None:
                     read_arm(top, ch, f"causal_tune_trees/{m}/{b}", "trees"),
                 )
             )
-    for (b, m), ch in sorted(tuned_chunks(R(a.lstm_tasks)).items()):
-        top = R(a.lstm_root) / b / SEG / m / f"tw{TW}"
-        arms.append(
-            ("LSTM", m, b, read_arm(top, ch, f"causal_tune_lstm/lstm/{b}", "lstm"))
-        )
+    for rung, lroot in (("LSTM", a.lstm_root), ("LSTM10", a.lstm10_root)):
+        for (b, m), ch in sorted(tuned_chunks(R(a.lstm_tasks)).items()):
+            top = R(lroot) / b / SEG / m / f"tw{TW}"
+            arms.append(
+                (rung, m, b, read_arm(top, ch, f"causal_tune_lstm/lstm/{b}", "lstm"))
+            )
 
     rows, per_refit = [], []
     first: dict[tuple, dict] = {}  # (rung, bucket) -> the first model's arm
