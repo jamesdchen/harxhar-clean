@@ -49,11 +49,26 @@ matrix of every out-of-sample row under the model in force (LightGBM
 pred_contrib=True, XGBoost pred_contribs=True, RF shap.TreeExplainer; last
 column = the expected value), float32, with the max additivity gap recorded.
 
+WINDOW MASK (env axis WINDOW_MASK, default 0 = every run before 2026-09-29
+evening, reproduced bit for bit; user decision 2026-09-29, option 3: every
+per-bar model class sees the same effective design).  With WINDOW_MASK=1 each
+refit fits and predicts on the columns keep = src.models.window_mask.window_keep(
+X[t - W : t]) only -- the columns of ITS training window that are not constant
+there and not an exact byte-copy of an earlier kept column, the per-bar linear
+arms' identifiability rule -- so the mask is a function of the window alone
+(causal, chunk- and process-invariant).  Native importance and TreeSHAP are
+mapped back to all p columns with window_mask.scatter (0 for a dropped column;
+TreeSHAP keeps its expected-value column), so every array keeps the unmasked
+layout.  Persisted in addition (WINDOW_MASK=1 only): kept_n (columns kept at
+every refit) and kept (uint8, refits x p: 1 = kept) -- recorded at EVERY refit,
+so the kept set at every importance refit is its row.
+
 ENV AXES (HPC_KW_<name> or <name>): MODEL (lgbm | xgb | rf), EXOG_BUCKET
 (all_features | baseline | live_feasible | ...), SEGMENT (bar1000 .. bar1600),
 TRAIN_WIN (days, default 2000), LAG_SCOPE (default global), HAR_LAGS / HAR_BASE
 (default production ladder), START / END / HALO (smoke slicing; default whole
-series), SHAP_SEGMENTS (comma list; default bar1600).  Output root:
+series), SHAP_SEGMENTS (comma list; default bar1600), REFIT_EVERY,
+IMPORTANCE_EVERY, WINDOW_MASK (0 | 1, default 0).  Output root:
 $HPC_RESULT_DIR/causal_tune_trees/<model>/<bucket>/.
 """
 
@@ -83,6 +98,7 @@ import pandas as pd
 from src.backtest.executor import run_executor
 from src.data.loading import get_bucket
 from src.features.extractors.har import resolve_har_lags
+from src.models.window_mask import scatter, window_keep
 
 # LightGBM names numpy columns Column_i at fit; predicting on a bare array
 # then trips sklearn's feature-name check on every block -- harmless, silenced.
@@ -177,6 +193,13 @@ REFIT_EVERY = int(_env("REFIT_EVERY", str(REFIT_EVERY)))
 IMPORTANCE_EVERY = int(_env("IMPORTANCE_EVERY", "1"))
 if REFIT_EVERY < 1 or IMPORTANCE_EVERY < 1:
     raise SystemExit(f"REFIT_EVERY and IMPORTANCE_EVERY must be >= 1, got {REFIT_EVERY}, {IMPORTANCE_EVERY}")
+# 2026-09-29 evening (user decision, option 3) -- WINDOW_MASK: 1 = each refit sees only the
+# columns src.models.window_mask.window_keep keeps on its own training window (see the module
+# note); 0 (default) = every column, the runs before this decision.
+_WINDOW_MASK_ENV = _env("WINDOW_MASK", "0")
+if _WINDOW_MASK_ENV not in ("0", "1"):
+    raise SystemExit(f"WINDOW_MASK must be 0 or 1, got {_WINDOW_MASK_ENV!r}")
+WINDOW_MASK = _WINDOW_MASK_ENV == "1"
 _HAR_LAGS_ENV = _env("HAR_LAGS", "")
 _HAR_BASE_ENV = _env("HAR_BASE", "")
 if _HAR_LAGS_ENV:
@@ -194,7 +217,7 @@ OUT_DIR = os.path.join(RESULTS_ROOT, MODEL, EXOG_BUCKET)
 print(
     f"trees: model={MODEL} bucket={EXOG_BUCKET} segment={SEGMENT} lag_scope={LAG_SCOPE} "
     f"tw={TRAIN_WIN} refit_every={REFIT_EVERY} importance_every={IMPORTANCE_EVERY} "
-    f"threads={N_THREADS} shap={WANT_SHAP} "
+    f"threads={N_THREADS} shap={WANT_SHAP} window_mask={int(WINDOW_MASK)} "
     f"har={HAR_LAGS if HAR_LAGS is not None else 'production'} slice=({START},{END},{HALO})"
 )
 
@@ -262,6 +285,7 @@ def fit_predict_tree(X_chunk, y_chunk, train_win_periods, hyperparams):
     preds = np.empty(n_test)
     shap_mat = np.full((n_test, p + 1), np.nan, dtype=np.float32) if WANT_SHAP else None
     refit_row, imp, fit_sec, shap_sec, add_gap = [], [], [], [], 0.0
+    kept_n, kept = [], []  # WINDOW_MASK: the columns of every refit's fit
     # whole-series OOS index of this chunk's first forecast row (START - HALO for a chunk
     # replayed with HALO = W; 0 for the whole series), so the IMPORTANCE_EVERY cadence
     # falls on the same refits whether the series is run whole or in chunks
@@ -270,21 +294,33 @@ def fit_predict_tree(X_chunk, y_chunk, train_win_periods, hyperparams):
     for i in range(0, n_test, REFIT_EVERY):
         t = W + i
         k = min(REFIT_EVERY, n_test - i)
+        Xw, Xb = X[t - W : t], X[t : t + k]
+        keep = None
+        if WINDOW_MASK:  # the columns this refit may use: a function of its window alone
+            keep = window_keep(Xw)
+            Xw, Xb = Xw[:, keep], Xb[:, keep]
+            kept_n.append(len(keep))
+            row = np.zeros(p, dtype=np.uint8)
+            row[keep] = 1
+            kept.append(row)
         a = time.time()
         model = make_model()
-        model.fit(X[t - W : t], y[t - W : t])
+        model.fit(Xw, y[t - W : t])
         fit_sec.append(time.time() - a)
         refit_row.append(i)
         record = ((off + i) // REFIT_EVERY) % IMPORTANCE_EVERY == 0
-        imp.append(native_importance(model, p) if record else np.full(p, np.nan))
-        Xb = X[t : t + k]
+        if record:
+            v = native_importance(model, Xw.shape[1])
+            imp.append(v if keep is None else scatter(v, keep, p))
+        else:
+            imp.append(np.full(p, np.nan))
         preds[i : i + k] = model.predict(Xb)
         if WANT_SHAP and record:
             a = time.time()
             c = contributions(model, Xb)
             shap_sec.append(time.time() - a)
             add_gap = max(add_gap, float(np.max(np.abs(c.sum(axis=1) - preds[i : i + k]))))
-            shap_mat[i : i + k] = c
+            shap_mat[i : i + k] = c if keep is None else scatter(c, keep, p)
         if len(refit_row) % 25 == 0:
             print(
                 f"  refit {len(refit_row)}/{-(-n_test // REFIT_EVERY)}  "
@@ -302,10 +338,17 @@ def fit_predict_tree(X_chunk, y_chunk, train_win_periods, hyperparams):
         shap_sec=np.array(shap_sec),
         shap=shap_mat,
         shap_additivity_gap=add_gap,
+        kept_n=np.array(kept_n, dtype=np.int64),
+        kept=np.array(kept, dtype=np.uint8).reshape(len(kept), p),
         n_features=p,
         train_rows=W,
         wall_sec=time.time() - t0,
     )
+    if WINDOW_MASK and kept_n:
+        print(
+            f"  window mask: kept {min(kept_n)}..{max(kept_n)} of {p} columns "
+            f"(median {int(np.median(kept_n))}) over {len(kept_n)} refits"
+        )
     if WANT_SHAP:
         print(f"  TreeSHAP additivity gap (max |sum contrib - pred|) = {add_gap:.2e}")
     return preds
@@ -370,6 +413,8 @@ np.savez_compressed(
     feature_names=SIDE["feature_names"],
     shap=SIDE["shap"] if SIDE["shap"] is not None else np.zeros((0, 0), np.float32),
     shap_additivity_gap=SIDE["shap_additivity_gap"],
+    # WINDOW_MASK=1 only (an unmasked run writes exactly the keys it always wrote)
+    **({"kept_n": SIDE["kept_n"], "kept": SIDE["kept"]} if WINDOW_MASK else {}),
     meta=json.dumps(
         {
             "model": MODEL,
@@ -388,6 +433,7 @@ np.savez_compressed(
             "slice": [START, END, HALO],
             "n_features": SIDE["n_features"],
             "shap": WANT_SHAP,
+            "window_mask": int(WINDOW_MASK),
             "versions": versions,
             "walk_sec": SIDE["wall_sec"],
             "run_sec": time.time() - t_run,
@@ -401,4 +447,9 @@ print(
     f"SHAP {SIDE['shap_sec'].mean() if len(SIDE['shap_sec']) else 0:.2f}s/refit, "
     f"walk {SIDE['wall_sec']:.0f}s, run {time.time() - t_run:.0f}s; "
     f"fit-space MSE {e2.mean():.5f}, p={SIDE['n_features']}"
+    + (
+        f", kept {SIDE['kept_n'].min()}..{SIDE['kept_n'].max()} columns (window mask)"
+        if WINDOW_MASK and len(SIDE["kept_n"])
+        else ""
+    )
 )

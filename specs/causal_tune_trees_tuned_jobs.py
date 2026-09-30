@@ -22,6 +22,14 @@ on n_jobs).
 The untuned spec's setup (params after leaf scaling, native_importance,
 contributions) is executed once per process from its source (tree_setup), so
 the untuned arm's code stays the only copy.
+
+WINDOW MASK (job key "mask", the tree spec's WINDOW_MASK axis): a refit fits and
+predicts on keep = src.models.window_mask.window_keep(X[t - W : t]) only, computed
+here from the window the refit is trained on, and maps native importance and
+TreeSHAP back to all p columns with window_mask.scatter (0 for a dropped column).
+A candidate is fitted on the window the spec wrote for it, which carries the
+tuning point's kept columns already (the mask of that window).  Without "mask"
+(or False) every number is the unmasked one, bit for bit.
 """
 
 from __future__ import annotations
@@ -37,6 +45,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from src.models.window_mask import scatter, window_keep  # noqa: E402
 
 TREE_SPEC = ROOT / "specs" / "causal_tune_trees.py"
 _TREE_RUN_CELL = '\nout_csv = os.path.join(OUT_DIR, "results.csv")\n'
@@ -153,25 +163,31 @@ def fit_candidate(job: dict) -> dict:
 def refit_block(job: dict) -> dict:
     """job: X / y = paths of the chunk's arrays, t = the block's first row, W,
     k = rows in the block, cfg / rounds (the rule of record), qcfg / qrounds
-    (the QLIKE rule; None = same as the rule of record), shap."""
+    (the QLIKE rule; None = same as the rule of record), shap, mask (optional:
+    True = the window mask; the result then carries keep, the kept columns)."""
     T = tree_setup()
     X, y = arr(job["X"]), arr(job["y"])
     t, W, k = job["t"], job["W"], job["k"]
+    p = X.shape[1]
     Xw, yw = np.array(X[t - W : t]), np.array(y[t - W : t])
     Xb = np.array(X[t : t + k])
+    keep = window_keep(Xw) if job.get("mask") else None
+    if keep is not None:  # the columns this refit may use: a function of its window alone
+        Xw, Xb = Xw[:, keep], Xb[:, keep]
     a = time.time()
     m = build_model(job["cfg"], job["rounds"])
     m.fit(Xw, yw)
-    out: dict = {"fit_sec": time.time() - a}
+    out: dict = {"fit_sec": time.time() - a, "keep": keep, "kept_n": Xw.shape[1]}
     out["preds"] = np.asarray(m.predict(Xb), dtype=np.float64)
-    out["importance"] = T["native_importance"](m, X.shape[1])
+    v = T["native_importance"](m, Xw.shape[1])
+    out["importance"] = v if keep is None else scatter(v, keep, p)
     out["shap"], out["shap_sec"], out["gap"] = None, None, 0.0
     if job["shap"]:
         a = time.time()
         c = T["contributions"](m, Xb)
         out["shap_sec"] = time.time() - a
         out["gap"] = float(np.max(np.abs(c.sum(axis=1) - out["preds"])))
-        out["shap"] = c.astype(np.float32)
+        out["shap"] = (c if keep is None else scatter(c, keep, p)).astype(np.float32)
     out["preds_q"], out["qsel_sec"] = out["preds"], None
     if job["qcfg"] is not None:
         a = time.time()

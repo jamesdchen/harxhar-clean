@@ -77,11 +77,30 @@ layout with this spec's directory):
   tune_candidates_<seg>.csv  one row per (tuning point, candidate)
   grid_<seg>.json            the grid and every training constant
 
+WINDOW MASK (env axis WINDOW_MASK, default 0 = every run before 2026-09-29
+evening, reproduced bit for bit; user decision 2026-09-29, option 3: every
+per-bar model class sees the same effective design, the linear arms'
+identifiability rule, src.models.window_mask.window_keep: drop the columns
+constant on the training window and the exact byte-copies of an earlier kept
+column).  CADENCE: PER REFIT.  The network is rebuilt from its seed at every refit
+(causal_tune_lstm_jobs.train constructs a new Net for every fit; nothing is
+warm-started), so its input width can follow each refit's own window [t - W, t)
+at no cost to the design; the per-tuning-period cadence of the linear arms would
+be the choice only for a model carried from one refit to the next.  A tuning
+point computes the mask of ITS window [t - W, t) and writes only those columns
+for the workers (fit block, validation tail and every candidate x seed); each
+refit (every seed, and the QLIKE rule's twin) computes the mask of its own window.
+The epoch counts a refit uses were early-stopped at the tuning point, on the
+tuning window's kept columns.  Persisted in addition (WINDOW_MASK=1 only): kept_n
+/ kept (uint8, refits x p) at every refit, tune_kept_n / tune_kept at every tuning
+point.
+
 ENV AXES (HPC_KW_<name> or <name>): EXOG_BUCKET (live_feasible | all_features |
 baseline | ...), SEGMENT (default bar1600), TRAIN_WIN (default 2000), LAG_SCOPE
 (default global), HAR_LAGS / HAR_BASE, START / END / HALO, QSEL (0 | 1, default
-1); for the local gates only: N_SEEDS, MAX_EPOCHS, PATIENCE (defaults = the
-campaign's values below) and DATA_PATH (default: the linear spec's).
+1), WINDOW_MASK (0 | 1, default 0); for the local gates only: N_SEEDS,
+MAX_EPOCHS, PATIENCE (defaults = the campaign's values below) and DATA_PATH
+(default: the linear spec's).
 """
 # ruff: noqa: E402 -- the path bootstrap must run before the repo imports (as the other specs)
 
@@ -115,6 +134,7 @@ import pandas as pd
 
 from src.features.extractors.har import resolve_har_lags
 from src.models.reclasso_har import forward_window_split
+from src.models.window_mask import window_keep
 
 if str(_ROOT / "specs") not in sys.path:
     sys.path.insert(0, str(_ROOT / "specs"))
@@ -166,6 +186,10 @@ START = int(_env("START", "0"))
 END = int(_env("END", "-1"))
 HALO = int(_env("HALO", "0"))
 QSEL = _env("QSEL", "1") == "1"
+_WINDOW_MASK_ENV = _env("WINDOW_MASK", "0")
+if _WINDOW_MASK_ENV not in ("0", "1"):
+    raise SystemExit(f"WINDOW_MASK must be 0 or 1, got {_WINDOW_MASK_ENV!r}")
+WINDOW_MASK = _WINDOW_MASK_ENV == "1"  # per-refit window mask (module note)
 _HAR_LAGS_ENV = _env("HAR_LAGS", "")
 _HAR_BASE_ENV = _env("HAR_BASE", "")
 if _HAR_LAGS_ENV:
@@ -225,7 +249,7 @@ print(
     f"grid {len(CANDIDATES)} configs x {N_SEEDS} seeds, tune every {TUNE_PER} rows (val tail "
     f"{VAL_TAIL}, embargo {EMBARGO}), refit every {REFIT_EVERY}, epochs <= {MAX_EPOCHS} "
     f"(patience {PATIENCE}), batch {BATCH}, clip {GRAD_CLIP}, workers {N_WORKERS}, qsel={QSEL}, "
-    f"slice=({START},{END},{HALO}), torch {J.torch.__version__}"
+    f"slice=({START},{END},{HALO}), torch {J.torch.__version__}, window_mask={int(WINDOW_MASK)}"
 )
 
 
@@ -280,7 +304,10 @@ def tune(X, y, t: int, W: int, i: int, off: int, tmp: str, run) -> dict:
     assert fit_hi + EMBARGO == val_lo and val_hi - val_lo == VAL_TAIL, (fit_hi, val_lo)
     assert fit_lo < fit_hi < val_lo < val_hi, (fit_lo, fit_hi, val_lo, val_hi)
     xp, yp = os.path.join(tmp, f"win{i}_X.npy"), os.path.join(tmp, f"win{i}_y.npy")
-    np.save(xp, X[t - W : t])  # the workers see the window and nothing else
+    Xwin = X[t - W : t]
+    keep = window_keep(Xwin) if WINDOW_MASK else None  # the window's mask (WINDOW_MASK)
+    # the workers see the window (its kept columns under WINDOW_MASK) and nothing else
+    np.save(xp, Xwin if keep is None else Xwin[:, keep])
     np.save(yp, y[t - W : t])
     lo = t - W
     jobs = [
@@ -323,6 +350,7 @@ def tune(X, y, t: int, W: int, i: int, off: int, tmp: str, run) -> dict:
         pick_mse=int(np.argmin(mse)),  # ties -> the lower index
         pick_qlike=int(np.argmin(qlk)),
         tune_sec=time.time() - a0,
+        keep=keep,
     )
     assert np.isfinite(mse[rec["pick_mse"]]), f"no candidate finished with a finite loss at row {t}"
     TRACE.append(rec)
@@ -341,6 +369,7 @@ def refit_period(xp, yp, W, blocks, n_test, cfg, epochs, run) -> tuple[list[dict
             cfg=cfg,
             seed=seed,
             epochs=int(epochs[j]),
+            mask=WINDOW_MASK,
             **_train_kw(),
         )
         for i in blocks
@@ -351,7 +380,11 @@ def refit_period(xp, yp, W, blocks, n_test, cfg, epochs, run) -> tuple[list[dict
     out = []
     for b in range(len(blocks)):
         per_seed = np.array([got[b * ns + j]["preds"] for j in range(ns)])  # (seeds, k)
-        out.append({"seeds": per_seed, "preds": per_seed.mean(axis=0)})
+        keeps = [got[b * ns + j]["keep"] for j in range(ns)]  # one window: one mask
+        assert all(
+            (kk is None and keeps[0] is None) or np.array_equal(kk, keeps[0]) for kk in keeps
+        ), f"seeds of block {blocks[b]} disagree on the window mask"
+        out.append({"seeds": per_seed, "preds": per_seed.mean(axis=0), "keep": keeps[0]})
     secs = np.array([g["fit_sec"] for g in got]).reshape(len(blocks), ns)
     return out, secs
 
@@ -371,6 +404,7 @@ def fit_predict_lstm(X_chunk, y_chunk, train_win_periods, hyperparams):
     preds_q = np.empty(n_test)
     preds_seeds = np.empty((n_test, len(SEEDS)))
     refit_row, fit_sec, qsel_sec = [], [], []
+    kept_n, kept = [], []  # WINDOW_MASK: the columns of every refit's fit
     TRACE.clear()
     tmp = tempfile.mkdtemp(prefix="lstm_", dir=os.environ.get("TMPDIR") or None)
     xp, yp = os.path.join(tmp, "chunk_X.npy"), os.path.join(tmp, "chunk_y.npy")
@@ -399,6 +433,11 @@ def fit_predict_lstm(X_chunk, y_chunk, train_win_periods, hyperparams):
                 preds_seeds[i : i + k] = out["seeds"].T
                 refit_row.append(i)
                 fit_sec.append(float(s.sum()))
+                if WINDOW_MASK:
+                    kept_n.append(len(out["keep"]))
+                    row = np.zeros(p, dtype=np.uint8)
+                    row[out["keep"]] = 1
+                    kept.append(row)
             if QSEL and gq != gm:
                 outs_q, secs_q = refit_period(
                     xp, yp, W, blocks, n_test, CANDIDATES[gq], rec["epochs"][gq], run
@@ -425,11 +464,20 @@ def fit_predict_lstm(X_chunk, y_chunk, train_win_periods, hyperparams):
         qsel_sec=np.array(qsel_sec),
         pred_q=preds_q,
         pred_seeds=preds_seeds,
+        kept_n=np.array(kept_n, dtype=np.int64),
+        kept=np.array(kept, dtype=np.uint8).reshape(len(kept), p),
         n_features=p,
         train_rows=W,
         wall_sec=time.time() - t0,
         trace=list(TRACE),
     )
+    if WINDOW_MASK and kept_n:
+        print(
+            f"  window mask: kept {min(kept_n)}..{max(kept_n)} of {p} columns "
+            f"(median {int(np.median(kept_n))}) over {len(kept_n)} refits; tuning points "
+            f"{[len(r['keep']) for r in TRACE]}",
+            flush=True,
+        )
     return preds
 
 
@@ -587,6 +635,19 @@ if __name__ == "__main__":
         cand_fit_sec=np.array([r["fit_sec"] for r in tr]),
         chosen_mse=np.array([r["pick_mse"] for r in tr], dtype=np.int64),
         chosen_qlike=np.array([r["pick_qlike"] for r in tr], dtype=np.int64),
+        # WINDOW_MASK=1 only (an unmasked run writes exactly the keys it always wrote)
+        **(
+            {
+                "kept_n": SIDE["kept_n"],
+                "kept": SIDE["kept"],
+                "tune_kept_n": np.array([len(r["keep"]) for r in tr], dtype=np.int64),
+                "tune_kept": np.array(
+                    [np.isin(np.arange(SIDE["n_features"]), r["keep"]) for r in tr], dtype=np.uint8
+                ).reshape(len(tr), SIDE["n_features"]),
+            }
+            if WINDOW_MASK
+            else {}
+        ),
         meta=json.dumps(
             {
                 "model": MODEL,
@@ -606,6 +667,7 @@ if __name__ == "__main__":
                 "run_sec": time.time() - t_run,
                 "grid": grid_doc(),
                 "qsel": QSEL,
+                "window_mask": int(WINDOW_MASK),
             }
         ),
     )

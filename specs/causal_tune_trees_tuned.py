@@ -79,9 +79,21 @@ untuned layout, so the untuned scorer and join gates apply unchanged):
   tune_candidates_<seg>.csv  one row per (tuning point, candidate)
   grid_<seg>.json            the grid, its natural bounds, the candidate subset
 
+WINDOW MASK (the tree spec's env axis WINDOW_MASK, read there; default 0 =
+every run before 2026-09-29 evening, reproduced bit for bit): with 1, a tuning
+point computes keep = src.models.window_mask.window_keep(X[t - W : t]) on its
+window and writes only those columns of the window for the workers, so the fit
+block, the validation tail and every candidate see the tuning window's kept
+columns; each refit (specs/causal_tune_trees_tuned_jobs.refit_block) computes
+the mask of its OWN window [t - W, t) and fits / predicts / explains on it,
+importance and TreeSHAP mapped back to all p columns (0 for a dropped column).
+Persisted in addition (WINDOW_MASK=1 only): kept_n / kept (uint8, refits x p) at
+every refit, tune_kept_n / tune_kept at every tuning point.
+
 ENV AXES: those of specs/causal_tune_trees.py (MODEL, EXOG_BUCKET, SEGMENT,
-TRAIN_WIN, LAG_SCOPE, HAR_LAGS / HAR_BASE, START / END / HALO, SHAP_SEGMENTS)
-plus TUNE_IDENTITY (0 | 1, default 0) and QSEL (0 | 1, default 1).
+TRAIN_WIN, LAG_SCOPE, HAR_LAGS / HAR_BASE, START / END / HALO, SHAP_SEGMENTS,
+REFIT_EVERY, WINDOW_MASK) plus TUNE_IDENTITY (0 | 1, default 0) and QSEL (0 | 1,
+default 1).
 """
 
 # %%
@@ -114,6 +126,7 @@ import numpy as np
 import pandas as pd
 
 from src.models.reclasso_har import forward_window_split
+from src.models.window_mask import window_keep
 
 if str(_ROOT / "specs") not in sys.path:
     sys.path.insert(0, str(_ROOT / "specs"))
@@ -152,6 +165,7 @@ SEED: int = T["SEED"]
 N_WORKERS: int = int(os.environ.get("SLURM_CPUS_PER_TASK", "1"))
 START, END, HALO = int(T["START"]), int(T["END"]), int(T["HALO"])
 WANT_SHAP: bool = T["WANT_SHAP"]
+WINDOW_MASK: bool = T["WINDOW_MASK"]  # the tree spec's env axis (one copy of the rule)
 SHIPPED: dict = dict(T["PARAMS"][MODEL])  # after the tree spec's leaf-minimum scaling
 assert TUNE_PER % REFIT_EVERY == 0, (TUNE_PER, REFIT_EVERY)  # tunings fall on refit rows
 
@@ -319,7 +333,8 @@ print(
     f"tuned trees: {MODEL} grid {GRID_SIZE} configs, {len(CANDIDATES)} candidates "
     f"(seed {GRID_SEED}, identity={TUNE_IDENTITY}), tune every {TUNE_PER} rows "
     f"(val tail {VAL_TAIL}, embargo {EMBARGO}), refit every {REFIT_EVERY}, "
-    f"early stopping={EARLY_STOP} patience={PATIENCE} cap={ROUNDS_MAX}, qsel={QSEL}"
+    f"early stopping={EARLY_STOP} patience={PATIENCE} cap={ROUNDS_MAX}, qsel={QSEL}, "
+    f"window_mask={int(WINDOW_MASK)}"
 )
 
 
@@ -364,7 +379,10 @@ def tune(X, y, t: int, W: int, i: int, off: int, tmp: str, run) -> dict:
     assert fit_hi + EMBARGO == val_lo and val_hi - val_lo == VAL_TAIL, (fit_hi, val_lo)
     assert fit_lo < fit_hi < val_lo < val_hi, (fit_lo, fit_hi, val_lo, val_hi)
     xp, yp = os.path.join(tmp, f"win{i}_X.npy"), os.path.join(tmp, f"win{i}_y.npy")
-    np.save(xp, X[t - W : t])  # the workers see the window and nothing else
+    Xwin = X[t - W : t]
+    keep = window_keep(Xwin) if WINDOW_MASK else None  # the window's mask (WINDOW_MASK)
+    # the workers see the window (its kept columns under WINDOW_MASK) and nothing else
+    np.save(xp, Xwin if keep is None else Xwin[:, keep])
     np.save(yp, y[t - W : t])
     lo = t - W  # window-relative rows below
     jobs = [
@@ -395,6 +413,7 @@ def tune(X, y, t: int, W: int, i: int, off: int, tmp: str, run) -> dict:
         pick_mse=int(np.argmin(mse)),  # ties -> the lower index; the shipped config is index 0
         pick_qlike=int(np.argmin(qlk)),
         tune_sec=time.time() - a0,
+        keep=keep,
     )
     TRACE.append(rec)
     return rec
@@ -419,6 +438,7 @@ def fit_predict_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
     preds_q = np.empty(n_test)
     shap_mat = np.full((n_test, p + 1), np.nan, dtype=np.float32) if WANT_SHAP else None
     refit_row, imp, fit_sec, shap_sec, qsel_sec, add_gap = [], [], [], [], [], 0.0
+    kept_n, kept = [], []  # WINDOW_MASK: the columns of every refit's fit
     TRACE.clear()
     tmp = tempfile.mkdtemp(prefix="trees_tuned_", dir=os.environ.get("TMPDIR") or None)
     xp, yp = os.path.join(tmp, "chunk_X.npy"), os.path.join(tmp, "chunk_y.npy")
@@ -456,6 +476,7 @@ def fit_predict_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
                     qcfg=None if (same or not QSEL) else CANDIDATES[gq],
                     qrounds=rq,
                     shap=WANT_SHAP,
+                    mask=WINDOW_MASK,
                 )
                 for i in blocks
             ]
@@ -466,6 +487,11 @@ def fit_predict_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
                 refit_row.append(i)
                 imp.append(out["importance"])
                 fit_sec.append(out["fit_sec"])
+                if WINDOW_MASK:
+                    kept_n.append(int(out["kept_n"]))
+                    row = np.zeros(p, dtype=np.uint8)
+                    row[out["keep"]] = 1
+                    kept.append(row)
                 if out["shap"] is not None:
                     shap_mat[i : i + k] = out["shap"]
                     shap_sec.append(out["shap_sec"])
@@ -493,11 +519,19 @@ def fit_predict_tuned(X_chunk, y_chunk, train_win_periods, hyperparams):
         shap=shap_mat,
         shap_additivity_gap=add_gap,
         pred_q=preds_q,
+        kept_n=np.array(kept_n, dtype=np.int64),
+        kept=np.array(kept, dtype=np.uint8).reshape(len(kept), p),
         n_features=p,
         train_rows=W,
         wall_sec=time.time() - t0,
         trace=list(TRACE),
     )
+    if WINDOW_MASK and kept_n:
+        print(
+            f"  window mask: kept {min(kept_n)}..{max(kept_n)} of {p} columns "
+            f"(median {int(np.median(kept_n))}) over {len(kept_n)} refits; tuning points "
+            f"{[len(r['keep']) for r in TRACE]}"
+        )
     if WANT_SHAP:
         print(f"  TreeSHAP additivity gap (max |sum contrib - pred|) = {add_gap:.2e}")
     return preds
@@ -677,6 +711,19 @@ if __name__ == "__main__":
         cand_fit_sec=np.array([r["fit_sec"] for r in tr]),
         chosen_mse=np.array([r["pick_mse"] for r in tr], dtype=np.int64),
         chosen_qlike=np.array([r["pick_qlike"] for r in tr], dtype=np.int64),
+        # WINDOW_MASK=1 only (an unmasked run writes exactly the keys it always wrote)
+        **(
+            {
+                "kept_n": SIDE["kept_n"],
+                "kept": SIDE["kept"],
+                "tune_kept_n": np.array([len(r["keep"]) for r in tr], dtype=np.int64),
+                "tune_kept": np.array(
+                    [np.isin(np.arange(SIDE["n_features"]), r["keep"]) for r in tr], dtype=np.uint8
+                ).reshape(len(tr), SIDE["n_features"]),
+            }
+            if WINDOW_MASK
+            else {}
+        ),
         meta=json.dumps(
             {
                 "model": MODEL,
@@ -702,6 +749,7 @@ if __name__ == "__main__":
                 "run_sec": time.time() - t_run,
                 "grid": grid_doc,
                 "qsel": QSEL,
+                "window_mask": int(WINDOW_MASK),
             },
             default=_jsonable,
         ),

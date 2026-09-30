@@ -29,6 +29,14 @@ and every number is independent of the core count.
 The validation losses (MSE on the transformed target, QLIKE of the executor's
 Duan back-transform) are the tuned trees' own function
 (specs/causal_tune_trees_tuned_jobs.val_losses), imported, not copied.
+
+WINDOW MASK (job key "mask", the spec's WINDOW_MASK axis): a refit computes keep =
+src.models.window_mask.window_keep(X[t - W : t]) on the window it is trained on
+and builds, trains and forecasts with a network whose input width is len(keep)
+(the network is rebuilt from its seed at every refit, so the width may change
+from one refit to the next); the result carries keep.  A candidate is trained on
+the window the spec wrote for it, which carries the tuning point's kept columns
+already.  Without "mask" (or False) every number is the unmasked one, bit for bit.
 """
 
 from __future__ import annotations
@@ -47,6 +55,7 @@ for _p in (ROOT, ROOT / "specs"):
 import torch  # noqa: E402
 
 from causal_tune_trees_tuned_jobs import val_losses  # noqa: E402,F401 -- re-exported for the spec
+from src.models.window_mask import window_keep  # noqa: E402
 
 MODEL_THREADS = 1  # see the module note: results independent of the core count
 torch.set_num_threads(MODEL_THREADS)
@@ -175,15 +184,19 @@ def fit_candidate(job: dict) -> dict:
 
 def refit_block(job: dict) -> dict:
     """job: X / y = paths of the chunk's arrays, t = the block's first row, W, k =
-    rows in the block, cfg, seed, epochs, batch, grad_clip.  The configuration is
-    fitted on the window [t - W, t) for exactly ``epochs`` epochs and forecasts
-    rows t .. t + k - 1 (each from its own last L rows)."""
+    rows in the block, cfg, seed, epochs, batch, grad_clip, mask (optional: True =
+    the window mask).  The configuration is fitted on the window [t - W, t) for
+    exactly ``epochs`` epochs and forecasts rows t .. t + k - 1 (each from its own
+    last L rows)."""
     a = time.time()
     X, y = arr(job["X"]), arr(job["y"])
     t, W, k = int(job["t"]), int(job["W"]), int(job["k"])
     L = int(job["cfg"]["seq_len"])
     Xc = np.array(X[t - W : t + k])  # the window and the block; row t - W -> 0
     yc = np.array(y[t - W : t])  # targets of the window only
+    keep = window_keep(Xc[:W]) if job.get("mask") else None  # the mask of the window alone
+    if keep is not None:
+        Xc = Xc[:, keep]
     mu, sd = standardise(Xc, slice(0, W))
     Z = (Xc - mu) / sd
     tr_ends = np.arange(L - 1, W)
@@ -200,4 +213,9 @@ def refit_block(job: dict) -> dict:
     net.eval()
     with torch.no_grad():
         p = net(torch.from_numpy(sequences(Z, np.arange(W, W + k), L))).numpy()
-    return {"preds": p.astype(np.float64) * ysd + ymu, "fit_sec": time.time() - a}
+    return {
+        "preds": p.astype(np.float64) * ysd + ymu,
+        "fit_sec": time.time() - a,
+        "keep": keep,
+        "kept_n": Xc.shape[1],
+    }
