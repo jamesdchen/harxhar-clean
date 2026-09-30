@@ -54,6 +54,19 @@ def node_class(d: Path) -> str:
     return hit[0] if hit else feats[0]
 
 
+SIDE_DIRS = ("_canary", "_alone", "_repeat")  # moved-aside canaries and check re-runs
+
+
+def fleet_chunks(base: Path) -> list[Path]:
+    """The fleet's finished chunk dirs under base (not the side dirs, not the gates' scratch)."""
+    return [
+        d.parent
+        for d in sorted(base.glob("**/chunks/c*/DONE"))
+        if not d.parent.name.endswith(SIDE_DIRS)
+        and "gates" not in d.relative_to(base).parts
+    ]
+
+
 def results_csv(chunk: Path, stem: str) -> Path | None:
     got = sorted(chunk.glob(f"causal_tune_*/*/*/{stem}_{SEG}.csv"))
     return got[0] if got else None
@@ -82,10 +95,7 @@ def main() -> None:
     for kind, root in ROOTS.items():
         if not root.is_dir():
             continue
-        for done in sorted(root.glob("**/chunks/c*/DONE")):
-            d = done.parent
-            if d.name.endswith(("_canary", "_alone", "_repeat")):
-                continue
+        for d in fleet_chunks(root):
             rel = d.relative_to(root).parts
             rung = rel[0] if kind in ("untuned", "tuned", "xeon") else kind
             census.append(
@@ -163,18 +173,14 @@ def main() -> None:
                     row |= diff(re_["pred_adj"], rx["pred_adj"])
                 xc = sorted(
                     {
-                        node_class(d.parent)
-                        for d in (ROOTS["xeon"] / rung / b / SEG / m).glob(
-                            "tw2000/chunks/c*/DONE"
-                        )
+                        node_class(d)
+                        for d in fleet_chunks(ROOTS["xeon"] / rung / b / SEG / m)
                     }
                 )
                 ec = sorted(
                     {
-                        node_class(d.parent)
-                        for d in (ROOTS["untuned"] / rung / b / SEG / m).glob(
-                            "tw2000/chunks/c*/DONE"
-                        )
+                        node_class(d)
+                        for d in fleet_chunks(ROOTS["untuned"] / rung / b / SEG / m)
                     }
                 )
                 row |= {"class_alt_run": ";".join(xc), "class_fleet": ";".join(ec)}
