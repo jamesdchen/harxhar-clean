@@ -1,0 +1,170 @@
+gate,forecast,n,value,bound,ok
+baseline equals the target's B,yhat_subtree_lgbm_baseline,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_lgbm_baseline,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_baseline_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_baseline_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_baseline_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_baseline_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_baseline_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_baseline_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_xgb_baseline,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_xgb_baseline,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_baseline_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_baseline_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_baseline_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_baseline_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_baseline_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_baseline_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_rf_baseline,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_rf_baseline,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_baseline_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_baseline_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_baseline_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_baseline_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_baseline_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_baseline_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_sub_ridge_baseline,1469,0.0,1e-09,True
+baseline equals the target's B,yhat_subtree_lgbm_live_feasible,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_lgbm_live_feasible,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_live_feasible_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_live_feasible_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_live_feasible_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_live_feasible_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_live_feasible_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_live_feasible_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_xgb_live_feasible,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_xgb_live_feasible,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_live_feasible_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_live_feasible_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_live_feasible_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_live_feasible_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_live_feasible_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_live_feasible_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_rf_live_feasible,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_rf_live_feasible,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_live_feasible_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_live_feasible_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_live_feasible_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_live_feasible_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_live_feasible_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_live_feasible_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_sub_ridge_live_feasible,1469,0.0,1e-09,True
+baseline equals the target's B,yhat_subtree_lgbm_all_features,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_lgbm_all_features,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_all_features_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_all_features_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_all_features_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_all_features_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_all_features_lgbm,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_all_features_lgbm,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_xgb_all_features,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_xgb_all_features,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_all_features_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_all_features_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_all_features_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_all_features_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_all_features_xgb,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_all_features_xgb,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_rf_all_features,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_rf_all_features,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_daily_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_daily_all_features_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_all_features_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tuned_daily_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tuned_daily_all_features_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_all_features_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_subtree_tunedq_daily_all_features_rf,1469,6.661338147750939e-16,1e-09,True
+table pred_adj = merged arm CSV,yhat_subtree_tunedq_daily_all_features_rf,1469,0.0,0.0,True
+baseline equals the target's B,yhat_sub_ridge_all_features,1469,0.0,1e-09,True
+every ladder forecast covers the deck days,all,866,0.0,0.0,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_lgbm_baseline,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_baseline_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_baseline_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_baseline_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_baseline_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_baseline_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_xgb_baseline,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_baseline_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_baseline_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_baseline_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_baseline_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_baseline_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_rf_baseline,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_baseline_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_baseline_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_baseline_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_baseline_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_baseline_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_sub_ridge_baseline,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_lgbm_live_feasible,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_live_feasible_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_live_feasible_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_live_feasible_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_live_feasible_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_live_feasible_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_xgb_live_feasible,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_live_feasible_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_live_feasible_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_live_feasible_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_live_feasible_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_live_feasible_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_rf_live_feasible,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_live_feasible_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_live_feasible_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_live_feasible_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_live_feasible_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_live_feasible_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_sub_ridge_live_feasible,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_lgbm_all_features,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_all_features_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_all_features_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_all_features_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_all_features_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_all_features_lgbm,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_xgb_all_features,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_all_features_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_all_features_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_all_features_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_all_features_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_all_features_xgb,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_rf_all_features,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_daily_all_features_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_all_features_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tuned_daily_all_features_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_all_features_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_subtree_tunedq_daily_all_features_rf,866,0.0,1e-12,True
+trade_days Sharpe = trade_1530 Sharpe,yhat_sub_ridge_all_features,866,0.0,1e-12,True

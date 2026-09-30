@@ -126,7 +126,14 @@ def ridge_design(tables: Path, b: str) -> str:
     )
     if not snap.is_file():
         return "unknown (no snapshot)"
-    return "pre-dedup" if md5(cur) == md5(snap) else "dedup"
+    if md5(cur) == md5(snap):
+        return "pre-dedup"
+    # a rebuilt file: 'dedup' only if its 16:00 forecasts moved (other bars may have been rebuilt alone)
+    a, z = mtc.read_table_1600(cur, ["yhat"]), mtc.read_table_1600(snap, ["yhat"])
+    same = a.index.equals(z.index) and bool(
+        (a["yhat"].to_numpy() == z["yhat"].to_numpy()).all()
+    )
+    return "pre-dedup" if same else "dedup"
 
 
 def fmt_ci(v: float, lo: float, hi: float, nd: int) -> str:
@@ -153,7 +160,42 @@ def usage_table(sacct: Path) -> pd.DataFrame:
     d["Start"] = pd.to_datetime(d["Start"], errors="coerce")
     d["End"] = pd.to_datetime(d["End"], errors="coerce")
     d["stage"] = d["JobName"].str.replace(r"^tc_", "", regex=True)
+    # used CPU time and peak memory of each allocation's batch step (sacct_steps.txt:
+    # `sacct -P -n -o JobID,TotalCPU,MaxRSS`, the .batch lines), when present
+    steps = sacct.with_name("sacct_steps.txt")
+    d["used_cpu_sec"], d["max_rss_gib"] = np.nan, np.nan
+    if steps.is_file():
+        s = pd.read_csv(
+            steps,
+            sep="|",
+            header=None,
+            names=["JobID", "TotalCPU", "MaxRSS"],
+            dtype=str,
+        )
+        s["JobID"] = s["JobID"].str.removesuffix(".batch")
+        s = s.set_index("JobID")
+        d["used_cpu_sec"] = d["JobID"].map(s["TotalCPU"].map(slurm_seconds))
+        d["max_rss_gib"] = d["JobID"].map(s["MaxRSS"].map(slurm_gib))
     return d
+
+
+def slurm_seconds(v: str) -> float:
+    """Slurm [D-]HH:MM:SS(.fff) or MM:SS.fff -> seconds."""
+    days, _, hms = v.rpartition("-")
+    parts = [float(x) for x in hms.split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0.0)
+    return (
+        (int(days) if days else 0) * 86400 + parts[0] * 3600 + parts[1] * 60 + parts[2]
+    )
+
+
+def slurm_gib(v: str) -> float:
+    """Slurm memory (e.g. 25828240K) -> GiB."""
+    if not isinstance(v, str) or not v:
+        return np.nan
+    scale = {"K": 2**-20, "M": 2**-10, "G": 1.0, "T": 2**10}
+    return float(v[:-1]) * scale[v[-1]] if v[-1] in scale else float(v) / 2**30
 
 
 def main() -> int:
@@ -550,13 +592,13 @@ def write_summary(
         L += [
             "## Cluster use (the campaign's own jobs, sacct)",
             "",
-            "| stage | allocations | CPUs per allocation | allocated CPU-hours | first start | last end |",
-            "|---|---|---|---|---|---|",
+            "| stage | allocations | CPUs per allocation | allocated CPU-hours | used CPU-hours | peak memory per allocation (GiB) | first start | last end |",
+            "|---|---|---|---|---|---|---|---|",
         ]
         for st, g in use.groupby("stage", sort=False):
             L.append(
                 f"| {st} | {len(g)} | {int(g['AllocCPUS'].min())}-{int(g['AllocCPUS'].max())} | {g['CPUTimeRAW'].sum() / 3600:.1f} | "
-                f"{g['Start'].min()} | {g['End'].max()} |"
+                f"{g['used_cpu_sec'].sum() / 3600:.1f} | {g['max_rss_gib'].max():.1f} | {g['Start'].min()} | {g['End'].max()} |"
             )
         ev = (
             pd.concat(
@@ -570,7 +612,9 @@ def write_summary(
         )
         L += [
             "",
-            f"All stages: {use['CPUTimeRAW'].sum() / 3600:.1f} allocated CPU-hours; peak concurrent allocated CPUs "
+            f"All stages: {use['CPUTimeRAW'].sum() / 3600:.1f} allocated CPU-hours ({use['used_cpu_sec'].sum() / 3600:.1f} used: "
+            "the busy share of the allocated cores; a pack waits for its slowest process, a pool for its serial steps); "
+            "peak concurrent allocated CPUs "
             f"{int(ev['d'].cumsum().max())}; wall-clock {use['Start'].min()} .. {use['End'].max()}.",
             "",
         ]

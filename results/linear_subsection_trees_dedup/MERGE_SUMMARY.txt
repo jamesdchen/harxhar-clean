@@ -1,0 +1,4 @@
+t10 9 merged; merged 9 of 9 arms; gates in /scratch1/jc_905/harxhar-subsection/results/linear_subsection_trees_dedup/t10/reduce_gates.csv
+t1 9 merged; merged 9 of 9 arms; gates in /scratch1/jc_905/harxhar-subsection/results/linear_subsection_trees_dedup/t1/reduce_gates.csv
+rs10 9 merged; merged 9 of 9 arms; gates in /scratch1/jc_905/harxhar-subsection/results/linear_subsection_trees_tuned_dedup/rs10/reduce_gates.csv
+rs1 9 merged; merged 9 of 9 arms; gates in /scratch1/jc_905/harxhar-subsection/results/linear_subsection_trees_tuned_dedup/rs1/reduce_gates.csv
