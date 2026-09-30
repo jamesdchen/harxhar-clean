@@ -1,0 +1,9 @@
+side,file,host,cpu,bucket,window_mask,rows,p,n_kept_min,n_kept_max,X_sha,y_sha,windows_sha,kept_sets_sha
+h2,all_features_lgbm_c0_hoffman2_n1078.csv,n1078,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,all_features,0,20,628,378,378,b2db670a675463d2,6e0b36ebbd8cbcdb,195d581f26b1a3ba,06a5f4c60a8b7869
+h2,all_features_lgbm_c0_hoffman2_n1171.csv,n1171,Intel(R) Xeon(R) 6736P,all_features,0,20,628,378,378,b2db670a675463d2,6e0b36ebbd8cbcdb,195d581f26b1a3ba,06a5f4c60a8b7869
+h2,all_features_lgbm_c0_hoffman2_n7138.csv,n7138,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,all_features,0,20,628,378,378,694c3d81b2ed2974,6e0b36ebbd8cbcdb,3c22b910d04f1c82,06a5f4c60a8b7869
+h2,all_features_lgbm_c0_hoffman2_n7440.csv,n7440,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,all_features,0,20,628,378,378,b2db670a675463d2,6e0b36ebbd8cbcdb,195d581f26b1a3ba,06a5f4c60a8b7869
+h2,live_feasible_lgbm_c0_hoffman2_n1077.csv,n1077,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,live_feasible,0,20,232,138,138,6d8948ce72f6cfaf,6e0b36ebbd8cbcdb,93f6cad4b365a15c,8d98cd8f3b2bb964
+h2,live_feasible_lgbm_c0_hoffman2_n1171.csv,n1171,Intel(R) Xeon(R) 6736P,live_feasible,0,20,232,138,138,6d8948ce72f6cfaf,6e0b36ebbd8cbcdb,93f6cad4b365a15c,8d98cd8f3b2bb964
+h2,live_feasible_lgbm_c0_hoffman2_n6679.csv,n6679,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,live_feasible,0,20,232,138,138,6d8948ce72f6cfaf,6e0b36ebbd8cbcdb,93f6cad4b365a15c,8d98cd8f3b2bb964
+h2,live_feasible_lgbm_c0_hoffman2_n7126.csv,n7126,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,live_feasible,0,20,232,138,138,d06bef2e52d32da6,6e0b36ebbd8cbcdb,375349503cb9d056,8d98cd8f3b2bb964

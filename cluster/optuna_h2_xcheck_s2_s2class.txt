@@ -1,0 +1,6 @@
+live_feasible lgbm 2000 bar1600 0 2000 2020 2000
+live_feasible xgb 2000 bar1600 0 2000 2020 2000
+live_feasible rf 2000 bar1600 0 2000 2020 2000
+all_features lgbm 2000 bar1600 0 2000 2020 2000
+all_features xgb 2000 bar1600 0 2000 2020 2000
+all_features rf 2000 bar1600 0 2000 2020 2000

@@ -1,0 +1,16 @@
+live_feasible xgb 2000 bar1600 0 2000 2500 2000
+live_feasible xgb 2000 bar1600 1 2500 3000 2000
+live_feasible xgb 2000 bar1600 2 3000 -1 2000
+all_features xgb 2000 bar1600 0 2000 2120 2000
+all_features xgb 2000 bar1600 1 2120 2240 2000
+all_features xgb 2000 bar1600 2 2240 2360 2000
+all_features xgb 2000 bar1600 3 2360 2480 2000
+all_features xgb 2000 bar1600 4 2480 2600 2000
+all_features xgb 2000 bar1600 5 2600 2720 2000
+all_features xgb 2000 bar1600 6 2720 2840 2000
+all_features xgb 2000 bar1600 7 2840 2960 2000
+all_features xgb 2000 bar1600 8 2960 3080 2000
+all_features xgb 2000 bar1600 9 3080 3200 2000
+all_features xgb 2000 bar1600 10 3200 3320 2000
+all_features xgb 2000 bar1600 11 3320 -1 2000
+baseline xgb 2000 bar1600 0 2000 -1 2000

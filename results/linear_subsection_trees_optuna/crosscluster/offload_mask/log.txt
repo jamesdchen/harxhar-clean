@@ -1,0 +1,5 @@
+2026-09-29 23:54 prep: 16 stage-2 lines of [xgb] (C's task file snapshot md5 == CARC's), CARC tasks 12481000_6-8,32-43,63 all PENDING (Dependency)
+2026-09-29 23:57 hold: `scontrol hold 12481000_6,...` DENIED by the Claude Code auto-mode permission classifier ("Interfere With Workloads"); the call never ran; not retried
+2026-09-30 00:11 squeue 12481000: 64 of 64 PENDING (Dependency), none JobHeldUser
+2026-09-30 00:31 squeue 12481000: stage 1 merged (STAGE1_MERGED), 27 RUNNING, none held; stage 2 computed on CARC as submitted
+no stage-2 task was held, run on Hoffman2, copied back or released

@@ -1,0 +1,4 @@
+model,points,paths,stage1_trials,stage1_trials_bit_identical,stage1_picks_identical,stage1_chosen_config_identical,stage1_max_rel_diff,stage2_forecasts,stage2_forecasts_bit_identical,stage2_cfg_identical,stage2_importance_shap_identical,stage2_max_rel_diff,verdict,qualifies
+lgbm,0,18,0,0,,,,360,360,True,True,0.0,incomplete,False
+xgb,0,18,0,0,,,,360,360,True,True,0.0,incomplete,False
+rf,0,18,0,0,,,,360,360,True,True,0.0,incomplete,False

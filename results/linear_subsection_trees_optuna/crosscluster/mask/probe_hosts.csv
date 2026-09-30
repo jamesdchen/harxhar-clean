@@ -1,0 +1,7 @@
+side,file,host,cpu,bucket,window_mask,rows,p,n_kept_min,n_kept_max,X_sha,y_sha,windows_sha,kept_sets_sha
+h2x512,all_features_lgbm_c0_hoffman2.csv,hoffman2,,all_features,1,20,628,378,378,694c3d81b2ed2974,6e0b36ebbd8cbcdb,3c22b910d04f1c82,06a5f4c60a8b7869
+h2x512,baseline_lgbm_c0_hoffman2.csv,hoffman2,,baseline,1,20,22,17,17,9b3bad12038df771,6e0b36ebbd8cbcdb,edd96088bcf6a846,3986afc3ede0e4a6
+h2x512,live_feasible_lgbm_c0_hoffman2.csv,hoffman2,,live_feasible,1,20,232,138,138,6d8948ce72f6cfaf,6e0b36ebbd8cbcdb,93f6cad4b365a15c,8d98cd8f3b2bb964
+h2x512s1,all_features_lgbm_c0_hoffman2.csv,hoffman2,,all_features,1,20,628,378,378,694c3d81b2ed2974,6e0b36ebbd8cbcdb,3c22b910d04f1c82,06a5f4c60a8b7869
+h2x512s1,baseline_lgbm_c0_hoffman2.csv,hoffman2,,baseline,1,20,22,17,17,9b3bad12038df771,6e0b36ebbd8cbcdb,edd96088bcf6a846,3986afc3ede0e4a6
+h2x512s1,live_feasible_lgbm_c0_hoffman2.csv,hoffman2,,live_feasible,1,20,232,138,138,6d8948ce72f6cfaf,6e0b36ebbd8cbcdb,93f6cad4b365a15c,8d98cd8f3b2bb964

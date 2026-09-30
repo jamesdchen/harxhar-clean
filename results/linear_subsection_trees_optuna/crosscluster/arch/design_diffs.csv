@@ -1,0 +1,13 @@
+bucket,host_a,cpu_a,host_b,cpu_b,cells,identical,y_identical,cells_differ,cols_differ,cols,max_abs_diff,max_rel_diff,median_rel_diff,max_abs_diff_over_col_scale
+all_features,n1078,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n1171,Intel(R) Xeon(R) 6736P,1268560,True,True,0,0,628,,,,
+all_features,n1078,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n7138,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,1268560,False,True,109138,94,628,2.6261659513693303e-11,0.7913669064748204,9.202936244014e-16,1.5322008592520357e-13
+all_features,n1078,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n7440,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,1268560,True,True,0,0,628,,,,
+all_features,n1171,Intel(R) Xeon(R) 6736P,n7138,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,1268560,False,True,109138,94,628,2.6261659513693303e-11,0.7913669064748204,9.202936244014e-16,1.5322008592520357e-13
+all_features,n1171,Intel(R) Xeon(R) 6736P,n7440,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,1268560,True,True,0,0,628,,,,
+all_features,n7138,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,n7440,Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz,1268560,False,True,109138,94,628,2.6261659513693303e-11,0.7913669064748204,9.202936244014e-16,1.5322008592522704e-13
+live_feasible,n1077,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n1171,Intel(R) Xeon(R) 6736P,468640,True,True,0,0,232,,,,
+live_feasible,n1077,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n6679,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,468640,True,True,0,0,232,,,,
+live_feasible,n1077,Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz,n7126,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,468640,False,True,29427,28,232,2.6261659513693303e-11,0.7913669064748204,1.0241672089469393e-15,1.5322008592520357e-13
+live_feasible,n1171,Intel(R) Xeon(R) 6736P,n6679,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,468640,True,True,0,0,232,,,,
+live_feasible,n1171,Intel(R) Xeon(R) 6736P,n7126,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,468640,False,True,29427,28,232,2.6261659513693303e-11,0.7913669064748204,1.0241672089469393e-15,1.5322008592520357e-13
+live_feasible,n6679,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz,n7126,Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz,468640,False,True,29427,28,232,2.6261659513693303e-11,0.7913669064748204,1.0241672089469393e-15,1.5322008592520357e-13

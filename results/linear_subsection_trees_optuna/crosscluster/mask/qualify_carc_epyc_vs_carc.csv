@@ -1,0 +1,4 @@
+model,points,paths,stage1_trials,stage1_trials_bit_identical,stage1_picks_identical,stage1_chosen_config_identical,stage1_max_rel_diff,stage2_forecasts,stage2_forecasts_bit_identical,stage2_cfg_identical,stage2_importance_shap_identical,stage2_max_rel_diff,verdict,qualifies
+lgbm,6,9,300,202,False,False,0.9999841052273393,180,180,True,True,0.0,differs,False
+xgb,6,9,300,274,True,False,1.8089950787623057e-15,180,180,True,True,0.0,differs,False
+rf,6,9,300,296,True,True,1.1654900841028767e-15,180,180,True,True,0.0,within 1e-12,True
