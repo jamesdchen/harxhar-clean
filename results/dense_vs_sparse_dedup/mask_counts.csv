@@ -1,0 +1,23 @@
+bucket,run,where,n_refits,columns_offered,kept_min,kept_median,kept_max,refits_with_a_dropped_column
+live_feasible,LightGBM all,local,147,232,136,138.0,145,147
+live_feasible,LightGBM screen k1,local,147,1,1,1.0,1,0
+live_feasible,LightGBM screen k2,local,147,2,2,2.0,2,0
+live_feasible,LightGBM screen k4,local,147,4,4,4.0,4,0
+live_feasible,LightGBM screen k8,local,147,8,8,8.0,8,0
+live_feasible,LightGBM screen k16,local,147,16,16,16.0,16,0
+live_feasible,LightGBM screen k32,local,147,32,32,32.0,32,0
+live_feasible,LightGBM screen k64,local,147,64,63,64.0,64,3
+live_feasible,"LightGBM all (density, TreeSHAP)",cluster,147,232,136,138.0,145,147
+live_feasible,"XGBoost all (density, TreeSHAP)",cluster,147,232,136,138.0,145,147
+live_feasible,"random forest all (density, TreeSHAP)",cluster,147,232,136,138.0,145,147
+all_features,LightGBM all,local,147,628,360,369.0,378,147
+all_features,LightGBM screen k1,local,147,1,1,1.0,1,0
+all_features,LightGBM screen k2,local,147,2,2,2.0,2,0
+all_features,LightGBM screen k4,local,147,4,4,4.0,4,0
+all_features,LightGBM screen k8,local,147,8,8,8.0,8,0
+all_features,LightGBM screen k16,local,147,16,16,16.0,16,0
+all_features,LightGBM screen k32,local,147,32,32,32.0,32,0
+all_features,LightGBM screen k64,local,147,64,64,64.0,64,0
+all_features,"LightGBM all (density, TreeSHAP)",cluster,147,628,360,369.0,378,147
+all_features,"XGBoost all (density, TreeSHAP)",cluster,147,628,360,369.0,378,147
+all_features,"random forest all (density, TreeSHAP)",cluster,147,628,360,369.0,378,147

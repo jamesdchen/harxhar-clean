@@ -1,0 +1,73 @@
+bucket,model,variant,level,sample,n_rows,n_inputs,n_active,neff,top1_share,k50,k80,k95,greedy_k50,greedy_k80,greedy_k95,block_k80_median,block_k80_min,block_k80_max
+live_feasible,ridge,de-dup + mask,column,all forecasts,1469,232,138,40.73159127571201,0.07424392729721897,2,6,22,2,6,15,6.5,3,12
+live_feasible,ridge,de-dup + mask,column,deck days,866,232,138,42.150609792593706,0.06936580089599356,3,7,22,3,7,15,,-1,-1
+live_feasible,ridge,de-dup + mask,series,all forecasts,1469,18,18,7.079128069173854,0.2960929837504713,1,2,5,1,2,5,2.0,1,3
+live_feasible,ridge,de-dup + mask,series,deck days,866,18,18,7.326014779997668,0.2821092477576703,1,2,5,1,2,5,,-1,-1
+live_feasible,lasso,de-dup + mask,column,all forecasts,1469,232,86,10.80875602288894,0.2378116286515963,1,3,7,1,3,5,3.0,2,4
+live_feasible,lasso,de-dup + mask,column,deck days,866,232,84,13.24750324405822,0.20308970727330208,1,4,8,1,3,5,,-1,-1
+live_feasible,lasso,de-dup + mask,series,all forecasts,1469,18,17,3.499159930524076,0.5059263608269167,1,1,2,1,1,2,1.0,1,1
+live_feasible,lasso,de-dup + mask,series,deck days,866,18,17,4.326460660116461,0.44090254566661274,1,1,4,1,1,2,,-1,-1
+live_feasible,elastic net,de-dup + mask,column,all forecasts,1469,232,52,7.729251599873608,0.28573727855017167,1,3,5,1,3,5,2.0,2,3
+live_feasible,elastic net,de-dup + mask,column,deck days,866,232,47,7.673095039759045,0.2912725558873466,1,3,5,1,3,5,,-1,-1
+live_feasible,elastic net,de-dup + mask,series,all forecasts,1469,18,16,2.5419652681069684,0.6038538878725478,1,1,2,1,1,2,1.0,1,1
+live_feasible,elastic net,de-dup + mask,series,deck days,866,18,16,2.5222004585535265,0.6064040915754046,1,1,2,1,1,2,,-1,-1
+live_feasible,LightGBM,de-dup + mask,column,all forecasts,1469,232,139,14.09074309672605,0.18734208664075422,1,3,10,1,3,9,2.0,2,4
+live_feasible,LightGBM,de-dup + mask,column,deck days,866,232,138,14.708969232748089,0.18093863684624473,1,3,11,1,3,9,,-1,-1
+live_feasible,LightGBM,de-dup + mask,series,all forecasts,1469,18,18,3.2643694150979785,0.5317811029502016,1,1,3,1,1,3,1.0,1,2
+live_feasible,LightGBM,de-dup + mask,series,deck days,866,18,18,3.329246171684801,0.5242160949973146,1,1,3,1,1,3,,-1,-1
+live_feasible,XGBoost,de-dup + mask,column,all forecasts,1469,232,138,9.662601369304157,0.2289248978735994,1,2,8,1,2,7,2.0,2,4
+live_feasible,XGBoost,de-dup + mask,column,deck days,866,232,136,10.097235900957356,0.22499799359829986,1,2,7,1,2,7,,-1,-1
+live_feasible,XGBoost,de-dup + mask,series,all forecasts,1469,18,18,2.578567121090091,0.6043619539647666,1,1,3,1,1,3,1.0,1,1
+live_feasible,XGBoost,de-dup + mask,series,deck days,866,18,18,2.656933432642796,0.5925823519927501,1,1,3,1,1,3,,-1,-1
+live_feasible,random forest,de-dup + mask,column,all forecasts,1469,232,147,6.831743633705701,0.302224324273767,1,2,4,1,2,4,2.0,1,2
+live_feasible,random forest,de-dup + mask,column,deck days,866,232,147,7.065130008107502,0.3024797028016766,1,2,4,1,2,4,,-1,-1
+live_feasible,random forest,de-dup + mask,series,all forecasts,1469,18,18,2.2268076049959733,0.6603735497137221,1,1,2,1,1,2,1.0,1,1
+live_feasible,random forest,de-dup + mask,series,deck days,866,18,18,2.3531555835900266,0.6398132639521705,1,1,2,1,1,2,,-1,-1
+live_feasible,LightGBM,"de-dup, no mask",column,all forecasts,1469,232,141,13.916926311710531,0.18707501872882076,1,3,10,1,3,8,2.0,2,4
+live_feasible,LightGBM,"de-dup, no mask",column,deck days,866,232,140,14.481681409343395,0.18292385474110293,1,3,11,1,3,9,,-1,-1
+live_feasible,LightGBM,"de-dup, no mask",series,all forecasts,1469,18,18,3.2468717710115564,0.5334921601505477,1,1,3,1,1,3,1.0,1,2
+live_feasible,LightGBM,"de-dup, no mask",series,deck days,866,18,18,3.3061620070276656,0.5264845806994015,1,1,3,1,1,3,,-1,-1
+live_feasible,XGBoost,"de-dup, no mask",column,all forecasts,1469,232,142,9.180040599978271,0.23901860791298024,1,2,7,1,2,7,2.0,2,3
+live_feasible,XGBoost,"de-dup, no mask",column,deck days,866,232,138,9.666919023046892,0.2321938142878326,1,2,7,1,2,7,,-1,-1
+live_feasible,XGBoost,"de-dup, no mask",series,all forecasts,1469,18,18,2.4808101357208057,0.6183679319476947,1,1,2,1,1,2,1.0,1,1
+live_feasible,XGBoost,"de-dup, no mask",series,deck days,866,18,18,2.575892466548894,0.603763651553804,1,1,2,1,1,2,,-1,-1
+live_feasible,random forest,"de-dup, no mask",column,all forecasts,1469,232,168,6.842234514386425,0.30192956163858475,1,2,4,1,2,4,2.0,1,2
+live_feasible,random forest,"de-dup, no mask",column,deck days,866,232,168,7.077657516404608,0.30205978501254066,1,2,4,1,2,4,,-1,-1
+live_feasible,random forest,"de-dup, no mask",series,all forecasts,1469,18,18,2.227682478794684,0.6602615426365268,1,1,2,1,1,2,1.0,1,1
+live_feasible,random forest,"de-dup, no mask",series,deck days,866,18,18,2.3564488800849195,0.639374430089843,1,1,2,1,1,2,,-1,-1
+all_features,ridge,de-dup + mask,column,all forecasts,1469,628,379,124.20943570269606,0.03311798735504314,3,7,64,3,7,25,7.5,4,13
+all_features,ridge,de-dup + mask,column,deck days,866,628,378,129.2580273944438,0.030461119476585113,3,9,63,3,8,27,,-1,-1
+all_features,ridge,de-dup + mask,series,all forecasts,1469,49,49,21.475489820178428,0.15433892640486485,1,3,23,1,3,10,3.5,1,5
+all_features,ridge,de-dup + mask,series,deck days,866,49,49,23.323018219178053,0.14088989921522796,1,3,21,1,3,11,,-1,-1
+all_features,lasso,de-dup + mask,column,all forecasts,1469,628,204,21.271345910100727,0.14426283683677446,1,3,6,1,3,6,3.0,2,6
+all_features,lasso,de-dup + mask,column,deck days,866,628,201,28.885109973606788,0.11236335278578648,2,3,10,2,3,6,,-1,-1
+all_features,lasso,de-dup + mask,series,all forecasts,1469,49,48,6.171515416020115,0.3735169106640791,1,1,3,1,1,3,1.0,1,1
+all_features,lasso,de-dup + mask,series,deck days,866,49,48,8.646235400962766,0.30436483961642913,1,1,3,1,1,3,,-1,-1
+all_features,elastic net,de-dup + mask,column,all forecasts,1469,628,238,39.36094915008558,0.09495334858512688,2,3,20,2,3,7,3.5,3,9
+all_features,elastic net,de-dup + mask,column,deck days,866,628,235,51.511626860792454,0.07226759557616046,2,5,29,2,4,9,,-1,-1
+all_features,elastic net,de-dup + mask,series,all forecasts,1469,49,48,9.751249921507343,0.2863324062619488,1,1,3,1,1,3,1.0,1,1
+all_features,elastic net,de-dup + mask,series,deck days,866,49,48,13.526883474320133,0.22930868792296244,1,1,9,1,1,4,,-1,-1
+all_features,LightGBM,de-dup + mask,column,all forecasts,1469,628,367,20.402372275569217,0.15762474051155795,1,3,12,1,3,12,2.0,2,5
+all_features,LightGBM,de-dup + mask,column,deck days,866,628,363,21.64858443142044,0.15307821513346126,1,3,16,1,3,12,,-1,-1
+all_features,LightGBM,de-dup + mask,series,all forecasts,1469,49,49,4.6596761892366505,0.4489436104108168,1,1,4,1,1,4,1.0,1,2
+all_features,LightGBM,de-dup + mask,series,deck days,866,49,49,4.927265279697936,0.4349075676700166,1,1,4,1,1,4,,-1,-1
+all_features,XGBoost,de-dup + mask,column,all forecasts,1469,628,358,12.960231446163055,0.20053819080859822,1,3,11,1,3,9,2.0,2,4
+all_features,XGBoost,de-dup + mask,column,deck days,866,628,354,13.63680087941458,0.1939393303409888,1,3,11,1,3,10,,-1,-1
+all_features,XGBoost,de-dup + mask,series,all forecasts,1469,49,49,3.4641674021175075,0.5234022156189709,1,1,3,1,1,3,1.0,1,2
+all_features,XGBoost,de-dup + mask,series,deck days,866,49,49,3.6194081588631497,0.5104794045776376,1,1,4,1,1,4,,-1,-1
+all_features,random forest,de-dup + mask,column,all forecasts,1469,628,388,8.371709546856723,0.2757368617665836,1,2,6,1,2,6,2.0,2,2
+all_features,random forest,de-dup + mask,column,deck days,866,628,387,8.770826700014068,0.27401615800340906,1,2,7,1,2,6,,-1,-1
+all_features,random forest,de-dup + mask,series,all forecasts,1469,49,49,2.7724003681874847,0.5942050135560237,1,1,2,1,1,2,1.0,1,1
+all_features,random forest,de-dup + mask,series,deck days,866,49,49,3.0147097597065464,0.5680226960014605,1,1,3,1,1,3,,-1,-1
+all_features,LightGBM,"de-dup, no mask",column,all forecasts,1469,628,414,20.40127367961709,0.15778923630860295,1,3,13,1,3,12,2.0,2,4
+all_features,LightGBM,"de-dup, no mask",column,deck days,866,628,401,21.854034735939216,0.15284280752612295,1,3,15,1,3,12,,-1,-1
+all_features,LightGBM,"de-dup, no mask",series,all forecasts,1469,49,49,4.673916948268109,0.44827121941591064,1,1,4,1,1,4,1.0,1,2
+all_features,LightGBM,"de-dup, no mask",series,deck days,866,49,49,4.97667537436047,0.4323618874689835,1,1,4,1,1,4,,-1,-1
+all_features,XGBoost,"de-dup, no mask",column,all forecasts,1469,628,391,11.90430876273437,0.2143136447428707,1,2,11,1,2,9,2.0,2,4
+all_features,XGBoost,"de-dup, no mask",column,deck days,866,628,381,12.651788627891014,0.2074283872306233,1,2,11,1,2,10,,-1,-1
+all_features,XGBoost,"de-dup, no mask",series,all forecasts,1469,49,49,3.252987557700673,0.5426555914864206,1,1,4,1,1,3,1.0,1,1
+all_features,XGBoost,"de-dup, no mask",series,deck days,866,49,49,3.4322152597750986,0.5266507408078117,1,1,4,1,1,4,,-1,-1
+all_features,random forest,"de-dup, no mask",column,all forecasts,1469,628,563,8.464232973591807,0.2742130881244478,1,2,6,1,2,5,2.0,2,2
+all_features,random forest,"de-dup, no mask",column,deck days,866,628,516,8.863010821629455,0.2726488496250921,1,2,7,1,2,6,,-1,-1
+all_features,random forest,"de-dup, no mask",series,all forecasts,1469,49,49,2.7719117507048674,0.5942267945426851,1,1,2,1,1,2,1.0,1,1
+all_features,random forest,"de-dup, no mask",series,deck days,866,49,49,3.0140260209824272,0.5680532727054938,1,1,2,1,1,2,,-1,-1

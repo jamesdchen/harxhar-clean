@@ -1,0 +1,24 @@
+claim,first_pass,dedup_mask,same
+ridge has the largest N_eff (live_feasible),yes,yes,True
+N_eff ridge / range of the other five (live_feasible),40.7 / 8–19,40.7 / 7–14,False
+k_95 ridge / largest of the other five (live_feasible),22 / 12,22 / 10,False
+ridge has the largest N_eff (all_features),yes,yes,True
+N_eff ridge / range of the other five (all_features),124.2 / 16–39,124.2 / 8–39,False
+k_95 ridge / largest of the other five (all_features),64 / 20,64 / 20,True
+largest k_80 of any model,7,7,True
+ridge puts the most forecast variance on the recent return-size group (live_feasible),yes,yes,True
+"ridge puts the least on the har_ma_1, har_ma_5 group (live_feasible)",yes,yes,True
+QLIKE significantly worse than all columns for every model at every k <= K (both designs),K = 4,K = 4,True
+"the same, live_feasible",K = 8,K = 8,True
+every model trades below its all-column Sharpe at every k <= 16,yes,yes,True
+"ridge beats LightGBM on QLIKE at k = 1, 2 (both designs, intervals exclude 0)",yes,yes,True
+with all columns ridge ties the lasso and LightGBM on QLIKE (both designs),yes,yes,True
+"the lasso beats ridge on QLIKE at k = 4, 8 (all_features)",yes,yes,True
+ridge - lasso QLIKE gap narrows significantly to all columns from k (all_features),"4, 8, 16","4, 8, 16",True
+"the same, live_feasible",none,none,True
+ridge - LightGBM QLIKE gap closes significantly to all columns from k (live_feasible),"1, 2","1, 2",True
+"the same, all_features",none,none,True
+ridge-vs-lasso / ridge-vs-LightGBM Sharpe gaps at k <= 64 whose interval excludes 0,1 of 28,1 of 28,True
+... whose change between k and all columns excludes 0,1 of 28,1 of 28,True
+"all-column Sharpe gaps (ridge - lasso, ridge - LightGBM) whose interval excludes 0",none,none,True
+PC1 collapse moves the ridge - lasso Sharpe gap significantly,no,no,True

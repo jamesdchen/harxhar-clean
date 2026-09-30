@@ -1,0 +1,13 @@
+bucket,pair,measure,n_k,gap_ci_excl0,did_ci_excl0,did_ci_excl0_ks
+all_features,lasso - LightGBM,QLIKE,7,4,1,2
+all_features,lasso - LightGBM,Sharpe,7,2,1,4
+all_features,ridge - LightGBM,QLIKE,7,2,0,
+all_features,ridge - LightGBM,Sharpe,7,0,0,
+all_features,ridge - lasso,QLIKE,7,2,3,4 8 16
+all_features,ridge - lasso,Sharpe,7,0,0,
+live_feasible,lasso - LightGBM,QLIKE,7,3,1,2
+live_feasible,lasso - LightGBM,Sharpe,7,1,1,4
+live_feasible,ridge - LightGBM,QLIKE,7,2,2,1 2
+live_feasible,ridge - LightGBM,Sharpe,7,0,0,
+live_feasible,ridge - lasso,QLIKE,7,2,0,
+live_feasible,ridge - lasso,Sharpe,7,1,1,32
