@@ -165,6 +165,18 @@ END = int(_env("END", "-1"))
 HALO = int(_env("HALO", "0"))
 SHAP_SEGMENTS = {s for s in _env("SHAP_SEGMENTS", "bar1600").split(",") if s}
 WANT_SHAP = SEGMENT in SHAP_SEGMENTS
+# 2026-09-29 (user decision) -- two cadence axes, defaults = the original run:
+#   REFIT_EVERY       rows (sessions) between refits; 10 = the original cadence, 1 = a refit
+#                     every session, the cadence of the per-bar linear arms
+#                     (specs/causal_tune_linear.py REFIT_FREQUENCY = 1).
+#   IMPORTANCE_EVERY  record native importance and TreeSHAP at every IMPORTANCE_EVERY-th refit
+#                     only (1 = every refit, the original); skipped refits keep a NaN
+#                     importance row and NaN TreeSHAP rows, so every array stays aligned with
+#                     refit_row / the OOS rows.
+REFIT_EVERY = int(_env("REFIT_EVERY", str(REFIT_EVERY)))
+IMPORTANCE_EVERY = int(_env("IMPORTANCE_EVERY", "1"))
+if REFIT_EVERY < 1 or IMPORTANCE_EVERY < 1:
+    raise SystemExit(f"REFIT_EVERY and IMPORTANCE_EVERY must be >= 1, got {REFIT_EVERY}, {IMPORTANCE_EVERY}")
 _HAR_LAGS_ENV = _env("HAR_LAGS", "")
 _HAR_BASE_ENV = _env("HAR_BASE", "")
 if _HAR_LAGS_ENV:
@@ -181,7 +193,8 @@ RESULTS_ROOT = os.path.join(os.environ.get("HPC_RESULT_DIR", "results"), "causal
 OUT_DIR = os.path.join(RESULTS_ROOT, MODEL, EXOG_BUCKET)
 print(
     f"trees: model={MODEL} bucket={EXOG_BUCKET} segment={SEGMENT} lag_scope={LAG_SCOPE} "
-    f"tw={TRAIN_WIN} refit_every={REFIT_EVERY} threads={N_THREADS} shap={WANT_SHAP} "
+    f"tw={TRAIN_WIN} refit_every={REFIT_EVERY} importance_every={IMPORTANCE_EVERY} "
+    f"threads={N_THREADS} shap={WANT_SHAP} "
     f"har={HAR_LAGS if HAR_LAGS is not None else 'production'} slice=({START},{END},{HALO})"
 )
 
@@ -249,6 +262,10 @@ def fit_predict_tree(X_chunk, y_chunk, train_win_periods, hyperparams):
     preds = np.empty(n_test)
     shap_mat = np.full((n_test, p + 1), np.nan, dtype=np.float32) if WANT_SHAP else None
     refit_row, imp, fit_sec, shap_sec, add_gap = [], [], [], [], 0.0
+    # whole-series OOS index of this chunk's first forecast row (START - HALO for a chunk
+    # replayed with HALO = W; 0 for the whole series), so the IMPORTANCE_EVERY cadence
+    # falls on the same refits whether the series is run whole or in chunks
+    off = max(0, START - HALO)
     t0 = time.time()
     for i in range(0, n_test, REFIT_EVERY):
         t = W + i
@@ -258,10 +275,11 @@ def fit_predict_tree(X_chunk, y_chunk, train_win_periods, hyperparams):
         model.fit(X[t - W : t], y[t - W : t])
         fit_sec.append(time.time() - a)
         refit_row.append(i)
-        imp.append(native_importance(model, p))
+        record = ((off + i) // REFIT_EVERY) % IMPORTANCE_EVERY == 0
+        imp.append(native_importance(model, p) if record else np.full(p, np.nan))
         Xb = X[t : t + k]
         preds[i : i + k] = model.predict(Xb)
-        if WANT_SHAP:
+        if WANT_SHAP and record:
             a = time.time()
             c = contributions(model, Xb)
             shap_sec.append(time.time() - a)
@@ -363,6 +381,7 @@ np.savez_compressed(
             "train_win_days": TRAIN_WIN,
             "train_rows": SIDE["train_rows"],
             "refit_every": REFIT_EVERY,
+            "importance_every": IMPORTANCE_EVERY,
             "threads": N_THREADS,
             "seed": SEED,
             "har_lags": HAR_LAGS,

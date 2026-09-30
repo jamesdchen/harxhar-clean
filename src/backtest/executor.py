@@ -429,7 +429,7 @@ def _backtest_and_save(
     print(f"Saved {len(results)} rows -> {output_file}")
 
 
-def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None):
+def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None, session_edge=True):
     df, har_names = generate_har_features(
         df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
     )
@@ -443,11 +443,20 @@ def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None):
         # Materialized upstream so every model + the cached matrix inherit them; causal (the
         # is_open/is_close gates are pure functions of the timestamp). Mirrors the no-rebuild
         # resid_amortized._regime_interactions, identical naming (har_ma_{w}_x_{open,close}).
-        for h in [c for c in har_names if c.startswith("har_ma_")]:  # the 6 target-HAR cols
-            for gate, suffix in (("is_open", "open"), ("is_close", "close")):
-                name = f"{h}_x_{suffix}"  # matches resid_amortized: har_ma_{w}_x_{open,close}
-                df[name] = df[h] * df[gate]
-                feature_names.append(name)
+        # session_edge=False (2026-09-29, user decision) drops them for ONE-BAR-PER-SESSION
+        # segments, where they carry nothing: is_open (hour 9) is 0 on every session bar
+        # 10:00-16:00, so the six _x_open columns are all zero, and is_close (hours 16-19) is 1
+        # on the 16:00 bar only, so at bar1600 the six _x_close columns are exact copies of
+        # har_ma_1 .. har_ma_3125 (checked on results/model_diagnostics_1530/capture_bar1600*.npz)
+        # and zero at every other bar. The pooled 48-bar path (segment=None) keeps them, where
+        # they vary across bars. Every per-bar result produced before 2026-09-29 was fitted
+        # WITH these 12 columns.
+        if session_edge:
+            for h in [c for c in har_names if c.startswith("har_ma_")]:  # the 6 target-HAR cols
+                for gate, suffix in (("is_open", "open"), ("is_close", "close")):
+                    name = f"{h}_x_{suffix}"  # matches resid_amortized: har_ma_{w}_x_{open,close}
+                    df[name] = df[h] * df[gate]
+                    feature_names.append(name)
     else:
         feature_names = har_names
     return df, feature_names
@@ -643,7 +652,9 @@ def _iter_TOD_segment(
     base, ext = os.path.splitext(output_file)
 
     if lag_scope == "global":
-        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar, har_lags)
+        df, feature_names = _build_har_and_calendar(
+            df, exog_cols, add_calendar, har_lags, session_edge=False
+        )
 
     for seg_name in segments:
         seg_df = slice_to_segment(df, seg_name)
@@ -652,7 +663,7 @@ def _iter_TOD_segment(
             continue
         if lag_scope == "intra":
             seg_df, feature_names = _build_har_and_calendar(
-                seg_df, exog_cols, add_calendar, har_lags
+                seg_df, exog_cols, add_calendar, har_lags, session_edge=False
             )
         train_win_periods = compute_segment_train_window(seg_df["t"], train_window)
         yield (
