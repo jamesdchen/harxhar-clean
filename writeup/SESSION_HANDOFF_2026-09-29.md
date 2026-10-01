@@ -137,3 +137,25 @@ Legend: [x] done · [~] partial / first pass · [ ] not started. Paths are repo-
 ## 7. Kickoff prompt to paste after /clear
 
 > Read `writeup/SESSION_HANDOFF_2026-09-29.md` in full, then carry out section 1 with Opus 5.5 agents in maximum parallelism (subagents allowed and encouraged; process-level parallelism inside scripts too). I'm re-attaching the professor's two feature-importance images here: [attach Images #3 and #4]. First, build the single checklist from section 4 (keep it in a file you update as agents finish, e.g. `writeup/PROGRESS_2026-09-29.md`), mark what's already done, check on the tuned-tree campaign on CARC, commit the uncommitted spec + handoff, then dispatch the independent workstreams at once. Don't use hpc-agent tools; submit through `submit_*.sh` scripts over native ssh (pre-approved) — CARC (`usc-discovery`, Slurm) is the main workhorse, Hoffman2 (`hoffman2`, SGE) takes the faster, lighter jobs.
+
+---
+
+## 8. State at 2026-10-01 (appended before a /clear)
+
+- **Everything from the 2026-09-29/30 sessions is committed and pushed** (branch == origin). Checklist `writeup/PROGRESS_2026-09-29.md`
+  (sections A-H and I all closed); campaign record `writeup/CAMPAIGN_16H_2026-09-29.md` + Appendix D.19; the paper builds at 99 pp,
+  0 overfull / 0 undefined.
+- **Deliverables made 2026-09-30**: `writeup/master_table_close_16h.pdf` (`make_master_table_close_tex.py --per-bar-only`),
+  `writeup/master_table_close.pdf`, `writeup/vrp_sizing.pdf` (`make_vrp_sizing_tex.py`), `writeup/feature_importance_1530_dedup.pdf`
+  (`make_feature_importance_1530_tex.py --dedup`). PDFs/aux are not committed; the makers and generated tex are.
+- **Master-table GUI** (`writeup/master_table_gui/`, UNTRACKED, built and still being edited by the OTHER Claude session on this branch):
+  local server `python writeup/master_table_gui/server.py` (port 8765) + `static/index.html`; `rows.py` now caches the loaded rows
+  (mtime-keyed; one request's work was ~1.7 s, now ~4 ms); `launch.pyw` + the desktop shortcut "Master Table GUI" start it windowless
+  and open the browser. Sharing options discussed: the PDFs / CSV export (now), a self-contained static HTML build (not built), a
+  live-recompute endpoint (described, not built). Do not commit the GUI dir from a session that does not own it.
+- **Uncommitted in the worktree at this moment**: ~41 modified files across experiments/, writeup/, src/, analysis/ and the
+  intraday_proposals — the other session's in-progress edits (not this session's); leave them to it.
+- **Open for the user** (unchanged): D1 changelog section 5 decisions; the professor's on-screen strategy-variation list; the six stuck
+  Hoffman2 probe jobs (`qdel 14973616 14973622 14973623 14973624 14973741 14973742`); compute figures missing from D.19's table.
+- **Working rules learned**: record, don't judge (summaries are documentation, not verdicts); one CPU class per campaign (LightGBM picks
+  change across classes); cluster ssh discipline (section 2); every per-bar fit window-masked; design has no session-edge duplicates.
