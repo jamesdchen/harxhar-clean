@@ -324,11 +324,13 @@ def write_summary(recs, cur, chk, arms, info) -> None:
             f"{c['dist_to_final'] * 100:.0f} % | {int(r['rounds'])} | {fmt_cfg(r)} |"
         )
     w("")
+    n_rt = int(rtt.groupby("row")["trial"].max().max()) + 1 if not rtt.empty else C.RETUNE_TRIALS
     if not rlog.empty:
         w("## Light retunes (every 250 sessions from 2020)")
         w("")
         w(
-            f"At each retune row: {C.RETUNE_TRIALS} trials (trial 0 = the incumbent) of a TPE study (seed "
+            f"At each retune row: {n_rt} trials (trial 0 = the incumbent; TPE draws its first 10 trials at random, so "
+            f"{'every challenger here is a random draw in the box' if n_rt <= 10 else 'the first 9 challengers are random draws in the box'}) of a TPE study (seed "
             f"{C.TPE_SEED_BASE} + study seed + row) confined to a box around the incumbent ({C.NEIGHBOURHOOD_FRACTION:g} of "
             "each axis's range, log units on log axes), validated on the 250 sessions before the row as 2 folds of 125 "
             "sessions (each its own 2000-session fit block, 25-session embargo), on the 16:00-bar design. retune_any "
@@ -387,6 +389,19 @@ def write_summary(recs, cur, chk, arms, info) -> None:
       "merged sequence's first k x studies trials), frozen; "
       "`retune_any_r10` / `retune_margin_r10` the final pre-tuned configuration plus the light retunes above. "
       "Stored rows: the master table's forecast tables scored by this script (gate above).")
+    w("## CPU used by this run (fit seconds, one thread each)")
+    w("")
+    pre_h = sum(r["fold_sec"].sum() for r in recs) / 3600
+    w(f"- pre-tune: {pre_h:.2f} core-hours of fold fits ({sum(len(r['val_mse']) for r in recs)} trials)")
+    if not rtt.empty:
+        w(f"- retunes: {rtt['sec'].sum() / 3600:.2f} core-hours")
+    for lg in (C.WORK / "logs" / f"walk_{C.TAG}_{C.MODEL}_r10.log", C.RUN / "walk_r10.log"):
+        if lg.is_file():
+            done = [x for x in lg.read_text().splitlines() if "walk done:" in x]
+            if done:
+                w(f"- walk refits (refit every 10): {done[-1].split('walk done: ')[1]}")
+            break
+    w("")
     est = cluster_estimate(recs, arms)
     if est:
         w("## CPU estimate for the full-size cluster run (from this run's fit times)")

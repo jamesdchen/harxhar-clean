@@ -58,6 +58,7 @@ Question (the user's note): *not enough training data for trees? -> last hour (2
 | arm | model | rows | window | QLIKE | Sharpe mid | Sharpe crossed | DM vs control | HAC t vs control | CPU min |
 |---|---|---|---|---|---|---|---|---|---|
 | `lgbm_bar1600_w2000` | LightGBM | 16:00 rows, one-bar design (shipped) | 2000 sessions | 0.1007 | 1.99 | 1.52 |  |  | 21.3 |
+| `lgbm_pool_w4000` | LightGBM | both last-hour bars (last30 design) | 2000 sessions (4000 rows) | 0.0982 | 1.95 | 1.48 | -1.16 | -0.13 | 22.6 |
 | `ridge_bar1600_w2000` | ridge | 16:00 rows, one-bar design (shipped) | 2000 sessions | 0.1004 | 1.66 | 1.20 | -0.07 | -0.79 | 0.1 |
 | `ridge_pool_w4000` | ridge | both last-hour bars (last30 design) | 2000 sessions (4000 rows) | 0.1048 | 1.29 | 0.82 | 0.88 | -1.46 | 0.2 |
 | `ridge_h16_w500` | ridge | 16:00 rows of the last30 design | 500 sessions | 0.1194 | 0.97 | 0.49 | 2.20 | -1.87 | 0.1 |
@@ -79,6 +80,7 @@ Question (the user's note): *not enough training data for trees? -> last hour (2
 
 | arm | reference | dQLIKE | dQLIKE % | DM | dSharpe mid | HAC t |
 |---|---|---|---|---|---|---|
+| `lgbm_pool_w4000` | `lgbm_bar1600_w2000` | -0.0024 | -2.4 | -1.16 | -0.03 | -0.13 |
 | `ridge_bar1600_w2000` | `ridge_h16_w2000` | -0.0023 | -2.2 | -1.47 | -0.00 | -0.01 |
 | `ridge_pool_w4000` | `ridge_bar1600_w2000` | +0.0044 | +4.4 | 1.40 | -0.38 | -0.98 |
 | `ridge_pool_w4000` | `ridge_h16_w2000` | +0.0021 | +2.1 | 0.67 | -0.38 | -0.99 |
@@ -111,7 +113,18 @@ dQLIKE < 0 and DM < 0: the tree has the lower loss; dSharpe > 0 and HAC t > 0: t
 | tree arm | linear arm | rows | window | QLIKE tree | QLIKE linear | dQLIKE | DM | Sharpe tree | Sharpe linear | HAC t |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `lgbm_bar1600_w2000` | `ridge_bar1600_w2000` | 16:00 rows, one-bar design (shipped) | 2000 sessions | 0.1007 | 0.1004 | +0.0003 | 0.07 | 1.99 | 1.66 | 0.79 |
+| `lgbm_pool_w4000` | `ridge_pool_w4000` | both last-hour bars (last30 design) | 2000 sessions (4000 rows) | 0.0982 | 0.1048 | -0.0065 | -1.50 | 1.95 | 1.29 | 1.55 |
 | `lgbm_bar1600_w2000` | `lasso_bar1600_w2000` | 16:00 rows, one-bar design (shipped) | 2000 sessions | 0.1007 | 0.0998 | +0.0009 | 0.28 | 1.99 | 1.45 | 1.46 |
+| `lgbm_pool_w4000` | `lasso_pool_w4000` | both last-hour bars (last30 design) | 2000 sessions (4000 rows) | 0.0982 | 0.1049 | -0.0067 | -1.66 | 1.95 | 1.21 | 1.93 |
+
+## Does more data help the trees more than the linear models? (difference in differences)
+
+dQLIKE tree = the tree's QLIKE change from the reference window to the new rows; the same for the linear model; DiD = tree change minus linear change (negative = more rows help the tree more). DM is on the daily series of differences; HAC t on the daily P&L series of differences (positive = more rows raise the tree's P&L more than the linear model's).
+
+| tree | linear | change | dQLIKE tree | dQLIKE linear | DiD | DM | dSharpe tree | dSharpe linear | HAC t |
+|---|---|---|---|---|---|---|---|---|---|
+| LightGBM | ridge | bar1600_w2000 -> pool_w4000 | -0.0024 | +0.0044 | -0.0068 | -2.08 | -0.03 | -0.38 | 0.86 |
+| LightGBM | lasso | bar1600_w2000 -> pool_w4000 | -0.0024 | +0.0052 | -0.0076 | -1.71 | -0.03 | -0.24 | 0.44 |
 
 ## Learning curve (16:00 rows of the last30 design)
 
@@ -126,9 +139,10 @@ dQLIKE < 0 and DM < 0: the tree has the lower loss; dSharpe > 0 and HAC t > 0: t
 | expanding (3565..4815 sessions) | 0.0968 | 0.1007 | 1.42 | 0.70 |
 
 ## Not run
-- Arms of the plan not run in this container's CPU budget: `lgbm_pool_w4000`, `lgbm_h16_w2000`, `lgbm_h16_wexp`, `lgbm_h16_w500`, `lgbm_h16_w1000`, `lgbm_h16_w3000`, `xgb_bar1600_w2000`, `xgb_pool_w4000`. The `closing` segment (5 bars, 14:00-16:00) was not built. `cluster/close_trees_datasize_h2_task.sh` + `cluster/submit_close_trees_datasize_h2.sh` run any arm of the script on Hoffman2 (not submitted).
+- Arms of the plan not run in this container's CPU budget: `lgbm_h16_w2000`, `lgbm_h16_wexp`, `lgbm_h16_w500`, `lgbm_h16_w1000`, `lgbm_h16_w3000`, `xgb_bar1600_w2000`, `xgb_pool_w4000`. The `closing` segment (5 bars, 14:00-16:00) was not built.
+- Hoffman2 version (written, smoke-tested locally at tiny size, NOT submitted): `cluster/close_trees_datasize_h2_task.sh` + `cluster/submit_close_trees_datasize_h2.sh`, 176 single-slot tasks in `cluster/close_trees_datasize_h2_tasks.txt` (each arm cut into 8 time chunks, joined by `merge`): refit every 10 sessions: `xgb_bar1600_w2000`, `xgb_pool_w4000`, `rf_bar1600_w2000`, `rf_pool_w4000`, `rf_h16_w2000`, `rf_h16_wexp`, `xgb_h16_w2000`, `xgb_h16_wexp`, `xgb_h16_w500`, `xgb_h16_w1000`, `xgb_h16_w3000`; refit every 1 session: `lgbm_bar1600_w2000`, `lgbm_pool_w4000`, `lgbm_h16_w2000`, `lgbm_h16_wexp`, `lgbm_h16_w500`, `lgbm_h16_w1000`, `lgbm_h16_w3000`, `xgb_bar1600_w2000`, `xgb_pool_w4000`, `xgb_h16_w2000`, `xgb_h16_wexp`. The local control's LightGBM fit took 9.9 s on one core here, so one arm refit every session (1339 fits) is about 3.7 CPU-hours.
 
 ## Files
 - `experiments/close_trees_datasize.py` (run stage), `experiments/close_trees_datasize_analyze.py` (this report)
 - `arms.csv`, `vs_reference.csv`, `tree_minus_linear.csv`, `trees_vs_linear.csv`, `curve.csv`, `gates.csv`, `learning_curve.png`; forecasts in `_work/<arm>.npz` (not committed)
-- CPU: 34 min over 15 arms, one single-threaded process at a time.
+- CPU: 56 min over 16 arms, one single-threaded process at a time.
