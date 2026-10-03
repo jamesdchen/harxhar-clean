@@ -707,8 +707,8 @@ def analyze() -> None:  # noqa: C901 - one linear report
         est, mode = R[k]["est"], R[k]["mode"]
         i = col[k]
         row = dict(key=k, estimator=LABEL.get(est, "OLS"), mode=mode,
-                   label=MODE_LABEL.get(mode, {"baseline": "HAR + calendar",
-                                              "stored_single": "one penalty (stored table)"}[mode]),
+                   label={**MODE_LABEL, "baseline": "HAR + calendar",
+                          "stored_single": "one penalty (stored table)"}[mode],
                    qlike=pt["ql"][i], sharpe_mid=pt["sh"][i], sharpe_crossed=pt["shx"][i],
                    pct_buy=100.0 * P["buy"][i], n_days=P["ql"].shape[0])
         if k in R and "z" in R[k] and mode not in ("baseline",):
@@ -1033,6 +1033,17 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     t["median_rel_gap"] = t["median_rel_gap"].map(lambda v: f"{v:.1e}")
     say(_md_table(t))
     say("")
+    cdx = WORK / "check_cd_crosscheck.csv"
+    if cdx.is_file():
+        g3 = pd.read_csv(cdx)
+        say("6. An independent solver at a few dates (`experiments/close_exogpen_cdcheck.c`: centered "
+            "Gram, Cholesky ridge, covariance-form coordinate descent + exact KKT solve on the support) "
+            "against the C port's backbone-unpenalized arms, first sessions of block 0:")
+        say("")
+        t = g3[["est", "alpha", "sessions", "max_rel_gap"]].copy()
+        t["max_rel_gap"] = t["max_rel_gap"].map(lambda v: f"{v:.1e}")
+        say(_md_table(t))
+        say("")
     say("## QLIKE and the trade (point estimates; the block bootstrap is off, commit b761b28)")
     say("")
     say("DM = Diebold-Mariano statistic on the daily QLIKE difference (negative: the row forecasts "
