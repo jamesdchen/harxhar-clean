@@ -208,6 +208,6 @@ Wording: sign(s) = buy the straddle when the recalibrated 16:00 forecast exceeds
 \clearpage
 \begin{figure}[h]\centering
 \includegraphics[width=0.85\linewidth]{../results/close_master_table/qlike_vs_sharpe.png}
-\caption{Recalibrated 16:00 QLIKE against the sign(s) Sharpe ratio (midpoint fill), table A (check rows and identical forecasts left out); the dashed line is always short. R = reference, H = recommended headline. 5 forecasts lie beyond the plotted QLIKE range (upper quartile + 3 interquartile ranges = 0.126) and are not drawn: per-bar LSTM [all\_features] (QLIKE 0.131, Sharpe 1.33); per-bar LSTM, QLIKE-selected [all\_features] (QLIKE 0.130, Sharpe 1.09); per-bar elastic net [live\_feasible], HAR ladder intra (QLIKE 0.214, Sharpe 0.36); per-bar lasso [live\_feasible], HAR ladder intra (QLIKE 0.218, Sharpe 0.19); per-bar ridge [live\_feasible], HAR ladder intra (QLIKE 0.218, Sharpe -0.02).}
+\caption{Recalibrated 16:00 QLIKE against the sign(s) Sharpe ratio (midpoint fill), table A (check rows and identical forecasts left out); the dashed line is always short. R = reference, H = recommended headline. 2 forecasts lie beyond the plotted QLIKE range (upper quartile + 3 interquartile ranges = 0.127) and are not drawn: per-bar LSTM [all\_features] (QLIKE 0.131, Sharpe 1.33); per-bar LSTM, QLIKE-selected [all\_features] (QLIKE 0.130, Sharpe 1.09).}
 \end{figure}
 \end{document}

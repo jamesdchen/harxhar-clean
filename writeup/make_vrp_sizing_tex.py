@@ -35,7 +35,7 @@ KELLY = ROOT / "results" / "close_kelly"
 GEN = ROOT / "writeup" / "generated"
 WRITEUP = ROOT / "writeup"
 STEM = "vrp_sizing"
-PRIMARY_BLOCK = "after 252-day warm-up"
+PRIMARY_BLOCK = "from the second day"
 PRIMARY_WINDOW, PRIMARY_CAP, PRIMARY_KELLY = "expanding", "history ruin bound", "half"
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 COLORS = [
@@ -113,7 +113,7 @@ def prop_tables(v: pd.DataFrame) -> tuple[list[str], dict]:
     forecasts = list(v["forecast"].unique())
     out: list[str] = []
     facts: dict = {}
-    for block in (PRIMARY_BLOCK, "from the second day"):
+    for block in (PRIMARY_BLOCK,):
         b = v[v["block"] == block]
         ndays = int(b["days"].iloc[0])
         n_above = {r: 0 for r in rules}
@@ -324,7 +324,7 @@ def kelly_figure(k: pd.DataFrame) -> Path:
 def bins_table(path: Path) -> list[str]:
     if not path.exists():
         return []
-    b = pd.read_csv(path)
+    b = _drop_live_feasible(pd.read_csv(path))
     b = b[(b["fill"] == "mid") & b["cell"].str.startswith("|s| bin")]
     b["bin"] = b["cell"].str.extract(r"bin (\d)").astype(int)
     b["side_k"] = np.where(b["side"].str.startswith("s > 0"), "buy", "sell")
@@ -383,9 +383,19 @@ PREAMBLE = r"""\documentclass[10pt]{article}
 """
 
 
+def _drop_live_feasible(df: pd.DataFrame) -> pd.DataFrame:
+    # live-feasible forecasts commented out of this document
+    if "forecast" not in df.columns:
+        return df
+    keep = ~df["forecast"].astype(str).str.contains(
+        r"live[-_]feasible", case=False, regex=True
+    )
+    return df.loc[keep].copy()
+
+
 def main() -> None:
-    v = pd.read_csv(VRP)
-    k = pd.read_csv(KELLY / "kelly_rules.csv")
+    v = _drop_live_feasible(pd.read_csv(VRP))
+    k = _drop_live_feasible(pd.read_csv(KELLY / "kelly_rules.csv"))
     k["rule"] = k["rule"].map(clean)
     v["rule"] = v["rule"].map(clean)
     GEN.mkdir(parents=True, exist_ok=True)
@@ -414,12 +424,15 @@ def main() -> None:
         r"\textbf{What is here.} The 15:30 rule trades the straddle (nearest out-of-the-money call and put, same-day expiry, one position) "
         r"on the sign of $s_t$ = the 16:00-bar variance forecast minus the implied variance at 15:30. This document records every rule that "
         r"lets the \emph{size} of the position depend on $s_t$ (or on the past distribution of the trade's return given $s_t$), against the "
-        r"flat sign(s) rule on the same days. Two studies, one scorer: the rv\_iv deck's 13-bar recalibration for the forecasts (rv\_iv notebook "
-        r"section 10 for the proportional and rank rules; \texttt{experiments/close\_kelly\_sizing.py} for the Kelly family), "
-        + str(pb["n_forecasts"])
-        + r" forecasts (the paper's eight and the seven per-bar linear ones), the same "
+        r"flat sign(s) rule on the same days. Two studies, one scorer: the rv\_iv deck's 13-bar recalibration. "
+        r"The proportional and rank rules are scored on the "
         + str(pb["days"])
-        + r" days after a 252-day warm-up (2021-08-11 to 2024-04-30), midpoint and crossed fills, paired circular block-bootstrap intervals "
+        + r" days from the second deck day (the first day has no prior gap to scale by). "
+        r"Each size uses every earlier deck day, back to the first. The Kelly family is a separate sample, the "
+        + str(kd["days"])
+        + r" days after a 252-day warm-up. "
+        + str(pb["n_forecasts"])
+        + r" forecasts, midpoint and crossed fills, paired circular block-bootstrap intervals "
         r"(block 21, 2{,}000 draws). These Sharpes are the deck's and are not comparable with the master table's research-scorer numbers. "
         r"Every rule is causal: a stake at $t$ uses days before $t$ only (gated by multiplying every future return by 50 and checking that no "
         r"stake changes). Returns are per unit of premium; the Kelly rules' wealth paths compound.\par"

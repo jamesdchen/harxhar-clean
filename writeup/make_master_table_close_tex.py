@@ -2,11 +2,11 @@
 
 Reads the CSVs experiments/master_table_close.py wrote (never retypes a number) and writes
 
-  writeup/generated/table_master_close.tex   two longtables (needs booktabs + longtable at the
+  writeup/generated/table_master_close.tex   three longtables (needs booktabs + longtable at the
                                              include site): forecast accuracy at the 16:00 bar,
-                                             and the last-30-min sign(s) trade
+                                             the last-30-min sign(s) trade, and deck VRP sizing
   writeup/master_table_close.tex             standalone landscape document: the reading notes,
-                                             the rank-correlation and vs-headline tables, the two
+                                             the rank-correlation and vs-headline tables, the three
                                              longtables and the QLIKE-vs-Sharpe figure
   results/close_master_table/qlike_vs_sharpe.png
   writeup/master_table_close.pdf             (pdflatex, two passes; the PDF and aux are not committed)
@@ -500,6 +500,98 @@ def summary_blocks() -> list[str]:
     return L
 
 
+_VRP_TAG = {
+    "a0": "a0",
+    "blk2": "blk2",
+    "blk2_inc": "blk2_inc",
+    "lgbm": "lgbm",
+    "xgb": "xgb",
+    "lasso_t": "lasso_t",
+    "lasso_f": "lasso_f",
+    "enet": "enet",
+    "sub_ridge_baseline": "sub_base",
+    "sub_ridge_all_features": "sub_ridge",
+    "sub_lasso_all_features": "sub_lasso",
+    "sub_enet_all_features": "sub_enet",
+}
+
+
+def vrp_sizing_table(tab: pd.DataFrame) -> list[str]:
+    """Deck sizing on the 865 days from the second day, one row per forecast that has it."""
+    src = ROOT / "results" / "atm_straddle_0dte_1530" / "vrp_sized_rules.csv"
+    if not src.is_file():
+        return []
+    v = pd.read_csv(src)
+    v = v[v["block"] == "from the second day"]
+    have = set(tab["key"])
+    if not any(k in have for k in _VRP_TAG):
+        return []
+    days = int(v["days"].iloc[0])
+    rules = [
+        ("(a) proportional s/rms", "proportional"),
+        ("(b) rank of $|s|$, sign kept", "rank"),
+        ("(c) centred rank $2F(s)-1$", "centred"),
+    ]
+    head = (
+        r"forecast & sign(s) & "
+        + " & ".join(rf"\multicolumn{{2}}{{c}}{{{name}}}" for _rule, name in rules)
+        + r" \\"
+        + "\n"
+        + r" & Sharpe & "
+        + " & ".join(r"Sharpe & $\Delta$ vs sign(s)" for _ in rules)
+        + r" \\"
+    )
+    shown = tab[tab["key"].isin(_VRP_TAG) & (tab["table"] == "A")]
+    if not len(shown):
+        shown = tab[tab["key"].isin(_VRP_TAG)]
+    rows = []
+    for key in [k for k in _VRP_TAG if k in set(shown["key"])]:
+        r = shown[shown["key"] == key].iloc[0]
+        g = v[v["tag"] == _VRP_TAG[key]].set_index("rule")
+        cells = [row_name(r, {}), f(g.loc["sign(s)", "Sharpe mid"], "{:.2f}")]
+        for rule, _name in (
+            ("(a) proportional s/rms", ""),
+            ("(b) rank of |s|, sign kept", ""),
+            ("(c) centred rank 2F(s)-1", ""),
+        ):
+            x = g.loc[rule]
+            cells.append(f(x["Sharpe mid"], "{:.2f}"))
+            cells.append(ci(x["dSharpe mid"], x["lo mid"], x["hi mid"]))
+        rows.append(" & ".join(cells) + r" \\")
+    cap = (
+        f"VRP sizing on the deck's scorer, {days} days from the second deck day, midpoint fill. "
+        r"The size on day $t$ uses every earlier deck day back to the first: "
+        r"(a) $q_t = s_t/\mathrm{rms}(s)$, (b) the rank of $|s_t|$, sign kept, "
+        r"(c) the centred rank $2F(s_t)-1$. "
+        r"$\Delta$ is the rule's Sharpe minus sign(s) on the same days, with the stored 95\% interval. "
+        r"These Sharpes are not the research-scorer Sharpes in the trade table."
+    )
+    return _vrp_longtable(head, rows, cap, "lrrlrlrl")
+
+
+def _vrp_longtable(head: str, rows: list[str], caption: str, colspec: str) -> list[str]:
+    return [
+        r"\begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}",
+        r"\begin{longtable}{" + colspec + "}",
+        r"\caption{" + caption + r"}\label{tab:master_vrp_sizing}\\",
+        r"\toprule",
+        head,
+        r"\midrule",
+        r"\endfirsthead",
+        r"\multicolumn{8}{l}{\emph{(continued)}} \\",
+        r"\toprule",
+        head,
+        r"\midrule",
+        r"\endhead",
+        r"\bottomrule",
+        r"\endfoot",
+        *rows,
+        r"\end{longtable}",
+        r"\endgroup",
+        "",
+    ]
+
+
 def main() -> None:
     global STEM, FIG
     ap = argparse.ArgumentParser()
@@ -511,6 +603,11 @@ def main() -> None:
     a = ap.parse_args()
     tab = pd.read_csv(SRC / "master_table.csv", keep_default_na=True)
     tab["duplicate_of"] = tab["duplicate_of"].fillna("")
+    live = tab["key"].astype(str).str.contains("live_feasible") | tab["label"].astype(
+        str
+    ).str.contains(r"live[-_]feasible", case=False, regex=True)
+    tab = tab.loc[~live].copy()
+    tab["label"] = tab["label"].astype(str).str.replace(", same spec", "", regex=False)
     gen_name = "table_master_close.tex"
     n_all = len(tab)
     if a.per_bar_only:
@@ -523,6 +620,7 @@ def main() -> None:
         tab[c] = tab[c].astype(bool)
     body_acc = accuracy_table(tab)
     body_trade = trade_table(tab)
+    body_vrp = vrp_sizing_table(tab)
     GEN.mkdir(parents=True, exist_ok=True)
     gen = GEN / gen_name
     head = [
@@ -532,7 +630,9 @@ def main() -> None:
         "",
     ]
     gen.write_text(
-        "\n".join(head + body_acc + body_trade), encoding="utf-8", newline="\n"
+        "\n".join(head + body_acc + body_trade + body_vrp),
+        encoding="utf-8",
+        newline="\n",
     )
     print("wrote", gen)
 
@@ -546,7 +646,7 @@ def main() -> None:
         doc.append(r"\subsection*{What this version contains}")
         doc.append(
             f"{len(tab) - int((tab['key'] == 'always_short').sum())} forecasts, every one fitted on the 16:00 bar alone: the per-bar linear arms "
-            "(ridge, lasso, elastic net on the HAR + calendar, live-feasible and all-features inputs; the VIX-only, implied-volatility, "
+            "(ridge, lasso, elastic net on the HAR + calendar and the all-features inputs; the VIX-only, implied-volatility, "
             "HAR-ladder and chain-period bucket studies), every per-bar tree rung (the shipped configuration refit every 10 sessions and "
             "every session; the random search at both cadences; the Optuna-tuned paths by tuning cadence and trial budget; MSE- and "
             "QLIKE-selected twins) and both LSTMs (the per-bar sequence of sessions, refit every session, and the intraday sequence of bars). "

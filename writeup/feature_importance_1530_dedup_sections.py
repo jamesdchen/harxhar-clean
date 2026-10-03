@@ -7,6 +7,7 @@ before_after, and the aggregates of both roots); nothing is typed in."""
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -14,7 +15,7 @@ import pandas as pd
 R = Path(__file__).resolve().parent.parent
 FIRST = R / "results" / "feature_importance_1530"
 NOMASK = R / "results" / "feature_importance_1530_dedup_nomask"
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 BNAME = {
     "baseline": "HAR + calendar",
     "live_feasible": "live-feasible",
@@ -112,7 +113,7 @@ def intro_md(out: Path, K: int) -> list[str]:
             if b in kept
         )
         + ". The linear models are unchanged by the mask: their identifiability mask already removed constant columns and copies (including every session-edge column) at every tune.",
-        f"- Everything else is the first pass's: the same {K} refits (every 10 sessions), the same causal held-out tails, the same permutation generator and seeds (by bucket and refit), the same five models, parameters, seeds and three designs; one thread per fit. So before / after differs only by the design (and, for the trees, the mask) -- and by the permutation draws of most units: the stream is laid out unit by unit (every unit's P1 draws, then every unit's P2 draws), and the old design's twelve extra columns were its last twelve, so a column's P1 draws are identical in both runs while the P2 draws and the series / cluster units' draws are fresh draws of the same scheme. The ridge fits are the same problem in both runs (coefficients equal to 1e-10), so the ridge rows of the before / after tables measure that Monte Carlo noise alone. The intermediate rung -- de-dup, no mask -- is `results/feature_importance_1530_dedup_nomask/` (same code, FEATIMP_WINDOW_MASK=0).",
+        f"- Everything else is the first pass's: the same {K} refits (every 10 sessions), the same causal held-out tails, the same permutation generator and seeds (by bucket and refit), the same five models, parameters, seeds and two designs; one thread per fit. So before / after differs only by the design (and, for the trees, the mask) -- and by the permutation draws of most units: the stream is laid out unit by unit (every unit's P1 draws, then every unit's P2 draws), and the old design's twelve extra columns were its last twelve, so a column's P1 draws are identical in both runs while the P2 draws and the series / cluster units' draws are fresh draws of the same scheme. The ridge fits are the same problem in both runs (coefficients equal to 1e-10), so the ridge rows of the before / after tables measure that Monte Carlo noise alone. The intermediate rung -- de-dup, no mask -- is `results/feature_importance_1530_dedup_nomask/` (same code, FEATIMP_WINDOW_MASK=0).",
         "- Cadence: the campaign's trees now refit every session (`yhat_subtree_daily_*`). At an importance refit the model is identical under either cadence (the same 2000-session window, the same configuration), so the importance recorded at every 10th refit is the daily-refit model's importance on those days (checked on the stored runs, gate below).",
         "",
     ]
@@ -141,7 +142,7 @@ def intro_tex(out: Path, K: int) -> str:
 
 def buckets_md(root_rel: str, stem: str) -> str:
     return (
-        "Buckets: live_feasible (the deck's), all_features, baseline = HAR + calendar. Scripts: `experiments/feature_importance_1530_dedup.py` (the re-run's roots and stages) driving the first pass's `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster; the per-window mask behind FEATIMP_WINDOW_MASK=1); "
+        "Buckets: all_features, baseline = HAR + calendar. Scripts: `experiments/feature_importance_1530_dedup.py` (the re-run's roots and stages) driving the first pass's `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster; the per-window mask behind FEATIMP_WINDOW_MASK=1); "
         f"tables in `{root_rel}/`, PDF `writeup/{stem}.pdf`."
     )
 
@@ -202,16 +203,17 @@ def _gate_numbers(out: Path, G: pd.DataFrame) -> dict:
     n["shap_add"] = max(
         float(gm.loc[(b, m), "shap_additivity_max"]) for b in BUCKETS for m in TREES
     )
-    n["draws"] = bool((G["draws_equal_to_lgbm"] == G["refits"]).all())
+    shown = G[G.bucket.isin(BUCKETS)]
+    n["draws"] = bool((shown["draws_equal_to_lgbm"] == shown["refits"]).all())
     C = _read(out / "gates_cadence.csv")
     if C is not None:
-        n["cadence"] = C
+        n["cadence"] = C[C.bucket.isin(BUCKETS)] if "bucket" in C.columns else C
     Q = _read(out / "gates_canonical.csv")
     if Q is not None:
-        n["canonical"] = Q
+        n["canonical"] = Q[Q.bucket.isin(BUCKETS)] if "bucket" in Q.columns else Q
     D = _read(out / "gates_design.csv")
     if D is not None:
-        n["design"] = D
+        n["design"] = D[D.bucket.isin(BUCKETS)] if "bucket" in D.columns else D
     return n
 
 
@@ -301,7 +303,9 @@ def gates_md(out: Path, G: pd.DataFrame) -> list[str]:
             and Q["table_equals_unmasked_t10"].fillna(True).astype(bool).all()
         ):
             L.append(
-                "- Canonical masked tree tables: `results/spxw_pnl/yhat_subtree_<model>_<bucket>` still equal the unmasked T10 runs bit for bit (9 of 9) when this was built -- the masked re-run of the campaign (agent H) had not replaced them, so the masked refits are gated against their own unmasked twins (above) and the design; `gates_canonical.csv` repeats the check once the masked tables land."
+                "- Canonical masked tree tables: `results/spxw_pnl/yhat_subtree_<model>_<bucket>` still equal the unmasked T10 runs bit for bit ("
+                + f"{len(Q)} of {len(Q)}"
+                + ") when this was built -- the masked re-run of the campaign (agent H) had not replaced them, so the masked refits are gated against their own unmasked twins (above) and the design; `gates_canonical.csv` repeats the check once the masked tables land."
             )
         else:
             col = "refit_mask_vs_table_max_abs"
@@ -338,7 +342,9 @@ def gates_md(out: Path, G: pd.DataFrame) -> list[str]:
         + ". The lasso gaps are the warm-homotopy float path of the spec's lasso: it moves with the CPU architecture (agent A: a re-run on the same architecture is bit-identical, another machine moves 16:00 forecasts by 5e-4..8e-2), and the stored arms ran on the other cluster; the lasso importance is that of this capture. Drop-column anchors reproduce the captures: ridge <= "
         + f"{max(v[0] for (b, m), v in n['anchor'].items() if m == 'ridge'):.0e}, lasso <= {max(v[0] for (b, m), v in n['anchor'].items() if m == 'lasso'):.0e} (above 1e-6 on "
         + " / ".join(str(n["anchor"][(b, "lasso")][1]) for b in BUCKETS)
-        + " of 147 refits, HAR + calendar / live-feasible / all features). The all_features lasso refits 75..124 (penalty 0.001) ran on the cluster (`cluster/slurm/submit_featimp_dedup.sh linear`), the rest locally; the parts partition the 147 refits (checked by the merge)."
+        + " of 147 refits, "
+        + " / ".join(BNAME[b] for b in BUCKETS)
+        + "). The all_features lasso refits 75..124 (penalty 0.001) ran on the cluster (`cluster/slurm/submit_featimp_dedup.sh linear`), the rest locally; the parts partition the 147 refits (checked by the merge)."
     )
     L.append(
         f"- Every model of a bucket saw the identical permutation draws (md5 per refit equal across the five models): {n['draws']}. TreeSHAP additivity: sum of phi + expected value = forecast to <= {n['shap_add']:.0e}."
@@ -415,14 +421,22 @@ def before_after_md(out: Path) -> list[str]:
     X = _ba(out)
     if X["sp"] is None or X["har"] is None:
         return ["## Before / after", "Pending: `before_after_*.csv` not built.", ""]
-    sp, har, harc, mv, cl = X["sp"], X["har"], X["harc"], X["mv"], X["cl"]
+    sp, har, harc, mv, cl = (
+        _shown(X["sp"]),
+        _shown(X["har"]),
+        _shown(X["harc"]),
+        _shown(X["mv"]),
+        _shown(X["cl"]),
+    )
+    if sp is None or har is None or harc is None:
+        return ["## Before / after", "Pending: `before_after_*.csv` not built.", ""]
     L = [
         "## Before / after: first pass (old design, trees unmasked) vs de-dup + mask",
         "Tables `before_after_ranks_<bucket>_<model>.csv` (every unit of every measure and level: value and rank old / new [/ de-dup no mask for the trees], the rank among the units common to both runs and its change), `before_after_spearman.csv`, `before_after_movers.csv`, `before_after_har_ma.csv`, `before_after_har_ma_columns.csv`, `before_after_clusters.csv` (clusters are renumbered per run; matched by their members once the session-edge columns are removed from the old cluster).",
         "",
     ]
     # headline: har_ma_* in the trees, and the ridge rows as the draw-noise yardstick
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         cells = []
         for model in TREES:
             h = har[(har.bucket == b) & (har.model == model)].set_index("measure")
@@ -437,7 +451,7 @@ def before_after_md(out: Path) -> list[str]:
     rr = har[(har.model == "ridge") & (har.measure == "perm_p2_mse")]
     d_mse = (rr["pct_of_loss_new"] - rr["pct_of_loss_old"]).abs()
     L.append(
-        f"- The draw-noise yardstick: the ridge fits are the same problem in both runs, so its `har_ma_*` change is the Monte Carlo of fresh permutation draws alone: perm P2 dMSE moves by at most {d_mse.max():.1f} points of % tail loss over the three buckets (abs(beta x sd), SHAP and drop-column unchanged)."
+        f"- The draw-noise yardstick: the ridge fits are the same problem in both runs, so its `har_ma_*` change is the Monte Carlo of fresh permutation draws alone: perm P2 dMSE moves by at most {d_mse.max():.1f} points of % tail loss over the {rr['bucket'].nunique()} buckets (abs(beta x sd), SHAP and drop-column unchanged)."
     )
     # Spearman summary per level
     for level in ("series", "cluster", "column"):
@@ -477,7 +491,7 @@ def before_after_md(out: Path) -> list[str]:
     L.append(
         "### `har_ma_*` once its duplicates are gone (series value old / de-dup no mask / new; permutation and drop-column as % of the model's tail loss; `x_close share` = the old `_x_close` copies' part of the old har_ma column total)"
     )
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         L += [
             "",
             f"{b}:",
@@ -497,7 +511,7 @@ def before_after_md(out: Path) -> list[str]:
                 f"{BNAME[b]} {LABEL[m]} "
                 + f"{1e3 * float(harc[(harc.bucket == b) & (harc.model == m) & (harc.measure == 'perm_p2_qlike')]['old_har_ma_1'].iloc[0]):.1f} -> {1e3 * float(harc[(harc.bucket == b) & (harc.model == m) & (harc.measure == 'perm_p2_qlike')]['new_har_ma_1'].iloc[0]):.1f} / "
                 + f"{1e3 * float(harc[(harc.bucket == b) & (harc.model == m) & (harc.measure == 'perm_p2_qlike')]['old_har_ma_5'].iloc[0]):.1f} -> {1e3 * float(harc[(harc.bucket == b) & (harc.model == m) & (harc.measure == 'perm_p2_qlike')]['new_har_ma_5'].iloc[0]):.1f}"
-                for b in ("live_feasible", "all_features")
+                for b in ("all_features",)  # live_feasible commented out
                 for m in TREES
             )
             + "."
@@ -507,7 +521,7 @@ def before_after_md(out: Path) -> list[str]:
         L.append(
             "### Rows that moved most (series level, top-20 zone of either run, rank among common units old -> new)"
         )
-        for b in ("live_feasible", "all_features"):
+        for b in ("all_features",):  # live_feasible commented out
             L.append("")
             L.append(f"{b}:")
             for model in MODELS:
@@ -543,11 +557,169 @@ def _mm(v: pd.Series) -> str:
     return f"{v.median():.2f} ({v.min():.2f})" if len(v) else "--"
 
 
+def _shown(df: pd.DataFrame | None) -> pd.DataFrame | None:
+    if df is None or "bucket" not in df.columns:
+        return df
+    return df[df.bucket.isin(BUCKETS)].copy()
+
+
+def _har_figure(out: Path) -> str | None:
+    """Two-bucket copy of the har_ma before/after figure. The stored PNG still
+    has the live-feasible panel; that file is left in place."""
+    src = out / "before_after_har_ma.csv"
+    if not src.is_file():
+        return None
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    H = pd.read_csv(src)
+    color = {
+        "ridge": "#2a78d6",
+        "lasso": "#4a3aa7",
+        "lgbm": "#eb6834",
+        "xgb": "#1baf7a",
+        "rf": "#eda100",
+    }
+    short = {
+        "mdi": "MDI",
+        "split": "split",
+        "bsd": "|b sd|",
+        "shap": "SHAP",
+        "perm_p2_qlike": "perm P2 QLIKE",
+        "perm_p2_mse": "perm P2 MSE",
+    }
+    panels = (
+        (
+            "share of the model's importance (%)",
+            {"tree": ("mdi", "split", "shap"), "linear": ("bsd", "shap")},
+        ),
+        (
+            "permutation P2, % of the model's tail loss",
+            {"tree": ("perm_p2_qlike",), "linear": ("perm_p2_mse",)},
+        ),
+    )
+    fig, axes = plt.subplots(
+        len(BUCKETS),
+        2,
+        figsize=(11, 4.1 * len(BUCKETS)),
+        gridspec_kw={"width_ratios": [1.25, 1]},
+        squeeze=False,
+    )
+    grid = cast(np.ndarray, np.asarray(axes))
+    for r, b in enumerate(BUCKETS):
+        for c, (xlab, ms) in enumerate(panels):
+            ax = grid[r, c]
+            rows = []
+            measures = cast(dict[str, tuple[str, ...]], ms)
+            for model in MODELS:
+                fam = "tree" if model in TREES else "linear"
+                for m in measures[fam]:
+                    h = H[(H.bucket == b) & (H.model == model) & (H.measure == m)]
+                    if len(h):
+                        rows.append((model, m, h.iloc[0]))
+            y = np.arange(len(rows))[::-1]
+            for yy, (model, m, h) in zip(y, rows):
+                share = m in SHARE
+                if share:
+                    vo, vn = 100 * h.value_old, 100 * h.value_new
+                    vm = 100 * h.value_nomask
+                else:
+                    vo, vn = h.pct_of_loss_old, h.pct_of_loss_new
+                    vm = h.pct_of_loss_nomask
+                ax.plot([vo, vn], [yy, yy], color="0.75", lw=1.2, zorder=1)
+                ax.scatter([vo], [yy], s=40, color="0.45", zorder=3, lw=0)
+                if np.isfinite(vm):
+                    ax.scatter(
+                        [vm],
+                        [yy],
+                        s=46,
+                        facecolor="none",
+                        edgecolor=color[model],
+                        lw=1.4,
+                        zorder=3,
+                    )
+                ax.scatter(
+                    [vn],
+                    [yy],
+                    s=46,
+                    color=color[model],
+                    zorder=4,
+                    edgecolor="white",
+                    lw=1.0,
+                )
+                ax.text(
+                    max(vo, vn),
+                    yy,
+                    f"  {vo:.0f} -> {vn:.0f}",
+                    va="center",
+                    ha="left",
+                    fontsize=6.5,
+                    color="0.3",
+                )
+            ax.set_yticks(y)
+            ax.set_yticklabels(
+                [f"{LABEL[mo]}: {short[m]}" for mo, m, _ in rows], fontsize=7.5
+            )
+            ax.set_xlabel(xlab, fontsize=8)
+            ax.tick_params(axis="x", labelsize=7)
+            ax.grid(axis="x", color="0.92", lw=0.6)
+            ax.set_axisbelow(True)
+            for sp_ in ("top", "right"):
+                ax.spines[sp_].set_visible(False)
+            lo, hi = ax.get_xlim()
+            ax.set_xlim(min(0, lo), hi + 0.18 * (hi - lo))
+            if c == 0:
+                ax.set_title(
+                    f"{BNAME[b]}: har_ma_* before -> after", fontsize=9, loc="left"
+                )
+    handles = [
+        Line2D(
+            [],
+            [],
+            marker="o",
+            color="0.45",
+            lw=0,
+            markersize=6,
+            label="first pass (old design, trees unmasked)",
+        ),
+        Line2D(
+            [],
+            [],
+            marker="o",
+            markerfacecolor="none",
+            markeredgecolor="0.2",
+            lw=0,
+            markersize=6,
+            label="de-dup, no mask (trees)",
+        ),
+        Line2D(
+            [],
+            [],
+            marker="o",
+            color="0.2",
+            lw=0,
+            markersize=6,
+            label="de-dup + mask (model colour)",
+        ),
+    ]
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=7.5, frameon=False)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    name = "fig_before_after_har_ma_shown.png"
+    fig.savefig(out / name, dpi=150)
+    plt.close(fig)
+    return name
+
+
 def before_after_tex(out: Path, root_rel: str) -> str:
     X = _ba(out)
     if X["sp"] is None or X["har"] is None:
         return "\n\\section*{9. Before / after}\nPending.\n"
-    sp, har, harc = X["sp"], X["har"], X["harc"]
+    sp, har, harc = _shown(X["sp"]), _shown(X["har"]), _shown(X["harc"])
+    if sp is None or har is None or harc is None:
+        return "\n\\section*{9. Before / after}\nPending.\n"
     body = [
         "\n\\section*{9. Before / after: first pass (old design) vs de-dup + mask}\n"
     ]
@@ -571,7 +743,7 @@ def before_after_tex(out: Path, root_rel: str) -> str:
         + "\n".join(rows)
         + "\n\\bottomrule\\end{tabular}\\end{table}\n"
     )
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         hr = _har_rows(har, harc, b)
         trows = [
             f"{LABEL[r[0]]} & {MNAME[r[1]].replace('|', '$|$')} & {_esc(r[2])} & {_esc(r[3])} & {_esc(r[4])} & {_esc(r[5])} & {r[6]} & {r[7]} \\\\"
@@ -584,19 +756,14 @@ def before_after_tex(out: Path, root_rel: str) -> str:
             + "\n".join(trows)
             + "\n\\bottomrule\\end{tabular}\\end{table}\n"
         )
-    f = out / "fig_before_after_har_ma.png"
-    if f.is_file():
+    shown = _har_figure(out)
+    if shown:
         body.append(
             "\\begin{figure}[H]\\centering\\includegraphics[width=\\textwidth]{../"
             + root_rel
-            + "/fig_before_after_har_ma.png}\n\\caption{\\texttt{har\\_ma\\_*} before (old design) and after (de-dup + mask; open marker: de-dup, no mask), per model and measure; left: shares, right: permutation P2 as \\% of the model's tail loss.}\\end{figure}\n"
-        )
-    f = out / "fig_before_after_ranks_live_feasible.png"
-    if f.is_file():
-        body.append(
-            "\\begin{figure}[H]\\centering\\includegraphics[width=\\textwidth]{../"
-            + root_rel
-            + "/fig_before_after_ranks_live_feasible.png}\n\\caption{Live-feasible, series level: rank among the common series, old (x) vs new (y), per model and measure; on the diagonal = unchanged.}\\end{figure}\n"
+            + "/"
+            + shown
+            + "}\n\\caption{\\texttt{har\\_ma\\_*} before (old design) and after (de-dup + mask; open marker: de-dup, no mask), per model and measure; left: shares, right: permutation P2 as \\% of the model's tail loss.}\\end{figure}\n"
         )
     md = before_after_md(out)
     txt = [x for x in md if x.startswith("- ") or x.startswith("Column level")]
