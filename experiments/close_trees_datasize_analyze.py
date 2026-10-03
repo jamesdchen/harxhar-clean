@@ -50,6 +50,7 @@ REPRO_TOL = 1e-9  # the master table stores full-precision floats
 LABEL = {
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
+    "rf": "random forest",
     "ridge": "ridge",
     "lasso": "lasso",
 }
@@ -104,6 +105,7 @@ def c_asl():
 
 
 def analyze() -> None:  # noqa: C901 - one linear report
+    c.REPORT.mkdir(parents=True, exist_ok=True)
     S = c.sources()
     dz_all = S["dz"]
     n_fc = S["n_fc"]
@@ -182,7 +184,9 @@ def analyze() -> None:  # noqa: C901 - one linear report
         for what, j in (("QLIKE", "ql"), ("Sharpe mid", "sh")):
             gates.append(
                 dict(
-                    gate=f"local {a} vs stored {k}: {what} (DM {cm['dm']:.2f}, HAC t {cm['t_hac']:.2f})",
+                    gate=f"local {a} vs stored {k}: {what} (DM {cm['dm']:.2f}, "
+                    + ("HAC t: identical daily P&L" if not np.isfinite(cm["t_hac"]) else f"HAC t {cm['t_hac']:.2f}")
+                    + ")",
                     value=pt[j][col[a]],
                     reference=pt[j][col[f"stored:{k}"]],
                     abs_diff=abs(pt[j][col[a]] - pt[j][col[f"stored:{k}"]]),
@@ -190,7 +194,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
                 )
             )
     G = pd.DataFrame(gates)
-    G.to_csv(c.OUT / "gates.csv", index=False)
+    G.to_csv(c.REPORT / "gates.csv", index=False)
 
     rows = []
     for a in arms:
@@ -232,7 +236,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
             )
         )
     A = pd.DataFrame(rows)
-    A.to_csv(c.OUT / "arms.csv", index=False)
+    A.to_csv(c.REPORT / "arms.csv", index=False)
 
     # ---------------------------------------------------------------- vs the 2000-session arms
     vr = []
@@ -256,7 +260,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
                 )
             )
     V = pd.DataFrame(vr)
-    V.to_csv(c.OUT / "vs_reference.csv", index=False)
+    V.to_csv(c.REPORT / "vs_reference.csv", index=False)
 
     # ---------------------------------------------------------------- trees minus linear
     asl = c_asl()
@@ -292,7 +296,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
                     )
                 )
     D = pd.DataFrame(dd)
-    D.to_csv(c.OUT / "trees_vs_linear.csv", index=False)
+    D.to_csv(c.REPORT / "trees_vs_linear.csv", index=False)
 
     # ---------------------------------------------------------------- learning curve
     cur = A[["arm", "model", "source", "window", "window_sessions", "train_rows_min", "train_rows_max", "qlike", "sharpe_mid"]].copy()
@@ -303,7 +307,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
         if win == "exp":
             trade_mean[a] = float(np.mean(runs[a]["n_train"]))
     cur["x_sessions"] = [trade_mean.get(a, s) for a, s in zip(cur["arm"], cur["window_sessions"])]
-    cur.to_csv(c.OUT / "curve.csv", index=False)
+    cur.to_csv(c.REPORT / "curve.csv", index=False)
     plot_curve(cur)
     write_summary(G, A, V, D, cur)
     print(A[["arm", "qlike", "sharpe_mid", "dm_vs_ctrl", "t_hac_vs_ctrl", "cpu_min"]].to_string(index=False))
@@ -315,11 +319,11 @@ def plot_curve(cur: pd.DataFrame) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    color = {"LightGBM": dvs.COLOR["lgbm"], "XGBoost": dvs.COLOR["xgb"], "ridge": dvs.COLOR["ridge"], "lasso": dvs.COLOR["reclasso"]}
-    dash = {"LightGBM": dvs.DASH["lgbm"], "XGBoost": dvs.DASH["xgb"], "ridge": dvs.DASH["ridge"], "lasso": dvs.DASH["reclasso"]}
+    color = {"LightGBM": dvs.COLOR["lgbm"], "XGBoost": dvs.COLOR["xgb"], "random forest": dvs.COLOR["rf"], "ridge": dvs.COLOR["ridge"], "lasso": dvs.COLOR["reclasso"]}
+    dash = {"LightGBM": dvs.DASH["lgbm"], "XGBoost": dvs.DASH["xgb"], "random forest": dvs.DASH["rf"], "ridge": dvs.DASH["ridge"], "lasso": dvs.DASH["reclasso"]}
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0), constrained_layout=True)
     for ax, ycol, ylab in ((axes[0], "qlike", "QLIKE (866 trade days)"), (axes[1], "sharpe_mid", "sign(s) Sharpe, mid")):
-        for m in ("LightGBM", "XGBoost", "lasso", "ridge"):
+        for m in ("LightGBM", "XGBoost", "random forest", "lasso", "ridge"):
             h = cur[(cur["model"] == m) & (cur["source"] == "h16")].sort_values("x_sessions")
             if len(h):
                 ax.plot(h["x_sessions"], h[ycol], color=color[m], linestyle=dash[m], linewidth=2, marker="o", markersize=6, label=f"{m}, 16:00 rows")
@@ -330,8 +334,15 @@ def plot_curve(cur: pd.DataFrame) -> None:
             if len(p):
                 ax.plot(p["x_sessions"], p[ycol], linestyle="none", marker="*", markersize=13, color=color[m], markeredgecolor="white", label=f"{m}, both last-hour bars")
         ax.set_xscale("log")
-        ax.set_xticks([500, 1000, 2000, 3000, 4500])
-        ax.set_xticklabels(["500", "1000", "2000", "3000", "expanding\n(mean)"])
+        ex = cur.loc[cur["window"].str.startswith("expanding"), "x_sessions"]
+        ticks, labels = [500, 1000, 2000, 3000], ["500", "1000", "2000", "3000"]
+        if len(ex):
+            ticks.append(float(ex.iloc[0]))
+            labels.append(f"expanding\n(mean {ex.iloc[0]:.0f})")
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels)
+        ax.minorticks_off()
+        ax.set_xlim(420, 6200)
         ax.set_xlabel("training sessions")
         ax.set_ylabel(ylab)
         ax.grid(True, color="#d9d9d9", linewidth=0.6)
@@ -340,7 +351,7 @@ def plot_curve(cur: pd.DataFrame) -> None:
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc="outside lower center", ncol=3, frameon=False, fontsize=8)
     fig.suptitle("16:00 forecast, all features: training sessions vs accuracy and P&L", fontsize=11)
-    fig.savefig(c.OUT / "learning_curve.png", dpi=150)
+    fig.savefig(c.REPORT / "learning_curve.png", dpi=150)
     plt.close(fig)
 
 
@@ -440,7 +451,7 @@ def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
         piv_q = h.pivot_table(index="window", columns="model", values="qlike", aggfunc="first")
         piv_s = h.pivot_table(index="window", columns="model", values="sharpe_mid", aggfunc="first")
         order = sorted(piv_q.index, key=lambda w: h.loc[h["window"] == w, "x_sessions"].iloc[0])
-        mods = [m for m in ("LightGBM", "XGBoost", "lasso", "ridge") if m in piv_q.columns]
+        mods = [m for m in ("LightGBM", "XGBoost", "random forest", "lasso", "ridge") if m in piv_q.columns]
         L.append("| window | " + " | ".join(f"{m} QLIKE" for m in mods) + " | " + " | ".join(f"{m} Sharpe mid" for m in mods) + " |")
         L.append("|---|" + "---|" * (2 * len(mods)))
         for w in order:
@@ -466,4 +477,4 @@ def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
     L.append("- `experiments/close_trees_datasize.py` (run stage), `experiments/close_trees_datasize_analyze.py` (this report)")
     L.append("- `arms.csv`, `vs_reference.csv`, `trees_vs_linear.csv`, `curve.csv`, `gates.csv`, `learning_curve.png`; forecasts in `_work/<arm>.npz` (not committed)")
     L.append(f"- CPU: {A['cpu_min'].sum():.0f} min over {len(A)} arms, one single-threaded process at a time.")
-    (c.OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    (c.REPORT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")

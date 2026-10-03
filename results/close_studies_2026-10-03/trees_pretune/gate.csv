@@ -1,0 +1,23 @@
+gate,item,value,reference,abs_diff,ok
+scorer reproduces the master table (qlike),stored_T10,0.10066964470315287,0.1006696447031528,6.938893903907228e-17,True
+scorer reproduces the master table (sharpe_mid),stored_T10,1.8387627819412586,1.8387627819412569,1.7763568394002505e-15,True
+scorer reproduces the master table (qlike),stored_T1,0.09819443555677188,0.0981944355567718,6.938893903907228e-17,True
+scorer reproduces the master table (sharpe_mid),stored_T1,1.6631038792727837,1.6631038792727837,0.0,True
+scorer reproduces the master table (qlike),stored_RS10_tp250,0.10345972203016174,0.1034597220301617,4.163336342344337e-17,True
+scorer reproduces the master table (sharpe_mid),stored_RS10_tp250,1.668797913966867,1.6687979139668678,8.881784197001252e-16,True
+scorer reproduces the master table (qlike),stored_OP_tp1,0.1044678671306145,0.1044678671306144,9.71445146547012e-17,True
+scorer reproduces the master table (sharpe_mid),stored_OP_tp1,1.3665647079295427,1.3665647079295442,1.5543122344752192e-15,True
+scorer reproduces the master table (qlike),stored_OP_tp250,0.10407008671974138,0.1040700867197415,1.1102230246251565e-16,True
+scorer reproduces the master table (sharpe_mid),stored_OP_tp250,1.4982043277505692,1.4982043277505657,3.552713678800501e-15,True
+scorer reproduces the master table (qlike),stored_lasso_all_features,0.09975481092459872,0.0997548109245986,1.1102230246251565e-16,True
+scorer reproduces the master table (sharpe_mid),stored_lasso_all_features,1.446420646453445,1.446420646453446,8.881784197001252e-16,True
+scorer reproduces the master table (qlike),stored_lasso_baseline,0.09719633619189473,0.0971963361918948,6.938893903907228e-17,True
+scorer reproduces the master table (sharpe_mid),stored_lasso_baseline,1.5067902307493266,1.5067902307493275,8.881784197001252e-16,True
+"fold fitter == Optuna spec fit_trial (shipped config, last pre-tune fold)",val_mse,0.06414877419056891,0.06414877419056891,0.0,True
+"fold fitter == Optuna spec fit_trial (shipped config, last pre-tune fold)",val_qlike,0.16584241802940425,0.16584241802940425,0.0,True
+"fold fitter == Optuna spec fit_trial (shipped config, last pre-tune fold)",rounds,332.0,332.0,0.0,True
+16:00 rows: last-hour cache vs 16:00-bar cache (common sessions),common_sessions,3469.0,,,True
+16:00 rows: last-hour cache vs 16:00-bar cache (common sessions),y_max_abs_diff,0.0,,,True
+16:00 rows: last-hour cache vs 16:00-bar cache (common sessions),columns_identical,349.0,,,True
+16:00 rows: last-hour cache vs 16:00-bar cache (common sessions),columns,628.0,,,True
+16:00 rows: last-hour cache vs 16:00-bar cache (common sessions),x_max_abs_diff,305.52142895072683,,,True

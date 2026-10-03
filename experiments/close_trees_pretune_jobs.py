@@ -26,7 +26,12 @@ from pathlib import Path
 for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
     os.environ.setdefault(_v, "1")
 
+import warnings  # noqa: E402
+
 import numpy as np  # noqa: E402
+
+# LightGBM 4.7 renamed eval_set (eval_X / eval_y); the spec's call is kept as is
+warnings.filterwarnings("ignore", message="The argument 'eval_set' is deprecated")
 
 REPO = Path(__file__).resolve().parents[1]
 for _p in (REPO, REPO / "specs"):

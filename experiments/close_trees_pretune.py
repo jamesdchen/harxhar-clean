@@ -740,7 +740,7 @@ def stage_walk() -> None:
             )
         arms[path] = sched
     RUN.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rt_log).to_csv(RUN / "retune_log.csv", index=False)
+    pd.DataFrame(rt_log).to_csv(RUN / f"retune_log_r{REFIT_EVERY}.csv", index=False)
     save_retune_trials()
     # refits: one job per distinct (refit row, configuration, rounds)
     refit_rows = [i for i in range(0, n_oos, REFIT_EVERY) if lo_hi[0] <= i < lo_hi[1]]
@@ -814,7 +814,7 @@ def save_retune_trials() -> None:
                     **{f"cfg_{a}": v for a, v in r["cfg"].items()},
                 )
             )
-    pd.DataFrame(rows).to_csv(RUN / "retune_trials.csv", index=False)
+    pd.DataFrame(rows).to_csv(RUN / f"retune_trials_r{REFIT_EVERY}.csv", index=False)
 
 
 # ============================================================================ main
