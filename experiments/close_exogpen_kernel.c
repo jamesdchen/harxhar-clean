@@ -532,8 +532,9 @@ int exogpen_run(
     int n_s, const unsigned char *lk, const unsigned char *mk, const double *pf,
     int n_alpha, const double *alphas, int val_tail, int embargo,
     const int *group, int n_groups, const double *mpr_start, int mpr_passes,
+    int check_every,
     double *pred, double *theta, int *events, double *val_mse, int *choice,
-    double *pen_g, double *mpr_mse, int *n_reseed, long *n_singular) {
+    double *pen_g, double *mpr_mse, int *n_reseed, long *n_singular, double *exact_pred) {
     (void)N;
     Model md;
     md.m = m; md.n = W; md.est = est; md.l1 = est == 1 ? 1.0 : 0.5;
@@ -723,6 +724,19 @@ int exogpen_run(
             double f = 0.0;
             for (int k = 0; k < m; k++) f += xt[k] * md.th[k];
             pred[j] = f;
+            exact_pred[j] = NAN;
+            if (md.est != 0 && check_every > 0 && (j - i0) % check_every == 0) {
+                /* the exact batch solution on this window (_batch_theta, the cold seed's
+                 * solver) at the penalties and mask in force: the warm path's drift */
+                masked_window(&md, X, j, W);
+                FWL F;
+                fwl_build(&F, W, m, md.Xw, y + j, md.locked);
+                fwl_theta(&F, md.alpha, md.l1, md.pf, thc);
+                fwl_free(&F);
+                double fx = 0.0;
+                for (int k = 0; k < m; k++) fx += xt[k] * thc[k];
+                exact_pred[j] = fx;
+            }
             memcpy(theta + (size_t)j * m, md.th, sizeof(double) * m);
             events[j] = nev;
             if (g_err) goto out;

@@ -12,67 +12,65 @@ training sessions, 1469 forecast sessions).  Backbone = the target's HAR ladder
 ``har_ma_*`` + the calendar / expiry columns, i.e. exactly the 22 columns of the
 ``baseline`` design (asserted).  Everything else (606 columns) is the exogenous block.
 
-Protocol (the spec's, unchanged): window = the 2000 sessions before the forecast, refit
-every session, intercept unpenalized, the identifiability mask (columns constant in the
-window or byte-copies of an earlier kept column get coefficient 0) recomputed at every
-penalty re-choice, the penalty re-chosen every 250 sessions on the last 125 sessions of
-the window after a 25-session embargo (fit on the first 1850, mean squared error on the
-125), the spec's grids (ridge 1e-2 .. 1e3, lasso / elastic net 1e-6 .. 1e-2, elastic net
-l1_ratio 0.5), sklearn units with n = rows of the fit.
+Algorithm: the spec's own, specs/causal_tune_linear.py::RollingTunedLinear and the
+parts of src/models/reclasso_har.py it calls, ported line by line to C
+(experiments/close_exogpen_kernel.c, compiled on demand: gcc -O3 -march=native, no
+-ffast-math, reference LAPACK / BLAS; called through ctypes).  Ridge: Sherman-Morrison
+rank-one add / drop on the ridged inverse, theta = K c every session.  Lasso / elastic
+net: the Garrigues-El Ghaoui online homotopy, two enet_online updates a session, warm
+(theta, active set, signs), locked coordinates never leave the active set.  Every 250
+sessions: the identifiability mask, the forward split (fit 1850 / embargo 25 / tail
+125), the spec's grid scored by the batch solution (ridge solve; _batch_theta = FWL on
+the locked block + batch homotopy), argmin, cold seed.  Lasso only: the between-re-choice
+mask additions (_degenerate_live -> reseed).  Window 2000 sessions, refit every session,
+intercept unpenalized, spec grids (ridge 1e-2 .. 1e3, lasso / elastic net 1e-6 .. 1e-2,
+elastic net l1_ratio 0.5), sklearn units.
 
 Penalty factors (glmnet's penalty.factor convention): the penalty on column j is
-alpha * pf_j * (l1 |b_j| + (1 - l1) / 2 b_j^2); pf = 1 on the exogenous columns and
-pf = r on the backbone.
-  single   r = 1 (the spec's models; GATE against the stored forecasts).
-  bb0      r = 0: the backbone is unpenalized.  Exact by profiling: the penalized
-           problem is solved on the exogenous columns after projecting the backbone
-           (and the intercept) out of y and the exogenous columns on the window, then
-           the backbone coefficients are the least-squares fit of the remaining
-           residual (minimum-norm solution; the five weekday dummies sum to the
-           intercept, so the unpenalized block has an exact linear dependency).
-  bbr      r tuned jointly with alpha on the same validation tail, r in R_GRID =
-           {0, 0.01, 0.1, 1}: r = 1 nests the single-penalty model, r = 0 nests bb0,
-           and 0.01 is the paper's ratio (backbone penalty 1, exogenous 100, in ridge
-           units).
-  bbfix    r fixed at the paper's 1/100 (alpha tuned as usual).
-  mpr      ridge only: the backbone unpenalized and one penalty for each exogenous
-           feature group (src.data.loading.SUBGROUPS: moments, liquidity, market_ew,
-           market_vw, sentiment, implied_vol, vol_demand, fomc; an availability /
-           activity indicator goes with its source's group) -- multi-penalty ridge
-           (van de Wiel, van Nee & Rauschenberger 2021, "Fast cross-validation for
-           multi-penalty high-dimensional ridge regression"), also called
-           group-regularized ridge (van de Wiel et al. 2016).  The 8 penalties are
-           chosen on the same validation tail by cyclic coordinate search over the
-           ridge grid (start: every group at the bb0 choice; MPR_PASSES passes).
-Solvers (every fit is the exact optimum of its window, as the spec's): ridge = Cholesky
-on the profiled Gram; lasso / elastic net = at a re-choice, the spec's exact homotopy
-(src.models.reclasso_har.lasso_homotopy, penalty factors by column scaling) for every
-candidate; at a refit, the KKT system on the previous session's support with a full KKT
-check (support repaired, else the homotopy from scratch), compared with the homotopy every
-CHECK_EVERY sessions (_work/active_vs_homotopy.csv).  The spec itself slides the lasso /
-elastic net by a warm homotopy in the data (enet_online), exact up to float drift until
-the next re-choice re-anchors it.
+alpha * pf_j * (l1 |b_j| + (1 - l1) / 2 b_j^2); pf = 1 on the exogenous columns.
+  single   pf = 1 everywhere: the spec's models (GATE: the stored forecasts).
+  bb0      the backbone is LOCKED (as the spec's intercept: in the active set always, no
+           penalty).  Backbone columns constant in the window, byte-copies of an earlier
+           backbone column, or beyond the numerical rank of the centered backbone (the
+           five weekday dummies sum to the intercept) are masked instead.
+  bbr      backbone : exogenous ratio r tuned jointly with alpha on the same validation
+           tail, r in R_GRID = {0, 0.01, 0.1, 1} (r = 0: locked as bb0; r > 0: the
+           backbone's mu_vec, lam2 and ridge D scaled by r); r = 1 nests single, r = 0
+           nests bb0, 0.01 is the paper's 1 : 100 in ridge units.
+  bbfix    r fixed at the paper's 1/100.
+  mpr      ridge, backbone locked, one penalty for each exogenous feature group
+           (src.data.loading.SUBGROUPS: moments, liquidity, market_ew, market_vw,
+           sentiment, implied_vol, vol_demand, fomc; an availability / activity indicator
+           goes with its source's group): multi-penalty ridge (van de Wiel, van Nee &
+           Rauschenberger 2021), the 8 penalties chosen on the validation tail by cyclic
+           coordinate search over the ridge grid (start = the bb0 ridge's alpha;
+           MPR_PASSES passes).
+  singlew / bb0w (supplement)  single and bb0 with the grid widened upward (WIDE_GRIDS),
+           because the spec-grid arms choose its top edge at most re-choices.
+With pf != 1 the batch elastic net is solved exactly by column scaling.
 
 Stages (``python experiments/close_exogpen.py <stage>``):
-  gate     the spec's own RollingTunedLinear (experiments/dense_vs_sparse_1530.py
-           run_linear_blocks, the spec's estimator section executed read-only) on the
-           cached all_features design for ridge / lasso / elastic net; compared with
-           the stored 16:00 forecasts results/spxw_pnl/yhat_sub_<est>_all_features and,
-           through the research scorer, with the master table's QLIKE / Sharpe.
-  run      every arm with the engine above (also the engine's single-penalty arms,
-           compared with the gate's, and the HAR + calendar OLS on the baseline design,
-           compared with the master table's sub_ols_baseline).
-  analyze  scoring (16:00-bar recalibration, QLIKE on the 866 trade days, the 15:30
-           sign(s) straddle Sharpe mid / crossed), Diebold-Mariano on daily QLIKE and a
-           HAC t on the paired daily P&L difference against the single-penalty arm and
-           the baseline arm, the penalty path, backbone shrinkage, variance shares,
-           figures, SUMMARY.md.
+  gate            the spec's own class (dense_vs_sparse_1530.run_linear_blocks, the
+                  spec's estimator section executed read-only) on the cached design vs
+                  the stored 16:00 forecasts results/spxw_pnl/yhat_sub_<est>_all_features.
+  check           the C port: single-penalty arms vs the gate and the stored tables (and
+                  Python-vs-C seconds); on a short slice, the backbone-locked C arm vs the
+                  spec's class with the same locked set.
+  run [ests]      the arms of record (and the HAR + calendar OLS).
+  run_supplement  the widened-grid arms.
+  crosscheck      an independent solver (experiments/close_exogpen_cdcheck.c: centered
+                  Gram, Cholesky ridge, coordinate descent + exact KKT solve) at a few dates.
+  analyze         scoring (16:00-bar recalibration, QLIKE on the 866 trade days, the 15:30
+                  sign(s) straddle Sharpe mid / crossed), Diebold-Mariano on daily QLIKE and
+                  a HAC t on the paired daily P&L difference against the single-penalty arm
+                  and the HAR + calendar arm, the penalty path, backbone shrinkage, variance
+                  shares, figures, SUMMARY.md, then the DONE flag.
 
 The circular block bootstrap is off in this branch (commit b761b28): point estimates
 only; differences are tested with Diebold-Mariano (src.evaluation.diebold_mariano) and
 the Newey-West t of notebooks/atm_straddle_lib.newey_west_t, as master_table_close.py.
 
-Compute: one process, single-threaded BLAS (set below before numpy loads).
+Compute: single-threaded BLAS (set below before numpy loads); at most two processes.
 """
 
 from __future__ import annotations
@@ -113,7 +111,7 @@ LABEL = {"ridge": "ridge", "reclasso": "lasso", "reclasticnet": "elastic net"}
 R_GRID = (0.0, 0.01, 0.1, 1.0)
 R_PAPER = 0.01
 MPR_PASSES = 2  # cyclic coordinate-search passes over the 8 group penalties
-CHECK_EVERY = 25  # sessions between checks of the active-set solve against the homotopy
+CHECK_EVERY = 25  # sessions between exact batch solutions (warm-path drift check)
 
 
 # ============================================================================ data
@@ -189,7 +187,16 @@ GROUPS = (
 )
 MODES = ("single", "bb0", "bbr", "bbfix")
 ARMS = [(e, m) for e in EST for m in MODES] + [("ridge", "mpr")]
-R_OF = {"single": (1.0,), "bb0": (0.0,), "bbr": R_GRID, "bbfix": (R_PAPER,), "mpr": (0.0,)}
+R_OF = {"single": (1.0,), "bb0": (0.0,), "bbr": R_GRID, "bbfix": (R_PAPER,), "mpr": (0.0,),
+        "singlew": (1.0,), "bb0w": (0.0,)}
+# supplement: the spec's grids widened upward (decades), because the one-penalty and the
+# backbone-unpenalized arms choose the top edge of the spec's grid at most re-choices
+WIDE_GRIDS = {
+    "ridge": [float(a) for a in np.logspace(-2, 6, 9)],
+    "reclasso": [float(a) for a in np.logspace(-6, 0, 7)],
+    "reclasticnet": [float(a) for a in np.logspace(-6, 0, 7)],
+}
+SUPP_ARMS = [(e, m) for e in EST for m in ("singlew", "bb0w")]
 
 
 def arm_key(est: str, mode: str) -> str:
@@ -364,14 +371,15 @@ def kernel():
         ci, u1, u1, f8,  # n_s, locked, maskout, pf
         ci, f8, ci, ci,  # n_alpha, alphas, val_tail, embargo
         i4, ci, f8, ci,  # group, n_groups, mpr_start, mpr_passes
-        f8, f8, i4, f8, i4, f8, f8, i4, i8,  # outputs
+        ci,  # check_every
+        f8, f8, i4, f8, i4, f8, f8, i4, i8, f8,  # outputs
     ]
     _LIB = lib
     return lib
 
 
 def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
-          n_blocks: int | None = None) -> dict:
+          n_blocks: int | None = None, check_every: int = 0) -> dict:
     """One arm through the C port (optionally only the first n_blocks blocks)."""
     lib = kernel()
     rs = R_OF[mode]
@@ -384,6 +392,7 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         val_mse=np.full((nb, len(rs), len(grid)), np.nan), choice=np.zeros((nb, 2), np.int32),
         pen_g=np.full((nb, len(GROUPS)), np.nan), mpr_mse=np.full(nb, np.nan),
         n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(1, np.int64),
+        exact_pred=np.full(n_out, np.nan),
     )
     est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
     ms = np.ascontiguousarray(
@@ -395,8 +404,9 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         1 if est == "reclasso" else 0,  # the spec tracks degenerate columns for lasso only
         nb, bstart, len(rs), lk, mk, pf, len(grid),
         np.ascontiguousarray(grid, dtype=np.float64), VAL_TAIL, EMBARGO, S.grp, len(GROUPS),
-        ms, MPR_PASSES, out["pred"], out["theta"], out["events"], out["val_mse"],
-        out["choice"], out["pen_g"], out["mpr_mse"], out["n_reseed"], out["n_singular"],
+        ms, MPR_PASSES, check_every, out["pred"], out["theta"], out["events"],
+        out["val_mse"], out["choice"], out["pen_g"], out["mpr_mse"], out["n_reseed"],
+        out["n_singular"], out["exact_pred"],
     )
     out["cpu_sec"] = time.process_time() - t0
     if rc != 0:
@@ -421,7 +431,8 @@ def py_locked_slice(S: Setup, est: str, n_sess: int, b: int = 0) -> dict:
         def _recompute_mask(self, Xraw):
             self._locked, self._maskout, _ = structure(Xraw, bb_aug, 0.0)
 
-    Locked.grid = ns["ESTIMATOR_GRIDS"][est]
+    # the spec's _tune reads the grid off the base class by name
+    Base.grid = Locked.grid = ns["ESTIMATOR_GRIDS"][est]
     Locked.trace, Locked.mask_trace, Locked.reseed_trace = [], [], []
     X, y, W = S.Xaug[:, :-1], S.y, S.W
     i0 = int(S.bstart[b])
@@ -449,7 +460,7 @@ def check() -> None:
     S = Setup()
     idx = pd.DatetimeIndex(pd.to_datetime(S.d["date"][S.W :]))
     grows = []
-    for est in EST:
+    for est in EST if os.environ.get("EXOGPEN_SKIP_FULL") != "1" else ():
         res = c_run(S, est, "single", grids[est])
         np.savez_compressed(WORK / f"check_c_single_{est}.npz", pred=res["pred"],
                             alpha=res["alpha_blk"])
@@ -474,7 +485,8 @@ def check() -> None:
             median_events=float(np.median(res["events"])),
         ))
         print(grows[-1], flush=True)
-    pd.DataFrame(grows).to_csv(WORK / "check_c_vs_spec_gate.csv", index=False)
+    if grows:
+        pd.DataFrame(grows).to_csv(WORK / "check_c_vs_spec_gate.csv", index=False)
     rows = []
     n_sess = int(os.environ.get("EXOGPEN_SLICE", "40"))
     for est in EST:
@@ -510,22 +522,26 @@ def ols_baseline(S: Setup) -> dict:
     return dict(pred=pred, theta_bb=th, cpu_sec=time.process_time() - t0)
 
 
-def run(ests: list[str]) -> None:
+def run(ests: list[str], supplement: bool = False) -> None:
     grids = spec_grids()
+    if supplement:
+        for e in EST:  # the widened grid contains the spec's
+            assert set(grids[e]) <= set(WIDE_GRIDS[e]), e
     S = Setup()
     runs = WORK / "runs"
     runs.mkdir(parents=True, exist_ok=True)
-    if "ridge" in ests:
+    if "ridge" in ests and not supplement:
         r = ols_baseline(S)
         np.savez_compressed(runs / "ols_baseline.npz", **r)
         print(f"ols_baseline: {r['cpu_sec']:.1f}s", flush=True)
     bb0_alpha = None
-    for est, mode in ARMS:
+    for est, mode in SUPP_ARMS if supplement else ARMS:
         if est not in ests:
             continue
         k = arm_key(est, mode)
-        res = c_run(S, est, mode, grids[est],
-                    mpr_start=bb0_alpha if mode == "mpr" else None)
+        res = c_run(S, est, mode, WIDE_GRIDS[est] if mode.endswith("w") else grids[est],
+                    mpr_start=bb0_alpha if mode == "mpr" else None,
+                    check_every=CHECK_EVERY if est != "ridge" else 0)
         if est == "ridge" and mode == "bb0":
             bb0_alpha = res["alpha_blk"]
         lk, mk, _ = S.structures(R_OF[mode])
@@ -537,6 +553,7 @@ def run(ests: list[str]) -> None:
             alpha_blk=res["alpha_blk"], r_blk=res["r_blk"], val_mse=res["val_mse"],
             pen_g=res["pen_g"], mpr_mse=res["mpr_mse"], events=res["events"],
             n_reseed=res["n_reseed"], n_singular=res["n_singular"], cpu_sec=res["cpu_sec"],
+            exact_pred=res["exact_pred"],
             locked=np.array([lk[b, ch[b]] for b in range(nb)]),
             maskout=np.array([mk[b, ch[b]] for b in range(nb)]),
         )
@@ -544,6 +561,622 @@ def run(ests: list[str]) -> None:
               f"r {res['r_blk'].tolist()} reseeds {int(res['n_reseed'].sum())}"
               + (f" groups {np.round(res['pen_g'], 4).tolist()}" if mode == "mpr" else ""),
               flush=True)
+
+
+# ============================================================================ cross-check
+def crosscheck(n_sess: int = 10) -> None:
+    """An independent solver at a few dates: experiments/close_exogpen_cdcheck.c (centered
+    Gram, Cholesky ridge, covariance-form coordinate descent + exact KKT solve on the
+    support for lasso / elastic net) on the first n_sess sessions of block 0 of the
+    backbone-unpenalized arms, at the alpha the C port chose there."""
+    import ctypes
+    import subprocess
+
+    from numpy.ctypeslib import ndpointer
+
+    src = REPO / "experiments" / "close_exogpen_cdcheck.c"
+    so = WORK / "close_exogpen_cdcheck.so"
+    if not so.is_file() or so.stat().st_mtime < src.stat().st_mtime:
+        subprocess.run(["gcc", "-O3", "-march=native", "-fPIC", "-shared", "-o", str(so), str(src),
+                        "-l:liblapack.so.3", "-l:libblas.so.3", "-lm"], check=True)
+    lib = ctypes.CDLL(str(so))
+    f8 = ndpointer(np.float64, flags="C_CONTIGUOUS")
+    i4 = ndpointer(np.int32, flags="C_CONTIGUOUS")
+    i8 = ndpointer(np.int64, flags="C_CONTIGUOUS")
+    ci, cd, cl = ctypes.c_int, ctypes.c_double, ctypes.c_long
+    lib.exogpen_cd_run.restype = ci
+    lib.exogpen_cd_run.argtypes = [ci, ci, f8, f8, ci, ci, ci, ci, i4, ci, f8, ci, f8, ci, ci,
+                                   i4, ci, f8, ci, i4, cd, cd, ci, cl,
+                                   f8, f8, f8, f8, f8, f8, i4, i8, f8, i4, f8, f8]
+    S = Setup()
+    X = np.ascontiguousarray(S.Xaug[:, :-1])
+    p = S.p
+    lk, mk, _ = S.structures((0.0,))
+    pf = np.where(mk[0, 0].astype(bool), -1.0, np.where(lk[0, 0].astype(bool), 0.0, 1.0))[:-1]
+    pf = np.ascontiguousarray(pf.reshape(1, 1, p))
+    rows = []
+    for est in EST:
+        z = np.load(WORK / "runs" / f"{arm_key(est, 'bb0')}.npz")
+        a = np.array([float(z["alpha_blk"][0])])
+        o = {k: np.zeros(n_sess) for k in ("pred", "b0", "vBB", "vEE", "vBE")}
+        th = np.zeros((n_sess, p))
+        st, sw = np.zeros(n_sess, np.int32), np.zeros(n_sess, np.int64)
+        t0 = time.process_time()
+        rc = lib.exogpen_cd_run(
+            len(X), p, X, S.y, S.W, {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est], 0, 1,
+            np.array([0, n_sess], np.int32), 1, pf, 1, a, VAL_TAIL, EMBARGO,
+            np.zeros(p, np.int32), len(GROUPS), np.zeros(1), MPR_PASSES,
+            np.ascontiguousarray(S.bb, dtype=np.int32), 1e-8, 1e-9, 6, 200000,
+            o["pred"], th, o["b0"], o["vBB"], o["vEE"], o["vBE"], st, sw,
+            np.zeros(1), np.zeros(2, np.int32), np.zeros(len(GROUPS)), np.zeros(1))
+        assert rc == 0, rc
+        gap = np.abs(o["pred"] / z["pred"][:n_sess] - 1.0)
+        rows.append(dict(est=est, alpha=float(a[0]), sessions=n_sess, max_rel_gap=float(gap.max()),
+                         cd_status=json.dumps(np.bincount(st, minlength=4).tolist()),
+                         cpu_sec=round(time.process_time() - t0, 2)))
+        print(rows[-1], flush=True)
+    pd.DataFrame(rows).to_csv(WORK / "check_cd_crosscheck.csv", index=False)
+
+
+# ============================================================================ analyze
+MODE_LABEL = {
+    "singlew": "one penalty, grid widened (supplement)",
+    "bb0w": "backbone unpenalized, grid widened (supplement)",
+    "single": "one penalty (spec)",
+    "bb0": "backbone unpenalized",
+    "bbr": "backbone ratio r tuned",
+    "bbfix": "backbone ratio 1/100",
+    "mpr": "backbone unpenalized, one penalty for each group",
+}
+COLOR = {"ridge": "#2a78d6", "reclasso": "#4a3aa7", "reclasticnet": "#eb6834"}
+MARKER = {"baseline": "s", "single": "o", "bb0": "D", "bbr": "^", "bbfix": "v", "mpr": "P",
+          "singlew": "o", "bb0w": "D"}
+ALL_ARMS = ARMS + SUPP_ARMS
+
+
+def _fmt(v, nd=4):
+    return "" if v is None or (isinstance(v, float) and not np.isfinite(v)) else f"{v:.{nd}f}"
+
+
+def analyze() -> None:  # noqa: C901 - one linear report
+    import atm_straddle_lib as asl
+    import dense_vs_sparse_1530 as dvs
+
+    from src.evaluation.diebold_mariano import dm_test
+
+    S = Setup()
+    d = S.d
+    W = S.W
+    runs = WORK / "runs"
+    dz = forecast_dz(d)
+    idx = pd.DatetimeIndex(pd.to_datetime(dz["date"]))
+    master = pd.read_csv(MASTER).set_index("key")
+    # ---- every forecast scored: the study's arms, the stored references, the OLS
+    R: dict[str, dict] = {}
+    for est, mode in ALL_ARMS:
+        f = runs / f"{arm_key(est, mode)}.npz"
+        if not f.is_file():
+            raise SystemExit(f"missing run {f}")
+        z = np.load(f)
+        R[arm_key(est, mode)] = dict(est=est, mode=mode, pred=z["pred"], z=z)
+    zo = np.load(runs / "ols_baseline.npz")
+    R["ols_baseline"] = dict(est="ols", mode="baseline", pred=zo["pred"], z=zo)
+    for est in EST:
+        for b in ("baseline", "all_features"):
+            k = f"sub_{EST_SHORT[est]}_{b}"
+            R[f"stored_{k}"] = dict(
+                est=est, mode="baseline" if b == "baseline" else "stored_single",
+                pred=stored_1600(k).reindex(idx).to_numpy(), master_key=k,
+            )
+    keys = list(R)
+    frames = [dvs.research_frame(dz, R[k]["pred"]) for k in keys]
+    dk = dvs.deck_frame()
+    P = dvs.deck_panel(frames, dk)
+    pt = dvs.point(P)
+    col = {k: i for i, k in enumerate(keys)}
+    # ---- scorer gate: the stored forecasts and the OLS against the master table
+    gate_rows = []
+    for k in keys:
+        mk = R[k].get("master_key", "sub_ols_baseline" if k == "ols_baseline" else None)
+        if mk is None:
+            continue
+        i = col[k]
+        gate_rows.append(dict(
+            forecast=k, master_key=mk,
+            qlike=pt["ql"][i], qlike_master=master.loc[mk, "qlike_recal"],
+            sharpe_mid=pt["sh"][i], sharpe_mid_master=master.loc[mk, "Sharpe_mid"],
+            sharpe_crossed=pt["shx"][i], sharpe_crossed_master=master.loc[mk, "Sharpe_crossed"],
+        ))
+    gate_df = pd.DataFrame(gate_rows)
+    gate_df["abs_diff_qlike"] = (gate_df["qlike"] - gate_df["qlike_master"]).abs()
+    gate_df["abs_diff_sharpe_mid"] = (gate_df["sharpe_mid"] - gate_df["sharpe_mid_master"]).abs()
+    gate_df.to_csv(OUT / "scorer_gate.csv", index=False)
+
+    # ---- headline table: point estimates, DM on daily QLIKE, HAC t on daily P&L difference
+    def contrast(a: str, b: str) -> dict:
+        ia, ib = col[a], col[b]
+        dm = dm_test(P["ql"][:, ia], P["ql"][:, ib])
+        t, lag = asl.newey_west_t(P["pnl"][:, ia] - P["pnl"][:, ib])
+        return dict(dq_pct=100.0 * (pt["ql"][ia] / pt["ql"][ib] - 1.0), dm=dm["dm"],
+                    dm_p=dm["p"], dm_lag=dm["hac_lag"], dsh=pt["sh"][ia] - pt["sh"][ib],
+                    t_hac=t, hac_lag=lag,
+                    same_position=float(np.mean((P["pnl"][:, ia] > 0) == (P["pnl"][:, ib] > 0))))
+
+    rows = []
+    for k in keys:
+        est, mode = R[k]["est"], R[k]["mode"]
+        i = col[k]
+        row = dict(key=k, estimator=LABEL.get(est, "OLS"), mode=mode,
+                   label=MODE_LABEL.get(mode, {"baseline": "HAR + calendar",
+                                              "stored_single": "one penalty (stored table)"}[mode]),
+                   qlike=pt["ql"][i], sharpe_mid=pt["sh"][i], sharpe_crossed=pt["shx"][i],
+                   pct_buy=100.0 * P["buy"][i], n_days=P["ql"].shape[0])
+        if k in R and "z" in R[k] and mode not in ("baseline",):
+            single = arm_key(est, "single")
+            base = f"stored_sub_{EST_SHORT[est]}_baseline"
+            if k != single:
+                c = contrast(k, single)
+                row.update({f"{n}_vs_single": v for n, v in c.items()})
+            c = contrast(k, base)
+            row.update({f"{n}_vs_baseline": v for n, v in c.items()})
+            c = contrast(k, "ols_baseline")
+            row.update({f"{n}_vs_ols": v for n, v in c.items()})
+        rows.append(row)
+    head = pd.DataFrame(rows)
+    head.to_csv(OUT / "headline.csv", index=False)
+
+    # ---- penalty path at every re-choice (grid edges), the group penalties, drift check
+    grids = spec_grids()
+    path_rows, grp_rows, drift_rows, cpu_rows = [], [], [], []
+    for est, mode in ALL_ARMS:
+        k = arm_key(est, mode)
+        z = R[k]["z"]
+        g = WIDE_GRIDS[est] if mode.endswith("w") else grids[est]
+        for b, (i0, _) in enumerate(S.blocks):
+            a = float(z["alpha_blk"][b])
+            vm = z["val_mse"][b]
+            path_rows.append(dict(
+                arm=k, block=b, first_forecast=str(dz["date"][i0])[:10], alpha=a,
+                r=float(z["r_blk"][b]),
+                alpha_at_low_edge=bool(a == min(g)), alpha_at_high_edge=bool(a == max(g)),
+                val_mse=float(np.nanmin(vm)) if mode != "mpr" else float(z["mpr_mse"][b]),
+                n_locked=int(z["locked"][b].sum()) - 1, n_masked=int(z["maskout"][b].sum()),
+                n_reseed=int(z["n_reseed"][b]),
+            ))
+            if mode == "mpr":
+                for gi, gname in enumerate(GROUPS):
+                    pv = float(z["pen_g"][b, gi])
+                    grp_rows.append(dict(block=b, first_forecast=str(dz["date"][i0])[:10],
+                                         group=gname, penalty=pv,
+                                         n_cols=int(((S.grp == gi) & ~z["maskout"][b].astype(bool)).sum()),
+                                         at_low_edge=bool(pv == min(g)), at_high_edge=bool(pv == max(g))))
+        ex = z["exact_pred"]
+        ok = np.isfinite(ex)
+        if ok.any():
+            gap = np.abs(z["pred"][ok] / ex[ok] - 1.0)
+            drift_rows.append(dict(arm=k, n_checked=int(ok.sum()), max_rel_gap=float(gap.max()),
+                                   median_rel_gap=float(np.median(gap)),
+                                   n_checked_rel_gap_above_1e6=int((gap > 1e-6).sum())))
+        cpu_rows.append(dict(arm=k, cpu_sec=float(z["cpu_sec"])))
+    pd.DataFrame(path_rows).to_csv(OUT / "penalty_path.csv", index=False)
+    pd.DataFrame(grp_rows).to_csv(OUT / "group_penalties.csv", index=False)
+    pd.DataFrame(drift_rows).to_csv(OUT / "warm_path_vs_exact.csv", index=False)
+    pd.DataFrame(cpu_rows).to_csv(OUT / "cpu_seconds.csv", index=False)
+
+    # ---- backbone shrinkage vs the HAR + calendar OLS, and where the forecast variance sits
+    X = S.Xaug[:, :-1]
+    bb, ex_ = S.bb, ~S.bb
+    har = np.array([n.startswith("har_ma_") for n in S.names])
+    har_in_bb = har[S.bbi]
+    arms = [arm_key(e, m) for e, m in ALL_ARMS]
+    TH = {k: np.asarray(R[k]["z"]["theta"], dtype=np.float64)[:, :-1] for k in arms}
+    th_ols = np.asarray(zo["theta_bb"])
+    n_test = S.n_test
+    stats = {k: {n: np.empty(n_test) for n in ("vBB", "vEE", "vBE", "vOLS", "phiB", "phiE")}
+             for k in arms}
+    phi_ols = np.empty(n_test)
+    cs = np.vstack([np.zeros(X.shape[1]), np.cumsum(X, axis=0)])
+    for j in range(n_test):
+        xbar = (cs[W + j] - cs[j]) / W
+        Xc = X[j : W + j] - xbar
+        cols = []
+        for k in arms:
+            th = TH[k][j]
+            cols += [np.where(bb, th, 0.0), np.where(ex_, th, 0.0)]
+        F = Xc @ np.column_stack(cols)
+        fo = Xc[:, S.bbi] @ th_ols[j]
+        vo = float(fo @ fo) / W
+        dx = X[W + j] - xbar
+        phi_ols[j] = float(dx[S.bbi] @ th_ols[j])
+        for ai, k in enumerate(arms):
+            fb, fe = F[:, 2 * ai], F[:, 2 * ai + 1]
+            st = stats[k]
+            st["vBB"][j] = float(fb @ fb) / W
+            st["vEE"][j] = float(fe @ fe) / W
+            st["vBE"][j] = float(fb @ fe) / W
+            st["vOLS"][j] = vo
+            th = TH[k][j]
+            st["phiB"][j] = float(dx[bb] @ th[bb])
+            st["phiE"][j] = float(dx[ex_] @ th[ex_])
+    shr_rows, har_rows = [], []
+    ols_har_sum = th_ols[:, har_in_bb].sum(axis=1)
+    for k in arms:
+        st = stats[k]
+        th = TH[k]
+        tot = st["vBB"] + st["vEE"] + 2.0 * st["vBE"]
+        pb, pe = st["phiB"], st["phiE"]
+        vf = np.var(pb + pe)
+        shr_rows.append(dict(
+            arm=k,
+            har_sum_ratio_median=float(np.median(th[:, har].sum(axis=1) / ols_har_sum)),
+            backbone_var_ratio_median=float(np.median(st["vBB"] / st["vOLS"])),
+            share_backbone_window_median=float(np.median(st["vBB"] / tot)),
+            share_exog_window_median=float(np.median(st["vEE"] / tot)),
+            share_cross_window_median=float(np.median(2.0 * st["vBE"] / tot)),
+            share_backbone_forecasts=float(np.var(pb) / vf),
+            share_exog_forecasts=float(np.var(pe) / vf),
+            share_cross_forecasts=float(2.0 * np.cov(pb, pe, ddof=0)[0, 1] / vf),
+            corr_backbone_part_with_ols=float(np.corrcoef(pb, phi_ols)[0, 1]),
+            n_exog_nonzero_median=float(np.median((th[:, ex_] != 0).sum(axis=1))),
+        ))
+        for jj, name in enumerate(np.array(S.names)[har]):
+            har_rows.append(dict(arm=k, column=name,
+                                 coef_median=float(np.median(th[:, har][:, jj])),
+                                 ols_coef_median=float(np.median(th_ols[:, har_in_bb][:, jj]))))
+    shr = pd.DataFrame(shr_rows)
+    shr.to_csv(OUT / "backbone_shrinkage_and_variance_shares.csv", index=False)
+    pd.DataFrame(har_rows).to_csv(OUT / "har_coefficients.csv", index=False)
+    figures(head, pd.DataFrame(path_rows), shr, grids)
+    write_summary()
+    (OUT / "DONE").touch()
+    print("analyze done", flush=True)
+
+
+def figures(head: pd.DataFrame, path: pd.DataFrame, shr: pd.DataFrame, grids: dict) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
+    # 1. QLIKE and Sharpe (two panels, one scale each)
+    order = []
+    for est in EST:
+        order += [f"stored_sub_{EST_SHORT[est]}_baseline"] + [arm_key(est, m) for m in MODES]
+        if est == "ridge":
+            order.append("ridge_mpr")
+        order += [arm_key(est, "singlew"), arm_key(est, "bb0w")]
+    order.append("ols_baseline")
+    h = head.set_index("key").loc[order]
+    fig, axes = plt.subplots(1, 2, figsize=(9.5, 6.0), sharey=True)
+    ypos = np.arange(len(order))[::-1]
+    for ax, colname, xl in ((axes[0], "qlike", "QLIKE (866 trade days, lower is better)"),
+                            (axes[1], "sharpe_mid", "sign(s) straddle Sharpe, mid fill")):
+        for y_, k in zip(ypos, order):
+            r = h.loc[k]
+            est = {"ridge": "ridge", "lasso": "reclasso", "elastic net": "reclasticnet"}.get(r["estimator"])
+            c = COLOR.get(est, "#7a7a7a")
+            ax.plot(r[colname], y_, MARKER.get(r["mode"], "o"), color=c, ms=7,
+                    mfc="white" if r["mode"] == "baseline" else c, mew=1.6)
+        ax.set_xlabel(xl)
+        ax.grid(axis="x", color="#e6e6e6", lw=0.8)
+    lab = []
+    for k in order:
+        r = h.loc[k]
+        lab.append(f"{r['estimator']}: {r['label']}")
+    axes[0].set_yticks(ypos)
+    axes[0].set_yticklabels(lab)
+    fig.suptitle("16:00-bar linear models on all_features: penalty structure vs HAR + calendar "
+                 "(hollow = HAR + calendar arm)", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(OUT / "fig_qlike_sharpe.png", dpi=150)
+    plt.close(fig)
+    # 2. penalty chosen at each re-choice
+    fig, axes = plt.subplots(1, 3, figsize=(11, 3.4))
+    for ax, est in zip(axes, EST):
+        for mode in MODES + ("bb0w",):
+            k = arm_key(est, mode)
+            pp = path[path["arm"] == k]
+            ax.plot(pp["block"], pp["alpha"], marker=MARKER[mode], color=COLOR[est],
+                    lw=1.5, ms=6, alpha=0.9, label=MODE_LABEL[mode],
+                    ls={"single": "-", "bb0": "--", "bbr": ":", "bbfix": "-.", "bb0w": (0, (5, 1, 1, 1))}[mode])
+        for a in (min(grids[est]), max(grids[est]), max(WIDE_GRIDS[est])):
+            ax.axhline(a, color="#9a9a9a", lw=0.8, ls=(0, (2, 2)))
+        ax.set_yscale("log")
+        ax.set_title(LABEL[est])
+        ax.set_xlabel("re-choice (every 250 sessions)")
+    axes[0].set_ylabel("alpha chosen (dotted = spec grid edges, widened top)")
+    axes[2].legend(fontsize=7, frameon=False, loc="best")
+    fig.tight_layout()
+    fig.savefig(OUT / "fig_penalty_path.png", dpi=150)
+    plt.close(fig)
+    # 3. share of the forecasts' variance on the backbone and on the exogenous columns
+    fig, ax = plt.subplots(figsize=(7.5, 4.6))
+    arms = [arm_key(e, m) for e, m in ALL_ARMS]
+    s2 = shr.set_index("arm").loc[arms]
+    yp = np.arange(len(arms))[::-1]
+    for y_, k in zip(yp, arms):
+        est = R_EST(k)
+        ax.plot(s2.loc[k, "share_backbone_forecasts"], y_, "o", color=COLOR[est], ms=7)
+        ax.plot(s2.loc[k, "share_exog_forecasts"], y_, "o", color=COLOR[est], ms=7, mfc="white", mew=1.6)
+    ax.set_yticks(yp)
+    ax.set_yticklabels([f"{LABEL[R_EST(k)]}: {MODE_LABEL[k.split('_', 1)[1]]}" for k in arms])
+    ax.set_xlabel("share of the forecasts' variance (filled = backbone part, hollow = exogenous part)")
+    ax.grid(axis="x", color="#e6e6e6", lw=0.8)
+    fig.tight_layout()
+    fig.savefig(OUT / "fig_variance_shares.png", dpi=150)
+    plt.close(fig)
+
+
+def _md_table(df: pd.DataFrame) -> str:
+    cols = list(df.columns)
+    out = ["| " + " | ".join(cols) + " |", "|" + "|".join("---" for _ in cols) + "|"]
+    for _, r in df.iterrows():
+        out.append("| " + " | ".join(str(r[c]) for c in cols) + " |")
+    return "\n".join(out)
+
+
+def write_summary() -> None:  # noqa: C901 - one linear report
+    """SUMMARY.md from this folder's CSVs (and the gate CSVs in _work)."""
+    head = pd.read_csv(OUT / "headline.csv").set_index("key")
+    sg = pd.read_csv(OUT / "scorer_gate.csv")
+    path = pd.read_csv(OUT / "penalty_path.csv")
+    grp = pd.read_csv(OUT / "group_penalties.csv")
+    drift = pd.read_csv(OUT / "warm_path_vs_exact.csv")
+    cpu = pd.read_csv(OUT / "cpu_seconds.csv")
+    shr = pd.read_csv(OUT / "backbone_shrinkage_and_variance_shares.csv").set_index("arm")
+    harc = pd.read_csv(OUT / "har_coefficients.csv")
+    g0 = pd.read_csv(WORK / "gate_spec_vs_stored.csv")
+    g1 = pd.read_csv(WORK / "check_c_vs_spec_gate.csv")
+    g2 = pd.read_csv(WORK / "check_c_vs_python_locked_slice.csv")
+    L: list[str] = []
+    say = L.append
+    say("# The 16:00-bar linear models with the HAR + calendar backbone left (nearly) unpenalized")
+    say("")
+    say(f"Written by `experiments/close_exogpen.py analyze` on {time.strftime('%Y-%m-%d %H:%M')}; "
+        "every number below is read from the CSVs in this folder (and the gate CSVs in `_work/`).")
+    say("")
+    say("## Question and design")
+    say("")
+    say("The user: the other shrinkage models should also leave the base HAR features alone and mainly "
+        "penalize the exogenous features, as the paper's 2-block ridge does (backbone penalty 1, "
+        "exogenous block 100). The 16:00-bar linear models (`specs/causal_tune_linear.py`) put one "
+        "penalty on every column. Here the same models are refit on the `all_features` 16:00-bar "
+        "design (628 columns; cache `results/close_design/_work/design_bar1600_all_features.npz`) "
+        "with a penalty factor on the backbone (the 22 columns of the `baseline` design: the target's "
+        "HAR ladder `har_ma_1 .. har_ma_3125` and the calendar / expiry columns), glmnet's "
+        "penalty.factor convention: column j carries alpha x pf_j x (l1 |b_j| + (1 - l1) / 2 b_j^2), "
+        "pf = 1 on the 606 exogenous columns.")
+    say("")
+    say("| arm | backbone | alpha | ratio r = backbone : exogenous penalty |")
+    say("|---|---|---|---|")
+    say("| one penalty (spec) | penalized like every column | spec grid, re-chosen every 250 sessions | 1 |")
+    say("| backbone unpenalized | locked: in the active set always, no penalty (as the spec's intercept) | spec grid | 0 |")
+    say("| backbone ratio r tuned | r chosen jointly with alpha on the same validation tail | spec grid | {0, 0.01, 0.1, 1} |")
+    say("| backbone ratio 1/100 | penalized at r times the exogenous penalty | spec grid | 0.01 (the paper's 1 : 100 in ridge units) |")
+    say("| ridge, one penalty for each group | locked | one ridge penalty for each of the 8 exogenous feature groups (multi-penalty ridge; van de Wiel, van Nee & Rauschenberger 2021), chosen on the validation tail by cyclic coordinate search over the ridge grid (2 passes, start = the backbone-unpenalized ridge's alpha) | 0 |")
+    say("")
+    say("Why r is tuned rather than fixed: the paper's 1/100 was set for ridge on the pooled 48-bar design; "
+        "for an L1 penalty the same ratio is a different amount of shrinkage, so the ratio is chosen "
+        "causally with alpha (r = 1 nests the spec's model, r = 0 nests the unpenalized backbone), "
+        "and the fixed 1/100 arm is recorded beside it.")
+    say("")
+    say("Protocol (the spec's, unchanged): window = the 2000 sessions before the forecast, refit every "
+        "session, intercept unpenalized, the identifiability mask at every re-choice, penalty re-chosen "
+        "every 250 sessions on the last 125 sessions of the window after a 25-session embargo, the "
+        "spec's grids (ridge 1e-2 .. 1e3; lasso / elastic net 1e-6 .. 1e-2; elastic net l1_ratio 0.5). "
+        "When the backbone is locked, backbone columns constant in the window, byte-copies of an "
+        "earlier backbone column, or beyond the numerical rank of the centered backbone are masked "
+        "(the five weekday dummies sum to the intercept, so one of them is left out; fit and "
+        "forecasts are unchanged by that choice).")
+    say("")
+    say("Algorithm: the spec's own (`RollingTunedLinear` and `src/models/reclasso_har.py`), ported "
+        "to C (`experiments/close_exogpen_kernel.c`, gcc -O3 -march=native, no -ffast-math, reference "
+        "LAPACK / BLAS): ridge = Sherman-Morrison rank-one add / drop on the ridged inverse; lasso / "
+        "elastic net = the Garrigues-El Ghaoui online homotopy (two `enet_online` updates a session), "
+        "cold seed `_batch_theta` (FWL on the locked block + batch homotopy) at every re-choice, and "
+        "for the lasso the between-re-choice mask additions (`_degenerate_live`). With pf != 1 the "
+        "batch elastic net is solved exactly by column scaling.")
+    say("")
+    say("## Gates")
+    say("")
+    say("1. The spec's own class (executed read-only on the cached design) against the stored 16:00 "
+        "forecasts `results/spxw_pnl/yhat_sub_<est>_all_features.parquet`:")
+    say("")
+    t = g0[["est", "n", "max_rel_diff", "cpu_sec", "alphas"]].copy()
+    t["max_rel_diff"] = t["max_rel_diff"].map(lambda v: f"{v:.1e}")
+    t["cpu_sec"] = t["cpu_sec"].map(lambda v: f"{v:.1f}")
+    say(_md_table(t))
+    say("")
+    say("2. The C port, one penalty, all 1469 sessions, against (1) and against the stored tables "
+        "(relative gap of the 16:00 forecast; CPU seconds for one full arm, Python spec class vs C):")
+    say("")
+    t = g1[["est", "same_alphas_as_spec", "max_rel_gap_vs_spec", "n_sessions_rel_gap_vs_spec_above_1e9",
+            "max_rel_gap_vs_stored", "n_sessions_rel_gap_vs_stored_above_1e9",
+            "python_spec_cpu_sec_full_arm", "c_cpu_sec_full_arm"]].copy()
+    for c in ("max_rel_gap_vs_spec", "max_rel_gap_vs_stored"):
+        t[c] = t[c].map(lambda v: f"{v:.1e}")
+    say(_md_table(t))
+    say("")
+    en = g1.set_index("est").loc["reclasticnet"]
+    say(f"   The elastic net is the exception: the C port differs from the spec class on "
+        f"{int(en['n_sessions_rel_gap_vs_spec_above_1e9'])} sessions and from the stored table on "
+        f"{int(en['n_sessions_rel_gap_vs_stored_above_1e9'])} (largest {en['max_rel_gap_vs_stored']:.2%}), "
+        f"and the spec class itself differs from the stored table by up to {en['spec_max_rel_gap_vs_stored']:.2%}. "
+        "All three are the same warm homotopy; at alpha 1e-3 (blocks 3 and 4) it leaves the exact "
+        "path at different sessions on different floating-point paths (local Python spec from 2021-11-15 "
+        "in block 3, the stored run from block 4, the C port late in block 4) and returns to it at the "
+        "next re-choice (cold reseed). Checked against the exact batch solution (`_batch_theta` on the "
+        "same window) in `warm_path_vs_exact.csv`.")
+    say("")
+    say("3. On a short slice (the first sessions of block 0), the C backbone-locked arm against the "
+        "spec's own class with the same locked set (a subclass whose mask step locks the backbone):")
+    say("")
+    t = g2[["est", "sessions", "alpha_c", "alpha_python", "max_rel_gap"]].copy()
+    t["max_rel_gap"] = t["max_rel_gap"].map(lambda v: f"{v:.1e}")
+    say(_md_table(t))
+    say("")
+    say("4. The scorer (16:00-bar recalibration (f^2 + s) x B, QLIKE on the 866 trade days, the 15:30 "
+        "sign(s) straddle; `experiments/dense_vs_sparse_1530.py` helpers) against the master table:")
+    say("")
+    t = sg[["forecast", "qlike", "qlike_master", "sharpe_mid", "sharpe_mid_master"]].copy()
+    for c in ("qlike", "qlike_master"):
+        t[c] = t[c].map(lambda v: f"{v:.4f}")
+    for c in ("sharpe_mid", "sharpe_mid_master"):
+        t[c] = t[c].map(lambda v: f"{v:.2f}")
+    say(_md_table(t))
+    say("")
+    say("5. Warm path vs the exact batch solution, every 25th session (lasso / elastic net arms):")
+    say("")
+    t = drift.copy()
+    t["max_rel_gap"] = t["max_rel_gap"].map(lambda v: f"{v:.1e}")
+    t["median_rel_gap"] = t["median_rel_gap"].map(lambda v: f"{v:.1e}")
+    say(_md_table(t))
+    say("")
+    say("## QLIKE and the trade (point estimates; the block bootstrap is off, commit b761b28)")
+    say("")
+    say("DM = Diebold-Mariano statistic on the daily QLIKE difference (negative: the row forecasts "
+        "better); t = Newey-West HAC t of the daily mid-fill P&L difference (positive: the row trades "
+        "better). Reference 'one penalty' = the C port's spec model of the same estimator; reference "
+        "'HAR + calendar' = the stored 16:00-bar model of the same estimator on the `baseline` design "
+        "(the master table's `sub_<est>_baseline`); the multi-penalty ridge is set against the ridge rows.")
+    say("")
+    rows = []
+    order = []
+    for est in EST:
+        order += [f"stored_sub_{EST_SHORT[est]}_baseline"] + [arm_key(est, m) for m in MODES]
+        if est == "ridge":
+            order.append("ridge_mpr")
+        order += [arm_key(est, "singlew"), arm_key(est, "bb0w")]
+    order.append("ols_baseline")
+    for k in order:
+        r = head.loc[k]
+
+        def g(c, nd=2):
+            v = r.get(c, np.nan)
+            return "" if pd.isna(v) else f"{v:+.{nd}f}"
+
+        def pv(c):
+            v = r.get(c, np.nan)
+            return "" if pd.isna(v) else f"{v:.3f}"
+
+        rows.append({
+            "model": f"{r['estimator']}: {r['label']}",
+            "QLIKE": f"{r['qlike']:.4f}",
+            "Sharpe mid / crossed": f"{r['sharpe_mid']:.2f} / {r['sharpe_crossed']:.2f}",
+            "vs one penalty: dQLIKE %, DM (p)": "" if pd.isna(r.get("dm_vs_single", np.nan)) else
+                f"{g('dq_pct_vs_single', 1)}, {g('dm_vs_single')} ({pv('dm_p_vs_single')})",
+            "vs one penalty: dSharpe, t": "" if pd.isna(r.get("t_hac_vs_single", np.nan)) else
+                f"{g('dsh_vs_single')}, {g('t_hac_vs_single')}",
+            "vs HAR + calendar: dQLIKE %, DM (p)": "" if pd.isna(r.get("dm_vs_baseline", np.nan)) else
+                f"{g('dq_pct_vs_baseline', 1)}, {g('dm_vs_baseline')} ({pv('dm_p_vs_baseline')})",
+            "vs HAR + calendar: dSharpe, t": "" if pd.isna(r.get("t_hac_vs_baseline", np.nan)) else
+                f"{g('dsh_vs_baseline')}, {g('t_hac_vs_baseline')}",
+        })
+    say(_md_table(pd.DataFrame(rows)))
+    say("")
+    hk = head.loc["ols_baseline"]
+    say(f"HAR + calendar OLS (master table `sub_ols_baseline`): QLIKE {hk['qlike']:.4f}, Sharpe "
+        f"{hk['sharpe_mid']:.2f} mid / {hk['sharpe_crossed']:.2f} crossed. Each new arm against it: "
+        "columns `*_vs_ols` of `headline.csv`.")
+    say("")
+    say("## The penalty chosen at each re-choice")
+    say("")
+    pv_ = path.copy()
+    pv_["choice"] = [
+        (f"{a:g}" if np.isfinite(a) else "groups") + (f" (r {r_:g})" if k.endswith("bbr") else "")
+        + (" *" if (lo or hi) else "")
+        for a, r_, k, lo, hi in zip(pv_["alpha"], pv_["r"], pv_["arm"], pv_["alpha_at_low_edge"],
+                                    pv_["alpha_at_high_edge"])
+    ]
+    tab = pv_.pivot(index="arm", columns="first_forecast", values="choice")
+    tab = tab.loc[[arm_key(e, m) for e, m in ALL_ARMS]].reset_index()
+    say("`*` = at an edge of the spec's grid.")
+    say("")
+    say(_md_table(tab))
+    say("")
+    n_edge = int((path["alpha_at_low_edge"] | path["alpha_at_high_edge"]).sum())
+    n_all = int(np.isfinite(path["alpha"]).sum())
+    say(f"{n_edge} of {n_all} alpha choices sit at an edge of their grid (spec grids: ridge top 1e3, "
+        "lasso / elastic net top 1e-2; widened grids of the supplement: ridge top 1e6, lasso / elastic net top 1).")
+    say("")
+    gt = grp.pivot(index="group", columns="first_forecast", values="penalty").reindex(list(GROUPS))
+    gt = gt.map(lambda v: f"{v:g}").reset_index()
+    say("Multi-penalty ridge, the penalty of each exogenous group at each re-choice:")
+    say("")
+    say(_md_table(gt))
+    say("")
+    say("## Why one penalty loses: backbone shrinkage and where the forecast variance sits")
+    say("")
+    say("har-sum ratio = sum of the six HAR coefficients over the HAR + calendar OLS's (median over "
+        "sessions; 1 = no shrinkage of the persistence); backbone variance ratio = in-window variance of "
+        "the backbone part of the fit over that of the OLS fit; shares = the forecasts' variance over the "
+        "1469 sessions split into the backbone part, the exogenous part and twice their covariance "
+        "(each part = coefficients x (row - window mean)).")
+    say("")
+    t = shr.loc[[arm_key(e, m) for e, m in ALL_ARMS],
+                ["har_sum_ratio_median", "backbone_var_ratio_median", "share_backbone_forecasts",
+                 "share_exog_forecasts", "share_cross_forecasts", "corr_backbone_part_with_ols",
+                 "n_exog_nonzero_median"]].copy()
+    for c in t.columns:
+        t[c] = t[c].map(lambda v: f"{v:.2f}" if c != "n_exog_nonzero_median" else f"{v:.0f}")
+    say(_md_table(t.reset_index()))
+    say("")
+    hc = harc.pivot(index="arm", columns="column", values="coef_median")
+    oc = harc.groupby("column")["ols_coef_median"].first()
+    hcols = [c for c in ["har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125"] if c in hc.columns]
+    hc = hc.loc[[arm_key(e, m) for e, m in ALL_ARMS], hcols]
+    hc.loc["HAR + calendar OLS"] = oc[hcols]
+    say("Median HAR coefficients (prescaled design):")
+    say("")
+    say(_md_table(hc.map(lambda v: f"{v:+.3f}").reset_index()))
+    say("")
+    say("## Answer (recorded comparisons)")
+    say("")
+    for est in EST:
+        base = head.loc[f"stored_sub_{EST_SHORT[est]}_baseline"]
+        single = head.loc[arm_key(est, "single")]
+        say(f"- {LABEL[est]}: HAR + calendar QLIKE {base['qlike']:.4f} / Sharpe {base['sharpe_mid']:.2f}; "
+            f"all features with one penalty {single['qlike']:.4f} / {single['sharpe_mid']:.2f}.")
+        for m in MODES[1:] + (("mpr",) if est == "ridge" else ()) + ("singlew", "bb0w"):
+            r = head.loc[arm_key(est, m)]
+            say(f"  - {MODE_LABEL[m]}: {r['qlike']:.4f} / {r['sharpe_mid']:.2f}; vs one penalty DM "
+                f"{r['dm_vs_single']:+.2f} (p {r['dm_p_vs_single']:.3f}), HAC t {r['t_hac_vs_single']:+.2f}; "
+                f"vs HAR + calendar DM {r['dm_vs_baseline']:+.2f} (p {r['dm_p_vs_baseline']:.3f}), "
+                f"HAC t {r['t_hac_vs_baseline']:+.2f}.")
+    say("")
+    say("## Caveats")
+    say("")
+    say("- Point estimates with 866 trade days; the Sharpe ratios of these models differ by amounts "
+        "of the order of their sampling error (the HAC t column).")
+    say("- The ratio r and the group penalties are chosen on 125-session tails; with the spec's "
+        "grids, several choices sit at a grid edge (table above), as in the spec's own one-penalty models.")
+    say("- The lasso / elastic net warm path is the spec's algorithm; where it leaves the exact path "
+        "(gate 5) the forecast differs from the exact window optimum until the next re-choice.")
+    say("- The HAR + calendar references are the stored master-table forecasts (scorer gate 4).")
+    say("")
+    say("## CPU")
+    say("")
+    tot = float(cpu["cpu_sec"].sum())
+    say(f"C walk-forward, all {len(cpu)} arms: {tot:.0f} CPU seconds (`cpu_seconds.csv`); one process "
+        "for ridge + lasso and one for the elastic net, single-threaded BLAS.")
+    say("")
+    say("## Files")
+    say("")
+    say("- `experiments/close_exogpen.py` (stages gate, check, run, analyze), "
+        "`experiments/close_exogpen_kernel.c` (the C port), `experiments/close_exogpen_cdcheck.c` "
+        "(an independent coordinate-descent / eigendecomposition solver kept as a cross-check, not "
+        "the arms of record).")
+    say("- `headline.csv`, `scorer_gate.csv`, `penalty_path.csv`, `group_penalties.csv`, "
+        "`warm_path_vs_exact.csv`, `backbone_shrinkage_and_variance_shares.csv`, `har_coefficients.csv`, "
+        "`cpu_seconds.csv`; figures `fig_qlike_sharpe.png`, `fig_penalty_path.png`, "
+        "`fig_variance_shares.png`; forecasts and coefficients `_work/runs/*.npz`; gates `_work/gate_*.csv`, "
+        "`_work/check_*.csv`.")
+    (OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
+def R_EST(k: str) -> str:
+    return {"ridge": "ridge", "lasso": "reclasso", "enet": "reclasticnet"}[k.split("_", 1)[0]]
 
 
 if __name__ == "__main__":
@@ -554,5 +1187,11 @@ if __name__ == "__main__":
         check()
     elif stage == "run":
         run(sys.argv[2:] or list(EST))
+    elif stage == "run_supplement":
+        run(sys.argv[2:] or list(EST), supplement=True)
+    elif stage == "crosscheck":
+        crosscheck()
+    elif stage == "analyze":
+        analyze()
     else:
         raise SystemExit(__doc__)
