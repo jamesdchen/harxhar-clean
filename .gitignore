@@ -84,3 +84,5 @@ results/spxw_pnl/dedup_nomask_2026-09-29/
 # shared design cache of the 2026-10-03 close studies (experiments/capture_design_close.py; regenerable)
 results/close_design/_work/
 results/close_design/*.log
+# large arrays of the 2026-10-03 close studies (regenerable by their scripts)
+results/close_studies_2026-10-03/*/_work/
