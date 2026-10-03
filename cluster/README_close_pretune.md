@@ -1,6 +1,6 @@
 # Trees pre-tune study on Hoffman2 (2026-10-03 close studies)
 
-The full-size run of `experiments/close_trees_pretune.py`: a heavy Optuna pre-tune of the per-bar
+The full-size run of `experiments/close_trees_pretune.py`: a heavy Optuna pre-tune of the 16:00-bar
 LightGBM and XGBoost (all_features, 16:00 bar) on sessions before 2020-01-03, then a light retune
 every 250 sessions, scored on the 866 trade days. The local reduced run and its report are in
 `results/close_studies_2026-10-03/trees_pretune/SUMMARY.md`; this run uses the same code with larger
@@ -34,7 +34,7 @@ arm). Every fit is single-threaded.
 
        bash cluster/close_pretune_ship_h2.sh
 
-2. Smoke run on a compute node (2 trials, 1 fold; 2 retune trials, refit rows 370-399; about 15 min):
+2. Smoke run on a compute node (2 trials, 1 fold; 2 retune trials, refit rows 370-399; the same run took 2.5 min of one core locally):
 
        C:\Windows\System32\OpenSSH\ssh.exe hoffman2 "bash -lc 'cd /u/scratch/j/jamesdc1/harxhar-close-pretune && bash cluster/submit_close_pretune_h2.sh smoke smoke1'"
 

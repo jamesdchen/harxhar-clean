@@ -1,4 +1,4 @@
-"""Per-bar trees at the 16:00 bar: one heavy pre-2020 pre-tune, then a light retune every 250 sessions.
+"""Trees on the 16:00 bar: one heavy pre-2020 pre-tune, then a light retune every 250 sessions.
 
 The user's note (2026-10-03): trees do worse than the linear arms -> hyperparameter tuning; "go ham
 on the pre-2020 pre-tune, then do very light hyperparameter tuning every year (~250 sessions)".
@@ -7,8 +7,8 @@ tail, every session or every 250) did not beat the shipped configuration; the su
 noisy selection on a 125-session tail.  This study replaces that tail with a large pre-2020
 validation set for one heavy search, and keeps only a small, guarded retune afterwards.
 
-Model and design: specs/causal_tune_trees.py's per-bar LightGBM (XGBoost with CTP_MODEL=xgb) on
-the all_features design of the 16:00 bar, 2000-session window, the per-window column mask on
+Model and design: specs/causal_tune_trees.py's 16:00-bar LightGBM (XGBoost with CTP_MODEL=xgb) on
+the all_features design of the 16:00 bar, 2000-session window, the window column mask on
 (src/models/window_mask.py), every fit single-threaded.  Search space, round rules (early stopping
 with patience ceil(1 / lr), the 4 x shipped shrinkage cap) and model construction are the Optuna
 spec's (specs/causal_tune_trees_optuna_jobs.py), imported, not copied.
@@ -106,7 +106,7 @@ MODEL = _env("MODEL", "lgbm")
 if MODEL not in ("lgbm", "xgb"):
     raise SystemExit(f"CTP_MODEL must be lgbm or xgb, got {MODEL!r}")
 BUCKET = "all_features"
-TRAIN_WIN = 2000  # sessions: the per-bar arms' window
+TRAIN_WIN = 2000  # sessions: the 16:00-bar arms' window
 # the tree spec's env axes, read by specs/causal_tune_trees.py when tree_setup executes its head
 # (spawned workers inherit them): the model, the bucket, the window (leaf-minimum scaling), mask on
 os.environ["HPC_KW_MODEL"] = MODEL
@@ -373,7 +373,7 @@ def score_table(info: dict, preds: dict[str, np.ndarray]) -> tuple[pd.DataFrame,
 
 
 def load_stored(info: dict, key: str) -> np.ndarray:
-    """A stored table's 16:00 forecasts (per-bar linear tables stack every bar: the 16:00 rows)."""
+    """A stored table's 16:00 forecasts (the linear tables stack every bar: the 16:00 rows)."""
     d = pd.read_parquet(REPO / "results" / "spxw_pnl" / STORED[key])
     W = info["W"]
     t = pd.to_datetime(d["t"]).dt.tz_convert("America/New_York").dt.tz_localize(None)
