@@ -40,7 +40,9 @@ window), so it trails the trees' expanding window by at most 249 rows.
 Stages:
   python experiments/close_trees_datasize.py run [arm ...]   fit arms (default: ORDER), one at a
                                                              time; an arm already in _work/ is skipped
+  python experiments/close_trees_datasize.py merge <arm ...>  join the TDS_CHUNK pieces of tree arms
   python experiments/close_trees_datasize.py analyze         score, CSVs, figure, SUMMARY.md
+Env axes: TDS_REFIT_EVERY (tree cadence, default 10), TDS_CHUNK (k/n), TDS_WORK, CLOSE_DESIGN_DIR.
 
 Outputs: results/close_studies_2026-10-03/trees_datasize/ (CSVs, figure, SUMMARY.md written from
 the CSVs); _work/<arm>.npz holds each arm's forecasts (never committed).
@@ -84,6 +86,13 @@ SPEC_REFIT_EVERY = 10  # the tree spec's default REFIT_EVERY (asserted against t
 REFIT_EVERY = int(os.environ.get("TDS_REFIT_EVERY", str(SPEC_REFIT_EVERY)))
 REPORT = OUT if REFIT_EVERY == SPEC_REFIT_EVERY else OUT / f"refit{REFIT_EVERY}"
 WORK = Path(os.environ.get("TDS_WORK", str(REPORT / "_work")))
+# Env axis TDS_CHUNK = "k/n" (trees only; default whole arm): fit only the k-th of n contiguous
+# pieces of the refit anchors and write <arm>.part<k>of<n>.npz; ``merge`` joins the pieces.  Each
+# refit depends on its own window alone (no state carries between refits), so a chunked arm equals
+# the whole arm (checked on a short slice by the cluster smoke test).  TDS_MAX_ANCHORS (smoke tests
+# only, default 0 = all) keeps the first K refit anchors.
+CHUNK = os.environ.get("TDS_CHUNK", "")
+MAX_ANCHORS = int(os.environ.get("TDS_MAX_ANCHORS", "0"))
 TUNE_PER = 250  # the linear spec's TUNE_PER (asserted against the spec)
 # First tree forecast, as an index into the 1469 one-bar forecast rows (0 = 2018-06-25): a multiple
 # of REFIT_EVERY, so every refit anchor is an anchor of the stored run, and early enough that the
@@ -105,6 +114,7 @@ for _m in ("lgbm", "xgb", "rf", "ridge", "lasso"):
 LINEAR = ("ridge", "lasso")
 TREES = ("lgbm", "xgb", "rf")
 EST_OF = {"ridge": "ridge", "lasso": "reclasso"}  # the linear spec's estimator names
+LEAF_PARAM = {"lgbm": "min_child_samples", "xgb": "min_child_weight", "rf": "min_samples_leaf"}
 ORDER = [
     *(f"{m}_bar1600_w2000" for m in LINEAR),
     *(f"{m}_pool_w4000" for m in LINEAR),
@@ -209,11 +219,25 @@ def check_spec() -> None:
     assert lin["TUNE_PER"] == TUNE_PER
 
 
-def run_tree(model: str, src: dict, win: int | str, n_fc: int) -> dict:
+def tree_anchors(n_fc: int) -> list[int]:
+    """Refit anchors (forecast-row indices) of a whole tree arm (TDS_MAX_ANCHORS: the first K)."""
+    a = list(range(TREE_START, n_fc, REFIT_EVERY))
+    return a[:MAX_ANCHORS] if MAX_ANCHORS > 0 else a
+
+
+def chunk_of(anchors: list[int]) -> tuple[list[int], str]:
+    """The TDS_CHUNK piece of the anchors and its file suffix."""
+    if not CHUNK:
+        return anchors, ""
+    k, n = (int(v) for v in CHUNK.split("/"))
+    assert 0 <= k < n, CHUNK
+    return [int(v) for v in np.array_split(np.array(anchors), n)[k]], f".part{k}of{n}"
+
+
+def run_tree(model: str, src: dict, win: int | str, n_fc: int, anchors: list[int]) -> dict:
     X, y, fc = src["X"], src["y"], src["fc"]
     pred = np.full(n_fc, np.nan)
     fit_sec, n_train, kept_n, leaf = [], [], [], []
-    anchors = list(range(TREE_START, n_fc, REFIT_EVERY))
     t0 = time.time()
     for a, j in enumerate(anchors):
         r = int(fc[j])  # series row of the anchor's 16:00 forecast
@@ -232,10 +256,7 @@ def run_tree(model: str, src: dict, win: int | str, n_fc: int) -> dict:
         n_train.append(r - lo)
         kept_n.append(len(keep))
         p = m.get_params()
-        leaf.append(
-            {"lgbm": "min_child_samples", "xgb": "min_child_weight", "rf": "min_samples_leaf"}
-            .get(model) and p[{"lgbm": "min_child_samples", "xgb": "min_child_weight", "rf": "min_samples_leaf"}[model]]
-        )
+        leaf.append(p[LEAF_PARAM[model]])
         if (a + 1) % 25 == 0:
             print(
                 f"    refit {a + 1}/{len(anchors)}  fit {np.mean(fit_sec):.1f}s  "
@@ -309,15 +330,25 @@ def run(arms: list[str]) -> None:
     S = sources()
     WORK.mkdir(parents=True, exist_ok=True)
     for arm in arms:
-        f = WORK / f"{arm}.npz"
-        if f.is_file():
-            print(f"{arm}: done already ({f})", flush=True)
-            continue
         model, srcname, win = ARMS[arm]
-        print(f"{arm}: model={model} rows={srcname} window={win}", flush=True)
+        anchors, suffix = chunk_of(tree_anchors(S["n_fc"]))
+        assert not suffix or model in TREES, "only tree arms are chunked (the linear state carries)"
+        f = WORK / f"{arm}{suffix}.npz"
+        if f.is_file() or (suffix and (WORK / f"{arm}.npz").is_file()):
+            print(f"{arm}{suffix}: done already", flush=True)
+            continue
+        claim = WORK / f"{arm}{suffix}.claim"  # two processes never fit the same arm
+        try:
+            fd = os.open(claim, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            print(f"{arm}: claimed by another process ({claim})", flush=True)
+            continue
+        os.write(fd, f"pid {os.getpid()} {time.ctime()}\n".encode())
+        os.close(fd)
+        print(f"{arm}{suffix}: model={model} rows={srcname} window={win}", flush=True)
         t0, c0 = time.time(), time.process_time()
         if model in TREES:
-            out = run_tree(model, S[srcname], win, S["n_fc"])
+            out = run_tree(model, S[srcname], win, S["n_fc"], anchors)
         else:
             out = run_linear(model, S[srcname], win, S["n_fc"])
         wall, cpu = time.time() - t0, time.process_time() - c0
@@ -329,6 +360,8 @@ def run(arms: list[str]) -> None:
             bucket=BUCKET,
             refit_every=REFIT_EVERY if model in TREES else 1,
             tree_start=TREE_START if model in TREES else 0,
+            chunk=CHUNK,
+            max_anchors=MAX_ANCHORS,
             params=tree_params(model, 2000 if win == "exp" else int(win))
             if model in TREES
             else EST_OF[model],
@@ -342,15 +375,51 @@ def run(arms: list[str]) -> None:
             **{k: np.array(v) for k, v in out.items() if not isinstance(v, np.ndarray)},
             meta=json.dumps(meta),
         )
-        print(f"{arm}: wrote {f}  wall {wall:.0f}s  cpu {cpu:.0f}s", flush=True)
+        claim.unlink()
+        print(f"{arm}{suffix}: wrote {f}  wall {wall:.0f}s  cpu {cpu:.0f}s", flush=True)
+
+
+def merge(arms: list[str]) -> None:
+    """Join the TDS_CHUNK pieces of tree arms into <arm>.npz (every anchor exactly once)."""
+    n_fc = sources()["n_fc"]
+    want = tree_anchors(n_fc)
+    for arm in arms:
+        parts = sorted(WORK.glob(f"{arm}.part*of*.npz"))
+        if not parts:
+            print(f"{arm}: no pieces in {WORK}")
+            continue
+        Z = [dict(np.load(q, allow_pickle=False)) for q in parts]
+        metas = [json.loads(str(z["meta"])) for z in Z]
+        n = {m["chunk"].split("/")[1] for m in metas}
+        assert len(n) == 1 and len(parts) == int(n.pop()), [q.name for q in parts]
+        order = np.argsort([z["anchors"][0] for z in Z])
+        Z, metas = [Z[i] for i in order], [metas[i] for i in order]
+        got = np.concatenate([z["anchors"] for z in Z])
+        assert got.tolist() == want, (len(got), len(want))
+        pred = np.full(n_fc, np.nan)
+        for z in Z:
+            m = np.isfinite(z["pred"])
+            assert np.isnan(pred[m]).all()
+            pred[m] = z["pred"][m]
+        meta = dict(metas[0])
+        meta.update(
+            chunk=f"merged {len(Z)} pieces",
+            wall_sec=sum(m["wall_sec"] for m in metas),
+            cpu_sec=sum(m["cpu_sec"] for m in metas),
+        )
+        out = {k: np.concatenate([z[k] for z in Z]) for k in ("fit_sec", "n_train", "kept_n", "leaf_min", "anchors")}
+        np.savez_compressed(WORK / f"{arm}.npz", pred=pred, **out, meta=json.dumps(meta))
+        print(f"{arm}: merged {len(Z)} pieces -> {WORK / f'{arm}.npz'}")
 
 
 # ============================================================================ main
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or sys.argv[1] not in ("run", "analyze"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("run", "merge", "analyze"):
         raise SystemExit(__doc__)
     if sys.argv[1] == "run":
         run(sys.argv[2:] or ORDER)
+    elif sys.argv[1] == "merge":
+        merge(sys.argv[2:])
     else:
         from close_trees_datasize_analyze import analyze  # noqa: E402
 
