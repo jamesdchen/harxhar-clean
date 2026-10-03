@@ -176,96 +176,6 @@ def gate() -> None:
     pd.DataFrame(rows).to_csv(WORK / "gate_spec_vs_stored.csv", index=False)
 
 
-# ============================================================================ numpy reference
-# The Python reference the C kernel is checked against on a short slice: the profiled
-# problem solved directly (ridge: Cholesky; lasso / elastic net: the spec's exact
-# homotopy, penalty factors by column scaling).
-def identifiable(Xw: np.ndarray) -> np.ndarray:
-    """The spec's identifiability rule (RollingTunedLinear._recompute_mask): False for
-    columns constant in the window or byte-copies of an earlier kept column."""
-    keep = np.ones(Xw.shape[1], dtype=bool)
-    seen: set[bytes] = set()
-    for j in range(Xw.shape[1]):
-        col = np.ascontiguousarray(Xw[:, j])
-        if col.max() == col.min():
-            keep[j] = False
-            continue
-        key = col.tobytes()
-        if key in seen:
-            keep[j] = False
-        else:
-            seen.add(key)
-    return keep
-
-
-def enet_exact(G, c, mu: float, lam2: float, pf: np.ndarray) -> np.ndarray:
-    """The spec's exact homotopy (src.models.reclasso_har.lasso_homotopy) with glmnet
-    penalty factors by column scaling: b = g / pf solves the problem on
-    D^-1 G D^-1 + lam2 diag(1 / pf), D^-1 c, unit L1 weights (exact for pf > 0)."""
-    from src.models.reclasso_har import lasso_homotopy
-
-    inv = 1.0 / pf
-    Gs = G * np.outer(inv, inv)
-    Gs[np.diag_indices_from(Gs)] += lam2 * inv
-    g, _, _ = lasso_homotopy(Gs, c * inv, mu)
-    return g * inv
-
-
-class Window:
-    """Centered statistics of one window; the projection onto the centered unpenalized
-    columns (minimum-norm, numpy.linalg.matrix_rank's rank rule)."""
-
-    def __init__(self, Xw: np.ndarray, yw: np.ndarray):
-        self.n = len(yw)
-        self.xbar = Xw.mean(axis=0)
-        self.ybar = float(yw.mean())
-        self.Xc = Xw - self.xbar
-        self.yc = yw - self.ybar
-        self.G = self.Xc.T @ self.Xc
-        self.c = self.Xc.T @ self.yc
-
-    def profile(self, B: np.ndarray, P: np.ndarray):
-        GPP, cP = self.G[np.ix_(P, P)], self.c[P]
-        if len(B) == 0:
-            return GPP, cP, lambda bP: np.zeros(0)
-        U, s, Vt = np.linalg.svd(self.Xc[:, B], full_matrices=False)
-        k = int((s > s.max() * max(self.Xc.shape[0], len(B)) * np.finfo(float).eps).sum())
-        Q = U[:, :k]
-        A = Q.T @ self.Xc[:, P]
-        bq = Q.T @ self.yc
-        Gt = GPP - A.T @ A
-        Vk = Vt[:k].T / s[:k]
-        return 0.5 * (Gt + Gt.T), cP - A.T @ bq, lambda bP: Vk @ (bq - A @ bP)
-
-
-def solve_ref(win: Window, est: str, B, P, pen):
-    """Coefficients (length p) and intercept; pen = alpha x pf on P (pf max 1)."""
-    p = win.G.shape[0]
-    Gt, ct, back = win.profile(B, P)
-    if est == "ridge":
-        A = Gt.copy()
-        A[np.diag_indices_from(A)] += pen
-        bP = np.linalg.solve(A, ct)
-    else:
-        l1 = 1.0 if est == "reclasso" else 0.5
-        a = float(pen.max())
-        bP = enet_exact(Gt, ct, win.n * l1 * a, win.n * (1.0 - l1) * a, pen / a)
-    th = np.zeros(p)
-    th[P] = bP
-    if len(B):
-        th[B] = back(bP)
-    return th, win.ybar - float(win.xbar @ th)
-
-
-def ols_backbone(win: Window, B: np.ndarray):
-    """HAR + calendar OLS (the master table's sub_ols_baseline: production
-    RollingLeastSquares at alpha 0 = centered window, minimum-norm least squares on a
-    rank-deficient window)."""
-    th = np.zeros(win.G.shape[0])
-    th[B] = np.linalg.lstsq(win.Xc[:, B], win.yc, rcond=None)[0]
-    return th, win.ybar - float(win.xbar @ th)
-
-
 # ============================================================================ arms
 GROUPS = (
     "moments",
@@ -280,11 +190,6 @@ GROUPS = (
 MODES = ("single", "bb0", "bbr", "bbfix")
 ARMS = [(e, m) for e in EST for m in MODES] + [("ridge", "mpr")]
 R_OF = {"single": (1.0,), "bb0": (0.0,), "bbr": R_GRID, "bbfix": (R_PAPER,), "mpr": (0.0,)}
-CD_REL = 1e-8  # coordinate descent stops when max |step| sqrt(G_jj) < CD_REL |y_c|
-KKT_REL = 1e-9  # KKT slack off the support, relative to max |X'y_c|
-MAX_ROUNDS = 6  # descent rounds (tolerance / 100 each) before giving up the exact solve
-MAX_SWEEPS = 200000
-STATUS = ("ridge", "polished", "polished_after_tighter_descent", "descent_only")
 
 
 def arm_key(est: str, mode: str) -> str:
@@ -315,8 +220,8 @@ def exog_groups(names: list[str], bb: np.ndarray) -> np.ndarray:
     return out
 
 
-def spec_grids() -> dict:
-    """The spec's grids and constants (its estimator section, executed read-only)."""
+def spec_ns() -> dict:
+    """The spec's estimator section (executed read-only), constants asserted."""
     import dense_vs_sparse_1530 as dvs
 
     ns = dvs.spec_ns("linear")
@@ -326,58 +231,101 @@ def spec_grids() -> dict:
         EMBARGO,
         TW,
     )
+    return ns
+
+
+def spec_grids() -> dict:
+    ns = spec_ns()
     return {e: [float(a) for _, a, _ in ns["ESTIMATOR_GRIDS"][e]] for e in EST}
 
 
+def structure(Xraw: np.ndarray, bb_aug: np.ndarray, r: float):
+    """(locked, maskout, pf) of one candidate on a raw augmented window (intercept last).
+    r > 0: the spec's rule (intercept locked; a non-locked column constant in the window
+    or a byte-copy of an earlier kept non-locked column is masked), backbone penalty
+    factor r.  r = 0: the backbone is locked (never leaves the active set, no penalty),
+    except backbone columns constant in the window, byte-copies of an earlier backbone
+    column, or beyond the numerical rank of the centered backbone (pivoted QR; the five
+    weekday dummies sum to the intercept, so one of them), which are masked; the spec's
+    rule for the other columns."""
+    from scipy.linalg import qr
+
+    m = Xraw.shape[1]
+    locked = np.zeros(m, dtype=bool)
+    locked[-1] = True
+    maskout = np.zeros(m, dtype=bool)
+    if r == 0.0:
+        kept, seen = [], set()
+        for j in np.flatnonzero(bb_aug):
+            col = np.ascontiguousarray(Xraw[:, j])
+            if col.max() == col.min() or col.tobytes() in seen:
+                maskout[j] = True
+                continue
+            seen.add(col.tobytes())
+            kept.append(j)
+        kept = np.array(kept)
+        Z = Xraw[:, kept] - Xraw[:, kept].mean(axis=0)
+        _, Rm, piv = qr(Z, mode="economic", pivoting=True)
+        dg = np.abs(np.diag(Rm))
+        k = int((dg > dg[0] * max(Z.shape) * np.finfo(float).eps).sum())
+        maskout[kept[piv[k:]]] = True
+        locked[kept[piv[:k]]] = True
+    seen2: set[bytes] = set()
+    for j in range(m):
+        if locked[j] or (r == 0.0 and bb_aug[j]):
+            continue
+        col = np.ascontiguousarray(Xraw[:, j])
+        if col.max() == col.min():
+            maskout[j] = True
+            continue
+        key = col.tobytes()
+        if key in seen2:
+            maskout[j] = True
+        else:
+            seen2.add(key)
+    pf = np.ones(m)
+    pf[bb_aug & ~locked] = r if r > 0.0 else 1.0
+    pf[locked] = 0.0
+    return locked, maskout, pf
+
+
 class Setup:
-    """Everything the kernel needs that does not change with the arm."""
+    """The design (intercept appended as the last column), blocks, groups, structures."""
 
     def __init__(self):
-        from scipy.linalg import qr
-
         d = load_design("all_features")
         db = load_design("baseline")
         self.d = d
-        self.X = np.ascontiguousarray(d["X"], dtype=np.float64)
+        X = np.asarray(d["X"], dtype=np.float64)
+        self.Xaug = np.ascontiguousarray(np.hstack([X, np.ones((len(X), 1))]))
         self.y = np.ascontiguousarray(d["y"], dtype=np.float64)
         self.W = d["W"]
         self.names = d["names"]
-        self.p = self.X.shape[1]
-        self.n_test = len(self.X) - self.W
+        self.p = X.shape[1]
+        self.m = self.p + 1
+        self.n_test = len(X) - self.W
         self.bb = np.isin(self.names, db["names"])
         self.bbi = np.flatnonzero(self.bb)
         assert [self.names[j] for j in self.bbi] == db["names"]
-        assert np.array_equal(self.X[:, self.bbi], db["X"])
-        assert np.array_equal(self.y, db["y"])
-        self.grp = exog_groups(self.names, self.bb)
+        assert np.array_equal(X[:, self.bbi], db["X"]) and np.array_equal(self.y, db["y"])
+        self.bb_aug = np.append(self.bb, False)
+        self.grp = np.append(exog_groups(self.names, self.bb), -1).astype(np.int32)
         self.blocks = block_starts(self.n_test)
         self.bstart = np.array([b[0] for b in self.blocks] + [self.n_test], dtype=np.int32)
-        self.keep, self.drop = [], []
-        for i0, _ in self.blocks:
-            Xw = self.X[i0 : i0 + self.W]
-            keep = identifiable(Xw)
-            # when the backbone is unpenalized: drop the columns beyond the numerical rank
-            # of the centered kept backbone (pivoted QR); the weekday dummies sum to one,
-            # so one of them goes.  Fit and forecasts do not change (the dependency holds
-            # on every row).
-            B = np.flatnonzero(self.bb & keep)
-            Z = Xw[:, B] - Xw[:, B].mean(axis=0)
-            _, Rm, piv = qr(Z, mode="economic", pivoting=True)
-            dg = np.abs(np.diag(Rm))
-            k = int((dg > dg[0] * max(Z.shape) * np.finfo(float).eps).sum())
-            self.keep.append(keep)
-            self.drop.append(np.sort(B[piv[k:]]))
+        self._st: dict = {}
 
-    def pf(self, rs) -> np.ndarray:
-        out = np.full((len(self.blocks), len(rs), self.p), -1.0)
-        for b in range(len(self.blocks)):
-            keep = self.keep[b]
+    def structures(self, rs) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        nb, m = len(self.blocks), self.m
+        lk = np.zeros((nb, len(rs), m), np.uint8)
+        mk = np.zeros((nb, len(rs), m), np.uint8)
+        pf = np.ones((nb, len(rs), m))
+        for b, (i0, _) in enumerate(self.blocks):
             for i, r in enumerate(rs):
-                out[b, i, ~self.bb & keep] = 1.0
-                out[b, i, self.bb & keep] = r
-                if r == 0.0:
-                    out[b, i, self.drop[b]] = -1.0
-        return out
+                key = (b, r)
+                if key not in self._st:
+                    self._st[key] = structure(self.Xaug[i0 : i0 + self.W], self.bb_aug, r)
+                lk[b, i], mk[b, i], pf[b, i] = self._st[key]
+        return lk, mk, pf
 
 
 _LIB = None
@@ -401,46 +349,41 @@ def kernel():
         cmd = ["gcc", "-O3", "-march=native", "-fPIC", "-shared", "-o", str(so), str(src),
                "-l:liblapack.so.3", "-l:libblas.so.3", "-lm"]
         subprocess.run(cmd, check=True)
-        print("compiled", " ".join(cmd), flush=True)
+        print("compiled:", " ".join(cmd), flush=True)
     lib = ctypes.CDLL(str(so))
     f8 = ndpointer(np.float64, flags="C_CONTIGUOUS")
     i4 = ndpointer(np.int32, flags="C_CONTIGUOUS")
+    u1 = ndpointer(np.uint8, flags="C_CONTIGUOUS")
     i8 = ndpointer(np.int64, flags="C_CONTIGUOUS")
-    ci, cd, cl = ctypes.c_int, ctypes.c_double, ctypes.c_long
+    ci = ctypes.c_int
     lib.exogpen_run.restype = ci
     lib.exogpen_run.argtypes = [
-        ci, ci, f8, f8, ci,  # N, p, X, y, W
-        ci, ci,  # est, mode
+        ci, ci, f8, f8, ci,  # N, m, X, y, W
+        ci, ci, ci,  # est, mode, track
         ci, i4,  # n_blocks, bstart
-        ci, f8,  # n_r, pf
+        ci, u1, u1, f8,  # n_s, locked, maskout, pf
         ci, f8, ci, ci,  # n_alpha, alphas, val_tail, embargo
         i4, ci, f8, ci,  # group, n_groups, mpr_start, mpr_passes
-        i4, cd, cd, ci, cl,  # is_bb, cd_rel, kkt_rel, max_rounds, max_sweeps
-        f8, f8, f8, f8, f8, f8,  # pred, theta, b0, vBB, vEE, vBE
-        i4, i8, f8, i4, f8, f8,  # status, sweeps, val_mse, choice, pen_g, mpr_mse
+        f8, f8, i4, f8, i4, f8, f8, i4, i8,  # outputs
     ]
     _LIB = lib
     return lib
 
 
 def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
-          n_blocks: int | None = None, X=None) -> dict:
-    """One arm through the C walk-forward (optionally only the first n_blocks blocks)."""
+          n_blocks: int | None = None) -> dict:
+    """One arm through the C port (optionally only the first n_blocks blocks)."""
     lib = kernel()
     rs = R_OF[mode]
     nb = len(S.blocks) if n_blocks is None else n_blocks
-    pf = np.ascontiguousarray(S.pf(rs)[:nb])
+    lk, mk, pf = (np.ascontiguousarray(a[:nb]) for a in S.structures(rs))
     bstart = np.ascontiguousarray(S.bstart[: nb + 1])
-    n_out = int(bstart[-1])
-    X = S.X if X is None else X
-    p = S.p
+    n_out, m = int(bstart[-1]), S.m
     out = dict(
-        pred=np.zeros(n_out), theta=np.zeros((n_out, p)), b0=np.zeros(n_out),
-        vBB=np.zeros(n_out), vEE=np.zeros(n_out), vBE=np.zeros(n_out),
-        status=np.zeros(n_out, np.int32), sweeps=np.zeros(n_out, np.int64),
-        val_mse=np.full((nb, len(rs), len(grid)), np.nan),
-        choice=np.zeros((nb, 2), np.int32), pen_g=np.full((nb, len(GROUPS)), np.nan),
-        mpr_mse=np.full(nb, np.nan),
+        pred=np.zeros(n_out), theta=np.zeros((n_out, m)), events=np.zeros(n_out, np.int32),
+        val_mse=np.full((nb, len(rs), len(grid)), np.nan), choice=np.zeros((nb, 2), np.int32),
+        pen_g=np.full((nb, len(GROUPS)), np.nan), mpr_mse=np.full(nb, np.nan),
+        n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(1, np.int64),
     )
     est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
     ms = np.ascontiguousarray(
@@ -448,119 +391,159 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
     )
     t0 = time.process_time()
     rc = lib.exogpen_run(
-        len(X), p, X, S.y, S.W, est_i, 1 if mode == "mpr" else 0, nb, bstart,
-        len(rs), pf, len(grid), np.ascontiguousarray(grid, dtype=np.float64), VAL_TAIL,
-        EMBARGO, np.ascontiguousarray(np.maximum(S.grp, 0), dtype=np.int32), len(GROUPS),
-        ms, MPR_PASSES, np.ascontiguousarray(S.bb, dtype=np.int32), CD_REL, KKT_REL,
-        MAX_ROUNDS, MAX_SWEEPS, out["pred"], out["theta"], out["b0"], out["vBB"],
-        out["vEE"], out["vBE"], out["status"], out["sweeps"], out["val_mse"],
-        out["choice"], out["pen_g"], out["mpr_mse"],
+        len(S.Xaug), m, S.Xaug, S.y, S.W, est_i, 1 if mode == "mpr" else 0,
+        1 if est == "reclasso" else 0,  # the spec tracks degenerate columns for lasso only
+        nb, bstart, len(rs), lk, mk, pf, len(grid),
+        np.ascontiguousarray(grid, dtype=np.float64), VAL_TAIL, EMBARGO, S.grp, len(GROUPS),
+        ms, MPR_PASSES, out["pred"], out["theta"], out["events"], out["val_mse"],
+        out["choice"], out["pen_g"], out["mpr_mse"], out["n_reseed"], out["n_singular"],
     )
     out["cpu_sec"] = time.process_time() - t0
     if rc != 0:
         raise RuntimeError(f"kernel returned {rc} for {est} {mode}")
     ch = out["choice"]
-    if mode == "mpr":
-        out["alpha_blk"] = np.full(nb, np.nan)
-        out["r_blk"] = np.zeros(nb)
-    else:
-        out["alpha_blk"] = np.array([grid[i] for i in ch[:, 1]])
-        out["r_blk"] = np.array([rs[i] for i in ch[:, 0]])
+    out["r_blk"] = np.array([rs[i] for i in ch[:, 0]])
+    out["alpha_blk"] = (
+        np.full(nb, np.nan) if mode == "mpr" else np.array([grid[i] for i in ch[:, 1]])
+    )
     return out
 
 
-def ref_slice(S: Setup, est: str, mode: str, res: dict, n_sess: int) -> dict:
-    """The numpy reference on the first n_sess sessions of block 0, at the penalties the
-    kernel chose there; also the reference's tail MSE at those penalties."""
-    keep = S.keep[0]
-    r = float(res["r_blk"][0])
-    if mode == "mpr":
-        B = np.flatnonzero(S.bb & keep)
-        P = np.flatnonzero(~S.bb & keep)
-        pen = res["pen_g"][0][S.grp[P]]
-    elif r == 0.0:
-        B = np.flatnonzero(S.bb & keep)
-        P = np.flatnonzero(~S.bb & keep)
-        pen = np.full(len(P), res["alpha_blk"][0])
-    else:
-        B = np.zeros(0, dtype=int)
-        P = np.flatnonzero(keep)
-        pen = res["alpha_blk"][0] * np.where(S.bb[P], r, 1.0)
-    W = S.W
-    fit_hi = W - VAL_TAIL - EMBARGO
-    wf = Window(S.X[:fit_hi], S.y[:fit_hi])
-    thf, b0f = solve_ref(wf, est, B, P, pen)
-    Xv, yv = S.X[W - VAL_TAIL : W], S.y[W - VAL_TAIL : W]
-    mse = float(np.mean((b0f + Xv @ thf - yv) ** 2))
-    pred = np.empty(n_sess)
-    for j in range(n_sess):
-        win = Window(S.X[j : W + j], S.y[j : W + j])
-        th, b0 = solve_ref(win, est, B, P, pen)
-        pred[j] = b0 + float(S.X[W + j] @ th)
-    return dict(pred=pred, val_mse=mse)
+def py_locked_slice(S: Setup, est: str, n_sess: int, b: int = 0) -> dict:
+    """The Python reference for the backbone-locked arm: the spec's own RollingTunedLinear
+    with the locked set and mask of structure(r = 0) at every tune (the block loop of
+    dense_vs_sparse_1530.run_linear_blocks), on the first n_sess sessions of block b."""
+    ns = spec_ns()
+    Base = ns["RollingTunedLinear"]
+    bb_aug = S.bb_aug
+
+    class Locked(Base):  # type: ignore[misc, valid-type]
+        def _recompute_mask(self, Xraw):
+            self._locked, self._maskout, _ = structure(Xraw, bb_aug, 0.0)
+
+    Locked.grid = ns["ESTIMATOR_GRIDS"][est]
+    Locked.trace, Locked.mask_trace, Locked.reseed_trace = [], [], []
+    X, y, W = S.Xaug[:, :-1], S.y, S.W
+    i0 = int(S.bstart[b])
+    reg = Locked()
+    preds = []
+    t0 = time.process_time()
+    for j in range(i0, i0 + n_sess):
+        t = W + j
+        if j == i0:
+            reg.init_window(X[i0:t], y[i0:t])
+        else:
+            reg.roll(X[t - 1], y[t - 1], X[j - 1], y[j - 1])
+        reg.solve()
+        preds.append(reg.predict_one(X[t]))
+    return dict(pred=np.array(preds), alpha=float(reg.alpha_), sec=time.process_time() - t0,
+                n_reseed=len(Locked.reseed_trace))
 
 
 # ============================================================================ check
 def check() -> None:
-    """C kernel vs the numpy reference (short slice) and vs the gated spec forecasts."""
+    """Gate (1): the C port's single-penalty arms == gate_spec_*.npz (the spec's class on
+    the cached design) and the stored tables.  Gate (2): on a short slice, the C
+    backbone-locked arm == the spec's class with the same locked set."""
     grids = spec_grids()
     S = Setup()
-    rows = []
-    n_sess = 20
-    for est, mode in ARMS:
-        if mode == "mpr":
-            continue  # its start value comes from the ridge bb0 arm, checked below
-        res = c_run(S, est, mode, grids[est], n_blocks=1)
-        t0 = time.process_time()
-        ref = ref_slice(S, est, mode, res, n_sess)
-        sec = time.process_time() - t0
-        ir, ia = res["choice"][0]
-        rows.append(dict(
-            arm=arm_key(est, mode), alpha=res["alpha_blk"][0], r=res["r_blk"][0],
-            max_abs_pred_gap=float(np.max(np.abs(res["pred"][:n_sess] - ref["pred"]))),
-            max_rel_pred_gap=float(np.max(np.abs(res["pred"][:n_sess] / ref["pred"] - 1))),
-            val_mse_c=float(res["val_mse"][0, ir, ia]), val_mse_ref=ref["val_mse"],
-            c_cpu_sec_block0=res["cpu_sec"], ref_cpu_sec_slice=sec,
-            status=json.dumps(np.bincount(res["status"], minlength=4).tolist())))
-        print(rows[-1], flush=True)
-        if est == "ridge" and mode == "bb0":
-            mres = c_run(S, "ridge", "mpr", grids["ridge"], mpr_start=res["alpha_blk"],
-                         n_blocks=1)
-            mref = ref_slice(S, "ridge", "mpr", mres, n_sess)
-            rows.append(dict(
-                arm="ridge_mpr", alpha=np.nan, r=0.0,
-                max_abs_pred_gap=float(np.max(np.abs(mres["pred"][:n_sess] - mref["pred"]))),
-                max_rel_pred_gap=float(np.max(np.abs(mres["pred"][:n_sess] / mref["pred"] - 1))),
-                val_mse_c=float(mres["mpr_mse"][0]), val_mse_ref=mref["val_mse"],
-                c_cpu_sec_block0=mres["cpu_sec"], ref_cpu_sec_slice=np.nan,
-                status=json.dumps(mres["pen_g"][0].tolist())))
-            print(rows[-1], flush=True)
-    pd.DataFrame(rows).to_csv(WORK / "check_c_vs_numpy_slice.csv", index=False)
-    # the full single-penalty arms vs the gated spec forecasts and the stored tables
     idx = pd.DatetimeIndex(pd.to_datetime(S.d["date"][S.W :]))
     grows = []
     for est in EST:
         res = c_run(S, est, "single", grids[est])
-        np.savez_compressed(WORK / f"check_c_single_{est}.npz", pred=res["pred"])
+        np.savez_compressed(WORK / f"check_c_single_{est}.npz", pred=res["pred"],
+                            alpha=res["alpha_blk"])
         spec = np.load(WORK / f"gate_spec_{est}.npz")
         st = stored_1600(f"sub_{EST_SHORT[est]}_all_features").reindex(idx).to_numpy()
         spec_alpha = spec["alpha"][S.bstart[:-1]]
+        rel_spec = np.abs(res["pred"] / spec["pred"] - 1)
+        rel_st = np.abs(res["pred"] / st - 1)
         grows.append(dict(
             est=est,
-            c_cpu_sec_full_arm=res["cpu_sec"],
-            spec_python_cpu_sec_full_arm=float(spec["sec"]),
+            c_cpu_sec_full_arm=round(res["cpu_sec"], 2),
+            python_spec_cpu_sec_full_arm=round(float(spec["sec"]), 2),
             alphas_c=json.dumps(res["alpha_blk"].tolist()),
-            alphas_spec=json.dumps(spec_alpha.tolist()),
-            same_alphas=bool(np.array_equal(res["alpha_blk"], spec_alpha)),
-            max_rel_gap_vs_spec=float(np.max(np.abs(res["pred"] / spec["pred"] - 1))),
-            max_rel_gap_vs_stored=float(np.max(np.abs(res["pred"] / st - 1))),
+            same_alphas_as_spec=bool(np.array_equal(res["alpha_blk"], spec_alpha)),
+            max_rel_gap_vs_spec=float(rel_spec.max()),
+            n_sessions_rel_gap_vs_spec_above_1e9=int((rel_spec > 1e-9).sum()),
+            max_rel_gap_vs_stored=float(rel_st.max()),
+            n_sessions_rel_gap_vs_stored_above_1e9=int((rel_st > 1e-9).sum()),
             spec_max_rel_gap_vs_stored=float(np.max(np.abs(spec["pred"] / st - 1))),
-            n_sessions_rel_gap_vs_stored_above_1e9=int(np.sum(np.abs(res["pred"] / st - 1) > 1e-9)),
-            status=json.dumps(np.bincount(res["status"], minlength=4).tolist()),
-            median_sweeps=float(np.median(res["sweeps"])),
+            n_reseed=int(res["n_reseed"].sum()),
+            n_singular=int(res["n_singular"][0]),
+            median_events=float(np.median(res["events"])),
         ))
         print(grows[-1], flush=True)
     pd.DataFrame(grows).to_csv(WORK / "check_c_vs_spec_gate.csv", index=False)
+    rows = []
+    n_sess = int(os.environ.get("EXOGPEN_SLICE", "40"))
+    for est in EST:
+        res = c_run(S, est, "bb0", grids[est], n_blocks=1)
+        ref = py_locked_slice(S, est, n_sess)
+        rel = np.abs(res["pred"][:n_sess] / ref["pred"] - 1)
+        rows.append(dict(
+            est=est, sessions=n_sess, alpha_c=float(res["alpha_blk"][0]),
+            alpha_python=ref["alpha"], max_rel_gap=float(rel.max()),
+            c_cpu_sec_block0_250_sessions=round(res["cpu_sec"], 2),
+            python_cpu_sec_slice=round(ref["sec"], 2),
+            n_reseed_c_block0=int(res["n_reseed"][0]), n_reseed_python_slice=ref["n_reseed"],
+        ))
+        print(rows[-1], flush=True)
+    pd.DataFrame(rows).to_csv(WORK / "check_c_vs_python_locked_slice.csv", index=False)
+
+
+# ============================================================================ run
+def ols_baseline(S: Setup) -> dict:
+    """HAR + calendar OLS (the master table's sub_ols_baseline: production
+    RollingLeastSquares at alpha 0 = centered window, least squares, minimum norm on a
+    rank-deficient window), refit every session."""
+    X, y, W, bbi = S.Xaug[:, :-1], S.y, S.W, S.bbi
+    pred = np.empty(S.n_test)
+    th = np.zeros((S.n_test, len(bbi)))
+    t0 = time.process_time()
+    for j in range(S.n_test):
+        Xw, yw = X[j : W + j][:, bbi], y[j : W + j]
+        xb, yb = Xw.mean(axis=0), yw.mean()
+        b = np.linalg.lstsq(Xw - xb, yw - yb, rcond=None)[0]
+        th[j] = b
+        pred[j] = yb + float((X[W + j, bbi] - xb) @ b)
+    return dict(pred=pred, theta_bb=th, cpu_sec=time.process_time() - t0)
+
+
+def run(ests: list[str]) -> None:
+    grids = spec_grids()
+    S = Setup()
+    runs = WORK / "runs"
+    runs.mkdir(parents=True, exist_ok=True)
+    if "ridge" in ests:
+        r = ols_baseline(S)
+        np.savez_compressed(runs / "ols_baseline.npz", **r)
+        print(f"ols_baseline: {r['cpu_sec']:.1f}s", flush=True)
+    bb0_alpha = None
+    for est, mode in ARMS:
+        if est not in ests:
+            continue
+        k = arm_key(est, mode)
+        res = c_run(S, est, mode, grids[est],
+                    mpr_start=bb0_alpha if mode == "mpr" else None)
+        if est == "ridge" and mode == "bb0":
+            bb0_alpha = res["alpha_blk"]
+        lk, mk, _ = S.structures(R_OF[mode])
+        ch = res["choice"][:, 0]
+        nb = len(S.blocks)
+        np.savez_compressed(
+            runs / f"{k}.npz",
+            pred=res["pred"], theta=res["theta"].astype(np.float32),
+            alpha_blk=res["alpha_blk"], r_blk=res["r_blk"], val_mse=res["val_mse"],
+            pen_g=res["pen_g"], mpr_mse=res["mpr_mse"], events=res["events"],
+            n_reseed=res["n_reseed"], n_singular=res["n_singular"], cpu_sec=res["cpu_sec"],
+            locked=np.array([lk[b, ch[b]] for b in range(nb)]),
+            maskout=np.array([mk[b, ch[b]] for b in range(nb)]),
+        )
+        print(f"{k}: {res['cpu_sec']:.1f}s alpha {res['alpha_blk'].tolist()} "
+              f"r {res['r_blk'].tolist()} reseeds {int(res['n_reseed'].sum())}"
+              + (f" groups {np.round(res['pen_g'], 4).tolist()}" if mode == "mpr" else ""),
+              flush=True)
 
 
 if __name__ == "__main__":
@@ -569,5 +552,7 @@ if __name__ == "__main__":
         gate()
     elif stage == "check":
         check()
+    elif stage == "run":
+        run(sys.argv[2:] or list(EST))
     else:
         raise SystemExit(__doc__)

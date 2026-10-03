@@ -298,6 +298,38 @@ def analyze() -> None:  # noqa: C901 - one linear report
     D = pd.DataFrame(dd)
     D.to_csv(c.REPORT / "trees_vs_linear.csv", index=False)
 
+    # ---------------------------------------------------------------- tree minus linear on the same rows
+    tl = []
+    for tree in c.TREES:
+        for lin in c.LINEAR:
+            for a in arms:
+                m, src, win = c.ARMS[a]
+                if m != tree:
+                    continue
+                b = a.replace(f"{tree}_", f"{lin}_", 1)
+                if b not in runs:
+                    continue
+                cm = compare(P, col[a], col[b])
+                tl.append(
+                    dict(
+                        tree_arm=a,
+                        linear_arm=b,
+                        rows=SOURCE_TEXT[src],
+                        window=window_text(a, runs[a])[0],
+                        qlike_tree=pt["ql"][col[a]],
+                        qlike_linear=pt["ql"][col[b]],
+                        d_qlike=pt["ql"][col[a]] - pt["ql"][col[b]],
+                        dm=cm["dm"],
+                        dm_p=cm["dm_p"],
+                        sharpe_tree=pt["sh"][col[a]],
+                        sharpe_linear=pt["sh"][col[b]],
+                        d_sharpe_mid=pt["sh"][col[a]] - pt["sh"][col[b]],
+                        t_hac=cm["t_hac"],
+                    )
+                )
+    T = pd.DataFrame(tl)
+    T.to_csv(c.REPORT / "tree_minus_linear.csv", index=False)
+
     # ---------------------------------------------------------------- learning curve
     cur = A[["arm", "model", "source", "window", "window_sessions", "train_rows_min", "train_rows_max", "qlike", "sharpe_mid"]].copy()
     # the expanding window plotted at its mean training size over the trade days' refits
@@ -309,7 +341,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
     cur["x_sessions"] = [trade_mean.get(a, s) for a, s in zip(cur["arm"], cur["window_sessions"])]
     cur.to_csv(c.REPORT / "curve.csv", index=False)
     plot_curve(cur)
-    write_summary(G, A, V, D, cur)
+    write_summary(G, A, V, D, cur, T)
     print(A[["arm", "qlike", "sharpe_mid", "dm_vs_ctrl", "t_hac_vs_ctrl", "cpu_min"]].to_string(index=False))
 
 
@@ -359,7 +391,7 @@ def _f(v: float, nd: int = 4) -> str:
     return "" if pd.isna(v) else f"{v:.{nd}f}"
 
 
-def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
+def write_summary(G, A, V, D, cur, T) -> None:  # noqa: C901 - one linear report
     ctrl = A.set_index("arm").loc[CTRL]
     L = []
     L.append("# Trees and training-set size at the 16:00 bar (close study, 2026-10-03)")
@@ -394,6 +426,36 @@ def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
         "and a HAC t on the paired daily P&L difference (positive = the first forecast earns more)."
     )
     L.append("")
+    L.append("## Reading (numbers from the tables below)")
+    Ai = A.set_index("arm")
+    mods = [m for m in ("lgbm", "xgb", "rf", "lasso", "ridge") if f"{m}_bar1600_w2000" in Ai.index]
+    for m in mods:
+        pool, h2, b2 = f"{m}_pool_w4000", f"{m}_h16_w2000", f"{m}_bar1600_w2000"
+        if pool in Ai.index and h2 in Ai.index:
+            v = V[(V["arm"] == pool) & (V["reference"] == h2)].iloc[0]
+            L.append(
+                f"- {LABEL[m]}, both last-hour bars (4000 rows) vs 2000 sessions of 16:00 rows on the same scaling: QLIKE {Ai.loc[h2, 'qlike']:.4f} -> "
+                f"{Ai.loc[pool, 'qlike']:.4f} (DM {v['dm']:.2f}), Sharpe mid {Ai.loc[h2, 'sharpe_mid']:.2f} -> {Ai.loc[pool, 'sharpe_mid']:.2f} (HAC t {v['t_hac']:.2f})."
+            )
+    for m in mods:
+        ws = [w for w in (500, 1000, 2000, 3000, "exp") if f"{m}_h16_w{w}" in Ai.index]
+        if len(ws) > 1:
+            L.append(
+                f"- {LABEL[m]}, learning curve on the 16:00 rows ({' / '.join('expanding' if w == 'exp' else str(w) for w in ws)} sessions): QLIKE "
+                + " / ".join(f"{Ai.loc[f'{m}_h16_w{w}', 'qlike']:.4f}" for w in ws)
+                + "; Sharpe mid "
+                + " / ".join(f"{Ai.loc[f'{m}_h16_w{w}', 'sharpe_mid']:.2f}" for w in ws)
+                + "."
+            )
+    for m in mods:
+        h2, b2 = f"{m}_h16_w2000", f"{m}_bar1600_w2000"
+        if h2 in Ai.index:
+            v = V[(V["arm"] == h2) & (V["reference"] == b2)].iloc[0]
+            L.append(
+                f"- {LABEL[m]}, same 2000 sessions, one-bar design vs the last30 design's 16:00 rows (only the scaling of 279 columns differs): QLIKE "
+                f"{Ai.loc[b2, 'qlike']:.4f} vs {Ai.loc[h2, 'qlike']:.4f} (DM {v['dm']:.2f}), Sharpe mid {Ai.loc[b2, 'sharpe_mid']:.2f} vs {Ai.loc[h2, 'sharpe_mid']:.2f} (HAC t {v['t_hac']:.2f})."
+            )
+    L.append("")
     L.append("## Gates")
     for _, g in G.iterrows():
         L.append(f"- {g['gate']}: {g['value']:.6g} vs {g['reference']:.6g} (|diff| {g['abs_diff']:.2e}) {'PASS' if g['passed'] else 'differs'}")
@@ -423,6 +485,19 @@ def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
         for _, r in V.iterrows():
             L.append(
                 f"| `{r['arm']}` | `{r['reference']}` | {r['d_qlike']:+.4f} | {r['pct_qlike']:+.1f} | {r['dm']:.2f} | {r['d_sharpe_mid']:+.2f} | {r['t_hac']:.2f} |"
+            )
+        L.append("")
+    if len(T):
+        L.append("## Tree minus linear on the same rows and window")
+        L.append("")
+        L.append("dQLIKE < 0 and DM < 0: the tree has the lower loss; dSharpe > 0 and HAC t > 0: the tree earns more.")
+        L.append("")
+        L.append("| tree arm | linear arm | rows | window | QLIKE tree | QLIKE linear | dQLIKE | DM | Sharpe tree | Sharpe linear | HAC t |")
+        L.append("|---|---|---|---|---|---|---|---|---|---|---|")
+        for _, r in T.iterrows():
+            L.append(
+                f"| `{r['tree_arm']}` | `{r['linear_arm']}` | {r['rows']} | {r['window']} | {r['qlike_tree']:.4f} | {r['qlike_linear']:.4f} | {r['d_qlike']:+.4f} | "
+                f"{r['dm']:.2f} | {r['sharpe_tree']:.2f} | {r['sharpe_linear']:.2f} | {r['t_hac']:.2f} |"
             )
         L.append("")
     if len(D):
@@ -475,6 +550,6 @@ def write_summary(G, A, V, D, cur) -> None:  # noqa: C901 - one linear report
     L.append("")
     L.append("## Files")
     L.append("- `experiments/close_trees_datasize.py` (run stage), `experiments/close_trees_datasize_analyze.py` (this report)")
-    L.append("- `arms.csv`, `vs_reference.csv`, `trees_vs_linear.csv`, `curve.csv`, `gates.csv`, `learning_curve.png`; forecasts in `_work/<arm>.npz` (not committed)")
+    L.append("- `arms.csv`, `vs_reference.csv`, `tree_minus_linear.csv`, `trees_vs_linear.csv`, `curve.csv`, `gates.csv`, `learning_curve.png`; forecasts in `_work/<arm>.npz` (not committed)")
     L.append(f"- CPU: {A['cpu_min'].sum():.0f} min over {len(A)} arms, one single-threaded process at a time.")
     (c.REPORT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")

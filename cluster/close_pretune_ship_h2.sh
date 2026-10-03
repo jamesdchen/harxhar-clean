@@ -7,6 +7,7 @@
 # file on Hoffman2 matches it.  Re-run after a scratch purge; nothing is submitted.
 #
 #   bash cluster/close_pretune_ship_h2.sh
+#   DRY=1 STAGE_DIR=<dir> bash cluster/close_pretune_ship_h2.sh   # build the bundle only (local smoke test)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SSH=${SSH:-/c/Windows/System32/OpenSSH/ssh.exe}
@@ -23,9 +24,9 @@ FILES=(experiments/close_trees_pretune.py experiments/close_trees_pretune_jobs.p
 mapfile -t SRC < <(find src -name '*.py' -not -path '*/__pycache__/*' | sort)
 FILES+=("${SRC[@]}")
 for f in "${FILES[@]}"; do [ -f "$f" ] || { echo "missing locally: $f"; exit 1; }; done
-md5sum "${FILES[@]}" > close_pretune_manifest.md5
-tar czf "$STAGE_DIR/close_pretune.tgz" "${FILES[@]}" close_pretune_manifest.md5
-rm -f close_pretune_manifest.md5
+md5sum "${FILES[@]}" > "$STAGE_DIR/close_pretune_manifest.md5"
+tar czf "$STAGE_DIR/close_pretune.tgz" "${FILES[@]}" -C "$STAGE_DIR" close_pretune_manifest.md5
+if [ "${DRY:-0}" = 1 ]; then echo "DRY=1: bundle at $STAGE_DIR/close_pretune.tgz (nothing shipped)"; exit 0; fi
 echo "shipping ${#FILES[@]} files ($(du -h "$STAGE_DIR/close_pretune.tgz" | cut -f1)) -> h2dtn:$H2"
 "$SSH" -o BatchMode=yes h2dtn "mkdir -p $H2/logs && cd $H2 && tar xzf -" < "$STAGE_DIR/close_pretune.tgz"
 "$SSH" -o BatchMode=yes hoffman2 "bash -lc 'cd $H2 && md5sum -c --quiet close_pretune_manifest.md5 && echo md5 OK: \$(wc -l < close_pretune_manifest.md5) files'" \

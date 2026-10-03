@@ -162,6 +162,9 @@ def plot_curve(cur: pd.DataFrame) -> None:
                     label=f"{name}: selected on 2 folds, scored on the other 2")
     ax.axhline(1.0, color="#9a9a9a", lw=1)
     ax.set_xscale("log")
+    from matplotlib.ticker import FuncFormatter
+
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
     ax.set_xlabel("trials")
     ax.set_ylabel("validation MSE / shipped configuration's")
     ax.grid(True, color="#e6e6e6", lw=0.8)
@@ -372,8 +375,9 @@ def write_summary(recs, cur, chk, arms, info) -> None:
         f"{st['same_position_share'] * 100:.1f} % of days."
     )
     w("")
-    w("Arms: `control_r10` shipped configuration; `frozen_k<k>_r10` the pre-tune's best after its first k (merged) trials, "
-      "frozen; `retune_any_r10` / `retune_margin_r10` the final pre-tuned configuration plus the light retunes above. "
+    w("Arms: `control_r10` shipped configuration; `frozen_k<k>_r10` the best of the first k trials of every study (the "
+      "merged sequence's first k x studies trials), frozen; "
+      "`retune_any_r10` / `retune_margin_r10` the final pre-tuned configuration plus the light retunes above. "
       "Stored rows: the master table's forecast tables scored by this script (gate above).")
     est = cluster_estimate(recs, arms)
     if est:
