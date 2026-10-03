@@ -544,9 +544,23 @@ def write_summary(G, A, V, D, cur, T) -> None:  # noqa: C901 - one linear report
     L.append(
         "- Arms of the plan not run in this container's CPU budget: "
         + (", ".join(f"`{a}`" for a in missing) if missing else "none")
-        + ". The `closing` segment (5 bars, 14:00-16:00) was not built. "
-        "`cluster/close_trees_datasize_h2_task.sh` + `cluster/submit_close_trees_datasize_h2.sh` run any arm of the script on Hoffman2 (not submitted)."
+        + ". The `closing` segment (5 bars, 14:00-16:00) was not built."
     )
+    tf = c.REPO / "cluster" / "close_trees_datasize_h2_tasks.txt"
+    if tf.is_file():
+        tasks = pd.read_csv(tf, sep=" ", header=None, names=["arm", "refit", "chunk", "n"])
+        g = tasks.groupby(["refit", "arm"], sort=False).size().reset_index()
+        L.append(
+            f"- Hoffman2 version (written, smoke-tested locally at tiny size, NOT submitted): `cluster/close_trees_datasize_h2_task.sh` + "
+            f"`cluster/submit_close_trees_datasize_h2.sh`, {len(tasks)} single-slot tasks in `cluster/close_trees_datasize_h2_tasks.txt` "
+            f"(each arm cut into {tasks['n'].iloc[0]} time chunks, joined by `merge`): "
+            + "; ".join(
+                f"refit every {r} session{'s' if r > 1 else ''}: " + ", ".join(f"`{x}`" for x in g.loc[g['refit'] == r, 'arm'])
+                for r in g["refit"].unique()
+            )
+            + f". The local control's LightGBM fit took {ctrl['fit_sec_mean']:.1f} s on one core here, so one arm refit every session "
+            f"({c.sources()['n_fc'] - c.TREE_START} fits) is about {ctrl['fit_sec_mean'] * (c.sources()['n_fc'] - c.TREE_START) / 3600:.1f} CPU-hours."
+        )
     L.append("")
     L.append("## Files")
     L.append("- `experiments/close_trees_datasize.py` (run stage), `experiments/close_trees_datasize_analyze.py` (this report)")

@@ -130,17 +130,25 @@ def write_curves(recs: list[dict]) -> tuple[pd.DataFrame, pd.DataFrame]:
     cur = pd.concat(parts, ignore_index=True)
     cur.to_csv(C.OUT / f"{prefix()}pretune_curve.csv", index=False)
     axes = list(C.spaces())
-    seqs = {f"s{r['seed']}": (r["params"], r["fold_val_mse"], r["fold_rounds"]) for r in recs}
+    seqs = {f"s{r['seed']}": C.merge_seeds([r]) for r in recs}
     if len(recs) > 1:
-        seqs["merged"] = tuple(interleave(recs, k) for k in ("params", "fold_val_mse", "fold_rounds"))  # type: ignore[assignment]
+        seqs["merged"] = C.merge_seeds(recs)
     rows = []
-    for name, (P, F, R) in seqs.items():
-        v = F.mean(axis=1)
-        for k in [k for k in LADDER if k < len(v)] + [len(v)]:
-            b = int(np.argmin(v[:k]))
+    for name, m in seqs.items():
+        n_k = int(m["trial"].max()) + 1
+        for k in [k for k in LADDER if k < n_k] + [n_k]:
+            b = C.best_after(m, k)  # records with trial < k form a prefix of the interleaved order
             rows.append(
-                dict(sequence=name, k=k, best_trial=b, best_val_mse=v[b], rounds=C.median_rounds(R[b]))
-                | {a: P[b, j] for j, a in enumerate(axes)}
+                dict(
+                    sequence=name,
+                    k=k,
+                    trials_total=int(np.sum(m["trial"] < k)),
+                    best_study=f"s{m['study'][b]}",
+                    best_trial=int(m["trial"][b]),
+                    best_val_mse=m["val_mse"][b],
+                    rounds=C.median_rounds(m["fold_rounds"][b]),
+                )
+                | {a: m["params"][b, j] for j, a in enumerate(axes)}
             )
     chk = pd.DataFrame(rows)
     chk.to_csv(C.OUT / f"{prefix()}pretune_checkpoints.csv", index=False)
@@ -305,13 +313,13 @@ def write_summary(recs, cur, chk, arms, info) -> None:
       "'held-out' = select on folds {0, 2}, score the selected trial on folds {1, 3}, and the reverse, averaged; both as a "
       "ratio to the shipped configuration's MSE on the same folds:")
     w("")
-    w("| sequence | trials | best trial | best val MSE | gap to final best | val MSE / shipped (4 folds) | held-out / shipped | distance to final config | rounds | configuration |")
+    w("| sequence | trials of each study (in all) | best trial | best val MSE | gap to final best | val MSE / shipped (4 folds) | held-out / shipped | distance to final config | rounds | configuration |")
     w("|---|---|---|---|---|---|---|---|---|---|")
     for _, r in chk.iterrows():
-        c = cur[(cur["sequence"] == r["sequence"]) & (cur["k"] == r["k"])].iloc[0]
+        c = cur[(cur["sequence"] == r["sequence"]) & (cur["k"] == r["trials_total"])].iloc[0]
         ho = f"{c['heldout_rel_to_shipped']:.4f}" if "heldout_rel_to_shipped" in c else ""
         w(
-            f"| {r['sequence']} | {int(r['k'])} | {int(r['best_trial'])} | {r['best_val_mse']:.5f} | "
+            f"| {r['sequence']} | {int(r['k'])} ({int(r['trials_total'])}) | {r['best_study']} #{int(r['best_trial'])} | {r['best_val_mse']:.5f} | "
             f"{c['rel_gap_to_final'] * 100:+.2f} % | {1 - c['gain_over_shipped']:.4f} | {ho} | "
             f"{c['dist_to_final'] * 100:.0f} % | {int(r['rounds'])} | {fmt_cfg(r)} |"
         )

@@ -579,8 +579,11 @@ def load_pretune(seeds=SEEDS) -> dict:
 
 
 def best_after(rec: dict, k: int) -> int:
-    v = rec["val_mse"][: min(k, len(rec["val_mse"]))]
-    return int(np.argmin(np.where(np.isnan(v), np.inf, v)))
+    """Index of the best record among the first k trials of every study (rec: one study's
+    records, or merge_seeds' interleaved records with their within-study 'trial' index)."""
+    j = rec.get("trial", np.arange(len(rec["val_mse"])))
+    v = np.where((j < k) & ~np.isnan(rec["val_mse"]), rec["val_mse"], np.inf)
+    return int(np.argmin(v))
 
 
 # ============================================================================ walk
@@ -694,9 +697,8 @@ def stage_walk() -> None:
     W = info["W"]
     n_oos = info["n"] - W
     pt = load_pretune()
-    n_st = len(pt["by_seed"])
-    rec = pt["by_seed"][0] if n_st == 1 else merge_seeds(pt["by_seed"])
-    n_tr = len(rec["val_mse"]) // n_st  # trials of each study in the merged sequence
+    rec = merge_seeds(pt["by_seed"])
+    n_tr = int(rec["trial"].max()) + 1  # trials of the longest study
     # arms: (configuration in force from row 0, rounds) plus the retune paths; a checkpoint k =
     # the best of the first k trials of EVERY study (k x studies trials in all)
     arms: dict[str, list[tuple[int, dict, int | None]]] = {}
@@ -704,7 +706,7 @@ def stage_walk() -> None:
     ks = sorted({k for k in CHECKPOINTS if k < n_tr} | {n_tr})
     frozen_of: dict[int, tuple[dict, int]] = {}
     for k in ks:
-        b = best_after(rec, k * n_st)
+        b = best_after(rec, k)
         cfg = decode(rec["params"][b])
         r = median_rounds(rec["fold_rounds"][b])
         frozen_of[k] = (cfg, r)
@@ -788,13 +790,19 @@ def stage_walk() -> None:
 
 
 def merge_seeds(by_seed: list[dict]) -> dict:
-    """Independent seeded studies merged: their trials concatenated in seed order, so 'best after
-    k trials' means after k trials of EACH study (k x seeds in all)."""
-    n = min(len(r["val_mse"]) for r in by_seed)
+    """Independent seeded studies merged by interleaving: trial j of every study (that has one)
+    before trial j + 1 of any; 'trial' keeps each record's index inside its own study, so the best
+    of the first k trials of every study is the best record with trial < k (all of a shorter study)."""
+    order = [
+        (s, j)
+        for j in range(max(len(r["val_mse"]) for r in by_seed))
+        for s, r in enumerate(by_seed)
+        if j < len(r["val_mse"])
+    ]
     keys = [k for k in by_seed[0] if isinstance(by_seed[0][k], np.ndarray)]
-    out = {}
-    for k in keys:  # interleave: trial j of every seed before trial j + 1 of any
-        out[k] = np.stack([r[k][:n] for r in by_seed], axis=1).reshape(n * len(by_seed), *by_seed[0][k].shape[1:])
+    out: dict = {k: np.stack([by_seed[s][k][j] for s, j in order]) for k in keys}
+    out["study"] = np.array([by_seed[s]["seed"] for s, _ in order], dtype=np.int64)
+    out["trial"] = np.array([j for _, j in order], dtype=np.int64)
     out["meta"] = by_seed[0]["meta"]
     return out
 
