@@ -391,7 +391,7 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         pred=np.zeros(n_out), theta=np.zeros((n_out, m)), events=np.zeros(n_out, np.int32),
         val_mse=np.full((nb, len(rs), len(grid)), np.nan), choice=np.zeros((nb, 2), np.int32),
         pen_g=np.full((nb, len(GROUPS)), np.nan), mpr_mse=np.full(nb, np.nan),
-        n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(3, np.int64),  # LU fallbacks, pf != 1 batch repairs, uncertified
+        n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(4, np.int64),  # LU fallbacks, descent repairs, uncertified, support repairs
         exact_pred=np.full(n_out, np.nan),
     )
     est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
@@ -433,7 +433,8 @@ def py_locked_slice(S: Setup, est: str, n_sess: int, b: int = 0) -> dict:
 
     # the spec's _tune reads the grid off the base class by name
     Base.grid = Locked.grid = ns["ESTIMATOR_GRIDS"][est]
-    Locked.trace, Locked.mask_trace, Locked.reseed_trace = [], [], []
+    # the spec appends its traces to the base class by name
+    Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
     X, y, W = S.Xaug[:, :-1], S.y, S.W
     i0 = int(S.bstart[b])
     reg = Locked()
@@ -448,7 +449,7 @@ def py_locked_slice(S: Setup, est: str, n_sess: int, b: int = 0) -> dict:
         reg.solve()
         preds.append(reg.predict_one(X[t]))
     return dict(pred=np.array(preds), alpha=float(reg.alpha_), sec=time.process_time() - t0,
-                n_reseed=len(Locked.reseed_trace))
+                n_reseed=len(Base.reseed_trace))
 
 
 # ============================================================================ check
@@ -560,7 +561,7 @@ def run(ests: list[str], supplement: bool = False) -> None:
         )
         print(f"{k}: {res['cpu_sec']:.1f}s alpha {res['alpha_blk'].tolist()} "
               f"r {res['r_blk'].tolist()} reseeds {int(res['n_reseed'].sum())} "
-              f"[LU fallbacks, batch repairs, uncertified] {res['n_singular'].tolist()}"
+              f"[LU fallbacks, descent repairs, uncertified, support repairs] {res['n_singular'].tolist()}"
               + (f" groups {np.round(res['pen_g'], 4).tolist()}" if mode == "mpr" else ""),
               flush=True)
 
@@ -759,11 +760,31 @@ def analyze() -> None:  # noqa: C901 - one linear report
             drift_rows.append(dict(arm=k, n_checked=int(ok.sum()), max_rel_gap=float(gap.max()),
                                    median_rel_gap=float(np.median(gap)),
                                    n_checked_rel_gap_above_1e6=int((gap > 1e-6).sum())))
-        cpu_rows.append(dict(arm=k, cpu_sec=float(z["cpu_sec"])))
+        cnt = np.zeros(4, dtype=np.int64)
+        cnt[: len(z["n_singular"])] = z["n_singular"]
+        cpu_rows.append(dict(arm=k, cpu_sec=float(z["cpu_sec"]), lu_lstsq_fallbacks=int(cnt[0]),
+                             batch_support_repairs=int(cnt[3]), batch_descent_repairs=int(cnt[1]),
+                             batch_uncertified=int(cnt[2]), lasso_reseeds=int(z["n_reseed"].sum())))
     pd.DataFrame(path_rows).to_csv(OUT / "penalty_path.csv", index=False)
     pd.DataFrame(grp_rows).to_csv(OUT / "group_penalties.csv", index=False)
     pd.DataFrame(drift_rows).to_csv(OUT / "warm_path_vs_exact.csv", index=False)
     pd.DataFrame(cpu_rows).to_csv(OUT / "cpu_seconds.csv", index=False)
+    # the one-penalty warm paths of three runs of the same algorithm, block by block
+    agree = []
+    for est in EST:
+        c_ = R[arm_key(est, "single")]["pred"]
+        sp = np.load(WORK / f"gate_spec_{est}.npz")["pred"]
+        st = R[f"stored_sub_{EST_SHORT[est]}_all_features"]["pred"]
+        for b, (i0, i1) in enumerate(S.blocks):
+            sl = slice(i0, i1)
+
+            def nd(a, b_):
+                return int(np.sum(np.abs(a[sl] / b_[sl] - 1.0) > 1e-9))
+
+            agree.append(dict(est=est, block=b, first_forecast=str(dz["date"][i0])[:10],
+                              sessions=i1 - i0, c_vs_stored=nd(c_, st), spec_vs_stored=nd(sp, st),
+                              c_vs_spec=nd(c_, sp)))
+    pd.DataFrame(agree).to_csv(OUT / "one_penalty_warm_paths_by_block.csv", index=False)
 
     # ---- backbone shrinkage vs the HAR + calendar OLS, and where the forecast variance sits
     X = S.Xaug[:, :-1]
@@ -874,12 +895,13 @@ def figures(head: pd.DataFrame, path: pd.DataFrame, shr: pd.DataFrame, grids: di
     fig.savefig(OUT / "fig_qlike_sharpe.png", dpi=150)
     plt.close(fig)
     # 2. penalty chosen at each re-choice
-    fig, axes = plt.subplots(1, 3, figsize=(11, 3.4))
+    fig, axes = plt.subplots(1, 3, figsize=(11, 3.9))
+    off = {"single": -0.2, "bb0": -0.1, "bbr": 0.0, "bbfix": 0.1, "bb0w": 0.2}
     for ax, est in zip(axes, EST):
         for mode in MODES + ("bb0w",):
             k = arm_key(est, mode)
             pp = path[path["arm"] == k]
-            ax.plot(pp["block"], pp["alpha"], marker=MARKER[mode], color=COLOR[est],
+            ax.plot(pp["block"] + off[mode], pp["alpha"], marker=MARKER[mode], color=COLOR[est],
                     lw=1.5, ms=6, alpha=0.9, label=MODE_LABEL[mode],
                     ls={"single": "-", "bb0": "--", "bbr": ":", "bbfix": "-.", "bb0w": (0, (5, 1, 1, 1))}[mode])
         for a in (min(grids[est]), max(grids[est]), max(WIDE_GRIDS[est])):
@@ -887,14 +909,22 @@ def figures(head: pd.DataFrame, path: pd.DataFrame, shr: pd.DataFrame, grids: di
         ax.set_yscale("log")
         ax.set_title(LABEL[est])
         ax.set_xlabel("re-choice (every 250 sessions)")
-    axes[0].set_ylabel("alpha chosen (dotted = spec grid edges, widened top)")
-    axes[2].legend(fontsize=7, frameon=False, loc="best")
-    fig.tight_layout()
+    axes[0].set_ylabel("alpha chosen")
+    h_, l_ = axes[0].get_legend_handles_labels()
+    fig.legend(h_, l_, fontsize=7, frameon=False, loc="lower center", ncol=5)
+    fig.suptitle("Penalty chosen at each re-choice (points offset sideways by arm; dotted: the spec "
+                 "grid's edges and the widened grid's top)", fontsize=9)
+    fig.tight_layout(rect=(0, 0.08, 1, 0.95))
     fig.savefig(OUT / "fig_penalty_path.png", dpi=150)
     plt.close(fig)
     # 3. share of the forecasts' variance on the backbone and on the exogenous columns
-    fig, ax = plt.subplots(figsize=(7.5, 4.6))
-    arms = [arm_key(e, m) for e, m in ALL_ARMS]
+    fig, ax = plt.subplots(figsize=(9.0, 5.4))
+    arms = []
+    for est in EST:
+        arms += [arm_key(est, m) for m in MODES]
+        if est == "ridge":
+            arms.append("ridge_mpr")
+        arms += [arm_key(est, "singlew"), arm_key(est, "bb0w")]
     s2 = shr.set_index("arm").loc[arms]
     yp = np.arange(len(arms))[::-1]
     for y_, k in zip(yp, arms):
@@ -903,7 +933,9 @@ def figures(head: pd.DataFrame, path: pd.DataFrame, shr: pd.DataFrame, grids: di
         ax.plot(s2.loc[k, "share_exog_forecasts"], y_, "o", color=COLOR[est], ms=7, mfc="white", mew=1.6)
     ax.set_yticks(yp)
     ax.set_yticklabels([f"{LABEL[R_EST(k)]}: {MODE_LABEL[k.split('_', 1)[1]]}" for k in arms])
-    ax.set_xlabel("share of the forecasts' variance (filled = backbone part, hollow = exogenous part)")
+    ax.set_xlabel("share of the forecasts' variance over the 1469 sessions")
+    ax.set_title("filled: backbone part (HAR + calendar); hollow: exogenous part; the rest is twice "
+                 "their covariance", fontsize=8)
     ax.grid(axis="x", color="#e6e6e6", lw=0.8)
     fig.tight_layout()
     fig.savefig(OUT / "fig_variance_shares.png", dpi=150)
@@ -978,7 +1010,13 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         "elastic net = the Garrigues-El Ghaoui online homotopy (two `enet_online` updates a session), "
         "cold seed `_batch_theta` (FWL on the locked block + batch homotopy) at every re-choice, and "
         "for the lasso the between-re-choice mask additions (`_degenerate_live`). With pf != 1 the "
-        "batch elastic net is solved exactly by column scaling.")
+        "batch elastic net (re-choice candidates, cold seeds) is solved by column scaling and the "
+        "batch homotopy, then certified by the KKT conditions of the unscaled problem; a solution "
+        "that fails them (the homotopy's absolute tolerances can miss an event at the scaled "
+        "magnitudes: found by the independent solver, gate 6) is repaired by support changes (solve "
+        "the KKT system on the support, drop sign flips, add the worst violator), else by coordinate "
+        "descent plus the exact KKT solve; counts in `cpu_seconds.csv`. With pf = 1 (the spec's "
+        "models and the backbone-locked arms) the batch solution is the spec's, unchanged.")
     say("")
     say("## Gates")
     say("")
@@ -1005,16 +1043,22 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"{int(en['n_sessions_rel_gap_vs_spec_above_1e9'])} sessions and from the stored table on "
         f"{int(en['n_sessions_rel_gap_vs_stored_above_1e9'])} (largest {en['max_rel_gap_vs_stored']:.2%}), "
         f"and the spec class itself differs from the stored table by up to {en['spec_max_rel_gap_vs_stored']:.2%}. "
-        "All three are the same warm homotopy; at alpha 1e-3 (blocks 3 and 4) it leaves the exact "
-        "path at different sessions on different floating-point paths (local Python spec from 2021-11-15 "
-        "in block 3, the stored run from block 4, the C port late in block 4) and returns to it at the "
-        "next re-choice (cold reseed). Checked against the exact batch solution (`_batch_theta` on the "
-        "same window) in `warm_path_vs_exact.csv`.")
+        "All three are the same warm homotopy (two rank-one updates a session from the last cold "
+        "seed); on different floating-point paths it takes a different branch at some session and "
+        "stays there until the next re-choice re-anchors it. Sessions with a relative gap above 1e-9, "
+        "block by block (`one_penalty_warm_paths_by_block.csv`):")
     say("")
-    say("3. On a short slice (the first sessions of block 0), the C backbone-locked arm against the "
-        "spec's own class with the same locked set (a subclass whose mask step locks the backbone):")
+    ag = pd.read_csv(OUT / "one_penalty_warm_paths_by_block.csv")
+    ag = ag[ag["est"] == "reclasticnet"][["block", "first_forecast", "sessions", "c_vs_stored",
+                                          "spec_vs_stored", "c_vs_spec"]]
+    say(_md_table(ag))
     say("")
-    t = g2[["est", "sessions", "alpha_c", "alpha_python", "max_rel_gap"]].copy()
+    say("3. On a slice (the sessions of the first block), the C backbone-locked arm against the "
+        "spec's own class with the same locked set (a subclass whose mask step locks the backbone); "
+        "CPU seconds for that slice, Python vs C:")
+    say("")
+    t = g2[["est", "sessions", "alpha_c", "alpha_python", "max_rel_gap", "n_reseed_c_block0",
+            "n_reseed_python_slice", "python_cpu_sec_slice", "c_cpu_sec_block0_250_sessions"]].copy()
     t["max_rel_gap"] = t["max_rel_gap"].map(lambda v: f"{v:.1e}")
     say(_md_table(t))
     say("")
@@ -1104,7 +1148,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     ]
     tab = pv_.pivot(index="arm", columns="first_forecast", values="choice")
     tab = tab.loc[[arm_key(e, m) for e, m in ALL_ARMS]].reset_index()
-    say("`*` = at an edge of the spec's grid.")
+    say("`*` = at an edge of the arm's grid (the spec's grid; the widened grid for the supplement rows).")
     say("")
     say(_md_table(tab))
     say("")
@@ -1119,7 +1163,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     say("")
     say(_md_table(gt))
     say("")
-    say("## Why one penalty loses: backbone shrinkage and where the forecast variance sits")
+    say("## Backbone shrinkage and where the forecast variance sits")
     say("")
     say("har-sum ratio = sum of the six HAR coefficients over the HAR + calendar OLS's (median over "
         "sessions; 1 = no shrinkage of the persistence); backbone variance ratio = in-window variance of "
@@ -1153,8 +1197,12 @@ def write_summary() -> None:  # noqa: C901 - one linear report
             f"all features with one penalty {single['qlike']:.4f} / {single['sharpe_mid']:.2f}.")
         for m in MODES[1:] + (("mpr",) if est == "ridge" else ()) + ("singlew", "bb0w"):
             r = head.loc[arm_key(est, m)]
-            say(f"  - {MODE_LABEL[m]}: {r['qlike']:.4f} / {r['sharpe_mid']:.2f}; vs one penalty DM "
-                f"{r['dm_vs_single']:+.2f} (p {r['dm_p_vs_single']:.3f}), HAC t {r['t_hac_vs_single']:+.2f}; "
+            if not np.isfinite(r["t_hac_vs_single"]):
+                vs1 = "the same forecasts as the one-penalty arm (same choices)"
+            else:
+                vs1 = (f"vs one penalty DM {r['dm_vs_single']:+.2f} (p {r['dm_p_vs_single']:.3f}), "
+                       f"HAC t {r['t_hac_vs_single']:+.2f}")
+            say(f"  - {MODE_LABEL[m]}: {r['qlike']:.4f} / {r['sharpe_mid']:.2f}; {vs1}; "
                 f"vs HAR + calendar DM {r['dm_vs_baseline']:+.2f} (p {r['dm_p_vs_baseline']:.3f}), "
                 f"HAC t {r['t_hac_vs_baseline']:+.2f}.")
     say("")
@@ -1171,8 +1219,11 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     say("## CPU")
     say("")
     tot = float(cpu["cpu_sec"].sum())
-    say(f"C walk-forward, all {len(cpu)} arms: {tot:.0f} CPU seconds (`cpu_seconds.csv`); one process "
-        "for ridge + lasso and one for the elastic net, single-threaded BLAS.")
+    say(f"C walk-forward, all {len(cpu)} arms: {tot:.0f} CPU seconds (`cpu_seconds.csv`; two "
+        "processes, single-threaded BLAS). Batch solutions with pf != 1 repaired: "
+        f"{int(cpu['batch_support_repairs'].sum())} by support changes, "
+        f"{int(cpu['batch_descent_repairs'].sum())} by descent, "
+        f"{int(cpu['batch_uncertified'].sum())} left uncertified.")
     say("")
     say("## Files")
     say("")
@@ -1181,6 +1232,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         "(an independent coordinate-descent / eigendecomposition solver kept as a cross-check, not "
         "the arms of record).")
     say("- `headline.csv`, `scorer_gate.csv`, `penalty_path.csv`, `group_penalties.csv`, "
+        "`one_penalty_warm_paths_by_block.csv`, "
         "`warm_path_vs_exact.csv`, `backbone_shrinkage_and_variance_shares.csv`, `har_coefficients.csv`, "
         "`cpu_seconds.csv`; figures `fig_qlike_sharpe.png`, `fig_penalty_path.png`, "
         "`fig_variance_shares.png`; forecasts and coefficients `_work/runs/*.npz`; gates `_work/gate_*.csv`, "

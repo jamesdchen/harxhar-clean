@@ -1,6 +1,6 @@
 # The 16:00-bar linear models with the HAR + calendar backbone left (nearly) unpenalized
 
-Written by `experiments/close_exogpen.py analyze` on 2026-10-03 19:36; every number below is read from the CSVs in this folder (and the gate CSVs in `_work/`).
+Written by `experiments/close_exogpen.py analyze` on 2026-10-03 20:12; every number below is read from the CSVs in this folder (and the gate CSVs in `_work/`).
 
 ## Question and design
 
@@ -18,7 +18,7 @@ Why r is tuned rather than fixed: the paper's 1/100 was set for ridge on the poo
 
 Protocol (the spec's, unchanged): window = the 2000 sessions before the forecast, refit every session, intercept unpenalized, the identifiability mask at every re-choice, penalty re-chosen every 250 sessions on the last 125 sessions of the window after a 25-session embargo, the spec's grids (ridge 1e-2 .. 1e3; lasso / elastic net 1e-6 .. 1e-2; elastic net l1_ratio 0.5). When the backbone is locked, backbone columns constant in the window, byte-copies of an earlier backbone column, or beyond the numerical rank of the centered backbone are masked (the five weekday dummies sum to the intercept, so one of them is left out; fit and forecasts are unchanged by that choice).
 
-Algorithm: the spec's own (`RollingTunedLinear` and `src/models/reclasso_har.py`), ported to C (`experiments/close_exogpen_kernel.c`, gcc -O3 -march=native, no -ffast-math, reference LAPACK / BLAS): ridge = Sherman-Morrison rank-one add / drop on the ridged inverse; lasso / elastic net = the Garrigues-El Ghaoui online homotopy (two `enet_online` updates a session), cold seed `_batch_theta` (FWL on the locked block + batch homotopy) at every re-choice, and for the lasso the between-re-choice mask additions (`_degenerate_live`). With pf != 1 the batch elastic net is solved exactly by column scaling.
+Algorithm: the spec's own (`RollingTunedLinear` and `src/models/reclasso_har.py`), ported to C (`experiments/close_exogpen_kernel.c`, gcc -O3 -march=native, no -ffast-math, reference LAPACK / BLAS): ridge = Sherman-Morrison rank-one add / drop on the ridged inverse; lasso / elastic net = the Garrigues-El Ghaoui online homotopy (two `enet_online` updates a session), cold seed `_batch_theta` (FWL on the locked block + batch homotopy) at every re-choice, and for the lasso the between-re-choice mask additions (`_degenerate_live`). With pf != 1 the batch elastic net (re-choice candidates, cold seeds) is solved by column scaling and the batch homotopy, then certified by the KKT conditions of the unscaled problem; a solution that fails them (the homotopy's absolute tolerances can miss an event at the scaled magnitudes: found by the independent solver, gate 6) is repaired by support changes (solve the KKT system on the support, drop sign flips, add the worst violator), else by coordinate descent plus the exact KKT solve; counts in `cpu_seconds.csv`. With pf = 1 (the spec's models and the backbone-locked arms) the batch solution is the spec's, unchanged.
 
 ## Gates
 
@@ -34,19 +34,28 @@ Algorithm: the spec's own (`RollingTunedLinear` and `src/models/reclasso_har.py`
 
 | est | same_alphas_as_spec | max_rel_gap_vs_spec | n_sessions_rel_gap_vs_spec_above_1e9 | max_rel_gap_vs_stored | n_sessions_rel_gap_vs_stored_above_1e9 | python_spec_cpu_sec_full_arm | c_cpu_sec_full_arm |
 |---|---|---|---|---|---|---|---|
-| ridge | True | 8.6e-11 | 0 | 2.7e-11 | 0 | 6.76 | 8.72 |
-| reclasso | True | 1.0e-12 | 0 | 8.0e-13 | 0 | 84.05 | 41.49 |
-| reclasticnet | True | 2.7e-03 | 147 | 6.5e-03 | 132 | 70.25 | 37.41 |
+| ridge | True | 8.6e-11 | 0 | 2.7e-11 | 0 | 6.76 | 8.85 |
+| reclasso | True | 1.0e-12 | 0 | 8.0e-13 | 0 | 84.05 | 41.54 |
+| reclasticnet | True | 2.7e-03 | 147 | 6.5e-03 | 132 | 70.25 | 36.68 |
 
-   The elastic net is the exception: the C port differs from the spec class on 147 sessions and from the stored table on 132 (largest 0.65%), and the spec class itself differs from the stored table by up to 0.65%. All three are the same warm homotopy; at alpha 1e-3 (blocks 3 and 4) it leaves the exact path at different sessions on different floating-point paths (local Python spec from 2021-11-15 in block 3, the stored run from block 4, the C port late in block 4) and returns to it at the next re-choice (cold reseed). Checked against the exact batch solution (`_batch_theta` on the same window) in `warm_path_vs_exact.csv`.
+   The elastic net is the exception: the C port differs from the spec class on 147 sessions and from the stored table on 132 (largest 0.65%), and the spec class itself differs from the stored table by up to 0.65%. All three are the same warm homotopy (two rank-one updates a session from the last cold seed); on different floating-point paths it takes a different branch at some session and stays there until the next re-choice re-anchors it. Sessions with a relative gap above 1e-9, block by block (`one_penalty_warm_paths_by_block.csv`):
 
-3. On a short slice (the first sessions of block 0), the C backbone-locked arm against the spec's own class with the same locked set (a subclass whose mask step locks the backbone):
+| block | first_forecast | sessions | c_vs_stored | spec_vs_stored | c_vs_spec |
+|---|---|---|---|---|---|
+| 0 | 2018-06-25 | 250 | 0 | 0 | 0 |
+| 1 | 2019-06-26 | 250 | 0 | 0 | 0 |
+| 2 | 2020-06-23 | 250 | 0 | 0 | 0 |
+| 3 | 2021-06-21 | 250 | 0 | 147 | 147 |
+| 4 | 2022-06-17 | 250 | 132 | 132 | 0 |
+| 5 | 2023-06-16 | 219 | 0 | 0 | 0 |
 
-| est | sessions | alpha_c | alpha_python | max_rel_gap |
-|---|---|---|---|---|
-| ridge | 40 | 1000.0 | 1000.0 | 8.0e-14 |
-| reclasso | 40 | 0.01 | 0.01 | 2.1e-14 |
-| reclasticnet | 40 | 0.01 | 0.01 | 4.3e-14 |
+3. On a slice (the sessions of the first block), the C backbone-locked arm against the spec's own class with the same locked set (a subclass whose mask step locks the backbone); CPU seconds for that slice, Python vs C:
+
+| est | sessions | alpha_c | alpha_python | max_rel_gap | n_reseed_c_block0 | n_reseed_python_slice | python_cpu_sec_slice | c_cpu_sec_block0_250_sessions |
+|---|---|---|---|---|---|---|---|---|
+| ridge | 250 | 1000.0 | 1000.0 | 5.1e-13 | 0 | 0 | 1.07 | 1.37 |
+| reclasso | 250 | 0.01 | 0.01 | 2.1e-14 | 1 | 1 | 11.7 | 5.17 |
+| reclasticnet | 250 | 0.01 | 0.01 | 4.6e-14 | 0 | 0 | 9.7 | 5.59 |
 
 4. The scorer (16:00-bar recalibration (f^2 + s) x B, QLIKE on the 866 trade days, the 15:30 sign(s) straddle; `experiments/dense_vs_sparse_1530.py` helpers) against the master table:
 
@@ -67,11 +76,11 @@ Algorithm: the spec's own (`RollingTunedLinear` and `src/models/reclasso_har.py`
 | lasso_single | 59 | 2.0e-13 | 7.3e-15 | 0 |
 | lasso_bb0 | 59 | 1.9e-13 | 7.5e-15 | 0 |
 | lasso_bbr | 59 | 2.0e-13 | 6.4e-15 | 0 |
-| lasso_bbfix | 59 | 3.5e-02 | 1.5e-13 | 26 |
+| lasso_bbfix | 59 | 2.0e-13 | 2.9e-15 | 0 |
 | enet_single | 59 | 7.8e-13 | 9.1e-15 | 0 |
 | enet_bb0 | 59 | 7.7e-06 | 8.3e-15 | 1 |
 | enet_bbr | 59 | 2.9e-13 | 7.3e-15 | 0 |
-| enet_bbfix | 59 | 1.6e-02 | 1.8e-14 | 18 |
+| enet_bbfix | 59 | 3.2e-13 | 9.1e-15 | 0 |
 | lasso_singlew | 59 | 2.0e-13 | 7.3e-15 | 0 |
 | lasso_bb0w | 59 | 1.9e-13 | 7.5e-15 | 0 |
 | enet_singlew | 59 | 2.9e-13 | 6.2e-15 | 0 |
@@ -103,7 +112,7 @@ DM = Diebold-Mariano statistic on the daily QLIKE difference (negative: the row 
 | lasso: one penalty (spec) | 0.0998 | 1.45 / 0.98 |  |  | +2.6, +0.72 (0.474) | -0.06, -0.15 |
 | lasso: backbone unpenalized | 0.0957 | 1.52 / 1.05 | -4.1, -1.80 (0.072) | +0.07, +0.25 | -1.6, -0.52 (0.606) | +0.01, +0.04 |
 | lasso: backbone ratio r tuned | 0.0959 | 1.36 / 0.90 | -3.8, -1.85 (0.064) | -0.08, -0.33 | -1.3, -0.44 (0.657) | -0.15, -0.42 |
-| lasso: backbone ratio 1/100 | 0.0953 | 1.50 / 1.03 | -4.4, -1.97 (0.048) | +0.05, +0.20 | -1.9, -0.64 (0.522) | -0.01, -0.03 |
+| lasso: backbone ratio 1/100 | 0.0956 | 1.48 / 1.02 | -4.1, -1.84 (0.066) | +0.04, +0.13 | -1.6, -0.54 (0.589) | -0.02, -0.06 |
 | lasso: one penalty, grid widened (supplement) | 0.0998 | 1.45 / 0.98 | +0.0, +0.00 (1.000) |  | +2.6, +0.72 (0.474) | -0.06, -0.15 |
 | lasso: backbone unpenalized, grid widened (supplement) | 0.0957 | 1.52 / 1.05 | -4.1, -1.80 (0.072) | +0.07, +0.25 | -1.6, -0.52 (0.606) | +0.01, +0.04 |
 | elastic net: HAR + calendar | 0.0969 | 1.29 / 0.82 |  |  |  |  |
@@ -119,7 +128,7 @@ HAR + calendar OLS (master table `sub_ols_baseline`): QLIKE 0.0975, Sharpe 1.33 
 
 ## The penalty chosen at each re-choice
 
-`*` = at an edge of the spec's grid.
+`*` = at an edge of the arm's grid (the spec's grid; the widened grid for the supplement rows).
 
 | arm | 2018-06-25 | 2019-06-26 | 2020-06-23 | 2021-06-21 | 2022-06-17 | 2023-06-16 |
 |---|---|---|---|---|---|---|
@@ -158,7 +167,7 @@ Multi-penalty ridge, the penalty of each exogenous group at each re-choice:
 | vol_demand | 0.1 | 1000 | 1000 | 100 | 1000 | 10 |
 | fomc | 0.01 | 1000 | 100 | 0.01 | 0.01 | 1000 |
 
-## Why one penalty loses: backbone shrinkage and where the forecast variance sits
+## Backbone shrinkage and where the forecast variance sits
 
 har-sum ratio = sum of the six HAR coefficients over the HAR + calendar OLS's (median over sessions; 1 = no shrinkage of the persistence); backbone variance ratio = in-window variance of the backbone part of the fit over that of the OLS fit; shares = the forecasts' variance over the 1469 sessions split into the backbone part, the exogenous part and twice their covariance (each part = coefficients x (row - window mean)).
 
@@ -171,7 +180,7 @@ har-sum ratio = sum of the six HAR coefficients over the HAR + calendar OLS's (m
 | lasso_single | 0.76 | 0.57 | 0.54 | 0.12 | 0.34 | 0.99 | 18 |
 | lasso_bb0 | 0.88 | 0.80 | 0.75 | 0.05 | 0.20 | 1.00 | 14 |
 | lasso_bbr | 0.81 | 0.65 | 0.62 | 0.10 | 0.28 | 0.99 | 16 |
-| lasso_bbfix | 0.88 | 0.79 | 0.74 | 0.05 | 0.21 | 0.99 | 15 |
+| lasso_bbfix | 0.88 | 0.79 | 0.74 | 0.05 | 0.20 | 1.00 | 14 |
 | enet_single | 0.74 | 0.54 | 0.50 | 0.14 | 0.36 | 0.99 | 38 |
 | enet_bb0 | 0.85 | 0.73 | 0.69 | 0.07 | 0.23 | 0.99 | 33 |
 | enet_bbr | 0.76 | 0.57 | 0.56 | 0.12 | 0.32 | 0.99 | 37 |
@@ -195,7 +204,7 @@ Median HAR coefficients (prescaled design):
 | lasso_single | +0.141 | +0.082 | +0.051 | +0.035 | +0.000 | +0.000 |
 | lasso_bb0 | +0.169 | +0.110 | +0.054 | +0.039 | +0.000 | -0.000 |
 | lasso_bbr | +0.156 | +0.099 | +0.058 | +0.038 | +0.000 | +0.000 |
-| lasso_bbfix | +0.170 | +0.106 | +0.059 | +0.039 | +0.000 | +0.000 |
+| lasso_bbfix | +0.168 | +0.110 | +0.054 | +0.039 | +0.000 | +0.000 |
 | enet_single | +0.130 | +0.087 | +0.048 | +0.039 | +0.000 | +0.000 |
 | enet_bb0 | +0.148 | +0.109 | +0.055 | +0.041 | +0.002 | +0.002 |
 | enet_bbr | +0.142 | +0.097 | +0.054 | +0.040 | +0.000 | +0.000 |
@@ -216,13 +225,13 @@ Median HAR coefficients (prescaled design):
   - backbone ratio r tuned: 0.0968 / 1.37; vs one penalty DM -2.51 (p 0.012), HAC t -1.00; vs HAR + calendar DM -0.31 (p 0.757), HAC t +0.38.
   - backbone ratio 1/100: 0.0945 / 1.52; vs one penalty DM -2.33 (p 0.020), HAC t -0.41; vs HAR + calendar DM -1.02 (p 0.307), HAC t +0.86.
   - backbone unpenalized, one penalty for each group: 0.0997 / 1.43; vs one penalty DM -0.26 (p 0.794), HAC t -0.76; vs HAR + calendar DM +0.30 (p 0.765), HAC t +0.40.
-  - one penalty, grid widened (supplement): 0.1004 / 1.66; vs one penalty DM +0.00 (p 1.000), HAC t +nan; vs HAR + calendar DM +0.41 (p 0.680), HAC t +0.89.
+  - one penalty, grid widened (supplement): 0.1004 / 1.66; the same forecasts as the one-penalty arm (same choices); vs HAR + calendar DM +0.41 (p 0.680), HAC t +0.89.
   - backbone unpenalized, grid widened (supplement): 0.0940 / 1.52; vs one penalty DM -2.34 (p 0.019), HAC t -0.40; vs HAR + calendar DM -1.23 (p 0.217), HAC t +0.90.
 - lasso: HAR + calendar QLIKE 0.0972 / Sharpe 1.51; all features with one penalty 0.0998 / 1.45.
   - backbone unpenalized: 0.0957 / 1.52; vs one penalty DM -1.80 (p 0.072), HAC t +0.25; vs HAR + calendar DM -0.52 (p 0.606), HAC t +0.04.
   - backbone ratio r tuned: 0.0959 / 1.36; vs one penalty DM -1.85 (p 0.064), HAC t -0.33; vs HAR + calendar DM -0.44 (p 0.657), HAC t -0.42.
-  - backbone ratio 1/100: 0.0953 / 1.50; vs one penalty DM -1.97 (p 0.048), HAC t +0.20; vs HAR + calendar DM -0.64 (p 0.522), HAC t -0.03.
-  - one penalty, grid widened (supplement): 0.0998 / 1.45; vs one penalty DM +0.00 (p 1.000), HAC t +nan; vs HAR + calendar DM +0.72 (p 0.474), HAC t -0.15.
+  - backbone ratio 1/100: 0.0956 / 1.48; vs one penalty DM -1.84 (p 0.066), HAC t +0.13; vs HAR + calendar DM -0.54 (p 0.589), HAC t -0.06.
+  - one penalty, grid widened (supplement): 0.0998 / 1.45; the same forecasts as the one-penalty arm (same choices); vs HAR + calendar DM +0.72 (p 0.474), HAC t -0.15.
   - backbone unpenalized, grid widened (supplement): 0.0957 / 1.52; vs one penalty DM -1.80 (p 0.072), HAC t +0.25; vs HAR + calendar DM -0.52 (p 0.606), HAC t +0.04.
 - elastic net: HAR + calendar QLIKE 0.0969 / Sharpe 1.29; all features with one penalty 0.0994 / 1.34.
   - backbone unpenalized: 0.0982 / 1.26; vs one penalty DM -0.69 (p 0.488), HAC t -0.25; vs HAR + calendar DM +0.33 (p 0.739), HAC t -0.07.
@@ -240,9 +249,9 @@ Median HAR coefficients (prescaled design):
 
 ## CPU
 
-C walk-forward, all 19 arms: 921 CPU seconds (`cpu_seconds.csv`); one process for ridge + lasso and one for the elastic net, single-threaded BLAS.
+C walk-forward, all 19 arms: 1044 CPU seconds (`cpu_seconds.csv`; two processes, single-threaded BLAS). Batch solutions with pf != 1 repaired: 125 by support changes, 10 by descent, 8 left uncertified.
 
 ## Files
 
 - `experiments/close_exogpen.py` (stages gate, check, run, analyze), `experiments/close_exogpen_kernel.c` (the C port), `experiments/close_exogpen_cdcheck.c` (an independent coordinate-descent / eigendecomposition solver kept as a cross-check, not the arms of record).
-- `headline.csv`, `scorer_gate.csv`, `penalty_path.csv`, `group_penalties.csv`, `warm_path_vs_exact.csv`, `backbone_shrinkage_and_variance_shares.csv`, `har_coefficients.csv`, `cpu_seconds.csv`; figures `fig_qlike_sharpe.png`, `fig_penalty_path.png`, `fig_variance_shares.png`; forecasts and coefficients `_work/runs/*.npz`; gates `_work/gate_*.csv`, `_work/check_*.csv`.
+- `headline.csv`, `scorer_gate.csv`, `penalty_path.csv`, `group_penalties.csv`, `one_penalty_warm_paths_by_block.csv`, `warm_path_vs_exact.csv`, `backbone_shrinkage_and_variance_shares.csv`, `har_coefficients.csv`, `cpu_seconds.csv`; figures `fig_qlike_sharpe.png`, `fig_penalty_path.png`, `fig_variance_shares.png`; forecasts and coefficients `_work/runs/*.npz`; gates `_work/gate_*.csv`, `_work/check_*.csv`.

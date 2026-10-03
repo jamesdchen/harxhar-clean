@@ -308,6 +308,64 @@ static int kkt_ok(int m, const double *G, const double *c, const double *mu, con
     return 1;
 }
 
+static long g_active_repair = 0; /* pf != 1 batch solutions repaired by support changes */
+
+/* repair a batch solution that fails KKT by support changes: solve the KKT system on the
+ * support with its signs; drop coordinates whose sign flips; add the worst KKT violator;
+ * until every condition holds (1) or ACTIVE_MAX iterations (0, b untouched) */
+static int active_repair(int m, const double *G, const double *c, const double *mu,
+                         const double *lam2, double *b, double tol) {
+    int *act = malloc(sizeof(int) * m);
+    double *sg = malloc(sizeof(double) * m), *M = malloc(sizeof(double) * (size_t)m * m);
+    double *rhs = malloc(sizeof(double) * m), *bt = malloc(sizeof(double) * m);
+    int na = 0, ok = 0;
+    for (int j = 0; j < m; j++)
+        if (b[j] != 0.0) { act[na] = j; sg[na] = (b[j] > 0) - (b[j] < 0); na++; }
+    for (int it = 0; it < 200; it++) {
+        for (int a = 0; a < na; a++) {
+            const double *Gj = G + (size_t)act[a] * m;
+            for (int a2 = 0; a2 < na; a2++) M[(size_t)a * na + a2] = Gj[act[a2]];
+            M[(size_t)a * na + a] += lam2[act[a]];
+            rhs[a] = c[act[a]] - mu[act[a]] * sg[a];
+        }
+        int info = 0, one = 1;
+        if (na > 0) {
+            dpotrf_("L", &na, M, &na, &info, 1);
+            if (info == 0) dpotrs_("L", &na, &one, M, &na, rhs, &na, &info, 1);
+        }
+        if (info != 0) break;
+        int dropped = 0, keep = 0;
+        for (int a = 0; a < na; a++) {
+            double sn = (rhs[a] > 0) - (rhs[a] < 0);
+            if (sn != sg[a]) { dropped = 1; continue; }
+            act[keep] = act[a]; sg[keep] = sg[a]; keep++;
+        }
+        if (dropped) { na = keep; continue; }
+        memset(bt, 0, sizeof(double) * m);
+        for (int a = 0; a < na; a++) bt[act[a]] = rhs[a];
+        int jw = -1;
+        double worst = tol, gw = 0.0;
+        for (int j = 0; j < m; j++) {
+            if (bt[j] != 0.0) continue;
+            const double *Gj = G + (size_t)j * m;
+            double r = c[j];
+            for (int a = 0; a < na; a++) r -= Gj[act[a]] * bt[act[a]];
+            double v = fabs(r) - mu[j];
+            if (v > worst) { worst = v; jw = j; gw = r; }
+        }
+        if (jw < 0) {
+            if (kkt_ok(m, G, c, mu, lam2, bt, tol)) { memcpy(b, bt, sizeof(double) * m); ok = 1; }
+            break;
+        }
+        act[na] = jw;
+        sg[na] = gw > 0 ? 1.0 : -1.0;
+        na++;
+    }
+    free(act); free(sg); free(M); free(rhs); free(bt);
+    if (ok) g_active_repair++;
+    return ok;
+}
+
 /* enet_coef with penalty factors: pf all 1 -> exactly enet_coef */
 static void enet_coef_pf(int m, const double *g, const double *c, int n, double alpha,
                          double l1, const double *pf, double *out) {
@@ -342,7 +400,7 @@ static void enet_coef_pf(int m, const double *g, const double *c, int n, double 
             if (fabs(c[j]) > cmax) cmax = fabs(c[j]);
         }
         double tol = 1e-9 * (cmax > 0.0 ? cmax : 1.0);
-        if (!kkt_ok(m, g, c, muv, l2v, out, tol)) {
+        if (!kkt_ok(m, g, c, muv, l2v, out, tol) && !active_repair(m, g, c, muv, l2v, out, tol)) {
             g_kkt_repair++;
             double *gv = malloc(sizeof(double) * m), *bp = malloc(sizeof(double) * m);
             PolishWS w;
@@ -359,10 +417,10 @@ static void enet_coef_pf(int m, const double *g, const double *c, int n, double 
             double ynorm = 0.0; /* descent stop scale: |c| (no y here) */
             for (int j = 0; j < m; j++) ynorm += c[j] * c[j];
             ynorm = sqrt(ynorm);
-            double ctol = 1e-10 * (ynorm > 0.0 ? ynorm : 1.0) / sqrt((double)(m > 0 ? m : 1));
+            double ctol = 1e-5 * (ynorm > 0.0 ? ynorm : 1.0);
             int done = 0;
-            for (int round = 0; round < 8 && !done; round++) {
-                cd_run(m, g, muv, l2v, out, gv, ctol, 2000000);
+            for (int round = 0; round < 8 && !done; round++) { /* loose to tight */
+                cd_run(m, g, muv, l2v, out, gv, ctol, 20000);
                 memcpy(bp, out, sizeof(double) * m);
                 if (polish(m, g, c, muv, l2v, bp, tol, &w) && kkt_ok(m, g, c, muv, l2v, bp, tol)) {
                     memcpy(out, bp, sizeof(double) * m);
@@ -717,6 +775,7 @@ int exogpen_run(
     g_singular = 0;
     g_kkt_repair = 0;
     g_kkt_fail = 0;
+    g_active_repair = 0;
     int fit_n = W - val_tail - embargo;
     for (int blk = 0; blk < n_blocks; blk++) {
         int i0 = bstart[blk], i1 = bstart[blk + 1];
@@ -902,6 +961,7 @@ out:
     n_singular[0] = g_singular;
     n_singular[1] = g_kkt_repair;
     n_singular[2] = g_kkt_fail;
+    n_singular[3] = g_active_repair;
     free(md.locked); free(md.maskout); free(md.pf); free(md.K); free(md.c); free(md.th);
     free(md.Gr); free(md.mu_vec); free(md.s); free(md.A); free(md.inA); free(md.run_const);
     free(md.run_eq); free(md.Xw); free(md.M); free(md.tp); free(md.r); free(md.dvec);
