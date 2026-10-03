@@ -60,7 +60,7 @@ STORED_EST = {"ridge": "ridge", "lasso": "reclasso"}
 SEG = "bar1600"
 TW = 2000
 ROLL = 63  # a quarter of sessions, the window of the rolling-SHAP page
-BUCKETS = ("live_feasible", "all_features")
+BUCKETS = ("all_features",)  # live_feasible commented out
 # model key -> (label, capture tag or tree dir); order = the fixed colour order
 LINEAR: dict[str, dict[str, str | None]] = {
     "live_feasible": {"ridge": None, "lasso": "reclasso"},

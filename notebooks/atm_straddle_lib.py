@@ -1155,19 +1155,19 @@ def information_ratio(r_port: pd.Series, r_bench: pd.Series) -> pd.Series:
 def circular_block_bootstrap_idx(
     rng: np.random.Generator, n: int, blen: int, B: int
 ) -> np.ndarray:
-    """(B, n) index array for a circular moving-block bootstrap.
+    """(B, n) index array. The circular block bootstrap is commented out.
 
-    Each draw takes ceil(n / blen) block starts uniform on [0, n), lays
-    the blocks (starts[:, None] + arange(blen)) % n end to end and
-    truncates to n. All B draws come from one rng.integers call of shape
-    (B, n_blocks), so the same rng seed gives the same B rows.
+    Every row is the original order, so a percentile interval built from
+    these draws equals the point estimate.
     """
     n = int(n)
-    blen = max(1, int(blen))
-    n_blocks = int(np.ceil(n / blen))
-    starts = rng.integers(0, n, size=(B, n_blocks))
-    idx = (starts[:, :, None] + np.arange(blen)[None, None, :]) % n
-    return idx.reshape(B, n_blocks * blen)[:, :n]
+    del rng, blen
+    # blen = max(1, int(blen))
+    # n_blocks = int(np.ceil(n / blen))
+    # starts = rng.integers(0, n, size=(B, n_blocks))
+    # idx = (starts[:, :, None] + np.arange(blen)[None, None, :]) % n
+    # return idx.reshape(B, n_blocks * blen)[:, :n]
+    return np.broadcast_to(np.arange(n), (int(B), n)).copy()
 
 
 def cboe_short_straddle_margin_points(

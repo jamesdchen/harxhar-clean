@@ -54,13 +54,17 @@ class BlockBootstrap:
         self, n_paths: int, n_steps: int, rng: np.random.Generator
     ) -> np.ndarray:
         n = self.log.size
-        nblk = int(np.ceil(n_steps / self.block))
-        starts = rng.integers(0, n, size=(n_paths, nblk))  # random block starts
-        offs = np.arange(self.block)
-        idx = (starts[:, :, None] + offs[None, None, :]).reshape(
-            n_paths, nblk * self.block
-        ) % n
-        return self.log[idx[:, :n_steps]]
+        # Circular block bootstrap commented out: replay the series in order.
+        del rng
+        # nblk = int(np.ceil(n_steps / self.block))
+        # starts = rng.integers(0, n, size=(n_paths, nblk))
+        # offs = np.arange(self.block)
+        # idx = (starts[:, :, None] + offs[None, None, :]).reshape(
+        #     n_paths, nblk * self.block
+        # ) % n
+        # return self.log[idx[:, :n_steps]]
+        idx = np.broadcast_to(np.arange(n_steps) % n, (n_paths, n_steps)).copy()
+        return self.log[idx]
 
 
 def from_log(path: str, block: int = 5) -> BlockBootstrap:

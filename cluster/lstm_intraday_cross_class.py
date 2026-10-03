@@ -95,7 +95,7 @@ def main() -> None:
                     ),
                 }
             )
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         arm = root / b / "bar1600" / "lstm_intraday" / "tw2000"
         merged = (
             arm

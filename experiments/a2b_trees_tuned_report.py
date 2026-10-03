@@ -97,7 +97,7 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 SEG, HHMM = "bar1600", "16:00"  # the 15:30-16:00 bar; the forecast is issued at 15:30
 TW = 2000
 MODELS = ("lgbm", "xgb", "rf")
-BUCKETS = ("all_features", "live_feasible", "baseline")
+BUCKETS = ("all_features", "baseline")  # live_feasible commented out
 LIN_LABEL = {
     "ridge": "ridge",
     "reclasso": "lasso",

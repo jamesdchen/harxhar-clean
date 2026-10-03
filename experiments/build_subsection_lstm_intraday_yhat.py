@@ -35,7 +35,7 @@ import build_subsection_yhat as bsy  # noqa: E402
 
 LSTMI_ROOT = ROOT / "results" / "linear_subsection_lstm_intraday"
 SPEC_DIR, MODEL, SEG, TW = "causal_tune_lstm_intraday", "lstm_intraday", "bar1600", 2000
-BUCKETS = ("live_feasible", "all_features", "baseline")
+BUCKETS = ("all_features", "baseline")  # live_feasible commented out
 RULES = {"": "mse", "qsel_": "qlike"}  # results file infix -> selection rule
 
 

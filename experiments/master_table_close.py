@@ -588,7 +588,7 @@ def discover() -> tuple[list[Spec], list[dict]]:
         if s.family == "per-bar linear" and s.meta.get("bucket") in (
             "all_features",
             "baseline",
-            "live_feasible",
+            # "live_feasible",
         ):
             a = (
                 LS

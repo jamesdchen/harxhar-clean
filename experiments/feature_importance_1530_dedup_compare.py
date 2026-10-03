@@ -30,7 +30,7 @@ REPO = Path(__file__).resolve().parents[1]
 OLD = REPO / "results" / "feature_importance_1530"
 NEW = REPO / "results" / "feature_importance_1530_dedup"
 MID = REPO / "results" / "feature_importance_1530_dedup_nomask"
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 MODELS = ("ridge", "lasso", "lgbm", "xgb", "rf")
 TREE_MODELS = ("lgbm", "xgb", "rf")
 TREE_MEASURES = (
@@ -463,7 +463,7 @@ def figures() -> None:
     fig, axes = plt.subplots(
         2, 2, figsize=(11, 8.2), gridspec_kw={"width_ratios": [1.25, 1]}
     )
-    for r, b in enumerate(("live_feasible", "all_features")):
+    for r, b in enumerate(("all_features",)):  # live_feasible commented out
         for c, (xlab, ms) in enumerate(panels):
             ax = axes[r, c]
             rows = []

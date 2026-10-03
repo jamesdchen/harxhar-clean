@@ -644,7 +644,7 @@ def restofday() -> None:
     meds: dict[str, list[float]] = {}
     better: list[int] = []
     worse_sig: list[int] = []
-    for b in ["baseline", "live_feasible", "all_features"]:
+    for b in ["baseline", "all_features"]:  # live_feasible commented out
         for est in ["ridge", "reclasso", "reclasticnet"]:
             g = e[(e["bucket"] == b) & (e["estimator"] == est)]
             assert len(g) == 12, (b, est, len(g))

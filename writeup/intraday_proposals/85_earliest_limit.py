@@ -1122,10 +1122,13 @@ def yf_closes(days: list[pd.Timestamp]) -> pd.Series:
 
 # --------------------------------------------------------------------------- stats
 def block_boot_idx(n: int, block: int, n_boot: int, rng) -> np.ndarray:
-    nb = int(np.ceil(n / block))
-    starts = rng.integers(0, n, size=(n_boot, nb))
-    idx = (starts[:, :, None] + np.arange(block)[None, None, :]) % n
-    return idx.reshape(n_boot, nb * block)[:, :n]
+    """Original-sample index. Circular block bootstrap commented out."""
+    del block, rng
+    # nb = int(np.ceil(n / block))
+    # starts = rng.integers(0, n, size=(n_boot, nb))
+    # idx = (starts[:, :, None] + np.arange(block)[None, None, :]) % n
+    # return idx.reshape(n_boot, nb * block)[:, :n]
+    return np.broadcast_to(np.arange(n), (n_boot, n)).copy()
 
 
 def tstat(x: np.ndarray) -> float:

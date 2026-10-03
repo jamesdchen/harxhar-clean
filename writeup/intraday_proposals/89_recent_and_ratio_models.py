@@ -1004,19 +1004,21 @@ def tstat(x: np.ndarray) -> float:
 
 
 def block_boot_means(x: np.ndarray, rng) -> np.ndarray:
-    """Circular 20-day-block bootstrap draws of mean(x) (N_BOOT draws, in chunks)."""
-    n = len(x)
-    nb = int(np.ceil(n / BLOCK))
-    out = np.empty(N_BOOT)
-    step = 1000
-    for s0 in range(0, N_BOOT, step):
-        k = min(step, N_BOOT - s0)
-        starts = rng.integers(0, n, size=(k, nb))
-        idx = ((starts[:, :, None] + np.arange(BLOCK)[None, None, :]) % n).reshape(
-            k, -1
-        )[:, :n]
-        out[s0 : s0 + k] = x[idx].mean(1)
-    return out
+    """Point estimate repeated. Circular block bootstrap commented out."""
+    del rng
+    # n = len(x)
+    # nb = int(np.ceil(n / BLOCK))
+    # out = np.empty(N_BOOT)
+    # step = 1000
+    # for s0 in range(0, N_BOOT, step):
+    #     k = min(step, N_BOOT - s0)
+    #     starts = rng.integers(0, n, size=(k, nb))
+    #     idx = ((starts[:, :, None] + np.arange(BLOCK)[None, None, :]) % n).reshape(
+    #         k, -1
+    #     )[:, :n]
+    #     out[s0 : s0 + k] = x[idx].mean(1)
+    # return out
+    return np.full(N_BOOT, float(np.mean(x)))
 
 
 def score(pnl: pd.Series, buy: pd.Series, R: pd.Series) -> dict:

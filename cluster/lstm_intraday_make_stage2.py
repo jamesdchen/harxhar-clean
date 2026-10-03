@@ -43,7 +43,7 @@ PREP_SEC = 180.0  # per task: the executor's data load and transforms (all_featu
 TARGET_SEC = 30 * 60  # estimated wall-clock per task (the time limit is 1 h)
 SAFETY = 1.5  # node-speed spread between the tuning task's node and a refit task's node
 MIN_ROWS = 4  # 4 rows x 5 seeds = 20 fits: every worker of a 20-CPU task busy
-BUCKETS = ("live_feasible", "all_features", "baseline")
+BUCKETS = ("all_features", "baseline")  # live_feasible commented out
 
 
 def main() -> None:

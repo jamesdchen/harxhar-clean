@@ -60,7 +60,7 @@ SEG = "bar1600"
 TW = 2000  # sessions in every training window (the per-bar campaign's TRAIN_WIN)
 # sessions between tree refits (specs/causal_tune_trees.py REFIT_EVERY)
 REFIT_EVERY = 10
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 BUCKET_ID = {b: i for i, b in enumerate(BUCKETS)}  # seeds the shared permutation draws
 TREE_MODELS = ("lgbm", "xgb", "rf")
 SEED = 42  # the tree spec's model seed

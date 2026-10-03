@@ -34,7 +34,7 @@ LABEL = {
     "xgb": "XGBoost",
     "rf": "random forest",
 }
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 BNAME = {
     "baseline": "HAR + calendar",
     "live_feasible": "live-feasible",
@@ -130,9 +130,10 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     CL = pd.read_csv(OUT / "clusters.csv")
     UV = pd.read_csv(OUT / "unique_values.csv")
     TU = pd.read_csv(OUT / "tuned_trees_series.csv")
-    K = S["live_feasible"]["K"]
-    n = S["live_feasible"]["n"]
-    first, last = S["live_feasible"]["first"][:10], S["live_feasible"]["last"][:10]
+    # Sample size is the same walk on every bucket. The report shows baseline and all features.
+    K = S["all_features"]["K"]
+    n = S["all_features"]["n"]
+    first, last = S["all_features"]["first"][:10], S["all_features"]["last"][:10]
     md: list[str] = []
     N: dict = {}  # numbers used in prose, also dumped to json for the record
 
@@ -160,7 +161,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         return float(r["spearman_with_unique_count"].iloc[0])
 
     card_rows = []
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         for model in TREES:
             card_rows.append(
                 f"{BNAME[b]} & {LABEL[model]} & "
@@ -186,7 +187,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 
     # ---------------------------------------------------------------- probes
     probe_rows = []
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         for model in TREES:
             r = PR[(PR.bucket == b) & (PR.model == model)].set_index("probe")
             c, lv, bi = (
@@ -205,22 +206,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
                 f"${1e3 * c.perm_p2_qlike_mean:+.2f}$ [{1e3 * c.perm_p2_qlike_lo:+.2f}, {1e3 * c.perm_p2_qlike_hi:+.2f}] & "
                 f"{1e3 * har:.0f} \\\\"
             )
-    lf = PR[
-        (PR.bucket == "live_feasible") & (PR.probe == "probe_continuous")
-    ].set_index("model")
-    N["probe_lf"] = lf[
-        [
-            "mdi_rank_median",
-            "mdi_real_columns_below_share",
-            "split_rank_median",
-            "split_real_columns_below_share",
-            "shap_rank_median",
-            "perm_p2_qlike_mean",
-            "perm_p2_qlike_lo",
-            "perm_p2_qlike_hi",
-            "mdi_real_columns_used_median",
-        ]
-    ].to_dict()
+    # live_feasible noise-probe dump commented out
 
     # ---------------------------------------------------------------- top features per measure
     def top_list(b: str, model: str, m: str, k: int = 3, level: str = "series") -> str:
@@ -228,7 +214,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         return ", ".join(short(x) for x in t["label"])
 
     top_rows: dict = {}
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         rows = []
         for model in MODELS:
             ms = TREE_M if model in TREES else LIN_M
@@ -282,7 +268,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         ("perm_p2_qlike", "perm_p2_mse"),
     ]
     within_rows = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for level in ("series", "column"):
             for model in TREES:
                 within_rows.append(
@@ -291,7 +277,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
                     + " \\\\"
                 )
     within_lin = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for level in ("series", "column"):
             for model in LIN:
                 within_lin.append(
@@ -323,7 +309,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         return float(r["spearman"].iloc[0]) if len(r) else float("nan")
 
     across_rows = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for level in ("series", "column"):
             cells = []
             for m in ("shap", "perm_p2_qlike", "perm_p2_mse"):
@@ -343,12 +329,12 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     # first pass comparison: tree SHAP vs linear SHAP at the series level
     N["xc_shap_tl"] = {
         b: [xc(b, "series", a, "shap", c, "shap") for a in TREES for c in LIN]
-        for b in ("live_feasible", "all_features")
+        for b in ("all_features",)  # live_feasible commented out
     }
 
     # ---------------------------------------------------------------- top-5 stability (series)
     stab_rows = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for model in MODELS:
             ms = TREE_M if model in TREES else LIN_M
             cells = []
@@ -368,7 +354,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 
     # ---------------------------------------------------------------- strata
     strat_rows = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for model in MODELS:
             cells = []
             for m in (
@@ -392,12 +378,12 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             strat_rows.append(
                 f"{BNAME[b]} & {LABEL[model]} & " + " & ".join(cells) + " \\\\"
             )
-    terc = S["live_feasible"]["terciles"]
-    years = S["live_feasible"]["years"]
+    terc = S["all_features"]["terciles"]
+    years = S["all_features"]["years"]
 
     # ---------------------------------------------------------------- dilution
     dil_rows = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         d = DL[(DL.bucket == b) & (DL.scheme == "P2")]
         # the clusters that matter: top 4 by the joint permutation of the LightGBM model
         top = (
@@ -423,11 +409,13 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
                 + " & ".join(cells)
                 + " \\\\"
             )
-    c22 = DL[
-        (DL.bucket == "live_feasible")
-        & (DL.scheme == "P2")
-        & (DL.members.str.startswith("har_ma_1 har_ma_5"))
-    ]
+    d_af = DL[(DL.bucket == "all_features") & (DL.scheme == "P2")]
+    top_c = (
+        d_af[d_af.model == "lgbm"]
+        .sort_values("joint_dmse", ascending=False)["cluster"]
+        .iloc[0]
+    )
+    c22 = d_af[d_af.cluster == top_c]
     N["c22_ratio_mse"] = (
         c22.set_index("model")["joint_dmse"]
         / c22.set_index("model")["sum_of_columns_dmse"]
@@ -435,7 +423,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 
     # ---------------------------------------------------------------- linear QLIKE blow-ups
     blow = []
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for model in LIN:
             for m in ("perm_p1_qlike", "perm_p2_qlike", "drop_qlike"):
                 t = tab(b, model, m).head(1).iloc[0]
@@ -448,7 +436,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     tuned_rows = []
     tuned_note = ""
     if "series" in TU.columns and len(TU):
-        for b in ("live_feasible", "all_features"):
+        for b in ("all_features",):  # live_feasible commented out
             for model in TREES:
                 t = TU[(TU.bucket == b) & (TU.model == model)].sort_values(
                     "tuned_shap_share", ascending=False
@@ -503,7 +491,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     # what permutation says instead: series MDI or split puts in its top 5 that permutation
     # P2 puts outside its top 10, per tree model
     only_nat = {}
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for model in TREES:
             pr_ = tab(b, model, "perm_p2_qlike").set_index("unit")["rank"]
             hits: list[tuple[str, int]] = []
@@ -523,7 +511,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     }
 
     # probe permutation: how many intervals exclude zero, the largest |mean|
-    cont = PR[PR.probe == "probe_continuous"]
+    cont = PR[(PR.probe == "probe_continuous") & (PR.bucket.isin(BUCKETS))]
     n_ex = int(((cont.perm_p2_qlike_lo > 0) | (cont.perm_p2_qlike_hi < 0)).sum())
     ex_list = ", ".join(
         f"{BNAME[r.bucket]} {LABEL[r.model]} [{1e3 * r.perm_p2_qlike_lo:+.2f}, {1e3 * r.perm_p2_qlike_hi:+.2f}]e-3"
@@ -531,7 +519,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             (cont.perm_p2_qlike_lo > 0) | (cont.perm_p2_qlike_hi < 0)
         ].itertuples()
     )
-    max_probe = float(np.abs(PR[["perm_p2_qlike_mean"]]).max().iloc[0])
+    max_probe = float(np.abs(cont[["perm_p2_qlike_mean"]]).max().iloc[0])
     har_min = min(
         float(tab(b, m, "perm_p2_qlike")["value"].iloc[0])
         for b in BUCKETS
@@ -562,7 +550,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 
     SM = {
         (b, f, st): strat_med(b, f, st)
-        for b in ("live_feasible", "all_features")
+        for b in ("all_features",)  # live_feasible commented out
         for f in ("builtin", "perm", "shap")
         for st in ("year", "vix_tercile")
     }
@@ -571,6 +559,8 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     if "series" in TU.columns and len(TU):
         tl = []
         for (b, model), g in TU.groupby(["bucket", "model"]):
+            if b not in BUCKETS:
+                continue
             tl.append(
                 (g.loc[g.tuned_mdi_share.idxmax(), "series"] == "har_ma")
                 and (g.loc[g.tuned_shap_share.idxmax(), "series"] == "har_ma")
@@ -589,11 +579,11 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     ]
 
     # ================================================================ markdown summary
-    lfK = S["live_feasible"]
+    afK = S["all_features"]
     c_lf = PR[
-        (PR.bucket == "live_feasible") & (PR.probe == "probe_continuous")
+        (PR.bucket == "all_features") & (PR.probe == "probe_continuous")
     ].set_index("model")
-    b_lf = PR[(PR.bucket == "live_feasible") & (PR.probe == "probe_binary")].set_index(
+    b_lf = PR[(PR.bucket == "all_features") & (PR.probe == "probe_binary")].set_index(
         "model"
     )
     md += [
@@ -611,7 +601,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         f"Models: per-bar ridge and lasso (every-session re-solve, causal penalty), untuned per-bar LightGBM, XGBoost and random forest (refit every {10} sessions) -- the shipped configurations. "
         f"Window: the 2000 sessions before each refit. Forecasts: {n:,} sessions {first} .. {last}; {K} refits; each refit's CAUSAL held-out tail = the <= 10 sessions its model forecasts, up to the next refit (never seen in its fit). "
         + (
-            "Buckets: live_feasible (the deck's), all_features, baseline = HAR + calendar. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`."
+            "Buckets: all_features, baseline = HAR + calendar. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`."
             if not DEDUP
             else DS.buckets_md(ROOT_REL, STEM)
         ),
@@ -646,13 +636,12 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + ". So the design is dominated by continuous inputs, but it is NOT all continuous: the calendar dummies and many flag moving averages are binary or few-valued -- exactly the mix where MDI's cardinality bias can bite.",
         "",
         "## Does MDI's cardinality bias matter here? Yes, at the column level.",
-        f"- Rank correlation of a column's importance with its number of distinct values (non-constant columns, tree models): live_feasible MDI {rng_[('live_feasible', 'mdi')][0]:.2f}..{rng_[('live_feasible', 'mdi')][1]:.2f}, split count {rng_[('live_feasible', 'split')][0]:.2f}..{rng_[('live_feasible', 'split')][1]:.2f}, SHAP {rng_[('live_feasible', 'shap')][0]:.2f}..{rng_[('live_feasible', 'shap')][1]:.2f}; permutation P1 {rng_[('live_feasible', 'perm_p1_qlike')][0]:.2f}..{rng_[('live_feasible', 'perm_p1_qlike')][1]:.2f}, P2 {rng_[('live_feasible', 'perm_p2_qlike')][0]:.2f}..{rng_[('live_feasible', 'perm_p2_qlike')][1]:.2f}. "
-        f"all_features: MDI {rng_[('all_features', 'mdi')][0]:.2f}..{rng_[('all_features', 'mdi')][1]:.2f}, permutation P2 {rng_[('all_features', 'perm_p2_qlike')][0]:.2f}..{rng_[('all_features', 'perm_p2_qlike')][1]:.2f}.",
+        f"- Rank correlation of a column's importance with its number of distinct values (non-constant columns, tree models), all_features: MDI {rng_[('all_features', 'mdi')][0]:.2f}..{rng_[('all_features', 'mdi')][1]:.2f}, split count {rng_[('all_features', 'split')][0]:.2f}..{rng_[('all_features', 'split')][1]:.2f}, SHAP {rng_[('all_features', 'shap')][0]:.2f}..{rng_[('all_features', 'shap')][1]:.2f}; permutation P1 {rng_[('all_features', 'perm_p1_qlike')][0]:.2f}..{rng_[('all_features', 'perm_p1_qlike')][1]:.2f}, P2 {rng_[('all_features', 'perm_p2_qlike')][0]:.2f}..{rng_[('all_features', 'perm_p2_qlike')][1]:.2f}.",
         "- Noise probes (a second fit on every 3rd refit with three pure-noise columns appended): the CONTINUOUS noise column gets a median MDI rank of "
         + ", ".join(
             f"{int(c_lf.loc[m, 'mdi_rank_median'])} ({LABEL[m]})" for m in TREES
         )
-        + f" among the {lfK['p'] + 3} live_feasible columns -- above "
+        + f" among the {afK['p'] + 3} all-features columns -- above "
         + ", ".join(
             f"{100 * c_lf.loc[m, 'mdi_real_columns_below_share']:.0f} %" for m in TREES
         )
@@ -664,7 +653,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             f"{1e3 * c_lf.loc[m, 'perm_p2_qlike_mean']:+.2f} [{1e3 * c_lf.loc[m, 'perm_p2_qlike_lo']:+.2f}, {1e3 * c_lf.loc[m, 'perm_p2_qlike_hi']:+.2f}]e-3"
             for m in TREES
         )
-        + f" dQLIKE, against {1e3 * float(tab('live_feasible', 'lgbm', 'perm_p2_qlike')['value'].iloc[0]):.0f}e-3 for `har_ma_*` (LightGBM).",
+        + f" dQLIKE, against {1e3 * float(tab('all_features', 'lgbm', 'perm_p2_qlike')['value'].iloc[0]):.0f}e-3 for `har_ma_*` (LightGBM).",
         "- TreeSHAP (path-dependent) is not immune: it credits the continuous probe with a median rank of "
         + ", ".join(f"{int(c_lf.loc[m, 'shap_rank_median'])}" for m in TREES)
         + " (above "
@@ -688,7 +677,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         "",
     ]
     # top features per measure (series), live_feasible and all_features
-    for b in ("live_feasible", "all_features", "baseline"):
+    for b in ("all_features", "baseline"):  # live_feasible commented out
         md.append(
             f"## Top series per measure -- {b} (value = share for MDI/split/|beta sd|/SHAP; % of the model's tail loss for permutation / drop-column)"
         )
@@ -719,7 +708,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             f"{BNAME[b]} {LABEL[m]} MDI~SHAP {wc(b, 'series', m, 'mdi', 'shap'):.2f}/{wc(b, 'column', m, 'mdi', 'shap'):.2f}, "
             f"MDI~perm P2 {wc(b, 'series', m, 'mdi', 'perm_p2_qlike'):.2f}/{wc(b, 'column', m, 'mdi', 'perm_p2_qlike'):.2f}, "
             f"SHAP~perm P2 {wc(b, 'series', m, 'shap', 'perm_p2_qlike'):.2f}/{wc(b, 'column', m, 'shap', 'perm_p2_qlike'):.2f}"
-            for b in ("live_feasible", "all_features")
+            for b in ("all_features",)  # live_feasible commented out
             for m in TREES
         )
         + ".",
@@ -729,12 +718,12 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             f"{BNAME[b]} SHAP tree~tree {min(xc(b, 'series', a, 'shap', c, 'shap') for i, a in enumerate(TREES) for c in TREES[i + 1 :]):.2f}..{max(xc(b, 'series', a, 'shap', c, 'shap') for i, a in enumerate(TREES) for c in TREES[i + 1 :]):.2f}, "
             f"tree~linear {min(N['xc_shap_tl'][b]):.2f}..{max(N['xc_shap_tl'][b]):.2f}; perm P2 dMSE tree~linear "
             f"{min(xc(b, 'series', a, 'perm_p2_mse', c, 'perm_p2_mse') for a in TREES for c in LIN):.2f}..{max(xc(b, 'series', a, 'perm_p2_mse', c, 'perm_p2_mse') for a in TREES for c in LIN):.2f}"
-            for b in ("live_feasible", "all_features")
+            for b in ("all_features",)  # live_feasible commented out
         )
         + ".",
         "",
         "## Correlated groups (the dilution caveat)",
-        "Joint permutation of a cluster vs the sum of its columns' separate permutations (P2, dMSE x 1e-3, joint vs sum), live_feasible cluster "
+        "Joint permutation of a cluster vs the sum of its columns' separate permutations (P2, dMSE x 1e-3, joint vs sum), all-features cluster "
         + f"{c22['cluster'].iloc[0]} (`{c22['members'].iloc[0]}`): "
         + "; ".join(
             f"{LABEL[r.model]} {1e3 * r.joint_dmse:.1f} vs {1e3 * r.sum_of_columns_dmse:.1f}"
@@ -745,7 +734,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     ]
     # ---- numbers for the remaining prose
     har5 = {}
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for model in MODELS:
             for m in TREE_M if model in TREES else LIN_M:
                 t = tab(b, model, m)
@@ -754,20 +743,19 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
                 )
     har5_min = {
         b: min(v for (bb, _, _), v in har5.items() if bb == b)
-        for b in ("live_feasible", "all_features")
+        for b in ("all_features",)  # live_feasible commented out
     }
     har5_min_at = {
         b: min(((v, k) for k, v in har5.items() if k[0] == b))[1]
-        for b in ("live_feasible", "all_features")
+        for b in ("all_features",)  # live_feasible commented out
     }
     exceptions = N["leaders_not_har"]
-    lf_ridge_p1 = tab("live_feasible", "ridge", "perm_p1_qlike").iloc[0]
+    lf_ridge_p1 = tab("all_features", "ridge", "perm_p1_qlike").iloc[0]
     tuned_ok = "series" in TU.columns and len(TU) > 0
 
     md += [
         "## Top-5 stability and regimes",
-        f"`har_ma_*` is in the per-refit top 5 of every measure of every model in at least {100 * har5_min['live_feasible']:.0f} % of the {K} refits (live_feasible; lowest: {LABEL[har5_min_at['live_feasible'][1]]} {MEAS_MD[har5_min_at['live_feasible'][2]]}) "
-        f"and at least {100 * har5_min['all_features']:.0f} % (all_features; lowest: {LABEL[har5_min_at['all_features'][1]]} {MEAS_MD[har5_min_at['all_features'][2]]}). "
+        f"`har_ma_*` is in the per-refit top 5 of every measure of every model in at least {100 * har5_min['all_features']:.0f} % of the {K} refits (all_features; lowest: {LABEL[har5_min_at['all_features'][1]]} {MEAS_MD[har5_min_at['all_features'][2]]}). "
         "Top series of each measure that is NOT `har_ma_*`: "
         + (
             ", ".join(f"{k} -> {v}" for k, v in exceptions.items())
@@ -776,10 +764,10 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         )
         + ".",
         f"By calendar year ({', '.join(f'{y}: {c}' for y, c in years.items())} refits) and by causal VIX tercile (VIX at 15:30 vs the 1/3, 2/3 quantiles of the previous 2000 sessions' 15:30 VIX; low {terc['low']}, mid {terc['mid']}, high {terc['high']} refits -- the trailing window includes the calm 2010s, so 2018-2024 is mostly 'high'): "
-        f"Spearman of a stratum's series ranking with the full-sample ranking, median over strata and models (live_feasible / all_features): built-in {SM[('live_feasible', 'builtin', 'year')]:.2f} / {SM[('all_features', 'builtin', 'year')]:.2f} by year, {SM[('live_feasible', 'builtin', 'vix_tercile')]:.2f} / {SM[('all_features', 'builtin', 'vix_tercile')]:.2f} by VIX tercile; SHAP {SM[('live_feasible', 'shap', 'year')]:.2f} / {SM[('all_features', 'shap', 'year')]:.2f} and {SM[('live_feasible', 'shap', 'vix_tercile')]:.2f} / {SM[('all_features', 'shap', 'vix_tercile')]:.2f}; permutation P2 {SM[('live_feasible', 'perm', 'year')]:.2f} / {SM[('all_features', 'perm', 'year')]:.2f} and {SM[('live_feasible', 'perm', 'vix_tercile')]:.2f} / {SM[('all_features', 'perm', 'vix_tercile')]:.2f}. The built-in and SHAP rankings barely move across regimes; the permutation ranking below the leader moves more (it is measured on 10-session tails). Tables `stability_by_stratum.csv`, PDF Table 10.",
+        f"Spearman of a stratum's series ranking with the full-sample ranking, median over strata and models (all_features): built-in {SM[('all_features', 'builtin', 'year')]:.2f} by year, {SM[('all_features', 'builtin', 'vix_tercile')]:.2f} by VIX tercile; SHAP {SM[('all_features', 'shap', 'year')]:.2f} and {SM[('all_features', 'shap', 'vix_tercile')]:.2f}; permutation P2 {SM[('all_features', 'perm', 'year')]:.2f} and {SM[('all_features', 'perm', 'vix_tercile')]:.2f}. The built-in and SHAP rankings barely move across regimes; the permutation ranking below the leader moves more (it is measured on 10-session tails). Tables `stability_by_stratum.csv`, PDF Table 10.",
         "",
         "## Linear models: the QLIKE permutation numbers are dominated by single tails",
-        f"The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-power or absolute return) onto another row can push the fit-space forecast through zero, and QLIKE of yhat^2 x baseline explodes. Example: live_feasible ridge, top P1 dQLIKE `{short(lf_ridge_p1.label)}` mean {lf_ridge_p1.value:.3g} [{lf_ridge_p1.lo:.2g}, {lf_ridge_p1.hi:.2g}], median refit {lf_ridge_p1.median_refit:.2g}, one refit carries {100 * lf_ridge_p1.max_refit_share:.0f} % of the sum. "
+        f"The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-power or absolute return) onto another row can push the fit-space forecast through zero, and QLIKE of yhat^2 x baseline explodes. Example: all-features ridge, top P1 dQLIKE `{short(lf_ridge_p1.label)}` mean {lf_ridge_p1.value:.3g} [{lf_ridge_p1.lo:.2g}, {lf_ridge_p1.hi:.2g}], median refit {lf_ridge_p1.median_refit:.2g}, one refit carries {100 * lf_ridge_p1.max_refit_share:.0f} % of the sum. "
         f"The all_features ridge is the extreme case: its intact tail QLIKE averages {af_ridge_q:.2f} against {min(oth_q):.3f}..{max(oth_q):.3f} for every other model x bucket (the known rare extreme values of the plain back-transform). "
         "Handled explicitly: every perm / drop table carries the median refit, the share of refits with a positive change and the largest single-refit share; for the linear models the figures and the cross-model comparisons use the squared-error versions (dMSE in the fit space, no blow-up). Trees cannot extrapolate (their forecasts stay inside the training range of the target), so their QLIKE numbers are well behaved.",
         "",
@@ -798,13 +786,15 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     else:
         md += [
             "## Gates",
-            f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 3 x 147; mean gap {xr_mean:.1e}); LightGBM reproduces them bit for bit on HAR + calendar (gap {lg_gap['baseline'][1]:.1e}) but not on live_feasible / all_features: mean |gap| {lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
+            f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 2 x 147; mean gap {xr_mean:.1e}); LightGBM reproduces them bit for bit on HAR + calendar (gap {lg_gap['baseline'][1]:.1e}) but not on all_features: mean |gap| {lg_gap['all_features'][0]:.4f}, max {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
             "- The design: out-of-sample stamps, targets and column names equal the stored runs'; the linear coefficient captures equal the design rows exactly and the stored research forecasts to <= "
             + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e} (relative).",
             "- Drop-column anchors: the re-solve on the window before the tail reproduces the captured coefficients (ridge <= "
             + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}; lasso <= {max(an[b]['lasso'] for b in BUCKETS):.0e}, above 1e-6 on "
             + " / ".join(str(v) for v in anch_n["lasso"])
-            + " of 147 refits (HAR + calendar / live_feasible / all_features); the re-solve masks constant and duplicate columns of its own window, the walk keeps a between-tune mask). The all_features lasso refits 75..124 (penalty 0.001, 115-120 active columns) ran on the cluster (`cluster/slurm/submit_featimp_linear.sh`), the rest locally; the 53 parts partition the 147 refits (checked).",
+            + " of 147 refits ("
+            + " / ".join(BNAME[b] for b in BUCKETS)
+            + "); the re-solve masks constant and duplicate columns of its own window, the walk keeps a between-tune mask). The all_features lasso refits 75..124 (penalty 0.001, 115-120 active columns) ran on the cluster (`cluster/slurm/submit_featimp_linear.sh`), the rest locally; the 53 parts partition the 147 refits (checked).",
             "- Every model of a bucket saw the identical permutation draws (md5 per refit equal across the five models, 147/147).",
             "- TreeSHAP additivity: sum of phi + expected value = forecast to <= "
             + f"{max(float(gl.loc[(b, m), 'shap_additivity_max']) for b in BUCKETS for m in TREES):.0e}.",
@@ -812,7 +802,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             "## Files",
             "- `by_measure/imp_<bucket>_<model>_<measure>.csv` (one per measure x model x bucket; rows = columns, series and clusters: value, 95 % interval over refits, rank, top-5 share, % of loss, median refit, largest single-refit share, by-year and by-VIX-tercile means, SHAP signed mean)",
             "- `series_level_all.csv`, `rank_corr_within_model.csv`, `rank_corr_across_models.csv`, `top5_stability.csv`, `stability_by_stratum.csv`, `unique_values.csv`, `cardinality_vs_measure.csv`, `noise_probes.csv`, `clusters.csv`, `cluster_dilution.csv`, `tuned_trees_series.csv`, `gates.csv`",
-            "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), `fig_cardinality_live_feasible.png`, `fig_top5_stability_live_feasible.png`",
+            "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), for baseline and all_features",
             "- cluster twins: `cluster/slurm/{ship_featimp_carc.sh, submit_featimp.sh, featimp_pack.sbatch, featimp_collect.sbatch}`, `cluster/featimp_tasks*.txt` (tree refits); `cluster/slurm/{ship_featimp_linear_carc.sh, submit_featimp_linear.sh, featimp_linear.sbatch}`, `cluster/featimp_linear_tasks*.txt` (the slow lasso drop-column refits)",
         ]
     (OUT / "SUMMARY.md").write_text("\n".join(md) + "\n", encoding="utf-8")
@@ -881,7 +871,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 """
         + (DS.intro_tex(OUT, K) if DEDUP else "")
         + r"""
-\textbf{Setup.} Models: per-bar ridge and lasso (coefficients re-solved every session, penalty re-chosen causally every 250 sessions) and the untuned per-bar LightGBM, XGBoost and random forest (refit every 10 sessions) --- the shipped configurations. Every fit uses the 2000 sessions before it. A refit's \emph{held-out tail} is the $\le 10$ sessions its model forecasts, up to the next refit: never in its fit, so a loss change measured there is out of sample and causal. Buckets: live-feasible (the deck's), all features, and HAR + calendar. Library: scikit-learn 1.9.0 (random forest), LightGBM 4.6.0, XGBoost 3.2.0, shap 0.51.0; the permutation and drop-column loops are written out, because a library permutation routine scores one fitted model on one test set, not """
+\textbf{Setup.} Models: per-bar ridge and lasso (coefficients re-solved every session, penalty re-chosen causally every 250 sessions) and the untuned per-bar LightGBM, XGBoost and random forest (refit every 10 sessions) --- the shipped configurations. Every fit uses the 2000 sessions before it. A refit's \emph{held-out tail} is the $\le 10$ sessions its model forecasts, up to the next refit: never in its fit, so a loss change measured there is out of sample and causal. Buckets: all features, and HAR + calendar. Library: scikit-learn 1.9.0 (random forest), LightGBM 4.6.0, XGBoost 3.2.0, shap 0.51.0; the permutation and drop-column loops are written out, because a library permutation routine scores one fitted model on one test set, not """
         + str(K)
         + r""" walk-forward models on their own tails.
 
@@ -919,7 +909,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + ", ".join(
             f"{100 * c_lf.loc[m, 'mdi_real_columns_below_share']:.0f}\\%" for m in TREES
         )
-        + r""" (LightGBM, XGBoost, forest) of the real live-feasible columns the model uses, and by the forest's split count above """
+        + r""" (LightGBM, XGBoost, forest) of the real all-features columns the model uses, and by the forest's split count above """
         + f"{100 * c_lf.loc['rf', 'split_real_columns_below_share']:.0f}\\%"
         + r"""; the binary noise column sits near the bottom. The same noise gets a permutation importance of at most """
         + f"{1e3 * max_probe:.2f}"
@@ -932,9 +922,9 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + r"""), against at least """
         + f"{har_min:.2f}"
         + r""" for \texttt{har\_ma\_*}. TreeSHAP, which splits the fitted trees, inherits part of the bias. Over the real columns, MDI, split count and SHAP correlate """
-        + f"{rng_[('live_feasible', 'mdi')][0]:.2f}--{rng_[('live_feasible', 'shap')][1]:.2f}"
+        + f"{rng_[('all_features', 'mdi')][0]:.2f}--{rng_[('all_features', 'shap')][1]:.2f}"
         + r""" with the number of distinct values, permutation """
-        + f"{min(rng_[('live_feasible', 'perm_p1_qlike')][0], rng_[('live_feasible', 'perm_p2_qlike')][0]):.2f}--{max(rng_[('live_feasible', 'perm_p1_qlike')][1], rng_[('live_feasible', 'perm_p2_qlike')][1]):.2f}"
+        + f"{min(rng_[('all_features', 'perm_p1_qlike')][0], rng_[('all_features', 'perm_p2_qlike')][0]):.2f}--{max(rng_[('all_features', 'perm_p1_qlike')][1], rng_[('all_features', 'perm_p2_qlike')][1]):.2f}"
         + r""". So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. """
         + (
             r"At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first."
@@ -953,18 +943,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 \section*{2. The top inputs by measure}
 """
         + table(
-            "Live-feasible design, series level: top three per model and measure (share for MDI / split / $|\\beta\\cdot sd|$ / SHAP; change as \\% of the model's tail loss for permutation and drop-column).",
-            "llp{11.2cm}",
-            "model & measure & top three",
-            top_rows["live_feasible"],
-            "\\scriptsize",
-        )
-        + fig(
-            "fig_ranked_live_feasible.png",
-            "Live-feasible: ranked bars per measure (series level; top 8). Rows: models; columns: the built-in measure, split count (trees) / drop-column (linear), permutation P2 on the tail, SHAP. Bars with 95\\% intervals over refits. Linear permutation / drop-column in $\\Delta$MSE (see Section 6).",
-        )
-        + table(
-            "All-features design, series level: top three per model and measure.",
+            "All-features design, series level: top three per model and measure (share for MDI / split / $|\\beta\\cdot sd|$ / SHAP; change as \\% of the model's tail loss for permutation and drop-column).",
             "llp{11.2cm}",
             "model & measure & top three",
             top_rows["all_features"],
@@ -972,7 +951,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         )
         + fig(
             "fig_ranked_all_features.png",
-            "All features: ranked bars per measure (series level; top 8).",
+            "All features: ranked bars per measure (series level; top 8). Rows: models; columns: the built-in measure, split count (trees) / drop-column (linear), permutation P2 on the tail, SHAP. Bars with 95\\% intervals over refits. Linear permutation / drop-column in $\\Delta$MSE (see Section 6).",
         )
         + r"""
 \section*{3. Ranking agreement}
@@ -999,18 +978,8 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             "\\scriptsize",
         )
         + fig(
-            "fig_rank_heatmap_live_feasible_series.png",
-            "Live-feasible: rank of every series under every model $\\times$ measure (1 = most important).",
-            "0.95\\textwidth",
-        )
-        + fig(
-            "fig_rank_heatmap_live_feasible_cluster.png",
-            "Live-feasible: the same at the cluster level (clusters of $|$corr$|\\ge0.8$; a singleton is its column).",
-            "0.95\\textwidth",
-        )
-        + fig(
             "fig_rank_heatmap_all_features_series.png",
-            "All features: rank of every series under every model $\\times$ measure.",
+            "All features: rank of every series under every model $\\times$ measure (1 = most important).",
             "0.95\\textwidth",
         )
         + r"""
@@ -1035,11 +1004,6 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             "bucket & model & \\multicolumn{3}{c}{built-in} & \\multicolumn{3}{c}{perm P2} & \\multicolumn{3}{c}{SHAP}\\\\ & & year & VIX & lead & year & VIX & lead & year & VIX & lead",
             strat_rows,
             "\\scriptsize",
-        )
-        + fig(
-            "fig_top5_stability_live_feasible.png",
-            "Live-feasible: \\% of refits in which each series is in the top 5, per model $\\times$ measure.",
-            "0.95\\textwidth",
         )
         + r"""
 \section*{5. Correlated inputs: the dilution caveat}
@@ -1093,8 +1057,10 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
             + f"{gap_n['xgb']}"
             + r""" XGBoost and """
             + f"{gap_n['rf']}"
-            + r""" forest refits of the $3	imes147$). LightGBM reproduces them exactly on HAR + calendar but not on the two larger designs: mean $|$gap$|$ """
-            + f"{lg_gap['live_feasible'][0]:.4f} / {lg_gap['all_features'][0]:.4f}, max {lg_gap['live_feasible'][1]:.3f} / {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['live_feasible'][2]:.4f} / {lg_gap['all_features'][2]:.4f}"
+            + r""" forest refits of the $2\times147$). LightGBM reproduces them exactly on HAR + calendar (gap """
+            + f"{lg_gap['baseline'][1]:.1e}"
+            + r""") but not on all features: mean $|$gap$|$ """
+            + f"{lg_gap['all_features'][0]:.4f}, max {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['all_features'][2]:.4f}"
             + r""" (same version, parameters, seed and thread count; deterministic run to run on two machines; XGBoost reproduces on the same input). The LightGBM numbers are those of the refit.
 \item Drop-column anchors reproduce the captured coefficients (ridge $\le$ """
             + f"{max(an[b]['ridge'] for b in BUCKETS):.0e}, lasso $\\le$ {max(an[b]['lasso'] for b in BUCKETS):.0e}"
@@ -1121,10 +1087,6 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
             "fig_rank_heatmap_baseline_series.png",
             "HAR + calendar: ranks across measures.",
             "0.7\\textwidth",
-        )
-        + fig(
-            "fig_cardinality_live_feasible.png",
-            "Live-feasible columns: MDI share, permutation P2 $\\Delta$QLIKE and SHAP share against the number of distinct values in the training window (log scale), by cardinality class.",
         )
         + fig(
             "fig_rank_heatmap_all_features_cluster.png",

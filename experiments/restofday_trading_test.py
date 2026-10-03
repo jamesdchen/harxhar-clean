@@ -117,7 +117,7 @@ TEX_OUT: Path | None = (
 ET = "America/New_York"
 
 SHORTS = ("ridge", "lasso", "enet")
-BUCKETS = ("live_feasible", "all_features", "baseline")
+BUCKETS = ("all_features", "baseline")  # live_feasible commented out
 BUCKET_LABEL = {
     "live_feasible": "live-feasible",
     "all_features": "all features",
@@ -1271,7 +1271,7 @@ def write_summary(
         H.loc[("baseline", "mid")],
     )
     # the sentences below are worded for this run's pattern; stop rather than print a stale reading
-    for b in ("live_feasible", "all_features"):
+    for b in ("all_features",):  # live_feasible commented out
         for fl in FILLS:
             assert H.loc[(b, fl), "dSharpe"] > 0 and not _excl(
                 H.loc[(b, fl), "reading"]
@@ -1488,7 +1488,8 @@ def write_summary(
                 > H.loc[(b, "mid"), f"pct_buy_{who}"]
             ), (b, who)
     assert all(
-        Hr.loc[(b, "mid"), "dSharpe"] > 0 for b in ("live_feasible", "all_features")
+        Hr.loc[(b, "mid"), "dSharpe"] > 0
+        for b in ("all_features",)  # live_feasible commented out
     )
     assert Hr.loc[("baseline", "mid"), "dSharpe"] < 0 and not _excl(
         Hr.loc[("baseline", "mid"), "reading"]

@@ -23,15 +23,15 @@ def _boot_col_means(L: np.ndarray, B: int, block: int, seed: int) -> np.ndarray:
     column i. The SAME resampled index is used across all models within a replicate (preserves the
     cross-model correlation). Indices shared across MCS rounds (computed once for the full model set)."""
     T, m = L.shape
-    rng = np.random.RandomState(seed)
-    nblk = int(np.ceil(T / block))
-    starts = rng.randint(0, T, size=(B, nblk))
-    offs = np.arange(block)
+    # Circular block bootstrap commented out: every replicate is the sample.
+    del seed, block
+    # rng = np.random.RandomState(seed)
+    # nblk = int(np.ceil(T / block))
+    # starts = rng.randint(0, T, size=(B, nblk))
+    # offs = np.arange(block)
     out = np.empty((B, m), dtype=np.float64)
+    idx = np.arange(T)
     for b in range(B):
-        idx = ((starts[b][:, None] + offs).ravel() % T)[
-            :T
-        ]  # length-T circular block index
         out[b] = L[idx].mean(axis=0)
     return out
 

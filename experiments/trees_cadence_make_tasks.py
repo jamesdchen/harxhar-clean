@@ -39,7 +39,10 @@ ROOT = Path(__file__).resolve().parents[1]
 W = 2000
 SEG = "bar1600"
 N_OOS = 1469  # 16:00 forecast rows of the 2000-session per-bar series (every bucket and model)
-BUCKETS = ("live_feasible", "all_features", "baseline")  # needed-first order
+BUCKETS = (
+    "all_features",
+    "baseline",
+)  # needed-first order  # live_feasible commented out
 MODELS = ("lgbm", "xgb", "rf")
 RUNGS = {"t10": (10, 1), "t1": (1, 10)}  # REFIT_EVERY, IMPORTANCE_EVERY
 TUNE_PER = 250

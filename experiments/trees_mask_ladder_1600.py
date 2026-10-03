@@ -94,7 +94,7 @@ LSTM_ROOT = ROOT / "results" / "linear_subsection_lstm_mask"  # REFIT_EVERY 1
 LSTM10_ROOT = ROOT / "results" / "linear_subsection_lstm_mask_re10"  # REFIT_EVERY 10
 STAGE_L10 = ROOT / "results" / "trees_mask_1600" / "stack" / "lstm_re10"  # its tables
 MODELS = ("lgbm", "xgb", "rf")
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 MODEL_LONG = mtc.TREE_LONG | {"lstm": "LSTM", "-": "per-bar ridge"}
 RUNGS = {
     "T10": ("yhat_subtree_{m}_{b}", "shipped configuration, refit every 10 sessions"),

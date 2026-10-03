@@ -84,11 +84,13 @@ def _hac_se(d: np.ndarray, lags: int = 480) -> np.ndarray:
 
 
 def _block_indices(n: int, rng: np.random.Generator) -> np.ndarray:
-    """Circular block bootstrap index vector of length ``n``."""
-    n_blocks = int(np.ceil(n / BLOCK))
-    starts = rng.integers(0, n, size=n_blocks)
-    idx = (starts[:, None] + np.arange(BLOCK)[None, :]).ravel() % n
-    return idx[:n]
+    """Original-sample index. Circular block bootstrap commented out."""
+    del rng
+    # n_blocks = int(np.ceil(n / BLOCK))
+    # starts = rng.integers(0, n, size=n_blocks)
+    # idx = (starts[:, None] + np.arange(BLOCK)[None, :]).ravel() % n
+    # return idx[:n]
+    return np.arange(n)
 
 
 def spa_and_romano_wolf(

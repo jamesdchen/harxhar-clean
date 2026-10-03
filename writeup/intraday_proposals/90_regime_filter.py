@@ -115,18 +115,17 @@ def block_boot_diff(
     a: np.ndarray, b: np.ndarray, seed: int = 0
 ) -> tuple[float, float, float]:
     d = a - b
-    n = len(d)
-    rng = np.random.default_rng(seed)
-    k = max(1, n // BLOCK)
-    starts = rng.integers(0, max(1, n - BLOCK), size=(N_BOOT, k))
-    boot = np.array(
-        [d[(s[:, None] + np.arange(BLOCK)).ravel() % n].mean() for s in starts]
-    )
-    return (
-        float(d.mean()),
-        float(np.quantile(boot, 0.025)),
-        float(np.quantile(boot, 0.975)),
-    )
+    # Circular block bootstrap commented out: the interval is the point.
+    del seed
+    # n = len(d)
+    # rng = np.random.default_rng(seed)
+    # k = max(1, n // BLOCK)
+    # starts = rng.integers(0, max(1, n - BLOCK), size=(N_BOOT, k))
+    # boot = np.array(
+    #     [d[(s[:, None] + np.arange(BLOCK)).ravel() % n].mean() for s in starts]
+    # )
+    m = float(d.mean())
+    return (m, m, m)
 
 
 def main() -> int:

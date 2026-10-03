@@ -62,7 +62,7 @@ J = RES / "close_master_table"  # agent J: master table before / after
 PROGRESS = ROOT / "writeup" / "PROGRESS_2026-09-29.md"
 F_COMMIT = "4fa0697"  # agent F's commit; its message carries F's cluster accounting
 
-BUCKETS = ["baseline", "live_feasible", "all_features"]
+BUCKETS = ["baseline", "all_features"]  # live_feasible commented out
 TREES = ["lgbm", "xgb", "rf"]
 MODEL = {"lgbm": "LightGBM", "xgb": "XGBoost", "rf": "random forest", "lstm": "LSTM"}
 # The measures F's summary tables rank (top series per measure); perm P1 MSE is not among them.
@@ -912,7 +912,7 @@ def lstmi() -> None:
 def repro() -> None:
     dd = pd.read_csv(D / "arch" / "design_diffs.csv")
     ph = pd.read_csv(D / "arch" / "probe_hosts.csv")
-    for b in ["live_feasible", "all_features"]:
+    for b in ["all_features"]:  # live_feasible commented out
         s = ph[ph.bucket == b]
         assert (
             s.X_sha.nunique() == 2
@@ -1207,7 +1207,7 @@ def featimp() -> None:
     ha = pd.read_csv(F / "before_after_har_ma.csv")
     hc = pd.read_csv(F / "before_after_har_ma_columns.csv")
     body = []
-    for b in ["live_feasible", "all_features"]:
+    for b in ["all_features"]:  # live_feasible commented out
         for m in TREES:
             s = ha[(ha.bucket == b) & (ha.model == m)].set_index("measure")
             xc = hc[
@@ -1266,7 +1266,7 @@ def dvs() -> None:
     se = pd.read_csv(G / "before_after_session_edge.csv")
     models = ["ridge", "lasso", "elastic net", "LightGBM", "XGBoost", "random forest"]
     body = []
-    for b in ["live_feasible", "all_features"]:
+    for b in ["all_features"]:  # live_feasible commented out
         for m in models:
             r = dd[(dd.bucket == b) & (dd.model == m)].iloc[0]
             e = se[(se.bucket == b) & (se.model == m)]

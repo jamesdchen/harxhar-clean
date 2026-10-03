@@ -38,7 +38,10 @@ W = 2000  # TRAIN_WIN rows = the halo every chunk carries
 N_OOS = 1469  # bar1600 forecast rows
 SEG = "bar1600"
 MODELS = ("lgbm", "xgb", "rf")
-BUCKETS = ("live_feasible", "all_features", "baseline")  # needed-first order
+BUCKETS = (
+    "all_features",
+    "baseline",
+)  # needed-first order  # live_feasible commented out
 TRIALS = 50
 POOL = 20
 MIN_ROWS = POOL  # one wave of the pool

@@ -69,7 +69,7 @@ BARS = (
     "bar1600",
 )
 ESTIMATORS = {"ridge": "ridge", "reclasso": "lasso", "reclasticnet": "enet"}
-BUCKETS = ("all_features", "baseline", "live_feasible")
+BUCKETS = ("all_features", "baseline")  # live_feasible commented out
 GATE_REL = 1e-9
 
 

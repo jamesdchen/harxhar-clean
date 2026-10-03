@@ -77,7 +77,7 @@ ARM_ROOTS = {
     "RS1": ROOT / "results" / "linear_subsection_trees_tuned_dedup" / "rs1",
 }
 MODELS = ("lgbm", "xgb", "rf")
-BUCKETS = ("baseline", "live_feasible", "all_features")
+BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 MODEL_LONG = mtc.TREE_LONG
 RUNGS = {
     "T10": ("yhat_subtree_{m}_{b}", "shipped configuration, refit every 10 sessions"),

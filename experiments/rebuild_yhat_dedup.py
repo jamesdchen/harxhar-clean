@@ -52,7 +52,7 @@ NEW = ROOT / "results" / "linear_subsection_dedup"
 LSTM_NEW = ROOT / "results" / "linear_subsection_lstm_dedup"
 SPXW = ROOT / "results" / "spxw_pnl"
 PRE = SPXW / "pre_dedup_2026-09-29"
-MAIN_BUCKETS = ("baseline", "live_feasible", "all_features")
+MAIN_BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 ESTS = {"ridge": "ridge", "reclasso": "lasso", "reclasticnet": "enet"}
 VIX_TABLE_BUCKETS = ("vix_only", "live_vix_only", "free_vix_only")
 

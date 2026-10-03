@@ -75,7 +75,7 @@ BARS = (
 SEG = "bar1600"
 PACK = 4  # one-bar arms per array task for the 13-bar arms (13 -> 4 + 3 + 3 + 3)
 EST_OF = {"ridge": "ridge", "lasso": "reclasso", "enet": "reclasticnet"}
-MAIN_BUCKETS = ("baseline", "live_feasible", "all_features")
+MAIN_BUCKETS = ("baseline", "all_features")  # live_feasible commented out
 # the column counts of the de-duplicated per-bar design (commit 47f7f9c message)
 P_NEW = {"baseline": 22, "live_feasible": 232, "all_features": 628}
 # the study each bucket's arms were pulled into (compare_mfiv_harlag.FAMILIES)
