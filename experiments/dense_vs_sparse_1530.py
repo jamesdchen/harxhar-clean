@@ -70,7 +70,7 @@ OUT = REPO / "results" / "dense_vs_sparse"
 WORK = Path(os.environ.get("DVS_WORK", str(OUT / "_work")))
 SEG = "bar1600"
 TW = 2000
-BUCKETS = ("live_feasible", "all_features")
+BUCKETS = ("all_features",)  # live_feasible commented out
 STORED_LIN = REPO / "results" / "linear_subsection" / "arms_hoffman2"
 STORED_TREES = REPO / "results" / "linear_subsection_trees"
 LIN_EST = ("ridge", "reclasso", "reclasticnet")
@@ -271,13 +271,13 @@ def spec_ns(kind: str) -> dict:
     if kind == "linear":
         import model_diagnostics_1530 as md
 
-        ns = md._spec_namespace("ridge", "live_feasible")
+        ns = md._spec_namespace("ridge", "all_features")
         assert ns["TUNE_PER"] == TUNE_PER and ns["TRAIN_WIN"] == TW
     else:
         os.environ.update(
             {
                 "HPC_KW_MODEL": "lgbm",
-                "HPC_KW_EXOG_BUCKET": "live_feasible",
+                "HPC_KW_EXOG_BUCKET": "all_features",
                 "HPC_KW_SEGMENT": SEG,
                 "HPC_KW_TRAIN_WIN": str(TW),
                 "HPC_KW_LAG_SCOPE": "global",
@@ -1480,7 +1480,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     GT = pd.read_csv(OUT / "gates.csv")
     PK = pd.read_csv(OUT / "screen_picks.csv")
     NUM = json.loads((OUT / "numbers.json").read_text(encoding="utf-8"))
-    LF, AF = BUCKETS
+    (AF,) = BUCKETS  # live_feasible commented out
     NB = NUM["buckets"]
     models = [LABEL[m] for m in DENSITY_MODELS]
     ks = [str(k) for k in K_GRID]
@@ -1530,11 +1530,11 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         )
         for b in BUCKETS
     }
-    g_lf = GR[GR.bucket == LF]
-    size_g = g_lf[
-        g_lf["members"].str.split().apply(lambda v: "adj_sumabsret_ma_1" in v)
+    g_af = GR[GR.bucket == AF]
+    size_g = g_af[
+        g_af["members"].str.split().apply(lambda v: "adj_sumabsret_ma_1" in v)
     ].iloc[0]
-    har_g = g_lf[g_lf["members"].str.split().apply(lambda v: "har_ma_1" in v)].iloc[0]
+    har_g = g_af[g_af["members"].str.split().apply(lambda v: "har_ma_1" in v)].iloc[0]
     tree_keys = ("lgbm", "xgb", "rf")
     assert size_g["var_share_ridge"] > max(
         size_g[f"var_share_{m}"] for m in ("reclasso", *tree_keys)
@@ -1558,12 +1558,6 @@ def write_summary() -> None:  # noqa: C901 - one linear report
             for m in ("ridge", "lasso", "LightGBM")
         ):
             K_all = k
-        else:
-            break
-    K_lf = 0
-    for k in K_GRID:
-        if all(sig_q[(LF, m, str(k))] for m in ("ridge", "lasso", "LightGBM")):
-            K_lf = k
         else:
             break
     assert K_all >= 4, K_all
@@ -1598,16 +1592,6 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         k
         for k in ks
         if _sig(gp(AF, RL, k)["did_QLIKE_lo"], gp(AF, RL, k)["did_QLIKE_hi"])
-    ]
-    lf_did_ks = [
-        k
-        for k in ks
-        if _sig(gp(LF, RL, k)["did_QLIKE_lo"], gp(LF, RL, k)["did_QLIKE_hi"])
-    ]
-    lf_rg_did = [
-        k
-        for k in ks
-        if _sig(gp(LF, RG, k)["did_QLIKE_lo"], gp(LF, RG, k)["did_QLIKE_hi"])
     ]
     assert len(af_did_ks) >= 2
     ridge_pairs = CN[CN.pair.isin([RL, RG]) & (CN.measure == "Sharpe")]
@@ -1646,23 +1630,22 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"trade uses) on the per-bar arms' own design, target, {TW}-session rolling window and refit cadence: per-bar ridge, "
         f"lasso and elastic net refit every session with the penalty re-chosen every {TUNE_PER} sessions "
         "(`specs/causal_tune_linear.py`, its class run read-only), LightGBM / XGBoost / random forest refit every "
-        f"{TREE_REFIT_EVERY} sessions (`specs/causal_tune_trees.py`, shipped configuration). Two designs: `live_feasible` "
-        f"({NB[LF]['n_columns']} columns, {NB[LF]['n_series']} source series) and `all_features` ({NB[AF]['n_columns']} "
-        f"columns, {NB[AF]['n_series']} series); {NB[LF]['n_forecasts']:,} forecast sessions (2018-06-25 .. 2024-04-30); "
-        f"the trade and QLIKE use the {NB[LF]['n_deck']} trade days (2020-01-03 .. 2024-04-30)."
+        f"{TREE_REFIT_EVERY} sessions (`specs/causal_tune_trees.py`, shipped configuration). One design: `all_features` "
+        f"({NB[AF]['n_columns']} columns, {NB[AF]['n_series']} source series); {NB[AF]['n_forecasts']:,} forecast sessions (2018-06-25 .. 2024-04-30); "
+        f"the trade and QLIKE use the {NB[AF]['n_deck']} trade days (2020-01-03 .. 2024-04-30)."
     )
     a("")
     a(
         "**One scorer, the research scorer:** the 16:00 bar recalibrated alone, forecast = (ŷ² + s)·B with s the "
         "forecast's own trailing-250-session mean squared error, lagged one session "
         "(`score_linear_subsection_causal.causal_forecasts`); QLIKE against the per-bar spec's 16:00 target on the "
-        f"{NB[LF]['n_deck']} trade days; the trade is the deck's 15:30 **sign(s)** rule (`trade_1530`): buy the "
+        f"{NB[AF]['n_deck']} trade days; the trade is the deck's 15:30 **sign(s)** rule (`trade_1530`): buy the "
         "**straddle** (nearest out-of-the-money call + nearest out-of-the-money put, same-day expiry, one position) when "
         "the forecast exceeds the 15:30 implied variance, sell it otherwise, hold to the close. Intervals: 95 %, circular "
         f"block bootstrap over the trade days (block {NUM['constants']['BOOT_BLOCK']} sessions, "
         f"{NUM['constants']['BOOT_B']:,} draws, one set of draws for every model, so differences are paired). The per-bar "
-        f"ridge `live_feasible` scores QLIKE {fullr[LF]['QLIKE_deck']:.4f} and Sharpe {fullr[LF]['Sharpe_mid']:.2f} mid / "
-        f"{fullr[LF]['Sharpe_crossed']:.2f} crossed here, the numbers of the closing-strategy master table."
+        f"ridge `all_features` scores QLIKE {fullr[AF]['QLIKE_deck']:.4f} and Sharpe {fullr[AF]['Sharpe_mid']:.2f} mid / "
+        f"{fullr[AF]['Sharpe_crossed']:.2f} crossed here, the numbers of the closing-strategy master table."
     )
     a("")
     a(
@@ -1674,14 +1657,14 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     )
     a("")
     # ---- brief
-    r_lf, r_af = den(LF, "ridge"), den(AF, "ridge")
+    r_af = den(AF, "ridge")
     a("## Answer in brief")
     a("")
     a(
-        f"1. **Ridge's forecast is the dense one.** Its effective number of inputs is {r_lf['neff']:.0f} of "
-        f"{NB[LF]['n_columns']} columns (`live_feasible`) and {r_af['neff']:.0f} of {NB[AF]['n_columns']} (`all_features`), "
-        f"against {ne_other[LF][0]:.0f}–{ne_other[LF][1]:.0f} and {ne_other[AF][0]:.0f}–{ne_other[AF][1]:.0f} for the "
-        f"lasso, the elastic net and the three tree models; it needs {int(r_lf['k95'])} / {int(r_af['k95'])} columns to "
+        f"1. **Ridge's forecast is the dense one.** Its effective number of inputs is {r_af['neff']:.0f} of "
+        f"{NB[AF]['n_columns']} columns (`all_features`), "
+        f"against {ne_other[AF][0]:.0f}–{ne_other[AF][1]:.0f} for the "
+        f"lasso, the elastic net and the three tree models; it needs {int(r_af['k95'])} columns to "
         f"reproduce 95 % of its forecast's variance, every other model at most {k95_other_max}. But 80 % of every model's "
         f"forecast variance comes from at most {k80_max} columns: the first-order signal is the same few inputs "
         "(`har_ma_1`, `har_ma_5` and the recent return-size columns) for all six models, and ridge's density sits in the "
@@ -1693,16 +1676,15 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"2. **Where ridge's extra weight goes:** onto the group of recent return-size measures that move with `har_ma` "
         f"({_members(size_g['members'])}): {100 * size_g['var_share_ridge']:.0f} % of ridge's forecast variance vs "
         f"{100 * size_g['var_share_reclasso']:.0f} % of the lasso's and {100 * min(tr):.0f}–{100 * max(tr):.0f} % of the "
-        f"trees' (`live_feasible`), while the {_members(har_g['members'])} group carries "
+        f"trees' (`all_features`), while the {_members(har_g['members'])} group carries "
         f"{100 * har_g['var_share_ridge']:.0f} % of ridge's vs {100 * har_g['var_share_reclasso']:.0f} % of the lasso's "
         f"and {100 * min(trh):.0f}–{100 * max(trh):.0f} % of the trees'."
     )
     a(
         f"3. **The forecastable signal is spread over many inputs, for every model.** Restricted to the top-k inputs of a "
-        f"causal screen, every model's QLIKE is significantly worse than with all columns at every k ≤ {K_all} on both "
-        f"designs (k ≤ {K_lf} on `live_feasible`), and at every k ≤ 16 every model trades below its all-column Sharpe."
+        f"causal screen, every model's QLIKE is significantly worse than with all columns at every k ≤ {K_all} "
+        f"(`all_features`), and at every k ≤ 16 every model trades below its all-column Sharpe."
     )
-    g1, g2 = gp(LF, RL, "all"), gp(LF, RG, "all")
     g3, g4 = gp(AF, RL, "all"), gp(AF, RG, "all")
     a(
         f"4. **The professor's hypothesis, tested directly (the same inputs for all three models, k = "
@@ -1712,45 +1694,28 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"   * *On the trade:* not testable at this sample size. With identical inputs the ridge-minus-lasso and "
         f"ridge-minus-LightGBM Sharpe gaps have intervals that include zero at {n_sh - n_sh_gap} of the {n_sh} "
         f"(k, design) pairs, and so does the change of the gap between k inputs and all columns ({n_sh - n_sh_did} of "
-        f"{n_sh}). Even with all columns ridge's trade edge is inside the noise: {g1['dSharpe']:+.2f} "
-        f"{_iv(g1['dSharpe_lo'], g1['dSharpe_hi'], 2)} over the lasso and {g2['dSharpe']:+.2f} "
-        f"{_iv(g2['dSharpe_lo'], g2['dSharpe_hi'], 2)} over LightGBM (`live_feasible`); {g3['dSharpe']:+.2f} "
-        f"{_iv(g3['dSharpe_lo'], g3['dSharpe_hi'], 2)} and {g4['dSharpe']:+.2f} {_iv(g4['dSharpe_lo'], g4['dSharpe_hi'], 2)} "
-        "(`all_features`)."
+        f"{n_sh}). Even with all columns ridge's trade edge is inside the noise: {g3['dSharpe']:+.2f} "
+        f"{_iv(g3['dSharpe_lo'], g3['dSharpe_hi'], 2)} over the lasso and {g4['dSharpe']:+.2f} "
+        f"{_iv(g4['dSharpe_lo'], g4['dSharpe_hi'], 2)} over LightGBM (`all_features`)."
     )
     q4, q8 = gp(AF, RL, "4"), gp(AF, RL, "8")
-    t1, t2 = gp(LF, RG, "1"), gp(LF, RG, "2")
+    t1, t2 = gp(AF, RG, "1"), gp(AF, RG, "2")
     a(
         f"   * *On QLIKE (the precise measure):* **half confirmed.** *Against the lasso*, as the hypothesis says: with 4–8 "
         f"strong, collinear inputs the lasso's selection wins (ridge minus lasso {q4['dQLIKE']:+.4f} "
         f"{_iv(q4['dQLIKE_lo'], q4['dQLIKE_hi'])} at k = 4, {q8['dQLIKE']:+.4f} {_iv(q8['dQLIKE_lo'], q8['dQLIKE_hi'])} at "
         f"k = 8, `all_features`), and adding the long tail of weak inputs closes the gap ({g3['dQLIKE']:+.4f} "
         f"{_iv(g3['dQLIKE_lo'], g3['dQLIKE_hi'])} with all {NB[AF]['n_columns']} columns); the narrowing is significant at "
-        f"k = {', '.join(af_did_ks)} on `all_features`"
-        + (
-            f" and at k = {', '.join(lf_did_ks)} on `live_feasible`."
-            if lf_did_ks
-            else ", not on `live_feasible`."
-        )
-        + f" *Against the trees*, reversed: LightGBM is worst at the sparse end, not best; with 1 or 2 inputs ridge beats it "
+        f"k = {', '.join(af_did_ks)} on `all_features`. "
+        f"*Against the trees*, reversed: LightGBM is worst at the sparse end, not best; with 1 or 2 inputs ridge beats it "
         f"({t1['dQLIKE']:+.4f} {_iv(t1['dQLIKE_lo'], t1['dQLIKE_hi'])}, {t2['dQLIKE']:+.4f} "
-        f"{_iv(t2['dQLIKE_lo'], t2['dQLIKE_hi'])}), with all columns they tie ({g2['dQLIKE']:+.4f} "
-        f"{_iv(g2['dQLIKE_lo'], g2['dQLIKE_hi'])} `live_feasible`, {g4['dQLIKE']:+.4f} "
-        f"{_iv(g4['dQLIKE_lo'], g4['dQLIKE_hi'])} `all_features`)"
-        + (
-            f"; the change is significant at k = {', '.join(lf_rg_did)} on `live_feasible`."
-            if lf_rg_did
-            else "."
-        )
+        f"{_iv(t2['dQLIKE_lo'], t2['dQLIKE_hi'])}), with all columns they tie ({g4['dQLIKE']:+.4f} "
+        f"{_iv(g4['dQLIKE_lo'], g4['dQLIKE_hi'])} `all_features`)."
     )
-    d_lf, d_af = (
-        cl(LF, "(ridge - lasso) full minus collapsed"),
-        cl(AF, "(ridge - lasso) full minus collapsed"),
-    )
+    d_af = cl(AF, "(ridge - lasso) full minus collapsed")
     a(
         f"5. **Collapsing each correlated group to its first principal component** costs both linear models forecast "
-        f"accuracy and does not move the ridge-minus-lasso trade gap beyond noise (change {d_lf['did_Sharpe']:+.2f} "
-        f"{_iv(d_lf['did_Sharpe_lo'], d_lf['did_Sharpe_hi'], 2)} `live_feasible`, {d_af['did_Sharpe']:+.2f} "
+        f"accuracy and does not move the ridge-minus-lasso trade gap beyond noise (change {d_af['did_Sharpe']:+.2f} "
         f"{_iv(d_af['did_Sharpe_lo'], d_af['did_Sharpe_hi'], 2)} `all_features`); there is no significant ridge trade edge "
         "to explain in the first place."
     )
@@ -1762,7 +1727,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f'full design. They do **not** support "sparse favours trees": trees lose most when inputs are few. None of it '
         f"is visible in the trade's Sharpe, whose model-to-model differences (intervals {min(width):.1f} to "
         f"{max(width):.1f} wide) are larger than every effect measured here; the trade ranking ridge ≥ lasso ≥ trees on "
-        f"the {NB[LF]['n_deck']} days is not a significant ranking."
+        f"the {NB[AF]['n_deck']} days is not a significant ranking."
     )
     a("")
     # ---- section 1
@@ -1780,7 +1745,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"For each model, the contribution of every design column to every forecast: linear β_j (x_j − window mean_j) "
         f"(linear SHAP; sums to the forecast minus the window-mean forecast, max relative gap {mx_lin:.1e}); trees: the "
         f"TreeSHAP values the tree campaign stored (additivity ≤ {mx_tree:.1e} relative). Definitions (all "
-        f"{NB[LF]['n_forecasts']:,} forecasts; the trade-day values are in `density.csv` and differ little):"
+        f"{NB[AF]['n_forecasts']:,} forecasts; the trade-day values are in `density.csv` and differ little):"
     )
     a("")
     a(
@@ -1813,10 +1778,8 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a(
         f"A series is one source (all its HAR lags and its is-present / is-nonzero flags); a group is a set of columns whose "
         f"every pairwise |correlation| over the forecast rows exceeds {CORR_GROUP} (complete linkage; "
-        f"{NB[LF]['groups']['n_groups']} groups of the {NB[LF]['groups']['n_kept']} identifiable `live_feasible` columns, "
-        f"{NB[AF]['groups']['n_groups']} of {NB[AF]['groups']['n_kept']} for `all_features`). The lasso keeps a median of "
-        f"{NB[LF]['nonzero_weights_reclasso'][1]:.0f} (`live_feasible`, range {NB[LF]['nonzero_weights_reclasso'][0]}–"
-        f"{NB[LF]['nonzero_weights_reclasso'][2]}) and {NB[AF]['nonzero_weights_reclasso'][1]:.0f} (`all_features`, "
+        f"{NB[AF]['groups']['n_groups']} groups of the {NB[AF]['groups']['n_kept']} identifiable `all_features` columns). "
+        f"The lasso keeps a median of {NB[AF]['nonzero_weights_reclasso'][1]:.0f} (`all_features`, "
         f"{NB[AF]['nonzero_weights_reclasso'][0]}–{NB[AF]['nonzero_weights_reclasso'][2]}) non-zero weights per refit; "
         f"ridge keeps every identifiable column. k_80 across the six {TUNE_PER}-session blocks: "
         f"{min(int(r['block_k80_min']) for r in kr)}–{max(int(r['block_k80_max']) for r in kr)} for ridge, "
@@ -1848,28 +1811,27 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     # ---- section 2
     a("## 2. The sparsity sweep: ridge, lasso and LightGBM on the same top-k inputs")
     a("")
-    starts = PK[(PK.bucket == LF) & (PK.k == 1)]["first_forecast"].tolist()
+    starts = PK[(PK.bucket == AF) & (PK.k == 1)]["first_forecast"].tolist()
     pk = {
         (b, k): PK[(PK.bucket == b) & (PK.k == k)]["columns"].tolist()
         for b in BUCKETS
         for k in (1, 2, 4, 8)
     }
-    k1 = sorted(set(pk[(LF, 1)]) | set(pk[(AF, 1)]))
+    k1 = sorted(set(pk[(AF, 1)]))
     a(
         f"**Rule (causal):** at each of the six penalty re-choices (every {TUNE_PER} sessions; first forecasts "
         f"{', '.join(starts)}) the k columns with the largest |correlation with the target| over the {TW} sessions before "
         "the block's first forecast are kept for that block (constant or duplicated columns are never picked); the same "
         "columns go to all three models, which then refit exactly as their specs do. The picks (`screen_picks.csv`): "
         f"k = 1 is {', '.join(f'`{x}`' for x in k1)} in every block; k = 2 is "
-        f"{' / '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(LF, 2)]}))}; k = 4 is "
-        f"{' or '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(LF, 4)]}))}; k = 8 in the last block is "
-        f"`{pk[(LF, 8)][-1].replace(' ', '`, `')}` (`live_feasible`) and `{pk[(AF, 8)][-1].replace(' ', '`, `')}` "
-        "(`all_features`). A second rule (each linear model's own top-k standardized weights, β × window sd, at the "
-        "block start) is in `sweep.csv` (rule `own`)."
+        f"{' / '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(AF, 2)]}))}; k = 4 is "
+        f"{' or '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(AF, 4)]}))}; k = 8 in the last block is "
+        f"`{pk[(AF, 8)][-1].replace(' ', '`, `')}` (`all_features`). A second rule (each linear model's own top-k "
+        "standardized weights, β × window sd, at the block start) is in `sweep.csv` (rule `own`)."
     )
     a("")
     a(
-        f"QLIKE ({NB[LF]['n_deck']} trade days) and sign(s) Sharpe (mid) against k; * = the paired interval against the "
+        f"QLIKE ({NB[AF]['n_deck']} trade days) and sign(s) Sharpe (mid) against k; * = the paired interval against the "
         "same model on all columns excludes zero (`sweep.csv` has the intervals and the crossed Sharpe; figure "
         "`sweep_qlike_sharpe_vs_k.png`):"
     )
@@ -1895,21 +1857,16 @@ def write_summary() -> None:  # noqa: C901 - one linear report
             lab = kx if kx != "all" else f"all ({NB[b]['n_columns']})"
             a(f"| {lab} | " + " | ".join(cells) + " |")
     a("")
-    a("(k ≤ 4 selects the same columns in both designs, hence the identical rows.)")
-    a("")
     a(
         "**The hypothesis test** (`sweep_gaps.csv`, `sweep_gap_counts.csv`): for each pair of models on the same k inputs, "
         "the paired gap and the change of the gap between k and all columns (a difference in differences):"
     )
     a("")
-    lf4, lf8 = gp(LF, RL, "4"), gp(LF, RL, "8")
     a(
-        f"* ridge − lasso, QLIKE: lasso better at k = 4 and 8 (`live_feasible` {lf4['dQLIKE']:+.4f} "
-        f"{_iv(lf4['dQLIKE_lo'], lf4['dQLIKE_hi'])} and {lf8['dQLIKE']:+.4f} {_iv(lf8['dQLIKE_lo'], lf8['dQLIKE_hi'])}; "
-        f"`all_features` {q4['dQLIKE']:+.4f} {_iv(q4['dQLIKE_lo'], q4['dQLIKE_hi'])} and {q8['dQLIKE']:+.4f} "
-        f"{_iv(q8['dQLIKE_lo'], q8['dQLIKE_hi'])}); tied with all columns ({g1['dQLIKE']:+.4f} "
-        f"{_iv(g1['dQLIKE_lo'], g1['dQLIKE_hi'])} `live_feasible`, {g3['dQLIKE']:+.4f} {_iv(g3['dQLIKE_lo'], g3['dQLIKE_hi'])} "
-        "`all_features`); on `all_features` the gap narrows significantly from k = "
+        f"* ridge − lasso, QLIKE: lasso better at k = 4 and 8 (`all_features` {q4['dQLIKE']:+.4f} "
+        f"{_iv(q4['dQLIKE_lo'], q4['dQLIKE_hi'])} and {q8['dQLIKE']:+.4f} "
+        f"{_iv(q8['dQLIKE_lo'], q8['dQLIKE_hi'])}); tied with all columns ({g3['dQLIKE']:+.4f} "
+        f"{_iv(g3['dQLIKE_lo'], g3['dQLIKE_hi'])} `all_features`); the gap narrows significantly from k = "
         + ", ".join(
             f"{k} ({gp(AF, RL, k)['did_QLIKE']:+.4f} {_iv(gp(AF, RL, k)['did_QLIKE_lo'], gp(AF, RL, k)['did_QLIKE_hi'])})"
             for k in af_did_ks
@@ -1918,23 +1875,14 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     )
     a(
         f"* ridge − LightGBM, QLIKE: ridge better at k = 1, 2 ({t1['dQLIKE']:+.4f} {_iv(t1['dQLIKE_lo'], t1['dQLIKE_hi'])}, "
-        f"{t2['dQLIKE']:+.4f} {_iv(t2['dQLIKE_lo'], t2['dQLIKE_hi'])}); tied with all columns"
-        + (
-            "; on `live_feasible` the gap closes significantly from k = "
-            + ", ".join(
-                f"{k} ({gp(LF, RG, k)['did_QLIKE']:+.4f} {_iv(gp(LF, RG, k)['did_QLIKE_lo'], gp(LF, RG, k)['did_QLIKE_hi'])})"
-                for k in lf_rg_did
-            )
-            + "."
-            if lf_rg_did
-            else "."
-        )
+        f"{t2['dQLIKE']:+.4f} {_iv(t2['dQLIKE_lo'], t2['dQLIKE_hi'])}); tied with all columns "
+        f"({g4['dQLIKE']:+.4f} {_iv(g4['dQLIKE_lo'], g4['dQLIKE_hi'])})."
     )
     ll = [gp(b, "lasso - LightGBM", k) for b in BUCKETS for k in ("1", "2", "4")]
     ll_sig = [r for r in ll if _sig(r["dQLIKE_lo"], r["dQLIKE_hi"]) and r["dQLIKE"] < 0]
-    ll2 = gp(LF, "lasso - LightGBM", "2")
+    ll2 = gp(AF, "lasso - LightGBM", "2")
     a(
-        f"* lasso − LightGBM, QLIKE: lasso better at k = 1, 2, 4 in {len(ll_sig)} of 6 (k, design) cells (e.g. "
+        f"* lasso − LightGBM, QLIKE: lasso better at k = 1, 2, 4 in {len(ll_sig)} of {len(ll)} (k, design) cells (e.g. "
         f"{ll2['dQLIKE']:+.4f} {_iv(ll2['dQLIKE_lo'], ll2['dQLIKE_hi'])} at k = 2); tied with all columns."
     )
     exc = "; ".join(
@@ -1949,10 +1897,10 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"(the lasso − LightGBM pair included) {int(all_sh['did_ci_excl0'].sum())} changes of gap exclude zero, about the "
         "rate expected by chance at 5 %."
     )
-    o16, o8 = sw(LF, "ridge", "16", "own"), sw(LF, "ridge", "8", "own")
+    o16, o8 = sw(AF, "ridge", "16", "own"), sw(AF, "ridge", "8", "own")
     a(
         f"* Ridge restricted to its own top 16 standardized weights is within noise of its all-column QLIKE on "
-        f"`live_feasible` ({o16['dQLIKE']:+.4f} {_iv(o16['dQLIKE_lo'], o16['dQLIKE_hi'])}); its top 8 are "
+        f"`all_features` ({o16['dQLIKE']:+.4f} {_iv(o16['dQLIKE_lo'], o16['dQLIKE_hi'])}); its top 8 are "
         + ("not" if _sig(o8["dQLIKE_lo"], o8["dQLIKE_hi"]) else "also")
         + f" ({o8['dQLIKE']:+.4f} {_iv(o8['dQLIKE_lo'], o8['dQLIKE_hi'])})."
     )
@@ -2037,7 +1985,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     ]
     a(
         f"* The design re-run through the spec's own executor call equals the stored research forecast (max relative "
-        f"difference {NB[LF]['capture_gate']:.1e} `live_feasible`, {NB[AF]['capture_gate']:.1e} `all_features`); the local "
+        f"difference {NB[AF]['capture_gate']:.1e} `all_features`); the local "
         f"full refits equal the stored per-bar ridge / lasso / elastic net forecasts to ≤ {lin_ok:.1e} relative, except "
         f"the `all_features` elastic net: up to {en['max_rel']:.1e} relative on {int(en['rows_above_1e6'])} rows of one "
         f"block (forecast rows {int(en['first_bad'])}–{int(en['last_bad'])})"
@@ -2053,9 +2001,8 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a(
         f"* LightGBM refit locally (1 thread) differs from the stored cluster run (max {lg['max_rel'].min():.1e} / "
         f"{lg['max_rel'].max():.1e} relative; another platform and thread count), so the sweep compares LightGBM with its "
-        f"own local all-column refit (Sharpe {sw(LF, 'LightGBM', 'all')['Sharpe_mid']:.2f} / "
-        f"{sw(AF, 'LightGBM', 'all')['Sharpe_mid']:.2f} locally"
-        + (f" vs {st[LF]:.2f} / {st[AF]:.2f} stored" if st else "")
+        f"own local all-column refit (Sharpe {sw(AF, 'LightGBM', 'all')['Sharpe_mid']:.2f} locally"
+        + (f" vs {st[AF]:.2f} stored" if st else "")
         + "); the density table uses the stored runs' TreeSHAP."
     )
     a(
@@ -2063,7 +2010,7 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         "need no treatment (the recalibrated forecast is at least s·B)."
     )
     a(
-        f"* Sample: {NB[LF]['n_deck']} trade days. Sharpe differences between variants carry intervals "
+        f"* Sample: {NB[AF]['n_deck']} trade days. Sharpe differences between variants carry intervals "
         f"{min(width):.1f}–{max(width):.1f} wide, so the trade cannot separate the estimators at this size; QLIKE "
         "differences of about 0.005 are resolvable."
     )
