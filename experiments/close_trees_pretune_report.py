@@ -342,11 +342,12 @@ def write_summary(recs, cur, chk, arms, info) -> None:
     w(
         "Research scorer (16:00-bar recalibration, the deck's 15:30 sign(s) straddle: nearest out-of-the-money call + "
         "nearest out-of-the-money put, same-day expiry, one position); point estimates (the circular block bootstrap is "
-        "off). Against the LOCAL control (shipped configuration, refit every 10, W 2000, mask on, these libraries): "
+        "off). Against this run's control of the same refit cadence (shipped configuration, W 2000, mask on, this run's "
+        "libraries; stored rows against `control_r10`): "
         "Diebold-Mariano statistic on daily QLIKE (negative = lower QLIKE than the control) and HAC t on the paired daily "
         "P&L (mid) difference (positive = more P&L than the control), both `src/evaluation/diebold_mariano.dm_test` "
-        "(Newey-West, Harvey-Leybourne-Newbold factor). Every local arm forecasts all 1469 forecast rows with a refit every "
-        f"{C.REFIT_EVERY} sessions; the frozen and retune arms' 2018-06-25 .. 2019-12-31 forecasts lie inside the "
+        "(Newey-West, Harvey-Leybourne-Newbold factor). Every arm of this run forecasts all 1469 forecast rows (suffix "
+        "`_r<n>`: a refit every n sessions); the frozen and retune arms' 2018-06-25 .. 2019-12-31 forecasts lie inside the "
         "pre-tune's validation period and enter the trade days only through the scorer's trailing-250-session "
         "recalibration term."
     )
@@ -364,7 +365,8 @@ def write_summary(recs, cur, chk, arms, info) -> None:
     ctrl = arms[arms["arm"] == "control_r10"].iloc[0]
     st = arms[arms["arm"] == "stored_T10"].iloc[0]
     w(
-        f"Local control vs the stored shipped-config table (`stored_T10`, cluster libraries LightGBM 4.6.0): QLIKE "
+        f"This run's control (`control_r10`, LightGBM {meta['versions']['lightgbm']}) vs the stored shipped-config table "
+        f"(`stored_T10`, the cluster's LightGBM 4.6.0, same configuration, cadence, window and mask): QLIKE "
         f"{ctrl['qlike']:.4f} vs {st['qlike']:.4f}, Sharpe mid {ctrl['sharpe_mid']:.2f} vs {st['sharpe_mid']:.2f}, "
         f"max relative forecast difference {st['max_rel_forecast_diff_vs_control']:.2e}, same position on "
         f"{st['same_position_share'] * 100:.1f} % of days."
@@ -373,7 +375,52 @@ def write_summary(recs, cur, chk, arms, info) -> None:
     w("Arms: `control_r10` shipped configuration; `frozen_k<k>_r10` the pre-tune's best after its first k (merged) trials, "
       "frozen; `retune_any_r10` / `retune_margin_r10` the final pre-tuned configuration plus the light retunes above. "
       "Stored rows: the master table's forecast tables scored by this script (gate above).")
-    (C.OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    est = cluster_estimate(recs, arms)
+    if est:
+        w("## CPU estimate for the full-size cluster run (from this run's fit times)")
+        w("")
+        for line in est:
+            w(f"- {line}")
+        w("")
+    name = "SUMMARY.md" if (C.TAG, C.MODEL) == ("local", "lgbm") else f"SUMMARY_{C.TAG}_{C.MODEL}.md"
+    (C.OUT / name).write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
+# the full-size run's defaults (cluster/submit_close_pretune_h2.sh, cluster/close_pretune_tasks_*.txt)
+H2_STUDIES, H2_TRIALS, H2_FOLDS, H2_SLOTS, H2_RETUNE_TRIALS = 4, 2000, 7, 8, 15
+
+
+def cluster_estimate(recs: list[dict], arms: pd.DataFrame) -> list[str]:
+    """Fit CPU-hours of the full-size run at this run's measured fit times (this CPU, one thread)."""
+    if C.TAG != "local":
+        return []
+    fs = np.concatenate([r["fold_sec"].ravel() for r in recs])
+    slow = np.concatenate([r["fold_sec"].max(axis=1) for r in recs])  # the slowest fold of a trial
+    pre = H2_STUDIES * H2_TRIALS * H2_FOLDS * fs.mean() / 3600
+    wall = H2_TRIALS * slow.mean() / 3600
+    out = [
+        f"pre-tune, one model: {H2_STUDIES} studies x {H2_TRIALS} trials x {H2_FOLDS} folds x {fs.mean():.1f} s (this run's "
+        f"mean fold fit, {len(fs)} fits) = {pre:.0f} fit CPU-hours; a study's wall time ~ {H2_TRIALS} x {slow.mean():.1f} s "
+        f"(mean slowest fold of a trial here) = {wall:.1f} h, i.e. {H2_STUDIES * H2_SLOTS * wall:.0f} allocated slot-hours "
+        f"with {H2_SLOTS} slots a study",
+    ]
+    walks = sorted(C.RUN.glob("walk_*_r10.npz"))
+    if walks:
+        secs = [np.load(f)["fit_sec"].mean() for f in walks]
+        refit = float(np.mean(secs))
+        n_arms = len(walks) + 2  # the full run adds two frozen checkpoints
+        out.append(
+            f"walk, one model: refit every 10 = {n_arms} arms x 147 refits x {refit:.1f} s = "
+            f"{n_arms * 147 * refit / 3600:.1f} CPU-hours; refit every session = {n_arms} x 1469 x {refit:.1f} s = "
+            f"{n_arms * 1469 * refit / 3600:.0f} CPU-hours (upper bounds: arms that share a configuration share fits); "
+            f"retunes: 5 x {H2_RETUNE_TRIALS} trials x 2 folds x 2 paths x {fs.mean():.1f} s = "
+            f"{5 * H2_RETUNE_TRIALS * 2 * 2 * fs.mean() / 3600:.1f} CPU-hours a walk task"
+        )
+    out.append(
+        "XGBoost: the same counts at XGBoost's fit time, which this run did not measure at scale; Hoffman2 nodes "
+        "differ in speed from this machine."
+    )
+    return out
 
 
 def main() -> None:

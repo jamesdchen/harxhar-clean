@@ -176,7 +176,10 @@ def gate() -> None:
     pd.DataFrame(rows).to_csv(WORK / "gate_spec_vs_stored.csv", index=False)
 
 
-# ============================================================================ engine
+# ============================================================================ numpy reference
+# The Python reference the C kernel is checked against on a short slice: the profiled
+# problem solved directly (ridge: Cholesky; lasso / elastic net: the spec's exact
+# homotopy, penalty factors by column scaling).
 def identifiable(Xw: np.ndarray) -> np.ndarray:
     """The spec's identifiability rule (RollingTunedLinear._recompute_mask): False for
     columns constant in the window or byte-copies of an earlier kept column."""
@@ -208,54 +211,9 @@ def enet_exact(G, c, mu: float, lam2: float, pf: np.ndarray) -> np.ndarray:
     return g * inv
 
 
-KKT_TOL = 1e-9  # relative slack in the KKT check of the active-set solve
-ACTIVE_ITERS = 25  # support repairs before falling back to the exact homotopy
-STATS = {"active_ok": 0, "active_repaired": 0, "homotopy_fallback": 0}
-SOLVE_PATH = ("ridge", *STATS)
-
-
-def enet_active(G, c, mu_s: float, lam2_s: float, pf, warm):
-    """Exact elastic-net / lasso solution, warm-started from the previous session's
-    support: solve the KKT system on the support with its signs, verify every KKT
-    condition (signs on the support, |c_j - G_j b| <= mu_j off it), repair the support
-    (drop sign violators, add the worst violator) and fall back to the exact homotopy
-    (enet_exact) when the repairs do not settle.  The answer is the unique optimum
-    (to KKT_TOL) whichever path finds it."""
-    p = len(c)
-    mu, lam2 = mu_s * pf, lam2_s * pf
-    act = np.flatnonzero(warm != 0.0)
-    sgn = np.sign(warm[act])
-    scale = float(np.max(mu)) if np.max(mu) > 0 else 1.0
-    for it in range(ACTIVE_ITERS):
-        b = np.zeros(p)
-        if len(act):
-            M = G[np.ix_(act, act)].copy()
-            M[np.diag_indices_from(M)] += lam2[act]
-            try:
-                bA = np.linalg.solve(M, c[act] - mu[act] * sgn)
-            except np.linalg.LinAlgError:
-                break
-            bad = np.sign(bA) != sgn
-            if bad.any():  # a coefficient crossed zero: drop it and re-solve
-                act, sgn = act[~bad], sgn[~bad]
-                continue
-            b[act] = bA
-        g = c - G @ b
-        viol = np.abs(g) - mu
-        viol[act] = -np.inf
-        jmax = int(np.argmax(viol))
-        if viol[jmax] <= KKT_TOL * scale:
-            STATS["active_ok" if it == 0 else "active_repaired"] += 1
-            return b
-        act = np.append(act, jmax)
-        sgn = np.append(sgn, np.sign(g[jmax]))
-    STATS["homotopy_fallback"] += 1
-    return enet_exact(G, c, mu_s, lam2_s, pf)
-
-
 class Window:
-    """Centered sufficient statistics of one window (rows of X / y), and the projection
-    onto the centered backbone block, cached for each backbone set."""
+    """Centered statistics of one window; the projection onto the centered unpenalized
+    columns (minimum-norm, numpy.linalg.matrix_rank's rank rule)."""
 
     def __init__(self, Xw: np.ndarray, yw: np.ndarray):
         self.n = len(yw)
@@ -265,84 +223,50 @@ class Window:
         self.yc = yw - self.ybar
         self.G = self.Xc.T @ self.Xc
         self.c = self.Xc.T @ self.yc
-        self.ynorm = float(np.sqrt(self.yc @ self.yc))
-        self._proj: dict = {}
 
     def profile(self, B: np.ndarray, P: np.ndarray):
-        """Profiled Gram / moment of the penalized columns P after projecting the
-        (centered) unpenalized columns B out; returns (Gt, ct, back) with back(bP) -> bB
-        the minimum-norm least-squares backbone coefficients given the penalized ones."""
-        key = (B.tobytes(), P.tobytes())
-        if key in self._proj:
-            return self._proj[key]
-        GPP = self.G[np.ix_(P, P)]
-        cP = self.c[P]
+        GPP, cP = self.G[np.ix_(P, P)], self.c[P]
         if len(B) == 0:
-            out = (GPP, cP, lambda bP: np.zeros(0))
-        else:
-            U, s, Vt = np.linalg.svd(self.Xc[:, B], full_matrices=False)
-            # numerical rank by numpy.linalg.matrix_rank's rule (the five weekday dummies
-            # sum to one, so after centering they are exactly dependent)
-            k = int((s > s.max() * max(self.Xc.shape[0], len(B)) * np.finfo(float).eps).sum())
-            Q = U[:, :k]
-            A = Q.T @ self.Xc[:, P]
-            bq = Q.T @ self.yc
-            Gt = GPP - A.T @ A
-            Gt = 0.5 * (Gt + Gt.T)
-            ct = cP - A.T @ bq
-            Vk = Vt[:k].T / s[:k]
-
-            def back(bP, Vk=Vk, A=A, bq=bq):
-                return Vk @ (bq - A @ bP)
-
-            out = (Gt, ct, back)
-        self._proj[key] = out
-        return out
+            return GPP, cP, lambda bP: np.zeros(0)
+        U, s, Vt = np.linalg.svd(self.Xc[:, B], full_matrices=False)
+        k = int((s > s.max() * max(self.Xc.shape[0], len(B)) * np.finfo(float).eps).sum())
+        Q = U[:, :k]
+        A = Q.T @ self.Xc[:, P]
+        bq = Q.T @ self.yc
+        Gt = GPP - A.T @ A
+        Vk = Vt[:k].T / s[:k]
+        return 0.5 * (Gt + Gt.T), cP - A.T @ bq, lambda bP: Vk @ (bq - A @ bP)
 
 
-def solve_arm(win: Window, est: str, B, P, pen, warm=None, exact: bool = False):
-    """Coefficients (full length p) and intercept of one fit on one window; pen = the
-    penalty of each column of P (alpha x penalty factor, sklearn units)."""
-    from scipy.linalg import cho_factor, cho_solve
-
+def solve_ref(win: Window, est: str, B, P, pen):
+    """Coefficients (length p) and intercept; pen = alpha x pf on P (pf max 1)."""
     p = win.G.shape[0]
     Gt, ct, back = win.profile(B, P)
-    info: dict = {}
     if est == "ridge":
         A = Gt.copy()
         A[np.diag_indices_from(A)] += pen
-        bP = cho_solve(cho_factor(A), ct)
+        bP = np.linalg.solve(A, ct)
     else:
         l1 = 1.0 if est == "reclasso" else 0.5
-        a = float(pen.max())  # pen = alpha x pf with max pf = 1 (the exogenous columns)
-        pf = pen / a
-        mu_s, lam2_s = win.n * l1 * a, win.n * (1.0 - l1) * a
-        if exact:  # the spec's homotopy from scratch
-            bP = enet_exact(Gt, ct, mu_s, lam2_s, pf)
-        else:
-            b0 = np.zeros(len(P)) if warm is None else warm[P]
-            n0 = dict(STATS)
-            bP = enet_active(Gt, ct, mu_s, lam2_s, pf, b0)
-            info["path"] = next(k for k in STATS if STATS[k] != n0[k])
+        a = float(pen.max())
+        bP = enet_exact(Gt, ct, win.n * l1 * a, win.n * (1.0 - l1) * a, pen / a)
     th = np.zeros(p)
     th[P] = bP
     if len(B):
         th[B] = back(bP)
-    b0 = win.ybar - float(win.xbar @ th)
-    return th, b0, info
+    return th, win.ybar - float(win.xbar @ th)
 
 
 def ols_backbone(win: Window, B: np.ndarray):
     """HAR + calendar OLS (the master table's sub_ols_baseline: production
-    RollingLeastSquares at alpha 0 = centered Gram, lstsq on a rank-deficient window)."""
-    p = win.G.shape[0]
-    th = np.zeros(p)
-    sol = np.linalg.lstsq(win.Xc[:, B], win.yc, rcond=None)[0]
-    th[B] = sol
+    RollingLeastSquares at alpha 0 = centered window, minimum-norm least squares on a
+    rank-deficient window)."""
+    th = np.zeros(win.G.shape[0])
+    th[B] = np.linalg.lstsq(win.Xc[:, B], win.yc, rcond=None)[0]
     return th, win.ybar - float(win.xbar @ th)
 
 
-# ============================================================================ run
+# ============================================================================ arms
 GROUPS = (
     "moments",
     "liquidity",
@@ -355,6 +279,12 @@ GROUPS = (
 )
 MODES = ("single", "bb0", "bbr", "bbfix")
 ARMS = [(e, m) for e in EST for m in MODES] + [("ridge", "mpr")]
+R_OF = {"single": (1.0,), "bb0": (0.0,), "bbr": R_GRID, "bbfix": (R_PAPER,), "mpr": (0.0,)}
+CD_REL = 1e-8  # coordinate descent stops when max |step| sqrt(G_jj) < CD_REL |y_c|
+KKT_REL = 1e-9  # KKT slack off the support, relative to max |X'y_c|
+MAX_ROUNDS = 6  # descent rounds (tolerance / 100 each) before giving up the exact solve
+MAX_SWEEPS = 200000
+STATUS = ("ridge", "polished", "polished_after_tighter_descent", "descent_only")
 
 
 def arm_key(est: str, mode: str) -> str:
@@ -374,7 +304,7 @@ def exog_groups(names: list[str], bb: np.ndarray) -> np.ndarray:
             assert f not in of, f
             of[f] = gi
     assert set(of) == set(SUBGROUPS["all_features"]), "groups must cover all_features"
-    out = np.full(len(names), -1, dtype=int)
+    out = np.full(len(names), -1, dtype=np.int32)
     for j, c in enumerate(names):
         if bb[j]:
             continue
@@ -399,230 +329,245 @@ def spec_grids() -> dict:
     return {e: [float(a) for _, a, _ in ns["ESTIMATOR_GRIDS"][e]] for e in EST}
 
 
-def sets_for(mode: str, r: float, keep, bb, grp, pen_g=None, alpha: float = 1.0):
-    """(B, P, pen) of one arm: B unpenalized (profiled), P penalized with pen."""
-    if mode in ("bb0", "mpr") or (mode in ("bbr", "bbfix") and r == 0.0):
-        B = np.flatnonzero(bb & keep)
-        P = np.flatnonzero(~bb & keep)
-        if mode == "mpr":
-            pen = np.asarray(pen_g, float)[grp[P]]
-        else:
-            pen = np.full(len(P), alpha)
+class Setup:
+    """Everything the kernel needs that does not change with the arm."""
+
+    def __init__(self):
+        from scipy.linalg import qr
+
+        d = load_design("all_features")
+        db = load_design("baseline")
+        self.d = d
+        self.X = np.ascontiguousarray(d["X"], dtype=np.float64)
+        self.y = np.ascontiguousarray(d["y"], dtype=np.float64)
+        self.W = d["W"]
+        self.names = d["names"]
+        self.p = self.X.shape[1]
+        self.n_test = len(self.X) - self.W
+        self.bb = np.isin(self.names, db["names"])
+        self.bbi = np.flatnonzero(self.bb)
+        assert [self.names[j] for j in self.bbi] == db["names"]
+        assert np.array_equal(self.X[:, self.bbi], db["X"])
+        assert np.array_equal(self.y, db["y"])
+        self.grp = exog_groups(self.names, self.bb)
+        self.blocks = block_starts(self.n_test)
+        self.bstart = np.array([b[0] for b in self.blocks] + [self.n_test], dtype=np.int32)
+        self.keep, self.drop = [], []
+        for i0, _ in self.blocks:
+            Xw = self.X[i0 : i0 + self.W]
+            keep = identifiable(Xw)
+            # when the backbone is unpenalized: drop the columns beyond the numerical rank
+            # of the centered kept backbone (pivoted QR); the weekday dummies sum to one,
+            # so one of them goes.  Fit and forecasts do not change (the dependency holds
+            # on every row).
+            B = np.flatnonzero(self.bb & keep)
+            Z = Xw[:, B] - Xw[:, B].mean(axis=0)
+            _, Rm, piv = qr(Z, mode="economic", pivoting=True)
+            dg = np.abs(np.diag(Rm))
+            k = int((dg > dg[0] * max(Z.shape) * np.finfo(float).eps).sum())
+            self.keep.append(keep)
+            self.drop.append(np.sort(B[piv[k:]]))
+
+    def pf(self, rs) -> np.ndarray:
+        out = np.full((len(self.blocks), len(rs), self.p), -1.0)
+        for b in range(len(self.blocks)):
+            keep = self.keep[b]
+            for i, r in enumerate(rs):
+                out[b, i, ~self.bb & keep] = 1.0
+                out[b, i, self.bb & keep] = r
+                if r == 0.0:
+                    out[b, i, self.drop[b]] = -1.0
+        return out
+
+
+_LIB = None
+
+
+def kernel():
+    """Compile experiments/close_exogpen_kernel.c when the .c is newer than the .so."""
+    global _LIB
+    if _LIB is not None:
+        return _LIB
+    import ctypes
+    import subprocess
+
+    from numpy.ctypeslib import ndpointer
+
+    src = REPO / "experiments" / "close_exogpen_kernel.c"
+    so = WORK / "close_exogpen_kernel.so"
+    if not so.is_file() or so.stat().st_mtime < src.stat().st_mtime:
+        WORK.mkdir(parents=True, exist_ok=True)
+        # the system ships only liblapack.so.3 / libblas.so.3 (no unversioned link)
+        cmd = ["gcc", "-O3", "-march=native", "-fPIC", "-shared", "-o", str(so), str(src),
+               "-l:liblapack.so.3", "-l:libblas.so.3", "-lm"]
+        subprocess.run(cmd, check=True)
+        print("compiled", " ".join(cmd), flush=True)
+    lib = ctypes.CDLL(str(so))
+    f8 = ndpointer(np.float64, flags="C_CONTIGUOUS")
+    i4 = ndpointer(np.int32, flags="C_CONTIGUOUS")
+    i8 = ndpointer(np.int64, flags="C_CONTIGUOUS")
+    ci, cd, cl = ctypes.c_int, ctypes.c_double, ctypes.c_long
+    lib.exogpen_run.restype = ci
+    lib.exogpen_run.argtypes = [
+        ci, ci, f8, f8, ci,  # N, p, X, y, W
+        ci, ci,  # est, mode
+        ci, i4,  # n_blocks, bstart
+        ci, f8,  # n_r, pf
+        ci, f8, ci, ci,  # n_alpha, alphas, val_tail, embargo
+        i4, ci, f8, ci,  # group, n_groups, mpr_start, mpr_passes
+        i4, cd, cd, ci, cl,  # is_bb, cd_rel, kkt_rel, max_rounds, max_sweeps
+        f8, f8, f8, f8, f8, f8,  # pred, theta, b0, vBB, vEE, vBE
+        i4, i8, f8, i4, f8, f8,  # status, sweeps, val_mse, choice, pen_g, mpr_mse
+    ]
+    _LIB = lib
+    return lib
+
+
+def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
+          n_blocks: int | None = None, X=None) -> dict:
+    """One arm through the C walk-forward (optionally only the first n_blocks blocks)."""
+    lib = kernel()
+    rs = R_OF[mode]
+    nb = len(S.blocks) if n_blocks is None else n_blocks
+    pf = np.ascontiguousarray(S.pf(rs)[:nb])
+    bstart = np.ascontiguousarray(S.bstart[: nb + 1])
+    n_out = int(bstart[-1])
+    X = S.X if X is None else X
+    p = S.p
+    out = dict(
+        pred=np.zeros(n_out), theta=np.zeros((n_out, p)), b0=np.zeros(n_out),
+        vBB=np.zeros(n_out), vEE=np.zeros(n_out), vBE=np.zeros(n_out),
+        status=np.zeros(n_out, np.int32), sweeps=np.zeros(n_out, np.int64),
+        val_mse=np.full((nb, len(rs), len(grid)), np.nan),
+        choice=np.zeros((nb, 2), np.int32), pen_g=np.full((nb, len(GROUPS)), np.nan),
+        mpr_mse=np.full(nb, np.nan),
+    )
+    est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
+    ms = np.ascontiguousarray(
+        np.zeros(nb) if mpr_start is None else np.asarray(mpr_start, float)[:nb]
+    )
+    t0 = time.process_time()
+    rc = lib.exogpen_run(
+        len(X), p, X, S.y, S.W, est_i, 1 if mode == "mpr" else 0, nb, bstart,
+        len(rs), pf, len(grid), np.ascontiguousarray(grid, dtype=np.float64), VAL_TAIL,
+        EMBARGO, np.ascontiguousarray(np.maximum(S.grp, 0), dtype=np.int32), len(GROUPS),
+        ms, MPR_PASSES, np.ascontiguousarray(S.bb, dtype=np.int32), CD_REL, KKT_REL,
+        MAX_ROUNDS, MAX_SWEEPS, out["pred"], out["theta"], out["b0"], out["vBB"],
+        out["vEE"], out["vBE"], out["status"], out["sweeps"], out["val_mse"],
+        out["choice"], out["pen_g"], out["mpr_mse"],
+    )
+    out["cpu_sec"] = time.process_time() - t0
+    if rc != 0:
+        raise RuntimeError(f"kernel returned {rc} for {est} {mode}")
+    ch = out["choice"]
+    if mode == "mpr":
+        out["alpha_blk"] = np.full(nb, np.nan)
+        out["r_blk"] = np.zeros(nb)
+    else:
+        out["alpha_blk"] = np.array([grid[i] for i in ch[:, 1]])
+        out["r_blk"] = np.array([rs[i] for i in ch[:, 0]])
+    return out
+
+
+def ref_slice(S: Setup, est: str, mode: str, res: dict, n_sess: int) -> dict:
+    """The numpy reference on the first n_sess sessions of block 0, at the penalties the
+    kernel chose there; also the reference's tail MSE at those penalties."""
+    keep = S.keep[0]
+    r = float(res["r_blk"][0])
+    if mode == "mpr":
+        B = np.flatnonzero(S.bb & keep)
+        P = np.flatnonzero(~S.bb & keep)
+        pen = res["pen_g"][0][S.grp[P]]
+    elif r == 0.0:
+        B = np.flatnonzero(S.bb & keep)
+        P = np.flatnonzero(~S.bb & keep)
+        pen = np.full(len(P), res["alpha_blk"][0])
     else:
         B = np.zeros(0, dtype=int)
         P = np.flatnonzero(keep)
-        pf = np.where(bb[P], r if mode in ("bbr", "bbfix") else 1.0, 1.0)
-        pen = alpha * pf
-    return B, P, pen
+        pen = res["alpha_blk"][0] * np.where(S.bb[P], r, 1.0)
+    W = S.W
+    fit_hi = W - VAL_TAIL - EMBARGO
+    wf = Window(S.X[:fit_hi], S.y[:fit_hi])
+    thf, b0f = solve_ref(wf, est, B, P, pen)
+    Xv, yv = S.X[W - VAL_TAIL : W], S.y[W - VAL_TAIL : W]
+    mse = float(np.mean((b0f + Xv @ thf - yv) ** 2))
+    pred = np.empty(n_sess)
+    for j in range(n_sess):
+        win = Window(S.X[j : W + j], S.y[j : W + j])
+        th, b0 = solve_ref(win, est, B, P, pen)
+        pred[j] = b0 + float(S.X[W + j] @ th)
+    return dict(pred=pred, val_mse=mse)
 
 
-def tune_arm(est, mode, wf, Xv, yv, keep, bb, grp, grid, bb0_alpha=None):
-    """The spec's re-choice on the block-start window's fit / embargo / tail split.
-    Returns the choice and the validation MSE of every candidate."""
-
-    def mse(th, b0):
-        return float(np.mean((b0 + Xv @ th - yv) ** 2))
-
-    if mode == "mpr":
-        pen_g = [float(bb0_alpha)] * len(GROUPS)
-        B, P, pen = sets_for("mpr", 0.0, keep, bb, grp, pen_g)
-        th, b0, _ = solve_arm(wf, "ridge", B, P, pen)
-        best = mse(th, b0)
-        cand = [dict(pass_=0, group="start", value=float(bb0_alpha), mse=best)]
-        present = set(grp[P].tolist())
-        for ps in range(1, MPR_PASSES + 1):
-            for gi in range(len(GROUPS)):
-                if gi not in present:
-                    continue
-                for a in grid:
-                    if a == pen_g[gi]:
-                        continue
-                    trial = list(pen_g)
-                    trial[gi] = a
-                    B, P, pen = sets_for("mpr", 0.0, keep, bb, grp, trial)
-                    th, b0, _ = solve_arm(wf, "ridge", B, P, pen)
-                    m = mse(th, b0)
-                    cand.append(dict(pass_=ps, group=GROUPS[gi], value=a, mse=m))
-                    if m < best:
-                        best, pen_g = m, trial
-        return dict(alpha=np.nan, r=0.0, pen_g=pen_g, mse=best), cand
-    rs = {"single": (1.0,), "bb0": (0.0,), "bbr": R_GRID, "bbfix": (R_PAPER,)}[mode]
-    res: dict = {}
-    for r in rs:
-        for a in grid:  # lasso / elastic net: the spec's exact homotopy at every candidate
-            B, P, pen = sets_for(mode, r, keep, bb, grp, alpha=a)
-            th, b0, _ = solve_arm(wf, est, B, P, pen, exact=True)
-            res[(r, a)] = (mse(th, b0), th, b0)
-    best = None
-    for r in rs:  # selection in grid order, strict improvement (the spec's argmin)
-        for a in grid:
-            m = res[(r, a)][0]
-            if best is None or m < best[0]:
-                best = (m, r, a)
-    assert best is not None
-    m, r, a = best
-    out = dict(alpha=a, r=r, pen_g=None, mse=m)
-    cand = [dict(r=r_, alpha=a_, mse=v[0]) for (r_, a_), v in res.items()]
-    return out, cand
-
-
-def run() -> None:
-    t_cpu0 = time.process_time()
-    t_wall0 = time.time()
+# ============================================================================ check
+def check() -> None:
+    """C kernel vs the numpy reference (short slice) and vs the gated spec forecasts."""
     grids = spec_grids()
-    d = load_design("all_features")
-    db = load_design("baseline")
-    X, y, W, names = d["X"], d["y"], d["W"], d["names"]
-    bb = np.isin(names, db["names"])
-    bbi = np.flatnonzero(bb)
-    assert [names[j] for j in bbi] == db["names"]
-    assert np.array_equal(X[:, bbi], db["X"]) and np.array_equal(y, db["y"])
-    grp = exog_groups(names, bb)
-    n_test, p = len(X) - W, X.shape[1]
-    exog = ~bb
-    rec: dict = {}
+    S = Setup()
+    rows = []
+    n_sess = 20
     for est, mode in ARMS:
-        rec[arm_key(est, mode)] = dict(
-            pred=np.empty(n_test),
-            th=np.empty((n_test, p), np.float32),
-            b0=np.empty(n_test),
-            alpha=np.empty(n_test),
-            r=np.empty(n_test),
-            vBB=np.empty(n_test),
-            vEE=np.empty(n_test),
-            vBE=np.empty(n_test),
-            phiB=np.empty(n_test),
-            phiE=np.empty(n_test),
-            nnzE=np.empty(n_test),
-            solve_path=np.zeros(n_test),
-        )
-    rec["ols_baseline"] = dict(
-        pred=np.empty(n_test),
-        th=np.empty((n_test, len(bbi))),
-        b0=np.empty(n_test),
-        vBB=np.empty(n_test),
-        phiB=np.empty(n_test),
-    )
-    tune_rows, cand_rows, mpr_rows, check_rows = [], [], [], []
-    prev: dict = {k: None for k in rec}
-    for b, (i0, i1) in enumerate(block_starts(n_test)):
-        tb = time.time()
-        keep = identifiable(X[i0 : i0 + W])
-        fit_hi = i0 + W - VAL_TAIL - EMBARGO
-        wf = Window(X[i0:fit_hi], y[i0:fit_hi])
-        Xv, yv = X[i0 + W - VAL_TAIL : i0 + W], y[i0 + W - VAL_TAIL : i0 + W]
-        choice: dict = {}
-        for est, mode in ARMS:
-            k = arm_key(est, mode)
-            ch, cand = tune_arm(
-                est, mode, wf, Xv, yv, keep, bb, grp, grids[est],
-                bb0_alpha=choice.get("ridge_bb0", {}).get("alpha"),
-            )
-            choice[k] = ch
-            grid = grids[est]
-            tune_rows.append(
-                dict(
-                    block=b,
-                    first_forecast=str(d["date"][W + i0])[:10],
-                    arm=k,
-                    alpha=ch["alpha"],
-                    r=ch["r"],
-                    val_mse=ch["mse"],
-                    alpha_at_low_edge=bool(ch["alpha"] == min(grid)),
-                    alpha_at_high_edge=bool(ch["alpha"] == max(grid)),
-                    n_masked=int((~keep).sum()),
-                    n_backbone_masked=int((bb & ~keep).sum()),
-                )
-            )
-            for c in cand:
-                cand_rows.append(dict(block=b, arm=k, **c))
-            if mode == "mpr":
-                for gi, g in enumerate(GROUPS):
-                    a = ch["pen_g"][gi]
-                    mpr_rows.append(
-                        dict(block=b, group=g, penalty=a,
-                             n_cols=int((exog & keep & (grp == gi)).sum()),
-                             at_low_edge=bool(a == min(grid)),
-                             at_high_edge=bool(a == max(grid)))
-                    )
-        print(f"block {b}: tuned in {time.time() - tb:.1f}s  "
-              + "  ".join(f"{k}={v['alpha']:g}/r{v['r']:g}" for k, v in choice.items()
-                          if k != "ridge_mpr")
-              + f"  mpr={choice['ridge_mpr']['pen_g']}", flush=True)
-        tb = time.time()
-        for j in range(i0, i1):
-            t = W + j
-            win = Window(X[j:t], y[j:t])
-            xt = X[t]
-            dx = xt - win.xbar
-            GBB = win.G[np.ix_(bb, bb)]
-            GEE = win.G[np.ix_(exog, exog)]
-            GBE = win.G[np.ix_(bb, exog)]
-            for est, mode in ARMS:
-                k = arm_key(est, mode)
-                ch = choice[k]
-                B, P, pen = sets_for(mode, ch["r"], keep, bb, grp, ch["pen_g"],
-                                     alpha=ch["alpha"])
-                th, b0, info = solve_arm(win, est, B, P, pen, warm=prev[k])
-                prev[k] = th
-                if est != "ridge" and (j - i0) % CHECK_EVERY == 0:
-                    thx, b0x, _ = solve_arm(win, est, B, P, pen, exact=True)
-                    check_rows.append(dict(
-                        session=j, arm=k,
-                        max_coef_gap=float(np.max(np.abs(th - thx))),
-                        pred_gap=float(abs((b0 + xt @ th) - (b0x + xt @ thx))),
-                        same_support=bool(np.array_equal(th != 0, thx != 0))))
-                R = rec[k]
-                R["pred"][j] = b0 + float(xt @ th)
-                R["th"][j] = th
-                R["b0"][j] = b0
-                R["alpha"][j] = ch["alpha"]
-                R["r"][j] = ch["r"]
-                tB, tE = th[bb], th[exog]
-                R["vBB"][j] = float(tB @ GBB @ tB) / win.n
-                R["vEE"][j] = float(tE @ GEE @ tE) / win.n
-                R["vBE"][j] = float(tB @ GBE @ tE) / win.n
-                R["phiB"][j] = float(tB @ dx[bb])
-                R["phiE"][j] = float(tE @ dx[exog])
-                R["nnzE"][j] = int(np.count_nonzero(tE))
-                R["solve_path"][j] = SOLVE_PATH.index(info.get("path", "ridge"))
-            th, b0 = ols_backbone(win, bbi)
-            R = rec["ols_baseline"]
-            R["pred"][j] = b0 + float(xt @ th)
-            R["th"][j] = th[bbi]
-            R["b0"][j] = b0
-            R["vBB"][j] = float(th[bbi] @ win.G[np.ix_(bbi, bbi)] @ th[bbi]) / win.n
-            R["phiB"][j] = float(th[bbi] @ dx[bbi])
-        print(f"block {b}: {i1 - i0} refits in {time.time() - tb:.1f}s", flush=True)
-    runs = WORK / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    for k, R in rec.items():
-        np.savez_compressed(runs / f"{k}.npz", **R)
-    pd.DataFrame(tune_rows).to_csv(WORK / "tune_choices.csv", index=False)
-    pd.DataFrame(cand_rows).to_csv(WORK / "tune_candidates.csv", index=False)
-    pd.DataFrame(mpr_rows).to_csv(WORK / "mpr_group_penalties.csv", index=False)
-    pd.DataFrame(check_rows).to_csv(WORK / "active_vs_homotopy.csv", index=False)
-    meta = dict(
-        names=names,
-        backbone=[names[j] for j in bbi],
-        groups=list(GROUPS),
-        group_of=grp.tolist(),
-        cpu_sec=time.process_time() - t_cpu0,
-        wall_sec=time.time() - t_wall0,
-        solve_stats=dict(STATS),
-        kkt_tol=KKT_TOL,
-        r_grid=list(R_GRID),
-        grids=grids,
-    )
-    (WORK / "run_meta.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
-    print(f"run done: cpu {meta['cpu_sec']:.0f}s wall {meta['wall_sec']:.0f}s", flush=True)
+        if mode == "mpr":
+            continue  # its start value comes from the ridge bb0 arm, checked below
+        res = c_run(S, est, mode, grids[est], n_blocks=1)
+        t0 = time.process_time()
+        ref = ref_slice(S, est, mode, res, n_sess)
+        sec = time.process_time() - t0
+        ir, ia = res["choice"][0]
+        rows.append(dict(
+            arm=arm_key(est, mode), alpha=res["alpha_blk"][0], r=res["r_blk"][0],
+            max_abs_pred_gap=float(np.max(np.abs(res["pred"][:n_sess] - ref["pred"]))),
+            max_rel_pred_gap=float(np.max(np.abs(res["pred"][:n_sess] / ref["pred"] - 1))),
+            val_mse_c=float(res["val_mse"][0, ir, ia]), val_mse_ref=ref["val_mse"],
+            c_cpu_sec_block0=res["cpu_sec"], ref_cpu_sec_slice=sec,
+            status=json.dumps(np.bincount(res["status"], minlength=4).tolist())))
+        print(rows[-1], flush=True)
+        if est == "ridge" and mode == "bb0":
+            mres = c_run(S, "ridge", "mpr", grids["ridge"], mpr_start=res["alpha_blk"],
+                         n_blocks=1)
+            mref = ref_slice(S, "ridge", "mpr", mres, n_sess)
+            rows.append(dict(
+                arm="ridge_mpr", alpha=np.nan, r=0.0,
+                max_abs_pred_gap=float(np.max(np.abs(mres["pred"][:n_sess] - mref["pred"]))),
+                max_rel_pred_gap=float(np.max(np.abs(mres["pred"][:n_sess] / mref["pred"] - 1))),
+                val_mse_c=float(mres["mpr_mse"][0]), val_mse_ref=mref["val_mse"],
+                c_cpu_sec_block0=mres["cpu_sec"], ref_cpu_sec_slice=np.nan,
+                status=json.dumps(mres["pen_g"][0].tolist())))
+            print(rows[-1], flush=True)
+    pd.DataFrame(rows).to_csv(WORK / "check_c_vs_numpy_slice.csv", index=False)
+    # the full single-penalty arms vs the gated spec forecasts and the stored tables
+    idx = pd.DatetimeIndex(pd.to_datetime(S.d["date"][S.W :]))
+    grows = []
+    for est in EST:
+        res = c_run(S, est, "single", grids[est])
+        np.savez_compressed(WORK / f"check_c_single_{est}.npz", pred=res["pred"])
+        spec = np.load(WORK / f"gate_spec_{est}.npz")
+        st = stored_1600(f"sub_{EST_SHORT[est]}_all_features").reindex(idx).to_numpy()
+        spec_alpha = spec["alpha"][S.bstart[:-1]]
+        grows.append(dict(
+            est=est,
+            c_cpu_sec_full_arm=res["cpu_sec"],
+            spec_python_cpu_sec_full_arm=float(spec["sec"]),
+            alphas_c=json.dumps(res["alpha_blk"].tolist()),
+            alphas_spec=json.dumps(spec_alpha.tolist()),
+            same_alphas=bool(np.array_equal(res["alpha_blk"], spec_alpha)),
+            max_rel_gap_vs_spec=float(np.max(np.abs(res["pred"] / spec["pred"] - 1))),
+            max_rel_gap_vs_stored=float(np.max(np.abs(res["pred"] / st - 1))),
+            spec_max_rel_gap_vs_stored=float(np.max(np.abs(spec["pred"] / st - 1))),
+            n_sessions_rel_gap_vs_stored_above_1e9=int(np.sum(np.abs(res["pred"] / st - 1) > 1e-9)),
+            status=json.dumps(np.bincount(res["status"], minlength=4).tolist()),
+            median_sweeps=float(np.median(res["sweeps"])),
+        ))
+        print(grows[-1], flush=True)
+    pd.DataFrame(grows).to_csv(WORK / "check_c_vs_spec_gate.csv", index=False)
 
 
 if __name__ == "__main__":
     stage = sys.argv[1] if len(sys.argv) > 1 else ""
     if stage == "gate":
         gate()
-    elif stage == "run":
-        run()
+    elif stage == "check":
+        check()
     else:
         raise SystemExit(__doc__)

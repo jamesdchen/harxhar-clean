@@ -81,6 +81,7 @@ import ast
 import json
 import math
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -123,8 +124,9 @@ WORKERS = int(_env("WORKERS", "2"))
 TIMEOUT = float(_env("TIMEOUT", "0"))
 RETUNE_TRIALS = int(_env("RETUNE_TRIALS", "15"))
 REFIT_EVERY = int(_env("REFIT_EVERY", "10"))
-CHECKPOINTS = tuple(int(v) for v in _env("CHECKPOINTS", "25,50,100").split(",") if v.strip())
-SEEDS = tuple(int(v) for v in _env("SEEDS", str(SEED)).split(",") if v.strip())
+# lists accept "," or ":" (qsub -v splits its value on commas)
+CHECKPOINTS = tuple(int(v) for v in re.split("[,:]", _env("CHECKPOINTS", "25,50,100")) if v.strip())
+SEEDS = tuple(int(v) for v in re.split("[,:]", _env("SEEDS", str(SEED))) if v.strip())
 WALK_ROWS = _env("WALK_ROWS", "")
 
 OUT = REPO / "results" / "close_studies_2026-10-03" / "trees_pretune"
@@ -692,15 +694,17 @@ def stage_walk() -> None:
     W = info["W"]
     n_oos = info["n"] - W
     pt = load_pretune()
-    rec = pt["by_seed"][0] if len(pt["by_seed"]) == 1 else merge_seeds(pt["by_seed"])
-    n_tr = len(rec["val_mse"])
-    # arms: (configuration in force from row 0, rounds) plus the retune paths
+    n_st = len(pt["by_seed"])
+    rec = pt["by_seed"][0] if n_st == 1 else merge_seeds(pt["by_seed"])
+    n_tr = len(rec["val_mse"]) // n_st  # trials of each study in the merged sequence
+    # arms: (configuration in force from row 0, rounds) plus the retune paths; a checkpoint k =
+    # the best of the first k trials of EVERY study (k x studies trials in all)
     arms: dict[str, list[tuple[int, dict, int | None]]] = {}
     arms["control"] = [(0, shipped(), None)]
     ks = sorted({k for k in CHECKPOINTS if k < n_tr} | {n_tr})
     frozen_of: dict[int, tuple[dict, int]] = {}
     for k in ks:
-        b = best_after(rec, k)
+        b = best_after(rec, k * n_st)
         cfg = decode(rec["params"][b])
         r = median_rounds(rec["fold_rounds"][b])
         frozen_of[k] = (cfg, r)
@@ -708,7 +712,7 @@ def stage_walk() -> None:
     trade0 = int(np.searchsorted(pd.to_datetime(info["date"][W:]), pd.Timestamp(FIRST_TRADE_DAY)))
     row0 = (trade0 // 10) * 10  # the 10-session refit row at or before the first trade day
     rt_rows = list(range(row0, n_oos, RETUNE_EVERY))
-    lo_hi = [int(v) for v in WALK_ROWS.split(",")] if WALK_ROWS else [0, n_oos]
+    lo_hi = [int(v) for v in re.split("[,:]", WALK_ROWS)] if WALK_ROWS else [0, n_oos]
     rt_rows = [r for r in rt_rows if lo_hi[0] <= r < lo_hi[1]]
     cfg0, r0 = frozen_of[n_tr]
     rt_log = []
