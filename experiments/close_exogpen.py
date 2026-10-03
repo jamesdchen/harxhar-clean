@@ -391,7 +391,7 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         pred=np.zeros(n_out), theta=np.zeros((n_out, m)), events=np.zeros(n_out, np.int32),
         val_mse=np.full((nb, len(rs), len(grid)), np.nan), choice=np.zeros((nb, 2), np.int32),
         pen_g=np.full((nb, len(GROUPS)), np.nan), mpr_mse=np.full(nb, np.nan),
-        n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(1, np.int64),
+        n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(3, np.int64),  # LU fallbacks, pf != 1 batch repairs, uncertified
         exact_pred=np.full(n_out, np.nan),
     )
     est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
@@ -535,8 +535,9 @@ def run(ests: list[str], supplement: bool = False) -> None:
         np.savez_compressed(runs / "ols_baseline.npz", **r)
         print(f"ols_baseline: {r['cpu_sec']:.1f}s", flush=True)
     bb0_alpha = None
+    only = [m for m in os.environ.get("EXOGPEN_MODES", "").split(",") if m]
     for est, mode in SUPP_ARMS if supplement else ARMS:
-        if est not in ests:
+        if est not in ests or (only and mode not in only):
             continue
         k = arm_key(est, mode)
         res = c_run(S, est, mode, WIDE_GRIDS[est] if mode.endswith("w") else grids[est],
@@ -558,7 +559,8 @@ def run(ests: list[str], supplement: bool = False) -> None:
             maskout=np.array([mk[b, ch[b]] for b in range(nb)]),
         )
         print(f"{k}: {res['cpu_sec']:.1f}s alpha {res['alpha_blk'].tolist()} "
-              f"r {res['r_blk'].tolist()} reseeds {int(res['n_reseed'].sum())}"
+              f"r {res['r_blk'].tolist()} reseeds {int(res['n_reseed'].sum())} "
+              f"[LU fallbacks, batch repairs, uncertified] {res['n_singular'].tolist()}"
               + (f" groups {np.round(res['pen_g'], 4).tolist()}" if mode == "mpr" else ""),
               flush=True)
 

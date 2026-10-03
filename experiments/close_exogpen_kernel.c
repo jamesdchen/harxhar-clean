@@ -44,6 +44,10 @@ extern void dgelsd_(const int *m, const int *n, const int *nrhs, double *a, cons
 extern void dgesdd_(const char *jobz, const int *m, const int *n, double *a, const int *lda,
                     double *s, double *u, const int *ldu, double *vt, const int *ldvt,
                     double *work, const int *lwork, int *iwork, int *info, size_t);
+extern void dpotrf_(const char *uplo, const int *n, double *a, const int *lda, int *info,
+                    size_t);
+extern void dpotrs_(const char *uplo, const int *n, const int *nrhs, const double *a,
+                    const int *lda, double *b, const int *ldb, int *info, size_t);
 extern void dsyrk_(const char *uplo, const char *trans, const int *n, const int *k,
                    const double *alpha, const double *a, const int *lda, const double *beta,
                    double *c, const int *ldc, size_t, size_t);
@@ -197,6 +201,113 @@ static void lasso_homotopy(int m, const double *g, const double *c, double mu_ta
     free(a); free(inact); free(s); free(in); free(M); free(w01); free(pv); free(qv);
 }
 
+/* covariance-form coordinate descent; g = c - G b is kept in step with b */
+static long cd_run(int K, const double *G, const double *mu, const double *lam2, double *b,
+                   double *g, double tol, long max_sweeps) {
+    long sweeps = 0;
+    int full = 1;
+    while (sweeps < max_sweeps) {
+        sweeps++;
+        double big = 0.0;
+        for (int j = 0; j < K; j++) {
+            double bj = b[j];
+            if (!full && bj == 0.0 && mu[j] > 0.0) continue;
+            double gjj = G[(size_t)j * K + j];
+            double den = gjj + lam2[j];
+            if (den <= 0.0) continue;
+            double z = g[j] + gjj * bj, nb;
+            if (z > mu[j]) nb = (z - mu[j]) / den;
+            else if (z < -mu[j]) nb = (z + mu[j]) / den;
+            else nb = 0.0;
+            double d = nb - bj;
+            if (d != 0.0) {
+                b[j] = nb;
+                const double *Gj = G + (size_t)j * K;
+                for (int k = 0; k < K; k++) g[k] -= Gj[k] * d;
+                double s = fabs(d) * sqrt(gjj);
+                if (s > big) big = s;
+            }
+        }
+        if (big < tol) {
+            if (full) break;
+            full = 1;
+        } else {
+            full = 0;
+        }
+    }
+    return sweeps;
+}
+
+typedef struct {
+    double *M, *rhs, *bt;
+    int *A;
+} PolishWS;
+
+/* exact solve of the KKT system on the support of b with its signs; 1 + b replaced when
+ * every KKT condition holds (signs on the support, |c_j - G_j b| <= mu_j + tol off it) */
+static int polish(int K, const double *G, const double *c, const double *mu,
+                  const double *lam2, double *b, double kkt_tol, PolishWS *w) {
+    int na = 0;
+    for (int j = 0; j < K; j++)
+        if (b[j] != 0.0 || mu[j] == 0.0) w->A[na++] = j;
+    for (int a = 0; a < na; a++) {
+        int ja = w->A[a];
+        const double *Gj = G + (size_t)ja * K;
+        for (int a2 = 0; a2 < na; a2++) w->M[(size_t)a * na + a2] = Gj[w->A[a2]];
+        w->M[(size_t)a * na + a] += lam2[ja];
+        double s = (b[ja] > 0.0) - (b[ja] < 0.0);
+        w->rhs[a] = c[ja] - (mu[ja] > 0.0 ? mu[ja] * s : 0.0);
+    }
+    {
+        int info = 0, one = 1;
+        if (na > 0) {
+            dpotrf_("L", &na, w->M, &na, &info, 1);
+            if (info == 0) dpotrs_("L", &na, &one, w->M, &na, w->rhs, &na, &info, 1);
+        }
+        if (info != 0) return 0;
+    }
+    for (int a = 0; a < na; a++) {
+        int ja = w->A[a];
+        if (mu[ja] > 0.0) {
+            double s = (b[ja] > 0.0) - (b[ja] < 0.0);
+            double sn = (w->rhs[a] > 0.0) - (w->rhs[a] < 0.0);
+            if (sn != s) return 0;
+        }
+    }
+    memset(w->bt, 0, sizeof(double) * K);
+    for (int a = 0; a < na; a++) w->bt[w->A[a]] = w->rhs[a];
+    for (int j = 0; j < K; j++) {
+        if (w->bt[j] != 0.0 || mu[j] == 0.0) continue;
+        const double *Gj = G + (size_t)j * K;
+        double gj = c[j];
+        for (int a = 0; a < na; a++) gj -= Gj[w->A[a]] * w->rhs[a];
+        if (fabs(gj) > mu[j] + kkt_tol) return 0;
+    }
+    memcpy(b, w->bt, sizeof(double) * K);
+    return 1;
+}
+
+static long g_kkt_repair = 0; /* pf != 1 batch solutions repaired by descent + KKT solve */
+static long g_kkt_fail = 0;   /* ... and left uncertified */
+
+/* KKT check of b for  1/2 b'Gb - c'b + sum mu_j |b_j| + 1/2 sum lam2_j b_j^2 */
+static int kkt_ok(int m, const double *G, const double *c, const double *mu, const double *lam2,
+                  const double *b, double tol) {
+    for (int j = 0; j < m; j++) {
+        const double *Gj = G + (size_t)j * m;
+        double r = c[j];
+        for (int k = 0; k < m; k++) r -= Gj[k] * b[k];
+        r -= lam2[j] * b[j];
+        if (b[j] != 0.0) {
+            double sg = (b[j] > 0) - (b[j] < 0);
+            if (fabs(r - mu[j] * sg) > tol) return 0;
+        } else if (fabs(r) > mu[j] + tol) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /* enet_coef with penalty factors: pf all 1 -> exactly enet_coef */
 static void enet_coef_pf(int m, const double *g, const double *c, int n, double alpha,
                          double l1, const double *pf, double *out) {
@@ -220,6 +331,49 @@ static void enet_coef_pf(int m, const double *g, const double *c, int n, double 
         }
         lasso_homotopy(m, gr, cs, mu, out);
         for (int i = 0; i < m; i++) out[i] *= 1.0 / pf[i];
+        /* the column-scaled batch homotopy can miss an event (its absolute tolerances at
+         * the scaled magnitudes): certify by the KKT conditions of the unscaled problem,
+         * else descend from it and solve the KKT system on the support exactly */
+        double *muv = malloc(sizeof(double) * m), *l2v = malloc(sizeof(double) * m);
+        double cmax = 0.0;
+        for (int j = 0; j < m; j++) {
+            muv[j] = mu * pf[j];
+            l2v[j] = lam2 * pf[j];
+            if (fabs(c[j]) > cmax) cmax = fabs(c[j]);
+        }
+        double tol = 1e-9 * (cmax > 0.0 ? cmax : 1.0);
+        if (!kkt_ok(m, g, c, muv, l2v, out, tol)) {
+            g_kkt_repair++;
+            double *gv = malloc(sizeof(double) * m), *bp = malloc(sizeof(double) * m);
+            PolishWS w;
+            w.M = malloc(sizeof(double) * (size_t)m * m);
+            w.rhs = malloc(sizeof(double) * m);
+            w.bt = malloc(sizeof(double) * m);
+            w.A = malloc(sizeof(int) * m);
+            for (int j = 0; j < m; j++) {
+                const double *Gj = g + (size_t)j * m;
+                double r = c[j];
+                for (int k = 0; k < m; k++) r -= Gj[k] * out[k];
+                gv[j] = r;
+            }
+            double ynorm = 0.0; /* descent stop scale: |c| (no y here) */
+            for (int j = 0; j < m; j++) ynorm += c[j] * c[j];
+            ynorm = sqrt(ynorm);
+            double ctol = 1e-10 * (ynorm > 0.0 ? ynorm : 1.0) / sqrt((double)(m > 0 ? m : 1));
+            int done = 0;
+            for (int round = 0; round < 8 && !done; round++) {
+                cd_run(m, g, muv, l2v, out, gv, ctol, 2000000);
+                memcpy(bp, out, sizeof(double) * m);
+                if (polish(m, g, c, muv, l2v, bp, tol, &w) && kkt_ok(m, g, c, muv, l2v, bp, tol)) {
+                    memcpy(out, bp, sizeof(double) * m);
+                    done = 1;
+                }
+                ctol *= 1e-2;
+            }
+            if (!done) g_kkt_fail++;
+            free(gv); free(bp); free(w.M); free(w.rhs); free(w.bt); free(w.A);
+        }
+        free(muv); free(l2v);
     }
     free(gr); free(cs);
 }
@@ -561,6 +715,8 @@ int exogpen_run(
     unsigned char *gone = malloc(m);
     g_err = 0;
     g_singular = 0;
+    g_kkt_repair = 0;
+    g_kkt_fail = 0;
     int fit_n = W - val_tail - embargo;
     for (int blk = 0; blk < n_blocks; blk++) {
         int i0 = bstart[blk], i1 = bstart[blk + 1];
@@ -743,7 +899,9 @@ int exogpen_run(
         }
     }
 out:
-    *n_singular = g_singular;
+    n_singular[0] = g_singular;
+    n_singular[1] = g_kkt_repair;
+    n_singular[2] = g_kkt_fail;
     free(md.locked); free(md.maskout); free(md.pf); free(md.K); free(md.c); free(md.th);
     free(md.Gr); free(md.mu_vec); free(md.s); free(md.A); free(md.inA); free(md.run_const);
     free(md.run_eq); free(md.Xw); free(md.M); free(md.tp); free(md.r); free(md.dvec);
