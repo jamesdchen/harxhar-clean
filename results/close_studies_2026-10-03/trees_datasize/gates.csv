@@ -26,6 +26,9 @@ stored sub_lasso_baseline: Sharpe mid on forecast rows 130.. = on all rows,1.506
 local lgbm_bar1600_w2000 vs stored subtree_lgbm_all_features: max |forecast difference| (fit space),0.06283497119363024,0.0,0.06283497119363024,False
 "local lgbm_bar1600_w2000 vs stored subtree_lgbm_all_features: QLIKE (DM 0.01, HAC t 0.99)",0.10067586540392404,0.10066964470315287,6.2207007711645446e-06,False
 "local lgbm_bar1600_w2000 vs stored subtree_lgbm_all_features: Sharpe mid (DM 0.01, HAC t 0.99)",1.9886183401303337,1.8387627819412586,0.14985555818907503,False
+local xgb_bar1600_w2000 vs stored subtree_xgb_all_features: max |forecast difference| (fit space),0.01666712760925293,0.0,0.01666712760925293,False
+"local xgb_bar1600_w2000 vs stored subtree_xgb_all_features: QLIKE (DM 0.99, HAC t 1.01)",0.10211599500421766,0.10207576739969149,4.0227604526169025e-05,False
+"local xgb_bar1600_w2000 vs stored subtree_xgb_all_features: Sharpe mid (DM 0.99, HAC t 1.01)",1.302595249124758,1.1762067334247859,0.12638851569997223,False
 local lasso_bar1600_w2000 vs stored sub_lasso_all_features: max |forecast difference| (fit space),0.0016059894436288857,0.0,0.0016059894436288857,False
 "local lasso_bar1600_w2000 vs stored sub_lasso_all_features: QLIKE (DM 0.84, HAC t: identical daily P&L)",0.09975639818619583,0.09975481092459872,1.5872615971163073e-06,False
 "local lasso_bar1600_w2000 vs stored sub_lasso_all_features: Sharpe mid (DM 0.84, HAC t: identical daily P&L)",1.446420646453445,1.446420646453445,0.0,True

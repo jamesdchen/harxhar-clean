@@ -380,8 +380,8 @@ def plot_curve(cur: pd.DataFrame) -> None:
         ax.grid(True, color="#d9d9d9", linewidth=0.6)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
-    h, l = axes[0].get_legend_handles_labels()
-    fig.legend(h, l, loc="outside lower center", ncol=3, frameon=False, fontsize=8)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="outside lower center", ncol=3, frameon=False, fontsize=8)
     fig.suptitle("16:00 forecast, all features: training sessions vs accuracy and P&L", fontsize=11)
     fig.savefig(c.REPORT / "learning_curve.png", dpi=150)
     plt.close(fig)
@@ -560,7 +560,8 @@ def write_summary(G, A, V, D, cur, T) -> None:  # noqa: C901 - one linear report
             f"`cluster/submit_close_trees_datasize_h2.sh`, {len(tasks)} single-slot tasks in `cluster/close_trees_datasize_h2_tasks.txt` "
             f"(each arm cut into {tasks['n'].iloc[0]} time chunks, joined by `merge`): "
             + "; ".join(
-                f"refit every {r} session{'s' if r > 1 else ''}: " + ", ".join(f"`{x}`" for x in g.loc[g['refit'] == r, 'arm'])
+                (f"refit every {r} sessions: " if r > 1 else "refit every session: ")
+                + ", ".join(f"`{x}`" for x in g.loc[g['refit'] == r, 'arm'])
                 for r in g["refit"].unique()
             )
             + (
@@ -576,5 +577,8 @@ def write_summary(G, A, V, D, cur, T) -> None:  # noqa: C901 - one linear report
     L.append("## Files")
     L.append("- `experiments/close_trees_datasize.py` (run stage), `experiments/close_trees_datasize_analyze.py` (this report)")
     L.append("- `arms.csv`, `vs_reference.csv`, `tree_minus_linear.csv`, `trees_vs_linear.csv`, `curve.csv`, `gates.csv`, `learning_curve.png`; forecasts in `_work/<arm>.npz` (not committed)")
-    L.append(f"- CPU: {A['cpu_min'].sum():.0f} min over {len(A)} arms, one single-threaded process at a time.")
+    L.append(
+        f"- CPU: {A['cpu_min'].sum():.0f} min over {len(A)} arms (every fit single-threaded; one process at a time, "
+        "three at once for the last three tree arms once cores were freed)."
+    )
     (c.REPORT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
