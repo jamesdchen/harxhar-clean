@@ -387,6 +387,11 @@ def plot_curve(cur: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def _smoke() -> dict | None:
+    f = c.REPORT / "h2_smoke.csv"
+    return pd.read_csv(f).iloc[0].to_dict() if f.is_file() else None
+
+
 def _f(v: float, nd: int = 4) -> str:
     return "" if pd.isna(v) else f"{v:.{nd}f}"
 
@@ -557,6 +562,12 @@ def write_summary(G, A, V, D, cur, T) -> None:  # noqa: C901 - one linear report
             + "; ".join(
                 f"refit every {r} session{'s' if r > 1 else ''}: " + ", ".join(f"`{x}`" for x in g.loc[g['refit'] == r, 'arm'])
                 for r in g["refit"].unique()
+            )
+            + (
+                f". Local smoke test ({sm['test']}): {sm['forecast_rows']} forecast rows, max |difference| {sm['max_abs_diff']:.1e}, "
+                f"bitwise equal: {sm['bitwise_equal']}"
+                if (sm := _smoke()) is not None
+                else ""
             )
             + f". The local control's LightGBM fit took {ctrl['fit_sec_mean']:.1f} s on one core here, so one arm refit every session "
             f"({c.sources()['n_fc'] - c.TREE_START} fits) is about {ctrl['fit_sec_mean'] * (c.sources()['n_fc'] - c.TREE_START) / 3600:.1f} CPU-hours."

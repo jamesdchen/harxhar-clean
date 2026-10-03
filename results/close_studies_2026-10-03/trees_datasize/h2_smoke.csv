@@ -1,0 +1,2 @@
+test,forecast_rows,anchors,max_abs_diff,bitwise_equal
+"cluster task script, lgbm_h16_w500, first 2 refits: 2 time chunks + merge vs whole",20,130 140,0.0,True
