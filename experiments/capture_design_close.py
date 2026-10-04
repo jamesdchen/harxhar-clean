@@ -16,6 +16,13 @@ window is TRAIN_WIN sessions x the median bars a session (4000 rows for last30),
 the rolling robust scaling uses that window, so the 16:00 rows of the two designs
 are not identical.
 
+``lastbars<N>`` (added 2026-10-04 for the bar-count ablation): the N half-hour bars
+ending 16:00 (bar-end labels 16:00 - 30 (N - 1) min .. 16:00), registered here in the
+executor's segment table at run time (src/ is not edited).  lastbars2 is last30 and
+lastbars5 is ``closing``; lastbars13 is the 13 regular-hours bars (labels 10:00 ..
+16:00).  The calendar column ``hour`` is 16 only on the 16:00 row, so a model can
+always isolate the target bar; earlier bars share an hour value in pairs.
+
 Writes ``$CLOSE_DESIGN_DIR/design_<segment>_<bucket>.npz`` (default
 results/close_design/_work, never committed): X, y, W (rows), names, date (bar-end
 stamps of every row), baseline (every row's diurnal scale: the raw variance level of a
@@ -40,6 +47,7 @@ if str(REPO) not in sys.path:
 os.chdir(REPO)
 
 import src.backtest.executor as ex  # noqa: E402
+import src.backtest.segmentation as sg  # noqa: E402
 from src.data.loading import get_bucket  # noqa: E402
 
 OUT = Path(
@@ -48,7 +56,23 @@ OUT = Path(
 TRAIN_WIN = 2000  # sessions, the per-bar arms' window (specs/causal_tune_trees.py)
 
 
+def register_lastbars(segment: str) -> None:
+    """Add ``lastbars<N>`` (the N bars ending 16:00) to the executor's segment table."""
+    if not segment.startswith("lastbars") or segment in sg.SEGMENT_DEFINITIONS:
+        return
+    n = int(segment.removeprefix("lastbars"))
+    if not 1 <= n <= 13:
+        raise SystemExit(
+            f"lastbars<N> needs 1 <= N <= 13 (regular-hours bars), got {n}"
+        )
+    close = 16 * 60
+    # the executor imported this same dict object, so the entry is visible to it
+    sg.SEGMENT_DEFINITIONS[segment] = (close - 30 * (n - 1), close)
+    sg.SEGMENT_CHOICES.append(segment)
+
+
 def capture(segment: str, bucket: str) -> Path:
+    register_lastbars(segment)
     box: dict = {}
     shift = ex.apply_horizon_shift
 
