@@ -836,7 +836,7 @@ def summary() -> None:  # noqa: C901 - one linear report
         missing = [f"k = {k}" + ("" if k in have else " (all seeds)") + (f" seeds {'/'.join(str(s) for s in SEEDS if s not in have.get(k, []))}" if k in have else "")
                    for k in KS if sorted(have.get(k, [])) != sorted(SEEDS)]
         w("- This is the set that existed when the script ran"
-          + (f"; missing from the main design: {'; '.join(missing)}. " if missing else "; the main design (bar column, k = 1 .. 13, seeds 42 / 43 / 44) is complete, and the manifest's other planned arms (no bar column) were still running. ")
+          + (f"; missing from the main design: {'; '.join(missing)}. " if missing else "; the main design (bar column, k = 1 .. 13, seeds 42 / 43 / 44) is complete, and some of the manifest's other planned arms (no bar column) are not on disk. ")
           + "For each k the tested forecast is the average of the seeds listed.")
     w(f"- Linear baseline: `ridge_bb0` (ridge, HAR + calendar unpenalized; QLIKE {_f(inv.set_index('forecast').loc['ridge_bb0', 'qlike'])}); secondary `lasso_bb0`, `ridge_single`, `lasso_single`.")
     w(f"- Scorer: research convention (16:00-bar recalibration (f^2 + s) B from each forecast's own errors), {info['n_trade_days']} trade days {info['first_trade_day']} .. {info['last_trade_day']}, one loss a day. "

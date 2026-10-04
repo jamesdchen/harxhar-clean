@@ -1,12 +1,12 @@
 # Tests: LightGBM on the last k bars ending 16:00 against the linear 16:00 model (close study, 2026-10-04)
 
-Written by `experiments/close_kfull_tests.py` from the CSVs in this folder (2026-10-04 10:24:02); every number below is in them.
+Written by `experiments/close_kfull_tests.py` from the CSVs in this folder (2026-10-04 10:57:56); every number below is in them.
 
 ## Forecasts and set
 - Set: **existing**. Manifest `results/close_studies_2026-10-03/trees_kfull/manifest.csv`: 68 rows, complete: False.
-- Family `nobar` (LightGBM, last k bars, no bar column): k = 1: seeds 42/43/44; k = 2: seeds 42/43; k = 3: seeds 42/43; k = 4: seeds 42/43; k = 5: seeds 42; k = 7: seeds 42; k = 13: seeds 42/43
+- Family `nobar` (LightGBM, last k bars, no bar column): k = 1: seeds 42/43/44; k = 2: seeds 42/43; k = 3: seeds 42/43; k = 4: seeds 42/43; k = 5: seeds 42; k = 6: seeds 42; k = 7: seeds 42; k = 8: seeds 42; k = 9: seeds 42; k = 10: seeds 42; k = 11: seeds 42; k = 12: seeds 42; k = 13: seeds 42/43
 - Family `bar` (LightGBM, last k bars, column bar_end_minute for k > 1): k = 1: seeds 42/43/44; k = 2: seeds 42/43/44; k = 3: seeds 42/43/44; k = 4: seeds 42/43/44; k = 5: seeds 42/43/44; k = 6: seeds 42/43/44; k = 7: seeds 42/43/44; k = 8: seeds 42/43/44; k = 9: seeds 42/43/44; k = 10: seeds 42/43/44; k = 11: seeds 42/43/44; k = 12: seeds 42/43/44; k = 13: seeds 42/43/44  (primary)
-- This is the set that existed when the script ran; the main design (bar column, k = 1 .. 13, seeds 42 / 43 / 44) is complete, and the manifest's other planned arms (no bar column) were still running. For each k the tested forecast is the average of the seeds listed.
+- This is the set that existed when the script ran; the main design (bar column, k = 1 .. 13, seeds 42 / 43 / 44) is complete, and some of the manifest's other planned arms (no bar column) are not on disk. For each k the tested forecast is the average of the seeds listed.
 - Linear baseline: `ridge_bb0` (ridge, HAR + calendar unpenalized; QLIKE 0.0946); secondary `lasso_bb0`, `ridge_single`, `lasso_single`.
 - Scorer: research convention (16:00-bar recalibration (f^2 + s) B from each forecast's own errors), 866 trade days 2020-01-03 .. 2024-04-30, one loss a day. For each k, the seed forecasts are averaged on the adjusted scale and the average is scored. Losses: QLIKE (primary), MSE on the variance level. d = L_linear - L_tree, positive = the tree has lower loss.
 - Gate: trees_morebars/average.csv reproduced, 20 / 20 quantities (QLIKE, Sharpe mid, DM against the ridge) within 1e-12 (max |difference| 4.9e-15); e.g. QLIKE lgbm 4 bars 0.0974, ridge_bb0 0.0946, equal weights ridge + 4-bar pool 0.0914.
@@ -270,6 +270,12 @@ From `results/close_studies_2026-10-03/trees_kfull/bar_column_by_k.csv` (the oth
 | main | 11 | hour | 3 | 402 | 98.8 | 4.5 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 294 (94 .. 354) | 381 |
 | main | 12 | hour | 3 | 402 | 99.0 | 5.0 | 0.0007 | 0.0001 (0.0000 .. 0.0004) | 278 (80 .. 346) | 381 |
 | main | 13 | hour | 3 | 402 | 100.0 | 12.0 | 0.0016 | 0.0003 (0.0001 .. 0.0005) | 110 (52 .. 308) | 382 |
+| no_bar_column | 6 | hour | 1 | 134 | 91.0 | 4.7 | 0.0006 | 0.0001 (0.0000 .. 0.0006) | 307 (84 .. 344) | 378 |
+| no_bar_column | 8 | hour | 1 | 134 | 85.1 | 3.0 | 0.0004 | 0.0001 (0.0000 .. 0.0003) | 320 (119 .. 351) | 378 |
+| no_bar_column | 9 | hour | 1 | 134 | 88.1 | 2.9 | 0.0004 | 0.0001 (0.0000 .. 0.0003) | 315 (113 .. 351) | 379 |
+| no_bar_column | 10 | hour | 1 | 134 | 98.5 | 3.6 | 0.0005 | 0.0001 (0.0000 .. 0.0004) | 313 (81 .. 352) | 380 |
+| no_bar_column | 11 | hour | 1 | 134 | 98.5 | 4.8 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 290 (90 .. 343) | 380 |
+| no_bar_column | 12 | hour | 1 | 134 | 99.3 | 4.9 | 0.0007 | 0.0001 (0.0000 .. 0.0002) | 278 (113 .. 340) | 380 |
 
 bar_end_minute: split on in 46.3 .. 100.0 % of the refits across k = 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13; no k without a split. 
 
@@ -297,8 +303,8 @@ Mean pairwise correlation rho across the last k bars of the same session (column
 Main columns: the 2000 full sessions before 2020-01-03 (2000 sessions, 2012-01-13 .. 2020-01-02); 'all sessions': 6352 sessions, 1998-12-17 .. 2024-04-30. The trees forecast only the 16:00 row, so no tree errors exist on the earlier bars; the target is used.
 
 ## Other family
-- `nobar` (LightGBM, last k bars, no bar column), QLIKE, DM against the ridge (automatic lag): k = 1 0.0996 / -1.52; k = 2 0.0982 / -1.15; k = 3 0.0976 / -0.82; k = 4 0.0976 / -0.85; k = 5 0.0984 / -1.07; k = 7 0.0996 / -1.28; k = 13 0.1016 / -1.67; k = average 0.0968 / -0.65. SPA p consistent / lower / upper 0.724 / 0.244 / 0.724; k* = 1.
+- `nobar` (LightGBM, last k bars, no bar column), QLIKE, DM against the ridge (automatic lag): k = 1 0.0996 / -1.52; k = 2 0.0982 / -1.15; k = 3 0.0976 / -0.82; k = 4 0.0976 / -0.85; k = 5 0.0984 / -1.07; k = 6 0.0983 / -1.04; k = 7 0.0996 / -1.28; k = 8 0.0996 / -1.19; k = 9 0.1013 / -1.65; k = 10 0.1006 / -1.41; k = 11 0.1012 / -1.50; k = 12 0.1011 / -1.44; k = 13 0.1016 / -1.67; k = average 0.0977 / -0.86. SPA p consistent / lower / upper 0.738 / 0.252 / 0.738; k* = 1.
 
 ## Files
 - `gate.csv`, `forecasts.csv` (every scored forecast, file, QLIKE, MSE), `kstar_selection.csv`, `dm.csv`, `fixedb_critical_values.csv`, `gw.csv`, `multiple_comparisons.csv`, `mcs.csv`, `encompassing.csv`, `realtime_combination.csv`, `realtime_lambda_path.csv`, `stability.csv`, `fluctuation.csv`, `fluctuation_path.csv`, `fluctuation_critical_values.csv`, `calibration.csv`, `seed_spread.csv`, `seed_curve.csv`, `bar_column.csv`, `within_day.csv`, `run_info.json`.
-- CPU time of the run: 0.3 min (one process), wall 0.4 min.
+- CPU time of the run: 0.3 min (one process), wall 0.3 min.

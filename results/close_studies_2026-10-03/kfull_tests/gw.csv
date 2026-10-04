@@ -19,18 +19,42 @@ nobar,qlike,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,1,1,1.1338533275379432,0.28695
 nobar,qlike,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1)",2,1.1412308883772084,0.5651774964352865,865,14
 nobar,qlike,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,4.2826450780100505,0.23251670245584022,865,14
 nobar,qlike,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,2.8505248432604886,0.41525002200545835,812,14
+nobar,qlike,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,1,1,1.050261061447968,0.30544696973388297,866,14
+nobar,qlike,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1)",2,1.1025496167397477,0.5762147785451283,865,14
+nobar,qlike,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,5.042390290423372,0.16871930525234663,865,14
+nobar,qlike,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,3.263893966581987,0.35269962955101053,812,14
 nobar,qlike,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,1,1,1.6360300700519448,0.20087102968761672,866,14
 nobar,qlike,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1)",2,1.6533333406046011,0.43750520754194056,865,14
 nobar,qlike,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,5.229946430156592,0.15571319847478962,865,14
 nobar,qlike,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,3.1355522428954816,0.37119417848848046,812,14
+nobar,qlike,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,1,1,1.400995493587469,0.2365569636849849,866,14
+nobar,qlike,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1)",2,1.4495239351962823,0.48443986761765445,865,14
+nobar,qlike,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,5.195677008443353,0.1580168047754029,865,14
+nobar,qlike,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,3.4870139142131844,0.32245028236257944,812,14
+nobar,qlike,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,1,1,2.7748140803142456,0.09575777501517091,866,14
+nobar,qlike,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1)",2,2.7882255148914177,0.24805302195931134,865,14
+nobar,qlike,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,7.313529786427825,0.06254829866589445,865,14
+nobar,qlike,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,5.7361241167558825,0.12517842023003609,812,14
+nobar,qlike,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,1,1,2.043891880552294,0.15281822469312845,866,14
+nobar,qlike,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1)",2,2.06153007409285,0.35673394146666015,865,14
+nobar,qlike,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,5.931104264593263,0.11501068934221421,865,14
+nobar,qlike,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,4.067362565479863,0.2542814618138646,812,14
+nobar,qlike,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,1,1,2.2852982251806435,0.13060503552442104,866,14
+nobar,qlike,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1)",2,2.2983298528329206,0.3169012948144686,865,14
+nobar,qlike,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,5.876422415912533,0.11777980031307486,865,14
+nobar,qlike,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,4.209534979305542,0.23970898516640027,812,14
+nobar,qlike,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,1,1,2.0945378464326767,0.14782640624861354,866,14
+nobar,qlike,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1)",2,2.111984534707605,0.3478470986852331,865,14
+nobar,qlike,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,6.4925936570794605,0.08995504990818778,865,14
+nobar,qlike,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,4.854427702177749,0.182772323405757,812,14
 nobar,qlike,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,1,1,2.8126230178613376,0.09352534156476067,866,14
 nobar,qlike,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1)",2,2.8968237993718033,0.23494310519912265,865,14
 nobar,qlike,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1), implied variance(t-1)",3,8.43047825357844,0.037904401951678254,865,14
 nobar,qlike,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,6.888823324585503,0.07552705100506972,812,14
-nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,1,1,0.4228396964726992,0.5155234812834953,866,14
-nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1)",2,0.4499160564764693,0.7985497345952309,865,14
-nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), implied variance(t-1)",3,2.921400405334572,0.4039031185712537,865,14
-nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,2.0670901081567434,0.5585992960986851,812,14
+nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,1,1,0.7406036863527484,0.38946756446459374,866,14
+nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1)",2,0.8497733353284007,0.6538438825854108,865,14
+nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), implied variance(t-1)",3,3.709501006259496,0.29458961890537194,865,14
+nobar,qlike,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,2.115091991148556,0.5488655899933941,812,14
 nobar,mse,ridge_bb0,nobar:k1,1.0,mean of 42/43/44,3.0,1,1,1.2633064926464181,0.2610261433950677,866,14
 nobar,mse,ridge_bb0,nobar:k1,1.0,mean of 42/43/44,3.0,"1, d(t-1)",2,1.2707407986676575,0.529739236913662,865,14
 nobar,mse,ridge_bb0,nobar:k1,1.0,mean of 42/43/44,3.0,"1, d(t-1), implied variance(t-1)",3,1.4645663592279492,0.690472205635011,865,14
@@ -51,18 +75,42 @@ nobar,mse,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,1,1,0.9300385788508848,0.3348529
 nobar,mse,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1)",2,0.9892168046868056,0.6098096605796984,865,14
 nobar,mse,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,0.9896416174073948,0.803758359714563,865,14
 nobar,mse,ridge_bb0,nobar:k5,5.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.5002137338388781,0.6822210015551329,812,14
+nobar,mse,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,1,1,1.0970543563634865,0.29491345993594686,866,14
+nobar,mse,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1)",2,1.097731443079504,0.5776046034116569,865,14
+nobar,mse,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,1.7045622017219504,0.6359199904973917,865,14
+nobar,mse,ridge_bb0,nobar:k6,6.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.6592194103626463,0.6460379799095918,812,14
 nobar,mse,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,1,1,1.0126546823124982,0.31426769823711354,866,14
 nobar,mse,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1)",2,1.0126896467629327,0.6026945125087865,865,14
 nobar,mse,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,1.257198051683186,0.7393210259540757,865,14
 nobar,mse,ridge_bb0,nobar:k7,7.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.8302848829220908,0.6083668855506175,812,14
+nobar,mse,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,1,1,1.0941080371287202,0.29556278976923944,866,14
+nobar,mse,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1)",2,1.0969646039002925,0.5778261107940728,865,14
+nobar,mse,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,1.4319878266430508,0.698054033532786,865,14
+nobar,mse,ridge_bb0,nobar:k8,8.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.551680035943243,0.670394978712365,812,14
+nobar,mse,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,1,1,0.689821542835984,0.40622508723799156,866,14
+nobar,mse,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1)",2,0.9399561802697447,0.6250159621481182,865,14
+nobar,mse,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,0.9597259310791972,0.8109957583020411,865,14
+nobar,mse,ridge_bb0,nobar:k9,9.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.1719590066929824,0.759737254125927,812,14
+nobar,mse,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,1,1,1.0241820451052863,0.31152906610599373,866,14
+nobar,mse,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1)",2,1.0666407630018948,0.5866538177027416,865,14
+nobar,mse,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,1.3087840236455026,0.7270482872590005,865,14
+nobar,mse,ridge_bb0,nobar:k10,10.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.6197174980694793,0.6549273193092802,812,14
+nobar,mse,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,1,1,0.7207885408760433,0.39588537522059686,866,14
+nobar,mse,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1)",2,0.9931666699141798,0.6086065160486227,865,14
+nobar,mse,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,0.9967220366219259,0.8020451273633532,865,14
+nobar,mse,ridge_bb0,nobar:k11,11.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.2932151004982846,0.7307448451624585,812,14
+nobar,mse,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,1,1,1.0700528713599409,0.3009335037217439,866,14
+nobar,mse,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1)",2,1.0915341523348299,0.5793971710745123,865,14
+nobar,mse,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1), implied variance(t-1)",3,1.0925364086736777,0.7788761230586511,865,14
+nobar,mse,ridge_bb0,nobar:k12,12.0,mean of 42,1.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.3384506058117907,0.7200234762424698,812,14
 nobar,mse,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,1,1,0.4377892750318195,0.5081914126472683,866,14
 nobar,mse,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1)",2,1.0928677117367172,0.5790109695720254,865,14
 nobar,mse,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1), implied variance(t-1)",3,1.1058038803784052,0.7756731917717838,865,14
 nobar,mse,ridge_bb0,nobar:k13,13.0,mean of 42/43,2.0,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.1744121305837205,0.7591476522514313,812,14
-nobar,mse,ridge_bb0,nobar:avg,,seed averages,,1,1,0.0004337605849122081,0.9833837235647739,866,14
-nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1)",2,0.9053927183351339,0.6359111929185601,865,14
-nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), implied variance(t-1)",3,0.9164581185418805,0.8214543791415204,865,14
-nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.1685100096007421,0.7605663906988634,812,14
+nobar,mse,ridge_bb0,nobar:avg,,seed averages,,1,1,0.7227397670260843,0.39524668379122085,866,14
+nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1)",2,0.9585799388629912,0.6192229029443129,865,14
+nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), implied variance(t-1)",3,0.9628444151482297,0.8102414668272411,865,14
+nobar,mse,ridge_bb0,nobar:avg,,seed averages,,"1, d(t-1), VIX(t-1) (days with a VIX value)",3,1.1838156026278193,0.7568885583256076,812,14
 bar,qlike,ridge_bb0,bar:k1,1.0,mean of 42/43/44,3.0,1,1,2.350754678286504,0.12522237213446563,866,14
 bar,qlike,ridge_bb0,bar:k1,1.0,mean of 42/43/44,3.0,"1, d(t-1)",2,2.6457255774611683,0.26637164365160004,865,14
 bar,qlike,ridge_bb0,bar:k1,1.0,mean of 42/43/44,3.0,"1, d(t-1), implied variance(t-1)",3,5.193008851788383,0.15819750116798592,865,14
