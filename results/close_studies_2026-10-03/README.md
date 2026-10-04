@@ -21,11 +21,15 @@ with LightGBM 4.7.0 / XGBoost 2.1.4 and are compared with a local control of the
 
 | forecast | QLIKE | Sharpe mid | source |
 |---|---|---|---|
+| equal weights: ridge backbone unpenalized + LightGBM 4-bar pool | 0.0914 | 1.66 | trees_morebars/average.csv |
+| equal weights: ridge backbone unpenalized + average of all LightGBM pools | 0.0916 | 1.49 | trees_morebars/average.csv |
 | ridge, backbone unpenalized (grid widened) | 0.0940 | 1.52 | exog_penalty |
 | ridge, backbone unpenalized | 0.0946 | 1.50 | exog_penalty |
 | lasso, backbone unpenalized | 0.0957 | 1.52 | exog_penalty |
 | lasso, expanding window (16:00 rows back to 2004) | 0.0968 | 1.42 | trees_datasize |
 | lasso, HAR + calendar only (master table) | 0.0972 | 1.51 | master table |
+| average of the LightGBM pools N = 1 .. 4 | 0.0965 | 1.56 | trees_morebars/average.csv |
+| average of all seven LightGBM pools | 0.0968 | 1.55 | trees_morebars/average.csv |
 | LightGBM, last 4 bars (8000 rows) | 0.0974 | 1.63 | trees_morebars |
 | LightGBM, last 3 bars (6000 rows) | 0.0975 | 1.03 | trees_morebars |
 | ridge, one penalty, last 13 bars (26000 rows) | 0.0975 | 1.77 | trees_morebars |
@@ -66,6 +70,16 @@ with LightGBM 4.7.0 / XGBoost 2.1.4 and are compared with a local control of the
   and worse QLIKE (13 bars over 311 sessions 0.1064, DM 2.98 vs 2 bars). XGBoost is lowest at 2 bars
   (0.0993). The one-penalty linear models pooled over 13 bars: ridge 0.0975, lasso 0.0987 (4 bars: 0.1041,
   0.1141).
+
+- **Averaging the pooled forecasts** (`experiments/close_trees_morebars_average.py`, `trees_morebars/average.csv`;
+  equal weights on the adjusted scale, then the same scorer). Average of the LightGBM pools N = 1 .. 4:
+  0.0965 (DM -2.37 vs the 1-bar control, p 0.018; -0.90 vs the best single pool, 4 bars); all seven pools
+  0.0968. Averaging two seeds of one pool does not do this (4 bars: 0.0974 -> 0.0976), so the gain comes
+  from combining different pools. Equal weights of the backbone-unpenalized ridge and the average of all
+  pools: 0.0916 (DM -1.63 vs the ridge alone, p 0.10); ridge + 4-bar pool 0.0914 (DM -1.68, p 0.09);
+  Sharpe 1.49 / 1.66 vs the ridge's 1.50. The subset averages were chosen after seeing the ladder; the
+  all-pools average and the equal-weight ridge + trees combination are the ones that could be fixed in
+  advance.
 
 ## Reading across the studies
 
