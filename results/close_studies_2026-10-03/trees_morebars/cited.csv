@@ -1,0 +1,2 @@
+key,label,qlike,sharpe_mid,sharpe_crossed,n_days
+lgbm,LightGBM,0.1006059891136299,1.476597216604135,0.9927967394215566,866

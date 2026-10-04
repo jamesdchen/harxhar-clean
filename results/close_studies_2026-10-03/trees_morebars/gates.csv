@@ -1,0 +1,81 @@
+gate,value,reference,abs_diff,passed
+lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: QLIKE re-scored here = its arms.csv,0.10067586540392404,0.100675865403924,4.163336342344337e-17,True
+lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: Sharpe mid re-scored here = its arms.csv,1.9886183401303337,1.9886183401303337,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, model (lgbm)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, window rows (2000)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, rows (source) (bar1600)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, params = spec rule at these rows (leaf minimum 8)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, refit every 10, first forecast row 130 (10 130)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, refit anchors (134)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000 = data-size lgbm_bar1600_w2000: configuration, training rows at every refit ([2000])",1.0,1.0,0.0,True
+lgbm_bars2_r4000 = data-size lgbm_pool_w4000: QLIKE re-scored here = its arms.csv,0.09824939506617016,0.0982493950661701,5.551115123125783e-17,True
+lgbm_bars2_r4000 = data-size lgbm_pool_w4000: Sharpe mid re-scored here = its arms.csv,1.9543236856886006,1.9543236856886008,2.220446049250313e-16,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, model (lgbm)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, window rows (4000)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, rows (source) (pool)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, params = spec rule at these rows (leaf minimum 16)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, refit every 10, first forecast row 130 (10 130)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, refit anchors (134)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000 = data-size lgbm_pool_w4000: configuration, training rows at every refit ([4000])",1.0,1.0,0.0,True
+xgb_bars1_r2000 = data-size xgb_bar1600_w2000: QLIKE re-scored here = its arms.csv,0.10211599500421766,0.1021159950042176,5.551115123125783e-17,True
+xgb_bars1_r2000 = data-size xgb_bar1600_w2000: Sharpe mid re-scored here = its arms.csv,1.302595249124758,1.302595249124758,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, model (xgb)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, window rows (2000)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, rows (source) (bar1600)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, whole arm (no chunk / slice) (chunk '', slice 0)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, params = spec rule at these rows (leaf minimum 2.072)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, refit every 10, first forecast row 130 (10 130)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, refit anchors (134)",1.0,1.0,0.0,True
+"xgb_bars1_r2000 = data-size xgb_bar1600_w2000: configuration, training rows at every refit ([2000])",1.0,1.0,0.0,True
+xgb_bars2_r4000 = data-size xgb_pool_w4000: QLIKE re-scored here = its arms.csv,0.09927490136212072,0.0992749013621207,2.7755575615628914e-17,True
+xgb_bars2_r4000 = data-size xgb_pool_w4000: Sharpe mid re-scored here = its arms.csv,1.4521753491930998,1.4521753491930998,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, model (xgb)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, window rows (4000)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, rows (source) (pool)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, whole arm (no chunk / slice) (chunk '', slice 0)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, params = spec rule at these rows (leaf minimum 4.144)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, refit every 10, first forecast row 130 (10 130)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, refit anchors (134)",1.0,1.0,0.0,True
+"xgb_bars2_r4000 = data-size xgb_pool_w4000: configuration, training rows at every refit ([4000])",1.0,1.0,0.0,True
+ridge_bars1_r2000 = data-size ridge_bar1600_w2000: QLIKE re-scored here = its arms.csv,0.10038747465690383,0.1003874746569038,2.7755575615628914e-17,True
+ridge_bars1_r2000 = data-size ridge_bar1600_w2000: Sharpe mid re-scored here = its arms.csv,1.6649302126865233,1.6649302126865233,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, model (ridge)",1.0,1.0,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, window rows (2000)",1.0,1.0,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, rows (source) (bar1600)",1.0,1.0,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"ridge_bars1_r2000 = data-size ridge_bar1600_w2000: configuration, estimator (ridge)",1.0,1.0,0.0,True
+ridge_bars2_r4000 = data-size ridge_pool_w4000: QLIKE re-scored here = its arms.csv,0.10476819870149992,0.1047681987014999,1.3877787807814457e-17,True
+ridge_bars2_r4000 = data-size ridge_pool_w4000: Sharpe mid re-scored here = its arms.csv,1.2857561821243506,1.2857561821243506,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, model (ridge)",1.0,1.0,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, window rows (4000)",1.0,1.0,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, rows (source) (pool)",1.0,1.0,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"ridge_bars2_r4000 = data-size ridge_pool_w4000: configuration, estimator (ridge)",1.0,1.0,0.0,True
+lasso_bars1_r2000 = data-size lasso_bar1600_w2000: QLIKE re-scored here = its arms.csv,0.09975639818619583,0.0997563981861958,2.7755575615628914e-17,True
+lasso_bars1_r2000 = data-size lasso_bar1600_w2000: Sharpe mid re-scored here = its arms.csv,1.446420646453445,1.446420646453445,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, model (lasso)",1.0,1.0,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, window rows (2000)",1.0,1.0,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, rows (source) (bar1600)",1.0,1.0,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"lasso_bars1_r2000 = data-size lasso_bar1600_w2000: configuration, estimator (reclasso)",1.0,1.0,0.0,True
+lasso_bars2_r4000 = data-size lasso_pool_w4000: QLIKE re-scored here = its arms.csv,0.10494713510003792,0.1049471351000379,1.3877787807814457e-17,True
+lasso_bars2_r4000 = data-size lasso_pool_w4000: Sharpe mid re-scored here = its arms.csv,1.2059890384672314,1.2059890384672314,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, bucket (all_features)",1.0,1.0,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, model (lasso)",1.0,1.0,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, window rows (4000)",1.0,1.0,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, rows (source) (pool)",1.0,1.0,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, whole arm (no chunk / slice) (chunk 'absent', slice absent)",1.0,1.0,0.0,True
+"lasso_bars2_r4000 = data-size lasso_pool_w4000: configuration, estimator (reclasso)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000: rows built here = data-size rows (X, y, forecast rows)",1.0,1.0,0.0,True
+"lgbm_bars1_r2000: first 3 refits redone here vs stored lgbm_bar1600_w2000 (30 forecasts), max |difference|",0.0,0.0,0.0,True
+"lgbm_bars2_r4000: rows built here = data-size rows (X, y, forecast rows)",1.0,1.0,0.0,True
+"lgbm_bars2_r4000: first 3 refits redone here vs stored lgbm_pool_w4000 (30 forecasts), max |difference|",0.0,0.0,0.0,True
