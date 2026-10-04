@@ -48,7 +48,7 @@ Stages:
         interim = the ladder's stored forecasts only; existing = plus every manifest file on disk;
         full = the same, asserting the manifest covers k = 1 .. 13 x seeds 42 / 43 / 44; auto = full if so, else existing
   python experiments/close_kfull_tests.py summary              SUMMARY.md from the CSVs
-Outputs: results/close_studies_2026-10-03/kfull_tests/.
+Outputs: results/close_studies_2026-10-03/kfull_tests/ (env KFT_OUT; KFT_KFULL = the folder holding manifest.csv).
 """
 
 from __future__ import annotations
@@ -82,8 +82,8 @@ import atm_straddle_lib as asl  # noqa: E402
 
 c = mb.c
 STUDIES = REPO / "results" / "close_studies_2026-10-03"
-OUT = STUDIES / "kfull_tests"
-KFULL = STUDIES / "trees_kfull"
+OUT = Path(os.environ.get("KFT_OUT", str(STUDIES / "kfull_tests")))
+KFULL = Path(os.environ.get("KFT_KFULL", str(STUDIES / "trees_kfull")))  # the other agent's folder (manifest, bar-column record)
 MANIFEST = KFULL / "manifest.csv"
 LIN_DIR = STUDIES / "exog_penalty" / "_work" / "runs"
 DESIGN13 = c.DESIGN / f"design_lastbars13_{c.BUCKET}.npz"
@@ -141,39 +141,33 @@ def interim_arms() -> list[dict]:
 
 
 def manifest_arms() -> tuple[list[dict], pd.DataFrame | None]:
-    """The other agent's manifest: one row for each forecast file."""
+    """The other agent's manifest (experiments/close_trees_kfull.py manifest): one row for each forecast
+    file; family main (k = 1 without a column, k >= 2 with bar_end_minute) or no_bar_column; linear rows
+    are skipped (the linear forecasts are read from exog_penalty).  A stored arm the other agent refitted
+    under another name ("refitted here as X") is replaced by X when X's file exists."""
     if not MANIFEST.is_file():
         return [], None
     m = pd.read_csv(MANIFEST)
-    cols = {x.lower(): x for x in m.columns}
-
-    def col(*names):
-        for n in names:
-            if n in cols:
-                return cols[n]
-        return None
-
-    ck, cs, cp = col("k", "bars", "n_bars"), col("seed", "random_state"), col("path", "file", "npz", "forecast_file")
-    cb = col("bar_column", "barcol", "bar_col", "has_bar_column", "cols")
-    cm = col("model")
-    assert ck and cs and cp, f"manifest columns not recognised: {list(m.columns)}"
+    m = m[m["model"].astype(str).str.lower() == "lgbm"].copy()
     rows = []
     for _, r in m.iterrows():
-        if cm and str(r[cm]).lower() not in ("lgbm", "lightgbm"):
-            continue
-        p = Path(str(r[cp]))
-        p = p if p.is_absolute() else (REPO / p if (REPO / p).is_file() else KFULL / p)
-        if cb is None:
-            bc = int(r[ck]) > 1
-        else:
-            v = r[cb]
-            bc = (str(v).strip().lower() in ("1", "true", "yes", "bar_end_minute")) if not isinstance(v, (bool, np.bool_)) else bool(v)
-        rows.append(dict(k=int(r[ck]), seed=int(r[cs]), barcol=bool(bc), path=p, source=f"trees_kfull manifest ({p.name})"))
+        st = str(r["status"])
+        if "refitted here as" in st:
+            repl = st.split("refitted here as")[1].strip().split()[0].strip(";,.)")
+            rr = m[m["arm"] == repl]
+            if len(rr) and (REPO / str(rr["path"].iloc[0])).is_file():
+                continue
+        p = REPO / str(r["path"])
+        rows.append(dict(k=int(r["k"]), seed=int(r["seed"]), barcol=str(r["bar_column"]).strip().lower() == "yes", path=p,
+                         source=f"trees_kfull manifest: {r['arm']} ({r['family']}, {st})", arm=str(r["arm"]), mfamily=str(r["family"])))
     return rows, m
 
 
 def full_complete(rows: list[dict]) -> bool:
-    have = {(r["k"], r["seed"]) for r in rows if r["path"].is_file() and (r["barcol"] or r["k"] == 1)}
+    """Every LightGBM file the manifest lists is on disk, and the main family covers k = 1 .. 13 x seeds 42 / 43 / 44."""
+    if not rows or not all(r["path"].is_file() for r in rows):
+        return False
+    have = {(r["k"], r["seed"]) for r in rows if r["barcol"] or r["k"] == 1}
     return all((k, s) in have for k in KS for s in SEEDS)
 
 
@@ -182,7 +176,7 @@ def load_pred(path: Path) -> np.ndarray:
 
 
 def families(rows: list[dict]) -> dict[str, dict[int, list[dict]]]:
-    """family -> k -> arms (one per seed).  k = 1 has one bar and no bar column: it belongs to both."""
+    """family -> k -> arms (one for each seed).  k = 1 has one bar and no bar column: it belongs to both."""
     fam: dict[str, dict[int, list[dict]]] = {"nobar": {}, "bar": {}}
     seen = set()
     for r in rows:
@@ -282,17 +276,18 @@ def gate(write: bool = True) -> pd.DataFrame:
 
 # ============================================================================ instruments and subsets
 def daily_vix_prev(days: pd.DatetimeIndex) -> np.ndarray:
-    """The VIX at the bar ending 16:00 of the session before each trade day (last value at or before 16:00)."""
+    """The VIX at the bar ending 16:00 of the session before each trade day (last value at or before 16:00);
+    NaN when the session before has no value."""
     v = pd.read_parquet(REPO / "data" / "vix_and_voldemand.parquet", columns=["endbartime", "vix"])
     v["endbartime"] = pd.to_datetime(v["endbartime"])
     v = v[(v["endbartime"].dt.hour * 60 + v["endbartime"].dt.minute <= 960) & v["vix"].notna()]
     close = v.groupby(v["endbartime"].dt.normalize())["vix"].last()
     close.index = pd.DatetimeIndex(close.index).as_unit("ns")
-    pos = close.index.searchsorted(days, side="left") - 1
-    assert (pos >= 0).all()
-    prev_day = close.index[pos]
-    assert (prev_day < days).all() and ((days - prev_day).days <= 5).all()
-    return close.to_numpy(float)[pos]
+    # sessions = the dates of the 16:00 rows (every session of the forecast span)
+    sess = pd.DatetimeIndex(pd.to_datetime(c.sources()["dz"]["date"])).normalize().as_unit("ns")
+    pos = sess.searchsorted(days, side="left") - 1
+    assert (pos >= 0).all() and (sess[pos] < days).all()
+    return close.reindex(sess[pos]).to_numpy(float)  # NaN when that session has no VIX value (the file ends 2024-02-12)
 
 
 def fomc_days() -> tuple[set, pd.Timestamp]:
@@ -341,9 +336,10 @@ def gw_rows(sc: Scorer, fam: str, trees: dict[str, dict], vix_prev: np.ndarray, 
             sets = {
                 "1": (d, np.ones((sc.n, 1))),
                 "1, d(t-1)": (d[1:], np.column_stack([np.ones(sc.n - 1), d[:-1]])),
-                "1, d(t-1), VIX(t-1)": (d[1:], np.column_stack([np.ones(sc.n - 1), d[:-1], vix_prev[1:]])),
                 "1, d(t-1), implied variance(t-1)": (d[1:], np.column_stack([np.ones(sc.n - 1), d[:-1], iv[:-1]])),
             }
+            ok = np.isfinite(vix_prev[1:])
+            sets["1, d(t-1), VIX(t-1) (days with a VIX value)"] = (d[1:][ok], np.column_stack([np.ones(sc.n - 1), d[:-1], vix_prev[1:]])[ok])
             for lab, (dd, H) in sets.items():
                 g = T.gw_test(dd, H, hac_lag)
                 rows.append(dict(family=fam, loss=loss, baseline=BASE, forecast=name, **info, instruments=lab, q=g["q"], stat=g["stat"], p=g["p"], n_days=g["n"], hac_lag=hac_lag))
@@ -465,18 +461,31 @@ def stability_rows(sc: Scorer, fam: str, trees: dict[str, dict], vix_prev: np.nd
     early = set(pd.to_datetime(list(asl.EARLY_CLOSE_DATES)))
     is_fomc = np.asarray(days.isin(list(fomc)))
     is_early = np.asarray(days.isin(list(early)))
-    hi = vix_prev >= np.median(vix_prev)
+    okv = np.isfinite(vix_prev)
+    vmed = np.median(vix_prev[okv])
+    iv_prev = np.concatenate([[np.nan], sc.dk["iv_var"].to_numpy(float)[:-1]])
+    oki = np.isfinite(iv_prev)
+    imed = np.median(iv_prev[oki])
     late = np.asarray(days >= SPLIT_DATE)
+    all_days = np.ones(sc.n, bool)
     subsets = {
-        "all 866 trade days": np.ones(sc.n, bool),
+        "all 866 trade days": all_days,
         "2020-2021": ~late,
         "2022-2024": late,
-        "previous-day VIX at or above its median": hi,
-        "previous-day VIX below its median": ~hi,
+        "previous-day VIX at or above its median": okv & (vix_prev >= vmed),
+        "previous-day VIX below its median": okv & (vix_prev < vmed),
+        "previous trade day implied variance at or above its median": oki & (iv_prev >= imed),
+        "previous trade day implied variance below its median": oki & (iv_prev < imed),
         "FOMC days excluded (flags end 2023-11-01)": ~is_fomc,
         "early-close days excluded": ~is_early,
     }
-    splits = {"2022-2024 vs 2020-2021": late, "VIX high vs low": hi, "FOMC day vs other days": is_fomc}
+    # (rows used, group dummy)
+    splits = {
+        "2022-2024 vs 2020-2021": (all_days, late),
+        "VIX high vs low": (okv, vix_prev >= vmed),
+        "implied variance high vs low": (oki, iv_prev >= imed),
+        "FOMC day vs other days": (all_days, is_fomc),
+    }
     rows = []
     for loss in LOSSES:
         La = sc.loss(loss, BASE)
@@ -487,10 +496,10 @@ def stability_rows(sc: Scorer, fam: str, trees: dict[str, dict], vix_prev: np.nd
                 r = dm_test(La[m], Lt[m])
                 rows.append(dict(family=fam, loss=loss, forecast=name, **info, subset=lab, n_days=int(m.sum()), mean_linear=float(La[m].mean()), mean_tree=float(Lt[m].mean()),
                                  mean_d=r["mean_diff"], dm=r["dm"], p_two=r["p"], p_one=T.norm_sf(r["dm"]), lag=r["hac_lag"]))
-            for lab, D in splits.items():
-                b, V, _ = T.ols_hac(d, np.column_stack([np.ones(sc.n), D.astype(float)]), hac_lag)
+            for lab, (ok, D) in splits.items():
+                b, V, _ = T.ols_hac(d[ok], np.column_stack([np.ones(int(ok.sum())), D[ok].astype(float)]), hac_lag)
                 t = b[1] / math.sqrt(V[1, 1])
-                rows.append(dict(family=fam, loss=loss, forecast=name, **info, subset=f"difference in mean d: {lab}", n_days=sc.n, n_in_group=int(D.sum()),
+                rows.append(dict(family=fam, loss=loss, forecast=name, **info, subset=f"difference in mean d: {lab}", n_days=int(ok.sum()), n_in_group=int(D[ok].sum()),
                                  mean_d=float(b[1]), dm=t, p_two=2 * T.norm_sf(abs(t)), lag=hac_lag))
     return rows
 
@@ -557,21 +566,14 @@ def within_day_rows() -> list[dict]:
 
 
 def bar_column_rows() -> list[dict]:
-    """What the other agent records about the use of bar_end_minute (any CSV in trees_kfull naming it)."""
-    rows = []
-    if not KFULL.is_dir():
-        return rows
-    for f in sorted(KFULL.glob("*.csv")):
-        try:
-            df = pd.read_csv(f)
-        except Exception:  # noqa: BLE001
-            continue
-        txt = " ".join(map(str, df.columns)).lower()
-        if "bar_end_minute" in txt or "barcol" in txt or "bar_column" in txt or ("feature" in txt and (df.astype(str) == "bar_end_minute").any().any()):
-            df = df.copy()
-            df.insert(0, "source_file", str(f.relative_to(REPO)))
-            rows.extend(df.to_dict("records"))
-    return rows
+    """What the other agent records about the use of bar_end_minute (and hour): trees_kfull/bar_column_by_k.csv,
+    over the seeds and refits of each k (split count, split share, gain share, gain rank among the columns kept)."""
+    f = KFULL / "bar_column_by_k.csv"
+    if not f.is_file():
+        return []
+    df = pd.read_csv(f)
+    df.insert(0, "source_file", str(f.relative_to(REPO)) if f.is_relative_to(REPO) else str(f))
+    return df.to_dict("records")
 
 
 # ============================================================================ run
@@ -585,8 +587,8 @@ def run(which: str = "auto") -> None:  # noqa: C901 - one linear driver
         which = "full" if complete else "existing"
     if which == "full":
         assert complete, "the manifest does not list every k = 1 .. 13 x seeds 42 / 43 / 44 yet"
-    # interim = the ladder's stored forecasts only; existing / full = the ladder plus every manifest file on disk
-    rows = interim_arms() + ([] if which == "interim" else [r for r in mrows if r["path"].is_file()])
+    # interim = the ladder's stored forecasts only; existing / full = every manifest file on disk (the manifest lists the stored ones too)
+    rows = interim_arms() if (which == "interim" or not mrows) else [r for r in mrows if r["path"].is_file()]
     fams = families(rows)
     nk = {f: len(v) for f, v in fams.items()}
     primary = "bar" if ("bar" in fams and nk["bar"] >= nk.get("nobar", 0)) else "nobar"
@@ -757,7 +759,7 @@ def run(which: str = "auto") -> None:  # noqa: C901 - one linear driver
 
     info = dict(
         set=which,
-        manifest=str(MANIFEST.relative_to(REPO)),
+        manifest=str(MANIFEST.relative_to(REPO)) if MANIFEST.is_relative_to(REPO) else str(MANIFEST),
         manifest_present=manifest is not None,
         manifest_rows=0 if manifest is None else len(manifest),
         manifest_complete=complete,
@@ -772,7 +774,10 @@ def run(which: str = "auto") -> None:  # noqa: C901 - one linear driver
         fomc_flags_last=str(fomc_last.date()),
         fomc_days_in_trade_days=int(np.asarray(sc.days.isin(list(fomc))).sum()),
         early_close_days_in_trade_days=int(np.asarray(sc.days.isin(list(pd.to_datetime(list(asl.EARLY_CLOSE_DATES))))).sum()),
-        vix_median=float(np.median(vix_prev)),
+        vix_median=float(np.nanmedian(vix_prev)),
+        vix_days=int(np.isfinite(vix_prev).sum()),
+        vix_last_day_with_previous_value=str(sc.days[np.isfinite(vix_prev)][-1].date()),
+        iv_prev_median=float(np.median(sc.dk["iv_var"].to_numpy(float)[:-1])),
         boot=dict(kind="stationary bootstrap (Politis-Romano)", B=B_BOOT, mean_blocks=list(MEAN_BLOCKS), main=MAIN_BLOCK, seed=BOOT_SEED),
         cpu_sec=time.process_time() - c0,
         wall_sec=time.time() - t0,
@@ -870,7 +875,7 @@ def summary() -> None:  # noqa: C901 - one linear report
         g = d2[d2.baseline == base].set_index("forecast")
         w(f"| {base} | {_f(g.mean_linear.iloc[0])} | " + " | ".join(f"{g.loc[nm, 'dm']:.2f}" for nm in order) + " |")
     w("")
-    sgl = d0[(d0.lag_rule == "auto") & d0.forecast.str.contains(":s")]
+    sgl = d0[(d0.lag_rule == "auto") & d0.forecast.str.contains(":s") & ~d0.forecast.str.startswith("extra")]
     if len(sgl):
         w("Single seeds (QLIKE, automatic lag): " + "; ".join(f"k = {int(r.k)} seed {r.seed}: DM {r.dm:.2f}" for r in sgl.sort_values(["k", "seed"]).itertuples()) + ".")
         ex = dm[(dm.forecast.str.startswith("extra")) & (dm.loss == "qlike") & (dm.baseline == BASE) & (dm.lag_rule == "auto")]
@@ -892,11 +897,13 @@ def summary() -> None:  # noqa: C901 - one linear report
             g = g0[(g0.loss == loss) & (g0.forecast == nm)].set_index("instruments")
             w(f"| {labs[nm]} | " + " | ".join(f"{g.loc[i, 'stat']:.2f} ({_p(g.loc[i, 'p'])})" for i in insts) + " |")
     w("")
-    w(f"Conditional sets use trade days 2 .. {info['n_trade_days']} (d(t-1) is the previous trade day's d; the deck's trade days are not every session). VIX(t-1) = VIX at the bar ending 16:00 of the previous session; implied variance(t-1) = the deck's iv_var on the previous trade day.")
+    w(f"Conditional sets use trade days 2 .. {info['n_trade_days']} (d(t-1) is the previous trade day's d; the deck's trade days are not every session); implied variance(t-1) = the deck's iv_var on the previous trade day; "
+      f"VIX(t-1) = VIX at the bar ending 16:00 of the previous session, on the {int(g0[g0.instruments.str.startswith('1, d(t-1), VIX')].n_days.iloc[0])} days with a value (the VIX file ends 2024-02-12).")
     w("")
 
     # ---------------- multiple
     w("## 3. Multiple comparisons across k (against the ridge)")
+    w("SPA and Reality Check: H0 max over k of E[d(k)] <= 0 (no pool has lower expected loss than the ridge); d(k) for the seed-averaged forecast of each k.")
     for loss in LOSSES:
         m = mult[(mult.family == fam) & (mult.loss == loss)]
         spa = m[(m.test.str.startswith("SPA"))].set_index("mean_block")
@@ -906,7 +913,7 @@ def summary() -> None:  # noqa: C901 - one linear report
           + "; ".join(f"block {int(b)}: {_p(spa.loc[b, 'p_consistent'])} / {_p(spa.loc[b, 'p_lower'])} / {_p(spa.loc[b, 'p_upper'])}" for b in spa.index if b != b0)
           + f". Reality Check p = {_p(rc.loc[b0, 'p_upper'])} (block {b0}); " + ", ".join(f"block {int(b)} {_p(rc.loc[b, 'p_upper'])}" for b in rc.index if b != b0) + ".")
         h = m[m.test.str.startswith("Holm") & m.test.str.contains("one-sided")].set_index("forecast")
-        w(f"  Holm-Bonferroni, one-sided DM p (automatic lag), adjusted: " + "; ".join(f"k = {labs[nm]} {_p(h.loc[nm, 'p_holm'])}" for nm in order if nm in h.index) + f"; smallest adjusted {_p(h.p_holm.min())}.")
+        w("  Holm-Bonferroni, one-sided DM p (automatic lag), adjusted: " + "; ".join(f"k = {labs[nm]} {_p(h.loc[nm, 'p_holm'])}" for nm in order if nm in h.index) + f"; smallest adjusted {_p(h.p_holm.min())}.")
     w("")
     w(f"Model confidence set over {{ridge_bb0, lasso_bb0, every tree pool}} (T_max rule of `src/evaluation/model_confidence_set.py`, stationary bootstrap, mean block {info['boot']['main']}):")
     w("")
@@ -982,7 +989,9 @@ def summary() -> None:  # noqa: C901 - one linear report
         f"{x.removeprefix('difference in mean d: ')}: " + ", ".join(f"k = {labs[nm]} {s1[(s1.subset == x) & (s1.forecast == nm)].dm.iloc[0]:.2f}" for nm in order) for x in diffs) + ".")
     w("")
     w(f"FOMC flags in `data/releases.parquet` stop at {info['fomc_flags_last']}, so FOMC days after that date stay in the 'FOMC days excluded' subset; {info['fomc_days_in_trade_days']} flagged FOMC days are trade days. "
-      f"Early-close days among the trade days: {info['early_close_days_in_trade_days']} (the 15:30 straddle deck has none), so that subset equals the full sample. VIX median split at {info['vix_median']:.2f}.")
+      f"Early-close days among the trade days: {info['early_close_days_in_trade_days']} (the 15:30 straddle deck has none), so that subset equals the full sample. "
+      f"VIX median split at {info['vix_median']:.2f} on the {info['vix_days']} trade days whose previous session has a VIX value (`data/vix_and_voldemand.parquet` ends 2024-02-12; last such trade day {info['vix_last_day_with_previous_value']}); "
+      f"the implied-variance split uses the deck's iv_var of the previous trade day (median {info['iv_prev_median']:.3e}) on trade days 2 .. {info['n_trade_days']}.")
     w("")
 
     # ---------------- calibration
@@ -1009,7 +1018,7 @@ def summary() -> None:  # noqa: C901 - one linear report
         sd = f"{r.qlike_seed_sd:.4f}" if np.isfinite(r.qlike_seed_sd) else "one seed"
         step = f"{r.qlike_step:+.4f} (k = {int(r.previous_k)})" if np.isfinite(r.previous_k) else ""
         sdt = _f(r.qlike_sd_of_the_two_ends) if np.isfinite(r.previous_k) else ""
-        ex = "" if not np.isfinite(r.previous_k) else str(r.qlike_step_exceeds_sd)
+        ex = "" if not (np.isfinite(r.previous_k) and np.isfinite(r.qlike_sd_of_the_two_ends)) else str(r.qlike_step_exceeds_sd)
         dms = f"{r.qlike_step_dm:.2f}" if np.isfinite(r.previous_k) else ""
         w(f"| {r.k} | {r.seeds} | {each} | {r.qlike_seed_mean:.4f} ({sd}) | {r.qlike_of_seed_average:.4f} | {step} | {sdt} | {ex} | {dms} |")
     w("")
@@ -1019,15 +1028,22 @@ def summary() -> None:  # noqa: C901 - one linear report
     # ---------------- bar column
     w("## 8. Use of the bar column (bar_end_minute)")
     if len(bc):
-        w(f"From {', '.join(sorted(set(bc.source_file)))} ({len(bc)} rows, copied to bar_column.csv):")
+        w(f"From `{bc.source_file.iloc[0]}` (the other agent's record, written by `experiments/close_trees_kfull.py`; copied to bar_column.csv): at every refit the booster's split count and gain of each column; "
+          "share = the column's splits (gain) over all splits (gain) of that fit; rank 1 = most gain among the columns the fit kept; over the seeds and refits of each k.")
         w("")
-        cols = [x for x in bc.columns if x != "source_file"]
-        w("| " + " | ".join(cols) + " |")
-        w("|" + "---|" * len(cols))
-        for r in bc[cols].itertuples(index=False):
-            w("| " + " | ".join(f"{v:.4g}" if isinstance(v, float) else str(v) for v in r) + " |")
+        w("| family | k | column | arms | refits | % refits with a split | mean splits | split share | gain share mean (min .. max) | gain rank median (best .. worst) | columns kept (median) |")
+        w("|---|---|---|---|---|---|---|---|---|---|---|")
+        for r in bc.sort_values(["family", "column", "k"]).itertuples():
+            w(f"| {r.family} | {int(r.k)} | {r.column} | {int(r.arms)} | {int(r.refits)} | {r.pct_refits_split:.1f} | {r.splits_mean:.1f} | {r.split_share_mean:.4f} | {r.gain_share_mean:.4f} ({r.gain_share_min:.4f} .. {r.gain_share_max:.4f}) | "
+              f"{_f(r.rank_gain_median, 0)} ({_f(r.rank_gain_best, 0)} .. {_f(r.rank_gain_worst, 0)}) | {_f(r.n_columns_kept_median, 0)} |")
+        w("")
+        bm = bc[bc.column == "bar_end_minute"]
+        never = sorted(int(k) for k in bm[bm.pct_refits_split == 0].k)
+        w(("bar_end_minute: no split in any refit at k = " + ", ".join(map(str, never)) + ". ") if never else
+          f"bar_end_minute: split on in {bm.pct_refits_split.min():.1f} .. {bm.pct_refits_split.max():.1f} % of the refits across k = {', '.join(str(int(k)) for k in sorted(bm.k))}; no k without a split. ")
+        w("")
     else:
-        w("No record of split counts / gain of bar_end_minute was found in `results/close_studies_2026-10-03/trees_kfull/` when the script ran.")
+        w("`results/close_studies_2026-10-03/trees_kfull/bar_column_by_k.csv` did not exist when the script ran (the other agent writes it from the importances of its new forecast files).")
     w("")
 
     # ---------------- within-day

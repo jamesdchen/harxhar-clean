@@ -1,0 +1,67 @@
+{
+ "set": "existing",
+ "manifest": "results/close_studies_2026-10-03/trees_kfull/manifest.csv",
+ "manifest_present": true,
+ "manifest_rows": 68,
+ "manifest_complete": false,
+ "primary_family": "nobar",
+ "families": {
+  "nobar": {
+   "1": [
+    42,
+    43
+   ],
+   "2": [
+    42,
+    43
+   ],
+   "3": [
+    42,
+    43
+   ],
+   "4": [
+    42,
+    43
+   ],
+   "5": [
+    42
+   ],
+   "7": [
+    42
+   ],
+   "13": [
+    42,
+    43
+   ]
+  }
+ },
+ "kstar": {
+  "nobar": 1
+ },
+ "n_trade_days": 866,
+ "first_trade_day": "2020-01-03",
+ "last_trade_day": "2024-04-30",
+ "dm_auto_lag": 6,
+ "newey_west_lag": 14,
+ "fomc_flags_last": "2023-11-01",
+ "fomc_days_in_trade_days": 29,
+ "early_close_days_in_trade_days": 0,
+ "vix_median": 20.82,
+ "vix_days": 813,
+ "vix_last_day_with_previous_value": "2024-02-13",
+ "iv_prev_median": 5.678149261542432e-06,
+ "boot": {
+  "kind": "stationary bootstrap (Politis-Romano)",
+  "B": 10000,
+  "mean_blocks": [
+   10,
+   5,
+   21
+  ],
+  "main": 10,
+  "seed": 20261004
+ },
+ "cpu_sec": 15.725723759,
+ "wall_sec": 20.319051265716553,
+ "written": "2026-10-04 07:14:35"
+}
