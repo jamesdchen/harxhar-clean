@@ -8,5 +8,6 @@ stored lgbm_bars13_r26000_barmin.npz: params = the spec rule at 26000 rows,1.0,1
 stored lgbm_bars13_r26000_barmin.npz: random_state = the spec's 42 (no seed field = the spec's),1.0,1.0,True,absent,0.0
 "lgbm_bars13_r26000_barmin_seed42: first 3 refits redone here vs stored lgbm_bars13_r26000_barmin.npz (30 forecasts), max |difference|",0.0,0.0,True,"bitwise True, 37s",0.0
 "lgbm_bars13_r26000_barmin_seed42: importances recorded at each of the 3 refits, bar column kept by the window mask",1.0,1.0,True,"bar_end_minute splits 39 / 33 / 33, gain share 0.0010 / 0.0010 / 0.0009",0.0
-lgbm_bars4_r8000 re-scored here: QLIKE = the stored 0.0974 (rounded) and = trees_morebars/arms.csv,0.09743438606238305,0.097434386062383,True,"0.097434, 866 trade days",5.551115123125783e-17
+lgbm_bars4_r8000 re-scored here: QLIKE = the stored 0.0974 (rounded) and = trees_morebars/arms.csv,0.097434386062383,0.097434386062383,True,"0.097434, 866 trade days",5.551115123125783e-17
 lgbm_bars4_r8000 re-scored here: Sharpe mid = the stored 1.63 (rounded) and = trees_morebars/arms.csv,1.6320982412237508,1.6320982412237537,True,1.6321,2.886579864025407e-15
+"lgbm_bars13_r26000_barmin_seed42: whole arm refitted here vs stored lgbm_bars13_r26000_barmin (1339 forecasts), max |difference|",0.0,0.0,True,,0.0

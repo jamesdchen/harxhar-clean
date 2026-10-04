@@ -21,7 +21,8 @@ The experiment: a linear model trained on the 16:00 bar against LightGBM trained
 - lgbm_bars13_r26000_barmin_seed42: importances recorded at each of the 3 refits, bar column kept by the window mask: 1 vs 1 (bar_end_minute splits 39 / 33 / 33, gain share 0.0010 / 0.0010 / 0.0009) PASS
 - lgbm_bars4_r8000 re-scored here: QLIKE = the stored 0.0974 (rounded) and = trees_morebars/arms.csv: 0.0974344 vs 0.0974344 (0.097434, 866 trade days) PASS
 - lgbm_bars4_r8000 re-scored here: Sharpe mid = the stored 1.63 (rounded) and = trees_morebars/arms.csv: 1.6321 vs 1.6321 (1.6321) PASS
-- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 13 pass, none fail.
+- lgbm_bars13_r26000_barmin_seed42: whole arm refitted here vs stored lgbm_bars13_r26000_barmin (1339 forecasts), max |difference|: 0 vs 0 PASS
+- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 17 pass, none fail.
 
 ## QLIKE and Sharpe for each k: seed mean +- sd
 
@@ -39,11 +40,22 @@ Main spec = k = 1 without a column, k >= 2 with `bar_end_minute`. sd over the se
 | 8 | 16000 |  |  |  |  |  |  |  |
 | 9 | 18000 |  |  |  |  |  |  |  |
 | 10 | 20000 |  |  |  |  |  |  |  |
-| 11 | 22000 |  |  |  |  |  |  |  |
+| 11 | 22000 | 42 43 | 0.1005 +- 0.0001 | 0.1006 / 0.1004 / - | 1.33 +- 0.18 |  |  |  |
 | 12 | 24000 |  |  |  |  |  |  |  |
-| 13 | 26000 | 42 | 0.1015 | 0.1015 / - / - | 1.57 | 42 43 | 0.1016 +- 0.0003 | 1.63 +- 0.07 |
+| 13 | 26000 | 42 43 | 0.1018 +- 0.0005 | 0.1015 / 0.1022 / - | 1.70 +- 0.18 | 42 43 | 0.1016 +- 0.0003 | 1.63 +- 0.07 |
 
 Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `ridge_bars1_r2000` (ridge) QLIKE 0.1004, Sharpe mid 1.66; `lasso_bars1_r2000` (lasso) QLIKE 0.0998, Sharpe mid 1.45; `ridge_bb0` (ridge) QLIKE 0.0946, Sharpe mid 1.50.
+
+## Bar-column use for each k (over the seeds and refits present)
+
+| family | k | column | arms | refits | refits with a split % | splits (mean) | split share (mean) | gain share mean (min .. max) | rank by gain: median (best .. worst) | columns seen (median) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| main | 11 | `bar_end_minute` | 2 | 268 | 99.6 | 6.9 | 0.0009 | 0.0001 (0.0000 .. 0.0004) | 222 (71 .. 356) | 381 |
+| main | 13 | `bar_end_minute` | 2 | 268 | 100.0 | 37.0 | 0.0050 | 0.0008 (0.0005 .. 0.0013) | 40 (31 .. 55) | 382 |
+| main | 11 | `hour` | 2 | 268 | 98.5 | 4.5 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 294 (94 .. 354) | 381 |
+| main | 13 | `hour` | 2 | 268 | 100.0 | 12.0 | 0.0016 | 0.0003 (0.0001 .. 0.0005) | 110 (56 .. 304) | 382 |
+
+Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv`.
 
 ## Each arm
 
@@ -51,7 +63,11 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 |---|---|---|---|---|---|---|---|---|---|---|
 | `lgbm_bars1_r2000` | main | 1 | no | 42 | stored (trees_datasize lgbm_bar1600_w2000) | 0.1007 | 1.99 | 1.52 | 38.7 | 21.3 |
 | `lgbm_bars1_r2000_seed43` | main | 1 | no | 43 | stored (trees_morebars) | 0.1000 | 2.05 | 1.58 | 38.7 | 13.6 |
-| `lgbm_bars13_r26000_barmin` | main | 13 | yes | 42 | stored (trees_morebars); refitted here as lgbm_bars13_r26000_barmin_seed42 | 0.1015 | 1.57 | 1.09 | 31.9 | 29.8 |
+| `lgbm_bars11_r22000_barmin_seed42` | main | 11 | yes | 42 | new | 0.1006 | 1.21 | 0.73 | 30.9 | 24.5 |
+| `lgbm_bars11_r22000_barmin_seed43` | main | 11 | yes | 43 | new | 0.1004 | 1.46 | 0.98 | 31.2 | 24.5 |
+| `lgbm_bars13_r26000_barmin_seed42` | main | 13 | yes | 42 | new | 0.1015 | 1.57 | 1.09 | 31.9 | 27.3 |
+| `lgbm_bars13_r26000_barmin_seed43` | main | 13 | yes | 43 | new | 0.1022 | 1.82 | 1.35 | 32.4 | 27.4 |
+| `lgbm_bars13_r26000_barmin` | main | 13 | yes | 42 | stored (trees_morebars); refitted here as lgbm_bars13_r26000_barmin_seed42 (not primary) | 0.1015 | 1.57 | 1.09 | 31.9 | 29.8 |
 | `lgbm_bars2_r4000` | no_bar_column | 2 | no | 42 | stored (trees_datasize lgbm_pool_w4000) | 0.0982 | 1.95 | 1.48 | 37.0 | 22.6 |
 | `lgbm_bars3_r6000` | no_bar_column | 3 | no | 42 | stored (trees_morebars) | 0.0975 | 1.03 | 0.55 | 33.9 | 16.1 |
 | `lgbm_bars4_r8000` | no_bar_column | 4 | no | 42 | stored (trees_morebars) | 0.0974 | 1.63 | 1.16 | 33.6 | 18.1 |
@@ -67,7 +83,7 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 | `ridge_bb0` | linear_1600 | 1 | no |  | stored (exog_penalty ridge_bb0: HAR + calendar backbone unpenalized) | 0.0946 | 1.50 | 1.03 | 35.8 | 0.1 |
 
 ## Not run
-- Arms of the plan without a forecast file: `lgbm_bars1_r2000_seed44`, `lgbm_bars2_r4000_barmin_seed42`, `lgbm_bars2_r4000_barmin_seed43`, `lgbm_bars2_r4000_barmin_seed44`, `lgbm_bars3_r6000_barmin_seed42`, `lgbm_bars3_r6000_barmin_seed43`, `lgbm_bars3_r6000_barmin_seed44`, `lgbm_bars4_r8000_barmin_seed42`, `lgbm_bars4_r8000_barmin_seed43`, `lgbm_bars4_r8000_barmin_seed44`, `lgbm_bars5_r10000_barmin_seed42`, `lgbm_bars5_r10000_barmin_seed43`, `lgbm_bars5_r10000_barmin_seed44`, `lgbm_bars6_r12000_barmin_seed42`, `lgbm_bars6_r12000_barmin_seed43`, `lgbm_bars6_r12000_barmin_seed44`, `lgbm_bars7_r14000_barmin_seed42`, `lgbm_bars7_r14000_barmin_seed43`, `lgbm_bars7_r14000_barmin_seed44`, `lgbm_bars8_r16000_barmin_seed42`, `lgbm_bars8_r16000_barmin_seed43`, `lgbm_bars8_r16000_barmin_seed44`, `lgbm_bars9_r18000_barmin_seed42`, `lgbm_bars9_r18000_barmin_seed43`, `lgbm_bars9_r18000_barmin_seed44`, `lgbm_bars10_r20000_barmin_seed42`, `lgbm_bars10_r20000_barmin_seed43`, `lgbm_bars10_r20000_barmin_seed44`, `lgbm_bars11_r22000_barmin_seed42`, `lgbm_bars11_r22000_barmin_seed43`, `lgbm_bars11_r22000_barmin_seed44`, `lgbm_bars12_r24000_barmin_seed42`, `lgbm_bars12_r24000_barmin_seed43`, `lgbm_bars12_r24000_barmin_seed44`, `lgbm_bars13_r26000_barmin_seed42`, `lgbm_bars13_r26000_barmin_seed43`, `lgbm_bars13_r26000_barmin_seed44`, `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
+- Arms of the plan without a forecast file: `lgbm_bars1_r2000_seed44`, `lgbm_bars2_r4000_barmin_seed42`, `lgbm_bars2_r4000_barmin_seed43`, `lgbm_bars2_r4000_barmin_seed44`, `lgbm_bars3_r6000_barmin_seed42`, `lgbm_bars3_r6000_barmin_seed43`, `lgbm_bars3_r6000_barmin_seed44`, `lgbm_bars4_r8000_barmin_seed42`, `lgbm_bars4_r8000_barmin_seed43`, `lgbm_bars4_r8000_barmin_seed44`, `lgbm_bars5_r10000_barmin_seed42`, `lgbm_bars5_r10000_barmin_seed43`, `lgbm_bars5_r10000_barmin_seed44`, `lgbm_bars6_r12000_barmin_seed42`, `lgbm_bars6_r12000_barmin_seed43`, `lgbm_bars6_r12000_barmin_seed44`, `lgbm_bars7_r14000_barmin_seed42`, `lgbm_bars7_r14000_barmin_seed43`, `lgbm_bars7_r14000_barmin_seed44`, `lgbm_bars8_r16000_barmin_seed42`, `lgbm_bars8_r16000_barmin_seed43`, `lgbm_bars8_r16000_barmin_seed44`, `lgbm_bars9_r18000_barmin_seed42`, `lgbm_bars9_r18000_barmin_seed43`, `lgbm_bars9_r18000_barmin_seed44`, `lgbm_bars10_r20000_barmin_seed42`, `lgbm_bars10_r20000_barmin_seed43`, `lgbm_bars10_r20000_barmin_seed44`, `lgbm_bars11_r22000_barmin_seed44`, `lgbm_bars12_r24000_barmin_seed42`, `lgbm_bars12_r24000_barmin_seed43`, `lgbm_bars12_r24000_barmin_seed44`, `lgbm_bars13_r26000_barmin_seed44`, `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
 
 ## Caveats
 - The leaf minimum, the rows and the bars change together along k (the spec's rule); each design has its own rolling scaling (close_trees_morebars SUMMARY).
@@ -78,4 +94,4 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 ## Files
 - `experiments/close_trees_kfull.py` (stages gate / run / manifest; machinery from `experiments/close_trees_morebars.py` and `experiments/close_trees_datasize.py`)
 - `manifest.csv` (every forecast file: family, k, rows, bar column, seed, primary, path, configuration, check), `arms.csv` (manifest + scores), `seeds.csv`, `bar_column_refits.csv`, `bar_column_arms.csv`, `bar_column_by_k.csv`, `gate.csv`; new forecasts in `_work/<arm>.npz` (not committed)
-- CPU: 0 min over the 0 arms fitted here (single-threaded, at most four at once).
+- CPU: 104 min over the 4 arms fitted here (single-threaded, at most four at once).
