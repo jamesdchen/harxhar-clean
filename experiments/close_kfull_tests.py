@@ -831,8 +831,13 @@ def summary() -> None:  # noqa: C901 - one linear report
     for f, kd in info["families"].items():
         w(f"- Family `{f}` ({FAM_LABEL[f]}): " + "; ".join(f"k = {k}: seeds {'/'.join(map(str, v))}" for k, v in kd.items()) + ("  (primary)" if f == fam else ""))
     if not full:
-        w("- This is the set that existed when the script ran: k = 6 and 8 .. 12, the bar-column arms for k = 2 .. 12 and seed 44 were not there yet. "
-          "For each k the tested forecast is the average of the seeds listed (one seed for some k).")
+        # what is missing from the main design (k = 1 .. 13 x seeds 42 / 43 / 44, bar column for k > 1), read from the set itself
+        have = {int(k): [int(x) for x in v] for k, v in info["families"].get("bar", {}).items()}
+        missing = [f"k = {k}" + ("" if k in have else " (all seeds)") + (f" seeds {'/'.join(str(s) for s in SEEDS if s not in have.get(k, []))}" if k in have else "")
+                   for k in KS if sorted(have.get(k, [])) != sorted(SEEDS)]
+        w("- This is the set that existed when the script ran"
+          + (f"; missing from the main design: {'; '.join(missing)}. " if missing else "; the main design (bar column, k = 1 .. 13, seeds 42 / 43 / 44) is complete, and the manifest's other planned arms (no bar column) were still running. ")
+          + "For each k the tested forecast is the average of the seeds listed.")
     w(f"- Linear baseline: `ridge_bb0` (ridge, HAR + calendar unpenalized; QLIKE {_f(inv.set_index('forecast').loc['ridge_bb0', 'qlike'])}); secondary `lasso_bb0`, `ridge_single`, `lasso_single`.")
     w(f"- Scorer: research convention (16:00-bar recalibration (f^2 + s) B from each forecast's own errors), {info['n_trade_days']} trade days {info['first_trade_day']} .. {info['last_trade_day']}, one loss a day. "
       "For each k, the seed forecasts are averaged on the adjusted scale and the average is scored. Losses: QLIKE (primary), MSE on the variance level. d = L_linear - L_tree, positive = the tree has lower loss.")

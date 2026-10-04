@@ -1,41 +1,105 @@
 family,loss,test,mean_block,B,stat,p_consistent,p_lower,p_upper,best,n_models,forecast,p_raw,p_holm
-nobar,qlike,SPA (Hansen 2005),10.0,10000.0,0.0,0.723,0.2415,0.723,nobar:k3,7,,,
-nobar,qlike,Reality Check (White 2000),10.0,10000.0,-0.08724809055278937,,,0.941,nobar:k4,7,,,
-nobar,qlike,SPA (Hansen 2005),5.0,10000.0,0.0,0.7114,0.2445,0.7114,nobar:k3,7,,,
-nobar,qlike,Reality Check (White 2000),5.0,10000.0,-0.08724809055278937,,,0.9339,nobar:k4,7,,,
-nobar,qlike,SPA (Hansen 2005),21.0,10000.0,0.0,0.7376,0.2199,0.7376,nobar:k3,7,,,
-nobar,qlike,Reality Check (White 2000),21.0,10000.0,-0.08724809055278937,,,0.9559,nobar:k4,7,,,
-nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.9476839233338646,1.0
+nobar,qlike,SPA (Hansen 2005),10.0,10000.0,0.0,0.7235,0.2445,0.7235,nobar:k3,7,,,
+nobar,qlike,Reality Check (White 2000),10.0,10000.0,-0.08724809055278937,,,0.9422,nobar:k4,7,,,
+nobar,qlike,SPA (Hansen 2005),5.0,10000.0,0.0,0.7119,0.2484,0.7119,nobar:k3,7,,,
+nobar,qlike,Reality Check (White 2000),5.0,10000.0,-0.08724809055278937,,,0.9348,nobar:k4,7,,,
+nobar,qlike,SPA (Hansen 2005),21.0,10000.0,0.0,0.7362,0.2219,0.7362,nobar:k3,7,,,
+nobar,qlike,Reality Check (White 2000),21.0,10000.0,-0.08724809055278937,,,0.957,nobar:k4,7,,,
+nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.9358054481667196,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k2,0.8757861414911677,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k3,0.7931032171152803,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k4,0.8021271624030147,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k5,0.858368754009314,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k7,0.8989414457515508,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k13,0.9520485531708347,1.0
-nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.10463215333227069,0.6713202556083152
+nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.1283891036665608,0.7703346219993649
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k2,0.24842771701766453,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k3,0.41379356576943926,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k4,0.3957456751939705,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k5,0.28326249198137204,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k7,0.2021171084968984,1.0
 nobar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k13,0.09590289365833074,0.6713202556083152
-nobar,mse,SPA (Hansen 2005),10.0,10000.0,1.034447628428225,0.4035,0.2369,0.4035,nobar:k7,7,,,
-nobar,mse,Reality Check (White 2000),10.0,10000.0,4.876423756617735e-09,,,0.5381,nobar:k7,7,,,
-nobar,mse,SPA (Hansen 2005),5.0,10000.0,1.1005991498395855,0.3183,0.2261,0.3183,nobar:k7,7,,,
-nobar,mse,Reality Check (White 2000),5.0,10000.0,4.876423756617735e-09,,,0.5418,nobar:k7,7,,,
-nobar,mse,SPA (Hansen 2005),21.0,10000.0,1.0367087092289518,0.4654,0.2302,0.4654,nobar:k7,7,,,
-nobar,mse,Reality Check (White 2000),21.0,10000.0,4.876423756617735e-09,,,0.5414,nobar:k7,7,,,
-nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.8911139781799486,1.0
+nobar,mse,SPA (Hansen 2005),10.0,10000.0,1.034447628428225,0.4027,0.2369,0.4027,nobar:k7,7,,,
+nobar,mse,Reality Check (White 2000),10.0,10000.0,4.876423756617735e-09,,,0.5333,nobar:k7,7,,,
+nobar,mse,SPA (Hansen 2005),5.0,10000.0,1.1005991498395855,0.3121,0.2261,0.3121,nobar:k7,7,,,
+nobar,mse,Reality Check (White 2000),5.0,10000.0,4.876423756617735e-09,,,0.535,nobar:k7,7,,,
+nobar,mse,SPA (Hansen 2005),21.0,10000.0,1.0367087092289518,0.4652,0.2302,0.4652,nobar:k7,7,,,
+nobar,mse,Reality Check (White 2000),21.0,10000.0,4.876423756617735e-09,,,0.5386,nobar:k7,7,,,
+nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.8811425206315632,1.0
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k2,0.8352462286627791,1.0
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k3,0.1969802859680635,0.9849014298403175
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k4,0.20988644245129773,0.9849014298403175
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k5,0.1496090335473513,0.9251946880009224
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k7,0.1321706697144175,0.9251946880009224
 nobar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,7,nobar:k13,0.2979433038955372,0.9849014298403175
-nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.21777204364010266,1.0
+nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k1,0.23771495873687365,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k2,0.32950754267444193,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k3,0.393960571936127,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k4,0.41977288490259546,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k5,0.2992180670947026,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k7,0.264341339428835,1.0
 nobar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,7,nobar:k13,0.5958866077910744,1.0
+bar,qlike,SPA (Hansen 2005),10.0,10000.0,0.0,0.732,0.2813,0.732,bar:k3,13,,,
+bar,qlike,Reality Check (White 2000),10.0,10000.0,-0.06666639119871764,,,0.9138,bar:k3,13,,,
+bar,qlike,SPA (Hansen 2005),5.0,10000.0,0.0,0.718,0.2886,0.718,bar:k3,13,,,
+bar,qlike,Reality Check (White 2000),5.0,10000.0,-0.06666639119871764,,,0.904,bar:k3,13,,,
+bar,qlike,SPA (Hansen 2005),21.0,10000.0,0.0,0.7441,0.2639,0.7441,bar:k3,13,,,
+bar,qlike,Reality Check (White 2000),21.0,10000.0,-0.06666639119871764,,,0.9294,bar:k3,13,,,
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k1,0.9358054481667196,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k2,0.8737293457612045,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k3,0.7425497262859788,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k4,0.8214335957871417,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k5,0.785834561725846,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k6,0.8441018836800402,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k7,0.8780118312681013,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k8,0.8838023834123974,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k9,0.9404696985956669,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k10,0.9168321579354097,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k11,0.9161386628289531,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k12,0.9176503299764391,1.0
+bar,qlike,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k13,0.9460697575619915,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k1,0.1283891036665608,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k2,0.25254130847759104,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k3,0.5149005474280424,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k4,0.3571328084257165,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k5,0.42833087654830804,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k6,0.3117962326399195,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k7,0.24397633746379743,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k8,0.23239523317520544,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k9,0.11906060280866632,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k10,0.16633568412918068,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k11,0.1677226743420939,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k12,0.16469934004712167,1.0
+bar,qlike,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k13,0.10786048487601699,1.0
+bar,mse,SPA (Hansen 2005),10.0,10000.0,1.0752742688040944,0.3826,0.2365,0.3826,bar:k5,13,,,
+bar,mse,Reality Check (White 2000),10.0,10000.0,6.7644314600503855e-09,,,0.5087,bar:k6,13,,,
+bar,mse,SPA (Hansen 2005),5.0,10000.0,1.1871575240480974,0.2701,0.2231,0.2701,bar:k6,13,,,
+bar,mse,Reality Check (White 2000),5.0,10000.0,6.7644314600503855e-09,,,0.5072,bar:k6,13,,,
+bar,mse,SPA (Hansen 2005),21.0,10000.0,1.0611153825855244,0.4557,0.2288,0.4557,bar:k5,13,,,
+bar,mse,Reality Check (White 2000),21.0,10000.0,6.7644314600503855e-09,,,0.5227,bar:k6,13,,,
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k1,0.8811425206315632,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k2,0.8262733764502221,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k3,0.17809927808072354,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k4,0.16899688280746708,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k5,0.12018308318235307,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k6,0.12217309810173677,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k7,0.12225786051519566,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k8,0.13314823265701992,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k9,0.2247372602752984,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k10,0.11922678174649548,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k11,0.1309361965362129,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k12,0.12201342653135044,1.0
+bar,mse,"Holm-Bonferroni on DM p (one-sided, dm_test automatic lag)",,,,,,,,13,bar:k13,0.2921821865387878,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k1,0.23771495873687365,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k2,0.3474532470995556,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k3,0.3561985561614471,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k4,0.33799376561493416,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k5,0.24036616636470615,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k6,0.24434619620347353,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k7,0.24451572103039132,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k8,0.26629646531403983,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k9,0.4494745205505968,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k10,0.23845356349299096,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k11,0.2618723930724258,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k12,0.2440268530627009,1.0
+bar,mse,"Holm-Bonferroni on DM p (two-sided, dm_test automatic lag)",,,,,,,,13,bar:k13,0.5843643730775756,1.0

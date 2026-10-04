@@ -81,6 +81,26 @@ with LightGBM 4.7.0 / XGBoost 2.1.4 and are compared with a local control of the
   all-pools average and the equal-weight ridge + trees combination are the ones that could be fixed in
   advance.
 
+- **Full sweep and tests (2026-10-04)** (`experiments/close_trees_kfull.py`, `experiments/close_kfull_tests.py`;
+  `trees_kfull/`, `kfull_tests/SUMMARY.md`). LightGBM on the last k bars, k = 1 .. 13, with the column
+  `bar_end_minute` for k > 1, seeds 42 / 43 / 44 averaged for each k. QLIKE k = 1 .. 13: 0.0996 / 0.0982 /
+  0.0969 / 0.0980 / 0.0975 / 0.0982 / 0.0992 / 0.0994 / 0.1011 / 0.1004 / 0.1005 / 0.1009 / 0.1015; average of
+  all pools 0.0975; ridge (HAR + calendar unpenalized) 0.0946.
+  - Against the ridge: every DM negative (-0.65 .. -1.61, none significant at lags 0 .. 21 or with fixed-b
+    critical values); SPA p 0.73, Reality Check p 0.91, Holm-adjusted p 1.00 for every k; the 90 % model
+    confidence set keeps all 15 models. SPA / Reality Check / MCS use the test script's own stationary
+    bootstrap (the repo's block-bootstrap helper is off, commit b761b28).
+  - Encompassing: the pool chosen on 2019 rows (k* = 1) adds nothing to the ridge (lambda 0.04, t 0.33);
+    the average of all pools does (lambda 0.75, t 5.93 against 0 and -1.93 against 1; QLIKE moment t
+    -2.18), and the ridge adds to it (reverse moment t -4.36). Real-time combination (lambda from past
+    trade days): QLIKE 0.0821 vs the ridge's 0.0842 on days 251 .. 866, DM 1.67 (one-sided p 0.048);
+    equal weights on all 866 days 0.0916, DM 1.56 (p 0.060).
+  - Seed sd 0.0001 .. 0.0012 for each k; one step along k has |DM| above 1.96 (k = 8 -> 9, -2.50). No
+    fluctuation-test rejection. MZ slopes all below 1 (ridge 0.69, trees 0.57 .. 0.76). The trees split
+    on `bar_end_minute` in 46 % (k = 2) to 100 % of refits but with a gain share of at most 0.08 % (median
+    gain rank 202 .. 333 of ~380 columns; 40 at k = 13). Within-day correlation of the target 0.63 .. 0.79:
+    13 bars (26000 rows) carry an effective sample of about 3046 sessions.
+
 ## Reading across the studies
 
 - The predictable part of the 16:00 variance is mostly HAR persistence. Linear models capture it best
