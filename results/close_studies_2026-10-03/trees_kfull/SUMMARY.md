@@ -22,7 +22,7 @@ The experiment: a linear model trained on the 16:00 bar against LightGBM trained
 - lgbm_bars4_r8000 re-scored here: QLIKE = the stored 0.0974 (rounded) and = trees_morebars/arms.csv: 0.0974344 vs 0.0974344 (0.097434, 866 trade days) PASS
 - lgbm_bars4_r8000 re-scored here: Sharpe mid = the stored 1.63 (rounded) and = trees_morebars/arms.csv: 1.6321 vs 1.6321 (1.6321) PASS
 - lgbm_bars13_r26000_barmin_seed42: whole arm refitted here vs stored lgbm_bars13_r26000_barmin (1339 forecasts), max |difference|: 0 vs 0 PASS
-- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 17 pass, none fail.
+- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 33 pass, none fail.
 
 ## QLIKE and Sharpe for each k: seed mean +- sd
 
@@ -33,15 +33,15 @@ Main spec = k = 1 without a column, k >= 2 with `bar_end_minute`. sd over the se
 | 1 | 2000 | 42 43 | 0.1003 +- 0.0005 | 0.1007 / 0.1000 / - | 2.02 +- 0.04 | 42 43 | 0.1003 +- 0.0005 | 2.02 +- 0.04 |
 | 2 | 4000 |  |  |  |  | 42 43 | 0.0985 +- 0.0003 | 1.72 +- 0.33 |
 | 3 | 6000 |  |  |  |  | 42 43 | 0.0978 +- 0.0004 | 1.14 +- 0.16 |
-| 4 | 8000 |  |  |  |  | 42 43 | 0.0978 +- 0.0005 | 1.70 +- 0.09 |
-| 5 | 10000 |  |  |  |  | 42 | 0.0984 | 1.70 |
-| 6 | 12000 |  |  |  |  |  |  |  |
-| 7 | 14000 |  |  |  |  | 42 | 0.0996 | 1.70 |
-| 8 | 16000 |  |  |  |  |  |  |  |
-| 9 | 18000 |  |  |  |  |  |  |  |
-| 10 | 20000 |  |  |  |  |  |  |  |
+| 4 | 8000 | 42 43 | 0.0984 +- 0.0006 | 0.0979 / 0.0988 / - | 1.56 +- 0.15 | 42 43 | 0.0978 +- 0.0005 | 1.70 +- 0.09 |
+| 5 | 10000 | 42 43 | 0.0977 +- 0.0003 | 0.0975 / 0.0978 / - | 1.61 +- 0.00 | 42 | 0.0984 | 1.70 |
+| 6 | 12000 | 42 43 | 0.0983 +- 0.0007 | 0.0989 / 0.0978 / - | 1.71 +- 0.30 |  |  |  |
+| 7 | 14000 | 42 43 | 0.0994 +- 0.0009 | 0.1001 / 0.0988 / - | 1.70 +- 0.09 | 42 | 0.0996 | 1.70 |
+| 8 | 16000 | 42 43 | 0.0996 +- 0.0000 | 0.0996 / 0.0996 / - | 1.49 +- 0.15 |  |  |  |
+| 9 | 18000 | 42 43 | 0.1010 +- 0.0003 | 0.1008 / 0.1012 / - | 1.49 +- 0.09 |  |  |  |
+| 10 | 20000 | 42 43 | 0.1002 +- 0.0002 | 0.1004 / 0.1001 / - | 1.71 +- 0.21 |  |  |  |
 | 11 | 22000 | 42 43 | 0.1005 +- 0.0001 | 0.1006 / 0.1004 / - | 1.33 +- 0.18 |  |  |  |
-| 12 | 24000 |  |  |  |  |  |  |  |
+| 12 | 24000 | 42 43 | 0.1011 +- 0.0000 | 0.1011 / 0.1012 / - | 1.54 +- 0.05 |  |  |  |
 | 13 | 26000 | 42 43 | 0.1018 +- 0.0005 | 0.1015 / 0.1022 / - | 1.70 +- 0.18 | 42 43 | 0.1016 +- 0.0003 | 1.63 +- 0.07 |
 
 Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `ridge_bars1_r2000` (ridge) QLIKE 0.1004, Sharpe mid 1.66; `lasso_bars1_r2000` (lasso) QLIKE 0.0998, Sharpe mid 1.45; `ridge_bb0` (ridge) QLIKE 0.0946, Sharpe mid 1.50.
@@ -50,9 +50,25 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 
 | family | k | column | arms | refits | refits with a split % | splits (mean) | split share (mean) | gain share mean (min .. max) | rank by gain: median (best .. worst) | columns seen (median) |
 |---|---|---|---|---|---|---|---|---|---|---|
+| main | 4 | `bar_end_minute` | 2 | 268 | 94.4 | 4.2 | 0.0006 | 0.0002 (0.0000 .. 0.0009) | 302 (69 .. 351) | 377 |
+| main | 5 | `bar_end_minute` | 2 | 268 | 100.0 | 9.0 | 0.0012 | 0.0003 (0.0000 .. 0.0006) | 212 (79 .. 333) | 378 |
+| main | 6 | `bar_end_minute` | 2 | 268 | 99.6 | 7.5 | 0.0010 | 0.0002 (0.0000 .. 0.0007) | 225 (59 .. 347) | 379 |
+| main | 7 | `bar_end_minute` | 2 | 268 | 99.6 | 6.5 | 0.0009 | 0.0002 (0.0000 .. 0.0006) | 232 (73 .. 345) | 379 |
+| main | 8 | `bar_end_minute` | 2 | 268 | 98.9 | 5.7 | 0.0008 | 0.0001 (0.0000 .. 0.0004) | 253 (100 .. 350) | 379 |
+| main | 9 | `bar_end_minute` | 2 | 268 | 99.6 | 5.5 | 0.0007 | 0.0001 (0.0000 .. 0.0004) | 258 (81 .. 349) | 380 |
+| main | 10 | `bar_end_minute` | 2 | 268 | 100.0 | 6.4 | 0.0009 | 0.0001 (0.0000 .. 0.0004) | 236 (87 .. 348) | 381 |
 | main | 11 | `bar_end_minute` | 2 | 268 | 99.6 | 6.9 | 0.0009 | 0.0001 (0.0000 .. 0.0004) | 222 (71 .. 356) | 381 |
+| main | 12 | `bar_end_minute` | 2 | 268 | 98.9 | 7.5 | 0.0010 | 0.0001 (0.0000 .. 0.0004) | 207 (66 .. 357) | 381 |
 | main | 13 | `bar_end_minute` | 2 | 268 | 100.0 | 37.0 | 0.0050 | 0.0008 (0.0005 .. 0.0013) | 40 (31 .. 55) | 382 |
+| main | 4 | `hour` | 2 | 268 | 100.0 | 26.7 | 0.0036 | 0.0012 (0.0001 .. 0.0033) | 60 (26 .. 301) | 377 |
+| main | 5 | `hour` | 2 | 268 | 97.0 | 6.1 | 0.0008 | 0.0002 (0.0000 .. 0.0008) | 289 (64 .. 349) | 378 |
+| main | 6 | `hour` | 2 | 268 | 91.0 | 4.6 | 0.0006 | 0.0001 (0.0000 .. 0.0006) | 306 (82 .. 346) | 379 |
+| main | 7 | `hour` | 2 | 268 | 83.6 | 3.3 | 0.0004 | 0.0001 (0.0000 .. 0.0004) | 316 (98 .. 350) | 379 |
+| main | 8 | `hour` | 2 | 268 | 85.1 | 3.0 | 0.0004 | 0.0001 (0.0000 .. 0.0004) | 319 (107 .. 356) | 379 |
+| main | 9 | `hour` | 2 | 268 | 84.7 | 2.8 | 0.0004 | 0.0001 (0.0000 .. 0.0004) | 322 (95 .. 354) | 380 |
+| main | 10 | `hour` | 2 | 268 | 92.5 | 3.3 | 0.0004 | 0.0001 (0.0000 .. 0.0003) | 318 (123 .. 354) | 381 |
 | main | 11 | `hour` | 2 | 268 | 98.5 | 4.5 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 294 (94 .. 354) | 381 |
+| main | 12 | `hour` | 2 | 268 | 98.5 | 4.9 | 0.0007 | 0.0001 (0.0000 .. 0.0004) | 279 (80 .. 346) | 381 |
 | main | 13 | `hour` | 2 | 268 | 100.0 | 12.0 | 0.0016 | 0.0003 (0.0001 .. 0.0005) | 110 (56 .. 304) | 382 |
 
 Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv`.
@@ -63,8 +79,24 @@ Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv
 |---|---|---|---|---|---|---|---|---|---|---|
 | `lgbm_bars1_r2000` | main | 1 | no | 42 | stored (trees_datasize lgbm_bar1600_w2000) | 0.1007 | 1.99 | 1.52 | 38.7 | 21.3 |
 | `lgbm_bars1_r2000_seed43` | main | 1 | no | 43 | stored (trees_morebars) | 0.1000 | 2.05 | 1.58 | 38.7 | 13.6 |
+| `lgbm_bars4_r8000_barmin_seed42` | main | 4 | yes | 42 | new | 0.0979 | 1.45 | 0.97 | 32.7 | 16.2 |
+| `lgbm_bars4_r8000_barmin_seed43` | main | 4 | yes | 43 | new | 0.0988 | 1.66 | 1.19 | 33.1 | 16.1 |
+| `lgbm_bars5_r10000_barmin_seed42` | main | 5 | yes | 42 | new | 0.0975 | 1.61 | 1.13 | 32.2 | 17.1 |
+| `lgbm_bars5_r10000_barmin_seed43` | main | 5 | yes | 43 | new | 0.0978 | 1.61 | 1.14 | 32.2 | 16.9 |
+| `lgbm_bars6_r12000_barmin_seed42` | main | 6 | yes | 42 | new | 0.0989 | 1.50 | 1.03 | 33.1 | 17.7 |
+| `lgbm_bars6_r12000_barmin_seed43` | main | 6 | yes | 43 | new | 0.0978 | 1.92 | 1.45 | 32.4 | 17.8 |
+| `lgbm_bars7_r14000_barmin_seed42` | main | 7 | yes | 42 | new | 0.1001 | 1.77 | 1.29 | 31.9 | 18.9 |
+| `lgbm_bars7_r14000_barmin_seed43` | main | 7 | yes | 43 | new | 0.0988 | 1.64 | 1.16 | 31.9 | 19.2 |
+| `lgbm_bars8_r16000_barmin_seed42` | main | 8 | yes | 42 | new | 0.0996 | 1.39 | 0.91 | 31.5 | 20.5 |
+| `lgbm_bars8_r16000_barmin_seed43` | main | 8 | yes | 43 | new | 0.0996 | 1.59 | 1.11 | 31.5 | 20.3 |
+| `lgbm_bars9_r18000_barmin_seed42` | main | 9 | yes | 42 | new | 0.1008 | 1.42 | 0.94 | 31.4 | 21.6 |
+| `lgbm_bars9_r18000_barmin_seed43` | main | 9 | yes | 43 | new | 0.1012 | 1.55 | 1.07 | 31.5 | 21.7 |
+| `lgbm_bars10_r20000_barmin_seed42` | main | 10 | yes | 42 | new | 0.1004 | 1.86 | 1.39 | 32.0 | 23.0 |
+| `lgbm_bars10_r20000_barmin_seed43` | main | 10 | yes | 43 | new | 0.1001 | 1.56 | 1.08 | 32.1 | 23.0 |
 | `lgbm_bars11_r22000_barmin_seed42` | main | 11 | yes | 42 | new | 0.1006 | 1.21 | 0.73 | 30.9 | 24.5 |
 | `lgbm_bars11_r22000_barmin_seed43` | main | 11 | yes | 43 | new | 0.1004 | 1.46 | 0.98 | 31.2 | 24.5 |
+| `lgbm_bars12_r24000_barmin_seed42` | main | 12 | yes | 42 | new | 0.1011 | 1.58 | 1.10 | 31.6 | 25.7 |
+| `lgbm_bars12_r24000_barmin_seed43` | main | 12 | yes | 43 | new | 0.1012 | 1.50 | 1.02 | 32.1 | 25.7 |
 | `lgbm_bars13_r26000_barmin_seed42` | main | 13 | yes | 42 | new | 0.1015 | 1.57 | 1.09 | 31.9 | 27.3 |
 | `lgbm_bars13_r26000_barmin_seed43` | main | 13 | yes | 43 | new | 0.1022 | 1.82 | 1.35 | 32.4 | 27.4 |
 | `lgbm_bars13_r26000_barmin` | main | 13 | yes | 42 | stored (trees_morebars); refitted here as lgbm_bars13_r26000_barmin_seed42 (not primary) | 0.1015 | 1.57 | 1.09 | 31.9 | 29.8 |
@@ -83,7 +115,7 @@ Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv
 | `ridge_bb0` | linear_1600 | 1 | no |  | stored (exog_penalty ridge_bb0: HAR + calendar backbone unpenalized) | 0.0946 | 1.50 | 1.03 | 35.8 | 0.1 |
 
 ## Not run
-- Arms of the plan without a forecast file: `lgbm_bars1_r2000_seed44`, `lgbm_bars2_r4000_barmin_seed42`, `lgbm_bars2_r4000_barmin_seed43`, `lgbm_bars2_r4000_barmin_seed44`, `lgbm_bars3_r6000_barmin_seed42`, `lgbm_bars3_r6000_barmin_seed43`, `lgbm_bars3_r6000_barmin_seed44`, `lgbm_bars4_r8000_barmin_seed42`, `lgbm_bars4_r8000_barmin_seed43`, `lgbm_bars4_r8000_barmin_seed44`, `lgbm_bars5_r10000_barmin_seed42`, `lgbm_bars5_r10000_barmin_seed43`, `lgbm_bars5_r10000_barmin_seed44`, `lgbm_bars6_r12000_barmin_seed42`, `lgbm_bars6_r12000_barmin_seed43`, `lgbm_bars6_r12000_barmin_seed44`, `lgbm_bars7_r14000_barmin_seed42`, `lgbm_bars7_r14000_barmin_seed43`, `lgbm_bars7_r14000_barmin_seed44`, `lgbm_bars8_r16000_barmin_seed42`, `lgbm_bars8_r16000_barmin_seed43`, `lgbm_bars8_r16000_barmin_seed44`, `lgbm_bars9_r18000_barmin_seed42`, `lgbm_bars9_r18000_barmin_seed43`, `lgbm_bars9_r18000_barmin_seed44`, `lgbm_bars10_r20000_barmin_seed42`, `lgbm_bars10_r20000_barmin_seed43`, `lgbm_bars10_r20000_barmin_seed44`, `lgbm_bars11_r22000_barmin_seed44`, `lgbm_bars12_r24000_barmin_seed42`, `lgbm_bars12_r24000_barmin_seed43`, `lgbm_bars12_r24000_barmin_seed44`, `lgbm_bars13_r26000_barmin_seed44`, `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
+- Arms of the plan without a forecast file: `lgbm_bars1_r2000_seed44`, `lgbm_bars2_r4000_barmin_seed42`, `lgbm_bars2_r4000_barmin_seed43`, `lgbm_bars2_r4000_barmin_seed44`, `lgbm_bars3_r6000_barmin_seed42`, `lgbm_bars3_r6000_barmin_seed43`, `lgbm_bars3_r6000_barmin_seed44`, `lgbm_bars4_r8000_barmin_seed44`, `lgbm_bars5_r10000_barmin_seed44`, `lgbm_bars6_r12000_barmin_seed44`, `lgbm_bars7_r14000_barmin_seed44`, `lgbm_bars8_r16000_barmin_seed44`, `lgbm_bars9_r18000_barmin_seed44`, `lgbm_bars10_r20000_barmin_seed44`, `lgbm_bars11_r22000_barmin_seed44`, `lgbm_bars12_r24000_barmin_seed44`, `lgbm_bars13_r26000_barmin_seed44`, `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
 
 ## Caveats
 - The leaf minimum, the rows and the bars change together along k (the spec's rule); each design has its own rolling scaling (close_trees_morebars SUMMARY).
@@ -94,4 +126,4 @@ Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv
 ## Files
 - `experiments/close_trees_kfull.py` (stages gate / run / manifest; machinery from `experiments/close_trees_morebars.py` and `experiments/close_trees_datasize.py`)
 - `manifest.csv` (every forecast file: family, k, rows, bar column, seed, primary, path, configuration, check), `arms.csv` (manifest + scores), `seeds.csv`, `bar_column_refits.csv`, `bar_column_arms.csv`, `bar_column_by_k.csv`, `gate.csv`; new forecasts in `_work/<arm>.npz` (not committed)
-- CPU: 104 min over the 4 arms fitted here (single-threaded, at most four at once).
+- CPU: 425 min over the 20 arms fitted here (single-threaded, at most four at once).
