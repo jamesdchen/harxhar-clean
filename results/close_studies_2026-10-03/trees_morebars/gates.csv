@@ -79,3 +79,24 @@ lasso_bars2_r4000 = data-size lasso_pool_w4000: Sharpe mid re-scored here = its 
 "lgbm_bars1_r2000: first 3 refits redone here vs stored lgbm_bar1600_w2000 (30 forecasts), max |difference|",0.0,0.0,0.0,True
 "lgbm_bars2_r4000: rows built here = data-size rows (X, y, forecast rows)",1.0,1.0,0.0,True
 "lgbm_bars2_r4000: first 3 refits redone here vs stored lgbm_pool_w4000 (30 forecasts), max |difference|",0.0,0.0,0.0,True
+lgbm_bars3_r6000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars3),1.0,1.0,0.0,True
+lgbm_bars4_r8000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+lgbm_bars5_r10000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars5),1.0,1.0,0.0,True
+lgbm_bars7_r14000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars7),1.0,1.0,0.0,True
+lgbm_bars13_r26000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+xgb_bars3_r6000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars3),1.0,1.0,0.0,True
+xgb_bars4_r8000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+xgb_bars5_r10000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars5),1.0,1.0,0.0,True
+xgb_bars7_r14000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars7),1.0,1.0,0.0,True
+xgb_bars13_r26000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+ridge_bars4_r8000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+ridge_bars13_r26000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+lasso_bars4_r8000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+lasso_bars13_r26000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+lgbm_bars4_r4000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+lgbm_bars13_r4000: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+lgbm_bars13_r26000_barmin: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True
+lgbm_bars2_r4000_seed43: calendar column `hour` takes values on the 16:00 rows that no other row has (last30),1.0,1.0,0.0,True
+lgbm_bars3_r6000_seed43: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars3),1.0,1.0,0.0,True
+lgbm_bars4_r8000_seed43: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars4),1.0,1.0,0.0,True
+lgbm_bars13_r26000_seed43: calendar column `hour` takes values on the 16:00 rows that no other row has (lastbars13),1.0,1.0,0.0,True

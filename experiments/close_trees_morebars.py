@@ -79,7 +79,7 @@ OUT = REPO / "results" / "close_studies_2026-10-03" / "trees_morebars"
 WORK = Path(os.environ.get("TMB_WORK", str(OUT / "_work")))
 DS_REPORT = c.OUT  # the data-size study's report folder (its arms.csv)
 DS_WORK = c.OUT / "_work"  # its forecasts: the reused rungs 1 and 2
-SESSIONS = 2000  # the per-bar arms' window in sessions (capture_design_close.TRAIN_WIN)
+SESSIONS = 2000  # the one-bar arms' window in sessions (capture_design_close.TRAIN_WIN)
 ROWS_FIXED = 4000  # the rows-held-fixed comparison: the 2-bar arm's rows
 LADDER = (1, 2, 3, 4, 5, 7, 13)
 GATE_ANCHORS = 3  # refits of the short-slice reproduction (gate stage)
@@ -102,8 +102,9 @@ def segment_of(n: int) -> str:
 ARMS: dict[str, dict] = {}
 
 
-def _arm(name: str, model: str, bars: int, rows: int, design: str, *, rows_from: str = "all", cols: str = "", reuse: str = "", group: str) -> None:
-    ARMS[name] = dict(model=model, bars=bars, rows=rows, design=design, rows_from=rows_from, cols=cols, reuse=reuse, group=group)
+def _arm(name: str, model: str, bars: int, rows: int, design: str, *, rows_from: str = "all", cols: str = "", reuse: str = "", group: str, seed: int = 0) -> None:
+    # seed 0 = the spec's SEED (42); another value replaces random_state only (bagging / feature-fraction draws)
+    ARMS[name] = dict(model=model, bars=bars, rows=rows, design=design, rows_from=rows_from, cols=cols, reuse=reuse, group=group, seed=seed)
 
 
 for _m in (*TREES, *LINEAR):
@@ -115,6 +116,9 @@ _arm("lgbm_bars4_r4000", "lgbm", 4, ROWS_FIXED, "lastbars4", group="rows4000")
 _arm("lgbm_bars13_r4000", "lgbm", 13, ROWS_FIXED, "lastbars13", group="rows4000")
 _arm("lgbm_bars1_r4000", "lgbm", 1, ROWS_FIXED, "lastbars13", rows_from="h16", group="rows4000")
 _arm("lgbm_bars13_r26000_barmin", "lgbm", 13, 13 * SESSIONS, "lastbars13", cols=BARMIN, group="design change")
+SEED_ALT = 43  # seed replicate: the spec's SEED + 1, at rungs 1, 2, 3, 4, 13 of the ladder
+for _n in (1, 2, 3, 4, 13):
+    _arm(f"lgbm_bars{_n}_r{_n * SESSIONS}_seed{SEED_ALT}", "lgbm", _n, _n * SESSIONS, segment_of(_n), group="seed replicate", seed=SEED_ALT)
 CTRL = "lgbm_bars1_r2000"  # the 1-bar control (the shipped configuration)
 TWO = "lgbm_bars2_r4000"  # the 2-bar arm
 ORDER = [
@@ -197,10 +201,8 @@ def sessions_in_windows(src: dict, rows: int, anchors: list[int]) -> np.ndarray:
 def check() -> None:
     c.check_spec()
     assert c.REFIT_EVERY == c.SPEC_REFIT_EVERY == 10 and c.MAX_ANCHORS == 0 and not c.CHUNK
-    for spec in ARMS.values():
-        if spec["model"] == "lgbm" and spec["group"] == "ladder":
-            # the spec's leaf rule gives 98 at the pooled bank's 24000 rows
-            assert c.tree_params("lgbm", 24000)["min_child_samples"] == 98
+    # the spec's leaf rule gives the pooled bank's 98 at its 24000 rows
+    assert c.tree_params("lgbm", 24000)["min_child_samples"] == 98
 
 
 def config_matches(arm: str, run: dict) -> list[tuple[str, bool, str]]:
@@ -283,7 +285,17 @@ def run(arms: list[str]) -> None:
         print(f"{arm}: model={model} bars={spec['bars']} rows={spec['rows']} design={spec['design']} {facts}", flush=True)
         t0, c0 = time.time(), time.process_time()
         if model in TREES:
-            out = c.run_tree(model, src, spec["rows"], n_fc, anchors)
+            make = c.make_tree
+            if spec["seed"]:
+                # c.run_tree builds every fit through c.make_tree: the same model with random_state replaced
+                def seeded(m: str, n_rows: int, _seed: int = spec["seed"]):
+                    return make(m, n_rows).set_params(random_state=_seed)
+
+                c.make_tree = seeded
+            try:
+                out = c.run_tree(model, src, spec["rows"], n_fc, anchors)
+            finally:
+                c.make_tree = make
         else:
             out = c.run_linear(model, src, spec["rows"], n_fc)
         wall, cpu = time.time() - t0, time.process_time() - c0
@@ -342,6 +354,8 @@ def describe(arm: str) -> str:
     txt = "one-bar design (shipped)" if s["bars"] == 1 else f"{s['bars']} bars ending 16:00 ({s['design']})"
     if s["cols"] == BARMIN:
         txt += " + column bar_end_minute (design change)"
+    if s["seed"]:
+        txt += f", random_state {s['seed']} (seed replicate)"
     return txt
 
 
@@ -354,6 +368,8 @@ def references(arm: str) -> list[str]:
         refs.append("lgbm_bars13_r26000" if s["bars"] == 13 else ("lgbm_bars4_r8000" if s["bars"] == 4 else CTRL))
     if s["cols"] == BARMIN:
         refs.append("lgbm_bars13_r26000")
+    if s["seed"]:
+        refs.append(arm.removesuffix(f"_seed{s['seed']}"))
     if s["model"] in LINEAR:
         refs.append(arm.replace(f"{s['model']}_", "lgbm_", 1))
     return [r for r in dict.fromkeys(refs) if r != arm]
@@ -370,7 +386,12 @@ def analyze() -> None:  # noqa: C901 - one linear report
     runs = {a: r for a in ARMS if (r := load_arm(a)) is not None}
     arms = list(runs)
     assert CTRL in runs and TWO in runs
-    P = dvs.deck_panel([dvs.research_frame(dz, runs[a]["pred"][sub]) for a in arms], dk)
+    frames = [dvs.research_frame(dz, runs[a]["pred"][sub]) for a in arms]
+    P = dvs.deck_panel(frames, dk)
+    # the sign(s) position of each forecast on each trade day, as deck_panel takes it (buy = forecast above the implied variance)
+    F = np.column_stack([f["pred_clock"].set_axis(f.index.normalize()).reindex(dk.index).to_numpy(float) for f in frames])
+    POS = np.where(F > dk["iv_var"].to_numpy(float)[:, None], 1.0, -1.0)
+    assert np.allclose((POS > 0).mean(axis=0), P["buy"])
     pt = dvs.point(P)
     col = {a: i for i, a in enumerate(arms)}
     n_days = P["ql"].shape[0]
@@ -407,7 +428,8 @@ def analyze() -> None:  # noqa: C901 - one linear report
     for a in arms:
         s, r = ARMS[a], runs[a]
         m = r["meta"]
-        ns = r["n_sessions"] if "n_sessions" in r else np.array([s["rows"] // s["bars"]])
+        # sessions touched by the training window at each refit (the reused arms: from the data-size rows)
+        ns = r["n_sessions"] if "n_sessions" in r else sessions_in_windows(S["bar1600" if s["bars"] == 1 else "pool"], s["rows"], c.tree_anchors(n_fc))
         cm = {ref: compare(P, col[a], col[ref]) for ref in (CTRL, TWO) if ref != a}
         i = col[a]
         rows.append(
@@ -427,6 +449,8 @@ def analyze() -> None:  # noqa: C901 - one linear report
                 sharpe_mid=pt["sh"][i],
                 sharpe_crossed=pt["shx"][i],
                 pct_buy=100.0 * P["buy"][i],
+                pct_same_position_as_1bar=100.0 * float((POS[:, i] == POS[:, col[CTRL]]).mean()),
+                pct_same_position_as_2bar=100.0 * float((POS[:, i] == POS[:, col[TWO]]).mean()),
                 d_qlike_vs_1bar=pt["ql"][i] - pt["ql"][col[CTRL]],
                 dm_vs_1bar=cm[CTRL]["dm"] if CTRL in cm else np.nan,
                 dm_p_vs_1bar=cm[CTRL]["dm_p"] if CTRL in cm else np.nan,
@@ -442,7 +466,7 @@ def analyze() -> None:  # noqa: C901 - one linear report
             )
         )
     A = pd.DataFrame(rows)
-    A["_o"] = A["group"].map({"ladder": 0, "rows4000": 1, "design change": 2})
+    A["_o"] = A["group"].map({"ladder": 0, "rows4000": 1, "design change": 2, "seed replicate": 3})
     A["_m"] = A["model"].map({"LightGBM": 0, "XGBoost": 1, "ridge": 2, "lasso": 3})
     A = A.sort_values(["_m", "_o", "bars", "rows"]).drop(columns=["_o", "_m"]).reset_index(drop=True)
     A.to_csv(OUT / "arms.csv", index=False)
@@ -489,10 +513,13 @@ def plot(A: pd.DataFrame, Cd: pd.DataFrame) -> None:
         for m in ("LightGBM", "XGBoost", "ridge", "lasso"):
             h = A[(A["model"] == m) & (A["group"] == "ladder")].sort_values("bars")
             if len(h):
-                ax.plot(h["bars"], h[ycol], color=colr[m], linestyle=dash[m], linewidth=2, marker="o", markersize=7, label=f"{m}, 2000 sessions")
-        h = A[(A["model"] == "LightGBM") & (A["rows"] == ROWS_FIXED)].sort_values("bars")
+                ax.plot(h["bars"], h[ycol], color=colr[m], linestyle=dash[m], linewidth=2.5 if m == "LightGBM" else 1.5, marker="o", markersize=8 if m == "LightGBM" else 6, label=f"{m}, 2000 sessions", zorder=3 if m == "LightGBM" else 2)
+        h = A[(A["model"] == "LightGBM") & (A["rows"] == ROWS_FIXED) & A["group"].isin(["ladder", "rows4000"])].sort_values("bars")
         if len(h) > 1:
             ax.plot(h["bars"], h[ycol], color=colr["LightGBM"], linestyle=(0, (1, 2)), linewidth=1.5, marker="s", markersize=8, markerfacecolor="white", markeredgewidth=2, label="LightGBM, 4000 rows (4000 / bars sessions)")
+        h = A[A["group"] == "seed replicate"].sort_values("bars")
+        if len(h):
+            ax.plot(h["bars"], h[ycol], linestyle="none", marker="o", markersize=9, markerfacecolor="white", markeredgecolor=colr["LightGBM"], markeredgewidth=1.5, label=f"LightGBM, 2000 sessions, random_state {SEED_ALT}")
         b = A[A["group"] == "design change"]
         if len(b):
             ax.plot(b["bars"], b[ycol], linestyle="none", marker="*", markersize=15, color=colr["LightGBM"], markeredgecolor="white", label="LightGBM + bar_end_minute column (design change)")
@@ -540,6 +567,10 @@ def write_summary(G: pd.DataFrame, A: pd.DataFrame, V: pd.DataFrame, Cd: pd.Data
         "(targets realized by 15:30, when the forecast is issued) may enter it, nothing later does."
     )
     L.append(
+        "- Rows and sessions: *rows* = training rows of every fit; *sessions* = distinct sessions the training window touches at the refits "
+        "(the forecast day's earlier bars count as one; half-day sessions hold fewer of the bars ending 16:00, so 2000 x N rows can span more than 2000 sessions)."
+    )
+    L.append(
         "- Rungs N = 1 and N = 2 are the data-size study's `lgbm_bar1600_w2000` and `lgbm_pool_w4000` (and its XGBoost / ridge / lasso arms of the same rows), reused after the gates below."
     )
     L.append(
@@ -552,16 +583,16 @@ def write_summary(G: pd.DataFrame, A: pd.DataFrame, V: pd.DataFrame, Cd: pd.Data
     lad = A[(A["model"] == "LightGBM") & (A["group"] == "ladder")].sort_values("bars")
     L.append("## Main ladder: LightGBM, 2000 sessions, N bars")
     L.append("")
-    L.append("| bars | rows | sessions | leaf min | QLIKE | Sharpe mid | Sharpe crossed | DM vs 1 bar | HAC t vs 1 bar | DM vs 2 bars | HAC t vs 2 bars | fit s (mean) | CPU min |")
-    L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    L.append("| bars | rows | sessions | leaf min | QLIKE | Sharpe mid | Sharpe crossed | buys % | same position as 1 bar % | DM vs 1 bar | HAC t vs 1 bar | DM vs 2 bars | HAC t vs 2 bars | fit s (mean) | CPU min |")
+    L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for _, r in lad.iterrows():
         sess = f"{r['sessions_min']}" if r["sessions_min"] == r["sessions_max"] else f"{r['sessions_min']}..{r['sessions_max']}"
         L.append(
-            f"| {r['bars']} | {r['rows']} | {sess} | {r['leaf_min']} | {r['qlike']:.4f} | {r['sharpe_mid']:.2f} | {r['sharpe_crossed']:.2f} | {_t(r['dm_vs_1bar'])} | "
+            f"| {r['bars']} | {r['rows']} | {sess} | {r['leaf_min']} | {r['qlike']:.4f} | {r['sharpe_mid']:.2f} | {r['sharpe_crossed']:.2f} | {r['pct_buy']:.1f} | {r['pct_same_position_as_1bar']:.1f} | {_t(r['dm_vs_1bar'])} | "
             f"{_t(r['t_hac_vs_1bar'])} | {_t(r['dm_vs_2bar'])} | {_t(r['t_hac_vs_2bar'])} | {_t(r['fit_sec_mean'], 1)} | {r['cpu_min']:.1f} |"
         )
     L.append(
-        f"| pooled 48-bar LightGBM (master table `{cited['key']}`, cited, not rerun) | 24000 bars | about 500 |  | {cited['qlike']:.4f} | {cited['sharpe_mid']:.2f} | {cited['sharpe_crossed']:.2f} |  |  |  |  |  |  |"
+        f"| pooled 48-bar LightGBM (master table `{cited['key']}`, cited, not rerun) | 24000 bars | about 500 |  | {cited['qlike']:.4f} | {cited['sharpe_mid']:.2f} | {cited['sharpe_crossed']:.2f} |  |  |  |  |  |  |  |  |"
     )
     L.append("")
     L.append("![bars ladder](bars_ladder.png)")
@@ -582,11 +613,21 @@ def write_summary(G: pd.DataFrame, A: pd.DataFrame, V: pd.DataFrame, Cd: pd.Data
             f"- N >= 3 against 2 bars: DM from {big['dm_vs_2bar'].min():.2f} to {big['dm_vs_2bar'].max():.2f}, HAC t from {big['t_hac_vs_2bar'].min():.2f} to {big['t_hac_vs_2bar'].max():.2f}; "
             f"against 1 bar: DM from {big['dm_vs_1bar'].min():.2f} to {big['dm_vs_1bar'].max():.2f}, HAC t from {big['t_hac_vs_1bar'].min():.2f} to {big['t_hac_vs_1bar'].max():.2f}."
         )
-    r4 = A[(A["model"] == "LightGBM") & (A["rows"] == ROWS_FIXED)].sort_values("bars")
+    sig = [
+        f"N = {r['bars']} vs {ref} (DM {r[k]:.2f})"
+        for _, r in lad.iterrows()
+        for k, ref in (("dm_vs_1bar", "1 bar"), ("dm_vs_2bar", "2 bars"))
+        if pd.notna(r[k]) and abs(r[k]) >= 1.96
+    ]
+    L.append("- Ladder rungs with |DM| >= 1.96 against the 1-bar or the 2-bar arm: " + ("; ".join(sig) if sig else "none") + ".")
+    r4 = A[(A["model"] == "LightGBM") & (A["rows"] == ROWS_FIXED) & A["group"].isin(["ladder", "rows4000"])].sort_values("bars")
     if len(r4) > 1:
         L.append(
-            "- Rows held at 4000 (LightGBM), N = " + " / ".join(str(b) for b in r4["bars"]) + " (sessions " + " / ".join(f"{s}" for s in r4["sessions_min"]) + "): QLIKE "
-            + " / ".join(f"{q:.4f}" for q in r4["qlike"]) + "; Sharpe mid " + " / ".join(f"{s:.2f}" for s in r4["sharpe_mid"]) + "."
+            "- Rows held at 4000 (LightGBM, leaf minimum 16), N = " + " / ".join(str(b) for b in r4["bars"]) + " (sessions " + " / ".join(f"{s}" for s in r4["sessions_min"]) + "): QLIKE "
+            + " / ".join(f"{q:.4f}" for q in r4["qlike"]) + "; Sharpe mid " + " / ".join(f"{s:.2f}" for s in r4["sharpe_mid"])
+            + "; against the 2-bar arm (4000 rows): "
+            + "; ".join(f"N = {b} DM {d:.2f}, HAC t {t:.2f}" for a, b, d, t in zip(r4["arm"], r4["bars"], r4["dm_vs_2bar"], r4["t_hac_vs_2bar"]) if a != TWO)
+            + "."
         )
     if "lgbm_bars13_r26000_barmin" in Ai.index and "lgbm_bars13_r26000" in Ai.index:
         v = V[(V["arm"] == "lgbm_bars13_r26000_barmin") & (V["reference"] == "lgbm_bars13_r26000")].iloc[0]
@@ -594,15 +635,45 @@ def write_summary(G: pd.DataFrame, A: pd.DataFrame, V: pd.DataFrame, Cd: pd.Data
             f"- N = 13 with the added column `bar_end_minute` (design change) vs without: QLIKE {Ai.loc['lgbm_bars13_r26000', 'qlike']:.4f} -> {Ai.loc['lgbm_bars13_r26000_barmin', 'qlike']:.4f} "
             f"(DM {v['dm']:.2f}), Sharpe mid {Ai.loc['lgbm_bars13_r26000', 'sharpe_mid']:.2f} -> {Ai.loc['lgbm_bars13_r26000_barmin', 'sharpe_mid']:.2f} (HAC t {v['t_hac']:.2f})."
         )
+    sr = A[A["group"] == "seed replicate"].sort_values("bars")
+    if len(sr):
+        parts = []
+        for _, r in sr.iterrows():
+            base = r["arm"].removesuffix(f"_seed{SEED_ALT}")
+            v = V[(V["arm"] == r["arm"]) & (V["reference"] == base)].iloc[0]
+            parts.append(
+                f"N = {r['bars']}: QLIKE {Ai.loc[base, 'qlike']:.4f} -> {r['qlike']:.4f} (DM {v['dm']:.2f}), Sharpe mid {Ai.loc[base, 'sharpe_mid']:.2f} -> {r['sharpe_mid']:.2f} (HAC t {v['t_hac']:.2f})"
+            )
+        L.append(f"- Seed replicate, LightGBM random_state 42 -> {SEED_ALT} (nothing else changed): " + "; ".join(parts) + ".")
     for m in ("XGBoost", "ridge", "lasso"):
         h = A[(A["model"] == m) & (A["group"] == "ladder")].sort_values("bars")
         if len(h) > 2:
+            key = {"XGBoost": "xgb", "ridge": "ridge", "lasso": "lasso"}[m]
+
+            def _own(ref: str, stat: str, h=h) -> str:
+                out = []
+                for a in h["arm"]:
+                    v = V[(V["arm"] == a) & (V["reference"] == ref)]
+                    out.append("ref" if a == ref else ("" if v.empty else f"{v[stat].iloc[0]:.2f}"))
+                return " / ".join(out)
+
             L.append(
                 f"- {m}, 2000 sessions, QLIKE for N = " + " / ".join(str(b) for b in h["bars"]) + ": " + " / ".join(f"{q:.4f}" for q in h["qlike"])
-                + "; Sharpe mid " + " / ".join(f"{s:.2f}" for s in h["sharpe_mid"]) + "."
+                + "; Sharpe mid " + " / ".join(f"{s:.2f}" for s in h["sharpe_mid"])
+                + f"; against its own 1-bar arm DM {_own(f'{key}_bars1_r2000', 'dm')}, HAC t {_own(f'{key}_bars1_r2000', 't_hac')}"
+                + f"; against its own 2-bar arm DM {_own(f'{key}_bars2_r4000', 'dm')}, HAC t {_own(f'{key}_bars2_r4000', 't_hac')}."
             )
+    for m in LINEAR:
+        h = A[(A["model"] == LABEL[m]) & (A["group"] == "ladder")].sort_values("bars")
+        pairs = []
+        for _, r in h.iterrows():
+            v = V[(V["arm"] == r["arm"]) & (V["reference"] == r["arm"].replace(f"{m}_", "lgbm_", 1))]
+            if len(v):
+                pairs.append(f"N = {r['bars']} {v['d_qlike'].iloc[0]:+.4f} (DM {v['dm'].iloc[0]:.2f})")
+        if pairs:
+            L.append(f"- Same rows, {LABEL[m]} minus LightGBM, QLIKE: " + "; ".join(pairs) + ".")
     L.append(
-        f"- Far end, cited: the paper's pooled 48-bar LightGBM (24000 bars, about 500 sessions, a different design and its own recalibration of the 16:00 bar within the master table) "
+        f"- Far end, cited: the paper's pooled 48-bar LightGBM (master-table row, same scorer; a 24000-bar window, about 500 sessions of 48 bars, on its own design) "
         f"QLIKE {cited['qlike']:.4f}, Sharpe mid {cited['sharpe_mid']:.2f}; 1-bar control {ctrl['qlike']:.4f} / {ctrl['sharpe_mid']:.2f}, 2 bars {two['qlike']:.4f} / {two['sharpe_mid']:.2f}."
     )
     L.append("")
@@ -638,13 +709,20 @@ def write_summary(G: pd.DataFrame, A: pd.DataFrame, V: pd.DataFrame, Cd: pd.Data
         "- Each design has its own rolling scaling, so two rungs differ also in the scaling of some columns; in the data-size study the same LightGBM on two scalings of the same 16:00 rows gave QLIKE 0.1007 vs 0.1006 and Sharpe mid 1.99 vs 1.56."
     )
     L.append(
-        "- Linear arms solve at every row (the earlier bars included, not scored) and re-choose the penalty every 250 solves, i.e. every 250 / N sessions; tree arms refit every 10 sessions."
+        "- Linear arms solve at every row (the earlier bars included, not scored) and re-choose the penalty every 250 solves on the window's last 125 rows (the spec's constants, in rows), i.e. every 250 / N sessions on about 125 / N sessions of all N bars; tree arms refit every 10 sessions."
     )
-    L.append("- Refit every 10 sessions, one seed, point estimates only; Sharpe ratios of forecasts with nearly equal QLIKE move by several tenths (data-size and tuning studies).")
+    L.append("- Fit seconds depend on what else ran on the machine at the time (up to four single-threaded fits at once here; the reused arms ran in the data-size study).")
+    L.append(
+        f"- Refit every 10 sessions, point estimates only, random_state 42 (the spec's) except the seed replicate ({SEED_ALT}) at N = 1, 2, 3, 4, 13; "
+        "Sharpe ratios of forecasts with nearly equal QLIKE move by several tenths (data-size and tuning studies)."
+    )
     L.append("")
     L.append("## Not run")
     missing = [a for a in ARMS if a not in set(A["arm"])]
-    L.append("- Arms defined in the script and not run: " + (", ".join(f"`{a}`" for a in missing) if missing else "none") + ".")
+    L.append(
+        "- Arms defined in the script and not run: " + (", ".join(f"`{a}`" for a in missing) if missing else "none")
+        + " (the plan ran the linear controls at N = 4 and N = 13 only). The C port of the linear solvers was not used (the Python ran in the time)."
+    )
     L.append("")
     L.append("## Files")
     L.append("- `experiments/close_trees_morebars.py` (stages gate / run / analyze; fitting machinery from `experiments/close_trees_datasize.py`)")
