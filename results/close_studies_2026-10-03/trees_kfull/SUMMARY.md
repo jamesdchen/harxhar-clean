@@ -22,7 +22,7 @@ The experiment: a linear model trained on the 16:00 bar against LightGBM trained
 - lgbm_bars4_r8000 re-scored here: QLIKE = the stored 0.0974 (rounded) and = trees_morebars/arms.csv: 0.0974344 vs 0.0974344 (0.097434, 866 trade days) PASS
 - lgbm_bars4_r8000 re-scored here: Sharpe mid = the stored 1.63 (rounded) and = trees_morebars/arms.csv: 1.6321 vs 1.6321 (1.6321) PASS
 - lgbm_bars13_r26000_barmin_seed42: whole arm refitted here vs stored lgbm_bars13_r26000_barmin (1339 forecasts), max |difference|: 0 vs 0 PASS
-- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 50 pass, none fail.
+- Configuration of every LightGBM file present (design, rows, bar column, params at these rows, random_state, refit anchors, training rows, LightGBM version, forecast rows): 53 pass, none fail.
 
 ## QLIKE and Sharpe for each k: seed mean +- sd
 
@@ -39,9 +39,9 @@ Main spec = k = 1 without a column, k >= 2 with `bar_end_minute`. sd over the se
 | 7 | 14000 | 42 43 44 | 0.0994 +- 0.0006 | 0.1001 / 0.0988 / 0.0995 | 1.60 +- 0.19 | 42 | 0.0996 | 1.70 |
 | 8 | 16000 | 42 43 44 | 0.0996 +- 0.0001 | 0.0996 / 0.0996 / 0.0995 | 1.49 +- 0.10 |  |  |  |
 | 9 | 18000 | 42 43 44 | 0.1013 +- 0.0005 | 0.1008 / 0.1012 / 0.1018 | 1.41 +- 0.15 |  |  |  |
-| 10 | 20000 | 42 43 44 | 0.1005 +- 0.0006 | 0.1004 / 0.1001 / 0.1012 | 1.70 +- 0.15 |  |  |  |
-| 11 | 22000 | 42 43 44 | 0.1007 +- 0.0002 | 0.1006 / 0.1004 / 0.1009 | 1.39 +- 0.16 |  |  |  |
-| 12 | 24000 | 42 43 44 | 0.1011 +- 0.0001 | 0.1011 / 0.1012 / 0.1009 | 1.52 +- 0.05 |  |  |  |
+| 10 | 20000 | 42 43 44 | 0.1005 +- 0.0006 | 0.1004 / 0.1001 / 0.1012 | 1.70 +- 0.15 | 42 | 0.1006 | 1.58 |
+| 11 | 22000 | 42 43 44 | 0.1007 +- 0.0002 | 0.1006 / 0.1004 / 0.1009 | 1.39 +- 0.16 | 42 | 0.1012 | 1.47 |
+| 12 | 24000 | 42 43 44 | 0.1011 +- 0.0001 | 0.1011 / 0.1012 / 0.1009 | 1.52 +- 0.05 | 42 | 0.1011 | 1.50 |
 | 13 | 26000 | 42 43 44 | 0.1016 +- 0.0005 | 0.1015 / 0.1022 / 0.1011 | 1.74 +- 0.15 | 42 43 | 0.1016 +- 0.0003 | 1.63 +- 0.07 |
 
 Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `ridge_bars1_r2000` (ridge) QLIKE 0.1004, Sharpe mid 1.66; `lasso_bars1_r2000` (lasso) QLIKE 0.0998, Sharpe mid 1.45; `ridge_bb0` (ridge) QLIKE 0.0946, Sharpe mid 1.50.
@@ -75,6 +75,9 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 | main | 11 | `hour` | 3 | 402 | 98.8 | 4.5 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 294 (94 .. 354) | 381 |
 | main | 12 | `hour` | 3 | 402 | 99.0 | 5.0 | 0.0007 | 0.0001 (0.0000 .. 0.0004) | 278 (80 .. 346) | 381 |
 | main | 13 | `hour` | 3 | 402 | 100.0 | 12.0 | 0.0016 | 0.0003 (0.0001 .. 0.0005) | 110 (52 .. 308) | 382 |
+| no_bar_column | 10 | `hour` | 1 | 134 | 98.5 | 3.6 | 0.0005 | 0.0001 (0.0000 .. 0.0004) | 313 (81 .. 352) | 380 |
+| no_bar_column | 11 | `hour` | 1 | 134 | 98.5 | 4.8 | 0.0006 | 0.0001 (0.0000 .. 0.0003) | 290 (90 .. 343) | 380 |
+| no_bar_column | 12 | `hour` | 1 | 134 | 99.3 | 4.9 | 0.0007 | 0.0001 (0.0000 .. 0.0002) | 278 (113 .. 340) | 380 |
 
 The pool of the 13 bars ending 16:00 is the only one that holds the session's first bar (ending 10:00); the pools of k <= 12 bars start at 10:30 or later. Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv`.
 
@@ -132,12 +135,15 @@ The pool of the 13 bars ending 16:00 is the only one that holds the session's fi
 | `lgbm_bars3_r6000_seed43` | no_bar_column | 3 | no | 43 | stored (trees_morebars) | 0.0981 | 1.26 | 0.78 | 34.2 | 16.0 |
 | `lgbm_bars4_r8000_seed43` | no_bar_column | 4 | no | 43 | stored (trees_morebars) | 0.0981 | 1.76 | 1.29 | 33.1 | 17.6 |
 | `lgbm_bars13_r26000_seed43` | no_bar_column | 13 | no | 43 | stored (trees_morebars) | 0.1014 | 1.58 | 1.10 | 32.1 | 30.1 |
+| `lgbm_bars10_r20000_seed42` | no_bar_column | 10 | no | 42 | new | 0.1006 | 1.58 | 1.10 | 31.2 | 23.4 |
+| `lgbm_bars11_r22000_seed42` | no_bar_column | 11 | no | 42 | new | 0.1012 | 1.47 | 0.99 | 31.2 | 24.9 |
+| `lgbm_bars12_r24000_seed42` | no_bar_column | 12 | no | 42 | new | 0.1011 | 1.50 | 1.02 | 31.1 | 26.0 |
 | `ridge_bars1_r2000` | linear_1600 | 1 | no |  | stored (trees_datasize ridge_bar1600_w2000) | 0.1004 | 1.66 | 1.20 | 36.1 | 0.1 |
 | `lasso_bars1_r2000` | linear_1600 | 1 | no |  | stored (trees_datasize lasso_bar1600_w2000) | 0.0998 | 1.45 | 0.98 | 39.6 | 1.3 |
 | `ridge_bb0` | linear_1600 | 1 | no |  | stored (exog_penalty ridge_bb0: HAR + calendar backbone unpenalized) | 0.0946 | 1.50 | 1.03 | 35.8 | 0.1 |
 
 ## Not run
-- Arms of the plan without a forecast file: `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
+- Arms of the plan without a forecast file: `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.
 
 ## Caveats
 - The leaf minimum, the rows and the bars change together along k (the spec's rule); each design has its own rolling scaling (close_trees_morebars SUMMARY).
@@ -148,4 +154,4 @@ The pool of the 13 bars ending 16:00 is the only one that holds the session's fi
 ## Files
 - `experiments/close_trees_kfull.py` (stages gate / run / manifest; machinery from `experiments/close_trees_morebars.py` and `experiments/close_trees_datasize.py`)
 - `manifest.csv` (every forecast file: family, k, rows, bar column, seed, primary, path, configuration, check), `arms.csv` (manifest + scores), `seeds.csv`, `bar_column_refits.csv`, `bar_column_arms.csv`, `bar_column_by_k.csv`, `gate.csv`; new forecasts in `_work/<arm>.npz` (not committed)
-- CPU: 741 min over the 37 arms fitted here (single-threaded, at most four at once).
+- CPU: 815 min over the 40 arms fitted here (single-threaded, at most four at once).
