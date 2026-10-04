@@ -633,7 +633,10 @@ def write_summary(A: pd.DataFrame, Sd: pd.DataFrame, Bk: pd.DataFrame, G: pd.Dat
                 f"{r['gain_share_mean']:.4f} ({r['gain_share_min']:.4f} .. {r['gain_share_max']:.4f}) | {r['rank_gain_median']:.0f} ({r['rank_gain_best']:.0f} .. {r['rank_gain_worst']:.0f}) | {r['n_columns_kept_median']:.0f} |"
             )
         L.append("")
-        L.append("Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv`.")
+        L.append(
+            "The pool of the 13 bars ending 16:00 is the only one that holds the session's first bar (ending 10:00); the pools of k <= 12 bars start at 10:30 or later. "
+            "Each arm and each refit: `bar_column_refits.csv`; each arm: `bar_column_arms.csv`."
+        )
         L.append("")
     L.append("## Each arm")
     L.append("")
