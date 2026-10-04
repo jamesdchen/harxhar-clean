@@ -43,7 +43,7 @@ Main spec = k = 1 without a column, k >= 2 with `bar_end_minute`. sd over the se
 | 12 | 24000 |  |  |  |  |  |  |  |
 | 13 | 26000 | 42 | 0.1015 | 0.1015 / - / - | 1.57 | 42 43 | 0.1016 +- 0.0003 | 1.63 +- 0.07 |
 
-Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `ridge_bars1_r2000` (ridge) QLIKE 0.1004, Sharpe mid 1.66; `lasso_bars1_r2000` (lasso) QLIKE 0.0998, Sharpe mid 1.45; `ridge_bb0` (ridge, HAR + calendar backbone unpenalized) QLIKE 0.0946, Sharpe mid 1.50.
+Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `ridge_bars1_r2000` (ridge) QLIKE 0.1004, Sharpe mid 1.66; `lasso_bars1_r2000` (lasso) QLIKE 0.0998, Sharpe mid 1.45; `ridge_bb0` (ridge) QLIKE 0.0946, Sharpe mid 1.50.
 
 ## Each arm
 
@@ -64,7 +64,7 @@ Linear models trained on the 16:00 bar (2000 sessions, same scorer and rows): `r
 | `lgbm_bars13_r26000_seed43` | no_bar_column | 13 | no | 43 | stored (trees_morebars) | 0.1014 | 1.58 | 1.10 | 32.1 | 30.1 |
 | `ridge_bars1_r2000` | linear_1600 | 1 | no |  | stored (trees_datasize ridge_bar1600_w2000) | 0.1004 | 1.66 | 1.20 | 36.1 | 0.1 |
 | `lasso_bars1_r2000` | linear_1600 | 1 | no |  | stored (trees_datasize lasso_bar1600_w2000) | 0.0998 | 1.45 | 0.98 | 39.6 | 1.3 |
-| `ridge_bb0` | linear_1600 | 1 | no |  | stored (exog_penalty ridge_bb0) | 0.0946 | 1.50 | 1.03 | 35.8 | 0.1 |
+| `ridge_bb0` | linear_1600 | 1 | no |  | stored (exog_penalty ridge_bb0: HAR + calendar backbone unpenalized) | 0.0946 | 1.50 | 1.03 | 35.8 | 0.1 |
 
 ## Not run
 - Arms of the plan without a forecast file: `lgbm_bars1_r2000_seed44`, `lgbm_bars2_r4000_barmin_seed42`, `lgbm_bars2_r4000_barmin_seed43`, `lgbm_bars2_r4000_barmin_seed44`, `lgbm_bars3_r6000_barmin_seed42`, `lgbm_bars3_r6000_barmin_seed43`, `lgbm_bars3_r6000_barmin_seed44`, `lgbm_bars4_r8000_barmin_seed42`, `lgbm_bars4_r8000_barmin_seed43`, `lgbm_bars4_r8000_barmin_seed44`, `lgbm_bars5_r10000_barmin_seed42`, `lgbm_bars5_r10000_barmin_seed43`, `lgbm_bars5_r10000_barmin_seed44`, `lgbm_bars6_r12000_barmin_seed42`, `lgbm_bars6_r12000_barmin_seed43`, `lgbm_bars6_r12000_barmin_seed44`, `lgbm_bars7_r14000_barmin_seed42`, `lgbm_bars7_r14000_barmin_seed43`, `lgbm_bars7_r14000_barmin_seed44`, `lgbm_bars8_r16000_barmin_seed42`, `lgbm_bars8_r16000_barmin_seed43`, `lgbm_bars8_r16000_barmin_seed44`, `lgbm_bars9_r18000_barmin_seed42`, `lgbm_bars9_r18000_barmin_seed43`, `lgbm_bars9_r18000_barmin_seed44`, `lgbm_bars10_r20000_barmin_seed42`, `lgbm_bars10_r20000_barmin_seed43`, `lgbm_bars10_r20000_barmin_seed44`, `lgbm_bars11_r22000_barmin_seed42`, `lgbm_bars11_r22000_barmin_seed43`, `lgbm_bars11_r22000_barmin_seed44`, `lgbm_bars12_r24000_barmin_seed42`, `lgbm_bars12_r24000_barmin_seed43`, `lgbm_bars12_r24000_barmin_seed44`, `lgbm_bars13_r26000_barmin_seed42`, `lgbm_bars13_r26000_barmin_seed43`, `lgbm_bars13_r26000_barmin_seed44`, `lgbm_bars6_r12000_seed42`, `lgbm_bars6_r12000_seed43`, `lgbm_bars6_r12000_seed44`, `lgbm_bars8_r16000_seed42`, `lgbm_bars8_r16000_seed43`, `lgbm_bars8_r16000_seed44`, `lgbm_bars9_r18000_seed42`, `lgbm_bars9_r18000_seed43`, `lgbm_bars9_r18000_seed44`, `lgbm_bars10_r20000_seed42`, `lgbm_bars10_r20000_seed43`, `lgbm_bars10_r20000_seed44`, `lgbm_bars11_r22000_seed42`, `lgbm_bars11_r22000_seed43`, `lgbm_bars11_r22000_seed44`, `lgbm_bars12_r24000_seed42`, `lgbm_bars12_r24000_seed43`, `lgbm_bars12_r24000_seed44`.

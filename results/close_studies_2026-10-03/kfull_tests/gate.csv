@@ -1,0 +1,21 @@
+forecast,quantity,value,average_csv,abs_diff,passed
+"lgbm, 1 bar (control)",qlike,0.10067586540392423,0.100675865403924,2.3592239273284576e-16,True
+"lgbm, 1 bar (control)",sharpe_mid,1.9886183401303381,1.9886183401303337,4.440892098500626e-15,True
+"lgbm, 1 bar (control)",dm_vs_ridge,1.81077699551279,1.81077699551279,0.0,True
+"lgbm, 2 bars",qlike,0.09824939506617017,0.0982493950661701,6.938893903907228e-17,True
+"lgbm, 2 bars",sharpe_mid,1.954323685688596,1.9543236856886008,4.884981308350689e-15,True
+"lgbm, 2 bars",dm_vs_ridge,1.1581736185060711,1.1581736185060711,0.0,True
+"lgbm, 4 bars (best single pool)",qlike,0.09743438606238305,0.097434386062383,5.551115123125783e-17,True
+"lgbm, 4 bars (best single pool)",sharpe_mid,1.6320982412237508,1.6320982412237537,2.886579864025407e-15,True
+"lgbm, 4 bars (best single pool)",dm_vs_ridge,0.8299597738360335,0.8299597738360335,0.0,True
+"average of lgbm pools N = 1, 2, 3, 4, 5, 7, 13",qlike,0.09676679021210383,0.0967667902121039,6.938893903907228e-17,True
+"average of lgbm pools N = 1, 2, 3, 4, 5, 7, 13",sharpe_mid,1.5541143999991651,1.5541143999991671,1.9984014443252818e-15,True
+"average of lgbm pools N = 1, 2, 3, 4, 5, 7, 13",dm_vs_ridge,0.6520461252017583,0.6520461252017583,0.0,True
+"ridge, backbone unpenalized (linear reference)",qlike,0.09458583144646909,0.0945858314464691,1.3877787807814457e-17,True
+"ridge, backbone unpenalized (linear reference)",sharpe_mid,1.4965531122311122,1.4965531122311102,1.9984014443252818e-15,True
+"equal weights: ridge backbone unpenalized + average of lgbm pools, all N",qlike,0.09158392977986692,0.0915839297798668,1.1102230246251565e-16,True
+"equal weights: ridge backbone unpenalized + average of lgbm pools, all N",sharpe_mid,1.48503448199582,1.4850344819958194,6.661338147750939e-16,True
+"equal weights: ridge backbone unpenalized + average of lgbm pools, all N",dm_vs_ridge,-1.625549499782919,-1.625549499782919,0.0,True
+equal weights: ridge backbone unpenalized + lgbm 4 bars,qlike,0.09143000222626745,0.0914300022262675,5.551115123125783e-17,True
+equal weights: ridge backbone unpenalized + lgbm 4 bars,sharpe_mid,1.6592058397292322,1.659205839729231,1.1102230246251565e-15,True
+equal weights: ridge backbone unpenalized + lgbm 4 bars,dm_vs_ridge,-1.6762822256988736,-1.6762822256988736,0.0,True

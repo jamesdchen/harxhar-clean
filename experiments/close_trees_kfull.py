@@ -30,7 +30,7 @@ Stages:
                                                      captured yet; run several workers at once (claim files)
   python experiments/close_trees_kfull.py manifest   manifest.csv, bar-column CSVs, scores, SUMMARY.md
 Env: TKF_WORK (forecast folder), CLOSE_DESIGN_DIR (designs, via close_trees_datasize).
-A file STOP in the forecast folder makes every worker exit after its current arm.
+A file STOP in the forecast folder, written after a worker started, makes it exit after its current arm.
 
 Outputs: results/close_studies_2026-10-03/trees_kfull/ (manifest.csv, CSVs, SUMMARY.md written from the
 CSVs); _work/<arm>.npz holds each new arm's forecasts and importances (never committed).
@@ -270,8 +270,10 @@ def run() -> None:
     for a in QUEUE:
         mb.ARMS[a] = ARMS[a]
     pending = list(QUEUE)
+    t_start = time.time()
+    stop = WORK / "STOP"
     while pending:
-        if (WORK / "STOP").exists():
+        if stop.exists() and stop.stat().st_mtime > t_start:  # a STOP written after this worker started
             print("STOP file found, worker exits", flush=True)
             return
         fitted = False
@@ -290,8 +292,13 @@ def run() -> None:
             mb.run([a])
             pending.remove(a)
             if f.is_file():
-                with lock():
-                    write_manifest()
+                try:  # a reporting error never stops the fitting
+                    with lock():
+                        write_manifest()
+                except Exception:  # noqa: BLE001
+                    import traceback
+
+                    traceback.print_exc()
             fitted = True
             break  # back to the top of the queue: the order is the priority
         if not fitted and pending:
@@ -337,7 +344,8 @@ def entries() -> list[dict]:
             if k > 1 or s == 44:
                 add(arm_name(k, s, k > 1), WORK / f"{arm_name(k, s, k > 1)}.npz", "main", "lgbm", k, s, k > 1, "new")
     rerun = WORK / f"{arm_name(13, 42, True)}.npz"
-    add("lgbm_bars13_r26000_barmin", GATE_ARM_STORED, "main", "lgbm", 13, 42, True, "stored (trees_morebars); refitted here as " + arm_name(13, 42, True), primary=not rerun.is_file())
+    rerun_done = rerun.is_file() and not (WORK / f"{arm_name(13, 42, True)}.claim").exists()
+    add("lgbm_bars13_r26000_barmin", GATE_ARM_STORED, "main", "lgbm", 13, 42, True, "stored (trees_morebars); refitted here as " + arm_name(13, 42, True), primary=not rerun_done)
     # the earlier variant without the bar column (k = 1 is the main spec's)
     add("lgbm_bars2_r4000", DS_WORK / "lgbm_pool_w4000.npz", "no_bar_column", "lgbm", 2, 42, False, "stored (trees_datasize lgbm_pool_w4000)")
     for k in (3, 4, 5, 7, 13):
@@ -350,7 +358,7 @@ def entries() -> list[dict]:
     # linear models trained on the 16:00 bar (2000 sessions)
     add("ridge_bars1_r2000", DS_WORK / "ridge_bar1600_w2000.npz", "linear_1600", "ridge", 1, None, False, "stored (trees_datasize ridge_bar1600_w2000)")
     add("lasso_bars1_r2000", DS_WORK / "lasso_bar1600_w2000.npz", "linear_1600", "lasso", 1, None, False, "stored (trees_datasize lasso_bar1600_w2000)")
-    add("ridge_bb0", LINEAR_REF, "linear_1600", "ridge, HAR + calendar backbone unpenalized", 1, None, False, "stored (exog_penalty ridge_bb0)")
+    add("ridge_bb0", LINEAR_REF, "linear_1600", "ridge", 1, None, False, "stored (exog_penalty ridge_bb0: HAR + calendar backbone unpenalized)")
     return E
 
 
@@ -385,6 +393,13 @@ def config_check(e: dict, z: dict, meta: dict) -> list[str]:
     return bad
 
 
+INT_COLS = ("k", "rows", "sessions", "seed", "n_columns", "leaf_min", "num_leaves", "n_estimators", "refit_every", "first_forecast_row", "n_refits", "num_threads", "n_forecasts")
+
+
+def _rel(f: Path) -> str:
+    return str(f.relative_to(REPO)) if f.is_relative_to(REPO) else str(f)
+
+
 def _load(path: Path) -> tuple[dict, dict]:
     z = np.load(path, allow_pickle=False)
     out = {k: z[k] for k in z.files}
@@ -399,10 +414,13 @@ def write_manifest() -> tuple[pd.DataFrame, pd.DataFrame]:
     fc_dates = pd.DatetimeIndex(pd.to_datetime(S["dz"]["date"]))
     for e in entries():
         f = Path(e["path"])
+        # close_trees_morebars.run writes <arm>.npz in place and removes <arm>.claim afterwards: a file with a
+        # claim may be half written
+        claimed = (f.parent / f"{e['arm']}.claim").exists()
         r = dict(
             arm=e["arm"], family=e["family"], model=e["model"], k=e["k"], rows=rows_of(e["k"]) if e["model"] == "lgbm" else mb.SESSIONS, sessions=mb.SESSIONS,
-            bar_column="yes" if e["bar_column"] else "no", seed=e["seed"] if e["seed"] is not None else "", primary="yes" if e["primary"] else "no",
-            status=e["status"], path=str(f.relative_to(REPO)), exists="yes" if f.is_file() else "no",
+            bar_column="yes" if e["bar_column"] else "no", seed=e["seed"], primary="yes" if e["primary"] else "no",
+            status=e["status"], path=_rel(f), exists="yes" if f.is_file() and not claimed else "no",
         )
         if e["model"] == "lgbm":
             p = c.tree_params("lgbm", rows_of(e["k"]))
@@ -413,7 +431,7 @@ def write_manifest() -> tuple[pd.DataFrame, pd.DataFrame]:
             )
         else:
             r.update(design=f"design_bar1600_{c.BUCKET}", refit_every=1, first_forecast_row=0)
-        if f.is_file():
+        if f.is_file() and not claimed:
             z, meta = _load(f)
             r.update(n_forecasts=int(np.isfinite(z["pred"]).sum()), cpu_min=round(float(meta.get("cpu_sec", z.get("cpu_sec", np.nan))) / 60.0, 2), written=time.strftime("%Y-%m-%d %H:%M", time.localtime(f.stat().st_mtime)))
             if e["model"] == "lgbm":
@@ -424,6 +442,8 @@ def write_manifest() -> tuple[pd.DataFrame, pd.DataFrame]:
                     use.extend(bar_use(e, z, meta, fc_dates))
         rows.append(r)
     M = pd.DataFrame(rows)
+    for col in INT_COLS:  # integers stay integers where a row has no value (linear rows, files not written yet)
+        M[col] = pd.array([None if (v is None or v == "" or (isinstance(v, float) and np.isnan(v))) else int(v) for v in M[col]], dtype="Int64")
     U = pd.DataFrame(use)
     _write_csv(M, OUT / "manifest.csv")
     if len(U):
@@ -621,7 +641,7 @@ def write_summary(A: pd.DataFrame, Sd: pd.DataFrame, Bk: pd.DataFrame, G: pd.Dat
     L.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for _, r in A[A["exists"] == "yes"].iterrows():
         L.append(
-            f"| `{r['arm']}` | {r['family']} | {r['k']} | {r['bar_column']} | {r['seed']} | {r['status']}{'' if r['primary'] == 'yes' else ' (not primary)'} | {r['qlike']:.4f} | {r['sharpe_mid']:.2f} | "
+            f"| `{r['arm']}` | {r['family']} | {r['k']} | {r['bar_column']} | {'' if pd.isna(r['seed']) else int(r['seed'])} | {r['status']}{'' if r['primary'] == 'yes' else ' (not primary)'} | {r['qlike']:.4f} | {r['sharpe_mid']:.2f} | "
             f"{r['sharpe_crossed']:.2f} | {r['pct_buy']:.1f} | {_f(r['cpu_min'], 1)} |"
         )
     L.append("")

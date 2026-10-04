@@ -1,0 +1,26 @@
+forecast,family,k,seed,barcol,kind,file,source,qlike,mse,qlike_2019,n_days
+ridge_bb0,linear,,,False,linear (16:00 bar),results/close_studies_2026-10-03/exog_penalty/_work/runs/ridge_bb0.npz,"ridge, HAR + calendar unpenalized",0.09458583144646909,7.914884106701511e-10,0.15818043837036727,866
+lasso_bb0,linear,,,False,linear (16:00 bar),results/close_studies_2026-10-03/exog_penalty/_work/runs/lasso_bb0.npz,"lasso, HAR + calendar unpenalized",0.09568918089667754,6.686666728243254e-10,0.16496379103796782,866
+ridge_single,linear,,,False,linear (16:00 bar),results/close_studies_2026-10-03/exog_penalty/_work/runs/ridge_single.npz,"ridge, one penalty",0.10038747465694448,1.7427483151105283e-09,0.1813494734843153,866
+lasso_single,linear,,,False,linear (16:00 bar),results/close_studies_2026-10-03/exog_penalty/_work/runs/lasso_single.npz,"lasso, one penalty",0.09975481092459942,1.066203538436267e-09,0.1728915200538496,866
+nobar:k1:s42,nobar,1.0,42,False,single seed,results/close_studies_2026-10-03/trees_datasize/_work/lgbm_bar1600_w2000.npz,trees_morebars arm lgbm_bars1_r2000,0.10067586540392423,1.1278297336795982e-09,0.16153481321879848,866
+nobar:k1:s43,nobar,1.0,43,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars1_r2000_seed43.npz,trees_morebars arm lgbm_bars1_r2000_seed43,0.09999318659130417,1.194965859162136e-09,0.1616136931691195,866
+nobar:k1,nobar,1.0,mean of 42/43,False,seed average (adjusted scale),,,0.09997048918746151,1.1552652495417236e-09,0.16118231229196658,866
+nobar:k2:s42,nobar,2.0,42,False,single seed,results/close_studies_2026-10-03/trees_datasize/_work/lgbm_pool_w4000.npz,trees_morebars arm lgbm_bars2_r4000,0.09824939506617017,1.2242444112846794e-09,0.16854383701383438,866
+nobar:k2:s43,nobar,2.0,43,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars2_r4000_seed43.npz,trees_morebars arm lgbm_bars2_r4000_seed43,0.09869763934418625,1.293327354315132e-09,0.169589916926033,866
+nobar:k2,nobar,2.0,mean of 42/43,False,seed average (adjusted scale),,,0.09819359211760224,1.255067946644528e-09,0.16880514250440634,866
+nobar:k3:s42,nobar,3.0,42,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars3_r6000.npz,trees_morebars arm lgbm_bars3_r6000,0.09748181412744317,6.731794710332894e-10,0.17293701908617073,866
+nobar:k3:s43,nobar,3.0,43,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars3_r6000_seed43.npz,trees_morebars arm lgbm_bars3_r6000_seed43,0.09806662814184028,7.691328910350511e-10,0.17848528629168375,866
+nobar:k3,nobar,3.0,mean of 42/43,False,seed average (adjusted scale),,,0.09755318204121867,7.184746887016178e-10,0.17543899298077284,866
+nobar:k4:s42,nobar,4.0,42,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars4_r8000.npz,trees_morebars arm lgbm_bars4_r8000,0.09743438606238305,7.294133727490899e-10,0.17180650527126304,866
+nobar:k4:s43,nobar,4.0,43,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars4_r8000_seed43.npz,trees_morebars arm lgbm_bars4_r8000_seed43,0.09810321803470597,7.226275810829745e-10,0.1682934094640189,866
+nobar:k4,nobar,4.0,mean of 42/43,False,seed average (adjusted scale),,,0.09755064225386999,7.221517628780513e-10,0.16979759082949555,866
+nobar:k5:s42,nobar,5.0,42,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars5_r10000.npz,trees_morebars arm lgbm_bars5_r10000,0.09841125779377306,6.875416730385141e-10,0.17261240134200806,866
+nobar:k5,nobar,5.0,mean of 42,False,seed average (adjusted scale),,,0.09841125779377306,6.875416730385141e-10,0.17261240134200806,866
+nobar:k7:s42,nobar,7.0,42,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars7_r14000.npz,trees_morebars arm lgbm_bars7_r14000,0.09958717527625613,6.257807858558409e-10,0.17662545864194196,866
+nobar:k7,nobar,7.0,mean of 42,False,seed average (adjusted scale),,,0.09958717527625613,6.257807858558409e-10,0.17662545864194196,866
+nobar:k13:s42,nobar,13.0,42,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars13_r26000.npz,trees_morebars arm lgbm_bars13_r26000,0.10186252111151732,7.370814351058411e-10,0.17250338922357494,866
+nobar:k13:s43,nobar,13.0,43,False,single seed,results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars13_r26000_seed43.npz,trees_morebars arm lgbm_bars13_r26000_seed43,0.10142639840827115,7.459610892139781e-10,0.17369225549256131,866
+nobar:k13,nobar,13.0,mean of 42/43,False,seed average (adjusted scale),,,0.10155989423754092,7.402230701819421e-10,0.1730282397254516,866
+nobar:avg,nobar,,,False,"average of the seed averages, k = 1, 2, 3, 4, 5, 7, 13",,,0.09680734124107211,7.894530652984418e-10,0.16876073036618705,866
+extra:k13:s42:barcol,extra,13.0,42,True,"single seed, column bar_end_minute",results/close_studies_2026-10-03/trees_morebars/_work/lgbm_bars13_r26000_barmin.npz,trees_morebars arm lgbm_bars13_r26000_barmin,0.10145706987280259,7.212788453214994e-10,0.17410765046750287,866
