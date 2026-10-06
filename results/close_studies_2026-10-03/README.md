@@ -124,9 +124,12 @@ with LightGBM 4.7.0 / XGBoost 2.1.4 and are compared with a local control of the
 
 - **Analyze without rerunning:** `forecasts/` holds every forecast series of these studies (148), the 16:00
   targets with the straddle trade-day columns, a catalogue of every run's settings and reported scores, the
-  linear coefficients at every forecast row and the tree split / gain records at every refit (23.7 MB, no
-  file above 12 MB). Load and score with `experiments/close_studies_load.py`; `forecasts/README.md` lists the
-  files and columns; `forecasts/VERIFY.csv`: 1617 checks against the study tables, 0 failures.
+  linear coefficients at every forecast row, the tree split / gain records at every refit, and the 16:00-bar
+  all_features design itself (every row, 3469 x 628 inputs + target; added 2026-10-06), so linear SHAP
+  (`L.linear_contributions(arm)`) and anything else on the one-bar inputs needs no rebuild (31.6 MB, no file
+  above 12 MB). Load and score with `experiments/close_studies_load.py`; `forecasts/README.md` lists the files
+  and columns; `forecasts/VERIFY.csv`: 1639 checks, 0 failures (the design matches `design_hashes.json`, and
+  coefficients x design rows reproduce the linear forecasts within 2.2e-6 relative, float32 coefficients).
 - **Recreate the runs:** `REPRODUCE.md` (the commands in order, CPU time for each study, about 31 CPU-hours in
   all), `requirements-lock.txt` and `environment.json` (exact versions, CPU, BLAS, compiler),
   `design_hashes.json` (sha256 of every cached design, so a rebuild can be checked without the 1.1 GB cache).

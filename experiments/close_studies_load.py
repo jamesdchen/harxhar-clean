@@ -12,6 +12,8 @@ Everything here reads only those files, plus the scorer code it calls
     L.score(L.rebuild("trees_morebars/average.csv", "average of lgbm pools N = 1 .. 4"))
     th = L.coefficients("ridge_bb0")                      # dates x (628 design columns + intercept)
     gain = L.importance("lgbm_bars4_r8000_barmin_seed42")  # refits x columns
+    D = L.design()                                        # 16:00 design: 3469 rows x (628 inputs + y, B)
+    C = L.linear_contributions("ridge_bb0")               # linear SHAP: dates x 628 columns
 
 Scoring: ``score`` puts every forecast through the master table's research scorer: the 16:00-bar
 recalibration pred_clock = (pred_adj^2 + s) x B, s = the mean squared adjusted-scale error over
@@ -150,6 +152,40 @@ def coefficients(arm: str) -> pd.DataFrame:
     t.index = pd.DatetimeIndex(pd.to_datetime(t.pop("date"))).astype("datetime64[ns]")
     t.index.name = "date"
     return t.drop(columns=["series_id", "row"])
+
+
+DESIGN_META = ("row", "date", "forecast_row", "y", "baseline", "true_raw")
+
+
+def design(forecast_rows_only: bool = False) -> pd.DataFrame:
+    """The 16:00-bar all_features design, every row (index = 16:00 stamp): row, forecast_row
+    (row - 2000; >= 0 on the 1469 forecast rows of every other table), y (= true_adj), baseline (B),
+    true_raw, and the 628 prescaled inputs exactly as the 16:00-bar models received them."""
+    t = _read("design_bar1600_all_features.parquet").copy()
+    t.index = pd.DatetimeIndex(pd.to_datetime(t.pop("date"))).astype("datetime64[ns]")
+    t.index.name = "date"
+    return t[t["forecast_row"] >= 0] if forecast_rows_only else t
+
+
+def design_names() -> list[str]:
+    """The 628 input columns of the 16:00 design, in the coefficients' and importances' order."""
+    return [c for c in _read("design_bar1600_all_features.parquet").columns if c not in DESIGN_META]
+
+
+def linear_contributions(arm: str, window: int = 2000) -> pd.DataFrame:
+    """Linear SHAP of an exog_penalty arm at every forecast row: theta_j x (x_j - mean of x_j over
+    the arm's training window, the `window` rows before the forecast row).  Rows sum to the
+    forecast minus the prediction at the window means.  theta is float32 in the export."""
+    names = design_names()
+    D = design()
+    X = D[names].to_numpy(np.float64)
+    first = int((D["forecast_row"] < 0).sum())
+    th = coefficients(arm)
+    cs = np.vstack([np.zeros(len(names)), np.cumsum(X, axis=0)])
+    rows = np.arange(first, first + len(th))
+    means = (cs[rows] - cs[rows - window]) / window
+    phi = (X[rows] - means) * th[names].to_numpy(np.float64)
+    return pd.DataFrame(phi, index=th.index, columns=names)
 
 
 def rechoices(arm: str | None = None) -> pd.DataFrame:

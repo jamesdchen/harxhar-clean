@@ -9,6 +9,9 @@ Stages:
   python experiments/close_studies_export.py build    read the npz files, the design cache (forecast-row
                                                       dates / targets / column names only), the stored
                                                       master-table tables and the deck; write the export
+  python experiments/close_studies_export.py design   write design_bar1600_all_features.parquet only: the 16:00-bar
+                                                      all_features design, every row, from the design cache
+                                                      (added 2026-10-06; the other files are left untouched)
   python experiments/close_studies_export.py verify   reload the export only (experiments/close_studies_load.py),
                                                       re-score every exported series and every derived
                                                       forecast, compare with the study CSVs (|diff| <= 1e-10
@@ -19,7 +22,7 @@ Stages:
 Files written (see the generated README.md for every column): forecasts.parquet, targets.parquet,
 catalogue.csv, study_arms.csv, linear_coefficients.parquet, linear_rechoices.parquet,
 linear_columns.csv, tree_importance.parquet, tree_columns.csv, refits.parquet,
-pretune_trials.parquet, VERIFY.csv, README.md.
+pretune_trials.parquet, design_bar1600_all_features.parquet, VERIFY.csv, README.md.
 
 Light: one process, no model is refitted.
 """
@@ -49,6 +52,11 @@ OUT = STUDIES / "forecasts"
 DESIGN_DIR = REPO / "results" / "close_design" / "_work"
 DESIGN = DESIGN_DIR / "design_bar1600_all_features.npz"
 DESIGN_BASE = DESIGN_DIR / "design_bar1600_baseline.npz"
+DESIGN_OUT = OUT / "design_bar1600_all_features.parquet"
+HASHES = STUDIES / "design_hashes.json"
+DESIGN_META = ("row", "date", "forecast_row", "y", "baseline", "true_raw")
+LINEAR_CHECK = ("ridge_bb0", "lasso_bb0", "enet_bb0", "ridge_single", "lasso_single")
+LINEAR_TOL = 1e-5  # relative: the exported coefficients are float32
 DECK = REPO / "results" / "atm_straddle_0dte_1530" / "daily_blk2.parquet"
 SPXW = REPO / "results" / "spxw_pnl"
 MASTER = REPO / "results" / "close_master_table" / "master_table.csv"
@@ -806,6 +814,99 @@ def build_pretune(skipped: list[dict]) -> None:
 
 
 # ============================================================================ verify
+# ============================================================================ the 16:00 design
+def build_design() -> None:
+    """The 16:00-bar all_features design (the cache's design_bar1600_all_features.npz), every row:
+    the inputs the linear arms and the one-bar trees were fitted on, exactly as they saw them
+    (prescaled; the window mask is applied inside each fit, not here).  With it, statistics that
+    need the features (linear contributions, partial dependence) work from the export alone.  The
+    HAR + calendar design (design_bar1600_baseline) is its 22 backbone columns, bit for bit."""
+    z = np.load(DESIGN, allow_pickle=False)
+    W, X = int(z["W"]), np.asarray(z["X"], dtype=np.float64)
+    names = [str(v) for v in z["names"]]
+    n = len(X)
+    assert X.shape == (n, len(names)) and n - W == N_FC, (X.shape, W)
+    assert not set(names) & set(DESIGN_META)
+    rows = np.arange(n, dtype=np.int32)
+    meta = pd.DataFrame(
+        {
+            "row": rows,
+            "date": z["date"].astype(str),
+            "forecast_row": rows - W,
+            "y": np.asarray(z["y"], np.float64),
+            "baseline": np.asarray(z["baseline"], np.float64),
+            "true_raw": np.concatenate([np.full(W, np.nan), np.asarray(z["true_raw"], np.float64)]),
+        }
+    )
+    write_parquet(pd.concat([meta, pd.DataFrame(X, columns=names)], axis=1), DESIGN_OUT)
+    say(f"wrote {DESIGN_OUT} ({n} rows x {len(names)} columns, W = {W}; {DESIGN_OUT.stat().st_size / 1e6:.2f} MB)")
+
+
+def design_checks(L, cat: pd.DataFrame) -> list[dict]:
+    """The exported design against design_hashes.json (needs no cache), the cache (when present),
+    the other tables of the export, and the linear arms' forecasts (coefficients x design rows)."""
+    import hashlib
+
+    out = []
+
+    def add(check, label, quantity, diff, tol_text, passed, detail=""):
+        out.append(dict(check=check, table=rel(DESIGN_OUT), label=label, quantity=quantity, value=float(diff), reference=0.0,
+                        abs_diff=float(diff), tolerance=tol_text, passed=bool(passed), detail=detail))
+
+    raw = pd.read_parquet(DESIGN_OUT)
+    names = [c for c in raw.columns if c not in DESIGN_META]
+    W = int((raw["forecast_row"] < 0).sum())
+    arrays = {
+        "X": np.ascontiguousarray(raw[names].to_numpy(np.float64)),
+        "y": raw["y"].to_numpy(np.float64),
+        "baseline": raw["baseline"].to_numpy(np.float64),
+        "true_raw": raw["true_raw"].to_numpy(np.float64)[W:],
+        "names": np.array(names),
+        "date": np.array(raw["date"].astype(str).tolist()),
+        "W": np.array(W, dtype=np.int64),
+    }
+    H = json.loads(HASHES.read_text(encoding="utf-8"))["designs"]["bar1600_all_features"]["arrays"]
+    for k, a in arrays.items():
+        h = hashlib.sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
+        ok = h == H[k]["sha256"] and str(a.dtype) == H[k]["dtype"] and list(a.shape) == list(H[k]["shape"])
+        add("design vs design_hashes.json", "bar1600_all_features", f"{k}: sha256 of the array", float(not ok), "bitwise", ok, f"{a.dtype} {list(a.shape)}")
+    if DESIGN.is_file():
+        z = np.load(DESIGN, allow_pickle=False)
+        for k in ("X", "y", "baseline", "true_raw", "names", "date"):
+            ok = bool(np.array_equal(arrays[k], z[k]))
+            add("design vs the cache npz", "bar1600_all_features", k, float(not ok), "bitwise", ok)
+    # the loader's view and the other tables of the export
+    D = L.design()
+    T = L.targets()
+    fr = D[D["forecast_row"] >= 0]
+    ok = bool(np.array_equal(fr["y"].to_numpy(), T["true_adj"].to_numpy()) and np.array_equal(fr["true_raw"].to_numpy(), T["true_raw"].to_numpy())
+              and (fr.index == T.index).all())
+    add("design vs targets.parquet", "bar1600_all_features", "forecast rows: date, y = true_adj, true_raw", float(not ok), "bitwise", ok)
+    # B: targets.parquet holds the scorer's B = true_raw / true_adj^2 (research_frame's), the design the executor's stored B
+    b_scorer = T["true_raw"].to_numpy() / T["true_adj"].to_numpy() ** 2
+    ok = bool(np.array_equal(T["baseline"].to_numpy(), b_scorer))
+    add("design vs targets.parquet", "bar1600_all_features", "targets baseline = true_raw / true_adj^2 (the scorer's B)", float(not ok), "bitwise", ok)
+    d = float(np.max(np.abs(fr["baseline"].to_numpy() / b_scorer - 1.0)))
+    add("design vs targets.parquet", "bar1600_all_features", "design baseline (the executor's B) vs the scorer's B, max relative difference", d, "1e-11 relative", d <= 1e-11,
+        "floating-point round trip true_raw = B y^2")
+    lc = L.linear_columns()["name"].tolist()[: len(names)]
+    tc = L.tree_columns()["name"].tolist()[: len(names)]
+    ok = lc == names and tc == names and L.design_names() == names
+    add("design vs column tables", "bar1600_all_features", "names = linear_columns.csv and tree_columns.csv (first 628)", float(not ok), "equal", ok)
+    # coefficients x design rows reproduce the linear forecasts (what linear contributions rest on)
+    Xf = fr[names].to_numpy(np.float64)
+    for arm in LINEAR_CHECK:
+        sid = f"exog_penalty/{arm}"
+        th = L.coefficients(arm)
+        assert list(th.columns[: len(names)]) == names and (th.index == fr.index).all()
+        pred = (Xf * th[names].to_numpy(np.float64)).sum(axis=1) + th["intercept"].to_numpy(np.float64)
+        ref = L.forecasts(series=[sid])[sid].to_numpy()
+        d = float(np.max(np.abs(pred / ref - 1.0)))
+        add("design x coefficients vs forecasts", sid, "max relative difference of [X_row, 1] . theta from pred_adj (1469 rows)", d, f"{LINEAR_TOL:g} relative",
+            d <= LINEAR_TOL, "theta float32 in the export")
+    return out
+
+
 def verify() -> None:  # noqa: C901 - one linear check
     import close_studies_load as L
     from src.evaluation.diebold_mariano import dm_test
@@ -954,6 +1055,8 @@ def verify() -> None:  # noqa: C901 - one linear check
             g = z["imp_gain"]
             d = float(np.max(np.abs(gn.to_numpy(float) - g) / np.where(g != 0, np.abs(g), 1.0)))
             rows.append(dict(check="importance vs npz", table=r.source_file, label=r.series_id, quantity="split, kept, anchors bitwise; gain max relative difference (float32)", value=d, reference=0.0, abs_diff=d, tolerance="bitwise; 6e-8 relative", passed=bool(ok and d < 6e-8), detail=""))
+    if DESIGN_OUT.is_file():
+        rows += design_checks(L, cat)
     V = pd.DataFrame(rows)
     V.to_csv(OUT / "VERIFY.csv", index=False)
     n_fail = int((~V["passed"]).sum())
@@ -1052,6 +1155,14 @@ COLUMNS = {
         ("val_mse, fold_val_mse, fold_val_qlike, fold_rounds, fold_rounds_max, fold_sec, fold_n_kept", "float64", "objective (mean validation MSE over folds) and the fold records"),
         ("fit_first, val_first, val_last", "", "fold dates"),
     ],
+    "design_bar1600_all_features.parquet": [
+        ("row, date", "", "design row 0 .. 3468, 16:00 bar-end stamp (naive ET, the text the design stores), 2010-07-12 .. 2024-04-30"),
+        ("forecast_row", "int32", "row - 2000: negative = rows that only enter training windows; 0 .. 1468 = the forecast rows of every other table"),
+        ("y, baseline, true_raw", "float64", "target sqrt(RV / B) winsorized (= true_adj), diurnal scale B as the executor stored it, realized variance (forecast rows only, NaN before); "
+         "targets.parquet's baseline is the scorer's B = true_raw / true_adj^2, equal to this one within 1e-12 relative"),
+        ("<628 design names>", "float64", "the prescaled inputs exactly as the 16:00-bar models received them (the window mask is applied inside each fit); "
+         "the HAR + calendar design is the 22 backbone columns, bit for bit"),
+    ],
     "VERIFY.csv": [("check, table, label, quantity, value, reference, abs_diff, tolerance, passed, detail", "", "one row for each check of the verify stage")],
 }
 
@@ -1117,6 +1228,7 @@ def write_readme(V: pd.DataFrame) -> None:  # noqa: C901
         "tree_columns.csv": "names of the tree importance columns",
         "refits.parquet": "fit-level records: tree refits and linear solves",
         "pretune_trials.parquet": "trees_pretune pre-tune trials, every fold",
+        "design_bar1600_all_features.parquet": "the 16:00-bar all_features design, every row (3469 x 628 inputs + target, B): what the linear arms and the one-bar trees were fitted on",
         "VERIFY.csv": "the verify stage's checks",
     }
     for n in sizes:
@@ -1188,8 +1300,10 @@ def write_readme(V: pd.DataFrame) -> None:  # noqa: C901
     a("")
     a("## Not in the export")
     a("")
-    a("- The design matrices (`results/close_design/_work/`, about 1 GB, regenerable by `experiments/capture_design_close.py`): statistics that need the features (SHAP, partial dependence, "
-      "refitting) need the design cache.")
+    a("- The other design matrices (`results/close_design/_work/`, about 1.1 GB: the last-k-bar designs of the pooled trees, live_feasible): regenerable by "
+      "`experiments/capture_design_close.py` and checkable against `../design_hashes.json`. The 16:00-bar all_features design is in the export "
+      "(`design_bar1600_all_features.parquet`), so linear contributions (linear SHAP) of the exog_penalty arms and anything else on the one-bar inputs work from the export alone; "
+      "TreeSHAP also needs the fitted boosters, which no study saved.")
     a("- The fitted boosters: no study saved them, so tree structure and leaf values are not available; trees_lineartree kept only summaries of the leaf models (refits.parquet).")
     a("- Coefficients of the trees_datasize / trees_morebars ridge and lasso arms: those runs recorded only the penalty at every row and the masked count at every tune "
       "(refits.parquet, linear_rechoices.parquet).")
@@ -1202,6 +1316,6 @@ def write_readme(V: pd.DataFrame) -> None:  # noqa: C901
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2 or sys.argv[1] not in ("build", "verify"):
+    if len(sys.argv) != 2 or sys.argv[1] not in ("build", "design", "verify"):
         raise SystemExit(__doc__)
-    build() if sys.argv[1] == "build" else verify()
+    {"build": build, "design": build_design, "verify": verify}[sys.argv[1]]()

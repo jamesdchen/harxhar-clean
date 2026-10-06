@@ -1,6 +1,6 @@
 # Close studies 2026-10-03 / 10-04: forecast export
 
-Written by `experiments/close_studies_export.py verify` on 2026-10-06 20:31. A compact, self-describing copy of every forecast series of the close studies (`results/close_studies_2026-10-03/*/`), the 16:00 targets and trade-day columns, a catalogue, and the model internals the npz files held. The raw `.npz` outputs in `*/_work/` are gitignored and never committed; this folder replaces them for analysis. Nothing here needs `_work/` or the design cache.
+Written by `experiments/close_studies_export.py verify` on 2026-10-06 21:12. A compact, self-describing copy of every forecast series of the close studies (`results/close_studies_2026-10-03/*/`), the 16:00 targets and trade-day columns, a catalogue, and the model internals the npz files held. The raw `.npz` outputs in `*/_work/` are gitignored and never committed; this folder replaces them for analysis. Nothing here needs `_work/` or the design cache.
 
 ## How to load
 
@@ -23,6 +23,7 @@ Without the loader: `pd.read_parquet('forecasts.parquet').pivot(index='date', co
 
 | file | size (MB) | content |
 |---|---|---|
+| `design_bar1600_all_features.parquet` | 7.87 | the 16:00-bar all_features design, every row (3469 x 628 inputs + target, B): what the linear arms and the one-bar trees were fitted on |
 | `forecasts.parquet` | 2.50 | long: one row for each (series, forecast row); 148 series x 1469 rows |
 | `linear_coefficients.parquet` | 11.01 | exog_penalty arms: coefficients at every forecast row (float32, wide) |
 | `linear_rechoices.parquet` | 0.02 | every penalty re-choice of the linear arms: alpha, r, group penalties, validation grid, locked / masked sets |
@@ -36,7 +37,7 @@ Without the loader: `pd.read_parquet('forecasts.parquet').pivot(index='date', co
 | `study_arms.csv` | 0.04 | each row of the study CSVs that verify checks -> the series or the recipe (seed / pool averages, ridge + trees) that rebuilds it |
 | `tree_columns.csv` | 0.02 | names of the tree importance columns |
 
-Total 23.7 MB (every file here, this README included); largest file `linear_coefficients.parquet` 11.0 MB (every file is below GitHub's 50 MB warning size, so no Git LFS). Storage: parquet, zstd level 12, floating columns byte-stream split (lossless); forecasts float64; internals float32. No table needed splitting or float16: the dense ridge coefficients compress to about 1.8 MB an arm with byte-stream split, and the tree importance is stored long, one row for each (refit, column) the window mask kept (a dropped column has neither splits nor gain, so nothing is lost).
+Total 31.6 MB (every file here, this README included); largest file `linear_coefficients.parquet` 11.0 MB (every file is below GitHub's 50 MB warning size, so no Git LFS). Storage: parquet, zstd level 12, floating columns byte-stream split (lossless); forecasts float64; internals float32. No table needed splitting or float16: the dense ridge coefficients compress to about 1.8 MB an arm with byte-stream split, and the tree importance is stored long, one row for each (refit, column) the window mask kept (a dropped column has neither splits nor gain, so nothing is lost).
 
 ## Series
 
@@ -91,7 +92,7 @@ The stored pred_clock column: recomputed from the export's pred_adj bit for bit,
 pred_adj against the source npz / stored table, bit for bit: 148 series compared, 0 differ.
 Internals against the npz: 63 checks, 0 failed (theta bit for bit; split / kept / anchors bit for bit; gain within float32 rounding).
 Coefficient layout: for every exog_penalty arm, [X_row, 1] . theta (float32 theta, prescaled design_bar1600_all_features row, intercept last) reproduces pred within 1.0e-05 relative (the C kernel computes pred = sum_k X[t, k] theta[k] over the augmented row, experiments/close_exogpen_kernel.c).
-Overall: PASS (1617 checks).
+Overall: PASS (1639 checks).
 
 ## Columns
 
@@ -217,6 +218,15 @@ Overall: PASS (1617 checks).
 | `val_mse, fold_val_mse, fold_val_qlike, fold_rounds, fold_rounds_max, fold_sec, fold_n_kept` | float64 | objective (mean validation MSE over folds) and the fold records |
 | `fit_first, val_first, val_last` |  | fold dates |
 
+### design_bar1600_all_features.parquet
+
+| column | type | meaning |
+|---|---|---|
+| `row, date` |  | design row 0 .. 3468, 16:00 bar-end stamp (naive ET, the text the design stores), 2010-07-12 .. 2024-04-30 |
+| `forecast_row` | int32 | row - 2000: negative = rows that only enter training windows; 0 .. 1468 = the forecast rows of every other table |
+| `y, baseline, true_raw` | float64 | target sqrt(RV / B) winsorized (= true_adj), diurnal scale B as the executor stored it, realized variance (forecast rows only, NaN before); targets.parquet's baseline is the scorer's B = true_raw / true_adj^2, equal to this one within 1e-12 relative |
+| `<628 design names>` | float64 | the prescaled inputs exactly as the 16:00-bar models received them (the window mask is applied inside each fit); the HAR + calendar design is the 22 backbone columns, bit for bit |
+
 ### VERIFY.csv
 
 | column | type | meaning |
@@ -225,7 +235,7 @@ Overall: PASS (1617 checks).
 
 ## Not in the export
 
-- The design matrices (`results/close_design/_work/`, about 1 GB, regenerable by `experiments/capture_design_close.py`): statistics that need the features (SHAP, partial dependence, refitting) need the design cache.
+- The other design matrices (`results/close_design/_work/`, about 1.1 GB: the last-k-bar designs of the pooled trees, live_feasible): regenerable by `experiments/capture_design_close.py` and checkable against `../design_hashes.json`. The 16:00-bar all_features design is in the export (`design_bar1600_all_features.parquet`), so linear contributions (linear SHAP) of the exog_penalty arms and anything else on the one-bar inputs work from the export alone; TreeSHAP also needs the fitted boosters, which no study saved.
 - The fitted boosters: no study saved them, so tree structure and leaf values are not available; trees_lineartree kept only summaries of the leaf models (refits.parquet).
 - Coefficients of the trees_datasize / trees_morebars ridge and lasso arms: those runs recorded only the penalty at every row and the masked count at every tune (refits.parquet, linear_rechoices.parquet).
 - `exact_pred` exists only every 25th session of the lasso / elastic net arms (59 rows), so it is not scoreable on the trade days.
