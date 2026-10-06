@@ -1,6 +1,6 @@
 # Close studies 2026-10-03 / 10-04: forecast export
 
-Written by `experiments/close_studies_export.py verify` on 2026-10-06 20:30. A compact, self-describing copy of every forecast series of the close studies (`results/close_studies_2026-10-03/*/`), the 16:00 targets and trade-day columns, a catalogue, and the model internals the npz files held. The raw `.npz` outputs in `*/_work/` are gitignored and never committed; this folder replaces them for analysis. Nothing here needs `_work/` or the design cache.
+Written by `experiments/close_studies_export.py verify` on 2026-10-06 20:31. A compact, self-describing copy of every forecast series of the close studies (`results/close_studies_2026-10-03/*/`), the 16:00 targets and trade-day columns, a catalogue, and the model internals the npz files held. The raw `.npz` outputs in `*/_work/` are gitignored and never committed; this folder replaces them for analysis. Nothing here needs `_work/` or the design cache.
 
 ## How to load
 

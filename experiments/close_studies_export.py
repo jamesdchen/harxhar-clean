@@ -502,7 +502,7 @@ def skip_reason(s: dict, exported: dict) -> str:
     c_arm = exported[f"exog_penalty/{short}_single"]
     st = exported[f"master_table/sub_{short}_all_features"]
     if s["kind"] == "check run":
-        return (f"check run (the C port's one-penalty arm, gate 2 of exog_penalty/SUMMARY.md): "
+        return ("check run (the C port's one-penalty arm, gate 2 of exog_penalty/SUMMARY.md): "
                 + ("bit for bit equal to exog_penalty/" + short + "_single" if np.array_equal(p, c_arm) else f"max relative difference {np.max(np.abs(p / c_arm - 1)):.1e} to exog_penalty/{short}_single"))
     return (f"gate run (the spec's own Python class on the cached design, gate 1 of exog_penalty/SUMMARY.md): max relative difference {np.max(np.abs(p / st - 1)):.1e} to "
             f"master_table/sub_{short}_all_features and {np.max(np.abs(p / c_arm - 1)):.1e} to exog_penalty/{short}_single")
@@ -735,9 +735,9 @@ def build_trees(D: dict, series: list[dict]) -> None:
         assert sp.max() < 2**15
         parts.append(pd.DataFrame(dict(series_id=s["series_id"], refit=r.astype(np.int16), row=z["anchors"][r].astype(np.int16), col=c.astype(np.int16),
                                        split=sp[r, c].astype(np.int16), gain=g[r, c].astype(np.float32))))
-    I = pd.concat(parts, ignore_index=True)
-    write_parquet(I, OUT / "tree_importance.parquet", float_cols=["gain"], dict_cols=["series_id"])
-    say(f"tree importance: {I['series_id'].nunique()} arms, {len(I)} kept (refit, column) cells")
+    imp = pd.concat(parts, ignore_index=True)
+    write_parquet(imp, OUT / "tree_importance.parquet", float_cols=["gain"], dict_cols=["series_id"])
+    say(f"tree importance: {imp['series_id'].nunique()} arms, {len(imp)} kept (refit, column) cells")
 
 
 # ---------------------------------------------------------------- refit-level records
