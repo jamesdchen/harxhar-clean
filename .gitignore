@@ -86,3 +86,6 @@ results/close_design/_work/
 results/close_design/*.log
 # large arrays of the 2026-10-03 close studies (regenerable by their scripts)
 results/close_studies_2026-10-03/*/_work/
+# reproduction-check scratch of the 2026-10-03 close studies (experiments/close_studies_repro_check.py:
+# a clean checkout of HEAD, rebuilt designs and rerun forecasts; regenerable)
+results/close_studies_2026-10-03/_repro_scratch/
