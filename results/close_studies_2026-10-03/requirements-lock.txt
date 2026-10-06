@@ -1,7 +1,7 @@
 # Exact package versions of the close studies of 2026-10-03 / 04 (see REPRODUCE.md in this folder).
 # Python 3.11.15 (CPython), Linux x86_64, glibc 2.39.
 # The packages the study scripts import and every dependency they require, as installed (pip freeze,
-# filtered); written by experiments/close_studies_repro_check.py env on 2026-10-06 at commit a14807449a.
+# filtered); written by experiments/close_studies_repro_check.py env on 2026-10-06 at commit 2ecea61699.
 # Install:  python3.11 -m pip install -r results/close_studies_2026-10-03/requirements-lock.txt
 # System packages outside pip: gcc (13.3 here), liblapack3 + libblas3 (reference LAPACK / BLAS 3.12, the
 # C kernel links them), libgomp1 (LightGBM's OpenMP).

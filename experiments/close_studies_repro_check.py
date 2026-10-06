@@ -6,32 +6,39 @@ so nothing untracked can leak in and no committed ``_work`` file or design-cache
 overwritten) and comparing it with what exists.
 
 Checks (stage ``check``):
-  env  the environment against environment.json (informative: a difference predicts which checks fail)
-  a0   every cached design in results/close_design/_work against design_hashes.json
-  a    capture_design_close.py rebuilds the bar1600 all_features design into a scratch folder
-       (CLOSE_DESIGN_DIR): compared bitwise with the cache and with design_hashes.json
-  a2   (informative) the same rebuild with numpy's AVX-512 code paths off and OpenBLAS forced to its
-       Haswell (AVX2) kernels, i.e. what an AVX2 machine would compute with the same packages
-  b    close_exogpen.py ``run`` (EXOGPEN_MODES=bb0) refits ridge_bb0 and lasso_bb0 through the C kernel,
-       compiled afresh by gcc: compared with exog_penalty/_work/runs/*.npz and, scored, with headline.csv
-  b2   (informative) the same two arms with the C kernel compiled for -march=haswell instead of native
-  c    the first 3 refits of one LightGBM arm of each tree study, through that study's own code path:
-         trees_datasize   lgbm_bar1600_w2000 (shipped configuration, k = 1; ``run`` with TDS_MAX_ANCHORS=3)
-         trees_pretune    the walk's control / frozen_k10 / frozen_k45 arms (``walk``, CTP_WALK_ROWS=0,30),
-                          and trial 0 of the pre-tune (4 fold fits of the shipped configuration)
-         trees_lineartree lt_all_r10_lam10 (``smoke`` with CLT_SMOKE_ANCHORS=3)
-         trees_morebars   lgbm_bars4_r8000 (the k = 4 pool; the ``gate`` stage's code path)
-         trees_kfull      lgbm_bars13_r26000_barmin_seed43 (``gate`` code path, random_state 43)
-       each compared bitwise with the study's _work forecast (and fit records)
-  d    close_kfull_tests.py ``run existing`` with KFT_OUT in the scratch folder: every CSV compared
-       with results/close_studies_2026-10-03/kfull_tests/, key numbers listed
-  safe every committed results file and the design cache unchanged by the check (sizes, mtimes)
+  env    the environment against environment.json (informative: a difference predicts which checks fail)
+  a0     every cached design in results/close_design/_work against design_hashes.json
+  a      capture_design_close.py rebuilds the bar1600 all_features design into a scratch folder
+         (CLOSE_DESIGN_DIR): compared bitwise with the cache and with design_hashes.json
+  a2     (informative) the same rebuild with numpy's AVX-512 code paths off (NPY_DISABLE_CPU_FEATURES), i.e.
+         what an AVX2 machine computes with the same packages
+  b      close_exogpen.py ``run`` (EXOGPEN_MODES=bb0) refits ridge_bb0, lasso_bb0 and the HAR + calendar OLS
+         as the committed script runs on this machine (C kernel compiled for -march=native, OpenBLAS's own
+         kernel choice): compared with exog_penalty/_work/runs/*.npz and, scored, with headline.csv
+  b-fix  the same with the settings of REPRODUCE.md: kernel prebuilt for -march=haswell (stage build-kernel),
+         OPENBLAS_CORETYPE=SkylakeX
+  c      the first 3 refits of one LightGBM arm of each tree study, through that study's own code path:
+           trees_datasize   lgbm_bar1600_w2000 (shipped configuration, k = 1; ``run`` with TDS_MAX_ANCHORS=3)
+           trees_pretune    the walk's control / frozen_k10 / frozen_k45 arms (``walk``, CTP_WALK_ROWS=0,30),
+                            and trial 0 of the pre-tune (4 fold fits of the shipped configuration)
+           trees_lineartree lt_all_r10_lam10 (``smoke`` with CLT_SMOKE_ANCHORS=3)
+           trees_morebars   lgbm_bars4_r8000 (the k = 4 pool; the ``gate`` stage's code path)
+           trees_kfull      lgbm_bars13_r26000_barmin_seed43 (``gate`` code path, random_state 43)
+         each compared bitwise with the study's _work forecast (and fit records)
+  d      close_kfull_tests.py ``run existing`` with KFT_OUT in the scratch folder: every CSV compared with
+         results/close_studies_2026-10-03/kfull_tests/, key numbers listed
+  e      the linear spec's Python ridge / lasso (BLAS through numpy), trees_datasize ridge_bar1600_w2000 and
+         lasso_bar1600_w2000, whole arms, as the scripts run here (e) and with OPENBLAS_CORETYPE=SkylakeX (e-fix)
+  safe   every file of the seven study folders and of the design cache unchanged by the check (sizes, mtimes)
 
 Stages:
   python experiments/close_studies_repro_check.py env      write requirements-lock.txt and environment.json
   python experiments/close_studies_repro_check.py hashes   write design_hashes.json from the design cache
-  python experiments/close_studies_repro_check.py check [--only env,a0,a,a2,b,b2,c,d] [--out DIR]
+  python experiments/close_studies_repro_check.py check [--only env,a0,a,a2,b,c,d,e] [--out DIR]
                                                             run the checks; write repro_check.csv / .md
+  python experiments/close_studies_repro_check.py build-kernel [--march haswell] [--work DIR]
+        compile the exog_penalty C kernels for that target into exog_penalty/_work (default), so the study's
+        own stages load them instead of compiling for -march=native (see REPRODUCE.md)
   python experiments/close_studies_repro_check.py kfull-run
         a trees_kfull worker that fits only the arms the committed manifest.csv lists as fitted (43 arms);
         close_trees_kfull.py ``run`` would also fit the 12 no-column arms that were never run, which
@@ -41,7 +48,7 @@ Stages:
         ignored), max |difference| of the numbers; also written to _repro_scratch/diff_vs_committed.csv
 Scratch: results/close_studies_2026-10-03/_repro_scratch/ (gitignored; env REPRO_SCRATCH).
 Compute: one child process at a time, every fit single-threaded (OMP / OPENBLAS / MKL / NUMBA threads 1,
-UNIF_SCALE_PROCS=1, CTP_WORKERS=1).  About 15 minutes on the machine of environment.json.
+UNIF_SCALE_PROCS=1, CTP_WORKERS=1).  About 10 minutes on the machine of environment.json.
 """
 
 from __future__ import annotations
@@ -154,6 +161,25 @@ def run(name: str, cmd: list[str], cwd: Path, extra_env: dict | None = None, tim
 
 
 # ============================================================================ stage env
+# Found by the check of 2026-10-06 (repro_check.md, REPRODUCE.md): what this machine needs to reproduce the runs
+REPRO_SETTINGS = {
+    "machine of the committed runs": (
+        "Not this CPU, although both report 'Intel(R) Xeon(R) Processor @ 2.10GHz' under KVM. The stored numpy "
+        "OLS and Python ridge / lasso arms are reproduced by OpenBLAS 0.3.23's SkylakeX kernels (the OLS also by "
+        "Cooperlake), and the stored C-kernel runs by gcc "
+        "13.3 builds for -march=haswell, skylake-avx512 or icelake-server; this CPU (family 6, model 207) gets "
+        "OpenBLAS's fallback Prescott kernels (it does not recognize the model) and gcc -march=native = "
+        "sapphirerapids, whose tuning changes the last bits of the lasso path. Designs, LightGBM fits and the "
+        "tests do not depend on either choice."),
+    "OPENBLAS_CORETYPE": "SkylakeX (AVX-512 CPUs only): numpy's OpenBLAS then uses the kernels of the runs; "
+                         "scipy's OpenBLAS 0.3.30 picks SkylakeX on this machine anyway",
+    "C kernel": "python experiments/close_studies_repro_check.py build-kernel --march haswell, before exog_penalty's "
+                "stages (the .so runs on any AVX2 CPU and reproduces the stored arms)",
+    "design cache": "numpy's AVX-512 code paths change 120 of the 628 bar1600 all_features columns (max 2.8e-11) "
+                    "when off: rebuilding the committed cache bit for bit needs an AVX-512 CPU",
+}
+
+
 def _canon(n: str) -> str:
     return re.sub(r"[-_.]+", "-", n).lower()
 
@@ -286,6 +312,7 @@ def stage_env() -> None:
             "concurrent processes": "2 for most stages; up to 4 for the last trees_datasize / trees_morebars / "
                                     "trees_kfull arms (each process single-threaded)",
         },
+        reproduction_settings=REPRO_SETTINGS,
     )
     ENV_JSON.write_text(json.dumps(info, indent=1, default=str) + "\n")
     print(f"wrote {LOCK} ({len(dists)} packages) and {ENV_JSON}")
@@ -434,13 +461,14 @@ def check_a0() -> None:
 
 
 def check_a(ck: Path, variant: str = "") -> None:
-    """Rebuild design_bar1600_all_features from the checkout; variant 'avx2' = numpy AVX-512 off + OpenBLAS Haswell."""
+    """Rebuild design_bar1600_all_features from the checkout; variant 'avx2' = numpy's AVX-512 code paths off (the
+    OpenBLAS kernel does not matter: a Haswell-kernel rebuild was identical, 2026-10-06)."""
     out = SCR / ("design_rebuild" + (f"_{variant}" if variant else ""))
     if out.exists():
         shutil.rmtree(out)
     env = {"CLOSE_DESIGN_DIR": out}
     if variant == "avx2":
-        env |= {"NPY_DISABLE_CPU_FEATURES": NPY_AVX512, "OPENBLAS_CORETYPE": "Haswell"}
+        env |= {"NPY_DISABLE_CPU_FEATURES": NPY_AVX512}
     rc, sec, log = run("a_capture" + (f"_{variant}" if variant else ""),
                        [PY, ck / "experiments" / "capture_design_close.py", "bar1600", "all_features"], ck, env)
     tag = "a2" if variant else "a"
@@ -452,8 +480,8 @@ def check_a(ck: Path, variant: str = "") -> None:
     ok, mx, bad = compare_npz(new, old, list(DESIGN_KEYS))
     ncols = int((np.abs(new["X"] - old["X"]).max(axis=0) > 0).sum()) if new["X"].shape == old["X"].shape else -1
     if variant:
-        row(tag, "bar1600 all_features rebuilt with numpy AVX-512 off and OpenBLAS Haswell kernels vs the cache "
-                 "(what an AVX2 machine computes)", None, mx, sec,
+        row(tag, "bar1600 all_features rebuilt with numpy's AVX-512 code paths off (what an AVX2 machine computes) "
+                 "vs the cache", None, mx, sec,
             "bitwise identical" if ok else f"differs: {', '.join(bad)}; {ncols} of {new['X'].shape[1]} columns of X differ")
         return
     row(tag, "design_bar1600_all_features.npz rebuilt (clean checkout, CLOSE_DESIGN_DIR, 1 thread) vs the cache: "
@@ -465,13 +493,44 @@ def check_a(ck: Path, variant: str = "") -> None:
             "all equal" if not bad2 else "differ: " + ", ".join(bad2))
 
 
-def check_b(ck: Path) -> None:
-    runs_new = ck / "results" / "close_studies_2026-10-03" / "exog_penalty" / "_work" / "runs"
-    runs_old = STUDIES / "exog_penalty" / "_work" / "runs"
-    rc, sec, log = run("b_exogpen_run", [PY, ck / "experiments" / "close_exogpen.py", "run", "ridge", "reclasso"], ck,
-                       {"EXOGPEN_MODES": "bb0"})
+def build_kernel(work: Path, march: str = "haswell", src_root: Path = REPO) -> list[str]:
+    """Compile close_exogpen_kernel.c and close_exogpen_cdcheck.c for ``march`` into ``work`` (exog_penalty's _work):
+    close_exogpen.kernel() / crosscheck() then load these instead of compiling for -march=native, as long as
+    the .so files are newer than the .c files."""
+    work.mkdir(parents=True, exist_ok=True)
+    cmds = []
+    for name in ("close_exogpen_kernel", "close_exogpen_cdcheck"):
+        cmd = ["gcc", "-O3", f"-march={march}", "-fPIC", "-shared", "-o", str(work / f"{name}.so"),
+               str(src_root / "experiments" / f"{name}.c"), "-l:liblapack.so.3", "-l:libblas.so.3", "-lm"]
+        subprocess.run(cmd, check=True)
+        cmds.append(" ".join(cmd))
+    return cmds
+
+
+def check_b(ck: Path, fix: bool) -> None:
+    """exog_penalty ``run`` for ridge_bb0 / lasso_bb0 (+ the OLS).  fix=False: as the committed script runs on this
+    machine (kernel compiled for -march=native, OpenBLAS's own kernel choice); fix=True: REPRODUCE.md's settings
+    (kernel prebuilt for -march=haswell, OPENBLAS_CORETYPE=SkylakeX)."""
+    tag = "b-fix" if fix else "b"
+    work = ck / "results" / "close_studies_2026-10-03" / "exog_penalty" / "_work"
+    runs_new, runs_old = work / "runs", STUDIES / "exog_penalty" / "_work" / "runs"
+    if runs_new.exists():
+        shutil.rmtree(runs_new)
+    for so in work.glob("*.so"):
+        so.unlink()
+    env = {"EXOGPEN_MODES": "bb0"}
+    how = "kernel compiled by the script (gcc -march=native), OpenBLAS's own kernel choice"
+    if fix:
+        if not cpu_info()["avx512f"]:
+            row(tag, "exog_penalty with REPRODUCE.md's settings", None, None, None,
+                "skipped: OPENBLAS_CORETYPE=SkylakeX needs an AVX-512 CPU")
+            return
+        build_kernel(work, "haswell", ck)
+        env["OPENBLAS_CORETYPE"] = "SkylakeX"
+        how = "kernel prebuilt for -march=haswell, OPENBLAS_CORETYPE=SkylakeX"
+    rc, sec, log = run(f"{tag}_exogpen_run", [PY, ck / "experiments" / "close_exogpen.py", "run", "ridge", "reclasso"], ck, env)
     if rc != 0:
-        row("b", "exog_penalty run ridge reclasso (EXOGPEN_MODES=bb0)", False, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
+        row(tag, "exog_penalty run ridge reclasso (EXOGPEN_MODES=bb0)", False, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
         return
     compiled = "compiled:" in log.read_text()
     keys = ["pred", "theta", "alpha_blk", "r_blk", "val_mse", "pen_g", "mpr_mse", "events", "n_reseed",
@@ -481,61 +540,65 @@ def check_b(ck: Path) -> None:
         new, old = load_npz(runs_new / f"{arm}.npz"), load_npz(runs_old / f"{arm}.npz")
         ok, mx, bad = compare_npz(new, old, keys)
         k = min(len(new["n_singular"]), len(old["n_singular"]))
-        same_ns = np.array_equal(new["n_singular"][:k], old["n_singular"][:k])
-        ok &= bool(same_ns)
-        note = (f"C kernel compiled afresh by gcc: {compiled}; cpu {float(new['cpu_sec']):.0f}s vs {float(old['cpu_sec']):.0f}s stored; "
-                f"n_singular {new['n_singular'].tolist()} vs {old['n_singular'].tolist()} stored (the stored run predates "
-                f"the last three counters)")
-        row("b", f"exog_penalty {arm}: 1469 forecasts, coefficients, alphas, masks vs _work/runs/{arm}.npz", ok,
+        same_ns = bool(np.array_equal(new["n_singular"][:k], old["n_singular"][:k]))
+        ok &= same_ns
+        if not same_ns:
+            bad.append(f"LU fallbacks {int(new['n_singular'][0])} vs {int(old['n_singular'][0])}")
+        note = (f"{how}; the script compiled the kernel: {compiled}; cpu {float(new['cpu_sec']):.0f}s "
+                f"(stored {float(old['cpu_sec']):.0f}s)")
+        row(tag, f"exog_penalty {arm} ({'with the settings of REPRODUCE.md' if fix else 'as the scripts run it here'}): "
+                 f"1469 forecasts, coefficients, validation MSEs, alphas, masks vs _work/runs/{arm}.npz", ok,
             float(bitwise(new["pred"], old["pred"])[1]), sec if first else None,
             ("bitwise identical; " if ok else f"differ: {', '.join(bad)}; ") + note)
         first = False
     new, old = load_npz(runs_new / "ols_baseline.npz"), load_npz(runs_old / "ols_baseline.npz")
     ok, mx, bad = compare_npz(new, old, ["pred", "theta_bb"])
-    row("b", "exog_penalty ols_baseline (HAR + calendar OLS, numpy lstsq) vs _work/runs/ols_baseline.npz", ok, mx, None,
-        "bitwise identical" if ok else f"differ: {', '.join(bad)}")
-    # scored with the study's scorer, against headline.csv
+    row(tag, f"exog_penalty ols_baseline (HAR + calendar OLS, numpy lstsq; {'OpenBLAS SkylakeX' if fix else 'OpenBLAS own choice'}) "
+             "vs _work/runs/ols_baseline.npz", ok, mx, None, "bitwise identical" if ok else f"differ: {', '.join(bad)}")
+    if fix:
+        return
+    # scored with the study's scorer, against headline.csv (the as-is rerun: the larger difference)
     rc, sec, log = run("b_exogpen_score", [PY, Path(__file__).resolve(), "_child", "exog_score", "--root", ck], ck)
     res_f = SCR / "results" / "exog_score.json"
     if rc != 0 or not res_f.is_file():
-        row("b", "ridge_bb0 / lasso_bb0 reruns scored vs headline.csv", False, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
+        row(tag, "ridge_bb0 / lasso_bb0 reruns scored vs headline.csv", False, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
         return
     sc = json.loads(res_f.read_text())
     head = pd.read_csv(STUDIES / "exog_penalty" / "headline.csv").set_index("key")
     for arm in ("ridge_bb0", "lasso_bb0"):
         d = {c: abs(sc[arm][c] - float(head.loc[arm, c])) for c in ("qlike", "sharpe_mid", "sharpe_crossed")}
         mx = max(d.values())
-        row("b", f"{arm} rerun scored (866 trade days) vs exog_penalty/headline.csv: QLIKE, Sharpe mid, Sharpe crossed",
-            mx <= SCORE_TOL, mx, sec if arm == "ridge_bb0" else None,
+        row(tag, f"{arm} rerun (as the scripts run it here) scored on the 866 trade days vs exog_penalty/headline.csv: "
+                 "QLIKE, Sharpe mid, Sharpe crossed", mx <= SCORE_TOL, mx, sec if arm == "ridge_bb0" else None,
             f"QLIKE {sc[arm]['qlike']:.6f} vs {float(head.loc[arm, 'qlike']):.6f}, Sharpe mid {sc[arm]['sharpe_mid']:.4f} vs "
             f"{float(head.loc[arm, 'sharpe_mid']):.4f} (tolerance {SCORE_TOL:g}: the scorer's column order moves the last bits)")
 
 
-def check_b2(ck: Path) -> None:
-    so_dir = SCR / "exog_haswell"
-    so_dir.mkdir(parents=True, exist_ok=True)
-    so = so_dir / "close_exogpen_kernel.so"
-    src = ck / "experiments" / "close_exogpen_kernel.c"
-    cc = ["gcc", "-O3", "-march=haswell", "-fPIC", "-shared", "-o", str(so), str(src),
-          "-l:liblapack.so.3", "-l:libblas.so.3", "-lm"]
-    if subprocess.run(cc).returncode != 0:
-        row("b2", "C kernel compiled with -march=haswell", None, None, None, "gcc failed")
-        return
-    rc, sec, log = run("b2_exogpen_haswell", [PY, Path(__file__).resolve(), "_child", "exog_haswell", "--root", ck], ck)
-    runs_old = STUDIES / "exog_penalty" / "_work" / "runs"
+def check_e(ck: Path, fix: bool) -> None:
+    """The linear spec's Python models (RollingTunedLinear: BLAS through numpy), whole arms of trees_datasize."""
+    tag = "e-fix" if fix else "e"
+    out = SCR / ("linear_fix" if fix else "linear")
+    if out.exists():
+        shutil.rmtree(out)
+    env = {"TDS_WORK": out}
+    if fix:
+        if not cpu_info()["avx512f"]:
+            row(tag, "trees_datasize linear arms with OPENBLAS_CORETYPE=SkylakeX", None, None, None, "skipped: needs an AVX-512 CPU")
+            return
+        env["OPENBLAS_CORETYPE"] = "SkylakeX"
+    arms = ("ridge_bar1600_w2000", "lasso_bar1600_w2000")
+    rc, sec, log = run(f"{tag}_linear", [PY, ck / "experiments" / "close_trees_datasize.py", "run", *arms], ck, env)
     if rc != 0:
-        row("b2", "ridge_bb0 / lasso_bb0 with the kernel built for -march=haswell", None, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
+        row(tag, "trees_datasize ridge / lasso arms", False, None, sec, f"exit {rc}, log {log.relative_to(REPO)}")
         return
-    parts, mxs = [], []
-    for arm in ("ridge_bb0", "lasso_bb0"):
-        new, old = load_npz(so_dir / f"{arm}.npz"), load_npz(runs_old / f"{arm}.npz")
-        same, d = bitwise(new["pred"], old["pred"])
-        rel = float(np.nanmax(np.abs(new["pred"] / old["pred"] - 1.0)))
-        mxs.append(d)
-        parts.append(f"{arm} {'bitwise identical' if same else f'differs (max rel. {rel:.2g})'}, alphas "
-                     f"{'same' if np.array_equal(new['alpha_blk'], old['alpha_blk']) else 'differ'}")
-    row("b2", "ridge_bb0 / lasso_bb0 with the C kernel compiled for -march=haswell (AVX2 + FMA) vs the stored runs",
-        None, max(mxs), sec, "; ".join(parts))
+    first = True
+    for arm in arms:
+        new, old = load_npz(out / f"{arm}.npz"), load_npz(STUDIES / "trees_datasize" / "_work" / f"{arm}.npz")
+        ok, mx, bad = compare_npz(new, old, ["pred", "alpha", "n_reseed"])
+        row(tag, f"trees_datasize {arm} (the linear spec's Python model, 1469 solves; "
+                 f"{'OPENBLAS_CORETYPE=SkylakeX' if fix else 'OpenBLAS own choice'}) vs _work/{arm}.npz", ok, mx,
+            sec if first else None, "bitwise identical" if ok else f"differ: {', '.join(bad)}")
+        first = False
 
 
 def first_rows(n_refits: int = 3, every: int = 10, start: int = 130) -> slice:
@@ -706,14 +769,15 @@ def check_d(ck: Path) -> None:
     ri_same = ri_new == ri_old
 
     def body(p: Path) -> list[str]:
-        return [ln for ln in p.read_text().splitlines() if not ln.startswith("- CPU time of the run")]
+        # the run's own date and CPU time are the only lines that may change
+        return [ln for ln in p.read_text().splitlines() if not ln.startswith(("- CPU time of the run", "Written by"))]
 
     md_same = body(out / "SUMMARY.md") == body(ref / "SUMMARY.md")
     ok = same_n == len(csvs) and ri_same and md_same and not drift
     row("d", f"kfull_tests run existing (KFT_OUT scratch): {len(csvs)} CSVs, run_info.json, SUMMARY.md vs "
              "results/close_studies_2026-10-03/kfull_tests/", ok, mx, sec,
         f"{same_n} of {len(csvs)} CSVs byte-identical; run_info.json (without times) {'same' if ri_same else 'differs'}; "
-        f"SUMMARY.md (without the CPU-time line) {'same' if md_same else 'differs'}; code = HEAD: "
+        f"SUMMARY.md (without its date and CPU-time lines) {'same' if md_same else 'differs'}; code = HEAD: "
         f"{'yes' if not drift else 'no: ' + ', '.join(drift)}" + ("; " + "; ".join(notes[:5]) if notes else ""))
     # key numbers, read from both copies
     keys = []
@@ -765,15 +829,6 @@ def child(task: str, root: Path) -> None:
         out = {a: dict(qlike=float(pt["ql"][i]), sharpe_mid=float(pt["sh"][i]), sharpe_crossed=float(pt["shx"][i]),
                        n_days=int(P["ql"].shape[0])) for i, a in enumerate(preds)}
         (res_dir / "exog_score.json").write_text(json.dumps(out, indent=1))
-    elif task == "exog_haswell":
-        import close_exogpen as ce
-
-        ce.WORK = SCR / "exog_haswell"  # kernel() loads WORK/close_exogpen_kernel.so (built -march=haswell, newer than the .c)
-        S = ce.Setup()
-        grids = ce.spec_grids()
-        for est, arm, every in (("ridge", "ridge_bb0", 0), ("reclasso", "lasso_bb0", ce.CHECK_EVERY)):
-            r = ce.c_run(S, est, "bb0", grids[est], check_every=every)
-            np.savez_compressed(ce.WORK / f"{arm}.npz", pred=r["pred"], alpha_blk=r["alpha_blk"])
     elif task == "pretune_folds":
         import close_trees_pretune as C
         import close_trees_pretune_jobs as CJ
@@ -837,6 +892,22 @@ def write_report(out_dir: Path, head: str, t_all: float) -> None:
     ref = json.loads(ENV_JSON.read_text()) if ENV_JSON.is_file() else {}
     pk = ref.get("packages", {})
     n_fail = int((df["result"] == "fail").sum())
+    fails = set(df.loc[df["result"] == "fail", "check"])
+    fixed = [c for c in ("b", "e") if c in fails and f"{c}-fix" in set(df["check"])
+             and (df.loc[df["check"] == f"{c}-fix", "result"] == "pass").all()]
+    n_fixed = int((df["check"].isin(fixed) & (df["result"] == "fail")).sum())
+    notes = []
+    if fixed:
+        notes = [
+            "",
+            f"**The {n_fixed} failing rows of {', '.join(fixed)} are resolved by the rows {', '.join(c + '-fix' for c in fixed)}.** "
+            "Run as the committed scripts run on this machine, the C-kernel arms (ridge: validation MSEs only, forecasts "
+            "identical) and the numpy-BLAS linear models differ from the stored arms in the last bits only (the scored QLIKE / "
+            "Sharpe agree to 1e-16), because this machine's "
+            "numpy OpenBLAS kernel and gcc tuning differ from those of the machine that wrote the runs "
+            "(environment.json, reproduction_settings). The same commands with the settings of REPRODUCE.md "
+            "(OPENBLAS_CORETYPE=SkylakeX, C kernel built for -march=haswell) reproduce them bit for bit.",
+        ]
     lines = [
         "# Reproduction check of the close studies (2026-10-03 / 04)",
         "",
@@ -849,6 +920,7 @@ def write_report(out_dir: Path, head: str, t_all: float) -> None:
         "",
         f"**{(df['result'] == 'pass').sum()} pass, {n_fail} fail, {(df['result'] == 'info').sum()} informative.** "
         "pass = bitwise identical (scores: within 1e-12); info = an informative check with no expected outcome.",
+        *notes,
         "",
         "| check | target | result | max difference | seconds |",
         "|---|---|---|---|---|",
@@ -880,13 +952,15 @@ def stage_check(only: set[str], out_dir: Path) -> None:
     if "a2" in only:
         check_a(ck, "avx2")
     if "b" in only:
-        check_b(ck)
-    if "b2" in only:
-        check_b2(ck)
+        check_b(ck, fix=False)
+        check_b(ck, fix=True)
     if "c" in only:
         check_c(ck)
     if "d" in only:
         check_d(ck)
+    if "e" in only:
+        check_e(ck, fix=False)
+        check_e(ck, fix=True)
     after = snapshot()
     changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
     row("safe", "committed results files and the design cache unchanged by the check (size and mtime of "
@@ -911,9 +985,43 @@ def stage_kfull_run() -> None:
 TIME_COLS = re.compile(r"(cpu|wall|_sec|^sec$|fit_s|elapsed|written|seconds)", re.I)
 
 
+def diff_forecasts() -> pd.DataFrame:
+    """Every exported series (forecasts/catalogue.csv: source_file, source_key) whose _work file exists: the
+    rerun's array against the committed export (forecasts/forecasts.parquet, pred_adj), bitwise."""
+    exp = STUDIES / "forecasts"
+    cat_f, fc_f = exp / "catalogue.csv", exp / "forecasts.parquet"
+    if not (cat_f.is_file() and fc_f.is_file()):
+        print(f"no forecast export in {exp}: forecasts not compared")
+        return pd.DataFrame()
+    cat = pd.read_csv(cat_f)
+    need = {"series_id", "source_file", "source_key", "exported"}
+    if not need <= set(cat.columns):
+        print(f"{cat_f} lacks {sorted(need - set(cat.columns))}: forecasts not compared")
+        return pd.DataFrame()
+    fc = pd.read_parquet(fc_f, columns=["date", "series_id", "pred_adj"])
+    wide = fc.pivot(index="date", columns="series_id", values="pred_adj").sort_index()
+    rows = []
+    for r in cat[cat["exported"].astype(str) == "yes"].itertuples():
+        src = REPO / str(r.source_file)
+        if r.series_id not in wide.columns or not src.is_file() or not str(r.source_file).startswith("results/close_studies"):
+            continue
+        z = np.load(src, allow_pickle=False)
+        if r.source_key not in z.files:
+            continue
+        new = np.asarray(z[r.source_key], float)
+        old = wide[r.series_id].to_numpy(float)
+        if new.shape != old.shape:
+            rows.append(dict(file=f"{r.source_file}:{r.source_key}", status=f"length {len(new)} vs {len(old)}", max_abs_diff=np.nan))
+            continue
+        _, d = bitwise(new, old)  # identical = the same NaN rows and equal numbers
+        rows.append(dict(file=f"{r.source_file}:{r.source_key}", status="identical" if d == 0 else "numbers differ", max_abs_diff=d))
+    return pd.DataFrame(rows)
+
+
 def stage_diff(rev: str) -> None:
     """Every committed CSV of the seven study folders: the working-tree file (a rerun rewrote it) against
-    the version at ``rev``, ignoring the columns that record time; max |difference| of the numbers."""
+    the version at ``rev``, ignoring the columns that record time; max |difference| of the numbers.  Then every
+    _work forecast against the committed export (forecasts/, experiments/close_studies_export.py)."""
     rows = []
     for d in STUDY_DIRS:
         for rel in git("ls-tree", "-r", "--name-only", rev, f"results/close_studies_2026-10-03/{d}/").split():
@@ -938,24 +1046,27 @@ def stage_diff(rev: str) -> None:
                     other.append(str(c))
             status = "identical" if mx == 0 and not other else ("numbers differ" if not other else f"text differs in {', '.join(other[:4])}")
             rows.append(dict(file=rel, status=status, max_abs_diff=mx))
-    df = pd.DataFrame(rows)
+    df = pd.concat([pd.DataFrame(rows), diff_forecasts()], ignore_index=True)
     out = SCR / "diff_vs_committed.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out, index=False)
     with pd.option_context("display.max_rows", None, "display.width", 200, "display.max_colwidth", 90):
         print(df.to_string(index=False))
-    print(f"{(df['status'] == 'identical').sum()} of {len(df)} CSVs identical (time columns ignored); wrote {out}")
+    print(f"{(df['status'] == 'identical').sum()} of {len(df)} identical (study CSVs without their time columns, and "
+          f"every _work forecast present against the committed export in forecasts/); wrote {out}")
 
 
 # ============================================================================ main
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("stage", choices=["env", "hashes", "check", "kfull-run", "diff", "_child"])
+    ap.add_argument("stage", choices=["env", "hashes", "check", "kfull-run", "diff", "build-kernel", "_child"])
     ap.add_argument("task", nargs="?", default="")
-    ap.add_argument("--only", default="env,a0,a,a2,b,b2,c,d")
+    ap.add_argument("--only", default="env,a0,a,a2,b,c,d,e")
     ap.add_argument("--out", default=str(STUDIES))
     ap.add_argument("--root", default=str(REPO))
     ap.add_argument("--rev", default="HEAD", help="diff: the committed version to compare with")
+    ap.add_argument("--march", default="haswell", help="build-kernel: gcc -march target")
+    ap.add_argument("--work", default=str(STUDIES / "exog_penalty" / "_work"), help="build-kernel: output folder")
     a = ap.parse_args()
     if a.stage == "env":
         stage_env()
@@ -967,5 +1078,8 @@ if __name__ == "__main__":
         stage_kfull_run()
     elif a.stage == "diff":
         stage_diff(a.rev)
+    elif a.stage == "build-kernel":
+        for c_ in build_kernel(Path(a.work), a.march):
+            print(c_)
     else:
         child(a.task, Path(a.root).resolve())

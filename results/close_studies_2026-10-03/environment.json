@@ -1,7 +1,7 @@
 {
- "written": "2026-10-06 20:24:35 UTC",
+ "written": "2026-10-06 20:47:30 UTC",
  "written_by": "experiments/close_studies_repro_check.py env",
- "git_commit": "a14807449a925dbdfcd63a6a30354703590ec9d9",
+ "git_commit": "2ecea61699316f4494e678602071685573e29e9b",
  "python": {
   "version": "3.11.15",
   "implementation": "CPython",
@@ -212,19 +212,8 @@
    "architecture": null,
    "threading_layer": null,
    "num_threads": 1,
-   "file": "libgomp-24e2ab19.so.1.0.0",
-   "package": "xgboost.libs"
-  },
-  {
-   "user_api": "openmp",
-   "internal_api": "openmp",
-   "prefix": "libgomp",
-   "version": null,
-   "architecture": null,
-   "threading_layer": null,
-   "num_threads": 1,
-   "file": "libgomp-e985bcbb.so.1.0.0",
-   "package": "scikit_learn.libs"
+   "file": "libgomp.so.1.0.0",
+   "package": "x86_64-linux-gnu"
   },
   {
    "user_api": "blas",
@@ -245,8 +234,19 @@
    "architecture": null,
    "threading_layer": null,
    "num_threads": 1,
-   "file": "libgomp.so.1.0.0",
-   "package": "x86_64-linux-gnu"
+   "file": "libgomp-24e2ab19.so.1.0.0",
+   "package": "xgboost.libs"
+  },
+  {
+   "user_api": "openmp",
+   "internal_api": "openmp",
+   "prefix": "libgomp",
+   "version": null,
+   "architecture": null,
+   "threading_layer": null,
+   "num_threads": 1,
+   "file": "libgomp-e985bcbb.so.1.0.0",
+   "package": "scikit_learn.libs"
   },
   {
    "user_api": "blas",
@@ -441,5 +441,11 @@
   "capture_design_close.py": "sets no thread variables (the 2026-10-03 / 04 captures ran with the library defaults on 4 cores); its scaling pool UNIF_SCALE_PROCS defaults to min(cores, 8) and does not change the design (the check rebuilds with 1)",
   "CTP_WORKERS": "close_trees_pretune.py fold pool, default 2; every fit single-threaded, so it does not change any number",
   "concurrent processes": "2 for most stages; up to 4 for the last trees_datasize / trees_morebars / trees_kfull arms (each process single-threaded)"
+ },
+ "reproduction_settings": {
+  "machine of the committed runs": "Not this CPU, although both report 'Intel(R) Xeon(R) Processor @ 2.10GHz' under KVM. The stored numpy OLS and Python ridge / lasso arms are reproduced by OpenBLAS 0.3.23's SkylakeX kernels (the OLS also by Cooperlake), and the stored C-kernel runs by gcc 13.3 builds for -march=haswell, skylake-avx512 or icelake-server; this CPU (family 6, model 207) gets OpenBLAS's fallback Prescott kernels (it does not recognize the model) and gcc -march=native = sapphirerapids, whose tuning changes the last bits of the lasso path. Designs, LightGBM fits and the tests do not depend on either choice.",
+  "OPENBLAS_CORETYPE": "SkylakeX (AVX-512 CPUs only): numpy's OpenBLAS then uses the kernels of the runs; scipy's OpenBLAS 0.3.30 picks SkylakeX on this machine anyway",
+  "C kernel": "python experiments/close_studies_repro_check.py build-kernel --march haswell, before exog_penalty's stages (the .so runs on any AVX2 CPU and reproduces the stored arms)",
+  "design cache": "numpy's AVX-512 code paths change 120 of the 628 bar1600 all_features columns (max 2.8e-11) when off: rebuilding the committed cache bit for bit needs an AVX-512 CPU"
  }
 }

@@ -1,0 +1,29 @@
+check,target,result,max_difference,seconds
+env,"this machine vs environment.json (python, packages, CPU flags, OpenBLAS kernels, gcc, LAPACK)",info,,
+a0,17 cached designs (results/close_design/_work) vs design_hashes.json,pass,,22.5
+a,"design_bar1600_all_features.npz rebuilt (clean checkout, CLOSE_DESIGN_DIR, 1 thread) vs the cache: X, y, names, date, baseline, true_raw, W",pass,0.0,64.7
+a,rebuilt design vs design_hashes.json (sha256 of every array),pass,,
+a2,bar1600 all_features rebuilt with numpy's AVX-512 code paths off (what an AVX2 machine computes) vs the cache,info,2.779643182293512e-11,55.5
+b,"exog_penalty ridge_bb0 (as the scripts run it here): 1469 forecasts, coefficients, validation MSEs, alphas, masks vs _work/runs/ridge_bb0.npz",fail,0.0,42.7
+b,"exog_penalty lasso_bb0 (as the scripts run it here): 1469 forecasts, coefficients, validation MSEs, alphas, masks vs _work/runs/lasso_bb0.npz",fail,1.3322676295501878e-15,
+b,"exog_penalty ols_baseline (HAR + calendar OLS, numpy lstsq; OpenBLAS own choice) vs _work/runs/ols_baseline.npz",fail,2.4424906541753444e-15,
+b,"ridge_bb0 rerun (as the scripts run it here) scored on the 866 trade days vs exog_penalty/headline.csv: QLIKE, Sharpe mid, Sharpe crossed",pass,6.938893903907228e-17,0.6
+b,"lasso_bb0 rerun (as the scripts run it here) scored on the 866 trade days vs exog_penalty/headline.csv: QLIKE, Sharpe mid, Sharpe crossed",pass,1.3877787807814457e-17,
+b-fix,"exog_penalty ridge_bb0 (with the settings of REPRODUCE.md): 1469 forecasts, coefficients, validation MSEs, alphas, masks vs _work/runs/ridge_bb0.npz",pass,0.0,40.1
+b-fix,"exog_penalty lasso_bb0 (with the settings of REPRODUCE.md): 1469 forecasts, coefficients, validation MSEs, alphas, masks vs _work/runs/lasso_bb0.npz",pass,0.0,
+b-fix,"exog_penalty ols_baseline (HAR + calendar OLS, numpy lstsq; OpenBLAS SkylakeX) vs _work/runs/ols_baseline.npz",pass,0.0,
+c,"trees_datasize lgbm_bar1600_w2000 (shipped configuration, k = 1), first 3 refits (30 forecasts) vs _work/lgbm_bar1600_w2000.npz",pass,0.0,20.6
+c,"trees_pretune walk control, first 3 refits (30 forecasts) vs _work/local/lgbm/walk_control_r10.npz",pass,0.0,46.0
+c,"trees_pretune walk frozen_k10, first 3 refits (30 forecasts) vs _work/local/lgbm/walk_frozen_k10_r10.npz",pass,0.0,
+c,"trees_pretune walk frozen_k45 (+ retune_any, retune_margin: the same fits before row 380), first 3 refits (30 forecasts) vs _work/local/lgbm/walk_frozen_k45_r10.npz",pass,0.0,
+c,"trees_pretune pre-tune trial 0 (the shipped configuration, 4 fold fits): validation MSE, QLIKE, early-stopped rounds vs pretune_s0.npz / pretune_s1.npz",pass,0.0,33.6
+c,"trees_lineartree lt_all_r10_lam10 (linear_tree, linear_lambda 10), first 3 refits (30 forecasts, leaf coefficients) vs _work/lt_all_r10_lam10.npz",pass,0.0,20.5
+c,"trees_morebars lgbm_bars4_r8000 (the k = 4 pool, 8000 rows), first 3 refits (30 forecasts) vs _work/lgbm_bars4_r8000.npz",pass,0.0,26.3
+c,"trees_kfull lgbm_bars13_r26000_barmin_seed43 (k = 13, column bar_end_minute, random_state 43), first 3 refits (30 forecasts, importances) vs _work/lgbm_bars13_r26000_barmin_seed43.npz",pass,0.0,48.5
+d,"kfull_tests run existing (KFT_OUT scratch): 20 CSVs, run_info.json, SUMMARY.md vs results/close_studies_2026-10-03/kfull_tests/",pass,0.0,20.4
+d,kfull_tests key numbers,pass,,
+e,"trees_datasize ridge_bar1600_w2000 (the linear spec's Python model, 1469 solves; OpenBLAS own choice) vs _work/ridge_bar1600_w2000.npz",fail,4.981404178039384e-12,56.9
+e,"trees_datasize lasso_bar1600_w2000 (the linear spec's Python model, 1469 solves; OpenBLAS own choice) vs _work/lasso_bar1600_w2000.npz",fail,9.903189379656396e-14,
+e-fix,"trees_datasize ridge_bar1600_w2000 (the linear spec's Python model, 1469 solves; OPENBLAS_CORETYPE=SkylakeX) vs _work/ridge_bar1600_w2000.npz",pass,0.0,54.1
+e-fix,"trees_datasize lasso_bar1600_w2000 (the linear spec's Python model, 1469 solves; OPENBLAS_CORETYPE=SkylakeX) vs _work/lasso_bar1600_w2000.npz",pass,0.0,
+safe,committed results files and the design cache unchanged by the check (size and mtime of 339 files),pass,,

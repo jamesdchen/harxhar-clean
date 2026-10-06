@@ -119,3 +119,19 @@ with LightGBM 4.7.0 / XGBoost 2.1.4 and are compared with a local control of the
   the walk refit every 10 / every session; about 700 CPU-hours at local fit times (`TRIALS=` scales it).
 - `cluster/submit_close_trees_datasize_h2.sh`: refits every session, random forest, the XGBoost curve
   (160 tasks).
+
+## Reuse and reproduce
+
+- **Analyze without rerunning:** `forecasts/` holds every forecast series of these studies (148), the 16:00
+  targets with the straddle trade-day columns, a catalogue of every run's settings and reported scores, the
+  linear coefficients at every forecast row and the tree split / gain records at every refit (23.7 MB, no
+  file above 12 MB). Load and score with `experiments/close_studies_load.py`; `forecasts/README.md` lists the
+  files and columns; `forecasts/VERIFY.csv`: 1617 checks against the study tables, 0 failures.
+- **Recreate the runs:** `REPRODUCE.md` (the commands in order, CPU time for each study, about 31 CPU-hours in
+  all), `requirements-lock.txt` and `environment.json` (exact versions, CPU, BLAS, compiler),
+  `design_hashes.json` (sha256 of every cached design, so a rebuild can be checked without the 1.1 GB cache).
+  `repro_check.md`: a sample of every kind of run re-executed from a clean checkout matches the stored outputs
+  bit for bit with the two settings in REPRODUCE.md (`OPENBLAS_CORETYPE=SkylakeX`, the C kernel built with
+  `--march haswell`); without them the linear models differ by at most 5e-12 and the scores by 1e-16. An
+  AVX2-only machine builds the design with differences up to 2.8e-11, so tree forecasts may move there;
+  LightGBM must be 4.7.0.
