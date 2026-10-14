@@ -1,0 +1,46 @@
+--- a/src/pufferl.cu (lines 1-291, commit 6ffa5b10)
++++ b/experiments/puffer_forecast/native/puffer_substrate.cuh
+@@ -1,3 +1,14 @@
++// puffer_substrate.cuh -- VENDORED from PufferLib 5.0 src/pufferl.cu lines 1-291 (the trainer's
++// substrate: precision switch, Float/Prec tensor structs, shape helpers, cast kernels, Allocator,
++// block_reduce_sum), commit 6ffa5b10dbbbe4d1e8288367c7d9d3acd3bad4a2 (branch 5.0; = release tag
++// 5.0-experiments 89414204 + 2 commits, no src/ change).  Upstream src/algo.cu (MinGRU / highway
++// kernels, encoder / decoder, cuBLAS wrappers, Muon) is #included UNCHANGED after this file; it was
++// written against exactly this substrate (pufferl.cu: 'Algo + sweeps only depend on basic tensor
++// types and utilities').  Changes vs upstream lines 1-291 (see substrate.patch):
++//   - dropped #include <nccl.h>, <nvml.h>, <nvtx3/nvToolsExt.h> and "ini.h" (RL-trainer only: multi-GPU,
++//     GPU utilisation, profiling ranges, config parsing; nothing in algo.cu uses them);
++//   - replaced `#include ENV_HEADER` (an RL environment) by the two macros algo.cu's PPO kernels need
++//     to compile (NUM_ATNS / ACT_SIZES: one 1-class head; the PPO kernels are compiled, never called).
+ // CUDA
+ #include <cuda_runtime.h>
+ #include <cuda_bf16.h>
+@@ -5,9 +16,6 @@
+ #include <cublas_v2.h>
+ #include <curand.h>
+ #include <curand_kernel.h>
+-#include <nccl.h>
+-#include <nvml.h>
+-#include <nvtx3/nvToolsExt.h>
+ 
+ // C standard
+ #include <cassert>
+@@ -35,7 +43,6 @@
+ #include <unistd.h>
+ 
+ // Project
+-#include "ini.h"
+ 
+ #ifdef PRECISION_FLOAT
+ typedef float precision_t;
+@@ -62,7 +69,9 @@
+ }
+ 
+ // Compile vs a single env: -DENV_HEADER=ocean/<env>/<env>.h or .cu (--cu)
+-#include ENV_HEADER
++// (forecast build) no RL environment: algo.cu's PPO kernels only need these two macros to compile.
++#define NUM_ATNS 1
++#define ACT_SIZES {1}
+ 
+ typedef struct {
+     float* data;

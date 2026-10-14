@@ -1,0 +1,4 @@
+device Tesla V100-PCIE-32GB (sm_70, 80 SMs), driver 13000, runtime 12090, precision fp32
+[2160272.3] wave of 48 models: 2.91 s (training 1.857 s)
+[2160276.0] wave of 48 models: 3.33 s (training 2.359 s)
+[2160278.3] wave of 24 models: 2.18 s (training 1.762 s)

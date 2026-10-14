@@ -1,0 +1,146 @@
+[
+ {
+  "design": "baseline",
+  "origin": 2381,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 2631,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 2881,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3131,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3346,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3347,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3361,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3381,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "baseline",
+  "origin": 3468,
+  "n_cols": 22,
+  "kept_native": 17,
+  "kept_ref": 17,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 2381,
+  "n_cols": 628,
+  "kept_native": 377,
+  "kept_ref": 377,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 2631,
+  "n_cols": 628,
+  "kept_native": 372,
+  "kept_ref": 372,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 2881,
+  "n_cols": 628,
+  "kept_native": 368,
+  "kept_ref": 368,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3131,
+  "n_cols": 628,
+  "kept_native": 362,
+  "kept_ref": 362,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3346,
+  "n_cols": 628,
+  "kept_native": 369,
+  "kept_ref": 369,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3347,
+  "n_cols": 628,
+  "kept_native": 369,
+  "kept_ref": 369,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3361,
+  "n_cols": 628,
+  "kept_native": 369,
+  "kept_ref": 369,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3381,
+  "n_cols": 628,
+  "kept_native": 369,
+  "kept_ref": 369,
+  "identical": true
+ },
+ {
+  "design": "all_features",
+  "origin": 3468,
+  "n_cols": 628,
+  "kept_native": 369,
+  "kept_ref": 369,
+  "identical": true
+ }
+]

@@ -1,0 +1,68 @@
+[
+ {
+  "task": 0,
+  "file": "task_00_c12.txt",
+  "concurrent": 12,
+  "jobs": 72
+ },
+ {
+  "task": 1,
+  "file": "task_01_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 2,
+  "file": "task_02_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 3,
+  "file": "task_03_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 4,
+  "file": "task_04_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 5,
+  "file": "task_05_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 6,
+  "file": "task_06_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 7,
+  "file": "task_07_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 8,
+  "file": "task_08_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 9,
+  "file": "task_09_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ },
+ {
+  "task": 10,
+  "file": "task_10_c3.txt",
+  "concurrent": 3,
+  "jobs": 6
+ }
+]

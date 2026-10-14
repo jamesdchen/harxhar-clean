@@ -1,0 +1,12 @@
+tag,suite,K,epochs,wall,setup_capture,models,waves
+nA_k1,A,1,710,5.404,1.1989,24,24
+nA_k8,A,8,710,1.6144,0.6213,24,3
+nA_k24,A,24,710,1.4394,0.6954,24,1
+nA_k48,A,48,1420,2.6598,1.2607,48,1
+nA_k1_again,A,1,710,5.379300000000001,0.6034999999999999,24,24
+nB_baseline_K8,B baseline,8,240,0.2796,0.26770000000000005,8,1
+nB_baseline_K24,B baseline,24,720,0.8,0.5357000000000001,24,1
+nB_baseline_K48,B baseline,48,1440,1.5358,0.9325999999999999,48,1
+nB_all_features_K8,B all_features,8,240,0.5311,0.3181,8,1
+nB_all_features_K24,B all_features,24,720,1.5163,0.6652,24,1
+nB_all_features_K48,B all_features,48,1440,3.0237,1.199,48,1

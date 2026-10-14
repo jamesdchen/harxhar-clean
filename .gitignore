@@ -89,3 +89,15 @@ results/close_studies_2026-10-03/*/_work/
 # reproduction-check scratch of the 2026-10-03 close studies (experiments/close_studies_repro_check.py:
 # a clean checkout of HEAD, rebuilt designs and rerun forecasts; regenerable)
 results/close_studies_2026-10-03/_repro_scratch/
+
+# PufferLib forecaster (2026-10-12): raw run folders, step logs, binary dumps, data copies and Colab bundles are
+# regenerable or large; the code, job inputs, summaries, gates and figures are tracked
+results/puffer_forecast_2026-10-12/**/runs/
+results/puffer_forecast_2026-10-12/**/steps.csv*
+results/puffer_forecast_2026-10-12/**/*.f32
+results/puffer_forecast_2026-10-12/**/*.f64
+results/puffer_forecast_2026-10-12/**/*.bin
+results/puffer_forecast_2026-10-12/**/*.i32
+results/puffer_forecast_2026-10-12/_work/data/
+results/puffer_forecast_2026-10-12/_work/colab/
+results/puffer_forecast_2026-10-12/review_build/*/

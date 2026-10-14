@@ -1,0 +1,400 @@
+{
+ "env": [
+  "e21-11.hpc.usc.edu",
+  "Tue Oct 13 22:51:23 PDT 2026",
+  "Tesla P100-PCIE-16GB, 580.159.04, 16384 MiB"
+ ],
+ "tune_old_vs_new": {
+  "jobs": 120,
+  "preds": 15000,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 58125,
+  "steps_b": 54315,
+  "dropped_rows": 3810,
+  "dropped_rows_all_past_stop": true,
+  "epochs_run_a": 3875,
+  "epochs_run_b": 3621,
+  "b_stops_at_best_plus_patience": true
+ },
+ "tune_new_wave_vs_new_pool": {
+  "jobs": 120,
+  "preds": 15000,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 58125,
+  "steps_b": 54315,
+  "dropped_rows": 3810,
+  "dropped_rows_all_past_stop": true,
+  "epochs_run_a": 3875,
+  "epochs_run_b": 3621,
+  "b_stops_at_best_plus_patience": true
+ },
+ "refit_old_vs_new": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "fct_old_vs_new": {
+  "jobs": 6,
+  "preds": 8054,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 2880,
+  "steps_b": 2880,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "warm_old_vs_new": {
+  "jobs": 2,
+  "preds": 2,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 160,
+  "steps_b": 160,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "refit_new_pool_vs_wave": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "fct_new_pool_vs_wave": {
+  "jobs": 6,
+  "preds": 8054,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 2880,
+  "steps_b": 2880,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "refit_new_vs_tf32ns": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "refit_new_vs_tf32": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "fct_trainrows_f64": [
+  {
+   "id": "of_all_features_H64_Ly2_L5_lr0.03_gate",
+   "n_train": 1996,
+   "N": 1996,
+   "rows_ok": true,
+   "max_abs_diff_vs_f64": 7.659782887969868e-07,
+   "max_rel_diff_vs_f64": 1.7434189198229186e-06,
+   "fc_rows": 10.0,
+   "fc_vs_trainpath_max_abs": 0.0,
+   "fc_vs_trainpath_identical": true
+  },
+  {
+   "id": "of_all_features_H64_Ly2_L5_lr0.03_gate_off",
+   "n_train": 0,
+   "N": 1996,
+   "rows_ok": NaN,
+   "max_abs_diff_vs_f64": NaN,
+   "max_rel_diff_vs_f64": NaN,
+   "fc_rows": NaN,
+   "fc_vs_trainpath_max_abs": NaN,
+   "fc_vs_trainpath_identical": NaN
+  },
+  {
+   "id": "of_baseline_H64_Ly2_L5_lr0.03_gate",
+   "n_train": 1996,
+   "N": 1996,
+   "rows_ok": true,
+   "max_abs_diff_vs_f64": 5.194552477050252e-07,
+   "max_rel_diff_vs_f64": 1.1823156349151656e-06,
+   "fc_rows": 10.0,
+   "fc_vs_trainpath_max_abs": 0.0,
+   "fc_vs_trainpath_identical": true
+  },
+  {
+   "id": "of_baseline_H64_Ly2_L5_lr0.03_gate_off",
+   "n_train": 0,
+   "N": 1996,
+   "rows_ok": NaN,
+   "max_abs_diff_vs_f64": NaN,
+   "max_rel_diff_vs_f64": NaN,
+   "fc_rows": NaN,
+   "fc_vs_trainpath_max_abs": NaN,
+   "fc_vs_trainpath_identical": NaN
+  },
+  {
+   "id": "of_all_features_H256_Ly1_L20_lr0.03_gate",
+   "n_train": 1981,
+   "N": 1981,
+   "rows_ok": true,
+   "max_abs_diff_vs_f64": 4.070086410123963e-07,
+   "max_rel_diff_vs_f64": 9.240065746562036e-07,
+   "fc_rows": 10.0,
+   "fc_vs_trainpath_max_abs": 0.0,
+   "fc_vs_trainpath_identical": true
+  },
+  {
+   "id": "of_baseline_H256_Ly1_L20_lr0.03_gate",
+   "n_train": 1981,
+   "N": 1981,
+   "rows_ok": true,
+   "max_abs_diff_vs_f64": 4.482574120778793e-07,
+   "max_rel_diff_vs_f64": 1.0176511114556912e-06,
+   "fc_rows": 10.0,
+   "fc_vs_trainpath_max_abs": 0.0,
+   "fc_vs_trainpath_identical": true
+  }
+ ],
+ "keep_files_written": 4,
+ "guards": [
+  {
+   "case": "bad_epochs",
+   "rc": 2,
+   "last_line": "job bad: epochs 300 outside [1, max_epochs = 200]",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_fc_train_fc_n",
+   "rc": 2,
+   "last_line": "job bad: fc_train=1 needs fc_n >= 1 (its rows go through the forecast path)",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_huber_q",
+   "rc": 2,
+   "last_line": "job bad: huber_q and qlike_cap_q must lie in [0, 1]",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_init_size",
+   "rc": 2,
+   "last_line": "job bad: tiny.f32 is not 1088 fp32 params (4 bytes)",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_mode",
+   "rc": 2,
+   "last_line": "job bad: mode must be tune or refit",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_n0",
+   "rc": 2,
+   "last_line": "job bad: no training rows (window too short for L, val_tail and embargo)",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_save_params_tune",
+   "rc": 2,
+   "last_line": "job bad: save_params is for refit jobs only",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_stop_tune",
+   "rc": 2,
+   "last_line": "job bad: stop_loss must be >= 0, and only on refit jobs",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_unknown_key",
+   "rc": 2,
+   "last_line": "job bad: unknown key foo",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_val_tail",
+   "rc": 2,
+   "last_line": "job bad: a tune job needs val_tail >= 1",
+   "expect_rc": 2
+  },
+  {
+   "case": "stop_nopool",
+   "rc": 2,
+   "last_line": "job bad: stop_loss needs --pool (without --pack)",
+   "expect_rc": 2
+  },
+  {
+   "case": "chunk0",
+   "rc": 2,
+   "last_line": "--chunk, --concurrent and --pack-slots must be >= 1",
+   "expect_rc": 2
+  },
+  {
+   "case": "unknown_option",
+   "rc": 2,
+   "last_line": "unknown run option --fast",
+   "expect_rc": 2
+  },
+  {
+   "case": "ok_small",
+   "rc": 0,
+   "last_line": "[2166631.0] pool phase 1: 1 jobs on 1 slots in 0.26 s (setup 0.03 s, 1 captures 0.03 s)",
+   "expect_rc": 0
+  }
+ ],
+ "guards_ok": true,
+ "stop_loss": {
+  "stop_epochs_run": 300,
+  "nostop_epochs_run": 1000,
+  "prefix_identical": true,
+  "first_chunk_end_under_threshold": 300,
+  "stops_there": true,
+  "rel_at_stop": 0.00929801995851591,
+  "stop_loss": 0.00999999978
+ },
+ "nsys_old": [
+  {
+   "Name": "cudaStreamSynchronize",
+   "Num Calls": 646,
+   "Total Time (ns)": 3214090815
+  },
+  {
+   "Name": "cudaGraphLaunch_v10000",
+   "Num Calls": 7500,
+   "Total Time (ns)": 2671382303
+  },
+  {
+   "Name": "cudaMallocHost",
+   "Num Calls": 1,
+   "Total Time (ns)": 203291834
+  },
+  {
+   "Name": "cudaFree",
+   "Num Calls": 2292,
+   "Total Time (ns)": 110337282
+  },
+  {
+   "Name": "cudaDeviceSynchronize",
+   "Num Calls": 391,
+   "Total Time (ns)": 56086745
+  },
+  {
+   "Name": "cudaMalloc",
+   "Num Calls": 2172,
+   "Total Time (ns)": 39143229
+  },
+  {
+   "Name": "cudaMallocAsync_v11020",
+   "Num Calls": 1536,
+   "Total Time (ns)": 9545637
+  },
+  {
+   "Name": "cudaMemsetAsync",
+   "Num Calls": 3000,
+   "Total Time (ns)": 9463501
+  },
+  {
+   "Name": "cudaMemset",
+   "Num Calls": 1584,
+   "Total Time (ns)": 5398758
+  },
+  {
+   "Name": "cudaFreeAsync_v11020",
+   "Num Calls": 1536,
+   "Total Time (ns)": 2001215
+  },
+  {
+   "Name": "cudaFreeHost",
+   "Num Calls": 1,
+   "Total Time (ns)": 1482988
+  }
+ ],
+ "nsys_new": [
+  {
+   "Name": "cudaStreamSynchronize",
+   "Num Calls": 696,
+   "Total Time (ns)": 2910006360
+  },
+  {
+   "Name": "cudaGraphLaunch_v10000",
+   "Num Calls": 7500,
+   "Total Time (ns)": 2833691883
+  },
+  {
+   "Name": "cudaMallocHost",
+   "Num Calls": 1,
+   "Total Time (ns)": 198369597
+  },
+  {
+   "Name": "cudaFree",
+   "Num Calls": 710,
+   "Total Time (ns)": 96714479
+  },
+  {
+   "Name": "cudaMalloc",
+   "Num Calls": 590,
+   "Total Time (ns)": 26964719
+  },
+  {
+   "Name": "cudaMallocAsync_v11020",
+   "Num Calls": 3168,
+   "Total Time (ns)": 20583745
+  },
+  {
+   "Name": "cudaMemsetAsync",
+   "Num Calls": 4632,
+   "Total Time (ns)": 15509980
+  },
+  {
+   "Name": "cudaDeviceSynchronize",
+   "Num Calls": 391,
+   "Total Time (ns)": 7276000
+  },
+  {
+   "Name": "cudaFreeAsync_v11020",
+   "Num Calls": 3168,
+   "Total Time (ns)": 4288435
+  },
+  {
+   "Name": "cudaFreeHost",
+   "Num Calls": 1,
+   "Total Time (ns)": 1451673
+  },
+  {
+   "Name": "cudaMemset",
+   "Num Calls": 2,
+   "Total Time (ns)": 29328
+  }
+ ]
+}

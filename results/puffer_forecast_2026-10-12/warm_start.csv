@@ -1,0 +1,7 @@
+design,job,epochs,t_train,mse_fit,max_abs_diff_vs_cold
+baseline,shift10_cold_baseline,4,0.0225,0.04934240187145262,0.0
+baseline,shift10_warm10_baseline,10,0.056,0.04516048231425181,0.14213955
+baseline,shift10_warm25_baseline,25,0.1193,0.047388296486050946,0.17144358000000004
+all_features,shift10_cold_all_features,6,0.0561,0.04065948673255453,0.0
+all_features,shift10_warm10_all_features,10,0.0568,0.017568951296403724,0.25545025
+all_features,shift10_warm25_all_features,25,0.1201,0.06276619888575327,0.339448992

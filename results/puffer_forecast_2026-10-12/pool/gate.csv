@@ -1,0 +1,5 @@
+phase,part,jobs,preds,preds_identical,steps_identical,epochs_identical
+phase2,tune,120,15000,True,True,True
+phase2,refit,2500,2500,True,True,True
+phase2b,tune,200,25000,True,True,True
+phase2b,refit,2500,2500,True,True,True

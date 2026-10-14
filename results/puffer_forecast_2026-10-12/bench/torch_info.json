@@ -1,0 +1,13 @@
+{
+ "torch": "2.5.1+cu124",
+ "cuda": "12.4",
+ "device": "Tesla V100-PCIE-32GB",
+ "capability": [
+  7,
+  0
+ ],
+ "tf32": false,
+ "torch_train_md5": "be9eafe6e34f0314c3d3f9dcd01faafc",
+ "torch_bench_md5": "4046d3a65f004367ed0d4564e0733d3c",
+ "triton": "3.1.0"
+}

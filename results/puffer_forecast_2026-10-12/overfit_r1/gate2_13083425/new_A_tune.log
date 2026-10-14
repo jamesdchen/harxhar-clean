@@ -1,0 +1,2 @@
+device Tesla V100-PCIE-32GB (sm_70, 80 SMs), driver 13000, runtime 12090, precision fp32
+[2159801.3] pool phase 0: 120 jobs on 48 slots in 8.44 s (setup 1.87 s, 52 captures 1.15 s)

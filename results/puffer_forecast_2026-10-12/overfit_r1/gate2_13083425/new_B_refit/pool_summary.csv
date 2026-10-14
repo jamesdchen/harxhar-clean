@@ -1,0 +1,2 @@
+phase,jobs,slots,wall,sum_setup,sum_capture,n_capture,sum_train_overlapped
+1,500,48,9.5330,1.6982,1.0739,48,382.5925
