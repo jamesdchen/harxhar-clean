@@ -1,0 +1,84 @@
+{
+ "env": [
+  "d14-18.hpc.usc.edu",
+  "Wed Oct 14 00:04:11 PDT 2026",
+  "Tesla V100-PCIE-32GB, 580.159.04, 32768 MiB"
+ ],
+ "tune_g4_vs_g5b": {
+  "jobs": 120,
+  "preds": 15000,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 56400,
+  "steps_b": 52800,
+  "dropped_rows": 3600,
+  "dropped_rows_all_past_stop": true,
+  "epochs_run_a": 3760,
+  "epochs_run_b": 3520,
+  "b_stops_at_best_plus_patience": true
+ },
+ "refit_g4_vs_g5b": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "fct_g4_vs_g5b": {
+  "jobs": 6,
+  "preds": 8054,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 2880,
+  "steps_b": 2880,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "walls": [
+  {
+   "kind": "refits (2,500)",
+   "v": "native_g5",
+   "wall_median": 50.501400000000004,
+   "n_capture": 165.0
+  },
+  {
+   "kind": "refits (2,500)",
+   "v": "native_g5b",
+   "wall_median": 52.6408,
+   "n_capture": 211.0
+  },
+  {
+   "kind": "refits (2,500)",
+   "v": "native_g4",
+   "wall_median": 52.34665,
+   "n_capture": 206.0
+  },
+  {
+   "kind": "tune (120)",
+   "v": "native_g5",
+   "wall_median": 7.262,
+   "n_capture": 101.0
+  },
+  {
+   "kind": "tune (120)",
+   "v": "native_g5b",
+   "wall_median": 5.3511,
+   "n_capture": 53.0
+  },
+  {
+   "kind": "tune (120)",
+   "v": "native_g4",
+   "wall_median": 5.308,
+   "n_capture": 52.0
+  }
+ ]
+}

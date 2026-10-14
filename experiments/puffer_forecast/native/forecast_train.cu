@@ -1417,8 +1417,6 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
     // a slot whose shape has run out takes the shape with the most jobs left
     std::map<std::string, std::deque<size_t>> queues;
     std::vector<std::string> slot_pkey(K);
-    std::vector<double> cost(todo.size());
-    std::map<std::string, double> qcost;  // each shape queue's remaining work
     int smax = 1;
     bool any_stop = false;
     for (size_t q = 0; q < todo.size(); q++) {
@@ -1429,10 +1427,6 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
         // 4): a cache miss mid-run (upstream weights_init: cudaMalloc, cuRAND, cudaFree per matrix) drains every
         // slot
         single_init(P, j.H, j.layers, j.L, j.seed, 0);
-        // the job's work for largest-first: epochs x steps x (layers' fwd / bwd + Newton-Schulz, encoder)
-        double S_ = (double)((j.w1 - j.w0 + j.batch - 1) / j.batch), E_ = j.mode == "tune" ? j.max_epochs : j.epochs;
-        double B_ = j.batch, L_ = j.L, H_ = j.H;
-        cost[q] = E_ * S_ * (j.layers * (18.0 * B_ * L_ * H_ * H_ + 70.0 * H_ * H_ * H_) + 4.0 * B_ * L_ * P * H_);
         smax = std::max(smax, (j.w1 - j.w0 + j.batch - 1) / j.batch + 1);
         any_stop = any_stop || j.stop_loss > 0.0f;
         char b[768];
@@ -1440,22 +1434,23 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
             j.data.c_str(), j.mode.c_str(), j.L, j.H, j.layers, j.batch, j.w1 - j.w0, j.max_epochs, j.patience,
             j.val_tail, j.embargo, j.fc_n, (double)j.momentum, (double)j.max_grad_norm, P);
         queues[b].push_back(q);
-        qcost[b] += cost[q];
     }
     size_t remaining = todo.size();
     auto take = [&](int i) -> size_t {
         auto it = allocated[i] ? queues.find(slot_pkey[i]) : queues.end();
-        if (it == queues.end() || it->second.empty()) {  // the queue with the most work left (largest first;
-            it = queues.end();                            // equal shapes spread over the slots)
+        // (2026-10-14, gate 5: a largest-first choice -- by the front job's cost, or by each queue's remaining
+        // work -- piled the slots onto the costliest shape and doubled the tune pool's re-captures, 54 -> 101,
+        // +35 % tune wall on a V100; the most-jobs-left rule spreads equal shapes over the slots)
+        if (it == queues.end() || it->second.empty()) {
+            it = queues.end();
             for (auto jt = queues.begin(); jt != queues.end(); ++jt) {
-                if (!jt->second.empty() && (it == queues.end() || qcost[jt->first] > qcost[it->first])) {
+                if (!jt->second.empty() && (it == queues.end() || jt->second.size() > it->second.size())) {
                     it = jt;
                 }
             }
         }
         size_t q = it->second.front();
         it->second.pop_front();
-        qcost[it->first] -= cost[q];
         slot_pkey[i] = it->first;
         remaining--;
         return q;

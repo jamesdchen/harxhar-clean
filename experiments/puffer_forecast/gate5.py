@@ -63,7 +63,11 @@ def nsys_after_fill(run: Path, v: str) -> dict:
 
 def walls(run: Path) -> pd.DataFrame:
     t = G4.timing(run)
-    t["wall"] = t["pool_wall_s"].fillna(t["wave_train_wall_s"])
+    t["wall"] = (
+        t["pool_wall_s"].fillna(t["wave_train_wall_s"])
+        if "wave_train_wall_s" in t
+        else t["pool_wall_s"]
+    )
     return t
 
 
@@ -263,5 +267,182 @@ def gate5(run: Path) -> None:
     print(tm[["name", "rc", "wall", "process_wall_s"]].to_string(index=False))
 
 
+def gate5b(run: Path) -> None:
+    res: dict = {"env": (run / "env.txt").read_text(errors="replace").splitlines()[:3]}
+    res["tune_g4_vs_g5b"] = G4.identical(
+        run / "id_old_tune", run / "id_new_tune", tune=True
+    )
+    for part in ("refit", "fct"):
+        res[f"{part}_g4_vs_g5b"] = G4.identical(
+            run / f"id_old_{part}", run / f"id_new_{part}"
+        )
+    tm = walls(run)
+    tm.to_csv(OUT / f"{run.name}_timing.csv", index=False)
+    p = tm[tm["name"].str.match(r"t[RT]_")].copy()
+    p[["kind", "v"]] = p["name"].str.extract(r"t([RT])_(old|g5|new)_r\d")
+    caps = []
+    for _, r in p.iterrows():
+        ps = pd.read_csv(run / r["name"] / "pool_summary.csv")
+        caps.append(int(ps["n_capture"].sum()))
+    p["n_capture"] = caps
+    s = (
+        p.groupby(["kind", "v"])
+        .agg(wall_median=("wall", "median"), n_capture=("n_capture", "median"))
+        .reset_index()
+    )
+    s["kind"] = s["kind"].map({"R": "refits (2,500)", "T": "tune (120)"})
+    s["v"] = s["v"].map({"old": "native_g4", "g5": "native_g5", "new": "native_g5b"})
+    res["walls"] = s.to_dict("records")
+    (OUT / f"{run.name}.json").write_bytes(
+        json.dumps(res, indent=1, default=str).encode()
+    )
+    for k, v in res.items():
+        if k != "walls":
+            print(k, v)
+    print(s.to_string(index=False))
+
+
+def mps(run: Path) -> None:
+    """N trainer processes on one GPU (with / without MPS): walls and byte-identity against one process."""
+    import pool_gate_report as PG
+
+    t = pd.read_csv(run / "timing.csv", dtype={"rcs": str})
+    ref = run / "plain_N1_K48" / "p0"
+    pref = PG.read_sorted(ref, "preds.csv", ["id", "kind", "row"])
+    sref = PG.read_sorted(ref, "steps.csv", ["id", "epoch", "step"])
+    rows = []
+    for _, r in t.iterrows():
+        d = run / r["name"]
+        parts = sorted(d.glob("p*/"))
+        pr = pd.concat(
+            [PG.read_sorted(x, "preds.csv", ["id", "kind", "row"]) for x in parts]
+        )
+        st = pd.concat(
+            [PG.read_sorted(x, "steps.csv", ["id", "epoch", "step"]) for x in parts]
+        )
+        pr = pr.sort_values(["id", "kind", "row"]).reset_index(drop=True)
+        st = st.sort_values(["id", "epoch", "step"]).reset_index(drop=True)
+        rows.append(
+            dict(
+                name=r["name"],
+                mps=int(r["mps"]),
+                N=int(r["N"]),
+                K_each=int(r["K"]),
+                wall_s=float(r["wall_s"]),
+                rcs=str(r["rcs"]),
+                jobs=len(pr),
+                preds_identical=bool(pr.equals(pref)),
+                steps_identical=bool(
+                    st[["id", "epoch", "step", "loss", "grad_norm"]].equals(
+                        sref[["id", "epoch", "step", "loss", "grad_norm"]]
+                    )
+                ),
+            )
+        )
+    df = pd.DataFrame(rows)
+    base = float(df.loc[df["name"] == "plain_N1_K48", "wall_s"].iloc[0])
+    df["vs_single_process_%"] = (df["wall_s"] / base - 1) * 100
+    df.to_csv(OUT / f"{run.name}.csv", index=False)
+    print((run / "env.txt").read_text(errors="replace"))
+    pd.set_option("display.width", 220)
+    print(df.round(2).to_string(index=False))
+
+
+def walkcmp(new: Path, old: Path = O.RES / "phase2c" / "runs" / "13082282") -> None:
+    """A full identity walk (native_g5b) against Phase 2c 13082282, block by block, every difference listed."""
+    import pool_gate_report as PG
+
+    out: dict = {
+        "new": str(new),
+        "old": str(old),
+        "gpu_new": (new / "gpu_type.txt").read_text().strip(),
+        "gpu_old": (old / "env.txt").read_text().splitlines()[2],
+    }
+    for k in range(5):
+        bn, bo = new / f"block{k}", old / f"block{k}"
+        r: dict = {}
+        r["tune"] = G4.identical(bo / "tune", bn / "tune", tune=True)
+        dj = O.diff_jobs(bo / "tune", bn / "tune")
+        # tune jobs differing in preds (the log rows past the stop are expected to differ)
+        pa = PG.read_sorted(bo / "tune", "preds.csv", ["id", "kind", "row"])
+        pb = PG.read_sorted(bn / "tune", "preds.csv", ["id", "kind", "row"])
+        m = pa.merge(
+            pb,
+            on=["id", "kind", "row"],
+            how="outer",
+            suffixes=("_o", "_n"),
+            indicator=True,
+        )
+        r["tune_jobs_preds_differ"] = sorted(
+            set(m[(m["_merge"] != "both") | (m["f_o"] != m["f_n"])]["id"])
+        )
+        ja = pd.read_csv(bo / "tune" / "jobs_out.csv").set_index("id")
+        jb = pd.read_csv(bn / "tune" / "jobs_out.csv").set_index("id")
+        r["tune_jobs_best_epoch_differ"] = sorted(
+            ja.index[(ja["best_epoch"] != jb["best_epoch"].reindex(ja.index))]
+        )
+        r["tune_jobs_differ_from_first_step"] = dj["differing_from_first_step"]
+        so = json.loads((bo / "selection.json").read_text())
+        sn = json.loads((bn / "selection.json").read_text())
+        r["selection"] = {
+            d: dict(
+                cfg_old=so[d]["cfg"],
+                cfg_new=sn[d]["cfg"],
+                best_epoch_same=so[d]["best_epoch"] == sn[d]["best_epoch"],
+                val_mse_old=so[d]["val_mse"],
+                val_mse_new=sn[d]["val_mse"],
+            )
+            for d in so
+        }
+        r["jobs_refit_identical"] = (bo / "jobs_refit.txt").read_bytes() == (
+            bn / "jobs_refit.txt"
+        ).read_bytes()
+        r["refit"] = G4.identical(bo / "refit", bn / "refit")
+        ra = PG.read_sorted(bo / "refit", "preds.csv", ["id", "kind", "row"])
+        rb = PG.read_sorted(bn / "refit", "preds.csv", ["id", "kind", "row"])
+        mm = ra.merge(
+            rb,
+            on=["id", "kind", "row"],
+            how="outer",
+            suffixes=("_o", "_n"),
+            indicator=True,
+        )
+        bad = mm[(mm["_merge"] != "both") | (mm["f_o"] != mm["f_n"])]
+        r["refit_jobs_preds_differ"] = sorted(set(bad["id"]))[:50]
+        r["n_refit_jobs_preds_differ"] = int(bad["id"].nunique())
+        out[f"block{k}"] = r
+    (O.RES / "review_build" / f"walkcmp_{new.name}.json").write_bytes(
+        json.dumps(out, indent=1, default=str).encode()
+    )
+    print(json.dumps(out, indent=1, default=str)[:12000])
+
+
+def scorecmp(new_name: str, old_name: str = "phase2c") -> None:
+    """phase2_score outputs of two walks: every CSV of the same name compared cell for cell."""
+    a, b = O.RES / old_name, O.RES / new_name
+    for f in ("scores.csv", "contrasts.csv", "selection.csv", "forecasts.csv"):
+        x, y = pd.read_csv(a / f), pd.read_csv(b / f)
+        same = (
+            x.shape == y.shape
+            and x.columns.equals(y.columns)
+            and bool((x.astype(str) == y.astype(str)).all().all())
+        )
+        print(f, "identical" if same else "DIFFERENT", x.shape, y.shape)
+        if not same and x.shape == y.shape:
+            d = x.astype(str) != y.astype(str)
+            print(
+                pd.concat(
+                    [x[d.any(axis=1)], y[d.any(axis=1)]], keys=["old", "new"]
+                ).to_string()[:4000]
+            )
+
+
 if __name__ == "__main__":
-    {"gate4": gate4, "gate5": gate5}[sys.argv[1]](Path(sys.argv[2]))
+    if sys.argv[1] == "walkcmp":
+        walkcmp(Path(sys.argv[2]))
+    elif sys.argv[1] == "scorecmp":
+        scorecmp(sys.argv[2])
+    else:
+        {"gate4": gate4, "gate5": gate5, "gate5b": gate5b, "mps": mps}[sys.argv[1]](
+            Path(sys.argv[2])
+        )
