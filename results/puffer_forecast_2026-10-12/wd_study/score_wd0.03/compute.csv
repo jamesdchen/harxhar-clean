@@ -1,0 +1,6 @@
+n_inputs_baseline_min,n_inputs_baseline_max,clipped_baseline_per_refit,n_inputs_all_features_min,n_inputs_all_features_max,clipped_all_features_per_refit,block,refits,epochs,wave_wall,nonfinite,status_bad,tune_fits,tune_epochs,tune_wall
+17,17,0.0,372,377,0.0,0,2500,29000,48.9127,0,0,120,3756,6.5365
+17,17,0.0,368,372,0.0,1,2500,22250,58.3159,0,0,120,3579,6.4115
+17,17,0.0,362,368,0.0,2,2500,44500,49.1511,0,0,120,3749,6.5578
+17,17,0.0,360,369,0.0,3,2500,25500,25.059,0,0,120,3494,5.984
+17,17,0.0,369,369,0.0,4,880,11704,13.6408,0,0,120,4195,6.7852

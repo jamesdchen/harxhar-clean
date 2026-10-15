@@ -34,9 +34,10 @@ GPU_TYPE=${GPU_TYPE:?"GPU_TYPE (p100 / v100 / a40 / a100 / l40s) is required, wi
 case "$GPU_TYPE" in p100) M="P100" ;; v100) M="V100" ;; a40) M="A40" ;; a100) M="A100" ;; l40s) M="L40S" ;;
   *) echo "unknown GPU_TYPE $GPU_TYPE"; exit 1 ;; esac
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
-[ "${SLURM_JOB_CONSTRAINTS:-$GPU_TYPE}" = "$GPU_TYPE" ] || { echo "--constraint ${SLURM_JOB_CONSTRAINTS:-} != GPU_TYPE $GPU_TYPE"; exit 1; }
+CONS=$(scontrol show job "$SLURM_JOB_ID" | grep -o 'Features=[^ ]*' | head -1 | cut -d= -f2)  # the job's --constraint
+[ "$CONS" = "$GPU_TYPE" ] || { echo "--constraint '$CONS' != GPU_TYPE $GPU_TYPE"; exit 1; }
 echo "$GOT" | grep -q "$M" || { echo "got a $GOT, GPU_TYPE=$GPU_TYPE required"; exit 1; }
-echo "$GPU_TYPE|$GOT|constraint=${SLURM_JOB_CONSTRAINTS:-unset}" | tee gpu_type.txt >> env.txt
+echo "$GPU_TYPE|$GOT|constraint=$CONS" | tee gpu_type.txt >> env.txt
 [ "$(git -C "$PUFFER" rev-parse HEAD)" = "$COMMIT" ] || { echo "PufferLib checkout is not $COMMIT"; exit 1; }
 git -C "$PUFFER" diff --quiet -- src || { echo "PufferLib src/ modified"; exit 1; }
 md5sum "$ROOT/native/forecast_train.cu" "$ROOT/native_2c/forecast_train.cu" "$ROOT/phase2_select.py" \

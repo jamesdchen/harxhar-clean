@@ -1,0 +1,1 @@
+id=bad wd=-0.1 mode=refit epochs=5 max_epochs=40 batch=32 lr=0.03 seed=5 data=data/toy w0=0 w1=390 L=6 H=8 layers=2 fc_n=10 val_tail=60 embargo=25 patience=40 momentum=0.95 max_grad_norm=1.0 anneal=1 min_lr_ratio=0.0 loss=mse link=identity mask=0 xstd=1

@@ -1,0 +1,12 @@
+name,mps,N,K_each,wall_s,rcs,jobs,preds_identical,steps_identical,vs_single_process_%
+plain_N1_K48,0,1,48,78.813,0,2500,True,True,0.0
+plain_N2_K24,0,2,24,77.018,00,2500,True,True,-2.2775430449291423
+plain_N4_K12,0,4,12,93.339,0000,2500,True,True,18.430969510106188
+plain_N2_K48,0,2,48,83.503,00,2500,True,True,5.950794919619851
+mps_N1_K48,1,1,48,1.089,2,0,False,False,-98.61824825853603
+mps_N2_K24,1,2,24,0.089,22,0,False,False,-99.8870744674102
+mps_N3_K16,1,3,16,0.092,222,0,False,False,-99.88326798878357
+mps_N4_K12,1,4,12,0.094,2222,0,False,False,-99.88073033636583
+mps_N2_K48,1,2,48,0.091,22,0,False,False,-99.88453681499246
+mps_N3_K48,1,3,48,0.091,222,0,False,False,-99.88453681499246
+mps_N4_K48,1,4,48,0.085,2222,0,False,False,-99.8921497722457

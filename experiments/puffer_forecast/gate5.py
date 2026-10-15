@@ -314,6 +314,23 @@ def mps(run: Path) -> None:
     for _, r in t.iterrows():
         d = run / r["name"]
         parts = sorted(d.glob("p*/"))
+        if set(str(r["rcs"])) != {"0"} or not all(
+            (x / "preds.csv").is_file() for x in parts
+        ):
+            rows.append(
+                dict(
+                    name=r["name"],
+                    mps=int(r["mps"]),
+                    N=int(r["N"]),
+                    K_each=int(r["K"]),
+                    wall_s=float(r["wall_s"]),
+                    rcs=str(r["rcs"]),
+                    jobs=0,
+                    preds_identical=False,
+                    steps_identical=False,
+                )
+            )
+            continue
         pr = pd.concat(
             [PG.read_sorted(x, "preds.csv", ["id", "kind", "row"]) for x in parts]
         )

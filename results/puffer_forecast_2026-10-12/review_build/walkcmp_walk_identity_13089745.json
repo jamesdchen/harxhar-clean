@@ -1,0 +1,261 @@
+{
+ "new": "results\\puffer_forecast_2026-10-12\\walks\\runs\\walk_identity_13089745",
+ "old": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\puffer_forecast_2026-10-12\\phase2c\\runs\\13082282",
+ "gpu_new": "p100|Tesla P100-PCIE-16GB|constraint=unset",
+ "gpu_old": "Tesla P100-PCIE-16GB, 580.159.04, 16384 MiB",
+ "block0": {
+  "tune": {
+   "jobs": 120,
+   "preds": 15000,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 58125,
+   "steps_b": 54315,
+   "dropped_rows": 3810,
+   "dropped_rows_all_past_stop": true,
+   "epochs_run_a": 3875,
+   "epochs_run_b": 3621,
+   "b_stops_at_best_plus_patience": true
+  },
+  "tune_jobs_preds_differ": [],
+  "tune_jobs_best_epoch_differ": [],
+  "tune_jobs_differ_from_first_step": [],
+  "selection": {
+   "all_features": {
+    "cfg_old": "L20_H16_lr0.03",
+    "cfg_new": "L20_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.07599712933109969,
+    "val_mse_new": 0.07599712933109969
+   },
+   "baseline": {
+    "cfg_old": "L20_H16_lr0.03",
+    "cfg_new": "L20_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.07630651329415587,
+    "val_mse_new": 0.07630651329415584
+   }
+  },
+  "jobs_refit_identical": true,
+  "refit": {
+   "jobs": 2500,
+   "preds": 2500,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 792000,
+   "steps_b": 792000,
+   "steps_identical": true,
+   "epochs_run_identical": true
+  },
+  "refit_jobs_preds_differ": [],
+  "n_refit_jobs_preds_differ": 0
+ },
+ "block1": {
+  "tune": {
+   "jobs": 120,
+   "preds": 15000,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 52650,
+   "steps_b": 48660,
+   "dropped_rows": 3990,
+   "dropped_rows_all_past_stop": true,
+   "epochs_run_a": 3510,
+   "epochs_run_b": 3244,
+   "b_stops_at_best_plus_patience": true
+  },
+  "tune_jobs_preds_differ": [],
+  "tune_jobs_best_epoch_differ": [],
+  "tune_jobs_differ_from_first_step": [],
+  "selection": {
+   "all_features": {
+    "cfg_old": "L5_H16_lr0.03",
+    "cfg_new": "L5_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.05307268700833311,
+    "val_mse_new": 0.05307268700833311
+   },
+   "baseline": {
+    "cfg_old": "L5_H16_lr0.03",
+    "cfg_new": "L5_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.06272044727649016,
+    "val_mse_new": 0.06272044727649016
+   }
+  },
+  "jobs_refit_identical": true,
+  "refit": {
+   "jobs": 2500,
+   "preds": 2500,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 284000,
+   "steps_b": 284000,
+   "steps_identical": true,
+   "epochs_run_identical": true
+  },
+  "refit_jobs_preds_differ": [],
+  "n_refit_jobs_preds_differ": 0
+ },
+ "block2": {
+  "tune": {
+   "jobs": 120,
+   "preds": 15000,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 58575,
+   "steps_b": 54885,
+   "dropped_rows": 3690,
+   "dropped_rows_all_past_stop": true,
+   "epochs_run_a": 3905,
+   "epochs_run_b": 3659,
+   "b_stops_at_best_plus_patience": true
+  },
+  "tune_jobs_preds_differ": [],
+  "tune_jobs_best_epoch_differ": [],
+  "tune_jobs_differ_from_first_step": [],
+  "selection": {
+   "all_features": {
+    "cfg_old": "L5_H16_lr0.03",
+    "cfg_new": "L5_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.03777098229597992,
+    "val_mse_new": 0.03777098229597992
+   },
+   "baseline": {
+    "cfg_old": "L20_H16_lr0.01",
+    "cfg_new": "L20_H16_lr0.01",
+    "best_epoch_same": true,
+    "val_mse_old": 0.0414673809562087,
+    "val_mse_new": 0.04146738095620869
+   }
+  },
+  "jobs_refit_identical": true,
+  "refit": {
+   "jobs": 2500,
+   "preds": 2500,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 412000,
+   "steps_b": 412000,
+   "steps_identical": true,
+   "epochs_run_identical": true
+  },
+  "refit_jobs_preds_differ": [],
+  "n_refit_jobs_preds_differ": 0
+ },
+ "block3": {
+  "tune": {
+   "jobs": 120,
+   "preds": 15000,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 54375,
+   "steps_b": 50325,
+   "dropped_rows": 4050,
+   "dropped_rows_all_past_stop": true,
+   "epochs_run_a": 3625,
+   "epochs_run_b": 3355,
+   "b_stops_at_best_plus_patience": true
+  },
+  "tune_jobs_preds_differ": [],
+  "tune_jobs_best_epoch_differ": [],
+  "tune_jobs_differ_from_first_step": [],
+  "selection": {
+   "all_features": {
+    "cfg_old": "L20_H64_lr0.03",
+    "cfg_new": "L20_H64_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.030750585119795053,
+    "val_mse_new": 0.03075058511979504
+   },
+   "baseline": {
+    "cfg_old": "L20_H16_lr0.03",
+    "cfg_new": "L20_H16_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.03924249670890894,
+    "val_mse_new": 0.039242496708908954
+   }
+  },
+  "jobs_refit_identical": true,
+  "refit": {
+   "jobs": 2500,
+   "preds": 2500,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 248000,
+   "steps_b": 248000,
+   "steps_identical": true,
+   "epochs_run_identical": true
+  },
+  "refit_jobs_preds_differ": [],
+  "n_refit_jobs_preds_differ": 0
+ },
+ "block4": {
+  "tune": {
+   "jobs": 120,
+   "preds": 15000,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 67125,
+   "steps_b": 63315,
+   "dropped_rows": 3810,
+   "dropped_rows_all_past_stop": true,
+   "epochs_run_a": 4475,
+   "epochs_run_b": 4221,
+   "b_stops_at_best_plus_patience": true
+  },
+  "tune_jobs_preds_differ": [],
+  "tune_jobs_best_epoch_differ": [],
+  "tune_jobs_differ_from_first_step": [],
+  "selection": {
+   "all_features": {
+    "cfg_old": "L5_H64_lr0.03",
+    "cfg_new": "L5_H64_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.04142620748627144,
+    "val_mse_new": 0.04142620748627144
+   },
+   "baseline": {
+    "cfg_old": "L20_H64_lr0.03",
+    "cfg_new": "L20_H64_lr0.03",
+    "best_epoch_same": true,
+    "val_mse_old": 0.03934462515194729,
+    "val_mse_new": 0.039344625151947296
+   }
+  },
+  "jobs_refit_identical": true,
+  "refit": {
+   "jobs": 880,
+   "preds": 880,
+   "preds_identical": true,
+   "best_epoch_identical": true,
+   "b_steps_all_in_a": true,
+   "common_steps_identical": true,
+   "steps_a": 137984,
+   "steps_b": 137984,
+   "steps_identical": true,
+   "epochs_run_identical": true
+  },
+  "refit_jobs_preds_differ": [],
+  "n_refit_jobs_preds_differ": 0
+ }
+}

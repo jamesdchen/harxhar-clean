@@ -1,0 +1,183 @@
+{
+ "env": [
+  "e21-11.hpc.usc.edu",
+  "Wed Oct 14 17:02:38 PDT 2026",
+  "Tesla P100-PCIE-16GB, 580.159.04, 16384 MiB"
+ ],
+ "tune_g5b_vs_g6": {
+  "jobs": 120,
+  "preds": 15000,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 54315,
+  "steps_b": 54315,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "refit_g5b_vs_g6": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "fct_g5b_vs_g6": {
+  "jobs": 6,
+  "preds": 8054,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 2880,
+  "steps_b": 2880,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "tune_g6_pool_vs_wave": {
+  "jobs": 120,
+  "preds": 15000,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 58125,
+  "steps_b": 54315,
+  "steps_identical": false,
+  "epochs_run_identical": false
+ },
+ "refit_g6_pool_vs_wave": {
+  "jobs": 500,
+  "preds": 500,
+  "preds_identical": true,
+  "best_epoch_identical": true,
+  "b_steps_all_in_a": true,
+  "common_steps_identical": true,
+  "steps_a": 120000,
+  "steps_b": 120000,
+  "steps_identical": true,
+  "epochs_run_identical": true
+ },
+ "guards": [
+  {
+   "case": "bad_wd_nan",
+   "rc": 2,
+   "last_line": "job bad: wd must be a finite value >= 0",
+   "expect_rc": 2
+  },
+  {
+   "case": "bad_wd_neg",
+   "rc": 2,
+   "last_line": "job bad: wd must be a finite value >= 0",
+   "expect_rc": 2
+  },
+  {
+   "case": "wd_pack",
+   "rc": 2,
+   "last_line": "job bad: wd > 0 is not supported under --pack",
+   "expect_rc": 2
+  },
+  {
+   "case": "ok_small",
+   "rc": 0,
+   "last_line": "[2232027.9] pool phase 1: 1 jobs on 1 slots in 1.13 s (setup 0.03 s, 1 captures 0.04 s)",
+   "expect_rc": 0
+  }
+ ],
+ "guards_ok": true,
+ "one_step": [
+  {
+   "job": "toy wd=0.5 lr=0.05",
+   "n_params": 456,
+   "decayed": 448,
+   "not_decayed": 8,
+   "native_vs_f64_max_abs_over_max": 3.8266321976553815e-07,
+   "decay_term_max_abs_err": 4.544854164192924e-08,
+   "decay_term_max_abs": 0.013250210881233217,
+   "bias_column_unchanged_vs_wd0": true
+  },
+  {
+   "job": "base wd=0.3 lr=0.03",
+   "n_params": 1088,
+   "decayed": 1072,
+   "not_decayed": 16,
+   "native_vs_f64_max_abs_over_max": 4.6746851647833963e-07,
+   "decay_term_max_abs_err": 2.0861625671299983e-08,
+   "decay_term_max_abs": 0.002996473252773285,
+   "bias_column_unchanged_vs_wd0": true
+  }
+ ],
+ "toy_norms": [
+  {
+   "wd": 0.0,
+   "fro_all": 13.781413949534599,
+   "fro_encoder": 3.1962088075341737,
+   "fro_decoder": 1.6626750087263353,
+   "fro_layers": 13.302147628199917,
+   "fro_decayed": 13.673171406071067,
+   "norm_bias_column": 1.7238776489726244
+  },
+  {
+   "wd": 0.03,
+   "fro_all": 12.866440287633397,
+   "fro_encoder": 3.0700034120725115,
+   "fro_decoder": 1.4984961194980377,
+   "fro_layers": 12.404631155538171,
+   "fro_decayed": 12.774409989631748,
+   "norm_bias_column": 1.5361429269545255
+  },
+  {
+   "wd": 0.1,
+   "fro_all": 11.196510762394107,
+   "fro_encoder": 3.2377385397486202,
+   "fro_decoder": 1.3820565878913706,
+   "fro_layers": 10.628679221262612,
+   "fro_decayed": 11.052620002541104,
+   "norm_bias_column": 1.7892580394776287
+  },
+  {
+   "wd": 0.3,
+   "fro_all": 8.254140253914462,
+   "fro_encoder": 3.7674528645421423,
+   "fro_decoder": 1.2498423068808746,
+   "fro_layers": 7.237059102472151,
+   "fro_decayed": 7.804311804747872,
+   "norm_bias_column": 2.687666010791544
+  },
+  {
+   "wd": 1.0,
+   "fro_all": 8.005893804499602,
+   "fro_encoder": 6.945855101566117,
+   "fro_decoder": 0.8699902389611944,
+   "fro_layers": 3.8849130622300025,
+   "fro_decayed": 4.242548701430737,
+   "norm_bias_column": 6.789338415848298
+  },
+  {
+   "wd": 3.0,
+   "fro_all": 3.3719878740132576,
+   "fro_encoder": 3.0289635102610126,
+   "fro_decoder": 0.30674970641596994,
+   "fro_layers": 1.4496851015353127,
+   "fro_decayed": 1.6130613357222328,
+   "norm_bias_column": 2.961137509419388
+  },
+  {
+   "wd": 10.0,
+   "fro_all": 3.542699615009715,
+   "fro_encoder": 3.521780715213611,
+   "fro_decoder": 0.04883133678390578,
+   "fro_layers": 0.38130913533167304,
+   "fro_decayed": 0.41653448640069923,
+   "norm_bias_column": 3.5181272836310074
+  }
+ ],
+ "toy_decayed_norm_monotone": true,
+ "toy_all_norm_monotone": false
+}

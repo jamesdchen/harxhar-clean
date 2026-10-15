@@ -229,6 +229,23 @@ static void gather(cudaStream_t st, const float* Z, int P, const float* yrow, co
     }
 }
 
+// Decoupled weight decay (user, 2026-10-14; job key wd > 0): W <- W (1 - lr_t wd) on every weight matrix, with lr_t
+// the device scalar Muon reads this step (the cosine schedule's value for the epoch), launched just BEFORE
+// muon_step, so the step is upstream muon_weight_update's own formula W (1 - lr wd) - lr u (algo.cu:1084-1093,
+// whose wd argument muon_step hard-codes to 0) -- AdamW / Moonlight decoupling.  Muon's update u depends only on
+// the gradient, so decaying first changes nothing else.  The parameters are one flat fp32 block: encoder [H, P]
+// (row-major; its last column multiplies the constant input 1, i.e. it is the encoder's bias -- NOT decayed),
+// decoder [2, H] (row 0 the forecast output, row 1 upstream's unused value head), the MinGRU layers [3H, H] each;
+// there are no 1-D parameters.
+__global__ void fc_weight_decay(float* __restrict__ w, const float* __restrict__ lr_ptr, float wd, long n,
+        long enc_n, int P) {
+    long i = (long)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n || (i < enc_n && (int)(i % P) == P - 1)) {
+        return;
+    }
+    w[i] = w[i] * (1.0f - (*lr_ptr) * wd);
+}
+
 // Per-step log (1 thread): mean loss, global grad norm (Muon's pre-clip sum of squares), counts.
 __global__ void fc_step_log(const float* __restrict__ step_out, const float* __restrict__ grad_sumsq,
         const int* __restrict__ epoch_ptr, int S, int k, float n_real, float* __restrict__ log_loss,
@@ -428,6 +445,7 @@ struct Job {
     int fc_train;
     float stop_loss;
     std::string link;
+    float wd;
     std::string epochs_from, init_from;
     std::string get(const char* k, const char* dflt) const {
         auto it = kv.find(k);
@@ -494,6 +512,8 @@ static std::vector<Job> read_jobs(const char* path) {
         j.stop_loss = atof(j.get("stop_loss", "0").c_str());
         // identity (default): f = mu_y + sd_y o;  softplus (user, 2026-10-13): f = softplus(c + s o) > 0
         j.link = j.get("link", "identity");
+        // decoupled weight decay (user, 2026-10-14): W <- W (1 - lr_t wd) before each Muon step; 0 = none
+        j.wd = atof(j.get("wd", "0").c_str());
         j.seed = atoi(j.get("seed", "73").c_str());
         j.lr = atof(j.get("lr", "0.015").c_str());
         j.min_lr_ratio = atof(j.get("min_lr_ratio", "0.0").c_str());
@@ -512,7 +532,8 @@ static std::vector<Job> read_jobs(const char* path) {
         static const char* known[] = {"id", "data", "mode", "loss", "w0", "w1", "val_tail", "embargo", "fc_n",
             "L", "H", "layers", "batch", "max_epochs", "patience", "epochs", "epochs_from", "init_from",
             "save_params", "mask", "zclip", "xstd", "fc_train", "seed", "lr", "min_lr_ratio", "anneal",
-            "momentum", "max_grad_norm", "huber_q", "qlike_eps", "qlike_cap_q", "phase", "stop_loss", "link"};
+            "momentum", "max_grad_norm", "huber_q", "qlike_eps", "qlike_cap_q", "phase", "stop_loss", "link",
+            "wd"};
         for (auto& kv : j.kv) {
             bool ok = false;
             for (const char* k : known) {
@@ -522,6 +543,10 @@ static std::vector<Job> read_jobs(const char* path) {
                 fprintf(stderr, "job %s: unknown key %s\n", j.id.c_str(), kv.first.c_str());
                 exit(2);
             }
+        }
+        if (!(j.wd >= 0.0f) || !std::isfinite(j.wd)) {
+            fprintf(stderr, "job %s: wd must be a finite value >= 0\n", j.id.c_str());
+            exit(2);
         }
         if (j.link != "identity" && j.link != "softplus") {
             fprintf(stderr, "job %s: link must be identity or softplus\n", j.id.c_str());
@@ -665,6 +690,11 @@ static void enqueue_step(Trainer& t, int k) {
     Float gl = {.data = t.d_gl, .shape = {t.B, t.T, 1}};
     Float gv = {.data = t.d_gv, .shape = {t.B, t.T}};
     arch_backward(&t.arch, t.w, t.tr_acts, gl, Float(), gv, t.stream);
+    if (j.wd > 0.0f) {  // decoupled weight decay before the step (see fc_weight_decay); wd = 0 launches nothing
+        long n = t.params.total_elems;
+        fc_weight_decay<<<(int)((n + 255) / 256), 256, 0, t.stream>>>(t.master.data, t.muon.lr, j.wd, n,
+            (long)j.H * t.P, t.P);
+    }
     if (g_math == 1) {  // --tf32-ns: Muon's GEMMs (Newton-Schulz) in TF32; forward / backward stay fp32
         cublasSetMathMode(t.h, CUBLAS_TF32_TENSOR_OP_MATH);
     }
@@ -1186,9 +1216,9 @@ static void trainer_setup(Trainer& t, int capture) {
 static std::string shape_key(const Trainer& t) {
     const Job& j = t.job;
     char b[1024];
-    snprintf(b, sizeof(b), "%s|P%d|T%d|H%d|Ly%d|B%d|tune%d|N%d|r%d|S%d|ctx%d|ne%d|er%d|me%d|pat%d|mom%.9g|mgn%.9g",
+    snprintf(b, sizeof(b), "%s|P%d|T%d|H%d|Ly%d|B%d|tune%d|N%d|r%d|S%d|ctx%d|ne%d|er%d|me%d|pat%d|mom%.9g|mgn%.9g|wd%.9g",
         j.data.c_str(), t.P, t.T, j.H, j.layers, t.B, t.tune, t.N, t.row0, t.S, t.n_ctx, t.n_eval, t.eval_row0,
-        j.max_epochs, j.patience, (double)j.momentum, (double)j.max_grad_norm);
+        j.max_epochs, j.patience, (double)j.momentum, (double)j.max_grad_norm, (double)j.wd);
     return std::string(b);
 }
 
@@ -1311,12 +1341,12 @@ static void write_trainer(Out& o, Trainer& t, double wave_wall, int wave_size, d
         fprintf(o.preds, "%s,%s,%d,%.9g\n", j.id.c_str(), t.tune ? "val" : "fc", j.w0 + t.eval_row0 + b, pr[b]);
     }
     fprintf(o.jobs, "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.6g,%d,%d,%d,%d,%d,%d,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%s,"
-        "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s\n",
+        "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g\n",
         j.id.c_str(), j.data.c_str(), j.mode.c_str(), j.loss.c_str(), j.w0, j.w1, j.L, j.H, j.layers, j.batch,
         j.lr, j.seed, t.N, t.S, E, t.best_epoch, t.n_eval, t.best_val, t.mu_y, t.sd_y, t.lp.huber_delta,
         t.lp.qlike_cap, t.nf_total, t.status.c_str(), t.t_setup, t.t_capture, t.t_end - t.t_start,
         wave_wall, wave_size, (long)t.params.total_elems, wave_train, t.P - 1, t.n_clipped, math_name(),
-        (double)j.stop_loss, j.link.c_str());
+        (double)j.stop_loss, j.link.c_str(), (double)j.wd);
 }
 
 // ============================================================================ run
@@ -1430,9 +1460,9 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
         smax = std::max(smax, (j.w1 - j.w0 + j.batch - 1) / j.batch + 1);
         any_stop = any_stop || j.stop_loss > 0.0f;
         char b[768];
-        snprintf(b, sizeof(b), "%s|%s|L%d|H%d|Ly%d|B%d|W%d|me%d|pat%d|vt%d|em%d|fc%d|mom%.9g|mgn%.9g|P%d",
+        snprintf(b, sizeof(b), "%s|%s|L%d|H%d|Ly%d|B%d|W%d|me%d|pat%d|vt%d|em%d|fc%d|mom%.9g|mgn%.9g|P%d|wd%.9g",
             j.data.c_str(), j.mode.c_str(), j.L, j.H, j.layers, j.batch, j.w1 - j.w0, j.max_epochs, j.patience,
-            j.val_tail, j.embargo, j.fc_n, (double)j.momentum, (double)j.max_grad_norm, P);
+            j.val_tail, j.embargo, j.fc_n, (double)j.momentum, (double)j.max_grad_norm, P, (double)j.wd);
         queues[b].push_back(q);
     }
     size_t remaining = todo.size();
@@ -2108,12 +2138,12 @@ static void pack_write(Out& o, PackSlot& ps) {
         }
         long n1 = ps.per_model + H;  // single-model parameter count (with its value row)
         fprintf(o.jobs, "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.6g,%d,%d,%d,%d,%d,%d,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%s,"
-            "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s\n",
+            "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g\n",
             j.id.c_str(), j.data.c_str(), j.mode.c_str(), j.loss.c_str(), j.w0, j.w1, j.L, j.H, j.layers, j.batch,
             j.lr, j.seed, t.N, t.S, E, 0, t.n_eval, 0.0f, t.mu_y, t.sd_y, t.lp.huber_delta, t.lp.qlike_cap, nft[k],
             nft[k] > 0.01 * E * t.N ? "abort_nonfinite" : "ok", ps.t_setup / K, ps.t_capture / K,
             ps.t_end - ps.t_start, -1.0, K, n1, -1.0, t.P - 1, t.n_clipped, math_name(), (double)j.stop_loss,
-            j.link.c_str());
+            j.link.c_str(), (double)j.wd);
     }
 }
 
@@ -2333,6 +2363,10 @@ static int cmd_run(int argc, char** argv) {
     }
     std::vector<Job> jobs = read_jobs(jobs_path);
     for (auto& j : jobs) {
+        if (j.wd > 0.0f && use_pack) {
+            fprintf(stderr, "job %s: wd > 0 is not supported under --pack\n", j.id.c_str());
+            return 2;
+        }
         if (j.link != "identity" && use_pack) {
             fprintf(stderr, "job %s: link=%s is not supported under --pack\n", j.id.c_str(), j.link.c_str());
             return 2;
@@ -2352,7 +2386,7 @@ static int cmd_run(int argc, char** argv) {
     o.preds = fopen((od + "/preds.csv").c_str(), "w");
     fprintf(o.jobs, "id,data,mode,loss,w0,w1,L,H,layers,batch,lr,seed,N,S,epochs_run,best_epoch,n_eval,"
         "best_val_mse,mu_y,sd_y,huber_delta,qlike_cap,nonfinite,status,t_setup,t_capture,t_train,wave_wall,"
-        "wave_size,n_params,wave_train_wall,n_inputs,n_clipped,math,stop_loss,link\n");
+        "wave_size,n_params,wave_train_wall,n_inputs,n_clipped,math,stop_loss,link,wd\n");
     fprintf(o.steps, "id,epoch,step,loss,grad_norm,n_capped,n_nonfinite\n");
     fprintf(o.epochs, "id,epoch,lr,val_mse,val_qlike\n");
     fprintf(o.preds, "id,kind,row,f\n");

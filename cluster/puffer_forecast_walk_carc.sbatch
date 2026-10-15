@@ -2,7 +2,9 @@
 # 2026-10-14 puffer_forecast walk-forward (Phase 2c inputs) on ONE required GPU type: 5 blocks, each re-tuned
 # (the 12-configuration grid, 5 seeds) and selected with phase2_select.py, then a cold refit at every session.
 # INPUTS names the tune files + blocks manifest: inputs/phase2c (link=identity, the 13082282 inputs) or
-# inputs/walk_softplus (the same lines with link=softplus).  The trainer comes prebuilt (SRC).
+# inputs/walk_softplus (the same lines with link=softplus), or the weight-decay study's walk_softplus_wd<x> (wd fixed)
+# / walk_softplus_wdgrid (wd in the tune grid; experiments/puffer_forecast/wd_study.py).  The trainer comes
+# prebuilt (SRC; native_g6 for wd).  SAVE_FIRST=1: each block's first origin's refits save their weights.
 #   cd $HOME/puffer_forecast
 #   sbatch --export=NONE,GPU_TYPE=p100,SRC=native_g5b,INPUTS=phase2c,TAG=identity --constraint=p100 puffer_forecast_walk_carc.sbatch
 #   sbatch --export=NONE,GPU_TYPE=p100,SRC=native_g5b,INPUTS=walk_softplus,TAG=softplus --constraint=p100 puffer_forecast_walk_carc.sbatch
@@ -34,9 +36,10 @@ GPU_TYPE=${GPU_TYPE:?"GPU_TYPE (p100 / v100 / a40 / a100 / l40s) is required, wi
 case "$GPU_TYPE" in p100) M="P100" ;; v100) M="V100" ;; a40) M="A40" ;; a100) M="A100" ;; l40s) M="L40S" ;;
   *) echo "unknown GPU_TYPE $GPU_TYPE"; exit 1 ;; esac
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
-[ "${SLURM_JOB_CONSTRAINTS:-$GPU_TYPE}" = "$GPU_TYPE" ] || { echo "--constraint ${SLURM_JOB_CONSTRAINTS:-} != GPU_TYPE $GPU_TYPE"; exit 1; }
+CONS=$(scontrol show job "$SLURM_JOB_ID" | grep -o 'Features=[^ ]*' | head -1 | cut -d= -f2)  # the job's --constraint
+[ "$CONS" = "$GPU_TYPE" ] || { echo "--constraint '$CONS' != GPU_TYPE $GPU_TYPE"; exit 1; }
 echo "$GOT" | grep -q "$M" || { echo "got a $GOT, GPU_TYPE=$GPU_TYPE required"; exit 1; }
-echo "$GPU_TYPE|$GOT|constraint=${SLURM_JOB_CONSTRAINTS:-unset}" | tee gpu_type.txt >> env.txt
+echo "$GPU_TYPE|$GOT|constraint=$CONS" | tee gpu_type.txt >> env.txt
 cat env.txt
 # the trainer, built ONCE per submission by puffer_forecast_build_once_carc.sbatch (gate 4, 2026-10-13), not in
 # this job
@@ -50,13 +53,16 @@ prebuilt() {  # prebuilt SRC_DIR DEST: $ROOT/bin/SRC_DIR/forecast_train, checked
 }
 prebuilt "$SRC" forecast_train
 BIN=$RUN/forecast_train
+# SAVE_FIRST=1 (2026-10-14, weight-decay study): each block's first origin's refits save their weights
+SEL_EXTRA=""
+[ "${SAVE_FIRST:-0}" = 1 ] && SEL_EXTRA="--save-first-origin"
 for k in 0 1 2 3 4; do
   mkdir -p "$RUN/block${k}"
   echo "BLOCK $k tune $(date)"
   "$BIN" run --jobs "$IN/tune_block${k}.txt" --out "$RUN/block${k}/tune" --concurrent 48 --chunk 5 --pool
   "$PY" "$ROOT/phase2_select.py" --blocks "$IN/blocks.json" --k "$k" \
     --tune-out "$RUN/block${k}/tune" --data-root "$ROOT/data" \
-    --out "$RUN/block${k}/jobs_refit.txt" --selection "$RUN/block${k}/selection.json"
+    --out "$RUN/block${k}/jobs_refit.txt" --selection "$RUN/block${k}/selection.json" $SEL_EXTRA
   echo "BLOCK $k refit $(date)"
   "$BIN" run --jobs "$RUN/block${k}/jobs_refit.txt" --out "$RUN/block${k}/refit" --concurrent 48 --chunk 5 --pool
   gzip -f "$RUN/block${k}/tune/steps.csv" "$RUN/block${k}/refit/steps.csv"

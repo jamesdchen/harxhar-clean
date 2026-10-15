@@ -18,7 +18,14 @@ import math
 import re
 import sys
 
-ID_RE = re.compile(r"^tune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)_s(\d+)$")
+# _wd<x> (2026-10-14, the weight-decay study): wd is part of the configuration when the tune grid carries it
+ID_RE = re.compile(
+    r"^tune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?_s(\d+)$"
+)
+
+
+def cfg_name(L, H, lr, wd):
+    return "L%s_H%s_lr%s" % (L, H, lr) + ("" if wd is None else "_wd%s" % wd)
 
 
 def kv(**kwargs):
@@ -49,8 +56,8 @@ def tune_configs(path):
         for row in csv.DictReader(handle):
             match = ID_RE.match(row["id"])
             if match is not None:
-                design, L, H, lr, _ = match.groups()
-                out.setdefault(design, set()).add("L%s_H%s_lr%s" % (L, H, lr))
+                design, L, H, lr, wd, _ = match.groups()
+                out.setdefault(design, set()).add(cfg_name(L, H, lr, wd))
     return out
 
 
@@ -64,8 +71,8 @@ def val_forecasts(path):
             match = ID_RE.match(row["id"])
             if match is None:
                 continue
-            design, L, H, lr, seed = match.groups()
-            cfg = "L%s_H%s_lr%s" % (L, H, lr)
+            design, L, H, lr, wd, seed = match.groups()
+            cfg = cfg_name(L, H, lr, wd)
             acc.setdefault(design, {}).setdefault(cfg, {}).setdefault(
                 int(row["row"]), {}
             )[int(seed)] = float(row["f"])
@@ -112,6 +119,8 @@ def main():
     parser.add_argument("--data-root", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--selection", required=True)
+    # save_params=1 on the block's first origin's refits (every seed and design): weights at the best epoch
+    parser.add_argument("--save-first-origin", action="store_true")
     args = parser.parse_args()
 
     manifest = json.loads(open(args.blocks).read())
@@ -144,8 +153,8 @@ def main():
                 )
             )
         mse, cfg, n_val = choose(design, forecasts[design], y, seeds)
-        match = re.match(r"L(\d+)_H(\d+)_lr([0-9.]+)$", cfg)
-        L, H, lr = match.groups()
+        match = re.match(r"L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?$", cfg)
+        L, H, lr, wd = match.groups()
         per_seed = {}
         for seed in seeds:
             tid = "tune_%s_%s_s%s" % (design, cfg, seed)
@@ -165,6 +174,12 @@ def main():
                     epochs=epochs[tid],
                 )
                 base.update(common)
+                if (
+                    wd is not None
+                ):  # the selected configuration's wd (over a common one)
+                    base["wd"] = wd
+                if args.save_first_origin and origin == block["origins"][0]:
+                    base["save_params"] = 1
                 lines.append(kv(id=rid, mode="refit", loss="mse", **base))
         selection[design] = {
             "cfg": cfg,

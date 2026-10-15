@@ -1,0 +1,5 @@
+walk,design,n_seed_forecasts,min_f_seed,n_seed_f_le_0,min_f_mean,n_mean_f_le_0
+softplus P100 (13089746),all_features,5440,0.00155413314,0,0.14058904572,0
+softplus P100 (13089746),baseline,5440,0.237683013,0,0.3348113418,0
+identity P100 (13089745),all_features,5440,-0.757020652,16,0.1416416258,0
+identity P100 (13089745),baseline,5440,0.12217623,0,0.27367049460000004,0

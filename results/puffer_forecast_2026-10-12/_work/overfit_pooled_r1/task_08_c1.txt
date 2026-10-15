@@ -1,0 +1,1 @@
+id=pool_all_features_H1024_Ly2_L5_lr0.003_softplus data=data/pooled_all_features mode=refit loss=mse w0=47 w1=24047 batch=128 max_epochs=1000 epochs=1000 momentum=0.95 max_grad_norm=1.0 anneal=1 min_lr_ratio=0.0 fc_n=480 mask=1 xstd=0 fc_train=1 seed=20261012 link=softplus H=1024 layers=2 L=5 lr=0.003

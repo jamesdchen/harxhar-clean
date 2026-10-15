@@ -1,0 +1,149 @@
+[
+ {
+  "task": 0,
+  "file": "task_00_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L48_lr0.003_softplus"
+ },
+ {
+  "task": 1,
+  "file": "task_01_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L48_lr0.01_softplus"
+ },
+ {
+  "task": 2,
+  "file": "task_02_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L48_lr0.003_softplus"
+ },
+ {
+  "task": 3,
+  "file": "task_03_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L48_lr0.01_softplus"
+ },
+ {
+  "task": 4,
+  "file": "task_04_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L20_lr0.003_softplus"
+ },
+ {
+  "task": 5,
+  "file": "task_05_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L20_lr0.01_softplus"
+ },
+ {
+  "task": 6,
+  "file": "task_06_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L20_lr0.003_softplus"
+ },
+ {
+  "task": 7,
+  "file": "task_07_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L20_lr0.01_softplus"
+ },
+ {
+  "task": 8,
+  "file": "task_08_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L5_lr0.003_softplus"
+ },
+ {
+  "task": 9,
+  "file": "task_09_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L5_lr0.01_softplus"
+ },
+ {
+  "task": 10,
+  "file": "task_10_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L5_lr0.003_softplus"
+ },
+ {
+  "task": 11,
+  "file": "task_11_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_baseline_H1024_Ly2_L5_lr0.01_softplus"
+ },
+ {
+  "task": 12,
+  "file": "task_12_c1.txt",
+  "concurrent": 1,
+  "jobs": 1,
+  "first": "id=pool_all_features_H1024_Ly2_L20_lr0.01_identity"
+ },
+ {
+  "task": 13,
+  "file": "task_13_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_all_features_H1024_Ly1_L48_lr0.003_softplus"
+ },
+ {
+  "task": 14,
+  "file": "task_14_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_baseline_H1024_Ly1_L48_lr0.003_softplus"
+ },
+ {
+  "task": 15,
+  "file": "task_15_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_all_features_H1024_Ly1_L20_lr0.003_softplus"
+ },
+ {
+  "task": 16,
+  "file": "task_16_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_baseline_H1024_Ly1_L20_lr0.003_softplus"
+ },
+ {
+  "task": 17,
+  "file": "task_17_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_all_features_H1024_Ly1_L5_lr0.003_softplus"
+ },
+ {
+  "task": 18,
+  "file": "task_18_c2.txt",
+  "concurrent": 2,
+  "jobs": 2,
+  "first": "id=pool_baseline_H1024_Ly1_L5_lr0.003_softplus"
+ },
+ {
+  "task": 19,
+  "file": "task_19_c12.txt",
+  "concurrent": 12,
+  "jobs": 12,
+  "first": "id=pool_all_features_H256_Ly1_L5_lr0.003_softplus"
+ },
+ {
+  "task": 20,
+  "file": "task_20_c12.txt",
+  "concurrent": 12,
+  "jobs": 12,
+  "first": "id=pool_baseline_H256_Ly1_L5_lr0.003_softplus"
+ }
+]
