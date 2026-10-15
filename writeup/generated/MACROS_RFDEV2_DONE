@@ -1,0 +1,1 @@
+MACROS_RFDEV2_DONE 2026-10-07 05:10:58 -0700 -- the D.19 and Section 5.4 tree-pair counts read the dev-tuned forest (rfdev) for the shipped-config T10 / T1 rows (masked - unmasked keeps the campaign's default forest, no unmasked rfdev run); both makers regenerated

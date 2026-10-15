@@ -1,0 +1,69 @@
+% 10_appendix.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 11.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: each appendix section names its generator script
+% 2026-10-15 (notation pass, writeup/NOTATION_GUIDE_2026-10-15.md): wording and symbols as in Methods. The two typed
+% counts (47 series, 628 columns) are now \rhfiNExog and \rhfiP (generated/rehaul_fi_numbers.tex, loaded below when
+% section 8 has not loaded it); a data-section macro (\bkNSeries, \campPNewAll) can replace them once loaded here.
+\ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
+
+\section{Appendix structure}
+\begin{itemize}
+\item \textbf{A. Data and predictors:}
+  \begin{itemize}
+  \item sources and spans;
+  \item predictor dictionary: \rhfiNExog{} exogenous series $\to$ \rhfiP{} predictors in the full predictor set;
+  \item missing and stale data;
+  \item removal of duplicate predictors; the window filter (constant and duplicate predictors dropped in each
+    estimation window $\mathcal W_t$);
+  \item SPXW option chain; implied-volatility inversion;
+  \item FOMC calendar.
+  \end{itemize}
+\item \textbf{B. Hyperparameter selection by model:}
+  \begin{itemize}
+  \item linear models: penalty strength $\lambda$, elastic-net mixing $\alpha$; block-penalized ridge, penalty weights
+    $\omega_j$;
+  \item tree ensembles: fixed hyperparameters, Optuna budgets, selected trials; boosting rounds $b = 1, \dots, B$,
+    learning rate $\eta$;
+  \item re-selection frequency, on the estimation sample $\mathcal W^{\mathrm{est}}_t$, gap $\mathcal W^{\mathrm{gap}}_t$
+    and validation sample $\mathcal W^{\mathrm{val}}_t$; re-estimation frequency;
+  \item network: the hyperparameter grid $\Theta$ (look-back length $\ell$, hidden width, learning rate, weight decay
+    $\nu$, $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$) and the selection on $\mathcal W^{\mathrm{val}}_t$.
+  \end{itemize}
+\item \textbf{C. Robustness, statistical:}
+  \begin{itemize}
+  \item full model table, tree ensembles included;
+  \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag
+    truncation $q$);
+  \item model confidence set, superior predictive ability, StepM;
+  \item regime and break tests;
+  \item closing-interval vs pooled intraday models;
+  \item remaining variance through the trading day.
+  \end{itemize}
+\item \textbf{D. Robustness, trading:}
+  \begin{itemize}
+  \item date-shift test;
+  \item Murphy diagrams (elementary scores); subsample splits;
+  \item P\&L decomposition;
+  \item compounding;
+  \item position sizing;
+  \item strategy variations; other forecast origins; month-ends.
+  \end{itemize}
+\item \textbf{E. Reproducibility:}
+  \begin{itemize}
+  \item software lock files;
+  \item hashes of the design matrices;
+  \item computing environment;
+  \item CPU classes;
+  \item compute time;
+  \item the generator script behind every reported number.
+  \end{itemize}
+\item \textbf{F. Network implementation:}
+  \begin{itemize}
+  \item native PufferLib 5.0 MinGRU trainer: logistic function $\Lambda(a) = 1/(1 + e^{-a})$ in the update gate
+    $\bm z_\tau$ and the highway gate $\bm\psi_\tau$; look-back $\ell$; weight decay $\nu$;
+  \item float64 reference checks; byte-identity replication checks;
+  \item scripts for the rolling-window out-of-sample exercise.
+  \end{itemize}
+\end{itemize}

@@ -238,7 +238,8 @@ def accuracy_table(tab: pd.DataFrame) -> list[str]:
     # ("QLIKE recal.", ""), (r"recal.\ vs RV", ""), (r"95\% interval, daily diff.", ""),
     cols = [
         ("QLIKE", ""),
-        (r"QLIKE vs RV", ""),
+        # (r"QLIKE vs RV", ""),  # 2026-10-15 (user): parked -- QLIKE itself is against the actual RV now (data audit #10)
+        (r"QLIKE, trimmed", ""),
         (r"\% vs R", ""),
         ("DM", ""),
         (r"$\overline{RV}/\overline{F}$", ""),
@@ -249,7 +250,8 @@ def accuracy_table(tab: pd.DataFrame) -> list[str]:
         # iv = "[" + f(r["qlike_diff_ci_lo"], "{:+.4f}") + ", " + f(r["qlike_diff_ci_hi"], "{:+.4f}") + "]"
         return [
             f(r["qlike_raw"], "{:.4f}"),
-            f(r["qlike_raw_unclipped"], "{:.4f}"),
+            # f(r["qlike_raw_unclipped"], "{:.4f}"),  # 2026-10-15 (user): parked -- now qlike_raw (data audit #10)
+            f(r["qlike_raw_trimmed"], "{:.4f}"),
             "" if r["is_reference"] else f(r["qlike_pct_vs_ref"], "{:+.1f}"),
             "" if r["is_reference"] else f(r["dm_vs_ref"], "{:+.2f}"),
             f(r["calib_mean_realized_over_forecast"], "{:.3f}"),
@@ -259,10 +261,14 @@ def accuracy_table(tab: pd.DataFrame) -> list[str]:
     lag = int(t["dm_hac_lag"].dropna().iloc[0]) if t["dm_hac_lag"].notna().any() else 0
     cap = (
         r"Forecast accuracy at the 16:00 bar (15:30--16:00). Every forecast is the plain back-transform $f^2B$ ($f$ the forecast on "
-        r"the adjusted scale $\sqrt{RV/B}$, $B$ the diurnal baseline). QLIKE: against the per-bar spec's 16:00 target; QLIKE vs RV: the "
-        r"same forecast against the unclipped realized variance. \% vs R: the mean daily loss difference against the reference R; "
+        # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10):
+        # r"the adjusted scale $\sqrt{RV/B}$, $B$ the diurnal baseline). QLIKE: against the per-bar spec's 16:00 target; QLIKE vs RV: the "
+        # r"same forecast against the unclipped realized variance. \% vs R: the mean daily loss difference against the reference R; "
+        r"the adjusted scale $\sqrt{RV/B}$, $B$ the diurnal baseline). QLIKE: against the actual (unwinsorized) realized variance; "
+        r"QLIKE, trimmed: the same forecast against the winsorized training target (diagnostic). \% vs R: the mean daily loss "
+        r"difference against the reference R; "
         r"DM: Diebold--Mariano statistic on that difference, Newey--West variance (Bartlett, lag %d) with the Harvey--Leybourne--Newbold "
-        r"correction; $\overline{RV}/\overline{F}$: mean target over mean forecast; extreme: plain forecasts below PLAIN\_FLOOR on every "
+        r"correction; $\overline{RV}/\overline{F}$: mean realized variance over mean forecast; extreme: plain forecasts below PLAIN\_FLOOR on every "
         r"16:00 session of the arm span. Point estimates. R = reference, H = recommended headline, $=$ identical to another row."
     ).replace("lag %d", f"lag {lag}")
     return longtable(

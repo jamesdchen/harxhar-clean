@@ -126,14 +126,16 @@ def prop_tables(v: pd.DataFrame) -> tuple[list[str], dict]:
                 cells = [tex(fc), f2(base[f"Sharpe {fill}"])]
                 for r in rules:
                     x = g.loc[r]
+                    # 2026-10-06: intervals removed (user decision) -- point estimates; the
+                    # counts are of point estimates (were: intervals above / below zero)
                     cells += [
                         f2(x[f"Sharpe {fill}"]),
-                        ci(x[f"dSharpe {fill}"], x[f"lo {fill}"], x[f"hi {fill}"]),
+                        f2(x[f"dSharpe {fill}"], plus=True),
                     ]
                     if fill == "mid":
-                        if x["lo mid"] > 0:
+                        if x["dSharpe mid"] > 0:
                             n_above[r] += 1
-                        if x["hi mid"] < 0:
+                        if x["dSharpe mid"] < 0:
                             n_below[r] += 1
                 rows.append(" & ".join(cells) + r" \\")
             header = (
@@ -142,21 +144,23 @@ def prop_tables(v: pd.DataFrame) -> tuple[list[str], dict]:
                 + r" \\"
                 + "\n"
                 + r" & Sharpe & "
-                + " & ".join(r"Sharpe & $\Delta$ vs sign(s) [95\%]" for _ in rules)
+                + " & ".join(r"Sharpe & $\Delta$ vs sign(s)" for _ in rules)
             )
             cap = (
                 f"Sizing by the size of the forecast gap, {ndays} days ({block}), {fill} fill; the deck's scorer. Every rule keeps the "
-                r"sign of $s$ and changes only the size: (a) proportional, $q_t = s_t / \mathrm{rms}(s)$ with the rms from past days; "
-                r"(b) the rank of $|s_t|$ among past days, sign kept; (c) the centred rank $2F(s_t)-1$. Returns per unit of premium; "
-                r"$\Delta$ = the rule's Sharpe minus sign(s)'s on the same days, with the 95\% interval of a paired circular block "
-                r"bootstrap (block 21, 2{,}000 draws)."
+                r"sign of $s$ and changes only the size: the robust clip $q_t = \mathrm{clip}(s_t/\tilde m_t,-1,1)$ with "
+                r"$\tilde m_t$ the median $|s|$ of past days; the rank of $|s_t|$ among past days, sign kept. Returns per unit of "
+                r"premium; $\Delta$ = the rule's Sharpe minus sign(s)'s on the same days, a point estimate."
+                # 2026-10-06 (user decision): the proportional size and the centred rank are parked,
+                # and no interval is computed (was: (a) proportional, (c) centred rank; 95% paired
+                # circular block bootstrap, block 21, 2,000 draws)
             )
             out += longtable(
                 "l" + "r" + "rl" * len(rules),
                 header,
                 rows,
                 cap,
-                f"tab:vrp_{re.sub(r'\W+', '_', block)}_{fill}",
+                f"tab:vrp_{re.sub(r'[^0-9A-Za-z_]+', '_', block)}_{fill}",
             )
         facts[block] = {
             "days": ndays,

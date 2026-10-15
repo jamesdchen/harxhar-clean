@@ -22,9 +22,12 @@ equal weights.
 \section{Master Table of Campaign Arms}
 \label{sec:appendix_master}
 
+% 2026-10-06 (recalibration removed, user decision): was "one scoring protocol
+% (Section~\ref{sec:smearing}). QLIKE is the pooled loss under the evaluation protocol;"
 Table~\ref{tab:master} lists every arm of the unification campaign: one
-frozen panel (Section~\ref{sec:data_prep}), one scoring protocol
-(Section~\ref{sec:smearing}). QLIKE is the pooled loss under the evaluation protocol;
+frozen panel (Section~\ref{sec:data_prep}), every forecast used as its
+plain back-transform (Section~\ref{sec:smearing_contract}). QLIKE is the
+pooled loss of that forecast;
 $\Delta$ is the \emph{paired} mean per-bar loss differential against the
 benchmark, and DM its Diebold--Mariano $t$-statistic, both computed on the
 row intersection of the two arms.
@@ -34,8 +37,8 @@ Product-block arms
 with a $24{,}000$-bar window are scored from the first row outside their
 frozen selection and frame windows.
 \fi
-\textbf{Protocol note.} Two row sets
-appear in this table: arms run under the original scoring protocol and
+\textbf{Row-set note.} Two row sets
+appear in this table: arms scored on the full evaluation panel and
 arms run under the \texttt{oos\_mult=2} protocol (chunks 9--99,
 $248{,}686$ rows), which excludes the earliest out-of-sample period.
 Pooled QLIKE \emph{levels} are not comparable across protocols --- the
@@ -44,6 +47,13 @@ read mechanically lower. The $\Delta$ and DM columns are paired on
 common rows and are comparable throughout; level comparisons should be
 made only within a protocol. The gated two-block ridge and the
 \emph{trail}-family arms are the \texttt{oos\_mult=2} panel.
+% 2026-10-06 parked (recalibration removed, user decision): the whole
+% back-transformation appendix (the Duan / Mincer--Zarnowitz calibrated
+% second-order adjustment, its variance recursions, the conditional second
+% moment and the protocol note on its versions).  Every forecast is now its
+% plain back-transform, defined once in Section~\ref{sec:smearing_contract};
+% the section labels live there.  Kept verbatim below.
+\iffalse
 \section{The Back-Transformation}
 \label{sec:appendix_backtransform}
 
@@ -465,11 +475,12 @@ benchmark unpenalized). The head-to-head table
 (Table~\ref{tab:lasso_vs_ridge}) still carries a first-iteration
 scalar-protocol incumbent (\unifAzeroQLIKEScalar{}) pending the lasso
 arm, launched 2026-08-13.
+\fi
 
 {\small
 \setlength{\tabcolsep}{4pt}
 \begin{longtable}{@{}lrrr@{}}
-\caption{All campaign arms under the frozen panel and scoring protocol.}
+\caption{All campaign arms on the frozen panel, every forecast used as its plain back-transform.}
 \label{tab:master}\\
 \toprule
 Model & QLIKE & $\Delta$ & DM $t$ \\
@@ -561,14 +572,23 @@ HAR $+$ product block only (stated)     & \unifProductAloneUserQLIKE{} & \unifPr
 HAR $+$ product block only (documented) & \unifProductAloneDocQLIKE{}  & \unifProductAloneDocDelta{}  & \unifProductAloneDocDM{} \\
 HAR $+$ product block only (tuned)      & \unifProductAloneTunedQLIKE{} & \unifProductAloneTunedDelta{} & \unifProductAloneTunedDM{} \\
 \fi
+% 2026-10-06 parked (recalibration removed, user decision): the conditional
+% second-moment arms recalibrate the forecast and have no plain analogue.
+\iffalse
 \midrule
 \multicolumn{4}{@{}l}{\emph{Conditional second-moment arms}} \\
 Benchmark, exogenous-state variance conditioning & \unifCondVarBenchQLIKE{} & \unifCondVarBenchDelta{} & \unifCondVarBenchDM{} \\
 Benchmark, backbone-only variance conditioning & \unifCondVarBenchLevelQLIKE{} & \unifCondVarBenchLevelDelta{} & \unifCondVarBenchLevelDM{} \\
 Best model, exogenous-state variance conditioning & \unifCondVarChampQLIKE{} & \unifCondVarChampDelta{} & \unifCondVarChampDM{} \\
+\fi
 \end{longtable}
 }
 
+% 2026-10-06 parked (recalibration removed, user decision): the convention-
+% sensitivity appendix exists only to compare smearing choices; the paper now
+% uses one back-transform.  The plain-vs-old audit is
+% results/unification_plain_2026-10-06/plain_vs_contract.csv (not in the paper).
+\iffalse
 \section{Back-Transform Convention Sensitivity, All Arms}
 \label{sec:appendix_sensitivity}
 
@@ -583,3 +603,4 @@ computed over this table.
 % and size (150+ arms with long names overran a one-page table[H]); the
 % former table[H]/\small/\caption/\label wrapper is retired here.
 \input{generated/table_smear_sensitivity}
+\fi

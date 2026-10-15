@@ -19,6 +19,12 @@ def esc(s):
     return s.replace("&", "\\&").replace("_", "\\_").replace("%", "\\%")
 
 
+def disp(name: str) -> str:
+    """A design name as presented: the leading adj_ dropped (adj_vix_ma_* -> vix_ma_*).
+    Display only; the result files' keys keep the design's own names."""
+    return name[4:] if name.startswith("adj_") else name
+
+
 # table 1: top features by how much they move the forecast
 t1 = []
 for _, r in W.head(12).iterrows():
@@ -152,10 +158,10 @@ def regimes_tex() -> str:
         tr.append(
             f"{r.start} .. {r.end} & {r.sessions} & {r.deck_days} & {r.penalty} & "
             + " & ".join(
-                f"\\texttt{{{esc(r[f'top{i}'])}}} {100 * r[f'share{i}']:.0f}\\%"
+                f"\\texttt{{{esc(disp(r[f'top{i}']))}}} {100 * r[f'share{i}']:.0f}\\%"
                 for i in (1, 2, 3)
             )
-            + f" & \\texttt{{{esc(r['held1000_top2'])}}} / \\texttt{{{esc(r['held1000_top3'])}}} \\\\"
+            + f" & \\texttt{{{esc(disp(r['held1000_top2']))}}} / \\texttt{{{esc(disp(r['held1000_top3']))}}} \\\\"
         )
 
     tv = []
@@ -178,7 +184,7 @@ def regimes_tex() -> str:
         )
         fn = r.first_nonzero if isinstance(r.first_nonzero, str) else "--"
         tv.append(
-            f"\\texttt{{{esc(r.column)}}} & {r.sessions_nonzero} & {r.deck_days_nonzero} & {sgn} & {mw} & {fn} & "
+            f"\\texttt{{{esc(disp(r.column))}}} & {r.sessions_nonzero} & {r.deck_days_nonzero} & {sgn} & {mw} & {fn} & "
             f"{r.n_events} & {r.held_sessions_nonzero_before_switch} & {hw} \\\\"
         )
 
@@ -359,7 +365,7 @@ regime & refits & deck days & penalty & first & second & third & held 1000: seco
         + f"{100 * dom63['har_ma_*'] / sum(dom63.values()):.0f}"
         + r"""\% of refits (63-session window) and """
         + f"{100 * dom126['har_ma_*'] / sum(dom126.values()):.0f}"
-        + r"""\% (126); absolute return (\texttt{adj\_sumabsret\_ma\_*}) leads on the rest. The two windows name the same leader on """
+        + r"""\% (126); absolute return (\texttt{sumabsret\_ma\_*}) leads on the rest. The two windows name the same leader on """
         + f"{100 * J['agree']:.1f}"
         + r"""\% of """
         + f"{J['agree_n']:,}"
@@ -445,24 +451,24 @@ column & refits & deck days & positive & mean std.\ weight & first & entries/exi
         + la["switches"][0][0]
         + r""", when the penalty drops to """
         + f"{la['switches'][0][1]:g}"
-        + r""", \texttt{adj\_vix\_ma\_1} enters and stays on all """
+        + r""", \texttt{vix\_ma\_1} enters and stays on all """
         + f"{vx1.loc['adj_vix_ma_1', 'sessions_nonzero']}"
         + r""" later refits, always positive (mean """
         + f"{vx1.loc['adj_vix_ma_1', 'mean_std_weight_when_nonzero']:+.3f}"
-        + r"""), with the longer VIX3M means negative (\texttt{adj\_vix3m\_ma\_625} """
+        + r"""), with the longer VIX3M means negative (\texttt{vix3m\_ma\_625} """
         + f"{vx1.loc['adj_vix3m_ma_625', 'mean_std_weight_when_nonzero']:+.3f}"
-        + r""", \texttt{adj\_vix3m\_ma\_125} """
+        + r""", \texttt{vix3m\_ma\_125} """
         + f"{vx1.loc['adj_vix3m_ma_125', 'mean_std_weight_when_nonzero']:+.3f}"
         + r"""): the VIX's last bar against the 3-month index's longer averages.
 \item \emph{The VIX was in the data before.} Held at """
         + f"{la['held']['alpha']:g}"
-        + r""" from the start, the lasso keeps \texttt{adj\_vix\_ma\_1} on """
+        + r""" from the start, the lasso keeps \texttt{vix\_ma\_1} on """
         + f"{vx1.loc['adj_vix_ma_1', 'held_sessions_nonzero_before_switch']}"
         + r""" of the """
         + f"{la['held']['n_before']}"
         + r""" earlier refits (mean """
         + f"{vx1.loc['adj_vix_ma_1', 'held_mean_std_weight_before_switch']:+.3f}"
-        + r""") and \texttt{adj\_vix3m\_ma\_625} negative on """
+        + r""") and \texttt{vix3m\_ma\_625} negative on """
         + f"{vx1.loc['adj_vix3m_ma_625', 'held_sessions_nonzero_before_switch']}"
         + r""", through COVID. The top-of-grid penalty kept the VIX out until 2021.
 \item \emph{Entries and exits in between are small.} Of the """
@@ -532,7 +538,7 @@ def trees_tex() -> str:
         return f"{m}\\times10^{{{int(ex)}}}"
 
     def tt(s):
-        return f"\\texttt{{{esc(s)}}}" if not s.startswith("calendar") else esc(s)
+        return f"\\texttt{{{esc(disp(s))}}}" if not s.startswith("calendar") else esc(s)
 
     # table 1: every live_feasible series, all forecasts and deck days
     t1 = []
@@ -943,7 +949,7 @@ Standardized weight $=\beta_j\times$ trailing-window sd of $x_j$. Intervals: cir
 
 \begin{figure}[h]\centering
 \includegraphics[width=\textwidth]{../results/model_diagnostics_1530/weights_small_multiples.png}
-\caption{Standardized weights over every refit (1,469 sessions), one panel per input series; solid = the series' rolling means (colour = window length in 30-minute bars). Panel titles are the design's column names; \texttt{*\_ma\_$k$} is the mean over the last $k$ 30-minute bars (\texttt{\_ma\_1} = the last bar), \texttt{adj\_} marks the series after its transform (e.g. log for the VIX) and diurnal adjustment, and the dotted lines are the \texttt{*\_avail\_ma\_$k$} / \texttt{*\_active\_ma\_$k$} is-present / is-nonzero flags. Key: \texttt{har\_ma} realized variance (the target); \texttt{sumret} signed return; \texttt{sumabsret} absolute return; \texttt{sumret3} cubed returns (skew); \texttt{sumret4} 4th-power returns (tails); \texttt{sumpret2} upside squared returns; \texttt{sumbipow} bipower variation; \texttt{sumautocov} return autocovariance; \texttt{sumvolume} ES volume (contracts); \texttt{numobs} ES trade count per bar; \texttt{vix}, \texttt{vvix}, \texttt{vix3m} the Cboe indices; \texttt{fomc\_release} FOMC statement bar; \texttt{fomc\_day} FOMC day; \texttt{fomc\_until\_inv} / \texttt{fomc\_since\_inv} 1 / days to the next / since the last FOMC. Grey band = the 866 deck days. 138 of the 244 design columns carry a nonzero weight on deck days; the rest are constant or duplicated within the window and are masked to zero.}
+\caption{Standardized weights over every refit (1,469 sessions), one panel per input series; solid = the series' rolling means (colour = window length in 30-minute bars). Panel titles are the design's column names; \texttt{*\_ma\_$k$} is the mean over the last $k$ 30-minute bars (\texttt{\_ma\_1} = the last bar), and the dotted lines are the \texttt{*\_avail\_ma\_$k$} / \texttt{*\_active\_ma\_$k$} is-present / is-nonzero flags. Every exogenous input is divided by its time-of-day baseline (after its transform, e.g.\ log for the VIX), and \texttt{har\_ma\_*} are trailing means of the adjusted target, so no name carries a prefix. Key: \texttt{har\_ma} realized variance (the target); \texttt{sumret} signed return; \texttt{sumabsret} absolute return; \texttt{sumret3} cubed returns (skew); \texttt{sumret4} 4th-power returns (tails); \texttt{sumpret2} upside squared returns; \texttt{sumbipow} bipower variation; \texttt{sumautocov} return autocovariance; \texttt{sumvolume} ES volume (contracts); \texttt{numobs} ES trade count per bar; \texttt{vix}, \texttt{vvix}, \texttt{vix3m} the Cboe indices; \texttt{fomc\_release} FOMC statement bar; \texttt{fomc\_day} FOMC day; \texttt{fomc\_until\_inv} / \texttt{fomc\_since\_inv} 1 / days to the next / since the last FOMC. Grey band = the 866 deck days. 138 of the 244 design columns carry a nonzero weight on deck days; the rest are constant or duplicated within the window and are masked to zero.}
 \end{figure}
 
 \begin{table}[h]\centering\small
@@ -1010,6 +1016,6 @@ Files: \texttt{experiments/model\_diagnostics\_1530.py} (capture, then analyze);
 \end{document}
 """
 )
-(R / "writeup" / "model_diagnostics_1530.tex").write_text(tex, encoding="utf-8")
+(R / "writeup" / "model_diagnostics_1530.tex").write_bytes(tex.encode("utf-8"))
 for _blk in (t1, t2, t3, cnt):
     print("\n".join(_blk))

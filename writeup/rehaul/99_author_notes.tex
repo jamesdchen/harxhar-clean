@@ -1,0 +1,23 @@
+% 99_author_notes.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section flags.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: editorial only; drop before circulating
+
+\section{Notes to the authors (not part of the paper)}
+\begin{itemize}
+\item \textbf{The current title, abstract, introduction and conclusion describe the old 24-hour panel} and need
+  replacing.
+\item \textbf{The results text anchors on the pooled block ridge;} re-base it on the per-bar OLS. Against that OLS, 7
+  of 111 forecasts have lower QLIKE, none significantly.
+\item \textbf{Data issue to fix before final numbers:}
+  \begin{itemize}
+  \item the activity flags are computed after the forward fill, so the FOMC flags read 1 on all 122 trade days after
+    November 2023;
+  \item VIX, volume-demand and FOMC feeds end early and are carried forward without limit into 2024.
+  \end{itemize}
+\item \textbf{Missing outputs:} paired-comparison tables (axis 1, axis 2), DM against the OLS in the master table,
+  and the model confidence set over models.
+\item \textbf{Pending:} the pooled random forest (full table) and the pooled ridge-init network.
+\item \textbf{The full outline,} with source and macro pointers, is \url{writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md}.
+\end{itemize}

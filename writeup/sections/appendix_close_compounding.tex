@@ -1,3 +1,4 @@
+% 2026-10-06 parked (no headline model; D.16-D.18 re-based on the model set, user decision):
 % ============================================================================
 % 2026-09-29: the compounding exercise parked from Section 5.4
 % (Section~\ref{sec:app_run_parked}: the paper's block-diagonal ridge under the
@@ -8,45 +9,95 @@
 % nothing is typed by hand.  The two recalibrations are never set side by side.
 % Input from main.tex after sections/appendix_close_murphy_splits, so this
 % continues Appendix D.
+% 2026-10-06 (recalibration removed, user decision): the headline's positions now come from
+% the plain back-transform f^2 B; no interval is computed.
 % ============================================================================
+% \input{generated/appendix_close_compounding}
+% \subsection{The Headline Forecast Compounded at a Fixed Fraction of Wealth}
+% \label{sec:app_compounding_headline}
+%
+% \paragraph{What is computed.} The fixed-fraction exercise of
+% Section~\ref{sec:close_option_methods} --- a share $f=\cmpF$ of current wealth deployed
+% as straddle premium every day, the same on every day and for every rule, wealth
+% $W_T=\prod_t(1+f\,q_tR_t)$, the annualized mean of $\log(1+fR'_t)$ as the growth rate,
+% every wealth factor asserted positive --- repeated for the headline's $\mathrm{sign}(s)$
+% 2026-10-06 parked (recalibration removed, user decision):
+% positions under the 16:00-bar recalibration, on the 866 days and at both fills, beside the
+% paper's block-diagonal ridge scored the same way and always short
+% (Table~\ref{tab:app_compounding_headline}, Figure~\ref{fig:app_compounding_headline}).
+% The midpoint frame is the one Section~\ref{sec:app_run_parked} reports for the paper's
+% forecast under the other recalibration; the crossed frame pays the ask and hits the bid on
+% every day.
+% positions, its forecast used as the plain back-transform of
+% Table~\ref{tab:close_option_rules}, on the 866 days and at both fills, beside the
+% paper's block-diagonal ridge scored the same way and always short
+% (Table~\ref{tab:app_compounding_headline}, Figure~\ref{fig:app_compounding_headline}).
+% The midpoint frame is the one Appendix~\ref{sec:app_run_parked} reports for the paper's
+% forecast under a different back-transform, since removed; the crossed frame pays the ask
+% and hits the bid on every day.
+%
+% \paragraph{Reading.} At the midpoint the headline turns one unit of wealth into \cmpHW{}
+% over the sample (annualized log-growth \cmpHG{}), with a maximum wealth drawdown of
+% \cmpHDD{} percent and a worst single day that removes \cmpHWorst{} percent of wealth; the
+% ruin bound $1/|\min_t R'_t|$ is \cmpHRuin{} for the headline and \cmpARuin{} for always
+% short, so \cmpF{} sits inside both. Across the spread it ends at \cmpHWX{}
+% (log-growth \cmpHGX{}, drawdown \cmpHDDX{} percent). The paper's forecast scored the same
+% way ends at \cmpRW{} at the midpoint (\cmpRG{}) and \cmpRWX{} across the spread; always
+% short ends at \cmpAW{} (\cmpAG{}) and \cmpAWX{}. Of the \cmpNAll{} distinct forecasts of the
+% master table (the rest-of-day check rows, exact copies of their per-bar twins, left out),
+% \cmpNPosMid{} compound above one unit at the midpoint (terminal wealth \cmpWLoMid{}
+% to \cmpWHiMid{}; the headline ranks \cmpHRankMid{}) and \cmpNPosX{} across the spread
+% (\cmpWLoX{} to \cmpWHiX{}; the headline ranks \cmpHRankX{}); these are ranks of point
+% estimates, not an established order. By calendar year, annualized
+% from the days traded in each, the headline's midpoint log-growth is positive in
+% \cmpNPosYears{} of \cmpNYears{} years (\cmpYearsMid{}) and across the spread in
+% \cmpNPosYearsX{} (\cmpYearsX{}).
+%
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=\textwidth]{../results/close_compounding/wealth_headline.png}
+% 2026-10-06 parked (recalibration removed, user decision):
+% \caption{Wealth at a fixed \cmpF{} of wealth per day, 866 days, under the 16:00-bar
+% recalibration: the headline's $\mathrm{sign}(s)$, the paper's block-diagonal ridge scored the
+% \caption{Wealth at a fixed \cmpF{} of wealth per day, 866 days, every forecast used as its
+% plain back-transform: the headline's $\mathrm{sign}(s)$, the paper's block-diagonal ridge scored the
+% same way, and always short; midpoint fill (left) and crossed spread (right), log scale
+% (source: \texttt{results/close\_compounding/fixedfrac\_headline.csv}).}
+% \label{fig:app_compounding_headline}
+% \end{figure}
 \input{generated/appendix_close_compounding}
-\subsection{The Headline Forecast Compounded at a Fixed Fraction of Wealth}
+\subsection{The Model Set Compounded at a Fixed Fraction of Wealth}
 \label{sec:app_compounding_headline}
 
 \paragraph{What is computed.} The fixed-fraction exercise of
-Section~\ref{sec:close_option_methods} --- a share $f=\cmpF$ of current wealth deployed
-as straddle premium every day, the same on every day and for every rule, wealth
-$W_T=\prod_t(1+f\,q_tR_t)$, the annualized mean of $\log(1+fR'_t)$ as the growth rate,
-every wealth factor asserted positive --- repeated for the headline's $\mathrm{sign}(s)$
-positions under the 16:00-bar recalibration, on the 866 days and at both fills, beside the
-paper's block-diagonal ridge scored the same way and always short
-(Table~\ref{tab:app_compounding_headline}, Figure~\ref{fig:app_compounding_headline}).
-The midpoint frame is the one Section~\ref{sec:app_run_parked} reports for the paper's
-forecast under the other recalibration; the crossed frame pays the ask and hits the bid on
-every day.
+Section~\ref{sec:close_option_methods} --- a share $f=\cmpF$ of current wealth deployed as
+straddle premium every day, the same on every day and for every rule, wealth
+$W_T=\prod_t(1+f\,q_tR_t)$, the annualized mean of $\log(1+fR'_t)$ as the growth rate, every
+wealth factor asserted positive --- run for the $\mathrm{sign}(s)$ positions of each of the
+\cmpNSet{} forecasts of the model set, on the 866 days and at both fills, beside always short
+(Table~\ref{tab:app_compounding_headline}, Figure~\ref{fig:app_compounding_headline}). The
+crossed frame pays the ask and hits the bid on every day.
 
-\paragraph{Reading.} At the midpoint the headline turns one unit of wealth into \cmpHW{}
-over the sample (annualized log-growth \cmpHG{}), with a maximum wealth drawdown of
-\cmpHDD{} percent and a worst single day that removes \cmpHWorst{} percent of wealth; the
-ruin bound $1/|\min_t R'_t|$ is \cmpHRuin{} for the headline and \cmpARuin{} for always
-short, so \cmpF{} sits inside both. Across the spread it ends at \cmpHWX{}
-(log-growth \cmpHGX{}, drawdown \cmpHDDX{} percent). The paper's forecast scored the same
-way ends at \cmpRW{} at the midpoint (\cmpRG{}) and \cmpRWX{} across the spread; always
-short ends at \cmpAW{} (\cmpAG{}) and \cmpAWX{}. Of the \cmpNAll{} distinct forecasts of the
-master table (the rest-of-day check rows, exact copies of their per-bar twins, left out),
-\cmpNPosMid{} compound above one unit at the midpoint (terminal wealth \cmpWLoMid{}
-to \cmpWHiMid{}; the headline ranks \cmpHRankMid{}) and \cmpNPosX{} across the spread
-(\cmpWLoX{} to \cmpWHiX{}; the headline ranks \cmpHRankX{}). By calendar year, annualized
-from the days traded in each, the headline's midpoint log-growth is positive in
-\cmpNPosYears{} of \cmpNYears{} years (\cmpYearsMid{}) and across the spread in
-\cmpNPosYearsX{} (\cmpYearsX{}).
+\paragraph{Reading.} At the midpoint \cmpNPosMid{} of the \cmpNSet{} forecasts end above one
+unit of wealth (median terminal wealth \cmpWMedMid, from \cmpWLoMid{} to \cmpWHiMid; median
+annualized log-growth \cmpGMedMid, from \cmpGLoMid{} to \cmpGHiMid), and \cmpNPosX{} across the
+spread (median \cmpWMedX, from \cmpWLoX{} to \cmpWHiX; median log-growth \cmpGMedX). Always
+short ends at \cmpAW{} (\cmpAG) at the midpoint and \cmpAWX{} across the spread. The median
+fall of wealth from its running peak is \cmpDDMedMid{} percent at the midpoint and
+\cmpDDMedX{} across the spread (largest \cmpDDMaxMid{} and \cmpDDMaxX), and the worst single
+day removes up to \cmpWorstDayMax{} percent of a forecast's wealth. The ruin bound
+$1/|\min_t R'_t|$ is at least \cmpRuinMin{} over the model set (always short \cmpARuin), and
+$f=\cmpF$ sits below it for \cmpNRuinOK{} of the \cmpNSet{} forecasts. By calendar year,
+annualized from the days traded in each, the number of forecasts with a positive midpoint
+log-growth is \cmpYearsNPosMid{} (medians \cmpYearsMedMid) and across the spread
+\cmpYearsNPosX{} (medians \cmpYearsMedX).
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{../results/close_compounding/wealth_headline.png}
-\caption{Wealth at a fixed \cmpF{} of wealth per day, 866 days, under the 16:00-bar
-recalibration: the headline's $\mathrm{sign}(s)$, the paper's block-diagonal ridge scored the
-same way, and always short; midpoint fill (left) and crossed spread (right), log scale
-(source: \texttt{results/close\_compounding/fixedfrac\_headline.csv}).}
+\includegraphics[width=\textwidth]{../results/close_compounding/wealth_modelset.png}
+\caption{Wealth at a fixed \cmpF{} of wealth per day, 866 days, for every forecast of the
+model set (\cmpNSet, each its plain back-transform) and always short; midpoint fill (left)
+and crossed spread (right), log scale (source:
+\texttt{results/close\_compounding/fixedfrac\_modelset.csv}).}
 \label{fig:app_compounding_headline}
 \end{figure}

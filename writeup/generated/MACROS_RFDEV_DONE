@@ -1,0 +1,1 @@
+MACROS_RFDEV_DONE 2026-10-07 05:08:37 -0700 -- dev-tuned random forest (subtree_rfdev_*, subtree_daily_*_rfdev) replaces the default-RF T1 / T10 rows in the paper model set (163); master table, both makers, featimp_lean, bounds and fig_qlike_sharpe regenerated; \cmTreeProv... macros

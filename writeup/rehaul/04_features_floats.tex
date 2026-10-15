@@ -1,0 +1,11 @@
+% 04_features_floats.tex -- tables and figures for this section (2026-10-15), each \input from a generated/ file or an
+% \includegraphics of a generated figure; generators: writeup/make_rehaul_*.py. Placed after the section in paper_rehaul.tex
+% so section text and floats can be edited in parallel; move them inline when the prose settles.
+%
+% F1, F2: writeup/make_rehaul_data_methods.py (column names from the 16:00 design cache and the pooled panel cache;
+% transforms from src/features/transforms/target.py run on the data). Labels: tab:rh_dm_design, tab:rh_dm_dictionary.
+\input{generated/rehaul_dm_design}
+% F2, the feature dictionary, is a longtable (not a float): it belongs in Appendix A ("feature dictionary: 47 series
+% -> 628 columns"); move this \input to 10_appendix_floats.tex when the appendix is assembled.
+% 2026-10-15: moved to 10_appendix_floats.tex (Appendix A).
+% \input{generated/rehaul_dm_dictionary}

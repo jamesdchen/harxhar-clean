@@ -34,11 +34,15 @@ gradient-boosted form \citep{Ke2017,Chen2016}. Interpretability
 machinery --- functional ANOVA, additive and pairwise additive models
 \citep{Lou2013}, and Shapley-based attribution
 \citep{lundberg2017unified,lundberg2018consistent} --- is usually
-applied \emph{post hoc}. This paper uses the trees as a specification
-search. The structure they recover --- sparse pairwise products gated
-on the session clock --- is written back into the linear design as
-explicit columns, and the distilled model is estimated in the same
-rolling least-squares path as every other arm.
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% applied \emph{post hoc}. This paper uses the trees as a specification
+% search. The structure they recover --- sparse pairwise products gated
+% on the session clock --- is written back into the linear design as
+% explicit columns, and the distilled model is estimated in the same
+% rolling least-squares path as every other arm.
+applied \emph{post hoc}. This paper uses the trees to measure what the
+linear design leaves unrecovered, and decomposes a tree fit to see where
+its explainable variance lies (Section~\ref{sec:tree_edge}).
 
 \paragraph{Sparse selection versus dense shrinkage.}
 The linear estimators are standard families --- ridge
@@ -85,12 +89,18 @@ original-scale mean. The standard nonparametric correction is
 \citet{ManningMullahy2001} place that correction inside the forecast:
 under heteroscedasticity a single smearing factor is itself biased, so
 the retransformation is a modeling choice rather than a reporting
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% footnote. This paper fits on a diurnally-adjusted square-root scale
+% and scores QLIKE on raw variance, so the same gap applies. The
+% back-transform is treated as part of the evaluation protocol --- a
+% calibrated, strictly causal second-moment correction that replaces the
+% retrospective in-window Duan scalar --- and the comparison is reported
+% in Section~\ref{sec:smearing_contract}.
 footnote. This paper fits on a diurnally-adjusted square-root scale
-and scores QLIKE on raw variance, so the same gap applies. The
-back-transform is treated as part of the evaluation protocol --- a
-calibrated, strictly causal second-moment correction that replaces the
-retrospective in-window Duan scalar --- and the comparison is reported
-in Section~\ref{sec:smearing_contract}.
+and scores QLIKE on raw variance, so the same gap applies. Here the
+forecast is used uncorrected, as $\hat y^{2}B$
+(Section~\ref{sec:smearing_contract}), so each arm carries its own
+retransformation bias into the QLIKE comparison.
 
 \paragraph{The clock of the variance risk premium.}
 \citet{HizmeriBevilacqua2025} identify \emph{when} volatility
@@ -107,14 +117,28 @@ the same clock. If the morning is when the early bird gets the vol,
 % over always short is earned on the days it buys.  Macros: close_main_numbers.tex
 % (master_table.csv pct_buy; close_pnl_decomp/research_scorer/diff_attribution.csv).
 \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
-15:30 is when that bird has already flown: under the headline forecast of
+% 2026-10-06 (recalibration removed): \cmSellHead and \cmPnlDiff re-read on the plain forecast.
+% 2026-10-06 parked (no headline model, user decision):
+% 15:30 is when that bird has already flown: under the headline forecast of
+% Section~\ref{sec:close_option_results} quoted implied variance exceeds the
+% forecast on \cmSellHead\% of expiration days, so a two-sided reading of the % 100 - pct_buy, headline
+% forecast is mostly a short. What the forecast adds is not size on that
+% short --- sizing on the gap does not improve on its sign
+% (Appendix~\ref{sec:app_run_sizing}) --- but the direction of the other days:
+% the rule differs from always short only on the days it buys, and those days % diff_attribution.csv buy days = all days
+% are worth \cmPnlDiff{} premium units to it over the sample. We do not restage
+15:30 is when that bird has already flown: for the paper's eight forecasts in
 Section~\ref{sec:close_option_results} quoted implied variance exceeds the
-forecast on \cmSellHead\% of expiration days, so a two-sided reading of the % 100 - pct_buy, headline
-forecast is mostly a short. What the forecast adds is not size on that
-short --- sizing on the gap does not improve on its sign
-(Appendix~\ref{sec:app_run_sizing}) --- but the direction of the other days:
-the rule differs from always short only on the days it buys, and those days % diff_attribution.csv buy days = all days
-are worth \cmPnlDiff{} premium units to it over the sample. We do not restage
+forecast on \cmSellPaperMin{} to \cmSellPaperMax\% of expiration days, so a two-sided % 100 - pct_buy, paper's eight
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% reading of the forecast is mostly a short. What the forecast adds is not size on that
+% short --- sizing on the gap does not improve on its sign
+% (Appendix~\ref{sec:app_run_sizing}) --- but the direction of the other days:
+% the rule differs from always short only on the days it buys. We do not restage
+reading of the forecast is mostly a short. What the forecast adds is first the
+direction of the other days: the rule differs from always short only on the days it
+buys. Whether sizing on the gap adds to that turns on the sample
+(Appendix~\ref{sec:app_run_sizing}). We do not restage
 their next-day VVIX regression;
 the object here is same-day remaining variance against the
 expiration-day chain.

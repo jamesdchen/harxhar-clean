@@ -18,6 +18,16 @@ workstream writes to results/linear_subsection_restofday/trading_test/.  When a
 appendix_running_restofday_trade.tex (the section inputs it under
 \\IfFileExists); until then that file is not written.
 
+2026-10-06 (user decisions): recalibration removed -- every forecast behind these
+tables is its plain back-transform f^2 * B (the notebooks run on
+atm_straddle_lib's plain loaders); no intervals -- every table and macro is a point
+estimate (DM / HAC t and Holm p stay), and the macros that were interval bounds or
+interval counts are parked; live-feasible is no longer part of the paper -- its rows,
+columns and macros are parked; the sizing study's rules are the robust clip and the
+rank of |s|.  The post-2024 card (item 5), the decision-time studies (80, 82, 84, 86)
+and the VIX-alone study are parked with their subsections: the first two score the
+live card's mapped forecast, the third is a live-feasible study.
+
 Run:  python writeup/make_appendix_running_tex.py
 """
 
@@ -62,6 +72,9 @@ RIDGE = "block-diagonal ridge"
 TOL = 1e-6
 # Significance level of the per-clock Diebold--Mariano tests the scorer reports.
 ALPHA = 0.05
+# |DM t| beyond this counts a bar as better or worse (two-sided 5%, normal); 2026-10-06, in place
+# of the bootstrap intervals the per-bar comparison used to count.
+DM_CRIT = 1.96
 
 NUMS: dict[str, str] = {}
 WRITTEN: list[str] = []  # the tables this run wrote
@@ -332,8 +345,10 @@ def holdclose() -> None:
         ],
         body,
     )
-    # the prose: the forecast-free control is ahead of sign(s) at both fills, pooled
-    assert a.loc["always short", "Sharpe_ann"] > a.loc["sign(s)", "Sharpe_ann"]
+    # the prose (2026-10-06, plain forecast): sign(s) is ahead of the forecast-free control at the
+    # midpoint and behind it at the crossed spread, pooled; both pay the spread.
+    # Parked (recalibrated run): the control ahead at both fills.
+    assert a.loc["sign(s)", "Sharpe_ann"] > a.loc["always short", "Sharpe_ann"]
     assert (
         x.loc["always short", "Sharpe crossed-spread"]
         > x.loc["sign(s)", "Sharpe crossed-spread"]
@@ -448,7 +463,8 @@ def holdclose() -> None:
         rr = r8.loc[key]
         dis = fnum(d8.loc[sig, "disagree % of bars"], 1) if sig else "---"
         ds = fnum(d8.loc[sig, "dSharpe"], 2, plus=True) if sig else "---"
-        dci = fci(d8.loc[sig, "pct lo"], d8.loc[sig, "pct hi"]) if sig else "---"
+        # 2026-10-06: the 95% interval column is removed (user decision); parked:
+        # dci = fci(d8.loc[sig, "pct lo"], d8.loc[sig, "pct hi"]) if sig else "---"
         body.append(
             row(
                 [
@@ -459,7 +475,6 @@ def holdclose() -> None:
                     fnum(rr["pct_buy"], 1),
                     dis,
                     ds,
-                    dci,
                 ]
             )
         )
@@ -470,7 +485,7 @@ def holdclose() -> None:
             src_d.relative_to(ROOT).as_posix(),
             f"{NB_HC.relative_to(ROOT).as_posix()} (section 8d, pooled QLIKE line of the saved output)",
         ],
-        "lrrrrrrr",
+        "lrrrrrr",
         [
             "",
             "QLIKE,~~rest of day",
@@ -479,7 +494,7 @@ def holdclose() -> None:
             r"\% bars~~bought",
             r"\% bars sign~~differs",
             r"$\Delta$Sharpe~~(mid)",
-            r"95\%~~interval",
+            # r"95\%~~interval",  # 2026-10-06: intervals removed
         ],
         body,
     )
@@ -501,11 +516,22 @@ def holdclose() -> None:
         macro(f"runappMap{nm}Buy", fnum(r8.loc[f"sign(s^rem) {k}", "pct_buy"], 1))
     macro("runappMapSmBuy", fnum(r8.loc["sign(s^m)", "pct_buy"], 1))
     macro("runappMapOneDs", fnum(d8.loc["M1", "dSharpe"]))
-    macro("runappMapOneCi", fci(d8.loc["M1", "pct lo"], d8.loc["M1", "pct hi"]))
-    n_ex = int((dx["pct hi"] < 0).sum())
-    macro("runappMapExcl", str(n_ex))
-    macro("runappMapIntervals", str(len(dx)))
-    assert q[3] < q[0] < q[1] < q[2], "the ordering the prose states"
+    # 2026-10-06 parked (intervals removed, user decision): runappMapOneCi, the M1 interval, and
+    # runappMapExcl / runappMapIntervals, the count of paired intervals below zero.  In their place
+    # the count of paired differences below zero (point estimates), over the same six pairs.
+    # macro("runappMapOneCi", fci(d8.loc["M1", "pct lo"], d8.loc["M1", "pct hi"]))
+    # macro("runappMapExcl", str(int((dx["pct hi"] < 0).sum())))
+    # macro("runappMapIntervals", str(len(dx)))
+    macro("runappMapBelow", str(int((dx["dSharpe"] < 0).sum())))
+    macro("runappMapPairs", str(len(dx)))
+    macro("runappMapThreeDs", fnum(d8.loc["M3", "dSharpe"]))
+    # the ordering the prose states (plain forecasts): every fitted map has a lower rest-of-day QLIKE
+    # than the stretch, M3 the lowest; every map trades below the stretch at both fills.
+    # Parked (recalibrated run): q[3] < q[0] < q[1] < q[2].
+    assert q[3] < q[2] < q[1] < q[0], "the ordering the prose states"
+    assert (dx["dSharpe"] < 0).all(), "every fitted map trades below the stretch"
+    # the prose: at the midpoint M1 is the least and M3 the most behind the stretch
+    assert d8.loc["M1", "dSharpe"] > d8.loc["M2", "dSharpe"] > d8.loc["M3", "dSharpe"]
 
 
 # =========================================================================== item 3
@@ -605,6 +631,9 @@ def perclock() -> None:
     macro("runappPcDayClocks", str(len(day)))
     macro("runappPcAsBeatsAll", str(int((day["as_mid"] > day["sg_max"]).sum())))
     macro("runappPcAsBeatsAllX", str(int((day["as_x"] > day["sg_x"]).sum())))
+    # the prose: the order reverses only at 15:30 (always short ahead of all eight at every day clock)
+    assert int((day["as_mid"] > day["sg_max"]).sum()) == len(day)
+    assert t.loc["15:30", "sg_mid"] > t.loc["15:30", "as_mid"]
     macro("runappPcSgDayLo", fnum(day["sg_mid"].min()))
     macro("runappPcSgDayHi", fnum(day["sg_mid"].max()))
     rp = t.dropna(subset=["rp_as"])
@@ -629,8 +658,15 @@ def perclock() -> None:
 # =========================================================================== item 4
 def restofday() -> None:
     """Direct rest-of-day forecasts against the one-step construction (QLIKE)."""
-    src = RES / "linear_subsection_restofday" / "score_rest_of_day.csv"
+    # 2026-10-06: the de-duplicated design's scores (checklist I6), the forecast tables the trading
+    # test below reads; was results/linear_subsection_restofday/score_rest_of_day.csv (pre-dedup).
+    # Both "plain" columns are the plain back-transform on both sides (pred_adj^2 * B_rem against the
+    # one-step f_next / w_next, f_next = yhat^2 * B), so the change of convention moves nothing here.
+    src = RES / "linear_subsection_restofday_dedup" / "score_rest_of_day.csv"
     d = pd.read_csv(src, dtype={"clock": str, "bar": str})
+    # 2026-10-06 (live-feasible removed from the paper, user decision): its rows are left out of every
+    # count, range and extreme below, not only of the table.
+    d = d[d["bucket"] != "live_feasible"].copy()
     assert (d["train_win"] == 2000).all()
     e = d[d["clock"] != "1530"]
     last = d[d["clock"] == "1530"]
@@ -699,9 +735,10 @@ def restofday() -> None:
         ],
         body,
     )
+    # 2026-10-06 parked (live-feasible removed from the paper, user decision): ("live_feasible", "Live"),
+    # whose medians the loop above no longer computes (runappRdLiveLo / runappRdLiveHi).
     for b, nm in (
         ("baseline", "Base"),
-        ("live_feasible", "Live"),
         ("all_features", "All"),
     ):
         v = meds[b]
@@ -747,9 +784,19 @@ def restofday_trade() -> None:
     Its table is that workstream's generated/appendix_running_restofday_trading.tex;
     this writes only the numbers the prose quotes, to a separate macro file, and only
     when the test's pooled CSV exists (the section inputs both under IfFileExists).
+
+    2026-10-06: the plain-only re-run on the de-duplicated tables (trading_test_plain/;
+    experiments/restofday_trading_test.py --out .../trading_test_plain --score-csv
+    results/linear_subsection_restofday_dedup/score_rest_of_day.csv).  Every number is the
+    plain back-transform's and a point estimate.  Parked: the interval macros
+    (runappTt*Ci*, runappTt*VsShortCi, runappTtRidgeIntervals / Zero, runappTtExclFor /
+    Against) and, with live-feasible removed from the paper, runappTtLf*.
     """
     src = (
-        RES / "linear_subsection_restofday" / "trading_test" / "trading_test_pooled.csv"
+        RES
+        / "linear_subsection_restofday"
+        / "trading_test_plain"
+        / "trading_test_pooled.csv"
     )
     out = GEN / "appendix_running_restofday_trade_numbers.tex"
     if not src.exists():
@@ -757,7 +804,10 @@ def restofday_trade() -> None:
             out.unlink()
         return
     t = pd.read_csv(src)
-    t = t[t["pool"] == "10:00-15:30"]
+    t = t[(t["pool"] == "10:00-15:30") & (t["variant"] == "plain")]
+    t = t[
+        t["bucket"] != "live_feasible"
+    ]  # 2026-10-06: live-feasible removed (user decision)
     nums: dict[str, str] = {}
 
     def cell(est: str, bucket: str, variant: str, fill: str) -> pd.Series:
@@ -771,7 +821,7 @@ def restofday_trade() -> None:
         return r.iloc[0]
 
     for bucket, nm in (
-        ("live_feasible", "Lf"),
+        # ("live_feasible", "Lf"),  # 2026-10-06 parked (live-feasible removed from the paper)
         ("all_features", "Af"),
         ("baseline", "Ba"),
     ):
@@ -780,30 +830,30 @@ def restofday_trade() -> None:
             nums[f"runappTt{nm}Cur{fx}"] = fnum(r["Sharpe_current"])
             nums[f"runappTt{nm}Dir{fx}"] = fnum(r["Sharpe_direct"])
             nums[f"runappTt{nm}D{fx}"] = fnum(r["dSharpe"], 2, plus=True)
-            nums[f"runappTt{nm}Ci{fx}"] = fci(r["dSharpe_pct_lo"], r["dSharpe_pct_hi"])
+            # nums[f"runappTt{nm}Ci{fx}"] = fci(r["dSharpe_pct_lo"], r["dSharpe_pct_hi"])  # parked
         r = cell("ridge", bucket, "plain", "mid")
         nums[f"runappTt{nm}BuyCur"] = fnum(r["pct_buy_current"], 1)
         nums[f"runappTt{nm}BuyDir"] = fnum(r["pct_buy_direct"], 1)
         nums[f"runappTt{nm}Q"] = fnum(r["pct_qlike_direct_vs_current"], 1)
         nums[f"runappTt{nm}VsShort"] = fnum(r["dSharpe_direct_vs_short"], 2)
-        nums[f"runappTt{nm}VsShortCi"] = fci(
-            r["dSharpe_direct_vs_short_pct_lo"], r["dSharpe_direct_vs_short_pct_hi"]
-        )
-    ridge = t[(t["estimator"] == "ridge") & (t["variant"] == "plain")]
-    n_int = len(ridge)
-    n_zero = int(((ridge["dSharpe_pct_lo"] < 0) & (ridge["dSharpe_pct_hi"] > 0)).sum())
-    nums["runappTtRidgeIntervals"] = str(n_int)
-    nums["runappTtRidgeZero"] = str(n_zero)
+        # nums[f"runappTt{nm}VsShortCi"] = fci(r["dSharpe_direct_vs_short_pct_lo"],
+        #                                      r["dSharpe_direct_vs_short_pct_hi"])  # parked
+    # parked (intervals): runappTtRidgeIntervals, runappTtRidgeZero, runappTtExclFor, runappTtExclAgainst
+    ridge = t[t["estimator"] == "ridge"]
+    nums["runappTtRidgeCells"] = str(len(ridge))
+    nums["runappTtRidgeAhead"] = str(int((ridge["dSharpe"] > 0).sum()))
     mid = t[t["fill"] == "mid"]
     nums["runappTtCombos"] = str(len(mid))
     nums["runappTtAhead"] = str(int((mid["dSharpe"] > 0).sum()))
-    exc = (mid["dSharpe_pct_lo"] > 0) & (mid["dSharpe_basic_lo"] > 0)
-    exc_neg = (mid["dSharpe_pct_hi"] < 0) & (mid["dSharpe_basic_hi"] < 0)
-    nums["runappTtExclFor"] = str(int(exc.sum()))
-    nums["runappTtExclAgainst"] = str(int(exc_neg.sum()))
+    xx = t[t["fill"] == "crossed"]
+    nums["runappTtAheadX"] = str(int((xx["dSharpe"] > 0).sum()))
+    # the prose: both signals stay below always short, every plain row
+    assert (t["Sharpe_direct"] < t["Sharpe_always_short"]).all()
+    assert (t["Sharpe_current"] < t["Sharpe_always_short"]).all()
     lines = [
         "% AUTO-GENERATED by writeup/make_appendix_running_tex.py -- do not edit.",
-        f"% Source: {src.relative_to(ROOT).as_posix()} (pool 10:00-15:30; per-bar ridge, plain back-transform unless counted over all)",
+        f"% Source: {src.relative_to(ROOT).as_posix()} (pool 10:00-15:30; plain back-transform; "
+        "per-bar ridge unless counted over all estimators; point estimates)",
     ]
     lines += [r"\newcommand{\%s}{%s}" % (k, v) for k, v in nums.items()]
     out.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
@@ -1148,16 +1198,10 @@ def decision() -> None:
         body,
     )
     macro("runappDsDays", fint(t0["days"].iloc[0]))
-    macro("runappDsMonthEnds", fint(me86["month_ends"].iloc[0]))
     macro("runappDsHolmMin", fnum(b86["holm_boot_1s"].min(), 3))
     tmax = max(s86["t_pnl_day_ask"].abs().max(), s86["t_pnl_day_mid"].abs().max())
     macro("runappDsTmax", fnum(tmax, 2))
-    macro("runappDsMeLast", fnum(me86.loc["15:30", "mean_R_ask"], 3))
-    macro("runappDsMeLastT", fnum(me86.loc["15:30", "t_ask"], 2))
-    later = me86.loc[["15:40", "15:45", "15:50"], "minus_1530_R_ask"]
-    macro("runappDsMeLaterLo", fnum(later.min(), 2))
-    macro("runappDsMeLaterHi", fnum(later.max(), 2))
-    macro("runappDsMeHolmMin", fnum(me86["holm_paired_1s"].min(), 2))
+    # the forecast-free month-end columns of study 86 moved to monthend_spx() (2026-10-06)
     macro("runappDsSpreadLo", fnum(100 * t0["rel_spread_median"].min(), 1))
     macro("runappDsSpreadHi", fnum(100 * t0["rel_spread_median"].max(), 1))
     xsp = pd.read_csv(PROP / "86" / "summary_tau.csv")
@@ -1196,6 +1240,24 @@ def decision() -> None:
 
 
 # =========================================================================== month-end long
+def monthend_spx() -> None:
+    """Study 86's month-end columns: every SPX month-end bought at tau, no forecast.
+
+    2026-10-06: moved here from decision(), whose forecast-based studies are parked with
+    their subsection; these columns read no forecast and stay with the month-end item.
+    """
+    me86 = pd.read_csv(PROP / "86" / "spx_month_end_tau.csv").set_index("tau")
+    macro("runappDsMonthEnds", fint(me86["month_ends"].iloc[0]))
+    macro("runappDsMeLast", fnum(me86.loc["15:30", "mean_R_ask"], 3))
+    macro("runappDsMeLastT", fnum(me86.loc["15:30", "t_ask"], 2))
+    later = me86.loc[["15:40", "15:45", "15:50"], "minus_1530_R_ask"]
+    macro("runappDsMeLaterLo", fnum(later.min(), 2))
+    macro("runappDsMeLaterHi", fnum(later.max(), 2))
+    macro("runappDsMeHolmMin", fnum(me86["holm_paired_1s"].min(), 2))
+    # the month-ends are those of the study's XSP run; their date range is not in its outputs, so the
+    # prose names none (the earlier "from December 2024" was the session range of the forecast rule)
+
+
 def monthend() -> None:
     """Study 83: the month-end long straddle by entry clock."""
     src = PROP / "83" / "summary.txt"
@@ -1365,28 +1427,38 @@ def vixonly() -> None:
 
 # =========================================================================== per-bar vs pooled
 def perbar_pooled() -> None:
+    """Per-bar forecasts against their pooled twins (rv_iv notebook section 10), QLIKE.
+
+    2026-10-06 (user decisions): plain forecasts, point estimates only -- the [95%]
+    cells and the interval counts are parked; "better" / "worse" now count the bars whose
+    Diebold--Mariano t is below -DM_CRIT / above +DM_CRIT -- and the live-feasible
+    forecasts are left out (live-feasible removed from the paper).
+    """
     src = CL / "perbar_vs_pooled_qlike.csv"
     p = pd.read_csv(src)
+    p = p[
+        ~p["forecast"].str.contains("live-feasible")
+    ]  # 2026-10-06 parked: live-feasible rows
     body = []
-    sess_ci_below = 0
+    sess_dm_below = 0
     for f, g in p.groupby("forecast", sort=False):
         g = g.set_index("bar end")
         bars = g.drop(index="session mean")
-        better = int((bars["ci_hi (%)"] < 0).sum())
-        worse = int((bars["ci_lo (%)"] > 0).sum())
+        better = int((bars["DM t"] < -DM_CRIT).sum())
+        worse = int((bars["DM t"] > DM_CRIT).sum())
         sm = g.loc["session mean"]
-        sess_ci_below += int(sm["ci_hi (%)"] < 0)
+        sess_dm_below += int(sm["DM t"] < -DM_CRIT)
 
         def cell(bar: str) -> str:
             r = g.loc[bar]
-            return f"{fnum(r['difference (%)'], 1, plus=True)} {fci(r['ci_lo (%)'], r['ci_hi (%)'], 1)}"
+            # parked: f"{...} {fci(r['ci_lo (%)'], r['ci_hi (%)'], 1)}"
+            return f"{fnum(r['difference (%)'], 1, plus=True)} ({fnum(r['DM t'], 2)})"
 
         body.append(
             row(
                 [
                     tex_escape(str(f)),
                     cell("session mean"),
-                    fnum(sm["DM t"], 2),
                     cell("14:30"),
                     cell("15:00"),
                     cell("16:00"),
@@ -1397,15 +1469,14 @@ def perbar_pooled() -> None:
         )
     write_tab(
         "perbar_pooled",
-        [src.relative_to(ROOT).as_posix()],
-        "lrrrrrrr",
+        [src.relative_to(ROOT).as_posix() + " (live-feasible rows left out)"],
+        "lrrrrrr",
         [
             "per-bar forecast",
-            r"session mean~~(\%) [95\%]",
-            "DM $t$",
-            r"14:30 bar~~(\%) [95\%]",
-            r"15:00 bar~~(\%) [95\%]",
-            r"16:00 bar~~(\%) [95\%]",
+            r"session mean~~(\%) (DM $t$)",
+            r"14:30 bar~~(\%) (DM $t$)",
+            r"15:00 bar~~(\%) (DM $t$)",
+            r"16:00 bar~~(\%) (DM $t$)",
             "bars~~better",
             "bars~~worse",
         ],
@@ -1414,18 +1485,51 @@ def perbar_pooled() -> None:
     sm = p[p["bar end"] == "session mean"]
     macro("runappPbSessLo", fnum(sm["difference (%)"].min(), 1))
     macro("runappPbSessHi", fnum(sm["difference (%)"].max(), 1))
-    macro("runappPbSessCi", str(sess_ci_below))
+    # parked: macro("runappPbSessCi", str(sess_ci_below))  -- the count of session intervals below zero
+    macro("runappPbSessDm", str(sess_dm_below))
+    macro("runappPbSessBelow", str(int((sm["difference (%)"] < 0).sum())))
+    # the prose: only the ridge on HAR + calendar has the lower session loss; the highest is the
+    # ridge on all features, which also carries the largest single-bar excess
+    assert list(sm.loc[sm["difference (%)"] < 0, "forecast"]) == [
+        "ridge (HAR + calendar)"
+    ]
+    assert (
+        sm.sort_values("difference (%)")["forecast"].iloc[-1] == "ridge (all features)"
+    )
     macro("runappPbN", str(len(sm)))
+    macro("runappPbDmCrit", fnum(DM_CRIT, 2))
     b = p[p["bar end"] == "14:30"]
+    assert (b["difference (%)"] < 0).all(), (
+        "every per-bar forecast gains at the 14:30 bar"
+    )
     macro("runappPbFomcBarLo", fnum(b["difference (%)"].min(), 1))
     macro("runappPbFomcBarHi", fnum(b["difference (%)"].max(), 1))
+    macro("runappPbFomcBarDmLo", fnum(b["DM t"].min(), 1))
+    macro("runappPbFomcBarDmHi", fnum(b["DM t"].max(), 1))
     macro("runappPbDays", fint(p["days"].iloc[0]))
-    h16 = p[(p["bar end"] == "16:00") & (p["ci_hi (%)"] < 0)]
-    assert len(h16) == 1
-    r16 = h16.iloc[0]
-    macro("runappPbSixteenWho", tex_escape(str(r16["forecast"])))
-    macro("runappPbSixteen", fnum(r16["difference (%)"], 1))
-    macro("runappPbSixteenCi", fci(r16["ci_lo (%)"], r16["ci_hi (%)"], 1))
+    h16 = p[p["bar end"] == "16:00"]
+    # parked: the one 16:00 forecast whose interval lay below zero (runappPbSixteenWho / Sixteen / SixteenCi)
+    best = h16.sort_values("DM t").iloc[0]
+    macro("runappPbSixteenWho", tex_escape(str(best["forecast"])))
+    macro("runappPbSixteen", fnum(best["difference (%)"], 1))
+    macro("runappPbSixteenDm", fnum(best["DM t"], 2))
+    macro("runappPbSixteenSig", str(int((h16["DM t"] < -DM_CRIT).sum())))
+    # the largest single-bar loss increase: the plain back-transform's rare extreme values
+    bars_all = p[p["bar end"] != "session mean"]
+    worst = bars_all.sort_values("difference (%)").iloc[-1]
+    assert worst["forecast"] == "ridge (all features)", worst["forecast"]
+    # the prose: most of that forecast's session excess sits at this one bar
+    sw = sm[sm["forecast"] == worst["forecast"]].iloc[0]
+    one_bar = (worst["QLIKE per-bar"] - worst["QLIKE pooled"]) / len(
+        bars_all["bar end"].unique()
+    )
+    assert one_bar > 0.5 * (sw["QLIKE per-bar"] - sw["QLIKE pooled"]), (one_bar, sw)
+    macro("runappPbWorstWho", tex_escape(str(worst["forecast"])))
+    macro("runappPbWorstBar", str(worst["bar end"]))
+    macro("runappPbWorstPct", fnum(worst["difference (%)"], 0))
+    macro("runappPbWorstQ", fnum(worst["QLIKE per-bar"], 2))
+    macro("runappPbWorstPooledQ", fnum(worst["QLIKE pooled"], 3))
+    macro("runappPbWorstDm", fnum(worst["DM t"], 2))
     # the FOMC split of the 14:30 bar lives only in the notebook's saved output
     txt = nb_output(NB_RVIV, "split by FOMC statement days")
     m = re.search(r"FOMC statement days \((\d+)\)\s+other days \((\d+)\)", txt)
@@ -1434,14 +1538,17 @@ def perbar_pooled() -> None:
     macro("runappPbOtherDays", m.group(2))
     seg = txt.split("split by FOMC statement days", 1)[1]
     vals = re.findall(
-        r"^\S.*?\s+(" + FLOAT + r")\s+(" + FLOAT + r")\s+(" + FLOAT + r")\s*$",
+        r"^(\S.*?)\s+(" + FLOAT + r")\s+(" + FLOAT + r")\s+(" + FLOAT + r")\s*$",
         seg,
         re.M,
     )
+    vals = [
+        v for v in vals if "live-feasible" not in v[0]
+    ]  # 2026-10-06: live-feasible left out
     assert len(vals) == len(sm), vals
-    fomc = [float(a) for a, _, _ in vals]
-    other = [float(bb) for _, bb, _ in vals]
-    share = [float(c) for _, _, c in vals]
+    fomc = [float(a) for _, a, _, _ in vals]
+    other = [float(bb) for _, _, bb, _ in vals]
+    share = [float(c) for _, _, _, c in vals]
     macro("runappPbFomcLo", fnum(min(fomc), 0))
     macro("runappPbFomcHi", fnum(max(fomc), 0))
     macro("runappPbOtherLo", fnum(min(other), 0))
@@ -1538,20 +1645,30 @@ def multihorizon() -> None:
 
 # =========================================================================== sizing
 def sizing() -> None:
+    """Sized rules against sign(s) (rv_iv notebook section 10, vrp_sized_rules.csv).
+
+    2026-10-06 (user decisions): the rules are the robust clip and the rank of |s|
+    (proportional and centred rank parked in the notebook); plain forecasts; point
+    estimates only (the [95%] cells and the interval counts are parked); the per-bar
+    live-feasible forecasts are left out (the notebook no longer scores them).
+    """
     src = CL / "vrp_sized_rules.csv"
     v = pd.read_csv(src)
+    v = v[
+        ~v["tag"].str.startswith("sub_live_")
+    ]  # 2026-10-06: live-feasible removed (user)
     sized = v[v["rule"] != "sign(s)"]
     body = []
     rules = [
-        "(a) proportional s/rms",
+        "(d) robust clip s/med|s|",
         "(b) rank of |s|, sign kept",
-        "(c) centred rank 2F(s)-1",
     ]
+    # parked 2026-10-06 (user decision): "(a) proportional s/rms", "(c) centred rank 2F(s)-1"
     lab = {
-        "(a) proportional s/rms": r"(a) proportional, $s_d/\mathrm{rms}_d$",
-        "(b) rank of |s|, sign kept": r"(b) rank of $|s_d|$, sign kept",
-        "(c) centred rank 2F(s)-1": r"(c) centred rank, $2\hat F_d(s_d)-1$",
+        "(d) robust clip s/med|s|": r"robust clip, $\mathrm{clip}(s_d/\tilde m_d,-1,1)$",
+        "(b) rank of |s|, sign kept": r"rank of $|s_d|$, sign kept",
     }
+    assert set(sized["rule"]) == set(rules), set(sized["rule"])
     nf = v["forecast"].nunique()
     for block in ["after 252-day warm-up", "from the second day"]:
         for rule in rules:
@@ -1566,11 +1683,13 @@ def sizing() -> None:
                             "after 252-day warm-up", "after 252 days"
                         ).replace("from the second day", "from day 2"),
                         fint(rr["days"]),
+                        fnum(rr["mean |q|"], 2),
                         fnum(rr["Sharpe mid"], 2),
-                        f"{fnum(rr['dSharpe mid'], 2, plus=True)} {fci(rr['lo mid'], rr['hi mid'])}",
-                        f"{int((g['dSharpe mid'] > 0).sum())} / {int((g['lo mid'] > 0).sum())} / {int((g['hi mid'] < 0).sum())}",
+                        fnum(rr["dSharpe mid"], 2, plus=True),
+                        f"{int((g['dSharpe mid'] > 0).sum())}",
                         fnum(g["dSharpe mid"].median(), 2, plus=True),
-                        f"{int((g['dSharpe crossed'] > 0).sum())} / {int((g['lo crossed'] > 0).sum())} / {int((g['hi crossed'] < 0).sum())}",
+                        f"{int((g['dSharpe crossed'] > 0).sum())}",
+                        fnum(g["dSharpe crossed"].median(), 2, plus=True),
                     ]
                 )
             )
@@ -1578,34 +1697,47 @@ def sizing() -> None:
             body.append(r"\midrule")
     write_tab(
         "sizing",
-        [src.relative_to(ROOT).as_posix()],
-        "llrrrrrr",
+        [src.relative_to(ROOT).as_posix() + " (per-bar live-feasible rows left out)"],
+        "llrrrrrrrr",
         [
             "size",
             "sample",
             "days",
+            r"\shortstack{ridge\\mean $|q|$}",
             r"\shortstack{ridge\\Sharpe (mid)}",
-            r"\shortstack{ridge: minus $\mathrm{sign}(s)$\\(mid) [95\%]}",
-            r"\shortstack{" + str(nf) + r" forecasts (mid):\\$>0$ / CI$>0$ / CI$<0$}",
+            r"\shortstack{ridge: minus\\$\mathrm{sign}(s)$ (mid)}",
+            r"\shortstack{" + str(nf) + r" forecasts (mid):\\number $>0$}",
             r"\shortstack{median\\(mid)}",
-            r"\shortstack{"
-            + str(nf)
-            + r" forecasts (crossed):\\$>0$ / CI$>0$ / CI$<0$}",
+            r"\shortstack{" + str(nf) + r" forecasts (crossed):\\number $>0$}",
+            r"\shortstack{median\\(crossed)}",
         ],
         body,
     )
     macro("runappSzForecasts", str(nf))
-    assert (sized["lo mid"] <= 0).all() and (sized["lo crossed"] <= 0).all(), (
-        "no sized rule has an interval above zero"
-    )
+    # parked 2026-10-06: the claim "no sized rule has an interval above zero" (intervals removed)
     wa = sized[sized["block"] == "after 252-day warm-up"]
-    a = wa[wa["rule"] == rules[0]]
-    assert (a["dSharpe mid"] < 0).all()
-    b = wa[wa["rule"] == rules[1]]
-    macro("runappSzRankAbove", str(int((b["dSharpe mid"] > 0).sum())))
-    macro("runappSzRankMed", fnum(b["dSharpe mid"].median(), 2, plus=True))
-    c = wa[wa["rule"] == rules[2]]
-    assert (c["dSharpe mid"] < 0).all()
+    w2 = sized[sized["block"] == "from the second day"]
+    for rule, nm in ((rules[0], "Clip"), (rules[1], "Rank")):
+        a = wa[wa["rule"] == rule]
+        b = w2[w2["rule"] == rule]
+        macro(f"runappSz{nm}Above", str(int((a["dSharpe mid"] > 0).sum())))
+        macro(f"runappSz{nm}AboveX", str(int((a["dSharpe crossed"] > 0).sum())))
+        macro(f"runappSz{nm}Med", fnum(a["dSharpe mid"].median(), 2, plus=True))
+        macro(f"runappSz{nm}MedX", fnum(a["dSharpe crossed"].median(), 2, plus=True))
+        macro(f"runappSz{nm}Lo", fnum(a["dSharpe mid"].min(), 2))
+        macro(f"runappSz{nm}Hi", fnum(a["dSharpe mid"].max(), 2, plus=True))
+        macro(f"runappSz{nm}AboveTwo", str(int((b["dSharpe mid"] > 0).sum())))
+        macro(f"runappSz{nm}MedTwo", fnum(b["dSharpe mid"].median(), 2, plus=True))
+        r = a[a["forecast"] == RIDGE].iloc[0]
+        macro(f"runappSz{nm}Ridge", fnum(r["Sharpe mid"]))
+        macro(f"runappSz{nm}RidgeD", fnum(r["dSharpe mid"], 2, plus=True))
+        macro(f"runappSz{nm}MeanQ", fnum(r["mean |q|"]))
+        # the prose: ahead for most forecasts after a year (median above zero), behind for most
+        # from the second day
+        assert (a["dSharpe mid"] > 0).sum() > nf / 2 and a[
+            "dSharpe mid"
+        ].median() > 0, nm
+        assert (b["dSharpe mid"] > 0).sum() < nf / 2, nm
     sg = v[
         (v["rule"] == "sign(s)")
         & (v["block"] == "after 252-day warm-up")
@@ -1613,12 +1745,28 @@ def sizing() -> None:
     ].iloc[0]
     macro("runappSzSignMid", fnum(sg["Sharpe mid"]))
     macro("runappSzDays", fint(sg["days"]))
+    sg2 = v[
+        (v["rule"] == "sign(s)")
+        & (v["block"] == "from the second day")
+        & (v["forecast"] == RIDGE)
+    ].iloc[0]
+    macro("runappSzDaysTwo", fint(sg2["days"]))
 
 
 # =========================================================================== portfolio + co-moves
 def portfolio() -> None:
+    """The trade beside the S&P 500, and its co-moves (rv_iv notebook section 18).
+
+    2026-10-06 (user decisions): plain forecasts; point estimates only (the [95%] cells,
+    runappPwGainCi, runappPwBestLo, runappCoExA / CoExB / CoOne / CoOneCi are parked); the
+    per-bar live-feasible forecasts and the co-move column of the live-feasible ridge are
+    left out (live-feasible removed from the paper).
+    """
     src = CL / "portfolio_weights_causal.csv"
     w = pd.read_csv(src)
+    w = w[
+        ~w["forecast"].str.contains("live-feasible")
+    ]  # 2026-10-06 parked: live-feasible rows
     body = []
     for _, r in w.iterrows():
         body.append(
@@ -1633,13 +1781,13 @@ def portfolio() -> None:
                     fnum(r["mean risk share"], 2),
                     fnum(r["premium $ per $100 S&P (median)"], 2),
                     fnum(r["Sharpe combination"], 2),
-                    f"{fnum(r['dSharpe'], 2, plus=True)} {fci(r['ci_lo'], r['ci_hi'])}",
+                    fnum(r["dSharpe"], 2, plus=True),  # parked: the [95%] interval
                 ]
             )
         )
     write_tab(
         "portfolio",
-        [src.relative_to(ROOT).as_posix()],
+        [src.relative_to(ROOT).as_posix() + " (live-feasible rows left out)"],
         "lrrrrrrr",
         [
             "forecast",
@@ -1649,7 +1797,7 @@ def portfolio() -> None:
             r"\shortstack{mean\\risk share}",
             r"\shortstack{premium \$\\per \$100 S\&P}",
             r"\shortstack{Sharpe\\combined}",
-            r"\shortstack{minus S\&P alone\\{}[95\%]}",
+            r"\shortstack{minus\\S\&P alone}",
         ],
         body,
     )
@@ -1659,7 +1807,7 @@ def portfolio() -> None:
     macro("runappPwSpx", fnum(r["Sharpe S&P alone"]))
     macro("runappPwComb", fnum(r["Sharpe combination"]))
     macro("runappPwGain", fnum(r["dSharpe"]))
-    macro("runappPwGainCi", fci(r["ci_lo"], r["ci_hi"]))
+    # parked: macro("runappPwGainCi", fci(r["ci_lo"], r["ci_hi"]))
     macro("runappPwShare", fnum(r["mean risk share"]))
     macro("runappPwDollar", fnum(r["premium $ per $100 S&P (median)"]))
     macro("runappPwCorrLo", fnum(w["correlation with S&P, close-to-close"].min()))
@@ -1669,13 +1817,16 @@ def portfolio() -> None:
     )
     macro("runappPwAbsLo", fnum(w["correlation with |S&P, 15:30→close|"].min()))
     macro("runappPwAbsHi", fnum(w["correlation with |S&P, 15:30→close|"].max()))
-    macro("runappPwBestLo", fnum(w["ci_lo"].max()))
-    assert (w["ci_lo"] < 0).all(), "every interval includes zero"
+    # parked: macro("runappPwBestLo", fnum(w["ci_lo"].max())) and the claim that every interval spans 0
+    macro("runappPwGainLo", fnum(w["dSharpe"].min()))
+    macro("runappPwGainHi", fnum(w["dSharpe"].max()))
+    macro("runappPwGainBelow", str(int((w["dSharpe"] < 0).sum())))
     macro("runappPwForecasts", str(len(w)))
 
     src_c = CL / "trade_return_comoves.csv"
     c = pd.read_csv(src_c)
-    a, b = "block-diagonal ridge", "per-bar ridge (live-feasible set)"
+    a = "block-diagonal ridge"
+    # parked 2026-10-06 (live-feasible removed): b = "per-bar ridge (live-feasible set)" and its column
     body = []
     for _, r in c.iterrows():
         body.append(
@@ -1685,31 +1836,34 @@ def portfolio() -> None:
                     .replace("->", r"$\to$")
                     .replace("|", "$|$"),
                     fint(r["days"]),
-                    f"{fnum(r[a + ': corr'], 3)} {fci(r[a + ': lo'], r[a + ': hi'], 3)}",
-                    f"{fnum(r[b + ': corr'], 3)} {fci(r[b + ': lo'], r[b + ': hi'], 3)}",
+                    fnum(
+                        r[a + ": corr"], 3
+                    ),  # parked: fci(r[a + ": lo"], r[a + ": hi"], 3)
                 ]
             )
         )
     write_tab(
         "comoves",
-        [src_c.relative_to(ROOT).as_posix()],
-        "lrrr",
+        [src_c.relative_to(ROOT).as_posix() + " (block-diagonal ridge column)"],
+        "lrr",
         [
             "same-day move",
             "days",
-            "block-diagonal ridge [95\\%]",
-            "per-bar ridge, live-feasible [95\\%]",
+            "block-diagonal ridge",
         ],
         body,
     )
-    ex_a = int(((c[a + ": lo"] > 0) | (c[a + ": hi"] < 0)).sum())
-    ex_b = int(((c[b + ": lo"] > 0) | (c[b + ": hi"] < 0)).sum())
-    macro("runappCoExA", str(ex_a))
-    macro("runappCoExB", str(ex_b))
+    # parked: runappCoExA / runappCoExB (intervals excluding zero), runappCoOne / runappCoOneCi
     macro("runappCoSeries", str(len(c)))
-    one = c[(c[a + ": lo"] > 0) | (c[a + ": hi"] < 0)].iloc[0]
-    macro("runappCoOne", fnum(one[a + ": corr"], 2))
-    macro("runappCoOneCi", fci(one[a + ": lo"], one[a + ": hi"], 3))
+    top = c.loc[c[a + ": corr"].abs().idxmax()]
+    assert top["series"] == "S&P 500 |return|, 15:30->close", top["series"]
+    macro(
+        "runappCoMaxSeries",
+        tex_escape(str(top["series"])).replace("->", r"$\to$").replace("|", "$|$"),
+    )
+    macro("runappCoMax", fnum(top[a + ": corr"], 2))
+    rest = c.drop(index=top.name)[a + ": corr"].abs()
+    macro("runappCoRestMax", fnum(rest.max(), 2))
 
 
 # =========================================================================== main
@@ -1719,10 +1873,15 @@ def main() -> None:
     holdclose()
     perclock()
     restofday()
-    post2024()
-    decision()
+    # 2026-10-06 parked with their subsections (recalibration removed, user decision): the post-2024
+    # card and the decision-time studies score the live card's mapped forecast (studies 80-90 read
+    # atm_straddle_lib.load_yhat_1530_mz_cached through live/close_signal/forecast.recalibrate).
+    # post2024()
+    # decision()
+    monthend_spx()
     monthend()
-    vixonly()
+    # 2026-10-06 parked with its subsection (live-feasible removed from the paper, user decision):
+    # vixonly()
     perbar_pooled()
     multihorizon()
     sizing()

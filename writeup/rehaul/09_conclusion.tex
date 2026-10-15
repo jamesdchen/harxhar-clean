@@ -1,0 +1,65 @@
+% 09_conclusion.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 9.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: reuse the introduction's macros; no new numbers
+% 2026-10-15 (notation pass, writeup/NOTATION_GUIDE_2026-10-15.md): symbols and wording; the typed 866 -> \cmNdays.
+% Old -> new: RV_t -> \RV_t; B_t -> s^2_{t,c}; IV^{30}_t -> \mathrm{IV}_t; HAR + calendar -> HAR benchmark;
+% exogenous inputs -> exogenous predictors; per bar / pooled -> closing-interval / pooled intraday model;
+% Sharpe -> \SR; trade -> straddle strategy; always-short -> short-straddle benchmark; crossing the spread -> at
+% quoted bid/ask prices. The guarded \input is a no-op after the introduction's.
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+
+\section{Conclusion}
+\begin{itemize}
+\item \textbf{Exogenous predictors add to the HAR benchmark, consistently but modestly.}
+  \begin{itemize}
+  \item $\overline{\QLIKE}$ falls in most pairs and $\SR$ rises in nearly all.
+  \item Few gains are individually statistically significant over $T_{\mathrm{oos}} = \cmNdays$ trading days.
+  \end{itemize}
+\item \textbf{The closing-interval model is more accurate than the pooled intraday model,} significantly so on the
+  HAR benchmark.
+  \begin{itemize}
+  \item The difference in the straddle strategy's $\SR$ is not statistically significant.
+  \end{itemize}
+\item \textbf{A lower QLIKE does not imply a higher Sharpe ratio.} The strategy uses $\hat\sigma^2_t$ only through
+  the side of implied variance on which it falls:
+  \[
+    q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr).
+  \]
+\item \textbf{The straddle strategy measures economic value; it is not a claim of implementable profits.}
+  \begin{itemize}
+  \item Every forecast earns a higher $\SR$ than the unconditional short-straddle benchmark ($q_t \equiv -1$).
+  \item Its profits are concentrated in a small number of large-move days.
+  \item At quoted bid/ask prices, rather than mid-quotes, the $\SR$ is materially lower.
+  \end{itemize}
+\item \textbf{A recurrent network (MinGRU) matches the linear models} once regularized like them:
+  \begin{itemize}
+  \item initialized at the ridge solution;
+  \item exogenous predictors shrunk more heavily than the HAR benchmark block, through weight decay in proportion to
+    the linear penalty weights $\omega_j$;
+  \item trained and selected on QLIKE, the evaluation loss,
+    $\min_{\bm\theta} \sum_{s \in \mathcal W^{\mathrm{est}}_t} \QLIKE\bigl(\tilde y_s^{\,2},\, \hat y_s^{\,2}(\bm\theta)\bigr)$,
+    with $\tilde y_s$ the winsorized target and $s$ the trading days of the estimation sample; QLIKE is
+    scale-free, so this is the same loss on the variance scale.
+  \end{itemize}
+  % 2026-10-15 (notation pass): parked -- the network trains on the winsorized target (fit only, guide section 2),
+  % while the paper now scores against the actual RV; the formula above states the training loss as fitted.
+  % \item trained on the scored loss, $\min \sum_t \QLIKE(RV_t, \hat y_t^2 B_t)$.
+\item \textbf{Limitations:}
+  \begin{itemize}
+  \item $T_{\mathrm{oos}} = \cmNdays$ trading days;
+  \item one index and one intraday interval;
+  \item no delta hedging and no price-impact model;
+  \item tree-ensemble forecasts depend on the CPU instruction set and are not bit-for-bit reproducible across
+    machines.
+  \end{itemize}
+\item \textbf{Future work:}
+  \begin{itemize}
+  \item evaluate the expirations after April 2024 out of sample;
+  \item density forecasts of closing-interval variance;
+  \item a second market;
+  \item forecast origins, and so straddle entries, earlier in the trading day;
+  \item transaction costs calibrated to executed prices.
+  \end{itemize}
+\end{itemize}

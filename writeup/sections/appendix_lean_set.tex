@@ -1,0 +1,108 @@
+% 2026-10-08 parked (lean set; replaced by an MCS over the features): the whole subsection; its \input in appendix_campaign_16h.tex is parked too
+% % ============================================================================
+% % 2026-10-06 (user decision: "make the lean set the third input set in the paper, but it has
+% % to be a follow up to the feature importance study").  A new appendix subsection after the
+% % 16:00 campaign (Appendix D.19), which keeps its own framing: what the importance study of
+% % D.19 finds, the lean set defined from it, its evaluation against HAR + calendar and all
+% % features, and the selection caveat.  Every number is a \fl... macro of
+% % generated/featimp_lean_numbers.tex (writeup/make_featimp_lean_tex.py); the two tables are
+% % generated/featimp_lean_{importance,results}.tex.  Display names carry no adj_ prefix.
+% % Input from sections/appendix_campaign_16h.tex, at its end.
+% % ============================================================================
+% \ifdefined\flPreRefits\else\input{generated/featimp_lean_numbers}\fi
+% \subsection{A Lean Input Set, Chosen from the Importance Study}
+% \label{sec:app_lean}
+% 
+% \paragraph{What the importance study finds.} The importance study of
+% Appendix~\ref{sec:app_camp_featimp} ranks the \flSeriesN{} series of the
+% \texttt{all\_features} design for the per-bar ridge, the lasso and the three trees by
+% impurity and split counts, permutation, TreeSHAP and, for the linear models, standardized
+% weights and drop-column losses: \flCells{} model-by-measure cells, rank 1 the most important
+% series in a cell (Table~\ref{tab:app_lean_importance}). The target's own HAR lags lead: median
+% rank \flRankMedHar, in the top \flTop{} of \flTopTenHar{} of the \flCells{} cells. Next come
+% the signed return (\texttt{sumret\_ma\_*}, median rank \flRankMedSumret), the absolute return
+% (\texttt{sumabsret\_ma\_*}, \flRankMedSumabsret), E-mini volume (\texttt{sumvolume\_ma\_*},
+% \flRankMedSumvolume) and the return autocovariance (\texttt{sumautocov\_ma\_*},
+% \flRankMedSumautocov). Bipower variation (\texttt{sumbipow\_ma\_*}, median rank
+% \flRankMedSumbipow) and the upside squared return (\texttt{sumpret2\_ma\_*},
+% \flRankMedSumprettwo) sit in one correlation cluster with the absolute and the quartic return
+% (\texttt{sumret4\_ma\_*}, \flRankMedSumretfour) at each of the \flClusterLagsN{} lags, with a
+% smallest within-cluster correlation of \flClusterCorrMin{} to \flClusterCorrMax{} across the
+% lags, and add nothing beyond them. The returns of the index constituents rank (the absolute
+% constituent returns at median ranks \flRankMedOtherTwo{} and \flRankMedOtherThree), but they
+% duplicate the E-mini moments.
+% % source (no macro): results/feature_importance_1530_dedup/SUMMARY.md -- the VIX level is in
+% % the top three of the lasso's permutation and standardized-weight measures and outside the
+% % trees' top ranks.
+% The VIX level (\texttt{vix\_ma\_*}, median rank \flRankMedVix) matters more for the linear
+% models than for the trees.
+% 
+% \begin{table}[H]
+% \centering
+% \caption{Importance of the series of the \texttt{all\_features} design over the
+% \flCells{} model-by-measure cells of the importance study (rank 1 = most important of
+% \flSeriesN{} series): median rank and the number of cells with the series in the top
+% \flTop, on all held-out tails (2018--2024) and on the tails of the refits trained before the
+% trade period, the best rank, and the place by median rank. Lean: the series of the lean set.}
+% \label{tab:app_lean_importance}
+% \campfit{\scriptsize\input{generated/featimp_lean_importance}}
+% \end{table}
+% 
+% \paragraph{The lean set.} The lean set, named \texttt{lean\_vol\_vix} in the tables, keeps the
+% HAR + calendar backbone of \texttt{baseline} and adds the \flLeanN{} exogenous series that
+% reading points to: the signed return (\texttt{sumret}), the absolute return
+% (\texttt{sumabsret}), the quartic return (\texttt{sumret4}), the return autocovariance
+% (\texttt{sumautocov}), E-mini volume (\texttt{sumvolume}) and the VIX level (\texttt{vix}),
+% each through the same ladder of trailing means as every other series. \flLeanInTopTenN{} of
+% the \flLeanN{} are among the ten series with the best median rank.
+% 
+% \paragraph{Its evaluation.} The per-bar linear forecasts, their pooled twins and the trees are
+% fitted on the lean set exactly as on \texttt{baseline} and \texttt{all\_features} --- the same
+% rows, window,
+% refits and tuning --- and scored on the same days, every forecast used as its plain
+% back-transform (Table~\ref{tab:app_lean_results}). Over the \flSetN{} forecasts paired across
+% the three sets, the median QLIKE is \flSetQLean{} on the lean set, \flSetQAllF{} on
+% \texttt{all\_features} and \flSetQBase{} on \texttt{baseline}, and the median
+% $\mathrm{sign}(s)$ Sharpe ratio \flSetShLean, \flSetShAllF{} and \flSetShBase. Against
+% \texttt{all\_features}, the lean forecast has the lower QLIKE in \flSetVsAllFQBetter{} pairs
+% (\flSetVsAllFQBetterSig{} significantly) and the higher in \flSetVsAllFQWorse{}
+% (\flSetVsAllFQWorseSig{}), and trades higher in \flSetVsAllFShAbove{} (\flSetVsAllFShAboveSig{}
+% significantly) and lower in \flSetVsAllFShBelow{} (\flSetVsAllFShBelowSig); the median
+% differences are \flSetVsAllFQPctMed\% in QLIKE and \flSetVsAllFShMed{} in the Sharpe ratio.
+% Against \texttt{baseline} it has the lower QLIKE in \flSetVsBaseQBetter{}
+% (\flSetVsBaseQBetterSig{} significantly) and trades higher in \flSetVsBaseShAbove{}
+% (\flSetVsBaseShAboveSig{} significantly), at median differences of \flSetVsBaseQPctMed\% and
+% \flSetVsBaseShMed. The pairs share the data and are not independent evidence.
+% 
+% \begin{table}[H]
+% \centering
+% \caption{The lean set against \texttt{all\_features} and \texttt{baseline}, per family of the
+% model set, every forecast used as its plain back-transform: median QLIKE and median
+% $\mathrm{sign}(s)$ Sharpe ratio (midpoint) on each set, and the number of pairs in which the
+% lean forecast has the lower QLIKE and the higher Sharpe ratio, with the number significant at
+% 5\,\% in parentheses (Diebold--Mariano for QLIKE, the Newey--West $t$ of the daily
+% midpoint-return difference for the Sharpe ratio). Point estimates.}
+% \label{tab:app_lean_results}
+% \campfit{\scriptsize\input{generated/featimp_lean_results}}
+% \end{table}
+% 
+% \paragraph{A selection caveat.} The lean set was chosen after the importance study, whose
+% refits cover the same period as these scores. Two checks bound what that costs. Ranking the
+% series on the \flPreRefits{} refits trained before the trade period alone (their held-out
+% tails, \flPreTailDays{} days from \flPreTailFirst{} to \flPreTailLast) picks the same five
+% return and volume series: median ranks \flPreRankSumret{} for the signed return,
+% \flPreRankSumabsret{} for the absolute return, \flPreRankSumvolume{} for E-mini volume,
+% \flPreRankSumautocov{} for the autocovariance and \flPreRankSumretfour{} for the quartic return,
+% against \flPreRankSumretthree{} for the cubed return, \flPreRankSumbipow{} for bipower
+% variation and \flPreRankSumprettwo{} for the upside squared return. The cluster of the absolute,
+% quartic and upside squared return and bipower variation already holds on the
+% \flPreClusterRows{} rows from \flPreClusterFirst{} to \flPreClusterLast: its smallest
+% within-cluster correlation is \flPreClusterMinCorrLagOne, \flPreClusterMinCorrLagFive,
+% \flPreClusterMinCorrLagTwentyFive, \flPreClusterMinCorrLagOneTwentyFive,
+% \flPreClusterMinCorrLagSixTwentyFive{} and \flPreClusterMinCorrLagThreeOneTwoFive{} at the
+% lags from 1 to 3125 bars. The VIX level ranks \flRankMedVix{} on all tails and
+% \flPreRankVix{} on the earlier ones: it is in the set by design, as the one
+% implied-volatility series, and not by its rank. The set is therefore reproducible from
+% importance computed only on refits trained before the trade period; what remains is that the
+% selection rule itself was written after the full-sample results had been seen, and every
+% comparison with \texttt{baseline} and \texttt{all\_features} carries that.

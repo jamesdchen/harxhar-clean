@@ -1,3 +1,10 @@
+% 2026-10-06 (recalibration removed, user decision): every number in this
+% subsection is regenerated with every forecast used as its plain
+% back-transform (Section~\ref{sec:multihorizon_methods}); point estimates and
+% DM statistics only. Producers: experiments/multihorizon_ttc.py ->
+% multihorizon_tex.py (rest of session); direct_multihorizon_reduce.py ->
+% direct_mh_tex.py (per-bar path). Archived recalibrated outputs:
+% results/multihorizon/recal_2026-09-24/, results/direct_mh/recal_2026-08-18/.
 \subsection{From One Bar to the Rest of the Session}
 \label{sec:multihorizon}
 \label{sec:multihorizon_results}
@@ -8,6 +15,11 @@ Equation~\eqref{eq:mh_target}, using the constructions of
 Section~\ref{sec:multihorizon_methods}.
 
 % PARKED 2026-08-19: horizon-profile results + tab:multih_profile held out
+% 2026-10-06 note (recalibration removed, user decision): this parked profile
+% is scored under the removed contract ("QLIKE under the evaluation
+% protocol"); its stored losses cannot be re-scored on the plain forecast and
+% the probe behind it was retired for a leak (its macros are parked in
+% methods_multihorizon.tex). It must not be unparked as it stands.
 \iffalse
 \paragraph{The horizon profile.} Table~\ref{tab:multih_profile} refits
 the incumbent and the two-block ridge directly at five horizons from
@@ -49,10 +61,16 @@ Horizon & $n$ & OLS--HAR & Two-block & $\Delta$QLIKE & DM~$t$ \\
 
 \fi
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{The rest of the session.} The object is the variance
+% remaining before the close, Equation~\eqref{eq:mh_target}, forecast at
+% every bar from the one-step forecast standing then, on \mhNDays{}
+% complete regular sessions. Two questions are asked of it: how much of
 \paragraph{The rest of the session.} The object is the variance
 remaining before the close, Equation~\eqref{eq:mh_target}, forecast at
 every bar from the one-step forecast standing then, on \mhNDays{}
-complete regular sessions. Two questions are asked of it: how much of
+complete regular sessions, every forecast its plain back-transform with
+no rescale. Two questions are asked of it: how much of
 the remaining session a single next-bar forecast reaches, and what the
 running realization of the current session adds; and whether the
 two-block ridge's one-bar advantage survives the extension to a horizon
@@ -60,9 +78,12 @@ of hours.
 
 \begin{table}[H]
 \centering
+% 2026-10-06 parked (recalibration removed, user decision): caption sentence
+% "QLIKE on remaining variance, lower is better."
 \caption{Multi-horizon forecasts of the variance remaining in the
 session, pooled over entry hours 10:00--15:00~ET (one loss per session,
-the mean over the eleven entry hours). QLIKE on remaining variance,
+the mean over the eleven entry hours). QLIKE on remaining variance of
+each forecast as its regression gives it (exponentiated, no rescale),
 lower is better. DM~$t$ (ridge vs.\ incumbent) is the paired
 Diebold--Mariano statistic of the two-block ridge against the OLS--HAR
 incumbent under the same construction; DM~$t$ (vs.\ benchmark) is the
@@ -70,12 +91,14 @@ two-block ridge against the horizon-specific unconditional benchmark.
 Negative favours the ridge. All constructions use only information
 available at the entry bar.
 \label{tab:multihorizon_pooled}}
+% 2026-10-06: scaled to the text width (the table overran it by 199pt).
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}llcccc@{}}
 \toprule
 Construction & Sample & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs.\ bench.) \\
 \midrule
 \input{generated/table_multihorizon_pooled}
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \paragraph{How far one bar reaches.} Mapped alone to the rest of the
@@ -130,20 +153,43 @@ Entry & Benchmark & OLS--HAR & Two-block & DM~$t$ (ridge vs.\ inc.) & DM~$t$ (vs
 \paragraph{The per-bar path, refit directly.}
 Table~\ref{tab:dense_byk} refits both arms at each of the eleven bars
 beyond the one Table~\ref{tab:block_ladder} scores, on \dmhN{} origins
-across the panel. The horizon convention matters for reading it: the
+across the panel, every forecast its plain back-transform. The horizon
+convention matters for reading it: the
 paper's one-bar forecast pairs the information standing at the start of
 a bar with that bar's variance; the first row here targets the bar
 after that, so the table covers the second through the twelfth bar
 ahead --- the horizons between Table~\ref{tab:block_ladder} and a full
-session, at bar-level resolution. On every one of them the exogenous
-block does not help: the two-block ridge scores above the incumbent
-from DM \dmhKOneDM{} at the second bar to \dmhKElevenDM{} at the
-twelfth (regular-hours origins \dmhRthKOneDM{} to
-\dmhRthKElevenDM{}), in every era of the panel separately, and under
-per-bar refit as well as the daily refit reported in the table (a
-per-bar-refit diagnostic on the first eighth of the panel narrows the
-gap materially --- the cadence is not free for a wide, heavily shrunk
-block --- but does not change its sign). The one-bar advantage of
+session, at bar-level resolution.
+% 2026-10-06 parked (recalibration removed, user decision):
+% On every one of them the exogenous
+% block does not help: the two-block ridge scores above the incumbent
+% from DM \dmhKOneDM{} at the second bar to \dmhKElevenDM{} at the
+% twelfth (regular-hours origins \dmhRthKOneDM{} to
+% \dmhRthKElevenDM{}), in every era of the panel separately, and under
+% per-bar refit as well as the daily refit reported in the table (a
+% per-bar-refit diagnostic on the first eighth of the panel narrows the
+% gap materially --- the cadence is not free for a wide, heavily shrunk
+% block --- but does not change its sign).
+On every one of them the exogenous block does not help: the two-block
+ridge's mean loss is above the incumbent's at \dmhBlkWorseN{} of the
+\dmhNK{} horizons, with paired DM between \dmhDMmin{} and \dmhDMmax{}
+(regular-hours origins \dmhRthDMmin{} to \dmhRthDMmax{}), significant at
+the five per cent level at \dmhBlkSigN{} of them (\dmhRthBlkSigN{} on
+regular-hours origins). The ridge's mean loss is not a typical loss,
+however. At \dmhBlkNonposN{} origins, all between \dmhBlkNonposFirst{}
+and \dmhBlkNonposLast{}, its square-root-scale forecast is at or below
+zero at one horizon or more (for the incumbent the count is
+\dmhAzeroNonposN{});
+squared, such a forecast puts almost no variance on the bar, and
+QLIKE's penalty for under-forecasting is unbounded. Depending on the
+horizon, the ten largest of the ridge's losses carry between
+\dmhTopTenMin{}\% and \dmhTopTenMax{}\% of its summed loss, which is why
+its column of the table is erratic. The ordering does not rest on them:
+the ridge's median loss is above the incumbent's at
+\dmhMedBlkWorseN{} of the \dmhNK{} horizons. Whether the daily refit
+costs the ridge is not re-measured on the plain forecast (an earlier
+per-bar-refit diagnostic was run under the removed back-transform).
+The one-bar advantage of
 Table~\ref{tab:block_ladder} therefore does not extend to the hours
 immediately beyond it: the exogenous information is about the next
 thirty minutes and, as the rest-of-session results above show in
@@ -152,13 +198,20 @@ bar two hours from now.
 
 \begin{table}[H]
 \centering
+% 2026-10-06 parked (recalibration removed, user decision): caption sentence
+% "QLIKE under the evaluation protocol on all origins from the first full
+% window;"
 \caption{Direct per-bar forecasts at bar-level horizons beyond
 Table~\ref{tab:block_ladder}: the row labelled $t+k$ targets the
 $(k+1)$-th bar ahead of the information set, so the table covers the
 second through the twelfth bar. Both arms are refit at every horizon
 with the paper's design and penalties, coefficients re-solved daily.
-QLIKE under the evaluation protocol on all origins from the first full
-window; $\Delta$ is the two-block ridge minus the incumbent on common
+QLIKE of each forecast's plain back-transform (the squared forecast
+times the target bar's baseline, nothing on top) on all origins from
+the first full window; at most horizons the two-block column is
+dominated by a few origins at which the ridge's forecast is near zero
+(see text);
+$\Delta$ is the two-block ridge minus the incumbent on common
 rows; DM~$t$ is the paired Diebold--Mariano statistic, negative
 favouring the ridge.
 \label{tab:dense_byk}}

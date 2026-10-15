@@ -1,590 +1,607 @@
 % GENERATED FILE -- do not edit by hand.
-% Written by experiments/score_unification.py at 2026-08-18 04:48Z.
-% Scoring: causal calibrated second-moment stack (smearing.tex) --
-% prev-window MZ mean + conditional-variance maps; rv_raw evaluation
-% target; DM vs the same root's a0 (src/evaluation/diebold_mariano).
+% Written by experiments/score_unification.py at 2026-10-07 01:51Z.
+% Scoring (2026-10-06, recalibration removed): every forecast is its
+% plain back-transform f = yhat^2 * B (adjusted-scale forecast squared
+% times the diurnal baseline) -- no smearing factor, no MZ map, no
+% second-moment term; rv_raw evaluation target; DM vs the same root's
+% a0 (src/evaluation/diebold_mariano).  Row set unchanged from the
+% contract runs (first present window of each arm held out).
+% Parked (not emitted): unifAzeroQLIKENone, unifAzeroQLIKEDuan,
+% unifSmearTauNone, unifSmearTauDuan, the condvar arms and their
+% increments -- all exist only to compare recalibration choices.
 % \unifAzeroRsq is a0's Mincer-Zarnowitz R^2 (rv_raw on raw forecast).
 % Incomplete arms render as red pending boxes until harvest completes.
-\newcommand{\unifAzeroQLIKE}{0.22521}
-\newcommand{\unifAzeroRsq}{0.000}
-\newcommand{\unifAzeroMZbeta}{-0.000}
-\newcommand{\unifAzeroQLIKENone}{0.24097}
-\newcommand{\unifAzeroQLIKEDuan}{0.23165}
-\newcommand{\unifMomentsQLIKE}{0.22761}
-\newcommand{\unifMomentsDM}{+0.7}
-\newcommand{\unifMomentsDelta}{+0.00240}
-\newcommand{\unifLiquidityQLIKE}{0.22934}
-\newcommand{\unifLiquidityDM}{+5.9}
-\newcommand{\unifLiquidityDelta}{+0.00413}
-\newcommand{\unifMarketEwQLIKE}{0.22687}
-\newcommand{\unifMarketEwDM}{+4.6}
-\newcommand{\unifMarketEwDelta}{+0.00166}
-\newcommand{\unifMarketVwQLIKE}{0.22642}
-\newcommand{\unifMarketVwDM}{+3.2}
-\newcommand{\unifMarketVwDelta}{+0.00121}
-\newcommand{\unifSentimentQLIKE}{0.22563}
-\newcommand{\unifSentimentDM}{+1.4}
-\newcommand{\unifSentimentDelta}{+0.00042}
-\newcommand{\unifImpliedVolQLIKE}{0.22624}
-\newcommand{\unifImpliedVolDM}{+3.9}
-\newcommand{\unifImpliedVolDelta}{+0.00103}
-\newcommand{\unifVolDemandQLIKE}{0.22620}
-\newcommand{\unifVolDemandDM}{+3.4}
-\newcommand{\unifVolDemandDelta}{+0.00099}
-\newcommand{\unifAllFeaturesQLIKE}{0.22939}
-\newcommand{\unifAllFeaturesDM}{+6.3}
-\newcommand{\unifAllFeaturesDelta}{+0.00418}
-\newcommand{\unifBOneRidgeQLIKE}{0.22679}
-\newcommand{\unifBOneRidgeDM}{+2.6}
-\newcommand{\unifBOneRidgeDelta}{+0.00159}
-\newcommand{\unifBTwoLassoQLIKE}{0.22382}
-\newcommand{\unifBTwoLassoDM}{-2.2}
-\newcommand{\unifBTwoLassoDelta}{-0.00139}
-\newcommand{\unifBOneRidgeTunedQLIKE}{0.22450}
-\newcommand{\unifBOneRidgeTunedDM}{-1.1}
-\newcommand{\unifBOneRidgeTunedDelta}{-0.00071}
-\newcommand{\unifBTwoLassoTunedQLIKE}{0.22566}
-\newcommand{\unifBTwoLassoTunedDM}{+0.5}
-\newcommand{\unifBTwoLassoTunedDelta}{+0.00045}
-\newcommand{\unifBThreeEnetTunedQLIKE}{0.22464}
-\newcommand{\unifBThreeEnetTunedDM}{-0.6}
-\newcommand{\unifBThreeEnetTunedDelta}{-0.00057}
-\newcommand{\unifBrTunedMomentsQLIKE}{0.22407}
-\newcommand{\unifBrTunedMomentsDM}{-2.1}
-\newcommand{\unifBrTunedMomentsDelta}{-0.00114}
-\newcommand{\unifBrTunedLiquidityQLIKE}{0.22817}
-\newcommand{\unifBrTunedLiquidityDM}{+3.2}
-\newcommand{\unifBrTunedLiquidityDelta}{+0.00296}
-\newcommand{\unifBrTunedMarketEwQLIKE}{0.22645}
-\newcommand{\unifBrTunedMarketEwDM}{+2.7}
-\newcommand{\unifBrTunedMarketEwDelta}{+0.00124}
-\newcommand{\unifBrTunedMarketVwQLIKE}{0.22600}
-\newcommand{\unifBrTunedMarketVwDM}{+1.7}
-\newcommand{\unifBrTunedMarketVwDelta}{+0.00080}
-\newcommand{\unifBrTunedSentimentQLIKE}{0.22593}
-\newcommand{\unifBrTunedSentimentDM}{+1.7}
-\newcommand{\unifBrTunedSentimentDelta}{+0.00072}
-\newcommand{\unifBrTunedImpliedVolQLIKE}{0.22620}
-\newcommand{\unifBrTunedImpliedVolDM}{+2.9}
-\newcommand{\unifBrTunedImpliedVolDelta}{+0.00099}
-\newcommand{\unifBrTunedVolDemandQLIKE}{0.22628}
-\newcommand{\unifBrTunedVolDemandDM}{+2.4}
-\newcommand{\unifBrTunedVolDemandDelta}{+0.00108}
-\newcommand{\unifBrTunedAllFeaturesQLIKE}{0.22450}
-\newcommand{\unifBrTunedAllFeaturesDM}{-1.1}
-\newcommand{\unifBrTunedAllFeaturesDelta}{-0.00071}
-\newcommand{\unifBeTunedMomentsQLIKE}{0.22496}
-\newcommand{\unifBeTunedMomentsDM}{-0.4}
-\newcommand{\unifBeTunedMomentsDelta}{-0.00025}
-\newcommand{\unifBeTunedLiquidityQLIKE}{0.22806}
-\newcommand{\unifBeTunedLiquidityDM}{+3.2}
-\newcommand{\unifBeTunedLiquidityDelta}{+0.00286}
-\newcommand{\unifBeTunedMarketEwQLIKE}{0.22647}
-\newcommand{\unifBeTunedMarketEwDM}{+2.6}
-\newcommand{\unifBeTunedMarketEwDelta}{+0.00126}
-\newcommand{\unifBeTunedMarketVwQLIKE}{0.22634}
-\newcommand{\unifBeTunedMarketVwDM}{+2.2}
-\newcommand{\unifBeTunedMarketVwDelta}{+0.00114}
-\newcommand{\unifBeTunedSentimentQLIKE}{0.22624}
-\newcommand{\unifBeTunedSentimentDM}{+2.2}
-\newcommand{\unifBeTunedSentimentDelta}{+0.00103}
-\newcommand{\unifBeTunedImpliedVolQLIKE}{0.22646}
-\newcommand{\unifBeTunedImpliedVolDM}{+2.8}
-\newcommand{\unifBeTunedImpliedVolDelta}{+0.00125}
-\newcommand{\unifBeTunedVolDemandQLIKE}{0.22632}
-\newcommand{\unifBeTunedVolDemandDM}{+2.4}
-\newcommand{\unifBeTunedVolDemandDelta}{+0.00111}
-\newcommand{\unifBeTunedAllFeaturesQLIKE}{0.22570}
-\newcommand{\unifBeTunedAllFeaturesDM}{+0.4}
-\newcommand{\unifBeTunedAllFeaturesDelta}{+0.00049}
-\newcommand{\unifBeTunedWideMomentsQLIKE}{0.22655}
-\newcommand{\unifBeTunedWideMomentsDM}{+2.0}
-\newcommand{\unifBeTunedWideMomentsDelta}{+0.00134}
-\newcommand{\unifBeTunedWideLiquidityQLIKE}{0.23037}
-\newcommand{\unifBeTunedWideLiquidityDM}{+5.6}
-\newcommand{\unifBeTunedWideLiquidityDelta}{+0.00517}
-\newcommand{\unifBeTunedWideMarketEwQLIKE}{0.22877}
-\newcommand{\unifBeTunedWideMarketEwDM}{+6.7}
-\newcommand{\unifBeTunedWideMarketEwDelta}{+0.00357}
-\newcommand{\unifBeTunedWideMarketVwQLIKE}{0.22829}
-\newcommand{\unifBeTunedWideMarketVwDM}{+5.9}
-\newcommand{\unifBeTunedWideMarketVwDelta}{+0.00310}
-\newcommand{\unifBeTunedWideSentimentQLIKE}{0.22809}
-\newcommand{\unifBeTunedWideSentimentDM}{+6.6}
-\newcommand{\unifBeTunedWideSentimentDelta}{+0.00289}
-\newcommand{\unifBeTunedWideImpliedVolQLIKE}{0.22832}
-\newcommand{\unifBeTunedWideImpliedVolDM}{+7.6}
-\newcommand{\unifBeTunedWideImpliedVolDelta}{+0.00313}
-\newcommand{\unifBeTunedWideVolDemandQLIKE}{0.25886}
-\newcommand{\unifBeTunedWideVolDemandDM}{+3.8}
-\newcommand{\unifBeTunedWideVolDemandDelta}{+0.03367}
-\newcommand{\unifBeTunedWideAllFeaturesQLIKE}{0.22665}
-\newcommand{\unifBeTunedWideAllFeaturesDM}{+1.4}
-\newcommand{\unifBeTunedWideAllFeaturesDelta}{+0.00144}
-\newcommand{\unifBOneRidgeApOneQLIKE}{0.22820}
-\newcommand{\unifBOneRidgeApOneDM}{+4.5}
-\newcommand{\unifBOneRidgeApOneDelta}{+0.00300}
-\newcommand{\unifBOneRidgeApThreeQLIKE}{0.22761}
-\newcommand{\unifBOneRidgeApThreeDM}{+3.7}
-\newcommand{\unifBOneRidgeApThreeDelta}{+0.00240}
-\newcommand{\unifBOneRidgeAthreeQLIKE}{0.22594}
-\newcommand{\unifBOneRidgeAthreeDM}{+1.2}
-\newcommand{\unifBOneRidgeAthreeDelta}{+0.00074}
-\newcommand{\unifBOneRidgeAtenQLIKE}{0.22506}
-\newcommand{\unifBOneRidgeAtenDM}{-0.3}
-\newcommand{\unifBOneRidgeAtenDelta}{-0.00015}
-\newcommand{\unifBOneRidgeAthirtyQLIKE}{0.22445}
-\newcommand{\unifBOneRidgeAthirtyDM}{-1.2}
-\newcommand{\unifBOneRidgeAthirtyDelta}{-0.00075}
-\newcommand{\unifBOneRidgeAhundredQLIKE}{0.22414}
-\newcommand{\unifBOneRidgeAhundredDM}{-1.5}
-\newcommand{\unifBOneRidgeAhundredDelta}{-0.00105}
-\newcommand{\unifBOneRidgeAthreehundredQLIKE}{0.22424}
-\newcommand{\unifBOneRidgeAthreehundredDM}{-1.1}
-\newcommand{\unifBOneRidgeAthreehundredDelta}{-0.00095}
-\newcommand{\unifBTwoLassoAoneEminusSixQLIKE}{0.25016}
-\newcommand{\unifBTwoLassoAoneEminusSixDM}{+3.7}
-\newcommand{\unifBTwoLassoAoneEminusSixDelta}{+0.02496}
-\newcommand{\unifBTwoLassoAoneEminusFiveQLIKE}{0.24527}
-\newcommand{\unifBTwoLassoAoneEminusFiveDM}{+3.0}
-\newcommand{\unifBTwoLassoAoneEminusFiveDelta}{+0.02008}
-\newcommand{\unifBTwoLassoAoneEminusThreeQLIKE}{0.22540}
-\newcommand{\unifBTwoLassoAoneEminusThreeDM}{+0.1}
-\newcommand{\unifBTwoLassoAoneEminusThreeDelta}{+0.00020}
-\newcommand{\unifBTwoLassoAoneEminusTwoQLIKE}{0.22758}
-\newcommand{\unifBTwoLassoAoneEminusTwoDM}{+2.8}
-\newcommand{\unifBTwoLassoAoneEminusTwoDelta}{+0.00239}
-\newcommand{\unifBlkTwoUserQLIKE}{0.22350}
-\newcommand{\unifBlkTwoUserDM}{-3.1}
-\newcommand{\unifBlkTwoUserDelta}{-0.00171}
-\newcommand{\unifBlkThreeUserQLIKE}{0.21486}
-\newcommand{\unifBlkThreeUserDM}{-4.2}
-\newcommand{\unifBlkThreeUserDelta}{-0.00274}
-\newcommand{\unifBlkFourUserQLIKE}{0.21485}
-\newcommand{\unifBlkFourUserDM}{-4.3}
-\newcommand{\unifBlkFourUserDelta}{-0.00275}
-\newcommand{\unifBlkTwoDocQLIKE}{0.22200}
-\newcommand{\unifBlkTwoDocDM}{-4.7}
-\newcommand{\unifBlkTwoDocDelta}{-0.00321}
-\newcommand{\unifBlkThreeDocQLIKE}{0.22085}
-\newcommand{\unifBlkThreeDocDM}{-5.6}
-\newcommand{\unifBlkThreeDocDelta}{-0.00436}
-\newcommand{\unifBlkFourDocQLIKE}{0.22069}
-\newcommand{\unifBlkFourDocDM}{-6.3}
-\newcommand{\unifBlkFourDocDelta}{-0.00452}
-\newcommand{\unifBlkTwoTunedQLIKE}{0.22224}
-\newcommand{\unifBlkTwoTunedDM}{-5.6}
-\newcommand{\unifBlkTwoTunedDelta}{-0.00297}
-\newcommand{\unifBlkThreeTunedQLIKE}{0.21309}
-\newcommand{\unifBlkThreeTunedDM}{-8.2}
-\newcommand{\unifBlkThreeTunedDelta}{-0.00451}
-\newcommand{\unifBlkFourTunedQLIKE}{0.21292}
-\newcommand{\unifBlkFourTunedDM}{-8.5}
-\newcommand{\unifBlkFourTunedDelta}{-0.00468}
-\newcommand{\unifBlkFourTrailQLIKE}{0.21480}
-\newcommand{\unifBlkFourTrailDM}{-4.3}
-\newcommand{\unifBlkFourTrailDelta}{-0.00280}
-\newcommand{\unifBlkFourTrailGQLIKE}{0.21473}
-\newcommand{\unifBlkFourTrailGDM}{-4.4}
-\newcommand{\unifBlkFourTrailGDelta}{-0.00287}
-\newcommand{\unifBlkFourTrailGhatQLIKE}{0.21488}
-\newcommand{\unifBlkFourTrailGhatDM}{-4.2}
-\newcommand{\unifBlkFourTrailGhatDelta}{-0.00272}
-\newcommand{\unifBlkFourTrailTunedQLIKE}{0.21297}
-\newcommand{\unifBlkFourTrailTunedDM}{-8.2}
-\newcommand{\unifBlkFourTrailTunedDelta}{-0.00463}
-\newcommand{\unifBlkFourTrailGTunedQLIKE}{0.21282}
-\newcommand{\unifBlkFourTrailGTunedDM}{-9.0}
-\newcommand{\unifBlkFourTrailGTunedDelta}{-0.00479}
-\newcommand{\unifBlkBucketPenTunedQLIKE}{0.21316}
-\newcommand{\unifBlkBucketPenTunedDM}{-7.1}
-\newcommand{\unifBlkBucketPenTunedDelta}{-0.00444}
-\newcommand{\unifBlkFourTrailGShapedQLIKE}{0.21281}
-\newcommand{\unifBlkFourTrailGShapedDM}{-8.9}
-\newcommand{\unifBlkFourTrailGShapedDelta}{-0.00479}
-\newcommand{\unifBlkFourTrailGShapedWideQLIKE}{0.21281}
-\newcommand{\unifBlkFourTrailGShapedWideDM}{-8.8}
-\newcommand{\unifBlkFourTrailGShapedWideDelta}{-0.00479}
-\newcommand{\unifBlkFourTrailGShapedTrailMeanQLIKE}{0.21287}
-\newcommand{\unifBlkFourTrailGShapedTrailMeanDM}{-8.4}
-\newcommand{\unifBlkFourTrailGShapedTrailMeanDelta}{-0.00473}
-\newcommand{\unifBlkFourTrailGShapedTrailSdQLIKE}{0.21279}
-\newcommand{\unifBlkFourTrailGShapedTrailSdDM}{-8.8}
-\newcommand{\unifBlkFourTrailGShapedTrailSdDelta}{-0.00481}
-\newcommand{\unifBlkThreeTrailGShapedTrailSdQLIKE}{0.21415}
-\newcommand{\unifBlkThreeTrailGShapedTrailSdDM}{-5.6}
-\newcommand{\unifBlkThreeTrailGShapedTrailSdDelta}{-0.00345}
-\newcommand{\unifBlkThreeExogSpikeFrozenTunedQLIKE}{0.21426}
-\newcommand{\unifBlkThreeExogSpikeFrozenTunedDM}{-6.0}
-\newcommand{\unifBlkThreeExogSpikeFrozenTunedDelta}{-0.00334}
-\newcommand{\unifBlkThreeExogSpikeTrailSdTunedQLIKE}{0.21482}
-\newcommand{\unifBlkThreeExogSpikeTrailSdTunedDM}{-3.0}
-\newcommand{\unifBlkThreeExogSpikeTrailSdTunedDelta}{-0.00278}
-\newcommand{\unifBlkThreeProdSpikeFrozenTunedQLIKE}{0.21435}
-\newcommand{\unifBlkThreeProdSpikeFrozenTunedDM}{-5.3}
-\newcommand{\unifBlkThreeProdSpikeFrozenTunedDelta}{-0.00325}
-\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedQLIKE}{0.21438}
-\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedDM}{-5.2}
-\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedDelta}{-0.00323}
-\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedQLIKE}{0.21434}
-\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedDM}{-5.3}
-\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedDelta}{-0.00326}
-\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedQLIKE}{0.21441}
-\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedDM}{-5.2}
-\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedDelta}{-0.00320}
-\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedQLIKE}{0.21439}
-\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedDM}{-5.4}
-\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedDelta}{-0.00321}
-\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedQLIKE}{0.21439}
-\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedDM}{-5.2}
-\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedDelta}{-0.00321}
-\newcommand{\unifBlkFourProdSpikeFrozenTunedQLIKE}{0.21289}
-\newcommand{\unifBlkFourProdSpikeFrozenTunedDM}{-8.7}
-\newcommand{\unifBlkFourProdSpikeFrozenTunedDelta}{-0.00471}
-\newcommand{\unifBlkTwoTrailGShapedTrailSdQLIKE}{0.21664}
-\newcommand{\unifBlkTwoTrailGShapedTrailSdDM}{-0.8}
-\newcommand{\unifBlkTwoTrailGShapedTrailSdDelta}{-0.00096}
-\newcommand{\unifBlkTwoRotAllTrailSdTunedQLIKE}{0.23035}
-\newcommand{\unifBlkTwoRotAllTrailSdTunedDM}{+3.4}
-\newcommand{\unifBlkTwoRotAllTrailSdTunedDelta}{+0.01275}
-\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedQLIKE}{0.21449}
-\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedDM}{-5.7}
-\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedDelta}{-0.00311}
-\newcommand{\unifBlkTwoFrExogRawTunedQLIKE}{0.21444}
-\newcommand{\unifBlkTwoFrExogRawTunedDM}{-5.0}
-\newcommand{\unifBlkTwoFrExogRawTunedDelta}{-0.00316}
-\newcommand{\unifBlkTwoFrExogFrozenTunedQLIKE}{0.21412}
-\newcommand{\unifBlkTwoFrExogFrozenTunedDM}{-6.4}
-\newcommand{\unifBlkTwoFrExogFrozenTunedDelta}{-0.00348}
-\newcommand{\unifBlkTwoFrExogTrailSdTunedQLIKE}{0.21446}
-\newcommand{\unifBlkTwoFrExogTrailSdTunedDM}{-5.7}
-\newcommand{\unifBlkTwoFrExogTrailSdTunedDelta}{-0.00314}
-\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedQLIKE}{0.21562}
-\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedDM}{-1.7}
-\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedDelta}{-0.00198}
-\newcommand{\unifBlkTwoFrExogFrozenShapedTunedQLIKE}{0.21497}
-\newcommand{\unifBlkTwoFrExogFrozenShapedTunedDM}{-4.7}
-\newcommand{\unifBlkTwoFrExogFrozenShapedTunedDelta}{-0.00264}
-\newcommand{\unifBlkTwoFrProdRawTunedQLIKE}{0.21674}
-\newcommand{\unifBlkTwoFrProdRawTunedDM}{-0.4}
-\newcommand{\unifBlkTwoFrProdRawTunedDelta}{-0.00086}
-\newcommand{\unifBlkTwoFrProdFrozenTunedQLIKE}{0.21690}
-\newcommand{\unifBlkTwoFrProdFrozenTunedDM}{-0.3}
-\newcommand{\unifBlkTwoFrProdFrozenTunedDelta}{-0.00070}
-\newcommand{\unifBlkTwoFrProdTrailSdTunedQLIKE}{0.21498}
-\newcommand{\unifBlkTwoFrProdTrailSdTunedDM}{-4.8}
-\newcommand{\unifBlkTwoFrProdTrailSdTunedDelta}{-0.00263}
-\newcommand{\unifBlkTwoFrAllRawTunedQLIKE}{0.21442}
-\newcommand{\unifBlkTwoFrAllRawTunedDM}{-5.1}
-\newcommand{\unifBlkTwoFrAllRawTunedDelta}{-0.00318}
-\newcommand{\unifBlkTwoFrAllFrozenTunedQLIKE}{0.21414}
-\newcommand{\unifBlkTwoFrAllFrozenTunedDM}{-6.4}
-\newcommand{\unifBlkTwoFrAllFrozenTunedDelta}{-0.00346}
-\newcommand{\unifBlkTwoRotAllTrailSdWideTunedQLIKE}{0.23176}
-\newcommand{\unifBlkTwoRotAllTrailSdWideTunedDM}{+3.4}
-\newcommand{\unifBlkTwoRotAllTrailSdWideTunedDelta}{+0.01416}
-\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedQLIKE}{0.22859}
-\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedDM}{+3.3}
-\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedDelta}{+0.01099}
-\newcommand{\unifBlkThreeProdBbExogTunedQLIKE}{0.21368}
-\newcommand{\unifBlkThreeProdBbExogTunedDM}{-5.6}
-\newcommand{\unifBlkThreeProdBbExogTunedDelta}{-0.00392}
-\newcommand{\unifBlkFourProdBbExogTrailSdQLIKE}{0.21336}
-\newcommand{\unifBlkFourProdBbExogTrailSdDM}{-6.2}
-\newcommand{\unifBlkFourProdBbExogTrailSdDelta}{-0.00424}
-\newcommand{\unifBlkFourTrailGShapedFineQLIKE}{0.21276}
-\newcommand{\unifBlkFourTrailGShapedFineDM}{-9.0}
-\newcommand{\unifBlkFourTrailGShapedFineDelta}{-0.00485}
-\newcommand{\unifBOneRidgeTunedFineQLIKE}{0.22452}
-\newcommand{\unifBOneRidgeTunedFineDM}{-1.1}
-\newcommand{\unifBOneRidgeTunedFineDelta}{-0.00069}
-\newcommand{\unifBlkTwoRotVarFullKJsQLIKE}{0.23780}
-\newcommand{\unifBlkTwoRotVarFullKJsDM}{+21.0}
-\newcommand{\unifBlkTwoRotVarFullKJsDelta}{+0.02020}
+\newcommand{\unifAzeroQLIKE}{0.23806}
+\newcommand{\unifAzeroRsq}{0.497}
+\newcommand{\unifAzeroMZbeta}{1.029}
+\newcommand{\unifAzeroMedAbsErr}{$3.0 \times 10^{-7}$}
+\newcommand{\unifAzeroMaxAbsErr}{$1.7 \times 10^{-3}$}
+\newcommand{\unifAzeroTopTenSSEPct}{44\%}
+\newcommand{\unifAzeroN}{$273{,}489$}
+\newcommand{\unifAzeroFitRsq}{$0.413$}
+\newcommand{\unifAzeroFitMZalpha}{$-0.050$}
+\newcommand{\unifAzeroFitMZbeta}{$1.063$}
+\newcommand{\unifAzeroFitMSE}{$0.1415$}
+\newcommand{\unifAzeroFitMAE}{$0.2220$}
+\newcommand{\unifAzeroNQlike}{$272{,}907$}
+\newcommand{\unifBlkTwoUserNQlike}{$272{,}907$}
+\newcommand{\unifTreeHedgeN}{$263{,}732$}
+\newcommand{\unifMomentsQLIKE}{0.23753}
+\newcommand{\unifMomentsDM}{-0.2}
+\newcommand{\unifMomentsDelta}{-0.00053}
+\newcommand{\unifLiquidityQLIKE}{0.28502}
+\newcommand{\unifLiquidityDM}{+1.1}
+\newcommand{\unifLiquidityDelta}{+0.04696}
+\newcommand{\unifMarketEwQLIKE}{0.23823}
+\newcommand{\unifMarketEwDM}{+0.3}
+\newcommand{\unifMarketEwDelta}{+0.00016}
+\newcommand{\unifMarketVwQLIKE}{0.23773}
+\newcommand{\unifMarketVwDM}{-0.5}
+\newcommand{\unifMarketVwDelta}{-0.00033}
+\newcommand{\unifSentimentQLIKE}{0.23884}
+\newcommand{\unifSentimentDM}{+0.6}
+\newcommand{\unifSentimentDelta}{+0.00078}
+\newcommand{\unifImpliedVolQLIKE}{0.23896}
+\newcommand{\unifImpliedVolDM}{+1.5}
+\newcommand{\unifImpliedVolDelta}{+0.00090}
+\newcommand{\unifVolDemandQLIKE}{0.24455}
+\newcommand{\unifVolDemandDM}{+1.0}
+\newcommand{\unifVolDemandDelta}{+0.00649}
+\newcommand{\unifAllFeaturesQLIKE}{0.92707}
+\newcommand{\unifAllFeaturesDM}{+1.2}
+\newcommand{\unifAllFeaturesDelta}{+0.68901}
+\newcommand{\unifFomcQLIKE}{\pending{a\_bucket\_fomc awaiting harvest}}
+\newcommand{\unifFomcDM}{\pending{a\_bucket\_fomc awaiting harvest}}
+\newcommand{\unifFomcDelta}{\pending{a\_bucket\_fomc awaiting harvest}}
+\newcommand{\unifBOneRidgeQLIKE}{0.25121}
+\newcommand{\unifBOneRidgeDM}{+2.5}
+\newcommand{\unifBOneRidgeDelta}{+0.01315}
+\newcommand{\unifBTwoLassoQLIKE}{0.23734}
+\newcommand{\unifBTwoLassoDM}{-0.4}
+\newcommand{\unifBTwoLassoDelta}{-0.00073}
+\newcommand{\unifBOneRidgeTunedQLIKE}{0.24022}
+\newcommand{\unifBOneRidgeTunedDM}{+1.0}
+\newcommand{\unifBOneRidgeTunedDelta}{+0.00216}
+\newcommand{\unifBTwoLassoTunedQLIKE}{0.23947}
+\newcommand{\unifBTwoLassoTunedDM}{+0.6}
+\newcommand{\unifBTwoLassoTunedDelta}{+0.00141}
+\newcommand{\unifBThreeEnetTunedQLIKE}{0.23719}
+\newcommand{\unifBThreeEnetTunedDM}{-0.4}
+\newcommand{\unifBThreeEnetTunedDelta}{-0.00087}
+\newcommand{\unifBrTunedMomentsQLIKE}{0.23581}
+\newcommand{\unifBrTunedMomentsDM}{-2.2}
+\newcommand{\unifBrTunedMomentsDelta}{-0.00225}
+\newcommand{\unifBrTunedLiquidityQLIKE}{0.24129}
+\newcommand{\unifBrTunedLiquidityDM}{+2.1}
+\newcommand{\unifBrTunedLiquidityDelta}{+0.00323}
+\newcommand{\unifBrTunedMarketEwQLIKE}{0.23788}
+\newcommand{\unifBrTunedMarketEwDM}{-0.2}
+\newcommand{\unifBrTunedMarketEwDelta}{-0.00018}
+\newcommand{\unifBrTunedMarketVwQLIKE}{0.23728}
+\newcommand{\unifBrTunedMarketVwDM}{-0.9}
+\newcommand{\unifBrTunedMarketVwDelta}{-0.00078}
+\newcommand{\unifBrTunedSentimentQLIKE}{0.23980}
+\newcommand{\unifBrTunedSentimentDM}{+1.1}
+\newcommand{\unifBrTunedSentimentDelta}{+0.00174}
+\newcommand{\unifBrTunedImpliedVolQLIKE}{0.23845}
+\newcommand{\unifBrTunedImpliedVolDM}{+0.5}
+\newcommand{\unifBrTunedImpliedVolDelta}{+0.00039}
+\newcommand{\unifBrTunedVolDemandQLIKE}{0.23800}
+\newcommand{\unifBrTunedVolDemandDM}{-0.1}
+\newcommand{\unifBrTunedVolDemandDelta}{-0.00006}
+\newcommand{\unifBrTunedAllFeaturesQLIKE}{0.24022}
+\newcommand{\unifBrTunedAllFeaturesDM}{+1.0}
+\newcommand{\unifBrTunedAllFeaturesDelta}{+0.00216}
+\newcommand{\unifBeTunedMomentsQLIKE}{1.49021}
+\newcommand{\unifBeTunedMomentsDM}{+1.2}
+\newcommand{\unifBeTunedMomentsDelta}{+1.25215}
+\newcommand{\unifBeTunedLiquidityQLIKE}{0.24101}
+\newcommand{\unifBeTunedLiquidityDM}{+1.6}
+\newcommand{\unifBeTunedLiquidityDelta}{+0.00295}
+\newcommand{\unifBeTunedMarketEwQLIKE}{0.23765}
+\newcommand{\unifBeTunedMarketEwDM}{-0.4}
+\newcommand{\unifBeTunedMarketEwDelta}{-0.00041}
+\newcommand{\unifBeTunedMarketVwQLIKE}{0.23752}
+\newcommand{\unifBeTunedMarketVwDM}{-0.5}
+\newcommand{\unifBeTunedMarketVwDelta}{-0.00054}
+\newcommand{\unifBeTunedSentimentQLIKE}{0.23825}
+\newcommand{\unifBeTunedSentimentDM}{+0.2}
+\newcommand{\unifBeTunedSentimentDelta}{+0.00019}
+\newcommand{\unifBeTunedImpliedVolQLIKE}{0.23957}
+\newcommand{\unifBeTunedImpliedVolDM}{+1.0}
+\newcommand{\unifBeTunedImpliedVolDelta}{+0.00151}
+\newcommand{\unifBeTunedVolDemandQLIKE}{0.23796}
+\newcommand{\unifBeTunedVolDemandDM}{-0.1}
+\newcommand{\unifBeTunedVolDemandDelta}{-0.00010}
+\newcommand{\unifBeTunedAllFeaturesQLIKE}{0.23916}
+\newcommand{\unifBeTunedAllFeaturesDM}{+0.5}
+\newcommand{\unifBeTunedAllFeaturesDelta}{+0.00110}
+\newcommand{\unifBeTunedWideMomentsQLIKE}{\pending{be\_tunedWide\_moments awaiting harvest}}
+\newcommand{\unifBeTunedWideMomentsDM}{\pending{be\_tunedWide\_moments awaiting harvest}}
+\newcommand{\unifBeTunedWideMomentsDelta}{\pending{be\_tunedWide\_moments awaiting harvest}}
+\newcommand{\unifBeTunedWideLiquidityQLIKE}{\pending{be\_tunedWide\_liquidity awaiting harvest}}
+\newcommand{\unifBeTunedWideLiquidityDM}{\pending{be\_tunedWide\_liquidity awaiting harvest}}
+\newcommand{\unifBeTunedWideLiquidityDelta}{\pending{be\_tunedWide\_liquidity awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketEwQLIKE}{\pending{be\_tunedWide\_market\_ew awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketEwDM}{\pending{be\_tunedWide\_market\_ew awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketEwDelta}{\pending{be\_tunedWide\_market\_ew awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketVwQLIKE}{\pending{be\_tunedWide\_market\_vw awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketVwDM}{\pending{be\_tunedWide\_market\_vw awaiting harvest}}
+\newcommand{\unifBeTunedWideMarketVwDelta}{\pending{be\_tunedWide\_market\_vw awaiting harvest}}
+\newcommand{\unifBeTunedWideSentimentQLIKE}{\pending{be\_tunedWide\_sentiment awaiting harvest}}
+\newcommand{\unifBeTunedWideSentimentDM}{\pending{be\_tunedWide\_sentiment awaiting harvest}}
+\newcommand{\unifBeTunedWideSentimentDelta}{\pending{be\_tunedWide\_sentiment awaiting harvest}}
+\newcommand{\unifBeTunedWideImpliedVolQLIKE}{\pending{be\_tunedWide\_implied\_vol awaiting harvest}}
+\newcommand{\unifBeTunedWideImpliedVolDM}{\pending{be\_tunedWide\_implied\_vol awaiting harvest}}
+\newcommand{\unifBeTunedWideImpliedVolDelta}{\pending{be\_tunedWide\_implied\_vol awaiting harvest}}
+\newcommand{\unifBeTunedWideVolDemandQLIKE}{\pending{be\_tunedWide\_vol\_demand awaiting harvest}}
+\newcommand{\unifBeTunedWideVolDemandDM}{\pending{be\_tunedWide\_vol\_demand awaiting harvest}}
+\newcommand{\unifBeTunedWideVolDemandDelta}{\pending{be\_tunedWide\_vol\_demand awaiting harvest}}
+\newcommand{\unifBeTunedWideAllFeaturesQLIKE}{\pending{be\_tunedWide\_all\_features awaiting harvest}}
+\newcommand{\unifBeTunedWideAllFeaturesDM}{\pending{be\_tunedWide\_all\_features awaiting harvest}}
+\newcommand{\unifBeTunedWideAllFeaturesDelta}{\pending{be\_tunedWide\_all\_features awaiting harvest}}
+\newcommand{\unifBOneRidgeApOneQLIKE}{0.28677}
+\newcommand{\unifBOneRidgeApOneDM}{+2.5}
+\newcommand{\unifBOneRidgeApOneDelta}{+0.04871}
+\newcommand{\unifBOneRidgeApThreeQLIKE}{0.26467}
+\newcommand{\unifBOneRidgeApThreeDM}{+2.4}
+\newcommand{\unifBOneRidgeApThreeDelta}{+0.02661}
+\newcommand{\unifBOneRidgeAthreeQLIKE}{0.24417}
+\newcommand{\unifBOneRidgeAthreeDM}{+2.4}
+\newcommand{\unifBOneRidgeAthreeDelta}{+0.00611}
+\newcommand{\unifBOneRidgeAtenQLIKE}{0.24023}
+\newcommand{\unifBOneRidgeAtenDM}{+1.4}
+\newcommand{\unifBOneRidgeAtenDelta}{+0.00217}
+\newcommand{\unifBOneRidgeAthirtyQLIKE}{0.23820}
+\newcommand{\unifBOneRidgeAthirtyDM}{+0.1}
+\newcommand{\unifBOneRidgeAthirtyDelta}{+0.00012}
+\newcommand{\unifBOneRidgeAhundredQLIKE}{0.23764}
+\newcommand{\unifBOneRidgeAhundredDM}{-0.2}
+\newcommand{\unifBOneRidgeAhundredDelta}{-0.00044}
+\newcommand{\unifBOneRidgeAthreehundredQLIKE}{0.23922}
+\newcommand{\unifBOneRidgeAthreehundredDM}{+0.3}
+\newcommand{\unifBOneRidgeAthreehundredDelta}{+0.00113}
+\newcommand{\unifBTwoLassoAoneEminusSixQLIKE}{\pending{b2\_lasso\_a1em6 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusSixDM}{\pending{b2\_lasso\_a1em6 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusSixDelta}{\pending{b2\_lasso\_a1em6 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusFiveQLIKE}{\pending{b2\_lasso\_a1em5 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusFiveDM}{\pending{b2\_lasso\_a1em5 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusFiveDelta}{\pending{b2\_lasso\_a1em5 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusThreeQLIKE}{\pending{b2\_lasso\_a1em3 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusThreeDM}{\pending{b2\_lasso\_a1em3 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusThreeDelta}{\pending{b2\_lasso\_a1em3 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusTwoQLIKE}{\pending{b2\_lasso\_a1em2 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusTwoDM}{\pending{b2\_lasso\_a1em2 awaiting harvest}}
+\newcommand{\unifBTwoLassoAoneEminusTwoDelta}{\pending{b2\_lasso\_a1em2 awaiting harvest}}
+\newcommand{\unifBlkTwoUserQLIKE}{0.23603}
+\newcommand{\unifBlkTwoUserDM}{-1.7}
+\newcommand{\unifBlkTwoUserDelta}{-0.00203}
+\newcommand{\unifBlkThreeUserQLIKE}{\pending{blk3\_user awaiting harvest}}
+\newcommand{\unifBlkThreeUserDM}{\pending{blk3\_user awaiting harvest}}
+\newcommand{\unifBlkThreeUserDelta}{\pending{blk3\_user awaiting harvest}}
+\newcommand{\unifBlkFourUserQLIKE}{\pending{blk4\_user awaiting harvest}}
+\newcommand{\unifBlkFourUserDM}{\pending{blk4\_user awaiting harvest}}
+\newcommand{\unifBlkFourUserDelta}{\pending{blk4\_user awaiting harvest}}
+\newcommand{\unifBlkTwoDocQLIKE}{0.23799}
+\newcommand{\unifBlkTwoDocDM}{-0.0}
+\newcommand{\unifBlkTwoDocDelta}{-0.00007}
+\newcommand{\unifBlkThreeDocQLIKE}{\pending{blk3\_doc awaiting harvest}}
+\newcommand{\unifBlkThreeDocDM}{\pending{blk3\_doc awaiting harvest}}
+\newcommand{\unifBlkThreeDocDelta}{\pending{blk3\_doc awaiting harvest}}
+\newcommand{\unifBlkFourDocQLIKE}{\pending{blk4\_doc awaiting harvest}}
+\newcommand{\unifBlkFourDocDM}{\pending{blk4\_doc awaiting harvest}}
+\newcommand{\unifBlkFourDocDelta}{\pending{blk4\_doc awaiting harvest}}
+\newcommand{\unifBlkTwoTunedQLIKE}{0.23347}
+\newcommand{\unifBlkTwoTunedDM}{-3.8}
+\newcommand{\unifBlkTwoTunedDelta}{-0.00459}
+\newcommand{\unifBlkThreeTunedQLIKE}{\pending{blk3\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTunedDM}{\pending{blk3\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTunedDelta}{\pending{blk3\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTunedQLIKE}{\pending{blk4\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTunedDM}{\pending{blk4\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTunedDelta}{\pending{blk4\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailQLIKE}{\pending{blk4\_trail awaiting harvest}}
+\newcommand{\unifBlkFourTrailDM}{\pending{blk4\_trail awaiting harvest}}
+\newcommand{\unifBlkFourTrailDelta}{\pending{blk4\_trail awaiting harvest}}
+\newcommand{\unifBlkFourTrailGQLIKE}{\pending{blk4\_trailG awaiting harvest}}
+\newcommand{\unifBlkFourTrailGDM}{\pending{blk4\_trailG awaiting harvest}}
+\newcommand{\unifBlkFourTrailGDelta}{\pending{blk4\_trailG awaiting harvest}}
+\newcommand{\unifBlkFourTrailGhatQLIKE}{\pending{blk4\_trailGhat awaiting harvest}}
+\newcommand{\unifBlkFourTrailGhatDM}{\pending{blk4\_trailGhat awaiting harvest}}
+\newcommand{\unifBlkFourTrailGhatDelta}{\pending{blk4\_trailGhat awaiting harvest}}
+\newcommand{\unifBlkFourTrailTunedQLIKE}{\pending{blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailTunedDM}{\pending{blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailTunedDelta}{\pending{blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGTunedQLIKE}{\pending{blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGTunedDM}{\pending{blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGTunedDelta}{\pending{blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifBlkBucketPenTunedQLIKE}{\pending{blk\_bucketpen\_tuned awaiting harvest}}
+\newcommand{\unifBlkBucketPenTunedDM}{\pending{blk\_bucketpen\_tuned awaiting harvest}}
+\newcommand{\unifBlkBucketPenTunedDelta}{\pending{blk\_bucketpen\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedQLIKE}{\pending{blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedDM}{\pending{blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedDelta}{\pending{blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedWideQLIKE}{\pending{blk4\_trailGShapedWide awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedWideDM}{\pending{blk4\_trailGShapedWide awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedWideDelta}{\pending{blk4\_trailGShapedWide awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailMeanQLIKE}{\pending{blk4\_trailGShapedTrailMean awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailMeanDM}{\pending{blk4\_trailGShapedTrailMean awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailMeanDelta}{\pending{blk4\_trailGShapedTrailMean awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailSdQLIKE}{\pending{blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailSdDM}{\pending{blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedTrailSdDelta}{\pending{blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkThreeTrailGShapedTrailSdQLIKE}{\pending{blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkThreeTrailGShapedTrailSdDM}{\pending{blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkThreeTrailGShapedTrailSdDelta}{\pending{blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeFrozenTunedQLIKE}{\pending{blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeFrozenTunedDM}{\pending{blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeFrozenTunedDelta}{\pending{blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeTrailSdTunedQLIKE}{\pending{blk3\_exogSpikeTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeTrailSdTunedDM}{\pending{blk3\_exogSpikeTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeExogSpikeTrailSdTunedDelta}{\pending{blk3\_exogSpikeTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdSpikeFrozenTunedQLIKE}{\pending{blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdSpikeFrozenTunedDelta}{\pending{blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedQLIKE}{\pending{blk3\_prodNoCrossSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedDM}{\pending{blk3\_prodNoCrossSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoCrossSpikeFrozenTunedDelta}{\pending{blk3\_prodNoCrossSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedQLIKE}{\pending{blk3\_prodNoHarSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedDM}{\pending{blk3\_prodNoHarSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoHarSpikeFrozenTunedDelta}{\pending{blk3\_prodNoHarSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedQLIKE}{\pending{blk3\_prodNoSessionSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedDM}{\pending{blk3\_prodNoSessionSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdNoSessionSpikeFrozenTunedDelta}{\pending{blk3\_prodNoSessionSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedQLIKE}{\pending{blk3\_prodValuesSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedDM}{\pending{blk3\_prodValuesSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdValuesSpikeFrozenTunedDelta}{\pending{blk3\_prodValuesSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedQLIKE}{\pending{blk3\_prodBlockPermSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedDM}{\pending{blk3\_prodBlockPermSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBlockPermSpikeFrozenTunedDelta}{\pending{blk3\_prodBlockPermSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourProdSpikeFrozenTunedQLIKE}{\pending{blk4\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourProdSpikeFrozenTunedDM}{\pending{blk4\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourProdSpikeFrozenTunedDelta}{\pending{blk4\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoTrailGShapedTrailSdQLIKE}{\pending{blk2\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkTwoTrailGShapedTrailSdDM}{\pending{blk2\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkTwoTrailGShapedTrailSdDelta}{\pending{blk2\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdTunedQLIKE}{\pending{blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdTunedDM}{\pending{blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdTunedDelta}{\pending{blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedQLIKE}{\pending{blk2\_rotAllTrailSdNumRank\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdNumRankTunedDelta}{\pending{blk2\_rotAllTrailSdNumRank\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogRawTunedQLIKE}{\pending{blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogRawTunedDM}{\pending{blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogRawTunedDelta}{\pending{blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenTunedQLIKE}{\pending{blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenTunedDM}{\pending{blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenTunedDelta}{\pending{blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdTunedQLIKE}{\pending{blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdTunedDM}{\pending{blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdTunedDelta}{\pending{blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedQLIKE}{\pending{blk2\_frExogTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedDM}{\pending{blk2\_frExogTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogTrailSdShapedTunedDelta}{\pending{blk2\_frExogTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenShapedTunedQLIKE}{\pending{blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenShapedTunedDM}{\pending{blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrExogFrozenShapedTunedDelta}{\pending{blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdRawTunedQLIKE}{\pending{blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdRawTunedDM}{\pending{blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdRawTunedDelta}{\pending{blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdFrozenTunedQLIKE}{\pending{blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdFrozenTunedDM}{\pending{blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdFrozenTunedDelta}{\pending{blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdTrailSdTunedQLIKE}{\pending{blk2\_frProdTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdTrailSdTunedDM}{\pending{blk2\_frProdTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrProdTrailSdTunedDelta}{\pending{blk2\_frProdTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllRawTunedQLIKE}{\pending{blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllRawTunedDM}{\pending{blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllRawTunedDelta}{\pending{blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllFrozenTunedQLIKE}{\pending{blk2\_frAllFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllFrozenTunedDM}{\pending{blk2\_frAllFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoFrAllFrozenTunedDelta}{\pending{blk2\_frAllFrozen\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdWideTunedQLIKE}{\pending{blk2\_rotAllTrailSdWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdWideTunedDM}{\pending{blk2\_rotAllTrailSdWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdWideTunedDelta}{\pending{blk2\_rotAllTrailSdWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedQLIKE}{\pending{blk2\_rotAllTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedDM}{\pending{blk2\_rotAllTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotAllTrailSdShapedTunedDelta}{\pending{blk2\_rotAllTrailSdShaped\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBbExogTunedQLIKE}{\pending{blk3\_prodBbExog\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBbExogTunedDM}{\pending{blk3\_prodBbExog\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeProdBbExogTunedDelta}{\pending{blk3\_prodBbExog\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourProdBbExogTrailSdQLIKE}{0.29169}
+\newcommand{\unifBlkFourProdBbExogTrailSdDM}{+0.9}
+\newcommand{\unifBlkFourProdBbExogTrailSdDelta}{+0.06003}
+\newcommand{\unifBlkFourTrailGShapedFineQLIKE}{\pending{blk4\_trailGShaped\_fine awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedFineDM}{\pending{blk4\_trailGShaped\_fine awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedFineDelta}{\pending{blk4\_trailGShaped\_fine awaiting harvest}}
+\newcommand{\unifBOneRidgeTunedFineQLIKE}{0.24023}
+\newcommand{\unifBOneRidgeTunedFineDM}{+1.0}
+\newcommand{\unifBOneRidgeTunedFineDelta}{+0.00217}
+\newcommand{\unifBlkTwoRotVarFullKJsQLIKE}{\pending{blk2\_rotVarFullK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarFullKJsDM}{\pending{blk2\_rotVarFullK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarFullKJsDelta}{\pending{blk2\_rotVarFullK\_js awaiting harvest}}
 \newcommand{\unifBlkTwoRotVarFortyKJsQLIKE}{\pending{blk2\_rotVarFortyK\_js awaiting harvest}}
 \newcommand{\unifBlkTwoRotVarFortyKJsDM}{\pending{blk2\_rotVarFortyK\_js awaiting harvest}}
 \newcommand{\unifBlkTwoRotVarFortyKJsDelta}{\pending{blk2\_rotVarFortyK\_js awaiting harvest}}
-\newcommand{\unifBlkTwoRotVarThirtyKJsQLIKE}{0.23408}
-\newcommand{\unifBlkTwoRotVarThirtyKJsDM}{+19.0}
-\newcommand{\unifBlkTwoRotVarThirtyKJsDelta}{+0.01648}
-\newcommand{\unifBlkTwoRotVarTwentyKJsQLIKE}{0.22259}
-\newcommand{\unifBlkTwoRotVarTwentyKJsDM}{+8.1}
-\newcommand{\unifBlkTwoRotVarTwentyKJsDelta}{+0.00498}
-\newcommand{\unifBlkTwoRotPredThirtyKJsQLIKE}{0.23277}
-\newcommand{\unifBlkTwoRotPredThirtyKJsDM}{+18.3}
-\newcommand{\unifBlkTwoRotPredThirtyKJsDelta}{+0.01517}
-\newcommand{\unifBlkTwoRotPredTwentyKJsQLIKE}{0.22188}
-\newcommand{\unifBlkTwoRotPredTwentyKJsDM}{+7.3}
-\newcommand{\unifBlkTwoRotPredTwentyKJsDelta}{+0.00428}
-\newcommand{\unifBlkTwoRotPredTenKJsQLIKE}{0.21984}
-\newcommand{\unifBlkTwoRotPredTenKJsDM}{+3.9}
-\newcommand{\unifBlkTwoRotPredTenKJsDelta}{+0.00223}
-\newcommand{\unifBlkTwoRotPredFiveKJsQLIKE}{0.21793}
-\newcommand{\unifBlkTwoRotPredFiveKJsDM}{+0.7}
-\newcommand{\unifBlkTwoRotPredFiveKJsDelta}{+0.00033}
-\newcommand{\unifBlkTwoGatedTunedQLIKE}{0.21431}
-\newcommand{\unifBlkTwoGatedTunedDM}{-5.8}
-\newcommand{\unifBlkTwoGatedTunedDelta}{-0.00330}
-\newcommand{\unifBlkTwoRotVarFullKTunedQLIKE}{0.21585}
-\newcommand{\unifBlkTwoRotVarFullKTunedDM}{-2.9}
-\newcommand{\unifBlkTwoRotVarFullKTunedDelta}{-0.00175}
-\newcommand{\unifBlkTwoRotVarThirtyKTunedQLIKE}{0.21589}
-\newcommand{\unifBlkTwoRotVarThirtyKTunedDM}{-2.8}
-\newcommand{\unifBlkTwoRotVarThirtyKTunedDelta}{-0.00171}
-\newcommand{\unifBlkTwoRotVarTwentyKTunedQLIKE}{0.21545}
-\newcommand{\unifBlkTwoRotVarTwentyKTunedDM}{-4.2}
-\newcommand{\unifBlkTwoRotVarTwentyKTunedDelta}{-0.00215}
-\newcommand{\unifBlkTwoRotPredThirtyKTunedQLIKE}{0.21595}
-\newcommand{\unifBlkTwoRotPredThirtyKTunedDM}{-3.2}
-\newcommand{\unifBlkTwoRotPredThirtyKTunedDelta}{-0.00165}
-\newcommand{\unifBlkTwoRotPredTwentyKTunedQLIKE}{0.21560}
-\newcommand{\unifBlkTwoRotPredTwentyKTunedDM}{-3.7}
-\newcommand{\unifBlkTwoRotPredTwentyKTunedDelta}{-0.00200}
-\newcommand{\unifBlkTwoRotPredTenKTunedQLIKE}{0.21629}
-\newcommand{\unifBlkTwoRotPredTenKTunedDM}{-2.8}
-\newcommand{\unifBlkTwoRotPredTenKTunedDelta}{-0.00131}
-\newcommand{\unifBlkTwoRotPredFiveKTunedQLIKE}{0.21673}
-\newcommand{\unifBlkTwoRotPredFiveKTunedDM}{-1.4}
-\newcommand{\unifBlkTwoRotPredFiveKTunedDelta}{-0.00087}
-\newcommand{\unifBlkThreeEwTunedQLIKE}{0.21474}
-\newcommand{\unifBlkThreeEwTunedDM}{-2.6}
-\newcommand{\unifBlkThreeEwTunedDelta}{-0.00287}
-\newcommand{\unifBlkThreeEwFixedHThreeKQLIKE}{0.21391}
-\newcommand{\unifBlkThreeEwFixedHThreeKDM}{-3.1}
-\newcommand{\unifBlkThreeEwFixedHThreeKDelta}{-0.00369}
-\newcommand{\unifBlkThreeEwFixedHTwelveKQLIKE}{0.21280}
-\newcommand{\unifBlkThreeEwFixedHTwelveKDM}{-6.7}
-\newcommand{\unifBlkThreeEwFixedHTwelveKDelta}{-0.00481}
-\newcommand{\unifBlkThreeJsTunedQLIKE}{0.24115}
-\newcommand{\unifBlkThreeJsTunedDM}{+21.4}
-\newcommand{\unifBlkThreeJsTunedDelta}{+0.02355}
-\newcommand{\unifBlkThreeJsNeffTunedQLIKE}{0.24240}
-\newcommand{\unifBlkThreeJsNeffTunedDM}{+22.2}
-\newcommand{\unifBlkThreeJsNeffTunedDelta}{+0.02479}
+\newcommand{\unifBlkTwoRotVarThirtyKJsQLIKE}{\pending{blk2\_rotVarThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarThirtyKJsDM}{\pending{blk2\_rotVarThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarThirtyKJsDelta}{\pending{blk2\_rotVarThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKJsQLIKE}{\pending{blk2\_rotVarTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKJsDM}{\pending{blk2\_rotVarTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKJsDelta}{\pending{blk2\_rotVarTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKJsQLIKE}{\pending{blk2\_rotPredThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKJsDM}{\pending{blk2\_rotPredThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKJsDelta}{\pending{blk2\_rotPredThirtyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKJsQLIKE}{\pending{blk2\_rotPredTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKJsDM}{\pending{blk2\_rotPredTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKJsDelta}{\pending{blk2\_rotPredTwentyK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKJsQLIKE}{\pending{blk2\_rotPredTenK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKJsDM}{\pending{blk2\_rotPredTenK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKJsDelta}{\pending{blk2\_rotPredTenK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKJsQLIKE}{\pending{blk2\_rotPredFiveK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKJsDM}{\pending{blk2\_rotPredFiveK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKJsDelta}{\pending{blk2\_rotPredFiveK\_js awaiting harvest}}
+\newcommand{\unifBlkTwoGatedTunedQLIKE}{0.22695}
+\newcommand{\unifBlkTwoGatedTunedDM}{-3.6}
+\newcommand{\unifBlkTwoGatedTunedDelta}{-0.00471}
+\newcommand{\unifBlkTwoRotVarFullKTunedQLIKE}{\pending{blk2\_rotVarFullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarFullKTunedDM}{\pending{blk2\_rotVarFullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarFullKTunedDelta}{\pending{blk2\_rotVarFullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarThirtyKTunedQLIKE}{\pending{blk2\_rotVarThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarThirtyKTunedDM}{\pending{blk2\_rotVarThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarThirtyKTunedDelta}{\pending{blk2\_rotVarThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKTunedQLIKE}{\pending{blk2\_rotVarTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKTunedDM}{\pending{blk2\_rotVarTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotVarTwentyKTunedDelta}{\pending{blk2\_rotVarTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKTunedQLIKE}{\pending{blk2\_rotPredThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKTunedDM}{\pending{blk2\_rotPredThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredThirtyKTunedDelta}{\pending{blk2\_rotPredThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKTunedQLIKE}{\pending{blk2\_rotPredTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKTunedDM}{\pending{blk2\_rotPredTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTwentyKTunedDelta}{\pending{blk2\_rotPredTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKTunedQLIKE}{\pending{blk2\_rotPredTenK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKTunedDM}{\pending{blk2\_rotPredTenK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredTenKTunedDelta}{\pending{blk2\_rotPredTenK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKTunedQLIKE}{\pending{blk2\_rotPredFiveK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKTunedDM}{\pending{blk2\_rotPredFiveK\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotPredFiveKTunedDelta}{\pending{blk2\_rotPredFiveK\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeEwTunedQLIKE}{\pending{blk3\_ew\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeEwTunedDM}{\pending{blk3\_ew\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeEwTunedDelta}{\pending{blk3\_ew\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHThreeKQLIKE}{\pending{blk3\_ewFixed\_H3000 awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHThreeKDM}{\pending{blk3\_ewFixed\_H3000 awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHThreeKDelta}{\pending{blk3\_ewFixed\_H3000 awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHTwelveKQLIKE}{\pending{blk3\_ewFixed\_H12000 awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHTwelveKDM}{\pending{blk3\_ewFixed\_H12000 awaiting harvest}}
+\newcommand{\unifBlkThreeEwFixedHTwelveKDelta}{\pending{blk3\_ewFixed\_H12000 awaiting harvest}}
+\newcommand{\unifBlkThreeJsTunedQLIKE}{\pending{blk3\_js\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsTunedDM}{\pending{blk3\_js\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsTunedDelta}{\pending{blk3\_js\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsNeffTunedQLIKE}{\pending{blk3\_jsNeff\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsNeffTunedDM}{\pending{blk3\_jsNeff\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsNeffTunedDelta}{\pending{blk3\_jsNeff\_tuned awaiting harvest}}
 \newcommand{\unifBlkThreeNpebNeffTunedQLIKE}{\pending{blk3\_npebNeff\_tuned awaiting harvest}}
 \newcommand{\unifBlkThreeNpebNeffTunedDM}{\pending{blk3\_npebNeff\_tuned awaiting harvest}}
 \newcommand{\unifBlkThreeNpebNeffTunedDelta}{\pending{blk3\_npebNeff\_tuned awaiting harvest}}
-\newcommand{\unifBlkThreeNpebTunedQLIKE}{0.33006}
-\newcommand{\unifBlkThreeNpebTunedDM}{+48.1}
-\newcommand{\unifBlkThreeNpebTunedDelta}{+0.11246}
-\newcommand{\unifBlkThreeJsPcBasisTunedQLIKE}{0.26770}
-\newcommand{\unifBlkThreeJsPcBasisTunedDM}{+34.8}
-\newcommand{\unifBlkThreeJsPcBasisTunedDelta}{+0.05010}
-\newcommand{\unifBlkThreeJsDiagTunedQLIKE}{0.27935}
-\newcommand{\unifBlkThreeJsDiagTunedDM}{+39.4}
-\newcommand{\unifBlkThreeJsDiagTunedDelta}{+0.06175}
-\newcommand{\unifBlkFourTrailGFortyTunedQLIKE}{0.21278}
-\newcommand{\unifBlkFourTrailGFortyTunedDM}{-8.8}
-\newcommand{\unifBlkFourTrailGFortyTunedDelta}{-0.00482}
-\newcommand{\unifBlkTwoGFullTunedQLIKE}{0.21600}
-\newcommand{\unifBlkTwoGFullTunedDM}{-2.9}
-\newcommand{\unifBlkTwoGFullTunedDelta}{-0.00160}
-\newcommand{\unifBlkTwoRotFullProdTunedQLIKE}{0.21431}
-\newcommand{\unifBlkTwoRotFullProdTunedDM}{-5.8}
-\newcommand{\unifBlkTwoRotFullProdTunedDelta}{-0.00330}
-\newcommand{\unifBlkTwoGFortyRungsTunedQLIKE}{0.21600}
-\newcommand{\unifBlkTwoGFortyRungsTunedDM}{-2.5}
-\newcommand{\unifBlkTwoGFortyRungsTunedDelta}{-0.00160}
-\newcommand{\unifBlkTwoGFortyRungsIndTunedQLIKE}{0.21518}
-\newcommand{\unifBlkTwoGFortyRungsIndTunedDM}{-4.0}
-\newcommand{\unifBlkTwoGFortyRungsIndTunedDelta}{-0.00242}
-\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedQLIKE}{0.21556}
-\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedDM}{-3.4}
-\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedDelta}{-0.00205}
-\newcommand{\unifBlkTwoPlsTenRungsIndTunedQLIKE}{0.21519}
-\newcommand{\unifBlkTwoPlsTenRungsIndTunedDM}{-5.3}
-\newcommand{\unifBlkTwoPlsTenRungsIndTunedDelta}{-0.00242}
-\newcommand{\unifBlkFourTrailGShapedFrozenQLIKE}{0.21286}
-\newcommand{\unifBlkFourTrailGShapedFrozenDM}{-8.8}
-\newcommand{\unifBlkFourTrailGShapedFrozenDelta}{-0.00474}
-\newcommand{\unifBlkPcLadderWideTunedQLIKE}{0.21528}
-\newcommand{\unifBlkPcLadderWideTunedDM}{-5.2}
-\newcommand{\unifBlkPcLadderWideTunedDelta}{-0.00232}
-\newcommand{\unifBlkThreeTikhonovStepWideTunedQLIKE}{0.21368}
-\newcommand{\unifBlkThreeTikhonovStepWideTunedDM}{-7.2}
-\newcommand{\unifBlkThreeTikhonovStepWideTunedDelta}{-0.00392}
-\newcommand{\unifBlkThreeTikhonovTunedQLIKE}{0.21340}
-\newcommand{\unifBlkThreeTikhonovTunedDM}{-7.7}
-\newcommand{\unifBlkThreeTikhonovTunedDelta}{-0.00420}
-\newcommand{\unifBlkPcLadderTunedQLIKE}{0.21522}
-\newcommand{\unifBlkPcLadderTunedDM}{-5.4}
-\newcommand{\unifBlkPcLadderTunedDelta}{-0.00239}
-\newcommand{\unifBlkPcLadderFortyKTunedQLIKE}{0.21630}
-\newcommand{\unifBlkPcLadderFortyKTunedDM}{-1.5}
-\newcommand{\unifBlkPcLadderFortyKTunedDelta}{-0.00130}
-\newcommand{\unifBlkPcLadderEightyKTunedQLIKE}{0.21545}
-\newcommand{\unifBlkPcLadderEightyKTunedDM}{-4.3}
-\newcommand{\unifBlkPcLadderEightyKTunedDelta}{-0.00215}
-\newcommand{\unifBlkPcLadderFullKTunedQLIKE}{0.21556}
-\newcommand{\unifBlkPcLadderFullKTunedDM}{-4.3}
-\newcommand{\unifBlkPcLadderFullKTunedDelta}{-0.00204}
-\newcommand{\unifBlkPcLadderPerRungTunedQLIKE}{0.21498}
-\newcommand{\unifBlkPcLadderPerRungTunedDM}{-6.1}
-\newcommand{\unifBlkPcLadderPerRungTunedDelta}{-0.00263}
-\newcommand{\unifBlkFourTrailGZooQLIKE}{0.21273}
-\newcommand{\unifBlkFourTrailGZooDM}{-9.0}
-\newcommand{\unifBlkFourTrailGZooDelta}{-0.00487}
-\newcommand{\unifBlkThreeTikhonovStepTunedQLIKE}{0.21346}
-\newcommand{\unifBlkThreeTikhonovStepTunedDM}{-7.4}
-\newcommand{\unifBlkThreeTikhonovStepTunedDelta}{-0.00414}
-\newcommand{\unifBlkTwoPcrTunedQLIKE}{0.21778}
-\newcommand{\unifBlkTwoPcrTunedDM}{+0.1}
-\newcommand{\unifBlkTwoPcrTunedDelta}{+0.00018}
-\newcommand{\unifBlkTwoPcrFortyTunedQLIKE}{0.21753}
-\newcommand{\unifBlkTwoPcrFortyTunedDM}{-0.0}
-\newcommand{\unifBlkTwoPcrFortyTunedDelta}{-0.00007}
-\newcommand{\unifBlkFourTrailSymQLIKE}{0.21477}
-\newcommand{\unifBlkFourTrailSymDM}{-4.4}
-\newcommand{\unifBlkFourTrailSymDelta}{-0.00283}
-\newcommand{\unifBlkFourTrailFullCQLIKE}{0.21478}
-\newcommand{\unifBlkFourTrailFullCDM}{-4.4}
-\newcommand{\unifBlkFourTrailFullCDelta}{-0.00283}
-\newcommand{\unifBlkFourTrailRefreshQLIKE}{0.21492}
-\newcommand{\unifBlkFourTrailRefreshDM}{-4.0}
-\newcommand{\unifBlkFourTrailRefreshDelta}{-0.00269}
-\newcommand{\unifBlkFourTrailKFiveQLIKE}{0.21481}
-\newcommand{\unifBlkFourTrailKFiveDM}{-4.3}
-\newcommand{\unifBlkFourTrailKFiveDelta}{-0.00279}
-\newcommand{\unifBlkFourTrailKTenQLIKE}{0.21484}
-\newcommand{\unifBlkFourTrailKTenDM}{-4.3}
-\newcommand{\unifBlkFourTrailKTenDelta}{-0.00276}
-\newcommand{\unifBlkFourTrailKFortyQLIKE}{0.21535}
-\newcommand{\unifBlkFourTrailKFortyDM}{-3.0}
-\newcommand{\unifBlkFourTrailKFortyDelta}{-0.00225}
-\newcommand{\unifBlkFourTrailLagTwoQLIKE}{0.21512}
-\newcommand{\unifBlkFourTrailLagTwoDM}{-3.2}
-\newcommand{\unifBlkFourTrailLagTwoDelta}{-0.00248}
-\newcommand{\unifBlkFourTrailDropHetQLIKE}{0.21509}
-\newcommand{\unifBlkFourTrailDropHetDM}{-3.6}
-\newcommand{\unifBlkFourTrailDropHetDelta}{-0.00251}
-\newcommand{\unifProductAloneUserQLIKE}{0.21575}
-\newcommand{\unifProductAloneUserDM}{-4.7}
-\newcommand{\unifProductAloneUserDelta}{-0.00185}
-\newcommand{\unifProductAloneDocQLIKE}{0.22438}
-\newcommand{\unifProductAloneDocDM}{-0.7}
-\newcommand{\unifProductAloneDocDelta}{-0.00083}
-\newcommand{\unifProductAloneTunedQLIKE}{0.21556}
-\newcommand{\unifProductAloneTunedDM}{-5.8}
-\newcommand{\unifProductAloneTunedDelta}{-0.00204}
-\newcommand{\unifTransAloneUserQLIKE}{0.21639}
-\newcommand{\unifTransAloneUserDM}{-1.4}
-\newcommand{\unifTransAloneUserDelta}{-0.00121}
-\newcommand{\unifTransAloneDocQLIKE}{0.22489}
-\newcommand{\unifTransAloneDocDM}{-1.1}
-\newcommand{\unifTransAloneDocDelta}{-0.00032}
-\newcommand{\unifTransAloneTunedQLIKE}{0.21647}
-\newcommand{\unifTransAloneTunedDM}{-1.3}
-\newcommand{\unifTransAloneTunedDelta}{-0.00114}
-\newcommand{\unifTransAloneTrailQLIKE}{0.21596}
-\newcommand{\unifTransAloneTrailDM}{-4.6}
-\newcommand{\unifTransAloneTrailDelta}{-0.00164}
-\newcommand{\unifTreeTunedQLIKE}{0.21710}
-\newcommand{\unifTreeTunedDM}{-4.5}
-\newcommand{\unifTreeTunedDelta}{-0.00377}
-\newcommand{\unifTreeHedgeQLIKE}{0.21296}
-\newcommand{\unifTreeHedgeDM}{-15.3}
-\newcommand{\unifTreeHedgeDelta}{-0.00790}
-\newcommand{\unifCondVarBenchQLIKE}{0.22125}
-\newcommand{\unifCondVarBenchDM}{+3.5}
-\newcommand{\unifCondVarBenchDelta}{+0.00365}
-\newcommand{\unifCondVarChampQLIKE}{0.21613}
-\newcommand{\unifCondVarChampDM}{-2.1}
-\newcommand{\unifCondVarChampDelta}{-0.00229}
-\newcommand{\unifCondVarBenchLevelQLIKE}{0.22043}
-\newcommand{\unifCondVarBenchLevelDM}{+2.8}
-\newcommand{\unifCondVarBenchLevelDelta}{+0.00283}
-\newcommand{\unifSmearTauNone}{0.682}
-\newcommand{\unifSmearTauDuan}{0.859}
-\newcommand{\unifIncrBlkThreeUserDM}{-2.8}
-\newcommand{\unifIncrBlkThreeUserDQ}{-0.00079}
-\newcommand{\unifIncrBlkFourUserDM}{-0.0}
-\newcommand{\unifIncrBlkFourUserDQ}{-0.00000}
-\newcommand{\unifIncrBlkThreeDocDM}{-5.9}
-\newcommand{\unifIncrBlkThreeDocDQ}{-0.00115}
-\newcommand{\unifIncrBlkFourDocDM}{-1.2}
-\newcommand{\unifIncrBlkFourDocDQ}{-0.00016}
-\newcommand{\unifIncrBlkThreeTunedDM}{-3.2}
-\newcommand{\unifIncrBlkThreeTunedDQ}{-0.00121}
-\newcommand{\unifIncrBlkFourTunedDM}{-1.1}
-\newcommand{\unifIncrBlkFourTunedDQ}{-0.00017}
-\newcommand{\unifIncrBlkFourTrailDM}{-0.3}
-\newcommand{\unifIncrBlkFourTrailDQ}{-0.00005}
-\newcommand{\unifIncrBlkFourTrailGDM}{-2.2}
-\newcommand{\unifIncrBlkFourTrailGDQ}{-0.00013}
-\newcommand{\unifIncrBlkFourTrailGhatDM}{+0.2}
-\newcommand{\unifIncrBlkFourTrailGhatDQ}{+0.00002}
-\newcommand{\unifIncrBlkFourTrailTunedDM}{-0.5}
-\newcommand{\unifIncrBlkFourTrailTunedDQ}{-0.00012}
-\newcommand{\unifIncrBlkFourTrailGTunedDM}{-2.1}
-\newcommand{\unifIncrBlkFourTrailGTunedDQ}{-0.00028}
-\newcommand{\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDM}{-0.9}
-\newcommand{\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDQ}{-0.00016}
-\newcommand{\unifIncrBlkBucketPenTunedDM}{+0.9}
-\newcommand{\unifIncrBlkBucketPenTunedDQ}{+0.00019}
-\newcommand{\unifIncrBlkBucketPenTunedVsBlkThreeTunedDM}{+0.3}
-\newcommand{\unifIncrBlkBucketPenTunedVsBlkThreeTunedDQ}{+0.00007}
-\newcommand{\unifIncrBlkFourTrailGShapedDM}{-0.1}
-\newcommand{\unifIncrBlkFourTrailGShapedDQ}{-0.00001}
-\newcommand{\unifIncrBlkFourTrailGShapedVsBlkFourTrailTunedDM}{-1.0}
-\newcommand{\unifIncrBlkFourTrailGShapedVsBlkFourTrailTunedDQ}{-0.00016}
-\newcommand{\unifIncrBlkFourTrailGShapedWideDM}{+0.0}
-\newcommand{\unifIncrBlkFourTrailGShapedWideDQ}{+0.00000}
-\newcommand{\unifIncrBlkFourTrailGShapedWideVsBlkFourTrailGTunedDM}{-0.1}
-\newcommand{\unifIncrBlkFourTrailGShapedWideVsBlkFourTrailGTunedDQ}{-0.00000}
-\newcommand{\unifIncrBlkFourTrailGShapedFineDM}{-1.0}
-\newcommand{\unifIncrBlkFourTrailGShapedFineDQ}{-0.00005}
-\newcommand{\unifIncrBlkFourTrailGShapedFineVsBlkFourTrailGTunedDM}{-0.7}
-\newcommand{\unifIncrBlkFourTrailGShapedFineVsBlkFourTrailGTunedDQ}{-0.00006}
-\newcommand{\unifIncrBOneRidgeTunedFineDM}{+0.3}
-\newcommand{\unifIncrBOneRidgeTunedFineDQ}{+0.00002}
-\newcommand{\unifIncrBlkTwoRotVarFullKJsDM}{+21.5}
-\newcommand{\unifIncrBlkTwoRotVarFullKJsDQ}{+0.02350}
+\newcommand{\unifBlkThreeNpebTunedQLIKE}{\pending{blk3\_npeb\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeNpebTunedDM}{\pending{blk3\_npeb\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeNpebTunedDelta}{\pending{blk3\_npeb\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsPcBasisTunedQLIKE}{\pending{blk3\_js\_pcbasis\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsPcBasisTunedDM}{\pending{blk3\_js\_pcbasis\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsPcBasisTunedDelta}{\pending{blk3\_js\_pcbasis\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsDiagTunedQLIKE}{\pending{blk3\_jsDiag\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsDiagTunedDM}{\pending{blk3\_jsDiag\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeJsDiagTunedDelta}{\pending{blk3\_jsDiag\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGFortyTunedQLIKE}{\pending{blk4\_trailG40\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGFortyTunedDM}{\pending{blk4\_trailG40\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGFortyTunedDelta}{\pending{blk4\_trailG40\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFullTunedQLIKE}{\pending{blk2\_gfull\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFullTunedDM}{\pending{blk2\_gfull\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFullTunedDelta}{\pending{blk2\_gfull\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotFullProdTunedQLIKE}{\pending{blk2\_rotFullProd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotFullProdTunedDM}{\pending{blk2\_rotFullProd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoRotFullProdTunedDelta}{\pending{blk2\_rotFullProd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsTunedQLIKE}{\pending{blk2\_gFortyRungs\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsTunedDM}{\pending{blk2\_gFortyRungs\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsTunedDelta}{\pending{blk2\_gFortyRungs\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsIndTunedQLIKE}{\pending{blk2\_gFortyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsIndTunedDM}{\pending{blk2\_gFortyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoGFortyRungsIndTunedDelta}{\pending{blk2\_gFortyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedQLIKE}{\pending{blk2\_plsTwentyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedDM}{\pending{blk2\_plsTwentyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTwentyRungsIndTunedDelta}{\pending{blk2\_plsTwentyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTenRungsIndTunedQLIKE}{\pending{blk2\_plsTenRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTenRungsIndTunedDM}{\pending{blk2\_plsTenRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPlsTenRungsIndTunedDelta}{\pending{blk2\_plsTenRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedFrozenQLIKE}{\pending{blk4\_trailGShapedFrozen awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedFrozenDM}{\pending{blk4\_trailGShapedFrozen awaiting harvest}}
+\newcommand{\unifBlkFourTrailGShapedFrozenDelta}{\pending{blk4\_trailGShapedFrozen awaiting harvest}}
+\newcommand{\unifBlkPcLadderWideTunedQLIKE}{\pending{blk\_pcladderWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderWideTunedDM}{\pending{blk\_pcladderWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderWideTunedDelta}{\pending{blk\_pcladderWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepWideTunedQLIKE}{\pending{blk3\_tikhonovStepWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepWideTunedDM}{\pending{blk3\_tikhonovStepWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepWideTunedDelta}{\pending{blk3\_tikhonovStepWide\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovTunedQLIKE}{\pending{blk3\_tikhonov\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovTunedDM}{\pending{blk3\_tikhonov\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovTunedDelta}{\pending{blk3\_tikhonov\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderTunedQLIKE}{\pending{blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderTunedDM}{\pending{blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderTunedDelta}{\pending{blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFortyKTunedQLIKE}{\pending{blk\_pcladder\_fortyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFortyKTunedDM}{\pending{blk\_pcladder\_fortyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFortyKTunedDelta}{\pending{blk\_pcladder\_fortyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderEightyKTunedQLIKE}{\pending{blk\_pcladder\_eightyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderEightyKTunedDM}{\pending{blk\_pcladder\_eightyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderEightyKTunedDelta}{\pending{blk\_pcladder\_eightyK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFullKTunedQLIKE}{\pending{blk\_pcladder\_fullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFullKTunedDM}{\pending{blk\_pcladder\_fullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderFullKTunedDelta}{\pending{blk\_pcladder\_fullK\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderPerRungTunedQLIKE}{\pending{blk\_pcladderPerRung\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderPerRungTunedDM}{\pending{blk\_pcladderPerRung\_tuned awaiting harvest}}
+\newcommand{\unifBlkPcLadderPerRungTunedDelta}{\pending{blk\_pcladderPerRung\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailGZooQLIKE}{\pending{blk4\_trailGZoo awaiting harvest}}
+\newcommand{\unifBlkFourTrailGZooDM}{\pending{blk4\_trailGZoo awaiting harvest}}
+\newcommand{\unifBlkFourTrailGZooDelta}{\pending{blk4\_trailGZoo awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepTunedQLIKE}{\pending{blk3\_tikhonovStep\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepTunedDM}{\pending{blk3\_tikhonovStep\_tuned awaiting harvest}}
+\newcommand{\unifBlkThreeTikhonovStepTunedDelta}{\pending{blk3\_tikhonovStep\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrTunedQLIKE}{\pending{blk2\_pcr\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrTunedDM}{\pending{blk2\_pcr\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrTunedDelta}{\pending{blk2\_pcr\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrFortyTunedQLIKE}{\pending{blk2\_pcrForty\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrFortyTunedDM}{\pending{blk2\_pcrForty\_tuned awaiting harvest}}
+\newcommand{\unifBlkTwoPcrFortyTunedDelta}{\pending{blk2\_pcrForty\_tuned awaiting harvest}}
+\newcommand{\unifBlkFourTrailSymQLIKE}{\pending{blk4\_trailSym awaiting harvest}}
+\newcommand{\unifBlkFourTrailSymDM}{\pending{blk4\_trailSym awaiting harvest}}
+\newcommand{\unifBlkFourTrailSymDelta}{\pending{blk4\_trailSym awaiting harvest}}
+\newcommand{\unifBlkFourTrailFullCQLIKE}{\pending{blk4\_trailFullC awaiting harvest}}
+\newcommand{\unifBlkFourTrailFullCDM}{\pending{blk4\_trailFullC awaiting harvest}}
+\newcommand{\unifBlkFourTrailFullCDelta}{\pending{blk4\_trailFullC awaiting harvest}}
+\newcommand{\unifBlkFourTrailRefreshQLIKE}{\pending{blk4\_trailRefresh awaiting harvest}}
+\newcommand{\unifBlkFourTrailRefreshDM}{\pending{blk4\_trailRefresh awaiting harvest}}
+\newcommand{\unifBlkFourTrailRefreshDelta}{\pending{blk4\_trailRefresh awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFiveQLIKE}{\pending{blk4\_trailKFive awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFiveDM}{\pending{blk4\_trailKFive awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFiveDelta}{\pending{blk4\_trailKFive awaiting harvest}}
+\newcommand{\unifBlkFourTrailKTenQLIKE}{\pending{blk4\_trailKTen awaiting harvest}}
+\newcommand{\unifBlkFourTrailKTenDM}{\pending{blk4\_trailKTen awaiting harvest}}
+\newcommand{\unifBlkFourTrailKTenDelta}{\pending{blk4\_trailKTen awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFortyQLIKE}{\pending{blk4\_trailKForty awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFortyDM}{\pending{blk4\_trailKForty awaiting harvest}}
+\newcommand{\unifBlkFourTrailKFortyDelta}{\pending{blk4\_trailKForty awaiting harvest}}
+\newcommand{\unifBlkFourTrailLagTwoQLIKE}{\pending{blk4\_trailLagTwo awaiting harvest}}
+\newcommand{\unifBlkFourTrailLagTwoDM}{\pending{blk4\_trailLagTwo awaiting harvest}}
+\newcommand{\unifBlkFourTrailLagTwoDelta}{\pending{blk4\_trailLagTwo awaiting harvest}}
+\newcommand{\unifBlkFourTrailDropHetQLIKE}{\pending{blk4\_trailDropHet awaiting harvest}}
+\newcommand{\unifBlkFourTrailDropHetDM}{\pending{blk4\_trailDropHet awaiting harvest}}
+\newcommand{\unifBlkFourTrailDropHetDelta}{\pending{blk4\_trailDropHet awaiting harvest}}
+\newcommand{\unifProductAloneUserQLIKE}{\pending{c4\_product\_alone\_user awaiting harvest}}
+\newcommand{\unifProductAloneUserDM}{\pending{c4\_product\_alone\_user awaiting harvest}}
+\newcommand{\unifProductAloneUserDelta}{\pending{c4\_product\_alone\_user awaiting harvest}}
+\newcommand{\unifProductAloneDocQLIKE}{\pending{c4\_product\_alone\_doc awaiting harvest}}
+\newcommand{\unifProductAloneDocDM}{\pending{c4\_product\_alone\_doc awaiting harvest}}
+\newcommand{\unifProductAloneDocDelta}{\pending{c4\_product\_alone\_doc awaiting harvest}}
+\newcommand{\unifProductAloneTunedQLIKE}{\pending{c4\_product\_alone\_tuned awaiting harvest}}
+\newcommand{\unifProductAloneTunedDM}{\pending{c4\_product\_alone\_tuned awaiting harvest}}
+\newcommand{\unifProductAloneTunedDelta}{\pending{c4\_product\_alone\_tuned awaiting harvest}}
+\newcommand{\unifTransAloneUserQLIKE}{\pending{d3\_transmission\_alone\_user awaiting harvest}}
+\newcommand{\unifTransAloneUserDM}{\pending{d3\_transmission\_alone\_user awaiting harvest}}
+\newcommand{\unifTransAloneUserDelta}{\pending{d3\_transmission\_alone\_user awaiting harvest}}
+\newcommand{\unifTransAloneDocQLIKE}{\pending{d3\_transmission\_alone\_doc awaiting harvest}}
+\newcommand{\unifTransAloneDocDM}{\pending{d3\_transmission\_alone\_doc awaiting harvest}}
+\newcommand{\unifTransAloneDocDelta}{\pending{d3\_transmission\_alone\_doc awaiting harvest}}
+\newcommand{\unifTransAloneTunedQLIKE}{\pending{d3\_transmission\_alone\_tuned awaiting harvest}}
+\newcommand{\unifTransAloneTunedDM}{\pending{d3\_transmission\_alone\_tuned awaiting harvest}}
+\newcommand{\unifTransAloneTunedDelta}{\pending{d3\_transmission\_alone\_tuned awaiting harvest}}
+\newcommand{\unifTransAloneTrailQLIKE}{\pending{d3\_transmission\_alone\_trail awaiting harvest}}
+\newcommand{\unifTransAloneTrailDM}{\pending{d3\_transmission\_alone\_trail awaiting harvest}}
+\newcommand{\unifTransAloneTrailDelta}{\pending{d3\_transmission\_alone\_trail awaiting harvest}}
+\newcommand{\unifTreeTunedQLIKE}{0.22540}
+\newcommand{\unifTreeTunedDM}{-6.1}
+\newcommand{\unifTreeTunedDelta}{-0.00778}
+\newcommand{\unifTreeHedgeQLIKE}{0.21969}
+\newcommand{\unifTreeHedgeDM}{-17.8}
+\newcommand{\unifTreeHedgeDelta}{-0.01349}
+\newcommand{\unifCondVarBenchQLIKE}{\pending{a0\_ols\_har\_condvar awaiting harvest}}
+\newcommand{\unifCondVarBenchDM}{\pending{a0\_ols\_har\_condvar awaiting harvest}}
+\newcommand{\unifCondVarBenchDelta}{\pending{a0\_ols\_har\_condvar awaiting harvest}}
+\newcommand{\unifCondVarChampQLIKE}{\pending{blk4\_trail\_tuned\_condvar awaiting harvest}}
+\newcommand{\unifCondVarChampDM}{\pending{blk4\_trail\_tuned\_condvar awaiting harvest}}
+\newcommand{\unifCondVarChampDelta}{\pending{blk4\_trail\_tuned\_condvar awaiting harvest}}
+\newcommand{\unifCondVarBenchLevelQLIKE}{\pending{a0\_ols\_har\_condvar\_backbone awaiting harvest}}
+\newcommand{\unifCondVarBenchLevelDM}{\pending{a0\_ols\_har\_condvar\_backbone awaiting harvest}}
+\newcommand{\unifCondVarBenchLevelDelta}{\pending{a0\_ols\_har\_condvar\_backbone awaiting harvest}}
+\newcommand{\unifIncrBlkThreeUserDM}{\pending{blk3\_user vs blk2\_user awaiting harvest}}
+\newcommand{\unifIncrBlkThreeUserDQ}{\pending{blk3\_user vs blk2\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourUserDM}{\pending{blk4\_user vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourUserDQ}{\pending{blk4\_user vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkThreeDocDM}{\pending{blk3\_doc vs blk2\_doc awaiting harvest}}
+\newcommand{\unifIncrBlkThreeDocDQ}{\pending{blk3\_doc vs blk2\_doc awaiting harvest}}
+\newcommand{\unifIncrBlkFourDocDM}{\pending{blk4\_doc vs blk3\_doc awaiting harvest}}
+\newcommand{\unifIncrBlkFourDocDQ}{\pending{blk4\_doc vs blk3\_doc awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTunedDM}{\pending{blk3\_tuned vs blk2\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTunedDQ}{\pending{blk3\_tuned vs blk2\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTunedDM}{\pending{blk4\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTunedDQ}{\pending{blk4\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDM}{\pending{blk4\_trail vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDQ}{\pending{blk4\_trail vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGDM}{\pending{blk4\_trailG vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGDQ}{\pending{blk4\_trailG vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGhatDM}{\pending{blk4\_trailGhat vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGhatDQ}{\pending{blk4\_trailGhat vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailTunedDM}{\pending{blk4\_trail\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailTunedDQ}{\pending{blk4\_trail\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGTunedDM}{\pending{blk4\_trailG\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGTunedDQ}{\pending{blk4\_trailG\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDM}{\pending{blk4\_trailG\_tuned vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGTunedVsBlkFourTrailTunedDQ}{\pending{blk4\_trailG\_tuned vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkBucketPenTunedDM}{\pending{blk\_bucketpen\_tuned vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkBucketPenTunedDQ}{\pending{blk\_bucketpen\_tuned vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkBucketPenTunedVsBlkThreeTunedDM}{\pending{blk\_bucketpen\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkBucketPenTunedVsBlkThreeTunedDQ}{\pending{blk\_bucketpen\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedDM}{\pending{blk4\_trailGShaped vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedDQ}{\pending{blk4\_trailGShaped vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedVsBlkFourTrailTunedDM}{\pending{blk4\_trailGShaped vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedVsBlkFourTrailTunedDQ}{\pending{blk4\_trailGShaped vs blk4\_trail\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedWideDM}{\pending{blk4\_trailGShapedWide vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedWideDQ}{\pending{blk4\_trailGShapedWide vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedWideVsBlkFourTrailGTunedDM}{\pending{blk4\_trailGShapedWide vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedWideVsBlkFourTrailGTunedDQ}{\pending{blk4\_trailGShapedWide vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFineDM}{\pending{blk4\_trailGShaped\_fine vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFineDQ}{\pending{blk4\_trailGShaped\_fine vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFineVsBlkFourTrailGTunedDM}{\pending{blk4\_trailGShaped\_fine vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFineVsBlkFourTrailGTunedDQ}{\pending{blk4\_trailGShaped\_fine vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBOneRidgeTunedFineDM}{+0.1}
+\newcommand{\unifIncrBOneRidgeTunedFineDQ}{+0.00001}
+\newcommand{\unifIncrBlkTwoRotVarFullKJsDM}{\pending{blk2\_rotVarFullK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarFullKJsDQ}{\pending{blk2\_rotVarFullK\_js vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotVarFortyKJsDM}{\pending{blk2\_rotVarFortyK\_js vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotVarFortyKJsDQ}{\pending{blk2\_rotVarFortyK\_js vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoRotVarThirtyKJsDM}{+19.5}
-\newcommand{\unifIncrBlkTwoRotVarThirtyKJsDQ}{+0.01978}
-\newcommand{\unifIncrBlkTwoRotVarTwentyKJsDM}{+12.2}
-\newcommand{\unifIncrBlkTwoRotVarTwentyKJsDQ}{+0.00828}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKJsDM}{+19.5}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKJsDQ}{+0.01846}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKJsDM}{+11.4}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKJsDQ}{+0.00757}
-\newcommand{\unifIncrBlkTwoRotPredTenKJsDM}{+7.8}
-\newcommand{\unifIncrBlkTwoRotPredTenKJsDQ}{+0.00553}
-\newcommand{\unifIncrBlkTwoRotPredFiveKJsDM}{+5.8}
-\newcommand{\unifIncrBlkTwoRotPredFiveKJsDQ}{+0.00363}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKJsVsBlkTwoRotVarThirtyKJsDM}{-3.2}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKJsVsBlkTwoRotVarThirtyKJsDQ}{-0.00131}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKJsVsBlkTwoRotVarTwentyKJsDM}{-1.6}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKJsVsBlkTwoRotVarTwentyKJsDQ}{-0.00071}
-\newcommand{\unifIncrBlkTwoGatedTunedDM}{+3.2}
-\newcommand{\unifIncrBlkTwoGatedTunedDQ}{+0.00121}
-\newcommand{\unifIncrBlkTwoRotVarFullKTunedDM}{+4.3}
-\newcommand{\unifIncrBlkTwoRotVarFullKTunedDQ}{+0.00154}
-\newcommand{\unifIncrBlkTwoRotVarThirtyKTunedDM}{+4.3}
-\newcommand{\unifIncrBlkTwoRotVarThirtyKTunedDQ}{+0.00158}
-\newcommand{\unifIncrBlkTwoRotVarTwentyKTunedDM}{+3.4}
-\newcommand{\unifIncrBlkTwoRotVarTwentyKTunedDQ}{+0.00114}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedDM}{+4.7}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedDQ}{+0.00164}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedDM}{+3.0}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedDQ}{+0.00130}
-\newcommand{\unifIncrBlkTwoRotPredTenKTunedDM}{+3.9}
-\newcommand{\unifIncrBlkTwoRotPredTenKTunedDQ}{+0.00198}
-\newcommand{\unifIncrBlkTwoRotPredFiveKTunedDM}{+4.1}
-\newcommand{\unifIncrBlkTwoRotPredFiveKTunedDQ}{+0.00242}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedVsBlkTwoRotVarThirtyKTunedDM}{+0.2}
-\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedVsBlkTwoRotVarThirtyKTunedDQ}{+0.00006}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedVsBlkTwoRotVarTwentyKTunedDM}{+0.4}
-\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedVsBlkTwoRotVarTwentyKTunedDQ}{+0.00015}
-\newcommand{\unifIncrBlkThreeEwTunedDM}{+1.7}
-\newcommand{\unifIncrBlkThreeEwTunedDQ}{+0.00164}
-\newcommand{\unifIncrBlkThreeEwTunedVsBlkFourTrailGFortyTunedDM}{+2.0}
-\newcommand{\unifIncrBlkThreeEwTunedVsBlkFourTrailGFortyTunedDQ}{+0.00195}
-\newcommand{\unifIncrBlkThreeEwFixedHThreeKDM}{+0.7}
-\newcommand{\unifIncrBlkThreeEwFixedHThreeKDQ}{+0.00082}
-\newcommand{\unifIncrBlkThreeEwFixedHTwelveKDM}{-0.6}
-\newcommand{\unifIncrBlkThreeEwFixedHTwelveKDQ}{-0.00030}
+\newcommand{\unifIncrBlkTwoRotVarThirtyKJsDM}{\pending{blk2\_rotVarThirtyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarThirtyKJsDQ}{\pending{blk2\_rotVarThirtyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarTwentyKJsDM}{\pending{blk2\_rotVarTwentyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarTwentyKJsDQ}{\pending{blk2\_rotVarTwentyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKJsDM}{\pending{blk2\_rotPredThirtyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKJsDQ}{\pending{blk2\_rotPredThirtyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKJsDM}{\pending{blk2\_rotPredTwentyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKJsDQ}{\pending{blk2\_rotPredTwentyK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTenKJsDM}{\pending{blk2\_rotPredTenK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTenKJsDQ}{\pending{blk2\_rotPredTenK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredFiveKJsDM}{\pending{blk2\_rotPredFiveK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredFiveKJsDQ}{\pending{blk2\_rotPredFiveK\_js vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKJsVsBlkTwoRotVarThirtyKJsDM}{\pending{blk2\_rotPredThirtyK\_js vs blk2\_rotVarThirtyK\_js awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKJsVsBlkTwoRotVarThirtyKJsDQ}{\pending{blk2\_rotPredThirtyK\_js vs blk2\_rotVarThirtyK\_js awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKJsVsBlkTwoRotVarTwentyKJsDM}{\pending{blk2\_rotPredTwentyK\_js vs blk2\_rotVarTwentyK\_js awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKJsVsBlkTwoRotVarTwentyKJsDQ}{\pending{blk2\_rotPredTwentyK\_js vs blk2\_rotVarTwentyK\_js awaiting harvest}}
+\newcommand{\unifIncrBlkTwoGatedTunedDM}{\pending{blk2\_gated\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoGatedTunedDQ}{\pending{blk2\_gated\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarFullKTunedDM}{\pending{blk2\_rotVarFullK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarFullKTunedDQ}{\pending{blk2\_rotVarFullK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarThirtyKTunedDM}{\pending{blk2\_rotVarThirtyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarThirtyKTunedDQ}{\pending{blk2\_rotVarThirtyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarTwentyKTunedDM}{\pending{blk2\_rotVarTwentyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotVarTwentyKTunedDQ}{\pending{blk2\_rotVarTwentyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedDM}{\pending{blk2\_rotPredThirtyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedDQ}{\pending{blk2\_rotPredThirtyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedDM}{\pending{blk2\_rotPredTwentyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedDQ}{\pending{blk2\_rotPredTwentyK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTenKTunedDM}{\pending{blk2\_rotPredTenK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTenKTunedDQ}{\pending{blk2\_rotPredTenK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredFiveKTunedDM}{\pending{blk2\_rotPredFiveK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredFiveKTunedDQ}{\pending{blk2\_rotPredFiveK\_tuned vs blk2\_gated\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedVsBlkTwoRotVarThirtyKTunedDM}{\pending{blk2\_rotPredThirtyK\_tuned vs blk2\_rotVarThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredThirtyKTunedVsBlkTwoRotVarThirtyKTunedDQ}{\pending{blk2\_rotPredThirtyK\_tuned vs blk2\_rotVarThirtyK\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedVsBlkTwoRotVarTwentyKTunedDM}{\pending{blk2\_rotPredTwentyK\_tuned vs blk2\_rotVarTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotPredTwentyKTunedVsBlkTwoRotVarTwentyKTunedDQ}{\pending{blk2\_rotPredTwentyK\_tuned vs blk2\_rotVarTwentyK\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwTunedDM}{\pending{blk3\_ew\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwTunedDQ}{\pending{blk3\_ew\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwTunedVsBlkFourTrailGFortyTunedDM}{\pending{blk3\_ew\_tuned vs blk4\_trailG40\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwTunedVsBlkFourTrailGFortyTunedDQ}{\pending{blk3\_ew\_tuned vs blk4\_trailG40\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwFixedHThreeKDM}{\pending{blk3\_ewFixed\_H3000 vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwFixedHThreeKDQ}{\pending{blk3\_ewFixed\_H3000 vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwFixedHTwelveKDM}{\pending{blk3\_ewFixed\_H12000 vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeEwFixedHTwelveKDQ}{\pending{blk3\_ewFixed\_H12000 vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoGFullTunedDM}{\pending{blk2\_gfull\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoGFullTunedDQ}{\pending{blk2\_gfull\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoGFullTunedVsBlkTwoPcrFortyTunedDM}{\pending{blk2\_gfull\_tuned vs blk2\_pcrForty\_tuned awaiting harvest}}
@@ -605,12 +622,12 @@
 \newcommand{\unifIncrBlkTwoPlsTenRungsIndTunedDQ}{\pending{blk2\_plsTenRungsInd\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoGFortyRungsTunedVsBlkTwoPcrFortyTunedDM}{\pending{blk2\_gFortyRungs\_tuned vs blk2\_pcrForty\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoGFortyRungsTunedVsBlkTwoPcrFortyTunedDQ}{\pending{blk2\_gFortyRungs\_tuned vs blk2\_pcrForty\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoGFortyRungsIndTunedVsBlkTwoGFortyRungsTunedDM}{-2.4}
-\newcommand{\unifIncrBlkTwoGFortyRungsIndTunedVsBlkTwoGFortyRungsTunedDQ}{-0.00082}
-\newcommand{\unifIncrBlkTwoPlsTwentyRungsIndTunedVsBlkTwoGFortyRungsIndTunedDM}{+1.1}
-\newcommand{\unifIncrBlkTwoPlsTwentyRungsIndTunedVsBlkTwoGFortyRungsIndTunedDQ}{+0.00038}
-\newcommand{\unifIncrBlkTwoPlsTenRungsIndTunedVsBlkTwoPlsTwentyRungsIndTunedDM}{-1.3}
-\newcommand{\unifIncrBlkTwoPlsTenRungsIndTunedVsBlkTwoPlsTwentyRungsIndTunedDQ}{-0.00037}
+\newcommand{\unifIncrBlkTwoGFortyRungsIndTunedVsBlkTwoGFortyRungsTunedDM}{\pending{blk2\_gFortyRungsInd\_tuned vs blk2\_gFortyRungs\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoGFortyRungsIndTunedVsBlkTwoGFortyRungsTunedDQ}{\pending{blk2\_gFortyRungsInd\_tuned vs blk2\_gFortyRungs\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPlsTwentyRungsIndTunedVsBlkTwoGFortyRungsIndTunedDM}{\pending{blk2\_plsTwentyRungsInd\_tuned vs blk2\_gFortyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPlsTwentyRungsIndTunedVsBlkTwoGFortyRungsIndTunedDQ}{\pending{blk2\_plsTwentyRungsInd\_tuned vs blk2\_gFortyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPlsTenRungsIndTunedVsBlkTwoPlsTwentyRungsIndTunedDM}{\pending{blk2\_plsTenRungsInd\_tuned vs blk2\_plsTwentyRungsInd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPlsTenRungsIndTunedVsBlkTwoPlsTwentyRungsIndTunedDQ}{\pending{blk2\_plsTenRungsInd\_tuned vs blk2\_plsTwentyRungsInd\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsNeffTunedDM}{\pending{blk3\_jsNeff\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsNeffTunedDQ}{\pending{blk3\_jsNeff\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsNeffTunedVsBlkThreeJsTunedDM}{\pending{blk3\_jsNeff\_tuned vs blk3\_js\_tuned awaiting harvest}}
@@ -619,10 +636,10 @@
 \newcommand{\unifIncrBlkThreeNpebNeffTunedDQ}{\pending{blk3\_npebNeff\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeNpebNeffTunedVsBlkThreeNpebTunedDM}{\pending{blk3\_npebNeff\_tuned vs blk3\_npeb\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeNpebNeffTunedVsBlkThreeNpebTunedDQ}{\pending{blk3\_npebNeff\_tuned vs blk3\_npeb\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeJsTunedDM}{+25.9}
-\newcommand{\unifIncrBlkThreeJsTunedDQ}{+0.02806}
-\newcommand{\unifIncrBlkThreeJsTunedVsBlkFourTrailGTunedDM}{+26.7}
-\newcommand{\unifIncrBlkThreeJsTunedVsBlkFourTrailGTunedDQ}{+0.02834}
+\newcommand{\unifIncrBlkThreeJsTunedDM}{\pending{blk3\_js\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeJsTunedDQ}{\pending{blk3\_js\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeJsTunedVsBlkFourTrailGTunedDM}{\pending{blk3\_js\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeJsTunedVsBlkFourTrailGTunedDQ}{\pending{blk3\_js\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeNpebTunedDM}{\pending{blk3\_npeb\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeNpebTunedDQ}{\pending{blk3\_npeb\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeNpebTunedVsBlkFourTrailGTunedDM}{\pending{blk3\_npeb\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
@@ -631,22 +648,22 @@
 \newcommand{\unifIncrBlkThreeJsPcBasisTunedDQ}{\pending{blk3\_js\_pcbasis\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsPcBasisTunedVsBlkFourTrailGTunedDM}{\pending{blk3\_js\_pcbasis\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsPcBasisTunedVsBlkFourTrailGTunedDQ}{\pending{blk3\_js\_pcbasis\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeJsDiagTunedDM}{+40.7}
-\newcommand{\unifIncrBlkThreeJsDiagTunedDQ}{+0.06626}
+\newcommand{\unifIncrBlkThreeJsDiagTunedDM}{\pending{blk3\_jsDiag\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeJsDiagTunedDQ}{\pending{blk3\_jsDiag\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsPcBasisTunedDM}{\pending{blk3\_jsDiag\_tuned vs blk3\_js\_pcbasis\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsPcBasisTunedDQ}{\pending{blk3\_jsDiag\_tuned vs blk3\_js\_pcbasis\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsTunedDM}{+38.9}
-\newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsTunedDQ}{+0.03820}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedDM}{-0.3}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedDQ}{-0.00003}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDM}{-0.4}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDQ}{-0.00003}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDM}{-1.9}
-\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDQ}{-0.00031}
-\newcommand{\unifIncrBlkFourTrailGShapedFrozenDM}{+0.4}
-\newcommand{\unifIncrBlkFourTrailGShapedFrozenDQ}{+0.00005}
-\newcommand{\unifIncrBlkFourTrailGShapedFrozenVsBlkFourTrailGTunedDM}{+0.4}
-\newcommand{\unifIncrBlkFourTrailGShapedFrozenVsBlkFourTrailGTunedDQ}{+0.00005}
+\newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsTunedDM}{\pending{blk3\_jsDiag\_tuned vs blk3\_js\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeJsDiagTunedVsBlkThreeJsTunedDQ}{\pending{blk3\_jsDiag\_tuned vs blk3\_js\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedDM}{\pending{blk4\_trailG40\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedDQ}{\pending{blk4\_trailG40\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDM}{\pending{blk4\_trailG40\_tuned vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkFourTrailGShapedDQ}{\pending{blk4\_trailG40\_tuned vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDM}{\pending{blk4\_trailG40\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGFortyTunedVsBlkThreeTunedDQ}{\pending{blk4\_trailG40\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFrozenDM}{\pending{blk4\_trailGShapedFrozen vs blk4\_trailGShapedWide awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFrozenDQ}{\pending{blk4\_trailGShapedFrozen vs blk4\_trailGShapedWide awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFrozenVsBlkFourTrailGTunedDM}{\pending{blk4\_trailGShapedFrozen vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedFrozenVsBlkFourTrailGTunedDQ}{\pending{blk4\_trailGShapedFrozen vs blk4\_trailG\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkFourTrailGShapedTrailMeanDM}{\pending{blk4\_trailGShapedTrailMean vs blk4\_trailGShapedWide awaiting harvest}}
 \newcommand{\unifIncrBlkFourTrailGShapedTrailMeanDQ}{\pending{blk4\_trailGShapedTrailMean vs blk4\_trailGShapedWide awaiting harvest}}
 \newcommand{\unifIncrBlkFourTrailGShapedTrailMeanVsBlkFourTrailGShapedFrozenDM}{\pending{blk4\_trailGShapedTrailMean vs blk4\_trailGShapedFrozen awaiting harvest}}
@@ -659,62 +676,62 @@
 \newcommand{\unifIncrBlkThreeTrailGShapedTrailSdDQ}{\pending{blk3\_trailGShapedTrailSd vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeTunedDM}{\pending{blk3\_trailGShapedTrailSd vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeTunedDQ}{\pending{blk3\_trailGShapedTrailSd vs blk3\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkFourTrailGShapedTrailSdVsBlkThreeTrailGShapedTrailSdDM}{-3.2}
-\newcommand{\unifIncrBlkFourTrailGShapedTrailSdVsBlkThreeTrailGShapedTrailSdDQ}{-0.00136}
+\newcommand{\unifIncrBlkFourTrailGShapedTrailSdVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk4\_trailGShapedTrailSd vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGShapedTrailSdVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk4\_trailGShapedTrailSd vs blk3\_trailGShapedTrailSd awaiting harvest}}
 \newcommand{\unifIncrBlkTwoTrailGShapedTrailSdDM}{\pending{blk2\_trailGShapedTrailSd vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoTrailGShapedTrailSdDQ}{\pending{blk2\_trailGShapedTrailSd vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdTunedDM}{\pending{blk2\_rotAllTrailSd\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdTunedDQ}{\pending{blk2\_rotAllTrailSd\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkTwoRotFullProdTunedDM}{+4.3}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkTwoRotFullProdTunedDQ}{+0.01604}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkThreeTrailGShapedTrailSdDM}{+4.4}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.01620}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkFourTrailGShapedTrailSdDM}{+4.7}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.01755}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedDM}{-4.3}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedDQ}{-0.01586}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkTwoRotFullProdTunedDM}{\pending{blk2\_rotAllTrailSd\_tuned vs blk2\_rotFullProd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkTwoRotFullProdTunedDQ}{\pending{blk2\_rotAllTrailSd\_tuned vs blk2\_rotFullProd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSd\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSd\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSd\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSd\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkThreeTrailGShapedTrailSdDM}{+1.3}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.00034}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkFourTrailGShapedTrailSdDM}{+3.6}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00170}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedDM}{-1.3}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedDQ}{-0.00032}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedDM}{+0.9}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedDQ}{+0.00033}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedVsBlkTwoFrExogRawTunedDM}{+0.1}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedVsBlkTwoFrExogRawTunedDQ}{+0.00002}
-\newcommand{\unifIncrBlkTwoFrProdFrozenTunedDM}{+1.0}
-\newcommand{\unifIncrBlkTwoFrProdFrozenTunedDQ}{+0.00016}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedDM}{-0.9}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedDQ}{-0.00193}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrProdRawTunedDM}{-0.9}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrProdRawTunedDQ}{-0.00176}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedDM}{-1.1}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedDQ}{-0.00028}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllFrozenTunedDM}{+1.2}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllFrozenTunedDQ}{+0.00035}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllRawTunedDM}{+0.3}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllRawTunedDQ}{+0.00007}
-\newcommand{\unifIncrBlkTwoFrProdRawTunedDM}{+1.0}
-\newcommand{\unifIncrBlkTwoFrProdRawTunedDQ}{+0.00230}
-\newcommand{\unifIncrBlkTwoFrAllRawTunedDM}{-1.8}
-\newcommand{\unifIncrBlkTwoFrAllRawTunedDQ}{-0.00002}
-\newcommand{\unifIncrBlkTwoFrAllRawTunedVsBlkTwoFrProdRawTunedDM}{-1.0}
-\newcommand{\unifIncrBlkTwoFrAllRawTunedVsBlkTwoFrProdRawTunedDQ}{-0.00232}
-\newcommand{\unifIncrBlkTwoFrProdFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{+1.1}
-\newcommand{\unifIncrBlkTwoFrProdFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{+0.00278}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{+0.8}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{+0.00002}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrProdFrozenTunedDM}{-1.1}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrProdFrozenTunedDQ}{-0.00276}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrExogTrailSdTunedDM}{+1.2}
-\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrExogTrailSdTunedDQ}{+0.00052}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrExogTrailSdTunedDM}{+0.2}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrExogTrailSdTunedDQ}{+0.00003}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrProdTrailSdTunedDM}{-1.0}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrProdTrailSdTunedDQ}{-0.00048}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedDM}{\pending{blk2\_frExogFrozen\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedDQ}{\pending{blk2\_frExogFrozen\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedDM}{\pending{blk2\_frExogTrailSd\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedDQ}{\pending{blk2\_frExogTrailSd\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedVsBlkTwoFrExogRawTunedDM}{\pending{blk2\_frExogTrailSd\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdTunedVsBlkTwoFrExogRawTunedDQ}{\pending{blk2\_frExogTrailSd\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdFrozenTunedDM}{\pending{blk2\_frProdFrozen\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdFrozenTunedDQ}{\pending{blk2\_frProdFrozen\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedDM}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedDQ}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrProdRawTunedDM}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrProdRawTunedDQ}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedDM}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedDQ}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllFrozenTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frAllFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllFrozenTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frAllFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllRawTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrAllRawTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frAllRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdRawTunedDM}{\pending{blk2\_frProdRaw\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdRawTunedDQ}{\pending{blk2\_frProdRaw\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllRawTunedDM}{\pending{blk2\_frAllRaw\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllRawTunedDQ}{\pending{blk2\_frAllRaw\_tuned vs blk2\_frExogRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllRawTunedVsBlkTwoFrProdRawTunedDM}{\pending{blk2\_frAllRaw\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllRawTunedVsBlkTwoFrProdRawTunedDQ}{\pending{blk2\_frAllRaw\_tuned vs blk2\_frProdRaw\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{\pending{blk2\_frProdFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{\pending{blk2\_frProdFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrProdFrozenTunedDM}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoFrProdFrozenTunedDQ}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_frProdFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrExogTrailSdTunedDM}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrProdTrailSdTunedVsBlkTwoFrExogTrailSdTunedDQ}{\pending{blk2\_frProdTrailSd\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrExogTrailSdTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrExogTrailSdTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrProdTrailSdTunedDM}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frProdTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdNumRankTunedVsBlkTwoFrProdTrailSdTunedDQ}{\pending{blk2\_rotAllTrailSdNumRank\_tuned vs blk2\_frProdTrailSd\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogRawTunedDM}{\pending{blk2\_frExogRaw\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogRawTunedDQ}{\pending{blk2\_frExogRaw\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_frExogFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
@@ -731,60 +748,60 @@
 \newcommand{\unifIncrBlkTwoFrAllRawTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_frAllRaw\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_frAllFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{+3.4}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00133}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{+3.5}
-\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00135}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkThreeTrailGShapedTrailSdDM}{-0.1}
-\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkThreeTrailGShapedTrailSdDQ}{-0.00003}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedDM}{+1.3}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedDQ}{+0.00116}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedDM}{+3.2}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedDQ}{+0.00084}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoFrExogFrozenShapedTunedDM}{+0.6}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoFrExogFrozenShapedTunedDQ}{+0.00065}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_frExogFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_frExogFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_frAllFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrAllFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_frAllFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_frExogFrozen\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_frExogFrozen\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedDM}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedDQ}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_frExogTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedDM}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedDQ}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoFrExogFrozenShapedTunedDM}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoFrExogFrozenShapedTunedDQ}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{+1.4}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.00147}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{+2.5}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.00082}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDM}{+2.5}
-\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00282}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkFourTrailGShapedTrailSdDM}{+4.6}
-\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00217}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_frExogTrailSdShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoFrExogFrozenShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_frExogFrozenShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
 \newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedDM}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedDQ}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkThreeTrailGShapedTrailSdDM}{+0.5}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.00011}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{+1.0}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{+0.00014}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenShapedTunedDM}{-2.7}
-\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenShapedTunedDQ}{-0.00070}
-\newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedDM}{+1.0}
-\newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedDQ}{+0.00056}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedDM}{+0.5}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedDQ}{+0.00009}
-\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeProdSpikeFrozenTunedDM}{-1.2}
-\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeProdSpikeFrozenTunedDQ}{-0.00020}
-\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeExogSpikeTrailSdTunedDM}{-1.2}
-\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeExogSpikeTrailSdTunedDQ}{-0.00067}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenTunedDM}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenTunedDQ}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_frExogFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenShapedTunedDM}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeFrozenTunedVsBlkTwoFrExogFrozenShapedTunedDQ}{\pending{blk3\_exogSpikeFrozen\_tuned vs blk2\_frExogFrozenShaped\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedDM}{\pending{blk3\_exogSpikeTrailSd\_tuned vs blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedDQ}{\pending{blk3\_exogSpikeTrailSd\_tuned vs blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_exogSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeProdSpikeFrozenTunedDM}{\pending{blk3\_trailGShapedTrailSd vs blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeProdSpikeFrozenTunedDQ}{\pending{blk3\_trailGShapedTrailSd vs blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeExogSpikeTrailSdTunedDM}{\pending{blk3\_trailGShapedTrailSd vs blk3\_exogSpikeTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTrailGShapedTrailSdVsBlkThreeExogSpikeTrailSdTunedDQ}{\pending{blk3\_trailGShapedTrailSd vs blk3\_exogSpikeTrailSd\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkTwoGatedTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkTwoGatedTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoCrossSpikeFrozenTunedDM}{-1.4}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoCrossSpikeFrozenTunedDQ}{-0.00002}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoHarSpikeFrozenTunedDM}{+0.2}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoHarSpikeFrozenTunedDQ}{+0.00001}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoSessionSpikeFrozenTunedDM}{-1.6}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoSessionSpikeFrozenTunedDQ}{-0.00005}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdValuesSpikeFrozenTunedDM}{-0.5}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdValuesSpikeFrozenTunedDQ}{-0.00004}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdBlockPermSpikeFrozenTunedDM}{-1.0}
-\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdBlockPermSpikeFrozenTunedDQ}{-0.00004}
-\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedDM}{-3.3}
-\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedDQ}{-0.00146}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoCrossSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoCrossSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoCrossSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoCrossSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoHarSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoHarSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoHarSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoHarSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoSessionSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoSessionSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdNoSessionSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodNoSessionSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdValuesSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodValuesSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdValuesSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodValuesSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdBlockPermSpikeFrozenTunedDM}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodBlockPermSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeProdSpikeFrozenTunedVsBlkThreeProdBlockPermSpikeFrozenTunedDQ}{\pending{blk3\_prodSpikeFrozen\_tuned vs blk3\_prodBlockPermSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedDM}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedDQ}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk3\_prodSpikeFrozen\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdNoCrossSpikeFrozenTunedDM}{\pending{blk3\_prodNoCrossSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdNoCrossSpikeFrozenTunedDQ}{\pending{blk3\_prodNoCrossSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdNoHarSpikeFrozenTunedDM}{\pending{blk3\_prodNoHarSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
@@ -797,68 +814,68 @@
 \newcommand{\unifIncrBlkThreeProdBlockPermSpikeFrozenTunedDQ}{\pending{blk3\_prodBlockPermSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkTwoGatedTunedDM}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkTwoGatedTunedDQ}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{+0.6}
-\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.00010}
+\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdSpikeFrozenTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk4\_prodSpikeFrozen\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
 \newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedVsBlkTwoGatedTunedDM}{\pending{blk3\_exogSpikeTrailSd\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeExogSpikeTrailSdTunedVsBlkTwoGatedTunedDQ}{\pending{blk3\_exogSpikeTrailSd\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedDM}{+1.7}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedDQ}{+0.00141}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedDM}{\pending{blk2\_rotAllTrailSdWide\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedDQ}{\pending{blk2\_rotAllTrailSdWide\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedVsBlkTwoGatedTunedDM}{\pending{blk2\_rotAllTrailSdWide\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkTwoRotAllTrailSdWideTunedVsBlkTwoGatedTunedDQ}{\pending{blk2\_rotAllTrailSdWide\_tuned vs blk2\_gated\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedDM}{-1.9}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedDQ}{-0.00176}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkTwoRotAllTrailSdWideTunedDM}{-2.6}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkTwoRotAllTrailSdWideTunedDQ}{-0.00317}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{+4.3}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{+0.01444}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDM}{+4.7}
-\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{+0.01579}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedDM}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedDQ}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk2\_rotAllTrailSd\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkTwoRotAllTrailSdWideTunedDM}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk2\_rotAllTrailSdWide\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkTwoRotAllTrailSdWideTunedDQ}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk2\_rotAllTrailSdWide\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDM}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkTwoRotAllTrailSdShapedTunedVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk2\_rotAllTrailSdShaped\_tuned vs blk4\_trailGShapedTrailSd awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdBbExogTunedDM}{\pending{blk3\_prodBbExog\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdBbExogTunedDQ}{\pending{blk3\_prodBbExog\_tuned vs blk2\_gated\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdBbExogTunedVsBlkThreeTunedDM}{\pending{blk3\_prodBbExog\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeProdBbExogTunedVsBlkThreeTunedDQ}{\pending{blk3\_prodBbExog\_tuned vs blk3\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdDM}{-1.9}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdDQ}{-0.00031}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkThreeTrailGShapedTrailSdDM}{-1.6}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkThreeTrailGShapedTrailSdDQ}{-0.00079}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkFourTrailGShapedTrailSdDM}{+1.4}
-\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkFourTrailGShapedTrailSdDQ}{+0.00057}
-\newcommand{\unifIncrBlkPcLadderWideTunedDM}{+0.7}
-\newcommand{\unifIncrBlkPcLadderWideTunedDQ}{+0.00006}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdDM}{\pending{blk4\_prodBbExogTrailSd vs blk3\_prodBbExog\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdDQ}{\pending{blk4\_prodBbExogTrailSd vs blk3\_prodBbExog\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkThreeTrailGShapedTrailSdDM}{\pending{blk4\_prodBbExogTrailSd vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkThreeTrailGShapedTrailSdDQ}{\pending{blk4\_prodBbExogTrailSd vs blk3\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkFourTrailGShapedTrailSdDM}{\pending{blk4\_prodBbExogTrailSd vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkFourProdBbExogTrailSdVsBlkFourTrailGShapedTrailSdDQ}{\pending{blk4\_prodBbExogTrailSd vs blk4\_trailGShapedTrailSd awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderWideTunedDM}{\pending{blk\_pcladderWide\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderWideTunedDQ}{\pending{blk\_pcladderWide\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeTikhonovStepWideTunedDM}{\pending{blk3\_tikhonovStepWide\_tuned vs blk3\_tikhonovStep\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkThreeTikhonovStepWideTunedDQ}{\pending{blk3\_tikhonovStepWide\_tuned vs blk3\_tikhonovStep\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkThreeTikhonovTunedDM}{+1.4}
-\newcommand{\unifIncrBlkThreeTikhonovTunedDQ}{+0.00031}
-\newcommand{\unifIncrBlkThreeTikhonovTunedVsBlkFourTrailGTunedDM}{+2.5}
-\newcommand{\unifIncrBlkThreeTikhonovTunedVsBlkFourTrailGTunedDQ}{+0.00058}
-\newcommand{\unifIncrBlkPcLadderTunedDM}{+4.9}
-\newcommand{\unifIncrBlkPcLadderTunedDQ}{+0.00240}
-\newcommand{\unifIncrBlkPcLadderTunedVsBlkThreeTunedDM}{+4.1}
-\newcommand{\unifIncrBlkPcLadderTunedVsBlkThreeTunedDQ}{+0.00212}
-\newcommand{\unifIncrBlkPcLadderFortyKTunedDM}{+3.7}
-\newcommand{\unifIncrBlkPcLadderFortyKTunedDQ}{+0.00321}
-\newcommand{\unifIncrBlkPcLadderFortyKTunedVsBlkPcLadderTunedDM}{+1.2}
-\newcommand{\unifIncrBlkPcLadderFortyKTunedVsBlkPcLadderTunedDQ}{+0.00108}
-\newcommand{\unifIncrBlkPcLadderEightyKTunedDM}{+4.4}
-\newcommand{\unifIncrBlkPcLadderEightyKTunedDQ}{+0.00236}
-\newcommand{\unifIncrBlkPcLadderEightyKTunedVsBlkPcLadderTunedDM}{+1.0}
-\newcommand{\unifIncrBlkPcLadderEightyKTunedVsBlkPcLadderTunedDQ}{+0.00024}
+\newcommand{\unifIncrBlkThreeTikhonovTunedDM}{\pending{blk3\_tikhonov\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovTunedDQ}{\pending{blk3\_tikhonov\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovTunedVsBlkFourTrailGTunedDM}{\pending{blk3\_tikhonov\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovTunedVsBlkFourTrailGTunedDQ}{\pending{blk3\_tikhonov\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderTunedDM}{\pending{blk\_pcladder\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderTunedDQ}{\pending{blk\_pcladder\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderTunedVsBlkThreeTunedDM}{\pending{blk\_pcladder\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderTunedVsBlkThreeTunedDQ}{\pending{blk\_pcladder\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderFortyKTunedDM}{\pending{blk\_pcladder\_fortyK\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderFortyKTunedDQ}{\pending{blk\_pcladder\_fortyK\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderFortyKTunedVsBlkPcLadderTunedDM}{\pending{blk\_pcladder\_fortyK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderFortyKTunedVsBlkPcLadderTunedDQ}{\pending{blk\_pcladder\_fortyK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderEightyKTunedDM}{\pending{blk\_pcladder\_eightyK\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderEightyKTunedDQ}{\pending{blk\_pcladder\_eightyK\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderEightyKTunedVsBlkPcLadderTunedDM}{\pending{blk\_pcladder\_eightyK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderEightyKTunedVsBlkPcLadderTunedDQ}{\pending{blk\_pcladder\_eightyK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkPcLadderFullKTunedDM}{\pending{blk\_pcladder\_fullK\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkPcLadderFullKTunedDQ}{\pending{blk\_pcladder\_fullK\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkPcLadderFullKTunedVsBlkPcLadderTunedDM}{\pending{blk\_pcladder\_fullK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
 \newcommand{\unifIncrBlkPcLadderFullKTunedVsBlkPcLadderTunedDQ}{\pending{blk\_pcladder\_fullK\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
-\newcommand{\unifIncrBlkPcLadderPerRungTunedDM}{-1.5}
-\newcommand{\unifIncrBlkPcLadderPerRungTunedDQ}{-0.00024}
-\newcommand{\unifIncrBlkPcLadderPerRungTunedVsBlkThreeTunedDM}{+3.9}
-\newcommand{\unifIncrBlkPcLadderPerRungTunedVsBlkThreeTunedDQ}{+0.00188}
-\newcommand{\unifIncrBlkFourTrailGZooDM}{-1.2}
-\newcommand{\unifIncrBlkFourTrailGZooDQ}{-0.00008}
-\newcommand{\unifIncrBlkFourTrailGZooVsBlkFourTrailGTunedDM}{-1.1}
-\newcommand{\unifIncrBlkFourTrailGZooVsBlkFourTrailGTunedDQ}{-0.00009}
-\newcommand{\unifIncrBlkThreeTikhonovStepTunedDM}{+0.7}
-\newcommand{\unifIncrBlkThreeTikhonovStepTunedDQ}{+0.00006}
-\newcommand{\unifIncrBlkThreeTikhonovStepTunedVsBlkFourTrailGTunedDM}{+2.6}
-\newcommand{\unifIncrBlkThreeTikhonovStepTunedVsBlkFourTrailGTunedDQ}{+0.00065}
+\newcommand{\unifIncrBlkPcLadderPerRungTunedDM}{\pending{blk\_pcladderPerRung\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderPerRungTunedDQ}{\pending{blk\_pcladderPerRung\_tuned vs blk\_pcladder\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderPerRungTunedVsBlkThreeTunedDM}{\pending{blk\_pcladderPerRung\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkPcLadderPerRungTunedVsBlkThreeTunedDQ}{\pending{blk\_pcladderPerRung\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGZooDM}{\pending{blk4\_trailGZoo vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGZooDQ}{\pending{blk4\_trailGZoo vs blk4\_trailGShaped awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGZooVsBlkFourTrailGTunedDM}{\pending{blk4\_trailGZoo vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailGZooVsBlkFourTrailGTunedDQ}{\pending{blk4\_trailGZoo vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovStepTunedDM}{\pending{blk3\_tikhonovStep\_tuned vs blk3\_tikhonov\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovStepTunedDQ}{\pending{blk3\_tikhonovStep\_tuned vs blk3\_tikhonov\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovStepTunedVsBlkFourTrailGTunedDM}{\pending{blk3\_tikhonovStep\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkThreeTikhonovStepTunedVsBlkFourTrailGTunedDQ}{\pending{blk3\_tikhonovStep\_tuned vs blk4\_trailG\_tuned awaiting harvest}}
 \newcommand{\unifIncrBOneRidgeAthirtyDM}{\pending{b1\_ridge\_a30 vs a0\_ols\_har awaiting harvest}}
 \newcommand{\unifIncrBOneRidgeAthirtyDQ}{\pending{b1\_ridge\_a30 vs a0\_ols\_har awaiting harvest}}
 \newcommand{\unifIncrBOneRidgeAhundredDM}{\pending{b1\_ridge\_a100 vs a0\_ols\_har awaiting harvest}}
@@ -873,8 +890,8 @@
 \newcommand{\unifIncrBTwoLassoAoneEminusThreeDQ}{\pending{b2\_lasso\_a1em3 vs a0\_ols\_har awaiting harvest}}
 \newcommand{\unifIncrBTwoLassoAoneEminusTwoDM}{\pending{b2\_lasso\_a1em2 vs a0\_ols\_har awaiting harvest}}
 \newcommand{\unifIncrBTwoLassoAoneEminusTwoDQ}{\pending{b2\_lasso\_a1em2 vs a0\_ols\_har awaiting harvest}}
-\newcommand{\unifIncrBeTunedWideMomentsDM}{+6.4}
-\newcommand{\unifIncrBeTunedWideMomentsDQ}{+0.00248}
+\newcommand{\unifIncrBeTunedWideMomentsDM}{\pending{be\_tunedWide\_moments vs br\_tuned\_moments awaiting harvest}}
+\newcommand{\unifIncrBeTunedWideMomentsDQ}{\pending{be\_tunedWide\_moments vs br\_tuned\_moments awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideLiquidityDM}{\pending{be\_tunedWide\_liquidity vs br\_tuned\_liquidity awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideLiquidityDQ}{\pending{be\_tunedWide\_liquidity vs br\_tuned\_liquidity awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideMarketEwDM}{\pending{be\_tunedWide\_market\_ew vs br\_tuned\_market\_ew awaiting harvest}}
@@ -887,10 +904,10 @@
 \newcommand{\unifIncrBeTunedWideImpliedVolDQ}{\pending{be\_tunedWide\_implied\_vol vs br\_tuned\_implied\_vol awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideVolDemandDM}{\pending{be\_tunedWide\_vol\_demand vs br\_tuned\_vol\_demand awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideVolDemandDQ}{\pending{be\_tunedWide\_vol\_demand vs br\_tuned\_vol\_demand awaiting harvest}}
-\newcommand{\unifIncrBeTunedWideAllFeaturesDM}{+3.2}
-\newcommand{\unifIncrBeTunedWideAllFeaturesDQ}{+0.00216}
-\newcommand{\unifIncrBeTunedWideMomentsVsBeTunedMomentsDM}{+3.3}
-\newcommand{\unifIncrBeTunedWideMomentsVsBeTunedMomentsDQ}{+0.00159}
+\newcommand{\unifIncrBeTunedWideAllFeaturesDM}{\pending{be\_tunedWide\_all\_features vs br\_tuned\_all\_features awaiting harvest}}
+\newcommand{\unifIncrBeTunedWideAllFeaturesDQ}{\pending{be\_tunedWide\_all\_features vs br\_tuned\_all\_features awaiting harvest}}
+\newcommand{\unifIncrBeTunedWideMomentsVsBeTunedMomentsDM}{\pending{be\_tunedWide\_moments vs be\_tuned\_moments awaiting harvest}}
+\newcommand{\unifIncrBeTunedWideMomentsVsBeTunedMomentsDQ}{\pending{be\_tunedWide\_moments vs be\_tuned\_moments awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideLiquidityVsBeTunedLiquidityDM}{\pending{be\_tunedWide\_liquidity vs be\_tuned\_liquidity awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideLiquidityVsBeTunedLiquidityDQ}{\pending{be\_tunedWide\_liquidity vs be\_tuned\_liquidity awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideMarketEwVsBeTunedMarketEwDM}{\pending{be\_tunedWide\_market\_ew vs be\_tuned\_market\_ew awaiting harvest}}
@@ -903,63 +920,82 @@
 \newcommand{\unifIncrBeTunedWideImpliedVolVsBeTunedImpliedVolDQ}{\pending{be\_tunedWide\_implied\_vol vs be\_tuned\_implied\_vol awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideVolDemandVsBeTunedVolDemandDM}{\pending{be\_tunedWide\_vol\_demand vs be\_tuned\_vol\_demand awaiting harvest}}
 \newcommand{\unifIncrBeTunedWideVolDemandVsBeTunedVolDemandDQ}{\pending{be\_tunedWide\_vol\_demand vs be\_tuned\_vol\_demand awaiting harvest}}
-\newcommand{\unifIncrBeTunedWideAllFeaturesVsBeTunedAllFeaturesDM}{+1.9}
-\newcommand{\unifIncrBeTunedWideAllFeaturesVsBeTunedAllFeaturesDQ}{+0.00096}
-\newcommand{\unifIncrBlkTwoPcrTunedDM}{+0.1}
-\newcommand{\unifIncrBlkTwoPcrTunedDQ}{+0.00018}
-\newcommand{\unifIncrBlkTwoPcrTunedVsBlkThreeTunedDM}{+2.4}
-\newcommand{\unifIncrBlkTwoPcrTunedVsBlkThreeTunedDQ}{+0.00469}
-\newcommand{\unifIncrBlkTwoPcrFortyTunedDM}{-0.6}
-\newcommand{\unifIncrBlkTwoPcrFortyTunedDQ}{-0.00026}
-\newcommand{\unifIncrBeTunedMomentsDM}{+2.7}
-\newcommand{\unifIncrBeTunedMomentsDQ}{+0.00089}
+\newcommand{\unifIncrBeTunedWideAllFeaturesVsBeTunedAllFeaturesDM}{\pending{be\_tunedWide\_all\_features vs be\_tuned\_all\_features awaiting harvest}}
+\newcommand{\unifIncrBeTunedWideAllFeaturesVsBeTunedAllFeaturesDQ}{\pending{be\_tunedWide\_all\_features vs be\_tuned\_all\_features awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrTunedDM}{\pending{blk2\_pcr\_tuned vs a0\_ols\_har awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrTunedDQ}{\pending{blk2\_pcr\_tuned vs a0\_ols\_har awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrTunedVsBlkThreeTunedDM}{\pending{blk2\_pcr\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrTunedVsBlkThreeTunedDQ}{\pending{blk2\_pcr\_tuned vs blk3\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrFortyTunedDM}{\pending{blk2\_pcrForty\_tuned vs blk2\_pcr\_tuned awaiting harvest}}
+\newcommand{\unifIncrBlkTwoPcrFortyTunedDQ}{\pending{blk2\_pcrForty\_tuned vs blk2\_pcr\_tuned awaiting harvest}}
+\newcommand{\unifIncrBeTunedMomentsDM}{+1.2}
+\newcommand{\unifIncrBeTunedMomentsDQ}{+1.25441}
 \newcommand{\unifIncrBeTunedLiquidityDM}{-0.3}
-\newcommand{\unifIncrBeTunedLiquidityDQ}{-0.00011}
-\newcommand{\unifIncrBeTunedMarketEwDM}{+0.1}
-\newcommand{\unifIncrBeTunedMarketEwDQ}{+0.00002}
-\newcommand{\unifIncrBeTunedMarketVwDM}{+1.6}
-\newcommand{\unifIncrBeTunedMarketVwDQ}{+0.00034}
-\newcommand{\unifIncrBeTunedSentimentDM}{+1.7}
-\newcommand{\unifIncrBeTunedSentimentDQ}{+0.00032}
-\newcommand{\unifIncrBeTunedImpliedVolDM}{+1.3}
-\newcommand{\unifIncrBeTunedImpliedVolDQ}{+0.00026}
-\newcommand{\unifIncrBeTunedVolDemandDM}{+0.3}
-\newcommand{\unifIncrBeTunedVolDemandDQ}{+0.00003}
-\newcommand{\unifIncrBeTunedAllFeaturesDM}{+1.5}
-\newcommand{\unifIncrBeTunedAllFeaturesDQ}{+0.00120}
+\newcommand{\unifIncrBeTunedLiquidityDQ}{-0.00028}
+\newcommand{\unifIncrBeTunedMarketEwDM}{-0.5}
+\newcommand{\unifIncrBeTunedMarketEwDQ}{-0.00023}
+\newcommand{\unifIncrBeTunedMarketVwDM}{+0.7}
+\newcommand{\unifIncrBeTunedMarketVwDQ}{+0.00024}
+\newcommand{\unifIncrBeTunedSentimentDM}{-1.1}
+\newcommand{\unifIncrBeTunedSentimentDQ}{-0.00155}
+\newcommand{\unifIncrBeTunedImpliedVolDM}{+1.0}
+\newcommand{\unifIncrBeTunedImpliedVolDQ}{+0.00112}
+\newcommand{\unifIncrBeTunedVolDemandDM}{-0.2}
+\newcommand{\unifIncrBeTunedVolDemandDQ}{-0.00004}
+\newcommand{\unifIncrBeTunedAllFeaturesDM}{-0.7}
+\newcommand{\unifIncrBeTunedAllFeaturesDQ}{-0.00106}
 \newcommand{\unifIncrTreeTunedDM}{\pending{tree\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrTreeTunedDQ}{\pending{tree\_tuned vs blk3\_tuned awaiting harvest}}
 \newcommand{\unifIncrTreeTunedVsBlkFourTrailTunedDM}{\pending{tree\_tuned vs blk4\_trail\_tuned awaiting harvest}}
 \newcommand{\unifIncrTreeTunedVsBlkFourTrailTunedDQ}{\pending{tree\_tuned vs blk4\_trail\_tuned awaiting harvest}}
-\newcommand{\unifIncrTreeHedgeDM}{-5.3}
-\newcommand{\unifIncrTreeHedgeDQ}{-0.00413}
-\newcommand{\unifIncrBlkFourTrailSymDM}{-0.4}
-\newcommand{\unifIncrBlkFourTrailSymDQ}{-0.00009}
-\newcommand{\unifIncrBlkFourTrailFullCDM}{-0.4}
-\newcommand{\unifIncrBlkFourTrailFullCDQ}{-0.00008}
-\newcommand{\unifIncrBlkFourTrailRefreshDM}{+0.4}
-\newcommand{\unifIncrBlkFourTrailRefreshDQ}{+0.00006}
-\newcommand{\unifIncrBlkFourTrailKFiveDM}{-0.8}
-\newcommand{\unifIncrBlkFourTrailKFiveDQ}{-0.00005}
-\newcommand{\unifIncrBlkFourTrailKTenDM}{-0.2}
-\newcommand{\unifIncrBlkFourTrailKTenDQ}{-0.00002}
-\newcommand{\unifIncrBlkFourTrailKFortyDM}{+1.2}
-\newcommand{\unifIncrBlkFourTrailKFortyDQ}{+0.00049}
-\newcommand{\unifIncrBlkFourTrailLagTwoDM}{+0.6}
-\newcommand{\unifIncrBlkFourTrailLagTwoDQ}{+0.00027}
-\newcommand{\unifIncrBlkFourTrailSymVsBlkFourTrailDM}{-0.2}
-\newcommand{\unifIncrBlkFourTrailSymVsBlkFourTrailDQ}{-0.00003}
-\newcommand{\unifIncrBlkFourTrailRefreshVsBlkFourTrailDM}{+0.6}
-\newcommand{\unifIncrBlkFourTrailRefreshVsBlkFourTrailDQ}{+0.00011}
-\newcommand{\unifIncrBlkFourTrailDropHetDM}{+0.7}
-\newcommand{\unifIncrBlkFourTrailDropHetDQ}{+0.00023}
-\newcommand{\unifIncrBlkFourTrailDropHetVsBlkFourTrailDM}{+1.6}
-\newcommand{\unifIncrBlkFourTrailDropHetVsBlkFourTrailDQ}{+0.00029}
-\newcommand{\unifIncrCondVarBenchDM}{+3.5}
-\newcommand{\unifIncrCondVarBenchDQ}{+0.00365}
-\newcommand{\unifIncrCondVarChampDM}{+2.1}
-\newcommand{\unifIncrCondVarChampDQ}{+0.00246}
-\newcommand{\unifIncrCondVarBenchLevelDM}{+2.8}
-\newcommand{\unifIncrCondVarBenchLevelDQ}{+0.00283}
-\newcommand{\unifIncrCondVarBenchLevelVsCondVarBenchDM}{-2.9}
-\newcommand{\unifIncrCondVarBenchLevelVsCondVarBenchDQ}{-0.00082}
+\newcommand{\unifIncrTreeHedgeDM}{-5.8}
+\newcommand{\unifIncrTreeHedgeDQ}{-0.00571}
+\newcommand{\unifIncrBTwoLassoTunedDM}{-0.5}
+\newcommand{\unifIncrBTwoLassoTunedDQ}{-0.00076}
+\newcommand{\unifIncrBThreeEnetTunedDM}{-2.1}
+\newcommand{\unifIncrBThreeEnetTunedDQ}{-0.00304}
+\newcommand{\unifIncrBlkFourTrailSymDM}{\pending{blk4\_trailSym vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailSymDQ}{\pending{blk4\_trailSym vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailFullCDM}{\pending{blk4\_trailFullC vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailFullCDQ}{\pending{blk4\_trailFullC vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailRefreshDM}{\pending{blk4\_trailRefresh vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailRefreshDQ}{\pending{blk4\_trailRefresh vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKFiveDM}{\pending{blk4\_trailKFive vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKFiveDQ}{\pending{blk4\_trailKFive vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKTenDM}{\pending{blk4\_trailKTen vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKTenDQ}{\pending{blk4\_trailKTen vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKFortyDM}{\pending{blk4\_trailKForty vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailKFortyDQ}{\pending{blk4\_trailKForty vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailLagTwoDM}{\pending{blk4\_trailLagTwo vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailLagTwoDQ}{\pending{blk4\_trailLagTwo vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailSymVsBlkFourTrailDM}{\pending{blk4\_trailSym vs blk4\_trail awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailSymVsBlkFourTrailDQ}{\pending{blk4\_trailSym vs blk4\_trail awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailRefreshVsBlkFourTrailDM}{\pending{blk4\_trailRefresh vs blk4\_trail awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailRefreshVsBlkFourTrailDQ}{\pending{blk4\_trailRefresh vs blk4\_trail awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDropHetDM}{\pending{blk4\_trailDropHet vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDropHetDQ}{\pending{blk4\_trailDropHet vs blk3\_user awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDropHetVsBlkFourTrailDM}{\pending{blk4\_trailDropHet vs blk4\_trail awaiting harvest}}
+\newcommand{\unifIncrBlkFourTrailDropHetVsBlkFourTrailDQ}{\pending{blk4\_trailDropHet vs blk4\_trail awaiting harvest}}
+\newcommand{\unifTreeBankNExperts}{20}
+\newcommand{\unifTreeBankNBeat}{18}
+\newcommand{\unifTreeBankNBeatSig}{18}
+\newcommand{\unifTreeBankNOpt}{16}
+\newcommand{\unifTreeBankNSobol}{4}
+\newcommand{\unifTreeBankNSobolBeat}{2}
+\newcommand{\unifTreeBankBestQLIKE}{0.22393}
+\newcommand{\unifTreeBankBestDM}{-11.1}
+\newcommand{\unifTreeBankMedianQLIKE}{0.22724}
+\newcommand{\unifTreeBankWorstOptQLIKE}{0.22886}
+\newcommand{\unifTreeBankWorstOptDM}{-11.9}
+\newcommand{\unifTreeBankOptBestDM}{-15.3}
+\newcommand{\unifTreeBankOptWorstDM}{-9.8}
+\newcommand{\unifTreeBankSobolBestQLIKE}{0.22393}
+\newcommand{\unifTreeBankSobolWorstQLIKE}{0.26791}
+\newcommand{\unifTreeBankHedgeVsBestDQ}{+0.00106}
+\newcommand{\unifTreeBankHedgeVsBestDM}{+1.1}
+\newcommand{\unifTreeBankHedgeVsBlkTwoDQ}{-0.01148}
+\newcommand{\unifTreeBankHedgeVsBlkTwoDM}{-10.7}
+\newcommand{\unifTreeBankSelN}{1056}
+\newcommand{\unifTreeBankSelXgbN}{592}
+\newcommand{\unifTreeBankSelLgbmN}{464}
+\newcommand{\unifTreeBankSelTopPct}{28\%}

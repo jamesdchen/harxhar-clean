@@ -1,0 +1,181 @@
+% 06_results.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 6.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: close_main_numbers.tex (\cmMaster*, \cmTrVsRidge*, \cmLd*), fig_qlike_sharpe_numbers.tex (\fqs*); the paired table needs a new pairs CSV and macros
+
+% 2026-10-15 formula pass: each formula checked against the code; disagreements are noted in comments.
+% 2026-10-15 (notation pass): symbols and terms per writeup/NOTATION_GUIDE_2026-10-15.md (incl. section 6b). Old -> new:
+% RV_t (winsorized) -> \RV_t = \RV_{t,c}, the actual RV; B_t -> s^2_{t,c}; N -> T_oos, sums over \mathcal T_oos;
+% lag l -> q; DM -> \DM; (a)/(ref) -> A/B; all / base -> Full / HAR, the forecast f_{m,\mathcal X,\mathcal I};
+% per-bar / pooled -> closing-interval / pooled intraday model; HAR + calendar -> HAR benchmark; family -> model
+% class; reference OLS -> HAR benchmark; Sharpe -> \SR; 1{.} -> \mathbf{1}{.}. Typed numbers that have an
+% exact generated macro now use it. Still typed, no macro yet: the per-model QLIKE levels, % changes and DM values
+% (lasso 0.0914 / -3.4 / -1.22, ...; they are in tab:rh_axis1, tab:rh_axis2, tab:rh_rank), the 83--91 % squared-error
+% share, and the pooled ranges. All of them are pre-switch values (scored against the winsorized target).
+\ifdefined\rhrDays\else\input{generated/rehaul_results_numbers}\fi
+\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+
+\section{Results}
+\subsection{Forecast evaluation}
+\begin{itemize}
+\item \textbf{Forecast and realization.} The variance forecast is the back-transformed fit,
+  $\hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c}$, with no bias correction. The realization is the actual realized
+  variance of the closing half hour (15:30--16:00 ET), $\RV_t \equiv \RV_{t,c}$; it is not winsorized (the winsorized
+  $\tilde y_{t,c}$ enters estimation only). The out-of-sample period is the set $\mathcal T_{\mathrm{oos}}$ of
+  $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \rhrDays$ trading days; in the HAC formulas, $t - j$ is the
+  out-of-sample day $j$ days before $t$.
+% 2026-10-15 (notation pass): parked -- the realization is now the actual RV (user decision #10, data audit); the old
+% bullet did not say which RV, and the scorer in the pointer below used the winsorized one.
+% \item Forecast $\hat\sigma^2_t = \hat y_t^2 B_t$ (plain back-transform); target $RV_t$, 15:30--16:00; $N = 866$
+%   trade days.
+% Code: RV_t is the winsorised target true_raw = true_adj^2 B, not the raw RV
+% (experiments/master_table_close.py:28-31, 1224-1236). The methods text says "raw RV, never winsorised".
+% 2026-10-15 (notation pass): the pointer above is the pre-switch scorer. Scoring moves to the actual RV_{t,c} (user
+% decision #10); the QLIKE, MSE and R^2 macros of this section are regenerated on it.
+\item \textbf{Loss.} The daily QLIKE loss \citep{Patton2011} and its out-of-sample average:
+  \[
+  L_t = \QLIKE(\RV_t, \hat\sigma^2_t) = \frac{\RV_t}{\hat\sigma^2_t} - \log\frac{\RV_t}{\hat\sigma^2_t} - 1,
+  \qquad
+  \overline{\QLIKE} = \bar L = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} L_t .
+  \]
+\item \textbf{Benchmark.} The HAR benchmark is the closing-interval OLS regression on the HAR components and the
+  calendar dummies \citep{Corsi2009}. Its average QLIKE is $\overline{\QLIKE} = \rhrOlsQ$, and its sign strategy has an
+  annualized Sharpe ratio at mid-quotes of $\SR = \fqsOlsSh$ (Section~7).
+% Code: master_table_close.py:233 sets REFERENCE = "blk2" for qlike_pct_vs_ref and dm_vs_ref; only the GUI's DM
+% (master_table_gui/rows.py:1585-1605) is against the per-bar OLS. The % and DM vs the OLS need porting.
+\item \textbf{Relative loss.} For forecast $A$ against benchmark $B$ (the HAR benchmark unless stated otherwise), the loss
+  differential is $d_t = L^{A}_t - L^{B}_t$, and the percentage change in average QLIKE is
+  \[
+  \Delta\% = 100\,\frac{\bar d}{\bar L^{B}}, \qquad \bar d = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} d_t .
+  \]
+\item \textbf{Diebold--Mariano test} \citep{DieboldMariano1995}, with the Harvey--Leybourne--Newbold small-sample
+  correction at horizon $h = 1$ \citep{HarveyLeybourneNewbold1997} and a two-sided normal $p$-value:
+  \[
+  \DM = \sqrt{\frac{T_{\mathrm{oos}}-1}{T_{\mathrm{oos}}}}\;\frac{\bar d}{\sqrt{\hat\Omega/T_{\mathrm{oos}}}},
+  \qquad
+  p = 2\bigl\{1 - \Phi(|\DM|)\bigr\}.
+  \]
+% Code: HLN factor sqrt((N + 1 - 2h + h(h-1)/N)/N) with h = 1 (src/evaluation/diebold_mariano.py:81-84).
+\item \textbf{Long-run variance:} Newey and West (1987), with Bartlett weights:
+  \[
+  \hat\Omega = \hat\gamma_0 + 2\sum_{j=1}^{q} w_j\,\hat\gamma_j,
+  \qquad
+  w_j = 1 - \frac{j}{q+1},
+  \qquad
+  \hat\gamma_j = \frac{1}{T_{\mathrm{oos}}-j}\sum_{t=j+1}^{T_{\mathrm{oos}}}(d_t - \bar d)(d_{t-j} - \bar d).
+  \]
+% Code: dm_test (diebold_mariano.py:67) takes np.mean over the N - j pairs, so gamma_j divides by N - j; the trade's newey_west_t
+% (notebooks/atm_straddle_lib.py:1240-1261) divides by N. The two HAC conventions differ.
+\item \textbf{Lag truncation} $q = \max\bigl(h - 1, \lfloor 4(T_{\mathrm{oos}}/100)^{2/9}\rfloor\bigr) = \fqsDMLag$.
+  $\DM < 0$ favors forecast $A$. ``Significant'' means significant at the 5\% level ($p < 0.05$).
+\item \textbf{Squared-error and absolute-error loss,} in variance units:
+  \[
+  \mathrm{MSE} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}}\bigl(\RV_t - \hat\sigma^2_t\bigr)^2,
+  \qquad
+  \mathrm{MAE} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}}\bigl|\RV_t - \hat\sigma^2_t\bigr|.
+  \]
+\item \textbf{Out-of-sample $R^2$,} with the out-of-sample mean of the realized variance as the benchmark forecast:
+  \[
+  R^2_{\mathrm{OOS}} = 1 - \frac{\sum_{t \in \mathcal T_{\mathrm{oos}}} \bigl(\RV_t - \hat\sigma^2_t\bigr)^2}{\sum_{t \in \mathcal T_{\mathrm{oos}}} \bigl(\RV_t - \overline{\RV}\bigr)^2},
+  \qquad
+  \overline{\RV} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \RV_t .
+  \]
+% Code: master_table_gui/rows.py:1549-1563. ybar is the mean over all N scored days: look-ahead. A causal
+% benchmark would use the expanding mean of RV_u, u < t.
+\item \textbf{Calibration:} the ratio of average realized to average forecast variance, $\overline{\RV}/\overline{\hat\sigma^2}$,
+  and the frequency of under-prediction, $\frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \mathbf{1}\{\RV_t > \hat\sigma^2_t\}$.
+\end{itemize}
+
+\subsection{The full predictor set versus the HAR benchmark}
+% 2026-10-15 (notation pass): parked -- this typed table duplicates Table~\ref{tab:rh_axis1} (generated, same numbers);
+% its numbers are pre-switch (winsorized target), mix 3- and 4-decimal QLIKE, and put a p-value in the DM column, so it
+% does not meet the table standard (NOTATION_GUIDE section 8). The text now points to tab:rh_axis1.
+% \begin{table}[h]\centering\small
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lrrrr}
+% \toprule
+% Family & QLIKE, HAR + cal. & QLIKE, all & Change & DM \\
+% \midrule
+% Per-bar ridge & 0.0946 & 0.0958 & $+1.2\%$ & $+0.26$ \\
+% Per-bar lasso & 0.0946 & 0.0914 & $-3.4\%$ & $-1.22$ \\
+% Per-bar elastic net & 0.0946 & 0.0942 & $-0.4\%$ & $-0.10$ \\
+% Per-bar LightGBM & 0.0986 & 0.0939 & $-4.7\%$ & $-1.43$ \\
+% Per-bar XGBoost & 0.0976 & 0.0935 & $-4.2\%$ & $-1.41$ \\
+% Per-bar random forest & 0.0968 & 0.0966 & $-0.2\%$ & $-0.05$ \\
+% Per-bar MinGRU (QLIKE-tuned) & 0.0985 & 0.0948 & $-3.8\%$ & $p=0.34$ \\
+% Pooled ridge / lasso / elastic net & 0.107 & 0.102 / 0.104 / 0.102 & $-4.3 / -1.7 / -4.7\%$ & $-1.29 / -0.50 / -1.42$ \\
+% Pooled LightGBM / XGBoost / RF & 0.121--0.124 & 0.106--0.107 & $-12$ to $-14\%$ & about $-4.5$ \\
+% \bottomrule
+% \end{tabular}}
+% \caption{All features vs HAR + calendar within each family, on 866 days (paired DM; negative favours all features).}
+% \end{table}
+\begin{itemize}
+\item \textbf{Paired comparison} within each model class: the same model $m$ and estimation sample $\mathcal I$ on the
+  two predictor sets, $d_t = L^{\text{Full}}_t - L^{\text{HAR}}_t$, with $L^{\mathcal X}_t$ the loss of the forecast
+  $f_{m,\mathcal X,\mathcal I}$ (Table~\ref{tab:rh_axis1}):
+  \[
+  \Delta\% = 100\Bigl(\frac{\bar L^{\text{Full}}}{\bar L^{\text{HAR}}} - 1\Bigr) = 100\,\frac{\bar d}{\bar L^{\text{HAR}}},
+  \qquad \DM \text{ on } d_t,\ q = \fqsDMLag .
+  \]
+% Code: writeup/make_fig_qlike_sharpe.py:287-320 (dq_pct; dm_test(all, base) at the automatic lag).
+\item \textbf{The full predictor set lowers average QLIKE in most model classes} ($\Delta\% < 0$). The reductions are
+  largest for the pooled intraday trees, 12--14\% ($\DM$ about $-4.5$), and only these are significant at the 5\%
+  level.
+\item \textbf{Across all \rhrAfPairs{} estimator pairs} of the model set, the full predictor set lowers average QLIKE
+  in \rhrAfLower{} pairs, \rhrAfLowerSig{} of them significantly (DM). It raises the annualized Sharpe ratio at
+  mid-quotes in \fqsShHigher{} pairs, \fqsShHigherSig{} of them significantly (HAC $t$-statistic on the daily return
+  differential, Newey--West, $q = \fqsHACLag$).
+\item \textbf{Squared-error loss disagrees:} the full predictor set raises the MSE in \rhrAfMseHigher{} of the
+  \rhrAfPairs{} pairs, \rhrAfMseHigherSig{} of them significantly.
+  \begin{itemize}
+  \item Five days in March 2020 carry 83--91\% of $\sum_{t \in \mathcal T_{\mathrm{oos}}} (\RV_t - \hat\sigma^2_t)^2$.
+  \item Excluding February--April 2020, the lasso on the full predictor set has a lower MSE than the HAR benchmark.
+  \end{itemize}
+\item \textbf{MinGRU network} (ridge-initialized linear shortcut, trained and selected on QLIKE): the full predictor set
+  lowers its average QLIKE by 3.8\%, a reduction that is not significant at the 5\% level. On the full predictor set,
+  the network ties the elastic net and ridge.
+\end{itemize}
+
+\subsection{Closing-interval versus pooled intraday models}
+\begin{itemize}
+\item \textbf{The pooled intraday model has a higher average QLIKE than the closing-interval model in every model
+  class,} $\Delta\% = 100\bigl(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1\bigr) > 0$, with
+  $\bar L^{\mathrm{pool}}$ and $\bar L^{\mathrm{close}}$ the average losses of $f_{m,\mathcal X,\{1,\dots,M\}}$ and
+  $f_{m,\mathcal X,\{c\}}$ (Table~\ref{tab:rh_axis2}):
+  \begin{itemize}
+  \item linear models: $+12$--$13\%$ on the HAR-benchmark predictors ($\DM$ about 3.4, significant at the 5\% level),
+    $+7$--$14\%$ on the full predictor set (significant for the lasso and the elastic net);
+  \item trees: $+24$--$27\%$ on the HAR-benchmark predictors and $+11$--$14\%$ on the full predictor set, each
+    significant at the 5\% level.
+  \end{itemize}
+% 2026-10-15 (notation pass): the significance added to the linear (full set) and tree bullets is read from T2
+% (tab:rh_axis2) on the pre-switch scoring; re-check it after the actual-RV regeneration.
+\item \textbf{Economic value:} for the linear models and the trees, none of the differences in the annualized Sharpe
+  ratio between the pooled intraday and the closing-interval model is significant at the 5\% level (HAC $t$-statistic
+  on the daily return differential, $q = \fqsHACLag$).
+% 2026-10-15 (notation pass): parked -- scoped to the linear models and trees: T2 (tab:rh_axis2) now carries the pooled
+% MinGRU, whose return differential on the full predictor set has HAC t = -2.30 (pre-switch), significant at 5 %.
+% \item \textbf{$\Delta\mathrm{Sharpe}$, pooled vs per-bar:} none significant.
+\item \textbf{Pooled intraday MinGRU network:} \todo{pending: the pooled MinGRU network, ridge-initialized and trained
+  and selected on QLIKE}.
+% 2026-10-15 (notation pass): T1 and T2 (tab:rh_axis1, tab:rh_axis2) already carry the pooled MinGRU (refit monthly);
+% this bullet awaits its text.
+\end{itemize}
+
+\subsection{Model classes}
+\begin{itemize}
+\item \textbf{The most accurate forecasts, all closing-interval models on the full predictor set, are statistically
+  indistinguishable from the HAR benchmark} ($\overline{\QLIKE} = \rhrOlsQ$; Table~\ref{tab:rh_rank}):
+  \begin{itemize}
+  \item average QLIKE: lasso 0.0914, XGBoost 0.0935, LightGBM 0.0939, elastic net 0.0942, MinGRU network 0.0948;
+  \item the lasso lowers average QLIKE by 3.4\% relative to the HAR benchmark ($\DM = -1.22$), and none of the five is
+    significantly more accurate than the HAR benchmark at the 5\% level. Of the \rhrNSet{} forecasts of the model set
+    other than the benchmark, \rhrNLower{} have a lower average QLIKE, \rhrNLowerSig{} of them significantly.
+  \end{itemize}
+\item \textbf{Trees versus the closing-interval ridge on the same predictors:} the tree has the higher average QLIKE in
+  \cmTrVsRidgeQAbove{} of \cmTrVsRidgeN{} comparisons, \cmTrVsRidgeQAboveSig{} of them significantly.
+\item \textbf{Pooled intraday models trail closing-interval models;} the least accurate are the pooled intraday trees on
+  the HAR-benchmark predictors (average QLIKE 0.121--0.124).
+\end{itemize}

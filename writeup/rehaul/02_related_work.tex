@@ -1,0 +1,85 @@
+% 02_related_work.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 2.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: cite only keys in references.bib; the [to add] items need bib entries
+% 2026-10-15 (notation pass, writeup/NOTATION_GUIDE_2026-10-15.md): the literature's own terms; every \citet key
+% checked against references.bib. Old -> new: \mathbb E_\tau RV -> \E_t \RV^{(k)} (daily RV averaged over k trading
+% days, kept apart from the paper's closing-interval \RV_t); B_t -> s^2_{t,i}; h (forecast) -> v (h is the DM
+% horizon); \beta -> \bm\beta; \lambda_1, \lambda_2 -> \lambda, \alpha (the guide's penalty and mixing; \lambda_1,
+% \lambda_2 stay XGBoost's); g = pooled -> pooled intraday model.
+
+\section{Related work}
+\begin{itemize}
+\item \textbf{Realized variance and the HAR model:}
+  $\E_t[\RV^{(1)}_{t+1}] = \beta_0 + \sum_{k} \beta_k\, \RV^{(k)}_t$, $k \in \{1,5,22\}$ trading days, with
+  $\RV^{(k)}_t$ the average daily realized variance over the last $k$ trading days. Our HAR components
+  $\bar y^{(k)}_t$ take the same averages of $y$ over $k$ intraday intervals.\newline
+  \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
+  \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
+  \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
+  \citet{HansenHuangShek2012}, \citet{AndersenBollerslevChristoffersenDiebold2006}.
+  \begin{itemize}
+  \item Panel HAR, estimated jointly across assets, the cross-asset counterpart of our pooled intraday model,
+    which pools the intraday intervals of one index: \citet{BollerslevHoodHussLebedev2018}.
+    % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
+  \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
+  \end{itemize}
+\item \textbf{Intraday periodicity:} volatility follows a U-shaped intraday pattern; the standard adjustment
+  divides by a periodicity factor, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$.\newline
+  \citet{AndersenBollerslev1997} (intraday periodicity), \citet{EngleGallo2006} (intraday measures as indicators of
+  daily volatility), \citet{HizmeriBevilacqua2025} (morning volatility uncertainty).
+  % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
+  % paper; its claim is narrowed to what it shows.
+  \begin{itemize}
+  \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
+  \end{itemize}
+\item \textbf{0DTE options and the variance risk premium:} the variance risk premium, implied minus expected
+  realized variance, $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, is positive on average.\newline
+  \citet{HizmeriBevilacqua2025}; option pricing and implied volatility \citet{BlackScholes1973},
+  \citet{Merton1973}.
+  \begin{itemize}
+  \item \todo{to add: Bandi--Fusari--Ren\`o 2023; Beckmeyer--Branger--Gayda 2023; Brogaard--Han--Won 2023;
+    Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
+    Bollerslev--Tauchen--Zhou 2009}.
+  \end{itemize}
+\item \textbf{Machine learning for volatility and returns:} a nonlinear $f(\bm x_t)$ of many predictors.\newline
+  \citet{gu2020empirical} (returns), \citet{christensen2023machine} (realized volatility); gradient-boosted trees
+  \citet{Ke2017} (LightGBM), \citet{Chen2016} (XGBoost); hyperparameter optimization \citet{Akiba2019} (Optuna).
+  \begin{itemize}
+  \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
+    Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
+  \end{itemize}
+\item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
+  proxy it ranks forecasts as the true conditional variance would, and
+  $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$.\newline
+  \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
+  \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
+  (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
+  \begin{itemize}
+  \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
+    (StepM); Newey--West 1987 (HAC variance)}.
+  \end{itemize}
+\item \textbf{Shrinkage with many weak signals:}
+  \[
+    \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - X\bm\beta \rVert_2^2
+      + \lambda\bigl(\alpha \lVert\bm\beta\rVert_1 + \tfrac{1-\alpha}{2} \lVert\bm\beta\rVert_2^2\bigr)
+  \]
+  (ridge $\alpha = 0$, lasso $\alpha = 1$); multi-penalty ridge gives each block of predictors its own penalty,
+  $\lambda \sum_j \omega_j \beta_j^2$ with the penalty weight $\omega_j$ constant within a block.\newline
+  \citet{GiannoneLenzaPrimiceri2021} (the illusion of sparsity), \citet{ShenXiu2025} (weak signals),
+  \citet{KozakNagelSantosh2020} (shrinking the cross-section), \citet{HoerlKennard1970} (ridge),
+  \citet{Tibshirani1996} (lasso), \citet{ZouHastie2005} (elastic net), \citet{vandeWiel2021multipenalty}
+  (multi-penalty ridge), \citet{vanWieringen2023ridge}.
+  \begin{itemize}
+  \item \todo{to add: Zou 2006 (adaptive lasso, penalty weights); Friedman--Hastie--Tibshirani 2010 (elastic-net
+    parametrization)}.
+  \end{itemize}
+\item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
+  $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$.\newline
+  \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
+  (dependent features).
+\item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
+  retransformation bias; we do not.\newline
+  \citet{Duan1983}, \citet{ManningMullahy2001}.
+\end{itemize}

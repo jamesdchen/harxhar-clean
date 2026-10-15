@@ -1,0 +1,439 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  6 OCT 2026 14:54
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**./model_diagnostics_1530.tex
+(model_diagnostics_1530.tex
+LaTeX2e <2023-06-01> patch level 1
+L3 programming layer <2023-08-29>
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/base\size10.clo
+File: size10.clo 2023/05/17 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count185
+\c@section=\count186
+\c@subsection=\count187
+\c@subsubsection=\count188
+\c@paragraph=\count189
+\c@subparagraph=\count190
+\c@figure=\count191
+\c@table=\count192
+\abovecaptionskip=\skip48
+\belowcaptionskip=\skip49
+\bibindent=\dimen140
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+Package: iftex 2022/02/03 v1.0f TeX engine tests
+))
+\Gm@cnth=\count193
+\Gm@cntv=\count194
+\c@Gm@tempcnt=\count195
+\Gm@bindingoffset=\dimen141
+\Gm@wd@mp=\dimen142
+\Gm@odd@mp=\dimen143
+\Gm@even@mp=\dimen144
+\Gm@layoutwidth=\dimen145
+\Gm@layoutheight=\dimen146
+\Gm@layouthoffset=\dimen147
+\Gm@layoutvoffset=\dimen148
+\Gm@dimlist=\toks18
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+Package: graphics 2022/03/10 v1.4e Standard LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.c
+fg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
+File: pdftex.def 2022/09/22 v1.2b Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen149
+\Gin@req@width=\dimen150
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.sty
+Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
+\heavyrulewidth=\dimen151
+\lightrulewidth=\dimen152
+\cmidrulewidth=\dimen153
+\belowrulesep=\dimen154
+\belowbottomsep=\dimen155
+\aboverulesep=\dimen156
+\abovetopsep=\dimen157
+\cmidrulesep=\dimen158
+\cmidrulekern=\dimen159
+\defaultaddspace=\dimen160
+\@cmidla=\count196
+\@cmidlb=\count197
+\@aboverulesep=\dimen161
+\@belowrulesep=\dimen162
+\@thisruleclass=\count198
+\@lastruleclass=\count199
+\@thisrulewidth=\dimen163
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+Package: amsmath 2023/05/13 v2.17o AMS math features
+\@mathmargin=\skip50
+
+For additional information on amsmath, use the `?' option.
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
+Package: amstext 2021/08/26 v2.01 AMS text
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks19
+\ex@=\dimen164
+))
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen165
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count266
+LaTeX Info: Redefining \frac on input line 234.
+\uproot@=\count267
+\leftroot@=\count268
+LaTeX Info: Redefining \overline on input line 399.
+LaTeX Info: Redefining \colon on input line 410.
+\classnum@=\count269
+\DOTSCASE@=\count270
+LaTeX Info: Redefining \ldots on input line 496.
+LaTeX Info: Redefining \dots on input line 499.
+LaTeX Info: Redefining \cdots on input line 620.
+\Mathstrutbox@=\box51
+\strutbox@=\box52
+LaTeX Info: Redefining \big on input line 722.
+LaTeX Info: Redefining \Big on input line 723.
+LaTeX Info: Redefining \bigg on input line 724.
+LaTeX Info: Redefining \Bigg on input line 725.
+\big@size=\dimen166
+LaTeX Font Info:    Redeclaring font encoding OML on input line 743.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
+\macc@depth=\count271
+LaTeX Info: Redefining \bmod on input line 905.
+LaTeX Info: Redefining \pmod on input line 910.
+LaTeX Info: Redefining \smash on input line 940.
+LaTeX Info: Redefining \relbar on input line 970.
+LaTeX Info: Redefining \Relbar on input line 971.
+\c@MaxMatrixCols=\count272
+\dotsspace@=\muskip16
+\c@parentequation=\count273
+\dspbrk@lvl=\count274
+\tag@help=\toks20
+\row@=\count275
+\column@=\count276
+\maxfields@=\count277
+\andhelp@=\toks21
+\eqnshift@=\dimen167
+\alignsep@=\dimen168
+\tagshift@=\dimen169
+\tagwidth@=\dimen170
+\totwidth@=\dimen171
+\lineht@=\dimen172
+\@envbody=\toks22
+\multlinegap=\skip51
+\multlinetaggap=\skip52
+\mathdisplay@stack=\toks23
+LaTeX Info: Redefining \[ on input line 2953.
+LaTeX Info: Redefining \] on input line 2954.
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption.sty
+Package: caption 2023/08/05 v3.6o Customizing captions (AR)
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption3.sty
+Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
+\caption@tempdima=\dimen173
+\captionmargin=\dimen174
+\caption@leftmargin=\dimen175
+\caption@rightmargin=\dimen176
+\caption@width=\dimen177
+\caption@indent=\dimen178
+\caption@parindent=\dimen179
+\caption@hangindent=\dimen180
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count278
+\c@continuedfloat=\count279
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
+tex.def
+File: l3backend-pdftex.def 2023-04-19 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count280
+\l__pdf_internal_box=\box53
+) (model_diagnostics_1530.aux)
+\openout1 = `model_diagnostics_1530.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: <default>
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(57.81621pt, 498.66258pt, 57.81621pt)
+* v-part:(T,H,B)=(57.81621pt, 679.33757pt, 57.81621pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=498.66258pt
+* \textheight=679.33757pt
+* \oddsidemargin=-14.45378pt
+* \evensidemargin=-14.45378pt
+* \topmargin=-51.45378pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=65.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
+ii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count281
+\scratchdimen=\dimen181
+\scratchbox=\box54
+\nofMPsegments=\count282
+\nofMParguments=\count283
+\everyMPshowfont=\toks24
+\MPscratchCnt=\count284
+\MPscratchDim=\dimen182
+\MPnumerator=\count285
+\makeMPintoPDFobject=\count286
+\everyMPtoPDFconversion=\toks25
+)
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-b
+ase.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.c
+fg
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+))
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
+<../results/model_diagnostics_1530/weights_small_multiples.png, id=1, 794.97pt 
+x 729.927pt>
+File: ../results/model_diagnostics_1530/weights_small_multiples.png Graphic fil
+e (type png)
+<use ../results/model_diagnostics_1530/weights_small_multiples.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/weights_small_multip
+les.png  used on input line 21.
+(pdftex.def)             Requested size: 498.66258pt x 457.87392pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<../results/model_diagnostics_1530/corr_contribution_vs_pnl.png, id=3, 794.97pt
+ x 527.571pt>
+File: ../results/model_diagnostics_1530/corr_contribution_vs_pnl.png Graphic fi
+le (type png)
+<use ../results/model_diagnostics_1530/corr_contribution_vs_pnl.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/corr_contribution_vs
+_pnl.png  used on input line 44.
+(pdftex.def)             Requested size: 498.66258pt x 330.93858pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<../results/model_diagnostics_1530/pnl_by_contribution_quintile.png, id=4, 794.
+97pt x 180.675pt>
+File: ../results/model_diagnostics_1530/pnl_by_contribution_quintile.png Graphi
+c file (type png)
+<use ../results/model_diagnostics_1530/pnl_by_contribution_quintile.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/pnl_by_contribution_
+quintile.png  used on input line 75.
+(pdftex.def)             Requested size: 498.66258pt x 113.33511pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[1
+
+{C:/Users/james/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+Overfull \hbox (36.1028pt too wide) in paragraph at lines 100--101
+\OT1/cmr/m/n/10 Files: \OT1/cmtt/m/n/10 experiments/model[]diagnostics[]1530.py
+ \OT1/cmr/m/n/10 (cap-ture, then an-a-lyze); out-puts in \OT1/cmtt/m/n/10 resul
+ts/model[]diagnostics[]1530/\OT1/cmr/m/n/10 . 
+ []
+
+[2] [3 <../results/model_diagnostics_1530/weights_small_multiples.png>]
+[4 <../results/model_diagnostics_1530/corr_contribution_vs_pnl.png> <../results
+/model_diagnostics_1530/pnl_by_contribution_quintile.png>]
+<../results/model_diagnostics_1530/regimes_weights_counterfactual.png, id=38, 7
+94.97pt x 339.669pt>
+File: ../results/model_diagnostics_1530/regimes_weights_counterfactual.png Grap
+hic file (type png)
+<use ../results/model_diagnostics_1530/regimes_weights_counterfactual.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/regimes_weights_coun
+terfactual.png  used on input line 113.
+(pdftex.def)             Requested size: 498.66258pt x 213.07004pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<../results/model_diagnostics_1530/regimes_supwald_paths.png, id=39, 794.97pt x
+ 375.804pt>
+File: ../results/model_diagnostics_1530/regimes_supwald_paths.png Graphic file 
+(type png)
+<use ../results/model_diagnostics_1530/regimes_supwald_paths.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/regimes_supwald_path
+s.png  used on input line 148.
+(pdftex.def)             Requested size: 498.66258pt x 235.73706pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[5
+
+ <../results/model_diagnostics_1530/regimes_weights_counterfactual.png>]
+[6 <../results/model_diagnostics_1530/regimes_supwald_paths.png>]
+<../results/model_diagnostics_1530/regimes_shap_share.png, id=49, 794.97pt x 38
+9.7762pt>
+File: ../results/model_diagnostics_1530/regimes_shap_share.png Graphic file (ty
+pe png)
+<use ../results/model_diagnostics_1530/regimes_shap_share.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/regimes_shap_share.p
+ng  used on input line 167.
+(pdftex.def)             Requested size: 498.66258pt x 244.50165pt.
+ [7
+
+ <../results/model_diagnostics_1530/regimes_shap_share.png>]
+<../results/model_diagnostics_1530/regimes_lasso_vix.png, id=56, 794.97pt x 202
+.356pt>
+File: ../results/model_diagnostics_1530/regimes_lasso_vix.png Graphic file (typ
+e png)
+<use ../results/model_diagnostics_1530/regimes_lasso_vix.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/regimes_lasso_vix.pn
+g  used on input line 198.
+(pdftex.def)             Requested size: 498.66258pt x 126.93533pt.
+
+Overfull \hbox (9.6618pt too wide) in paragraph at lines 230--231
+\OT1/cmr/m/n/10 Files: \OT1/cmtt/m/n/10 experiments/model[]diagnostics[]1530[]r
+egimes.py\OT1/cmr/m/n/10 ; out-puts \OT1/cmtt/m/n/10 results/model[]diagnostics
+[]1530/regimes[]*\OT1/cmr/m/n/10 . 
+ []
+
+[8
+
+ <../results/model_diagnostics_1530/regimes_lasso_vix.png>]
+<../results/model_diagnostics_1530/trees_shap_share.png, id=61, 794.97pt x 505.
+89pt>
+File: ../results/model_diagnostics_1530/trees_shap_share.png Graphic file (type
+ png)
+<use ../results/model_diagnostics_1530/trees_shap_share.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/trees_shap_share.png
+  used on input line 273.
+(pdftex.def)             Requested size: 498.66258pt x 317.33835pt.
+ [9
+
+]
+<../results/model_diagnostics_1530/trees_shap_rolling.png, id=65, 794.97pt x 36
+1.35pt>
+File: ../results/model_diagnostics_1530/trees_shap_rolling.png Graphic file (ty
+pe png)
+<use ../results/model_diagnostics_1530/trees_shap_rolling.png>
+Package pdftex.def Info: ../results/model_diagnostics_1530/trees_shap_rolling.p
+ng  used on input line 295.
+(pdftex.def)             Requested size: 498.66258pt x 226.67026pt.
+ [10 <../results/model_diagnostics_1530/trees_shap_share.png>] [11 <../results/
+model_diagnostics_1530/trees_shap_rolling.png>]
+Overfull \hbox (9.6618pt too wide) in paragraph at lines 326--327
+\OT1/cmr/m/n/10 Files: \OT1/cmtt/m/n/10 experiments/model[]diagnostics[]1530[]t
+rees.py\OT1/cmr/m/n/10 ; out-puts \OT1/cmtt/m/n/10 results/model[]diagnostics[]
+1530/trees[]shap*\OT1/cmr/m/n/10 . 
+ []
+
+[12] (model_diagnostics_1530.aux)
+ ***********
+LaTeX2e <2023-06-01> patch level 1
+L3 programming layer <2023-08-29>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 4061 strings out of 475248
+ 71406 string characters out of 5757813
+ 1948801 words of memory out of 5000000
+ 25578 multiletter control sequences out of 15000+600000
+ 562895 words of font info for 54 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 57i,11n,65p,1640b,432s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\james\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
+1000.pk><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfon
+ts/cm/cmbx10.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmbx12.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmex10.pfb><C:/Users/james/AppData/Local/Programs/MiKTe
+X/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/james/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/james/AppData/Loc
+al/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi9.pfb><C:/Users/james/App
+Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/j
+ames/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/
+Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.p
+fb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm
+/cmr9.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsf
+onts/cm/cmsy10.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmsy5.pfb><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmsy6.pfb><C:/Users/james/AppData/Local/Programs/MiKTe
+X/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/james/AppData/Local/Progra
+ms/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/james/AppData/Loca
+l/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/james/App
+Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Users/
+james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt8.pfb><C
+:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt
+9.pfb>
+Output written on model_diagnostics_1530.pdf (12 pages, 1793179 bytes).
+PDF statistics:
+ 160 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 46 words of extra memory for PDF output out of 10000 (max. 10000000)
+

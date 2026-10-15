@@ -1,0 +1,1 @@
+MACROS_POOLED_DONE 2026-10-06 19:06:09 -0700 -- increment: the 3 pooled lean tables (yhat_pool_*_lean_vol_vix) in the master table (paper model set 163); pooled pre-tuned arm (f) (results/pool_linear_pretune_2026-10-06/) NOT landed: stored pooled rows used

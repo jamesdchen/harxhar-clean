@@ -1,0 +1,76 @@
+% paper_rehaul.tex -- the rehauled paper (2026-10-15): preamble + one \input per section in writeup/rehaul/.
+% Each section file can be expanded on its own (and in parallel). Build from writeup/ so generated/ and
+% references.bib resolve.
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\DeclareMathOperator{\QLIKE}{QLIKE}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\clip}{clip}
+\DeclareMathOperator{\softplus}{softplus}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% 2026-10-15 (notation pass): shared symbols, see writeup/NOTATION_GUIDE_2026-10-15.md
+\newcommand{\RV}{\mathrm{RV}}
+\newcommand{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\newcommand{\SR}{\mathrm{SR}}
+\newcommand{\DM}{\mathrm{DM}}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[round]{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{threeparttable}
+\usepackage{longtable}
+% 2026-10-15 (table legibility): landscape pages for wide tables, stacked headers. siunitx is NOT loaded: the
+% local MiKTeX's expl3 is too old for it (fatal "Support package expl3 too old"); use r columns with fixed decimals.
+\usepackage{pdflscape}
+\usepackage{makecell}
+\usepackage{xcolor}
+\captionsetup{font=small,labelfont=bf}
+\usepackage{hyperref}
+\emergencystretch=3em
+\setlist{itemsep=1pt, topsep=3pt, parsep=0pt}
+\setlist[itemize,2]{label=--}
+\newcommand{\todo}[1]{\textit{[#1]}}
+
+\title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
+\author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
+\date{Working draft, 15 October 2026 --- not for citation}
+
+\begin{document}
+\maketitle
+
+\input{rehaul/01_introduction}
+\input{rehaul/02_related_work}
+\input{rehaul/03_data}
+\input{rehaul/03_data_floats}
+\input{rehaul/04_features}
+\input{rehaul/04_features_floats}
+\input{rehaul/05_methods}
+\input{rehaul/05_methods_floats}
+\input{rehaul/06_results}
+\input{rehaul/06_results_floats}
+\input{rehaul/07_economics}
+\input{rehaul/07_economics_floats}
+\input{rehaul/08_feature_importance}
+\input{rehaul/08_feature_importance_floats}
+\input{rehaul/08b_fi_measures_floats}
+\clearpage
+\input{rehaul/09_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\input{rehaul/10_appendix}
+\input{rehaul/10_appendix_floats}
+\input{rehaul/99_author_notes}
+
+\end{document}

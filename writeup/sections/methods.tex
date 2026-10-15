@@ -7,16 +7,21 @@
 % construction subsections is either a definition or a design-justifying
 % measurement on a non-scored panel, disclosed as such.
 
+% 2026-10-06 parked (recalibration removed, user decision): the first half's
+% second item and the pointer to the calibrated back-transform appendix.  Verbatim:
+% (Section~\ref{sec:dp_benchmark}); and the inheritance rule that makes
+% the whole stack binding on every downstream comparison
+% (Section~\ref{sec:smearing_contract}). The back-transformation from the
+% fitting scale to the variance scale, and the calibrated, strictly causal
+% second-order adjustment it carries, are defined in
+% Appendix~\ref{sec:appendix_backtransform} and summarized in
+% Section~\ref{sec:dp_prep}.
 The methods come in two halves. The first half fixes the evaluation
 framework before any comparison is made: the comparator each arm is
 measured against and the testing machinery that accompanies it
-(Section~\ref{sec:dp_benchmark}); and the inheritance rule that makes
-the whole stack binding on every downstream comparison
-(Section~\ref{sec:smearing_contract}). The back-transformation from the
-fitting scale to the variance scale, and the calibrated, strictly causal
-second-order adjustment it carries, are defined in
-Appendix~\ref{sec:appendix_backtransform} and summarized in
-Section~\ref{sec:dp_prep}. The second
+(Section~\ref{sec:dp_benchmark}); and the back-transform that maps every
+forecast from the fitting scale to the variance scale before it is
+scored (Section~\ref{sec:smearing_contract}). The second
 half defines what is compared: the estimators --- one unpenalized
 member, the penalized linear family, and two tree ensembles --- with the
 walk-forward protocol and the causal tuning rule every tuned arm obeys
@@ -51,7 +56,9 @@ variables, refit at every bar. The forecasting protocol is:
     \item The benchmark is read from the ridge path at $\alpha = 0$; it is
       therefore exact OLS.
     \item Each forecast is mapped back to raw variance through
-      Equation~\eqref{eq:dp_duan}.
+      Equation~\eqref{eq:backtransform}.
+      % 2026-10-06 parked (recalibration removed, user decision): was
+      % "through Equation~\eqref{eq:dp_duan}" (the smeared back-transform).
     \item Forecasts are scored by QLIKE \citep{Patton2011},
 \end{enumerate}
 \begin{equation}
@@ -61,7 +68,9 @@ variables, refit at every bar. The forecasting protocol is:
     r_t = \frac{RV^{\mathrm{raw}}_t}{\widehat{RV}^{\mathrm{raw}}_t},
     \label{eq:dp_qlike}
 \end{equation}
-computed on the full $273{,}554$-bar evaluation panel. QLIKE is used for
+% 2026-10-06 (no-history bars excluded, user decision): was the typed
+% $273{,}554$; the count is now the scorer's \unifAzeroN.
+computed on the full \unifAzeroN{}-bar evaluation panel. QLIKE is used for
 three reasons: it is scale-invariant in the level of volatility; it is
 strictly consistent for the conditional variance; and it penalises
 under-prediction more heavily than over-prediction, which matches the
@@ -74,27 +83,41 @@ regime, and every table is labelled with the panel it was computed on.
 
 \begin{table}[H]
 \centering
+% 2026-10-06 (recalibration removed, user decision): the caption pointed to
+% "the evaluation protocol of Sections~\ref{sec:smearing_bias}--\ref{sec:smearing_contract}".
 \caption{The benchmark: per-bar OLS on the HAR ladder plus calendar
-dummies, scored on the frozen panel under the evaluation protocol of
-Sections~\ref{sec:smearing_bias}--\ref{sec:smearing_contract}. QLIKE is
+dummies, scored on the frozen panel, its forecast used as the plain
+back-transform of Equation~\eqref{eq:backtransform}. QLIKE is
 computed on the raw variance scale; the secondary metrics are computed on
-the fitting (square-root) scale where the model is estimated, on the same
-scored pairs.\label{tab:benchmark}}
+the fitting (square-root) scale where the model is estimated, against
+the unwinsorized realization $\sqrt{RV_t / B_t}$ on the same scored bars.
+% 2026-10-06: the five square-root-scale rows were typed from an earlier build
+% ($0.417$, $-0.034$, $1.039$, $0.1397$, $0.2208$) and do not reproduce from
+% the stored outputs; they are now the scorer's \unifAzeroFit... macros.
+\label{tab:benchmark}}
 \begin{tabular}{@{}lr@{}}
 \toprule
-Scored bars & $273{,}554$ (positivity exclusion removes $0.2\%$) \\
+Scored bars & \unifAzeroN{} (positivity exclusion removes $0.2\%$) \\
 QLIKE (raw scale) & \unifAzeroQLIKE{} \\
-Out-of-sample $R^2$ (fit scale) & $0.417$ \\
-Mincer--Zarnowitz $\alpha$ (fit scale) & $-0.034$ \\
-Mincer--Zarnowitz $\beta$ (fit scale) & $1.039$ \\
-MSE (fit scale) & $0.1397$ \\
-MAE (fit scale) & $0.2208$ \\
+Out-of-sample $R^2$ (fit scale) & \unifAzeroFitRsq{} \\
+Mincer--Zarnowitz $\alpha$ (fit scale) & \unifAzeroFitMZalpha{} \\
+Mincer--Zarnowitz $\beta$ (fit scale) & \unifAzeroFitMZbeta{} \\
+MSE (fit scale) & \unifAzeroFitMSE{} \\
+MAE (fit scale) & \unifAzeroFitMAE{} \\
 \bottomrule
 \end{tabular}
 \end{table}
+% 2026-10-06 (recalibration removed, user decision): the two error figures were
+% typed from the smeared forecast ($3.3 \times 10^{-7}$, $35.6$); now the
+% benchmark's plain forecast, \unifAzeroMedAbsErr / \unifAzeroMaxAbsErr.
+% 2026-10-06 (no-history bars excluded, user decision): the maximum was a
+% placeholder-baseline bar (2003-07-06 20:30, 4.27); without those bars it is a
+% volatility-spike bar, and the ten-largest share \unifAzeroTopTenSSEPct is added.
 Squared-error metrics computed on the raw variance scale are uninformative
-on this panel: the median absolute error is $3.3 \times 10^{-7}$ against a
-maximum of $35.6$, so a handful of volatility-spike bars dominates every
+on this panel: the median absolute error is \unifAzeroMedAbsErr{} against a
+maximum of \unifAzeroMaxAbsErr{}, and the ten largest of the
+\unifAzeroNQlike{} scored errors carry \unifAzeroTopTenSSEPct{} of the sum
+of squared errors, so a handful of volatility-spike bars dominates every
 squared-error aggregate --- the asymmetry that motivates QLIKE as the
 primary loss (Section~\ref{sec:dp_benchmark}).
 
@@ -130,6 +153,62 @@ estimation-window lengths) are conventions of the panel and estimator
 construction, disclosed where they are defined and never optimized against
 any loss.
 
+\subsection{The Back-Transform}
+\label{sec:smearing_contract}
+% 2026-10-06: the labels of the parked back-transformation appendix and of the
+% parked convention comparison are kept live on this subsection, so every
+% surviving cross-reference resolves to the plain back-transform defined here.
+\label{sec:smearing}
+\label{sec:smearing_bias}
+\label{sec:appendix_backtransform}
+
+Every model in this paper is fit on the preprocessed scale of
+Section~\ref{sec:dp_prep}: realized variance is divided by its
+time-of-day baseline and passed through the square root, so the
+regression target is $y_t = \sqrt{RV_t / B_t}$, where $B_t$ is the
+diurnal baseline of Equation~\eqref{eq:dp_diurnal} at bar $t$, built
+from same-slot bars strictly before $t$. Evaluation is on the raw
+variance scale, because QLIKE is a strictly consistent scoring rule for
+the conditional variance and not for any transform of it. Each forecast
+$\hat{y}_t$ of the fitting-scale target is therefore mapped back to the
+variance scale by undoing the two preparation steps, and by nothing
+else:
+\begin{equation}
+    \widehat{RV}_t = \hat{y}_t^{\,2}\, B_t .
+    \label{eq:backtransform}
+\end{equation}
+The back-transform has no smearing factor, no recalibration map and no
+estimated quantity of its own: the scored object is the model's
+forecast squared and rescaled by the baseline, identical in form for
+every arm. The realization it is scored against is the raw realized
+variance $RV_t$ itself, never one rebuilt from the winsorized fitting
+target. QLIKE (Equation~\eqref{eq:dp_qlike}) is averaged over the bars
+at which both members of the pair are positive. Bars whose time-of-day
+baseline has fewer than five earlier same-slot observations are not
+scored.
+% 2026-10-06 (user decision, "exclude the 65 bars"): on those bars the
+% preparation writes a placeholder baseline of one, not a variance scale; they
+% are the first five appearances of the slots that began printing after the
+% panel start.  Rule: experiments/score_unification.py, DIURNAL_NO_HISTORY_BASELINE. Every downstream
+comparison --- the linear-class comparisons of
+Section~\ref{sec:dense_weak}, and the tree and block-ridge results of
+Sections~\ref{sec:tree_edge} and~\ref{sec:three_block_results} --- scores
+its arms on raw-scale pairs produced by exactly this map, on the
+identical row index.
+
+Squaring does not commute with the conditional expectation. By Jensen's
+inequality the squared forecast falls short of the conditional mean of
+$y_t^2$ by the conditional variance of the fitting-scale error, so the
+forecast of Equation~\eqref{eq:backtransform} is biased low by an amount
+that differs across arms with their own error variance. That shortfall is
+part of each forecast as scored: the comparisons below are comparisons of
+these forecasts, and QLIKE, which penalizes under-prediction more heavily
+than over-prediction, charges each arm for it.
+
+% 2026-10-06 parked (recalibration removed, user decision): the calibrated
+% evaluation protocol (Duan / Mincer--Zarnowitz second-order adjustment), the
+% three-convention comparison and its table.  Kept verbatim below.
+\iffalse
 \subsection{A Common Evaluation Protocol}
 \label{sec:smearing_contract}
 
@@ -195,6 +274,7 @@ Any future change to the second-moment model --- including the learned
 correction contemplated for this slot --- would constitute a change of
 protocol, and would require re-scoring every comparison that inherited the
 old one.
+\fi
 
 \subsection{Estimators and Causal Tuning}
 \label{sec:estimators}
@@ -375,13 +455,20 @@ incumbent (Section~\ref{sec:dp_benchmark}).
 \label{sec:dense_weak_twoblock}
 \label{sec:three_block}
 
+% 2026-10-06 parked (recalibration removed, user decision): the measured
+% parenthetical came from the earlier causal-tuning battery, scored on the
+% retired smeared back-transform and not re-scorable from stored outputs.
+% Verbatim: "Penalizing the HAR-plus-calendar design alone raises QLIKE
+% relative to plain OLS (ridge $t = +5.0$ against the incumbent): those
+% columns are few, well-conditioned, and individually strong, so any
+% shrinkage on them is pure bias. The wide exogenous design requires heavy
+% shrinkage --- that is the head-to-head's result."
 A single ridge penalty cannot serve the HAR backbone and the wide
-exogenous design at once. Penalizing the HAR-plus-calendar design
-alone raises QLIKE relative to plain OLS (ridge $t = +5.0$ against
-the incumbent): those columns are few, well-conditioned, and
-individually strong, so any shrinkage on them is pure bias. The wide
-exogenous design requires heavy shrinkage --- that is the
-head-to-head's result. A scalar $\alpha$ large enough for the weak
+exogenous design at once. The HAR-plus-calendar columns are few,
+well-conditioned, and individually strong, so shrinking them buys
+little variance and costs bias. The wide exogenous design requires
+heavy shrinkage --- that is the penalty sweep's result
+(Section~\ref{sec:dense_weak}). A scalar $\alpha$ large enough for the weak
 exogenous columns over-shrinks the HAR columns; a value small enough
 for the HAR columns under-shrinks the exogenous columns.
 

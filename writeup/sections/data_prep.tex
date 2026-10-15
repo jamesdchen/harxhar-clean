@@ -25,10 +25,17 @@ futures session and prints regular-hours bars ending at $13{:}00$ or
 $11{:}30$ with no $16{:}00$ bar at all; an early close prints post-close
 bars right through $16{:}00$, on which realized variance collapses to a few
 percent of what that slot normally carries. Both are legitimate rows of a
-futures panel and are kept. They are not legitimate rows of a
+futures panel and are kept.
+% 2026-10-06 parked (recalibration removed, user decision; the explicit calendar was the fit
+% mask of the removed session-bar map):
+% They are not legitimate rows of a
+% \emph{cash-session} exercise, and the last-bar option reading of
+% Section~\ref{sec:close_option_methods} excludes them by an explicit
+% calendar.
+They are not legitimate rows of a
 \emph{cash-session} exercise, and the last-bar option reading of
-Section~\ref{sec:close_option_methods} excludes them by an explicit
-calendar.
+Section~\ref{sec:close_option_methods} does not trade them: a cash-market
+holiday has no expiration, and an early close is dropped by an explicit test.
 
 The panel's session structure therefore evolves as the market's did. The
 source prints around the clock from its first day --- the panel's first
@@ -59,9 +66,15 @@ bar, which turned a nearly singular solve into forecasts orders of magnitude off
 overlapping 2005--2024 span the rule removes $4{,}925$ such dead-session
 bars ($\approx 2\%$ of the calendar grid).
 The accounting is: $303{,}442$ print-bars on the grid, $300{,}317$ panel
-rows after the construction burn-in, and $273{,}554$ scored evaluation rows
-after the $24{,}000$-bar training window and the calibration burn-in of
-Section~\ref{sec:smearing}.
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% rows after the construction burn-in, and $273{,}554$ scored evaluation rows
+% after the $24{,}000$-bar training window and the calibration burn-in of
+% Section~\ref{sec:smearing}.
+% 2026-10-06 parked (the 65 bars with the B = 1 placeholder baseline are no longer scored, user decision):
+% rows after the construction burn-in, and $273{,}554$ scored evaluation rows
+rows after the construction burn-in, and \unifAzeroN{} scored evaluation rows
+after the $24{,}000$-bar training window; the first walk-forward window of
+each arm is not scored.
 
 The forecasting target is realized variance. For each 30-minute bar it is
 computed as the sum of squared one-minute log-returns within the bar:
@@ -95,12 +108,18 @@ Feature construction consumes a fixed burn-in of $3{,}125$ bars at the
 start of the sample (January to June 1998), a constant of the panel
 construction that exceeds the longest feature lookback. This reduces the
 grid's $303{,}442$ print-bars to a usable panel of $300{,}317$ bars. The
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% walk-forward protocol consumes a further $24{,}000$ bars as the initial
+% training window, and the calibration burn-in of
+% Section~\ref{sec:smearing} consumes the first evaluation window. Every
 walk-forward protocol consumes a further $24{,}000$ bars as the initial
-training window, and the calibration burn-in of
-Section~\ref{sec:smearing} consumes the first evaluation window. Every
+training window, and the first walk-forward window of each arm is not
+scored. Every
 arm reported in this paper is scored on the identical remaining rows; the
 paired bar-for-bar comparisons used throughout require this shared row
-index. The scored evaluation panel contains $n = 273{,}554$ bars.
+% 2026-10-06 parked (the 65 bars with the B = 1 placeholder baseline are no longer scored, user decision):
+% index. The scored evaluation panel contains $n = 273{,}554$ bars.
+index. The scored evaluation panel contains $n=$ \unifAzeroN{} bars.
 
 \paragraph{Exogenous information.}
 Beyond the target's own history, the design uses $41$ exogenous channels.
@@ -147,17 +166,25 @@ scheduled print the four channels are missing (a dead tail), so the
 impute-and-indicate construction of Section~\ref{sec:dp_prep} sees a
 stopped feed rather than a wall of zeros.
 
-OLS on the HAR ladder plus this FOMC calendar bucket beats the baseline (HAR + calendar OLS)
-on the shared evaluation panel
-(Table~\ref{tab:fomc_bucket}): scheduled calendar information in the
-design, not a post-forecast filter. Joint OLS on all features, with
-the FOMC channels included among the rest, still loses to the
-baseline (HAR + calendar OLS).
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% OLS on the HAR ladder plus this FOMC calendar bucket beats the baseline (HAR + calendar OLS)
+% on the shared evaluation panel
+% (Table~\ref{tab:fomc_bucket}): scheduled calendar information in the
+% design, not a post-forecast filter. Joint OLS on all features, with
+% the FOMC channels included among the rest, still loses to the
+% baseline (HAR + calendar OLS).
+OLS on the HAR ladder plus this FOMC calendar bucket does not improve on
+the baseline (HAR + calendar OLS) on the shared evaluation panel: its QLIKE
+is higher, not significantly (Table~\ref{tab:fomc_bucket}). Joint OLS on all
+features, with the FOMC channels included among the rest, also loses to the
+baseline.
 
 \begin{table}[H]
 \centering
 \caption{FOMC calendar channels on the shared evaluation panel of
-Section~\ref{sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano
+% 2026-10-06 parked (the 65 bars with the B = 1 placeholder baseline are no longer scored, user decision):
+% Section~\ref{sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano
+Section~\ref{sec:dp_data}, $n=$ \unifAzeroN. QLIKE and Diebold--Mariano
 $t$ versus the baseline (HAR + calendar OLS); negative $t$ favors the arm.}
 \label{tab:fomc_bucket}
 \input{generated_fomc1/table_fomc_bucket}
@@ -229,7 +256,10 @@ Intraday volatility has a time-of-day profile. Let
 $s(t) \in \{1,\dots,48\}$ index the time-of-day slot of bar $t$, and let
 $\mathcal{W}_t = \{j : j < t,\ s(j)=s(t)\}$ be the set of the most recent
 $W = 20$ observations sharing that slot, with at least $5$ required before
-the baseline is valid. For non-negative series, the baseline is the
+% 2026-10-06 parked (the 65 bars with the B = 1 placeholder baseline are no longer scored, user decision):
+% the baseline is valid. For non-negative series, the baseline is the
+the baseline is valid, and bars without a valid baseline are not scored. For
+non-negative series, the baseline is the
 same-slot rolling mean and the adjustment divides by it:
 \begin{equation}
     \bar{RV}_{t\mid s} = \frac{1}{|\mathcal{W}_t|}\sum_{j \in \mathcal{W}_t} RV_j,
@@ -257,28 +287,36 @@ estimated on the adjusted $\sqrt{RV}$ scale. After transformation, each
 series is clipped to rolling 1st and 99th percentile bounds estimated on
 the trailing $W_{\mathrm{clip}} = 240$ observations (about five trading
 days) ending at $t-1$. Winsorization is not inverted at evaluation time;
-only the diurnal division and the square root are inverted. Because
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% only the diurnal division and the square root are inverted. Because
+% $\mathbb{E}[\sqrt{X}]^2 \neq \mathbb{E}[X]$, squaring a forecast of
+% $\sqrt{RV}$ gives a downward-biased forecast of $RV$. The standard
+% remedy in the literature is the classical retransformation estimator of
+% \citet{Duan1983} --- add the in-sample residual variance to the squared
+% forecast. We refine on that traditional construction with a calibrated,
+% strictly causal \emph{second-order adjustment}: a Mincer--Zarnowitz
+% mean map re-estimated at every window boundary, and an adaptive second
+% moment that tracks the model's own recent error level bar by bar. The
+% refinement is specified and analyzed in
+% Appendix~\ref{sec:appendix_backtransform}; its sensitivity against the
+% na"ive inverse and the classical estimator is measured in
+% Section~\ref{sec:smearing_contract}. In raw form the back-transform is
+% the traditional one:
+% \begin{equation}
+%     \widehat{RV}^{\mathrm{raw}}_t
+%     = \left(\hat{f}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right)\cdot
+%       \bar{RV}^{\mathrm{baseline}}_{t\mid s},
+%     \qquad
+%     \hat{\sigma}^2_{\varepsilon} = \frac{1}{N}\sum_i (y_i - \hat{y}_i)^2.
+%     \label{eq:dp_duan}
+% \end{equation}
+only the diurnal division and the square root are inverted, by the plain
+back-transform $\widehat{RV}_t = \hat y_t^{\,2} B_t$ of
+Equation~\eqref{eq:backtransform}. Because
 $\mathbb{E}[\sqrt{X}]^2 \neq \mathbb{E}[X]$, squaring a forecast of
-$\sqrt{RV}$ gives a downward-biased forecast of $RV$. The standard
-remedy in the literature is the classical retransformation estimator of
-\citet{Duan1983} --- add the in-sample residual variance to the squared
-forecast. We refine on that traditional construction with a calibrated,
-strictly causal \emph{second-order adjustment}: a Mincer--Zarnowitz
-mean map re-estimated at every window boundary, and an adaptive second
-moment that tracks the model's own recent error level bar by bar. The
-refinement is specified and analyzed in
-Appendix~\ref{sec:appendix_backtransform}; its sensitivity against the
-na"ive inverse and the classical estimator is measured in
-Section~\ref{sec:smearing_contract}. In raw form the back-transform is
-the traditional one:
-\begin{equation}
-    \widehat{RV}^{\mathrm{raw}}_t
-    = \left(\hat{f}_t^{\,2} + \hat{\sigma}^2_{\varepsilon}\right)\cdot
-      \bar{RV}^{\mathrm{baseline}}_{t\mid s},
-    \qquad
-    \hat{\sigma}^2_{\varepsilon} = \frac{1}{N}\sum_i (y_i - \hat{y}_i)^2.
-    \label{eq:dp_duan}
-\end{equation}
+$\sqrt{RV}$ gives a downward-biased forecast of $RV$; no correction is
+applied, and each forecast is scored with its own bias
+(Section~\ref{sec:smearing_contract}).
 
 \paragraph{HAR features.}
 The target's own history enters through trailing rolling means of the

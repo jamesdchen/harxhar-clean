@@ -10,7 +10,7 @@
 
 \textbf{Measures.} (1) \emph{MDI / gain}: LightGBM gain, XGBoost total gain, random-forest impurity decrease; share per refit, averaged. (2) \emph{Split count}. (3) \emph{Permutation importance} on the tail, loss = QLIKE of the plain back-transform $\hat y^2\times$ diurnal baseline against the bar's realized variance (no recalibration), and squared error in the fit space; 10 draws per unit and refit, the same draws for all five models. P1 shuffles the unit's values among the tail's rows (the literal permutation; blind to slow inputs, which barely move in 10 sessions); P2 replaces them with rows drawn from the refit's own training window (past data only). A unit is a column, a \emph{series} (all columns of one input: lags, flags, gates) or a \emph{cluster} (columns every pair of which has $|$corr$|\ge 0.8$, complete linkage); a group's columns move together. Intervals: 95\% circular-block bootstrap over refits (block 6). (4) \emph{SHAP}: TreeSHAP (path-dependent) on the same tail rows; for the linear models $\beta_j(x_j-\bar x_j)$ with the window mean as background. Linear extras: $|\beta\cdot sd|$ and drop-column importance (re-solve without the unit, penalty held).
 
-\textbf{Key.} \texttt{har\_ma\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; \texttt{har\_ma\_*\_x\_close} = the same times the 16:00 close gate, identical at this bar); \texttt{adj\_sumabsret\_ma\_*} absolute return; \texttt{adj\_sumret\_ma\_*} signed return; \texttt{adj\_sumret3/4\_ma\_*} 3rd/4th-power returns; \texttt{adj\_sumpret2\_ma\_*} upside squared returns; \texttt{adj\_sumbipow\_ma\_*} bipower variation; \texttt{adj\_sumautocov\_ma\_*} return autocovariance; \texttt{adj\_sumvolume\_ma\_*} ES volume; \texttt{adj\_numobs\_ma\_*} ES prints per bar; \texttt{adj\_vix/vvix/vix3m\_ma\_*} the Cboe indices; \texttt{adj\_fomc\_*} FOMC flags and distances; \texttt{*\_avail/active\_ma\_*} is-present / is-nonzero flags; calendar = \texttt{DOW\_*}, \texttt{is\_*}, \texttt{hour}, \texttt{days\_to\_opex}. all features adds the constituent cross-section (\texttt{*\_ewstock}, \texttt{*\_vwstock}), Cboe volume (\texttt{adj\_voldemand\_*}) and StockTwits (\texttt{adj\_stocktwits\_*}).
+\textbf{Key.} Every exogenous input is divided by its time-of-day baseline, and the HAR columns \texttt{har\_ma\_*} are trailing means of the adjusted target, so no name carries a prefix. \texttt{har\_ma\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; \texttt{har\_ma\_*\_x\_close} = the same times the 16:00 close gate, identical at this bar); \texttt{sumabsret\_ma\_*} absolute return; \texttt{sumret\_ma\_*} signed return; \texttt{sumret3/4\_ma\_*} 3rd/4th-power returns; \texttt{sumpret2\_ma\_*} upside squared returns; \texttt{sumbipow\_ma\_*} bipower variation; \texttt{sumautocov\_ma\_*} return autocovariance; \texttt{sumvolume\_ma\_*} ES volume; \texttt{numobs\_ma\_*} ES prints per bar; \texttt{vix/vvix/vix3m\_ma\_*} the Cboe indices; \texttt{fomc\_*} FOMC flags and distances; \texttt{*\_avail/active\_ma\_*} is-present / is-nonzero flags; calendar = \texttt{DOW\_*}, \texttt{is\_*}, \texttt{hour}, \texttt{days\_to\_opex}. all features adds the constituent cross-section (\texttt{*\_ewstock}, \texttt{*\_vwstock}), Cboe volume (\texttt{voldemand\_*}) and StockTwits (\texttt{stocktwits\_*}).
 
 \begin{table}[H]\centering\footnotesize
 \caption{The design is float throughout, but not all continuous: distinct values per column in each 2000-session window (median over the 147 windows) --- what MDI's cardinality bias keys on.}
@@ -44,43 +44,43 @@ HAR + calendar & XGBoost & 37 & 9 (64\%) & 6 (80\%) & 13 (51\%) & 13 & 19 & $+0.
 HAR + calendar & random forest & 37 & 5 (80\%) & 1 (100\%) & 11 (60\%) & 9 & 15 & $-0.35$ [-2.26, +1.60] & 691 \\
 \bottomrule\end{tabular}\end{table}
 
-\textbf{Reading.} A column of pure noise with a new value on every row is ranked by MDI above 75\%, 64\%, 89\% (LightGBM, XGBoost, forest) of the real all-features columns the model uses, and by the forest's split count above 98\%; the binary noise column sits near the bottom. The same noise gets a permutation importance of at most 0.50$\times10^{-3}$ in absolute value (5 of 6 intervals include zero; the exceptions all features XGBoost [+0.01, +0.38]e-3), against at least 0.28 for \texttt{har\_ma\_*}. TreeSHAP, which splits the fitted trees, inherits part of the bias. Over the real columns, MDI, split count and SHAP correlate 0.83--0.88 with the number of distinct values, permutation -0.06--0.19. So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first. Series that MDI or split count puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): all features LightGBM: \texttt{adj\_sellturnover\_vwstock\_ma\_*} (35), \texttt{adj\_stocktwits\_sentiment\_ma\_*} (49), \texttt{adj\_sumret3\_ma\_*} (28); all features XGBoost: \texttt{adj\_sumautocov\_ma\_*} (11); all features random forest: \texttt{adj\_voldemand\_spx\_open\_and\_close\_ma\_*} (47), \texttt{adj\_voldemand\_all\_open\_only\_ma\_*} (36), \texttt{adj\_voldemand\_spx\_open\_only\_ma\_*} (43).
+\textbf{Reading.} A column of pure noise with a new value on every row is ranked by MDI above 75\%, 64\%, 89\% (LightGBM, XGBoost, forest) of the real all-features columns the model uses, and by the forest's split count above 98\%; the binary noise column sits near the bottom. The same noise gets a permutation importance of at most 0.50$\times10^{-3}$ in absolute value (5 of 6 intervals include zero; the exceptions all features XGBoost [+0.01, +0.38]e-3), against at least 0.28 for \texttt{har\_ma\_*}. TreeSHAP, which splits the fitted trees, inherits part of the bias. Over the real columns, MDI, split count and SHAP correlate 0.83--0.88 with the number of distinct values, permutation -0.06--0.19. So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first. Series that MDI or split count puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): all features LightGBM: \texttt{sellturnover\_vwstock\_ma\_*} (35), \texttt{stocktwits\_sentiment\_ma\_*} (49), \texttt{sumret3\_ma\_*} (28); all features XGBoost: \texttt{sumautocov\_ma\_*} (11); all features random forest: \texttt{voldemand\_spx\_open\_and\_close\_ma\_*} (47), \texttt{voldemand\_all\_open\_only\_ma\_*} (36), \texttt{voldemand\_spx\_open\_only\_ma\_*} (43).
 
 \section*{2. The top inputs by measure}
 \begin{table}[H]\centering\scriptsize
 \caption{All-features design, series level: top three per model and measure (share for MDI / split / $|\beta\cdot sd|$ / SHAP; change as \% of the model's tail loss for permutation and drop-column).}
 \begin{tabular}{llp{11.2cm}}\toprule
 model & measure & top three\\\midrule
-ridge & $|\beta\cdot sd|$ & \texttt{har\_ma\_*} 11\%; \texttt{adj\_sumabsret\_ma\_*} 5\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} 5\% \\
-ridge & perm.\ P1, $\Delta$MSE & \texttt{har\_ma\_*} +63\%; \texttt{adj\_sumabsret\_ma\_*} +7\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} +7\% \\
-ridge & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +142\%; \texttt{adj\_sumabsret\_ma\_*} +22\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} +18\% \\
-ridge & perm.\ P2, $\Delta$QLIKE & \texttt{adj\_sumautocov\_ma\_*} +4051120\%; \texttt{adj\_spread\_vwstock\_ma\_*} +57340\%; \texttt{adj\_voldemand\_spx\_open\_only\_ma\_*} +3749\% \\
-ridge & drop-column, $\Delta$MSE & \texttt{har\_ma\_*} +17\%; \texttt{calendar} +2\%; \texttt{adj\_sumvolume\_ma\_*} +2\% \\
-ridge & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 15\%; \texttt{adj\_sumabsret\_ma\_*} 6\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} 5\% \\
-lasso & $|\beta\cdot sd|$ & \texttt{har\_ma\_*} 46\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} 10\%; \texttt{adj\_sumret\_ma\_*} 9\% \\
-lasso & perm.\ P1, $\Delta$MSE & \texttt{har\_ma\_*} +145\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} +8\%; \texttt{adj\_sumret\_ma\_*} +7\% \\
-lasso & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +290\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} +18\%; \texttt{adj\_vix\_ma\_*} +15\% \\
-lasso & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +259\%; \texttt{adj\_vix3m\_ma\_*} +85\%; \texttt{adj\_sumbipow\_ewstock\_ma\_*} +48\% \\
-lasso & drop-column, $\Delta$MSE & \texttt{har\_ma\_*} +27\%; \texttt{adj\_sumret\_ma\_*} +2\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} +1\% \\
-lasso & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 46\%; \texttt{adj\_sumabsret\_vwstock\_ma\_*} 10\%; \texttt{adj\_sumret\_ma\_*} 9\% \\
-LightGBM & MDI / gain & \texttt{har\_ma\_*} 57\%; \texttt{adj\_sumret\_ma\_*} 5\%; \texttt{adj\_sumabsret\_ma\_*} 4\% \\
-LightGBM & split count & \texttt{har\_ma\_*} 12\%; \texttt{adj\_sumret\_ma\_*} 6\%; \texttt{adj\_sumvolume\_ma\_*} 4\% \\
-LightGBM & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +111\%; \texttt{calendar} +5\%; \texttt{adj\_sumret\_ma\_*} +4\% \\
-LightGBM & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +237\%; \texttt{calendar} +6\%; \texttt{adj\_sumret\_ma\_*} +4\% \\
-LightGBM & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +235\%; \texttt{calendar} +4\%; \texttt{adj\_sumret\_ma\_*} +3\% \\
-LightGBM & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 47\%; \texttt{adj\_sumret\_ma\_*} 6\%; \texttt{adj\_sumvolume\_ma\_*} 4\% \\
-XGBoost & MDI / gain & \texttt{har\_ma\_*} 69\%; \texttt{adj\_sumret\_ma\_*} 4\%; \texttt{adj\_sumabsret\_ma\_*} 4\% \\
-XGBoost & split count & \texttt{har\_ma\_*} 21\%; \texttt{adj\_sumret\_ma\_*} 8\%; \texttt{adj\_sumvolume\_ma\_*} 5\% \\
-XGBoost & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +107\%; \texttt{adj\_sumret\_ma\_*} +4\%; \texttt{calendar} +4\% \\
-XGBoost & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +224\%; \texttt{adj\_sumret\_ma\_*} +4\%; \texttt{calendar} +4\% \\
-XGBoost & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +231\%; \texttt{adj\_sumret\_ma\_*} +4\%; \texttt{adj\_sumvolume\_ma\_*} +3\% \\
-XGBoost & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 55\%; \texttt{adj\_sumret\_ma\_*} 7\%; \texttt{adj\_sumvolume\_ma\_*} 5\% \\
-random forest & MDI / gain & \texttt{har\_ma\_*} 62\%; \texttt{adj\_sumabsret\_ma\_*} 5\%; \texttt{adj\_sumret\_ma\_*} 3\% \\
-random forest & split count & \texttt{har\_ma\_*} 4\%; \texttt{adj\_voldemand\_all\_open\_and\_close\_ma\_*} 3\%; \texttt{adj\_voldemand\_spx\_open\_and\_close\_ma\_*} 3\% \\
-random forest & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +128\%; \texttt{calendar} +2\%; \texttt{adj\_sumret\_ma\_*} +2\% \\
-random forest & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +290\%; \texttt{calendar} +3\%; \texttt{adj\_sumabsret\_ma\_*} +3\% \\
-random forest & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +252\%; \texttt{calendar} +1\%; \texttt{adj\_sumvolume\_ma\_*} +1\% \\
-random forest & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 58\%; \texttt{adj\_sumabsret\_ma\_*} 5\%; \texttt{adj\_sumret\_ma\_*} 4\% \\
+ridge & $|\beta\cdot sd|$ & \texttt{har\_ma\_*} 11\%; \texttt{sumabsret\_ma\_*} 5\%; \texttt{sumabsret\_vwstock\_ma\_*} 5\% \\
+ridge & perm.\ P1, $\Delta$MSE & \texttt{har\_ma\_*} +63\%; \texttt{sumabsret\_ma\_*} +7\%; \texttt{sumabsret\_vwstock\_ma\_*} +7\% \\
+ridge & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +142\%; \texttt{sumabsret\_ma\_*} +22\%; \texttt{sumabsret\_vwstock\_ma\_*} +18\% \\
+ridge & perm.\ P2, $\Delta$QLIKE & \texttt{sumautocov\_ma\_*} +4051120\%; \texttt{spread\_vwstock\_ma\_*} +57340\%; \texttt{voldemand\_spx\_open\_only\_ma\_*} +3749\% \\
+ridge & drop-column, $\Delta$MSE & \texttt{har\_ma\_*} +17\%; \texttt{calendar} +2\%; \texttt{sumvolume\_ma\_*} +2\% \\
+ridge & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 15\%; \texttt{sumabsret\_ma\_*} 6\%; \texttt{sumabsret\_vwstock\_ma\_*} 5\% \\
+lasso & $|\beta\cdot sd|$ & \texttt{har\_ma\_*} 46\%; \texttt{sumabsret\_vwstock\_ma\_*} 10\%; \texttt{sumret\_ma\_*} 9\% \\
+lasso & perm.\ P1, $\Delta$MSE & \texttt{har\_ma\_*} +145\%; \texttt{sumabsret\_vwstock\_ma\_*} +8\%; \texttt{sumret\_ma\_*} +7\% \\
+lasso & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +290\%; \texttt{sumabsret\_vwstock\_ma\_*} +18\%; \texttt{vix\_ma\_*} +15\% \\
+lasso & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +259\%; \texttt{vix3m\_ma\_*} +85\%; \texttt{sumbipow\_ewstock\_ma\_*} +48\% \\
+lasso & drop-column, $\Delta$MSE & \texttt{har\_ma\_*} +27\%; \texttt{sumret\_ma\_*} +2\%; \texttt{sumabsret\_vwstock\_ma\_*} +1\% \\
+lasso & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 46\%; \texttt{sumabsret\_vwstock\_ma\_*} 10\%; \texttt{sumret\_ma\_*} 9\% \\
+LightGBM & MDI / gain & \texttt{har\_ma\_*} 57\%; \texttt{sumret\_ma\_*} 5\%; \texttt{sumabsret\_ma\_*} 4\% \\
+LightGBM & split count & \texttt{har\_ma\_*} 12\%; \texttt{sumret\_ma\_*} 6\%; \texttt{sumvolume\_ma\_*} 4\% \\
+LightGBM & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +111\%; \texttt{calendar} +5\%; \texttt{sumret\_ma\_*} +4\% \\
+LightGBM & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +237\%; \texttt{calendar} +6\%; \texttt{sumret\_ma\_*} +4\% \\
+LightGBM & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +235\%; \texttt{calendar} +4\%; \texttt{sumret\_ma\_*} +3\% \\
+LightGBM & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 47\%; \texttt{sumret\_ma\_*} 6\%; \texttt{sumvolume\_ma\_*} 4\% \\
+XGBoost & MDI / gain & \texttt{har\_ma\_*} 69\%; \texttt{sumret\_ma\_*} 4\%; \texttt{sumabsret\_ma\_*} 4\% \\
+XGBoost & split count & \texttt{har\_ma\_*} 21\%; \texttt{sumret\_ma\_*} 8\%; \texttt{sumvolume\_ma\_*} 5\% \\
+XGBoost & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +107\%; \texttt{sumret\_ma\_*} +4\%; \texttt{calendar} +4\% \\
+XGBoost & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +224\%; \texttt{sumret\_ma\_*} +4\%; \texttt{calendar} +4\% \\
+XGBoost & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +231\%; \texttt{sumret\_ma\_*} +4\%; \texttt{sumvolume\_ma\_*} +3\% \\
+XGBoost & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 55\%; \texttt{sumret\_ma\_*} 7\%; \texttt{sumvolume\_ma\_*} 5\% \\
+random forest & MDI / gain & \texttt{har\_ma\_*} 62\%; \texttt{sumabsret\_ma\_*} 5\%; \texttt{sumret\_ma\_*} 3\% \\
+random forest & split count & \texttt{har\_ma\_*} 4\%; \texttt{voldemand\_all\_open\_and\_close\_ma\_*} 3\%; \texttt{voldemand\_spx\_open\_and\_close\_ma\_*} 3\% \\
+random forest & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} +128\%; \texttt{calendar} +2\%; \texttt{sumret\_ma\_*} +2\% \\
+random forest & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} +290\%; \texttt{calendar} +3\%; \texttt{sumabsret\_ma\_*} +3\% \\
+random forest & perm.\ P2, $\Delta$MSE & \texttt{har\_ma\_*} +252\%; \texttt{calendar} +1\%; \texttt{sumvolume\_ma\_*} +1\% \\
+random forest & SHAP mean $|\phi|$ & \texttt{har\_ma\_*} 58\%; \texttt{sumabsret\_ma\_*} 5\%; \texttt{sumret\_ma\_*} 4\% \\
 \bottomrule\end{tabular}\end{table}
 \begin{figure}[H]\centering\includegraphics[width=\textwidth]{../results/feature_importance_1530/fig_ranked_all_features.png}
 \caption{All features: ranked bars per measure (series level; top 8). Rows: models; columns: the built-in measure, split count (trees) / drop-column (linear), permutation P2 on the tail, SHAP. Bars with 95\% intervals over refits. Linear permutation / drop-column in $\Delta$MSE (see Section 6).}\end{figure}
@@ -145,8 +145,8 @@ all features & random forest & 0.98 (0.95) & 1.00 (0.99) & 7/7 & 0.55 (0.36) & 0
 bucket & cluster & members & ridge & lasso & LightGBM & XGBoost & forest\\\midrule
 all features & C49 & \texttt{har\_ma\_1, har\_ma\_5, har\_ma\_1\_x\_close, har\_ma\_5\_x\_close} (4; $|r|\ge$0.89) & 33.2 / 17.6 & 85.5 / 48.9 & 101.3 / 32.0 & 96.0 / 35.4 & 136.1 / 29.0 \\
 all features & C46 & \texttt{har\_ma\_25, har\_ma\_125, har\_ma\_25\_x\_close, har\_ma\_125\_x\_close} (4; $|r|\ge$0.83) & 13.4 / 7.3 & 19.9 / 11.8 & 6.3 / 2.9 & 7.0 / 3.5 & 3.0 / 1.5 \\
-all features & C50 & \texttt{adj\_sumabsret\_ewstock\_ma\_1, adj\_sumabsret\_ewstock\_ma\_5, adj\_sumabsret\_vwstock\_ma\_1, adj\_sumabsret\_vwstock\_ma\_5} (4; $|r|\ge$0.85) & 15.7 / 3.0 & 8.8 / 6.5 & 1.2 / 0.2 & 0.8 / -0.3 & 1.4 / 0.1 \\
-all features & C48 & \texttt{adj\_sumvolume\_ma\_1, adj\_sumvolume\_ma\_5} (2; $|r|\ge$0.89) & 1.1 / 1.4 & 0.5 / 0.6 & 0.8 / 0.5 & 1.3 / 1.0 & 0.5 / 0.5 \\
+all features & C50 & \texttt{sumabsret\_ewstock\_ma\_1, sumabsret\_ewstock\_ma\_5, sumabsret\_vwstock\_ma\_1, sumabsret\_vwstock\_ma\_5} (4; $|r|\ge$0.85) & 15.7 / 3.0 & 8.8 / 6.5 & 1.2 / 0.2 & 0.8 / -0.3 & 1.4 / 0.1 \\
+all features & C48 & \texttt{sumvolume\_ma\_1, sumvolume\_ma\_5} (2; $|r|\ge$0.89) & 1.1 / 1.4 & 0.5 / 0.6 & 0.8 / 0.5 & 1.3 / 1.0 & 0.5 / 0.5 \\
 \bottomrule\end{tabular}\end{table}
 
 \section*{6. Linear models: QLIKE permutation is dominated by single tails}
@@ -155,9 +155,9 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
 \caption{The top linear QLIKE entries: mean [95\% interval], median refit, share of the sum carried by one refit.}
 \begin{tabular}{lllllrr}\toprule
 bucket & model & measure & top series & mean [interval] & median & one refit\\\midrule
-all features & ridge & perm.\ P1, $\Delta$QLIKE & \texttt{adj\_sumret4\_ewstock\_ma\_*} & 315 [-0.0012, 9.4e+02] & 6.1e-05 & 100\% \\
-all features & ridge & perm.\ P2, $\Delta$QLIKE & \texttt{adj\_sumautocov\_ma\_*} & 1.03e+05 [-0.012, 3.1e+05] & 0.0022 & 100\% \\
-all features & ridge & drop-column, $\Delta$QLIKE & \texttt{adj\_sumabsret\_ma\_*} & 980 [0.0016, 2.9e+03] & -0.00025 & 100\% \\
+all features & ridge & perm.\ P1, $\Delta$QLIKE & \texttt{sumret4\_ewstock\_ma\_*} & 315 [-0.0012, 9.4e+02] & 6.1e-05 & 100\% \\
+all features & ridge & perm.\ P2, $\Delta$QLIKE & \texttt{sumautocov\_ma\_*} & 1.03e+05 [-0.012, 3.1e+05] & 0.0022 & 100\% \\
+all features & ridge & drop-column, $\Delta$QLIKE & \texttt{sumabsret\_ma\_*} & 980 [0.0016, 2.9e+03] & -0.00025 & 100\% \\
 all features & lasso & perm.\ P1, $\Delta$QLIKE & \texttt{har\_ma\_*} & 0.144 [0.12, 0.17] & 0.11 & 7\% \\
 all features & lasso & perm.\ P2, $\Delta$QLIKE & \texttt{har\_ma\_*} & 0.322 [0.28, 0.36] & 0.24 & 4\% \\
 all features & lasso & drop-column, $\Delta$QLIKE & \texttt{har\_ma\_*} & 38.7 [0.0065, 1.2e+02] & 0.0052 & 100\% \\

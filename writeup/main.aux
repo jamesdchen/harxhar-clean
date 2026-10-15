@@ -15,136 +15,589 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Data, Preparation, and Descriptive Analysis}{1}{section.2}\protected@file@percent }
-\newlabel{sec:data_prep}{{2}{1}{Data, Preparation, and Descriptive Analysis}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Data}{1}{subsection.2.1}\protected@file@percent }
-\newlabel{sec:dp_data}{{2.1}{1}{Data}{subsection.2.1}{}}
-\citation{Corsi2009}
-\newlabel{eq:dp_rv}{{1}{2}{Data}{equation.2.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{The evaluation panel.}{2}{section*.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Exogenous information.}{2}{section*.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Preparation}{3}{subsection.2.2}\protected@file@percent }
-\newlabel{sec:dp_prep}{{2.2}{3}{Preparation}{subsection.2.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Overnight fills and availability indicators.}{3}{section*.3}\protected@file@percent }
 \citation{Duan1983}
+\citation{Bollerslev1986,EngleMezrich1996}
+\citation{EngleBollerslev1986}
+\citation{GiannoneLenzaPrimiceri2021}
+\citation{ShenXiu2025}
+\citation{AndersenBollerslev1997,BarndorffNielsenShephard2004}
+\citation{AndersenBollerslevDieboldLabys2003}
 \citation{Corsi2009}
-\@writefile{toc}{\contentsline {paragraph}{Stage 1: diurnal adjustment.}{4}{section*.4}\protected@file@percent }
-\newlabel{eq:dp_diurnal}{{2}{4}{Stage 1: diurnal adjustment}{equation.2.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Stage 2: the winsorized square-root target.}{4}{section*.5}\protected@file@percent }
-\newlabel{eq:dp_duan}{{3}{4}{Stage 2: the winsorized square-root target}{equation.2.3}{}}
-\@writefile{toc}{\contentsline {paragraph}{HAR features.}{4}{section*.6}\protected@file@percent }
-\newlabel{eq:dp_har}{{4}{4}{HAR features}{equation.2.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Rolling robust scaling.}{5}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Descriptive Analysis}{5}{subsection.2.3}\protected@file@percent }
-\newlabel{sec:dp_descriptive}{{2.3}{5}{Descriptive Analysis}{subsection.2.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}The OLS--HAR Benchmark}{5}{subsection.2.4}\protected@file@percent }
-\newlabel{sec:dp_benchmark}{{2.4}{5}{The OLS--HAR Benchmark}{subsection.2.4}{}}
+\citation{BollerslevPattonQuaedvlieg2016}
+\citation{BekiermanManner2018}
+\citation{BennedsenLundePakkanen2022}
+\citation{HansenHuangShek2012}
+\citation{EngleGallo2006}
+\citation{gu2020empirical,christensen2023machine}
+\citation{Ke2017,Chen2016}
+\citation{Lou2013}
+\citation{lundberg2017unified,lundberg2018consistent}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Works}{3}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{3}{Related Works}{section.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Realized-volatility modeling.}{3}{section*.1}\protected@file@percent }
+\citation{HoerlKennard1970}
+\citation{Tibshirani1996}
+\citation{ZouHastie2005}
+\citation{Efron2004}
+\citation{GiannoneLenzaPrimiceri2021}
+\citation{KozakNagelSantosh2020}
+\citation{ShenXiu2025}
+\citation{DonohoJin2004}
+\citation{Duan1983}
+\citation{Manning1998}
+\citation{ManningMullahy2001}
+\@writefile{toc}{\contentsline {paragraph}{Machine learning for volatility and return prediction.}{4}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Sparse selection versus dense shrinkage.}{4}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Retransformation.}{4}{section*.4}\protected@file@percent }
+\citation{HizmeriBevilacqua2025}
+\@writefile{toc}{\contentsline {paragraph}{The clock of the variance risk premium.}{5}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Data}{5}{section.3}\protected@file@percent }
+\newlabel{sec:data_prep}{{3}{5}{Data}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}The Panel}{5}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:dp_data}{{3.1}{5}{The Panel}{subsection.3.1}{}}
+\citation{Corsi2009}
+\newlabel{eq:dp_rv}{{1}{6}{The Panel}{equation.3.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{The evaluation panel.}{6}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Exogenous information.}{7}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{FOMC calendar channels.}{7}{section*.8}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces FOMC calendar channels on the shared evaluation panel of Section\nobreakspace  {}\ref {sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano $t$ versus the baseline (HAR + calendar OLS); negative $t$ favors the arm.}}{8}{table.caption.9}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:fomc_bucket}{{1}{8}{FOMC calendar channels on the shared evaluation panel of Section~\ref {sec:dp_data}, $n = 273{,}554$. QLIKE and Diebold--Mariano $t$ versus the baseline (HAR + calendar OLS); negative $t$ favors the arm}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Preparation}{8}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:dp_prep}{{3.2}{8}{Preparation}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Overnight fills and availability indicators.}{8}{section*.10}\protected@file@percent }
+\citation{Duan1983}
+\@writefile{toc}{\contentsline {paragraph}{Stage 1: diurnal adjustment.}{9}{section*.11}\protected@file@percent }
+\newlabel{eq:dp_diurnal}{{2}{9}{Stage 1: diurnal adjustment}{equation.3.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Stage 2: the winsorized square-root target.}{9}{section*.12}\protected@file@percent }
+\newlabel{eq:dp_duan}{{3}{9}{Stage 2: the winsorized square-root target}{equation.3.3}{}}
+\citation{Corsi2009}
+\@writefile{toc}{\contentsline {paragraph}{HAR features.}{10}{section*.13}\protected@file@percent }
+\newlabel{eq:dp_har}{{4}{10}{HAR features}{equation.3.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Rolling robust scaling.}{10}{section*.14}\protected@file@percent }
+\citation{Patton2011}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Descriptive Analysis}{11}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:dp_descriptive}{{3.3}{11}{Descriptive Analysis}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methods}{11}{section.4}\protected@file@percent }
+\newlabel{sec:methods}{{4}{11}{Methods}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}The OLS--HAR Benchmark}{11}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:dp_benchmark}{{4.1}{11}{The OLS--HAR Benchmark}{subsection.4.1}{}}
+\newlabel{eq:dp_qlike}{{5}{11}{The OLS--HAR Benchmark}{equation.4.5}{}}
+\citation{DieboldMariano1995}
+\citation{HarveyLeybourneNewbold1997}
+\citation{HansenLundeNason2011}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces The benchmark: per-bar OLS on the HAR ladder plus calendar dummies, scored on the frozen panel under the evaluation protocol of Sections\nobreakspace  {}\ref {sec:smearing_bias}--\ref {sec:smearing_contract}. QLIKE is computed on the raw variance scale; the secondary metrics are computed on the fitting (square-root) scale where the model is estimated, on the same scored pairs.}}{12}{table.caption.15}\protected@file@percent }
+\newlabel{tab:benchmark}{{2}{12}{The benchmark: per-bar OLS on the HAR ladder plus calendar dummies, scored on the frozen panel under the evaluation protocol of Sections~\ref {sec:smearing_bias}--\ref {sec:smearing_contract}. QLIKE is computed on the raw variance scale; the secondary metrics are computed on the fitting (square-root) scale where the model is estimated, on the same scored pairs}{table.caption.15}{}}
+\@writefile{toc}{\contentsline {paragraph}{Hyperparameter discipline.}{12}{section*.16}\protected@file@percent }
+\citation{Duan1983}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}A Common Evaluation Protocol}{13}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:smearing_contract}{{4.2}{13}{A Common Evaluation Protocol}{subsection.4.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the second-order-adjustment ranking over all arms: none $0.682$, traditional Duan $0.859$.}}{13}{table.caption.17}\protected@file@percent }
+\newlabel{tab:smear_sensitivity}{{3}{13}{The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table~\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the second-order-adjustment ranking over all arms: none $\unifSmearTauNone $, traditional Duan $\unifSmearTauDuan $}{table.caption.17}{}}
+\citation{ZouHastie2005}
+\citation{Garrigues2008}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Estimators and Causal Tuning}{14}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:estimators}{{4.3}{14}{Estimators and Causal Tuning}{subsection.4.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Minimum-norm least squares.}{14}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Estimators.}{14}{section*.19}\protected@file@percent }
+\citation{Chen2016}
+\citation{Ke2017}
+\@writefile{toc}{\contentsline {paragraph}{Walk-forward protocol.}{15}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Tree ensembles.}{15}{section*.21}\protected@file@percent }
+\citation{HoerlKennard1970,vanWieringen2023ridge,vandeWiel2021multipenalty}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Block-Diagonal Tikhonov}{16}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:block_tikhonov}{{4.4}{16}{Block-Diagonal Tikhonov}{subsection.4.4}{}}
+\newlabel{sec:hierarchical_ridge}{{4.4}{16}{Block-Diagonal Tikhonov}{subsection.4.4}{}}
+\newlabel{sec:dense_weak_twoblock}{{4.4}{16}{Block-Diagonal Tikhonov}{subsection.4.4}{}}
+\newlabel{sec:three_block}{{4.4}{16}{Block-Diagonal Tikhonov}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Two blocks.}{17}{section*.22}\protected@file@percent }
+\newlabel{sec:nonlinear_product}{{4.4}{17}{Two blocks}{section*.22}{}}
+\newlabel{sec:product_block}{{4.4}{17}{Two blocks}{section*.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}A Last-Bar Same-Day Option Reading}{17}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:close_option_methods}{{4.5}{17}{A Last-Bar Same-Day Option Reading}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Instrument.}{17}{section*.23}\protected@file@percent }
+\newlabel{eq:close_opt_settle}{{6}{17}{Instrument}{equation.4.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{Forecast remaining variance.}{18}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Which panel produced which row.}{19}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Refit contract, hyperparameters, and what is not recoverable.}{19}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What the 16:00 target is.}{20}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Forecasts fitted for the 16:00 bar alone.}{20}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Two recalibrations.}{21}{section*.29}\protected@file@percent }
+\citation{DieboldMariano1995}
+\citation{HarveyLeybourneNewbold1997}
+\newlabel{eq:close_opt_recal1600}{{7}{22}{Two recalibrations}{equation.4.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Quoted implied volatility.}{22}{section*.30}\protected@file@percent }
+\newlabel{eq:close_opt_ivscale}{{8}{22}{Quoted implied volatility}{equation.4.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Signal.}{22}{section*.31}\protected@file@percent }
+\newlabel{eq:close_opt_signal}{{9}{22}{Signal}{equation.4.9}{}}
+\citation{HizmeriBevilacqua2025}
+\@writefile{toc}{\contentsline {paragraph}{Position rules.}{23}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Compounding at a fixed fraction of wealth.}{23}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Scoring and control.}{23}{section*.34}\protected@file@percent }
+\citation{BlackScholes1973,Merton1973}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Implied Volatility by Root Finding}{24}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:bsm_rootfinding}{{4.6}{24}{Implied Volatility by Root Finding}{subsection.4.6}{}}
+\newlabel{eq:bsm}{{10}{24}{Implied Volatility by Root Finding}{equation.4.10}{}}
+\newlabel{eq:bsm_package}{{11}{24}{Implied Volatility by Root Finding}{equation.4.11}{}}
+\citation{Corsi2009}
+\citation{Tibshirani1996}
+\citation{HoerlKennard1970}
+\citation{GiannoneLenzaPrimiceri2021,KozakNagelSantosh2020,ShenXiu2025}
 \citation{Patton2011}
 \citation{DieboldMariano1995}
 \citation{HarveyLeybourneNewbold1997}
-\citation{HansenLundeNason2011}
-\newlabel{eq:dp_qlike}{{5}{6}{The OLS--HAR Benchmark}{equation.2.5}{}}
-\@writefile{toc}{\contentsline {paragraph}{Hyperparameter discipline.}{6}{section*.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}A Calibrated Second-Moment Correction}{7}{section.3}\protected@file@percent }
-\newlabel{sec:smearing}{{3}{7}{A Calibrated Second-Moment Correction}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Why the Back-Transform Needs a Second Moment}{7}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:smearing_bias}{{3.1}{7}{Why the Back-Transform Needs a Second Moment}{subsection.3.1}{}}
-\newlabel{eq:second_moment}{{6}{7}{Why the Back-Transform Needs a Second Moment}{equation.3.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}The Calibrated Estimator}{7}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:smearing_estimator}{{3.2}{7}{The Calibrated Estimator}{subsection.3.2}{}}
-\newlabel{eq:yraw}{{7}{7}{The Calibrated Estimator}{equation.3.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{25}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{25}{Results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Lasso versus Ridge}{25}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:dense_weak}{{5.1}{25}{Lasso versus Ridge}{subsection.5.1}{}}
+\newlabel{sec:dense_weak_headtohead}{{5.1}{25}{The head-to-head}{section*.35}{}}
+\@writefile{toc}{\contentsline {paragraph}{The head-to-head.}{25}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Design.}{25}{section*.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Comparison protocol.}{25}{section*.37}\protected@file@percent }
+\citation{GiannoneLenzaPrimiceri2021}
+\@writefile{toc}{\contentsline {paragraph}{Result.}{26}{section*.38}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Ridge versus lasso versus elastic net on the full design under the evaluation protocol, out-of-sample QLIKE with the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in parentheses. Panel: the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, $n = 273{,}554$ identical rows. Ridge is the fine-grid causal tune already harvested on this root (\texttt  {b1\_ridge\_tuned\_fine}); lasso is \texttt  {b2\_lasso\_tuned}; elastic net is \texttt  {b3\_enet\_tuned}. Negative $t$ favors the arm.}}{26}{table.caption.39}\protected@file@percent }
+\newlabel{tab:lasso_vs_ridge}{{4}{26}{Ridge versus lasso versus elastic net on the full design under the evaluation protocol, out-of-sample QLIKE with the Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in parentheses. Panel: the frozen panel of Section~\ref {sec:data_prep}, $n = 273{,}554$ identical rows. Ridge is the fine-grid causal tune already harvested on this root (\texttt {b1\_ridge\_tuned\_fine}); lasso is \texttt {b2\_lasso\_tuned}; elastic net is \texttt {b3\_enet\_tuned}. Negative $t$ favors the arm}{table.caption.39}{}}
+\newlabel{sec:dense_weak_diagnosis}{{5.1}{26}{The diagnosis: dense, not sparse}{section*.40}{}}
+\@writefile{toc}{\contentsline {paragraph}{The diagnosis: dense, not sparse.}{26}{section*.40}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Gradient-Boosted Trees}{27}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:tree_edge}{{5.2}{27}{Gradient-Boosted Trees}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{The expert bank.}{27}{section*.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The bank beats its members.}{27}{section*.42}\protected@file@percent }
+\citation{Lou2013}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces The tree expert bank under the evaluation protocol (Section\nobreakspace  {}\ref {sec:smearing_contract}). Individual experts are scored on the full panel; the bank aggregates are computed on their common row set ($263{,}782$ bars, 2003 onward). DM $t$ is against the OLS--HAR benchmark (0.22521{}); negative favours the arm. }}{28}{table.caption.43}\protected@file@percent }
+\newlabel{tab:tree_bank}{{5}{28}{The tree expert bank under the evaluation protocol (Section~\ref {sec:smearing_contract}). Individual experts are scored on the full panel; the bank aggregates are computed on their common row set ($263{,}782$ bars, 2003 onward). DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE {}); negative favours the arm}{table.caption.43}{}}
+\@writefile{toc}{\contentsline {paragraph}{Comparison discipline against the linear ladder.}{28}{section*.44}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{28}{section*.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Block-Diagonal Tikhonov}{29}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:three_block_results}{{5.3}{29}{Block-Diagonal Tikhonov}{subsection.5.3}{}}
+\newlabel{sec:hierarchical_ridge_results}{{5.3}{29}{Block-Diagonal Tikhonov}{subsection.5.3}{}}
+\newlabel{sec:block_tikhonov_results}{{5.3}{29}{Block-Diagonal Tikhonov}{subsection.5.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Block-diagonal Tikhonov under the evaluation protocol (Section\nobreakspace  {}\ref {sec:smearing_contract}), $24{,}000$-bar window. DM $t$ is against the OLS--HAR benchmark (0.22521{}); negative DM favours the arm. }}{29}{table.caption.46}\protected@file@percent }
+\newlabel{tab:block_ladder}{{6}{29}{Block-diagonal Tikhonov under the evaluation protocol (Section~\ref {sec:smearing_contract}), $24{,}000$-bar window. DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE {}); negative DM favours the arm}{table.caption.46}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}A Last-Bar Same-Day Option Reading}{29}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:close_option_results}{{5.4}{29}{A Last-Bar Same-Day Option Reading}{subsection.5.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces The last-30-min trade under one scorer: $\mathrm  {sign}(s)$ on the straddle, 15:30\nobreakspace  {}ET to the close, on the 866{} expiration days common to every row (3\nobreakspace  {}January\nobreakspace  {}2020 to 30\nobreakspace  {}April\nobreakspace  {}2024). Every forecast is turned into a variance by the 16:00-bar recalibration (Equation\nobreakspace  {}\eqref  {eq:close_opt_recal1600}). QLIKE: the recalibrated forecast's mean QLIKE at the $16{:}00$ bar; vs R: its percent difference from the reference R, the block-diagonal ridge (negative: more accurate), and the Diebold--Mariano statistic of that difference. Sharpe$_{\mathrm  {ann}}$: the portfolio's Sharpe ratio annualized by $\sqrt  {252}$ per trade day, at the 15:30 midpoint and at the crossed spread (bought at the ask, sold at the bid, at entry only; the position settles in cash). $\Delta $Sharpe: the midpoint Sharpe ratio minus that of R and of always short on the same days, with a 95\% paired interval (circular block bootstrap of the days, blocks of 21 days). Buys: the share of days the rule is long. Inputs: the input set of Section\nobreakspace  {}\ref {sec:close_option_methods} by its design name; panel\nobreakspace  {}A reads the paper's full design. Panel\nobreakspace  {}D holds one row per rung of the per-bar trees and LSTMs of Section\nobreakspace  {}\ref {sec:close_option_methods}, each LightGBM or the LSTM on \texttt  {live\_feasible}, so that consecutive rows differ in one thing; the other trees and input sets of every rung are counted in the text. $^{\dagger }$: the four columns still fitted on the earlier design panel (Section\nobreakspace  {}\ref {sec:close_option_methods}); H: the headline forecast (bold). The rows are selected from the closing-strategy master table, which scores 220{} forecasts the same way on the same days. }}{30}{table.caption.47}\protected@file@percent }
+\newlabel{tab:close_option_rules}{{7}{30}{The last-30-min trade under one scorer: $\mathrm {sign}(s)$ on the straddle, 15:30~ET to the close, on the \cmNdays {} expiration days common to every row (3~January~2020 to 30~April~2024). Every forecast is turned into a variance by the 16:00-bar recalibration (Equation~\eqref {eq:close_opt_recal1600}). QLIKE: the recalibrated forecast's mean QLIKE at the $16{:}00$ bar; vs R: its percent difference from the reference R, the block-diagonal ridge (negative: more accurate), and the Diebold--Mariano statistic of that difference. Sharpe$_{\mathrm {ann}}$: the portfolio's Sharpe ratio annualized by $\sqrt {252}$ per trade day, at the 15:30 midpoint and at the crossed spread (bought at the ask, sold at the bid, at entry only; the position settles in cash). $\Delta $Sharpe: the midpoint Sharpe ratio minus that of R and of always short on the same days, with a 95\% paired interval (circular block bootstrap of the days, blocks of 21 days). Buys: the share of days the rule is long. Inputs: the input set of Section~\ref {sec:close_option_methods} by its design name; panel~A reads the paper's full design. Panel~D holds one row per rung of the per-bar trees and LSTMs of Section~\ref {sec:close_option_methods}, each LightGBM or the LSTM on \texttt {live\_feasible}, so that consecutive rows differ in one thing; the other trees and input sets of every rung are counted in the text. $^{\dagger }$: the four columns still fitted on the earlier design panel (Section~\ref {sec:close_option_methods}); H: the headline forecast (bold). The rows are selected from the closing-strategy master table, which scores \cmMasterN {} forecasts the same way on the same days}{table.caption.47}{}}
+\@writefile{toc}{\contentsline {paragraph}{The paper's forecasts under one scorer.}{31}{section*.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The per-bar tables, rebuilt.}{31}{section*.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The forecasts built for the traded bar.}{31}{section*.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The headline forecast, and why this one.}{31}{section*.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{One change at a time.}{32}{section*.52}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces One change at a time: paired differences between two forecasts of Table\nobreakspace  {}\ref {tab:close_option_rules} that differ in one thing (the step's ``to'' forecast minus its ``from'' forecast), on the same 866{} days under the 16:00-bar recalibration. QLIKE: percent difference in mean QLIKE at the $16{:}00$ bar with a 95\% day-block interval (negative: the ``to'' forecast is more accurate), and its Diebold--Mariano statistic. $\Delta $Sharpe: difference in the $\mathrm  {sign}(s)$ portfolio's annualized Sharpe ratio at the midpoint and at the crossed spread, with 95\% paired intervals on the resampled days of Table\nobreakspace  {}\ref {tab:close_option_rules}. Same side: the share of days the two forecasts take the same position. The first step changes the design, the training window and the penalty together; every other step changes one thing. Steps the master table also stores are reproduced by it exactly. The last five blocks are the rungs of the 16:00 re-run (Section\nobreakspace  {}\ref {sec:close_option_methods}) for LightGBM and the LSTM on \texttt  {live\_feasible}: the design row pairs the headline with its table before the re-run; the mask rows and the LSTM refit every ten sessions, whose unmasked or ten-session tables are not rows of Table\nobreakspace  {}\ref {tab:close_option_rules}, are read from the re-run's own paired comparisons (same days, same scorer and resampling); every other campaign step is recomputed here and reproduces the re-run's report. DM ---: not stored for that pair. }}{34}{table.caption.53}\protected@file@percent }
+\newlabel{tab:close_option_ladder}{{8}{34}{One change at a time: paired differences between two forecasts of Table~\ref {tab:close_option_rules} that differ in one thing (the step's ``to'' forecast minus its ``from'' forecast), on the same \cmNdays {} days under the 16:00-bar recalibration. QLIKE: percent difference in mean QLIKE at the $16{:}00$ bar with a 95\% day-block interval (negative: the ``to'' forecast is more accurate), and its Diebold--Mariano statistic. $\Delta $Sharpe: difference in the $\mathrm {sign}(s)$ portfolio's annualized Sharpe ratio at the midpoint and at the crossed spread, with 95\% paired intervals on the resampled days of Table~\ref {tab:close_option_rules}. Same side: the share of days the two forecasts take the same position. The first step changes the design, the training window and the penalty together; every other step changes one thing. Steps the master table also stores are reproduced by it exactly. The last five blocks are the rungs of the 16:00 re-run (Section~\ref {sec:close_option_methods}) for LightGBM and the LSTM on \texttt {live\_feasible}: the design row pairs the headline with its table before the re-run; the mask rows and the LSTM refit every ten sessions, whose unmasked or ten-session tables are not rows of Table~\ref {tab:close_option_rules}, are read from the re-run's own paired comparisons (same days, same scorer and resampling); every other campaign step is recomputed here and reproduces the re-run's report. DM ---: not stored for that pair}{table.caption.53}{}}
+\@writefile{toc}{\contentsline {paragraph}{Trees and LSTMs, every rung.}{34}{section*.54}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where the P\&L comes from: a tail trade.}{35}{section*.55}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{At the crossed spread.}{35}{section*.56}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Other structures.}{36}{section*.57}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Diagnostics parked in Appendix D.}{36}{section*.58}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{37}{section.6}\protected@file@percent }
+\newlabel{sec:conclusion}{{6}{37}{Conclusion}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{38}{appendix.A}\protected@file@percent }
+\newlabel{sec:appendix_master}{{A}{38}{Master Table of Campaign Arms}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}The Back-Transformation}{38}{appendix.B}\protected@file@percent }
+\newlabel{sec:appendix_backtransform}{{B}{38}{The Back-Transformation}{appendix.B}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1}The Back-Transformation}{38}{subsection.B.1}\protected@file@percent }
+\newlabel{sec:smearing_bias}{{B.1}{38}{The Back-Transformation}{subsection.B.1}{}}
+\newlabel{eq:second_moment}{{12}{38}{The Back-Transformation}{equation.B.12}{}}
+\newlabel{sec:smearing_estimator}{{B.1}{38}{The Back-Transformation}{equation.B.12}{}}
+\newlabel{sec:smearing}{{B.1}{38}{The Back-Transformation}{equation.B.12}{}}
+\citation{AndersenBollerslevDieboldLabys2003}
 \citation{BekiermanManner2018}
 \citation{Duan1983}
 \citation{DemetrescuGolosnoyTitova2020}
+\citation{HalbleibVoev2011}
 \citation{AsaiMcAleerMedeiros2012}
-\newlabel{eq:mean_calib}{{8}{8}{The Calibrated Estimator}{equation.3.8}{}}
-\newlabel{eq:var_reg}{{9}{8}{The Calibrated Estimator}{equation.3.9}{}}
-\newlabel{eq:var_ewma}{{10}{8}{The Calibrated Estimator}{equation.3.10}{}}
+\newlabel{eq:yraw}{{13}{39}{The Back-Transformation}{equation.B.13}{}}
+\newlabel{eq:mean_calib}{{14}{39}{The Back-Transformation}{equation.B.14}{}}
+\newlabel{eq:var_reg}{{15}{39}{The Back-Transformation}{equation.B.15}{}}
+\newlabel{eq:var_ewma}{{16}{39}{The Back-Transformation}{equation.B.16}{}}
+\citation{CorsiMittnikPigorschPigorsch2008}
+\citation{BollerslevKretschmerPigorschTauchen2009}
+\citation{CiarretaZarraga2016}
+\citation{AndersenBollerslevChristoffersenDiebold2006}
+\citation{ChiriacVoev2011}
+\citation{Manning1998}
+\citation{Duan1983}
+\citation{ManningMullahy2001}
+\citation{Bollerslev1986}
+\citation{EngleMezrich1996}
+\citation{CorsiMittnikPigorschPigorsch2008}
+\citation{Bollerslev1986}
+\citation{EngleMezrich1996}
+\citation{EngleBollerslev1986}
+\citation{CorsiMittnikPigorschPigorsch2008}
+\newlabel{eq:var_garch}{{17}{40}{The Back-Transformation}{equation.B.17}{}}
 \citation{Duan1983}
 \citation{Duan1983}
-\newlabel{eq:smear_map}{{11}{10}{The Calibrated Estimator}{equation.3.11}{}}
-\newlabel{eq:qlike_raw}{{12}{10}{The Calibrated Estimator}{equation.3.12}{}}
-\citation{Duan1983}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}What Downstream Inherits}{11}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:smearing_contract}{{3.3}{11}{What Downstream Inherits}{subsection.3.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table\nobreakspace  {}\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $0.681$, traditional Duan $0.873$.}}{12}{table.caption.9}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:smear_sensitivity}{{1}{12}{The benchmark under the three back-transform conventions. The full per-arm table is Appendix Table~\ref {tab:smear_sensitivity_full}; Kendall $\tau $ of each alternative ranking against the contract ranking over all arms: none $\unifSmearTauNone $, traditional Duan $\unifSmearTauDuan $}{table.caption.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Where the Information Lives, and What Extracts It}{12}{section.4}\protected@file@percent }
-\newlabel{sec:buckets}{{4}{12}{Where the Information Lives, and What Extracts It}{section.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Estimator.}{12}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Protocol.}{12}{section*.11}\protected@file@percent }
-\citation{DieboldMariano1995}
-\citation{HarveyLeybourneNewbold1997}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Per-Bucket Gains}{13}{subsection.4.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE 0.22519{} (per-bar OLS on HAR $+$ calendar). \textbf  {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm.}}{14}{table.caption.12}\protected@file@percent }
-\newlabel{tab:buckets}{{2}{14}{Bucket attribution: the causally tuned elastic net on each exogenous bucket, from the unification campaign. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; incumbent QLIKE \unifAzeroQLIKE {} (per-bar OLS on HAR $+$ calendar). \textbf {Estimator:} elastic net with both penalty strength and $\ell _1$ share re-selected causally every $250$ solves, rolling window $24{,}000$ bars ($500$ trading days), refit every bar. Columns participate in a window only when their feed went live before the window starts and printed within it. $\Delta $ is against the incumbent; negative DM $t$ favours the arm}{table.caption.12}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}The Same Buckets under a Competent Estimator}{14}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:buckets_tuned}{{4.2}{14}{The Same Buckets under a Competent Estimator}{subsection.4.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Each bucket design under two causally tuned penalized estimators. \textbf  {Panel:} the frozen panel of Section\nobreakspace  {}\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE 0.22519{}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph  {on the same design}, positive meaning ridge is the better of the two.}}{15}{table.caption.13}\protected@file@percent }
-\newlabel{tab:buckets_tuned}{{3}{15}{Each bucket design under two causally tuned penalized estimators. \textbf {Panel:} the frozen panel of Section~\ref {sec:data_prep}, identical rows in every cell; benchmark QLIKE \unifAzeroQLIKE {}. DM $t$ is against the benchmark; negative favours the arm. The final column is the paired Diebold--Mariano statistic of the elastic net against ridge \emph {on the same design}, positive meaning ridge is the better of the two}{table.caption.13}{}}
-\@writefile{toc}{\contentsline {paragraph}{Where the elastic net's deficit comes from.}{15}{section*.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What the trajectories do and do not show.}{16}{section*.15}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Overlap}{16}{subsection.4.3}\protected@file@percent }
-\citation{HansenLundeNason2011}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}The Joint Bucket without Shrinkage}{17}{subsection.4.4}\protected@file@percent }
-\newlabel{sec:buckets_joint}{{4.4}{17}{The Joint Bucket without Shrinkage}{subsection.4.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}The Two-Block Ridge}{18}{subsection.4.5}\protected@file@percent }
-\newlabel{sec:dense_weak}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
-\newlabel{sec:dense_weak_twoblock}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
-\newlabel{sec:dense_weak_headtohead}{{4.5}{18}{The Two-Block Ridge}{subsection.4.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Time-Weighting the Window}{19}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:dense_weak_ew}{{4.6}{19}{Time-Weighting the Window}{subsection.4.6}{}}
-\citation{Ke2017}
-\citation{Chen2016}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Nonlinearity and the Product Block}{20}{section.5}\protected@file@percent }
-\newlabel{sec:nonlinear_product}{{5}{20}{Nonlinearity and the Product Block}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Tree Edge}{20}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:tree_edge}{{5.1}{20}{The Tree Edge}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Protocol.}{20}{section*.16}\protected@file@percent }
-\citation{DieboldMariano1995,HarveyLeybourneNewbold1997}
-\citation{Lou2013}
-\@writefile{toc}{\contentsline {paragraph}{Results.}{21}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The function-class premium at fixed information.}{21}{section*.18}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Dispersion of the improvement.}{21}{section*.19}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Where the nonlinearity lives.}{21}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}The Product Block}{22}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:product_block}{{5.2}{22}{The Product Block}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Construction.}{22}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Set size.}{23}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Reselection cadence.}{23}{section*.23}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Block penalty.}{23}{section*.24}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Coefficient refit cadence.}{24}{section*.25}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}The Three-Block Ridge}{24}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:three_block}{{5.3}{24}{The Three-Block Ridge}{subsection.5.3}{}}
-\newlabel{eq:three_block}{{13}{24}{The Three-Block Ridge}{equation.5.13}{}}
+\newlabel{eq:smear_map}{{18}{42}{The Back-Transformation}{equation.B.18}{}}
+\newlabel{eq:qlike_raw}{{19}{43}{The Back-Transformation}{equation.B.19}{}}
+\newlabel{app:protocol_note}{{B.1}{43}{The Back-Transformation}{equation.B.19}{}}
 \gdef \LT@i {\LT@entry 
-    {5}{309.5879pt}\LT@entry 
+    {5}{261.21732pt}\LT@entry 
     {5}{43.68974pt}\LT@entry 
     {5}{52.15598pt}\LT@entry 
     {1}{29.8728pt}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{25}{section.6}\protected@file@percent }
-\newlabel{sec:conclusion}{{6}{25}{Conclusion}{section.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Master Table of Campaign Arms}{25}{appendix.A}\protected@file@percent }
-\newlabel{sec:appendix_master}{{A}{25}{Master Table of Campaign Arms}{appendix.A}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces All campaign arms under the frozen panel and scoring contract.}}{25}{table.4}\protected@file@percent }
-\newlabel{tab:master}{{4}{25}{All campaign arms under the frozen panel and scoring contract}{table.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Smear-Convention Sensitivity, All Arms}{27}{appendix.B}\protected@file@percent }
-\newlabel{sec:appendix_sensitivity}{{B}{27}{Smear-Convention Sensitivity, All Arms}{appendix.B}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{28}{table.caption.26}\protected@file@percent }
-\newlabel{tab:smear_sensitivity_full}{{5}{28}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.caption.26}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces All campaign arms under the frozen panel and scoring protocol.}}{44}{table.9}\protected@file@percent }
+\newlabel{tab:master}{{9}{44}{All campaign arms under the frozen panel and scoring protocol}{table.9}{}}
+\gdef \LT@ii {\LT@entry 
+    {1}{214.69334pt}\LT@entry 
+    {4}{91.86842pt}\LT@entry 
+    {1}{75.06697pt}\LT@entry 
+    {1}{87.17513pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Back-Transform Convention Sensitivity, All Arms}{45}{appendix.C}\protected@file@percent }
+\newlabel{sec:appendix_sensitivity}{{C}{45}{Back-Transform Convention Sensitivity, All Arms}{appendix.C}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses).}}{45}{table.10}\protected@file@percent }
+\newlabel{tab:smear_sensitivity_full}{{10}{45}{Pooled QLIKE per arm under the three back-transform conventions (within-convention rank in parentheses)}{table.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Running Appendix: Side Analyses}{52}{appendix.D}\protected@file@percent }
+\newlabel{sec:appendix_running}{{D}{52}{Running Appendix: Side Analyses}{appendix.D}{}}
+\@writefile{toc}{\contentsline {paragraph}{Conventions.}{52}{section*.59}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.1}Every Thirty Minutes: A Re-Picked Straddle}{52}{subsection.D.1}\protected@file@percent }
+\newlabel{sec:app_run_repick}{{D.1}{52}{Every Thirty Minutes: A Re-Picked Straddle}{subsection.D.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{52}{section*.60}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces The re-picked straddle, pooled over the twelve clocks 10:00--15:30 on the 866{} expiration days. mean/day and $t$ belong to the daily sum of the twelve legs, and the Sharpe ratio is that sum's mean over its standard deviation times $\sqrt  {252}$. Crossings per day count the trades that cross the spread (a re-pick onto the same strikes with the same sign is a hold); the break-even half-spread is the mean daily midpoint profit over the mean crossings per day, in percent of premium. Panel (a) leaves flat the 13{} bars whose vendor implied volatility is a censored solver value; panel (b) re-inverts it from the straddle midpoint, as the main text does, which moves the block-diagonal ridge from 2.34{} to 2.32{}.}}{53}{table.caption.61}\protected@file@percent }
+\newlabel{tab:app_run_repick}{{11}{53}{The re-picked straddle, pooled over the twelve clocks 10:00--15:30 on the \runappRpNdays {} expiration days. mean/day and $t$ belong to the daily sum of the twelve legs, and the Sharpe ratio is that sum's mean over its standard deviation times $\sqrt {252}$. Crossings per day count the trades that cross the spread (a re-pick onto the same strikes with the same sign is a hold); the break-even half-spread is the mean daily midpoint profit over the mean crossings per day, in percent of premium. Panel (a) leaves flat the \runappRpCensored {} bars whose vendor implied volatility is a censored solver value; panel (b) re-inverts it from the straddle midpoint, as the main text does, which moves the block-diagonal ridge from \runappRpSignMid {} to \runappRpRidgeReinv {}}{table.caption.61}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{53}{section*.62}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{53}{section*.63}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.2}Time to the Close: Holding from Every Clock, Delta-Hedged}{53}{subsection.D.2}\protected@file@percent }
+\newlabel{sec:app_run_holdclose}{{D.2}{53}{Time to the Close: Holding from Every Clock, Delta-Hedged}{subsection.D.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{53}{section*.64}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Holding to the close from every clock, delta-hedged, pooled over the twelve entry clocks 10:00--15:30 (10{,}387{} trades); columns as in Table\nobreakspace  {}\ref {tab:app_run_repick}. Each trade crosses the spread once, at entry. The 15:30 leg column scores that leg alone at the crossed spread.}}{54}{table.caption.65}\protected@file@percent }
+\newlabel{tab:app_run_holdclose}{{12}{54}{Holding to the close from every clock, delta-hedged, pooled over the twelve entry clocks 10:00--15:30 (\runappHcNbars {} trades); columns as in Table~\ref {tab:app_run_repick}. Each trade crosses the spread once, at entry. The 15:30 leg column scores that leg alone at the crossed spread}{table.caption.65}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces The position against the outcome, by entry clock (midpoint, hedged $R$). Accuracy is the share of days on which the position had the sign of $R$: a buy with $R>0$ or a sale with $R\le 0$. The accuracy of always short is $1-P(R>0)$. The bars with a censored implied volatility are left out.}}{54}{table.caption.66}\protected@file@percent }
+\newlabel{tab:app_run_confusion}{{13}{54}{The position against the outcome, by entry clock (midpoint, hedged $R$). Accuracy is the share of days on which the position had the sign of $R$: a buy with $R>0$ or a sale with $R\le 0$. The accuracy of always short is $1-P(R>0)$. The bars with a censored implied volatility are left out}{table.caption.66}{}}
+\@writefile{toc}{\contentsline {paragraph}{A forecast fitted on the rest of the day.}{54}{section*.67}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces Rest-of-day signals on the eleven entry clocks 10:00--15:00 (9{,}521{} trades, the 866{} days). QLIKE scores each forecast against the realized variance from $t$ to the close. $\mathrm  {sign}(s^{\mathrm  {rem}})$ trades $F^{\mathrm  {rem}}_t- \mathrm  {IV}^2_{\mathrm  {hr},t}h_t$ with the fitted map in place of the stretch. $\Delta $Sharpe is the paired difference from the profile-stretch row at the midpoint, with a 95\% moving-block bootstrap percentile interval.}}{55}{table.caption.68}\protected@file@percent }
+\newlabel{tab:app_run_maps}{{14}{55}{Rest-of-day signals on the eleven entry clocks 10:00--15:00 (\runappMapNbars {} trades, the \runappHcNdays {} days). QLIKE scores each forecast against the realized variance from $t$ to the close. $\mathrm {sign}(s^{\mathrm {rem}})$ trades $F^{\mathrm {rem}}_t- \mathrm {IV}^2_{\mathrm {hr},t}h_t$ with the fitted map in place of the stretch. $\Delta $Sharpe is the paired difference from the profile-stretch row at the midpoint, with a 95\% moving-block bootstrap percentile interval}{table.caption.68}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{55}{section*.69}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{55}{section*.70}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.3}The Sharpe Ratio Through the Day}{55}{subsection.D.3}\protected@file@percent }
+\newlabel{sec:app_run_perclock}{{D.3}{55}{The Sharpe Ratio Through the Day}{subsection.D.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{55}{section*.71}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Annualized Sharpe ratio by entry clock, one trade per expiration day. Re-pick: the thirty-minute hold of Section\nobreakspace  {}\ref {sec:app_run_repick} (its 15:30 row is the last-30-min trade). To close: the delta-hedged hold of Section\nobreakspace  {}\ref {sec:app_run_holdclose}. $\mathrm  {sign}(s)$ is the block-diagonal ridge; the last column is the range over the eight forecasts of Table\nobreakspace  {}\ref {tab:close_option_rules}. Midpoint fills unless marked crossed. The censored implied volatility is re-inverted as in the main text; the hold-to-close notebook, which leaves those bars flat, differs from the $\mathrm  {sign}(s)$ column by at most 0.06{} (15:30: 1.33{}).}}{56}{table.caption.72}\protected@file@percent }
+\newlabel{tab:app_run_perclock}{{15}{56}{Annualized Sharpe ratio by entry clock, one trade per expiration day. Re-pick: the thirty-minute hold of Section~\ref {sec:app_run_repick} (its 15:30 row is the last-30-min trade). To close: the delta-hedged hold of Section~\ref {sec:app_run_holdclose}. $\mathrm {sign}(s)$ is the block-diagonal ridge; the last column is the range over the eight forecasts of Table~\ref {tab:close_option_rules}. Midpoint fills unless marked crossed. The censored implied volatility is re-inverted as in the main text; the hold-to-close notebook, which leaves those bars flat, differs from the $\mathrm {sign}(s)$ column by at most \runappPcNbDiff {} (15:30: \runappPcNbLast {})}{table.caption.72}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Delta-hedged hold to the close by entry clock, block-diagonal ridge: mean return (top) and annualized Sharpe ratio (bottom) of always short and $\mathrm  {sign}(s)$ (holdclose notebook, where the bars with a censored implied volatility sit flat).}}{56}{figure.caption.73}\protected@file@percent }
+\newlabel{fig:app_run_perclock}{{1}{56}{Delta-hedged hold to the close by entry clock, block-diagonal ridge: mean return (top) and annualized Sharpe ratio (bottom) of always short and $\mathrm {sign}(s)$ (holdclose notebook, where the bars with a censored implied volatility sit flat)}{figure.caption.73}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{56}{section*.74}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{57}{section*.75}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.4}A Forecast Built for the Rest of the Day}{57}{subsection.D.4}\protected@file@percent }
+\newlabel{sec:app_run_restofday}{{D.4}{57}{A Forecast Built for the Rest of the Day}{subsection.D.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{57}{section*.76}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Direct rest-of-day forecasts against the one-step construction, 1{,}404{}--1{,}406{} sessions from 2018-09-24{} to 2024-04-30{}. $\Delta $QLIKE is $100\,(\mathrm  {QLIKE}_{\text  {direct}}/ \mathrm  {QLIKE}_{\text  {one-step}}-1)$ at one entry clock; the median is over the twelve clocks 09:30--15:00. Clocks better (worse) count the clocks at which the direct forecast's loss is lower (higher) with a Diebold--Mariano $p$ below 0.05{}; clocks higher counts point estimates above zero. At 15:30 the two constructions are the same forecast.}}{57}{table.caption.77}\protected@file@percent }
+\newlabel{tab:app_run_restofday}{{16}{57}{Direct rest-of-day forecasts against the one-step construction, \runappRdNlo {}--\runappRdNhi {} sessions from \runappRdFirst {} to \runappRdLast {}. $\Delta $QLIKE is $100\,(\mathrm {QLIKE}_{\text {direct}}/ \mathrm {QLIKE}_{\text {one-step}}-1)$ at one entry clock; the median is over the twelve clocks 09:30--15:00. Clocks better (worse) count the clocks at which the direct forecast's loss is lower (higher) with a Diebold--Mariano $p$ below \runappRdAlpha {}; clocks higher counts point estimates above zero. At 15:30 the two constructions are the same forecast}{table.caption.77}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{57}{section*.78}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Trading test.}{58}{section*.79}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Trading test of the direct rest-of-day forecast in the delta-hedged hold-to-close book, per-bar ridge, on the 866{} days (another workstream's table, read as generated). Top: pooled over the entry clocks 10:00--15:30 (daily sums), Sharpe ratios of the current signal ($\setbox \z@ \hbox {\mathsurround \z@ $\textstyle RV$}\mathaccent "0362{RV}_t/w_t$) and the direct one ($F^{\mathrm  {rem}}_t$) and their paired difference, for the plain back-transform and a recalibration per entry clock. Bottom: by entry clock, plain, midpoint. Intervals: paired circular block bootstrap, 95\% percentile; $^{*}$: the percentile and basic intervals both exclude zero.}}{59}{table.caption.80}\protected@file@percent }
+\newlabel{tab:app_run_restofday_trade}{{17}{59}{Trading test of the direct rest-of-day forecast in the delta-hedged hold-to-close book, per-bar ridge, on the \runappHcNdays {} days (another workstream's table, read as generated). Top: pooled over the entry clocks 10:00--15:30 (daily sums), Sharpe ratios of the current signal ($\widehat {RV}_t/w_t$) and the direct one ($F^{\mathrm {rem}}_t$) and their paired difference, for the plain back-transform and a recalibration per entry clock. Bottom: by entry clock, plain, midpoint. Intervals: paired circular block bootstrap, 95\% percentile; $^{*}$: the percentile and basic intervals both exclude zero}{table.caption.80}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{59}{section*.81}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.5}After the Research Sample: May 2024 to September 2026}{59}{subsection.D.5}\protected@file@percent }
+\newlabel{sec:app_run_post2024}{{D.5}{59}{After the Research Sample: May 2024 to September 2026}{subsection.D.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{59}{section*.82}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces The card after the research sample, month-ends excluded. Panel (a): research years 2021-09 to 2024-04 (564{} days; the first 250 eligible days from 2020-01 are the walk-forward warm-up), after 2024-05 568{} days; each walk-forward variant is set from the 250 eligible days before each decision. Panel (b): research years 2020-01 to 2024-04 (814{} days; the target models start later, once their windows fill), after 2024-05 the same 568{} days. Panel (c): the research years only (814{} days) with the post-2024 input changes applied. The last column is the paired difference from the card on the same days --- after 2024-05 in panels (a) and (b), on the research years in panel (c) --- with a 95\% circular block-bootstrap interval.}}{60}{table.caption.83}\protected@file@percent }
+\newlabel{tab:app_run_post2024}{{18}{60}{The card after the research sample, month-ends excluded. Panel (a): research years 2021-09 to 2024-04 (\runappPoResDays {} days; the first 250 eligible days from 2020-01 are the walk-forward warm-up), after 2024-05 \runappPoPostDays {} days; each walk-forward variant is set from the 250 eligible days before each decision. Panel (b): research years 2020-01 to 2024-04 (\runappPoEightyNineResDays {} days; the target models start later, once their windows fill), after 2024-05 the same \runappPoPostDays {} days. Panel (c): the research years only (\runappPoEightySevenDays {} days) with the post-2024 input changes applied. The last column is the paired difference from the card on the same days --- after 2024-05 in panels (a) and (b), on the research years in panel (c) --- with a 95\% circular block-bootstrap interval}{table.caption.83}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{60}{section*.84}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{61}{section*.85}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.6}The Month-End Long Straddle}{61}{subsection.D.6}\protected@file@percent }
+\newlabel{sec:app_run_monthend}{{D.6}{61}{The Month-End Long Straddle}{subsection.D.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{61}{section*.86}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces The month-end long straddle by entry clock, 70{} month-ends from 2020-01-31{} to 2025-12-31{}, bought at the ask. The spread is the median relative spread at entry; minus 15:30 is the paired difference in mean $R$, with its paired $t$ and the Holm-adjusted $p$ over the twelve earlier clocks.}}{61}{table.caption.87}\protected@file@percent }
+\newlabel{tab:app_run_monthend}{{19}{61}{The month-end long straddle by entry clock, \runappMeN {} month-ends from \runappMeFirst {} to \runappMeLast {}, bought at the ask. The spread is the median relative spread at entry; minus 15:30 is the paired difference in mean $R$, with its paired $t$ and the Holm-adjusted $p$ over the twelve earlier clocks}{table.caption.87}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{61}{section*.88}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{61}{section*.89}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.7}Is 15:30 the Right Decision Time?}{62}{subsection.D.7}\protected@file@percent }
+\newlabel{sec:app_run_decision}{{D.7}{62}{Is 15:30 the Right Decision Time?}{subsection.D.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{62}{section*.90}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces The decision clock on the 866{} days (study 80): the card rule at the SPXW 15:30 ask with the forecast built from information through the last input. QLIKE is that forecast's loss on the 16:00 bar. The last column is the paired difference in P\&L per day from $h=1$, with a 95\% block bootstrap interval (blocks of 20 days).}}{62}{table.caption.91}\protected@file@percent }
+\newlabel{tab:app_run_decision80}{{20}{62}{The decision clock on the \runappDtDays {} days (study 80): the card rule at the SPXW 15:30 ask with the forecast built from information through the last input. QLIKE is that forecast's loss on the 16:00 bar. The last column is the paired difference in P\&L per day from $h=1$, with a 95\% block bootstrap interval (blocks of 20 days)}{table.caption.91}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces Decision and entry at $\tau $ on the SPX book (study 86), month-ends excluded, at the ask. The difference from 15:30 is paired, with a 95\% block bootstrap interval (blocks of 20 sessions) and the Holm-adjusted one-sided $p$ over the ten other clocks. The month-end columns buy every one of the 40{} month-ends at $\tau $.}}{62}{table.caption.92}\protected@file@percent }
+\newlabel{tab:app_run_decision86}{{21}{62}{Decision and entry at $\tau $ on the SPX book (study 86), month-ends excluded, at the ask. The difference from 15:30 is paired, with a 95\% block bootstrap interval (blocks of 20 sessions) and the Holm-adjusted one-sided $p$ over the ten other clocks. The month-end columns buy every one of the \runappDsMonthEnds {} month-ends at $\tau $}{table.caption.92}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{62}{section*.93}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{63}{section*.94}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.8}The VIX Alone}{63}{subsection.D.8}\protected@file@percent }
+\newlabel{sec:app_run_vix}{{D.8}{63}{The VIX Alone}{subsection.D.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{63}{section*.95}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Column sets for the 15:30 forecast, on the 866{} days. QLIKE is relative to the live-feasible set on the same rows, on the 16:00 bar and averaged over the 13 bars of the session; negative is better. The Sharpe ratios are those of $\mathrm  {sign}(s)$ under the research scorer, which recalibrates the 16:00 bar on its own; the notebook's all-bar recalibration is quoted in the text.}}{63}{table.caption.96}\protected@file@percent }
+\newlabel{tab:app_run_vix}{{22}{63}{Column sets for the 15:30 forecast, on the \runappVxDays {} days. QLIKE is relative to the live-feasible set on the same rows, on the 16:00 bar and averaged over the 13 bars of the session; negative is better. The Sharpe ratios are those of $\mathrm {sign}(s)$ under the research scorer, which recalibrates the 16:00 bar on its own; the notebook's all-bar recalibration is quoted in the text}{table.caption.96}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{63}{section*.97}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{64}{section*.98}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.9}Per-Bar Against Pooled Forecasts}{64}{subsection.D.9}\protected@file@percent }
+\newlabel{sec:app_run_perbar}{{D.9}{64}{Per-Bar Against Pooled Forecasts}{subsection.D.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{64}{section*.99}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces Per-bar forecast against its pooled twin: the percent difference in mean QLIKE (negative: the per-bar forecast is better), with a 95\% circular block-bootstrap interval (blocks of 21 days), over the session and on three bars labelled by bar end. DM $t$ is the Diebold--Mariano statistic of the session mean. Bars better (worse) count the bars whose interval lies wholly below (above) zero.}}{64}{table.caption.100}\protected@file@percent }
+\newlabel{tab:app_run_perbar}{{23}{64}{Per-bar forecast against its pooled twin: the percent difference in mean QLIKE (negative: the per-bar forecast is better), with a 95\% circular block-bootstrap interval (blocks of 21 days), over the session and on three bars labelled by bar end. DM $t$ is the Diebold--Mariano statistic of the session mean. Bars better (worse) count the bars whose interval lies wholly below (above) zero}{table.caption.100}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{64}{section*.101}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{64}{section*.102}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.10}Remaining-Variance Forecasts Across the Session}{64}{subsection.D.10}\protected@file@percent }
+\newlabel{sec:app_run_multihorizon}{{D.10}{64}{Remaining-Variance Forecasts Across the Session}{subsection.D.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{64}{section*.103}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces QLIKE of the rest-of-day forecasts, pooled over the entry clocks 10:00--15:30 (the target runs to the 16:00 close), on all 5{,}582{} days and on the 2{,}089{} days from 2016. DM $t$ compares the block-diagonal ridge with the HAR OLS baseline in the same construction (negative: the ridge is better).}}{65}{table.caption.104}\protected@file@percent }
+\newlabel{tab:app_run_multihorizon}{{24}{65}{QLIKE of the rest-of-day forecasts, pooled over the entry clocks 10:00--15:30 (the target runs to the 16:00 close), on all \runappMhDays {} days and on the \runappMhPostDays {} days from 2016. DM $t$ compares the block-diagonal ridge with the HAR OLS baseline in the same construction (negative: the ridge is better)}{table.caption.104}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{65}{section*.105}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{65}{section*.106}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.11}Sizing by the Size of the Forecast Gap}{65}{subsection.D.11}\protected@file@percent }
+\newlabel{sec:app_run_sizing}{{D.11}{65}{Sizing by the Size of the Forecast Gap}{subsection.D.11}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{65}{section*.107}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Sized rules against $\mathrm  {sign}(s)$ on the same days. The ridge columns give the block-diagonal ridge's sized Sharpe ratio and its difference from $\mathrm  {sign}(s)$ with a 95\% circular block-bootstrap interval (blocks of 21 days). The count columns report, over the 15{} forecasts, how many differences are positive, and how many intervals lie wholly above and wholly below zero.}}{65}{table.caption.108}\protected@file@percent }
+\newlabel{tab:app_run_sizing}{{25}{65}{Sized rules against $\mathrm {sign}(s)$ on the same days. The ridge columns give the block-diagonal ridge's sized Sharpe ratio and its difference from $\mathrm {sign}(s)$ with a 95\% circular block-bootstrap interval (blocks of 21 days). The count columns report, over the \runappSzForecasts {} forecasts, how many differences are positive, and how many intervals lie wholly above and wholly below zero}{table.caption.108}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{65}{section*.109}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{66}{section*.110}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.12}The Trade Beside the S\&P\nobreakspace  {}500 and Other Markets}{66}{subsection.D.12}\protected@file@percent }
+\newlabel{sec:app_run_portfolio}{{D.12}{66}{The Trade Beside the S\&P~500 and Other Markets}{subsection.D.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{66}{section*.111}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {26}{\ignorespaces The trade beside the S\&P\nobreakspace  {}500, 614{} days from 2021-08-11{}. Correlations are those of the trade's daily return with the S\&P\nobreakspace  {}500 over the trade's own window (15:30 to the close), with the size of that move, and close to close. The risk share is the trade's share of the risk budget; the dollar column is the median premium held per \$100 of index. The last column is the combination's Sharpe ratio minus that of the S\&P\nobreakspace  {}500 alone (0.40{}), with a 95\% paired block-bootstrap interval.}}{66}{table.caption.112}\protected@file@percent }
+\newlabel{tab:app_run_portfolio}{{26}{66}{The trade beside the S\&P~500, \runappPwDays {} days from \runappPwFirst {}. Correlations are those of the trade's daily return with the S\&P~500 over the trade's own window (15:30 to the close), with the size of that move, and close to close. The risk share is the trade's share of the risk budget; the dollar column is the median premium held per \$100 of index. The last column is the combination's Sharpe ratio minus that of the S\&P~500 alone (\runappPwSpx {}), with a 95\% paired block-bootstrap interval}{table.caption.112}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {27}{\ignorespaces Correlation of the trade's daily return (midpoint) with same-day moves of other markets, on the 866{} days wherever both exist, with a 95\% circular block-bootstrap interval (blocks of 21 days).}}{67}{table.caption.113}\protected@file@percent }
+\newlabel{tab:app_run_comoves}{{27}{67}{Correlation of the trade's daily return (midpoint) with same-day moves of other markets, on the \runappHcNdays {} days wherever both exist, with a 95\% circular block-bootstrap interval (blocks of 21 days)}{table.caption.113}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{67}{section*.114}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{67}{section*.115}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.13}Strategy variations of the last-30-min trade}{67}{subsection.D.13}\protected@file@percent }
+\newlabel{sec:app_strategy_variations}{{D.13}{67}{Strategy variations of the last-30-min trade}{subsection.D.13}{}}
+\gdef \LT@iii {\LT@entry 
+    {1}{82.82234pt}\LT@entry 
+    {1}{128.34692pt}\LT@entry 
+    {1}{102.73918pt}\LT@entry 
+    {1}{51.52458pt}\LT@entry 
+    {1}{102.73918pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {28}{\ignorespaces The strategy variations. $C(K)$, $P(K)$: a call, a put at strike $K$; $+$ bought, $-$ sold in the buy-side form $L$. $K_c^{+}$, $K_p^{-}$: the next live strike beyond $K_c$, $K_p$.}}{68}{table.28}\protected@file@percent }
+\newlabel{tab:app_strategy_variations_defs}{{28}{68}{The strategy variations. $C(K)$, $P(K)$: a call, a put at strike $K$; $+$ bought, $-$ sold in the buy-side form $L$. $K_c^{+}$, $K_p^{-}$: the next live strike beyond $K_c$, $K_p$}{table.28}{}}
+\@writefile{toc}{\contentsline {paragraph}{What the variations show.}{68}{section*.116}\protected@file@percent }
+\gdef \LT@iv {\LT@entry 
+    {3}{123.72029pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{64.76631pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{69.76509pt}\LT@entry 
+    {3}{32.55003pt}\LT@entry 
+    {1}{24.85555pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {29}{\ignorespaces Strategy variations under $\mathrm  {sign}(s)$ with the per-bar ridge on the live-feasible set (16:00-bar recalibration), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios annualized by $\sqrt  {252}$ per trade day, return per straddle premium; $\Delta $Sharpe: the variation minus the straddle, paired. Worst day: mid fill, in straddle premiums. Cost share: the median crossed-minus-mid entry cost over the structure's own absolute midpoint premium, averaged over the buying and the selling side.}}{69}{table.29}\protected@file@percent }
+\newlabel{tab:app_strategy_variations_res}{{29}{69}{Strategy variations under $\mathrm {sign}(s)$ with the per-bar ridge on the live-feasible set (16:00-bar recalibration), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios annualized by $\sqrt {252}$ per trade day, return per straddle premium; $\Delta $Sharpe: the variation minus the straddle, paired. Worst day: mid fill, in straddle premiums. Cost share: the median crossed-minus-mid entry cost over the structure's own absolute midpoint premium, averaged over the buying and the selling side}{table.29}{}}
+\gdef \LT@v {\LT@entry 
+    {3}{123.72029pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{64.76631pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{69.76509pt}\LT@entry 
+    {3}{32.55003pt}\LT@entry 
+    {1}{24.85555pt}}
+\gdef \LT@vi {\LT@entry 
+    {3}{123.72029pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{64.76631pt}\LT@entry 
+    {1}{32.29817pt}\LT@entry 
+    {1}{40.63153pt}\LT@entry 
+    {3}{64.76631pt}\LT@entry 
+    {3}{32.55003pt}\LT@entry 
+    {1}{24.85555pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {30}{\ignorespaces As Table\nobreakspace  {}\ref {tab:app_strategy_variations_res}, with $\mathrm  {sign}(s)$ on the block-diagonal ridge (the paper's forecast, with the paper's recalibration over the session bars).}}{70}{table.30}\protected@file@percent }
+\newlabel{tab:app_strategy_variations_res_blk}{{30}{70}{As Table~\ref {tab:app_strategy_variations_res}, with $\mathrm {sign}(s)$ on the block-diagonal ridge (the paper's forecast, with the paper's recalibration over the session bars)}{table.30}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {31}{\ignorespaces As Table\nobreakspace  {}\ref {tab:app_strategy_variations_res}, always short (no forecast): every structure sold every day.}}{70}{table.31}\protected@file@percent }
+\newlabel{tab:app_strategy_variations_res_short}{{31}{70}{As Table~\ref {tab:app_strategy_variations_res}, always short (no forecast): every structure sold every day}{table.31}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.14}Where the Headline's P\&L Comes From}{71}{subsection.D.14}\protected@file@percent }
+\newlabel{sec:app_close_pnl}{{D.14}{71}{Where the Headline's P\&L Comes From}{subsection.D.14}{}}
+\@writefile{toc}{\contentsline {paragraph}{Question.}{71}{section*.117}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {32}{\ignorespaces The headline's $\mathrm  {sign}(s)$ P\&L by cell, in premium units at the midpoint, against always short on the same days; the difference is the headline minus always short, zero on every day the rule sells. Buys: the days the rule is long.}}{72}{table.caption.118}\protected@file@percent }
+\newlabel{tab:app_close_pnl}{{32}{72}{The headline's $\mathrm {sign}(s)$ P\&L by cell, in premium units at the midpoint, against always short on the same days; the difference is the headline minus always short, zero on every day the rule sells. Buys: the days the rule is long}{table.caption.118}{}}
+\@writefile{toc}{\contentsline {paragraph}{Finding.}{72}{section*.119}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why it is not in the main text.}{72}{section*.120}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.15}Parked from Section 5.4: The Paper's Forecast under the Session-Bar Recalibration}{72}{subsection.D.15}\protected@file@percent }
+\newlabel{sec:app_run_parked}{{D.15}{72}{Parked from Section 5.4: The Paper's Forecast under the Session-Bar Recalibration}{subsection.D.15}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why it is parked.}{72}{section*.121}\protected@file@percent }
+\citation{Patton2011}
+\citation{Ehm2016}
+\@writefile{toc}{\contentsline {paragraph}{Where the level comes from.}{73}{section*.122}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Settlement pins carry a disproportionate share.}{73}{section*.123}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Eight rows are one or two bets.}{73}{section*.124}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What the forecasts are scored on, and what the trade uses.}{73}{section*.125}\protected@file@percent }
+\newlabel{eq:elementary_score}{{20}{73}{What the forecasts are scored on, and what the trade uses}{equation.D.20}{}}
+\citation{Ehm2016}
+\newlabel{eq:qlike_mixture}{{21}{74}{What the forecasts are scored on, and what the trade uses}{equation.D.21}{}}
+\newlabel{eq:score_at_threshold}{{22}{74}{What the forecasts are scored on, and what the trade uses}{equation.D.22}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {33}{\ignorespaces The 15:30 forecasts scored two ways, on the 866 expiration days of Section\nobreakspace  {}\ref {sec:close_option_results}. QLIKE is Equation\nobreakspace  {}\eqref  {eq:dp_qlike} applied to the $16{:}00$ row; the score at the threshold is Equation\nobreakspace  {}\eqref  {eq:score_at_threshold}, averaged over days (lower is better for both). ``Same side as $RV$'' is the percentage of days on which $\setbox \z@ \hbox {\mathsurround \z@ $\textstyle RV$}\mathaccent "0362{RV}_t$ and $RV_t$ fall on the same side of $\mathrm  {IV}^2_{30,t}$; ``same side as $R$'' the percentage on which the $\mathrm  {sign}(s)$ position has the sign of the settlement return. The last column is the annualized Sharpe ratio of the $\mathrm  {sign}(s)$ portfolio at the crossed spread. The last row is a rule told $RV_t$ in advance. $\dagger $: the four columns still fitted on the earlier design panel (Section\nobreakspace  {}\ref {sec:close_option_methods}). }}{74}{table.caption.126}\protected@file@percent }
+\newlabel{tab:close_option_scoring}{{33}{74}{The 15:30 forecasts scored two ways, on the 866 expiration days of Section~\ref {sec:close_option_results}. QLIKE is Equation~\eqref {eq:dp_qlike} applied to the $16{:}00$ row; the score at the threshold is Equation~\eqref {eq:score_at_threshold}, averaged over days (lower is better for both). ``Same side as $RV$'' is the percentage of days on which $\widehat {RV}_t$ and $RV_t$ fall on the same side of $\mathrm {IV}^2_{30,t}$; ``same side as $R$'' the percentage on which the $\mathrm {sign}(s)$ position has the sign of the settlement return. The last column is the annualized Sharpe ratio of the $\mathrm {sign}(s)$ portfolio at the crossed spread. The last row is a rule told $RV_t$ in advance. $\dagger $: the four columns still fitted on the earlier design panel (Section~\ref {sec:close_option_methods})}{table.caption.126}{}}
+\@writefile{toc}{\contentsline {paragraph}{The Murphy diagram.}{74}{section*.127}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Murphy diagram of the eight 15:30 forecasts on the 866 expiration days. The horizontal axis is the threshold $\theta $ in units of the day's implied variance of the last half hour, $\mathrm  {IV}^2_{30,t}$, on a logarithmic scale from 0.25{} to 4{}; the dotted vertical line at 1 is the threshold the $\mathrm  {sign}(s)$ rule uses. (a) The mean of the elementary score $e_t(c)$ (lower is better); QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the eight at the same threshold, which makes the crossings visible.}}{75}{figure.caption.128}\protected@file@percent }
+\newlabel{fig:close_option_murphy}{{2}{75}{Murphy diagram of the eight 15:30 forecasts on the 866 expiration days. The horizontal axis is the threshold $\theta $ in units of the day's implied variance of the last half hour, $\mathrm {IV}^2_{30,t}$, on a logarithmic scale from \murGridMin {} to \murGridMax {}; the dotted vertical line at 1 is the threshold the $\mathrm {sign}(s)$ rule uses. (a) The mean of the elementary score $e_t(c)$ (lower is better); QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the eight at the same threshold, which makes the crossings visible}{figure.caption.128}{}}
+\@writefile{toc}{\contentsline {paragraph}{What a variance forecast can reach.}{75}{section*.129}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Neither score orders the forecasts on this trade.}{76}{section*.130}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The signal's content is a same-day sign, and the right test is the same-day one.}{76}{section*.131}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Magnitude carries information; sizing on it does not.}{76}{section*.132}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces The 15:30 signal against the 16:00 settlement return, block-diagonal ridge forecast, 866 expiration days. Left: the settled return $R_t$ against the raw signal $s_t$ with the least-squares line. Middle: the mean of $R_t$ on days with $s_t \le 0$ and $s_t > 0$ (means only, no error bars) beside the always-short portfolio's mean over all days (grey bar), the benchmark throughout. Right: the mean of $R_t$ in ten equal-count bins of the signal's level, each labelled by its median value of $s_t$ in units of $10^{-6}$ (thirty-minute variance); the dashed line is the always-short mean. The relation is a step at the sign, and the binned means inside either half show no trend in the level: what the signal carries is which side of the quoted variance the forecast stands on.}}{77}{figure.caption.133}\protected@file@percent }
+\newlabel{fig:close_option_sameday}{{3}{77}{The 15:30 signal against the 16:00 settlement return, block-diagonal ridge forecast, 866 expiration days. Left: the settled return $R_t$ against the raw signal $s_t$ with the least-squares line. Middle: the mean of $R_t$ on days with $s_t \le 0$ and $s_t > 0$ (means only, no error bars) beside the always-short portfolio's mean over all days (grey bar), the benchmark throughout. Right: the mean of $R_t$ in ten equal-count bins of the signal's level, each labelled by its median value of $s_t$ in units of $10^{-6}$ (thirty-minute variance); the dashed line is the always-short mean. The relation is a step at the sign, and the binned means inside either half show no trend in the level: what the signal carries is which side of the quoted variance the forecast stands on}{figure.caption.133}{}}
+\@writefile{toc}{\contentsline {paragraph}{The forecast is dated where it claims to be.}{77}{section*.134}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Compounded at a fixed three percent of wealth, the $\mathrm  {sign}(s)$ portfolio grows; the control does not.}{77}{section*.135}\protected@file@percent }
+\gdef \LT@vii {\LT@entry 
+    {4}{75.8917pt}\LT@entry 
+    {4}{69.9973pt}\LT@entry 
+    {1}{44.73264pt}\LT@entry 
+    {1}{57.10878pt}\LT@entry 
+    {1}{25.84142pt}\LT@entry 
+    {1}{31.27759pt}\LT@entry 
+    {4}{79.89766pt}\LT@entry 
+    {4}{79.89766pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {34}{\ignorespaces The shift (dating) test of the headline forecast under the 16:00-bar recalibration: the 15:30 $\mathrm  {sign}(s)$ rule with the forecast row shifted by $k$ half-hour bars, every row placed on the traded bar's scale, on the 865 deck days for which every shifted row exists. $k<0$: the same session's earlier row; $k=0$: the trade; $k>0$: the next session's row (the headline has session rows only), whose lags contain the traded bar. $\Delta $ is against $k=0$ with the paired day-block 95\,\% interval.}}{78}{table.34}\protected@file@percent }
+\newlabel{tab:app_shift_test_headline}{{34}{78}{The shift (dating) test of the headline forecast under the 16:00-bar recalibration: the 15:30 $\mathrm {sign}(s)$ rule with the forecast row shifted by $k$ half-hour bars, every row placed on the traded bar's scale, on the 865 deck days for which every shifted row exists. $k<0$: the same session's earlier row; $k=0$: the trade; $k>0$: the next session's row (the headline has session rows only), whose lags contain the traded bar. $\Delta $ is against $k=0$ with the paired day-block 95\,\% interval}{table.34}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.16}The Shift (Dating) Test of the Headline Forecast}{78}{subsection.D.16}\protected@file@percent }
+\newlabel{sec:app_shift_test_headline}{{D.16}{78}{The Shift (Dating) Test of the Headline Forecast}{subsection.D.16}{}}
+\@writefile{toc}{\contentsline {paragraph}{What is tested.}{78}{section*.136}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reading.}{78}{section*.137}\protected@file@percent }
+\gdef \LT@viii {\LT@entry 
+    {1}{130.83586pt}\LT@entry 
+    {1}{31.35722pt}\LT@entry 
+    {1}{35.65253pt}\LT@entry 
+    {4}{23.3564pt}\LT@entry 
+    {1}{53.92596pt}\LT@entry 
+    {1}{47.08698pt}\LT@entry 
+    {1}{46.73264pt}\LT@entry 
+    {1}{59.10878pt}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The headline forecast's $\mathrm  {sign}(s)$ Sharpe as the forecast row is shifted, on the same 865{} days (source: \texttt  {results/close\_shift\_test/shift\_test\_headline.csv}).}}{79}{figure.caption.138}\protected@file@percent }
+\newlabel{fig:app_shift_test_headline}{{4}{79}{The headline forecast's $\mathrm {sign}(s)$ Sharpe as the forecast row is shifted, on the same \shiftNDays {} days (source: \texttt {results/close\_shift\_test/shift\_test\_headline.csv})}{figure.caption.138}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {35}{\ignorespaces The comparison set scored two ways on the 866 deck days under the 16:00-bar recalibration: QLIKE against the scorer's target, the elementary score at the trade's threshold (the 15:30 implied variance), the economic loss $|R|\,\mathbf  1\{q\neq  \mathrm  {sign}(R)\}$, the share of days the forecast falls on the same side of the threshold as the realized variance (same side as $RV$) and the share on which the position has the sign of the settlement return (same side as $R$), and the $\mathrm  {sign}(s)$ Sharpe at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance.}}{79}{table.35}\protected@file@percent }
+\newlabel{tab:app_murphy_headline}{{35}{79}{The comparison set scored two ways on the 866 deck days under the 16:00-bar recalibration: QLIKE against the scorer's target, the elementary score at the trade's threshold (the 15:30 implied variance), the economic loss $|R|\,\mathbf 1\{q\neq \mathrm {sign}(R)\}$, the share of days the forecast falls on the same side of the threshold as the realized variance (same side as $RV$) and the share on which the position has the sign of the settlement return (same side as $R$), and the $\mathrm {sign}(s)$ Sharpe at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance}{table.35}{}}
+\gdef \LT@ix {\LT@entry 
+    {4}{110.09306pt}\LT@entry 
+    {4}{156.26096pt}\LT@entry 
+    {4}{14.7469pt}\LT@entry 
+    {4}{27.9659pt}\LT@entry 
+    {4}{23.71693pt}\LT@entry 
+    {4}{73.28816pt}\LT@entry 
+    {1}{51.85312pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {36}{\ignorespaces Sample splits of the headline's $\mathrm  {sign}(s)$ return (midpoint fill) under the 16:00-bar recalibration, beside the paper's block-diagonal ridge scored the same way and always short. $t=\sqrt  {n}\,\bar  x/s_x$; the Sharpe ratio is annualized with its day-block bootstrap 95\,\% interval (circular blocks of 21 days, 2000 draws); the P\&L share is the split's sum of daily returns over the full-sample sum.}}{80}{table.36}\protected@file@percent }
+\newlabel{tab:app_splits_headline}{{36}{80}{Sample splits of the headline's $\mathrm {sign}(s)$ return (midpoint fill) under the 16:00-bar recalibration, beside the paper's block-diagonal ridge scored the same way and always short. $t=\sqrt {n}\,\bar x/s_x$; the Sharpe ratio is annualized with its day-block bootstrap 95\,\% interval (circular blocks of 21 days, 2000 draws); the P\&L share is the split's sum of daily returns over the full-sample sum}{table.36}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.17}The Headline Forecast Scored at the Trade's Threshold, and Its Sample Splits}{80}{subsection.D.17}\protected@file@percent }
+\newlabel{sec:app_murphy_splits_headline}{{D.17}{80}{The Headline Forecast Scored at the Trade's Threshold, and Its Sample Splits}{subsection.D.17}{}}
+\@writefile{toc}{\contentsline {paragraph}{The score at the threshold.}{80}{section*.139}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The Murphy diagram.}{81}{section*.140}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What a variance forecast can reach.}{81}{section*.141}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Which score orders the forecasts on the trade.}{81}{section*.142}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Sample splits.}{81}{section*.143}\protected@file@percent }
+\gdef \LT@x {\LT@entry 
+    {4}{133.24672pt}\LT@entry 
+    {4}{37.24239pt}\LT@entry 
+    {4}{28.77223pt}\LT@entry 
+    {4}{31.54933pt}\LT@entry 
+    {1}{43.21315pt}\LT@entry 
+    {1}{48.57295pt}\LT@entry 
+    {1}{54.62703pt}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Murphy diagram of the comparison set on the 866 deck days under the 16:00-bar recalibration. The horizontal axis is the threshold in units of the day's implied variance of the last half hour, on a logarithmic scale from 0.25{} to 4{}; the dotted line at 1 is the threshold the $\mathrm  {sign}(s)$ rule uses. (a) The mean elementary score (lower is better); QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the set at the same threshold (source: \texttt  {results/close\_murphy\_splits/murphy\_grid.csv}).}}{82}{figure.caption.144}\protected@file@percent }
+\newlabel{fig:app_murphy_headline}{{5}{82}{Murphy diagram of the comparison set on the 866 deck days under the 16:00-bar recalibration. The horizontal axis is the threshold in units of the day's implied variance of the last half hour, on a logarithmic scale from \hmurGridMin {} to \hmurGridMax {}; the dotted line at 1 is the threshold the $\mathrm {sign}(s)$ rule uses. (a) The mean elementary score (lower is better); QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the set at the same threshold (source: \texttt {results/close\_murphy\_splits/murphy\_grid.csv})}{figure.caption.144}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {37}{\ignorespaces Compounding at a fixed $f=0.03$ of wealth per day under the 16:00-bar recalibration, 866 days: terminal wealth $W_T=\DOTSB \prod@ \slimits@ _t(1+f\,q_tR_t)$, annualized log-growth $g$, the largest fall of wealth from its running peak, the worst single-day wealth factor $1+f\min _t R'_t$, and the ruin bound $1/|\min _t R'_t|$ (the sample's worst day). The headline, the paper's block-diagonal ridge scored the same way, and always short, at both fills.}}{82}{table.37}\protected@file@percent }
+\newlabel{tab:app_compounding_headline}{{37}{82}{Compounding at a fixed $f=0.03$ of wealth per day under the 16:00-bar recalibration, 866 days: terminal wealth $W_T=\prod _t(1+f\,q_tR_t)$, annualized log-growth $g$, the largest fall of wealth from its running peak, the worst single-day wealth factor $1+f\min _t R'_t$, and the ruin bound $1/|\min _t R'_t|$ (the sample's worst day). The headline, the paper's block-diagonal ridge scored the same way, and always short, at both fills}{table.37}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.18}The Headline Forecast Compounded at a Fixed Fraction of Wealth}{82}{subsection.D.18}\protected@file@percent }
+\newlabel{sec:app_compounding_headline}{{D.18}{82}{The Headline Forecast Compounded at a Fixed Fraction of Wealth}{subsection.D.18}{}}
+\@writefile{toc}{\contentsline {paragraph}{What is computed.}{82}{section*.145}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reading.}{83}{section*.146}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Wealth at a fixed 0.03{} of wealth per day, 866 days, under the 16:00-bar recalibration: the headline's $\mathrm  {sign}(s)$, the paper's block-diagonal ridge scored the same way, and always short; midpoint fill (left) and crossed spread (right), log scale (source: \texttt  {results/close\_compounding/fixedfrac\_headline.csv}).}}{83}{figure.caption.147}\protected@file@percent }
+\newlabel{fig:app_compounding_headline}{{6}{83}{Wealth at a fixed \cmpF {} of wealth per day, 866 days, under the 16:00-bar recalibration: the headline's $\mathrm {sign}(s)$, the paper's block-diagonal ridge scored the same way, and always short; midpoint fill (left) and crossed spread (right), log scale (source: \texttt {results/close\_compounding/fixedfrac\_headline.csv})}{figure.caption.147}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.19}The 16:00 Models Re-run: Design, Mask, Cadence, Tuning}{83}{subsection.D.19}\protected@file@percent }
+\newlabel{sec:app_campaign_16h}{{D.19}{83}{The 16:00 Models Re-run: Design, Mask, Cadence, Tuning}{subsection.D.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.1}The design: the session-edge columns}{84}{subsubsection.D.19.1}\protected@file@percent }
+\newlabel{sec:app_camp_design}{{D.19.1}{84}{The design: the session-edge columns}{subsubsection.D.19.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {38}{\ignorespaces The per-bar design before and after the session-edge columns were dropped, and the linear arms' identifiability mask per penalty tune (range over tunes) for the per-bar ridge: the columns it masked fall by exactly the columns removed, so the columns kept are unchanged.}}{85}{table.caption.148}\protected@file@percent }
+\newlabel{tab:app_camp_design}{{38}{85}{The per-bar design before and after the session-edge columns were dropped, and the linear arms' identifiability mask per penalty tune (range over tunes) for the per-bar ridge: the columns it masked fall by exactly the columns removed, so the columns kept are unchanged}{table.caption.148}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {39}{\ignorespaces The master table's per-bar linear forecasts, new design minus old, by estimator: the largest and the median (over forecasts) of the per-forecast maximum and median relative change of the 16:00 forecast, the forecasts whose maximum exceeds the reproduction gate's bound, the trade positions changed (forecast-days, of 866{} per forecast) and the largest change of a $\mathrm  {sign}(s)$ Sharpe ratio (midpoint).}}{85}{table.caption.149}\protected@file@percent }
+\newlabel{tab:app_camp_linear}{{39}{85}{The master table's per-bar linear forecasts, new design minus old, by estimator: the largest and the median (over forecasts) of the per-forecast maximum and median relative change of the 16:00 forecast, the forecasts whose maximum exceeds the reproduction gate's bound, the trade positions changed (forecast-days, of \campTradeDays {} per forecast) and the largest change of a $\mathrm {sign}(s)$ Sharpe ratio (midpoint)}{table.caption.149}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.2}One mask for every model}{85}{subsubsection.D.19.2}\protected@file@percent }
+\newlabel{sec:app_camp_mask}{{D.19.2}{85}{One mask for every model}{subsubsection.D.19.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {40}{\ignorespaces The per-window mask, masked minus unmasked, per rung, model and input set, same design, 866{} days. Each cell: QLIKE difference in \% of the unmasked QLIKE [95\,\% interval] over the $\mathrm  {sign}(s)$ Sharpe difference at the midpoint [95\,\% interval]. The unmasked rungs were not pinned to a CPU class.}}{86}{table.caption.150}\protected@file@percent }
+\newlabel{tab:app_camp_mask}{{40}{86}{The per-window mask, masked minus unmasked, per rung, model and input set, same design, \campTradeDays {} days. Each cell: QLIKE difference in \% of the unmasked QLIKE [95\,\% interval] over the $\mathrm {sign}(s)$ Sharpe difference at the midpoint [95\,\% interval]. The unmasked rungs were not pinned to a CPU class}{table.caption.150}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.3}Refit cadence}{86}{subsubsection.D.19.3}\protected@file@percent }
+\newlabel{sec:app_camp_cadence}{{D.19.3}{86}{Refit cadence}{subsubsection.D.19.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {41}{\ignorespaces The masked ladder: refit every session minus every 10th (shipped configuration; random search; the per-bar LSTM in the first column), and random search minus the shipped configuration, both refit every session. Cells as in Table\nobreakspace  {}\ref {tab:app_camp_mask}, the second forecast of each pair being the comparator.}}{87}{table.caption.151}\protected@file@percent }
+\newlabel{tab:app_camp_cadence}{{41}{87}{The masked ladder: refit every session minus every 10th (shipped configuration; random search; the per-bar LSTM in the first column), and random search minus the shipped configuration, both refit every session. Cells as in Table~\ref {tab:app_camp_mask}, the second forecast of each pair being the comparator}{table.caption.151}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.4}Tuning: random search and Optuna}{87}{subsubsection.D.19.4}\protected@file@percent }
+\newlabel{sec:app_camp_tuning}{{D.19.4}{87}{Tuning: random search and Optuna}{subsubsection.D.19.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Random search against the shipped configuration.}{87}{section*.152}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Optuna.}{87}{section*.153}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Are 50{} trials enough?}{87}{section*.154}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{How often to tune.}{88}{section*.155}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Optuna against the other rungs.}{88}{section*.156}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where the picks sit.}{88}{section*.157}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {42}{\ignorespaces Is the Optuna budget enough? Per arm, over all tuning points: the median trial that holds the best of 50, the share of points where it is the shipped configuration and where it falls in trials 41--50 (20\,\% if exchangeable), the relative gain in the best validation MSE from the first 10, 25 and 40 trials to all 50 (mean / median), and the share of points whose best of 25 differs from the best of 50.}}{89}{table.caption.158}\protected@file@percent }
+\newlabel{tab:app_camp_budget}{{42}{89}{Is the Optuna budget enough? Per arm, over all tuning points: the median trial that holds the best of 50, the share of points where it is the shipped configuration and where it falls in trials 41--50 (\campOptExch \,\% if exchangeable), the relative gain in the best validation MSE from the first 10, 25 and 40 trials to all 50 (mean / median), and the share of points whose best of 25 differs from the best of 50}{table.caption.158}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {43}{\ignorespaces The budget out of sample: best of 50 trials minus best of 10 and of 25, at TUNE\_PER 1 and 25. Cells as in Table\nobreakspace  {}\ref {tab:app_camp_mask}.}}{89}{table.caption.159}\protected@file@percent }
+\newlabel{tab:app_camp_budget_oos}{{43}{89}{The budget out of sample: best of 50 trials minus best of 10 and of 25, at TUNE\_PER 1 and 25. Cells as in Table~\ref {tab:app_camp_mask}}{table.caption.159}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {44}{\ignorespaces How often to tune: Optuna (best of 50) with a new tuning point every 1, 5 and 25 sessions minus every 250 sessions, every path refit every session; the second column is the QLIKE at TUNE\_PER 250. Cells as in Table\nobreakspace  {}\ref {tab:app_camp_mask}.}}{90}{table.caption.160}\protected@file@percent }
+\newlabel{tab:app_camp_tuneper}{{44}{90}{How often to tune: Optuna (best of 50) with a new tuning point every 1, 5 and 25 sessions minus every 250 sessions, every path refit every session; the second column is the QLIKE at TUNE\_PER 250. Cells as in Table~\ref {tab:app_camp_mask}}{table.caption.160}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {45}{\ignorespaces Optuna (best of 50, each TUNE\_PER) minus the shipped trees refit every session (T1), the random search refit every session (RS1) and the per-bar ridge: the number of model $\times $ input-set arms whose 95\,\% interval lies wholly below or above zero.}}{90}{table.caption.161}\protected@file@percent }
+\newlabel{tab:app_camp_optuna_vs}{{45}{90}{Optuna (best of 50, each TUNE\_PER) minus the shipped trees refit every session (T1), the random search refit every session (RS1) and the per-bar ridge: the number of model $\times $ input-set arms whose 95\,\% interval lies wholly below or above zero}{table.caption.161}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {46}{\ignorespaces Where the best-of-50 picks sit: share of picks in the outermost twentieth of each axis at its low and high end, per input set (\texttt  {baseline} / \texttt  {live\_feasible} / \texttt  {all\_features}), beside the share of the random start-up draws there (the prior), and the median pick. $^{\dagger }$A pseudo-axis: the early-stopped number of rounds at the cap set by the learning rate.}}{91}{table.caption.162}\protected@file@percent }
+\newlabel{tab:app_camp_picks}{{46}{91}{Where the best-of-50 picks sit: share of picks in the outermost twentieth of each axis at its low and high end, per input set (\texttt {baseline} / \texttt {live\_feasible} / \texttt {all\_features}), beside the share of the random start-up draws there (the prior), and the median pick. $^{\dagger }$A pseudo-axis: the early-stopped number of rounds at the cap set by the learning rate}{table.caption.162}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.5}The intraday-sequence LSTM}{91}{subsubsection.D.19.5}\protected@file@percent }
+\newlabel{sec:app_camp_lstmi}{{D.19.5}{91}{The intraday-sequence LSTM}{subsubsection.D.19.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {47}{\ignorespaces The intraday-sequence LSTM (selection rule of record) beside the per-bar LSTM and the per-bar ridge: QLIKE and $\mathrm  {sign}(s)$ Sharpe (midpoint) levels, and the paired differences, cells as in Table\nobreakspace  {}\ref {tab:app_camp_mask}.}}{91}{table.caption.163}\protected@file@percent }
+\newlabel{tab:app_camp_lstmi}{{47}{91}{The intraday-sequence LSTM (selection rule of record) beside the per-bar LSTM and the per-bar ridge: QLIKE and $\mathrm {sign}(s)$ Sharpe (midpoint) levels, and the paired differences, cells as in Table~\ref {tab:app_camp_mask}}{table.caption.163}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.6}Reproducibility across CPUs}{92}{subsubsection.D.19.6}\protected@file@percent }
+\newlabel{sec:app_camp_repro}{{D.19.6}{92}{Reproducibility across CPUs}{subsubsection.D.19.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {48}{\ignorespaces CPU-class checks: what was compared and what reproduced. ``Bit-identical $a/b$'': $a$ of $b$ items equal bit for bit; relative differences are of the forecast; QLIKE and Sharpe differences (other class minus the fleet's class, in \% of QLIKE and Sharpe units) with 95\,\% paired intervals.}}{93}{table.caption.164}\protected@file@percent }
+\newlabel{tab:app_camp_repro}{{48}{93}{CPU-class checks: what was compared and what reproduced. ``Bit-identical $a/b$'': $a$ of $b$ items equal bit for bit; relative differences are of the forecast; QLIKE and Sharpe differences (other class minus the fleet's class, in \% of QLIKE and Sharpe units) with 95\,\% paired intervals}{table.caption.164}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.7}The master table before and after}{93}{subsubsection.D.19.7}\protected@file@percent }
+\newlabel{sec:app_camp_master}{{D.19.7}{93}{The master table before and after}{subsubsection.D.19.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {49}{\ignorespaces The master table before and after the campaign, per family of the forecasts present in both: what changed, the QLIKE change in \% and the $\mathrm  {sign}(s)$ Sharpe change (midpoint), median and range over the family, the number of paired Sharpe-change intervals wholly above / below zero, and the trade positions changed (of 866{} days).}}{94}{table.caption.165}\protected@file@percent }
+\newlabel{tab:app_camp_master}{{49}{94}{The master table before and after the campaign, per family of the forecasts present in both: what changed, the QLIKE change in \% and the $\mathrm {sign}(s)$ Sharpe change (midpoint), median and range over the family, the number of paired Sharpe-change intervals wholly above / below zero, and the trade positions changed (of \campMTHeadDays {} days)}{table.caption.165}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.8}Feature importance and density on the new design}{94}{subsubsection.D.19.8}\protected@file@percent }
+\newlabel{sec:app_camp_featimp}{{D.19.8}{94}{Feature importance and density on the new design}{subsubsection.D.19.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {50}{\ignorespaces The \texttt  {har\_ma\_*} ladder's importance in the trees, first pass (old design, unmasked) to the new design with the mask: MDI and TreeSHAP shares, permutation (P2, QLIKE) in \% of the model's tail loss, the part of the old ladder's MDI that sat on the \texttt  {\_x\_close} copies, and the ladder's MDI rank among the series.}}{95}{table.caption.166}\protected@file@percent }
+\newlabel{tab:app_camp_featimp}{{50}{95}{The \texttt {har\_ma\_*} ladder's importance in the trees, first pass (old design, unmasked) to the new design with the mask: MDI and TreeSHAP shares, permutation (P2, QLIKE) in \% of the model's tail loss, the part of the old ladder's MDI that sat on the \texttt {\_x\_close} copies, and the ladder's MDI rank among the series}{table.caption.166}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {51}{\ignorespaces Signal density before and after: effective number of inputs $N_{\mathrm  {eff}}=1/\DOTSB \sum@ \slimits@ _j s_j^2$ of each forecast's mean absolute contributions (first pass; new design without the mask, trees only; new design with the mask), the fewest columns reproducing 95\,\% of the input-driven forecast's variance ($k_{95}$), the columns with any weight, and the first pass's share of the trees' mean $|$TreeSHAP$|$ on the session-edge columns.}}{95}{table.caption.167}\protected@file@percent }
+\newlabel{tab:app_camp_dvs}{{51}{95}{Signal density before and after: effective number of inputs $N_{\mathrm {eff}}=1/\sum _j s_j^2$ of each forecast's mean absolute contributions (first pass; new design without the mask, trees only; new design with the mask), the fewest columns reproducing 95\,\% of the input-driven forecast's variance ($k_{95}$), the columns with any weight, and the first pass's share of the trees' mean $|$TreeSHAP$|$ on the session-edge columns}{table.caption.167}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {D.19.9}Compute used}{95}{subsubsection.D.19.9}\protected@file@percent }
+\newlabel{sec:app_camp_compute}{{D.19.9}{95}{Compute used}{subsubsection.D.19.9}{}}
 \bibstyle{plainnat}
 \bibdata{references}
-\bibcite{AsaiMcAleerMedeiros2012}{{1}{2012}{{Asai et~al.}}{{Asai, McAleer, and Medeiros}}}
-\bibcite{BekiermanManner2018}{{2}{2018}{{Bekierman and Manner}}{{}}}
-\bibcite{Chen2016}{{3}{2016}{{Chen and Guestrin}}{{}}}
-\bibcite{Corsi2009}{{4}{2009}{{Corsi}}{{}}}
-\bibcite{DemetrescuGolosnoyTitova2020}{{5}{2020}{{Demetrescu et~al.}}{{Demetrescu, Golosnoy, and Titova}}}
-\bibcite{DieboldMariano1995}{{6}{1995}{{Diebold and Mariano}}{{}}}
-\bibcite{Duan1983}{{7}{1983}{{Duan}}{{}}}
-\bibcite{HansenLundeNason2011}{{8}{2011}{{Hansen et~al.}}{{Hansen, Lunde, and Nason}}}
-\bibcite{HarveyLeybourneNewbold1997}{{9}{1997}{{Harvey et~al.}}{{Harvey, Leybourne, and Newbold}}}
-\bibcite{Ke2017}{{10}{2017}{{Ke et~al.}}{{Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu}}}
-\bibcite{Lou2013}{{11}{2013}{{Lou et~al.}}{{Lou, Caruana, Gehrke, and Hooker}}}
-\bibcite{Patton2011}{{12}{2011}{{Patton}}{{}}}
-\gdef \@abspage@last{29}
+\bibcite{AndersenBollerslev1997}{{1}{1997}{{Andersen and Bollerslev}}{{}}}
+\bibcite{AndersenBollerslevDieboldLabys2003}{{2}{2003}{{Andersen et~al.}}{{Andersen, Bollerslev, Diebold, and Labys}}}
+\bibcite{AndersenBollerslevChristoffersenDiebold2006}{{3}{2006}{{Andersen et~al.}}{{Andersen, Bollerslev, Christoffersen, and Diebold}}}
+\bibcite{AsaiMcAleerMedeiros2012}{{4}{2012}{{Asai et~al.}}{{Asai, McAleer, and Medeiros}}}
+\bibcite{BarndorffNielsenShephard2004}{{5}{2004}{{Barndorff-Nielsen and Shephard}}{{}}}
+\bibcite{BekiermanManner2018}{{6}{2018}{{Bekierman and Manner}}{{}}}
+\bibcite{BennedsenLundePakkanen2022}{{7}{2022}{{Bennedsen et~al.}}{{Bennedsen, Lunde, and Pakkanen}}}
+\bibcite{BlackScholes1973}{{8}{1973}{{Black and Scholes}}{{}}}
+\bibcite{Bollerslev1986}{{9}{1986}{{Bollerslev}}{{}}}
+\bibcite{BollerslevKretschmerPigorschTauchen2009}{{10}{2009}{{Bollerslev et~al.}}{{Bollerslev, Kretschmer, Pigorsch, and Tauchen}}}
+\bibcite{BollerslevPattonQuaedvlieg2016}{{11}{2016}{{Bollerslev et~al.}}{{Bollerslev, Patton, and Quaedvlieg}}}
+\@writefile{lot}{\contentsline {table}{\numberline {52}{\ignorespaces Compute used by the campaign's stages, as each stage recorded it (--- = not reported). For cluster B, slot-hours are wall-clock hours of the job slots.}}{96}{table.caption.168}\protected@file@percent }
+\newlabel{tab:app_camp_compute}{{52}{96}{Compute used by the campaign's stages, as each stage recorded it (--- = not reported). For cluster B, slot-hours are wall-clock hours of the job slots}{table.caption.168}{}}
+\bibcite{Chen2016}{{12}{2016}{{Chen and Guestrin}}{{}}}
+\bibcite{ChiriacVoev2011}{{13}{2011}{{Chiriac and Voev}}{{}}}
+\bibcite{christensen2023machine}{{14}{2023}{{Christensen et~al.}}{{Christensen, Siggaard, and Veliyev}}}
+\bibcite{CiarretaZarraga2016}{{15}{2016}{{Ciarreta and Zarraga}}{{}}}
+\bibcite{Corsi2009}{{16}{2009}{{Corsi}}{{}}}
+\bibcite{CorsiMittnikPigorschPigorsch2008}{{17}{2008}{{Corsi et~al.}}{{Corsi, Mittnik, Pigorsch, and Pigorsch}}}
+\bibcite{DemetrescuGolosnoyTitova2020}{{18}{2020}{{Demetrescu et~al.}}{{Demetrescu, Golosnoy, and Titova}}}
+\bibcite{DieboldMariano1995}{{19}{1995}{{Diebold and Mariano}}{{}}}
+\bibcite{DonohoJin2004}{{20}{2004}{{Donoho and Jin}}{{}}}
+\bibcite{Duan1983}{{21}{1983}{{Duan}}{{}}}
+\bibcite{Efron2004}{{22}{2004}{{Efron et~al.}}{{Efron, Hastie, Johnstone, and Tibshirani}}}
+\bibcite{Ehm2016}{{23}{2016}{{Ehm et~al.}}{{Ehm, Gneiting, Jordan, and Kr{\"u}ger}}}
+\bibcite{EngleBollerslev1986}{{24}{1986}{{Engle and Bollerslev}}{{}}}
+\bibcite{EngleGallo2006}{{25}{2006}{{Engle and Gallo}}{{}}}
+\bibcite{EngleMezrich1996}{{26}{1996}{{Engle and Mezrich}}{{}}}
+\bibcite{Garrigues2008}{{27}{2008}{{Garrigues and El~Ghaoui}}{{}}}
+\bibcite{GiannoneLenzaPrimiceri2021}{{28}{2021}{{Giannone et~al.}}{{Giannone, Lenza, and Primiceri}}}
+\bibcite{gu2020empirical}{{29}{2020}{{Gu et~al.}}{{Gu, Kelly, and Xiu}}}
+\bibcite{HalbleibVoev2011}{{30}{2011}{{Halbleib and Voev}}{{}}}
+\bibcite{HansenLundeNason2011}{{31}{2011}{{Hansen et~al.}}{{Hansen, Lunde, and Nason}}}
+\bibcite{HansenHuangShek2012}{{32}{2012}{{Hansen et~al.}}{{Hansen, Huang, and Shek}}}
+\bibcite{HarveyLeybourneNewbold1997}{{33}{1997}{{Harvey et~al.}}{{Harvey, Leybourne, and Newbold}}}
+\bibcite{HizmeriBevilacqua2025}{{34}{2025}{{Hizmeri and Bevilacqua}}{{}}}
+\bibcite{HoerlKennard1970}{{35}{1970}{{Hoerl and Kennard}}{{}}}
+\bibcite{Ke2017}{{36}{2017}{{Ke et~al.}}{{Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu}}}
+\bibcite{KozakNagelSantosh2020}{{37}{2020}{{Kozak et~al.}}{{Kozak, Nagel, and Santosh}}}
+\bibcite{Lou2013}{{38}{2013}{{Lou et~al.}}{{Lou, Caruana, Gehrke, and Hooker}}}
+\bibcite{lundberg2017unified}{{39}{2017}{{Lundberg and Lee}}{{}}}
+\bibcite{lundberg2018consistent}{{40}{2018}{{Lundberg et~al.}}{{Lundberg, Erion, and Lee}}}
+\bibcite{Manning1998}{{41}{1998}{{Manning}}{{}}}
+\bibcite{ManningMullahy2001}{{42}{2001}{{Manning and Mullahy}}{{}}}
+\bibcite{Merton1973}{{43}{1973}{{Merton}}{{}}}
+\bibcite{Patton2011}{{44}{2011}{{Patton}}{{}}}
+\bibcite{ShenXiu2025}{{45}{2025}{{Shen and Xiu}}{{}}}
+\bibcite{Tibshirani1996}{{46}{1996}{{Tibshirani}}{{}}}
+\bibcite{vandeWiel2021multipenalty}{{47}{2021}{{van~de Wiel et~al.}}{{van~de Wiel, van Nee, and Rauschenberger}}}
+\bibcite{vanWieringen2023ridge}{{48}{2023}{{van Wieringen}}{{}}}
+\bibcite{ZouHastie2005}{{49}{2005}{{Zou and Hastie}}{{}}}
+\gdef \@abspage@last{99}

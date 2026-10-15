@@ -1,8 +1,21 @@
 % Multi-horizon macros, minted by experiments/multihorizon_tex.py
 % (rest-of-session, results/multihorizon/*.csv) and
 % experiments/multih_probe_tex.py (direct h-step, results/multih/h*.npz).
+% 2026-10-06 (recalibration removed, user decision): every forecast in this
+% subsection is used as its plain back-transform -- the per-bar forecasts as
+% yhat^2 B, the log-linear constructions as exp() of the fitted value, the
+% direct per-bar path as yhat^2 B -- with no smearing factor, rescale, mean
+% map or second-moment term. Point estimates and DM statistics only; no
+% interval anywhere in this subsection (none was ever shown here).
 \ifdefined\mhNDays\else\input{generated/multihorizon_numbers}\fi
-\ifdefined\mhpNBars\else\input{generated/multih_numbers}\fi
+% 2026-10-06 parked (recalibration removed, user decision): the direct h-step
+% profile's macros (\mhp...) were scored under the removed contract
+% (per-window mean calibration + second moment). results/multih/h*.npz stores
+% only those contract losses, so they cannot be re-scored on the plain
+% forecast without refitting, and the probe that wrote them
+% (experiments/probe_multih.py) was retired 2026-09-17 for a leak. They are
+% used only inside the parked (\iffalse) profile paragraphs.
+% \ifdefined\mhpNBars\else\input{generated/multih_numbers}\fi
 
 \subsection{From One Bar to the Rest of the Session}
 \label{sec:multihorizon_methods}
@@ -20,6 +33,10 @@ construction is $\mathcal{F}_t$-measurable: nothing on any right-hand
 side is formed after the forecast origin.
 
 % PARKED 2026-08-19: direct horizon-profile methods held out
+% 2026-10-06 note (recalibration removed, user decision): the scoring sentence
+% of this parked paragraph ("the paper's contract ... per-window causal mean
+% calibration and second moment") describes the removed recalibration, and
+% its macros are parked above; it must not be unparked as it stands.
 \iffalse
 \paragraph{A. Direct forecasts at longer horizons.} For a horizon of
 $h$ bars the target at origin $t$ is the realized variance of bar
@@ -63,15 +80,28 @@ per-bar models are not refit; the question is how far the one-step
 forecast they already issue reaches into the rest of the session, and
 what the session's own history adds.
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{The rest-of-session panel.} The target is formed on the paper's
+% own panel (Section~\ref{sec:data_prep}), restricted to the regular
+% session, 10:00 to 15:30~ET, twelve bars a day: \mhNDays{} complete
+% sessions. Entry bars run from 10:00 to 15:00; the 15:30 bar has no
+% remaining horizon. The per-bar forecasts entering the constructions are
+% those of the OLS--HAR incumbent (Section~\ref{sec:dp_benchmark}) and the
+% two-block ridge (Section~\ref{sec:block_tikhonov}), exactly as scored in
+% Section~\ref{sec:three_block_results}; no forecast is refit for this
+% purpose.
 \paragraph{The rest-of-session panel.} The target is formed on the paper's
 own panel (Section~\ref{sec:data_prep}), restricted to the regular
-session, 10:00 to 15:30~ET, twelve bars a day: \mhNDays{} complete
-sessions. Entry bars run from 10:00 to 15:00; the 15:30 bar has no
-remaining horizon. The per-bar forecasts entering the constructions are
-those of the OLS--HAR incumbent (Section~\ref{sec:dp_benchmark}) and the
-two-block ridge (Section~\ref{sec:block_tikhonov}), exactly as scored in
-Section~\ref{sec:three_block_results}; no forecast is refit for this
-purpose.
+session, 10:00 to 15:30~ET, twelve bars a day; the constructions are
+scored on \mhNDays{} complete sessions, every complete session after the
+first $63$, the history the first fit needs. Entry bars run from 10:00 to
+15:00; the 15:30 bar has no remaining horizon. The per-bar forecasts
+entering the constructions are those of the OLS--HAR incumbent
+(Section~\ref{sec:dp_benchmark}) and the two-block ridge
+(Section~\ref{sec:block_tikhonov}), each used as its plain
+back-transform: the squared fitting-scale forecast times the
+time-of-day baseline of the bar it forecasts, $\hat{y}^{\,2} B$, with
+nothing estimated on top of it. No forecast is refit for this purpose.
 
 \paragraph{Constructions.} A per-bar model produces exactly one
 forecast at bar $t$: $\hat v_t$, its forecast of the next bar's
@@ -113,20 +143,35 @@ window. The regression is what maps thirty minutes
 to the rest of the day: its slope on $\log \hat v_t$ is fitted per
 hour, because the map from ``the next bar'' to ``the rest of the
 session'' differs at 10:00, with the opening bar's turbulence still
-ahead, from 14:30, with three bars left. Each fitted value is
-back-transformed by the same causal, QLIKE-optimal multiplicative
-factor used throughout the paper --- the expanding mean of the
-realized-to-forecast ratio over earlier sessions, applied one session
-forward --- and no forecast is issued before $63$ sessions of history.
+ahead, from 14:30, with three bars left.
+% 2026-10-06 parked (recalibration removed, user decision):
+% Each fitted value is
+% back-transformed by the same causal, QLIKE-optimal multiplicative
+% factor used throughout the paper --- the expanding mean of the
+% realized-to-forecast ratio over earlier sessions, applied one session
+% forward --- and no forecast is issued before $63$ sessions of history.
+Each fitted value is turned into a variance by exponentiation alone,
+$\widehat{RV}_{t,T} = \exp(\hat a_h + \hat b_h \log \hat v_t + \cdots)$:
+no smearing factor, rescale or other recalibration is applied on top,
+so a construction's forecast is exactly what its regression says.
+Exponentiating a fitted mean of logs tends to forecast the remaining
+variance low (Jensen's inequality); the tilt is left in. No forecast is
+issued before $63$ sessions of history.
 A fourth construction pools the eleven entry hours into one regression
 with hour dummies (M2, pooled), so that the gain from hour-specific
 slopes can be separated from the gain from the regressors.
 
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Benchmark and scoring.} The horizon-specific benchmark is
+% the unconditional one: for each entry hour, the expanding mean of
+% $\log RV_{t,T}$ over earlier sessions, back-transformed the same way
+% --- the best constant forecast of that horizon with no model in it.
 \paragraph{Benchmark and scoring.} The horizon-specific benchmark is
 the unconditional one: for each entry hour, the expanding mean of
-$\log RV_{t,T}$ over earlier sessions, back-transformed the same way
---- the best constant forecast of that horizon with no model in it.
+$\log RV_{t,T}$ over earlier sessions, exponentiated in the same way
+and with nothing on top --- a constant forecast of that horizon with
+no model in it.
 Every construction is scored by QLIKE \citep{Patton2011} on the
 remaining variance, one loss per session per entry hour, and reported
 per entry hour and pooled across hours (the session mean of the eleven
@@ -156,8 +201,15 @@ running sum gives the variance to any point within them. The rolling Gram matrix
 depend on the horizon, so one rank-one roll per bar serves all eleven;
 each origin's coefficients are re-solved every \dmhRefit{} bars ---
 daily --- rather than at every bar as in Section~\ref{sec:block_tikhonov},
-a throughput compromise stated here and returned to in the results.
-Scoring is the paper's contract per horizon (Section~\ref{sec:smearing_contract}),
-paired between the two arms on identical origins, on every origin of the
-panel from the first full window and on regular-hours origins
-separately.
+% 2026-10-06 parked (recalibration removed, user decision):
+% a throughput compromise stated here and returned to in the results.
+% Scoring is the paper's contract per horizon (Section~\ref{sec:smearing_contract}),
+% paired between the two arms on identical origins, on every origin of the
+% panel from the first full window and on regular-hours origins
+% separately.
+a throughput compromise stated here. Each horizon's forecast is used as
+its plain back-transform, the squared forecast times the time-of-day
+baseline of its target bar, with no mean map or second-moment term, and
+is scored by QLIKE against that bar's realized variance, paired between
+the two arms on identical origins, on every origin of the panel from
+the first full window and on regular-hours origins separately.

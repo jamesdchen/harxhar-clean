@@ -1,15 +1,41 @@
-\begin{thebibliography}{12}
+\begin{thebibliography}{49}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
+\bibitem[Andersen and Bollerslev(1997)]{AndersenBollerslev1997}
+Torben~G. Andersen and Tim Bollerslev.
+\newblock Intraday periodicity and volatility persistence in financial markets.
+\newblock \emph{Journal of Empirical Finance}, 4\penalty0 (2-3):\penalty0
+  115--158, 1997.
+
+\bibitem[Andersen et~al.(2003)Andersen, Bollerslev, Diebold, and
+  Labys]{AndersenBollerslevDieboldLabys2003}
+Torben~G. Andersen, Tim Bollerslev, Francis~X. Diebold, and Paul Labys.
+\newblock Modeling and forecasting realized volatility.
+\newblock \emph{Econometrica}, 71\penalty0 (2):\penalty0 579--625, 2003.
+
+\bibitem[Andersen et~al.(2006)Andersen, Bollerslev, Christoffersen, and
+  Diebold]{AndersenBollerslevChristoffersenDiebold2006}
+Torben~G. Andersen, Tim Bollerslev, Peter~F. Christoffersen, and Francis~X.
+  Diebold.
+\newblock Volatility and correlation forecasting.
+\newblock In \emph{Handbook of Economic Forecasting}, volume~1, pages 777--878.
+  Elsevier, 2006.
+
 \bibitem[Asai et~al.(2012)Asai, McAleer, and Medeiros]{AsaiMcAleerMedeiros2012}
 Manabu Asai, Michael McAleer, and Marcelo~C. Medeiros.
 \newblock Modelling and forecasting noisy realized volatility.
 \newblock \emph{Computational Statistics \& Data Analysis}, 56\penalty0
   (1):\penalty0 217--230, 2012.
+
+\bibitem[Barndorff-Nielsen and Shephard(2004)]{BarndorffNielsenShephard2004}
+Ole~E. Barndorff-Nielsen and Neil Shephard.
+\newblock Power and bipower variation with stochastic volatility and jumps.
+\newblock \emph{Journal of Financial Econometrics}, 2\penalty0 (1):\penalty0
+  1--37, 2004.
 
 \bibitem[Bekierman and Manner(2018)]{BekiermanManner2018}
 Jeremias Bekierman and Hans Manner.
@@ -18,17 +44,78 @@ Jeremias Bekierman and Hans Manner.
 \newblock \emph{International Journal of Forecasting}, 34\penalty0
   (2):\penalty0 276--287, 2018.
 
+\bibitem[Bennedsen et~al.(2022)Bennedsen, Lunde, and
+  Pakkanen]{BennedsenLundePakkanen2022}
+Mikkel Bennedsen, Asger Lunde, and Mikko~S. Pakkanen.
+\newblock Decoupling the short- and long-term behavior of stochastic
+  volatility.
+\newblock \emph{Journal of Financial Econometrics}, 20\penalty0 (5):\penalty0
+  961--1006, 2022.
+
+\bibitem[Black and Scholes(1973)]{BlackScholes1973}
+Fischer Black and Myron Scholes.
+\newblock The pricing of options and corporate liabilities.
+\newblock \emph{Journal of Political Economy}, 81\penalty0 (3):\penalty0
+  637--654, 1973.
+
+\bibitem[Bollerslev(1986)]{Bollerslev1986}
+Tim Bollerslev.
+\newblock Generalized autoregressive conditional heteroskedasticity.
+\newblock \emph{Journal of Econometrics}, 31\penalty0 (3):\penalty0 307--327,
+  1986.
+
+\bibitem[Bollerslev et~al.(2009)Bollerslev, Kretschmer, Pigorsch, and
+  Tauchen]{BollerslevKretschmerPigorschTauchen2009}
+Tim Bollerslev, Uta Kretschmer, Christian Pigorsch, and George Tauchen.
+\newblock A discrete-time model for daily {S\&P500} returns and realized
+  variations: jumps and leverage effects.
+\newblock \emph{Journal of Econometrics}, 150\penalty0 (2):\penalty0 151--166,
+  2009.
+
+\bibitem[Bollerslev et~al.(2016)Bollerslev, Patton, and
+  Quaedvlieg]{BollerslevPattonQuaedvlieg2016}
+Tim Bollerslev, Andrew~J. Patton, and Rogier Quaedvlieg.
+\newblock Exploiting the errors: a simple approach for improved volatility
+  forecasting.
+\newblock \emph{Journal of Econometrics}, 192\penalty0 (1):\penalty0 1--18,
+  2016.
+
 \bibitem[Chen and Guestrin(2016)]{Chen2016}
 Tianqi Chen and Carlos Guestrin.
 \newblock {XGBoost}: A scalable tree boosting system.
 \newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
   on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
 
+\bibitem[Chiriac and Voev(2011)]{ChiriacVoev2011}
+Roxana Chiriac and Valeri Voev.
+\newblock Modelling and forecasting multivariate realized volatility.
+\newblock \emph{Journal of Applied Econometrics}, 26\penalty0 (6):\penalty0
+  922--947, 2011.
+
+\bibitem[Christensen et~al.(2023)Christensen, Siggaard, and
+  Veliyev]{christensen2023machine}
+Kim Christensen, Mathias Siggaard, and Bezirgen Veliyev.
+\newblock A machine learning approach to volatility forecasting.
+\newblock \emph{Journal of Financial Econometrics}, 21\penalty0 (5):\penalty0
+  1680--1727, 2023.
+
+\bibitem[Ciarreta and Zarraga(2016)]{CiarretaZarraga2016}
+Aitor Ciarreta and Ainhoa Zarraga.
+\newblock Modeling realized volatility on the {Spanish} intra-day electricity
+  market.
+\newblock \emph{Energy Economics}, 58:\penalty0 152--163, 2016.
+
 \bibitem[Corsi(2009)]{Corsi2009}
 Fulvio Corsi.
 \newblock A simple approximate long-memory model of realized volatility.
 \newblock \emph{Journal of Financial Econometrics}, 7\penalty0 (2):\penalty0
   174--196, 2009.
+
+\bibitem[Corsi et~al.(2008)Corsi, Mittnik, Pigorsch, and
+  Pigorsch]{CorsiMittnikPigorschPigorsch2008}
+Fulvio Corsi, Stefan Mittnik, Christian Pigorsch, and Uta Pigorsch.
+\newblock The volatility of realized volatility.
+\newblock \emph{Econometric Reviews}, 27\penalty0 (1-3):\penalty0 46--78, 2008.
 
 \bibitem[Demetrescu et~al.(2020)Demetrescu, Golosnoy, and
   Titova]{DemetrescuGolosnoyTitova2020}
@@ -44,16 +131,83 @@ Francis~X. Diebold and Roberto~S. Mariano.
 \newblock \emph{Journal of Business \& Economic Statistics}, 13\penalty0
   (3):\penalty0 253--263, 1995.
 
+\bibitem[Donoho and Jin(2004)]{DonohoJin2004}
+David Donoho and Jiashun Jin.
+\newblock Higher criticism for detecting sparse heterogeneous mixtures.
+\newblock \emph{Annals of Statistics}, 32\penalty0 (3):\penalty0 962--994,
+  2004.
+
 \bibitem[Duan(1983)]{Duan1983}
 Naihua Duan.
 \newblock Smearing estimate: A nonparametric retransformation method.
 \newblock \emph{Journal of the American Statistical Association}, 78\penalty0
   (383):\penalty0 605--610, 1983.
 
+\bibitem[Efron et~al.(2004)Efron, Hastie, Johnstone, and Tibshirani]{Efron2004}
+Bradley Efron, Trevor Hastie, Iain Johnstone, and Robert Tibshirani.
+\newblock Least angle regression.
+\newblock \emph{Annals of Statistics}, 32\penalty0 (2):\penalty0 407--499,
+  2004.
+
+\bibitem[Ehm et~al.(2016)Ehm, Gneiting, Jordan, and Kr{\"u}ger]{Ehm2016}
+Werner Ehm, Tilmann Gneiting, Alexander Jordan, and Fabian Kr{\"u}ger.
+\newblock Of quantiles and expectiles: Consistent scoring functions, {C}hoquet
+  representations and forecast rankings.
+\newblock \emph{Journal of the Royal Statistical Society: Series B (Statistical
+  Methodology)}, 78\penalty0 (3):\penalty0 505--562, 2016.
+
+\bibitem[Engle and Bollerslev(1986)]{EngleBollerslev1986}
+Robert~F. Engle and Tim Bollerslev.
+\newblock Modelling the persistence of conditional variances.
+\newblock \emph{Econometric Reviews}, 5\penalty0 (1):\penalty0 1--50, 1986.
+
+\bibitem[Engle and Gallo(2006)]{EngleGallo2006}
+Robert~F. Engle and Giampiero~M. Gallo.
+\newblock A multiple indicators model for volatility using intra-daily data.
+\newblock \emph{Journal of Econometrics}, 131\penalty0 (1-2):\penalty0 3--27,
+  2006.
+
+\bibitem[Engle and Mezrich(1996)]{EngleMezrich1996}
+Robert~F. Engle and Joseph Mezrich.
+\newblock {GARCH} for groups.
+\newblock \emph{Risk}, 9\penalty0 (8):\penalty0 36--40, 1996.
+
+\bibitem[Garrigues and El~Ghaoui(2008)]{Garrigues2008}
+Pierre Garrigues and Laurent El~Ghaoui.
+\newblock An homotopy algorithm for the lasso with online observations.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~21, 2008.
+
+\bibitem[Giannone et~al.(2021)Giannone, Lenza, and
+  Primiceri]{GiannoneLenzaPrimiceri2021}
+Domenico Giannone, Michele Lenza, and Giorgio~E. Primiceri.
+\newblock Economic predictions with big data: The illusion of sparsity.
+\newblock \emph{Econometrica}, 89\penalty0 (5):\penalty0 2409--2437, 2021.
+
+\bibitem[Gu et~al.(2020)Gu, Kelly, and Xiu]{gu2020empirical}
+Shihao Gu, Bryan Kelly, and Dacheng Xiu.
+\newblock Empirical asset pricing via machine learning.
+\newblock \emph{Review of Financial Studies}, 33\penalty0 (5):\penalty0
+  2223--2273, 2020.
+
+\bibitem[Halbleib and Voev(2011)]{HalbleibVoev2011}
+Roxana Halbleib and Valeri Voev.
+\newblock Forecasting multivariate volatility using the {VARFIMA} model on
+  realized covariance {Cholesky} factors.
+\newblock \emph{Jahrb\"ucher f\"ur National\"okonomie und Statistik},
+  231\penalty0 (1):\penalty0 134--152, 2011.
+
 \bibitem[Hansen et~al.(2011)Hansen, Lunde, and Nason]{HansenLundeNason2011}
 Peter~R. Hansen, Asger Lunde, and James~M. Nason.
 \newblock The model confidence set.
 \newblock \emph{Econometrica}, 79\penalty0 (2):\penalty0 453--497, 2011.
+
+\bibitem[Hansen et~al.(2012)Hansen, Huang, and Shek]{HansenHuangShek2012}
+Peter~R. Hansen, Zhuo Huang, and Howard~Howan Shek.
+\newblock Realized garch: a joint model for returns and realized measures of
+  volatility.
+\newblock \emph{Journal of Applied Econometrics}, 27\penalty0 (6):\penalty0
+  877--906, 2012.
 
 \bibitem[Harvey et~al.(1997)Harvey, Leybourne, and
   Newbold]{HarveyLeybourneNewbold1997}
@@ -62,6 +216,18 @@ David Harvey, Stephen Leybourne, and Paul Newbold.
 \newblock \emph{International Journal of Forecasting}, 13\penalty0
   (2):\penalty0 281--291, 1997.
 
+\bibitem[Hizmeri and Bevilacqua(2025)]{HizmeriBevilacqua2025}
+Rodrigo Hizmeri and Mattia Bevilacqua.
+\newblock Early birds get the vol: Morning volatility uncertainty and variance
+  risk premium.
+\newblock \url{https://ssrn.com/abstract=6212458}, 2025.
+\newblock Working paper, SSRN 6212458.
+
+\bibitem[Hoerl and Kennard(1970)]{HoerlKennard1970}
+Arthur~E. Hoerl and Robert~W. Kennard.
+\newblock Ridge regression: Biased estimation for nonorthogonal problems.
+\newblock \emph{Technometrics}, 12\penalty0 (1):\penalty0 55--67, 1970.
+
 \bibitem[Ke et~al.(2017)Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu]{Ke2017}
 Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
   Ye, and Tie-Yan Liu.
@@ -69,16 +235,83 @@ Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
 \newblock In \emph{Advances in Neural Information Processing Systems},
   volume~30, 2017.
 
+\bibitem[Kozak et~al.(2020)Kozak, Nagel, and Santosh]{KozakNagelSantosh2020}
+Serhiy Kozak, Stefan Nagel, and Shrihari Santosh.
+\newblock Shrinking the cross-section.
+\newblock \emph{Journal of Financial Economics}, 135\penalty0 (2):\penalty0
+  271--292, 2020.
+
 \bibitem[Lou et~al.(2013)Lou, Caruana, Gehrke, and Hooker]{Lou2013}
 Yin Lou, Rich Caruana, Johannes Gehrke, and Giles Hooker.
 \newblock Accurate intelligible models with pairwise interactions.
 \newblock In \emph{Proceedings of the 19th ACM SIGKDD International Conference
   on Knowledge Discovery and Data Mining}, pages 623--631, 2013.
 
+\bibitem[Lundberg and Lee(2017)]{lundberg2017unified}
+Scott~M. Lundberg and Su-In Lee.
+\newblock A unified approach to interpreting model predictions.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~30, 2017.
+
+\bibitem[Lundberg et~al.(2018)Lundberg, Erion, and Lee]{lundberg2018consistent}
+Scott~M. Lundberg, Gabriel~G. Erion, and Su-In Lee.
+\newblock Consistent individualized feature attribution for tree ensembles.
+\newblock \emph{arXiv preprint arXiv:1802.03888}, 2018.
+
+\bibitem[Manning(1998)]{Manning1998}
+Willard~G. Manning.
+\newblock The logged dependent variable, heteroscedasticity, and the
+  retransformation problem.
+\newblock \emph{Journal of Health Economics}, 17\penalty0 (3):\penalty0
+  283--295, 1998.
+
+\bibitem[Manning and Mullahy(2001)]{ManningMullahy2001}
+Willard~G. Manning and John Mullahy.
+\newblock Estimating log models: to transform or not to transform?
+\newblock \emph{Journal of Health Economics}, 20\penalty0 (4):\penalty0
+  461--494, 2001.
+
+\bibitem[Merton(1973)]{Merton1973}
+Robert~C. Merton.
+\newblock Theory of rational option pricing.
+\newblock \emph{Bell Journal of Economics and Management Science}, 4\penalty0
+  (1):\penalty0 141--183, 1973.
+
 \bibitem[Patton(2011)]{Patton2011}
 Andrew~J. Patton.
 \newblock Volatility forecast comparison using imperfect volatility proxies.
 \newblock \emph{Journal of Econometrics}, 160\penalty0 (1):\penalty0 246--256,
   2011.
+
+\bibitem[Shen and Xiu(2025)]{ShenXiu2025}
+Zhouyu Shen and Dacheng Xiu.
+\newblock Can machines learn weak signals?
+\newblock Technical report, NBER Working Paper 33421, 2025.
+
+\bibitem[Tibshirani(1996)]{Tibshirani1996}
+Robert Tibshirani.
+\newblock Regression shrinkage and selection via the lasso.
+\newblock \emph{Journal of the Royal Statistical Society: Series B},
+  58\penalty0 (1):\penalty0 267--288, 1996.
+
+\bibitem[van~de Wiel et~al.(2021)van~de Wiel, van Nee, and
+  Rauschenberger]{vandeWiel2021multipenalty}
+Mark~A. van~de Wiel, Mirrelijn~M. van Nee, and Armin Rauschenberger.
+\newblock Fast cross-validation for multi-penalty high-dimensional ridge
+  regression.
+\newblock \emph{Journal of Computational and Graphical Statistics}, 30\penalty0
+  (4):\penalty0 835--847, 2021.
+\newblock \doi{10.1080/10618600.2021.1904962}.
+
+\bibitem[van Wieringen(2023)]{vanWieringen2023ridge}
+Wessel~N. van Wieringen.
+\newblock Lecture notes on ridge regression, 2023.
+\newblock Version 0.60 (v8), 27 June 2023.
+
+\bibitem[Zou and Hastie(2005)]{ZouHastie2005}
+Hui Zou and Trevor Hastie.
+\newblock Regularization and variable selection via the elastic net.
+\newblock \emph{Journal of the Royal Statistical Society: Series B},
+  67\penalty0 (2):\penalty0 301--320, 2005.
 
 \end{thebibliography}

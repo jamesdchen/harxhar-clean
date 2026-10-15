@@ -60,17 +60,25 @@ Mihai Cucuringu\\{\small UCLA Math}
 We forecast thirty-minute-ahead S\&P 500 realized variance on a
 near-24-hour panel of over a quarter million bars (1998--2024), asking
 what forty-one exogenous channels add to a HAR backbone, which estimator
-can extract it, and what structure the nonlinearity has. Three
+can extract it, and what structure the nonlinearity has. Every
+forecast is scored as its plain back-transform --- the square-root-scale
+forecast squared and multiplied by its time-of-day baseline --- with no
+recalibration. Two
 discipline findings precede the model findings: the representation of
 missing and stale data moves accuracy more than any modeling decision;
-the back-transform from the fitting scale to the variance scale is a
-modeling choice, and a calibrated, strictly causal second-moment
-correction beats the retrospective Duan convention on every arm; and
-causal hyperparameter tuning on short validation tails is repeatedly
+and causal hyperparameter tuning on short validation tails is repeatedly
 worse than measured constants. The exogenous information is real but
 dense and weak: invisible to selection and unpenalized joint fits,
-recoverable only by shrinkage, and optimally handled by a two-block
-ridge with penalties differing by two orders of magnitude.
+recoverable only by shrinkage, and best handled, among the linear
+estimators, by a two-block ridge that shrinks the exogenous block far
+harder than the backbone.
+% 2026-10-06 parked (recalibration removed, user decision): the second of three
+% discipline findings and the "optimally handled" clause.  Verbatim:
+% "Three discipline findings precede the model findings: ...; the back-transform
+% from the fitting scale to the variance scale is a modeling choice, and a
+% calibrated, strictly causal second-moment correction beats the retrospective
+% Duan convention on every arm; and ... optimally handled by a two-block ridge
+% with penalties differing by two orders of magnitude."
 % PRODUCT BLOCK PARKED 2026-08-18: three-block/product-block closing sentence held out of the rendered abstract; the contribution now ends at the two-block ridge.
 \iffalse
 The
@@ -80,12 +88,21 @@ columns; shrunk as a third block, it yields the final three-block ridge
 --- one exact rolling solve, three fixed penalties --- which improves
 the benchmark at strong paired significance.
 \fi
-The recoverable nonlinearity is small beside that
-information effect and sits at pairwise order --- products of columns
-the panel already contains, gated on the session clock. The two-block
-ridge --- one exact rolling
-solve, two fixed penalties --- improves the benchmark at strong paired
-significance.
+% 2026-10-06 parked (recalibration removed, user decision): re-scored on the
+% plain back-transform, the tree bank beats the two-block ridge by more than the
+% ridge beats the benchmark (Section 5.2), the pairwise-order evidence (scored on
+% the retired back-transform in earlier builds) is parked, and the two-block
+% ridge's DM against the benchmark is no longer strong.  Verbatim:
+% "The recoverable nonlinearity is small beside that information effect and sits
+% at pairwise order --- products of columns the panel already contains, gated on
+% the session clock. The two-block ridge --- one exact rolling solve, two fixed
+% penalties --- improves the benchmark at strong paired significance."
+Gradient-boosted trees on the same design improve on the two-block ridge
+by more than the ridge improves on the benchmark. The two-block ridge
+--- one exact rolling solve, two fixed penalties --- improves on the
+benchmark in point estimate (Diebold--Mariano \unifBlkTwoUserDM{}); with
+its two penalties re-selected causally it does so at DM
+\unifBlkTwoTunedDM{}.
 % MULTI-HORIZON PARKED 2026-09-04: the rest-of-session sections are parked (2026-08-28), so the abstract no longer promises them.
 \iffalse
 Within the session its one-step forecast extends to the variance remaining
@@ -98,6 +115,11 @@ advantage over the incumbent.
 forecast against the same-day index-option market through a
 delta-hedged near-the-money portfolio.
 \fi
+% 2026-10-06 parked (live-feasible removed from the paper, user decision): the
+% proposed sentence below describes the last-30-min headline fitted on the
+% live-feasible inputs, and its "resolved above" is interval language
+% (2026-10-06, recalibration removed: no intervals). Kept unrendered for the
+% authors; not to be flipped on as it stands.
 % PROPOSED 2026-09-29 (D1 change 11), NOT RENDERED: an abstract sentence for the
 % close-option section as it now stands.  The authors held the option reading out of the
 % abstract on 2026-08-18; flip \iffalse to \iftrue to render it.  Numbers are the \cm...

@@ -1,3 +1,4 @@
+% 2026-10-06 parked (no headline model; D.16-D.18 re-based on the model set, user decision):
 % ============================================================================
 % 2026-09-29: the shift (dating) test re-run for the HEADLINE forecast under the
 % 16:00-bar recalibration of Table~\ref{tab:close_option_rules}.  Every number
@@ -8,55 +9,138 @@
 % eight forecasts under the session-bar recalibration) is a different scorer and
 % is not set beside this one.  Input from main.tex after
 % sections/appendix_running_parked, so this continues Appendix D.
+% 2026-10-06 (recalibration removed, user decision): every shifted row is now placed on the
+% traded bar's scale by the plain back-transform (no smear) and no interval is computed.
 % ============================================================================
+% \input{generated/appendix_close_shift_test}
+% \subsection{The Shift (Dating) Test of the Headline Forecast}
+% \label{sec:app_shift_test_headline}
+%
+% \paragraph{What is tested.} The last-30-min trade reads the per-bar ridge's row
+% labelled 16:00 --- the forecast of the 15:30--16:00 bar, issued at 15:30. The test
+% re-scores the $\mathrm{sign}(s)$ rule with the forecast \emph{row} shifted by $k$
+% half-hour bars and everything else unchanged. For $k<0$ the rule reads the same
+% session's earlier row (the 15:30 row at $k=-1$, down to the 10:00 row at $k=-12$): a
+% stale forecast, still free of look-ahead. For $k>0$ the headline, a per-bar model with
+% session rows only, has no row after the close; the rule reads the \emph{next}
+% session's row (10:00 at $k=+1$, to 12:30 at $k=+6$), the first rows whose lag ladder
+% 2026-10-06 parked (recalibration removed, user decision):
+% contains the traded bar. Because another row forecasts another bar, every shifted row
+% is placed on the traded bar's own scale, $(\hat y_k^2+\hat s_{16{:}00})\,B_{16{:}00}$,
+% with the smear $\hat s$ and profile $B$ the trade itself uses, so the only thing that
+% changes with $k$ is what the model had seen; at $k=0$ this is the trade's forecast
+% (gated). The star is the traded bar's realized variance in place of the forecast.
+% Scorer, trade, fills and intervals are those of Table~\ref{tab:close_option_rules};
+% the \shiftNDays{} deck days for which every shifted row exists are scored (the last
+% deck day has no next session, and two sessions lack the 10:00--11:00 rows), and at
+% $k=0$ on all 866 days the rule reproduces Table~\ref{tab:close_option_rules}
+% (\shiftBarZeroAllMid{} mid, \shiftBarZeroAllCrossed{} crossed).
+% contains the traded bar. Because another row forecasts another bar, every shifted row
+% is placed on the traded bar's own scale, $\hat y_k^{2}\,B_{16{:}00}$,
+% with the profile $B$ the trade itself uses, so the only thing that
+% changes with $k$ is what the model had seen; at $k=0$ this is the trade's forecast
+% (gated). The star is the traded bar's realized variance in place of the forecast.
+% Scorer, trade and fills are those of Table~\ref{tab:close_option_rules};
+% the \shiftNDays{} deck days for which every shifted row exists are scored (the last
+% deck day has no next session, and two sessions lack the 10:00--11:00 rows), and at
+% $k=0$ on all 866 days the rule reproduces Table~\ref{tab:close_option_rules}
+% (\shiftBarZeroAllMid{} mid, \shiftBarZeroAllCrossed{} crossed).
+%
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Reading.} Table~\ref{tab:app_shift_test_headline} gives every row.
+% One bar stale, the rule falls from \shiftBarZeroMid{} to \shiftMinusOneMid{}
+% ($\Delta$ \shiftMinusOneDelta{} [\shiftMinusOneLo{}, \shiftMinusOneHi{}]); its
+% position agrees with the trade's on \shiftMinusOneAgree{}\,\% of days. Of the twelve
+% stale rows, \shiftNStaleAbove{} sit above $k=0$ in point estimate,
+% \shiftNStaleIntervalBelow{} have an interval below zero and
+% \shiftNStaleIntervalAbove{} an interval above; the best stale row is
+% $k=\shiftBestStaleRow$ at \shiftBestStaleMid{} ($\Delta$ \shiftBestStaleDelta{}
+% [\shiftBestStaleLo{}, \shiftBestStaleHi{}]). The next session's rows, placed on the
+% traded bar's scale, score \shiftNextMinMid{} to \shiftNextMaxMid{} at the midpoint
+% (\shiftNNextIntervalAbove{} of six intervals above zero; $k=+1$: \shiftPlusOneMid{}
+% mid, \shiftPlusOneCrossed{} crossed, $\Delta$ \shiftPlusOneDelta{}
+% [\shiftPlusOneLo{}, \shiftPlusOneHi{}], agreement \shiftPlusOneAgree{}\,\%), and
+% the realized variance itself scores \shiftStarMid{} mid, \shiftStarCrossed{}
+% crossed, against always short at \shiftAlwaysShortMid{} on the same days. The
+% next-session rows are a different probe from the notebook's after-hours rows
+% (Section~\ref{sec:app_run_parked}): each is a separate regression for its own bar,
+% so the traded bar enters through that regression's own lag weights rather than
+% through the traded row's, and the two tests are not compared.
+% \paragraph{Reading.} Table~\ref{tab:app_shift_test_headline} gives every row.
+% One bar stale, the rule falls from \shiftBarZeroMid{} to \shiftMinusOneMid{}
+% ($\Delta$ \shiftMinusOneDelta); its
+% position agrees with the trade's on \shiftMinusOneAgree{}\,\% of days. Of the twelve
+% stale rows, \shiftNStaleAbove{} sit above $k=0$ and \shiftNStaleBelow{} below; the best
+% stale row is $k=\shiftBestStaleRow$ at \shiftBestStaleMid{} ($\Delta$ \shiftBestStaleDelta).
+% The next session's rows, placed on the
+% traded bar's scale, score \shiftNextMinMid{} to \shiftNextMaxMid{} at the midpoint,
+% \shiftNNextAbove{} of the six above $k=0$
+% ($k=+1$: \shiftPlusOneMid{}
+% mid, \shiftPlusOneCrossed{} crossed, $\Delta$ \shiftPlusOneDelta,
+% agreement \shiftPlusOneAgree{}\,\%), and
+% the realized variance itself scores \shiftStarMid{} mid, \shiftStarCrossed{}
+% crossed, against always short at \shiftAlwaysShortMid{} on the same days. The
+% next-session rows are a different probe from the notebook's after-hours rows
+% (Section~\ref{sec:app_run_parked}): each is a separate regression for its own bar,
+% so the traded bar enters through that regression's own lag weights rather than
+% through the traded row's, and the two tests are not compared.
+%
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=\textwidth]{../results/close_shift_test/shift_test_headline.png}
+% \caption{The headline forecast's $\mathrm{sign}(s)$ Sharpe as the forecast row is
+% shifted, on the same \shiftNDays{} days (source:
+% \texttt{results/close\_shift\_test/shift\_test\_headline.csv}).}
+% \label{fig:app_shift_test_headline}
+% \end{figure}
 \input{generated/appendix_close_shift_test}
-\subsection{The Shift (Dating) Test of the Headline Forecast}
+\subsection{The Shift (Dating) Test across the Model Set}
 \label{sec:app_shift_test_headline}
 
-\paragraph{What is tested.} The last-30-min trade reads the per-bar ridge's row
-labelled 16:00 --- the forecast of the 15:30--16:00 bar, issued at 15:30. The test
-re-scores the $\mathrm{sign}(s)$ rule with the forecast \emph{row} shifted by $k$
-half-hour bars and everything else unchanged. For $k<0$ the rule reads the same
-session's earlier row (the 15:30 row at $k=-1$, down to the 10:00 row at $k=-12$): a
-stale forecast, still free of look-ahead. For $k>0$ the headline, a per-bar model with
-session rows only, has no row after the close; the rule reads the \emph{next}
-session's row (10:00 at $k=+1$, to 12:30 at $k=+6$), the first rows whose lag ladder
-contains the traded bar. Because another row forecasts another bar, every shifted row
-is placed on the traded bar's own scale, $(\hat y_k^2+\hat s_{16{:}00})\,B_{16{:}00}$,
-with the smear $\hat s$ and profile $B$ the trade itself uses, so the only thing that
-changes with $k$ is what the model had seen; at $k=0$ this is the trade's forecast
-(gated). The star is the traded bar's realized variance in place of the forecast.
-Scorer, trade, fills and intervals are those of Table~\ref{tab:close_option_rules};
-the \shiftNDays{} deck days for which every shifted row exists are scored (the last
-deck day has no next session, and two sessions lack the 10:00--11:00 rows), and at
-$k=0$ on all 866 days the rule reproduces Table~\ref{tab:close_option_rules}
-(\shiftBarZeroAllMid{} mid, \shiftBarZeroAllCrossed{} crossed).
+\paragraph{What is tested.} The last-30-min trade reads each forecast's row labelled 16:00 ---
+the forecast of the 15:30--16:00 bar, issued at 15:30. The test re-scores the
+$\mathrm{sign}(s)$ rule with the forecast \emph{row} shifted by $k$ half-hour bars and
+everything else unchanged, every shifted row placed on the traded bar's scale as
+$\hat y_k^{2}B_{16{:}00}$, so that only what the model had seen changes with $k$. A forecast
+% 2026-10-06 parked (pooled twins pre-tuned; D.16 shifts the paper's forecasts only):
+% can be shifted only if its table carries rows for the whole session: \shiftNShifted{} of the
+% \shiftNSet{} forecasts of the model set do, the \shiftNShiftedPaper{} paper's forecasts and
+% the \shiftNShiftedPooled{} pooled twins. The other \shiftNNotShifted{} ---
+% \shiftNNotShiftedPerbarLinear{} per-bar linear forecasts and \shiftNNotShiftedTrees{} per-bar
+% trees --- are fitted on the 16:00 bar alone, carry only that row and cannot be shifted, so
+% the test does not speak for them.
+can be shifted only if its table carries rows for the whole session, and of the \shiftNSet{}
+forecasts of the model set only the \shiftNShiftedPaper{} paper's forecasts do. The other
+\shiftNNotShifted{} carry only the 16:00 row and cannot be shifted: the
+\shiftNNotShiftedPerbarLinear{} per-bar linear forecasts and \shiftNNotShiftedTrees{} per-bar
+trees, fitted on the 16:00 bar alone, and the \shiftNNotShiftedPooled{} pre-tuned pooled
+twins, whose tables hold the 16:00 row only. The test does not speak for them. For $k<0$ the rule reads the same session's earlier row
+(the 15:30 row at $k=-1$, down to the 10:00 row at $k=-12$): a stale forecast, still free of
+look-ahead. For $k>0$ it reads the next session's row, whose inputs contain the traded bar.
+Scorer, trade and fills are those of Table~\ref{tab:close_option_rules}, on the
+\shiftNDays{} days on which every shifted row exists.
 
-\paragraph{Reading.} Table~\ref{tab:app_shift_test_headline} gives every row.
-One bar stale, the rule falls from \shiftBarZeroMid{} to \shiftMinusOneMid{}
-($\Delta$ \shiftMinusOneDelta{} [\shiftMinusOneLo{}, \shiftMinusOneHi{}]); its
-position agrees with the trade's on \shiftMinusOneAgree{}\,\% of days. Of the twelve
-stale rows, \shiftNStaleAbove{} sit above $k=0$ in point estimate,
-\shiftNStaleIntervalBelow{} have an interval below zero and
-\shiftNStaleIntervalAbove{} an interval above; the best stale row is
-$k=\shiftBestStaleRow$ at \shiftBestStaleMid{} ($\Delta$ \shiftBestStaleDelta{}
-[\shiftBestStaleLo{}, \shiftBestStaleHi{}]). The next session's rows, placed on the
-traded bar's scale, score \shiftNextMinMid{} to \shiftNextMaxMid{} at the midpoint
-(\shiftNNextIntervalAbove{} of six intervals above zero; $k=+1$: \shiftPlusOneMid{}
-mid, \shiftPlusOneCrossed{} crossed, $\Delta$ \shiftPlusOneDelta{}
-[\shiftPlusOneLo{}, \shiftPlusOneHi{}], agreement \shiftPlusOneAgree{}\,\%), and
-the realized variance itself scores \shiftStarMid{} mid, \shiftStarCrossed{}
-crossed, against always short at \shiftAlwaysShortMid{} on the same days. The
-next-session rows are a different probe from the notebook's after-hours rows
-(Section~\ref{sec:app_run_parked}): each is a separate regression for its own bar,
-so the traded bar enters through that regression's own lag weights rather than
-through the traded row's, and the two tests are not compared.
+\paragraph{Reading.} Table~\ref{tab:app_shift_test_headline} gives every $k$. At $k=0$ the
+\shiftNShifted{} forecasts trade at a median Sharpe ratio of \shiftZeroMedMid{}
+(\shiftZeroMinMid{} to \shiftZeroMaxMid; \shiftZeroMedCrossed{} crossed). One bar stale the
+median falls to \shiftMinusOneMedMid{} (median change \shiftMinusOneMedDelta), \shiftMinusOneNBelow{}
+of the \shiftNShifted{} fall below their own $k=0$ value, and the median position agrees with
+the trade's on \shiftMinusOneMedAgree\,\% of days. Over the twelve stale rows between
+\shiftStaleNBelowMin{} and \shiftStaleNBelowMax{} forecasts fall below $k=0$, all of them at
+\shiftStaleNAllBelow{} rows; the best stale row by median is $k=\shiftBestStaleK$ at
+\shiftBestStaleMedMid. The next session's rows score medians of \shiftNextMedMin{} to
+\shiftNextMedMax{}, with between \shiftNextNBelowMin{} and \shiftNextNBelowMax{} forecasts below
+$k=0$ (all of them at \shiftNextNAllBelow{} rows); at $k=+1$ the median is \shiftPlusOneMedMid{}
+(\shiftPlusOneMedCrossed{} crossed), \shiftPlusOneNBelow{} below $k=0$, at a median agreement of
+\shiftPlusOneMedAgree\,\%. The realized variance itself, in place of the forecast, scores
+\shiftStarMid{} mid and \shiftStarCrossed{} crossed, against always short at
+\shiftAlwaysShortMid{} (\shiftAlwaysShortCrossed{} crossed) on the same days.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{../results/close_shift_test/shift_test_headline.png}
-\caption{The headline forecast's $\mathrm{sign}(s)$ Sharpe as the forecast row is
-shifted, on the same \shiftNDays{} days (source:
-\texttt{results/close\_shift\_test/shift\_test\_headline.csv}).}
+\includegraphics[width=\textwidth]{../results/close_shift_test/shift_test_modelset.png}
+\caption{The $\mathrm{sign}(s)$ Sharpe ratio of the \shiftNShifted{} shiftable forecasts of
+the model set as the forecast row is shifted, on the same \shiftNDays{} days, at both fills
+(source: \texttt{results/close\_shift\_test/shift\_test\_by\_k.csv}).}
 \label{fig:app_shift_test_headline}
 \end{figure}

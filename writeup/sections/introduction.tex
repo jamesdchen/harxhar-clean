@@ -1,5 +1,9 @@
 \section{Introduction}
 \label{sec:intro}
+% 2026-10-06: the close-study macro file is input here, in vertical mode, so that the line ends
+% of its definitions add no space inside a paragraph (it was input mid-paragraph below).
+\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+\ifdefined\runappRpNdays\else\input{generated/appendix_running_numbers}\fi
 
 This paper forecasts thirty-minute-ahead realized variance for the
 S\&P~500 complex on a near-twenty-four-hour panel running from January
@@ -28,29 +32,43 @@ preparation pipeline --- availability indicators computed before the
 fill, masked scaling statistics, neutral substitution --- is therefore
 presented in full, with the incident record attached.
 
-The second finding is about evaluation. Models are fit on a
-variance-stabilized scale and scored on the raw variance scale, and the
-back-transform between them is not neutral: squaring a calibrated
-forecast is biased low by exactly the model's own residual variance, so
-the correction is part of each arm's forecast. We replace the standard
-static scalar correction with a calibrated, strictly causal retransformation protocol --- a
-Mincer--Zarnowitz mean map re-estimated per window and an adaptive
-second moment seeded by the previous window and updated bar by bar ---
-which beats the retrospective \citet{Duan1983} convention it replaces on
-every arm measured, and beats it causally. A mean-reverting
-GARCH$(1,1)$ refinement \citep{Bollerslev1986,EngleMezrich1996} of
-the same recursion --- the covariance-stationary case, not the
-integrated EWMA of \citet{EngleBollerslev1986} --- improves further
-still and is reported as an available, not adopted, upgrade.
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% The second finding is about evaluation. Models are fit on a
+% variance-stabilized scale and scored on the raw variance scale, and the
+% back-transform between them is not neutral: squaring a calibrated
+% forecast is biased low by exactly the model's own residual variance, so
+% the correction is part of each arm's forecast. We replace the standard
+% static scalar correction with a calibrated, strictly causal retransformation protocol --- a
+% Mincer--Zarnowitz mean map re-estimated per window and an adaptive
+% second moment seeded by the previous window and updated bar by bar ---
+% which beats the retrospective \citet{Duan1983} convention it replaces on
+% every arm measured, and beats it causally. A mean-reverting
+% GARCH$(1,1)$ refinement \citep{Bollerslev1986,EngleMezrich1996} of
+% the same recursion --- the covariance-stationary case, not the
+% integrated EWMA of \citet{EngleBollerslev1986} --- improves further
+% still and is reported as an available, not adopted, upgrade.
+The second point is a convention of evaluation rather than a finding: models
+are fit on a variance-stabilized scale and scored on the raw variance scale,
+and every forecast is scored as its plain back-transform $\hat y^{2}B$
+(Section~\ref{sec:smearing_contract}), with no smearing factor and no
+recalibration.
 
 The third finding is about the exogenous information and the estimator
 jointly --- they cannot be separated. The exogenous channels carry
 real, statistically significant information, but none of it is
 recoverable by an unshrunk fit at this width: selection and unpenalized
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% joint fits fail, and only shrinkage recovers the signal. The head-to-head that
+% follows locates the structure precisely: ridge beats lasso on every
+% design, the lasso's zeroes fall where zeroing is free, and no small set
+% of columns or principal directions concentrates the signal. The
 joint fits fail, and only shrinkage recovers the signal. The head-to-head that
-follows locates the structure precisely: ridge beats lasso on every
-design, the lasso's zeroes fall where zeroing is free, and no small set
-of columns or principal directions concentrates the signal. The
+follows locates the structure: under one causal tuning rule the penalty
+families are not separated on the full design (lasso minus ridge
+\unifIncrBTwoLassoTunedDQ{} at DM \unifIncrBTwoLassoTunedDM{}), heavier ridge
+shrinkage lowers the loss steadily, the lasso's zeroes fall where zeroing is
+free, and no small set of columns or principal directions concentrates the
+signal. The
 coefficient structure is \emph{dense but weak}, the regime of
 \citet{GiannoneLenzaPrimiceri2021} and \citet{ShenXiu2025} --- many nonzero
 coefficients, none large --- and the estimator built for it is ridge
@@ -59,12 +77,19 @@ strong low-dimensional backbone barely penalized, the wide exogenous
 block shrunk two orders of magnitude harder, with fixed penalties and
 no selection step anywhere.
 
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% The fourth finding is about nonlinearity. Gradient-boosted trees beat
+% the best linear arm on all nine feature sets, but by a margin an order
+% of magnitude smaller than the information effect, and decompositions of
+% the tree fits attribute the bulk of that margin to additive-plus-pairwise
+% structure --- products of columns the panel already contains, gated on
+% the session clock.
 The fourth finding is about nonlinearity. Gradient-boosted trees beat
-the best linear arm on all nine feature sets, but by a margin an order
-of magnitude smaller than the information effect, and decompositions of
-the tree fits attribute the bulk of that margin to additive-plus-pairwise
-structure --- products of columns the panel already contains, gated on
-the session clock.
+the paper's linear ladder: on the wide design the hedged tree bank improves
+on the two-block ridge by \unifTreeBankHedgeVsBlkTwoDQ{} at DM
+\unifTreeBankHedgeVsBlkTwoDM{}, more than the ridge improves on the benchmark
+(\unifBlkTwoUserDelta{}), and a decomposition of a tree fit locates most of its
+explainable variance in additive terms carried by the HAR block.
 % PRODUCT BLOCK PARKED 2026-08-18: the product-block/three-block conclusion of the fourth finding is held out of the rendered paper; the paragraph now closes on the two-block ridge.
 \iffalse
 Writing those products down as one hundred frozen
@@ -75,36 +100,81 @@ every bar, scoring \unifBlkThreeUserQLIKE{} against the benchmark's
 \unifAzeroQLIKE{} (paired increment \unifIncrBlkThreeUserDQ{} at DM
 \unifIncrBlkThreeUserDM{} for the product block alone).
 \fi
-That structure is a specification statement, not yet an estimator: the
-paper's linear ladder ends at the block-diagonal ridge --- one solver, two
-fixed penalties, refit exactly at every bar --- which scores
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% That structure is a specification statement, not yet an estimator: the
+% paper's linear ladder ends at the block-diagonal ridge --- one solver, two
+% fixed penalties, refit exactly at every bar --- which scores
+% \unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
+% benchmark's \unifAzeroQLIKE{}.
+The paper's linear ladder ends at the block-diagonal ridge --- one solver,
+two penalties, refit exactly at every bar --- which scores
 \unifBlkTwoUserQLIKE{} at DM \unifBlkTwoUserDM{} against the
-benchmark's \unifAzeroQLIKE{}.
+benchmark's \unifAzeroQLIKE{} with its two penalties fixed, and
+\unifBlkTwoTunedQLIKE{} at DM \unifBlkTwoTunedDM{} with each block's penalty
+re-selected causally.
 % D1 2026-09-29 (change 11): the close-option promise re-read on Section 5.4 as it now
 % stands (one recalibration; headline = per-bar ridge on live_feasible).  Numbers are the
 % \cm... macros of writeup/generated/close_main_numbers.tex (make_table_close_main.py, from
 % results/close_master_table/ and results/close_pnl_decomp/research_scorer/); the previous
 % (session-bar) version of this passage is kept, commented, below.
-\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 The paper closes by reading the forecasts against the last thirty minutes of
 the expiration-day chain. The last-30-min trade buys or sells one straddle
 at 15:30~ET on the sign of the gap between the forecast of the half hour's
 variance and the variance the straddle's quotes imply, and holds it to the
-cash settlement (Section~\ref{sec:close_option_results}). Scored under one
-recalibration on the same \cmNdays{} days, every one of the paper's forecasts
-improves on selling the straddle every day in point estimate, one of the eight
-with an interval above zero. The section's headline forecast is not the
-paper's block-diagonal ridge but a ridge fitted for the traded bar alone, on
-the 16 inputs a forecaster can rebuild at 15:30, chosen for that feasibility
-and not as the best of the table: a Sharpe ratio of \cmHShMid{} % master_table.csv headline row
-(\cmHShX{} at the crossed spread), above the paper's forecast by
-\cmHVsRefMid{} and above always short by \cmHVsShortMid. Its forecast is not
-significantly more accurate than the paper's ($p=\cmHDMp$), no single change % dm_p_vs_ref
-from the paper's forecast to it is resolved on its own, and it is not
-separated from the lasso on the same inputs. The edge is a tail trade --- its
-20 best days, all of them buys, carry \cmPnlTopTwentyShare\% of its P\&L --- % research_scorer/tail_concentration.csv
-and the trade has shown no edge after the sample ends in April 2024. Sizing on
-the magnitude of the gap does not improve on its sign.
+cash settlement (Section~\ref{sec:close_option_results}).
+% 2026-10-06 parked (recalibration removed, user decision):
+% Scored under one
+% recalibration on the same \cmNdays{} days, every one of the paper's forecasts
+% improves on selling the straddle every day in point estimate, one of the eight
+% with an interval above zero. The section's headline forecast is not the
+% paper's block-diagonal ridge but a ridge fitted for the traded bar alone, on
+% the 16 inputs a forecaster can rebuild at 15:30, chosen for that feasibility
+% and not as the best of the table: a Sharpe ratio of \cmHShMid{} % master_table.csv headline row
+% (\cmHShX{} at the crossed spread), above the paper's forecast by
+% \cmHVsRefMid{} and above always short by \cmHVsShortMid. Its forecast is not
+% significantly more accurate than the paper's ($p=\cmHDMp$), no single change % dm_p_vs_ref
+% from the paper's forecast to it is resolved on its own, and it is not
+% separated from the lasso on the same inputs. The edge is a tail trade --- its
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% With every forecast used as its plain back-transform and scored on the same
+% \cmNdays{} days, every one of the paper's forecasts improves on selling the
+% straddle every day. The section's headline forecast is not the
+% paper's block-diagonal ridge but a ridge fitted for the traded bar alone, on
+% the 16 inputs a forecaster can rebuild at 15:30, chosen for that feasibility
+% and not as the best of the table: a Sharpe ratio of \cmHShMid{} % master_table.csv headline row
+% (\cmHShX{} at the crossed spread), above always short by \cmHVsShortMid{}, a
+% significant difference, and above the paper's forecast by \cmHVsRefMid, not a
+% significant one. Its forecast is no more accurate than the paper's (QLIKE % qlike_pct_vs_ref, dm_p_vs_ref
+% \cmHQPct\% against it, $p=\cmHDMp$), the lasso on the same inputs trades
+% \cmVsHLasso{} against it, and none of the differences in Sharpe ratio among the
+% per-bar forecasts is read as an order. The edge is a tail trade --- its
+% 20 best days, all of them buys, carry \cmPnlTopTwentyShare\% of its P\&L --- % research_scorer/tail_concentration.csv
+% and the trade has shown no edge after the sample ends in April 2024. Sizing on
+% the magnitude of the gap does not improve on its sign.
+With every forecast used as its plain back-transform and scored on the same
+\cmNdays{} days, every one of the paper's forecasts improves on selling the
+straddle every day, \cmPaperVsShortAboveSigN{} of the eight significantly. Over the % t_hac_mid_vs_short
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% \cmMasterN{} forecasts of the closing study's master table, including forecasts fitted
+% for the traded bar alone, the trade does not order the models: against the paper's
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% \cmMasterN{} forecasts of the closing study's master table, including forecasts fitted
+% for the traded bar alone on three input sets --- the third a lean set chosen after the
+% importance study (Appendix~\ref{sec:app_lean}) --- the trade does not order the models: against
+% the paper's
+\cmMasterN{} forecasts of the closing study's master table, including forecasts fitted
+for the traded bar alone on two input sets, the trade does not order the models: against
+the paper's
+block-diagonal ridge \cmMasterVsRefAbove{} trade above it and \cmMasterVsRefBelow{} below, % dSharpe_mid_vs_ref, t_hac_mid_vs_ref
+\cmMasterVsRefAboveSig{} and \cmMasterVsRefBelowSig{} of them significantly, and a better
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% forecast of the half hour's variance is not by itself a better trade. The trade has shown
+% no edge after the sample ends in April 2024. Sizing on the magnitude of the gap does not
+% improve on its sign.
+forecast of the half hour's variance is not by itself a better trade. Whether sizing on
+the magnitude of the gap improves on its sign turns on the sample, in point estimate
+(Appendix~\ref{sec:app_run_sizing}); the trade's live form after the sample ends in
+April 2024 is not scored here.
 % PARKED 2026-09-29 (D1 change 11): the session-bar version of this passage.  Verbatim:
 % The paper closes by reading the
 % one-bar forecast against the last thirty minutes of the
@@ -129,22 +199,35 @@ delta-hedged near-the-money portfolio on the model's signal
 (Section~\ref{sec:spxw_econ}).
 \fi
 
-A methodological theme runs through all four: discipline beats tuning.
-Every hyperparameter in the campaign is either a fixed constant or
-selected causally on a short forward validation tail, and the campaign
-measures what that selection buys --- repeatedly, less than it costs.
-Tuned elastic nets lose to tuned ridge not because the data prefer dense
-coefficients but because penalty mistakes are cheap for ridge and
-destructive for selectors; a fixed forgetting half-life helps and a
-tuned one eliminates the gain; fixed block penalties outperform their
-causally tuned counterparts. The final model's constants are justified
-individually by measurement and never optimized on evaluation loss.
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% A methodological theme runs through all four: discipline beats tuning.
+% Every hyperparameter in the campaign is either a fixed constant or
+% selected causally on a short forward validation tail, and the campaign
+% measures what that selection buys --- repeatedly, less than it costs.
+% Tuned elastic nets lose to tuned ridge not because the data prefer dense
+% coefficients but because penalty mistakes are cheap for ridge and
+% destructive for selectors; a fixed forgetting half-life helps and a
+% tuned one eliminates the gain; fixed block penalties outperform their
+% causally tuned counterparts. The final model's constants are justified
+% individually by measurement and never optimized on evaluation loss.
+A methodological theme runs through all four: what tuning buys is measured,
+not assumed. Every hyperparameter in the campaign is either a fixed constant
+or selected causally on a short forward validation tail, and the campaign
+measures what that selection buys. The answer depends on the estimator:
+weighting the tree experts beats selecting one (\unifIncrTreeHedgeDQ{} at DM
+\unifIncrTreeHedgeDM{}), the causally tuned elastic net improves on causally
+tuned ridge (\unifIncrBThreeEnetTunedDQ{} at DM \unifIncrBThreeEnetTunedDM{}),
+and re-selecting the two block penalties causally improves on fixing them
+(\unifBlkTwoTunedQLIKE{} against \unifBlkTwoUserQLIKE{}). No constant is
+optimized on evaluation loss.
 
 \emph{Roadmap.} Section~\ref{sec:related} places the paper in the
 literature. Section~\ref{sec:data_prep} defines the panel, the
 preparation pipeline, and the exogenous buckets.
 Section~\ref{sec:methods} fixes the evaluation framework --- the
-benchmark, the testing machinery, and the back-transformation protocol ---
+% 2026-10-06 parked (main results re-scored on the plain back-transform, user decision):
+% benchmark, the testing machinery, and the back-transformation protocol ---
+benchmark, the testing machinery, and the back-transform ---
 and then the methods: the estimators and
 the block constructions. Section~\ref{sec:results} reports the
 results in the order summarized above.

@@ -23,14 +23,26 @@ and sets a subset of coefficients to exactly zero, and ridge
 \citep{HoerlKennard1970}, which applies an $\ell_2$ penalty and shrinks all
 coefficients toward zero without setting any to zero. The result of the
 comparison is a property of how the predictive coefficients are distributed
-across the columns of the design. In this section that property is measured
-directly: ridge attains lower out-of-sample QLIKE than the lasso on the
-full design (Section~\ref{sec:dense_weak_headtohead}); the lasso zeroes
-$304$ of $523$ exogenous columns on the full basis, of which $235$ are dead
-or constant availability indicators
-(Section~\ref{sec:dense_weak_diagnosis}); and five principal components
-retain $72\%$ of the feature variance while losing essentially all of the
-predictive signal (Section~\ref{sec:dense_weak_diagnosis}). The coefficient structure is
+across the columns of the design.
+% 2026-10-06 parked (recalibration removed, user decision): re-scored on the
+% plain back-transform, tuned ridge no longer beats tuned lasso, and the
+% principal-component loss claim (an earlier build, scored on the retired
+% back-transform, not re-scorable from stored outputs) is parked.  Verbatim:
+% "In this section that property is measured directly: ridge attains lower
+% out-of-sample QLIKE than the lasso on the full design
+% (Section~\ref{sec:dense_weak_headtohead}); the lasso zeroes $304$ of $523$
+% exogenous columns on the full basis, of which $235$ are dead or constant
+% availability indicators (Section~\ref{sec:dense_weak_diagnosis}); and five
+% principal components retain $72\%$ of the feature variance while losing
+% essentially all of the predictive signal
+% (Section~\ref{sec:dense_weak_diagnosis})."
+In this section that property is measured from two sides: on loss, the
+causally tuned penalty families are not separated on the full design,
+while heavier fixed ridge shrinkage lowers the loss steadily
+(Section~\ref{sec:dense_weak_headtohead}); on the coefficients, the lasso
+zeroes $304$ of $523$ exogenous columns on the full basis, of which $235$
+are dead or constant availability indicators
+(Section~\ref{sec:dense_weak_diagnosis}). The coefficient structure is
 \emph{dense but weak}, in the sense of the sparse-versus-dense
 prediction literature
 \citep{GiannoneLenzaPrimiceri2021,KozakNagelSantosh2020,ShenXiu2025}:
@@ -43,10 +55,12 @@ step.
 
 \paragraph{The head-to-head.}\label{sec:dense_weak_headtohead}
 \paragraph{Design.}
-The two penalized linear estimators are run on the full feature design ---
-every exogenous column at once --- on one shared out-of-sample panel of
-$n = 218{,}934$ thirty-minute bars, with identical rows in both cells;
-nothing varies between the two arms except the penalty.
+% 2026-10-06: the panel was stated as the earlier battery's $n = 218{,}934$;
+% the arms reported here are scored on the evaluation panel.
+The penalized linear estimators are run on the full feature design ---
+every exogenous column at once --- on the evaluation panel of
+Section~\ref{sec:data_prep}, with identical rows in every cell;
+nothing varies between the arms except the penalty.
 
 \paragraph{Comparison protocol.}
 Both arms are compared against the shared incumbent of
@@ -69,84 +83,122 @@ tables may need this re-run on the paper's one-panel convention}
 % cross-checked against writeup/causal_tune_battery_table.tex.
 \paragraph{Result.}
 The comparison is run on the full design --- the HAR ladder, the calendar
-features, and the full exogenous block --- with both estimators under the
-same causal tuning protocol, so that neither family carries an informed
-penalty choice the other lacks
-(Table~\ref{tab:lasso_vs_ridge}). Under the evaluation protocol, causally
-tuned ridge
-(\unifBOneRidgeTunedFineQLIKE{}, DM \unifBOneRidgeTunedFineDM{})
-beats the incumbent; causally tuned lasso
-(\unifBTwoLassoTunedQLIKE{}, DM \unifBTwoLassoTunedDM{}) does not.
-Keeping every column and shrinking produces a lower loss than selecting
-a subset, when both families choose their penalty by the same causal
-rule. The elastic net (causally tuned) on the same full design scores
-\unifBThreeEnetTunedQLIKE{} (DM \unifBThreeEnetTunedDM{}), interpolating
-ridge and lasso, closer to ridge, and not distinguishable from the
-incumbent at conventional size.
+features, and the full exogenous block --- with every estimator under the
+same causal tuning protocol, so that no family carries an informed
+penalty choice the others lack
+(Table~\ref{tab:lasso_vs_ridge}).
+% 2026-10-06 parked (recalibration removed, user decision): the reading under the
+% calibrated protocol.  Verbatim: "Under the evaluation protocol, causally tuned
+% ridge (...) beats the incumbent; causally tuned lasso (...) does not. Keeping
+% every column and shrinking produces a lower loss than selecting a subset, when
+% both families choose their penalty by the same causal rule. The elastic net
+% (causally tuned) on the same full design scores ... interpolating ridge and
+% lasso, closer to ridge, and not distinguishable from the incumbent at
+% conventional size."  Re-scored on the plain back-transform it does not hold.
+With every forecast used as its plain back-transform, neither causally
+tuned ridge (\unifBOneRidgeTunedFineQLIKE{}, DM
+\unifBOneRidgeTunedFineDM{}) nor causally tuned lasso
+(\unifBTwoLassoTunedQLIKE{}, DM \unifBTwoLassoTunedDM{}) beats the
+incumbent, and the two are not separated from each other: the paired
+lasso-minus-ridge differential is \unifIncrBTwoLassoTunedDQ{} at DM
+\unifIncrBTwoLassoTunedDM{}. The elastic net, which re-selects its mixing
+share together with the penalty, scores \unifBThreeEnetTunedQLIKE{} (DM
+\unifBThreeEnetTunedDM{} against the incumbent), below both, and improves
+on tuned ridge by \unifIncrBThreeEnetTunedDQ{} at DM
+\unifIncrBThreeEnetTunedDM{}. Under one causal tuning rule, the loss
+ordering of the penalty families on the full design therefore does not
+separate dense from sparse shrinkage; the coefficient structure is read
+from the lasso's own solution path below.
 
 \begin{table}[H]
 \centering
-\caption{Ridge versus lasso versus elastic net on the full design under the evaluation
-protocol, out-of-sample QLIKE with the Diebold--Mariano $t$-statistic
-against the OLS--HAR incumbent in parentheses. Panel: the frozen panel of
-Section~\ref{sec:data_prep}, $n = 273{,}554$ identical rows.
-Ridge is the fine-grid causal tune already harvested on this root
+% 2026-10-06 (recalibration removed, user decision): caption read "under the
+% evaluation protocol"; the paired row against ridge is new.
+\caption{Ridge versus lasso versus elastic net on the full design, every
+forecast used as its plain back-transform: out-of-sample QLIKE with the
+Diebold--Mariano $t$-statistic against the OLS--HAR incumbent in
+parentheses; the second row is the paired per-bar differential against
+causally tuned ridge, with its own Diebold--Mariano $t$. Panel: the frozen panel of
+Section~\ref{sec:data_prep}, $n =$ \unifAzeroN{} identical rows.
+Ridge is the fine-grid causal tune
 (\texttt{b1\_ridge\_tuned\_fine}); lasso is \texttt{b2\_lasso\_tuned};
 elastic net is \texttt{b3\_enet\_tuned}.
 Negative $t$ favors the arm.}
 \label{tab:lasso_vs_ridge}
+\small\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lccc@{}}
 \toprule
  & Ridge & Lasso & Elastic net \\
 \midrule
 Causally tuned & \unifBOneRidgeTunedFineQLIKE{} (\unifBOneRidgeTunedFineDM{}) & \unifBTwoLassoTunedQLIKE{} (\unifBTwoLassoTunedDM{}) & \unifBThreeEnetTunedQLIKE{} (\unifBThreeEnetTunedDM{}) \\
+Paired vs.\ tuned ridge & --- & \unifIncrBTwoLassoTunedDQ{} (\unifIncrBTwoLassoTunedDM{}) & \unifIncrBThreeEnetTunedDQ{} (\unifIncrBThreeEnetTunedDM{}) \\
 \midrule
 Incumbent (per-bar OLS--HAR) & \multicolumn{3}{c}{\unifAzeroQLIKE{}} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+% 2026-10-06 parked (recalibration removed, user decision): the typed sweep levels
+% ($0.23219$ ... $0.22909$, an earlier scoring) and the reading built on them.
+% Verbatim: "... across the tested grid: $0.23219$ at $\alpha = 0.1$, $0.23159$
+% at $0.3$, $0.23083$ at $1$, $0.23003$ at $3$, and $0.22909$ at $10$, still
+% decreasing at the grid's edge; the tuned-ridge arm, which re-selects from a
+% grid reaching $\alpha = 1000$, lands below every fixed point. ... One caveat:
+% all DM statistics are computed against the incumbent, a third model, so the
+% ridge-minus-lasso differences themselves carry no significance statement yet."
+% The pairwise test it asked for is now in Table~\ref{tab:lasso_vs_ridge}.
 A penalty-level sweep locates where the tuned arms operate. Holding the
 ridge family fixed and varying only the constant, QLIKE falls
-monotonically in $\alpha$
-across the tested grid: $0.23219$ at $\alpha = 0.1$, $0.23159$ at $0.3$,
-$0.23083$ at $1$, $0.23003$ at $3$, and $0.22909$ at $10$, still
-decreasing at the grid's edge; the tuned-ridge arm, which re-selects from
-a grid reaching $\alpha = 1000$, lands below every fixed point. The
-penalty \emph{level} moves the loss by more than the penalty \emph{family}
-does at any fixed level, and the wide design rewards heavier shrinkage
-than the $\alpha = 1$ default --- the direction the block penalties of
-Section~\ref{sec:dense_weak_twoblock} take further. One caveat: all DM
-statistics are computed against the incumbent, a third model, so the
-ridge-minus-lasso differences themselves carry no significance statement
-yet. \pending{pairwise ridge-vs-lasso DM (or the incumbent-cancelling
-bound) on the full design, so the head-to-head margin is tested rather
-than pointed at}
+monotonically in $\alpha$ from \unifBOneRidgeApOneQLIKE{} at
+$\alpha = 0.1$ through \unifBOneRidgeApThreeQLIKE{} at $0.3$,
+\unifBOneRidgeQLIKE{} at $1$, \unifBOneRidgeAthreeQLIKE{} at $3$,
+\unifBOneRidgeAtenQLIKE{} at $10$ and \unifBOneRidgeAthirtyQLIKE{} at
+$30$ to \unifBOneRidgeAhundredQLIKE{} at $\alpha = 100$, and rises again
+at $300$ (\unifBOneRidgeAthreehundredQLIKE{}). Only the bottom of the
+curve reaches the incumbent: $\alpha = 100$ is the one fixed point below
+it, and not significantly (DM \unifBOneRidgeAhundredDM{}). The tuned-ridge
+arm, which re-selects from a grid reaching $\alpha = 1000$ on a $125$-bar
+validation tail, lands at \unifBOneRidgeTunedFineQLIKE{}, no better than
+the fixed $\alpha = 10$ point and short of the bottom of the curve. The
+penalty \emph{level} moves the loss far more than the choice of penalty
+family does under a common tuning rule, and the wide design rewards
+much heavier shrinkage than the $\alpha = 1$ default --- the direction the
+block penalties of Section~\ref{sec:dense_weak_twoblock} take further.
 
 \paragraph{The diagnosis: dense, not sparse.}\label{sec:dense_weak_diagnosis}
 The lasso's own solution path shows what $\ell_1$ selection does on this
 design. On the full basis the lasso zeroes $304$ of $523$ exogenous columns.
 Of those $304$, $235$ --- $77\%$ --- are dead or constant availability
 indicators. Most of the lasso's selection therefore removes columns that
-carry no signal. Removing such columns does not lower QLIKE relative to
-ridge, because $\ell_2$ shrinkage makes the same columns small without
-making them zero. Where the $\ell_1$ penalty zeroes live columns, QLIKE
-rises: the margin by which ridge beats the lasso is carried by the live
-columns the lasso zeroes, not by the dead ones.
-
-A principal-component check measures whether the spread of coefficients
-across columns is a low-dimensional structure in a rotated basis.
-Truncating the design to five principal components retains $72\%$ of the
-feature variance and loses essentially all of the predictive signal. The
-signal therefore does not lie in the high-variance directions of the
-feature covariance. The measured structure is: (i) no small subset of
-columns concentrates the signal --- the only columns the lasso can zero
-without raising QLIKE are dead or constant ones; and (ii) no small set of
-principal directions concentrates it. The coefficient structure has many
-small nonzero entries in the coordinate basis and is not low-rank in the
-data's covariance geometry. This is the dense-but-weak structure of
-\citet{GiannoneLenzaPrimiceri2021}, verified on the solution path
-rather than inferred from the loss ordering.
+carry no signal, and $\ell_2$ shrinkage makes the same columns small
+without making them zero. No small subset of live columns concentrates
+the signal: the selection the $\ell_1$ penalty performs is, for the most
+part, the removal of columns that never carried any. The coefficient
+structure has many small nonzero entries in the coordinate basis. This is
+the dense-but-weak structure of \citet{GiannoneLenzaPrimiceri2021}, read
+on the solution path rather than inferred from the loss ordering.
+% 2026-10-06 parked (recalibration removed, user decision): the loss-based half of
+% the diagnosis.  The ridge-over-lasso margin it explains does not survive the
+% re-score on the plain back-transform, and the principal-component loss check
+% comes from an earlier build scored on the retired back-transform (not
+% re-scorable from stored outputs).  Verbatim:
+% "Removing such columns does not lower QLIKE relative to ridge, because $\ell_2$
+% shrinkage makes the same columns small without making them zero. Where the
+% $\ell_1$ penalty zeroes live columns, QLIKE rises: the margin by which ridge
+% beats the lasso is carried by the live columns the lasso zeroes, not by the dead
+% ones.
+% A principal-component check measures whether the spread of coefficients across
+% columns is a low-dimensional structure in a rotated basis. Truncating the design
+% to five principal components retains $72\%$ of the feature variance and loses
+% essentially all of the predictive signal. The signal therefore does not lie in
+% the high-variance directions of the feature covariance. The measured structure
+% is: (i) no small subset of columns concentrates the signal --- the only columns
+% the lasso can zero without raising QLIKE are dead or constant ones; and (ii) no
+% small set of principal directions concentrates it. The coefficient structure has
+% many small nonzero entries in the coordinate basis and is not low-rank in the
+% data's covariance geometry. This is the dense-but-weak structure of
+% \citet{GiannoneLenzaPrimiceri2021}, verified on the solution path rather than
+% inferred from the loss ordering."
 
 The block-diagonal Tikhonov of Section~\ref{sec:block_tikhonov} is the
 estimator built for this structure; its scores are in
@@ -157,11 +209,19 @@ Section~\ref{sec:three_block_results}.
 
 The linear results are now in place: the exogenous signal is dense and
 weak (Section~\ref{sec:dense_weak}). The remaining question is what
-nonlinear structure adds. First, gradient-boosted trees beat the best
-linear arm on every feature set, by a small margin. Second,
-decompositions of the tree fits attribute the bulk of that margin to
-additive-plus-pairwise structure, and the pairwise part to products of
-columns the panel already contains, gated on the session clock.
+nonlinear structure adds.
+% 2026-10-06 parked (recalibration removed, user decision): the roadmap read
+% "First, gradient-boosted trees beat the best linear arm on every feature set, by
+% a small margin. Second, decompositions of the tree fits attribute the bulk of
+% that margin to additive-plus-pairwise structure, and the pairwise part to
+% products of columns the panel already contains, gated on the session clock."
+% The first rests on the earlier battery (retired back-transform); re-scored on
+% the plain back-transform the margin is not small; the pairwise attribution is
+% parked below.
+On the identical wide design, a bank of gradient-boosted trees beats the
+paper's two-block ridge by a margin larger than the ridge's own
+improvement on the benchmark; a functional-ANOVA decomposition of a tree
+fit locates most of its explainable variance in additive terms.
 % PRODUCT BLOCK PARKED 2026-08-18: the third item of this roadmap list (products written down as an explicit block) is held out of the rendered paper; the list is now two items.
 \iffalse
 Third,
@@ -170,20 +230,39 @@ those products --- written down as explicit columns
 same Tikhonov penalty (Section~\ref{sec:three_block_results}).
 \fi
 
+% 2026-10-06 parked (recalibration removed, user decision): the expert-bank
+% paragraph typed its levels from the calibrated scoring and an incomplete
+% harvest.  Verbatim: "Seventeen of the nineteen completed experts beat the
+% benchmark, at QLIKE $0.21796$--$0.22108$ against the benchmark's
+% \unifAzeroQLIKE{} (DM $-11.3$ to $-7.6$); the two seeded Sobol points ---
+% included deliberately as unoptimized controls --- lose to it ($0.23064$ and
+% $0.23853$), so the Optuna selection is worth $1$--$2 \times 10^{-2}$ over a
+% random draw. One expert's harvest is still completing; the bank aggregates
+% below are computed on the nineteen complete experts over their full common row
+% set ($263{,}782$ bars, 2003 onward), and the twentieth's inclusion is expected
+% to move them only marginally."
+% Checked 2026-10-06 against the regenerated macros: NBeat = NBeatSig, and
+% NBeat - NSobolBeat = NOpt (every Optuna-selected expert beats the benchmark);
+% the best expert's QLIKE equals SobolBestQLIKE (the best expert is a Sobol point).
 \paragraph{The expert bank.} The twenty frozen configurations of
-Section~\ref{sec:estimators} were walked per bar on the full panel and
-scored under the evaluation protocol. Seventeen of the nineteen
-completed experts beat the benchmark, at QLIKE $0.21796$--$0.22108$
-against the benchmark's \unifAzeroQLIKE{} (DM $-11.3$ to $-7.6$); the
-two seeded Sobol points --- included deliberately as unoptimized
-controls --- lose to it ($0.23064$ and $0.23853$), so the Optuna
-selection is worth $1$--$2 \times 10^{-2}$ over a random draw. One
-expert's harvest is still completing; the bank aggregates below are
-computed on the nineteen complete experts over their full common row
-set ($263{,}782$ bars, 2003 onward), and the twentieth's inclusion is
-expected to move them only marginally.
+Section~\ref{sec:estimators} were walked per bar on the full panel, every
+forecast used as its plain back-transform; all
+\unifTreeBankNExperts{} harvests are complete. \unifTreeBankNBeat{} of
+the experts beat the benchmark's \unifAzeroQLIKE{}, each at strong
+paired significance. Every one of the \unifTreeBankNOpt{}
+Optuna-selected experts is among them (QLIKE up to
+\unifTreeBankWorstOptQLIKE{}, DM between \unifTreeBankOptBestDM{} and
+\unifTreeBankOptWorstDM{}). Of the \unifTreeBankNSobol{} seeded Sobol
+points, included deliberately as unoptimized controls,
+\unifTreeBankNSobolBeat{} beat the benchmark --- one of them is the best
+expert in the bank, at \unifTreeBankBestQLIKE{} --- and the worst scores
+\unifTreeBankSobolWorstQLIKE{}: the Optuna selection buys reliability
+rather than the best level. The bank aggregates below are computed on the
+experts' full common row set (\unifTreeHedgeN{} bars, 2003 onward).
 
-\paragraph{The bank beats its members.} The bank is aggregated two ways
+% 2026-10-06 (recalibration removed, user decision): heading was "The bank beats
+% its members."; on the plain back-transform the hedge no longer beats the best one.
+\paragraph{Weighting beats selecting.} The bank is aggregated two ways
 on the same trailing-$125$-bar tail with a $25$-bar embargo, refreshed
 every $250$ bars (the identical schedule to the linear tuners): a
 \emph{selection} arm, which fills the next block from the
@@ -194,36 +273,47 @@ forecaster rate, no free constant. All tree rows are restricted to
 2003 onward, since the menu was tuned on the pre-2003 dev span. The
 selection arm scores \unifTreeTunedQLIKE{} (DM \unifTreeTunedDM{}
 against the benchmark); the
-hedged arm scores \unifTreeHedgeQLIKE{} (DM \unifTreeHedgeDM{}) ---
-\textbf{better than every
-individual expert, including the best of them} ($0.21796$), a paired
-improvement of $-0.0046$ over the strongest member. The ordering
-(selection $<$ best expert $<$ hedge, with hedge
-\unifIncrTreeHedgeDQ{} better than
-selection at DM \unifIncrTreeHedgeDM{}) is the paper's recurring tuning lesson in its
-purest form: causal selection on a short tail is expensive, and
-weighting is cheaper than selecting. The selection trajectory splits
-nearly evenly across families ($296$ XGBoost to $262$ LightGBM
-boundaries) with era-specific leans (LightGBM in 2009 and 2013, XGBoost
-in 2018), and no expert dominates: the most-selected fills $22\%$ of
-boundaries.
+hedged arm scores \unifTreeHedgeQLIKE{} (DM \unifTreeHedgeDM{}), and
+improves on the selection arm by \unifIncrTreeHedgeDQ{} at DM
+\unifIncrTreeHedgeDM{}. That is the paper's recurring tuning lesson in
+its purest form: causal selection on a short tail is expensive, and
+weighting is cheaper than selecting. Neither aggregate beats the best
+individual expert identified after the fact: on their common rows the
+hedge trails it by \unifTreeBankHedgeVsBestDQ{} (DM
+\unifTreeBankHedgeVsBestDM{}). The selection trajectory splits across
+families (\unifTreeBankSelXgbN{} XGBoost to \unifTreeBankSelLgbmN{}
+LightGBM of \unifTreeBankSelN{} boundaries), and no expert dominates:
+the most-selected fills \unifTreeBankSelTopPct{} of boundaries.
+% 2026-10-06 parked (recalibration removed, user decision): the calibrated-scoring
+% reading.  Verbatim: "--- \textbf{better than every individual expert, including
+% the best of them} ($0.21796$), a paired improvement of $-0.0046$ over the
+% strongest member. The ordering (selection $<$ best expert $<$ hedge, with hedge
+% \unifIncrTreeHedgeDQ{} better than selection at DM \unifIncrTreeHedgeDM{}) is the
+% paper's recurring tuning lesson ... The selection trajectory splits nearly evenly
+% across families ($296$ XGBoost to $262$ LightGBM boundaries) with era-specific
+% leans (LightGBM in 2009 and 2013, XGBoost in 2018), and no expert dominates: the
+% most-selected fills $22\%$ of boundaries."  The era leans were not recomputed.
 
 \begin{table}[H]
 \centering
-\caption{The tree expert bank under the evaluation protocol
-(Section~\ref{sec:smearing_contract}). Individual experts are scored on
-the full panel; the bank aggregates are computed on their common row set
-($263{,}782$ bars, 2003 onward). DM $t$ is against the OLS--HAR
-benchmark (\unifAzeroQLIKE{}); negative favours the arm.
+% 2026-10-06 (recalibration removed, user decision): the table's typed levels were
+% the calibrated scoring of an incomplete harvest (best $0.21796$ / $-11.3$, median
+% $0.21969$, weakest Optuna-selected $0.22108$, Sobol $0.23064$, $0.23853$); now
+% the \unifTreeBank... macros of the plain re-score.
+\caption{The tree expert bank, every forecast used as its plain
+back-transform (Section~\ref{sec:smearing_contract}). Individual experts
+are scored on the full panel; the bank aggregates are computed on their
+common row set (\unifTreeHedgeN{} bars, 2003 onward). DM $t$ is against the
+OLS--HAR benchmark (\unifAzeroQLIKE{}); negative favours the arm.
 \label{tab:tree_bank}}
 \begin{tabular}{@{}lcc@{}}
 \toprule
  & QLIKE & DM $t$ \\
 \midrule
-Best individual expert & $0.21796$ & $-11.3$ \\
-Median completed expert & $0.21969$ & --- \\
-Weakest Optuna-selected expert & $0.22108$ & --- \\
-Sobol controls (2, unoptimized) & $0.23064$, $0.23853$ & --- \\
+Best individual expert (a Sobol control) & \unifTreeBankBestQLIKE{} & \unifTreeBankBestDM{} \\
+Median expert & \unifTreeBankMedianQLIKE{} & --- \\
+Weakest Optuna-selected expert & \unifTreeBankWorstOptQLIKE{} & \unifTreeBankWorstOptDM{} \\
+Sobol controls (\unifTreeBankNSobol{}, unoptimized), best and worst & \unifTreeBankSobolBestQLIKE{}, \unifTreeBankSobolWorstQLIKE{} & --- \\
 \midrule
 \texttt{tree\_tuned} (causal best-expert selection) & \unifTreeTunedQLIKE{} & \unifTreeTunedDM{} \\
 \texttt{tree\_hedge} (exponential weights) & \unifTreeHedgeQLIKE{} & \unifTreeHedgeDM{} \\
@@ -231,21 +321,29 @@ Sobol controls (2, unoptimized) & $0.23064$, $0.23853$ & --- \\
 \end{tabular}
 \end{table}
 
-\paragraph{Comparison discipline against the linear ladder.} The tree
-rows above are $2003$+ by construction ($263{,}782$ bars); the linear
+% 2026-10-06 parked (recalibration removed, user decision): the paragraph compared
+% the hedged bank with the parked product-block arm on different row sets and
+% pointed to the parked protocol note.  Verbatim: "... the hedged bank's
+% \unifTreeHedgeQLIKE{} and the linear champion's
+% \unifBlkFourProdBbExogTrailSdQLIKE{} are separated by $2 \times 10^{-5}$
+% \emph{on different row sets}, which is exactly why the trees-versus-products
+% verdict is reserved for the scorer's paired increments on common rows,
+% registered as the block-ladder harvest completes
+% (Appendix~\ref{app:protocol_note}). What is comparable as stated: the hedged
+% bank's \unifTreeHedgeDelta{} improvement over the benchmark at DM
+% \unifTreeHedgeDM{}, and the bank-internal ordering above."
+\paragraph{Comparison against the linear ladder.} The tree
+rows above are $2003$+ by construction (\unifTreeHedgeN{} bars); the linear
 arms are scored
-on $248{,}686$--$273{,}554$ bars under their own row rules. Pooled
-levels across these row sets are not comparable (the campaign's row-set
-discipline of Section~\ref{sec:smearing_contract}) --- the hedged
-bank's \unifTreeHedgeQLIKE{} and the linear champion's
-\unifBlkFourProdBbExogTrailSdQLIKE{} are separated by
-$2 \times 10^{-5}$ \emph{on different row sets}, which is exactly why
-the trees-versus-products verdict is reserved for the scorer's paired
-increments on common rows, registered as the block-ladder harvest
-completes (Appendix~\ref{app:protocol_note}). What is comparable as
-stated: the hedged bank's \unifTreeHedgeDelta{} improvement over the
-benchmark at
-DM \unifTreeHedgeDM{}, and the bank-internal ordering above.
+on $248{,}686$ to \unifAzeroN{} bars under their own row rules, so pooled
+levels across these row sets are not compared. The comparison is paired
+on common rows instead: against the two-block ridge of
+Section~\ref{sec:three_block_results}, on the same wide design, the
+hedged bank improves by \unifTreeBankHedgeVsBlkTwoDQ{} at DM
+\unifTreeBankHedgeVsBlkTwoDM{} --- more than the two-block ridge's own
+improvement on the benchmark (\unifBlkTwoUserDelta{}). Against the
+benchmark itself the hedged bank improves by \unifTreeHedgeDelta{} at DM
+\unifTreeHedgeDM{}.
 
 % ── AWAITING AUTHOR APPROVAL (2026-08-06) ────────────────────────────────
 % The passage from here through "...takes the hint literally." is held
@@ -260,8 +358,8 @@ $55/9/36$ with HAR $96\%$; the expressivity ladder $0.12757 \to 0.12108
 \to 0.12080 \to 0.12033$ vs XGBoost $0.12094$; the product distillation
 $58\%/62\%$. Held from final until reviewed.}
 
-\paragraph{Where the nonlinearity lives.} Three decompositions of the tree
-fits were computed in an earlier phase of this project.
+\paragraph{Where the nonlinearity lives.} A decomposition of the tree
+fits was computed in an earlier phase of this project.
 
 \emph{Interaction order.} A functional-ANOVA decomposition of a fitted
 depth-eight boosted tree attributes approximately $55\%$ of its explainable
@@ -269,6 +367,11 @@ variance to additive terms, $9\%$ to pairwise interactions, and $36\%$ to a
 higher-order remainder concentrated in no identifiable interaction. Within
 the additive part, the HAR block accounts for $96\%$.
 
+% 2026-10-06 parked (recalibration removed, user decision): the expressivity
+% ladder and the product distillation are QLIKE levels from earlier builds
+% scored on the retired back-transform, not re-scorable from stored outputs;
+% the specification statement rests on them.  Verbatim below.
+\iffalse
 \emph{Saturation at pairwise order.} On the deployed residual-stack panel
 of the earlier build ($n = 194{,}934$; levels not comparable to the
 battery), an expressivity ladder holds the base model fixed and varies only
@@ -295,6 +398,11 @@ Section~\ref{sec:data_prep}.
 The tree experiments therefore yield a specification statement:
 \textbf{the panel's recoverable nonlinearity is a sparse set of pairwise
 products of columns the design already contains}.
+\fi
+The decomposition locates most of a tree fit's explainable variance in
+additive terms carried by the HAR block; what part of the remaining
+margin over the linear ladder sits at pairwise order, and what part
+higher, is not settled by it.
 % PRODUCT BLOCK PARKED 2026-08-18: the hand-off sentence to the explicit product-block construction is held out of the rendered paper; the specification statement stands on its own as a finding.
 \iffalse
 The rest of this section
@@ -325,7 +433,13 @@ solver with nested block penalties at a $24{,}000$-bar window. The
 design is two blocks, $(\alpha_1,\alpha_2)=(1,100)$: HAR barely
 penalized, the wide exogenous block shrunk hard. It scores QLIKE
 \unifBlkTwoUserQLIKE{}, Diebold--Mariano \unifBlkTwoUserDM{} against
-the OLS--HAR incumbent.
+the OLS--HAR incumbent: an improvement in point estimate, short of
+conventional significance. The same two-block design with each block's
+penalty re-selected causally scores \unifBlkTwoTunedQLIKE{} at DM
+\unifBlkTwoTunedDM{} (Appendix Table~\ref{tab:master}).
+% 2026-10-06 (recalibration removed, user decision): the two sentences after
+% "incumbent" are new; on the calibrated scoring the fixed-penalty design's DM
+% was strong and the paragraph stopped at its score.
 
 \begin{table}[H]
 \centering
@@ -340,8 +454,10 @@ starts later because product selection uses the first $2W$ rows.
 Negative DM favours the arm.
 \label{tab:block_ladder}}
 \fi
-\caption{Block-diagonal Tikhonov under the evaluation protocol
-(Section~\ref{sec:smearing_contract}), $24{,}000$-bar window.
+% 2026-10-06 (recalibration removed, user decision): "under the evaluation protocol"
+% -> the plain back-transform.
+\caption{Block-diagonal Tikhonov, every forecast used as its plain
+back-transform (Section~\ref{sec:smearing_contract}), $24{,}000$-bar window.
 DM $t$ is against the OLS--HAR benchmark (\unifAzeroQLIKE{});
 negative DM favours the arm.
 \label{tab:block_ladder}}
@@ -349,8 +465,8 @@ negative DM favours the arm.
 \toprule
  & QLIKE & DM $t$ & $n$ \\
 \midrule
-OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & $273{,}554$ \\
-Two-block $(1, 100)$ & \unifBlkTwoUserQLIKE{} & \unifBlkTwoUserDM{} & $272{,}971$ \\
+OLS on HAR $+$ calendar (benchmark) & \unifAzeroQLIKE{} & --- & \unifAzeroN{} \\
+Two-block $(1, 100)$ & \unifBlkTwoUserQLIKE{} & \unifBlkTwoUserDM{} & \unifBlkTwoUserNQlike{} \\
 % PRODUCT BLOCK PARKED 2026-08-18: the three-block row and the paired product-block increment row are held out of the rendered table.
 \iffalse
 Three-block $(1, 100, 1000)$ & \unifBlkThreeUserQLIKE{} & \unifBlkThreeUserDM{} & $248{,}280$ \\

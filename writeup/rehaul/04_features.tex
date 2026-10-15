@@ -1,0 +1,206 @@
+% 04_features.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+% Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 4.
+% House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
+% typed; park (comment out with a dated note) rather than delete.
+% Macros to use here: \bkNSeries, \campPNewBase, \campPNewAll, \campKeptBase, \campKeptAll, \campNSessionEdge
+% 2026-10-15 (notation pass): symbols and wording per writeup/NOTATION_GUIDE_2026-10-15.md (bar t -> interval
+% (t,i); ladder \bar u_{t,k} -> HAR-type average \bar u^{(k)}_{t,i}; activity flag alpha -> chi (alpha is the
+% elastic-net mixing weight); r_{t,k} -> IQR^{*(k)}_t (r is the return); \mathcal K_t -> \mathcal J_t (\mathcal K
+% is the horizon set); asinh scale s_t -> kappa_{t,i} (s^2 is the periodicity factor); T_W -> W; q_{p,t} -> Q_p).
+
+% 2026-10-15 (notation pass): parked -- section title; "features" only for ML methods, "predictors" in prose
+% \section{Features}
+\section{Predictors}
+\begin{itemize}
+\item \textbf{Eight groups of exogenous predictors, 47 series:} realized moments (7), liquidity (14),
+  equal-weighted market (6), value-weighted market (6), sentiment (3), implied volatility (3), volatility demand (4),
+  FOMC (4); listed in Appendix Table~\ref{tab:rh_dm_dictionary}.
+  \[
+    47 = 7 + 14 + 6 + 6 + 3 + 3 + 4 + 4 .
+  \]
+  \begin{itemize}
+  \item FOMC:
+    \[
+      \mathbf{1}\{\text{announcement in } (t,i)\}, \quad
+      \mathbf{1}\{\text{announcement on day } t\}, \quad 1/(1 + n^{+}_{t,i}), \quad 1/(1 + n^{-}_{t,i}).
+    \]
+  \item $n^{\pm}_{t,i}$: number of intervals to the next ($+$) and since the last ($-$) scheduled announcement.
+    % loading.py:183-221: distances on the weekend-cut grid, before the dead-session drop; all four missing
+    % after the last print (2023-11-01). The 2020-03-03 exclusion is a no-op (outline flag 13).
+  \end{itemize}
+\item \textbf{Predictors built from each series.}
+  \begin{itemize}
+  \item Trailing averages of the transformed series $\tilde u$ over horizons of $k$ intervals, lagged one interval
+    (HAR components; \citealp{Corsi2009}):
+    \[
+      \bar u^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde u_{t,i-j}, \qquad k \in \mathcal{K},
+    \]
+    \[
+      \mathcal{K} =
+      \begin{cases}
+        \{1, 5, 25, 125, 625, 3125\} & \text{closing-interval model},\\
+        \{2^0, 2^1, \dots, 2^{11}\} \ \text{(base 2, 12 horizons)} & \text{pooled intraday model}.
+      \end{cases}
+    \]
+  \item $k$ counts intervals of the full intraday grid, overnight included; the closing-interval model uses the
+    rows $i = c$.
+    % har.py:18-48: rolling(k, min_periods=1).mean().shift(1). Per bar: production base-5 ladder, lag_scope
+    % "global" (experiments/capture_design_close.py:116-117; segmentation.py:39-43), so k is in BARS, not
+    % sessions (the previous bullet said sessions). Pooled: HAR_BASE=2 gives 1..2048 (specs/causal_tune_linear.py:
+    % 198-209). sections/data_prep.tex eq:dp_har writes base 2 for the per-bar ladder: wrong, it is base 5.
+  \item The same averages of the availability indicator, $\bar a^{(k)}_{t,i}$.
+  \item Averages of an activity indicator, $\bar\chi^{(k)}_{t,i}$, for 7 zero-inflated series.
+  \item Names in tables and figures: the bar and the interval index are dropped ($i = c$ in the closing-interval
+    model), so $u^{(k)}_t$ is series $u$ averaged over $k$ intervals; e.g.\ $\mathrm{VIX}^{(25)}_t$ is the
+    transformed VIX averaged over the 25 intervals ending at 15:30 on day $t$. Series symbols: $\mathrm{VIX}$,
+    $\mathrm{VIX3M}$, $\mathrm{VVIX}$; constituent aggregates carry EW or VW, as in $\mathrm{OFI}^{\mathrm{EW}}$,
+    $\RV^{\mathrm{VW}}$, $\mathrm{Spread}^{\mathrm{VW}}$; $\mathrm{FOMC}$. Indicator averages: $\bar a^{(k)}_t(u)$,
+    $\bar\chi^{(k)}_t(u)$.
+  \end{itemize}
+\item \textbf{HAR benchmark:} the HAR components of the target (6 columns) and 16 calendar dummies $\bm d_{t,i}$
+  (day of the week, monthly option expiration, quarterly ``quadruple witching'' expiration, month end, quarter end
+  and others).
+  \[
+    \bar y^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde y_{t,i-j}, \qquad
+    16 = \underbrace{5}_{\text{day of week}} + \underbrace{4}_{\text{time of day}}
+      + \underbrace{7}_{\text{expiration, month, quarter}} .
+  \]
+  % calendar.py:28-35 (DOW_0-4, hour, is_overnight, is_open, is_close); expiry.py:120-135 (opex, opex week,
+  % quad witch, rebalance close, month end, quarter end, days_to_opex).
+\item \textbf{Transformations, in order:}
+  \begin{enumerate}
+  \item intraday periodicity adjustment, dividing by a factor estimated on the same intraday interval
+    ($\mathcal{D}_{t,i}$ as for $s^2_{t,i}$) and bounded relative to its own trailing median:
+    \[
+      \tilde u_{t,i} = \frac{u_{t,i}}{b^{(u)}_{t,i}}, \qquad
+      b^{(u)}_{t,i} =
+      \begin{cases}
+        \clip\bigl(\operatorname{mean}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ 0.5\,\rho_{t,i},\ 2\rho_{t,i}\bigr),
+          & u \ge 0,\\[2pt]
+        \max\bigl\{\clip\bigl(\operatorname{sd}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ 0.5\,\rho_{t,i},\
+          2\rho_{t,i}\bigr),\ 0.1\,\bar\sigma^{(u)}\bigr\}, & u \text{ signed};
+      \end{cases}
+    \]
+    \begin{itemize}
+    \item $\rho_{t,i}$: median of the 250 most recent unbounded factors of interval $i$ (at least 20 required).
+    \item $\bar\sigma^{(u)}$: full-sample median of the standard deviation on the same intraday interval.
+    \item Factor of a nonnegative series zero or undefined: $b^{(u)}_{t,i} = 1$.
+    \item Not adjusted: VIX, VIX3M and VVIX, StockTwits sentiment, FOMC.
+    \end{itemize}
+    % target.py:186-300. The band acts on exogenous series only (target: slot_band = 0). rho_{t,i} has no extra
+    % shift: each baseline in it is already lagged (target.py:201-204). Baselines are estimated on the
+    % forward-filled u (ffill executor.py:540 precedes robust_transform :562).
+  \item a variance-stabilizing transformation by series type, $\tilde u_{t,i} \leftarrow g(\tilde u_{t,i})$, the
+    first matching rule applying:
+    \[
+      g(v) =
+      \begin{cases}
+        \sqrt{v} & \text{squared returns, realized variance, turnover,}\\
+          & \text{bipower variation, effective spread},\\
+        \sign(v)\,|v|^{1/2} & \text{autocovariance},\\
+        v^{1/3} & \text{cubed returns},\\
+        \sign(v)\,|v|^{1/4} & \text{fourth-power returns},\\
+        v & \text{other signed series, absolute returns},\\
+        \log \max(v, 10^{-12}) & \text{otherwise}.
+      \end{cases}
+    \]
+    \begin{itemize}
+    \item Signed series with no type rule whose standard-deviation divisor sits at its floor on at least 50\% of
+      intervals (volatility demand) instead take an inverse hyperbolic sine of the raw series:
+      \[
+        \tilde u_{t,i} = \operatorname{asinh}(u_{t,i} / \kappa_{t,i}), \qquad
+        \kappa_{t,i} = \max\bigl\{ e_{t,i-1},\ 0.01 \operatorname{med}_{j \ge 1} e_{t,i-j} \bigr\}.
+      \]
+    \item $e_{t,i}$: exponentially weighted moving average of $|u|$ over intervals with $u \ne 0$, half-life
+      250 days.
+    \end{itemize}
+    % target.py:387-442 (map), 303-345 (asinh), 644-663 (routing). asinh replaces both the diurnal division and
+    % g: it acts on raw u. The routing share is full-sample. fomc_release in {0,1} maps to {log 1e-12, 0}; after
+    % the 1/99 clip adj_fomc_release is constant (outline flag 13).
+  \item winsorization at the rolling 1st and 99th percentiles, as for the target:
+    \[
+      \tilde u_{t,i} \leftarrow \clip\bigl(\tilde u_{t,i},\ Q_{0.01}(\mathcal{U}_{t,i}),\ Q_{0.99}(\mathcal{U}_{t,i})\bigr),
+      \qquad \mathcal{U}_{t,i} = \{\tilde u_{t,i-j} : j = 1, \dots, 240\};
+    \]
+  \item imputation of missing values by the full-sample median, kept alongside the availability indicator:
+    \[
+      \tilde u_{t,i} \leftarrow
+      \begin{cases}
+        \tilde u_{t,i}, & a_{t,i} = 1,\\
+        \operatorname{med}\{\tilde u_{t',i'} : a_{t',i'} = 1\}, & a_{t,i} = 0;
+      \end{cases}
+    \]
+    % executor.py:602-608.
+  \item activity indicators, for the 7 series whose full-sample mode accounts for at least 20\% of intervals:
+    \[
+      \chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\};
+    \]
+    % CODE BUG (outline flag 1): u_{t,i} here is the FORWARD-FILLED raw value (executor.py:618-627 runs after the
+    % ffill at :540), so chi_{t,i} = 1 on dead tails: fomc_release / fomc_day after 2023-11-01, voldemand after
+    % 2023-08-31. Intended: chi_{t,i} = a_{t,i} * 1{u_{t,i} != mode}.
+  \item trailing averages $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$, $\bar\chi^{(k)}_{t,i}$, $\bar y^{(k)}_{t,i}$;
+  \item robust standardization on the rolling estimation window (median and interquartile range, with floors),
+    for the averages of series values only; written for the closing-interval model, whose rows $s$ are trading
+    days ($i = c$ suppressed), with $\mathcal{W}_t = \{t - W, \dots, t - 1\}$:
+    \[
+      z^{(k)}_{t} = \frac{\bar u^{(k)}_{t} - \operatorname{med}_{s \in \mathcal{W}_t} \bar u^{(k)}_{s}}
+        {\max\bigl\{\mathrm{IQR}^{(k)}_{t},\ 0.01 \max_{t' \le t} \mathrm{IQR}^{(k)}_{t'},\
+          \mathrm{IQR}^{\ast(k)}_{t}\bigr\}},
+      \qquad \mathrm{IQR}^{(k)}_{t} = \mathrm{IQR}\bigl\{\bar u^{(k)}_{s} : s \in \mathcal{W}_t\bigr\}.
+    \]
+    \begin{itemize}
+    \item $\mathrm{IQR}^{\ast(k)}_{t}$: IQR of $\bar u^{(k)}_{s}$, $s < t$, over rows whose $k$-interval averaging
+      window is fully observed.
+    \item Column whose mode accounts for at least 20\% of rows: $\mathrm{IQR}^{\ast(k)}_{t}$ also excludes rows at
+      the mode.
+    \item $\mathrm{IQR}^{\ast(k)}_{t} = 1$ until 8 such rows exist.
+    \item $\bar a^{(k)}$, $\bar\chi^{(k)}$: not standardized. HAR components, calendar dummies:
+      $\mathrm{IQR}^{\ast(k)}_{t} = 0$.
+    \item $t < W$: the first window's statistics.
+    \item Pooled intraday model only (rows are intervals): median and IQR over rows with $a_s = 1$; fewer than
+      512 such rows give $z^{(k)} = 0$.
+    \end{itemize}
+    % scaling.py:215-290 (IQR < 1e-12 -> 1); executor.py:96-202 (IQR^{*(k)}_t: expanding, 480-row grid, mode of
+    % the ladder column); scaling.py:310-392 + executor.py:206-288 (masked scaling, pooled only; outline flag 7).
+    % Per bar, the availability erosion counts k in design rows (sessions) while the ladder counts bars
+    % (executor.py:178-188; outline flag 8, unmeasured).
+  \end{enumerate}
+\item \textbf{Column screening:} at every estimation, on the window $\mathcal{W}_t$, keep
+  \[
+    \mathcal{J}_t = \bigl\{ j :\ \bm{x}_{\cdot j} \text{ not constant},\ \bm{x}_{\cdot j} \ne \bm{x}_{\cdot j'}\
+      \forall\, j' < j,\ j' \in \mathcal{J}_t \bigr\}, \qquad
+    \bm{x}_{\cdot j} = (x_{sj})_{s \in \mathcal{W}_t} .
+  \]
+  \begin{itemize}
+  \item Equality is exact (bitwise); the first copy is kept.
+  \item The closing-interval model with the full predictor set keeps a median of 369 of its 628 columns.
+  \end{itemize}
+  % window_mask.py:27-46 (float64 bytes).
+\item \textbf{Predictor sets} (Table~\ref{tab:rh_dm_design})\textbf{:} the HAR benchmark has 22 columns; the full
+  predictor set has 628.
+  \[
+    628 = \underbrace{22}_{\bar y^{(k)},\ \bm d} + \underbrace{47 \times 6}_{\bar u^{(k)}}
+      + \underbrace{47 \times 6}_{\bar a^{(k)}} + \underbrace{7 \times 6}_{\bar\chi^{(k)}}, \qquad 22 = 6 + 16 .
+  \]
+  \begin{itemize}
+  \item The pooled intraday model's full predictor set has 1,144 columns: 43 series, 12 horizons, and 24
+    interactions of the HAR components with the session-open and session-close dummies.
+    \[
+      1{,}144 = \underbrace{12 + 16}_{\bar y^{(k)},\ \bm d} + \underbrace{24}_{\bar y^{(k)} \times \text{open, close}}
+        + 43 \times 12 + 43 \times 12 + 5 \times 12 .
+    \]
+    % Pooled panel of record is pre-FOMC (43 series; 5 zero-inflated: numobs + 4 voldemand). Current code
+    % builds 1,264 = 52 + 47*12*2 + 7*12 (outline flag 10). Session-edge columns: executor.py:454-459.
+  \end{itemize}
+\item \textbf{No look-ahead:} every statistic dated $(t,i)$ uses only intervals before $(t,i)$, so every
+  closing-interval predictor is known at the 15:30 ET forecast origin: the trailing averages, $s^2_{t,i}$, the
+  winsorization bounds, $\rho_{t,i}$, the standardization statistics and $\mathcal{J}_t$.
+  \begin{itemize}
+  \item Full-sample elements, disclosed: the imputation median, the mode, $\bar\sigma^{(u)}$ and the assignment of
+    series to the inverse hyperbolic sine.
+  \item The first window's standardization statistics use warm-up rows only.
+  \end{itemize}
+  % The previous text said all full-sample elements touch warm-up rows only. False: the neutral median fills
+  % every a_{t,i} = 0 row, including the 2023-24 dead tails inside the test period. Also full-sample: the FOMC
+  % dead-tail cut (outline section 4, "Full-sample elements").
+\end{itemize}

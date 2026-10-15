@@ -1,0 +1,29 @@
+% 08b_fi_measures_floats.tex -- the floats of the feature-importance measures in 08_feature_importance.tex (2026-10-15):
+% lasso selection counts, ridge coefficient mass, the trees' per-refit SHAP rankings and their SHAP interactions.
+% Generator: writeup/make_rehaul_fi.py, from results/rehaul_fi/ (experiments/rehaul_fi_compute.py). Labels:
+% tab:rh_fi_summary, tab:rh_fi_linear, tab:rh_fi_trees, tab:rh_fi_inter, fig:rh_fi_linear, fig:rh_fi_ranks,
+% fig:rh_fi_inter. Prose macros \rhfi...: generated/rehaul_fi_numbers.tex (loaded here too, for a standalone build).
+\ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
+
+% One row per model: aggregate measure, leading units, Kendall's W, units above the noise bar
+\input{generated/rehaul_fi_summary}
+
+% Lasso N_A and ridge S_A per unit
+\input{generated/rehaul_fi_linear}
+
+% The linear coefficients over time (lasso on/off and magnitude; ridge shares)
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \input{generated/rehaul_fi_fig_linear}
+
+% Trees: per-refit SHAP ranks aggregated (mean rank, top-5 share, truncated Borda, Kendall's W)
+\input{generated/rehaul_fi_trees}
+
+% Trees: rank over time, top six units
+\input{generated/rehaul_fi_fig_ranks}
+
+% Trees: SHAP interactions (global, per refit) and the H-statistic cross-check
+\input{generated/rehaul_fi_inter}
+
+% Trees: series-level interaction heatmap
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \input{generated/rehaul_fi_fig_inter}

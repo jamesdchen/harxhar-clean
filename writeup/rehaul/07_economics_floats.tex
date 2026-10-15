@@ -1,0 +1,62 @@
+% 07_economics_floats.tex -- tables and figures for this section (2026-10-15), each \input from a generated/ file or an
+% \includegraphics of a generated figure; generators: writeup/make_rehaul_*.py. Placed after the section in paper_rehaul.tex
+% so section text and floats can be edited in parallel; move them inline when the prose settles.
+%
+% Generator: writeup/make_rehaul_economics.py (outline 7.4: tables E1-E4 and three figures; it asserts the outline's
+% headline numbers and gates every E1 statistic against results/close_master_table/master_table.csv). Prose macros
+% \rhe... for 07_economics.tex: generated/rehaul_econ_numbers.tex (not \input here).
+% Labels: tab:rh_econ_control (E1), tab:rh_econ_allfeat (E2), tab:rh_econ_pooled (E3), tab:rh_econ_sizing (E4),
+% fig:rh_econ_cumpnl, fig:rh_econ_qlike_sharpe, fig:rh_econ_sizing, fig:rh_econ_byyear.
+% Figure palette (one hue per family, also in the tables' panel order): per-bar linear blue, per-bar trees vermillion,
+% per-bar MinGRU green, pooled magenta, always short black dashed. fig_qlike_sharpe keeps its own per-estimator colours.
+
+% E1: always short and the key forecasts
+\input{generated/rehaul_econ_e1_control}
+
+% The tail: cumulative P&L and the gain over always short
+\input{generated/rehaul_econ_fig_cumpnl}
+
+% E2: HAR + calendar -> all features within each family
+\input{generated/rehaul_econ_e2_allfeat}
+
+% E3: pooled vs per-bar (linear)
+\input{generated/rehaul_econ_e3_pooled}
+
+% Accuracy vs trade: the existing figure (writeup/make_fig_qlike_sharpe.py, \fqs... macros). The old paper places it
+% in sections/results_close_option.tex:298-327; if the rehaul's results section also places it, keep one.
+\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \begin{figure}[tbp]
+% \centering
+% \includegraphics[width=\linewidth]{figures/fig_qlike_sharpe.pdf}
+% % 2026-10-15 (notation pass): parked -- code jargon (trade, sign(s) Sharpe, per-bar, fits, HAR + calendar, all features, trade days); test wording
+% % \caption{Accuracy against the trade: QLIKE and the $\sign(s)$ Sharpe ratio (mid) of the \fqsPairs{} models of the
+% % model set fitted on both HAR + calendar (open markers) and all features (filled), \fqsDays{} trade days; each pair is
+% % joined from its HAR + calendar end. Circles are per-bar fits and squares pooled fits; the colour marks the estimator.
+% % Shaded: lower QLIKE and higher Sharpe ratio than the HAR + calendar OLS (QLIKE \fqsOlsQ, Sharpe \fqsOlsSh). All
+% % features raise the Sharpe ratio for \fqsShHigher{} of the \fqsPairs{} models (\fqsShHigherSig{} significantly, by the
+% % HAC $t$ of the daily return difference) and lower QLIKE for \fqsQLower{} (\fqsQLowerSig{} significantly, by
+% % Diebold--Mariano), at \fqsSigPct\,\%.}
+% \caption{Forecast accuracy and economic value. The figure plots the mean QLIKE loss against the annualized Sharpe
+% ratio at mid-quotes, $\SR$, of the sign strategy for the \fqsPairs{} models of the model set that are estimated on both
+% the HAR benchmark (open markers) and the full predictor set (filled markers), over the \fqsDays{} trading days of the
+% out-of-sample period; a line joins the two ends of each pair. The sign strategy takes a delta-neutral at-the-money
+% straddle position, entered at 15:30 ET and held to expiration: long ($q_t = +1$) or short ($q_t = -1$) as
+% $q_t = \sign(s_t)$, where $s_t$ is the variance forecast minus the 15:30 implied variance. Circles denote
+% closing-interval models and squares pooled intraday models; color identifies the estimator. The shaded quadrant
+% contains lower QLIKE and higher $\SR$ than the closing-interval OLS on the HAR benchmark (QLIKE \fqsOlsQ, $\SR$
+% \fqsOlsSh). The full predictor set raises $\SR$ for \fqsShHigher{} of the \fqsPairs{} models, \fqsShHigherSig{} of
+% them significant at the \fqsSigPct\% level (HAC $t$-statistic on the daily return differential, Newey--West lag
+% $q = \fqsHACLag$), and lowers QLIKE for \fqsQLower{}, \fqsQLowerSig{} of them significant at the \fqsSigPct\% level
+% (Diebold--Mariano test with the Harvey--Leybourne--Newbold correction, Newey--West lag $q = \fqsDMLag$).}
+% \label{fig:rh_econ_qlike_sharpe}
+% \end{figure}
+
+% E4: sizing rules
+\input{generated/rehaul_econ_e4_sizing}
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \input{generated/rehaul_econ_fig_sizing}
+
+% Sharpe by year
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \input{generated/rehaul_econ_fig_byyear}

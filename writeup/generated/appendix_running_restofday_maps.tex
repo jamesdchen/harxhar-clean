@@ -2,14 +2,14 @@
 % Source: results/atm_straddle_intraday_holdclose/rule_table_srem_blk2.csv
 % Source: results/atm_straddle_intraday_holdclose/srem_vs_sm_dsharpe.csv
 % Source: notebooks/atm_straddle_intraday_holdclose.executed.ipynb (section 8d, pooled QLIKE line of the saved output)
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
- & \shortstack{QLIKE,\\rest of day} & \shortstack{Sharpe\\(mid)} & \shortstack{Sharpe\\(crossed)} & \shortstack{\% bars\\bought} & \shortstack{\% bars sign\\differs} & \shortstack{$\Delta$Sharpe\\(mid)} & \shortstack{95\%\\interval} \\
+ & \shortstack{QLIKE,\\rest of day} & \shortstack{Sharpe\\(mid)} & \shortstack{Sharpe\\(crossed)} & \shortstack{\% bars\\bought} & \shortstack{\% bars sign\\differs} & \shortstack{$\Delta$Sharpe\\(mid)} \\
 \midrule
-always short (no forecast) & --- & 3.38 & 2.65 & 0.0 & --- & --- & --- \\
-$\mathrm{sign}(s)$, profile stretch $\widehat{RV}_t/w_t$ & 0.2018 & 2.30 & 1.25 & 38.6 & --- & --- & --- \\
-$\mathrm{sign}(s^{\mathrm{rem}})$, M1 & 0.2093 & 1.70 & 0.68 & 46.6 & 10.4 & \ensuremath{-}0.60 & [\ensuremath{-}1.11, \ensuremath{-}0.11] \\
-$\mathrm{sign}(s^{\mathrm{rem}})$, M2 & 0.2132 & 1.15 & 0.22 & 48.3 & 15.9 & \ensuremath{-}1.15 & [\ensuremath{-}1.82, \ensuremath{-}0.59] \\
-$\mathrm{sign}(s^{\mathrm{rem}})$, M3 & 0.2009 & 0.86 & \ensuremath{-}0.07 & 48.4 & 17.3 & \ensuremath{-}1.44 & [\ensuremath{-}2.14, \ensuremath{-}0.85] \\
+always short (no forecast) & --- & 3.38 & 2.65 & 0.0 & --- & --- \\
+$\mathrm{sign}(s)$, profile stretch $\widehat{RV}_t/w_t$ & 0.2629 & 3.00 & 2.00 & 28.5 & --- & --- \\
+$\mathrm{sign}(s^{\mathrm{rem}})$, M1 & 0.2393 & 2.91 & 1.93 & 32.4 & 5.7 & \ensuremath{-}0.09 \\
+$\mathrm{sign}(s^{\mathrm{rem}})$, M2 & 0.2378 & 2.30 & 1.41 & 33.4 & 10.9 & \ensuremath{-}0.70 \\
+$\mathrm{sign}(s^{\mathrm{rem}})$, M3 & 0.2235 & 2.26 & 1.34 & 32.9 & 13.2 & \ensuremath{-}0.74 \\
 \bottomrule
 \end{tabular}

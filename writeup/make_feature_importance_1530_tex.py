@@ -12,6 +12,7 @@ output is the first pass's, unchanged."""
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -34,7 +35,7 @@ LABEL = {
     "xgb": "XGBoost",
     "rf": "random forest",
 }
-BUCKETS = ("baseline", "all_features")  # live_feasible commented out
+BUCKETS = ("all_features",)  # baseline commented out; live_feasible commented out
 BNAME = {
     "baseline": "HAR + calendar",
     "live_feasible": "live-feasible",
@@ -64,8 +65,10 @@ MEAS_MD = {
     "drop_mse": "drop-col dMSE",
     "shap": "SHAP mean abs(phi)",
 }
-TREE_M = ("mdi", "split", "perm_p1_qlike", "perm_p2_qlike", "perm_p2_mse", "shap")
-LIN_M = ("bsd", "perm_p1_mse", "perm_p2_mse", "perm_p2_qlike", "drop_mse", "shap")
+# TREE_M = ("mdi", "split", "perm_p1_qlike", "perm_p2_qlike", "perm_p2_mse", "shap")  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+TREE_M = ("mdi", "perm_p2_qlike", "perm_p2_mse", "shap")
+# LIN_M = ("bsd", "perm_p1_mse", "perm_p2_mse", "perm_p2_qlike", "drop_mse", "shap")  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+LIN_M = ("bsd", "perm_p2_mse", "drop_mse", "shap")
 
 
 def tab(bucket: str, model: str, m: str, level: str = "series") -> pd.DataFrame:
@@ -85,8 +88,15 @@ def esc(s: str) -> str:
     )
 
 
+def show(s: str) -> str:
+    """A design name as the PDF presents it: without the leading ``adj_`` (user decision
+    2026-10-06; display only, the CSVs and keys keep the stored names). Strips every name
+    start in s, so a list of names (a cluster's members) works too."""
+    return re.sub(r"\badj_", "", str(s))
+
+
 def tt(s: str) -> str:
-    return f"\\texttt{{{esc(s)}}}"
+    return f"\\texttt{{{esc(show(s))}}}"
 
 
 def short(label: str) -> str:
@@ -130,7 +140,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     CL = pd.read_csv(OUT / "clusters.csv")
     UV = pd.read_csv(OUT / "unique_values.csv")
     TU = pd.read_csv(OUT / "tuned_trees_series.csv")
-    # Sample size is the same walk on every bucket. The report shows baseline and all features.
+    # Sample size is the same walk on every bucket. The report shows all features.
     K = S["all_features"]["K"]
     n = S["all_features"]["n"]
     first, last = S["all_features"]["first"][:10], S["all_features"]["last"][:10]
@@ -151,7 +161,8 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         dtype_rows.append(
             f"{BNAME[b]} & {int(r.sum())} & "
             + " & ".join(str(int(r[c])) for c in cls_order)
-            + f" & {S[b]['n_series']} & {S[b]['n_clusters']} ({S[b]['n_cluster_cols']}) \\\\"
+            # + f" & {S[b]['n_series']} & {S[b]['n_clusters']} ({S[b]['n_cluster_cols']}) \\\\"  # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters
+            + f" & {S[b]['n_series']} \\\\"
         )
     N["dtype"] = {b: {c: int(ct.loc[b, c]) for c in cls_order} for b in BUCKETS}
 
@@ -161,17 +172,17 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         return float(r["spearman_with_unique_count"].iloc[0])
 
     card_rows = []
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         for model in TREES:
             card_rows.append(
                 f"{BNAME[b]} & {LABEL[model]} & "
                 + " & ".join(
                     f2(card(b, model, m))
-                    for m in (
+                    for m in (  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
                         "mdi",
-                        "split",
+                        # "split",
                         "shap",
-                        "perm_p1_qlike",
+                        # "perm_p1_qlike",
                         "perm_p2_qlike",
                         "perm_p2_mse",
                     )
@@ -187,7 +198,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 
     # ---------------------------------------------------------------- probes
     probe_rows = []
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         for model in TREES:
             r = PR[(PR.bucket == b) & (PR.model == model)].set_index("probe")
             c, lv, bi = (
@@ -200,7 +211,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             probe_rows.append(
                 f"{BNAME[b]} & {LABEL[model]} & {S[b]['p'] + 3} & "
                 f"{int(c.mdi_rank_median)} ({100 * c.mdi_real_columns_below_share:.0f}\\%) & "
-                f"{int(c.split_rank_median)} ({100 * c.split_real_columns_below_share:.0f}\\%) & "
+                # f"{int(c.split_rank_median)} ({100 * c.split_real_columns_below_share:.0f}\\%) & "  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
                 f"{int(c.shap_rank_median)} ({100 * c.shap_real_columns_below_share:.0f}\\%) & "
                 f"{int(lv.mdi_rank_median)} & {int(bi.mdi_rank_median)} & "
                 f"${1e3 * c.perm_p2_qlike_mean:+.2f}$ [{1e3 * c.perm_p2_qlike_lo:+.2f}, {1e3 * c.perm_p2_qlike_hi:+.2f}] & "
@@ -208,13 +219,59 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             )
     # live_feasible noise-probe dump commented out
 
+    # ---------------------------------------------------------------- below the leader (2026-10-12, user)
+    # How much the series below har_ma matter in absolute terms: permutation P2 (series level, mean over refits,
+    # 95 % interval over refits), against zero and against the continuous pure-noise probe's interval (trees, QLIKE),
+    # summed and largest relative to har_ma's own P2. The cardinality bias only reorders inputs of this size.
+    below_rows, below_num = [], {}
+    for model in MODELS:
+        for meas, lname in (("perm_p2_qlike", "QLIKE"), ("perm_p2_mse", "sq. error")):
+            if model in LIN and meas == "perm_p2_qlike":
+                continue  # the linear QLIKE permutation is not shown (single tails)
+            d = tab("all_features", model, meas)
+            har_v = float(d.loc[d["unit"] == "har_ma", "value"].iloc[0])
+            rest = d[d["unit"] != "har_ma"]
+            sig = rest[rest["lo"] > 0]
+            noise = "--"
+            if model in TREES and meas == "perm_p2_qlike":
+                pr = PR[
+                    (PR.bucket == "all_features")
+                    & (PR.model == model)
+                    & (PR.probe == "probe_continuous")
+                ]
+                n_hi = float(pr["perm_p2_qlike_hi"].iloc[0])
+                noise = str(int((rest["lo"] > n_hi).sum()))
+            top = rest.sort_values("value").iloc[-1]
+            below_num[(model, meas)] = dict(
+                n_sig=len(sig),
+                sum_pct=100 * sig["value"].sum() / har_v,
+                top_pct=100 * top["value"] / har_v,
+            )
+            below_rows.append(
+                f"{LABEL[model]} & {lname} & {1e3 * har_v:.0f} & {len(sig)} & {noise} & "
+                f"{100 * sig['value'].sum() / har_v:.1f}\\% & {100 * top['value'] / har_v:.1f}\\% ({tt(short(top['label']))}) \\\\"
+            )
+    _bt = [below_num[(m_, "perm_p2_qlike")] for m_ in TREES]
+    _bm = [below_num[(m_, "perm_p2_mse")] for m_ in TREES]
+    below_reading = (
+        "For the trees, everything below the HAR ladder whose interval excludes zero is together worth "
+        f"{min(x['sum_pct'] for x in _bt):.0f}--{max(x['sum_pct'] for x in _bt):.0f}\\% of the ladder's permutation "
+        f"importance on QLIKE ({min(x['sum_pct'] for x in _bm):.1f}--{max(x['sum_pct'] for x in _bm):.1f}\\% on squared "
+        f"error), and the largest single input at most {max(x['top_pct'] for x in _bt + _bm):.1f}\\%. For the linear models "
+        f"the credit is spread more widely (ridge: {below_num[('ridge', 'perm_p2_mse')]['n_sig']} series, together "
+        f"{below_num[('ridge', 'perm_p2_mse')]['sum_pct']:.0f}\\% of the ladder's; lasso "
+        f"{below_num[('lasso', 'perm_p2_mse')]['sum_pct']:.0f}\\%): the penalty shrinks the ladder and correlated inputs "
+        "share its weight. So for the trees the ranking below the leader orders inputs that are small in absolute terms, "
+        "and the cardinality bias below matters only for that ordering."
+    )
+
     # ---------------------------------------------------------------- top features per measure
     def top_list(b: str, model: str, m: str, k: int = 3, level: str = "series") -> str:
         t = tab(b, model, m, level).head(k)
         return ", ".join(short(x) for x in t["label"])
 
     top_rows: dict = {}
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         rows = []
         for model in MODELS:
             ms = TREE_M if model in TREES else LIN_M
@@ -252,20 +309,20 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         return float(r["spearman"].iloc[0]) if len(r) else float("nan")
 
     PAIRS_T = [
-        ("mdi", "split"),
+        # ("mdi", "split"),  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
         ("mdi", "shap"),
         ("mdi", "perm_p2_qlike"),
         ("shap", "perm_p2_qlike"),
-        ("perm_p1_qlike", "perm_p2_qlike"),
+        # ("perm_p1_qlike", "perm_p2_qlike"),
         ("perm_p2_qlike", "perm_p2_mse"),
     ]
     PAIRS_L = [
         ("bsd", "shap"),
         ("bsd", "perm_p2_mse"),
         ("shap", "perm_p2_mse"),
-        ("perm_p1_mse", "perm_p2_mse"),
+        # ("perm_p1_mse", "perm_p2_mse"),
         ("perm_p2_mse", "drop_mse"),
-        ("perm_p2_qlike", "perm_p2_mse"),
+        # ("perm_p2_qlike", "perm_p2_mse"),  # the linear QLIKE permutation is not shown
     ]
     within_rows = []
     for b in ("all_features",):  # live_feasible commented out
@@ -320,11 +377,14 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
                 ]
                 tl = [xc(b, level, a, m, c, m) for a in TREES for c in LIN]
                 ll = [xc(b, level, "ridge", m, "lasso", m)]
-                cells += [
-                    f"{min(tt_):.2f}--{max(tt_):.2f}",
-                    f"{min(tl):.2f}--{max(tl):.2f}",
-                    f"{ll[0]:.2f}",
-                ]
+                cells += (
+                    [f"{min(tt_):.2f}--{max(tt_):.2f}"]
+                    + (
+                        []  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+                        if m == "perm_p2_qlike"
+                        else [f"{min(tl):.2f}--{max(tl):.2f}", f"{ll[0]:.2f}"]
+                    )
+                )
             across_rows.append(f"{BNAME[b]} & {level} & " + " & ".join(cells) + " \\\\")
     # first pass comparison: tree SHAP vs linear SHAP at the series level
     N["xc_shap_tl"] = {
@@ -495,7 +555,9 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         for model in TREES:
             pr_ = tab(b, model, "perm_p2_qlike").set_index("unit")["rank"]
             hits: list[tuple[str, int]] = []
-            for m in ("mdi", "split"):
+            for m in (
+                "mdi",
+            ):  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
                 for r in tab(b, model, m).head(5).itertuples():
                     if pr_.get(r.unit, 999) > 10 and short(r.label) not in [
                         h[0] for h in hits
@@ -598,10 +660,19 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     if DEDUP:
         md += DS.intro_md(OUT, K)
     md += [
-        f"Models: per-bar ridge and lasso (every-session re-solve, causal penalty), untuned per-bar LightGBM, XGBoost and random forest (refit every {10} sessions) -- the shipped configurations. "
+        # 2026-10-08: "... (refit every 10 sessions) -- the shipped configurations." -> the settings read from the refit files
+        f"Models: per-bar ridge and lasso (every-session re-solve, causal penalty), untuned per-bar LightGBM, XGBoost and random forest (refit every {10} sessions; settings below). "
+        + (
+            "Tree settings (read from the refit files): "
+            + DS.settings_sentence(OUT, tex=False)
+            + " "
+            if DEDUP
+            else ""
+        )
+        + ""
         f"Window: the 2000 sessions before each refit. Forecasts: {n:,} sessions {first} .. {last}; {K} refits; each refit's CAUSAL held-out tail = the <= 10 sessions its model forecasts, up to the next refit (never seen in its fit). "
         + (
-            "Buckets: all_features, baseline = HAR + calendar. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`."
+            "Buckets: all_features. Script: `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster); tables in `results/feature_importance_1530/`, PDF `writeup/feature_importance_1530.pdf`."
             if not DEDUP
             else DS.buckets_md(ROOT_REL, STEM)
         ),
@@ -676,8 +747,8 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + ". These are series the trees split on often that rank low when scrambled on the held-out tail.",
         "",
     ]
-    # top features per measure (series), live_feasible and all_features
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    # top features per measure (series), all_features
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         md.append(
             f"## Top series per measure -- {b} (value = share for MDI/split/|beta sd|/SHAP; % of the model's tail loss for permutation / drop-column)"
         )
@@ -775,7 +846,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         (
             DS.tuned_md(tuned_ok, tuned_lead)
             if DEDUP
-            else f"The causally tuned trees' own extracts (`results/linear_subsection_trees_tuned/importance/`: gain per refit, TreeSHAP rows at 16:00): `har_ma_*` leads both MDI and SHAP in {tuned_lead[0]} of {tuned_lead[1]} bucket x model arms; shares tuned vs untuned in `tuned_trees_series.csv` and PDF Table 13. Split count and permutation were not computed for the tuned trees (their per-refit chosen configurations would have to be refitted)."
+            else f"The causally tuned trees' own extracts (`results/linear_subsection_trees_tuned/importance/`: gain per refit, TreeSHAP rows at 16:00): `har_ma_*` leads both MDI and SHAP in {tuned_lead[0]} of {tuned_lead[1]} bucket x model arms; shares tuned vs untuned in `tuned_trees_series.csv` and PDF Table 13. Permutation was not computed for the tuned trees (their per-refit chosen configurations would have to be refitted)."
             if DEDUP or (tuned_ok and tuned_lead is not None)
             else "Pending: the tuned-tree importance extracts were not present."
         ),
@@ -786,7 +857,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
     else:
         md += [
             "## Gates",
-            f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 2 x 147; mean gap {xr_mean:.1e}); LightGBM reproduces them bit for bit on HAR + calendar (gap {lg_gap['baseline'][1]:.1e}) but not on all_features: mean |gap| {lg_gap['all_features'][0]:.4f}, max {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
+            f"- Refits vs the stored forecasts: XGBoost and random forest reproduce them (largest gap {xr_gap:.1e}, above 1e-9 on {gap_n['xgb']} XGBoost and {gap_n['rf']} forest refits of the 147; mean gap {xr_mean:.1e}); LightGBM on all_features: mean |gap| {lg_gap['all_features'][0]:.4f}, max {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['all_features'][2]:.4f} (same library version, same params, seed and thread count; the refit is deterministic run to run -- the cluster and a laptop give the same gap -- so the stored LightGBM runs differ in something the input file does not carry; XGBoost on the same input reproduces to 1e-16). The LightGBM importance is that of the refit.",
             "- The design: out-of-sample stamps, targets and column names equal the stored runs'; the linear coefficient captures equal the design rows exactly and the stored research forecasts to <= "
             + f"{max(float(gl.loc[(b, m), 'capture_vs_stored_rel']) for b in BUCKETS for m in LIN):.0e} (relative).",
             "- Drop-column anchors: the re-solve on the window before the tail reproduces the captured coefficients (ridge <= "
@@ -802,7 +873,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             "## Files",
             "- `by_measure/imp_<bucket>_<model>_<measure>.csv` (one per measure x model x bucket; rows = columns, series and clusters: value, 95 % interval over refits, rank, top-5 share, % of loss, median refit, largest single-refit share, by-year and by-VIX-tercile means, SHAP signed mean)",
             "- `series_level_all.csv`, `rank_corr_within_model.csv`, `rank_corr_across_models.csv`, `top5_stability.csv`, `stability_by_stratum.csv`, `unique_values.csv`, `cardinality_vs_measure.csv`, `noise_probes.csv`, `clusters.csv`, `cluster_dilution.csv`, `tuned_trees_series.csv`, `gates.csv`",
-            "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), for baseline and all_features",
+            "- figures: `fig_ranked_<bucket>.png` (ranked bars per measure), `fig_rank_heatmap_<bucket>_<level>.png` (ranks across measures), for all_features",
             "- cluster twins: `cluster/slurm/{ship_featimp_carc.sh, submit_featimp.sh, featimp_pack.sbatch, featimp_collect.sbatch}`, `cluster/featimp_tasks*.txt` (tree refits); `cluster/slurm/{ship_featimp_linear_carc.sh, submit_featimp_linear.sh, featimp_linear.sbatch}`, `cluster/featimp_linear_tasks*.txt` (the slow lasso drop-column refits)",
         ]
     (OUT / "SUMMARY.md").write_text("\n".join(md) + "\n", encoding="utf-8")
@@ -846,15 +917,16 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         )
 
     key = (
-        (
+        "Every exogenous input is divided by its time-of-day baseline, and the HAR columns \\texttt{har\\_ma\\_*} are trailing means of the adjusted target, so no name carries a prefix. "
+        + (
             "\\texttt{har\\_ma\\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; \\texttt{har\\_ma\\_*\\_x\\_close} = the same times the 16:00 close gate, identical at this bar); "
             if not DEDUP
             else "\\texttt{har\\_ma\\_*} realized variance of the bar (the target's own HAR ladder, means over the last 1, 5, 25, 125, 625, 3125 bars; the per-bar design no longer carries the session-edge interactions \\texttt{har\\_ma\\_*\\_x\\_open/close}); "
         )
-        + "\\texttt{adj\\_sumabsret\\_ma\\_*} absolute return; \\texttt{adj\\_sumret\\_ma\\_*} signed return; \\texttt{adj\\_sumret3/4\\_ma\\_*} 3rd/4th-power returns; \\texttt{adj\\_sumpret2\\_ma\\_*} upside squared returns; "
-        "\\texttt{adj\\_sumbipow\\_ma\\_*} bipower variation; \\texttt{adj\\_sumautocov\\_ma\\_*} return autocovariance; \\texttt{adj\\_sumvolume\\_ma\\_*} ES volume; \\texttt{adj\\_numobs\\_ma\\_*} ES prints per bar; "
-        "\\texttt{adj\\_vix/vvix/vix3m\\_ma\\_*} the Cboe indices; \\texttt{adj\\_fomc\\_*} FOMC flags and distances; \\texttt{*\\_avail/active\\_ma\\_*} is-present / is-nonzero flags; calendar = \\texttt{DOW\\_*}, \\texttt{is\\_*}, \\texttt{hour}, \\texttt{days\\_to\\_opex}. "
-        "all features adds the constituent cross-section (\\texttt{*\\_ewstock}, \\texttt{*\\_vwstock}), Cboe volume (\\texttt{adj\\_voldemand\\_*}) and StockTwits (\\texttt{adj\\_stocktwits\\_*})."
+        + "\\texttt{sumabsret\\_ma\\_*} absolute return; \\texttt{sumret\\_ma\\_*} signed return; \\texttt{sumret3/4\\_ma\\_*} 3rd/4th-power returns; \\texttt{sumpret2\\_ma\\_*} upside squared returns; "
+        "\\texttt{sumbipow\\_ma\\_*} bipower variation; \\texttt{sumautocov\\_ma\\_*} return autocovariance; \\texttt{sumvolume\\_ma\\_*} ES volume; \\texttt{numobs\\_ma\\_*} ES prints per bar; "
+        "\\texttt{vix/vvix/vix3m\\_ma\\_*} the Cboe indices; \\texttt{fomc\\_*} FOMC flags and distances; \\texttt{*\\_avail/active\\_ma\\_*} is-present / is-nonzero flags; calendar = \\texttt{DOW\\_*}, \\texttt{is\\_*}, \\texttt{hour}, \\texttt{days\\_to\\_opex}. "
+        "all features adds the constituent cross-section (\\texttt{*\\_ewstock}, \\texttt{*\\_vwstock}), Cboe volume (\\texttt{voldemand\\_*}) and StockTwits (\\texttt{stocktwits\\_*})."
     )
     tex = (
         r"""\documentclass[10pt]{article}
@@ -863,19 +935,29 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 \usepackage[font=small]{caption}
 \begin{document}
 \begin{center}{\Large\bf Feature importance of the 15:30 forecast (16:00 bar)"""
-        + (r"\\ re-run on the de-duplicated per-bar design" if DEDUP else "")
+        # + (r"\\ re-run on the de-duplicated per-bar design" if DEDUP else "")  # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters
         + r"""}\\[3pt]
-{\small MDI, split count, permutation importance on the causal held-out tail, SHAP --- trees and the per-bar linear models; """
+{\small MDI, permutation importance on the causal held-out tail, SHAP --- trees and the per-bar linear models; """
         + f"{n:,} forecasts {first} .. {last}, {K} refits"
         + r"""}\end{center}
 """
-        + (DS.intro_tex(OUT, K) if DEDUP else "")
+        # + (DS.intro_tex(OUT, K) if DEDUP else "")  # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters
+        # 2026-10-08: the trees' settings, read from the refit files
+        + (
+            (
+                "\n\\textbf{Tree settings (read from the refit files).} "
+                + DS.settings_sentence(OUT, tex=True)
+                + "\n"
+            )
+            if DEDUP
+            else ""
+        )
         + r"""
-\textbf{Setup.} Models: per-bar ridge and lasso (coefficients re-solved every session, penalty re-chosen causally every 250 sessions) and the untuned per-bar LightGBM, XGBoost and random forest (refit every 10 sessions) --- the shipped configurations. Every fit uses the 2000 sessions before it. A refit's \emph{held-out tail} is the $\le 10$ sessions its model forecasts, up to the next refit: never in its fit, so a loss change measured there is out of sample and causal. Buckets: all features, and HAR + calendar. Library: scikit-learn 1.9.0 (random forest), LightGBM 4.6.0, XGBoost 3.2.0, shap 0.51.0; the permutation and drop-column loops are written out, because a library permutation routine scores one fitted model on one test set, not """
+\textbf{Setup.} Models: per-bar ridge and lasso (coefficients re-solved every session, penalty re-chosen causally every 250 sessions) and the untuned per-bar LightGBM, XGBoost and random forest (refit every 10 sessions; settings below). Every fit uses the 2000 sessions before it. A refit's \emph{held-out tail} is the $\le 10$ sessions its model forecasts, up to the next refit: never in its fit, so a loss change measured there is out of sample and causal. Inputs: all features. Library: scikit-learn 1.9.0 (random forest), LightGBM 4.6.0, XGBoost 3.2.0, shap 0.51.0; the permutation and drop-column loops are written out, because a library permutation routine scores one fitted model on one test set, not """
         + str(K)
         + r""" walk-forward models on their own tails.
 
-\textbf{Measures.} (1) \emph{MDI / gain}: LightGBM gain, XGBoost total gain, random-forest impurity decrease; share per refit, averaged. (2) \emph{Split count}. (3) \emph{Permutation importance} on the tail, loss = QLIKE of the plain back-transform $\hat y^2\times$ diurnal baseline against the bar's realized variance (no recalibration), and squared error in the fit space; 10 draws per unit and refit, the same draws for all five models. P1 shuffles the unit's values among the tail's rows (the literal permutation; blind to slow inputs, which barely move in 10 sessions); P2 replaces them with rows drawn from the refit's own training window (past data only). A unit is a column, a \emph{series} (all columns of one input: lags, flags, gates) or a \emph{cluster} (columns every pair of which has $|$corr$|\ge 0.8$, complete linkage); a group's columns move together. Intervals: 95\% circular-block bootstrap over refits (block 6). (4) \emph{SHAP}: TreeSHAP (path-dependent) on the same tail rows; for the linear models $\beta_j(x_j-\bar x_j)$ with the window mean as background. Linear extras: $|\beta\cdot sd|$ and drop-column importance (re-solve without the unit, penalty held).
+\textbf{Measures.} (1) \emph{MDI / gain}: LightGBM gain, XGBoost total gain, random-forest impurity decrease; share per refit, averaged. (2) \emph{Permutation importance} on the tail: a unit's values are replaced with rows drawn from the refit's own training window (past data only; P2) and the change in loss is measured --- QLIKE of the plain back-transform $\hat y^2\times$ diurnal baseline against the bar's realized variance (no recalibration) for the trees, squared error in the fit space for every model (the linear models' QLIKE permutation is not shown: moving an extreme input onto another row can push an unbounded linear forecast through zero); 10 draws per unit and refit, the same draws for all five models. A unit is a column or a \emph{series} (all columns of one input: lags, flags, gates); a series' columns move together. Intervals: 95\% circular-block bootstrap over refits (block 6). (3) \emph{SHAP}: TreeSHAP (path-dependent) on the same tail rows; for the linear models $\beta_j(x_j-\bar x_j)$ with the window mean as background. Linear extras: $|\beta\cdot sd|$ and drop-column importance (re-solve without the unit, penalty held).
 
 \textbf{Key.} """
         + key
@@ -884,23 +966,39 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             "The design is float throughout, but not all continuous: distinct values per column in each 2000-session window (median over the "
             + str(K)
             + " windows) --- what MDI's cardinality bias keys on.",
-            "lrrrrrrrr",
-            "bucket & columns & constant & binary & 3--25 & 26--500 & $>$500 & series & clusters (columns)",
+            "lrrrrrrr",  # 2026-10-08: was lrrrrrrrr with a "clusters (columns)" column (commented out)
+            "bucket & columns & constant & binary & 3--25 & 26--500 & $>$500 & series",
             dtype_rows,
         )
         + r"""
-\section*{1. Does MDI's cardinality bias matter here? Yes, below the leader.}
+\section*{1. How much do the inputs below the leader matter?}
 """
+        # 2026-10-12 (user): was "1. Does MDI's cardinality bias matter here? Yes, below the leader." -- reframed
         + table(
-            "Spearman rank correlation, over the non-constant columns, between a column's importance and its number of distinct values. MDI, split count and TreeSHAP track cardinality; permutation importance does not.",
-            "llrrrrrr",
-            "bucket & model & MDI & split & SHAP & perm P1 QL & perm P2 QL & perm P2 MSE",
+            "Permutation importance P2 at the series level, all features (the change in the tail loss when a series is "
+            "replaced with rows drawn from the refit's training window; mean over the refits, 95\\% interval over refits). "
+            "Columns: \\texttt{har\\_ma\\_*}'s own value ($\\times10^{3}$); of the other series, those whose interval "
+            "excludes zero, those whose lower bound clears the upper bound of a pure-noise probe column (trees, QLIKE); "
+            "their summed importance and the largest single series, both as \\% of \\texttt{har\\_ma\\_*}'s.",
+            "llrrrrl",
+            "model & loss & \\texttt{har\\_ma\\_*} & interval $>0$ & above noise & their sum & largest",
+            below_rows,
+            "\\scriptsize",
+        )
+        + "\n\\textbf{Reading.} "
+        + below_reading
+        + "\n\n\\textbf{Cardinality bias.} MDI and TreeSHAP favour "
+        "many-valued columns; the tables below show how much, and why their rankings below the leader are not a feature list.\n"
+        + table(
+            "Spearman rank correlation, over the non-constant columns, between a column's importance and its number of distinct values. MDI and TreeSHAP track cardinality; permutation importance does not.",
+            "llrrrr",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+            "bucket & model & MDI & SHAP & perm P2 QL & perm P2 MSE",
             card_rows,
         )
         + table(
             "Noise probes: on every third refit a second fit appends three pure-noise columns (continuous; 20 values; binary). Median rank among all columns (1 = most important) and, in brackets, the share of the real columns the model uses that rank below the probe; permutation P2 of the continuous probe ($\\Delta$QLIKE $\\times 10^{3}$, 95\\% interval) against \\texttt{har\\_ma\\_*}'s.",
-            "llrrrrrrrr",
-            "bucket & model & cols & MDI rank & split rank & SHAP rank & 20-val MDI & binary MDI & perm P2 (cont.) & \\texttt{har\\_ma\\_*}",
+            "llrrrrrrr",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+            "bucket & model & cols & MDI rank & SHAP rank & 20-val MDI & binary MDI & perm P2 (cont.) & \\texttt{har\\_ma\\_*}",
             probe_rows,
             "\\scriptsize",
         )
@@ -909,9 +1007,7 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + ", ".join(
             f"{100 * c_lf.loc[m, 'mdi_real_columns_below_share']:.0f}\\%" for m in TREES
         )
-        + r""" (LightGBM, XGBoost, forest) of the real all-features columns the model uses, and by the forest's split count above """
-        + f"{100 * c_lf.loc['rf', 'split_real_columns_below_share']:.0f}\\%"
-        + r"""; the binary noise column sits near the bottom. The same noise gets a permutation importance of at most """
+        + r""" (LightGBM, XGBoost, forest) of the real all-features columns the model uses; the binary noise column sits near the bottom. The same noise gets a permutation importance of at most """
         + f"{1e3 * max_probe:.2f}"
         + r"""$\times10^{-3}$ in absolute value ("""
         + f"{len(cont) - n_ex}"
@@ -921,18 +1017,18 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
         + (f"; the exceptions {esc(ex_list)}" if n_ex else "")
         + r"""), against at least """
         + f"{har_min:.2f}"
-        + r""" for \texttt{har\_ma\_*}. TreeSHAP, which splits the fitted trees, inherits part of the bias. Over the real columns, MDI, split count and SHAP correlate """
+        + r""" for \texttt{har\_ma\_*}. TreeSHAP, which splits the fitted trees, inherits part of the bias. Over the real columns, MDI and SHAP correlate """
         + f"{rng_[('all_features', 'mdi')][0]:.2f}--{rng_[('all_features', 'shap')][1]:.2f}"
         + r""" with the number of distinct values, permutation """
-        + f"{min(rng_[('all_features', 'perm_p1_qlike')][0], rng_[('all_features', 'perm_p2_qlike')][0]):.2f}--{max(rng_[('all_features', 'perm_p1_qlike')][1], rng_[('all_features', 'perm_p2_qlike')][1]):.2f}"
-        + r""". So below the leader, the MDI / split ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. """
+        + f"{rng_[('all_features', 'perm_p2_qlike')][0]:.2f}--{rng_[('all_features', 'perm_p2_qlike')][1]:.2f}"  # P2 only (2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out)
+        + r""". So below the leader, the MDI ranking of this design is partly a ranking by cardinality; the permutation ranking is the one to use for selection. """
         + (
             r"At the series level the bias does not reach the top: every tree measure puts \texttt{har\_ma\_*} first."
             if not DEDUP
             else "At the series level: "
             + DS.tree_leaders_tex(lead, TREES, TREE_M, BUCKETS)
         )
-        + r""" Series that MDI or split count puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): """
+        + r""" Series that MDI puts in the top 5 but permutation P2 ranks outside the top 10 (permutation rank in brackets): """
         + "; ".join(
             f"{BNAME[b_]} {LABEL[m_]}: "
             + (", ".join(f"{tt(x)} ({r_})" for x, r_ in v) if v else "none")
@@ -943,43 +1039,45 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
 \section*{2. The top inputs by measure}
 """
         + table(
-            "All-features design, series level: top three per model and measure (share for MDI / split / $|\\beta\\cdot sd|$ / SHAP; change as \\% of the model's tail loss for permutation and drop-column).",
+            "All-features design, series level: top three per model and measure (share for MDI / $|\\beta\\cdot sd|$ / SHAP; change as \\% of the model's tail loss for permutation and drop-column).",
             "llp{11.2cm}",
             "model & measure & top three",
             top_rows["all_features"],
             "\\scriptsize",
         )
+        # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation dropped from the figures: figure redrawn and restored
         + fig(
             "fig_ranked_all_features.png",
-            "All features: ranked bars per measure (series level; top 8). Rows: models; columns: the built-in measure, split count (trees) / drop-column (linear), permutation P2 on the tail, SHAP. Bars with 95\\% intervals over refits. Linear permutation / drop-column in $\\Delta$MSE (see Section 6).",
+            "All features: ranked bars per measure (series level; top 8). Rows: models; columns: the built-in measure (MDI / gain for the trees, $|\\beta\\cdot sd|$ for the linear models), permutation P2 $\\Delta$MSE (trees) / drop-column $\\Delta$MSE (linear), permutation P2 on the tail ($\\Delta$QLIKE for the trees, $\\Delta$MSE for the linear models), SHAP. Bars with 95\\% intervals over refits. Linear permutation / drop-column in $\\Delta$MSE (see Section 6).",
         )
         + r"""
 \section*{3. Ranking agreement}
 """
         + table(
             "Within a tree model: Spearman between measures (series / column level).",
-            "lllrrrrrr",
-            "bucket & level & model & MDI$\\sim$split & MDI$\\sim$SHAP & MDI$\\sim$P2 & SHAP$\\sim$P2 & P1$\\sim$P2 & P2 QL$\\sim$MSE",
+            "lllrrrr",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+            "bucket & level & model & MDI$\\sim$SHAP & MDI$\\sim$P2 & SHAP$\\sim$P2 & P2 QL$\\sim$MSE",
             within_rows,
             "\\scriptsize",
         )
         + table(
-            "Within a linear model: Spearman between measures.",
-            "lllrrrrrr",
-            "bucket & level & model & $|\\beta sd|\\sim$SHAP & $|\\beta sd|\\sim$P2 & SHAP$\\sim$P2 & P1$\\sim$P2 & P2$\\sim$drop & P2 QL$\\sim$MSE",
+            "Within a linear model: Spearman between measures (permutation and drop-column in squared error).",
+            "lllrrrr",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+            "bucket & level & model & $|\\beta sd|\\sim$SHAP & $|\\beta sd|\\sim$P2 & SHAP$\\sim$P2 & P2$\\sim$drop",
             within_lin,
             "\\scriptsize",
         )
         + table(
-            "Across models, same measure: range of Spearman over tree--tree pairs, tree--linear pairs, and ridge--lasso.",
-            "llrrrrrrrrr",
-            "bucket & level & \\multicolumn{3}{c}{SHAP} & \\multicolumn{3}{c}{perm P2 $\\Delta$QLIKE} & \\multicolumn{3}{c}{perm P2 $\\Delta$MSE}\\\\ & & tree & tree--lin & r--l & tree & tree--lin & r--l & tree & tree--lin & r--l",
+            "Across models, same measure: range of Spearman over tree--tree pairs, tree--linear pairs, and ridge--lasso (QLIKE permutation: trees only).",
+            "llrrrrrrr",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out
+            "bucket & level & \\multicolumn{3}{c}{SHAP} & perm P2 $\\Delta$QLIKE & \\multicolumn{3}{c}{perm P2 $\\Delta$MSE}\\\\ & & tree & tree--lin & r--l & tree & tree & tree--lin & r--l",
             across_rows,
             "\\scriptsize",
         )
+        # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation dropped from the figures: figure redrawn and restored
         + fig(
             "fig_rank_heatmap_all_features_series.png",
-            "All features: rank of every series under every model $\\times$ measure (1 = most important).",
+            "All features: rank of every series under every model $\\times$ measure (1 = most important); measures: MDI / $|\\beta\\cdot sd|$, permutation P2 ($\\Delta$QLIKE trees only, $\\Delta$MSE), drop-column (linear), SHAP.",
             "0.95\\textwidth",
         )
         + r"""
@@ -1005,33 +1103,35 @@ def main(argv: list[str] | None = None) -> None:  # noqa: C901 - one report
             strat_rows,
             "\\scriptsize",
         )
+        # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters (section 5, cluster dilution)
+        #         + r"""
+        # \section*{5. Correlated inputs: the dilution caveat}
+        # """
+        #         + table(
+        #             "Joint permutation of a cluster against the sum of its columns permuted one at a time (P2, $\\Delta$MSE in the fit space $\\times10^{3}$, joint / sum; squared error so the linear columns are not dominated by single tails), for the four clusters with the largest joint effect in LightGBM. Joint $>$ sum: the columns substitute for one another and one-at-a-time permutation understates the group (dilution). Joint $<$ sum: offsetting weights (permuting one column breaks an offset its partner carries).",
+        #             "llp{5.2cm}rrrrr",
+        #             "bucket & cluster & members & ridge & lasso & LightGBM & XGBoost & forest",
+        #             dil_rows,
+        #             "\\scriptsize",
+        #         )
+        # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation commented out (section 5: the linear QLIKE permutation)
+        #         + r"""
+        # \section*{5. Linear models: QLIKE permutation is dominated by single tails}
+        # The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-power or absolute return) onto another row can push the fit-space forecast through zero, and QLIKE of $\hat y^2\times$ baseline explodes. Every permutation / drop-column table therefore carries the median refit and the largest single-refit share of the sum, and the linear figures and cross-model comparisons use the squared-error versions. Trees cannot extrapolate beyond the training range of the target, so their QLIKE changes are well behaved.
+        # """
+        #         + table(
+        #             "The top linear QLIKE entries: mean [95\\% interval], median refit, share of the sum carried by one refit.",
+        #             "lllllrr",
+        #             "bucket & model & measure & top series & mean [interval] & median & one refit",
+        #             blow,
+        #             "\\scriptsize",
+        #         )
         + r"""
-\section*{5. Correlated inputs: the dilution caveat}
-"""
-        + table(
-            "Joint permutation of a cluster against the sum of its columns permuted one at a time (P2, $\\Delta$MSE in the fit space $\\times10^{3}$, joint / sum; squared error so the linear columns are not dominated by single tails), for the four clusters with the largest joint effect in LightGBM. Joint $>$ sum: the columns substitute for one another and one-at-a-time permutation understates the group (dilution). Joint $<$ sum: offsetting weights (permuting one column breaks an offset its partner carries).",
-            "llp{5.2cm}rrrrr",
-            "bucket & cluster & members & ridge & lasso & LightGBM & XGBoost & forest",
-            dil_rows,
-            "\\scriptsize",
-        )
-        + r"""
-\section*{6. Linear models: QLIKE permutation is dominated by single tails}
-The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-power or absolute return) onto another row can push the fit-space forecast through zero, and QLIKE of $\hat y^2\times$ baseline explodes. Every permutation / drop-column table therefore carries the median refit and the largest single-refit share of the sum, and the linear figures and cross-model comparisons use the squared-error versions. Trees cannot extrapolate beyond the training range of the target, so their QLIKE changes are well behaved.
-"""
-        + table(
-            "The top linear QLIKE entries: mean [95\\% interval], median refit, share of the sum carried by one refit.",
-            "lllllrr",
-            "bucket & model & measure & top series & mean [interval] & median & one refit",
-            blow,
-            "\\scriptsize",
-        )
-        + r"""
-\section*{7. Tuned trees}
+\section*{5. Tuned trees}
 """
         + (
             table(
-                "Causally tuned trees (their own extracts: gain per refit and TreeSHAP rows at 16:00): \\texttt{har\\_ma\\_*} share tuned (untuned), rank correlation tuned vs untuned over the series, and the next three series by tuned SHAP. Split count and permutation were not computed for the tuned trees (their per-refit configurations would have to be refitted).",
+                "Causally tuned trees (their own extracts: gain per refit and TreeSHAP rows at 16:00): \\texttt{har\\_ma\\_*} share tuned (untuned), rank correlation tuned vs untuned over the series, and the next three series by tuned SHAP. Permutation was not computed for the tuned trees (their per-refit configurations would have to be refitted).",
                 "llrrrrp{5cm}",
                 "bucket & model & MDI har & SHAP har & $\\rho$ MDI & $\\rho$ SHAP & next by tuned SHAP",
                 tuned_rows,
@@ -1042,7 +1142,7 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
         )
         + r"""
 """
-        + (DS.gates_tex(OUT, G) + DS.before_after_tex(OUT, ROOT_REL) if DEDUP else "")
+        # + (DS.gates_tex(OUT, G) + DS.before_after_tex(OUT, ROOT_REL) if DEDUP else "")  # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters (gates, before / after)
         + (
             ""
             if DEDUP
@@ -1057,9 +1157,7 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
             + f"{gap_n['xgb']}"
             + r""" XGBoost and """
             + f"{gap_n['rf']}"
-            + r""" forest refits of the $2\times147$). LightGBM reproduces them exactly on HAR + calendar (gap """
-            + f"{lg_gap['baseline'][1]:.1e}"
-            + r""") but not on all features: mean $|$gap$|$ """
+            + r""" forest refits of the 147). LightGBM on all features: mean $|$gap$|$ """
             + f"{lg_gap['all_features'][0]:.4f}, max {lg_gap['all_features'][1]:.3f}, correlation {lg_gap['all_features'][2]:.4f}"
             + r""" (same version, parameters, seed and thread count; deterministic run to run on two machines; XGBoost reproduces on the same input). The LightGBM numbers are those of the refit.
 \item Drop-column anchors reproduce the captured coefficients (ridge $\le$ """
@@ -1071,34 +1169,25 @@ The linear forecasts are unbounded: moving an extreme input (a crash day's 4th-p
 \sloppy Files: \texttt{experiments/\allowbreak feature\_importance\_1530.py} (design, inputs, linear, aggregate); \texttt{experiments/\allowbreak feature\_importance\_1530\_trees.py} (the refits, run on the cluster through \texttt{cluster/\allowbreak slurm/\allowbreak submit\_featimp.sh}); tables and figures in \texttt{results/\allowbreak feature\_importance\_1530/}; summary \texttt{SUMMARY.md}.
 """
         )
-        + r"""
-\appendix
-\section*{Appendix: HAR + calendar design}
-"""
-        + table(
-            "HAR + calendar, series level: top three per model and measure.",
-            "llp{11.2cm}",
-            "model & measure & top three",
-            top_rows["baseline"],
-            "\\scriptsize",
-        )
-        + fig("fig_ranked_baseline.png", "HAR + calendar: ranked bars per measure.")
-        + fig(
-            "fig_rank_heatmap_baseline_series.png",
-            "HAR + calendar: ranks across measures.",
-            "0.7\\textwidth",
-        )
-        + fig(
-            "fig_rank_heatmap_all_features_cluster.png",
-            "All features: ranks at the cluster level.",
-            "0.95\\textwidth",
-        )
+        + (
+            DS.over_time_tex(OUT) if DEDUP else ""
+        )  # 2026-10-08: importance over time (user request)
+        # 2026-10-08 (user): commented out -- the readers need neither the design nor the clusters (appendix: cluster ranks)
+        #         + r"""
+        # \appendix
+        # """
+        #         # baseline (HAR + calendar) appendix commented out
+        #         + fig(
+        #             "fig_rank_heatmap_all_features_cluster.png",
+        #             "All features: ranks at the cluster level.",
+        #             "0.95\\textwidth",
+        #         )
         + r"""
 \end{document}
 """
     )
     W = R / "writeup"
-    (W / f"{STEM}.tex").write_text(tex, encoding="utf-8")
+    (W / f"{STEM}.tex").write_bytes(tex.encode("utf-8"))  # LF line endings
     for _ in range(2):
         r = subprocess.run(
             ["pdflatex", "-interaction=nonstopmode", f"{STEM}.tex"],

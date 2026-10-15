@@ -19,7 +19,8 @@ Construction (mirrors notebooks/_write_0dte_intraday_nb.py):
   * trade frame  = the latest results/atm_straddle_intraday/cache/trade_*.parquet,
     restricted to the deck's 866 expiration days;
   * forecast     = asl.load_yhat_panel_mz(...)["rv_hat"] for each of the eight
-    tags in asl.MODEL_ORDER, joined on timestamp + 30 min (the panel is
+    tags in asl.MODEL_ORDER -- since 2026-10-06 the plain yhat^2 * B
+    (recalibration removed, user decision; asl.RECALIBRATE False) -- joined on timestamp + 30 min (the panel is
     bar-end labelled);
   * implied slice = iv_hourly^2 * hours_to_close * w_slice, with w_slice the
     expanding mean of each prior day's remaining share
@@ -66,6 +67,10 @@ sys.path.insert(0, str(ROOT / "notebooks"))
 import atm_straddle_lib as asl  # noqa: E402
 
 DH_HOLDCLOSE = "--dh-holdclose" in sys.argv
+# Opt-in (2026-10-06): drop the 09:35 window, so the re-pick bundle keeps the re-pick notebook's
+# scored frame, the twelve clocks 10:00-15:30 (its pooled page then equals the notebook's pooled
+# table).  The default run is unchanged.
+START_1000 = "--start-1000" in sys.argv
 WRITEUP = ROOT / "writeup"
 GEN = WRITEUP / ("generated_intraday_dh" if DH_HOLDCLOSE else "generated_intraday")
 OUT = (
@@ -125,8 +130,11 @@ WORKERS = min(7, (os.cpu_count() or 4))
 
 # Deck numbers of record for the 15:30 window (results/atm_straddle_0dte_1530/
 # rule_by_strategy_*.csv).  The gate is on these, never on a loosened tolerance.
-DECK_ALWAYS_SHORT_SHARPE = 0.203779128108568
-DECK_SIGN_S_RIDGE_SHARPE = 1.3383216004229939
+DECK_ALWAYS_SHORT_SHARPE = 0.203779128108568  # forecast-free: unchanged on 2026-10-06
+# 2026-10-06: recalibration removed (user decision).  The sign(s) ridge Sharpe of record is
+# read from the re-run deck's CSV in gate(); the recalibrated run's value is kept only for the
+# old-against-new line it prints.
+DECK_SIGN_S_RIDGE_SHARPE_RECAL = 1.3383216004229939
 
 PANELS = [
     ("always_short", r"Short volatility (always short)"),
@@ -269,7 +277,7 @@ def footnote() -> str:
 
 
 def load_panel_for_tag(tag: str) -> tuple[str, pd.DataFrame]:
-    """Worker: one MZ panel. Module-level so ProcessPoolExecutor can pickle it."""
+    """Worker: one forecast panel (plain yhat^2 * B). Module-level for ProcessPoolExecutor."""
     return tag, asl.load_yhat_panel_mz(asl.yhat_paths(ROOT)[tag])
 
 
@@ -466,6 +474,9 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
             )
 
     work = pkg[pkg["date"].isin(days)].copy()
+    if START_1000:
+        work = work[work["hhmm"] != "09:35"].copy()
+        print("--start-1000: the 09:35 window is left out (frame 10:00-15:30)")
     work["t"] = pd.to_datetime(work["timestamp"], utc=True)
     work = work.sort_values("t").reset_index(drop=True)
     clocks = sorted(work["hhmm"].unique())
@@ -476,7 +487,7 @@ def build_work() -> tuple[pd.DataFrame, list[str], pd.DataFrame]:
 
     # Causal remaining share: each prior day's RV_c / remaining-to-close sum,
     # then expanding mean. Panel in-fit history back to 2001; no warm-up.
-    # Eight MZ panels load in parallel; blk2 is reused for w and for rv_hat.
+    # Eight forecast panels load in parallel; blk2 is reused for w and for rv_hat.
     loaded = load_panels_parallel()
     pan = loaded["blk2"]
     pf = pan[pan["in_fit"].to_numpy(dtype=bool)].copy()
@@ -1269,10 +1280,16 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
         f"{DECK_ALWAYS_SHORT_SHARPE:.9f} -- match"
     )
     sgn = float(tables["1530"]["sign_s"].loc["block-diagonal ridge", "Sharpe_ann"])
-    assert abs(sgn - DECK_SIGN_S_RIDGE_SHARPE) < 1e-6, (sgn, DECK_SIGN_S_RIDGE_SHARPE)
+    deck_sgn = float(
+        pd.read_csv(DECK / "rule_by_strategy_sign_s.csv", index_col=0).loc[
+            "block-diagonal ridge", "Sharpe_ann"
+        ]
+    )
+    assert abs(sgn - deck_sgn) < 1e-6, (sgn, deck_sgn)
     print(
-        f"GATE sign(s) ridge at 15:30: {sgn:.9f} vs the deck's "
-        f"{DECK_SIGN_S_RIDGE_SHARPE:.9f} -- match"
+        f"GATE sign(s) ridge at 15:30: {sgn:.9f} vs the deck's {deck_sgn:.9f} -- match "
+        f"(recalibrated run of record {DECK_SIGN_S_RIDGE_SHARPE_RECAL:.9f}; "
+        f"plain minus recalibrated {sgn - DECK_SIGN_S_RIDGE_SHARPE_RECAL:+.4f})"
     )
 
     # The whole 15:30 panel against the deck's own CSV, every shared column.
@@ -1280,6 +1297,10 @@ def gate(work: pd.DataFrame, deck: pd.DataFrame, tables: dict[str, Any]) -> None
     for stem, csv in (("sign_s", "sign_s"), ("always_short", "always_short")):
         ref = pd.read_csv(DECK / f"rule_by_strategy_{csv}.csv", index_col=0)
         mine = tables["1530"][stem]
+        # The deck's CSV also carries the per-bar forecasts (since 2026-09-20); compare the rows
+        # this bundle has, in the deck's order (2026-10-06; was: the two row lists equal).
+        assert set(mine.index) <= set(ref.index), (list(mine.index), list(ref.index))
+        ref = ref.loc[[i for i in ref.index if i in set(mine.index)]]
         assert list(mine.index) == list(ref.index), (list(mine.index), list(ref.index))
         dev = float((mine[cols] - ref[cols]).abs().to_numpy().max())
         assert dev < 1e-6, f"the 15:30 {stem} panel differs from the deck's by {dev}"

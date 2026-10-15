@@ -1,0 +1,456 @@
+% 10_appendix_floats.tex -- tables and figures for this section (2026-10-15), each \input from a generated/ file or an
+% \includegraphics of a generated figure; generators: writeup/make_rehaul_*.py. Placed after the section in paper_rehaul.tex
+% so section text and floats can be edited in parallel; move them inline when the prose settles.
+%
+% Generator: writeup/make_rehaul_appendix.py -> generated/rehaul_app_*.tex (tables) and generated/rehaul_app_numbers.tex
+% (\rhapp... macros: every number in the captions and notes below). Re-run it after any source changes:
+%   python writeup/make_rehaul_appendix.py
+% Order: A1 tree tuning rungs; A2 MinGRU development; A3 robustness figures; A4 the all-features MinGRU diagnosis.
+% Each group ends with \clearpage so the float queue never overflows.
+\ifdefined\rhappNdays\else\input{generated/rehaul_app_numbers}\fi
+% 2026-10-15 (notation pass): \fqsDMLag / \fqsHACLag (Newey-West lags) are used in the notes below.
+\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+
+% =====================================================================================================================
+% A1. Tree tuning rungs. The tables re-lay out the campaign's generated tables (numbers copied verbatim by the
+% generator, which parses them): generated/table_close_ladder.tex (make_table_close_main.py) and
+% generated/appendix_campaign_16h_{cadence,mask,tuneper,budget,budget_oos,optuna_vs,picks}.tex
+% (make_appendix_campaign_16h_tex.py). The originals overflow the text width at \small (by 5--190 pt), hence the re-layout.
+% =====================================================================================================================
+
+% Source: generated/table_close_ladder.tex
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (16:00 ladder, per-bar, rungs)
+% \caption{The 16:00 ladder: one change at a time, from the paper's forecast to the per-bar specification and through
+% the tree rungs.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Decomposition of the closing-interval results}
+\label{tab:rh_app_tune_ladder}
+\input{generated/rehaul_app_tune_ladder}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (paired step, trade days, sign(s), crossed fill, shipped settings, config ids); test wording
+% \item[] \emph{Notes:} each row is a paired step, to minus from, over \rhappNdays{} trade days; point estimates.
+% QLIKE $\Delta$\%: $100\,(\mathrm{QLIKE}_{\text{to}}/\mathrm{QLIKE}_{\text{from}} - 1)$. DM: Diebold--Mariano statistic
+% of the daily QLIKE difference (---: not stored for that pair). Sharpe $\Delta$: change in the annualised $\sign(s)$
+% Sharpe ratio at the mid and crossed fills. HAC $t$: Newey--West $t$ of the daily mid-return difference. Same side:
+% share of days on which the two forecasts take the same position. Shipped settings: LightGBM \texttt{lgbm\_opt\_00},
+% XGBoost \texttt{xgb\_opt\_00}, random forest trial 255, the top entries of the 1998--2002 development searches.
+\item[] \textit{Notes:} Each row compares two forecasts (``to'' minus ``from''), one change at a time, from the earlier
+draft's pooled intraday forecast to the closing-interval specification and through the tuning specifications of the
+tree models, over the \rhappNdays{} trading days of the out-of-sample period; point estimates. QLIKE $\Delta$\%:
+$100\,(\overline{\QLIKE}_{\text{to}}/\overline{\QLIKE}_{\text{from}} - 1)$; $\DM$: Diebold--Mariano statistic of the
+daily QLIKE loss differential, with the Harvey--Leybourne--Newbold correction and Newey--West lag $q = \fqsDMLag$
+(---: not stored). Sharpe ratio $\Delta$: change in the annualized Sharpe ratio of the sign strategy at mid-quotes and
+at quoted bid--ask prices; HAC $t$: HAC $t$-statistic on the daily return differential at mid-quotes (Newey--West,
+$q = \fqsHACLag$). Same side: share of trading days on which the two forecasts take the same position. Fixed
+hyperparameters and tuning procedures: see Methods (\emph{Tuning procedures}).
+% Fixed hyperparameters = LightGBM lgbm_opt_00, XGBoost xgb_opt_00, random forest trial 255.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_cadence.tex
+\begin{table}[htbp]
+\centering
+\small
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (refit cadence, input set)
+% \caption{Refit cadence and random search, by tree and input set.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Re-estimation frequency and random search}
+\label{tab:rh_app_tune_cadence}
+\input{generated/rehaul_app_tune_cadence}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (shipped settings, session, sign(s), mid fill, window-masked, HAR + calendar, all features)
+% \item[] \emph{Notes:} T1 $-$ T10: the shipped settings refit every session minus every 10th session; RS1 $-$ RS10:
+% the random search (a fixed candidate set, re-chosen every 250 sessions on validation MSE), likewise; RS1 $-$ T1: the
+% random search minus the shipped settings, both refit every session. QLIKE: the difference in \% of the second
+% forecast's QLIKE. $\Delta$SR: the difference in the annualised $\sign(s)$ Sharpe ratio at the mid fill. Point
+% estimates over \rhappNdays{} trade days; every fit window-masked. HAR + calendar: \rhappNcolsBase{} columns; all
+% features: \rhappNcolsAll{}.
+\item[] \textit{Notes:} T1 $-$ T10: fixed hyperparameters, re-estimated every trading day minus every 10th trading day;
+RS1 $-$ RS10: the random search, likewise; RS1 $-$ T1: the random search minus the fixed hyperparameters, both
+re-estimated daily. QLIKE: the difference in mean QLIKE, in percent of the second forecast's; $\Delta\SR$: the
+difference in the annualized Sharpe ratio of the sign strategy at mid-quotes. Point estimates over the \rhappNdays{}
+trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} columns, full predictor set
+\rhappNcolsAll{}. The random search and the within-window column screening are described in Methods
+(\emph{Tuning procedures}).
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_mask.tex
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (mask, rung)
+% \caption{The per-window mask, masked minus unmasked, per rung.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Within-window column screening}
+\label{tab:rh_app_tune_mask}
+\input{generated/rehaul_app_tune_mask}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (mask, fit, training window, rungs, campaign)
+% \item[] \emph{Notes:} the mask drops, at every fit, the columns that are constant on the training window and exact
+% copies of an earlier column. Rungs as in Table~\ref{tab:rh_app_tune_cadence}; cells as there, the unmasked forecast
+% being the comparator. ---: no unmasked run of XGBoost or the random forest on their current settings. The campaign's
+% unmasked rungs were not pinned to a CPU class.
+\item[] \textit{Notes:} Screened minus unscreened forecasts, by tuning specification. At every estimation, the screen
+drops the columns that are constant on the estimation window or exact copies of an earlier column. Specifications
+and cells as in Table~\ref{tab:rh_app_tune_cadence}. ---: no unscreened run of XGBoost or the random forest at their
+current hyperparameters; the unscreened runs were not restricted to a single CPU class.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_tuneper.tex
+\begin{table}[htbp]
+\centering
+\small
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- sessions -> trading days; finance-journal first sentence
+% \caption{How often to tune: Optuna re-tuned every 1, 5 or 25 sessions minus every 250 sessions.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Hyperparameter re-tuning frequency}
+\label{tab:rh_app_tune_tuneper}
+\input{generated/rehaul_app_tune_tuneper}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (shipped settings, path, session)
+% \item[] \emph{Notes:} at each tuning point a fresh TPE study runs \rhappOptTrials{} sequential trials, trial 0 being
+% the shipped settings, and keeps the best on validation MSE; every path is refit every session. QLIKE, 250: the QLIKE
+% of the path tuned every 250 sessions. Other cells as in Table~\ref{tab:rh_app_tune_cadence}, the 250-session path
+% being the comparator.
+\item[] \textit{Notes:} Optuna re-tuned every 1, 5 or 25 trading days minus Optuna re-tuned every 250 trading days;
+every specification is re-estimated daily. At each tuning date, a new tree-structured Parzen estimator study runs
+\rhappOptTrials{} trials, starting from the fixed hyperparameters, and keeps the configuration with the lowest
+validation MSE (see Methods, \emph{Tuning procedures}). QLIKE, 250: the mean QLIKE of the specification re-tuned
+every 250 trading days. Other cells as in Table~\ref{tab:rh_app_tune_cadence}.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_budget.tex
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- finance-journal first sentence (a statement, not a question)
+% \caption{Is the Optuna budget enough? Where the best of \rhappOptTrials{} trials falls, and what the last trials add,
+% within the tuning points.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Adequacy of the Optuna trial budget}
+\label{tab:rh_app_tune_budget}
+\input{generated/rehaul_app_tune_budget}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (arm, tuning points, shipped settings)
+% \item[] \emph{Notes:} over all \rhappOptPoints{} tuning points of each arm. Median trial: the median index of the
+% trial that holds the best of \rhappOptTrials{}. Shipped: the share of points where that trial is the shipped settings
+% (trial 0). In 41--50: the share where it falls in the last ten trials (\rhappOptExch\,\% if its position were
+% exchangeable). Val.\ MSE gain: the relative gain in the best validation MSE from the first 10, 25 or 40 trials to all
+% \rhappOptTrials{}, mean\,/\,median over points. Pick changes: the share of points whose best of 25 differs from the
+% best of \rhappOptTrials{}.
+\item[] \textit{Notes:} Position of the best of \rhappOptTrials{} trials, and the gain from the last trials, over all
+\rhappOptPoints{} tuning dates of each specification. Median trial: the median index of the trial that attains the
+best of \rhappOptTrials{}; shipped: the share of tuning dates at which that trial is the fixed-hyperparameter
+configuration (trial 0); in 41--50: the share at which it falls in the last ten trials (\rhappOptExch\% if its
+position were exchangeable). Val.\ MSE gain: the relative reduction in the best validation MSE from the first 10, 25
+or 40 trials to all \rhappOptTrials{}, mean\,/\,median across tuning dates. Pick changes: the share of tuning dates at
+which the best of the first 25 trials differs from the best of \rhappOptTrials{}.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_budget_oos.tex
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- wording
+% \caption{The Optuna budget out of sample: best of \rhappOptTrials{} trials minus best of the first 10 or 25.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Optuna trial budget, out of sample}
+\label{tab:rh_app_tune_budget_oos}
+\input{generated/rehaul_app_tune_budget_oos}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (session, path, refit)
+% \item[] \emph{Notes:} Optuna re-tuned every session (left) or every 25 sessions (right), every path refit every
+% session. Cells as in Table~\ref{tab:rh_app_tune_cadence}, the smaller budget being the comparator.
+\item[] \textit{Notes:} Best of \rhappOptTrials{} trials minus best of the first 10 or 25 trials, with Optuna re-tuned
+every trading day (left) or every 25 trading days (right); every specification is re-estimated daily. Cells as in
+Table~\ref{tab:rh_app_tune_cadence}.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_optuna_vs.tex
+\begin{table}[htbp]
+\centering
+\small
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (rungs, per-bar, arms)
+% \caption{Optuna against the simpler rungs and the per-bar ridge: arms below and above zero.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Optuna against simpler tuning and the closing-interval ridge}
+\label{tab:rh_app_tune_optuna_vs}
+\input{generated/rehaul_app_tune_optuna_vs}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code identifier TUNE_PER, arms, input set; test wording
+% \item[] \emph{Notes:} Optuna, best of \rhappOptTrials{} trials, re-tuned every TUNE\_PER sessions, minus the
+% comparator. Arms: tree $\times$ input set. Each cell counts the arms whose difference, a point estimate, lies below or
+% above zero; in parentheses, how many of them are significant at 5\,\%: Diebold--Mariano for QLIKE, and for the Sharpe
+% ratio the Newey--West $t$ of the daily mid-return difference. The \emph{all} rows pool the four frequencies.
+\item[] \textit{Notes:} Optuna (best of \rhappOptTrials{} trials, re-tuned every 1, 5, 25 or 250 trading days) minus
+the comparator; specifications: tree model $\times$ predictor set. Each cell counts the specifications whose
+difference lies below or above zero; in parentheses, the number significant at the 5\% level. QLIKE: Diebold--Mariano
+test with the Harvey--Leybourne--Newbold correction (Newey--West lag $q = \fqsDMLag$); Sharpe ratio at mid-quotes: HAC
+$t$-statistic on the daily return differential (Newey--West, $q = \fqsHACLag$). The \emph{all} rows pool the four
+re-tuning frequencies.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+% Source: generated/appendix_campaign_16h_picks.tex
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- finance-journal first sentence
+% \caption{Where the Optuna picks sit in each tree's search space.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Optuna-selected hyperparameters within the search space}
+\label{tab:rh_app_tune_picks}
+\input{generated/rehaul_app_tune_picks}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- input set, HAR + calendar, all features; boosting-round and learning-rate symbols from the guide
+% \item[] \emph{Notes:} the share of best-of-\rhappOptTrials{} picks in the outermost twentieth of each axis, at its
+% low and high end, per input set (H: HAR + calendar; A: all features), beside the share of the random
+% start-up draws there (prior), and the median pick. Each tree's axes are its own run's search space. $^{\dagger}$A
+% pseudo-axis: the early-stopped number of boosting rounds, capped by a function of the learning rate.
+\item[] \textit{Notes:} The share of best-of-\rhappOptTrials{} selections in the outermost twentieth of each axis, at
+its lower and upper end, by predictor set (H: HAR benchmark; A: full predictor set), alongside the share of the random
+start-up draws in the same region (prior), and the median selection. Each tree model's axes are its own search space
+(see Methods, \emph{Tuned hyperparameters}). $^{\dagger}$A pseudo-axis: the early-stopped number of boosting rounds
+$B$, capped by a function of the learning rate $\eta$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+% =====================================================================================================================
+% A2. MinGRU development, every variant reported. Sources: results/puffer_forecast_2026-10-12/{walk_softplus_p100,
+% walk_identity_p100, wd_study, wd_enc_study, lin_study, ridge_init_study, qlike_study, pooled_wd_study,
+% pooled_rinit_study}/ (scores.csv, contrasts.csv, at1600_*, allbars_scores.csv). The generator asserts the chain against
+% the coordinator's values (all features / HAR + calendar): 0.1082/0.1002, 0.1054/0.0990, 0.1174/0.0972, 0.1021/0.0987,
+% 0.0980/0.0966, 0.0948/0.0985; (8) 0.1121/0.1151, Sharpe mid 0.34/0.78; all-bars fit QLIKE 0.1764/0.1842.
+% =====================================================================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (16:00, walk of record, per-bar)
+% \caption{MinGRU development at 16:00: each walk of record in order, beside the per-bar linear references.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{Development of the closing-interval MinGRU network}
+\label{tab:rh_app_mingru_dev}
+\input{generated/rehaul_app_mingru_dev}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (walk, trade days, plain f^2 B, per-bar, penalty factors, fit space, bar); guide symbols
+% \item[] \emph{Notes:} every row is a full walk-forward over \rhappNdays{} trade days, scored on the plain forecast
+% $\hat f^{2}B$. $\Delta$\%: $100\,(\mathrm{QLIKE}/\mathrm{QLIKE}_{\text{enet}} - 1)$ against the per-bar elastic net on
+% the same input set; $p$: Diebold--Mariano $p$-value of the daily QLIKE difference. Sharpe: annualised $\sign(s)$
+% Sharpe ratio at the mid fill. (1) softplus output, trained, early-stopped and selected on MSE; (2) adds weight decay
+% on the encoder's input columns in proportion to the linear stack's penalty factors; (3) adds a linear shortcut
+% beside the recurrent branch, started at zero; (4) starts the shortcut at each window's closed-form ridge; (5) selects
+% the configuration on validation QLIKE; (6) also trains and early-stops on QLIKE. B: the new penalty is chosen at each
+% of the \rhappNblocks{} block starts, jointly with the base grid. (7) the pooled network, fit on every half-hour bar of
+% the trailing window, its weight decay chosen per block, read at the 16:00 bar. (8) the pooled analogue of (6). Over
+% every bar of the pooled walks, the fit-space QLIKE is \rhappAllbarsRinitAll{} (all features) and
+% \rhappAllbarsRinitBase{} (HAR + calendar) for (8), against \rhappAllbarsWdBAll{} and \rhappAllbarsWdBBase{} for (7).
+% Ridge: $p$ not computed. Every variant on disk is in Table~\ref{tab:rh_app_mingru_all}.
+\item[] \textit{Notes:} Each row is a rolling-window out-of-sample exercise over the \rhappNdays{} trading days of the
+out-of-sample period. $\Delta$\%: $100\,(\overline{\QLIKE}/\overline{\QLIKE}_{\text{enet}} - 1)$ relative to the
+closing-interval elastic net on the same predictor set; $p$: $p$-value of the Diebold--Mariano test
+(Harvey--Leybourne--Newbold correction, Newey--West lag $q = \fqsDMLag$; not computed for the ridge); Sharpe:
+annualized Sharpe ratio of the sign strategy at mid-quotes. Specifications: (1) softplus output, trained and selected
+on MSE; (2) adds weight decay $\nu_{\mathrm{enc}}$ on the encoder's input columns; (3) adds a linear shortcut,
+initialized at zero; (4) initializes it at the window's ridge estimate; (5) selects on validation QLIKE; (6) also
+trains on QLIKE; (7) the pooled intraday network with weight decay $\nu$, evaluated at the closing interval; (8) the
+pooled intraday analogue of (6); B: the new penalty is selected at each of the \rhappNblocks{} block starts (see
+Methods, \emph{Models}). Over all intraday intervals, the mean QLIKE on the scale of $y_{t,i}$ is
+\rhappAllbarsRinitAll{} (full predictor set) and \rhappAllbarsRinitBase{} (HAR benchmark) for (8), against
+\rhappAllbarsWdBAll{} and \rhappAllbarsWdBBase{} for (7).
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{table}[p]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (walk on disk)
+% \caption{Every MinGRU walk on disk (\rhappNvariants{} variants), grouped by the change it tests.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{All estimated MinGRU specifications}
+\label{tab:rh_app_mingru_all}
+\input{generated/rehaul_app_mingru_all}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- weight decay w -> nu (guide); linear stack, all features, all-bars
+% \item[] \emph{Notes:} columns and the elastic-net comparator as in Table~\ref{tab:rh_app_mingru_dev}; (1)--(8) are
+% its rows. $w$: uniform weight
+% decay on every weight; $w_{\mathrm{enc}}$: decay on the encoder's input columns only. A fixed value is held in every
+% block; B chooses it per block. Branch frozen: the recurrent branch is held at zero, so the forecast is the shortcut
+% alone. Checks: the shortcut held at the linear stack's own ridge and the branch frozen, under the identity and the
+% softplus output link. QLIKE training: trained, early-stopped and selected on QLIKE. Not run: the variant was tried on
+% all features only. All-bars QLIKE of (7), (8): notes to Table~\ref{tab:rh_app_mingru_dev}.
+\item[] \textit{Notes:} \rhappNvariants{} variants, grouped by the modification each tests; columns and comparator as
+in Table~\ref{tab:rh_app_mingru_dev}, whose rows are (1)--(8). $\nu$: uniform weight decay on every weight;
+$\nu_{\mathrm{enc}}$: weight decay on the encoder's input columns only; a fixed value is held in every block, and B
+selects it per block. Branch frozen: the recurrent branch is held at zero, so the forecast is the linear shortcut
+alone; checks: the shortcut held at the linear models' ridge estimate with the branch frozen, under the identity and
+the softplus output link. Not run: estimated on the full predictor set only.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+% =====================================================================================================================
+% A3. Robustness of the trade: the existing figures. RASTER: regenerate as PDF. Each is a PNG written by its script's
+% main(); a vector copy is a one-line change there (a second fig.savefig(OUT / "<name>.pdf") beside the PNG save:
+% close_shift_test_headline.py:1032, close_murphy_splits_headline.py:1639, close_compounding_headline.py:891), but the
+% re-run rewrites results/ and generated/, so it is left to the owner of those scripts.
+% =====================================================================================================================
+
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \begin{figure}[htbp]
+% \centering
+% \includegraphics[width=\linewidth]{../results/close_shift_test/shift_test_modelset.png}
+% % 2026-10-15 (notation pass): parked -- code jargon (sign(s), half-hour bars, 16:00 row, session, mid/crossed fill)
+% % \caption{Date-shift test. The annualised $\sign(s)$ Sharpe ratio when each forecast is read $k$ half-hour bars away
+% % from the traded 16:00 row ($k<0$: earlier in the same session, stale; $k>0$: the next session), mid fill (left) and
+% % crossed fill (right), $k$ from \rhappShiftKmin{} to \rhappShiftKmax{}. Thin lines: the \rhappShiftNfc{} forecasts
+% % whose tables carry every session row (the paper's own forecasts; the other \rhappShiftNnot{} forecasts of the
+% % model set hold only the 16:00 row); thick: their median; star: the bar's realized variance used as the forecast;
+% % dashed: always short. \rhappShiftNdays{} days on which every shifted row exists.}
+% \caption{Date-shift test. Annualized Sharpe ratio of the sign strategy, $q_t = \sign(s_t)$, when each forecast is
+% taken from the row $k$ intraday intervals away from the traded closing interval ($k<0$: earlier on the same trading
+% day, i.e., stale; $k>0$: the next trading day), at mid-quotes (left) and at quoted bid--ask prices (right), for $k$
+% from \rhappShiftKmin{} to \rhappShiftKmax{}. Thin lines: the \rhappShiftNfc{} forecasts whose output contains every
+% intraday interval (the earlier draft's forecasts; the other \rhappShiftNnot{} forecasts of the model set contain only
+% the closing interval); thick line: their median; star: the closing interval's realized variance used as the
+% forecast; dashed: always short. Sample: the \rhappShiftNdays{} trading days on which every shifted row exists.}
+% \label{fig:rh_app_shift}
+% \end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../results/close_murphy_splits/murphy_modelset.png}
+% 2026-10-15 (notation pass): parked -- threshold c -> theta (c is the closing interval; Ehm et al. 2016 use theta); per-bar, paper, sign(s) rule
+% \caption{Murphy diagram of the model set (\rhappModelSetN{} forecasts: paper \rhappModelSetPaper, pooled linear
+% \rhappModelSetPooledLin, per-bar linear \rhappModelSetPerBarLin, per-bar trees \rhappModelSetPerBarTrees),
+% \rhappNdays{} days. (a) The mean elementary score $\mathrm{ES}_c$ at each of \rhappMurphyNc{} thresholds $c$, in
+% units of the 15:30 implied variance, log scale (lower is better); $c = 1$ is the threshold the $\sign(s)$ rule
+% uses, and QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the set at $c$.}
+\caption{Murphy diagram (elementary scores) for the model set (\rhappModelSetN{} forecasts: earlier draft
+\rhappModelSetPaper, pooled intraday linear \rhappModelSetPooledLin, closing-interval linear \rhappModelSetPerBarLin,
+closing-interval trees \rhappModelSetPerBarTrees), over the \rhappNdays{} trading days of the out-of-sample period.
+Panel (a): mean elementary score $\mathrm{ES}_\theta$ at each of \rhappMurphyNc{} thresholds $\theta$, in units of the
+15:30 implied variance, log scale (lower is better); $\theta = 1$ is the threshold used by the sign strategy,
+$q_t = \sign(s_t)$, and QLIKE equals the integral of the elementary scores weighted by $\theta^{-2}$. Panel (b): each
+forecast's mean elementary score minus the model-set mean at the same $\theta$.}
+\label{fig:rh_app_murphy}
+\end{figure}
+
+% 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% \begin{figure}[htbp]
+% \centering
+% \includegraphics[width=\linewidth]{../results/close_compounding/wealth_modelset.png}
+% % 2026-10-15 (notation pass): parked -- dummy day index s -> u (s_t is the signal); mid/crossed fill
+% % \caption{Compounding at a fixed fraction: wealth $W_t = \prod_{s\le t}(1 + f q_s R_s)$ with $f =
+% % \rhappCompF\,\%$ of wealth staked as straddle premium every day, $q_s = \pm 1$ the forecast's $\sign(s)$ position and
+% % $R_s$ the straddle's return, for each of the \rhappModelSetN{} forecasts of the model set, mid fill (left) and crossed
+% % fill (right), log scale; dashed: always short.}
+% \caption{Compounded wealth at a fixed fraction. The figure plots $W_t = \prod_{u \le t}(1 + f\,q_u R_u)$, with
+% $f = \rhappCompF\%$ of wealth committed as straddle premium each trading day, $q_u = \sign(s_u) = \pm 1$ the
+% position of the sign strategy and $R_u$ the return on the straddle premium, for each of the \rhappModelSetN{}
+% forecasts of the model set, at mid-quotes (left) and at quoted bid--ask prices (right), log scale; dashed: always
+% short.}
+% \label{fig:rh_app_wealth}
+% \end{figure}
+
+\clearpage
+
+% =====================================================================================================================
+% A4. The per-bar MinGRU's all-features diagnosis by day class. Sources: the walks' scores.csv (ql_month_end,
+% ql_extreme_inputs, ql_other), the classes in wd_enc_study/day_class.csv; the walk of record's gap is asserted against
+% results/puffer_forecast_2026-10-12/af_diagnosis/gap_by_dayclass.csv.
+% =====================================================================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{threeparttable}
+% 2026-10-15 (notation pass): parked -- code jargon (all-features, walk); finance-journal first sentence
+% \caption{Where the all-features MinGRU loses: QLIKE by day class, per walk.}
+% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+\caption{MinGRU accuracy by type of trading day}
+\label{tab:rh_app_mingru_dayclass}
+\input{generated/rehaul_app_mingru_dayclass}
+\begin{tablenotes}[flushleft]
+\footnotesize
+% 2026-10-15 (notation pass): parked -- code jargon (walks, sessions, is_month_end, inputs, walk of record, gap)
+% \item[] \emph{Notes:} walks (1)--(6) of Table~\ref{tab:rh_app_mingru_dev}. Month-ends: the sessions flagged \texttt{is\_month\_end}
+% (\rhappNmonthEndExtreme{} of them also have extreme inputs). Extreme inputs: at least \rhappExtremeCols{} kept
+% columns beyond their training-window maximum, month-ends excluded. The classes partition the \rhappNdays{} days, so
+% the day-weighted mean of the three class columns is the overall QLIKE. Of the walk of record's summed daily gap
+% between its all-features and HAR + calendar forecasts, extreme-input days carry \rhappGapShareExtreme\,\%, month-ends
+% \rhappGapShareMonthEnd\,\% and the other days \rhappGapShareOther\,\%.
+\item[] \textit{Notes:} Mean QLIKE of specifications (1)--(6) of Table~\ref{tab:rh_app_mingru_dev} by day type.
+Month-ends: the last trading day of each calendar month (\rhappNmonthEndExtreme{} of them also have extreme predictor
+values); extreme predictor values: at least \rhappExtremeCols{} retained columns above their estimation-window
+maximum, month-ends excluded. The three day types partition the \rhappNdays{} trading days of the out-of-sample
+period, so their day-weighted mean equals the overall mean QLIKE. Of the summed daily QLIKE loss differential of
+specification (1) between the full predictor set and the HAR benchmark, days with extreme predictor values account
+for \rhappGapShareExtreme\%, month-ends for \rhappGapShareMonthEnd\% and the other days for \rhappGapShareOther\%.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+% 2026-10-15: the feature dictionary (47 series), moved here from 04_features_floats.tex (Appendix A).
+\input{generated/rehaul_dm_dictionary}

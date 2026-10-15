@@ -6,6 +6,7 @@ before_after, and the aggregates of both roots); nothing is typed in."""
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import cast
 
@@ -15,7 +16,7 @@ import pandas as pd
 R = Path(__file__).resolve().parent.parent
 FIRST = R / "results" / "feature_importance_1530"
 NOMASK = R / "results" / "feature_importance_1530_dedup_nomask"
-BUCKETS = ("baseline", "all_features")  # live_feasible commented out
+BUCKETS = ("all_features",)  # baseline commented out; live_feasible commented out
 BNAME = {
     "baseline": "HAR + calendar",
     "live_feasible": "live-feasible",
@@ -51,6 +52,185 @@ SHARE = ("mdi", "split", "bsd", "shap")
 
 def _read(p: Path) -> pd.DataFrame | None:
     return pd.read_csv(p) if p.is_file() else None
+
+
+# ============================================================================ tree settings (2026-10-08)
+# The trees' settings are read from the refit files on disk (every part's meta records its params).  A model
+# re-run on new settings after the stored campaign runs (XGBoost 2026-10-07: xgb_opt_00; the forest 2026-10-08:
+# trial 255) is gated by its own file gates_<token>.csv: the stored-run gates (no-mask reproduction, the mask's
+# effect, the canonical tables, cadence) compare its old settings and leave it out.
+RERUN_GATES = {"xgb": "gates_xgb10.csv", "rf": "gates_rf255.csv"}
+CHANGE = {
+    "xgb": "XGBoost now runs xgb_opt_00 (was xgb_opt_06; 2026-10-07)",
+    "rf": "the random forest now runs trial 255 of its 400-trial dev-span search (was the library defaults; 2026-10-08)",
+}
+
+
+def _trees_module():  # type: ignore[no-untyped-def]
+    import sys
+
+    sys.path.insert(0, str(R / "experiments"))
+    import feature_importance_1530_trees as T  # type: ignore
+
+    return T
+
+
+def tree_settings(out: Path) -> dict:
+    """model -> {params, name, note, interim, cpus} from the all_features refit parts of the root."""
+    import json
+
+    T = _trees_module()
+    res: dict = {}
+    for m in TREES:
+        fs = sorted(
+            (out / "_work" / "trees").glob(
+                f"trees_all_features_{T.PART_TAG[m]}_*_*.npz"
+            )
+        )
+        fs = [
+            f
+            for f in fs
+            if int(f.stem.split("_")[-1]) - int(f.stem.split("_")[-2]) == 21
+        ]
+        if not fs:
+            continue
+        zs = [np.load(f, allow_pickle=True) for f in fs]
+        metas = [json.loads(str(z["meta"])) for z in zs]
+        prm = metas[0]["params"]
+        assert all(x["params"] == prm for x in metas), (
+            m,
+            "parts disagree on the settings",
+        )
+        name, note, interim = "", "", False
+        if m == "lgbm" and prm == T.LGBM_PARAMS:
+            name, note = "lgbm_opt_00", "the top entry of the 1998-2002 dev-span search"
+        elif m == "xgb" and prm == T.XGB_PARAMS:
+            name = "xgb_opt_00"
+            note = "the top entry of the 1998-2002 dev-span search (since 2026-10-07; was the 7th-ranked xgb_opt_06)"
+        elif m == "rf" and prm == T.RF255_PARAMS:
+            name = "trial 255"
+            note = "the top entry of the forest's 400-trial 1998-2002 dev-span search (since 2026-10-08; was the library defaults)"
+        elif m == "rf" and prm == T.RF_DEFAULT_PARAMS:
+            name, interim = "library defaults", True
+            note = (
+                "INTERIM: this build still shows the default forest; its refits on trial 255 of the forest's 400-trial "
+                "1998-2002 dev-span search are running and replace it in the final build"
+            )
+        cpus = sorted(
+            {str(c).split("|", 1)[-1] for z in zs if "cpu" in z.files for c in z["cpu"]}
+        )
+        res[m] = dict(params=prm, name=name, note=note, interim=interim, cpus=cpus)
+    return res
+
+
+def _fmt_params(m: str, prm: dict) -> str:
+    if m == "rf":
+        if prm == {"n_estimators": 100}:
+            return "100 trees, unlimited depth, min leaf 1, every feature at every split, bootstrap of all rows"
+        return (
+            f"{prm['n_estimators']} trees, depth {prm['max_depth']}, min leaf {prm['min_samples_leaf']}, "
+            f"{100 * prm['max_features']:.0f}% of the features at a split, bootstrap of {100 * prm['max_samples']:.0f}% of the rows"
+        )
+    if m == "xgb":
+        return (
+            f"{prm['n_estimators']} rounds, depth {prm['max_depth']}, learning rate {prm['learning_rate']:.4f}, "
+            f"min child weight {prm['min_child_weight']:.2f}"
+        )
+    return (
+        f"{prm['n_estimators']} rounds, {prm['num_leaves']} leaves, learning rate {prm['learning_rate']:.4f}, "
+        f"min child samples {prm['min_child_samples']}"
+    )
+
+
+def _tx(s: str) -> str:
+    """Markdown -> LaTeX for the settings sentences (underscores and percent signs)."""
+    return s.replace("_", "\\_").replace("%", "\\%")
+
+
+def settings_sentence(out: Path, tex: bool) -> str:
+    """Each tree's settings, read from its refit files (markdown or LaTeX), without a leading label."""
+    S = tree_settings(out)
+    parts = []
+    for m in TREES:
+        if m not in S:
+            continue
+        s = S[m]
+        parts.append(
+            f"{LABEL[m]}: {s['name'] or 'settings as recorded'} ({_fmt_params(m, s['params'])}"
+            + (f"; {s['note']}" if s["note"] else "")
+            + ")"
+        )
+    txt = (
+        "; ".join(parts)
+        + ". Leaf minimums are scaled from the pooled 24,000-row window to the 2,000-row window as in the per-bar spec."
+    )
+    return _tx(txt) if tex else txt
+
+
+def rerun_models(out: Path) -> dict:
+    """model -> its re-run gate table (rows of the shown buckets), for the models re-run on new settings."""
+    S = tree_settings(out)
+    res: dict = {}
+    for m, f in RERUN_GATES.items():
+        if m not in S or S[m]["interim"] or not S[m]["name"]:
+            continue
+        g = _read(out / f)
+        res[m] = (
+            g[g.bucket.isin(BUCKETS)] if g is not None and "bucket" in g.columns else g
+        )
+    return res
+
+
+def _rerun_sentences(out: Path) -> list[str]:
+    L = []
+    S = tree_settings(out)
+    for m, g in rerun_models(out).items():
+        if g is None:
+            L.append(
+                f"{LABEL[m]} ({S[m]['name']}): its re-run gate file `{RERUN_GATES[m]}` is missing."
+            )
+            continue
+        asr = g[g["asserted"].astype(bool)]
+        rep_ = g[~g["asserted"].astype(bool)]
+        s = (
+            f"{LABEL[m]} re-run on its new settings ({S[m]['name']}; CPU "
+            + ", ".join(S[m]["cpus"] or ["not recorded"])
+            + f"; `{RERUN_GATES[m]}`): asserted gates "
+            + ("pass" if asr["ok"].all() else "FAIL")
+            + " ("
+            + "; ".join(f"{r.gate}: {r.detail}" for r in asr.itertuples())
+            + ")"
+        )
+        if len(rep_):
+            s += "; reported: " + "; ".join(
+                f"{str(r.gate).replace(' [reported]', '')}: {r.detail}"
+                for r in rep_.itertuples()
+            )
+        L.append(
+            s
+            + ". Its stored-run gates (no-mask reproduction, the mask's effect, canonical table, cadence) compare its old settings and are left out here."
+        )
+    return L
+
+
+def _settings_change_note(out: Path, tex: bool) -> str:
+    """The tree settings changed since the first pass, read from the refit files."""
+    S = tree_settings(out)
+    ch = [m for m in ("xgb", "rf") if m in S and S[m]["name"] and not S[m]["interim"]]
+    s = (
+        "Settings changed since the first pass: "
+        + ("; ".join(CHANGE[m] for m in ch) or "none")
+        + "."
+    )
+    if ch:
+        s += (
+            " For "
+            + " and the ".join(LABEL[m] for m in ch)
+            + " the before / after comparison mixes the settings change with the design and the mask."
+        )
+    if "rf" in S and S["rf"]["interim"]:
+        s += " INTERIM: the random forest is still the library-default forest in this build; its refits on trial 255 are running."
+    return _tx(s) if tex else s
 
 
 def _esc(s: str) -> str:
@@ -115,6 +295,7 @@ def intro_md(out: Path, K: int) -> list[str]:
         + ". The linear models are unchanged by the mask: their identifiability mask already removed constant columns and copies (including every session-edge column) at every tune.",
         f"- Everything else is the first pass's: the same {K} refits (every 10 sessions), the same causal held-out tails, the same permutation generator and seeds (by bucket and refit), the same five models, parameters, seeds and two designs; one thread per fit. So before / after differs only by the design (and, for the trees, the mask) -- and by the permutation draws of most units: the stream is laid out unit by unit (every unit's P1 draws, then every unit's P2 draws), and the old design's twelve extra columns were its last twelve, so a column's P1 draws are identical in both runs while the P2 draws and the series / cluster units' draws are fresh draws of the same scheme. The ridge fits are the same problem in both runs (coefficients equal to 1e-10), so the ridge rows of the before / after tables measure that Monte Carlo noise alone. The intermediate rung -- de-dup, no mask -- is `results/feature_importance_1530_dedup_nomask/` (same code, FEATIMP_WINDOW_MASK=0).",
         "- Cadence: the campaign's trees now refit every session (`yhat_subtree_daily_*`). At an importance refit the model is identical under either cadence (the same 2000-session window, the same configuration), so the importance recorded at every 10th refit is the daily-refit model's importance on those days (checked on the stored runs, gate below).",
+        "- " + _settings_change_note(out, tex=False),  # 2026-10-08
         "",
     ]
 
@@ -135,14 +316,16 @@ def intro_tex(out: Path, K: int) -> str:
         )
         + r""". The linear models are unchanged by the mask (theirs already removed these columns at every tune). Everything else is the first pass's ("""
         + str(K)
-        + r""" refits, the same held-out tails, permutation generator and seeds, models and parameters), so before/after differs only by the design and the mask --- and by the permutation draws of most units (the stream is laid out unit by unit and the unit count changed: a column's P1 draws are identical in both runs, the P2 draws and the group units' draws are fresh; the ridge fits are the same problem in both runs, so the ridge rows measure that Monte Carlo noise). (iii) Cadence: the campaign's trees now refit every session; at an importance refit the model is identical under either cadence (same window, same configuration), so the importance at every 10th refit is the daily-refit model's importance on those days (Section 8). Before/after rankings: Section 9.
+        + r""" refits, the same held-out tails, permutation generator and seeds, models and parameters), so before/after differs only by the design and the mask --- and by the permutation draws of most units (the stream is laid out unit by unit and the unit count changed: a column's P1 draws are identical in both runs, the P2 draws and the group units' draws are fresh; the ridge fits are the same problem in both runs, so the ridge rows measure that Monte Carlo noise). (iii) Cadence: the campaign's trees now refit every session; at an importance refit the model is identical under either cadence (same window, same configuration), so the importance at every 10th refit is the daily-refit model's importance on those days (Section 8). Before/after rankings: Section 9. (iv) """
+        + _settings_change_note(out, tex=True)  # 2026-10-08
+        + r"""
 """
     )
 
 
 def buckets_md(root_rel: str, stem: str) -> str:
     return (
-        "Buckets: all_features, baseline = HAR + calendar. Scripts: `experiments/feature_importance_1530_dedup.py` (the re-run's roots and stages) driving the first pass's `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster; the per-window mask behind FEATIMP_WINDOW_MASK=1); "
+        "Buckets: all_features. Scripts: `experiments/feature_importance_1530_dedup.py` (the re-run's roots and stages) driving the first pass's `experiments/feature_importance_1530.py` (+ `_trees.py` for the refits, run on the cluster; the per-window mask behind FEATIMP_WINDOW_MASK=1); "
         f"tables in `{root_rel}/`, PDF `writeup/{stem}.pdf`."
     )
 
@@ -156,6 +339,9 @@ def tuned_md(tuned_ok: bool, tuned_lead: tuple[int, int] | None) -> str:
 # ============================================================================ gates
 def _gate_numbers(out: Path, G: pd.DataFrame) -> dict:
     n: dict = {}
+    RR = rerun_models(
+        out
+    )  # 2026-10-08: re-run models have their own gate (RERUN_GATES)
     gm = G.set_index(["bucket", "model"])
     GN = _read(NOMASK / "gates.csv")
     if GN is not None:
@@ -169,6 +355,7 @@ def _gate_numbers(out: Path, G: pd.DataFrame) -> dict:
             )
             for b in BUCKETS
             for m in TREES
+            if m not in RR  # 2026-10-08
         }
     n["mask_effect"] = {
         (b, m): (
@@ -178,6 +365,7 @@ def _gate_numbers(out: Path, G: pd.DataFrame) -> dict:
         )
         for b in BUCKETS
         for m in TREES
+        if m not in RR  # 2026-10-08
     }
 
     def _rows(b: str, m: str) -> int:
@@ -208,9 +396,13 @@ def _gate_numbers(out: Path, G: pd.DataFrame) -> dict:
     C = _read(out / "gates_cadence.csv")
     if C is not None:
         n["cadence"] = C[C.bucket.isin(BUCKETS)] if "bucket" in C.columns else C
+        if "model" in n["cadence"].columns:  # 2026-10-08
+            n["cadence"] = n["cadence"][~n["cadence"].model.isin(list(RR))]
     Q = _read(out / "gates_canonical.csv")
     if Q is not None:
         n["canonical"] = Q[Q.bucket.isin(BUCKETS)] if "bucket" in Q.columns else Q
+        if "model" in n["canonical"].columns:  # 2026-10-08
+            n["canonical"] = n["canonical"][~n["canonical"].model.isin(list(RR))]
     D = _read(out / "gates_design.csv")
     if D is not None:
         n["design"] = D[D.bucket.isin(BUCKETS)] if "bucket" in D.columns else D
@@ -291,7 +483,9 @@ def gates_md(out: Path, G: pd.DataFrame) -> list[str]:
     L.append(
         "- The mask's effect on the forecasts (masked refits vs the same unmasked stored runs): max |gap| "
         + ", ".join(
-            f"{BNAME[b]} {LABEL[m]} {me[(b, m)][0]:.3f}" for b in BUCKETS for m in TREES
+            # f"{BNAME[b]} {LABEL[m]} {me[(b, m)][0]:.3f}" for b in BUCKETS for m in TREES
+            f"{BNAME[b]} {LABEL[m]} {me[(b, m)][0]:.3f}"
+            for (b, m) in me  # 2026-10-08
         )
         + "; correlation "
         + f"{min(v[2] for v in me.values()):.4f}..{max(v[2] for v in me.values()):.4f}."
@@ -325,6 +519,7 @@ def gates_md(out: Path, G: pd.DataFrame) -> list[str]:
                 + " (`gates_canonical.csv`)."
             )
     L.append("- " + _cadence_sentence(n.get("cadence")))
+    L += ["- " + s for s in _rerun_sentences(out)]  # 2026-10-08
     cap = n["cap"]
     L.append(
         "- The linear coefficient captures (re-run on the new design through the spec's own class): coefficient x row + intercept = the forecast; capture vs the stored de-dup research forecasts (agent A, `results/linear_subsection_dedup/arms_hoffman2`): ridge max rel "
@@ -357,17 +552,23 @@ def gates_tex(out: Path, G: pd.DataFrame) -> str:
     md = gates_md(out, G)[1:]
     items = [x[2:] for x in md if x.startswith("- ")]
     return (
-        "\n\\section*{8. Gates}\n\\begin{itemize}\\itemsep1pt\n"
+        "\n\\section*{7. Gates}\n\\begin{itemize}\\itemsep1pt\n"  # 2026-10-08: was 8 (sections 5 and 9 commented out)
         + "\n".join("\\item " + _tex_inline(x) for x in items)
         + "\n\\end{itemize}\n"
     )
 
 
+def _show(s: str) -> str:
+    """A design name as the PDF presents it: without the leading ``adj_`` (user decision
+    2026-10-06; display only, the CSVs keep the stored names)."""
+    return re.sub(r"\badj_", "", str(s))
+
+
 def _tex_inline(s: str) -> str:
-    """Markdown bullet -> LaTeX: `code` -> texttt, escapes."""
+    """Markdown bullet -> LaTeX: `code` -> texttt (names as _show presents them), escapes."""
     out, code = [], False
     for part in s.split("`"):
-        out.append(("\\texttt{" + _esc(part) + "}") if code else _esc(part))
+        out.append(("\\texttt{" + _esc(_show(part)) + "}") if code else _esc(part))
         code = not code
     return (
         "".join(out)
@@ -433,6 +634,7 @@ def before_after_md(out: Path) -> list[str]:
     L = [
         "## Before / after: first pass (old design, trees unmasked) vs de-dup + mask",
         "Tables `before_after_ranks_<bucket>_<model>.csv` (every unit of every measure and level: value and rank old / new [/ de-dup no mask for the trees], the rank among the units common to both runs and its change), `before_after_spearman.csv`, `before_after_movers.csv`, `before_after_har_ma.csv`, `before_after_har_ma_columns.csv`, `before_after_clusters.csv` (clusters are renumbered per run; matched by their members once the session-edge columns are removed from the old cluster).",
+        _settings_change_note(out, tex=False),  # 2026-10-08
         "",
     ]
     # headline: har_ma_* in the trees, and the ridge rows as the draw-noise yardstick
@@ -491,7 +693,7 @@ def before_after_md(out: Path) -> list[str]:
     L.append(
         "### `har_ma_*` once its duplicates are gone (series value old / de-dup no mask / new; permutation and drop-column as % of the model's tail loss; `x_close share` = the old `_x_close` copies' part of the old har_ma column total)"
     )
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         L += [
             "",
             f"{b}:",
@@ -724,7 +926,9 @@ def before_after_tex(out: Path, root_rel: str) -> str:
         "\n\\section*{9. Before / after: first pass (old design) vs de-dup + mask}\n"
     ]
     body.append(
-        "Every unit of every measure and level, old vs new: \\texttt{before\\_after\\_ranks\\_<bucket>\\_<model>.csv}; clusters are renumbered per run and matched by their members once the session-edge columns are removed from the old cluster. Spearman between the old and the new importance over the units common to both runs:\n"
+        "Every unit of every measure and level, old vs new: \\texttt{before\\_after\\_ranks\\_<bucket>\\_<model>.csv}; clusters are renumbered per run and matched by their members once the session-edge columns are removed from the old cluster. "
+        + _settings_change_note(out, tex=True)  # 2026-10-08
+        + " Spearman between the old and the new importance over the units common to both runs:\n"
     )
     rows = []
     for b in BUCKETS:
@@ -743,7 +947,7 @@ def before_after_tex(out: Path, root_rel: str) -> str:
         + "\n".join(rows)
         + "\n\\bottomrule\\end{tabular}\\end{table}\n"
     )
-    for b in ("all_features", "baseline"):  # live_feasible commented out
+    for b in ("all_features",):  # baseline commented out; live_feasible commented out
         hr = _har_rows(har, harc, b)
         trows = [
             f"{LABEL[r[0]]} & {MNAME[r[1]].replace('|', '$|$')} & {_esc(r[2])} & {_esc(r[3])} & {_esc(r[4])} & {_esc(r[5])} & {r[6]} & {r[7]} \\\\"
@@ -815,3 +1019,229 @@ def tree_leaders_md(lead: dict, trees: tuple, tree_m: tuple, buckets: tuple) -> 
 
 def tree_leaders_tex(lead: dict, trees: tuple, tree_m: tuple, buckets: tuple) -> str:
     return _tex_inline(tree_leaders_md(lead, trees, tree_m, buckets))
+
+
+# ============================================================================ importance over time (2026-10-08)
+# User request 2026-10-08 (meeting): each tree's importance over the 147 refits, all features, series level, from the
+# aggregate's per-refit table (across_time_refits_series.parquet): SHAP mean |phi| share and MDI / gain share per
+# refit (rows 1-2), and the same series' rank among the 49 (rows 3-4, capped at 20).  har_ma_* plus the next five
+# series by overall share (mean over the refits and the three trees, per measure); the rest summed as "other".
+OVER_TIME_FIG = "feature_importance_1530_over_time"  # writeup/figures/<name>.pdf / .png
+OVER_TIME_MEASURES = (("shap", "SHAP mean |phi| share"), ("mdi", "MDI / gain share"))
+# 2026-10-08 (user): the same figure for the per-bar linear models; |beta x sd| in place of MDI
+OVER_TIME_FIG_LIN = "feature_importance_1530_over_time_linear"
+OVER_TIME_MEASURES_LIN = (
+    ("shap", "SHAP mean |phi| share"),
+    ("bsd", "|beta x sd| share"),
+)
+OVER_TIME_TOP = 5
+OVER_TIME_SMOOTH = 5  # refits, centred rolling mean
+OVER_TIME_RANK_CAP = 20
+CRASH_REFITS = (42, 43)  # tails starting 2020-02-28 and 2020-03-13 (the 2020 crash)
+# colour-blind-safe (Paul Tol "muted"); har_ma_* black, the rest grey
+_TOL_MUTED = (
+    "#CC6677",
+    "#332288",
+    "#DDCC77",
+    "#117733",
+    "#88CCEE",
+    "#882255",
+    "#44AA99",
+    "#999933",
+    "#AA4499",
+)
+
+
+def over_time_data(
+    out: Path, models: tuple = TREES, measures: tuple = OVER_TIME_MEASURES
+) -> dict:
+    """{measure: (frame of model x refit x series share / rank, top series, n_series)} for all features."""
+    a = pd.read_parquet(out / "across_time_refits_series.parquet")
+    a = a[
+        (a.bucket == "all_features")
+        & a.model.isin(models)
+        & a.measure.isin([m for m, _ in measures])
+    ]
+    res = {}
+    for meas, _ in measures:
+        s = a[a.measure == meas].copy()
+        s["date"] = pd.to_datetime(s["date"])
+        overall = s.groupby("unit")["value"].mean().sort_values(ascending=False)
+        top = [u for u in overall.index if u != "har_ma"][:OVER_TIME_TOP]
+        res[meas] = (
+            s,
+            ["har_ma"] + top,
+            int(s.groupby(["model", "refit"]).unit.count().max()),
+        )
+    return res
+
+
+def over_time_figure(
+    out: Path,
+    models: tuple = TREES,
+    measures: tuple = OVER_TIME_MEASURES,
+    fig_name: str = OVER_TIME_FIG,
+) -> tuple[Path, dict]:
+    """Draw writeup/figures/<fig_name>.pdf / .png; return the path and the numbers used."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    D = over_time_data(out, models, measures)
+    series = list(dict.fromkeys(u for meas in D for u in D[meas][1] if u != "har_ma"))
+    colour = {
+        "har_ma": "black",
+        **{u: _TOL_MUTED[i % len(_TOL_MUTED)] for i, u in enumerate(series)},
+    }
+    nrow = 2 * len(measures)
+    fig, axes = plt.subplots(
+        nrow,
+        len(models),
+        figsize=(3.65 * len(models) + 0.05, 2.35 * nrow),
+        sharex=True,
+        squeeze=False,
+    )
+    info: dict = {}
+    for j, model in enumerate(models):
+        for i, (meas, mname) in enumerate(measures):
+            s, top, n_ser = D[meas]
+            g = s[s.model == model]
+            dates = g.groupby("refit")["date"].first().sort_index()
+            share = g.pivot_table(
+                index="refit", columns="unit", values="value"
+            ).sort_index()
+            rank = g.pivot_table(
+                index="refit", columns="unit", values="rank"
+            ).sort_index()
+            other = share.drop(columns=top).sum(axis=1)
+            ax_s, ax_r = axes[i, j], axes[len(measures) + i, j]
+            for ax in (ax_s, ax_r):
+                ax.axvspan(
+                    dates.loc[CRASH_REFITS[0]],
+                    dates.loc[CRASH_REFITS[-1] + 1],
+                    color="0.85",
+                    lw=0,
+                    zorder=0,
+                )
+            for u in top + ["other"]:
+                y = other if u == "other" else share[u]
+                c = "0.55" if u == "other" else colour[u]
+                lab = (
+                    f"other {n_ser - len(top)}"
+                    if u == "other"
+                    else _show(str(g[g.unit == u].label.iloc[0]))
+                )
+                ax_s.plot(dates.values, y.values, color=c, lw=0.5, alpha=0.45)
+                ax_s.plot(
+                    dates.values,
+                    y.rolling(OVER_TIME_SMOOTH, center=True, min_periods=1)
+                    .mean()
+                    .values,
+                    color=c,
+                    lw=1.5,
+                    label=lab,
+                )
+                if u != "other":
+                    r = rank[u].clip(upper=OVER_TIME_RANK_CAP)
+                    ax_r.plot(dates.values, r.values, color=c, lw=0.5, alpha=0.45)
+                    ax_r.plot(
+                        dates.values,
+                        r.rolling(OVER_TIME_SMOOTH, center=True, min_periods=1)
+                        .mean()
+                        .values,
+                        color=c,
+                        lw=1.5,
+                    )
+            ax_s.set_ylim(0, 1)
+            ax_r.set_ylim(OVER_TIME_RANK_CAP + 0.5, 0.5)
+            ax_r.set_yticks([1, 5, 10, 15, 20])
+            ax_r.set_yticklabels(["1", "5", "10", "15", "20+"])
+            if j == 0:
+                ax_s.set_ylabel(mname.replace(" share", "\nshare"), fontsize=8)
+                ax_r.set_ylabel(
+                    mname.replace(" share", f"\nrank of {n_ser}"), fontsize=8
+                )
+            if i == 0:
+                ax_s.set_title(LABEL[model], fontsize=10)
+            if j == len(models) - 1:
+                ax_s.legend(
+                    fontsize=6.5,
+                    loc="upper left",
+                    bbox_to_anchor=(1.01, 1.0),
+                    frameon=False,
+                )
+            for ax in (ax_s, ax_r):
+                ax.tick_params(labelsize=7)
+                ax.grid(alpha=0.25, lw=0.4)
+            info[(model, meas)] = dict(
+                har_share_mean=float(share["har_ma"].mean()),
+                har_share_crash=float(share.loc[list(CRASH_REFITS), "har_ma"].mean()),
+                har_rank1=int((rank["har_ma"] == 1).sum()),
+                n_refits=int(len(share)),
+            )
+    fig.tight_layout()
+    path = R / "writeup" / "figures" / f"{fig_name}.pdf"
+    fig.savefig(path)
+    fig.savefig(path.with_suffix(".png"), dpi=150)
+    plt.close(fig)
+    info["series"] = {meas: D[meas][1] for meas in D}
+    info["n_series"] = max(D[meas][2] for meas in D)
+    return path, info
+
+
+def over_time_tex(out: Path) -> str:
+    """The figure (drawn here, so every build of the PDF redraws it) and its caption."""
+    path, info = over_time_figure(out)
+    _, li = over_time_figure(
+        out, LIN, OVER_TIME_MEASURES_LIN, OVER_TIME_FIG_LIN
+    )  # 2026-10-08: linear models
+    T = tree_settings(out)
+    names = ", ".join(f"{LABEL[m]} ({T[m]['name']})" for m in TREES if m in T)
+    har = "; ".join(
+        f"{LABEL[m]} {100 * info[(m, 'shap')]['har_share_mean']:.0f}\\% SHAP / {100 * info[(m, 'mdi')]['har_share_mean']:.0f}\\% MDI, "
+        f"rank 1 in {info[(m, 'shap')]['har_rank1']} / {info[(m, 'mdi')]['har_rank1']} of {info[(m, 'shap')]['n_refits']} refits"
+        for m in TREES
+        if (m, "shap") in info
+    )
+    return (
+        "\n\\section*{6. Importance over time}\n"
+        "\\begin{figure}[H]\\centering\\includegraphics[width=\\textwidth]{figures/"
+        + OVER_TIME_FIG
+        + ".pdf}\n\\caption{Importance over time, all features, series level (a series = the sum of its columns), one column per tree: "
+        + _tx(names)
+        + ". Rows 1--2: each series' share of the refit's total importance, SHAP mean $|\\phi|$ on the refit's held-out tail and MDI / gain of the fitted model; rows 3--4: the same series' rank among the "
+        + str(info["n_series"])
+        + " series (1 = most important; ranks beyond 20 drawn at 20). Lines: \\texttt{har\\_ma\\_*} and the next "
+        + str(OVER_TIME_TOP)
+        + " series by overall share (mean over the refits and the three trees), the rest summed as `other'. x axis: the start date of each of the 147 refits' tails. Thin lines: one point per refit --- the trees are refit every 10 sessions, and each point is that refit's model on its own held-out tail (the $\\le 10$ sessions it forecasts before the next refit): SHAP averaged over those tail rows, MDI / gain of the fitted model; thick lines: "
+        + str(OVER_TIME_SMOOTH)
+        + "-refit centred rolling mean. Grey band: the 2020 crash tails (refits 42--43, tails starting 2020-02-28 and 2020-03-13). Mean \\texttt{har\\_ma\\_*} share and rank-1 count: "
+        + har
+        + ". SHAP and MDI shares are split credit: \\texttt{har\\_ma\\_*} shares its credit with every input correlated with the HAR ladder, and MDI and SHAP inflate continuous, many-valued columns (the noise-probe and cardinality checks above); the shares below \\texttt{har\\_ma\\_*} are therefore not a ranked feature list.}\\end{figure}\n"
+        + over_time_linear_tex(li)
+    )
+
+
+def over_time_linear_tex(info: dict) -> str:
+    """Caption of the linear models' figure (2026-10-08, user request)."""
+    har = "; ".join(
+        f"{LABEL[m]} {100 * info[(m, 'shap')]['har_share_mean']:.0f}\\% SHAP / {100 * info[(m, 'bsd')]['har_share_mean']:.0f}\\% "
+        f"$|\\beta\\cdot sd|$, rank 1 in {info[(m, 'shap')]['har_rank1']} / {info[(m, 'bsd')]['har_rank1']} of {info[(m, 'shap')]['n_refits']} refits"
+        for m in LIN
+        if (m, "shap") in info
+    )
+    return (
+        "\\begin{figure}[H]\\centering\\includegraphics[width=0.8\\textwidth]{figures/"
+        + OVER_TIME_FIG_LIN
+        + ".pdf}\n\\caption{The same for the per-bar linear models (ridge and lasso, as in Setup), one column per model. Rows 1--2: "
+        "each series' share of the refit's SHAP mean $|\\phi|$ ($\\phi_j=\\beta_j(x_j-\\bar x_j)$, window mean as background) on the "
+        "refit's held-out tail, and of $|\\beta\\cdot sd|$ (coefficient times the column's standard deviation in the refit's 2000-session "
+        "window, summed over a series' columns); rows 3--4: ranks among the "
+        + str(info["n_series"])
+        + " series. The same 147 refit points and tails as the trees (one point per 10 sessions), the same smoothing and grey crash band. "
+        "Mean \\texttt{har\\_ma\\_*} share and rank-1 count: "
+        + har
+        + ". A linear model's credit is split across correlated columns differently from a tree's (the penalty spreads or "
+        "concentrates it), so the shares compare over time within one model, not across the two figures.}\\end{figure}\n"
+    )
