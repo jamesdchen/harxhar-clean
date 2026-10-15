@@ -1,0 +1,90 @@
+% 2026-10-13 (user): the bucket story check of the feature study (results/feature_mcs_2026-10-08/SUMMARY.md, section
+% "The bucket story check"; experiments/feature_mcs_buckets.py).  Every number is a \bk... macro written by
+% writeup/make_buckets_tex.py from buckets_{pairwise,stepm,spa,verdicts,gates}.csv, bucket_losses.parquet and
+% mcs_sets.csv (every qualitative claim below is asserted there).  No LSTM is among the study's estimators or pools.
+% Input at the end of sections/appendix_campaign_16h.tex, where the parked lean-set subsection was (the feature study
+% replaces it; MASTER_TABLE_REVIEW_2026-10-01.md items 84 and 91-92).
+\ifdefined\bkNSeries\else\input{generated/buckets_numbers}\fi
+\subsection{Bucket by Bucket: Do the Inputs Help Only Together?}
+\label{sec:app_buckets}
+
+\paragraph{Question.} Does each bucket of exogenous inputs add little to HAR + calendar on
+its own, while all features together add a discernible amount? If so, a joint test against
+\texttt{baseline} should name \texttt{all\_features} and no single bucket.
+
+\paragraph{Design.} The \bkNBuckets{} buckets partition the \bkNSeries{} series of
+\texttt{all\_features}: the E-mini's return moments (\bkSizeMom{} series), liquidity
+(\bkSizeLiq, the two order-flow imbalances included), the equal- and value-weighted stock
+cross-sections \texttt{market\_ew} and \texttt{market\_vw} (\bkSizeMew{} and \bkSizeMvw),
+sentiment (\bkSizeSent), implied volatility (\bkSizeIv), volatility demand (\bkSizeVd) and the
+FOMC calendar (\bkSizeFomc). Each bucket gives two designs, HAR + calendar plus the bucket
+and all features minus the bucket; with the two anchors each estimator fits \bkNDesigns{}
+designs for the 16:00 bar. The estimators are the per-bar ridge, lasso and elastic net,
+pre-tuned (Section~\ref{sec:close_option_methods}), and LightGBM, XGBoost and the random
+forest with their shipped settings, refit every session. The \bkNPools{} pools average each
+design's daily loss and daily midpoint P\&L over the linear models, over the trees, over all
+\bkNEst{} estimators, and over all but LightGBM. Every forecast is its plain back-transform
+$f^{2}B$, on the same \bkDays{} days.
+
+\paragraph{Tests.} Pairwise, a design is set against its reference by the Diebold--Mariano
+statistic of QLIKE, of a winsorized QLIKE (the daily loss differentials clipped at their
+extreme percentiles across the designs) and of the fit-space squared error, and on the trade
+by the $\mathrm{sign}(s)$ Sharpe ratio at the midpoint and the Newey--West $t$ of the daily
+P\&L difference (significance at \bkSigPct\,\%). Jointly, Hansen's SPA test and
+Romano--Wolf's StepM (circular block bootstrap, \bkBoot{} draws, blocks of \bkBlockA,
+\bkBlockB{} and \bkBlockC{} days) ask on QLIKE, winsorized QLIKE and the trade loss:
+(A) does a bucket alone, or all features, beat HAR + calendar; (B) does removing a bucket
+from all features help; (C) does removing it hurt? A design is named when StepM rejects at a
+family-wise rate of \bkFwer\,\% at every block length.
+
+\paragraph{Finding.} The story fails in each of the \bkCells{} family-and-loss cells
+(Table~\ref{tab:app_buckets}). StepM never names all features against HAR + calendar, at any
+block length, and pairwise its gain is never significant: its most negative DM on QLIKE is
+\bkAllDMMin{} (\bkAllDMMinWho) and its largest HAC $t$ on the trade \bkAllTMax{}
+(\bkAllTMaxWho), although it trades above HAR + calendar in \bkAllShHigher{} of the
+\bkNFam{} families. Where a gain is significant, it comes from one bucket. On QLIKE, for the
+linear models, it is the value-weighted cross-section: StepM names \texttt{market\_vw} in
+\bkBucketCells{} cells (\bkBucketCellsWho); with it the lasso's QLIKE changes by
+\bkLassoVwDQ\,\% (DM \bkLassoVwDM, SPA $p\le\bkLassoVwSpaMax$), and the linear pool's DM is
+\bkPoolLinVwDM{} (\bkPoolLinVwDMw{} winsorized) against \bkPoolLinAllDM{}
+(\bkPoolLinAllDMw) for all features. Removing it is the removal that hurts: test C names it
+in \bkRemoveCells{} cells (linear pool DM \bkPoolLinVwOutDM, \bkPoolLinVwOutDMw{}
+winsorized). Liquidity added alone makes the linear models worse: QLIKE rises by
+\bkLiqLinDQMin--\bkLiqLinDQMax\,\% (DM \bkLiqLinDMMin{} to \bkLiqLinDMMax). On the trade, for
+the trees, the gains are single buckets and pairwise only. XGBoost trades at \bkXgbBaseSh{}
+on HAR + calendar, at \bkXgbAllSh{} on all features (HAC $t$ \bkXgbAllT), at \bkXgbLiqSh{}
+with liquidity alone ($t$ \bkXgbLiqT) and at \bkXgbMewSh{} with \texttt{market\_ew} alone
+($t$ \bkXgbMewT); StepM names the latter at blocks of \bkXgbMewStepmBlocks{} days, not at
+\bkXgbMewStepmMiss. The random forest moves from \bkRfBaseSh{} to \bkRfAllSh{} ($t$
+\bkRfAllT) with all features, and to \bkRfMomSh{} ($t$ \bkRfMomT) and \bkRfMewSh{} ($t$
+\bkRfMewT) with the moments or \texttt{market\_ew} alone. LightGBM has no StepM rejection;
+its one significant pairwise gain is the moments on QLIKE (DM \bkLgbmMomDM). Pooled over all
+\bkNEst{} estimators, all features against HAR + calendar has DM \bkPoolAllDM{} on QLIKE and
+trades at \bkPoolAllSh{} against \bkPoolAllBaseSh{} ($t$ \bkPoolAllT). In the pool without
+LightGBM, removing liquidity from all features raises the Sharpe ratio from
+\bkPoolFiveAllSh{} to \bkPoolFiveLiqOutSh{} ($t$ \bkPoolFiveLiqOutT; test B at every block
+length, SPA $p\le\bkPoolFiveLiqOutSpaMax$).
+
+\paragraph{Reading.} On these \bkDays{} days the inputs do not help only together. No joint
+test separates all features from HAR + calendar, and the single buckets that do separate
+differ with the model and the loss: the value-weighted cross-section for the linear models'
+accuracy; the moments, the equal-weighted cross-section and liquidity for the trees' trade,
+where all features trades below each tree's best single bucket. The model confidence set
+over the same study's \bkMcsN{} single-series candidates keeps every HAR + calendar model in
+all \bkMcsSets{} of its sets on these losses, so it cannot rank the input sets either. The
+families share designs and days, so their counts are not independent evidence.
+
+\begin{table}[H]
+\centering
+\caption{The bucket story check by family, on \bkDays{} days. QLIKE: all features against
+HAR + calendar (change of the mean in \%, DM; negative = all features better) and the
+add-bucket design with the most negative DM. Trade: the $\mathrm{sign}(s)$ Sharpe ratio at
+the midpoint of HAR + calendar, of all features (in parentheses the HAC $t$ of the
+difference to HAR + calendar) and of the add-bucket design with the largest HAC $t$.
+StepM: designs named at a family-wise rate of \bkFwer\,\% at every block length --- A, the
+bucket added to HAR + calendar beats it; B, removing it from all features helps; C, removing
+it hurts --- on QLIKE (Q), winsorized QLIKE (Q$_w$) or the trade loss (T); all features is
+never named. Pools average each design's daily loss and P\&L over their estimators.}
+\label{tab:app_buckets}
+\resizebox{\textwidth}{!}{\scriptsize\setlength{\tabcolsep}{2.4pt}\input{generated/table_buckets_story}}
+\end{table}

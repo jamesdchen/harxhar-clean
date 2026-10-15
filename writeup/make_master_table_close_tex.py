@@ -11,7 +11,13 @@ Reads the CSVs experiments/master_table_close.py wrote (never retypes a number) 
   results/close_master_table/qlike_vs_sharpe.png
   writeup/master_table_close.pdf             (pdflatex, two passes; the PDF and aux are not committed)
 
-Run:  python writeup/make_master_table_close_tex.py   (master_table_close.py calls it at the end)
+2026-10-06 (user decisions): recalibration removed -- every number is the PLAIN forecast f^2 B
+(QLIKE column qlike_raw, the trade q = sign(plain - iv_var)); intervals commented out -- every
+table prints point estimates only (the bootstrap is disabled since b761b28, so an interval would
+equal its point); the DM statistic and the HAC t are statistics, not intervals, and stay.
+
+Run:  python writeup/make_master_table_close_tex.py [--per-bar-only]
+      (master_table_close.py calls it at the end, both ways)
 """
 
 from __future__ import annotations
@@ -61,18 +67,30 @@ GROUPS = {
             "HAR-ladder variants",
         ),
     ),
-    "per-bar nonlinear (trees, LSTM)": (
+    # 2026-10-13 (user): LSTM parked for now (double-standardisation bug):
+    # "per-bar nonlinear (trees, LSTM)": (
+    #     "#1baf7a",
+    #     "^",
+    #     (
+    #         "per-bar tree",
+    #         "LSTM",
+    #     ),  # every tree rung (T10, T1, RS10, RS1, Optuna) and both LSTMs: by prefix
+    # ),
+    "per-bar nonlinear (trees)": (
         "#1baf7a",
         "^",
-        (
-            "per-bar tree",
-            "LSTM",
-        ),  # every tree rung (T10, T1, RS10, RS1, Optuna) and both LSTMs: by prefix
+        ("per-bar tree",),  # every tree rung (T10, T1, RS10, RS1, Optuna): by prefix
     ),
 }
 PREFIX_GROUPS = {
-    "per-bar nonlinear (trees, LSTM)"
+    # 2026-10-13 (user): LSTM parked -- was "per-bar nonlinear (trees, LSTM)"
+    "per-bar nonlinear (trees)"
 }  # families matched by prefix, not by name
+
+
+def is_lstm_text(s: str) -> bool:
+    """2026-10-13 (user): LSTM parked for now (double-standardisation bug) -- a row / line about an LSTM."""
+    return "lstm" in str(s).lower()
 
 
 def in_group(fam: pd.Series, name: str, fams: tuple[str, ...]) -> pd.Series:
@@ -95,9 +113,20 @@ def tex_escape(s: str) -> str:
     )
 
 
+# 2026-10-06 (user): "remove adj_ in the names of any variable being presented" -- every design
+# column name this maker prints drops its leading adj_ (adj_vix_ma_* -> vix_ma_*; har_ma_* unchanged);
+# the CSVs, keys and code identifiers keep their names.
+ADJ_PREFIX = re.compile(r"(?<![A-Za-z0-9_])adj_(?=[A-Za-z])")
+
+
+def display_name(name: str) -> str:
+    """A design column name as presented: the leading adj_ dropped."""
+    return ADJ_PREFIX.sub("", str(name))
+
+
 def tex_label(label: str) -> str:
     """Bucket names in brackets as design names (typewriter), the rest escaped."""
-    parts = re.split(r"(\[[^\]]+\])", str(label))
+    parts = re.split(r"(\[[^\]]+\])", display_name(label))
     out = []
     for p in parts:
         if p.startswith("[") and p.endswith("]"):
@@ -114,7 +143,13 @@ def f(v, fmt: str) -> str:
     return s.replace("-", "$-$") if "$" not in s else s
 
 
+def pt(v, nd: int = 2) -> str:
+    """A signed point estimate (2026-10-06: intervals commented out, user)."""
+    return f(v, "{:+.%df}" % nd)
+
+
 def ci(v, lo, hi, nd: int = 2) -> str:
+    """2026-10-06: no longer called (intervals commented out, user); kept for the parked lines."""
     if not all(np.isfinite([v, lo, hi])):
         return f(v, "{:+.%df}" % nd) if np.isfinite(v) else ""
     return (
@@ -198,33 +233,24 @@ def longtable(
 
 def accuracy_table(tab: pd.DataFrame) -> list[str]:
     t = tab[tab["key"] != "always_short"]
+    # 2026-10-06: recalibration removed, user decision -- the "QLIKE recal." and "recal. vs RV"
+    # columns are gone; intervals commented out (user) -- the "95% interval, daily diff." column too:
+    # ("QLIKE recal.", ""), (r"recal.\ vs RV", ""), (r"95\% interval, daily diff.", ""),
     cols = [
-        ("QLIKE raw", ""),
-        ("QLIKE recal.", ""),
-        (r"recal.\ vs RV", ""),
+        ("QLIKE", ""),
+        (r"QLIKE vs RV", ""),
         (r"\% vs R", ""),
-        (r"95\% interval, daily diff.", ""),
         ("DM", ""),
         (r"$\overline{RV}/\overline{F}$", ""),
         (r"extreme (all sess.)", ""),
     ]
 
     def cells(r: pd.Series) -> list[str]:
-        iv = (
-            ""
-            if r["is_reference"]
-            else "["
-            + f(r["qlike_diff_ci_lo"], "{:+.4f}")
-            + ", "
-            + f(r["qlike_diff_ci_hi"], "{:+.4f}")
-            + "]"
-        )
+        # iv = "[" + f(r["qlike_diff_ci_lo"], "{:+.4f}") + ", " + f(r["qlike_diff_ci_hi"], "{:+.4f}") + "]"
         return [
             f(r["qlike_raw"], "{:.4f}"),
-            f(r["qlike_recal"], "{:.4f}"),
-            f(r["qlike_recal_unclipped"], "{:.4f}"),
+            f(r["qlike_raw_unclipped"], "{:.4f}"),
             "" if r["is_reference"] else f(r["qlike_pct_vs_ref"], "{:+.1f}"),
-            iv,
             "" if r["is_reference"] else f(r["dm_vs_ref"], "{:+.2f}"),
             f(r["calib_mean_realized_over_forecast"], "{:.3f}"),
             f(r["n_extreme_all_sessions"], "{:.0f}"),
@@ -232,16 +258,15 @@ def accuracy_table(tab: pd.DataFrame) -> list[str]:
 
     lag = int(t["dm_hac_lag"].dropna().iloc[0]) if t["dm_hac_lag"].notna().any() else 0
     cap = (
-        r"Forecast accuracy at the 16:00 bar (15:30--16:00), research scorer. QLIKE raw: the plain back-transform $f^2B$; "
-        r"QLIKE recal.: $(f^2+s)B$, $s$ the forecast's own mean squared adjusted-scale error at 16:00 over the previous 250 sessions, "
-        r"lagged one session; both against the per-bar spec's 16:00 target; recal.\ vs RV: the same forecast against the unclipped realized "
-        r"variance. \% vs R and the interval (circular day blocks of 21, 2{,}000 draws) on the daily loss difference against the reference R; "
-        r"DM: Diebold--Mariano statistic, Newey--West variance (Bartlett, lag %d) with the Harvey--Leybourne--Newbold correction; "
-        r"$\overline{RV}/\overline{F}$: mean target over mean recalibrated forecast; extreme: plain forecasts below PLAIN\_FLOOR on every 16:00 "
-        r"session of the arm span (none falls on a trade day). R = reference, H = recommended headline, $=$ identical to another row."
+        r"Forecast accuracy at the 16:00 bar (15:30--16:00). Every forecast is the plain back-transform $f^2B$ ($f$ the forecast on "
+        r"the adjusted scale $\sqrt{RV/B}$, $B$ the diurnal baseline). QLIKE: against the per-bar spec's 16:00 target; QLIKE vs RV: the "
+        r"same forecast against the unclipped realized variance. \% vs R: the mean daily loss difference against the reference R; "
+        r"DM: Diebold--Mariano statistic on that difference, Newey--West variance (Bartlett, lag %d) with the Harvey--Leybourne--Newbold "
+        r"correction; $\overline{RV}/\overline{F}$: mean target over mean forecast; extreme: plain forecasts below PLAIN\_FLOOR on every "
+        r"16:00 session of the arm span. Point estimates. R = reference, H = recommended headline, $=$ identical to another row."
     ).replace("lag %d", f"lag {lag}")
     return longtable(
-        t, cols, cells, cap, "tab:master_close_accuracy", "l" + "r" * 4 + "c" + "r" * 3
+        t, cols, cells, cap, "tab:master_close_accuracy", "l" + "r" * len(cols)
     )
 
 
@@ -255,12 +280,15 @@ def trade_table(tab: pd.DataFrame) -> list[str]:
         ("buys", ""),
         (r"$\Delta$Sharpe vs R", ""),
         (r"$\Delta$Sharpe$^{\times}$ vs R", ""),
+        (r"$t$ vs R", ""),
         (r"$\Delta$Sharpe vs short", ""),
         (r"$\Delta$Sharpe$^{\times}$ vs short", ""),
     ]
 
     def cells(r: pd.Series) -> list[str]:
         short = r["key"] == "always_short"
+        # 2026-10-06: intervals commented out (user) -- point estimates only; was
+        # ci(r["dSharpe_mid_vs_ref"], r["dSharpe_mid_vs_ref_lo"], r["dSharpe_mid_vs_ref_hi"]) etc.
         return [
             f(r["Sharpe_mid"], "{:.2f}"),
             f(r["Sharpe_crossed"], "{:.2f}"),
@@ -268,43 +296,20 @@ def trade_table(tab: pd.DataFrame) -> list[str]:
             f(r["mean_crossed"], "{:+.3f}"),
             f(100 * r["hit_rate_mid"], "{:.1f}"),
             f(r["n_buy"], "{:.0f}"),
-            ""
-            if r["is_reference"]
-            else ci(
-                r["dSharpe_mid_vs_ref"],
-                r["dSharpe_mid_vs_ref_lo"],
-                r["dSharpe_mid_vs_ref_hi"],
-            ),
-            ""
-            if r["is_reference"]
-            else ci(
-                r["dSharpe_crossed_vs_ref"],
-                r["dSharpe_crossed_vs_ref_lo"],
-                r["dSharpe_crossed_vs_ref_hi"],
-            ),
-            ""
-            if short
-            else ci(
-                r["dSharpe_mid_vs_short"],
-                r["dSharpe_mid_vs_short_lo"],
-                r["dSharpe_mid_vs_short_hi"],
-            ),
-            ""
-            if short
-            else ci(
-                r["dSharpe_crossed_vs_short"],
-                r["dSharpe_crossed_vs_short_lo"],
-                r["dSharpe_crossed_vs_short_hi"],
-            ),
+            "" if r["is_reference"] else pt(r["dSharpe_mid_vs_ref"]),
+            "" if r["is_reference"] else pt(r["dSharpe_crossed_vs_ref"]),
+            "" if r["is_reference"] else pt(r["t_hac_mid_vs_ref"]),
+            "" if short else pt(r["dSharpe_mid_vs_short"]),
+            "" if short else pt(r["dSharpe_crossed_vs_short"]),
         ]
 
     cap = (
         r"The last-30-min trade: $\mathrm{sign}(s)$ on the straddle (nearest out-of-the-money call and put, same-day expiry, one position), "
-        r"entered at 15:30, held to the close; buy when the recalibrated 16:00 forecast exceeds the 15:30 implied variance, sell otherwise. "
+        r"entered at 15:30, held to the close; buy when the plain 16:00 forecast $f^2B$ exceeds the 15:30 implied variance, sell otherwise. "
         r"Returns per unit of premium; Sharpe annualized by $\sqrt{252}$ per trade day; $^{\times}$: the entry pays the spread (buy at the ask, "
         r"sell at the bid); hit: share of days with a positive midpoint return; buys: days the rule buys. $\Delta$Sharpe: the row minus the "
-        r"reference R (or minus always short) on the same days, with the 95\% percentile interval of a paired circular block bootstrap "
-        r"(blocks of 21 days, 2{,}000 draws, one set of resampled days for every row)."
+        r"reference R (or minus always short) on the same days, point estimates; $t$ vs R: Newey--West HAC $t$ statistic of the mean daily "
+        r"midpoint-return difference against R."
     )
     t = pd.concat(
         [tab[tab["key"] == "always_short"], tab[tab["key"] != "always_short"]]
@@ -315,7 +320,7 @@ def trade_table(tab: pd.DataFrame) -> list[str]:
         cells,
         cap,
         "tab:master_close_trade",
-        r">{\raggedright\arraybackslash}p{0.26\linewidth}" + "r" * 6 + "c" * 4,
+        r">{\raggedright\arraybackslash}p{0.30\linewidth}" + "r" * len(cols),
     )
 
 
@@ -327,7 +332,9 @@ def figure(tab: pd.DataFrame) -> str:
         & (tab["family"] != CHECK)
         & (tab["duplicate_of"].fillna("") == "")
     ]
-    ql = A["qlike_recal"]
+    ql = A[
+        "qlike_raw"
+    ]  # 2026-10-06: the plain forecast's QLIKE (recalibration removed, user decision)
     # the x-range covers the bulk; forecasts beyond the far edge are named in the caption, not dropped silently
     hi_edge = float(
         np.percentile(ql, 75) + 3.0 * (np.percentile(ql, 75) - np.percentile(ql, 25))
@@ -339,7 +346,7 @@ def figure(tab: pd.DataFrame) -> str:
         g = on[in_group(on["family"], name, fams)]
         if len(g):
             ax.scatter(
-                g["qlike_recal"],
+                g["qlike_raw"],
                 g["Sharpe_mid"],
                 s=34,
                 c=col,
@@ -353,7 +360,7 @@ def figure(tab: pd.DataFrame) -> str:
     if len(short):
         ax.axhline(float(short.iloc[0]), color=INK2, lw=1.0, ls=(0, (4, 3)), zorder=1)
         ax.text(
-            on["qlike_recal"].max(),
+            on["qlike_raw"].max(),
             float(short.iloc[0]) + 0.03,
             f"always short {float(short.iloc[0]):.2f}",
             color=INK2,
@@ -366,7 +373,7 @@ def figure(tab: pd.DataFrame) -> str:
         if len(r):
             r = r.iloc[0]
             ax.scatter(
-                [r["qlike_recal"]],
+                [r["qlike_raw"]],
                 [r["Sharpe_mid"]],
                 s=150,
                 facecolors="none",
@@ -376,14 +383,16 @@ def figure(tab: pd.DataFrame) -> str:
             )
             ax.annotate(
                 txt + r["label"],
-                (r["qlike_recal"], r["Sharpe_mid"]),
+                (r["qlike_raw"], r["Sharpe_mid"]),
                 xytext=(10, -14 if flag == "is_reference" else 8),
                 textcoords="offset points",
                 fontsize=8,
                 color=INK,
             )
     ax.set_xlabel(
-        "QLIKE at the 16:00 bar, recalibrated (lower is better)", color=INK, fontsize=9
+        "QLIKE at the 16:00 bar, plain forecast f²B (lower is better)",
+        color=INK,
+        fontsize=9,
     )
     ax.set_ylabel("sign(s) Sharpe, midpoint fill", color=INK, fontsize=9)
     ax.grid(True, color=GRID, lw=0.6, zorder=0)
@@ -399,7 +408,7 @@ def figure(tab: pd.DataFrame) -> str:
     plt.close(fig)
     if len(off):
         names = "; ".join(
-            f"{r['label']} (QLIKE {r['qlike_recal']:.3f}, Sharpe {r['Sharpe_mid']:.2f})"
+            f"{r['label']} (QLIKE {r['qlike_raw']:.3f}, Sharpe {r['Sharpe_mid']:.2f})"
             for _, r in off.iterrows()
         )
         return (
@@ -423,6 +432,7 @@ PREAMBLE = r"""\documentclass[10pt]{article}
 \usepackage{hyperref}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{4pt}
+\sloppy
 \begin{document}
 \setlength{\LTcapwidth}{\textwidth}
 """
@@ -433,7 +443,7 @@ def md_to_tex(s: str) -> str:
     out = []
     for part in re.split(r"(`[^`]+`|\*\*[^*]+\*\*)", s):
         if part.startswith("`") and part.endswith("`"):
-            out.append(r"\texttt{" + tex_escape(part[1:-1]) + "}")
+            out.append(r"\texttt{" + tex_escape(display_name(part[1:-1])) + "}")
         elif part.startswith("**") and part.endswith("**"):
             out.append(r"\textbf{" + md_to_tex(part[2:-2]) + "}")
         else:
@@ -449,9 +459,56 @@ def md_to_tex(s: str) -> str:
         ("Δ", r"\ensuremath{\Delta}"),
         ("…", r"\ldots{}"),
         ("×", r"\ensuremath{\times}"),
+        ("−", r"\ensuremath{-}"),
+        (
+            "/",
+            r"/\allowbreak{}",
+        ),  # paths and a/b may break after the slash (narrow table cells)
     ):
         t = t.replace(a, b)
     return t
+
+
+# SUMMARY tables: a column whose longest cell exceeds WRAP_CHARS characters becomes a ragged-right
+# paragraph column when the table would not fit the landscape text width (layout estimates, in
+# scriptsize characters; 2026-10-06: the tables were natural-width l/r columns and overflowed).
+CHARS_PER_LINE = 200  # scriptsize characters across the landscape text width
+WRAP_CHARS = 28  # longest cell above this: the column may wrap
+MIN_WRAP_CHARS = 14  # the narrowest a wrapped column is made
+CELL_PAD = 3  # characters of column separation per column
+
+
+def md_colspec(rows: list[list[str]]) -> str:
+    """Column spec of a SUMMARY markdown table: l + r natural columns, wide text columns wrapped."""
+    n = max(len(r) for r in rows)
+    w = [max((len(r[i]) for r in rows if i < len(r)), default=0) for i in range(n)]
+    wide = [i for i in range(n) if w[i] > WRAP_CHARS]
+    if not wide or sum(w) + CELL_PAD * n <= CHARS_PER_LINE:
+        return "l" + "r" * (n - 1)
+    narrow = sum(w[i] for i in range(n) if i not in wide) + CELL_PAD * n
+    left = float(max(CHARS_PER_LINE - narrow, MIN_WRAP_CHARS * len(wide)))
+    alloc: dict[int, float] = {}
+    rest = {i: float(w[i]) for i in wide}
+    while (
+        rest
+    ):  # water-filling: a column narrower than an equal share keeps its natural width
+        share = left / len(rest)
+        small = {i: v for i, v in rest.items() if v <= share}
+        if not small:
+            alloc.update({i: share for i in rest})
+            break
+        for i, v in small.items():
+            alloc[i] = v
+            left -= v
+            del rest[i]
+    spec = ""
+    for i in range(n):
+        if i in alloc:
+            frac = alloc[i] / CHARS_PER_LINE
+            spec += r">{\raggedright\arraybackslash}p{%.3f\linewidth}" % frac
+        else:
+            spec += "l" if i == 0 else "r"
+    return spec
 
 
 def summary_blocks() -> list[str]:
@@ -465,9 +522,8 @@ def summary_blocks() -> list[str]:
         nonlocal table_rows
         if not table_rows:
             return
-        n = len(table_rows[0])
         L.append(r"\begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}")
-        L.append(r"\begin{longtable}{" + "l" + "r" * (n - 1) + "}")
+        L.append(r"\begin{longtable}{" + md_colspec(table_rows) + "}")
         L.append(r"\toprule")
         L.append(" & ".join(md_to_tex(c) for c in table_rows[0]) + r" \\")
         L.append(r"\midrule")
@@ -480,6 +536,10 @@ def summary_blocks() -> list[str]:
 
     for line in md[1:]:
         s = line.strip()
+        if is_lstm_text(
+            s
+        ):  # 2026-10-13 (user): LSTM parked -- SUMMARY.md rows / lines about an LSTM dropped
+            continue
         if s.startswith("|"):
             cells = [c.strip() for c in s.strip("|").split("|")]
             if all(re.fullmatch(r":?-+:?", c) for c in cells):
@@ -527,11 +587,14 @@ def vrp_sizing_table(tab: pd.DataFrame) -> list[str]:
     if not any(k in have for k in _VRP_TAG):
         return []
     days = int(v["days"].iloc[0])
+    # 2026-10-06 (user decision, the rv_iv notebook's re-run on the plain forecast): the robust
+    # clip replaces the proportional size and the centred rank is removed -- parked:
+    # ("(a) proportional s/rms", "proportional"), ("(c) centred rank $2F(s)-1$", "centred")
     rules = [
-        ("(a) proportional s/rms", "proportional"),
-        ("(b) rank of $|s|$, sign kept", "rank"),
-        ("(c) centred rank $2F(s)-1$", "centred"),
+        ("(d) robust clip s/med|s|", "robust clip"),
+        ("(b) rank of |s|, sign kept", "rank"),
     ]
+    assert set(v["rule"]) == {"sign(s)", *(r for r, _ in rules)}, sorted(set(v["rule"]))
     head = (
         r"forecast & sign(s) & "
         + " & ".join(rf"\multicolumn{{2}}{{c}}{{{name}}}" for _rule, name in rules)
@@ -549,27 +612,28 @@ def vrp_sizing_table(tab: pd.DataFrame) -> list[str]:
         r = shown[shown["key"] == key].iloc[0]
         g = v[v["tag"] == _VRP_TAG[key]].set_index("rule")
         cells = [row_name(r, {}), f(g.loc["sign(s)", "Sharpe mid"], "{:.2f}")]
-        for rule, _name in (
-            ("(a) proportional s/rms", ""),
-            ("(b) rank of |s|, sign kept", ""),
-            ("(c) centred rank 2F(s)-1", ""),
-        ):
+        for rule, _name in rules:
             x = g.loc[rule]
             cells.append(f(x["Sharpe mid"], "{:.2f}"))
-            cells.append(ci(x["dSharpe mid"], x["lo mid"], x["hi mid"]))
+            # 2026-10-06: intervals commented out (user) -- was ci(x["dSharpe mid"], x["lo mid"], x["hi mid"])
+            cells.append(pt(x["dSharpe mid"]))
         rows.append(" & ".join(cells) + r" \\")
     cap = (
         f"VRP sizing on the deck's scorer, {days} days from the second deck day, midpoint fill. "
         r"The size on day $t$ uses every earlier deck day back to the first: "
-        r"(a) $q_t = s_t/\mathrm{rms}(s)$, (b) the rank of $|s_t|$, sign kept, "
-        r"(c) the centred rank $2F(s_t)-1$. "
-        r"$\Delta$ is the rule's Sharpe minus sign(s) on the same days, with the stored 95\% interval. "
-        r"These Sharpes are not the research-scorer Sharpes in the trade table."
+        r"robust clip $q_t = \mathrm{clip}(s_t/\tilde m_t, -1, 1)$ with $\tilde m_t$ the median "
+        r"of $|s|$ on the earlier days, and the rank of $|s_t|$, sign kept. "
+        r"$\Delta$ is the rule's Sharpe minus sign(s) on the same days (point estimate). "
+        r"These Sharpes are the deck's own scorer, not the plain-forecast Sharpes of the trade table."
     )
-    return _vrp_longtable(head, rows, cap, "lrrlrlrl")
+    return _vrp_longtable(
+        head, rows, cap, "lr" + "rl" * len(rules), ncol=2 + 2 * len(rules)
+    )
 
 
-def _vrp_longtable(head: str, rows: list[str], caption: str, colspec: str) -> list[str]:
+def _vrp_longtable(
+    head: str, rows: list[str], caption: str, colspec: str, ncol: int = 8
+) -> list[str]:
     return [
         r"\begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}",
         r"\begin{longtable}{" + colspec + "}",
@@ -578,7 +642,7 @@ def _vrp_longtable(head: str, rows: list[str], caption: str, colspec: str) -> li
         head,
         r"\midrule",
         r"\endfirsthead",
-        r"\multicolumn{8}{l}{\emph{(continued)}} \\",
+        rf"\multicolumn{{{ncol}}}{{l}}{{\emph{{(continued)}}}} \\",
         r"\toprule",
         head,
         r"\midrule",
@@ -607,6 +671,11 @@ def main() -> None:
         str
     ).str.contains(r"live[-_]feasible", case=False, regex=True)
     tab = tab.loc[~live].copy()
+    # 2026-10-13 (user): LSTM parked for now (double-standardisation bug): no LSTM row in either document
+    lstm = tab["key"].astype(str).str.startswith("lstm") | tab["family"].astype(
+        str
+    ).str.contains("LSTM")
+    tab = tab.loc[~lstm].copy()
     tab["label"] = tab["label"].astype(str).str.replace(", same spec", "", regex=False)
     gen_name = "table_master_close.tex"
     n_all = len(tab)
@@ -625,7 +694,7 @@ def main() -> None:
     gen = GEN / gen_name
     head = [
         "% AUTO-GENERATED by writeup/make_master_table_close_tex.py — do not edit.",
-        "% Source: results/close_master_table/master_table.csv (experiments/master_table_close.py; research scorer).",
+        "% Source: results/close_master_table/master_table.csv (experiments/master_table_close.py; plain forecast f^2 B, point estimates).",
         "% Needs \\usepackage{booktabs,longtable,amsmath} at the include site.",
         "",
     ]
@@ -649,13 +718,16 @@ def main() -> None:
             "(ridge, lasso, elastic net on the HAR + calendar and the all-features inputs; the VIX-only, implied-volatility, "
             "HAR-ladder and chain-period bucket studies), every per-bar tree rung (the shipped configuration refit every 10 sessions and "
             "every session; the random search at both cadences; the Optuna-tuned paths by tuning cadence and trial budget; MSE- and "
-            "QLIKE-selected twins) and both LSTMs (the per-bar sequence of sessions, refit every session, and the intraday sequence of bars). "
+            # 2026-10-13 (user): LSTM parked for now (double-standardisation bug):
+            # "QLIKE-selected twins) and both LSTMs (the per-bar sequence of sessions, refit every session, and the intraday sequence of bars). "
+            "QLIKE-selected twins). "
             f"Left out ({n_excl} rows of the full table): the paper's pooled 48-bar forecasts, their pooled twins and the rest-of-day check "
             "rows (exact copies of their per-bar twins). Always short is kept as the benchmark row. Every number is the full table's "
-            "(experiments/master\_table\_close.py, research scorer: the 16:00 bar recalibrated alone; 866 trade days; paired day-block "
-            "intervals, block 21, 2000 draws); the columns against the reference still compare with the paper's block-diagonal ridge, "
+            r"(experiments/master\_table\_close.py; every forecast is the plain back-transform $f^2B$, no recalibration; 866 trade days; "
+            "point estimates, with the Diebold--Mariano statistic and the HAC $t$ where shown); the columns against the reference still compare with the paper's block-diagonal ridge, "
             "which is not itself listed here. The per-bar design has no session-edge duplicates, every fit keeps only the columns "
-            "identifiable on its own training window, and every tree and LSTM chunk was computed on one processor class."
+            # 2026-10-13 (user): LSTM parked -- was "every tree and LSTM chunk"
+            "identifiable on its own training window, and every tree chunk was computed on one processor class."
             + r"\par"
         )
     else:
@@ -673,7 +745,7 @@ def main() -> None:
         + "}"
     )
     doc.append(
-        r"\caption{Recalibrated 16:00 QLIKE against the sign(s) Sharpe ratio (midpoint fill), table A (check rows and identical forecasts "
+        r"\caption{16:00 QLIKE of the plain forecast $f^2B$ against the sign(s) Sharpe ratio (midpoint fill), table A (check rows and identical forecasts "
         r"left out); the dashed line is always short. R = reference, H = recommended headline. "
         + tex_escape(off_note)
         + "}"

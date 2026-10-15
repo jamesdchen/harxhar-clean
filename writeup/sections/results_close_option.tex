@@ -6,7 +6,13 @@
 % results/close_master_table/master_table.csv (the 16:00-bar recalibration,
 % eq:close_opt_recal1600); the table is generated/table_close_main.tex from the same file.
 % The deck-scorer table and the prose that read it are parked, verbatim, right below.
+% 2026-10-06 (recalibration removed, user decision): every forecast is now its plain
+% back-transform f^2 B (eq:close_opt_plain) for the trade and for every loss; no intervals
+% (the bootstrap is off), point estimates plus DM statistics and HAC t statistics of the daily
+% mid-return differences.  Re-read against generated/close_main_numbers.tex of 2026-10-06 15:27.
 \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+\ifdefined\bkNSeries\else\input{generated/buckets_numbers}\fi % 2026-10-13: the bucket study (make_buckets_tex.py)
 The forecasts of Table~\ref{tab:block_ladder} are one-bar forecasts of
 realized variance. This subsection reads them against the last thirty
 minutes of the expiration-day chain, under the rules of
@@ -16,53 +22,108 @@ $s_t = \widehat{RV}_t - \mathrm{IV}_{30,t}^{2}$. Joining the chain to the
 forecasts leaves \cmNdays{} expiration days common to every forecast % master_table.csv n_days
 (3~January~2020 to 30~April~2024). The 413 expiration days after that date
 --- the most recent twenty months of chain --- carry no forecast row and are
-not scored here; the trade's live form on them is reported in
-Appendix~\ref{sec:app_run_post2024}. Every forecast is turned into a variance
-by one rule, the 16:00-bar recalibration of
-Equation~\eqref{eq:close_opt_recal1600}, so every row of
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% not scored here; the trade's live form on them is reported in
+% Appendix~\ref{sec:app_run_post2024}.
+not scored here; the trade's live, long-only form has been run on them
+(Appendix~\ref{sec:app_run_post2024}), a record not scored with the plain forecast and
+not reported here.
+% 2026-10-06 parked (recalibration removed, user decision):
+% Every forecast is turned into a variance
+% by one rule, the 16:00-bar recalibration of
+% Equation~\eqref{eq:close_opt_recal1600}, so every row of
+% Table~\ref{tab:close_option_rules} is scored the same way on the same days:
+Every forecast is turned into a variance by one rule, the plain back-transform
+$\widehat{RV}_t=f_t^{2}B_t$ of Equation~\eqref{eq:close_opt_plain}, so every row of
 Table~\ref{tab:close_option_rules} is scored the same way on the same days:
 the paper's eight forecasts, fitted on all 48 bars of the day (panel~A); the
 pooled twins of the per-bar forecasts (panel~B); and the per-bar forecasts
-fitted for the 16:00 bar alone, linear (panel~C), and trees and LSTMs
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% fitted for the 16:00 bar alone, linear (panel~C), and trees and LSTMs
+% (panel~D, one row for each of their \cmNlFamN{} rungs). % I4b: master_table.csv families
+fitted for the 16:00 bar alone, linear (panel~C), and trees
 (panel~D, one row for each of their \cmNlFamN{} rungs). % I4b: master_table.csv families
 
 \begin{table}[H]
 \centering
 \caption{The last-30-min trade under one scorer: $\mathrm{sign}(s)$ on the
 straddle, 15:30~ET to the close, on the \cmNdays{} expiration days common to
-every row (3~January~2020 to 30~April~2024). Every forecast is turned into a
-variance by the 16:00-bar recalibration
-(Equation~\eqref{eq:close_opt_recal1600}). QLIKE: the recalibrated forecast's
+every row (3~January~2020 to 30~April~2024).
+% 2026-10-06 parked (recalibration removed, user decision):
+% Every forecast is turned into a
+% variance by the 16:00-bar recalibration
+% (Equation~\eqref{eq:close_opt_recal1600}). QLIKE: the recalibrated forecast's
+% mean QLIKE at the $16{:}00$ bar; vs R: its percent difference from the
+Every forecast is used as its plain back-transform $f^{2}B$
+(Equation~\eqref{eq:close_opt_plain}). QLIKE: that forecast's
 mean QLIKE at the $16{:}00$ bar; vs R: its percent difference from the
 reference R, the block-diagonal ridge (negative: more accurate), and the
 Diebold--Mariano statistic of that difference. Sharpe$_{\mathrm{ann}}$: the
 portfolio's Sharpe ratio annualized by $\sqrt{252}$ per trade day, at the 15:30
 midpoint and at the crossed spread (bought at the ask, sold at the bid, at
-entry only; the position settles in cash). $\Delta$Sharpe: the midpoint Sharpe
-ratio minus that of R and of always short on the same days, with a 95\%
-paired interval (circular block bootstrap of the days, blocks of 21 days).
-Buys: the share of days the rule is long. Inputs: the input set of
+entry only; the position settles in cash).
+% 2026-10-06 parked (recalibration removed, user decision):
+% $\Delta$Sharpe: the midpoint Sharpe
+% ratio minus that of R and of always short on the same days, with a 95\%
+% paired interval (circular block bootstrap of the days, blocks of 21 days).
+$\Delta$Sharpe: the midpoint Sharpe ratio minus that of R and of always short
+on the same days, a point estimate. Buys: the share of days the rule is long. Inputs: the input set of
 Section~\ref{sec:close_option_methods} by its design name; panel~A reads the
-paper's full design. Panel~D holds one row per rung of the per-bar trees and
-LSTMs of Section~\ref{sec:close_option_methods}, each LightGBM or the LSTM on
-\texttt{live\_feasible}, so that consecutive rows differ in one thing; the
-other trees and input sets of every rung are counted in the text.
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% paper's full design. Panel~D holds one row per rung of the per-bar trees and
+% LSTMs of Section~\ref{sec:close_option_methods}, each LightGBM or the LSTM on
+% \texttt{live\_feasible}, so that consecutive rows differ in one thing; the
+% other trees and input sets of every rung are counted in the text.
+% $^{\dagger}$: the four columns still fitted on the
+% earlier design panel (Section~\ref{sec:close_option_methods}); H: the
+% headline forecast (bold). The rows are
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% paper's full design. Panel~D holds one row per rung of the per-bar trees and
+% LSTMs of Section~\ref{sec:close_option_methods}, so that consecutive rows differ in one
+paper's full design. Panel~D holds one row per rung of the per-bar trees
+of Section~\ref{sec:close_option_methods}, so that consecutive rows differ in one
+thing; the other trees and input sets of every rung are counted in the text.
 $^{\dagger}$: the four columns still fitted on the
-earlier design panel (Section~\ref{sec:close_option_methods}); H: the
-headline forecast (bold). The rows are
+earlier design panel (Section~\ref{sec:close_option_methods}). The rows are
 selected from the closing-strategy master table, which scores \cmMasterN{}
 forecasts the same way on the same days.
 \label{tab:close_option_rules}}
 \resizebox{\textwidth}{!}{\input{generated/table_close_main}}
 \end{table}
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% Read the control first. Selling the straddle every day earns a mean of
+% \cmShortMean{} premium units per day, an annualized Sharpe ratio of % master_table.csv always_short mean_mid
+% \cmShortShMid{} \cmShortShCiMid{} at the midpoint and \cmShortShX{} % master_table.csv always_short; intervals research_scorer/hit_payoff.csv
+% \cmShortShCiX{} at the crossed spread: a
+% premium that \cmNdays{} days cannot separate from zero at the midpoint and that the
+% spread consumes.
 Read the control first. Selling the straddle every day earns a mean of
 \cmShortMean{} premium units per day, an annualized Sharpe ratio of % master_table.csv always_short mean_mid
-\cmShortShMid{} \cmShortShCiMid{} at the midpoint and \cmShortShX{} % master_table.csv always_short; intervals research_scorer/hit_payoff.csv
-\cmShortShCiX{} at the crossed spread: a
-premium that \cmNdays{} days cannot separate from zero at the midpoint and that the
-spread consumes.
+\cmShortShMid{} at the midpoint and \cmShortShX{} at the crossed spread: a % master_table.csv always_short
+small premium at the midpoint, and one the spread consumes.
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{The paper's forecasts under one scorer.} Putting the paper's
+% forecasts in charge of \emph{direction} lifts every one of them above the
+% control: the eight $\mathrm{sign}(s)$ portfolios trade at Sharpe
+% \cmPaperShMin{} to \cmPaperShMax{} at the midpoint and \cmPaperXMin{} to % master_table.csv rows a0..enet
+% \cmPaperXMax{} at the crossed spread. The trade turns on the paired comparison
+% --- both rules trade the same contracts on the same days --- and paired against
+% always short the eight improvements run from \cmPaperVsShortMin{} to
+% \cmPaperVsShortMax{}, with \cmPaperVsShortAboveN{} of the eight intervals above % dSharpe_mid_vs_short(_lo/_hi)
+% zero (\cmPaperVsShortAboveWho, \cmPaperVsShortAboveCi). The paper's forecast
+% of record, the block-diagonal ridge, trades at \cmRefShMid{} (\cmRefShX{} % blk2 Sharpe_mid / _crossed
+% crossed), \cmRefVsShort{} above always short. Under this recalibration a % blk2 dSharpe_mid_vs_short
+% forecast fitted on all 48 bars keeps its own level at the 16:00 bar
+% (Section~\ref{sec:close_option_methods}), and the same estimator without the
+% FOMC calendar columns trades higher by \cmFomcD{}, an interval that includes % blk2_inc dSharpe_mid_vs_ref
+% zero: the calendar channels are not resolved on this trade. The eight columns
+% take the same side as the block-diagonal ridge on \cmPaperSameMin{} to % same_position_as_ref, 7 others
+% \cmPaperSameMax{} percent of days. One of them separates from it: the fixed
+% lasso, on the same design panel, trades at \cmLassoFShMid{}, above the % lasso_f Sharpe_mid
+% block-diagonal ridge by \cmLassoFVsRef{}, while taking its side on % lasso_f dSharpe_mid_vs_ref
+% \cmLassoFSame{} percent of days.
 \paragraph{The paper's forecasts under one scorer.} Putting the paper's
 forecasts in charge of \emph{direction} lifts every one of them above the
 control: the eight $\mathrm{sign}(s)$ portfolios trade at Sharpe
@@ -70,19 +131,22 @@ control: the eight $\mathrm{sign}(s)$ portfolios trade at Sharpe
 \cmPaperXMax{} at the crossed spread. The trade turns on the paired comparison
 --- both rules trade the same contracts on the same days --- and paired against
 always short the eight improvements run from \cmPaperVsShortMin{} to
-\cmPaperVsShortMax{}, with \cmPaperVsShortAboveN{} of the eight intervals above % dSharpe_mid_vs_short(_lo/_hi)
-zero (\cmPaperVsShortAboveWho, \cmPaperVsShortAboveCi). The paper's forecast
+\cmPaperVsShortMax{}, \cmPaperVsShortAboveSigN{} of them with a significant HAC $t$ % t_hac_mid_vs_short
+(\cmPaperVsShortAboveSigWho).
+The paper's forecast
 of record, the block-diagonal ridge, trades at \cmRefShMid{} (\cmRefShX{} % blk2 Sharpe_mid / _crossed
-crossed), \cmRefVsShort{} above always short. Under this recalibration a % blk2 dSharpe_mid_vs_short
-forecast fitted on all 48 bars keeps its own level at the 16:00 bar
-(Section~\ref{sec:close_option_methods}), and the same estimator without the
-FOMC calendar columns trades higher by \cmFomcD{}, an interval that includes % blk2_inc dSharpe_mid_vs_ref
-zero: the calendar channels are not resolved on this trade. The eight columns
-take the same side as the block-diagonal ridge on \cmPaperSameMin{} to % same_position_as_ref, 7 others
-\cmPaperSameMax{} percent of days. One of them separates from it: the fixed
-lasso, on the same design panel, trades at \cmLassoFShMid{}, above the % lasso_f Sharpe_mid
-block-diagonal ridge by \cmLassoFVsRef{}, while taking its side on % lasso_f dSharpe_mid_vs_ref
-\cmLassoFSame{} percent of days.
+crossed), \cmRefVsShort{} above always short (HAC $t$ \cmRefVsShortT). With no level map a % blk2 dSharpe_mid_vs_short
+forecast fitted on all 48 bars keeps whatever level it has at the 16:00 bar
+(Section~\ref{sec:close_option_methods}). The same estimator without the
+FOMC calendar columns differs from it by \cmFomcD{} in Sharpe ratio (HAC $t$
+\cmFomcDT). The eight % blk2_inc dSharpe_mid_vs_ref
+columns take the same side as the block-diagonal ridge on \cmPaperSameMin{} to % same_position_as_ref, 7 others
+\cmPaperSameMax{} percent of days.
+% 2026-10-06 (second pass): the fixed lasso no longer stands out (\cmLassoFVsRef, HAC t
+% \cmLassoFVsRefT); the column furthest from the ridge is named instead.
+The column furthest from it, the \cmPaperFarLabel, trades \cmPaperFarVsRef{} against % dSharpe_mid_vs_ref, argmax |.|
+it (HAC $t$ \cmPaperFarVsRefT), and the highest of the eight, the \cmPaperBestLabel,
+trades at \cmPaperBestSh.
 
 % I4b 2026-09-30: what the 16:00 re-run changed.  Macros \cmP..., \cmKept..., \cmClass...,
 % \cmDedup... from results/linear_subsection_dedup/gates.csv (agent A),
@@ -96,148 +160,421 @@ changed four things, each defined in Section~\ref{sec:close_option_methods}%
 \IfFileExists{sections/appendix_campaign_16h.tex}{ and reported in full in
 Appendix~\ref{sec:app_campaign_16h}}{}. The per-bar design drops the
 \cmNDup{} session-edge columns that, in a series with one bar per session, are % gates.csv (a), 12 per arm
-either zero or exact copies of \texttt{har\_ma\_}$k$ (\cmPOldBase{},
-\cmPOldLive{} and \cmPOldAll{} columns become \cmPNewBase{}, \cmPNewLive{} and % baseline, live_feasible, all_features
-\cmPNewAll{} on \texttt{baseline}, \texttt{live\_feasible} and
-\texttt{all\_features}). Every tree and LSTM fit now drops, as every linear fit
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% either zero or exact copies of \texttt{har\_ma\_}$k$ (\cmPOldBase{},
+% \cmPOldLive{} and \cmPOldAll{} columns become \cmPNewBase{}, \cmPNewLive{} and % baseline, live_feasible, all_features
+% \cmPNewAll{} on \texttt{baseline}, \texttt{live\_feasible} and
+% \texttt{all\_features}). Every tree and LSTM fit now drops, as every linear fit
+% already did, the columns that are constant on its own training window or copy
+% an earlier one; it keeps a median of \cmKeptBase{} of \cmPNewBase{}, % kept_counts.csv, median over refits
+% \cmKeptLive{} of \cmPNewLive{} and \cmKeptAll{} of \cmPNewAll{} columns. Trees
+either zero or exact copies of \texttt{har\_ma\_}$k$ (\cmPOldBase{} and \cmPOldAll{} columns % baseline, all_features
+become \cmPNewBase{} and \cmPNewAll{} on \texttt{baseline} and \texttt{all\_features}).
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% Every tree and LSTM fit now drops, as every linear fit
+% already did, the columns that are constant on its own training window or copy
+% an earlier one; it keeps a median of \cmKeptBase{} of \cmPNewBase{} and % kept_counts.csv, median over refits
+% \cmKeptAll{} of \cmPNewAll{} columns. Trees
+% and LSTMs are refit every session as well as every ten, and the trees are
+% tuned by Optuna as well as by the random search. Tree and LSTM forecasts
+% depend on the processor's instruction class in their last bits and, through
+% the tuning, beyond them: re-run on a second class, LightGBM's best-of-50 % xclass/xclass_gate.csv, lgbm
+% choice changed on \cmClassLgbmPick{} of \cmClassPts{} tuning points and a
+% LightGBM forecast moved by up to \cmClassMaxRelMax\% of its value, while % class_arms.csv max_rel (T10 / T1)
+% re-run on the same class every one of those points was bit-identical for all % xclass_epyc/xclass_gate.csv
+% three trees. Every one of the \cmClassChunks{} chunks behind the tree and % class_census.csv + chunk_hosts.csv
+% per-bar LSTM tables was therefore computed on one processor class.
+Every tree fit now drops, as every linear fit
 already did, the columns that are constant on its own training window or copy
-an earlier one; it keeps a median of \cmKeptBase{} of \cmPNewBase{}, % kept_counts.csv, median over refits
-\cmKeptLive{} of \cmPNewLive{} and \cmKeptAll{} of \cmPNewAll{} columns. Trees
-and LSTMs are refit every session as well as every ten, and the trees are
-tuned by Optuna as well as by the random search. Tree and LSTM forecasts
+an earlier one; it keeps a median of \cmKeptBase{} of \cmPNewBase{} and % kept_counts.csv, median over refits
+\cmKeptAll{} of \cmPNewAll{} columns. Trees
+are refit every session as well as every ten, and they are
+tuned by Optuna as well as by the random search. Tree forecasts
 depend on the processor's instruction class in their last bits and, through
 the tuning, beyond them: re-run on a second class, LightGBM's best-of-50 % xclass/xclass_gate.csv, lgbm
-choice changed on \cmClassLgbmPick{} of \cmClassPts{} tuning points and a
-LightGBM forecast moved by up to \cmClassMaxRelMax\% of its value, while % class_arms.csv max_rel (T10 / T1)
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% choice changed on \cmClassLgbmPick{} of \cmClassPts{} tuning points and a
+% LightGBM forecast moved by up to \cmClassMaxRelMax\% of its value, while % class_arms.csv max_rel (T10 / T1)
+choice changed on \cmClassLgbmPick{} of \cmClassPts{} tuning points and, in a whole-run % class_arms.csv max_rel (T10 / T1)
+check on a LightGBM forecast outside the input sets of this paper, the forecast moved by up
+to \cmClassMaxRelMax\% of its value, while
 re-run on the same class every one of those points was bit-identical for all % xclass_epyc/xclass_gate.csv
-three trees. Every one of the \cmClassChunks{} chunks behind the tree and % class_census.csv + chunk_hosts.csv
-per-bar LSTM tables was therefore computed on one processor class. The linear
+three trees. Every one of the \cmClassChunks{} chunks behind the tree % class_census.csv + chunk_hosts.csv
+tables was therefore computed on one processor class.
+% 2026-10-06 parked (recalibration removed, user decision):
+% The linear
+% forecasts barely move: their identifiability mask had already removed the
+% duplicated columns, so the headline keeps every position and its QLIKE moves % before_after.csv, headline row
+% only at rounding, and over the master table's \cmDedupN{} per-bar linear % before_after.csv, table A, linear families
+% forecasts QLIKE changes by at most \cmDedupQMax\% and at most \cmDedupPosMax{}
+% positions, with no Sharpe difference resolved.
+% 2026-10-06 parked (no headline model, user decision):
+% The linear
+% forecasts barely move: their identifiability mask had already removed the
+% duplicated columns, so the headline keeps every position and its QLIKE moves % before_after.csv, headline row
+% only at rounding, and over the master table's \cmDedupN{} per-bar linear % before_after.csv, table A, linear families
+% forecasts QLIKE changes by at most \cmDedupQMax\% and at most \cmDedupPosMax{}
+% positions.
+The linear
 forecasts barely move: their identifiability mask had already removed the
-duplicated columns, so the headline keeps every position and its QLIKE moves % before_after.csv, headline row
-only at rounding, and over the master table's \cmDedupN{} per-bar linear % before_after.csv, table A, linear families
+duplicated columns, so over the master table's \cmDedupN{} per-bar linear % before_after.csv, table A, linear families
 forecasts QLIKE changes by at most \cmDedupQMax\% and at most \cmDedupPosMax{}
-positions, with no Sharpe difference resolved.
+positions.
 
 \paragraph{The forecasts built for the traded bar.} Panels B to D hold the
 forecasts of Section~\ref{sec:close_option_methods} that read the 16:00 bar on
 their own design: the pooled twins trade at \cmPoolShMin{} to \cmPoolShMax{}, % Sharpe_mid, pool_ridge_*
 the per-bar linear forecasts at \cmSubShMin{} to \cmSubShMax{}, and the % Sharpe_mid, sub_* (panel C)
-rungs of the trees and LSTMs at \cmNlShMin{} to \cmNlShMax{}. Against the % Sharpe_mid, panel D
-block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other forecasts
-in the table have a Sharpe-difference interval wholly above zero and
-\cmTabVsRefBelow{} has one wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
-the master table the count above zero is \cmMasterVsRefAbove{}. A table of % table A, check rows excluded
-this many forecasts on \cmNdays{} days is a search, and its intervals are read as
-such.
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% rungs of the trees and LSTMs at \cmNlShMin{} to \cmNlShMax{}. % Sharpe_mid, panel D
+rungs of the trees at \cmNlShMin{} to \cmNlShMax{}. % Sharpe_mid, panel D
+% 2026-10-06 parked (recalibration removed, user decision):
+% Against the % Sharpe_mid, panel D
+% block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other forecasts
+% in the table have a Sharpe-difference interval wholly above zero and
+% \cmTabVsRefBelow{} has one wholly below; over all \cmMasterVsRefN{} other forecasts of % dSharpe_mid_vs_ref_lo/_hi
+% the master table the count above zero is \cmMasterVsRefAbove{}. A table of % table A, check rows excluded
+% this many forecasts on \cmNdays{} days is a search, and its intervals are read as
+% such.
+Against the block-diagonal ridge, \cmTabVsRefAbove{} of the \cmTabVsRefN{} other
+forecasts in the table trade above it at the midpoint (\cmTabVsRefAboveSig{} of them with a
+significant HAC $t$) and \cmTabVsRefBelow{} below it (\cmTabVsRefBelowSig{}); over all \cmMasterVsRefN{} other forecasts of the master table, % dSharpe_mid_vs_ref, t_hac_mid_vs_ref
+\cmMasterVsRefAbove{} trade above it (\cmMasterVsRefAboveSig{} significantly) and % table A, check rows excluded
+\cmMasterVsRefBelow{} below (\cmMasterVsRefBelowSig{} significantly). A table of this
+% 2026-10-06 parked (no headline model, user decision):
+% many forecasts on \cmNdays{} days is a search, and its Sharpe ratios rank the forecasts by
+% point estimate, not by an order the sample establishes. In panel~C the elastic net and the
+many forecasts on \cmNdays{} days is a search, and its Sharpe ratios rank the forecasts by
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% point estimate, not by an order the sample establishes: the highest of the \cmMasterN{} is % master_table.csv table A, argmax Sharpe_mid
+% \cmTopShMid, and taking the maximum of that many Sharpe ratios would select on the trade's
+% own noise.
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% point estimate, not by an order the sample establishes: the highest of the \cmMasterN{}, % master_table.csv table A, argmax Sharpe_mid
+% the \cmTopShLabel{} on \cmTopShInputs{} at \cmTopShMid{}, is also the forecast that trades
+% significantly above the block-diagonal ridge, and taking the maximum of that many Sharpe
+% ratios would select on the trade's own noise. In panel~C the elastic net and the
+point estimate, not by an order the sample establishes: the highest of the \cmMasterN{}, % master_table.csv table A, argmax Sharpe_mid
+the \cmTopShLabel{} on \cmTopShInputs{} at \cmTopShMid{}, does not trade significantly above
+the block-diagonal ridge, and taking the maximum of that many Sharpe ratios would select on
+the trade's own noise.
+% source (no macro): main-session analysis 2026-10-06 -- every pairwise HAC t of the daily
+% mid-return difference among the per-bar linear forecasts of panel C is at most 1.4 (lasso and
+% elastic net on all_features against the OLS baseline: t 1.29 and 1.37), and their excess over
+% the others is concentrated in 2020-21.
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% lasso on \texttt{all\_features} trade highest, up to \cmSubShMax, but no Sharpe difference
+% among the per-bar linear forecasts is significant, and what puts those two ahead is
+% concentrated in 2020--2021.
+
+\paragraph{The model set as a whole.} The master table scores \cmMasterN{} forecasts the % master_table.csv, model set
+same way on the same days. Their $\mathrm{sign}(s)$ Sharpe ratios have a median of
+\cmMasterMedSh{} at the midpoint and \cmMasterMedShX{} at the crossed spread and run from
+\cmMasterShMin{} to \cmMasterShMax; \cmMasterVsShortAbove{} of the \cmMasterVsShortN{}
+trade above always short (median difference \cmMasterVsShortMed), \cmMasterVsShortAboveSig{}
+of them significantly. On accuracy, \cmMasterQVsRefBelow{} have a lower QLIKE than the
+block-diagonal ridge (\cmMasterQVsRefBelowSig{} significantly) and \cmMasterQVsRefAbove{} a
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% higher one (\cmMasterQVsRefAboveSig{} significantly), at a median QLIKE of \cmMasterMedQ.
+% Accuracy and the trade line up only weakly: across the model set the rank correlation of
+% QLIKE with the midpoint Sharpe ratio is \cmMasterRankCorr{} (a negative value: a lower loss
+% goes with a higher Sharpe ratio).
+higher one (\cmMasterQVsRefAboveSig{} significantly), at a median QLIKE of \cmMasterMedQ.
+Across the model set the rank correlation of QLIKE with the midpoint Sharpe ratio is
+\cmMasterRankCorr{} (a negative value: a lower loss goes with a higher Sharpe ratio). By
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% input set the median Sharpe ratio is \cmMasterMedShBase{} over the \cmMasterNBase{} forecasts
+% on \texttt{baseline}, \cmMasterMedShAll{} over the \cmMasterNAll{} on \texttt{all\_features} and
+% \cmMasterMedShLean{} over the \cmMasterNLean{} on \texttt{lean\_vol\_vix}, at median QLIKE
+% \cmMasterMedQBase, \cmMasterMedQAll{} and \cmMasterMedQLean; the lean set was chosen after
+% the importance study (Appendix~\ref{sec:app_lean}), so its rows carry that selection.
+input set the median Sharpe ratio is \cmMasterMedShBase{} over the \cmMasterNBase{} forecasts
+on \texttt{baseline} and \cmMasterMedShAll{} over the \cmMasterNAll{} on \texttt{all\_features},
+at median QLIKE \cmMasterMedQBase{} and \cmMasterMedQAll.
+Figure~\ref{fig:qlike_sharpe} draws every model of the set that is fitted on both
+\texttt{baseline} and \texttt{all\_features}, joined from its HAR + calendar end to its
+all-features end.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_qlike_sharpe.pdf}
+\caption{QLIKE against the $\mathrm{sign}(s)$ Sharpe ratio (midpoint) for every forecast of
+the model set fitted on both \texttt{baseline} (HAR + calendar) and \texttt{all\_features}:
+\fqsPairs{} pairs (\fqsPairsPerBarLinear{} per-bar linear, \fqsPairsPooled{} pooled 48-bar
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% linear and \fqsPairsTree{} per-bar trees; LSTMs and the lean set are not drawn), on the same
+% 2026-10-13 (user): LSTM parked for now (double-standardisation bug):
+% linear and \fqsPairsTree{} per-bar trees; LSTMs are not drawn), on the same
+linear and \fqsPairsTree{} per-bar trees), on the same
+\fqsDays{} days, every forecast its plain back-transform. Open markers are the HAR + calendar
+forecasts and filled markers the all-features ones; each pair is joined from its HAR +
+calendar end to its all-features end; circles are per-bar fits, squares pooled fits, and the
+colour marks the estimator. The HAR + calendar OLS (QLIKE \fqsOlsQ, Sharpe \fqsOlsSh) is the
+reference point, and the shaded quadrant holds lower QLIKE and higher Sharpe than it
+(\fqsInShade{} all-features and \fqsInShadeBase{} HAR + calendar points). Adding the
+exogenous inputs raises the Sharpe ratio for \fqsShHigher{} of the \fqsPairs{} models (median
+change \fqsMedDSh; \fqsShHigherSig{} significant by the Newey--West $t$ of the daily
+midpoint-return difference) and lowers QLIKE for \fqsQLower{} (median change
+\fqsMedDQPct\,\%; \fqsQLowerSig{} significant by Diebold--Mariano); \fqsQHigherSig{} of the
+QLIKE increases and \fqsShLowerSig{} of the Sharpe decreases are significant, so where QLIKE
+does not improve its change is within noise (significance at \fqsSigPct\,\%). The trade uses
+only which side of the implied variance the forecast falls on: across the pairs the change in
+the elementary score at that threshold correlates at \fqsCorrES{} with the $t$ of the P\&L
+change (a lower score with a higher P\&L), the QLIKE change at \fqsCorrQ. Few of the gains
+are significant on their own, and the counts are not independent evidence: the models share
+the data.}
+\label{fig:qlike_sharpe}
+\end{figure}
+
+% 2026-10-13 (user): pointer to the bucket story check (Appendix sec:app_buckets); \bk... macros from
+% writeup/make_buckets_tex.py (results/feature_mcs_2026-10-08/buckets_*.csv)
+% 2026-10-14 parked (user): the bucket write-up is not in the paper for now
+% \paragraph{Bucket by bucket.} Whether the exogenous inputs help only together is tested in
+% Appendix~\ref{sec:app_buckets}, one bucket at a time, under \bkNEst{} estimators and
+% \bkNPools{} pools of them. They do not: StepM never names all features against HAR +
+% calendar in any of the \bkCells{} family-and-loss cells, while it names a single bucket, the
+% value-weighted stock cross-section, on the linear models' QLIKE; on the trees' trade the
+% significant gains are single buckets too, pairwise only.
 
 % D1 2026-09-29 (change 4): the headline forecast and why.  Macros from
 % results/close_master_table/master_table.csv (row sub_ridge_live_feasible, is_headline) and
 % master_table_vs_headline.csv, written by writeup/make_table_close_main.py.
-\paragraph{The headline forecast, and why this one.} The headline forecast of
-this section is the per-bar ridge on the \texttt{live\_feasible} inputs (H in
-Table~\ref{tab:close_option_rules}). It is chosen for two reasons, neither of % reasons: results/close_master_table/SUMMARY.md (a)
-them its Sharpe ratio. It reads only the 16 series a forecaster can rebuild at
-15:30 from a retail feed, so the trade it scores is one that can be run; and it
-is the 15:30 study's forecast of record, the per-bar estimator that study
-defined first, not the maximum of the table: over the master table's
-\cmMasterN{} forecasts the highest Sharpe ratio belongs to the \cmTopShLabel{} % master_table.csv table A, argmax Sharpe_mid
-on \cmTopShInputs{} (\cmTopShMid{}), and taking the maximum of that many
-Sharpe ratios would select on the trade's own noise. The headline ranks
-\cmHRankSh{} of \cmMasterN{} on the Sharpe ratio and \cmHRankQ{} of % rank of sub_ridge_live_feasible in table A
-\cmMasterN{} on QLIKE.
-
-Its forecast is more accurate than the paper's, but not significantly: QLIKE
-\cmHQ{}, \cmHQPct\% against the block-diagonal ridge, Diebold--Mariano % qlike_recal, qlike_pct_vs_ref
-\cmHDM{} ($p=\cmHDMp$), with a day-block interval on the daily loss difference % dm_vs_ref, dm_p_vs_ref
-of \cmHQCi. Its trade is resolved against both references. The
-$\mathrm{sign}(s)$ portfolio has a Sharpe ratio of \cmHShMid{} at the % Sharpe_mid / Sharpe_crossed
-midpoint and \cmHShX{} at the crossed spread, earns \cmHMean{} premium units a % mean_mid
-day, is right on \cmHHit\% of days and long on \cmHBuy\%. Paired on the same % hit_rate_mid, pct_buy
-days it trades above the block-diagonal ridge by \cmHVsRefMid{} at the % dSharpe_mid_vs_ref
-midpoint (\cmHVsRefX{} crossed) and above always short by % dSharpe_crossed_vs_ref
-\cmHVsShortMid{} (\cmHVsShortX{} crossed); the second interval clears zero % dSharpe_{mid,crossed}_vs_short
-narrowly.
-
-What it is \emph{not} separated from matters as much. The lasso on the same
-inputs --- the same rows, target and window, only the penalty changed ---
-trades at \cmVsHLassoSh{}, \cmVsHLasso{} against the headline, takes its side on % master_table_vs_headline.csv
-\cmVsHLassoSame{} percent of days, and forecasts better on QLIKE % sub_lasso_live_feasible
-(\cmVsHLassoQPct\%, DM \cmVsHLassoDM). The elastic net on the same inputs is at
-\cmVsHEnet{}, the ridge on all features at \cmVsHRidgeAll{}, and the % sub_enet_live_feasible, sub_ridge_all_features
-table's top Sharpe ratio at \cmVsHTop. Over the master table's \cmVsHN{} other % the argmax forecast
-forecasts, \cmVsHAbove{} trades above the headline with an interval above zero % vs-headline counts, table A
-and \cmVsHBelow{} trade below it with an interval below zero. The headline is a
-forecast of record, not a winner: Table~\ref{tab:close_option_rules} resolves
-that it trades above the paper's forecast and above the control, and it does
-not resolve an order among the per-bar forecasts.
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% \paragraph{The headline forecast, and why this one.} The headline forecast of
+% this section is the per-bar ridge on the \texttt{live\_feasible} inputs (H in
+% Table~\ref{tab:close_option_rules}). It is chosen for two reasons, neither of % reasons: results/close_master_table/SUMMARY.md (a)
+% them its Sharpe ratio. It reads only the 16 series a forecaster can rebuild at
+% 15:30 from a retail feed, so the trade it scores is one that can be run; and it
+% is the 15:30 study's forecast of record, the per-bar estimator that study
+% defined first, not the maximum of the table:
+% over the master table's
+% \cmMasterN{} forecasts the highest Sharpe ratio belongs to the \cmTopShLabel{} % master_table.csv table A, argmax Sharpe_mid
+% on \cmTopShInputs{} (\cmTopShMid{}), and taking the maximum of that many
+% Sharpe ratios would select on the trade's own noise. By point estimate the headline ranks
+% \cmHRankSh{} of \cmMasterN{} on the Sharpe ratio and \cmHRankQ{} of % rank of sub_ridge_live_feasible in table A
+% \cmMasterN{} on QLIKE.
+%
+% % 2026-10-06 parked (recalibration removed, user decision):
+% % Its forecast is more accurate than the paper's, but not significantly: QLIKE
+% % \cmHQ{}, \cmHQPct\% against the block-diagonal ridge, Diebold--Mariano % qlike_recal, qlike_pct_vs_ref
+% % \cmHDM{} ($p=\cmHDMp$), with a day-block interval on the daily loss difference % dm_vs_ref, dm_p_vs_ref
+% % of \cmHQCi. Its trade is resolved against both references. The
+% % $\mathrm{sign}(s)$ portfolio has a Sharpe ratio of \cmHShMid{} at the % Sharpe_mid / Sharpe_crossed
+% % midpoint and \cmHShX{} at the crossed spread, earns \cmHMean{} premium units a % mean_mid
+% % day, is right on \cmHHit\% of days and long on \cmHBuy\%. Paired on the same % hit_rate_mid, pct_buy
+% % days it trades above the block-diagonal ridge by \cmHVsRefMid{} at the % dSharpe_mid_vs_ref
+% % midpoint (\cmHVsRefX{} crossed) and above always short by % dSharpe_crossed_vs_ref
+% % \cmHVsShortMid{} (\cmHVsShortX{} crossed); the second interval clears zero % dSharpe_{mid,crossed}_vs_short
+% % narrowly.
+% %
+% % What it is \emph{not} separated from matters as much. The lasso on the same
+% % inputs --- the same rows, target and window, only the penalty changed ---
+% % trades at \cmVsHLassoSh{}, \cmVsHLasso{} against the headline, takes its side on % master_table_vs_headline.csv
+% % \cmVsHLassoSame{} percent of days, and forecasts better on QLIKE % sub_lasso_live_feasible
+% % (\cmVsHLassoQPct\%, DM \cmVsHLassoDM). The elastic net on the same inputs is at
+% % \cmVsHEnet{}, the ridge on all features at \cmVsHRidgeAll{}, and the % sub_enet_live_feasible, sub_ridge_all_features
+% % table's top Sharpe ratio at \cmVsHTop. Over the master table's \cmVsHN{} other % the argmax forecast
+% % forecasts, \cmVsHAbove{} trades above the headline with an interval above zero % vs-headline counts, table A
+% % and \cmVsHBelow{} trade below it with an interval below zero. The headline is a
+% % forecast of record, not a winner: Table~\ref{tab:close_option_rules} resolves
+% % that it trades above the paper's forecast and above the control, and it does
+% % not resolve an order among the per-bar forecasts.
+% Its forecast is less accurate than the paper's in point estimate, but not
+% significantly: QLIKE \cmHQ{}, \cmHQPct\% against the block-diagonal ridge, % qlike_raw, qlike_pct_vs_ref
+% Diebold--Mariano \cmHDM{} ($p=\cmHDMp$). The % dm_vs_ref, dm_p_vs_ref
+% $\mathrm{sign}(s)$ portfolio has a Sharpe ratio of \cmHShMid{} at the % Sharpe_mid / Sharpe_crossed
+% midpoint and \cmHShX{} at the crossed spread, earns \cmHMean{} premium units a % mean_mid
+% day, is right on \cmHHit\% of days and long on \cmHBuy\%.
+% Paired on the same % hit_rate_mid, pct_buy
+% days it trades above the block-diagonal ridge by \cmHVsRefMid{} at the % dSharpe_mid_vs_ref
+% midpoint (\cmHVsRefX{} crossed), not significantly (HAC $t$ \cmHVsRefT, % t_hac_mid_vs_ref
+% $p=\cmHVsRefP$), and above always short by \cmHVsShortMid{} (\cmHVsShortX{} % dSharpe_{mid,crossed}_vs_short
+% crossed; HAC $t$ \cmHVsShortT, $p=\cmHVsShortP$).
+%
+% How close its neighbours come matters as much. The lasso on the same
+% inputs --- the same rows, target and window, only the penalty changed ---
+% trades at \cmVsHLassoSh{}, \cmVsHLasso{} against the headline (HAC $t$ \cmVsHLassoT), % master_table_vs_headline.csv
+% takes its side on \cmVsHLassoSame{} percent of days, and forecasts better on QLIKE in % sub_lasso_live_feasible
+% point estimate (\cmVsHLassoQPct\%, DM \cmVsHLassoDM). The elastic net on the same inputs is at
+% \cmVsHEnet{} (HAC $t$ \cmVsHEnetT), the ridge on all features at \cmVsHRidgeAll{} % sub_enet_live_feasible, sub_ridge_all_features
+% (\cmVsHRidgeAllT), and the table's top Sharpe ratio, the \cmTopShLabel{} on
+% \cmTopShInputs, at \cmVsHTop{}, a significant difference (HAC $t$ \cmVsHTopT).
+% Over the master table's \cmVsHN{} other % vs-headline counts, table A
+% forecasts, \cmVsHAbove{} trade above the headline at the midpoint, \cmVsHAboveSig{} of
+% them with a significant HAC $t$, and \cmVsHBelow{} below it, \cmVsHBelowSig{}
+% significantly; with this many comparisons a few significant differences are expected by
+% chance alone. The headline is a forecast of record, not a winner: it trades above the
+% control significantly and above the paper's forecast without significance, and the
+% differences that separate it from the other per-bar forecasts are not read as an order
+% among them on \cmNdays{} days.
 
 % D1 2026-09-29 (change 5): one change at a time.  Table 8 and the \cmLd... macros are written
 % by writeup/make_table_close_main.py (ladder()) from
 % results/close_master_table/master_table_daily.parquet with the master table's own paired
 % statistics; the executed pairs are writeup/generated/close_main_ladder.csv.
-\paragraph{One change at a time.} Table~\ref{tab:close_option_ladder} walks
-from the paper's forecast to the headline one change at a time, every step
-paired on the same days. Replacing the block-diagonal ridge by the per-bar
+% 2026-10-06 parked (no headline model, user decision):
+% \paragraph{One change at a time.} Table~\ref{tab:close_option_ladder} walks
+% from the paper's forecast to the headline one change at a time, every step
+% paired on the same days.
+\paragraph{One change at a time.} Table~\ref{tab:close_option_ladder} pairs forecasts of
+Table~\ref{tab:close_option_rules} that differ in one thing, every step on the same days.
+% 2026-10-06 parked (recalibration removed, user decision):
+% Replacing the block-diagonal ridge by the per-bar
+% specification's ridge fitted on all 48 bars --- design, window and penalty
+% change together --- moves nothing on the trade (\cmLdSpec). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
+% 16:00 bar alone is the largest step: \cmLdPerBarAll{} on \texttt{all\_features} % pool_ridge_all_features -> sub_ridge_all_features
+% and \cmLdPerBarLive{} on \texttt{live\_feasible}. On HAR + calendar the same % pool_ridge_live_feasible -> sub_ridge_live_feasible
+% step changes QLIKE by \cmLdPerBarBaseQ{} percent, a resolved gain (DM \cmLdPerBarBaseDM), and % pool_ridge_baseline -> sub_ridge_baseline
+% leaves the trade where it was (\cmLdPerBarBase): a better forecast of the bar's variance
+% is not by itself a better trade. Restricting the per-bar ridge from all
+% features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
+% and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
+% changing only the estimator to another penalty or to a tree with the shipped % H -> five estimators
+% settings moves the Sharpe ratio by between \cmLdEstMax{} (the lasso) and
+% \cmLdEstMin{} (XGBoost). The % I4b: was -0.49 (the elastic net) on the first-pass trees
+% headline's resolved lead over the block-diagonal ridge is exactly the sum of
+% three steps of the table --- the specification step, fitting the 16:00 bar
+% alone on \texttt{all\_features}, and restricting those inputs to % asserted by make_table_close_main.py
+% \texttt{live\_feasible} --- none of which is resolved alone; the largest is
+% fitting the traded bar on its own.
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% Replacing the block-diagonal ridge by the per-bar
+% specification's ridge fitted on all 48 bars --- design, window and penalty
+% change together --- moves nothing on the trade (\cmLdSpec). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
+% 16:00 bar alone is the largest step: \cmLdPerBarAll{} on \texttt{all\_features} % pool_ridge_all_features -> sub_ridge_all_features
+% and \cmLdPerBarLive{} on \texttt{live\_feasible} (HAC $t$ \cmLdPerBarAllT{} and % pool_ridge_live_feasible -> sub_ridge_live_feasible
+% \cmLdPerBarLiveT), while QLIKE changes by \cmLdPerBarAllQ{} and \cmLdPerBarLiveQ{}
+% percent. On HAR + calendar the same step changes QLIKE by \cmLdPerBarBaseQ{} percent, a % pool_ridge_baseline -> sub_ridge_baseline
+% significant gain (DM \cmLdPerBarBaseDM), and moves the trade by \cmLdPerBarBase{} (HAC $t$
+% \cmLdPerBarBaseT): a better forecast of the bar's variance is not by itself a better trade,
+% and on the other two input sets the trade gains while QLIKE worsens. Restricting the per-bar ridge from all
+% features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
+% and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
+% changing only the estimator to another penalty or to a tree with the shipped % H -> five estimators
+% settings moves the Sharpe ratio by between \cmLdEstMin{} (the random forest) and % cmLdEstMinLabel / cmLdEstMaxLabel
+% \cmLdEstMax{} (the lasso).
+% The headline's lead over the block-diagonal ridge, not significant on its own (HAC $t$ % asserted by make_table_close_main.py
+% \cmHVsRefT), is exactly the sum of three steps of the table --- the specification step,
+% fitting the 16:00 bar alone on \texttt{all\_features}, and restricting those inputs to
+% \texttt{live\_feasible}; the largest is fitting the traded bar on its own. Of all
+% \cmLdN{} steps of the table, the Sharpe ratio moves with a significant HAC $t$ in % cmLdResolved / cmLdQResolved
+% \cmLdResolved{} and QLIKE with a significant Diebold--Mariano statistic in
+% \cmLdQResolved.
+Replacing the block-diagonal ridge by the per-bar
 specification's ridge fitted on all 48 bars --- design, window and penalty
-change together --- moves nothing on the trade (\cmLdSpec). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
-16:00 bar alone is the largest step: \cmLdPerBarAll{} on \texttt{all\_features} % pool_ridge_all_features -> sub_ridge_all_features
-and \cmLdPerBarLive{} on \texttt{live\_feasible}. On HAR + calendar the same % pool_ridge_live_feasible -> sub_ridge_live_feasible
-step changes QLIKE by \cmLdPerBarBaseQ{} percent, a resolved gain (DM \cmLdPerBarBaseDM), and % pool_ridge_baseline -> sub_ridge_baseline
-leaves the trade where it was (\cmLdPerBarBase): a better forecast of the bar's variance
-is not by itself a better trade. Restricting the per-bar ridge from all
-features to the \texttt{live\_feasible} inputs moves the trade by \cmLdInAll, % sub_ridge_all_features -> H
-and adding those inputs to HAR + calendar by \cmLdInBase. From the headline, % sub_ridge_baseline -> H
-changing only the estimator to another penalty or to a tree with the shipped % H -> five estimators
-settings moves the Sharpe ratio by between \cmLdEstMax{} (the lasso) and
-\cmLdEstMin{} (XGBoost). The % I4b: was -0.49 (the elastic net) on the first-pass trees
-headline's resolved lead over the block-diagonal ridge is exactly the sum of
-three steps of the table --- the specification step, fitting the 16:00 bar
-alone on \texttt{all\_features}, and restricting those inputs to % asserted by make_table_close_main.py
-\texttt{live\_feasible} --- none of which is resolved alone; the largest is
-fitting the traded bar on its own.
+% 2026-10-06 parked (pooled twins pre-tuned too, user decision):
+% change together --- moves nothing on the trade (\cmLdSpec). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
+% 16:00 bar alone moves the trade by \cmLdPerBarAll{} on \texttt{all\_features} (HAC $t$ % pool_ridge_all_features -> sub_ridge_all_features
+% \cmLdPerBarAllT) while QLIKE changes by \cmLdPerBarAllQ{} percent; on HAR + calendar the
+change together --- moves the trade by \cmLdSpec{} (HAC $t$ \cmLdSpecT). Fitting the % close_main_ladder.csv blk2 -> pool_ridge_all_features
+16:00 bar alone moves the trade by \cmLdPerBarAll{} on \texttt{all\_features} (HAC $t$ % pool_ridge_all_features -> sub_ridge_all_features
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% \cmLdPerBarAllT) while QLIKE changes by \cmLdPerBarAllQ{} percent, and by \cmLdPerBarLean{} on
+% \texttt{lean\_vol\_vix} (HAC $t$ \cmLdPerBarLeanT; QLIKE \cmLdPerBarLeanQ{} percent, DM
+% \cmLdPerBarLeanDM); on HAR + calendar the
+\cmLdPerBarAllT) while QLIKE changes by \cmLdPerBarAllQ{} percent; on HAR + calendar the
+same step changes QLIKE by \cmLdPerBarBaseQ{} percent, a significant gain (DM % pool_ridge_baseline -> sub_ridge_baseline
+\cmLdPerBarBaseDM), and moves the trade by \cmLdPerBarBase{} (HAC $t$
+\cmLdPerBarBaseT): a better forecast of the bar's variance is not by itself a better
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% trade. Adding the exogenous inputs to the per-bar ridge moves the trade by \cmLdIn{} (HAC $t$ % close_main_ladder.csv sub_ridge_baseline -> sub_ridge_all_features
+% \cmLdInT) while QLIKE changes by \cmLdInQ{} percent, and on \texttt{all\_features} changing
+trade. Adding the exogenous inputs to the per-bar ridge moves the trade by \cmLdIn{} (HAC $t$ % close_main_ladder.csv sub_ridge_baseline -> sub_ridge_all_features
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% \cmLdInT) while QLIKE changes by \cmLdInQ{} percent; the lean set of
+% Appendix~\ref{sec:app_lean} moves it by \cmLdInBaseLean{} from HAR + calendar (QLIKE
+% \cmLdInBaseLeanQ\%), and going from the lean set to all features by \cmLdInLeanAll{} (QLIKE
+% \cmLdInLeanAllQ\%). On \texttt{all\_features} changing
+\cmLdInT) while QLIKE changes by \cmLdInQ{} percent, and on \texttt{all\_features} changing
+% 2026-10-13 parked (user; the trees on their top entries: the minimum is now the random forest's step):
+% only the estimator moves the Sharpe ratio by between \cmLdEstMin{} (LightGBM with the % cmLdEstMinLabel / cmLdEstMaxLabel
+% shipped settings) and \cmLdEstMax{} (the elastic net). The campaign blocks of the table walk
+only the estimator moves the Sharpe ratio by between \cmLdEstMin{} (the \cmLdEstMinWho{} with % cmLdEstMinWho / cmLdEstMaxWho
+the shipped settings) and \cmLdEstMax{} (the \cmLdEstMaxWho). The campaign blocks of the table walk
+the rungs of the 16:00 re-run for LightGBM on \texttt{all\_features}: the per-window mask moves
+the shipped settings refit every ten sessions by \cmLdCMaskTtenQ\% on QLIKE (DM
+\cmLdCMaskTtenDM) and \cmLdCMaskTten{} on the trade; refitting every session instead of every
+ten changes QLIKE by \cmLdCCadLgbmQ\% (DM \cmLdCCadLgbmDM) and the trade by \cmLdCCadLgbm;
+against the shipped settings, both refit daily, the random search changes QLIKE by
+\cmLdCTuneRsQ\% and Optuna tuned every session by \cmLdCTuneOpQ\% (DM \cmLdCTuneOpDM), and
+tuning Optuna every session rather than every 250 moves its trade by \cmLdCTuneOpPer. Of all
+\cmLdN{} steps of the table, the Sharpe ratio moves with a significant HAC $t$ % cmLdResolved / cmLdQResolved
+in \cmLdResolved{} and QLIKE with a significant Diebold--Mariano statistic in
+\cmLdQResolved.
 
 % I4b 2026-09-30: the campaign's rungs (the last five blocks of Table 8), \cmLdC... macros
 % from close_main_ladder.csv (recomputed and gated against results/trees_mask_1600/mask_pairs.csv,
 % results/linear_subsection_trees_optuna_mask/report/tuneper_oos.csv and
 % results/linear_subsection_lstm_intraday/score/lstmi_pairs.csv, or read from them).
-The last five blocks of Table~\ref{tab:close_option_ladder} walk the rungs of
-the 16:00 re-run the same way, for LightGBM and the LSTM on
-\texttt{live\_feasible}. Dropping the duplicated columns leaves the headline
-where it was. The per-window mask moves no rung's QLIKE or Sharpe ratio with an % masked - unmasked rows
-interval that excludes zero (LightGBM with the shipped settings refit every ten
-sessions: \cmLdCMaskTtenQ\% on QLIKE, \cmLdCMaskTten{} on the trade). % H: T10 masked - T10 unmasked
-Refitting every session instead of every ten makes LightGBM more accurate,
-\cmLdCCadLgbmQ\% (DM \cmLdCCadLgbmDM), without moving its trade % T1 - T10 (gated vs H)
-(\cmLdCCadLgbm); the LSTM's QLIKE changes by \cmLdCCadLstmQ\%, not resolved. % H: LSTM - LSTM10, masked
-Tuning does not help: against the shipped settings, both refit daily, the % RS1 - T1 (gated vs H)
-random search changes QLIKE by \cmLdCTuneRsQ\% and Optuna tuned every session % tp1 - T1 (gated vs C)
-by \cmLdCTuneOpQ\%, a resolved loss of accuracy, and tuning every session
-rather than every 250 moves Optuna's trade by \cmLdCTuneOpPer. Reading the % tp1 - tp250 (gated vs C)
-last half-hour bars instead of the last sessions moves the LSTM's QLIKE by
-\cmLdCSeqQ\% and its trade by \cmLdCSeq. Of all \cmLdN{} steps of the table, % intraday - per-bar LSTM (gated vs I)
-\cmLdResolved{} has a Sharpe interval that excludes zero. % I4b: was "one ... the causally tuned LightGBM"
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% The last five blocks of Table~\ref{tab:close_option_ladder} walk the rungs of
+% the 16:00 re-run the same way, for LightGBM and the LSTM on
+% \texttt{live\_feasible}. Dropping the duplicated columns leaves the headline
+% where it was.
+% % 2026-10-06 parked (recalibration removed, user decision):
+% % The per-window mask moves no rung's QLIKE or Sharpe ratio with an % masked - unmasked rows
+% % interval that excludes zero (LightGBM with the shipped settings refit every ten
+% % sessions: \cmLdCMaskTtenQ\% on QLIKE, \cmLdCMaskTten{} on the trade). % H: T10 masked - T10 unmasked
+% % Refitting every session instead of every ten makes LightGBM more accurate,
+% % \cmLdCCadLgbmQ\% (DM \cmLdCCadLgbmDM), without moving its trade % T1 - T10 (gated vs H)
+% % (\cmLdCCadLgbm); the LSTM's QLIKE changes by \cmLdCCadLstmQ\%, not resolved. % H: LSTM - LSTM10, masked
+% % Tuning does not help: against the shipped settings, both refit daily, the % RS1 - T1 (gated vs H)
+% % random search changes QLIKE by \cmLdCTuneRsQ\% and Optuna tuned every session % tp1 - T1 (gated vs C)
+% % by \cmLdCTuneOpQ\%, a resolved loss of accuracy, and tuning every session
+% % rather than every 250 moves Optuna's trade by \cmLdCTuneOpPer. Reading the % tp1 - tp250 (gated vs C)
+% % last half-hour bars instead of the last sessions moves the LSTM's QLIKE by
+% % \cmLdCSeqQ\% and its trade by \cmLdCSeq. Of all \cmLdN{} steps of the table, % intraday - per-bar LSTM (gated vs I)
+% % \cmLdResolved{} has a Sharpe interval that excludes zero. % I4b: was "one ... the causally tuned LightGBM"
+% The per-window mask moves LightGBM with the shipped settings refit every ten % masked - unmasked rows
+% sessions by \cmLdCMaskTtenQ\% on QLIKE (DM \cmLdCMaskTtenDM) and by % H: T10 masked - T10 unmasked
+% \cmLdCMaskTten{} on the trade; the other masked rungs are in
+% Table~\ref{tab:close_option_ladder}.
+% Refitting every session instead of every ten makes LightGBM more accurate,
+% \cmLdCCadLgbmQ\% (DM \cmLdCCadLgbmDM), without moving its trade % T1 - T10 (gated vs H)
+% (\cmLdCCadLgbm); the LSTM's QLIKE changes by \cmLdCCadLstmQ\% (DM % H: LSTM - LSTM10, masked
+% \cmLdCCadLstmDM).
+% Tuning does not help: against the shipped settings, both refit daily, the % RS1 - T1 (gated vs H)
+% random search changes QLIKE by \cmLdCTuneRsQ\% and Optuna tuned every session % tp1 - T1 (gated vs C)
+% by \cmLdCTuneOpQ\% (DM \cmLdCTuneOpDM), a loss of accuracy, and tuning every session
+% rather than every 250 moves Optuna's trade by \cmLdCTuneOpPer. Reading the % tp1 - tp250 (gated vs C)
+% last half-hour bars instead of the last sessions moves the LSTM's QLIKE by
+% \cmLdCSeqQ\% and its trade by \cmLdCSeq. % intraday - per-bar LSTM (gated vs I)
 
 \begin{table}[H]
 \centering
 \caption{One change at a time: paired differences between two forecasts of
 Table~\ref{tab:close_option_rules} that differ in one thing (the step's
-``to'' forecast minus its ``from'' forecast), on the same \cmNdays{} days under
-the 16:00-bar recalibration. QLIKE: percent difference in mean QLIKE at the
-$16{:}00$ bar with a 95\% day-block interval (negative: the ``to'' forecast is
+``to'' forecast minus its ``from'' forecast), on the same \cmNdays{} days,
+% 2026-10-06 parked (recalibration removed, user decision):
+% under
+% the 16:00-bar recalibration. QLIKE: percent difference in mean QLIKE at the
+% $16{:}00$ bar with a 95\% day-block interval (negative: the ``to'' forecast is
+% more accurate), and its Diebold--Mariano statistic. $\Delta$Sharpe: difference
+% in the $\mathrm{sign}(s)$ portfolio's annualized Sharpe ratio at the midpoint
+% and at the crossed spread, with 95\% paired intervals on the resampled days of
+% Table~\ref{tab:close_option_rules}. Same side: the share of days the two
+every forecast its plain back-transform $f^{2}B$. QLIKE: percent difference in
+mean QLIKE at the $16{:}00$ bar (negative: the ``to'' forecast is
 more accurate), and its Diebold--Mariano statistic. $\Delta$Sharpe: difference
 in the $\mathrm{sign}(s)$ portfolio's annualized Sharpe ratio at the midpoint
-and at the crossed spread, with 95\% paired intervals on the resampled days of
-Table~\ref{tab:close_option_rules}. Same side: the share of days the two
+and at the crossed spread, a point estimate, with the Newey--West (HAC) $t$ of the daily
+midpoint-return difference. Same side: the share of days the two
 forecasts take the same position. The first step changes the design, the
 training window and the penalty together; every other step changes one thing.
-Steps the master table also stores are reproduced by it exactly. The last five
-blocks are the rungs of the 16:00 re-run (Section~\ref{sec:close_option_methods})
-for LightGBM and the LSTM on \texttt{live\_feasible}: the design row pairs the
-headline with its table before the re-run; the mask rows and the LSTM refit
-every ten sessions, whose unmasked or ten-session tables are not rows of
-Table~\ref{tab:close_option_rules}, are read from the re-run's own paired
-comparisons (same days, same scorer and resampling); every other campaign step
-is recomputed here and reproduces the re-run's report. DM ---: not stored for
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% Steps the master table also stores are reproduced by it exactly. The last five
+% blocks are the rungs of the 16:00 re-run (Section~\ref{sec:close_option_methods})
+% for LightGBM and the LSTM on \texttt{live\_feasible}: the design row pairs the
+% headline with its table before the re-run; the mask rows and the LSTM refit
+% every ten sessions, whose unmasked or ten-session tables are not rows of
+% Table~\ref{tab:close_option_rules}, are read from the re-run's own paired
+% % 2026-10-06 parked (recalibration removed, user decision):
+% % comparisons (same days, same scorer and resampling); every other campaign step
+% comparisons (same days, same scorer); every other campaign step
+% is recomputed here and reproduces the re-run's report. DM ---: not stored for
+% that pair.
+Steps the master table also stores are reproduced by it exactly; the campaign blocks are
+the rungs of the 16:00 re-run for LightGBM on \texttt{all\_features}. DM ---: not stored for
 that pair.
 \label{tab:close_option_ladder}}
 \resizebox{\textwidth}{!}{\input{generated/table_close_ladder}}
@@ -250,65 +587,170 @@ that pair.
 % and asserted by writeup/make_table_close_main.py (campaign_macros).  The first-pass version
 % of this paragraph (causally tuned trees, results/linear_subsection_trees_tuned/a2b/) is
 % recorded with its numbers in writeup/D1_CHANGELOG_2026-09-29.md, section 7.
-\paragraph{Trees and LSTMs, every rung.} Over every tree, input set and rung
-of the re-run the reading of Table~\ref{tab:close_option_ladder} holds. No
-tree is more accurate than the per-bar ridge on the same inputs: of
-\cmTrVsRidgeN{} QLIKE intervals (three trees, three input sets, the four % masked - ridge (H) + vs ridge (C)
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Trees and LSTMs, every rung.} Over every tree, input set and rung
+% of the re-run the reading of Table~\ref{tab:close_option_ladder} holds. No
+% tree is more accurate than the per-bar ridge on the same inputs: of
+% \cmTrVsRidgeN{} QLIKE intervals (three trees, three input sets, the four % masked - ridge (H) + vs ridge (C)
+% rungs with the shipped settings or the random search and Optuna at four tuning
+% cadences) none lies below zero and \cmTrVsRidgeQAbove{} lie above, and none
+% trades above the ridge with an interval above zero (\cmTrVsRidgeShBelow{} below).
+% Refitting every session lowers the QLIKE of all \cmCadN{} tree forecasts (three % H: T1 - T10, 9 pairs
+% trees, three input sets) with the shipped settings, with
+% \cmCadQBelow{} intervals below zero, and moves one trade with an interval
+% that excludes zero, XGBoost on \texttt{all\_features} (\cmCadShUp). Tuning
+% never makes a tree refit daily more accurate than the shipped settings refit
+% daily: the random search is less accurate with an interval above zero in % H: RS1 - T1
+% \cmRsQAbove{} of \cmRsN{} cases and Optuna in \cmOpQAbove{} of \cmOpN{}, and no % C: vs T1
+% tuned tree's trade differs from the shipped one's with an interval that
+% excludes zero. Tuning Optuna every session, every 5 or every 25 sessions
+% rather than every 250 is more accurate with an interval below zero in % C: tune_per vs 250
+% \cmTpQBelow{} of \cmTpN{} cases and never resolved on the trade. On the trial
+% budget, the best validation score falls in the last ten of the 50 trials at % C: budget_points.csv
+% \cmBudLastMin{} to \cmBudLastMax\% of tuning points, against \cmBudLastExch\% if
+% the order did not matter, yet out of sample the best of 50 is more accurate % C: budget, best of 50 vs 10 / 25
+% than the best of the first 10 or 25 in none of \cmBudN{} cases, and less
+% accurate in \cmBudQAbove. The mask itself changes the trees little: a median
+% of \cmMaskQMed\% in QLIKE, \cmMaskQAbove{} of \cmMaskN{} intervals above zero % H: masked - unmasked, trees
+% and none below, and \cmMaskShBelow{} Sharpe interval below zero. The LSTM
+% over sessions is more accurate with daily refits (\cmLstmCadBase, % H: LSTM - LSTM10, masked
+% \cmLstmCadLive{} and \cmLstmCadAll\% on \texttt{baseline},
+% \texttt{live\_feasible} and \texttt{all\_features}, \cmLstmCadBelow{} intervals
+% below zero) but stays \cmLstmVsRidgeMin{} to \cmLstmVsRidgeMax\% above the % I: perbar_lstm - ridge
+% ridge in QLIKE; the LSTM over half-hour bars is resolved more accurate than it
+% only on \texttt{all\_features} (\cmIntraAllQ\%) and is \cmIntraVsRidgeMin{} to % I: intraday - perbar_lstm; intraday - ridge
+% \cmIntraVsRidgeMax\% above the ridge, every interval above zero; neither LSTM's
+% trade differs from the ridge's with an interval that excludes zero. On the
+% trade the best of the master table's \cmNlMasterN{} tree and LSTM forecasts, % master_table.csv argmax Sharpe, tree / LSTM families
+% the random forest on \texttt{live\_feasible} with the random search's settings
+% chosen by QLIKE and refit every ten sessions (\cmNlBestSh), is \cmNlBestVsH{} % master_table_vs_headline.csv
+% against the headline, and \cmNlVsHAbove{} of the \cmNlMasterN{} trades above the
+% headline with an interval above zero.
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% \paragraph{Trees and LSTMs, every rung.} Over every tree, input set and rung
+\paragraph{Trees, every rung.} Over every tree, input set and rung
+of the re-run the reading of Table~\ref{tab:close_option_ladder} holds. Against
+the per-bar ridge on the same inputs, of % masked - ridge (H) + vs ridge (C)
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% \cmTrVsRidgeN{} paired QLIKE differences (three trees, three input sets, the four
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% \cmTrVsRidgeN{} paired QLIKE differences (three trees, two input sets, the four
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% \cmTrVsRidgeN{} paired QLIKE differences (three trees, three input sets, the four
+\cmTrVsRidgeN{} paired QLIKE differences (three trees, two input sets, the four
 rungs with the shipped settings or the random search and Optuna at four tuning
-cadences) none lies below zero and \cmTrVsRidgeQAbove{} lie above, and none
-trades above the ridge with an interval above zero (\cmTrVsRidgeShBelow{} below).
-Refitting every session lowers the QLIKE of all \cmCadN{} tree forecasts (three % H: T1 - T10, 9 pairs
-trees, three input sets) with the shipped settings, with
-\cmCadQBelow{} intervals below zero, and moves one trade with an interval
-that excludes zero, XGBoost on \texttt{all\_features} (\cmCadShUp). Tuning
-never makes a tree refit daily more accurate than the shipped settings refit
-daily: the random search is less accurate with an interval above zero in % H: RS1 - T1
-\cmRsQAbove{} of \cmRsN{} cases and Optuna in \cmOpQAbove{} of \cmOpN{}, and no % C: vs T1
-tuned tree's trade differs from the shipped one's with an interval that
-excludes zero. Tuning Optuna every session, every 5 or every 25 sessions
-rather than every 250 is more accurate with an interval below zero in % C: tune_per vs 250
-\cmTpQBelow{} of \cmTpN{} cases and never resolved on the trade. On the trial
-budget, the best validation score falls in the last ten of the 50 trials at % C: budget_points.csv
+cadences) \cmTrVsRidgeQAbove{} lie above zero, \cmTrVsRidgeQAboveSig{} of them
+significantly, and \cmTrVsRidgeShBelow{} of the trees' trades lie below the ridge's,
+\cmTrVsRidgeShBelowSig{} significantly.
+% 2026-10-13 parked (user; the trees on their top entries: claim "daily refits lower every tree's QLIKE" FLIPPED):
+% Refitting every session lowers the QLIKE of all \cmCadN{} tree forecasts (three % H: T1 - T10, 9 pairs
+Refitting every session lowers the QLIKE of \cmCadQBelow{} of the \cmCadN{} tree forecasts (three % H: T1 - T10
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% trees, three input sets) with the shipped settings, \cmCadQBelowSig{} of them
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% trees, two input sets) with the shipped settings, \cmCadQBelowSig{} of them
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% trees, three input sets) with the shipped settings, \cmCadQBelowSig{} of them
+trees, two input sets) with the shipped settings, \cmCadQBelowSig{} of them
+significantly. Tuning mostly makes a tree refit daily less accurate than the shipped
+settings refit daily: the random search is less accurate in % H: RS1 - T1
+\cmRsQAbove{} of \cmRsN{} cases (\cmRsQAboveSig{} significantly) and Optuna in % C: vs T1
+\cmOpQAbove{} of \cmOpN{} (\cmOpQAboveSig{}). Tuning
+Optuna every session, every 5 or every 25 sessions
+rather than every 250 is more accurate in % C: tune_per vs 250
+\cmTpQBelow{} of \cmTpN{} cases (\cmTpQBelowSig{} significantly). On the trial
+% 2026-10-13 (user; the trees on their top entries): the trial records cover LightGBM and the forest (trial 255);
+% XGBoost's records of its xgb_opt_00 run are not local (pending), so it is left out of this count:
+% budget, the best validation score falls in the last ten of the 50 trials at % C: budget_points.csv
+% 2026-10-14 (coordinator; xgbtop stage-1 records pulled): XGBoost's trial rows back, every tree on its top entry;
+% the 2026-10-13 interim wording (LightGBM and the forest only) parked:
+% budget, the best validation score of LightGBM and the random forest falls in the last ten % C: budget_points.csv + rf400 stage-1 records
+% of the 50 trials at
+budget, the best validation score falls in the last ten of the 50 trials at % C: budget_points.csv + rf400 / xgbtop stage-1 records
 \cmBudLastMin{} to \cmBudLastMax\% of tuning points, against \cmBudLastExch\% if
-the order did not matter, yet out of sample the best of 50 is more accurate % C: budget, best of 50 vs 10 / 25
-than the best of the first 10 or 25 in none of \cmBudN{} cases, and less
-accurate in \cmBudQAbove. The mask itself changes the trees little: a median
-of \cmMaskQMed\% in QLIKE, \cmMaskQAbove{} of \cmMaskN{} intervals above zero % H: masked - unmasked, trees
-and none below, and \cmMaskShBelow{} Sharpe interval below zero. The LSTM
-over sessions is more accurate with daily refits (\cmLstmCadBase, % H: LSTM - LSTM10, masked
-\cmLstmCadLive{} and \cmLstmCadAll\% on \texttt{baseline},
-\texttt{live\_feasible} and \texttt{all\_features}, \cmLstmCadBelow{} intervals
-below zero) but stays \cmLstmVsRidgeMin{} to \cmLstmVsRidgeMax\% above the % I: perbar_lstm - ridge
-ridge in QLIKE; the LSTM over half-hour bars is resolved more accurate than it
-only on \texttt{all\_features} (\cmIntraAllQ\%) and is \cmIntraVsRidgeMin{} to % I: intraday - perbar_lstm; intraday - ridge
-\cmIntraVsRidgeMax\% above the ridge, every interval above zero; neither LSTM's
-trade differs from the ridge's with an interval that excludes zero. On the
-trade the best of the master table's \cmNlMasterN{} tree and LSTM forecasts, % master_table.csv argmax Sharpe, tree / LSTM families
-the random forest on \texttt{live\_feasible} with the random search's settings
-chosen by QLIKE and refit every ten sessions (\cmNlBestSh), is \cmNlBestVsH{} % master_table_vs_headline.csv
-against the headline, and \cmNlVsHAbove{} of the \cmNlMasterN{} trades above the
-headline with an interval above zero.
+the order did not matter, yet out of sample the best of 50 is less accurate % C: budget, best of 50 vs 10 / 25
+than the best of the first 10 or 25 in \cmBudQAbove{} of \cmBudN{} cases
+(\cmBudQAboveSig{} significantly) and more accurate in \cmBudQBelow. The
+mask itself changes the trees little: a median of \cmMaskQMed\% in QLIKE, the % H: masked - unmasked, trees
+masked tree less accurate in \cmMaskQAbove{} of \cmMaskN{} cases (\cmMaskQAboveSig{}
+significantly) and trading below the unmasked one in \cmMaskShBelow{}
+% 2026-10-13 parked (user; review items 76-79: XGBoost and the forest on their top entries, re-run unmasked at the
+% shipped settings only):
+% (\cmMaskShBelowSig{} significantly); for the random forest this comparison is of the forest % 2026-10-07: RF dev-tuned, masked only
+% with the library defaults, the dev-tuned one having been run masked only.
+(\cmMaskShBelowSig{} significantly); XGBoost and the random forest were re-run unmasked
+with the shipped settings only, so for them the comparison leaves out the random search.
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% The LSTM
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% over sessions is more accurate with daily refits (\cmLstmCadBase, % H: LSTM - LSTM10, masked
+% \cmLstmCadLive{} and \cmLstmCadAll\% on \texttt{baseline},
+% \texttt{live\_feasible} and \texttt{all\_features}; \cmLstmCadBelowSig{} significantly)
+% but stays \cmLstmVsRidgeMin{} to \cmLstmVsRidgeMax\% above the % I: perbar_lstm - ridge
+% ridge in QLIKE; the LSTM over half-hour bars is more accurate than it on
+% \texttt{live\_feasible} and \texttt{all\_features} (on \texttt{all\_features} by
+% \cmIntraAllQ\%, DM \cmIntraAllDM) and is between % I: intraday - perbar_lstm; intraday - ridge
+% \cmIntraVsRidgeMin{} and \cmIntraVsRidgeMax\% against the ridge. On the
+% trade the best of the master table's \cmNlMasterN{} tree and LSTM forecasts, % master_table.csv argmax Sharpe, tree / LSTM families
+% the \cmNlBestLabel{} on \texttt{live\_feasible} (\cmNlBestSh), is \cmNlBestVsH{} % master_table_vs_headline.csv
+% against the headline (HAC $t$ \cmNlBestVsHT), and \cmNlVsHAbove{} of the
+% \cmNlMasterN{} trade above the headline, \cmNlVsHAboveSig{} of them significantly.
+% over sessions is more accurate with daily refits (\cmLstmCadBase{} and % H: LSTM - LSTM10, masked
+% \cmLstmCadAll\% on \texttt{baseline} and \texttt{all\_features}; \cmLstmCadBelowSig{}
+% significantly) but stays \cmLstmVsRidgeMin{} to \cmLstmVsRidgeMax\% above the % I: perbar_lstm - ridge
+% ridge in QLIKE; the LSTM over half-hour bars is more accurate than it on
+% \texttt{all\_features} (\cmIntraAllQ\%, DM \cmIntraAllDM) and is between % I: intraday - perbar_lstm; intraday - ridge
+% \cmIntraVsRidgeMin{} and \cmIntraVsRidgeMax\% against the ridge.
 
 % D1 2026-09-29 (change 7): where the P&L comes from.  Macros \cmPnl... from
 % results/close_pnl_decomp/research_scorer/*.csv (the P&L decomposition under the same
 % 16:00-bar recalibration), gated against Table 7's headline row by the maker.
-\paragraph{Where the P\&L comes from: a tail trade.} Summed without
-compounding, the headline's portfolio makes \cmPnlTotal{} premium units at the % research_scorer/tail_concentration.csv
-midpoint over the \cmNdays{} days (\cmPnlTotalX{} crossed). Its 20 best days
-carry \cmPnlTopTwentyShare\% of that (\cmPnlTopTwentyShareX\% crossed); all 20
-are buys, all 20 worst days are sells, and \cmPnlDaysAll{} days add up to the % hit_payoff.csv days_for_100pct_of_pnl
-whole total. What the rule contributes is which of the tail days it owns: of
-the 20 days on which the straddle paid most it bought \cmPnlMktTwenty{}, against % tail_concentration.csv mkt_top_k_bought
-\cmPnlMktTwentyExp{} expected at its buy rate ($p=\cmPnlMktTwentyP$). Month-ends
-are not the source: on the \cmPnlMEn{} last sessions of a month, where the long % calendar_cells.csv
-straddle pays on average, the rule makes \cmPnlME{}, against \cmPnlNotME{} on the
-\cmPnlNotMEn{} days more than one session away. Against always short the
-difference is \cmPnlDiff{} premium units, all of it earned on the days the rule % diff_attribution.csv all days
-buys --- an interval that excludes zero, and that of the Sharpe difference in
-Table~\ref{tab:close_option_rules} does too --- but without the difference's 10
-best days it is \cmPnlDiffExTen. The edge is a tail trade: a handful of long % diff_attribution.csv top 10 days
-days carries it, and \cmNdays{} days hold few of them.
-Appendix~\ref{sec:app_close_pnl} gives the decomposition by cell.
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Where the P\&L comes from: a tail trade.} Summed without
+% compounding, the headline's portfolio makes \cmPnlTotal{} premium units at the % research_scorer/tail_concentration.csv
+% midpoint over the \cmNdays{} days (\cmPnlTotalX{} crossed). Its 20 best days
+% carry \cmPnlTopTwentyShare\% of that (\cmPnlTopTwentyShareX\% crossed); all 20
+% are buys, all 20 worst days are sells, and \cmPnlDaysAll{} days add up to the % hit_payoff.csv days_for_100pct_of_pnl
+% whole total. What the rule contributes is which of the tail days it owns: of
+% the 20 days on which the straddle paid most it bought \cmPnlMktTwenty{}, against % tail_concentration.csv mkt_top_k_bought
+% \cmPnlMktTwentyExp{} expected at its buy rate ($p=\cmPnlMktTwentyP$). Month-ends
+% are not the source: on the \cmPnlMEn{} last sessions of a month, where the long % calendar_cells.csv
+% straddle pays on average, the rule makes \cmPnlME{}, against \cmPnlNotME{} on the
+% \cmPnlNotMEn{} days more than one session away. Against always short the
+% difference is \cmPnlDiff{} premium units, all of it earned on the days the rule % diff_attribution.csv all days
+% buys --- an interval that excludes zero, and that of the Sharpe difference in
+% Table~\ref{tab:close_option_rules} does too --- but without the difference's 10
+% best days it is \cmPnlDiffExTen. The edge is a tail trade: a handful of long % diff_attribution.csv top 10 days
+% days carries it, and \cmNdays{} days hold few of them.
+% Appendix~\ref{sec:app_close_pnl} gives the decomposition by cell.
+% 2026-10-06 parked (no headline model, user decision):
+% \paragraph{Where the P\&L comes from: a tail trade.} Summed without
+% compounding, the headline's portfolio makes \cmPnlTotal{} premium units at the % research_scorer/tail_concentration.csv
+% midpoint over the \cmNdays{} days (\cmPnlTotalX{} crossed). Its 20 best days
+% carry \cmPnlTopTwentyShare\% of that (\cmPnlTopTwentyShareX\% crossed); all 20
+% are buys, all 20 worst days are sells, and \cmPnlDaysAll{} days add up to the % hit_payoff.csv days_for_100pct_of_pnl
+% whole total. What the rule contributes is which of the tail days it owns: of
+% the 20 days on which the straddle paid most it bought \cmPnlMktTwenty{}, against % tail_concentration.csv mkt_top_k_bought
+% \cmPnlMktTwentyExp{} expected at its buy rate --- more, but not significantly at 5\,\%
+% (hypergeometric $p=\cmPnlMktTwentyP$). Month-ends
+% are not the source: on the \cmPnlMEn{} last sessions of a month, where the long % calendar_cells.csv
+% straddle pays on average, the rule makes \cmPnlME{}, against \cmPnlNotME{} on the
+% \cmPnlNotMEn{} days more than one session away. Against always short the
+% difference is \cmPnlDiff{} premium units, all of it earned on the days the rule % diff_attribution.csv all days
+% buys, but without the difference's 10
+% best days it is \cmPnlDiffExTen. The edge is a tail trade: a handful of long % diff_attribution.csv top 10 days
+% days carries it, and \cmNdays{} days hold few of them.
+% Appendix~\ref{sec:app_close_pnl} gives the decomposition by cell.
+\paragraph{A tail trade.} Summed without compounding, the 20 best days of a forecast's % master_table_daily.parquet, model set
+$\mathrm{sign}(s)$ portfolio are buys for \cmMasterTopTwentyBuysN{} of the
+\cmMasterPosTotalN{} forecasts and its 20 worst days are sells for
+\cmMasterBottomTwentySellsN, and the 20 best days carry a median of
+\cmMasterTopTwentyShareMed\% of a forecast's summed P\&L (\cmMasterTopTwentyShareMin\% to
+\cmMasterTopTwentyShareMax\%). Against always short the summed difference is positive for
+\cmMasterDiffPosN{} forecasts, at a median of \cmMasterDiffMed{} premium units; without its
+10 best days it keeps less than half of itself for \cmMasterDiffExTenHalfN{} of them and
+turns negative for \cmMasterDiffExTenNegN{} (median \cmMasterDiffExTenMed). The edge is a
+tail trade: a handful of long days carries it, and \cmNdays{} days hold few of them.
 
 \paragraph{At the crossed spread.} Every Sharpe ratio of
 Table~\ref{tab:close_option_rules} is given at both fills. Charging the
@@ -325,37 +767,116 @@ charges.
 % results/strategy_variations/{headline_per_straddle_premium,paired_vs_straddle,cost_line}.csv
 % (experiments/strategy_variations_1530.py; the headline's rows, per straddle premium), whose
 % straddle row is gated against Table 7's headline row by the maker.
-\paragraph{Other structures.} The straddle is one choice of instrument for
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Other structures.} The straddle is one choice of instrument for
+% $\mathrm{sign}(s)$. Appendix~\ref{sec:app_strategy_variations} writes down
+% \cmSvN{} alternatives --- strangles at several distances from the index, iron % paired_vs_straddle.csv, headline rule
+% butterflies and iron condors at three wing widths, put and call verticals, call
+% and put butterflies, $1\times 2$ ratio spreads, and the straddle with a wing
+% hedge on the days the rule sells --- and scores them under the headline forecast
+% on the same days, per unit of straddle premium. None beats the straddle:
+% \cmSvAbove{} of their paired Sharpe-difference intervals lies above zero at % dSharpe_lo > 0, mid and crossed
+% either fill. The closest at the midpoint, the iron butterfly with the widest wings
+% (\cmSvBestMidSh), is \cmSvBestMid{} above it, and at the crossed spread the % iron butterfly, w50, mid
+% straddle ranks first. Wings cost at every width once the spread is paid:
+% \cmSvWingX{} of the \cmSvWingN{} iron-butterfly and wing-hedge rows lie below % iron butterfly + wing hedge rows, crossed
+% the straddle with an interval that excludes zero at crossed fills, against
+% \cmSvWingMid{} at the midpoint; the median entry cost of crossing is % mid
+% \cmSvCostStraddle\% of the straddle's own premium and \cmSvCostIbfMin\% to % cost_line.csv, buy/sell average
+% \cmSvCostIbfMax\% of an iron butterfly's.
+% 2026-10-06 parked (no headline model, user decision):
+% \paragraph{Other structures.} The straddle is one choice of instrument for
+% $\mathrm{sign}(s)$. Appendix~\ref{sec:app_strategy_variations} writes down
+% \cmSvN{} alternatives --- strangles at several distances from the index, iron % paired_vs_straddle.csv, headline rule
+% butterflies and iron condors at three wing widths, put and call verticals, call
+% and put butterflies, $1\times 2$ ratio spreads, and the straddle with a wing
+% hedge on the days the rule sells --- and scores them under the headline forecast
+% on the same days, per unit of straddle premium. Over both fills \cmSvAbove{} of the % paired, point estimates, both fills
+% variation--fill pairs trade above the straddle in point estimate, \cmSvAboveSig{} of them
+% significantly. The closest at the midpoint, the strangle one strike wide % strangle, one strike wide, mid (maker's check list)
+% (\cmSvBestMidSh), is \cmSvBestMid{} against it. Wings cost at every width once the
+% spread is paid:
+% \cmSvWingX{} of the \cmSvWingN{} iron-butterfly and wing-hedge rows lie below % iron butterfly + wing hedge rows, crossed
+% the straddle at crossed fills (\cmSvWingXSig{} significantly), against
+% \cmSvWingMid{} at the midpoint (\cmSvWingMidSig{}); the median entry cost of crossing is % mid
+% \cmSvCostStraddle\% of the straddle's own premium and \cmSvCostIbfMin\% to % cost_line.csv, buy/sell average
+% \cmSvCostIbfMax\% of an iron butterfly's.
+\paragraph{Other structures.} The straddle is one choice of instrument for % strategy variations x model set
 $\mathrm{sign}(s)$. Appendix~\ref{sec:app_strategy_variations} writes down
-\cmSvN{} alternatives --- strangles at several distances from the index, iron % paired_vs_straddle.csv, headline rule
+\cmSvN{} alternatives --- strangles at several distances from the index, iron
 butterflies and iron condors at three wing widths, put and call verticals, call
 and put butterflies, $1\times 2$ ratio spreads, and the straddle with a wing
-hedge on the days the rule sells --- and scores them under the headline forecast
-on the same days, per unit of straddle premium. None beats the straddle:
-\cmSvAbove{} of their paired Sharpe-difference intervals lies above zero at % dSharpe_lo > 0, mid and crossed
-either fill. The closest at the midpoint, the iron butterfly with the widest wings
-(\cmSvBestMidSh), is \cmSvBestMid{} above it, and at the crossed spread the % iron butterfly, w50, mid
-straddle ranks first. Wings cost at every width once the spread is paid:
-\cmSvWingX{} of the \cmSvWingN{} iron-butterfly and wing-hedge rows lie below % iron butterfly + wing hedge rows, crossed
-the straddle with an interval that excludes zero at crossed fills, against
-\cmSvWingMid{} at the midpoint; the median entry cost of crossing is % mid
-\cmSvCostStraddle\% of the straddle's own premium and \cmSvCostIbfMin\% to % cost_line.csv, buy/sell average
-\cmSvCostIbfMax\% of an iron butterfly's.
+hedge on the days the rule sells --- and here each is scored under every one of the
+\cmSvSetN{} forecasts, per unit of straddle premium (\cmSvSetPairsN{} pairs). At the midpoint
+\cmSvSetAboveMid{} pairs trade above the straddle, \cmSvSetAboveMidSig{} of them
+significantly, and the straddle ranks first for \cmSvSetStraddleFirstMid{} of the forecasts;
+the alternative with the highest median difference is the \cmSvSetBestMidLabel{} (median
+\cmSvSetBestMidMed, above the straddle for \cmSvSetBestMidAboveN{} forecasts,
+\cmSvSetBestMidAboveSig{} of them significantly). At the crossed spread \cmSvSetAboveX{}
+pairs trade above it (\cmSvSetAboveXSig{} significantly) and the straddle ranks first for
+\cmSvSetStraddleFirstX{} forecasts. Wings cost at every width once the spread is paid:
+\cmSvSetWingXBelow{} of the \cmSvSetWingN{} iron-butterfly and wing-hedge pairs lie below the
+straddle at crossed fills, against \cmSvSetWingMidBelow{} at the midpoint; the median entry
+cost of crossing is \cmSvCostStraddle\% of the straddle's own premium and
+\cmSvCostIbfMin\% to \cmSvCostIbfMax\% of an iron butterfly's.
 
 % D1 2026-09-29 (change 9): the session-bar diagnostics that followed here are parked,
 % verbatim, in sections/appendix_running_parked.tex (Appendix D).
-\paragraph{Diagnostics parked in Appendix D.} The previous version of this
-subsection read the paper's forecast under the session-bar recalibration and
-qualified it by two sample splits, the share of settlement pins, the correlation
-of the eight forecast columns, a decomposition of QLIKE into threshold decisions
-with its Murphy diagram, a same-day regression of the settlement return on the
-signal, a dating (shift) test of the forecast row, and compounding at a fixed
-fraction of wealth. Those paragraphs are parked, verbatim, in
-Appendix~\ref{sec:app_run_parked}: they concern the paper's forecast under the
-other recalibration and are not set beside Table~\ref{tab:close_option_rules}.
-Sizing the position by the size of the gap does not improve on its sign
-either; that test, too, was run under the session-bar recalibration
-(Appendix~\ref{sec:app_run_sizing}).
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Diagnostics parked in Appendix D.} The previous version of this
+% subsection read the paper's forecast under the session-bar recalibration and
+% qualified it by two sample splits, the share of settlement pins, the correlation
+% of the eight forecast columns, a decomposition of QLIKE into threshold decisions
+% with its Murphy diagram, a same-day regression of the settlement return on the
+% signal, a dating (shift) test of the forecast row, and compounding at a fixed
+% fraction of wealth. Those paragraphs are parked, verbatim, in
+% Appendix~\ref{sec:app_run_parked}: they concern the paper's forecast under the
+% other recalibration and are not set beside Table~\ref{tab:close_option_rules}.
+% Sizing the position by the size of the gap does not improve on its sign
+% either; that test, too, was run under the session-bar recalibration
+% (Appendix~\ref{sec:app_run_sizing}).
+% 2026-10-06 parked (no headline model, user decision):
+% \paragraph{Diagnostics parked in Appendix D.} An earlier version of this
+% subsection read the paper's forecast under a different back-transform, since
+% removed, and qualified it by two sample splits, the share of settlement pins, the
+% correlation of the eight forecast columns, a decomposition of QLIKE into threshold
+% decisions with its Murphy diagram, a same-day regression of the settlement return
+% on the signal, a dating (shift) test of the forecast row, and compounding at a
+% fixed fraction of wealth. Those paragraphs are kept, verbatim, in
+% Appendix~\ref{sec:app_run_parked}; they were computed under that other
+% back-transform and are not set beside Table~\ref{tab:close_option_rules}. The
+% splits, the pins, the threshold scoring, the shift test and the compounding are
+% repeated for the headline forecast in
+% Appendices~\ref{sec:app_shift_test_headline}--\ref{sec:app_compounding_headline}.
+% Sizing the position by the size of the gap does not improve on its sign
+% either; that test was run in the notebook study, under its own back-transform
+% (Appendix~\ref{sec:app_run_sizing}).
+\paragraph{Diagnostics parked in Appendix D.} An earlier version of this
+subsection read the paper's forecast under a different back-transform, since
+removed, and qualified it by two sample splits, the share of settlement pins, the
+correlation of the eight forecast columns, a decomposition of QLIKE into threshold
+decisions with its Murphy diagram, a same-day regression of the settlement return
+on the signal, a dating (shift) test of the forecast row, and compounding at a
+fixed fraction of wealth. Those paragraphs are kept, verbatim, in
+Appendix~\ref{sec:app_run_parked}; they were computed under that other
+back-transform and are not set beside Table~\ref{tab:close_option_rules}. The shift test,
+the scoring at the trade's threshold with its sample splits, and the compounding are repeated
+for the model set in
+Appendices~\ref{sec:app_shift_test_headline}--\ref{sec:app_compounding_headline}.
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% Sizing the position by the size of the gap does not improve on its sign
+% either; that test was run in the notebook study, under its own back-transform
+% (Appendix~\ref{sec:app_run_sizing}).
+% 2026-10-06 parked (sizing counts now quoted by macro; running-appendix macros input early):
+% Sizing the position by the size of the gap (Appendix~\ref{sec:app_run_sizing}) turns
+% on the sample in point estimate: after a year of history the robust clip and the rank of
+% $|s|$ each trade above $\mathrm{sign}(s)$ for most of the forecasts, and from the second
+% day $\mathrm{sign}(s)$ trades above both for most of them.
+Sizing the position by the size of the gap (Appendix~\ref{sec:app_run_sizing}) turns
+on the sample in point estimate: after a year of history the robust clip and the rank of % vrp_sized_rules.csv
+$|s|$ trade above $\mathrm{sign}(s)$ for \runappSzClipAbove{} and \runappSzRankAbove{} of
+the \runappSzForecasts{} forecasts, and from the second day for \runappSzClipAboveTwo{}
+and \runappSzRankAboveTwo.
 
 % PARKED 2026-09-29 (D1 change 3): the deck-scorer table (session-bar
 % recalibration, the paper's eight forecasts, midpoint only) and the prose that read it,
@@ -463,25 +984,71 @@ either; that test, too, was run under the session-bar recalibration
 
 % D1 2026-09-29 (change 9): the closing summary re-read on the one-scorer results (macros:
 % writeup/generated/close_main_numbers.tex); the session-bar version is kept below, commented.
+% 2026-10-06 parked (recalibration removed, user decision):
+% The trade as a whole is a demonstration under the stated constants of
+% Section~\ref{sec:close_option_methods}, not a trading claim: there is no delta
+% hedge, no borrow and no market-impact model, and the crossed spread is a bound
+% on the fill rather than a fill model. What survives is worth stating plainly.
+% Under one recalibration and on the same \cmNdays{} days, the per-bar ridge on
+% the \texttt{live\_feasible} inputs trades the last-30-min straddle at a Sharpe % master_table.csv headline row
+% ratio of \cmHShMid{} (\cmHShX{} crossed), above the paper's forecast by
+% \cmHVsRefMid{} and above always short by \cmHVsShortMid. Its forecast is not
+% significantly more accurate than the paper's (DM \cmHDM, $p=\cmHDMp$); no single
+% change on the way from the paper's forecast is resolved on its own, the largest % close_main_ladder.csv
+% being to fit the traded bar alone; and it is not separated from the lasso on the
+% same inputs (\cmVsHLasso). None of the \cmNlMasterN{} tree and LSTM forecasts of % master_table_vs_headline.csv
+% the 16:00 re-run --- refit every session or every ten, with the shipped, % I4b: asserted (cmNlVsHAbove)
+% searched or Optuna-tuned settings --- trades above it with an interval above
+% zero. The edge is a tail trade: the 20 best days carry
+% \cmPnlTopTwentyShare\% of its P\&L, all of them buys, and without its 10 best days % research_scorer/tail_concentration.csv
+% the advantage over always short is \cmPnlDiffExTen. The sample ends with the % research_scorer/diff_attribution.csv
+% forecast panel in April 2024; after it the trade's live form has shown no edge
+% (Appendix~\ref{sec:app_run_post2024}).
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% The trade as a whole is a demonstration under the stated constants of
+% Section~\ref{sec:close_option_methods}, not a trading claim: there is no delta
+% hedge, no borrow and no market-impact model, and the crossed spread is a bound
+% on the fill rather than a fill model. What survives is worth stating plainly.
+% With every forecast used as its plain back-transform and on the same
+% \cmNdays{} days, the per-bar ridge on
+% the \texttt{live\_feasible} inputs trades the last-30-min straddle at a Sharpe % master_table.csv headline row
+% ratio of \cmHShMid{} (\cmHShX{} crossed), above always short by \cmHVsShortMid{}
+% (HAC $t$ \cmHVsShortT) and above the paper's forecast by \cmHVsRefMid, not
+% significantly (HAC $t$ \cmHVsRefT). Its forecast is no more accurate than the paper's % close_main_ladder.csv
+% (QLIKE \cmHQPct\%, DM \cmHDM); the largest change on the way from the paper's forecast
+% is to fit the traded bar alone, and no single change moves the trade significantly; the
+% lasso on the same inputs trades \cmVsHLasso{} against it. Of the % master_table_vs_headline.csv
+% \cmNlMasterN{} tree and LSTM forecasts of
+% the 16:00 re-run --- refit every session or every ten, with the shipped,
+% searched or Optuna-tuned settings --- \cmNlVsHAbove{} trade above it, \cmNlVsHAboveSig{} of
+% them significantly. Across the master table the Sharpe ratios order the forecasts by point
+% estimate only; the sample does not establish that order. The edge is
+% a tail trade: the 20 best days carry
+% \cmPnlTopTwentyShare\% of its P\&L, all of them buys, and without its 10 best days % research_scorer/tail_concentration.csv
+% the advantage over always short is \cmPnlDiffExTen. The sample ends with the % research_scorer/diff_attribution.csv
+% forecast panel in April 2024; after it the trade's live form has shown no edge
+% (Appendix~\ref{sec:app_run_post2024}).
 The trade as a whole is a demonstration under the stated constants of
 Section~\ref{sec:close_option_methods}, not a trading claim: there is no delta
 hedge, no borrow and no market-impact model, and the crossed spread is a bound
 on the fill rather than a fill model. What survives is worth stating plainly.
-Under one recalibration and on the same \cmNdays{} days, the per-bar ridge on
-the \texttt{live\_feasible} inputs trades the last-30-min straddle at a Sharpe % master_table.csv headline row
-ratio of \cmHShMid{} (\cmHShX{} crossed), above the paper's forecast by
-\cmHVsRefMid{} and above always short by \cmHVsShortMid. Its forecast is not
-significantly more accurate than the paper's (DM \cmHDM, $p=\cmHDMp$); no single
-change on the way from the paper's forecast is resolved on its own, the largest % close_main_ladder.csv
-being to fit the traded bar alone; and it is not separated from the lasso on the
-same inputs (\cmVsHLasso). None of the \cmNlMasterN{} tree and LSTM forecasts of % master_table_vs_headline.csv
-the 16:00 re-run --- refit every session or every ten, with the shipped, % I4b: asserted (cmNlVsHAbove)
-searched or Optuna-tuned settings --- trades above it with an interval above
-zero. The edge is a tail trade: the 20 best days carry
-\cmPnlTopTwentyShare\% of its P\&L, all of them buys, and without its 10 best days % research_scorer/tail_concentration.csv
-the advantage over always short is \cmPnlDiffExTen. The sample ends with the % research_scorer/diff_attribution.csv
-forecast panel in April 2024; after it the trade's live form has shown no edge
-(Appendix~\ref{sec:app_run_post2024}).
+With every forecast used as its plain back-transform and on the same \cmNdays{} days, the
+sign of the gap between forecast and quoted implied variance lifts each of the paper's eight
+forecasts above always short (\cmPaperVsShortAboveSigN{} of them significantly), and
+\cmMasterVsShortAbove{} of the \cmMasterVsShortN{} forecasts of the master table
+(\cmMasterVsShortAboveSig{} significantly). Across those forecasts the trade does not order
+the models: against the
+block-diagonal ridge \cmMasterVsRefAbove{} trade above it and \cmMasterVsRefBelow{} below,
+\cmMasterVsRefAboveSig{} and \cmMasterVsRefBelowSig{} of them significantly, and no step of
+Table~\ref{tab:close_option_ladder} moves the Sharpe ratio significantly. A better forecast
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% of the bar's variance is not by itself a better trade. The sample ends with the
+% forecast panel in April 2024; after it the trade's live form has shown no edge
+% (Appendix~\ref{sec:app_run_post2024}).
+of the bar's variance is not by itself a better trade. The sample ends with the
+forecast panel in April 2024; the trade's live form after it
+(Appendix~\ref{sec:app_run_post2024}) is not scored with the plain forecast and is not
+reported here.
 
 % PARKED 2026-09-29 (D1 change 9): the session-bar closing summary.  Verbatim:
 % The trade as a whole is a demonstration under the stated constants of

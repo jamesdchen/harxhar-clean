@@ -1,8 +1,28 @@
 gate,value,bound,n,ok
-baseline equals the target's B,0.0,1e-09,1469,True
-recovered s16 equals the causal smear,1.3519670826912551e-14,1e-09,1406,True
-k = 0 days = the master table's,0.0,0.0,866,True
-k = 0 Sharpe mid = the master table's,0.0,1e-09,866,True
-k = 0 Sharpe crossed = the master table's,0.0,1e-09,866,True
-bar+0 placed equals pred_clock,0.0,1e-09,866,True
-"shift_test_headline.csv = the committed copy (HEAD = e4b83a0), every cell, max |new - old| / max(1, |old|)",0.0,1e-09,396,True
+16:00 baseline equals the target's B (a0),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (a0),0.0,1e-09,866,True
+16:00 baseline equals the target's B (blk2),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (blk2),0.0,1e-09,866,True
+16:00 baseline equals the target's B (blk2_inc),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (blk2_inc),0.0,1e-09,866,True
+16:00 baseline equals the target's B (lgbm),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (lgbm),0.0,1e-09,866,True
+16:00 baseline equals the target's B (xgb),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (xgb),0.0,1e-09,866,True
+16:00 baseline equals the target's B (lasso_t),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (lasso_t),0.0,1e-09,866,True
+16:00 baseline equals the target's B (lasso_f),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (lasso_f),0.0,1e-09,866,True
+16:00 baseline equals the target's B (enet),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (enet),0.0,1e-09,866,True
+16:00 baseline equals the target's B (b2lasso),8.077982727172639e-13,1e-09,866,True
+bar+0 placed equals the master table's plain forecast (b2lasso),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (a0),2.220446049250313e-16,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (blk2),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (blk2_inc),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (lgbm),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (xgb),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (lasso_t),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (lasso_f),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (enet),0.0,1e-09,866,True
+k = 0 Sharpe mid on 866 days = the master table's (b2lasso),0.0,1e-09,866,True

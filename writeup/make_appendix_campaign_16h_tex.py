@@ -15,10 +15,22 @@ a summary its own script generated; for the compute table only, from an agent's 
 commit message or the checklist's agent log).  Each generated file names its sources in a
 comment.  Gates assert that two outputs of the same quantity agree before either is used.
 
-Conventions (the campaign's): the research scorer (the 16:00 bar recalibrated on its own),
-the same 866 trade days, 95 % paired day-block bootstrap intervals; a difference is a - b.
-QLIKE differences are shown in % of b's QLIKE with the interval in the same units; Sharpe
-differences are sign(s) Sharpe at the midpoint fill.
+Conventions (2026-10-06: recalibration removed / intervals removed, user decision): every
+forecast is its PLAIN back-transform f^2 B (no 16:00-bar recalibration), the same 866 trade
+days, point estimates only; a difference is a - b.  QLIKE differences are shown in % of b's
+QLIKE; Sharpe differences are sign(s) Sharpe at the midpoint fill.  Statistics, not
+intervals: the Diebold-Mariano statistic of the daily QLIKE difference and the Newey-West HAC
+t of the daily mid-return difference; a count of differences below / above zero counts point
+estimates, and its ...Sig twin counts those whose DM (QLIKE) or HAC t (Sharpe) is significant
+at the two-sided SIG level.
+  The campaign's stored pair CSVs (agents H, C, I, E, A) were scored with the recalibration;
+every pair this script reads from them is RE-SCORED here on the plain forecast from its own
+forecast tables (plain_tables(): the master table's loader and scorer,
+experiments/master_table_close.py load_one / score_one; agent A's arms through the research
+reader compare_mfiv_harlag._prep and score_linear_subsection.trade_1530), and written beside
+the stored (recalibrated) value to writeup/generated/appendix_campaign_16h_plain_pairs.csv
+(the old-vs-new record).  The 2026-09-30 conventions (research scorer, 95 % paired day-block
+bootstrap intervals) are parked in the comments.
 
 Run:  python writeup/make_appendix_campaign_16h_tex.py
 """
@@ -29,9 +41,11 @@ import json
 import math
 import re
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +77,164 @@ PROGRESS = ROOT / "writeup" / "PROGRESS_2026-09-29.md"
 F_COMMIT = "4fa0697"  # agent F's commit; its message carries F's cluster accounting
 
 BUCKETS = ["baseline", "all_features"]  # live_feasible commented out
+# 2026-10-06: the stored campaign CSVs hold all three input sets (written before b761b28) and
+# the text still quotes the live_feasible macros (\camp...Live), so the per-input-set MACROS
+# and the counts read every input set; the grid tables keep BUCKETS.  (b761b28 zipped BUCKETS
+# with ["Base", "Live", "All"], which labelled all_features "Live"; the suffix is now a map.)
+ALL_BUCKETS = ["baseline", "live_feasible", "all_features"]
+BTAG = {
+    "baseline": "Base",
+    "live_feasible": "Live",
+    "all_features": "All",
+    "lean_vol_vix": "Lean",
+}
+# 2026-10-06 (user decision, second round): live-feasible is not part of the paper.  Every input
+# set derived from it (live_feasible, live_vix_only, live_vix_rvol, live_feasible_<...>) is left
+# out of every count, table and macro of D.19, as b761b28 does for the runs; its macros are
+# parked.  The plain re-score still records every input set (PLAIN_CSV).
+
+
+def is_live(name: str) -> bool:
+    """A forecast key or input-set name of the live-feasible family."""
+    return "_live_" in f"_{name}_"
+
+
+def nonlive(df: pd.DataFrame, col: str = "bucket") -> pd.DataFrame:
+    return df[~df[col].astype(str).map(is_live)]
+
+
+# 2026-10-06 (user decision, third round): the lean set is the paper's third input set, a
+# follow-up to the feature-importance study.  THE PAPER MODEL SET (one filter for every maker):
+# the paper's own forecasts (family "paper") + every per-bar linear, pooled linear and tree
+# forecast (every rung, Optuna included) on baseline, all_features and lean_vol_vix.  Left out:
+# live-feasible (incl. live_vix_*), moments_vix, moments_vol_vix, the LSTMs, the VIX-only family,
+# the implied-vol representations, the chain-period buckets, the rest-of-day check rows.
+LEAN = "lean_vol_vix"  # SUBGROUPS["lean_vol_vix"] (src/data/loading.py)
+# PAPER_SETS = ("baseline", "all_features", LEAN)  # 2026-10-08 parked (lean set; replaced by an MCS)
+PAPER_SETS = ("baseline", "all_features")
+PAPER_LINEAR_FAMILIES = ("per-bar linear", "pooled twin")
+
+
+def input_set(key: str) -> str | None:
+    """The paper input set a forecast key names (None: none, or not exactly one)."""
+    hits = [b for b in PAPER_SETS if f"_{b}_" in f"_{key}_"]
+    return hits[0] if len(hits) == 1 else None
+
+
+# 2026-10-06 (user decision, fourth round): "use the pre-tuned version for all linear models" --
+# every per-bar ridge / lasso / elastic net forecast of the paper is arm (f) of
+# results/linear_pretune_2026-10-06/ (key subpt_<est>_<bucket>, experiments/stack_pretune_yhat.py);
+# the one-penalty sub_<ridge|lasso|enet>_* rows are out of the paper model set (the per-bar OLS
+# baseline sub_ols_baseline stays).
+ONE_PENALTY = tuple(f"sub_{e}_" for e in ("ridge", "lasso", "enet"))
+
+
+def rfdev_table(rung: str, bucket: str) -> Path | None:
+    """The dev-tuned forest's table of a shipped-config rung (T10 / T1), if stacked.
+
+    2026-10-07 (user decision): the paper's shipped forest is the dev-tuned one (like LightGBM
+    / XGBoost, whose shipped settings come from the 1998-2002 search), so every tree-pair count
+    reads it in place of the default forest's T10 / T1 rows.  The masked - unmasked pairs keep
+    the default forest: they record the campaign's mask on the run it had (no unmasked dev-tuned
+    run exists).
+    """
+    name = {
+        "T10": f"yhat_subtree_rfdev_{bucket}",
+        "T1": f"yhat_subtree_daily_{bucket}_rfdev",
+    }.get(rung)
+    q = SPXW / f"{name}.parquet" if name else None
+    return q if q is not None and q.is_file() else None
+
+
+def pretuned_ridge(bucket: str) -> Path | None:
+    """The pre-tuned per-bar ridge table of an input set (the trees' comparator), if stacked."""
+    q = SPXW / f"yhat_subpt_ridge_{bucket}.parquet"
+    return q if q.is_file() else None
+
+
+# 2026-10-13 (user; writeup/MASTER_TABLE_REVIEW_2026-10-01.md items 76-79): the per-bar XGBoost and random forest on
+# their top 1998-2002 entries (xgb_opt_00, results/trees_xgbtop_1600/; trial 255 of the 400-trial search,
+# results/trees_rf400_1600/) replace the campaign's per-bar XGBoost (xgb_opt_06) and forest (library defaults; the
+# 87-trial dev forest for T1 / T10) in every pair D.19 re-scores from tables -- the masked ladder, the masked rungs
+# against the ridge, the masked - unmasked pairs where an unmasked top-entry run exists (T10 / T1 only; RS10 / RS1
+# were not re-run unmasked, so those pairs are left out) and every Optuna out-of-sample pair.  The mapping is the
+# master table's (master_table_close.perbar_switch_path), so every switched table re-scores to its master-table row
+# (asserted in _level).  The CPU-class records (single_vs_mixed, 'CPU class' pairs, the cross-cluster checks) stay
+# on the campaign's own runs.  The Optuna trial records (budget / picks tables): the forest's from the rf400 stage-1
+# records (local); XGBoost's stage-1 records of the xgbtop run are not local, so its rows are left out (pending).
+TOP_UNMASKED_DIR = "nomask"  # <replacement dir>/nomask/<same name>: the unmasked T10 / T1 of the top entries
+OPT_RF400 = (
+    RES / "linear_subsection_trees_optuna_mask_rf400"
+)  # the rf400 Optuna run (stage-1 records local)
+# 2026-10-14: the xgbtop Optuna run's stage-1 records, pulled from CARC (md5-verified by the coordinator)
+OPT_XGBTOP = RES / "linear_subsection_trees_optuna_mask_xgbtop"
+# the top-entry Optuna runs whose trial records give the budget / picks rows: model -> (root, shipped n_estimators)
+TOP_OPT = {"xgb": (OPT_XGBTOP, 367), "rf": (OPT_RF400, 485)}
+_SWITCH_REV: dict[
+    str, str
+] = {}  # replacement table path -> the master-table key it stands for
+DROPPED_PAIRS: list[
+    str
+] = []  # 2026-10-13: pairs with no top-entry counterpart (left out)
+
+
+def switched(path: Path) -> Path:
+    """A per-bar xgb / rf table of results/spxw_pnl -> its top-entry table (the master table's PERBAR_SWITCH)."""
+    if path.parent != SPXW:
+        return path
+    mtc = _engine()["mtc"]
+    key = path.stem.removeprefix("yhat_")
+    q = mtc.perbar_switch_path(key)
+    if q is None:
+        return path
+    assert q.is_file(), q
+    _SWITCH_REV[str(q)] = key
+    return q
+
+
+def switched_unmasked(path: Path) -> Path | None:
+    """An unmasked xgb / rf table -> its top-entry unmasked twin (T10 / T1 only), None if not run; others unchanged."""
+    mtc = _engine()["mtc"]
+    q = mtc.perbar_switch_path(path.stem.removeprefix("yhat_"))
+    if q is None:
+        return path
+    u = q.parent / TOP_UNMASKED_DIR / q.name
+    return u if u.is_file() else None
+
+
+def in_paper_set(key: str, family: str) -> bool:
+    if is_live(key) or "LSTM" in family:
+        return False
+    if family == "paper":
+        return True
+    if key.startswith(ONE_PENALTY):
+        return False
+    # 2026-10-06 (user decision): the pooled linear rows are pre-tuned too (poolpt_*, arm f of
+    # results/pool_linear_pretune_2026-10-06/); the stored one-penalty pool_* rows are out
+    if key.startswith("pool_"):
+        return False
+    # 2026-10-06 (user decision): the per-bar random forest's shipped-config T1 / T10 rows are
+    # replaced by the dev-tuned forest (subtree_rfdev_<bucket>, subtree_daily_<bucket>_rfdev;
+    # results/rf_devmenu_2026-10-06/); the random-search and Optuna forests stay
+    # 2026-10-13 parked (user; review items 76-79: the per-bar trees on their top entries): every per-bar forest
+    # key with the token rf now reads the trial-255 forest (rf400; experiments/master_table_close.py
+    # PERBAR_SWITCH), so the rf keys are back in the set and the 87-trial dev forest (rfdev) is out:
+    # if key.startswith("subtree_rf_") or (key.startswith("subtree_daily_") and key.endswith("_rf")):
+    #     return False
+    if key.startswith("subtree_rfdev_") or (
+        key.startswith("subtree_daily_") and key.endswith("_rfdev")
+    ):
+        return False
+    ok = family in PAPER_LINEAR_FAMILIES or family.startswith("per-bar tree")
+    return ok and input_set(key) is not None
+
+
+def paper_model_set(master: pd.DataFrame) -> pd.DataFrame:
+    """The paper model set: master_table.csv indexed by key, table A rows only."""
+    a = master[master["table"] == "A"]
+    return a[[in_paper_set(k, f) for k, f in zip(a.index, a["family"].astype(str))]]
+
+
 TREES = ["lgbm", "xgb", "rf"]
 MODEL = {"lgbm": "LightGBM", "xgb": "XGBoost", "rf": "random forest", "lstm": "LSTM"}
 # The measures F's summary tables rank (top series per measure); perm P1 MSE is not among them.
@@ -70,6 +242,27 @@ FI_MEASURES = ["mdi", "split", "perm_p1_qlike", "perm_p2_qlike", "perm_p2_mse", 
 
 NUMS: dict[str, str] = {}
 WRITTEN: list[str] = []
+PARKED: list[str] = []  # macros no longer written (2026-10-06), with the reason
+CLAIMS: list[
+    tuple[bool, str]
+] = []  # typed statements of the text, checked (not asserted)
+
+# --------------------------------------------------------------------------- plain re-score
+# 2026-10-06: recalibration removed / intervals removed, user decision.
+SPXW = RES / "spxw_pnl"
+PRE = (
+    SPXW / "pre_dedup_2026-09-29"
+)  # the pre-de-dup snapshots (agent E's "before" phase)
+OPT_MIXED = SPXW / "optuna_mask_mixed_2026-09-30"  # agent C's class-mixed first pass
+PLAIN_CSV = (
+    GEN / f"{PREFIX}_plain_pairs.csv"
+)  # every re-scored pair, beside its stored value
+N_DAYS = 866  # the deck's trade days, 2020-01-03 .. 2024-04-30 (asserted, not assumed)
+SIG = 0.05  # two-sided level of the DM / HAC t significance counts (statistics, not intervals)
+LEVEL_TOL = (
+    1e-12  # a re-scored canonical table must equal the master table's row (same code)
+)
+LINEAR = ["ridge", "ols", "reclasso", "reclasticnet"]  # agent A's linear estimators
 
 
 # --------------------------------------------------------------------------- formatting
@@ -85,8 +278,9 @@ def fnum(x: float, d: int = 2, plus: bool = False) -> str:
     return s
 
 
-def fci(lo: float, hi: float, d: int = 2) -> str:
-    return f"[{fnum(lo, d, True)}, {fnum(hi, d, True)}]"
+# 2026-10-06: intervals removed, user decision -- no "[lo, hi]" is printed any more.
+# def fci(lo: float, hi: float, d: int = 2) -> str:
+#     return f"[{fnum(lo, d, True)}, {fnum(hi, d, True)}]"
 
 
 def fint(x: float) -> str:
@@ -109,10 +303,29 @@ def pct(x: float, d: int = 1, plus: bool = False) -> str:
 def macro(name: str, value: str) -> None:
     assert re.fullmatch(r"camp[A-Z][A-Za-z]*", name), name
     assert name not in NUMS, f"macro defined twice: {name}"
+    assert "??" not in value, (name, value)
     NUMS[name] = value
 
 
+def park(name: str, why: str) -> None:
+    """A macro no longer written (2026-10-06): listed, commented, in the numbers file."""
+    assert name not in NUMS, name
+    PARKED.append(f"{name}: {why}")
+
+
+def claim(ok: bool, text: str) -> None:
+    """A statement the text makes about these numbers: recorded and printed, not asserted.
+
+    2026-10-06: the claims were assertions on the recalibrated numbers with intervals; the
+    text is being re-checked against the plain point estimates (its TODO-PLAIN lines), so a
+    flipped claim is reported (numbers file, stdout) instead of stopping the build.
+    """
+    CLAIMS.append((bool(ok), text))
+
+
 def tt(s: str) -> str:
+    # presentation rule (user, 2026-10-06): no "adj_" in a presented variable name
+    s = re.sub(r"\badj_", "", s)
     return r"\texttt{" + s.replace("_", r"\_") + "}"
 
 
@@ -164,36 +377,600 @@ def write_tab(
     WRITTEN.append(name)
 
 
-def qcell(
-    q_pct: float, lo_pct: float, hi_pct: float, s: float, slo: float, shi: float
-) -> str:
-    """Two-line cell: QLIKE % [interval in %] over Delta Sharpe mid [interval]."""
-    top = f"{fnum(q_pct, 1, True)} {fci(lo_pct, hi_pct, 1)}"
-    bot = f"{fnum(s, 2, True)} {fci(slo, shi, 2)}"
+def qcell(q_pct: float, s: float) -> str:
+    """Two-line cell: QLIKE difference in % over Delta Sharpe mid (point estimates).
+
+    2026-10-06: intervals removed, user decision (was: QLIKE % [interval] over Delta Sharpe
+    [interval]).
+    """
+    top = fnum(q_pct, 1, True)
+    bot = fnum(s, 2, True)
     return r"\shortstack{" + top + r"\\" + bot + "}"
 
 
-def counts(df: pd.DataFrame, qlo: str, qhi: str, slo: str, shi: str) -> dict[str, int]:
-    """Intervals wholly below / above zero, for QLIKE and Sharpe mid."""
+def counts(df: pd.DataFrame) -> dict[str, int]:
+    """Point estimates below / above zero (QLIKE, Sharpe mid) and how many of them are
+    significant at SIG: DM for QLIKE, the HAC t of the daily mid-return difference for Sharpe.
+
+    2026-10-06: intervals removed, user decision -- was: intervals wholly below / above zero.
+    Reads the plain re-score's columns qlike_diff, dm_p, sharpe_mid_diff, t_p.
+    """
+    qs, ss = df["dm_p"] < SIG, df["t_p"] < SIG
+    q, s = df["qlike_diff"], df["sharpe_mid_diff"]
     return {
-        "qb": int((df[qhi] < 0).sum()),
-        "qa": int((df[qlo] > 0).sum()),
-        "sb": int((df[shi] < 0).sum()),
-        "sa": int((df[slo] > 0).sum()),
+        "qb": int((q < 0).sum()),
+        "qa": int((q > 0).sum()),
+        "sb": int((s < 0).sum()),
+        "sa": int((s > 0).sum()),
+        "qbs": int(((q < 0) & qs).sum()),
+        "qas": int(((q > 0) & qs).sum()),
+        "sbs": int(((s < 0) & ss).sum()),
+        "sas": int(((s > 0) & ss).sum()),
         "n": len(df),
     }
 
 
 def count_macros(stem: str, c: dict[str, int]) -> None:
+    """Counts of point estimates (the names the text uses) and their ...Sig twins."""
     macro(f"camp{stem}N", fint(c["n"]))
     macro(f"camp{stem}QBelow", fint(c["qb"]))
     macro(f"camp{stem}QAbove", fint(c["qa"]))
     macro(f"camp{stem}SBelow", fint(c["sb"]))
     macro(f"camp{stem}SAbove", fint(c["sa"]))
+    macro(f"camp{stem}QBelowSig", fint(c["qbs"]))
+    macro(f"camp{stem}QAboveSig", fint(c["qas"]))
+    macro(f"camp{stem}SBelowSig", fint(c["sbs"]))
+    macro(f"camp{stem}SAboveSig", fint(c["sas"]))
+
+
+def park_counts(stem: str, why: str) -> None:
+    """Park every count macro of a stem (count_macros' names)."""
+    for suf in ("N", "QBelow", "QAbove", "SBelow", "SAbove"):
+        park(f"camp{stem}{suf}", why)
+    for suf in ("QBelowSig", "QAboveSig", "SBelowSig", "SAboveSig"):
+        park(f"camp{stem}{suf}", why)
+
+
+def nsig(n: int, s: int) -> str:
+    """A table count of point estimates with its significant part: "n (s)"."""
+    return f"{fint(n)} ({fint(s)})"
 
 
 def rel(p: Path) -> str:
     return p.relative_to(ROOT).as_posix()
+
+
+# =========================================================================== 0 plain re-score
+# 2026-10-06: recalibration removed, user decision.  Every stored campaign pair was scored on
+# the recalibrated forecast (f^2 + s) B; it is re-scored here on the plain f^2 B from the same
+# forecast tables, with the master table's own functions (nothing re-implemented):
+# load_one (16:00 rows joined to the common winsorized target; the frame's "plain" column),
+# score_one (QLIKE of plain vs the target, DM on the daily QLIKE difference, the sign(s) trade
+# q = sign(plain - iv_var) at mid / crossed fills, the HAC t of the daily mid-return
+# difference), on the deck's N_DAYS trade days.
+_ENG: dict = {}
+
+
+def _engine() -> dict:
+    if not _ENG:
+        for p in (ROOT, ROOT / "experiments", ROOT / "notebooks"):
+            if str(p) not in sys.path:
+                sys.path.insert(0, str(p))
+        import master_table_close as mtc
+        import score_linear_subsection as base
+
+        deck = pd.read_parquet(base.DECK).sort_index()
+        deck.index = pd.DatetimeIndex(pd.to_datetime(deck.index)).as_unit("ns")
+        assert len(deck) == N_DAYS, len(deck)
+        mtc._init(mtc.load_target(), deck.index)
+        master = pd.read_csv(J / "master_table.csv").set_index("key")
+        _ENG.update(
+            mtc=mtc, base=base, deck=deck, frames={}, levels={}, master=master, gates=[]
+        )
+    return _ENG
+
+
+def _frame(path: Path) -> pd.DataFrame:
+    """The plain 16:00 forecast of one table through the master table's loader (cached)."""
+    e = _engine()
+    k = str(path)
+    if k not in e["frames"]:
+        mtc = e["mtc"]
+        res = mtc.load_one(mtc.Spec(path.stem, path.stem, "plain", "table", str(path)))
+        assert not res["error"], (path, res["error"])
+        bad = [g["gate"] for g in res["gates"] if not g["ok"]]
+        assert not bad, (path, bad)
+        f = res["frame"]
+        have = f.index[f["plain"].notna()].normalize()
+        assert e["deck"].index.isin(have).all(), (path, "does not cover the deck days")
+        e["frames"][k] = f
+    return e["frames"][k]
+
+
+def _level(path: Path) -> dict:
+    """One table scored alone (QLIKE, Sharpe mid / crossed, buys) on the deck days."""
+    e = _engine()
+    k = str(path)
+    if k not in e["levels"]:
+        mtc, deck = e["mtc"], e["deck"]
+        f = _frame(path)
+        spec = mtc.Spec(path.stem, path.stem, "plain", "table", str(path))
+        o = mtc.score_one((spec, f, f, deck.index, deck, True))
+        e["levels"][k] = o
+        # gate: a canonical table that is a master-table row re-scores to that row exactly
+        # 2026-10-13: a top-entry table (switched) gates against the row of the key it stands for; the campaign's
+        # own table of a switched key is no longer that row and is not gated
+        is_sw = str(path) in _SWITCH_REV
+        key = _SWITCH_REV.get(str(path), path.stem.removeprefix("yhat_"))
+        if (path.parent == SPXW or is_sw) and key in e["master"].index:
+            m = e["master"].loc[key]
+            msw = m.get("perbar_switch", "")
+            msw = msw if isinstance(msw, str) else ""
+            if int(m["n_days"]) == N_DAYS and bool(msw) == is_sw:
+                dv = max(
+                    abs(o["qlike_raw"] - m["qlike_raw"]),
+                    abs(o["Sharpe_mid"] - m["Sharpe_mid"]),
+                    abs(o["Sharpe_crossed"] - m["Sharpe_crossed"]),
+                )
+                assert dv <= LEVEL_TOL, (key, dv)
+                e["gates"].append(key)
+    return e["levels"][k]
+
+
+def plain_pair(pa: Path, pb: Path) -> dict:
+    """a - b on the deck days, plain forecast, point estimates and statistics."""
+    e = _engine()
+    mtc, deck = e["mtc"], e["deck"]
+    fa, fb = _frame(pa), _frame(pb)
+    spec = mtc.Spec(pa.stem, pa.stem, "plain", "table", str(pa))
+    o = mtc.score_one((spec, fa, fb, deck.index, deck, False))
+    la, lb = _level(pa), _level(pb)
+    assert abs(o["qlike_raw"] - la["qlike_raw"]) <= LEVEL_TOL
+    xa = fa.set_index(fa.index.normalize()).loc[deck.index, "plain"].to_numpy()
+    xb = fb.set_index(fb.index.normalize()).loc[deck.index, "plain"].to_numpy()
+    return {
+        "n_days": o["n_days"],
+        "qlike_a": la["qlike_raw"],
+        "qlike_b": lb["qlike_raw"],
+        "qlike_diff": la["qlike_raw"] - lb["qlike_raw"],
+        "qlike_pct": o["qlike_pct_vs_ref"],
+        "dm": o["dm_vs_ref"],
+        "dm_p": o["dm_p_vs_ref"],
+        "sharpe_mid_a": la["Sharpe_mid"],
+        "sharpe_mid_b": lb["Sharpe_mid"],
+        "sharpe_mid_diff": o["dSharpe_mid_vs_ref"],
+        "sharpe_crossed_a": la["Sharpe_crossed"],
+        "sharpe_crossed_b": lb["Sharpe_crossed"],
+        "sharpe_crossed_diff": o["dSharpe_crossed_vs_ref"],
+        "t_hac": o["t_hac_mid_vs_ref"],
+        "t_p": mtc.hac_p(o["t_hac_mid_vs_ref"]),
+        "same_side_share": o["same_position_as_ref"],
+        "pct_buy_a": la["pct_buy"],
+        "pct_buy_b": lb["pct_buy"],
+        "max_rel_plain_diff": float(np.max(np.abs(xa / xb - 1.0))),
+        "path_a": rel(pa),
+        "path_b": rel(pb),
+    }
+
+
+_LEAN: dict[str, pd.DataFrame] = {}
+
+
+def _plain_l() -> dict[str, pd.DataFrame]:
+    """The lean set's tree pairs, built as agents H and C built theirs (2026-10-06, third round).
+
+    The lean set (LEAN) was run after the campaign, so its pairs are in no stored CSV: they are
+    formed here from its forecast tables with H's rung tables and pair families
+    (trees_mask_ladder_1600: forecasts, LADDER, RUNGS -- the masked ladder and masked - ridge; no
+    unmasked lean run exists, so no masked - unmasked pair) and C's catalog and comparisons
+    (optuna_trees_report_1600: forecast_catalog, budget, tune_per vs 250, the QLIKE rule, vs T1 /
+    RS1 / ridge), and scored like every other pair (plain_pair).  The rows carry the stored
+    CSVs' source names (their recalibrated columns are empty) and lean_built_here = True.
+    """
+    if _LEAN:
+        return _LEAN
+    _engine()
+    import optuna_trees_report_1600 as otr
+    import trees_mask_ladder_1600 as tml
+
+    keep = tml.BUCKETS
+    tml.BUCKETS = (LEAN,)  # type: ignore[assignment]
+    try:
+        specs = tml.forecasts()
+    finally:
+        tml.BUCKETS = keep
+    path = {
+        (s["variant"], s["rung"], s["model"]): Path(s["path"]) / f"{s['table']}.parquet"
+        for s in specs
+        if s["variant"] in ("mask", "ridge")
+    }
+    pr_ = pretuned_ridge(LEAN)
+    assert pr_ is not None, "the pre-tuned lean ridge is not stacked"
+    path[("ridge", "ridge", "-")] = (
+        pr_  # 2026-10-06: the paper's per-bar ridge is pre-tuned
+    )
+    for rung in (
+        "T10",
+        "T1",
+    ):  # 2026-10-07: the dev-tuned forest's shipped-config rungs
+        q = rfdev_table(rung, LEAN)
+        assert q is not None, ("the dev-tuned lean forest is not stacked", rung)
+        path[("mask", rung, "rf")] = q
+    rows_h = []
+    for m in TREES:
+        pairs = [
+            (
+                "masked ladder",
+                ("mask", ra, m),
+                ("mask", rb, m),
+                f"{ra} masked",
+                f"{rb} masked",
+            )
+            for ra, rb in tml.LADDER
+        ]
+        pairs += [
+            (
+                "masked - ridge",
+                ("mask", r, m),
+                ("ridge", "ridge", "-"),
+                f"{r} masked",
+                "ridge",
+            )
+            for r in tml.RUNGS
+        ]
+        for fam, ka, kb, la, lb in pairs:
+            rows_h.append(
+                {
+                    "source": "H mask_pairs",
+                    "family": fam,
+                    "model": m,
+                    "bucket": LEAN,
+                    "a": la,
+                    "b": lb,
+                }
+                | plain_pair(path[ka], path[kb])
+                | {"lean_built_here": True}
+            )
+    keep = otr.BUCKETS
+    otr.BUCKETS = (LEAN,)  # type: ignore[assignment]
+    try:
+        cat = otr.forecast_catalog()
+    finally:
+        otr.BUCKETS = keep
+    rows_c = []
+    for model in otr.MODELS:
+
+        def kk(kind: str, model: str = model) -> str:
+            return f"{kind}|{LEAN}|{model}"
+
+        comps = []
+        for tp in ("tp1", "tp25"):
+            for a_, b_ in (
+                (tp, f"{tp}_k10"),
+                (tp, f"{tp}_k25"),
+                (f"{tp}_k25", f"{tp}_k10"),
+            ):
+                comps.append((kk(a_), kk(b_), f"budget TUNE_PER {tp[2:]}"))
+        comps += [
+            (kk(a_), kk(otr.REF_TP), "tune_per vs 250") for a_ in ("tp1", "tp5", "tp25")
+        ]
+        comps.append((kk("tp25_q"), kk("tp25"), "tune_per rule qlike vs mse"))
+        for cmp_ in ("T1", "RS1"):
+            comps += [(kk(a_), kk(cmp_), f"vs {cmp_}") for a_ in otr.TP_PATHS]
+        comps += [(kk(a_), f"ridge|{LEAN}|-", "vs ridge") for a_ in otr.TP_PATHS]
+        for a, b, what in comps:
+            ma, mb = a.split("|"), b.split("|")
+            rows_c.append(
+                {
+                    "source": "C tuneper_oos",
+                    "comparison": what,
+                    "model": ma[2],
+                    "bucket": ma[1],
+                    "a": a,
+                    "b": b,
+                    "a_kind": ma[0],
+                    "b_kind": mb[0],
+                }
+                | plain_pair(
+                    Path(cat[a]["path"]),
+                    pr_
+                    if b.startswith("ridge|")
+                    else Path(cat[b]["path"]),  # pre-tuned ridge
+                )
+                | {"lean_built_here": True}
+            )
+    _LEAN.update(H=pd.DataFrame(rows_h), C=pd.DataFrame(rows_c))
+    return _LEAN
+
+
+def _h_key(label: str, model: str, bucket: str) -> tuple[str, str, str, str]:
+    """A mask_pairs.csv label -> agent H's forecast key (variant, rung, model, bucket)."""
+    lab = label.replace("\n", " ")
+    if lab == "ridge":
+        return ("ridge", "ridge", "-", bucket)
+    variant = "xeon" if "xeon" in lab else ("nomask" if "unmasked" in lab else "mask")
+    return (variant, lab.split()[0], model, bucket)
+
+
+def _plain_h() -> pd.DataFrame:
+    """Agent H's mask_pairs.csv, every row re-scored (its forecast list, all input sets)."""
+    _engine()
+    import trees_mask_ladder_1600 as tml
+
+    keep = tml.BUCKETS
+    tml.BUCKETS = tuple(ALL_BUCKETS)  # type: ignore[assignment]  # the stored CSV predates b761b28: all three sets
+    try:
+        specs = tml.forecasts()
+    finally:
+        tml.BUCKETS = keep
+    path = {
+        (s["variant"], s["rung"], s["model"], s["bucket"]): Path(s["path"])
+        / f"{s['table']}.parquet"
+        for s in specs
+    }
+    rows = []
+    for r in pd.read_csv(H / "mask_pairs.csv").itertuples():
+        a = path[_h_key(r.a, r.model, r.bucket)]
+        b = path[_h_key(r.b, r.model, r.bucket)]
+        # 2026-10-13 parked (user: the per-bar trees on their top entries; switched() replaces rfdev_table here):
+        # if r.model == "rf" and r.family != "masked - unmasked":  # 2026-10-07: the dev-tuned forest
+        #     for side in ("a", "b"):
+        #         v, rung, _, _ = _h_key(getattr(r, side), r.model, r.bucket)
+        #         q = rfdev_table(rung, r.bucket) if v == "mask" else None
+        #         if q is not None:
+        #             a, b = (q, b) if side == "a" else (a, q)
+        if r.family in (
+            "masked - unmasked",
+            "masked ladder",
+            "masked - ridge",
+        ) and r.model in ("xgb", "rf"):
+            sides = []
+            for side, pth_ in (("a", a), ("b", b)):
+                v = _h_key(getattr(r, side), r.model, r.bucket)[0]
+                sides.append(
+                    switched(pth_)
+                    if v == "mask"
+                    else (switched_unmasked(pth_) if v == "nomask" else pth_)
+                )
+            if any(x is None for x in sides):
+                DROPPED_PAIRS.append(
+                    f"H {r.family}: {r.model} {r.bucket} {r.a} - {r.b} (no top-entry unmasked run)"
+                )
+                continue
+            a, b = sides  # type: ignore[assignment]  # no None: skipped above
+        if r.b == "ridge" and pretuned_ridge(r.bucket) is not None:
+            b = pretuned_ridge(  # type: ignore[assignment]
+                r.bucket
+            )  # 2026-10-06: the paper's per-bar ridge is pre-tuned
+        rows.append(
+            {
+                "source": "H mask_pairs",
+                "family": r.family,
+                "model": r.model,
+                "bucket": r.bucket,
+                "a": str(r.a).replace("\n", " "),
+                "b": str(r.b).replace("\n", " "),
+            }
+            | plain_pair(a, b)
+            | {
+                "qlike_pct_recal": r.qlike_pct,
+                "sharpe_mid_diff_recal": r.sharpe_mid_diff,
+            }
+        )
+    # 2026-10-06 (third round): + the lean set's pairs, built here (no stored CSV holds them)
+    # return pd.concat([pd.DataFrame(rows), _plain_l()["H"]], ignore_index=True)  # 2026-10-08 parked (lean set; replaced by an MCS)
+    return pd.DataFrame(rows)
+
+
+def _plain_c() -> pd.DataFrame:
+    """Agent C's tuneper_oos.csv (budget_oos.csv is its 'budget' rows) and single_vs_mixed.csv."""
+    lv = pd.read_csv(CR / "levels.csv").set_index("key")
+    mixed = " (mixed)"
+
+    def pth(k: str, src: str = "C tuneper_oos") -> Path:
+        if k.endswith(mixed):
+            return OPT_MIXED / Path(lv.loc[k.removesuffix(mixed), "path"]).name
+        # 2026-10-13 parked (user: the per-bar trees on their top entries; switched() below replaces it):
+        # if k.startswith("T1|") and k.endswith("|rf") and rfdev_table("T1", k.split("|")[1]):
+        #     return rfdev_table("T1", k.split("|")[1])  # 2026-10-07: the dev-tuned forest
+        if k.startswith("ridge|") and pretuned_ridge(k.split("|")[1]) is not None:
+            return pretuned_ridge(  # type: ignore[return-value]
+                k.split("|")[1]
+            )  # 2026-10-06: the pre-tuned per-bar ridge
+        if (
+            src == "C tuneper_oos"
+        ):  # 2026-10-13: xgb / rf on their top entries (the CPU-class record keeps its runs)
+            return switched(ROOT / lv.loc[k, "path"])
+        return ROOT / lv.loc[k, "path"]
+
+    tp = pd.read_csv(CR / "tuneper_oos.csv")
+    bo = pd.read_csv(CR / "budget_oos.csv")
+    assert set(zip(bo.a, bo.b)) == set(
+        zip(*[tp[tp.comparison.str.startswith("budget")][c] for c in ("a", "b")])
+    ), "budget_oos.csv is the budget rows of tuneper_oos.csv"
+    sm = pd.read_csv(CR / "single_vs_mixed.csv")
+    rows = []
+    for df, src in ((tp, "C tuneper_oos"), (sm, "C single_vs_mixed")):
+        for r in df.itertuples():
+            row = {
+                "source": src,
+                "comparison": r.comparison,
+                "model": r.model,
+                "bucket": r.bucket,
+                "a": r.a,
+                "b": r.b,
+                "a_kind": r.a_kind,
+                "b_kind": r.b_kind,
+            } | plain_pair(pth(r.a, src), pth(r.b, src))
+            row |= {
+                "qlike_pct_recal": r.qlike_pct_a_vs_b,
+                "sharpe_mid_diff_recal": r.dSharpe_mid,
+            }
+            if src == "C single_vs_mixed":  # forecast identity: no scorer in it
+                row |= {
+                    "forecast_max_rel_diff": r.forecast_max_rel_diff,
+                    "forecast_rows_differ": r.forecast_rows_differ,
+                }
+            rows.append(row)
+    # 2026-10-06 (third round): + the lean set's Optuna pairs, built here
+    # return pd.concat([pd.DataFrame(rows), _plain_l()["C"]], ignore_index=True)  # 2026-10-08 parked (lean set; replaced by an MCS)
+    return pd.DataFrame(rows)
+
+
+def _plain_i() -> pd.DataFrame:
+    """Agent I's lstmi_pairs.csv, the pairs of the intraday LSTM, the per-bar LSTM and ridge."""
+    _engine()
+    import score_lstm_intraday_1600 as sli
+
+    rows = []
+    ip = pd.read_csv(LI / "score" / "lstmi_pairs.csv")
+    for b in ALL_BUCKETS:
+        perbar = [
+            SPXW / f"{p.format(b=b)}.parquet"
+            for p in sli.PERBAR_CANDIDATES
+            if (SPXW / f"{p.format(b=b)}.parquet").is_file()
+        ]
+        path = {
+            "intraday": SPXW / f"yhat_lstm_intraday_{b}.parquet",
+            "perbar_lstm": perbar[0],  # agent I's choice: the first candidate on disk
+            "ridge": SPXW / f"yhat_sub_ridge_{b}.parquet",
+        }
+        # best_tree (chosen ex post) and the QLIKE-rule twin are not read by the makers
+        for r in ip[(ip.bucket == b) & ip.a.isin(path) & ip.b.isin(path)].itertuples():
+            rows.append(
+                {"source": "I lstmi_pairs", "bucket": b, "a": r.a, "b": r.b}
+                | plain_pair(path[r.a], path[r.b])
+                | {
+                    "qlike_pct_recal": r.qlike_pct,
+                    "sharpe_mid_diff_recal": r.sharpe_mid_diff,
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def _plain_e() -> pd.DataFrame:
+    """Agent E's check rows (rest-of-day at 15:30 vs its per-bar twin), before and after."""
+    e = _engine()
+    mtc, deck = e["mtc"], e["deck"]
+    rows = []
+    for r in pd.read_csv(E / "check_1530.csv").itertuples():
+        d = SPXW if r.phase == "after" else PRE
+        fa = _frame(d / f"yhat_restofday_{r.estimator}_{r.bucket}.parquet")
+        fb = _frame(d / f"yhat_sub_{r.estimator}_{r.bucket}.parquet")
+        xa = fa.set_index(fa.index.normalize()).loc[deck.index, "plain"]
+        xb = fb.set_index(fb.index.normalize()).loc[deck.index, "plain"]
+        ta, tb = mtc.trade_days(xa, deck), mtc.trade_days(xb, deck)
+        rows.append(
+            {
+                "source": "E check_1530",
+                "family": r.phase,
+                "model": r.estimator,
+                "bucket": r.bucket,
+                "n_days": len(ta),
+                "max_rel_plain_diff": float((xa / xb - 1.0).abs().max()),
+                "same_position": int((ta["q"].to_numpy() == tb["q"].to_numpy()).sum()),
+                "max_rel_pred_clock_recal": r.max_rel_pred_clock,
+                "same_position_recal": r.same_position,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _plain_a() -> pd.DataFrame:
+    """Agent A's linear arms, new design vs old: the trade on the plain forecast.
+
+    Agent A's own steps (experiments/linear_dedup_gates.py trade()), pred_clock replaced by the
+    plain pred_adj^2 x baseline of the same research reader.
+    """
+    e = _engine()
+    import compare_mfiv_harlag as cmh
+
+    base, deck = e["base"], e["deck"]
+
+    def trade(path: Path) -> tuple[pd.Series, dict]:
+        r = cmh._prep(path)
+        assert r is not None, path
+        pl = (r["pred_adj"] ** 2 * r["baseline"]).dropna()
+        t = base.trade_1530(pl)
+        f = pl[pl.index.strftime("%H:%M") == "16:00"]
+        f.index = f.index.normalize()
+        return f, t
+
+    arms = pd.read_csv(A / "arm_list.csv").set_index("key")
+    ch = pd.read_csv(A / "change_by_arm.csv")
+    rows = []
+    for r in ch[ch.estimator.isin(LINEAR)].itertuples():
+        fn, tn = trade(ROOT / arms.loc[r.forecast, "run_path"])
+        fo, to = trade(ROOT / arms.loc[r.forecast, "old_path"])
+        on = deck.index.intersection(fn.index).intersection(fo.index)
+        iv = deck.loc[on, "iv_var"].to_numpy(float)
+        qn = np.where(fn.reindex(on).to_numpy(float) > iv, 1, -1)
+        qo = np.where(fo.reindex(on).to_numpy(float) > iv, 1, -1)
+        rows.append(
+            {
+                "source": "A change_by_arm",
+                "family": r.family,
+                "model": r.estimator,
+                "bucket": r.bucket,
+                "a": r.forecast,
+                "n_days": len(on),
+                "positions_changed": int((qn != qo).sum()),
+                "sharpe_mid_a": tn["Sharpe_mid"],  # a = new design
+                "sharpe_mid_b": to["Sharpe_mid"],  # b = old design
+                "sharpe_mid_diff": tn["Sharpe_mid"] - to["Sharpe_mid"],
+                "sharpe_crossed_diff": tn["Sharpe_crossed"] - to["Sharpe_crossed"],
+                "positions_changed_recal": r.positions_changed,
+                "sharpe_mid_diff_recal": r.Sharpe_mid_new - r.Sharpe_mid_old,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+_PLAIN: dict[str, pd.DataFrame] = {}
+_PLAIN_FN = {"H": _plain_h, "C": _plain_c, "I": _plain_i, "E": _plain_e, "A": _plain_a}
+
+
+def plain_tables(parts: tuple[str, ...] = tuple(_PLAIN_FN)) -> dict[str, pd.DataFrame]:
+    """The re-scored campaign tables, keyed H / C / I / E / A (each computed once per process).
+
+    With every part computed, writes PLAIN_CSV (long, the stored recalibrated value beside
+    each) and reports how the scorer change moved the stored pairs.  Also imported by
+    writeup/make_table_close_main.py (parts H, C, I).
+    """
+    for k in parts:
+        if k not in _PLAIN:
+            _PLAIN[k] = _PLAIN_FN[k]()
+            if k in ("H", "C", "I"):
+                x = _PLAIN[k]
+                assert (x["n_days"] == N_DAYS).all(), (k, "every pair on the deck days")
+                # the scorer change, reported (old = stored recalibrated, new = plain)
+                x = x[
+                    x["sharpe_mid_diff_recal"].notna()
+                ]  # the stored pairs (not the lean ones)
+                fs = int(
+                    (
+                        np.sign(x["sharpe_mid_diff"])
+                        != np.sign(x["sharpe_mid_diff_recal"])
+                    ).sum()
+                )
+                fq = int(
+                    (np.sign(x["qlike_pct"]) != np.sign(x["qlike_pct_recal"])).sum()
+                )
+                print(
+                    f"plain re-score {k}: {len(x)} pairs; the scorer change flips the sign of "
+                    f"dSharpe mid in {fs} and of the QLIKE difference in {fq}"
+                )
+    if set(_PLAIN) == set(_PLAIN_FN) and "written" not in _ENG:
+        allp = pd.concat([_PLAIN[k] for k in _PLAIN_FN], ignore_index=True)
+        allp.to_csv(PLAIN_CSV, index=False, lineterminator="\n")
+        e = _engine()
+        e["written"] = True
+        print(
+            f"plain re-score: {len(allp)} rows from {len(e['frames'])} forecast tables; "
+            f"{len(set(e['gates']))} canonical tables equal their master-table row "
+            f"-> {rel(PLAIN_CSV)}"
+        )
+    return {k: _PLAIN[k] for k in parts}
 
 
 # =========================================================================== 1 design
@@ -201,8 +978,29 @@ def design() -> None:
     ch = pd.read_csv(A / "change_by_arm.csv")
     arms = pd.read_csv(A / "arm_list.csv")
     gates = pd.read_csv(A / "gates.csv")
-    lin = ch[ch.estimator.isin(["ridge", "ols", "reclasso", "reclasticnet"])].copy()
+    lin = ch[ch.estimator.isin(LINEAR)].copy()
     assert len(lin) == len(arms), (len(lin), len(arms))
+    # 2026-10-06: recalibration removed, user decision -- the trade columns (positions changed,
+    # Sharpe old / new) are agent A's steps re-run on the plain forecast (plain_tables()["A"]);
+    # the forecast-change columns (pred_adj) do not depend on the scorer and stay A's.
+    pa = plain_tables(("A",))["A"].set_index("a")
+    assert set(pa.index) == set(lin.forecast)
+    lin = lin.join(
+        pa[["n_days", "positions_changed", "sharpe_mid_diff"]].rename(
+            columns={
+                "positions_changed": "positions_plain",
+                "sharpe_mid_diff": "dsh_plain",
+            }
+        ),
+        on="forecast",
+    )
+    lin = nonlive(lin)  # 2026-10-06: live-feasible removed (user decision)
+    print(
+        "design: positions changed, recalibrated -> plain: "
+        f"{int(lin.positions_changed.sum())} -> {int(lin.positions_plain.sum())}; "
+        f"max |dSharpe mid| {(lin.Sharpe_mid_new - lin.Sharpe_mid_old).abs().max():.3f} -> "
+        f"{lin.dsh_plain.abs().max():.3f}"
+    )
     tol = gates[gates.gate.str.startswith("(c) lasso / OLS")].bound.unique()
     assert len(tol) == 1
     tol = float(
@@ -216,7 +1014,7 @@ def design() -> None:
     # the production per-bar rows (HAR ladder of six rungs)
     body = []
     nse = set()
-    for b in BUCKETS:
+    for b in BUCKETS:  # 2026-10-06: no live_feasible (b761b28; user decision)
         r = lin[lin.forecast == f"sub_ridge_{b}"].iloc[0]
         old, new = rng(r.masked_per_tune_old), rng(r.masked_per_tune_new)
         kept_lo, kept_hi = int(r.p_new) - new[1], int(r.p_new) - new[0]
@@ -225,23 +1023,26 @@ def design() -> None:
         kept = fint(kept_lo) if kept_lo == kept_hi else f"{kept_lo}--{kept_hi}"
         mo = f"{old[0]}" if old[0] == old[1] else f"{old[0]}--{old[1]}"
         mn = f"{new[0]}" if new[0] == new[1] else f"{new[0]}--{new[1]}"
-        body.append(
-            row(
-                [
-                    tt(b),
-                    fint(r.p_old),
-                    fint(r.p_new),
-                    fint(r.p_old - r.p_new),
-                    mo,
-                    mn,
-                    kept,
-                ]
+        if True:  # every b of BUCKETS is a table row
+            body.append(
+                row(
+                    [
+                        tt(b),
+                        fint(r.p_old),
+                        fint(r.p_new),
+                        fint(r.p_old - r.p_new),
+                        mo,
+                        mn,
+                        kept,
+                    ]
+                )
             )
-        )
-        short = {"baseline": "Base", "live_feasible": "Live", "all_features": "All"}[b]
+        short = BTAG[b]
         macro(f"campPOld{short}", fint(r.p_old))
         macro(f"campPNew{short}", fint(r.p_new))
         macro(f"campKeptLin{short}", kept.replace("--", "--"))
+    for nm in ("campPOldLive", "campPNewLive", "campKeptLinLive"):
+        park(nm, "live_feasible input set (live-feasible removed from the paper)")
     assert len(nse) == 1
     n_se = nse.pop()
     macro("campNSessionEdge", fint(n_se))
@@ -285,8 +1086,10 @@ def design() -> None:
         mx = s.pred_adj_1600_max_rel_change.max()
         med = s.pred_adj_1600_median_rel_change.median()
         moved = int((s.pred_adj_1600_max_rel_change > tol).sum())
-        pos = int(s.positions_changed.sum())
-        dsh = float((s.Sharpe_mid_new - s.Sharpe_mid_old).abs().max())
+        pos = int(s.positions_plain.sum())  # plain forecast (2026-10-06)
+        dsh = float(s.dsh_plain.abs().max())
+        # pos = int(s.positions_changed.sum())  # 2026-10-06: recalibration removed, user decision
+        # dsh = float((s.Sharpe_mid_new - s.Sharpe_mid_old).abs().max())
         body.append(
             row(
                 [
@@ -304,17 +1107,23 @@ def design() -> None:
         macro(f"camp{stem}MaxRel", fsci(mx, 0))
         macro(f"camp{stem}Moved", fint(moved))
     macro("campMovedTol", fsci(tol, 0))
-    macro("campPosChanged", fint(lin.positions_changed.sum()))
-    days = lin.trade_days.unique()
-    assert len(days) == 1
+    macro("campPosChanged", fint(lin.positions_plain.sum()))
+    days = lin.n_days.unique()  # plain re-score: the deck days every arm covers
+    assert len(days) == 1 and int(days[0]) == N_DAYS, days
+    assert (lin.trade_days == N_DAYS).all()  # agent A's own count, same days
     macro("campTradeDays", fint(days[0]))
-    macro(
-        "campMaxDSharpeLin",
-        fnum((lin.Sharpe_mid_new - lin.Sharpe_mid_old).abs().max(), 2),
-    )
+    macro("campMaxDSharpeLin", fnum(lin.dsh_plain.abs().max(), 2))
+    # 2026-10-06: recalibration removed, user decision -- were:
+    # macro("campPosChanged", fint(lin.positions_changed.sum()))
+    # macro("campMaxDSharpeLin", fnum((lin.Sharpe_mid_new - lin.Sharpe_mid_old).abs().max(), 2))
     write_tab(
         "linear_change",
-        [rel(A / "change_by_arm.csv"), rel(A / "gates.csv") + " (the 'moved' bound)"],
+        [
+            rel(A / "change_by_arm.csv") + " (forecast change)",
+            rel(A / "gates.csv") + " (the 'moved' bound)",
+            rel(PLAIN_CSV)
+            + " (source 'A change_by_arm': positions, Sharpe; plain forecast)",
+        ],
         "lrrrrrr",
         [
             "estimator",
@@ -329,7 +1138,7 @@ def design() -> None:
     )
 
     # control attribution (same-architecture re-runs)
-    sa = pd.read_csv(A / "samearch_attribution.csv")
+    sa = nonlive(pd.read_csv(A / "samearch_attribution.csv"), "forecast")
     macro("campAttrN", fint(len(sa)))
     macro("campAttrRepeat", fint((sa.control_rep_vs_control == 0).sum()))
     dz = sa[sa.samearch_vs_control > tol].samearch_vs_control
@@ -342,22 +1151,46 @@ def design() -> None:
     macro("campAttrMachineHi", fsci(mz.max()))
 
     # the LSTM on the de-dup design, no mask (A): median relative change at 16:00, MSE rule
-    ls = ch[ch.estimator == "lstm (mse rule)"]
-    macro("campLSTMDedupLo", pct(ls.pred_adj_1600_median_rel_change.min()))
-    macro("campLSTMDedupHi", pct(ls.pred_adj_1600_median_rel_change.max()))
+    # 2026-10-06: LSTMs parked, user decision:
+    # ls = nonlive(ch[ch.estimator == "lstm (mse rule)"])
+    # macro("campLSTMDedupLo", pct(ls.pred_adj_1600_median_rel_change.min())); ...Hi
+    park("campLSTMDedupLo", "LSTM (LSTMs parked, user decision)")
+    park("campLSTMDedupHi", "LSTM (LSTMs parked, user decision)")
 
     # the rest-of-day check rows (E)
-    ck = pd.read_csv(E / "check_1530.csv")
+    ck = nonlive(pd.read_csv(E / "check_1530.csv"))
     bef, aft = ck[ck.phase == "before"], ck[ck.phase == "after"]
     assert (aft.same_position == aft.deck_days).all()
+    # 2026-10-06: recalibration removed, user decision -- the forecast difference and the
+    # positions are re-read on the plain forecast (plain_tables()["E"]); bit identity of the
+    # 16:00 rows (pred_adj) does not depend on the scorer.
+    pe = nonlive(plain_tables(("E",))["E"])
+    pb, pa_ = pe[pe.family == "before"], pe[pe.family == "after"]
+    assert len(pb) == len(bef) and len(pa_) == len(aft)
+    assert (pa_.max_rel_plain_diff == 0).all() and (
+        pa_.same_position == N_DAYS
+    ).all(), (
+        "bit-identical check rows have the plain forecast and position of their twin"
+    )
+    assert (pb.n_days == N_DAYS).all()
+    print(
+        "rest-of-day check rows, before: max rel forecast difference recalibrated -> plain "
+        f"{bef.max_rel_pred_clock.max():.3e} -> {pb.max_rel_plain_diff.max():.3e}; fewest "
+        f"same positions {int(bef.same_position.min())} -> {int(pb.same_position.min())}"
+    )
     macro("campRodChecks", fint(len(aft)))
-    macro("campRodBeforeMax", fsci(bef.max_rel_pred_clock.max()))
-    macro("campRodBeforeSameMin", fint(bef.same_position.min()))
+    macro("campRodBeforeMax", fsci(pb.max_rel_plain_diff.max()))
+    macro("campRodBeforeSameMin", fint(pb.same_position.min()))
+    # macro("campRodBeforeMax", fsci(bef.max_rel_pred_clock.max()))  # 2026-10-06: recal removed
+    # macro("campRodBeforeSameMin", fint(bef.same_position.min()))
     macro("campRodDeck", fint(bef.deck_days.iloc[0]))
     macro("campRodAfterBit", fint((aft.rows_16h_not_bit_identical == 0).sum()))
     macro("campRodRows", fint(aft.rows_16h_common.iloc[0]))
     eg = pd.read_csv(E / "gates.csv")
-    mg = eg[eg.gate.str.startswith("(a) masked cols per tune, old minus new")]
+    mg = nonlive(
+        eg[eg.gate.str.startswith("(a) masked cols per tune, old minus new")],
+        "forecast",
+    )
     mx = mg.note.str.extract(r"max: (\d+)")[0].astype(int)
     macro("campRodArms", fint(len(mg)))
     macro("campRodMaskSame", fint(((mg.value == n_se) & (mx == n_se)).sum()))
@@ -365,29 +1198,22 @@ def design() -> None:
 
 # =========================================================================== 2 mask
 def _pairs() -> pd.DataFrame:
-    mp = pd.read_csv(H / "mask_pairs.csv")
-    for c in ("a", "b"):
-        mp[c] = mp[c].astype(str).str.replace("\n", " ", regex=False)
-    mp["q_lo"] = 100.0 * mp.qlike_ci_lo / mp.qlike_b
-    mp["q_hi"] = 100.0 * mp.qlike_ci_hi / mp.qlike_b
-    return mp
+    """Agent H's mask_pairs.csv re-scored on the plain forecast (2026-10-06).
+
+    Was: the stored CSV (recalibrated), with q_lo / q_hi = its QLIKE interval in % of b.
+    """
+    return nonlive(plain_tables(("H",))["H"])  # 2026-10-06: no live_feasible
 
 
 def _cell(r: pd.Series) -> str:
-    return qcell(
-        r.qlike_pct,
-        r.q_lo,
-        r.q_hi,
-        r.sharpe_mid_diff,
-        r.sharpe_mid_ci_lo,
-        r.sharpe_mid_ci_hi,
-    )
+    return qcell(r.qlike_pct, r.sharpe_mid_diff)
 
 
 def mask() -> None:
     kc = pd.read_csv(H / "kept_counts.csv")
     kcc = pd.read_csv(CR / "kept_columns.csv")
-    for b, short in zip(BUCKETS, ["Base", "Live", "All"]):
+    for b in BUCKETS:  # 2026-10-06: no live_feasible (was every input set)
+        short = BTAG[b]
         s = kc[kc.bucket == b]
         for c in ("kept_n_median", "kept_n_min", "kept_n_max"):
             assert s[c].nunique() == 1, (
@@ -409,41 +1235,67 @@ def mask() -> None:
         macro(f"campKept{short}Lo", fint(lo))
         macro(f"campKept{short}Hi", fint(hi))
         macro(f"campP{short}", fint(s.p.iloc[0]))
+    for nm in ("campKeptLive", "campKeptLiveLo", "campKeptLiveHi", "campPLive"):
+        park(nm, "live_feasible input set (live-feasible removed from the paper)")
     macro("campKeptRefits", fint(kc[kc.rung == "T1"].refits.iloc[0]))
 
     mp = _pairs()
     mu = mp[mp.family == "masked - unmasked"].copy()
     mu["rung"] = mu.a.str.split().str[0]
-    cols = ["T10", "T1", "RS10", "RS1", "LSTM10"]
+    cols = [
+        "T10",
+        "T1",
+        "RS10",
+        "RS1",
+    ]  # 2026-10-06: LSTMs parked, user decision (was + "LSTM10")
     body = []
     for b in BUCKETS:
         body.append(panel(tt(b), 2 + len(cols)))
-        for m in TREES + ["lstm"]:
+        for (
+            m
+        ) in TREES:  # 2026-10-06: LSTMs parked, user decision (was TREES + ["lstm"])
             cells = []
             for rung in cols:
                 s = mu[(mu.model == m) & (mu.bucket == b) & (mu.rung == rung)]
-                cells.append(_cell(s.iloc[0]) if len(s) else "")
+                # cells.append(_cell(s.iloc[0]) if len(s) else "")
+                # 2026-10-13: --- = no unmasked run of the top-entry tree (XGBoost / forest RS10 / RS1)
+                cells.append(_cell(s.iloc[0]) if len(s) else "---")
             if any(cells):
                 body.append(row(["", MODEL[m], *cells]))
     write_tab(
         "mask",
-        [rel(H / "mask_pairs.csv") + " (family 'masked - unmasked')"],
+        [
+            rel(H / "mask_pairs.csv")
+            + " (family 'masked - unmasked'), re-scored on the "
+            "plain forecast: " + rel(PLAIN_CSV) + " (source 'H mask_pairs')",
+            # 2026-10-13: XGBoost / forest on their top entries (masked: results/trees_{xgbtop,rf400}_1600/,
+            # unmasked: .../nomask/; RS10 / RS1 not re-run unmasked: ---)
+            "XGBoost / random forest: results/trees_xgbtop_1600/, results/trees_rf400_1600/ (+ nomask/ for the "
+            "unmasked T10 / T1); no unmasked RS10 / RS1 on the top entries (---)",
+        ],
         "ll" + "c" * len(cols),
         ["", "model", *[f"{c}~~masked $-$ unmasked" for c in cols]],
         body,
     )
     tr = mu[mu.model.isin(TREES)]
-    count_macros(
-        "MaskTree", counts(tr, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-    )
+    count_macros("MaskTree", counts(tr))
     macro("campMaskMedAbsQ", fnum(tr.qlike_pct.abs().median(), 1))
-    lm = mu[mu.model == "lstm"]
-    count_macros(
-        "MaskLSTM", counts(lm, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
+    # 2026-10-13: the pairs left out for want of an unmasked top-entry run (XGBoost / forest RS10 / RS1)
+    nd = len(
+        [
+            d
+            for d in DROPPED_PAIRS
+            if "masked - unmasked" in d and (" baseline " in d or " all_features " in d)
+        ]
     )
-    la = lm[lm.bucket == "all_features"].iloc[0]
-    macro("campMaskLSTMAllQ", fnum(la.qlike_pct, 1, True))
-    macro("campMaskLSTMAllQCI", fci(la.q_lo, la.q_hi, 1))
+    macro("campMaskDroppedN", fint(nd))
+    # 2026-10-06: LSTMs parked, user decision:
+    # lm = mu[mu.model == "lstm"]; count_macros("MaskLSTM", counts(lm))
+    park_counts("MaskLSTM", "LSTM (LSTMs parked, user decision)")
+    # la = lm[lm.bucket == "all_features"].iloc[0]
+    # macro("campMaskLSTMAllQ", fnum(la.qlike_pct, 1, True))
+    park("campMaskLSTMAllQ", "LSTM (LSTMs parked, user decision)")
+    park("campMaskLSTMAllQCI", "interval of campMaskLSTMAllQ (intervals removed)")
 
 
 # =========================================================================== 3 cadence + tuning (trees)
@@ -456,7 +1308,7 @@ def cadence() -> None:
         ("RS1 masked", "T1 masked", "RSVsT", "RS1 $-$ T1~~(search vs shipped)"),
     ]
     body = []
-    for b in BUCKETS:
+    for b in PAPER_SETS:  # 2026-10-06 (third round): + the lean set
         body.append(panel(tt(b), 2 + len(comps)))
         for m in TREES:
             cells = []
@@ -465,57 +1317,45 @@ def cadence() -> None:
                 assert len(s) == 1, (m, b, a, bb)
                 cells.append(_cell(s.iloc[0]))
             body.append(row(["", MODEL[m], *cells]))
-        s = ml[
-            (ml.model == "lstm")
-            & (ml.bucket == b)
-            & (ml.a == "LSTM masked")
-            & (ml.b == "LSTM10 masked")
-        ]
-        assert len(s) == 1
-        body.append(row(["", r"LSTM (1 vs 10)", _cell(s.iloc[0]), "", ""]))
+        # 2026-10-06: LSTMs parked, user decision -- was the row "LSTM (1 vs 10)" (H: LSTM masked - LSTM10 masked)
     write_tab(
         "cadence",
-        [rel(H / "mask_pairs.csv") + " (family 'masked ladder')"],
+        [
+            rel(H / "mask_pairs.csv")
+            + " (family 'masked ladder'), re-scored on the plain "
+            "forecast: " + rel(PLAIN_CSV) + " (source 'H mask_pairs')"
+        ],
         "ll" + "c" * len(comps),
         ["", "model", *[c[3] for c in comps]],
         body,
     )
     for a, bb, stem, _ in comps:
         s = ml[(ml.a == a) & (ml.b == bb) & ml.model.isin(TREES)]
-        count_macros(
-            stem, counts(s, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-        )
+        count_macros(stem, counts(s))
         macro(f"camp{stem}QLo", fnum(s.qlike_pct.min(), 1, True))
         macro(f"camp{stem}QHi", fnum(s.qlike_pct.max(), 1, True))
-    s = ml[(ml.a == "LSTM masked") & (ml.b == "LSTM10 masked")]
-    count_macros(
-        "LSTMCad", counts(s, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-    )
-    for b, short in zip(BUCKETS, ["Base", "Live", "All"]):
-        r = s[s.bucket == b].iloc[0]
-        macro(f"campLSTMCad{short}", fnum(r.qlike_pct, 1, True))
-        macro(f"campLSTMCad{short}CI", fci(r.q_lo, r.q_hi, 1))
+    # 2026-10-06: LSTMs parked, user decision: the LSTM's refit cadence (LSTM masked - LSTM10 masked)
+    park_counts("LSTMCad", "LSTM (LSTMs parked, user decision)")
+    for b in ALL_BUCKETS:
+        park(f"campLSTMCad{BTAG[b]}", "LSTM (LSTMs parked, user decision)")
+        park(f"campLSTMCad{BTAG[b]}CI", "LSTM (LSTMs parked, user decision)")
 
     # the masked rungs against the per-bar ridge
     mr = mp[mp.family == "masked - ridge"].copy()
     tr = mr[mr.model.isin(TREES)]
-    count_macros(
-        "RidgeTree", counts(tr, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-    )
+    count_macros("RidgeTree", counts(tr))
     best = tr.loc[tr.qlike_pct.idxmin()]
     macro(
         "campRidgeBestTree",
         best.a.split()[0] + " " + MODEL[best.model] + " " + tt(best.bucket),
     )
     macro("campRidgeBestTreeQ", fnum(best.qlike_pct, 1, True))
-    macro("campRidgeBestTreeQCI", fci(best.q_lo, best.q_hi, 1))
-    lr_ = mr[(mr.model == "lstm") & (mr.a == "LSTM masked")]
-    count_macros(
-        "RidgeLSTM", counts(lr_, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-    )
-    for b, short in zip(BUCKETS, ["Base", "Live", "All"]):
-        r = lr_[lr_.bucket == b].iloc[0]
-        macro(f"campRidgeLSTM{short}", fnum(r.qlike_pct, 1, True))
+    # macro("campRidgeBestTreeQCI", fci(best.q_lo, best.q_hi, 1))  # 2026-10-06
+    park("campRidgeBestTreeQCI", "interval of campRidgeBestTreeQ (intervals removed)")
+    # 2026-10-06: LSTMs parked, user decision: the daily-refit LSTM against the ridge
+    park_counts("RidgeLSTM", "LSTM (LSTMs parked, user decision)")
+    for b in ALL_BUCKETS:
+        park(f"campRidgeLSTM{BTAG[b]}", "LSTM (LSTMs parked, user decision)")
 
 
 # =========================================================================== 4 Optuna
@@ -524,19 +1364,85 @@ def _arm_label(m: str, b: str) -> str:
 
 
 def _opt_cell(r: pd.Series) -> str:
-    qb = r.qlike_a - r.qlike_diff_a_minus_b
-    return qcell(
-        r.qlike_pct_a_vs_b,
-        100.0 * r.qlike_diff_ci_lo / qb,
-        100.0 * r.qlike_diff_ci_hi / qb,
-        r.dSharpe_mid,
-        r.dSharpe_mid_lo,
-        r.dSharpe_mid_hi,
-    )
+    # 2026-10-06: point estimates of the plain re-score (was: the stored recalibrated pair with
+    # its interval, qlike_diff_ci_lo / _hi in % of b and dSharpe_mid_lo / _hi)
+    return qcell(r.qlike_pct, r.sharpe_mid_diff)
+
+
+_TOP_TRIALS: dict[str, pd.DataFrame] = {}
+
+
+def budget_points_paper() -> pd.DataFrame:
+    """2026-10-13: the budget rows the paper reports -- LightGBM's (agent C) and the top-entry trees' (2026-10-14:
+    XGBoost on xgb_opt_00, xgbtop, and the forest on trial 255, rf400).  Read by make_table_close_main.py as well."""
+    bp = nonlive(pd.read_csv(CR / "budget_points.csv"))  # 2026-10-06: no live_feasible
+    top_bp, _ = _top_entry_trials()
+    return pd.concat([bp[bp.model == "lgbm"], top_bp], ignore_index=True)
+
+
+def _top_entry_trials() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The budget / picks rows of the top-entry trees from their stage-1 records (agent C's own functions,
+    experiments/optuna_trees_report_1600.py), for baseline / all_features.
+    2026-10-13: the forest (rf400).  2026-10-14: + XGBoost on xgb_opt_00 (xgbtop), its records now pulled.
+    Each run's picks are read on its own search space (its meta 'space'): rf400 re-centred the depth ladder on its
+    shipped depth (specs/causal_tune_trees_optuna_rfp.py depth_ladder), xgbtop lowered reg_lambda's floor to 1e-5
+    (results/trees_xgbtop_1600/RUN_RECORD.md); the campaign's default spaces would misplace those picks."""
+    if _TOP_TRIALS:
+        return _TOP_TRIALS["bp"], _TOP_TRIALS["pk"]
+    _engine()  # sys.path for the experiments modules
+    import optuna_trees_report_1600 as otr
+
+    def own_space(sp: dict) -> dict:
+        """The run's meta space in causal_tune_trees_optuna_jobs.SPACES' format."""
+        out = {}
+        for ax, v in sp.items():
+            out[ax] = (
+                ("cat", tuple(v))
+                if isinstance(v, list)
+                else (v["kind"], v["low"], v["high"], bool(v["log"]))
+            )
+        return out
+
+    keep = otr.OPT
+    bps, pks = [], []
+    try:
+        for model, (root, n_est) in TOP_OPT.items():
+            otr.OPT = root
+            for b in BUCKETS:
+                st = otr.load_trials(b, model)
+                assert st is not None, (f"{root.name} stage-1 records missing", b)
+                assert st["meta"]["shipped_params"]["n_estimators"] == n_est, (
+                    "not the top-entry run",
+                    model,
+                    b,
+                )
+                bps.append(otr.budget_tables(st, b, model)[1])
+                space = own_space(st["meta"]["space"])
+                assert list(space) == list(otr.OJ.SPACES[model]), (
+                    list(space),
+                    list(otr.OJ.SPACES[model]),
+                )
+                keep_sp = otr.OJ.SPACES[model]
+                otr.OJ.SPACES[model] = space
+                try:
+                    pks += otr.picks_table(st, b, model)
+                finally:
+                    otr.OJ.SPACES[model] = keep_sp
+    finally:
+        otr.OPT = keep
+    _TOP_TRIALS.update(bp=pd.DataFrame(bps), pk=pd.DataFrame(pks))
+    return _TOP_TRIALS["bp"], _TOP_TRIALS["pk"]
 
 
 def optuna() -> None:
-    bp = pd.read_csv(CR / "budget_points.csv")
+    bp = nonlive(pd.read_csv(CR / "budget_points.csv"))  # 2026-10-06: no live_feasible
+    # 2026-10-13 (user: the per-bar trees on their top entries): the forest's rows from the rf400 records;
+    # XGBoost's rows (xgb_opt_06) parked -- the xgbtop stage-1 records are not local (pending)
+    # 2026-10-14: XGBoost's rows un-parked from the xgbtop records (xgb_opt_00); every tree on its top entry
+    _, top_pk = _top_entry_trials()
+    bp = budget_points_paper()
+    # TREES_OPT = ["lgbm", "rf"]  # 2026-10-13 (XGBoost pending)
+    TREES_OPT = list(TREES)
     assert bp.share_best_in_41_50_if_exchangeable.nunique() == 1
     trials = bp.trials.unique()
     assert len(trials) == 1
@@ -557,7 +1463,9 @@ def optuna() -> None:
     macro("campOptPickDiffHi", pct(bp.share_pick_k25_differs_from_k50.max(), 0))
     macro("campOptShippedHi", pct(bp.share_best_is_shipped.max(), 1))
     body = []
-    for m in TREES:
+    for m in (
+        TREES_OPT
+    ):  # 2026-10-13: was TREES (XGBoost's rows parked); 2026-10-14: TREES again
         for b in BUCKETS:
             r = bp[(bp.model == m) & (bp.bucket == b)].iloc[0]
             body.append(
@@ -576,7 +1484,15 @@ def optuna() -> None:
             )
     write_tab(
         "budget",
-        [rel(CR / "budget_points.csv")],
+        [
+            rel(CR / "budget_points.csv") + " (LightGBM)",
+            # 2026-10-14: + XGBoost (xgbtop); was "...; XGBoost (xgb_opt_00) left out: stage-1 records not local"
+            rel(OPT_RF400)
+            + "/stage1/<set>/bar1600/rf/tw2000/trials_bar1600.npz (random forest, trial 255) and "
+            + rel(OPT_XGBTOP)
+            + "/stage1/<set>/bar1600/xgb/tw2000/trials_bar1600.npz (XGBoost, xgb_opt_00); "
+            "optuna_trees_report_1600.budget_tables",
+        ],
         "lrrrccc r".replace(" ", ""),
         [
             "arm",
@@ -591,8 +1507,13 @@ def optuna() -> None:
         body,
     )
 
+    # agent C's out-of-sample pairs, re-scored on the plain forecast (2026-10-06)
+    pc = nonlive(plain_tables(("C",))["C"])  # 2026-10-06: no live_feasible
+    tp = pc[pc.source == "C tuneper_oos"]
+    src_c = rel(PLAIN_CSV) + " (source 'C tuneper_oos': the plain re-score of"
+
     # out of sample: best of 50 against best of 10 / 25
-    bo = pd.read_csv(CR / "budget_oos.csv")
+    bo = tp[tp.comparison.str.startswith("budget")]
     comps = [
         ("tp1", "tp1_k10", "TUNE\\_PER 1:~~50 vs 10"),
         ("tp1", "tp1_k25", "TUNE\\_PER 1:~~50 vs 25"),
@@ -601,7 +1522,7 @@ def optuna() -> None:
     ]
     body = []
     for m in TREES:
-        for b in BUCKETS:
+        for b in PAPER_SETS:  # + the lean set (2026-10-06)
             cells = []
             for a, bb, _ in comps:
                 s = bo[
@@ -615,24 +1536,14 @@ def optuna() -> None:
             body.append(row([_arm_label(m, b), *cells]))
     write_tab(
         "budget_oos",
-        [rel(CR / "budget_oos.csv")],
+        [src_c + " " + rel(CR / "budget_oos.csv") + ")"],
         "l" + "c" * len(comps),
         ["arm", *[c[2] for c in comps]],
         body,
     )
-    count_macros(
-        "Bud",
-        counts(
-            bo,
-            "qlike_diff_ci_lo",
-            "qlike_diff_ci_hi",
-            "dSharpe_mid_lo",
-            "dSharpe_mid_hi",
-        ),
-    )
+    count_macros("Bud", counts(bo))
 
     # TUNE_PER ablation (every path refit every session) against TUNE_PER 250
-    tp = pd.read_csv(CR / "tuneper_oos.csv")
     tv = tp[tp.comparison == "tune_per vs 250"]
     tp_comps = [
         ("tp1", "TUNE\\_PER 1~~vs 250"),
@@ -641,53 +1552,31 @@ def optuna() -> None:
     ]
     body = []
     for m in TREES:
-        for b in BUCKETS:
+        for b in PAPER_SETS:  # + the lean set (2026-10-06)
             cells = []
             for a, _ in tp_comps:
                 s = tv[(tv.model == m) & (tv.bucket == b) & (tv.a_kind == a)]
                 assert len(s) == 1
                 cells.append(_opt_cell(s.iloc[0]))
-            ref = tp[(tp.model == m) & (tp.bucket == b) & (tp.b_kind == "tp250")].iloc[
-                0
-            ]
-            q250 = ref.qlike_a - ref.qlike_diff_a_minus_b
+            ref = tv[(tv.model == m) & (tv.bucket == b) & (tv.b_kind == "tp250")]
+            assert ref.qlike_b.nunique() == 1
+            q250 = ref.qlike_b.iloc[0]  # the plain QLIKE of TUNE_PER 250
             body.append(row([_arm_label(m, b), fnum(q250, 4), *cells]))
     write_tab(
         "tuneper",
-        [rel(CR / "tuneper_oos.csv") + " (comparison 'tune_per vs 250')"],
+        [src_c + " " + rel(CR / "tuneper_oos.csv") + ", comparison 'tune_per vs 250')"],
         "lr" + "c" * len(tp_comps),
         ["arm", "QLIKE~~TUNE\\_PER 250", *[c[1] for c in tp_comps]],
         body,
     )
-    count_macros(
-        "TP",
-        counts(
-            tv,
-            "qlike_diff_ci_lo",
-            "qlike_diff_ci_hi",
-            "dSharpe_mid_lo",
-            "dSharpe_mid_hi",
-        ),
-    )
-    below = tv[tv.qlike_diff_ci_hi < 0]
-    macro(
-        "campTPBelowWho",
-        "; ".join(
-            f"{MODEL[m]} {tt(b)} (TUNE\\_PER {', '.join(g.a_kind.str[2:].tolist())})"
-            for (m, b), g in below.groupby(["model", "bucket"], sort=False)
-        ),
-    )
+    count_macros("TP", counts(tv))
+    # 2026-10-06: intervals removed, user decision -- the arms with a QLIKE interval below
+    # zero; no longer quoted (the text's comment), the arms are in the table:
+    # below = tv[tv.qlike_diff_ci_hi < 0]
+    # macro("campTPBelowWho", "; ".join(f"{MODEL[m]} {tt(b)} (TUNE\\_PER ...)" ...))
+    park("campTPBelowWho", "list of arms whose QLIKE interval lay below zero")
     qr = tp[tp.comparison == "tune_per rule qlike vs mse"]
-    count_macros(
-        "TPRule",
-        counts(
-            qr,
-            "qlike_diff_ci_lo",
-            "qlike_diff_ci_hi",
-            "dSharpe_mid_lo",
-            "dSharpe_mid_hi",
-        ),
-    )
+    count_macros("TPRule", counts(qr))
 
     # Optuna against the shipped trees refit daily (T1), random search (RS1) and the ridge
     body = []
@@ -697,32 +1586,20 @@ def optuna() -> None:
         ("vs ridge", "per-bar ridge", "OptRidge"),
     ]:
         s = tp[tp.comparison == comp]
-        c = counts(
-            s,
-            "qlike_diff_ci_lo",
-            "qlike_diff_ci_hi",
-            "dSharpe_mid_lo",
-            "dSharpe_mid_hi",
-        )
+        c = counts(s)
         count_macros(stem, c)
         for k in ["tp1", "tp5", "tp25", "tp250"]:
-            ck = counts(
-                s[s.a_kind == k],
-                "qlike_diff_ci_lo",
-                "qlike_diff_ci_hi",
-                "dSharpe_mid_lo",
-                "dSharpe_mid_hi",
-            )
+            ck = counts(s[s.a_kind == k])
             body.append(
                 row(
                     [
                         label,
                         k[2:],
                         fint(ck["n"]),
-                        fint(ck["qb"]),
-                        fint(ck["qa"]),
-                        fint(ck["sb"]),
-                        fint(ck["sa"]),
+                        nsig(ck["qb"], ck["qbs"]),
+                        nsig(ck["qa"], ck["qas"]),
+                        nsig(ck["sb"], ck["sbs"]),
+                        nsig(ck["sa"], ck["sas"]),
                     ]
                 )
             )
@@ -732,10 +1609,10 @@ def optuna() -> None:
                     r"\emph{all}",
                     "",
                     fint(c["n"]),
-                    fint(c["qb"]),
-                    fint(c["qa"]),
-                    fint(c["sb"]),
-                    fint(c["sa"]),
+                    nsig(c["qb"], c["qbs"]),
+                    nsig(c["qa"], c["qas"]),
+                    nsig(c["sb"], c["sbs"]),
+                    nsig(c["sa"], c["sas"]),
                 ]
             )
         )
@@ -743,32 +1620,40 @@ def optuna() -> None:
             body.append(r"\midrule")
     write_tab(
         "optuna_vs",
-        [rel(CR / "tuneper_oos.csv") + " (comparisons 'vs T1', 'vs RS1', 'vs ridge')"],
+        [
+            src_c
+            + " "
+            + rel(CR / "tuneper_oos.csv")
+            + ", comparisons 'vs T1', 'vs RS1', 'vs ridge'); counts of point estimates, "
+            f"in parentheses those significant at {100 * SIG:.0f} % (DM for QLIKE, HAC t "
+            "of the daily mid-return difference for Sharpe)"
+        ],
         "llrrrrr",
         [
             "Optuna $-$",
             "TUNE\\_PER",
             "arms",
-            "QLIKE~~below 0",
-            "QLIKE~~above 0",
-            "Sharpe mid~~below 0",
-            "Sharpe mid~~above 0",
+            "QLIKE~~below 0 (DM)",
+            "QLIKE~~above 0 (DM)",
+            "Sharpe mid~~below 0 (HAC $t$)",
+            "Sharpe mid~~above 0 (HAC $t$)",
         ],
         body,
     )
-    rs_below = tp[(tp.comparison == "vs RS1") & (tp.qlike_diff_ci_hi < 0)]
-    macro(
-        "campOptRSBelowWho",
-        "; ".join(
-            f"{MODEL[m]} {tt(b)} (TUNE\\_PER {', '.join(g.a_kind.str[2:].tolist())})"
-            for (m, b), g in rs_below.groupby(["model", "bucket"], sort=False)
-        ),
-    )
+    # 2026-10-06: intervals removed, user decision -- no longer quoted (the text's comment):
+    # rs_below = tp[(tp.comparison == "vs RS1") & (tp.qlike_diff_ci_hi < 0)]
+    # macro("campOptRSBelowWho", "; ".join(...))
+    park("campOptRSBelowWho", "list of arms whose QLIKE interval vs RS1 lay below zero")
 
     # where the picks sit
-    pb = pd.read_csv(CR / "picks_bounds.csv")
+    pb = nonlive(pd.read_csv(CR / "picks_bounds.csv"))  # 2026-10-06: no live_feasible
+    # 2026-10-13: the forest's picks from the rf400 records; XGBoost's (xgb_opt_06) parked (xgbtop records not local)
+    # pb = pd.concat([pb[pb.model == "lgbm"], rf_pk], ignore_index=True)  # 2026-10-13 (XGBoost pending)
+    pb = pd.concat(
+        [pb[pb.model == "lgbm"], top_pk], ignore_index=True
+    )  # 2026-10-14: + XGBoost (xgbtop)
     body = []
-    for m in TREES:
+    for m in TREES_OPT:  # 2026-10-13: was TREES; 2026-10-14: TREES again
         body.append(panel(MODEL[m], 7))
         for ax in pb[pb.model == m].axis.unique():
             s = pb[(pb.model == m) & (pb.axis == ax)].set_index("bucket").loc[BUCKETS]
@@ -812,16 +1697,27 @@ def optuna() -> None:
             )
     write_tab(
         "picks",
-        [rel(CR / "picks_bounds.csv")],
+        [
+            rel(CR / "picks_bounds.csv") + " (LightGBM)",
+            # 2026-10-14: + XGBoost (xgbtop); was "...; XGBoost (xgb_opt_00) left out: stage-1 records not local"
+            rel(OPT_RF400)
+            + "/stage1/ (random forest, trial 255) and "
+            + rel(OPT_XGBTOP)
+            + "/stage1/ (XGBoost, xgb_opt_00); optuna_trees_report_1600.picks_table on each run's own search space",
+        ],
         "llccccc",
         [
             "axis",
             "search space",
-            r"picks at low bound (\%)~~base / live / all",
-            r"picks at high bound (\%)~~base / live / all",
+            # 2026-10-13: the column heads named a live set the rows do not have (BUCKETS = baseline, all_features)
+            # r"picks at low bound (\%)~~base / live / all",
+            # r"picks at high bound (\%)~~base / live / all",
+            r"picks at low bound (\%)~~base / all",
+            r"picks at high bound (\%)~~base / all",
             r"prior~~low (\%)",
             r"prior~~high (\%)",
-            "median pick~~base / live / all",
+            # "median pick~~base / live / all",
+            "median pick~~base / all",
         ],
         body,
     )
@@ -833,85 +1729,55 @@ def optuna() -> None:
     macro("campPickRfDepthHi", pct(rf.share_picks_at_high.max(), 0))
     macro("campPickRfDepthPrior", pct(rf.share_startup_at_high.iloc[0], 0))
     l2 = pb[pb.axis.isin(["lambda_l2", "reg_lambda"])]
+    # assert set(l2.model) == {"lgbm"}, "2026-10-13: only LightGBM's lambda_l2 (XGBoost's reg_lambda rows parked)"
+    assert set(l2.model) == {"lgbm", "xgb"}, (
+        "2026-10-14: LightGBM's lambda_l2 and XGBoost's reg_lambda (xgbtop)"
+    )
     macro("campPickLambdaHighMax", pct(l2.share_picks_at_high.max(), 1))
     macro("campPickLambdaPriorLo", pct(l2.share_startup_at_high.min(), 1))
 
 
 # =========================================================================== 5 intraday LSTM
 def lstmi() -> None:
-    sc = LI / "score"
-    lv = pd.read_csv(sc / "lstmi_levels.csv")
-    pr = pd.read_csv(sc / "lstmi_pairs.csv")
-    pr["q_lo"] = 100.0 * pr.qlike_ci_lo / pr.qlike_b
-    pr["q_hi"] = 100.0 * pr.qlike_ci_hi / pr.qlike_b
-    body = []
-    for b in BUCKETS:
-        L = lv[lv.bucket == b].set_index("forecast")
-        cells = [tt(b)]
-        for f in ["intraday", "perbar_lstm", "ridge"]:
-            cells.append(fnum(L.loc[f, "qlike"], 4))
-        for f in ["intraday", "perbar_lstm", "ridge"]:
-            cells.append(fnum(L.loc[f, "sharpe_mid"], 2))
-        for other in ["perbar_lstm", "ridge"]:
-            s = pr[(pr.bucket == b) & (pr.a == "intraday") & (pr.b == other)]
-            assert len(s) == 1
-            r = s.iloc[0]
-            cells.append(
-                qcell(
-                    r.qlike_pct,
-                    r.q_lo,
-                    r.q_hi,
-                    r.sharpe_mid_diff,
-                    r.sharpe_mid_ci_lo,
-                    r.sharpe_mid_ci_hi,
-                )
+    """The intraday-sequence LSTM (agent I).
+
+    2026-10-06: LSTMs parked, user decision ("the LSTM numbers are also not to be trusted"): every macro of this
+    section is parked and its table file is written as a stub (comments only) so that a text
+    that still inputs it compiles; the pairs stay in PLAIN_CSV (source 'I lstmi_pairs').
+    The code of the 2026-10-06 plain version: the table of QLIKE / Sharpe levels of the
+    intraday LSTM, the per-bar LSTM and the ridge per input set with the paired cells;
+    count_macros("LstmiVsLSTM" / "LstmiVsRidge"); campLstmiStep / Kept per input set from
+    lstmi_kept.csv; campLstmiTunings / NThirteen / NFortyEight / NNinetySix from
+    lstmi_hyperparameter_share.csv; campLstmiRefits.
+    """
+    park_counts("LstmiVsLSTM", "LSTM (LSTMs parked, user decision)")
+    park_counts("LstmiVsRidge", "LSTM (LSTMs parked, user decision)")
+    for b in ALL_BUCKETS:
+        for nm in ("Step", "Kept", "KeptLo", "KeptHi"):
+            short = BTAG[b]
+            park(
+                f"campLstmi{nm[:4]}{short}{nm[4:]}"
+                if nm != "Step"
+                else f"campLstmiStep{short}",
+                "LSTM (LSTMs parked, user decision)",
             )
-        body.append(row(cells))
-    write_tab(
-        "lstmi",
-        [rel(sc / "lstmi_levels.csv"), rel(sc / "lstmi_pairs.csv")],
-        "lrrrrrrcc",
-        [
-            "input set",
-            "QLIKE~~intraday",
-            "QLIKE~~per-bar LSTM",
-            "QLIKE~~ridge",
-            "Sharpe mid~~intraday",
-            "Sharpe mid~~per-bar LSTM",
-            "Sharpe mid~~ridge",
-            "intraday $-$~~per-bar LSTM",
-            "intraday $-$~~ridge",
-        ],
-        body,
+    for nm in ("Tunings", "NThirteen", "NFortyEight", "NNinetySix", "Refits"):
+        park(f"campLstmi{nm}", "LSTM (LSTMs parked, user decision)")
+    (GEN / f"{PREFIX}_lstmi.tex").write_text(
+        "% AUTO-GENERATED by writeup/make_appendix_campaign_16h_tex.py -- do not edit.\n"
+        "% 2026-10-06: LSTMs parked, user decision -- the intraday-sequence LSTM's table is parked;\n"
+        "% its pairs are in writeup/generated/appendix_campaign_16h_plain_pairs.csv.\n",
+        encoding="utf-8",
+        newline="\n",
     )
-    for other, stem in [("perbar_lstm", "LstmiVsLSTM"), ("ridge", "LstmiVsRidge")]:
-        s = pr[(pr.a == "intraday") & (pr.b == other)]
-        count_macros(
-            stem, counts(s, "q_lo", "q_hi", "sharpe_mid_ci_lo", "sharpe_mid_ci_hi")
-        )
-    kp = pd.read_csv(sc / "lstmi_kept.csv")
-    for b, short in zip(BUCKETS, ["Base", "Live", "All"]):
-        r = kp[(kp.bucket == b) & (kp.what == "refit (mse rule)")].iloc[0]
-        macro(f"campLstmiStep{short}", fint(r.p))
-        macro(f"campLstmiKept{short}", fint(r["median"]))
-        macro(f"campLstmiKept{short}Lo", fint(r["min"]))
-        macro(f"campLstmiKept{short}Hi", fint(r["max"]))
-    hs = pd.read_csv(sc / "lstmi_hyperparameter_share.csv")
-    sl = (
-        hs[(hs.rule == "mse") & (hs.axis == "seq_len")]
-        .groupby("value")
-        .tuning_points.sum()
-    )
-    macro("campLstmiTunings", fint(sl.sum()))
-    for n, word in [(13, "Thirteen"), (48, "FortyEight"), (96, "NinetySix")]:
-        macro(f"campLstmiN{word}", fint(sl.get(float(n), 0)))
-    macro("campLstmiRefits", fint(kp[kp.what == "refit (mse rule)"].n.iloc[0]))
+    WRITTEN.append("lstmi (parked stub)")
 
 
 # =========================================================================== 6 reproducibility
 def repro() -> None:
-    dd = pd.read_csv(D / "arch" / "design_diffs.csv")
-    ph = pd.read_csv(D / "arch" / "probe_hosts.csv")
+    # 2026-10-06: no live_feasible (user decision; b761b28)
+    dd = nonlive(pd.read_csv(D / "arch" / "design_diffs.csv"))
+    ph = nonlive(pd.read_csv(D / "arch" / "probe_hosts.csv"))
     for b in ["all_features"]:  # live_feasible commented out
         s = ph[ph.bucket == b]
         assert (
@@ -922,7 +1788,11 @@ def repro() -> None:
     diff = dd[dd.cols_differ > 0]
     same = dd[dd.cols_differ == 0]
     assert (dd.y_identical).all()
-    macro("campXColsLive", fint(diff[diff.bucket == "live_feasible"].cols_differ.max()))
+    # macro("campXColsLive", fint(diff[diff.bucket == "live_feasible"].cols_differ.max()))
+    park(
+        "campXColsLive",
+        "live_feasible input set (live-feasible removed from the paper)",
+    )
     macro("campXColsAll", fint(diff[diff.bucket == "all_features"].cols_differ.max()))
     macro("campXMaxAbs", fsci(diff.max_abs_diff.max()))
     macro("campXHosts", fint(ph.host.nunique()))
@@ -980,42 +1850,64 @@ def repro() -> None:
     macro("campXcFcstXgb", fsci(xg.loc["xgb", "tp1_forecast_max_rel_diff"]))
     macro("campXcSame", fint(xe.points.iloc[0]))
 
-    ca = pd.read_csv(HCLS / "class_arms.csv").set_index("rung")
-    mp = _pairs()
-    cp = mp[mp.family == "CPU class"]
-    for rung, short in [("T10", "Ten"), ("T1", "One")]:
-        macro(f"campClassRel{short}", pct(ca.loc[rung, "max_rel"], 1))
-        r = cp[cp.a.str.startswith(rung + " ")].iloc[0]
-        macro(f"campClassQ{short}", fnum(r.qlike_pct, 1, True))
-        macro(f"campClassQ{short}CI", fci(r.q_lo, r.q_hi, 1))
-        macro(f"campClassS{short}", fnum(r.sharpe_mid_diff, 2, True))
-        macro(f"campClassS{short}CI", fci(r.sharpe_mid_ci_lo, r.sharpe_mid_ci_hi, 2))
-    macro("campClassRows", fint(ca.rows.iloc[0]))
+    # 2026-10-06: live-feasible removed from the paper, user decision -- the whole-run
+    # CPU-class check (class_arms.csv, results/trees_mask_1600/stack/xeon_t10, xeon_t1) exists
+    # only for LightGBM on live_feasible; no run on baseline / all_features exists (it needs
+    # the cluster), so its macros and its row of the repro table are parked:
+    # ca = pd.read_csv(HCLS / "class_arms.csv").set_index("rung")
+    # cp = plain_tables(("H",))["H"]; cp = cp[cp.family == "CPU class"]
+    # for rung, short in [("T10", "Ten"), ("T1", "One")]:
+    #     macro(f"campClassRel{short}", pct(ca.loc[rung, "max_rel"], 1))
+    #     macro(f"campClassQ{short}", ...); macro(f"campClassS{short}", ...)
+    # macro("campClassRows", fint(ca.rows.iloc[0]))
+    ca = pd.read_csv(HCLS / "class_arms.csv")
+    assert ca.bucket.map(is_live).all(), (
+        "a non-live whole-run class check exists: restore it"
+    )
+    for short in ("Ten", "One"):
+        for stem in ("Rel", "Q", "S", "QCI", "SCI"):
+            nm = (
+                f"campClass{stem[0]}{short}{stem[1:]}"
+                if stem != "Rel"
+                else f"campClassRel{short}"
+            )
+            park(nm, "whole-run CPU-class check exists only on live_feasible")
+    park("campClassRows", "whole-run CPU-class check exists only on live_feasible")
 
-    xl = pd.read_csv(LI / "gates" / "cross_class_mixed_vs_pinned.csv")
+    xl = nonlive(pd.read_csv(LI / "gates" / "cross_class_mixed_vs_pinned.csv"))
     tpn = xl[xl.what == "tuning point"]
     rch = xl[xl.what == "refit chunk"]
-    macro("campLstmiXTune", f"{fint(tpn.bit_identical.sum())}/{fint(len(tpn))}")
-    macro("campLstmiXChunk", f"{fint(rch.bit_identical.sum())}/{fint(len(rch))}")
+    # 2026-10-06: LSTMs parked, user decision:
+    # macro("campLstmiXTune", f"{fint(tpn.bit_identical.sum())}/{fint(len(tpn))}")
+    # macro("campLstmiXChunk", f"{fint(rch.bit_identical.sum())}/{fint(len(rch))}")
+    assert len(tpn) and len(rch)
+    park("campLstmiXTune", "LSTM (LSTMs parked, user decision)")
+    park("campLstmiXChunk", "LSTM (LSTMs parked, user decision)")
 
-    sm = pd.read_csv(CR / "single_vs_mixed.csv")
+    # 2026-10-06: the pairs re-scored on the plain forecast; the forecast differences (no
+    # scorer in them) are agent C's, carried through the re-score
+    pc = plain_tables(("C",))["C"]
+    sm = pc[pc.source == "C single_vs_mixed"]
+    assert len(sm) == len(pd.read_csv(CR / "single_vs_mixed.csv"))
+    sm = nonlive(sm)  # 2026-10-06: no live_feasible
     macro("campSMDiffer", fint((sm.forecast_rows_differ > 0).sum()))
     for m, short in [("lgbm", "Lgbm"), ("xgb", "Xgb"), ("rf", "Rf")]:
         macro(
             f"campSMMax{short}",
             fnum(sm[sm.model == m].forecast_max_rel_diff.max(), 2 if m != "rf" else 4),
         )
-    c = counts(
-        sm, "qlike_diff_ci_lo", "qlike_diff_ci_hi", "dSharpe_mid_lo", "dSharpe_mid_hi"
-    )
+    c = counts(sm)
     count_macros("SM", c)
-    macro("campSMSharpeExcl", fint(c["sb"] + c["sa"]))
+    # was: Sharpe intervals excluding zero; now: Sharpe differences whose HAC t is significant
+    macro("campSMSharpeExcl", fint(c["sbs"] + c["sas"]))
 
     chh = pd.read_csv(C / "chunk_hosts.csv")
     macro("campCChunks", fint(len(chh)))
     macro("campCChunkClasses", fint(chh.cpu_class.nunique()))
     cen = pd.read_csv(HCLS / "class_census.csv")
-    fleet = cen[cen.root != "xeon"]
+    fleet = cen[
+        (cen.root != "xeon") & ~cen.root.str.startswith("lstm")
+    ]  # 2026-10-06: LSTMs parked, user decision
     macro("campHChunks", fint(fleet.chunks.sum()))
     macro("campHChunkClasses", fint(fleet["class"].nunique()))
     macro("campHGateChunks", fint(cen[cen.root == "xeon"].chunks.sum()))
@@ -1024,8 +1916,7 @@ def repro() -> None:
         row(
             [
                 "design $X$, machines of the two vector classes",
-                f"{tt('live_feasible')}: {macro_ref('campXColsLive')} of {macro_ref('campPLive')} columns differ; "
-                f"{tt('all_features')}: {macro_ref('campXColsAll')} of {macro_ref('campPAll')}; "
+                f"{tt('all_features')}: {macro_ref('campXColsAll')} of {macro_ref('campPAll')} columns differ; "
                 f"largest absolute difference {macro_ref('campXMaxAbs')}; target and kept-column sets identical",
             ]
         ),
@@ -1055,30 +1946,17 @@ def repro() -> None:
                 f"{macro_ref('campXcSame')} of {macro_ref('campXcPoints')} points for all three",
             ]
         ),
-        row(
-            [
-                r"masked LightGBM \texttt{live\_feasible}, whole run on the other class",
-                f"T10 / T1: max rel. forecast difference {macro_ref('campClassRelTen')} / "
-                f"{macro_ref('campClassRelOne')}\\,\\%; QLIKE {macro_ref('campClassQTen')} "
-                f"{macro_ref('campClassQTenCI')} / {macro_ref('campClassQOne')} {macro_ref('campClassQOneCI')}\\,\\%; "
-                f"$\\Delta$Sharpe mid {macro_ref('campClassSTen')} {macro_ref('campClassSTenCI')} / "
-                f"{macro_ref('campClassSOne')} {macro_ref('campClassSOneCI')}",
-            ]
-        ),
-        row(
-            [
-                "intraday LSTM, mixed-class attempt vs one class",
-                f"tuning points bit-identical {macro_ref('campLstmiXTune')}; refit chunks "
-                f"{macro_ref('campLstmiXChunk')} (the others ran on the other class)",
-            ]
-        ),
+        # 2026-10-06 parked (live-feasible removed): the row "masked LightGBM live_feasible,
+        # whole run on the other class" (campClassRel / Q / S of T10 and T1)
+        # 2026-10-06: LSTMs parked, user decision: the row "intraday LSTM, mixed-class attempt vs one class"
         row(
             [
                 "Optuna, one class vs class-mixed first pass",
                 f"{macro_ref('campSMDiffer')} of {macro_ref('campSMN')} tables differ (max rel. LightGBM "
                 f"{macro_ref('campSMMaxLgbm')}, XGBoost {macro_ref('campSMMaxXgb')}, random forest "
-                f"{macro_ref('campSMMaxRf')}); QLIKE intervals below / above 0: {macro_ref('campSMQBelow')} / "
-                f"{macro_ref('campSMQAbove')}; Sharpe mid intervals excluding 0: {macro_ref('campSMSharpeExcl')}",
+                f"{macro_ref('campSMMaxRf')}); QLIKE differences below / above 0: {macro_ref('campSMQBelow')} / "
+                f"{macro_ref('campSMQAbove')}; Sharpe mid differences with a significant HAC $t$ "
+                f"({100 * SIG:.0f}\\,\\%): {macro_ref('campSMSharpeExcl')}",
             ]
         ),
     ]
@@ -1094,9 +1972,15 @@ def repro() -> None:
             rel(HCLS / "class_arms.csv")
             + ", "
             + rel(H / "mask_pairs.csv")
-            + " (family 'CPU class')",
-            rel(LI / "gates" / "cross_class_mixed_vs_pinned.csv"),
-            rel(CR / "single_vs_mixed.csv"),
+            + " (family 'CPU class'; re-scored on the plain forecast, "
+            + rel(PLAIN_CSV)
+            + ")",
+            # 2026-10-13 (user): LSTM parked -- the parked intraday-LSTM row's source line:
+            # rel(LI / "gates" / "cross_class_mixed_vs_pinned.csv"),
+            rel(CR / "single_vs_mixed.csv")
+            + " (re-scored on the plain forecast, "
+            + rel(PLAIN_CSV)
+            + ")",
         ],
         r"p{0.30\textwidth}p{0.64\textwidth}",
         ["check", "result"],
@@ -1111,8 +1995,29 @@ def macro_ref(name: str) -> str:
 
 # =========================================================================== 7 master table
 def master() -> None:
+    """The master table before / after the campaign, and the headline against the others.
+
+    2026-10-06: recalibration removed / intervals removed, user decision.  before_after.csv
+    is now the plain scorer's on both sides (experiments/master_table_close.py re-run):
+    qlike_raw_before / _after, the HAC t of the daily mid-return difference
+    (t_hac_mid_after_vs_before), max_rel_plain_change; master_table_vs_headline.csv carries
+    point estimates, DM and the HAC t.  Counts are of point estimates; ...Sig twins count the
+    significant ones at SIG.
+    """
+    e = _engine()
+    hac_p = e["mtc"].hac_p
     ba = pd.read_csv(J / "before_after.csv")
-    both = ba[(ba.status == "both") & (ba.family != "rule")]
+    both = ba[(ba.status == "both") & (ba.family != "rule")].copy()
+    both = nonlive(both, "key")  # 2026-10-06: no live_feasible (user decision)
+    both = both[
+        ~both.family.str.contains("LSTM")
+    ]  # 2026-10-06: LSTMs parked, user decision
+    # 2026-10-13 (user: the per-bar trees on their top entries): a row whose after side reads the xgbtop / rf400
+    # table mixes the settings switch with the campaign -- left out of the campaign's before / after, counted
+    swb = both.perbar_switch.fillna("").astype(str) != ""
+    macro("campMTSwitchedN", fint(int(swb.sum())))
+    both = both[~swb]
+    both["t_sig"] = both.t_hac_mid_after_vs_before.map(hac_p) < SIG
     order = list(dict.fromkeys(both.family))
     body = []
     for fam in order:
@@ -1127,79 +2032,94 @@ def master() -> None:
                     tex_escape(str(s.what_changed.iloc[0])).split(" (")[0],
                     f"{fnum(q.median(), 2, True)} [{fnum(q.min(), 2, True)}, {fnum(q.max(), 2, True)}]",
                     f"{fnum(d.median(), 2, True)} [{fnum(d.min(), 2, True)}, {fnum(d.max(), 2, True)}]",
-                    f"{fint((s.dSharpe_mid_lo > 0).sum())} / {fint((s.dSharpe_mid_hi < 0).sum())}",
+                    f"{fint((d > 0).sum())} / {fint((d < 0).sum())}",
+                    fint(s.t_sig.sum()),
                     f"{fint(s.positions_changed.median())} [{fint(s.positions_changed.max())}]",
                 ]
             )
         )
+        # was: f"{fint((s.dSharpe_mid_lo > 0).sum())} / {fint((s.dSharpe_mid_hi < 0).sum())}"
+        # (intervals above / below 0; 2026-10-06: intervals removed, user decision)
     write_tab(
         "master",
-        [rel(J / "before_after.csv") + " (status 'both')"],
-        r"lrp{0.22\textwidth}cccc",
+        [
+            rel(J / "before_after.csv")
+            + " (status 'both'; plain forecast on both sides; [min, max] are ranges over "
+            "the family's forecasts, not intervals)"
+        ],
+        r"lrp{0.22\textwidth}ccccc",
         [
             "family",
             "keys",
             "what changed",
             r"QLIKE change (\%)~~median [min, max]",
             r"$\Delta$Sharpe mid~~median [min, max]",
-            r"$\Delta$Sharpe interval~~above / below 0",
+            r"$\Delta$Sharpe mid~~above / below 0",
+            rf"HAC $t$~~significant ({100 * SIG:.0f}\,\%)",
             "positions changed~~median [max]",
         ],
         body,
     )
     macro("campMTKeysBoth", fint(len(both)))
-    macro("campMTKeysNew", fint((ba.status == "new").sum()))
-    h = ba[ba.key == "sub_ridge_live_feasible"].iloc[0]
-    macro("campMTHeadQ", fnum(h.qlike_recal_after, 4))
-    macro("campMTHeadQBefore", fnum(h.qlike_recal_before, 4))
-    macro("campMTHeadPos", fint(h.positions_changed))
-    macro("campMTHeadDays", fint(h.n_days_paired))
-    macro("campMTHeadS", fnum(h.Sharpe_mid_after, 2))
-    macro("campMTHeadSX", fnum(h.Sharpe_crossed_after, 2))
-    macro("campMTHeadMaxRel", fsci(h.max_rel_pred_clock_change))
-    sig = both[(both.dSharpe_mid_lo > 0) | (both.dSharpe_mid_hi < 0)]
-    macro(
-        "campMTSigWho",
-        "; ".join(
-            f"{tex_escape(r.label)}: {fnum(r.Sharpe_mid_before, 2)} $\\to$ {fnum(r.Sharpe_mid_after, 2)}, "
-            f"{fnum(r.dSharpe_mid, 2, True)} {fci(r.dSharpe_mid_lo, r.dSharpe_mid_hi, 2)}"
-            for r in sig.itertuples()
-        ),
-    )
-    macro("campMTSigN", fint(len(sig)))
-
-    mt = pd.read_csv(J / "master_table.csv")
-    vh = pd.read_csv(J / "master_table_vs_headline.csv")
-    head = mt[mt.is_headline].key.iloc[0]
-    assert head == "sub_ridge_live_feasible"
-    other = mt[
-        (mt.table == "A")
-        & ~mt.family.str.contains("check")
-        & (mt.family != "rule")
-        & mt.duplicate_of.isna()
-        & (mt.key != head)
+    new = ba[
+        (ba.status == "new")
+        & ~ba.key.map(is_live)
+        & ~ba.family.astype(str).str.contains("LSTM")
     ]
-    v = vh[vh.key.isin(other.key)]
-    assert len(v) == len(other)
-    macro("campMTNOther", fint(len(v)))
-    macro("campMTBeatMid", fint((v.dSharpe_mid_vs_headline_lo > 0).sum()))
-    macro("campMTBeatCrossed", fint((v.dSharpe_crossed_vs_headline_lo > 0).sum()))
-    macro("campMTWorseMid", fint((v.dSharpe_mid_vs_headline_hi < 0).sum()))
-    better = v[v.qlike_diff_ci_hi < 0].sort_values("qlike_pct_vs_headline")
-    macro("campMTQBetter", fint(len(better)))
-    macro("campMTQWorse", fint((v.qlike_diff_ci_lo > 0).sum()))
-    fams = better.family.unique()
-    macro("campMTQBetterFamily", ", ".join(tex_escape(f) for f in fams))
+    macro("campMTKeysNew", fint(len(new)))  # 2026-10-06: no live-feasible, no LSTM
+    # 2026-10-06: the paper has no headline model (user decision) -- the headline's own before /
+    # after (QLIKE, Sharpe, positions, max relative change) is parked; the days of the paired
+    # comparison are every table-A forecast's (asserted):
+    # h = ba[ba.key == "sub_ridge_live_feasible"].iloc[0]
+    # macro("campMTHeadQ", fnum(h.qlike_raw_after, 4)); ... campMTHeadQBefore / Pos / S / SX / MaxRel
+    for nm in (
+        "campMTHeadQ",
+        "campMTHeadQBefore",
+        "campMTHeadPos",
+        "campMTHeadS",
+        "campMTHeadSX",
+        "campMTHeadMaxRel",
+    ):
+        park(nm, "the former headline's before / after (no headline model)")
+    ta = both[both.table_after == "A"]
+    assert (ta.n_days_paired == N_DAYS).all()
     macro(
-        "campMTQBetterWho",
-        "; ".join(
-            f"{tex_escape(r.label)}: QLIKE {fnum(r.qlike_recal, 4)} ({fnum(r.qlike_pct_vs_headline, 1, True)}\\,\\%, "
-            f"interval on the daily difference {fci(r.qlike_diff_ci_lo, r.qlike_diff_ci_hi, 4)}), "
-            f"$\\Delta$Sharpe mid {fnum(r.dSharpe_mid_vs_headline, 2, True)} "
-            f"{fci(r.dSharpe_mid_vs_headline_lo, r.dSharpe_mid_vs_headline_hi, 2)}"
-            for r in better.itertuples()
-        ),
+        "campMTHeadDays", fint(N_DAYS)
+    )  # name kept: the paired days of every table-A row
+    macro("campMTPosChangedMax", fint(ta.positions_changed.max()))
+    macro("campMTPosChangedN", fint((ta.positions_changed > 0).sum()))
+    # 2026-10-06: intervals removed, user decision -- the forecasts whose Sharpe interval
+    # excluded zero; no longer quoted (the text's comment):
+    # sig = both[(both.dSharpe_mid_lo > 0) | (both.dSharpe_mid_hi < 0)]
+    # macro("campMTSigWho", ...); macro("campMTSigN", fint(len(sig)))
+    park("campMTSigWho", "forecasts whose before/after Sharpe interval excluded zero")
+    park("campMTSigN", "count of the above")
+    macro("campMTSigHacN", fint(both.t_sig.sum()))  # its HAC t counterpart (new)
+
+    # 2026-10-06: the paper has no headline model (user decision) -- the counts of the master
+    # table's forecasts against the headline (campMTNOther, campMTBeatMid / Crossed, campMTWorseMid,
+    # campMTQBetter / Worse and their ...Sig twins; master_table_vs_headline.csv) are parked;
+    # Section 5.4 counts the model set against R and always short (make_table_close_main.py).
+    for nm in (
+        "campMTNOther",
+        "campMTBeatMid",
+        "campMTBeatMidSig",
+        "campMTBeatCrossed",
+        "campMTWorseMid",
+        "campMTWorseMidSig",
+        "campMTQBetter",
+        "campMTQBetterSig",
+        "campMTQWorse",
+        "campMTQWorseSig",
+    ):
+        park(nm, "count against the former headline (no headline model)")
+    # 2026-10-06: intervals removed, user decision -- the families / list of the forecasts whose
+    # QLIKE interval lay below the headline's are no longer quoted (the text's comment)
+    park(
+        "campMTQBetterFamily",
+        "families of the forecasts with a QLIKE interval below the headline's",
     )
+    park("campMTQBetterWho", "list of those forecasts, with their intervals")
 
 
 # =========================================================================== 8 importance, density
@@ -1313,20 +2233,21 @@ def dvs() -> None:
     macro("campDvsClaims", fint(len(cl)))
     macro("campDvsClaimsSame", fint(cl.same.astype(str).str.lower().eq("true").sum()))
     sw = pd.read_csv(G / "before_after_sweep.csv")
+    # 2026-10-06: NOT re-scored -- agent G's per-run forecasts (DVS_WORK / DVS_OLD_WORK) are not
+    # on disk, so the LightGBM new-minus-first-pass QLIKE / Sharpe below stay the stored
+    # (recalibrated) numbers; the dense-vs-sparse write-up of D.19 is being commented out of
+    # the text (user decision 2026-10-06), so the macros are only kept compiling.  Their
+    # intervals are parked (intervals removed, user decision).
     for b, short in [("live_feasible", "Live"), ("all_features", "All")]:
         r = sw[
             (sw.bucket == b) & (sw.model == "LightGBM") & (sw.k.astype(str) == "all")
         ].iloc[0]
         macro(f"campDvsLgbmQ{short}", fnum(r.QLIKE_new_minus_first_pass, 4, True))
-        macro(
-            f"campDvsLgbmQ{short}CI",
-            fci(r.QLIKE_new_minus_first_pass_lo, r.QLIKE_new_minus_first_pass_hi, 4),
-        )
         macro(f"campDvsLgbmS{short}", fnum(r.Sharpe_new_minus_first_pass, 2, True))
-        macro(
-            f"campDvsLgbmS{short}CI",
-            fci(r.Sharpe_new_minus_first_pass_lo, r.Sharpe_new_minus_first_pass_hi, 2),
-        )
+        # macro(f"campDvsLgbmQ{short}CI", fci(r.QLIKE_new_minus_first_pass_lo, ..._hi, 4))
+        # macro(f"campDvsLgbmS{short}CI", fci(r.Sharpe_new_minus_first_pass_lo, ..._hi, 2))
+        park(f"campDvsLgbmQ{short}CI", "interval (intervals removed)")
+        park(f"campDvsLgbmS{short}CI", "interval (intervals removed)")
     lin = sw[sw.model.isin(["ridge", "lasso"])]
     macro("campDvsLinMaxRel", fsci(lin.max_rel_forecast_change.max()))
     rf = dd[(dd.model == "random forest")]
@@ -1353,8 +2274,12 @@ class Usage:
 HALF_DECIMAL = 0.05 + 1e-9
 
 
-def _sacct(path: Path) -> Usage:
+def _sacct(path: Path, drop_stage: str | None = None) -> Usage:
     u = pd.read_csv(path)
+    if (
+        drop_stage is not None
+    ):  # 2026-10-13 (user): LSTM parked -- drop the jobs whose stage matches
+        u = u[~u["stage"].astype(str).str.contains(drop_stage)]
     st = pd.to_datetime(u.Start)
     en = pd.to_datetime(u.End)
     ev = sorted(
@@ -1443,8 +2368,17 @@ def compute() -> None:
     )
     h = _sacct(H / "cluster_usage.csv")
     _check_summary(H / "SUMMARY.md", h)
-    srcs.append(rel(H / "cluster_usage.csv") + " (checked against its SUMMARY.md)")
-    add_usage("trees and LSTM with the mask, one CPU class", h)
+    srcs.append(
+        rel(H / "cluster_usage.csv")
+        + " (checked against its SUMMARY.md; row = its jobs without the lstm_* stages)"
+    )
+    # 2026-10-13 (user): LSTM parked for now (double-standardisation bug): the stage's LSTM jobs
+    # (stages lstm_mask*, tm_gates_lstm, tm_gates_h_lstm) are dropped from its row; the full stage
+    # (h, trees + LSTM) is still checked against the agent's SUMMARY.md above.
+    # add_usage("trees and LSTM with the mask, one CPU class", h)
+    add_usage(
+        "trees with the mask, one CPU class", _sacct(H / "cluster_usage.csv", "lstm")
+    )
     cm = kv(C / "cluster_usage.csv")
     cs = kv(C / "cluster_usage_single_class_rerun.csv")
     srcs.append(
@@ -1473,7 +2407,8 @@ def compute() -> None:
     srcs.append(
         rel(LI / "score" / "cluster_usage.csv") + " (checked against its SUMMARY.md)"
     )
-    add_usage("intraday-sequence LSTM", i)
+    # add_usage("intraday-sequence LSTM", i)  # 2026-10-06: LSTMs parked, user decision
+    srcs.pop()  # its source line (the stage is parked)
 
     # D: the checklist's agent log (its only accounting record)
     txt = PROGRESS.read_text(encoding="utf-8")
@@ -1598,16 +2533,34 @@ def main() -> None:
     featimp()
     dvs()
     compute()
+    plain_tables()  # every part computed: writes PLAIN_CSV (the old-vs-new record)
     lines = [
         "% AUTO-GENERATED by writeup/make_appendix_campaign_16h_tex.py -- do not edit.",
         "% Every macro is read from the campaign's CSVs / summaries (sources in the table files and",
         "% in the script); prose in sections/appendix_campaign_16h.tex quotes numbers only through these.",
+        "% 2026-10-06: recalibration removed / intervals removed, user decision: every forecast is its",
+        "% plain f^2 B (the campaign's pairs re-scored: generated/appendix_campaign_16h_plain_pairs.csv),",
+        "% point estimates only; a ...QBelow / QAbove / SBelow / SAbove macro counts point estimates and",
+        f"% its ...Sig twin those significant at {100 * SIG:.0f} % (DM for QLIKE, HAC t for Sharpe mid).",
     ]
     lines += [r"\newcommand{\%s}{%s}" % (k, v) for k, v in NUMS.items()]
+    lines += [
+        "%",
+        "% 2026-10-06 parked (recalibration removed / intervals removed, user decision):",
+    ]
+    lines += [f"%   \\{p}" for p in PARKED]
+    if CLAIMS:
+        lines += ["%", "% claims of the text checked on these numbers (not asserted):"]
+        lines += [f"%   {'holds  ' if ok else 'FLIPPED'} {t}" for ok, t in CLAIMS]
     (GEN / f"{PREFIX}_numbers.tex").write_text(
         "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
     )
     print(f"wrote {len(WRITTEN)} tables ({', '.join(WRITTEN)}) and {len(NUMS)} macros")
+    print(f"parked {len(PARKED)} macros:")
+    for p in PARKED:
+        print("  " + p)
+    for ok, t in CLAIMS:
+        print(("  claim holds:   " if ok else "  claim FLIPPED: ") + t)
 
 
 if __name__ == "__main__":

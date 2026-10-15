@@ -64,79 +64,123 @@ that carries no FOMC calendar columns, and it is carried as a diagnostic
 row --- ``block-diagonal ridge, without the FOMC columns'' --- because the
 gap between it and the ridge of record is what those calendar channels are
 worth on this trade, and nothing else in the table isolates them. All eight
-are stored on the estimation scale $y=\sqrt{RV/B}$. The 15:30 row is mapped
-to raw thirty-minute variance by a causal second-order back-transform
-\emph{adapted from} the evaluation protocol of
-Section~\ref{sec:smearing_contract}: a Mincer--Zarnowitz map
-$m=a+b\,\widehat{y}$ and a residual second moment $\hat\sigma^2$, both
-fit on the previous 250 trading sessions only, then
-$\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
-15:30--16:00 bar. Adapted, not inherited, and the three differences are
-stated rather than buried. The protocol's map is an ordinary least-squares
-fit over the preceding \emph{evaluation window}, and its second moment
-opens at that window's mean squared residual and then decays
-exponentially within the window at $\lambda = 0.6$
-(Equations~\eqref{eq:mean_calib}--\eqref{eq:var_ewma}). The map used here
-is a \emph{weighted} fit, over a flat lookback of $250$ trading
-\emph{sessions}, and its second moment is that same window's residual
-variance held fixed across it. The differences are what a daily exercise
-can refit --- this section scores 866 daily observations, not a quarter
-million bars --- but they mean no number in this section is produced by the
-map that produced the QLIKE tables, and none is carried between the two.
-% D1 2026-09-29 (change 10): where this map is still used.
-This \emph{session-bar recalibration} is the one of the diagnostics parked in
-Appendix~\ref{sec:app_run_parked}; every table of
-Section~\ref{sec:close_option_results} uses the 16:00-bar recalibration defined
-below (Equation~\eqref{eq:close_opt_recal1600}).
+are stored on the estimation scale $y=\sqrt{RV/B}$.
+% 2026-10-06 parked (recalibration removed, user decision):
+% The 15:30 row is mapped
+% to raw thirty-minute variance by a causal second-order back-transform
+% \emph{adapted from} the evaluation protocol of
+% Section~\ref{sec:smearing_contract}: a Mincer--Zarnowitz map
+% $m=a+b\,\widehat{y}$ and a residual second moment $\hat\sigma^2$, both
+% fit on the previous 250 trading sessions only, then
+% $\widehat{RV}=(m^2+\hat\sigma^2)B$, an estimate of $E[RV]$ for the
+% 15:30--16:00 bar. Adapted, not inherited, and the three differences are
+% stated rather than buried. The protocol's map is an ordinary least-squares
+% fit over the preceding \emph{evaluation window}, and its second moment
+% opens at that window's mean squared residual and then decays
+% exponentially within the window at $\lambda = 0.6$
+% (Equations~\eqref{eq:mean_calib}--\eqref{eq:var_ewma}). The map used here
+% is a \emph{weighted} fit, over a flat lookback of $250$ trading
+% \emph{sessions}, and its second moment is that same window's residual
+% variance held fixed across it. The differences are what a daily exercise
+% can refit --- this section scores 866 daily observations, not a quarter
+% million bars --- but they mean no number in this section is produced by the
+% map that produced the QLIKE tables, and none is carried between the two.
+% % D1 2026-09-29 (change 10): where this map is still used.
+% This \emph{session-bar recalibration} is the one of the diagnostics parked in
+% Appendix~\ref{sec:app_run_parked}; every table of
+% Section~\ref{sec:close_option_results} uses the 16:00-bar recalibration defined
+% below (Equation~\eqref{eq:close_opt_recal1600}).
+The 15:30 row is turned into a forecast of the raw variance of the
+15:30--16:00 bar by the plain back-transform of
+Equation~\eqref{eq:close_opt_plain} below, the same for every forecast of this
+section. It is not the retransformation of the evaluation protocol of
+Section~\ref{sec:smearing_contract}, which re-maps the forecast's level and
+adds a causal second moment: no number in this section is produced by that
+protocol, and none is carried between the two.
 Forecast files end on 30~April~2024. The chain itself runs to
 31~December~2025, so the 413 expiration days from 1~May~2024
 onward --- the most recent twenty months of contiguous tape --- carry no
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% forecast row and are not scored in Section~\ref{sec:close_option_results};
+% the trade's live form on them is reported in
+% Appendix~\ref{sec:app_run_post2024}.
 forecast row and are not scored in Section~\ref{sec:close_option_results};
-the trade's live form on them is reported in
-Appendix~\ref{sec:app_run_post2024}.
+the trade's live, long-only form has been run on them, and
+Appendix~\ref{sec:app_run_post2024} describes that record, which is not scored
+with the plain forecast and is not reported here.
 
-Two conventions matter for honesty. \emph{Alignment}: forecast rows
+% 2026-10-06 parked (recalibration removed, user decision):
+% Two conventions matter for honesty. \emph{Alignment}: forecast rows
+% are labelled by the end of the bar they predict, so the row read at
+% 15:30 is the one stamped 16:00 --- issued at 15:30 for the thirty
+% minutes that remain --- and not the stamp-15:30 row, which was issued
+% at 15:00 for a bar already finished; every input to the signal below
+% is therefore known at 15:30. \emph{Weighting}: the map and the
+% residual moment solve weighted least squares with weights
+% $1/\max(\widehat{y}_u,\,q_{10})^{2}$, where $q_{10}$ is the tenth
+% percentile of $\widehat{y}$ within the same trailing window, and the
+% fit window is restricted to regular-session bars. \emph{Regular session}
+% is an explicit mask, not an assumption, because the panel underneath is a
+% futures panel (Section~\ref{sec:dp_data}): a bar enters the fit only if
+% its own stamp lies in $10{:}30$--$16{:}00$, if its date carries a
+% $16{:}00$ stamp at all --- which drops cash-market holidays, whose futures
+% session ends at $13{:}00$ or $11{:}30$ --- and if its date is not one of
+% the NYSE $13{:}00$ early closes of 2001--2025, which drops the post-close
+% bars those days print through $16{:}00$. The mask is not cosmetic. Of the
+% $69{,}298$ bars the stamp window alone would admit it removes $1{,}083$,
+% which is $1.56\%$ of them: $510$ rows on $48$ of the $55$ early-close dates
+% in the 2001--2025 calendar, and $573$ rows on a further $125$ dates that
+% carry no $16{:}00$ stamp at all --- exchange holidays, whose rows here are
+% futures-only bars, and a few dates whose tape stops early. Those bars carry
+% far less variance than a regular one, so in a weighted fit they enter at a
+% low $y$ and drag the calibrated forecast down on every scored row.
+One convention matters for honesty. \emph{Alignment}: forecast rows
 are labelled by the end of the bar they predict, so the row read at
 15:30 is the one stamped 16:00 --- issued at 15:30 for the thirty
 minutes that remain --- and not the stamp-15:30 row, which was issued
 at 15:00 for a bar already finished; every input to the signal below
-is therefore known at 15:30. \emph{Weighting}: the map and the
-residual moment solve weighted least squares with weights
-$1/\max(\widehat{y}_u,\,q_{10})^{2}$, where $q_{10}$ is the tenth
-percentile of $\widehat{y}$ within the same trailing window, and the
-fit window is restricted to regular-session bars. \emph{Regular session}
-is an explicit mask, not an assumption, because the panel underneath is a
-futures panel (Section~\ref{sec:dp_data}): a bar enters the fit only if
-its own stamp lies in $10{:}30$--$16{:}00$, if its date carries a
-$16{:}00$ stamp at all --- which drops cash-market holidays, whose futures
-session ends at $13{:}00$ or $11{:}30$ --- and if its date is not one of
-the NYSE $13{:}00$ early closes of 2001--2025, which drops the post-close
-bars those days print through $16{:}00$. The mask is not cosmetic. Of the
-$69{,}298$ bars the stamp window alone would admit it removes $1{,}083$,
-which is $1.56\%$ of them: $510$ rows on $48$ of the $55$ early-close dates
-in the 2001--2025 calendar, and $573$ rows on a further $125$ dates that
-carry no $16{:}00$ stamp at all --- exchange holidays, whose rows here are
-futures-only bars, and a few dates whose tape stops early. Those bars carry
-far less variance than a regular one, so in a weighted fit they enter at a
-low $y$ and drag the calibrated forecast down on every scored row.
+is therefore known at 15:30.
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% One related contamination is disclosed rather than repaired. The per-slot
+% factor $B$ that scales the target is a trailing twenty-session mean of the
+% same slot, and it is built upstream of this section, before any of the
+% masking above: on an early close it absorbs that day's post-close bars, so
+% for the following twenty sessions the $16{:}00$ slot's $B$ sits a few
+% percent low. Ninety-four of the 866 scored days fall inside such a window.
+% The effect on the trade is second order --- $\widehat{RV}=(m^2+\hat\sigma^2)B$
+% moves with $B$, but so does the $y$ the map is calibrated against, and the
+% two largely cancel --- and a separate audit bounded what survives the
+% cancellation at under a tenth of a Sharpe ratio and a handful of flipped
+% positions. Repairing it at the source means regenerating the forecast
+% tables, and it is part of the pending campaign.
 One related contamination is disclosed rather than repaired. The per-slot
 factor $B$ that scales the target is a trailing twenty-session mean of the
-same slot, and it is built upstream of this section, before any of the
-masking above: on an early close it absorbs that day's post-close bars, so
+same slot, and it is built upstream of this section: on an early close it
+absorbs that day's post-close bars, so
 for the following twenty sessions the $16{:}00$ slot's $B$ sits a few
-percent low. Ninety-four of the 866 scored days fall inside such a window.
-The effect on the trade is second order --- $\widehat{RV}=(m^2+\hat\sigma^2)B$
-moves with $B$, but so does the $y$ the map is calibrated against, and the
-two largely cancel --- and a separate audit bounded what survives the
-cancellation at under a tenth of a Sharpe ratio and a handful of flipped
-positions. Repairing it at the source means regenerating the forecast
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% percent low. Ninety-four of the 866 scored days fall inside such a window.
+percent low. \cmBContamDays{} of the \cmNdays{} scored days fall inside such a window.
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% An audit under an earlier back-transform, since removed, bounded its effect on
+% the trade at under a tenth of a Sharpe ratio and a handful of flipped
+% positions; it has not been repeated with the plain forecast of
+% Equation~\eqref{eq:close_opt_plain}.
+Repairing the factor on those days moves a forecast by up to \cmBContamMaxRel\% and % results/close_bounds_plain/b_contamination.csv
+changes its $\mathrm{sign}(s)$ Sharpe ratio, over the forecasts of
+Section~\ref{sec:close_option_results}, by a median of \cmBContamMedDSh{} and by at most
+\cmBContamMaxDSh{} at the midpoint (\cmBContamMaxDShX{} crossed) --- at most
+\cmBContamPaperMaxDSh{} for the paper's eight --- and flips a median of
+\cmBContamMedFlips{} and at most \cmBContamMaxFlips{} of its positions.
+Repairing it at the source means regenerating the forecast
 tables, and it is part of the pending campaign.
 
-The weighting
-addresses a level effect --- an unweighted fit is dominated by the
-largest bars --- and was adopted on a forecast-accuracy criterion, not on
-any portfolio outcome.
+% 2026-10-06 parked (recalibration removed, user decision):
+% The weighting
+% addresses a level effect --- an unweighted fit is dominated by the
+% largest bars --- and was adopted on a forecast-accuracy criterion, not on
+% any portfolio outcome.
 
 \paragraph{Which panel produced which row.} The eight columns were not
 all produced on one design, and the tables say which each came from. The
@@ -162,10 +206,20 @@ bars (about $480$ trading sessions); the tuned lasso and elastic net
 re-select their penalty from the fixed grid every $250$ solves, on the
 embargoed forward tail of the current window. The two tree columns are
 reported as shipped and are less clean than that. Their settings are
-indices $00$ and $16$ into a frozen twenty-arm menu whose file is absent
-both from the working tree and from the repository's history, so the
-hyperparameters behind those two columns cannot be recovered; the two arms
-were hand-picked from that bank and the basis of the pick is not recorded.
+% 2026-10-07 parked (settings recovered from the chunk metadata; provenance below, user decision):
+% indices $00$ and $16$ into a frozen twenty-arm menu whose file is absent
+% both from the working tree and from the repository's history, so the
+% hyperparameters behind those two columns cannot be recovered; the two arms
+% were hand-picked from that bank and the basis of the pick is not recorded.
+% 2026-10-13 parked (user; review item 76 / changelog 8.17: the XGBoost column reads the top XGBoost entry since
+% 2026-10-07, and the per-bar look-ahead disclosure this sentence pointed to is parked):
+% indices $00$ and $16$ into a frozen twenty-arm menu; each column's settings are stored % results/rf_devmenu_2026-10-06/SUMMARY.md
+% with its forecast chunks, and where that menu comes from, and why the pick of index $16$
+% cannot be certified free of look-ahead, is set out with the forecasts fitted for the 16:00
+% bar alone below.
+two entries of a frozen twenty-arm menu, the top LightGBM and the top XGBoost entry; each % results/rf_devmenu_2026-10-06/SUMMARY.md, notebooks/atm_straddle_lib.py yhat_paths
+column's settings are stored with its forecast chunks, and where that menu comes from is
+set out with the forecasts fitted for the 16:00 bar alone below.
 Their refit cadence is mixed as well: one cluster refit at every bar and
 another every tenth bar, both contributed chunks to the same harvest, and
 neither the chunk metadata nor the shipped table records which cadence
@@ -203,9 +257,14 @@ realized variance of the futures $15{:}30$--$16{:}00$ bar; it is not a
 measurement of the cash market's settlement procedure, and it is nonzero on
 days the cash market is shut. The option, by contrast, settles at the
 official S\&P~500 close. On a regular session the two describe the same
-half hour of the same index and the comparison is the intended one; the fit
-mask above exists precisely to keep the sessions on which they are not
-aligned out of both the calibration and the trade.
+% 2026-10-06 parked (recalibration removed, user decision):
+% half hour of the same index and the comparison is the intended one; the fit
+% mask above exists precisely to keep the sessions on which they are not
+% aligned out of both the calibration and the trade.
+half hour of the same index and the comparison is the intended one, and the
+sessions on which they are not aligned are not traded: a cash-market holiday
+has no expiration, and an early close is dropped by the filter of the
+instrument paragraph above.
 
 % D1 2026-09-29 (change 1): definitions of the forecasts fitted for the 16:00 bar
 % alone and of the 16:00-bar recalibration, so the results can use one scorer.
@@ -226,41 +285,102 @@ regression is re-solved every session. Every input is known at 15:30: for the
 target and for each exogenous series, its mean over the last
 $k\in\{1,5,25,125,625,3125\}$ half-hour bars of the near-24-hour series,
 overnight bars included; an is-present flag per series; and calendar dummies
-(day of the week, option-expiry day and week, month and quarter end). In the design these means are the columns
+% 2026-10-06 parked (presentation rule, user decision: no adj_ prefix in variable names):
+% (day of the week, option-expiry day and week, month and quarter end). In the design these means are the columns
+% \texttt{har\_ma\_}$k$ (the target's own ladder) and
+% \texttt{adj\_}$x$\texttt{\_ma\_}$k$ (the ladder of series $x$ after the diurnal
+% adjustment of Section~\ref{sec:dp_prep}).
+(day of the week, option-expiry day and week, month and quarter end). Every
+exogenous input is divided by its time-of-day baseline
+(Section~\ref{sec:dp_prep}), and the HAR columns are means of the adjusted
+target. In the design these means are the columns
 \texttt{har\_ma\_}$k$ (the target's own ladder) and
-\texttt{adj\_}$x$\texttt{\_ma\_}$k$ (the ladder of series $x$ after the diurnal
-adjustment of Section~\ref{sec:dp_prep}).
+$x$\texttt{\_ma\_}$k$ (the ladder of series $x$).
 % I4b 2026-09-30 (16:00 re-run, writeup/CAMPAIGN_16H_2026-09-29.md decision 1): the
 % session-edge columns are no longer in the per-bar design.  Macros from
 % results/linear_subsection_dedup/gates.csv via writeup/make_table_close_main.py.
 The design of all 48 bars also interacts the target's ladder with open- and
 close-of-session indicators; in a series with one bar per session those
 \cmNDup{} columns are either zero or exact copies of \texttt{har\_ma\_}$k$, so the
-per-bar design leaves them out (the pooled twins below keep them). Three input
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% per-bar design leaves them out (the pooled twins below keep them). Three input
+% sets are used, each named in the tables by its design name:
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% per-bar design leaves them out (the pooled twins below keep them). Two input
+% sets are used, each named in the tables by its design name:
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% per-bar design leaves them out (the pooled twins below keep them). Three input
+% sets are used, each named in the tables by its design name:
+per-bar design leaves them out (the pooled twins below keep them). Two input
 sets are used, each named in the tables by its design name:
 \begin{itemize}\sloppy
 \itemsep2pt
 \item \texttt{baseline} (HAR + calendar): no exogenous series;
 \item \texttt{all\_features}: every exogenous series of the paper's design,
       the FOMC calendar channels included;
-\item \texttt{live\_feasible}: the 16 series a 15:30 forecaster can rebuild in
-      real time from feeds a retail account has --- from one-minute index-futures
-      bars the seven return moments \texttt{sumret}, \texttt{sumabsret},
-      \texttt{sumret3}, \texttt{sumret4}, \texttt{sumpret2}, \texttt{sumbipow},
-      \texttt{sumautocov} and the activity counts \texttt{sumvolume},
-      \texttt{numobs}; the Cboe indices \texttt{vix}, \texttt{vvix},
-      \texttt{vix3m}; and the four FOMC calendar channels
-      \texttt{fomc\_release}, \texttt{fomc\_day}, \texttt{fomc\_until\_inv},
-      \texttt{fomc\_since\_inv}. It leaves out the constituent cross-section,
-      the message-board sentiment and the option-volume series, none of which a
-      retail feed delivers during the session.
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% \item \texttt{lean\_vol\_vix}: the HAR + calendar backbone and six exogenous series --- the
+%       signed, absolute and quartic return, the return autocovariance, E-mini volume and the
+%       VIX level --- chosen after the importance study of the per-bar forecasts and defined,
+%       evaluated and qualified as a selection in Appendix~\ref{sec:app_lean}.
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% \item \texttt{live\_feasible}: the 16 series a 15:30 forecaster can rebuild in
+%       real time from feeds a retail account has --- from one-minute index-futures
+%       bars the seven return moments \texttt{sumret}, \texttt{sumabsret},
+%       \texttt{sumret3}, \texttt{sumret4}, \texttt{sumpret2}, \texttt{sumbipow},
+%       \texttt{sumautocov} and the activity counts \texttt{sumvolume},
+%       \texttt{numobs}; the Cboe indices \texttt{vix}, \texttt{vvix},
+%       \texttt{vix3m}; and the four FOMC calendar channels
+%       \texttt{fomc\_release}, \texttt{fomc\_day}, \texttt{fomc\_until\_inv},
+%       \texttt{fomc\_since\_inv}. It leaves out the constituent cross-section,
+%       the message-board sentiment and the option-volume series, none of which a
+%       retail feed delivers during the session.
 \end{itemize}
+% 2026-10-06 parked (linear models pre-tuned, user decision "use the pre-tuned version for all
+% linear models"; results/linear_pretune_2026-10-06/SUMMARY.md, arm f):
+% The linear estimators are OLS, ridge, lasso, and an elastic net with equal
+% $\ell_1$ and $\ell_2$ weight. Each penalized one re-selects its penalty every
+% 250 sessions from a fixed log-scale grid (ridge $10^{-2}$ to $10^{3}$, lasso and
+% elastic net $10^{-6}$ to $10^{-2}$, one value per decade) by squared error on the
+% last 125 sessions of the current window after a 25-session embargo --- the causal
+% tuning rule of Section~\ref{sec:estimators}, counted in sessions. The per-bar
 The linear estimators are OLS, ridge, lasso, and an elastic net with equal
-$\ell_1$ and $\ell_2$ weight. Each penalized one re-selects its penalty every
-250 sessions from a fixed log-scale grid (ridge $10^{-2}$ to $10^{3}$, lasso and
-elastic net $10^{-6}$ to $10^{-2}$, one value per decade) by squared error on the
-last 125 sessions of the current window after a 25-session embargo --- the causal
-tuning rule of Section~\ref{sec:estimators}, counted in sessions. The per-bar
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% $\ell_1$ and $\ell_2$ weight. OLS has no penalty. The penalized ones are pre-tuned, as the
+% trees are: the penalty is chosen once, before the trade period, from a fixed log-scale
+% grid (ridge $10^{-2}$ to $10^{3}$, lasso and elastic net $10^{-6}$ to $10^{-2}$, one value
+% per decade) by squared error on four forward folds of 250 sessions that tile the last
+% 1{,}000 sessions before 3~January~2020, each fitted on the 2{,}000 sessions before a
+% 25-session embargo; the HAR + calendar columns are penalized at one hundredth of the
+% other inputs' penalty (on \texttt{baseline}, where every column is HAR + calendar, there is
+% one penalty). From the first trade day, at the start of every block of 250 sessions, the
+% two neighbouring grid values challenge the penalty in force and replace it only when
+% the validation gain clears a margin: the Newey--West $t$ of the paired squared-error
+% difference must fall below $-z_{0.05/2}$, the margin rule of the trees' re-tuning.
+$\ell_1$ and $\ell_2$ weight. OLS has no penalty. The penalized ones are pre-tuned, as the % results/linear_pretune_2026-10-06/SUMMARY.md, arm f
+trees are: the penalty is chosen once, before the trade period, from a fixed log-scale
+grid (ridge $10^{-2}$ to $10^{3}$, lasso and elastic net $10^{-6}$ to $10^{-2}$, one value
+per decade) by squared error on \cmPtFolds{} forward folds of \cmPtFoldLen{} sessions that
+tile the sessions from \cmPtValFirst{} to \cmPtValLast, each fitted on the \cmPtFitWin{}
+sessions before a \cmPtEmbargo-session embargo; the HAR + calendar columns are penalized at
+\cmPtRatio{} of the other inputs' penalty (on \texttt{baseline}, where every column is HAR +
+calendar, there is one penalty). From the first trade day, at the start of every block of
+\cmPtBlock{} sessions, the two neighbouring grid values challenge the penalty in force and
+replace it only when the validation gain clears a margin: the Newey--West $t$ of the paired
+squared-error difference must fall below $-z_{0.05/2}$, the margin rule of the trees'
+re-tuning. Over the \cmPtRetuneN{} re-tuning points of the trade period \cmPtFiredTotal{} of
+the \cmPtFiredOf{} challenges cleared it.
+% 2026-10-06 parked (the re-choice record now quoted by macro):
+% The causal re-choice used before --- the penalty re-selected every 250 sessions on the
+% last 125 sessions of the window, with no margin --- switched the penalty often, mostly on
+% gains that fail such a margin and between the grid's edges, and its switches moved the
+% trade's positions. The per-bar
+The causal re-choice used before --- the penalty re-selected every 250 sessions on the % results/linear_pretune_2026-10-06 (paper's input sets)
+last 125 sessions of the window, with no margin --- switched the penalty at
+\cmPtCausalSwitchesPaper{} of its \cmPtCausalChoicesPaper{} re-choices on the paper's input
+sets, of which \cmPtCausalMarginPassPaper{} would have cleared that margin;
+\cmPtCausalEdgePicksPaper{} of its \cmPtCausalPicksPaper{} picks sat at an edge of the grid, and
+a switch flipped \cmPtSwitchFlipPctPaper\,\% of the positions in the block it governed. The per-bar
 % I4b 2026-09-30: cadence, tuning, mask and LSTMs of the 16:00 re-run (specs/causal_tune_trees.py
 % REFIT_EVERY / WINDOW_MASK, specs/causal_tune_trees_tuned.py, specs/causal_tune_trees_optuna.py
 % N_TRIALS_DEFAULT, specs/causal_tune_lstm.py SEQ_LENS / HIDDEN / DROPOUTS / LEARNING_RATES /
@@ -269,68 +389,148 @@ tuning rule of Section~\ref{sec:estimators}, counted in sessions. The per-bar
 % from 32 fixed candidates"; no mask for trees; no LSTM.
 trees --- LightGBM, XGBoost and a random forest --- are fitted on the same rows,
 inputs and window and refit either every ten sessions or every session; the two
-cadences are separate rungs. \emph{Untuned}, LightGBM and
-XGBoost take the settings of the paper's two tree columns (read from their stored
-chunk metadata, leaf minimums scaled to the $2{,}000$-row window) and the random
-forest the library defaults (the \emph{shipped settings}). They are tuned in two
+% 2026-10-07 parked (random forest now dev-tuned; tree-settings provenance, user decision):
+% cadences are separate rungs. \emph{Untuned}, LightGBM and
+% XGBoost take the settings of the paper's two tree columns (read from their stored
+% chunk metadata, leaf minimums scaled to the $2{,}000$-row window) and the random
+% forest the library defaults (the \emph{shipped settings}). They are tuned in two
+% ways, each on the same validation tail and by validation squared error. The
+% \emph{random search} re-selects the settings every 250 sessions from 32 fixed
+% candidates of a grid centred on the shipped settings. \emph{Optuna} runs 50 trials of
+% a tree-structured Parzen estimator at each tuning point, the first trial being the
+% shipped settings, and re-tunes every 1, 5, 25 or 250 sessions; the forecast, refit
+cadences are separate rungs. \emph{Untuned}, each tree keeps fixed settings, the % results/rf_devmenu_2026-10-06/SUMMARY.md
+\emph{shipped settings}, and all three come from one procedure: an Optuna search per tree
+on the 1998--2002 sessions alone, over the pooled all-bars \texttt{all\_features} design
+and scored by a rolling backtest within those sessions, frozen as a menu of each tree's
+best entries before any later session is used, so it has no look-ahead into the trade
+period. The leaf minimum is scaled to the per-bar $2{,}000$-row window (LightGBM's from
+\cmTreeProvLgbmLeafDev{} to \cmTreeProvLgbmLeaf, the random forest's from
+\cmTreeProvRfLeafDev{} to \cmTreeProvRfLeaf). % 2026-10-13 (user; review items 76-79): the per-bar trees on their top entries
+% 2026-10-13 parked (user; review items 76-79: XGBoost takes its top entry, xgb_opt_00; the forest the top
+% entry of its 400-trial search, trial 255; the tuned rungs re-run from these settings):
+% LightGBM and the random forest take their
+% search's top entry. The random forest's search was run later, for this paper, by the
+% same procedure on the same sessions and design, and was stopped at
+% \cmTreeProvRfTrials{} trials, the count XGBoost's search reached in its only surviving
+% record (nominally \cmTreeProvRfBudget). XGBoost does not take its top entry. Its settings, those of the
+% paper's XGBoost column, are the \cmTreeProvXgbDevRank{}th-ranked of its
+% \cmTreeProvXgbArms{} entries (\cmTreeProvXgbName), picked by hand by
+% \cmTreeProvXgbPickDate{} without a recorded reason, after the menu had been scored on the
+% sessions from 2003 on, so the pick cannot be certified free of look-ahead. It did not
+% favour the later data: of the \cmTreeProvXgbArms{} XGBoost entries it ranks last on
+% accuracy from 2003 on (\cmTreeProvXgbPostRank{}th of \cmTreeProvXgbArms) and last on the
+% paper's QLIKE (\cmTreeProvXgbQRank{}th). The trees are tuned in two
+LightGBM, XGBoost and the random forest each take their search's top entry. The random
+forest's search was run later, for this paper, by the same procedure on the same sessions
+and design, over \cmTreeProvRfTrials{} trials. The trees are tuned in two
 ways, each on the same validation tail and by validation squared error. The
 \emph{random search} re-selects the settings every 250 sessions from 32 fixed
 candidates of a grid centred on the shipped settings. \emph{Optuna} runs 50 trials of
 a tree-structured Parzen estimator at each tuning point, the first trial being the
-shipped settings, and re-tunes every 1, 5, 25 or 250 sessions; the forecast, refit
+shipped settings, and re-tunes every 1, 5, 25 or 250 sessions.
+% 2026-10-13 parked (user; the tuned forest re-run from its top-entry settings, rf400):
+% Both were run before the
+% random forest's search, so for the forest the grid's centre and Optuna's first trial are
+% the library defaults it ran with before, not its shipped settings.
+The forecast, refit
 every session, uses the best of the first 10, 25 or all 50 trials of the latest
 tuning point. Each tuned path is also run with the settings chosen by validation
-QLIKE. Two LSTMs complete the per-bar family. The first reads as a sequence the
-design rows of the last $L\in\{5,20\}$ sessions at the 16:00 bar. The second reads
-the last $N\in\{13,48,96\}$ half-hour bars of the near-24-hour series, ending with
-the 15:30 bar, one step per bar, with bar-level inputs in place of the ladders
-(the bar's adjusted target and adjusted values of the input set's series, their
-availability and activity indicators, the calendar dummies and the half-hour
-clock), so that the
-network learns the aggregation the ladders impose. Both choose $L$ or $N$, a
-hidden size of 16 or 64, dropout of 0 or 0.2 and a learning rate of $10^{-3}$ or
-$10^{-2}$ every 250 sessions on the same validation tail by squared error, average
-five seeds, and are refit every session (the first also every ten sessions, as
-a rung). Every per-bar fit --- linear, tree or LSTM --- first drops the columns
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% QLIKE. Two LSTMs complete the per-bar family. The first reads as a sequence the
+% design rows of the last $L\in\{5,20\}$ sessions at the 16:00 bar. The second reads
+% the last $N\in\{13,48,96\}$ half-hour bars of the near-24-hour series, ending with
+% the 15:30 bar, one step per bar, with bar-level inputs in place of the ladders
+% (the bar's adjusted target and adjusted values of the input set's series, their
+% availability and activity indicators, the calendar dummies and the half-hour
+% clock), so that the
+% network learns the aggregation the ladders impose. Both choose $L$ or $N$, a
+% hidden size of 16 or 64, dropout of 0 or 0.2 and a learning rate of $10^{-3}$ or
+% $10^{-2}$ every 250 sessions on the same validation tail by squared error, average
+% five seeds, and are refit every session (the first also every ten sessions, as
+% a rung). Every per-bar fit --- linear, tree or LSTM --- first drops the columns
+% that are constant on its own training window and every exact copy of an earlier
+% column, keeping first occurrences: the \emph{per-window mask}. The linear
+% estimators apply it at every penalty tune, as their identifiability rule; the
+% trees and LSTMs at every refit and tuning point. Tree and LSTM forecasts depend
+% in their last bits on the processor's vector instruction class, and a tuning
+% choice can flip on such a difference, so every tree and LSTM table is computed
+% on one processor model. Each per-bar linear forecast has
+% 2026-10-13 (user): LSTM parked for now (double-standardisation bug):
+% QLIKE. An LSTM was also fitted for the 16:00 bar; it is not reported, because its
+% training setup for this panel is not yet settled. Every per-bar fit --- linear or
+QLIKE. Every per-bar fit --- linear or
+tree --- first drops the columns
 that are constant on its own training window and every exact copy of an earlier
 column, keeping first occurrences: the \emph{per-window mask}. The linear
 estimators apply it at every penalty tune, as their identifiability rule; the
-trees and LSTMs at every refit and tuning point. Tree and LSTM forecasts depend
+trees at every refit and tuning point. Tree forecasts depend
 in their last bits on the processor's vector instruction class, and a tuning
-choice can flip on such a difference, so every tree and LSTM table is computed
+choice can flip on such a difference, so every tree table is computed
 on one processor model. Each per-bar linear forecast has
 a \emph{pooled twin}: the identical specification fitted on all 48 bars of the same
 $2{,}000$ sessions with one coefficient vector, so that the difference between the
-two is the per-bar fit alone.
+two is the per-bar fit alone. The pooled twins are pre-tuned in the same way, on all 48 bars % results/linear_pretune_2026-10-06, pooled
+of the same folds; there the pre-tuning neither helps nor hurts significantly: against the
+causal re-choice, QLIKE is worse in \cmPoolPtQWorse{} of the \cmPoolPtN{} pairs, by
+\cmPoolPtQPctMean\,\% on average, and no Diebold--Mariano statistic or Newey--West $t$ of the
+trade exceeds 1.96 in absolute value (largest \cmPoolPtDMMax{} and \cmPoolPtTMax).
+A likely reason is the pooled models' larger validation tail --- all 48 bars of each
+session --- which leaves causal re-tuning less noisy there: under the margin rule their
+penalty is replaced \cmPoolPtRetuneSwMin{} to \cmPoolPtRetuneSwMax{} times per model over
+\cmPoolPtRetunes{} re-tuning points.
 
-\paragraph{Two recalibrations.} A forecast $f_t$ on the fitting scale becomes a
-variance forecast in one of two ways. The \emph{session-bar recalibration} is the
-map of the paragraph ``Forecast remaining variance'' above: a weighted
-Mincer--Zarnowitz fit of level and slope, with its residual second moment, over the
-regular-session bars of the previous 250 sessions. The \emph{16:00-bar
-recalibration} keeps the forecast's own level and adds only a second-moment term,
-estimated on the bar the trade reads,
+\paragraph{The variance forecast.} Every forecast of this section, the
+paper's eight and the per-bar ones alike, is a forecast $f_t$ of
+$y=\sqrt{RV/B}$ for the $16{:}00$ bar, issued at 15:30, and it is used as its
+plain back-transform,
 \begin{equation}
-    \widehat{RV}_t \;=\; \bigl(f_t^{2} + \bar{e}_t\bigr)\,B_t,
-    \qquad
-    \bar{e}_t \;=\; \frac{1}{|D_t|}\sum_{u\in D_t}\bigl(y_u - f_u\bigr)^{2},
-    \label{eq:close_opt_recal1600}
+    \widehat{RV}_t \;=\; f_t^{2}\,B_t,
+    \label{eq:close_opt_plain}
 \end{equation}
-where $D_t$ holds the $16{:}00$ bars of the previous 250 sessions (at least 63),
-ending the session before $t$. It is the second-moment correction of the
-evaluation protocol (Section~\ref{sec:smearing_contract}) made causal and specific
-to the traded bar. Because it has no level map, a forecast fitted on all 48 bars
-keeps whatever level bias it carries at $16{:}00$, which the session-bar map would
-partly remove; the two recalibrations therefore give one forecast two different
-trades, and no number computed under one is set beside a number computed under
-the other. Under the 16:00-bar recalibration QLIKE is scored against the per-bar
+where $B_t$ is the time-of-day baseline of the $16{:}00$ slot, the factor that
+scales the target. Nothing is estimated on top of it --- no level map and no
+second-moment term --- and the same $\widehat{RV}_t$ is the forecast the
+$\mathrm{sign}(s)$ rule reads and the forecast every loss scores. Because
+$E[\sqrt{X}]^{2}\le E[X]$, squaring a forecast of $y$ tends to forecast $RV$
+low, which tilts the comparison with implied variance below toward selling;
+the tilt is left in rather than estimated. QLIKE is scored against the per-bar
 specification's $16{:}00$ target, the same target for every forecast, and two
-forecasts are compared on the same days: the Diebold--Mariano statistic of the
+forecasts are compared on the same days by the Diebold--Mariano statistic of the
 daily QLIKE difference \citep{DieboldMariano1995}, with a Newey--West variance
-(Bartlett kernel; lag 6 on 866 days) and the correction of \citet{HarveyLeybourneNewbold1997},
-and, for QLIKE and Sharpe-ratio differences, a 95\% interval from a circular block
-bootstrap of the days (blocks of 21 days, $2{,}000$ draws, the same resampled days
-for every interval).
+(Bartlett kernel; lag 6 on 866 days) and the correction of
+\citet{HarveyLeybourneNewbold1997}. Sharpe ratios and their paired differences
+are reported as point estimates; no interval is computed.
+
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Two recalibrations.} A forecast $f_t$ on the fitting scale becomes a
+% variance forecast in one of two ways. The \emph{session-bar recalibration} is the
+% map of the paragraph ``Forecast remaining variance'' above: a weighted
+% Mincer--Zarnowitz fit of level and slope, with its residual second moment, over the
+% regular-session bars of the previous 250 sessions. The \emph{16:00-bar
+% recalibration} keeps the forecast's own level and adds only a second-moment term,
+% estimated on the bar the trade reads,
+% \begin{equation}
+%     \widehat{RV}_t \;=\; \bigl(f_t^{2} + \bar{e}_t\bigr)\,B_t,
+%     \qquad
+%     \bar{e}_t \;=\; \frac{1}{|D_t|}\sum_{u\in D_t}\bigl(y_u - f_u\bigr)^{2},
+%     \label{eq:close_opt_recal1600}
+% \end{equation}
+% where $D_t$ holds the $16{:}00$ bars of the previous 250 sessions (at least 63),
+% ending the session before $t$. It is the second-moment correction of the
+% evaluation protocol (Section~\ref{sec:smearing_contract}) made causal and specific
+% to the traded bar. Because it has no level map, a forecast fitted on all 48 bars
+% keeps whatever level bias it carries at $16{:}00$, which the session-bar map would
+% partly remove; the two recalibrations therefore give one forecast two different
+% trades, and no number computed under one is set beside a number computed under
+% the other. Under the 16:00-bar recalibration QLIKE is scored against the per-bar
+% specification's $16{:}00$ target, the same target for every forecast, and two
+% forecasts are compared on the same days: the Diebold--Mariano statistic of the
+% daily QLIKE difference \citep{DieboldMariano1995}, with a Newey--West variance
+% (Bartlett kernel; lag 6 on 866 days) and the correction of \citet{HarveyLeybourneNewbold1997},
+% and, for QLIKE and Sharpe-ratio differences, a 95\% interval from a circular block
+% bootstrap of the days (blocks of 21 days, $2{,}000$ draws, the same resampled days
+% for every interval).
 
 \paragraph{Quoted implied volatility.} Implied volatility is the
 chain's quoted value on each of the two legs at 15:30; the straddle's
@@ -357,9 +557,15 @@ midpoint. On uncensored legs that same inversion
 reproduces the quoted midpoint to quote precision (median model-to-quote
 price ratio 1.0000, 5th to 95th percentile 0.9969 to
 1.0062), so ``quoted'' and ``inverted'' implied volatility coincide
-there. Dropping the censored days outright instead of recovering them moves
-no $\mathrm{sign}(s)$ Sharpe ratio in
-Section~\ref{sec:close_option_results} by more than 0.06.
+there.
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% Dropping the censored days outright instead of recovering them moves
+% no $\mathrm{sign}(s)$ Sharpe ratio in
+% Section~\ref{sec:close_option_results} by more than 0.06.
+Dropping the \cmCensIvDays{} censored days outright instead of recovering them moves the % results/close_bounds_plain/censored_iv.csv
+$\mathrm{sign}(s)$ Sharpe ratios of Section~\ref{sec:close_option_results} by a median of
+\cmCensIvMedDSh{} and by at most \cmCensIvMaxDSh{} at the midpoint and \cmCensIvMaxDShX{} at
+the crossed spread.
 
 \paragraph{Signal.} The two measurements are compared in variance
 space,
@@ -388,7 +594,9 @@ the same days; only $q_t$ changes.
       $q_t = -1$ otherwise --- long the straddle when the forecast exceeds
       implied variance, short when it does not, with the tie at $s_t = 0$
       resolved short so that the position is never flat. Direction only, at
-      unit size. This is the headline rule.
+% 2026-10-06 parked (no headline model, user decision):
+%       unit size. This is the headline rule.
+      unit size. This is the rule the section studies.
 \end{itemize}
 % VOL-TARGET PARKED 2026-09-02: overlay held out of the deck and the paper by author order.
 \iffalse
@@ -459,9 +667,17 @@ wealth per day, a chosen round number, the same on every day and for both
 rules; nothing is estimated --- and every realized wealth factor is
 asserted positive. Here $f$ is a share of wealth deployed as body premium,
 the unit of the tables above. A defined-risk variant, which would bound the
-worst day by construction, is parked and not reported here. The exercise was
-run on the block-diagonal ridge under the session-bar recalibration and is
-reported in Appendix~\ref{sec:app_run_parked}.
+worst day by construction, is parked and not reported here.
+% 2026-10-06 parked (recalibration removed, user decision):
+% The exercise was
+% run on the block-diagonal ridge under the session-bar recalibration and is
+% reported in Appendix~\ref{sec:app_run_parked}.
+% 2026-10-06 parked (no headline model, user decision):
+% The exercise is reported for the headline forecast of
+% Section~\ref{sec:close_option_results} in
+% Appendix~\ref{sec:app_compounding_headline}.
+The exercise is reported for every forecast of the model set in
+Appendix~\ref{sec:app_compounding_headline}.
 
 \paragraph{Scoring and control.} The unit of account is the expiration
 day. For a portfolio of $n$ daily returns,
@@ -495,19 +711,61 @@ The always-short control is the 15:30 end of the clock in
 Section~\ref{sec:related}: \citet{HizmeriBevilacqua2025} locate the
 predictive content of volatility uncertainty at 10:00~EST and gone by
 midday; by the last bar the quoted implied already embeds a premium
-over remaining realized variance. On the scaled comparison of
+over remaining realized variance.
 % D1 2026-09-29 (change 10): the sell shares re-read under the 16:00-bar recalibration
 % (macros from results/close_master_table/master_table.csv pct_buy, via
 % writeup/make_table_close_main.py); the session-bar figures were 59 to 68% and 60%.
-Equation~\eqref{eq:close_opt_ivscale} and under the 16:00-bar recalibration,
-implied variance exceeds the forecast on \cmSellPaperMin{} to % 100 - pct_buy, paper's eight
-\cmSellPaperMax\% of days for the paper's eight forecasts and on
-\cmSellHead\% for the headline forecast of Section~\ref{sec:close_option_results}, % 100 - pct_buy, headline
-so the portfolio leans short more often than long. What the forecast
+% 2026-10-06 parked (recalibration removed, user decision):
+% On the scaled comparison of
+% Equation~\eqref{eq:close_opt_ivscale} and under the 16:00-bar recalibration,
+% implied variance exceeds the forecast on \cmSellPaperMin{} to % 100 - pct_buy, paper's eight
+% \cmSellPaperMax\% of days for the paper's eight forecasts and on
+% \cmSellHead\% for the headline forecast of Section~\ref{sec:close_option_results}, % 100 - pct_buy, headline
+% so the portfolio leans short more often than long. What the forecast
+% contributes at this hour is the \emph{sign} of the day --- which side of the
+% quoted premium to stand on. Sizing beyond the sign was tested rather than
+% assumed, under the session-bar recalibration, and it is not retained: scaling
+% the position by the size or the rank of $|s_t|$ raised no portfolio's Sharpe
+% ratio with an interval above zero (Appendix~\ref{sec:app_run_sizing}). The
+% compounding exercise above bets a fixed fraction of wealth and reads nothing
+% from the signal.
+On the scaled comparison of Equation~\eqref{eq:close_opt_ivscale} and with the
+plain forecast of Equation~\eqref{eq:close_opt_plain}, implied variance exceeds
+% 2026-10-06 parked (no headline model, user decision):
+% the forecast on \cmSellPaperMin{} to % 100 - pct_buy, paper's eight
+% \cmSellPaperMax\% of days for the paper's eight forecasts and on
+% \cmSellHead\% for the headline forecast of Section~\ref{sec:close_option_results}, % 100 - pct_buy, headline
+% so the portfolio leans short more often than long.
+the forecast on \cmSellPaperMin{} to % 100 - pct_buy, paper's eight
+\cmSellPaperMax\% of days for the paper's eight forecasts, so the portfolio leans short
+more often than long.
+Over all \cmMasterN{} forecasts of that section the share runs from % 100 - pct_buy, model set
+\cmSellMasterMin{} to \cmSellMasterMax\% (median \cmSellMasterMed\%). What the forecast
 contributes at this hour is the \emph{sign} of the day --- which side of the
-quoted premium to stand on. Sizing beyond the sign was tested rather than
-assumed, under the session-bar recalibration, and it is not retained: scaling
-the position by the size or the rank of $|s_t|$ raised no portfolio's Sharpe
-ratio with an interval above zero (Appendix~\ref{sec:app_run_sizing}). The
+quoted premium to stand on.
+% 2026-10-06 parked (running appendix re-run on the plain forecast: D.5 held out, sizing re-run):
+% % re-run with the plain forecast f^2 B; re-run it or keep this pointer.
+% Sizing beyond the sign was tested rather than assumed, in the notebook study of
+% Appendix~\ref{sec:app_run_sizing} under that study's own back-transform, and it
+% is not retained: in point estimate, after a year of history, scaling the
+% position by the size of $|s_t|$ lowered every forecast's Sharpe ratio and
+% scaling it by the rank of $|s_t|$ left it about where it was. The
+Sizing beyond the sign was tested rather than assumed
+(Appendix~\ref{sec:app_run_sizing}), with two sizes set from earlier days only
+and kept on the side of $\mathrm{sign}(s)$: the \emph{robust clip}, $s_t$ over
+the median of $|s|$ on earlier days clipped to $[-1,1]$, and the \emph{rank of
+$|s|$}, $\mathrm{sign}(s_t)$ times the share of earlier days with a smaller
+% 2026-10-06 parked (sizing counts now quoted by macro; running-appendix macros input early):
+% $|s|$. In point estimate the answer turns on the sample: after a year of
+% history the robust clip and the rank of $|s|$ each trade above $\mathrm{sign}(s)$
+% for most of the forecasts, and scored from the second day $\mathrm{sign}(s)$
+% trades above both for most of them. The rule studied here stays $\mathrm{sign}(s)$. The
+$|s|$. In point estimate the answer turns on the sample: after a year of % results/atm_straddle_0dte_1530/vrp_sized_rules.csv
+history (\runappSzDays{} days) the robust clip trades above $\mathrm{sign}(s)$ for
+\runappSzClipAbove{} of the \runappSzForecasts{} forecasts (median difference
+\runappSzClipMed) and the rank of $|s|$ for \runappSzRankAbove{} (median
+\runappSzRankMed); scored from the second day (\runappSzDaysTwo{} days) they do so for
+\runappSzClipAboveTwo{} and \runappSzRankAboveTwo{} (medians \runappSzClipMedTwo{} and
+\runappSzRankMedTwo). The rule studied here stays $\mathrm{sign}(s)$. The
 compounding exercise above bets a fixed fraction of wealth and reads nothing
 from the signal.

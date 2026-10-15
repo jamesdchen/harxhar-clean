@@ -9,6 +9,8 @@
 % straddle, last-30-min trade; no cluster or lab names in prose (the compute table
 % labels them cluster A / B).  Input from main.tex after
 % sections/appendix_close_compounding, so this continues Appendix D.
+% 2026-10-06 (recalibration removed, user decision): every forecast is scored as its plain
+% back-transform f^2 B and no interval is computed; counts are counts of point estimates.
 % ============================================================================
 \input{generated/appendix_campaign_16h_numbers}
 
@@ -27,25 +29,62 @@
 
 Every per-bar model that forecasts the 16:00 bar (the 15:30--16:00 half hour, issued at
 15:30, the bar the last-30-min trade is decided on) was re-run with one change at a time:
-the design (\ref{sec:app_camp_design}), a per-window column mask for the trees and the LSTM
-(\ref{sec:app_camp_mask}), the refit cadence (\ref{sec:app_camp_cadence}), the tuning
-(\ref{sec:app_camp_tuning}); an intraday-sequence LSTM was added
-(\ref{sec:app_camp_lstmi}). The section also records what the re-run showed about
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% the design (\ref{sec:app_camp_design}), a per-window column mask for the trees and the LSTM
+% (\ref{sec:app_camp_mask}), the refit cadence (\ref{sec:app_camp_cadence}), the tuning
+% (\ref{sec:app_camp_tuning}); an intraday-sequence LSTM was added
+the design (\ref{sec:app_camp_design}), a per-window column mask for the trees
+(\ref{sec:app_camp_mask}), the refit cadence (\ref{sec:app_camp_cadence}) and the tuning
+% 2026-10-13 (user): LSTM parked for now (double-standardisation bug):
+% (\ref{sec:app_camp_tuning}); the LSTMs of the re-run are not reported, because their
+% training setup is not yet settled. The section also records what the re-run showed about
+(\ref{sec:app_camp_tuning}). The section also records what the re-run showed about
+% (\ref{sec:app_camp_lstmi}). The section also records what the re-run showed about
 reproducibility across CPUs (\ref{sec:app_camp_repro}), the master table before and after
-(\ref{sec:app_camp_master}), the importance and density studies on the new design
+% 2026-10-06 parked (dense-vs-sparse write-up removed, user decision):
+% (\ref{sec:app_camp_master}), the importance and density studies on the new design
+(\ref{sec:app_camp_master}), the importance study on the new design
 (\ref{sec:app_camp_featimp}) and the compute used (\ref{sec:app_camp_compute}). Nothing is
 discarded: a rung that did worse is reported beside one that did better.
+% 2026-10-13 (user; review items 76-79): XGBoost and the forest re-run, every rung, on their top entries
+XGBoost and the random forest were later re-run, every rung, on their current settings
+(Section~\ref{sec:close_option_methods}); every XGBoost and random-forest pair below is on
+those runs, except the CPU-class records of \ref{sec:app_camp_repro} and the first-pass
+side of the importance comparison in \ref{sec:app_camp_featimp}.
 
-Every comparison uses the research scorer (the 16:00 bar recalibrated on its own), the same
+% 2026-10-06 parked (recalibration removed, user decision):
+% Every comparison uses the research scorer (the 16:00 bar recalibrated on its own), the same
+% \campTradeDays{} trade days, and the $\mathrm{sign}(s)$ rule on the straddle (nearest
+% out-of-the-money call and put, same-day expiry, one position). A difference is $a-b$; a
+% QLIKE difference is given in percent of $b$'s QLIKE, with its 95\,\% paired day-block
+% bootstrap interval in the same units (negative = $a$ has the lower loss); a Sharpe
+% difference is the midpoint-fill $\mathrm{sign}(s)$ Sharpe ratio of $a$ minus that of $b$,
+% with its interval. In the grid tables each cell holds the QLIKE difference on its first line
+Every comparison uses every forecast as its plain back-transform $f^{2}B$
+(Equation~\eqref{eq:close_opt_plain}), the same
 \campTradeDays{} trade days, and the $\mathrm{sign}(s)$ rule on the straddle (nearest
-out-of-the-money call and put, same-day expiry, one position). A difference is $a-b$; a
-QLIKE difference is given in percent of $b$'s QLIKE, with its 95\,\% paired day-block
-bootstrap interval in the same units (negative = $a$ has the lower loss); a Sharpe
-difference is the midpoint-fill $\mathrm{sign}(s)$ Sharpe ratio of $a$ minus that of $b$,
-with its interval. In the grid tables each cell holds the QLIKE difference on its first line
+out-of-the-money call and put, same-day expiry, one position). A difference is $a-b$, and
+every difference is a point estimate; a QLIKE difference is given in percent of $b$'s
+QLIKE (negative = $a$ has the lower loss); a Sharpe difference is the midpoint-fill
+$\mathrm{sign}(s)$ Sharpe ratio of $a$ minus that of $b$. A count of differences below or
+above zero counts point estimates, and ``significant'' means significant at 5\,\%: by the
+Diebold--Mariano statistic for QLIKE and by the heteroskedasticity- and
+autocorrelation-robust (Newey--West) $t$ of the daily midpoint-return difference for the
+Sharpe ratio. In the grid tables each cell holds the QLIKE difference on its first line
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% and the Sharpe difference on its second. Input sets: \texttt{baseline} (the HAR ladder and
+% the calendar columns), \texttt{live\_feasible} (the inputs a 15:30 forecaster can rebuild
+% live) and \texttt{all\_features}. Key to the design columns named below:
+% 2026-10-06 parked (lean set added as the third input set; linear models pre-tuned; user decisions):
+% and the Sharpe difference on its second. Input sets: \texttt{baseline} (the HAR ladder and
+% the calendar columns) and \texttt{all\_features}. Key to the design columns named below:
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% and the Sharpe difference on its second. Input sets: \texttt{baseline} (the HAR ladder and
+% the calendar columns), \texttt{all\_features}, and \texttt{lean\_vol\_vix}, a set chosen after
+% the importance study at the end of this appendix and defined in Appendix~\ref{sec:app_lean};
+% the design and mask comparisons cover the first two. Key to the design columns named below:
 and the Sharpe difference on its second. Input sets: \texttt{baseline} (the HAR ladder and
-the calendar columns), \texttt{live\_feasible} (the inputs a 15:30 forecaster can rebuild
-live) and \texttt{all\_features}. Key to the design columns named below:
+the calendar columns) and \texttt{all\_features}. Key to the design columns named below:
 \texttt{har\_ma\_*} is the bar's realized variance averaged over the last 1, 5, 25, 125,
 625 and 3125 bars (the HAR ladder, \texttt{har\_ma\_k} one rung);
 \texttt{har\_ma\_k\_x\_open} and \texttt{har\_ma\_k\_x\_close} are that rung times the
@@ -60,9 +99,13 @@ one-bar-per-session series at the 16:00 bar the \campNSessionEdgeHalf{}
 \texttt{har\_ma\_k\_x\_open} columns are identically zero and the \campNSessionEdgeHalf{}
 \texttt{har\_ma\_k\_x\_close} columns are exact copies of \texttt{har\_ma\_k}. The
 \campNSessionEdge{} columns were dropped from the per-bar design and kept in the pooled
-models: \texttt{baseline} goes from \campPOldBase{} to \campPNewBase{} columns,
-\texttt{live\_feasible} from \campPOldLive{} to \campPNewLive{}, \texttt{all\_features} from
-\campPOldAll{} to \campPNewAll{} (Table~\ref{tab:app_camp_design}).
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% models: \texttt{baseline} goes from \campPOldBase{} to \campPNewBase{} columns,
+% \texttt{live\_feasible} from \campPOldLive{} to \campPNewLive{}, \texttt{all\_features} from
+% \campPOldAll{} to \campPNewAll{} (Table~\ref{tab:app_camp_design}).
+models: \texttt{baseline} goes from \campPOldBase{} to \campPNewBase{} columns and
+\texttt{all\_features} from \campPOldAll{} to \campPNewAll{}
+(Table~\ref{tab:app_camp_design}).
 
 The linear arms' identifiability mask --- at every penalty tune, drop the columns constant
 on the tuning window and the exact copies of an earlier kept column --- had already removed
@@ -82,10 +125,12 @@ pre-change code re-run on the same CPU architecture reproduces its first run bit
 \campAttrRepeat{} of \campAttrN{}; the new code against the pre-change code on one
 architecture moves \campAttrDesignN{} of them, by \campAttrDesignLo{} to
 \campAttrDesignHi{}; the pre-change code alone, moved to another machine, moves
-\campAttrMachineN{}, by \campAttrMachineLo{} to \campAttrMachineHi{}. The LSTM, which had no
-mask at that step, moved more (median relative change of the 16:00 forecast
-\campLSTMDedupLo--\campLSTMDedupHi\,\% over the three input sets; a new input width also
-redraws its initial weights).
+\campAttrMachineN{}, by \campAttrMachineLo{} to \campAttrMachineHi{}.
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% The LSTM, which had no
+% mask at that step, moved more (median relative change of the 16:00 forecast
+% \campLSTMDedupLo--\campLSTMDedupHi\,\% over the three input sets; a new input width also
+% redraws its initial weights).
 
 The rest-of-day model's \campRodArms{} arms were re-run on the same design; their mask fell
 by exactly \campNSessionEdge{} columns per tune in \campRodMaskSame{} of them. The master
@@ -122,29 +167,59 @@ largest change of a $\mathrm{sign}(s)$ Sharpe ratio (midpoint).}
 \subsubsection{One mask for every model}
 \label{sec:app_camp_mask}
 
-The trees and the LSTM were then given the linear arms' rule. At every fit --- a refit on
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% The trees and the LSTM were then given the linear arms' rule. At every fit --- a refit on
+% its training window, or a tuning point on the window it tunes on --- every column constant on
+% that window and every exact copy of an earlier kept column is dropped, first occurrences
+% kept in column order; the LSTM, whose network is rebuilt at every refit, recomputes it at
+% every refit. Importance and TreeSHAP are mapped back to all columns with zero for a dropped
+The trees were then given the linear arms' rule. At every fit --- a refit on
 its training window, or a tuning point on the window it tunes on --- every column constant on
 that window and every exact copy of an earlier kept column is dropped, first occurrences
-kept in column order; the LSTM, whose network is rebuilt at every refit, recomputes it at
-every refit. Importance and TreeSHAP are mapped back to all columns with zero for a dropped
+kept in column order. Importance and TreeSHAP are mapped back to all columns with zero for a dropped
 column. The rule looks at the window only, so every model of an input set keeps the same
 columns at the same refit: over the \campKeptRefits{} daily refits \texttt{baseline} keeps
-\campKeptBase{} of \campPBase{} columns at every refit, \texttt{live\_feasible}
-\campKeptLive{} of \campPLive{} (median; range \campKeptLiveLo--\campKeptLiveHi), and
-\texttt{all\_features} \campKeptAll{} of \campPAll{} (\campKeptAllLo--\campKeptAllHi); the
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% \campKeptBase{} of \campPBase{} columns at every refit, \texttt{live\_feasible}
+% \campKeptLive{} of \campPLive{} (median; range \campKeptLiveLo--\campKeptLiveHi), and
+% \texttt{all\_features} \campKeptAll{} of \campPAll{} (\campKeptAllLo--\campKeptAllHi); the
+\campKeptBase{} of \campPBase{} columns at every refit and
+\texttt{all\_features} \campKeptAll{} of \campPAll{} (median; range
+\campKeptAllLo--\campKeptAllHi); the
 Optuna runs below keep the same counts.
 
 Table~\ref{tab:app_camp_mask} sets each masked rung against the same rung unmasked (both
 on the new design). Rungs: T10 and T1 are the shipped tree configurations refit every 10
 sessions and every session; RS10 and RS1 the random search, refit every 10 sessions and
-every session; LSTM10 the per-bar LSTM refit every 10 sessions. Over the \campMaskTreeN{}
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% every session; LSTM10 the per-bar LSTM refit every 10 sessions. Over the \campMaskTreeN{}
+every session. Over the \campMaskTreeN{}
+% 2026-10-06 parked (recalibration removed, user decision):
+% tree rows the median absolute QLIKE change is \campMaskMedAbsQ\,\%; \campMaskTreeQAbove{}
+% QLIKE intervals lie above zero (the masked rung has the higher loss) and
+% \campMaskTreeQBelow{} below; \campMaskTreeSBelow{} Sharpe interval lies below zero and
+% \campMaskTreeSAbove{} above. For the LSTM \campMaskLSTMQBelow{} of \campMaskLSTMN{} QLIKE
+% intervals lie below zero (\texttt{all\_features}, \campMaskLSTMAllQ\,\%
+% \campMaskLSTMAllQCI) and \campMaskLSTMQAbove{} above. The masked rungs ran on one CPU class;
 tree rows the median absolute QLIKE change is \campMaskMedAbsQ\,\%; \campMaskTreeQAbove{}
-QLIKE intervals lie above zero (the masked rung has the higher loss) and
-\campMaskTreeQBelow{} below; \campMaskTreeSBelow{} Sharpe interval lies below zero and
-\campMaskTreeSAbove{} above. For the LSTM \campMaskLSTMQBelow{} of \campMaskLSTMN{} QLIKE
-intervals lie below zero (\texttt{all\_features}, \campMaskLSTMAllQ\,\%
-\campMaskLSTMAllQCI) and \campMaskLSTMQAbove{} above. The masked rungs ran on one CPU class;
-the unmasked rungs did not pin the class (the class of their chunks was not recorded), so a
+QLIKE differences lie above zero (the masked rung has the higher loss;
+\campMaskTreeQAboveSig{} significant) and \campMaskTreeQBelow{} below
+(\campMaskTreeQBelowSig{} significant); \campMaskTreeSBelow{} Sharpe differences lie below
+zero and \campMaskTreeSAbove{} above (\campMaskTreeSBelowSig{} and
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% \campMaskTreeSAboveSig{} significant). For the LSTM \campMaskLSTMQBelow{} of
+% \campMaskLSTMN{} QLIKE differences lie below zero (\campMaskLSTMQBelowSig{} significant;
+% \texttt{all\_features}, \campMaskLSTMAllQ\,\%) and \campMaskLSTMQAbove{} above. The masked
+\campMaskTreeSAboveSig{} significant). The masked
+rungs ran on one CPU class;
+% 2026-10-13 parked (user; review items 76-79: XGBoost and the forest on their top entries):
+% for the random forest both sides of this table are the forest with the library defaults, % 2026-10-07: RF dev-tuned, masked only
+% since the dev-span forest (Section~\ref{sec:close_option_methods}) was run masked only;
+% the unmasked rungs did not pin the class (the class of their chunks was not recorded), so a
+XGBoost and the random forest on their current settings were re-run unmasked at T10 and T1
+only, so their random-search cells are empty (---, \campMaskDroppedN{} pairs);
+the campaign's unmasked rungs did not pin the class (the class of their chunks was not
+recorded), so a
 masked-minus-unmasked difference also contains any difference of CPU class, whose size alone
 is recorded in \ref{sec:app_camp_repro}.
 
@@ -152,9 +227,16 @@ is recorded in \ref{sec:app_camp_repro}.
 \begin{table}[H]
 \centering
 \caption{The per-window mask, masked minus unmasked, per rung, model and input set, same
+% 2026-10-06 parked (recalibration removed, user decision):
+% design, \campTradeDays{} days. Each cell: QLIKE difference in \% of the unmasked QLIKE
+% [95\,\% interval] over the $\mathrm{sign}(s)$ Sharpe difference at the midpoint [95\,\%
+% interval]. The unmasked rungs were not pinned to a CPU class.}
 design, \campTradeDays{} days. Each cell: QLIKE difference in \% of the unmasked QLIKE
-[95\,\% interval] over the $\mathrm{sign}(s)$ Sharpe difference at the midpoint [95\,\%
-interval]. The unmasked rungs were not pinned to a CPU class.}
+over the $\mathrm{sign}(s)$ Sharpe difference at the midpoint, point estimates. The
+% 2026-10-13 parked (user; XGBoost and the forest on their top entries, no unmasked random search):
+% unmasked rungs were not pinned to a CPU class.}
+campaign's unmasked rungs were not pinned to a CPU class. ---: no unmasked run of XGBoost or
+the random forest on their current settings.}
 \label{tab:app_camp_mask}
 \campfit{\scriptsize\input{generated/appendix_campaign_16h_mask}}
 \end{table}
@@ -166,32 +248,72 @@ interval]. The unmasked rungs were not pinned to a CPU class.}
 With the mask in place, the trees refit every session, as the per-bar linear arms do, and
 every 10th session as before (first two columns of Table~\ref{tab:app_camp_cadence}). For
 the shipped configuration, T1 minus T10 ranges from \campTOneTenQLo\,\% to
-\campTOneTenQHi\,\% in QLIKE, with \campTOneTenQBelow{} of \campTOneTenN{} intervals below
-zero and \campTOneTenQAbove{} above; \campTOneTenSAbove{} Sharpe interval lies above zero
-and \campTOneTenSBelow{} below. For the random search, RS1 minus RS10 ranges from
-\campRSOneTenQLo\,\% to \campRSOneTenQHi\,\%, with \campRSOneTenQBelow{} of
-\campRSOneTenN{} QLIKE intervals below zero and \campRSOneTenQAbove{} above; no Sharpe
-interval excludes zero (\campRSOneTenSBelow{} below, \campRSOneTenSAbove{} above). The
-per-bar LSTM refit every session against every 10th: \campLSTMCadBase\,\%
-\campLSTMCadBaseCI{} (\texttt{baseline}), \campLSTMCadLive\,\% \campLSTMCadLiveCI{}
-(\texttt{live\_feasible}), \campLSTMCadAll\,\% \campLSTMCadAllCI{} (\texttt{all\_features});
-\campLSTMCadQBelow{} of \campLSTMCadN{} intervals below zero, and no Sharpe interval
-excludes zero (\campLSTMCadSBelow{} below, \campLSTMCadSAbove{} above).
+% 2026-10-06 parked (recalibration removed, user decision):
+% \campTOneTenQHi\,\% in QLIKE, with \campTOneTenQBelow{} of \campTOneTenN{} intervals below
+% zero and \campTOneTenQAbove{} above; \campTOneTenSAbove{} Sharpe interval lies above zero
+% and \campTOneTenSBelow{} below. For the random search, RS1 minus RS10 ranges from
+% \campRSOneTenQLo\,\% to \campRSOneTenQHi\,\%, with \campRSOneTenQBelow{} of
+% \campRSOneTenN{} QLIKE intervals below zero and \campRSOneTenQAbove{} above; no Sharpe
+% interval excludes zero (\campRSOneTenSBelow{} below, \campRSOneTenSAbove{} above). The
+% per-bar LSTM refit every session against every 10th: \campLSTMCadBase\,\%
+% \campLSTMCadBaseCI{} (\texttt{baseline}), \campLSTMCadLive\,\% \campLSTMCadLiveCI{}
+% (\texttt{live\_feasible}), \campLSTMCadAll\,\% \campLSTMCadAllCI{} (\texttt{all\_features});
+% \campLSTMCadQBelow{} of \campLSTMCadN{} intervals below zero, and no Sharpe interval
+% excludes zero (\campLSTMCadSBelow{} below, \campLSTMCadSAbove{} above).
+\campTOneTenQHi\,\% in QLIKE, with \campTOneTenQBelow{} of \campTOneTenN{} differences below
+zero (\campTOneTenQBelowSig{} significant) and \campTOneTenQAbove{} above;
+\campTOneTenSAbove{} Sharpe differences lie above zero and \campTOneTenSBelow{} below
+(\campTOneTenSAboveSig{} and \campTOneTenSBelowSig{} significant). For the random search,
+RS1 minus RS10 ranges from \campRSOneTenQLo\,\% to \campRSOneTenQHi\,\%, with
+\campRSOneTenQBelow{} of \campRSOneTenN{} QLIKE differences below zero
+(\campRSOneTenQBelowSig{} significant) and \campRSOneTenQAbove{} above;
+\campRSOneTenSBelow{} Sharpe differences lie below zero and \campRSOneTenSAbove{} above
+(\campRSOneTenSBelowSig{} and \campRSOneTenSAboveSig{} significant).
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% per-bar LSTM refit every session against every 10th: \campLSTMCadBase\,\%
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% (\texttt{baseline}), \campLSTMCadLive\,\% (\texttt{live\_feasible}), \campLSTMCadAll\,\%
+% (\texttt{all\_features}); \campLSTMCadQBelow{} of \campLSTMCadN{} below zero
+% (\texttt{baseline}) and \campLSTMCadAll\,\%
+% (\texttt{all\_features}); \campLSTMCadQBelow{} of \campLSTMCadN{} below zero
+% (\campLSTMCadQBelowSig{} significant); \campLSTMCadSBelow{} Sharpe differences lie below zero
+% and \campLSTMCadSAbove{} above (\campLSTMCadSBelowSig{} and \campLSTMCadSAboveSig{}
+% significant).
 
-Against the per-bar ridge, none of the \campRidgeTreeN{} masked tree rows has a QLIKE
-interval below zero (\campRidgeTreeQBelow{}) and \campRidgeTreeQAbove{} have one above; the
-lowest relative QLIKE is \campRidgeBestTree{} at \campRidgeBestTreeQ\,\%
-\campRidgeBestTreeQCI; no Sharpe interval excludes zero (\campRidgeTreeSBelow{} below,
-\campRidgeTreeSAbove{} above). The daily-refit LSTM minus the ridge is
-\campRidgeLSTMBase\,\% in QLIKE on \texttt{baseline}, \campRidgeLSTMLive\,\% on
-\texttt{live\_feasible} and \campRidgeLSTMAll\,\% on \texttt{all\_features}, with
-\campRidgeLSTMQAbove{} of \campRidgeLSTMN{} intervals above zero.
+% 2026-10-06 parked (recalibration removed, user decision):
+% Against the per-bar ridge, none of the \campRidgeTreeN{} masked tree rows has a QLIKE
+% interval below zero (\campRidgeTreeQBelow{}) and \campRidgeTreeQAbove{} have one above; the
+% lowest relative QLIKE is \campRidgeBestTree{} at \campRidgeBestTreeQ\,\%
+% \campRidgeBestTreeQCI; no Sharpe interval excludes zero (\campRidgeTreeSBelow{} below,
+% \campRidgeTreeSAbove{} above). The daily-refit LSTM minus the ridge is
+% \campRidgeLSTMBase\,\% in QLIKE on \texttt{baseline}, \campRidgeLSTMLive\,\% on
+% \texttt{live\_feasible} and \campRidgeLSTMAll\,\% on \texttt{all\_features}, with
+% \campRidgeLSTMQAbove{} of \campRidgeLSTMN{} intervals above zero.
+Against the per-bar ridge, \campRidgeTreeQBelow{} of the \campRidgeTreeN{} masked tree rows
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% have a QLIKE difference below zero (\campRidgeTreeQBelowSig{} significant) and
+% \campRidgeTreeQAbove{} above (\campRidgeTreeQAboveSig{} significant); the
+% lowest relative QLIKE is \campRidgeBestTree{} at \campRidgeBestTreeQ\,\%;
+have a QLIKE difference below zero (\campRidgeTreeQBelowSig{} significant) and
+\campRidgeTreeQAbove{} above (\campRidgeTreeQAboveSig{} significant);
+the lowest relative QLIKE is \campRidgeBestTree{} at \campRidgeBestTreeQ\,\%;
+\campRidgeTreeSBelow{} Sharpe differences lie below zero and \campRidgeTreeSAbove{} above
+(\campRidgeTreeSBelowSig{} and \campRidgeTreeSAboveSig{} significant).
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% The daily-refit LSTM minus the ridge is
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% \campRidgeLSTMBase\,\% in QLIKE on \texttt{baseline}, \campRidgeLSTMLive\,\% on
+% \texttt{live\_feasible} and \campRidgeLSTMAll\,\% on \texttt{all\_features}, with
+% \campRidgeLSTMBase\,\% in QLIKE on \texttt{baseline} and \campRidgeLSTMAll\,\% on
+% \texttt{all\_features}, with
+% \campRidgeLSTMQAbove{} of \campRidgeLSTMN{} above zero (\campRidgeLSTMQAboveSig{}
+% significant).
 
 % Source: results/trees_mask_1600/mask_pairs.csv (family 'masked ladder')
 \begin{table}[H]
 \centering
 \caption{The masked ladder: refit every session minus every 10th (shipped configuration;
-random search; the per-bar LSTM in the first column), and random search minus the shipped
+random search), and random search minus the shipped
 configuration, both refit every session. Cells as in Table~\ref{tab:app_camp_mask}, the
 second forecast of each pair being the comparator.}
 \label{tab:app_camp_cadence}
@@ -204,13 +326,28 @@ second forecast of each pair being the comparator.}
 
 \paragraph{Random search against the shipped configuration.} The random search re-chooses
 each tree's configuration from a fixed set of candidates on the validation tail of its
+% 2026-10-06 parked (recalibration removed, user decision):
+% window. Both refit every session, RS1 minus T1 ranges from \campRSVsTQLo\,\% to
+% \campRSVsTQHi\,\% in QLIKE, with the interval above zero in \campRSVsTQAbove{} of
+% \campRSVsTN{} rows and below zero in \campRSVsTQBelow{};
+% no Sharpe interval excludes zero (\campRSVsTSBelow{} below, \campRSVsTSAbove{} above; last
+% column of Table~\ref{tab:app_camp_cadence}).
 window. Both refit every session, RS1 minus T1 ranges from \campRSVsTQLo\,\% to
-\campRSVsTQHi\,\% in QLIKE, with the interval above zero in \campRSVsTQAbove{} of
-\campRSVsTN{} rows and below zero in \campRSVsTQBelow{};
-no Sharpe interval excludes zero (\campRSVsTSBelow{} below, \campRSVsTSAbove{} above; last
+\campRSVsTQHi\,\% in QLIKE, with the difference above zero in \campRSVsTQAbove{} of
+\campRSVsTN{} rows (\campRSVsTQAboveSig{} significant) and below zero in
+\campRSVsTQBelow{}; \campRSVsTSBelow{} Sharpe differences lie below zero and
+\campRSVsTSAbove{} above (\campRSVsTSBelowSig{} and \campRSVsTSAboveSig{} significant; last
 column of Table~\ref{tab:app_camp_cadence}).
 
 \paragraph{Optuna.} The random search was replaced by Optuna's TPE sampler: at every tuning
+% 2026-10-07 parked (random forest now dev-tuned; its Optuna trial 1 is the defaults, user decision):
+% point a fresh study of \campOptTrials{} sequential trials (trial 1 the shipped
+% configuration, trials 1--10 TPE's random start-up) minimises validation MSE on the tail of
+% 2026-10-13 parked (user; the forest's Optuna re-run from its top entry, trial 255: trial 1 is its shipped settings):
+% point a fresh study of \campOptTrials{} sequential trials (trial 1 the shipped
+% configuration --- for the random forest the library defaults it ran with before its
+% dev-span settings, Section~\ref{sec:close_option_methods} --- trials 1--10 TPE's random
+% start-up) minimises validation MSE on the tail of
 point a fresh study of \campOptTrials{} sequential trials (trial 1 the shipped
 configuration, trials 1--10 TPE's random start-up) minimises validation MSE on the tail of
 the tuning window after an embargo; the trees refit every session with the configuration in
@@ -218,6 +355,15 @@ force; a new tuning point is drawn every TUNE\_PER sessions (TUNE\_PER 1, 5, 25 
 and at TUNE\_PER 1 and 25 the best of the first 10 and the first 25 trials is kept beside
 the best of all \campOptTrials{}. Every Optuna run is masked and ran on one CPU class.
 
+% 2026-10-13 (user; the trees on their top entries): the trial records of XGBoost's re-run are not local, so the
+% in-sample budget (Table app_camp_budget) covers LightGBM and the forest (trial 255):
+% \paragraph{Are \campOptTrials{} trials enough?} Over the \campOptPoints{} tuning points of
+% each arm (Table~\ref{tab:app_camp_budget}), the best of the \campOptTrials{} trials falls in
+% 2026-10-14 (coordinator; xgbtop stage-1 records pulled): XGBoost's trial rows back, every tree on its top entry;
+% the 2026-10-13 interim wording (LightGBM and the forest only) parked:
+% \paragraph{Are \campOptTrials{} trials enough?} Over the \campOptPoints{} tuning points of
+% each LightGBM and random-forest arm (Table~\ref{tab:app_camp_budget}; XGBoost's trial
+% records of its current run are not in it), the best of the \campOptTrials{} trials falls in
 \paragraph{Are \campOptTrials{} trials enough?} Over the \campOptPoints{} tuning points of
 each arm (Table~\ref{tab:app_camp_budget}), the best of the \campOptTrials{} trials falls in
 trials 41--50 at \campOptLateLo--\campOptLateHi\,\% of the points, against
@@ -229,31 +375,76 @@ validation MSE by \campOptGainTwentyFiveLo--\campOptGainTwentyFiveHi\,\% on aver
 the pick of the first 25 differs from the pick of all \campOptTrials{} at
 \campOptPickDiffLo--\campOptPickDiffHi\,\% of the points. Out of sample
 (Table~\ref{tab:app_camp_budget_oos}), of the \campBudN{} budget comparisons (best of 50
+% 2026-10-06 parked (recalibration removed, user decision):
+% against 10, against 25, and 25 against 10, at TUNE\_PER 1 and 25) \campBudQBelow{} have a
+% QLIKE interval below zero and \campBudQAbove{} above; \campBudSBelow{} Sharpe interval lies
+% below zero and \campBudSAbove{} above.
 against 10, against 25, and 25 against 10, at TUNE\_PER 1 and 25) \campBudQBelow{} have a
-QLIKE interval below zero and \campBudQAbove{} above; \campBudSBelow{} Sharpe interval lies
-below zero and \campBudSAbove{} above.
+QLIKE difference below zero and \campBudQAbove{} above (\campBudQBelowSig{} and
+\campBudQAboveSig{} significant); \campBudSBelow{} Sharpe differences lie below zero and
+\campBudSAbove{} above (\campBudSBelowSig{} and \campBudSAboveSig{} significant).
 
 \paragraph{How often to tune.} Against a new tuning point every 250 sessions, tuning every 1,
 5 or 25 sessions (every path refit every session; Table~\ref{tab:app_camp_tuneper}) has
-\campTPQBelow{} of \campTPN{} QLIKE intervals below zero --- \campTPBelowWho{} --- and
-\campTPQAbove{} above; no Sharpe interval excludes zero (\campTPSBelow{} below,
-\campTPSAbove{} above). Choosing the configuration by validation QLIKE instead of MSE (at
-TUNE\_PER 25) has \campTPRuleQBelow{} of \campTPRuleN{} QLIKE intervals below zero and
-\campTPRuleQAbove{} above, \campTPRuleSBelow{} Sharpe interval below zero and
-\campTPRuleSAbove{} above.
+% 2026-10-06 parked (recalibration removed, user decision):
+% \campTPQBelow{} of \campTPN{} QLIKE intervals below zero --- \campTPBelowWho{} --- and
+% \campTPQAbove{} above; no Sharpe interval excludes zero (\campTPSBelow{} below,
+% \campTPSAbove{} above). Choosing the configuration by validation QLIKE instead of MSE (at
+% TUNE\_PER 25) has \campTPRuleQBelow{} of \campTPRuleN{} QLIKE intervals below zero and
+% \campTPRuleQAbove{} above, \campTPRuleSBelow{} Sharpe interval below zero and
+% \campTPRuleSAbove{} above.
+% The list \campTPBelowWho (arms with an interval below zero) is no longer quoted; the
+% arms are in Table~\ref{tab:app_camp_tuneper}.
+\campTPQBelow{} of \campTPN{} QLIKE differences below zero and
+\campTPQAbove{} above (\campTPQBelowSig{} and \campTPQAboveSig{} significant);
+\campTPSBelow{} Sharpe differences lie below zero and \campTPSAbove{} above
+(\campTPSBelowSig{} and \campTPSAboveSig{} significant). Choosing the configuration by
+validation QLIKE instead of MSE (at TUNE\_PER 25) has \campTPRuleQBelow{} of
+\campTPRuleN{} QLIKE differences below zero and \campTPRuleQAbove{} above
+(\campTPRuleQBelowSig{} and \campTPRuleQAboveSig{} significant), \campTPRuleSBelow{}
+Sharpe differences below zero and \campTPRuleSAbove{} above (\campTPRuleSBelowSig{} and
+\campTPRuleSAboveSig{} significant).
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% \paragraph{Optuna against the other rungs.} Table~\ref{tab:app_camp_optuna_vs} counts the
+% intervals. Against the shipped configuration refit every session (T1), \campOptTQAbove{} of
+% \campOptTN{} Optuna QLIKE intervals lie above zero and \campOptTQBelow{} below. Against the
+% random search refit every session (RS1), \campOptRSQBelow{} lie below zero ---
+% \campOptRSBelowWho{} --- and \campOptRSQAbove{} above. Against the per-bar ridge,
+% \campOptRidgeQBelow{} lie below zero and \campOptRidgeQAbove{} above, with
+% \campOptRidgeSBelow{} Sharpe intervals below zero and \campOptRidgeSAbove{} above.
+% The list \campOptRSBelowWho (arms with an interval below zero) is no longer quoted.
 \paragraph{Optuna against the other rungs.} Table~\ref{tab:app_camp_optuna_vs} counts the
-intervals. Against the shipped configuration refit every session (T1), \campOptTQAbove{} of
-\campOptTN{} Optuna QLIKE intervals lie above zero and \campOptTQBelow{} below. Against the
-random search refit every session (RS1), \campOptRSQBelow{} lie below zero ---
-\campOptRSBelowWho{} --- and \campOptRSQAbove{} above. Against the per-bar ridge,
-\campOptRidgeQBelow{} lie below zero and \campOptRidgeQAbove{} above, with
-\campOptRidgeSBelow{} Sharpe intervals below zero and \campOptRidgeSAbove{} above.
+differences. Against the shipped configuration refit every session (T1), \campOptTQAbove{} of
+\campOptTN{} Optuna QLIKE differences lie above zero (\campOptTQAboveSig{} significant) and
+\campOptTQBelow{} below (\campOptTQBelowSig{}), with \campOptTSBelow{} Sharpe differences
+below zero (\campOptTSBelowSig{} significant) and \campOptTSAbove{} above
+(\campOptTSAboveSig{}). Against the random search refit every session (RS1),
+\campOptRSQBelow{} lie below zero (\campOptRSQBelowSig{} significant) and
+\campOptRSQAbove{} above (\campOptRSQAboveSig{}). Against the per-bar ridge,
+\campOptRidgeQBelow{} lie below zero (\campOptRidgeQBelowSig{} significant) and
+\campOptRidgeQAbove{} above (\campOptRidgeQAboveSig{}), with \campOptRidgeSBelow{} Sharpe
+differences below zero (\campOptRidgeSBelowSig{} significant) and \campOptRidgeSAbove{}
+above (\campOptRidgeSAboveSig{}).
 
 \paragraph{Where the picks sit.} Table~\ref{tab:app_camp_picks} gives, per axis, the share of
 the best-of-50 picks in the outermost twentieth of the search space at either end (on the
 log scale for a log axis; for the forest's depth, the smallest and the largest choice),
-beside the share of TPE's random start-up draws there (the prior). The penalties
+% 2026-10-14 (coordinator; xgbtop stage-1 records pulled): XGBoost's trial rows back, every tree on its top entry;
+% the 2026-10-13 interim wording (LightGBM and the forest only) parked:
+% beside the share of TPE's random start-up draws there (the prior), for LightGBM and the
+% random forest (XGBoost's trial records of its current run are not in it).
+beside the share of TPE's random start-up draws there (the prior).
+% 2026-10-13 parked (user; XGBoost's rows left out of the picks table, records not local):
+% The penalties
+% \texttt{lambda\_l2} and \texttt{reg\_lambda} are picked at their upper end in no more than
+% \campPickLambdaHighMax\,\% of points against a prior of at least \campPickLambdaPriorLo\,\%;
+% LightGBM's penalty \texttt{lambda\_l2} is picked at its upper end in no more than
+% \campPickLambdaHighMax\,\% of points against a prior of at least \campPickLambdaPriorLo\,\%;
+% 2026-10-13: "LightGBM's" now opens the sentence (XGBoost's reg_lambda parked)
+% LightGBM's \texttt{min\_child\_samples} sits at its lower end in
+% its \texttt{min\_child\_samples} sits at its lower end in
+The penalties
 \texttt{lambda\_l2} and \texttt{reg\_lambda} are picked at their upper end in no more than
 \campPickLambdaHighMax\,\% of points against a prior of at least \campPickLambdaPriorLo\,\%;
 LightGBM's \texttt{min\_child\_samples} sits at its lower end in
@@ -267,6 +458,12 @@ LightGBM's \texttt{min\_child\_samples} sits at its lower end in
 holds the best of 50, the share of points where it is the shipped configuration and where it
 falls in trials 41--50 (\campOptExch\,\% if exchangeable), the relative gain in the best
 validation MSE from the first 10, 25 and 40 trials to all 50 (mean / median), and the share
+% 2026-10-13 (user; the trees on their top entries): XGBoost's rows left out (its re-run's trial records not local)
+% of points whose best of 25 differs from the best of 50.}
+% 2026-10-14 (coordinator; xgbtop stage-1 records pulled): XGBoost's trial rows back, every tree on its top entry;
+% the 2026-10-13 interim wording (LightGBM and the forest only) parked:
+% of points whose best of 25 differs from the best of 50. LightGBM and the random forest on
+% its current settings; XGBoost's trial records of its current run are not in this table.}
 of points whose best of 25 differs from the best of 50.}
 \label{tab:app_camp_budget}
 \campfit{\scriptsize\input{generated/appendix_campaign_16h_budget}}
@@ -295,8 +492,13 @@ QLIKE at TUNE\_PER 250. Cells as in Table~\ref{tab:app_camp_mask}.}
 \begin{table}[H]
 \centering
 \caption{Optuna (best of 50, each TUNE\_PER) minus the shipped trees refit every session
+% 2026-10-06 parked (recalibration removed, user decision):
+% (T1), the random search refit every session (RS1) and the per-bar ridge: the number of model
+% $\times$ input-set arms whose 95\,\% interval lies wholly below or above zero.}
 (T1), the random search refit every session (RS1) and the per-bar ridge: the number of model
-$\times$ input-set arms whose 95\,\% interval lies wholly below or above zero.}
+$\times$ input-set arms whose difference (a point estimate) lies below or above zero, and in
+parentheses how many of them are significant at 5\,\% (Diebold--Mariano for QLIKE,
+the Newey--West $t$ of the daily midpoint-return difference for the Sharpe ratio).}
 \label{tab:app_camp_optuna_vs}
 \campfit{\small\input{generated/appendix_campaign_16h_optuna_vs}}
 \end{table}
@@ -305,63 +507,90 @@ $\times$ input-set arms whose 95\,\% interval lies wholly below or above zero.}
 \begin{table}[H]
 \centering
 \caption{Where the best-of-50 picks sit: share of picks in the outermost twentieth of each
-axis at its low and high end, per input set (\texttt{baseline} / \texttt{live\_feasible} /
-\texttt{all\_features}), beside the share of the random start-up draws there (the prior),
-and the median pick. $^{\dagger}$A pseudo-axis: the early-stopped number of rounds at the
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% axis at its low and high end, per input set (\texttt{baseline} / \texttt{live\_feasible} /
+% \texttt{all\_features}), beside the share of the random start-up draws there (the prior),
+axis at its low and high end, per input set (\texttt{baseline} / \texttt{all\_features}),
+beside the share of the random start-up draws there (the prior),
+% 2026-10-13 (user; the trees on their top entries): XGBoost's rows left out (its re-run's trial records not local)
+% 2026-10-14 (coordinator; xgbtop stage-1 records pulled): XGBoost's trial rows back, every tree on its top entry;
+% the 2026-10-13 interim wording (LightGBM and the forest only) parked:
+% and the median pick; LightGBM and the random forest on its current settings, XGBoost's
+% trial records of its current run not being in this table. $^{\dagger}$A pseudo-axis: the early-stopped number of rounds at the
+and the median pick. Each tree's axes are its own run's search space. $^{\dagger}$A pseudo-axis: the early-stopped number of rounds at the
 cap set by the learning rate.}
 \label{tab:app_camp_picks}
 \campfit{\scriptsize\input{generated/appendix_campaign_16h_picks}}
 \end{table}
 
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
 % ----------------------------------------------------------------------------
-\subsubsection{The intraday-sequence LSTM}
-\label{sec:app_camp_lstmi}
-
-The per-bar LSTM reads a sequence of the last sessions' 16:00-row vectors of the per-bar
-design, the HAR ladders among them. The intraday LSTM reads instead the last $N$ half-hour
-bars of the near-24-hour panel ending with the 15:30 bar, one step per bar, with bar-level
-inputs --- the bar's adjusted target, the adjusted exogenous values of the input set, their
-availability and activity flags, the calendar columns and a half-hour clock --- so that the
-network, not the ladders, does the aggregation over time. $N$ is tuned in
-$\{13, 48, 96\}$ with the per-bar LSTM's grid, selection rule, window, seed average and
-daily refits, and the per-window mask acts on the step columns (kept at the refits:
-\texttt{baseline} \campLstmiKeptBase{} of \campLstmiStepBase{}, range
-\campLstmiKeptBaseLo--\campLstmiKeptBaseHi; \texttt{live\_feasible} \campLstmiKeptLive{} of
-\campLstmiStepLive{}, \campLstmiKeptLiveLo--\campLstmiKeptLiveHi; \texttt{all\_features}
-\campLstmiKeptAll{} of \campLstmiStepAll{}, \campLstmiKeptAllLo--\campLstmiKeptAllHi). The
-chosen $N$ moves over time: over the \campLstmiTunings{} tuning points of the three input
-sets (the selection rule of record) it is 13 at \campLstmiNThirteen{}, 48 at
-\campLstmiNFortyEight{} and 96 at \campLstmiNNinetySix{}.
-
-Against the per-bar LSTM (the masked, daily-refit table), the intraday LSTM's QLIKE interval
-lies below zero in \campLstmiVsLSTMQBelow{} of \campLstmiVsLSTMN{} input sets and above zero
-in \campLstmiVsLSTMQAbove{}; against the per-bar ridge it lies above zero in
-\campLstmiVsRidgeQAbove{} of \campLstmiVsRidgeN{}. No Sharpe interval excludes zero
-(against the per-bar LSTM \campLstmiVsLSTMSBelow{} below and \campLstmiVsLSTMSAbove{}
-above; against the ridge \campLstmiVsRidgeSBelow{} below and \campLstmiVsRidgeSAbove{}
-above;
-Table~\ref{tab:app_camp_lstmi}).
-
+% \subsubsection{The intraday-sequence LSTM}
+% \label{sec:app_camp_lstmi}
+%
+% The per-bar LSTM reads a sequence of the last sessions' 16:00-row vectors of the per-bar
+% design, the HAR ladders among them. The intraday LSTM reads instead the last $N$ half-hour
+% bars of the near-24-hour panel ending with the 15:30 bar, one step per bar, with bar-level
+% inputs --- the bar's adjusted target, the adjusted exogenous values of the input set, their
+% availability and activity flags, the calendar columns and a half-hour clock --- so that the
+% network, not the ladders, does the aggregation over time. $N$ is tuned in
+% $\{13, 48, 96\}$ with the per-bar LSTM's grid, selection rule, window, seed average and
+% daily refits, and the per-window mask acts on the step columns (kept at the refits:
+% \texttt{baseline} \campLstmiKeptBase{} of \campLstmiStepBase{}, range
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% \campLstmiKeptBaseLo--\campLstmiKeptBaseHi; \texttt{live\_feasible} \campLstmiKeptLive{} of
+% \campLstmiStepLive{}, \campLstmiKeptLiveLo--\campLstmiKeptLiveHi; \texttt{all\_features}
+% \campLstmiKeptBaseLo--\campLstmiKeptBaseHi; \texttt{all\_features}
+% \campLstmiKeptAll{} of \campLstmiStepAll{}, \campLstmiKeptAllLo--\campLstmiKeptAllHi). The
+% chosen $N$ moves over time: over the \campLstmiTunings{} tuning points of the three input
+% sets (the selection rule of record) it is 13 at \campLstmiNThirteen{}, 48 at
+% \campLstmiNFortyEight{} and 96 at \campLstmiNNinetySix{}.
+%
+% 2026-10-06 parked (recalibration removed, user decision):
+% Against the per-bar LSTM (the masked, daily-refit table), the intraday LSTM's QLIKE interval
+% lies below zero in \campLstmiVsLSTMQBelow{} of \campLstmiVsLSTMN{} input sets and above zero
+% in \campLstmiVsLSTMQAbove{}; against the per-bar ridge it lies above zero in
+% \campLstmiVsRidgeQAbove{} of \campLstmiVsRidgeN{}. No Sharpe interval excludes zero
+% (against the per-bar LSTM \campLstmiVsLSTMSBelow{} below and \campLstmiVsLSTMSAbove{}
+% above; against the ridge \campLstmiVsRidgeSBelow{} below and \campLstmiVsRidgeSAbove{}
+% above;
+% Table~\ref{tab:app_camp_lstmi}).
+% Against the per-bar LSTM (the masked, daily-refit table), the intraday LSTM's QLIKE difference
+% lies below zero in \campLstmiVsLSTMQBelow{} of \campLstmiVsLSTMN{} input sets
+% (\campLstmiVsLSTMQBelowSig{} significant) and above zero in \campLstmiVsLSTMQAbove{}
+% (\campLstmiVsLSTMQAboveSig{}); against the per-bar ridge it lies below zero in
+% \campLstmiVsRidgeQBelow{} and above zero in \campLstmiVsRidgeQAbove{} of
+% \campLstmiVsRidgeN{} (\campLstmiVsRidgeQAboveSig{} significant). Its Sharpe differences lie
+% below zero against the per-bar LSTM in \campLstmiVsLSTMSBelow{} and above in
+% \campLstmiVsLSTMSAbove{}, and against the ridge below in \campLstmiVsRidgeSBelow{} and
+% above in \campLstmiVsRidgeSAbove{}; of these \campLstmiVsLSTMSBelowSig{},
+% \campLstmiVsLSTMSAboveSig{}, \campLstmiVsRidgeSBelowSig{} and \campLstmiVsRidgeSAboveSig{}
+% are significant (Table~\ref{tab:app_camp_lstmi}).
+%
 % Source: results/linear_subsection_lstm_intraday/score/lstmi_levels.csv, lstmi_pairs.csv
-\begin{table}[H]
-\centering
-\caption{The intraday-sequence LSTM (selection rule of record) beside the per-bar LSTM and
-the per-bar ridge: QLIKE and $\mathrm{sign}(s)$ Sharpe (midpoint) levels, and the paired
-differences, cells as in Table~\ref{tab:app_camp_mask}.}
-\label{tab:app_camp_lstmi}
-\campfit{\scriptsize\input{generated/appendix_campaign_16h_lstmi}}
-\end{table}
+% \begin{table}[H]
+% \centering
+% \caption{The intraday-sequence LSTM (selection rule of record) beside the per-bar LSTM and
+% the per-bar ridge: QLIKE and $\mathrm{sign}(s)$ Sharpe (midpoint) levels, and the paired
+% differences, cells as in Table~\ref{tab:app_camp_mask}.}
+% \label{tab:app_camp_lstmi}
+% \campfit{\scriptsize\input{generated/appendix_campaign_16h_lstmi}}
+% \end{table}
 
 % ----------------------------------------------------------------------------
 \subsubsection{Reproducibility across CPUs}
 \label{sec:app_camp_repro}
 
-The tree and LSTM numbers depend on the CPU's vector class. The executor builds the design
+The tree numbers depend on the CPU's vector class. The executor builds the design
 matrix $X$ with numpy's runtime-dispatched loops, and $X$ comes out as one of two byte
 strings: one on every machine with AVX-512 and another on every machine without it
-(\campXHosts{} machines probed on two clusters). The two differ in \campXColsLive{} of
-\campPLive{} \texttt{live\_feasible} columns and \campXColsAll{} of \campPAll{}
-\texttt{all\_features} columns, by at most \campXMaxAbs{} in absolute value; the target and
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% (\campXHosts{} machines probed on two clusters). The two differ in \campXColsLive{} of
+% \campPLive{} \texttt{live\_feasible} columns and \campXColsAll{} of \campPAll{}
+% \texttt{all\_features} columns, by at most \campXMaxAbs{} in absolute value; the target and
+(\campXHosts{} machines probed on two clusters). The two differ in \campXColsAll{} of
+\campPAll{} \texttt{all\_features} columns, by at most \campXMaxAbs{} in absolute value; the
+target and
 the kept-column sets are the same on every machine. Within a class the Optuna trials and
 forecasts reproduce bit for bit across clusters (\campSameClassTrials{} trials,
 \campSameClassFcst{} forecasts). Across classes the fits part: from the same stage-1 records
@@ -370,22 +599,44 @@ the random forest's forecasts are identical in \campXFcstRf{}, XGBoost's in \cam
 (\campXFcstMaxLgbm); re-running \campXcPoints{} tuning points on the other class changes
 LightGBM's best-of-50 pick at \campXcPickLgbm{} of them (XGBoost \campXcPickXgb{}, random
 forest \campXcPickRf{}), while a re-run on the same class is bit-identical at all
-\campXcSame{}. A whole masked LightGBM \texttt{live\_feasible} run on the other class moves
-the forecast by up to \campClassRelTen\,\% (T10) and \campClassRelOne\,\% (T1), QLIKE by
-\campClassQTen\,\% \campClassQTenCI{} and \campClassQOne\,\% \campClassQOneCI{}, and the
-Sharpe ratio by \campClassSTen{} \campClassSTenCI{} and \campClassSOne{} \campClassSOneCI{}
-(Table~\ref{tab:app_camp_repro}).
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% \campXcSame{}. A whole masked LightGBM \texttt{live\_feasible} run on the other class moves
+% 2026-10-13 parked (user; XGBoost and the forest on their top entries):
+% \campXcSame{}. These checks predate the random forest's dev-span settings % 2026-10-07: RF now dev-tuned (user decision)
+% (Section~\ref{sec:close_option_methods}): its rows here are the forest as it ran before them.
+\campXcSame{}. These checks predate XGBoost's and the random forest's current settings
+(Section~\ref{sec:close_option_methods}): their rows here are the two trees as they ran
+before them.
+% 2026-10-06: the whole-run CPU-class check (\campClass...) is not restated: it was run on a
+% live_feasible LightGBM only (live-feasible removed from the paper, user decision).
+% 2026-10-06 parked (recalibration removed, user decision):
+% the forecast by up to \campClassRelTen\,\% (T10) and \campClassRelOne\,\% (T1), QLIKE by
+% \campClassQTen\,\% \campClassQTenCI{} and \campClassQOne\,\% \campClassQOneCI{}, and the
+% Sharpe ratio by \campClassSTen{} \campClassSTenCI{} and \campClassSOne{} \campClassSOneCI{}
+% (Table~\ref{tab:app_camp_repro}).
+% 2026-10-06 parked (live-feasible removed from the paper, user decision):
+% the forecast by up to \campClassRelTen\,\% (T10) and \campClassRelOne\,\% (T1), QLIKE by
+% \campClassQTen\,\% and \campClassQOne\,\%, and the
+% Sharpe ratio by \campClassSTen{} and \campClassSOne{}
+% (Table~\ref{tab:app_camp_repro}).
 
 So every canonical chunk ran on one CPU class: the census finds \campHChunkClasses{} class
 among the masked ladder's \campHChunks{} chunks and \campCChunkClasses{} among Optuna's
 \campCChunks{} chunk-arms (the masked ladder's \campHGateChunks{} class-gate chunks ran on
-the other class on purpose), and the intraday LSTM, whose first
-attempt on mixed nodes was stopped by its tuning cache's fingerprint, was re-run on one class
-(the mixed attempt agrees on \campLstmiXTune{} tuning points and \campLstmiXChunk{} refit
-chunks). Optuna's first pass had landed on several classes; it is kept as the class-mixed
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% the other class on purpose), and the intraday LSTM, whose first
+% attempt on mixed nodes was stopped by its tuning cache's fingerprint, was re-run on one class
+% (the mixed attempt agrees on \campLstmiXTune{} tuning points and \campLstmiXChunk{} refit
+% chunks). Optuna's first pass
+the other class on purpose). Optuna's first pass had landed on several classes; it is kept as the class-mixed
 run beside the one-class run: \campSMDiffer{} of its \campSMN{} forecast tables differ, with
-\campSMQBelow{} QLIKE intervals below zero and \campSMQAbove{} above (one class minus mixed)
-and \campSMSharpeExcl{} Sharpe intervals excluding zero.
+% 2026-10-06 parked (recalibration removed, user decision):
+% \campSMQBelow{} QLIKE intervals below zero and \campSMQAbove{} above (one class minus mixed)
+% and \campSMSharpeExcl{} Sharpe intervals excluding zero.
+\campSMQBelow{} QLIKE differences below zero and \campSMQAbove{} above (one class minus mixed;
+\campSMQBelowSig{} and \campSMQAboveSig{} significant) and \campSMSBelow{} Sharpe
+differences below zero and \campSMSAbove{} above (\campSMSBelowSig{} and
+\campSMSAboveSig{} significant).
 
 % Sources: see the generated file (results/linear_subsection_trees_optuna/crosscluster/,
 % results/linear_subsection_trees_optuna_mask/xclass*/, results/linear_subsection_trees_mask/class/,
@@ -395,8 +646,11 @@ and \campSMSharpeExcl{} Sharpe intervals excluding zero.
 \centering
 \caption{CPU-class checks: what was compared and what reproduced. ``Bit-identical $a/b$'':
 $a$ of $b$ items equal bit for bit; relative differences are of the forecast; QLIKE and
+% 2026-10-06 parked (recalibration removed, user decision):
+% Sharpe differences (other class minus the fleet's class, in \% of QLIKE and Sharpe units)
+% with 95\,\% paired intervals.}
 Sharpe differences (other class minus the fleet's class, in \% of QLIKE and Sharpe units)
-with 95\,\% paired intervals.}
+as point estimates.}
 \label{tab:app_camp_repro}
 \campfit{\small\input{generated/appendix_campaign_16h_repro}}
 \end{table}
@@ -405,64 +659,113 @@ with 95\,\% paired intervals.}
 \subsubsection{The master table before and after}
 \label{sec:app_camp_master}
 
+% 2026-10-06 parked (recalibration removed, user decision):
+% The master table of the closing strategy was rebuilt from the new tables, on the same
+% \campMTHeadDays{} days and with the same resampled days for every interval. The headline
+% forecast, the per-bar ridge on \texttt{live\_feasible}, is unchanged: QLIKE
+% \campMTHeadQBefore{} before and \campMTHeadQ{} after, $\mathrm{sign}(s)$ Sharpe
+% \campMTHeadS{} at the midpoint and \campMTHeadSX{} crossed, positions changed on
+% \campMTHeadPos{} of \campMTHeadDays{} days (largest relative change of its recalibrated
+% forecast \campMTHeadMaxRel). Table~\ref{tab:app_camp_master} summarises the
+% \campMTKeysBoth{} forecasts present before and after, by family; \campMTKeysNew{} forecasts
+% are new (the daily-refit and random-search-daily trees, the Optuna rungs and the intraday
+% LSTM). The own Sharpe ratio of \campMTSigN{} forecasts moved with the interval excluding
+% zero: \campMTSigWho.
+%
+% Against the headline, of the \campMTNOther{} other forecasts \campMTBeatMid{} have a
+% Sharpe-difference interval wholly above zero at the midpoint and \campMTBeatCrossed{}
+% crossed, and \campMTWorseMid{} have one wholly below zero at the midpoint. On forecast
+% accuracy \campMTQBetter{} forecasts have a QLIKE interval against it wholly below zero, from
+% the family \campMTQBetterFamily{}, none of them with a Sharpe interval above zero:
+% \campMTQBetterWho{}. \campMTQWorse{} have a QLIKE interval wholly above zero.
+% 2026-10-06 parked (no headline model; live-feasible removed from the paper; user decisions):
+% The master table of the closing strategy was rebuilt from the new tables, on the same
+% \campMTHeadDays{} days. The headline
+% forecast, the per-bar ridge on \texttt{live\_feasible}, is unchanged: QLIKE
+% \campMTHeadQBefore{} before and \campMTHeadQ{} after, $\mathrm{sign}(s)$ Sharpe
+% \campMTHeadS{} at the midpoint and \campMTHeadSX{} crossed, positions changed on
+% \campMTHeadPos{} of \campMTHeadDays{} days (largest relative change of its
+% forecast \campMTHeadMaxRel). Table~\ref{tab:app_camp_master} summarises the
 The master table of the closing strategy was rebuilt from the new tables, on the same
-\campMTHeadDays{} days and with the same resampled days for every interval. The headline
-forecast, the per-bar ridge on \texttt{live\_feasible}, is unchanged: QLIKE
-\campMTHeadQBefore{} before and \campMTHeadQ{} after, $\mathrm{sign}(s)$ Sharpe
-\campMTHeadS{} at the midpoint and \campMTHeadSX{} crossed, positions changed on
-\campMTHeadPos{} of \campMTHeadDays{} days (largest relative change of its recalibrated
-forecast \campMTHeadMaxRel). Table~\ref{tab:app_camp_master} summarises the
+\campMTHeadDays{} days. Table~\ref{tab:app_camp_master} summarises the
 \campMTKeysBoth{} forecasts present before and after, by family; \campMTKeysNew{} forecasts
-are new (the daily-refit and random-search-daily trees, the Optuna rungs and the intraday
-LSTM). The own Sharpe ratio of \campMTSigN{} forecasts moved with the interval excluding
-zero: \campMTSigWho.
+% 2026-10-06 parked (LSTM not yet trustworthy, user decision):
+% are new (the daily-refit and random-search-daily trees, the Optuna rungs and the intraday
+% LSTM). The own midpoint return
+are new (the daily-refit and random-search-daily trees and the Optuna rungs). The own midpoint return of \campMTSigHacN{} of the forecasts present before and after
+moved with a significant HAC $t$.
+% 2026-10-13 (user; the trees on their top entries): the switched XGBoost / forest rows are left out of the table
+The \campMTSwitchedN{} XGBoost and random-forest forecasts present before and after are left
+out: they now carry those trees' current settings, so their change mixes the settings with
+the campaign.
 
-Against the headline, of the \campMTNOther{} other forecasts \campMTBeatMid{} have a
-Sharpe-difference interval wholly above zero at the midpoint and \campMTBeatCrossed{}
-crossed, and \campMTWorseMid{} have one wholly below zero at the midpoint. On forecast
-accuracy \campMTQBetter{} forecasts have a QLIKE interval against it wholly below zero, from
-the family \campMTQBetterFamily{}, none of them with a Sharpe interval above zero:
-\campMTQBetterWho{}. \campMTQWorse{} have a QLIKE interval wholly above zero.
+% 2026-10-06 parked (no headline model, user decision):
+% Against the headline, of the \campMTNOther{} other forecasts \campMTBeatMid{} trade above it
+% at the midpoint (\campMTBeatMidSig{} significant) and \campMTBeatCrossed{} crossed, and
+% \campMTWorseMid{} trade below it at the midpoint (\campMTWorseMidSig{} significant). On
+% forecast accuracy \campMTQBetter{} forecasts have a lower QLIKE than the headline
+% (\campMTQBetterSig{} significant) and \campMTQWorse{} a higher one
+% (\campMTQWorseSig{} significant).
 
 % Source: results/close_master_table/before_after.csv
 \begin{table}[H]
 \centering
 \caption{The master table before and after the campaign, per family of the forecasts present
 in both: what changed, the QLIKE change in \% and the $\mathrm{sign}(s)$ Sharpe change
-(midpoint), median and range over the family, the number of paired Sharpe-change intervals
-wholly above / below zero, and the trade positions changed (of \campMTHeadDays{} days).}
+% 2026-10-06 parked (recalibration removed, user decision):
+% (midpoint), median and range over the family, the number of paired Sharpe-change intervals
+% wholly above / below zero, and the trade positions changed (of \campMTHeadDays{} days).}
+(midpoint), median and range (minimum to maximum) over the family, the number of Sharpe
+changes above / below zero and of those with a significant HAC $t$, and the trade positions
+changed (of \campMTHeadDays{} days).}
 \label{tab:app_camp_master}
 \campfit{\scriptsize\input{generated/appendix_campaign_16h_master}}
 \end{table}
 
 % ----------------------------------------------------------------------------
-\subsubsection{Feature importance and density on the new design}
+% 2026-10-06 parked (dense-vs-sparse write-up removed, user decision):
+% \subsubsection{Feature importance and density on the new design}
+\subsubsection{Feature importance on the new design}
 \label{sec:app_camp_featimp}
 
-The importance study of the 16:00 forecast (MDI, split count, permutation, TreeSHAP) and the
-dense-versus-sparse study were re-run on the new design with every tree fit masked, with the
+% 2026-10-06 parked (dense-vs-sparse write-up removed, user decision):
+% The importance study of the 16:00 forecast (MDI, split count, permutation, TreeSHAP) and the
+% dense-versus-sparse study were re-run on the new design with every tree fit masked, with the
+% first pass's refits, held-out tails, permutation scheme and seeds. In the trees
+The importance study of the 16:00 forecast (MDI, split count, permutation, TreeSHAP) was
+re-run on the new design with every tree fit masked, with the
 first pass's refits, held-out tails, permutation scheme and seeds. In the trees
 (Table~\ref{tab:app_camp_featimp}) the \texttt{har\_ma\_*} ladder still leads
 \campFILead{} of \campFILeadN{} input-set $\times$ model $\times$ measure rows at the series
 level. The table gives its MDI, TreeSHAP and permutation shares before and after, beside
 the part of the old ladder's MDI that sat on the \texttt{har\_ma\_k\_x\_close} copies
-(column five).
+(column five). % 2026-10-13 (user): results/feature_importance_1530_dedup/SUMMARY.md, settings line
+For XGBoost and the random forest the new side runs their current settings
+(Section~\ref{sec:close_option_methods}) and the first pass their earlier ones, so their
+change mixes the settings with the design and the mask.
 The rank correlation of the series rankings, old against new, has median
 \campFISpearmanTrees{} over the tree rows (lowest \campFISpearmanTreesMin{}). No interval is
 computed for these share changes; the yardstick is the ridge, which solves the same problem
 in both runs, and whose permutation importance of the ladder moves by at most
 \campFIRidgeNoise{} points of the tail loss between the two sets of permutation draws.
 
-In the density table (Table~\ref{tab:app_camp_dvs}) the linear forecasts are the first
-pass's to \campDvsLinMaxRel{}, so their effective number of inputs $N_{\mathrm{eff}}$ does
-not move; the trees' $N_{\mathrm{eff}}$ is given for the first pass, the de-duplicated design
-without the mask and with it, beside the share of the first pass's TreeSHAP that sat on the
-session-edge columns (last column). \campDvsClaimsSame{} of the
-first pass's \campDvsClaims{} statements read the same on the new runs. LightGBM on all
-columns, new minus first pass: QLIKE \campDvsLgbmQLive{} \campDvsLgbmQLiveCI{} and Sharpe
-\campDvsLgbmSLive{} \campDvsLgbmSLiveCI{} (\texttt{live\_feasible}); QLIKE
-\campDvsLgbmQAll{} \campDvsLgbmQAllCI{} and Sharpe \campDvsLgbmSAll{} \campDvsLgbmSAllCI{}
-(\texttt{all\_features}).
+% 2026-10-06 parked (dense-vs-sparse write-up removed, user decision):
+% In the density table (Table~\ref{tab:app_camp_dvs}) the linear forecasts are the first
+% pass's to \campDvsLinMaxRel{}, so their effective number of inputs $N_{\mathrm{eff}}$ does
+% not move; the trees' $N_{\mathrm{eff}}$ is given for the first pass, the de-duplicated design
+% without the mask and with it, beside the share of the first pass's TreeSHAP that sat on the
+% session-edge columns (last column). \campDvsClaimsSame{} of the
+% % 2026-10-06 parked (recalibration removed, user decision):
+% % first pass's \campDvsClaims{} statements read the same on the new runs. LightGBM on all
+% % columns, new minus first pass: QLIKE \campDvsLgbmQLive{} \campDvsLgbmQLiveCI{} and Sharpe
+% % \campDvsLgbmSLive{} \campDvsLgbmSLiveCI{} (\texttt{live\_feasible}); QLIKE
+% % \campDvsLgbmQAll{} \campDvsLgbmQAllCI{} and Sharpe \campDvsLgbmSAll{} \campDvsLgbmSAllCI{}
+% % (\texttt{all\_features}).
+% first pass's \campDvsClaims{} statements read the same on the new runs. LightGBM on all
+% columns, new minus first pass: QLIKE \campDvsLgbmQLive{} and Sharpe
+% \campDvsLgbmSLive{} (\texttt{live\_feasible}); QLIKE
+% \campDvsLgbmQAll{} and Sharpe \campDvsLgbmSAll{}
+% (\texttt{all\_features}).
 
 % Source: results/feature_importance_1530_dedup/before_after_har_ma.csv, before_after_har_ma_columns.csv
 \begin{table}[H]
@@ -475,25 +778,32 @@ QLIKE) in \% of the model's tail loss, the part of the old ladder's MDI that sat
 \campfit{\scriptsize\input{generated/appendix_campaign_16h_featimp}}
 \end{table}
 
-% Source: results/dense_vs_sparse_dedup/before_after_density.csv, before_after_session_edge.csv
-\begin{table}[H]
-\centering
-\caption{Signal density before and after: effective number of inputs
-$N_{\mathrm{eff}}=1/\sum_j s_j^2$ of each forecast's mean absolute contributions (first pass;
-new design without the mask, trees only; new design with the mask), the fewest columns
-reproducing 95\,\% of the input-driven forecast's variance ($k_{95}$), the columns with any
-weight, and the first pass's share of the trees' mean $|$TreeSHAP$|$ on the session-edge
-columns.}
-\label{tab:app_camp_dvs}
-\campfit{\scriptsize\input{generated/appendix_campaign_16h_dvs}}
-\end{table}
+% 2026-10-06 parked (dense-vs-sparse write-up removed, user decision):
+% % Source: results/dense_vs_sparse_dedup/before_after_density.csv, before_after_session_edge.csv
+% \begin{table}[H]
+% \centering
+% \caption{Signal density before and after: effective number of inputs
+% $N_{\mathrm{eff}}=1/\sum_j s_j^2$ of each forecast's mean absolute contributions (first pass;
+% new design without the mask, trees only; new design with the mask), the fewest columns
+% reproducing 95\,\% of the input-driven forecast's variance ($k_{95}$), the columns with any
+% weight, and the first pass's share of the trees' mean $|$TreeSHAP$|$ on the session-edge
+% columns.}
+% \label{tab:app_camp_dvs}
+% \campfit{\scriptsize\input{generated/appendix_campaign_16h_dvs}}
+% \end{table}
 
 % ----------------------------------------------------------------------------
 \subsubsection{Compute used}
 \label{sec:app_camp_compute}
 
 Table~\ref{tab:app_camp_compute} lists the compute each stage reported. Cluster A is the
-batch cluster that ran the tree and LSTM fleets (Slurm); cluster B the one that ran the
+% 2026-10-06 parked (model-set numbers regenerated, user decisions):
+% batch cluster that ran the tree and LSTM fleets (Slurm); cluster B the one that ran the
+% 2026-10-13 (user): LSTM parked for now (double-standardisation bug); the masked stage's row
+% now counts its tree jobs only (make_appendix_campaign_16h_tex.py drops its lstm_* jobs):
+% batch cluster that ran the tree fleets (one stage also ran the LSTMs, which are not reported);
+batch cluster that ran the tree fleets;
+cluster B the one that ran the
 linear and rest-of-day arms (SGE). Allocated CPU-hours count every core a job held for its
 whole run; used CPU-hours the busy share. The largest allocation is the masked Optuna run's
 (\campComputeOptunaAlloc{} allocated CPU-hours, at up to \campComputeOptunaPeak{} CPUs at
@@ -513,3 +823,11 @@ reported). For cluster B, slot-hours are wall-clock hours of the job slots.}
 \label{tab:app_camp_compute}
 \campfit{\small\input{generated/appendix_campaign_16h_compute}}
 \end{table}
+
+% 2026-10-08 parked (lean set; replaced by an MCS over the features):
+% % 2026-10-06: the lean set, a follow-up to the importance study above.
+% \input{sections/appendix_lean_set}
+
+% 2026-10-13 (user): the bucket story check of the feature study, in the place of the parked lean set
+% 2026-10-14 parked (user): the bucket write-up is not in the paper for now
+% \input{sections/appendix_buckets}

@@ -21,10 +21,10 @@ WHAT IS SCORED.  Every forecast of the 15:30-16:00 bar's realized variance on di
                     forecast).  Training-window ablations (the 500-session twins of
                     2000-session arms) are not scored.
 
-THE SCORER (the RESEARCH convention; the notebook's 13-bar map is NOT used, so no
-number here may be set beside a notebook number).  Exactly what
-experiments/compare_mfiv_harlag.py and experiments/score_trees_subsection.py do,
-with their own functions imported, never re-implemented:
+THE SCORER (2026-10-06: recalibration removed, user decision -- every reported number
+uses the PLAIN back-transform; the notebook's 13-bar map is NOT used either, so no
+number here may be set beside a notebook number).  The research scorers' own
+functions are imported, never re-implemented:
 
   * target     the per-bar spec's 16:00 target: true_adj = sqrt(RV/B), winsorized
                by the spec (rolling 5/95), and true_raw = true_adj^2 B.  Every
@@ -32,25 +32,33 @@ with their own functions imported, never re-implemented:
                below), so one frame -- TARGET_ARM -- serves every forecast; a table
                that is not a per-bar arm (the paper's pooled forecasts) is scored
                against the same target on the same stamps.
-  * recalibration on the 16:00 bar ALONE:
-               pred_clock = (f^2 + s) B,  s = the mean of the forecast's own squared
-               adjusted-scale errors (true_adj - f)^2 at the 16:00 label over the
-               previous SMEAR_W = 250 sessions (at least SMEAR_MIN = 63), lagged one
-               session -- score_linear_subsection_causal.causal_forecasts.  No
-               level/slope map: a forecast fitted on all 48 bars keeps whatever
-               16:00 level bias it has (the notebook's Mincer-Zarnowitz map would
-               remove it), so the paper's pooled forecasts read lower here than in
-               the deck.
-  * raw        the plain back-transform f^2 B (no second-moment term, no map).
+  * forecast   the plain back-transform  plain = f^2 B  (f = the model's forecast on
+               the adjusted scale sqrt(RV/B), B the diurnal baseline; no
+               second-moment term, no level/slope map).  QLIKE (column qlike_raw),
+               the Diebold-Mariano statistic, the trade and every Sharpe use it.
+  * parked     the research scorer's 16:00-bar recalibration pred_clock = (f^2 + s) B,
+               s = the mean of the forecast's own squared adjusted-scale errors at
+               the 16:00 label over the previous SMEAR_W = 250 sessions (at least
+               SMEAR_MIN = 63), lagged one session
+               (score_linear_subsection_causal.causal_forecasts).  It is computed
+               only as the DIAGNOSTIC column pred_clock: the scorer-change record
+               recal_vs_plain.csv and the reported-only gates on stored numbers that
+               were written with it.  No reported number uses it.
   * trade      the deck's 15:30 sign(s) on the straddle (nearest out-of-the-money
                call + nearest out-of-the-money put, same-day expiry, one position):
-               q = +1 (buy) if pred_clock > the 15:30 implied variance, else -1;
+               q = +1 (buy) if plain > the 15:30 implied variance, else -1;
                mid return q R; crossed return exit/ask - 1 (buy) or 1 - exit/bid
                (sell) -- score_linear_subsection.trade_1530 on
                results/atm_straddle_0dte_1530/daily_blk2.parquet (866 days,
                2020-01-03 .. 2024-04-30).  Per-day returns are needed for the
-               paired intervals, so trade_days() restates trade_1530's lines and a
+               paired statistics, so trade_days() restates trade_1530's lines and a
                gate checks its aggregates against trade_1530 itself for every row.
+  * no intervals  (user, 2026-10-06) the circular block bootstrap is disabled
+               (commit b761b28: every draw is the original sample), so every
+               interval would equal its point estimate; the interval columns are
+               commented out and every number is a point estimate.  The DM
+               statistic (QLIKE) and the Newey-West HAC t of the daily mid-return
+               difference are statistics, not intervals, and stay.
 
 THE SAME DAYS.  Table A holds every forecast that covers all 866 trade days
 (the intersection is printed and must equal 866); a forecast that drops days, or
@@ -63,25 +71,26 @@ REFERENCE (fixed): the block-diagonal ridge on the panel of record
 deck trades (daily_blk2.parquet).  Every row answers "does this forecast improve on
 the paper's?".  Second reference: always short (q = -1 every day, no forecast).
 
-COLUMNS per forecast: 16:00 QLIKE raw and recalibrated (against the spec's target;
-the recalibrated one also against the unclipped realized variance of the production
-table); % difference vs the reference with the day-block 95 % interval and the
-Diebold-Mariano HAC statistic (src.evaluation.diebold_mariano.dm_test, the research
-scorers' test); sign(s) Sharpe mid and crossed, mean return, hit rate (share of
-days the position earns > 0), buy days; paired block-bootstrap 95 % intervals of
-the Sharpe difference vs the reference and vs always short (circular blocks of
-BOOT_BLOCK = 21 days, BOOT_B = 2000 draws, seed [BOOT_SEED, n] -- the constants of
-score_linear_subsection, whose day_block_ci draws the same days); calibration
-(mean realized / mean forecast).
+COLUMNS per forecast (point estimates only): 16:00 QLIKE of the plain forecast
+(qlike_raw, against the spec's target; qlike_raw_unclipped against the unclipped
+realized variance of the production table); % difference vs the reference and the
+Diebold-Mariano HAC statistic on the daily QLIKE difference
+(src.evaluation.diebold_mariano.dm_test, the research scorers' test); sign(s) Sharpe
+mid and crossed, mean return, hit rate (share of days the position earns > 0), buy
+days; the Sharpe difference vs the reference and vs always short on the same days and
+the Newey-West HAC t of the daily mid-return difference vs the reference;
+calibration (mean realized / mean plain forecast).  The paired bootstrap intervals
+(day_block_ci, paired_sharpe's percentiles) are commented out (2026-10-06).
 
 EXTREME BACK-TRANSFORM VALUES (named, explicit; no silent clip).  PLAIN_FLOOR(d) =
-the smallest 16:00 target of the previous SMEAR_W sessions, lagged one session (the
-recalibration's own window, no new constant).  A plain forecast below it predicts a
-quieter 15:30-16:00 half hour than any in the past year: it is flagged, listed in
-master_table_extremes.csv, and the raw QLIKE is reported both as is and with the
-flagged forecasts raised to the floor ("floored").  Counted on the trade days and on
-every 16:00 session of the arm span (2018-06-25 .. 2024-04-30, early closes
-included).  The recalibrated forecast needs no treatment (it is >= s B > 0).
+the smallest 16:00 target of the previous FLOOR_W sessions, lagged one session
+(FLOOR_W, FLOOR_MIN = the parked recalibration's 250-session window and 63-session
+warm-up, no new constant).  A plain forecast below it predicts a quieter 15:30-16:00
+half hour than any in the past year: it is flagged, listed in
+master_table_extremes.csv, and the QLIKE is reported both as is (qlike_raw, the
+reported number) and with the flagged forecasts raised to the floor
+(qlike_raw_floored, a diagnostic).  Counted on the trade days and on every 16:00
+session of the arm span (2018-06-25 .. 2024-04-30, early closes included).
 
 ARM ROOT (--arm-root, or the environment variable MASTER_TABLE_ARM_ROOT; the CLI wins).
 The arm-only rows, the per-bar OLS incumbent and the common 16:00 target are read from
@@ -101,38 +110,46 @@ GATES (a failure of an ASSERTED gate is printed and recorded in master_table_gat
 the tables are still written; exit status 1): the 16:00 target of every arm file equals
 TARGET_ARM's (GATE_REL); every table's baseline equals the target's B (GATE_REL), its
 rv_raw equals the production table's and its 16:00 stamps are exactly the target's on the
-arm span; every arm file's pred_clock equals the research reader's
-(compare_mfiv_harlag._prep) on the trade days; every row's trade aggregates equal
-trade_1530's; a table and the arm file of the same forecast carry the same pred_adj (the
-per-bar linear tables against <arm root>/arms_hoffman2); no forecast falls into "other
-table"; always short equals the paper table's always-short row.  STORED RESEARCH NUMBERS
-are design-aware: the numbers written on the first-pass design
+arm span; every arm file's plain forecast equals the research reader's pred_adj^2 x
+baseline (compare_mfiv_harlag._prep) on the trade days; every row's trade aggregates equal
+trade_1530's on the plain forecast; every row of master_table_daily.parquet has
+q = sign(plain - iv_var) (+1 when plain > iv_var, else -1); a table and the arm file of the
+same forecast carry the same pred_adj (the per-bar linear tables against
+<arm root>/arms_hoffman2); no forecast falls into "other table"; always short equals the
+paper table's always-short row.  STORED RESEARCH NUMBERS: every stored number written with
+the recalibrated forecast (2026-10-06: recalibration removed, user decision) is now
+REPORTED, not asserted (asserted = False), against the same quantity recomputed here from
+the diagnostic pred_clock -- the first-pass numbers
 (results/linear_subsection_trees/rescore_local/trees_trade_1530.csv, the compare_* CSVs of
-the bucket studies) are asserted with the default arm root and REPORTED (asserted = False,
-stored_design "pre-campaign design") with the de-dup root; the campaign's own stored
-numbers (STORED_CAMPAIGN: agent A's change_by_arm.csv for every linear forecast, agent H's
+the bucket studies; stored_design "pre-campaign design") and the campaign's own numbers
+(STORED_CAMPAIGN: agent A's change_by_arm.csv for every linear forecast, agent H's
 mask_levels.csv for the tree rungs T10/T1/RS10/RS1 and the per-bar LSTM, agent C's Optuna
 report levels.csv, agent I's lstmi_levels.csv, agent E's check_1530.csv for the rest-of-day
-check rows) are asserted with the de-dup root and reported with the default one.  With the
-de-dup root the families the campaign did not touch (paper, pooled twins) must also equal
-the pre-campaign master table (BEFORE_DIR) bit for bit.
+check rows; stored_design "16:00 campaign, recalibrated scorer"), and the committed
+recalibrated master table (RECAL_SNAPSHOT).  Stored PLAIN numbers (agent C's qlike_raw) stay
+asserted with the de-dup root (reported with the default one).  With the de-dup root the
+families the campaign did not touch (paper, pooled twins) must also equal the pre-campaign
+master table (BEFORE_DIR) bit for bit under the plain scorer.
 
 BEFORE / AFTER (when BEFORE_DIR holds the pre-campaign master_table.csv and
-master_table_daily.parquet): before_after.csv, one row per forecast key -- QLIKE (recal)
-and sign(s) Sharpe mid / crossed before and after, the differences, the paired day-block
-interval of each Sharpe difference from the two daily frames (same days, the same draws as
-paired_sharpe), the day-block interval of the daily QLIKE difference, positions changed,
-and what changed for the family (FAMILY_PROV, from the campaign file); keys new in this
-run are listed with status "new".
+master_table_daily.parquet): before_after.csv, one row per forecast key -- QLIKE and sign(s)
+Sharpe mid / crossed before and after, BOTH under the plain scorer (the before side is
+re-scored from the pre-campaign daily frame's plain column and the deck), the differences,
+the HAC t of the daily mid-return difference, positions changed, and what changed for the
+family (FAMILY_PROV, from the campaign file); keys new in this run are listed with status
+"new".  SCORER CHANGE: recal_vs_plain.csv, one row per forecast -- QLIKE, Sharpe mid /
+crossed and buy days under the parked recalibration (diagnostic pred_clock) and under the
+plain forecast on the same days, positions changed.
 
-Parallelism: loading + recalibration and the bootstraps run in a process pool of
-MAX_WORKERS = 4 (the brief's local cap).
+Parallelism: loading and the per-row statistics run in a process pool of MAX_WORKERS = 4
+(the brief's local cap).
 
 Outputs (results/close_master_table/): master_table.csv, master_table_days.csv,
 master_table_extremes.csv, master_table_gates.csv, master_table_rankcorr.csv,
-master_table_vs_headline.csv, before_after.csv, master_table_provenance.csv, SUMMARY.md;
-then writeup/make_master_table_close_tex.py renders writeup/generated/table_master_close.tex
-and writeup/master_table_close.pdf (--no-pdf skips it).
+master_table_vs_headline.csv, before_after.csv, recal_vs_plain.csv,
+master_table_provenance.csv, SUMMARY.md; then writeup/make_master_table_close_tex.py renders
+writeup/generated/table_master_close.tex and writeup/master_table_close.pdf (--no-pdf skips
+it).
 
 Run:  python experiments/master_table_close.py [--arm-root linear_subsection_dedup] [--no-pdf] [--workers 4]
 """
@@ -140,6 +157,8 @@ Run:  python experiments/master_table_close.py [--arm-root linear_subsection_ded
 from __future__ import annotations
 
 import argparse
+import hashlib  # 2026-10-07: the switched paper row's table hash (PAPER_SWITCHED)
+import math
 import os
 import re
 import subprocess
@@ -167,6 +186,7 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 
 SPXW = ROOT / "results" / "spxw_pnl"
 OUT = ROOT / "results" / "close_master_table"
+PAPER_OUT = OUT  # 2026-10-13: the paper's run (PERBAR_SWITCH is active only when OUT is this directory)
 DEFAULT_ARM_ROOT = (
     "linear_subsection"  # the first-pass arms (the run of commit 6177b74)
 )
@@ -249,10 +269,40 @@ REPRO_TOL = 1e-9  # stored research numbers were written as full-precision float
 RANK_CHUNK = 40  # bootstrap draws per worker task in the rank-correlation stage (memory, not a statistic)
 # The recommended headline forecast of the closing strategy (see SUMMARY.md for why).
 HEADLINE = "sub_ridge_live_feasible"
+# 2026-10-06: recalibration removed, user decision.  Every reported number uses the plain
+# back-transform f^2 B; the recalibrated (f^2 + s) B is the diagnostic column pred_clock only.
+RECAL_REMOVED = "2026-10-06"
+# the committed master table of the recalibrated scorer (the run of 2026-09-30, commit e4b83a0),
+# kept as the "before" of the scorer-change record (reported, never asserted)
+RECAL_SNAPSHOT = OUT / "recal_2026-09-30" / "master_table.csv"
+# PLAIN_FLOOR's look-back: the parked recalibration's window and warm-up (no new constant)
+FLOOR_W, FLOOR_MIN = slc.SMEAR_W, slc.SMEAR_MIN
+# significance level of the DM and HAC t counts in SUMMARY.md (statistics, not intervals)
+SIG_LEVEL = 0.05
+STORED_RECAL = "16:00 campaign, recalibrated scorer"  # stored_design of the campaign's recal numbers
 
 EST_LONG = {"ridge": "ridge", "lasso": "lasso", "enet": "elastic net", "ols": "OLS"}
 EST_SHORT = {"ridge": "ridge", "reclasso": "lasso", "reclasticnet": "enet"}
 TREE_LONG = {"lgbm": "LightGBM", "xgb": "XGBoost", "rf": "random forest"}
+# 2026-10-06 (user decision): the dev-tuned random forest (results/rf_devmenu_2026-10-06/rf_config.json,
+# rf_opt_00; results/trees_rfdev_1600/) as its own model token of the T1 / T10 rows
+TREE_LONG["rfdev"] = "random forest (dev-tuned)"
+# 2026-10-13 (user; writeup/MASTER_TABLE_REVIEW_2026-10-01.md items 76-79): the per-bar trees on their top 1998-2002
+# entries go into the PAPER.  Every per-bar XGBoost key (T10, T1, the random search, every Optuna rung) and every
+# per-bar random-forest key with the token ``rf`` keeps its key and label and reads the replacement table:
+#   xgb -> results/trees_xgbtop_1600/ (xgb_opt_00, the top XGBoost entry; was xgb_opt_06, 7th-ranked)
+#   rf  -> results/trees_rf400_1600/  (trial 255 of the 400-trial search; was sklearn defaults for the tuned rungs and
+#          rf_opt_00 of the 87-trial search for T1 / T10 under the separate token rfdev)
+# The rule is the GUI's (writeup/master_table_gui/rows.py _tree_swap_table, read only): T10 subtree_<est>_<set> ->
+# yhat_subtree_<tok>_<set>; every other key subtree_<...>_<est> -> yhat_subtree_<...>_<tok>; input sets baseline,
+# all_features, lean_vol_vix.  PAPER RUN ONLY: active when OUT is the paper's results/close_master_table (the GUI's
+# own run redirects OUT and swaps in memory itself, so it is untouched).  The replaced tables stay in results/spxw_pnl/.
+PERBAR_SWITCH = {
+    "xgb": (ROOT / "results" / "trees_xgbtop_1600", "xgbtop"),
+    "rf": (ROOT / "results" / "trees_rf400_1600", "rf400"),
+}
+PERBAR_SWITCH_SETS = ("baseline", "all_features", "lean_vol_vix")
+PERBAR_SWITCH_DECIDED = "2026-10-13 (user; review items 76-79)"
 VIX_BUCKETS = (
     "vix_only",
     "live_vix_only",
@@ -413,6 +463,51 @@ def _paper_tags() -> dict[str, str]:
     return {p.name: t for t, p in asl.yhat_paths(ROOT).items()}
 
 
+# 2026-10-06 (user decision: "use the pre-tuned version for all linear models"): the per-bar
+# ridge / lasso / elastic net of the paper are arm (f) of results/linear_pretune_2026-10-06/
+# (experiments/close_linear_pretune.py: penalty pre-tuned before 2020, HAR + calendar backbone at
+# 1/100 of the exogenous penalty, retuned every 250 sessions only past the margin), stacked into
+# results/spxw_pnl/yhat_subpt_<est>_<bucket>.parquet by experiments/stack_pretune_yhat.py (the
+# one-penalty yhat_sub_* tables are untouched).  Key subpt_<est>_<bucket>, family "per-bar linear";
+# gate (asserted, load_one): the table's pred_adj equals the study's f-arm export bit for bit.
+PRETUNE_EXPORT = ROOT / "results" / "linear_pretune_2026-10-06" / "forecasts.parquet"
+# 2026-10-06 (user decision): the pooled linear rows are pre-tuned too -- arm (f) of
+# results/pool_linear_pretune_2026-10-06/ (Hoffman2 run of record), stacked into
+# results/spxw_pnl/yhat_poolpt_<est>_<bucket>.parquet by experiments/stack_pool_pretune_yhat.py;
+# key poolpt_<est>_<bucket>, family "pooled twin"; the same asserted export gate as subpt.
+POOL_PRETUNE_EXPORT = (
+    ROOT / "results" / "pool_linear_pretune_2026-10-06" / "forecasts.parquet"
+)
+_PRETUNE: dict[str, pd.Series] = {}
+
+
+def pretune_series(est: str, bucket: str) -> str:
+    """The f-arm export series (backbone 1/100; on baseline every column is backbone)."""
+    arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+    return f"linear_pretune/{est}_{bucket}_{arm}"
+
+
+def pretune_export(sid: str) -> pd.Series:
+    """One f-arm series of the study's export, pred_adj by naive-ET 16:00 stamp (cached)."""
+    if not _PRETUNE:
+        ex = pd.concat(
+            [
+                pd.read_parquet(x, columns=["series_id", "date", "pred_adj"])
+                for x in (PRETUNE_EXPORT, POOL_PRETUNE_EXPORT)
+                if x.is_file()
+            ]
+        )
+        for s, g in ex.groupby("series_id"):
+            if "_f_retune_margin" in str(s):
+                idx = pd.DatetimeIndex(pd.to_datetime(g["date"]).to_numpy()).as_unit(
+                    "ns"
+                )
+                _PRETUNE[str(s)] = pd.Series(
+                    g["pred_adj"].to_numpy(), index=idx
+                ).sort_index()
+    return _PRETUNE[sid]
+
+
 def describe_table(p: Path, paper: dict[str, str]) -> Spec:
     stem = p.stem.removeprefix("yhat_")
     tag = paper.get(p.name)
@@ -425,6 +520,39 @@ def describe_table(p: Path, paper: dict[str, str]) -> Spec:
             "paper",
             "table",
             str(p),
+        )
+    # 2026-10-06: the pre-tuned per-bar linear tables (arm f; see PRETUNE_EXPORT)
+    m = re.fullmatch(r"subpt_(ridge|lasso|enet)_(\w+)", stem)
+    if m:
+        est, bucket = m.groups()
+        return Spec(
+            stem,
+            f"per-bar {EST_LONG[est]} [{bucket}], pre-tuned",
+            "per-bar linear",
+            "table",
+            str(p),
+            meta={
+                "est": est,
+                "bucket": bucket,
+                "pretune_series": pretune_series(est, bucket),
+            },
+        )
+    # 2026-10-06: the pre-tuned pooled linear tables (arm f; see POOL_PRETUNE_EXPORT)
+    m = re.fullmatch(r"poolpt_(ridge|lasso|enet)_(\w+)", stem)
+    if m:
+        est, bucket = m.groups()
+        arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+        return Spec(
+            stem,
+            f"pooled {EST_LONG[est]} [{bucket}], pre-tuned",
+            "pooled twin",
+            "table",
+            str(p),
+            meta={
+                "est": est,
+                "bucket": bucket,
+                "pretune_series": f"pool_linear_pretune/{est}_{bucket}_{arm}",
+            },
         )
     m = re.fullmatch(r"sub_(ridge|lasso|enet)_(\w+)", stem)
     if m:
@@ -461,7 +589,11 @@ def describe_table(p: Path, paper: dict[str, str]) -> Spec:
             twin_key=f"sub_{est}_{bucket}",
             meta={"est": est, "bucket": bucket},
         )
-    bk = r"(all_features|baseline|live_feasible)"
+    # bk = r"(all_features|baseline|live_feasible)"
+    # 2026-10-06: the moments_vix input set (HAR + calendar + return moments + VIX level; src/data/loading.py)
+    # bk = r"(all_features|baseline|live_feasible|moments_vix)"
+    # + moments, ES volume, VIX; lean_vol_vix = signed / absolute / quartic return, autocovariance, volume, VIX
+    bk = r"(all_features|baseline|live_feasible|moments_vix|moments_vol_vix|lean_vol_vix)"
     # experiments/build_subsection_tree_tuned_yhat.py: tuned = MSE-selected configuration (the arm of record),
     # tunedq = QLIKE-selected configuration (the second selection rule); _daily = refit every session (RS1)
     m = re.fullmatch(rf"subtree_tuned(q?)_(daily_)?{bk}_(lgbm|xgb|rf)", stem) or (
@@ -505,7 +637,9 @@ def describe_table(p: Path, paper: dict[str, str]) -> Spec:
             meta={"model": model, "bucket": bucket, "tp": int(tp), "k": kk, "q": q},
         )
     # the untuned trees refit every session (T1, agent B / H)
-    m = re.fullmatch(rf"subtree_daily_{bk}_(lgbm|xgb|rf)", stem)
+    m = re.fullmatch(
+        rf"subtree_daily_{bk}_(lgbm|xgb|rfdev|rf)", stem
+    )  # 2026-10-06: + rfdev
     if m:
         bucket, model = m.groups()
         return Spec(
@@ -516,7 +650,7 @@ def describe_table(p: Path, paper: dict[str, str]) -> Spec:
             str(p),
             meta={"model": model, "bucket": bucket, "rung": "T1"},
         )
-    m = re.fullmatch(r"subtree_(lgbm|xgb|rf)_(\w+)", stem)
+    m = re.fullmatch(r"subtree_(lgbm|xgb|rfdev|rf)_(\w+)", stem)  # 2026-10-06: + rfdev
     if m:
         model, bucket = m.groups()
         return Spec(
@@ -579,12 +713,27 @@ def discover() -> tuple[list[Spec], list[dict]]:
     specs: list[Spec] = []
     skipped: list[dict] = []
     for p in sorted(SPXW.glob("yhat_*.parquet")):
+        # 2026-10-07: a pooled tree-bank dump the paper does not read (see PAPER_SWITCHED) is not scored
+        if re.fullmatch(r"yhat_tree\d\d\.parquet", p.name) and p.name not in paper:
+            skipped.append(
+                {
+                    "key": p.stem.removeprefix("yhat_"),
+                    "source": str(p.relative_to(ROOT)),
+                    "reason": "pooled tree-bank dump not read by the paper (2026-10-07: xgb = bank arm 10; "
+                    "arm 16 = xgb_opt_06 parked)",
+                }
+            )
+            continue
         specs.append(describe_table(p, paper))
     have = {s.key for s in specs}
     # the per-bar linear tables were stacked from <arm root>/arms_hoffman2 (build_subsection_yhat.py):
     # the 16:00 arm file of each is a gate on the table (same pred_adj, same recalibrated forecast)
     est_dir = {v: k for k, v in EST_SHORT.items()}
     for s in specs:
+        if s.meta.get(
+            "pretune_series"
+        ):  # 2026-10-06: gated against the study's export instead
+            continue
         if s.family == "per-bar linear" and s.meta.get("bucket") in (
             "all_features",
             "baseline",
@@ -709,7 +858,41 @@ def discover() -> tuple[list[Spec], list[dict]]:
                         meta={"study": "harlag", "variant": v, "est": short},
                     )
                 )
+    # 2026-10-13 (user): the per-bar trees on their top entries, paper run only (see PERBAR_SWITCH)
+    if perbar_switch_active():
+        for s in specs:
+            q = perbar_switch_path(s.key)
+            if (
+                q is None
+                or s.source != "table"
+                or not s.family.startswith("per-bar tree")
+            ):
+                continue
+            assert q.is_file(), f"per-bar switch: {s.key} -> {q} not on disk"
+            s.meta["switched_from"] = s.path
+            s.meta["perbar_switch"] = PERBAR_SWITCH[s.meta["model"]][1]
+            s.path = str(q)
     return specs, skipped
+
+
+def perbar_switch_active() -> bool:
+    """2026-10-13: the per-bar tree switch applies to the paper's run only (OUT not redirected)."""
+    return OUT.resolve() == PAPER_OUT.resolve()
+
+
+def perbar_switch_path(key: str) -> Path | None:
+    """The replacement table of a per-bar XGBoost / random-forest key (PERBAR_SWITCH), else None."""
+    if sum(f"_{b}_" in f"_{key}_" for b in PERBAR_SWITCH_SETS) != 1:
+        return None
+    m = re.fullmatch(r"subtree_(xgb|rf)_(\w+)", key)  # T10
+    if m:
+        d, tok = PERBAR_SWITCH[m.group(1)]
+        return d / f"yhat_subtree_{tok}_{m.group(2)}.parquet"
+    m = re.fullmatch(r"(subtree_.+_)(xgb|rf)", key)  # T1, RS10 / RS1, Optuna
+    if m:
+        d, tok = PERBAR_SWITCH[m.group(2)]
+        return d / f"yhat_{m.group(1)}{tok}.parquet"
+    return None
 
 
 # --------------------------------------------------------------------------- the common target
@@ -724,9 +907,9 @@ def load_target() -> pd.DataFrame:
     t["B"] = t["true_raw"] / t["true_adj"] ** 2
     prod = read_table_1600(PRODUCTION, ["rv_raw"])
     t["rv_unclipped"] = prod["rv_raw"].reindex(t.index)
-    # PLAIN_FLOOR: the smallest 16:00 target of the previous SMEAR_W sessions, lagged one session
+    # PLAIN_FLOOR: the smallest 16:00 target of the previous FLOOR_W sessions, lagged one session
     t["plain_floor"] = (
-        t["true_raw"].rolling(slc.SMEAR_W, min_periods=slc.SMEAR_MIN).min().shift(1)
+        t["true_raw"].rolling(FLOOR_W, min_periods=FLOOR_MIN).min().shift(1)
     )
     t["day"] = t.index.normalize()
     early = set(pd.to_datetime(list(asl.EARLY_CLOSE_DATES)))
@@ -754,7 +937,7 @@ def read_table_1600(path: Path | str, cols: list[str]) -> pd.DataFrame:
     return out.sort_index()
 
 
-# --------------------------------------------------------------------------- stage 1: load + recalibrate (worker)
+# --------------------------------------------------------------------------- stage 1: load + plain back-transform (worker)
 _TGT: pd.DataFrame | None = None
 _DECK_DAYS: pd.DatetimeIndex | None = None
 _IDX: dict[int, np.ndarray] = {}
@@ -766,7 +949,11 @@ def _init(tgt: pd.DataFrame, deck_days: pd.DatetimeIndex) -> None:
 
 
 def load_one(spec: Spec) -> dict:
-    """16:00 forecast -> the research recalibration on the common target.  Returns frame + gates."""
+    """16:00 forecast -> the plain back-transform f^2 B on the common target.  Returns frame + gates.
+
+    The frame also carries pred_clock, the parked recalibration (2026-10-06: recalibration removed,
+    user decision), as a DIAGNOSTIC column only -- no reported number uses it.
+    """
     assert _TGT is not None and _DECK_DAYS is not None
     tgt = _TGT
     gates: list[dict] = []
@@ -779,7 +966,7 @@ def load_one(spec: Spec) -> dict:
         "first16": "",
         "last16": "",
     }
-    research_clock = None
+    research_plain = None
     try:
         if spec.source == "table":
             has_rv = "rv_raw" in pq.read_schema(spec.path).names
@@ -787,7 +974,7 @@ def load_one(spec: Spec) -> dict:
                 spec.path, ["yhat", "baseline"] + (["rv_raw"] if has_rv else [])
             ).rename(columns={"yhat": "pred_adj"})
         else:
-            r = cmh._prep(Path(spec.path))  # the research reader and back-transform
+            r = cmh._prep(Path(spec.path))  # the research reader
             assert r is not None
             r = r[r["hhmm"] == TRADE_BAR]
             x = pd.DataFrame(
@@ -797,7 +984,8 @@ def load_one(spec: Spec) -> dict:
                     "true_raw_own": r["true_raw"],
                 }
             )
-            research_clock = r["pred_clock"]
+            # research_clock = r["pred_clock"]  # 2026-10-06: recalibration removed, user decision
+            research_plain = r["pred_adj"] ** 2 * r["baseline"]
     except Exception as e:  # noqa: BLE001 -- an unreadable or malformed file is reported, not fatal
         res["error"] = f"{type(e).__name__}: {e}"
         return res
@@ -883,12 +1071,15 @@ def load_one(spec: Spec) -> dict:
     r["e2"] = (r["true_adj"] - r["pred_adj"]) ** 2
     r["hhmm"] = r.index.strftime("%H:%M")
     r["day"] = r.index.normalize()
+    # 2026-10-06: recalibration removed, user decision.  causal_forecasts is kept ONLY to fill the
+    # diagnostic column pred_clock (recal_vs_plain.csv and the reported-only stored-number gates);
+    # every reported number is computed from "plain" below.
     cf = slc.causal_forecasts(r)
     f = pd.DataFrame(
         {
             "pred_adj": cf["pred_adj"],
-            "plain": cf["pred_adj"] ** 2 * cf["baseline"],
-            "pred_clock": cf["pred_clock"],
+            "plain": cf["pred_adj"] ** 2 * cf["baseline"],  # THE forecast: f^2 B
+            "pred_clock": cf["pred_clock"],  # diagnostic only: (f^2 + s) B, parked
             "true_raw": cf["true_raw"],
             "rv_unclipped": j["rv_unclipped"],
             "plain_floor": j["plain_floor"],
@@ -896,18 +1087,15 @@ def load_one(spec: Spec) -> dict:
         },
         index=cf.index,
     )
-    if research_clock is not None:
-        on = f.index[f.index.normalize().isin(_DECK_DAYS) & f["pred_clock"].notna()]
-        rc = research_clock.reindex(on)
-        rel = (
-            float((f.loc[on, "pred_clock"] / rc - 1.0).abs().max())
-            if len(on)
-            else np.nan
-        )
-        ok = bool(len(on) and rc.notna().all() and rel <= 1e-12)
+    if research_plain is not None:
+        # the plain forecast equals the research reader's pred_adj^2 x baseline on the trade days
+        on = f.index[f.index.normalize().isin(_DECK_DAYS) & f["plain"].notna()]
+        rp = research_plain.reindex(on)
+        rel = float((f.loc[on, "plain"] / rp - 1.0).abs().max()) if len(on) else np.nan
+        ok = bool(len(on) and rp.notna().all() and rel <= 1e-12)
         gates.append(
             {
-                "gate": "pred_clock equals the research reader's (trade days)",
+                "gate": "plain forecast equals the research reader's pred_adj^2 x baseline (trade days)",
                 "forecast": spec.key,
                 "n": len(on),
                 "value": rel,
@@ -915,19 +1103,23 @@ def load_one(spec: Spec) -> dict:
                 "ok": ok,
             }
         )
+        # 2026-10-06: recalibration removed, user decision -- the pred_clock gate is parked:
+        # on = f.index[f.index.normalize().isin(_DECK_DAYS) & f["pred_clock"].notna()]
+        # rc = research_clock.reindex(on)
+        # rel = float((f.loc[on, "pred_clock"] / rc - 1.0).abs().max()) if len(on) else np.nan
+        # gates.append({"gate": "pred_clock equals the research reader's (trade days)", ...})
     arm_twin = spec.meta.get("arm_twin")
     if arm_twin:
         a = cmh._prep(Path(arm_twin))
         assert a is not None
         a = a[a["hhmm"] == TRADE_BAR]
-        jj = f[["pred_adj", "pred_clock"]].join(
-            a[["pred_adj", "pred_clock"]], how="inner", rsuffix="_arm"
+        a = a.assign(plain=a["pred_adj"] ** 2 * a["baseline"])
+        jj = f[["pred_adj", "plain"]].join(
+            a[["pred_adj", "plain"]], how="inner", rsuffix="_arm"
         )
         d_adj = float((jj["pred_adj"] - jj["pred_adj_arm"]).abs().max())
         on = jj.index.normalize().isin(_DECK_DAYS)
-        d_clk = float(
-            (jj.loc[on, "pred_clock"] / jj.loc[on, "pred_clock_arm"] - 1.0).abs().max()
-        )
+        d_pl = float((jj.loc[on, "plain"] / jj.loc[on, "plain_arm"] - 1.0).abs().max())
         gates.append(
             {
                 "gate": "table equals its arm file (pred_adj, abs)",
@@ -940,12 +1132,32 @@ def load_one(spec: Spec) -> dict:
         )
         gates.append(
             {
-                "gate": "table pred_clock equals the research reader on its arm file",
+                "gate": "table plain forecast equals the research reader's on its arm file",
                 "forecast": spec.key,
                 "n": int(on.sum()),
-                "value": d_clk,
+                "value": d_pl,
                 "bound": 1e-12,
-                "ok": d_clk <= 1e-12,
+                "ok": d_pl <= 1e-12,
+            }
+        )
+        # 2026-10-06: recalibration removed, user decision -- parked:
+        # gates.append({"gate": "table pred_clock equals the research reader on its arm file", ...})
+    psid = spec.meta.get("pretune_series")
+    if psid:
+        # 2026-10-06: a pre-tuned table is the study's f-arm export, bit for bit
+        ex = pretune_export(psid)
+        e_pt = ex.reindex(f.index)
+        d_pt = (
+            float((f["pred_adj"] - e_pt).abs().max()) if e_pt.notna().all() else np.inf
+        )
+        gates.append(
+            {
+                "gate": "pre-tuned table equals the study's f-arm export (pred_adj, abs)",
+                "forecast": spec.key,
+                "n": len(f),
+                "value": d_pt,
+                "bound": 0.0,
+                "ok": d_pt == 0.0,
             }
         )
     res["frame"] = f
@@ -1009,58 +1221,57 @@ def score_one(args: tuple) -> dict:
         "first_day": str(days.min().date()),
         "last_day": str(days.max().date()),
     }
-    # ---- forecast accuracy (QLIKE against the spec's target; recal also vs the unclipped RV)
+    # ---- forecast accuracy: QLIKE of the PLAIN forecast f^2 B against the spec's target (also vs
+    # the unclipped RV).  2026-10-06: recalibration removed, user decision -- every number below
+    # uses fd["plain"]; the recalibrated pred_clock lines are parked (commented out).
     y = fd["true_raw"]
     q_plain = slc.qlike(y, fd["plain"])
     floor = fd["plain_floor"]
     flag = fd["plain"] < floor
     q_plain_fl = slc.qlike(y, fd["plain"].where(~flag, floor))
-    q_rec = slc.qlike(y, fd["pred_clock"])
-    q_ref = slc.qlike(rd["true_raw"], rd["pred_clock"])
-    q_rec_u = slc.qlike(fd["rv_unclipped"], fd["pred_clock"])
-    q_ref_u = slc.qlike(rd["rv_unclipped"], rd["pred_clock"])
+    q_ref = slc.qlike(rd["true_raw"], rd["plain"])
+    q_plain_u = slc.qlike(fd["rv_unclipped"], fd["plain"])
+    q_ref_u = slc.qlike(rd["rv_unclipped"], rd["plain"])
+    # q_rec = slc.qlike(y, fd["pred_clock"])
+    # q_ref = slc.qlike(rd["true_raw"], rd["pred_clock"])
+    # q_rec_u = slc.qlike(fd["rv_unclipped"], fd["pred_clock"])
+    # q_ref_u = slc.qlike(rd["rv_unclipped"], rd["pred_clock"])
     out.update(
         {
-            "qlike_raw": float(q_plain.mean()),
+            "qlike_raw": float(q_plain.mean()),  # THE reported QLIKE (plain f^2 B)
             "qlike_raw_floored": float(q_plain_fl.mean()),
             "n_extreme_days": int(flag.sum()),
-            "qlike_recal": float(q_rec.mean()),
-            "qlike_recal_unclipped": float(q_rec_u.mean()),
-            "n_recal_below_floor": int((fd["pred_clock"] < floor).sum()),
+            "qlike_raw_unclipped": float(q_plain_u.mean()),
+            # "qlike_recal": float(q_rec.mean()),
+            # "qlike_recal_unclipped": float(q_rec_u.mean()),
+            # "n_recal_below_floor": int((fd["pred_clock"] < floor).sum()),
         }
     )
-    d = q_rec - q_ref
+    d = q_plain - q_ref
     out["qlike_pct_vs_ref"] = float(100.0 * d.mean() / q_ref.mean())
     if is_ref:
-        out.update(
-            {
-                "qlike_diff_ci_lo": np.nan,
-                "qlike_diff_ci_hi": np.nan,
-                "dm_vs_ref": np.nan,
-                "dm_p_vs_ref": np.nan,
-                "dm_hac_lag": np.nan,
-            }
-        )
+        out.update({"dm_vs_ref": np.nan, "dm_p_vs_ref": np.nan, "dm_hac_lag": np.nan})
     else:
-        lo, hi = base.day_block_ci(pd.Series(d.to_numpy(), index=fd.index))
-        dm = dm_test(q_rec.to_numpy(), q_ref.to_numpy())
+        # 2026-10-06: intervals commented out (user): the day-block interval equals the point
+        # lo, hi = base.day_block_ci(pd.Series(d.to_numpy(), index=fd.index))
+        dm = dm_test(q_plain.to_numpy(), q_ref.to_numpy())
         out.update(
             {
-                "qlike_diff_ci_lo": lo,
-                "qlike_diff_ci_hi": hi,
                 "dm_vs_ref": float(dm["dm"]),
                 "dm_p_vs_ref": float(dm["p"]),
                 "dm_hac_lag": dm["hac_lag"],
             }
         )
     out["qlike_pct_vs_ref_unclipped"] = float(
-        100.0 * (q_rec_u.mean() / q_ref_u.mean() - 1.0)
+        100.0 * (q_plain_u.mean() / q_ref_u.mean() - 1.0)
     )
-    out["calib_mean_realized_over_forecast"] = float(y.mean() / fd["pred_clock"].mean())
-    out["share_realized_above_forecast"] = float((y > fd["pred_clock"]).mean())
-    # ---- the last-30-min trade
-    t = trade_days(fd["pred_clock"], dk)
-    tr = trade_days(rd["pred_clock"], dk)
+    out["calib_mean_realized_over_forecast"] = float(y.mean() / fd["plain"].mean())
+    out["share_realized_above_forecast"] = float((y > fd["plain"]).mean())
+    # ---- the last-30-min trade: q = sign(plain - iv_var)
+    t = trade_days(fd["plain"], dk)
+    tr = trade_days(rd["plain"], dk)
+    # t = trade_days(fd["pred_clock"], dk)  # 2026-10-06: recalibration removed, user decision
+    # tr = trade_days(rd["pred_clock"], dk)
     assert len(t) == len(days) == len(tr)
     short_mid = -dk["R"].to_numpy(float)
     short_x = (1.0 - dk["exit"] / (dk["bid_c"] + dk["bid_p"])).to_numpy(float)
@@ -1084,31 +1295,16 @@ def score_one(args: tuple) -> dict:
         ("mid", mid, tr["mid"].to_numpy(), short_mid),
         ("crossed", crossed, tr["crossed"].to_numpy(), short_x),
     ):
-        if is_ref:
-            out.update(
-                {
-                    f"dSharpe_{fill}_vs_ref": 0.0,
-                    f"dSharpe_{fill}_vs_ref_lo": np.nan,
-                    f"dSharpe_{fill}_vs_ref_hi": np.nan,
-                }
-            )
-        else:
-            dh, lo, hi = paired_sharpe(a, b)
-            out.update(
-                {
-                    f"dSharpe_{fill}_vs_ref": dh,
-                    f"dSharpe_{fill}_vs_ref_lo": lo,
-                    f"dSharpe_{fill}_vs_ref_hi": hi,
-                }
-            )
-        dh, lo, hi = paired_sharpe(a, s)
-        out.update(
-            {
-                f"dSharpe_{fill}_vs_short": dh,
-                f"dSharpe_{fill}_vs_short_lo": lo,
-                f"dSharpe_{fill}_vs_short_hi": hi,
-            }
-        )
+        # 2026-10-06: intervals commented out (user) -- point estimates only; the paired
+        # bootstrap's percentiles (paired_sharpe's lo, hi) equal the point since b761b28.
+        out[f"dSharpe_{fill}_vs_ref"] = 0.0 if is_ref else sharpe(a) - sharpe(b)
+        out[f"dSharpe_{fill}_vs_short"] = sharpe(a) - sharpe(s)
+        # dh, lo, hi = paired_sharpe(a, b)
+        # out.update({f"dSharpe_{fill}_vs_ref_lo": lo, f"dSharpe_{fill}_vs_ref_hi": hi})
+        # dh, lo, hi = paired_sharpe(a, s)
+        # out.update({f"dSharpe_{fill}_vs_short_lo": lo, f"dSharpe_{fill}_vs_short_hi": hi})
+    t_s, _lag_s = asl.newey_west_t(mid - short_mid)
+    out["t_hac_mid_vs_short"] = t_s
     if not is_ref:
         t_hac, lag = asl.newey_west_t(mid - tr["mid"].to_numpy())
         out.update({"t_hac_mid_vs_ref": t_hac, "hac_lag": lag})
@@ -1123,7 +1319,8 @@ def score_short(days: pd.DatetimeIndex, deck: pd.DataFrame, ref: pd.DataFrame) -
     rd = ref.set_index(ref.index.normalize()).loc[days]
     mid = -dk["R"].to_numpy(float)
     crossed = (1.0 - dk["exit"] / (dk["bid_c"] + dk["bid_p"])).to_numpy(float)
-    tr = trade_days(rd["pred_clock"], dk)
+    tr = trade_days(rd["plain"], dk)  # the reference's plain sign(s) trade
+    # tr = trade_days(rd["pred_clock"], dk)  # 2026-10-06: recalibration removed, user decision
     out = {
         "key": ALWAYS_SHORT,
         "n_days": len(days),
@@ -1143,15 +1340,16 @@ def score_short(days: pd.DatetimeIndex, deck: pd.DataFrame, ref: pd.DataFrame) -
         ("mid", mid, tr["mid"].to_numpy()),
         ("crossed", crossed, tr["crossed"].to_numpy()),
     ):
-        dh, lo, hi = paired_sharpe(a, b)
+        # 2026-10-06: intervals commented out (user) -- point estimates only
+        # dh, lo, hi = paired_sharpe(a, b)
         out.update(
             {
-                f"dSharpe_{fill}_vs_ref": dh,
-                f"dSharpe_{fill}_vs_ref_lo": lo,
-                f"dSharpe_{fill}_vs_ref_hi": hi,
+                f"dSharpe_{fill}_vs_ref": sharpe(a) - sharpe(b),
+                f"dSharpe_{fill}_vs_short": 0.0,
             }
         )
-        out.update({f"dSharpe_{fill}_vs_short": 0.0})
+    t_hac, lag = asl.newey_west_t(mid - tr["mid"].to_numpy())
+    out.update({"t_hac_mid_vs_ref": t_hac, "hac_lag": lag})
     return out
 
 
@@ -1171,7 +1369,11 @@ def _spearman_cols(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 
 def rankcorr_chunk(args: tuple) -> np.ndarray:
-    """Spearman(QLIKE mean, Sharpe) across forecasts on each resampled day set of the chunk."""
+    """Spearman(QLIKE mean, Sharpe) across forecasts on each resampled day set of the chunk.
+
+    2026-10-06: no longer called (intervals commented out, user): the bootstrap is disabled, so
+    every draw would return the point estimate.
+    """
     qmat, rmat, lo, hi = args
     idx = boot_idx(qmat.shape[1])[lo:hi]
     q = qmat[:, idx].mean(axis=2)  # (F, draws)
@@ -1182,18 +1384,24 @@ def rankcorr_chunk(args: tuple) -> np.ndarray:
 
 # --------------------------------------------------------------------------- reproduction gates
 def repro_gates(
-    tab: pd.DataFrame, frames: dict[str, pd.DataFrame], deck_days: pd.DatetimeIndex
+    tab: pd.DataFrame,
+    frames: dict[str, pd.DataFrame],
+    deck_days: pd.DatetimeIndex,
+    rvp: pd.DataFrame,
 ) -> list[dict]:
-    """The stored research numbers, recomputed here, must agree -- design-aware.
+    """The stored research numbers, recomputed here, must agree -- scorer- and design-aware.
 
-    First-pass numbers (trees_trade_1530.csv, compare_*.csv) are asserted with the default arm
-    root and reported (asserted = False) with the de-dup root; the campaign's own numbers
-    (STORED_CAMPAIGN) the other way round; the paper's always-short row is asserted always.
+    2026-10-06: recalibration removed, user decision.  Every stored number written with the
+    recalibrated forecast is REPORTED (asserted = False) against the same quantity recomputed
+    here from the diagnostic pred_clock (``rvp``, the scorer-change frame indexed by key); stored
+    plain numbers (agent C's qlike_raw) stay asserted with the de-dup root (reported with the
+    default one); the paper's always-short row (no forecast) is asserted always.
     """
     g: list[dict] = []
     by = tab.set_index("key")
     dedup = ARM_ROOT != DEFAULT_ARM_ROOT
-    PRE, CAMP = "pre-campaign design", "16:00 campaign"
+    PRE, CAMP = "pre-campaign design", STORED_RECAL
+    CAMP_PLAIN = "16:00 campaign, plain forecast"
 
     def chk(
         name: str,
@@ -1204,8 +1412,10 @@ def repro_gates(
         asserted: bool,
         got: float | None = None,
         n: int | None = None,
+        frame: pd.DataFrame | None = None,
     ) -> None:
-        if got is None and key not in by.index:
+        src = by if frame is None else frame
+        if got is None and key not in src.index:
             g.append(
                 {
                     "gate": name,
@@ -1220,8 +1430,8 @@ def repro_gates(
             )
             return
         if got is None:
-            got = float(by.loc[key, col])
-            n = int(by.loc[key, "n_days"])
+            got = float(src.loc[key, col])
+            n = int(src.loc[key, "n_days"])
         g.append(
             {
                 "gate": name,
@@ -1235,7 +1445,7 @@ def repro_gates(
             }
         )
 
-    # ---- (1) the first pass's stored numbers
+    # ---- (1) the first pass's stored numbers (recalibrated scorer, pre-campaign design): reported
     if TREES_STORED.is_file():
         st = pd.read_csv(TREES_STORED)
         for _, r in st.iterrows():
@@ -1246,12 +1456,13 @@ def repro_gates(
                 key = f"sub_{EST_SHORT.get(est, est)}_{r['bucket']}"
             for col in ("Sharpe_mid", "Sharpe_crossed"):
                 chk(
-                    f"trees_trade_1530.csv {col}",
+                    f"trees_trade_1530.csv {col} (recalibrated; vs the diagnostic pred_clock)",
                     key,
-                    col,
+                    col + "_recal",
                     float(r[col]),
                     PRE,
-                    not dedup,
+                    False,  # was: not dedup -- 2026-10-06: recalibration removed, user decision
+                    frame=rvp,
                 )
     for fname in ("vixonly", "free", "ivrep", "mfiv", "ivslice"):
         f = OLD_LS / cmh.FAMILIES[fname]["pulled"] / f"compare_{fname}.csv"
@@ -1272,14 +1483,15 @@ def repro_gates(
                 ("Sharpe_crossed", "trade_Sharpe_crossed"),
             ):
                 chk(
-                    f"compare_{fname}.csv {scol}",
+                    f"compare_{fname}.csv {scol} (recalibrated; vs the diagnostic pred_clock)",
                     key,
-                    col,
+                    col + "_recal",
                     float(r[scol]),
                     PRE,
-                    not dedup,
+                    False,  # was: not dedup -- 2026-10-06: recalibration removed, user decision
+                    frame=rvp,
                 )
-    # ---- (2) the paper's always-short row (no forecast: the same under every design)
+    # ---- (2) the paper's always-short row (no forecast: the same under every design and scorer)
     if PAPER_ALWAYS_SHORT.is_file():
         p = pd.read_csv(PAPER_ALWAYS_SHORT, index_col=0).iloc[0]
         chk(
@@ -1298,7 +1510,7 @@ def repro_gates(
             "paper",
             True,
         )
-    # ---- (3) the 16:00 campaign's own stored numbers
+    # ---- (3) the 16:00 campaign's own stored numbers (recalibrated scorer): reported
     f = STORED_CAMPAIGN["linear (agent A)"]
     if f.is_file():
         # A: trade_1530 on each arm's recalibrated forecast over every trade day it covers
@@ -1306,27 +1518,27 @@ def repro_gates(
         for _, r in st[~st["forecast"].str.startswith("lstm")].iterrows():
             key = r["forecast"]
             if key not in frames:
-                chk(f"{f.name} Sharpe_mid_new", key, "Sharpe_mid", np.nan, CAMP, dedup)
+                chk(f"{f.name} Sharpe_mid_new", key, "Sharpe_mid", np.nan, CAMP, False)
                 continue
-            pc = frames[key]["pred_clock"]
+            pc = frames[key]["pred_clock"]  # the diagnostic recalibrated forecast
             pc = pc[pc.index.normalize().isin(deck_days)].dropna()
             t = base.trade_1530(pc)
             for col in ("Sharpe_mid", "Sharpe_crossed"):
                 chk(
-                    f"{f.name} {col}_new (every trade day the arm covers)",
+                    f"{f.name} {col}_new (recalibrated, every trade day the arm covers)",
                     key,
                     col,
                     float(r[f"{col}_new"]),
                     CAMP,
-                    dedup,
+                    False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
                     got=float(t[col]),
                     n=int(t["deck_days"]),
                 )
     cols_h = {
         "qlike": "qlike_recal",
-        "sharpe_mid": "Sharpe_mid",
-        "sharpe_crossed": "Sharpe_crossed",
-        "pct_buy": "pct_buy",
+        "sharpe_mid": "Sharpe_mid_recal",
+        "sharpe_crossed": "Sharpe_crossed_recal",
+        "pct_buy": "pct_buy_recal",
     }
     f = STORED_CAMPAIGN["trees T10/T1/RS10/RS1 + per-bar LSTM, masked (agent H)"]
     if f.is_file():
@@ -1340,12 +1552,13 @@ def repro_gates(
             key = str(r["table"]).removeprefix("yhat_")
             for sc, col in cols_h.items():
                 chk(
-                    f"{f.parent.name}/{f.name} {sc}",
+                    f"{f.parent.name}/{f.name} {sc} (recalibrated)",
                     key,
                     col,
                     float(r[sc]),
                     CAMP,
-                    dedup,
+                    False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
+                    frame=rvp,
                 )
     f = STORED_CAMPAIGN["Optuna trees, single-class (agent C)"]
     if f.is_file():
@@ -1353,23 +1566,29 @@ def repro_gates(
         st = st[st["path"].str.contains("yhat_subtree_optuna", regex=False)]
         for _, r in st.iterrows():
             key = Path(r["path"]).stem.removeprefix("yhat_")
-            for col in (
+            # the plain QLIKE is the reported number: asserted with the de-dup root
+            # 2026-10-13: reported, not asserted, for a key switched to its top-entry table (PERBAR_SWITCH)
+            switched = perbar_switch_active() and perbar_switch_path(key) is not None
+            chk(
+                f"linear_subsection_trees_optuna_mask/report/{f.name} qlike_raw (plain)",
+                key,
                 "qlike_raw",
-                "qlike_recal",
-                "Sharpe_mid",
-                "Sharpe_crossed",
-                "pct_buy",
-                "dSharpe_mid_vs_ref_lo",
-                "dSharpe_mid_vs_ref_hi",
-            ):
+                float(r["qlike_raw"]),
+                CAMP_PLAIN,
+                dedup and not switched,
+            )
+            for col in ("qlike_recal", "Sharpe_mid", "Sharpe_crossed", "pct_buy"):
                 chk(
-                    f"linear_subsection_trees_optuna_mask/report/{f.name} {col}",
+                    f"linear_subsection_trees_optuna_mask/report/{f.name} {col} (recalibrated)",
                     key,
-                    col,
+                    col if col == "qlike_recal" else col + "_recal",
                     float(r[col]),
                     CAMP,
-                    dedup,
+                    False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
+                    frame=rvp,
                 )
+            # 2026-10-06: intervals commented out (user) -- the stored interval ends are not compared:
+            # for col in ("dSharpe_mid_vs_ref_lo", "dSharpe_mid_vs_ref_hi"): chk(...)
     f = STORED_CAMPAIGN["intraday-sequence LSTM (agent I)"]
     if f.is_file():
         st = pd.read_csv(f)
@@ -1377,42 +1596,193 @@ def repro_gates(
         for _, r in st.iterrows():
             key = f"lstm_{r['forecast']}_{r['bucket']}"
             for sc, col in cols_h.items():
-                chk(f"{f.name} {sc}", key, col, float(r[sc]), CAMP, dedup)
+                chk(
+                    f"{f.name} {sc} (recalibrated)",
+                    key,
+                    col,
+                    float(r[sc]),
+                    CAMP,
+                    False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
+                    frame=rvp,
+                )
     f = STORED_CAMPAIGN["rest-of-day check rows (agent E)"]
     if f.is_file():
         st = pd.read_csv(f)
         for _, r in st[st["phase"] == "after"].iterrows():
             key = f"restofday_{r['estimator']}_{r['bucket']}"
-            if key not in by.index:
-                chk(f"{f.name} max_rel_pred_clock", key, "", np.nan, CAMP, dedup)
+            if key not in rvp.index or not np.isfinite(
+                rvp.loc[key, "twin_max_rel_pred_clock"]
+            ):
+                chk(f"{f.name} max_rel_pred_clock", key, "", np.nan, CAMP, False)
                 continue
-            x = by.loc[key]
+            x = rvp.loc[key]
             chk(
-                f"{f.name} max_rel_pred_clock (vs the per-bar twin)",
+                f"{f.name} max_rel_pred_clock (vs the per-bar twin; recalibrated)",
                 key,
                 "",
                 float(r["max_rel_pred_clock"]),
                 CAMP,
-                dedup,
+                False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
                 got=float(x["twin_max_rel_pred_clock"]),
                 n=int(x["n_days"]),
             )
             chk(
-                f"{f.name} same_position (days)",
+                f"{f.name} same_position (days; recalibrated)",
                 key,
                 "",
                 float(r["same_position"]),
                 CAMP,
-                dedup,
-                got=float(x["twin_same_position"]) * int(x["n_days"]),
+                False,  # was: dedup -- 2026-10-06: recalibration removed, user decision
+                got=float(x["twin_same_position_recal"]) * int(x["n_days"]),
                 n=int(x["n_days"]),
             )
+    # ---- (4) the committed recalibrated master table (RECAL_SNAPSHOT): reported, never asserted
+    if RECAL_SNAPSHOT.is_file():
+        snap = pd.read_csv(RECAL_SNAPSHOT, float_precision="round_trip").set_index(
+            "key"
+        )
+        SNAP = "committed recalibrated master table (2026-09-30)"
+        for key in snap.index:
+            if key == ALWAYS_SHORT:
+                continue
+            # the old plain QLIKE column is the new reported QLIKE: same forecast, same days
+            chk(
+                f"{RECAL_SNAPSHOT.parent.name}/master_table.csv qlike_raw (plain) = this run's qlike_raw",
+                key,
+                "qlike_raw",
+                float(snap.loc[key, "qlike_raw"]),
+                SNAP,
+                False,
+            )
+            for col in ("qlike_recal", "Sharpe_mid", "Sharpe_crossed"):
+                chk(
+                    f"{RECAL_SNAPSHOT.parent.name}/master_table.csv {col} (recalibrated) = the diagnostic",
+                    key,
+                    col if col == "qlike_recal" else col + "_recal",
+                    float(snap.loc[key, col]),
+                    SNAP,
+                    False,
+                    frame=rvp,
+                )
     return g
 
 
+def recal_vs_plain(
+    tab: pd.DataFrame,
+    frames: dict[str, pd.DataFrame],
+    day_sets: dict[str, pd.DatetimeIndex],
+    deck: pd.DataFrame,
+    common: pd.DatetimeIndex,
+) -> pd.DataFrame:
+    """The scorer change, per forecast on its own scored days: the parked recalibration (diagnostic
+    pred_clock) against the plain forecast -- QLIKE, Sharpe mid / crossed, buy share, positions.
+
+    2026-10-06: recalibration removed, user decision.  Nothing here is a reported number of the
+    master table; it records what removing the recalibration changed.
+    """
+    rows = []
+    t_ = tab.set_index("key")
+    for k, f in frames.items():
+        days = day_sets[k]
+        fd = f.set_index(f.index.normalize()).loc[days]
+        ok = fd["pred_clock"].notna()
+        n_rec = int(ok.sum())
+        row: dict = {
+            "key": k,
+            "label": t_.loc[k, "label"],
+            "family": t_.loc[k, "family"],
+            "table": t_.loc[k, "table"],
+            "n_days": len(days),
+            "n_days_recal_defined": n_rec,
+            "qlike_plain": float(t_.loc[k, "qlike_raw"]),
+            "Sharpe_mid_plain": float(t_.loc[k, "Sharpe_mid"]),
+            "Sharpe_crossed_plain": float(t_.loc[k, "Sharpe_crossed"]),
+            "pct_buy_plain": float(t_.loc[k, "pct_buy"]),
+        }
+        if n_rec == len(days):
+            dk = deck.loc[days]
+            tp = trade_days(fd["plain"], dk)
+            tc = trade_days(fd["pred_clock"], dk)
+            row.update(
+                {
+                    "qlike_recal": float(
+                        slc.qlike(fd["true_raw"], fd["pred_clock"]).mean()
+                    ),
+                    "Sharpe_mid_recal": sharpe(tc["mid"].to_numpy()),
+                    "Sharpe_crossed_recal": sharpe(tc["crossed"].to_numpy()),
+                    "pct_buy_recal": float(100.0 * (tc["q"] > 0).mean()),
+                    "positions_changed": int(
+                        (tp["q"].to_numpy() != tc["q"].to_numpy()).sum()
+                    ),
+                    "buy_to_sell": int(((tc["q"] > 0) & (tp["q"] < 0)).sum()),
+                    "sell_to_buy": int(((tc["q"] < 0) & (tp["q"] > 0)).sum()),
+                    "mean_s_over_plain": float(
+                        ((fd["pred_clock"] - fd["plain"]) / fd["plain"]).mean()
+                    ),
+                }
+            )
+        rows.append(row)
+    out = pd.DataFrame(rows)
+    for c in ("qlike", "Sharpe_mid", "Sharpe_crossed", "pct_buy"):
+        if f"{c}_recal" not in out:
+            out[f"{c}_recal"] = np.nan
+        out[f"d_{c}_plain_minus_recal"] = out[f"{c}_plain"] - out[f"{c}_recal"]
+    out["qlike_pct_change"] = (
+        100.0 * out["d_qlike_plain_minus_recal"] / out["qlike_recal"]
+    )
+    # the rest-of-day check rows against their per-bar twin, on the recalibrated forecast
+    out["twin_max_rel_pred_clock"] = np.nan
+    out["twin_same_position_recal"] = np.nan
+    for i, r in out.iterrows():
+        tw = t_.loc[r["key"], "twin_key"]
+        if isinstance(tw, str) and tw and tw in frames:
+            a_, b_ = frames[r["key"]], frames[tw]
+            on = a_.index[a_.index.normalize().isin(common)]
+            out.loc[i, "twin_max_rel_pred_clock"] = float(
+                (a_.loc[on, "pred_clock"] / b_.loc[on, "pred_clock"] - 1.0).abs().max()
+            )
+            ta = trade_days(
+                a_.loc[on, "pred_clock"].set_axis(on.normalize()), deck.loc[common]
+            )
+            tb = trade_days(
+                b_.loc[on, "pred_clock"].set_axis(on.normalize()), deck.loc[common]
+            )
+            out.loc[i, "twin_same_position_recal"] = float(
+                (ta["q"].to_numpy() == tb["q"].to_numpy()).mean()
+            )
+    return out
+
+
 # --------------------------------------------------------------------------- summary
+# 2026-10-06 (user): "remove adj_ in the names of any variable being presented" -- design column
+# names are SHOWN without the leading adj_ (adj_vix_ma_* -> vix_ma_*; har_ma_* unchanged); data files,
+# keys and code identifiers keep their names.  Applied to every `code span` of SUMMARY.md.
+ADJ_PREFIX = re.compile(r"(?<![A-Za-z0-9_])adj_(?=[A-Za-z])")
+
+
+def display_name(name: str) -> str:
+    """A design column name as presented: the leading adj_ dropped."""
+    return ADJ_PREFIX.sub("", name)
+
+
+def display_code_spans(line: str) -> str:
+    """Every `code span` of a SUMMARY line through display_name."""
+    return re.sub(r"`([^`]+)`", lambda m: "`" + display_name(m.group(1)) + "`", line)
+
+
 def fmt_ci(v: float, lo: float, hi: float, nd: int = 2) -> str:
+    """2026-10-06: no longer used (intervals commented out, user); kept for the parked lines."""
     return f"{v:+.{nd}f} [{lo:+.{nd}f}, {hi:+.{nd}f}]"
+
+
+def hac_p(t: float) -> float:
+    """Two-sided normal p-value of a HAC t statistic (a statistic, not an interval)."""
+    return float(math.erfc(abs(t) / math.sqrt(2.0))) if np.isfinite(t) else np.nan
+
+
+def fmt_t(t: float) -> str:
+    """A HAC t with its two-sided normal p-value."""
+    return f"t {t:+.2f}, p {hac_p(t):.3f}" if np.isfinite(t) else "t n/a"
 
 
 def write_summary(
@@ -1433,7 +1803,8 @@ def write_summary(
         f"Written by `experiments/master_table_close.py --arm-root {ARM_ROOT}` on {time.strftime('%Y-%m-%d %H:%M')}; every number below is read from"
     )
     L.append(
-        "`master_table.csv` (and `before_after.csv`) of the same run. Full table: `writeup/master_table_close.pdf`; tex: `writeup/generated/table_master_close.tex`."
+        "`master_table.csv` (and `before_after.csv`, `recal_vs_plain.csv`) of the same run. Full table: `writeup/master_table_close.pdf`; tex: "
+        "`writeup/generated/table_master_close.tex`. Every forecast is the plain back-transform f²·B; every number is a point estimate."
     )
     L.append("")
     L.append("## Provenance: design, window mask, CPU class")
@@ -1444,11 +1815,19 @@ def write_summary(
     L.append("## Scorer, days, reference")
     L.append("")
     L.append(
-        "- **Scorer: the research convention** (`compare_mfiv_harlag.py` / `score_trees_subsection.py`, their functions imported): "
-        "the 16:00 bar is recalibrated on its own, forecast = (f² + s)·B with s = the forecast's own mean squared adjusted-scale error "
-        "at 16:00 over the previous 250 sessions (≥ 63), lagged one session; QLIKE against the per-bar spec's 16:00 target; the trade is "
-        "the deck's 15:30 sign(s) on the straddle (`trade_1530`). The notebook's 13-bar Mincer–Zarnowitz map is **not** used: no number "
-        "here may be set beside a notebook number."
+        "- **Scorer: the plain back-transform.** Every forecast is used as f²·B (f = the model's forecast on the adjusted scale "
+        "sqrt(RV/B), B = the diurnal baseline; the `yhat`² · `baseline` of `results/spxw_pnl/yhat_*.parquet`); QLIKE (`qlike_raw`) "
+        "against the per-bar spec's 16:00 target; the trade is the deck's 15:30 sign(s) on the straddle (`trade_1530`): buy when "
+        "f²·B exceeds the 15:30 implied variance, sell otherwise. The research scorer's 16:00-bar recalibration (f² + s)·B "
+        f"(s = the forecast's own trailing 250-session mean squared adjusted-scale error, lagged one) was removed on {RECAL_REMOVED} "
+        "(user decision); it survives only as the diagnostic column `pred_clock` and in `recal_vs_plain.csv` (section below). "
+        "The notebook's 13-bar Mincer–Zarnowitz map is **not** used either: no number here may be set beside a notebook number."
+    )
+    L.append(
+        "- **Point estimates only.** The circular block bootstrap is disabled (commit b761b28: every draw is the original sample), "
+        "so no interval is reported. The inference shown is the Diebold–Mariano statistic on the daily QLIKE difference (`dm_test`, "
+        "Newey–West variance with the Harvey–Leybourne–Newbold correction) and the Newey–West HAC t of the daily mid-return "
+        f"difference (`newey_west_t`); counts 'significant' use the two-sided {100 * SIG_LEVEL:.0f} % level of those statistics."
     )
     nA = int(extra["n_intersection_A"])
     fc_ = A[A["family"] != "direct rest-of-day at 15:30 (check)"]
@@ -1466,7 +1845,7 @@ def write_summary(
     L.append(
         f"- **Reference:** the block-diagonal ridge (`{REFERENCE}`, `yhat_blk2_fomc1.parquet`) — the paper's headline forecast "
         "(HAR ladder, penalty 1, plus the exogenous block, penalty 100, on the panel of record), the forecast the paper's 15:30 deck trades. "
-        f"Under this scorer it has QLIKE {ref['qlike_recal']:.4f} and sign(s) Sharpe {ref['Sharpe_mid']:.2f} mid / "
+        f"Under this scorer it has QLIKE {ref['qlike_raw']:.4f} and sign(s) Sharpe {ref['Sharpe_mid']:.2f} mid / "
         f"{ref['Sharpe_crossed']:.2f} crossed (the deck's own map gives it 1.34 mid; the difference is the scorer). "
         f"Second reference: always short, Sharpe {short['Sharpe_mid']:.2f} mid / {short['Sharpe_crossed']:.2f} crossed."
     )
@@ -1476,15 +1855,13 @@ def write_summary(
     h = A.loc[HEADLINE] if HEADLINE in A.index else None
     if h is not None:
         L.append(
-            f"**{h['label']}** (`{HEADLINE}`), scored by the research convention above. On the {int(h['n_days'])} days: "
-            f"QLIKE {h['qlike_recal']:.4f} ({h['qlike_pct_vs_ref']:+.1f} % vs the reference, day-block interval on the "
-            f"daily difference [{h['qlike_diff_ci_lo']:+.4f}, {h['qlike_diff_ci_hi']:+.4f}], DM {h['dm_vs_ref']:+.2f}, p {h['dm_p_vs_ref']:.3f}); "
+            f"**{h['label']}** (`{HEADLINE}`), scored with the plain forecast. On the {int(h['n_days'])} days: "
+            f"QLIKE {h['qlike_raw']:.4f} ({h['qlike_pct_vs_ref']:+.1f} % vs the reference, DM {h['dm_vs_ref']:+.2f}, p {h['dm_p_vs_ref']:.3f}); "
             f"sign(s) Sharpe {h['Sharpe_mid']:.2f} mid / {h['Sharpe_crossed']:.2f} crossed, mean {h['mean_mid']:+.3f} per unit premium "
             f"(crossed {h['mean_crossed']:+.3f}), hit rate {100 * h['hit_rate_mid']:.1f} %, buys on {int(h['n_buy'])} days ({h['pct_buy']:.1f} %). "
-            f"Sharpe difference vs the reference: mid {fmt_ci(h['dSharpe_mid_vs_ref'], h['dSharpe_mid_vs_ref_lo'], h['dSharpe_mid_vs_ref_hi'])}, "
-            f"crossed {fmt_ci(h['dSharpe_crossed_vs_ref'], h['dSharpe_crossed_vs_ref_lo'], h['dSharpe_crossed_vs_ref_hi'])}; "
-            f"vs always short: mid {fmt_ci(h['dSharpe_mid_vs_short'], h['dSharpe_mid_vs_short_lo'], h['dSharpe_mid_vs_short_hi'])}, "
-            f"crossed {fmt_ci(h['dSharpe_crossed_vs_short'], h['dSharpe_crossed_vs_short_lo'], h['dSharpe_crossed_vs_short_hi'])}."
+            f"Sharpe difference vs the reference: mid {h['dSharpe_mid_vs_ref']:+.2f}, crossed {h['dSharpe_crossed_vs_ref']:+.2f} "
+            f"(HAC {fmt_t(h['t_hac_mid_vs_ref'])} on the daily mid-return difference); vs always short: mid {h['dSharpe_mid_vs_short']:+.2f}, "
+            f"crossed {h['dSharpe_crossed_vs_short']:+.2f} (HAC {fmt_t(h['t_hac_mid_vs_short'])})."
         )
         L.append("")
         for line in extra["beats_headline"]:
@@ -1493,7 +1870,12 @@ def write_summary(
         for line in extra["headline_reasons"]:
             L.append(line)
     L.append("")
-    L.append("## Before / after the 16:00 campaign")
+    L.append(f"## Scorer change: recalibrated -> plain ({RECAL_REMOVED})")
+    L.append("")
+    for line in extra["scorer_change"]:
+        L.append(line)
+    L.append("")
+    L.append("## Before / after the 16:00 campaign (both sides plain)")
     L.append("")
     for line in extra["before_after"]:
         L.append(line)
@@ -1504,15 +1886,15 @@ def write_summary(
         L.append(line)
     L.append("")
     L.append(
-        "Rank correlation across table-A forecasts (check rows and exact duplicates excluded), point and 95 % day-block bootstrap interval "
-        "(the same resampled days as every other interval; a negative value = lower QLIKE goes with higher Sharpe):"
+        "Rank correlation across table-A forecasts (check rows and exact duplicates excluded), point estimate "
+        "(a negative value = lower QLIKE goes with higher Sharpe):"
     )
     L.append("")
-    L.append("| set | forecasts | QLIKE measure | Sharpe | Spearman | 95 % interval |")
-    L.append("|---|---:|---|---|---:|---|")
+    L.append("| set | forecasts | QLIKE | Sharpe | Spearman |")
+    L.append("|---|---:|---|---|---:|")
     for _, r in rk.iterrows():
         L.append(
-            f"| {r['set']} | {int(r['n_forecasts'])} | {r['qlike']} | {r['sharpe']} | {r['spearman']:+.2f} | [{r['ci_lo']:+.2f}, {r['ci_hi']:+.2f}] |"
+            f"| {r['set']} | {int(r['n_forecasts'])} | {r['qlike']} | {r['sharpe']} | {r['spearman']:+.2f} |"
         )
     L.append("")
     for line in extra["rank_reading"]:
@@ -1537,9 +1919,16 @@ def write_summary(
             else ""
         )
         + "; every table's baseline equals its B, its rv_raw the production table's, and its 16:00 stamps the target's; every arm "
-        "file's recalibrated forecast equals the research reader's on the trade days; every per-bar linear and VIX-only table equals "
-        "its arm file; every row's trade aggregates equal `trade_1530`'s; no table falls into 'other table'; the paper's always-short "
-        "row is reproduced; the stored research numbers of the design in use are reproduced ("
+        "file's plain forecast equals the research reader's f²·B on the trade days; every per-bar linear and VIX-only table equals "
+        "its arm file; every row's trade aggregates equal `trade_1530`'s on the plain forecast; every row of "
+        "`master_table_daily.parquet` has q = sign(plain - iv_var) and the daily frame reproduces every row's Sharpe, QLIKE and buys; "
+        "no table falls into 'other table'; the paper's always-short row is reproduced"
+        + (
+            "; the families the campaign did not touch equal the pre-campaign table under the plain scorer"
+            if ARM_ROOT != DEFAULT_ARM_ROOT
+            else ""
+        )
+        + "; stored plain numbers ("
         + "; ".join(
             f"{src}: {int((asr['stored_design'] == src).sum())}"
             for src in sorted(set(asr["stored_design"]) - {""})
@@ -1550,12 +1939,13 @@ def write_summary(
         L.append("")
         by_src = rep.groupby("stored_design")
         L.append(
-            f"Reported, not asserted ({len(rep)}): stored numbers written on another design, compared for the record — "
+            f"Reported, not asserted ({len(rep)}): stored numbers written with the recalibrated forecast (compared with the same "
+            "quantity recomputed here from the diagnostic `pred_clock`) or on another design — "
             + "; ".join(
                 f"{src}: {int(g['ok'].sum())} of {len(g)} agree to {REPRO_TOL:g}"
                 for src, g in by_src
             )
-            + ". A difference there is the design change (see the before/after), not a failure."
+            + ". A difference there is a design change or an input that changed since the stored number was written, not a failure."
         )
     if len(bad):
         L.append("")
@@ -1566,9 +1956,9 @@ def write_summary(
     L.append("## Top of table A by sign(s) Sharpe (mid)")
     L.append("")
     L.append(
-        "| forecast | QLIKE raw | QLIKE recal | Δ% vs ref | DM | Sharpe mid | Sharpe crossed | ΔSharpe mid vs ref [95 %] | ΔSharpe mid vs short [95 %] | buy days |"
+        "| forecast | QLIKE | Δ% vs ref | DM | Sharpe mid | Sharpe crossed | ΔSharpe mid vs ref | HAC t vs ref | ΔSharpe mid vs short | buy days |"
     )
-    L.append("|---|---:|---:|---:|---:|---:|---:|---|---|---:|")
+    L.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     top = (
         A[
             (A["family"] != "direct rest-of-day at 15:30 (check)")
@@ -1579,14 +1969,14 @@ def write_summary(
     )
     for k, r in top.iterrows():
         dm = "" if k == REFERENCE else f"{r['dm_vs_ref']:+.2f}"
+        th = "" if k == REFERENCE else f"{r['t_hac_mid_vs_ref']:+.2f}"
         L.append(
-            f"| {r['label']} | {r['qlike_raw']:.4f} | {r['qlike_recal']:.4f} | {r['qlike_pct_vs_ref']:+.1f} | {dm} | {r['Sharpe_mid']:.2f} | "
-            f"{r['Sharpe_crossed']:.2f} | {fmt_ci(r['dSharpe_mid_vs_ref'], r['dSharpe_mid_vs_ref_lo'], r['dSharpe_mid_vs_ref_hi'])} | "
-            f"{fmt_ci(r['dSharpe_mid_vs_short'], r['dSharpe_mid_vs_short_lo'], r['dSharpe_mid_vs_short_hi'])} | {int(r['n_buy'])} |"
+            f"| {r['label']} | {r['qlike_raw']:.4f} | {r['qlike_pct_vs_ref']:+.1f} | {dm} | {r['Sharpe_mid']:.2f} | "
+            f"{r['Sharpe_crossed']:.2f} | {r['dSharpe_mid_vs_ref']:+.2f} | {th} | {r['dSharpe_mid_vs_short']:+.2f} | {int(r['n_buy'])} |"
         )
     L.append("")
     L.append(
-        "Wording: sign(s) = buy the straddle when the recalibrated 16:00 forecast exceeds the 15:30 implied variance, sell otherwise; "
+        "Wording: sign(s) = buy the straddle when the plain 16:00 forecast f²·B exceeds the 15:30 implied variance, sell otherwise; "
         "straddle = nearest out-of-the-money call + nearest out-of-the-money put, same-day expiry, one position; the last-30-min trade "
         "enters at 15:30 and settles at the close. Buckets: `baseline` = HAR + calendar (`har_ma_*`, calendar dummies), `all_features` = "
         "the full design, `live_feasible` = the 16 series a 15:30 forecaster rebuilds live (ES return moments and liquidity, VIX/VVIX/VIX3M "
@@ -1595,7 +1985,10 @@ def write_summary(
         "every 10 sessions / every session; RS10 / RS1 = random search (32 candidates, every 250 sessions) refit every 10 / every session; "
         "Optuna = TPE, 50 trials per tuning point, tuning every TUNE_PER sessions, best of the first k trials, refit every session."
     )
-    (OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    L = [
+        display_code_spans(x) for x in L
+    ]  # presented names: no leading adj_ (user, 2026-10-06)
+    (OUT / "SUMMARY.md").write_text("\n".join(L) + "\n", encoding="utf-8", newline="\n")
 
 
 # --------------------------------------------------------------------------- main
@@ -1661,7 +2054,8 @@ def main() -> int:
     specs, skipped = discover()
     print(
         f"{len(specs)} forecasts discovered ({sum(s.source == 'table' for s in specs)} tables, {sum(s.source == 'arm' for s in specs)} arm files); "
-        f"{len(skipped)} arm files looked at and not scored"
+        # f"{len(skipped)} arm files looked at and not scored"
+        f"{len(skipped)} arm files / parked tables looked at and not scored"
     )
     by_key = {s.key: s for s in specs}
     assert len(by_key) == len(specs), "duplicate forecast keys"
@@ -1677,8 +2071,56 @@ def main() -> int:
             "ok": not other,
         }
     )
+    # 2026-10-07: a paper row switched by decision reads the verified table (see PAPER_SWITCHED)
+    for k, sw in PAPER_SWITCHED.items():
+        src = Path(by_key[k].path) if k in by_key else None
+        h = (
+            hashlib.sha256(src.read_bytes()).hexdigest()
+            if src is not None and src.is_file()
+            else ""
+        )
+        gates.append(
+            {
+                "gate": f"paper row {k} reads {sw['table']}, the verified dump (sha256 as recorded)",
+                "forecast": k,
+                "n": 1,
+                "value": float(
+                    src is None or src.name != sw["table"] or h != sw["sha256"]
+                ),
+                "bound": 0.0,
+                "ok": src is not None and src.name == sw["table"] and h == sw["sha256"],
+            }
+        )
 
-    # ---- stage 1: load + recalibrate
+    # 2026-10-13 (user): every per-bar tree key switched to its top-entry table (PERBAR_SWITCH), paper run only
+    sw_specs = [s for s in specs if s.meta.get("perbar_switch")]
+    if perbar_switch_active():
+        want = [
+            s
+            for s in specs
+            if s.source == "table"
+            and s.family.startswith("per-bar tree")
+            and perbar_switch_path(s.key) is not None
+        ]
+        gates.append(
+            {
+                "gate": "per-bar switch (2026-10-13): every per-bar xgb / rf key on baseline / all_features / "
+                "lean_vol_vix reads its xgbtop / rf400 table (count not switched)",
+                "forecast": ", ".join(
+                    sorted({s.meta.get("perbar_switch", "?") for s in sw_specs})
+                )
+                or "(none)",
+                "n": len(want),
+                "value": float(len(want) - len(sw_specs)),
+                "bound": 0.0,
+                "ok": len(sw_specs) == len(want) and len(sw_specs) > 0,
+            }
+        )
+    print(
+        f"per-bar switch: {len(sw)} per-bar tree keys read the xgbtop / rf400 tables (paper run: {perbar_switch_active()})"
+    )
+
+    # ---- stage 1: load + plain back-transform (pred_clock: the parked recalibration, diagnostic only)
     frames: dict[str, pd.DataFrame] = {}
     cov_rows: list[dict] = []
     with ProcessPoolExecutor(
@@ -1701,13 +2143,14 @@ def main() -> int:
         if res["frame"] is not None and not res["error"]:
             f = res["frame"]
             frames[s.key] = f
-            has = f.index[f["pred_clock"].notna()].normalize()
+            # 2026-10-06: recalibration removed, user decision -- coverage of the PLAIN forecast
+            has = f.index[f["plain"].notna()].normalize()
             want = deck_days if not s.lo else deck_days[deck_days >= s.lo]
             missing = want.difference(has)
             row.update(
                 {
                     "rows_outside_target_span": res.get("n_outside_target", 0),
-                    "first_recal_day": str(has.min().date()) if len(has) else "",
+                    "first_forecast_day": str(has.min().date()) if len(has) else "",
                     "trade_days_in_window": len(want),
                     "trade_days_covered": len(want) - len(missing),
                     "trade_days_missing": len(missing),
@@ -1717,12 +2160,15 @@ def main() -> int:
             )
         cov_rows.append(row)
     cov = pd.DataFrame(cov_rows)
-    print(f"[{time.time() - t0:.0f} s] stage 1 (load + recalibrate) done")
+    print(f"[{time.time() - t0:.0f} s] stage 1 (load + plain back-transform) done")
     failed = cov[cov["load_error"] != ""]
     for _, r in failed.iterrows():
         print(f"NOT SCORED {r['key']}: {r['load_error']}")
 
-    # ---- the day sets
+    # ---- the day sets (on the plain forecast)
+    def plain_days(fr: pd.DataFrame) -> pd.DatetimeIndex:
+        return fr.index[fr["plain"].notna()].normalize()
+
     full = [
         k
         for k in frames
@@ -1731,14 +2177,10 @@ def main() -> int:
     ]
     common = deck_days
     for k in full:
-        common = common.intersection(
-            frames[k].index[frames[k]["pred_clock"].notna()].normalize()
-        )
+        common = common.intersection(plain_days(frames[k]))
     all_int = deck_days
     for k in frames:
-        all_int = all_int.intersection(
-            frames[k].index[frames[k]["pred_clock"].notna()].normalize()
-        )
+        all_int = all_int.intersection(plain_days(frames[k]))
     print(
         f"table A: {len(full)} forecasts, intersection {len(common)} of {len(deck_days)} trade days; "
         f"intersection over every scored forecast (incl. table B): {len(all_int)}"
@@ -1765,29 +2207,32 @@ def main() -> int:
             ignore_index=True,
         )
 
-    # ---- stage 2: every row's columns (the bootstraps), in the pool
+    # ---- stage 2: every row's columns (point estimates), in the pool
     ref = frames[REFERENCE]
     jobs = []
+    day_sets: dict[str, pd.DatetimeIndex] = {}
     for k, f in frames.items():
         s = by_key[k]
         if k in full:
             days = common
         else:
-            days = f.index[f["pred_clock"].notna()].normalize().intersection(deck_days)
+            days = plain_days(f).intersection(deck_days)
             if s.lo:
                 days = days[days >= s.lo]
-            days = days.intersection(ref.index[ref["pred_clock"].notna()].normalize())
+            days = days.intersection(plain_days(ref))
+        day_sets[k] = days
         jobs.append((s, f, ref, days, deck, k == REFERENCE))
     with ProcessPoolExecutor(
         max_workers=workers, initializer=_init, initargs=(tgt, deck_days)
     ) as pool:
         rows = list(pool.map(score_one, jobs, chunksize=4))
     rows.append(score_short(common, deck, ref))
-    print(f"[{time.time() - t0:.0f} s] stage 2 (columns + bootstraps) done")
+    print(f"[{time.time() - t0:.0f} s] stage 2 (columns) done")
 
-    # gate: every row's trade aggregates equal trade_1530's (the research function itself)
+    # gate: every row's trade aggregates equal trade_1530's on the plain forecast (the research function itself)
     for (s, f, _r, days, _d, _i), row in zip(jobs, rows):
-        pc = f["pred_clock"]
+        pc = f["plain"]
+        # pc = f["pred_clock"]  # 2026-10-06: recalibration removed, user decision
         pc = pc[pc.index.normalize().isin(days)]
         t = base.trade_1530(pc)
         dv = max(
@@ -1798,7 +2243,7 @@ def main() -> int:
         ok = t["deck_days"] == row["n_days"] and dv <= 1e-12
         gates.append(
             {
-                "gate": "trade aggregates equal trade_1530",
+                "gate": "trade aggregates equal trade_1530 (plain forecast)",
                 "forecast": s.key,
                 "n": row["n_days"],
                 "value": dv,
@@ -1817,6 +2262,9 @@ def main() -> int:
                 "source": s.source,
                 "window_start": s.lo or "",
                 "twin_key": s.twin_key or "",
+                "perbar_switch": s.meta.get(
+                    "perbar_switch", ""
+                ),  # 2026-10-13: xgbtop / rf400 (PERBAR_SWITCH)
             }
             for s in specs
         ]
@@ -1828,6 +2276,7 @@ def main() -> int:
                 "source": "",
                 "window_start": "",
                 "twin_key": "",
+                "perbar_switch": "",
             }
         ]
     )
@@ -1838,24 +2287,22 @@ def main() -> int:
     tab["is_reference"] = tab["key"] == REFERENCE
     tab["is_headline"] = tab["key"] == HEADLINE
 
-    # check rows: the direct rest-of-day forecast at 15:30 against its per-bar twin
-    tab["twin_max_rel_pred_clock"] = np.nan
+    # check rows: the direct rest-of-day forecast at 15:30 against its per-bar twin (plain forecasts)
+    tab["twin_max_rel_plain"] = np.nan
     tab["twin_same_position"] = np.nan
     for i, r in tab.iterrows():
         tw = r["twin_key"]
         if tw and tw in frames and r["key"] in frames:
             a_, b_ = frames[r["key"]], frames[tw]
             on = a_.index[a_.index.normalize().isin(common)]
-            rel = float(
-                (a_.loc[on, "pred_clock"] / b_.loc[on, "pred_clock"] - 1.0).abs().max()
-            )
+            rel = float((a_.loc[on, "plain"] / b_.loc[on, "plain"] - 1.0).abs().max())
             ta = trade_days(
-                a_.loc[on, "pred_clock"].set_axis(on.normalize()), deck.loc[common]
+                a_.loc[on, "plain"].set_axis(on.normalize()), deck.loc[common]
             )
             tb = trade_days(
-                b_.loc[on, "pred_clock"].set_axis(on.normalize()), deck.loc[common]
+                b_.loc[on, "plain"].set_axis(on.normalize()), deck.loc[common]
             )
-            tab.loc[i, "twin_max_rel_pred_clock"] = rel
+            tab.loc[i, "twin_max_rel_plain"] = rel
             tab.loc[i, "twin_same_position"] = float(
                 (ta["q"].to_numpy() == tb["q"].to_numpy()).mean()
             )
@@ -1869,20 +2316,21 @@ def main() -> int:
     tab = tab.sort_values(
         ["_t", "_f", "_p", "Sharpe_mid"], ascending=[True, True, True, False]
     ).drop(columns=["_f", "_t", "_p"])
-    gates += repro_gates(tab, frames, deck_days)
 
-    # exact duplicates: the same recalibrated forecast, bit for bit, on the same days as an earlier row
+    # the scorer change (diagnostic): the parked recalibration against the plain forecast, per key
+    rvp = recal_vs_plain(tab, frames, day_sets, deck, common)
+    gates += repro_gates(tab, frames, deck_days, rvp.set_index("key"))
+    print(f"[{time.time() - t0:.0f} s] scorer change (recal -> plain) done")
+
+    # exact duplicates: the same plain forecast, bit for bit, on the same days as an earlier row
     tab["duplicate_of"] = ""
     seen: dict[bytes, str] = {}
     for i, r in tab.iterrows():
         k = r["key"]
         if k not in frames:
             continue
-        f = frames[k]
-        on = f.index[f["pred_clock"].notna() & f.index.normalize().isin(deck_days)]
-        if by_key[k].lo:
-            on = on[on >= by_key[k].lo]
-        sig = on.asi8.tobytes() + f.loc[on, "pred_clock"].to_numpy(float).tobytes()
+        on = frames[k].index[frames[k].index.normalize().isin(day_sets[k])]
+        sig = on.asi8.tobytes() + frames[k].loc[on, "plain"].to_numpy(float).tobytes()
         if sig in seen:
             tab.loc[i, "duplicate_of"] = seen[sig]
         else:
@@ -1901,22 +2349,19 @@ def main() -> int:
             hrows = list(pool.map(score_one, hjobs, chunksize=4))
         keep = [
             "key",
-            "qlike_recal",
+            "qlike_raw",
             "qlike_pct_vs_ref",
-            "qlike_diff_ci_lo",
-            "qlike_diff_ci_hi",
             "dm_vs_ref",
             "dm_p_vs_ref",
             "Sharpe_mid",
             "Sharpe_crossed",
             "dSharpe_mid_vs_ref",
-            "dSharpe_mid_vs_ref_lo",
-            "dSharpe_mid_vs_ref_hi",
             "dSharpe_crossed_vs_ref",
-            "dSharpe_crossed_vs_ref_lo",
-            "dSharpe_crossed_vs_ref_hi",
             "t_hac_mid_vs_ref",
             "same_position_as_ref",
+            # 2026-10-06: intervals commented out (user):
+            # "qlike_diff_ci_lo", "qlike_diff_ci_hi", "dSharpe_mid_vs_ref_lo", "dSharpe_mid_vs_ref_hi",
+            # "dSharpe_crossed_vs_ref_lo", "dSharpe_crossed_vs_ref_hi",
         ]
         vs_h = pd.DataFrame(hrows)[keep].rename(
             columns=lambda c: c.replace("_ref", "_headline")
@@ -1965,7 +2410,7 @@ def main() -> int:
                             pd.Series([rr["true_raw"]]), pd.Series([rr["plain"]])
                         ).iloc[0]
                     ),
-                    "recal_forecast": rr["pred_clock"],
+                    # "recal_forecast": rr["pred_clock"],  # 2026-10-06: recalibration removed, user decision
                 }
             )
     ext = pd.DataFrame(
@@ -1980,12 +2425,11 @@ def main() -> int:
             "plain_floor",
             "target_true_raw",
             "qlike_raw_this_day",
-            "recal_forecast",
         ],
     )
     tab = tab.merge(pd.DataFrame(allsess), on="key", how="left")
 
-    # ---- stage 3: QLIKE vs Sharpe across forecasts (day-block bootstrap of the rank correlation)
+    # ---- stage 3: QLIKE vs Sharpe across forecasts (rank correlation, point estimate only)
     core = tab[
         (tab["table"] == "A")
         & tab["family"].isin(FAMILY_ORDER)
@@ -2012,72 +2456,58 @@ def main() -> int:
     cm = common
     for k in core["key"]:
         f = frames[k].set_index(frames[k].index.normalize()).loc[cm]
-        q_of[("recal", k)] = slc.qlike(f["true_raw"], f["pred_clock"]).to_numpy(float)
-        q_of[("raw", k)] = slc.qlike(f["true_raw"], f["plain"]).to_numpy(float)
-        t = trade_days(f["pred_clock"], deck.loc[cm])
+        q_of[("plain", k)] = slc.qlike(f["true_raw"], f["plain"]).to_numpy(float)
+        # q_of[("recal", k)] = slc.qlike(f["true_raw"], f["pred_clock"]).to_numpy(float)  # 2026-10-06: removed
+        t = trade_days(f["plain"], deck.loc[cm])
         r_of[("mid", k)] = t["mid"].to_numpy()
         r_of[("crossed", k)] = t["crossed"].to_numpy()
     rk_rows = []
-    chunks = [(lo, min(lo + RANK_CHUNK, BOOT_B)) for lo in range(0, BOOT_B, RANK_CHUNK)]
-    with ProcessPoolExecutor(max_workers=workers) as pool:
-        for sname, keys in sets.items():
-            if len(keys) < 4:
-                continue
-            for qm in ("recal", "raw"):
-                for fill in ("mid", "crossed"):
-                    qmat = np.vstack([q_of[(qm, k)] for k in keys])
-                    rmat = np.vstack([r_of[(fill, k)] for k in keys])
-                    point = float(
-                        _spearman_cols(
-                            qmat.mean(axis=1)[:, None],
-                            (rmat.mean(axis=1) / rmat.std(axis=1, ddof=1))[:, None],
-                        )[0]
-                    )
-                    boots = np.concatenate(
-                        list(
-                            pool.map(
-                                rankcorr_chunk,
-                                [(qmat, rmat, lo, hi) for lo, hi in chunks],
-                            )
-                        )
-                    )
-                    lo_, hi_ = np.percentile(boots, [2.5, 97.5])
-                    rk_rows.append(
-                        {
-                            "set": sname,
-                            "n_forecasts": len(keys),
-                            "qlike": qm,
-                            "sharpe": fill,
-                            "spearman": point,
-                            "ci_lo": float(lo_),
-                            "ci_hi": float(hi_),
-                        }
-                    )
+    # 2026-10-06: intervals commented out (user) -- the day-block bootstrap of the rank correlation
+    # (rankcorr_chunk over RANK_CHUNK-draw chunks, BOOT_B draws) is not run: every draw is the
+    # original sample since b761b28, so its percentile interval would equal the point.
+    for sname, keys in sets.items():
+        if len(keys) < 4:
+            continue
+        for fill in ("mid", "crossed"):
+            qmat = np.vstack([q_of[("plain", k)] for k in keys])
+            rmat = np.vstack([r_of[(fill, k)] for k in keys])
+            point = float(
+                _spearman_cols(
+                    qmat.mean(axis=1)[:, None],
+                    (rmat.mean(axis=1) / rmat.std(axis=1, ddof=1))[:, None],
+                )[0]
+            )
+            rk_rows.append(
+                {
+                    "set": sname,
+                    "n_forecasts": len(keys),
+                    "qlike": "plain",
+                    "sharpe": fill,
+                    "spearman": point,
+                }
+            )
     rk = pd.DataFrame(rk_rows)
     print(f"[{time.time() - t0:.0f} s] stage 3 (rank correlation) done")
 
     # ---- per-day long table for the P&L and loss-vs-P&L work (regenerable; not committed)
     daily = []
     for k, f in frames.items():
-        s_ = by_key[k]
-        g = f[f["pred_clock"].notna() & f.index.normalize().isin(deck_days)]
-        if s_.lo:
-            g = g[g.index >= s_.lo]
-        dd = g.set_axis(g.index.normalize())
-        t = trade_days(dd["pred_clock"], deck.loc[dd.index])
+        dd = f.set_index(f.index.normalize()).loc[day_sets[k]]
+        t = trade_days(dd["plain"], deck.loc[dd.index])
         daily.append(
             pd.DataFrame(
                 {
                     "key": k,
                     "day": dd.index,
-                    "pred_clock": dd["pred_clock"].to_numpy(),
-                    "plain": dd["plain"].to_numpy(),
+                    "plain": dd["plain"].to_numpy(),  # THE forecast: f^2 B
+                    "pred_clock": dd[
+                        "pred_clock"
+                    ].to_numpy(),  # diagnostic only (parked recalibration)
                     "target": dd["true_raw"].to_numpy(),
                     "rv_unclipped": dd["rv_unclipped"].to_numpy(),
                     "iv_var": deck.loc[dd.index, "iv_var"].to_numpy(float),
-                    "qlike_recal": slc.qlike(
-                        dd["true_raw"], dd["pred_clock"]
-                    ).to_numpy(),
+                    "qlike_raw": slc.qlike(dd["true_raw"], dd["plain"]).to_numpy(),
+                    # "qlike_recal": slc.qlike(dd["true_raw"], dd["pred_clock"]).to_numpy(),  # 2026-10-06: removed
                     "q": t["q"].to_numpy(),
                     "ret_mid": t["mid"].to_numpy(),
                     "ret_crossed": t["crossed"].to_numpy(),
@@ -2085,10 +2515,42 @@ def main() -> int:
             )
         )
     daily_df = pd.concat(daily, ignore_index=True)
+    # gate: the daily position is the plain sign(s) on every row
+    q_want = np.where(daily_df["plain"] > daily_df["iv_var"], 1.0, -1.0)
+    n_bad = int((daily_df["q"].to_numpy() != q_want).sum())
+    gates.append(
+        {
+            "gate": "master_table_daily.parquet: q = sign(plain - iv_var) on every row (rows differing)",
+            "forecast": "(all)",
+            "n": len(daily_df),
+            "value": float(n_bad),
+            "bound": 0.0,
+            "ok": n_bad == 0 and bool(daily_df["plain"].notna().all()),
+        }
+    )
+    # gate: the daily frame reproduces the master table, key by key (Sharpe mid / crossed, QLIKE, buys)
+    tk = tab.set_index("key")
+    for k, g in daily_df.groupby("key", sort=False):
+        dv = max(
+            abs(sharpe(g["ret_mid"].to_numpy()) - tk.loc[k, "Sharpe_mid"]),
+            abs(sharpe(g["ret_crossed"].to_numpy()) - tk.loc[k, "Sharpe_crossed"]),
+            abs(float(g["qlike_raw"].mean()) - tk.loc[k, "qlike_raw"]),
+            abs(float((g["q"] > 0).sum()) - tk.loc[k, "n_buy"]),
+        )
+        gates.append(
+            {
+                "gate": "master_table_daily.parquet reproduces master_table.csv (Sharpe mid / crossed, QLIKE, buys)",
+                "forecast": k,
+                "n": len(g),
+                "value": dv,
+                "bound": 1e-12,
+                "ok": len(g) == int(tk.loc[k, "n_days"]) and dv <= 1e-12,
+            }
+        )
 
-    # ---- before / after: the pre-campaign master table against this run, key by key
+    # ---- before / after: the pre-campaign master table against this run, key by key (both plain)
     before_dir = Path(a.before_dir)
-    ba, ba_gates = before_after(tab, daily_df, before_dir)
+    ba, ba_gates = before_after(tab, daily_df, before_dir, deck)
     gates += ba_gates
     print(f"[{time.time() - t0:.0f} s] before/after done ({len(ba)} keys)")
 
@@ -2098,16 +2560,19 @@ def main() -> int:
     gtab["stored_design"] = gtab["stored_design"].fillna("")
     gtab["ok"] = gtab["ok"].astype(bool)
     prov = provenance_table(tab)
-    tab.to_csv(OUT / "master_table.csv", index=False)
-    cov.to_csv(OUT / "master_table_days.csv", index=False)
-    ext.to_csv(OUT / "master_table_extremes.csv", index=False)
-    gtab.to_csv(OUT / "master_table_gates.csv", index=False)
-    rk.to_csv(OUT / "master_table_rankcorr.csv", index=False)
-    prov.to_csv(OUT / "master_table_provenance.csv", index=False)
+    tab.to_csv(OUT / "master_table.csv", index=False, lineterminator="\n")
+    cov.to_csv(OUT / "master_table_days.csv", index=False, lineterminator="\n")
+    ext.to_csv(OUT / "master_table_extremes.csv", index=False, lineterminator="\n")
+    gtab.to_csv(OUT / "master_table_gates.csv", index=False, lineterminator="\n")
+    rk.to_csv(OUT / "master_table_rankcorr.csv", index=False, lineterminator="\n")
+    prov.to_csv(OUT / "master_table_provenance.csv", index=False, lineterminator="\n")
+    rvp.to_csv(OUT / "recal_vs_plain.csv", index=False, lineterminator="\n")
     if len(vs_h):
-        vs_h.to_csv(OUT / "master_table_vs_headline.csv", index=False)
+        vs_h.to_csv(
+            OUT / "master_table_vs_headline.csv", index=False, lineterminator="\n"
+        )
     if len(ba):
-        ba.to_csv(OUT / "before_after.csv", index=False)
+        ba.to_csv(OUT / "before_after.csv", index=False, lineterminator="\n")
     daily_df.to_parquet(OUT / "master_table_daily.parquet", index=False)
 
     # ---- summary prose (numbers from this run)
@@ -2133,6 +2598,7 @@ def main() -> int:
     extra["beats_headline"] = beats_headline_lines(A, vs_h)
     extra["provenance"] = provenance_lines(prov, gtab)
     extra["before_after"] = before_after_lines(ba, before_dir)
+    extra["scorer_change"] = scorer_change_lines(rvp, A)
     drop = cov[
         (cov["table"] != "not scored") & (cov["trade_days_missing"].fillna(0) > 0)
     ]
@@ -2158,7 +2624,6 @@ def main() -> int:
         "label",
         "n_days",
         "qlike_raw",
-        "qlike_recal",
         "qlike_pct_vs_ref",
         "dm_vs_ref",
         "Sharpe_mid",
@@ -2167,10 +2632,8 @@ def main() -> int:
         "hit_rate_mid",
         "n_buy",
         "dSharpe_mid_vs_ref",
-        "dSharpe_mid_vs_ref_lo",
-        "dSharpe_mid_vs_ref_hi",
-        "dSharpe_mid_vs_short_lo",
-        "dSharpe_mid_vs_short_hi",
+        "t_hac_mid_vs_ref",
+        "dSharpe_mid_vs_short",
     ]
     for tb in ("A", "B"):
         print(f"\n=== table {tb} ===")
@@ -2192,14 +2655,20 @@ def main() -> int:
     print(f"wrote {OUT} ({time.time() - t0:.0f} s)")
     if not a.no_pdf:
         sys.stdout.flush()
-        rc = subprocess.run(
-            [sys.executable, str(ROOT / "writeup" / "make_master_table_close_tex.py")],
-            check=False,
-        ).returncode
-        if rc:
-            print(
-                f"WARNING: writeup/make_master_table_close_tex.py exited {rc}; the CSVs and SUMMARY.md are written"
-            )
+        for extra_args in ([], ["--per-bar-only"]):
+            rc = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "writeup" / "make_master_table_close_tex.py"),
+                    *extra_args,
+                ],
+                check=False,
+            ).returncode
+            if rc:
+                print(
+                    f"WARNING: writeup/make_master_table_close_tex.py {' '.join(extra_args)} exited {rc}; "
+                    "the CSVs and SUMMARY.md are written"
+                )
     return 1 if len(bad) else 0
 
 
@@ -2221,7 +2690,7 @@ NEIGHBOURS = (  # the headline's closest alternatives, compared with it directly
 
 
 def headline_reasons(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
-    """Why the headline: stated as rules, the numbers filled in from this run."""
+    """Why the headline: stated as rules, the numbers filled in from this run (point estimates)."""
     h = _row(A, HEADLINE)
     if h is None:
         return [f"(the headline `{HEADLINE}` is not in table A on this run)"]
@@ -2237,10 +2706,10 @@ def headline_reasons(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
         & ~fc["family"].isin(["pooled twin"])
     ]
     rank_s = int((fc["Sharpe_mid"] > h["Sharpe_mid"]).sum()) + 1
-    rank_q = int((fc["qlike_recal"] < h["qlike_recal"]).sum()) + 1
+    rank_q = int((fc["qlike_raw"] < h["qlike_raw"]).sum()) + 1
     lines.append(
         f"- It is a 15:30-specific model on the inputs a 15:30 forecaster can rebuild live (`live_feasible`), so the trade it scores can be run. "
-        f"It ranks {rank_s} of {len(fc)} table-A forecasts on sign(s) Sharpe (mid) and {rank_q} of {len(fc)} on the recalibrated QLIKE."
+        f"It ranks {rank_s} of {len(fc)} table-A forecasts on sign(s) Sharpe (mid) and {rank_q} of {len(fc)} on QLIKE (plain forecast)."
     )
     best = fc.sort_values("Sharpe_mid", ascending=False)
     top = best.iloc[0]
@@ -2248,7 +2717,7 @@ def headline_reasons(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
         lines.append(
             f"- The highest Sharpe in table A is {top['label']} ({top['Sharpe_mid']:.2f} mid / {top['Sharpe_crossed']:.2f} crossed). Choosing "
             f"the maximum of {len(fc)} Sharpe ratios would select on the trade's own noise; the headline is chosen on feasibility and "
-            "on being the per-bar model of record of the research scorer (the per-bar ridge is the estimator the 15:30 study defined first), "
+            "on being the per-bar model of record (the per-bar ridge is the estimator the 15:30 study defined first), "
             "not on the maximum."
         )
     v = vs_h.set_index("key") if len(vs_h) else pd.DataFrame()
@@ -2268,49 +2737,60 @@ def headline_reasons(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
         g = fc[fc["family"].isin(fams)]
         if len(g):
             late += list(g.sort_values("Sharpe_mid", ascending=False).index[:1]) + [
-                g["qlike_recal"].idxmin()
+                g["qlike_raw"].idxmin()
             ]
     ex = [k for k in dict.fromkeys(NEIGHBOURS + tuple(late)) if k in v.index]
     if ex:
         lines.append(
             "- Paired against the headline itself on the same days (`master_table_vs_headline.csv`; a negative QLIKE % / DM = the "
-            "alternative forecasts better, a positive Sharpe difference = the alternative trades better; 95 % intervals):"
+            "alternative forecasts better, a positive Sharpe difference = the alternative trades better; point estimates, HAC t of the "
+            "daily mid-return difference):"
         )
         lines.append("")
         lines.append(
-            "  | alternative | QLIKE | % vs headline | DM | Sharpe mid / crossed | ΔSharpe mid vs headline | ΔSharpe crossed vs headline | same position |"
+            "  | alternative | QLIKE | % vs headline | DM | Sharpe mid / crossed | ΔSharpe mid vs headline | ΔSharpe crossed vs headline | HAC t (mid) | same position |"
         )
-        lines.append("  |---|---:|---:|---:|---|---|---|---:|")
+        lines.append("  |---|---:|---:|---:|---|---:|---:|---:|---:|")
         for k in ex:
             r = v.loc[k]
             lines.append(
-                f"  | {r['label']} | {r['qlike_recal']:.4f} | {r['qlike_pct_vs_headline']:+.1f} | {r['dm_vs_headline']:+.2f} | "
-                f"{r['Sharpe_mid']:.2f} / {r['Sharpe_crossed']:.2f} | "
-                f"{fmt_ci(r['dSharpe_mid_vs_headline'], r['dSharpe_mid_vs_headline_lo'], r['dSharpe_mid_vs_headline_hi'])} | "
-                f"{fmt_ci(r['dSharpe_crossed_vs_headline'], r['dSharpe_crossed_vs_headline_lo'], r['dSharpe_crossed_vs_headline_hi'])} | "
+                f"  | {r['label']} | {r['qlike_raw']:.4f} | {r['qlike_pct_vs_headline']:+.1f} | {r['dm_vs_headline']:+.2f} | "
+                f"{r['Sharpe_mid']:.2f} / {r['Sharpe_crossed']:.2f} | {r['dSharpe_mid_vs_headline']:+.2f} | "
+                f"{r['dSharpe_crossed_vs_headline']:+.2f} | {r['t_hac_mid_vs_headline']:+.2f} | "
                 f"{100 * r['same_position_as_headline']:.1f} % |"
             )
         lines.append("")
         others = v.drop(index=HEADLINE)
         others = others[others.index.isin(fc.index)]
-        lines.append(
-            f"- Over all {len(others)} other table-A forecasts, {int((others['dSharpe_mid_vs_headline_lo'] > 0).sum())} trade better than the headline "
-            f"with an interval above zero (mid; {int((others['dSharpe_crossed_vs_headline_lo'] > 0).sum())} crossed) and "
-            f"{int((others['dSharpe_mid_vs_headline_hi'] < 0).sum())} trade worse with an interval below zero (mid; "
-            f"{int((others['dSharpe_crossed_vs_headline_hi'] < 0).sum())} crossed); {int((others['qlike_diff_ci_hi'] < 0).sum())} forecast better "
-            f"on QLIKE with the day-block interval below zero, {int((others['qlike_diff_ci_lo'] > 0).sum())} worse."
+        sig_t = others["t_hac_mid_vs_headline"].map(hac_p) < SIG_LEVEL
+        sig_q = others["dm_p_vs_headline"] < SIG_LEVEL
+        up, dn = (
+            others["dSharpe_mid_vs_headline"] > 0,
+            others["dSharpe_mid_vs_headline"] < 0,
         )
-    n_res_ref = int((fc["dSharpe_mid_vs_ref_lo"] > 0).sum())
+        lines.append(
+            f"- Over all {len(others)} other table-A forecasts (point estimates): {int(up.sum())} trade better than the headline at the "
+            f"mid fill ({int((others['dSharpe_crossed_vs_headline'] > 0).sum())} crossed), {int((up & sig_t).sum())} of them with the HAC t "
+            f"of the daily mid-return difference significant at {100 * SIG_LEVEL:.0f} %; {int(dn.sum())} trade worse "
+            f"({int((dn & sig_t).sum())} significant); {int((others['qlike_pct_vs_headline'] < 0).sum())} have a lower QLIKE "
+            f"({int(((others['qlike_pct_vs_headline'] < 0) & sig_q).sum())} with DM p < {SIG_LEVEL:g}), "
+            f"{int((others['qlike_pct_vs_headline'] > 0).sum())} a higher one ({int(((others['qlike_pct_vs_headline'] > 0) & sig_q).sum())} with DM p < {SIG_LEVEL:g})."
+        )
+    rest = fc.drop(index=REFERENCE, errors="ignore")
+    sig_r = rest["t_hac_mid_vs_ref"].map(hac_p) < SIG_LEVEL
+    sig_s = fc["t_hac_mid_vs_short"].map(hac_p) < SIG_LEVEL
     lines.append(
-        f"- Against the reference, {n_res_ref} of {len(fc) - 1} table-A forecasts have a mid-fill Sharpe-difference interval wholly above zero; "
-        f"{int((fc['dSharpe_crossed_vs_ref_lo'] > 0).sum())} at the crossed fill. Against always short, "
-        f"{int((fc['dSharpe_mid_vs_short_lo'] > 0).sum())} (mid) and {int((fc['dSharpe_crossed_vs_short_lo'] > 0).sum())} (crossed) of {len(fc)}."
+        f"- Against the reference, {int((rest['dSharpe_mid_vs_ref'] > 0).sum())} of {len(rest)} table-A forecasts have a higher mid-fill "
+        f"Sharpe ({int((rest['dSharpe_crossed_vs_ref'] > 0).sum())} at the crossed fill); {int(((rest['dSharpe_mid_vs_ref'] > 0) & sig_r).sum())} "
+        f"of them with the HAC t of the daily mid-return difference significant at {100 * SIG_LEVEL:.0f} %. Against always short, "
+        f"{int((fc['dSharpe_mid_vs_short'] > 0).sum())} (mid) and {int((fc['dSharpe_crossed_vs_short'] > 0).sum())} (crossed) of {len(fc)} "
+        f"have a higher Sharpe; {int(((fc['dSharpe_mid_vs_short'] > 0) & sig_s).sum())} with a significant HAC t (mid)."
     )
-    lq = live.sort_values("qlike_recal")
+    lq = live.sort_values("qlike_raw")
     if len(lq):
         b = lq.iloc[0]
         lines.append(
-            f"- On forecast accuracy alone the best live-feasible forecast is {b['label']} (QLIKE {b['qlike_recal']:.4f}, "
+            f"- On forecast accuracy alone the best live-feasible forecast is {b['label']} (QLIKE {b['qlike_raw']:.4f}, "
             f"Sharpe {b['Sharpe_mid']:.2f} / {b['Sharpe_crossed']:.2f}); a QLIKE-first choice would take it. The trade does not rank "
             "forecasts the way QLIKE does (section b), which is why the headline names the scorer AND the trade numbers."
         )
@@ -2327,37 +2807,33 @@ def pattern_lines(A: pd.DataFrame) -> list[str]:
         g = fc[fc["family"] == fam]
         if not len(g):
             continue
-        bq = g.sort_values("qlike_recal").iloc[0]
+        bq = g.sort_values("qlike_raw").iloc[0]
         bs = g.sort_values("Sharpe_mid", ascending=False).iloc[0]
         out.append(
-            f"- **{fam}** ({len(g)}): QLIKE {g['qlike_recal'].min():.4f} .. {g['qlike_recal'].max():.4f}, Sharpe mid {g['Sharpe_mid'].min():.2f} .. "
-            f"{g['Sharpe_mid'].max():.2f}; best QLIKE {bq['label']} ({bq['qlike_recal']:.4f}, Sharpe {bq['Sharpe_mid']:.2f}); best Sharpe "
-            f"{bs['label']} ({bs['Sharpe_mid']:.2f}, QLIKE {bs['qlike_recal']:.4f})."
+            f"- **{fam}** ({len(g)}): QLIKE {g['qlike_raw'].min():.4f} .. {g['qlike_raw'].max():.4f}, Sharpe mid {g['Sharpe_mid'].min():.2f} .. "
+            f"{g['Sharpe_mid'].max():.2f}; best QLIKE {bq['label']} ({bq['qlike_raw']:.4f}, Sharpe {bq['Sharpe_mid']:.2f}); best Sharpe "
+            f"{bs['label']} ({bs['Sharpe_mid']:.2f}, QLIKE {bs['qlike_raw']:.4f})."
         )
-    fq = fc.sort_values("qlike_recal").iloc[0]
+    fq = fc.sort_values("qlike_raw").iloc[0]
     fs = fc.sort_values("Sharpe_mid", ascending=False).iloc[0]
     out.append(
-        f"- Over all of table A the lowest QLIKE is {fq['label']} ({fq['qlike_recal']:.4f}; Sharpe {fq['Sharpe_mid']:.2f}, rank "
+        f"- Over all of table A the lowest QLIKE is {fq['label']} ({fq['qlike_raw']:.4f}; Sharpe {fq['Sharpe_mid']:.2f}, rank "
         f"{int((fc['Sharpe_mid'] > fq['Sharpe_mid']).sum()) + 1} of {len(fc)} on Sharpe) and the highest Sharpe is {fs['label']} "
-        f"({fs['Sharpe_mid']:.2f}; QLIKE {fs['qlike_recal']:.4f}, rank {int((fc['qlike_recal'] < fs['qlike_recal']).sum()) + 1} of {len(fc)} on QLIKE)."
+        f"({fs['Sharpe_mid']:.2f}; QLIKE {fs['qlike_raw']:.4f}, rank {int((fc['qlike_raw'] < fs['qlike_raw']).sum()) + 1} of {len(fc)} on QLIKE). "
+        f"Median over table A: QLIKE {fc['qlike_raw'].median():.4f}, Sharpe mid {fc['Sharpe_mid'].median():.2f}, crossed {fc['Sharpe_crossed'].median():.2f}."
     )
-    n_q = int((fc["qlike_diff_ci_hi"] < 0).sum())
-    n_qw = int((fc["qlike_diff_ci_lo"] > 0).sum())
-    gap = (fc["qlike_raw"] - fc["qlike_recal"]).sort_values(ascending=False)
-    big = "; ".join(
-        f"{fc.loc[k, 'label']} {fc.loc[k, 'qlike_raw']:.4f} raw vs {fc.loc[k, 'qlike_recal']:.4f} recalibrated"
-        for k in gap.index[:3]
-    )
+    rest = fc.drop(index=REFERENCE, errors="ignore")
+    sig = rest["dm_p_vs_ref"] < SIG_LEVEL
+    lo, hi = rest["qlike_pct_vs_ref"] < 0, rest["qlike_pct_vs_ref"] > 0
     out.append(
-        f"- Against the reference's QLIKE, {n_q} forecasts have a day-block interval wholly below zero (better) and {n_qw} wholly above (worse). "
-        f"The raw (plain back-transform) QLIKE ranks forecasts differently from the recalibrated one (Spearman across table A "
-        f"{float(fc['qlike_raw'].rank().corr(fc['qlike_recal'].rank())):+.2f}); the recalibration's term s lowers the loss most for {big}."
+        f"- Against the reference's QLIKE, {int(lo.sum())} forecasts have a lower point estimate (better), {int((lo & sig).sum())} of them "
+        f"with DM p < {SIG_LEVEL:g}; {int(hi.sum())} a higher one, {int((hi & sig).sum())} with DM p < {SIG_LEVEL:g}."
     )
     return out
 
 
 def rank_reading(A: pd.DataFrame, rk: pd.DataFrame) -> list[str]:
-    """What the rank-correlation table says, with the group medians behind it."""
+    """What the rank-correlation table says, with the group medians behind it (point estimates)."""
     fc = A[
         (A["family"] != "direct rest-of-day at 15:30 (check)")
         & (A["duplicate_of"] == "")
@@ -2368,12 +2844,12 @@ def rank_reading(A: pd.DataFrame, rk: pd.DataFrame) -> list[str]:
 
     def get(sname: str) -> pd.Series | None:
         r = rk[
-            (rk["set"] == sname) & (rk["qlike"] == "recal") & (rk["sharpe"] == "mid")
+            (rk["set"] == sname) & (rk["qlike"] == "plain") & (rk["sharpe"] == "mid")
         ]
         return r.iloc[0] if len(r) else None
 
     def cc(r: pd.Series) -> str:
-        return f"{r['spearman']:+.2f} [{r['ci_lo']:+.2f}, {r['ci_hi']:+.2f}]"
+        return f"{r['spearman']:+.2f}"  # 2026-10-06: interval commented out (user)
 
     ra = get("all table-A forecasts")
     rp = get("per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)")
@@ -2381,30 +2857,29 @@ def rank_reading(A: pd.DataFrame, rk: pd.DataFrame) -> list[str]:
     if ra is None or not len(g48) or not len(gpb):
         return []
     txt = (
-        f"Reading: across all of table A a lower QLIKE goes with a higher Sharpe ({cc(ra)}). Part of it is the split between the {len(g48)} "
-        f"forecasts fitted on all 48 bars (median QLIKE {g48['qlike_recal'].median():.4f}, median Sharpe {g48['Sharpe_mid'].median():.2f}) "
-        f"and the {len(gpb)} per-bar forecasts (median QLIKE {gpb['qlike_recal'].median():.4f}, median Sharpe {gpb['Sharpe_mid'].median():.2f})"
+        f"Reading: across all of table A the rank correlation of QLIKE with Sharpe is {cc(ra)}. The {len(g48)} "
+        f"forecasts fitted on all 48 bars have median QLIKE {g48['qlike_raw'].median():.4f} and median Sharpe {g48['Sharpe_mid'].median():.2f}; "
+        f"the {len(gpb)} per-bar forecasts median QLIKE {gpb['qlike_raw'].median():.4f} and median Sharpe {gpb['Sharpe_mid'].median():.2f}"
     )
     if rp is not None:
         both = gpb[
-            (gpb["qlike_recal"] >= gpb["qlike_recal"].quantile(0.75))
+            (gpb["qlike_raw"] >= gpb["qlike_raw"].quantile(0.75))
             & (gpb["Sharpe_mid"] <= gpb["Sharpe_mid"].quantile(0.25))
         ]
         txt += f"; among the per-bar forecasts alone it is {cc(rp)}"
         if len(both):
             txt += (
-                f", carried by the {len(both)} per-bar forecasts in the worst quarter on both counts ("
+                f"; {len(both)} per-bar forecasts sit in the worst quarter on both counts ("
                 + "; ".join(
-                    both.sort_values("qlike_recal", ascending=False)["label"].head(6)
+                    both.sort_values("qlike_raw", ascending=False)["label"].head(6)
                 )
                 + ("; ..." if len(both) > 6 else "")
                 + ")"
             )
     if rl is not None and len(glin):
         txt += (
-            f"; within the per-bar linear and VIX-only family (QLIKE {glin['qlike_recal'].min():.4f} .. {glin['qlike_recal'].max():.4f}, "
-            f"Sharpe {glin['Sharpe_mid'].min():.2f} .. {glin['Sharpe_mid'].max():.2f}) it is {cc(rl)}: among forecasts of similar accuracy, "
-            "QLIKE does not order the trade"
+            f"; within the per-bar linear and VIX-only family (QLIKE {glin['qlike_raw'].min():.4f} .. {glin['qlike_raw'].max():.4f}, "
+            f"Sharpe {glin['Sharpe_mid'].min():.2f} .. {glin['Sharpe_mid'].max():.2f}) it is {cc(rl)}"
         )
     return [txt + "."]
 
@@ -2412,11 +2887,10 @@ def rank_reading(A: pd.DataFrame, rk: pd.DataFrame) -> list[str]:
 def extreme_lines(tab: pd.DataFrame, ext: pd.DataFrame) -> list[str]:
     A = tab[tab["key"] != ALWAYS_SHORT]
     out = [
-        "- **Rule (named):** PLAIN_FLOOR(d) = the smallest 16:00 target of the previous 250 sessions (the recalibration window SMEAR_W), "
-        "lagged one session. A plain back-transform f²·B below it forecasts a quieter 15:30–16:00 half hour than any of the past year; it is flagged, "
-        "listed in `master_table_extremes.csv`, and the raw QLIKE is reported as is (`qlike_raw`) and with flagged forecasts raised to the floor "
-        "(`qlike_raw_floored`). Nothing is clipped silently; the recalibrated forecast (≥ s·B) needs no treatment and is never below the floor "
-        f"on a trade day in this run (max count {int(A['n_recal_below_floor'].max())})."
+        f"- **Rule (named):** PLAIN_FLOOR(d) = the smallest 16:00 target of the previous {FLOOR_W} sessions (FLOOR_W, the parked "
+        "recalibration's window), lagged one session. A plain forecast f²·B below it forecasts a quieter 15:30–16:00 half hour than "
+        "any of the past year; it is flagged, listed in `master_table_extremes.csv`, and the QLIKE is reported as is (`qlike_raw`, the "
+        "reported number) and, as a diagnostic, with flagged forecasts raised to the floor (`qlike_raw_floored`). Nothing is clipped."
     ]
     on_trade = int(ext["trade_day"].sum()) if len(ext) else 0
     out.append(
@@ -2429,7 +2903,7 @@ def extreme_lines(tab: pd.DataFrame, ext: pd.DataFrame) -> list[str]:
         days_ext = ext.loc[ext["early_close"], "stamp"].str[:10].unique()
         out.append(
             f"- **On every 16:00 session of the arm span** ({int(A['sessions'].max())} sessions, the arm span 2018-06-25 .. 2024-04-30 after the "
-            f"floor's {slc.SMEAR_MIN}-session warm-up, early closes included): {len(ext)} flagged rows over {len(ne)} forecasts, {ec} of them on "
+            f"floor's {FLOOR_MIN}-session warm-up, early closes included): {len(ext)} flagged rows over {len(ne)} forecasts, {ec} of them on "
             f"{len(days_ext)} early-close sessions ({', '.join(sorted(days_ext))}): 13:00 closes, where the 15:30–16:00 bar lies after the cash "
             "close and the trade frame never enters. Negative adjusted-scale forecasts occur there too (the plain back-transform squares them)."
         )
@@ -2443,10 +2917,10 @@ def extreme_lines(tab: pd.DataFrame, ext: pd.DataFrame) -> list[str]:
             t = A.set_index("key").loc[r["key"]]
             out.append(
                 f"  - {t['label']} on {r['stamp'][:10]}{' (early close)' if r['early_close'] else ''}: f = {r['yhat']:.4f} on the adjusted scale, "
-                f"plain forecast {r['plain_forecast']:.3g} vs floor {r['plain_floor']:.3g} and target {r['target_true_raw']:.3g}; that one day's raw "
-                f"QLIKE is {r['qlike_raw_this_day']:.1f}. Over all {int(t['sessions'])} sessions the raw QLIKE is {t['qlike_raw_all_sessions']:.4f} as is, "
+                f"plain forecast {r['plain_forecast']:.3g} vs floor {r['plain_floor']:.3g} and target {r['target_true_raw']:.3g}; that one day's "
+                f"QLIKE is {r['qlike_raw_this_day']:.1f}. Over all {int(t['sessions'])} sessions the QLIKE is {t['qlike_raw_all_sessions']:.4f} as is, "
                 f"{t['qlike_raw_floored_all_sessions']:.4f} floored, {t['qlike_raw_all_sessions_no_early_close']:.4f} without early closes; on the trade "
-                f"days {t['qlike_raw']:.4f} (recalibrated {t['qlike_recal']:.4f})."
+                f"days {t['qlike_raw']:.4f}."
             )
     rod = LS.parent / "linear_subsection_restofday" / "score_rest_of_day.csv"
     if rod.is_file():
@@ -2460,10 +2934,67 @@ def extreme_lines(tab: pd.DataFrame, ext: pd.DataFrame) -> list[str]:
             out.append(
                 f"- The handoff's '16:00 ridge QLIKE 2.65 unrecalibrated' is this same early-close day: `score_rest_of_day.csv` reports the plain "
                 f"QLIKE {float(r['qlike_plain'].iloc[0]):.4f} for the all_features ridge at the 15:30 clock on {int(r['n'].iloc[0])} sessions "
-                "against the unclipped variance; the recalibration (its `qlike_causal` "
-                f"{float(r['qlike_causal'].iloc[0]):.4f}) and the trade frame's exclusion of early closes both remove it."
+                "against the unclipped variance; the trade frame excludes early closes, so it does not enter any number of this table."
             )
     return out
+
+
+def scorer_change_lines(rvp: pd.DataFrame, A: pd.DataFrame) -> list[str]:
+    """What removing the recalibration changed (recal_vs_plain.csv), table A without check rows and duplicates."""
+    fc = A[
+        (A["family"] != "direct rest-of-day at 15:30 (check)")
+        & (A["duplicate_of"] == "")
+    ]
+    v = rvp.set_index("key")
+    v = v[v.index.isin(fc.index) & v["Sharpe_mid_recal"].notna()]
+    if not len(v):
+        return [
+            "(no forecast has the diagnostic recalibrated column on every scored day)"
+        ]
+    n = int(v["n_days"].max())
+
+    def rng(c: str, fmt: str) -> str:
+        return f"median {format(v[c].median(), fmt)} ({format(v[c].min(), fmt)} .. {format(v[c].max(), fmt)})"
+
+    L = [
+        f"The recalibration was removed on {RECAL_REMOVED} (user decision): every number in this file uses the plain forecast f²·B. "
+        "`recal_vs_plain.csv` records, per forecast on its own scored days, the parked recalibrated forecast (`pred_clock` = (f² + s)·B, "
+        f"diagnostic) against the plain one. Over the {len(v)} table-A forecasts (check rows and exact duplicates left out, {n} days):",
+        f"- QLIKE, plain minus recalibrated: {rng('qlike_pct_change', '+.1f')} %; Sharpe mid {rng('d_Sharpe_mid_plain_minus_recal', '+.2f')}, "
+        f"crossed {rng('d_Sharpe_crossed_plain_minus_recal', '+.2f')}; buy share {rng('d_pct_buy_plain_minus_recal', '+.1f')} percentage points.",
+        f"- Positions changed: {rng('positions_changed', '.0f')} of {n} days; buy -> sell {int(v['buy_to_sell'].sum())}, sell -> buy "
+        f"{int(v['sell_to_buy'].sum())} over all of them (s·B ≥ 0, so removing it can only lower a forecast: mean s·B / f²·B "
+        f"{rng('mean_s_over_plain', '.2f')}).",
+    ]
+    for k, name in ((HEADLINE, "Headline"), (REFERENCE, "Reference")):
+        if k in v.index:
+            r = v.loc[k]
+            L.append(
+                f"- **{name}** (`{k}`): QLIKE {r['qlike_recal']:.4f} -> {r['qlike_plain']:.4f}; Sharpe mid {r['Sharpe_mid_recal']:.2f} -> "
+                f"{r['Sharpe_mid_plain']:.2f}, crossed {r['Sharpe_crossed_recal']:.2f} -> {r['Sharpe_crossed_plain']:.2f}; buys "
+                f"{r['pct_buy_recal']:.1f} % -> {r['pct_buy_plain']:.1f} %; positions changed on {int(r['positions_changed'])} days."
+            )
+    ch = v.sort_values("d_Sharpe_mid_plain_minus_recal")
+    L.append(
+        "- Largest Sharpe (mid) falls: "
+        + "; ".join(
+            f"{r['label']} {r['Sharpe_mid_recal']:.2f} -> {r['Sharpe_mid_plain']:.2f}"
+            for _, r in ch.head(3).iterrows()
+        )
+        + ". Largest rises: "
+        + "; ".join(
+            f"{r['label']} {r['Sharpe_mid_recal']:.2f} -> {r['Sharpe_mid_plain']:.2f}"
+            for _, r in ch.tail(3).iloc[::-1].iterrows()
+        )
+        + "."
+    )
+    rq = v["qlike_recal"].rank()
+    rs = v["Sharpe_mid_recal"].rank()
+    L.append(
+        f"- Rank agreement across these forecasts, recalibrated vs plain: Spearman {float(rq.corr(v['qlike_plain'].rank())):+.2f} on QLIKE, "
+        f"{float(rs.corr(v['Sharpe_mid_plain'].rank())):+.2f} on Sharpe mid."
+    )
+    return L
 
 
 # --------------------------------------------------------------------------- provenance + before / after
@@ -2475,6 +3006,22 @@ LINEAR_FAMILIES = (
     "chain-period buckets",
 )
 UNTOUCHED = ("paper", "pooled twin")  # the families the 16:00 campaign did not re-run
+# 2026-10-07 (user decision, writeup/MASTER_TABLE_REVIEW_2026-10-01.md item 76): the paper's pooled XGBoost (tag
+# xgb) reads bank arm 10 (xgb_opt_00, the TOP entry of the 1998-2002 dev-span search, the rule LightGBM and the
+# random forest follow) instead of bank arm 16 (xgb_opt_06, 7th-ranked, hand-picked after post-2002 scoring).  Its
+# row differs from the pre-campaign table by design: the 'untouched' gate is REPORTED for it (not asserted), and an
+# ASSERTED gate checks that the table read is the verified arm-10 dump (sha256 recorded in
+# results/atm_straddle_0dte_1530/TREE10_DONE).  Other pooled tree-bank dumps on disk (yhat_tree<NN>.parquet not
+# named by atm_straddle_lib.yhat_paths, e.g. the parked arm-16 table) are looked at and not scored.
+PAPER_SWITCHED = {
+    "xgb": {
+        "table": "yhat_tree10.parquet",
+        "sha256": "ebd540db48768c80e9426116449db6399fcb5d090f40b3140cfeb85ac65a2cde",
+        "changed": "nothing (the campaign did not re-run it; 2026-10-07: pooled XGBoost switched from bank arm 16 "
+        "(xgb_opt_06, yhat_tree16) to bank arm 10 (xgb_opt_00, yhat_tree10), user decision, MASTER_TABLE_REVIEW item 76; "
+        "before side = the switched table)",
+    }
+}
 
 
 def _arm_clusters() -> dict[str, tuple[str, str]]:
@@ -2490,12 +3037,21 @@ def _arm_clusters() -> dict[str, tuple[str, str]]:
 
 
 def what_changed(key: str, fam: str, source: str, clusters: dict) -> str:
+    if fam == "paper" and key in PAPER_SWITCHED:  # 2026-10-07: see PAPER_SWITCHED
+        return PAPER_SWITCHED[key]["changed"]
     if fam in LINEAR_FAMILIES and ARM_ROOT == DEFAULT_ARM_ROOT and source == "arm":
         return "nothing (arm root = the pre-campaign arms)"
     w = FAMILY_PROV.get(fam, {}).get("changed", "unknown family")
     if fam in LINEAR_FAMILIES and key in clusters:
         old, new = clusters[key]
         w += f"; re-run on {new}" + (f" (was {old})" if old != new else " (as before)")
+    if (
+        perbar_switch_active() and perbar_switch_path(key) is not None
+    ):  # 2026-10-13: PERBAR_SWITCH
+        w += (
+            "; then switched to the top-entry table "
+            + perbar_switch_path(key).parent.name  # type: ignore[union-attr]  # not None: checked above
+        )
     return w
 
 
@@ -2529,9 +3085,14 @@ def provenance_table(tab: pd.DataFrame) -> pd.DataFrame:
 
 
 def before_after(
-    tab: pd.DataFrame, daily: pd.DataFrame, before_dir: Path
+    tab: pd.DataFrame, daily: pd.DataFrame, before_dir: Path, deck: pd.DataFrame
 ) -> tuple[pd.DataFrame, list[dict]]:
-    """Every forecast key before (the pre-campaign master table) and after (this run), paired on the same days."""
+    """Every forecast key before (the pre-campaign master table) and after (this run), both under the plain scorer.
+
+    2026-10-06: recalibration removed, user decision -- the before side is re-scored from the pre-campaign
+    daily frame's ``plain`` column and the deck (its stored q / returns / qlike_recal are the recalibrated
+    trade and are not used); its plain QLIKE is gated against the pre-campaign table's qlike_raw.
+    """
     bt_p, bd_p = (
         before_dir / "master_table.csv",
         before_dir / "master_table_daily.parquet",
@@ -2544,8 +3105,39 @@ def before_after(
     was = pd.read_csv(bt_p, float_precision="round_trip").set_index("key")
     now = tab.set_index("key")
     bd = pd.read_parquet(bd_p)
-    db = {k: g.set_index("day").sort_index() for k, g in bd.groupby("key")}
+    db: dict[str, pd.DataFrame] = {}
+    for k, g in bd.groupby("key"):
+        g = g.set_index("day").sort_index()
+        t = trade_days(g["plain"], deck.loc[g.index]).reindex(g.index)
+        db[k] = pd.DataFrame(
+            {
+                "plain": g["plain"],
+                "qlike_raw": slc.qlike(g["target"], g["plain"]),
+                "q": t["q"],
+                "ret_mid": t["mid"],
+                "ret_crossed": t["crossed"],
+            },
+            index=g.index,
+        )
     dn = {k: g.set_index("day").sort_index() for k, g in daily.groupby("key")}
+    # 2026-10-07: a paper row switched by decision (PAPER_SWITCHED) is not a change the 16:00 campaign made (the
+    # campaign did not re-run the paper's forecasts).  Its campaign before side is the switched table itself,
+    # re-scored exactly as every before side is; the pre-campaign table's own row (the replaced forecast) is
+    # compared with it in a REPORTED gate below, for the record.
+    for k in PAPER_SWITCHED:
+        if k in dn and k in db:
+            g = dn[k]
+            t = trade_days(g["plain"], deck.loc[g.index]).reindex(g.index)
+            db[k] = pd.DataFrame(
+                {
+                    "plain": g["plain"],
+                    "qlike_raw": slc.qlike(g["target"], g["plain"]),
+                    "q": t["q"],
+                    "ret_mid": t["mid"],
+                    "ret_crossed": t["crossed"],
+                },
+                index=g.index,
+            )
     clusters = _arm_clusters()
     dedup = ARM_ROOT != DEFAULT_ARM_ROOT
     gates: list[dict] = []
@@ -2579,10 +3171,14 @@ def before_after(
                 )
             ),
             "table_after": now.loc[k, "table"] if k in now.index else "",
-            "n_days_after": int(now.loc[k, "n_days"]) if k in now.index else np.nan,
-            "qlike_recal_after": now.loc[k, "qlike_recal"]
+            # 2026-10-13: the after side reads the top-entry table (PERBAR_SWITCH): not a campaign change alone
+            "perbar_switch": str(now.loc[k, "perbar_switch"])
             if k in now.index
-            else np.nan,
+            and "perbar_switch" in now.columns
+            and isinstance(now.loc[k, "perbar_switch"], str)
+            else "",
+            "n_days_after": int(now.loc[k, "n_days"]) if k in now.index else np.nan,
+            "qlike_raw_after": now.loc[k, "qlike_raw"] if k in now.index else np.nan,
             "Sharpe_mid_after": now.loc[k, "Sharpe_mid"] if k in now.index else np.nan,
             "Sharpe_crossed_after": now.loc[k, "Sharpe_crossed"]
             if k in now.index
@@ -2596,82 +3192,94 @@ def before_after(
                     "family_before": b_["family"],
                     "table_before": b_["table"],
                     "n_days_before": int(b_["n_days"]),
-                    "qlike_recal_before": b_["qlike_recal"],
-                    "Sharpe_mid_before": b_["Sharpe_mid"],
-                    "Sharpe_crossed_before": b_["Sharpe_crossed"],
                 }
             )
-        if status == "both":
-            row["qlike_diff"] = row["qlike_recal_after"] - row["qlike_recal_before"]
+            if k in db:
+                bb_all = db[k]
+                row.update(
+                    {
+                        "qlike_raw_before": float(bb_all["qlike_raw"].mean()),
+                        "Sharpe_mid_before": sharpe(bb_all["ret_mid"].to_numpy()),
+                        "Sharpe_crossed_before": sharpe(
+                            bb_all["ret_crossed"].to_numpy()
+                        ),
+                    }
+                )
+                if (
+                    k in PAPER_SWITCHED
+                ):  # 2026-10-07: the replaced forecast's stored row, for the record
+                    dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))
+                    gates.append(
+                        {
+                            "gate": "before/after: switched paper row -- the switched table's plain QLIKE vs the replaced "
+                            "forecast's pre-campaign qlike_raw (differs by design; see PAPER_SWITCHED)",
+                            "forecast": k,
+                            "n": len(bb_all),
+                            "value": dv,
+                            "bound": 1e-12,
+                            "ok": dv <= 1e-12,
+                            "asserted": False,
+                        }
+                    )
+                elif len(bb_all) == int(b_["n_days"]):
+                    dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))
+                    gates.append(
+                        {
+                            "gate": "before/after: the pre-campaign daily frame's plain QLIKE reproduces the pre-campaign table's qlike_raw",
+                            "forecast": k,
+                            "n": len(bb_all),
+                            "value": dv,
+                            "bound": 1e-12,
+                            "ok": dv <= 1e-12,
+                        }
+                    )
+        if status == "both" and "qlike_raw_before" in row:
+            row["qlike_diff"] = row["qlike_raw_after"] - row["qlike_raw_before"]
             row["qlike_pct_change"] = (
-                100.0 * row["qlike_diff"] / row["qlike_recal_before"]
+                100.0 * row["qlike_diff"] / row["qlike_raw_before"]
             )
             row["dSharpe_mid"] = row["Sharpe_mid_after"] - row["Sharpe_mid_before"]
             row["dSharpe_crossed"] = (
                 row["Sharpe_crossed_after"] - row["Sharpe_crossed_before"]
             )
-            if k in dn and k in db:
+            if k in dn:
                 days = dn[k].index.intersection(db[k].index)
                 aa, bb = dn[k].loc[days], db[k].loc[days]
                 row["n_days_paired"] = len(days)
                 row["positions_changed"] = int(
                     (aa["q"].to_numpy() != bb["q"].to_numpy()).sum()
                 )
-                row["max_rel_pred_clock_change"] = float(
-                    (aa["pred_clock"] / bb["pred_clock"] - 1.0).abs().max()
+                row["max_rel_plain_change"] = float(
+                    (aa["plain"] / bb["plain"] - 1.0).abs().max()
                 )
-                qd = aa["qlike_recal"].to_numpy() - bb["qlike_recal"].to_numpy()
-                lo, hi = base.day_block_ci(pd.Series(qd, index=days))
-                row.update({"qlike_diff_ci_lo": lo, "qlike_diff_ci_hi": hi})
+                # 2026-10-06: intervals commented out (user) -- point estimates and the HAC t only:
+                # lo, hi = base.day_block_ci(pd.Series(qd, index=days)); paired_sharpe(...) lo / hi
+                row["t_hac_mid_after_vs_before"] = asl.newey_west_t(
+                    aa["ret_mid"].to_numpy() - bb["ret_mid"].to_numpy()
+                )[0]
                 for fill in ("mid", "crossed"):
-                    x, x_lo, x_hi = paired_sharpe(
-                        aa[f"ret_{fill}"].to_numpy(), bb[f"ret_{fill}"].to_numpy()
-                    )
-                    row.update(
-                        {
-                            f"dSharpe_{fill}_paired": x,
-                            f"dSharpe_{fill}_lo": x_lo,
-                            f"dSharpe_{fill}_hi": x_hi,
-                        }
-                    )
-                if len(days) == row["n_days_after"] == row["n_days_before"]:
-                    dv = max(
-                        abs(sharpe(aa["ret_mid"].to_numpy()) - row["Sharpe_mid_after"]),
-                        abs(
-                            sharpe(bb["ret_mid"].to_numpy()) - row["Sharpe_mid_before"]
-                        ),
-                        abs(float(aa["qlike_recal"].mean()) - row["qlike_recal_after"]),
-                        abs(
-                            float(bb["qlike_recal"].mean()) - row["qlike_recal_before"]
-                        ),
-                    )
-                    gates.append(
-                        {
-                            "gate": "before/after: the two daily frames reproduce both master tables (Sharpe mid, QLIKE)",
-                            "forecast": k,
-                            "n": len(days),
-                            "value": dv,
-                            "bound": 1e-12,
-                            "ok": dv <= 1e-12,
-                        }
-                    )
+                    row[f"dSharpe_{fill}_paired"] = sharpe(
+                        aa[f"ret_{fill}"].to_numpy()
+                    ) - sharpe(bb[f"ret_{fill}"].to_numpy())
                 if fam in UNTOUCHED:
                     dv = max(
-                        row["max_rel_pred_clock_change"],
+                        row["max_rel_plain_change"],
                         abs(row["dSharpe_mid"]),
                         abs(row["dSharpe_crossed"]),
                         abs(row["qlike_diff"]),
                     )
                     gates.append(
                         {
-                            "gate": "untouched by the campaign: equals the pre-campaign master table (pred_clock rel, Sharpe, QLIKE)",
+                            "gate": "untouched by the campaign: equals the pre-campaign table under the plain scorer (plain rel, Sharpe, QLIKE)",
                             "forecast": k,
                             "n": len(days),
                             "value": dv,
                             "bound": 0.0,
                             "ok": dv == 0.0,
-                            "asserted": dedup,
-                            "stored_design": "pre-campaign master table",
+                            # "asserted": dedup,
+                            # 2026-10-07: reported, not asserted, for a paper row switched by decision
+                            "asserted": dedup and k not in PAPER_SWITCHED,
+                            "stored_design": "pre-campaign master table (plain)",
                         }
                     )
         rows.append(row)
@@ -2686,28 +3294,24 @@ def before_after(
         "n_days_before",
         "n_days_after",
         "n_days_paired",
-        "qlike_recal_before",
-        "qlike_recal_after",
+        "qlike_raw_before",
+        "qlike_raw_after",
         "qlike_diff",
         "qlike_pct_change",
-        "qlike_diff_ci_lo",
-        "qlike_diff_ci_hi",
         "Sharpe_mid_before",
         "Sharpe_mid_after",
         "dSharpe_mid",
-        "dSharpe_mid_lo",
-        "dSharpe_mid_hi",
         "Sharpe_crossed_before",
         "Sharpe_crossed_after",
         "dSharpe_crossed",
-        "dSharpe_crossed_lo",
-        "dSharpe_crossed_hi",
+        "t_hac_mid_after_vs_before",
         "positions_changed",
-        "max_rel_pred_clock_change",
+        "max_rel_plain_change",
         "dSharpe_mid_paired",
         "dSharpe_crossed_paired",
         "family_before",
         "label_before",
+        "perbar_switch",  # 2026-10-13: PERBAR_SWITCH token of the after side ('' = not switched)
     ]
     out = pd.DataFrame(rows).reindex(columns=cols)
     return out, gates
@@ -2751,9 +3355,9 @@ def before_after_lines(ba: pd.DataFrame, before_dir: Path) -> list[str]:
         bdir = str(before_dir)
     b = ba[ba["status"] == "both"].set_index("key")
     L = [
-        f"Before = the pre-campaign master table (commit 6177b74; snapshot `{bdir}/`), after = this run; every key present "
-        "in both is paired on the same days with the same resampled days as every other interval (`before_after.csv`; "
-        "difference = after minus before)."
+        f"Before = the pre-campaign master table (commit 6177b74; snapshot `{bdir}/`), re-scored here with the plain forecast from its "
+        "daily frame's `plain` column; after = this run; every key present in both is paired on the same days (`before_after.csv`; "
+        "difference = after minus before; point estimates, HAC t of the daily mid-return difference)."
     ]
 
     def one(k: str, name: str) -> str:
@@ -2761,37 +3365,34 @@ def before_after_lines(ba: pd.DataFrame, before_dir: Path) -> list[str]:
             return f"- **{name}** (`{k}`): not in both tables."
         r = b.loc[k]
         return (
-            f"- **{name}** (`{k}`; {r['what_changed']}): QLIKE {r['qlike_recal_before']:.4f} -> {r['qlike_recal_after']:.4f} "
-            f"({r['qlike_pct_change']:+.2f} %, interval on the daily difference [{r['qlike_diff_ci_lo']:+.5f}, {r['qlike_diff_ci_hi']:+.5f}]); "
-            f"Sharpe mid {r['Sharpe_mid_before']:.2f} -> {r['Sharpe_mid_after']:.2f} "
-            f"({fmt_ci(r['dSharpe_mid'], r['dSharpe_mid_lo'], r['dSharpe_mid_hi'])}), crossed {r['Sharpe_crossed_before']:.2f} -> "
-            f"{r['Sharpe_crossed_after']:.2f} ({fmt_ci(r['dSharpe_crossed'], r['dSharpe_crossed_lo'], r['dSharpe_crossed_hi'])}); "
-            f"positions changed on {int(r['positions_changed'])} of {int(r['n_days_paired'])} days; largest relative change of "
-            f"the recalibrated forecast {r['max_rel_pred_clock_change']:.2e}."
+            f"- **{name}** (`{k}`; {r['what_changed']}): QLIKE {r['qlike_raw_before']:.4f} -> {r['qlike_raw_after']:.4f} "
+            f"({r['qlike_pct_change']:+.2f} %); Sharpe mid {r['Sharpe_mid_before']:.2f} -> {r['Sharpe_mid_after']:.2f} "
+            f"({r['dSharpe_mid']:+.2f}, HAC {fmt_t(r['t_hac_mid_after_vs_before'])}), crossed {r['Sharpe_crossed_before']:.2f} -> "
+            f"{r['Sharpe_crossed_after']:.2f} ({r['dSharpe_crossed']:+.2f}); positions changed on {int(r['positions_changed'])} of "
+            f"{int(r['n_days_paired'])} days; largest relative change of the plain forecast {r['max_rel_plain_change']:.2e}."
         )
 
     L.append(one(HEADLINE, "Headline"))
     L.append(one(REFERENCE, "Reference"))
     L.append("")
     L.append(
-        "| family | keys in both | what changed | QLIKE % change, median [min, max] | ΔSharpe mid, median [min, max] | "
-        "ΔSharpe mid interval above / below 0 | ΔSharpe crossed interval above / below 0 | positions changed, median [max] |"
+        "| family | keys in both | what changed | QLIKE % change, median (min .. max) | ΔSharpe mid, median (min .. max) | "
+        "ΔSharpe crossed, median (min .. max) | HAC t significant, up / down | positions changed, median (max) |"
     )
     L.append("|---|---:|---|---|---|---|---|---|")
-    fams = [
-        f for f in FAMILY_ORDER if f in set(b["family"])
-    ]  # always short: no forecast, unchanged
+    fams = [f for f in FAMILY_ORDER if f in set(b["family"])]
     for fam in fams:
         g = b[b["family"] == fam]
         wc = g["what_changed"].str.split(";").str[0].value_counts()
         pos = g["positions_changed"].dropna()
+        sig = g["t_hac_mid_after_vs_before"].map(hac_p) < SIG_LEVEL
         L.append(
             f"| {fam} | {len(g)} | {'; '.join(wc.index)} | {g['qlike_pct_change'].median():+.2f} "
-            f"[{g['qlike_pct_change'].min():+.2f}, {g['qlike_pct_change'].max():+.2f}] | {g['dSharpe_mid'].median():+.2f} "
-            f"[{g['dSharpe_mid'].min():+.2f}, {g['dSharpe_mid'].max():+.2f}] | {int((g['dSharpe_mid_lo'] > 0).sum())} / "
-            f"{int((g['dSharpe_mid_hi'] < 0).sum())} | {int((g['dSharpe_crossed_lo'] > 0).sum())} / "
-            f"{int((g['dSharpe_crossed_hi'] < 0).sum())} | "
-            + (f"{pos.median():.0f} [{pos.max():.0f}]" if len(pos) else "")
+            f"({g['qlike_pct_change'].min():+.2f} .. {g['qlike_pct_change'].max():+.2f}) | {g['dSharpe_mid'].median():+.2f} "
+            f"({g['dSharpe_mid'].min():+.2f} .. {g['dSharpe_mid'].max():+.2f}) | {g['dSharpe_crossed'].median():+.2f} "
+            f"({g['dSharpe_crossed'].min():+.2f} .. {g['dSharpe_crossed'].max():+.2f}) | "
+            f"{int((sig & (g['dSharpe_mid'] > 0)).sum())} / {int((sig & (g['dSharpe_mid'] < 0)).sum())} | "
+            + (f"{pos.median():.0f} ({pos.max():.0f})" if len(pos) else "")
             + " |"
         )
     new = ba[ba["status"] == "new"]
@@ -2809,14 +3410,13 @@ def before_after_lines(ba: pd.DataFrame, before_dir: Path) -> list[str]:
         L.append(
             f"Dropped (in the pre-campaign table, not in this run): {', '.join(gone['key'])}."
         )
-    moved = b[(b["dSharpe_mid_lo"] > 0) | (b["dSharpe_mid_hi"] < 0)]
+    moved = b[b["t_hac_mid_after_vs_before"].map(hac_p) < SIG_LEVEL]
     if len(moved):
         L.append("")
         L.append(
-            "Keys whose own Sharpe (mid) moved with the paired interval excluding zero: "
+            f"Keys whose own mid-fill return moved with the HAC t significant at {100 * SIG_LEVEL:.0f} % (Sharpe before -> after): "
             + "; ".join(
-                f"{r['label']} {r['Sharpe_mid_before']:.2f} -> {r['Sharpe_mid_after']:.2f} "
-                f"({fmt_ci(r['dSharpe_mid'], r['dSharpe_mid_lo'], r['dSharpe_mid_hi'])})"
+                f"{r['label']} {r['Sharpe_mid_before']:.2f} -> {r['Sharpe_mid_after']:.2f} ({fmt_t(r['t_hac_mid_after_vs_before'])})"
                 for _, r in moved.sort_values("dSharpe_mid").iterrows()
             )
             + "."
@@ -2825,7 +3425,7 @@ def before_after_lines(ba: pd.DataFrame, before_dir: Path) -> list[str]:
 
 
 def beats_headline_lines(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
-    """Recorded, never acted on: any forecast that now beats the headline with an interval clear of zero."""
+    """Recorded, never acted on: any forecast that now beats the headline (point estimates; DM / HAC t significance)."""
     if not len(vs_h) or HEADLINE not in A.index:
         return []
     fc = A[
@@ -2834,38 +3434,50 @@ def beats_headline_lines(A: pd.DataFrame, vs_h: pd.DataFrame) -> list[str]:
     ].index
     v = vs_h.set_index("key")
     v = v[v.index.isin(fc) & (v.index != HEADLINE)]
+    sig_t = v["t_hac_mid_vs_headline"].map(hac_p) < SIG_LEVEL
 
     def names(m: pd.Series, col: str) -> str:
         g = v[m].sort_values(col, ascending=False)
         return (
             "; ".join(
-                f"{r['label']} ({fmt_ci(r[col], r[col + '_lo'], r[col + '_hi'])})"
+                f"{r['label']} ({r[col]:+.2f}, HAC {fmt_t(r['t_hac_mid_vs_headline'])})"
                 for _, r in g.iterrows()
             )
             or "none"
         )
 
-    bm = v["dSharpe_mid_vs_headline_lo"] > 0
-    bx = v["dSharpe_crossed_vs_headline_lo"] > 0
-    bq = v["qlike_diff_ci_hi"] < 0
+    bm = v["dSharpe_mid_vs_headline"] > 0
+    bx = v["dSharpe_crossed_vs_headline"] > 0
+    bq = v["qlike_pct_vs_headline"] < 0
+    bqs = bq & (v["dm_p_vs_headline"] < SIG_LEVEL)
     L = [
         f"- **Does any forecast now beat the headline?** Of the {len(v)} other table-A forecasts (check rows and exact duplicates "
-        f"left out), with the paired Sharpe-difference interval wholly above zero: mid {int(bm.sum())} "
-        f"({names(bm, 'dSharpe_mid_vs_headline')}); crossed {int(bx.sum())} ({names(bx, 'dSharpe_crossed_vs_headline')}). "
-        f"With the QLIKE-difference interval wholly below zero (better accuracy): {int(bq.sum())}"
+        f"left out), {int(bm.sum())} have a higher Sharpe point estimate at the mid fill ({int(bx.sum())} crossed); with the HAC t of the "
+        f"daily mid-return difference significant at {100 * SIG_LEVEL:.0f} %: {int((bm & sig_t).sum())} ({names(bm & sig_t, 'dSharpe_mid_vs_headline')}). "
+        f"{int(bq.sum())} have a lower QLIKE point estimate; with DM p < {SIG_LEVEL:g}: {int(bqs.sum())}"
         + (
             " ("
             + "; ".join(
                 f"{r['label']} {r['qlike_pct_vs_headline']:+.1f} %"
-                for _, r in v[bq].sort_values("qlike_pct_vs_headline").iterrows()
+                for _, r in v[bqs].sort_values("qlike_pct_vs_headline").iterrows()
             )
             + ")"
-            if bq.any()
+            if bqs.any()
             else ""
         )
         + "."
     ]
-    if bm.any() or bx.any():
+    if bm.any():
+        top = v[bm].sort_values("dSharpe_mid_vs_headline", ascending=False).head(5)
+        L.append(
+            "  Highest Sharpe differences over the headline (mid, point estimates): "
+            + "; ".join(
+                f"{r['label']} {r['dSharpe_mid_vs_headline']:+.2f} ({fmt_t(r['t_hac_mid_vs_headline'])})"
+                for _, r in top.iterrows()
+            )
+            + "."
+        )
+    if (bm & sig_t).any() or bqs.any():
         L.append(
             f"  RECORDED, not acted on: the headline constant stays `{HEADLINE}` (it is chosen on feasibility and as the per-bar "
             "model of record, not on the maximum of many Sharpe ratios); the forecasts above are the candidates to look at."
