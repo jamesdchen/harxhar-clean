@@ -8,9 +8,13 @@
 % exogenous inputs -> exogenous predictors; per bar / pooled -> closing-interval / pooled intraday model;
 % Sharpe -> \SR; trade -> straddle strategy; always-short -> short-straddle benchmark; crossing the spread -> at
 % quoted bid/ask prices. The guarded \input is a no-op after the introduction's.
-\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+% 2026-10-15 (consolidation): window row s -> t' (s is the periodicity factor); the training loss written with the
+% realization floor and log-ratio clamp of Methods (FLAG (3) there).
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 
 \section{Conclusion}
+\label{sec:rh_conclusion}
 \begin{itemize}
 \item \textbf{Exogenous predictors add to the HAR benchmark, consistently but modestly.}
   \begin{itemize}
@@ -38,10 +42,15 @@
   \item initialized at the ridge solution;
   \item exogenous predictors shrunk more heavily than the HAR benchmark block, through weight decay in proportion to
     the linear penalty weights $\omega_j$;
+  % 2026-10-15 (consolidation): parked -- row index s (the periodicity factor's letter) and the estimation sample
+  % W^est_t (the forecast is estimated on the full window W_t; Methods, FLAG (1)). Was:
+  % $\min_{\bm\theta} \sum_{s \in \mathcal W^{\mathrm{est}}_t} \QLIKE(\tilde y_s^{\,2}, \hat y_s^{\,2}(\bm\theta))$, with
+  % $\tilde y_s$ the winsorized target and $s$ the trading days of the estimation sample.
   \item trained and selected on QLIKE, the evaluation loss,
-    $\min_{\bm\theta} \sum_{s \in \mathcal W^{\mathrm{est}}_t} \QLIKE\bigl(\tilde y_s^{\,2},\, \hat y_s^{\,2}(\bm\theta)\bigr)$,
-    with $\tilde y_s$ the winsorized target and $s$ the trading days of the estimation sample; QLIKE is
-    scale-free, so this is the same loss on the variance scale.
+    $\min_{\bm\theta} \sum_{t' \in \mathcal W_t} \QLIKE\bigl(\tilde y_{t'}^{\,2},\, \hat y_{t'}^{\,2}(\bm\theta)\bigr)$
+    (up to the floor and clamp of Section~\ref{sec:rh_methods_models}), with $\tilde y_{t'}$ the winsorized target
+    and $t'$ the trading days of the estimation window; QLIKE is scale-free, so this is the same loss on the variance
+    scale.
   \end{itemize}
   % 2026-10-15 (notation pass): parked -- the network trains on the winsorized target (fit only, guide section 2),
   % while the paper now scores against the actual RV; the formula above states the training loss as fitted.

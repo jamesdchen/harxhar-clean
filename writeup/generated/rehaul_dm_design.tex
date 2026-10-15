@@ -7,36 +7,36 @@
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{threeparttable}
-\caption{Design composition: columns by block.}\label{tab:rh_dm_design}
-\begin{tabular}{@{}p{\dimexpr(\textwidth-12\tabcolsep)*300/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*100/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-12\tabcolsep)*120/1000\relax}@{}}
+\caption{Composition of the predictor sets.}\label{tab:rh_dm_design}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
- & & \multicolumn{4}{c}{Per bar (16:00)} & \rdmR Pooled \\
+ & & \multicolumn{4}{c}{Closing-interval model} & \multicolumn{1}{c}{\makecell[cb]{Pooled \\ intraday}} \\
 \cmidrule(lr){3-6}\cmidrule(l){7-7}
-\rdmL Block & \rdmR Series & \rdmR Value & \rdmR Avail. & \rdmR Active & \rdmR Total & \rdmR Total \\
+Predictor group & Series & \makecell[cb]{Series \\ averages \\ $u^{(k)}$} & \makecell[cb]{Missing-data \\ indicators \\ $\bar a^{(k)}$} & \makecell[cb]{Activity \\ indicators \\ $\bar\chi^{(k)}$} & Total & Total \\
 \midrule
-\rdmL HAR ladder of the target & \rdmR 1 & \rdmR 6 & \rdmR -- & \rdmR -- & \rdmR 6 & \rdmR 12 \\
-\rdmL HAR $\times$ open / close & \rdmR -- & \rdmR -- & \rdmR -- & \rdmR -- & \rdmR -- & \rdmR 24 \\
-\rdmL Calendar & \rdmR -- & \rdmR -- & \rdmR -- & \rdmR -- & \rdmR 16 & \rdmR 16 \\
+HAR components $\bar y^{(k)}$ & 1 & 6 & -- & -- & 6 & 12 \\
+HAR components $\times$ open, close & -- & -- & -- & -- & -- & 24 \\
+Calendar dummies $\bm D$ & -- & -- & -- & -- & 16 & 16 \\
 \addlinespace
-\rdmL \textbf{HAR + calendar} & \rdmR  & \rdmR  & \rdmR  & \rdmR  & \rdmR \textbf{22} & \rdmR 52 \\
+HAR benchmark & -- & -- & -- & -- & 22 & 52 \\
 \midrule
-\rdmL ES return moments & \rdmR 7 & \rdmR 42 & \rdmR 42 & \rdmR -- & \rdmR 84 & \rdmR 168 \\
-\rdmL Liquidity & \rdmR 14 & \rdmR 84 & \rdmR 84 & \rdmR 6 & \rdmR 174 & \rdmR 348 \\
-\rdmL Market, equal-weighted & \rdmR 6 & \rdmR 36 & \rdmR 36 & \rdmR -- & \rdmR 72 & \rdmR 144 \\
-\rdmL Market, value-weighted & \rdmR 6 & \rdmR 36 & \rdmR 36 & \rdmR -- & \rdmR 72 & \rdmR 144 \\
-\rdmL Sentiment & \rdmR 3 & \rdmR 18 & \rdmR 18 & \rdmR -- & \rdmR 36 & \rdmR 72 \\
-\rdmL Implied volatility & \rdmR 3 & \rdmR 18 & \rdmR 18 & \rdmR -- & \rdmR 36 & \rdmR 72 \\
-\rdmL Volatility demand & \rdmR 4 & \rdmR 24 & \rdmR 24 & \rdmR 24 & \rdmR 72 & \rdmR 144 \\
-\rdmL FOMC calendar & \rdmR 4 & \rdmR 24 & \rdmR 24 & \rdmR 12 & \rdmR 60 & \rdmR -- \\
+Realized moments & 7 & 42 & 42 & -- & 84 & 168 \\
+Liquidity & 14 & 84 & 84 & 6 & 174 & 348 \\
+Equal-weighted market & 6 & 36 & 36 & -- & 72 & 144 \\
+Value-weighted market & 6 & 36 & 36 & -- & 72 & 144 \\
+Sentiment & 3 & 18 & 18 & -- & 36 & 72 \\
+Implied volatility & 3 & 18 & 18 & -- & 36 & 72 \\
+Volatility demand & 4 & 24 & 24 & 24 & 72 & 144 \\
+FOMC & 4 & 24 & 24 & 12 & 60 & -- \\
 \addlinespace
-\rdmL Exogenous & \rdmR 47 & \rdmR 282 & \rdmR 282 & \rdmR 42 & \rdmR 606 & \rdmR 1{,}092 \\
+Additional predictors & 47 & 282 & 282 & 42 & 606 & 1{,}092 \\
 \midrule
-\rdmL \textbf{All features} & \rdmR  & \rdmR  & \rdmR  & \rdmR  & \rdmR \textbf{628} & \rdmR \textbf{1{,}144} \\
+Full predictor set & -- & -- & -- & -- & 628 & 1{,}144 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Value: trailing means $\bar x_{t,k}$ of the adjusted series, $k \in \{1, 5, 25, 125, 625, 3125\}$ bars of the one-bar series per bar, $k = 1, 2, 4, \dots, 2048$ bars pooled, all lagged one bar. Avail.: the same ladder of the is-observed flag (taken before the forward fill). Active: the same ladder of an off-the-mode flag for the 7 mode-inflated series (\texttt{numobs}, \texttt{voldemand\_\allowbreak{}spx\_\allowbreak{}open\_\allowbreak{}and\_\allowbreak{}close}, \texttt{voldemand\_\allowbreak{}spx\_\allowbreak{}open\_\allowbreak{}only}, \texttt{voldemand\_\allowbreak{}all\_\allowbreak{}open\_\allowbreak{}and\_\allowbreak{}close}, \texttt{voldemand\_\allowbreak{}all\_\allowbreak{}open\_\allowbreak{}only}, \texttt{fomc\_\allowbreak{}release}, \texttt{fomc\_\allowbreak{}day}). Calendar: weekday dummies, hour, overnight / open / close session flags, option-expiration day and week, quad witching, rebalancing close, month and quarter end, days to expiration. Per bar, the twelve HAR $\times$ open / close columns are zero or copies of the HAR ladder at 16:00 and are dropped. The pooled panel of record predates the FOMC bucket (4 series) and so has no FOMC columns; with them it has 1{,}264. At each fit, columns constant on the training window or copies of an earlier column are dropped.
+\item \textit{Notes:} $u^{(k)}$: series $u$ averaged over the previous $k$ intervals; $\bar a^{(k)}(u)$ and $\bar\chi^{(k)}(u)$: the same averages of its availability (missing-data) and activity indicators (Section~\ref{sec:rh_predictors} and Table~\ref{tab:rh_dm_dictionary}). Horizons: $k \in \{1, 5, 25, 125, 625, 3125\}$ in the closing-interval model and $k \in \{1, 2, 4, \dots, 2048\}$ in the pooled intraday model; activity indicators exist for the 7 series whose mode accounts for at least 20\% of intervals. In the closing-interval model, the twelve interactions of the HAR components with the opening- and closing-interval dummies are zero or copies of $\bar y^{(k)}$ and are omitted, and four of the 16 calendar dummies (hour, overnight, open, close) are constant and are dropped at every estimation. The pooled intraday panel predates the FOMC group (4 series) and has no FOMC predictors; with them it would have 1{,}264 columns. At every estimation, predictors constant within the rolling window or exact copies of another are dropped.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

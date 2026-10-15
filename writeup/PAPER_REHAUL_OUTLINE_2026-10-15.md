@@ -23,28 +23,31 @@ text was read as context only. The LSTM and the bucket-by-bucket write-up are pa
   - C4, trees beat linear (intro:87-92; DM -10.7): a 24-hour-panel result only.
   - C5, what tuning buys, measured (intro:213-222): keep, with the 16:00 numbers.
 - **Axis 1, all features vs HAR + calendar** (figure macros; RCO:270-326):
-  - QLIKE is lower with all features for `\fqsQLower` = 38 of `\fqsPairs` = 51 pairs, `\fqsQLowerSig` = 2
-    significantly.
+  - QLIKE is lower with all features for `\fqsQLower` = 38 of `\fqsPairs` = 51 pairs, `\fqsQLowerSig` = 3
+    (was 2) significantly.
   - Sharpe is higher for `\fqsShHigher` = 50 of 51, `\fqsShHigherSig` = 4 significantly.
   - Median changes: QLIKE `\fqsMedDQPct` = -1.7 %, Sharpe `\fqsMedDSh` = +0.54. There are no significant reversals.
-  - Model-set medians: QLIKE 0.1007 -> 0.0993; Sharpe 0.73 -> 1.27.
-- **Axis 1 caveat, to state up front.** For the per-bar ridge, all features moves QLIKE `\cmLdInQ` = +1.2 %
-  (DM +0.26) and Sharpe +0.05 (RCO:419-445).
+  - Model-set medians: QLIKE 0.1033 -> 0.1014 (was 0.1007 -> 0.0993; `\cmMasterMedQBase`, `\cmMasterMedQAll`);
+    Sharpe 0.73 -> 1.27.
+- **Axis 1 caveat, to state up front.** For the per-bar ridge, all features moves QLIKE `\cmLdInQ` = +0.8 %
+  (was +1.2 %; DM +0.18, was +0.26) and Sharpe +0.05 (RCO:419-445).
 - **Axis 2, per-bar vs pooled:**
-  - On HAR + calendar, per-bar fitting improves QLIKE by `\cmLdPerBarBaseQ` = -11.3 % (DM -3.42); Sharpe +0.46,
+  - On HAR + calendar, per-bar fitting improves QLIKE by `\cmLdPerBarBaseQ` = -12.0 % (was -11.3 %; DM -3.37, was
+    -3.42); Sharpe +0.46,
     HAC t 1.05.
-  - On all features: QLIKE -6.2 % (DM -1.56); Sharpe -0.03.
+  - On all features: QLIKE -6.7 % (was -6.2 %; DM -1.61, was -1.56); Sharpe -0.03.
   - Sharpe ranges: pooled linear 0.91-1.44; per-bar linear 1.37-1.92.
 - **Accuracy is not the trade:**
-  - The rank correlation of QLIKE with Sharpe is `\cmMasterRankCorr` = -0.18.
+  - The rank correlation of QLIKE with Sharpe is `\cmMasterRankCorr` = -0.20 (was -0.18).
   - None of the 21 single-change steps moves Sharpe significantly (`\cmLdResolved`).
 - **The trade:**
   - 112 of 112 forecasts beat always-short, 20 significantly. Always-short: Sharpe 0.20 mid, -0.27 crossed.
   - It is a tail trade: the top 20 days carry a median 99 % of P&L (RCO:744-755).
 - **Estimators at 16:00:**
-  - Trees vs the per-bar ridge: 46 of 48 QLIKE differences favour the ridge, 18 significantly (RCO:631-640).
+  - Trees vs the per-bar ridge: 46 of 48 QLIKE differences favour the ridge, 21 (was 18) significantly
+    (RCO:631-640).
   - Optuna is worse than the shipped settings in 24 of 24 cases.
-  - Reference: the per-bar HAR + calendar OLS, QLIKE 0.0946, Sharpe 1.37.
+  - Reference: the per-bar HAR + calendar OLS, QLIKE 0.0967 (was 0.0946; `\rhrOlsQ`), Sharpe 1.37.
 - **Roadmap** (rewrite intro:224-237): data -> methods -> results (axis 1, then axis 2) -> the trade -> conclusion.
 
 ## 2. Related work
@@ -231,8 +234,9 @@ PF = experiments/puffer_forecast/, TR = PF/native/forecast_train.cu, R = results
 
 - **Target:**
   - y = sqrt(RV / B), winsorised on the fit scale. The clip bounds are rolling 1st / 99th percentiles over 240 bars,
-    lagged one bar (DP:277-289; src/features/transforms/target.py:96-97, 452, 536-539). The winsorisation is not
-    inverted at evaluation.
+    lagged one bar (DP:277-289; src/features/transforms/target.py:96-97, 452, 536-539). Models are fitted, tuned and
+    selected on this trimmed target. **Since 2026-10-15 (data audit #10) every out-of-sample score is against the
+    actual RV** (`rv_unclipped`), not the trimmed one: the target was cut on 5 of the 866 trade days (kept 0.65-0.96).
   - The per-bar target is the 15:30-16:00 bar: the row is stamped 16:00 and issued at 15:30 (MC:137-142, 278-284).
 - **Diurnal baseline B:**
   - B is the same-slot mean of the last 20 observations with slot index j < t, and needs at least 5 (DP:254-275).
@@ -353,7 +357,8 @@ PF = experiments/puffer_forecast/, TR = PF/native/forecast_train.cu, R = results
 
 1. **HAR ladder:** DP:325-331 says base 2; the code, MC:286 and A16:88 use base 5.
 2. **QLIKE realisation:** M:183-185 says raw RV, never winsorised, but the close tables' `qlike_raw` uses the
-   winsorised y^2 B.
+   winsorised y^2 B. **Resolved 2026-10-15 (data audit #10):** `qlike_raw` and every other out-of-sample score now use
+   the actual RV; the text and the code agree.
 3. **Window size:** M:47-50 says "about 480 sessions"; M:351 says 500.
 4. **Model families:** methods.tex describes two GBM families only. The random forest and the MinGRU are absent; the
    MinGRU appears nowhere in sections/ or generated/.
@@ -389,7 +394,9 @@ PF = experiments/puffer_forecast/, TR = PF/native/forecast_train.cu, R = results
 ### 6.0 Scoring convention, stated once
 
 - The forecast is the plain back-transform f^2 B, with no recalibration (experiments/master_table_close.py:35-38).
-- The target is the winsorised 15:30-16:00 RV, `true_raw`.
+- ~~The target is the winsorised 15:30-16:00 RV, `true_raw`.~~ The scoring truth is the **actual** 15:30-16:00 RV,
+  `rv_unclipped` (2026-10-15, data audit #10; master_table.csv `qlike_raw`). The trimmed-target QLIKE is kept as the
+  diagnostic `qlike_raw_trimmed`; models still fit the trimmed target.
 - Scoring covers the 866 trade days, 2020-01-03 to 2024-04-30, with early closes excluded.
 - Point estimates only; the bootstrap is off.
 - Errors are measured in variance space. Note that the NN CSVs' `mse_fit` is in fit space.
@@ -398,7 +405,7 @@ PF = experiments/puffer_forecast/, TR = PF/native/forecast_train.cu, R = results
 
 | column | definition | source |
 |---|---|---|
-| QLIKE | mean of y/f - log(y/f) - 1 | master_table_close.py:1224-1241; GUI columns.py:92 |
+| QLIKE | mean of y/f - log(y/f) - 1, y the actual RV (`rv_unclipped`, since 2026-10-15) | master_table_close.py:1224-1241; GUI columns.py:92 |
 | % vs R | 100 mean(d) / mean(q_ref); R = blk2, **not** OLS | master_table_close.py:233, 1250-1251 |
 | DM (master) | daily QLIKE vs blk2; Bartlett NW, lag 6, HLN, normal p | :1252-1263; src/evaluation/diebold_mariano.py |
 | DM (GUI) | the same, vs the per-bar OLS on HAR + cal. (`sub_ols_baseline`) | rows.py:1585; columns.py:142 |
@@ -413,34 +420,42 @@ There is no MCS or SPA column anywhere in the model table.
 - **T1: HAR + calendar vs all features, within each family.** Paired QLIKE, DM, and Sharpe change. No CSV holds
   these pairs yet: `make_fig_qlike_sharpe.py:288-294` computes them but writes only counts, so add a pairs CSV.
 
+  Actual RV (2026-10-15, data audit #10); the trimmed-target values of the earlier draft in brackets.
+
   | family (canonical rung) | QLIKE base -> all | change | DM | dSharpe (t) |
   |---|---|---|---|---|
-  | per-bar ridge | 0.0946 -> 0.0958 | +1.2 % | +0.26 | +0.05 (0.09) |
-  | per-bar lasso | 0.0946 -> 0.0914 | -3.4 % | -1.22 | +0.50 (1.47) |
-  | per-bar enet | 0.0946 -> 0.0942 | -0.4 % | -0.10 | +0.55 (1.34) |
-  | per-bar LightGBM T1 | 0.0986 -> 0.0939 | -4.7 % | -1.43 | +0.54 (1.11) |
-  | per-bar XGBoost T1 | 0.0976 -> 0.0935 | -4.2 % | -1.41 | +0.16 (0.30) |
-  | per-bar RF T1 | 0.0968 -> 0.0966 | -0.2 % | -0.05 | +0.18 (0.34) |
-  | pooled ridge / lasso / enet | 0.107 -> 0.102 / 0.104 / 0.102 | -4.3 / -1.7 / -4.7 % | -1.29 / -0.50 / -1.42 | +0.5 to +0.6 |
-  | pooled LightGBM / XGBoost / RF (interim) | 0.12 -> 0.106 / 0.106 / 0.107 | -14.3 / -12.4 / -12.7 % | **-4.57 / -4.46 / -4.57** | +0.3 to +0.5 |
-  | MinGRU, ridge-init, QLIKE-tuned (current GUI row) | 0.0985 -> 0.0948 | -3.8 % | p 0.34 | Sharpe 1.04 -> 1.53 |
+  | per-bar ridge | 0.0967 -> 0.0975 [0.0946 -> 0.0958] | +0.8 % [+1.2] | +0.18 [+0.26] | +0.05 (0.09) |
+  | per-bar lasso | 0.0967 -> 0.0931 [0.0946 -> 0.0914] | -3.7 % [-3.4] | -1.35 [-1.22] | +0.50 (1.47) |
+  | per-bar enet | 0.0967 -> 0.0958 [0.0946 -> 0.0942] | -0.9 % [-0.4] | -0.20 [-0.10] | +0.55 (1.34) |
+  | per-bar LightGBM T1 | 0.1010 -> 0.0961 [0.0986 -> 0.0939] | -4.9 % [-4.7] | -1.45 [-1.43] | +0.54 (1.11) |
+  | per-bar XGBoost T1 | 0.1001 -> 0.0957 [0.0976 -> 0.0935] | -4.3 % [-4.2] | -1.45 [-1.41] | +0.16 (0.30) |
+  | per-bar RF T1 | 0.0992 -> 0.0991 [0.0968 -> 0.0966] | -0.0 % [-0.2] | -0.01 [-0.05] | +0.18 (0.34) |
+  | pooled ridge / lasso / enet | 0.110 -> 0.105 / 0.107 / 0.104 [0.107 -> 0.102 / 0.104 / 0.102] | -4.8 / -2.1 / -5.1 % [-4.3 / -1.7 / -4.7] | -1.45 / -0.63 / -1.57 [-1.29 / -0.50 / -1.42] | +0.5 to +0.6 |
+  | pooled LightGBM / XGBoost / RF (interim) | 0.125-0.128 -> 0.109 / 0.109 / 0.110 [0.12 -> 0.106 / 0.106 / 0.107] | -14.6 / -12.7 / -13.0 % [-14.3 / -12.4 / -12.7] | **-4.64 / -4.55 / -4.63** [-4.57 / -4.46 / -4.57] | +0.3 to +0.5 |
+  | MinGRU, ridge-init, QLIKE-tuned (current GUI row) | 0.1006 -> 0.0966 [0.0985 -> 0.0948] | -4.0 % [-3.8] | p 0.32 [0.34] | Sharpe 1.04 -> 1.53 |
+  | pooled MinGRU, ridge-init, QLIKE-tuned | 0.1177 -> 0.1141 [0.1151 -> 0.1121] | -3.0 % [-2.7] | p 0.47 [0.52] | Sharpe 0.78 -> 0.34 |
 
 - **T2: pooled vs per-bar** (pooled minus per-bar):
-  - Linear, HAR + calendar: ridge / lasso / enet +12.8 / +12.2 / +12.6 % (DM about 3.4-3.5).
-  - Linear, all features: ridge +6.6 % (DM 1.56), lasso +14.2 % (3.19), enet +7.8 % (2.00).
-  - Trees, HAR + calendar: +24 to +27 % (DM 4.4-4.8).
-  - Trees, all features: +11 to +14 % (DM 2.7-3.0).
+  - Linear, HAR + calendar: ridge / lasso / enet +13.6 / +13.0 / +13.4 % (was +12.8 / +12.2 / +12.6; DM 3.37-3.45,
+    was about 3.4-3.5).
+  - Linear, all features: ridge +7.2 % (DM 1.61), lasso +14.9 % (3.09), enet +8.5 % (2.03) (was +6.6 % (1.56),
+    +14.2 % (3.19), +7.8 % (2.00)).
+  - Trees, HAR + calendar: +25 to +28 % (DM 4.2-4.6; was +24 to +27 %, DM 4.4-4.8).
+  - Trees, all features: +11 to +14 % (DM 2.8-3.0; was DM 2.7-3.0).
+  - MinGRU (ridge-init, QLIKE): HAR + calendar +17.0 % (p 0.002), all features +18.1 % (p < 0.001) (was +16.8 / +18.2).
   - Every Sharpe HAC t is below 1.
   - The MinGRU comparison mixes variants; redo it with pooled ridge-init QLIKE vs per-bar ridge-init QLIKE (running).
 - **T3: full model set ranked by QLIKE, vs the per-bar OLS on HAR + calendar.** The DM vs OLS must be ported from the
   GUI into master_table_close.py. Current order:
-  - per-bar lasso all 0.0914; XGBoost all 0.0935; LightGBM all 0.0939; enet all 0.0942; MinGRU all (QLIKE-tuned)
-    0.0948;
-  - **OLS 0.0946** sits within that group;
-  - then ridge all 0.0958, RF all 0.0966, per-bar trees on baseline 0.097-0.099, the pooled linear 0.102-0.104, the
-    pooled trees on all features 0.106, blk2 0.1068, the pooled MinGRU 0.113-0.117, the pooled trees on baseline
-    0.121-0.124, and a0 0.1232.
-  - Across the 111 forecasts in the model set: 7 have lower QLIKE than the OLS (none significantly); 48 are
+  - per-bar lasso all 0.0931; XGBoost all 0.0957; enet all 0.0958; LightGBM all 0.0961; MinGRU all (QLIKE-tuned)
+    0.0966 (was lasso 0.0914, XGBoost 0.0935, LightGBM 0.0939, enet 0.0942, MinGRU 0.0948: enet and LightGBM swap);
+  - **OLS 0.0967** (was 0.0946) sits just behind that group, rank 9 (`\rhrOlsRank`), after the per-bar ridge / lasso /
+    enet on HAR + calendar (within 0.03 %);
+  - then ridge all 0.0975, RF all 0.0991, per-bar trees on baseline 0.099-0.101, the pooled linear on all features
+    0.104-0.107, the pooled trees on all features 0.109-0.110, blk2 0.1092, the pooled MinGRU 0.114-0.118, the pooled
+    trees on baseline 0.125-0.128, and a0 0.1270 (was 0.0958, 0.0966, 0.097-0.099, 0.102-0.104, 0.106, 0.1068,
+    0.113-0.117, 0.121-0.124, 0.1232).
+  - Across the 111 forecasts in the model set: 7 have lower QLIKE than the OLS (none significantly); 51 (was 48) are
     significantly worse.
 - **T4 (appendix): tree rungs.** Reuse `\cmTrVsRidge*`, `\cmCad*`, `\cmRs*`, `\cmOp*`, `\cmTp*`, `\cmBud*`
   (close_main_numbers.tex:182-212).
@@ -450,15 +465,17 @@ There is no MCS or SPA column anywhere in the model table.
 ### 6.3 What the numbers say
 
 - **Axis 1, QLIKE:**
-  - Most pairs improve with all features (38 of 51), but only 2 significantly. Both are LightGBM rungs: random search
-    with daily refit, -7.5 %, DM -2.07; Optuna tuned every 250 sessions, -8.0 %, DM -2.24.
-  - The pooled trees are the one clear, significant win (DM about -4.5). Their HAR + calendar versions are weak, though.
+  - Most pairs improve with all features (38 of 51), but only 3 (was 2) significantly, all tree rungs: LightGBM random
+    search with daily refit, -7.7 % (was -7.5), DM -2.11 (was -2.07); LightGBM Optuna tuned every 250 sessions, -8.5 %
+    (was -8.0), DM -2.37 (was -2.24); and, new, XGBoost random search with daily refit, -8.1 %, DM -1.99 (p 0.046).
+  - The pooled trees are the one clear, significant win (DM about -4.6, was -4.5). Their HAR + calendar versions are
+    weak, though.
   - The MinGRU now goes the right way when QLIKE-tuned, but not significantly.
 - **Axis 1, MSE / R^2: the sign flips.**
   - All 51 pairs have higher variance-space MSE with all features, none significantly.
-  - Five March 2020 days carry 83-91 % of the squared error.
+  - Five March 2020 days carry 85-92 % (was 83-91 %) of the squared error.
   - Excluding 24 Feb - 30 Apr 2020, the lasso on all features beats the OLS on MSE.
-  - In fit space, all features lowers MSE (enet 0.0520 -> 0.0506).
+  - In fit space, all features lowers MSE (enet 0.0534 -> 0.0518 against sqrt(actual RV / B); was 0.0520 -> 0.0506).
 - **Axis 1, the trade:** Sharpe rises in 50 of 51 pairs (median +0.54), 4 significantly, all tree rungs. This goes in
   the economics section.
 - **Axis 2:** per-bar beats pooled on QLIKE wherever both exist.
@@ -466,13 +483,13 @@ There is no MCS or SPA column anywhere in the model table.
   - Significant on all features for the lasso, the elastic net and every tree, but not the ridge.
   - No Sharpe difference is significant.
 - **Families:** linear is about level with the per-bar trees, and both are ahead of the pooled models. Trees lose to
-  the per-bar ridge in 46 of 48 comparisons, 18 significantly.
+  the per-bar ridge in 46 of 48 comparisons, 21 (was 18) significantly.
 
 ### 6.4 Wording to change in RCO
 
 - :16 cites the pooled `tab:block_ladder`; re-anchor on the per-bar OLS.
-- :49-90 and :275-282 use R = blk2. "105 of 111 below R, 24 significantly" becomes, vs the OLS: 7 lower, 0
-  significantly, 48 significantly worse.
+- :49-90 and :275-282 use R = blk2. "105 of 111 below R, 24 significantly" (now 99 of 111, 23: `\cmMasterQVsRef*`)
+  becomes, vs the OLS: 7 lower, 0 significantly, 51 (was 48) significantly worse.
 - :239-260: move the Sharpe-vs-R comparisons to the economics section.
 - :291-293: say that 90 of the 112 forecasts are tree rungs.
 - :315-320 caption: note that 36 of the 38 improvements are within noise, and that 45 of the 51 pairs are trees.
@@ -575,7 +592,7 @@ functions (scratchpad econ_pairs.py, sz_set.py, yr.py).
   - Pooled ridge / enet / lasso +0.53 / +0.61 / +0.51.
   - MinGRU ridge-init QLIKE-tuned: 1.04 -> 1.53 (GUI).
 - **E3. Pooled vs per-bar, 6 linear pairs** [mine]:
-  - QLIKE: per-bar better in all 6 (-6 to -12 %, DM <= -2.0 in five).
+  - QLIKE: per-bar better in all 6 (-7 to -13 %, was -6 to -12 %; DM <= -2.0 in five).
   - Sharpe: no pair significant (the lasso comes closest at t 1.69 / 1.66).
 - **E4. Sizing rules over the model set** (614 days) [mine]:
   - Median Sharpe: sign(s) 0.92, clip 1.34, full long / scaled short 1.12, rank 1.34; always short 0.34.
@@ -611,7 +628,8 @@ functions (scratchpad econ_pairs.py, sz_set.py, yr.py).
   - Its mean is indistinguishable from zero.
   - By year: 2020 -0.43, 2021 -0.48, 2022 +1.94, 2023 +0.88, 2024 -2.06.
 - **Hit %:** every sign(s) forecast (54-60 %) is below always short's 61.8 %, so hit % does not rank the trade.
-- **QLIKE vs Sharpe:** rank correlation -0.18. ES(1) tracks Sharpe at +0.50.
+- **QLIKE vs Sharpe:** rank correlation -0.20 (was -0.18). ES(1) tracks Sharpe at +0.55 (was +0.50;
+  `\hmurRhoESMid`).
 - **Shift test:** not monotone (k = 0: 1.35; -1: 0.53; -3: 1.40; +5 / +6: 1.48 / 1.58). Swings of about +-1 Sharpe
   are noise.
 - **Sample splits:**

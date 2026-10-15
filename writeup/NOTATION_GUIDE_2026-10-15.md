@@ -102,7 +102,8 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
 | fit block / validation tail / embargo | estimation sample / validation sample / gap |
 | gate | replication check |
 | ladder (HAR ladder, avail ladder) | HAR components; missing-data indicators |
-| avail, `_active`, `_avail` | missing-data (availability) indicator |
+| avail, `_avail` | missing-data (availability) indicator $a_{t,i}$ |
+| `_active` | activity indicator $\chi_{t,i}$ (corrected 2026-10-15: these are not missing-data indicators) |
 | plain forecast | forecast |
 | ridge-init, QLIKE-tuned MinGRU | MinGRU network (ridge-initialized, trained and selected on QLIKE) |
 | family (linear / trees / MinGRU) | model class |
@@ -120,8 +121,8 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
   - $g(\cdot)$ is the variance-stabilizing map (Predictors).
 - **Symbols fixed by the Data and Predictors sections** (03/04, done; their header comments hold the full map):
   - one-minute returns $r_{t,i,k}$, $k = 1, \dots, N_{t,i}$, with $N_{t,i} \le 30$;
-  - $(t, i-j)$ is the $j$-th retained interval before $(t,i)$, possibly on an earlier day; $\mathcal I$ is the set of
-    retained intervals;
+  - $(t, i-j)$ is the $j$-th retained interval before $(t,i)$, possibly on an earlier day; $\mathcal G$ is the set of
+    retained intervals (the interval grid; was $\mathcal I$, renamed in the final consolidation);
   - empirical quantile $Q_p(\cdot)$;
   - availability indicator $a_{t,i}$; activity indicator $\chi_{t,i}$; asinh scale $\kappa_{t,i}$;
   - IQR floor $\mathrm{IQR}^{\ast(k)}_t$; screened columns $\mathcal J_t$;
@@ -155,8 +156,38 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
   Variable importance uses its own $\mathcal O$.
 - **Forecast index:** $f_{m,\mathcal X,\mathcal I}$, where $m$ is the model, $\mathcal X \in \{\text{HAR}, \text{Full}\}$
   the predictor set, and $\mathcal I \in \{\{c\}, \{1,\dots,M\}\}$ the estimation sample (closing interval or pooled).
+- **Newey-West lag truncation:** $q_{\mathrm{NW}}$, not plain $q$, because $q_t$ is the position. The final consolidation
+  applies this everywhere.
+- **Generators must emit macro-only number files**, with no longtables in the same file. They must also emit per-model
+  $\Delta$%, DM and significance macros against the HAR benchmark, so Results and Economics can replace their remaining
+  typed numbers (each file's header lists them).
 - **Row index inside an estimation window:** $t'$ (sums $\sum_{t' \in \mathcal W_t}$), not $s$, since $s$ is the
   periodicity factor. The minute index $k$ in $r_{t,i,k}$ is a local summation index only.
+
+- **Final consolidation (2026-10-15), binding; overrides the bullets above where they differ:**
+  - Newey-West lag truncation $q_{\mathrm{NW}}$ everywhere (text, notes, generators); values `\fqsDMLag`/`\rhrDMLag`
+    (DM) and `\fqsHACLag`/`\rheHACLag` (HAC $t$). $q_t$ is only the position.
+  - $\mathcal I$ only indexes the estimation sample in $f_{m,\mathcal X,\mathcal I}$. The set of retained intervals
+    (Data) is the interval grid $\mathcal G$. Kendall's-$W$ tie sets (Variable importance) are $\mathcal E_k$.
+  - $p$ is only the number of predictors. Quantiles are written $Q_{0.01}(\cdot)$, $Q_{0.99}(\cdot)$; no generic level.
+  - $N_{t,i}$ is the one-minute count (and $N$ the numobs series). Random forest: $B$ trees $f_b$, $b = 1, \dots, B$
+    (as for boosting; Gu, Kelly and Xiu 2020). The lasso selection count is $K_A$, $K_j$ (of $K$ refits).
+  - $d_t$ is only the loss differential. Calendar dummies are $\bm D_t$ ($\bm D_{t,i}$), coefficients $\bm\delta$.
+  - $\hat\gamma_j$ is the autocovariance at lag $j$ (05 and 06 both use $j$). The leaf penalty is $\gamma^{\mathrm{tree}}$.
+  - $k$ is the HAR horizon (superscript $(k)$, in intervals). The minute index $k$ of $r_{t,i,k}$ stays only as a bound
+    summation index; upper limit $N_{t,i}$, never 30. Related work writes Corsi's daily HAR as $\RV^{(d)}, \RV^{(w)},
+    \RV^{(m)}$. The shift-test offset is $j$. The refit index of Variable importance stays $k$, subscripted.
+  - Dummy day indices are $t'$ everywhere ($u$ is an exogenous series).
+  - $\Phi$ is only the standard normal distribution function; the SHAP group interaction is $\phi_{t,AB}$.
+  - Elementary score $\mathrm{ES}_{\theta,t}$, mean $\overline{\mathrm{ES}}_\theta$; the futures are written "E-mini
+    S\&P 500 futures (ES)" in words.
+  - The $q_t \equiv -1$ strategy is "the (unconditional) short-straddle benchmark", "Short straddle" as a table label.
+    The OLS on the HAR benchmark is "the benchmark forecast". The straddle is "at-the-money, approximately
+    delta-neutral at entry, not hedged".
+  - The estimation-sample comparison is signed pooled intraday minus closing-interval (Tables T2 and E3).
+  - Ridge share of absolute standardized coefficients: $S^{\mathrm{sd}}_A$.
+  - Muon matrix dimensions $d_{\mathrm{out}} \times d_{\mathrm{in}}$ ($R_t$ is the straddle return).
+  - Bound local indices may repeat ($j$ for predictors, interval lags, autocovariance lags and tree leaves).
 
 ## 7. Figures parked (user, 2026-10-15)
 

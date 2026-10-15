@@ -2,23 +2,28 @@
 % lasso selection counts, ridge coefficient mass, the trees' per-refit SHAP rankings and their SHAP interactions.
 % Generator: writeup/make_rehaul_fi.py, from results/rehaul_fi/ (experiments/rehaul_fi_compute.py). Labels:
 % tab:rh_fi_summary, tab:rh_fi_linear, tab:rh_fi_trees, tab:rh_fi_inter, fig:rh_fi_linear, fig:rh_fi_ranks,
-% fig:rh_fi_inter. Prose macros \rhfi...: generated/rehaul_fi_numbers.tex (loaded here too, for a standalone build).
-\ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
+% fig:rh_fi_inter. Prose macros \rhfi...: generated/rehaul_fi_numbers.tex, loaded once in the preamble of
+% paper_rehaul.tex (each generated float still loads it, guarded, for a standalone build).
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
 
-% One row per model: aggregate measure, leading units, Kendall's W, units above the noise bar
+% 2026-10-15 (consolidation): comments updated to the section's terms (predictor groups, the probe benchmark, K_A).
+% Two panels (linear models, tree ensembles): the five leading predictor groups per model by its aggregate measure,
+% Kendall's W, and the number of exogenous series with a predictor above the random probe
 \input{generated/rehaul_fi_summary}
 
-% Lasso N_A and ridge S_A per unit
+% Lasso K_A, ridge S_A and S^sd_A, per predictor group
 \input{generated/rehaul_fi_linear}
 
 % The linear coefficients over time (lasso on/off and magnitude; ridge shares)
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
 % \input{generated/rehaul_fi_fig_linear}
 
-% Trees: per-refit SHAP ranks aggregated (mean rank, top-5 share, truncated Borda, Kendall's W)
+% Trees: per-refit SHAP ranks aggregated (mean rank, top-5 share, Kendall's W); the truncated Borda count is reported
+% in the text only (its Spearman correlation with the mean rank), its table columns are parked in the generator
 \input{generated/rehaul_fi_trees}
 
-% Trees: rank over time, top six units
+% Trees: rank over time, the six leading predictor groups
 \input{generated/rehaul_fi_fig_ranks}
 
 % Trees: SHAP interactions (global, per refit) and the H-statistic cross-check

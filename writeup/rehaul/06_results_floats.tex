@@ -5,17 +5,22 @@
 % Generator: writeup/make_rehaul_results.py (tables generated/rehaul_results_t*.tex, figures
 % figures/rehaul_results_f*.pdf, caption numbers generated/rehaul_results_numbers.tex as \rhr... macros). It asserts the
 % outline's numbers (writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 6) before writing anything.
-% Conventions everywhere: plain f^2 B forecast, 866 trade days, DM = dm_test (Bartlett NW lag 6, HLN, normal p), Sharpe
-% change tested by newey_west_t (lag 14); bold = p < 0.05. Family colours and markers (= make_rehaul_economics.py):
-% linear blue circle, trees vermilion square, MinGRU green triangle, pooled magenta diamond.
+% Conventions everywhere (2026-10-15 consolidation): variance forecast \hat\sigma^2_t = \hat y_t^2 s^2_{t,c}, scored
+% against the actual RV over the \rhrDays trading days of the out-of-sample period; DM = dm_test (Bartlett Newey-West,
+% q_NW = \rhrDMLag, HLN correction, normal p); the Sharpe-ratio change is tested by newey_west_t (q_NW = \rhrHACLag);
+% stars for the 10/5/1 % levels. Model-class colors and markers (= make_rehaul_economics.py): closing-interval linear
+% blue circle, trees vermilion square, MinGRU green triangle, pooled intraday magenta diamond. The full ranking
+% (tab:rh_rank_full) is in the appendix; the estimation-sample sign convention is pooled minus closing-interval.
 % Labels: tab:rh_axis1 (T1), tab:rh_axis2 (T2), tab:rh_rank (T3), tab:rh_rank_full (T3, every forecast);
 % fig:rh_axis1_forest (F1), fig:rh_pooled_dumbbell (F2), fig:rh_cumulative (F3), fig:rh_se_share (F5),
 % fig:rh_qlike_sharpe (the existing QLIKE-vs-Sharpe figure).
 % The pooled ridge-init MinGRU (results/puffer_forecast_2026-10-12/pooled_rinit_study/, refit monthly) is in T1, T2,
 % T3, F1 and F2 since 2026-10-15; the pooled forest on all features is still interim (dagger).
 
-\input{generated/rehaul_results_numbers}
-\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex (the first
+% line was an unguarded second load of rehaul_results_numbers).
+% \input{generated/rehaul_results_numbers}
+% \ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
 
 % ---------------------------------------------------------------- T1 + F1: HAR + calendar vs all features
 \input{generated/rehaul_results_t1_axis1}
@@ -82,9 +87,12 @@
 % QLIKE. Over the shaded window, 24 February to 30 April 2020, the sums change by \rhrCumLassoWindow{} (lasso),
 % \rhrCumXgbWindow{} (XGBoost) and \rhrCumNnWindow{} (MinGRU); over the full sample they end at \rhrCumLassoTotal,
 % \rhrCumXgbTotal{} and \rhrCumNnTotal.}
+% 2026-10-15 (consolidation): dummy day index u -> t' (u is an exogenous series); cumulative-loss plot in the style
+% of \citet{WelchGoyal2008}, now cited.
 \caption{Cumulative QLIKE loss differential relative to the closing-interval OLS on the HAR benchmark. The figure
-plots $\sum_{u \le t} d_u$, where $d_u = L_u^{\text{model}} - L_u^{\text{OLS}}$ is the daily loss differential, for the
-closing-interval model with the lowest mean QLIKE in each model class, each on the full predictor set: the lasso,
+plots $\sum_{t' \le t} d_{t'}$, where $d_{t'} = L_{t'}^{\text{model}} - L_{t'}^{\text{OLS}}$ is the daily loss
+differential, as in \citet{WelchGoyal2008}, for the closing-interval model with the lowest mean QLIKE in each model
+class, each on the full predictor set: the lasso,
 XGBoost (fixed hyperparameters, re-estimated daily) and the MinGRU network (ridge-initialized, trained and selected on
 QLIKE). Values below zero mean that the model has accumulated a smaller loss than the OLS; the final value divided by
 \rhrDays{} equals the difference in mean QLIKE. Losses are computed against actual realized variance. Over the shaded
@@ -142,5 +150,6 @@ window, 24 February to 30 April 2020, the cumulative differentials change by \rh
 
 % ---------------------------------------------------------------- T3 (full): every forecast, a longtable
 % Not a float: \clearpage first so T1--T3 and the figures above come out before it. A candidate for the appendix.
-\clearpage
-\input{generated/rehaul_results_t3_full}
+% 2026-10-15 (consolidation): parked -- moved to the appendix (10_appendix_floats.tex, after the MinGRU tables).
+% \clearpage
+% \input{generated/rehaul_results_t3_full}

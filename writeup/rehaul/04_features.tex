@@ -8,15 +8,20 @@
 % elastic-net mixing weight); r_{t,k} -> IQR^{*(k)}_t (r is the return); \mathcal K_t -> \mathcal J_t (\mathcal K
 % is the horizon set); asinh scale s_t -> kappa_{t,i} (s^2 is the periodicity factor); T_W -> W; q_{p,t} -> Q_p).
 
+% 2026-10-15 (consolidation): window row s -> t' (s is the periodicity factor); calendar dummies \bm d_{t,i} ->
+% \bm D_{t,i} (d_t is the DM loss differential); typed counts -> macros where one exists (47 -> \rhfiNExog, 628 ->
+% \cmPNewAll, 22 -> \cmPNewBase, 369 -> \cmKeptAll); "session-open/close dummies" -> opening/closing-interval dummies.
+
 % 2026-10-15 (notation pass): parked -- section title; "features" only for ML methods, "predictors" in prose
 % \section{Features}
 \section{Predictors}
+\label{sec:rh_predictors}
 \begin{itemize}
-\item \textbf{Eight groups of exogenous predictors, 47 series:} realized moments (7), liquidity (14),
+\item \textbf{Eight groups of exogenous predictors, \rhfiNExog{} series:} realized moments (7), liquidity (14),
   equal-weighted market (6), value-weighted market (6), sentiment (3), implied volatility (3), volatility demand (4),
   FOMC (4); listed in Appendix Table~\ref{tab:rh_dm_dictionary}.
   \[
-    47 = 7 + 14 + 6 + 6 + 3 + 3 + 4 + 4 .
+    \rhfiNExog = 7 + 14 + 6 + 6 + 3 + 3 + 4 + 4 .
   \]
   \begin{itemize}
   \item FOMC:
@@ -57,7 +62,7 @@
     $\RV^{\mathrm{VW}}$, $\mathrm{Spread}^{\mathrm{VW}}$; $\mathrm{FOMC}$. Indicator averages: $\bar a^{(k)}_t(u)$,
     $\bar\chi^{(k)}_t(u)$.
   \end{itemize}
-\item \textbf{HAR benchmark:} the HAR components of the target (6 columns) and 16 calendar dummies $\bm d_{t,i}$
+\item \textbf{HAR benchmark:} the HAR components of the target (6 columns) and 16 calendar dummies $\bm D_{t,i}$
   (day of the week, monthly option expiration, quarterly ``quadruple witching'' expiration, month end, quarter end
   and others).
   \[
@@ -67,6 +72,13 @@
   \]
   % calendar.py:28-35 (DOW_0-4, hour, is_overnight, is_open, is_close); expiry.py:120-135 (opex, opex week,
   % quad witch, rebalance close, month end, quarter end, days_to_opex).
+  \begin{itemize}
+  \item At the closing interval, four of the 16 dummies (hour, overnight, opening and closing interval) are constant,
+    and the quadruple-witching closing-auction dummy equals the quadruple-witching dummy, so the column screen below
+    drops these five at every estimation of the closing-interval model (Table~\ref{tab:rh_dm_design}).
+  \end{itemize}
+  % 2026-10-15 (consolidation): added to match tab:rh_dm_design (four constant dummies) and tab:rh_fi_linear (five
+  % never in a fit; addenda A.3).
 \item \textbf{Transformations, in order:}
   \begin{enumerate}
   \item intraday periodicity adjustment, dividing by a factor estimated on the same intraday interval
@@ -140,16 +152,18 @@
     % 2023-08-31. Intended: chi_{t,i} = a_{t,i} * 1{u_{t,i} != mode}.
   \item trailing averages $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$, $\bar\chi^{(k)}_{t,i}$, $\bar y^{(k)}_{t,i}$;
   \item robust standardization on the rolling estimation window (median and interquartile range, with floors),
-    for the averages of series values only; written for the closing-interval model, whose rows $s$ are trading
+    for the averages of series values only; written for the closing-interval model, whose rows $t'$ are trading
     days ($i = c$ suppressed), with $\mathcal{W}_t = \{t - W, \dots, t - 1\}$:
     \[
-      z^{(k)}_{t} = \frac{\bar u^{(k)}_{t} - \operatorname{med}_{s \in \mathcal{W}_t} \bar u^{(k)}_{s}}
+      z^{(k)}_{t} = \frac{\bar u^{(k)}_{t} - \operatorname{med}_{t' \in \mathcal{W}_t} \bar u^{(k)}_{t'}}
         {\max\bigl\{\mathrm{IQR}^{(k)}_{t},\ 0.01 \max_{t' \le t} \mathrm{IQR}^{(k)}_{t'},\
           \mathrm{IQR}^{\ast(k)}_{t}\bigr\}},
-      \qquad \mathrm{IQR}^{(k)}_{t} = \mathrm{IQR}\bigl\{\bar u^{(k)}_{s} : s \in \mathcal{W}_t\bigr\}.
+      \qquad \mathrm{IQR}^{(k)}_{t} = \mathrm{IQR}\bigl\{\bar u^{(k)}_{t'} : t' \in \mathcal{W}_t\bigr\}.
     \]
+    % 2026-10-15 (consolidation): parked -- the window row was s (now t'; s is the periodicity factor):
+    % z^{(k)}_{t} = (\bar u^{(k)}_{t} - med_{s \in W_t} \bar u^{(k)}_{s}) / max{...}, IQR^{(k)}_t = IQR{\bar u^{(k)}_s : s \in W_t}.
     \begin{itemize}
-    \item $\mathrm{IQR}^{\ast(k)}_{t}$: IQR of $\bar u^{(k)}_{s}$, $s < t$, over rows whose $k$-interval averaging
+    \item $\mathrm{IQR}^{\ast(k)}_{t}$: IQR of $\bar u^{(k)}_{t'}$, $t' < t$, over rows whose $k$-interval averaging
       window is fully observed.
     \item Column whose mode accounts for at least 20\% of rows: $\mathrm{IQR}^{\ast(k)}_{t}$ also excludes rows at
       the mode.
@@ -157,8 +171,8 @@
     \item $\bar a^{(k)}$, $\bar\chi^{(k)}$: not standardized. HAR components, calendar dummies:
       $\mathrm{IQR}^{\ast(k)}_{t} = 0$.
     \item $t < W$: the first window's statistics.
-    \item Pooled intraday model only (rows are intervals): median and IQR over rows with $a_s = 1$; fewer than
-      512 such rows give $z^{(k)} = 0$.
+    \item Pooled intraday model only (rows are intervals $(t', i')$): median and IQR over rows with
+      $a_{t',i'} = 1$; fewer than 512 such rows give $z^{(k)} = 0$.
     \end{itemize}
     % scaling.py:215-290 (IQR < 1e-12 -> 1); executor.py:96-202 (IQR^{*(k)}_t: expanding, 480-row grid, mode of
     % the ladder column); scaling.py:310-392 + executor.py:206-288 (masked scaling, pooled only; outline flag 7).
@@ -169,24 +183,27 @@
   \[
     \mathcal{J}_t = \bigl\{ j :\ \bm{x}_{\cdot j} \text{ not constant},\ \bm{x}_{\cdot j} \ne \bm{x}_{\cdot j'}\
       \forall\, j' < j,\ j' \in \mathcal{J}_t \bigr\}, \qquad
-    \bm{x}_{\cdot j} = (x_{sj})_{s \in \mathcal{W}_t} .
+    \bm{x}_{\cdot j} = (x_{t'j})_{t' \in \mathcal{W}_t} .
   \]
+  % 2026-10-15 (consolidation): parked -- window row s -> t'. Was: \bm{x}_{\cdot j} = (x_{sj})_{s \in \mathcal{W}_t}.
   \begin{itemize}
   \item Equality is exact (bitwise); the first copy is kept.
-  \item The closing-interval model with the full predictor set keeps a median of 369 of its 628 columns.
+  \item The closing-interval model with the full predictor set keeps a median of \cmKeptAll{} of its \cmPNewAll{}
+    columns.
   \end{itemize}
   % window_mask.py:27-46 (float64 bytes).
-\item \textbf{Predictor sets} (Table~\ref{tab:rh_dm_design})\textbf{:} the HAR benchmark has 22 columns; the full
-  predictor set has 628.
+\item \textbf{Predictor sets} (Table~\ref{tab:rh_dm_design})\textbf{:} the HAR benchmark has \cmPNewBase{} columns;
+  the full predictor set has \cmPNewAll.
   \[
-    628 = \underbrace{22}_{\bar y^{(k)},\ \bm d} + \underbrace{47 \times 6}_{\bar u^{(k)}}
-      + \underbrace{47 \times 6}_{\bar a^{(k)}} + \underbrace{7 \times 6}_{\bar\chi^{(k)}}, \qquad 22 = 6 + 16 .
+    \cmPNewAll = \underbrace{\cmPNewBase}_{\bar y^{(k)},\ \bm D} + \underbrace{\rhfiNExog \times 6}_{\bar u^{(k)}}
+      + \underbrace{\rhfiNExog \times 6}_{\bar a^{(k)}} + \underbrace{7 \times 6}_{\bar\chi^{(k)}}, \qquad
+    \cmPNewBase = 6 + 16 .
   \]
   \begin{itemize}
   \item The pooled intraday model's full predictor set has 1,144 columns: 43 series, 12 horizons, and 24
-    interactions of the HAR components with the session-open and session-close dummies.
+    interactions of the HAR components with the opening- and closing-interval dummies.
     \[
-      1{,}144 = \underbrace{12 + 16}_{\bar y^{(k)},\ \bm d} + \underbrace{24}_{\bar y^{(k)} \times \text{open, close}}
+      1{,}144 = \underbrace{12 + 16}_{\bar y^{(k)},\ \bm D} + \underbrace{24}_{\bar y^{(k)} \times \text{open, close}}
         + 43 \times 12 + 43 \times 12 + 5 \times 12 .
     \]
     % Pooled panel of record is pre-FOMC (43 series; 5 zero-inflated: numobs + 4 voldemand). Current code

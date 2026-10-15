@@ -7,27 +7,33 @@
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{threeparttable}
-\caption{Samples.}\label{tab:rh_dm_samples}
-\begin{tabular}{@{}p{\dimexpr(\textwidth-10\tabcolsep)*265/1000\relax}p{\dimexpr(\textwidth-10\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-10\tabcolsep)*120/1000\relax}p{\dimexpr(\textwidth-10\tabcolsep)*165/1000\relax}p{\dimexpr(\textwidth-10\tabcolsep)*185/1000\relax}p{\dimexpr(\textwidth-10\tabcolsep)*145/1000\relax}@{}}
+\caption{Estimation and evaluation samples.}\label{tab:rh_dm_samples}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.500\textwidth}llrr@{}}
 \toprule
-\rdmL Sample & \rdmL Start & \rdmL End & \rdmR Rows & \rdmL Window & \rdmL Role \\
+Sample & Start & End & Obs. & Window $W$ \\
 \midrule
-\rdmL Bar grid: bars on which RV printed, weekend cut & \rdmL \mbox{1998-01-05} & \rdmL \mbox{2024-04-30} & \rdmR 303{,}442 bars & \rdmL -- & \rdmL construction \\
-\rdmL Pooled panel: after the 3{,}125-bar burn-in & \rdmL \mbox{1998-06-04} & \rdmL \mbox{2024-04-30} & \rdmR 300{,}317 bars & \rdmL 24{,}000 bars (trees, MinGRU); 96{,}000 (linear) & \rdmL pooled designs \\
-\rdmL Pooled forecasts & \rdmL \mbox{2001-07-13} & \rdmL \mbox{2024-04-30} & \rdmR 276{,}317 bars & \rdmL -- & \rdmL pooled scoring \\
-\rdmL Tree development span (pooled rows before 2003) & \rdmL \mbox{1998-06-04} & \rdmL \mbox{2002-12-31} & \rdmR 36{,}285 bars & \rdmL 24{,}000 bars, refit every 250 & \rdmL shipped tree settings \\
-\rdmL Per-bar 16:00 design & \rdmL \mbox{2010-07-12} & \rdmL \mbox{2024-04-30} & \rdmR 3{,}469 sessions & \rdmL 2{,}000 sessions & \rdmL per-bar designs \\
-\rdmL Per-bar forecast rows & \rdmL \mbox{2018-06-25} & \rdmL \mbox{2024-04-30} & \rdmR 1{,}469 sessions & \rdmL -- & \rdmL walk-forward \\
-\rdmL Linear pre-tune rows (16:00 rows of the last-hour design) & \rdmL \mbox{2004-04-13} & \rdmL \mbox{2020-01-02} & \rdmR 3{,}947 sessions & \rdmL 2{,}000 sessions & \rdmL pre-tuning data \\
-\rdmL Pre-tune validation folds (4 $\times$ 250) & \rdmL \mbox{2016-01-06} & \rdmL \mbox{2020-01-02} & \rdmR 1{,}000 sessions & \rdmL 2{,}000-session fit, 25-session embargo & \rdmL penalty choice \\
-\rdmL Test period: 16:00 rows & \rdmL \mbox{2020-01-03} & \rdmL \mbox{2024-04-30} & \rdmR 1{,}087 sessions & \rdmL -- & \rdmL out of sample \\
-\rdmL Trade days: SPXW expirations (872) less early closes (6) & \rdmL \mbox{2020-01-03} & \rdmL \mbox{2024-04-30} & \rdmR 866 days & \rdmL -- & \rdmL scoring, trading \\
-\rdmL Later SPXW expirations & \rdmL \mbox{2024-05-01} & \rdmL \mbox{2025-12-31} & \rdmR 419 (413 full) & \rdmL -- & \rdmL held back \\
+Intraday grid: 30-minute intervals with an observed $\RV_{t,i}$, outside the weekend break & \mbox{1998-01-05} & \mbox{2024-04-30} & 303{,}442 & -- \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textit{Panel A: Closing-interval models (trading days)}} \\
+Closing-interval observations, after the burn-in & \mbox{2010-07-12} & \mbox{2024-04-30} & 3{,}469 & 2{,}000 \\
+Rolling-window forecasts & \mbox{2018-06-25} & \mbox{2024-04-30} & 1{,}469 & -- \\
+Hyperparameter-selection pre-sample (linear models) & \mbox{2004-04-13} & \mbox{2020-01-02} & 3{,}947 & 2{,}000 \\
+\quad Validation samples (4 $\times$ 250 days) & \mbox{2016-01-06} & \mbox{2020-01-02} & 1{,}000 & 2{,}000 \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textit{Panel B: Pooled intraday models (30-minute intervals)}} \\
+Estimation sample, after the 3{,}125-interval burn-in & \mbox{1998-06-04} & \mbox{2024-04-30} & 300{,}317 & 24{,}000 \\
+Rolling-window forecasts & \mbox{2001-07-13} & \mbox{2024-04-30} & 276{,}317 & -- \\
+Tree hyperparameter pre-sample (before 2003) & \mbox{1998-06-04} & \mbox{2002-12-31} & 36{,}285 & 24{,}000 \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textit{Panel C: Out-of-sample period (trading days)}} \\
+All trading days (closing-interval forecasts) & \mbox{2020-01-03} & \mbox{2024-04-30} & 1{,}087 & -- \\
+Evaluation days ($T_{\mathrm{oos}}$): SPXW expiration days (872) less early-close days (6) & \mbox{2020-01-03} & \mbox{2024-04-30} & 866 & -- \\
+Later SPXW expiration days, held out (413 full trading days) & \mbox{2024-05-01} & \mbox{2025-12-31} & 419 & -- \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Dates are bar-end dates (ET). The burn-in is the longest HAR rung (3{,}125 rows) and is applied to each series as built: the half-hour grid (pooled), the one-bar 16:00 series (per bar) and the two-bar last-hour series (pre-tune), which is why the per-bar design starts in 2010 and the pre-tune borrows the last-hour rows. The pooled linear models' window is the per-bar 2{,}000 sessions, in bars. Full: expirations that are not early closes.
+\item \textit{Notes:} Dates are interval-end dates (ET); Obs.\ and the rolling estimation window $W$ are in the units of each panel. The burn-in, 3{,}125 intervals, is the longest HAR horizon and is applied to each series as built (the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two intervals of the last hour), so the closing-interval sample starts in 2010 and the pre-sample in 2004. The pooled linear models use $W = 96{,}000$ intervals (2{,}000 trading days); the tree pre-sample is re-estimated every 250 intervals. Each validation sample follows a 25-day gap and a 2{,}000-day estimation sample (Section~\ref{sec:rh_methods_tuning}). Full trading days: expiration days that are not early-close days.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

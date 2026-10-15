@@ -5,9 +5,10 @@
 \caption{Sharpe ratio by sizing rule over the 112 forecasts of the model set, mid (left) and crossed (right),
 on days 253--866. One marker per forecast, coloured by family and jittered vertically;
 the bar and its label mark the model-set median (mid: 0.92, 1.34, 1.12, 1.34 for
-$\sign(s)$, robust clip, full long / scaled short and rank of $|s|$). The per-bar MinGRU on all features (triangle) is
-drawn but not in the median. Dashed: always short ($0.34$ mid, $-0.03$ crossed). The
-robust clip is above $\sign(s)$ for 98 of the 112 forecasts at mid (median gain
+the sign strategy, robust clip, full long / scaled short and rank of the absolute gap). The closing-interval MinGRU on
+the full predictor set (triangle) is
+drawn but not in the median. Dashed: the short-straddle benchmark ($0.34$ mid, $-0.03$ crossed). The
+robust clip is above the sign strategy for 98 of the 112 forecasts at mid (median gain
 $+0.45$). Rules and scoring as in Table~\ref{tab:rh_econ_sizing}.}
 \label{fig:rh_econ_sizing}
 \end{figure}

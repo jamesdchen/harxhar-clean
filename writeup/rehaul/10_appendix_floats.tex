@@ -7,9 +7,13 @@
 %   python writeup/make_rehaul_appendix.py
 % Order: A1 tree tuning rungs; A2 MinGRU development; A3 robustness figures; A4 the all-features MinGRU diagnosis.
 % Each group ends with \clearpage so the float queue never overflows.
-\ifdefined\rhappNdays\else\input{generated/rehaul_app_numbers}\fi
+% 2026-10-15 (consolidation): the wrapper notes below are aligned with the re-laid-out generated tables (stars, DM and
+% t in parentheses, worded column heads), the NW lag is q_NW (q_t is the position), and "see Methods (...)" is
+% Section~\ref{...}. The previous notes are parked in place.
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\rhappNdays\else\input{generated/rehaul_app_numbers}\fi
 % 2026-10-15 (notation pass): \fqsDMLag / \fqsHACLag (Newey-West lags) are used in the notes below.
-\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+% \ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
 
 % =====================================================================================================================
 % A1. Tree tuning rungs. The tables re-lay out the campaign's generated tables (numbers copied verbatim by the
@@ -22,7 +26,8 @@
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{3.5pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{3.5pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- code jargon (16:00 ladder, per-bar, rungs)
 % \caption{The 16:00 ladder: one change at a time, from the paper's forecast to the per-bar specification and through
@@ -41,15 +46,27 @@
 % Sharpe ratio at the mid and crossed fills. HAC $t$: Newey--West $t$ of the daily mid-return difference. Same side:
 % share of days on which the two forecasts take the same position. Shipped settings: LightGBM \texttt{lgbm\_opt\_00},
 % XGBoost \texttt{xgb\_opt\_00}, random forest trial 255, the top entries of the 1998--2002 development searches.
-\item[] \textit{Notes:} Each row compares two forecasts (``to'' minus ``from''), one change at a time, from the earlier
-draft's pooled intraday forecast to the closing-interval specification and through the tuning specifications of the
-tree models, over the \rhappNdays{} trading days of the out-of-sample period; point estimates. QLIKE $\Delta$\%:
-$100\,(\overline{\QLIKE}_{\text{to}}/\overline{\QLIKE}_{\text{from}} - 1)$; $\DM$: Diebold--Mariano statistic of the
-daily QLIKE loss differential, with the Harvey--Leybourne--Newbold correction and Newey--West lag $q = \fqsDMLag$
-(---: not stored). Sharpe ratio $\Delta$: change in the annualized Sharpe ratio of the sign strategy at mid-quotes and
-at quoted bid--ask prices; HAC $t$: HAC $t$-statistic on the daily return differential at mid-quotes (Newey--West,
-$q = \fqsHACLag$). Same side: share of trading days on which the two forecasts take the same position. Fixed
-hyperparameters and tuning procedures: see Methods (\emph{Tuning procedures}).
+% 2026-10-15 (consolidation): parked -- notes of the earlier layout (separate DM and t columns, no stars).
+% \item[] \textit{Notes:} Each row compares two forecasts (``to'' minus ``from''), one change at a time, from the earlier
+% draft's pooled intraday forecast to the closing-interval specification and through the tuning specifications of the
+% tree models, over the \rhappNdays{} trading days of the out-of-sample period; point estimates. QLIKE $\Delta$\%:
+% $100\,(\overline{\QLIKE}_{\text{to}}/\overline{\QLIKE}_{\text{from}} - 1)$; $\DM$: Diebold--Mariano statistic of the
+% daily QLIKE loss differential, with the Harvey--Leybourne--Newbold correction and Newey--West lag $q = \fqsDMLag$
+% (---: not stored). Sharpe ratio $\Delta$: change in the annualized Sharpe ratio of the sign strategy at mid-quotes and
+% at quoted bid--ask prices; HAC $t$: HAC $t$-statistic on the daily return differential at mid-quotes (Newey--West,
+% $q = \fqsHACLag$). Same side: share of trading days on which the two forecasts take the same position. Fixed
+% hyperparameters and tuning procedures: see Methods (\emph{Tuning procedures}).
+\item[] \textit{Notes:} Each row compares two forecasts that differ in one specification choice (``to'' minus
+``from''), from the earlier draft's pooled intraday forecast to the closing-interval specification and through the
+tuning of the tree models, over the \rhappNdays{} trading days of the out-of-sample period. QLIKE $\Delta$ (\%):
+$100\,(\overline{\QLIKE}_{\text{to}}/\overline{\QLIKE}_{\text{from}} - 1)$, with the Diebold--Mariano statistic in
+parentheses (Harvey--Leybourne--Newbold correction, Newey--West lag $q_{\mathrm{NW}} = \fqsDMLag$; --: not stored).
+$\Delta\SR$: change in the annualized Sharpe ratio of the sign strategy, at mid-quotes with the HAC $t$-statistic on
+the daily return differential in parentheses ($q_{\mathrm{NW}} = \fqsHACLag$) and at quoted bid--ask prices; same
+sign: share of trading days on which the two forecasts imply the same position $q_t$. $^{*}$, $^{**}$ and $^{***}$
+denote significance at the 10\%, 5\% and 1\% levels, from the DM statistic for $\Delta$ and from the HAC $t$ for
+$\Delta\SR$. ``Fixed'': fixed hyperparameters; ``every 10 days'' and ``daily'' give the re-estimation frequency in
+Panels D and F and Optuna's re-tuning frequency in Panel H (Section~\ref{sec:rh_methods_tuning}).
 % Fixed hyperparameters = LightGBM lgbm_opt_00, XGBoost xgb_opt_00, random forest trial 255.
 \end{tablenotes}
 \end{threeparttable}
@@ -76,13 +93,20 @@ hyperparameters and tuning procedures: see Methods (\emph{Tuning procedures}).
 % forecast's QLIKE. $\Delta$SR: the difference in the annualised $\sign(s)$ Sharpe ratio at the mid fill. Point
 % estimates over \rhappNdays{} trade days; every fit window-masked. HAR + calendar: \rhappNcolsBase{} columns; all
 % features: \rhappNcolsAll{}.
-\item[] \textit{Notes:} T1 $-$ T10: fixed hyperparameters, re-estimated every trading day minus every 10th trading day;
-RS1 $-$ RS10: the random search, likewise; RS1 $-$ T1: the random search minus the fixed hyperparameters, both
-re-estimated daily. QLIKE: the difference in mean QLIKE, in percent of the second forecast's; $\Delta\SR$: the
-difference in the annualized Sharpe ratio of the sign strategy at mid-quotes. Point estimates over the \rhappNdays{}
-trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} columns, full predictor set
-\rhappNcolsAll{}. The random search and the within-window column screening are described in Methods
-(\emph{Tuning procedures}).
+% 2026-10-15 (consolidation): parked -- notes of the earlier layout (T1 - T10, RS1 - RS10, RS1 - T1 column codes).
+% \item[] \textit{Notes:} T1 $-$ T10: fixed hyperparameters, re-estimated every trading day minus every 10th trading day;
+% RS1 $-$ RS10: the random search, likewise; RS1 $-$ T1: the random search minus the fixed hyperparameters, both
+% re-estimated daily. QLIKE: the difference in mean QLIKE, in percent of the second forecast's; $\Delta\SR$: the
+% difference in the annualized Sharpe ratio of the sign strategy at mid-quotes. Point estimates over the \rhappNdays{}
+% trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} columns, full predictor set
+% \rhappNcolsAll{}. The random search and the within-window column screening are described in Methods
+% (\emph{Tuning procedures}).
+\item[] \textit{Notes:} Closing-interval tree models. Columns 2--5: re-estimated daily minus re-estimated every 10
+trading days, with fixed hyperparameters and with the random search; columns 6--7: the random search minus the fixed
+hyperparameters, both re-estimated daily. $\Delta$QLIKE: the difference in mean QLIKE, in percent of the second
+forecast's; $\Delta\SR$: the difference in the annualized Sharpe ratio of the sign strategy at mid-quotes. Point
+estimates over the \rhappNdays{} trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} columns,
+full predictor set \rhappNcolsAll{}. Tuning procedures: Section~\ref{sec:rh_methods_tuning}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -91,7 +115,8 @@ trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} column
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{5pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{5pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- code jargon (mask, rung)
 % \caption{The per-window mask, masked minus unmasked, per rung.}
@@ -107,10 +132,16 @@ trading days of the out-of-sample period; HAR benchmark \rhappNcolsBase{} column
 % copies of an earlier column. Rungs as in Table~\ref{tab:rh_app_tune_cadence}; cells as there, the unmasked forecast
 % being the comparator. ---: no unmasked run of XGBoost or the random forest on their current settings. The campaign's
 % unmasked rungs were not pinned to a CPU class.
-\item[] \textit{Notes:} Screened minus unscreened forecasts, by tuning specification. At every estimation, the screen
-drops the columns that are constant on the estimation window or exact copies of an earlier column. Specifications
-and cells as in Table~\ref{tab:rh_app_tune_cadence}. ---: no unscreened run of XGBoost or the random forest at their
-current hyperparameters; the unscreened runs were not restricted to a single CPU class.
+% 2026-10-15 (consolidation): parked -- the "---" sentence: the re-laid-out table has every cell.
+% \item[] \textit{Notes:} Screened minus unscreened forecasts, by tuning specification. At every estimation, the screen
+% drops the columns that are constant on the estimation window or exact copies of an earlier column. Specifications
+% and cells as in Table~\ref{tab:rh_app_tune_cadence}. ---: no unscreened run of XGBoost or the random forest at their
+% current hyperparameters; the unscreened runs were not restricted to a single CPU class.
+\item[] \textit{Notes:} Screened minus unscreened forecasts of the closing-interval tree models, by tuning and
+re-estimation frequency. At every estimation, the screen drops the columns that are constant on the estimation window
+or exact copies of an earlier column (Section~\ref{sec:rh_predictors}). Cells as in
+Table~\ref{tab:rh_app_tune_cadence}. XGBoost and the random forest have no unscreened random-search run, so those rows
+are omitted; the unscreened runs were not restricted to a single CPU class.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -137,8 +168,8 @@ current hyperparameters; the unscreened runs were not restricted to a single CPU
 \item[] \textit{Notes:} Optuna re-tuned every 1, 5 or 25 trading days minus Optuna re-tuned every 250 trading days;
 every specification is re-estimated daily. At each tuning date, a new tree-structured Parzen estimator study runs
 \rhappOptTrials{} trials, starting from the fixed hyperparameters, and keeps the configuration with the lowest
-validation MSE (see Methods, \emph{Tuning procedures}). QLIKE, 250: the mean QLIKE of the specification re-tuned
-every 250 trading days. Other cells as in Table~\ref{tab:rh_app_tune_cadence}.
+validation MSE (Section~\ref{sec:rh_methods_tuning}). QLIKE, 250 days: the mean QLIKE of the specification
+re-tuned every 250 trading days. Other cells as in Table~\ref{tab:rh_app_tune_cadence}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -147,7 +178,8 @@ every 250 trading days. Other cells as in Table~\ref{tab:rh_app_tune_cadence}.
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{4pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- finance-journal first sentence (a statement, not a question)
 % \caption{Is the Optuna budget enough? Where the best of \rhappOptTrials{} trials falls, and what the last trials add,
@@ -166,13 +198,22 @@ every 250 trading days. Other cells as in Table~\ref{tab:rh_app_tune_cadence}.
 % exchangeable). Val.\ MSE gain: the relative gain in the best validation MSE from the first 10, 25 or 40 trials to all
 % \rhappOptTrials{}, mean\,/\,median over points. Pick changes: the share of points whose best of 25 differs from the
 % best of \rhappOptTrials{}.
+% 2026-10-15 (consolidation): parked -- column names of the earlier layout ("shipped", "in 41--50", "Pick changes").
+% \item[] \textit{Notes:} Position of the best of \rhappOptTrials{} trials, and the gain from the last trials, over all
+% \rhappOptPoints{} tuning dates of each specification. Median trial: the median index of the trial that attains the
+% best of \rhappOptTrials{}; shipped: the share of tuning dates at which that trial is the fixed-hyperparameter
+% configuration (trial 0); in 41--50: the share at which it falls in the last ten trials (\rhappOptExch\% if its
+% position were exchangeable). Val.\ MSE gain: the relative reduction in the best validation MSE from the first 10, 25
+% or 40 trials to all \rhappOptTrials{}, mean\,/\,median across tuning dates. Pick changes: the share of tuning dates at
+% which the best of the first 25 trials differs from the best of \rhappOptTrials{}.
 \item[] \textit{Notes:} Position of the best of \rhappOptTrials{} trials, and the gain from the last trials, over all
-\rhappOptPoints{} tuning dates of each specification. Median trial: the median index of the trial that attains the
-best of \rhappOptTrials{}; shipped: the share of tuning dates at which that trial is the fixed-hyperparameter
-configuration (trial 0); in 41--50: the share at which it falls in the last ten trials (\rhappOptExch\% if its
-position were exchangeable). Val.\ MSE gain: the relative reduction in the best validation MSE from the first 10, 25
-or 40 trials to all \rhappOptTrials{}, mean\,/\,median across tuning dates. Pick changes: the share of tuning dates at
-which the best of the first 25 trials differs from the best of \rhappOptTrials{}.
+\rhappOptPoints{} tuning dates of each specification (Section~\ref{sec:rh_methods_tuning}). Median trial: the median
+index of the trial that attains the best of \rhappOptTrials{}; fixed: the share of tuning dates at which that trial is
+the fixed-hyperparameter configuration (trial 0); last ten: the share at which it falls in the last ten trials
+(\rhappOptExch\% if its position were exchangeable). Validation MSE reduction: the relative reduction in the best
+validation MSE from the first 10, 25 or 40 trials to all \rhappOptTrials{}, mean\,/\,median across tuning dates.
+Changed selection: the share of tuning dates at which the best of the first 25 trials differs from the best of
+\rhappOptTrials{}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -181,7 +222,8 @@ which the best of the first 25 trials differs from the best of \rhappOptTrials{}
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{5pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{5pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- wording
 % \caption{The Optuna budget out of sample: best of \rhappOptTrials{} trials minus best of the first 10 or 25.}
@@ -195,9 +237,13 @@ which the best of the first 25 trials differs from the best of \rhappOptTrials{}
 % 2026-10-15 (notation pass): parked -- code jargon (session, path, refit)
 % \item[] \emph{Notes:} Optuna re-tuned every session (left) or every 25 sessions (right), every path refit every
 % session. Cells as in Table~\ref{tab:rh_app_tune_cadence}, the smaller budget being the comparator.
-\item[] \textit{Notes:} Best of \rhappOptTrials{} trials minus best of the first 10 or 25 trials, with Optuna re-tuned
-every trading day (left) or every 25 trading days (right); every specification is re-estimated daily. Cells as in
-Table~\ref{tab:rh_app_tune_cadence}.
+% 2026-10-15 (consolidation): parked -- "(left)/(right)" of the earlier layout.
+% \item[] \textit{Notes:} Best of \rhappOptTrials{} trials minus best of the first 10 or 25 trials, with Optuna re-tuned
+% every trading day (left) or every 25 trading days (right); every specification is re-estimated daily. Cells as in
+% Table~\ref{tab:rh_app_tune_cadence}.
+\item[] \textit{Notes:} Columns: the best of \rhappOptTrials{} trials minus the best of the first 10 or 25 trials;
+rows: Optuna re-tuned daily or every 25 trading days; every specification is re-estimated daily
+(Section~\ref{sec:rh_methods_tuning}). Cells as in Table~\ref{tab:rh_app_tune_cadence}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -224,18 +270,21 @@ Table~\ref{tab:rh_app_tune_cadence}.
 \item[] \textit{Notes:} Optuna (best of \rhappOptTrials{} trials, re-tuned every 1, 5, 25 or 250 trading days) minus
 the comparator; specifications: tree model $\times$ predictor set. Each cell counts the specifications whose
 difference lies below or above zero; in parentheses, the number significant at the 5\% level. QLIKE: Diebold--Mariano
-test with the Harvey--Leybourne--Newbold correction (Newey--West lag $q = \fqsDMLag$); Sharpe ratio at mid-quotes: HAC
-$t$-statistic on the daily return differential (Newey--West, $q = \fqsHACLag$). The \emph{all} rows pool the four
-re-tuning frequencies.
+test with the Harvey--Leybourne--Newbold correction (Newey--West lag $q_{\mathrm{NW}} = \fqsDMLag$); Sharpe ratio at
+mid-quotes: HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \fqsHACLag$). The
+\emph{All} rows pool the four re-tuning frequencies (Section~\ref{sec:rh_methods_tuning}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 % Source: generated/appendix_campaign_16h_picks.tex
+% 2026-10-15 (consolidation): landscape page, the table is 569pt wide (10 columns).
+\begin{landscape}
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{4pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- finance-journal first sentence
 % \caption{Where the Optuna picks sit in each tree's search space.}
@@ -252,13 +301,16 @@ re-tuning frequencies.
 % start-up draws there (prior), and the median pick. Each tree's axes are its own run's search space. $^{\dagger}$A
 % pseudo-axis: the early-stopped number of boosting rounds, capped by a function of the learning rate.
 \item[] \textit{Notes:} The share of best-of-\rhappOptTrials{} selections in the outermost twentieth of each axis, at
-its lower and upper end, by predictor set (H: HAR benchmark; A: full predictor set), alongside the share of the random
-start-up draws in the same region (prior), and the median selection. Each tree model's axes are its own search space
-(see Methods, \emph{Tuned hyperparameters}). $^{\dagger}$A pseudo-axis: the early-stopped number of boosting rounds
-$B$, capped by a function of the learning rate $\eta$.
+its lower and upper end, by predictor set (HAR: HAR benchmark; Full: full predictor set), alongside the share of the
+random start-up draws in the same region (prior), and the median selection. Each tree model's axes are its own search
+space (Section~\ref{sec:rh_methods_hyper}; Table~\ref{tab:rh_dm_hyper_search}); log: log scale; integer:
+integer-valued. $^{\dagger}$Not searched directly: boosting rounds $B$, capped at $\bar B(\eta)$.
+% 2026-10-15 (consolidation): parked -- "A pseudo-axis: the early-stopped number of boosting rounds $B$, capped by a
+% function $\bar B(\eta)$ of the learning rate $\eta$."
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
+\end{landscape}
 
 \clearpage
 
@@ -273,7 +325,8 @@ $B$, capped by a function of the learning rate $\eta$.
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{3pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{3pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- code jargon (16:00, walk of record, per-bar)
 % \caption{MinGRU development at 16:00: each walk of record in order, beside the per-bar linear references.}
@@ -297,18 +350,32 @@ $B$, capped by a function of the learning rate $\eta$.
 % every bar of the pooled walks, the fit-space QLIKE is \rhappAllbarsRinitAll{} (all features) and
 % \rhappAllbarsRinitBase{} (HAR + calendar) for (8), against \rhappAllbarsWdBAll{} and \rhappAllbarsWdBBase{} for (7).
 % Ridge: $p$ not computed. Every variant on disk is in Table~\ref{tab:rh_app_mingru_all}.
+% 2026-10-15 (consolidation): parked -- the p-value sentence (the table now puts stars on Delta) and the "B" tag
+% (the rows now say "selected per block").
+% \item[] \textit{Notes:} Each row is a rolling-window out-of-sample exercise over the \rhappNdays{} trading days of the
+% out-of-sample period. $\Delta$\%: $100\,(\overline{\QLIKE}/\overline{\QLIKE}_{\text{enet}} - 1)$ relative to the
+% closing-interval elastic net on the same predictor set; $p$: $p$-value of the Diebold--Mariano test
+% (Harvey--Leybourne--Newbold correction, Newey--West lag $q = \fqsDMLag$; not computed for the ridge); Sharpe:
+% annualized Sharpe ratio of the sign strategy at mid-quotes. Specifications: (1) softplus output, trained and selected
+% on MSE; (2) adds weight decay $\nu_{\mathrm{enc}}$ on the encoder's input columns; (3) adds a linear shortcut,
+% initialized at zero; (4) initializes it at the window's ridge estimate; (5) selects on validation QLIKE; (6) also
+% trains on QLIKE; (7) the pooled intraday network with weight decay $\nu$, evaluated at the closing interval; (8) the
+% pooled intraday analogue of (6); B: the new penalty is selected at each of the \rhappNblocks{} block starts (see
+% Methods, \emph{Models}). Over all intraday intervals, the mean QLIKE on the scale of $y_{t,i}$ is
+% \rhappAllbarsRinitAll{} (full predictor set) and \rhappAllbarsRinitBase{} (HAR benchmark) for (8), against
+% \rhappAllbarsWdBAll{} and \rhappAllbarsWdBBase{} for (7).
 \item[] \textit{Notes:} Each row is a rolling-window out-of-sample exercise over the \rhappNdays{} trading days of the
-out-of-sample period. $\Delta$\%: $100\,(\overline{\QLIKE}/\overline{\QLIKE}_{\text{enet}} - 1)$ relative to the
-closing-interval elastic net on the same predictor set; $p$: $p$-value of the Diebold--Mariano test
-(Harvey--Leybourne--Newbold correction, Newey--West lag $q = \fqsDMLag$; not computed for the ridge); Sharpe:
-annualized Sharpe ratio of the sign strategy at mid-quotes. Specifications: (1) softplus output, trained and selected
-on MSE; (2) adds weight decay $\nu_{\mathrm{enc}}$ on the encoder's input columns; (3) adds a linear shortcut,
-initialized at zero; (4) initializes it at the window's ridge estimate; (5) selects on validation QLIKE; (6) also
-trains on QLIKE; (7) the pooled intraday network with weight decay $\nu$, evaluated at the closing interval; (8) the
-pooled intraday analogue of (6); B: the new penalty is selected at each of the \rhappNblocks{} block starts (see
-Methods, \emph{Models}). Over all intraday intervals, the mean QLIKE on the scale of $y_{t,i}$ is
+out-of-sample period. $\Delta$ (\%): $100\,(\overline{\QLIKE}/\overline{\QLIKE}_{\text{enet}} - 1)$ relative to the
+closing-interval elastic net on the same predictor set; $\SR$: annualized Sharpe ratio of the sign strategy at
+mid-quotes. $^{*}$, $^{**}$ and $^{***}$ denote significance of $\Delta$ at the 10\%, 5\% and 1\% levels
+(Diebold--Mariano test, Harvey--Leybourne--Newbold correction, Newey--West lag $q_{\mathrm{NW}} = \fqsDMLag$; not
+computed for the ridge; --: the comparator). Rows (2)--(4) each add the change in their label to the row above, (5)
+and (6) modify (4), and (8) is the pooled intraday analogue of (6); new penalties are selected at each of the
+\rhappNblocks{} block starts (Section~\ref{sec:rh_methods_models}). The mean QLIKE over all intraday intervals is
 \rhappAllbarsRinitAll{} (full predictor set) and \rhappAllbarsRinitBase{} (HAR benchmark) for (8), against
 \rhappAllbarsWdBAll{} and \rhappAllbarsWdBBase{} for (7).
+% 2026-10-15 (consolidation): "on the scale of y_{t,i}" -> "over all intraday intervals": the fit-space QLIKE is now
+% scored on the actual RV, so the two are the same.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -316,7 +383,8 @@ Methods, \emph{Models}). Over all intraday intervals, the mean QLIKE on the scal
 \begin{table}[p]
 \centering
 \small
-\setlength{\tabcolsep}{3pt}
+% 2026-10-15 (consolidation): parked -- the re-laid-out table fits at the default \tabcolsep.
+% \setlength{\tabcolsep}{3pt}
 \begin{threeparttable}
 % 2026-10-15 (notation pass): parked -- code jargon (walk on disk)
 % \caption{Every MinGRU walk on disk (\rhappNvariants{} variants), grouped by the change it tests.}
@@ -335,12 +403,16 @@ Methods, \emph{Models}). Over all intraday intervals, the mean QLIKE on the scal
 % alone. Checks: the shortcut held at the linear stack's own ridge and the branch frozen, under the identity and the
 % softplus output link. QLIKE training: trained, early-stopped and selected on QLIKE. Not run: the variant was tried on
 % all features only. All-bars QLIKE of (7), (8): notes to Table~\ref{tab:rh_app_mingru_dev}.
-\item[] \textit{Notes:} \rhappNvariants{} variants, grouped by the modification each tests; columns and comparator as
-in Table~\ref{tab:rh_app_mingru_dev}, whose rows are (1)--(8). $\nu$: uniform weight decay on every weight;
-$\nu_{\mathrm{enc}}$: weight decay on the encoder's input columns only; a fixed value is held in every block, and B
-selects it per block. Branch frozen: the recurrent branch is held at zero, so the forecast is the linear shortcut
-alone; checks: the shortcut held at the linear models' ridge estimate with the branch frozen, under the identity and
-the softplus output link. Not run: estimated on the full predictor set only.
+\item[] \textit{Notes:} \rhappNvariants{} variants, grouped by the modification each tests; columns, stars and
+comparator as in Table~\ref{tab:rh_app_mingru_dev}, whose rows are (1)--(8). $\nu$: uniform weight decay on every
+weight; $\nu_{\mathrm{enc}}$: weight decay on the encoder's input columns only; a fixed value is held in every block,
+or the value is selected per block; ``[row (k)]'' marks row (k) of Table~\ref{tab:rh_app_mingru_dev}. Shortcut only
+($f^{\mathrm{NN}} \equiv 0$): the recurrent branch is held at zero, so the forecast is the linear shortcut alone;
+ridge shortcut only, identity / softplus output: checks with the shortcut held at the linear models' ridge estimate.
+--: estimated on the full predictor set only.
+% 2026-10-15 (consolidation): parked -- "Branch frozen: ...; checks: ...; Not run: estimated on the full predictor set
+% only." (the generated rows now read "Shortcut only", "ridge shortcut only, identity / softplus output" and "--").
+% 2026-10-15 (consolidation): "B selects it per block" -> "or the value is selected per block" (the B tag is gone).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -365,32 +437,42 @@ the softplus output link. Not run: estimated on the full predictor set only.
 % % whose tables carry every session row (the paper's own forecasts; the other \rhappShiftNnot{} forecasts of the
 % % model set hold only the 16:00 row); thick: their median; star: the bar's realized variance used as the forecast;
 % % dashed: always short. \rhappShiftNdays{} days on which every shifted row exists.}
-% \caption{Date-shift test. Annualized Sharpe ratio of the sign strategy, $q_t = \sign(s_t)$, when each forecast is
-% taken from the row $k$ intraday intervals away from the traded closing interval ($k<0$: earlier on the same trading
-% day, i.e., stale; $k>0$: the next trading day), at mid-quotes (left) and at quoted bid--ask prices (right), for $k$
-% from \rhappShiftKmin{} to \rhappShiftKmax{}. Thin lines: the \rhappShiftNfc{} forecasts whose output contains every
+% \caption{Date-shift test. Annualized Sharpe ratio of the sign strategy, $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$,
+% when each forecast is taken from the row $j$ intraday intervals away from the traded closing interval ($j<0$: earlier
+% on the same trading day, i.e., stale; $j>0$: the next trading day), at mid-quotes (left) and at quoted bid--ask
+% prices (right), for $j$ from \rhappShiftKmin{} to \rhappShiftKmax{}. (2026-10-15 consolidation: sign(s_t) -> the
+% sign strategy's argument; offset k -> j, k being the HAR horizon; "always short" -> the short-straddle benchmark.)
+% Thin lines: the \rhappShiftNfc{} forecasts whose output contains every
 % intraday interval (the earlier draft's forecasts; the other \rhappShiftNnot{} forecasts of the model set contain only
 % the closing interval); thick line: their median; star: the closing interval's realized variance used as the
-% forecast; dashed: always short. Sample: the \rhappShiftNdays{} trading days on which every shifted row exists.}
+% forecast; dashed: the short-straddle benchmark ($q_t \equiv -1$). Sample: the \rhappShiftNdays{} trading days on which
+% every shifted row exists.}
 % \label{fig:rh_app_shift}
 % \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{../results/close_murphy_splits/murphy_modelset.png}
+% 2026-10-15 (consolidation): parked -- the raster; the vector copy is now written beside it.
+% \includegraphics[width=\linewidth]{../results/close_murphy_splits/murphy_modelset.png}
+\includegraphics[width=\linewidth]{../results/close_murphy_splits/murphy_modelset.pdf}
 % 2026-10-15 (notation pass): parked -- threshold c -> theta (c is the closing interval; Ehm et al. 2016 use theta); per-bar, paper, sign(s) rule
 % \caption{Murphy diagram of the model set (\rhappModelSetN{} forecasts: paper \rhappModelSetPaper, pooled linear
 % \rhappModelSetPooledLin, per-bar linear \rhappModelSetPerBarLin, per-bar trees \rhappModelSetPerBarTrees),
 % \rhappNdays{} days. (a) The mean elementary score $\mathrm{ES}_c$ at each of \rhappMurphyNc{} thresholds $c$, in
 % units of the 15:30 implied variance, log scale (lower is better); $c = 1$ is the threshold the $\sign(s)$ rule
 % uses, and QLIKE is the area under each line weighted by $c^{-2}$. (b) Each line minus the mean of the set at $c$.}
+% 2026-10-15 (consolidation): parked -- q_t = sign(s_t) (no s_t; s is the periodicity factor) and ES_theta for the
+% mean score (now \overline{ES}_\theta, with ES_{\theta,t} the daily score of Section rh_econ_measures).
+% Panel (a): mean elementary score $\mathrm{ES}_\theta$ at each of \rhappMurphyNc{} thresholds $\theta$, ... $\theta = 1$
+% is the threshold used by the sign strategy, $q_t = \sign(s_t)$, ...
 \caption{Murphy diagram (elementary scores) for the model set (\rhappModelSetN{} forecasts: earlier draft
 \rhappModelSetPaper, pooled intraday linear \rhappModelSetPooledLin, closing-interval linear \rhappModelSetPerBarLin,
 closing-interval trees \rhappModelSetPerBarTrees), over the \rhappNdays{} trading days of the out-of-sample period.
-Panel (a): mean elementary score $\mathrm{ES}_\theta$ at each of \rhappMurphyNc{} thresholds $\theta$, in units of the
-15:30 implied variance, log scale (lower is better); $\theta = 1$ is the threshold used by the sign strategy,
-$q_t = \sign(s_t)$, and QLIKE equals the integral of the elementary scores weighted by $\theta^{-2}$. Panel (b): each
-forecast's mean elementary score minus the model-set mean at the same $\theta$.}
+Panel (a): mean elementary score $\overline{\mathrm{ES}}_\theta$ \citep{Ehm2016} at each of \rhappMurphyNc{}
+thresholds $\theta$, in units of the 15:30 implied variance, log scale (lower is better); $\theta = 1$ is the
+threshold used by the sign strategy, $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$, and QLIKE equals the integral of
+the elementary scores weighted by $\theta^{-2}$ (Section~\ref{sec:rh_econ_measures}). Panel (b): each forecast's mean
+elementary score minus the model-set mean at the same $\theta$.}
 \label{fig:rh_app_murphy}
 \end{figure}
 
@@ -403,11 +485,13 @@ forecast's mean elementary score minus the model-set mean at the same $\theta$.}
 % % \rhappCompF\,\%$ of wealth staked as straddle premium every day, $q_s = \pm 1$ the forecast's $\sign(s)$ position and
 % % $R_s$ the straddle's return, for each of the \rhappModelSetN{} forecasts of the model set, mid fill (left) and crossed
 % % fill (right), log scale; dashed: always short.}
-% \caption{Compounded wealth at a fixed fraction. The figure plots $W_t = \prod_{u \le t}(1 + f\,q_u R_u)$, with
-% $f = \rhappCompF\%$ of wealth committed as straddle premium each trading day, $q_u = \sign(s_u) = \pm 1$ the
-% position of the sign strategy and $R_u$ the return on the straddle premium, for each of the \rhappModelSetN{}
-% forecasts of the model set, at mid-quotes (left) and at quoted bid--ask prices (right), log scale; dashed: always
-% short.}
+% (2026-10-15 consolidation: dummy day index u -> t' (u is an exogenous series), sign(s_u) -> the sign strategy,
+% "always short" -> the short-straddle benchmark.)
+% \caption{Compounded wealth at a fixed fraction. The figure plots $W_t = \prod_{t' \le t}(1 + f\,q_{t'} R_{t'})$,
+% with $f = \rhappCompF\%$ of wealth committed as straddle premium each trading day,
+% $q_{t'} = \sign(\hat\sigma^2_{t'} - \mathrm{IV}^2_{t'}) = \pm 1$ the position of the sign strategy and $R_{t'}$ the
+% return on the straddle premium, for each of the \rhappModelSetN{} forecasts of the model set, at mid-quotes (left)
+% and at quoted bid--ask prices (right), log scale; dashed: the short-straddle benchmark ($q_t \equiv -1$).}
 % \label{fig:rh_app_wealth}
 % \end{figure}
 
@@ -439,7 +523,8 @@ forecast's mean elementary score minus the model-set mean at the same $\theta$.}
 % the day-weighted mean of the three class columns is the overall QLIKE. Of the walk of record's summed daily gap
 % between its all-features and HAR + calendar forecasts, extreme-input days carry \rhappGapShareExtreme\,\%, month-ends
 % \rhappGapShareMonthEnd\,\% and the other days \rhappGapShareOther\,\%.
-\item[] \textit{Notes:} Mean QLIKE of specifications (1)--(6) of Table~\ref{tab:rh_app_mingru_dev} by day type.
+\item[] \textit{Notes:} Mean QLIKE of specifications (1)--(6) of Table~\ref{tab:rh_app_mingru_dev}, and of the
+closing-interval elastic net and ridge, by day type.
 Month-ends: the last trading day of each calendar month (\rhappNmonthEndExtreme{} of them also have extreme predictor
 values); extreme predictor values: at least \rhappExtremeCols{} retained columns above their estimation-window
 maximum, month-ends excluded. The three day types partition the \rhappNdays{} trading days of the out-of-sample
@@ -454,3 +539,8 @@ for \rhappGapShareExtreme\%, month-ends for \rhappGapShareMonthEnd\% and the oth
 
 % 2026-10-15: the feature dictionary (47 series), moved here from 04_features_floats.tex (Appendix A).
 \input{generated/rehaul_dm_dictionary}
+
+% 2026-10-15 (consolidation): the full ranking of every forecast (a longtable, tab:rh_rank_full), moved here from
+% 06_results_floats.tex (results generator item 1).
+\clearpage
+\input{generated/rehaul_results_t3_full}

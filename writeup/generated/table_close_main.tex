@@ -12,34 +12,34 @@ forecast & inputs & QLIKE & \% & DM & mid & crossed & vs R & vs always short & b
 always short (no forecast) &  &  &  &  & 0.20 & \ensuremath{-}0.27 & \ensuremath{-}1.08 &  & 0.0 \\
 \midrule
 \multicolumn{10}{l}{\emph{A. The paper's forecasts: one regression for all 48 bars of the day}} \\
-baseline (HAR + calendar OLS) &  & 0.1232 & +15.4 & +2.55 & 0.43 & \ensuremath{-}0.05 & \ensuremath{-}0.85 & +0.22 & 17.1 \\
-block-diagonal ridge$^{\mathrm{R}}$ &  & 0.1068 &  &  & 1.28 & 0.80 &  & +1.08 & 27.0 \\
-block-diagonal ridge, without the FOMC columns &  & 0.1057 & \ensuremath{-}1.0 & \ensuremath{-}1.67 & 1.36 & 0.88 & +0.08 & +1.15 & 27.3 \\
-LightGBM$^{\dagger}$ &  & 0.1060 & \ensuremath{-}0.7 & \ensuremath{-}0.18 & 1.43 & 0.93 & +0.15 & +1.22 & 19.1 \\
-XGBoost$^{\dagger}$ &  & 0.1063 & \ensuremath{-}0.4 & \ensuremath{-}0.11 & 1.26 & 0.77 & \ensuremath{-}0.02 & +1.06 & 18.7 \\
-lasso (causally tuned)$^{\dagger}$ &  & 0.1090 & +2.1 & +0.67 & 1.50 & 1.01 & +0.22 & +1.30 & 21.2 \\
-lasso ($\alpha=10^{-4}$) &  & 0.1076 & +0.8 & +0.76 & 1.06 & 0.58 & \ensuremath{-}0.22 & +0.85 & 28.4 \\
-elastic net (causally tuned)$^{\dagger}$ &  & 0.1110 & +3.9 & +1.29 & 0.81 & 0.32 & \ensuremath{-}0.48 & +0.60 & 21.0 \\
+baseline (HAR + calendar OLS) &  & 0.1270 & +16.3 & +2.63 & 0.43 & \ensuremath{-}0.05 & \ensuremath{-}0.85 & +0.22 & 17.1 \\
+block-diagonal ridge$^{\mathrm{R}}$ &  & 0.1092 &  &  & 1.28 & 0.80 &  & +1.08 & 27.0 \\
+block-diagonal ridge, without the FOMC columns &  & 0.1081 & \ensuremath{-}1.0 & \ensuremath{-}1.62 & 1.36 & 0.88 & +0.08 & +1.15 & 27.3 \\
+LightGBM$^{\dagger}$ &  & 0.1090 & \ensuremath{-}0.2 & \ensuremath{-}0.05 & 1.43 & 0.93 & +0.15 & +1.22 & 19.1 \\
+XGBoost$^{\dagger}$ &  & 0.1092 & +0.0 & +0.01 & 1.26 & 0.77 & \ensuremath{-}0.02 & +1.06 & 18.7 \\
+lasso (causally tuned)$^{\dagger}$ &  & 0.1115 & +2.1 & +0.69 & 1.50 & 1.01 & +0.22 & +1.30 & 21.2 \\
+lasso ($\alpha=10^{-4}$) &  & 0.1101 & +0.8 & +0.77 & 1.06 & 0.58 & \ensuremath{-}0.22 & +0.85 & 28.4 \\
+elastic net (causally tuned)$^{\dagger}$ &  & 0.1134 & +3.8 & +1.28 & 0.81 & 0.32 & \ensuremath{-}0.48 & +0.60 & 21.0 \\
 \midrule
 \multicolumn{10}{l}{\emph{B. Pooled twins: the per-bar specification fitted on all 48 bars}} \\
-ridge & \texttt{baseline} & 0.1067 & \ensuremath{-}0.0 & \ensuremath{-}0.01 & 0.91 & 0.43 & \ensuremath{-}0.37 & +0.71 & 26.7 \\
-ridge & \texttt{all\_features} & 0.1021 & \ensuremath{-}4.3 & \ensuremath{-}1.75 & 1.44 & 0.96 & +0.16 & +1.24 & 27.1 \\
+ridge & \texttt{baseline} & 0.1098 & +0.6 & +0.14 & 0.91 & 0.43 & \ensuremath{-}0.37 & +0.71 & 26.7 \\
+ridge & \texttt{all\_features} & 0.1045 & \ensuremath{-}4.3 & \ensuremath{-}1.73 & 1.44 & 0.96 & +0.16 & +1.24 & 27.1 \\
 \midrule
 \multicolumn{10}{l}{\emph{C. Per-bar linear: one regression for the 16:00 bar alone}} \\
-OLS & \texttt{baseline} & 0.0946 & \ensuremath{-}11.4 & \ensuremath{-}2.38 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
-ridge & \texttt{baseline} & 0.0946 & \ensuremath{-}11.4 & \ensuremath{-}2.38 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
-lasso & \texttt{baseline} & 0.0946 & \ensuremath{-}11.4 & \ensuremath{-}2.38 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
-elastic net & \texttt{baseline} & 0.0946 & \ensuremath{-}11.4 & \ensuremath{-}2.39 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
-ridge & \texttt{all\_features} & 0.0958 & \ensuremath{-}10.3 & \ensuremath{-}2.28 & 1.42 & 0.93 & +0.14 & +1.21 & 27.1 \\
-lasso & \texttt{all\_features} & 0.0914 & \ensuremath{-}14.3 & \ensuremath{-}3.72 & 1.88 & 1.40 & +0.60 & +1.67 & 29.6 \\
-elastic net & \texttt{all\_features} & 0.0942 & \ensuremath{-}11.8 & \ensuremath{-}2.93 & 1.92 & 1.43 & +0.64 & +1.72 & 28.3 \\
+OLS & \texttt{baseline} & 0.0967 & \ensuremath{-}11.5 & \ensuremath{-}2.41 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
+ridge & \texttt{baseline} & 0.0967 & \ensuremath{-}11.5 & \ensuremath{-}2.41 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
+lasso & \texttt{baseline} & 0.0967 & \ensuremath{-}11.5 & \ensuremath{-}2.41 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
+elastic net & \texttt{baseline} & 0.0967 & \ensuremath{-}11.5 & \ensuremath{-}2.41 & 1.37 & 0.89 & +0.09 & +1.17 & 27.9 \\
+ridge & \texttt{all\_features} & 0.0975 & \ensuremath{-}10.7 & \ensuremath{-}2.35 & 1.42 & 0.93 & +0.14 & +1.21 & 27.1 \\
+lasso & \texttt{all\_features} & 0.0931 & \ensuremath{-}14.7 & \ensuremath{-}3.72 & 1.88 & 1.40 & +0.60 & +1.67 & 29.6 \\
+elastic net & \texttt{all\_features} & 0.0958 & \ensuremath{-}12.2 & \ensuremath{-}2.97 & 1.92 & 1.43 & +0.64 & +1.72 & 28.3 \\
 \midrule
 \multicolumn{10}{l}{\emph{D. Per-bar trees: one row per rung, the same rows, target and window}} \\
-LightGBM, shipped settings, refit every 10 & \texttt{all\_features} & 0.0962 & \ensuremath{-}9.8 & \ensuremath{-}2.32 & 1.37 & 0.88 & +0.09 & +1.16 & 28.5 \\
-LightGBM, shipped settings, refit daily & \texttt{all\_features} & 0.0939 & \ensuremath{-}12.0 & \ensuremath{-}3.08 & 1.33 & 0.84 & +0.05 & +1.13 & 28.9 \\
-LightGBM, random search, refit every 10 & \texttt{all\_features} & 0.0982 & \ensuremath{-}8.0 & \ensuremath{-}1.72 & 1.81 & 1.33 & +0.53 & +1.61 & 30.5 \\
-LightGBM, random search, refit daily & \texttt{all\_features} & 0.0966 & \ensuremath{-}9.5 & \ensuremath{-}2.17 & 1.61 & 1.12 & +0.33 & +1.40 & 28.8 \\
-LightGBM, Optuna tuned daily, refit daily & \texttt{all\_features} & 0.1010 & \ensuremath{-}5.4 & \ensuremath{-}1.41 & 1.23 & 0.75 & \ensuremath{-}0.05 & +1.03 & 28.4 \\
+LightGBM, shipped settings, refit every 10 & \texttt{all\_features} & 0.0983 & \ensuremath{-}10.0 & \ensuremath{-}2.36 & 1.37 & 0.88 & +0.09 & +1.16 & 28.5 \\
+LightGBM, shipped settings, refit daily & \texttt{all\_features} & 0.0961 & \ensuremath{-}12.0 & \ensuremath{-}3.11 & 1.33 & 0.84 & +0.05 & +1.13 & 28.9 \\
+LightGBM, random search, refit every 10 & \texttt{all\_features} & 0.1005 & \ensuremath{-}7.9 & \ensuremath{-}1.73 & 1.81 & 1.33 & +0.53 & +1.61 & 30.5 \\
+LightGBM, random search, refit daily & \texttt{all\_features} & 0.0990 & \ensuremath{-}9.3 & \ensuremath{-}2.16 & 1.61 & 1.12 & +0.33 & +1.40 & 28.8 \\
+LightGBM, Optuna tuned daily, refit daily & \texttt{all\_features} & 0.1032 & \ensuremath{-}5.5 & \ensuremath{-}1.43 & 1.23 & 0.75 & \ensuremath{-}0.05 & +1.03 & 28.4 \\
 \bottomrule
 \end{tabular}
 \endgroup

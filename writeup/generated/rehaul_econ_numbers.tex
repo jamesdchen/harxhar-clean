@@ -24,3 +24,30 @@
 \providecommand{\rheSzClipBeats}{}\renewcommand{\rheSzClipBeats}{98}  % clip above sign(s), of 112 (mid)
 \providecommand{\rheSzClipGain}{}\renewcommand{\rheSzClipGain}{\ensuremath{+}0.45}  % median clip - sign(s) Sharpe mid
 \providecommand{\rheTailNeg}{}\renewcommand{\rheTailNeg}{102}  % model-set forecasts whose gain over short is < 0 without 10 best days
+\providecommand{\rheLassoSh}{}\renewcommand{\rheLassoSh}{1.88}  % per-bar lasso all features, Sharpe mid
+\providecommand{\rheLassoShX}{}\renewcommand{\rheLassoShX}{1.40}  % ... crossed
+\providecommand{\rheAfEnetDSh}{}\renewcommand{\rheAfEnetDSh}{\ensuremath{+}0.55}  % per-bar enet: dSharpe mid, all features minus HAR + calendar (E2)
+\providecommand{\rheAfLassoDSh}{}\renewcommand{\rheAfLassoDSh}{\ensuremath{+}0.50}  % per-bar lasso: dSharpe mid, all features minus HAR + calendar (E2)
+\providecommand{\rheShortLossYears}{}\renewcommand{\rheShortLossYears}{3}  % calendar years in which always short has a negative Sharpe mid (negative mean return)
+\providecommand{\rheNYears}{}\renewcommand{\rheNYears}{5}  % calendar years in the out-of-sample period
+\providecommand{\rheNdays}{}\renewcommand{\rheNdays}{866}  % T_oos: trading days of the out-of-sample period
+\providecommand{\rheSampleStart}{}\renewcommand{\rheSampleStart}{3 January 2020}  % first out-of-sample day
+\providecommand{\rheSampleEnd}{}\renewcommand{\rheSampleEnd}{30 April 2024}  % last out-of-sample day
+\providecommand{\rheHACLag}{}\renewcommand{\rheHACLag}{14}  % Newey-West lag q of every HAC t (floor(1.5 T^(1/3)))
+\providecommand{\rheDMLag}{}\renewcommand{\rheDMLag}{6}  % Newey-West lag q of the DM statistics in Table E3
+\providecommand{\rheModelSetN}{}\renewcommand{\rheModelSetN}{112}  % forecasts in the model set
+\providecommand{\rheTreeSpecs}{}\renewcommand{\rheTreeSpecs}{15}  % tree specifications per estimator on the full predictor set (E1 note a)
+\providecommand{\rheTreePairs}{}\renewcommand{\rheTreePairs}{45}  % HAR -> full-set tree pairs (E2 Panel C)
+\providecommand{\rheTreePairsEach}{}\renewcommand{\rheTreePairsEach}{15}  % ... per estimator
+\providecommand{\rheSzWarmup}{}\renewcommand{\rheSzWarmup}{252}  % sizing: days that only build the scale
+\providecommand{\rheSzDays}{}\renewcommand{\rheSzDays}{614}  % sizing: days scored
+\providecommand{\rheTopDays}{}\renewcommand{\rheTopDays}{10}  % the tail check: days of largest gain dropped
+\providecommand{\rheTopRMin}{}\renewcommand{\rheTopRMin}{2.99}  % smallest straddle return R_t among the 4 models' top days
+\providecommand{\rheGainEnet}{}\renewcommand{\rheGainEnet}{\ensuremath{+}104.7}  % Closing-interval elastic net: cumulative gain over always short, premia
+\providecommand{\rheGainExEnet}{}\renewcommand{\rheGainExEnet}{\ensuremath{+}15.6}  % ... without its 10 best days
+\providecommand{\rheGainLgbm}{}\renewcommand{\rheGainLgbm}{\ensuremath{+}98.1}  % Closing-interval LightGBM: cumulative gain over always short, premia
+\providecommand{\rheGainExLgbm}{}\renewcommand{\rheGainExLgbm}{\ensuremath{+}2.4}  % ... without its 10 best days
+\providecommand{\rheGainNN}{}\renewcommand{\rheGainNN}{\ensuremath{+}81.1}  % Closing-interval MinGRU: cumulative gain over always short, premia
+\providecommand{\rheGainExNN}{}\renewcommand{\rheGainExNN}{\ensuremath{-}6.2}  % ... without its 10 best days
+\providecommand{\rheGainPoolEnet}{}\renewcommand{\rheGainPoolEnet}{\ensuremath{+}79.3}  % Pooled intraday elastic net: cumulative gain over always short, premia
+\providecommand{\rheGainExPoolEnet}{}\renewcommand{\rheGainExPoolEnet}{\ensuremath{-}6.3}  % ... without its 10 best days

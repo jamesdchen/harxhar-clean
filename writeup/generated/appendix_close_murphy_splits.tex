@@ -3,7 +3,7 @@
 % 2026-10-06: the paper's model set (results/close_master_table/paper_model_set.csv); no headline; plain forecast f^2 B; point estimates only.
 \begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{p{0.2\textwidth}rrrrrrrr}
-\caption{The paper's model set (112 forecasts, each its plain forecast $\hat y^2B$, no recalibration) scored two ways on the 866 deck days, by group: the median QLIKE against the scorer's target and its range, the median elementary score at the trade's threshold (the 15:30 implied variance), the median economic loss $|R|\,\mathbf 1\{q\neq\mathrm{sign}(R)\}$, the median shares of days on the realized variance's side of the threshold and on the payoff's side, and the median $\mathrm{sign}(s)$ Sharpe ratio at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance.}\label{tab:app_murphy_headline}\\
+\caption{The paper's model set (112 forecasts, each its plain forecast $\hat y^2B$, no recalibration) scored two ways on the 866 deck days, by group: the median QLIKE against the actual (not winsorized) realized variance and its range, the median elementary score at the trade's threshold (the 15:30 implied variance), the median economic loss $|R|\,\mathbf 1\{q\neq\mathrm{sign}(R)\}$, the median shares of days on the realized variance's side of the threshold and on the payoff's side, and the median $\mathrm{sign}(s)$ Sharpe ratio at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance.}\label{tab:app_murphy_headline}\\
 \toprule
 group & $n$ & QLIKE & range & ES($c{=}1$) & EL & $RV$ side \% & $R$ side \% & Sharpe mid/crossed \\
 \midrule
@@ -15,13 +15,13 @@ group & $n$ & QLIKE & range & ES($c{=}1$) & EL & $RV$ side \% & $R$ side \% & Sh
 \endhead
 \bottomrule
 \endlastfoot
-paper & 9 & 0.107 & 0.105 to 0.123 & 0.092 & 0.371 & 70.2 & 57.3 & 1.28 / 0.80 \\
-pooled linear & 6 & 0.105 & 0.102 to 0.107 & 0.092 & 0.378 & 71.2 & 56.6 & 1.06 / 0.57 \\
-per-bar linear & 7 & 0.095 & 0.091 to 0.096 & 0.098 & 0.367 & 68.8 & 56.8 & 1.37 / 0.89 \\
-per-bar trees & 90 & 0.100 & 0.093 to 0.107 & 0.098 & 0.382 & 69.6 & 55.7 & 0.96 / 0.48 \\
-\textbf{model set} & 112 & 0.100 & 0.091 to 0.123 & 0.097 & 0.378 & 69.6 & 56.0 & 1.08 / 0.59 \\
-\raggedright oracle: told RV & & -- & & -- & 0.262 & 100.0 & 62.8 & 4.52 / 4.06 \\
-\raggedright oracle: told the payoff's sign & & -- & & -- & 0.000 & 62.8 & 100.0 & 17.35 / 17.28 \\
+paper & 9 & 0.109 & 0.108 to 0.127 & 0.094 & 0.371 & 70.1 & 57.3 & 1.28 / 0.80 \\
+pooled linear & 6 & 0.108 & 0.104 to 0.110 & 0.094 & 0.378 & 71.1 & 56.6 & 1.06 / 0.57 \\
+per-bar linear & 7 & 0.097 & 0.093 to 0.097 & 0.099 & 0.367 & 68.7 & 56.8 & 1.37 / 0.89 \\
+per-bar trees & 90 & 0.103 & 0.096 to 0.110 & 0.099 & 0.382 & 69.5 & 55.7 & 0.96 / 0.48 \\
+\textbf{model set} & 112 & 0.103 & 0.093 to 0.127 & 0.099 & 0.378 & 69.5 & 56.0 & 1.08 / 0.59 \\
+\raggedright oracle: told RV & & -- & & -- & 0.261 & 100.0 & 62.9 & 4.53 / 4.07 \\
+\raggedright oracle: told the payoff's sign & & -- & & -- & 0.000 & 62.9 & 100.0 & 17.35 / 17.28 \\
 \end{longtable}
 \endgroup
 
@@ -54,12 +54,12 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \newcommand{\hmurNPooled}{6}
 \newcommand{\hmurNPerbarLinear}{7}
 \newcommand{\hmurNTrees}{90}
-\newcommand{\hmurQLIKEMed}{0.100}
-\newcommand{\hmurQLIKEMin}{0.091}
-\newcommand{\hmurQLIKEMax}{0.123}
-\newcommand{\hmurESMed}{0.097}
-\newcommand{\hmurESMin}{0.087}
-\newcommand{\hmurESMax}{0.105}
+\newcommand{\hmurQLIKEMed}{0.103}
+\newcommand{\hmurQLIKEMin}{0.093}
+\newcommand{\hmurQLIKEMax}{0.127}
+\newcommand{\hmurESMed}{0.099}
+\newcommand{\hmurESMin}{0.088}
+\newcommand{\hmurESMax}{0.108}
 \newcommand{\hmurBestQLIKELabel}{per-bar lasso [all\_features], pre-tuned}
 \newcommand{\hmurBestESLabel}{LightGBM}
 \newcommand{\hmurHitVarMed}{70}
@@ -71,8 +71,8 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \newcommand{\hmurTopMed}{7}
 \newcommand{\hmurOracleAgree}{63}
 \newcommand{\hmurOracleMiss}{37}
-\newcommand{\hmurOracleShMid}{4.52}
-\newcommand{\hmurOracleShX}{4.06}
+\newcommand{\hmurOracleShMid}{4.53}
+\newcommand{\hmurOracleShX}{4.07}
 \newcommand{\hmurPayoffOracleShX}{17.28}
 \newcommand{\hmurLeaderAtOne}{LightGBM}
 \newcommand{\hmurLeaderAtOneGroup}{paper}
@@ -83,10 +83,10 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \newcommand{\hmurNLeadPooled}{3}
 \newcommand{\hmurNLeadPerbarLinear}{7}
 \newcommand{\hmurNLeadTrees}{9}
-\newcommand{\hmurRhoQX}{+0.18}
-\newcommand{\hmurRhoESX}{+0.50}
-\newcommand{\hmurRhoQMid}{+0.18}
-\newcommand{\hmurRhoESMid}{+0.50}
+\newcommand{\hmurRhoQX}{+0.20}
+\newcommand{\hmurRhoESX}{+0.54}
+\newcommand{\hmurRhoQMid}{+0.20}
+\newcommand{\hmurRhoESMid}{+0.55}
 \newcommand{\hsplNCovid}{39}
 \newcommand{\hsplNPin}{193}
 \newcommand{\hsplPinPct}{22.3}

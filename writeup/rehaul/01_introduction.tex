@@ -9,26 +9,37 @@
 % the calendar dummies \bm d_t and the loss differential d_t, g with the boosting gradient and the network branch);
 % all / HAR+cal -> full predictor set / HAR benchmark; per bar / pooled -> closing-interval / pooled intraday model;
 % s_t (signal) -> written out as \hat\sigma^2_t - \mathrm{IV}_t^2 (s is the periodicity factor); Sharpe -> \SR.
-% This is the first section to quote numbers, so it loads their macro files; each \input is guarded, so a later
-% guarded \input of the same file is a no-op.
-\ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
-\ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
-\ifdefined\rhfiNExog\else\input{generated/rehaul_fi_numbers}\fi
+% This is the first section to quote numbers, so it loaded their macro files (guarded \input).
+% 2026-10-15 (consolidation): calendar dummies \bm d_t -> \bm D_t (d_t is the DM loss differential); the minute
+% index k of r_{t,c,k} is a bound summation index only (k is the HAR horizon); upper limit 30 -> N_{t,c}.
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
+% \ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
+% \ifdefined\rhfiNExog\else\input{generated/rehaul_fi_numbers}\fi
 
 \section{Introduction}
+\label{sec:rh_intro}
 \begin{itemize}
 \item \textbf{Question.} At the forecast origin, 15:30 ET on trading day $t$, we forecast the realized variance of the
   S\&P 500 over the closing half hour (15:30--16:00 ET), $\E_t[\RV_t]$, where $\E_t[\cdot] \equiv \E[\,\cdot \mid
   \mathcal F_t]$ and the information set $\mathcal F_t$ holds all data through 15:30 on day $t$.
   \begin{itemize}
-  \item $\RV_t = \sum_{k=1}^{30} r_{t,c,k}^2$: the sum of squared one-minute log returns $r_{t,c,k}$ of E-mini
-    futures over the closing interval $i = c$ \citep{AndersenBollerslevDieboldLabys2003}.
+  % 2026-10-15 (consolidation): parked -- the upper limit 30 contradicts Data and Methods (N_{t,i} <= 30 varies).
+  % \item $\RV_t = \sum_{k=1}^{30} r_{t,c,k}^2$: the sum of squared one-minute log returns $r_{t,c,k}$ of E-mini
+  %   futures over the closing interval $i = c$ \citep{AndersenBollerslevDieboldLabys2003}.
+  \item $\RV_t = \sum_{k=1}^{N_{t,c}} r_{t,c,k}^2$: the sum of the squared one-minute log returns $r_{t,c,k}$ of
+    E-mini futures over the closing interval $i = c$, with $N_{t,c} \le 30$ the number of one-minute returns
+    \citep{AndersenBollerslevDieboldLabys2003}.
   % 2026-10-15 (notation pass): parked -- a straddle's payoff is |S_T - K|, set by the closing half hour's move,
   % not by its realized variance.
   % \item A 0DTE SPXW straddle opened at 15:30 settles on exactly that variance.
-  \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) straddle position, delta-neutral and at the money,
-    entered at 15:30 and held to expiration, settles at the 16:00 close: its payoff is set by the index move over
-    exactly this half hour.
+  % 2026-10-15 (consolidation): parked -- "delta-neutral" holds only approximately and only at entry (07_economics).
+  % \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) straddle position, delta-neutral and at the money,
+  %   entered at 15:30 and held to expiration, settles at the 16:00 close: its payoff is set by the index move over
+  %   exactly this half hour.
+  \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) at-the-money straddle position, approximately
+    delta-neutral at entry, entered at 15:30 and held unhedged to expiration, settles at the 16:00 close: its payoff
+    is set by the index move over exactly this half hour (Section~\ref{sec:rh_econ_strategy}).
   \item Forecast and position:
     \[
       \hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c}, \qquad
@@ -43,15 +54,17 @@
     the 15:30 at-the-money SPXW implied volatilities.
   \item $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties); the strategy's daily return is
     $q_t R_t$, with $R_t$ the straddle's simple return from 15:30 to settlement.
-  \item Sample: $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days with an SPXW expiration, 3 January 2020 to
-    30 April 2024, early closes excluded.
+  \item Sample: $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days with an SPXW expiration, \rheSampleStart{}
+    to \rheSampleEnd, early closes excluded.
   \end{itemize}
 \item \textbf{Why it matters.}
   \begin{itemize}
   \item Implied variance exceeds the forecast, $\hat\sigma^2_t < \mathrm{IV}_t^2$, on
     \cmSellPaperMin--\cmSellPaperMax\% of trading days, depending on the model, in line with a positive variance
     risk premium; a forecast adds value mainly by identifying the days on which to buy.
-  \item 0DTE options account for a large share of S\&P 500 index option volume.
+  \item 0DTE options account for a large share of S\&P 500 index option volume
+    \citep{BandiFusariReno2023, BeckmeyerBrangerGayda2023}.
+    % 2026-10-15 (bib pass): parked -- the typed citation, now \citep keys in references.bib. Was:
     % cite: Bandi, Fusari and Reno (2023); Beckmeyer, Branger and Gayda (2023) -- not yet in references.bib.
   \item The payoff depends on a single, pre-specified window, so the forecast target and the holding period
     coincide.
@@ -67,6 +80,7 @@
   \item Estimation sample $\mathcal I \in \bigl\{\{c\}, \{1, \dots, M\}\bigr\}$: the closing-interval model (the
     closing half hour only, one observation per trading day) vs the pooled intraday model (every 30-minute
     interval, $M = 48$).
+    % 2026-10-15 (consolidation): M = 48 is typed; no macro yet (generator: \rhdmNIntervals in make_rehaul_data_methods.py).
   \item Model class $m$: linear (OLS, ridge, lasso, elastic net), tree ensemble (random forest, LightGBM, XGBoost)
     or neural network (MinGRU), crossed with $(\mathcal X, \mathcal I)$.
   \end{itemize}
@@ -96,8 +110,9 @@
   \item \emph{Method.} A rolling-window out-of-sample exercise, re-estimated daily, in which every hyperparameter is
     selected on data before the forecast origin. We measure what re-estimation frequency, hyperparameter
     re-selection and search budgets add out of sample. Forecasts are retransformed as $\hat y_t^{\,2} s^2_{t,c}$,
-    with no smearing or recalibration. The model classes include a MinGRU recurrent network, regularized like the
-    linear models.
+    with no smearing or recalibration. The model classes include a MinGRU recurrent network \citep{Feng2024},
+    regularized like the linear models.
+    % 2026-10-15 (bib pass): parked -- the typed citation, now a \citep key in references.bib. Was:
     % MinGRU: Feng et al. (2024) -- not yet in references.bib.
   \item \emph{Findings.} The full predictor set lowers $\overline{\QLIKE}$ relative to the HAR benchmark in
     \fqsQLower{} of \fqsPairs{} pairs, \fqsQLowerSig{} of them significantly at the 5\% level. The closing-interval
@@ -131,6 +146,8 @@
     \cmMasterRankCorr{} (negative: a lower loss goes with a higher $\SR$).
   \item Of the \cmLdN{} single specification changes, \cmLdResolved{} moves $\SR$ significantly.
   \end{itemize}
-\item \textbf{Roadmap:} data, predictors, methods, statistical results (the predictor set, then the estimation
-  sample), the economic value of the straddle strategy, variable importance, conclusion.
+\item \textbf{Roadmap:} data (Section~\ref{sec:rh_data}), predictors (Section~\ref{sec:rh_predictors}), methods
+  (Section~\ref{sec:rh_methods}), statistical results, first for the predictor set and then for the estimation
+  sample (Section~\ref{sec:rh_results}), the economic value of the straddle strategy (Section~\ref{sec:rh_econ}),
+  variable importance (Section~\ref{sec:rh_fi}) and the conclusion (Section~\ref{sec:rh_conclusion}).
 \end{itemize}

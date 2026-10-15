@@ -6,9 +6,12 @@
 % 2026-10-15 (notation pass, writeup/NOTATION_GUIDE_2026-10-15.md): wording and symbols as in Methods. The two typed
 % counts (47 series, 628 columns) are now \rhfiNExog and \rhfiP (generated/rehaul_fi_numbers.tex, loaded below when
 % section 8 has not loaded it); a data-section macro (\bkNSeries, \campPNewAll) can replace them once loaded here.
-\ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
+% 2026-10-15 (consolidation): NW lag q -> q_NW (q_t is the position).
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
 
 \section{Appendix structure}
+\label{sec:rh_appendix}
 \begin{itemize}
 \item \textbf{A. Data and predictors:}
   \begin{itemize}
@@ -35,7 +38,7 @@
   \begin{itemize}
   \item full model table, tree ensembles included;
   \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag
-    truncation $q$);
+    truncation $q_{\mathrm{NW}}$);
   \item model confidence set, superior predictive ability, StepM;
   \item regime and break tests;
   \item closing-interval vs pooled intraday models;

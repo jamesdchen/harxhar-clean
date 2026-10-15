@@ -9,7 +9,8 @@
 %   figures/feature_importance_1530_over_time{,_linear}.pdf -- vector (writeup/feature_importance_1530_dedup_sections.py).
 % Table: generated/rehaul_app_featimp_harma.tex, a re-layout of generated/appendix_campaign_16h_featimp.tex (which
 % overflows the text width at \small).
-\ifdefined\rhappNdays\else\input{generated/rehaul_app_numbers}\fi
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\rhappNdays\else\input{generated/rehaul_app_numbers}\fi
 
 % Source: results/feature_importance_1530_dedup/fig_ranked_all_features.png (raster)
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
@@ -139,13 +140,15 @@
 % training window, in \% of the model's tail loss. \texttt{\_x\_close} share: the part of the old ladder's MDI that sat
 % on its \rhappNsessionEdgeHalf{} \texttt{\_x\_close} copies. MDI rank among the series. XGBoost and the random forest
 % also changed settings between the passes, so their before/after mixes that change with the design and the mask.
+% 2026-10-15 (consolidation): "opening-/closing-session dummies" -> opening-/closing-interval dummies (addenda A.3:
+% Open, Close).
 \item[] \textit{Notes:} Draft, measures under review. Closing-interval tree models on the full predictor set, first
 pass (old) $\to$ current design (new); the first pass includes the \rhappNsessionEdge{} interactions of the HAR
-components with the opening- and closing-session dummies and no column screening, the current design drops those
-interactions and screens out constant and duplicate columns in every estimation window. MDI and TreeSHAP: the HAR
+components with the opening- and closing-interval dummies and no column screening, the current design drops those
+interactions and screens out constant and duplicate columns in every estimation window. MDI and SHAP: the HAR
 components' share of the model's total; permutation $\Delta$QLIKE: the increase in QLIKE when their values are
 replaced by rows drawn from the estimation window, in percent of the model's out-of-sample loss. Close-interaction
-share: the part of the old MDI carried by the \rhappNsessionEdgeHalf{} closing-session interactions, which at the
+share: the part of the old MDI carried by the \rhappNsessionEdgeHalf{} closing-interval interactions, which at the
 closing interval are copies of the HAR components; MDI rank: rank among the series. XGBoost and the random forest
 also changed hyperparameters between the passes, so their changes mix design, screening and hyperparameters.
 \end{tablenotes}

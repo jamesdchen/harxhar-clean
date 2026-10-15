@@ -2,18 +2,20 @@
 % Source: writeup/generated/appendix_campaign_16h_cadence.tex (numbers verbatim; its sources are listed there)
 \begin{tabular}{@{}l*{6}{r}@{}}
 \toprule
- & \multicolumn{2}{c}{T1 $-$ T10} & \multicolumn{2}{c}{RS1 $-$ RS10} & \multicolumn{2}{c}{RS1 $-$ T1} \\
+ & \multicolumn{4}{c}{Re-estimated daily minus every 10 days} & \multicolumn{2}{c}{Random search} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-7}
+ & \multicolumn{2}{c}{Fixed hyperparameters} & \multicolumn{2}{c}{Random search} & \multicolumn{2}{c}{minus fixed} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Model & QLIKE & $\Delta$SR & QLIKE & $\Delta$SR & QLIKE & $\Delta$SR \\
+Model & $\Delta$QLIKE (\%) & $\Delta\SR$ & $\Delta$QLIKE (\%) & $\Delta\SR$ & $\Delta$QLIKE (\%) & $\Delta\SR$ \\
 \midrule
-\multicolumn{7}{@{}l}{\emph{HAR + calendar}} \\
-\quad LightGBM & \ensuremath{-}0.8 & \ensuremath{+}0.06 & \ensuremath{+}0.2 & \ensuremath{-}0.31 & \ensuremath{+}5.9 & \ensuremath{-}0.15 \\
-\quad XGBoost & \ensuremath{+}0.1 & \ensuremath{-}0.25 & \ensuremath{-}0.2 & \ensuremath{-}0.42 & \ensuremath{+}9.3 & \ensuremath{-}0.38 \\
-\quad Random forest & \ensuremath{-}1.5 & \ensuremath{-}0.31 & \ensuremath{+}0.1 & \ensuremath{+}0.03 & \ensuremath{+}9.4 & \ensuremath{+}0.01 \\
+\multicolumn{7}{@{}l}{\textit{Panel A: HAR benchmark}} \\
+LightGBM & $-0.7$ & $0.06$ & $0.2$ & $-0.31$ & $6.2$ & $-0.15$ \\
+XGBoost & $0.1$ & $-0.25$ & $-0.1$ & $-0.42$ & $9.7$ & $-0.38$ \\
+Random forest & $-1.4$ & $-0.31$ & $0.2$ & $0.03$ & $10.0$ & $0.01$ \\
 \addlinespace
-\multicolumn{7}{@{}l}{\emph{All features}} \\
-\quad LightGBM & \ensuremath{-}2.4 & \ensuremath{-}0.04 & \ensuremath{-}1.6 & \ensuremath{-}0.20 & \ensuremath{+}2.9 & \ensuremath{+}0.28 \\
-\quad XGBoost & \ensuremath{-}3.6 & \ensuremath{-}0.43 & \ensuremath{-}2.2 & \ensuremath{+}0.09 & \ensuremath{+}5.3 & \ensuremath{+}0.65 \\
-\quad Random forest & \ensuremath{-}1.6 & \ensuremath{-}0.43 & \ensuremath{-}3.7 & \ensuremath{+}0.06 & \ensuremath{+}5.6 & \ensuremath{+}0.33 \\
+\multicolumn{7}{@{}l}{\textit{Panel B: Full predictor set}} \\
+LightGBM & $-2.2$ & $-0.04$ & $-1.5$ & $-0.20$ & $3.0$ & $0.28$ \\
+XGBoost & $-3.3$ & $-0.43$ & $-2.0$ & $0.09$ & $5.4$ & $0.65$ \\
+Random forest & $-1.4$ & $-0.43$ & $-3.7$ & $0.06$ & $5.4$ & $0.33$ \\
 \bottomrule
 \end{tabular}

@@ -39,8 +39,22 @@
 \setlist{itemsep=1pt, topsep=3pt, parsep=0pt}
 \setlist[itemize,2]{label=--}
 \newcommand{\todo}[1]{\textit{[#1]}}
+% 2026-10-15 (consolidation): every macro-only number file is loaded once, here. Each file holds definitions only (no
+% tables, checked), and no macro name is defined in two of them. The in-body \input lines of these files in the section
+% files are parked, so nothing is defined twice. Generators: make_table_close_main.py (close_main_numbers),
+% make_fig_qlike_sharpe.py (fig_qlike_sharpe_numbers), make_rehaul_results.py, make_rehaul_economics.py,
+% make_rehaul_fi.py, make_rehaul_appendix.py (rehaul_*_numbers).
+\input{generated/close_main_numbers}
+\input{generated/fig_qlike_sharpe_numbers}
+\input{generated/rehaul_results_numbers}
+\input{generated/rehaul_econ_numbers}
+\input{generated/rehaul_fi_numbers}
+\input{generated/rehaul_app_numbers}
 
-\title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
+% 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
+% \title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
+\title{Forecasting the Variance of the Closing Half Hour for 0DTE SPX Options\\\large Bullet-point draft of the full
+paper}
 \author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
 \date{Working draft, 15 October 2026 --- not for citation}
 

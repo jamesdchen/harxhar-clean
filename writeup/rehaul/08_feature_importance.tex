@@ -18,11 +18,18 @@
 % factor); B_A (Borda) -> \mathrm{BC}_A; tie sizes \tau_{kg} -> |g|, g in \mathcal G_k (tau is the network step);
 % H^2 points x_i and background b -> days t, t' in \mathcal H_k (i is the intraday interval).
 % The generated floats (make_rehaul_fi.py) still print the old symbols ($T_k$, $\beta^{(k)}_j$, "unit", code names).
-\ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
+% 2026-10-15 (consolidation): the floats now print this section's symbols. Selection count N_A, N_j -> K_A, K_j (N is
+% the one-minute count N_{t,i}, the symbol of the numobs series in the tables); group interaction Phi_{t,AB} ->
+% phi_{t,AB} (Phi is the standard normal distribution function); tie sets \mathcal G_k -> \mathcal E_k (\mathcal G is
+% the interval grid, Data); the ridge's standardized share S^{sd}_A (as in tab:rh_fi_summary, tab:rh_fi_linear);
+% "buckets" -> categories. The refit index stays k, subscripted (guide 6b); HAR horizons are the superscript (k).
+% 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
+% \ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
 
 % 2026-10-15 (notation pass): parked -- old title; "variable importance" is the language of Gu, Kelly and Xiu (2020).
 % \section{Feature importance}
 \section{Variable importance}
+\label{sec:rh_fi}
 \begin{itemize}
 \item \textbf{Models:} the closing-interval models of record on the full predictor set ($p = \rhfiP$).
   \begin{itemize}
@@ -49,7 +56,7 @@
     scale of the target $y_t$, the periodicity-adjusted realized volatility of the closing half hour.
   \item Predictor group $A \subseteq \{1, \dots, p\}$: all predictors built from one series (its averages at every
     horizon, its missing-data and activity indicators). \rhfiNUnits{} groups: \rhfiNExog{} exogenous series in
-    \rhfiNBuckets{} buckets, the HAR components, the calendar dummies.
+    \rhfiNBuckets{} categories (Section~\ref{sec:rh_predictors}), the HAR components, the calendar dummies.
   \item Linear models: $\hat{\bm\beta}_k \in \mathbb{R}^p$, the coefficient estimates behind the forecast for $t_k$;
     $\hat{\bm\beta}_{k,A}$, its subvector on group $A$.
   \item Trees: SHAP values $\phi_{t,j}$ \citep{lundberg2017unified} and SHAP interaction values $\phi_{t,jl}$
@@ -63,12 +70,15 @@
     for the background sample.
   \item Number triples below: LightGBM, XGBoost, random forest.
   \end{itemize}
-\item \textbf{Lasso, aggregate:} the selection count of a group and of a predictor,
+\item \textbf{Lasso, aggregate:} the selection count of a group and of a predictor, the number of the $K$ refits
+  with a nonzero coefficient (Tables~\ref{tab:rh_fi_summary} and~\ref{tab:rh_fi_linear}),
   \[
-    N_A = \sum_{k=1}^{K} \mathbf{1}\bigl\{\exists j \in A:\ \hat\beta_{k,j} \ne 0\bigr\}, \qquad
-    N_j = \sum_{k=1}^{K} \mathbf{1}\bigl\{\hat\beta_{k,j} \ne 0\bigr\};
+    K_A = \sum_{k=1}^{K} \mathbf{1}\bigl\{\exists j \in A:\ \hat\beta_{k,j} \ne 0\bigr\}, \qquad
+    K_j = \sum_{k=1}^{K} \mathbf{1}\bigl\{\hat\beta_{k,j} \ne 0\bigr\};
   \]
-  $N_A / K$ is the selection frequency, the share of estimation windows with a nonzero coefficient.
+  $K_A / K$ is the selection frequency, the share of estimation windows with a nonzero coefficient.
+  % 2026-10-15 (consolidation): parked -- N_A, N_j (N is the one-minute count and the numobs series' symbol).
+  % N_A = \sum_{k=1}^{K} \mathbf{1}\{\exists j \in A: \hat\beta_{k,j} \ne 0\}, N_j = \sum_k \mathbf{1}\{\hat\beta_{k,j} \ne 0\}.
   \begin{itemize}
   \item Per refit: \rhfiLassoNzMed{} nonzero coefficients (median; range \rhfiLassoNzMin--\rhfiLassoNzMax), of which
     \rhfiLassoExogNzMed{} on exogenous predictors.
@@ -104,15 +114,23 @@
       range \rhfiScaleValueIqr.
     \item Averaged missing-data and activity indicators (\rhfiScaleFlagN): standard deviation \rhfiScaleFlagSd;
       calendar dummies \rhfiScaleCalSd; HAR components \rhfiScaleHarSd.
-    \item So the raw $|\hat\beta_{k,j}|$ are in different units. Check with absolute standardized coefficients:
-      $\sum_k \sum_{j\in A} |\hat\beta_{k,j}|\, \mathrm{sd}_{k,j}$, with $\mathrm{sd}_{k,j}$ the standard deviation of
-      predictor $j$ over $\mathcal W_{t_k}$; Spearman rank correlation with $S_A$ across groups \rhfiRidgeSpearmanSd.
+    \item So the raw $|\hat\beta_{k,j}|$ are in different units. Check with the group's share of the absolute
+      standardized coefficients,
+      \[
+        S^{\mathrm{sd}}_A = \frac{\sum_{k} \sum_{j \in A} |\hat\beta_{k,j}|\, \mathrm{sd}_{k,j}}
+          {\sum_{k} \sum_{j=1}^{p} |\hat\beta_{k,j}|\, \mathrm{sd}_{k,j}},
+      \]
+      with $\mathrm{sd}_{k,j}$ the standard deviation of predictor $j$ over $\mathcal W_{t_k}$
+      (Tables~\ref{tab:rh_fi_summary} and~\ref{tab:rh_fi_linear}); Spearman rank correlation of $S^{\mathrm{sd}}_A$
+      with $S_A$ across groups \rhfiRidgeSpearmanSd.
+      % 2026-10-15 (consolidation): parked -- the unnamed sum; S^{sd}_A is the generator's symbol (make_rehaul_fi.py).
+      % Check with absolute standardized coefficients: $\sum_k \sum_{j\in A} |\hat\beta_{k,j}|\, \mathrm{sd}_{k,j}$, ...
     \item Leading groups on that scale: \rhfiRidgeSdTopOne{} \rhfiRidgeSdTopOneShare\,\%, \rhfiRidgeSdTopTwo{}
       \rhfiRidgeSdTopTwoShare\,\%, \rhfiRidgeSdTopThree{} \rhfiRidgeSdTopThreeShare\,\%.
     \end{itemize}
   \item Leading groups: \rhfiRidgeTopOne{} \rhfiRidgeTopOneShare\,\%, \rhfiRidgeTopTwo{} \rhfiRidgeTopTwoShare\,\%,
     \rhfiRidgeTopThree{} \rhfiRidgeTopThreeShare\,\%; HAR benchmark block \rhfiRidgeBackboneShare\,\% (median refit).
-  \item Ridge sets no coefficient to zero: all \rhfiRidgeAllSelected{} groups have $N_A = K$, so the selection frequency
+  \item Ridge sets no coefficient to zero: all \rhfiRidgeAllSelected{} groups have $K_A = K$, so the selection frequency
     does not discriminate.
   \item Random-probe benchmark: \rhfiRidgeProbeBeat{} predictors, in \rhfiRidgeProbeBeatSeries{} exogenous series, have
     $|\hat\beta_{k,j}|$ above the continuous probe's (robust-scaled) in most probe fits.
@@ -123,7 +141,7 @@
   (Table~\ref{tab:rh_fi_linear}, ridge columns, mean rank by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$); Kendall's
   $W = \rhfiRidgeW$.
 \item \textbf{Trees, per-refit ranking:} the group's mean absolute SHAP value on the refit's out-of-sample block, then
-  its rank,
+  its rank (Table~\ref{tab:rh_fi_trees}, Figure~\ref{fig:rh_fi_ranks}),
   \[
     I_{k,A} = \frac{1}{|\mathcal O_k|} \sum_{t \in \mathcal O_k} |\phi_{t,A}|, \qquad
     r_{k,A} = 1 + \#\{A' : I_{k,A'} > I_{k,A}\} \quad \text{(ties averaged)}.
@@ -135,13 +153,15 @@
   \]
   \begin{itemize}
   \item $\mathrm{BC}_A$: truncated Borda count (a full Borda count is affine in $\bar r_A$).
-  \item Kendall's coefficient of concordance over the $K$ rankings of the $n$ groups, with rank sums
+  \item Kendall's coefficient of concordance \citep{KendallBabingtonSmith1939} over the $K$ rankings of the $n$
+    groups, with rank sums
     $R_A = \sum_k r_{k,A}$ and their mean $\bar R$:
     \[
       W = \frac{12 \sum_{A} \bigl(R_A - \bar R\bigr)^2}
-        {K^2 (n^3 - n) - K \sum_{k} \sum_{g \in \mathcal G_k} \bigl(|g|^3 - |g|\bigr)},
+        {K^2 (n^3 - n) - K \sum_{k} \sum_{g \in \mathcal E_k} \bigl(|g|^3 - |g|\bigr)},
     \]
-    $\mathcal G_k$ the sets of tied groups in refit $k$; $W = 1$: the same ranking at every refit.
+    $\mathcal E_k$ the sets of tied (equally ranked) groups in refit $k$; $W = 1$: the same ranking at every refit.
+    % 2026-10-15 (consolidation): \mathcal G_k -> \mathcal E_k (\mathcal G is the interval grid of the Data section).
   \item LightGBM: \rhfiLgbmTopOne{} ($\bar r_A = \rhfiLgbmTopOneRank$), \rhfiLgbmTopTwo{} (\rhfiLgbmTopTwoRank),
     \rhfiLgbmTopThree{} (\rhfiLgbmTopThreeRank); Kendall's $W = \rhfiLgbmW$.
   \item XGBoost: \rhfiXgbTopOne{} (\rhfiXgbTopOneRank), \rhfiXgbTopTwo{} (\rhfiXgbTopTwoRank), \rhfiXgbTopThree{}
@@ -157,11 +177,13 @@
     tree vs linear \rhfiSpTreeLinMin--\rhfiSpTreeLinMax; lasso vs ridge \rhfiSpLassoRidge.
   \end{itemize}
 \item \textbf{Interaction effects, global:} the mean absolute SHAP interaction value of two groups over the
-  out-of-sample period,
+  out-of-sample period (Table~\ref{tab:rh_fi_inter}),
   \[
-    \Phi_{t,AB} = \sum_{j \in A} \sum_{l \in B} \bigl(\phi_{t,jl} + \phi_{t,lj}\bigr), \qquad
-    \bar I_{AB} = \frac{1}{|\mathcal O|} \sum_{t \in \mathcal O} |\Phi_{t,AB}|, \quad A \ne B;
+    \phi_{t,AB} = \sum_{j \in A} \sum_{l \in B} \bigl(\phi_{t,jl} + \phi_{t,lj}\bigr), \qquad
+    \bar I_{AB} = \frac{1}{|\mathcal O|} \sum_{t \in \mathcal O} |\phi_{t,AB}|, \quad A \ne B;
   \]
+  % 2026-10-15 (consolidation): parked -- \Phi_{t,AB} (Phi is the standard normal distribution function, Methods).
+  % \Phi_{t,AB} = \sum_{j \in A} \sum_{l \in B} (\phi_{t,jl} + \phi_{t,lj}), \bar I_{AB} = |O|^{-1} \sum_t |\Phi_{t,AB}|.
   for two predictors, $|\phi_{t,jl} + \phi_{t,lj}|$, $j \ne l$.
   \begin{itemize}
   \item $\phi_{t,jl} = \tfrac12\bigl(\phi_{t,l} \mid j \text{ present} - \phi_{t,l} \mid j \text{ absent}\bigr)$,
@@ -178,7 +200,7 @@
     \rhfiLgbmInterFloor, \rhfiXgbInterFloor, \rhfiRfInterFloor{} ($\times 10^{-3}$); series pairs above it:
     \rhfiLgbmInterAboveFloor, \rhfiXgbInterAboveFloor, \rhfiRfInterAboveFloor{} of \rhfiNPairs.
   \end{itemize}
-\item \textbf{Interaction effects, cross-check:} the $H$-statistic of Friedman and Popescu (2008) on each model's top
+\item \textbf{Interaction effects, cross-check:} the $H$-statistic of \citet{FriedmanPopescu2008} on each model's top
   \rhfiHTopSeries{} series pairs, from the partial dependence functions $\mathrm{PD}_S$, $S \in \{A, B, AB\}$,
   $AB \equiv A \cup B$:
   \[
@@ -203,10 +225,10 @@
   \item Top predictor pair, $H^2$ (\%) and $H^2_{\min}$: LightGBM \rhfiLgbmHColTop, \rhfiLgbmHMinColTop; XGBoost
     \rhfiXgbHColTop, \rhfiXgbHMinColTop; random forest \rhfiRfHColTop, \rhfiRfHMinColTop.
   \end{itemize}
-\item \textbf{Interaction effects, time-varying:} $\Phi_{t,AB}$ on each refit's out-of-sample block, ranked per refit,
+\item \textbf{Interaction effects, time-varying:} $\phi_{t,AB}$ on each refit's out-of-sample block, ranked per refit,
   aggregated as the SHAP values are,
   \[
-    I_{k,AB} = \frac{1}{|\mathcal O_k|} \sum_{t \in \mathcal O_k} |\Phi_{t,AB}| \ \to\ r_{k,AB} \ \to\ \bar r_{AB},\ W .
+    I_{k,AB} = \frac{1}{|\mathcal O_k|} \sum_{t \in \mathcal O_k} |\phi_{t,AB}| \ \to\ r_{k,AB} \ \to\ \bar r_{AB},\ W .
   \]
   \begin{itemize}
   \item Kendall's $W$ over each model's top \rhfiTopWPairs{} pairs: \rhfiLgbmInterW, \rhfiXgbInterW, \rhfiRfInterW.
@@ -215,8 +237,8 @@
   \end{itemize}
 \item \textbf{Known issues, reconciled:}
   \begin{itemize}
-  \item Mean decrease in impurity (MDI) favors predictors with many distinct values (Strobl, Boulesteix, Zeileis and
-    Hothorn 2007): MDI is not used; SHAP values and coefficients only.
+  \item Mean decrease in impurity (MDI) favors predictors with many distinct values
+    \citep{StroblBoulesteixZeileisHothorn2007}: MDI is not used; SHAP values and coefficients only.
   \item Random probes, at every third refit (\rhfiNProbe{} fits): three i.i.d.\ noise predictors, continuous
     ($\mathrm{U}(0,1)$), discrete uniform on \rhfiProbeLevels{} levels, and binary (Bernoulli, probability one half).
     % experiments/rehaul_fi_compute.py:219-228, 381-389 (rng.random; floor(rng.random * PROBE_LEVELS); rng.random < 0.5).
@@ -234,7 +256,7 @@
     group's predictors, so credit split among a series' averages at different horizons stays inside the group.
   \item The earlier study's single-penalty lasso ($\lambda$ re-selected): median \rhfiOldLassoNzMed{} nonzero
     coefficients per refit; \rhfiOldLassoExogMajority{} exogenous series selected in at least half of the refits;
-    Spearman rank correlation of its $N_A$ with that of the lasso of record \rhfiOldLassoSpearman.
+    Spearman rank correlation of its $K_A$ with that of the lasso of record \rhfiOldLassoSpearman.
   \item Re-estimation: LightGBM reproduces the archived refits exactly; XGBoost and the random forest differ across
     library versions (maximum absolute forecast difference \rhfiXgbPredGap{} and \rhfiRfPredGap, in units of $y_t$).
     SHAP values: the archived refits'; interaction values: the re-estimated ones' (Spearman rank correlation of
