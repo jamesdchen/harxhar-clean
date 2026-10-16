@@ -114,9 +114,16 @@
 \item \textbf{Closing-interval scheme:} $W = \cmPtFitWin$ trading days for every model class; re-estimated every
   trading day, except the tree specifications re-estimated every 10 trading days (fixed hyperparameters or random
   search).
-\item \textbf{Pooled intraday scheme:} $M = \rhdmNIntervals$ intervals a day; the full predictor set has
-  \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
+% 2026-10-16 (user): scheme definition moved here from Methods (Training schemes, sec:rh_methods_schemes):
+% $\mathcal I$, overnight, one observation per interval, $\mathcal W_{t,i}$, and scoring only $i = c$ at 15:30.
+% Window lengths, $M$ and re-estimation frequencies were already in this subsection.
+\item \textbf{Pooled intraday scheme} ($\mathcal I = \{1, \dots, M\}$), the paper's training scheme: estimated on
+  all $M = \rhdmNIntervals$ intervals of each day, overnight included; one observation per interval, so a period is
+  an intraday interval and $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$ holds the $W$ intervals before
+  $(t,i)$. The full predictor set has \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
   \begin{itemize}
+  \item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and
+    traded.
   \item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval.
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
   \item Trees: $W = \rhdmPooledWindow$ intervals; one fixed hyperparameter configuration per tree method, never

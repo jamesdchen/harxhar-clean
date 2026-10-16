@@ -59,7 +59,7 @@
 % (Section~\ref{sec:rh_methods_schemes})."
 \item \textbf{Rolling-window out-of-sample exercise,} re-estimated every period; every predictor is in the
   information set $\mathcal F_t$ at the 15:30 ET forecast origin. A period is a 30-minute intraday interval under the
-  pooled intraday scheme (Section~\ref{sec:rh_methods_schemes}) and a trading day for the benchmark forecast
+  pooled intraday scheme (Appendix~\ref{sec:rh_exp_schemes}) and a trading day for the benchmark forecast
   (Section~\ref{sec:rh_results_eval}).
 \item \textbf{Notation:} $t = 1, \dots, T$ indexes trading days and $i = 1, \dots, M$ the 30-minute intraday
   intervals of day $t$, overnight included; $i = c$ is the closing interval, the closing half hour (15:30--16:00 ET).
@@ -134,24 +134,27 @@
   \item Jensen bias, downward, not corrected and disclosed:
     $\E_t[y_t^2] - (\E_t[y_t])^2 = \Var_t(y_t) \ge 0$.
   \end{itemize}
+% 2026-10-16 (user): parked -- Scoring loss removed. The cancelled display and the cancellation
+% ($s^2_{t,c}$, unwinsorized $y_t$) are in Forecast evaluation (sec:rh_results_eval); the function stays in
+% Related work. Was:
 % 2026-10-16 (formula pass): parked -- the display was the generic QLIKE and then
 % L_t = QLIKE(RV_t, hat sigma^2_t) = QLIKE(y_t^2, hat y_t^2), so the scored loss sat two substitutions past the
 % display (hat sigma^2_t = hat y_t^2 s^2_{t,c} and RV_t = y_t^2 s^2_{t,c}). The function itself is defined once,
 % in Related work. The display below is the loss after that cancellation.
-\item \textbf{Scoring loss:} QLIKE, robust to noise in the realized-variance proxy \citep{Patton2011}
-  (Section~\ref{sec:rh_related}), evaluated at the actual (unwinsorized) realized variance. After the diurnal
-  adjustment cancels it is
-  \[
-    L_t = \frac{y_t^2}{\hat y_t^{\,2}} - \log\frac{y_t^2}{\hat y_t^{\,2}} - 1
-      = \QLIKE\bigl(\RV_t,\, \hat\sigma^2_t\bigr).
-  \]
+% \item \textbf{Scoring loss:} QLIKE, robust to noise in the realized-variance proxy \citep{Patton2011}
+%   (Section~\ref{sec:rh_related}), evaluated at the actual (unwinsorized) realized variance. After the diurnal
+%   adjustment cancels it is
+%   \[
+%     L_t = \frac{y_t^2}{\hat y_t^{\,2}} - \log\frac{y_t^2}{\hat y_t^{\,2}} - 1
+%       = \QLIKE\bigl(\RV_t,\, \hat\sigma^2_t\bigr).
+%   \]
   % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (user decision 2026-10-15,
   % data audit #10); the old display scored the winsorized target:
   % L_t = \QLIKE\bigl(y_t^2 B_t,\, \hat\sigma^2_t\bigr) = \QLIKE\bigl(y_t^2,\, \hat y_t^{\,2}\bigr), y_t = winsorized.
-  \begin{itemize}
-  \item The equality is $s^2_{t,c}$ cancelling, with the unwinsorized $y_t$. Scores use $\RV_t$, not the
-    winsorized $\tilde y_t^{\,2} s^2_{t,c}$; the models still fit $\tilde y$.
-  \end{itemize}
+%   \begin{itemize}
+%   \item The equality is $s^2_{t,c}$ cancelling, with the unwinsorized $y_t$. Scores use $\RV_t$, not the
+%     winsorized $\tilde y_t^{\,2} s^2_{t,c}$; the models still fit $\tilde y$.
+%   \end{itemize}
   % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (user decision 2026-10-15, data
   % audit #10). Old comment:
   % Code vs paper: sections/methods.tex:183-185 scores against raw RV_t, never winsorised. The scorer
@@ -161,8 +164,8 @@
   % pointers above (master_table_close.py:29-31, rows.py:602) are the pre-switch scorer.
 % 2026-10-15 (notation pass): the "Fit objective" bullet moved below the windows, which define its sample.
 \item \textbf{Rolling estimation window} $\mathcal W_t = \{t - W, \dots, t-1\}$: the last $W$ periods before the
-  forecast origin; $\mathcal I$ denotes the intervals used in estimation ($\mathcal I$ for each scheme:
-  Section~\ref{sec:rh_methods_schemes}; values of $W$: Appendix~\ref{sec:rh_exp_schemes}).
+  forecast origin; $\mathcal I$ denotes the intervals used in estimation ($\mathcal I$ and $W$ for each scheme:
+  Appendix~\ref{sec:rh_exp_schemes}).
   % 2026-10-15 (user): parked -- moved to Training schemes (the scheme-specific windows). Was:
   % \item \textbf{Rolling estimation window} $\mathcal W_t = \{t - W, \dots, t-1\}$ of length $W$.
   %   \begin{itemize}
@@ -447,8 +450,12 @@
 %   \end{itemize}
 \end{itemize}
 
-\subsection{Training schemes}
-\label{sec:rh_methods_schemes}
+% 2026-10-16 (user): parked -- Training schemes removed. Ported into Appendix~\ref{sec:rh_exp_schemes}:
+% $\mathcal I = \{1, \dots, M\}$, overnight included, one observation per interval (a period is an intraday
+% interval), $\mathcal W_{t,i}$, and that only the closing-interval forecasts at 15:30 are scored and traded.
+% Was:
+% \subsection{Training schemes}
+% \label{sec:rh_methods_schemes}
 % 2026-10-15 (user): conceptual only (which intervals enter estimation, one observation per day or per interval,
 % what a period is); the window lengths, re-estimation frequencies and the pooled panel's size are in
 % "Experimental setup" (06_results.tex, sec:rh_exp_setup). The first version of this subsection, with the numbers,
@@ -467,17 +474,17 @@
 % \item Values of $W$ and $M$, re-estimation frequencies and the pooled predictor panel:
 %   Appendix~\ref{sec:rh_exp_schemes}.
 % \end{itemize}
-\begin{itemize}
-\item \textbf{Pooled intraday scheme} (the pooled intraday model, $\mathcal I = \{1, \dots, M\}$), the paper's
-  training scheme: estimated on all $M$ 30-minute intervals of each day, overnight included; one observation per
-  interval, so a period is an intraday interval and the window $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$
-  holds the $W$ intervals before $(t,i)$.
-\item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded.
-\item Values of $W$ and $M$, re-estimation frequencies and the pooled predictor panel:
-  Appendix~\ref{sec:rh_exp_schemes}.
-\item A refinement that trains on the last 30 minutes of each trading day only is the subject of
-  Section~\ref{sec:rh_econ_last30}.
-\end{itemize}
+% \begin{itemize}
+% \item \textbf{Pooled intraday scheme} (the pooled intraday model, $\mathcal I = \{1, \dots, M\}$), the paper's
+%   training scheme: estimated on all $M$ 30-minute intervals of each day, overnight included; one observation per
+%   interval, so a period is an intraday interval and the window $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$
+%   holds the $W$ intervals before $(t,i)$.
+% \item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded.
+% \item Values of $W$ and $M$, re-estimation frequencies and the pooled predictor panel:
+%   Appendix~\ref{sec:rh_exp_schemes}.
+% \item A refinement that trains on the last 30 minutes of each trading day only is the subject of
+%   Section~\ref{sec:rh_econ_last30}.
+% \end{itemize}
 % 2026-10-15 (user): parked -- moved to Experimental setup (06_results.tex), the numbers being implementation. Was:
 % % 2026-10-15 (user): new subsection. The two training schemes, formerly split across Problem formulation (the
 % % windows, the closing-interval observation) and Models (the pooled intraday trees); the generic definitions stay in
@@ -544,9 +551,16 @@
   % 2026-10-15 (user): numbers removed -- "(15:30--16:00 ET)" (the closing interval, defined in Problem formulation)
   % and "T_oos = \rhrDays trading days"; the clause "in the HAC formulas, t - j is the out-of-sample day j days
   % before t" is covered by Statistical tests ("numbered t = 1, ..., |O| in time order").
-\item \textbf{Loss.} The daily QLIKE loss $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$ \citep{Patton2011}, defined in
-  % Section~\ref{sec:rh_methods_setup}, and its out-of-sample average:  % 2026-10-15: parked -- "over T_oos"
-  Section~\ref{sec:rh_methods_setup}, and its average over $\mathcal T_{\mathrm{oos}}$:
+% 2026-10-16 (user): the scoring-loss display moved here from Problem formulation. Was: "The daily QLIKE loss
+% $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$ \citep{Patton2011}, defined in Section~\ref{sec:rh_methods_setup}, and its
+% average over $\mathcal T_{\mathrm{oos}}$" (the "over $T_{\mathrm{oos}}$" wording was parked 2026-10-15).
+\item \textbf{Loss.} The daily QLIKE loss \citep{Patton2011}, robust to noise in the realized-variance proxy
+  (Section~\ref{sec:rh_related}). After the diurnal adjustment cancels ($s^2_{t,c}$, with the unwinsorized $y_t$),
+  \[
+    L_t = \frac{y_t^2}{\hat y_t^{\,2}} - \log\frac{y_t^2}{\hat y_t^{\,2}} - 1
+      = \QLIKE\bigl(\RV_t,\, \hat\sigma^2_t\bigr),
+  \]
+  and its average over $\mathcal T_{\mathrm{oos}}$:
   \[
   \overline{\QLIKE} = \bar L = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} L_t .
   \]
